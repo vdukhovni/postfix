@@ -117,6 +117,11 @@
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	This functionality is available only when explicitly selected
 /*	at program build time and explicitly enabled at runtime.
+/* .IP \fBsmtpd_sasl_application_name\fR
+/*	The application name used for SASL server initialization.  This
+/*	controls the name of the SASL configuration file.  The default
+/*	value is \fIsmtpd\fR, corresponding to a SASL configuration file
+/*	named \fIsmtpd.conf\fR.
 /* .IP \fBsmtpd_sasl_local_domain\fR
 /*	The name of the local authentication realm.
 /* .IP \fBsmtpd_sasl_security_options\fR
@@ -529,6 +534,7 @@ bool    var_allow_untrust_route;
 int     var_smtpd_junk_cmd_limit;
 bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
+char   *var_smtpd_sasl_appname;
 char   *var_smtpd_sasl_realm;
 char   *var_smtpd_sasl_exceptions_networks;
 char   *var_filter_xport;
@@ -2497,6 +2503,7 @@ int     main(int argc, char **argv)
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
+	VAR_SMTPD_SASL_APPNAME, DEF_SMTPD_SASL_APPNAME, &var_smtpd_sasl_appname, 1, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 0, 0,
 	VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS, DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS, &var_smtpd_sasl_exceptions_networks, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,

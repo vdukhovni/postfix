@@ -25,10 +25,27 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
        The general form of a PCRE table is:
 
        <b>/</b><i>pattern</i><b>/</b><i>flags result</i>
+              When <i>pattern</i> matches the input string, use the cor-
+              responding <i>result</i> value.
 
        <b>!/</b><i>pattern</i><b>/</b><i>flags result</i>
-              When <i>pattern</i> matches  (does  not  match)  a  search
-              string, use the corresponding <i>result</i> value.
+              When  <i>pattern</i>  does <b>not</b> match the input string, use
+              the corresponding <i>result</i> value.
+
+       <b>if /</b><i>pattern</i><b>/</b><i>flags</i>
+
+       <b>endif</b>  Match the input string against the patterns between
+              <b>if</b>  and <b>endif</b>, if and only if the input string also
+              matches <i>pattern</i>. The <b>if</b>..<b>endif</b> can nest.
+
+              Note: do not prepend whitespace to patterns  inside
+              <b>if</b>..<b>endif</b>.
+
+       <b>if !/</b><i>pattern</i><b>/</b><i>flags</i>
+
+       <b>endif</b>  Match the input string against the patterns between
+              <b>if</b> and <b>endif</b>, if and only if the input string  does
+              <b>not</b> match <i>pattern</i>. The <b>if</b>..<b>endif</b> can nest.
 
        blank lines and comments
               Empty  lines and whitespace-only lines are ignored,
@@ -39,20 +56,6 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
               A  logical  line starts with non-whitespace text. A
               line that starts with whitespace continues a  logi-
               cal line.
-
-       <b>if /</b><i>pattern</i><b>/</b><i>flags</i>
-
-       <b>endif</b>
-
-       <b>if !/</b><i>pattern</i><b>/</b><i>flags</i>
-
-       <b>endif</b>  Match   the  search  string  against  the  patterns
-              between <b>if</b> and <b>endif</b>, if and  only  if  the  search
-              string   matches  (does  not  match)  <i>pattern</i>.  The
-              <b>if</b>..<b>endif</b> can nest.
-
-              Note: do not prepend whitespace to patterns  inside
-              <b>if</b>..<b>endif</b>.
 
        Each  pattern  is  a  perl-like  regular  expression.  The
        expression delimiter can be any character, except  whites-
@@ -127,10 +130,10 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
 <b>SEARCH ORDER</b>
        Patterns are applied in the  order  as  specified  in  the
-       table,  until  a  pattern is found that matches the search
+       table,  until  a  pattern  is found that matches the input
        string.
 
-       Each pattern is applied to the entire lookup  key  string.
+       Each pattern  is  applied  to  the  entire  input  string.
        Depending  on  the  application,  that string is an entire
        client hostname, an entire client IP address, or an entire
        mail  address.   Thus,  no parent domain or parent network

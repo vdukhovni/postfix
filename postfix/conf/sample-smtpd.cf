@@ -498,8 +498,9 @@ smtpd_helo_restrictions =
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
 #  +reject_unlisted_sender: reject a sender address in a local, virtual or
 #	relay domain that is not listed as a valid address.
-#	This restriction is automatically added at the end if not explicitly
-#	specified.
+#	If not executed as part of smtpd_sender_restrictions, this restriction
+#	is automatically executed after smtpd_sender_restrictions evaluation
+#	completes.
 #   reject_rhsbl_sender domain.tld: reject sender domain name if it is listed
 #	in an A record under domain.tld.
 #   check_sender_access maptype:mapname
@@ -592,8 +593,9 @@ smtpd_sender_restrictions =
 #   reject_unknown_recipient_domain: reject domains without A or MX record.
 #  +reject_unlisted_recipient: reject a recipient address in a local, virtual
 #	or relay domain that is not listed as a valid address. 
-#	This restriction is automatically added at the end if not explicitly
-#	specified.
+#	If not executed as part of smtpd_recipient_restrictions, this
+#	restriction is automatically executed after completion of
+#	smtpd_recipient_restrictions evaluation.
 #  +check_recipient_maps: a backwards compatibility alias for the
 #	reject_unlisted_recipient restriction.
 #   check_recipient_access maptype:mapname

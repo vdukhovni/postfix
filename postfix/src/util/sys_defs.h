@@ -257,6 +257,7 @@ extern int opterr;
 #define NATIVE_NEWALIAS_PATH "/usr/ucb/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/etc"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+#define STRCASECMP_IN_STRINGS_H
 #endif
 
  /*

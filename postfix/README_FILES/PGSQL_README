@@ -80,15 +80,28 @@ additional_conditions = and status = 'paid'
 # ($lookup is escaped so if it contains single quotes or other odd
 # characters, it will not cause a parse error in the sql).
 
+# Alternatively, you can override the default SELECT statement (and the
+# above table, select_field, where_field, and additional_conditions) by
+# specifying the query:
+
+#query = select forw_addr from mxaliases where alias = '%s' and status = 'paid'
+
+# Before the query is actually issued, all occurences of %s are replaced
+# with the address to look up, %u are replaced with the user portion,
+# and %d with the domain portion.
+
 # If you just want to use a PostgreSQL function, you can ignore the
-# table name, select_field, where_field and additional_conditions,
-# and just specify a database function to call:
+# table name, select_field, where_field and additional_conditions, and
+# just specify a database function to call:
 
 #select_function = my_lookup_user_alias
 
-# this will result in "select my_lookup_user_alias('name')" being
-# used as the SQL statement to execute. If select_function is specified
-# the table-related fields above will be ignored.
+# This is equivalent to:
+#
+#query = select my_lookup_user_alias('%s')
+#
+# and overrides both the query parameter and the table-related fields
+# above.
 #
 # As of 25-Jun-2002, if the function returns a single row and a single
 # column AND that value is NULL, then the result will be treated as
@@ -104,6 +117,29 @@ additional_conditions = and status = 'paid'
 hosts = host1.some.domain host2.some.domain unix:/file/name
 
 # end pgsql config file
+
+Alternatively, these parameters can be defined in main.cf.  To that
+effect, the map should be specified as "pgsql:name", and the parameters
+should be prefixed with the name you've given the map in its definition,
+and an underscore.  For example, the above settings can also be written
+in main.cf as:
+
+# pgsql definitions in main.cf
+
+alias_maps = pgsql:pgsqlsource
+
+pgsqlsource_user = someone
+pgsqlsource_password = some_password
+pgsqlsource_dbname = customer_database
+pgsqlsource_table = mxaliases
+pgsqlsource_select_field = forw_addr
+pgsqlsource_where_field = alias
+pgsqlsource_additional_conditions = and status = 'paid'
+#pgsqlsource_select_function = my_lookup_user_alias
+pgsqlsource_hosts = host1.some.domain host2.some.domain unix:/file/name
+
+# end mysql definitions
+
 
 Using mirrored databases
 ========================

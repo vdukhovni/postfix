@@ -1,3 +1,10 @@
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+===============================================================
+
+The sender/recipient address verification feature described in this
+document is suitable only for low-traffic sites. It performs poorly
+under high load. See the "Limitations" section below for details.
+
 Address verification
 ====================
 

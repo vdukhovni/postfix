@@ -1,11 +1,9 @@
 SHELL	= /bin/sh
 SRCS	= qmgr.c qmgr_active.c qmgr_transport.c qmgr_queue.c qmgr_entry.c \
 	qmgr_message.c qmgr_deliver.c qmgr_move.c qmgr_rcpt_list.c \
-	qmgr_job.c qmgr_peer.c \
 	qmgr_defer.c qmgr_enable.c qmgr_scan.c qmgr_bounce.c
 OBJS	= qmgr.o qmgr_active.o qmgr_transport.o qmgr_queue.o qmgr_entry.o \
 	qmgr_message.o qmgr_deliver.o qmgr_move.o qmgr_rcpt_list.o \
-	qmgr_job.o qmgr_peer.o \
 	qmgr_defer.o qmgr_enable.o qmgr_scan.o qmgr_bounce.o
 HDRS	= qmgr.h
 TESTSRC	=
@@ -28,10 +26,10 @@ test:	$(TESTPROG)
 
 tests:	test
 
-update: ../../libexec/n$(PROG)
+update: ../../libexec/o$(PROG)
 
-../../libexec/n$(PROG): $(PROG)
-	cp $(PROG) ../../libexec/n$(PROG)
+../../libexec/o$(PROG): $(PROG)
+	cp $(PROG) ../../libexec/o$(PROG)
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
@@ -158,16 +156,6 @@ qmgr_entry.o: ../../include/vbuf.h
 qmgr_entry.o: ../../include/mail_params.h
 qmgr_entry.o: qmgr.h
 qmgr_entry.o: ../../include/scan_dir.h
-qmgr_job.o: qmgr_job.c
-qmgr_job.o: ../../include/sys_defs.h
-qmgr_job.o: ../../include/msg.h
-qmgr_job.o: ../../include/htable.h
-qmgr_job.o: ../../include/mymalloc.h
-qmgr_job.o: ../../include/sane_time.h
-qmgr_job.o: qmgr.h
-qmgr_job.o: ../../include/vstream.h
-qmgr_job.o: ../../include/vbuf.h
-qmgr_job.o: ../../include/scan_dir.h
 qmgr_message.o: qmgr_message.c
 qmgr_message.o: ../../include/sys_defs.h
 qmgr_message.o: ../../include/msg.h
@@ -180,7 +168,6 @@ qmgr_message.o: ../../include/valid_hostname.h
 qmgr_message.o: ../../include/argv.h
 qmgr_message.o: ../../include/stringops.h
 qmgr_message.o: ../../include/myflock.h
-qmgr_message.o: ../../include/sane_time.h
 qmgr_message.o: ../../include/dict.h
 qmgr_message.o: ../../include/mail_queue.h
 qmgr_message.o: ../../include/mail_params.h
@@ -212,15 +199,6 @@ qmgr_move.o: ../../include/vbuf.h
 qmgr_move.o: ../../include/vstream.h
 qmgr_move.o: ../../include/mail_scan_dir.h
 qmgr_move.o: qmgr.h
-qmgr_peer.o: qmgr_peer.c
-qmgr_peer.o: ../../include/sys_defs.h
-qmgr_peer.o: ../../include/msg.h
-qmgr_peer.o: ../../include/htable.h
-qmgr_peer.o: ../../include/mymalloc.h
-qmgr_peer.o: qmgr.h
-qmgr_peer.o: ../../include/vstream.h
-qmgr_peer.o: ../../include/vbuf.h
-qmgr_peer.o: ../../include/scan_dir.h
 qmgr_queue.o: qmgr_queue.c
 qmgr_queue.o: ../../include/sys_defs.h
 qmgr_queue.o: ../../include/msg.h

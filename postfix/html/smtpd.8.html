@@ -138,6 +138,13 @@ SMTPD(8)                                                 SMTPD(8)
               explicitly  selected  at  program  build  time  and
               explicitly enabled at runtime.
 
+       <b>smtpd_sasl_application_name</b>
+              The application name used for SASL server  initial-
+              ization.   This  controls the name of the SASL con-
+              figuration file.  The default value is <i>smtpd</i>,  cor-
+              responding  to  a  SASL  configuration  file  named
+              <i>smtpd.conf</i>.
+
        <b>smtpd_sasl_local_domain</b>
               The name of the local authentication realm.
 

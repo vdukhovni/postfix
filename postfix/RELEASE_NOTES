@@ -1,13 +1,3 @@
-===============================================================
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
-===============================================================
-The sender/recipient address verification code is lightly documented
-and has been tested lightly. The code is proof-of-concept quality
-and must not be used on high-volume sites.  Use at your own risk.
-===============================================================
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
-===============================================================
-
 In the text below, incompatible changes are labeled with the Postfix
 snapshot that introduced the change. If you upgrade from a later
 Postfix version, then you do not have to worry about that particular
@@ -26,15 +16,16 @@ Incompatible changes with Postfix snapshot 2.0.16-2004XXXX
 ==========================================================
 
 The SMTP server no longer accept sender addresses that match a
-local, virtual or relay domain while the address is not listed in
-the corresponding local, virtual or relay recipient table.
+local, virtual or relay domain while the address is not listed as
+valid in the corresponding local, virtual or relay recipient table.
+This is not configurable.
 
 Incompatible changes with Postfix snapshot 2.0.16-20031226
 ==========================================================
 
 Postfix no longer allows mail addresses with bare numeric IP
-addresses (user@1.2.3.4).  The form user@[ipaddress] is still
-allowed.
+addresses (user@1.2.3.4).  This is not configurable. The form
+user@[ipaddress] is still allowed.
 
 Bounce messages now have a separate queue life time.  This is
 controlled by the bounce_queue_lifetime parameter. The default is

@@ -445,7 +445,6 @@ void    mail_params_init()
 	VAR_MYDEST, DEF_MYDEST, &var_mydest, 0, 0,
 	VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin, 1, 0,
 	VAR_RELAYHOST, DEF_RELAYHOST, &var_relayhost, 0, 0,
-	VAR_PROGRAM_DIR, DEF_PROGRAM_DIR, &var_program_dir, 1, 0,
 	VAR_DAEMON_DIR, DEF_DAEMON_DIR, &var_daemon_dir, 1, 0,
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,

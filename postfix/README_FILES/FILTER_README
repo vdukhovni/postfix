@@ -6,9 +6,9 @@ then delivers it. With the external content filter described here,
 mail is filtered AFTER it is queued. This gives you maximal control
 over how many filtering processes you are willing to run in parallel.
 
-[This is not to be confused with the approach that is described in
+This is not to be confused with the approach that is described in
 the SMTPD_PROXY_README document, where SMTP mail is filtered BEFORE
-it is queued]
+it is queued.
 
 An external content filter receives unfiltered mail from Postfix
 and does one of the following:
@@ -171,7 +171,8 @@ runs into a resource problem.  This approach uses content filtering
 software that can receive and deliver mail via SMTP.
 
 Some Anti-virus software is built to receive and deliver mail via
-SMTP and is ready to use as an advanced external content filter.
+SMTP and is ready to use as an external content filter.
+
 For non-SMTP capable content filtering software, Bennett Todd's
 SMTP proxy implements a nice PERL/SMTP content filtering framework.
 See: http://bent.latency.net/smtpprox/
@@ -203,15 +204,15 @@ Postfix via localhost port 10026.
                     |       v
                 ....|............
                 :   |     10025 :
-                :   filter      :
+                :     filter    :
                 :               :
                 .................
 
 To enable content filtering in this manner, specify in main.cf:
 
-    /etc/postfix/main.cf:
-        content_filter = scan:localhost:10025
-        receive_override_options = no_address_mappings
+/etc/postfix/main.cf:
+    content_filter = scan:localhost:10025
+    receive_override_options = no_address_mappings
 
 The first line causes Postfix to add one extra content filtering
 record to each incoming mail message, with content scan:localhost:10025.
@@ -223,41 +224,45 @@ so that the content filter sees the original mail addresses instead
 of the result of virtual alias expansion, canonical mapping, address
 masquerading, etc.
 
-When a queue file has content filtering information, the queue
-manager will deliver the mail to the specified content filter
-regardless of its final destination.
+Content filtering information is stored in queue files; this is
+how Postfix keeps track of what mail needs filtering.  When a queue
+file contains content filter information, the queue manager will
+deliver the mail to the specified content filter regardless of its
+final destination.
 
 In this example, "scan" is an instance of the Postfix SMTP client
 with slightly different configuration parameters. This is how
 one would set up the service in the Postfix master.cf file:
 
-    /etc/postfix/master.cf:
-        scan      unix  -       -       n       -       10       smtp
-		-o myhostname=localhost.my.domain
-	#	-o smtp_send_xclient_command=yes
-
-The "-o myhostname=localhost.domain.tld" overrides main.cf and
-avoids false alarms ("host <servername> greeted me with my own
-hostname") that result in mail being bounced.
+/etc/postfix/master.cf:
+    # =============================================================
+    # service type  private unpriv  chroot  wakeup  maxproc command
+    #               (yes)   (yes)   (yes)   (never) (100)
+    # =============================================================
+    scan      unix  -       -       n       -       10       smtp
+        -o smtp_send_xforward_command=yes
 
 Instead of a limit of 10 concurrent processes, use whatever process
 limit is feasible for your machine.  Content inspection software
 can gobble up a lot of system resources, so you don't want to have
 too much of it running at the same time.
 
-Uncomment (but keep the leading white-space) the option setting:
-"smtp_send_xclient_command=yes", if you would like the scan transport
-to forward the original client name and IP address to the after-filter
-smtpd so that filtered mail is logged with the real client name IP
-address.  See sample-smtp.cf and smtp(8).
+With "-o smtp_send_xforward_command=yes", the scan transport will
+try to forward the original client name and IP address to the
+after-filter smtpd so that filtered mail is logged with the real
+client name IP address.  See sample-smtp.cf and smtp(8).
 
 The content filter can be set up with the Postfix spawn service,
 which is the Postfix equivalent of inetd. For example, to instantiate
 up to 10 content filtering processes on demand:
 
-    /etc/postfix/master.cf:
-        localhost:10025     inet  n      n      n      -      10     spawn
-            user=filter argv=/some/where/filter localhost 10026
+/etc/postfix/master.cf:
+    # ===================================================================
+    # service       type  private unpriv  chroot  wakeup  maxproc command
+    #                     (yes)   (yes)   (yes)   (never) (100)
+    # ===================================================================
+    localhost:10025 inet  n       n       n       -       10      spawn
+        user=filter argv=/some/where/filter localhost 10026
 
 "filter" is a dedicated local user account.  The user will never
 log in, and can be given a "*" password and non-existent shell and
@@ -268,12 +273,6 @@ In the above example, Postfix listens on port localhost:10025.  If
 you want to have your filter listening on port localhost:10025
 instead of Postfix, then you must run your filter as a stand-alone
 program.
-
-Note: the localhost port 10025 SMTP server filter should announce
-itself as "220 localhost...".  Postfix aborts delivery when it
-connects to an SMTP server that uses the same hostname as Postfix
-("host <servername> greeted me with my own hostname"), because that
-normally means you have a mail delivery loop problem.
 
 The example here assumes that the /some/where/filter command is a
 PERL script. PERL has modules that make talking SMTP easy. The
@@ -290,15 +289,20 @@ The job of the content filter is to either bounce mail with a
 suitable diagnostic, or to feed the mail back into Postfix through
 a dedicated listener on port localhost 10026:
 
-    /etc/postfix/master.cf:
-        localhost:10026     inet  n      -      n      -      10      smtpd
-            -o content_filter= 
-            -o receive_override_options=no_unknown_recipient_checks,no_header_body_checks
-            -o smtpd_helo_restrictions=
-            -o smtpd_client_restrictions=
-            -o smtpd_sender_restrictions=
-            -o smtpd_recipient_restrictions=permit_mynetworks,reject
-            -o mynetworks=127.0.0.0/8
+/etc/postfix/master.cf:
+    # ===================================================================
+    # service       type  private unpriv  chroot  wakeup  maxproc command
+    #                     (yes)   (yes)   (yes)   (never) (100)
+    # ===================================================================
+    localhost:10026 inet  n       -       n       -       10      smtpd
+        -o content_filter= 
+        -o receive_override_options=no_unknown_recipient_checks,no_header_body_checks
+        -o smtpd_helo_restrictions=
+        -o smtpd_client_restrictions=
+        -o smtpd_sender_restrictions=
+        -o smtpd_recipient_restrictions=permit_mynetworks,reject
+        -o mynetworks=127.0.0.0/8
+        -o smtpd_authorized_xforward_hosts=127.0.0.0/8
 
 Note: do not use spaces around the "=" or "," characters.
 
@@ -309,12 +313,18 @@ The "-o content_filter=" overrides main.cf and requests no content
 filtering for incoming mail. This is required or else mail will
 stay in the content filtering loop.
 
-The "-o receive_override_options" line overrides main.cf and turns
-off table lookups that were already done before the content filter:
-attempts to find out if a recipient is unknown, and header/body
-checks that can suck up lots of CPU cycles. These override options
-are either implemented by the SMTP server itself, or they are passed
-on to the cleanup server.
+The "-o receive_override_options" overrides main.cf. It is
+complementary to the the options that are specified in main.cf:
+
+- Disable attempts to find out if a recipient is unknown, and
+  disable header/body checks. This work was already done before
+  the content filter and repeating it would be wasteful.
+
+- Enable virtual alias expansion, canonical mappings, address
+  masquerading, and other address mappings.
+
+These receive override options are either implemented by the SMTP
+server itself, or they are passed on to the cleanup server.
 
 The "-o smtpd_xxx_restrictions" and "-o mynetworks=127.0.0.0/8"
 override main.cf and turn off UCE controls that would only waste
@@ -367,14 +377,12 @@ and cleanup daemons or else you will have a content filtering loop.
 
 Limitations:
 
-- There can be only one content filter action per message.
-
 - FILTER actions from smtpd access maps and header/body_checks take
   precedence over filters specified with the main.cf content_filter 
   parameter.
 
-- Only the last FILTER action from smtpd access maps or from
-  header/body_checks takes effect.
+- If a message triggers more than one filter action, only the last
+  one takes effect.
 
 - The same content filter is applied to all the recipients of a
   given message.

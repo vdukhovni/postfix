@@ -234,6 +234,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 {
     time_t  now = time((time_t *) 0);
     int     status;
+    char   *name;
 
     /*
      * Protect against time-warped time stamps. Warn about mail that has been
@@ -282,8 +283,20 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 		 info->id, (long) info->st.st_uid);
 	return (REMOVE_MESSAGE_FILE);
     }
-    msg_info("%s: uid=%d from=<%s>", info->id,
-	     (int) info->st.st_uid, info->sender);
+
+    /*
+     * For messages belonging to $mail_owner also log the maildrop queue id.
+     * This supports message tracking for mail requeued via "postsuper -r".
+     */
+    if (info->st.st_uid == var_owner_uid) {
+	msg_info("%s: uid=%d from=<%s> orig_id=%s", info->id,
+		 (int) info->st.st_uid, info->sender,
+		 ((name = strrchr(info->path, '/')) ?
+		  name + 1 : info->path));
+    } else {
+	msg_info("%s: uid=%d from=<%s>", info->id,
+		 (int) info->st.st_uid, info->sender);
+    }
 
     /*
      * Message content segment. Send a dummy message length. Prepend a

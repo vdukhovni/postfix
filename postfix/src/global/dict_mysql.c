@@ -2,15 +2,14 @@
 /* NAME
 /*	dict_mysql 3
 /* SUMMARY
-/*	dictionary manager interface to db files
+/*	dictionary manager interface to MySQL databases
 /* SYNOPSIS
-/*	#include <dict.h>
 /*	#include <dict_mysql.h>
 /*
 /*	DICT	*dict_mysql_open(name, open_flags, dict_flags)
-/*	const char	*name;
-/*	int     open_flags;
-/*	int     dict_flags;
+/*	const char *name;
+/*	int	open_flags;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_mysql_open() creates a dictionary of type 'mysql'.  This
 /*	dictionary is an interface for the postfix key->value mappings
@@ -24,25 +23,21 @@
 /*	ones will be opened and used.  The intent of this feature is to eliminate
 /*	a single point of failure for mail systems that would otherwise rely
 /*	on a single mysql server.
-/*
+/* .PP
 /*	Arguments:
 /* .IP name
-/*	The path of the MySQL configuration file.  The file encodes a number of
-/*	pieces of information: username, password, databasename, table,
-/*	select_field, where_field, and hosts.  For example, if you want the map to
-/*	reference databases of the name "your_db" and execute a query like this:
-/*	select forw_addr from aliases where alias like '<some username>' against
-/*	any database called "vmailer_info" located on hosts host1.some.domain and
-/*	host2.some.domain, logging in as user "vmailer" and password "passwd" then
-/*	the configuration file should read:
+/*	Either the path to the MySQL configuration file (if it starts
+/*	with '/' or '.'), or the prefix which will be used to obtain
+/*	main.cf configuration parameters for this search.
 /*
-/*	user = vmailer
-/*	password = passwd
-/*	DBname = vmailer_info
-/*	table = aliases
-/*	select_field = forw_addr
-/*	where_field = alias
-/*	hosts = host1.some.domain host2.some.domain
+/*	In the first case, the configuration parameters below are
+/*	specified in the file as \fIname\fR=\fBvalue\fR pairs.
+/*
+/*	In the second case, the configuration parameters are
+/*	prefixed with the value of \fIname\fR and an underscore,
+/*	and they are specified in main.cf.  For example, if this
+/*	value is \fImysqlsource\fR, the parameters would look like
+/*	\fImysqlsource_user\fR, \fImysqlsource_table\fR, and so on.
 /*
 /* .IP other_name
 /*	reference for outside use.
@@ -50,6 +45,51 @@
 /*	Must be O_RDONLY.
 /* .IP dict_flags
 /*	See dict_open(3).
+/* .PP
+/*	Configuration parameters:
+/*
+/*	The parameters encodes a number of pieces of information:
+/*	username, password, databasename, table, select_field,
+/*	where_field, and hosts:
+/* .IP \fIuser\fR
+/* 	Username for connecting to the database.
+/* .IP \fIpassword\fR
+/*	Password for the above.
+/* .IP \fIdbname\fR
+/*	Name of the database.
+/* .IP \fItable\fR
+/*	Name of the table.
+/* .IP \fIselect_field\fR
+/*	Name of the result field.
+/* .IP \fIwhere_field\fR
+/*	Field used in the WHERE clause.
+/* .IP \fIadditional_conditions\fR
+/*	Additional conditions to the WHERE clause.
+/* .IP \fIhosts\fR
+/*	List of hosts to connect to.
+/* .PP
+/*	For example, if you want the map to reference databases of
+/*	the name "your_db" and execute a query like this: select
+/*	forw_addr from aliases where alias like '<some username>'
+/*	against any database called "vmailer_info" located on hosts
+/*	host1.some.domain and host2.some.domain, logging in as user
+/*	"vmailer" and password "passwd" then the configuration file
+/*	should read:
+/* .PP
+/*	\fIuser\fR = \fBvmailer\fR
+/* .br
+/*	\fIpassword\fR = \fBpasswd\fR
+/* .br
+/*	\fIdbname\fR = \fBvmailer_info\fR
+/* .br
+/*	\fItable\fR = \fBaliases\fR
+/* .br
+/*	\fIselect_field\fR = \fBforw_addr\fR
+/* .br
+/*	\fIwhere_field\fR = \fBalias\fR
+/* .br
+/*	\fIhosts\fR = \fBhost1.some.domain\fR \fBhost2.some.domain\fR
+/* .PP
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* AUTHOR(S)
@@ -78,14 +118,22 @@
 #include <mysql.h>
 
 /* Utility library. */
+
 #include "dict.h"
 #include "msg.h"
 #include "mymalloc.h"
-#include "dict_mysql.h"
 #include "argv.h"
 #include "vstring.h"
 #include "split_at.h"
 #include "find_inet.h"
+
+/* Global library. */
+
+#include "cfg_parser.h"
+
+/* Application-specific. */
+
+#include "dict_mysql.h"
 
 /* need some structs to help organize things */
 typedef struct {
@@ -103,6 +151,7 @@ typedef struct {
 } PLMYSQL;
 
 typedef struct {
+    CFG_PARSER *parser;
     char   *username;
     char   *password;
     char   *dbname;
@@ -132,7 +181,6 @@ static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_close_host(HOST *);
 static void plmysql_down_host(HOST *);
 static void plmysql_connect_single(HOST *, char *, char *, char *);
-static int plmysql_ready_reconn(HOST *);
 static const char *dict_mysql_lookup(DICT *, const char *);
 DICT   *dict_mysql_open(const char *, int, int);
 static void dict_mysql_close(DICT *);
@@ -223,9 +271,9 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 
 /*
  * plmysql_query - process a MySQL query.  Return MYSQL_RES* on success.
- *		     On failure, log failure and try other db instances.
- *		     on failure of all db instances, return 0;
- *		     close unnecessary active connections
+ *			On failure, log failure and try other db instances.
+ *			on failure of all db instances, return 0;
+ *			close unnecessary active connections
  */
 
 static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
@@ -343,7 +391,7 @@ static void plmysql_close_host(HOST *host)
 }
 
 /*
- * plmysql_down_host - close a failed connection AND set a "stay away from 
+ * plmysql_down_host - close a failed connection AND set a "stay away from
  * this host" timer
  */
 static void plmysql_down_host(HOST *host)
@@ -363,14 +411,13 @@ static void plmysql_down_host(HOST *host)
 DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_MYSQL *dict_mysql;
-    int     connections;
 
     /*
      * Sanity checks.
      */
     if (open_flags != O_RDONLY)
-        msg_fatal("%s:%s map requires O_RDONLY access mode",
-                  DICT_TYPE_MYSQL, name);
+	msg_fatal("%s:%s map requires O_RDONLY access mode",
+		  DICT_TYPE_MYSQL, name);
 
     dict_mysql = (DICT_MYSQL *) dict_alloc(DICT_TYPE_MYSQL, name,
 					   sizeof(DICT_MYSQL));
@@ -386,92 +433,50 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
 }
 
 /* mysqlname_parse - parse mysql configuration file */
-static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
+static MYSQL_NAME *mysqlname_parse(const char *mysqlcf)
 {
+    const char *myname = "mysqlname_parse";
     int     i;
-    char   *nameval;
     char   *hosts;
     MYSQL_NAME *name = (MYSQL_NAME *) mymalloc(sizeof(MYSQL_NAME));
     ARGV   *hosts_argv;
-    VSTRING *opt_dict_name;
 
-    /*
-     * setup a dict containing info in the mysql cf file. the dict has a
-     * name, and a path.  The name must be distinct from the path, or the
-     * dict interface gets confused.  The name must be distinct for two
-     * different paths, or the configuration info will cache across different
-     * mysql maps, which can be confusing.
-     */
-    opt_dict_name = vstring_alloc(64);
-    vstring_sprintf(opt_dict_name, "mysql opt dict %s", mysqlcf_path);
-    dict_load_file(vstring_str(opt_dict_name), mysqlcf_path);
-    /* mysql username lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "user")) == NULL)
-	name->username = mystrdup("");
-    else
-	name->username = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set username to '%s'", name->username);
-    /* password lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "password")) == NULL)
-	name->password = mystrdup("");
-    else
-	name->password = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set password to '%s'", name->password);
+    /* parser */
+    name->parser = cfg_parser_alloc(mysqlcf);
 
-    /* database name lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "dbname")) == NULL)
-	msg_fatal("%s: mysql options file does not include database name", mysqlcf_path);
-    else
-	name->dbname = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set database name to '%s'", name->dbname);
+    /* username */
+    name->username = cfg_get_str(name->parser, "user", "", 0, 0);
 
-    /* table lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "table")) == NULL)
-	msg_fatal("%s: mysql options file does not include table name", mysqlcf_path);
-    else
-	name->table = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set table name to '%s'", name->table);
+    /* password */
+    name->password = cfg_get_str(name->parser, "password", "", 0, 0);
 
-    /* select field lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "select_field")) == NULL)
-	msg_fatal("%s: mysql options file does not include select field", mysqlcf_path);
-    else
-	name->select_field = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set select_field to '%s'", name->select_field);
+    /* database name */
+    name->dbname = cfg_get_str(name->parser, "dbname", "", 1, 0);
 
-    /* where field lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "where_field")) == NULL)
-	msg_fatal("%s: mysql options file does not include where field", mysqlcf_path);
-    else
-	name->where_field = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set where_field to '%s'", name->where_field);
+    /* table name */
+    name->table = cfg_get_str(name->parser, "table", "", 1, 0);
+
+    /* select field */
+    name->select_field = cfg_get_str(name->parser, "select_field", "", 1, 0);
+
+    /* where field */
+    name->where_field = cfg_get_str(name->parser, "where_field", "", 1, 0);
 
     /* additional conditions */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "additional_conditions")) == NULL)
-	name->additional_conditions = mystrdup("");
-    else
-	name->additional_conditions = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("mysqlname_parse(): set additional_conditions to '%s'", name->additional_conditions);
+    name->additional_conditions = cfg_get_str(name->parser,
+					      "additional_conditions",
+					      "", 0, 0);
 
     /* mysql server hosts */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "hosts")) == NULL)
-	hosts = mystrdup("");
-    else
-	hosts = mystrdup(nameval);
+    hosts = cfg_get_str(name->parser, "hosts", "", 0, 0);
+
     /* coo argv interface */
     hosts_argv = argv_split(hosts, " ,\t\r\n");
-
     if (hosts_argv->argc == 0) {		/* no hosts specified,
 						 * default to 'localhost' */
 	if (msg_verbose)
-	    msg_info("mysqlname_parse(): no hostnames specified, defaulting to 'localhost'");
+	    msg_info("%s: %s: no hostnames specified, defaulting to 'localhost'",
+		     myname, mysqlcf);
 	argv_add(hosts_argv, "localhost", ARGV_END);
 	argv_terminate(hosts_argv);
     }
@@ -481,11 +486,10 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
     for (i = 0; hosts_argv->argv[i] != NULL; i++) {
 	name->hostnames[i] = mystrdup(hosts_argv->argv[i]);
 	if (msg_verbose)
-	    msg_info("mysqlname_parse(): adding host '%s' to list of mysql server hosts",
-		     name->hostnames[i]);
+	    msg_info("%s: %s: adding host '%s' to list of mysql server hosts",
+		     myname, mysqlcf, name->hostnames[i]);
     }
     myfree(hosts);
-    vstring_free(opt_dict_name);
     argv_free(hosts_argv);
     return name;
 }
@@ -498,9 +502,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
 static PLMYSQL *plmysql_init(char *hostnames[], int len_hosts)
 {
     PLMYSQL *PLDB;
-    MYSQL  *dbs;
     int     i;
-    HOST    host;
 
     if ((PLDB = (PLMYSQL *) mymalloc(sizeof(PLMYSQL))) == NULL) {
 	msg_fatal("mymalloc of pldb failed");
@@ -537,6 +539,7 @@ static void dict_mysql_close(DICT *dict)
     DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
 
     plmysql_dealloc(dict_mysql->pldb);
+    cfg_parser_free(dict_mysql->name->parser);
     myfree(dict_mysql->name->username);
     myfree(dict_mysql->name->password);
     myfree(dict_mysql->name->dbname);

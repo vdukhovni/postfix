@@ -49,7 +49,10 @@
 /*	qmgr_message_realloc() resumes reading recipients from the queue
 /*	file, and updates the recipient list and \fIrcpt_offset\fR message
 /*	structure members. A null result means that the file could not be
-/*	read or that the file contained incorrect information.
+/*	read or that the file contained incorrect information. Recipient
+/*	limit imposed this time is based on the position of the message
+/*	job(s) on corresponding transport job list(s). It's considered
+/*	an error to call this when the recipient slots can't be allocated.
 /*
 /*	qmgr_message_free() destroys an in-core message structure and makes
 /*	the resources available for reuse. It is an error to destroy
@@ -70,6 +73,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Scheduler enhancements:
+/*	Patrik Rak
+/*	Modra 6
+/*	155 00, Prague, Czech Republic
 /*--*/
 
 /* System library. */
@@ -98,6 +106,7 @@
 #include <argv.h>
 #include <stringops.h>
 #include <myflock.h>
+#include <sane_time.h>
 
 /* Global library. */
 
@@ -143,6 +152,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->refcount = 0;
     message->single_rcpt = 0;
     message->arrival_time = 0;
+    message->queued_time = sane_time();
     message->data_offset = 0;
     message->queue_id = mystrdup(queue_id);
     message->queue_name = mystrdup(queue_name);
@@ -163,6 +173,10 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->client_proto = 0;
     message->client_helo = 0;
     qmgr_rcpt_list_init(&message->rcpt_list);
+    message->rcpt_count = 0;
+    message->rcpt_limit = var_qmgr_msg_rcpt_limit;
+    message->rcpt_unread = 0;
+    QMGR_LIST_INIT(message->job_list);
     return (message);
 }
 
@@ -230,6 +244,7 @@ static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
      * so we set data_size to this as well and ignore the size record itself
      * completely.
      */
+    message->rcpt_unread = 0;
     for (;;) {
 	rec_type = rec_get(message->fp, buf, 0);
 	if (rec_type <= 0)
@@ -240,6 +255,10 @@ static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
 	    msg_info("old-style scan record %c %s", rec_type, start);
 	if (rec_type == REC_TYPE_END)
 	    break;
+	if (rec_type == REC_TYPE_DONE || rec_type == REC_TYPE_RCPT) {
+	    message->rcpt_unread++;
+	    continue;
+	}
 	if (rec_type == REC_TYPE_MESG) {
 	    if (message->data_offset == 0) {
 		if ((message->data_offset = vstream_ftell(message->fp)) < 0)
@@ -278,8 +297,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     int     rec_type;
     long    curr_offset;
     long    save_offset = message->rcpt_offset;	/* save a flag */
+    int     save_unread = message->rcpt_unread;	/* save a count */
     char   *start;
-    int     nrcpt = 0;
+    int     recipient_limit;
     const char *error_text;
     char   *name;
     char   *value;
@@ -294,6 +314,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     /*
      * If we re-open this file, skip over on-file recipient records that we
      * already looked at, and refill the in-core recipient address list.
+     * 
+     * For the first time, the message recipient limit is calculated from the
+     * global recipient limit. This is to avoid reading little recipients
+     * when the active queue is near empty. When the queue becomes full, only
+     * the necessary amount is read in core. Such priming is necessary
+     * because there are no message jobs yet.
+     * 
+     * For the next time, the recipient limit is based solely on the message
+     * jobs' positions in the job lists and/or job stacks.
      */
     if (message->rcpt_offset) {
 	if (message->rcpt_list.len)
@@ -302,26 +331,29 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (vstream_fseek(message->fp, message->rcpt_offset, SEEK_SET) < 0)
 	    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	message->rcpt_offset = 0;
+	recipient_limit = message->rcpt_limit - message->rcpt_count;
+    } else {
+	recipient_limit = var_qmgr_rcpt_limit - qmgr_recipient_count;
+	if (recipient_limit < message->rcpt_limit)
+	    recipient_limit = message->rcpt_limit;
     }
+    if (recipient_limit <= 0)
+	msg_panic("%s: no recipient slots available", message->queue_id);
 
     /*
      * Read envelope records. XXX Rely on the front-end programs to enforce
-     * record size limits. Read up to var_qmgr_rcpt_limit recipients from the
+     * record size limits. Read up to recipient_limit recipients from the
      * queue file, to protect against memory exhaustion. Recipient records
      * may appear before or after the message content, so we keep reading
      * from the queue file until we have enough recipients (rcpt_offset != 0)
      * and until we know all the non-recipient information.
      * 
-     * When reading recipients from queue file, stop reading when we reach a
-     * per-message in-core recipient limit rather than a global in-core
-     * recipient limit. Use the global recipient limit only in order to stop
-     * opening queue files. The purpose is to achieve equal delay for
-     * messages with recipient counts up to var_qmgr_rcpt_limit recipients.
-     * 
-     * If we would read recipients up to a global recipient limit, the average
-     * number of in-core recipients per message would asymptotically approach
-     * (global recipient limit)/(active queue size limit), which gives equal
-     * delay per recipient rather than equal delay per message.
+     * Note that the total recipient count record is accurate only for fresh
+     * queue files. After some of the recipients are marked as done and the
+     * queue file is deferred, it can be used as upper bound estimate only.
+     * Fortunately, this poses no major problem on the scheduling algorithm,
+     * as the only impact is that the already deferred messages are not
+     * chosen by qmgr_job_candidate() as often as they could.
      * 
      * On the first open, we must examine all non-recipient records.
      * 
@@ -358,15 +390,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	 */
 	if (rec_type == REC_TYPE_RCPT) {
 	    /* See also below for code setting orig_rcpt. */
-#define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))
 	    if (message->rcpt_offset == 0) {
+		message->rcpt_unread--;
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset,
 				   orig_rcpt ? orig_rcpt : "", start);
 		if (orig_rcpt) {
 		    myfree(orig_rcpt);
 		    orig_rcpt = 0;
 		}
-		if (message->rcpt_list.len >= FUDGE(var_qmgr_rcpt_limit)) {
+		if (message->rcpt_list.len >= recipient_limit) {
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));
@@ -392,9 +424,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    continue;
 	}
 	if (rec_type == REC_TYPE_DONE) {
-	    if (orig_rcpt) {
-		myfree(orig_rcpt);
-		orig_rcpt = 0;
+	    if (message->rcpt_offset == 0) {
+		message->rcpt_unread--;
+		if (orig_rcpt) {
+		    myfree(orig_rcpt);
+		    orig_rcpt = 0;
+		}
 	    }
 	    continue;
 	}
@@ -422,7 +457,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->data_offset == 0) {
 		if ((count = sscanf(start, "%ld %ld %d %d",
 				 &message->data_size, &message->data_offset,
-				    &nrcpt, &message->rflags)) >= 3) {
+			   &message->rcpt_unread, &message->rflags)) >= 3) {
 		    /* Postfix >= 1.0 (a.k.a. 20010228). */
 		    if (message->data_offset <= 0 || message->data_size <= 0) {
 			msg_warn("%s: invalid size record: %.100s",
@@ -476,7 +511,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
 		opened(message->queue_id, message->sender,
-		       message->data_size, nrcpt,
+		       message->data_size, message->rcpt_unread,
 		       "queue %s", message->queue_name);
 	    }
 	    continue;
@@ -594,6 +629,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * Sanity checks. Verify that all required information was found,
      * including the queue file end marker.
      */
+    if (message->rcpt_unread < 0
+	|| (message->rcpt_offset == 0 && message->rcpt_unread != 0)) {
+	msg_warn("%s: rcpt count mismatch (%d)",
+		 message->queue_id, message->rcpt_unread);
+	message->rcpt_unread = 0;
+    }
     if (rec_type <= 0) {
 	/* Already logged warning. */
     } else if (message->arrival_time == 0) {
@@ -609,6 +650,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	return (0);
     }
     message->rcpt_offset = save_offset;		/* restore flag */
+    message->rcpt_unread = save_unread;		/* restore count */
+    qmgr_rcpt_list_free(&message->rcpt_list);
+    qmgr_rcpt_list_init(&message->rcpt_list);
     return (-1);
 }
 
@@ -685,7 +729,7 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
     /*
      * Compare recipient address.
      */
-    return (strcasecmp(rcpt1->address, rcpt2->address));
+    return (strcmp(rcpt1->address, rcpt2->address));
 }
 
 /* qmgr_message_sort - sort message recipient addresses by domain */
@@ -970,6 +1014,8 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
     QMGR_RCPT *recipient;
     QMGR_ENTRY *entry = 0;
     QMGR_QUEUE *queue;
+    QMGR_JOB *job = 0;
+    QMGR_PEER *peer = 0;
 
     /*
      * Try to bundle as many recipients in a delivery request as we can. When
@@ -985,27 +1031,87 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
     for (recipient = list.info; recipient < list.info + list.len; recipient++) {
 	if ((queue = recipient->queue) != 0) {
 	    if (message->single_rcpt || entry == 0 || entry->queue != queue
-		|| !LIMIT_OK(entry->queue->transport->recipient_limit,
+		|| !LIMIT_OK(queue->transport->recipient_limit,
 			     entry->rcpt_list.len)) {
-		entry = qmgr_entry_create(queue, message);
+
+		/*
+		 * Lookup or instantiate the message job if necessary.
+		 */
+		if (job == 0 || queue->transport != job->transport) {
+		    job = qmgr_job_obtain(message, queue->transport);
+		    peer = 0;
+		}
+
+		/*
+		 * Lookup or instantiate job peer if necessary.
+		 */
+		if (peer == 0 || queue != peer->queue) {
+		    if ((peer = qmgr_peer_find(job, queue)) == 0)
+			peer = qmgr_peer_create(job, queue);
+		}
+
+		/*
+		 * Create new peer entry.
+		 */
+		entry = qmgr_entry_create(peer, message);
+		job->read_entries++;
 	    }
+
+	    /*
+	     * Add the recipient to the current entry and increase all those
+	     * recipient counters accordingly.
+	     */
 	    qmgr_rcpt_list_add(&entry->rcpt_list, recipient->offset,
 			       recipient->orig_rcpt, recipient->address);
+	    job->rcpt_count++;
+	    message->rcpt_count++;
 	    qmgr_recipient_count++;
 	}
     }
+
+    /*
+     * Release the message recipient list and reinitialize it for the next
+     * time.
+     */
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_rcpt_list_init(&message->rcpt_list);
+
+    /*
+     * Note that even if qmgr_job_obtain() reset the job candidate cache of
+     * all transports to which we assigned new recipients, this message may
+     * have other jobs which we didn't touch at all this time. But the number
+     * of unread recipients affecting the candidate selection might have
+     * changed considerably, so we must invalidate the caches if it might be
+     * of some use.
+     */
+    for (job = message->job_list.next; job; job = job->message_peers.next)
+	if (job->selected_entries < job->read_entries
+	    && job->blocker_tag != job->transport->blocker_tag)
+	    job->transport->candidate_cache_current = 0;
+}
+
+/* qmgr_message_move_limits - recycle unused recipient slots */
+
+static void qmgr_message_move_limits(QMGR_MESSAGE *message)
+{
+    QMGR_JOB *job;
+
+    for (job = message->job_list.next; job; job = job->message_peers.next)
+	qmgr_job_move_limits(job);
 }
 
 /* qmgr_message_free - release memory for in-core message structure */
 
 void    qmgr_message_free(QMGR_MESSAGE *message)
 {
+    QMGR_JOB *job;
+
     if (message->refcount != 0)
 	msg_panic("qmgr_message_free: reference len: %d", message->refcount);
     if (message->fp)
 	msg_panic("qmgr_message_free: queue file is open");
+    while ((job = message->job_list.next) != 0)
+	qmgr_job_free(job);
     myfree(message->queue_id);
     myfree(message->queue_name);
     if (message->encoding)
@@ -1090,6 +1196,8 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	qmgr_message_sort(message);
 	qmgr_message_assign(message);
 	qmgr_message_close(message);
+	if (message->rcpt_offset == 0)
+	    qmgr_message_move_limits(message);
 	return (message);
     }
 }
@@ -1124,6 +1232,8 @@ QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *message)
 	qmgr_message_sort(message);
 	qmgr_message_assign(message);
 	qmgr_message_close(message);
+	if (message->rcpt_offset == 0)
+	    qmgr_message_move_limits(message);
 	return (message);
     }
 }

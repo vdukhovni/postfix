@@ -87,7 +87,7 @@ extern char *var_myorigin;
   * mail to other destinations.
   */
 #define VAR_MYDEST		"mydestination"
-#define DEF_MYDEST		"$myhostname, localhost.$mydomain localhost"
+#define DEF_MYDEST		"$myhostname, localhost.$mydomain, localhost"
 extern char *var_mydest;
 
  /*
@@ -198,13 +198,8 @@ extern int var_smtp_mxsess_limit;
 extern char *var_queue_dir;
 
  /*
-  * Location of daemon programs.
+  * Location of command and daemon programs.
   */
-#define VAR_PROGRAM_DIR		"program_directory"
-#ifndef DEF_PROGRAM_DIR
-#define DEF_PROGRAM_DIR		"/usr/libexec/postfix"
-#endif
-
 #define VAR_DAEMON_DIR		"daemon_directory"
 #ifndef DEF_DAEMON_DIR
 #define DEF_DAEMON_DIR		"/usr/libexec/postfix"
@@ -298,8 +293,8 @@ extern char *var_rcpt_witheld;
 extern bool var_strict_rfc821_env;
 
  /*
-  * Standards violation: send "250 AUTH=list" in order to accomodate broken
-  * Microsoft clients.
+  * Standards violation: send "250 AUTH=list" in order to accomodate clients
+  * that implement an old version of the protocol.
   */
 #define VAR_BROKEN_AUTH_CLNTS	"broken_sasl_auth_clients"
 #define DEF_BROKEN_AUTH_CLNTS	0
@@ -549,7 +544,7 @@ extern int var_max_backoff_time;
 extern int var_max_queue_time;
 
 #define VAR_DSN_QUEUE_TIME	"bounce_queue_lifetime"
-#define DEF_DSN_QUEUE_TIME	"$" VAR_MAX_QUEUE_TIME
+#define DEF_DSN_QUEUE_TIME	"$" VAR_MAX_QUEUE_TIME	/* XXX no time unit */
 extern int var_dsn_queue_time;
 
 #define VAR_DELAY_WARN_TIME	"delay_warning_time"
@@ -913,6 +908,10 @@ extern bool var_smtpd_sasl_enable;
 #define DEF_SMTPD_SASL_OPTS	"noanonymous"
 extern char *var_smtpd_sasl_opts;
 
+#define VAR_SMTPD_SASL_APPNAME	"smtpd_sasl_application_name"
+#define DEF_SMTPD_SASL_APPNAME	"smtpd"
+extern char *var_smtpd_sasl_appname;
+
 #define VAR_SMTPD_SASL_REALM	"smtpd_sasl_local_domain"
 #define DEF_SMTPD_SASL_REALM	""
 extern char *var_smtpd_sasl_realm;
@@ -1077,8 +1076,8 @@ extern int var_lmtp_quit_tmout;
 extern bool var_lmtp_send_xforward;
 
  /*
-  * Cleanup service. Header info that exceeds $header_size_limit bytes forces
-  * the start of the message body.
+  * Cleanup service. Header info that exceeds $header_size_limit bytes or
+  * $header_address_token_limit tokens is discarded.
   */
 #define VAR_HOPCOUNT_LIMIT	"hopcount_limit"
 #define DEF_HOPCOUNT_LIMIT	50

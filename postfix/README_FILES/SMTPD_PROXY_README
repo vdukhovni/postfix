@@ -1,3 +1,9 @@
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+===============================================================
+The content filtering approach described in this document is suitable
+only for low-traffic sites. It performs poorly under high load. See
+the "Pros ans Cons" section below for details.
+
 Purpose of the before-queue content filter feature
 ==================================================
 
@@ -8,36 +14,19 @@ queue.
 
 The before-queue content filter is meant to be used as follows:
 
-                        before                               / smtp
-    Internet -> smtpd -> queue -> smtpd -> cleanup -> queue -> local
-               Postfix  filter   Postfix                     \ virtual etc.
-
-Normally, Postfix receives mail, stores it in the mail queue and
-then delivers it.  The next diagram shows the normal path through
-Postfix for mail that arrives via the network:
-
-                                           / smtp
-    Internet -> smtpd -> cleanup -> queue -> local
-                Postfix                    \ virtual etc.
+                        BEFORE                               / smtp
+    Internet -> smtpd -> QUEUE -> smtpd -> cleanup -> queue -> local
+               Postfix  FILTER   Postfix                     \ virtual etc.
 
 The before-queue content filter is not to be confused with the
 approach described in the FILTER_README document, where mail is
-filtered AFTER it is stored in the Postfix mail queue. For example,
-below is the FILTER_README approach with an SMTP-based after-queue
-content filter:
+filtered AFTER it is stored in the Postfix mail queue.
 
-					   / smtp
-    Internet -> smtpd -> cleanup -> queue -> local
-	       Postfix      ^         v    \ virtual etc.
-			  smtpd      smtp
-                          Postfix   Postfix
-			    \ after   /
-			      queue <-
-                              filter
+Principles of operation
+=======================
 
-The before-queue content filter functions just like the after-queue
-content filter. It receives unfiltered SMTP mail from Postfix and
-does one of the following:
+The filter receives unfiltered SMTP mail from Postfix and does one
+of the following:
 
 1 - Re-inject the mail back into Postfix via SMTP, perhaps after
     changing content.
@@ -48,8 +37,96 @@ does one of the following:
 
 3 - Send the mail somewhere else, or discard the mail.
 
-Limitations
-===========
+The before-queue content filter functions just like the after-queue
+content filter. In many cases you can use the same content filtering
+software, with some limitations as discussed in the "Pros and Cons"
+section below.
+
+Using the SMTP pass-through proxy feature
+=========================================
+
+In the following example, the Postfix SMTP server gives mail to a
+content filter that listens on localhost port 10025, and receives
+mail from the content filter via localhost port 10026. From then
+on mail is processed as usual.
+
+The result looks as follows:
+
+    Internet
+	-> Postfix SMTP server on port 25
+	    -> filter on localhost port 10025
+		-> Postfix SMTP server on localhost port 26
+		    -> cleanup
+			-> queue
+
+This is configured by editing the master.cf file:
+
+/etc/postfix/master.cf:
+    # =============================================================
+    # service type  private unpriv  chroot  wakeup  maxproc command
+    #               (yes)   (yes)   (yes)   (never) (100)
+    # =============================================================
+    #
+    # Before-filter SMTP server. Receive mail from the network and
+    # pass it to the content filter on localhost port 10025.
+    #
+    smtp      inet  n       -       n       -       20      smtpd
+        -o smtpd_proxy_filter=localhost:10025
+    #
+    # After-filter SMTP server. Receive mail from the content filter
+    # on localhost port 10026.
+    #
+    :10026    inet  n       -       n       -        -      smtpd
+        -o smtpd_authorized_xforward_hosts=127.0.0.0/8
+        -o smtpd_client_restrictions=
+        -o smtpd_helo_restrictions=
+        -o smtpd_sender_restrictions=
+        -o smtpd_recipient_restrictions=permit_mynetworks,reject
+        -o mynetworks=127.0.0.0/8
+        -o receive_override_options=no_unknown_recipient_checks
+
+Note: do not specify spaces around the "=" or "," characters.
+
+The before-filter SMTP server entry is a modified version of the
+default Postfix SMTP server entry that is normally configured at
+the top of the master.cf file:
+
+- The number of SMTP sessions is reduced from the default 100 to
+  only 20. This prevents a burst of mail from running your system
+  into the ground with too many content filter processes.
+
+- The "-o smtpd_proxy_filter=localhost:10025" tells the before
+  filter SMTP server that it should give incoming mail to the
+  content filter that listens on localhost port 10025.
+
+The after-filter SMTP server is a new master.cf entry:
+
+- The ":10026" makes the after-filter SMTP server listen on the
+  localhost address only, without exposing it to the network.
+  NEVER expose the after-filter SMTP server to the Internet :-)
+
+- The "-o smtpd_authorized_xforward_hosts=127.0.0.0/8" allows the
+  after-filter SMTP server to receive remote SMTP client information
+  from the before filter SMTP server, so that the after-filter
+  Postfix daemons log the remote SMTP client information instead
+  of logging localhost[127.0.0.1].
+
+- The other after-filter SMTP server settings avoid duplication of
+  work that is already done in the "before filter" SMTP server.
+
+The filter itself is not described here. You can use any filter
+that is SMTP enabled. For non-SMTP capable content filtering
+software, Bennett Todd's SMTP proxy implements a nice PERL/SMTP
+content filtering framework. See: http://bent.latency.net/smtpprox/
+
+By default, the filter has 100 seconds to do its work. If it takes
+longer then Postfix gives up and reports an error to the remote
+SMTP client. You can increase this time limit (see configuration
+parameter section below) but doing so is pointless because you
+can't control when the remote SMTP client times out.
+
+Pros and Cons
+=============
 
 The before-queue content filter allows Postfix to reject mail before
 the incoming SMTP mail transfer completes, so that Postfix does
@@ -62,13 +139,20 @@ load increases, fewer and fewer CPU cycles remain available to
 answer within the deadline, and eventually you either have to stop
 accepting mail or you have to stop filtering the mail.
 
+Another problem is that content filtering software can use lots of
+memory resources. In order to not run out of memory you have to
+reduce the number of before-filter SMTP server processes so that
+a burst of mail will not drive your system into the ground with
+too many content filter processes. This, in turn, means that SMTP
+clients have to wait for a long time before they receive service.
+
 How Postfix talks to the before-queue content filter
 ==================================================
 
 The before-filter Postfix SMTP server connects to the content
 filter, delivers one message, and disconnects.  While sending mail
 into the content filter, Postfix speaks ESMTP but uses no command
-pipelining.  Postfix generates its own EHLO, XCLIENT (for logging
+pipelining.  Postfix generates its own EHLO, XFORWARD (for logging
 the remote client IP address instead of localhost[127.0.0.1]), DATA
 and QUIT commands, and forwards unmodified copies of all the MAIL
 FROM and RCPT TO commands that the before-filter Postfix SMTP server
@@ -109,49 +193,6 @@ smtpd_proxy_ehlo (default: $myhostname)
 
     The hostname to use when sending an EHLO command to the
     before-queue content filter.
-
-Testing the SMTP pass-through proxy feature
-===========================================
-
-The following example sets up a null content filter, that is, the
-Postfix SMTP server gives the mail directly to another Postfix SMTP
-server process without intervening content filter. This useful only
-for testing, of course.
-
-/etc/postfix/master.cf
-    smtp      inet  n       -       n       -       -       smtpd
-        -o smtpd_proxy_filter=26
-    :26       inet  n       -       n       -       -       smtpd
-	-o smtpd_authorized_xforward_hosts=127.0.0.0/8
-	-o smtpd_client_restrictions=
-	-o smtpd_helo_restrictions=
-	-o smtpd_sender_restrictions=
-	-o smtpd_recipient_restrictions=permit_mynetworks,reject
-	-o mynetworks=127.0.0.0/8
-	-o receive_override_options=no_unknown_recipient_checks
-
-Note: do not specify spaces around the "=" or "," characters.
-
-The ":26" causes Postfix to listen on the localhost address only.
-DO NOT expose the secondary SMTP server to the Internet :-)
-
-The smtpd_authorized_xforward_hosts parameter allows the before
-filter SMTP server to forward remote SMTP client information to
-the after-filter SMTP server, so that the after-filter Postfix
-daemons log the remote SMTP client information instead of logging
-localhost[127.0.0.1].
-
-The other parameter settings avoid duplication of effort that is
-done in the "before filter" SMTP server.
-
-The result is as follows:
-
-    Internet -> smtpd on port 25 -> smtpd on port 26 -> cleanup -> queue
-
-This configuration is sufficient for stress testing.
-
-Other suggestions for test configurations: use the Postfix smtp-sink
-command as the proxy, or something as basic as netcat.
 
 Transparency
 ============

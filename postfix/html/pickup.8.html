@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 PICKUP(8)                                               PICKUP(8)
 
 <b>NAME</b>
@@ -44,32 +44,32 @@ PICKUP(8)                                               PICKUP(8)
        command after a configuration change.
 
 <b>Content inspection controls</b>
-       <b>content</b><i>_</i><b>filter</b>
+       <b>content_filter</b>
               The  name of a mail delivery transport that filters
               mail and that either bounces mail or re-injects the
               result  back into Postfix.  This parameter uses the
               same syntax as the right-hand  side  of  a  Postfix
               transport table.
 
-       <b>receive</b><i>_</i><b>override</b><i>_</i><b>options</b>
+       <b>receive_override_options</b>
               The  following  options  override <b>main.cf</b> settings.
               The options are passed on to the downstream cleanup
               server.
 
-              <b>no</b><i>_</i><b>address</b><i>_</i><b>mappings</b>
+              <b>no_address_mappings</b>
                      Disable  canonical  address mapping, virtual
                      alias map expansion,  address  masquerading,
                      and  automatic  BCC recipients. Specify this
                      if address mapping etc. are to be done <b>after</b>
                      an external content filter.
 
-              <b>no</b><i>_</i><b>header</b><i>_</i><b>body</b><i>_</i><b>checks</b>
+              <b>no_header_body_checks</b>
                      Disable  header/body_checks. Specify this if
                      header/body_checks are to be done  <b>after</b>  an
                      external content filter.
 
 <b>Miscellaneous</b>
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Top-level directory of the Postfix queue.
 
 <b>SEE ALSO</b>

@@ -93,8 +93,8 @@ sub smtpd_access_policy {
     open_database() unless $database_obj;
 
     # Lookup the time stamp for this client/sender/recipient.
-    $key = $attr{"client_address"}."/".$attr{"sender"}."/".$attr{"recipient"};
-    $key =~ tr /A-Z/a-z/;
+    $key =
+	lc $attr{"client_address"}."/".$attr{"sender"}."/".$attr{"recipient"};
     $time_stamp = read_database($key);
     $now = time();
 

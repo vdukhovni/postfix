@@ -3,8 +3,8 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	attr_scan0.c attr_scan64.c base64_code.c basename.c binhash.c \
 	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
 	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
-	dict_cidr.c dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
-	dict_nisplus.c dict_open.c dict_pcre.c dict_pgsql.c dict_regexp.c \
+	dict_cidr.c dict_ht.c dict_ni.c dict_nis.c \
+	dict_nisplus.c dict_open.c dict_pcre.c dict_regexp.c \
 	dict_static.c dict_tcp.c dict_unix.c dir_forest.c doze.c \
 	duplex_pipe.c environ.c events.c exec_command.c fifo_listen.c \
 	fifo_trigger.c file_limit.c find_inet.c fsspace.c fullname.c \
@@ -33,8 +33,8 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
 	dict.o dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
-	dict_cidr.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
-	dict_nisplus.o dict_open.o dict_pcre.o dict_pgsql.o dict_regexp.o \
+	dict_cidr.o dict_ht.o dict_ni.o dict_nis.o \
+	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o \
 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o \
 	duplex_pipe.o environ.o events.o exec_command.o fifo_listen.o \
 	fifo_trigger.o file_limit.o find_inet.o fsspace.o fullname.o \
@@ -61,8 +61,8 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	uppercase.o
 HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
-	dict_cidr.h dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
-	dict_nisplus.h dict_pcre.h dict_pgsql.h dict_regexp.h \
+	dict_cidr.h dict_ht.h dict_ni.h dict_nis.h \
+	dict_nisplus.h dict_pcre.h dict_regexp.h \
 	dict_static.h dict_tcp.h dict_unix.h dir_forest.h events.h \
 	exec_command.h find_inet.h fsspace.h fullname.h get_domainname.h \
 	get_hostname.h hex_quote.h host_port.h htable.h inet_addr_host.h \
@@ -647,10 +647,6 @@ dict_ht.o: vstream.h
 dict_ht.o: vbuf.h
 dict_ht.o: argv.h
 dict_ht.o: dict_ht.h
-dict_ldap.o: dict_ldap.c
-dict_ldap.o: sys_defs.h
-dict_mysql.o: dict_mysql.c
-dict_mysql.o: sys_defs.h
 dict_ni.o: dict_ni.c
 dict_ni.o: sys_defs.h
 dict_nis.o: dict_nis.c
@@ -689,9 +685,6 @@ dict_open.o: dict_db.h
 dict_open.o: dict_nis.h
 dict_open.o: dict_nisplus.h
 dict_open.o: dict_ni.h
-dict_open.o: dict_ldap.h
-dict_open.o: dict_mysql.h
-dict_open.o: dict_pgsql.h
 dict_open.o: dict_pcre.h
 dict_open.o: dict_regexp.h
 dict_open.o: dict_static.h
@@ -714,8 +707,6 @@ dict_pcre.o: dict.h
 dict_pcre.o: argv.h
 dict_pcre.o: dict_pcre.h
 dict_pcre.o: mac_parse.h
-dict_pgsql.o: dict_pgsql.c
-dict_pgsql.o: sys_defs.h
 dict_regexp.o: dict_regexp.c
 dict_regexp.o: sys_defs.h
 dict_regexp.o: mymalloc.h

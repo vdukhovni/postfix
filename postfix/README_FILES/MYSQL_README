@@ -67,6 +67,28 @@ hosts = host1.some.domain host2.some.domain unix:/file/name
 
 # end mysql config file
 
+Alternatively, these parameters can be defined in main.cf.  To that
+effect, the map should be specified as "mysql:name", and the parameters
+should be prefixed with the name you've given the map in its definition,
+and an underscore.  For example, the above settings can also be written
+in main.cf as:
+
+# mysql definitions in main.cf
+
+alias_maps = mysql:mysqlsource
+
+mysqlsource_user = someone
+mysqlsource_password = some_password
+mysqlsource_dbname = customer_database
+mysqlsource_table = mxaliases
+mysqlsource_select_field = forw_addr
+mysqlsource_where_field = alias
+mysqlsource_additional_conditions = and status = 'paid'
+mysqlsource_hosts = host1.some.domain host2.some.domain unix:/file/name
+
+# end mysql definitions
+
+
 Some notes:
 
 This configuration interface setup allows for multiple mysql

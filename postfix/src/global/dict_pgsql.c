@@ -2,14 +2,14 @@
 /* NAME
 /*	dict_pgsql 3
 /* SUMMARY
-/*	dictionary manager interface to Postgresql files
+/*	dictionary manager interface to PostgreSQL databases
 /* SYNOPSIS
 /*	#include <dict_pgsql.h>
 /*
 /*	DICT	*dict_pgsql_open(name, open_flags, dict_flags)
 /*	const char *name;
-/*	int     open_flags;
-/*	int     dict_flags;
+/*	int	open_flags;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_pgsql_open() creates a dictionary of type 'pgsql'.  This
 /*	dictionary is an interface for the postfix key->value mappings
@@ -24,34 +24,83 @@
 /*	The intent of this feature is to eliminate a single point of
 /*	failure for mail systems that would otherwise rely on a single
 /*	pgsql server.
-/*
+/* .PP
 /*	Arguments:
 /* .IP name
-/*	The path of the PostgreSQL configuration file.  The file
-/*	encodes number of pieces of information: username, password,
-/*	databasename, table, select_field, where_field, and hosts.
-/*	For example, if you want the map to reference databases of
-/*	the name "your_db" and execute a query like this:  select
-/*	forw_addr from aliases where alias like '<some username>'
-/*	against any database called "postfix_info" located on hosts
-/*	host1.some.domain and host2.some.domain, logging in as user
-/*	"postfix" and password "passwd" then the configuration file
-/*	should read:
+/*	Either the path to the PostgreSQL configuration file (if it
+/*	starts with '/' or '.'), or the prefix which will be used to
+/*	obtain main.cf configuration parameters for this search.
 /*
-/*	user = postfix
-/*	password = passwd
-/*	DBname = postfix_info
-/*	table = aliases
-/*	select_field = forw_addr
-/*	where_field = alias
-/*	hosts = host1.some.domain host2.some.domain
+/*	In the first case, the configuration parameters below are
+/*	specified in the file as \fIname\fR=\fBvalue\fR pairs.
 /*
+/*	In the second case, the configuration parameters are
+/*	prefixed with the value of \fIname\fR and an underscore,
+/*	and they are specified in main.cf.  For example, if this
+/*	value is \fIpgsqlsource\fR, the parameters would look like
+/*	\fIpgsqlsource_user\fR, \fIpgsqlsource_table\fR, and so on.
 /* .IP other_name
 /*	reference for outside use.
 /* .IP open_flags
 /*	Must be O_RDONLY.
 /* .IP dict_flags
 /*	See dict_open(3).
+/*
+/* .PP
+/*	Configuration parameters:
+/*
+/*	The parameters encode a number of pieces of information:
+/*	username, password, databasename, table, select_field,
+/*	where_field, and hosts:
+/* .IP \fIuser\fR
+/*	Username for connecting to the database.
+/* .IP \fIpassword\fR
+/*	Password for the above.
+/* .IP \fIdbname\fR
+/*	Name of the database.
+/* .IP \fItable\fR
+/*	Name of the table.
+/* .IP \fIselect_field\fR
+/*	Name of the result field.
+/* .IP \fIwhere_field\fR
+/*	Field used in the WHERE clause.
+/* .IP \fIadditional_conditions\fR
+/*	Additional conditions to the WHERE clause.
+/* .IP \fIquery\fR
+/*	Query overriding \fItable\fR, \fIselect_field\fR,
+/*	\fIwhere_field\fR, and \fIadditional_conditions\fR.  Before the
+/*	query is actually issued, all occurrences of %s are replaced
+/*	with the address to look up, %u are replaced with the user
+/*	portion, and %d with the domain portion.
+/* .IP \fIselect_function\fR
+/*	Function to be used instead of the SELECT statement.  Overrides
+/*	both \fIquery\fR and \fItable\fR, \fIselect_field\fR,
+/*	\fIwhere_field\fR, and \fIadditional_conditions\fR settings.
+/* .IP \fIhosts\fR
+/*	List of hosts to connect to.
+/* .PP
+/*	For example, if you want the map to reference databases of
+/*	the name "your_db" and execute a query like this: select
+/*	forw_addr from aliases where alias like '<some username>'
+/*	against any database called "postfix_info" located on hosts
+/*	host1.some.domain and host2.some.domain, logging in as user
+/*	"postfix" and password "passwd" then the configuration file
+/*	should read:
+/* .PP
+/*	\fIuser\fR = \fBpostfix\fR
+/* .br
+/*	\fIpassword\fR = \fBpasswd\fR
+/* .br
+/*	\fIdbname\fR = \fBpostfix_info\fR
+/* .br
+/*	\fItable\fR = \fBaliases\fR
+/* .br
+/*	\fIselect_field\fR = \fBforw_addr\fR
+/* .br
+/*	\fIwhere_field\fR = \fBalias\fR
+/* .br
+/*	\fIhosts\fR = \fBhost1.some.domain\fR \fBhost2.some.domain\fR
+/* .PP
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* AUTHOR(S)
@@ -70,6 +119,7 @@
 /*--*/
 
 /* System library. */
+
 #include "sys_defs.h"
 
 #ifdef HAS_PGSQL
@@ -87,14 +137,22 @@
 #include <libpq-fe.h>
 
 /* Utility library. */
+
 #include "dict.h"
 #include "msg.h"
 #include "mymalloc.h"
-#include "dict_pgsql.h"
 #include "argv.h"
 #include "vstring.h"
 #include "split_at.h"
 #include "find_inet.h"
+
+/* Global library. */
+
+#include "cfg_parser.h"
+
+/* Application-specific. */
+
+#include "dict_pgsql.h"
 
 #define STATACTIVE	0
 #define STATFAIL	1
@@ -114,6 +172,7 @@ typedef struct {
 } PLPGSQL;
 
 typedef struct {
+    CFG_PARSER *parser;
     char   *username;
     char   *password;
     char   *dbname;
@@ -202,7 +261,7 @@ static void pgsql_escape_string(char *new, const char *old, unsigned int len)
  */
 static void dict_pgsql_expand_filter(char *filter, char *value, VSTRING *out)
 {
-    char   *myname = "dict_pgsql_expand_filter";
+    const char *myname = "dict_pgsql_expand_filter";
     char   *sub,
            *end;
 
@@ -285,7 +344,8 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     } else if (dict_pgsql->name->query) {
 	dict_pgsql_expand_filter(dict_pgsql->name->query, name_escaped, query);
     } else {
-	vstring_sprintf(query, "select %s from %s where %s = '%s' %s", dict_pgsql->name->select_field,
+	vstring_sprintf(query, "select %s from %s where %s = '%s' %s",
+			dict_pgsql->name->select_field,
 			dict_pgsql->name->table,
 			dict_pgsql->name->where_field,
 			name_escaped,
@@ -357,9 +417,9 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
 
 /*
  * plpgsql_query - process a PostgreSQL query.  Return PGSQL_RES* on success.
- *		     On failure, log failure and try other db instances.
- *		     on failure of all db instances, return 0;
- *		     close unnecessary active connections
+ *			On failure, log failure and try other db instances.
+ *			on failure of all db instances, return 0;
+ *			close unnecessary active connections
  */
 
 static PGSQL_RES *plpgsql_query(PLPGSQL *PLDB,
@@ -516,126 +576,71 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
 }
 
 /* pgsqlname_parse - parse pgsql configuration file */
-static PGSQL_NAME *pgsqlname_parse(const char *pgsqlcf_path)
+static PGSQL_NAME *pgsqlname_parse(const char *pgsqlcf)
 {
+    const char *myname = "pgsqlname_parse";
     int     i;
-    char   *nameval;
     char   *hosts;
     PGSQL_NAME *name = (PGSQL_NAME *) mymalloc(sizeof(PGSQL_NAME));
     ARGV   *hosts_argv;
-    VSTRING *opt_dict_name;
 
-    /*
-     * setup a dict containing info in the pgsql cf file. the dict has a
-     * name, and a path.  The name must be distinct from the path, or the
-     * dict interface gets confused.  The name must be distinct for two
-     * different paths, or the configuration info will cache across different
-     * pgsql maps, which can be confusing.
-     */
-    opt_dict_name = vstring_alloc(64);
-    vstring_sprintf(opt_dict_name, "pgsql opt dict %s", pgsqlcf_path);
-    dict_load_file(vstring_str(opt_dict_name), pgsqlcf_path);
-    /* pgsql username lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "user")) == NULL)
-	name->username = mystrdup("");
-    else
-	name->username = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("pgsqlname_parse(): set username to '%s'", name->username);
-    /* password lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "password")) == NULL)
-	name->password = mystrdup("");
-    else
-	name->password = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("pgsqlname_parse(): set password to '%s'", name->password);
+    name->parser = cfg_parser_alloc(pgsqlcf);
+
+    /* username */
+    name->username = cfg_get_str(name->parser, "user", "", 0, 0);
+
+    /* password */
+    name->password = cfg_get_str(name->parser, "password", "", 0, 0);
 
     /* database name lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "dbname")) == NULL)
-	msg_fatal("%s: pgsql options file does not include database name", pgsqlcf_path);
-    else
-	name->dbname = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("pgsqlname_parse(): set database name to '%s'", name->dbname);
-
-    /* table lookup */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "table")) == NULL)
-	msg_fatal("%s: pgsql options file does not include table name", pgsqlcf_path);
-    else
-	name->table = mystrdup(nameval);
-    if (msg_verbose)
-	msg_info("pgsqlname_parse(): set table name to '%s'", name->table);
-
-    name->select_function = NULL;
-    name->query = NULL;
+    name->dbname = cfg_get_str(name->parser, "dbname", "", 1, 0);
 
     /*
      * See what kind of lookup we have - a traditional 'select' or a function
      * call
      */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "select_function")) != NULL) {
+    name->select_function = cfg_get_str(name->parser, "select_function",
+					NULL, 0, 0);
+    name->query = cfg_get_str(name->parser, "query", NULL, 0, 0);
 
-	/* We have a 'select %s(%s)' function call. */
-	name->select_function = mystrdup(nameval);
-	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): set function name to '%s'", name->table);
-	/* query string */
-    } else if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "query")) != NULL) {
-	name->query = mystrdup(nameval);
-	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): set query to '%s'", name->query);
-    } else {
+    if (name->select_function == 0 && name->query == 0) {
 
 	/*
-	 * We have an old style 'select %s from %s...' call, so get the
-	 * fields
+	 * We have an old style 'select %s from %s...' call
 	 */
 
-	/* table lookup */
-	if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "table")) == NULL)
-	    msg_fatal("%s: pgsql options file does not include table name", pgsqlcf_path);
-	else
-	    name->table = mystrdup(nameval);
-	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): set table name to '%s'", name->table);
+	/* table name */
+	name->table = cfg_get_str(name->parser, "table", "", 1, 0);
 
-	/* select field lookup */
-	if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "select_field")) == NULL)
-	    msg_fatal("%s: pgsql options file does not include select field", pgsqlcf_path);
-	else
-	    name->select_field = mystrdup(nameval);
-	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): set select_field to '%s'", name->select_field);
+	/* select field */
+	name->select_field = cfg_get_str(name->parser, "select_field",
+					 "", 1, 0);
 
-	/* where field lookup */
-	if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "where_field")) == NULL)
-	    msg_fatal("%s: pgsql options file does not include where field", pgsqlcf_path);
-	else
-	    name->where_field = mystrdup(nameval);
-	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): set where_field to '%s'", name->where_field);
+	/* where field */
+	name->where_field = cfg_get_str(name->parser, "where_field",
+					"", 1, 0);
 
 	/* additional conditions */
-	if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "additional_conditions")) == NULL)
-	    name->additional_conditions = mystrdup("");
-	else
-	    name->additional_conditions = mystrdup(nameval);
-	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): set additional_conditions to '%s'", name->additional_conditions);
+	name->additional_conditions = cfg_get_str(name->parser,
+						  "additional_conditions",
+						  "", 0, 0);
+    } else {
+	name->table = 0;
+	name->select_field = 0;
+	name->where_field = 0;
+	name->additional_conditions = 0;
     }
 
-    /* pgsql server hosts */
-    if ((nameval = (char *) dict_lookup(vstring_str(opt_dict_name), "hosts")) == NULL)
-	hosts = mystrdup("");
-    else
-	hosts = mystrdup(nameval);
+    /* server hosts */
+    hosts = cfg_get_str(name->parser, "hosts", "", 0, 0);
+
     /* coo argv interface */
     hosts_argv = argv_split(hosts, " ,\t\r\n");
-
     if (hosts_argv->argc == 0) {		/* no hosts specified,
 						 * default to 'localhost' */
 	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): no hostnames specified, defaulting to 'localhost'");
+	    msg_info("%s: %s: no hostnames specified, defaulting to 'localhost'",
+		     myname, pgsqlcf);
 	argv_add(hosts_argv, "localhost", ARGV_END);
 	argv_terminate(hosts_argv);
     }
@@ -645,11 +650,10 @@ static PGSQL_NAME *pgsqlname_parse(const char *pgsqlcf_path)
     for (i = 0; hosts_argv->argv[i] != NULL; i++) {
 	name->hostnames[i] = mystrdup(hosts_argv->argv[i]);
 	if (msg_verbose)
-	    msg_info("pgsqlname_parse(): adding host '%s' to list of pgsql server hosts",
-		     name->hostnames[i]);
+	    msg_info("%s: %s: adding host '%s' to list of pgsql server hosts",
+		     myname, pgsqlcf, name->hostnames[i]);
     }
     myfree(hosts);
-    vstring_free(opt_dict_name);
     argv_free(hosts_argv);
     return name;
 }
@@ -699,13 +703,22 @@ static void dict_pgsql_close(DICT *dict)
     DICT_PGSQL *dict_pgsql = (DICT_PGSQL *) dict;
 
     plpgsql_dealloc(dict_pgsql->pldb);
+    cfg_parser_free(dict_pgsql->name->parser);
     myfree(dict_pgsql->name->username);
     myfree(dict_pgsql->name->password);
     myfree(dict_pgsql->name->dbname);
-    myfree(dict_pgsql->name->table);
-    myfree(dict_pgsql->name->select_field);
-    myfree(dict_pgsql->name->where_field);
-    myfree(dict_pgsql->name->additional_conditions);
+    if (dict_pgsql->name->table)
+	myfree(dict_pgsql->name->table);
+    if (dict_pgsql->name->query)
+	myfree(dict_pgsql->name->query);
+    if (dict_pgsql->name->select_function)
+	myfree(dict_pgsql->name->select_function);
+    if (dict_pgsql->name->select_field)
+	myfree(dict_pgsql->name->select_field);
+    if (dict_pgsql->name->where_field)
+	myfree(dict_pgsql->name->where_field);
+    if (dict_pgsql->name->additional_conditions)
+	myfree(dict_pgsql->name->additional_conditions);
     for (i = 0; i < dict_pgsql->name->len_hosts; i++) {
 	myfree(dict_pgsql->name->hostnames[i]);
     }

@@ -447,7 +447,7 @@ test -n "$create" && {
 	test -n "$set_permission" && {
 	    chown $recursive $owner $path || exit 1
 	    test -z "$group" || chgrp $recursive $group $path || exit 1
-	    chmod $mode $path || exit 1
+	    chmod $recursive $mode $path || exit 1
 	}
     done
 }

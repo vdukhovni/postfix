@@ -97,22 +97,28 @@ QMGR(8)                                                   QMGR(8)
               attempts by  maintaining  a  short-term,  in-memory
               list of unreachable destinations.
 
+       <b>preemptive message scheduling</b>
+              The  queue manager attempts to minimize the average
+              per-recipient delay while still preserving the cor-
+              rect per-message delays, using a sophisticated pre-
+              emptive message scheduling.
+
 <b>TRIGGERS</b>
        On an idle system, the queue manager waits for the arrival
-       of trigger events, or it waits for a timer to  go  off.  A
-       trigger  is  a one-byte message.  Depending on the message
-       received, the queue manager performs one of the  following
-       actions  (the message is followed by the symbolic constant
+       of  trigger  events,  or it waits for a timer to go off. A
+       trigger is a one-byte message.  Depending on  the  message
+       received,  the queue manager performs one of the following
+       actions (the message is followed by the symbolic  constant
        used internally by the software):
 
        <b>D (QMGR_REQ_SCAN_DEFERRED)</b>
-              Start a deferred queue scan.  If a  deferred  queue
-              scan  is  already  in  progress,  that scan will be
+              Start  a  deferred queue scan.  If a deferred queue
+              scan is already in  progress,  that  scan  will  be
               restarted as soon as it finishes.
 
        <b>I (QMGR_REQ_SCAN_INCOMING)</b>
-              Start an incoming queue scan. If an incoming  queue
-              scan  is  already  in  progress,  that scan will be
+              Start  an incoming queue scan. If an incoming queue
+              scan is already in  progress,  that  scan  will  be
               restarted as soon as it finishes.
 
        <b>A (QMGR_REQ_SCAN_ALL)</b>
@@ -120,30 +126,30 @@ QMGR(8)                                                   QMGR(8)
               affects the next deferred queue scan.
 
        <b>F (QMGR_REQ_FLUSH_DEAD)</b>
-              Purge  all  information  about  dead transports and
+              Purge all information  about  dead  transports  and
               destinations.
 
        <b>W (TRIGGER_REQ_WAKEUP)</b>
-              Wakeup call, This is used by the master  server  to
-              instantiate  servers  that  should not go away for-
-              ever. The action is  to  start  an  incoming  queue
+              Wakeup  call,  This is used by the master server to
+              instantiate servers that should not  go  away  for-
+              ever.  The  action  is  to  start an incoming queue
               scan.
 
-       The  <b>qmgr</b> daemon reads an entire buffer worth of triggers.
-       Multiple identical trigger  requests  are  collapsed  into
-       one,  and trigger requests are sorted so that <b>A</b> and <b>F</b> pre-
-       cede <b>D</b> and <b>I</b>. Thus, in order to  force  a  deferred  queue
+       The <b>qmgr</b> daemon reads an entire buffer worth of  triggers.
+       Multiple  identical  trigger  requests  are collapsed into
+       one, and trigger requests are sorted so that <b>A</b> and <b>F</b>  pre-
+       cede  <b>D</b>  and  <b>I</b>.  Thus, in order to force a deferred queue
        run, one would request <b>A F D</b>; in order to notify the queue
        manager of the arrival of new mail one would request <b>I</b>.
 
 <b>STANDARDS</b>
-       None. The <b>qmgr</b> daemon does not interact with  the  outside
+       None.  The  <b>qmgr</b> daemon does not interact with the outside
        world.
 
 <b>SECURITY</b>
-       The  <b>qmgr</b>  daemon is not security sensitive. It reads sin-
-       gle-character messages from  untrusted  local  users,  and
-       thus  may be susceptible to denial of service attacks. The
+       The <b>qmgr</b> daemon is not security sensitive. It  reads  sin-
+       gle-character  messages  from  untrusted  local users, and
+       thus may be susceptible to denial of service attacks.  The
        <b>qmgr</b> daemon does not talk to the outside world, and it can
        be run at fixed low privilege in a chrooted environment.
 
@@ -152,31 +158,34 @@ QMGR(8)                                                   QMGR(8)
        Corrupted message files are saved to the <b>corrupt</b> queue for
        further inspection.
 
-       Depending  on the setting of the <b>notify_classes</b> parameter,
-       the postmaster is notified of bounces and of  other  trou-
+       Depending on the setting of the <b>notify_classes</b>  parameter,
+       the  postmaster  is notified of bounces and of other trou-
        ble.
 
 <b>BUGS</b>
-       A  single  queue  manager  process has to compete for disk
-       access with multiple front-end processes such as <b>smtpd</b>.  A
-       sudden  burst  of  inbound mail can negatively impact out-
+       A single queue manager process has  to  compete  for  disk
+       access  with multiple front-end processes such as <b>smtpd</b>. A
+       sudden burst of inbound mail can  negatively  impact  out-
        bound delivery rates.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix  reload</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. See the Postfix <b>main.cf</b> file  for  syntax
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
        <b>allow_min_user</b>
-              Do  not  bounce recipient addresses that begin with
+              Do not bounce recipient addresses that  begin  with
               '-'.
 
        <b>queue_directory</b>
               Top-level directory of the Postfix queue.
 
 <b>Active queue controls</b>
+       In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
+       <b>ter.cf</b> entry.
+
        <b>qmgr_clog_warn_time</b>
               Minimal delay between warnings that a specific des-
               tination is clogging up the active queue. Specify 0
@@ -190,6 +199,27 @@ QMGR(8)                                                   QMGR(8)
 
               This parameter also limits the size of  the  short-
               term, in-memory destination cache.
+
+       <b>qmgr_message_recipient_minimum</b>
+              Per message minimum of in-memory recipients.
+
+       <b>default_recipient_limit</b>
+              Default limit on the number of in-memory recipients
+              per transport.
+
+       <i>transport</i><b>_recipient_limit</b>
+              Limit on the number of  in-memory  recipients,  for
+              the named message <i>transport</i>.
+
+       <b>default_extra_recipient_limit</b>
+              Default  limit on the total number of per transport
+              in-memory recipients that the  preempting  messages
+              can have.
+
+       <i>transport</i><b>_extra_recipient_limit</b>
+              Limit  on  the number of in-memory recipients which
+              all preempting messages delivered by the  transport
+              <i>transport</i> can have.
 
 <b>Timing controls</b>
        <b>minimal_backoff_time</b>
@@ -221,25 +251,6 @@ QMGR(8)                                                   QMGR(8)
               ken delivery transport.
 
 <b>Concurrency controls</b>
-       In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
-       <b>ter.cf</b> entry.
-
-       <b>qmgr_fudge_factor</b> (valid range: 10..100)
-              The percentage of delivery resources  that  a  busy
-              mail  system  will  use  up for delivery of a large
-              mailing list message.  With 100%, delivery  of  one
-              message  does not begin before the previous message
-              has been delivered. This results  in  good  perfor-
-              mance  for large mailing lists, but results in poor
-              response time for one-to-one mail.  With less  than
-              100%,  response  time for one-to-one mail improves,
-              but large mailing list  delivery  performance  suf-
-              fers. In the worst case, recipients near the begin-
-              ning of a large list receive a  burst  of  messages
-              immediately,  while recipients near the end of that
-              list receive that same burst of  messages  a  whole
-              day later.
-
        <b>initial_destination_concurrency</b>
               Initial  per-destination concurrency level for par-
               allel delivery to the same destination.
@@ -262,13 +273,59 @@ QMGR(8)                                                   QMGR(8)
               Limit on  the  number  of  recipients  per  message
               transfer, for the named message <i>transport</i>.
 
+<b>Message scheduling</b>
+       <i>transport</i><b>_delivery_slot_cost</b> (valid range: 0,2,3...)
+              This  parameter basically controls how often a mes-
+              sage delivered by <i>transport</i>  can  be  preempted  by
+              another message.  An internal per-message/transport
+              counter is  incremented  by  one  for  each  <i>trans-</i>
+              <i>port</i><b>_delivery_slot_cost</b>   deliveries   handled   by
+              <i>transport</i>. This counter represents  the  number  of
+              "available  delivery  slots"  for use by other mes-
+              sages.  Current message can be preempted by another
+              message  when  that  other message can be delivered
+              using less <i>transport</i> agents than the value  of  the
+              "available delivery slots" counter.
+
+              Value  equal  to  0 disables the message preemption
+              for <i>transport</i>.
+
+       <i>transport</i><b>_minimum_delivery_slots</b>
+              Message preemption is not attempted at all whenever
+              a  message  that  can't  ever  accumulate  at least
+              <i>transport</i><b>_minimum_delivery_slots</b> available delivery
+              slots is being delivered by <i>transport</i>.
+
+       <i>transport</i><b>_delivery_slot_discount</b> (valid range: 0..100)
+
+       <i>transport</i><b>_delivery_slot_loan</b>
+              These parameters speed up the moment when a message
+              preemption can happen.  Instead  of  waiting  until
+              the  full  amount  of  delivery  slots  required is
+              available, the preemption can  happen  when  <i>trans-</i>
+              <i>port</i><b>_delivery_slot_discount</b> percent of the required
+              amount  plus   <i>transport</i><b>_delivery_slot_loan</b>   still
+              remains  to  be  accumulated.  Note  that  the full
+              amount will still have  to  be  accumulated  before
+              another preemption can take place later.
+
+       <b>default_delivery_slot_cost</b>
+
+       <b>default_minimum_delivery_slots</b>
+
+       <b>default_delivery_slot_discount</b>
+
+       <b>default_delivery_slot_loan</b>
+              Default  values  for the transport specific parame-
+              ters described above.
+
 <b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a>, process manager
        syslogd(8) system logging
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -276,6 +333,11 @@ QMGR(8)                                                   QMGR(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Scheduler enhancements:
+       Patrik Rak
+       Modra 6
+       155 00, Prague, Czech Republic
 
                                                           QMGR(8)
 </pre> </body> </html>

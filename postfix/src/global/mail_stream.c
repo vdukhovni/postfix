@@ -114,13 +114,7 @@ static VSTRING *id_buf;
 
 void    mail_stream_cleanup(MAIL_STREAM *info)
 {
-    int     status;
-
-    if (info->stream) {
-	if ((status = info->close(info->stream)) != 0)
-	    msg_warn("bad mail stream close status %d", status);
-	info->stream = 0;
-    }
+    FREE_AND_WIPE(info->close, info->stream);
     FREE_AND_WIPE(myfree, info->queue);
     FREE_AND_WIPE(myfree, info->id);
     FREE_AND_WIPE(myfree, info->class);

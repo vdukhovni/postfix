@@ -39,11 +39,6 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
-/*
-/*	Scheduler enhancements:
-/*	Patrik Rak
-/*	Modra 6
-/*	155 00, Prague, Czech Republic
 /*--*/
 
 /* System library. */
@@ -287,6 +282,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
 
 void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
 {
+    QMGR_QUEUE *queue;
     QMGR_ENTRY *entry;
 
     /*
@@ -310,7 +306,8 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      * agent request reading routine is prepared for the queue manager to
      * change its mind for no apparent reason.
      */
-    if ((entry = qmgr_job_entry_select(transport)) == 0) {
+    if ((queue = qmgr_queue_select(transport)) == 0
+	|| (entry = qmgr_entry_select(queue)) == 0) {
 	(void) vstream_fclose(stream);
 	return;
     }
@@ -322,10 +319,10 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      * while some other queue manipulation is happening.
      */
     if (qmgr_deliver_send_request(entry, stream) < 0) {
-	qmgr_entry_unselect(entry);
+	qmgr_entry_unselect(queue, entry);
 	qmgr_transport_throttle(transport, "mail transport unavailable");
 	qmgr_defer_transport(transport, transport->reason);
-	/* warning: entry may be a dangling pointer here */
+	/* warning: entry and queue may be dangling pointers here */
 	(void) vstream_fclose(stream);
 	return;
     }

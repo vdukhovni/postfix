@@ -47,9 +47,9 @@ server sends in a delegated SMTPD access policy request:
 The following is specific to SMTPD delegated policy requests:
 
 - Protocol names are ESMTP or SMTP.
-- Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA or
-  ETRN; these are the SMTP protocol states where the Postfix SMTP
-  server makes an OK/REJECT/HOLD/etc. decision.
+- Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA, VRFY
+  or ETRN; these are the SMTP protocol states where the Postfix
+  SMTP server makes an OK/REJECT/HOLD/etc. decision.
 
 The policy server replies with any action that is allowed in a
 Postfix SMTPD access table. Example:
@@ -57,8 +57,11 @@ Postfix SMTPD access table. Example:
     action=450 Service temporarily unavailable
     [empty line]
 
-In case of trouble the server must log a warning and disconnect.
-Postfix will retry the request at some later time.
+This causes Postfix to reject the request with a 450 temporary
+error code and with text "Service temporarily unavailable".
+
+In case of trouble the policy server must log a warning and
+disconnect.  Postfix will retry the request at some later time.
 
 CLIENT SIDE CONFIGURATION
 =========================
@@ -93,9 +96,10 @@ or else your system could become an open relay.
 
 NOTE: Postfix by default kills a command after 1000 seconds. This
 is too short for a policy daemon that may run for as long as an
-SMTP client is connected to an SMTP server process.
+SMTP client is connected to an SMTP server process. The default
+time limit is overruled with an explicit policy_time_limit setting.
 
-NOTE: Solaris UNIX-domain sockets do not work very well. Use TCP
+NOTE: Solaris UNIX-domain sockets do not work reliably. Use TCP
 sockets instead:
 
 /etc/postfix/main.cf:
@@ -109,15 +113,17 @@ sockets instead:
 Other client-side configuration parmeters:
 
 - smtpd_policy_service_max_idle (default: 300s): the amount of time
-  before Postfix closes an unused policy connection. The socket is
-  closed while the SMTP server waits for new a SMTP client.
+  before the Postfix SMTP server closes an unused policy client
+  connection.  The socket is closed while the SMTP server waits
+  for new a SMTP client.
 
 - smtpd_policy_service_max_ttl (default: 1000s): the amount of time
-  before Postfix closes an active policy connection.  The socket
-  is closed while the SMTP server waits for new a SMTP client.
+  before the Postfix SMTP server closes an active policy client
+  connection. The socket is closed while the SMTP server waits for
+  new a SMTP client.
 
 - smtpd_policy_service_timeout (default: 100s): the time limit to
-  connect to, send to or receive from a policy service.
+  connect to, send to or receive from a policy server.
 
 EXAMPLE: GREYLIST POLICY SERVER
 ===============================
@@ -125,11 +131,11 @@ EXAMPLE: GREYLIST POLICY SERVER
 The file examples/smtpd-policy/smtpd-policy.pl in the Postfix source
 tree implements an example greylist policy server. This server
 stores a time stamp for every (client, sender, recipient) triple.
-By default, mail is not accepted until a triple's time stamp is
-more than 3600 seconds old. This stops junk mail with randomly
-selected sender addresses, and mail that is sent through randomly
-selected open proxies. It also stops junk mail from spammers that
-change their IP address frequently.
+By default, mail is not accepted until a time stamp is more than
+60 seconds old. This stops junk mail with randomly selected sender
+addresses, and mail that is sent through randomly selected open
+proxies. It also stops junk mail from spammers that change their
+IP address frequently.
 
 Copy examples/smtpd-policy/smtpd-policy.pl to /usr/libexec/postfix
 or whatever location is appropriate for your system.
@@ -171,11 +177,12 @@ Greylisting mail from frequently forged domains
 
 It is relatively safe to turn on greylisting for specific domains
 that often appear in forged email. However, sites like AOL may
-blacklist you when they find that you are probing them too often
-and/or if you're probing them too often for non-existent addresses.
+blacklist you when they find that you are probing them too often,
+or when you're probing them too often for non-existent addresses.
 
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
+	reject_unlisted_recipient
         ...
         reject_unauth_destination 
         check_sender_access hash:/etc/postfix/sender_access
@@ -193,6 +200,10 @@ and/or if you're probing them too often for non-existent addresses.
 Be sure to specify check_sender_access AFTER reject_unauth_destination
 or else your system could become an open mail relay.
 
+The greylist database gets polluted quickly with bogus addresses.
+It can help if you protect greylist lookups with restrictions that
+reject unknown senders and/or recipients.
+
 A list of frequently forged MAIL FROM domains can be found at
 http://www.monkeys.com/anti-spam/filtering/sender-domain-validate.in
 
@@ -206,6 +217,7 @@ database relatively quickly.
 
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
+	reject_unlisted_recipient
         ...
         reject_unauth_destination 
         check_sender_access hash:/etc/postfix/sender_access
@@ -221,6 +233,10 @@ Be sure to specify check_sender_access and check_policy_service
 AFTER reject_unauth_destination or else your system could become
 an open mail relay.
 
+The greylist database gets polluted quickly with bogus addresses.
+It can help if you protect greylist lookups with restrictions that
+reject unknown senders and/or recipients.
+
 ROUTINE MAINTENANCE
 ===================
 
@@ -228,10 +244,11 @@ The greylist database grows over time, because the greylist server
 never removes database entries. If left unattended, the greylist
 database will eventually run your file system out of space.
 
-When the status file exceeds some reasonable size you can simply
-delete the file without adverse effects. In the worst case, new
-mail will be delayed by one hour. To lessen the impact, delete the
-file in the middle of the night during a weekend.
+When the status file size exceeds some threshold you can simply
+rename or remove the file without adverse effects. In the worst
+case, new mail will be delayed by an hour or so. To lessen the
+impact, rename or remove the file in the middle of the night at
+the beginning of a weekend.
 
 SAMPLE POLICY ROUTINE
 =====================
@@ -245,7 +262,7 @@ This is the PERL subroutine that implements the example greylist policy.
 # that can run out of space.
 #
 $database_name="/var/mta/smtpd-policy.db";
-$greylist_delay=3600;
+$greylist_delay=60;
 
 #
 # Demo SMTPD access policy routine. The result is an action just like
@@ -259,8 +276,8 @@ sub smtpd_access_policy {
     open_database() unless $database_obj;
 
     # Lookup the time stamp for this client/sender/recipient.
-    $key = $attr{"client_address"}."/".$attr{"sender"}."/".$attr{"recipient"};
-    $key =~ tr /A-Z/a-z/;
+    $key =
+	lc $attr{"client_address"}."/".$attr{"sender"}."/".$attr{"recipient"};
     $time_stamp = read_database($key);
     $now = time();
 
@@ -278,6 +295,6 @@ sub smtpd_access_policy {
     if ($now - $time_stamp > $greylist_delay) {
         return "dunno";
     } else {
-        return "defer_if_permit Service is unavailable";
+        return "defer_if_permit Service temporarily unavailable";
     }
 }

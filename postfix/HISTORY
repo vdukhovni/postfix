@@ -8958,6 +8958,46 @@ Apologies for any names omitted.
 	like reject_unlisted_recipient, but will eventually be
 	removed from Postfix.
 
+20040102
+
+	Misc documentation cleanup by Loic Minier.
+
+20040104
+
+	Workaround: MacOSX dumps core on the 20030913 TZ censoring
+	code. We explictly set TZ=UTC, which will produce incorrect
+	results when "mailq" formatting is moved from the showq
+	daemon to the postqueue command.   File: msg_syslog.c.
+
+	Feature: after mail is requeued with "postsuper -r", the
+	pickup server logs the old queue ID together with the new
+	queue ID.  Victor Duchovni. File: pickup/pickup.c.
+
+	Feature: smtpd_sasl_application_name parameter (default:
+	smtpd) to control the name of the SASL configuration file
+	used by the Postfix SMTP server. Liviu Daia. Files:
+	mail_params.h, smtpd.c, smtpd_sasl_glue.c.
+
+	Cleanup: shared config file parser for ldap, mysql, pgsql
+	lookup tables. Liviu Daia. Files: global/cfgparser.[hc],
+	global/dict_ldap.c, global/dict_mtsql.c, global/dict_pgsql.c
+	and documentation.
+
+	Cleanup: moved modules with dependencies on higher-level
+	code from the util directory to the global directory:
+	util/dict_open.c, global/cfgparser.[hc], global/dict_ldap.c,
+	global/dict_mtsql.c, global/dict_pgsql.c, global/mail_dict.c.
+
+	Cleanup: the new queue manager nqmgr replaces the default
+	queue manager qmgr, leaving behind a hard link for backwards
+	compatibility. The old queue manager remains available as
+	as oqmgr but will eventually be removed.
+
+	Bugfix: vstring_get() etc. now return VSTREAM_EOF when they
+	terminate prematurely, instead of returning the last
+	character stored.  This avoids mis-leading warnings. File:
+	global/vstring_vstream.c.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and

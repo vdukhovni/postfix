@@ -22,13 +22,9 @@ typedef struct QMGR_TRANSPORT QMGR_TRANSPORT;
 typedef struct QMGR_QUEUE QMGR_QUEUE;
 typedef struct QMGR_ENTRY QMGR_ENTRY;
 typedef struct QMGR_MESSAGE QMGR_MESSAGE;
-typedef struct QMGR_JOB QMGR_JOB;
-typedef struct QMGR_PEER QMGR_PEER;
 typedef struct QMGR_TRANSPORT_LIST QMGR_TRANSPORT_LIST;
 typedef struct QMGR_QUEUE_LIST QMGR_QUEUE_LIST;
 typedef struct QMGR_ENTRY_LIST QMGR_ENTRY_LIST;
-typedef struct QMGR_JOB_LIST QMGR_JOB_LIST;
-typedef struct QMGR_PEER_LIST QMGR_PEER_LIST;
 typedef struct QMGR_RCPT QMGR_RCPT;
 typedef struct QMGR_RCPT_LIST QMGR_RCPT_LIST;
 typedef struct QMGR_SCAN QMGR_SCAN;
@@ -36,16 +32,17 @@ typedef struct QMGR_SCAN QMGR_SCAN;
  /*
   * Hairy macros to update doubly-linked lists.
   */
-#define QMGR_LIST_ROTATE(head, object, peers) { \
+#define QMGR_LIST_ROTATE(head, object) { \
     head.next->peers.prev = head.prev; \
     head.prev->peers.next = head.next; \
     head.next = object->peers.next; \
-    head.next->peers.prev = 0; \
+    if (object->peers.next) \
+	head.next->peers.prev = 0; \
     head.prev = object; \
     object->peers.next = 0; \
 }
 
-#define QMGR_LIST_UNLINK(head, type, object, peers) { \
+#define QMGR_LIST_UNLINK(head, type, object) { \
     type   next = object->peers.next; \
     type   prev = object->peers.prev; \
     if (prev) prev->peers.next = next; \
@@ -55,16 +52,7 @@ typedef struct QMGR_SCAN QMGR_SCAN;
     object->peers.next = object->peers.prev = 0; \
 }
 
-#define QMGR_LIST_LINK(head, pred, object, succ, peers) { \
-    object->peers.prev = pred; \
-    object->peers.next = succ; \
-    if (pred) pred->peers.next = object; \
-    else head.next = object; \
-    if (succ) succ->peers.prev = object; \
-    else head.prev = object; \
-}
-
-#define QMGR_LIST_PREPEND(head, object, peers) { \
+#define QMGR_LIST_APPEND(head, object) { \
     object->peers.next = head.next; \
     object->peers.prev = 0; \
     if (head.next) { \
@@ -75,7 +63,7 @@ typedef struct QMGR_SCAN QMGR_SCAN;
     head.next = object; \
 }
 
-#define QMGR_LIST_APPEND(head, object, peers) { \
+#define QMGR_LIST_PREPEND(head, object) { \
     object->peers.prev = head.prev; \
     object->peers.next = 0; \
     if (head.prev) { \
@@ -114,40 +102,14 @@ struct QMGR_QUEUE_LIST {
     QMGR_QUEUE *prev;
 };
 
-struct QMGR_JOB_LIST {
-    QMGR_JOB *next;
-    QMGR_JOB *prev;
-};
-
 struct QMGR_TRANSPORT {
     int     flags;			/* blocked, etc. */
     char   *name;			/* transport name */
     int     dest_concurrency_limit;	/* concurrency per domain */
     int     init_dest_concurrency;	/* init. per-domain concurrency */
     int     recipient_limit;		/* recipients per transaction */
-    int     rcpt_per_stack;		/* extra slots reserved for jobs put
-					 * on the job stack */
-    int     rcpt_unused;		/* available in-core recipient slots */
-    int     slot_cost;			/* cost of new preemption slot (# of
-					 * selected entries) */
-    int     slot_loan;			/* preemption boost offset and */
-    int     slot_loan_factor;		/* factor, see qmgr_job_preempt() */
-    int     min_slots;			/* when preemption can take effect at
-					 * all */
     struct HTABLE *queue_byname;	/* queues indexed by domain */
     QMGR_QUEUE_LIST queue_list;		/* queues, round robin order */
-    struct HTABLE *job_byname;		/* jobs indexed by queue id */
-    QMGR_JOB_LIST job_list;		/* list of message jobs (1 per
-					 * message) ordered by scheduler */
-    QMGR_JOB_LIST job_bytime;		/* jobs ordered by time since queued */
-    QMGR_JOB *job_current;		/* keeps track of the current job */
-    QMGR_JOB *job_next_unread;		/* next job with unread recipients */
-    QMGR_JOB *candidate_cache;		/* cached result from
-					 * qmgr_job_candidate() */
-    QMGR_JOB *candidate_cache_current;	/* current job tied to the candidate */
-    time_t  candidate_cache_time;	/* when candidate_cache was last
-					 * updated */
-    int     blocker_tag;		/* for marking blocker jobs */
     QMGR_TRANSPORT_LIST peers;		/* linkage */
     char   *reason;			/* why unavailable */
 };
@@ -168,7 +130,9 @@ extern QMGR_TRANSPORT *qmgr_transport_find(const char *);
   * transactions. The "todo" queue contains messages that are to be delivered
   * to this next hop. When a message is elected for transmission, it is moved
   * from the "todo" queue to the "busy" queue. Messages are taken from the
-  * "todo" queue in round-robin order.
+  * "todo" queue in sequence. An initial destination delivery concurrency > 1
+  * ensures that one problematic message will not block all other traffic to
+  * that next hop.
   */
 struct QMGR_ENTRY_LIST {
     QMGR_ENTRY *next;
@@ -186,8 +150,7 @@ struct QMGR_QUEUE {
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
     QMGR_QUEUE_LIST peers;		/* neighbor queues */
     char   *reason;			/* why unavailable */
-    time_t  clog_time_to_warn;		/* time of last warning */
-    int     blocker_tag;		/* tagged if blocks job list */
+    time_t  clog_time_to_warn;		/* time of next warning */
 };
 
 #define	QMGR_QUEUE_TODO	1		/* waiting for service */
@@ -196,6 +159,7 @@ struct QMGR_QUEUE {
 extern int qmgr_queue_count;
 
 extern QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *, const char *, const char *);
+extern QMGR_QUEUE *qmgr_queue_select(QMGR_TRANSPORT *);
 extern void qmgr_queue_done(QMGR_QUEUE *);
 extern void qmgr_queue_throttle(QMGR_QUEUE *, const char *);
 extern void qmgr_queue_unthrottle(QMGR_QUEUE *);
@@ -234,15 +198,13 @@ struct QMGR_ENTRY {
     QMGR_MESSAGE *message;		/* message info */
     QMGR_RCPT_LIST rcpt_list;		/* as many as it takes */
     QMGR_QUEUE *queue;			/* parent linkage */
-    QMGR_PEER *peer;			/* parent linkage */
-    QMGR_ENTRY_LIST queue_peers;	/* per queue neighbor entries */
-    QMGR_ENTRY_LIST peer_peers;		/* per peer neighbor entries */
+    QMGR_ENTRY_LIST peers;		/* neighbor entries */
 };
 
-extern QMGR_ENTRY *qmgr_entry_select(QMGR_PEER *);
-extern void qmgr_entry_unselect(QMGR_ENTRY *);
+extern QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *);
+extern void qmgr_entry_unselect(QMGR_QUEUE *, QMGR_ENTRY *);
 extern void qmgr_entry_done(QMGR_ENTRY *, int);
-extern QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *, QMGR_MESSAGE *);
+extern QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *, QMGR_MESSAGE *);
 
  /*
   * All common in-core information about a message is kept here. When all
@@ -259,8 +221,6 @@ struct QMGR_MESSAGE {
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
     long    arrival_time;		/* time when queued */
-    time_t  queued_time;		/* time when moved to the active
-					 * queue */
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
@@ -281,11 +241,6 @@ struct QMGR_MESSAGE {
     char   *client_proto;		/* client protocol */
     char   *client_helo;		/* helo parameter */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
-    int     rcpt_count;			/* used recipient slots */
-    int     rcpt_limit;			/* maximum read in-core */
-    int     rcpt_unread;		/* # of recipients left in queue file */
-    QMGR_JOB_LIST job_list;		/* jobs delivering this message (1
-					 * per transport) */
 };
 
  /*
@@ -302,63 +257,6 @@ extern void qmgr_message_free(QMGR_MESSAGE *);
 extern void qmgr_message_update_warn(QMGR_MESSAGE *);
 extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int);
 extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
-
- /*
-  * Sometimes it's required to access the transport queues and entries on per
-  * message basis. That's what the QMGR_JOB structure is for - it groups all
-  * per message information within each transport using a list of QMGR_PEER
-  * structures. These structures in turn correspond with per message
-  * QMGR_QUEUE structure and list all per message QMGR_ENTRY structures.
-  */
-struct QMGR_PEER_LIST {
-    QMGR_PEER *next;
-    QMGR_PEER *prev;
-};
-
-struct QMGR_JOB {
-    QMGR_MESSAGE *message;		/* message delivered by this job */
-    QMGR_TRANSPORT *transport;		/* transport this job belongs to */
-    QMGR_JOB_LIST message_peers;	/* per message neighbor linkage */
-    QMGR_JOB_LIST transport_peers;	/* per transport neighbor linkage */
-    QMGR_JOB_LIST time_peers;		/* by time neighbor linkage */
-    QMGR_JOB *stack_parent;		/* stack parent */
-    QMGR_JOB_LIST stack_children;	/* all stack children */
-    QMGR_JOB_LIST stack_siblings;	/* stack children linkage */
-    int     stack_level;		/* job stack nesting level (-1 means
-					 * it's not on the lists at all) */
-    int     blocker_tag;		/* tagged if blocks the job list */
-    struct HTABLE *peer_byname;		/* message job peers, indexed by
-					 * domain */
-    QMGR_PEER_LIST peer_list;		/* list of message job peers */
-    int     slots_used;			/* slots used during preemption */
-    int     slots_available;		/* slots available for preemption (in
-					 * multiples of slot_cost) */
-    int     selected_entries;		/* # of entries selected for delivery
-					 * so far */
-    int     read_entries;		/* # of entries read in-core so far */
-    int     rcpt_count;			/* used recipient slots */
-    int     rcpt_limit;			/* available recipient slots */
-};
-
-struct QMGR_PEER {
-    QMGR_JOB *job;			/* job handling this peer */
-    QMGR_QUEUE *queue;			/* queue corresponding with this peer */
-    int     refcount;			/* peer entries */
-    QMGR_ENTRY_LIST entry_list;		/* todo message entries queued for
-					 * this peer */
-    QMGR_PEER_LIST peers;		/* neighbor linkage */
-};
-
-extern QMGR_ENTRY *qmgr_job_entry_select(QMGR_TRANSPORT *);
-extern QMGR_PEER *qmgr_peer_select(QMGR_JOB *);
-
-extern QMGR_JOB *qmgr_job_obtain(QMGR_MESSAGE *, QMGR_TRANSPORT *);
-extern void qmgr_job_free(QMGR_JOB *);
-extern void qmgr_job_move_limits(QMGR_JOB *);
-
-extern QMGR_PEER *qmgr_peer_create(QMGR_JOB *, QMGR_QUEUE *);
-extern QMGR_PEER *qmgr_peer_find(QMGR_JOB *, QMGR_QUEUE *);
-extern void qmgr_peer_free(QMGR_PEER *);
 
  /*
   * qmgr_defer.c
@@ -431,9 +329,4 @@ extern char *qmgr_scan_next(QMGR_SCAN *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
-/*
-/*	Scheduler enhancements:
-/*	Patrik Rak
-/*	Modra 6
-/*	155 00, Prague, Czech Republic
 /*--*/

@@ -131,6 +131,11 @@ real-time SMTP-based content filter.
 Enable per-session authentication as per RFC 2554 (SASL).
 This functionality is available only when explicitly selected
 at program build time and explicitly enabled at runtime.
+.IP \fBsmtpd_sasl_application_name\fR
+The application name used for SASL server initialization.  This
+controls the name of the SASL configuration file.  The default
+value is \fIsmtpd\fR, corresponding to a SASL configuration file
+named \fIsmtpd.conf\fR.
 .IP \fBsmtpd_sasl_local_domain\fR
 The name of the local authentication realm.
 .IP \fBsmtpd_sasl_security_options\fR

@@ -1,18 +1,18 @@
-.TH NQMGR 8 
+.TH OQMGR 8 
 .ad
 .fi
 .SH NAME
-nqmgr
+oqmgr
 \-
-Postfix queue manager
+old Postfix queue manager
 .SH SYNOPSIS
 .na
 .nf
-\fBnqmgr\fR [generic Postfix daemon options]
+\fBoqmgr\fR [generic Postfix daemon options]
 .SH DESCRIPTION
 .ad
 .fi
-The \fBnqmgr\fR daemon awaits the arrival of incoming mail
+The \fBoqmgr\fR daemon awaits the arrival of incoming mail
 and arranges for its delivery via Postfix delivery processes.
 The actual mail routing strategy is delegated to the
 \fBtrivial-rewrite\fR(8) daemon.
@@ -27,7 +27,7 @@ undeliverable bounce notifications.
 .nf
 .ad
 .fi
-The \fBnqmgr\fR daemon maintains the following queues:
+The \fBoqmgr\fR daemon maintains the following queues:
 .IP \fBincoming\fR
 Inbound mail from the network, or mail picked up by the
 local \fBpickup\fR agent from the \fBmaildrop\fR directory.
@@ -49,7 +49,7 @@ sets them free.
 .nf
 .ad
 .fi
-The \fBnqmgr\fR daemon keeps an eye on per-message delivery status
+The \fBoqmgr\fR daemon keeps an eye on per-message delivery status
 reports in the following directories. Each status report file has
 the same name as the corresponding message file:
 .IP \fBbounce\fR
@@ -59,7 +59,7 @@ These files are maintained by the \fBbounce\fR(8) daemon.
 Per-recipient status information about why mail is delayed.
 These files are maintained by the \fBdefer\fR(8) daemon.
 .PP
-The \fBnqmgr\fR daemon is responsible for asking the
+The \fBoqmgr\fR daemon is responsible for asking the
 \fBbounce\fR(8) or \fBdefer\fR(8) daemons to send non-delivery
 reports.
 .SH STRATEGIES
@@ -92,10 +92,6 @@ attempt.
 .IP "\fBdestination status cache\fR"
 The queue manager avoids unnecessary delivery attempts by
 maintaining a short-term, in-memory list of unreachable destinations.
-.IP "\fBpreemptive message scheduling\fR"
-The queue manager attempts to minimize the average per-recipient delay
-while still preserving the correct per-message delays, using
-a sophisticated preemptive message scheduling.
 .SH TRIGGERS
 .na
 .nf
@@ -123,7 +119,7 @@ Wakeup call, This is used by the master server to instantiate
 servers that should not go away forever. The action is to start
 an incoming queue scan.
 .PP
-The \fBnqmgr\fR daemon reads an entire buffer worth of triggers.
+The \fBoqmgr\fR daemon reads an entire buffer worth of triggers.
 Multiple identical trigger requests are collapsed into one, and
 trigger requests are sorted so that \fBA\fR and \fBF\fR precede
 \fBD\fR and \fBI\fR. Thus, in order to force a deferred queue run,
@@ -134,15 +130,15 @@ of the arrival of new mail one would request \fBI\fR.
 .nf
 .ad
 .fi
-None. The \fBnqmgr\fR daemon does not interact with the outside world.
+None. The \fBoqmgr\fR daemon does not interact with the outside world.
 .SH SECURITY
 .na
 .nf
 .ad
 .fi
-The \fBnqmgr\fR daemon is not security sensitive. It reads
+The \fBoqmgr\fR daemon is not security sensitive. It reads
 single-character messages from untrusted local users, and thus may
-be susceptible to denial of service attacks. The \fBnqmgr\fR daemon
+be susceptible to denial of service attacks. The \fBoqmgr\fR daemon
 does not talk to the outside world, and it can be run at fixed low
 privilege in a chrooted environment.
 .SH DIAGNOSTICS
@@ -179,8 +175,6 @@ Top-level directory of the Postfix queue.
 .SH "Active queue controls"
 .ad
 .fi
-In the text below, \fItransport\fR is the first field in a
-\fBmaster.cf\fR entry.
 .IP \fBqmgr_clog_warn_time\fR
 Minimal delay between warnings that a specific destination
 is clogging up the active queue. Specify 0 to disable.
@@ -191,19 +185,6 @@ Limit the number of in-memory recipients.
 .sp
 This parameter also limits the size of the short-term, in-memory
 destination cache.
-.IP \fBqmgr_message_recipient_minimum\fR
-Per message minimum of in-memory recipients.
-.IP \fBdefault_recipient_limit\fR
-Default limit on the number of in-memory recipients per transport.
-.IP \fItransport\fB_recipient_limit\fR
-Limit on the number of in-memory recipients, for the named
-message \fItransport\fR.
-.IP \fBdefault_extra_recipient_limit\fR
-Default limit on the total number of per transport in-memory
-recipients that the preempting messages can have.
-.IP \fItransport\fB_extra_recipient_limit\fR
-Limit on the number of in-memory recipients which all preempting
-messages delivered by the transport \fItransport\fR can have.
 .SH "Timing controls"
 .ad
 .fi
@@ -231,6 +212,19 @@ delivery transport.
 .SH "Concurrency controls"
 .ad
 .fi
+In the text below, \fItransport\fR is the first field in a
+\fBmaster.cf\fR entry.
+.IP "\fBqmgr_fudge_factor\fR (valid range: 10..100)"
+The percentage of delivery resources that a busy mail system will
+use up for delivery of a large mailing list message.
+With 100%, delivery of one message does not begin before the previous
+message has been delivered. This results in good performance for large
+mailing lists, but results in poor response time for one-to-one mail.
+With less than 100%, response time for one-to-one mail improves,
+but large mailing list delivery performance suffers. In the worst
+case, recipients near the beginning of a large list receive a burst
+of messages immediately, while recipients near the end of that list
+receive that same burst of messages a whole day later.
 .IP \fBinitial_destination_concurrency\fR
 Initial per-destination concurrency level for parallel delivery
 to the same destination.
@@ -248,40 +242,6 @@ Default limit on the number of recipients per message transfer.
 .IP \fItransport\fB_destination_recipient_limit\fR
 Limit on the number of recipients per message transfer, for the
 named message \fItransport\fR.
-.SH "Message scheduling"
-.ad
-.fi
-.IP "\fItransport\fB_delivery_slot_cost\fR (valid range: 0,2,3...)
-This parameter basically controls how often a message
-delivered by \fItransport\fR can be preempted by another
-message.
-An internal per-message/transport counter is incremented by one
-for each \fItransport\fB_delivery_slot_cost\fR
-deliveries handled by \fItransport\fR. This counter represents
-the number of "available delivery slots" for use by other messages.
-Current message can be preempted by another message when that
-other message can be delivered using less \fItransport\fR agents
-than the value of the "available delivery slots" counter.
-.sp
-Value equal to 0 disables the message preemption for \fItransport\fR.
-.IP \fItransport\fB_minimum_delivery_slots\fR
-Message preemption is not attempted at all whenever a message
-that can't ever accumulate at least \fItransport\fB_minimum_delivery_slots\fR
-available delivery slots is being delivered by \fItransport\fR.
-.IP "\fItransport\fB_delivery_slot_discount\fR (valid range: 0..100)"
-.IP \fItransport\fB_delivery_slot_loan\fR
-These parameters speed up the moment when a message preemption can happen.
-Instead of waiting until the full amount of delivery slots
-required is available, the preemption can happen when
-\fItransport\fB_delivery_slot_discount\fR percent of the required
-amount plus \fItransport\fB_delivery_slot_loan\fR still remains to
-be accumulated. Note that the full amount will still have to be
-accumulated before another preemption can take place later.
-.IP \fBdefault_delivery_slot_cost\fR
-.IP \fBdefault_minimum_delivery_slots\fR
-.IP \fBdefault_delivery_slot_discount\fR
-.IP \fBdefault_delivery_slot_loan\fR
-Default values for the transport specific parameters described above.
 .SH SEE ALSO
 .na
 .nf
@@ -301,8 +261,3 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
-
-Scheduler enhancements:
-Patrik Rak
-Modra 6
-155 00, Prague, Czech Republic

@@ -69,6 +69,12 @@ smtpd_sasl_auth_enable = no
 #smtpd_sasl_security_options = noanonymous, noplaintext
 smtpd_sasl_security_options = noanonymous
 
+# The application name used for SASL server initialization.  This
+# controls the name of the SASL configuration file.  The default value
+# is smtpd, corresponding to a SASL configuration file named smtpd.conf.
+#
+smtpd_sasl_application_name = smtpd
+
 # The smtpd_sasl_local_domain parameter specifies the name of the
 # local authentication realm.
 # 

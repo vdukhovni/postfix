@@ -263,6 +263,14 @@ compare_or_symlink() {
     }
 }
 
+compare_or_hardlink() {
+    (cmp $1 $2 >/dev/null 2>&1 && echo Skipping $2...) || {
+	echo Updating $2...
+	rm -f $2 || exit 1
+	ln $1 $2 || exit 1
+    }
+}
+
 check_parent() {
     for path
     do
@@ -623,6 +631,9 @@ do
 	'$mailq_path')
 	    check_parent $MAILQ_PATH || exit 1
 	    compare_or_symlink $SENDMAIL_PATH $MAILQ_PATH || exit 1;;
+	'$nqmgr_path')
+	    compare_or_hardlink $DAEMON_DIRECTORY/qmgr \
+		$DAEMON_DIRECTORY/nqmgr || exit 1;;
 	'$newaliases_path')
 	    check_parent $NEWALIASES_PATH || exit 1
 	    compare_or_symlink $SENDMAIL_PATH $NEWALIASES_PATH || exit 1;;

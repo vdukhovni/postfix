@@ -5,7 +5,7 @@ SHELL	= /bin/sh
 DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html error.8.html local.8.html \
 	lmtp.8.html master.8.html pickup.8.html pipe.8.html qmgr.8.html \
 	showq.8.html smtp.8.html smtpd.8.html trivial-rewrite.8.html \
-	nqmgr.8.html spawn.8.html flush.8.html virtual.8.html qmqpd.8.html \
+	oqmgr.8.html spawn.8.html flush.8.html virtual.8.html qmqpd.8.html \
 	trace.8.html verify.8.html proxymap.8.html anvil.8.html
 COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
 	postconf.1.html postfix.1.html postkick.1.html postlock.1.html \
@@ -66,11 +66,11 @@ master.8.html: ../src/master/master.c
 	PATH=../mantools:$$PATH; \
 	srctoman $? | $(AWK) | nroff -man | uniq | man2html | postlink >$@
 
-nqmgr.8.html: ../src/nqmgr/qmgr.c
+oqmgr.8.html: ../src/oqmgr/qmgr.c
 	PATH=../mantools:$$PATH; \
-	srctoman $? | sed -e 's/qmgr[^_]/n&/' \
-			  -e 's/qmgr$$/n&/' \
-			  -e 's/QMGR[^_]/N&/' | \
+	srctoman $? | sed -e 's/qmgr[^_]/o&/' \
+			  -e 's/qmgr$$/o&/' \
+			  -e 's/QMGR[^_]/O&/' | \
 	    $(AWK) | nroff -man | uniq | man2html | postlink >$@
 
 pickup.8.html: ../src/pickup/pickup.c

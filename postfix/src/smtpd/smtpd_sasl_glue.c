@@ -211,7 +211,10 @@ void    smtpd_sasl_initialize(void)
     /*
      * Initialize the library: load SASL plug-in routines, etc.
      */
-    if (sasl_server_init(callbacks, "smtpd") != SASL_OK)
+    if (msg_verbose)
+	msg_info("smtpd_sasl_initialize: SASL config file is %s.conf",
+		 var_smtpd_sasl_appname);
+    if (sasl_server_init(callbacks, var_smtpd_sasl_appname) != SASL_OK)
 	msg_fatal("SASL per-process initialization failed");
 
 }

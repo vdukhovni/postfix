@@ -2,7 +2,7 @@
 /* NAME
 /*	qmgr 8
 /* SUMMARY
-/*	Postfix queue manager
+/*	old Postfix queue manager
 /* SYNOPSIS
 /*	\fBqmgr\fR [generic Postfix daemon options]
 /* DESCRIPTION
@@ -80,10 +80,6 @@
 /* .IP "\fBdestination status cache\fR"
 /*	The queue manager avoids unnecessary delivery attempts by
 /*	maintaining a short-term, in-memory list of unreachable destinations.
-/* .IP "\fBpreemptive message scheduling\fR"
-/*	The queue manager attempts to minimize the average per-recipient delay
-/*	while still preserving the correct per-message delays, using
-/*	a sophisticated preemptive message scheduling.
 /* TRIGGERS
 /* .ad
 /* .fi
@@ -141,10 +137,10 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      The following \fBmain.cf\fR parameters are especially relevant to
-/*      this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*      and for default values. Use the \fBpostfix reload\fR command after
-/*      a configuration change.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	a configuration change.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -155,8 +151,6 @@
 /* .SH "Active queue controls"
 /* .ad
 /* .fi
-/*	In the text below, \fItransport\fR is the first field in a
-/*	\fBmaster.cf\fR entry.
 /* .IP \fBqmgr_clog_warn_time\fR
 /*	Minimal delay between warnings that a specific destination
 /*	is clogging up the active queue. Specify 0 to disable.
@@ -167,19 +161,6 @@
 /* .sp
 /*	This parameter also limits the size of the short-term, in-memory
 /*	destination cache.
-/* .IP \fBqmgr_message_recipient_minimum\fR
-/*	Per message minimum of in-memory recipients.
-/* .IP \fBdefault_recipient_limit\fR
-/*	Default limit on the number of in-memory recipients per transport.
-/* .IP \fItransport\fB_recipient_limit\fR
-/*	Limit on the number of in-memory recipients, for the named
-/*	message \fItransport\fR.
-/* .IP \fBdefault_extra_recipient_limit\fR
-/*	Default limit on the total number of per transport in-memory
-/*	recipients that the preempting messages can have.
-/* .IP \fItransport\fB_extra_recipient_limit\fR
-/*	Limit on the number of in-memory recipients which all preempting
-/*	messages delivered by the transport \fItransport\fR can have.
 /* .SH "Timing controls"
 /* .ad
 /* .fi
@@ -207,6 +188,19 @@
 /* .SH "Concurrency controls"
 /* .ad
 /* .fi
+/*	In the text below, \fItransport\fR is the first field in a
+/*	\fBmaster.cf\fR entry.
+/* .IP "\fBqmgr_fudge_factor\fR (valid range: 10..100)"
+/*	The percentage of delivery resources that a busy mail system will
+/*	use up for delivery of a large mailing list message.
+/*	With 100%, delivery of one message does not begin before the previous
+/*	message has been delivered. This results in good performance for large
+/*	mailing lists, but results in poor response time for one-to-one mail.
+/*	With less than 100%, response time for one-to-one mail improves,
+/*	but large mailing list delivery performance suffers. In the worst
+/*	case, recipients near the beginning of a large list receive a burst
+/*	of messages immediately, while recipients near the end of that list
+/*	receive that same burst of messages a whole day later.
 /* .IP \fBinitial_destination_concurrency\fR
 /*	Initial per-destination concurrency level for parallel delivery
 /*	to the same destination.
@@ -224,40 +218,6 @@
 /* .IP \fItransport\fB_destination_recipient_limit\fR
 /*	Limit on the number of recipients per message transfer, for the
 /*	named message \fItransport\fR.
-/* .SH "Message scheduling"
-/* .ad
-/* .fi
-/* .IP "\fItransport\fB_delivery_slot_cost\fR (valid range: 0,2,3...)
-/*	This parameter basically controls how often a message
-/*	delivered by \fItransport\fR can be preempted by another
-/*	message.
-/*	An internal per-message/transport counter is incremented by one
-/*	for each \fItransport\fB_delivery_slot_cost\fR
-/*	deliveries handled by \fItransport\fR. This counter represents
-/*	the number of "available delivery slots" for use by other messages.
-/*	Current message can be preempted by another message when that
-/*	other message can be delivered using less \fItransport\fR agents
-/*	than the value of the "available delivery slots" counter.
-/* .sp
-/*	Value equal to 0 disables the message preemption for \fItransport\fR.
-/* .IP \fItransport\fB_minimum_delivery_slots\fR
-/*	Message preemption is not attempted at all whenever a message
-/*	that can't ever accumulate at least \fItransport\fB_minimum_delivery_slots\fR
-/*	available delivery slots is being delivered by \fItransport\fR.
-/* .IP "\fItransport\fB_delivery_slot_discount\fR (valid range: 0..100)"
-/* .IP \fItransport\fB_delivery_slot_loan\fR
-/*	These parameters speed up the moment when a message preemption can happen.
-/*	Instead of waiting until the full amount of delivery slots
-/*	required is available, the preemption can happen when
-/*	\fItransport\fB_delivery_slot_discount\fR percent of the required
-/*	amount plus \fItransport\fB_delivery_slot_loan\fR still remains to
-/*	be accumulated. Note that the full amount will still have to be
-/*	accumulated before another preemption can take place later.
-/* .IP \fBdefault_delivery_slot_cost\fR
-/* .IP \fBdefault_minimum_delivery_slots\fR
-/* .IP \fBdefault_delivery_slot_discount\fR
-/* .IP \fBdefault_delivery_slot_loan\fR
-/*	Default values for the transport specific parameters described above.
 /* SEE ALSO
 /*	master(8), process manager
 /*	syslogd(8) system logging
@@ -271,11 +231,6 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
-/*
-/*	Scheduler enhancements:
-/*	Patrik Rak
-/*	Modra 6
-/*	155 00, Prague, Czech Republic
 /*--*/
 
 /* System library. */
@@ -320,21 +275,15 @@ int     var_max_queue_time;
 int     var_dsn_queue_time;
 int     var_qmgr_active_limit;
 int     var_qmgr_rcpt_limit;
-int     var_qmgr_msg_rcpt_limit;
-int     var_xport_rcpt_limit;
-int     var_stack_rcpt_limit;
-int     var_delivery_slot_cost;
-int     var_delivery_slot_loan;
-int     var_delivery_slot_discount;
-int     var_min_delivery_slots;
 int     var_init_dest_concurrency;
 int     var_transport_retry_time;
 int     var_dest_con_limit;
 int     var_dest_rcpt_limit;
 char   *var_defer_xports;
 bool    var_allow_min_user;
-int     var_local_con_lim;
-int     var_local_rcpt_lim;
+int     var_qmgr_fudge;
+int     var_local_rcpt_lim;		/* XXX */
+int     var_local_con_lim;		/* XXX */
 int     var_proc_limit;
 bool    var_verp_bounce_off;
 bool    var_sender_routing;
@@ -443,13 +392,16 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
 
     /*
      * Let some new blood into the active queue when the queue size is
-     * smaller than some configurable limit. When the system is under heavy
-     * load, favor new mail over old mail.
+     * smaller than some configurable limit, and when the number of in-core
+     * recipients does not exceed some configurable limit. When the system is
+     * under heavy load, favor new mail over old mail.
      */
-    if (qmgr_message_count < var_qmgr_active_limit)
+    if (qmgr_message_count < var_qmgr_active_limit
+	&& qmgr_recipient_count < var_qmgr_rcpt_limit)
 	if ((in_path = qmgr_scan_next(qmgr_incoming)) != 0)
 	    in_feed = qmgr_active_feed(qmgr_incoming, in_path);
-    if (qmgr_message_count < var_qmgr_active_limit)
+    if (qmgr_message_count < var_qmgr_active_limit
+	&& qmgr_recipient_count < var_qmgr_rcpt_limit)
 	if ((df_path = qmgr_scan_next(qmgr_deferred)) != 0)
 	    qmgr_active_feed(qmgr_deferred, df_path);
 
@@ -541,16 +493,10 @@ int     main(int argc, char **argv)
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_QMGR_ACT_LIMIT, DEF_QMGR_ACT_LIMIT, &var_qmgr_active_limit, 1, 0,
 	VAR_QMGR_RCPT_LIMIT, DEF_QMGR_RCPT_LIMIT, &var_qmgr_rcpt_limit, 1, 0,
-	VAR_QMGR_MSG_RCPT_LIMIT, DEF_QMGR_MSG_RCPT_LIMIT, &var_qmgr_msg_rcpt_limit, 1, 0,
-	VAR_XPORT_RCPT_LIMIT, DEF_XPORT_RCPT_LIMIT, &var_xport_rcpt_limit, 0, 0,
-	VAR_STACK_RCPT_LIMIT, DEF_STACK_RCPT_LIMIT, &var_stack_rcpt_limit, 0, 0,
-	VAR_DELIVERY_SLOT_COST, DEF_DELIVERY_SLOT_COST, &var_delivery_slot_cost, 0, 0,
-	VAR_DELIVERY_SLOT_LOAN, DEF_DELIVERY_SLOT_LOAN, &var_delivery_slot_loan, 0, 0,
-	VAR_DELIVERY_SLOT_DISCOUNT, DEF_DELIVERY_SLOT_DISCOUNT, &var_delivery_slot_discount, 0, 100,
-	VAR_MIN_DELIVERY_SLOTS, DEF_MIN_DELIVERY_SLOTS, &var_min_delivery_slots, 0, 0,
 	VAR_INIT_DEST_CON, DEF_INIT_DEST_CON, &var_init_dest_concurrency, 1, 0,
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
+	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
 	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,

@@ -60,6 +60,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Scheduler enhancements:
+/*	Patrik Rak
+/*	Modra 6
+/*	155 00, Prague, Czech Republic
 /*--*/
 
 /* System library. */
@@ -127,7 +132,7 @@ void    qmgr_defer_todo(QMGR_QUEUE *queue, const char *reason)
      * Proceed carefully. Queue entries will disappear as a side effect.
      */
     for (entry = queue->todo.next; entry != 0; entry = next) {
-	next = entry->peers.next;
+	next = entry->queue_peers.next;
 	message = entry->message;
 	for (nrcpt = 0; nrcpt < entry->rcpt_list.len; nrcpt++) {
 	    recipient = entry->rcpt_list.info + nrcpt;

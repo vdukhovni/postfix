@@ -67,11 +67,13 @@ At some point in time, a version of Postfix was supported on:
     Linux Debian 1.3.1
     Linux Debian 2.x
     Linux Debian 3.x
-    Linux RedHat 3.x (August 2002)
+    Linux RedHat 3.x (Januway 2004, compile-only test)
     Linux RedHat 4.x
     Linux RedHat 5.x
     Linux RedHat 6.x
     Linux RedHat 7.x
+    Linux RedHat 8.x
+    Linux RedHat 9.x
     Linux Slackware 3.x
     Linux Slackware 4.x
     Linux Slackware 7.x
@@ -89,8 +91,8 @@ At some point in time, a version of Postfix was supported on:
     OpenBSD 3.x
     Reliant UNIX 5.x
     Rhapsody 5.x
-    SunOS 4.1.x (December 2002)
-    SunOS 5.4..5.8 (Solaris 2.4..8)
+    SunOS 4.1.4 (January 2004, running as MTA)
+    SunOS 5.4..5.9 (Solaris 2.4..9)
     Ultrix 4.x (well, that was long ago)
 
 or something closely resemblant.

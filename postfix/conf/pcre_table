@@ -24,10 +24,27 @@
 #        The general form of a PCRE table is:
 # 
 #        /pattern/flags result
+#               When pattern matches the input string, use the cor-
+#               responding result value.
 # 
 #        !/pattern/flags result
-#               When pattern matches  (does  not  match)  a  search
-#               string, use the corresponding result value.
+#               When  pattern  does not match the input string, use
+#               the corresponding result value.
+# 
+#        if /pattern/flags
+# 
+#        endif  Match the input string against the patterns between
+#               if  and endif, if and only if the input string also
+#               matches pattern. The if..endif can nest.
+# 
+#               Note: do not prepend whitespace to patterns  inside
+#               if..endif.
+# 
+#        if !/pattern/flags
+# 
+#        endif  Match the input string against the patterns between
+#               if and endif, if and only if the input string  does
+#               not match pattern. The if..endif can nest.
 # 
 #        blank lines and comments
 #               Empty  lines and whitespace-only lines are ignored,
@@ -38,20 +55,6 @@
 #               A  logical  line starts with non-whitespace text. A
 #               line that starts with whitespace continues a  logi-
 #               cal line.
-# 
-#        if /pattern/flags
-# 
-#        endif
-# 
-#        if !/pattern/flags
-# 
-#        endif  Match   the  search  string  against  the  patterns
-#               between if and endif, if and  only  if  the  search
-#               string   matches  (does  not  match)  pattern.  The
-#               if..endif can nest.
-# 
-#               Note: do not prepend whitespace to patterns  inside
-#               if..endif.
 # 
 #        Each  pattern  is  a  perl-like  regular  expression.  The
 #        expression delimiter can be any character, except  whites-
@@ -126,10 +129,10 @@
 # 
 # SEARCH ORDER
 #        Patterns are applied in the  order  as  specified  in  the
-#        table,  until  a  pattern is found that matches the search
+#        table,  until  a  pattern  is found that matches the input
 #        string.
 # 
-#        Each pattern is applied to the entire lookup  key  string.
+#        Each pattern  is  applied  to  the  entire  input  string.
 #        Depending  on  the  application,  that string is an entire
 #        client hostname, an entire client IP address, or an entire
 #        mail  address.   Thus,  no parent domain or parent network
