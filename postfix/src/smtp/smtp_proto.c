@@ -830,6 +830,15 @@ int     smtp_xfer(SMTP_STATE *state)
 	    }
 
 	    if (state->mime_state) {
+
+		/*
+		 * The cleanup server normally ends MIME content with a
+		 * normal text record. The following code is needed to flush
+		 * an internal buffer when someone submits 8-bit mail not
+		 * ending in newline via /usr/sbin/sendmail while MIME input
+		 * processing is turned off, and MIME 8bit->7bit conversion
+		 * is requested upon delivery.
+		 */
 		mime_errs =
 		    mime_state_update(state->mime_state, rec_type, "", 0);
 		if (mime_errs) {

@@ -413,6 +413,7 @@ static void output_header(void *context, int header_class,
      * appropriate place.
      */
     if (header_class == MIME_HDR_PRIMARY
+	&& header_info
 	&& header_info->flags & HDR_OPT_RECIP
 	&& header_info->flags & HDR_OPT_EXTRACT
 	&& (state->resent == 0 || (header_info->flags & HDR_OPT_RR))) {

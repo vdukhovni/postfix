@@ -7974,9 +7974,10 @@ Apologies for any names omitted.
 
 20030416
 
-	Bugfix: missing output flush when message content did not
-	end in newline while converting 8-bit to 7-bit mail.  File:
-	smtp/smtp_proto.c.
+	Bugfix: missing partial last line when 1) someone submits
+	8-bit mail not ending in newline via /usr/sbin/sendmail
+	and 2) MIME input processing is turned off, and 3) MIME
+	8bit->7bit conversion is requested upon delivery via SMTP.
 
 	Cleanup: auto-bcc recipients are now added in one place
 	(the cleanup server) instead of by individual front-end
@@ -8008,6 +8009,10 @@ Apologies for any names omitted.
 	be found in the DNS. This is controlled by a new parameter
 	smtp_host_lookup (default: dns, native). Files: smtp/smtp.c,
 	smtp/smtp_addr.c.
+
+20030418
+
+	Bugfix: "sendmail -t" broke with unrecognized message headers.
 
 Open problems:
 
