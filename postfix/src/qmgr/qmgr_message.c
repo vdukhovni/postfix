@@ -110,7 +110,6 @@
 #include <sent.h>
 #include <deliver_completed.h>
 #include <opened.h>
-#include <resolve_local.h>
 #include <verp_sender.h>
 #include <mail_proto.h>
 
@@ -648,8 +647,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * system can run without a local delivery agent. They'd still have
 	 * to configure something for mail directed to the local postmaster,
 	 * though, but that is an RFC requirement anyway.
+	 * 
+	 * XXX This lookup should be done in the resolver, and the mail should
+	 * be directed to a general-purpose null delivery agent.
 	 */
-	if (at == 0 || resolve_local(at + 1)) {
+	if (reply.flags & RESOLVE_CLASS_LOCAL) {
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {

@@ -71,6 +71,7 @@ resolve.o: ../../include/vstring_vstream.h
 resolve.o: ../../include/split_at.h
 resolve.o: ../../include/valid_hostname.h
 resolve.o: ../../include/stringops.h
+resolve.o: ../../include/mymalloc.h
 resolve.o: ../../include/mail_params.h
 resolve.o: ../../include/mail_proto.h
 resolve.o: ../../include/iostuff.h
@@ -127,6 +128,9 @@ transport.o: ../../include/mail_params.h
 transport.o: ../../include/maps.h
 transport.o: ../../include/match_parent_style.h
 transport.o: ../../include/match_ops.h
+transport.o: ../../include/mail_proto.h
+transport.o: ../../include/iostuff.h
+transport.o: ../../include/attr.h
 transport.o: transport.h
 trivial-rewrite.o: trivial-rewrite.c
 trivial-rewrite.o: ../../include/sys_defs.h

@@ -117,15 +117,6 @@ The default transport is \fBlocal\fR.
 .sp
 Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
 for details. The :\fInexthop\fR part is optional.
-.IP \fBerror_transport\fR
-Where to deliver mail for non-existent recipients in domains
-that match \fBvirtual_alias_domains\fR (all recipients
-in simulated virtual domains must be aliased to some other
-local or remote domain), or for recipients that have moved.
-The default transport is \fBerror\fR.
-.sp
-Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
-for details. The :\fInexthop\fR part is optional.
 .IP \fBvirtual_transport\fR
 Where to deliver mail for non-local domains that match
 \fB$virtual_mailbox_domains\fR.
@@ -160,8 +151,6 @@ to the destination's mail exchanger.
 .IP \fBtransport_maps\fR
 List of tables with \fIdomain\fR to (\fItransport, nexthop\fR)
 mappings.
-.IP \fBtransport_null_address_lookup_key\fR
-Lookup key to be used for the null address.
 .SH SEE ALSO
 .na
 .nf

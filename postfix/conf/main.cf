@@ -122,7 +122,9 @@ mail_owner = postfix
 # machine considers itself the final destination for.
 #
 # These domains are routed to the delivery agent specified with the
-# local_transport parameter setting.
+# local_transport parameter setting. By default, that is the UNIX
+# compatible delivery agent that lookups all recipients in /etc/passwd
+# and /etc/aliases or their equivalent.
 #
 # The default is $myhostname + localhost.$mydomain.  On a mail domain
 # gateway, you should also include $mydomain.
@@ -145,12 +147,14 @@ mail_owner = postfix
 # a name matches a lookup key (the right-hand side is ignored).
 # Continue long lines by starting the next line with whitespace.
 #
+# See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
+#
 #mydestination = $myhostname, localhost.$mydomain
 #mydestination = $myhostname, localhost.$mydomain $mydomain
 #mydestination = $myhostname, localhost.$mydomain, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
 
-# REJECTING UNKNOWN LOCAL USERS
+# REJECTING MAIL FOR UNKNOWN LOCAL USERS
 #
 # The local_recipient_maps parameter specifies optional lookup tables
 # with all names or addresses of users that are local with respect
@@ -158,6 +162,9 @@ mail_owner = postfix
 #
 # If this parameter is defined, then the SMTP server will reject
 # mail for unknown local users. This parameter is defined by default.
+#
+# To turn off local recipient checking in the SMTP server, specify
+# local_recipient_maps = (i.e. empty).
 #
 # The default setting assumes that you use the default Postfix local
 # delivery agent for local delivery. You need to update the
@@ -175,11 +182,24 @@ mail_owner = postfix
 # - You use the "luser_relay", "mailbox_transport", or "fallback_transport"
 #   feature of the Postfix local delivery agent (see sample-local.cf).
 #
-# Beware: if the Postfix SMTP server runs chrooted, you may have to
-# copy the passwd (not shadow) database into the jail. This is
-# system dependent.
+# Beware: if the Postfix SMTP server runs chrooted, you probably have
+# to copy the passwd (not shadow) database into the jail, and perhaps
+# other files. This is system dependent.
 # 
-local_recipient_maps = unix:passwd.byname $alias_maps
+#local_recipient_maps = unix:passwd.byname $alias_maps
+#local_recipient_maps =
+
+# The unknown_local_recipient_reject_code specifies the SMTP server
+# response code when a recipient domain matches $mydestination or
+# $inet_interfaces, while $local_recipient_maps is non-empty and the
+# recipient address or address local-part is not found.
+#
+# The default setting is 550 (reject mail) but it is safer to start
+# with 450 (try again later) until you are certain that your
+# local_recipient_maps settings are OK.
+#
+#unknown_local_recipient_reject_code = 550
+unknown_local_recipient_reject_code = 450
 
 # TRUST AND RELAY CONTROL
 
@@ -282,7 +302,7 @@ local_recipient_maps = unix:passwd.byname $alias_maps
 # with all addresses in the domains that match $relay_domains.
 #
 # If this parameter is defined, then the SMTP server will reject
-# mail for unknown relay users.
+# mail for unknown relay users. This feature is off by default.
 # 
 #relay_recipient_maps = hash:/etc/postfix/relay_recipients
 

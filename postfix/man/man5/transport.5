@@ -33,7 +33,7 @@ or SQL, the same lookups are done as for ordinary indexed files.
 Alternatively, the table can be provided as a regular-expression
 map where patterns are given as regular expressions. In that case,
 the lookups are done in a slightly different way as described
-in the section titled "REGULAR EXPRESSION TABLES".
+in section "REGULAR EXPRESSION TABLES".
 .SH TABLE FORMAT
 .na
 .nf
@@ -41,8 +41,8 @@ in the section titled "REGULAR EXPRESSION TABLES".
 .fi
 The format of the transport table is as follows:
 .IP "\fIpattern result\fR"
-When \fIpattern\fR matches the domain, use the corresponding
-\fIresult\fR.
+When \fIpattern\fR matches the recipient address or domain, use the
+corresponding \fIresult\fR.
 .IP "blank lines and comments"
 Empty lines and whitespace-only lines are ignored, as
 are lines whose first non-whitespace character is a `#'.
@@ -50,15 +50,55 @@ are lines whose first non-whitespace character is a `#'.
 A logical line starts with non-whitespace text. A line that
 starts with whitespace continues a logical line.
 .PP
-In an indexed file, a pattern of `\fB*\fR' matches everything.
-.PP
+The \fIpattern\fR specifies an email address, a domain name, or
+a domain name hierarchy, as described in section "TABLE LOOKUP".
+
 The \fIresult\fR is of the form \fItransport\fB:\fInexthop\fR.
 The \fItransport\fR field specifies a mail delivery transport
 such as \fBsmtp\fR or \fBlocal\fR. The \fInexthop\fR field
-specifies where and how to deliver mail. A null \fItransport\fR
-or \fInexthop\fR field means "do not change": use the delivery
-transport and nexthop information that would be used if no
-match were found.
+specifies where and how to deliver mail. More details are given
+in section "RESULT FORMAT".
+.SH TABLE LOOKUP
+.ad
+.fi
+With lookups from indexed files such as DB or DBM, or from networked
+tables such as NIS, LDAP or SQL, patterns are tried in the order as
+listed below:
+.IP "\fIuser+extension@domain transport\fR:\fInexthop\fR"
+Mail for \fIuser+extension@domain\fR is delivered through
+\fItransport\fR to
+\fInexthop\fR.
+.IP "\fIuser@domain transport\fR:\fInexthop\fR"
+Mail for \fIuser@domain\fR is delivered through \fItransport\fR to
+\fInexthop\fR.
+.IP "\fIdomain transport\fR:\fInexthop\fR"
+Mail for \fIdomain\fR is delivered through \fItransport\fR to
+\fInexthop\fR.
+.IP "\fI.domain transport\fR:\fInexthop\fR"
+Mail for any subdomain of \fIdomain\fR is delivered through
+\fItransport\fR to \fInexthop\fR. This applies only when the
+string \fBtransport_maps\fR is not listed in the
+\fBparent_domain_matches_subdomains\fR configuration setting.
+Otherwise, a domain name matches itself and its subdomains.
+.PP
+Note 1: the special pattern \fB*\fR represents any address (i.e. it
+functions as the wild-card pattern).
+
+Note 2: the null recipient address is looked up as the local
+mailer-daemon address (mailer-daemon@fully-qualified-domain-name).
+.SH RESULT FORMAT
+.ad
+.fi
+
+A null \fItransport\fR and null \fInexthop\fR result means "do
+not change": use the delivery transport and nexthop information
+that would be used when the entire transport table did not exist.
+
+A non-null \fItransport\fR field with a null \fInexthop\fR field
+resets the nexthop information to the recipient domain.
+
+A null \fItransport\fR field with non-null \fInexthop\fR field
+does not modify the transport information.
 .SH TRANSPORT FIELD
 .ad
 .fi
@@ -84,37 +124,6 @@ dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
 non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
 in order to disable MX (mail exchanger) DNS lookups. The [] form
 can also be used with IP addresses instead of hostnames.
-.SH LOOKUP ORDER
-.ad
-.fi
-With lookups from indexed files such as DB or DBM, or from networked
-tables such as NIS, LDAP or SQL, patterns are tried in the order as
-listed below:
-.IP "\fIuser+extension@domain transport\fR:\fInexthop\fR"
-Mail for \fIuser+extension@domain\fR is delivered through
-\fItransport\fR to
-\fInexthop\fR.
-.IP "\fIuser@domain transport\fR:\fInexthop\fR"
-Mail for \fIuser@domain\fR is delivered through \fItransport\fR to
-\fInexthop\fR.
-.IP "\fIdomain transport\fR:\fInexthop\fR"
-Mail for \fIdomain\fR is delivered through \fItransport\fR to
-\fInexthop\fR.
-.IP "\fI.domain transport\fR:\fInexthop\fR"
-Mail for any subdomain of \fIdomain\fR is delivered through
-\fItransport\fR to \fInexthop\fR. This applies only when the
-string \fBtransport_maps\fR is not listed in the
-\fBparent_domain_matches_subdomains\fR configuration setting.
-Otherwise, a domain name matches itself and its subdomains.
-.PP
-.SH NOTE
-.na
-.nf
-.ad
-.fi
-The special pattern \fB<>\fR represents the null address, and the
-special pattern \fB*\fR represents any address (i.e. it functions
-as the wild-card pattern).
 .SH EXAMPLES
 .na
 .nf

@@ -242,6 +242,7 @@ int     main(int argc, char **argv)
 	vstring_free(buffer);
     }
     vstring_free(reply);
+    exit(0);
 }
 
 #endif

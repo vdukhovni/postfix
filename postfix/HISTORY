@@ -7426,8 +7426,58 @@ Apologies for any names omitted.
 	File:  trivial-rewrite/resolve.c.
 
 	Performance: don't do UCE checks (which may result in 4xx
-	SMTP reply codes) when we already know that the recipient
-	is undeliverable. Files:  smtpd/smtpd.c, smtpd/smtpd_check.c.
+	SMTP reply codes, and thus, repeated delivery attempts)
+	when we already know that the recipient does not exist.
+	Files:  smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20021215
+
+	Cleanup: further simplification of transport map handling
+	after some really fine hair splitting with Victor Duchovni.
+	Files: trivial-rewrite/resolve.c, trivial-rewrite/transport.c.
+
+20021216
+
+	Workaround:  transform the address local-part into unquoted
+	form only when the address domain is local and the local-part
+	contains routing operators.  Otherwise, we may damage the
+	address local-part by inserting space between non-operator
+	tokens. Some people use weird addresses and expect them to
+	be handled without damage.  File: trivial-rewrite/resolve.c.
+
+	Robustness: scan the resolved recipient address for routing
+	operators in the address local-part, even when the local
+	MTA does not recognize ! and % as valid operators.  File:
+	trivial-rewrite/resolve.c.
+
+	Cleanup: the address rewriting code no longer tries to
+	rewrite broken user@ or user@. address forms into even more
+	broken forms. bother. File: trivial-rewrite/rewrite.c.
+
+	Cleanup: the address resolver code now treates forms ending
+	in @ in a more rational manner (because the address rewriting
+	code no longer messes up by appending .my.domain).
+
+	Bugfix: a null address local-part before @domain now is
+	properly quoted just like the null address. File:
+	global/quote_82[12]_local.c.
+
+
+20021217
+
+	Cleanup: more work on the trivial-rewrite address rewriting
+	and address resolving code. New regression tests for address
+	rewriting and resolving that make some assumptions about
+	main.cf settings. Files: global/Makefile.in (assumptions),
+	global/rewrite_clnt.in, global/rewrite_clnt.ref,
+	global/resolve_clnt.in, global/resolve_clnt.ref.
+
+	Safety: configurable SMTPD reject codes for recipients not
+	in {local,relay}_recipient,virtual_{alias,mailbox}}_maps,
+	aptly named unknown_mumble_reject_code.  Postfix installs
+	with unknown_local_recipient_reject_code=450, unless the
+	site already ran Postfix with local_recipient_maps enabled.
+	Files:  smtpd/smtpd.c, smtpd/smtpd_check.c, conf/post-install.
 
 Open problems:
 

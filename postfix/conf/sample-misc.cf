@@ -200,7 +200,9 @@ max_use = 100
 # machine considers itself the final destination for.
 #
 # These domains are routed to the delivery agent specified with the 
-# local_transport parameter setting.
+# local_transport parameter setting. By default, that is the UNIX
+# compatible delivery agent that lookups all recipients in /etc/passwd
+# and /etc/aliases or their equivalent.
 #
 # The default is $myhostname + localhost.$mydomain.  On a mail domain
 # gateway, you should also include $mydomain. 
@@ -222,6 +224,11 @@ max_use = 100
 # pattern is replaced by its contents; a type:table is matched when
 # a name matches a lookup key.  Continue long lines by starting the
 # next line with whitespace.
+#
+# See sample-local.cf for a description of the local_recipient_maps
+# and unknown_local_recipient_reject_code parameters. By default,
+# the SMTP server rejects mail for recipients not listed with the
+# local_recipient_maps parameter.
 #
 #mydestination = $myhostname, localhost.$mydomain $mydomain
 #mydestination = $myhostname, localhost.$mydomain www.$mydomain, ftp.$mydomain

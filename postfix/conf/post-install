@@ -498,7 +498,7 @@ EOF
 	}
     done
 
-    # With 10000 active queue files, the active queue directory should
+    # With 20000 active queue files, the active queue directory should
     # be hashed, and so should the other directories, because they
     # can contain even more mail.
     #
@@ -520,6 +520,21 @@ EOF
 	$POSTCONF -c $config_directory -e hash_queue_names="$found$missing" ||
 	    exit 1
     }
+
+    # Turn on safety nets for new features that could bounce mail that
+    # would be accepted by a previous Postfix version.
+
+    unknown_local=unknown_local_recipient_reject_code
+    has_lrm=`$POSTCONF -n local_recipient_maps`
+    has_lrjc=`$POSTCONF -n $unknown_local`
+
+    if [ -z "$has_lrm" -a -z "$has_lrjc" ]
+    then
+	echo SAFETY: editing main.cf, setting $unknown_local=450.
+	echo See the RELEASE_NOTES and $config_directory/main.cf for details.
+	$POSTCONF -e "$unknown_local = 450" || exit 1
+    fi
+
 }
 
 # A reminder if this is the first time Postfix is being installed.

@@ -96,7 +96,7 @@ extern char *var_mydomain;
   * The default local delivery transport.
   */
 #define VAR_LOCAL_TRANSPORT	"local_transport"
-#define DEF_LOCAL_TRANSPORT	"local"
+#define DEF_LOCAL_TRANSPORT	MAIL_SERVICE_LOCAL ":$myhostname"
 extern char *var_local_transport;
 
  /*
@@ -293,10 +293,6 @@ extern bool var_disable_vrfy_cmd;
  /*
   * trivial rewrite/resolve service: mapping tables.
   */
-#define VAR_ERROR_TRANSPORT		"error_transport"
-#define DEF_ERROR_TRANSPORT		MAIL_SERVICE_ERROR
-extern char *var_error_transport;
-
 #define VAR_VIRT_ALIAS_MAPS	"virtual_alias_maps"
 #define DEF_VIRT_ALIAS_MAPS	"$virtual_maps"	/* Compatibility! */
 extern char *var_virt_alias_maps;
@@ -304,6 +300,10 @@ extern char *var_virt_alias_maps;
 #define VAR_VIRT_ALIAS_DOMS	"virtual_alias_domains"
 #define DEF_VIRT_ALIAS_DOMS	"$virtual_alias_maps"
 extern char *var_virt_alias_doms;
+
+#define VAR_VIRT_ALIAS_CODE	"unknown_virtual_alias_reject_code"
+#define DEF_VIRT_ALIAS_CODE	550
+extern int var_virt_alias_code;
 
 #define VAR_CANONICAL_MAPS	"canonical_maps"
 #define DEF_CANONICAL_MAPS	""
@@ -1126,6 +1126,10 @@ extern char *var_relay_transport;
 #define DEF_RELAY_RCPT_MAPS	""
 extern char *var_relay_rcpt_maps;
 
+#define VAR_RELAY_RCPT_CODE	"unknown_relay_recipient_reject_code"
+#define DEF_RELAY_RCPT_CODE	550
+extern int var_relay_rcpt_code;
+
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"
 #define DEF_CLIENT_CHECKS	""
 extern char *var_client_checks;
@@ -1279,11 +1283,15 @@ abcdefghijklmnopqrstuvwxyz{|}~"
 extern char *var_smtpd_exp_filter;
 
  /*
-  * Heuristic to reject most unknown recipients at the SMTP port.
+  * Heuristic to reject unknown local recipients at the SMTP port.
   */
 #define VAR_LOCAL_RCPT_MAPS	"local_recipient_maps"
 #define DEF_LOCAL_RCPT_MAPS	"unix:passwd.byname $alias_maps"
 extern char *var_local_rcpt_maps;
+
+#define VAR_LOCAL_RCPT_CODE	"unknown_local_recipient_reject_code"
+#define DEF_LOCAL_RCPT_CODE	550
+extern int var_local_rcpt_code;
 
  /*
   * Other.
@@ -1374,6 +1382,10 @@ extern char *var_virt_mailbox_maps;
 #define VAR_VIRT_MAILBOX_DOMS		"virtual_mailbox_domains"
 #define DEF_VIRT_MAILBOX_DOMS		"$virtual_mailbox_maps"
 extern char *var_virt_mailbox_doms;
+
+#define VAR_VIRT_MAILBOX_CODE		"unknown_virtual_mailbox_reject_code"
+#define DEF_VIRT_MAILBOX_CODE		550
+extern int var_virt_mailbox_code;
 
 #define VAR_VIRT_UID_MAPS		"virtual_uid_maps"
 #define DEF_VIRT_UID_MAPS		""

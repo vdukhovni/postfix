@@ -8,8 +8,9 @@
 /*
 /*	void	transport_init()
 /*
-/*	int	transport_lookup(address, channel, nexthop)
+/*	int	transport_lookup(address, rcpt_domain, channel, nexthop)
 /*	const char *address;
+/*	const char *rcpt_domain;
 /*	VSTRING *channel;
 /*	VSTRING *nexthop;
 /* DESCRIPTION
@@ -65,6 +66,7 @@
 #include <mail_params.h>
 #include <maps.h>
 #include <match_parent_style.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -77,13 +79,6 @@ static VSTRING *wildcard_nexthop;
 
 #define STR(x)	vstring_str(x)
 
- /*
-  * Macro for consistent updates of the transport and nexthop results.
-  */
-#define UPDATE_IF_SPECIFIED(dst, src) do { \
-	if ((src) && *(src)) vstring_strcpy((dst), (src)); \
-    } while (0)
-
 /* transport_init - pre-jail initialization */
 
 void    transport_init(void)
@@ -95,14 +90,51 @@ void    transport_init(void)
     transport_match_parent_style = match_parent_style(VAR_TRANSPORT_MAPS);
 }
 
+/* update_entry - update from transport table entry */
+
+static void update_entry(const char *new_channel, const char *new_nexthop,
+			         const char *rcpt_domain, VSTRING *channel,
+			         VSTRING *nexthop)
+{
+
+    /*
+     * :[nexthop] means don't change the channel, and don't change the
+     * nexthop unless a non-default nexthop is specified. Thus, a right-hand
+     * side of ":" is the transport table equivalent of a NOOP.
+     */
+    if (*new_channel == 0) {			/* :[nexthop] */
+	if (*new_nexthop != 0)
+	    vstring_strcpy(nexthop, new_nexthop);
+    }
+
+    /*
+     * transport[:[nexthop]] means change the channel, and reset the nexthop
+     * to the default unless a non-default nexthop is specified.
+     */
+    else {
+	vstring_strcpy(channel, new_channel);
+	if (*new_nexthop != 0)
+	    vstring_strcpy(nexthop, new_nexthop);
+	else if (strcmp(STR(channel), MAIL_SERVICE_ERROR) != 0)
+	    vstring_strcpy(nexthop, rcpt_domain);
+	else
+	    vstring_strcpy(nexthop, "Address is undeliverable");
+    }
+}
+
 /* find_transport_entry - look up and parse transport table entry */
 
-static int find_transport_entry(const char *key, int flags,
-				        VSTRING *channel, VSTRING *nexthop)
+static int find_transport_entry(const char *key, const char *rcpt_domain,
+		              int flags, VSTRING *channel, VSTRING *nexthop)
 {
     char   *saved_value;
     const char *host;
     const char *value;
+
+    /*
+     * Reset previous error history.
+     */
+    dict_errno = 0;
 
 #define FOUND		1
 #define NOTFOUND	0
@@ -115,11 +147,8 @@ static int find_transport_entry(const char *key, int flags,
      * 
      * XXX Should report lookup failure status to caller instead of aborting.
      */
-    if ((value = maps_find(transport_path, key, flags)) == 0) {
-	if (dict_errno != 0)
-	    msg_fatal("transport table lookup problem.");
+    if ((value = maps_find(transport_path, key, flags)) == 0)
 	return (NOTFOUND);
-    }
 
     /*
      * It would be great if we could specify a recipient address in the
@@ -131,8 +160,8 @@ static int find_transport_entry(const char *key, int flags,
     else {
 	saved_value = mystrdup(value);
 	host = split_at(saved_value, ':');
-	UPDATE_IF_SPECIFIED(nexthop, host);
-	UPDATE_IF_SPECIFIED(channel, saved_value);
+	update_entry(saved_value, host ? host : "", rcpt_domain,
+		     channel, nexthop);
 	myfree(saved_value);
 	return (FOUND);
     }
@@ -159,13 +188,15 @@ void    transport_wildcard_init(void)
 #define FULL		0
 #define PARTIAL		DICT_FLAG_FIXED
 
-    if (find_transport_entry(WILDCARD, FULL, channel, nexthop)) {
+    if (find_transport_entry(WILDCARD, "", FULL, channel, nexthop)) {
 	wildcard_channel = channel;
 	wildcard_nexthop = nexthop;
 	if (msg_verbose)
 	    msg_info("wildcard_{chan:hop}={%s:%s}",
 	      vstring_str(wildcard_channel), vstring_str(wildcard_nexthop));
     } else {
+	if (dict_errno != 0)
+	    msg_fatal("transport table initialization problem.");
 	vstring_free(channel);
 	vstring_free(nexthop);
     }
@@ -173,9 +204,10 @@ void    transport_wildcard_init(void)
 
 /* transport_lookup - map a transport domain */
 
-int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
+int     transport_lookup(const char *addr, const char *rcpt_domain,
+			         VSTRING *channel, VSTRING *nexthop)
 {
-    char   *full_addr = lowercase(mystrdup(*addr ? addr : var_xport_null_key));
+    char   *full_addr;
     char   *stripped_addr;
     char   *ratsign = 0;
     const char *name;
@@ -184,6 +216,15 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
 
 #define STREQ(x,y)	(strcmp((x), (y)) == 0)
 #define DISCARD_EXTENSION ((char **) 0)
+
+    /*
+     * The null recipient is rewritten to the local mailer daemon address.
+     */
+    if (*addr == 0) {
+	msg_warn("transport_lookup: null address - skipping table lookup");
+	return (NOTFOUND);
+    }
+    full_addr = lowercase(mystrdup(addr));
 
     /*
      * The optimizer will replace multiple instances of this macro expansion
@@ -195,24 +236,16 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
     }
 
     /*
-     * If this is a special address such as <> do only one lookup of the full
-     * string. Specify the FULL flag to include regexp maps in the query.
-     */
-    if (STREQ(full_addr, var_xport_null_key)) {
-	if (find_transport_entry(full_addr, FULL, channel, nexthop))
-	    RETURN_FREE(FOUND);
-	RETURN_FREE(NOTFOUND);
-    }
-
-    /*
      * Look up the full address with the FULL flag to include regexp maps in
      * the query.
      */
     if ((ratsign = strrchr(full_addr, '@')) == 0 || ratsign[1] == 0)
 	msg_panic("transport_lookup: bad address: \"%s\"", full_addr);
 
-    if (find_transport_entry(full_addr, FULL, channel, nexthop))
+    if (find_transport_entry(full_addr, rcpt_domain, FULL, channel, nexthop))
 	RETURN_FREE(FOUND);
+    if (dict_errno != 0)
+	RETURN_FREE(NOTFOUND);
 
     /*
      * If the full address did not match, and there is an address extension,
@@ -221,13 +254,14 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      */
     if ((stripped_addr = strip_addr(full_addr, DISCARD_EXTENSION,
 				    *var_rcpt_delim)) != 0) {
-	if (find_transport_entry(stripped_addr, PARTIAL,
-				 channel, nexthop)) {
-	    myfree(stripped_addr);
+	found = find_transport_entry(stripped_addr, rcpt_domain, PARTIAL,
+				     channel, nexthop);
+
+	myfree(stripped_addr);
+	if (found)
 	    RETURN_FREE(FOUND);
-	} else {
-	    myfree(stripped_addr);
-	}
+	if (dict_errno != 0)
+	    RETURN_FREE(NOTFOUND);
     }
 
     /*
@@ -246,9 +280,11 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * Specify that the lookup key is partial, to avoid matching partial keys
      * with regular expressions.
      */
-    for (found = 0, name = ratsign + 1; /* void */ ; name = next) {
-	if (find_transport_entry(name, PARTIAL, channel, nexthop))
+    for (name = ratsign + 1; /* void */ ; name = next) {
+	if (find_transport_entry(name, rcpt_domain, PARTIAL, channel, nexthop))
 	    RETURN_FREE(FOUND);
+	if (dict_errno != 0)
+	    RETURN_FREE(NOTFOUND);
 	if ((next = strchr(name + 1, '.')) == 0)
 	    break;
 	if (transport_match_parent_style == MATCH_FLAG_PARENT)
@@ -259,8 +295,8 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * Fall back to the wild-card entry.
      */
     if (wildcard_channel) {
-	UPDATE_IF_SPECIFIED(channel, STR(wildcard_channel));
-	UPDATE_IF_SPECIFIED(nexthop, STR(wildcard_nexthop));
+	update_entry(STR(wildcard_channel), STR(wildcard_nexthop),
+		     rcpt_domain, channel, nexthop);
 	RETURN_FREE(FOUND);
     }
 

@@ -132,14 +132,6 @@ XVERP command is specified without explicit delimiters.
 Recipient of protocol/policy/resource/software error notices.
 .IP \fBhopcount_limit\fR
 Limit the number of \fBReceived:\fR message headers.
-.IP \fBlocal_recipient_maps\fR
-List of maps with user names that are local to \fB$myorigin\fR
-or \fB$inet_interfaces\fR. If this parameter is defined,
-then the SMTP server rejects mail for unknown local users.
-.IP \fBrelay_recipient_maps\fR
-List of maps that define all the email addresses in the domains
-that match \fB$relay_domains\fR.  If this parameter is defined,
-then the SMTP server rejects mail for unknown relay recipients.
 .IP \fBnotify_classes\fR
 List of error classes. Of special interest are:
 .RS
@@ -167,6 +159,26 @@ Change hard (5xx) reject responses into soft (4xx) reject responses.
 This can be useful for testing purposes.
 .IP \fBverp_delimiter_filter\fR
 The characters that Postfix accepts as VERP delimiter characters.
+.SH "Known versus unknown recipients"
+.ad
+.fi
+.IP \fBunknown_local_recipient_reject_code\fR
+The response code when a client specifies a recipient whose domain
+matches \fB$mydestination\fR or \fB$inet_interfaces\fR, while
+\fB$local_recipient_maps\fR is non-empty and does not list
+the recipient address or address local-part.
+.IP \fBunknown_relay_recipient_reject_code\fR
+The response code when a client specifies a recipient whose domain
+matches \fB$relay_domains\fR, while \fB$relay_recipient_maps\fR
+is non-empty and does not list the recipient address.
+.IP \fBunknown_virtual_alias_reject_code\fR
+The response code when a client specifies a recipient whose domain
+matches \fB$virtual_alias_domains\fR, while the recipient is not
+listed in \fB$virtual_alias_maps\fR.
+.IP \fBunknown_virtual_mailbox_reject_code\fR
+The response code when a client specifies a recipient whose domain
+matches \fB$virtual_mailbox_domains\fR, while the recipient is not
+listed in \fB$virtual_mailbox_maps\fR.
 .SH "Resource controls"
 .ad
 .fi

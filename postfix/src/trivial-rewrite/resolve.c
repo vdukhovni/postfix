@@ -63,6 +63,7 @@
 #include <split_at.h>
 #include <valid_hostname.h>
 #include <stringops.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -117,19 +118,12 @@
   * nexthop information (or vice versa) may produce surprising results. In
   * particular, the free text nexthop information for the error transport is
   * likely to confuse regular delivery agents; and conversely, a hostname or
-  * socket pathname is not a useful reason for non-delivery.
+  * socket pathname is not an adequate text as reason for non-delivery.
   * 
-  * In the code below, the class_domain variable specifies the domain name that
-  * we will use when (the class transport is the error transport and the
-  * class transport is replaced by a transport map lookup result) but the
-  * nexthop information is not updated.
-  * 
-  * For the sake of completeness, we also take action when the reverse happens:
-  * replacing the class transport by the error transport without updating the
-  * nexthop information.
-  * 
-  * The ability to specify "error:reason for non-delivery" in main.cf and in
-  * transport maps is just too convenient to take it away.
+  * In the code below, rcpt_domain specifies the domain name that we will use
+  * when the transport table specifies a non-default channel but no nexthop
+  * information (we use a generic text when that non-default channel is the
+  * error transport).
   */
 
 #define STR	vstring_str
@@ -141,13 +135,6 @@ static DOMAIN_LIST *relay_domains;
 static STRING_LIST *virt_alias_doms;
 static STRING_LIST *virt_mailbox_doms;
 
- /*
-  * Saved address domain class information.
-  */
-static VSTRING *saved_class_channel;
-static VSTRING *saved_class_nexthop;
-static VSTRING *saved_class_domain;
-
 static MAPS *relocated_maps;
 
 /* resolve_addr - resolve address according to rule set */
@@ -157,50 +144,109 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 {
     char   *myname = "resolve_addr";
     VSTRING *addr_buf = vstring_alloc(100);
-    TOK822 *tree;
+    TOK822 *tree = 0;
     TOK822 *saved_domain = 0;
     TOK822 *domain = 0;
     char   *destination;
     const char *blame = 0;
     const char *rcpt_domain;
+    int     addr_len;
+    int     loop_count;
+    int     loop_max;
+    char   *local;
+    char   *oper;
+    char   *junk;
 
-    vstring_strcpy(saved_class_domain, "UNINITIALIZED SAVED_CLASS_DOMAIN");
     *flags = 0;
+    vstring_strcpy(channel, "CHANNEL NOT UPDATED");
+    vstring_strcpy(nexthop, "NEXTHOP NOT UPDATED");
+    vstring_strcpy(nextrcpt, "NEXTRCPT NOT UPDATED");
 
     /*
-     * The address is in internalized (unquoted) form, so we must externalize
-     * it first before we can parse it.
+     * The address is in internalized (unquoted) form.
      * 
-     * While quoting the address local part, do not treat @ as a special
-     * character. This allows us to detect extra @ characters and block
-     * source routed relay attempts.
+     * In an ideal world we would parse the externalized address form as given
+     * to us by the sender.
      * 
-     * But practically, we have to look at the unquoted form so that routing
-     * characters like @ remain visible, in order to stop user@domain@domain
-     * relay attempts when forwarding mail to a primary Sendmail MX host.
+     * However, in the real world we have to look for routing characters like
+     * %@! in the address local-part, even when that information is quoted
+     * due to the presence of special characters or whitespace. Although
+     * technically incorrect, this is needed to stop user@domain@domain relay
+     * attempts when forwarding mail to a Sendmail MX host.
+     * 
+     * This suggests that we parse the address in internalized (unquoted) form.
+     * Unfortunately, if we do that, the unparser generates incorrect white
+     * space between adjacent non-operator tokens. Example: ``first last''
+     * needs white space, but ``stuff[stuff]'' does not. This is is not a
+     * problem when unparsing the result from parsing externalized forms,
+     * because the parser/unparser were designed for valid externalized forms
+     * where ``stuff[stuff]'' does not happen.
+     * 
+     * As a workaround we start with the quoted form and then dequote the
+     * local-part only where needed. This will do the right thing in most
+     * (but not all) cases.
      */
-    if (var_resolve_dequoted) {
-	tree = tok822_scan_addr(addr);
-    } else {
-	quote_822_local(addr_buf, addr);
-	tree = tok822_scan_addr(vstring_str(addr_buf));
+    addr_len = strlen(addr);
+    quote_822_local(addr_buf, addr);
+    tree = tok822_scan_addr(vstring_str(addr_buf));
+
+    /*
+     * Let the optimizer replace multiple expansions of this macro by a GOTO
+     * to a single instance.
+     */
+#define FREE_MEMORY_AND_RETURN { \
+	if (saved_domain) \
+	    tok822_free_tree(saved_domain); \
+	if(tree) \
+	    tok822_free_tree(tree); \
+	if (addr_buf) \
+	    vstring_free(addr_buf); \
     }
 
     /*
      * Preliminary resolver: strip off all instances of the local domain.
      * Terminate when no destination domain is left over, or when the
      * destination domain is remote.
+     * 
+     * XXX To whom it may concern. If you change the resolver loop below, or
+     * quote_822_local.c, or tok822_parse.c, be sure to re-run the tests
+     * under "make resolve_clnt_test" in the global directory.
      */
 #define RESOLVE_LOCAL(domain) \
     resolve_local(STR(tok822_internalize(addr_buf, domain, TOK822_STR_DEFL)))
 
-    while (tree->head) {
+    dict_errno = 0;
+
+    for (loop_count = 0, loop_max = addr_len + 100; /* void */ ; loop_count++) {
+
+	/*
+	 * Grr. resolve_local() table lookups may fail. It may be OK for
+	 * local file lookup code to abort upon failure, but with
+	 * network-based tables it is preferable to return an error
+	 * indication to the requestor.
+	 */
+	if (dict_errno) {
+	    *flags |= RESOLVE_FLAG_FAIL;
+	    FREE_MEMORY_AND_RETURN;
+	}
+
+	/*
+	 * XXX Should never happen, but if this happens with some
+	 * pathological address, then that is not sufficient reason to
+	 * disrupt the operation of an MTA.
+	 */
+	if (loop_count > loop_max) {
+	    msg_warn("resolve_addr: <%s>: giving up after %d iterations",
+		     addr, loop_count);
+	    break;
+	}
 
 	/*
 	 * Strip trailing dot at end of domain, but not dot-dot. This merely
 	 * makes diagnostics more accurate by leaving bogus addresses alone.
 	 */
-	if (tree->tail->type == '.'
+	if (tree->tail
+	    && tree->tail->type == '.'
 	    && tok822_rfind_type(tree->tail, '@') != 0
 	    && tree->tail->prev->type != '.')
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
@@ -208,26 +254,15 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	/*
 	 * Strip trailing @.
 	 */
-	if (tree->tail->type == '@') {
+	if (tree->tail
+	    && tree->tail->type == '@')
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
-	    continue;
-	}
-
-	/*
-	 * A lone empty string becomes the postmaster.
-	 */
-	if (tree->head == tree->tail && tree->head->type == TOK822_QSTRING
-	    && VSTRING_LEN(tree->head->vstr) == 0) {
-	    tok822_free(tree->head);
-	    tree->head = tok822_scan(MAIL_ADDR_POSTMASTER, &tree->tail);
-	    rewrite_tree(REWRITE_CANON, tree);
-	}
 
 	/*
 	 * Strip (and save) @domain if local.
 	 */
 	if ((domain = tok822_rfind_type(tree->tail, '@')) != 0) {
-	    if (RESOLVE_LOCAL(domain->next) == 0)
+	    if (domain->next && RESOLVE_LOCAL(domain->next) == 0)
 		break;
 	    tok822_sub_keep_before(tree, domain);
 	    if (saved_domain)
@@ -239,32 +274,65 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	 * After stripping the local domain, if any, replace foo%bar by
 	 * foo@bar, site!user by user@site, rewrite to canonical form, and
 	 * retry.
-	 * 
-	 * Otherwise we're done.
 	 */
 	if (tok822_rfind_type(tree->tail, '@')
 	    || (var_swap_bangpath && tok822_rfind_type(tree->tail, '!'))
 	    || (var_percent_hack && tok822_rfind_type(tree->tail, '%'))) {
 	    rewrite_tree(REWRITE_CANON, tree);
-	} else {
-	    domain = 0;
-	    break;
+	    continue;
 	}
+
+	/*
+	 * If the local-part is a quoted string, crack it open when we're
+	 * permitted to do so and look for routing operators. This is
+	 * technically incorrect, but is needed to stop relaying problems.
+	 * 
+	 * XXX Do another feeble attempt to keep local-part info quoted.
+	 */
+	if (var_resolve_dequoted
+	    && tree->head && tree->head == tree->tail
+	    && tree->head->type == TOK822_QSTRING
+	    && ((oper = strrchr(local = STR(tree->head->vstr), '@')) != 0
+		|| (var_percent_hack && (oper = strrchr(local, '%')) != 0)
+	     || (var_swap_bangpath && (oper = strrchr(local, '!')) != 0))) {
+	    if (*oper == '%')
+		*oper = '@';
+	    tok822_internalize(addr_buf, tree->head, TOK822_STR_DEFL);
+	    if (*oper == '@') {
+		junk = mystrdup(STR(addr_buf));
+		quote_822_local(addr_buf, junk);
+		myfree(junk);
+	    }
+	    tok822_free(tree->head);
+	    tree->head = tok822_scan(STR(addr_buf), &tree->tail);
+	    rewrite_tree(REWRITE_CANON, tree);
+	    continue;
+	}
+
+	/*
+	 * An empty local-part or an empty quoted string local-part becomes
+	 * the local MAILER-DAEMON, for consistency with our own From:
+	 * message headers.
+	 */
+	if (tree->head && tree->head == tree->tail
+	    && tree->head->type == TOK822_QSTRING
+	    && VSTRING_LEN(tree->head->vstr) == 0) {
+	    tok822_free(tree->head);
+	    tree->head = 0;
+	}
+	if (tree->head == 0)
+	    tree->head = tok822_scan(MAIL_ADDR_MAIL_DAEMON, &tree->tail);
+
+	/*
+	 * We're done. There are no domains left to strip off the address,
+	 * and all null local-part information is sanitized.
+	 */
+	domain = 0;
+	break;
     }
 
-    /*
-     * If the destination is non-local, recognize routing operators in the
-     * address localpart. This is needed to prevent backup MX hosts from
-     * relaying third-party destinations through primary MX hosts, otherwise
-     * the backup host could end up on black lists. Ignore local
-     * swap_bangpath and percent_hack settings because we can't know how the
-     * primary MX host is set up.
-     */
-    if (domain && domain->prev)
-	if (tok822_rfind_type(domain->prev, '@') != 0
-	    || tok822_rfind_type(domain->prev, '!') != 0
-	    || tok822_rfind_type(domain->prev, '%') != 0)
-	    *flags |= RESOLVE_FLAG_ROUTED;
+    vstring_free(addr_buf);
+    addr_buf = 0;
 
     /*
      * Make sure the resolved envelope recipient has the user@domain form. If
@@ -275,105 +343,134 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	if (saved_domain) {
 	    tok822_sub_append(tree, saved_domain);
 	    saved_domain = 0;
-	} else {				/* Aargh! Always! */
+	} else {
 	    tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
 	    tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
 	}
     }
-    tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
 
     /*
-     * With relay or other non-local destinations, the relayhost setting
-     * overrides the destination domain name.
+     * Transform the recipient address back to internal form.
      * 
-     * With virtual, relay, or other non-local destinations, give the highest
-     * precedence to delivery transport associated next-hop information.
+     * XXX This may produce incorrect results if we cracked open a quoted
+     * local-part with routing operators; see discussion above at the top of
+     * the big loop.
+     */
+    tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
+    rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
+    if (*rcpt_domain == '[' ? !valid_hostliteral(rcpt_domain, DONT_GRIPE) :
+	!valid_hostname(rcpt_domain, DONT_GRIPE))
+	*flags |= RESOLVE_FLAG_ERROR;
+    tok822_free_tree(tree);
+    tree = 0;
+
+    /*
+     * Recognize routing operators in the local-part, even when we do not
+     * recognize ! or % as valid routing operators locally. This is needed to
+     * prevent backup MX hosts from relaying third-party destinations through
+     * primary MX hosts, otherwise the backup host could end up on black
+     * lists. Ignore local swap_bangpath and percent_hack settings because we
+     * can't know how the next MX host is set up.
+     */
+    if (strcmp(STR(nextrcpt) + strcspn(STR(nextrcpt), "@!%") + 1, rcpt_domain))
+	*flags |= RESOLVE_FLAG_ROUTED;
+
+    /*
+     * With local, virtual, relay, or other non-local destinations, give the
+     * highest precedence to transport associated nexthop information.
      * 
-     * XXX With the virtual mailbox transport, set the nexthop information to
-     * $myhostname, so that in default configurations the virtual delivery
-     * agent will not use separate queues for every $virtual_mailbox_domains
-     * domain name. That prevents anomalies where many low-traffic domains
-     * starve a high-traffic domain.
+     * Otherwise, with relay or other non-local destinations, the relayhost
+     * setting overrides the destination domain name.
      * 
-     * XXX Nag if the domain is listed in multiple domain lists. The effect is
-     * implementation defined, and may break when internals change.
+     * XXX Nag if the recipient domain is listed in multiple domain lists. The
+     * result is implementation defined, and may break when internals change.
+     * 
+     * For now, we distinguish only a fixed number of address classes.
+     * Eventually this may become extensible, so that new classes can be
+     * configured with their own domain list, delivery transport, and
+     * recipient table.
      */
 #define STREQ(x,y) (strcmp((x), (y)) == 0)
 
     dict_errno = 0;
     if (domain != 0) {
-	tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
-	vstring_strcpy(saved_class_domain, STR(nexthop));
-	if (STR(nexthop)[strspn(STR(nexthop), "[]0123456789.")] != 0
-	    && valid_hostname(STR(nexthop), DONT_GRIPE) == 0)
-	    *flags |= RESOLVE_FLAG_ERROR;
+
+	/*
+	 * Virtual alias domain.
+	 */
 	if (virt_alias_doms
-	    && string_list_match(virt_alias_doms, STR(nexthop))) {
+	    && string_list_match(virt_alias_doms, rcpt_domain)) {
 	    if (var_helpful_warnings
 		&& virt_mailbox_doms
-		&& string_list_match(virt_mailbox_doms, STR(nexthop)))
+		&& string_list_match(virt_mailbox_doms, rcpt_domain))
 		msg_warn("do not list domain %s in BOTH %s and %s",
-		  STR(nexthop), VAR_VIRT_ALIAS_DOMS, VAR_VIRT_MAILBOX_DOMS);
-	    vstring_strcpy(channel, var_error_transport);
+			 rcpt_domain, VAR_VIRT_ALIAS_DOMS,
+			 VAR_VIRT_MAILBOX_DOMS);
+	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
 	    vstring_strcpy(nexthop, "User unknown in virtual alias table");
-	    vstring_strcpy(saved_class_domain, var_myhostname);
-	    blame = VAR_ERROR_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_ALIAS;
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_ALIAS_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
-	} else if (virt_mailbox_doms
-		   && string_list_match(virt_mailbox_doms, STR(nexthop))) {
+	    FREE_MEMORY_AND_RETURN;
+	}
+
+	/*
+	 * Virtual mailbox domain.
+	 */
+	else if (virt_mailbox_doms
+		 && string_list_match(virt_mailbox_doms, rcpt_domain)) {
 	    vstring_strcpy(channel, var_virt_transport);
-	    vstring_strcpy(nexthop, var_myhostname);
-	    vstring_strcpy(saved_class_domain, var_myhostname);
+	    vstring_strcpy(nexthop, rcpt_domain);
 	    blame = VAR_VIRT_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_VIRTUAL;
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_MAILBOX_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
+	    FREE_MEMORY_AND_RETURN;
 	} else {
+
+	    /*
+	     * Off-host relay destination.
+	     */
 	    if (relay_domains
-		&& domain_list_match(relay_domains, STR(nexthop))) {
+		&& domain_list_match(relay_domains, rcpt_domain)) {
 		vstring_strcpy(channel, var_relay_transport);
 		blame = VAR_RELAY_TRANSPORT;
 		*flags |= RESOLVE_CLASS_RELAY;
 	    } else if (dict_errno != 0) {
 		msg_warn("%s lookup failure", VAR_RELAY_DOMAINS);
 		*flags |= RESOLVE_FLAG_FAIL;
-	    } else {
+		FREE_MEMORY_AND_RETURN;
+	    }
+
+	    /*
+	     * Other off-host destination.
+	     */
+	    else {
 		vstring_strcpy(channel, var_def_transport);
 		blame = VAR_DEF_TRANSPORT;
 		*flags |= RESOLVE_CLASS_DEFAULT;
 	    }
-	    if (*var_relayhost) {
+
+	    /*
+	     * With off-host delivery, relayhost overrides recipient domain.
+	     */
+	    if (*var_relayhost)
 		vstring_strcpy(nexthop, var_relayhost);
-		if (!STREQ(STR(channel), var_error_transport))
-		    vstring_strcpy(saved_class_domain, STR(nexthop));
-	    }
-	}
-	if ((destination = split_at(STR(channel), ':')) != 0 && *destination) {
-	    vstring_strcpy(nexthop, destination);
-	    if (!STREQ(STR(channel), var_error_transport))
-		vstring_strcpy(saved_class_domain, STR(nexthop));
+	    else
+		vstring_strcpy(nexthop, rcpt_domain);
 	}
     }
 
     /*
-     * Local delivery. Set up the default local transport and the default
-     * next-hop hostname (myself).
-     * 
-     * XXX Set the nexthop information to myhostname, so that the local delivery
-     * agent does not get a queue for every domain name in $mydestination or
-     * for every network address in $inet_interfaces.
+     * Local delivery.
      * 
      * XXX Nag if the domain is listed in multiple domain lists. The effect is
      * implementation defined, and may break when internals change.
      */
     else {
-	if (var_helpful_warnings
-	    && (rcpt_domain = strrchr(STR(nextrcpt), '@')) != 0) {
-	    rcpt_domain++;
+	if (var_helpful_warnings) {
 	    if (virt_alias_doms
 		&& string_list_match(virt_alias_doms, rcpt_domain))
 		msg_warn("do not list domain %s in BOTH %s and %s",
@@ -384,56 +481,67 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
 	}
 	vstring_strcpy(channel, var_local_transport);
+	vstring_strcpy(nexthop, rcpt_domain);
 	blame = VAR_LOCAL_TRANSPORT;
-	if ((destination = split_at(STR(channel), ':')) == 0
-	    || *destination == 0)
-	    destination = var_myhostname;
-	vstring_strcpy(nexthop, destination);
-	if (!STREQ(STR(channel), var_error_transport))
-	    vstring_strcpy(saved_class_domain, STR(nexthop));
-	else
-	    vstring_strcpy(saved_class_domain, var_myhostname);
 	*flags |= RESOLVE_CLASS_LOCAL;
     }
 
     /*
-     * Sanity checks.
+     * An explicit main.cf transport:nexthop setting overrides the nexthop.
+     * 
+     * XXX We depend on this mechanism to enforce per-recipient concurrencies
+     * for local recipients. With "local_transport = local:$myhostname" we
+     * force mail for any domain in $mydestination/$inet_interfaces to share
+     * the same queue.
      */
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0) {
-	if (*STR(channel) == 0) {
-	    if (blame == 0)
-		msg_panic("%s: null blame", myname);
-	    msg_warn("file %s/%s: parameter %s: null transport is not allowed",
-		     var_config_dir, MAIN_CONF_FILE, blame);
-	    *flags |= RESOLVE_FLAG_FAIL;
-	}
-	if (*STR(nexthop) == 0)
-	    msg_panic("%s: null nexthop", myname);
-    }
+    if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
+	vstring_strcpy(nexthop, destination);
 
     /*
-     * The transport map overrides any transport and next-hop host info that
-     * is set up above.
-     * 
-     * With error transports, the nexthop info is arbitrary text that must not
-     * be passed on to regular delivery agents. When the transport map
-     * overrides an error transport without overriding the nexthop
-     * information, or vice versa, update the nexthop information
-     * appropriately.
+     * Sanity checks.
      */
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && *var_transport_maps) {
-	vstring_strcpy(saved_class_channel, STR(channel));
-	vstring_strcpy(saved_class_nexthop, STR(nexthop));
+    if (*STR(channel) == 0) {
+	if (blame == 0)
+	    msg_panic("%s: null blame", myname);
+	msg_warn("file %s/%s: parameter %s: null transport is not allowed",
+		 var_config_dir, MAIN_CONF_FILE, blame);
+	*flags |= RESOLVE_FLAG_FAIL;
+	FREE_MEMORY_AND_RETURN;
+    }
+    if (*STR(nexthop) == 0)
+	msg_panic("%s: null nexthop", myname);
 
-	if (transport_lookup(STR(nextrcpt), channel, nexthop) != 0) {
-	    if (!STREQ(STR(saved_class_channel), STR(channel))
-		&& STREQ(STR(saved_class_nexthop), STR(nexthop))) {
-		vstring_strcpy(nexthop, STREQ(STR(channel), var_error_transport) ?
-		    "Address is not deliverable" : STR(saved_class_domain));
-	    }
-	} else if (dict_errno != 0) {
+    /*
+     * The transport map can selectively override any transport and/or
+     * nexthop host info that is set up above. Unfortunately, the syntax for
+     * nexthop information is transport specific. We therefore need sane and
+     * intuitive semantics for transport map entries that specify a channel
+     * but no nexthop.
+     * 
+     * With non-error transports, the initial nexthop information is the
+     * recipient domain. However, specific main.cf transport definitions may
+     * specify a transport-specific destination, such as a host + TCP socket,
+     * or the pathname of a UNIX-domain socket. With less precedence than
+     * main.cf transport definitions, a main.cf relayhost definition may also
+     * override nexthop information for off-host deliveries.
+     * 
+     * With the error transport, the nexthop information is free text that
+     * specifies the reason for non-delivery.
+     * 
+     * Because nexthop syntax is transport specific we reset the nexthop
+     * information to the recipient domain when the transport table specifies
+     * a transport without also specifying the nexthop information.
+     * 
+     * Subtle note: reset nexthop even when the transport table does not change
+     * the transport. Otherwise it is hard to get rid of main.cf specified
+     * nexthop information.
+     */
+    if (*var_transport_maps) {
+	if (transport_lookup(STR(nextrcpt), rcpt_domain, channel, nexthop) == 0
+	    && dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;
+	    FREE_MEMORY_AND_RETURN;
 	}
     }
 
@@ -448,26 +556,24 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      */
 #define IGNORE_ADDR_EXTENSION   ((char **) 0)
 
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && relocated_maps != 0) {
+    if (relocated_maps != 0) {
 	const char *newloc;
 
 	if ((newloc = mail_addr_find(relocated_maps, STR(nextrcpt),
 				     IGNORE_ADDR_EXTENSION)) != 0) {
-	    vstring_strcpy(channel, var_error_transport);
+	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
 	    vstring_sprintf(nexthop, "User has moved to %s", newloc);
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_RELOCATED_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;
+	    FREE_MEMORY_AND_RETURN;
 	}
     }
 
     /*
      * Clean up.
      */
-    if (saved_domain)
-	tok822_free_tree(saved_domain);
-    tok822_free_tree(tree);
-    vstring_free(addr_buf);
+    FREE_MEMORY_AND_RETURN;
 }
 
 /* Static, so they can be used by the network protocol interface only. */
@@ -516,9 +622,6 @@ void    resolve_init(void)
     channel = vstring_alloc(100);
     nexthop = vstring_alloc(100);
     nextrcpt = vstring_alloc(100);
-    saved_class_channel = vstring_alloc(100);
-    saved_class_nexthop = vstring_alloc(100);
-    saved_class_domain = vstring_alloc(100);
 
     if (*var_virt_alias_doms)
 	virt_alias_doms =

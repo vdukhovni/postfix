@@ -185,7 +185,6 @@ qmgr_message.o: ../../include/rec_type.h
 qmgr_message.o: ../../include/sent.h
 qmgr_message.o: ../../include/deliver_completed.h
 qmgr_message.o: ../../include/opened.h
-qmgr_message.o: ../../include/resolve_local.h
 qmgr_message.o: ../../include/verp_sender.h
 qmgr_message.o: ../../include/mail_proto.h
 qmgr_message.o: ../../include/iostuff.h

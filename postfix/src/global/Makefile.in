@@ -298,6 +298,27 @@ virtual8_test: virtual8_maps virtual8_map virtual8.in virtual8.ref \
 	diff virtual8.ref virtual8.tmp
 	rm -f virtual8.tmp virtual8_map.db
 
+# Requires: Postfix running, root privileges
+
+rewrite_clnt_test: rewrite_clnt rewrite_clnt.in rewrite_clnt.ref
+	./rewrite_clnt <rewrite_clnt.in >rewrite_clnt.tmp
+	sed "s/MYDOMAIN/`postconf -h mydomain`/" rewrite_clnt.ref | \
+	    diff - rewrite_clnt.tmp
+	rm -f rewrite_clnt.tmp
+
+# Requires: Postfix, root, myorigin=$myhostname, relayhost=$mydomain,
+# no transport map
+
+resolve_clnt_test: resolve_clnt resolve_clnt.in resolve_clnt.ref
+	sed -e "s/MYDOMAIN/`postconf -h mydomain`/g" \
+	    -e "s/MYHOSTNAME/`postconf -h myhostname`/g" \
+	    resolve_clnt.in | ./resolve_clnt >resolve_clnt.tmp
+	sed -e "s/MYDOMAIN/`postconf -h mydomain`/g" \
+	    -e "s/MYHOSTNAME/`postconf -h myhostname`/g" \
+	    -e "s/RELAYHOST/`postconf -h mydomain`/g" \
+	    resolve_clnt.ref | diff - resolve_clnt.tmp
+	rm -f resolve_clnt.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck

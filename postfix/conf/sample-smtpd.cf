@@ -434,6 +434,14 @@ allow_untrusted_routing = no
 #
 relay_domains = $mydestination
 
+# The relay_recipient_maps parameter specifies optional lookup tables
+# with all addresses in the domains that match $relay_domains.
+#
+# If this parameter is defined, then the SMTP server will reject
+# mail to unknown relay users. This feature is off by default.
+# 
+#relay_recipient_maps = hash:/etc/postfix/relay_recipients
+
 #
 # RESPONSE CODES
 #

@@ -127,17 +127,6 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
               Syntax  is  <i>transport</i>:<i>nexthop</i>; see <a href="transport.5.html"><b>transport</b>(5)</a> for
               details. The :<i>nexthop</i> part is optional.
 
-       <b>error</b><i>_</i><b>transport</b>
-              Where to deliver mail for  non-existent  recipients
-              in  domains  that  match <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> (all
-              recipients in simulated  virtual  domains  must  be
-              aliased  to  some other local or remote domain), or
-              for recipients that have moved.  The default trans-
-              port is <b>error</b>.
-
-              Syntax  is  <i>transport</i>:<i>nexthop</i>; see <a href="transport.5.html"><b>transport</b>(5)</a> for
-              details. The :<i>nexthop</i> part is optional.
-
        <b>virtual</b><i>_</i><b>transport</b>
               Where to deliver mail for  non-local  domains  that
               match <b>$virtual</b><i>_</i><b>mailbox</b><i>_</i><b>domains</b>.  The default trans-
@@ -177,9 +166,6 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
        <b>transport</b><i>_</i><b>maps</b>
               List  of tables with <i>domain</i> to (<i>transport,</i> <i>nexthop</i>)
               mappings.
-
-       <b>transport</b><i>_</i><b>null</b><i>_</i><b>address</b><i>_</i><b>lookup</b><i>_</i><b>key</b>
-              Lookup key to be used for the null address.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="master.8.html">master(8)</a> process manager

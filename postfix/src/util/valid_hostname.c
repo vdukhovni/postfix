@@ -13,6 +13,10 @@
 /*	int	valid_hostaddr(addr, gripe)
 /*	const char *addr;
 /*	int	gripe;
+/*
+/*	int	valid_hostliteral(addr, gripe)
+/*	const char *addr;
+/*	int	gripe;
 /* DESCRIPTION
 /*	valid_hostname() scrutinizes a hostname: the name should be no
 /*	longer than VALID_HOSTNAME_LEN characters, should contain only
@@ -20,8 +24,10 @@
 /*	no leading or trailing dots or hyphens, no labels longer than
 /*	VALID_LABEL_LEN characters, and no numeric top-level domain.
 /*
-/*	valid_hostaddr() requirs that the input is a valid string
+/*	valid_hostaddr() requires that the input is a valid string
 /*	representation of an internet network address.
+/*
+/*	valid_hostliteral() requires an address enclosed in [].
 /*
 /*	These routines operate silently unless the gripe parameter
 /*	specifies a non-zero value. The macros DO_GRIPE and DONT_GRIPE
@@ -192,6 +198,39 @@ int     valid_hostaddr(const char *addr, int gripe)
     return (1);
 }
 
+/* valid_hostliteral - validate address literal */
+
+int     valid_hostliteral(const char *addr, int gripe)
+{
+    const char *myname = "valid_hostliteral";
+    char    buf[100];
+    const char *last;
+
+    if (*addr != '[') {
+	if (gripe)
+	    msg_warn("%s: '[' expected at start: %.100s", myname, addr);
+	return (0);
+    }
+    if ((last = strchr(addr, ']')) == 0) {
+	if (gripe)
+	    msg_warn("%s: ']' expected at end: %.100s", myname, addr);
+	return (0);
+    }
+    if (last[1]) {
+	if (gripe)
+	    msg_warn("%s: unexpected text after ']': %.100s", myname, addr);
+	return (0);
+    }
+    if (last - addr >= sizeof(buf)) {
+	if (gripe)
+	    msg_warn("%s: too much text: %.100s", myname, addr);
+	return (0);
+    }
+    strncpy(buf, addr + 1, last - addr - 1);
+    buf[last - addr - 1] = 0;
+    return (valid_hostaddr(buf, gripe));
+}
+
 #ifdef TEST
 
  /*
@@ -216,6 +255,7 @@ int     main(int unused_argc, char **argv)
 	msg_info("testing: \"%s\"", vstring_str(buffer));
 	valid_hostname(vstring_str(buffer), DO_GRIPE);
 	valid_hostaddr(vstring_str(buffer), DO_GRIPE);
+	valid_hostliteral(vstring_str(buffer), DO_GRIPE);
     }
     exit(0);
 }

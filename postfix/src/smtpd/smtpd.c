@@ -118,14 +118,6 @@
 /*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
-/* .IP \fBlocal_recipient_maps\fR
-/*	List of maps with user names that are local to \fB$myorigin\fR
-/*	or \fB$inet_interfaces\fR. If this parameter is defined,
-/*	then the SMTP server rejects mail for unknown local users.
-/* .IP \fBrelay_recipient_maps\fR
-/*	List of maps that define all the email addresses in the domains
-/*	that match \fB$relay_domains\fR.  If this parameter is defined,
-/*	then the SMTP server rejects mail for unknown relay recipients.
 /* .IP \fBnotify_classes\fR
 /*	List of error classes. Of special interest are:
 /* .RS
@@ -153,6 +145,26 @@
 /*	This can be useful for testing purposes.
 /* .IP \fBverp_delimiter_filter\fR
 /*	The characters that Postfix accepts as VERP delimiter characters.
+/* .SH "Known versus unknown recipients"
+/* .ad
+/* .fi
+/* .IP \fBunknown_local_recipient_reject_code\fR
+/*	The response code when a client specifies a recipient whose domain
+/*	matches \fB$mydestination\fR or \fB$inet_interfaces\fR, while
+/*	\fB$local_recipient_maps\fR is non-empty and does not list
+/*	the recipient address or address local-part.
+/* .IP \fBunknown_relay_recipient_reject_code\fR
+/*	The response code when a client specifies a recipient whose domain
+/*	matches \fB$relay_domains\fR, while \fB$relay_recipient_maps\fR
+/*	is non-empty and does not list the recipient address.
+/* .IP \fBunknown_virtual_alias_reject_code\fR
+/*	The response code when a client specifies a recipient whose domain
+/*	matches \fB$virtual_alias_domains\fR, while the recipient is not
+/*	listed in \fB$virtual_alias_maps\fR.
+/* .IP \fBunknown_virtual_mailbox_reject_code\fR
+/*	The response code when a client specifies a recipient whose domain
+/*	matches \fB$virtual_mailbox_domains\fR, while the recipient is not
+/*	listed in \fB$virtual_mailbox_maps\fR.
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -413,12 +425,11 @@ char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
-char   *var_def_transport;
-char   *var_error_transport;
-char   *var_local_transport;
-char   *var_relay_transport;
-char   *var_virt_transport;
 char   *var_relay_rcpt_maps;
+int     var_local_rcpt_code;
+int     var_virt_alias_code;
+int     var_virt_mailbox_code;
+int     var_relay_rcpt_code;
 
  /*
   * Silly little macros.
@@ -1619,6 +1630,10 @@ int     main(int argc, char **argv)
 	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
 	VAR_SMTPD_HIST_THRSH, DEF_SMTPD_HIST_THRSH, &var_smtpd_hist_thrsh, 1, 0,
+	VAR_LOCAL_RCPT_CODE, DEF_LOCAL_RCPT_CODE, &var_local_rcpt_code, 0, 0,
+	VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code, 0, 0,
+	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
+	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -1663,11 +1678,6 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
-	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 1, 0,
-	VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport, 1, 0,
-	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 1, 0,
-	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
-	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
 	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
 	0,
     };

@@ -101,15 +101,6 @@
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
 /*	for details. The :\fInexthop\fR part is optional.
-/* .IP \fBerror_transport\fR
-/*	Where to deliver mail for non-existent recipients in domains
-/*	that match \fBvirtual_alias_domains\fR (all recipients
-/*	in simulated virtual domains must be aliased to some other 
-/*	local or remote domain), or for recipients that have moved.
-/*	The default transport is \fBerror\fR.
-/* .sp
-/*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
-/*	for details. The :\fInexthop\fR part is optional.
 /* .IP \fBvirtual_transport\fR
 /*	Where to deliver mail for non-local domains that match
 /*	\fB$virtual_mailbox_domains\fR.
@@ -144,8 +135,6 @@
 /* .IP \fBtransport_maps\fR
 /*	List of tables with \fIdomain\fR to (\fItransport, nexthop\fR)
 /*	mappings.
-/* .IP \fBtransport_null_address_lookup_key\fR
-/*	Lookup key to be used for the null address.
 /* SEE ALSO
 /*	master(8) process manager
 /*	syslogd(8) system logging
@@ -208,11 +197,9 @@ bool    var_append_dot_mydomain;
 bool    var_append_at_myorigin;
 bool    var_percent_hack;
 char   *var_local_transport;
-char   *var_error_transport;
 char   *var_virt_transport;
 char   *var_relay_transport;
 int     var_resolve_dequoted;
-char   *var_xport_null_key;
 char   *var_virt_alias_maps;		/* XXX virtual_alias_domains */
 char   *var_virt_mailbox_maps;		/* XXX virtual_mailbox_domains */
 char   *var_virt_alias_doms;
@@ -284,10 +271,8 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
 	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 1, 0,
-	VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport, 1, 0,
 	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
 	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
-	VAR_XPORT_NULL_KEY, DEF_XPORT_NULL_KEY, &var_xport_null_key, 1, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
 	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,

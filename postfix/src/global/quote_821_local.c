@@ -82,7 +82,7 @@ static int is_821_dot_string(char *local_part, char *end, int flags)
      * lookup tables to speed up some of the work, but hey, how large can a
      * local-part be anyway?
      */
-    if (local_part[0] == 0 || local_part[0] == '.')
+    if (local_part == end || local_part[0] == 0 || local_part[0] == '.')
 	return (NO);
     for (cp = local_part; cp < end && (ch = *(unsigned char *) cp) != 0; cp++) {
 	if (ch == '.' && cp[1] == '.')

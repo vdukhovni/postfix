@@ -3149,9 +3149,11 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      * unknown recipients in simulated virtual domains will both resolve to
      * "error:user unknown".
      */
-    if (strcmp(STR(reply->transport), var_error_transport) == 0) {
+    if (strcmp(STR(reply->transport), MAIL_SERVICE_ERROR) == 0) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				  "%d <%s>: %s", 550,
+				  "%d <%s>: %s",
+				  (reply->flags & RESOLVE_CLASS_ALIAS) ?
+				  var_virt_alias_code : 550,
 				  recipient, STR(reply->nexthop));
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
@@ -3170,13 +3172,10 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      */
     if ((reply->flags & RESOLVE_CLASS_LOCAL)
 	&& *var_local_rcpt_maps
-#if 0
-	&& strcmp(STR(reply->transport), var_local_transport) == 0
-#endif
 	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 			   "%d <%s>: User unknown in local recipient table",
-				  550, recipient);
+				  var_local_rcpt_code, recipient);
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
@@ -3184,13 +3183,10 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      * Reject mail to unknown addresses in virtual mailbox domains.
      */
     if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
-#if 0
-	&& strcmp(STR(reply->transport), var_virt_transport) == 0
-#endif
 	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 			   "%d <%s>: User unknown in virtual mailbox table",
-				  550, recipient);
+				  var_virt_mailbox_code, recipient);
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
@@ -3199,13 +3195,10 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      */
     if ((reply->flags & RESOLVE_CLASS_RELAY)
 	&& *var_relay_rcpt_maps
-#if 0
-	&& strcmp(STR(reply->transport), var_relay_transport) == 0
-#endif
 	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 			   "%d <%s>: User unknown in relay recipient table",
-				  550, recipient);
+				  var_relay_rcpt_code, recipient);
 	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
     }
 
@@ -3365,11 +3358,6 @@ char   *var_double_bounce_sender;
 char   *var_rbl_reply_maps;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
-char   *var_local_transport;
-char   *var_error_transport;
-char   *var_virt_transport;
-char   *var_relay_transport;
-char   *var_def_transport;
 char   *var_relay_rcpt_maps;
 
 typedef struct {
@@ -3408,11 +3396,6 @@ static STRING_TABLE string_table[] = {
     VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps,
     VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter,
     VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply,
-    VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport,
-    VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport,
-    VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport,
-    VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport,
-    VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport,
     VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps,
     0,
 };
@@ -3465,6 +3448,10 @@ int     var_defer_code;
 int     var_non_fqdn_code;
 int     var_smtpd_delay_reject;
 int     var_allow_untrust_route;
+int     var_local_rcpt_code;
+int     var_relay_rcpt_code;
+int     var_virt_mailbox_code;
+int     var_virt_alias_code;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -3480,6 +3467,10 @@ static INT_TABLE int_table[] = {
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
     VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
     VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
+    VAR_LOCAL_RCPT_CODE, DEF_LOCAL_RCPT_CODE, &var_local_rcpt_code,
+    VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code,
+    VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code,
+    VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code,
     0,
 };
 
@@ -3633,23 +3624,23 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
     domain += 1;
     if (resolve_local(domain)) {
 	reply->flags = RESOLVE_CLASS_LOCAL;
-	vstring_strcpy(reply->transport, var_local_transport);
+	vstring_strcpy(reply->transport, MAIL_SERVICE_LOCAL);
 	vstring_strcpy(reply->nexthop, domain);
     } else if (string_list_match(virt_alias_doms, domain)) {
 	reply->flags = RESOLVE_CLASS_ALIAS;
-	vstring_strcpy(reply->transport, var_error_transport);
+	vstring_strcpy(reply->transport, MAIL_SERVICE_ERROR);
 	vstring_strcpy(reply->nexthop, "user unknown");
     } else if (string_list_match(virt_mailbox_doms, domain)) {
 	reply->flags = RESOLVE_CLASS_VIRTUAL;
-	vstring_strcpy(reply->transport, var_virt_transport);
+	vstring_strcpy(reply->transport, MAIL_SERVICE_VIRTUAL);
 	vstring_strcpy(reply->nexthop, domain);
     } else if (domain_list_match(relay_domains, domain)) {
 	reply->flags = RESOLVE_CLASS_RELAY;
-	vstring_strcpy(reply->transport, var_relay_transport);
+	vstring_strcpy(reply->transport, MAIL_SERVICE_RELAY);
 	vstring_strcpy(reply->nexthop, domain);
     } else {
 	reply->flags = RESOLVE_CLASS_DEFAULT;
-	vstring_strcpy(reply->transport, var_def_transport);
+	vstring_strcpy(reply->transport, MAIL_SERVICE_SMTP);
 	vstring_strcpy(reply->nexthop, domain);
     }
     vstring_strcpy(reply->recipient, addr);

@@ -70,7 +70,7 @@
 /*	authorized mail relay destination.
 /* .IP RESOLVE_CLASS_DEFAULT
 /*	The address matches none of the above. Access to this domain
-/*	should be limited to authorized senders only. 
+/*	should be limited to authorized senders only.
 /* .PP
 /*	For convenience, the constant RESOLVE_CLASS_FINAL includes all
 /*	cases where the local machine is the final destination.
@@ -178,7 +178,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
      */
     if (rewrite_clnt_stream == 0)
 	rewrite_clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE,
-				  var_rewrite_service, var_ipc_idle_limit);
+				   var_rewrite_service, var_ipc_idle_limit);
 
     for (;;) {
 	stream = clnt_stream_access(rewrite_clnt_stream);
@@ -247,6 +247,24 @@ static NORETURN usage(char *myname)
 
 static void resolve(char *addr, RESOLVE_REPLY *reply)
 {
+    struct RESOLVE_FLAG_TABLE {
+	int     flag;
+	const char *name;
+    };
+    struct RESOLVE_FLAG_TABLE resolve_flag_table[] = {
+	RESOLVE_FLAG_FINAL, "FLAG_FINAL",
+	RESOLVE_FLAG_ROUTED, "FLAG_ROUTED",
+	RESOLVE_FLAG_ERROR, "FLAG_ERROR",
+	RESOLVE_FLAG_FAIL, "FLAG_FAIL",
+	RESOLVE_CLASS_LOCAL, "CLASS_LOCAL",
+	RESOLVE_CLASS_ALIAS, "CLASS_ALIAS",
+	RESOLVE_CLASS_VIRTUAL, "CLASS_VIRTUAL",
+	RESOLVE_CLASS_RELAY, "CLASS_RELAY",
+	RESOLVE_CLASS_DEFAULT, "CLASS_DEFAULT",
+	0,
+    };
+    struct RESOLVE_FLAG_TABLE *fp;
+
     resolve_clnt_query(addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
 	vstream_printf("request failed\n");
@@ -256,6 +274,16 @@ static void resolve(char *addr, RESOLVE_REPLY *reply)
 	vstream_printf("%-10s %s\n", "nexthop", *STR(reply->nexthop) ?
 		       STR(reply->nexthop) : "[none]");
 	vstream_printf("%-10s %s\n", "recipient", STR(reply->recipient));
+	vstream_printf("%-10s ", "flags");
+	for (fp = resolve_flag_table; fp->name; fp++) {
+	    if (reply->flags & fp->flag) {
+		vstream_printf("%s ", fp->name);
+		reply->flags &= ~fp->flag;
+	    }
+	}
+	if (reply->flags != 0)
+	    vstream_printf("Unknown flag 0x%x", reply->flags);
+	vstream_printf("\n");
 	vstream_fflush(VSTREAM_OUT);
     }
 }
@@ -297,6 +325,7 @@ int     main(int argc, char **argv)
 	vstring_free(buffer);
     }
     resolve_clnt_free(&reply);
+    exit(0);
 }
 
 #endif
