@@ -535,11 +535,23 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
      * When flushing a buffer, allow for partial writes. These can happen
      * while talking to a network. Update the cached file seek position, if
      * any.
+     * 
+     * XXX Workaround for IRIX brain damage: select() indicates that a pipe is
+     * writable, but write() transfers zero bytes on non-blocking pipes. This
+     * means that there is no reasonable way to enforce write timeouts.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
 	if (stream->timeout)
 	    stream->iotime = time((time_t *) 0);
 	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout, stream->context)) <= 0) {
+#ifdef BROKEN_NON_BLOCKING_WRITE_SELECT
+	    if (n == 0) {
+		msg_warn("%s: write() transfers 0 bytes on a writable descriptor!",
+			 myname);
+		sleep(1);
+		continue;
+	    }
+#endif
 	    bp->flags |= VSTREAM_FLAG_ERR;
 	    if (errno == ETIMEDOUT)
 		bp->flags |= VSTREAM_FLAG_TIMEOUT;

@@ -277,9 +277,6 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      * our status report.
      */
     if (CLEANUP_OUT_OK(state) == 0 && type > 0) {
-	if ((state->errs & CLEANUP_STAT_CONT) == 0
-	    && (state->flags & CLEANUP_FLAG_DISCARD) == 0)
-	    msg_warn("%s: skipping further client input", state->queue_id);
 	while (type != REC_TYPE_END
 	       && (type = rec_get(src, buf, 0)) > 0)
 	     /* void */ ;

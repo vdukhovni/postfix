@@ -470,6 +470,7 @@ extern int initgroups(const char *, int);
 #define DBM_NO_TRAILING_NULL		/* XXX check */
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
+#define BROKEN_NON_BLOCKING_WRITE_SELECT
 #endif
 
 #if defined(IRIX5)

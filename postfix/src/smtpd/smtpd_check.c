@@ -57,6 +57,13 @@
 /*	Reject, defer or permit the request unconditionally. This is to be used
 /*	at the end of a restriction list in order to make the default
 /*	action explicit.
+/* .IP require_date_header
+/* .IP require_from_header
+/* .IP require_message_id_header
+/* .IP require_received_header
+/*	Reject the message when it does not contain a Date: etc. 
+/*	message header. Only the Date: header is required by mail
+/*	standards. The other headers are usually added by MTAs.
 /* .IP reject_unknown_client
 /*	Reject the request when the client hostname could not be found.
 /*	The \fIunknown_client_reject_code\fR configuration parameter
@@ -2750,6 +2757,26 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
 			 "450 <%s>: %s rejected: defer_if_reject requested",
 			     reply_name, reply_class);
+	} else if (strcasecmp(name, REQUIRE_DATE_HDR) == 0) {
+#ifndef TEST
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_NEED_DATE);
+#endif
+	} else if (strcasecmp(name, REQUIRE_FROM_HDR) == 0) {
+#ifndef TEST
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_NEED_FROM);
+#endif
+	} else if (strcasecmp(name, REQUIRE_MSGID_HDR) == 0) {
+#ifndef TEST
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_NEED_MSGID);
+#endif
+	} else if (strcasecmp(name, REQUIRE_RCVD_HDR) == 0) {
+#ifndef TEST
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_NEED_RCVD);
+#endif
 	}
 
 	/*

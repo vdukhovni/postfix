@@ -132,6 +132,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_FLGS) {
+	if (msg_verbose)
+	    msg_info("envelope %c %.*s", type, len, buf);
 	extra_flags = atol(buf);
 	if (extra_flags & ~CLEANUP_FLAG_MASK_EXTRA)
 	    msg_warn("%s: bad extra flags: 0x%x", state->queue_id, extra_flags);

@@ -13,10 +13,11 @@ The old Postfix scheduler had several limitations due to unfortunate
 choices in its design.
 
 1 - Round-robin selection by destination for mail that is delivered
-    via the same message delivery transport.  That strategy broke
-    down when one single destination (say, inbound mail) had to
-    compete with multiple other destinations (say, outbound mail).
-    The poor suffering destination would be selected only
+    via the same message delivery transport. The round-robin strategy
+    was chosen with the intention to prevent a single (destination)
+    site from using up too many mail delivery resources.  However,
+    that strategy penalized inbound mail on bi-directional gateways.
+    The poor suffering inbound destination would be selected only
     1/number-of-destinations of the time, even when it had more
     mail than other destinations, and thus mail could be delayed.
 
@@ -62,7 +63,7 @@ However, even from programmer's point of view, there is nothing
 more to add to the message scheduling idea itself.  There are few
 things which make it look more complicated than it is, but the
 algorithm is the same as the user percieves it. The summary of the
-changes from the user's view:
+differences of the programmer's view from the user's view are:
 
 1) Simplification of terms for users: The user knows about messages
 and recipients. The program itself works with jobs (one message is

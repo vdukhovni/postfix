@@ -396,7 +396,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			    vstring_str(state->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
 		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
-		    LMTP_STATE_ABORT : LMTP_STATE_DATA;
+		    LMTP_STATE_RSET : LMTP_STATE_DATA;
 	    break;
 
 	    /*

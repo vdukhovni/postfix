@@ -28,43 +28,43 @@ Initially the list of address classes is hard coded, but this is
 meant to become extensible:
 
 -------------------------------------------------------------------
-Class	Description
+Class   Description
 -------------------------------------------------------------------
-local	For UNIX accounts and for traditional /etc/aliases
-	Domain names are listed in $mydestination (or match the IP
-	    address listed with $inet_interfaces)
-	Known recipients are listed in $local_recipient_maps (this
-	    information is currently used by the Postfix SMTP server
-	    only; if $local_recipient_maps is empty, the Postfix
-	    SMTP server accepts all recipients)
-	Default delivery agent: local
+local   For UNIX accounts and for traditional /etc/aliases
+        Domain names are listed in $mydestination (or match the IP
+            address listed with $inet_interfaces)
+        Known recipients are listed in $local_recipient_maps (this
+            information is currently used by the Postfix SMTP server
+            only; if $local_recipient_maps is empty, the Postfix
+            SMTP server accepts all recipients)
+        Default delivery agent: local
 
 virtual For hosted domains that are aliased to mailboxes in other
-alias	    domains
-	Known recipients are listed in $virtual_alias_maps (default
-	    is $virtual_maps for Postfix 1.1 compatibility)
-	Domain names are listed in $virtual_alias_domains (default
-	    is $virtual_alias_maps for Postfix 1.1 compatibility)
+alias       domains
+        Known recipients are listed in $virtual_alias_maps (default
+            is $virtual_maps for Postfix 1.1 compatibility)
+        Domain names are listed in $virtual_alias_domains (default
+            is $virtual_alias_maps for Postfix 1.1 compatibility)
 
-virtual	For hosted domains with their own mailboxes
-mailbox	Known recipients are listed in $virtual_mailbox_maps (if
-	    this parameter is empty, the Postfix SMTP server accepts
-	    all recipients for domains listed in $virtual_mailbox_domains)
-	Domain names are listed in $virtual_mailbox_domains (default
-	    is $virtual_mailbox_maps for Postfix 1.1 compatibility)
-	Default delivery agent: virtual
+virtual For hosted domains with their own mailboxes
+mailbox Known recipients are listed in $virtual_mailbox_maps (if
+            this parameter is empty, the Postfix SMTP server accepts
+            all recipients for domains listed in $virtual_mailbox_domains)
+        Domain names are listed in $virtual_mailbox_domains (default
+            is $virtual_mailbox_maps for Postfix 1.1 compatibility)
+        Default delivery agent: virtual
 
-relay	For remote destinations that list your system as MX host
-	Domain names are listed in $relay_domains
-	Known recipients are listed in $relay_recipient_maps (if
-	    this parameter is empty, the Postfix SMTP server accepts
-	    all recipients for domains listed in $relay_domains)
-	Default delivery agent: relay (clone of default smtp agent)
+relay   For remote destinations that list your system as MX host
+        Domain names are listed in $relay_domains
+        Known recipients are listed in $relay_recipient_maps (if
+            this parameter is empty, the Postfix SMTP server accepts
+            all recipients for domains listed in $relay_domains)
+        Default delivery agent: relay (clone of default smtp agent)
 
-other	Restricted to mail from authorized clients
-	Default delivery agent: smtp
-	No domain table
-	No recipient table
+other   Restricted to mail from authorized clients
+        Default delivery agent: smtp
+        No domain table
+        No recipient table
 -------------------------------------------------------------------
 
 Incompatibilities with Postfix 1.1
@@ -92,8 +92,7 @@ Incompatibilities with Postfix 1.1
 
 - The local_recipient_maps feature is now turned on by default, so
   that the Postfix SMTP server rejects mail for unknown local
-  recipients. This is enabled by default. See the LOCAL_RECIPIENT_README
-  file hints and tips.
+  recipients. See the LOCAL_RECIPIENT_README file hints and tips.
 
 - Introduction of relay delivery transport in master.cf. This helps
   to avoid mail delivery scheduling problems on inbound mail relays,

@@ -45,7 +45,7 @@
 
 # Protect your outgoing majordomo exploders
 #
-/^(?!owner-)(.*)-outgoing@/		550 Use ${1}@${2} instead
+/^(?!owner-)(.*)-outgoing@(.*)/		550 Use ${1}@${2} instead
 
 
 # Bounce friend@whatever, except when whatever is our domain (you would

@@ -8047,6 +8047,43 @@ Apologies for any names omitted.
 	Patrik Rak's clever queue manager scheduler (nqmgr). Files:
 	conf/sample-scheduler.cf, README_FILES/SCHEDULER_README.
 
+20030429
+
+	Bugfix: while verifying an address, the LMTP client entered
+	a forbidden "next" sender state after the last recipient.
+	Fix by Vladimir Davydoff. File: lmtp/lmtp_proto.c.
+
+	Bugfix: proxymap server did not parse "," as space.
+	Leandro Santi. File: proxymap/proxymap.c.
+
+20030502
+
+	Bugfix: defer delivery after .forward etc. file read error.
+	File: local/token.c.
+
+20030503
+
+	Bugfix: the Postfix LMTP client used the wrong service
+	name, causing trouble with SASL 2.1.13.  Daniel Schales,
+	Louisiana Tech. File: lmtp/lmtp_sasl_glue.c.
+
+20030518
+
+	Workaround: IRIX select() reports that a non-blocking file
+	descriptor is writable while write() transfers zero bytes.
+	File:  util/vstream.c.
+
+20030519
+
+	Feature: new require_{date,from,message_id,received}_header
+	restriction to reject SMTP mail when some message header
+	is missing.  Only the From: and Date: headers are actually
+	required by Internet mail standards; the Received:  and
+	Message-ID: headers are optional, but these are often
+	missing from SPAM email.  Files: global/cleanup_user.h,
+	global/cleanup_strerror.c, smtpd/smtpd_check.c,
+	cleanup/cleanup_message.c.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

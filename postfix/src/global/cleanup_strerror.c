@@ -51,6 +51,7 @@ static struct cleanup_stat_map cleanup_stat_map[] = {
     CLEANUP_STAT_BAD, "Internal protocol error",
     CLEANUP_STAT_RCPT, "No recipients specified",
     CLEANUP_STAT_HOPS, "Too many hops",
+    CLEANUP_STAT_MISS_HDR, "Missing message header",
     CLEANUP_STAT_SIZE, "Message file too big",
     CLEANUP_STAT_CONT, "Message content rejected",
     CLEANUP_STAT_WRITE, "Error writing message file",

@@ -369,7 +369,7 @@ void    lmtp_sasl_start(LMTP_STATE *state)
 #define NULL_SERVER_ADDR	((char *) 0)
 #define NULL_CLIENT_ADDR	((char *) 0)
 
-    if (SASL_CLIENT_NEW("smtp", state->session->host,
+    if (SASL_CLIENT_NEW("lmtp", state->session->host,
 			NULL_CLIENT_ADDR, NULL_SERVER_ADDR,
 			state->sasl_callbacks, NULL_SECFLAGS,
 			(sasl_conn_t **) &state->sasl_conn) != SASL_OK)
