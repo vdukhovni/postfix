@@ -95,7 +95,7 @@ int     vstring_get(VSTRING *vp, VSTREAM *fp)
 	    break;
     }
     VSTRING_TERMINATE(vp);
-    return (c == VSTREAM_EOF ? c : VSTRING_GET_RESULT(vp));
+    return (VSTRING_GET_RESULT(vp));
 }
 
 /* vstring_get_nonl - read line from file, strip newline */
@@ -108,7 +108,7 @@ int     vstring_get_nonl(VSTRING *vp, VSTREAM *fp)
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != '\n')
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == '\n' || c == VSTREAM_EOF ? c : VSTRING_GET_RESULT(vp));
+    return (c == '\n' ? c : VSTRING_GET_RESULT(vp));
 }
 
 /* vstring_get_null - read null-terminated string from file */
@@ -121,7 +121,7 @@ int     vstring_get_null(VSTRING *vp, VSTREAM *fp)
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == 0 || c == VSTREAM_EOF ? c : VSTRING_GET_RESULT(vp));
+    return (c == 0 ? c : VSTRING_GET_RESULT(vp));
 }
 
 /* vstring_get_bound - read line from file, keep newline, up to bound */
@@ -140,7 +140,7 @@ int     vstring_get_bound(VSTRING *vp, VSTREAM *fp, int bound)
 	    break;
     }
     VSTRING_TERMINATE(vp);
-    return (c == VSTREAM_EOF ? c : VSTRING_GET_RESULT(vp));
+    return (VSTRING_GET_RESULT(vp));
 }
 
 /* vstring_get_nonl_bound - read line from file, strip newline, up to bound */
@@ -156,7 +156,7 @@ int     vstring_get_nonl_bound(VSTRING *vp, VSTREAM *fp, int bound)
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != '\n')
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == '\n' || c == VSTREAM_EOF ? c : VSTRING_GET_RESULT(vp));
+    return (c == '\n' ? c : VSTRING_GET_RESULT(vp));
 }
 
 /* vstring_get_null_bound - read null-terminated string from file */
@@ -172,7 +172,7 @@ int     vstring_get_null_bound(VSTRING *vp, VSTREAM *fp, int bound)
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == 0 || c == VSTREAM_EOF ? c : VSTRING_GET_RESULT(vp));
+    return (c == 0 ? c : VSTRING_GET_RESULT(vp));
 }
 
 #ifdef TEST

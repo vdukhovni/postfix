@@ -7956,6 +7956,15 @@ Apologies for any names omitted.
 	not report really serious trouble with the destination.
 	Files:  *qmgr/qmgr_deliver.c.
 
+20040122
+
+	UNDO the 20040104 change (vstring_get() etc. return
+	VSTREAM_EOF when they terminate prematurely, instead of
+	returning the last character stored, to avoid mis-leading
+	warnings). File:  global/vstring_vstream.c.
+
+	Portability: test -e is not portable. File: conf/postfix-script.
+
 Open problems:
 
 	Doc: mention the proxy_interfaces parameter everywhere the
