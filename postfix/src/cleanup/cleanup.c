@@ -267,6 +267,7 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, cleanup_service,
 		       MAIL_SERVER_INT_TABLE, cleanup_int_table,
 		       MAIL_SERVER_STR_TABLE, cleanup_str_table,
+		       MAIL_SERVER_TIME_TABLE, cleanup_time_table,
 		       MAIL_SERVER_PRE_INIT, cleanup_pre_jail,
 		       MAIL_SERVER_POST_INIT, cleanup_post_jail,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,

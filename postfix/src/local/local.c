@@ -625,8 +625,11 @@ static void post_init(char *unused_name, char **unused_argv)
 
 int     main(int argc, char **argv)
 {
+    static CONFIG_TIME_TABLE time_table[] = {
+	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 's', 1, 0,
+	0,
+    };
     static CONFIG_INT_TABLE int_table[] = {
-	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
 	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
 	0,
     };
@@ -667,6 +670,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
+		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);

@@ -316,7 +316,7 @@ extern bool var_biff;
 extern char *var_allow_commands;
 
 #define VAR_COMMAND_MAXTIME	"command_time_limit"
-#define DEF_COMMAND_MAXTIME	1000
+#define DEF_COMMAND_MAXTIME	"1000s"
 extern int var_command_maxtime;
 
 #define VAR_ALLOW_FILES		"allow_mail_to_files"
@@ -428,22 +428,22 @@ extern char *var_relocated_maps;
   * queue before it is sent back.
   */
 #define VAR_QUEUE_RUN_DELAY	"queue_run_delay"
-#define DEF_QUEUE_RUN_DELAY     1000
+#define DEF_QUEUE_RUN_DELAY     "1000s"
 
 #define VAR_MIN_BACKOFF_TIME	"minimal_backoff_time"
-#define DEF_MIN_BACKOFF_TIME    1000
+#define DEF_MIN_BACKOFF_TIME    "1000s"
 extern int var_min_backoff_time;
 
 #define VAR_MAX_BACKOFF_TIME	"maximal_backoff_time"
-#define DEF_MAX_BACKOFF_TIME    4000
+#define DEF_MAX_BACKOFF_TIME    "4000s"
 extern int var_max_backoff_time;
 
 #define VAR_MAX_QUEUE_TIME	"maximal_queue_lifetime"
-#define DEF_MAX_QUEUE_TIME	5
+#define DEF_MAX_QUEUE_TIME	"5d"
 extern int var_max_queue_time;
 
 #define VAR_DELAY_WARN_TIME	"delay_warning_time"
-#define DEF_DELAY_WARN_TIME	0
+#define DEF_DELAY_WARN_TIME	"0h"
 extern int var_delay_warn_time;
 
  /*
@@ -529,7 +529,7 @@ extern int var_dest_rcpt_limit;
   * Queue manager: default delay before retrying a dead transport.
   */
 #define VAR_XPORT_RETRY_TIME	"transport_retry_time"
-#define DEF_XPORT_RETRY_TIME	60
+#define DEF_XPORT_RETRY_TIME	"60s"
 extern int var_transport_retry_time;
 
  /*
@@ -550,7 +550,7 @@ extern int var_proc_limit;
   * Master: default time to wait after service is throttled.
   */
 #define VAR_THROTTLE_TIME	"service_throttle_time"
-#define DEF_THROTTLE_TIME	60
+#define DEF_THROTTLE_TIME	"60s"
 extern int var_throttle_time;
 
  /*
@@ -566,7 +566,7 @@ extern int var_use_limit;
   * connection (except queue manager).
   */
 #define VAR_MAX_IDLE		"max_idle"
-#define DEF_MAX_IDLE		100
+#define DEF_MAX_IDLE		"100s"
 extern int var_idle_limit;
 
  /*
@@ -574,7 +574,7 @@ extern int var_idle_limit;
   * IPC connection before closing it.
   */
 #define VAR_IPC_IDLE		"ipc_idle"
-#define DEF_IPC_IDLE		100
+#define DEF_IPC_IDLE		"100s"
 extern int var_ipc_idle_limit;
 
  /*
@@ -619,35 +619,35 @@ extern int var_hash_queue_depth;
 extern char *var_bestmx_transp;
 
 #define VAR_SMTP_CONN_TMOUT	"smtp_connect_timeout"
-#define DEF_SMTP_CONN_TMOUT	0
+#define DEF_SMTP_CONN_TMOUT	"0s"
 extern int var_smtp_conn_tmout;
 
 #define VAR_SMTP_HELO_TMOUT	"smtp_helo_timeout"
-#define DEF_SMTP_HELO_TMOUT	300
+#define DEF_SMTP_HELO_TMOUT	"300s"
 extern int var_smtp_helo_tmout;
 
 #define VAR_SMTP_MAIL_TMOUT	"smtp_mail_timeout"
-#define DEF_SMTP_MAIL_TMOUT	300
+#define DEF_SMTP_MAIL_TMOUT	"300s"
 extern int var_smtp_mail_tmout;
 
 #define VAR_SMTP_RCPT_TMOUT	"smtp_rcpt_timeout"
-#define DEF_SMTP_RCPT_TMOUT	300
+#define DEF_SMTP_RCPT_TMOUT	"300s"
 extern int var_smtp_rcpt_tmout;
 
 #define VAR_SMTP_DATA0_TMOUT	"smtp_data_init_timeout"
-#define DEF_SMTP_DATA0_TMOUT	120
+#define DEF_SMTP_DATA0_TMOUT	"120s"
 extern int var_smtp_data0_tmout;
 
 #define VAR_SMTP_DATA1_TMOUT	"smtp_data_xfer_timeout"
-#define DEF_SMTP_DATA1_TMOUT	180
+#define DEF_SMTP_DATA1_TMOUT	"180s"
 extern int var_smtp_data1_tmout;
 
 #define VAR_SMTP_DATA2_TMOUT	"smtp_data_done_timeout"
-#define DEF_SMTP_DATA2_TMOUT	600
+#define DEF_SMTP_DATA2_TMOUT	"600s"
 extern int var_smtp_data2_tmout;
 
 #define VAR_SMTP_QUIT_TMOUT	"smtp_quit_timeout"
-#define DEF_SMTP_QUIT_TMOUT	300
+#define DEF_SMTP_QUIT_TMOUT	"300s"
 extern int var_smtp_quit_tmout;
 
 #define VAR_SMTP_SKIP_4XX	"smtp_skip_4xx_greeting"
@@ -688,7 +688,7 @@ extern char *var_smtp_bind_addr;
 extern char *var_smtpd_banner;
 
 #define VAR_SMTPD_TMOUT		"smtpd_timeout"
-#define DEF_SMTPD_TMOUT		300
+#define DEF_SMTPD_TMOUT		"300s"
 extern int var_smtpd_tmout;
 
 #define VAR_SMTPD_RCPT_LIMIT	"smtpd_recipient_limit"
@@ -704,7 +704,7 @@ extern int var_smtpd_soft_erlim;
 extern int var_smtpd_hard_erlim;
 
 #define VAR_SMTPD_ERR_SLEEP	"smtpd_error_sleep_time"
-#define DEF_SMTPD_ERR_SLEEP	5
+#define DEF_SMTPD_ERR_SLEEP	"5s"
 extern int var_smtpd_err_sleep;
 
 #define VAR_SMTPD_JUNK_CMD	"smtpd_junk_command_limit"
@@ -762,39 +762,39 @@ extern bool var_lmtp_cache_conn;
 extern bool var_lmtp_skip_quit_resp;
 
 #define VAR_LMTP_CONN_TMOUT	"lmtp_connect_timeout"
-#define DEF_LMTP_CONN_TMOUT	0
+#define DEF_LMTP_CONN_TMOUT	"0s"
 extern int var_lmtp_conn_tmout;
 
 #define VAR_LMTP_RSET_TMOUT	"lmtp_rset_timeout"
-#define DEF_LMTP_RSET_TMOUT	300
+#define DEF_LMTP_RSET_TMOUT	"300s"
 extern int var_lmtp_rset_tmout;
 
 #define VAR_LMTP_LHLO_TMOUT	"lmtp_lhlo_timeout"
-#define DEF_LMTP_LHLO_TMOUT	300
+#define DEF_LMTP_LHLO_TMOUT	"300s"
 extern int var_lmtp_lhlo_tmout;
 
 #define VAR_LMTP_MAIL_TMOUT	"lmtp_mail_timeout"
-#define DEF_LMTP_MAIL_TMOUT	300
+#define DEF_LMTP_MAIL_TMOUT	"300s"
 extern int var_lmtp_mail_tmout;
 
 #define VAR_LMTP_RCPT_TMOUT	"lmtp_rcpt_timeout"
-#define DEF_LMTP_RCPT_TMOUT	300
+#define DEF_LMTP_RCPT_TMOUT	"300s"
 extern int var_lmtp_rcpt_tmout;
 
 #define VAR_LMTP_DATA0_TMOUT	"lmtp_data_init_timeout"
-#define DEF_LMTP_DATA0_TMOUT	120
+#define DEF_LMTP_DATA0_TMOUT	"120s"
 extern int var_lmtp_data0_tmout;
 
 #define VAR_LMTP_DATA1_TMOUT	"lmtp_data_xfer_timeout"
-#define DEF_LMTP_DATA1_TMOUT	180
+#define DEF_LMTP_DATA1_TMOUT	"180s"
 extern int var_lmtp_data1_tmout;
 
 #define VAR_LMTP_DATA2_TMOUT	"lmtp_data_done_timeout"
-#define DEF_LMTP_DATA2_TMOUT	600
+#define DEF_LMTP_DATA2_TMOUT	"600s"
 extern int var_lmtp_data2_tmout;
 
 #define VAR_LMTP_QUIT_TMOUT	"lmtp_quit_timeout"
-#define DEF_LMTP_QUIT_TMOUT	300
+#define DEF_LMTP_QUIT_TMOUT	"300s"
 extern int var_lmtp_quit_tmout;
 
  /*
@@ -855,7 +855,7 @@ extern char *var_double_bounce_sender;
 extern int var_fork_tries;
 
 #define VAR_FORK_DELAY		"fork_delay"
-#define DEF_FORK_DELAY		1
+#define DEF_FORK_DELAY		"1s"
 extern int var_fork_delay;
 
  /*
@@ -866,11 +866,11 @@ extern int var_fork_delay;
 extern int var_flock_tries;
 
 #define VAR_FLOCK_DELAY          "deliver_lock_delay"
-#define DEF_FLOCK_DELAY          1
+#define DEF_FLOCK_DELAY          "1s"
 extern int var_flock_delay;
 
 #define VAR_FLOCK_STALE		"stale_lock_time"
-#define DEF_FLOCK_STALE		500
+#define DEF_FLOCK_STALE		"500s"
 extern int var_flock_stale;
 
 #define VAR_MAILTOOL_COMPAT	"sun_mailtool_compatibility"
@@ -882,7 +882,7 @@ extern int var_mailtool_compat;
   * before we assume it is wegded (should never happen).
   */
 #define VAR_DAEMON_TIMEOUT	"daemon_timeout"
-#define DEF_DAEMON_TIMEOUT	18000
+#define DEF_DAEMON_TIMEOUT	"18000s"
 extern int var_daemon_timeout;
 
  /*
@@ -890,14 +890,14 @@ extern int var_daemon_timeout;
   * is in deadlock (should never happen).
   */
 #define VAR_IPC_TIMEOUT		"ipc_timeout"
-#define DEF_IPC_TIMEOUT		3600
+#define DEF_IPC_TIMEOUT		"3600s"
 extern int var_ipc_timeout;
 
  /*
   * Time limit on intra-mail triggers.
   */
 #define VAR_TRIGGER_TIMEOUT	"trigger_timeout"
-#define DEF_TRIGGER_TIMEOUT	10
+#define DEF_TRIGGER_TIMEOUT	"10s"
 extern int var_trigger_timeout;
 
  /*

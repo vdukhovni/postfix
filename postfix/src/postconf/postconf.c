@@ -476,6 +476,18 @@ static void print_bool(int mode, CONFIG_BOOL_TABLE *cbt)
 static void print_time(int mode, CONFIG_TIME_TABLE *ctt)
 {
     const char *value;
+    const char *ptr;
+
+    /*
+     * Make sure the default unit matches the default value unit.
+     */
+    for (ptr = ctt->defval; ptr[1] != 0; ptr += 1)
+	 /* void */ ;
+    if (*ptr == 0)
+	msg_fatal("parameter %s has void default value", ctt->name);
+    if (ctt->def_unit != *ptr)
+	msg_fatal("parameter %s has default value %s but default unit %c",
+		  ctt->name, ctt->defval, ctt->def_unit);
 
     if (mode & SHOW_DEFS) {
 	show_strval(mode, ctt->name, ctt->defval);

@@ -10,6 +10,8 @@
 /*
 /*	CONFIG_STR_TABLE cleanup_str_table[];
 /*
+/*	CONFIG_TIME_TABLE cleanup_time_table[];
+/*
 /*	void	cleanup_pre_jail(service_name, argv)
 /*	char	*service_name;
 /*	char	**argv;
@@ -26,7 +28,7 @@
 /*	for one-time initializations that must be done before any message
 /*	processing can take place.
 /*
-/*	cleanup_int_table[] and cleanup_str_table[] specify configuration
+/*	cleanup_{int,str,time}_table[] specify configuration
 /*	parameters that must be initialized before calling any functions
 /*	in this module. These tables satisfy the interface as specified in
 /*	single_service(3).
@@ -109,8 +111,12 @@ CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
     VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
     VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
-    VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
     VAR_EXTRA_RCPT_LIMIT, DEF_EXTRA_RCPT_LIMIT, &var_extra_rcpt_limit, 0, 0,
+    0,
+};
+
+CONFIG_TIME_TABLE cleanup_time_table[] = {
+    VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 'h', 0, 0,
     0,
 };
 

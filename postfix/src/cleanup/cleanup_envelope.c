@@ -110,7 +110,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    state->errs |= CLEANUP_STAT_BAD;
 	} else {
 	    if (state->warn_time == 0 && var_delay_warn_time > 0)
-		state->warn_time = state->time + var_delay_warn_time * 3600L;
+		state->warn_time = state->time + var_delay_warn_time;
 	    if (state->warn_time)
 		cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
 				   state->warn_time);

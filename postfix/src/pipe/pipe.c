@@ -766,13 +766,13 @@ static void drop_privileges(char *unused_name, char **unused_argv)
 
 int     main(int argc, char **argv)
 {
-    static CONFIG_INT_TABLE int_table[] = {
-	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
+    static CONFIG_TIME_TABLE time_table[] = {
+	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 's', 1, 0,
 	0,
     };
 
     single_server_main(argc, argv, pipe_service,
-		       MAIL_SERVER_INT_TABLE, int_table,
+		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_POST_INIT, drop_privileges,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);

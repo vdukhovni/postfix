@@ -4625,3 +4625,10 @@ Apologies for any names omitted.
 	compatibility with queued mail, so the pickup server is
 	changed to discard type L records only from the message
 	envelope, not from the content. File: pickup/pickup.c.
+
+20001213
+
+	Bugfix: dict_ldap did not properly initialize a handle
+	after connection timeout. Problem reported by Alain Thivillon.
+	did not take his patch because I have no means to verify
+	the code. File: util/dict_ldap.c.

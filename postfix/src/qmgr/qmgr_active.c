@@ -349,11 +349,8 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * Bounces are sent asynchronously to avoid stalling while the cleanup
      * daemon waits for the qmgr to accept the "new mail" trigger.
      */
-#define HOUR	3600
-#define DAY	86400
-
     if (message->flags) {
-	if (event_time() > message->arrival_time + var_max_queue_time * DAY) {
+	if (event_time() > message->arrival_time + var_max_queue_time) {
 	    if (msg_verbose)
 		msg_info("%s: too old, bouncing %s", myname, message->queue_id);
 	    adefer_flush(BOUNCE_FLAG_KEEP,

@@ -162,6 +162,8 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
     if (setjmp(env) == 0)
 	dict_ldap->ld = ldap_open(dict_ldap->server_host,
 				  (int) dict_ldap->server_port);
+    else
+	dict_ldap->ld = 0;
     alarm(0);
 
     if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
