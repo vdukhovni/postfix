@@ -100,10 +100,10 @@ int     mail_flow_put(int len)
 	msg_panic("%s: bad length %d", myname, len);
 
     /*
-     * Read and discard N bytes.
+     * Write or discard N bytes.
      */
     for (count = len; count > 0; count -= n)
-	if ((n = read(MASTER_FLOW_READ, buf, count > BUFFER_SIZE ?
+	if ((n = write(MASTER_FLOW_WRITE, buf, count > BUFFER_SIZE ?
 		      BUFFER_SIZE : count)) < 0)
 	    return (-1);
     if (msg_verbose)
