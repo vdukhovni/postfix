@@ -6700,6 +6700,13 @@ Apologies for any names omitted.
 	Jun-ichiro itojun Hagino, IIJ labs. Files: smtpd/smtpd_check.c,
 	dns/dns_lookup.c.
 
+20020718
+
+	Bugfix: unnecessary lookups for extended addresses by the
+	virtual8_maps_find() routine. Victor Duchovni. His patch
+	did not work, nor did my own, but the present version should
+	be OK. File: global/virtual8_maps_find.c.
+
 Open problems:
 
 	Medium: should permit_mx_backup defer delivery if DNS

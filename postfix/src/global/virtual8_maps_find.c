@@ -63,7 +63,7 @@ const char *virtual8_maps_find(MAPS *maps, const char *recipient)
 {
     const char *ratsign;
     const char *result;
-    char   *bare;
+    char   *bare = 0;
 
     /*
      * Look up the address minus the optional extension. This is done first,
@@ -81,9 +81,11 @@ const char *virtual8_maps_find(MAPS *maps, const char *recipient)
     /*
      * Look up the full address.
      */
-    result = maps_find(maps, recipient, DICT_FLAG_FIXED);
-    if (result != 0 || dict_errno != 0)
-	return (result);
+    if (bare == 0) {
+	result = maps_find(maps, recipient, DICT_FLAG_FIXED);
+	if (result != 0 || dict_errno != 0)
+	    return (result);
+    }
 
     /*
      * Look up the @domain catch-all.
@@ -92,3 +94,38 @@ const char *virtual8_maps_find(MAPS *maps, const char *recipient)
 	return (0);
     return (maps_find(maps, ratsign, DICT_FLAG_FIXED));
 }
+
+#ifdef TEST
+
+#include <vstream.h>
+#include <vstring.h>
+#include <vstring_vstream.h>
+
+#define STR(x)	vstring_str(x)
+
+int     main(int argc, char **argv)
+{
+    VSTRING *buffer;
+    MAPS   *maps;
+    const char *result;
+
+    if (argc != 2)
+	msg_fatal("usage: %s mapname", argv[0]);
+
+    var_rcpt_delim = "+";
+    var_double_bounce_sender = DEF_DOUBLE_BOUNCE;
+
+    maps = maps_create("testmap", argv[1], DICT_FLAG_LOCK);
+    buffer = vstring_alloc(1);
+
+    while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
+	result = virtual8_maps_find(maps, STR(buffer));
+	vstream_printf("%s -> %s\n", STR(buffer), result ? result : "(none)");
+	vstream_fflush(VSTREAM_OUT);
+    }
+    maps_free(maps);
+    vstring_free(buffer);
+    return (0);
+}
+
+#endif

@@ -73,7 +73,8 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
-	quote_821_local mail_conf_time mime_state strip_addr
+	quote_821_local mail_conf_time mime_state strip_addr \
+	virtual8_maps_find
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -226,8 +227,13 @@ strip_addr: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
+virtual8_maps_find: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
-	strip_addr_test tok822_limit_test
+	strip_addr_test tok822_limit_test virtual8_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp
@@ -264,6 +270,18 @@ tok822_limit_test: tok822_parse tok822_limit.in tok822_limit.ref
 	diff tok822_limit.ref tok822_limit.tmp
 	rm -f tok822_limit.tmp
 
+strip_addr_test: strip_addr strip_addr.ref
+	./strip_addr 2>strip_addr.tmp
+	diff strip_addr.ref strip_addr.tmp
+	rm -f strip_addr.tmp
+
+virtual8_test: virtual8_maps_find virtual8_map virtual8.in virtual8.ref \
+	../postmap/postmap
+	../postmap/postmap hash:virtual8_map
+	./virtual8_maps_find <virtual8.in hash:virtual8_map >virtual8.tmp
+	diff virtual8.ref virtual8.tmp
+	rm -f virtual8.tmp virtual8_map.db
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -272,10 +290,6 @@ printfck: $(OBJS) $(PROG)
 	set -e; for i in *.c; do printfck -f .printfck $$i >printfck/$$i; done
 	cd printfck; make "INC_DIR=../../../include" `cd ..; ls *.o`
 
-strip_addr_test: strip_addr strip_addr.ref
-	./strip_addr 2>strip_addr.tmp
-	diff strip_addr.ref strip_addr.tmp
-	rm -f strip_addr.tmp
 lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
