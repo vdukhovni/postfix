@@ -593,6 +593,8 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     }
     event_enable_read(MASTER_STATUS_FD, trigger_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
+    close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
+    close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
     watchdog = watchdog_create(1000, (WATCHDOG_FN) 0, (char *) 0);
 
     /*

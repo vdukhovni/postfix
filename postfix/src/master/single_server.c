@@ -162,6 +162,7 @@
 #include <mail_conf.h>
 #include <timed_ipc.h>
 #include <resolve_local.h>
+#include <mail_flow.h>
 
 /* Process manager. */
 
@@ -183,6 +184,7 @@ static void (*single_server_accept) (int, char *);
 static void (*single_server_onexit) (char *, char **);
 static void (*single_server_pre_accept) (char *, char **);
 static VSTREAM *single_server_lock;
+static int single_server_flow_ctl;
 
 /* single_server_exit - normal termination */
 
@@ -238,6 +240,9 @@ static void single_server_wakeup(int fd)
     if (msg_verbose)
 	msg_info("connection closed");
     use_count++;
+    if (single_server_flow_ctl)
+	if (mail_flow_get(1) < 0)
+	    rand_sleep(single_server_flow_ctl, 0);
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
 }
@@ -469,6 +474,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	case MAIL_SERVER_PRE_ACCEPT:
 	    single_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
+	case MAIL_SERVER_FLOW_CTL:
+	    single_server_flow_ctl = var_glob_flow_ctl;
+	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
 	}
@@ -582,6 +590,8 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     }
     event_enable_read(MASTER_STATUS_FD, single_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
+    close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
+    close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
     watchdog = watchdog_create(var_daemon_timeout, (WATCHDOG_FN) 0, (char *) 0);
 
     /*

@@ -262,6 +262,7 @@
 #include <mail_conf.h>
 #include <mail_params.h>
 #include <mail_proto.h>			/* QMGR_SCAN constants */
+#include <mail_flow.h>
 
 /* Master process interface */
 
@@ -410,6 +411,17 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
 	&& qmgr_recipient_count < var_qmgr_rcpt_limit)
 	if ((df_path = qmgr_scan_next(qmgr_deferred)) != 0)
 	    qmgr_active_feed(qmgr_deferred, df_path);
+
+    /*
+     * Global flow control. If enabled, slow down receiving processes that
+     * get ahead of the queue manager, but don't block them completely.
+     */
+    if (var_glob_flow_ctl) {
+	if (in_path)
+	    mail_flow_put(1);
+	else
+	    mail_flow_get(1000);
+    }
     if (in_path || df_path)
 	return (DONT_WAIT);
     return (WAIT_FOR_EVENT);

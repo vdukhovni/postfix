@@ -256,8 +256,11 @@ int     main(int argc, char **argv)
      * when a service listens on many ports. In order to do this right we
      * must change the master-child interface so that descriptors do not need
      * to have fixed numbers.
+     * 
+     * In a child we need two descriptors for the flow control pipe, one for
+     * child->master status updates and at least one for listening.
      */
-    for (n = 0; n < 3; n++) {
+    for (n = 0; n < 5; n++) {
 	if (close_on_exec(dup(0), CLOSE_ON_EXEC) < 0)
 	    msg_fatal("dup(0): %m");
     }
@@ -349,6 +352,7 @@ int     main(int argc, char **argv)
      */
     master_config();
     master_sigsetup();
+    master_flow_init();
     msg_info("daemon started");
 
     /*

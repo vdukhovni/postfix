@@ -1283,6 +1283,17 @@ extern char *var_verp_delims;
 #define DEF_VERP_FILTER			"-=+"
 extern char *var_verp_filter;
 
+ /*
+  * Global flow control. This allows for a stiffer coupling between receiving
+  * programs and the queue manager, so that receiving processes cannot easily
+  * overwhelm the file system. The coupling is not so tight that Postfix
+  * stops receiving mail althogether. It just slows down a bit so that
+  * sending processes get a chance to read from the disk.
+  */
+#define VAR_GLOB_FLOW_CTL			"global_mail_flow_control"
+#define DEF_GLOB_FLOW_CTL			0
+extern int var_glob_flow_ctl;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -135,7 +135,8 @@ mynetworks_style = subnet
 # address.
 #
 # You can also specify the absolute pathname of a pattern file instead
-# of listing the patterns here.
+# of listing the patterns here. Specify type:name for table-based lookups
+# (the value on the table right-hand side is not used).
 #
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks

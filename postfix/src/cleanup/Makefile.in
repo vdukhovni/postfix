@@ -75,6 +75,7 @@ cleanup.o: ../../include/iostuff.h
 cleanup.o: ../../include/mail_params.h
 cleanup.o: ../../include/record.h
 cleanup.o: ../../include/rec_type.h
+cleanup.o: ../../include/mail_flow.h
 cleanup.o: ../../include/mail_server.h
 cleanup.o: cleanup.h
 cleanup.o: ../../include/maps.h

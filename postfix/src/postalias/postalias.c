@@ -90,9 +90,6 @@
 /*	\fBpostalias\fR terminates with zero exit status in case of success
 /*	(including successful \fBpostmap -q\fR lookup) and terminates
 /*	with non-zero exit status in case of failure.
-/* BUGS
-/*	The "delete key" support is limited to one delete operation
-/*	per command invocation.
 /* ENVIRONMENT
 /* .ad
 /* .fi

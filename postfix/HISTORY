@@ -5347,3 +5347,16 @@ Apologies for any names omitted.
 	Logging: the queue manager now logs a "status=expired"
 	record when it returns a message that is too old.  Files:
 	*qmgr/qmgr_active.c.
+
+20010719
+
+	Feature: stiffer coupling between mail arrival rates and
+	mail delivery rates, using a trivial token-based scheme
+	where qmgr provides a token when it retrieves mail from
+	the incoming queue, and where the cleanup daemon wants a
+	token after enqueueing mail. If no token is available the
+	cleanup server pauses briefly and proceeds anyway. This
+	allows input rates to gradually exceed output rates.  After
+	sustained exposure to high input loads Postfix reverts to
+	the old situation where it sacrifices output rates in favor
+	of receiving mail.

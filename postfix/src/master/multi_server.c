@@ -611,6 +611,8 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     }
     event_enable_read(MASTER_STATUS_FD, multi_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
+    close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
+    close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
     watchdog = watchdog_create(var_daemon_timeout, (WATCHDOG_FN) 0, (char *) 0);
 
     /*
