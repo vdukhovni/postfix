@@ -7700,7 +7700,29 @@ Apologies for any names omitted.
 	for non-existent addresses. This required re-architecting
 	the recipient table lookup code. File:  smtpd/smtpd_check.c.
 
+20030410
+
+	Safety: log a fatal error when a net/mask pattern has a
+	non-zero host part, so that mail delivery is deferred.
+	File: util/match_ops.c.
+
+20030411
+
+	Bugfix: extraneous warning about out-of-order original
+	recipient records by Patrik Rak. Files: *qmgr/qmgr_message.c.
+
+10030415
+
+	Workaround: log a warning and reset incoming queue file
+	time stamps when the file system clock is ahead of the
+	local clock, instead of ignoring new mail until the next
+	queue scan. The file system clock drift detection executes
+	only once per process instance, to minimize the performance
+	impact. File: global/mail_stream.c.
+
 Open problems:
+
+        Low: smtp-source may block when sending large test messages.
 
 	Low: after successful delivery, per-queue window += 1/window,
 	after failure, queue window -= 1 (Victor).

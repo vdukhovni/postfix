@@ -24,6 +24,23 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix version 2.0.8 (released 20030415)
+===================================================================
+
+Too many people mess up their net/mask patterns, causing open
+mail relay problems. Postfix processes now abort when given a
+net/mask pattern with a non-zero host portion (for example,
+168.100.189.2/28), and suggest to specify the proper net/mask
+pattern instead (for example, 168.100.189.0/28).
+
+Major changes with Postfix version 2.0.8 (released 20030415)
+============================================================
+
+Workaround for file system clock drift that caused Postfix to ignore
+new mail (this could happen with file systems mounted from a server).
+Postfix now logs a warning and proceeds with only slightly reduced
+performance, instead of ignoring new mail.
+
 Incompatible changes with Postfix version 2.0.6 (released 20030305)
 ===================================================================
 
