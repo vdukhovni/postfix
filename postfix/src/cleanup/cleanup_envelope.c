@@ -138,7 +138,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
      * Recipient records may be mixed with other information (such as FILTER or
      * REDIRECT actions from SMTPD). In that case the queue manager needs to
      * examine all queue file records before it can start delivery. This is
-     * not a problem because SMTPD recipient lists are small.
+     * not a problem when SMTPD recipient lists are small.
      * 
      * However, if recipient records are not mixed with other records
      * (typically, mailing list mail) then we can make an optimization: the

@@ -5,26 +5,30 @@
 pcre_table
 \-
 format of Postfix PCRE tables
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
-\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+\fBpostmap -fq "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 
-\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
 The Postfix mail system uses optional tables for address
 rewriting or mail routing. These tables are usually in
-\fBdbm\fR or \fBdb\fR format. Alternatively, lookup tables
-can be specified in Perl Compatible Regular Expression form.
+\fBdbm\fR or \fBdb\fR format.
+
+Alternatively, lookup tables can be specified in Perl Compatible
+Regular Expression form. In this case, each input is compared
+against a list of patterns, and when a match is found the
+corresponding result is returned.
 
 To find out what types of lookup tables your Postfix system
 supports use the \fBpostconf -m\fR command.
 
-To test lookup tables, use the \fBpostmap\fR command as
+To test lookup tables, use the \fBpostmap -fq\fR command as
 described in the SYNOPSIS above.
-.SH TABLE FORMAT
+.SH "TABLE FORMAT"
 .na
 .nf
 .ad
@@ -112,7 +116,7 @@ Toggles the PCRE_EXTRA flag.
 When this flag is on, any backslash in a pattern that is
 followed by a letter that has no special meaning causes an
 error, thus reserving these combinations for future expansion.
-.SH SEARCH ORDER
+.SH "SEARCH ORDER"
 .na
 .nf
 .ad
@@ -127,7 +131,7 @@ Thus, no parent domain or parent network search is done, and
 \fIuser@domain\fR mail addresses are not broken up into their
 \fIuser\fR and \fIdomain\fR constituent parts, nor is \fIuser+foo\fR
 broken up into \fIuser\fR and \fIfoo\fR.
-.SH TEXT SUBSTITUTION
+.SH "TEXT SUBSTITUTION"
 .na
 .nf
 .ad
@@ -140,7 +144,7 @@ or $(n) if they aren't followed by whitespace.
 Note: since negated patterns (those preceded by \fB!\fR) return a
 result when the expression does not match, substitutions are not
 available for negated patterns.
-.SH EXAMPLE SMTPD ACCESS MAP
+.SH "EXAMPLE SMTPD ACCESS MAP"
 .na
 .nf
 # Protect your outgoing majordomo exploders
@@ -155,12 +159,12 @@ available for negated patterns.
 /^noddy@my\\.domain$/
 \ 550 This user is a funny one. You really don't want to send mail to
 \ them as it only makes their head spin.
-.SH EXAMPLE HEADER FILTER MAP
+.SH "EXAMPLE HEADER FILTER MAP"
 .na
 .nf
 /^Subject: make money fast/     REJECT
 /^To: friend@public\\.com/       REJECT
-.SH EXAMPLE BODY FILTER MAP
+.SH "EXAMPLE BODY FILTER MAP"
 .na
 .nf
 # First skip over base 64 encoded text to save CPU cycles.
@@ -168,13 +172,13 @@ available for negated patterns.
 ~^[[:alnum:]+/]{60,}$~          OK
 
 # Put your own body patterns here.
-.SH SEE ALSO
+.SH "SEE ALSO"
 .na
 .nf
 regexp_table(5) format of POSIX regular expression tables
 cidr_table(5) format of CIDR tables
 tcp_table(5) TCP client/server table lookup protocol
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 The PCRE table lookup code was originally written by:

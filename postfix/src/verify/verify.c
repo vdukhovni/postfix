@@ -10,7 +10,7 @@
 /*	of what recipient addresses are known to be deliverable or
 /*	undeliverable.
 /*
-/*	Addresses are verified by submitting probe messages to the
+/*	Addresses are verified by injecting probe messages into the
 /*	Postfix queue. Probe messages are run through all the routing
 /*	and rewriting machinery except for final delivery, and are
 /*	discarded rather than being deferred or bounced.
@@ -65,71 +65,102 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
+/*	The address verification service is suitable only for sites that
+/*	handle a low mail volume. Verification probes add additional
+/*	traffic to the mail queue and perform poorly under high load.
+/*	Servers may blacklist sites that probe excessively, or that
+/*	probe excessively for non-existent recipient addresses.
+/*
 /*	If the persistent database ever gets corrupted then the world
 /*	comes to an end and human intervention is needed. This violates
 /*	a basic Postfix principle.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	See the Postfix \fBmain.cf\fR file for syntax details and for
-/*	default values. Use the \fBpostfix reload\fR command after a
-/*	configuration change.
-/* .SH Cache control
+/*	Changes to \fBmain.cf\fR are not picked up automatically, as verify(8)
+/*	processes are persistent. Use the command "\fBpostfix reload\fR" after
+/*	a configuration change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* CACHE CONTROLS
 /* .ad
 /* .fi
-/* .IP \fBaddress_verify_map\fR
-/*	Optional table for persistent recipient status storage. The file
-/*	is opened before the process enters a chroot jail and before
-/*	it drops root privileges.
-/*	By default, the information is kept in volatile memory,
-/*	and is lost after \fBpostfix reload\fR or \fBpostfix stop\fR.
-/* .sp
-/*	To recover from a corrupted address verification database,
-/*	delete the file and do \fBpostfix reload\fR.
-/* .IP \fBaddress_verify_sender\fR
-/*	The sender address to use for probe messages. Specify an empty
-/*	value (\fBaddress_verify_sender =\fR) or \fB<>\fR if you want
-/*	to use the null sender address.
-/* .IP \fBaddress_verify_positive_expire_time\fR
-/*	The amount of time after which a known to be good address expires.
-/* .IP \fBaddress_verify_positive_refresh_time\fR
-/*	The minimal amount of time after which a proactive probe is sent to
-/*	verify that a known to be good address is still good. The address
-/*	status is not updated when the probe fails (optimistic caching).
-/* .IP \fBaddress_verify_negative_cache\fR
-/*	A boolean parameter that controls whether negative probe results
-/*	are stored in the address verification cache. When enabled, the
-/*	cache may pollute quickly with garbage. When disabled, Postfix
-/*	will generate an address probe for every lookup.
-/* .IP \fBaddress_verify_negative_expire_time\fR
-/*	The amount of time after which a rejected address expires.
-/* .IP \fBaddress_verify_negative_refresh_time\fR
-/*	The minimal amount of time after which a proactive probe is sent to
-/*	verify that a known to be bad address is still bad.
-/* .SH Probe message routing
+/* .IP "\fBaddress_verify_map (empty)\fR"
+/*	Optional lookup table for persistent address verification status
+/*	storage.
+/* .IP "\fBaddress_verify_sender (postmaster)\fR"
+/*	The sender address to use in address verification probes.
+/* .IP "\fBaddress_verify_positive_expire_time (31d)\fR"
+/*	The time after which a successful probe expires from the address
+/*	verification cache.
+/* .IP "\fBaddress_verify_positive_refresh_time (7d)\fR"
+/*	The time after which a successful address verification probe needs
+/*	to be refreshed.
+/* .IP "\fBaddress_verify_negative_cache (yes)\fR"
+/*	Enable caching of failed address verification probe results.
+/* .IP "\fBaddress_verify_negative_expire_time (3d)\fR"
+/*	The time after which a failed probe expires from the address
+/*	verification cache.
+/* .IP "\fBaddress_verify_negative_refresh_time (3h)\fR"
+/*	The time after which a failed address verification probe needs to
+/*	be refreshed.
+/* PROBE MESSAGE ROUTING CONTROLS
 /* .ad
 /* .fi
 /*	By default, probe messages are delivered via the same route
 /*	as regular messages.  The following parameters can be used to
 /*	override specific message routing mechanisms.
-/* .IP \fBaddress_verify_relayhost\fR
-/*	Overrides the \fBrelayhost\fR setting.
-/* .IP \fBaddress_verify_transport_maps\fR
-/*	Overrides the \fBtransport_maps\fR setting.
-/* .IP \fBaddress_verify_local_transport\fR
-/*	Overrides the \fBlocal_transport\fR setting.
-/* .IP \fBaddress_verify_virtual_transport\fR
-/*	Overrides the \fBvirtual_transport\fR setting.
-/* .IP \fBaddress_verify_relay_transport\fR
-/*	Overrides the \fBrelay_transport\fR setting.
-/* .IP \fBaddress_verify_default_transport\fR
-/*	Overrides the \fBdefault_transport\fR setting.
+/* .IP "\fBaddress_verify_relayhost ($relayhost)\fR"
+/*	Overrides the relayhost parameter setting for address verification
+/*	probes.
+/* .IP "\fBaddress_verify_transport_maps ($transport_maps)\fR"
+/*	Overrides the transport_maps parameter setting for address verification
+/*	probes.
+/* .IP "\fBaddress_verify_local_transport ($local_transport)\fR"
+/*	Overrides the local_transport parameter setting for address
+/*	verification probes.
+/* .IP "\fBaddress_verify_virtual_transport ($virtual_transport)\fR"
+/*	Overrides the virtual_transport parameter setting for address
+/*	verification probes.
+/* .IP "\fBaddress_verify_relay_transport ($relay_transport)\fR"
+/*	Overrides the relay_transport parameter setting for address
+/*	verification probes.
+/* .IP "\fBaddress_verify_default_transport ($default_transport)\fR"
+/*	Overrides the default_transport parameter setting for address
+/*	verification probes.
+/* MISCELLANEOUS CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
+/*	postconf(5) configuration parameters
 /*	trivial-rewrite(8) address rewriting and resolving
+/* README FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	ADDRESS_VERIFICATION_README, address verification howto
 /* LICENSE
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/* .ad
+/* .fi
+/*	The verify service was introduced with Postfix 2.1.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

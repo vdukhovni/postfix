@@ -197,7 +197,7 @@ static void rewrite(char *rule, char *addr, VSTRING *reply)
     rewrite_clnt(rule, addr, reply);
     vstream_printf("%-10s %s\n", "rule", rule);
     vstream_printf("%-10s %s\n", "address", addr);
-    vstream_printf("%-10s %s\n", "result", STR(reply));
+    vstream_printf("%-10s %s\n\n", "result", STR(reply));
     vstream_fflush(VSTREAM_OUT);
 }
 

@@ -1,24 +1,33 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
 
 <b>NAME</b>
        regexp_table - format of Postfix regular expression tables
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" regexp:/etc/postfix/</b><i>filename</i>
+       <b>postmap -fq "</b><i>string</i><b>" <a href="regexp_table.5.html">regexp</a>:/etc/postfix/</b><i>filename</i>
 
-       <b>postmap -q - regexp:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -fq - <a href="regexp_table.5.html">regexp</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The Postfix mail system uses optional tables  for  address
        rewriting or mail routing. These tables are usually in <b>dbm</b>
-       or <b>db</b> format. Alternatively, lookup tables can  be  speci-
-       fied in POSIX regular expression form.
+       or <b>db</b> format.
+
+       Alternatively, lookup tables can  be  specified  in  POSIX
+       regular  expression form. In this case, each input is com-
+       pared against a list of patterns,  and  when  a  match  is
+       found the corresponding result is returned.
 
        To  find out what types of lookup tables your Postfix sys-
        tem supports use the <b>postconf -m</b> command.
 
-       To  test  lookup  tables,  use  the  <b>postmap</b>  command   as
+       To test lookup tables, use  the  <b>postmap  -fq</b>  command  as
        described in the SYNOPSIS above.
 
 <b>TABLE FORMAT</b>
@@ -57,12 +66,16 @@ REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
               line that starts with whitespace continues a  logi-
               cal line.
 
-       Each pattern is a regular expression enclosed by a pair of
-       delimiters.  The regular expression syntax is described in
-       <i>re</i><b>_</b><i>format</i>(7).  The expression delimiter can be any charac-
-       ter, except whitespace or  characters  that  have  special
-       meaning  (traditionally  the  forward  slash is used). The
-       regular expression can contain whitespace.
+       Each  pattern  is a POSIX regular expression enclosed by a
+       pair of delimiters. The regular expression syntax is docu-
+       mented  in  re_format(7)  with 4.4BSD, in regcomp(3C) with
+       Solaris, and in regex(7) with Linux. Other systems may use
+       other document names.
+
+       The  expression  delimiter  can  be  any character, except
+       whitespace or characters that have special meaning (tradi-
+       tionally  the  forward slash is used). The regular expres-
+       sion can contain whitespace.
 
        By default, matching is case-insensitive, and newlines are
        not  treated  as  special characters. The behavior is con-

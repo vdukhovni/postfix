@@ -55,48 +55,12 @@
 /*	whether or not a message is an initial submission.
 /* .IP "\fB-B \fIbody_type\fR"
 /*	The message body MIME type: \fB7BIT\fR or \fB8BITMIME\fR.
-/* .IP "\fB-C \fIconfig_file\fR (ignored :-)"
-/*	The path name of the \fBsendmail.cf\fR file. Postfix configuration
-/*	files are kept in \fB/etc/postfix\fR.
-/* .IP "\fB-F \fIfull_name\fR
-/*	Set the sender full name. This is used only with messages that
-/*	have no \fBFrom:\fR message header.
-/* .IP "\fB-G\fR (ignored)"
-/*	Gateway (relay) submission, as opposed to initial user submission.
-/* .IP \fB-I\fR
-/*	Initialize alias database. See the \fBnewaliases\fR
-/*	command above.
-/* .IP "\fB-L \fIlabel\fR (ignored)"
-/*	The logging label. Use the \fBsyslog_name\fR configuration
-/*	parameter instead.
-/* .IP "\fB-N \fIdsn\fR (ignored)"
-/*	Delivery status notification control. Currently, Postfix does
-/*	not implement \fBDSN\fR.
-/* .IP "\fB-R \fIreturn_limit\fR (ignored)"
-/*	Limit the size of bounced mail. Use the \fBbounce_size_limit\fR
-/*	configuration parameter instead.
-/* .IP "\fB-X \fIlog_file\fR (ignored)"
-/*	Log mailer traffic. Use the \fBdebug_peer_list\fR and
-/*	\fBdebug_peer_level\fR configuration parameters instead.
-/* .IP "\fB-U\fR (ignored)"
-/*	Initial user submission.
-/* .IP \fB-V\fR
-/*	Variable Envelope Return Path. Given an envelope sender address
-/*	of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
-/*	\fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
-/*	sender address.
-/* .sp
-/*	By default, the personalized envelope sender address is
-/*	\fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
-/*	\fB+\fR and \fB=\fR characters are configurable with the
-/*	\fBdefault_verp_delimiters\fR configuration parameter.
-/* .IP \fB-V\fIxy\fR
-/*	As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
-/*	characters, instead of the characters specified with the
-/*	\fBdefault_verp_delimiters\fR configuration parameter.
 /* .IP \fB-bd\fR
 /*	Go into daemon mode. This mode of operation is implemented by
 /*	executing the \fBpostfix start\fR command.
+/* .IP "\fB-bh\fR (ignored)"
+/* .IP "\fB-bH\fR (ignored)"
+/*	Postfix has no persistent host status database.
 /* .IP \fB-bi\fR
 /*	Initialize alias database. See the \fBnewaliases\fR
 /*	command above.
@@ -118,18 +82,35 @@
 /*	Do not collect or deliver a message. Instead, send an email
 /*	report after verifying each recipient address.  This is useful
 /*	for testing address rewriting and routing configurations.
+/* .IP "\fB-C \fIconfig_file\fR (ignored)"
+/*	The path name of the \fBsendmail.cf\fR file. Postfix configuration
+/*	files are kept in the \fB/etc/postfix\fR directory.
+/* .IP "\fB-F \fIfull_name\fR
+/*	Set the sender full name. This is used only with messages that
+/*	have no \fBFrom:\fR message header.
 /* .IP "\fB-f \fIsender\fR"
 /*	Set the envelope sender address. This is the address where
 /*	delivery problems are sent to, unless the message contains an
 /*	\fBErrors-To:\fR message header.
+/* .IP "\fB-G\fR (ignored)"
+/*	Gateway (relay) submission, as opposed to initial user submission.
 /* .IP "\fB-h \fIhop_count\fR (ignored)"
 /*	Hop count limit. Use the \fBhopcount_limit\fR configuration
 /*	parameter instead.
+/* .IP \fB-I\fR
+/*	Initialize alias database. See the \fBnewaliases\fR
+/*	command above.
 /* .IP "\fB-i\fR"
 /*	When reading a message from standard input, don\'t treat a line
 /*	with only a \fB.\fR character as the end of input.
+/* .IP "\fB-L \fIlabel\fR (ignored)"
+/*	The logging label. Use the \fBsyslog_name\fR configuration
+/*	parameter instead.
 /* .IP "\fB-m\fR (ignored)"
 /*	Backwards compatibility.
+/* .IP "\fB-N \fIdsn\fR (ignored)"
+/*	Delivery status notification control. Currently, Postfix does
+/*	not implement \fBDSN\fR.
 /* .IP "\fB-n\fR (ignored)"
 /*	Backwards compatibility.
 /* .IP "\fB-oA\fIalias_database\fR"
@@ -152,6 +133,9 @@
 /*	Set the envelope sender address. This is the address where
 /*	delivery problems are sent to, unless the message contains an
 /*	\fBErrors-To:\fR message header.
+/* .IP "\fB-R \fIreturn_limit\fR (ignored)"
+/*	Limit the size of bounced mail. Use the \fBbounce_size_limit\fR
+/*	configuration parameter instead.
 /* .IP \fB-q\fR
 /*	Attempt to deliver all queued mail. This is implemented by
 /*	executing the \fBpostqueue\fR(1) command.
@@ -171,10 +155,29 @@
 /* .IP \fB-t\fR
 /*	Extract recipients from message headers. These are added to any
 /*	recipients specified on the command line.
+/* .IP "\fB-U\fR (ignored)"
+/*	Initial user submission.
+/* .IP \fB-V\fR
+/*	Variable Envelope Return Path. Given an envelope sender address
+/*	of the form \fIowner-listname\fR@\fIorigin\fR, each recipient
+/*	\fIuser\fR@\fIdomain\fR receives mail with a personalized envelope
+/*	sender address.
+/* .sp
+/*	By default, the personalized envelope sender address is
+/*	\fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
+/*	\fB+\fR and \fB=\fR characters are configurable with the
+/*	\fBdefault_verp_delimiters\fR configuration parameter.
+/* .IP \fB-V\fIxy\fR
+/*	As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
+/*	characters, instead of the characters specified with the
+/*	\fBdefault_verp_delimiters\fR configuration parameter.
 /* .IP \fB-v\fR
-/*	Send an email report of all delivery attempts (mail delivery
-/*	always happens in the background). When multiple \fB-v\fR
+/*	Send an email report of the first delivery attempt. Mail delivery
+/*	always happens in the background. When multiple \fB-v\fR
 /*	options are given, enable verbose logging for debugging purposes.
+/* .IP "\fB-X \fIlog_file\fR (ignored)"
+/*	Log mailer traffic. Use the \fBdebug_peer_list\fR and
+/*	\fBdebug_peer_level\fR configuration parameters instead.
 /* SECURITY
 /* .ad
 /* .fi
@@ -201,54 +204,86 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	See the Postfix \fBmain.cf\fR file for syntax details and for
-/*	default values. Use the \fBpostfix reload\fR command after a
-/*	configuration change.
-/* .IP \fBalias_database\fR
-/*	Default alias database(s) for \fBnewaliases\fR. The default value
-/*	for this parameter is system-specific.
-/* .IP \fBbounce_size_limit\fR
-/*	The amount of original message context that is sent along
-/*	with a non-delivery notification.
-/* .IP \fBdefault_database_type\fR
-/*	Default alias etc. database type. On many UNIX systems the
-/*	default type is either \fBdbm\fR or \fBhash\fR.
-/* .IP \fBdebugger_command\fR
-/*	Command that is executed after a Postfix daemon has initialized.
-/* .IP \fBdebug_peer_level\fR
-/*	Increment in verbose logging level when a remote host matches a
-/*	pattern in the \fBdebug_peer_list\fR parameter.
-/* .IP \fBdebug_peer_list\fR
-/*	List of domain or network patterns. When a remote host matches
-/*	a pattern, increase the verbose logging level by the amount
-/*	specified in the \fBdebug_peer_level\fR parameter.
-/* .IP \fBdefault_verp_delimiters\fR
-/*	The VERP delimiter characters that are used when the \fB-V\fR
-/*	command line option is specified without delimiter characters.
-/* .IP \fBfast_flush_domains\fR
-/*	List of domains that will receive "fast flush" service (default: all
-/*	domains that this system is willing to relay mail to). This list
-/*	specifies the domains that Postfix accepts in the SMTP \fBETRN\fR
-/*	request and in the \fBsendmail -qR\fR command.
-/* .IP \fBfork_attempts\fR
-/*	Number of attempts to \fBfork\fR() a process before giving up.
-/* .IP \fBfork_delay\fR
-/*	Delay in seconds between successive \fBfork\fR() attempts.
-/* .IP \fBhopcount_limit\fR
-/*	Limit the number of \fBReceived:\fR message headers.
-/* .IP \fBmail_owner\fR
-/*	The owner of the mail queue and of most Postfix processes.
-/* .IP \fBcommand_directory\fR
-/*	Directory with Postfix support commands.
-/* .IP \fBdaemon_directory\fR
-/*	Directory with Postfix daemon programs.
-/* .IP \fBqueue_directory\fR
-/*	Top-level directory of the Postfix queue. This is also the root
-/*	directory of Postfix daemons that run chrooted.
-/* .IP \fBqueue_run_delay\fR
-/*	The time between successive scans of the deferred queue.
-/* .IP \fBverp_delimiter_filter\fR
-/*	The characters that Postfix accepts as VERP delimiter characters.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program.
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* TROUBLE SHOOTING CONTROLS
+/* .ad
+/* .fi
+/*	The DEBUG_README file gives examples of how to trouble shoot a 
+/*	Postfix system.
+/* .IP "\fBdebugger_command (empty)\fR"
+/*	The external command to execute when a Postfix daemon program is
+/*	invoked with the -D option.
+/* .IP "\fBdebug_peer_level (2)\fR"
+/*	The increment in verbose logging level when a remote client or
+/*	server matches a pattern in the debug_peer_list parameter.
+/* .IP "\fBdebug_peer_list (empty)\fR"
+/*	Optional list of remote client or server hostname or network
+/*	address patterns that cause the verbose logging level to increase
+/*	by the amount specified in $debug_peer_level.
+/* RESOURCE AND RATE CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBbounce_size_limit (50000)\fR"
+/*	The maximal amount of original message text that is sent in a
+/*	non-delivery notification.
+/* .IP "\fBfork_attempts (5)\fR"
+/*	The maximal number of attempts to fork() a child process.
+/* .IP "\fBfork_delay (1s)\fR"
+/*	The delay between attempts to fork() a child process.
+/* .IP "\fBhopcount_limit (50)\fR"
+/*	The maximal number of Received:  message headers that is allowed
+/*	in the primary message headers.
+/* .IP "\fBqueue_run_delay (1000s)\fR"
+/*	The time between deferred queue scans by the queue manager.
+/* FAST FLUSH CONTROLS
+/* .ad
+/* .fi
+/*	The ETRN_README file describes configuration and operation
+/*	details for the Postfix "fast flush" service.
+/* .IP "\fBfast_flush_domains ($relay_domains)\fR"
+/*	Optional list of destinations that are eligible for per-destination
+/*	logfiles with mail that is queued to those destinations.
+/* VERP CONTROLS
+/* .ad
+/* .fi
+/*	The VERP_README file describes configuration and operation
+/*	details of Postfix support for variable envelope return
+/*	path addresses.
+/* .IP "\fBdefault_verp_delimiters (+=)\fR"
+/*	The two default VERP delimiter characters.
+/* .IP "\fBverp_delimiter_filter (-=+)\fR"
+/*	The characters Postfix accepts as VERP delimiter characters on the
+/*	sendmail(1) command line and in SMTP commands.
+/* MISCELLANEOUS CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBalias_database (see 'postconf -d' output)\fR"
+/*	The alias databases for local(8) delivery that are updated with
+/*	"\fBnewaliases\fR" or with "\fBsendmail -bi\fR".
+/* .IP "\fBcommand_directory (see 'postconf -d' output)\fR"
+/*	The location of all postfix administrative commands.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_directory (see 'postconf -d' output)\fR"
+/*	The directory with Postfix support programs and daemon programs.
+/* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
+/*	The default database type for use in newaliases(1), postalias(1)
+/*	and postmap(1) commands.
+/* .IP "\fBdelay_warning_time (0h)\fR"
+/*	The time after which the sender receives the message headers of
+/*	mail that is still queued.
+/* .IP "\fBmail_owner (postfix)\fR"
+/*	The UNIX system account that owns the Postfix queue and most Postfix
+/*	daemon processes.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
+/* .IP "\fBtrigger_timeout (10s)\fR"
+/*	The time limit for sending a trigger to a Postfix daemon (for
+/*	example, the pickup(8) or qmgr(8) daemon).
 /* SEE ALSO
 /*	pickup(8) mail pickup daemon
 /*	postsuper(1) queue maintenance
@@ -260,6 +295,11 @@
 /*	smtpd(8) SMTP server
 /*	flush(8) fast flush service
 /*	syslogd(8) system logging
+/* README_FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	DEBUG_README, Postfix debugging howto
+/*	ETRN_README, Postfix ETRN howto
+/*	VERP_README, Postfix VERP howto
 /* LICENSE
 /* .ad
 /* .fi
@@ -338,6 +378,7 @@
 #define SM_MODE_DAEMON		4	/* daemon mode */
 #define SM_MODE_USER		5	/* user (stand-alone) mode */
 #define SM_MODE_FLUSHQ		6	/* user (stand-alone) mode */
+#define SM_MODE_IGNORE		7	/* ignore this mode */
 
  /*
   * Flag parade. Flags 8-15 are reserved for delivery request trace flags.
@@ -875,6 +916,10 @@ int     main(int argc, char **argv)
 		    msg_warn("ignoring -q option in daemon mode");
 		mode = SM_MODE_DAEMON;
 		break;
+	    case 'h':				/* print host status */
+	    case 'H':				/* flush host status */
+		mode = SM_MODE_IGNORE;
+		break;
 	    case 'i':				/* newaliases */
 		mode = SM_MODE_NEWALIAS;
 		break;
@@ -1048,6 +1093,9 @@ int     main(int argc, char **argv)
 	    argv_add(ext_argv, "-v", (char *) 0);
 	argv_terminate(ext_argv);
 	mail_run_replace(var_daemon_dir, ext_argv->argv);
+	/* NOTREACHED */
+    case SM_MODE_IGNORE:
+	exit(0);
 	/* NOTREACHED */
     }
 }

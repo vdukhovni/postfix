@@ -158,16 +158,21 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	See the Postfix \fBmain.cf\fR file for syntax details and for
-/*	default values.
-/* .IP \fBhash_queue_depth\fR
-/*	Number of subdirectory levels for hashed queues.
-/* .IP \fBhash_queue_names\fR
-/*	The names of queues that are organized into multiple levels of
-/*	subdirectories.
-/* .IP \fBqueue_directory\fR
-/*	Top-level directory of the Postfix queue. This is also the root
-/*	directory of Postfix daemons that run chrooted.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program.
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBhash_queue_depth (1)\fR"
+/*	The number of subdirectory levels for queue directories listed with
+/*	the hash_queue_names parameter.
+/* .IP "\fBhash_queue_names (see 'postconf -d' output)\fR"
+/*	The names of queue directories that are split across multiple
+/*	subdirectory levels.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
 /*	sendmail(1) sendmail-compatible user interface
 /*	postqueue(1) unprivileged queue operations

@@ -135,39 +135,38 @@ decode:		root
 #        address (e.g., user).
 # 
 # CONFIGURATION PARAMETERS
-#        The following main.cf parameters are  especially  relevant
-#        to  this  topic.  See  the Postfix main.cf file for syntax
-#        details and for default values.  Use  the  postfix  reload
-#        command after a configuration change.
+#        The following main.cf parameters are especially  relevant.
+#        The  text  below  provides  only  a parameter summary. See
+#        postconf(5) for more details including examples.
 # 
 #        alias_maps
 #               List of alias databases.
 # 
 #        allow_mail_to_commands
-#               Restrict  the  usage  of  mail delivery to external
+#               Restrict the usage of  mail  delivery  to  external
 #               command.
 # 
 #        allow_mail_to_files
-#               Restrict the usage of  mail  delivery  to  external
+#               Restrict  the  usage  of  mail delivery to external
 #               file.
 # 
 #        expand_owner_alias
 #               When delivering to an alias that has an owner- com-
-#               panion alias, set the envelope  sender  address  to
-#               the  right-hand  side  of  the owner alias, instead
+#               panion  alias,  set  the envelope sender address to
+#               the right-hand side of  the  owner  alias,  instead
 #               using of the left-hand side address.
 # 
 #        owner_request_special
-#               Give special treatment to owner-xxx and xxx-request
-#               addresses.
+#               Give  special treatment to owner-listname and list-
+#               name-request addresses.
 # 
 #        recipient_delimiter
-#               Delimiter  that  separates  recipients from address
+#               Delimiter that separates  recipients  from  address
 #               extensions.
 # 
 # BUGS
-#        Regular expression alias lookup tables  are  allowed,  but
-#        substitution  of  $1  etc. is forbidden because that would
+#        Regular  expression  alias  lookup tables are allowed, but
+#        substitution of $1 etc. is forbidden  because  that  would
 #        open a security loophole.
 # 
 # STANDARDS
@@ -180,7 +179,7 @@ decode:		root
 #        pcre_table(5) Perl Compatible Regular Expression table format
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

@@ -43,7 +43,7 @@ extern bool var_show_unk_rcpt_table;
   * are disabled, problems are still logged to the syslog daemon.
   */
 #define VAR_NOTIFY_CLASSES	"notify_classes"
-#define DEF_NOTIFY_CLASSES	"resource,software"
+#define DEF_NOTIFY_CLASSES	"resource, software"
 extern char *var_notify_classes;
 
  /*
@@ -391,7 +391,7 @@ extern bool var_biff;
   * Local delivery: mail to files/commands.
   */
 #define VAR_ALLOW_COMMANDS	"allow_mail_to_commands"
-#define DEF_ALLOW_COMMANDS	"alias,forward"
+#define DEF_ALLOW_COMMANDS	"alias, forward"
 extern char *var_allow_commands;
 
 #define VAR_COMMAND_MAXTIME	"command_time_limit"
@@ -399,7 +399,7 @@ extern char *var_allow_commands;
 extern int var_command_maxtime;
 
 #define VAR_ALLOW_FILES		"allow_mail_to_files"
-#define DEF_ALLOW_FILES		"alias,forward"
+#define DEF_ALLOW_FILES		"alias, forward"
 extern char *var_allow_files;
 
 #define VAR_LOCAL_CMD_SHELL	"local_command_shell"
@@ -445,7 +445,7 @@ extern char *var_fallback_transport;
   * Local delivery: path to per-user forwarding file.
   */
 #define VAR_FORWARD_PATH	"forward_path"
-#define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension},$home/.forward"
+#define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension}, $home/.forward"
 extern char *var_forward_path;
 
  /*
@@ -498,6 +498,10 @@ extern char *var_deliver_hdr;
 #define VAR_ENABLE_ORCPT	"enable_original_recipient"
 #define DEF_ENABLE_ORCPT	1
 extern bool var_enable_orcpt;
+
+#define VAR_ENABLE_ERRORS_TO	"enable_errors_to"
+#define DEF_ENABLE_ERRORS_TO	0
+extern bool var_enable_errors_to;
 
 #define VAR_EXP_OWN_ALIAS	"expand_owner_alias"
 #define DEF_EXP_OWN_ALIAS	0
@@ -732,7 +736,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush,hold,trace"
+#define DEF_HASH_QUEUE_NAMES	"incoming, active, deferred, bounce, defer, flush, hold, trace"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
@@ -795,10 +799,6 @@ extern int var_smtp_quit_tmout;
 #define VAR_SMTP_QUOTE_821_ENV	"smtp_quote_rfc821_envelope"
 #define DEF_SMTP_QUOTE_821_ENV	1
 extern int var_smtp_quote_821_env;
-
-#define VAR_SMTP_SKIP_4XX	"smtp_skip_4xx_greeting"
-#define DEF_SMTP_SKIP_4XX	1
-extern bool var_smtp_skip_4xx_greeting;
 
 #define VAR_SMTP_SKIP_5XX	"smtp_skip_5xx_greeting"
 #define DEF_SMTP_SKIP_5XX	1
@@ -1317,9 +1317,18 @@ extern int var_non_fqdn_code;
 #define REJECT_UNLISTED_SENDER	"reject_unlisted_sender"
 #define REJECT_UNLISTED_RCPT	"reject_unlisted_recipient"
 #define CHECK_RCPT_MAPS		"check_recipient_maps"
+
 #define VAR_UNK_ADDR_CODE	"unknown_address_reject_code"
 #define DEF_UNK_ADDR_CODE	450
 extern int var_unk_addr_code;
+
+#define VAR_SMTPD_REJ_UNL_FROM	"smtpd_reject_unlisted_sender"
+#define DEF_SMTPD_REJ_UNL_FROM	0
+extern bool var_smtpd_rej_unl_from;
+
+#define VAR_SMTPD_REJ_UNL_RCPT	"smtpd_reject_unlisted_recipient"
+#define DEF_SMTPD_REJ_UNL_RCPT	1
+extern bool var_smtpd_rej_unl_rcpt;
 
 #define REJECT_UNVERIFIED_RECIP "reject_unverified_recipient"
 #define VAR_UNV_RCPT_CODE	"unverified_recipient_reject_code"
@@ -1682,7 +1691,7 @@ extern int var_fault_inj_code;
 
 #define VAR_README_DIR			"readme_directory"
 #ifndef DEF_README_DIR
-#define DEF_README_DIR			"no"
+#define DEF_README_DIR			DEF_CONFIG_DIR
 #endif
 
  /*
@@ -1957,7 +1966,7 @@ extern char *var_smtpd_hoggers;
 #define DEF_ANVIL_TIME_UNIT		"60s"
 extern int var_anvil_time_unit;
 
-#define VAR_ANVIL_STAT_TIME		"client_connection_status_update_time"
+#define VAR_ANVIL_STAT_TIME		"client_event_status_update_time"
 #define DEF_ANVIL_STAT_TIME		"600s"
 extern int var_anvil_stat_time;
 

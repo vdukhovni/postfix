@@ -145,6 +145,8 @@
 #include "vstring.h"
 #include "split_at.h"
 #include "find_inet.h"
+#include "myrand.h"
+#include "events.h"
 
 /* Global library. */
 
@@ -154,21 +156,30 @@
 
 #include "dict_pgsql.h"
 
-#define STATACTIVE	0
-#define STATFAIL	1
-#define STATUNTRIED	2
-#define RETRY_CONN_INTV	60		/* 1 minute */
+#define STATACTIVE			(1<<0)
+#define STATFAIL			(1<<1)
+#define STATUNTRIED			(1<<2)
+
+#define TYPEUNIX			(1<<0)
+#define TYPEINET			(1<<1)
+
+#define RETRY_CONN_MAX			100
+#define RETRY_CONN_INTV			60		/* 1 minute */
+#define IDLE_CONN_INTV			60		/* 1 minute */
 
 typedef struct {
     PGconn *db;
     char   *hostname;
-    int     stat;			/* STATUNTRIED | STATFAIL | STATCUR */
+    char   *name;
+    char   *port;
+    unsigned type;			/* TYPEUNIX | TYPEINET */
+    unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection */
 } HOST;
 
 typedef struct {
     int     len_hosts;			/* number of hosts */
-    HOST   *db_hosts;			/* hosts on which databases reside */
+    HOST  **db_hosts;			/* hosts on which databases reside */
 } PLPGSQL;
 
 typedef struct {
@@ -207,7 +218,7 @@ static const char *dict_pgsql_lookup(DICT *, const char *);
 DICT   *dict_pgsql_open(const char *, int, int);
 static void dict_pgsql_close(DICT *);
 static PGSQL_NAME *pgsqlname_parse(const char *);
-static HOST host_init(char *);
+static HOST *host_init(const char *);
 
 
 
@@ -415,6 +426,102 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     return vstring_str(result);
 }
 
+/* dict_pgsql_check_stat - check the status of a host */
+
+static int dict_pgsql_check_stat(HOST *host, unsigned stat, unsigned type,
+				 time_t t)
+{
+    if ((host->stat & stat) && (!type || host->type & type)) {
+	/* try not to hammer the dead hosts too often */
+	if (host->stat == STATFAIL && host->ts > 0 && host->ts >= t)
+	    return 0;
+	return 1;
+    }
+    return 0;
+}
+
+/* dict_pgsql_find_host - find a host with the given status */
+
+static HOST *dict_pgsql_find_host(PLPGSQL *PLDB, unsigned stat, unsigned type)
+{
+    time_t  t;
+    int     count = 0;
+    int     idx;
+    int     i;
+
+    t = time((time_t *) 0);
+    for (i = 0; i < PLDB->len_hosts; i++) {
+	if (dict_pgsql_check_stat(PLDB->db_hosts[i], stat, type, t))
+	    count++;
+    }
+
+    if (count) {
+	/*
+	 * Calling myrand() can deplete the random pool.
+	 * Don't rely on the optimizer to weed out the call
+	 * when count == 1.
+	 */
+	idx = (count > 1) ? 1 + (count - 1) * (double) myrand() / RAND_MAX : 1;
+
+	for (i = 0; i < PLDB->len_hosts; i++) {
+	    if (dict_pgsql_check_stat(PLDB->db_hosts[i], stat, type, t) &&
+				      --idx == 0)
+		return PLDB->db_hosts[i];
+	}
+    }
+    return 0;
+}
+
+/* dict_pgsql_get_active - get an active connection */
+
+static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname,
+				   char *username, char *password)
+{
+    const char *myname = "dict_pgsql_get_active";
+    HOST   *host;
+    int     count = RETRY_CONN_MAX;
+
+    /* try the active connections first; prefer the ones to UNIX sockets */
+    if ((host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEUNIX)) != NULL ||
+	(host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEINET)) != NULL) {
+	if (msg_verbose)
+	    msg_info("%s: found active connection to host %s", myname,
+		     host->hostname);
+	return host;
+    }
+
+    /*
+     * Try the remaining hosts.
+     * "count" is a safety net, in case the loop takes more than
+     * RETRY_CONN_INTV and the dead hosts are no longer skipped.
+     */
+    while (--count > 0 &&
+	   ((host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
+					TYPEUNIX)) != NULL ||
+	   (host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
+					TYPEINET)) != NULL)) {
+	if (msg_verbose)
+	    msg_info("%s: attempting to connect to host %s", myname,
+		     host->hostname);
+	plpgsql_connect_single(host, dbname, username, password);
+	if (host->stat == STATACTIVE)
+	    return host;
+    }
+
+    /* bad news... */
+    return 0;
+}
+
+/* dict_pgsql_event - callback: close idle connections */
+
+static void dict_pgsql_event(int unused_event, char *context)
+{
+    HOST   *host = (HOST *) context;
+
+    if (host->db)
+	plpgsql_close_host(host);
+}
+
 /*
  * plpgsql_query - process a PostgreSQL query.  Return PGSQL_RES* on success.
  *			On failure, log failure and try other db instances.
@@ -428,56 +535,21 @@ static PGSQL_RES *plpgsql_query(PLPGSQL *PLDB,
 				        char *username,
 				        char *password)
 {
-    int     i;
     HOST   *host;
     PGSQL_RES *res = 0;
 
-    for (i = 0; i < PLDB->len_hosts; i++) {
-	/* can't deal with typing or reading PLDB->db_hosts[i] over & over */
-	host = &(PLDB->db_hosts[i]);
-	if (msg_verbose > 1)
-	    msg_info("dict_pgsql: trying host %s stat %d, last res %p", host->hostname, host->stat, res);
-
-	/* answer already found */
-	if (res != 0 && host->stat == STATACTIVE) {
+    while ((host = dict_pgsql_get_active(PLDB, dbname, username, password)) != NULL) {
+	if ((res = PQexec(host->db, query)) == 0) {
+	    msg_warn("pgsql query failed: %s", PQerrorMessage(host->db));
+	    plpgsql_down_host(host);
+	} else {
 	    if (msg_verbose)
-		msg_info("dict_pgsql: closing unnessary connection to %s",
-			 host->hostname);
-	    plpgsql_close_host(host);
-	}
-	/* try to connect for the first time if we don't have a result yet */
-	if (res == 0 && host->stat == STATUNTRIED) {
-	    if (msg_verbose)
-		msg_info("dict_pgsql: attempting to connect to host %s",
-			 host->hostname);
-	    plpgsql_connect_single(host, dbname, username, password);
-	}
-
-	/*
-	 * try to reconnect if we don't have an answer and the host had a
-	 * prob in the past and it's time for it to reconnect
-	 */
-	if (res == 0 && host->stat == STATFAIL && host->ts < time((time_t *) 0)) {
-	    if (msg_verbose)
-		msg_info("dict_pgsql: attempting to reconnect to host %s",
-			 host->hostname);
-	    plpgsql_connect_single(host, dbname, username, password);
-	}
-
-	/*
-	 * if we don't have a result and the current host is marked active,
-	 * try the query.  If the query fails, mark the host STATFAIL
-	 */
-	if (res == 0 && host->stat == STATACTIVE) {
-	    if ((res = PQexec(host->db, query))) {
-		if (msg_verbose)
-		    msg_info("dict_pgsql: successful query from host %s", host->hostname);
-	    } else {
-		msg_warn("%s", PQerrorMessage(host->db));
-		plpgsql_down_host(host);
-	    }
+		msg_info("dict_pgsql: successful query from host %s", host->hostname);
+	    event_request_timer(dict_pgsql_event, (char *) host, IDLE_CONN_INTV);
+	    break;
 	}
     }
+
     return res;
 }
 
@@ -488,47 +560,31 @@ static PGSQL_RES *plpgsql_query(PLPGSQL *PLDB,
  */
 static void plpgsql_connect_single(HOST *host, char *dbname, char *username, char *password)
 {
-    char   *destination = host->hostname;
-    char   *unix_socket = 0;
-    char   *hostname = 0;
-    char   *service;
-    char   *port = 0;
-
-    /*
-     * Ad-hoc parsing code. Expect "unix:pathname" or "inet:host:port", where
-     * both "inet:" and ":port" are optional.
-     */
-    if (strncmp(destination, "unix:", 5) == 0) {
-	unix_socket = destination + 5;
-    } else {
-	if (strncmp(destination, "inet:", 5) == 0)
-	    destination += 5;
-	hostname = mystrdup(destination);
-	if ((service = split_at(hostname, ':')) != 0)
-	    port = service;
-    }
-
-    if ((host->db = PQsetdbLogin(hostname, port, NULL, NULL, dbname, username, password))) {
+    if ((host->db = PQsetdbLogin(host->name, host->port, NULL, NULL,
+				 dbname, username, password)) != NULL) {
 	if (PQstatus(host->db) == CONNECTION_OK) {
 	    if (msg_verbose)
 		msg_info("dict_pgsql: successful connection to host %s",
 			 host->hostname);
 	    host->stat = STATACTIVE;
-	} else
-	    msg_warn("%s", PQerrorMessage(host->db));
+	} else {
+	    msg_warn("connect to pgsql server %s: %s",
+		     host->hostname, PQerrorMessage(host->db));
+	    plpgsql_down_host(host);
+	}
     } else {
-	msg_warn("Unable to connect to database");
+	msg_warn("connect to pgsql server %s: %s",
+		 host->hostname, PQerrorMessage(host->db));
 	plpgsql_down_host(host);
     }
-    if (hostname)
-	myfree(hostname);
 }
 
 /* plpgsql_close_host - close an established PostgreSQL connection */
 
 static void plpgsql_close_host(HOST *host)
 {
-    PQfinish(host->db);
+    if (host->db)
+	PQfinish(host->db);
     host->db = 0;
     host->stat = STATUNTRIED;
 }
@@ -539,10 +595,12 @@ static void plpgsql_close_host(HOST *host)
  */
 static void plpgsql_down_host(HOST *host)
 {
-    PQfinish(host->db);
+    if (host->db)
+	PQfinish(host->db);
     host->db = 0;
     host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
     host->stat = STATFAIL;
+    event_cancel_timer(dict_pgsql_event, (char *) host);
 }
 
 /**********************************************************************
@@ -672,7 +730,7 @@ static PLPGSQL *plpgsql_init(char *hostnames[], int len_hosts)
 	msg_fatal("mymalloc of pldb failed");
     }
     PLDB->len_hosts = len_hosts;
-    if ((PLDB->db_hosts = (HOST *) mymalloc(sizeof(HOST) * len_hosts)) == NULL)
+    if ((PLDB->db_hosts = (HOST **) mymalloc(sizeof(HOST *) * len_hosts)) == NULL)
 	return NULL;
     for (i = 0; i < len_hosts; i++) {
 	PLDB->db_hosts[i] = host_init(hostnames[i]);
@@ -682,14 +740,36 @@ static PLPGSQL *plpgsql_init(char *hostnames[], int len_hosts)
 
 
 /* host_init - initialize HOST structure */
-static HOST host_init(char *hostname)
+static HOST *host_init(const char *hostname)
 {
-    HOST    host;
+    const char *myname = "pgsql host_init";
+    HOST   *host = (HOST *) mymalloc(sizeof(HOST));
+    const char *d = hostname;
 
-    host.stat = STATUNTRIED;
-    host.hostname = mystrdup(hostname);
-    host.db = 0;
-    host.ts = 0;
+    host->db = 0;
+    host->hostname = mystrdup(hostname);
+    host->stat = STATUNTRIED;
+    host->ts = 0;
+
+    /*
+     * Ad-hoc parsing code. Expect "unix:pathname" or "inet:host:port", where
+     * both "inet:" and ":port" are optional.
+     */
+    if (strncmp(d, "unix:", 5) == 0 || strncmp(d, "inet:", 5) == 0)
+	d += 5;
+    host->name = mystrdup(d);
+    host->port = split_at_right(host->name, ':');
+
+    /* This is how PgSQL distinguishes between UNIX and INET: */
+    if (host->name[0] && host->name[0] != '/')
+	host->type = TYPEINET;
+    else
+	host->type = TYPEUNIX;
+
+    if (msg_verbose > 1)
+	msg_info("%s: host=%s, port=%s, type=%s", myname, host->name,
+		 host->port ? host->port : "",
+		 host->type == TYPEUNIX ? "unix" : "inet");
     return host;
 }
 
@@ -733,9 +813,12 @@ static void plpgsql_dealloc(PLPGSQL *PLDB)
     int     i;
 
     for (i = 0; i < PLDB->len_hosts; i++) {
-	if (PLDB->db_hosts[i].db)
-	    PQfinish(PLDB->db_hosts[i].db);
-	myfree(PLDB->db_hosts[i].hostname);
+	event_cancel_timer(dict_pgsql_event, (char *) (PLDB->db_hosts[i]));
+	if (PLDB->db_hosts[i]->db)
+	    PQfinish(PLDB->db_hosts[i]->db);
+	myfree(PLDB->db_hosts[i]->hostname);
+	myfree(PLDB->db_hosts[i]->name);
+	myfree((char *) PLDB->db_hosts[i]);
     }
     myfree((char *) PLDB->db_hosts);
     myfree((char *) (PLDB));

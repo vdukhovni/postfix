@@ -5,15 +5,15 @@
 postconf
 \-
 Postfix configuration utility
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 .fi
 \fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
-[\fIparameter ...\fR]
+        [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
-[\fIparameter=value ...\fR]
+        [\fIparameter=value ...\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -111,7 +111,8 @@ The result is a group file entry in group(5) format.
 .sp
 Other table types may exist depending on how Postfix was built.
 .IP \fB-n\fR
-Print non-default parameter settings only.
+Print parameter settings that are not left at their built-in
+default value, because they are explicitly specified in main.cf.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.
@@ -119,20 +120,45 @@ options make the software increasingly verbose.
 .ad
 .fi
 Problems are reported to the standard error stream.
-.SH ENVIRONMENT
+.SH "ENVIRONMENT"
 .na
 .nf
 .ad
 .fi
 .IP \fBMAIL_CONFIG\fR
 Directory with Postfix configuration files.
-.SH LICENSE
+.SH "CONFIGURATION PARAMETERS"
+.na
+.nf
+.ad
+.fi
+The following \fBmain.cf\fR parameters are especially relevant to
+this program.
+
+The text below provides only a parameter summary. See
+postconf(5) for more details including examples.
+.IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+The default location of the Postfix main.cf and master.cf
+configuration files.
+.SH "SEE ALSO"
+.na
+.nf
+postconf(5) configuration parameters
+.SH "README FILES"
+.na
+.nf
+Use "\fBpostconf readme_directory\fR" to locate this information.
+DATABASE_README, Postfix database introduction
+LDAP_README, Postfix LDAP client howto
+MYSQL_README, Postfix MySQL client howto
+PGSQL_README, Postfix PostgreSQL client howto
+.SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 Wietse Venema

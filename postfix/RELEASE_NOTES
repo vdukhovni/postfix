@@ -12,6 +12,30 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix 2.1 Release Candidate 1
+=========================================================
+
+Errors-To: support is disabled by default, but can be enabled
+by specifying "enable_errors_to = yes".
+
+Tarpit delays are reduced. The Postfix SMTP server no longer delays
+responses until the client has made $smtpd_soft_error_limit errors,
+and the delay is fixed at $smtpd_error_sleep_time seconds.  Postfix
+still disconnects after $smtpd_hard_error_limit errors.
+
+Major changes with Postfix 2.1 Release Candidate 1
+==================================================
+
+Complete documentation rewrite.
+- All HTML documents have hyperlinks for every parameter name,
+  every Postfix manual page, and every README file.  
+- All documents come as HTML and ASCII text.
+- All documents specify what feature is available in what release. 
+- The sample-*.cf configuration files no longer exist. The information
+  is now available in HTML documents, README files and UNIX man pages).
+Some README files still need to be done (LMTP, Cyrus, Qmail) but
+the core material is there.
+
 Incompatible changes with Postfix snapshot 2.0.18-2004122
 ==========================================================
 

@@ -93,31 +93,57 @@
 /*	that is sent to a \fBrelay_domains\fR destination because
 /*	such mail typically only has recipients in one domain.
 /* FILES
-/*	/var/spool/postfix/flush, location of "fast flush" logfiles.
+/*	$queue_directory/flush, location of "fast flush" logfiles.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	See the Postfix \fBmain.cf\fR file for syntax details and for
-/*	default values. Use the \fBpostfix reload\fR command after a
-/*	configuration change.
-/* .IP \fBfast_flush_domains\fR
-/*	What destinations can have a "fast flush" logfile. By default,
-/*	this is set to \fB$relay_domains\fR.
-/* .IP \fBfast_flush_refresh_time\fR
-/*	Refresh a non-empty "fast flush" logfile that was not read in
-/*	this amount of time (default time unit: hours), by simulating
-/*	a send request for the corresponding destination.
-/* .IP \fBfast_flush_purge_time\fR
-/*	Remove an empty "fast flush" logfile that was not updated in
-/*	this amount of time (default time unit: days).
-/* .IP \fBparent_domain_matches_subdomains\fR
-/*	List of Postfix features that use \fIdomain.tld\fR patterns
-/*	to match \fIsub.domain.tld\fR (as opposed to
-/*	requiring \fI.domain.tld\fR patterns).
+/*	Changes to \fBmain.cf\fR are picked up automatically as flush(8)
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBfast_flush_domains ($relay_domains)\fR"
+/*	Optional list of destinations that are eligible for per-destination
+/*	logfiles with mail that is queued to those destinations.
+/* .IP "\fBfast_flush_refresh_time (12h)\fR"
+/*	The time after which a non-empty but unread per-destination "fast
+/*	flush" logfile needs to be refreshed.
+/* .IP "\fBfast_flush_purge_time (7d)\fR"
+/*	The time after which an empty per-destination "fast flush" logfile
+/*	is deleted.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
+/*	What Postfix features match subdomains of "domain.tld" automatically,
+/*	instead of requiring an explicit ".domain.tld" pattern.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
+/*	postconf(5) configuration parameters
 /*	smtpd(8) Postfix SMTP server
 /*	qmgr(8) Postfix queue manager
 /*	syslogd(8) system logging
+/* README FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	ETRN_README, Postfix ETRN howto
 /* LICENSE
 /* .ad
 /* .fi

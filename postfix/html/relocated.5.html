@@ -1,4 +1,9 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 RELOCATED(5)                                         RELOCATED(5)
 
 <b>NAME</b>
@@ -57,9 +62,9 @@ RELOCATED(5)                                         RELOCATED(5)
               Matches <i>user</i>@<i>domain</i>. This form has precedence  over
               all other forms.
 
-       <i>user</i>   Matches <i>user</i>@<i>site</i> when <i>site</i> is $<b>myorigin</b>, when <i>site</i>
-              is listed in $<b>mydestination</b>, or when <i>site</i> is listed
-              in $<b>inet_interfaces</b> or $<b>proxy_interfaces</b>.
+       <i>user</i>   Matches <i>user</i>@<i>site</i> when <i>site</i> is $<b><a href="postconf.5.html#myorigin">myorigin</a></b>, when <i>site</i>
+              is listed in $<b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b>, or when <i>site</i> is listed
+              in $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b> or $<b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
 
        @<i>domain</i>
               Matches  every address in <i>domain</i>. This form has the
@@ -110,29 +115,28 @@ RELOCATED(5)                                         RELOCATED(5)
        The  table format does not understand quoting conventions.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix  reload</b>
-       command after a configuration change.
+       The following <b>main.cf</b> parameters are especially  relevant.
+       The  text  below  provides  only  a parameter summary. See
+       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b>relocated_maps</b>
+       <b><a href="postconf.5.html#relocated_maps">relocated_maps</a></b>
               List of lookup tables for relocated users or sites.
 
        Other parameters of interest:
 
-       <b>inet_interfaces</b>
-              The network interface addresses  that  this  system
+       <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>
+              The  network  interface  addresses that this system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
-       <b>mydestination</b>
-              List of domains that  this  mail  system  considers
+       <b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b>
+              List  of  domains  that  this mail system considers
               local.
 
-       <b>myorigin</b>
+       <b><a href="postconf.5.html#myorigin">myorigin</a></b>
               The domain that is appended to locally-posted mail.
 
-       <b>proxy_interfaces</b>
+       <b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>
               Other interfaces that this machine receives mail on
               by way of a proxy agent or network address transla-
               tor.
@@ -142,9 +146,13 @@ RELOCATED(5)                                         RELOCATED(5)
        <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
        <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
+       external content filters is in the Postfix <a href="FILTER_README.html">FILTER_README</a> file.
+
+<b>README FILES</b>
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix database introduction
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -1,4 +1,9 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 OQMGR(8)                                                 OQMGR(8)
 
 <b>NAME</b>
@@ -10,9 +15,9 @@ OQMGR(8)                                                 OQMGR(8)
 <b>DESCRIPTION</b>
        The  <b>oqmgr</b>  daemon awaits the arrival of incoming mail and
        arranges for its delivery via Postfix delivery  processes.
-       The actual mail routing strategy is delegated to the <a href="trivial-rewrite.8.html"><b>triv-</b></a>
-       <a href="trivial-rewrite.8.html"><b>ial-rewrite</b>(8)</a> daemon.  This program  expects  to  be  run
-       from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
+       The actual mail routing strategy is delegated to the <a href="trivial-rewrite.8.html"><b>triv</a>-</b>
+       <b><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite</b>(8)</a> daemon.  This program  expects  to  be  run
+       from the <a href="master.8.html"><b>mas</a><a href="master.8.html">ter</b>(8)</a> process manager.
 
        Mail  addressed  to  the  local  <b>double-bounce</b>  address is
        logged and discarded.  This stops potential  loops  caused
@@ -153,7 +158,7 @@ OQMGR(8)                                                 OQMGR(8)
        Corrupted message files are saved to the <b>corrupt</b> queue for
        further inspection.
 
-       Depending on the setting of the <b>notify_classes</b>  parameter,
+       Depending on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b>  parameter,
        the  postmaster  is notified of bounces and of other trou-
        ble.
 
@@ -164,109 +169,129 @@ OQMGR(8)                                                 OQMGR(8)
        bound delivery rates.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix reload</b>
-       command after a configuration change.
+       Changes  to  <b>main.cf</b>  are  not picked up automatically, as
+       <a href="qmgr.8.html">oqmgr(8)</a> processes are persistent. Use the command  "<b>post-</b>
+       <b>fix reload</b>" after a configuration change.
 
-<b>Miscellaneous</b>
-       <b>allow_min_user</b>
-              Do not bounce recipient addresses that  begin  with
-              '-'.
+       The  text  below  provides  only  a parameter summary. See
+       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b>queue_directory</b>
-              Top-level directory of the Postfix queue.
-
-<b>Active queue controls</b>
-       <b>qmgr_clog_warn_time</b>
-              Minimal delay between warnings that a specific des-
-              tination is clogging up the active queue. Specify 0
-              to disable.
-
-       <b>qmgr_message_active_limit</b>
-              Limit the number of messages in the active queue.
-
-       <b>qmgr_message_recipient_limit</b>
-              Limit the number of in-memory recipients.
-
-              This  parameter  also limits the size of the short-
-              term, in-memory destination cache.
-
-<b>Timing controls</b>
-       <b>minimal_backoff_time</b>
-              Minimal time in seconds between  delivery  attempts
-              of a deferred message.
-
-              This  parameter also limits the time an unreachable
-              destination is kept in  the  short-term,  in-memory
-              destination status cache.
-
-       <b>maximal_backoff_time</b>
-              Maximal  time  in seconds between delivery attempts
-              of a deferred message.
-
-       <b>maximal_queue_lifetime</b>
-              Maximal time (default: in days) a  regular  message
-              is queued before it is considered undeliverable.
-
-       <b>bounce_queue_lifetime</b>
-              Maximal time (default: in days) a bounce message is
-              queued before it is considered undeliverable.
-
-       <b>queue_run_delay</b>
-              Time in seconds between deferred queue scans. Queue
-              scans do not overlap.
-
-       <b>transport_retry_time</b>
-              Time  in seconds between attempts to contact a bro-
-              ken delivery transport.
-
-<b>Concurrency controls</b>
        In the text below, <i>transport</i> is the first field in a  <b>mas-</b>
        <b>ter.cf</b> entry.
 
-       <b>qmgr_fudge_factor</b> (valid range: 10..100)
-              The  percentage  of  delivery resources that a busy
-              mail system will use up for  delivery  of  a  large
-              mailing  list  message.  With 100%, delivery of one
-              message does not begin before the previous  message
-              has  been  delivered.  This results in good perfor-
-              mance for large mailing lists, but results in  poor
-              response  time for one-to-one mail.  With less than
-              100%, response time for one-to-one  mail  improves,
-              but  large  mailing  list delivery performance suf-
-              fers. In the worst case, recipients near the begin-
-              ning  of  a  large list receive a burst of messages
-              immediately, while recipients near the end of  that
-              list  receive  that  same burst of messages a whole
-              day later.
+<b>COMPATIBILITY CONTROLS</b>
+       <b><a href="postconf.5.html#allow_min_user">allow_min_user</a> (no)</b>
+              Allow  a recipient address to have `-' as the first
+              character.
 
-       <b>initial_destination_concurrency</b>
-              Initial per-destination concurrency level for  par-
-              allel delivery to the same destination.
+<b>ACTIVE QUEUE CONTROLS</b>
+       <b><a href="postconf.5.html#qmgr_clog_warn_time">qmgr_clog_warn_time</a> (300s)</b>
+              The minimal delay between warnings that a  specific
+              destination  is  clogging  up  the  Postfix  active
+              queue.
 
-       <b>default_destination_concurrency_limit</b>
-              Default  limit on the number of parallel deliveries
+       <b><a href="postconf.5.html#qmgr_message_active_limit">qmgr_message_active_limit</a> (20000)</b>
+              The maximal number of messages in the active queue.
+
+       <b><a href="postconf.5.html#qmgr_message_recipient_limit">qmgr_message_recipient_limit</a> (20000)</b>
+              The  maximal number of recipients held in memory by
+              the Postfix queue manager, and the maximal size  of
+              the size of the short-term, in-memory "dead" desti-
+              nation status cache.
+
+<b>DELIVERY CONCURRENCY CONTROLS</b>
+       <b><a href="postconf.5.html#qmgr_fudge_factor">qmgr_fudge_factor</a> (100)</b>
+              Obsolete  feature:  the  percentage   of   delivery
+              resources  that  a busy mail system will use up for
+              delivery of a large mailing  list message.
+
+       <b><a href="postconf.5.html#initial_destination_concurrency">initial_destination_concurrency</a> (5)</b>
+              The initial per-destination concurrency  level  for
+              parallel delivery to the same destination.
+
+       <b><a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a> (20)</b>
+              The  default  maximal number of parallel deliveries
               to the same destination.
 
        <i>transport</i><b>_destination_concurrency_limit</b>
-              Limit on the number of parallel deliveries  to  the
-              same  destination,  for delivery via the named mes-
-              sage <i>transport</i>.
+              Idem, for delivery via the named message <i>transport</i>.
 
-<b>Recipient controls</b>
-       <b>default_destination_recipient_limit</b>
-              Default limit on the number of recipients per  mes-
-              sage transfer.
+<b>RECIPIENT SCHEDULING CONTROLS</b>
+       <b><a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a> (50)</b>
+              The  default  maximal number of recipients per mes-
+              sage delivery.
 
        <i>transport</i><b>_destination_recipient_limit</b>
-              Limit  on  the  number  of  recipients  per message
-              transfer, for the named message <i>transport</i>.
+              Idem, for delivery via the named message <i>transport</i>.
+
+<b>OTHER RESOURCE AND RATE CONTROLS</b>
+       <b><a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> (1000s)</b>
+              The  minimal  time  between  attempts  to deliver a
+              deferred message.
+
+       <b><a href="postconf.5.html#maximal_backoff_time">maxi</a><a href="postconf.5.html#maximal_backoff_time">mal_backoff_time</a> (4000s)</b>
+              The maximal time  between  attempts  to  deliver  a
+              deferred message.
+
+       <b><a href="postconf.5.html#maximal_queue_lifetime">maxi</a><a href="postconf.5.html#maximal_queue_lifetime">mal_queue_lifetime</a> (5d)</b>
+              The  maximal  time a message is queued before it is
+              sent back as undeliverable.
+
+       <b><a href="postconf.5.html#queue_run_delay">queue_run_delay</a> (1000s)</b>
+              The time between deferred queue scans by the  queue
+              manager.
+
+       <b><a href="postconf.5.html#transport_retry_time">transport_retry_time</a> (60s)</b>
+              The time between attempts by the Postfix queue man-
+              ager to contact a malfunctioning  message  delivery
+              transport.
+
+       Available in Postfix version 2.1 and later:
+
+       <b><a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a> (5d)</b>
+              The  maximal time a bounce message is queued before
+              it is considered undeliverable.
+
+<b>MISCELLANEOUS CONTROLS</b>
+       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+              The default location of  the  Postfix  main.cf  and
+              master.cf configuration files.
+
+       <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
+              built-in watchdog timer.
+
+       <b><a href="postconf.5.html#defer_transports">defer_transports</a> (empty)</b>
+              The  names  of  message  delivery  transports  that
+              should not be delivered to  unless  someone  issues
+              "<b>sendmail -q</b>" or equivalent.
+
+       <b><a href="postconf.5.html#helpful_warnings">helpful_warnings</a> (yes)</b>
+              Log  warnings  about problematic configuration set-
+              tings, and provide helpful suggestions.
+
+       <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
+              The time limit for sending or receiving information
+              over an internal communication channel.
+
+       <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
+              The  process ID of a Postfix command or daemon pro-
+              cess.
+
+       <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
+              The process name of a  Postfix  command  or  daemon
+              process.
+
+       <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
+              The  location of the Postfix top-level queue direc-
+              tory.
 
 <b>SEE ALSO</b>
-       <a href="master.8.html">master(8)</a>, process manager
+       <a href="master.8.html">mas</a><a href="master.8.html">ter(8)</a>, process manager
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        syslogd(8) system logging
-       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
+       <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a>, address routing
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this

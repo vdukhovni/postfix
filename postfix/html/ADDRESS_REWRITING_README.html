@@ -1,0 +1,723 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix Address Rewriting </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix
+Address Rewriting </h1>
+
+<hr>
+
+<h2> Introduction </h2>
+
+<p> Address rewriting is the heart of the Postfix mail system.
+Postfix rewrites addresses for many different purposes. Some are
+merely cosmetic, and some are necessary to deliver correctly
+formatted mail to the correct destination. Examples of
+address rewriting in Postfix are:  </p>
+
+<ul>
+
+<p> Transform an incomplete address into a complete address.
+For example, transform "username" into "username@example.com", or
+transform "username@hostname" into "username@hostname.example.com".
+</p>
+
+<p> Replace an address by an equivalent address.  For example,
+replace "username@example.com" by "firstname.lastname@example.com"
+when sending mail, and do the reverse transformation when receiving
+mail.  </p>
+
+<p> Replace an address by multiple addresses. For example,
+replace the address of an alias by the addresses listed under that
+alias.  </p>
+
+<p> Determine how and where to deliver mail for a specific
+address.  For example, deliver mail for "username@example.com" with
+the <a href="smtp.8.html">smtp(8)</a> delivery agent, to the hosts that are listed in the
+DNS as the mail servers for the domain "example.com". </p>
+
+</ul>
+
+<p> Although Postfix currently has no address rewriting language,
+it can do surprisingly powerful address manipulation via table
+lookup.  Postfix typically uses lookup tables with fixed strings
+to map one address to one or multiple addresses, and typically uses
+regular expressions to map multiple addresses to one or multiple
+addresses.  Fixed-string lookup tables may be in the form of local
+files, or in the form of NIS, LDAP or SQL databases.  The
+<a href="DATABASE_README.html">DATABASE_README</a> document gives an introduction to Postfix lookup
+tables. </p>
+
+<h2>Postfix address rewriting overview </h2>
+
+<p> The figure below shows how mail travels through the Postfix
+mail system, together with the main address rewriting opportunities.
+Names followed by a number are Postfix daemon programs, while other
+names represent Postfix queues. </p>
+
+<blockquote>
+
+<table>
+
+<tr>
+
+<td colspan="2"> </td>
+
+<td bgcolor="#f0f0ff" align="center"> <a href="trivial-rewrite.h.html">
+trivial-<br>rewrite(8)<br>(std form)</a> </td>
+
+<td colspan="5"> </td>
+
+<td bgcolor="#f0f0ff" align="center"> <a href="trivial-rewrite.h.html">
+trivial-<br>rewrite(8)<br>(resolve)</a> 
+
+</tr>
+
+<tr>
+
+<td colspan="2"> </td>
+
+<td align="center"><table><tr><td align="center">^<br>|</td><td
+align="center">|<br>v</td></tr></table>
+
+<td colspan="5"> </td>
+
+<td align="center"><table><tr><td align="center">^<br>|</td><td
+align="center">|<br>v</td></tr></table>
+
+<td colspan="2"> </td>
+
+</tr>
+
+<tr>
+
+<td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="smtpd.8.html">smtpd(8)</a> </td>
+
+<td rowspan="3" align="center" valign="middle"> &gt;- </td>
+
+<td rowspan="3" bgcolor="#f0f0ff" align="center"> <a href="cleanup.8.html">cleanup(8)</a> </td>
+
+<td rowspan="3" align="center" valign="middle"> -&gt;
+</td>
+
+<td rowspan="3" bgcolor="#f0f0ff" align="center"> incoming </td>
+
+<td rowspan="3" align="center" valign="middle"> -&gt; </td>
+
+<td rowspan="3" bgcolor="#f0f0ff" align="center"> active </td>
+
+<td rowspan="3" align="center" valign="middle"> -&gt; </td>
+
+<td rowspan="3" bgcolor="#f0f0ff" align="center">
+<a href="qmgr.8.html">qmgr(8)</a> </td>
+
+<td rowspan="3" align="center" valign="middle"> -&lt; </td>
+
+<td bgcolor="#f0f0ff" align="center" valign="middle">
+<a href="smtp.8.html">smtp(8)</a> </td>
+
+</tr>
+
+<tr> 
+
+<td bgcolor="#f0f0ff" align="center" valign="middle">
+<a href="qmqpd.8.html">qmqpd(8)</a> </td>
+
+<td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="lmtp.8.html">lmtp(8)</a> </td>
+
+</tr>
+
+<tr>
+
+<td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="pickup.8.html">pickup(8)</a> </td>
+
+<td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="local.8.html">local(8)</a> </td> 
+
+</tr>
+
+<tr>
+
+<td align="center">^<br>|</td>
+
+<td colspan="5"> </td>
+
+<td align="center"><table><tr><td align="center">^<br>|</td><td
+align="center">|<br>v</td></tr></table>
+
+<td colspan="4"> </td>
+
+</tr>
+
+<tr>
+
+<td bgcolor="#f0f0ff" align="center"> <br>maildrop<br><br> </a>
+
+<td colspan="5"> </td>
+
+<td bgcolor="#f0f0ff" align="center"> <br>deferred<br><br> </a>
+
+<td colspan="2"> </td>
+
+</table>
+
+</blockquote>
+
+<p> Mail from the network enters Postfix via the <a href="smtpd.8.html">smtpd(8)</a> or <a href="qmqpd.8.html">qmqpd(8)</a>
+servers. These servers remove the SMTP or QMQP protocol encapsulation,
+enforce some sanity checks, and give the sender, recipients and
+message content to the <a href="cleanup.8.html">cleanup(8)</a> server.  As of version 2.0 the
+Postfix <a href="smtpd.8.html">smtpd(8)</a> server validates recipient addresses and rejects
+mail for non-existent addresses.  This validation duplicates some
+of the address rewriting effort that happens elsewhere in Postfix.
+The duplicate effort is not shown in the figure because it is an
+artefact of implementation that will eventually be removed from
+Postfix.  </p>
+
+<p> Locally submitted mail is queued in the maildrop directory by
+the <a href="postdrop.1.html">postdrop(1)</a> command; this allows you to submit mail even while
+the Postfix mail system is not running.  The local <a href="pickup.8.html">pickup(8)</a> server
+picks up the mail, enforces some sanity checks, and gives the
+sender, recipients and message content to the <a href="cleanup.8.html">cleanup(8)</a> server.
+</p>
+
+<p> Mail that is forwarded from within Postfix by the <a href="local.8.html">local(8)</a>
+delivery agent is given directly to the cleanup server. The same
+happens with undeliverable mail that Postfix returns to the sender,
+and with other notifications that are generated by the Postfix mail
+system.  These paths are internal to Postfix, and are not shown in
+the figure above. </p>
+
+<p> The <a href="cleanup.8.html">cleanup(8)</a> server transforms the sender, recipients and
+message content into a standard form before writing it to an incoming
+queue file. The server cleans up sender and recipient addresses in
+message headers and in the envelope, adds missing message headers
+such as From: or Date: that are required by mail standards, and
+removes message headers such as Bcc: that should not be present.
+The <a href="cleanup.8.html">cleanup(8)</a> server delegates the more complex address manipulations
+to the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> server as described later in this document.
+</p>
+
+<p> Address manipulations at this stage are:  </p>
+
+<ul>
+
+<li> <a href="#standard"> Rewrite addresses to standard form</a>
+
+<li> <a href="#canonical"> Canonical address mapping</a>
+
+<li> <a href="#masquerade"> Address masquerading</a>
+
+<li> <a href="#virtual"> Virtual aliasing </a>
+
+</ul>
+
+<p> The Postfix queue manager sorts mail according to its destination
+and gives it to Postfix delivery agents such as <a href="local.8.html">local(8)</a>, <a href="smtp.8.html">smtp(8)</a>,
+or <a href="lmtp.8.html">lmtp(8)</a>. Just like the <a href="cleanup.8.html">cleanup(8)</a> server, the Postfix queue
+manager delegates the more complex address manipulations to the
+<a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> server. </p>
+
+<p> Address manupulations at this stage are:  </p>
+
+<ul>
+
+<li> <a href="#resolve"> Resolve address to destination </a>
+
+<li> <a href="#transport"> Mail transport switch</a>
+
+<li> <a href="#relocated"> Relocated users table</a>
+
+</ul>
+
+<p> Each Postfix delivery agent tries to deliver the mail to its
+destination, while encapsulating the sender, recipients, and message
+content according to the rules of the SMTP, LMTP, etc.  protocol.
+When mail cannot be delivered, it is either returned to the sender
+or moved to the deferred queue and tried again later.  </p>
+
+<p> Address manipulations when mail is delivered via the <a href="local.8.html">local(8)</a>
+delivery agent: </p>
+
+<ul>
+
+<li> <a href="#aliases"> Local alias database</a>
+
+<li> <a href="#forward"> Local per-user .forward files</a>
+
+<li> <a href="#luser_relay"> Local catch-all address</a>
+
+</ul>
+
+<p> The remainder of this document present each address manipulation
+step in more detail, with specific examples or pointers to
+documentation with examples. </p>
+
+<h2> <a name="standard"> Rewrite addresses to standard form</a> </h2>
+
+<p> Before the <a href="cleanup.8.html">cleanup(8)</a> daemon runs an address through any address
+mapping lookup table, it first rewrites the address to the standard
+"user@fully.qualified.domain" form, by sending the address to the
+<a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon.  The purpose of rewriting to standard
+form is to reduce the number of entries needed in lookup tables.
+</p>
+
+<p> The Postfix <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon implements the following
+hard-coded address manipulations: </p>
+
+<blockquote>
+
+<dl>
+
+<dt>Rewrite "@hosta,@hostb:user@site" to "user@site"</dt>
+
+<dd> <p> In case you wonder what this is, the address form above
+is called a route address, and specifies that mail for "user@site"
+be delivered via "hosta" and "hostb". Usage of this form has been
+deprecated for a long time.  Postfix has no ability to handle route
+addresses, other than to strip off the route part.  </p> </dd>
+
+<dt>Rewrite "site!user" to "user@site" </dt>
+
+<dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#swap_bangpath">swap_bangpath</a>
+parameter (default: yes).  The purpose is to rewrite UUCP-style
+addresses to domain style. This is useful only when you receive
+mail via UUCP, but it probably does not hurt otherwise. </p> </dd>
+
+<dt>Rewrite "user%domain" to "user@domain"</dt>
+
+<dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a>
+parameter (default: yes). Typically, this is used in order to deal
+with monstrosities such as "user%domain@otherdomain". </p>
+</dd>
+
+<dt>
+
+Rewrite "user" to "user@$<a href="postconf.5.html#myorigin">myorigin</a>" </dt>
+
+<dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a>
+parameter (default: yes).  You should never turn off this feature,
+because a lot of Postfix components expect that all addresses have
+the form "user@domain".  </p>
+
+<p> If your machine is not the main machine for $<a href="postconf.5.html#myorigin">myorigin</a> and you
+wish to have some users delivered locally without going via that
+main machine, make an entry in the <a href="#virtual">virtual
+alias</a> table that redirects "user@$<a href="postconf.5.html#myorigin">myorigin</a>" to
+"user@$<a href="postconf.5.html#myhostname">myhostname</a>". See also the "delivering some
+users locally" section in the <a href="STANDARD_CONFIGURATION_README.html">STANDARD_CONFIGURATION_README</a>
+document. </p> </dd>
+
+<dt>
+
+Rewrite "user@host" to "user@host.$<a href="postconf.5.html#mydomain">mydomain</a>" </dt>
+
+<dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>
+parameter (default: yes).  The purpose is to get consistent treatment
+of different forms of the same hostname.
+
+<p>
+
+Some will argue that rewriting "host" to "host.$<a href="postconf.5.html#mydomain">mydomain</a>"
+is bad. That is why it can be turned off. Others like the convenience
+of having the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> appended automatically. </p> </dd>
+
+<dt>Rewrite "user@site." to "user@site" (without the trailing dot).</dt>
+
+<dd> <p> A single trailing dot is silently removed. However, an
+address that ends in multiple dots will be rejected as an invalid
+address. </p> </dd>
+
+</dl>
+
+</blockquote>
+
+<h2> <a name="canonical"> Canonical address mapping </a> </h2>
+
+<p> The <a href="cleanup.8.html">cleanup(8)</a> daemon uses the <a href="canonical.5.html">canonical(5)</a> tables to rewrite
+all addresses in message envelopes and in message headers. This is
+done for local and remote addresses.  The mapping is useful to
+replace login names by "Firstname.Lastname" style addresses, or to
+clean up invalid domains in mail addresses produced by legacy mail
+systems. </p>
+
+<p> Canonical mapping is disabled by default. To enable, edit the
+<a href="postconf.5.html#canonical_maps">canonical_maps</a> parameter in the main.cf file and specify one or
+more lookup tables, separated by whitespace or commas. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#canonical_maps">canonical_maps</a> = hash:/etc/postfix/canonical
+
+/etc/postfix/canonical:
+    wietse        Wietse.Venema
+</pre>
+</blockquote>
+
+<p> In addition to the canonical maps which are applied to both sender
+and recipient addresses, you can specify canonical maps that are
+applied only to sender addresses or to recipient addresses. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> = hash:/etc/postfix/sender_canonical
+    <a href="postconf.5.html#recipient_canonical_maps">recipient_canonical_maps</a> = hash:/etc/postfix/recipient_canonical
+</pre>
+</blockquote>
+
+<p> The sender and recipient canonical maps are applied before the
+common canonical maps. </p>
+
+<p> Sender-specific rewriting is useful when you want to rewrite
+ugly sender addresses to pretty ones, and still want to be able to
+send mail to the those ugly address without creating a mailer loop.
+</p>
+
+<h2> <a name="masquerade"> Address masquerading </a> </h2>
+
+<p> Address masquerading is a method to hide hosts inside a domain
+behind their mail gateway, and to make it appear as if the mail
+comes from the gateway itself, instead of from individual machines.
+</p>
+
+<p> Address masquerading is disabled by default, and is implemented
+by the <a href="cleanup.8.html">cleanup(8)</a> server. To enable, edit the <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>
+parameter in the main.cf file and specify one or more domain names
+separated by whitespace or commas.  When Postfix tries to masquerade
+a domain, it processes the list from left to right, and processing
+stops at the first match.  </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#masquerade_domains">masquerade_domains</a> = foo.example.com example.com
+</pre>
+</blockquote>
+
+<p> strips "any.thing.foo.example.com" to "foo.example.com", but
+strips "any.thing.else.example.com" to "example.com". </p>
+
+<p> A domain name prefixed with "<tt>!</tt>" means do not masquerade
+this domain or its subdomains: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#masquerade_domains">masquerade_domains</a> = !foo.example.com example.com
+</pre>
+</blockquote>
+
+<p> does not change "any.thing.foo.example.com" and "foo.example.com",
+but strips "any.thing.else.example.com" to "example.com". </p>
+
+<p>
+
+<p> The <a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a> configuration parameter specifies
+what user names should not be subjected to address masquerading.
+Specify one or more user names separated by whitespace or commas.
+</p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a> = root
+</pre>
+</blockquote>
+
+<p> By default, Postfix makes no exceptions. </p>
+
+<p> Subtle point: by default, address masquerading is applied only to
+message headers and to envelope sender addresses, but not to envelope
+recipients. This allows you to use address masquerading on a mail
+gateway machine, while still being able to forward mail from outside
+to users on individual machines. </p>
+
+<p> In order to subject envelope recipient addresses to masquerading,
+too, specify (Postfix version 1.1 and later):</p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#masquerade_classes">masquerade_classes</a> = envelope_sender, envelope_recipient,
+	header_sender, header_recipient
+</pre>
+</blockquote>
+
+<p> If you rewrite the envelope recipient like this, Postfix will
+no longer be able to send mail to individual machines. </p>
+
+<h2> <a name="virtual"> Virtual aliasing </a> </h2>
+
+<p> After applying the canonical and masquerade mappings, the
+<a href="cleanup.8.html">cleanup(8)</a> daemon uses the optional <a href="virtual.5.html">virtual(5)</a> alias tables to
+redirect mail for recipients.  The mapping affects only envelope
+recipient addresses; it has no effect on message headers or envelope
+sender addresses.  Virtual alias lookups are useful to redirect
+mail for <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a> to real user mailboxes, and to
+redirect mail for domains that no longer exist.  Virtual alias
+lookups can also be used to transform " Firstname.Lastname " back
+into UNIX login names, although it seems that local <a
+href="#aliases">aliases</a> may be a more appropriate vehicle. See
+the <a href="VIRTUAL_README.html">VIRTUAL_README</a> document for an overview of methods to host
+virtual domains with Postfix.  </p>
+
+<p> Virtual aliasing is disabled by default. To enable, edit the
+<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> parameter in the main.cf file and
+specify one or more lookup tables, separated by whitespace or
+commas. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
+
+/etc/postfix/virtual:
+    Wietse.Venema        wietse
+</pre>
+</blockquote>
+
+<p> Addresses found in virtual alias maps are subjected to another
+iteration of virtual aliasing, but are not subjected to canonical
+mapping, in order to avoid loops. </p>
+
+<p> At this point the message is ready to be stored into the
+Postfix incoming queue. </p>
+
+<h2> <a name="resolve"> Resolve address to destination </a> </h2>
+
+<p> The Postfix <a href="qmgr.8.html">qmgr(8)</a> queue manager selects new mail from the
+incoming queue or old mail from the deferred queue, and asks the
+<a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> address rewriting and resolving daemon where it
+should be delivered. </p>
+
+<p> As of version 2.0, Postfix distinguishes four major address
+classes. Each class has its own list of domain names, and each
+class has its own default delivery method, as shown in the table
+below.  See the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> document for the fine details.
+Postfix versions before 2.0 only distinguish between local delivery
+and everything else.  </p>
+
+<blockquote>
+
+<table border="1">
+
+<tr><th align="left">Destination domain list </th> <th
+align="left">Default delivery method </th> <th>Availability
+</th> </tr>
+
+<tr><td>$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> </td>
+<td>$<a href="postconf.5.html#local_transport">local_transport</a> </td> <td>Postfix 1.0</td></tr>
+
+<tr><td>$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> </td> <td>$<a href="postconf.5.html#virtual_transport">virtual_transport</a> </td>
+<td>Postfix 2.0</td> </tr>
+
+<tr><td>$<a href="postconf.5.html#relay_domains">relay_domains</a> </td> <td>$<a href="postconf.5.html#relay_transport">relay_transport</a> </td> <td>Postfix
+2.0</td> </tr>
+
+<tr><td>none </td> <td>$<a href="postconf.5.html#default_transport">default_transport</a> </td> <td>Postfix 1.0</td>
+</tr>
+
+</table>
+
+</blockquote>
+
+<h2> <a name="transport"> Mail transport switch </a> </h2>
+
+<p> Once the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon has determined a default
+delivery method it searches the optional <a href="transport.5.html">transport(5)</a> table for
+information that overrides the message destination and/or delivery
+method.  Typical use of the <a href="transport.5.html">transport(5)</a> is to send mail to a system
+that is not connected to the Internet, or to use a special SMTP
+client configuration for destinations that have special requirements.
+See, for example, the <a href="STANDARD_CONFIGURATION_README.html">STANDARD_CONFIGURATION_README</a> and <a href="UUCP_README.html">UUCP_README</a>
+documents, and the examples in the <a href="transport.5.html">transport(5)</a> manual page.  </p>
+
+<p> Transport table lookups are disabled by default. To enable,
+edit the <a href="postconf.5.html#transport_maps">transport_maps</a> parameter in the main.cf file and specify
+one or more lookup tables, separated by whitespace or commas. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport
+</pre>
+</blockquote>
+
+<h2> <a name="relocated"> Relocated users table </a> </h2>
+
+<p> Next, the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> address rewriting and resolving
+daemon runs each recipient through the <a href="relocated.5.html">relocated(5)</a> database.  This
+table provides information on how to reach users that no longer
+have an account, or what to do with mail for entire domains that
+no longer exist.  When mail is sent to an address that is listed
+in this table, the message is returned to the sender with an
+informative message.  </p>
+
+<p> The <a href="relocated.5.html">relocated(5)</a> database is searched after <a href="transport.5.html">transport(5)</a>
+table lookups, in anticipation of <a href="transport.5.html">transport(5)</a> tables that
+can one recipient address by a different one. </p>
+
+<p> Lookups of relocated users are disabled by default. To enable,
+edit the <a href="postconf.5.html#relocated_maps">relocated_maps</a> parameter in the main.cf file and specify
+one or more lookup tables, separated by whitespace or commas. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#relocated_maps">relocated_maps</a> = hash:/etc/postfix/relocated
+
+/etc/postfix/relocated:
+    username@example.com      otheruser@elsewhere.tld
+</pre>
+</blockquote>
+
+<p> As of Postfix version 2, mail for a relocated user will be
+rejected by the SMTP server with the reason "user has moved to
+otheruser@elsewhere.tld". Older Postfix versions will receive the
+mail first, and then return it to the sender as undeliverable, with
+the same reason.  </p>
+
+<h2> <a name="aliases"> Local alias database </a> </h2>
+
+<p> When mail is to be delivered locally, the <a href="local.8.html">local(8)</a> delivery
+agent runs each local recipient name through the <a href="aliases.5.html">aliases(5)</a> database.
+The mapping does not affect addresses in message headers. Local
+aliases are typically used to implement distribution lists, or to
+direct mail for standard aliases such as postmaster to real people.
+The table can also be used to map "Firstname.Lastname" addresses
+to login names. </p>
+
+<p> Alias lookups are enabled by default. The default configuration
+depends on the operating system environment, but it is typically
+one of the following: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases
+    <a href="postconf.5.html#alias_maps">alias_maps</a> = dbm:/etc/aliases, nis:mail.aliases
+</pre>
+</blockquote>
+
+<p> The pathname of the alias database file is controlled with the
+<a href="postconf.5.html#alias_database">alias_database</a> configuration parameter. The value is system dependent.
+Usually it is one of the following: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#alias_database">alias_database</a> = hash:/etc/aliases (4.4BSD, LINUX)
+    <a href="postconf.5.html#alias_database">alias_database</a> = dbm:/etc/aliases (4.3BSD, SYSV&lt;4)
+    <a href="postconf.5.html#alias_database">alias_database</a> = dbm:/etc/mail/aliases (SYSV4)
+</pre>
+</blockquote>
+
+<p> An <a href="aliases.5.html">aliases(5)</a> file can specify that mail should be delivered
+to a local file, or to a command that receives the message in the
+standard input stream.  For security reasons, deliveries to command
+and file destinations are performed with the rights of the alias
+database owner.  A default userid, <a href="postconf.5.html#default_privs">default_privs</a>, is used for
+deliveries to commands or files in "root"-owned aliases. </p>
+
+<h2> <a name="forward"> Local per-user .forward files </a> </h2>
+
+<p> With delivery via the <a href="local.8.html">local(8)</a> deliver agent, users can control
+their own mail delivery by specifying destinations in a file called
+.forward in their home directories. The syntax of these files is
+the same as with the local <a href="aliases.5.html">aliases(5)</a> file, except that the left-hand
+side of the alias (lookup key and colon) are not present. </p>
+
+<h2> <a name="luser_relay"> Local catch-all address </a> </h2>
+
+<p> When the <a href="local.8.html">local(8)</a> delivery agent finds that a message recipient
+does not exist, the message is normally returned to the sender ("user
+unknown").  Sometimes it is desirable to forward mail for non-existing
+recipients to another machine.  For this purpose you can specify
+an alternative destination with the <a href="postconf.5.html#luser_relay">luser_relay</a> configuration
+parameter. </p>
+
+<p> Alternatively, mail for non-existent recipients can be delegated
+to an entirely different message transport, as specified with the
+<a href="postconf.5.html#fallback_transport">fallback_transport</a> configuration parameter. For details, see the
+<a href="local.8.html">local(8)</a> delivery agent documentation. </p>
+
+<p> Note: if you use the <a href="postconf.5.html#luser_relay">luser_relay</a> feature in order to receive
+mail for non-UNIX accounts, then you must specify: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> =
+</pre>
+</blockquote>
+
+<p> (i.e. empty) in the main.cf file, otherwise the Postfix SMTP
+server will reject mail for non-UNIX accounts with "User unknown
+in local recipient table". See the <a href="LOCAL_RECIPIENT_README.html">LOCAL_RECIPIENT_README</a> file
+for more information on this.
+</p>
+
+<p> <a href="postconf.5.html#luser_relay">luser_relay</a> can specify one address. It is subjected to "$name"
+expansions. Examples: </p>
+
+<blockquote>
+
+<dl>
+
+<dt>$user@other.host </dt>
+
+<dd> <p> The bare username, without address extension, is prepended
+to "@other.host". For example, mail for "username+foo" is sent to
+"username@other.host". </p> </dd>
+
+<dt>$local@other.host </dt>
+
+<dd> <p> The entire original recipient localpart, including address
+extension, is prepended to "@other.host". For example, mail for
+"username+foo" is sent to "username+foo@other.host". </p> </dd>
+
+<dt>sysadmin+$user </dt>
+
+<dd> <p> The bare username, without address extension, is appended
+to "sysadmin". For example, mail for "username+foo" is sent to
+"sysadmin+username". </p> </dd>
+
+<dt>sysadmin+$local </dt>
+
+<dd> <p> The entire original recipient localpart, including address
+extension, is appended to "sysadmin". For example, mail for
+"username+foo" is sent to "sysadmin+username+foo". </p> </dd>
+
+</dl>
+
+</blockquote>
+
+</body>
+
+</html>

@@ -1,4 +1,9 @@
-<html> <head> </head> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 VERIFY(8)                                               VERIFY(8)
 
 <b>NAME</b>
@@ -12,8 +17,8 @@ VERIFY(8)                                               VERIFY(8)
        of what recipient addresses are known to be deliverable or
        undeliverable.
 
-       Addresses are verified by submitting probe messages to the
-       Postfix queue. Probe messages  are  run  through  all  the
+       Addresses  are  verified  by injecting probe messages into
+       the Postfix queue. Probe messages are run through all  the
        routing and rewriting machinery except for final delivery,
        and are discarded rather than being deferred or bounced.
 
@@ -29,40 +34,40 @@ VERIFY(8)                                               VERIFY(8)
 
        This server implements the following requests:
 
-       <b>VRFY</b><i>_</i><b>ADDR</b><i>_</i><b>UPDATE</b> <i>address status text</i>
+       <b>VRFY_ADDR_UPDATE</b> <i>address status text</i>
               Update the status of the specified address.
 
-       <b>VRFY</b><i>_</i><b>ADDR</b><i>_</i><b>QUERY</b> <i>address</i>
+       <b>VRFY_ADDR_QUERY</b> <i>address</i>
               Look up  the  <i>status</i>  and  <i>text</i>  of  the  specified
               address.  If the status is unknown, a probe is sent
               and a default status is returned.
 
        The server reply status is one of:
 
-       <b>VRFY</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
+       <b>VRFY_STAT_OK</b>
               The request completed normally.
 
-       <b>VRFY</b><i>_</i><b>STAT</b><i>_</i><b>BAD</b>
+       <b>VRFY_STAT_BAD</b>
               The server rejected the request (bad request  name,
               bad request parameter value).
 
-       <b>VRFY</b><i>_</i><b>STAT</b><i>_</i><b>FAIL</b>
+       <b>VRFY_STAT_FAIL</b>
               The request failed.
 
        The recipient status is one of:
 
-       <b>DEL</b><i>_</i><b>RCPT</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
+       <b>DEL_RCPT_STAT_OK</b>
               The address is deliverable.
 
-       <b>DEL</b><i>_</i><b>RCPT</b><i>_</i><b>STAT</b><i>_</i><b>DEFER</b>
+       <b>DEL_RCPT_STAT_DEFER</b>
               The  address  is  undeliverable  due to a temporary
               problem.
 
-       <b>DEL</b><i>_</i><b>RCPT</b><i>_</i><b>STAT</b><i>_</i><b>BOUNCE</b>
+       <b>DEL_RCPT_STAT_BOUNCE</b>
               The address is undeliverable  due  to  a  permanent
               problem.
 
-       <b>DEL</b><i>_</i><b>RCPT</b><i>_</i><b>STAT</b><i>_</i><b>TODO</b>
+       <b>DEL_RCPT_STAT_TODO</b>
               The address status is being determined.
 
 <b>SECURITY</b>
@@ -80,87 +85,122 @@ VERIFY(8)                                               VERIFY(8)
        Problems and transactions are logged to <b>syslogd</b>(8).
 
 <b>BUGS</b>
-       If  the  persistent  database ever gets corrupted then the
-       world comes to an end and human  intervention  is  needed.
+       The  address  verification  service  is  suitable only for
+       sites that handle a low mail volume.  Verification  probes
+       add  additional  traffic  to  the  mail  queue and perform
+       poorly under high load.  Servers may blacklist sites  that
+       probe excessively, or that probe excessively for non-exis-
+       tent recipient addresses.
+
+       If the persistent database ever gets  corrupted  then  the
+       world  comes  to  an end and human intervention is needed.
        This violates a basic Postfix principle.
 
 <b>CONFIGURATION PARAMETERS</b>
-       See  the  Postfix  <b>main.cf</b> file for syntax details and for
-       default values. Use the <b>postfix  reload</b>  command  after  a
-       configuration change.
+       Changes to <b>main.cf</b> are not  picked  up  automatically,  as
+       <a href="verify.8.html">verify(8)</a> processes are persistent. Use the command "<b>post-</b>
+       <b>fix reload</b>" after a configuration change.
 
-<b>Cache control</b>
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>map</b>
-              Optional  table  for  persistent  recipient  status
-              storage. The file  is  opened  before  the  process
-              enters a chroot jail and before it drops root priv-
-              ileges.  By default, the  information  is  kept  in
-              volatile  memory,  and is lost after <b>postfix reload</b>
-              or <b>postfix stop</b>.
+       The text below provides  only  a  parameter  summary.  See
+       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-              To recover from a  corrupted  address  verification
-              database, delete the file and do <b>postfix reload</b>.
+<b>CACHE CONTROLS</b>
+       <b><a href="postconf.5.html#address_verify_map">address_verify_map</a> (empty)</b>
+              Optional  lookup table for persistent address veri-
+              fication status storage.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>sender</b>
-              The sender address to use for probe messages. Spec-
-              ify an empty value (<b>address</b><i>_</i><b>verify</b><i>_</i><b>sender =</b>) or  &lt;&gt;
-              if you want to use the null sender address.
+       <b><a href="postconf.5.html#address_verify_sender">address_verify_sender</a> (postmaster)</b>
+              The sender address to use in  address  verification
+              probes.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>positive</b><i>_</i><b>expire</b><i>_</i><b>time</b>
-              The  amount  of time after which a known to be good
-              address expires.
+       <b><a href="postconf.5.html#address_verify_positive_expire_time">address_verify_positive_expire_time</a> (31d)</b>
+              The  time  after  which  a successful probe expires
+              from the address verification cache.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>positive</b><i>_</i><b>refresh</b><i>_</i><b>time</b>
-              The minimal amount of time after which a  proactive
-              probe  is  sent  to  verify that a known to be good
-              address is still good. The address  status  is  not
-              updated  when the probe fails (optimistic caching).
+       <b><a href="postconf.5.html#address_verify_positive_refresh_time">address_verify_positive_refresh_time</a> (7d)</b>
+              The time after which a successful address verifica-
+              tion probe needs to be refreshed.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>negative</b><i>_</i><b>cache</b>
-              A boolean parameter that controls whether  negative
-              probe  results  are stored in the address verifica-
-              tion cache. When enabled,  the  cache  may  pollute
-              quickly  with  garbage. When disabled, Postfix will
-              generate an address probe for every lookup.
+       <b><a href="postconf.5.html#address_verify_negative_cache">address_verify_negative_cache</a> (yes)</b>
+              Enable caching of failed address verification probe
+              results.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>negative</b><i>_</i><b>expire</b><i>_</i><b>time</b>
-              The amount of time after which a  rejected  address
-              expires.
+       <b><a href="postconf.5.html#address_verify_negative_expire_time">address_verify_negative_expire_time</a> (3d)</b>
+              The time after which a failed  probe  expires  from
+              the address verification cache.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>negative</b><i>_</i><b>refresh</b><i>_</i><b>time</b>
-              The  minimal amount of time after which a proactive
-              probe is sent to verify that  a  known  to  be  bad
-              address is still bad.
+       <b><a href="postconf.5.html#address_verify_negative_refresh_time">address_verify_negative_refresh_time</a> (3h)</b>
+              The  time after which a failed address verification
+              probe needs to be refreshed.
 
-<b>Probe message routing</b>
-       By  default,  probe  messages  are  delivered via the same
-       route as regular messages.  The following  parameters  can
+<b>PROBE MESSAGE ROUTING CONTROLS</b>
+       By default, probe messages  are  delivered  via  the  same
+       route  as  regular messages.  The following parameters can
        be used to override specific message routing mechanisms.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>relayhost</b>
-              Overrides the <b>relayhost</b> setting.
+       <b><a href="postconf.5.html#address_verify_relayhost">address_verify_relayhost</a> ($<a href="postconf.5.html#relayhost">relayhost</a>)</b>
+              Overrides  the  <a href="postconf.5.html#relayhost">relayhost</a>  parameter  setting   for
+              address verification probes.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>transport</b><i>_</i><b>maps</b>
-              Overrides the <b>transport</b><i>_</i><b>maps</b> setting.
+       <b><a href="postconf.5.html#address_verify_transport_maps">address_verify_transport_maps</a> ($<a href="postconf.5.html#transport_maps">transport_maps</a>)</b>
+              Overrides  the <a href="postconf.5.html#transport_maps">transport_maps</a> parameter setting for
+              address verification probes.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>local</b><i>_</i><b>transport</b>
-              Overrides the <b>local</b><i>_</i><b>transport</b> setting.
+       <b><a href="postconf.5.html#address_verify_local_transport">address_verify_local_transport</a> ($<a href="postconf.5.html#local_transport">local_transport</a>)</b>
+              Overrides the <a href="postconf.5.html#local_transport">local_transport</a> parameter setting for
+              address verification probes.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>virtual</b><i>_</i><b>transport</b>
-              Overrides the <b>virtual</b><i>_</i><b>transport</b> setting.
+       <b><a href="postconf.5.html#address_verify_virtual_transport">address_verify_virtual_transport</a> ($<a href="postconf.5.html#virtual_transport">virtual_transport</a>)</b>
+              Overrides  the  <a href="postconf.5.html#virtual_transport">virtual_transport</a> parameter setting
+              for address verification probes.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>relay</b><i>_</i><b>transport</b>
-              Overrides the <b>relay</b><i>_</i><b>transport</b> setting.
+       <b><a href="postconf.5.html#address_verify_relay_transport">address_verify_relay_transport</a> ($<a href="postconf.5.html#relay_transport">relay_transport</a>)</b>
+              Overrides the <a href="postconf.5.html#relay_transport">relay_transport</a> parameter setting for
+              address verification probes.
 
-       <b>address</b><i>_</i><b>verify</b><i>_</i><b>default</b><i>_</i><b>transport</b>
-              Overrides the <b>default</b><i>_</i><b>transport</b> setting.
+       <b><a href="postconf.5.html#address_verify_default_transport">address_verify_default_transport</a> ($<a href="postconf.5.html#default_transport">default_transport</a>)</b>
+              Overrides  the  <a href="postconf.5.html#default_transport">default_transport</a> parameter setting
+              for address verification probes.
+
+<b>MISCELLANEOUS CONTROLS</b>
+       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+              The default location of  the  Postfix  main.cf  and
+              master.cf configuration files.
+
+       <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
+              built-in watchdog timer.
+
+       <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
+              The time limit for sending or receiving information
+              over an internal communication channel.
+
+       <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
+              The process ID of a Postfix command or daemon  pro-
+              cess.
+
+       <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
+              The  process  name  of  a Postfix command or daemon
+              process.
+
+       <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
+              The location of the Postfix top-level queue  direc-
+              tory.
 
 <b>SEE ALSO</b>
-       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> address rewriting and resolving
+       <a href="postconf.5.html">postconf(5)</a> configuration parameters
+       <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> address rewriting and resolving
+
+<b>README FILES</b>
+       <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a>, address verification howto
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
        software.
+
+<b>HISTORY</b>
+       The verify service was introduced with Postfix 2.1.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

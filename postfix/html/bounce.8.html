@@ -1,4 +1,9 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 BOUNCE(8)                                               BOUNCE(8)
 
 <b>NAME</b>
@@ -13,26 +18,27 @@ BOUNCE(8)                                               BOUNCE(8)
        after  the  queue file that it corresponds to, and is kept
        in a queue subdirectory named after the  service  name  in
        the  <b>master.cf</b> file (either <b>bounce</b>, <b>defer</b> or <b>trace</b>).  This
-       program expects to be run from the <a href="master.8.html"><b>master</b>(8)</a> process  man-
+       program expects to be run from the <a href="master.8.html"><b>mas</a><a href="master.8.html">ter</b>(8)</a> process  man-
        ager.
 
        The <b>bounce</b> daemon processes two types of service requests:
 
-       <b>o</b>      Append a recipient status record to  a  per-message
-              log file.
+       <b>o</b>      Append a recipient non-delivery status record to  a
+              per-message log file.
 
-       <b>o</b>      Post  a  bounce  message, with a copy of a log file
-              and of the corresponding message. When  the  bounce
-              is posted successfully, the log file is deleted.
+       <b>o</b>      Enqueue a bounce message, with a copy of a per-mes-
+              sage log file and  of  the  corresponding  message.
+              When  the  bounce message is enqueued successfully,
+              the per-message log file is deleted.
 
-       The  software does a best effort to notify the sender that
-       there was a problem. A notification is sent even when  the
+       The software does a best effort to notify the sender  that
+       there  was a problem. A notification is sent even when the
        log file or original message cannot be read.
 
-       Optionally,  a client can request that the per-message log
-       file be deleted when the requested operation fails.   This
+       Optionally, a client can request that the per-message  log
+       file  be deleted when the requested operation fails.  This
        is used by clients that cannot retry transactions by them-
-       selves, and that  depend  on  retry  logic  in  their  own
+       selves,  and  that  depend  on  retry  logic  in their own
        client.
 
 <b>STANDARDS</b>
@@ -43,51 +49,96 @@ BOUNCE(8)                                               BOUNCE(8)
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
-<b>BUGS</b>
-       The  log  files  use  an ad-hoc, unstructured format. This
-       will have to change in order to  easily  support  standard
-       delivery status notifications.
-
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix reload</b>
-       command after a configuration change.
+       Changes  to  <b>main.cf</b>  are  picked  up  automatically,   as
+       <a href="bounce.8.html">bounce(8)</a> processes run for only a limited amount of time.
+       Use the command "<b>postfix reload</b>" to speed up a change.
 
-       <b>bounce_notice_recipient</b>
-              The recipient of single bounce postmaster  notices.
+       The text below provides  only  a  parameter  summary.  See
+       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b>2bounce_notice_recipient</b>
-              The  recipient of double bounce postmaster notices.
+       <b><a href="postconf.5.html#2bounce_notice_recipient">2bounce_notice_recipient</a> (postmaster)</b>
+              The  recipient of undeliverable mail that cannot be
+              returned to the sender.
 
-       <b>delay_notice_recipient</b>
-              The recipient of "delayed mail" postmaster notices.
+       <b><a href="postconf.5.html#backwards_bounce_logfile_compatibility">backwards_bounce_logfile_compatibility</a> (yes)</b>
+              Produce additional <a href="bounce.8.html">bounce(8)</a> logfile  records  that
+              can be read by older Postfix versions.
 
-       <b>bounce_size_limit</b>
-              Limit  the  amount of original message context that
-              is sent in a non-delivery notification.
+       <b><a href="postconf.5.html#bounce_notice_recipient">bounce_notice_recipient</a> (postmaster)</b>
+              The  recipient of postmaster notifications with the
+              message  headers  of  mail  that  Postfix  did  not
+              deliver  and  of  SMTP  conversation transcripts of
+              mail that Postfix did not receive.
 
-       <b>backwards_bounce_logfile_compatibility</b>
-              Controls whether the logfile will  be  readable  by
-              old  Postfix  versions that used the ad-hoc logfile
-              format of <i>&</i>lt;<i>address&</i>gt;<i>: text</i>.
+       <b><a href="postconf.5.html#bounce_size_limit">bounce_size_limit</a> (50000)</b>
+              The maximal amount of original message text that is
+              sent in a non-delivery notification.
 
-       <b>mail_name</b>
-              Use this mail system name in the introductory  text
-              at the start of a bounce message.
+       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+              The  default  location  of  the Postfix main.cf and
+              master.cf configuration files.
 
-       <b>notify_classes</b>
-              Notify  the  postmaster  of  bounced mail when this
-              parameter includes the <b>bounce</b>  class.  For  privacy
-              reasons, the message body is not included.
+       <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
+              built-in watchdog timer.
+
+       <b><a href="postconf.5.html#delay_notice_recipient">delay_notice_recipient</a> (postmaster)</b>
+              The recipient of postmaster notifications with  the
+              message  headers  of  mail that cannot be delivered
+              within $<a href="postconf.5.html#delay_warning_time">delay_warning_time</a> time units.
+
+       <b><a href="postconf.5.html#deliver_lock_attempts">deliver_lock_attempts</a> (20)</b>
+              The maximal number of attempts to acquire an exclu-
+              sive lock on a mailbox file or <a href="bounce.8.html">bounce(8)</a> logfile.
+
+       <b><a href="postconf.5.html#deliver_lock_delay">deliver_lock_delay</a> (1s)</b>
+              The  time  between attempts to acquire an exclusive
+              lock on a mailbox file or <a href="bounce.8.html">bounce(8)</a> logfile.
+
+       <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
+              The time limit for sending or receiving information
+              over an internal communication channel.
+
+       <b><a href="postconf.5.html#mail_name">mail_name</a> (Postfix)</b>
+              The mail system name that is displayed in Received:
+              headers,  in  the  SMTP  greeting  banner,  and  in
+              bounced mail.
+
+       <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
+              before exiting.
+
+       <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
+              The  maximal number of connection requests before a
+              Postfix daemon process terminates.
+
+       <b><a href="postconf.5.html#notify_classes">notify_classes</a> (resource, software)</b>
+              The list of error classes that are reported to  the
+              postmaster.
+
+       <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
+              The  process ID of a Postfix command or daemon pro-
+              cess.
+
+       <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
+              The process name of a  Postfix  command  or  daemon
+              process.
+
+       <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
+              The  location of the Postfix top-level queue direc-
+              tory.
 
 <b>SEE ALSO</b>
-       <a href="master.8.html">master(8)</a> process manager
+       <a href="master.8.html">mas</a><a href="master.8.html">ter(8)</a> process manager
+       <a href="postconf.5.html">postconf(5)</a> configuration parameters
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

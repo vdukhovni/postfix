@@ -32,12 +32,16 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	See the Postfix \fBmain.cf\fR file for syntax details and for
-/*	default values. Use the \fBpostfix reload\fR command after a
-/*	configuration change.
-/* .IP \fBqueue_directory\fR
-/*	Top-level directory of the Postfix queue. This is also the root
-/*	directory of Postfix daemons that run chrooted.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* LICENSE
 /* .ad
 /* .fi

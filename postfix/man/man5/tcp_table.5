@@ -5,7 +5,7 @@
 tcp_table
 \-
 Postfix client/server table lookup protocol
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 \fBpostmap -q "\fIstring\fB" tcp:\fIhost:port\fR
@@ -24,7 +24,7 @@ supports use the \fBpostconf -m\fR command.
 
 To test lookup tables, use the \fBpostmap\fR command as
 described in the SYNOPSIS above.
-.SH PROTOCOL DESCRIPTION
+.SH "PROTOCOL DESCRIPTION"
 .na
 .nf
 .ad
@@ -36,7 +36,7 @@ ASCII newline character. Request and reply parameters (see below)
 are separated by whitespace.
 
 Send and receive operations must complete in 100 seconds.
-.SH REQUEST FORMAT
+.SH "REQUEST FORMAT"
 .na
 .nf
 .ad
@@ -47,7 +47,7 @@ lookup result.
 Look up data under the specified key.
 .IP "\fBput\fR SPACE \fIkey\fR SPACE \fIvalue\fR NEWLINE"
 This request is currently not implemented.
-.SH REPLY FORMAT
+.SH "REPLY FORMAT"
 .na
 .nf
 .ad
@@ -64,7 +64,7 @@ the problem. The client should retry the request later.
 .IP "\fB200\fR SPACE \fItext\fR NEWLINE"
 The request was successful. In the case of a lookup request,
 the text contains an encoded version of the requested data.
-.SH ENCODING
+.SH "ENCODING"
 .na
 .nf
 .ad
@@ -77,7 +77,7 @@ hexadecimal codes can be specified in any case (upper, lower, mixed).
 The Postfix client always encodes a request.
 The server may omit the encoding as long as the reply
 is guaranteed to not contain the % or NEWLINE character.
-.SH SECURITY
+.SH "SECURITY"
 .na
 .nf
 .ad
@@ -85,7 +85,7 @@ is guaranteed to not contain the % or NEWLINE character.
 Do not use TCP lookup tables for security critical purposes.
 The client-server connection is not protected and the server
 is not authenticated.
-.SH SEE ALSO
+.SH "SEE ALSO"
 .na
 .nf
 regexp_table(5) format of regular expression tables
@@ -98,13 +98,13 @@ Only the lookup method is currently implemented.
 
 The client does not hang up when the connection is idle for
 a long time.
-.SH LICENSE
+.SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 Wietse Venema

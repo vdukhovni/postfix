@@ -5,14 +5,14 @@
 postsuper
 \-
 Postfix superintendent
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 .fi
 \fBpostsuper\fR [\fB-psv\fR]
-[\fB-c \fIconfig_dir\fR] [\fB-d \fIqueue_id\fR]
-[\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
-[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
+        [\fB-c \fIconfig_dir\fR] [\fB-d \fIqueue_id\fR]
+        [\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
+        [\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -155,7 +155,7 @@ Problems are reported to the standard error stream and to
 the number of messages requeued with \fB-r\fR, and the number of
 messages whose queue file name was fixed with \fB-s\fR. The report
 is written to the standard error stream and to \fBsyslogd\fR.
-.SH ENVIRONMENT
+.SH "ENVIRONMENT"
 .na
 .nf
 .ad
@@ -167,33 +167,38 @@ Directory with the \fBmain.cf\fR file.
 .fi
 Mail that is not sanitized by Postfix (i.e. mail in the \fBmaildrop\fR
 queue) cannot be placed "on hold".
-.SH CONFIGURATION PARAMETERS
+.SH "CONFIGURATION PARAMETERS"
 .na
 .nf
 .ad
 .fi
-See the Postfix \fBmain.cf\fR file for syntax details and for
-default values.
-.IP \fBhash_queue_depth\fR
-Number of subdirectory levels for hashed queues.
-.IP \fBhash_queue_names\fR
-The names of queues that are organized into multiple levels of
-subdirectories.
-.IP \fBqueue_directory\fR
-Top-level directory of the Postfix queue. This is also the root
-directory of Postfix daemons that run chrooted.
-.SH SEE ALSO
+The following \fBmain.cf\fR parameters are especially relevant to
+this program.
+The text below provides only a parameter summary. See
+postconf(5) for more details including examples.
+.IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+The default location of the Postfix main.cf and master.cf
+configuration files.
+.IP "\fBhash_queue_depth (1)\fR"
+The number of subdirectory levels for queue directories listed with
+the hash_queue_names parameter.
+.IP "\fBhash_queue_names (see 'postconf -d' output)\fR"
+The names of queue directories that are split across multiple
+subdirectory levels.
+.IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+The location of the Postfix top-level queue directory.
+.SH "SEE ALSO"
 .na
 .nf
 sendmail(1) sendmail-compatible user interface
 postqueue(1) unprivileged queue operations
-.SH LICENSE
+.SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 Wietse Venema

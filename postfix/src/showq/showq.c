@@ -29,9 +29,46 @@
 /*	The \fBshowq\fR daemon runs at a fixed low privilege; consequently,
 /*	it cannot extract information from queue files in the
 /*	\fBmaildrop\fR directory.
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	Changes to \fBmain.cf\fR are picked up automatically as showq(8)
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBduplicate_filter_limit (1000)\fR"
+/*	The maximal number of addresses remembered by the address
+/*	duplicate filter for aliases(5) or virtual(5) alias expansion, or
+/*	for showq(8) queue displays.
+/* .IP "\fBempty_address_recipient (MAILER-DAEMON)\fR"
+/*	The recipient of mail addressed to the null address.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
 /*	cleanup(8) canonicalize and enqueue mail
 /*	pickup(8) local mail pickup service
+/*	postconf(5) configuration parameters
 /*	qmgr(8) mail being delivered, delayed mail
 /*	syslogd(8) system logging
 /* LICENSE
@@ -154,7 +191,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    vstring_sprintf(buf, "%s%c", id, status);
 	    vstream_fprintf(client, SENDER_FORMAT, STR(buf),
 			  msg_size > 0 ? msg_size : size, arrival_time > 0 ?
-			    asctime(localtime(&arrival_time)) : 
+			    asctime(localtime(&arrival_time)) :
 			    asctime(localtime(&mtime)),
 			    STR(printable_quoted_addr));
 	    break;
@@ -306,7 +343,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 		if ((qfile = mail_queue_open(qp->name, id, O_RDONLY, 0)) != 0) {
 		    queue_size += st.st_size;
 		    showq_report(client, qp->name, id, qfile, (long) st.st_size,
-			st.st_mtime);
+				 st.st_mtime);
 		    if (vstream_fclose(qfile))
 			msg_warn("close file %s %s: %m", qp->name, id);
 		} else if (strcmp(qp->name, MAIL_QUEUE_MAILDROP) == 0) {

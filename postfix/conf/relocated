@@ -109,10 +109,9 @@
 #        The  table format does not understand quoting conventions.
 # 
 # CONFIGURATION PARAMETERS
-#        The following main.cf parameters are  especially  relevant
-#        to  this  topic.  See  the Postfix main.cf file for syntax
-#        details and for default values.  Use  the  postfix  reload
-#        command after a configuration change.
+#        The following main.cf parameters are especially  relevant.
+#        The  text  below  provides  only  a parameter summary. See
+#        postconf(5) for more details including examples.
 # 
 #        relocated_maps
 #               List of lookup tables for relocated users or sites.
@@ -120,12 +119,12 @@
 #        Other parameters of interest:
 # 
 #        inet_interfaces
-#               The network interface addresses  that  this  system
+#               The  network  interface  addresses that this system
 #               receives mail on.  You need to stop and start Post-
 #               fix when this parameter changes.
 # 
 #        mydestination
-#               List of domains that  this  mail  system  considers
+#               List  of  domains  that  this mail system considers
 #               local.
 # 
 #        myorigin
@@ -141,9 +140,14 @@
 #        pcre_table(5) format of PCRE tables
 #        regexp_table(5) format of POSIX regular expression tables
 #        tcp_table(5) TCP client/server table lookup protocol
+#        external content filters is in the Postfix FILTER_README file.
+# 
+# README FILES
+#        Use "postconf readme_directory" to locate this information.
+#        DATABASE_README, Postfix database introduction
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

@@ -120,6 +120,8 @@ typedef struct SMTPD_STATE {
     int     saved_flags;		/* postponed hold/discard */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
     ARGV   *prepend;			/* prepended headers */
+    VSTRING *instance;			/* policy query correlation */
+    int     seqno;			/* policy query correlation */
 
     /*
      * Pass-through proxy client.

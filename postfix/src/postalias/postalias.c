@@ -122,23 +122,35 @@
 /* .ad
 /* .fi
 /*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values.
-/* .IP \fBdefault_database_type\fR
-/*	Default database type. On many UNIX systems, the default type
-/*	is either \fBdbm\fR or \fBhash\fR.
-/* .IP \fBberkeley_db_create_buffer_size\fR
-/*	Amount of buffer memory to be used when creating a Berkeley DB
-/*	\fBhash\fR or \fBbtree\fR lookup table.
-/* .IP \fBberkeley_db_read_buffer_size\fR
-/*	Amount of buffer memory to be used when reading a Berkeley DB
-/*	\fBhash\fR or \fBbtree\fR lookup table.
+/*	this program.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBalias_database (see 'postconf -d' output)\fR"
+/*	The alias databases for local(8) delivery that are updated with
+/*	"\fBnewaliases\fR" or with "\fBsendmail -bi\fR".
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBberkeley_db_create_buffer_size (16777216)\fR"
+/*	The per-table I/O buffer size for programs that create Berkeley DB
+/*	hash or btree tables.
+/* .IP "\fBberkeley_db_read_buffer_size (131072)\fR"
+/*	The per-table I/O buffer size for programs that read Berkeley DB
+/*	hash or btree tables.
+/* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
+/*	The default database type for use in newaliases(1), postalias(1)
+/*	and postmap(1) commands.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* SEE ALSO
 /*	aliases(5) format of alias database input file.
 /*	local(5) Postfix local delivery agent.
+/*	postconf(5) configuration parameters
 /*	sendmail(1) mail posting and compatibility interface.
+/* README FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	DATABASE_README, Postfix database introduction
 /* LICENSE
 /* .ad
 /* .fi

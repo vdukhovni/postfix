@@ -1,0 +1,741 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix LDAP Howto</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix LDAP Howto</h1>
+
+<hr>
+
+<h2>LDAP Support in Postfix</h2>
+
+<p> Postfix can use an LDAP directory as a source for any of its
+lookups:  <a href="aliases.5.html">aliases(5)</a>, <a href="virtual.5.html">virtual(5)</a>, <a href="canonical.5.html">canonical(5)</a>, etc. This allows
+you to keep information for your mail service in a replicated
+network database with fine-grained access controls. By not storing
+it locally on the mail server, the administrators can maintain it
+from anywhere, and the users can control whatever bits of it you
+think appropriate.  You can have multiple mail servers using the
+same information, without the hassle and delay of having to copy
+it to each. </p>
+
+<p> Topics covered in this document:</p>
+
+<ul>
+
+<li><a href="#build">Building Postfix with LDAP support</a>
+
+<li><a href="#config">Configuring LDAP lookups</a>
+
+<li><a href="#tls">LDAP SSL and STARTTLS</a>
+
+<li><a href="#compat">Backwards compatibility: LDAP configuration in main.cf</a>
+
+<li><a href="#example_alias">Example: aliases</a>
+
+<li><a href="#example_virtual">Example: virtual domains/addresses</a>
+
+<li><a href="#other">Other uses of LDAP lookups</a>
+
+<li><a href="#hmmmm">Notes and things to think about</a>
+
+<li><a href="#feedback">Feedback</a>
+
+<li><a href="#credits">Credits</a>
+
+</ul>
+
+<h2><a name="build">Building Postfix with LDAP support</a></h2>
+
+<p> Note 1: Postfix no longer supports the LDAP version 1 interface.
+</p>
+
+<p> Note 2: to use LDAP with Debian GNU/Linux's Postfix, all you
+need is to install the postfix-ldap package and you're done.  There
+is no need to recompile Postfix. </p>
+
+<p> You need to have LDAP libraries and include files installed
+somewhere on your system, and you need to configure the Postfix
+Makefiles accordingly. </p>
+
+<p> For example, to build the OpenLDAP libraries for use with
+Postfix (i.e.  LDAP client code only), you could use the following
+command: </p>
+
+<blockquote>
+<pre>
+% ./configure  --without-kerberos --without-cyrus-sasl --without-tls \
+    --without-threads --disable-slapd --disable-slurpd \
+    --disable-debug --disable-shared
+</pre>
+</blockquote>
+
+<p> If you're using the libraries from the UM distribution
+(<a href="http://www.umich.edu/~dirsvcs/ldap/ldap.html">http://www.umich.edu/~dirsvcs/ldap/ldap.html</a>) or OpenLDAP
+(<a href="http://www.openldap.org">http://www.openldap.org</a>), something like this in the top level of
+your Postfix source tree should work: </p>
+
+<blockquote>
+<pre>
+% make tidy
+% make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
+    AUXLIBS="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
+</pre>
+</blockquote>
+
+<p> On Solaris 2.x you may have to specify run-time link information,
+otherwise ld.so will not find some of the shared libraries: </p>
+
+<blockquote>
+<pre>
+% make tidy
+% make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
+    AUXLIBS="-L/usr/local/lib -R/usr/local/lib -lldap \
+            -L/usr/local/lib -R/usr/local/lib -llber"
+</pre>
+</blockquote>
+
+<p> The 'make tidy' command is needed only if you have previously
+built Postfix without LDAP support. </p>
+
+<p> Instead of '/usr/local' specify the actual locations of your
+LDAP include files and libraries. Be sure to not mix LDAP include
+files and LDAP libraries of different versions!! </p>
+
+<p> If your LDAP libraries were built with Kerberos support, you'll
+also need to include your Kerberos libraries in this line. Note
+that the KTH Kerberos IV libraries might conflict with Postfix's
+lib/libdns.a, which defines dns_lookup. If that happens, you'll
+probably want to link with LDAP libraries that lack Kerberos support
+just to build Postfix, as it doesn't support Kerberos binds to the
+LDAP server anyway. Sorry about the bother. </p>
+
+<p> If you're using one of the Netscape LDAP SDKs, you'll need to
+change the AUXLIBS line to point to libldap10.so or libldapssl30.so
+or whatever you have, and you may need to use the appropriate linker
+option (e.g. '-R') so the executables can find it at runtime. </p>
+
+<h2><a name="config">Configuring LDAP lookups</a></h2>
+
+<p> In order to use LDAP lookups, define at least one LDAP source
+as a table lookup in main.cf, for example: </p>
+
+<blockquote>
+<pre>
+<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, <a href="LDAP_README.html">ldap</a>:/etc/ldap-aliases.cf
+</pre>
+</blockquote>
+
+<p> The file /etc/postfix/ldap-aliases.cf can specify the following
+parameters. Defaults are given in parentheses. </p>
+
+<p> Note: don't use quotes in these variables; at least, not until
+the Postfix configuration routines understand how to deal with
+quoted strings. </p>
+
+<dl>
+
+    <dt> server_host (default: localhost) </dt>
+
+        <dd> <p> The name of the host running the LDAP server, e.g. </p>
+        <blockquote>
+                <tt>server_host = ldap.your.com</tt>
+        </blockquote>
+        <p> It should be possible with all the libraries mentioned above
+        to specify multiple servers, with the libraries trying them in
+        order should the first one fail. It should also be possible to
+        give each server in the list a different port, by naming them
+        like "ldap.your.com:1444". </p>
+
+        <p> With OpenLDAP, LDAP URLs can be used to request connection
+        over UNIX domain sockets (ldapi://%2Fsome%2Fpath) or LDAP SSL
+        (ldaps://ldap.your.com:636, provided OpenLDAP was compiled with
+        support for SSL). </p>
+
+    <dt>server_port (default: 389) </dt>
+
+        <dd><p> The port the LDAP server listens on, e.g. </p>
+        <blockquote>
+                <tt>server_port = 778</tt>
+        </blockquote>
+
+    <dt>search_base (No default; you must configure this.) </dt>
+
+        <dd><p> The <a href="http://www.faqs.org/rfcs/rfc2253.html">RFC2253</a> base DN at which to conduct the search, e.g. </p>
+        <blockquote>
+                <tt>search_base = dc=your, dc=com</tt>
+        </blockquote>
+
+    <dt>timeout (default: 10 seconds) </dt>
+
+        <dd><p> The number of seconds a search can take before
+        timing out, e.g. </p>
+        <blockquote>
+                <tt>timeout = 5</tt>
+        </blockquote>
+        
+    <dt>query_filter (default: mailacceptinggeneralid=%s) </dt>
+
+        <dd><p> The <a href="http://www.faqs.org/rfcs/rfc2254.html">RFC2254</a> filter used to search the directory,
+        where %s is a substitute for the address Postfix is trying
+        to resolve, e.g. </p>
+        <blockquote>
+                <tt>query_filter = (&amp;(mail=%s)(paid_up=true))</tt>
+        </blockquote>
+        <p> This parameter supports the following '%' expansions: </p>
+
+	<dl compact>
+
+	<dt> %s </dt> 
+
+	    <dd> This is replaced by the input key. <a href="http://www.faqs.org/rfcs/rfc2254.html">RFC 2254</a>
+	    quoting is used to make sure that the input key does
+	    not add unexpected metacharacters. </dd>
+	
+	<dt> %u </dt>
+
+	    <dd> When the input key is an address of the form
+	    user@domain, %u is replaced by the (<a href="http://www.faqs.org/rfcs/rfc2254.html">RFC 2254</a>) quoted
+	    local part of the address.  if no domain is specified,
+	    %u is replaced by the entire search string. </dd>
+
+	<dt> %d </dt>
+
+	    <dd> When the input key is an address of the form
+	    user@domain, %d is replaced by the (<a href="http://www.faqs.org/rfcs/rfc2254.html">RFC 2254</a>) quoted
+	    domain part of the address.  When the input key has no
+	    domain qualifier, %d is replaced by the entire search
+	    string. </dd>
+
+	</dl>
+
+	<p> The "<a name="#domain">domain</a>" parameter described
+	below limits the input keys to addresses in matching domains.
+	When the "domain" parameter is non-empty, LDAP queries for
+	unqualified addresses or addresses in non-matching domains
+	are suppressed and return no results. </p>
+
+	<p> NOTE: DO NOT put double-quotes around the query filter
+	</p> </dd>
+
+    <dt>result_filter (default: %s) </dt>
+
+        <dd><p> Format template applied to result attributes.
+        Supports the same expansions as the query_filter, and can
+        be easily used to append (or prepend) text. 
+        </p>
+
+	<p> This parameter supports the following '%' expansions:</p>
+
+	<dl compact>
+
+	<dt> %s </dt>
+
+	    <dd> This is replaced by the value of the result
+	    attribute. </dd>
+
+	<dt> %u </dt>
+
+	    <dd> When the result attribute is an address of
+	    the form user@domain, %u is replaced local part of the
+	    address, if the result attribute is unqualified, %u is
+	    replaced by the entire attribute value. </dd>
+
+	<dt> %d </dt>
+
+	    <dd> When a result attribute is an address of the
+	    form user@domain, %d is replaced by the domain part of
+	    the attribute value.  If an attribute value is unqualified
+	    %d is replaced by the entire attribute value. </dd>
+
+	</dl>
+
+	<p> For example, using "result_filter = <a href="smtp.8.html">smtp</a>:[%s]" allows
+	one to use a mailHost attribute as the basis of a <a href="transport.5.html">transport(5)</a>
+	table. After applying the result filter, multiple values
+	are concatenated as comma separated strings. The expansion_limit
+	and size_limit parameters explained below allow one to
+	restrict the number of values in the result, which is
+	especially useful for maps that should return a single
+	value. </p>
+
+	<p> The default value %s (no quotes!) specifies that each
+	attribute value should be used as is. </p>
+
+	<p> NOTE: DO NOT put double-quotes around the result filter!
+	</p> </dd>
+
+    <dt><a name="domain">domain</a> (default: no domain list.) </dt>
+
+        <dd><p> This is a list of domain names, paths to files, or
+        dictionaries.  When specified, only fully qualified search
+        keys with a *non-empty* localpart and a matching domain
+        are eligible for lookup: 'user' lookups, bare domain lookups
+        and "@domain" lookups are not performed. This can significantly
+        reduce the query load on the LDAP server. </p>
+        <blockquote>
+                <tt>domain = postfix.org, hash:/etc/postfix/searchdomains</tt>
+        </blockquote>
+        <p> It is best not to use LDAP to store the domains eligible for LDAP
+        lookups. </p>
+
+    <dt>result_attribute (default: maildrop) </dt>
+
+        <dd><p> The attribute(s) Postfix will read from any directory entries
+        returned by the lookup, to be resolved to an email address. </p>
+        <blockquote>
+                <tt>result_attribute = mailbox,maildrop</tt>
+        </blockquote>
+
+    <dt>special_result_attribute (No default) </dt>
+
+        <dd><p> The attribute(s) of directory entries that can
+        contain DNs or URLs.  If found, a recursive subsequent
+        search is done using their values. </p>
+        <blockquote>
+                <tt>special_result_attribute = member</tt>
+        </blockquote>
+        <p> DN recursion retrieves the same result_attributes as
+        the main query, including the special attributes for further
+        recursion.  URI processing retrieves only those attributes
+        that are included in the URI definition and are *also*
+        listed in "result_attribute".  If the URI lists any of the
+        map's special result attributes, these are also retrieved
+        and used recursively. </p>
+
+    <dt>scope (default: sub) </dt>
+
+        <dd><p> The LDAP search scope: sub, base, or one. These
+        translate into LDAP_SCOPE_SUBTREE, LDAP_SCOPE_BASE, and
+        LDAP_SCOPE_ONELEVEL. </p>
+
+    <dt>bind (default: yes) </dt>
+
+        <dd><p> Whether or not to bind to the LDAP server. Newer
+        LDAP implementations don't require clients to bind, which
+        saves time. Example: </p>
+        <blockquote>
+                <tt>bind = no</tt>
+        </blockquote>
+
+        <p> If you do need to bind, you might consider configuring
+        Postfix to connect to the local machine on a port that's
+        an SSL tunnel to your LDAP server. If your LDAP server
+        doesn't natively support SSL, put a tunnel (wrapper, proxy,
+        whatever you want to call it) on that system too. This
+        should prevent the password from traversing the network in
+        the clear. </p>
+
+    <dt>bind_dn (default: "") </dt>
+
+        <dd><p> If you do have to bind, do it with this distinguished
+        name.  Example: </p>
+        <blockquote>
+                <tt>bind_dn = uid=postfix, dc=your, dc=com</tt>
+        </blockquote>
+
+    <dt>bind_pw (default: "") </dt>
+
+        <dd><p> The password for the distinguished name above. If
+        you have to use this, you probably want to make the map
+        configuration file readable only by the Postfix user. When
+        using the obselete <a href="LDAP_README.html">ldap</a>:ldapsource syntax, with map parameters
+        in main.cf, it is not possible to securely store the bind
+        password. This is because main.cf needs to be world readable
+        to allow local accounts to submit mail via the sendmail
+        command. Example: </p>
+        <blockquote>
+                <tt>bind_pw = postfixpw</tt>
+        </blockquote>
+
+    <dt>cache        (IGNORED with a warning) </dt>
+    <dt>cache_expiry (IGNORED with a warning) </dt>
+    <dt>cache_size   (IGNORED with a warning) </dt>
+
+        <dd><p> The above parameters are NO LONGER SUPPORTED by
+        Postfix.  Cache support has been dropped from OpenLDAP as
+        of release 2.1.13. </p>
+
+    <dt>recursion_limit (default: 1000) </dt>
+
+        <dd><p> A limit on the nesting depth of DN and URL special
+        result attribute evaluation. The limit must be a non-zero
+        positive number. </p>
+
+    <dt>expansion_limit (default: 0) </dt>
+
+        <dd><p> A limit on the total number of result elements
+        returned (as a comma separated list) by a lookup against
+        the map. A setting of zero disables the limit. Lookups fail
+        with a temporary error if the limit is exceeded. Setting
+        the limit to 1 ensures that lookups do not return multiple
+        values. </p>
+
+    <dt>size_limit (default: $expansion_limit) </dt>
+
+        <dd><p> A limit on the number of LDAP entries returned by
+        any single LDAP query performed as part of the lookup. A
+        setting of 0 disables the limit. Expansion of DN and URL
+        references involves nested LDAP queries, each of which is
+        separately subjected to this limit. </p>
+
+        <p> Note: even a single LDAP entry can generate multiple
+        lookup results, via multiple result attributes and/or
+        multi-valued result attributes. This limit caps the per
+        query resource utilization on the LDAP server, not the
+        final multiplicity of the lookup result. It is analogous
+        to the "-z" option of "ldapsearch". </p>
+
+    <dt>dereference (default: 0) </dt>
+
+        <dd><p> When to dereference LDAP aliases. (Note that this
+        has nothing do with Postfix aliases.) The permitted values
+        are those legal for the OpenLDAP/UM LDAP implementations: </p>
+
+        <dl>
+
+            <dd> 0 never</dd>
+            <dd> 1 when searching</dd>
+            <dd> 2 when locating the base object for the search</dd>
+            <dd> 3 always</dd>
+
+        </dl>
+
+        <p> See ldap.h or the ldap_open(3) or ldapsearch(1) man
+        pages for more information. And if you're using an LDAP
+        package that has other possible values, please bring it to
+        the attention of the postfix-users@postfix.org mailing
+        list. </p> </dd>
+
+    <dt>chase_referrals (default: 0) </dt>
+
+        <dd><p> Sets (or clears) LDAP_OPT_REFERRALS (requires LDAP version 3
+        support). </p>
+
+    <dt>version (default: 2) </dt>
+
+        <dd><p> Specifies the LDAP protocol version to use. </p>
+
+    <dt>debuglevel (default: 0) </dt>
+
+        <dd><p> What level to set for debugging in the OpenLDAP libraries. </p>
+
+</dl>
+
+<h2><a name="tls">LDAP SSL and STARTTLS</a></h2>
+
+<p> If you're using the OpenLDAP libraries compiled with SSL support,
+Postfix can connect to LDAP SSL servers and can issue the STARTTLS
+command.  The first form can be requested by using a LDAP URL in
+server_host: </p>
+
+<blockquote>
+<pre>
+server_host = ldaps://ldap.your.com:636
+</pre>
+</blockquote>
+
+<p> STARTTLS can be turned on with the start_tls command: </p>
+
+<blockquote>
+<pre>
+start_tls = yes
+</pre>
+</blockquote>
+
+<p> Both forms require LDAP protocol version 3, which has to be
+set explicitly: </p>
+
+<blockquote>
+<pre>
+version = 3
+</pre>
+</blockquote>
+
+<p> If any of the Postfix programs querying the map is configured
+in master.cf to run chrooted, all the certificates and keys involved
+have to be copied to the chroot jail.  Of course, the private keys
+should only be readable by the user "postfix". </p>
+
+<p> The following commands are relevant to LDAP SSL and STARTTLS: </p> 
+
+<dl>
+       <dt>start_tls (default: no) </dt>
+              <dd><p> Whether or not to issue STARTTLS upon connection to
+              the server.  Don't set this with LDAP SSL. </p>
+
+       <dt>tls_ca_cert_dir (No default; set either this or tls_ca_cert_file) </dt>
+              <dd><p> Directory containing X509 Certificate Authority
+              certificates in PEM format which are to be recognized
+              by the client in SSL/TLS connections.  The files each
+              contain one CA certificate.  The files are looked up
+              by the CA subject name hash value, which must hence
+              be available.  If more than one CA certificate with
+              the same name hash value exist, the extension must
+              be different (e.g. 9d66eef0.0, 9d66eef0.1 etc).  The
+              search is performed in the ordering of the extension
+              number, regardless of other properties of the
+              certificates.  Use the c_rehash utility (from the
+              OpenSSL distribution) to create the necessary links.
+              </p>
+
+       <dt>tls_ca_cert_file (No default; set either this or tls_ca_cert_dir) </dt>
+              <dd><p> File containing the X509 Certificate Authority
+              certificates in PEM format which are to be recognized
+              by the client in SSL/TLS connections.  This setting
+              takes precedence over tls_ca_cert_dir. </p>
+
+       <dt>tls_cert (No default; you must set this) </dt>
+              <dd><p> File containing client's  X509  certificate  to  be
+              used by the client in SSL/TLS connections. </p>
+
+       <dt>tls_key (No default; you must set this) </dt>
+              <dd><p> File  containing  the  private key corresponding to
+              the above tls_cert. </p>
+
+       <dt>tls_require_cert (default: no) </dt>
+              <dd><p> Whether or not to request server's X509 certificate
+              and  check  its  validity when establishing SSL/TLS
+              connections. </p>
+
+       <dt>tls_random_file (No default) </dt>
+              <dd><p> Path of a file to  obtain  random  bits  from  when
+              /dev/[u]random  is not available, to be used by the
+              client in SSL/TLS connections. </p>
+
+       <dt>tls_cipher_suite  (No default) </dt>
+              <dd><p> Cipher suite to use in SSL/TLS negotiations. </p>
+
+</dl>
+
+<h2><a name="compat">Backwards compatibility: LDAP configuration in main.cf</a> </h2>
+
+<p> For backward compatibility, LDAP parameters can also be defined
+in main.cf, prefixed with the name you've given the source in its
+definition, and an underscore. For example, if the map is specified
+as "<b><a href="LDAP_README.html">ldap</a>:ldapsource</b>", the first parameter above, "server_host",
+would be defined in main.cf as "<b>ldapsource_</b>server_host".
+Support for this form will be removed in a future Postfix version.
+</p>
+
+<h2><a name="example_alias">Example: aliases</a></h2>
+
+<p> Here's a basic example for using LDAP to look up aliases. Assume
+that in main.cf, you have: </p>
+
+<blockquote> 
+<pre>
+<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, <a href="LDAP_README.html">ldap</a>:/etc/ldap-aliases.cf
+</pre>
+</blockquote> 
+
+<p> and in <a href="LDAP_README.html">ldap</a>:/etc/ldap-aliases.cf you have: </p>
+
+<blockquote> 
+<pre>
+server_host = ldap.my.com
+search_base = dc=my, dc=com
+</pre>
+</blockquote> 
+
+<p> Upon receiving mail for a local address "ldapuser" that isn't
+found in the /etc/aliases database, Postfix will search the LDAP
+server listening at port 389 on ldap.my.com. It will bind anonymously,
+search for any directory entries whose mailacceptinggeneralid
+attribute is "ldapuser", read the "maildrop" attributes of those
+found, and build a list of their maildrops, which will be treated
+as <a href="http://www.faqs.org/rfcs/rfc822.html">RFC822</a> addresses to which the message will be delivered. </p>
+
+<h2><a name="example_virtual">Example: virtual domains/addresses</a></h2>
+
+<p> If you want to keep information for virtual lookups in your
+directory, it's only a little more complicated. First you need to
+make sure Postfix knows about the virtual domain. An easy way to
+do that is to add the domain to the mailacceptinggeneralid attribute
+of some entry in the directory. Next you'll want to make sure all
+of your virtual recipients' mailacceptinggeneralid attributes are
+fully qualified with their virtual domains. Finally, if you want
+to designate a directory entry as the default user for a virtual
+domain, just give it an additional mailacceptinggeneralid (or the
+equivalent in your directory) of "@virtual.dom". That's right, no
+user part. If you don't want a catchall user, omit this step and
+mail to unknown users in the domain will simply bounce. </p>
+
+<p> In summary, you might have a catchall user for a virtual domain
+that looks like this: </p>
+
+<blockquote> 
+<pre>
+     dn: cn=defaultrecipient, dc=fake, dc=dom
+     objectclass: top
+     objectclass: virtualaccount
+     cn: defaultrecipient
+     owner: uid=root, dc=someserver, dc=isp, dc=dom
+1 -&gt; mailacceptinggeneralid: fake.dom
+2 -&gt; mailacceptinggeneralid: @fake.dom
+3 -&gt; maildrop: realuser@real.dom         
+</pre>
+</blockquote> 
+
+<dl compact>
+
+<dd> <p> 1: Postfix knows fake.dom is a valid virtual domain when
+it looks for this and gets something (the maildrop) back. </p>
+
+<dd> <p> 2: This causes any mail for unknown users in fake.dom to
+go to this entry ... </p>
+
+<dd> <p> 3: ... and then to its maildrop. </p>
+
+</dl>
+
+<p> Normal users might simply have one mailacceptinggeneralid and
+maildrop, e.g. "normaluser@fake.dom" and "normaluser@real.dom".
+</p>
+
+<h2><a name="other">Other uses of LDAP lookups</a></h2>
+
+Other common uses for LDAP lookups include rewriting senders and
+recipients with Postfix' canonical lookups, for example in order to make
+mail leaving your site appear to be coming from "First.Last@site.dom"
+instead of "userid@site.dom".
+
+<h2><a name="hmmmm">Notes and things to think about</a></h2>
+
+<ul>
+
+<li> <p> The bits of schema and attribute names used in this document are just
+  examples. There's nothing special about them, other than that some are
+  the defaults in the LDAP configuration parameters. You can use
+  whatever schema you like, and configure Postfix accordingly. </p>
+
+<li> <p> You probably want to make sure that mailacceptinggeneralids are
+  unique, and that not just anyone can specify theirs as postmaster or
+  root, say. </p>
+
+<li> <p> An entry can have an arbitrary number of mailacceptinggeneralids or
+  maildrops. Maildrops can also be comma-separated lists of addresses.
+  They will all be found and returned by the lookups. For example, you
+  could define an entry intended for use as a mailing list that looks
+  like this (Warning! Schema made up just for this example): </p>
+
+<blockquote>
+<pre>
+dn: cn=Accounting Staff List, dc=my, dc=com
+cn: Accounting Staff List
+o: my.com
+objectclass: maillist
+mailacceptinggeneralid: accountingstaff
+mailacceptinggeneralid: accounting-staff
+maildrop: mylist-owner
+maildrop: an-accountant
+maildrop: some-other-accountant
+maildrop: this, that, theother
+</pre>
+</blockquote>
+
+<li> <p> If you use an LDAP map for lookups other than aliases, you may have to
+  make sure the lookup makes sense. In the case of virtual lookups,
+  maildrops other than mail addresses are pretty useless, because
+  Postfix can't know how to set the ownership for program or file
+  delivery. Your query_filter should probably look something like this: </p>
+
+<blockquote>
+<pre>
+query_filter = (&amp;(mailacceptinggeneralid=%s)(!(|(maildrop="*|*")(maildrop="*:*")(maildrop="*/*"))))
+</pre>
+</blockquote>
+
+<li> <p> And for that matter, even for aliases, you may not want users able to
+  specify their maildrops as programs, includes, etc. This might be
+  particularly pertinent on a "sealed" server where they don't have
+  local UNIX accounts, but exist only in LDAP and Cyrus. You might allow
+  the fun stuff only for directory entries owned by an administrative
+  account,
+  so that if the object had a program as its maildrop and weren't owned
+  by "cn=root" it wouldn't be returned as a valid local user. This will
+  require some thought on your part to implement safely, considering the
+  ramifications of this type of delivery. You may decide it's not worth
+  the bother to allow any of that nonsense in LDAP lookups, ban it in
+  the query_filter, and keep things like majordomo lists in local alias
+  databases. </p>
+
+<blockquote>
+<pre>
+query_filter = (&amp;(mailacceptinggeneralid=%s)(!(|(maildrop="*|*")(maildrop="*:*")(maildrop="*/*"))(owner=cn=root, dc=your, dc=com)))
+</pre>
+</blockquote>
+
+<li> <p> LDAP lookups are slower than local DB or DBM lookups. For most sites
+  they won't be a bottleneck, but it's a good idea to know how to tune
+  your directory service. </p>
+
+<li> <p> Multiple LDAP maps share the same LDAP connection if they differ
+  only in their query related parameters: base, scope, query_filter, and
+  so on. To take advantage of this avoid spurious differences in the
+  definitions of LDAP maps: host selection order, version, bind, tls
+  parameters, ... should be the same for multiple maps whenever possible. </p>
+
+</ul>
+
+<h2><a name="feedback">Feedback</a></h2>
+
+<p> If you have questions, send them to postfix-users@postfix.org. Please
+include relevant information about your Postfix setup: LDAP-related
+output from postconf, which LDAP libraries you built with, and which
+directory server you're using. If your question involves your directory
+contents, please include the applicable bits of some directory entries. </p>
+
+<h2><a name="credits">Credits</a></h2>
+
+<ul>
+
+<li>Manuel Guesdon: Spotted a bug with the timeout attribute.
+
+<li>John Hensley: Multiple LDAP sources with more configurable attributes.
+
+<li>Carsten Hoeger: Search scope handling. 
+
+<li>LaMont Jones: Domain restriction, URL and DN searches, multiple result
+              attributes.
+
+<li>Mike Mattice: Alias dereferencing control.
+
+<li>Hery Rakotoarisoa: Patches for LDAPv3 updating.
+
+<li>Prabhat K Singh: Wrote the initial Postfix LDAP lookups and connection caching.
+
+<li>Keith Stevenson: <a href="http://www.faqs.org/rfcs/rfc2254.html">RFC 2254</a> escaping in queries.
+
+<li>Samuel Tardieu: Noticed that searches could include wildcards, prompting
+                the work on <a href="http://www.faqs.org/rfcs/rfc2254.html">RFC 2254</a> escaping in queries. Spotted a bug
+                in binding.
+
+<li>Sami Haahtinen: Referral chasing and v3 support.
+
+<li>Victor Duchovni: ldap_bind() timeout. With fixes from LaMont Jones:
+                 OpenLDAP cache deprecation. Limits on recursion, expansion
+                 and query results size. LDAP connection sharing for maps
+                 differing only in the query parameters.
+
+<li>Liviu Daia: Support for SSL/STARTTLS. Support for storing map definitions in
+            external files (<a href="LDAP_README.html">ldap</a>:/path/ldap.cf) needed to securely store
+            passwords for plain auth.
+
+</ul>
+
+And of course Wietse.
+
+</body>
+
+</html>

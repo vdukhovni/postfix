@@ -90,20 +90,48 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. Use the \fBpostfix reload\fR command after
-/*	a configuration change.
-/* .IP \fBclient_rate_time_unit\fR
-/*	The unit of time over which connection rates are calculated.
-/* .IP \fBclient_connection_status_update_time\fR
-/*	Time interval for logging the maximal connection count
-/*	and connection rate information.
+/*	Changes to \fBmain.cf\fR are picked up automatically as anvil(8)
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBclient_rate_time_unit (60s)\fR"
+/*	The time unit over which client connection rates and other rates
+/*	are calculated.
+/* .IP "\fBclient_event_status_update_time (600s)\fR"
+/*	How frequently the anvil(8) connection and rate limiting server
+/*	logs peak usage information.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
 /* SEE ALSO
+/*	postconf(5) configuration parameters
 /*	smtpd(8) Postfix SMTP server
 /* LICENSE
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/* .ad
+/* .fi
+/*	The anvil service was introduced with Postfix 2.1.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

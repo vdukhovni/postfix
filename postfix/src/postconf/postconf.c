@@ -105,7 +105,8 @@
 /* .sp
 /*	Other table types may exist depending on how Postfix was built.
 /* .IP \fB-n\fR
-/*	Print non-default parameter settings only.
+/*	Print parameter settings that are not left at their built-in 
+/*	default value, because they are explicitly specified in main.cf.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -116,6 +117,25 @@
 /* .fi
 /* .IP \fBMAIL_CONFIG\fR
 /*	Directory with Postfix configuration files.
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* SEE ALSO
+/*	postconf(5) configuration parameters
+/* README FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	DATABASE_README, Postfix database introduction
+/*	LDAP_README, Postfix LDAP client howto
+/*	MYSQL_README, Postfix MySQL client howto
+/*	PGSQL_README, Postfix PostgreSQL client howto
 /* LICENSE
 /* .ad
 /* .fi
@@ -206,7 +226,7 @@ DICT   *text_table;
  /*
   * Manually extracted.
   */
-#include "smtp_vars.h"
+#include "auto_vars.h"
 #include "install_vars.h"
 
  /*
@@ -229,7 +249,7 @@ static CONFIG_INT_TABLE int_table[] = {
 
 static CONFIG_STR_TABLE str_table[] = {
 #include "str_table.h"
-#include "smtp_table.h"			/* XXX */
+#include "auto_table.h"			/* XXX */
 #include "install_table.h"
     0,
 };

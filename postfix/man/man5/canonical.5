@@ -5,7 +5,7 @@
 canonical
 \-
 format of Postfix canonical table
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 \fBpostmap /etc/postfix/canonical\fR
@@ -50,7 +50,7 @@ domain\fR support. Use the \fBvirtual\fR(5) map for that purpose.
 
 The \fBcanonical\fR mapping is not to be confused with local aliasing.
 Use the \fBaliases\fR(5) map for that purpose.
-.SH TABLE FORMAT
+.SH "TABLE FORMAT"
 .na
 .nf
 .ad
@@ -90,7 +90,7 @@ This form has the lowest precedence.
 .PP
 In all the above forms, when \fIaddress\fR has the form
 @\fIotherdomain\fR, the result is the same user in \fIotherdomain\fR.
-.SH ADDRESS EXTENSION
+.SH "ADDRESS EXTENSION"
 .na
 .nf
 .fi
@@ -103,7 +103,7 @@ When a mail address localpart contains the optional recipient delimiter
 The \fBpropagate_unmatched_extensions\fR parameter controls whether
 an unmatched address extension (\fI+foo\fR) is propagated to the
 result of table lookup.
-.SH REGULAR EXPRESSION TABLES
+.SH "REGULAR EXPRESSION TABLES"
 .na
 .nf
 .ad
@@ -124,7 +124,7 @@ pattern is found that matches the search string.
 Results are the same as with indexed file lookups, with
 the additional feature that parenthesized substrings from the
 pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
-.SH TCP-BASED TABLES
+.SH "TCP-BASED TABLES"
 .na
 .nf
 .ad
@@ -143,15 +143,14 @@ Results are the same as with indexed file lookups.
 .ad
 .fi
 The table format does not understand quoting conventions.
-.SH CONFIGURATION PARAMETERS
+.SH "CONFIGURATION PARAMETERS"
 .na
 .nf
 .ad
 .fi
-The following \fBmain.cf\fR parameters are especially relevant to
-this topic. See the Postfix \fBmain.cf\fR file for syntax details
-and for default values. Use the \fBpostfix reload\fR command after
-a configuration change.
+The following \fBmain.cf\fR parameters are especially relevant.
+The text below provides only a parameter summary. See
+postconf(5) for more details including examples.
 .IP \fBcanonical_maps\fR
 List of canonical mapping tables.
 .IP \fBrecipient_canonical_maps\fR
@@ -188,7 +187,7 @@ The domain that is appended to locally-posted mail.
 .IP \fBowner_request_special\fR
 Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
 addresses.
-.SH SEE ALSO
+.SH "SEE ALSO"
 .na
 .nf
 cleanup(8) canonicalize and enqueue mail
@@ -197,13 +196,19 @@ virtual(5) virtual domain mapping
 pcre_table(5) format of PCRE tables
 regexp_table(5) format of POSIX regular expression tables
 tcp_table(5) TCP client/server table lookup protocol
-.SH LICENSE
+.SH "README FILES"
+.na
+.nf
+Use "\fBpostconf readme_directory\fR" to locate this information.
+DATABASE_README, Postfix database introduction
+ADDRESS_REWRITING_README, address rewriting howto
+.SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 Wietse Venema

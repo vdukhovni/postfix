@@ -5,7 +5,7 @@
 transport
 \-
 format of Postfix transport table
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 \fBpostmap /etc/postfix/transport\fR
@@ -24,7 +24,8 @@ This mapping overrides the default routing that is built into
 Postfix:
 .IP \fBmydestination\fR
 A list of domains that is by default delivered via
-\fB$local_transport\fR.
+\fB$local_transport\fR. This also includes domains
+that match \fB$inet_interfaces\fR or \fB$proxy_interfaces\fR.
 .IP \fBvirtual_mailbox_domains\fR
 A list of domains that is by default delivered via
 \fB$virtual_transport\fR.
@@ -50,7 +51,7 @@ map where patterns are given as regular expressions, or lookups
 can be directed to TCP-based server. In that case, the lookups are
 done in a slightly different way as described below under
 "REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
-.SH TABLE FORMAT
+.SH "TABLE FORMAT"
 .na
 .nf
 .ad
@@ -74,7 +75,7 @@ The \fItransport\fR field specifies a mail delivery transport
 such as \fBsmtp\fR or \fBlocal\fR. The \fInexthop\fR field
 specifies where and how to deliver mail. More details are given
 in section "RESULT FORMAT".
-.SH TABLE LOOKUP
+.SH "TABLE LOOKUP"
 .na
 .nf
 .ad
@@ -105,7 +106,7 @@ functions as the wild-card pattern).
 Note 2: the null recipient address is looked up as
 \fB$empty_address_recipient\fR@\fB$myhostname\fR (default:
 mailer-daemon@hostname).
-.SH RESULT FORMAT
+.SH "RESULT FORMAT"
 .na
 .nf
 .ad
@@ -129,7 +130,7 @@ resets the nexthop information to the recipient domain.
 
 A null \fItransport\fR field with non-null \fInexthop\fR field
 does not modify the transport information.
-.SH EXAMPLES
+.SH "EXAMPLES"
 .na
 .nf
 .ad
@@ -194,7 +195,7 @@ The error mailer can be used to bounce mail:
 
 This causes all mail for \fIuser\fR@\fIanything\fB.foo.org\fR
 to be bounced.
-.SH REGULAR EXPRESSION TABLES
+.SH "REGULAR EXPRESSION TABLES"
 .na
 .nf
 .ad
@@ -215,7 +216,7 @@ pattern is found that matches the search string.
 Results are the same as with indexed file lookups, with
 the additional feature that parenthesized substrings from the
 pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
-.SH TCP-BASED TABLES
+.SH "TCP-BASED TABLES"
 .na
 .nf
 .ad
@@ -229,15 +230,14 @@ Each lookup operation uses the entire recipient address once.  Thus,
 nor is \fIuser+foo@domain\fR looked up as \fIuser@domain\fR.
 
 Results are the same as with indexed file lookups.
-.SH CONFIGURATION PARAMETERS
+.SH "CONFIGURATION PARAMETERS"
 .na
 .nf
 .ad
 .fi
-The following \fBmain.cf\fR parameters are especially relevant to
-this topic. See the Postfix \fBmain.cf\fR file for syntax details
-and for default values. Use the \fBpostfix reload\fR command after
-a configuration change.
+The following \fBmain.cf\fR parameters are especially relevant.
+The text below provides only a parameter summary. See
+postconf(5) for more details including examples.
 .IP \fBempty_address_recipient\fR
 The address that is looked up instead of the null sender address.
 .IP \fBparent_domain_matches_subdomains\fR
@@ -246,7 +246,7 @@ to match \fIsub.domain.tld\fR (as opposed to
 requiring \fI.domain.tld\fR patterns).
 .IP \fBtransport_maps\fR
 List of transport lookup tables.
-.SH SEE ALSO
+.SH "SEE ALSO"
 .na
 .nf
 postmap(1) create mapping table
@@ -254,13 +254,19 @@ trivial-rewrite(8) rewrite and resolve addresses
 pcre_table(5) format of PCRE tables
 regexp_table(5) format of POSIX regular expression tables
 tcp_table(5) TCP client/server table lookup protocol
-.SH LICENSE
+.SH "README FILES"
+.na
+.nf
+Use "\fBpostconf readme_directory\fR" to locate this information.
+DATABASE_README, Postfix database introduction
+FILTER_README, external content filter
+.SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 Wietse Venema

@@ -1,6 +1,7 @@
 # Global Postfix configuration file. This file lists only a subset
-# of all 300+ parameters. See the sample-xxx.cf files for a full list.
-# 
+# of all 300+ parameters. See the postconf(5) manual page for a
+# complete list.
+#
 # The general format of each line is: parameter = value. Lines
 # that begin with whitespace continue the previous line. A value can
 # contain references to other $names or ${name}s.
@@ -147,12 +148,6 @@ mail_owner = postfix
 # a name matches a lookup key (the right-hand side is ignored).
 # Continue long lines by starting the next line with whitespace.
 #
-# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
-# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
-# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
-# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
-# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
-#
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
 #mydestination = $myhostname, localhost.$mydomain, localhost
@@ -212,8 +207,7 @@ mail_owner = postfix
 # with 450 (try again later) until you are certain that your
 # local_recipient_maps settings are OK.
 #
-#unknown_local_recipient_reject_code = 550
-unknown_local_recipient_reject_code = 450
+unknown_local_recipient_reject_code = 550
 
 # TRUST AND RELAY CONTROL
 
@@ -306,7 +300,7 @@ unknown_local_recipient_reject_code = 450
 # If you're connected via UUCP, see also the default_transport parameter.
 #
 #relayhost = $mydomain
-#relayhost = gateway.my.domain
+#relayhost = [gateway.my.domain]
 #relayhost = uucphost
 #relayhost = [an.ip.add.ress]
 

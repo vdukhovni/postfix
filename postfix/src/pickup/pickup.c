@@ -35,37 +35,52 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values. Use the \fBpostfix reload\fR command after
-/*	a configuration change.
-/* .SH "Content inspection controls"
-/* .IP \fBcontent_filter\fR
-/*	The name of a mail delivery transport that filters mail and that
-/*	either bounces mail or re-injects the result back into Postfix.
-/*	This parameter uses the same syntax as the right-hand side of
-/*	a Postfix transport table.
-/* .IP \fBreceive_override_options\fB
-/*	The following options override \fBmain.cf\fR settings.
-/*	The options are passed on to the downstream cleanup server.
-/* .RS
-/* .IP \fBno_address_mappings\fR
-/*	Disable canonical address mapping, virtual alias map expansion,
-/*	address masquerading, and automatic BCC recipients. Specify this
-/*	if address mapping etc. are to be done \fBafter\fR an external
-/*	content filter.
-/* .IP \fBno_header_body_checks\fR
-/*	Disable header/body_checks. Specify this if header/body_checks
-/*	are to be done \fBafter\fR an external content filter.
-/* .RE
-/* .SH Miscellaneous
+/*	As the pickup daemon is a relatively long-running process, up
+/*	to an hour may pass before a \fBmain.cf\fR change takes effect.
+/*	Use the command "\fBpostfix reload\fR" command to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
-/* .IP \fBqueue_directory\fR
-/*	Top-level directory of the Postfix queue.
+/* .IP "\fBcontent_filter (empty)\fR"
+/*	The name of a mail delivery transport that filters mail after
+/*	it is queued.
+/* .IP "\fBreceive_override_options (empty)\fR"
+/*	What input processing happens before or after an external content
+/*	filter.
+/* MISCELLANEOUS CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBline_length_limit (2048)\fR"
+/*	Upon input, long lines are chopped up into pieces of at most
+/*	this length; upon delivery, long lines are reconstructed.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
 /*	cleanup(8) message canonicalization
 /*	master(8) process manager
+/*	postconf(5) configuration parameters
 /*	sendmail(1), postdrop(8) mail posting agent
 /*	syslogd(8) system logging
 /* LICENSE
@@ -100,6 +115,7 @@
 #include <vstream.h>
 #include <set_ugid.h>
 #include <safe_open.h>
+#include <watchdog.h>
 
 /* Global library. */
 
@@ -456,6 +472,10 @@ static void pickup_service(char *unused_buf, int unused_len,
      * still being written, or garbage. Leave it up to the sysadmin to remove
      * garbage. Keep scanning the queue directory until we stop removing
      * files from it.
+     * 
+     * When we find a file, stroke the watchdog so that it will not bark while
+     * some application is keeping us busy by injecting lots of mail into the
+     * maildrop directory.
      */
     queue_name = MAIL_QUEUE_MAILDROP;		/* XXX should be a list */
     do {
@@ -465,6 +485,7 @@ static void pickup_service(char *unused_buf, int unused_len,
 	    if (mail_open_ok(queue_name, id, &info.st, &path) == MAIL_OPEN_YES) {
 		pickup_init(&info);
 		info.path = mystrdup(path);
+		watchdog_pat();
 		if (pickup_file(&info) == REMOVE_MESSAGE_FILE) {
 		    if (REMOVE(info.path))
 			msg_warn("remove %s: %m", info.path);

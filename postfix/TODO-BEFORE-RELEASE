@@ -1,0 +1,41 @@
+Documentation needed before official release:
+=============================================
+
+- RELEASE_NOTES file with all changes since Postfix version 2.0.
+
+- Document post-install command (perhaps absorb the user interface
+into the postfix command).
+
+- Install qshape command and manual page?
+
+- HTML Overview of all Postfix manual pages; perhaps a clickable
+map like the one in ADDRESS_REWRITING_README.
+
+- ASCII overview of all Postfix manual pages, derived from HTML
+version.
+
+- ASCII Overview of all README files, derived from HTML version.
+
+- CYRUS_README, based on LMTP_README and Luca Berra's writeup.
+
+- Remove CYRUS specific material from LMTP_README
+
+- QMAIL/EZMLM compatibility document.
+
+Things to clean up before official release:
+===========================================
+
+- Clean up the mantools scripts; eliminate unneccesary intermediate
+html step when creating the postconf(5) UNIX manual page.
+
+- Clean up the proto/man/html Makefiles and mantools scripts.
+
+Functionality to be removed before official release:
+====================================================
+
+- The anvil daemon. Its user interface needs to evolve.
+
+- The tcp_table dictionary type. It's a weak protocol, and the
+SMTPD policy delegation protocol provides a superior mechanism.
+
+- Change top-level Makefiles, disable -DSNAPSHOT.

@@ -9092,22 +9092,65 @@ Apologies for any names omitted.
 
 	Misc. documentation fixes by Victor Duchovni.
 
+	Documentation: the README files are now hyperlinked, and
+	are referenced in the on-line manual pages.
+
+	Bugfix: the pickup daemon now strokes the watchdog frequently
+	to prevent the watchdog from barking when mail arrives
+	faster than it can be picked up. File: pickup/pickup.c.
+
+20040123
+
+	Feature: set smtpd_reject_unlisted_{sender,recipient}=no to
+	turn off automatic rejection of non-existent local, virtual
+	or relay addresses. This way it can be made conditional
+	for local clients, always on for remote clients. Files:
+	global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20040124
+
+	Feature: PREPEND in header/body_checks, for message tagging.
+	File: cleanup/cleanup_message.c.
+
 20040126
 
-	Safety: handle the case that main.cf is updated while it
-	is being read. File: util/dict.c.
+	Safety: handle the case that main.cf is updated while it is
+	being read. File: util/dict.c.
+
+	Feature: "instance" attribute that links policy etc. queries
+	to the same message instance.
+
+	Cleanup: the mynetworks setting may now be empty. File:
+	global/mail_params.c.
 
 20040127
 
 	Bugfix: missing flush_init() call. Introduced 20040105.
 	File: postqueue/postqueue.c.
 
+20040128
+
+	Cleanup: clnt_stream derived classes now try to detect that
+	the server has disconnected before sending data and warning
+	about an error. File: global/clnt_stream.c.
+
 20040202
 
 	Bugfix: changed mis-leading warning about text>4096 characters
 	into "unexpected end-of-input". File: util/attr_scan0.c.
 
+20040201
+
+	Feature: sasl_method, sasl_username and sasl_sender attributes
+	in smtpd policy queries. Files: src/smtpd/smtpd_check.c.
+
 20040204
+
+	Safety: smtpd_soft_error_limit now determines when
+	$smtpd_error_sleep_time starts to take effect.
+
+	Cleanup: local(8) and virtual(8) will now create maildirs
+	in a world-writable directory. Files: util/make_dirs.c.
 
 	Bugfix: don't panic on a corrupt queue file.  File:
 	*qmgr/qmgr_message.c.
@@ -9124,6 +9167,11 @@ Apologies for any names omitted.
 	previous "354 End data with <CR><LF>.<CR><LF>" response.
 	File:  smtpd/smtpd.c.
 
+20040220
+
+	Compatibility: accept and ignore the sendmail -bh and -bH
+	mode of operation requests.
+
 20040302
 
 	Bugfix: SMTPD proxy didn't send QUIT as the result of code
@@ -9132,19 +9180,68 @@ Apologies for any names omitted.
 
 20040311
 
-	Bugfix: bad address syntax caused map lookup with zero-length
-	keys.  Problem reported by Andrei Koulik. Files:
-	util/match_ops.c, src/trivial-rewrite/transport.c.
+	Bugfix: bad address syntax was passed to transport map
+	lookups.  Problem reported by Andrei Koulik. File:
+	trivial-rewrite/resolve.c.
+
+20040324
+
+	Portability: ekkoBSD support by Philip Reynolds.
+	Files: makedefs, util/sys_defs.h.
+
+20040325
+
+	Cleanup: smtp_skip_4xx_greeting and smtp_skip_5xx_greeting
+	functionality is moved from connection management to SMTP
+	protocol processing, so that Postfix now logs the server
+	response when a server refuses to provide service.  Files:
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+	Cleanup: smtp_skip_4xx_greeting is no longer configurable;
+	it is now permanently turned on.
+
+20040326
+
+	Workaround: in the trivial-rewrite server, turn on the code
+	to strip trailing "." while rewriting addresses, and change
+	the address resolver to strip trailing "." in a compatible
+	manner.  This does not eliminate the problem that the SMTP
+	server may use a different address for recipient validation
+	than what the cleanup server uses for virtual alias mapping.
+
+20040329
+
+	Bugfix: the SMTP server did not log client (and SASL)
+	information with the real-time content filter was enabled.
+	Files: smtpd/smtpd.c, smtpd/smtpd_sasl_proto.c.
+
+	Compatibility: smtpd_reject_unlisted_sender is turned off
+	by default, to avoid trouble with with in-house software
+	that sends out mail software with an unreplyable address.
+
+20040331
+
+	Bugfix: postdrop should not abandon mail submission after
+	receiving a SIGHUP signal when SIGHUP was ignored by the
+	parent process.  Victor Duchovni, Morgan Stanley.  File:
+	postdrop/postdrop.c.
+
+	Bugfix: parsing bug in PgSQL dictionaries causing UNIX
+	sockets to be ignored. Liviu Daia. Files: global/dict*sql.c.
+
+	Performance: allow MySQL and PgSQL database connections to
+	be closed when idle for more than 1 minute; Liviu Daia.
+	Files: global/dict*sql.c.
 
 Open problems:
 
+	High: randomize deferred mail backoff.
+
+	Med: separate ulimit for delivery to command?
+
+	Med: option to open queue file after MAIL FROM.
+
 	Low: log xdelay (esp. for SMTP and delivery to command).
-
-	Med: smtpd_reject_unknown_sender=yes to control the egress
-	filter.
-
-	Med: cleanup_enable_errors_to=no to control errors-to
-	processing.
 
 	Med: silly queue file bit so that the queue manager doesn't
 	skip files when fast flush is requested while a queue scan

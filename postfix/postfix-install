@@ -131,6 +131,7 @@
 #	This parameter setting is recorded in the installed main.cf file.
 # .IP sample_directory
 #	The destination directory for the Postfix sample configuration files.
+#	This parameter is obsolete as of Postfix version 2.1.
 #	This parameter setting is recorded in the installed main.cf file.
 # .IP readme_directory
 #	The destination directory for the Postfix README files.
@@ -339,7 +340,7 @@ sample_directory_prompt="the destination directory for the Postfix
 sample configuration files."
 
 readme_directory_prompt="the destination directory for the Postfix
-README files. Specify \"no\" if you do not want to install these files."
+README files. You can no longer specify \"no\" here."
 
 # Default settings, just to get started.
 
@@ -430,7 +431,7 @@ done
 
 test -z "$non_interactive" && for name in daemon_directory command_directory \
     queue_directory sendmail_path newaliases_path mailq_path mail_owner \
-    setgid_group manpage_directory sample_directory readme_directory
+    setgid_group manpage_directory readme_directory
 do
     while :
     do
@@ -463,19 +464,27 @@ case "$manpage_directory" in
      exit 1;;
 esac
 
-for path in "$readme_directory"
-do
-   case "$path" in
-   /*) ;;
-   no) ;;
-    *) echo $0: Error: \"$path\" should be \"no\" or an absolute path name. 1>&2
-       exit 1;;
-   esac
-done
+case "$readme_directory" in
+ no) (echo $0: Error: the readme_directory parameter no longer accepts 
+     echo \"no\" values.  Try again with \"readme_directory=/path/name\" 
+     echo on the command line or execute \"make install\" and specify
+     echo readme_directory interactively.) | ${FMT} 1>&2
+     exit 1;;
+esac
+
+#for path in 
+#do
+#   case "$path" in
+#   /*) ;;
+#   no) ;;
+#    *) echo $0: Error: \"$path\" should be \"no\" or an absolute path name. 1>&2
+#       exit 1;;
+#   esac
+#done
 
 for path in "$daemon_directory" "$command_directory" "$queue_directory" \
     "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory" \
-    "$sample_directory"
+    "$readme_directory"
 do
    case "$path" in
    /*) ;;

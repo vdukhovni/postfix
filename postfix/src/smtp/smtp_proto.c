@@ -190,15 +190,24 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
      */
     smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
     if ((except = vstream_setjmp(state->session->stream)) != 0)
-	return (smtp_stream_except(state, except, "sending HELO"));
+	return (smtp_stream_except(state, except,
+				   "receiving the initial SMTP greeting"));
 
     /*
      * Read and parse the server's SMTP greeting banner.
      */
-    if ((resp = smtp_chat_resp(state))->code / 100 != 2)
+    switch ((resp = smtp_chat_resp(state))->code / 100) {
+    case 2:
+	break;
+    case 5:
+	if (var_smtp_skip_5xx_greeting)
+	    resp->code = 400;
+    default:
 	return (smtp_site_fail(state, resp->code,
 			       "host %s refused to talk to me: %s",
-			 session->namaddr, translit(resp->str, "\n", " ")));
+			       session->namaddr,
+			       translit(resp->str, "\n", " ")));
+    }
 
     /*
      * XXX Some PIX firewall versions require flush before ".<CR><LF>" so it

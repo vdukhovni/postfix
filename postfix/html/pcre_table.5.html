@@ -1,24 +1,33 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
 <b>NAME</b>
        pcre_table - format of Postfix PCRE tables
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" pcre:/etc/postfix/</b><i>filename</i>
+       <b>postmap -fq "</b><i>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i>
 
-       <b>postmap -q - pcre:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -fq - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  Postfix  mail system uses optional tables for address
        rewriting or mail routing. These tables are usually in <b>dbm</b>
-       or  <b>db</b>  format. Alternatively, lookup tables can be speci-
-       fied in Perl Compatible Regular Expression form.
+       or <b>db</b> format.
+
+       Alternatively, lookup tables can be specified in Perl Com-
+       patible Regular Expression form. In this case, each  input
+       is  compared  against a list of patterns, and when a match
+       is found the corresponding result is returned.
 
        To find out what types of lookup tables your Postfix  sys-
        tem supports use the <b>postconf -m</b> command.
 
-       To   test  lookup  tables,  use  the  <b>postmap</b>  command  as
+       To  test  lookup  tables,  use  the <b>postmap -fq</b> command as
        described in the SYNOPSIS above.
 
 <b>TABLE FORMAT</b>

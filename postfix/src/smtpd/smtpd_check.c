@@ -1970,7 +1970,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, "PREPEND", cmd_len)) {
 #ifndef TEST
 	/* XXX what about ETRN. */
-	if (not_in_client_helo(state, table, "REDIRECT", reply_class) == 0)
+	if (not_in_client_helo(state, table, "PREPEND", reply_class) == 0)
 	    return (SMTPD_CHECK_DUNNO);
 #endif
 	if (*cmd_text == 0 || is_header(cmd_text) == 0) {
@@ -3000,6 +3000,18 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  state->recipient ? state->recipient : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID,
 			  state->queue_id ? state->queue_id : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_INSTANCE,
+			  STR(state->instance),
+			  ATTR_TYPE_LONG, MAIL_ATTR_SIZE,
+			  (unsigned long) state->msg_size,
+#ifdef USE_SASL_AUTH
+			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
+			  state->sasl_method ? state->sasl_method : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME,
+			  state->sasl_username ? state->sasl_username : "",
+			  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER,
+			  state->sasl_sender ? state->sasl_sender : "",
+#endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
@@ -3610,10 +3622,11 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     state->defer_if_permit_sender = state->defer_if_permit.active;
 
     /*
-     * If the "reject_unlisted_sender" restriction was not applied, and if
-     * mail is not being rejected or discarded, validate the sender here.
+     * If the "reject_unlisted_sender" restriction still needs to be applied,
+     * validate the sender here.
      */
-    if (status != SMTPD_CHECK_REJECT && state->sender_rcptmap_checked == 0
+    if (var_smtpd_rej_unl_from
+	&& status != SMTPD_CHECK_REJECT && state->sender_rcptmap_checked == 0
 	&& state->discard == 0 && *sender)
 	status = check_sender_rcpt_maps(state, sender);
 
@@ -3709,10 +3722,12 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 				  "%s", STR(state->defer_if_permit.reason));
 
     /*
-     * If the "reject_unlisted_recipient" restriction was not applied, and if
-     * mail is not being rejected or discarded, validate the recipient here.
+     * If the "reject_unlisted_recipient" restriction still needs to be
+     * applied, validate the recipient here.
      */
-    if (status != SMTPD_CHECK_REJECT && state->recipient_rcptmap_checked == 0
+    if (var_smtpd_rej_unl_rcpt
+	&& status != SMTPD_CHECK_REJECT
+	&& state->recipient_rcptmap_checked == 0
 	&& state->discard == 0)
 	status = check_recipient_rcpt_maps(state, recipient);
 
@@ -3976,11 +3991,11 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 		 (unsigned long) var_queue_minfree,
 		 (unsigned long) var_message_limit);
     if (BLOCKS(var_queue_minfree) >= fsbuf.block_free
-	|| BLOCKS(var_message_limit) >= fsbuf.block_free / 2) {
+	|| BLOCKS(var_message_limit) >= fsbuf.block_free / 1.5) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_RESOURCE,
 				  "452 Insufficient system storage");
 	msg_warn("not enough free space in mail queue: %lu bytes < "
-		 "2*message size limit",
+		 "1.5*message size limit",
 		 (unsigned long) fsbuf.block_free * fsbuf.block_size);
 	return (STR(error_text));
     }

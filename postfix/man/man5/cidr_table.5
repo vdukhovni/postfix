@@ -5,7 +5,7 @@
 cidr_table
 \-
 format of Postfix CIDR tables
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 \fBpostmap -q "\fIstring\fB" cidr:/etc/postfix/\fIfilename\fR
@@ -23,7 +23,7 @@ supports use the \fBpostconf -m\fR command.
 
 To test lookup tables, use the \fBpostmap\fR command as
 described in the SYNOPSIS above.
-.SH TABLE FORMAT
+.SH "TABLE FORMAT"
 .na
 .nf
 .ad
@@ -42,14 +42,14 @@ are lines whose first non-whitespace character is a `#'.
 .IP "multi-line text"
 A logical line starts with non-whitespace text. A line that
 starts with whitespace continues a logical line.
-.SH SEARCH ORDER
+.SH "SEARCH ORDER"
 .na
 .nf
 .ad
 .fi
 Patterns are applied in the order as specified in the table, until a
 pattern is found that matches the search string.
-.SH EXAMPLE SMTPD ACCESS MAP
+.SH "EXAMPLE SMTPD ACCESS MAP"
 .na
 .nf
 /etc/postfix/main.cf:
@@ -63,13 +63,13 @@ smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
 192.168.1.1             OK
 192.168.0.0/16          REJECT
 .in -4
-.SH SEE ALSO
+.SH "SEE ALSO"
 .na
 .nf
 regexp_table(5) format of regular expression tables
 pcre_table(5) format of PCRE tables
 tcp_table(5) TCP client/server table lookup protocol
-.SH AUTHOR(S)
+.SH "AUTHOR(S)"
 .na
 .nf
 The CIDR table lookup code was originally written by:

@@ -246,6 +246,11 @@
 #        pcre_table(5) Perl Compatible Regular Expression table format
 #        tcp_table(5) TCP client/server table lookup protocol
 # 
+# README FILES
+#        Use postconf readme_directory to locate this information.
+#        DATABASE_README, Postfix database introduction
+#        VIRTUAL_README, domain hosting howto
+# 
 # LICENSE
 #        The  Secure  Mailer  license must be distributed with this
 #        software.

@@ -5,7 +5,7 @@
 proxymap
 \-
 Postfix lookup table proxy server
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .na
 .nf
 \fBproxymap\fR [generic Postfix daemon options]
@@ -67,7 +67,7 @@ The lookup request could not be completed.
 .IP \fBPROXY_STAT_DENY\fR
 The specified table was not approved for access via the
 proxymap service.
-.SH SERVER PROCESS MANAGEMENT
+.SH "SERVER PROCESS MANAGEMENT"
 .na
 .nf
 .ad
@@ -80,7 +80,7 @@ server process limit is not exceeded.
 Each proxymap server terminates after serving
 at least \fB$max_use\fR clients or after \fB$max_idle\fR seconds
 of idle time.
-.SH SECURITY
+.SH "SECURITY"
 .na
 .nf
 .ad
@@ -104,30 +104,51 @@ Problems and transactions are logged to \fBsyslogd\fR(8).
 The proxymap server provides service to multiple clients,
 and must therefore not be used for tables that have high-latency
 lookups.
-.SH CONFIGURATION PARAMETERS
+.SH "CONFIGURATION PARAMETERS"
 .na
 .nf
 .ad
 .fi
-The following main.cf parameters are especially relevant
-to this program. Use the \fBpostfix reload\fR command
-after a configuration change.
-.IP \fBproxy_read_maps\fR
-A list of zero or more parameter values that may contain
-references to Postfix lookup tables. Only table references
-that begin with \fBproxy:\fR are approved for read-only
-access via the proxymap server.
-.SH SEE ALSO
-.na
-.nf
-dict_proxy(3) proxy map client
-.SH LICENSE
+On busy mail systems a long time may pass before proxymap(8) relevant
+changes to \fBmain.cf\fR are picked up. Use the command
+"\fBpostfix reload\fR" to speed up a change.
+
+The text below provides only a parameter summary. See
+postconf(5) for more details including examples.
+.IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+The default location of the Postfix main.cf and master.cf
+configuration files.
+.IP "\fBdaemon_timeout (18000s)\fR"
+How much time a Postfix daemon process may take to handle a
+request before it is terminated by a built-in watchdog timer.
+.IP "\fBipc_timeout (3600s)\fR"
+The time limit for sending or receiving information over an internal
+communication channel.
+.IP "\fBmax_idle (100s)\fR"
+The maximum amount of time that an idle Postfix daemon process
+waits for the next service request before exiting.
+.IP "\fBmax_use (100)\fR"
+The maximal number of connection requests before a Postfix daemon
+process terminates.
+.IP "\fBprocess_id (read-only)\fR"
+The process ID of a Postfix command or daemon process.
+.IP "\fBprocess_name (read-only)\fR"
+The process name of a Postfix command or daemon process.
+.IP "\fBproxy_read_maps (see 'postconf -d' output)\fR"
+The lookup tables that the proxymap(8) server is allowed to access.
+.SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH AUTHOR(S)
+.SH "HISTORY"
+.na
+.nf
+.ad
+.fi
+The proxymap service was introduced with Postfix 2.0.
+.SH "AUTHOR(S)"
 .na
 .nf
 Wietse Venema

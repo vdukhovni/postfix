@@ -53,28 +53,54 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values. Use the \fBpostfix reload\fR command after
-/*	a configuration change.
-/* .SH Miscellaneous
+/*	Changes to \fBmain.cf\fR are picked up automatically as smtpd(8)
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/*
+/*	In the text below, \fItransport\fR is the first field of the entry
+/*	in the \fBmaster.cf\fR file.
+/* RESOURCE AND RATE CONTROL
 /* .ad
 /* .fi
-/* .IP \fBexport_environment\fR
-/*	List of names of environment parameters that can be exported
-/*	to non-Postfix processes.
-/* .IP \fBmail_owner\fR
-/*	The process privileges used while not running an external command.
-/* .SH Resource control
-/* .ad
-/* .fi
-/* .IP \fIservice\fB_time_limit\fR
+/* .IP "\fItransport\fB_time_limit ($command_time_limit)\fR"
 /*	The amount of time the command is allowed to run before it is
-/*	killed with force. \fIservice\fR is the first field of the entry
-/*	in the \fBmaster.cf\fR file. The default time limit is given by the
-/*	global \fBcommand_time_limit\fR configuration parameter.
+/*	terminated.
+/* MISCELLANEOUS
+/* .ad
+/* .fi
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBexport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment variables that a Postfix process will export
+/*	to non-Postfix processes.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmail_owner (postfix)\fR"
+/*	The UNIX system account that owns the Postfix queue and most Postfix
+/*	daemon processes.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
 /*	master(8) process manager
+/*	postconf(5) configuration parameters
 /*	syslogd(8) system logging
 /* LICENSE
 /* .ad

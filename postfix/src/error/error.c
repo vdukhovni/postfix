@@ -13,7 +13,8 @@
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	The error mailer client forces all recipients to bounce, using the
+/*	The error mailer client forces all recipients in the delivery
+/*	request to bounce using the
 /*	domain or host information as the reason for non-delivery, updates
 /*	the queue file and marks recipients as finished, or it informs the
 /*	queue manager that delivery should be tried again at a later time.
@@ -32,25 +33,52 @@
 /*
 /*	Depending on the setting of the \fBnotify_classes\fR parameter,
 /*	the postmaster is notified of bounces and of other trouble.
-/* BUGS
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values. Use the \fBpostfix reload\fR command after
-/*	a configuration change.
-/* .SH Miscellaneous
-/* .ad
-/* .fi
-/* .IP \fBbounce_notice_recipient\fR
-/*	Postmaster for bounce error notices.
-/* .IP \fBnotify_classes\fR
-/*	When this parameter includes the \fBbounce\fR class, send mail to the
-/*	postmaster with the headers of the bounced mail.
+/*	Changes to \fBmain.cf\fR are picked up automatically as error(8)
+/*      processes run for only a limited amount of time. Use the command
+/*      "\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fB2bounce_notice_recipient (postmaster)\fR"
+/*	The recipient of undeliverable mail that cannot be returned to
+/*	the sender.
+/* .IP "\fBbounce_notice_recipient (postmaster)\fR"
+/*	The recipient of postmaster notifications with the message headers
+/*	of mail that Postfix did not deliver and of SMTP conversation
+/*	transcripts of mail that Postfix did not receive.
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBdouble_bounce_sender (double-bounce)\fR"
+/*	The sender address of postmaster notifications that are generated
+/*	by the mail system.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBnotify_classes (resource, software)\fR"
+/*	The list of error classes that are reported to the postmaster.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* SEE ALSO
 /*	bounce(8) non-delivery status reports
 /*	master(8) process manager
+/*	postconf(5) configuration parameters
 /*	qmgr(8) queue manager
 /*	syslogd(8) system logging
 /* LICENSE

@@ -1054,7 +1054,7 @@ static void head_out(void *context, int class, HEADER_OPTS *unused_info,
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-    vstream_fprintf(stream, "%s %ld\t%s\n",
+    vstream_fprintf(stream, "%s %ld\t|%s\n",
 		    class == MIME_HDR_PRIMARY ? "MAIN" :
 		    class == MIME_HDR_MULTIPART ? "MULT" :
 		    class == MIME_HDR_NESTED ? "NEST" :
@@ -1073,7 +1073,7 @@ static void body_out(void *context, int rec_type, const char *buf, int len,
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-    vstream_fprintf(stream, "BODY %c %ld\t", rec_type, (long) offset);
+    vstream_fprintf(stream, "BODY %c %ld\t|", rec_type, (long) offset);
     vstream_fwrite(stream, buf, len);
     if (rec_type == REC_TYPE_NORM)
 	VSTREAM_PUTC('\n', stream);

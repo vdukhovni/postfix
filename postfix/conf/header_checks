@@ -7,41 +7,52 @@
 #        header_checks = pcre:/etc/postfix/header_checks
 #        mime_header_checks = pcre:/etc/postfix/mime_header_checks
 #        nested_header_checks = pcre:/etc/postfix/nested_header_checks
-# 
 #        body_checks = pcre:/etc/postfix/body_checks
 # 
-#        postmap -q "string" pcre:/etc/postfix/filename
-#        postmap -q - pcre:/etc/postfix/filename <inputfile
+#        postmap -fq "string" pcre:/etc/postfix/filename
+#        postmap -fq - pcre:/etc/postfix/filename <inputfile
 # 
 # DESCRIPTION
 #        Postfix  provides  a  simple  built-in  content inspection
 #        mechanism that examines incoming mail one  message  header
-#        or  one  message  body  line  at  a time.  This feature is
-#        implemented by the Postfix cleanup(8) server.
+#        or one message body line at a time. Each input is compared
+#        against a list of patterns, and when a match is found  the
+#        corresponding  action is executed.  This feature is imple-
+#        mented by the Postfix cleanup(8) server.
 # 
 #        Postfix header or body_checks are designed to stop a flood
-#        of  mail from worms or viruses. They are not meant to be a
-#        substitute for content filters that decode attachments and
-#        that do other sophisticated content analyses.
+#        of  mail from worms or viruses; they do not decode attach-
+#        ments, and they do not unzip archives. See  the  documents
+#        referenced  below  in the README FILES section if you need
+#        more sophisticated content analysis.
 # 
 #        Postfix supports four built-in content inspection classes:
 # 
 #        header_checks
-#               These are applied to each  primary  message  header
-#               (except for the MIME related headers).
+#               These   are  applied  to  initial  message  headers
+#               (except for the headers  that  are  processed  with
+#               mime_header_checks).
 # 
 #        mime_header_checks (default: $header_checks)
-#               These  are applied each MIME related message header
+#               These  are  applied to MIME related message headers
 #               only.
 # 
+#               This feature is available in Postfix 2.0 and later.
+# 
 #        nested_header_checks (default: $header_checks)
-#               These  are  applied  to  each  message  header   of
-#               attached   email  messages  (except  for  the  MIME
-#               related headers).
+#               These  are  applied  to message headers of attached
+#               email messages (except for  the  headers  that  are
+#               processed with mime_header_checks).
+# 
+#               This feature is available in Postfix 2.0 and later.
 # 
 #        body_checks
 #               These are applied to all other  content,  including
 #               multi-part message boundaries.
+# 
+#               With Postfix versions before 2.0, all content after
+#               the initial message headers is treated as body con-
+#               tent.
 # 
 #        Note: message headers are examined one logical header at a
 #        time, even when a message  header  spans  multiple  lines.
@@ -127,13 +138,17 @@
 #               body_checks  inspection  of the current message and
 #               affects all recipients.
 # 
-#        DUNNO  Pretend that the input line did not match any  pat-
-#               tern,  and inspect the next input line. This action
+#               This feature is available in Postfix 2.0 and later.
+# 
+#        DUNNO  Pretend  that the input line did not match any pat-
+#               tern, and inspect the next input line. This  action
 #               can be used to shorten the table search.
 # 
-#               For backwards compatibility reasons,  Postfix  also
-#               accepts  OK but it is (and always has been) treated
+#               For  backwards  compatibility reasons, Postfix also
+#               accepts OK but it is (and always has been)  treated
 #               as DUNNO.
+# 
+#               This feature is available in Postfix 2.1 and later.
 # 
 #        FILTER transport:destination
 #               Write a content filter request to  the  queue  file
@@ -148,33 +163,52 @@
 #               the  message.  In  the  case  that  multiple FILTER
 #               actions fire, only the last one is executed.
 # 
+#               This feature is available in Postfix 2.0 and later.
+# 
 #        HOLD optional text...
-#               Arrange for the message to be placed  on  the  hold
-#               queue,  and  inspect the next input line.  The mes-
-#               sage remains on hold until someone  either  deletes
-#               it  or  releases it for delivery.  Log the optional
+#               Arrange  for  the  message to be placed on the hold
+#               queue, and inspect the next input line.   The  mes-
+#               sage  remains  on hold until someone either deletes
+#               it or releases it for delivery.  Log  the  optional
 #               text if specified, otherwise log a generic message.
 # 
-#               Mail  that  is  placed on hold can be examined with
-#               the postcat(1) command, and  can  be  destroyed  or
+#               Mail that is placed on hold can  be  examined  with
+#               the  postcat(1)  command,  and  can be destroyed or
 #               released with the postsuper(1) command.
 # 
-#               Note:  this  action  affects  all recipients of the
+#               Note: this action affects  all  recipients  of  the
 #               message.
+# 
+#               This feature is available in Postfix 2.0 and later.
 # 
 #        IGNORE Delete the current line from the input and  inspect
 #               the next input line.
 # 
+#        PREPEND text...
+#               Prepend  one  line  with  the  specified  text  and
+#               inspect the next input line.
+# 
+#               Note: the  prepended  text  is  output  immediately
+#               before the input that triggered the PREPEND action.
+#               A body action cannot prepend a message header.
+# 
+#               Note: this action cannot be used to prepend  multi-
+#               line text.
+# 
+#               This feature is available in Postfix 2.1 and later.
+# 
 #        REDIRECT user@domain
-#               Write  a  message  redirection request to the queue
-#               file and inspect the next  input  line.  After  the
+#               Write a message redirection request  to  the  queue
+#               file  and  inspect  the  next input line. After the
 #               message is queued, it will be sent to the specified
 #               address instead of the intended recipient(s).
 # 
-#               Note: this action overrides the FILTER action,  and
-#               affects  all recipients of the message. If multiple
-#               REDIRECT actions fire, only the last  one  is  exe-
+#               Note:  this action overrides the FILTER action, and
+#               affects all recipients of the message. If  multiple
+#               REDIRECT  actions  fire,  only the last one is exe-
 #               cuted.
+# 
+#               This feature is available in Postfix 2.1 and later.
 # 
 #        REJECT optional text...
 #               Reject  the  entire  message.  Reply  with optional
@@ -201,6 +235,10 @@
 #        excluded from inspection. Examples of such message headers
 #        are From:, To:, Message-ID:, Date:.
 # 
+#        Message  headers  deleted by the cleanup(8) daemon will be
+#        examined before they are deleted. Examples are: Bcc:, Con-
+#        tent-Length:, Return-Path:.
+# 
 # CONFIGURATION PARAMETERS
 #        body_checks
 #               Lookup tables with content filter rules for message
@@ -220,7 +258,7 @@
 #        nested_header_checks (default: $header_checks)
 #               Lookup tables with content filter rules for message
 #               header  lines:  respectively,  these are applied to
-#               the primary message  headers  (not  including  MIME
+#               the initial message  headers  (not  including  MIME
 #               headers),  to the MIME headers anywhere in the mes-
 #               sage, and to the initial headers of  attached  mes-
 #               sages.
@@ -235,7 +273,7 @@
 #               MIME  related  message  headers; all text after the
 #               initial message headers is considered to be part of
 #               the  message body. This means that header_checks is
-#               applied to all the  primary  message  headers,  and
+#               applied to all the  initial  message  headers,  and
 #               that body_checks is applied to the remainder of the
 #               message.
 # 
@@ -264,6 +302,13 @@
 #        postmap(1) Postfix lookup table management
 #        postsuper(1) Postfix janitor
 #        postcat(1) show Postfix queue file contents
+# 
+# README FILES
+#        Use "postconf readme_directory" to locate this information.
+#        DATABASE_README, Postfix database introduction
+#        FILTER_README, external content filter
+#        SMTPD_PROXY_README, real-time external content filter
+#        BACKSCATTER_README, blocking returned forged mail
 # 
 # LICENSE
 #        The Secure Mailer license must be  distributed  with  this

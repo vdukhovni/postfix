@@ -97,6 +97,8 @@ case "$SYSTEM.$RELEASE" in
 		;;
   OpenBSD.3*)	SYSTYPE=OPENBSD3
 		;;
+  ekkoBSD.1*)	SYSTYPE=EKKOBSD1
+		;;
    NetBSD.1*)	SYSTYPE=NETBSD1
 		;;
    BSD/OS.2*)	SYSTYPE=BSDI2
@@ -218,7 +220,7 @@ case "$SYSTEM.$RELEASE" in
 		;;
      IRIX*.5.*)	SYSTYPE=IRIX5
 		# Use the native compiler by default
-		: ${CC=cc}
+		: ${CC=cc} ${DEBUG="-g3"}
 		RANLIB=echo
 		;;
      IRIX*.6.*)	SYSTYPE=IRIX6

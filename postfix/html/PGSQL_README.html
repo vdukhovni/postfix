@@ -1,0 +1,207 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix PostgreSQL Howto</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix PostgreSQL Howto</h1>
+
+<hr>
+
+<h2>Introduction</h2>
+
+<p> The Postfix pgsql map type allows you to hook up Postfix to a
+PostgreSQL database.  This implementation allows for multiple pgsql
+databases: you can use one for a <a href="virtual.5.html">virtual(5)</a> table, one for an
+<a href="access.5.html">access(5)</a> table, and one for an <a href="aliases.5.html">aliases(5)</a> table if you want.  You
+can specify multiple servers for the same database, so that Postfix
+can switch to a good database server if one goes bad.  </p>
+
+<p> Busy mail servers using pgsql maps will generate lots of
+concurrent pgsql clients, so the pgsql server(s) should be run with
+this fact in mind. You can reduce the number of concurrent pgsql
+clients by using the Postfix <a href="proxymap.8.html">proxymap(8)</a> service. </p>
+
+<h2>Building Postfix with PostgreSQL support</h2>
+
+<p> Note: to use pgsql with Debian GNU/Linux's Postfix, all you
+need to do is to install the postfix-pgsql package and you're done.
+There is no need to recompile Postfix. </p>
+
+<p> In order to build Postfix with pgsql map support, you specify
+-DHAS_PGSQL, the directory with the PostgreSQL header files, and
+the location of the libpq library file. </p>
+
+<p> For example: </p>
+
+<blockquote>
+<pre>
+% make tidy
+% make -f Makefile.init makefiles \
+        'CCARGS=-DHAS_PGSQL -I/usr/local/include/pgsql' \
+        'AUXLIBS=-L/usr/local/lib -lpq'
+</pre>
+</blockquote>
+
+<p> Then just run 'make'.  </p>
+
+<h2>Configuring PostgreSQL lookup tables</h2>
+
+<p> Once Postfix is built with pgsql support, you can specify a
+map type in main.cf like this: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="PGSQL_README.html">pgsql</a>:/etc/postfix/pgsql-aliases.cf
+</pre>
+</blockquote>
+
+<p> The file /etc/postfix/pgsql-aliases.cf specifies lots of
+information telling postfix how to reference the pgsql database.
+An example pgsql map config file follows: </p>
+
+<blockquote>
+<pre>
+#
+# pgsql config file for alias lookups on postfix
+# comments are ok.
+#
+
+# the user name and password to log into the pgsql server
+user = someone
+password = some_password 
+
+# the database name on the servers
+dbname = customer_database
+
+# the table name
+table = mxaliases
+
+# these should be obvious :-)
+select_field = forw_addr
+where_field = alias
+
+# you may specify additional_conditions here
+additional_conditions = and status = 'paid'
+
+# the above variables will result in a query of the form: 
+#
+# select forw_addr from mxaliases where alias = '$lookup' and status = 'paid'
+#
+# ($lookup is escaped so if it contains single quotes or other odd
+# characters, it will not cause a parse error in the sql).
+
+# Alternatively, you can override the default SELECT statement (and the
+# above table, select_field, where_field, and additional_conditions) by
+# specifying the query:
+
+#query = select forw_addr from mxaliases where alias = '%s' and status = 'paid'
+
+# Before the query is actually issued, all occurences of %s are replaced
+# with the address to look up, %u are replaced with the user portion,
+# and %d with the domain portion.
+
+# If you just want to use a PostgreSQL function, you can ignore the
+# table name, select_field, where_field and additional_conditions, and
+# just specify a database function to call:
+
+#select_function = my_lookup_user_alias
+
+# This is equivalent to:
+#
+#query = select my_lookup_user_alias('%s')
+#
+# and overrides both the query parameter and the table-related fields
+# above.
+#
+# As of 25-Jun-2002, if the function returns a single row and a single
+# column AND that value is NULL, then the result will be treated as
+# if the key was not in the dictionary.
+#
+# Future versions of PG will allow functions to return result sets.
+
+#
+# The hosts that postfix will try to connect to and query from (in the
+# order listed); specify unix: for unix-domain sockets, inet: for TCP
+# connections (default)
+hosts = host1.some.domain host2.some.domain unix:/file/name
+
+# end pgsql config file
+</pre>
+</blockquote>
+
+<p> Alternatively, these parameters can be defined in main.cf.  To
+that effect, the map should be specified as "<a href="PGSQL_README.html">pgsql</a>:<i>name</i>",
+and the parameters should be prefixed with the name you've given
+the map in its definition, and an underscore.  For example, the
+above settings can also be written in main.cf as: </p>
+
+<blockquote>
+<pre>
+# pgsql definitions in main.cf
+
+<a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="PGSQL_README.html">pgsql</a>:pgsqlsource
+
+pgsqlsource_user = someone
+pgsqlsource_password = some_password
+pgsqlsource_dbname = customer_database
+pgsqlsource_table = mxaliases
+pgsqlsource_select_field = forw_addr
+pgsqlsource_where_field = alias
+pgsqlsource_additional_conditions = and status = 'paid'
+# pgsqlsource_select_function = my_lookup_user_alias
+pgsqlsource_hosts = host1.some.domain host2.some.domain unix:/file/name
+
+# end pgsql definitions
+</pre>
+</blockquote>
+
+<h2>Using mirrored databases</h2>
+
+<p> Sites that have a need for multiple mail exchangers may enjoy
+the convenience of using a networked mailer database, but do not
+want to introduce a single point of failure to their system.   </p>
+
+<p> For this reason we've included the ability to have Postfix
+reference multiple hosts for access to a single pgsql map.  This
+will work if sites set up mirrored pgsql databases on two or more
+hosts. </p>
+
+<p> Whenever queries fail with an error at one host, the rest of
+the hosts will be tried in order.  Each host that is in an error
+state will undergo a reconnection attempt every so often, and if
+no pgsql server hosts are reachable, then mail will be deferred
+until at least one of those hosts is reachable. </p>
+
+<h2>Credits</h2>
+
+<ul>
+
+<li> This code is based upon the Postfix mysql map by Scott Cotton
+and Joshua Marcus, IC Group, Inc.
+
+<li> The PostgreSQL changes were done by Aaron Sethman.
+
+<li> Updates for Postfix 1.1.x and PostgreSQL 7.1+ and support for
+calling stored procedures were added by Philip Warner.
+
+<li> LaMont Jones was the initial Postfix pgsql maintainer.
+
+<li> Liviu Daia revised the configuration interface and added the
+main.cf configuration feature.
+
+</ul>
+
+</body>
+
+</html>

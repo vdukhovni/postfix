@@ -1,55 +1,71 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
 
 <b>NAME</b>
-       header_checks - Postfix built-in header/body inspection
+       <a href="postconf.5.html#header_checks">header_checks</a> - Postfix built-in header/body inspection
 
 <b>SYNOPSIS</b>
-       <b>header_checks = pcre:/etc/postfix/header_checks</b>
-       <b>mime_header_checks = pcre:/etc/postfix/mime_header_checks</b>
-       <b>nested_header_checks = pcre:/etc/postfix/nested_header_checks</b>
+       <b><a href="postconf.5.html#header_checks">header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/header_checks</b>
+       <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/mime_header_checks</b>
+       <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/nested_header_checks</b>
+       <b><a href="postconf.5.html#body_checks">body_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/body_checks</b>
 
-       <b>body_checks = pcre:/etc/postfix/body_checks</b>
-
-       <b>postmap -q "</b><i>string</i><b>" pcre:/etc/postfix/</b><i>filename</i>
-       <b>postmap -q - pcre:/etc/postfix/</b><i>filename &</i>lt;<i>inputfile</i>
+       <b>postmap -fq "</b><i>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -fq - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        Postfix  provides  a  simple  built-in  content inspection
        mechanism that examines incoming mail one  message  header
-       or  one  message  body  line  at  a time.  This feature is
-       implemented by the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> server.
+       or one message body line at a time. Each input is compared
+       against a list of patterns, and when a match is found  the
+       corresponding  action is executed.  This feature is imple-
+       mented by the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> server.
 
-       Postfix header or body_checks are designed to stop a flood
-       of  mail from worms or viruses. They are not meant to be a
-       substitute for content filters that decode attachments and
-       that do other sophisticated content analyses.
+       Postfix header or <a href="postconf.5.html#body_checks">body_checks</a> are designed to stop a flood
+       of  mail from worms or viruses; they do not decode attach-
+       ments, and they do not unzip archives. See  the  documents
+       referenced  below  in the README FILES section if you need
+       more sophisticated content analysis.
 
        Postfix supports four built-in content inspection classes:
 
-       <b>header_checks</b>
-              These are applied to each  primary  message  header
-              (except for the MIME related headers).
+       <b><a href="postconf.5.html#header_checks">header_checks</a></b>
+              These   are  applied  to  initial  message  headers
+              (except for the headers  that  are  processed  with
+              <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>).
 
-       <b>mime_header_checks</b> (default: <b>$header_checks</b>)
-              These  are applied each MIME related message header
+       <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b> (default: <b>$<a href="postconf.5.html#header_checks">header_checks</a></b>)
+              These  are  applied to MIME related message headers
               only.
 
-       <b>nested_header_checks</b> (default: <b>$header_checks</b>)
-              These  are  applied  to  each  message  header   of
-              attached   email  messages  (except  for  the  MIME
-              related headers).
+              This feature is available in Postfix 2.0 and later.
 
-       <b>body_checks</b>
+       <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a></b> (default: <b>$<a href="postconf.5.html#header_checks">header_checks</a></b>)
+              These  are  applied  to message headers of attached
+              email messages (except for  the  headers  that  are
+              processed with <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>).
+
+              This feature is available in Postfix 2.0 and later.
+
+       <b><a href="postconf.5.html#body_checks">body_checks</a></b>
               These are applied to all other  content,  including
               multi-part message boundaries.
+
+              With Postfix versions before 2.0, all content after
+              the initial message headers is treated as body con-
+              tent.
 
        Note: message headers are examined one logical header at a
        time, even when a message  header  spans  multiple  lines.
        Body lines are always examined one line at a time.
 
 <b>TABLE FORMAT</b>
-       This  document  assumes  that header and body_checks rules
+       This  document  assumes  that header and <a href="postconf.5.html#body_checks">body_checks</a> rules
        are specified in the form of  Postfix  regular  expression
        lookup  tables.  Usually  the best performance is obtained
        with <b>pcre</b> (Perl Compatible Regular Expression) tables, but
@@ -125,16 +141,20 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               erwise log a generic message.
 
               Note:  this  action  disables  further  header   or
-              body_checks  inspection  of the current message and
+              <a href="postconf.5.html#body_checks">body_checks</a>  inspection  of the current message and
               affects all recipients.
 
-       <b>DUNNO</b>  Pretend that the input line did not match any  pat-
-              tern,  and inspect the next input line. This action
+              This feature is available in Postfix 2.0 and later.
+
+       <b>DUNNO</b>  Pretend  that the input line did not match any pat-
+              tern, and inspect the next input line. This  action
               can be used to shorten the table search.
 
-              For backwards compatibility reasons,  Postfix  also
-              accepts  <b>OK</b> but it is (and always has been) treated
+              For  backwards  compatibility reasons, Postfix also
+              accepts <b>OK</b> but it is (and always has been)  treated
               as <b>DUNNO</b>.
+
+              This feature is available in Postfix 2.1 and later.
 
        <b>FILTER</b> <i>transport:destination</i>
               Write a content filter request to  the  queue  file
@@ -142,40 +162,59 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               plete message is received it will be  sent  through
               the specified external content filter.  More infor-
               mation about external content  filters  is  in  the
-              Postfix FILTER_README file.
+              Postfix <a href="FILTER_README.html">FILTER_README</a> file.
 
-              Note:   this  action  overrides  the  <b>main.cf  con-</b>
-              <b>tent_filter</b> setting, and affects all recipients  of
+              Note:   this  action  overrides  the  <b>main.cf  <a href="postconf.5.html#content_filter">con</a>-</b>
+              <b><a href="postconf.5.html#content_filter">tent_filter</a></b> setting, and affects all recipients  of
               the  message.  In  the  case  that  multiple <b>FILTER</b>
               actions fire, only the last one is executed.
 
+              This feature is available in Postfix 2.0 and later.
+
        <b>HOLD</b> <i>optional text...</i>
-              Arrange for the message to be placed  on  the  <b>hold</b>
-              queue,  and  inspect the next input line.  The mes-
-              sage remains on <b>hold</b> until someone  either  deletes
-              it  or  releases it for delivery.  Log the optional
+              Arrange  for  the  message to be placed on the <b>hold</b>
+              queue, and inspect the next input line.   The  mes-
+              sage  remains  on <b>hold</b> until someone either deletes
+              it or releases it for delivery.  Log  the  optional
               text if specified, otherwise log a generic message.
 
-              Mail  that  is  placed on hold can be examined with
-              the <a href="postcat.1.html"><b>postcat</b>(1)</a> command, and  can  be  destroyed  or
+              Mail that is placed on hold can  be  examined  with
+              the  <a href="postcat.1.html"><b>postcat</b>(1)</a>  command,  and  can be destroyed or
               released with the <a href="postsuper.1.html"><b>postsuper</b>(1)</a> command.
 
-              Note:  this  action  affects  all recipients of the
+              Note: this action affects  all  recipients  of  the
               message.
+
+              This feature is available in Postfix 2.0 and later.
 
        <b>IGNORE</b> Delete the current line from the input and  inspect
               the next input line.
 
+       <b>PREPEND</b> <i>text...</i>
+              Prepend  one  line  with  the  specified  text  and
+              inspect the next input line.
+
+              Note: the  prepended  text  is  output  immediately
+              before the input that triggered the <b>PREPEND</b> action.
+              A body action cannot prepend a message header.
+
+              Note: this action cannot be used to prepend  multi-
+              line text.
+
+              This feature is available in Postfix 2.1 and later.
+
        <b>REDIRECT</b> <i>user@domain</i>
-              Write  a  message  redirection request to the queue
-              file and inspect the next  input  line.  After  the
+              Write a message redirection request  to  the  queue
+              file  and  inspect  the  next input line. After the
               message is queued, it will be sent to the specified
               address instead of the intended recipient(s).
 
-              Note: this action overrides the <b>FILTER</b> action,  and
-              affects  all recipients of the message. If multiple
-              <b>REDIRECT</b> actions fire, only the last  one  is  exe-
+              Note:  this action overrides the <b>FILTER</b> action, and
+              affects all recipients of the message. If  multiple
+              <b>REDIRECT</b>  actions  fire,  only the last one is exe-
               cuted.
+
+              This feature is available in Postfix 2.1 and later.
 
        <b>REJECT</b> <i>optional text...</i>
               Reject  the  entire  message.  Reply  with <i>optional</i>
@@ -183,7 +222,7 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               wise reply with a generic error message.
 
               Note:   this  action  disables  further  header  or
-              body_checks inspection of the current  message  and
+              <a href="postconf.5.html#body_checks">body_checks</a> inspection of the current  message  and
               affects all recipients.
 
        <b>WARN</b> <i>optional text...</i>
@@ -194,7 +233,7 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
 
 <b>BUGS</b>
        Many people overlook the main limitations  of  header  and
-       body_checks  rules.   These  rules  operate on one logical
+       <a href="postconf.5.html#body_checks">body_checks</a>  rules.   These  rules  operate on one logical
        message header or one body line at a time, and a  decision
        made for one line is not carried over to the next line.
 
@@ -202,26 +241,30 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
        excluded from inspection. Examples of such message headers
        are <b>From:</b>, <b>To:</b>, <b>Message-ID:</b>, <b>Date:</b>.
 
+       Message  headers  deleted by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon will be
+       examined before they are deleted. Examples are: <b>Bcc:, Con-</b>
+       <b>tent-Length:</b>, <b>Return-Path:</b>.
+
 <b>CONFIGURATION PARAMETERS</b>
-       <b>body_checks</b>
+       <b><a href="postconf.5.html#body_checks">body_checks</a></b>
               Lookup tables with content filter rules for message
               body lines.  These filters see one physical line at
-              a  time,  in  chunks  of at most <b>$line_length_limit</b>
+              a  time,  in  chunks  of at most <b>$<a href="postconf.5.html#line_length_limit">line_length_limit</a></b>
               bytes.
 
-       <b>body_checks_size_limit</b>
+       <b><a href="postconf.5.html#body_checks_size_limit">body_checks_size_limit</a></b>
               The amount of  content  per  message  body  segment
-              (attachment) that is subjected to <b>$body_checks</b> fil-
+              (attachment) that is subjected to <b>$<a href="postconf.5.html#body_checks">body_checks</a></b> fil-
               tering.
 
-       <b>header_checks</b>
+       <b><a href="postconf.5.html#header_checks">header_checks</a></b>
 
-       <b>mime_header_checks</b> (default: <b>$header_checks</b>)
+       <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b> (default: <b>$<a href="postconf.5.html#header_checks">header_checks</a></b>)
 
-       <b>nested_header_checks</b> (default: <b>$header_checks</b>)
+       <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a></b> (default: <b>$<a href="postconf.5.html#header_checks">header_checks</a></b>)
               Lookup tables with content filter rules for message
               header  lines:  respectively,  these are applied to
-              the primary message  headers  (not  including  MIME
+              the initial message  headers  (not  including  MIME
               headers),  to the MIME headers anywhere in the mes-
               sage, and to the initial headers of  attached  mes-
               sages.
@@ -229,18 +272,18 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               Note:  these filters see one logical message header
               at a time, even when a message header spans  multi-
               ple  lines.  Message  headers  that are longer than
-              <b>$header_size_limit</b> characters are truncated.
+              <b>$<a href="postconf.5.html#header_size_limit">header_size_limit</a></b> characters are truncated.
 
-       <b>disable_mime_input_processing</b>
+       <b><a href="postconf.5.html#disable_mime_input_processing">disable_mime_input_processing</a></b>
               While receiving mail, give no special treatment  to
               MIME  related  message  headers; all text after the
               initial message headers is considered to be part of
-              the  message body. This means that <b>header_checks</b> is
-              applied to all the  primary  message  headers,  and
-              that <b>body_checks</b> is applied to the remainder of the
+              the  message body. This means that <b><a href="postconf.5.html#header_checks">header_checks</a></b> is
+              applied to all the  initial  message  headers,  and
+              that <b><a href="postconf.5.html#body_checks">body_checks</a></b> is applied to the remainder of the
               message.
 
-              Note: when used in this  manner,  <b>body_checks</b>  will
+              Note: when used in this  manner,  <b><a href="postconf.5.html#body_checks">body_checks</a></b>  will
               process  a  multi-line message header one line at a
               time.
 
@@ -265,6 +308,12 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
        <a href="postmap.1.html">postmap(1)</a> Postfix lookup table management
        <a href="postsuper.1.html">postsuper(1)</a> Postfix janitor
        <a href="postcat.1.html">postcat(1)</a> show Postfix queue file contents
+
+<b>README FILES</b>
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix database introduction
+       <a href="FILTER_README.html">FILTER_README</a>, external content filter
+       <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a>, real-time external content filter
+       <a href="BACKSCATTER_README.html">BACKSCATTER_README</a>, blocking returned forged mail
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this

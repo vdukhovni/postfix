@@ -1,4 +1,9 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> </title>
+</head> <body> <pre>
 ANVIL(8)                                                 ANVIL(8)
 
 <b>NAME</b>
@@ -82,24 +87,61 @@ ANVIL(8)                                                 ANVIL(8)
        the last reported client are ignored.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  program.  Use the <b>postfix reload</b> command after a
-       configuration change.
+       Changes to <b>main.cf</b> are picked up automatically as <a href="anvil.8.html">anvil(8)</a>
+       processes  run  for only a limited amount of time. Use the
+       command "<b>postfix reload</b>" to speed up a change.
 
-       <b>client_rate_time_unit</b>
-              The unit of time over which  connection  rates  are
-              calculated.
+       The text below provides  only  a  parameter  summary.  See
+       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b>client_connection_status_update_time</b>
-              Time  interval  for  logging the maximal connection
-              count and connection rate information.
+       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+              The  default  location  of  the Postfix main.cf and
+              master.cf configuration files.
+
+       <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
+              built-in watchdog timer.
+
+       <b><a href="postconf.5.html#client_rate_time_unit">client_rate_time_unit</a> (60s)</b>
+              The time unit over which  client  connection  rates
+              and other rates are calculated.
+
+       <b><a href="postconf.5.html#client_event_status_update_time">client_event_status_update_time</a> (600s)</b>
+              How  frequently  the  <a href="anvil.8.html">anvil(8)</a>  connection and rate
+              limiting server logs peak usage information.
+
+       <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
+              The time limit for sending or receiving information
+              over an internal communication channel.
+
+       <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
+              before exiting.
+
+       <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
+              The  maximal number of connection requests before a
+              Postfix daemon process terminates.
+
+       <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
+              The process ID of a Postfix command or daemon  pro-
+              cess.
+
+       <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
+              The  process  name  of  a Postfix command or daemon
+              process.
 
 <b>SEE ALSO</b>
+       <a href="postconf.5.html">postconf(5)</a> configuration parameters
        <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this
        software.
+
+<b>HISTORY</b>
+       The anvil service was introduced with Postfix 2.1.
 
 <b>AUTHOR(S)</b>
        Wietse Venema
