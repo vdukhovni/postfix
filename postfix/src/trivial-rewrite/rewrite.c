@@ -151,12 +151,9 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
 	/*
 	 * Append missing @origin
 	 */
-#define NO_TOKEN_LIMIT	0
-
 	else if (var_append_at_myorigin != 0) {
 	    domain = tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
-	    tok822_sub_append(tree, tok822_scan(var_myorigin, (TOK822 **) 0,
-						NO_TOKEN_LIMIT));
+	    tok822_sub_append(tree, tok822_scan(var_myorigin, (TOK822 **) 0));
 	}
     }
 
@@ -168,8 +165,7 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
 	&& tok822_find_type(domain, TOK822_DOMLIT) == 0
 	&& tok822_find_type(domain, '.') == 0) {
 	tok822_sub_append(tree, tok822_alloc('.', (char *) 0));
-	tok822_sub_append(tree, tok822_scan(var_mydomain, (TOK822 **) 0,
-					    NO_TOKEN_LIMIT));
+	tok822_sub_append(tree, tok822_scan(var_mydomain, (TOK822 **) 0));
     }
 
     /*

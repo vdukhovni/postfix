@@ -66,10 +66,10 @@ fork_delay = 1s
 #
 header_size_limit = 102400
 
-# The header_address_token_limit limits the amount of memory and CPU
-# that Postfix will spend while rewriting addresses in message headers.
-# The limit is expressed as a token count. Tokens beyond the limit are
-# discarded.
+# The header_address_token_limit limits the amount of memory that
+# Postfix will spend while rewriting addresses in message headers.
+# The limit is expressed as a token count. Tokens beyond the limit
+# are discarded.
 # 
 header_address_token_limit = 10240
 

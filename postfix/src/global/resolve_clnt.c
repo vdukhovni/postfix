@@ -133,7 +133,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
     /*
      * Peek at the cache.
      */
-    if (strcmp(addr, STR(last_addr)) == 0) {
+    if (*addr && strcmp(addr, STR(last_addr)) == 0) {
 	vstring_strcpy(reply->transport, STR(last_reply.transport));
 	vstring_strcpy(reply->nexthop, STR(last_reply.nexthop));
 	vstring_strcpy(reply->recipient, STR(last_reply.recipient));
@@ -179,7 +179,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 			 STR(reply->nexthop), STR(reply->recipient));
 	    if (STR(reply->transport)[0] == 0)
 		msg_warn("%s: null transport result for: <%s>", myname, addr);
-	    else if (STR(reply->recipient)[0] == 0)
+	    else if (STR(reply->recipient)[0] == 0 && *addr != 0)
 		msg_warn("%s: null recipient result for: <%s>", myname, addr);
 	    else
 		break;

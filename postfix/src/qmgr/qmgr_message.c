@@ -534,6 +534,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    if (!STREQ(recipient->address, STR(reply.recipient)))
 		UPDATE(recipient->address, STR(reply.recipient));
 	}
+	if (recipient->address[0] == 0) {
+	    qmgr_bounce_recipient(message, recipient,
+				  "null recipient address");
+	    continue;
+	}
 
 	/*
 	 * XXX The nexthop destination is also used as lookup key for the

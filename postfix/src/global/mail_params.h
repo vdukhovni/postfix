@@ -1558,6 +1558,10 @@ extern bool var_strict_encoding;
 #define DEF_SENDER_ROUTING		0
 extern bool var_sender_routing;
 
+#define VAR_XPORT_NULL_KEY	"transport_null_address_lookup_key"
+#define DEF_XPORT_NULL_KEY	"<>"
+extern char *var_xport_null_key;
+
 /* LICENSE
 /* .ad
 /* .fi

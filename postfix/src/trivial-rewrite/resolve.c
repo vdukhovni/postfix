@@ -134,13 +134,10 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	/*
 	 * A lone empty string becomes the postmaster.
 	 */
-#define NO_TOKEN_LIMIT	0
-
 	if (tree->head == tree->tail && tree->head->type == TOK822_QSTRING
 	    && VSTRING_LEN(tree->head->vstr) == 0) {
 	    tok822_free(tree->head);
-	    tree->head = tok822_scan(MAIL_ADDR_POSTMASTER, &tree->tail,
-				     NO_TOKEN_LIMIT);
+	    tree->head = tok822_scan(MAIL_ADDR_POSTMASTER, &tree->tail);
 	    rewrite_tree(REWRITE_CANON, tree);
 	}
 
@@ -196,10 +193,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	if (saved_domain) {
 	    tok822_sub_append(tree, saved_domain);
 	    saved_domain = 0;
-	} else {
+	} else if (tree->head) {
 	    tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
-	    tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0,
-						NO_TOKEN_LIMIT));
+	    tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
 	}
     }
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
@@ -247,7 +243,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * transport maps cannot return zero-length hostnames.
      */
     if (*var_transport_maps)
-	transport_lookup(strrchr(STR(nextrcpt), '@') + 1, channel, nexthop);
+	transport_lookup(STR(nextrcpt), channel, nexthop);
 
     /*
      * Clean up.

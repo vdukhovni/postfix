@@ -121,8 +121,23 @@ OK
 >>> rcpt reject@dunno.domain
 ./smtpd_check: reject: RCPT from bar.duno.com[44.33.44.33]: 554 <reject@dunno.domain>: Recipient address rejected: Access denied; from=<bad-sender@ok.domain> to=<reject@dunno.domain>
 554 <reject@dunno.domain>: Recipient address rejected: Access denied
+>>> # Expect: REJECT
+>>> recipient_delimiter +
+OK
+>>> rcpt reject+ext@dunno.domain
+./smtpd_check: reject: RCPT from bar.duno.com[44.33.44.33]: 554 <reject+ext@dunno.domain>: Recipient address rejected: Access denied; from=<bad-sender@ok.domain> to=<reject+ext@dunno.domain>
+554 <reject+ext@dunno.domain>: Recipient address rejected: Access denied
+>>> recipient_delimiter |
+OK
 >>> # Expect: OK
 >>> rcpt ok@dunno.domain
+OK
+>>> # Expect: OK
+>>> recipient_delimiter +
+OK
+>>> rcpt ok+ext@dunno.domain
+OK
+>>> recipient_delimiter |
 OK
 >>> # Expect: OK
 >>> rcpt anyone@dunno.domain

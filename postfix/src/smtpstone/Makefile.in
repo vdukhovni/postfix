@@ -34,6 +34,8 @@ qmqp-source: qmqp-source.o $(LIBS)
 
 test:	$(TESTPROG)
 
+tests:	test
+
 update: ../../bin/smtp-source ../../bin/smtp-sink ../../bin/qmqp-source
 
 ../../bin/smtp-source: smtp-source

@@ -35,6 +35,8 @@ $(PROG): $(OBJS) $(LIBS)
 
 test:	$(TESTPROG)
 
+tests:	test
+
 $(LIB):	$(LIB_OBJ)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)

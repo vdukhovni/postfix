@@ -196,7 +196,7 @@ smtpd_check.o: ../../include/mail_conf.h
 smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/mail_addr_find.h
 smtpd_check.o: ../../include/match_parent_style.h
-smtpd_check.o: ../../include/split_addr.h
+smtpd_check.o: ../../include/strip_addr.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../../include/mail_stream.h
 smtpd_check.o: smtpd_sasl_glue.h

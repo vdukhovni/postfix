@@ -591,17 +591,15 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * XXX We have only one address parser, written according to the rules of
      * RFC 822. That standard differs subtly from RFC 821.
      */
-#define NO_TOKEN_LIMIT	0
-
     if (msg_verbose)
 	msg_info("%s: input: %s", myname, STR(arg->vstrval));
     if (STR(arg->vstrval)[0] == '<'
 	&& STR(arg->vstrval)[LEN(arg->vstrval) - 1] == '>') {
 	junk = mystrndup(STR(arg->vstrval) + 1, LEN(arg->vstrval) - 2);
-	tree = tok822_parse(junk, NO_TOKEN_LIMIT);
+	tree = tok822_parse(junk);
 	myfree(junk);
     } else
-	tree = tok822_parse(STR(arg->vstrval), NO_TOKEN_LIMIT);
+	tree = tok822_parse(STR(arg->vstrval));
 
     /*
      * Find trouble.

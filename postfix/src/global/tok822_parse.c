@@ -6,14 +6,21 @@
 /* SYNOPSIS
 /*	#include <tok822.h>
 /*
-/*	TOK822 *tok822_scan(str, tailp, limit)
+/*	TOK822 *tok822_scan_limit(str, tailp, limit)
 /*	const char *str;
 /*	TOK822	**tailp;
 /*	int	limit;
 /*
-/*	TOK822	*tok822_parse(str, limit)
+/*	TOK822 *tok822_scan(str, tailp)
+/*	const char *str;
+/*	TOK822	**tailp;
+/*
+/*	TOK822	*tok822_parse_limit(str, limit)
 /*	const char *str;
 /*	int	limit;
+/*
+/*	TOK822	*tok822_parse(str)
+/*	const char *str;
 /*
 /*	TOK822	*tok822_scan_addr(str)
 /*	const char *str;
@@ -38,6 +45,8 @@
 /*	tok822_scan() converts the external-form string in \fIstr\fR
 /*	to a linear token list. The \fItailp\fR argument is a null pointer
 /*	or receives the pointer value of the last result list element.
+/*
+/*	tok822_scan_limit() implements tok822_scan(), which is a macro.
 /*	The \fIlimit\fR argument is either zero or an upper bound on the
 /*	number of tokens produced.
 /*
@@ -45,6 +54,8 @@
 /*	\fIstr\fR to the corresponding token tree. The parser is permissive
 /*	and will not throw away information that it does not understand.
 /*	The parser adds missing commas between addresses.
+/*
+/*	tok822_parse_limit() implements tok822_parse(), which is a macro.
 /*	The \fIlimit\fR argument is either zero or an upper bound on the
 /*	number of tokens produced.
 /*
@@ -320,9 +331,9 @@ static int tok822_append_space(TOK822 *tp)
     return (NON_OPERATOR(tp) && NON_OPERATOR(next));
 }
 
-/* tok822_scan - tokenize string */
+/* tok822_scan_limit - tokenize string */
 
-TOK822 *tok822_scan(const char *str, TOK822 **tailp, int tok_count_limit)
+TOK822 *tok822_scan_limit(const char *str, TOK822 **tailp, int tok_count_limit)
 {
     TOK822 *head = 0;
     TOK822 *tail = 0;
@@ -372,9 +383,9 @@ TOK822 *tok822_scan(const char *str, TOK822 **tailp, int tok_count_limit)
     return (head);
 }
 
-/* tok822_parse - translate external string to token tree */
+/* tok822_parse_limit - translate external string to token tree */
 
-TOK822 *tok822_parse(const char *str, int tok_count_limit)
+TOK822 *tok822_parse_limit(const char *str, int tok_count_limit)
 {
     TOK822 *head;
     TOK822 *tail;
@@ -390,7 +401,7 @@ TOK822 *tok822_parse(const char *str, int tok_count_limit)
      * token list that contains all tokens, we can always convert back to
      * string form.
      */
-    if ((first_token = tok822_scan(str, &last_token, tok_count_limit)) == 0)
+    if ((first_token = tok822_scan_limit(str, &last_token, tok_count_limit)) == 0)
 	return (0);
 
     /*
@@ -547,7 +558,7 @@ TOK822 *tok822_scan_addr(const char *addr)
 {
     TOK822 *tree = tok822_alloc(TOK822_ADDR, (char *) 0);
 
-    tree->head = tok822_scan(addr, &tree->tail, 0);
+    tree->head = tok822_scan(addr, &tree->tail);
     return (tree);
 }
 
@@ -598,7 +609,7 @@ int     main(int unused_argc, char **unused_argv)
 	}
 	if (!isatty(vstream_fileno(VSTREAM_IN)))
 	    vstream_printf(">>>%s<<<\n\n", vstring_str(buf));
-	list = tok822_parse(vstring_str(buf), TEST_TOKEN_LIMIT);
+	list = tok822_parse_limit(vstring_str(buf), TEST_TOKEN_LIMIT);
 	vstream_printf("Parse tree:\n");
 	tok822_print(list, 0);
 	vstream_printf("\n");

@@ -111,6 +111,8 @@
 /* .IP \fBtransport_maps\fR
 /*	List of tables with \fIdomain\fR to (\fItransport, nexthop\fR)
 /*	mappings.
+/* .IP \fBtransport_null_address_lookup_key\fR
+/*	Lookup key to be used for the null address.
 /* SEE ALSO
 /*	master(8) process manager
 /*	syslogd(8) system logging
@@ -174,6 +176,7 @@ bool    var_append_at_myorigin;
 bool    var_percent_hack;
 char   *var_local_transport;
 int     var_resolve_dequoted;
+char   *var_xport_null_key;
 
 /* rewrite_service - read request and send reply */
 
@@ -239,6 +242,7 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
 	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 0, 0,
+	VAR_XPORT_NULL_KEY, DEF_XPORT_NULL_KEY, &var_xport_null_key, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

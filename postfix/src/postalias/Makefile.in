@@ -23,7 +23,7 @@ Makefile: Makefile.in
 
 update: ../../bin/$(PROG)
 
-test:	test1 test2
+tests:	test1 test2
 
 test1:	$(PROG) map.in map-abc1.ref map-ghi1.ref map-ABC1.ref
 	./$(PROG) map.in

@@ -379,10 +379,8 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      * pickup would not be able to run chrooted, and it may not be desirable
      * to use login names at all.
      */
-#define NO_TOKEN_LIMIT 0
-
     if (sender != 0) {
-	tree = tok822_parse(sender, NO_TOKEN_LIMIT);
+	tree = tok822_parse(sender);
 	for (naddr = 0, tp = tree; tp != 0; tp = tp->next)
 	    if (tp->type == TOK822_ADDR)
 		naddr++, tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
@@ -435,7 +433,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 	rec_fputs(dst, REC_TYPE_VERP, verp_delims);
     if (recipients) {
 	for (cpp = recipients; *cpp != 0; cpp++) {
-	    tree = tok822_parse(*cpp, NO_TOKEN_LIMIT);
+	    tree = tok822_parse(*cpp);
 	    for (tp = tree; tp != 0; tp = tp->next) {
 		if (tp->type == TOK822_ADDR) {
 		    tok822_internalize(buf, tp->head, TOK822_STR_DEFL);

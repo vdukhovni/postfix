@@ -12,7 +12,7 @@ WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG= quote_821_local
+TESTPROG=
 PROG	= lmtp
 INC_DIR	= ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libdns.a ../../lib/libutil.a
@@ -26,6 +26,8 @@ Makefile: Makefile.in
 	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
 
 test:	$(TESTPROG)
+
+tests:	test
 
 update: ../../libexec/$(PROG)
 
@@ -48,9 +50,6 @@ clean:
 	rm -rf printfck
 
 tidy:	clean
-
-quote_821_local: quote_821_local.c $(LIBS)
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

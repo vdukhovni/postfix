@@ -177,9 +177,7 @@ int     deliver_token_string(LOCAL_STATE state, USER_ATTR usr_attr,
     if (msg_verbose)
 	msg_info("deliver_token_string: %s", string);
 
-#define NO_TOKEN_LIMIT	0
-
-    tree = tok822_parse(string, NO_TOKEN_LIMIT);
+    tree = tok822_parse(string);
     for (addr = tree; addr != 0; addr = addr->next) {
 	if (addr->type == TOK822_ADDR) {
 	    if (addr_count)

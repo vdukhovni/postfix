@@ -6,8 +6,8 @@
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/transport\fR
 # DESCRIPTION
-#	The optional \fBtransport\fR table specifies a mapping from domain
-#	hierarchies to message delivery transports and/or relay hosts. The
+#	The optional \fBtransport\fR table specifies a mapping from email
+#	addresses to message delivery transports and/or relay hosts. The
 #	mapping is used by the \fBtrivial-rewrite\fR(8) daemon.
 #
 #	Normally, the \fBtransport\fR table is specified as a text file
@@ -22,7 +22,8 @@
 #
 #	Alternatively, the table can be provided as a regular-expression
 #	map where patterns are given as regular expressions. In that case,
-#	the lookups are done in a slightly different way as described below.
+#	the lookups are done in a slightly different way as described
+#	in the section titled "REGULAR EXPRESSION TABLES".
 # TABLE FORMAT
 # .ad
 # .fi
@@ -56,6 +57,13 @@
 #	With lookups from indexed files such as DB or DBM, or from networked
 #	tables such as NIS, LDAP or SQL, patterns are tried in the order as
 #	listed below:
+# .IP "\fIuser+extension@domain transport\fR:\fInexthop\fR"
+#	Mail for \fIuser+extension@domain\fR is delivered through
+#	\fItransport\fR to
+#	\fInexthop\fR.
+# .IP "\fIuser@domain transport\fR:\fInexthop\fR"
+#	Mail for \fIuser@domain\fR is delivered through \fItransport\fR to
+#	\fInexthop\fR.
 # .IP "\fIdomain transport\fR:\fInexthop\fR"
 #	Mail for \fIdomain\fR is delivered through \fItransport\fR to
 #	\fInexthop\fR.
@@ -65,6 +73,13 @@
 #	string \fBtransport_maps\fR is not listed in the
 #	\fBparent_domain_matches_subdomains\fR configuration setting.
 #	Otherwise, a domain name matches itself and its subdomains.
+# .PP
+# NOTE
+# .ad
+# .fi
+#	The special pattern \fB<>\fR represents the null address, and the
+#	special pattern \fB*\fR represents any address (i.e. it functions
+#	as the wild-card pattern).
 # EXAMPLES
 # .ad
 # .fi

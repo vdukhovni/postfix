@@ -53,8 +53,6 @@ TOK822 *tok822_rewrite(TOK822 *addr, const char *how)
      * the result. Shipping external form is much simpler than shipping parse
      * trees.
      */
-#define NO_TOKEN_LIMIT	0
-
     tok822_externalize(input_ext_form, addr->head, TOK822_STR_DEFL);
     if (msg_verbose)
 	msg_info("tok822_rewrite: input: %s", vstring_str(input_ext_form));
@@ -62,8 +60,7 @@ TOK822 *tok822_rewrite(TOK822 *addr, const char *how)
     if (msg_verbose)
 	msg_info("tok822_rewrite: result: %s", vstring_str(canon_ext_form));
     tok822_free_tree(addr->head);
-    addr->head = tok822_scan(vstring_str(canon_ext_form), &addr->tail,
-			     NO_TOKEN_LIMIT);
+    addr->head = tok822_scan(vstring_str(canon_ext_form), &addr->tail);
 
     vstring_free(input_ext_form);
     vstring_free(canon_ext_form);

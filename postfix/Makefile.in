@@ -18,7 +18,7 @@ makefiles Makefiles:
 	done;
 	rm -f Makefile; (set -e; $(SHELL) makedefs && cat Makefile.in) >Makefile
 
-update printfck:
+update printfck tests:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done

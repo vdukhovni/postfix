@@ -12,6 +12,31 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20020610
+==========================================================
+
+Regexp-based transport maps now see the entire recipient address
+instead of only the destination domain name.
+
+Major changes with Postfix snapshot 1.1.11-20020610
+===================================================
+
+A bizarre feature, sender-based routing, that could be useful in
+combination with user@domain address lookups in the transport map.
+
+An actually useful feature, user@domain address lookups in the
+transport map.  This feature also understands address extensions.
+Transport maps still support lookup keys in the form of domain
+names, but only with non-regexp tables.  Specify <> in order to
+match the null address. More in the transport(5) manual page.
+
+Together with sender-based routing, and a dual Postfix setup.
+user@domain transport map lookups could fulfill people's wishes to
+have multiple SMTP personalities for sending and receiving mail,
+including bounce processing.  Details will have to be hammered out
+by users, as Wietse is now completely tied up by other business
+for the next three weeks.
+
 Incompatible changes with Postfix snapshot 1.1.11-20020528
 ==========================================================
 

@@ -290,7 +290,7 @@
 #include <maps.h>
 #include <mail_addr_find.h>
 #include <match_parent_style.h>
-#include <split_addr.h>
+#include <strip_addr.h>
 
 /* Application-specific. */
 
@@ -1717,7 +1717,6 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     int     status;
     char   *local_at;
     char   *bare_addr;
-    char   *bare_ext;
     char   *bare_at;
 
     if (msg_verbose)
@@ -1745,19 +1744,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     if (*var_rcpt_delim == 0) {
 	bare_addr = 0;
     } else {
-	bare_addr = mystrdup(addr);
-	if ((bare_at = strrchr(bare_addr, '@')) != 0)
-	    *bare_at = 0;
-	if ((bare_ext = split_addr(bare_addr, *var_rcpt_delim)) != 0) {
-	    if (bare_at != 0) {
-		*bare_at = '@';
-		memmove(bare_ext - 1, bare_at, strlen(bare_at) + 1);
-		bare_at = bare_ext - 1;
-	    }
-	} else {
-	    myfree(bare_addr);
-	    bare_addr = 0;
-	}
+	bare_addr = strip_addr(addr, (char **) 0, *var_rcpt_delim);
     }
 
 #define CHECK_MAIL_ACCESS_RETURN(x) \
@@ -1824,6 +1811,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Look up user@ if the address has an extension. XXX Same problem here.
      */
     if (bare_addr) {
+	bare_at = strrchr(bare_addr, '@');
 	local_at = (bare_at ? mystrndup(bare_addr, bare_at + 1 - bare_addr) :
 		    mystrdup(bare_addr));
 	status = check_access(state, table, local_at, PARTIAL, found,
@@ -2623,6 +2611,7 @@ char   *var_perm_mx_networks;
 char   *var_par_dom_match;
 char   *var_smtpd_null_key;
 char   *var_smtpd_snd_auth_maps;
+char   *var_double_bounce_sender;
 
 typedef struct {
     char   *name;
@@ -2648,6 +2637,7 @@ static STRING_TABLE string_table[] = {
     VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match,
     VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps,
     VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key,
+    VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender,
     0,
 };
 
@@ -2812,9 +2802,9 @@ void    resolve_clnt_free(RESOLVE_REPLY *reply)
     vstring_free(reply->recipient);
 }
 
-#ifdef USE_SASL_AUTH
-
 bool    var_smtpd_sasl_enable = 0;
+
+#ifdef USE_SASL_AUTH
 
 /* smtpd_sasl_connect - stub */
 

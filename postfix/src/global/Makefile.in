@@ -19,7 +19,8 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
-	verp_sender.c match_parent_style.c mime_state.c header_token.c
+	verp_sender.c match_parent_style.c mime_state.c header_token.c \
+	strip_addr.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -40,7 +41,8 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
-	verp_sender.o match_parent_style.o mime_state.o header_token.o
+	verp_sender.o match_parent_style.o mime_state.o header_token.o \
+	strip_addr.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -58,7 +60,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
 	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
 	match_parent_style.h quote_flags.h mime_state.h header_token.h \
-	lex_822.h
+	lex_822.h strip_addr.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -71,7 +73,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
-	quote_821_local mail_conf_time mime_state
+	quote_821_local mail_conf_time mime_state strip_addr
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -219,7 +221,13 @@ mime_state: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc
+strip_addr: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
+tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
+	strip_addr_test tok822_limit_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp
@@ -251,6 +259,11 @@ mime_trunc: mime_state mime_trunc.in mime_trunc.ref
 	diff  mime_trunc.ref mime_trunc.tmp
 	rm -f mime_trunc.tmp
 
+tok822_limit_test: tok822_parse tok822_limit.in tok822_limit.ref
+	./tok822_parse <tok822_limit.in >tok822_limit.tmp
+	diff tok822_limit.ref tok822_limit.tmp
+	rm -f tok822_limit.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -259,6 +272,10 @@ printfck: $(OBJS) $(PROG)
 	set -e; for i in *.c; do printfck -f .printfck $$i >printfck/$$i; done
 	cd printfck; make "INC_DIR=../../../include" `cd ..; ls *.o`
 
+strip_addr_test: strip_addr strip_addr.ref
+	./strip_addr 2>strip_addr.tmp
+	diff strip_addr.ref strip_addr.tmp
+	rm -f strip_addr.tmp
 lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
@@ -512,7 +529,7 @@ mail_addr_find.o: ../../include/stringops.h
 mail_addr_find.o: ../../include/vstring.h
 mail_addr_find.o: ../../include/mymalloc.h
 mail_addr_find.o: mail_params.h
-mail_addr_find.o: split_addr.h
+mail_addr_find.o: strip_addr.h
 mail_addr_find.o: mail_addr_find.h
 mail_addr_find.o: maps.h
 mail_addr_find.o: resolve_local.h
@@ -1070,6 +1087,11 @@ string_list.o: ../../include/sys_defs.h
 string_list.o: ../../include/match_list.h
 string_list.o: string_list.h
 string_list.o: ../../include/match_ops.h
+strip_addr.o: strip_addr.c
+strip_addr.o: ../../include/sys_defs.h
+strip_addr.o: ../../include/mymalloc.h
+strip_addr.o: split_addr.h
+strip_addr.o: strip_addr.h
 sys_exits.o: sys_exits.c
 sys_exits.o: ../../include/sys_defs.h
 sys_exits.o: ../../include/msg.h
