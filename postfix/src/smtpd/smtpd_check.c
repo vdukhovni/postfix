@@ -1594,12 +1594,16 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     /*
      * Try the name and its parent domains. Including top-level domains.
+     * 
+     * Helo names can end in ".". The test below avoids lookups of the empty
+     * key, because Berkeley DB cannot deal with it. [Victor Duchovni, Morgan
+     * Stanley].
      */
 #define CHK_DOMAIN_RETURN(x,y) { *found = y; myfree(low_domain); return(x); }
 
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
-    for (name = low_domain; /* void */ ; name = next) {
+    for (name = low_domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
@@ -1758,7 +1762,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     /*
      * Source-routed, non-local, recipient addresses are too suspicious for
      * returning an "OK" result. The complicated expression below was brought
-     * to you by the keyboard of Victor Duchovny, Morgan Stanley and hacked
+     * to you by the keyboard of Victor Duchovni, Morgan Stanley and hacked
      * up a bit by Wietse.
      */
 #define SUSPICIOUS(domain, reply, state, reply_name, reply_class) \
@@ -2151,11 +2155,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
-#ifdef USE_SASL_AUTH
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 	    if (var_smtpd_sasl_enable)
+#ifdef USE_SASL_AUTH
 		status = permit_sasl_auth(state,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
+#else
+		msg_warn("restriction `%s' ignored: no SASL support", name);
 #endif
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)

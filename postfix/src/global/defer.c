@@ -113,6 +113,7 @@
 
 /* Global library. */
 
+#include "mail_params.h"
 #include "mail_queue.h"
 #include "mail_proto.h"
 #include "flush_clnt.h"
@@ -145,7 +146,7 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
     const char *rcpt_domain;
 
     vstring_vsprintf(why, fmt, ap);
-    if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+    if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
 			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
@@ -179,7 +180,7 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
 int     defer_flush(int flags, const char *queue, const char *id,
 		            const char *sender)
 {
-    if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+    if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
 			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
 			   ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
@@ -198,7 +199,7 @@ int     defer_flush(int flags, const char *queue, const char *id,
 int     defer_warn(int flags, const char *queue, const char *id,
 		           const char *sender)
 {
-    if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+    if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
 			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_WARN,
 			   ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,

@@ -257,6 +257,7 @@ VSTRING *netstring_get(VSTREAM *stream, VSTRING *buf, int limit)
     if (limit && len > limit)
 	netstring_except(stream, NETSTRING_ERR_SIZE);
     netstring_get_data(stream, buf, len);
+    return (buf);
 }
 
 /* netstring_put - send string as netstring */

@@ -68,7 +68,11 @@ typedef struct SMTPD_STATE {
     off_t   msg_size;
     int     junk_cmds;
 #ifdef USE_SASL_AUTH
+#if SASL_VERSION_MAJOR >= 2
+    const char *sasl_mechanism_list;
+#else
     char   *sasl_mechanism_list;
+#endif
     char   *sasl_method;
     char   *sasl_username;
     char   *sasl_sender;

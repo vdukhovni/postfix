@@ -148,7 +148,7 @@
 #        details and for default values.  Use  the  postfix  reload
 #        command after a configuration change.
 # 
-#        parent_domain_matches_subdomains (versions >= 20011119)
+#        parent_domain_matches_subdomains
 #               List  of Postfix features that use domain.name pat-
 #               terns  to  match  sub.domain.name  (as  opposed  to
 #               requiring .domain.name patterns).

@@ -65,13 +65,25 @@ smtp_never_send_ehlo = no
 # 
 #smtp_bind_address=111.222.333.444
 
-# The smtp_break_lines parameter controls whether the SMTP client
-# will break lines longer than $line_length_limit characters.
+# The smtp_line_length_limit parameter controls the length of
+# message header and body lines that Postfix will send via SMTP.
+# Lines that are longer are broken by inserting <CR> <LF> <SPACE>.
 # 
-# By default, line breaking is turned on, because some fragile SMTP
-# server implementations cannot receive mail with long lines.
+# By default, the line length is limited to 990 characters, because
+# some server implementations cannot receive mail with long lines.
 # 
-#smtp_break_lines = yes
+#smtp_line_length_limit = 990
+
+# The smtp_helo_name parameter specifies the hostname to send along
+# in the EHLO or HELO command. 
+# 
+# The default value is the machine hostname.  Specify a hostname or
+# [ip.address].  This can be used in the main.cf file, or in the
+# master.cf file, for example:
+# 
+# 	smtp ... smtp -o smtp_helo_name=foo.bar.com
+# 
+#smtp_helo_name = $myhostname
 
 # The smtp_skip_4xx_greeting parameter controls what happens when
 # an SMTP server greets us with a 4XX status code (go away, try

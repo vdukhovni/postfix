@@ -280,7 +280,7 @@ int     main(int argc, char **argv)
      * clean up in case of a fatal error or an interrupt.
      */
     dst = mail_stream_file(MAIL_QUEUE_MAILDROP, MAIL_CLASS_PUBLIC,
-			   MAIL_SERVICE_PICKUP, 0444);
+			   var_pickup_service, 0444);
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, dst->id,
 	       ATTR_TYPE_END);

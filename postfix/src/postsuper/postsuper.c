@@ -18,7 +18,7 @@
 /*	\fBdefer\fR and \fBflush\fR directories with log files.
 /*
 /*	Options:
-/* .IP "\fB-d \fIqueue_id\fR (Postfix versions >= 20010525)"
+/* .IP "\fB-d \fIqueue_id\fR"
 /*      Delete one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
 /*      \fBdeferred\fR).
@@ -56,7 +56,7 @@
 /* .IP \fB-p\fR
 /*	Purge old temporary files that are left over after system or
 /*	software crashes.
-/* .IP "\fB-r \fIqueue_id\fR (Postfix versions >= 20010525)"
+/* .IP "\fB-r \fIqueue_id\fR"
 /*      Requeue the message with the named queue ID from the named
 /*	mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
 /*      \fBdeferred\fR).
@@ -84,7 +84,6 @@
 /*	to perform this operation once before Postfix startup.
 /* .RS
 /* .IP \(bu
-/*	(Postfix versions >= 20010525)
 /*	Rename files whose name does not match the message file inode
 /*	number. This operation is necessary after restoring a mail queue
 /*	from a different machine, or from backup media.

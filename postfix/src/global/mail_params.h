@@ -734,13 +734,17 @@ extern bool var_smtp_never_ehlo;
 #define DEF_SMTP_BIND_ADDR	""
 extern char *var_smtp_bind_addr;
 
+#define VAR_SMTP_HELO_NAME	"smtp_helo_name"
+#define DEF_SMTP_HELO_NAME	"$myhostname"
+extern char *var_smtp_helo_name;
+
 #define VAR_SMTP_RAND_ADDR	"smtp_randomize_addresses"
 #define DEF_SMTP_RAND_ADDR	1
 extern bool var_smtp_rand_addr;
-
-#define VAR_SMTP_BREAK_LINES	"smtp_break_lines"
-#define DEF_SMTP_BREAK_LINES	1
-extern bool var_smtp_break_lines;
+ 
+#define VAR_SMTP_LINE_LIMIT	"smtp_line_length_limit"
+#define DEF_SMTP_LINE_LIMIT	990
+extern int var_smtp_line_limit;
 
 #define VAR_SMTP_PIX_THRESH	"smtp_pix_workaround_threshold_time"
 #define DEF_SMTP_PIX_THRESH	"500s"
@@ -1189,7 +1193,7 @@ extern int var_smtpd_delay_reject;
 #define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
 
 #define VAR_SMTPD_NULL_KEY	"smtpd_null_access_lookup_key"
-#define DEF_SMTPD_NULL_KEY	""
+#define DEF_SMTPD_NULL_KEY	"<>"
 extern char *var_smtpd_null_key;
 
  /*
@@ -1353,7 +1357,11 @@ extern bool var_verp_bounce_off;
   * the sending processes get a chance to access the disk.
   */
 #define VAR_IN_FLOW_DELAY			"in_flow_delay"
+#ifdef PIPES_CANT_FIONREAD
+#define DEF_IN_FLOW_DELAY			"0s"
+#else
 #define DEF_IN_FLOW_DELAY			"1s"
+#endif
 extern int var_in_flow_delay;
 
  /*
@@ -1410,6 +1418,62 @@ extern int var_fault_inj_code;
 #ifndef DEF_README_DIR
 #define DEF_README_DIR			"no"
 #endif
+
+ /*
+  * Service names. The transport (TCP, FIFO or UNIX-domain) type is frozen
+  * because you cannot simply mix them, and accessibility (private/public) is
+  * frozen for security reasons. We list only the internal services, not the
+  * externally visible SMTP server, or the delivery agents that can already
+  * be chosen via transport mappings etc.
+  */
+#define VAR_BOUNCE_SERVICE		"bounce_service_name"
+#define DEF_BOUNCE_SERVICE		MAIL_SERVICE_BOUNCE
+extern char *var_bounce_service;
+
+#define VAR_CLEANUP_SERVICE		"cleanup_service_name"
+#define DEF_CLEANUP_SERVICE		MAIL_SERVICE_CLEANUP
+extern char *var_cleanup_service;
+
+#define VAR_DEFER_SERVICE		"defer_service_name"
+#define DEF_DEFER_SERVICE		MAIL_SERVICE_DEFER
+extern char *var_defer_service;
+
+#define VAR_PICKUP_SERVICE		"pickup_service_name"
+#define DEF_PICKUP_SERVICE		MAIL_SERVICE_PICKUP
+extern char *var_pickup_service;
+
+#define VAR_QUEUE_SERVICE		"queue_service_name"
+#define DEF_QUEUE_SERVICE		MAIL_SERVICE_QUEUE
+extern char *var_queue_service;
+
+ /* XXX resolve does not exist as a separate service */
+
+#define VAR_REWRITE_SERVICE		"rewrite_service_name"
+#define DEF_REWRITE_SERVICE		MAIL_SERVICE_REWRITE
+extern char *var_rewrite_service;
+
+#define VAR_SHOWQ_SERVICE		"showq_service_name"
+#define DEF_SHOWQ_SERVICE		MAIL_SERVICE_SHOWQ
+extern char *var_showq_service;
+
+#define VAR_ERROR_SERVICE		"error_service_name"
+#define DEF_ERROR_SERVICE		MAIL_SERVICE_ERROR
+extern char *var_error_service;
+
+#define VAR_FLUSH_SERVICE		"flush_service_name"
+#define DEF_FLUSH_SERVICE		MAIL_SERVICE_FLUSH
+extern char *var_flush_service;
+
+ /*
+  * Mailbox/maildir delivery errors that cause delivery to be tried again.
+  */
+#define VAR_MBX_DEFER_ERRS		"mailbox_defer_errors"
+#define DEF_MBX_DEFER_ERRS		"eagain, enospc, estale"
+extern char *var_mbx_defer_errs;
+
+#define VAR_MDR_DEFER_ERRS		"maildir_defer_errors"
+#define DEF_MDR_DEFER_ERRS		"enospc, estale"
+extern char *var_mdr_defer_errs;
 
 /* LICENSE
 /* .ad

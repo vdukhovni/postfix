@@ -125,7 +125,7 @@ CLEANUP_STATE *cleanup_open(void)
      * that the runtime error handler can clean up in case of problems.
      */
     state->handle = mail_stream_file(MAIL_QUEUE_INCOMING,
-				     MAIL_CLASS_PUBLIC, MAIL_SERVICE_QUEUE, 0);
+				     MAIL_CLASS_PUBLIC, var_queue_service, 0);
     state->dst = state->handle->stream;
     cleanup_path = mystrdup(VSTREAM_PATH(state->dst));
     state->queue_id = mystrdup(state->handle->id);

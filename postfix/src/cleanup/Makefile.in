@@ -265,6 +265,7 @@ cleanup_out.o: ../../include/vstream.h
 cleanup_out.o: ../../include/record.h
 cleanup_out.o: ../../include/rec_type.h
 cleanup_out.o: ../../include/cleanup_user.h
+cleanup_out.o: ../../include/mail_params.h
 cleanup_out.o: cleanup.h
 cleanup_out.o: ../../include/argv.h
 cleanup_out.o: ../../include/maps.h

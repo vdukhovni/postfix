@@ -126,6 +126,7 @@
 
 /* Global library. */
 
+#include <mail_params.h>
 #include <mail_proto.h>
 #include <abounce.h>
 
@@ -220,7 +221,7 @@ void    abounce_flush_verp(int flags, const char *queue, const char *id,
 			           const char *sender, const char *verp,
 			           ABOUNCE_FN callback, char *context)
 {
-    abounce_request_verp(MAIL_CLASS_PRIVATE, MAIL_SERVICE_BOUNCE,
+    abounce_request_verp(MAIL_CLASS_PRIVATE, var_bounce_service,
 			 BOUNCE_CMD_VERP, flags, queue, id, sender, verp,
 			 callback, context);
 }
@@ -231,7 +232,7 @@ void    adefer_flush_verp(int flags, const char *queue, const char *id,
 			          const char *sender, const char *verp,
 			          ABOUNCE_FN callback, char *context)
 {
-    abounce_request_verp(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+    abounce_request_verp(MAIL_CLASS_PRIVATE, var_defer_service,
 			 BOUNCE_CMD_VERP, flags, queue, id, sender, verp,
 			 callback, context);
 }
@@ -278,7 +279,7 @@ static void abounce_request(const char *class, const char *service,
 void    abounce_flush(int flags, const char *queue, const char *id,
 	             const char *sender, ABOUNCE_FN callback, char *context)
 {
-    abounce_request(MAIL_CLASS_PRIVATE, MAIL_SERVICE_BOUNCE, BOUNCE_CMD_FLUSH,
+    abounce_request(MAIL_CLASS_PRIVATE, var_bounce_service, BOUNCE_CMD_FLUSH,
 		    flags, queue, id, sender, callback, context);
 }
 
@@ -287,7 +288,7 @@ void    abounce_flush(int flags, const char *queue, const char *id,
 void    adefer_flush(int flags, const char *queue, const char *id,
 	             const char *sender, ABOUNCE_FN callback, char *context)
 {
-    abounce_request(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER, BOUNCE_CMD_FLUSH,
+    abounce_request(MAIL_CLASS_PRIVATE, var_defer_service, BOUNCE_CMD_FLUSH,
 		    flags, queue, id, sender, callback, context);
 }
 
@@ -296,6 +297,6 @@ void    adefer_flush(int flags, const char *queue, const char *id,
 void    adefer_warn(int flags, const char *queue, const char *id,
 	             const char *sender, ABOUNCE_FN callback, char *context)
 {
-    abounce_request(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER, BOUNCE_CMD_WARN,
+    abounce_request(MAIL_CLASS_PRIVATE, var_defer_service, BOUNCE_CMD_WARN,
 		    flags, queue, id, sender, callback, context);
 }

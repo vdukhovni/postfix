@@ -42,6 +42,7 @@
 /*	int	var_line_limit;
 /*	char	*var_alias_db_map;
 /*	int	var_message_limit;
+/*	char	*var_mail_release;
 /*	char	*var_mail_version;
 /*	int	var_ipc_idle_limit;
 /*	char	*var_db_type;
@@ -75,6 +76,15 @@
 /*	int	var_debug_peer_level;
 /*	int	var_in_flow_delay;
 /*	int	var_fault_inj_code;
+/*	char   *var_bounce_service;
+/*	char   *var_cleanup_service;
+/*	char   *var_defer_service;
+/*	char   *var_pickup_service;
+/*	char   *var_queue_service;
+/*	char   *var_rewrite_service;
+/*	char   *var_showq_service;
+/*	char   *var_error_service;
+/*	char   *var_flush_service;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -170,6 +180,7 @@ char   *var_double_bounce_sender;
 int     var_line_limit;
 char   *var_alias_db_map;
 int     var_message_limit;
+char   *var_mail_release;
 char   *var_mail_version;
 int     var_ipc_idle_limit;
 char   *var_db_type;
@@ -203,6 +214,15 @@ char   *var_export_environ;
 char   *var_debug_peer_list;
 int     var_debug_peer_level;
 int     var_fault_inj_code;
+char   *var_bounce_service;
+char   *var_cleanup_service;
+char   *var_defer_service;
+char   *var_pickup_service;
+char   *var_queue_service;
+char   *var_rewrite_service;
+char   *var_showq_service;
+char   *var_error_service;
+char   *var_flush_service;
 
 #define MAIN_CONF_FILE	"main.cf"
 
@@ -395,6 +415,7 @@ void    mail_params_init()
 	VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender, 1, 0,
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
 	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 0, 0,
+	VAR_MAIL_RELEASE, DEF_MAIL_RELEASE, &var_mail_release, 1, 0,
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
@@ -410,6 +431,15 @@ void    mail_params_init()
 	VAR_VERP_FILTER, DEF_VERP_FILTER, &var_verp_filter, 1, 0,
 	VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match, 0, 0,
 	VAR_CONFIG_DIRS, DEF_CONFIG_DIRS, &var_config_dirs, 0, 0,
+	VAR_BOUNCE_SERVICE, DEF_BOUNCE_SERVICE, &var_bounce_service, 1, 0,
+	VAR_CLEANUP_SERVICE, DEF_CLEANUP_SERVICE, &var_cleanup_service, 1, 0,
+	VAR_DEFER_SERVICE, DEF_DEFER_SERVICE, &var_defer_service, 1, 0,
+	VAR_PICKUP_SERVICE, DEF_PICKUP_SERVICE, &var_pickup_service, 1, 0,
+	VAR_QUEUE_SERVICE, DEF_QUEUE_SERVICE, &var_queue_service, 1, 0,
+	VAR_REWRITE_SERVICE, DEF_REWRITE_SERVICE, &var_rewrite_service, 1, 0,
+	VAR_SHOWQ_SERVICE, DEF_SHOWQ_SERVICE, &var_showq_service, 1, 0,
+	VAR_ERROR_SERVICE, DEF_ERROR_SERVICE, &var_error_service, 1, 0,
+	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

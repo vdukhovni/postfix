@@ -47,14 +47,6 @@ depend_update:
 	    || exit 1; \
 	done
 
-cleanmakefiles:
-	set -e; for i in $(DIRS); do \
-	(set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
-	../cleanup_makefile.pl Makefile.in >Makefile.new; \
-	rm Makefile.in ; mv Makefile.new Makefile.in); \
-	done;
-	rm -f Makefile; (set -e; sh makedefs && cat Makefile.in) >Makefile
-
 tidy:	clean
 	rm -f Makefile */Makefile src/*/Makefile
 	cp Makefile.init Makefile

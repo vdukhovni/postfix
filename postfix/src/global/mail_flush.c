@@ -33,6 +33,7 @@
 
 /* Global library. */
 
+#include <mail_params.h>
 #include <mail_proto.h>
 #include <mail_flush.h>
 
@@ -50,6 +51,6 @@ int     mail_flush_deferred(void)
     /*
      * Trigger the flush queue service.
      */
-    return (mail_trigger(MAIL_CLASS_PUBLIC, MAIL_SERVICE_QUEUE,
+    return (mail_trigger(MAIL_CLASS_PUBLIC, var_queue_service,
 			 qmgr_trigger, sizeof(qmgr_trigger)));
 }

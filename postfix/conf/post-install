@@ -234,6 +234,12 @@ else
     POSTCONF="postconf"
 fi
 
+$POSTCONF -d mail_version >/dev/null 2>/dev/null || {
+    echo $0: Error: no $POSTCONF command found. 1>&2
+    echo Re-run this command as $0 command_directory=/some/where. 1>&2
+    exit 1
+}
+
 test -n "$config_directory" ||
     config_directory=`$POSTCONF -d -h config_directory` || exit 1
 
@@ -304,12 +310,12 @@ test -f $config_directory/main.cf && {
 
 case $manpage_directory in
  no) echo $0: Error: manpage_directory no longer accepts \"no\" values. 1>&2
-     echo Try again with \"$0 manpage_directory=/pathname $*\". 1>&2; exit 1;;
+     echo Try again with \"$0 manpage_directory=/pathname ...\". 1>&2; exit 1;;
 esac
 
 case $setgid_group in
  no) echo $0: Error: setgid_group no longer accepts \"no\" values. 1>&2
-     echo Try again with \"$0 setgid_group=groupname $*\" 1>&2; exit 1;;
+     echo Try again with \"$0 setgid_group=groupname ...\" 1>&2; exit 1;;
 esac
 
 for path in "$daemon_directory" "$command_directory" "$queue_directory" \
@@ -426,6 +432,7 @@ test -n "$create" && {
 	# Pick up the flags.
 	case $flags in *u*) upgrade_flag=1;; *) upgrade_flag=;; esac
 	case $flags in *c*) create_flag=1;; *) create_flag=;; esac
+	case $flags in *r*) recursive="-R";; *) recursive=;; esac
 	# Create missing directories with proper owner/group/mode settings.
 	if [ -n "$create" -a "$type" = "d" -a -n "$create_flag" -a ! -d "$path" ]
 	then
@@ -442,8 +449,8 @@ test -n "$create" && {
 	    set_permission=1
 	fi
 	test -n "$set_permission" && {
-	    chown $owner $path || exit 1
-	    test -z "$group" || chgrp $group $path || exit 1
+	    chown $recursive $owner $path || exit 1
+	    test -z "$group" || chgrp $recursive $group $path || exit 1
 	    chmod $mode $path || exit 1
 	}
     done

@@ -97,9 +97,11 @@
 /*	Never send EHLO at the start of a connection.
 /* .IP \fBsmtp_bind_address\fR
 /*	Numerical source network address to bind to when making a connection.
-/* .IP \fBsmtp_break_lines\fR
-/*	Break lines > \fB$line_length_limit\fR into multiple shorter lines.
+/* .IP \fBsmtp_line_length_limit\fR
+/*	Length limit for SMTP message content lines. Zero means no limit.
 /*	Some SMTP servers misbehave on long lines.
+/* .IP \fBsmtp_helo_name\fR
+/*	The hostname to be used in HELO and EHLO commands.
 /* .IP \fBsmtp_skip_4xx_greeting\fR
 /*	Skip servers that greet us with a 4xx status code.
 /* .IP \fBsmtp_skip_5xx_greeting\fR
@@ -113,7 +115,7 @@
 /*	The time a message must be queued before the CISCO PIX firewall
 /*	<CR><LF>.<CR><LF> bug workaround is turned on.
 /* .SH "Authentication controls"
-/* .IP \fBsmtp_enable_sasl_auth\fR
+/* .IP \fBsmtp_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	By default, Postfix is built without SASL support.
 /* .IP \fBsmtp_sasl_password_maps\fR
@@ -259,9 +261,10 @@ char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_bind_addr;
 bool    var_smtp_rand_addr;
-bool    var_smtp_break_lines;
 int     var_smtp_pix_thresh;
 int     var_smtp_pix_delay;
+int     var_smtp_line_limit;
+char   *var_smtp_helo_name;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -413,6 +416,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
+	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -429,6 +433,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
+	VAR_SMTP_LINE_LIMIT, DEF_SMTP_LINE_LIMIT, &var_smtp_line_limit, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -440,7 +445,6 @@ int     main(int argc, char **argv)
 	VAR_SMTP_NEVER_EHLO, DEF_SMTP_NEVER_EHLO, &var_smtp_never_ehlo,
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
 	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
-	VAR_SMTP_BREAK_LINES, DEF_SMTP_BREAK_LINES, &var_smtp_break_lines,
 	0,
     };
 

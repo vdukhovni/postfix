@@ -72,6 +72,9 @@
 /*	int	vstream_fileno(stream)
 /*	VSTREAM	*stream;
 /*
+/*	void	*vstream_context(stream)
+/*	VSTREAM *stream;
+/*
 /*	int	vstream_ferror(stream)
 /*	VSTREAM	*stream;
 /*
@@ -249,6 +252,9 @@
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
 /*	file descriptors, the result is the current descriptor.
+/*
+/*	vstream_context() returns the application context that is passed on to
+/*	the application-specified read/write routines.
 /*
 /*	VSTREAM_PATH() is an unsafe macro that returns the name stored
 /*	with vstream_fopen() or with vstream_control(). The macro is

@@ -137,7 +137,7 @@ home_mailbox =
 
 # The mail_spool_directory parameter specifies the directory where
 # UNIX-style mailboxes are kept. The default setting depends on the
-# system type.
+# system type. Specify a name ending in / for maildir-style delivery.
 #
 #mail_spool_directory = /var/mail
 #mail_spool_directory = /var/spool/mail

@@ -15,7 +15,7 @@
 /*	traditionally available via the \fBsendmail\fR(1) command.
 /*
 /*	The following options are recognized:
-/* .IP \fB-c \fIconfig_dir\fR
+/* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory. See also the
 /*	MAIL_CONFIG environment setting below.
@@ -104,6 +104,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sysexits.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -170,13 +171,16 @@ static void show_queue(void)
      * Connect to the show queue service. Terminate silently when piping into
      * a program that terminates early.
      */
-    if ((showq = mail_connect(MAIL_CLASS_PUBLIC, MAIL_SERVICE_SHOWQ, BLOCKING)) != 0) {
-	while ((n = vstream_fread(showq, buf, sizeof(buf))) > 0)
+    if ((showq = mail_connect(MAIL_CLASS_PUBLIC, var_showq_service, BLOCKING)) != 0) {
+	while ((n = vstream_fread(showq, buf, sizeof(buf))) > 0) {
 	    if (vstream_fwrite(VSTREAM_OUT, buf, n) != n
-		|| vstream_fflush(VSTREAM_OUT) != 0)
+		|| vstream_fflush(VSTREAM_OUT) != 0) {
+		if (errno == EPIPE)
+		    break;
 		msg_fatal("write error: %m");
-
-	if (vstream_fclose(showq))
+	    }
+	}
+	if (vstream_fclose(showq) && errno != EPIPE)
 	    msg_warn("close: %m");
     }
 
@@ -190,7 +194,7 @@ static void show_queue(void)
 
 	msg_warn("Mail system is down -- accessing queue directly");
 	argv = argv_alloc(6);
-	argv_add(argv, MAIL_SERVICE_SHOWQ, "-u", "-S", (char *) 0);
+	argv_add(argv, var_showq_service, "-u", "-S", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
 	    argv_add(argv, "-v", (char *) 0);
 	argv_terminate(argv);
@@ -354,14 +358,14 @@ int     main(int argc, char **argv)
      */
     if (site_to_flush != 0) {
 	if (*site_to_flush == '['
-	    && *(last = optarg + strlen(site_to_flush) - 1) == ']') {
+	    && *(last = site_to_flush + strlen(site_to_flush) - 1) == ']') {
 	    *last = 0;
-	    if (!valid_hostaddr(optarg + 1, DONT_GRIPE))
+	    if (!valid_hostaddr(site_to_flush + 1, DONT_GRIPE))
 		site_to_flush = 0;
 	    *last = ']';
 	} else {
-	    if (!valid_hostname(optarg, DONT_GRIPE)
-		&& !valid_hostaddr(optarg, DONT_GRIPE))
+	    if (!valid_hostname(site_to_flush, DONT_GRIPE)
+		&& !valid_hostaddr(site_to_flush, DONT_GRIPE))
 		site_to_flush = 0;
 	}
 	if (site_to_flush == 0)

@@ -92,7 +92,7 @@
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
 /*	for details. The :\fInexthop\fR part is optional.
-/* .IP "\fBparent_domain_matches_subdomains\fR (versions >= 20011119)"
+/* .IP \fBparent_domain_matches_subdomains\fR
 /*	List of Postfix features that use \fIdomain.name\fR patterns
 /*	to match \fIsub.domain.name\fR (as opposed to
 /*	requiring \fI.domain.name\fR patterns).

@@ -145,7 +145,7 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 	|| attr_print(stream, ATTR_FLAG_NONE,
 		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 		      ATTR_TYPE_END) != 0)
-	msg_fatal("unable to contact the %s service", MAIL_SERVICE_CLEANUP);
+	msg_fatal("unable to contact the %s service", var_cleanup_service);
 
     /*
      * Generate a minimal envelope section. The cleanup service will add a
@@ -173,7 +173,7 @@ VSTREAM *post_mail_fopen(const char *sender, const char *recipient, int flags)
 {
     VSTREAM *stream;
 
-    stream = mail_connect_wait(MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP);
+    stream = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     post_mail_init(stream, sender, recipient, flags);
     return (stream);
 }
@@ -185,7 +185,7 @@ VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
 {
     VSTREAM *stream;
 
-    if ((stream = mail_connect(MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP,
+    if ((stream = mail_connect(MAIL_CLASS_PUBLIC, var_cleanup_service,
 			       BLOCKING)) != 0)
 	post_mail_init(stream, sender, recipient, flags);
     return (stream);

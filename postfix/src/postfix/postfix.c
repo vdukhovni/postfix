@@ -144,6 +144,7 @@
 #include <stringops.h>
 #include <clean_env.h>
 #include <argv.h>
+#include <safe.h>
 
 /* Global library. */
 
@@ -175,7 +176,6 @@ int     main(int argc, char **argv)
     char   *script;
     struct stat st;
     char   *slash;
-    int     uid;
     int     fd;
     int     ch;
     ARGV   *import_env;
@@ -220,10 +220,12 @@ int     main(int argc, char **argv)
      * privileges for selected operations. That's right - it takes privileges
      * to toss privileges.
      */
-    if ((uid = getuid()) != 0) {
+    if (getuid() != 0) {
 	msg_error("to submit mail, use the Postfix sendmail command");
 	msg_fatal("the postfix command is reserved for the superuser");
     }
+    if (unsafe() != 0)
+	msg_fatal("the postfix command must not run as a set-uid process");
 
     /*
      * Parse switches.

@@ -180,7 +180,7 @@
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
-/* .IP "\fBparent_domain_matches_subdomains\fR (versions >= 20011119)"
+/* .IP \fBparent_domain_matches_subdomains\fR
 /*	List of Postfix features that use \fIdomain.name\fR patterns
 /*	to match \fIsub.domain.name\fR (as opposed to
 /*	requiring \fI.domain.name\fR patterns).
@@ -532,13 +532,13 @@ static void mail_open_stream(SMTPD_STATE *state)
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
-					  MAIL_SERVICE_CLEANUP);
+					  var_cleanup_service);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
 			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
-		      MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP);
+		      MAIL_CLASS_PUBLIC, var_cleanup_service);
     }
 
     /*
@@ -1038,7 +1038,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "554 Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "552 Error: %s", LEN(why) ?
+	smtpd_chat_reply(state, "550 Error: %s", LEN(why) ?
 			 STR(why) : "content rejected");
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
@@ -1295,6 +1295,7 @@ typedef struct SMTPD_CMD {
 } SMTPD_CMD;
 
 #define SMTPD_CMD_FLAG_LIMIT    (1<<0)	/* limit usage */
+#define SMTPD_CMD_FLAG_HEADER	(1<<1)	/* RFC 2822 mail header */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT,
@@ -1312,6 +1313,9 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "VRFY", vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
     "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     "QUIT", quit_cmd, 0,
+    "Received:", 0, SMTPD_CMD_FLAG_HEADER,
+    "Subject:", 0, SMTPD_CMD_FLAG_HEADER,
+    "From:", 0, SMTPD_CMD_FLAG_HEADER,
     0,
 };
 
@@ -1393,6 +1397,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_count++;
 		continue;
 	    }
+	    if (cmdp->flags & SMTPD_CMD_FLAG_HEADER) {
+		msg_warn("%s sent %s header instead of SMTP command: %.100s",
+		    cmdp->name, state->namaddr, vstring_str(state->buffer));
+		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
+		break;
+	    }
 	    if (state->access_denied && cmdp->action != quit_cmd) {
 		smtpd_chat_reply(state, "503 Error: access denied for %s",
 				 state->namaddr);	/* RFC 2821 Sec 3.1 */
@@ -1405,7 +1415,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    if ((cmdp->flags & SMTPD_CMD_FLAG_LIMIT)
 		&& state->junk_cmds++ > var_smtpd_junk_cmd_limit)
 		state->error_count++;
-
 	    if (cmdp->action == quit_cmd)
 		break;
 	}

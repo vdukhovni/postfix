@@ -119,7 +119,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
      */
     if (rewrite_clnt_stream == 0)
 	rewrite_clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE,
-				  MAIL_SERVICE_REWRITE, var_ipc_idle_limit);
+				  var_rewrite_service, var_ipc_idle_limit);
 
     for (;;) {
 	stream = clnt_stream_access(rewrite_clnt_stream);
