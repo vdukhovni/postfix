@@ -14,7 +14,7 @@
 /*	VSTREAM	*dst;
 /*	int	flags;
 /*	const char *eol;
-/*	VSTRING	*why;
+/*	DSN_VSTRING *why;
 /* DESCRIPTION
 /*	mail_copy() copies a mail message from record stream to stream-lf
 /*	stream, and attempts to detect all possible I/O errors.
@@ -62,7 +62,8 @@
 /* .IP eol
 /*	Record delimiter, for example, LF or CF LF.
 /* .IP why
-/*	A null pointer, or storage for the reason of failure.
+/*	A null pointer, or storage for the reason of failure in
+/*	the form of a DSN detail code plus free text.
 /* DIAGNOSTICS
 /*	A non-zero result means the operation failed. Warnings: corrupt
 /*	message file. A corrupt message is marked as corrupt.
@@ -114,6 +115,8 @@
 #include "mark_corrupt.h"
 #include "mail_params.h"
 #include "mail_copy.h"
+#include "mbox_open.h"
+#include "dsn_util.h"
 
 /* mail_copy - copy message with extreme prejudice */
 
@@ -121,7 +124,7 @@ int     mail_copy(const char *sender,
 		          const char *orig_rcpt,
 		          const char *delivered,
 		          VSTREAM *src, VSTREAM *dst,
-		          int flags, const char *eol, VSTRING *why)
+		          int flags, const char *eol, DSN_VSTRING *why)
 {
     char   *myname = "mail_copy";
     VSTRING *buf;
@@ -255,10 +258,23 @@ int     mail_copy(const char *sender,
 	    ftruncate(vstream_fileno(dst), orig_length);
 #endif
     write_error |= vstream_fclose(dst);
+
+    /*
+     * Return the optional verbose error description.
+     */
+#define TRY_AGAIN_ERROR(errno) \
+	(errno == EAGAIN || errno == ESTALE)
+
     if (why && read_error)
-	vstring_sprintf(why, "error reading message: %m");
+	dsn_vstring_update(why, TRY_AGAIN_ERROR(errno) ? "4.3.0" : "5.3.0",
+			   "error reading message: %m");
     if (why && write_error)
-	vstring_sprintf(why, "error writing message: %m");
+	dsn_vstring_update(why, mbox_dsn(errno), "error writing message: %m");
+
+    /*
+     * Use flag+errno description when the optional verbose description is
+     * not desired.
+     */
     return ((corrupt_error ? MAIL_COPY_STAT_CORRUPT : 0)
 	    | (read_error ? MAIL_COPY_STAT_READ : 0)
 	    | (write_error ? MAIL_COPY_STAT_WRITE : 0));

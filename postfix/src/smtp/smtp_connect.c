@@ -91,6 +91,7 @@
 #include <own_inet_addr.h>
 #include <deliver_pass.h>
 #include <mail_error.h>
+#include <dsn_util.h>
 
 /* DNS library. */
 
@@ -126,7 +127,7 @@ static VSTRING *smtp_salvage(VSTREAM *stream)
 /* smtp_connect_addr - connect to explicit address */
 
 static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
-				               unsigned port, VSTRING *why,
+				            unsigned port, DSN_VSTRING *why,
 				               int sess_flags)
 {
     char   *myname = "smtp_connect_addr";
@@ -150,6 +151,8 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     if (dns_rr_to_sa(addr, port, sa, &salen) != 0) {
 	msg_warn("%s: skip address type %s: %m",
 		 myname, dns_strtype(addr->type));
+	dsn_vstring_update(why, "4.4.0",
+			   "network address conversion failed: %m");
 	smtp_errno = SMTP_ERR_RETRY;
 	return (0);
     }
@@ -239,8 +242,8 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
 	conn_stat = sane_connect(sock, sa, salen);
     }
     if (conn_stat < 0) {
-	vstring_sprintf(why, "connect to %s[%s]: %m",
-			addr->name, hostaddr.buf);
+	dsn_vstring_update(why, "4.4.1", "connect to %s[%s]: %m",
+			   addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
@@ -250,8 +253,8 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
      * Skip this host if it takes no action within some time limit.
      */
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
-	vstring_sprintf(why, "connect to %s[%s]: read timeout",
-			addr->name, hostaddr.buf);
+	dsn_vstring_update(why, "4.4.2", "connect to %s[%s]: read timeout",
+			   addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
@@ -262,8 +265,9 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
-			addr->name, hostaddr.buf);
+	dsn_vstring_update(why, "4.4.0",
+			   "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
+			   addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
 	return (0);
@@ -276,12 +280,15 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
      * also means that we have to salvage the server's response ourself so
      * that it can be included in logging or in non-delivery reports. It does
      * not hurt if we keep the test for a 4xx or 5xx greeting in smtp_helo().
+     * 
+     * Do not propagate the server's DSN code. We are skipping this problem!
      */
     if (ch == '4' || (ch == '5' && var_smtp_skip_5xx_greeting)) {
 	VSTRING *salvage_buf = smtp_salvage(stream);
 
-	vstring_sprintf(why, "connect to %s[%s]: server refused to talk to me: %s",
-			addr->name, hostaddr.buf, STR(salvage_buf));
+	dsn_vstring_update(why, "4.3.0",
+		      "connect to %s[%s]: server refused to talk to me: %s",
+			   addr->name, hostaddr.buf, STR(salvage_buf));
 	vstring_free(salvage_buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
@@ -506,7 +513,7 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 int     smtp_connect(SMTP_STATE *state)
 {
     DELIVER_REQUEST *request = state->request;
-    VSTRING *why = vstring_alloc(10);
+    DSN_VSTRING *why = dsn_vstring_alloc(10);
     char   *dest_buf;
     char   *domain;
     unsigned port;
@@ -686,7 +693,7 @@ int     smtp_connect(SMTP_STATE *state)
 		    smtp_xfer(state);
 		smtp_cleanup_session(state);
 	    } else {
-		msg_info("%s (port %d)", vstring_str(why), ntohs(port));
+		msg_info("%s (port %d)", STR(why->vstring), ntohs(port));
 	    }
 	}
 	dns_rr_free(addr_list);
@@ -715,6 +722,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    if (IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites)) {
 		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
+		dsn_vstring_update(why, "4.3.5", "");
 		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
@@ -724,6 +732,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
+		dsn_vstring_update(why, "4.3.5", "");
 		smtp_errno = SMTP_ERR_RETRY;
 	    }
 
@@ -744,11 +753,16 @@ int     smtp_connect(SMTP_STATE *state)
 
 	    /*
 	     * We still need to bounce or defer some left-over recipients:
-	     * either mail loops or some backup mail server was unavailable.
+	     * either mail loops or some mail server was unavailable.
 	     */
 	    state->final_server = 1;		/* XXX */
-	    smtp_site_fail(state, smtp_errno == SMTP_ERR_RETRY ? 450 : 550,
-			   "%s", vstring_str(why));
+	    if (smtp_errno == SMTP_ERR_RETRY) {
+		why->dsn[0] = '4';
+		smtp_site_fail(state, why->dsn, 450, "%s", STR(why->vstring));
+	    } else {
+		why->dsn[0] = '5';
+		smtp_site_fail(state, why->dsn, 550, "%s", STR(why->vstring));
+	    }
 
 	    /*
 	     * Sanity check. Don't silently lose recipients.
@@ -765,6 +779,6 @@ int     smtp_connect(SMTP_STATE *state)
     if (HAVE_NEXTHOP_STATE(state))
 	FREE_NEXTHOP_STATE(state);
     argv_free(sites);
-    vstring_free(why);
+    dsn_vstring_free(why);
     return (state->status);
 }

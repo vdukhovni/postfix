@@ -353,6 +353,7 @@
 #include <off_cvt.h>
 #include <quote_822_local.h>
 #include <flush_clnt.h>
+#include <dsn_util.h>
 
 /* Single server skeleton. */
 
@@ -822,7 +823,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 
 static int eval_command_status(int command_status, char *service,
 			             DELIVER_REQUEST *request, VSTREAM *src,
-			               char *why)
+			               const char *dsn, const char *text)
 {
     RECIPIENT *rcpt;
     int     status;
@@ -840,31 +841,36 @@ static int eval_command_status(int command_status, char *service,
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 			  request->queue_id, rcpt->orig_addr,
 			  rcpt->address, rcpt->offset, service,
-			  request->arrival_time, "%s", request->nexthop);
+			  "2.0.0", request->arrival_time,
+			  "%s", request->nexthop);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
 	    result |= status;
 	}
 	break;
     case PIPE_STAT_BOUNCE:
-	for (n = 0; n < request->rcpt_list.len; n++) {
-	    rcpt = request->rcpt_list.info + n;
-	    status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
-				   request->queue_id, rcpt->orig_addr,
-				   rcpt->address, rcpt->offset, service,
-				   request->arrival_time, "%s", why);
-	    if (status == 0)
-		deliver_completed(src, rcpt->offset);
-	    result |= status;
-	}
-	break;
     case PIPE_STAT_DEFER:
-	for (n = 0; n < request->rcpt_list.len; n++) {
-	    rcpt = request->rcpt_list.info + n;
-	    result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
-				   request->queue_id, rcpt->orig_addr,
-				   rcpt->address, rcpt->offset, service,
-				   request->arrival_time, "%s", why);
+	if (dsn[0] != '4') {
+	    for (n = 0; n < request->rcpt_list.len; n++) {
+		rcpt = request->rcpt_list.info + n;
+		status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
+				       request->queue_id, rcpt->orig_addr,
+				       rcpt->address, rcpt->offset, service,
+				       dsn, request->arrival_time,
+				       "%s", text);
+		if (status == 0)
+		    deliver_completed(src, rcpt->offset);
+		result |= status;
+	    }
+	} else {
+	    for (n = 0; n < request->rcpt_list.len; n++) {
+		rcpt = request->rcpt_list.info + n;
+		result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
+				       request->queue_id, rcpt->orig_addr,
+				       rcpt->address, rcpt->offset, service,
+				       dsn, request->arrival_time,
+				       "%s", text);
+	    }
 	}
 	break;
     case PIPE_STAT_CORRUPT:
@@ -885,7 +891,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     static PIPE_PARAMS conf;
     static PIPE_ATTR attr;
     RECIPIENT_LIST *rcpt_list = &request->rcpt_list;
-    VSTRING *why = vstring_alloc(100);
+    DSN_VSTRING *why = dsn_vstring_alloc(100);
     VSTRING *buf;
     ARGV   *expanded_argv = 0;
     int     deliver_status;
@@ -893,7 +899,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     ARGV   *export_env;
 
 #define DELIVER_MSG_CLEANUP() { \
-	vstring_free(why); \
+	dsn_vstring_free(why); \
 	if (expanded_argv) argv_free(expanded_argv); \
     }
 
@@ -936,7 +942,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
      */
     if ((attr.flags & MAIL_COPY_DELIVERED) && (rcpt_list->len > 1)) {
 	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
-					     request, request->fp,
+					     request, request->fp, "4.3.5",
 					     "mailer configuration error");
 	msg_warn("pipe flag `D' requires %s_destination_recipient_limit = 1",
 		 service);
@@ -949,7 +955,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
      */
     if ((attr.flags & MAIL_COPY_ORIG_RCPT) && (rcpt_list->len > 1)) {
 	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
-					     request, request->fp,
+					     request, request->fp, "4.3.5",
 					     "mailer configuration error");
 	msg_warn("pipe flag `O' requires %s_destination_recipient_limit = 1",
 		 service);
@@ -966,7 +972,8 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 		     myname, (long) attr.size_limit, request->data_size);
 
 	deliver_status = eval_command_status(PIPE_STAT_BOUNCE, service,
-				 request, request->fp, "message too large");
+					     request, request->fp, "5.2.3",
+					     "message too large");
 	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
     }
@@ -985,7 +992,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 			  request->queue_id, rcpt->orig_addr,
 			  rcpt->address, rcpt->offset, service,
-			  request->arrival_time,
+			  "2.0.0", request->arrival_time,
 			  "delivers to command: %s", attr.command[0]);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(request->fp, rcpt->offset);
@@ -1037,7 +1044,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     if ((expanded_argv = expand_argv(service, attr.command,
 				     rcpt_list, attr.flags)) == 0) {
 	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
-					     request, request->fp,
+					     request, request->fp, "4.3.5",
 					     "mailer configuration error");
 	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
@@ -1060,7 +1067,8 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     argv_free(export_env);
 
     deliver_status = eval_command_status(command_status, service, request,
-					 request->fp, vstring_str(why));
+					 request->fp, why->dsn,
+					 vstring_str(why->vstring));
 
     /*
      * Clean up.

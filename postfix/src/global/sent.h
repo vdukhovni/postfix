@@ -27,10 +27,12 @@
   */
 #define SENT_FLAG_NONE	(0)
 
-extern int PRINTFLIKE(8, 9) sent(int, const char *, const char *, const char *,
-		              long, const char *, time_t, const char *,...);
+extern int PRINTFLIKE(9, 10) sent(int, const char *, const char *, const char *,
+			           long, const char *, const char *, time_t,
+				         const char *,...);
 extern int vsent(int, const char *, const char *, const char *, long,
-		         const char *, time_t, const char *, va_list);
+		         const char *, const char *, time_t,
+		         const char *, va_list);
 
 /* LICENSE
 /* .ad

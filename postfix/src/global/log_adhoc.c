@@ -7,21 +7,23 @@
 /*	#include <log_adhoc.h>
 /*
 /*	void	log_adhoc(id, orig_rcpt, recipient, relay,
-/*				entry, status, format, ...)
+/*				detail, entry, status, format, ...)
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
+/*	const char *detail;
 /*	time_t	entry;
 /*	const char *status;
 /*	const char *format;
 /*
 /*	void	vlog_adhoc(id, orig_rcpt, recipient, relay,
-/*				entry, status, format, ap)
+/*				detail, entry, status, format, ap)
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
+/*	const char *detail;
 /*	time_t	entry;
 /*	const char *status;
 /*	const char *format;
@@ -50,6 +52,8 @@
 /*	Host we could (not) talk to.
 /* .IP status
 /*	bounced, deferred, sent, and so on.
+/* .IP detail
+/*	X.YY.ZZ Error detail as specified in RFC 1893.
 /* .IP entry
 /*	Message arrival time.
 /* .IP format
@@ -94,13 +98,13 @@
 
 void    log_adhoc(const char *id, const char *orig_rcpt,
 		          const char *recipient, const char *relay,
-		          time_t entry, const char *status,
-		          const char *fmt,...)
+		          const char *detail, time_t entry,
+		          const char *status, const char *fmt,...)
 {
     va_list ap;
 
     va_start(ap, fmt);
-    vlog_adhoc(id, orig_rcpt, recipient, relay, entry, status, fmt, ap);
+    vlog_adhoc(id, orig_rcpt, recipient, relay, detail, entry, status, fmt, ap);
     va_end(ap);
 }
 
@@ -108,7 +112,7 @@ void    log_adhoc(const char *id, const char *orig_rcpt,
 
 void    vlog_adhoc(const char *id, const char *orig_rcpt,
 		           const char *recipient, const char *relay,
-		           time_t entry, const char *status,
+		           const char *detail, time_t entry, const char *status,
 		           const char *fmt, va_list ap)
 {
     VSTRING *why = vstring_alloc(100);
@@ -116,10 +120,10 @@ void    vlog_adhoc(const char *id, const char *orig_rcpt,
 
     vstring_vsprintf(why, fmt, ap);
     if (orig_rcpt && *orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
-	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, status=%s (%s)",
-	  id, recipient, orig_rcpt, relay, delay, status, vstring_str(why));
+	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, dsn=%s status=%s (%s)",
+	  id, recipient, orig_rcpt, relay, delay, detail, status, vstring_str(why));
     else
-	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=%s (%s)",
-		 id, recipient, relay, delay, status, vstring_str(why));
+	msg_info("%s: to=<%s>, relay=%s, delay=%d, dsn=%s status=%s (%s)",
+		 id, recipient, relay, delay, detail, status, vstring_str(why));
     vstring_free(why);
 }

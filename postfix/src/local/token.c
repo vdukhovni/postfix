@@ -113,11 +113,11 @@ static int deliver_token_home(LOCAL_STATE state, USER_ATTR usr_attr, char *addr)
 
     if (addr[1] != '/') {			/* disallow ~user */
 	status = bounce_append(BOUNCE_FLAGS(state.request),
-			       BOUNCE_ATTR(state.msg_attr),
+			       BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			       "bad home directory syntax for: %s", addr);
     } else if (usr_attr.home == 0) {		/* require user context */
 	status = bounce_append(BOUNCE_FLAGS(state.request),
-			       BOUNCE_ATTR(state.msg_attr),
+			       BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			       "unknown home directory for: %s", addr);
     } else if (usr_attr.home[0] == '/' && usr_attr.home[1] == 0) {
 	status = deliver_file(state, usr_attr, addr + 1);
@@ -151,7 +151,7 @@ int     deliver_token(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr)
     } else if (*STR(addr_buf) == '|') {
 	if ((local_cmd_deliver_mask & state.msg_attr.exp_type) == 0)
 	    status = bounce_append(BOUNCE_FLAGS(state.request),
-				   BOUNCE_ATTR(state.msg_attr),
+				   BOUNCE_ATTR(state.msg_attr, "5.7.1"),
 				   "mail to command is restricted");
 	else
 	    status = deliver_command(state, usr_attr, STR(addr_buf) + 1);
@@ -210,8 +210,8 @@ int     deliver_token_stream(LOCAL_STATE state, USER_ATTR usr_attr,
     }
     if (vstream_ferror(fp))
 	status = defer_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
-			      "error reading .forward file: %m");
+			      BOUNCE_ATTR(state.msg_attr, "4.3.0"),
+			      "error reading forwarding file: %m");
     vstring_free(buf);
     return (status);
 }

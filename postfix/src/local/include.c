@@ -108,19 +108,19 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      */
     if (*path != '/')
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			      ":include:%s uses a relative path", path));
     if (stat_as(path, &st, usr_attr.uid, usr_attr.gid) < 0)
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			      "unable to lookup include file %s: %m", path));
     if (S_ISREG(st.st_mode) == 0)
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			      "not a regular include file: %s", path));
     if (st.st_mode & S_IWOTH)
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			      "world writable include file: %s", path));
 
     /*
@@ -147,7 +147,7 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	if ((file_pwd = mypwuid(st.st_uid)) == 0) {
 	    msg_warn("cannot find username for uid %ld", (long) st.st_uid);
 	    return (defer_append(BOUNCE_FLAGS(state.request),
-				 BOUNCE_ATTR(state.msg_attr),
+				 BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 			     "%s: cannot find :include: file owner", path));
 	}
 	if (file_pwd->pw_uid != 0)
@@ -184,7 +184,7 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 
     if ((fp = FOPEN_AS(path, usr_attr.uid, usr_attr.gid)) == 0) {
 	status = bounce_append(BOUNCE_FLAGS(state.request),
-			       BOUNCE_ATTR(state.msg_attr),
+			       BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			       "cannot open include file %s: %m", path);
     } else {
 	if ((local_ext_prop_mask & EXT_PROP_INCLUDE) == 0)

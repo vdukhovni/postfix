@@ -71,6 +71,7 @@
 #include <mail_params.h>
 #include <mbox_conf.h>
 #include <mbox_open.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -85,7 +86,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     char   *myname = "deliver_file";
     struct stat st;
     MBOX   *mp;
-    VSTRING *why;
+    DSN_VSTRING *why;
     int     mail_copy_status = MAIL_COPY_STAT_WRITE;
     int     deliver_status;
     int     copy_flags;
@@ -112,14 +113,15 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      */
     if ((local_file_deliver_mask & state.msg_attr.exp_type) == 0)
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "5.7.1"),
 			      "mail to file is restricted"));
 
     /*
      * Don't deliver trace-only requests.
      */
     if (DEL_REQ_TRACE_ONLY(state.request->flags))
-	return (sent(BOUNCE_FLAGS(state.request), SENT_ATTR(state.msg_attr),
+	return (sent(BOUNCE_FLAGS(state.request),
+		     SENT_ATTR(state.msg_attr, "2.0.0"),
 		     "delivers to file: %s", path));
 
     /*
@@ -146,7 +148,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 		 (long) usr_attr.uid, (long) usr_attr.gid, path);
     if (vstream_fseek(state.msg_attr.fp, state.msg_attr.offset, SEEK_SET) < 0)
 	msg_fatal("seek queue file %s: %m", state.msg_attr.queue_id);
-    why = vstring_alloc(100);
+    why = dsn_vstring_alloc(100);
 
     /*
      * As the specified user, open or create the file, lock it, and append
@@ -163,8 +165,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     if (mp != 0) {
 	if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
 	    vstream_fclose(mp->fp);
-	    vstring_sprintf(why, "destination file is executable");
-	    errno = 0;
+	    dsn_vstring_update(why, "5.7.1", "destination file is executable");
 	} else {
 	    mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
 					 S_ISREG(st.st_mode) ? copy_flags :
@@ -181,20 +182,20 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
 	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
-	deliver_status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
-			  defer_append : bounce_append)
-	    (BOUNCE_FLAGS(state.request), BOUNCE_ATTR(state.msg_attr),
+	deliver_status = (why->dsn[0] == '4' ? defer_append : bounce_append)
+	    (BOUNCE_FLAGS(state.request),
+	     BOUNCE_ATTR(state.msg_attr, why->dsn),
 	     "cannot append message to destination file %s: %s",
-	     path, STR(why));
+	     path, vstring_str(why->vstring));
     } else {
 	deliver_status = sent(BOUNCE_FLAGS(state.request),
-			      SENT_ATTR(state.msg_attr),
+			      SENT_ATTR(state.msg_attr, "2.0.0"),
 			      "delivered to file: %s", path);
     }
 
     /*
      * Clean up.
      */
-    vstring_free(why);
+    dsn_vstring_free(why);
     return (deliver_status);
 }

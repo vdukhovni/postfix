@@ -108,7 +108,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->defer_if_permit_client = 0;
     state->defer_if_permit_helo = 0;
     state->defer_if_permit_sender = 0;
+    state->defer_if_reject.dsn = 0;
     state->defer_if_reject.reason = 0;
+    state->defer_if_permit.dsn = 0;
     state->defer_if_permit.reason = 0;
     state->discard = 0;
     state->expand_buf = 0;
@@ -176,8 +178,12 @@ void    smtpd_state_reset(SMTPD_STATE *state)
      * Buffers that are created on the fly and that may be shared among mail
      * deliveries within the same SMTP session.
      */
+    if (state->defer_if_permit.dsn)
+	vstring_free(state->defer_if_permit.dsn);
     if (state->defer_if_permit.reason)
 	vstring_free(state->defer_if_permit.reason);
+    if (state->defer_if_reject.dsn)
+	vstring_free(state->defer_if_reject.dsn);
     if (state->defer_if_reject.reason)
 	vstring_free(state->defer_if_reject.reason);
     if (state->expand_buf)

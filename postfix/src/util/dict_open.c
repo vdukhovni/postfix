@@ -266,7 +266,7 @@ DICT   *dict_open(const char *dict_spec, int open_flags, int dict_flags)
     DICT   *dict;
 
     if ((dict_name = split_at(saved_dict_spec, ':')) == 0)
-	msg_fatal("open dictionary: need \"type:name\" form instead of: \"%s\"",
+	msg_fatal("open dictionary: expecting \"type:name\" form instead of \"%s\"",
 		  dict_spec);
 
     dict = dict_open3(saved_dict_spec, dict_name, open_flags, dict_flags);
@@ -284,6 +284,9 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
     DICT_OPEN_INFO *dp;
     DICT   *dict;
 
+    if (*dict_type == 0 || *dict_name == 0)
+	msg_fatal("open dictionary: expecting \"type:name\" form instead of \"%s:%s\"",
+		  dict_type, dict_name);
     if (dict_open_hash == 0)
 	dict_open_init();
     if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0)

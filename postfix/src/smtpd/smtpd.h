@@ -50,6 +50,8 @@
 typedef struct SMTPD_DEFER {
     int     active;			/* is this active */
     VSTRING *reason;			/* reason for deferral */
+    VSTRING *dsn;			/* DSN detail */
+    int     code;			/* SMTP reply code */
     int     class;			/* error notification class */
 } SMTPD_DEFER;
 

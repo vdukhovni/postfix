@@ -119,11 +119,11 @@ int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr
      */
     if (reply.flags & RESOLVE_FLAG_FAIL) {
 	status = defer_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 			      "address resolver failure");
     } else if (reply.flags & RESOLVE_FLAG_ERROR) {
 	status = bounce_append(BOUNCE_FLAGS(state.request),
-			       BOUNCE_ATTR(state.msg_attr),
+			       BOUNCE_ATTR(state.msg_attr, "5.1.3"),
 			       "bad recipient address syntax: %s",
 			       STR(reply.recipient));
     } else {

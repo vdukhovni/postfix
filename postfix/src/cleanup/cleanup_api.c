@@ -106,6 +106,7 @@
 #include <mail_params.h>
 #include <mail_stream.h>
 #include <hold_message.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -191,6 +192,8 @@ int     cleanup_flush(CLEANUP_STATE *state)
     char   *junk;
     int     status;
     char   *encoding;
+    CLEANUP_STAT_DETAIL *detail = 0;
+DSN_SPLIT dp;
 
     /*
      * Raise these errors only if we examined all queue file records.
@@ -256,12 +259,17 @@ int     cleanup_flush(CLEANUP_STATE *state)
 
     if (state->errs != 0) {
 	if (CAN_BOUNCE()) {
+	    if (state->reason) 
+		dsn_split(&dp, "5.0.0", state->reason);
+	    else
+		detail = cleanup_stat_detail(state->errs);
 	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 			      state->recip ? state->recip : "unknown",
 			      state->recip ? state->recip : "unknown",
-			      (long) 0, "none", state->time,
-			      "%s", state->reason ? state->reason :
-			      cleanup_strerror(state->errs)) == 0
+			      (long) 0, "none",
+			      detail ? detail->dsn : dp.dsn, 
+			      state->time, "%s", 
+			      detail ? detail->text : dp.text) == 0
 		&& bounce_flush(BOUNCE_FLAG_CLEAN, state->queue_name,
 				state->queue_id,
 		(encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) ?

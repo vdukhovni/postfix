@@ -36,6 +36,7 @@
 /*	RFC 1869 (SMTP service extensions)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
+/*	RFC 2034 (Enhanced Error Codes)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
@@ -70,7 +71,7 @@
 /*	Disable the SMTP VRFY command.
 /* .IP "\fBsmtpd_noop_commands (empty)\fR"
 /*	List of commands that the Postfix SMTP server replies to with "250
-/*	Ok", without doing any syntax checks and without changing state.
+/*	2.0.0 Ok", without doing any syntax checks and without changing state.
 /* .IP "\fBstrict_rfc821_envelopes (no)\fR"
 /*	Require that addresses received in SMTP MAIL FROM and RCPT TO
 /*	commands are enclosed with <>, and that those addresses do
@@ -1041,6 +1042,11 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *err;
 
+    /*
+     * RFC 2034: the text part of all 2xx, 4xx, and 5xx SMTP responses other
+     * than the initial greeting and any response to HELO or EHLO are
+     * prefaced with a status code as defined in RFC 1893.
+     */
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: HELO hostname");
@@ -1084,6 +1090,10 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * XXX 2821 new feature: Section 4.1.4 specifies that a server must clear
      * all buffers and reset the state exactly as if a RSET command had been
      * issued.
+     * 
+     * RFC 2034: the text part of all 2xx, 4xx, and 5xx SMTP responses other
+     * than the initial greeting and any response to HELO or EHLO are
+     * prefaced with a status code as defined in RFC 1893.
      */
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1330,8 +1340,8 @@ static void mail_open_stream(SMTPD_STATE *state)
 
 /* extract_addr - extract address from rubble */
 
-static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
-			          int allow_empty_addr, int strict_rfc821)
+static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
+			        int allow_empty_addr, int strict_rfc821)
 {
     char   *myname = "extract_addr";
     TOK822 *tree;
@@ -1339,7 +1349,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     TOK822 *addr = 0;
     int     naddr;
     int     non_addr;
-    char   *err = 0;
+    int     err = 0;
     char   *junk = 0;
     char   *text;
     char   *colon;
@@ -1402,7 +1412,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
-	err = "501 Bad address syntax";
+	err = 1;
     }
 
     /*
@@ -1428,7 +1438,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 		&& smtpd_check_addr(STR(arg->vstrval)) != 0)) {
 	    msg_warn("Illegal address syntax from %s in %s command: %s",
 		     state->namaddr, state->where, STR(arg->vstrval));
-	    err = "501 Bad address syntax";
+	    err = 1;
 	}
 
     /*
@@ -1463,20 +1473,20 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     if (var_helo_required && state->helo_name == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
+	smtpd_chat_reply(state, "503 5.5.1 Error: send HELO/EHLO first");
 	return (-1);
     }
 #define IN_MAIL_TRANSACTION(state) ((state)->sender != 0)
 
     if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: nested MAIL command");
+	smtpd_chat_reply(state, "503 5.5.1 Error: nested MAIL command");
 	return (-1);
     }
     if (argc < 3
 	|| strcasecmp(argv[1].strval, "from:") != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: MAIL FROM: <address>");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: MAIL FROM: <address>");
 	return (-1);
     }
 
@@ -1493,7 +1503,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt_mail(anvil_clnt, state->service, state->addr,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cmail_limit) {
-	smtpd_chat_reply(state, "421 %s Error: too much mail from %s",
+	smtpd_chat_reply(state, "421 4.7.0 %s Error: too much mail from %s",
 			 var_myhostname, state->addr);
 	msg_warn("Message delivery request rate limit exceeded: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
@@ -1501,12 +1511,12 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Bad sender address syntax");
+	smtpd_chat_reply(state, "501 5.1.7 Bad sender address syntax");
 	return (-1);
     }
-    if ((err = extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR, var_strict_rfc821_env)) != 0) {
+    if (extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR, var_strict_rfc821_env) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "%s", err);
+	smtpd_chat_reply(state, "501 5.1.7 Bad sender address syntax");
 	return (-1);
     }
     for (narg = 3; narg < argc; narg++) {
@@ -1519,12 +1529,12 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    /* Reject non-numeric size. */
 	    if (!alldig(arg + 5)) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 Bad message size syntax");
+		smtpd_chat_reply(state, "501 5.5.4 Bad message size syntax");
 		return (-1);
 	    }
 	    /* Reject size overflow. */
 	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0) {
-		smtpd_chat_reply(state, "552 Message size exceeds file system imposed limit");
+		smtpd_chat_reply(state, "552 5.3.4 Message size exceeds file system imposed limit");
 		state->error_mask |= MAIL_ERROR_POLICY;
 		return (-1);
 	    }
@@ -1544,19 +1554,20 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		verp_delims = arg + VERP_CMD_LEN + 1;
 		if (verp_delims_verify(verp_delims) != 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Error: %s needs two characters from %s",
+		    smtpd_chat_reply(state,
+			 "501 5.5.4 Error: %s needs two characters from %s",
 				     VERP_CMD, var_verp_filter);
 		    return (-1);
 		}
 	    }
 	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "555 Unsupported option: %s", arg);
+	    smtpd_chat_reply(state, "555 5.5.4 Unsupported option: %s", arg);
 	    return (-1);
 	}
     }
     if (verp_delims && argv[2].strval[0] == 0) {
-	smtpd_chat_reply(state, "503 Error: %s requires non-null sender",
+	smtpd_chat_reply(state, "503 5.5.4 Error: %s requires non-null sender",
 			 VERP_CMD);
 	return (-1);
     }
@@ -1590,7 +1601,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->verp_delims = mystrdup(verp_delims);
     if (USE_SMTPD_PROXY(state))
 	state->proxy_mail = mystrdup(STR(state->buffer));
-    smtpd_chat_reply(state, "250 Ok");
+    smtpd_chat_reply(state, "250 2.1.0 Ok");
     return (0);
 }
 
@@ -1679,13 +1690,13 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     if (!IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: need MAIL command");
+	smtpd_chat_reply(state, "503 5.5.1 Error: need MAIL command");
 	return (-1);
     }
     if (argc < 3
 	|| strcasecmp(argv[1].strval, "to:") != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: RCPT TO: <address>");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: RCPT TO: <address>");
 	return (-1);
     }
 
@@ -1702,7 +1713,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->addr,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_crcpt_limit) {
-	smtpd_chat_reply(state, "421 %s Error: too many recipients from %s",
+	smtpd_chat_reply(state,
+			 "421 4.7.0 %s Error: too many recipients from %s",
 			 var_myhostname, state->addr);
 	msg_warn("Recipient address rate limit exceeded: %d from %s for service %s",
 		 rate, state->namaddr, state->service);
@@ -1710,24 +1722,24 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Bad recipient address syntax");
+	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
     }
-    if ((err = extract_addr(state, argv + 2, REJECT_EMPTY_ADDR, var_strict_rfc821_env)) != 0) {
+    if (extract_addr(state, argv + 2, REJECT_EMPTY_ADDR, var_strict_rfc821_env) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "%s", err);
+	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
     }
     for (narg = 3; narg < argc; narg++) {
 	arg = argv[narg].strval;
 	if (1) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "555 Unsupported option: %s", arg);
+	    smtpd_chat_reply(state, "555 5.5.4 Unsupported option: %s", arg);
 	    return (-1);
 	}
     }
     if (var_smtpd_rcpt_limit && state->rcpt_count >= var_smtpd_rcpt_limit) {
-	smtpd_chat_reply(state, "452 Error: too many recipients");
+	smtpd_chat_reply(state, "452 4.5.3 Error: too many recipients");
 	if (state->rcpt_overshoot++ < var_smtpd_rcpt_overlim)
 	    return (0);
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -1794,7 +1806,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[2].strval);
 	vstream_fflush(state->cleanup);
     }
-    smtpd_chat_reply(state, "250 Ok");
+    smtpd_chat_reply(state, "250 2.1.5 Ok");
     return (0);
 }
 
@@ -1863,6 +1875,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     VSTREAM *out_stream;
     int     out_error;
     char  **cpp;
+    CLEANUP_STAT_DETAIL *detail;
 
 #ifdef USE_TLS
     VSTRING *peer_CN;
@@ -1878,15 +1891,15 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     if (state->rcpt_count == 0) {
 	if (!IN_MAIL_TRANSACTION(state)) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "503 Error: need RCPT command");
+	    smtpd_chat_reply(state, "503 5.5.1 Error: need RCPT command");
 	} else {
-	    smtpd_chat_reply(state, "554 Error: no valid recipients");
+	    smtpd_chat_reply(state, "554 5.5.1 Error: no valid recipients");
 	}
 	return (-1);
     }
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: DATA");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: DATA");
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0 && (err = smtpd_check_data(state)) != 0) {
@@ -2077,8 +2090,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	} else {
 	    state->error_mask |= MAIL_ERROR_SOFTWARE;
 	    state->err |= CLEANUP_STAT_PROXY;
+	    detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	    vstring_sprintf(state->proxy_buffer,
-			    "451 Error: queue file write error");
+			    "%d %s Error: %s",
+			    detail->smtp, detail->dsn, detail->text);
 	}
     }
 
@@ -2113,34 +2128,49 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_mask = 0;
 	state->junk_cmds = 0;
 	if (state->queue_id)
-	    smtpd_chat_reply(state, "250 Ok: queued as %s", state->queue_id);
+	    smtpd_chat_reply(state,
+			     "250 2.0.0 Ok: queued as %s", state->queue_id);
 	else
 	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
     } else if ((state->err & CLEANUP_STAT_BAD) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
+	detail = cleanup_stat_detail(CLEANUP_STAT_BAD);
+	smtpd_chat_reply(state, "%d %s Error: internal error %d",
+			 detail->smtp, detail->dsn, state->err);
     } else if ((state->err & CLEANUP_STAT_SIZE) != 0) {
 	state->error_mask |= MAIL_ERROR_BOUNCE;
-	smtpd_chat_reply(state, "552 Error: message too large");
+	detail = cleanup_stat_detail(CLEANUP_STAT_SIZE);
+	smtpd_chat_reply(state, "%d %s Error: %s",
+			 detail->smtp, detail->dsn, detail->text);
     } else if ((state->err & CLEANUP_STAT_HOPS) != 0) {
 	state->error_mask |= MAIL_ERROR_BOUNCE;
-	smtpd_chat_reply(state, "554 Error: too many hops");
+	detail = cleanup_stat_detail(CLEANUP_STAT_HOPS);
+	smtpd_chat_reply(state, "%d %s Error: %s",
+			 detail->smtp, detail->dsn, detail->text);
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	if (state->proxy_buffer)
+	detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
+	if (state->proxy_buffer) {
 	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
-	else
-	    smtpd_chat_reply(state, "550 Error: %s", LEN(why) ?
-			     STR(why) : "content rejected");
+	} else if (why && LEN(why) > 0) {
+	    smtpd_chat_reply(state, "%d %s", detail->smtp, STR(why));
+	} else {
+	    smtpd_chat_reply(state, "%d %s Error: %s",
+			     detail->smtp, detail->dsn, detail->text);
+	}
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
-	smtpd_chat_reply(state, "451 Error: queue file write error");
+	detail = cleanup_stat_detail(CLEANUP_STAT_WRITE);
+	smtpd_chat_reply(state, "%d %s Error: %s",
+			 detail->smtp, detail->dsn, detail->text);
     } else if ((state->err & CLEANUP_STAT_PROXY) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
+	detail = cleanup_stat_detail(CLEANUP_STAT_BAD);
+	smtpd_chat_reply(state, "%d %s Error: internal error %d",
+			 detail->smtp, detail->dsn, state->err);
     }
 
     /*
@@ -2165,7 +2195,7 @@ static int rset_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: RSET");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: RSET");
 	return (-1);
     }
 
@@ -2175,7 +2205,7 @@ static int rset_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
-    smtpd_chat_reply(state, "250 Ok");
+    smtpd_chat_reply(state, "250 2.0.0 Ok");
     return (0);
 }
 
@@ -2198,11 +2228,11 @@ static int noop_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: NOOP");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: NOOP");
 	return (-1);
     }
 #endif
-    smtpd_chat_reply(state, "250 Ok");
+    smtpd_chat_reply(state, "250 2.0.0 Ok");
     return (0);
 }
 
@@ -2238,19 +2268,19 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
     if (var_disable_vrfy_cmd) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "502 VRFY command is disabled");
+	smtpd_chat_reply(state, "502 5.5.1 VRFY command is disabled");
 	return (-1);
     }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: VRFY address");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: VRFY address");
 	return (-1);
     }
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
-    if ((err = extract_addr(state, argv + 1, REJECT_EMPTY_ADDR, SLOPPY)) != 0) {
+    if (extract_addr(state, argv + 1, REJECT_EMPTY_ADDR, SLOPPY) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "%s", err);
+	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0
@@ -2268,7 +2298,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Reply code 250 is reserved for the case where the address is verified;
      * reply code 252 should be used when no definitive certainty exists.
      */
-    smtpd_chat_reply(state, "252 %s", argv[1].strval);
+    smtpd_chat_reply(state, "252 2.0.0 %s", argv[1].strval);
     return (0);
 }
 
@@ -2297,7 +2327,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (argv[1].strval[0] == '@' || argv[1].strval[0] == '#')
-        argv[1].strval++;
+	argv[1].strval++;
 
     /*
      * As an extension to RFC 1985 we also allow an RFC 2821 address literal
@@ -2354,7 +2384,7 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
     /*
      * Don't bother checking the syntax.
      */
-    smtpd_chat_reply(state, "221 Bye");
+    smtpd_chat_reply(state, "221 2.0.0 Bye");
 
     /*
      * When the "." and quit replies are pipelined, make sure they are
@@ -2392,18 +2422,18 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: MAIL transaction in progress");
+	smtpd_chat_reply(state, "503 5.5.1 Error: MAIL transaction in progress");
 	return (-1);
     }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: %s attribute=value...",
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: %s attribute=value...",
 			 XCLIENT_CMD);
 	return (-1);
     }
     if (!xclient_allowed) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "554 Error: insufficient authorization");
+	smtpd_chat_reply(state, "550 5.7.0 Error: insufficient authorization");
 	return (-1);
     }
 #define STREQ(x,y)	(strcasecmp((x), (y)) == 0)
@@ -2424,7 +2454,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 */
 	if ((attr_value = split_at(attr_name, '=')) == 0 || *attr_value == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Error: attribute=value expected");
+	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute=value expected");
 	    return (-1);
 	}
 	printable(attr_value, '?');
@@ -2440,7 +2470,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    } else {
 		if (!valid_hostname(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_NAME, attr_value);
 		    return (-1);
 		}
@@ -2460,7 +2490,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    } else {
 		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_ADDR, attr_value);
 		    return (-1);
 		}
@@ -2480,7 +2510,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    } else {
 		if (strlen(attr_value) > VALID_HOSTNAME_LEN) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_HELO, attr_value);
 		    return (-1);
 		}
@@ -2495,7 +2525,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	else if (STREQ(attr_name, XCLIENT_PROTO)) {
 	    if (name_code(proto_names, NAME_CODE_FLAG_NONE, attr_value) < 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				 XCLIENT_PROTO, attr_value);
 		return (-1);
 	    }
@@ -2507,7 +2537,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 */
 	else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Bad %s attribute name: %s",
+	    smtpd_chat_reply(state, "501 5.5.4 Bad %s attribute name: %s",
 			     XCLIENT_CMD, attr_name);
 	    return (-1);
 	}
@@ -2522,7 +2552,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->namaddr =
 	    concatenate(state->name, "[", state->addr, "]", (char *) 0);
     }
-    smtpd_chat_reply(state, "250 Ok");
+    smtpd_chat_reply(state, "250 2.0.0 Ok");
     return (0);
 }
 
@@ -2560,18 +2590,18 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: MAIL transaction in progress");
+	smtpd_chat_reply(state, "503 5.5.1 Error: MAIL transaction in progress");
 	return (-1);
     }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: %s attribute=value...",
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: %s attribute=value...",
 			 XFORWARD_CMD);
 	return (-1);
     }
     if (!xforward_allowed) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "554 Error: insufficient authorization");
+	smtpd_chat_reply(state, "550 5.7.0 Error: insufficient authorization");
 	return (-1);
     }
 
@@ -2593,12 +2623,12 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 */
 	if ((attr_value = split_at(attr_name, '=')) == 0 || *attr_value == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Error: attribute=value expected");
+	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute=value expected");
 	    return (-1);
 	}
 	if (strlen(attr_value) > 255) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Error: attribute value too long");
+	    smtpd_chat_reply(state, "501 5.5.4 Error: attribute value too long");
 	    return (-1);
 	}
 	printable(attr_value, '?');
@@ -2617,7 +2647,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
 		if (!valid_hostname(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XFORWARD_NAME, attr_value);
 		    return (-1);
 		}
@@ -2638,7 +2668,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
 		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XFORWARD_ADDR, attr_value);
 		    return (-1);
 		}
@@ -2671,7 +2701,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    } else {
 		if (strlen(attr_value) > 64) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XFORWARD_PROTO, attr_value);
 		    return (-1);
 		}
@@ -2690,7 +2720,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 					  NAME_CODE_FLAG_NONE,
 					  attr_value)) < 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+		smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				 XFORWARD_DOMAIN, attr_value);
 		return (-1);
 	    }
@@ -2702,7 +2732,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	     */
 	default:
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Bad %s attribute name: %s",
+	    smtpd_chat_reply(state, "501 5.5.4 Bad %s attribute name: %s",
 			     XFORWARD_CMD, attr_name);
 	    return (-1);
 	}
@@ -2723,7 +2753,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			state->xforward.addr, "]",
 			(char *) 0) : mystrdup(state->xforward.name);
     }
-    smtpd_chat_reply(state, "250 Ok");
+    smtpd_chat_reply(state, "250 2.0.0 Ok");
     return (0);
 }
 
@@ -2766,10 +2796,10 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * verification unless TLS is required.
      */
     state->tls_context =
-	tls_server_start(smtpd_tls_ctx, state->client,
-			 var_smtpd_starttls_tmout,
-			 state->name, state->addr, &(state->tls_info),
-		       (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
+    tls_server_start(smtpd_tls_ctx, state->client,
+		     var_smtpd_starttls_tmout,
+		     state->name, state->addr, &(state->tls_info),
+		     (var_smtpd_tls_req_ccert && state->tls_enforce_tls));
 
     /*
      * When the TLS handshake fails, the conversation is in an unknown state.
@@ -2799,24 +2829,24 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: STARTTLS");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: STARTTLS");
 	return (-1);
     }
     if (state->tls_context != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "554 Error: TLS already active");
+	smtpd_chat_reply(state, "554 5.5.1 Error: TLS already active");
 	return (-1);
     }
     if (state->tls_use_tls == 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "502 Error: command not implemented");
+	smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
 	return (-1);
     }
     if (smtpd_tls_ctx == 0) {
-	smtpd_chat_reply(state, "454 TLS not available due to local problem");
+	smtpd_chat_reply(state, "454 4.3.0 TLS not available due to local problem");
 	return (-1);
     }
-    smtpd_chat_reply(state, "220 Ready to start TLS");
+    smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
     smtp_flush(state->client);
 
     /*
@@ -2937,7 +2967,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
     case SMTP_ERR_TIME:
 	state->reason = REASON_TIMEOUT;
 	if (vstream_setjmp(state->client) == 0)
-	    smtpd_chat_reply(state, "421 %s Error: timeout exceeded",
+	    smtpd_chat_reply(state, "421 4.4.2 %s Error: timeout exceeded",
 			     var_myhostname);
 	break;
 
@@ -2979,14 +3009,14 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
 				  &count, &crate) == ANVIL_STAT_OK) {
 	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
-		smtpd_chat_reply(state, "421 %s Error: too many connections from %s",
+		smtpd_chat_reply(state, "421 4.7.0 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
 		msg_warn("Connection concurrency limit exceeded: %d from %s for service %s",
 			 count, state->namaddr, service);
 		break;
 	    }
 	    if (var_smtpd_crate_limit > 0 && crate > var_smtpd_crate_limit) {
-		smtpd_chat_reply(state, "421 %s Error: too many connections from %s",
+		smtpd_chat_reply(state, "421 4.7.0 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
 		msg_warn("Connection rate limit exceeded: %d from %s for service %s",
 			 crate, state->namaddr, service);
@@ -2999,7 +3029,14 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    && (state->access_denied = smtpd_check_client(state)) != 0) {
 	    smtpd_chat_reply(state, "%s", state->access_denied);
 	    state->error_count++;
-	} else {
+	}
+
+	/*
+	 * RFC 2034: the text part of all 2xx, 4xx, and 5xx SMTP responses
+	 * other than the initial greeting and any response to HELO or EHLO
+	 * are prefaced with a status code as defined in RFC 1893.
+	 */
+	else {
 	    smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
 	}
 
@@ -3007,7 +3044,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    if (state->error_count >= var_smtpd_hard_erlim) {
 		state->reason = REASON_ERROR_LIMIT;
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "421 %s Error: too many errors",
+		smtpd_chat_reply(state, "421 4.7.0 %s Error: too many errors",
 				 var_myhostname);
 		break;
 	    }
@@ -3015,13 +3052,13 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    smtpd_chat_query(state);
 	    if ((argc = smtpd_token(vstring_str(state->buffer), &argv)) == 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "500 Error: bad syntax");
+		smtpd_chat_reply(state, "500 5.5.2 Error: bad syntax");
 		state->error_count++;
 		continue;
 	    }
 	    if (*var_smtpd_noop_cmds
 		&& string_list_match(smtpd_noop_cmds, argv[0].strval)) {
-		smtpd_chat_reply(state, "250 Ok");
+		smtpd_chat_reply(state, "250 2.0.0 Ok");
 		if (state->junk_cmds++ > var_smtpd_junk_cmd_limit)
 		    state->error_count++;
 		continue;
@@ -3035,17 +3072,17 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		 && string_list_match(smtpd_forbid_cmds, argv[0].strval))) {
 		    msg_warn("%s sent non-SMTP command: %.100s",
 			     state->namaddr, vstring_str(state->buffer));
-		    smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
+		    smtpd_chat_reply(state, "221 2.7.0 Error: I can break rules, too. Goodbye.");
 		    break;
 		}
-		smtpd_chat_reply(state, "502 Error: command not implemented");
+		smtpd_chat_reply(state, "502 5.5.2 Error: command not recognized");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		state->error_count++;
 		continue;
 	    }
 	    /* XXX We use the real client for connect access control. */
 	    if (state->access_denied && cmdp->action != quit_cmd) {
-		smtpd_chat_reply(state, "503 Error: access denied for %s",
+		smtpd_chat_reply(state, "503 5.7.0 Error: access denied for %s",
 				 state->namaddr);	/* RFC 2821 Sec 3.1 */
 		state->error_count++;
 		continue;
@@ -3055,7 +3092,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		!state->tls_context &&
 		(cmdp->flags & SMTPD_CMD_FLAG_PRE_TLS) == 0) {
 		smtpd_chat_reply(state,
-				 "530 Must issue a STARTTLS command first");
+			   "530 5.7.0 Must issue a STARTTLS command first");
 		state->error_count++;
 		continue;
 	    }
@@ -3280,7 +3317,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
      * Sanity checks. The queue_minfree value should be at least as large as

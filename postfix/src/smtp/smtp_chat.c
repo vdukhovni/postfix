@@ -9,6 +9,7 @@
 /*	typedef struct {
 /* .in +4
 /*		int code;
+/*		char dsn[...];
 /*		char *str;
 /*		VSTRING *buf;
 /* .in -4
@@ -78,6 +79,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -98,6 +100,7 @@
 #include <mail_addr.h>
 #include <post_mail.h>
 #include <mail_error.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -198,6 +201,8 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
     static SMTP_RESP rdata;
     char   *cp;
     int     last_char;
+    int     three_digs = 0;
+    size_t  len;
 
     /*
      * Initialize the response data buffer.
@@ -238,7 +243,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	 */
 	for (cp = STR(session->buffer); *cp && ISDIGIT(*cp); cp++)
 	     /* void */ ;
-	if (cp - STR(session->buffer) == 3) {
+	if ((three_digs = (cp - STR(session->buffer) == 3)) != 0) {
 	    if (*cp == '-')
 		continue;
 	    if (*cp == ' ' || *cp == 0)
@@ -246,7 +251,25 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	}
 	session->error_mask |= MAIL_ERROR_PROTOCOL;
     }
-    rdata.code = atoi(STR(session->buffer));
+
+    /*
+     * Extract RFC 821 reply code and RFC 2034 detail. Use a default detail
+     * code if none was given.
+     */
+    rdata.dsn[0] = 0;
+    if (three_digs != 0) {
+	rdata.code = atoi(STR(session->buffer));
+	for (cp = STR(session->buffer) + 4; *cp == ' '; cp++)
+	     /* void */ ;
+	if ((len = dsn_valid(cp)) > 0 && len < sizeof(rdata.dsn)) {
+	    DSN_BUF_UPDATE(rdata.dsn, cp, len);
+	} else if (strchr("245", STR(session->buffer)[0]) != 0) {
+	    DSN_BUF_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
+	    rdata.dsn[0] = STR(session->buffer)[0];
+	}
+    } else {
+	rdata.code = 0;
+    }
     VSTRING_TERMINATE(rdata.buf);
     rdata.str = STR(rdata.buf);
     return (&rdata);

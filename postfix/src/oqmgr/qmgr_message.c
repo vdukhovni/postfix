@@ -782,10 +782,11 @@ static int qmgr_resolve_one(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
     else
 	resolve_clnt_verify(addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
-	qmgr_defer_recipient(message, recipient, "address resolver failure");
+	qmgr_defer_recipient(message, recipient,
+			     "4.3.0", "address resolver failure");
 	return (-1);
     } else if (reply->flags & RESOLVE_FLAG_ERROR) {
-	qmgr_bounce_recipient(message, recipient,
+	qmgr_bounce_recipient(message, recipient, "5.1.3",
 			      "bad address syntax: \"%s\"", addr);
 	return (-1);
     } else {
@@ -880,7 +881,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * the queue manager process does not help.
 	 */
 	if (recipient->address[0] == 0) {
-	    qmgr_bounce_recipient(message, recipient,
+	    qmgr_bounce_recipient(message, recipient, "5.1.3",
 				  "null recipient address");
 	    continue;
 	}
@@ -897,7 +898,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * where it cannot be bypassed.
 	 */
 	if (var_allow_min_user == 0 && recipient->address[0] == '-') {
-	    qmgr_bounce_recipient(message, recipient,
+	    qmgr_bounce_recipient(message, recipient, "5.1.3",
 				  "invalid recipient syntax: \"%s\"",
 				  recipient->address);
 	    continue;
@@ -921,7 +922,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		&& !var_double_bounce_sender[len]) {
 		status = sent(message->tflags, message->queue_id,
 			      recipient->orig_rcpt, recipient->address,
-			   recipient->offset, "none", message->arrival_time,
+			      recipient->offset, "none", "2.0.0",
+			      message->arrival_time,
 			 "undeliverable postmaster notification discarded");
 		if (status == 0) {
 		    deliver_completed(message->fp, recipient->offset);
@@ -944,7 +946,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		if (strcmp(*cpp, STR(reply.transport)) == 0)
 		    break;
 	    if (*cpp) {
-		qmgr_defer_recipient(message, recipient, "deferred transport");
+		qmgr_defer_recipient(message, recipient,
+				     "4.3.2", "deferred transport");
 		continue;
 	    }
 	}
@@ -962,7 +965,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * This transport is dead. Defer delivery to this recipient.
 	 */
 	if ((transport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0) {
-	    qmgr_defer_recipient(message, recipient, transport->reason);
+	    qmgr_defer_recipient(message, recipient, transport->dsn,
+				 transport->reason);
 	    continue;
 	}
 
@@ -1029,7 +1033,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * This queue is dead. Defer delivery to this recipient.
 	 */
 	if (queue->window == 0) {
-	    qmgr_defer_recipient(message, recipient, queue->reason);
+	    qmgr_defer_recipient(message, recipient, queue->dsn, queue->reason);
 	    continue;
 	}
 

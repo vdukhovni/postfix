@@ -6,12 +6,14 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_append_service(flags, queue_id, orig_rcpt, recipient,
-/*					status, action, why)
+/*	int     bounce_append_service(flags, service, queue_id, orig_rcpt,
+/*					recipient, offset, status, action, why)
 /*	int	flags;
+/*	char	*service;
 /*	char	*queue_id;
 /*	char	*orig_rcpt;
 /*	char	*recipient;
+/*	long	offset;
 /*	char	*status;
 /*	char	*action;
 /*	char	*why;

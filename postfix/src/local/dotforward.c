@@ -221,7 +221,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	 */
 	if (state.request->flags & DEL_REQ_FLAG_VERIFY) {
 	    *statusp = sent(BOUNCE_FLAGS(state.request), 
-				SENT_ATTR(state.msg_attr),
+				SENT_ATTR(state.msg_attr, "2.0.0"),
 			    "forward via file: %s", STR(path));
 	    forward_found = YES;
 	} else if (been_here(state.dup_filter, "forward %s", STR(path)) == 0) {

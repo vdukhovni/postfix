@@ -18,11 +18,16 @@
 #include <vstring.h>
 
  /*
+  * Global library.
+  */
+#include <dsn_util.h>
+
+ /*
   * External interface.
   */
 extern int mail_copy(const char *, const char *, const char *,
 		             VSTREAM *, VSTREAM *,
-		             int, const char *, VSTRING *);
+		             int, const char *, DSN_VSTRING *);
 
 #define MAIL_COPY_QUOTE		(1<<0)	/* prepend > to From_ */
 #define MAIL_COPY_TOFILE	(1<<1)	/* fsync, ftruncate() */

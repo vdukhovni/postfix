@@ -27,6 +27,7 @@
   * Global library.
   */
 #include <deliver_request.h>
+#include <dsn_util.h>
 
  /*
   * State information associated with each LMTP delivery. We're bundling the
@@ -89,7 +90,7 @@ extern LMTP_SESSION *lmtp_session_free(LMTP_SESSION *);
  /*
   * lmtp_connect.c
   */
-extern LMTP_SESSION *lmtp_connect(const char *, VSTRING *);
+extern LMTP_SESSION *lmtp_connect(const char *, DSN_VSTRING *);
 
  /*
   * lmtp_proto.c
@@ -104,6 +105,7 @@ extern int lmtp_rset(LMTP_STATE *);
   */
 typedef struct LMTP_RESP {		/* server response */
     int     code;			/* status */
+    char    dsn[DSN_BUFSIZE];		/* DSN detail */
     char   *str;			/* text */
     VSTRING *buf;			/* origin of text */
 } LMTP_RESP;
@@ -116,11 +118,13 @@ extern void lmtp_chat_notify(LMTP_STATE *);
  /*
   * lmtp_trouble.c
   */
-extern int PRINTFLIKE(3, 4) lmtp_conn_fail(LMTP_STATE *, int, char *,...);
-extern int PRINTFLIKE(3, 4) lmtp_site_fail(LMTP_STATE *, int, char *,...);
-extern int PRINTFLIKE(3, 4) lmtp_mesg_fail(LMTP_STATE *, int, char *,...);
-extern void PRINTFLIKE(4, 5) lmtp_rcpt_fail(LMTP_STATE *, int, RECIPIENT *, char *,...);
-extern int lmtp_stream_except(LMTP_STATE *, int, char *);
+extern int PRINTFLIKE(4, 5) lmtp_site_fail(LMTP_STATE *, const char *, int,
+					           const char *,...);
+extern int PRINTFLIKE(4, 5) lmtp_mesg_fail(LMTP_STATE *, const char *, int,
+					           const char *,...);
+extern void PRINTFLIKE(5, 6) lmtp_rcpt_fail(LMTP_STATE *, const char *, int,
+				             RECIPIENT *, const char *,...);
+extern int lmtp_stream_except(LMTP_STATE *, int, const char *);
 
  /*
   * lmtp_state.c

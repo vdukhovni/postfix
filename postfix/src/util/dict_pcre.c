@@ -200,7 +200,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, char *ptr)
 static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
 {
     switch (errval) {
-	case 0:
+    case 0:
 	msg_warn("pcre map %s, line %d: too many (...)",
 		 mapname, lineno);
 	return;
@@ -212,6 +212,26 @@ static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
     case PCRE_ERROR_UNKNOWN_NODE:
 	msg_fatal("pcre map %s, line %d: corrupt compiled regexp",
 		  mapname, lineno);
+#ifdef PCRE_ERROR_NOMEMORY
+    case PCRE_ERROR_NOMEMORY:
+	msg_fatal("pcre map %s, line %d: out of memory",
+		  mapname, lineno);
+#endif
+#ifdef PCRE_ERROR_MATCHLIMIT
+    case PCRE_ERROR_MATCHLIMIT:
+	msg_fatal("pcre map %s, line %d: matched text exceeds buffer limit",
+		  mapname, lineno);
+#endif
+#ifdef PCRE_ERROR_BADUTF8
+    case PCRE_ERROR_BADUTF8:
+	msg_fatal("pcre map %s, line %d: bad UTF-8 sequence in search string",
+		  mapname, lineno);
+#endif
+#ifdef PCRE_ERROR_BADUTF8_OFFSET
+    case PCRE_ERROR_BADUTF8_OFFSET:
+	msg_fatal("pcre map %s, line %d: bad UTF-8 start offset in search string",
+		  mapname, lineno);
+#endif
     default:
 	msg_fatal("pcre map %s, line %d: unknown re_exec error: %d",
 		  mapname, lineno, errval);

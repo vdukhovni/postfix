@@ -185,7 +185,7 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 	&& (mypwd = mypwnam(state.msg_attr.user)) != 0
 	&& stat_as(mypwd->pw_dir, &st, mypwd->pw_uid, mypwd->pw_gid) < 0)
 	return (defer_append(BOUNCE_FLAGS(state.request),
-			     BOUNCE_ATTR(state.msg_attr),
+			     BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 			     "cannot access home directory %s: %m",
 			     mypwd->pw_dir));
     if (deliver_dotforward(state, usr_attr, &status) == 0
@@ -263,13 +263,13 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 	}
 	if (canon_owner) {
 	    rcpt_stat = bounce_one(BOUNCE_FLAGS(state.request),
-				   BOUNCE_ONE_ATTR(state.msg_attr),
+				   BOUNCE_ONE_ATTR(state.msg_attr, "5.4.6"),
 				   "mail forwarding loop for %s",
 				   state.msg_attr.recipient);
 	    vstring_free(canon_owner);
 	} else {
 	    rcpt_stat = bounce_append(BOUNCE_FLAGS(state.request),
-				      BOUNCE_ATTR(state.msg_attr),
+				      BOUNCE_ATTR(state.msg_attr, "5.4.6"),
 				      "mail forwarding loop for %s",
 				      state.msg_attr.recipient);
 	}
@@ -309,7 +309,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     if (state.msg_attr.user[0] == 0)
 	return (bounce_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "5.1.3"),
 			  "null username in %s", state.msg_attr.recipient));
 
     /*

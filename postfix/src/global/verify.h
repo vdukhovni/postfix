@@ -25,14 +25,15 @@
  /*
   * External interface.
   */
-extern int PRINTFLIKE(8, 9) verify_append(const char *, const char *,
+extern int PRINTFLIKE(9, 10) verify_append(const char *, const char *,
 					          const char *, const char *,
-					          time_t, const char *,
-					          int, const char *,...);
+					          const char *, time_t,
+					          const char *, int,
+					          const char *,...);
 extern int vverify_append(const char *, const char *,
-			         const char *, const char *,
-			         time_t, const char *,
-			         int, const char *, va_list);
+			          const char *, const char *,
+			          const char *, time_t, const char *,
+			          int, const char *, va_list);
 
 /* LICENSE
 /* .ad

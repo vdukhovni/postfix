@@ -7,27 +7,27 @@
 /*	#include <trace.h>
 /*
 /*	int	trace_append(flags, queue_id, orig_rcpt, recipient, relay,
-/*				entry, dsn_code, dsn_action, format, ...)
+/*				dsn, entry, action, format, ...)
 /*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
-/*	const char *dsn_code;
-/*	const char *dsn_action;
+/*	const char *action;
 /*	const char *format;
 /*
 /*	int	vtrace_append(flags, queue_id, orig_rcpt, recipient, relay,
-/*				entry, dsn_code, dsn_action, format, ap)
+/*				dsn, entry, action, format, ap)
 /*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
-/*	const char *dsn_code;
-/*	const char *dsn_action;
+/*	const char *action;
 /*	const char *format;
 /*	va_list ap;
 /*
@@ -69,9 +69,9 @@
 /*	The host we sent the mail to.
 /* .IP entry
 /*	Message arrival time.
-/* .IP dsn_code
-/*	three-digit dot-separated code.
-/* .IP dsn_action
+/* .IP dsn
+/*	X.YY.ZZ Error detail as specified in RFC 1893.
+/* .IP action
 /*	"deliverable", "undeliverable", and so on.
 /* .IP format
 /*	Optional additional information.
@@ -123,8 +123,8 @@
 
 int     trace_append(int flags, const char *queue_id,
 		             const char *orig_rcpt, const char *recipient,
-		             const char *relay, time_t entry,
-		             const char *dsn_code, const char *dsn_action,
+		             const char *relay, const char *dsn,
+		             time_t entry, const char *action,
 		             const char *fmt,...)
 {
     va_list ap;
@@ -132,7 +132,7 @@ int     trace_append(int flags, const char *queue_id,
 
     va_start(ap, fmt);
     req_stat = vtrace_append(flags, queue_id, orig_rcpt, recipient,
-			     relay, entry, dsn_code, dsn_action, fmt, ap);
+			     relay, dsn, entry, action, fmt, ap);
     va_end(ap);
     return (req_stat);
 }
@@ -141,12 +141,17 @@ int     trace_append(int flags, const char *queue_id,
 
 int     vtrace_append(int flags, const char *queue_id,
 		              const char *orig_rcpt, const char *recipient,
-		              const char *relay, time_t entry,
-		              const char *dsn_code, const char *dsn_action,
+		              const char *relay, const char *dsn,
+		              time_t entry, const char *action,
 		              const char *fmt, va_list ap)
 {
     VSTRING *why = vstring_alloc(100);
     int     req_stat;
+
+    /*
+     * XXX No DSN check. This routine is called from bounce/defer/sent, which
+     * already know what the DSN initial digit should look like.
+     */
 
     /*
      * User-requested address verification or verbose delivery. Mail the
@@ -164,16 +169,16 @@ int     vtrace_append(int flags, const char *queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, (long) 0,
-			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_code,
-			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
+			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn,
+			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 			    ATTR_TYPE_END) != 0) {
 	msg_warn("%s: %s service failure", queue_id, var_trace_service);
 	req_stat = -1;
     } else {
 	if (flags & DEL_REQ_FLAG_EXPAND)
-	    log_adhoc(queue_id, orig_rcpt, recipient, relay,
-		      entry, dsn_action, "%s", vstring_str(why));
+	    log_adhoc(queue_id, orig_rcpt, recipient, relay, dsn,
+		      entry, action, "%s", vstring_str(why));
 	req_stat = 0;
     }
     vstring_free(why);

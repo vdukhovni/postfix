@@ -50,6 +50,7 @@
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2033 (LMTP protocol)
+/*	RFC 2034 (Enhanced Error Codes)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP Pipelining)
@@ -261,6 +262,7 @@
 #include <debug_peer.h>
 #include <mail_error.h>
 #include <flush_clnt.h>
+#include <dsn_util.h>
 
 /* Single server skeleton. */
 
@@ -311,7 +313,7 @@ static LMTP_STATE *state = 0;
 static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 {
     char   *myname = "deliver_message";
-    VSTRING *why;
+    DSN_VSTRING *why;
     int     result;
 
     if (msg_verbose)
@@ -334,7 +336,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
      * performed in the MAIL_SERVER_POST_INIT function (post_init).
      * 
      */
-    why = vstring_alloc(100);
+    why = dsn_vstring_alloc(100);
     state->request = request;
     state->src = request->fp;
 
@@ -397,8 +399,15 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 	 * Bounce or defer the recipients if no connection can be made.
 	 */
 	if ((state->session = lmtp_connect(request->nexthop, why)) == 0) {
-	    lmtp_site_fail(state, lmtp_errno == LMTP_RETRY ? 450 : 550,
-			   "%s", vstring_str(why));
+	    if (lmtp_errno == LMTP_RETRY) {
+		why->dsn[0] = '4';
+		lmtp_site_fail(state, why->dsn, 450,
+			       "%s", vstring_str(why->vstring));
+	    } else {
+		why->dsn[0] = '5';
+		lmtp_site_fail(state, why->dsn, 550,
+			       "%s", vstring_str(why->vstring));
+	    }
 	}
 
 	/*
@@ -448,7 +457,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
     /*
      * Clean up.
      */
-    vstring_free(why);
+    dsn_vstring_free(why);
     result = state->status;
     lmtp_chat_reset(state);
 

@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * Global library.
+  */
+#include <dsn_util.h>
+
+ /*
   * DNS library.
   */
 #include <dns.h>
@@ -16,7 +21,7 @@
  /*
   * Internal interfaces.
   */
-extern DNS_RR *lmtp_host_addr(char *, VSTRING *);
+extern DNS_RR *lmtp_host_addr(char *, DSN_VSTRING *);
 
 /* LICENSE
 /* .ad

@@ -11,6 +11,7 @@
 /*	the queue manager. Each request specifies a queue file, a sender
 /*	address, a domain or host name that is treated as the reason for
 /*	non-delivery, and recipient information.
+/*	The reason may be prefixed with an RFC 1893-compatible detail code.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
@@ -118,6 +119,7 @@
 #include <bounce.h>
 #include <deliver_completed.h>
 #include <flush_clnt.h>
+#include <dsn_util.h>
 
 /* Single server skeleton. */
 
@@ -133,6 +135,7 @@ static int deliver_message(DELIVER_REQUEST *request)
     int     status;
     RECIPIENT *rcpt;
     int     nrcpt;
+    DSN_SPLIT dp;
 
     if (msg_verbose)
 	msg_info("deliver_message: from %s", request->sender);
@@ -164,13 +167,15 @@ static int deliver_message(DELIVER_REQUEST *request)
      */
 #define BOUNCE_FLAGS(request) DEL_REQ_TRACE_FLAGS(request->flags)
 
+    dsn_split(&dp, "5.0.0", request->nexthop);
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
 	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
 				   rcpt->orig_addr, rcpt->address,
-				rcpt->offset, "none", request->arrival_time,
-				   "%s", request->nexthop);
+				   rcpt->offset, "none", dp.dsn,
+				   request->arrival_time,
+				   "%s", dp.text);
 	    if (status == 0)
 		deliver_completed(src, rcpt->offset);
 	    result |= status;

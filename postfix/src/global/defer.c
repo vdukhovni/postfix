@@ -7,24 +7,26 @@
 /*	#include <defer.h>
 /*
 /*	int	defer_append(flags, id, orig_rcpt, recipient, offset, relay,
-/*				entry, format, ...)
+/*				dsn, entry, format, ...)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*
 /*	int	vdefer_append(flags, id, orig_rcpt, recipient, offset, relay,
-/*				entry, format, ap)
+/*				dsn, entry, format, ap)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*	va_list	ap;
@@ -104,6 +106,8 @@
 /*	Host we could not talk to.
 /* .IP entry
 /*	Message arrival time.
+/* .IP dsn
+/*	X.YY.ZZ Error detail as specified in RFC 1893.
 /* .IP format
 /*	The reason for non-delivery.
 /* .IP ap
@@ -154,6 +158,7 @@
 #include <trace.h>
 #include <bounce.h>
 #include <defer.h>
+#include <dsn_util.h>
 
 #define STR(x)	vstring_str(x)
 
@@ -161,14 +166,15 @@
 
 int     defer_append(int flags, const char *id, const char *orig_rcpt,
 	              const char *recipient, long offset, const char *relay,
-		             time_t entry, const char *fmt,...)
+		             const char *dsn, time_t entry,
+		             const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
     status = vdefer_append(flags, id, orig_rcpt, recipient,
-			   offset, relay, entry, fmt, ap);
+			   offset, relay, dsn, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -177,17 +183,26 @@ int     defer_append(int flags, const char *id, const char *orig_rcpt,
 
 int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
 	              const char *recipient, long offset, const char *relay,
-		              time_t entry, const char *fmt, va_list ap)
+		              const char *dsn, time_t entry,
+		              const char *fmt, va_list ap)
 {
     const char *rcpt_domain;
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if (*dsn != '4' || !dsn_valid(dsn)) {
+	msg_warn("defer_append: ignoring dsn code \"%s\"", dsn);
+	dsn = "4.0.0";
+    }
 
     /*
      * MTA-requested address verification information is stored in the verify
      * service database.
      */
     if (flags & DEL_REQ_FLAG_VERIFY) {
-	status = vverify_append(id, orig_rcpt, recipient, relay, entry,
+	status = vverify_append(id, orig_rcpt, recipient, relay, dsn, entry,
 			     "undeliverable", DEL_RCPT_STAT_DEFER, fmt, ap);
 	return (status);
     }
@@ -198,7 +213,7 @@ int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
      */
     if (flags & DEL_REQ_FLAG_EXPAND) {
 	status = vtrace_append(flags, id, orig_rcpt, recipient, relay,
-			       entry, "4.0.0", "undeliverable", fmt, ap);
+			       dsn, entry, "undeliverable", fmt, ap);
 	return (status);
     }
 
@@ -219,12 +234,12 @@ int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 				ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offset,
-				ATTR_TYPE_STR, MAIL_ATTR_STATUS, "4.0.0",
+				ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn,
 				ATTR_TYPE_STR, MAIL_ATTR_ACTION, "delayed",
 			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 				ATTR_TYPE_END) != 0)
 	    msg_warn("%s: %s service failure", id, var_defer_service);
-	log_adhoc(id, orig_rcpt, recipient, relay, entry, "deferred",
+	log_adhoc(id, orig_rcpt, recipient, relay, dsn, entry, "deferred",
 		  "%s", vstring_str(why));
 
 	/*
@@ -232,7 +247,7 @@ int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
 	 */
 	if (flags & DEL_REQ_FLAG_RECORD)
 	    if (trace_append(flags, id, orig_rcpt, recipient, relay,
-			     entry, "4.0.0", "deferred",
+			     dsn, entry, "deferred",
 			     "%s", vstring_str(why)) != 0)
 		msg_warn("%s: %s service failure", id, var_trace_service);
 

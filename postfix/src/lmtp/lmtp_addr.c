@@ -8,7 +8,7 @@
 /*
 /*	DNS_RR *lmtp_host_addr(name, why)
 /*	char	*name;
-/*	VSTRING	*why;
+/*	DSN_VSTRING *why;
 /* DESCRIPTION
 /*	This module implements Internet address lookups. By default,
 /*	lookups are done via the Internet domain name service (DNS).
@@ -31,7 +31,7 @@
 /* .IP LMTP_FAIL
 /*	The request attempt failed due to a hard error.
 /* .PP
-/*	In addition, a textual description of the problem is made available
+/*	In addition, a description of the problem is made available
 /*	via the \fIwhy\fR argument.
 /* LICENSE
 /* .ad
@@ -82,6 +82,7 @@
 
 #include <mail_params.h>
 #include <own_inet_addr.h>
+#include <dsn_util.h>
 
 /* DNS library. */
 
@@ -114,7 +115,8 @@ static void lmtp_print_addr(char *what, DNS_RR *addr_list)
 
 /* lmtp_addr_one - address lookup for one host name */
 
-static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRING *why)
+static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
+			             DSN_VSTRING *why)
 {
     char   *myname = "lmtp_addr_one";
     DNS_RR *addr = 0;
@@ -132,7 +134,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
      * Interpret a numerical name as an address.
      */
     if (hostaddr_to_sockaddr(host, (char *) 0, 0, &res0) == 0
-	&& strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
+     && strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
 	if ((addr = dns_sa_to_rr(host, pref, res0->ai_addr)) == 0)
 	    msg_fatal("host %s: conversion error for address family %d: %m",
 		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
@@ -146,10 +148,19 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
      */
 #define RETRY_AI_ERROR(e) \
 	((e) == EAI_AGAIN || (e) == EAI_MEMORY || (e) == EAI_SYSTEM)
+#ifdef EAI_NODATA
+#define DSN_NOHOST(e) \
+	((e) == EAI_AGAIN || (e) == EAI_NODATA || (e) == EAI_NONAME)
+#else
+#define DSN_NOHOST(e) \
+	((e) == EAI_AGAIN || (e) == EAI_NONAME)
+#endif
 
     if (var_disable_dns) {
 	if ((aierr = hostname_to_sockaddr(host, (char *) 0, 0, &res0)) != 0) {
-	    vstring_sprintf(why, "%s: %s", host, MAI_STRERROR(aierr));
+	    dsn_vstring_update(why, DSN_NOHOST(aierr) ? "4.4.4" : "4.3.0",
+			       "unable to look up host %s: %s",
+			       host, MAI_STRERROR(aierr));
 	    lmtp_errno = (RETRY_AI_ERROR(aierr) ? LMTP_RETRY : LMTP_FAIL);
 	} else {
 	    for (found = 0, res = res0; res != 0; res = res->ai_next) {
@@ -166,7 +177,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
-		vstring_sprintf(why, "%s: host not found", host);
+		dsn_vstring_update(why, "5.4.4", "%s: host not found", host);
 		lmtp_errno = LMTP_FAIL;
 	    }
 	    return (addr_list);
@@ -176,7 +187,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     /*
      * Append the addresses for this host to the address list.
      */
-    switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0, why,
+    switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0, why->vstring,
 			 DNS_REQ_FLAG_ALL, proto_info->dns_atype_list)) {
     case DNS_OK:
 	for (rr = addr; rr; rr = rr->next)
@@ -184,10 +195,15 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	addr_list = dns_rr_append(addr_list, addr);
 	break;
     default:
+	dsn_vstring_update(why, "4.4.3", "");
 	lmtp_errno = LMTP_RETRY;
 	break;
-    case DNS_NOTFOUND:
     case DNS_FAIL:
+	dsn_vstring_update(why, "4.4.3", "");
+	lmtp_errno = LMTP_FAIL;
+	break;
+    case DNS_NOTFOUND:
+	dsn_vstring_update(why, "4.4.4", "");
 	lmtp_errno = LMTP_FAIL;
 	break;
     }
@@ -196,7 +212,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 
 /* lmtp_host_addr - direct host lookup */
 
-DNS_RR *lmtp_host_addr(char *host, VSTRING *why)
+DNS_RR *lmtp_host_addr(char *host, DSN_VSTRING *why)
 {
     DNS_RR *addr_list;
 

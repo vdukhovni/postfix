@@ -166,7 +166,7 @@ int     smtp_sasl_helo_login(SMTP_STATE *state)
     ret = 0;
     smtp_sasl_start(session, VAR_SMTP_SASL_OPTS, var_smtp_sasl_opts);
     if (smtp_sasl_authenticate(session, why) <= 0) {
-	ret = smtp_site_fail(state, 450, "Authentication failed: %s",
+	ret = smtp_site_fail(state, "4.7.0", 450, "Authentication failed: %s",
 			     vstring_str(why));
 	/* Session reuse is disabled. */
     }

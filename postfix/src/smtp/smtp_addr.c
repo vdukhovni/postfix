@@ -9,13 +9,13 @@
 /*	DNS_RR *smtp_domain_addr(name, misc_flags, why, found_myself)
 /*	char	*name;
 /*	int	misc_flags;
-/*	VSTRING	*why;
+/*	DSN_VSTRING *why;
 /*	int	*found_myself;
 /*
 /*	DNS_RR *smtp_host_addr(name, misc_flags, why)
 /*	char	*name;
 /*	int	misc_flags;
-/*	VSTRING	*why;
+/*	DSN_VSTRING *why;
 /* DESCRIPTION
 /*	This module implements Internet address lookups. By default,
 /*	lookups are done via the Internet domain name service (DNS).
@@ -56,7 +56,7 @@
 /* .IP SMTP_ERR_LOOP
 /*	The local machine is the best mail exchanger.
 /* .PP
-/*	In addition, a textual description of the problem is made available
+/*	In addition, a description of the problem is made available
 /*	via the \fIwhy\fR argument.
 /* LICENSE
 /* .ad
@@ -96,6 +96,7 @@
 
 #include <mail_params.h>
 #include <own_inet_addr.h>
+#include <dsn_util.h>
 
 /* DNS library. */
 
@@ -128,7 +129,8 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 
 /* smtp_addr_one - address lookup for one host name */
 
-static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRING *why)
+static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
+			             DSN_VSTRING *why)
 {
     char   *myname = "smtp_addr_one";
     DNS_RR *addr = 0;
@@ -146,7 +148,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
      * Interpret a numerical name as an address.
      */
     if (hostaddr_to_sockaddr(host, (char *) 0, 0, &res0) == 0
-	&& strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
+     && strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
 	if ((addr = dns_sa_to_rr(host, pref, res0->ai_addr)) == 0)
 	    msg_fatal("host %s: conversion error for address family %d: %m",
 		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
@@ -159,21 +161,25 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
      * Use DNS lookup, but keep the option open to use native name service.
      */
     if (smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS) {
-	switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0, why,
-			     DNS_REQ_FLAG_ALL, proto_info->dns_atype_list)) {
+	switch (dns_lookup_v(host, RES_DEFNAMES, &addr, (VSTRING *) 0,
+			     why->vstring, DNS_REQ_FLAG_ALL,
+			     proto_info->dns_atype_list)) {
 	case DNS_OK:
 	    for (rr = addr; rr; rr = rr->next)
 		rr->pref = pref;
 	    addr_list = dns_rr_append(addr_list, addr);
 	    return (addr_list);
 	default:
+	    dsn_vstring_update(why, "4.4.3", "");
 	    smtp_errno = SMTP_ERR_RETRY;
 	    return (addr_list);
 	case DNS_FAIL:
+	    dsn_vstring_update(why, "4.4.3", "");
 	    if (smtp_errno != SMTP_ERR_RETRY)
 		smtp_errno = SMTP_ERR_FAIL;
 	    return (addr_list);
 	case DNS_NOTFOUND:
+	    dsn_vstring_update(why, "4.4.4", "");
 	    if (smtp_errno != SMTP_ERR_RETRY)
 		smtp_errno = SMTP_ERR_FAIL;
 	    /* maybe native naming service will succeed */
@@ -186,10 +192,19 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
      */
 #define RETRY_AI_ERROR(e) \
         ((e) == EAI_AGAIN || (e) == EAI_MEMORY || (e) == EAI_SYSTEM)
+#ifdef EAI_NODATA
+#define DSN_NOHOST(e) \
+	((e) == EAI_AGAIN || (e) == EAI_NODATA || (e) == EAI_NONAME)
+#else
+#define DSN_NOHOST(e) \
+	((e) == EAI_AGAIN || (e) == EAI_NONAME)
+#endif
 
     if (smtp_host_lookup_mask & SMTP_HOST_FLAG_NATIVE) {
 	if ((aierr = hostname_to_sockaddr(host, (char *) 0, 0, &res0)) != 0) {
-	    vstring_sprintf(why, "%s: %s", host, MAI_STRERROR(aierr));
+	    dsn_vstring_update(why, DSN_NOHOST(aierr) ? "4.4.4" : "4.3.0",
+			       "unable to look up host %s: %s",
+			       host, MAI_STRERROR(aierr));
 	    if (smtp_errno != SMTP_ERR_RETRY)
 		smtp_errno =
 		    (RETRY_AI_ERROR(aierr) ? SMTP_ERR_RETRY : SMTP_ERR_FAIL);
@@ -208,7 +223,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
-		vstring_sprintf(why, "%s: host not found", host);
+		dsn_vstring_update(why, "5.4.4", "%s: host not found", host);
 		smtp_errno = SMTP_ERR_FAIL;
 	    }
 	    return (addr_list);
@@ -223,7 +238,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 
 /* smtp_addr_list - address lookup for a list of mail exchangers */
 
-static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why)
+static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_VSTRING *why)
 {
     DNS_RR *addr_list = 0;
     DNS_RR *rr;
@@ -333,7 +348,7 @@ static int smtp_compare_pref(DNS_RR *a, DNS_RR *b)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
+DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_VSTRING *why,
 			         int *found_myself)
 {
     DNS_RR *mx_names;
@@ -397,13 +412,15 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
      * at hostnames provides a partial solution for MX hosts behind a NAT
      * gateway.
      */
-    switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
+    switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why->vstring)) {
     default:
+	dsn_vstring_update(why, "4.4.3", "");
 	smtp_errno = SMTP_ERR_RETRY;
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);
 	break;
     case DNS_FAIL:
+	dsn_vstring_update(why, "5.4.3", "");
 	smtp_errno = SMTP_ERR_FAIL;
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(name, misc_flags, why);
@@ -414,6 +431,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
+	    /* DSN and text does not change. */
 	    if (var_smtp_defer_mxaddr)
 		smtp_errno = SMTP_ERR_RETRY;
 	    msg_warn("no MX host for %s has a valid address record", name);
@@ -427,12 +445,14 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
 	    addr_list = smtp_truncate_self(addr_list, self->pref);
 	    if (addr_list == 0) {
 		if (best_pref != best_found) {
-		    vstring_sprintf(why, "unable to find primary relay for %s",
-				    name);
+		    dsn_vstring_update(why, "4.4.4",
+				       "unable to find primary relay for %s",
+				       name);
 		    smtp_errno = SMTP_ERR_RETRY;
 		} else {
-		    vstring_sprintf(why, "mail for %s loops back to myself",
-				    name);
+		    dsn_vstring_update(why, "5.3.5",
+				       "mail for %s loops back to myself",
+				       name);
 		    smtp_errno = SMTP_ERR_LOOP;
 		}
 	    }
@@ -456,7 +476,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
 
 /* smtp_host_addr - direct host lookup */
 
-DNS_RR *smtp_host_addr(char *host, int misc_flags, VSTRING *why)
+DNS_RR *smtp_host_addr(char *host, int misc_flags, DSN_VSTRING *why)
 {
     DNS_RR *addr_list;
 
@@ -472,7 +492,8 @@ DNS_RR *smtp_host_addr(char *host, int misc_flags, VSTRING *why)
 	&& (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
 	&& smtp_find_self(addr_list) != 0) {
 	dns_rr_free(addr_list);
-	vstring_sprintf(why, "mail for %s loops back to myself", host);
+	dsn_vstring_update(why, "5.3.5",
+			   "mail for %s loops back to myself", host);
 	smtp_errno = SMTP_ERR_LOOP;
 	return (0);
     }

@@ -55,6 +55,7 @@
 #include <vstring_vstream.h>
 #include <events.h>
 #include <iostuff.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -64,6 +65,7 @@
 #include <mail_params.h>
 #include <deliver_request.h>
 #include <verp_sender.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -162,9 +164,9 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, message->client_proto,
 	       ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME, message->client_helo,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD, message->sasl_method,
-	       ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
+	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, message->sasl_sender,
-	       ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, message->rewrite_context,
+	     ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, message->rewrite_context,
 	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);
@@ -210,6 +212,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
     QMGR_MESSAGE *message = entry->message;
     VSTRING *reason = vstring_alloc(1);
     int     status;
+    DSN_SPLIT dp;
 
     /*
      * The message transport has responded. Stop the watchdog timer.
@@ -236,10 +239,11 @@ static void qmgr_deliver_update(int unused_event, char *context)
      */
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
-	qmgr_transport_throttle(transport, "unknown mail transport error");
+	qmgr_transport_throttle(transport, "4.3.0",
+				"unknown mail transport error");
 	msg_warn("transport %s failure -- see a previous warning/fatal/panic logfile record for the problem description",
 		 transport->name);
-	qmgr_defer_transport(transport, transport->reason);
+	qmgr_defer_transport(transport, transport->dsn, transport->reason);
     }
 
     /*
@@ -254,9 +258,12 @@ static void qmgr_deliver_update(int unused_event, char *context)
     if (status == DELIVER_STAT_DEFER) {
 	message->flags |= DELIVER_STAT_DEFER;
 	if (VSTRING_LEN(reason)) {
-	    qmgr_queue_throttle(queue, vstring_str(reason));
+	    /* Sanitize the DSN status from delivery agent. */
+	    dsn_split(&dp, "4.0.0", printable(vstring_str(reason), '?'));
+	    qmgr_queue_throttle(queue, dp.dsn, *dp.text ?
+				dp.text : "unknown problem");
 	    if (queue->window == 0)
-		qmgr_defer_todo(queue, queue->reason);
+		qmgr_defer_todo(queue, queue->dsn, queue->reason);
 	}
     }
 
@@ -298,8 +305,9 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      * while some other queue manipulation is happening.
      */
     if (qmgr_deliver_initial_reply(stream) != 0) {
-	qmgr_transport_throttle(transport, "mail transport unavailable");
-	qmgr_defer_transport(transport, transport->reason);
+	qmgr_transport_throttle(transport, "4.3.0",
+				"mail transport unavailable");
+	qmgr_defer_transport(transport, transport->dsn, transport->reason);
 	(void) vstream_fclose(stream);
 	return;
     }
@@ -325,8 +333,9 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
      */
     if (qmgr_deliver_send_request(entry, stream) < 0) {
 	qmgr_entry_unselect(queue, entry);
-	qmgr_transport_throttle(transport, "mail transport unavailable");
-	qmgr_defer_transport(transport, transport->reason);
+	qmgr_transport_throttle(transport, "4.3.0",
+				"mail transport unavailable");
+	qmgr_defer_transport(transport, transport->dsn, transport->reason);
 	/* warning: entry and queue may be dangling pointers here */
 	(void) vstream_fclose(stream);
 	return;

@@ -128,29 +128,29 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
     if (var_helo_required && state->helo_name == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
+	smtpd_chat_reply(state, "503 5.5.1 Error: send HELO/EHLO first");
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) || !var_smtpd_sasl_enable) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: authentication not enabled");
+	smtpd_chat_reply(state, "503 5.5.1 Error: authentication not enabled");
 	return (-1);
     }
 #ifdef USE_TLS
     if (state->tls_auth_only && !state->tls_context) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "538 Encryption required for requested authentication mechanism");
+	smtpd_chat_reply(state, "538 5.7.0 Encryption required for requested authentication mechanism");
 	return (-1);
     }
 #endif
     if (state->sasl_username) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: already authenticated");
+	smtpd_chat_reply(state, "503 5.5.1 Error: already authenticated");
 	return (-1);
     }
     if (argc < 2 || argc > 3) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: AUTH mechanism");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: AUTH mechanism");
 	return (-1);
     }
 
@@ -168,7 +168,7 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    smtpd_chat_reply(state, "235 Authentication successful");
+    smtpd_chat_reply(state, "235 2.0.0 Authentication successful");
     return (0);
 }
 
@@ -189,17 +189,17 @@ char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
      */
     if (!var_smtpd_sasl_enable) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	return ("503 Error: authentication disabled");
+	return ("503 5.5.4 Error: authentication disabled");
     }
 #if 0
     if (state->sasl_username == 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	return ("503 Error: send AUTH command first");
+	return ("503 5.5.4 Error: send AUTH command first");
     }
 #endif
     if (state->sasl_sender != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	return ("503 Error: multiple AUTH= options");
+	return ("503 5.5.4 Error: multiple AUTH= options");
     }
     if (strcmp(addr, "<>") != 0) {
 	state->sasl_sender = mystrdup(addr);

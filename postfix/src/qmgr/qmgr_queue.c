@@ -20,8 +20,9 @@
 /*	QMGR_TRANSPORT *transport;
 /*	const char *name;
 /*
-/*	void	qmgr_queue_throttle(queue, reason)
+/*	void	qmgr_queue_throttle(queue, dsn, reason)
 /*	QMGR_QUEUE *queue;
+/*	const char *dsn;
 /*	const char *reason;
 /*
 /*	void	qmgr_queue_unthrottle(queue)
@@ -131,6 +132,10 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
      */
     if (queue->window == 0) {
 	event_cancel_timer(qmgr_queue_unthrottle_wrapper, (char *) queue);
+	if (queue->dsn == 0)
+	    msg_panic("%s: queue %s: window 0 dsn 0", myname, queue->name);
+	myfree(queue->dsn);
+	queue->dsn = 0;
 	if (queue->reason == 0)
 	    msg_panic("%s: queue %s: window 0 reason 0", myname, queue->name);
 	myfree(queue->reason);
@@ -152,18 +157,22 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 
 /* qmgr_queue_throttle - handle destination delivery failure */
 
-void    qmgr_queue_throttle(QMGR_QUEUE *queue, const char *reason)
+void    qmgr_queue_throttle(QMGR_QUEUE *queue, const char *dsn,
+			            const char *reason)
 {
     char   *myname = "qmgr_queue_throttle";
 
     /*
      * Sanity checks.
      */
+    if (queue->dsn)
+	msg_panic("%s: queue %s: spurious dsn %s",
+		  myname, queue->name, queue->dsn);
     if (queue->reason)
 	msg_panic("%s: queue %s: spurious reason %s",
 		  myname, queue->name, queue->reason);
     if (msg_verbose)
-	msg_info("%s: queue %s: %s", myname, queue->name, reason);
+	msg_info("%s: queue %s: %s %s", myname, queue->name, dsn, reason);
 
     /*
      * Decrease the destination's concurrency limit until we reach zero, at
@@ -178,6 +187,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, const char *reason)
      * Special case for a site that just was declared dead.
      */
     if (queue->window == 0) {
+	queue->dsn = mystrdup(dsn);
 	queue->reason = mystrdup(reason);
 	event_request_timer(qmgr_queue_unthrottle_wrapper,
 			    (char *) queue, var_min_backoff_time);
@@ -203,6 +213,9 @@ void    qmgr_queue_done(QMGR_QUEUE *queue)
 	msg_panic("%s: queue not empty: %s", myname, queue->name);
     if (queue->window <= 0)
 	msg_panic("%s: window %d", myname, queue->window);
+    if (queue->dsn)
+	msg_panic("%s: queue %s: spurious dsn %s",
+		  myname, queue->name, queue->dsn);
     if (queue->reason)
 	msg_panic("%s: queue %s: spurious reason %s",
 		  myname, queue->name, queue->reason);
@@ -242,6 +255,7 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *name,
     queue->window = transport->init_dest_concurrency;
     QMGR_LIST_INIT(queue->todo);
     QMGR_LIST_INIT(queue->busy);
+    queue->dsn = 0;
     queue->reason = 0;
     queue->clog_time_to_warn = 0;
     queue->blocker_tag = 0;

@@ -91,6 +91,7 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <sys/socket.h>			/* shutdown(2) */
+#include <netinet/in.h>			/* ntohs() */
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
@@ -272,10 +273,12 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	case 2:
 	    break;
 	case 5:
-	    if (var_smtp_skip_5xx_greeting)
+	    if (var_smtp_skip_5xx_greeting) {
 		resp->code = 400;
+		resp->dsn[0] = '4';
+	    }
 	default:
-	    return (smtp_site_fail(state, resp->code,
+	    return (smtp_site_fail(state, resp->dsn, resp->code,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -333,7 +336,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
     if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
 	smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
 	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-	    return (smtp_site_fail(state, resp->code,
+	    return (smtp_site_fail(state, resp->dsn, resp->code,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -372,8 +375,11 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		    && (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
 		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
 			     session->namaddr, var_myhostname);
-		    return (smtp_site_fail(state,
-		     (session->features & SMTP_FEATURE_BEST_MX) ? 550 : 450,
+		    return ((session->features & SMTP_FEATURE_BEST_MX) ?
+			    smtp_site_fail(state, "5.3.5", 550,
+					 "mail for %s loops back to myself",
+					   request->nexthop) :
+			    smtp_site_fail(state, "4.3.5", 450,
 					 "mail for %s loops back to myself",
 					   request->nexthop));
 		}
@@ -514,7 +520,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
 	    if (session->tls_enforce_tls)
-		return (smtp_site_fail(state, resp->code,
+		return (smtp_site_fail(state, resp->dsn, resp->code,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
@@ -530,16 +536,16 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	 */
 	if (session->tls_enforce_tls) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
-		return (smtp_site_fail(state, 450,
+		return (smtp_site_fail(state, "4.7.4", 450,
 			  "TLS is required, but was not offered by host %s",
 				       session->namaddr));
 	    } else if (smtp_tls_ctx == 0) {
-		return (smtp_site_fail(state, 450,
+		return (smtp_site_fail(state, "4.7.5", 450,
 		     "TLS is required, but our TLS engine is unavailable"));
 	    } else {
 		msg_warn("%s: TLS is required but unavailable, don't know why",
 			 myname);
-		return (smtp_site_fail(state, 450,
+		return (smtp_site_fail(state, "4.7.0", 450,
 				     "TLS is required, but not available"));
 	    }
 	}
@@ -594,9 +600,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      * use TLS session caching???
      */
     serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%s:%u",
-		    session->host, session->addr,
-		    ntohs(session->port));
+    vstring_sprintf(serverid, "%s:%u", session->addr, ntohs(session->port));
     if (session->helo && strcasecmp(session->host, session->helo) != 0)
 	vstring_sprintf_append(serverid, ":%s", session->helo);
     session->tls_context =
@@ -608,7 +612,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 			 &(session->tls_info));
     vstring_free(serverid);
     if (session->tls_context == 0)
-	return (smtp_site_fail(state, 450,
+	return (smtp_site_fail(state, "4.7.5", 450,
 			       "Cannot start TLS: handshake failure"));
 
     /*
@@ -630,7 +634,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 		tls_client_stop(smtp_tls_ctx, session->stream,
 				var_smtp_starttls_tmout, 1,
 				&(session->tls_info));
-		return (smtp_site_fail(state, 450,
+		return (smtp_site_fail(state, "4.7.5", 450,
 			  "TLS failure: Cannot verify server certificate"));
 	    }
 	}
@@ -649,7 +653,7 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 	    tls_client_stop(smtp_tls_ctx, session->stream,
 			    var_smtp_starttls_tmout, 1,
 			    &(session->tls_info));
-	    return (smtp_site_fail(state, 450,
+	    return (smtp_site_fail(state, "4.7.5", 450,
 			     "TLS failure: Cannot verify server hostname"));
 	}
     }
@@ -1202,7 +1206,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case SMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
-			smtp_mesg_fail(state, resp->code,
+			smtp_mesg_fail(state, resp->dsn, resp->code,
 				       "host %s said: %s (in reply to %s)",
 				       session->namaddr,
 				       translit(resp->str, "\n", " "),
@@ -1227,17 +1231,21 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
 #ifdef notdef
-			if (resp->code == 552)
+			if (resp->code == 552) {
 			    resp->code = 452;
+			    resp->dsn[0] = '4';
+			}
 #endif
 			rcpt = request->rcpt_list.info + recv_rcpt;
 			if (resp->code / 100 == 2) {
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
 			    if (DEL_REQ_TRACE_ONLY(request->flags))
-				smtp_rcpt_done(state, resp->str, rcpt);
+				smtp_rcpt_done(state, resp->dsn,
+					       resp->str, rcpt);
 			} else {
-			    smtp_rcpt_fail(state, resp->code, rcpt,
+			    smtp_rcpt_fail(state, resp->dsn,
+					   resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1259,7 +1267,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DATA:
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
-			    smtp_mesg_fail(state, resp->code,
+			    smtp_mesg_fail(state, resp->dsn, resp->code,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1281,7 +1289,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DOT:
 		    if (nrcpt > 0) {
 			if (resp->code / 100 != 2) {
-			    smtp_mesg_fail(state, resp->code,
+			    smtp_mesg_fail(state, resp->dsn, resp->code,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1290,7 +1298,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
 				if (!SMTP_RCPT_ISMARKED(rcpt))
-				    smtp_rcpt_done(state, resp->str, rcpt);
+				    smtp_rcpt_done(state, resp->dsn,
+						   resp->str, rcpt);
 			    }
 			}
 		    }
@@ -1410,7 +1419,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 					  vstring_str(session->scratch),
 					  VSTRING_LEN(session->scratch));
 		    if (mime_errs) {
-			smtp_mesg_fail(state, 554,
+			smtp_mesg_fail(state, "5.6.5", 554,
 				       "MIME 7-bit conversion failed: %s",
 				       mime_state_error(mime_errs));
 			RETURN(0);
@@ -1432,7 +1441,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		mime_errs =
 		    mime_state_update(session->mime_state, rec_type, "", 0);
 		if (mime_errs) {
-		    smtp_mesg_fail(state, 554,
+		    smtp_mesg_fail(state, "5.6.5", 554,
 				   "MIME 7-bit conversion failed: %s",
 				   mime_state_error(mime_errs));
 		    RETURN(0);
@@ -1494,7 +1503,7 @@ int     smtp_xfer(SMTP_STATE *state)
      * connection caching.
      */
     if (session->size_limit > 0 && session->size_limit < request->data_size) {
-	smtp_mesg_fail(state, 552,
+	smtp_mesg_fail(state, "5.3.4", 552,
 		    "message size %lu exceeds size limit %.0f of server %s",
 		       request->data_size, (double) session->size_limit,
 		       session->namaddr);

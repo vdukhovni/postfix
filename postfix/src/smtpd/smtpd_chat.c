@@ -144,8 +144,12 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
     va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
     va_end(ap);
-    if (var_soft_bounce && STR(state->buffer)[0] == '5')
+    /* All 5xx replies must have a 5.xx.xx detail code. */
+    if (var_soft_bounce && STR(state->buffer)[0] == '5') {
 	STR(state->buffer)[0] = '4';
+	if (STR(state->buffer)[4] == '5')
+	    STR(state->buffer)[4] = '4';
+    }
     smtp_chat_append(state, "Out: ");
 
     if (msg_verbose)

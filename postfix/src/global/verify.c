@@ -7,25 +7,27 @@
 /*	#include <verify.h>
 /*
 /*	int	verify_append(queue_id, orig_rcpt, recipient,
-/*				relay, entry, status,
+/*				relay, dsn, entry, status,
 /*				recipient_status, format, ...)
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t  entry;
 /*	const char *status;
 /*	int	recipient_status;
 /*	const char *format;
 /*
 /*	int	vverify_append(queue_id, orig_rcpt, recipient,
-/*				relay, entry, status,
+/*				relay, dsn, entry, status,
 /*				recipient_status, format, ap)
 /*	int	recipient_status;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t  entry;
 /*	const char *status;
 /*	int	recipient_status;
@@ -51,6 +53,8 @@
 /*	The recipient address.
 /* .IP relay
 /*	Name of the host we're talking to.
+/* .IP dsn
+/*	X.YY.ZZ Error detail as specified in RFC 1893.
 /* .IP entry
 /*	Message arrival time.
 /* .IP status
@@ -113,16 +117,17 @@
 /* verify_append - update address verification database */
 
 int     verify_append(const char *queue_id, const char *orig_rcpt,
-		             const char *recipient, const char *relay,
-		             time_t entry, const char *status,
-		             int rcpt_stat, const char *fmt,...)
+		              const char *recipient, const char *relay,
+		              const char *dsn, time_t entry,
+		              const char *status, int rcpt_stat,
+		              const char *fmt,...)
 {
     va_list ap;
     int     req_stat;
 
     va_start(ap, fmt);
     req_stat = vverify_append(queue_id, orig_rcpt, recipient, relay,
-			     entry, status, rcpt_stat, fmt, ap);
+			      dsn, entry, status, rcpt_stat, fmt, ap);
     va_end(ap);
     return (req_stat);
 }
@@ -130,17 +135,26 @@ int     verify_append(const char *queue_id, const char *orig_rcpt,
 /* vverify_append - update address verification database */
 
 int     vverify_append(const char *queue_id, const char *orig_rcpt,
-		              const char *recipient, const char *relay,
-		              time_t entry, const char *status,
-		              int rcpt_stat, const char *fmt, va_list ap)
+		               const char *recipient, const char *relay,
+		               const char *dsn, time_t entry,
+		               const char *status, int rcpt_stat,
+		               const char *fmt, va_list ap)
 {
     VSTRING *text = vstring_alloc(10);
     int     req_stat;
 
     /*
      * Impedance adaptor between bounce/defer/sent and verify_clnt.
+     * 
+     * XXX No DSN check; this routine is called from bounce/defer/sent, which
+     * know what the DSN initial digit should look like.
+     * 
+     * XXX rcpt_stat is competely redundant because of dsn.
      */
-    vstring_vsprintf(text, fmt, ap);
+#if 0
+    vstring_sprintf(text, "%s ", dsn);
+#endif
+    vstring_vsprintf_append(text, fmt, ap);
     if (var_verify_neg_cache || rcpt_stat == DEL_RCPT_STAT_OK) {
 	req_stat = verify_clnt_update(orig_rcpt, rcpt_stat,
 				      "%s", vstring_str(text));
@@ -152,7 +166,7 @@ int     vverify_append(const char *queue_id, const char *orig_rcpt,
 	req_stat = VRFY_STAT_OK;
     }
     if (req_stat == VRFY_STAT_OK) {
-	log_adhoc(queue_id, orig_rcpt, recipient, relay,
+	log_adhoc(queue_id, orig_rcpt, recipient, relay, dsn,
 		  entry, status, "%s", vstring_str(text));
 	req_stat = 0;
     } else {

@@ -125,19 +125,20 @@ typedef struct LOCAL_STATE {
   */
 #define BOUNCE_FLAGS(request)	DEL_REQ_TRACE_FLAGS((request)->flags)
 
-#define BOUNCE_ATTR(attr)	attr.queue_id, attr.orig_rcpt, attr.recipient, \
-					attr.rcpt_offset, attr.relay, \
-					attr.arrival_time
-#define BOUNCE_ONE_ATTR(attr)	attr.queue_name, attr.queue_id, attr.encoding, \
-					attr.sender, attr.orig_rcpt, \
-					attr.recipient, attr.rcpt_offset, \
-					attr.relay, attr.arrival_time
-#define SENT_ATTR(attr)		attr.queue_id, attr.orig_rcpt, attr.recipient, \
-					attr.rcpt_offset, attr.relay, \
-					attr.arrival_time
-#define OPENED_ATTR(attr)	attr.queue_id, attr.sender
-#define COPY_ATTR(attr)		attr.sender, attr.orig_rcpt, attr.delivered, \
-					attr.fp
+#define BOUNCE_ATTR(attr, detail) \
+	attr.queue_id, attr.orig_rcpt, attr.recipient, \
+	attr.rcpt_offset, attr.relay, detail, attr.arrival_time
+#define BOUNCE_ONE_ATTR(attr, detail) \
+	attr.queue_name, attr.queue_id, attr.encoding, \
+	attr.sender, attr.orig_rcpt, attr.recipient, attr.rcpt_offset, \
+	attr.relay, detail, attr.arrival_time
+#define SENT_ATTR(attr, detail) \
+	attr.queue_id, attr.orig_rcpt, attr.recipient, \
+	attr.rcpt_offset, attr.relay, detail, attr.arrival_time
+#define OPENED_ATTR(attr) \
+	attr.queue_id, attr.sender
+#define COPY_ATTR(attr) \
+	attr.sender, attr.orig_rcpt, attr.delivered, attr.fp
 
 #define MSG_LOG_STATE(m, p) \
 	msg_info("%s[%d]: local %s recip %s exten %s deliver %s exp_from %s", \

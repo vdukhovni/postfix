@@ -164,7 +164,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
     if (state.level > 100) {
 	msg_warn("possible alias database loop for %s", name);
 	*statusp = bounce_append(BOUNCE_FLAGS(state.request),
-				 BOUNCE_ATTR(state.msg_attr),
+				 BOUNCE_ATTR(state.msg_attr, "5.3.5"),
 			       "possible alias database loop for %s", name);
 	return (YES);
     }
@@ -198,7 +198,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	     */
 	    if (state.request->flags & DEL_REQ_FLAG_VERIFY) {
 		*statusp = sent(BOUNCE_FLAGS(state.request),
-				SENT_ATTR(state.msg_attr),
+				SENT_ATTR(state.msg_attr, "2.0.0"),
 				"aliased to %s", alias_result);
 		return (YES);
 	    }
@@ -226,7 +226,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 		if ((alias_pwd = mypwuid(alias_uid)) == 0) {
 		    msg_warn("cannot find alias database owner for %s", *cpp);
 		    *statusp = defer_append(BOUNCE_FLAGS(state.request),
-					    BOUNCE_ATTR(state.msg_attr),
+					    BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 					"cannot find alias database owner");
 		    return (YES);
 		}
@@ -273,7 +273,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	    *statusp =
 		(dict_errno ?
 		 defer_append(BOUNCE_FLAGS(state.request),
-			      BOUNCE_ATTR(state.msg_attr),
+			      BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 			      "alias database unavailable") :
 	    deliver_token_string(state, usr_attr, expansion, &alias_count));
 #if 0
@@ -286,7 +286,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	    if (alias_count < 1) {
 		msg_warn("no recipient in alias lookup result for %s", name);
 		*statusp = defer_append(BOUNCE_FLAGS(state.request),
-					BOUNCE_ATTR(state.msg_attr),
+					BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 					"alias database unavailable");
 	    }
 	    myfree(expansion);
@@ -305,7 +305,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	 */
 	if (dict_errno != 0) {
 	    *statusp = defer_append(BOUNCE_FLAGS(state.request),
-				    BOUNCE_ATTR(state.msg_attr),
+				    BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 				    "alias database unavailable");
 	    return (YES);
 	} else {

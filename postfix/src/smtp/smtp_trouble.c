@@ -6,26 +6,29 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	int	smtp_site_fail(state, code, format, ...)
+/*	int	smtp_site_fail(state, dsn, code, format, ...)
 /*	SMTP_STATE *state;
+/*	const char *dsn;
 /*	int	code;
-/*	char	*format;
+/*	const char *format;
 /*
-/*	int	smtp_mesg_fail(state, code, format, ...)
+/*	int	smtp_mesg_fail(state, dsn, code, format, ...)
 /*	SMTP_STATE *state;
+/*	const char *dsn;
 /*	int	code;
-/*	char	*format;
+/*	const char *format;
 /*
-/*	void	smtp_rcpt_fail(state, code, recipient, format, ...)
+/*	void	smtp_rcpt_fail(state, dsn, code, recipient, format, ...)
 /*	SMTP_STATE *state;
+/*	const char *dsn;
 /*	int	code;
 /*	RECIPIENT *recipient;
-/*	char	*format;
+/*	const char *format;
 /*
 /*	int	smtp_stream_except(state, exception, description)
 /*	SMTP_STATE *state;
 /*	int	exception;
-/*	char	*description;
+/*	const char *description;
 /* DESCRIPTION
 /*	This module handles all non-fatal errors that can happen while
 /*	attempting to deliver mail via SMTP, and implements the policy
@@ -128,6 +131,7 @@
 #include <bounce.h>
 #include <defer.h>
 #include <mail_error.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -159,7 +163,8 @@ static void smtp_check_code(SMTP_SESSION *session, int code)
 
 /* smtp_site_fail - skip site, defer or bounce all recipients */
 
-int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
+int     smtp_site_fail(SMTP_STATE *state, const char *dsn, int code,
+		               const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
@@ -174,7 +179,11 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
      * Initialize.
      */
     va_start(ap, format);
-    vstring_vsprintf(why, format, ap);
+    if (code < 400 || code > 599) {
+	vstring_sprintf(why, "Protocol error: ");
+	dsn = "5.5.0";
+    }
+    vstring_vsprintf_append(why, format, ap);
     va_end(ap);
 
     /*
@@ -206,7 +215,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 		 rcpt->orig_addr, rcpt->address, rcpt->offset,
 		 session ? session->namaddr : "none",
-		 request->arrival_time, "%s", vstring_str(why));
+		 dsn, request->arrival_time, "%s", vstring_str(why));
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
 	    SMTP_RCPT_DROP(state, rcpt);
@@ -214,7 +223,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 	}
 	/* XXX This assumes no fall-back relay. */
 	if (soft_error && request->hop_status == 0)
-	    request->hop_status = mystrdup(vstring_str(why));
+	    request->hop_status = dsn_prepend(dsn, vstring_str(why));
     }
     if (session)
 	smtp_check_code(session, code);
@@ -234,7 +243,8 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 
 /* smtp_mesg_fail - skip site, defer all recipients, or bounce all recipients */
 
-int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
+int     smtp_mesg_fail(SMTP_STATE *state, const char *dsn,
+		               int code, const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
@@ -249,7 +259,11 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
      * Initialize.
      */
     va_start(ap, format);
-    vstring_vsprintf(why, format, ap);
+    if (code < 400 || code > 599) {
+	vstring_sprintf(why, "Protocol error: ");
+	dsn = "5.5.0";
+    }
+    vstring_vsprintf_append(why, format, ap);
     va_end(ap);
 
     /*
@@ -281,7 +295,7 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 		 rcpt->orig_addr, rcpt->address, rcpt->offset,
 		 session ? session->namaddr : "none",
-		 request->arrival_time, "%s", vstring_str(why));
+		 dsn, request->arrival_time, "%s", vstring_str(why));
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
 	    SMTP_RCPT_DROP(state, rcpt);
@@ -300,14 +314,15 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
 
 /* smtp_rcpt_fail - skip, defer, or bounce recipient */
 
-void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
-		               char *format,...)
+void    smtp_rcpt_fail(SMTP_STATE *state, const char *dsn, int code,
+		               RECIPIENT *rcpt, const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
     int     status;
     int     soft_error = SMTP_SOFT(code);
     va_list ap;
+    VSTRING *why = vstring_alloc(100);
 
     /*
      * Sanity check.
@@ -316,19 +331,24 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
 	msg_panic("smtp_rcpt_fail: recipient <%s> is marked", rcpt->address);
 
     /*
+     * Initialize.
+     */
+    va_start(ap, format);
+    if (code < 400 || code > 599) {
+	vstring_sprintf(why, "Protocol error: ");
+	dsn = "5.5.0";
+    }
+    vstring_vsprintf_append(why, format, ap);
+    va_end(ap);
+
+    /*
      * Don't defer this recipient record just yet when this error qualifies
      * for trying other mail servers. Just log something informative to show
      * why we're skipping this recipient now.
      */
     if (soft_error && state->final_server == 0) {
-	VSTRING *buf = vstring_alloc(100);
-
-	va_start(ap, format);
-	vstring_vsprintf(buf, format, ap);
-	va_end(ap);
-	msg_info("%s: %s", request->queue_id, vstring_str(buf));
+	msg_info("%s: %s", request->queue_id, vstring_str(why));
 	SMTP_RCPT_KEEP(state, rcpt);
-	vstring_free(buf);
     }
 
     /*
@@ -340,13 +360,11 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
      * that did qualify for delivery to a backup server.
      */
     else {
-	va_start(ap, format);
-	status = (soft_error ? vdefer_append : vbounce_append)
+	status = (soft_error ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 	     rcpt->orig_addr, rcpt->address, rcpt->offset,
 	     session ? session->namaddr : "none",
-	     request->arrival_time, format, ap);
-	va_end(ap);
+	     dsn, request->arrival_time, "%s", vstring_str(why));
 	if (status == 0)
 	    deliver_completed(state->src, rcpt->offset);
 	SMTP_RCPT_DROP(state, rcpt);
@@ -354,17 +372,23 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
     }
     if (session)
 	smtp_check_code(session, code);
+
+    /*
+     * Cleanup.
+     */
+    vstring_free(why);
 }
 
 /* smtp_stream_except - defer domain after I/O problem */
 
-int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
+int     smtp_stream_except(SMTP_STATE *state, int code, const char *description)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
     RECIPIENT *rcpt;
     int     nrcpt;
     VSTRING *why = vstring_alloc(100);
+    const char *dsn;
 
     /*
      * Sanity check.
@@ -381,10 +405,12 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
     case SMTP_ERR_EOF:
 	vstring_sprintf(why, "lost connection with %s while %s",
 			session->namaddr, description);
+	dsn = "4.4.2";
 	break;
     case SMTP_ERR_TIME:
 	vstring_sprintf(why, "conversation with %s timed out while %s",
 			session->namaddr, description);
+	dsn = "4.4.2";
 	break;
     }
 
@@ -416,10 +442,13 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 					  request->queue_id,
 					  rcpt->orig_addr, rcpt->address,
 					  rcpt->offset, session->namaddr,
-					  request->arrival_time,
+					  dsn, request->arrival_time,
 					  "%s", vstring_str(why));
 	    SMTP_RCPT_DROP(state, rcpt);
 	}
+	/* XXX This assumes no fall-back relay. */
+	if (request->hop_status == 0)
+	    request->hop_status = dsn_prepend(dsn, vstring_str(why));
     }
 
     /*

@@ -10485,6 +10485,62 @@ Apologies for any names omitted.
 	Bugfix: when <unistd.h> is included, read is a reserved
 	identifier. File: smtpstone/smtp-source.c.
 
+20050321-27
+
+	Support for RFC 1893 enhanced status codes.  See also the
+	ENHANCED_STATUS_README file for background.
+
+	New module to pass around (status code + text) instead of
+	just text.  File: Files: global/dsn_util.c.
+
+	Status-related lookup tables now have an extra column for
+	enhanced status codes.  Files: global/sys_exits.c,
+	global/cleanup_strerror.c.
+
+	Incompatible change: centralized mapping of errno values
+	to delivery status codes after failed delivery to mailbox,
+	maildir, or file. Error codes EACCES, EAGAIN, ESTALE are
+	4.2.0 temporary errors, ENOSPC is a 4.3.0 temporary error,
+	EDQUOT and EFBIG are 5.2.2 hard errors, and everything else
+	is a 5.2.0 hard error. This means that local(8) will bounce
+	less mail, while virtual(8) will defer less mail. File:
+	global/mbox_open.c.
+
+20050324
+
+	Workaround: gcc -W (version 3.4.2 [FreeBSD] 20040728) no
+	longer warns about missing return statements. What a time
+	waste.
+
+	Workaround: gcc -E (version 3.4.2 [FreeBSD] 20040728) output
+	has changed, causing too much "make depend" output.
+
+20050325
+
+	Bugfix: when bouncing mail that was submitted with Postfix
+	sendmail, the cleanup daemon ignored the reason specified
+	in header/body_checks, and always produced a generic reason.
+	File: cleanup/cleanup_api.c.
+
+	Workaround: don't announce pipelining support when the
+	smtp-sink test program is configured to fail specific
+	commands with -r or -f (the fix is to build a proper SMTP
+	state engine into the smtp-sink test program).  File:
+	smtpstone/smtp-sink.c.
+
+20050326
+
+	Update: more PCRE error codes. File: util/dict_pcre.c.
+
+20050327
+
+	Bugfix: the SMTP client did not ask the queue manager to
+	reduce destination concurrency after a "lost connection"
+	or "connection timed out" errror. File: smtp/smtp_trouble.c.
+
+	Workaround: FreeBSD has incompatibly changed the output
+	format from "od", breaking regression test portability.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?
@@ -10521,8 +10577,8 @@ Open problems:
 	really try all the possibilities that one might expect to
 	be tried. For now, this gotcha is documented in access(5).
 
-	Med: the TLS certificate verification depth parameters
-	never worked.
+	Med: the TLS certificate verification depth parameters never
+	worked.
 
 	Med: eliminate the tls_info data structure.
 
@@ -10533,8 +10589,8 @@ Open problems:
 
 	Low: make mail_addr_find() lookup configurable.
 
-	Low: update events.c so that 1-second timer requests do
-	not suffer from rounding errors. This is needed for 1-second
+	Low: update events.c so that 1-second timer requests do not
+	suffer from rounding errors. This is needed for 1-second
 	SMTP session caching time limits. A 1-second interval would
 	become arbitrarily short when an event is scheduled just
 	before the current second rolls over.
@@ -10596,8 +10652,8 @@ Open problems:
 
 	Low: all table lookups should consistently use internalized
 	(unquoted) or externalized (quoted) forms as lookup keys.
-	smtpd, qmgr, local, etc. use unquoted address forms as
-	keys.  cleanup uses quoted forms.
+	smtpd, qmgr, local, etc. use unquoted address forms as keys.
+	cleanup uses quoted forms.
 
 	Low: have a configurable list of errno values for mailbox
 	or maildir delivery that result in deferral rather than
@@ -10606,9 +10662,9 @@ Open problems:
 	Low: after reorganizing configuration parameters, add flags
 	to all parameters whose value can be read from file.
 
-	Medium: need in-process caching for map lookups. LDAP
-	servers seem to need this in particular. Need a way to
-	expire cached results that are too old.
+	Medium: need in-process caching for map lookups. LDAP servers
+	seem to need this in particular. Need a way to expire cached
+	results that are too old.
 
 	Low: generic showq protocol, to allow for more intelligent
 	processing than just mailq. Maybe marry this with postsuper.

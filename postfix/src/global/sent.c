@@ -7,24 +7,26 @@
 /*	#include <sent.h>
 /*
 /*	int	sent(flags, queue_id, orig_rcpt, recipient, offset, relay,
-/*			entry, format, ...)
+/*			dsn, entry, format, ...)
 /*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*
 /*	int	vsent(flags, queue_id, orig_rcpt, recipient, offset, relay,
-/*			entry, format, ap)
+/*			dsn, entry, format, ap)
 /*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*	va_list ap;
@@ -63,6 +65,8 @@
 /*	Queue file offset of the recipient record.
 /* .IP relay
 /*	Name of the host we're talking to.
+/* .IP dsn
+/*	X.YY.ZZ Error detail as specified in RFC 1893.
 /* .IP entry
 /*	Message arrival time.
 /* .IP format
@@ -110,6 +114,7 @@
 #include <trace.h>
 #include <defer.h>
 #include <sent.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -117,14 +122,14 @@
 
 int     sent(int flags, const char *id, const char *orig_rcpt,
 	             const char *recipient, long offset, const char *relay,
-	             time_t entry, const char *fmt,...)
+	             const char *dsn, time_t entry, const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
     status = vsent(flags, id, orig_rcpt, recipient,
-		   offset, relay, entry, fmt, ap);
+		   offset, relay, dsn, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -133,16 +138,25 @@ int     sent(int flags, const char *id, const char *orig_rcpt,
 
 int     vsent(int flags, const char *id, const char *orig_rcpt,
 	              const char *recipient, long offset, const char *relay,
-	              time_t entry, const char *fmt, va_list ap)
+	              const char *dsn, time_t entry,
+	              const char *fmt, va_list ap)
 {
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if (*dsn != '2' || !dsn_valid(dsn)) {
+	msg_warn("sent: ignoring dsn code \"%s\"", dsn);
+	dsn = "2.0.0";
+    }
 
     /*
      * MTA-requested address verification information is stored in the verify
      * service database.
      */
     if (flags & DEL_REQ_FLAG_VERIFY) {
-	status = vverify_append(id, orig_rcpt, recipient, relay, entry,
+	status = vverify_append(id, orig_rcpt, recipient, relay, dsn, entry,
 				"deliverable", DEL_RCPT_STAT_OK, fmt, ap);
 	return (status);
     }
@@ -153,7 +167,7 @@ int     vsent(int flags, const char *id, const char *orig_rcpt,
      */
     if (flags & DEL_REQ_FLAG_EXPAND) {
 	status = vtrace_append(flags, id, orig_rcpt, recipient, relay,
-			       entry, "2.0.0", "deliverable", fmt, ap);
+			       dsn, entry, "deliverable", fmt, ap);
 	return (status);
     }
 
@@ -166,14 +180,15 @@ int     vsent(int flags, const char *id, const char *orig_rcpt,
 	vstring_vsprintf(text, fmt, ap);
 	if ((flags & DEL_REQ_FLAG_RECORD) == 0
 	    || trace_append(flags, id, orig_rcpt, recipient, relay,
-			    entry, "2.0.0", "delivered",
+			    dsn, entry, "delivered",
 			    "%s", vstring_str(text)) == 0) {
-	    log_adhoc(id, orig_rcpt, recipient, relay,
+	    log_adhoc(id, orig_rcpt, recipient, relay, dsn,
 		      entry, "sent", "%s", vstring_str(text));
 	    status = 0;
 	} else {
 	    status = defer_append(flags, id, orig_rcpt, recipient, offset,
-				  relay, entry, "%s: %s service failed",
+				  relay, dsn, entry,
+				  "%s: %s service failed",
 				  id, var_trace_service);
 	}
 	vstring_free(text);

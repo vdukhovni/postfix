@@ -8,19 +8,26 @@
 /*
 /*	int	pipe_command(src, why, key, value, ...)
 /*	VSTREAM	*src;
-/*	VSTRING *why;
+/*	DSN_VSTRING *why;
 /*	int	key;
 /* DESCRIPTION
 /*	pipe_command() runs a command with a message as standard
 /*	input.  A limited amount of standard output and standard error
 /*	output is captured for diagnostics purposes.
 /*
+/*	If the command invokes exit() with a non-zero status,
+/*	the delivery status is taken from an RFC 1893-style code
+/*	at the beginning of command output. If that information is
+/*	unavailable, the delivery status is taken from the command
+/*	exit status as per <sysexits.h>.
+/*
 /*	Arguments:
 /* .IP src
 /*	An open message queue file, positioned at the start of the actual
 /*	message content.
 /* .IP why
-/*	Storage for diagnostic information.
+/*	Storage for diagnostic information in the form of a DSN
+/*	detail code followed by free text.
 /* .IP key
 /*	Specifies what value will follow. pipe_command() takes a list
 /*	of (key, value) arguments, terminated by PIPE_CMD_END. The
@@ -147,6 +154,7 @@
 #include <pipe_command.h>
 #include <exec_command.h>
 #include <sys_exits.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -343,7 +351,7 @@ static int pipe_command_wait_or_kill(pid_t pid, WAIT_STATUS_T *statusp, int sig,
 
 /* pipe_command - execute command with extreme prejudice */
 
-int     pipe_command(VSTREAM *src, VSTRING *why,...)
+int     pipe_command(VSTREAM *src, DSN_VSTRING *why,...)
 {
     char   *myname = "pipe_comand";
     va_list ap;
@@ -360,6 +368,8 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
     struct pipe_args args;
     char  **cpp;
     ARGV   *argv;
+    DSN_SPLIT dp;
+    SYS_EXITS_DETAIL *sp;
 
     /*
      * Process the variadic argument list. This also does sanity checks on
@@ -413,7 +423,7 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	 */
     case -1:
 	msg_warn("fork: %m");
-	vstring_sprintf(why, "Delivery failed: %m");
+	dsn_vstring_update(why, "4.3.0", "Delivery failed: %m");
 	return (PIPE_STAT_DEFER);
 
 	/*
@@ -506,7 +516,7 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	 * stop reading input early, and that should not be considered an
 	 * error condition.
 	 */
-#define DONT_CARE_WHY	((VSTRING *) 0)
+#define DONT_CARE_WHY	((DSN_VSTRING *) 0)
 
 	write_status = mail_copy(args.sender, args.orig_rcpt,
 				 args.delivered, src,
@@ -541,9 +551,10 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 				      args.uid, args.gid) < 0)
 	    msg_fatal("wait: %m");
 	if (pipe_command_timeout) {
-	    vstring_sprintf(why, "Command time limit exceeded: \"%s\"%s%s",
-			    args.command,
-			    log_len ? ". Command output: " : "", log_buf);
+	    dsn_vstring_update(why, "5.3.0",
+			       "Command time limit exceeded: \"%s\"%s%s",
+			       args.command,
+			       log_len ? ". Command output: " : "", log_buf);
 	    return (PIPE_STAT_BOUNCE);
 	}
 
@@ -553,33 +564,50 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	 */
 	if (!NORMAL_EXIT_STATUS(wait_status)) {
 	    if (WIFSIGNALED(wait_status)) {
-		vstring_sprintf(why, "Command died with signal %d: \"%s\"%s%s",
-				WTERMSIG(wait_status),
-				args.command,
-			      log_len ? ". Command output: " : "", log_buf);
-		return (PIPE_STAT_DEFER);
-	    } else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
-		vstring_sprintf(why, "%s%s%s",
-				sys_exits_strerror(WEXITSTATUS(wait_status)),
-			      log_len ? ". Command output: " : "", log_buf);
-		return (sys_exits_softerror(WEXITSTATUS(wait_status)) ?
-			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
-	    } else {
-		vstring_sprintf(why, "Command died with status %d: \"%s\"%s%s",
-				WEXITSTATUS(wait_status),
-				args.command,
+		dsn_vstring_update(why, "5.3.0",
+				   "Command died with signal %d: \"%s\"%s%s",
+				   WTERMSIG(wait_status),
+				   args.command,
 			      log_len ? ". Command output: " : "", log_buf);
 		return (PIPE_STAT_BOUNCE);
 	    }
-	} else if (write_status & MAIL_COPY_STAT_CORRUPT) {
+	    /* Use "D.S.N text" command output. */
+	    else if (dsn_valid(log_buf) > 0) {
+		/* XXX Assumes dsn_split() does not require 5.x.x in log_buf */
+		dsn_split(&dp, "5.3.0", log_buf);
+		dsn_vstring_update(why, dp.dsn, "%s", dp.text);
+		return (dp.dsn[0] == '4' ?
+			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
+	    }
+	    /* Use <sysexits.h> compatible exit status. */
+	    else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
+		sp = sys_exits_detail(WEXITSTATUS(wait_status));
+		dsn_vstring_update(why, sp->dsn, "%s%s", sp->text,
+			      log_len ? ". Command output: " : "", log_buf);
+		return (sp->dsn[0] == '4' ?
+			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
+	    }
+
+	    /* No "D.S.N text" and no <sysexits.h> compatible exit status. */
+	    else {
+		dsn_vstring_update(why, "5.3.0",
+				   "Command died with status %d: \"%s\"%s%s",
+				   WEXITSTATUS(wait_status), args.command,
+			      log_len ? ". Command output: " : "", log_buf);
+		return (PIPE_STAT_BOUNCE);
+	    }
+	} else if (write_status &
+		   MAIL_COPY_STAT_CORRUPT) {
 	    return (PIPE_STAT_CORRUPT);
 	} else if (write_status && write_errno != EPIPE) {
 	    errno = write_errno;
-	    vstring_sprintf(why, "Command failed due to %s: %m: \"%s\"",
+	    dsn_vstring_update(why, "5.3.0",
+			       "Command failed due to %s: %m: \"%s\"",
 	      (write_status & MAIL_COPY_STAT_READ) ? "delivery read error" :
 	    (write_status & MAIL_COPY_STAT_WRITE) ? "delivery write error" :
-			    "some delivery error", args.command);
-	    return (PIPE_STAT_DEFER);
+			       "some delivery error",
+			       args.command);
+	    return (PIPE_STAT_BOUNCE);
 	} else {
 	    return (PIPE_STAT_OK);
 	}

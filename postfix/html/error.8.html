@@ -17,22 +17,23 @@ ERROR(8)                                                              ERROR(8)
        requests from the queue manager. Each request specifies  a
        queue  file,  a sender address, a domain or host name that
        is treated as the reason for non-delivery,  and  recipient
-       information.  This program expects to be run from the <a href="master.8.html"><b>mas-</b></a>
-       <a href="master.8.html"><b>ter</b>(8)</a> process manager.
+       information.   The  reason  may  be  prefixed  with an RFC
+       1893-compatible detail code.  This program expects  to  be
+       run from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
-       The <a href="error.8.html"><b>error</b>(8)</a> delivery agent bounces all recipients in  the
-       delivery  request  using  the  "next-hop"  domain  or host
-       information as the reason for  non-delivery,  updates  the
+       The  <a href="error.8.html"><b>error</b>(8)</a> delivery agent bounces all recipients in the
+       delivery request  using  the  "next-hop"  domain  or  host
+       information  as  the  reason for non-delivery, updates the
        queue file and marks recipients as finished or informs the
-       queue manager that delivery should be  tried  again  at  a
+       queue  manager  that  delivery  should be tried again at a
        later time.
 
-       Delivery   status  reports  are  sent  to  the  <a href="bounce.8.html"><b>bounce</b>(8)</a>,
+       Delivery  status  reports  are  sent  to  the   <a href="bounce.8.html"><b>bounce</b>(8)</a>,
        <a href="defer.8.html"><b>defer</b>(8)</a> or <a href="trace.8.html"><b>trace</b>(8)</a> daemon as appropriate.
 
 <b>SECURITY</b>
        The <a href="error.8.html"><b>error</b>(8)</a> mailer is not security-sensitive. It does not
-       talk  to the network, and can be run chrooted at fixed low
+       talk to the network, and can be run chrooted at fixed  low
        privilege.
 
 <b>STANDARDS</b>
@@ -41,35 +42,35 @@ ERROR(8)                                                              ERROR(8)
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
-       Depending on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b>  parameter,
-       the  postmaster  is notified of bounces and of other trou-
+       Depending  on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter,
+       the postmaster is notified of bounces and of  other  trou-
        ble.
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes to <b>main.cf</b> are picked up automatically as <a href="error.8.html"><b>error</b>(8)</a>
-       processes  run  for only a limited amount of time. Use the
+       processes run for only a limited amount of time.  Use  the
        command "<b>postfix reload</b>" to speed up a change.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#2bounce_notice_recipient">2bounce_notice_recipient</a> (postmaster)</b>
-              The  recipient of undeliverable mail that cannot be
+              The recipient of undeliverable mail that cannot  be
               returned to the sender.
 
        <b><a href="postconf.5.html#bounce_notice_recipient">bounce_notice_recipient</a> (postmaster)</b>
-              The recipient of postmaster notifications with  the
+              The  recipient of postmaster notifications with the
               message  headers  of  mail  that  Postfix  did  not
-              deliver and of  SMTP  conversation  transcripts  of
+              deliver  and  of  SMTP  conversation transcripts of
               mail that Postfix did not receive.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#double_bounce_sender">double_bounce_sender</a> (double-bounce)</b>
@@ -81,36 +82,36 @@ ERROR(8)                                                              ERROR(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits for the next service request
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The maximal number of connection requests before  a
+              The  maximal number of connection requests before a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#notify_classes">notify_classes</a> (resource, software)</b>
-              The  list of error classes that are reported to the
+              The list of error classes that are reported to  the
               postmaster.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID  of  a  Postfix  command  or  daemon
+              The  process  ID  of  a  Postfix  command or daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The location of the Postfix top-level queue  direc-
+              The  location of the Postfix top-level queue direc-
               tory.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail  system  name  that  is  prepended to the
-              process name in syslog  records,  so  that  "smtpd"
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>SEE ALSO</b>
@@ -123,7 +124,7 @@ ERROR(8)                                                              ERROR(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

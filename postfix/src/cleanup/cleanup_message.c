@@ -80,6 +80,7 @@
 #include <mail_proto.h>
 #include <mime_state.h>
 #include <lex_822.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -301,6 +302,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
     const char *optional_text = value + strcspn(value, " \t");
     int     command_len = optional_text - value;
     VSTRING *bp;
+    CLEANUP_STAT_DETAIL *detail;
 
     while (*optional_text && ISSPACE(*optional_text))
 	optional_text++;
@@ -310,9 +312,14 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 #define CLEANUP_ACT_DROP 0
 
     if (STREQUAL(value, "REJECT", command_len)) {
-	if (state->reason == 0)
-	    state->reason = mystrdup(*optional_text ? optional_text :
-				     cleanup_strerror(CLEANUP_STAT_CONT));
+	if (state->reason == 0) {
+	    if (*optional_text) {
+		state->reason = dsn_prepend("5.7.1", optional_text);
+	    } else {
+		detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
+		state->reason = dsn_prepend(detail->dsn, detail->text);
+	    }
+	}
 	state->errs |= CLEANUP_STAT_CONT;
 	state->flags &= ~CLEANUP_FLAG_FILTER;
 	cleanup_act_log(state, "reject", context, buf, state->reason);
@@ -371,7 +378,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 			 "need \"headername: headervalue\"",
 			 optional_text, map_class);
 		return (CLEANUP_ACT_KEEP);
-	    } 
+	    }
 	    /* XXX Impedance mismatch. */
 	    bp = vstring_strcpy(vstring_alloc(100), optional_text);
 	    cleanup_out_header(state, bp);

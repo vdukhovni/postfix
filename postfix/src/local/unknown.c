@@ -133,7 +133,7 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 	|| STREQ(state.msg_attr.local, MAIL_ADDR_POSTMASTER)) {
 	msg_warn("required alias not found: %s", state.msg_attr.local);
 	return (sent(BOUNCE_FLAGS(state.request),
-		     SENT_ATTR(state.msg_attr),
+		     SENT_ATTR(state.msg_attr, "2.0.0"),
 		     "discarded"));
     }
 
@@ -141,6 +141,6 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
      * Bounce the message when no luser relay is specified.
      */
     return (bounce_append(BOUNCE_FLAGS(state.request),
-			  BOUNCE_ATTR(state.msg_attr),
+			  BOUNCE_ATTR(state.msg_attr, "5.1.1"),
 			  "unknown user: \"%s\"", state.msg_attr.local));
 }

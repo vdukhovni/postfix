@@ -73,10 +73,7 @@
 #include <deliver_pass.h>
 #include <mbox_open.h>
 #include <maps.h>
-
-#ifndef EDQUOT
-#define EDQUOT EFBIG
-#endif
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -93,7 +90,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     char   *myname = "deliver_mailbox_file";
     char   *spool_dir;
     char   *mailbox;
-    VSTRING *why;
+    DSN_VSTRING *why;
     MBOX   *mp;
     int     mail_copy_status;
     int     deliver_status;
@@ -117,7 +114,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      * Don't deliver trace-only requests.
      */
     if (DEL_REQ_TRACE_ONLY(state.request->flags))
-	return (sent(BOUNCE_FLAGS(state.request), SENT_ATTR(state.msg_attr),
+	return (sent(BOUNCE_FLAGS(state.request),
+		     SENT_ATTR(state.msg_attr, "2.0.0"),
 		     "delivers to mailbox"));
 
     /*
@@ -128,7 +126,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	msg_fatal("seek message file %s: %m", VSTREAM_PATH(state.msg_attr.fp));
     state.msg_attr.delivered = state.msg_attr.recipient;
     mail_copy_status = MAIL_COPY_STAT_WRITE;
-    why = vstring_alloc(100);
+    why = dsn_vstring_alloc(100);
     if (*var_home_mailbox) {
 	spool_dir = 0;
 	mailbox = concatenate(usr_attr.home, "/", var_home_mailbox, (char *) 0);
@@ -194,8 +192,9 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    set_eugid(usr_attr.uid, usr_attr.gid);
 	if (S_ISREG(st.st_mode) == 0) {
 	    vstream_fclose(mp->fp);
-	    vstring_sprintf(why, "destination is not a regular file");
-	    errno = 0;
+	    dsn_vstring_update(why, "5.2.0",
+			       "destination %s is not a regular file",
+			       mailbox);
 	} else {
 	    end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END);
 	    mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
@@ -213,14 +212,14 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
 	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
-	deliver_status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
-			  defer_append : bounce_append)
-	    (BOUNCE_FLAGS(state.request), BOUNCE_ATTR(state.msg_attr),
-	     "cannot access mailbox %s for user %s. %s",
-	     mailbox, state.msg_attr.user, vstring_str(why));
+	deliver_status = (why->dsn[0] == '4' ? defer_append : bounce_append)
+	    (BOUNCE_FLAGS(state.request),
+	     BOUNCE_ATTR(state.msg_attr, why->dsn),
+	     "cannot update mailbox %s for user %s. %s",
+	     mailbox, state.msg_attr.user, vstring_str(why->vstring));
     } else {
 	deliver_status = sent(BOUNCE_FLAGS(state.request),
-			      SENT_ATTR(state.msg_attr),
+			      SENT_ATTR(state.msg_attr, "2.0.0"),
 			      "delivered to mailbox");
 	if (var_biff) {
 	    biff = vstring_alloc(100);
@@ -234,7 +233,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      * Clean up.
      */
     myfree(mailbox);
-    vstring_free(why);
+    dsn_vstring_free(why);
     return (deliver_status);
 }
 

@@ -17,13 +17,14 @@ DISCARD(8)                                                          DISCARD(8)
        requests from the queue manager. Each request specifies  a
        queue  file,  a sender address, a domain or host name that
        is treated as the reason  for  discarding  the  mail,  and
-       recipient  information.   This  program  expects to be run
-       from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
+       recipient information.  The reason may be prefixed with an
+       <a href="http://www.faqs.org/rfcs/rfc1893.html">RFC 1893</a>-compatible detail code.  This program expects  to
+       be run from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
-       The <a href="discard.8.html"><b>discard</b>(8)</a> delivery  agent  pretends  to  deliver  all
-       recipients  in  the  delivery request, logs the "next-hop"
-       domain or host information as the  reason  for  discarding
-       the  mail,  updates the queue file and marks recipients as
+       The  <a href="discard.8.html"><b>discard</b>(8)</a>  delivery  agent  pretends  to deliver all
+       recipients in the delivery request,  logs  the  "next-hop"
+       domain  or  host  information as the reason for discarding
+       the mail, updates the queue file and marks  recipients  as
        finished or informs the queue manager that delivery should
        be tried again at a later time.
 
@@ -31,8 +32,8 @@ DISCARD(8)                                                          DISCARD(8)
        appropriate.
 
 <b>SECURITY</b>
-       The <a href="discard.8.html"><b>discard</b>(8)</a> mailer is not security-sensitive.  It  does
-       not  talk to the network, and can be run chrooted at fixed
+       The  <a href="discard.8.html"><b>discard</b>(8)</a>  mailer is not security-sensitive. It does
+       not talk to the network, and can be run chrooted at  fixed
        low privilege.
 
 <b>STANDARDS</b>
@@ -41,25 +42,25 @@ DISCARD(8)                                                          DISCARD(8)
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
-       Depending on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b>  parameter,
-       the  postmaster  is notified of bounces and of other trou-
+       Depending  on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter,
+       the postmaster is notified of bounces and of  other  trou-
        ble.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes to <b>main.cf</b> are picked  up  automatically  as  <a href="discard.8.html"><b>dis-</b></a>
-       <a href="discard.8.html"><b>card</b>(8)</a>  processes  run for only a limited amount of time.
+       Changes  to  <b>main.cf</b>  are  picked up automatically as <a href="discard.8.html"><b>dis-</b></a>
+       <a href="discard.8.html"><b>card</b>(8)</a> processes run for only a limited amount  of  time.
        Use the command "<b>postfix reload</b>" to speed up a change.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#double_bounce_sender">double_bounce_sender</a> (double-bounce)</b>
@@ -71,32 +72,32 @@ DISCARD(8)                                                          DISCARD(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits for the next service request
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The maximal number of connection requests before  a
+              The  maximal number of connection requests before a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The  process  ID  of  a  Postfix  command or daemon
+              The process ID  of  a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The process name of a  Postfix  command  or  daemon
+              The  process  name  of  a Postfix command or daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The  location of the Postfix top-level queue direc-
+              The location of the Postfix top-level queue  direc-
               tory.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The mail system  name  that  is  prepended  to  the
-              process  name  in  syslog  records, so that "smtpd"
+              The  mail  system  name  that  is  prepended to the
+              process name in syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>SEE ALSO</b>
@@ -109,7 +110,7 @@ DISCARD(8)                                                          DISCARD(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>HISTORY</b>

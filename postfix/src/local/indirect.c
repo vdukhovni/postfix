@@ -76,7 +76,7 @@ int     deliver_indirect(LOCAL_STATE state)
      */
     if (DEL_REQ_TRACE_ONLY(state.request->flags))
 	return (sent(BOUNCE_FLAGS(state.request),
-		     SENT_ATTR(state.msg_attr),
+		     SENT_ATTR(state.msg_attr, "2.0.0"),
 		     "forwards to %s", state.msg_attr.recipient));
 
     /*
@@ -85,7 +85,7 @@ int     deliver_indirect(LOCAL_STATE state)
      */
     if (forward_append(state.msg_attr))
 	return (defer_append(BOUNCE_FLAGS(state.request),
-			     BOUNCE_ATTR(state.msg_attr),
+			     BOUNCE_ATTR(state.msg_attr, "4.3.0"),
 			     "unable to forward message"));
     return (0);
 }

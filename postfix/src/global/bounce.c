@@ -7,24 +7,26 @@
 /*	#include <bounce.h>
 /*
 /*	int	bounce_append(flags, id, orig_rcpt, recipient, offset, relay,
-/*				entry, format, ...)
+/*				dsn, entry, format, ...)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*
 /*	int	vbounce_append(flags, id, orig_rcpt, recipient, offset, relay,
-/*				entry, format, ap)
+/*				dsn, entry, format, ap)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*	va_list ap;
@@ -37,7 +39,8 @@
 /*	const char *sender;
 /*
 /*	int	bounce_one(flags, queue, id, encoding, sender, orig_rcpt,
-/*				recipient, offset, relay, entry, format, ...)
+/*				recipient, offset, relay, dsn, entry,
+/*				format, ...)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
@@ -47,11 +50,13 @@
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*
 /*	int	vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
-/*				recipient, offset, relay, entry, format, ap)
+/*				recipient, offset, relay, dsn, entry,
+/*				format, ap)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
@@ -61,6 +66,7 @@
 /*	const char *recipient;
 /*	long	offset;
 /*	const char *relay;
+/*	const char *dsn;
 /*	time_t	entry;
 /*	const char *format;
 /*	va_list ap;
@@ -120,6 +126,8 @@
 /* .IP relay
 /*	Name of the host that the message could not be delivered to.
 /*	This information is used for syslogging only.
+/* .IP dsn
+/*	X.YY.ZZ Error detail as specified in RFC 1893.
 /* .IP entry
 /*	Message arrival time.
 /* .IP orig_rcpt
@@ -168,6 +176,7 @@
 
 #include <msg.h>
 #include <vstring.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -178,19 +187,21 @@
 #include <defer.h>
 #include <trace.h>
 #include <bounce.h>
+#include <dsn_util.h>
 
 /* bounce_append - append reason to per-message bounce log */
 
 int     bounce_append(int flags, const char *id, const char *orig_rcpt,
 	              const char *recipient, long offset, const char *relay,
-		              time_t entry, const char *fmt,...)
+		              const char *dsn, time_t entry,
+		              const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
     status = vbounce_append(flags, id, orig_rcpt, recipient,
-			    offset, relay, entry, fmt, ap);
+			    offset, relay, dsn, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -199,16 +210,25 @@ int     bounce_append(int flags, const char *id, const char *orig_rcpt,
 
 int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
 	              const char *recipient, long offset, const char *relay,
-		               time_t entry, const char *fmt, va_list ap)
+		               const char *dsn, time_t entry,
+		               const char *fmt, va_list ap)
 {
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if (*dsn != '5' || !dsn_valid(dsn)) {
+	msg_warn("bounce_append: ignoring dsn code \"%s\"", dsn);
+	dsn = "5.0.0";
+    }
 
     /*
      * MTA-requested address verification information is stored in the verify
      * service database.
      */
     if (flags & DEL_REQ_FLAG_VERIFY) {
-	status = vverify_append(id, orig_rcpt, recipient, relay, entry,
+	status = vverify_append(id, orig_rcpt, recipient, relay, dsn, entry,
 			    "undeliverable", DEL_RCPT_STAT_BOUNCE, fmt, ap);
 	return (status);
     }
@@ -219,7 +239,7 @@ int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
      */
     if (flags & DEL_REQ_FLAG_EXPAND) {
 	status = vtrace_append(flags, id, orig_rcpt, recipient, relay,
-			       entry, "5.0.0", "undeliverable", fmt, ap);
+			       dsn, entry, "undeliverable", fmt, ap);
 	return (status);
     }
 
@@ -237,13 +257,15 @@ int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
      */
     else {
 	VSTRING *why = vstring_alloc(100);
-	char   *dsn_code = var_soft_bounce ? "4.0.0" : "5.0.0";
-	char   *dsn_action = var_soft_bounce ? "delayed" : "failed";
+	char   *my_dsn = mystrdup(dsn);
+	char   *action = var_soft_bounce ? "delayed" : "failed";
 	char   *log_status = var_soft_bounce ? "SOFTBOUNCE" : "bounced";
 
 	vstring_vsprintf(why, fmt, ap);
 	if (orig_rcpt == 0)
 	    orig_rcpt = "";
+	if (var_soft_bounce)
+	    my_dsn[0] = '4';
 	if (mail_command_client(MAIL_CLASS_PRIVATE, var_soft_bounce ?
 				var_defer_service : var_bounce_service,
 			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
@@ -252,24 +274,27 @@ int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 				ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offset,
-				ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_code,
-				ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
+				ATTR_TYPE_STR, MAIL_ATTR_STATUS, my_dsn,
+				ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
 			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 				ATTR_TYPE_END) == 0
 	    && ((flags & DEL_REQ_FLAG_RECORD) == 0
 		|| trace_append(flags, id, orig_rcpt, recipient, relay,
-				entry, dsn_code, dsn_action,
+				my_dsn, entry, action,
 				"%s", vstring_str(why)) == 0)) {
-	    log_adhoc(id, orig_rcpt, recipient, relay,
+	    log_adhoc(id, orig_rcpt, recipient, relay, my_dsn,
 		      entry, log_status, "%s", vstring_str(why));
 	    status = (var_soft_bounce ? -1 : 0);
 	} else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
+	    my_dsn[0] = '4';
 	    status = defer_append(flags, id, orig_rcpt, recipient, offset,
-				  relay, entry, "%s or %s service failure",
+				  relay, my_dsn, entry,
+				  "%s or %s service failure",
 				  var_bounce_service, var_trace_service);
 	} else {
 	    status = -1;
 	}
+	myfree(my_dsn);
 	vstring_free(why);
 	return (status);
     }
@@ -309,15 +334,15 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 int     bounce_one(int flags, const char *queue, const char *id,
 		           const char *encoding, const char *sender,
 		           const char *orig_rcpt, const char *recipient,
-		           long offset, const char *relay, time_t entry,
-		           const char *fmt,...)
+		           long offset, const char *relay, const char *dsn,
+		           time_t entry, const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
     status = vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
-			 recipient, offset, relay, entry, fmt, ap);
+			 recipient, offset, relay, dsn, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -327,17 +352,25 @@ int     bounce_one(int flags, const char *queue, const char *id,
 int     vbounce_one(int flags, const char *queue, const char *id,
 		            const char *encoding, const char *sender,
 		            const char *orig_rcpt, const char *recipient,
-		            long offset, const char *relay, time_t entry,
-		            const char *fmt, va_list ap)
+		            long offset, const char *relay, const char *dsn,
+		            time_t entry, const char *fmt, va_list ap)
 {
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if (*dsn != '5' || !dsn_valid(dsn)) {
+	msg_warn("bounce_one: ignoring dsn code \"%s\"", dsn);
+	dsn = "5.0.0";
+    }
 
     /*
      * MTA-requested address verification information is stored in the verify
      * service database.
      */
     if (flags & DEL_REQ_FLAG_VERIFY) {
-	status = vverify_append(id, orig_rcpt, recipient, relay, entry,
+	status = vverify_append(id, orig_rcpt, recipient, relay, dsn, entry,
 			    "undeliverable", DEL_RCPT_STAT_BOUNCE, fmt, ap);
 	return (status);
     }
@@ -348,7 +381,7 @@ int     vbounce_one(int flags, const char *queue, const char *id,
      */
     if (flags & DEL_REQ_FLAG_EXPAND) {
 	status = vtrace_append(flags, id, orig_rcpt, recipient, relay,
-			       entry, "5.0.0", "undeliverable", fmt, ap);
+			       dsn, entry, "undeliverable", fmt, ap);
 	return (status);
     }
 
@@ -358,7 +391,7 @@ int     vbounce_one(int flags, const char *queue, const char *id,
      */
     else if (var_soft_bounce) {
 	return (vbounce_append(flags, id, orig_rcpt, recipient,
-			       offset, relay, entry, fmt, ap));
+			       offset, relay, dsn, entry, fmt, ap));
     }
 
     /*
@@ -366,10 +399,13 @@ int     vbounce_one(int flags, const char *queue, const char *id,
      */
     else {
 	VSTRING *why = vstring_alloc(100);
+	char   *my_dsn = mystrdup(dsn);
 
 	vstring_vsprintf(why, fmt, ap);
 	if (orig_rcpt == 0)
 	    orig_rcpt = "";
+	if (var_soft_bounce)
+	    my_dsn[0] = '4';
 	if (mail_command_client(MAIL_CLASS_PRIVATE, var_bounce_service,
 			      ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_ONE,
 				ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
@@ -380,24 +416,27 @@ int     vbounce_one(int flags, const char *queue, const char *id,
 				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 				ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offset,
-				ATTR_TYPE_STR, MAIL_ATTR_STATUS, "5.0.0",
+				ATTR_TYPE_STR, MAIL_ATTR_STATUS, my_dsn,
 				ATTR_TYPE_STR, MAIL_ATTR_ACTION, "failed",
 			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 				ATTR_TYPE_END) == 0
 	    && ((flags & DEL_REQ_FLAG_RECORD) == 0
 		|| trace_append(flags, id, orig_rcpt, recipient, relay,
-				entry, "5.0.0", "failed",
+				my_dsn, entry, "failed",
 				"%s", vstring_str(why)) == 0)) {
-	    log_adhoc(id, orig_rcpt, recipient, relay,
+	    log_adhoc(id, orig_rcpt, recipient, relay, my_dsn,
 		      entry, "bounced", "%s", vstring_str(why));
 	    status = 0;
 	} else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
+	    my_dsn[0] = '4';
 	    status = defer_append(flags, id, orig_rcpt, recipient, offset,
-				  relay, entry, "%s or %s service failure",
+				  relay, my_dsn, entry,
+				  "%s or %s service failure",
 				  var_bounce_service, var_trace_service);
 	} else {
 	    status = -1;
 	}
+	myfree(my_dsn);
 	vstring_free(why);
 	return (status);
     }

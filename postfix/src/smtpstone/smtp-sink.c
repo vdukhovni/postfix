@@ -38,6 +38,7 @@
 /*	Do not announce ESMTP support.
 /* .IP "\fB-f \fIcommand,command,...\fR"
 /*	Reject the specified commands with a hard (5xx) error code.
+/*	This option implies \fB-p\fR.
 /* .IP \fB-F\fR
 /*	Disable XFORWARD support.
 /* .IP "\fB-h\fI hostname\fR"
@@ -57,6 +58,7 @@
 /*	specified commands.
 /* .IP "\fB-r \fIcommand,command,...\fR"
 /*	Reject the specified commands with a soft (4xx) error code.
+/*	This option implies \fB-p\fR.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
 /*	Examples of commands that can be logged are HELO, EHLO, LHLO, MAIL,
@@ -644,6 +646,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'f':
 	    set_cmds_flags(optarg, FLAG_HARD_ERR);
+	    disable_pipelining = 1;
 	    break;
 	case 'F':
 	    disable_xforward = 1;
@@ -671,6 +674,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'r':
 	    set_cmds_flags(optarg, FLAG_SOFT_ERR);
+	    disable_pipelining = 1;
 	    break;
 	case 's':
 	    openlog(basename(argv[0]), LOG_PID, LOG_MAIL);

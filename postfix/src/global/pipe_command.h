@@ -21,6 +21,7 @@
   * Global library.
   */
 #include <mail_copy.h>
+#include <dsn_util.h>
 
  /*
   * Request arguments.
@@ -49,7 +50,7 @@
 #define PIPE_STAT_BOUNCE	2	/* failed */
 #define PIPE_STAT_CORRUPT	3	/* corrupted file */
 
-extern int pipe_command(VSTREAM *, VSTRING *,...);
+extern int pipe_command(VSTREAM *, DSN_VSTRING *,...);
 
 /* LICENSE
 /* .ad

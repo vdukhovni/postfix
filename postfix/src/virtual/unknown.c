@@ -59,6 +59,6 @@ int     deliver_unknown(LOCAL_STATE state)
 	MSG_LOG_STATE(myname, state);
 
     return (bounce_append(BOUNCE_FLAGS(state.request),
-			  BOUNCE_ATTR(state.msg_attr),
+			  BOUNCE_ATTR(state.msg_attr, "5.1.1"),
 			  "unknown user: \"%s\"", state.msg_attr.user));
 }

@@ -13,3 +13,36 @@ specifies the release date of a stable release or snapshot release.
 
 See RELEASE_NOTES-2.2 for changes introduced during the development
 of Postfix version 2.2.
+
+Incompatible changes with snapshot 20050327
+===========================================
+
+local(8) and virtual(8) now handle the same errors in the same way.
+This means that local(8) will defer some mail that it older versions
+would bounce, and that virtual(8) will bounce some mail that older
+versions would defer.
+
+Specifically, error codes EACCES, EAGAIN, ESTALE are soft (4.2.0)
+errors, ENOSPC is a soft (4.3.0) error, EDQUOT and EFBIG are hard
+(5.2.2) errors, and everything else is a hard (5.2.0) error.
+
+Major changes with snapshot 20050327
+====================================
+
+This release introduces support for RFC 1893 enhanced status codes.
+For example, status code "5.1.1" means "recipient unknown". Postfix
+recognizes enhanced status codes in remote server replies, and
+generates enhanced status codes when it responds to mail delivery
+requests. This improves the communication with mail clients that
+hide error messages from users.
+
+You can, but don't have to, specify RFC 1893 enhanced status codes
+in Postfix access maps or header/body_checks. Example:
+
+    REJECT 5.7.1 You can't go here from there
+
+(5.7.1 means "no authorization, message refused").  Enhanced status
+code support is also available in RBL reply templates.
+
+If you do specify an enhanced status code, Postfix will automatically
+change the first digit into a '4' or '5' as appropriate.

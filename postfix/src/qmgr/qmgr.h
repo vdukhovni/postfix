@@ -149,6 +149,7 @@ struct QMGR_TRANSPORT {
 					 * updated */
     int     blocker_tag;		/* for marking blocker jobs */
     QMGR_TRANSPORT_LIST peers;		/* linkage */
+    char   *dsn;			/* why unavailable */
     char   *reason;			/* why unavailable */
 };
 
@@ -158,7 +159,7 @@ struct QMGR_TRANSPORT {
 typedef void (*QMGR_TRANSPORT_ALLOC_NOTIFY) (QMGR_TRANSPORT *, VSTREAM *);
 extern QMGR_TRANSPORT *qmgr_transport_select(void);
 extern void qmgr_transport_alloc(QMGR_TRANSPORT *, QMGR_TRANSPORT_ALLOC_NOTIFY);
-extern void qmgr_transport_throttle(QMGR_TRANSPORT *, const char *);
+extern void qmgr_transport_throttle(QMGR_TRANSPORT *, const char *, const char *);
 extern void qmgr_transport_unthrottle(QMGR_TRANSPORT *);
 extern QMGR_TRANSPORT *qmgr_transport_create(const char *);
 extern QMGR_TRANSPORT *qmgr_transport_find(const char *);
@@ -187,6 +188,7 @@ struct QMGR_QUEUE {
     QMGR_ENTRY_LIST todo;		/* todo queue entries */
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
     QMGR_QUEUE_LIST peers;		/* neighbor queues */
+    char   *dsn;			/* why unavailable */
     char   *reason;			/* why unavailable */
     time_t  clog_time_to_warn;		/* time of last warning */
     int     blocker_tag;		/* tagged if blocks job list */
@@ -199,7 +201,7 @@ extern int qmgr_queue_count;
 
 extern QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *, const char *, const char *);
 extern void qmgr_queue_done(QMGR_QUEUE *);
-extern void qmgr_queue_throttle(QMGR_QUEUE *, const char *);
+extern void qmgr_queue_throttle(QMGR_QUEUE *, const char *, const char *);
 extern void qmgr_queue_unthrottle(QMGR_QUEUE *);
 extern QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *, const char *);
 
@@ -371,14 +373,15 @@ extern void qmgr_peer_free(QMGR_PEER *);
  /*
   * qmgr_defer.c
   */
-extern void qmgr_defer_transport(QMGR_TRANSPORT *, const char *);
-extern void qmgr_defer_todo(QMGR_QUEUE *, const char *);
-extern void qmgr_defer_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *);
+extern void qmgr_defer_transport(QMGR_TRANSPORT *, const char *, const char *);
+extern void qmgr_defer_todo(QMGR_QUEUE *, const char *, const char *);
+extern void qmgr_defer_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *, const char *);
 
  /*
   * qmgr_bounce.c
   */
-extern void PRINTFLIKE(3, 4) qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *,...);
+extern void PRINTFLIKE(4, 5) qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *,
+				            const char *, const char *,...);
 
  /*
   * qmgr_deliver.c

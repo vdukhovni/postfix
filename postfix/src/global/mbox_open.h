@@ -19,6 +19,11 @@
 #include <safe_open.h>
 
  /*
+  * Global library.
+  */
+#include <dsn_util.h>
+
+ /*
   * External interface.
   */
 typedef struct {
@@ -26,8 +31,9 @@ typedef struct {
     VSTREAM *fp;			/* open stream or null */
     int     locked;			/* what locks were set */
 } MBOX;
-extern MBOX *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t, int, VSTRING *);
+extern MBOX *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t, int, DSN_VSTRING *);
 extern void mbox_release(MBOX *);
+extern const char *mbox_dsn(int);
 
 /* LICENSE
 /* .ad

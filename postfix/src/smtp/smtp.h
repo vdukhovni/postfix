@@ -32,6 +32,7 @@
 #include <string_list.h>
 #include <maps.h>
 #include <tok822.h>
+#include <dsn_util.h>
 
  /*
   * Postfix TLS library.
@@ -247,6 +248,7 @@ extern int smtp_quit(SMTP_STATE *);
   */
 typedef struct SMTP_RESP {		/* server response */
     int     code;			/* status */
+    char    dsn[DSN_BUFSIZE];		/* DSN detail */
     char   *str;			/* text */
     VSTRING *buf;			/* origin of text */
 } SMTP_RESP;
@@ -296,16 +298,18 @@ extern void smtp_chat_notify(SMTP_SESSION *);
 #define SMTP_RCPT_LEFT(state) (state)->rcpt_left
 
 extern void smtp_rcpt_cleanup(SMTP_STATE *);
-extern void smtp_rcpt_done(SMTP_STATE *, const char *, RECIPIENT *);
+extern void smtp_rcpt_done(SMTP_STATE *, const char *, const char *, RECIPIENT *);
 
  /*
   * smtp_trouble.c
   */
-extern int PRINTFLIKE(3, 4) smtp_conn_fail(SMTP_STATE *, int, char *,...);
-extern int PRINTFLIKE(3, 4) smtp_site_fail(SMTP_STATE *, int, char *,...);
-extern int PRINTFLIKE(3, 4) smtp_mesg_fail(SMTP_STATE *, int, char *,...);
-extern void PRINTFLIKE(4, 5) smtp_rcpt_fail(SMTP_STATE *, int, RECIPIENT *, char *,...);
-extern int smtp_stream_except(SMTP_STATE *, int, char *);
+extern int PRINTFLIKE(4, 5) smtp_site_fail(SMTP_STATE *, const char *, int,
+					           const char *,...);
+extern int PRINTFLIKE(4, 5) smtp_mesg_fail(SMTP_STATE *, const char *, int,
+					           const char *,...);
+extern void PRINTFLIKE(5, 6) smtp_rcpt_fail(SMTP_STATE *, const char *, int,
+				             RECIPIENT *, const char *,...);
+extern int smtp_stream_except(SMTP_STATE *, int, const char *);
 
  /*
   * smtp_unalias.c

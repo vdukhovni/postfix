@@ -8,7 +8,7 @@
 /*
 /*	LMTP_SESSION *lmtp_connect(destination, why)
 /*	char	*destination;
-/*	VSTRING	*why;
+/*	DSN_VSTRING *why;
 /* DESCRIPTION
 /*	This module implements LMTP connection management.
 /*
@@ -37,7 +37,7 @@
 /* .IP LMTP_FAIL
 /*	The connection attempt failed.
 /* .PP
-/*	In addition, a textual description of the error is made available
+/*	In addition, a description of the error is made available
 /*	via the \fIwhy\fR argument.
 /* SEE ALSO
 /*	lmtp_proto(3) LMTP client protocol
@@ -107,7 +107,7 @@
 /* DNS library. */
 
 #include <dns.h>
-	
+
 /* Application-specific. */
 
 #include "lmtp.h"
@@ -118,12 +118,12 @@
   */
 static LMTP_SESSION *lmtp_connect_sock(int, struct sockaddr *, int,
 				               const char *, const char *,
-				               const char *, VSTRING *);
+				               const char *, DSN_VSTRING *);
 
 /* lmtp_connect_unix - connect to UNIX-domain address */
 
 static LMTP_SESSION *lmtp_connect_unix(const char *addr,
-			              const char *destination, VSTRING *why)
+			          const char *destination, DSN_VSTRING *why)
 {
 #undef sun
     char   *myname = "lmtp_connect_unix";
@@ -136,6 +136,7 @@ static LMTP_SESSION *lmtp_connect_unix(const char *addr,
      */
     if (len >= (int) sizeof(sun.sun_path)) {
 	msg_warn("unix-domain name too long: %s", addr);
+	dsn_vstring_update(why, "4.3.5", "Server configuration error");
 	lmtp_errno = LMTP_RETRY;
 	return (0);
     }
@@ -169,7 +170,7 @@ static LMTP_SESSION *lmtp_connect_unix(const char *addr,
 /* lmtp_connect_addr - connect to explicit address */
 
 static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
-			              const char *destination, VSTRING *why)
+			          const char *destination, DSN_VSTRING *why)
 {
     char   *myname = "lmtp_connect_addr";
     struct sockaddr_storage ss;
@@ -184,6 +185,7 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
     if (dns_rr_to_sa(addr, port, sa, &salen) != 0) {
 	msg_warn("%s: skip address type %s: %m",
 		 myname, dns_strtype(addr->type));
+	dsn_vstring_update(why, "4.3.0", "network address conversion failed");
 	lmtp_errno = LMTP_RETRY;
 	return (0);
     }
@@ -210,7 +212,8 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
 
 static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
 				         const char *name, const char *addr,
-			              const char *destination, VSTRING *why)
+				               const char *destination,
+				               DSN_VSTRING *why)
 {
     int     conn_stat;
     int     saved_errno;
@@ -227,8 +230,8 @@ static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
 	conn_stat = sane_connect(sock, sa, len);
     }
     if (conn_stat < 0) {
-	vstring_sprintf(why, "connect to %s[%s]: %m",
-			name, addr);
+	dsn_vstring_update(why, "4.4.1", "connect to %s[%s]: %m",
+			   name, addr);
 	lmtp_errno = LMTP_RETRY;
 	close(sock);
 	return (0);
@@ -238,8 +241,8 @@ static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
      * Skip this host if it takes no action within some time limit.
      */
     if (read_wait(sock, var_lmtp_lhlo_tmout) < 0) {
-	vstring_sprintf(why, "connect to %s[%s]: read timeout",
-			name, addr);
+	dsn_vstring_update(why, "4.4.2", "connect to %s[%s]: read timeout",
+			   name, addr);
 	lmtp_errno = LMTP_RETRY;
 	close(sock);
 	return (0);
@@ -250,8 +253,9 @@ static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial greeting",
-			name, addr);
+	dsn_vstring_update(why, "4.4.0",
+			   "connect to %s[%s]: server dropped connection without sending the initial greeting",
+			   name, addr);
 	lmtp_errno = LMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
@@ -262,8 +266,9 @@ static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
      * Skip this host if it sends a 4xx or 5xx greeting.
      */
     if (ch == '4' || ch == '5') {
-	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
-			name, addr);
+	dsn_vstring_update(why, "4.3.0",
+			   "connect to %s[%s]: server refused mail service",
+			   name, addr);
 	lmtp_errno = LMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
@@ -274,7 +279,7 @@ static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
 /* lmtp_connect_host - direct connection to host */
 
 static LMTP_SESSION *lmtp_connect_host(char *host, unsigned port,
-			              const char *destination, VSTRING *why)
+			          const char *destination, DSN_VSTRING *why)
 {
     LMTP_SESSION *session = 0;
     DNS_RR *addr_list;
@@ -336,7 +341,7 @@ static char *lmtp_parse_destination(const char *destination, char *def_service,
 
 /* lmtp_connect - establish LMTP connection */
 
-LMTP_SESSION *lmtp_connect(const char *destination, VSTRING *why)
+LMTP_SESSION *lmtp_connect(const char *destination, DSN_VSTRING *why)
 {
     char   *myname = "lmtp_connect";
     LMTP_SESSION *session;

@@ -387,7 +387,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	dec_buffer = STR(state->sasl_decoded);
 	if (SASL_DECODE64(init_response, reply_len,
 			  dec_buffer, reply_len, &dec_length) != SASL_OK)
-	    return ("501 Authentication failed: malformed initial response");
+	    return ("501 5.7.0 Authentication failed: malformed initial response");
 	if (msg_verbose)
 	    msg_info("%s: decoded initial response %s", myname, dec_buffer);
     } else {
@@ -439,13 +439,13 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	 */
 	smtpd_chat_query(state);
 	if (strcmp(vstring_str(state->buffer), "*") == 0)
-	    return ("501 Authentication aborted");	/* XXX */
+	    return ("501 5.7.0 Authentication aborted");	/* XXX */
 	reply_len = VSTRING_LEN(state->buffer);
 	VSTRING_SPACE(state->sasl_decoded, reply_len);
 	if (SASL_DECODE64(vstring_str(state->buffer), reply_len,
 			  STR(state->sasl_decoded), reply_len,
 			  &dec_length) != SASL_OK)
-	    return ("501 Error: malformed authentication response");
+	    return ("501 5.7.0 Error: malformed authentication response");
 	if (msg_verbose)
 	    msg_info("%s: decoded response: %.*s",
 		     myname, (int) dec_length, STR(state->sasl_decoded));
@@ -465,7 +465,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
      * The authentication protocol was completed.
      */
     if (result != SASL_OK)
-	return ("535 Error: authentication failed");
+	return ("535 5.7.0 Error: authentication failed");
 
     /*
      * Authentication succeeded. Find out the login name for logging and for

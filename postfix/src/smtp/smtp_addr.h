@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * Global library.
+  */
+#include <dsn_util.h>
+
+ /*
   * DNS library.
   */
 #include <dns.h>
@@ -16,8 +21,8 @@
  /*
   * Internal interfaces.
   */
-extern DNS_RR *smtp_host_addr(char *, int, VSTRING *);
-extern DNS_RR *smtp_domain_addr(char *, int, VSTRING *, int *);
+extern DNS_RR *smtp_host_addr(char *, int, DSN_VSTRING *);
+extern DNS_RR *smtp_domain_addr(char *, int, DSN_VSTRING *, int *);
 
 /* LICENSE
 /* .ad

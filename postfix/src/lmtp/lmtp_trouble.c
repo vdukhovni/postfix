@@ -6,26 +6,29 @@
 /* SYNOPSIS
 /*	#include "lmtp.h"
 /*
-/*	int	lmtp_site_fail(state, code, format, ...)
+/*	int	lmtp_site_fail(state, dsn, code, format, ...)
 /*	LMTP_STATE *state;
+/*	const char *dsn;
 /*	int	code;
-/*	char	*format;
+/*	const char *format;
 /*
-/*	int	lmtp_mesg_fail(state, code, format, ...)
+/*	int	lmtp_mesg_fail(state, dsn, code, format, ...)
 /*	LMTP_STATE *state;
+/*	const char *dsn;
 /*	int	code;
-/*	char	*format;
+/*	const char *format;
 /*
-/*	void	lmtp_rcpt_fail(state, code, recipient, format, ...)
+/*	void	lmtp_rcpt_fail(state, dsn, code, recipient, format, ...)
 /*	LMTP_STATE *state;
+/*	const char *dsn;
 /*	int	code;
 /*	RECIPIENT *recipient;
-/*	char	*format;
+/*	const char *format;
 /*
 /*	int	lmtp_stream_except(state, exception, description)
 /*	LMTP_STATE *state;
 /*	int	exception;
-/*	char	*description;
+/*	const char *description;
 /* DESCRIPTION
 /*	This module handles all non-fatal errors that can happen while
 /*	attempting to deliver mail via LMTP, and implements the policy
@@ -119,6 +122,7 @@
 #include <bounce.h>
 #include <defer.h>
 #include <mail_error.h>
+#include <dsn_util.h>
 
 /* Application-specific. */
 
@@ -150,7 +154,8 @@ static void lmtp_check_code(LMTP_STATE *state, int code)
 
 /* lmtp_site_fail - defer site or bounce recipients */
 
-int     lmtp_site_fail(LMTP_STATE *state, int code, char *format,...)
+int     lmtp_site_fail(LMTP_STATE *state, const char *dsn,
+		               int code, const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
@@ -165,7 +170,11 @@ int     lmtp_site_fail(LMTP_STATE *state, int code, char *format,...)
      * Initialize.
      */
     va_start(ap, format);
-    vstring_vsprintf(why, format, ap);
+    if (code < 400 || code > 599) {
+	vstring_sprintf(why, "Protocol error: ");
+	dsn = "5.5.0";
+    }
+    vstring_vsprintf_append(why, format, ap);
     va_end(ap);
 
     /*
@@ -180,7 +189,7 @@ int     lmtp_site_fail(LMTP_STATE *state, int code, char *format,...)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 	     rcpt->orig_addr, rcpt->address, rcpt->offset,
 	     session ? session->namaddr : "none",
-	     request->arrival_time, "%s", vstring_str(why));
+	     dsn, request->arrival_time, "%s", vstring_str(why));
 	if (status == 0) {
 	    deliver_completed(state->src, rcpt->offset);
 	    rcpt->offset = 0;
@@ -188,7 +197,7 @@ int     lmtp_site_fail(LMTP_STATE *state, int code, char *format,...)
 	state->status |= status;
     }
     if (soft_error && request->hop_status == 0)
-	request->hop_status = mystrdup(vstring_str(why));
+	request->hop_status = dsn_prepend(dsn, vstring_str(why));
 
     /*
      * Cleanup.
@@ -199,7 +208,8 @@ int     lmtp_site_fail(LMTP_STATE *state, int code, char *format,...)
 
 /* lmtp_mesg_fail - defer message or bounce all recipients */
 
-int     lmtp_mesg_fail(LMTP_STATE *state, int code, char *format,...)
+int     lmtp_mesg_fail(LMTP_STATE *state, const char *dsn,
+		               int code, const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
@@ -213,7 +223,11 @@ int     lmtp_mesg_fail(LMTP_STATE *state, int code, char *format,...)
      * Initialize.
      */
     va_start(ap, format);
-    vstring_vsprintf(why, format, ap);
+    if (code < 400 || code > 599) {
+	vstring_sprintf(why, "Protocol error: ");
+	dsn = "5.5.0";
+    }
+    vstring_vsprintf_append(why, format, ap);
     va_end(ap);
 
     /*
@@ -227,7 +241,7 @@ int     lmtp_mesg_fail(LMTP_STATE *state, int code, char *format,...)
 	status = (LMTP_SOFT(code) ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 	     rcpt->orig_addr, rcpt->address, rcpt->offset,
-	     session->namaddr, request->arrival_time,
+	     session->namaddr, dsn, request->arrival_time,
 	     "%s", vstring_str(why));
 	if (status == 0) {
 	    deliver_completed(state->src, rcpt->offset);
@@ -246,41 +260,58 @@ int     lmtp_mesg_fail(LMTP_STATE *state, int code, char *format,...)
 
 /* lmtp_rcpt_fail - defer or bounce recipient */
 
-void    lmtp_rcpt_fail(LMTP_STATE *state, int code, RECIPIENT *rcpt,
-		               char *format,...)
+void    lmtp_rcpt_fail(LMTP_STATE *state, const char *dsn, int code,
+		               RECIPIENT *rcpt, const char *format,...)
 {
     DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
     int     status;
     va_list ap;
+    VSTRING *why = vstring_alloc(100);
+
+    /*
+     * Initialize.
+     */
+    va_start(ap, format);
+    if (code < 400 || code > 599) {
+	vstring_sprintf(why, "Protocol error: ");
+	dsn = "5.5.0";
+    }
+    vstring_vsprintf_append(why, format, ap);
+    va_end(ap);
 
     /*
      * If this is a soft error, postpone delivery to this recipient.
      * Otherwise, generate a bounce record for this recipient.
      */
-    va_start(ap, format);
-    status = (LMTP_SOFT(code) ? vdefer_append : vbounce_append)
+    status = (LMTP_SOFT(code) ? defer_append : bounce_append)
 	(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 	 rcpt->orig_addr, rcpt->address, rcpt->offset,
-	 session->namaddr, request->arrival_time, format, ap);
-    va_end(ap);
+	 session->namaddr, dsn, request->arrival_time,
+	 "%s", vstring_str(why));
     if (status == 0) {
 	deliver_completed(state->src, rcpt->offset);
 	rcpt->offset = 0;
     }
     lmtp_check_code(state, code);
     state->status |= status;
+
+    /*
+     * Cleanup.
+     */
+    vstring_free(why);
 }
 
 /* lmtp_stream_except - defer domain after I/O problem */
 
-int     lmtp_stream_except(LMTP_STATE *state, int code, char *description)
+int     lmtp_stream_except(LMTP_STATE *state, int code, const char *description)
 {
     DELIVER_REQUEST *request = state->request;
     LMTP_SESSION *session = state->session;
     RECIPIENT *rcpt;
     int     nrcpt;
     VSTRING *why = vstring_alloc(100);
+    const char *dsn;
 
     /*
      * Initialize.
@@ -291,10 +322,12 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, char *description)
     case SMTP_ERR_EOF:
 	vstring_sprintf(why, "lost connection with %s while %s",
 			session->namaddr, description);
+	dsn = "4.4.2";
 	break;
     case SMTP_ERR_TIME:
 	vstring_sprintf(why, "conversation with %s timed out while %s",
 			session->namaddr, description);
+	dsn = "4.4.2";
 	break;
     }
 
@@ -310,9 +343,11 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, char *description)
 				      request->queue_id,
 				      rcpt->orig_addr, rcpt->address,
 				      rcpt->offset, session->namaddr,
-				      request->arrival_time,
+				      dsn, request->arrival_time,
 				      "%s", vstring_str(why));
     }
+    if (request->hop_status == 0)
+	request->hop_status = dsn_prepend(dsn, vstring_str(why));
 
     /*
      * Cleanup.

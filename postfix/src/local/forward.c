@@ -280,7 +280,8 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
      * Log successful forwarding.
      */
     if (status == 0)
-	status = sent(BOUNCE_FLAGS(request), SENT_ATTR(attr),
+	status = sent(BOUNCE_FLAGS(request),
+		      SENT_ATTR(attr, "2.0.0"),
 		      "forwarded as %s", info->queue_id);
 
     /*

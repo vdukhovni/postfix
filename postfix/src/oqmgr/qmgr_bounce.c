@@ -6,9 +6,11 @@
 /* SYNOPSIS
 /*	#include "qmgr.h"
 /*
-/*	QMGR_QUEUE *qmgr_bounce_recipient(message, recipient, format, ...)
+/*	QMGR_QUEUE *qmgr_bounce_recipient(message, recipient,
+/*					dsn, format, ...)
 /*	QMGR_MESSAGE *message;
 /*	QMGR_RCPT *recipient;
+/*	const char *dsn;
 /*	const char *format;
 /* DESCRIPTION
 /*	qmgr_bounce_recipient() produces a bounce log record.
@@ -22,6 +24,8 @@
 /*	Open queue file with the message being bounced.
 /* .IP recipient
 /*	The recipient that will not be delivered.
+/* .IP dsn
+/*	RFC 1893 detail code.
 /* .IP format
 /*	Free-format text that describes why delivery will not happen.
 /* DIAGNOSTICS
@@ -56,7 +60,7 @@
 /* qmgr_bounce_recipient - bounce one message recipient */
 
 void    qmgr_bounce_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
-			              const char *format,...)
+			            const char *dsn, const char *format,...)
 {
     va_list ap;
     int     status;
@@ -64,8 +68,8 @@ void    qmgr_bounce_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
     va_start(ap, format);
     status = vbounce_append(message->tflags, message->queue_id,
 			    recipient->orig_rcpt, recipient->address,
-			    recipient->offset, "none", message->arrival_time,
-			    format, ap);
+			    recipient->offset, "none", dsn,
+			    message->arrival_time, format, ap);
     va_end(ap);
 
     if (status == 0)

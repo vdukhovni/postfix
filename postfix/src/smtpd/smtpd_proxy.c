@@ -248,6 +248,7 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	XFORWARD_DOMAIN, SMTPD_PROXY_XFORWARD_DOMAIN,
 	0, 0,
     };
+    CLEANUP_STAT_DETAIL *detail;
 
     /*
      * This buffer persists beyond the end of a proxy session so we can
@@ -263,8 +264,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	state->err |= CLEANUP_STAT_PROXY;
 	msg_warn("connect to proxy service %s: %m", service);
+	detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	vstring_sprintf(state->proxy_buffer,
-			"451 Error: queue file write error");
+			"%d %s Error: %s",
+			detail->smtp, detail->dsn, detail->text);
 	return (-1);
     }
     state->proxy = vstream_fdopen(fd, O_RDWR);
@@ -280,8 +283,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
      * that the client expects a MAIL FROM or RCPT TO reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, SMTPD_PROXY_CONNECT) != 0) {
+	detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	vstring_sprintf(state->proxy_buffer,
-			"451 Error: queue file write error");
+			"%d %s Error: %s",
+			detail->smtp, detail->dsn, detail->text);
 	smtpd_proxy_close(state);
 	return (-1);
     }
@@ -294,8 +299,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
      * RCPT TO reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "EHLO %s", ehlo_name) != 0) {
+	detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	vstring_sprintf(state->proxy_buffer,
-			"451 Error: queue file write error");
+			"%d %s Error: %s",
+			detail->smtp, detail->dsn, detail->text);
 	smtpd_proxy_close(state);
 	return (-1);
     }
@@ -344,8 +351,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	    bad = smtpd_xforward_flush(state, buf);
 	vstring_free(buf);
 	if (bad) {
+	    detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	    vstring_sprintf(state->proxy_buffer,
-			    "451 Error: queue file write error");
+			    "%d %s Error: %s",
+			    detail->smtp, detail->dsn, detail->text);
 	    smtpd_proxy_close(state);
 	    return (-1);
 	}
@@ -409,6 +418,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
     int     last_char;
     int     err = 0;
     static VSTRING *buffer = 0;
+    CLEANUP_STAT_DETAIL *detail;
 
     /*
      * Errors first. Be prepared for delayed errors from the DATA phase.
@@ -420,8 +430,10 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 	    && smtpd_proxy_rdwr_error(state->proxy, err))) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	state->err |= CLEANUP_STAT_PROXY;
+	detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 	vstring_sprintf(state->proxy_buffer,
-			"451 Error: queue file write error");
+			"%d %s Error: %s",
+			detail->smtp, detail->dsn, detail->text);
 	return (-1);
     }
 

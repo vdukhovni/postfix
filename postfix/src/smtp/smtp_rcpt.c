@@ -26,8 +26,9 @@
 /*	int	SMTP_RCPT_LEFT(state)
 /*	SMTP_STATE *state;
 /*
-/*	void	smtp_rcpt_done(state, reply, rcpt)
+/*	void	smtp_rcpt_done(state, dsn, reply, rcpt)
 /*	SMTP_STATE *state;
+/*	const char *dsn;
 /*	const char *reply;
 /*	RECIPIENT *rcpt;
 /* DESCRIPTION
@@ -123,7 +124,8 @@
 
 /* smtp_rcpt_done - mark recipient as done or else */
 
-void    smtp_rcpt_done(SMTP_STATE *state, const char *reply, RECIPIENT *rcpt)
+void    smtp_rcpt_done(SMTP_STATE *state, const char *dsn,
+		               const char *reply, RECIPIENT *rcpt)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
@@ -136,7 +138,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, const char *reply, RECIPIENT *rcpt)
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 		  request->queue_id, rcpt->orig_addr,
 		  rcpt->address, rcpt->offset,
-		  session->namaddr,
+		  session->namaddr, dsn,
 		  request->arrival_time,
 		  "%s", reply);
     if (status == 0)

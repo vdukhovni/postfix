@@ -116,7 +116,8 @@ int     lmtp_sasl_helo_login(LMTP_STATE *state)
     if (lmtp_sasl_passwd_lookup(state) != 0) {
 	lmtp_sasl_start(state, VAR_LMTP_SASL_OPTS, var_lmtp_sasl_opts);
 	if (lmtp_sasl_authenticate(state, why) <= 0)
-	    ret = lmtp_site_fail(state, 450, "Authentication failed: %s",
+	    ret = lmtp_site_fail(state, "4.7.0", 450,
+				 "Authentication failed: %s",
 				 vstring_str(why));
     }
     vstring_free(why);

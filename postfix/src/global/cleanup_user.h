@@ -65,7 +65,18 @@
 #define CLEANUP_STAT_MASK_INCOMPLETE \
 	(CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE | CLEANUP_STAT_SIZE)
 
+ /*
+  * Mapping from status code to DSN detail and free text.
+  */
+typedef struct {
+    const unsigned status;		/* CLEANUP_STAT_MUMBLE */
+    const int smtp;			/* RFC 821 */
+    const char *dsn;			/* RFC 1893 */
+    const char *text;			/* free text */
+} CLEANUP_STAT_DETAIL;
+
 extern const char *cleanup_strerror(unsigned);
+extern CLEANUP_STAT_DETAIL *cleanup_stat_detail(unsigned);
 extern const char *cleanup_strflags(unsigned);
 
 /* LICENSE

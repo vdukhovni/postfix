@@ -20,13 +20,13 @@
  /*
   * Client interface.
   */
-extern void PRINTFLIKE(7, 8) log_adhoc(const char *, const char *,
+extern void PRINTFLIKE(8, 9) log_adhoc(const char *, const char *,
 				               const char *, const char *,
-				               time_t, const char *,
-				               const char *,...);
+				               const char *, time_t,
+				            const char *, const char *,...);
 extern void vlog_adhoc(const char *, const char *,
 		               const char *, const char *,
-		               time_t, const char *,
+		               const char *, time_t, const char *,
 		               const char *, va_list);
 
 /* LICENSE
