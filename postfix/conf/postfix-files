@@ -172,6 +172,7 @@ $sample_directory/sample-regexp-header.cf:f:root:-:644
 $sample_directory/sample-relocated.cf:f:root:-:644
 $sample_directory/sample-resource.cf:f:root:-:644
 $sample_directory/sample-rewrite.cf:f:root:-:644
+$sample_directory/sample-scheduler.cf:f:root:-:644
 $sample_directory/sample-smtp.cf:f:root:-:644
 $sample_directory/sample-smtpd.cf:f:root:-:644
 $sample_directory/sample-transport.cf:f:root:-:644
@@ -198,6 +199,7 @@ $readme_directory/QMQP_README:f:root:-:644
 $readme_directory/RELEASE_NOTES:f:root:-:644
 $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
 $readme_directory/SASL_README:f:root:-:644
+$readme_directory/SCHEDULER_README:f:root:-:644
 $readme_directory/ULTRIX_README:f:root:-:644
 $readme_directory/UUCP_README:f:root:-:644
 $readme_directory/VERP_README:f:root:-:644

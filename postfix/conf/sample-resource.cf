@@ -100,13 +100,44 @@ message_size_limit = 10240000
 # The qmgr_message_active_limit parameter limits the number of
 # messages in the active queue.
 #
-qmgr_message_active_limit = 1000
+qmgr_message_active_limit = 10000
 
 # The qmgr_message_recipient_limit parameter limits the number of
-# in-memory recipients. This parameter also limits the size of the
-# short-term, in-memory destination status cache.
+# in-memory recipients. This limit is used before any of the message
+# recipients have been read and the message has not been assigned
+# to any transports yet. See also qmgr_message_recipient_minimum.
 #
-qmgr_message_recipient_limit = 1000
+# This parameter also limits the size of the short-term, in-memory
+# destination status cache.
+#
+qmgr_message_recipient_limit = 10000
+
+# (nqmgr only)
+# The default_recipient_limit parameter is the default value for
+# per-transport limit imposed on the number of in-memory recipients.
+# These limits take priority over the global qmgr_message_recipient_limit
+# after the message has been assigned to the respective transports.
+# See also default_extra_recipient_limit and qmgr_message_recipient_minimum.
+#
+default_recipient_limit = 10000
+
+# (nqmgr only)
+# The default_extra_recipient_limit parameter is the default value for
+# extra per-transport limit imposed on the number of in-memory recipients.
+# This extra recipient space is reserved for the cases when the scheduler
+# preempts one message with another and suddenly needs some extra recipients
+# slots for the chosen message in order to avoid performance degradation.
+#
+default_extra_recipient_limit = 1000
+
+# (nqmgr only)
+# The qmgr_message_recipient_minimum parameter specifies the minimum
+# amount of in-memory recipients for any message. This takes
+# priority over any other in-memory recipient limits (i.e., global
+# qmgr_message_recipient_limit and per transport XXX_recipient_limit)
+# if necessary. The minimum value allowed for this parameter is 1.
+#
+qmgr_message_recipient_minimum = 10
 
 # The queue_minfree parameter specifies the minimal amount of free
 # space in bytes in the queue file system. This is currently used by

@@ -50,7 +50,8 @@ UCE restriction.
 
 SASL authentication information is not passed on via message headers
 or via SMTP.  It is no-one's business what username and authentication
-method the poster was using in order to access the mail server.
+method the poster was using in order to access the mail server. The
+people who need to know can find the information in the maillog file.
 
 When sending mail, Postfix looks up the server hostname or destination
 domain (the address remote part) in a table, and if a username/password

@@ -154,8 +154,12 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
 	    break;
 	}
 	prev_type = rec_type;
+
+	/*
+	 * In case the next record is broken.
+	 */
+	vstream_fflush(VSTREAM_OUT);
     }
-    vstream_fflush(VSTREAM_OUT);
 }
 
 /* usage - explain and terminate */
@@ -247,11 +251,16 @@ int     main(int argc, char **argv)
 	if (chdir(var_queue_dir))
 	    msg_fatal("chdir %s: %m", var_queue_dir);
 	while (optind < argc) {
+	    if (!mail_queue_id_ok(argv[optind]))
+		msg_fatal("bad mail queue ID: %s", argv[optind]);
 	    for (fp = 0, tries = 0; fp == 0 && tries < 2; tries++)
 		for (cpp = queue_names; fp == 0 && *cpp != 0; cpp++)
 		    fp = mail_queue_open(*cpp, argv[optind], O_RDONLY, 0);
 	    if (fp == 0)
 		msg_fatal("open queue file %s: %m", argv[optind]);
+	    postcat(fp, buffer);
+	    if (vstream_fclose(fp))
+		msg_warn("close %s: %m", argv[optind]);
 	    optind++;
 	}
     }

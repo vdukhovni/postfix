@@ -9,7 +9,7 @@ OK
 OK
 >>> relay_domains porcupine.org
 OK
->>> maps_rbl_domains socks.relays.osirusoft.com
+>>> maps_rbl_domains relays.mail-abuse.org
 OK
 >>> #
 >>> # Test the client restrictions.
@@ -186,8 +186,8 @@ OK
 ./smtpd_check: warning: restriction reject_maps_rbl is going away. Please use reject_rbl_client <domain> instead
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: <queue id>: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; Client host [127.0.0.2] blocked using socks.relays.osirusoft.com; Proxy List Test; from=<foo@friend.bad.domain> proto=SMTP helo=<123.123.123.123>
-554 Service unavailable; Client host [127.0.0.2] blocked using socks.relays.osirusoft.com; Proxy List Test
+./smtpd_check: <queue id>: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org; from=<foo@friend.bad.domain> proto=SMTP helo=<123.123.123.123>
+554 Service unavailable; Client host [127.0.0.2] blocked using relays.mail-abuse.org
 >>> #
 >>> # Hybrids
 >>> #

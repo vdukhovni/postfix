@@ -1671,7 +1671,7 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 	case DEL_RCPT_STAT_TODO:
 	case DEL_RCPT_STAT_DEFER:
 	    DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			     "450 <%s>: %s rejected: unverified address: %s",
+			"450 <%s>: %s rejected: unverified address: %.250s",
 			     reply_name, reply_class, STR(why));
 	    rqst_status = SMTPD_CHECK_DUNNO;
 	    break;

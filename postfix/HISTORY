@@ -8020,6 +8020,33 @@ Apologies for any names omitted.
 
 	Cleanup: made postcat "record names" output more consistent.
 
+20030421
+
+	Debugging: added some extra detailed error logging to the
+	pipe-to-command delivery, to help folks with bizarre file
+	truncation problems. File: global/pipe_command.c.
+
+20030424
+
+	Cleanup: readlline() did not terminate the result before
+	complaining about lines starting with whitespace.
+
+	Cleanup: eliminated valid_hostname warning for invalid
+	queue file names. File: global/mail_queue.c.
+
+	Bugfix: lost three lines of code when readying the postcat
+	command for release, which broke postcat -q. File:
+	postcat/postcat.c.
+
+	Bugfix: the Postfix sendmail command applied the message
+	size limit when running as newaliases. The limiting code
+	is now moved to the message enqueuing branch of the code.
+	File: sendmail/sendmail.c.
+
+	Documentation: start of documentation for the algorithm of
+	Patrik Rak's clever queue manager scheduler (nqmgr). Files:
+	conf/sample-scheduler.cf, README_FILES/SCHEDULER_README.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

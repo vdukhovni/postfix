@@ -467,6 +467,13 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     buf = vstring_alloc(100);
 
     /*
+     * Stop run-away process accidents by limiting the queue file size. This
+     * is not a defense against DOS attack.
+     */
+    if (var_message_limit > 0 && get_file_limit() > var_message_limit)
+	set_file_limit((off_t) var_message_limit);
+
+    /*
      * The sender name is provided by the user. In principle, the mail pickup
      * service could deduce the sender name from queue file ownership, but:
      * pickup would not be able to run chrooted, and it may not be desirable
@@ -783,13 +790,6 @@ int     main(int argc, char **argv)
 
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
-
-    /*
-     * Stop run-away process accidents by limiting the queue file size. This
-     * is not a defense against DOS attack.
-     */
-    if (var_message_limit > 0 && get_file_limit() > var_message_limit)
-	set_file_limit((off_t) var_message_limit);
 
     signal(SIGPIPE, SIG_IGN);
 

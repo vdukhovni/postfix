@@ -1,0 +1,105 @@
+What this file is about
+=======================
+
+This is the beginning of documentation for the clever queue manager
+scheduling algorithm by Patrik Rak. For too much time, this code
+has been made available in the nqmgr queue manager as an optional
+module.
+
+Why Postfix ships two queue managers
+====================================
+
+The old Postfix scheduler had several limitations due to unfortunate
+choices in its design.
+
+1 - Round-robin selection by destination for mail that is delivered
+    via the same message delivery transport.  That strategy broke
+    down when one single destination (say, inbound mail) had to
+    compete with multiple other destinations (say, outbound mail).
+    The poor suffering destination would be selected only
+    1/number-of-destinations of the time, even when it had more
+    mail than other destinations, and thus mail could be delayed.
+
+    Victor Duchovni found a workaround: use different message
+    delivery transports, and thus avoid the starvation problem.
+    The Patrik Rak scheduler solves this problem by using FIFO
+    selection.
+
+2 - A second limitation of the old Postfix scheduler was that
+    delivery of bulk mail would block all other deliveries, causing
+    large delays.  Patrik Rak's scheduler allows mail with fewer
+    recipients to slip past bulk mail in an elegant manner.
+
+If this newer scheduler is so much better, why does Postfix still
+ship the old one? The problem is that there isn't a whole lot of
+documentation on how Patrik's code works, so that no-one except
+Patrik understands how it works.
+
+This document is the start of something that will help to clarify
+things. Once enough documentation exists we can end the embarassing
+situation of shipping two queue managers.
+
+How the queue manager scheduler works 
+=====================================
+
+[The following text is from Patrik Rak and should be read together
+with the sample-scheduler.cf file]
+
+From user's point of view, qmgr and nqmgr are both the same, except
+for how next message is chosen when delivery agent becomes available.
+You already know that qmgr uses round-robin by destination while
+nqmgr uses simple FIFO, except for some preemptive magic. The
+[sample-scheduler.cf file] documents all the knobs the user can
+use to control this preemptive magic - there is nothing else to
+the preemption than the quite simple conditions described below.
+
+As for programmer-level documentation, this will have to be extracted
+from all those emails we have exchanged with Wietse [rats! I hoped
+that Patrik would do the work for me -- Wietse] But I think there
+are no missing bits which we have not mentioned in our conversations.
+
+However, even from programmer's point of view, there is nothing
+more to add to the message scheduling idea itself.  There are few
+things which make it look more complicated than it is, but the
+algorithm is the same as the user percieves it. The summary of the
+changes from the user's view:
+
+1) Simplification of terms for users: The user knows about messages
+and recipients. The program itself works with jobs (one message is
+split among several jobs, one per each transport needed to deliver
+the message) and queue entries (each entry may group several
+recipients for same destination). Then there is the peer structure
+introduced by nqmgr which is simply per-job analog of the queue
+structure.
+
+2) Dealing with concurrency limits: The actual implementation is
+complicated by the fact that the messages (resp. jobs) may not be
+delivered in the exactly scheduled order because of the concurrency
+limits. It is necessary to skip some "blocker" jobs when the
+concurrency limit is reached and get back to them again when the
+limit permits.
+
+3) Dealing with resource limits: The actual implementation is
+complicated by the fact that not all recipients may be read in-core.
+Therefore each message has some recipients in-core and some may
+remain on-file. This means that a) the preemptive algorithm needs
+to work with recipient count estimates instead of exact counts, b)
+there is extra code which needs to manipulate the per-transport
+pool of recipients which may be read in-core at the same time, and
+c) there is extra code which needs to be able to read recipients
+into core in batches and which is triggered at appropriate moments.
+
+4) Doing things efficiently: All important things I am aware of
+are done in the minimum time possible (either directly or at least
+when ammortized complexity is used), but to choose which job is
+the best candidate for preempting the current job requires linear
+search of up to all transport jobs (the worst theoretical case -
+the reality is much better). As this is done every time the next
+queue entry to be delivered is about to be chosen, it seemed
+reasonable to add cache which minimizes the overhead. Maintenance
+of this candidate cache slightly obfuscates things.
+
+The points 2 and 3 are those which made the implementation (look)
+complicated and were the real coding work, but I believe that to
+understand the scheduling algorithm itself (which was the real
+thinking work) is fairly easy.
