@@ -2015,7 +2015,7 @@ systems for performance and/or security reasons.
 
 <p>
 
-The Postfix warning message means that new mail notificiation failed
+The Postfix warning message means that new mail notification failed
 because the <b>comsat</b> network service is turned off.
 
 <p>
@@ -2034,7 +2034,7 @@ specify:
 
 Note: recent versions of <b>procmail</b> also produce <b>biff</b>
 notifications. To silence <b>biff</b> completely you may also have
-to updte <b>procmail</b> configuration files.
+to update <b>procmail</b> configuration files.
 
 <p>
 
@@ -2317,7 +2317,7 @@ is unable to access the UNIX password database.
 
 <li> If you're running the Postfix SMTP server chrooted (see
 <b>master.cf</b>) then you may have to copy the password file and
-perhaps a bunch of other files into Postfix queue directory; a
+perhaps a bunch of other files into the Postfix queue directory; a
 typical destination would be <b>/var/spool/postfix/etc</b>. See also
 the chroot setup scripts in the <b>examples</b> directory of the
 Postfix source code distribution.
@@ -2638,25 +2638,32 @@ destinations don't work in virtual domains</h3>
 
 <p>
 
-Quick answer: set up a transport map entry that gives the mail to
-the Postfix local delivery agent:
+Quick answer: set up "punch through" virtual aliases that redirect
+the mail to local Postfix aliases:
 
 <p>
 
 <pre>
     /etc/postfix/main.cf:
-        transport_maps = hash:/etc/postfix/transport
+        virtual_alias_maps = hash:/etc/postfix/virtual
 
-    /etc/postfix/transport:
-        listname@virtual.tld            local:
-        owner-listname@virtual.tld      local:
-        listname-request@virtual.tld    local:
+    /etc/postfix/virtual:
+        listname@virtual.tld            listname
+        owner-listname@virtual.tld      owner-listname
+        listname-request@virtual.tld    listname-request
 
     /etc/aliases:
         listname: "|whatever"
         owner-listname: user@domain
         listname-request: "|whatever"
 </pre>
+
+<p>
+
+This redirects mail for virtual address <i>listname@virtual.tld</i>
+etc. to local address <i>listname@your.domain.tld</i> etc.. Mail
+for these local aliases is then delivered to external commands or
+files etc. by the Postfix local delivery agent.
 
 <p>
 

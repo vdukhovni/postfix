@@ -1,9 +1,13 @@
+==============================================================
 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE
+==============================================================
 Before upgrading from Postfix 1.1 you must stop Postfix ("postfix
 stop").  Some internal protocols have changed.  No mail will be
 lost if you fail to stop and restart Postfix, but Postfix won't be
 able to receive any new mail, either.
+==============================================================
 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE
+==============================================================
 
 In the text below, changes are labeled with the Postfix snapshot
 that introduced the change, and whether the change introduced a
@@ -81,6 +85,14 @@ is now used for address lookups only.
   in one file, just like before.
 
 For details, see the VIRTUAL_README file.
+
+[Incompat 20021209] If you use the "advanced content filter"
+technique, you MUST NOT override the virtual aliases and virtual
+mailbox settings in the SMTP server that receives mail from the
+content filter, or else mail for virtual recipients will be rejected
+with "User unknown".
+
+For details, see the FILTER_README file.
 
 Incompatible queue file format changes
 ======================================
@@ -265,7 +277,7 @@ TCP/IP stacks have an atrociously large default timeout value.
 [Feature 20020505] Finer control over Berkeley DB memory usage,
 The parameter "berkeley_db_create_buffer_size" (default:  16 MBytes)
 specifies the buffer size for the postmap and postalias commands.
-The parameter "berkeley_db_read_buffer_size" (default:  256 kBytes)
+The parameter "berkeley_db_read_buffer_size" (default:  128 kBytes)
 specifies the buffer size for all other applications.  Specify
 "berkeley_db_read_buffer_size = 1048576" to get the old read buffer
 size. Contributed by Victor Duchovni. For more information, see
@@ -695,6 +707,11 @@ Assorted changes
 [Feature 20021028] The local(8) and virtual(8) delivery agents now record
 the original recipient address in the X-Original-To: message header.
 This header can also be emitted by the pipe(8) delivery agent.
+
+[Incompat 20021028] With "domain in one mailbox", one message with
+multiple recipients is no longer delivered only once. It is now
+delivered as one copy for each original recipient, with the original
+recipient address listed in the X-Original-To: message header.
 
 [Feature 20021024] New proxy_interfaces parameter, for sites behind a
 network address translation gateway or other type of proxy. You

@@ -1,5 +1,5 @@
-Sender address verification
-===========================
+Address verification
+====================
 
 Sender address verification blocks mail from an unknown sender
 address until after the address is verified.  An address is verified
@@ -7,15 +7,36 @@ by probing the nearest MTA for that address, without actually
 delivering mail to it (SMTP interruptus). Probe messages are like
 normail mail, but are discarded instead of being deferred or bounced.
 
-Normal mail will suffer only a short one-time delay of up to 9
-seconds while address verification happens for the first time.
-When verification takes longer than 9 seconds, the Postfix SMTP
-server defers the message with a 450 reply. Normal mail clients
-will connect again after some delay.  Once an address status is
-known, the status is cached and Postfix replies immediately.
+The same technique may be useful to block mail for undeliverable
+recipients, for example on mail relay hosts that do not have a copy
+of all the relayed recipient addresses.
 
-Address verification is turned on with the "reject_unverified_sender"
-sender restriction.  To find out how this would affect your mail,
+With address verification turned on, normal mail will suffer only
+a short delay of up to 9 seconds while an address is verified for
+the first time.  Once an address status is known, the status is
+cached and Postfix replies immediately.  When verification takes
+longer than 9 seconds the Postfix SMTP server defers the sender or
+recipient address message with a 450 reply. Normal mail clients
+will connect again after some delay.
+
+Sender and recipient address verification are turned on with the
+"reject_unverified_sender" and "reject_unverified_recipient"
+restrictions, respectively.
+
+Recipient address verification is relatively straightforward and
+there are no surprises. If a recipient probe fails, then Postfix
+rejects mail for the recipient address.  If a recipient probe
+succeeds, then Postfix accepts mail for the recipient address.
+
+Turning on sender address verification
+======================================
+
+Unfortunately, sender address verification cannot simply be turned
+on - you are likely to lose legitimate mail from mis-configured
+systems. You will almost certainly have to set up white lists for
+specific addresses or even for entire domains.
+
+To find out how sender address verification would affect your mail,
 specify "warn_if_reject reject_unverified_sender" so that you can
 see what mail would be blocked:
 

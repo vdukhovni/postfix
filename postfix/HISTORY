@@ -7622,7 +7622,17 @@ Apologies for any names omitted.
 	virtual alias class (error:User unknown) result.  File:
 	trivial-rewrite/transport.c.
 
+20030101
+
+	Documentation update: new-style virtual domains broke the
+	advanced content filtering example. Files: FILTER_README,
+	RELEASE_NOTES-2.0.
+
 Open problems:
+
+	Med: do not postpone rejected "MAIL FROM" size information,
+	and find a way to log the sender address in the rejected
+	command.
 
 	Low: after successful delivery, per-queue window += 1/window,
 	after failure, queue window -= 1 (Victor).

@@ -174,6 +174,7 @@ $sample_directory/sample-transport.cf:f:root:-:644
 $sample_directory/sample-verify.cf:f:root:-:644
 $sample_directory/sample-virtual.cf:f:root:-:644
 $readme_directory/ADDRESS_CLASS_README:f:root:-:644
+$readme_directory/ADDRESS_VERIFICATION_README:f:root:-:644
 $readme_directory/DB_README:f:root:-:644
 $readme_directory/DEBUG_README:f:root:-:644
 $readme_directory/ETRN_README:f:root:-:644
