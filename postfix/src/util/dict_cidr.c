@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <dict_cidr.h>
 /*
-/*	DICT	*dict_cidr_open(name, dummy, dict_flags)
+/*	DICT	*dict_cidr_open(name, open_flags, dict_flags)
 /*	const char *name;
-/*	int	dummy;
+/*	int	open_flags;
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_cidr_open() opens the named file and stores
@@ -127,9 +127,9 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(const char *mapname, int lineno,
     struct in_addr net_addr;
 
     /*
-     * Split into key and value. We already eliminated leading whitespace,
-     * comments, empty lines or lines with whitespace only. This means a null
-     * key can't happen but we will handle this anyway.
+     * Split the rule into key and value. We already eliminated leading
+     * whitespace, comments, empty lines or lines with whitespace only. This
+     * means a null key can't happen but we will handle this anyway.
      */
     key = p;
     while (*p && !ISSPACE(*p))			/* Skip over key */
@@ -182,6 +182,9 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(const char *mapname, int lineno,
 	mask_bits = htonl(0xffffffff);
     }
 
+    /*
+     * Bundle up the result.
+     */
     rule = (DICT_CIDR_ENTRY *) mymalloc(sizeof(DICT_CIDR_ENTRY));
     rule->net_bits = net_bits;
     rule->mask_bits = mask_bits;
@@ -197,7 +200,7 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(const char *mapname, int lineno,
 
 /* dict_cidr_open - parse CIDR table */
 
-DICT   *dict_cidr_open(const char *mapname, int unused_flags, int dict_flags)
+DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
 {
     DICT_CIDR *dict_cidr;
     VSTREAM *map_fp;
@@ -205,6 +208,13 @@ DICT   *dict_cidr_open(const char *mapname, int unused_flags, int dict_flags)
     DICT_CIDR_ENTRY *rule;
     DICT_CIDR_ENTRY *last_rule = 0;
     int     lineno = 0;
+
+    /*
+     * Sanity checks.
+     */
+    if (open_flags != O_RDONLY)
+	msg_fatal("%s:%s map requires O_RDONLY access mode",
+		  DICT_TYPE_CIDR, mapname);
 
     /*
      * XXX Eliminate unnecessary queries by setting a flag that says "this

@@ -126,10 +126,9 @@ int     bounce_append_service(char *service, char *queue_id,
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_RECIP, *recipient ?
 	   printable(vstring_str(quote_822_local(in_buf, recipient)), '?') :
 		    "<>");
-    if (strcasecmp(recipient, orig_rcpt) != 0)
-	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ORCPT, *orig_rcpt ?
-	   printable(vstring_str(quote_822_local(in_buf, orig_rcpt)), '?') :
-			"<>");
+    if (*orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
+	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ORCPT,
+	   printable(vstring_str(quote_822_local(in_buf, orig_rcpt)), '?'));
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_STATUS, printable(status, '?'));
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ACTION, printable(action, '?'));
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_WHY, printable(why, '?'));

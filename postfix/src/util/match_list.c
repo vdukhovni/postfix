@@ -105,7 +105,6 @@ static ARGV *match_list_parse(ARGV *list, char *string)
     char   *delim = " ,\t\r\n";
     char   *bp = string;
     char   *pattern;
-    char   *cp;
     char   *map_type_name;
     char   *map_type_name_flags;
 

@@ -2591,7 +2591,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     if (warned == 0) {
 	warned++;
 	msg_warn("support for restriction \"%s\" will be removed from %s; "
-		 "use \"%s <domain-name>\" instead",
+		 "use \"%s domain-name\" instead",
 		 REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
     }
     while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
@@ -3599,6 +3599,7 @@ static STRING_TABLE string_table[] = {
     VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply,
     VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps,
     VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
+    VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
     0,
 };
 

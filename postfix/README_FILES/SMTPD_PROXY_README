@@ -16,6 +16,12 @@ This feature is meant to be used as follows:
     Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue
                Postfix           Postfix   Postfix   Postfix
 
+For reference, this is the normal path from network to mail queue:
+
+    Internet -> smtpd -> cleanup -> queue
+               Postfix   Postfix   Postfix
+
+
 Limitations
 ===========
 
@@ -72,7 +78,9 @@ process.
 /etc/postfix/master.cf
     smtp      inet  n       -       n       -       -       smtpd 
 	-o smtpd_proxy_filter=26
-    26        inet  n       -       n       -       -       smtpd
+    :26       inet  n       -       n       -       -       smtpd
+
+The ":26" causes Postfix to listen on the localhost address only.
 
 The result is as follows:
 

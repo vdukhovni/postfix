@@ -10,14 +10,14 @@ Postfix client/server table lookup protocol
 .nf
 \fBpostmap -q "\fIstring\fB" tcp:\fIhost:port\fR
 
-\fBpostmap -q - regexp:\fIhost:port\fR <\fIinputfile\fR
+\fBpostmap -q - tcp:\fIhost:port\fR <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
 The Postfix mail system uses optional tables for address
 rewriting or mail routing. These tables are usually in
-\fBdbm\fR or \fBdb\fR format. Alternatively, lookup tables
-can be specified as a TCP client/server pair.
+\fBdbm\fR or \fBdb\fR format. Alternatively, table lookups
+can be directed to a TCP server.
 
 To find out what types of lookup tables your Postfix system
 supports use the \fBpostconf -m\fR command.
@@ -34,22 +34,13 @@ sends a request, and the server sends one reply. Requests and
 replies are sent as one line of ASCII text, terminated by the
 ASCII newline character. Request and reply parameters (see below)
 are separated by whitespace.
-.SH ENCODING
-.na
-.nf
-.ad
-.fi
-In request and reply parameters, the character % and any non-printing
-and whitespace characters must be replaced by %XX, XX being the
-corresponding ASCII hexadecimal character value. The hexadecimal codes
-can be specified in any case (upper, lower, mixed).
 .SH REQUEST FORMAT
 .na
 .nf
 .ad
 .fi
-Requests are strings that serve as lookup key in the simulated
-table.
+Each request specifies a command, a lookup key, and possibly a
+lookup result.
 .IP "\fBget\fR SPACE \fIkey\fR NEWLINE"
 Look up data under the specified key.
 .IP "\fBput\fR SPACE \fIkey\fR SPACE \fIvalue\fR NEWLINE"
@@ -59,18 +50,37 @@ This request is currently not implemented.
 .nf
 .ad
 .fi
-Replies must be no longer than 4096 characters including the
-newline terminator, and must have the following form:
-.IP "\fB500\fR SPACE \fIoptional-text\fR NEWLINE"
+Each reply specifies a status code and text. Replies must be no
+longer than 4096 characters including the newline terminator.
+.IP "\fB500\fR SPACE \fItext\fR NEWLINE"
 In case of a lookup request, the requested data does not exist.
 In case of an update request, the request was rejected.
-.IP "\fB400\fR SPACE \fIoptional-text\fR NEWLINE"
-This indicates an error condition. The text gives the nature of
+The text describes the nature of the problem.
+.IP "\fB400\fR SPACE \fItext\fR NEWLINE"
+This indicates an error condition. The text describes the nature of
 the problem. The client should retry the request later.
 .IP "\fB200\fR SPACE \fItext\fR NEWLINE"
 The request was successful. In the case of a lookup request,
 the text contains an encoded version of the requested data.
-Otherwise the text is optional.
+.SH ENCODING
+.na
+.nf
+.ad
+.fi
+In request and reply parameters, the character %, each non-printing
+character, and each whitespace character must be replaced by %XX,
+where XX is the corresponding ASCII hexadecimal character value. The
+hexadecimal codes can be specified in any case (upper, lower, mixed).
+
+The Postfix client always encodes a request.
+The server may omit the encoding as long as the reply
+is guaranteed to not contain the % or NEWLINE character.
+.SH SECURITY
+.na
+.nf
+Do not use TCP lookup tables for security critical purposes.
+The client-server connection is not protected and the server
+is not authenticated.
 .SH SEE ALSO
 .na
 .nf
@@ -81,6 +91,9 @@ cidr_table(5) format of CIDR tables
 .ad
 .fi
 Only the lookup method is currently implemented.
+
+The client does not hang up when the connection is idle for
+a long time.
 .SH LICENSE
 .na
 .nf

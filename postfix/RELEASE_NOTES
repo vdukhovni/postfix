@@ -22,7 +22,7 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.13-20030702
+Incompatible changes with Postfix snapshot 2.0.13-20030704
 ==========================================================
 
 Support for client side LDAP caching is gone.  OpenLDAP 2.1.13 and
@@ -31,7 +31,7 @@ Postfix now ignores cache controlling parameters in an LDAP
 configuration file and logs a warning. Credits to Victor Duchovni
 and Lamont Jones.
 
-Major changes with Postfix snapshot 2.0.13-20030702
+Major changes with Postfix snapshot 2.0.13-20030704
 ===================================================
 
 The Postfix SMTP server can be configured to send all mail into a

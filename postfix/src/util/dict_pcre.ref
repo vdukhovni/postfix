@@ -3,6 +3,7 @@
 ./dict_open: warning: pcre map dict_pcre.map, line 8: unknown regexp option "!": skipping this rule
 ./dict_open: warning: dict_pcre.map, line 9: no replacement text: using empty string
 ./dict_open: warning: pcre map dict_pcre.map, line 17: $number found in negative match replacement text: skipping this rule
+./dict_open: warning: pcre map dict_pcre.map, line 22: no regexp: skipping this rule
 true: not found
 true1=1
 true2: not found

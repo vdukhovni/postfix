@@ -63,15 +63,15 @@ CLEANUP(8)                                             CLEANUP(8)
 
 <b>BUGS</b>
        Table-driven  rewriting  rules  make it hard to express <b>if</b>
-       <b>then</b> <b>else</b> and other logical relationships.
+       <b>then else</b> and other logical relationships.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
        to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       details and for default values.  Use  the  <b>postfix  reload</b>
        command after a configuration change.
 
-<b>Content</b> <b>filtering</b>
+<b>Content filtering</b>
        <b>body</b><i>_</i><b>checks</b>
               Lookup tables with content filters for message body
               lines.  These filters see physical lines one  at  a
@@ -94,7 +94,7 @@ CLEANUP(8)                                             CLEANUP(8)
               sages.  These filters see logical headers one at  a
               time, including headers that span multiple lines.
 
-<b>MIME</b> <b>Processing</b>
+<b>MIME Processing</b>
        <b>disable</b><i>_</i><b>mime</b><i>_</i><b>input</b><i>_</i><b>processing</b>
               While  receiving, give no special treatment to <b>Con-</b>
               <b>tent-Type:</b> message headers; all text after the ini-
@@ -153,6 +153,14 @@ CLEANUP(8)                                             CLEANUP(8)
               recipient address.  The BCC address is  added  when
               the message enters the system.
 
+       <b>enable</b><i>_</i><b>original</b><i>_</i><b>recipient</b>
+              Enable   support  for  the  <b>X-Original-To:</b>  message
+              header, which is needed for  multi-recipient  mail-
+              boxes.  When  this  is  enabled,  Postfix  performs
+              duplicate  elimination  on   (original   recipient,
+              rewritten  recipient)  pairs, instead of looking at
+              the rewritten recipient only.
+
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
@@ -161,23 +169,15 @@ CLEANUP(8)                                             CLEANUP(8)
               were specified in (Resent-)To: or (Resent-)Cc: mes-
               sage headers.
 
-<b>Address</b> <b>transformations</b>
+<b>Address transformations</b>
        <b>empty</b><i>_</i><b>address</b><i>_</i><b>recipient</b>
-              The  destination  for  undeliverable  mail from &lt;&gt;.
-              This substitution is done before all other  address
+              The destination for  undeliverable  mail  from  &lt;&gt;.
+              This  substitution is done before all other address
               rewriting.
 
        <b>canonical</b><i>_</i><b>maps</b>
               Address mapping lookup table for sender and recipi-
               ent addresses in envelopes and headers.
-
-       <b>enable</b><i>_</i><b>original</b><i>_</i><b>recipient</b>
-              Enable  support  for  the   X-Original-To   message
-              header,  which  is needed for multi-recipient mail-
-              boxes.  When  this  is  enabled,  Postfix  performs
-              duplicate   elimination   on  (original  recipient,
-              rewritten recipient) pairs, instead of  looking  at
-              the rewritten recipient only.
 
        <b>recipient</b><i>_</i><b>canonical</b><i>_</i><b>maps</b>
               Address  mapping  lookup  table  for  envelope  and
@@ -204,7 +204,7 @@ CLEANUP(8)                                             CLEANUP(8)
               Address mapping lookup table for envelope recipient
               addresses.
 
-<b>Resource</b> <b>controls</b>
+<b>Resource controls</b>
        <b>duplicate</b><i>_</i><b>filter</b><i>_</i><b>limit</b>
               Limits the number of envelope recipients  that  are
               remembered.
@@ -231,7 +231,7 @@ CLEANUP(8)                                             CLEANUP(8)
               Limit  the  recursion depth of virtual alias expan-
               sion.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="canonical.5.html">canonical(5)</a> canonical address lookup table format
        <a href="qmgr.8.html">qmgr(8)</a> queue manager daemon
        syslogd(8) system logging

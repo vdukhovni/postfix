@@ -20,8 +20,10 @@
 #	or SQL, the same lookups are done as for ordinary indexed files.
 #
 #	Alternatively, the table can be provided as a regular-expression
-#	map where patterns are given as regular expressions. In that case,
-#	the lookups are done in a slightly different way as described below.
+#	map where patterns are given as regular expressions, or lookups
+#	can be directed to TCP-based server. In that case, the lookups are
+#	done in a slightly different way as described below under
+#	"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
 #
 #	Table lookups are case insensitive.
 # TABLE FORMAT
@@ -58,17 +60,19 @@
 # ADDRESS EXTENSION
 # .fi
 # .ad
-#       When a mail address localpart contains the optional recipient delimiter
-#       (e.g., \fIuser+foo\fR@\fIdomain\fR), the lookup order becomes:
-#       \fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR, \fIuser+foo\fR,
+#	When a mail address localpart contains the optional recipient delimiter
+#	(e.g., \fIuser+foo\fR@\fIdomain\fR), the lookup order becomes:
+#	\fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR, \fIuser+foo\fR,
 #	\fIuser\fR, and @\fIdomain\fR.
 # REGULAR EXPRESSION TABLES
 # .ad
 # .fi
 #	This section describes how the table lookups change when the table
-#	is given in the form of regular expressions. For a description of
-#	regular expression lookup table syntax, see \fBregexp_table\fR(5)
-#	or \fBpcre_table\fR(5).
+#	is given in the form of regular expressions or when lookups are
+#	directed to a TCP-based server. For a description of regular
+#	expression lookup table syntax, see \fBregexp_table\fR(5) or
+#	\fBpcre_table\fR(5). For a description of the TCP client/server
+#	table lookup protocol, see \fBtcp_table\fR(5).
 #
 #	Each pattern is a regular expression that is applied to the entire
 #	address being looked up. Thus, \fIuser@domain\fR mail addresses are not
@@ -81,6 +85,19 @@
 #	Results are the same as with indexed file lookups, with
 #	the additional feature that parenthesized substrings from the
 #	pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
+# TCP-BASED TABLES
+# .ad
+# .fi
+#	This section describes how the table lookups change when lookups
+#	are directed to a TCP-based server. For a description of the TCP
+#	client/server lookup protocol, see \fBtcp_table\fR(5).
+#
+#	Each lookup operation uses the entire address once.  Thus,
+#	\fIuser@domain\fR mail addresses are not broken up into their
+#	\fIuser\fR and \fI@domain\fR constituent parts, nor is
+#	\fIuser+foo\fR broken up into \fIuser\fR and \fIfoo\fR.
+#
+#	Results are the same as with indexed file lookups.
 # BUGS
 #	The table format does not understand quoting conventions.
 # CONFIGURATION PARAMETERS
@@ -105,6 +122,7 @@
 #	postmap(1) create lookup table
 #	pcre_table(5) format of PCRE tables
 #	regexp_table(5) format of POSIX regular expression tables
+#	tcp_table(5) TCP client/server table lookup protocol
 # LICENSE
 # .ad
 # .fi

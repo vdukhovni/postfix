@@ -22,8 +22,8 @@ SMTPD(8)                                                 SMTPD(8)
        system is not running.
 
        The SMTP server implements a variety of policies for  con-
-       nection  requests, and for parameters given to <b>HELO,</b> <b>ETRN,</b>
-       <b>MAIL</b> <b>FROM,</b> <b>VRFY</b> and <b>RCPT</b> <b>TO</b> commands.  They  are  detailed
+       nection  requests, and for parameters given to <b>HELO, ETRN,</b>
+       <b>MAIL FROM, VRFY</b> and <b>RCPT TO</b> commands.  They  are  detailed
        below and in the <b>main.cf</b> configuration file.
 
 <b>SECURITY</b>
@@ -49,13 +49,13 @@ SMTPD(8)                                                 SMTPD(8)
        the postmaster is notified of bounces, protocol  problems,
        policy violations, and of other trouble.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
-<b>Compatibility</b> <b>controls</b>
+<b>Compatibility controls</b>
        <b>strict</b><i>_</i><b>rfc821</b><i>_</i><b>envelopes</b>
               Disallow non-<a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a> style addresses in  SMTP  com-
               mands.  For example, the RFC822-style address forms
@@ -72,7 +72,7 @@ SMTPD(8)                                                 SMTPD(8)
               checking and without any state change.   This  list
               overrides built-in command definitions.
 
-<b>Content</b> <b>inspection</b> <b>controls</b>
+<b>Content inspection controls</b>
        <b>content</b><i>_</i><b>filter</b>
               The  name of a mail delivery transport that filters
               mail and that either bounces mail or re-injects the
@@ -80,7 +80,7 @@ SMTPD(8)                                                 SMTPD(8)
               same syntax as the right-hand  side  of  a  Postfix
               transport table.
 
-<b>Authentication</b> <b>controls</b>
+<b>Authentication controls</b>
        <b>enable</b><i>_</i><b>sasl</b><i>_</i><b>authentication</b>
               Enable  per-session  authentication as per <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>
               (SASL).  This functionality is available only  when
@@ -114,7 +114,7 @@ SMTPD(8)                                                 SMTPD(8)
               <b>reject</b><i>_</i><b>sender</b><i>_</i><b>login</b><i>_</i><b>mismatch</b>  sender  anti-spoofing
               restriction.
 
-<b>Pass-through</b> <b>proxy</b>
+<b>Pass-through proxy</b>
        Optionally,  the  Postfix SMTP server can be configured to
        forward all mail to a proxy server, for  example  a  real-
        time  content filter. This proxy server should support the
@@ -199,7 +199,7 @@ SMTPD(8)                                                 SMTPD(8)
               The  characters that Postfix accepts as VERP delim-
               iter characters.
 
-<b>Known</b> <b>versus</b> <b>unknown</b> <b>recipients</b>
+<b>Known versus unknown recipients</b>
        <b>show</b><i>_</i><b>user</b><i>_</i><b>unknown</b><i>_</i><b>table</b><i>_</i><b>name</b>
               Whether or not to reveal  the  table  name  in  the
               "User  unknown"  responses.  The extra detail makes
@@ -231,7 +231,7 @@ SMTPD(8)                                                 SMTPD(8)
               while the recipient is not listed in <b>$virtual</b><i>_</i><b>mail-</b>
               <b>box</b><i>_</i><b>maps</b>.
 
-<b>Resource</b> <b>controls</b>
+<b>Resource controls</b>
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
               Limit the amount of memory in bytes  used  for  the
               handling of partial input lines.
@@ -270,7 +270,7 @@ SMTPD(8)                                                 SMTPD(8)
               SMTP session before it  is  penalized  with  tarpit
               delays.
 
-<b>UCE</b> <b>control</b> <b>restrictions</b>
+<b>UCE control restrictions</b>
        <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b>
               List  of  Postfix features that use <i>domain.tld</i> pat-
               terns  to  match  <i>sub.domain.tld</i>  (as  opposed   to
@@ -294,7 +294,7 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>restrictions</b>
               Restrict  what  recipient  addresses are allowed in
-              <b>RCPT</b> <b>TO</b> commands.
+              <b>RCPT TO</b> commands.
 
        <b>smtpd</b><i>_</i><b>etrn</b><i>_</i><b>restrictions</b>
               Restrict what domain names can be used in <b>ETRN</b> com-
@@ -337,7 +337,7 @@ SMTPD(8)                                                 SMTPD(8)
               mail to. The domains are  routed  to  the  delivery
               agent specified with the <b>relay</b><i>_</i><b>transport</b> setting.
 
-<b>Sender/recipient</b> <b>address</b> <b>verification</b>
+<b>Sender/recipient address verification</b>
        Address verification is implemented by sending probe email
        messages that are not actually delivered, and  is  enabled
        via    the   reject_unverified_{sender,recipient}   access
@@ -347,49 +347,50 @@ SMTPD(8)                                                 SMTPD(8)
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>poll</b><i>_</i><b>count</b>
               How  many  times  to query the address verification
               service for completion of an  address  verification
-              request.   Specify  0 to implement a simple form of
-              greylisting.
+              request.   Specify  1 to implement a simple form of
+              greylisting, that is, always defer the request  for
+              a new sender or recipient address.
 
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>poll</b><i>_</i><b>delay</b>
-              Time to wait after querying the  address  verifica-
+              Time  to  wait after querying the address verifica-
               tion service for completion of an address verifica-
               tion request.
 
-<b>UCE</b> <b>control</b> <b>responses</b>
+<b>UCE control responses</b>
        <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response code when  a  client  violates  an  access
+              Response  code  when  a  client  violates an access
               database restriction.
 
        <b>default</b><i>_</i><b>rbl</b><i>_</i><b>reply</b>
               Default template reply when a request is RBL black-
-              listed.  This template is used by the  <b>reject</b><i>_</i><b>rbl</b><i>_</i><b>*</b>
-              and    <b>reject</b><i>_</i><b>rhsbl</b><i>_</i><b>*</b>   restrictions.   See   also:
+              listed.   This template is used by the <b>reject</b><i>_</i><b>rbl</b><i>_</i><b>*</b>
+              and   <b>reject</b><i>_</i><b>rhsbl</b><i>_</i><b>*</b>   restrictions.   See    also:
               <b>rbl</b><i>_</i><b>reply</b><i>_</i><b>maps</b> and <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>.
 
        <b>defer</b><i>_</i><b>code</b>
-              Response code when a client request is rejected  by
+              Response  code when a client request is rejected by
               the <b>defer</b> restriction.
 
        <b>invalid</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response   code   when   a   client   violates  the
+              Response  code   when   a   client   violates   the
               <b>reject</b><i>_</i><b>invalid</b><i>_</i><b>hostname</b> restriction.
 
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>reject</b><i>_</i><b>code</b>
               Response code when a request is RBL blacklisted.
 
        <b>multi</b><i>_</i><b>recipient</b><i>_</i><b>bounce</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response code  when  a  multi-recipient  bounce  is
+              Response  code  when  a  multi-recipient  bounce is
               blocked.
 
        <b>rbl</b><i>_</i><b>reply</b><i>_</i><b>maps</b>
-              Table  with  template responses for RBL blacklisted
-              requests, indexed by RBL domain  name.  These  tem-
+              Table with template responses for  RBL  blacklisted
+              requests,  indexed  by  RBL domain name. These tem-
               plates   are   used   by   the   <b>reject</b><i>_</i><b>rbl</b><i>_</i><b>*</b>   and
-              <b>reject</b><i>_</i><b>rhsbl</b><i>_</i><b>*</b>     restrictions.     See      also:
+              <b>reject</b><i>_</i><b>rhsbl</b><i>_</i><b>*</b>      restrictions.     See     also:
               <b>default</b><i>_</i><b>rbl</b><i>_</i><b>reply</b> and <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>.
 
        <b>reject</b><i>_</i><b>code</b>
-              Response  code  when  the  client  matches a <b>reject</b>
+              Response code when  the  client  matches  a  <b>reject</b>
               restriction.
 
        <b>relay</b><i>_</i><b>domains</b><i>_</i><b>reject</b><i>_</i><b>code</b>
@@ -397,7 +398,7 @@ SMTPD(8)                                                 SMTPD(8)
               mail relay policy.
 
        <b>unknown</b><i>_</i><b>address</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response   code   when   a   client   violates  the
+              Response  code   when   a   client   violates   the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>address</b> restriction.
 
        <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
@@ -406,18 +407,18 @@ SMTPD(8)                                                 SMTPD(8)
               tion.
 
        <b>unknown</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response  code   when   a   client   violates   the
+              Response   code   when   a   client   violates  the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>hostname</b> restriction.
 
        <b>unverified</b><i>_</i><b>sender</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response  code when a sender address is known to be
+              Response code when a sender address is known to  be
               undeliverable.
 
        <b>unverified</b><i>_</i><b>recipient</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Response code when a recipient address is known  to
+              Response  code when a recipient address is known to
               be undeliverable.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
        <a href="master.8.html">master(8)</a> process manager
        syslogd(8) system logging
@@ -425,7 +426,7 @@ SMTPD(8)                                                 SMTPD(8)
        <a href="verify.8.html">verify(8)</a> address verification service
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

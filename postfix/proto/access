@@ -6,9 +6,9 @@
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/access\fR
 #
-#       \fBpostmap -q "\fIstring\fB" /etc/postfix/access\fR
+#	\fBpostmap -q "\fIstring\fB" /etc/postfix/access\fR
 #
-#       \fBpostmap -q - /etc/postfix/access <\fIinputfile\fR
+#	\fBpostmap -q - /etc/postfix/access <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBaccess\fR table directs the Postfix SMTP server
 #	to selectively reject or accept mail. Access can be allowed or
@@ -26,8 +26,10 @@
 #	or SQL, the same lookups are done as for ordinary indexed files.
 #
 #	Alternatively, the table can be provided as a regular-expression
-#	map where patterns are given as regular expressions. In that case,
-#	the lookups are done in a slightly different way as described below.
+#	map where patterns are given as regular expressions, or lookups
+#	can be directed to TCP-based server. In that case, the lookups are
+#	done in a slightly different way as described below under
+#	"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
 # TABLE FORMAT
 # .ad
 # .fi
@@ -65,7 +67,7 @@
 #	as the lookup key for such addresses. The value is specified with
 #	the \fBsmtpd_null_access_lookup_key\fR parameter in the Postfix
 #	\fBmain.cf\fR file.
-# ADDRESS EXTENSION
+# EMAIL ADDRESS EXTENSION
 # .fi
 # .ad
 #	When a mail address localpart contains the optional recipient delimiter
@@ -93,8 +95,8 @@
 #	Matches any host address in the specified network. A network
 #	address is a sequence of one or more octets separated by ".".
 #
-#	NOTE: use the \fBcidr\fR lookup table type if you want to
-#	specify arbitrary network blocks.
+#	NOTE: use the \fBcidr\fR lookup table type if to specify
+#	network/netmask patterns. See cidr_table(5) for details.
 # ACTIONS
 # .ad
 # .fi
@@ -172,6 +174,22 @@
 #	Actions are the same as with indexed file lookups, with
 #	the additional feature that parenthesized substrings from the
 #	pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
+# TCP-BASED TABLES
+# .ad
+# .fi
+#	This section describes how the table lookups change when lookups
+#	are directed to a TCP-based server. For a description of the TCP
+#	client/server lookup protocol, see \fBtcp_table\fR(5).
+#
+#	Each lookup operation uses the entire query string once. 
+#	Depending on the application, that string is an entire client
+#	hostname, an entire client IP address, or an entire mail address.
+#	Thus, no parent domain or parent network search is done,
+#	\fIuser@domain\fR mail addresses are not broken up into
+#	their \fIuser@\fR and \fIdomain\fR constituent parts, nor is
+#	\fIuser+foo\fR broken up into \fIuser\fR and \fIfoo\fR.
+#
+#	Actions are the same as with indexed file lookups.
 # BUGS
 #	The table format does not understand quoting conventions.
 # SEE ALSO
@@ -180,6 +198,7 @@
 #	cidr_table(5) format of CIDR tables
 #	pcre_table(5) format of PCRE tables
 #	regexp_table(5) format of POSIX regular expression tables
+#	tcp_table(5) TCP client/server table lookup protocol
 # LICENSE
 # .ad
 # .fi

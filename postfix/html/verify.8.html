@@ -29,13 +29,13 @@ VERIFY(8)                                               VERIFY(8)
 
        This server implements the following requests:
 
-       <b>VRFY</b><i>_</i><b>ADDR</b><i>_</i><b>UPDATE</b> <i>address</i> <i>status</i> <i>text</i>
+       <b>VRFY</b><i>_</i><b>ADDR</b><i>_</i><b>UPDATE</b> <i>address status text</i>
               Update the status of the specified address.
 
        <b>VRFY</b><i>_</i><b>ADDR</b><i>_</i><b>QUERY</b> <i>address</i>
-              Look up the <i>status</i>, <i>last</i> <i>update</i> <i>time</i>  and  <i>text</i>  of
-              the specified address.  If the status is unknown, a
-              probe is sent and a default status is returned.
+              Look up  the  <i>status</i>  and  <i>text</i>  of  the  specified
+              address.  If the status is unknown, a probe is sent
+              and a default status is returned.
 
        The server reply status is one of:
 
@@ -84,26 +84,26 @@ VERIFY(8)                                               VERIFY(8)
        world comes to an end and human  intervention  is  needed.
        This violates a basic Postfix principle.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        See  the  Postfix  <b>main.cf</b> file for syntax details and for
-       default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
+       default values. Use the <b>postfix  reload</b>  command  after  a
        configuration change.
 
-<b>Cache</b> <b>control</b>
+<b>Cache control</b>
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>map</b>
               Optional  table  for  persistent  recipient  status
               storage. The file  is  opened  before  the  process
               enters a chroot jail and before it drops root priv-
               ileges.  By default, the  information  is  kept  in
-              volatile  memory,  and is lost after <b>postfix</b> <b>reload</b>
-              or <b>postfix</b> <b>stop</b>.
+              volatile  memory,  and is lost after <b>postfix reload</b>
+              or <b>postfix stop</b>.
 
               To recover from a  corrupted  address  verification
-              database, delete the file and do <b>postfix</b> <b>reload</b>.
+              database, delete the file and do <b>postfix reload</b>.
 
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>sender</b>
               The sender address to use for probe messages. Spec-
-              ify an empty value (<b>address</b><i>_</i><b>verify</b><i>_</i><b>sender</b> <b>=</b>) or  &lt;&gt;
+              ify an empty value (<b>address</b><i>_</i><b>verify</b><i>_</i><b>sender =</b>) or  &lt;&gt;
               if you want to use the null sender address.
 
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>positive</b><i>_</i><b>expire</b><i>_</i><b>time</b>
@@ -132,7 +132,7 @@ VERIFY(8)                                               VERIFY(8)
               probe is sent to verify that  a  known  to  be  bad
               address is still bad.
 
-<b>Probe</b> <b>message</b> <b>routing</b>
+<b>Probe message routing</b>
        By  default,  probe  messages  are  delivered via the same
        route as regular messages.  The following  parameters  can
        be used to override specific message routing mechanisms.
@@ -155,7 +155,7 @@ VERIFY(8)                                               VERIFY(8)
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>default</b><i>_</i><b>transport</b>
               Overrides the <b>default</b><i>_</i><b>transport</b> setting.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> address rewriting and resolving
 
 <b>LICENSE</b>

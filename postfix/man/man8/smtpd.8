@@ -288,7 +288,8 @@ verification service.
 .IP \fBaddress_verify_poll_count\fR
 How many times to query the address verification service
 for completion of an address verification request.
-Specify 0 to implement a simple form of greylisting.
+Specify 1 to implement a simple form of greylisting, that is,
+always defer the request for a new sender or recipient address.
 .IP \fBaddress_verify_poll_delay\fR
 Time to wait after querying the address verification service
 for completion of an address verification request.

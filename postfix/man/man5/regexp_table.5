@@ -24,7 +24,11 @@ supports use the \fBpostconf -m\fR command.
 
 To test lookup tables, use the \fBpostmap\fR command as
 described in the SYNOPSIS above.
-
+.SH TABLE FORMAT
+.na
+.nf
+.ad
+.fi
 The general form of a Postfix regular expression table is:
 .IP "\fB/\fIpattern\fB/\fIflags result\fR"
 .IP "\fB!/\fIpattern\fB/\fIflags result\fR"
@@ -54,6 +58,13 @@ By default, matching is case-insensitive, although following
 the second slash with an `i' flag will reverse this. Other flags
 are `x' (disable extended expression syntax), and `m' (enable
 multi-line mode, that is, treat newline characters as special).
+.SH TABLE SEARCH ORDER
+.na
+.nf
+.ad
+.fi
+Patterns are applied in the order as specified in the table, until a
+pattern is found that matches the search string.
 
 Each pattern is applied to the entire lookup key string.
 Depending on the application, that string is an entire client
@@ -62,16 +73,19 @@ Thus, no parent domain or parent network search is done, and
 \fIuser@domain\fR mail addresses are not broken up into their
 \fIuser\fR and \fIdomain\fR constituent parts, nor is \fIuser+foo\fR
 broken up into \fIuser\fR and \fIfoo\fR.
-
-Patterns are applied in the order as specified in the table, until a
-pattern is found that matches the search string.
-
+.SH TEXT SUBSTITUTION
+.na
+.nf
+.ad
+.fi
 Substitution of substrings from the matched expression into the result
 string is possible using $1, $2, etc.. The macros in the result string
 may need to be written as ${n} or $(n) if they aren't followed
-by whitespace. Since negated patterns (those preceded by \fB!\fR)
-return a result when the expression does not match, substitutions are
-not available for negated patterns.
+by whitespace.
+
+Note: since negated patterns (those preceded by \fB!\fR) return a
+result when the expression does not match, substitutions are not
+available for negated patterns.
 .SH EXAMPLE SMTPD ACCESS MAP
 .na
 .nf

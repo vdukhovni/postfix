@@ -186,9 +186,11 @@ int     forward_append(DELIVER_ATTR attr)
     }
 
     /*
-     * Append the recipient to the message envelope.
+     * Append the recipient to the message envelope. Don't send the original
+     * recipient if it was reset due to mailing list expansion.
      */
-    rec_fputs(info->cleanup, REC_TYPE_ORCP, attr.orig_rcpt);
+    if (*attr.orig_rcpt)
+	rec_fputs(info->cleanup, REC_TYPE_ORCP, attr.orig_rcpt);
     rec_fputs(info->cleanup, REC_TYPE_RCPT, attr.recipient);
 
     return (vstream_ferror(info->cleanup));

@@ -8335,6 +8335,11 @@ Apologies for any names omitted.
 	Feature: TCP lookup table support, finally finished.  Files:
 	proto/tcp_table, proto/dict_tcp.[hc].
 
+20030703
+
+	Non-prod: the SMTPD proxy client lost the reply to ".".
+	Amazing.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

@@ -28,8 +28,10 @@
 # 
 #        Alternatively,  the  table  can  be provided as a regular-
 #        expression map where patterns are given as regular expres-
-#        sions.  In  that  case, the lookups are done in a slightly
-#        different way as described below.
+#        sions,  or lookups can be directed to TCP-based server. In
+#        that case, the lookups are done in  a  slightly  different
+#        way  as  described below under "REGULAR EXPRESSION TABLES"
+#        and "TCP-BASED TABLES".
 # 
 #        The  canonical  mapping  affects   both   message   header
 #        addresses (i.e. addresses that appear inside messages) and
@@ -119,6 +121,19 @@
 #        the additional feature that parenthesized substrings  from
 #        the pattern can be interpolated as $1, $2 and so on.
 # 
+# TCP-BASED TABLES
+#        This  section  describes how the table lookups change when
+#        lookups are directed to a TCP-based server. For a descrip-
+#        tion   of  the  TCP  client/server  lookup  protocol,  see
+#        tcp_table(5).
+# 
+#        Each lookup operation uses the entire address once.  Thus,
+#        user@domain  mail  addresses  are not broken up into their
+#        user and @domain constituent parts, nor is user+foo broken
+#        up into user and foo.
+# 
+#        Results are the same as with indexed file lookups.
+# 
 # BUGS
 #        The  table format does not understand quoting conventions.
 # 
@@ -176,6 +191,7 @@
 #        virtual(5) virtual domain mapping
 #        pcre_table(5) format of PCRE tables
 #        regexp_table(5) format of POSIX regular expression tables
+#        tcp_table(5) TCP client/server table lookup protocol
 # 
 # LICENSE
 #        The Secure Mailer license must be  distributed  with  this

@@ -49,8 +49,10 @@
 # 
 #        Alternatively, the table can be  provided  as  a  regular-
 #        expression map where patterns are given as regular expres-
-#        sions. In that case, the lookups are done  in  a  slightly
-#        different way as described below.
+#        sions, or lookups can be directed to TCP-based server.  In
+#        that  case,  the  lookups are done in a slightly different
+#        way as described below under "REGULAR  EXPRESSION  TABLES"
+#        and "TCP-BASED TABLES".
 # 
 # TABLE FORMAT
 #        The  format  of  the virtual table is as follows, mappings
@@ -175,6 +177,19 @@
 #        the  additional feature that parenthesized substrings from
 #        the pattern can be interpolated as $1, $2 and so on.
 # 
+# TCP-BASED TABLES
+#        This section describes how the table lookups  change  when
+#        lookups are directed to a TCP-based server. For a descrip-
+#        tion  of  the  TCP  client/server  lookup  protocol,   see
+#        tcp_table(5).
+# 
+#        Each lookup operation uses the entire address once.  Thus,
+#        user@domain mail addresses are not broken  up  into  their
+#        user and @domain constituent parts, nor is user+foo broken
+#        up into user and foo.
+# 
+#        Results are the same as with indexed file lookups.
+# 
 # BUGS
 #        The table format does not understand quoting  conventions.
 # 
@@ -215,6 +230,7 @@
 #        postmap(1) create mapping table
 #        regexp_table(5) POSIX regular expression table format
 #        pcre_table(5) Perl Compatible Regular Expression table format
+#        tcp_table(5) TCP client/server table lookup protocol
 # 
 # LICENSE
 #        The Secure Mailer license must be  distributed  with  this

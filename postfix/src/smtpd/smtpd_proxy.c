@@ -15,7 +15,7 @@
 /*		/* other fields... */
 /* .in -4
 /*	} SMTPD_STATE;
-/*
+/* SMTP-LEVEL ROUTINES
 /*	int	smtpd_proxy_open(state, service, timeout, ehlo_name, mail_from)
 /*	SMTPD_STATE *state;
 /*	const char *service;
@@ -28,7 +28,7 @@
 /*	int	expect;
 /*	cont char *format;
 /*
-/*	void	smtpd_proxy_open(state)
+/*	void	smtpd_proxy_close(state)
 /*	SMTPD_STATE *state;
 /* RECORD-LEVEL ROUTINES
 /*	int	smtpd_proxy_rec_put(stream, rec_type, data, len)
@@ -100,16 +100,12 @@
 /*	Expected proxy server reply status code range. A warning is logged
 /*	when an unexpected reply is received. Specify one of the following:
 /* .RS
-/* .IP SMTPD_PROX_STAT_ANY
+/* .IP SMTPD_PROX_WANT_ANY
 /*	The caller has no expectation. Do not warn for unexpected replies.
-/* .IP SMTPD_PROX_STAT_OK
+/* .IP SMTPD_PROX_WANT_OK
 /*	The caller expects a reply in the 200 range.
-/* .IP SMTPD_PROX_STAT_MORE
+/* .IP SMTPD_PROX_WANT_MORE
 /*	The caller expects a reply in the 300 range.
-/* .IP SMTPD_PROX_STAT_DEFER
-/* .IP SMTPD_PROX_STAT_FAIL
-/*	The caller perversely expects a reply in the 400 and 500 range,
-/*	respectively.
 /* .RE
 /* .IP format
 /*	A format string.
@@ -168,6 +164,7 @@
   */
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
+#define SMTPD_PROXY_CONNECT ((char *) 0)
 
 /* smtpd_proxy_open - open proxy connection after MAIL FROM */
 
@@ -202,10 +199,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     /*
      * Get server greeting banner.
      * 
-     * XXX If this fails then we should not send the initial reply when the
-     * client expects the MAIL FROM reply.
+     * If this fails then we have a problem because the proxy should always
+     * accept our connection.
      */
-    if (smtpd_proxy_cmd(state, SMTPD_PROX_STAT_OK, (char *) 0) != 0) {
+    if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, SMTPD_PROXY_CONNECT) != 0) {
 	vstring_sprintf(state->proxy_buffer,
 			"451 Error: queue file write error");
 	smtpd_proxy_close(state);
@@ -215,10 +212,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     /*
      * Send our own EHLO command.
      * 
-     * XXX If this fails then we should not send the EHLO reply when the client
-     * expects the MAIL FROM reply.
+     * If this fails then we have a problem because the proxy should always
+     * accept our EHLO command.
      */
-    if (smtpd_proxy_cmd(state, SMTPD_PROX_STAT_OK, "EHLO %s", ehlo_name) != 0) {
+    if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "EHLO %s", ehlo_name) != 0) {
 	vstring_sprintf(state->proxy_buffer,
 			"451 Error: queue file write error");
 	smtpd_proxy_close(state);
@@ -226,9 +223,11 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     }
 
     /*
-     * Pass-through the client's MAIL FROM command.
+     * Pass-through the client's MAIL FROM command. If this fails, then we
+     * have a problem because the proxy should always accept any MAIL FROM
+     * command that was accepted by us.
      */
-    if (smtpd_proxy_cmd(state, SMTPD_PROX_STAT_OK, "%s", mail_from) != 0) {
+    if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "%s", mail_from) != 0) {
 	smtpd_proxy_close(state);
 	return (-1);
     }
@@ -265,7 +264,8 @@ static void smtpd_proxy_cmd_error(SMTPD_STATE *state, const char *fmt,
      * because it is used only internally to this module.
      */
     buf = vstring_alloc(100);
-    vstring_vsprintf(buf, fmt && *fmt ? fmt : "connection request", ap);
+    vstring_vsprintf(buf, fmt == SMTPD_PROXY_CONNECT ?
+		     "connection request" : fmt, ap);
     msg_warn("proxy %s rejected \"%s\": \"%s\"", VSTREAM_PATH(state->proxy),
 	     STR(buf), STR(state->proxy_buffer));
     vstring_free(buf);
@@ -296,11 +296,11 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
     }
 
     /*
-     * The command can be omitted at the start of an SMTP session. A null
-     * format string is not documented as part of the official interface
-     * because it is used only internally to this module.
+     * The command can be omitted at the start of an SMTP session. This is
+     * not documented as part of the official interface because it is used
+     * only internally to this module.
      */
-    if (fmt && *fmt) {
+    if (fmt != SMTPD_PROXY_CONNECT) {
 
 	/*
 	 * Format the command.
@@ -362,7 +362,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
      * Log a warning in case the proxy does not send the expected response.
      * Silently accept any response when the client expressed no expectation.
      */
-    if (expect != SMTPD_PROX_STAT_ANY
+    if (expect != SMTPD_PROX_WANT_ANY
 	&& expect != (STR(state->proxy_buffer)[0] - '0')) {
 	va_start(ap, fmt);
 	smtpd_proxy_cmd_error(state, fmt, ap);
@@ -394,8 +394,10 @@ int     smtpd_proxy_rec_put(VSTREAM *stream, int rec_type,
      */
     if (rec_type == REC_TYPE_NORM)
 	smtp_fputs(data, len, stream);
-    else
+    else if (rec_type == REC_TYPE_CONT)
 	smtp_fwrite(data, len, stream);
+    else
+	msg_panic("smtpd_proxy_rec_put: need REC_TYPE_NORM or REC_TYPE_CONT");
     return (rec_type);
 }
 
@@ -421,9 +423,10 @@ int     smtpd_proxy_rec_fprintf(VSTREAM *stream, int rec_type,
      * rec_fprintf().
      */
     va_start(ap, fmt);
-    if (rec_type != REC_TYPE_NORM)
+    if (rec_type == REC_TYPE_NORM)
+	smtp_vprintf(stream, fmt, ap);
+    else
 	msg_panic("smtpd_proxy_rec_fprintf: need REC_TYPE_NORM");
-    smtp_vprintf(stream, fmt, ap);
     va_end(ap);
     return (rec_type);
 }

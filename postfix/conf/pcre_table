@@ -20,6 +20,7 @@
 #        To   test  lookup  tables,  use  the  postmap  command  as
 #        described in the SYNOPSIS above.
 # 
+# TABLE FORMAT
 #        The general form of a PCRE table is:
 # 
 #        /pattern/flags result
@@ -118,6 +119,11 @@
 #               thus reserving these combinations for future expan-
 #               sion.
 # 
+# SEARCH ORDER
+#        Patterns  are  applied  in  the  order as specified in the
+#        table, until a pattern is found that  matches  the  search
+#        string.
+# 
 #        Each  pattern  is applied to the entire lookup key string.
 #        Depending on the application, that  string  is  an  entire
 #        client hostname, an entire client IP address, or an entire
@@ -126,18 +132,16 @@
 #        broken up into their user and  domain  constituent  parts,
 #        nor is user+foo broken up into user and foo.
 # 
-#        Patterns  are  applied  in  the  order as specified in the
-#        table, until a pattern is found that  matches  the  search
-#        string.
-# 
+# TEXT SUBSTITUTION
 #        Substitution  of  substrings  from  the matched expression
 #        into the result string is possible using the  conventional
 #        perl  syntax  ($1,  $2,  etc.).   The macros in the result
 #        string may need to be written as  ${n}  or  $(n)  if  they
-#        aren't  followed  by  whitespace.  Since  negated patterns
-#        (those preceded by !) return a result when the  expression
-#        does  not  match,  substitutions  are  not  available  for
-#        negated patterns.
+#        aren't followed by whitespace.
+# 
+#        Note:  since negated patterns (those preceded by !) return
+#        a result when the expression does not match, substitutions
+#        are not available for negated patterns.
 # 
 # EXAMPLE SMTPD ACCESS MAP
 #        # Protect your outgoing majordomo exploders

@@ -122,6 +122,11 @@
 /* .IP \fBrecipient_bcc_maps\fR
 /*	Automatic BCC recipient lookup table, indexed by recipient address.
 /*	The BCC address is added when the message enters the system.
+/* .IP \fBenable_original_recipient\fR
+/*	Enable support for the \fBX-Original-To:\fR message header, which is
+/*	needed for multi-recipient mailboxes. When this is enabled, Postfix
+/*	performs duplicate elimination on (original recipient, rewritten
+/*	recipient) pairs, instead of looking at the rewritten recipient only.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .IP \fBundisclosed_recipients_header\fR
@@ -136,11 +141,6 @@
 /* .IP \fBcanonical_maps\fR
 /*	Address mapping lookup table for sender and recipient addresses
 /*	in envelopes and headers.
-/* .IP \fBenable_original_recipient\fR
-/*	Enable support for the X-Original-To message header, which is
-/*	needed for multi-recipient mailboxes. When this is enabled, Postfix
-/*	performs duplicate elimination on (original recipient, rewritten
-/*	recipient) pairs, instead of looking at the rewritten recipient only.
 /* .IP \fBrecipient_canonical_maps\fR
 /*	Address mapping lookup table for envelope and header recipient
 /*	addresses.

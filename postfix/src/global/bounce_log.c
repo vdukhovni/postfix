@@ -89,7 +89,11 @@
 /* .PP
 /*	Results:
 /* .IP recipient
-/*	The final recipient address.
+/*	The final recipient address in RFC 822 external form, or <>
+/*	in case of the null recipient address.
+/* .IP orig_rcpt
+/*      Null pointer or the original recipient address in RFC 822
+/*	external form.
 /* .IP text
 /*	The text that explains why the recipient was undeliverable.
 /* .IP dsn_status

@@ -274,7 +274,8 @@
 /* .IP \fBaddress_verify_poll_count\fR
 /*	How many times to query the address verification service
 /*	for completion of an address verification request.
-/*	Specify 0 to implement a simple form of greylisting.
+/*	Specify 1 to implement a simple form of greylisting, that is,
+/*	always defer the request for a new sender or recipient address.
 /* .IP \fBaddress_verify_poll_delay\fR
 /*	Time to wait after querying the address verification service
 /*	for completion of an address verification request.
@@ -617,9 +618,10 @@ static void helo_reset(SMTPD_STATE *state)
     state->helo_name = 0;
 }
 
-/* mail_open_stream - open mail destination */
+/* mail_open_stream - open mail queue file or IPC stream */
 
-static void mail_open_stream(SMTPD_STATE *state)
+static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
+		              const char *encoding, const char *verp_delims)
 {
     char   *postdrop_command;
 
@@ -666,6 +668,45 @@ static void mail_open_stream(SMTPD_STATE *state)
     }
     state->cleanup = state->dest->stream;
     state->queue_id = mystrdup(state->dest->id);
+
+    /*
+     * Log the queue ID with the message origin.
+     */
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_mail_log(state);
+    else
+#endif
+	msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
+
+    /*
+     * Record the time of arrival, the sender envelope address, some session
+     * information, and some additional attributes.
+     */
+    if (SMTPD_STAND_ALONE(state) == 0) {
+	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld", state->time);
+	if (*var_filter_xport)
+	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+    }
+    rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
+    if (encoding != 0)
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_ENCODING, encoding);
+    if (SMTPD_STAND_ALONE(state) == 0) {
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_CLIENT_NAME, state->name);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_CLIENT_ADDR, state->addr);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_ORIGIN, state->namaddr);
+	if (state->helo_name != 0)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_HELO_NAME, state->helo_name);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_PROTO_NAME, state->protocol);
+    }
+    if (verp_delims)
+	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
 }
 
 /* extract_addr - extract address from rubble */
@@ -876,64 +917,35 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 VERP_CMD);
 	return (-1);
     }
-    state->time = time((time_t *) 0);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& var_smtpd_delay_reject == 0
 	&& (err = smtpd_check_mail(state, argv[2].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
+    state->time = time((time_t *) 0);
+
+    /*
+     * Open connection to SMTP proxy server.
+     */
     if (SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt) {
 	if (smtpd_proxy_open(state, var_smtpd_proxy_filt, var_smtpd_proxy_tmout,
 			   var_smtpd_proxy_ehlo, STR(state->buffer)) != 0) {
 	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
 	    return (-1);
 	}
-    } else {
+    }
+
+    /*
+     * Open queue file, or open connection to queue file writing process.
+     * Check for queue file space first.
+     */
+    else {
 	if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
-
-	/*
-	 * Open queue file or IPC stream.
-	 */
-	mail_open_stream(state);
-#ifdef USE_SASL_AUTH
-	if (var_smtpd_sasl_enable)
-	    smtpd_sasl_mail_log(state);
-	else
-#endif
-	    msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
-
-	/*
-	 * Record the time of arrival and the sender envelope address.
-	 */
-	if (SMTPD_STAND_ALONE(state) == 0) {
-	    rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
-			(long) time((time_t *) 0));
-	    if (*var_filter_xport)
-		rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
-	}
-	rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
-	if (encoding != 0)
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_ENCODING, encoding);
-	if (SMTPD_STAND_ALONE(state) == 0) {
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_CLIENT_NAME, state->name);
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_CLIENT_ADDR, state->addr);
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_ORIGIN, state->namaddr);
-	    if (state->helo_name != 0)
-		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			    MAIL_ATTR_HELO_NAME, state->helo_name);
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_PROTO_NAME, state->protocol);
-	}
-	if (verp_delims)
-	    rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
+	mail_open_stream(state, argv, encoding, verp_delims);
     }
     state->sender = mystrdup(argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
@@ -969,8 +981,14 @@ static void mail_reset(SMTPD_STATE *state)
 	smtpd_sasl_mail_reset(state);
 #endif
     state->discard = 0;
-    if (state->proxy)
+
+    /*
+     * Try to be nice. Don't bother when we lost the connection.
+     */
+    if (state->proxy) {
+	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "QUIT");
 	smtpd_proxy_close(state);
+    }
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1030,7 +1048,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     }
-    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_STAT_OK,
+    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK,
 					"%s", STR(state->buffer)) != 0) {
 	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
 	return (-1);
@@ -1099,7 +1117,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_STAT_MORE,
+    if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_MORE,
 					"%s", STR(state->buffer)) != 0) {
 	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
 	return (-1);
@@ -1196,25 +1214,32 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * Send the end-of-segment markers.
+     * Send the end of DATA and finish the proxy connection. Set the
+     * CLEANUP_STAT_PROXY error flag in case of trouble.
      */
     if (state->proxy) {
-	if (state->err == CLEANUP_STAT_OK)
-	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_STAT_ANY, ".");
+	if (state->err == CLEANUP_STAT_OK) {
+	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, ".");
+	    if (*STR(state->proxy_buffer) != '2')
+		state->err = CLEANUP_STAT_PROXY;
+	}
 	smtpd_proxy_close(state);
-    } else {
+    }
+
+    /*
+     * Send the end-of-segment markers and finish the queue file record
+     * stream.
+     */
+    else {
 	if (state->err == CLEANUP_STAT_OK)
 	    if (rec_fputs(state->cleanup, REC_TYPE_XTRA, "") < 0
 		|| rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
 		|| vstream_fflush(state->cleanup))
 		state->err = CLEANUP_STAT_WRITE;
-
-	/*
-	 * Finish the queue file or finish the cleanup conversation.
-	 */
-	if (state->err == 0)
-	    state->err = mail_stream_finish(state->dest, why = vstring_alloc(10));
-	else
+	if (state->err == 0) {
+	    why = vstring_alloc(10);
+	    state->err = mail_stream_finish(state->dest, why);
+	} else
 	    mail_stream_cleanup(state->dest);
 	state->dest = 0;
 	state->cleanup = 0;
@@ -1253,7 +1278,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "451 Error: queue file write error");
     } else if ((state->err & CLEANUP_STAT_PROXY) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	smtpd_chat_reply(state, "451 Error: queue file write error");
+	smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
@@ -1622,8 +1647,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 		continue;
 	    }
 	    if (cmdp->flags & SMTPD_CMD_FLAG_FORBIDDEN) {
-		msg_warn("%s sent %s instead of SMTP command: %.100s",
-		    state->namaddr, cmdp->name, vstring_str(state->buffer));
+		msg_warn("%s sent non-SMTP command: %.100s",
+		    state->namaddr, vstring_str(state->buffer));
 		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
 		break;
 	    }

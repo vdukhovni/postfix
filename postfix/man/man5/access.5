@@ -32,8 +32,10 @@ When the table is provided via other means such as NIS, LDAP
 or SQL, the same lookups are done as for ordinary indexed files.
 
 Alternatively, the table can be provided as a regular-expression
-map where patterns are given as regular expressions. In that case,
-the lookups are done in a slightly different way as described below.
+map where patterns are given as regular expressions, or lookups
+can be directed to TCP-based server. In that case, the lookups are
+done in a slightly different way as described below under
+"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
 .SH TABLE FORMAT
 .na
 .nf
@@ -75,7 +77,7 @@ some types of lookup table. By default, Postfix uses \fB<>\fR
 as the lookup key for such addresses. The value is specified with
 the \fBsmtpd_null_access_lookup_key\fR parameter in the Postfix
 \fBmain.cf\fR file.
-.SH ADDRESS EXTENSION
+.SH EMAIL ADDRESS EXTENSION
 .na
 .nf
 .fi
@@ -107,8 +109,8 @@ order to match subdomains.
 Matches any host address in the specified network. A network
 address is a sequence of one or more octets separated by ".".
 
-NOTE: use the \fBcidr\fR lookup table type if you want to
-specify arbitrary network blocks.
+NOTE: use the \fBcidr\fR lookup table type if to specify
+network/netmask patterns. See cidr_table(5) for details.
 .SH ACTIONS
 .na
 .nf
@@ -190,6 +192,24 @@ pattern is found that matches the search string.
 Actions are the same as with indexed file lookups, with
 the additional feature that parenthesized substrings from the
 pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
+.SH TCP-BASED TABLES
+.na
+.nf
+.ad
+.fi
+This section describes how the table lookups change when lookups
+are directed to a TCP-based server. For a description of the TCP
+client/server lookup protocol, see \fBtcp_table\fR(5).
+
+Each lookup operation uses the entire query string once.
+Depending on the application, that string is an entire client
+hostname, an entire client IP address, or an entire mail address.
+Thus, no parent domain or parent network search is done,
+\fIuser@domain\fR mail addresses are not broken up into
+their \fIuser@\fR and \fIdomain\fR constituent parts, nor is
+\fIuser+foo\fR broken up into \fIuser\fR and \fIfoo\fR.
+
+Actions are the same as with indexed file lookups.
 .SH BUGS
 .ad
 .fi
@@ -202,6 +222,7 @@ smtpd(8) smtp server
 cidr_table(5) format of CIDR tables
 pcre_table(5) format of PCRE tables
 regexp_table(5) format of POSIX regular expression tables
+tcp_table(5) TCP client/server table lookup protocol
 .SH LICENSE
 .na
 .nf

@@ -24,18 +24,25 @@ address_verify_sender = postmaster
 
 # The address_verify_poll_count parameter specifies how many times
 # to query the address verification service for completion of an
-# address verification request.  Specify 0 to implement a simple form
-# of greylisting, that is, always defer the first delivery request
-# from an unknown sender address.
+# address verification request.  
 #
-#address_verify_poll_count = 0
+# The default poll count is 3.
+#
+# Specify 1 to implement a crude form of greylisting, that is, always
+# defer the first delivery request for a never seen before address.
+#
+#address_verify_poll_count = 1
 address_verify_poll_count = 3
 
 # The address_verify_poll_delay parameter specifies how long to wait
 # after querying the address verification service for completion of
 # an address verification request.
 #
-address_verify_poll_delay = 3
+# The default polling delay is 3 seconds.
+#
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+#
+address_verify_poll_delay = 3s
 
 #
 # CACHE CONTROL

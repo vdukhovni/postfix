@@ -18,11 +18,9 @@
  /*
   * Application-specific.
   */
-#define SMTPD_PROX_STAT_ANY	0
-#define SMTPD_PROX_STAT_OK	2
-#define SMTPD_PROX_STAT_MORE	3
-#define SMTPD_PROX_STAT_DEFER	4
-#define SMTPD_PROX_STAT_FAIL	5
+#define SMTPD_PROX_WANT_ANY	0
+#define SMTPD_PROX_WANT_OK	2
+#define SMTPD_PROX_WANT_MORE	3
 
 extern int smtpd_proxy_open(SMTPD_STATE *, const char *, int, const char *, const char *);
 extern int smtpd_proxy_cmd(SMTPD_STATE *, int, const char *,...);

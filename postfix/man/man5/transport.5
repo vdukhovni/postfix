@@ -46,9 +46,10 @@ When the table is provided via other means such as NIS, LDAP
 or SQL, the same lookups are done as for ordinary indexed files.
 
 Alternatively, the table can be provided as a regular-expression
-map where patterns are given as regular expressions. In that case,
-the lookups are done in a slightly different way as described
-in section "REGULAR EXPRESSION TABLES".
+map where patterns are given as regular expressions, or lookups
+can be directed to TCP-based server. In that case, the lookups are
+done in a slightly different way as described below under
+"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
 .SH TABLE FORMAT
 .na
 .nf
@@ -144,7 +145,7 @@ destinations.
 .ti +5
 \fB\&.my.domain   :\fR
 .ti +5
-\fB*            smtp:outbound-relay.my.domain\fR
+\fB*         smtp:outbound-relay.my.domain\fR
 
 In order to send mail for \fBfoo.org\fR and its subdomains
 via the \fBuucp\fR transport to the UUCP host named \fBfoo\fR:
@@ -204,8 +205,9 @@ regular expression lookup table syntax, see \fBregexp_table\fR(5)
 or \fBpcre_table\fR(5).
 
 Each pattern is a regular expression that is applied to the entire
-domain being looked up. Thus, \fIsome.domain.hierarchy\fR is not
-broken up into parent domains.
+address being looked up. Thus, \fIsome.domain.hierarchy\fR is not
+looked up up via its parent domains,
+nor is \fIuser+foo@domain\fR looked up as \fIuser@domain\fR.
 
 Patterns are applied in the order as specified in the table, until a
 pattern is found that matches the search string.
@@ -213,6 +215,20 @@ pattern is found that matches the search string.
 Results are the same as with indexed file lookups, with
 the additional feature that parenthesized substrings from the
 pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
+.SH TCP-BASED TABLES
+.na
+.nf
+.ad
+.fi
+This section describes how the table lookups change when lookups
+are directed to a TCP-based server. For a description of the TCP
+client/server lookup protocol, see \fBtcp_table\fR(5).
+
+Each lookup operation uses the entire recipient address once.  Thus,
+\fIsome.domain.hierarchy\fR is not looked up via its parent domains,
+nor is \fIuser+foo@domain\fR looked up as \fIuser@domain\fR.
+
+Results are the same as with indexed file lookups.
 .SH CONFIGURATION PARAMETERS
 .na
 .nf
@@ -237,6 +253,7 @@ postmap(1) create mapping table
 trivial-rewrite(8) rewrite and resolve addresses
 pcre_table(5) format of PCRE tables
 regexp_table(5) format of POSIX regular expression tables
+tcp_table(5) TCP client/server table lookup protocol
 .SH LICENSE
 .na
 .nf

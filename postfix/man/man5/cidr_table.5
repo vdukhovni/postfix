@@ -41,7 +41,11 @@ are lines whose first non-whitespace character is a `#'.
 .IP "multi-line text"
 A logical line starts with non-whitespace text. A line that
 starts with whitespace continues a logical line.
-.PP
+.SH SEARCH ORDER
+.na
+.nf
+.ad
+.fi
 Patterns are applied in the order as specified in the table, until a
 pattern is found that matches the search string.
 .SH EXAMPLE SMTPD ACCESS MAP
@@ -49,9 +53,9 @@ pattern is found that matches the search string.
 .nf
 /etc/postfix/main.cf:
 .ti +4
-smtpd_client_restrictions = ... cidr:/etc/postfix/client_cidr ...
+smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
 
-/etc/postfix/client_cidr:
+/etc/postfix/client.cidr:
 .in +4
 # Rule order matters. Put more specific whitelist entries
 # before more general blacklist entries.

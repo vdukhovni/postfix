@@ -5,11 +5,11 @@ CANONICAL(5)                                         CANONICAL(5)
        canonical - format of Postfix canonical table
 
 <b>SYNOPSIS</b>
-       <b>postmap</b> <b>/etc/postfix/canonical</b>
+       <b>postmap /etc/postfix/canonical</b>
 
-       <b>postmap</b> <b>-q</b> <b>"</b><i>string</i><b>"</b> <b>/etc/postfix/canonical</b>
+       <b>postmap -q "</b><i>string</i><b>" /etc/postfix/canonical</b>
 
-       <b>postmap</b> <b>-q</b> <b>-</b> <b>/etc/postfix/canonical</b> &lt;<i>inputfile</i>
+       <b>postmap -q - /etc/postfix/canonical</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  optional <b>canonical</b> table specifies an address mapping
@@ -20,7 +20,7 @@ CANONICAL(5)                                         CANONICAL(5)
        that  serves  as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
        result, an indexed file in <b>dbm</b> or <b>db</b> format, is  used  for
        fast  searching  by  the  mail system. Execute the command
-       <b>postmap</b> <b>/etc/postfix/canonical</b> in  order  to  rebuild  the
+       <b>postmap /etc/postfix/canonical</b> in  order  to  rebuild  the
        indexed file after changing the text file.
 
        When  the  table  is provided via other means such as NIS,
@@ -29,8 +29,10 @@ CANONICAL(5)                                         CANONICAL(5)
 
        Alternatively,  the  table  can  be provided as a regular-
        expression map where patterns are given as regular expres-
-       sions.  In  that  case, the lookups are done in a slightly
-       different way as described below.
+       sions,  or lookups can be directed to TCP-based server. In
+       that case, the lookups are done in  a  slightly  different
+       way  as  described below under "REGULAR EXPRESSION TABLES"
+       and "TCP-BASED TABLES".
 
        The  <b>canonical</b>  mapping  affects   both   message   header
        addresses (i.e. addresses that appear inside messages) and
@@ -48,10 +50,10 @@ CANONICAL(5)                                         CANONICAL(5)
        The  <b>canonical</b>  mapping  is  not to be confused with local
        aliasing.  Use the <a href="aliases.5.html"><b>aliases</b>(5)</a> map for that purpose.
 
-<b>TABLE</b> <b>FORMAT</b>
+<b>TABLE FORMAT</b>
        The format of the <b>canonical</b> table is as follows:
 
-       <i>pattern</i> <i>result</i>
+       <i>pattern result</i>
               When <i>pattern</i> matches a mail address, replace it  by
               the corresponding <i>result</i>.
 
@@ -69,7 +71,7 @@ CANONICAL(5)                                         CANONICAL(5)
        networked tables such as NIS, LDAP or  SQL,  patterns  are
        tried in the order as listed below:
 
-       <i>user</i>@<i>domain</i> <i>address</i>
+       <i>user</i>@<i>domain address</i>
               <i>user</i>@<i>domain</i>  is  replaced by <i>address</i>. This form has
               the highest precedence.
 
@@ -78,7 +80,7 @@ CANONICAL(5)                                         CANONICAL(5)
               duce <i>Firstname.Lastname</i> style  addresses,  but  see
               below for a simpler solution.
 
-       <i>user</i> <i>address</i>
+       <i>user address</i>
               <i>user</i>@<i>site</i> is replaced by <i>address</i> when <i>site</i> is equal
               to $<b>myorigin</b>, when <i>site</i> is  listed  in  $<b>mydestina-</b>
               <b>tion</b>, or when it is listed in $<b>inet</b><i>_</i><b>interfaces</b>.
@@ -86,21 +88,21 @@ CANONICAL(5)                                         CANONICAL(5)
               This  form  is  useful for replacing login names by
               <i>Firstname.Lastname</i>.
 
-       @<i>domain</i> <i>address</i>
+       @<i>domain address</i>
               Every address in <i>domain</i>  is  replaced  by  <i>address</i>.
               This form has the lowest precedence.
 
        In  all the above forms, when <i>address</i> has the form @<i>other-</i>
        <i>domain</i>, the result is the same user in <i>otherdomain</i>.
 
-<b>ADDRESS</b> <b>EXTENSION</b>
+<b>ADDRESS EXTENSION</b>
        When a mail address localpart contains the optional recip-
        ient  delimiter  (e.g., <i>user+foo</i>@<i>domain</i>), the lookup order
        becomes: <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and
        @<i>domain</i>.   An unmatched address extension (<i>+foo</i>) is propa-
        gated to the result of table lookup.
 
-<b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
+<b>REGULAR EXPRESSION TABLES</b>
        This section describes how the table lookups  change  when
        the table is given in the form of regular expressions. For
        a description of regular expression lookup  table  syntax,
@@ -120,13 +122,26 @@ CANONICAL(5)                                         CANONICAL(5)
        the additional feature that parenthesized substrings  from
        the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
 
+<b>TCP-BASED TABLES</b>
+       This  section  describes how the table lookups change when
+       lookups are directed to a TCP-based server. For a descrip-
+       tion   of  the  TCP  client/server  lookup  protocol,  see
+       <b>tcp</b><i>_</i><b>table</b>(5).
+
+       Each lookup operation uses the entire address once.  Thus,
+       <i>user@domain</i>  mail  addresses  are not broken up into their
+       <i>user</i> and <i>@domain</i> constituent parts, nor is <i>user+foo</i> broken
+       up into <i>user</i> and <i>foo</i>.
+
+       Results are the same as with indexed file lookups.
+
 <b>BUGS</b>
        The  table format does not understand quoting conventions.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
        to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       details and for default values.  Use  the  <b>postfix  reload</b>
        command after a configuration change.
 
        <b>canonical</b><i>_</i><b>maps</b>
@@ -171,12 +186,13 @@ CANONICAL(5)                                         CANONICAL(5)
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
               addresses.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue mail
        <a href="postmap.1.html">postmap(1)</a> create mapping table
        <a href="virtual.5.html">virtual(5)</a> virtual domain mapping
        <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
+       <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this

@@ -48,8 +48,10 @@ When the table is provided via other means such as NIS, LDAP
 or SQL, the same lookups are done as for ordinary indexed files.
 
 Alternatively, the table can be provided as a regular-expression
-map where patterns are given as regular expressions. In that case,
-the lookups are done in a slightly different way as described below.
+map where patterns are given as regular expressions, or lookups
+can be directed to TCP-based server. In that case, the lookups are
+done in a slightly different way as described below under
+"REGULAR EXPRESSION TABLES" and "TCP-BASED TABLES".
 .SH TABLE FORMAT
 .na
 .nf
@@ -178,6 +180,21 @@ pattern is found that matches the search string.
 Results are the same as with indexed file lookups, with
 the additional feature that parenthesized substrings from the
 pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
+.SH TCP-BASED TABLES
+.na
+.nf
+.ad
+.fi
+This section describes how the table lookups change when lookups
+are directed to a TCP-based server. For a description of the TCP
+client/server lookup protocol, see \fBtcp_table\fR(5).
+
+Each lookup operation uses the entire address once.  Thus,
+\fIuser@domain\fR mail addresses are not broken up into their
+\fIuser\fR and \fI@domain\fR constituent parts, nor is
+\fIuser+foo\fR broken up into \fIuser\fR and \fIfoo\fR.
+
+Results are the same as with indexed file lookups.
 .SH BUGS
 .ad
 .fi
@@ -215,6 +232,7 @@ cleanup(8) canonicalize and enqueue mail
 postmap(1) create mapping table
 regexp_table(5) POSIX regular expression table format
 pcre_table(5) Perl Compatible Regular Expression table format
+tcp_table(5) TCP client/server table lookup protocol
 .SH LICENSE
 .na
 .nf

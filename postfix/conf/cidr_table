@@ -41,15 +41,16 @@
 #               line  that starts with whitespace continues a logi-
 #               cal line.
 # 
+# SEARCH ORDER
 #        Patterns are applied in the  order  as  specified  in  the
 #        table,  until  a  pattern is found that matches the search
 #        string.
 # 
 # EXAMPLE SMTPD ACCESS MAP
 #        /etc/postfix/main.cf:
-#            smtpd_client_restrictions = ... cidr:/etc/postfix/client_cidr ...
+#            smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
 # 
-#        /etc/postfix/client_cidr:
+#        /etc/postfix/client.cidr:
 #            # Rule order matters. Put more specific whitelist entries
 #            # before more general blacklist entries.
 #            192.168.1.1             OK
