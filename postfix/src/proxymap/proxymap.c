@@ -181,7 +181,8 @@ static VSTRING *map_type_name_flags;
 
 /* proxy_map_find - look up or open table */
 
-static DICT *proxy_map_find(const char *map_type_name, int request_flags)
+static DICT *proxy_map_find(const char *map_type_name, int request_flags,
+			            int *statp)
 {
     DICT   *dict;
 
@@ -193,13 +194,17 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags)
      * Canonicalize the map name. If the map is not on the approved list,
      * deny the request.
      */
+#define PROXY_MAP_FIND_ERROR_RETURN(x)  { *statp = (x); return (0); }
+
     while (strncmp(map_type_name, PROXY_COLON, PROXY_COLON_LEN) == 0)
 	map_type_name += PROXY_COLON_LEN;
+    if (strchr(map_type_name, ':') == 0)
+	PROXY_MAP_FIND_ERROR_RETURN(PROXY_STAT_BAD);
     if (htable_locate(proxy_read_maps, map_type_name) == 0) {
 	msg_warn("request for unapproved table: \"%s\"", map_type_name);
 	msg_warn("to approve a table for %s access, specify it in %s with %s",
 		 MAIL_SERVICE_PROXYMAP, MAIN_CONF_FILE, VAR_PROXY_READ_MAPS);
-	return (0);
+	PROXY_MAP_FIND_ERROR_RETURN(PROXY_STAT_DENY);
     }
 
     /*
@@ -234,8 +239,8 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
 		  ATTR_TYPE_END) != 3) {
 	reply_status = PROXY_STAT_BAD;
 	reply_value = "";
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags)) == 0) {
-	reply_status = PROXY_STAT_DENY;
+    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+				      &reply_status)) == 0) {
 	reply_value = "";
     } else if ((reply_value = dict_get(dict, STR(request_key))) != 0) {
 	reply_status = PROXY_STAT_OK;
@@ -274,8 +279,8 @@ static void proxymap_open_service(VSTREAM *client_stream)
 		  ATTR_TYPE_END) != 2) {
 	reply_status = PROXY_STAT_BAD;
 	reply_flags = 0;
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags)) == 0) {
-	reply_status = PROXY_STAT_DENY;
+    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+				      &reply_status)) == 0) {
 	reply_flags = 0;
     } else {
 	reply_status = PROXY_STAT_OK;
@@ -305,8 +310,8 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 
     /*
      * This routine runs whenever a client connects to the socket dedicated
-     * to the address verification service. All connection-management stuff
-     * is handled by the common code in multi_server.c.
+     * to the proxymap service. All connection-management stuff is handled by
+     * the common code in multi_server.c.
      */
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,

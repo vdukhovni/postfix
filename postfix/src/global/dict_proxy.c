@@ -194,11 +194,11 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
      * XXX Use absolute pathname to make this work from non-daemon processes.
      */
     if (proxy_stream == 0) {
-	if (access(var_queue_dir, F_OK) == 0)
+	if (access(MAIL_CLASS_PRIVATE "/" MAIL_SERVICE_PROXYMAP, F_OK) == 0)
+	    prefix = MAIL_CLASS_PRIVATE;
+	else
 	    prefix = kludge = concatenate(var_queue_dir, "/",
 					  MAIL_CLASS_PRIVATE, (char *) 0);
-	else
-	    prefix = MAIL_CLASS_PRIVATE;
 	proxy_stream = clnt_stream_create(prefix,
 					  MAIL_SERVICE_PROXYMAP,
 					  var_ipc_idle_limit,

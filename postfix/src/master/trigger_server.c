@@ -584,14 +584,14 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     /*
      * Run pre-jail initialization.
      */
+    if (chdir(var_queue_dir) < 0)
+	msg_fatal("chdir(\"%s\"): %m", var_queue_dir);
     if (pre_init)
 	pre_init(trigger_server_name, trigger_server_argv);
 
     /*
      * Optionally, restrict the damage that this process can do.
      */
-    if (chdir(var_queue_dir) < 0)
-	msg_fatal("chdir(\"%s\"): %m", var_queue_dir);
     resolve_local_init();
     chroot_uid(root_dir, user_name);
 

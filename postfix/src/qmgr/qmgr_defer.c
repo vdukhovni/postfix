@@ -153,7 +153,7 @@ void    qmgr_defer_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
     /*
      * Update the message structure and log the message disposition.
      */
-    message->flags |= defer_append(BOUNCE_FLAG_KEEP, message->queue_id,
+    message->flags |= defer_append(message->tflags, message->queue_id,
 				   recipient->orig_rcpt, recipient->address,
 			       "none", message->arrival_time, "%s", reason);
 }

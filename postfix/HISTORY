@@ -7665,6 +7665,31 @@ Apologies for any names omitted.
 	than a year until I found out how to reproduce it. File:
 	util/vstream.c.
 
+20030105
+
+	Cleanup: removed the address syntax check from the queue
+	manager, since a better test was implemented recently in
+	the trivial-rewrite server. Files: *qmgr/qmgr_message.c.
+
+	Bugfix: redirect bounce/defer to the address verification
+	service where appropriate. Files: *qmgr/qmgr_bounce.c,
+	*qmgr/qmgr_defer.c.
+
+	Bugfix: "no such file or directory" warnings after "postfix
+	reload" when a chrooted smtpd reconnects to the proxy
+	service.  Fix: use "private/proxymap" if possible, otherwise
+	use "$queue_dir/private/proxymap".  File:  global/dict_proxy.c.
+
+	Robustness: daemons now chdir() to the queue directory before
+	running the pre-jail initialization code, so that daemons
+	running in stand-alone mode produce more consistent results.
+	Files:  master/single_server.c, master/multi_server.c.
+	master/trigger_server.c.
+
+	Bugfix: "sendmail -bs" tried to access the proxymap service.
+	It should not try to open any user/domain/uce related tables
+	at all. File:  smtpd/smtpd.c.
+
 Open problems:
 
 	Med: do not postpone rejected "MAIL FROM" size information,
