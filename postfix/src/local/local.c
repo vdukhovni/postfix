@@ -102,9 +102,9 @@
 /*
 /*	Mailbox delivery can be delegated to an external command specified
 /*	with the \fBmailbox_command\fR configuration parameter. The command
-/*	executes with the privileges of the recipient user (exception: in
-/*	case of delivery as root, the command executes with the privileges
-/*	of \fBdefault_privs\fR).
+/*	executes with the privileges of the recipient user (exceptions: 
+/*	secondary groups are not enabled; in case of delivery as root, 
+/*	the command executes with the privileges of \fBdefault_privs\fR).
 /*
 /*	Mailbox delivery can be delegated to alternative message transports
 /*	specified in the \fBmaster.cf\fR file.
@@ -141,6 +141,25 @@
 /*	The \fBallow_mail_to_commands\fR configuration parameter restricts
 /*	delivery to external commands. The default setting (\fBalias,
 /*	forward\fR) forbids command destinations in \fB:include:\fR files.
+/*
+/*	Optionally, the process working directory is changed to the path
+/*	specified with \fBcommand_execution_directory\fR (Postfix 2.2 and
+/*	later). Failure to change directory causes mail to be deferred.
+/*
+/*	The \fBcommand_execution_directory\fR parameter value is subject
+/*	to interpolation of \fB$user\fR (recipient username),
+/*	\fB$home\fR (recipient home directory), \fB$shell\fR
+/*	(recipient shell), \fB$recipient\fR (complete recipient
+/*	address), \fB$extension\fR (recipient address extension),
+/*	\fB$domain\fR (recipient domain), \fBlocal\fR (entire
+/*	recipient address localpart) and \fB$recipient_delimiter.\fR
+/*	The forms \fI${name?value}\fR and \fI${name:value}\fR expand
+/*	conditionally to \fIvalue\fR when \fI$name\fR is (is not)
+/*	defined.  Characters that may have special meaning to the
+/*	shell or file system are replaced by underscores.  The list
+/*	of acceptable characters is specified with the
+/*	\fBexecution_directory_expansion_filter\fR configuration
+/*	parameter.
 /*
 /*	The command is executed directly where possible. Assistance by the
 /*	shell (\fB/bin/sh\fR on UNIX systems) is used only when the command
@@ -329,6 +348,11 @@
 /*	database or in the UNIX passwd database.
 /* .IP "\fBluser_relay (empty)\fR"
 /*	Optional catch-all destination for unknown local(8) recipients.
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBcommand_execution_directory (empty)\fR"
+/*	The local(8) delivery agent working directory for delivery to
+/*	external command.
 /* MAILBOX LOCKING CONTROLS
 /* .ad
 /* .fi
@@ -379,6 +403,11 @@
 /* .IP "\fBforward_expansion_filter (see 'postconf -d' output)\fR"
 /*	Restrict the characters that the local(8) delivery agent allows in
 /*	$name expansions of $forward_path.
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBexecution_directory_expansion_filter (see 'postconf -d' output)\fR"
+/*	Restrict the characters that the local(8) delivery agent allows
+/*	in $name expansions of $command_execution_directory.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -519,6 +548,8 @@ int     var_biff;
 char   *var_mail_spool_dir;
 char   *var_mailbox_transport;
 char   *var_fallback_transport;
+char   *var_exec_directory;
+char   *var_exec_exp_filter;
 char   *var_forward_path;
 char   *var_cmd_exp_filter;
 char   *var_fwd_exp_filter;
@@ -755,6 +786,7 @@ int     main(int argc, char **argv)
 	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,
 	VAR_CMD_EXP_FILTER, DEF_CMD_EXP_FILTER, &var_cmd_exp_filter, 1, 0,
 	VAR_FWD_EXP_FILTER, DEF_FWD_EXP_FILTER, &var_fwd_exp_filter, 1, 0,
+	VAR_EXEC_EXP_FILTER, DEF_EXEC_EXP_FILTER, &var_exec_exp_filter, 1, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
 	VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, &var_mailbox_lock, 1, 0,
@@ -770,6 +802,7 @@ int     main(int argc, char **argv)
 
     /* Suppress $name expansion upon loading. */
     static CONFIG_RAW_TABLE raw_table[] = {
+	VAR_EXEC_DIRECTORY, DEF_EXEC_DIRECTORY, &var_exec_directory, 0, 0,
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
 	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,

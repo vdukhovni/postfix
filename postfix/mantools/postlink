@@ -106,6 +106,8 @@ while (<>) {
     s;\bbroken_sasl_auth_clients\b;<a href="postconf.5.html#broken_sasl_auth_clients">$&</a>;g;
     s;\bcanonical_maps\b;<a href="postconf.5.html#canonical_maps">$&</a>;g;
     s;\bcleanup_service_name\b;<a href="postconf.5.html#cleanup_service_name">$&</a>;g;
+    s;\bcommand_execu[-</bB>]*\n* *[<bB>]*tion_direc[-</bB>]*\n* *[<bB>]*tory\b;<a href="postconf.5.html#command_execution_directory">$&</a>;g;
+    s;\bexecu[-</bB>]*\n* *[<bB>]*tion_directory_expansion_filter\b;<a href="postconf.5.html#execution_directory_expansion_filter">$&</a>;g;
     s;\banvil_status_update_time\b;<a href="postconf.5.html#anvil_status_update_time">$&</a>;g;
     s;\bcommand_directory\b;<a href="postconf.5.html#command_directory">$&</a>;g;
     s;\bcommand_expan[-</bB>]*\n* *[<bB>]*sion_filter\b;<a href="postconf.5.html#command_expansion_filter">$&</a>;g;

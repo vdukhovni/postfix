@@ -449,6 +449,19 @@ extern char *var_fallback_transport;
 extern char *var_forward_path;
 
  /*
+  * Local delivery: external command execution directory.
+  */
+#define VAR_EXEC_DIRECTORY	"command_execution_directory"
+#define DEF_EXEC_DIRECTORY	""
+extern char *var_exec_directory;
+
+#define VAR_EXEC_EXP_FILTER	"execution_directory_expansion_filter"
+#define DEF_EXEC_EXP_FILTER	"1234567890!@%-_=+:,./\
+abcdefghijklmnopqrstuvwxyz\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+extern char *var_exec_exp_filter;
+
+ /*
   * Mailbox locking. DEF_MAILBOX_LOCK is defined in sys_defs.h.
   */
 #define VAR_MAILBOX_LOCK	"mailbox_delivery_lock"

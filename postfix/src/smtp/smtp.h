@@ -36,25 +36,8 @@ typedef struct SMTP_STATE {
     VSTREAM *src;			/* queue file stream */
     DELIVER_REQUEST *request;		/* envelope info, offsets */
     struct SMTP_SESSION *session;	/* network connection */
-    VSTRING *buffer;			/* I/O buffer */
-    VSTRING *scratch;			/* scratch buffer */
-    VSTRING *scratch2;			/* scratch buffer */
     int     status;			/* delivery status */
-    int     features;			/* server features */
-    ARGV   *history;			/* transaction log */
-    int     error_mask;			/* error classes */
-#ifdef USE_SASL_AUTH
-    char   *sasl_mechanism_list;	/* server mechanism list */
-    char   *sasl_username;		/* client username */
-    char   *sasl_passwd;		/* client password */
-    sasl_conn_t *sasl_conn;		/* SASL internal state */
-    VSTRING *sasl_encoded;		/* encoding buffer */
-    VSTRING *sasl_decoded;		/* decoding buffer */
-    sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
-#endif
-    off_t   size_limit;			/* server limit or unknown */
     int     space_left;			/* output length control */
-    struct MIME_STATE *mime_state;	/* mime state machine */
 
     /*
      * Flags and counters to control the handling of mail delivery errors.
@@ -81,6 +64,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_ADDR	(1<<8)
 #define SMTP_FEATURE_XFORWARD_PROTO	(1<<9)
 #define SMTP_FEATURE_XFORWARD_HELO	(1<<10)
+#define SMTP_FEATURE_CACHE_SESSION	(1<<11)
 
  /*
   * Misc flags.
@@ -109,13 +93,37 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
   */
 typedef struct SMTP_SESSION {
     VSTREAM *stream;			/* network connection */
+    char   *dest;			/* nexthop[:port] or fallback relay */
     char   *host;			/* mail exchanger */
     char   *addr;			/* mail exchanger */
     char   *namaddr;			/* mail exchanger */
     int     best;			/* most preferred host */
+
+    VSTRING *buffer;			/* I/O buffer */
+    VSTRING *scratch;			/* scratch buffer */
+    VSTRING *scratch2;			/* scratch buffer */
+
+    int     features;			/* server features */
+    off_t   size_limit;			/* server limit or unknown */
+
+    ARGV   *history;			/* transaction log */
+    int     error_mask;			/* error classes */
+    struct MIME_STATE *mime_state;	/* mime state machine */
+
+#ifdef USE_SASL_AUTH
+    char   *sasl_mechanism_list;	/* server mechanism list */
+    char   *sasl_username;		/* client username */
+    char   *sasl_passwd;		/* client password */
+    sasl_conn_t *sasl_conn;		/* SASL internal state */
+    VSTRING *sasl_encoded;		/* encoding buffer */
+    VSTRING *sasl_decoded;		/* decoding buffer */
+    sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
+#endif
+
 } SMTP_SESSION;
 
-extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, char *, char *);
+extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, char *, char *, char *);
+extern void smtp_session_reuse(SMTP_SESSION *);
 extern void smtp_session_free(SMTP_SESSION *);
 
  /*
@@ -128,7 +136,6 @@ extern int smtp_connect(SMTP_STATE *);
   */
 extern int smtp_helo(SMTP_STATE *, int);
 extern int smtp_xfer(SMTP_STATE *);
-extern void smtp_quit(SMTP_STATE *);
 
  /*
   * smtp_chat.c
@@ -139,10 +146,11 @@ typedef struct SMTP_RESP {		/* server response */
     VSTRING *buf;			/* origin of text */
 } SMTP_RESP;
 
-extern void PRINTFLIKE(2, 3) smtp_chat_cmd(SMTP_STATE *, char *,...);
-extern SMTP_RESP *smtp_chat_resp(SMTP_STATE *);
-extern void smtp_chat_reset(SMTP_STATE *);
-extern void smtp_chat_notify(SMTP_STATE *);
+extern void PRINTFLIKE(2, 3) smtp_chat_cmd(SMTP_SESSION *, char *,...);
+extern SMTP_RESP *smtp_chat_resp(SMTP_SESSION *);
+extern void smtp_chat_init(SMTP_SESSION *);
+extern void smtp_chat_reset(SMTP_SESSION *);
+extern void smtp_chat_notify(SMTP_SESSION *);
 
  /*
   * These operations implement a redundant mark-and-sweep algorithm that

@@ -146,8 +146,9 @@ Notes:
   * The example is simplified for educational purposes. In reality, my patterns
     list multiple email addresses as "(user1@domain1\.tld|user2@domain2\.tld)".
 
-  * The [[:<:]] matches the beginning of a word, and the [[:>:]] matches the
-    end.
+  * The "[[:<:]]" and "[[:>:]]" match the beginning and end of a word,
+    respectively. On some systems you should specify "\<" and "\>" instead. For
+    details see your system documentation.
 
   * The "\." matches "." literally. Without the "\", the "." would match any
     character.
@@ -171,7 +172,8 @@ techniques to recognize forgeries.
 Recognizing virus scanner mail is an error prone process, because there is a
 lot of variation in report formats. The following is only a small example of
 message header patterns. For a large collection of header and body patterns
-that recognize virus notification email, see http://www.dkuug.dk/keld/virus/.
+that recognize virus notification email, see http://www.dkuug.dk/keld/virus/ or
+http://www.t29.dk/antiantivirus.txt.
 
     /etc/postfix/header_checks:
         /^Subject: *Your email contains VIRUSES/ DISCARD virus notification

@@ -1189,16 +1189,86 @@ d=days, w=weeks.  The default time unit is hours.
 <p> Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  The default time unit is s (seconds).  </p>
 
+%PARAM execution_directory_expansion_filter see "postconf -d" output
+
+<p> Restrict the characters that the local(8) delivery agent allows
+in $name expansions of $command_execution_directory.  Characters
+outside the allowed set are replaced by underscores.  </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
+
+%PARAM command_execution_directory
+
+<p> The local(8) delivery agent working directory for delivery to
+external command.  Failure to change directory causes the delivery
+to be deferred. </p>
+
+<p> The following $name expansions are done on command_execution_directory
+before the directory is changed. Expansion happens in the context
+of the delivery request.  The result of $name expansion is filtered
+with the character set that is specified with the
+execution_directory_expansion_filter parameter.  </p>
+
+<dl>
+
+<dt><b>$user</b></dt>
+
+<dd>The recipient's username. </dd>
+
+<dt><b>$shell</b></dt>
+
+<dd>The recipient's login shell pathname. </dd>
+
+<dt><b>$home</b></dt>
+
+<dd>The recipient's home directory. </dd>
+
+<dt><b>$recipient</b></dt>
+
+<dd>The full recipient address. </dd>
+
+<dt><b>$extension</b></dt>
+
+<dd>The optional recipient address extension. </dd>
+
+<dt><b>$domain</b></dt>
+
+<dd>The recipient domain. </dd>
+
+<dt><b>$local</b></dt>
+
+<dd>The entire recipient localpart. </dd>
+
+<dt><b>$recipient_delimiter</b></dt>
+
+<dd>The system-wide recipient address extension delimiter. </dd>
+
+<dt><b>${name?value}</b></dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
+
+<dt><b>${name:value}</b></dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+</dl>
+
+<p>
+Instead of $name you can also specify ${name} or $(name).
+</p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 %PARAM forward_path see "postconf -d" output
 
 <p> The local(8) delivery agent search list for finding a .forward
 file with user-specified delivery methods. The first file that is
 found is used.  </p>
 
-<p>
-The following expansions are done on forward_path before
-the search actually happens:
-</p>
+<p> The following $name expansions are done on forward_path before
+the search actually happens. The result of $name expansion is
+filtered with the character set that is specified with the
+forward_expansion_filter parameter.  </p>
 
 <dl>
 
@@ -5646,10 +5716,6 @@ This feature is available in Postfix 2.0 and later.
 Restrict the characters that the local(8) delivery agent allows in
 $name expansions of $forward_path.  Characters outside the
 allowed set are replaced by underscores.
-</p>
-
-<p>
-Characters outside the allowed set are replaced by underscores.
 </p>
 
 %PARAM header_address_token_limit 10240

@@ -62,6 +62,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <argv.h>
+#include <mac_parse.h>
 
 /* Global library. */
 
@@ -90,6 +91,8 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
     char  **cpp;
     char   *cp;
     ARGV   *export_env;
+    VSTRING *exec_dir;
+    int     expand_status;
 
     /*
      * Make verbose logging easier to understand.
@@ -168,22 +171,38 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	for (cp = cpp[1]; *(cp += strspn(cp, var_cmd_exp_filter)) != 0;)
 	    *cp++ = '_';
 
+    /*
+     * Evaluate the command execution directory. Defer delivery if expansion
+     * fails.
+     */
     export_env = argv_split(var_export_environ, ", \t\r\n");
+    exec_dir = vstring_alloc(10);
+    expand_status = local_expand(exec_dir, var_exec_directory,
+				 &state, &usr_attr, var_exec_exp_filter);
 
-    cmd_status = pipe_command(state.msg_attr.fp, why,
-			      PIPE_CMD_UID, usr_attr.uid,
-			      PIPE_CMD_GID, usr_attr.gid,
-			      PIPE_CMD_COMMAND, command,
-			      PIPE_CMD_COPY_FLAGS, copy_flags,
-			      PIPE_CMD_SENDER, state.msg_attr.sender,
-			      PIPE_CMD_ORIG_RCPT, state.msg_attr.orig_rcpt,
-			      PIPE_CMD_DELIVERED, state.msg_attr.delivered,
-			      PIPE_CMD_TIME_LIMIT, var_command_maxtime,
-			      PIPE_CMD_ENV, env->argv,
-			      PIPE_CMD_EXPORT, export_env->argv,
-			      PIPE_CMD_SHELL, var_local_cmd_shell,
-			      PIPE_CMD_END);
-
+    if (expand_status & MAC_PARSE_ERROR) {
+	cmd_status = PIPE_STAT_DEFER;
+	vstring_strcpy(why, "Server configuration error");
+	msg_warn("bad parameter value syntax for %s: %s",
+		 VAR_EXEC_DIRECTORY, var_exec_directory);
+    } else {
+	cmd_status = pipe_command(state.msg_attr.fp, why,
+				  PIPE_CMD_UID, usr_attr.uid,
+				  PIPE_CMD_GID, usr_attr.gid,
+				  PIPE_CMD_COMMAND, command,
+				  PIPE_CMD_COPY_FLAGS, copy_flags,
+				  PIPE_CMD_SENDER, state.msg_attr.sender,
+			       PIPE_CMD_ORIG_RCPT, state.msg_attr.orig_rcpt,
+			       PIPE_CMD_DELIVERED, state.msg_attr.delivered,
+				  PIPE_CMD_TIME_LIMIT, var_command_maxtime,
+				  PIPE_CMD_ENV, env->argv,
+				  PIPE_CMD_EXPORT, export_env->argv,
+				  PIPE_CMD_SHELL, var_local_cmd_shell,
+				  PIPE_CMD_CWD, *vstring_str(exec_dir) ?
+				  vstring_str(exec_dir) : (char *) 0,
+				  PIPE_CMD_END);
+    }
+    vstring_free(exec_dir);
     argv_free(export_env);
     argv_free(env);
 

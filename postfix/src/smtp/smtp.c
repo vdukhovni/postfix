@@ -382,7 +382,6 @@ static int deliver_message(DELIVER_REQUEST *request)
     /*
      * Clean up.
      */
-    smtp_chat_reset(state);
     smtp_state_free(state);
 
     return (result);

@@ -229,8 +229,10 @@ and is very easy to stop.
 reality, my patterns list multiple email addresses as
 "<tt>(user1@domain1\.tld|user2@domain2\.tld)</tt>".  </p>
 
-<li> <p> The <tt>[[:&lt;:]]</tt> matches the beginning of a word,
-and the <tt>[[:&gt;:]]</tt> matches the end. </p>
+<li> <p> The "<tt>[[:&lt;:]]</tt>" and "<tt>[[:&gt;:]]</tt>" match
+the beginning and end of a word, respectively. On some systems you
+should specify "<tt>\&lt;</tt>" and "<tt>\&gt;</tt>" instead. For
+details see your system documentation.
 
 <li> <p> The "<tt>\.</tt>" matches "<tt>.</tt>" literally. Without
 the "<tt>\</tt>", the "<tt>.</tt>" would match any character. </p>
@@ -261,7 +263,8 @@ above techniques to recognize forgeries.  </p>
 because there is a lot of variation in report formats.  The following
 is only a small example of message header patterns.  For a large
 collection of header and body patterns that recognize virus
-notification email, see http://www.dkuug.dk/keld/virus/.  </p>
+notification email, see http://www.dkuug.dk/keld/virus/
+or http://www.t29.dk/antiantivirus.txt.  </p>
 
 <blockquote>
 <pre>

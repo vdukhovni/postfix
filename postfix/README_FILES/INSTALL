@@ -648,9 +648,15 @@ systems.
 Additionally, you almost certainly need to configure syslogd so that it listens
 on a socket inside the Postfix queue directory. Examples for specific systems:
 
-FreeBSD: syslogd -l /var/spool/postfix/var/run/log
+FreeBSD:
 
-Linux, OpenBSD: syslogd -a /var/spool/postfix/dev/log
+    # mkdir -p /var/spool/postfix/var/run
+    # syslogd -l /var/spool/postfix/var/run/log
+
+Linux, OpenBSD:
+
+    # mkdir -p /var/spool/postfix/dev
+    # syslogd -a /var/spool/postfix/dev/log
 
 1122 -- CCaarree aanndd ffeeeeddiinngg ooff tthhee PPoossttffiixx ssyysstteemm
 

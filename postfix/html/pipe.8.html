@@ -48,69 +48,79 @@ PIPE(8)                                                   PIPE(8)
        file at the end of a service definition.  The syntax is as
        follows:
 
+       <b>eol=string</b> (optional, default: <b>\n</b>)
+              The output record delimiter.  Typically  one  would
+              use  either <b>\r\n</b> or <b>\n</b>. The usual C-style backslash
+              escape sequences are recognized: <b>\a \b \f \n \r  \t</b>
+              <b>\v \</b><i>octal</i> and <b>\\</b>.
+
        <b>flags=BDFORhqu.</b>&gt; (optional)
-              Optional message processing flags.  By  default,  a
+              Optional  message  processing  flags. By default, a
               message is copied unchanged.
 
-              <b>B</b>      Append  a blank line at the end of each mes-
-                     sage. This is required  by  some  mail  user
-                     agents  that  recognize  "<b>From</b>  " lines only
+              <b>B</b>      Append a blank line at the end of each  mes-
+                     sage.  This  is  required  by some mail user
+                     agents that recognize  "<b>From</b>  "  lines  only
                      when preceded by a blank line.
 
-              <b>D</b>      Prepend a "<b>Delivered-To:</b> <i>recipient</i>"  message
-                     header  with the envelope recipient address.
+              <b>D</b>      Prepend  a "<b>Delivered-To:</b> <i>recipient</i>" message
+                     header with the envelope recipient  address.
                      Note: for this to work, the <i>transport</i><b>_desti-</b>
                      <b>nation_recipient_limit</b> must be 1.
 
                      This feature is available as of Postfix 2.0.
 
-              <b>F</b>      Prepend a "<b>From</b> <i>sender time</i><b>_</b><i>stamp</i>"  envelope
-                     header  to  the  message  content.   This is
+              <b>F</b>      Prepend  a "<b>From</b> <i>sender time</i><b>_</b><i>stamp</i>" envelope
+                     header to  the  message  content.   This  is
                      expected by, for example, <b>UUCP</b> software.
 
-              <b>O</b>      Prepend an "<b>X-Original-To:</b>  <i>recipient</i>"  mes-
-                     sage  header  with  the recipient address as
-                     given to Postfix. Note: for  this  to  work,
+              <b>O</b>      Prepend  an  "<b>X-Original-To:</b> <i>recipient</i>" mes-
+                     sage header with the  recipient  address  as
+                     given  to  Postfix.  Note: for this to work,
                      the    <i>transport</i><b>_destination_recipient_limit</b>
                      must be 1.
 
                      This feature is available as of Postfix 2.0.
 
-              <b>R</b>      Prepend  a  <b>Return-Path:</b> message header with
+              <b>R</b>      Prepend a <b>Return-Path:</b> message  header  with
                      the envelope sender address.
 
               <b>h</b>      Fold the command-line <b>$recipient</b> domain name
-                     and  <b>$nexthop</b> host name to lower case.  This
+                     and <b>$nexthop</b> host name to lower case.   This
                      is recommended for delivery via <b>UUCP</b>.
 
-              <b>q</b>      Quote white space and other special  charac-
+              <b>q</b>      Quote  white space and other special charac-
                      ters in the command-line <b>$sender</b> and <b>$recip-</b>
                      <b>ient</b> address localparts (text to the left of
                      the right-most <b>@</b> character), according to an
-                     8-bit transparent version of <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a>.   This
-                     is  recommended  for  delivery  via  <b>UUCP</b> or
+                     8-bit  transparent version of <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a>.  This
+                     is recommended  for  delivery  via  <b>UUCP</b>  or
                      <b>BSMTP</b>.
 
-                     The result is compatible  with  the  address
-                     parsing  of  command-line  recipients by the
+                     The  result  is  compatible with the address
+                     parsing of command-line  recipients  by  the
                      Postfix <b>sendmail</b> mail submission command.
 
-                     The <b>q</b> flag affects  only  entire  addresses,
+                     The  <b>q</b>  flag  affects only entire addresses,
                      not the partial address information from the
-                     <b>$user</b>, <b>$extension</b> or  <b>$mailbox</b>  command-line
+                     <b>$user</b>,  <b>$extension</b>  or <b>$mailbox</b> command-line
                      macros.
 
               <b>u</b>      Fold  the  command-line  <b>$recipient</b>  address
-                     localpart (text to the left  of  the  right-
-                     most  <b>@</b>  character)  to lower case.  This is
+                     localpart  (text  to  the left of the right-
+                     most <b>@</b> character) to lower  case.   This  is
                      recommended for delivery via <b>UUCP</b>.
 
-              <b>.</b>      Prepend <b>.</b> to lines starting with  "<b>.</b>".  This
+              <b>.</b>      Prepend  <b>.</b>  to lines starting with "<b>.</b>". This
                      is needed by, for example, <b>BSMTP</b> software.
 
-              &gt;      Prepend  &gt;  to  lines starting with "<b>From</b> ".
+              &gt;      Prepend &gt; to lines starting  with  "<b>From</b>  ".
                      This is expected by, for example, <b>UUCP</b> soft-
                      ware.
+
+       <b>size</b>=<i>size</i><b>_</b><i>limit</i> (optional)
+              Messages greater in size than this limit (in bytes)
+              will be bounced back to the sender.
 
        <b>user</b>=<i>username</i> (required)
 
@@ -121,16 +131,6 @@ PIPE(8)                                                   PIPE(8)
               privileges of the mail system owner.  If  <i>groupname</i>
               is  specified,  the  corresponding group ID is used
               instead of the group ID of <i>username</i>.
-
-       <b>eol=string</b> (optional, default: <b>\n</b>)
-              The output record delimiter.  Typically  one  would
-              use  either <b>\r\n</b> or <b>\n</b>. The usual C-style backslash
-              escape sequences are recognized: <b>\a \b \f \n \r  \t</b>
-              <b>\v \</b><i>octal</i> and <b>\\</b>.
-
-       <b>size</b>=<i>size</i><b>_</b><i>limit</i> (optional)
-              Messages greater in size than this limit (in bytes)
-              will be bounced back to the sender.
 
        <b>argv</b>=<i>command</i>... (required)
               The command to be executed. This must be  specified
@@ -215,6 +215,13 @@ PIPE(8)                                                   PIPE(8)
        In  addition  to  the  form  ${<i>name</i>},  the forms $<i>name</i> and
        $(<i>name</i>) are also recognized.  Specify <b>$$</b> where a single  <b>$</b>
        is wanted.
+
+       Available in Postfix 2.2 and later:
+
+       <b>directory=</b><i>pathname</i> (optional)
+              Change  to the specified directory before executing
+              the command.  Failure causes mail  delivery  to  be
+              deferred.
 
 <b>DIAGNOSTICS</b>
        Command  exit status codes are expected to follow the con-

@@ -9414,6 +9414,40 @@ Apologies for any names omitted.
 	Bugfix: space in HELO commands could end up in XFORWARD
 	commands.  File: smtpd/smtpd.c.
 
+20040619
+
+	Code reorganization: in preparation for SMTP session caching,
+	the SMTP client data structures were changed from the
+	original "one session per delivery request" model to an
+	explicit "multiple sessions per delivery request" model.
+	This uncovered ESMTP and SASL missing re-initialization
+	problems that were fixed in past week.  Design by Victor
+	and Wietse, initial implementation by Victor Duchovny.
+
+20040620
+
+	Future proofing: after the reorganization of SMTP request
+	state and session state, added code to the smtp client
+	error handling routines to more consistently deal with the
+	possibility that session information is not be available.
+
+20040621
+
+	Feature: directory=pathname option for the pipe(8) delivery
+	agent. This allows a command to run from a fixed directory.
+	Failure to change directory causes delivery to be deferred.
+	Files: pipe/pipe.c.
+
+	Feature: command_execution_directory for local(8) delivery
+	to external command. This supports the usual $home etc.
+	expansions, subject to filtering with the character set
+	specified with $execution_directory_expansion_filter.
+	Failure to change directory causes delivery to be deferred.
+	Files:  global/mail_params.h, local/command.c.
+
+	Support for external command execution directory. Files:
+	global/pipe_command.[hc].
+
 Open problems:
 
 	Low: make sure CCARGS -I options come at the end.

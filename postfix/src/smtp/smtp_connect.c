@@ -98,7 +98,7 @@
 
 /* smtp_connect_addr - connect to explicit address */
 
-static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
+static SMTP_SESSION *smtp_connect_addr(char *dest, DNS_RR *addr, unsigned port,
 				               VSTRING *why)
 {
     char   *myname = "smtp_connect_addr";
@@ -212,7 +212,8 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
 	return (0);
     }
     vstream_ungetc(stream, ch);
-    return (smtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr)));
+    return (smtp_session_alloc(stream, dest, addr->name,
+			       inet_ntoa(sin.sin_addr)));
 }
 
 /* smtp_parse_destination - parse destination */
@@ -269,6 +270,7 @@ int     smtp_connect(SMTP_STATE *state)
     int     addr_count;
     int     sess_count;
     int     misc_flags = SMTP_MISC_FLAG_DEFAULT;
+    SMTP_SESSION *session;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -348,27 +350,23 @@ int     smtp_connect(SMTP_STATE *state)
 	    next = addr->next;
 	    if (++addr_count == var_smtp_mxaddr_limit)
 		next = 0;
-	    if ((state->session = smtp_connect_addr(addr, port, why)) != 0) {
-		state->features = 0;		/* XXX should be SESSION info */
+	    session = state->session = smtp_connect_addr(dest, addr, port, why);
+	    if (session != 0) {
 		if (++sess_count == var_smtp_mxsess_limit)
 		    next = 0;
 		state->final_server = (cpp[1] == 0 && next == 0);
-		state->session->best = (addr->pref == addr_list->pref);
-		debug_peer_check(state->session->host, state->session->addr);
+		session->best = (addr->pref == addr_list->pref);
+		debug_peer_check(session->host, session->addr);
 		if (smtp_helo(state, misc_flags) == 0)
 		    smtp_xfer(state);
-		if (state->history != 0) {
-		    if (state->error_mask & name_mask(VAR_NOTIFY_CLASSES,
+		if (session->history != 0) {
+		    if (session->error_mask & name_mask(VAR_NOTIFY_CLASSES,
 				      mail_error_masks, var_notify_classes))
-			smtp_chat_notify(state);
-		    smtp_chat_reset(state);
+			smtp_chat_notify(session);
 		}
 		/* XXX smtp_xfer() may abort in the middle of DATA. */
-		smtp_session_free(state->session);
+		smtp_session_free(session);
 		state->session = 0;
-#ifdef USE_SASL_AUTH
-		smtp_sasl_cleanup(state);
-#endif
 		debug_peer_restore();
 		smtp_rcpt_cleanup(state);
 	    } else {

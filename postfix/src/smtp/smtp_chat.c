@@ -14,18 +14,21 @@
 /* .in -4
 /*	} SMTP_RESP;
 /*
-/*	void	smtp_chat_cmd(state, format, ...)
-/*	SMTP_STATE *state;
+/*	void	smtp_chat_cmd(session, format, ...)
+/*	SMTP_SESSION *session;
 /*	char	*format;
 /*
-/*	SMTP_RESP *smtp_chat_resp(state)
-/*	SMTP_STATE *state;
+/*	SMTP_RESP *smtp_chat_resp(session)
+/*	SMTP_SESSION *session;
 /*
-/*	void	smtp_chat_notify(state)
-/*	SMTP_STATE *state;
+/*	void	smtp_chat_notify(session)
+/*	SMTP_SESSION *session;
 /*
-/*	void	smtp_chat_reset(state)
-/*	SMTP_STATE *state;
+/*	void	smtp_chat_init(session)
+/*	SMTP_SESSION *session;
+/*
+/*	void	smtp_chat_reset(session)
+/*	SMTP_SESSION *session;
 /* DESCRIPTION
 /*	This module implements SMTP client support for request/reply
 /*	conversations, and maintains a limited SMTP transaction log.
@@ -42,6 +45,9 @@
 /*	to the postmaster for review. The postmaster notice is sent only
 /*	when delivery is possible immediately. It is an error to call
 /*	smtp_chat_notify() when no SMTP transaction log exists.
+/*
+/*	smtp_chat_init() initializes the per-session transaction log.
+/*	This must be done at the beginning of a new SMTP session.
 /*
 /*	smtp_chat_reset() resets the transaction log. This is
 /*	typically done at the beginning or end of an SMTP session,
@@ -100,55 +106,62 @@
 #define STR(x)	((char *) vstring_str(x))
 #define LEN	VSTRING_LEN
 
+/* smtp_chat_init - initialize SMTP transaction log */
+
+void    smtp_chat_init(SMTP_SESSION *session)
+{
+    session->history = 0;
+}
+
 /* smtp_chat_reset - reset SMTP transaction log */
 
-void    smtp_chat_reset(SMTP_STATE *state)
+void    smtp_chat_reset(SMTP_SESSION *session)
 {
-    if (state->history) {
-	argv_free(state->history);
-	state->history = 0;
+
+    if (session->history) {
+	argv_free(session->history);
+	session->history = 0;
     }
 }
 
 /* smtp_chat_append - append record to SMTP transaction log */
 
-static void smtp_chat_append(SMTP_STATE *state, char *direction, char *data)
+static void smtp_chat_append(SMTP_SESSION *session, char *direction, char *data)
 {
     char   *line;
 
-    if (state->history == 0)
-	state->history = argv_alloc(10);
+    if (session->history == 0)
+	session->history = argv_alloc(10);
     line = concatenate(direction, data, (char *) 0);
-    argv_add(state->history, line, (char *) 0);
+    argv_add(session->history, line, (char *) 0);
     myfree(line);
 }
 
 /* smtp_chat_cmd - send an SMTP command */
 
-void    smtp_chat_cmd(SMTP_STATE *state, char *fmt,...)
+void    smtp_chat_cmd(SMTP_SESSION *session, char *fmt,...)
 {
-    SMTP_SESSION *session = state->session;
     va_list ap;
 
     /*
      * Format the command, and update the transaction log.
      */
     va_start(ap, fmt);
-    vstring_vsprintf(state->buffer, fmt, ap);
+    vstring_vsprintf(session->buffer, fmt, ap);
     va_end(ap);
-    smtp_chat_append(state, "Out: ", STR(state->buffer));
+    smtp_chat_append(session, "Out: ", STR(session->buffer));
 
     /*
      * Optionally log the command first, so we can see in the log what the
      * program is trying to do.
      */
     if (msg_verbose)
-	msg_info("> %s: %s", session->namaddr, STR(state->buffer));
+	msg_info("> %s: %s", session->namaddr, STR(session->buffer));
 
     /*
      * Send the command to the SMTP server.
      */
-    smtp_fputs(STR(state->buffer), LEN(state->buffer), session->stream);
+    smtp_fputs(STR(session->buffer), LEN(session->buffer), session->stream);
 
     /*
      * Flush unsent data to avoid timeouts after slow DNS lookups.
@@ -167,9 +180,8 @@ void    smtp_chat_cmd(SMTP_STATE *state, char *fmt,...)
 
 /* smtp_chat_resp - read and process SMTP server response */
 
-SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
+SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 {
-    SMTP_SESSION *session = state->session;
     static SMTP_RESP rdata;
     char   *cp;
     int     last_char;
@@ -187,13 +199,13 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
      */
     VSTRING_RESET(rdata.buf);
     for (;;) {
-	last_char = smtp_get(state->buffer, session->stream, var_line_limit);
-	printable(STR(state->buffer), '?');
+	last_char = smtp_get(session->buffer, session->stream, var_line_limit);
+	printable(STR(session->buffer), '?');
 	if (last_char != '\n')
 	    msg_warn("%s: response longer than %d: %.30s...",
-		     session->namaddr, var_line_limit, STR(state->buffer));
+		     session->namaddr, var_line_limit, STR(session->buffer));
 	if (msg_verbose)
-	    msg_info("< %s: %.100s", session->namaddr, STR(state->buffer));
+	    msg_info("< %s: %.100s", session->namaddr, STR(session->buffer));
 
 	/*
 	 * Defend against a denial of service attack by limiting the amount
@@ -202,8 +214,8 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
 	if (LEN(rdata.buf) < var_line_limit) {
 	    if (VSTRING_LEN(rdata.buf))
 		VSTRING_ADDCH(rdata.buf, '\n');
-	    vstring_strcat(rdata.buf, STR(state->buffer));
-	    smtp_chat_append(state, "In:  ", STR(state->buffer));
+	    vstring_strcat(rdata.buf, STR(session->buffer));
+	    smtp_chat_append(session, "In:  ", STR(session->buffer));
 	}
 
 	/*
@@ -211,17 +223,17 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
 	 * that any character except space (or end of line) will have the
 	 * same effect as the '-' line continuation character.
 	 */
-	for (cp = STR(state->buffer); *cp && ISDIGIT(*cp); cp++)
+	for (cp = STR(session->buffer); *cp && ISDIGIT(*cp); cp++)
 	     /* void */ ;
-	if (cp - STR(state->buffer) == 3) {
+	if (cp - STR(session->buffer) == 3) {
 	    if (*cp == '-')
 		continue;
 	    if (*cp == ' ' || *cp == 0)
 		break;
 	}
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	session->error_mask |= MAIL_ERROR_PROTOCOL;
     }
-    rdata.code = atoi(STR(state->buffer));
+    rdata.code = atoi(STR(session->buffer));
     VSTRING_TERMINATE(rdata.buf);
     rdata.str = STR(rdata.buf);
     return (&rdata);
@@ -238,17 +250,16 @@ static void print_line(const char *str, int len, int indent, char *context)
 
 /* smtp_chat_notify - notify postmaster */
 
-void    smtp_chat_notify(SMTP_STATE *state)
+void    smtp_chat_notify(SMTP_SESSION *session)
 {
     char   *myname = "smtp_chat_notify";
-    SMTP_SESSION *session = state->session;
     VSTREAM *notice;
     char  **cpp;
 
     /*
      * Sanity checks.
      */
-    if (state->history == 0)
+    if (session->history == 0)
 	msg_panic("%s: no conversation history", myname);
     if (msg_verbose)
 	msg_info("%s: notify postmaster", myname);
@@ -282,8 +293,8 @@ void    smtp_chat_notify(SMTP_STATE *state)
     post_mail_fputs(notice, "");
     post_mail_fputs(notice, "Transcript of session follows.");
     post_mail_fputs(notice, "");
-    argv_terminate(state->history);
-    for (cpp = state->history->argv; *cpp; cpp++)
+    argv_terminate(session->history);
+    for (cpp = session->history->argv; *cpp; cpp++)
 	line_wrap(printable(*cpp, '?'), LENGTH, INDENT, print_line,
 		  (char *) notice);
     (void) post_mail_fclose(notice);

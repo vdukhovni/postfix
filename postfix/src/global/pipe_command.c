@@ -38,6 +38,10 @@
 /*	The command is specified as an argument vector. This vector is
 /*	passed without further inspection to the \fIexecvp\fR() routine.
 /*	One of PIPE_CMD_COMMAND or PIPE_CMD_ARGV must be specified.
+/* .IP "PIPE_CMD_CWD (char *)"
+/*	Working directory for command execution. A null pointer means
+/*	don't change directory anyway. Failure to change directory
+/*	causes mail delivery to be deferred.
 /* .IP "PIPE_CMD_ENV (char **)"
 /*	Additional environment information, in the form of a null-terminated
 /*	list of name, value, name, value, ... elements. By default only the
@@ -159,6 +163,7 @@ struct pipe_args {
     char  **env;			/* extra environment */
     char  **export;			/* exportable environment */
     char   *shell;			/* command shell */
+    char   *cwd;			/* preferred working directory */
 };
 
 static int pipe_command_timeout;	/* command has timed out */
@@ -186,6 +191,7 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
     args->env = 0;
     args->export = 0;
     args->shell = 0;
+    args->cwd = 0;
 
     pipe_command_maxtime = var_command_maxtime;
 
@@ -236,6 +242,9 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 	    break;
 	case PIPE_CMD_SHELL:
 	    args->shell = va_arg(ap, char *);
+	    break;
+	case PIPE_CMD_CWD:
+	    args->cwd = va_arg(ap, char *);
 	    break;
 	default:
 	    msg_panic("%s: unknown key: %d", myname, key);
@@ -427,6 +436,16 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	    msg_fatal("%s: dup2: %m", myname);
 	close(cmd_in_pipe[0]);
 	close(cmd_out_pipe[1]);
+
+	/*
+	 * Working directory plumbing.
+	 */
+	if (args.cwd && chdir(args.cwd) < 0) {
+	    msg_warn("cannot change directory to \"%s\" for uid=%lu gid=%lu: %m",
+		     args.cwd, (unsigned long) args.uid,
+		     (unsigned long) args.gid);
+	    exit(EX_TEMPFAIL);
+	}
 
 	/*
 	 * Environment plumbing. Always reset the command search path. XXX

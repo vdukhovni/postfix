@@ -999,6 +999,72 @@ The location of all postfix administrative commands.
 
 </DD>
 
+<DT><b><a name="command_execution_directory">command_execution_directory</a>
+(default: empty)</b></DT><DD>
+
+<p> The <a href="local.8.html">local(8)</a> delivery agent working directory for delivery to
+external command.  Failure to change directory causes the delivery
+to be deferred. </p>
+
+<p> The following $name expansions are done on <a href="postconf.5.html#command_execution_directory">command_execution_directory</a>
+before the directory is changed. Expansion happens in the context
+of the delivery request.  The result of $name expansion is filtered
+with the character set that is specified with the
+<a href="postconf.5.html#execution_directory_expansion_filter">execution_directory_expansion_filter</a> parameter.  </p>
+
+<dl>
+
+<dt><b>$user</b></dt>
+
+<dd>The recipient's username. </dd>
+
+<dt><b>$shell</b></dt>
+
+<dd>The recipient's login shell pathname. </dd>
+
+<dt><b>$home</b></dt>
+
+<dd>The recipient's home directory. </dd>
+
+<dt><b>$recipient</b></dt>
+
+<dd>The full recipient address. </dd>
+
+<dt><b>$extension</b></dt>
+
+<dd>The optional recipient address extension. </dd>
+
+<dt><b>$domain</b></dt>
+
+<dd>The recipient domain. </dd>
+
+<dt><b>$local</b></dt>
+
+<dd>The entire recipient localpart. </dd>
+
+<dt><b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a></b></dt>
+
+<dd>The system-wide recipient address extension delimiter. </dd>
+
+<dt><b>${name?value}</b></dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
+
+<dt><b>${name:value}</b></dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+</dl>
+
+<p>
+Instead of $name you can also specify ${name} or $(name).
+</p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="command_expansion_filter">command_expansion_filter</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -1819,6 +1885,18 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="execution_directory_expansion_filter">execution_directory_expansion_filter</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> Restrict the characters that the <a href="local.8.html">local(8)</a> delivery agent allows
+in $name expansions of $<a href="postconf.5.html#command_execution_directory">command_execution_directory</a>.  Characters
+outside the allowed set are replaced by underscores.  </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="expand_owner_alias">expand_owner_alias</a>
 (default: no)</b></DT><DD>
 
@@ -2026,10 +2104,6 @@ $name expansions of $<a href="postconf.5.html#forward_path">forward_path</a>.  C
 allowed set are replaced by underscores.
 </p>
 
-<p>
-Characters outside the allowed set are replaced by underscores.
-</p>
-
 
 </DD>
 
@@ -2040,10 +2114,10 @@ Characters outside the allowed set are replaced by underscores.
 file with user-specified delivery methods. The first file that is
 found is used.  </p>
 
-<p>
-The following expansions are done on <a href="postconf.5.html#forward_path">forward_path</a> before
-the search actually happens:
-</p>
+<p> The following $name expansions are done on <a href="postconf.5.html#forward_path">forward_path</a> before
+the search actually happens. The result of $name expansion is
+filtered with the character set that is specified with the
+<a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a> parameter.  </p>
 
 <dl>
 

@@ -12,13 +12,13 @@
  * SASL protocol functions
  */
 extern void smtp_sasl_initialize(void);
-extern void smtp_sasl_connect(SMTP_STATE *);
-extern int smtp_sasl_passwd_lookup(SMTP_STATE *);
-extern void smtp_sasl_start(SMTP_STATE *, const char *, const char *);
-extern int smtp_sasl_authenticate(SMTP_STATE *, VSTRING *);
-extern void smtp_sasl_cleanup(SMTP_STATE *);
+extern void smtp_sasl_connect(SMTP_SESSION *);
+extern int smtp_sasl_passwd_lookup(SMTP_SESSION *);
+extern void smtp_sasl_start(SMTP_SESSION *, const char *, const char *);
+extern int smtp_sasl_authenticate(SMTP_SESSION *, VSTRING *);
+extern void smtp_sasl_cleanup(SMTP_SESSION *);
 
-extern void smtp_sasl_helo_auth(SMTP_STATE *, const char *);
+extern void smtp_sasl_helo_auth(SMTP_SESSION *, const char *);
 extern int smtp_sasl_helo_login(SMTP_STATE *);
 
 /* LICENSE

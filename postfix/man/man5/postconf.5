@@ -507,6 +507,40 @@ and virtual(5) aliasing.
 This feature is available in Postfix 2.0 and later.
 .SH command_directory (default: see "postconf -d" output)
 The location of all postfix administrative commands.
+.SH command_execution_directory (default: empty)
+The local(8) delivery agent working directory for delivery to
+external command.  Failure to change directory causes the delivery
+to be deferred.
+.PP
+The following $name expansions are done on command_execution_directory
+before the directory is changed. Expansion happens in the context
+of the delivery request.  The result of $name expansion is filtered
+with the character set that is specified with the
+execution_directory_expansion_filter parameter.
+.IP "\fB$user\fR"
+The recipient's username.
+.IP "\fB$shell\fR"
+The recipient's login shell pathname.
+.IP "\fB$home\fR"
+The recipient's home directory.
+.IP "\fB$recipient\fR"
+The full recipient address.
+.IP "\fB$extension\fR"
+The optional recipient address extension.
+.IP "\fB$domain\fR"
+The recipient domain.
+.IP "\fB$local\fR"
+The entire recipient localpart.
+.IP "\fB$recipient_delimiter\fR"
+The system-wide recipient address extension delimiter.
+.IP "\fB${name?value}\fR"
+Expands to \fIvalue\fR when \fI$name\fR is non-empty.
+.IP "\fB${name:value}\fR"
+Expands to \fIvalue\fR when \fI$name\fR is empty.
+.PP
+Instead of $name you can also specify ${name} or $(name).
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH command_expansion_filter (default: see "postconf -d" output)
 Restrict the characters that the local(8) delivery agent allows in
 $name expansions of $mailbox_command.  Characters outside the
@@ -920,6 +954,12 @@ The name of the error(8) pseudo delivery agent. This service always
 returns mail as undeliverable.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH execution_directory_expansion_filter (default: see "postconf -d" output)
+Restrict the characters that the local(8) delivery agent allows
+in $name expansions of $command_execution_directory.  Characters
+outside the allowed set are replaced by underscores.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH expand_owner_alias (default: no)
 When delivering to an alias "aliasname" that has an "owner-aliasname"
 companion alias, set the envelope sender address to the expansion
@@ -1015,15 +1055,15 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 Restrict the characters that the local(8) delivery agent allows in
 $name expansions of $forward_path.  Characters outside the
 allowed set are replaced by underscores.
-.PP
-Characters outside the allowed set are replaced by underscores.
 .SH forward_path (default: see "postconf -d" output)
 The local(8) delivery agent search list for finding a .forward
 file with user-specified delivery methods. The first file that is
 found is used.
 .PP
-The following expansions are done on forward_path before
-the search actually happens:
+The following $name expansions are done on forward_path before
+the search actually happens. The result of $name expansion is
+filtered with the character set that is specified with the
+forward_expansion_filter parameter.
 .IP "\fB$user\fR"
 The recipient's username.
 .IP "\fB$shell\fR"

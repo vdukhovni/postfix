@@ -51,6 +51,11 @@ entry for the pipe-based delivery transport.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
+.IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
+The output record delimiter. Typically one would use either
+\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
+sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
+\e\fIoctal\fR and \fB\e\e\fR.
 .IP "\fBflags=BDFORhqu.>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
@@ -106,6 +111,9 @@ by, for example, \fBBSMTP\fR software.
 Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
 by, for example, \fBUUCP\fR software.
 .RE
+.IP "\fBsize\fR=\fIsize_limit\fR (optional)"
+Messages greater in size than this limit (in bytes) will be bounced
+back to the sender.
 .IP "\fBuser\fR=\fIusername\fR (required)"
 .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 The external command is executed with the rights of the
@@ -114,14 +122,6 @@ commands with root privileges, or with the privileges of the
 mail system owner. If \fIgroupname\fR is specified, the
 corresponding group ID is used instead of the group ID of
 \fIusername\fR.
-.IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
-The output record delimiter. Typically one would use either
-\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
-sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
-\e\fIoctal\fR and \fB\e\e\fR.
-.IP "\fBsize\fR=\fIsize_limit\fR (optional)"
-Messages greater in size than this limit (in bytes) will be bounced
-back to the sender.
 .IP "\fBargv\fR=\fIcommand\fR... (required)"
 The command to be executed. This must be specified as the
 last command attribute.
@@ -183,6 +183,11 @@ This information is modified by the \fBu\fR flag for case folding.
 In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
 $(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
 \fB$\fR is wanted.
+.PP
+Available in Postfix 2.2 and later:
+.IP "\fBdirectory=\fIpathname\fR (optional)"
+Change to the specified directory before executing the command.
+Failure causes mail delivery to be deferred.
 .SH DIAGNOSTICS
 .ad
 .fi

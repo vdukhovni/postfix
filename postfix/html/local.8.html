@@ -107,9 +107,9 @@ LOCAL(8)                                                 LOCAL(8)
        Mailbox  delivery  can be delegated to an external command
        specified with the <b><a href="postconf.5.html#mailbox_command">mailbox_command</a></b>  configuration  parame-
        ter.  The  command  executes  with  the  privileges of the
-       recipient user (exception: in case of  delivery  as  root,
-       the    command    executes    with   the   privileges   of
-       <b><a href="postconf.5.html#default_privs">default_privs</a></b>).
+       recipient  user  (exceptions:  secondary  groups  are  not
+       enabled; in case of delivery as root, the command executes
+       with the privileges of <b><a href="postconf.5.html#default_privs">default_privs</a></b>).
 
        Mailbox delivery can be delegated to  alternative  message
        transports  specified  in  the  <b>master.cf</b> file.  The <b><a href="postconf.5.html#mailbox_transport">mail</a>-</b>
@@ -143,6 +143,24 @@ LOCAL(8)                                                 LOCAL(8)
        restricts delivery to external commands. The default  set-
        ting  (<b>alias,  forward</b>)  forbids  command  destinations in
        <b>:include:</b> files.
+
+       Optionally, the process working directory  is  changed  to
+       the path specified with <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a></b> (Post-
+       fix 2.2 and later). Failure  to  change  directory  causes
+       mail to be deferred.
+
+       The <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a></b> parameter value is subject
+       to interpolation  of  <b>$user</b>  (recipient  username),  <b>$home</b>
+       (recipient  home  directory),  <b>$shell</b>  (recipient  shell),
+       <b>$recipient</b>  (complete   recipient   address),   <b>$extension</b>
+       (recipient address extension), <b>$domain</b> (recipient domain),
+       <b>local</b> (entire recipient address  localpart)  and  <b>$recipi-</b>
+       <b>ent_delimiter.</b>   The forms <i>${name?value}</i> and <i>${name:value}</i>
+       expand conditionally to  <i>value</i>  when  <i>$name</i>  is  (is  not)
+       defined.   Characters that may have special meaning to the
+       shell or file system are  replaced  by  underscores.   The
+       list of acceptable characters is specified with the <b><a href="postconf.5.html#execution_directory_expansion_filter">execu</a>-</b>
+       <b><a href="postconf.5.html#execution_directory_expansion_filter">tion_directory_expansion_filter</a></b> configuration parameter.
 
        The command is executed directly  where  possible.  Assis-
        tance  by the shell (<b>/bin/sh</b> on UNIX systems) is used only
@@ -349,21 +367,27 @@ LOCAL(8)                                                 LOCAL(8)
               Optional catch-all destination for unknown <a href="local.8.html">local(8)</a>
               recipients.
 
+       Available in Postfix version 2.2 and later:
+
+       <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a> (empty)</b>
+              The <a href="local.8.html">local(8)</a> delivery agent working  directory  for
+              delivery to external command.
+
 <b>MAILBOX LOCKING CONTROLS</b>
        <b><a href="postconf.5.html#deliver_lock_attempts">deliver_lock_attempts</a> (20)</b>
               The maximal number of attempts to acquire an exclu-
               sive lock on a mailbox file or <a href="bounce.8.html">bounce(8)</a> logfile.
 
        <b><a href="postconf.5.html#deliver_lock_delay">deliver_lock_delay</a> (1s)</b>
-              The  time  between attempts to acquire an exclusive
+              The time between attempts to acquire  an  exclusive
               lock on a mailbox file or <a href="bounce.8.html">bounce(8)</a> logfile.
 
        <b><a href="postconf.5.html#stale_lock_time">stale_lock_time</a> (500s)</b>
-              The time after  which  a  stale  exclusive  mailbox
+              The  time  after  which  a  stale exclusive mailbox
               lockfile is removed.
 
        <b><a href="postconf.5.html#mailbox_delivery_lock">mailbox_delivery_lock</a> (see 'postconf -d' output)</b>
-              How  to  lock  a UNIX-style <a href="local.8.html">local(8)</a> mailbox before
+              How to lock a UNIX-style  <a href="local.8.html">local(8)</a>  mailbox  before
               attempting delivery.
 
 <b>RESOURCE AND RATE CONTROLS</b>
@@ -371,17 +395,17 @@ LOCAL(8)                                                 LOCAL(8)
               Time limit for delivery to external commands.
 
        <b><a href="postconf.5.html#duplicate_filter_limit">duplicate_filter_limit</a> (1000)</b>
-              The maximal number of addresses remembered  by  the
-              address  duplicate  filter  for  <a href="aliases.5.html">aliases(5)</a> or vir-
+              The  maximal  number of addresses remembered by the
+              address duplicate filter  for  <a href="aliases.5.html">aliases(5)</a>  or  vir-
               tual(5) alias expansion, or for <a href="showq.8.html">showq(8)</a> queue dis-
               plays.
 
        <b><a href="postconf.5.html#local_destination_concurrency_limit">local_destination_concurrency_limit</a> (2)</b>
-              The  maximal  number of parallel deliveries via the
+              The maximal number of parallel deliveries  via  the
               local mail delivery transport to the same recipient
-              (when  "<a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a>  = 1") or
-              the maximal number of parallel  deliveries  to  the
-              same  <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> (when "local_destination_recipi-
+              (when "<a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> =  1")  or
+              the  maximal  number  of parallel deliveries to the
+              same <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> (when  "local_destination_recipi-
               ent_limit &gt; 1").
 
        <b><a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> (1)</b>
@@ -394,37 +418,45 @@ LOCAL(8)                                                 LOCAL(8)
 
 <b>SECURITY CONTROLS</b>
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a> (alias, forward)</b>
-              Restrict <a href="local.8.html">local(8)</a> mail delivery  to  external  com-
+              Restrict  <a href="local.8.html">local(8)</a>  mail  delivery to external com-
               mands.
 
        <b><a href="postconf.5.html#allow_mail_to_files">allow_mail_to_files</a> (alias, forward)</b>
-              Restrict  <a href="local.8.html">local(8)</a> mail delivery to external files.
+              Restrict <a href="local.8.html">local(8)</a> mail delivery to external  files.
 
        <b><a href="postconf.5.html#command_expansion_filter">command_expansion_filter</a> (see 'postconf -d' output)</b>
-              Restrict the characters that the <a href="local.8.html">local(8)</a>  delivery
-              agent  allows  in $name expansions of $mailbox_com-
+              Restrict  the characters that the <a href="local.8.html">local(8)</a> delivery
+              agent allows in $name expansions  of  $mailbox_com-
               mand.
 
        <b><a href="postconf.5.html#default_privs">default_privs</a> (nobody)</b>
-              The default rights used by  the  <a href="local.8.html">local(8)</a>  delivery
+              The  default  rights  used by the <a href="local.8.html">local(8)</a> delivery
               agent for delivery to external file or command.
 
        <b><a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a> (see 'postconf -d' output)</b>
-              Restrict  the characters that the <a href="local.8.html">local(8)</a> delivery
-              agent allows in $name expansions of  $<a href="postconf.5.html#forward_path">forward_path</a>.
+              Restrict the characters that the <a href="local.8.html">local(8)</a>  delivery
+              agent  allows in $name expansions of $<a href="postconf.5.html#forward_path">forward_path</a>.
+
+       Available in Postfix version 2.2 and later:
+
+       <b><a href="postconf.5.html#execution_directory_expansion_filter">execution_directory_expansion_filter</a>  (see  'postconf  -d'</b>
+       <b>output)</b>
+              Restrict the characters that the <a href="local.8.html">local(8)</a>  delivery
+              agent allows in $name expansions of $<a href="postconf.5.html#command_execution_directory">command_execu</a>-
+              <a href="postconf.5.html#command_execution_directory">tion_directory</a>.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#export_environment">export_environment</a> (see 'postconf -d' output)</b>
-              The list of environment variables  that  a  Postfix
+              The  list  of  environment variables that a Postfix
               process will export to non-Postfix processes.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -432,37 +464,37 @@ LOCAL(8)                                                 LOCAL(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#local_command_shell">local_command_shell</a> (empty)</b>
-              Optional shell program  for  <a href="local.8.html">local(8)</a>  delivery  to
+              Optional  shell  program  for  <a href="local.8.html">local(8)</a> delivery to
               non-Postfix command.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#prepend_delivered_header">prepend_delivered_header</a> (command, file, forward)</b>
-              The message delivery  contexts  where  the  Postfix
-              <a href="local.8.html">local(8)</a>  delivery  agent  prepends a Delivered-To:
+              The  message  delivery  contexts  where the Postfix
+              <a href="local.8.html">local(8)</a> delivery agent  prepends  a  Delivered-To:
               message header.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID of a Postfix command or daemon  pro-
+              The  process ID of a Postfix command or daemon pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a> (canonical, virtual)</b>
-              What address lookup tables copy an  address  exten-
+              What  address  lookup tables copy an address exten-
               sion from the lookup key to the lookup result.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The  location of the Postfix top-level queue direc-
+              The location of the Postfix top-level queue  direc-
               tory.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
@@ -470,14 +502,14 @@ LOCAL(8)                                                 LOCAL(8)
               sions (user+foo).
 
        <b><a href="postconf.5.html#require_home_directory">require_home_directory</a> (no)</b>
-              Whether  or  not a <a href="local.8.html">local(8)</a> recipient's home direc-
-              tory must exist before mail delivery is  attempted.
+              Whether or not a <a href="local.8.html">local(8)</a> recipient's  home  direc-
+              tory  must exist before mail delivery is attempted.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail system name that is prepended to the pro-
+              The mail system name that is prepended to the  pro-
               cess  name  in  syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
@@ -497,14 +529,14 @@ LOCAL(8)                                                 LOCAL(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>HISTORY</b>
        The <b>Delivered-To:</b> message header appears in the <b>qmail</b> sys-
        tem by Daniel Bernstein.
 
-       The  <i>maildir</i>  structure  appears  in  the  <b>qmail</b> system by
+       The <i>maildir</i> structure  appears  in  the  <b>qmail</b>  system  by
        Daniel Bernstein.
 
 <b>AUTHOR(S)</b>

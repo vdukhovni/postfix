@@ -7,4 +7,12 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
-[nothing to report here, except great relief that 2.1 is frozen]
+Major changes with snapshot Postfix-2.2-20040621
+================================================
+
+Control over the working directory when executing an external
+command.  With the pipe(8) mailer, specify directory=pathname, and
+with local(8) specify "command_execution_directory = expression"
+where "expression" is subject to $home etc. macro expansion. The
+result of macro expansion is restricted by the set of charaacters
+specified with execution_directory_expansion_filter.

@@ -196,7 +196,7 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     /*
      * Read and parse the server's SMTP greeting banner.
      */
-    switch ((resp = smtp_chat_resp(state))->code / 100) {
+    switch ((resp = smtp_chat_resp(session))->code / 100) {
     case 2:
 	break;
     case 5:
@@ -215,7 +215,7 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
      * on by default.
      */
     if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
-	state->features |= SMTP_FEATURE_MAYBEPIX;
+	session->features |= SMTP_FEATURE_MAYBEPIX;
 
     /*
      * See if we are talking to ourself. This should not be possible with the
@@ -231,25 +231,27 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 		msg_warn("host %s greeted me with my own hostname %s",
 			 session->namaddr, var_myhostname);
 	} else if (strcasecmp(word, "ESMTP") == 0)
-	    state->features |= SMTP_FEATURE_ESMTP;
+	    session->features |= SMTP_FEATURE_ESMTP;
     }
-    if (var_smtp_always_ehlo && (state->features & SMTP_FEATURE_MAYBEPIX) == 0)
-	state->features |= SMTP_FEATURE_ESMTP;
-    if (var_smtp_never_ehlo || (state->features & SMTP_FEATURE_MAYBEPIX) != 0)
-	state->features &= ~SMTP_FEATURE_ESMTP;
+    if (var_smtp_always_ehlo
+        && (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
+	session->features |= SMTP_FEATURE_ESMTP;
+    if (var_smtp_never_ehlo
+    	|| (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
+	session->features &= ~SMTP_FEATURE_ESMTP;
 
     /*
      * Return the compliment. Fall back to SMTP if our ESMTP recognition
      * heuristic failed.
      */
-    if (state->features & SMTP_FEATURE_ESMTP) {
-	smtp_chat_cmd(state, "EHLO %s", var_smtp_helo_name);
-	if ((resp = smtp_chat_resp(state))->code / 100 != 2)
-	    state->features &= ~SMTP_FEATURE_ESMTP;
+    if (session->features & SMTP_FEATURE_ESMTP) {
+	smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
+	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
+	    session->features &= ~SMTP_FEATURE_ESMTP;
     }
-    if ((state->features & SMTP_FEATURE_ESMTP) == 0) {
-	smtp_chat_cmd(state, "HELO %s", var_smtp_helo_name);
-	if ((resp = smtp_chat_resp(state))->code / 100 != 2)
+    if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
+	smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
+	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
 	    return (smtp_site_fail(state, resp->code,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
@@ -271,26 +273,26 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     while ((words = mystrtok(&lines, "\n")) != 0) {
 	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t=")) != 0) {
 	    if (strcasecmp(word, "8BITMIME") == 0)
-		state->features |= SMTP_FEATURE_8BITMIME;
+		session->features |= SMTP_FEATURE_8BITMIME;
 	    else if (strcasecmp(word, "PIPELINING") == 0)
-		state->features |= SMTP_FEATURE_PIPELINING;
+		session->features |= SMTP_FEATURE_PIPELINING;
 	    else if (strcasecmp(word, "XFORWARD") == 0)
 		while ((word = mystrtok(&words, " \t")) != 0)
-		    state->features |= name_code(xforward_features,
-						 NAME_CODE_FLAG_NONE, word);
+		    session->features |= name_code(xforward_features,
+						   NAME_CODE_FLAG_NONE, word);
 	    else if (strcasecmp(word, "SIZE") == 0) {
-		state->features |= SMTP_FEATURE_SIZE;
+		session->features |= SMTP_FEATURE_SIZE;
 		if ((word = mystrtok(&words, " \t")) != 0) {
 		    if (!alldig(word))
 			msg_warn("bad size limit \"%s\" in EHLO reply from %s",
 				 word, session->namaddr);
 		    else
-			state->size_limit = off_cvt_string(word);
+			session->size_limit = off_cvt_string(word);
 		}
 	    }
 #ifdef USE_SASL_AUTH
 	    else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
-		smtp_sasl_helo_auth(state, words);
+		smtp_sasl_helo_auth(session, words);
 #endif
 	    else if (strcasecmp(word, var_myhostname) == 0) {
 		if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) {
@@ -305,10 +307,10 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     }
     if (msg_verbose)
 	msg_info("server features: 0x%x size %.0f",
-		 state->features, (double) state->size_limit);
+		 session->features, (double) session->size_limit);
 
 #ifdef USE_SASL_AUTH
-    if (var_smtp_sasl_enable && (state->features & SMTP_FEATURE_AUTH))
+    if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
 	return (smtp_sasl_helo_login(state));
 #endif
 
@@ -429,8 +431,8 @@ int     smtp_xfer(SMTP_STATE *state)
 
 #define RETURN(x) do { \
 	vstring_free(next_command); \
-	if (state->mime_state) \
-	    state->mime_state = mime_state_free(state->mime_state); \
+	if (session->mime_state) \
+	    session->mime_state = mime_state_free(session->mime_state); \
 	return (x); \
     } while (0)
 
@@ -458,10 +460,10 @@ int     smtp_xfer(SMTP_STATE *state)
      * here rather than in the EHLO processing code, because of future SMTP
      * connection caching.
      */
-    if (state->size_limit > 0 && state->size_limit < request->data_size) {
+    if (session->size_limit > 0 && session->size_limit < request->data_size) {
 	smtp_mesg_fail(state, 552,
 		    "message size %lu exceeds size limit %.0f of server %s",
-		       request->data_size, (double) state->size_limit,
+		       request->data_size, (double) session->size_limit,
 		       session->namaddr);
 	RETURN(0);
     }
@@ -479,15 +481,15 @@ int     smtp_xfer(SMTP_STATE *state)
      * to be aware of application-level buffering by the vstream module,
      * which is limited to a couple kbytes.
      */
-    if (state->features & SMTP_FEATURE_PIPELINING) {
-	if (getsockopt(vstream_fileno(state->session->stream), SOL_SOCKET,
+    if (session->features & SMTP_FEATURE_PIPELINING) {
+	if (getsockopt(vstream_fileno(session->stream), SOL_SOCKET,
 		       SO_SNDBUF, (char *) &sndbufsize, &optlen) < 0)
 	    msg_fatal("%s: getsockopt: %m", myname);
 	if (sndbufsize > VSTREAM_BUFSIZE)
 	    sndbufsize = VSTREAM_BUFSIZE;
 	if (sndbufsize == 0) {
 	    sndbufsize = VSTREAM_BUFSIZE;
-	    if (setsockopt(vstream_fileno(state->session->stream), SOL_SOCKET,
+	    if (setsockopt(vstream_fileno(session->stream), SOL_SOCKET,
 			   SO_SNDBUF, (char *) &sndbufsize, optlen) < 0)
 		msg_fatal("%s: setsockopt: %m", myname);
 	}
@@ -521,15 +523,15 @@ int     smtp_xfer(SMTP_STATE *state)
     nrcpt = 0;
     send_name_addr =
 	var_smtp_send_xforward
-	&& (((state->features & SMTP_FEATURE_XFORWARD_NAME)
+	&& (((session->features & SMTP_FEATURE_XFORWARD_NAME)
 	     && DEL_REQ_ATTR_AVAIL(request->client_name))
-	    || ((state->features & SMTP_FEATURE_XFORWARD_ADDR)
+	    || ((session->features & SMTP_FEATURE_XFORWARD_ADDR)
 		&& DEL_REQ_ATTR_AVAIL(request->client_addr)));
     send_proto_helo =
 	var_smtp_send_xforward
-	&& (((state->features & SMTP_FEATURE_XFORWARD_PROTO)
+	&& (((session->features & SMTP_FEATURE_XFORWARD_PROTO)
 	     && DEL_REQ_ATTR_AVAIL(request->client_proto))
-	    || ((state->features & SMTP_FEATURE_XFORWARD_HELO)
+	    || ((session->features & SMTP_FEATURE_XFORWARD_HELO)
 		&& DEL_REQ_ATTR_AVAIL(request->client_helo)));
     if (send_name_addr)
 	recv_state = send_state = SMTP_STATE_XFORWARD_NAME_ADDR;
@@ -560,11 +562,11 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	case SMTP_STATE_XFORWARD_NAME_ADDR:
 	    vstring_strcpy(next_command, XFORWARD_CMD);
-	    if (state->features & SMTP_FEATURE_XFORWARD_NAME)
+	    if (session->features & SMTP_FEATURE_XFORWARD_NAME)
 		vstring_sprintf_append(next_command, " %s=%s",
 		   XFORWARD_NAME, DEL_REQ_ATTR_AVAIL(request->client_name) ?
 			       request->client_name : XFORWARD_UNAVAILABLE);
-	    if (state->features & SMTP_FEATURE_XFORWARD_ADDR)
+	    if (session->features & SMTP_FEATURE_XFORWARD_ADDR)
 		vstring_sprintf_append(next_command, " %s=%s",
 		   XFORWARD_ADDR, DEL_REQ_ATTR_AVAIL(request->client_addr) ?
 			       request->client_addr : XFORWARD_UNAVAILABLE);
@@ -576,11 +578,11 @@ int     smtp_xfer(SMTP_STATE *state)
 
 	case SMTP_STATE_XFORWARD_PROTO_HELO:
 	    vstring_strcpy(next_command, XFORWARD_CMD);
-	    if (state->features & SMTP_FEATURE_XFORWARD_PROTO)
+	    if (session->features & SMTP_FEATURE_XFORWARD_PROTO)
 		vstring_sprintf_append(next_command, " %s=%s",
 		 XFORWARD_PROTO, DEL_REQ_ATTR_AVAIL(request->client_proto) ?
 			      request->client_proto : XFORWARD_UNAVAILABLE);
-	    if (state->features & SMTP_FEATURE_XFORWARD_HELO)
+	    if (session->features & SMTP_FEATURE_XFORWARD_HELO)
 		vstring_sprintf_append(next_command, " %s=%s",
 		   XFORWARD_HELO, DEL_REQ_ATTR_AVAIL(request->client_helo) ?
 			       request->client_helo : XFORWARD_UNAVAILABLE);
@@ -591,13 +593,13 @@ int     smtp_xfer(SMTP_STATE *state)
 	     * Build the MAIL FROM command.
 	     */
 	case SMTP_STATE_MAIL:
-	    QUOTE_ADDRESS(state->scratch, request->sender);
+	    QUOTE_ADDRESS(session->scratch, request->sender);
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
-			    vstring_str(state->scratch));
-	    if (state->features & SMTP_FEATURE_SIZE)	/* RFC 1870 */
+			    vstring_str(session->scratch));
+	    if (session->features & SMTP_FEATURE_SIZE)	/* RFC 1870 */
 		vstring_sprintf_append(next_command, " SIZE=%lu",
 				       request->data_size);
-	    if (state->features & SMTP_FEATURE_8BITMIME) {	/* RFC 1652 */
+	    if (session->features & SMTP_FEATURE_8BITMIME) {	/* RFC 1652 */
 		if (strcmp(request->encoding, MAIL_ATTR_ENC_8BIT) == 0)
 		    vstring_strcat(next_command, " BODY=8BITMIME");
 		else if (strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) == 0)
@@ -612,8 +614,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 #ifdef USE_SASL_AUTH
 	    if (var_smtp_sasl_enable
-		&& (state->features & SMTP_FEATURE_AUTH)
-		&& state->sasl_passwd)
+		&& (session->features & SMTP_FEATURE_AUTH))
 		vstring_strcat(next_command, " AUTH=<>");
 #endif
 	    next_state = SMTP_STATE_RCPT;
@@ -625,9 +626,9 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	case SMTP_STATE_RCPT:
 	    rcpt = request->rcpt_list.info + send_rcpt;
-	    QUOTE_ADDRESS(state->scratch, rcpt->address);
+	    QUOTE_ADDRESS(session->scratch, rcpt->address);
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
-			    vstring_str(state->scratch));
+			    vstring_str(session->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == SMTP_RCPT_LEFT(state))
 		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
 		    SMTP_STATE_ABORT : SMTP_STATE_DATA;
@@ -705,12 +706,12 @@ int     smtp_xfer(SMTP_STATE *state)
 		 * Receive the next server response. Use the proper timeout,
 		 * and log the proper client state in case of trouble.
 		 */
-		smtp_timeout_setup(state->session->stream,
+		smtp_timeout_setup(session->stream,
 				   *xfer_timeouts[recv_state]);
-		if ((except = vstream_setjmp(state->session->stream)) != 0)
+		if ((except = vstream_setjmp(session->stream)) != 0)
 		    RETURN(SENDING_MAIL ? smtp_stream_except(state, except,
 					     xfer_states[recv_state]) : -1);
-		resp = smtp_chat_resp(state);
+		resp = smtp_chat_resp(session);
 
 		/*
 		 * Process the response.
@@ -902,10 +903,10 @@ int     smtp_xfer(SMTP_STATE *state)
 	if (send_state == SMTP_STATE_DOT && nrcpt > 0) {
 	    downgrading =
 		(var_disable_mime_oconv == 0
-		 && (state->features & SMTP_FEATURE_8BITMIME) == 0
+		 && (session->features & SMTP_FEATURE_8BITMIME) == 0
 		 && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0);
 	    if (downgrading)
-		state->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
+		session->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
 						  | MIME_OPT_REPORT_NESTING,
 						     smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
@@ -914,28 +915,28 @@ int     smtp_xfer(SMTP_STATE *state)
 						   (MIME_STATE_ERR_PRINT) 0,
 						     (void *) state);
 	    state->space_left = var_smtp_line_limit;
-	    smtp_timeout_setup(state->session->stream,
+	    smtp_timeout_setup(session->stream,
 			       var_smtp_data1_tmout);
-	    if ((except = vstream_setjmp(state->session->stream)) != 0)
+	    if ((except = vstream_setjmp(session->stream)) != 0)
 		RETURN(smtp_stream_except(state, except,
 					  "sending message body"));
 
 	    if (vstream_fseek(state->src, request->data_offset, SEEK_SET) < 0)
 		msg_fatal("seek queue file: %m");
 
-	    while ((rec_type = rec_get(state->src, state->scratch, 0)) > 0) {
+	    while ((rec_type = rec_get(state->src, session->scratch, 0)) > 0) {
 		if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT)
 		    break;
 		if (downgrading == 0) {
 		    smtp_text_out((void *) state, rec_type,
-				  vstring_str(state->scratch),
-				  VSTRING_LEN(state->scratch),
+				  vstring_str(session->scratch),
+				  VSTRING_LEN(session->scratch),
 				  (off_t) 0);
 		} else {
 		    mime_errs =
-			mime_state_update(state->mime_state, rec_type,
-					  vstring_str(state->scratch),
-					  VSTRING_LEN(state->scratch));
+			mime_state_update(session->mime_state, rec_type,
+					  vstring_str(session->scratch),
+					  VSTRING_LEN(session->scratch));
 		    if (mime_errs) {
 			smtp_mesg_fail(state, 554,
 				       "MIME 7-bit conversion failed: %s",
@@ -946,7 +947,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		prev_type = rec_type;
 	    }
 
-	    if (state->mime_state) {
+	    if (session->mime_state) {
 
 		/*
 		 * The cleanup server normally ends MIME content with a
@@ -957,7 +958,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		 * is requested upon delivery.
 		 */
 		mime_errs =
-		    mime_state_update(state->mime_state, rec_type, "", 0);
+		    mime_state_update(session->mime_state, rec_type, "", 0);
 		if (mime_errs) {
 		    smtp_mesg_fail(state, 554,
 				   "MIME 7-bit conversion failed: %s",
@@ -966,7 +967,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		}
 	    } else if (prev_type == REC_TYPE_CONT)	/* missing newline */
 		smtp_fputs("", 0, session->stream);
-	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0
+	    if ((session->features & SMTP_FEATURE_MAYBEPIX) != 0
 		&& request->arrival_time < vstream_ftime(session->stream)
 		- var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
@@ -985,7 +986,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	 */
 	if (sndbuffree > 0)
 	    sndbuffree -= VSTRING_LEN(next_command) + 2;
-	smtp_chat_cmd(state, "%s", vstring_str(next_command));
+	smtp_chat_cmd(session, "%s", vstring_str(next_command));
 	send_state = next_state;
 	send_rcpt = next_rcpt;
     }

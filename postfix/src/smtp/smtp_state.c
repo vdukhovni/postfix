@@ -59,19 +59,8 @@ SMTP_STATE *smtp_state_alloc(void)
     state->src = 0;
     state->request = 0;
     state->session = 0;
-    state->buffer = vstring_alloc(100);
-    state->scratch = vstring_alloc(100);
-    state->scratch2 = vstring_alloc(100);
     state->status = 0;
-    state->features = 0;
-    state->history = 0;
-    state->error_mask = 0;
-#ifdef USE_SASL_AUTH
-    smtp_sasl_connect(state);
-#endif
-    state->size_limit = 0;
     state->space_left = 0;
-    state->mime_state = 0;
     return (state);
 }
 
@@ -79,13 +68,5 @@ SMTP_STATE *smtp_state_alloc(void)
 
 void    smtp_state_free(SMTP_STATE *state)
 {
-    vstring_free(state->buffer);
-    vstring_free(state->scratch);
-    vstring_free(state->scratch2);
-#ifdef USE_SASL_AUTH
-    smtp_sasl_cleanup(state);
-#endif
-    if (state->mime_state)
-	mime_state_free(state->mime_state);
     myfree((char *) state);
 }

@@ -36,6 +36,7 @@ config_directory
 daemon_directory
 default_database_type
 default_rbl_reply
+execution_directory_expansion_filter
 export_environment
 forward_expansion_filter
 forward_path

@@ -41,6 +41,11 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
+/* .IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
+/*	The output record delimiter. Typically one would use either
+/*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
+/*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
+/*	\e\fIoctal\fR and \fB\e\e\fR.
 /* .IP "\fBflags=BDFORhqu.>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
@@ -96,6 +101,9 @@
 /*	Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
 /*	by, for example, \fBUUCP\fR software.
 /* .RE
+/* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
+/*	Messages greater in size than this limit (in bytes) will be bounced
+/*	back to the sender.
 /* .IP "\fBuser\fR=\fIusername\fR (required)"
 /* .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 /*	The external command is executed with the rights of the
@@ -104,14 +112,6 @@
 /*	mail system owner. If \fIgroupname\fR is specified, the
 /*	corresponding group ID is used instead of the group ID of
 /*	\fIusername\fR.
-/* .IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
-/*	The output record delimiter. Typically one would use either
-/*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
-/*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
-/*	\e\fIoctal\fR and \fB\e\e\fR.
-/* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
-/*	Messages greater in size than this limit (in bytes) will be bounced
-/*	back to the sender.
 /* .IP "\fBargv\fR=\fIcommand\fR... (required)"
 /*	The command to be executed. This must be specified as the
 /*	last command attribute.
@@ -173,6 +173,11 @@
 /*	In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
 /*	$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
 /*	\fB$\fR is wanted.
+/* .PP
+/*	Available in Postfix 2.2 and later:
+/* .IP "\fBdirectory=\fIpathname\fR (optional)"
+/*	Change to the specified directory before executing the command.
+/*	Failure causes mail delivery to be deferred.
 /* DIAGNOSTICS
 /*	Command exit status codes are expected to
 /*	follow the conventions defined in <\fBsysexits.h\fR>.
@@ -382,6 +387,7 @@ typedef struct {
     uid_t   uid;			/* command privileges */
     gid_t   gid;			/* command privileges */
     int     flags;			/* mail_copy() flags */
+    char   *exec_dir;			/* working directory */
     VSTRING *eol;			/* output record delimiter */
     off_t   size_limit;			/* max size in bytes we will accept */
 } PIPE_ATTR;
@@ -626,6 +632,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     group = 0;
     attr->command = 0;
     attr->flags = 0;
+    attr->exec_dir = 0;
     attr->eol = vstring_strcpy(vstring_alloc(1), "\n");
     attr->size_limit = 0;
 
@@ -695,6 +702,13 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	    } else {
 		attr->gid = pwd->pw_gid;
 	    }
+	}
+
+	/*
+	 * directory=string
+	 */
+	else if (strncasecmp("directory=", *argv, sizeof("directory=") - 1) == 0) {
+	    attr->exec_dir = mystrdup(*argv + sizeof("directory=") - 1);
 	}
 
 	/*
@@ -977,6 +991,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				  PIPE_CMD_TIME_LIMIT, conf.time_limit,
 				  PIPE_CMD_EOL, STR(attr.eol),
 				  PIPE_CMD_EXPORT, export_env->argv,
+				  PIPE_CMD_CWD, attr.exec_dir,
 			   PIPE_CMD_ORIG_RCPT, rcpt_list->info[0].orig_addr,
 			     PIPE_CMD_DELIVERED, rcpt_list->info[0].address,
 				  PIPE_CMD_END);

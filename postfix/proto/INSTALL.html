@@ -952,9 +952,23 @@ systems. </p>
 so that it listens on a socket inside the Postfix queue directory.
 Examples for specific systems: </p>
 
-<p> FreeBSD: <tt>syslogd -l /var/spool/postfix/var/run/log</tt> </p>
+<dl>
 
-<p> Linux, OpenBSD: <tt>syslogd -a /var/spool/postfix/dev/log</tt> </p>
+<dt> FreeBSD: </dt>
+
+<dd> <pre>
+# mkdir -p /var/spool/postfix/var/run
+# syslogd -l /var/spool/postfix/var/run/log
+</pre> </dd>
+
+<dt> Linux, OpenBSD: </dt>
+
+<dd> <pre>
+# mkdir -p /var/spool/postfix/dev
+# syslogd -a /var/spool/postfix/dev/log
+</pre> </dd>
+
+</dl>
 
 <h2><a name="care">12 - Care and feeding of the Postfix system</a></h2>
 
