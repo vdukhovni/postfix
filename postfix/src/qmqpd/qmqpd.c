@@ -394,7 +394,7 @@ static void qmqpd_close_file(QMQPD_STATE *state)
      * Finish the queue file or finish the cleanup conversation.
      */
     if (state->err == 0)
-	state->err = mail_stream_finish(state->dest);
+	state->err = mail_stream_finish(state->dest, state->why_rejected);
     else
 	mail_stream_cleanup(state->dest);
     state->dest = 0;
@@ -453,7 +453,7 @@ static int qmqpd_send_status(QMQPD_STATE *state)
 		    "Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_HARD,
-		    "Error: content rejected");
+		    "Error: %s", STR(state->why_rejected));
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_RETRY,
 		    "Error: queue file write error");

@@ -254,6 +254,38 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 	cleanup_fold_header(state);
 }
 
+/* cleanup_parse_reject - parse REJECT liune and pick up the reason */
+
+static const char *cleanup_parse_reject(CLEANUP_STATE *state, const char *value)
+{
+    const char *reason;
+
+    /*
+     * See if they spelled REJECT right.
+     */
+    if (strcasecmp(value, "REJECT") == 0) {
+	reason = "Content rejected";
+    } else if (strncasecmp(value, "REJECT ", 7) == 0
+	       || strncasecmp(value, "REJECT\t", 7) == 0) {
+	reason = value + 7;
+	while (*reason && ISSPACE(*reason))
+	    reason++;
+	if (*reason == 0)
+	    reason = "Content rejected";
+    } else {
+	return (0);
+    }
+
+    /*
+     * Update the remembered reason if none was stored.
+     */
+    if (state->why_rejected == 0) {
+	state->why_rejected = vstring_alloc(10);
+	vstring_strcpy(state->why_rejected, reason);
+    }
+    return (reason);
+}
+
 /* cleanup_header - process one complete header line */
 
 static void cleanup_header(CLEANUP_STATE *state)
@@ -267,12 +299,13 @@ static void cleanup_header(CLEANUP_STATE *state)
     if ((state->flags & CLEANUP_FLAG_FILTER) && cleanup_header_checks) {
 	char   *header = vstring_str(state->header_buf);
 	const char *value;
+	const char *reason;
 
 	if ((value = maps_find(cleanup_header_checks, header, 0)) != 0) {
-	    if (strcasecmp(value, "REJECT") == 0) {
-		msg_info("%s: reject: header %.200s; from=<%s> to=<%s>",
+	    if ((reason = cleanup_parse_reject(state, value)) != 0) {
+		msg_info("%s: reject: header %.200s; from=<%s> to=<%s>: %s",
 			 state->queue_id, header, state->sender,
-			 state->recip ? state->recip : "unknown");
+			 state->recip ? state->recip : "unknown", reason);
 		state->errs |= CLEANUP_STAT_CONT;
 	    } else if (strcasecmp(value, "IGNORE") == 0) {
 		return;
@@ -547,12 +580,13 @@ static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int 
 	 */
 	if ((state->flags & CLEANUP_FLAG_FILTER) && cleanup_body_checks) {
 	    const char *value;
+	    const char *reason;
 
 	    if ((value = maps_find(cleanup_body_checks, buf, 0)) != 0) {
-		if (strcasecmp(value, "REJECT") == 0) {
-		    msg_info("%s: reject: body %.200s; from=<%s> to=<%s>",
+		if ((reason = cleanup_parse_reject(state, value)) != 0) {
+		    msg_info("%s: reject: body %.200s; from=<%s> to=<%s>: %s",
 			     state->queue_id, buf, state->sender,
-			     state->recip ? state->recip : "unknown");
+			   state->recip ? state->recip : "unknown", reason);
 		    state->errs |= CLEANUP_STAT_CONT;
 		} else if (strcasecmp(value, "IGNORE") == 0) {
 		    return;

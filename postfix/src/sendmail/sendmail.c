@@ -516,7 +516,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
     if (vstream_ferror(VSTREAM_IN))
 	msg_fatal("%s(%ld): error reading input: %m",
 		  saved_sender, (long) uid);
-    if ((status = mail_stream_finish(handle)) != 0)
+    if ((status = mail_stream_finish(handle, buf)) != 0)
 	msg_fatal("%s(%ld): %s", saved_sender,
 		  (long) uid, cleanup_strerror(status));
     if (sendmail_path) {

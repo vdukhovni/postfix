@@ -144,7 +144,7 @@ int     vbounce_append(int flags, const char *id, const char *recipient,
     vstring_vsprintf(why, fmt, ap);
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_soft_bounce ?
 			    MAIL_SERVICE_DEFER : MAIL_SERVICE_BOUNCE,
-			    ATTR_TYPE_NUM, MAIL_ATTR_REQ, BOUNCE_CMD_APPEND,
+			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
@@ -177,7 +177,7 @@ int     bounce_flush(int flags, const char *queue, const char *id,
     if (var_soft_bounce)
 	return (-1);
     if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_BOUNCE,
-			    ATTR_TYPE_NUM, MAIL_ATTR_REQ, BOUNCE_CMD_FLUSH,
+			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,

@@ -547,8 +547,8 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);
 	    if (attr_scan(client_stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
-		     ATTR_TYPE_STR, MAIL_ATTR_SITE, site, ATTR_FLAG_MISSING,
-			  ATTR_TYPE_STR, MAIL_ATTR_SITE, queue_id,
+			  ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
+			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			  ATTR_TYPE_END) == 2
 		&& mail_queue_id_ok(STR(queue_id)))
 		status = flush_add_service(lowercase(STR(site)), STR(queue_id));

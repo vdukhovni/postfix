@@ -5490,7 +5490,17 @@ Apologies for any names omitted.
 20011010-14
 
 	Replaced the internal protocols by (name,value) attribute
-	lists. This is more extensible.
+	lists. This gives better error detection when we start
+	making changes to internal protocols.
+
+20011015
+
+	Put base 64 encoding into place on the replced internal
+	protocols.  Files: util/base64_code.[hc].
+
+	Feature: header/body REJECT rules can now end in text that
+	is sent to the originator. Files: cleanup/cleanup.c,
+	cleanup/cleanup_message.c, conf/sample-filter.cf.
 
 Open problems:
 

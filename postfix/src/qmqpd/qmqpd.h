@@ -45,6 +45,7 @@ typedef struct {
     char   *recipient;			/* recipient address */
     char   *protocol;			/* protocol name */
     char   *where;			/* protocol state */
+    VSTRING *why_rejected;		/* REJECT reason */
 } QMQPD_STATE;
 
  /*

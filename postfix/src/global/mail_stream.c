@@ -116,7 +116,7 @@ void    mail_stream_cleanup(MAIL_STREAM * info)
 
 /* mail_stream_finish_file - finish file mail stream */
 
-static int mail_stream_finish_file(MAIL_STREAM * info)
+static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
 {
     int     status = 0;
     static char wakeup[] = {TRIGGER_REQ_WAKEUP};
@@ -161,7 +161,7 @@ static int mail_stream_finish_file(MAIL_STREAM * info)
 
 /* mail_stream_finish_ipc - finish IPC mail stream */
 
-static int mail_stream_finish_ipc(MAIL_STREAM * info)
+static int mail_stream_finish_ipc(MAIL_STREAM * info, VSTRING *why)
 {
     int     status = CLEANUP_STAT_WRITE;
 
@@ -169,7 +169,9 @@ static int mail_stream_finish_ipc(MAIL_STREAM * info)
      * Receive the peer's completion status.
      */
     if (attr_scan(info->stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
-		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status, 0) != 1)
+		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+		  ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+		  ATTR_TYPE_END) != 2)
 	status = CLEANUP_STAT_WRITE;
 
     /*
@@ -181,9 +183,9 @@ static int mail_stream_finish_ipc(MAIL_STREAM * info)
 
 /* mail_stream_finish - finish action */
 
-int     mail_stream_finish(MAIL_STREAM * info)
+int     mail_stream_finish(MAIL_STREAM * info, VSTRING *why)
 {
-    return (info->finish(info));
+    return (info->finish(info, why));
 }
 
 /* mail_stream_file - destination is file */

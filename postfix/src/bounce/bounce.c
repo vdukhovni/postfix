@@ -142,11 +142,12 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
     /*
      * Read the and validate the client request.
      */
-    if (mail_command_server(client, "%d %s %s %s",
+    if (mail_command_server(client,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
-			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why, 0) != 4) {
+			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+			    ATTR_TYPE_END) != 4) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -181,11 +182,12 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
     /*
      * Read and validate the client request.
      */
-    if (mail_command_server(client, ATTR_FLAG_MISSING,
+    if (mail_command_server(client,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-			 ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender, 0) != 4) {
+			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_END) != 4) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -230,7 +232,8 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-		  ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims, 0) != 5) {
+		  ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
+		  ATTR_TYPE_END) != 5) {
 	msg_warn("malformed request");
 	return (-1);
     }

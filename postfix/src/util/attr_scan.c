@@ -83,7 +83,7 @@
 /*	For convenience, this value requests none of the above.
 /* .RE
 /* .IP type
-/*	The type determines the arguments that follow.
+/*	The type argument determines the arguments that follow.
 /* .RS
 /* .IP "ATTR_TYPE_NUM (char *, int *)"
 /*	This argument is followed by an attribute name and an integer pointer.
@@ -100,15 +100,21 @@
 /*	This is used for recovering a string array attribute value.
 /*	Values from the input stream are appended to the array.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
-/*	All further attributes are stored into the given hash table as simple
-/*	string-valued attributes, under keys equal to the attribute name.
+/*	All further input attributes are required to be simple string or 
+/*	integer attributes. 
+/*	Their string values are stored in the specified hash table under 
+/*	keys equal to the attribute name (obtained from the input stream).
 /*	Values from the input stream are added to the hash table, but existing
 /*	hash table entries are not replaced.
 /* .sp
-/*	N.B. This must be followed by an ATTR_TYPE_END argument.
+/*	N.B. This construct must be followed by an ATTR_TYPE_END argument.
 /* .IP ATTR_TYPE_END
-/*	This terminates the requested attribute list.
+/*	This argument terminates the requested attribute list.
 /* .RE
+/* BUGS
+/*	ATTR_TYPE_HASH accepts attributes with arbitrary names from an 
+/*	untrusted source. This is safe only if the resulting table is
+/*	queried for specific names.
 /* DIAGNOSTICS
 /*	The result value is the number of attributes that were successfully
 /*	recovered from the input stream (an array-valued attribute counts
@@ -143,6 +149,7 @@
 #include <vstring.h>
 #include <argv.h>
 #include <intv.h>
+#include <base64_code.h>
 #include <attr.h>
 
 /* Application specific. */
@@ -155,8 +162,12 @@
 static int attr_scan_string(VSTREAM *fp, VSTRING *plain_buf, const char *context)
 {
     static VSTRING *base64_buf = 0;
+
+#if 0
     extern int var_line_limit;		/* XXX */
     int     limit = var_line_limit * 5 / 4;
+
+#endif
     int     ch;
 
     if (base64_buf == 0)
@@ -170,14 +181,16 @@ static int attr_scan_string(VSTREAM *fp, VSTRING *plain_buf, const char *context
 	    return (-1);
 	}
 	VSTRING_ADDCH(base64_buf, ch);
+#if 0
 	if (LEN(base64_buf) > limit) {
 	    msg_warn("string length > %d characters from %s while reading %s",
 		     limit, VSTREAM_PATH(fp), context);
 	    return (-1);
 	}
+#endif
     }
     VSTRING_TERMINATE(base64_buf);
-    if (BASE64_DECODE(plain_buf, STR(base64_buf), LEN(base64_buf)) == 0) {
+    if (base64_decode(plain_buf, STR(base64_buf), LEN(base64_buf)) == 0) {
 	msg_warn("malformed base64 data from %s: %.100s",
 		 VSTREAM_PATH(fp), STR(base64_buf));
 	return (-1);
@@ -335,7 +348,7 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 				       "attribute value")) < 0)
 		return (conversions);
 	    if (ch != '\n') {
-		msg_warn("too many values for number attribute %s from %s",
+		msg_warn("multiple values for attribute %s from %s",
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (conversions);
 	    }
@@ -350,7 +363,7 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 	    if ((ch = attr_scan_string(fp, string, "attribute value")) < 0)
 		return (conversions);
 	    if (ch != '\n') {
-		msg_warn("too many values for string attribute %s from %s",
+		msg_warn("multiple values for attribute %s from %s",
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (conversions);
 	    }
@@ -364,7 +377,7 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 	    if ((ch = attr_scan_string(fp, str_buf, "attribute value")) < 0)
 		return (conversions);
 	    if (ch != '\n') {
-		msg_warn("too many values for string attribute %s from %s",
+		msg_warn("multiple values for attribute %s from %s",
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (conversions);
 	    }

@@ -13,6 +13,8 @@
 #
 # REJECT the entire message is rejected.
 #
+# REJECT text.... The text is sent to the originator.
+#
 # IGNORE the header line is silently discarded.
 #
 # OK	Nothing happens. the message will still be rejected when some 

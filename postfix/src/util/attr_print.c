@@ -92,17 +92,34 @@
 #include <mymalloc.h>
 #include <vstream.h>
 #include <htable.h>
+#include <base64_code.h>
 #include <attr.h>
 
-/* attr_fprintf - encode attribute information on the fly */
+#define STR(x)	vstring_str(x)
+#define LEN(x)	VSTRING_LEN(x)
 
-static void PRINTFLIKE(2, 3) attr_fprintf(VSTREAM *fp, const char *format,...)
+/* attr_print_str - encode and send attribute information */
+
+static void attr_print_str(VSTREAM *fp, const char *str, int len)
 {
-    va_list ap;
+    static VSTRING *base64_buf;
 
-    va_start(ap, format);
-    vstream_vfprintf(fp, format, ap);
-    va_end(ap);
+    if (base64_buf == 0)
+	base64_buf = vstring_alloc(10);
+
+    base64_encode(base64_buf, str, len);
+    vstream_fputs(STR(base64_buf), fp);
+}
+
+static void attr_print_num(VSTREAM *fp, unsigned num)
+{
+    static VSTRING *plain;
+
+    if (plain == 0)
+	plain = vstring_alloc(10);
+
+    vstring_sprintf(plain, "%u", num);
+    attr_print_str(fp, STR(plain), LEN(plain));
 }
 
 /* attr_vprint - send attribute list to stream */
@@ -136,46 +153,52 @@ int     attr_vprint(VSTREAM *fp, int flags, va_list ap)
 	switch (attr_type) {
 	case ATTR_TYPE_NUM:
 	    attr_name = va_arg(ap, char *);
-	    attr_fprintf(fp, "%s", attr_name);
+	    attr_print_str(fp, attr_name, strlen(attr_name));
 	    int_val = va_arg(ap, int);
-	    attr_fprintf(fp, ":%u", (unsigned) int_val);
+	    VSTREAM_PUTC(':', fp);
+	    attr_print_num(fp, (unsigned) int_val);
 	    if (msg_verbose)
-		msg_info("send attr name %s value %u", attr_name, int_val);
+		msg_info("send attr %s = %u", attr_name, int_val);
 	    break;
 	case ATTR_TYPE_STR:
 	    attr_name = va_arg(ap, char *);
-	    attr_fprintf(fp, "%s", attr_name);
+	    attr_print_str(fp, attr_name, strlen(attr_name));
 	    str_val = va_arg(ap, char *);
-	    attr_fprintf(fp, ":%s", str_val);
+	    VSTREAM_PUTC(':', fp);
+	    attr_print_str(fp, str_val, strlen(str_val));
 	    if (msg_verbose)
-		msg_info("send attr name %s value %s", attr_name, str_val);
+		msg_info("send attr %s = %s", attr_name, str_val);
 	    break;
 	case ATTR_TYPE_NUM_ARRAY:
 	    attr_name = va_arg(ap, char *);
-	    attr_fprintf(fp, "%s", attr_name);
+	    attr_print_str(fp, attr_name, strlen(attr_name));
 	    ip_val = va_arg(ap, int *);
 	    count_val = va_arg(ap, int);
-	    for (i = 0; i < count_val; i++)
-		attr_fprintf(fp, ":%u", (unsigned) *ip_val++);
+	    for (i = 0; i < count_val; i++) {
+		VSTREAM_PUTC(':', fp);
+		attr_print_num(fp, (unsigned) *ip_val++);}
 	    if (msg_verbose)
-		msg_info("send attr name %s values %d", attr_name, count_val);
+		msg_info("send attr %s values %d", attr_name, count_val);
 	    break;
 	case ATTR_TYPE_STR_ARRAY:
 	    attr_name = va_arg(ap, char *);
-	    attr_fprintf(fp, "%s", attr_name);
+	    attr_print_str(fp, attr_name, strlen(attr_name));
 	    cpp_val = va_arg(ap, char **);
 	    count_val = va_arg(ap, int);
 	    for (i = 0; i < count_val; i++) {
 		str_val = *cpp_val++;
-		attr_fprintf(fp, ":%s", str_val);
+		VSTREAM_PUTC(':', fp);
+		attr_print_str(fp, str_val, strlen(str_val));
 	    }
 	    if (msg_verbose)
-		msg_info("send attr name %s values %d", attr_name, count_val);
+		msg_info("send attr %s values %d", attr_name, count_val);
 	    break;
 	case ATTR_TYPE_HASH:
 	    ht_info_list = htable_list(va_arg(ap, HTABLE *));
 	    for (ht = ht_info_list; *ht; ht++) {
-		attr_fprintf(fp, "%s:%s", ht[0]->key, ht[0]->value);
+		attr_print_str(fp, ht[0]->key, strlen(ht[0]->key));
+		VSTREAM_PUTC(':', fp);
+		attr_print_str(fp, ht[0]->value, strlen(ht[0]->value));
 		if (msg_verbose)
 		    msg_info("send attr name %s value %s",
 			     ht[0]->key, ht[0]->value);

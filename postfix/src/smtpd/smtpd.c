@@ -891,6 +891,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     curr_rec_type;
     int     prev_rec_type;
     int     first = 1;
+    VSTRING *why = 0;
 
     /*
      * Sanity checks. With ESMTP command pipelining the client can send DATA
@@ -999,7 +1000,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Finish the queue file or finish the cleanup conversation.
      */
     if (state->err == 0)
-	state->err |= mail_stream_finish(state->dest);
+	state->err |= mail_stream_finish(state->dest, why = vstring_alloc(10));
     else
 	mail_stream_cleanup(state->dest);
     state->dest = 0;
@@ -1040,7 +1041,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "554 Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "552 Error: content rejected");
+	smtpd_chat_reply(state, "552 Error: %s", STR(why));
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");
@@ -1062,6 +1063,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     mail_reset(state);
     rcpt_reset(state);
+    if (why)
+	vstring_free(why);
     return (state->err);
 }
 

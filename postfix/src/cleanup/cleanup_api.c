@@ -20,6 +20,9 @@
 /*
 /*	int	cleanup_close(state)
 /*	CLEANUP_STATE *state;
+/*
+/*	int	cleanup_free(state)
+/*	CLEANUP_STATE *state;
 /* DESCRIPTION
 /*	This module implements a callable interface to the cleanup service
 /*	for processing one message and for writing it to queue file.
@@ -27,7 +30,8 @@
 /*
 /*	cleanup_open() creates a new queue file and performs other
 /*	per-message initialization. The result is a handle that should be
-/*	given to the cleanup_control(), cleanup_record() and cleanup_close()
+/*	given to the cleanup_control(), cleanup_record(), cleanup_close()
+/*	and cleanup_close()
 /*	routines. The name of the queue file is in the queue_id result
 /*	structure member.
 /*
@@ -43,10 +47,12 @@
 /*	The result is false when further message processing is futile.
 /*	In that case, it is safe to call cleanup_close() immediately.
 /*
-/*	cleanup_close() finishes a queue file. In case of any errors,
+/*	cleanup_close() closes a queue file. In case of any errors,
 /*	the file is removed. The result value is non-zero in case of
 /*	problems. Use cleanup_strerror() to translate the result into
 /*	human_readable text.
+/*
+/*	cleanup_free() destroys its argument.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* SEE ALSO
@@ -161,6 +167,7 @@ int     cleanup_close(CLEANUP_STATE *state)
 {
     char   *junk;
     int     status;
+    const char *reason;
 
     /*
      * See if there are any errors. For example, the message is incomplete,
@@ -181,7 +188,7 @@ int     cleanup_close(CLEANUP_STATE *state)
      * copy of the message.
      */
     if ((state->errs & CLEANUP_STAT_LETHAL) == 0)
-	state->errs |= mail_stream_finish(state->handle);
+	state->errs |= mail_stream_finish(state->handle, (VSTRING *) 0);
     else
 	mail_stream_cleanup(state->handle);
     state->handle = 0;
@@ -216,11 +223,14 @@ int     cleanup_close(CLEANUP_STATE *state)
 
     if (state->errs & CLEANUP_STAT_LETHAL) {
 	if (CAN_BOUNCE()) {
+	    reason = cleanup_strerror(state->errs);
+	    if (reason == cleanup_strerror(CLEANUP_STAT_CONT))
+		reason = vstring_str(state->why_rejected);
 	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 			      state->recip ? state->recip : "unknown",
 			      "cleanup", state->time,
 			      "Message processing aborted: %s",
-			      cleanup_strerror(state->errs)) == 0
+			      reason) == 0
 		&& bounce_flush(BOUNCE_FLAG_CLEAN, MAIL_QUEUE_INCOMING,
 				state->queue_id, state->sender) == 0) {
 		state->errs = 0;
@@ -249,6 +259,12 @@ int     cleanup_close(CLEANUP_STATE *state)
     if (msg_verbose)
 	msg_info("cleanup_close: status %d", state->errs);
     status = state->errs & CLEANUP_STAT_LETHAL;
-    cleanup_state_free(state);
     return (status);
+}
+
+/* cleanup_close - pay the last respects */
+
+void    cleanup_free(CLEANUP_STATE *state)
+{
+    cleanup_state_free(state);
 }

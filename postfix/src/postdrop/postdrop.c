@@ -289,7 +289,7 @@ int     main(int argc, char **argv)
     /*
      * Finish the file.
      */
-    if ((status = mail_stream_finish(dst)) != 0)
+    if ((status = mail_stream_finish(dst, (VSTRING *) 0)) != 0)
 	msg_fatal("uid=%ld: %s", (long) uid, cleanup_strerror(status));
 
     /*

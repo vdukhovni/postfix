@@ -74,6 +74,7 @@ QMQPD_STATE *qmqpd_state_alloc(VSTREAM *stream)
     state->recipient = 0;
     state->protocol = "QMQP";
     state->where = "initializing client connection";
+    state->why_rejected = vstring_alloc(10);
     return (state);
 }
 
@@ -92,5 +93,6 @@ void qmqpd_state_free(QMQPD_STATE *state)
 	myfree(state->sender);
     if (state->recipient)
 	myfree(state->recipient);
+    vstring_free(state->why_rejected);
     myfree((char *) state);
 }
