@@ -214,7 +214,7 @@
 #	A list of address rewriting or forwarding mechanisms that propagate   
 #	an address extension from the original address to the result.     
 #	Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
-#	\fBforward\fR, \fBinclude\fR, or \fBgenerics\fR.
+#	\fBforward\fR, \fBinclude\fR, or \fBgeneric\fR.
 # .PP
 #	Other parameters of interest:
 # .IP \fBinet_interfaces\fR

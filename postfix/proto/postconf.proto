@@ -2760,11 +2760,11 @@ to "<i>joe.user+foo</i>".
 
 <p>
 Specify zero or more of <b>canonical</b>, <b>virtual</b>, <b>alias</b>,
-<b>forward</b>, <b>include</b> or <b>generics</b>. These cause
+<b>forward</b>, <b>include</b> or <b>generic</b>. These cause
 address extension
 propagation with canonical(5), virtual(5), and aliases(5) maps,
 with local(8) .forward and :include: file lookups, and with smtp(8)
-generics maps, respectively.  </p>
+generic maps, respectively.  </p>
 
 <p>
 Note: enabling this feature for types other than <b>canonical</b>
@@ -8251,7 +8251,7 @@ client uses for TLS encrypted SMTP sessions. </p>
 <p> The SASL authentication security options that the Postfix SMTP
 server uses for TLS encrypted SMTP sessions. </p>
 
-%PARAM smtp_generics_maps empty
+%PARAM smtp_generic_maps empty
 
 <p> Optional lookup tables that perform address rewriting in the
 SMTP client, typically to transform a locally valid address into
@@ -8260,7 +8260,7 @@ This is needed when the local machine does not have its own Internet
 domain name, but uses something like <i>localdomain.local</i>
 instead.  </p>
 
-<p> The table format and lookups are documented in generics(5);
+<p> The table format and lookups are documented in generic(5);
 examples are shown in the ADDRESS_REWRITING_README and
 STANDARD_CONFIGURATION_README documents. </p>
 

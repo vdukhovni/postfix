@@ -1,39 +1,39 @@
-# GENERICS(5)                                           GENERICS(5)
+# GENERIC(5)                                             GENERIC(5)
 # 
 # NAME
-#        generics - Postfix generics table format
+#        generic - Postfix generic table format
 # 
 # SYNOPSIS
-#        postmap /etc/postfix/generics
+#        postmap /etc/postfix/generic
 # 
-#        postmap -q "string" /etc/postfix/generics
+#        postmap -q "string" /etc/postfix/generic
 # 
-#        postmap -q - /etc/postfix/generics <inputfile
+#        postmap -q - /etc/postfix/generic <inputfile
 # 
 # DESCRIPTION
-#        The  optional  generics(5) table specifies an address map-
-#        ping that applies when mail  is  delivered.  This  is  the
-#        opposite  of canonical(5) mapping, which applies when mail
-#        is received.
+#        The optional generic(5) table specifies an address mapping
+#        that applies when mail is delivered. This is the  opposite
+#        of  canonical(5)  mapping,  which  applies  when  mail  is
+#        received.
 # 
-#        Typically, one would use the generics(5) table on a system
+#        Typically, one would use the generic(5) table on a  system
 #        that  does  not have a valid Internet domain name and that
-#        uses something like localdomain.local instead.  The gener-
-#        ics(5)  table is then used by the smtp(8) client to trans-
-#        form  local  mail  addresses  into  valid  Internet   mail
+#        uses  something  like  localdomain.local   instead.    The
+#        generic(5)  table  is  then  used by the smtp(8) client to
+#        transform local mail addresses into  valid  Internet  mail
 #        addresses  when  mail  has to be sent across the Internet.
 #        See the EXAMPLE section at the end of this document.
 # 
-#        The  generics(5)  mapping  affects  both  message   header
+#        The  generic(5)  mapping  affects  both   message   header
 #        addresses (i.e. addresses that appear inside messages) and
 #        message envelope addresses  (for  example,  the  addresses
 #        that are used in SMTP protocol commands).
 # 
-#        Normally,  the  generics(5)  table  is specified as a text
-#        file that serves as input to the postmap(1) command.   The
+#        Normally, the generic(5) table is specified as a text file
+#        that serves as  input  to  the  postmap(1)  command.   The
 #        result,  an  indexed file in dbm or db format, is used for
 #        fast searching by the mail  system.  Execute  the  command
-#        "postmap  /etc/postfix/generics"  in  order to rebuild the
+#        "postmap  /etc/postfix/generic"  in  order  to rebuild the
 #        indexed file after changing the text file.
 # 
 #        When the table is provided via other means  such  as  NIS,
@@ -149,14 +149,14 @@
 #        that the ISP supports "+" style address extensions).
 # 
 #        /etc/postfix/main.cf:
-#                smtp_generics_maps = hash:/etc/postfix/generics
+#                smtp_generic_maps = hash:/etc/postfix/generic
 # 
-#        /etc/postfix/generics:
+#        /etc/postfix/generic:
 #                his@localdomain.local   hisaccount@hisisp.example
 #                her@localdomain.local   heraccount@herisp.example
 #                @localdomain.local      hisaccount+local@hisisp.example
 # 
-#        Execute the command "postmap /etc/postfix/generics"  when-
+#        Execute the command "postmap  /etc/postfix/generic"  when-
 #        ever  the table is changed.  Instead of hash, some systems
 #        use dbm database files. To find out what tables your  sys-
 #        tem supports use the command "postconf -m".
@@ -169,7 +169,7 @@
 #        The  text  below  provides  only  a parameter summary. See
 #        postconf(5) for more details including examples.
 # 
-#        smtp_generics_maps
+#        smtp_generic_maps
 #               Address  mapping  lookup  table  for  envelope  and
 #               header  sender and recipient addresses while deliv-
 #               ering mail via SMTP.
@@ -179,7 +179,7 @@
 #               nisms  that propagate an address extension from the
 #               original address to the result.   Specify  zero  or
 #               more   of   canonical,   virtual,  alias,  forward,
-#               include, or generics.
+#               include, or generic.
 # 
 #        Other parameters of interest:
 # 
@@ -230,4 +230,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                       GENERICS(5)
+#                                                        GENERIC(5)

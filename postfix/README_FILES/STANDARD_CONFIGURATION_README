@@ -517,7 +517,7 @@ Postfix version you have, execute the command "ppoossttccoonnff mmaai
 
 PPoossttffiixx vveerrssiioonn 22..22 aanndd llaatteerr
 
-Postfix 2.2 uses the generics(5) address mapping to replace local fantasy email
+Postfix 2.2 uses the generic(5) address mapping to replace local fantasy email
 addresses by valid Internet addresses. This mapping happens ONLY when mail
 leaves the machine; not when you send mail between users on the same machine.
 
@@ -526,9 +526,9 @@ this with basic configuration information as discussed the first half of this
 document.
 
     1 /etc/postfix/main.cf:
-    2     smtp_generics_maps = hash:/etc/postfix/generics
+    2     smtp_generic_maps = hash:/etc/postfix/generic
     3
-    4 /etc/postfix/generics:
+    4 /etc/postfix/generic:
     5     his@localdomain.local             hisaccount@hisisp.example
     6     her@localdomain.local             heraccount@herisp.example
     7     @localdomain.local                hisaccount+local@hisisp.example
@@ -546,8 +546,8 @@ When mail is sent to a remote host via SMTP:
 Specify ddbbmm instead of hhaasshh if your system uses ddbbmm files instead of ddbb files.
 To find out what lookup tables Postfix supports, use the command "ppoossttccoonnff --mm".
 
-Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ggeenneerriiccss" whenever you change the
-generics table.
+Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ggeenneerriicc" whenever you change the
+generic table.
 
 PPoossttffiixx vveerrssiioonn 22..11 aanndd eeaarrlliieerr
 

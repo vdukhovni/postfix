@@ -4,7 +4,7 @@ SHELL	= /bin/sh
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
 	../conf/transport ../conf/virtual ../conf/header_checks \
-	../conf/generics
+	../conf/generic
 
 HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/ADDRESS_REWRITING_README.html \
@@ -105,7 +105,7 @@ clobber:
 ../conf/canonical: canonical
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/generics: generics
+../conf/generic: generic
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/header_checks: header_checks

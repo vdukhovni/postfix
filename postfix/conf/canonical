@@ -180,7 +180,7 @@
 #               nisms that propagate an address extension from  the
 #               original  address  to  the result.  Specify zero or
 #               more  of  canonical,   virtual,   alias,   forward,
-#               include, or generics.
+#               include, or generic.
 # 
 #        Other parameters of interest:
 # 

@@ -2438,11 +2438,11 @@ joe.user\fR", the address "\fIjoe+foo@domain\fR" would rewrite
 to "\fIjoe.user+foo\fR".
 .PP
 Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
-\fBforward\fR, \fBinclude\fR or \fBgenerics\fR. These cause
+\fBforward\fR, \fBinclude\fR or \fBgeneric\fR. These cause
 address extension
 propagation with \fBcanonical\fR(5), \fBvirtual\fR(5), and \fBaliases\fR(5) maps,
 with \fBlocal\fR(8) .forward and :include: file lookups, and with \fBsmtp\fR(8)
-generics maps, respectively.
+generic maps, respectively.
 .PP
 Note: enabling this feature for types other than \fBcanonical\fR
 and \fBvirtual\fR is likely to cause problems when mail is forwarded
@@ -3246,7 +3246,7 @@ This option is useful only if you are definitely sure that you
 will only connect to servers that support RFC 2487 _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.
-.SH smtp_generics_maps (default: empty)
+.SH smtp_generic_maps (default: empty)
 Optional lookup tables that perform address rewriting in the
 SMTP client, typically to transform a locally valid address into
 a globally valid address when sending mail across the Internet.
@@ -3254,7 +3254,7 @@ This is needed when the local machine does not have its own Internet
 domain name, but uses something like \fIlocaldomain.local\fR
 instead.
 .PP
-The table format and lookups are documented in \fBgenerics\fR(5);
+The table format and lookups are documented in \fBgeneric\fR(5);
 examples are shown in the ADDRESS_REWRITING_README and
 STANDARD_CONFIGURATION_README documents.
 .PP

@@ -10274,7 +10274,7 @@ Apologies for any names omitted.
 	the mx_session_limit setting. File: smtp/smtp_connect.c.
 
 	Feature: output address rewriting in the SMTP client. The
-	smtp_generics_maps parameter specifies an address mapping
+	smtp_generic_maps parameter specifies an address mapping
 	that happens only when mail is delivered via SMTP. This is
 	typically used for hosts without a valid domain name, that
 	use something like localdomain.local instead.  This feature
@@ -10288,7 +10288,7 @@ Apologies for any names omitted.
 
 20050207
 
-	Documentation: added a generics(5) manual page for consistency
+	Documentation: added a generic(5) manual page for consistency
 	with the already existing table driven mechanisms, added
 	references to or examples of the new generic mapping.
 
@@ -10324,17 +10324,17 @@ Apologies for any names omitted.
 
 20050209
 
-	Cleanup: the smtp generics mapping did syntax check on the
+	Cleanup: the smtp generic mapping did syntax check on the
 	input address instead of the result. These tests were not
 	going to be useful in any case, because mail_addr_map()
 	canonicalizes the lookup result, including @dom1->@dom2
 	mapping. File:  smtp_map11.c.
 
-	Cleanup: made the generics mapping documentation consistent
+	Cleanup: made the generic mapping documentation consistent
 	with the implementation.
 
 	Cleanup: documented the myorigin/mydomain address rewriting
-	in canonical, generics and virtual alias maps.
+	in canonical, generic and virtual alias maps.
 
 20050210
 
@@ -10346,16 +10346,24 @@ Apologies for any names omitted.
 	Duchovni.  File: tls/tls_scache.c.
 
 	Safety: delete-behind when removing expired entries from
-	TLS session caches. Some maps mis-behave when the current
-	entry is deleted. File: tls/tls_scache.c.
+	TLS session caches. With some maps the enumeration method
+	mis-behaves when the current entry is deleted. File:
+	tls/tls_scache.c.
+
+20040211
+
+	Cleanup: the "generics" feature (output address rewriting)
+	is renamed to "generic", for consistency with "canonical"
+	and "virtual".
 
 Open problems:
 
+	Low: 9kbyte memory leak when an expired in-memory session
+	is removed by SSL_CTX_flush_sessions(). The occurrance of
+	this is rare enough that it is a low priority.
+
 	Med: local and remote source port and IP address for smtpd
 	policy hook.
-
-	Med: should "generics" be "generic", for consistency with
-	"canonical" and "virtual".
 
 	Med: canonical/generic/virtual mapping always append
 	myorigin/mydomain and never remote_header_rewrite_domain;

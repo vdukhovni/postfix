@@ -100,7 +100,7 @@ as invalid </a>
 
 <ul>
 
-<li> <a href="#generics"> Generic mapping for outgoing SMTP mail </a>
+<li> <a href="#generic"> Generic mapping for outgoing SMTP mail </a>
 
 </ul>
 
@@ -343,8 +343,8 @@ nowrap> all mail </td> <td> <a href="cleanup.8.html">cleanup(8)</a> </td> <td> <
 <td nowrap> all mail </td> <td> <a href="trivial-rewrite.8.html">trivial-<br>rewrite(8)</a> </td> <td>
 <a href="postconf.5.html#relocated_maps">relocated_maps</a> </td> <td> none </td> </tr>
 
-<tr> <td> <a href="#generics"> Generics table </a> </td> <td>
-outgoing SMTP mail </td> <td> <a href="smtp.8.html">smtp(8)</a> </td> <td> <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a>
+<tr> <td> <a href="#generic"> Generic mapping table </a> </td> <td>
+outgoing SMTP mail </td> <td> <a href="smtp.8.html">smtp(8)</a> </td> <td> <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a>
 </td> <td> none </td> </tr>
 
 <tr> <td> <a href="#aliases"> Local alias database</a> </td> <td>
@@ -819,7 +819,7 @@ via the <a href="smtp.8.html">smtp(8)</a> delivery agent: </p>
 
 <ul>
 
-<li> <a href="#generics"> Generic mapping for outgoing SMTP mail </a>
+<li> <a href="#generic"> Generic mapping for outgoing SMTP mail </a>
 
 </ul>
 
@@ -939,16 +939,16 @@ otheruser@elsewhere.tld". Older Postfix versions will receive the
 mail first, and then return it to the sender as undeliverable, with
 the same reason.  </p>
 
-<h3> <a name="generics"> Generic mapping for outgoing SMTP mail </a> </h3>
+<h3> <a name="generic"> Generic mapping for outgoing SMTP mail </a> </h3>
 
 <p> Some hosts have no valid Internet domain name, and instead use
 a name such as <i>localdomain.local</i>. This can be a problem when
 you want to send mail over the Internet, because many mail servers
 reject mail addresses with invalid domain names. </p>
 
-<p> With the <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a> parameter you can specify <a href="generics.5.html">generics(5)</a>
+<p> With the <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> parameter you can specify <a href="generic.5.html">generic(5)</a>
 lookup tables that replace local mail addresses by valid Internet
-addresses when mail leaves the machine via SMTP. The <a href="generics.5.html">generics(5)</a>
+addresses when mail leaves the machine via SMTP. The <a href="generic.5.html">generic(5)</a>
 mapping replaces envelope and header addresses, and is non-recursive.
 It does not happen when you send mail between addresses on the
 local machine. </p>
@@ -960,9 +960,9 @@ local machine. </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a> = hash:/etc/postfix/generics
+    <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> = hash:/etc/postfix/generic
 
-/etc/postfix/generics:
+/etc/postfix/generic:
     his@localdomain.local		hisaccount@hisisp.example
     her@localdomain.local		heraccount@herisp.example
     @localdomain.local			hisaccount+local@hisisp.example

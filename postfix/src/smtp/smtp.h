@@ -155,7 +155,7 @@ extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
 
 extern MAPS *smtp_ehlo_dis_maps;	/* ehlo keyword filter */
 
-extern MAPS *smtp_generics_maps;	/* make internal address valid */
+extern MAPS *smtp_generic_maps;		/* make internal address valid */
 extern int smtp_ext_prop_mask;		/* address externsion propagation */
 
 #ifdef USE_TLS

@@ -1,38 +1,38 @@
 #++
 # NAME
-#	generics 5
+#	generic 5
 # SUMMARY
-#	Postfix generics table format
+#	Postfix generic table format
 # SYNOPSIS
-#	\fBpostmap /etc/postfix/generics\fR
+#	\fBpostmap /etc/postfix/generic\fR
 #
-#	\fBpostmap -q "\fIstring\fB" /etc/postfix/generics\fR
+#	\fBpostmap -q "\fIstring\fB" /etc/postfix/generic\fR
 #
-#	\fBpostmap -q - /etc/postfix/generics <\fIinputfile\fR
+#	\fBpostmap -q - /etc/postfix/generic <\fIinputfile\fR
 # DESCRIPTION
-#	The optional \fBgenerics\fR(5) table specifies an address
+#	The optional \fBgeneric\fR(5) table specifies an address
 #	mapping that applies when mail is delivered. This is the
 #	opposite of \fBcanonical\fR(5) mapping, which applies when
 #	mail is received.
 #
-#	Typically, one would use the \fBgenerics\fR(5) table on a
+#	Typically, one would use the \fBgeneric\fR(5) table on a
 #	system that does not have a valid Internet domain name and
 #	that uses something like \fIlocaldomain.local\fR instead.
-#	The \fBgenerics\fR(5) table is then used by the \fBsmtp\fR(8)
+#	The \fBgeneric\fR(5) table is then used by the \fBsmtp\fR(8)
 #	client to transform local mail addresses into valid Internet
 #	mail addresses when mail has to be sent across the Internet.
 #	See the EXAMPLE section at the end of this document.
 #
-#	The \fBgenerics\fR(5) mapping affects both message header
+#	The \fBgeneric\fR(5) mapping affects both message header
 #	addresses (i.e. addresses that appear inside messages) and
 #	message envelope addresses (for example, the addresses that
 #	are used in SMTP protocol commands).
 #
-#	Normally, the \fBgenerics\fR(5) table is specified as a
+#	Normally, the \fBgeneric\fR(5) table is specified as a
 #	text file that serves as input to the \fBpostmap\fR(1)
 #	command.  The result, an indexed file in \fBdbm\fR or
 #	\fBdb\fR format, is used for fast searching by the mail
-#	system. Execute the command "\fBpostmap /etc/postfix/generics\fR"
+#	system. Execute the command "\fBpostmap /etc/postfix/generic\fR"
 #	in order to rebuild the indexed file after changing the
 #	text file.
 #
@@ -146,10 +146,10 @@
 # .nf
 #	/etc/postfix/main.cf:
 # .in +4
-#	    smtp_generics_maps = hash:/etc/postfix/generics
+#	    smtp_generic_maps = hash:/etc/postfix/generic
 # .in -4
 #
-#	/etc/postfix/generics:
+#	/etc/postfix/generic:
 # .in +4
 #	    his@localdomain.local   hisaccount@hisisp.example
 #	    her@localdomain.local   heraccount@herisp.example
@@ -158,7 +158,7 @@
 #
 # .ad
 # .fi
-#	Execute the command "\fBpostmap /etc/postfix/generics\fR"
+#	Execute the command "\fBpostmap /etc/postfix/generic\fR"
 #	whenever the table is changed.  Instead of \fBhash\fR, some
 #	systems use \fBdbm\fR database files. To find out what
 #	tables your system supports use the command "\fBpostconf
@@ -171,14 +171,14 @@
 #	The following \fBmain.cf\fR parameters are especially relevant.  
 #	The text below provides only a parameter summary. See
 #	\fBpostconf\fR(5) for more details including examples.
-# .IP \fBsmtp_generics_maps\fR
+# .IP \fBsmtp_generic_maps\fR
 #	Address mapping lookup table for envelope and header sender
 #	and recipient addresses while delivering mail via SMTP.
 # .IP \fBpropagate_unmatched_extensions\fR 
 #	A list of address rewriting or forwarding mechanisms that propagate
 #	an address extension from the original address to the result.
 #	Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,  
-#	\fBforward\fR, \fBinclude\fR, or \fBgenerics\fR.
+#	\fBforward\fR, \fBinclude\fR, or \fBgeneric\fR.
 # .PP
 #	Other parameters of interest:
 # .IP \fBinet_interfaces\fR

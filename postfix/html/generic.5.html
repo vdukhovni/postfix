@@ -2,44 +2,44 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> Postfix manual - generics(5) </title>
+<title> Postfix manual - generic(5) </title>
 </head> <body> <pre>
-GENERICS(5)                                           GENERICS(5)
+GENERIC(5)                                             GENERIC(5)
 
 <b>NAME</b>
-       generics - Postfix generics table format
+       generic - Postfix generic table format
 
 <b>SYNOPSIS</b>
-       <b>postmap /etc/postfix/generics</b>
+       <b>postmap /etc/postfix/generic</b>
 
-       <b>postmap -q "</b><i>string</i><b>" /etc/postfix/generics</b>
+       <b>postmap -q "</b><i>string</i><b>" /etc/postfix/generic</b>
 
-       <b>postmap -q - /etc/postfix/generics</b> &lt;<i>inputfile</i>
+       <b>postmap -q - /etc/postfix/generic</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       The  optional  <a href="generics.5.html"><b>generics</b>(5)</a> table specifies an address map-
-       ping that applies when mail  is  delivered.  This  is  the
-       opposite  of <a href="canonical.5.html"><b>canonical</b>(5)</a> mapping, which applies when mail
-       is received.
+       The optional <a href="generic.5.html"><b>generic</b>(5)</a> table specifies an address mapping
+       that applies when mail is delivered. This is the  opposite
+       of  <a href="canonical.5.html"><b>canonical</b>(5)</a>  mapping,  which  applies  when  mail  is
+       received.
 
-       Typically, one would use the <a href="generics.5.html"><b>generics</b>(5)</a> table on a system
+       Typically, one would use the <a href="generic.5.html"><b>generic</b>(5)</a> table on a  system
        that  does  not have a valid Internet domain name and that
-       uses something like <i>localdomain.local</i> instead.  The <a href="generics.5.html"><b>gener-</b></a>
-       <a href="generics.5.html"><b>ics</b>(5)</a>  table is then used by the <a href="smtp.8.html"><b>smtp</b>(8)</a> client to trans-
-       form  local  mail  addresses  into  valid  Internet   mail
+       uses  something  like  <i>localdomain.local</i>   instead.    The
+       <a href="generic.5.html"><b>generic</b>(5)</a>  table  is  then  used by the <a href="smtp.8.html"><b>smtp</b>(8)</a> client to
+       transform local mail addresses into  valid  Internet  mail
        addresses  when  mail  has to be sent across the Internet.
        See the EXAMPLE section at the end of this document.
 
-       The  <a href="generics.5.html"><b>generics</b>(5)</a>  mapping  affects  both  message   header
+       The  <a href="generic.5.html"><b>generic</b>(5)</a>  mapping  affects  both   message   header
        addresses (i.e. addresses that appear inside messages) and
        message envelope addresses  (for  example,  the  addresses
        that are used in SMTP protocol commands).
 
-       Normally,  the  <a href="generics.5.html"><b>generics</b>(5)</a>  table  is specified as a text
-       file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.   The
+       Normally, the <a href="generic.5.html"><b>generic</b>(5)</a> table is specified as a text file
+       that serves as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.   The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
        fast searching by the mail  system.  Execute  the  command
-       "<b>postmap  /etc/postfix/generics</b>"  in  order to rebuild the
+       "<b>postmap  /etc/postfix/generic</b>"  in  order  to rebuild the
        indexed file after changing the text file.
 
        When the table is provided via other means  such  as  NIS,
@@ -155,14 +155,14 @@ GENERICS(5)                                           GENERICS(5)
        that the ISP supports "+" style address extensions).
 
        /etc/postfix/main.cf:
-               <a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a> = hash:/etc/postfix/generics
+               <a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> = hash:/etc/postfix/generic
 
-       /etc/postfix/generics:
+       /etc/postfix/generic:
                his@localdomain.local   hisaccount@hisisp.example
                her@localdomain.local   heraccount@herisp.example
                @localdomain.local      hisaccount+local@hisisp.example
 
-       Execute the command "<b>postmap /etc/postfix/generics</b>"  when-
+       Execute the command "<b>postmap  /etc/postfix/generic</b>"  when-
        ever  the table is changed.  Instead of <b>hash</b>, some systems
        use <b>dbm</b> database files. To find out what tables your  sys-
        tem supports use the command "<b>postconf -m</b>".
@@ -175,7 +175,7 @@ GENERICS(5)                                           GENERICS(5)
        The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
-       <b><a href="postconf.5.html#smtp_generics_maps">smtp_generics_maps</a></b>
+       <b><a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a></b>
               Address  mapping  lookup  table  for  envelope  and
               header  sender and recipient addresses while deliv-
               ering mail via SMTP.
@@ -185,7 +185,7 @@ GENERICS(5)                                           GENERICS(5)
               nisms  that propagate an address extension from the
               original address to the result.   Specify  zero  or
               more   of   <b>canonical</b>,   <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,
-              <b>include</b>, or <b>generics</b>.
+              <b>include</b>, or <b>generic</b>.
 
        Other parameters of interest:
 
@@ -234,5 +234,5 @@ GENERICS(5)                                           GENERICS(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                      GENERICS(5)
+                                                       GENERIC(5)
 </pre> </body> </html>

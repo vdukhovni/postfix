@@ -75,14 +75,16 @@
 /*	with the specified session information.
 /*
 /*	tls_scache_sequence() iterates over the specified TLS
-/*	session cache and returns the first or next entry that
-/*	matches the session timeout, OpenSSL version and flags
-/*	restrictions.  Entries that don't satisfy the requirements
+/*	session cache and either returns the first or next entry
+/*	that matches the session timeout, OpenSSL version and flags
+/*	restrictions, or returns no data.  Entries that don't
+/*	satisfy the requirements
 /*	are silently deleted.  Specify TLS_SCACHE_SEQUENCE_NOTHING
 /*	as the third and last argument to disable OpenSSL version
 /*	and flags restrictions, and to disable saving of cache
 /*	entry content or cache entry ID information.  This is useful
-/*	when purging expired entries.
+/*	when purging expired entries. A result value of zero means
+/*	that the end of the cache was reached.
 /*
 /*	tls_scache_delete() removes the specified cache entry from
 /*	the specified TLS session cache.
@@ -454,10 +456,11 @@ int     tls_scache_sequence(TLS_SCACHE *cp, int first_next,
      * XXX Deleting entries while enumerating a map can he tricky. Some map
      * types have a concept of cursor and support a "delete the current
      * element" operation. Some map types without cursors don't behave well
-     * when the current first/next entry is deleted (example: Berkeley DB <
-     * 2). To avoid trouble, we delete an expired entry after advancing the
-     * current first/next position beyond it, and ignore client requests to
-     * delete the current entry.
+     * when the current first/next entry is deleted (example: with Berkeley
+     * DB < 2, the "next" operation produces garbage). To avoid trouble, we
+     * delete an expired entry after advancing the current first/next
+     * position beyond it, and ignore client requests to delete the current
+     * entry.
      */
 
     /*

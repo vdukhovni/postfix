@@ -160,9 +160,9 @@ table will help you to quickly find what you need.
     |users table |all mail|rewrite |relocated_maps      |none                    |
     |            |        |(8)     |                    |                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |Generics    |outgoing|        |                    |                        |
-    |table       |SMTP    |smtp(8) |smtp_generics_maps  |none                    |
-    |            |mail    |        |                    |                        |
+    |Generic     |outgoing|        |                    |                        |
+    |mapping     |SMTP    |smtp(8) |smtp_generic_maps   |none                    |
+    |table       |mail    |        |                    |                        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |Local alias |all mail|local(8)|alias_maps          |none                    |
     |database    |        |        |                    |                        |
@@ -607,9 +607,9 @@ localdomain.local. This can be a problem when you want to send mail over the
 Internet, because many mail servers reject mail addresses with invalid domain
 names.
 
-With the smtp_generics_maps parameter you can specify generics(5) lookup tables
+With the smtp_generic_maps parameter you can specify generic(5) lookup tables
 that replace local mail addresses by valid Internet addresses when mail leaves
-the machine via SMTP. The generics(5) mapping replaces envelope and header
+the machine via SMTP. The generic(5) mapping replaces envelope and header
 addresses, and is non-recursive. It does not happen when you send mail between
 addresses on the local machine.
 
@@ -618,9 +618,9 @@ This feature is available in Postfix version 2.2 and later.
 Example:
 
     /etc/postfix/main.cf:
-        smtp_generics_maps = hash:/etc/postfix/generics
+        smtp_generic_maps = hash:/etc/postfix/generic
 
-    /etc/postfix/generics:
+    /etc/postfix/generic:
         his@localdomain.local		hisaccount@hisisp.example
         her@localdomain.local		heraccount@herisp.example
         @localdomain.local			hisaccount+local@hisisp.example

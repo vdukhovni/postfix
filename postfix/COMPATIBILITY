@@ -18,7 +18,7 @@ esmtp		yes
 etrn support	yes (per-destination log for authorized destinations only)
 fcntl locking	yes (runtime configurable)
 flock locking	yes (runtime configurable)
-genericstable	no  (to be done)
+genericstable	yes (Postfix 2.2 generic(5) table)
 greylist	yes (delegated policy script)
 home mailbox	yes
 ident lookup	no

@@ -969,9 +969,9 @@ extern bool var_smtp_defer_mxaddr;
 #define DEF_SMTP_SEND_XFORWARD	0
 extern bool var_smtp_send_xforward;
 
-#define VAR_SMTP_GENERICS_MAPS	"smtp_generics_maps"
-#define DEF_SMTP_GENERICS_MAPS	""
-extern char *var_smtp_generics_maps;
+#define VAR_SMTP_GENERIC_MAPS	"smtp_generic_maps"
+#define DEF_SMTP_GENERIC_MAPS	""
+extern char *var_smtp_generic_maps;
 
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP

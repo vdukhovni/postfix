@@ -4536,11 +4536,11 @@ to "<i>joe.user+foo</i>".
 
 <p>
 Specify zero or more of <b>canonical</b>, <b>virtual</b>, <b>alias</b>,
-<b>forward</b>, <b>include</b> or <b>generics</b>. These cause
+<b>forward</b>, <b>include</b> or <b>generic</b>. These cause
 address extension
 propagation with <a href="canonical.5.html">canonical(5)</a>, <a href="virtual.5.html">virtual(5)</a>, and <a href="aliases.5.html">aliases(5)</a> maps,
 with <a href="local.8.html">local(8)</a> .forward and :include: file lookups, and with <a href="smtp.8.html">smtp(8)</a>
-generics maps, respectively.  </p>
+generic maps, respectively.  </p>
 
 <p>
 Note: enabling this feature for types other than <b>canonical</b>
@@ -5915,7 +5915,7 @@ send all their email to a dedicated mailhub.  </p>
 
 </DD>
 
-<DT><b><a name="smtp_generics_maps">smtp_generics_maps</a>
+<DT><b><a name="smtp_generic_maps">smtp_generic_maps</a>
 (default: empty)</b></DT><DD>
 
 <p> Optional lookup tables that perform address rewriting in the
@@ -5925,7 +5925,7 @@ This is needed when the local machine does not have its own Internet
 domain name, but uses something like <i>localdomain.local</i>
 instead.  </p>
 
-<p> The table format and lookups are documented in <a href="generics.5.html">generics(5)</a>;
+<p> The table format and lookups are documented in <a href="generic.5.html">generic(5)</a>;
 examples are shown in the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> and
 <a href="STANDARD_CONFIGURATION_README.html">STANDARD_CONFIGURATION_README</a> documents. </p>
 

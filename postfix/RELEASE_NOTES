@@ -7,6 +7,12 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20050211
+================================================
+
+The "generics" table feature is renamed to "generic", for consistency
+with other Postfix table names which are also singular.
+
 Major changes with snapshot Postfix-2.2-20050209
 ================================================
 
@@ -28,18 +34,18 @@ for sites that have no valid Internet domain name, and that use a
 domain name such as localdomain.local instead. Mail addresses that
 use such domain names are often rejected by mail servers.  
 
-The new smtp_generics_maps feature allows you to replace local mail
+The new smtp_generic_maps feature allows you to replace local mail
 addresses by valid Internet addresses when mail is sent across the
 Internet.  It has no effect on mail that is sent between accounts
-on the local machine. The syntax is described in generics(5) and
+on the local machine. The syntax is described in generic(5) and
 a detailed example is in the STANDARD_CONFIGURATION_README file.
 
 Example:
 
 /etc/postfix/main.cf:
-    smtp_generics_maps = hash:/etc/postfix/generics
+    smtp_generic_maps = hash:/etc/postfix/generic
 
-/etc/postfix/generics:
+/etc/postfix/generic:
     you@localdomain.local		youraccount@yourisp.net
     her@localdomain.local		heraccount@herisp.net
     @localdomain.local			youraccount+local@yourisp.net

@@ -740,7 +740,7 @@ static void smtp_header_rewrite(void *context, int header_class,
     char   *end_line;
 
     /*
-     * Rewrite primary header addresses that match the smtp_generics_table.
+     * Rewrite primary header addresses that match the smtp_generic_maps.
      * The cleanup server already enforces that all headers have proper
      * lengths and that all addresses are in proper form, so we don't have to
      * repeat that.
@@ -755,8 +755,8 @@ static void smtp_header_rewrite(void *context, int header_class,
 			    + strlen(header_info->name) + 1);
 	addr_list = tok822_grep(tree, TOK822_ADDR);
 	for (tpp = addr_list; *tpp; tpp++)
-	    did_rewrite |= smtp_map11_tree(tpp[0], smtp_generics_maps,
-				    smtp_ext_prop_mask & EXT_PROP_GENERICS);
+	    did_rewrite |= smtp_map11_tree(tpp[0], smtp_generic_maps,
+				    smtp_ext_prop_mask & EXT_PROP_GENERIC);
 	if (did_rewrite) {
 	    vstring_sprintf(buf, "%s: ", header_info->name);
 	    tok822_externalize(buf, tree, TOK822_STR_HEAD);
@@ -838,9 +838,9 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
      */
 #define REWRITE_ADDRESS(dst, src) do { \
 	vstring_strcpy(dst, src); \
-	if (*(src) && smtp_generics_maps) \
-	    smtp_map11_internal(dst, smtp_generics_maps, \
-		smtp_ext_prop_mask & EXT_PROP_GENERICS); \
+	if (*(src) && smtp_generic_maps) \
+	    smtp_map11_internal(dst, smtp_generic_maps, \
+		smtp_ext_prop_mask & EXT_PROP_GENERIC); \
     } while (0)
 
 #define QUOTE_ADDRESS(dst, src) do { \
@@ -1349,10 +1349,10 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		(var_disable_mime_oconv == 0
 		 && (session->features & SMTP_FEATURE_8BITMIME) == 0
 		 && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0);
-	    if (downgrading || smtp_generics_maps)
+	    if (downgrading || smtp_generic_maps)
 		session->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
 						  | MIME_OPT_REPORT_NESTING,
-						       smtp_generics_maps ?
+						       smtp_generic_maps ?
 						       smtp_header_rewrite :
 						       smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
