@@ -67,7 +67,7 @@ char   *split_addr(char *localpart, int delimiter)
     /*
      * Backwards compatibility: don't split owner-foo or foo-request.
      */
-    if (var_ownreq_special != 0) {
+    if (delimiter == '-' && var_ownreq_special != 0) {
 	if (strncasecmp(localpart, "owner-", 6) == 0)
 	    return (0);
 	if ((len = strlen(localpart) - 8) > 0
