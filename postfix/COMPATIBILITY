@@ -13,7 +13,7 @@ content filter	yes (before and after queue, internal and external)
 db tables	yes (compile time option)
 dbm tables	yes (compile time option)
 delivered-to	yes (configurable with prepend_delivered_header)
-dsn		not yet (bounces have DSN form)
+dsn		almost (supports enhanced status codes and DSN format bounces)
 errors-to:	yes (disabled by default since Postfix 2.1)
 esmtp		yes
 etrn support	yes (per-destination log for authorized destinations only)
@@ -60,7 +60,7 @@ sendmail.cf	no (uses table-driven address rewriting)
 size option	yes, server and client
 smarthost	yes (specify relayhost in main.cf)
 spf		yes (delegated policy script)
-starttls        yes
+starttls        yes (compile time option)
 tcp wrapper	no (use built-in blacklist facility)
 user+extension	yes (also: .forward+extension)
 user-extension	yes (also: .forward-extension)

@@ -379,9 +379,15 @@ case "$CC" in
       *CC) error "Don't use CC. That's the C++ compiler";;
         *) : ${OPT='-O'};;
 esac
+#
+# "gcc -W" 3.4.2 no longer reports functions that fail to return a
+# result.  Use "gcc -Wall -Wno-comment" instead. We'll figure out
+# later if the other -Wmumble options are really redundant. Having
+# een burned once by a compiler that lies about what warnings it
+# produces, not taking that chance again.
 
 : ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
-${WARN='-W -Wformat -Wimplicit -Wmissing-prototypes \
+${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused'}
 

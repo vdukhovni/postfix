@@ -1124,6 +1124,11 @@ typedef int WAIT_STATUS_T;
 #endif
 
  /*
+  * Avoid useless type mis-matches when using sizeof in an integer context.
+  */
+#define INT_SIZEOF(foo)	((int) sizeof(foo))
+
+ /*
   * Turn on the compatibility stuff.
   */
 #ifdef MISSING_UTIMBUF

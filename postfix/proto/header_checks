@@ -181,10 +181,9 @@
 #	before the input that triggered the \fBPREPEND\fR action.
 # .IP \(bu
 #	The prepended text is not considered part of the input
-#	stream. Unlike the result from the \fBREPLACE\fR action,
-#	prepended text is not subject to header/body checks or
-#	address rewriting, and does not affect the way that Postfix
-#	adds missing message headers.
+#	stream: it is not subject to header/body checks or address
+#	rewriting, and it does not affect the way that Postfix adds
+#	missing message headers.
 # .IP \(bu
 #	When prepending text before a message header line, the prepended
 #	text must begin with a valid message header label.

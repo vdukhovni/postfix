@@ -10574,6 +10574,15 @@ Apologies for any names omitted.
 	Bug introduced 20050329 while polishing working code.  Files:
 	smtp/smtp_chat.c, lmtp/lmtp_chat.c.
 
+	Feature: add enhanced status code support to the smtp-sink
+	test program. File: smtpstone/smtp-sink.c.
+
+20050331
+
+	Workarounds for ancient gcc compilers that can't handle
+	valid C. Bugs reported by Victor Duchovni. Files:
+	util/sys_defs.h, global/dsn_util.h, tls/tls_client.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

@@ -28,6 +28,8 @@
  /*
   * Storage for an enhanced status code. Avoid using malloc for itty-bitty
   * strings with a known size limit.
+  * 
+  * XXX gcc version 2 complains about sizeof() as format width specifier.
   */
 typedef struct {
     char    data[DSN_SIZE];		/* NOT a public interface */
@@ -36,7 +38,7 @@ typedef struct {
 #define DSN_UPDATE(dsn_buf, dsn, len) do { \
 	if (len >= sizeof((dsn_buf).data)) \
 	    msg_panic("DSN_UPDATE: bad DSN code \"%.*s...\" length %d", \
-		sizeof((dsn_buf).data) - 1, dsn, len); \
+		INT_SIZEOF((dsn_buf).data) - 1, dsn, len); \
 	strncpy((dsn_buf).data, (dsn), (len)); \
 	(dsn_buf).data[len] = 0; \
     } while (0)

@@ -396,12 +396,18 @@ SSL_CTX *tls_client_init(int unused_verifydepth)
 	 * OpenSSL can, however, automatically save newly created sessions for
 	 * us by callback (we create the session name in the call-back
 	 * function).
+	 * 
+	 * XXX gcc 2.95 can't compile #ifdef .. #endif in the expansion of
+	 * SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_NO_INTERNAL_STORE |
+	 * SSL_SESS_CACHE_NO_AUTO_CLEAR.
 	 */
+#ifndef SSL_SESS_CACHE_NO_INTERNAL_STORE
+#define SSL_SESS_CACHE_NO_INTERNAL_STORE 0
+#endif
+
 	SSL_CTX_set_session_cache_mode(client_ctx,
 				       SSL_SESS_CACHE_CLIENT |
-#ifdef SSL_SESS_CACHE_NO_INTERNAL_STORE
 				       SSL_SESS_CACHE_NO_INTERNAL_STORE |
-#endif
 				       SSL_SESS_CACHE_NO_AUTO_CLEAR);
 	SSL_CTX_sess_set_new_cb(client_ctx, new_client_session_cb);
     }

@@ -195,7 +195,7 @@ static void helo_response(SINK_STATE *state)
 
 static void ok_response(SINK_STATE *state)
 {
-    smtp_printf(state->stream, "250 Ok");
+    smtp_printf(state->stream, "250 2.0.0 Ok");
     smtp_flush(state->stream);
 }
 
@@ -204,7 +204,8 @@ static void ok_response(SINK_STATE *state)
 static void mail_response(SINK_STATE *state)
 {
     state->rcpts = 0;
-    ok_response(state);
+    smtp_printf(state->stream, "250 2.1.0 Ok");
+    smtp_flush(state->stream);
 }
 
 /* rcpt_response - bump recipient count, send 250 OK */
@@ -212,7 +213,8 @@ static void mail_response(SINK_STATE *state)
 static void rcpt_response(SINK_STATE *state)
 {
     state->rcpts++;
-    ok_response(state);
+    smtp_printf(state->stream, "250 2.1.5 Ok");
+    smtp_flush(state->stream);
 }
 
 /* data_response - respond to DATA command */
@@ -240,10 +242,11 @@ static void dot_response(SINK_STATE *state)
 {
     if (enable_lmtp) {
 	while (state->rcpts-- > 0)	/* XXX this could block */
-	    ok_response(state);		/* XXX this flushes too often */
+	    smtp_printf(state->stream, "250 2.2.0 Ok");
     } else {
-	ok_response(state);
+	smtp_printf(state->stream, "250 2.0.0 Ok");
     }
+    smtp_flush(state->stream);
 }
 
 /* quit_response - respond to QUIT command */
@@ -478,7 +481,7 @@ static int command_read(SINK_STATE *state)
     if (msg_verbose)
 	msg_info("%s", ptr);
     if ((command = mystrtok(&ptr, " \t")) == 0) {
-	smtp_printf(state->stream, "500 Error: unknown command");
+	smtp_printf(state->stream, "500 5.5.2 Error: unknown command");
 	smtp_flush(state->stream);
 	return (0);
     }
@@ -486,19 +489,19 @@ static int command_read(SINK_STATE *state)
 	if (strcasecmp(command, cmdp->name) == 0)
 	    break;
     if (cmdp->name == 0 || (cmdp->flags & FLAG_ENABLE) == 0) {
-	smtp_printf(state->stream, "500 Error: unknown command");
+	smtp_printf(state->stream, "500 5.5.1 Error: unknown command");
 	smtp_flush(state->stream);
 	return (0);
     }
     if (cmdp->flags & FLAG_DISCONNECT)
 	return (-1);
     if (cmdp->flags & FLAG_HARD_ERR) {
-	smtp_printf(state->stream, "500 Error: command failed");
+	smtp_printf(state->stream, "500 5.3.0 Error: command failed");
 	smtp_flush(state->stream);
 	return (0);
     }
     if (cmdp->flags & FLAG_SOFT_ERR) {
-	smtp_printf(state->stream, "450 Error: command failed");
+	smtp_printf(state->stream, "450 4.3.0 Error: command failed");
 	smtp_flush(state->stream);
 	return (0);
     }
