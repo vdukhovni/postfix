@@ -6978,6 +6978,15 @@ Apologies for any names omitted.
 	Bugfix: pickup should not preserve INSPECT or FILTER records
 	from "postsuper -r". File: pickup/pickup.c.
 
+20020919
+
+	Feature: reject_rbl <domainname> by LaMont Jones.
+
+20020921
+
+	Internal: generic caching and reject reporting that can be
+	used for both RBL and RHSBL.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

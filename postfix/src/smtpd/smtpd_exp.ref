@@ -1,0 +1,25 @@
+>>> #
+>>> # Initialize.
+>>> #
+>>> #! ../bin/postmap smtpd_check_access
+>>> #msg_verbose 1
+>>> smtpd_delay_reject 0
+OK
+>>> mynetworks 127.0.0.0/8,168.100.189.0/28
+OK
+>>> relay_domains porcupine.org
+OK
+>>> maps_rbl_domains blackholes.mail-abuse.org
+OK
+>>> rbl_reply_maps hash:smtpd_check_access
+OK
+>>> #
+>>> # RBL
+>>> #
+>>> client_restrictions reject_maps_rbl
+OK
+>>> client spike.porcupine.org 168.100.189.2
+OK
+>>> client foo 127.0.0.2
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=  sender= sender_name=  recipient= recipient_name=  rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
+554 client=foo[127.0.0.2] client_address=127.0.0.2 client_name=foo helo_name=  sender= sender_name=  recipient= recipient_name=  rbl_code=554 rbl_domain=blackholes.mail-abuse.org rbl_txt=Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>

@@ -362,6 +362,7 @@ int     var_relay_code;
 int     var_maps_rbl_code;
 int     var_access_map_code;
 char   *var_maps_rbl_domains;
+char   *var_rbl_reply_maps;
 int     var_helo_required;
 int     var_reject_code;
 int     var_defer_code;
@@ -1616,6 +1617,7 @@ int     main(int argc, char **argv)
 	VAR_ETRN_CHECKS, DEF_ETRN_CHECKS, &var_etrn_checks, 0, 0,
 	VAR_DATA_CHECKS, DEF_DATA_CHECKS, &var_data_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
+	VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps, 0, 0,
 	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,

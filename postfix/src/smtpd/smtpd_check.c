@@ -89,12 +89,19 @@
 /* .IP "check_recipient_access maptype:mapname"
 /*	Look up the resolved recipient address in the named access table,
 /*	any parent domains of the recipient domain, and the localpart@.
+/* .IP reject_rbl rbl.domain
+/*	Look up the reversed client network address in the specified
+/*	real-time blackhole DNS zone.  The \fIrbl_reply_maps\fR configuration
+/*	parameter is used to generate the template for the reject message.
+/*	If it is not specified, or the rbl domain cannot be found, then a
+/*	default template is used.  The \fImaps_rbl_reject_code\fR
+/*	configuration parameter specifies the reject status code used in
+/*	the default template (default: 554).
 /* .IP reject_maps_rbl
 /*	Look up the reversed client network address in the real-time blackhole
 /*	DNS zones below the domains listed in the "maps_rbl_domains"
-/*	configuration parameter. The \fImaps_rbl_reject_code\fR
-/*	configuration parameter specifies the reject status code
-/*	(default: 554).
+/*	configuration parameter.  This is equivalent to using "reject_rbl"
+/*	once for each such domain.
 /* .IP permit_naked_ip_address
 /*	Permit the use of a naked IP address (without enclosing [])
 /*	in HELO/EHLO commands.
@@ -277,6 +284,7 @@
 #include <dict.h>
 #include <htable.h>
 #include <ctable.h>
+#include <mac_expand.h>
 
 /* DNS library. */
 
@@ -326,6 +334,7 @@ static jmp_buf smtpd_check_buf;
   */
 static VSTRING *error_text;
 static CTABLE *smtpd_resolve_cache;
+static CTABLE *smtpd_rbl_cache;
 
  /*
   * Pre-opened SMTP recipient maps so we can reject mail for unknown users.
@@ -338,6 +347,11 @@ static MAPS *canonical_maps;
 static MAPS *virtual_maps;
 static MAPS *virt_mailbox_maps;
 static MAPS *relocated_maps;
+
+ /*
+  * Response templates for various rbl domains.
+  */
+static MAPS *rbl_reply_maps;
 
  /*
   * Pre-opened sender to login name mapping.
@@ -413,6 +427,23 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
     defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3))
 #define DEFER_IF_PERMIT2(state, class, fmt, a1, a2) \
     defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2))
+
+ /*
+  * Cached RBL lookup state.
+  */
+typedef struct {
+    char   *txt;			/* TXT record or null */
+} SMTPD_RBL_STATE;
+
+ /*
+  * Context for RBL $name expansion.
+  */
+typedef struct {
+    SMTPD_STATE *state;			/* general state */
+    SMTPD_RBL_STATE *rbl_state;		/* cached RBL state */
+    const char *domain;			/* query domain */
+} SMTPD_RBL_EXPAND_CONTEXT;
+
 /* resolve_pagein - page in an address resolver result */
 
 static void *resolve_pagein(const char *addr, void *unused_context)
@@ -453,6 +484,53 @@ static void resolve_pageout(void *data, void *unused_context)
 
     resolve_clnt_free(reply);
     myfree((void *) reply);
+}
+
+/* rbl_pagein - page in an RBL lookup result */
+
+static void *rbl_pagein(const char *query, void *unused_context)
+{
+    DNS_RR *txt_list;
+    VSTRING *why;
+    int     dns_status;
+    SMTPD_RBL_STATE *rbl;
+
+    /*
+     * Do the query.
+     */
+    why = vstring_alloc(10);
+    dns_status = dns_lookup(query, T_A, 0, (DNS_RR **) 0,
+			    (VSTRING *) 0, why);
+    if (dns_status != DNS_OK && dns_status != DNS_NOTFOUND)
+	msg_warn("%s: RBL lookup error: %s", query, STR(why));
+    vstring_free(why);
+    if (dns_status != DNS_OK)
+	return (0);
+
+    /*
+     * Save the result.
+     */
+    rbl = (SMTPD_RBL_STATE *) mymalloc(sizeof(*rbl));
+    if (dns_lookup(query, T_TXT, 0, &txt_list,
+		   (VSTRING *) 0, (VSTRING *) 0) == DNS_OK) {
+	rbl->txt = mystrdup(txt_list->data);
+	dns_rr_free(txt_list);
+    } else
+	rbl->txt = 0;
+    return ((void *) rbl);
+}
+
+/* rbl_pageout - page out an RBL lookup result */
+
+static void rbl_pageout(void *data, void *unused_context)
+{
+    SMTPD_RBL_STATE *rbl = (SMTPD_RBL_STATE *) data;
+
+    if (rbl != 0) {
+	if (rbl->txt)
+	    myfree(rbl->txt);
+	myfree((char *) rbl);
+    }
 }
 
 /* smtpd_check_parse - pre-parse restrictions */
@@ -582,6 +660,12 @@ void    smtpd_check_init(void)
     access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
 
     /*
+     * Templates for RBL rejection replies.
+     */
+    rbl_reply_maps = maps_create(VAR_RBL_REPLY_MAPS, var_rbl_reply_maps,
+				 DICT_FLAG_LOCK);
+
+    /*
      * Sender to login name mapping.
      */
     smtpd_sender_login_maps = maps_create(VAR_SMTPD_SND_AUTH_MAPS,
@@ -596,8 +680,13 @@ void    smtpd_check_init(void)
     /*
      * Initialize the resolved address cache.
      */
-    smtpd_resolve_cache = ctable_create(100, resolve_pagein,
-					resolve_pageout, (void *) 0);
+    smtpd_resolve_cache = ctable_create(100, resolve_pagein, resolve_pageout,
+					(void *) 0);
+
+    /*
+     * Initialize the RBL lookup cache.
+     */
+    smtpd_rbl_cache = ctable_create(100, rbl_pagein, rbl_pageout, (void *) 0);
 
     /*
      * Pre-parse the restriction lists. At the same time, pre-open tables
@@ -2034,24 +2123,190 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     CHECK_MAIL_ACCESS_RETURN(SMTPD_CHECK_DUNNO);
 }
 
-/* reject_maps_rbl - reject if client address in real-time blackhole list */
+/* edit_addr - return address or substring thereof */
 
-static int reject_maps_rbl(SMTPD_STATE *state)
+static const char *edit_addr(VSTRING *buf, const char *addr, const char *name)
 {
-    char   *myname = "reject_maps_rbl";
-    ARGV   *octets = argv_split(state->addr, ".");
-    VSTRING *query = vstring_alloc(100);
-    char   *saved_domains = mystrdup(var_maps_rbl_domains);
-    char   *bp = saved_domains;
-    char   *rbl_domain;
-    char   *rbl_reason;
-    char   *rbl_fodder;
-    DNS_RR *txt_list;
-    int     reverse_len;
-    int     dns_status = DNS_FAIL;
+    const char *p;
+
+    /*
+     * Return "undefined" when the address is unavailable.
+     */
+    if (addr == 0)
+	return (0);
+
+    /*
+     * "sender" or "recipient".
+     */
+    if (*name == 0) {
+	if (*addr)
+	    return (addr);
+	else
+	    return ("<>");
+    }
+
+    /*
+     * "sender_name" or "recipient_name".
+     */
+#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
+
+    else if (STREQ(name, "_name")) {
+	if (*addr) {
+	    if ((p = strrchr(addr, '@')) != 0) {
+		vstring_strncpy(buf, addr, p - addr);
+		return (STR(buf));
+	    } else {
+		return (addr);
+	    }
+	} else
+	    return ("<>");
+    }
+
+    /*
+     * "sender_domain" or "recipient_domain".
+     */
+    else if (STREQ(name, "_domain")) {
+	if (*addr) {
+	    if ((p = strrchr(addr, '@')) != 0) {
+		return (p + 1);
+	    } else {
+		return (0);
+	    }
+	} else
+	    return (0);
+    }
+
+    /*
+     * Unknown.
+     */
+    else
+	return (0);
+}
+
+/* smtpd_expand_lookup - generic SMTP attribute $name expansion */
+
+static const char *smtpd_expand_lookup(const char *name, int unused_mode,
+				               char *context)
+{
+    SMTPD_STATE *state = (SMTPD_STATE *) context;
+
+    if (state->expand_buf == 0)
+	state->expand_buf = vstring_alloc(10);
+
+    if (msg_verbose > 1)
+	msg_info("smtpd_expand_lookup: ${%s}", name);
+
+#define STREQN(x,y,n) (*(x) == *(y) && strncmp((x), (y), (n)) == 0)
+#define CONST_LEN(x)  (sizeof(x) - 1)
+
+    /*
+     * Don't query main.cf parameters, as the result of expansion could
+     * reveal system-internal information in server replies.
+     */
+    if (STREQ(name, "client")) {
+	return (state->namaddr);
+    } else if (STREQ(name, "client_address")) {
+	return (state->addr);
+    } else if (STREQ(name, "client_name")) {
+	return (state->name);
+    } else if (STREQ(name, "helo_name")) {
+	return (state->helo_name ? state->helo_name : 0);
+    } else if (STREQN(name, "sender", CONST_LEN("sender"))) {
+	return (edit_addr(state->expand_buf, state->sender,
+			  name + CONST_LEN("sender")));
+    } else if (STREQN(name, "recipient", CONST_LEN("recipient"))) {
+	return (edit_addr(state->expand_buf, state->recipient,
+			  name + CONST_LEN("recipient")));
+    } else {
+	return (0);
+    }
+}
+
+/* rbl_expand_lookup - RBL specific $name expansion */
+
+static const char *rbl_expand_lookup(const char *name, int mode,
+				             char *context)
+{
+    SMTPD_RBL_EXPAND_CONTEXT *rbl_exp = (SMTPD_RBL_EXPAND_CONTEXT *) context;
+    SMTPD_RBL_STATE *rbl = rbl_exp->rbl_state;
+    SMTPD_STATE *state = rbl_exp->state;
+
+    if (state->expand_buf == 0)
+	state->expand_buf = vstring_alloc(10);
+
+    if (msg_verbose > 1)
+	msg_info("rbl_expand_lookup: ${%s}", name);
+
+    if (STREQ(name, "rbl_code")) {
+	vstring_sprintf(state->expand_buf, "%d", var_maps_rbl_code);
+	return (STR(state->expand_buf));
+    } else if (STREQ(name, "rbl_domain")) {
+	return (rbl_exp->domain);
+    } else if (STREQ(name, "rbl_txt")) {
+	return (rbl->txt);
+    } else {
+	return (smtpd_expand_lookup(name, mode, (char *) state));
+    }
+}
+
+/* rbl_reject_reply - format reply after RBL reject */
+
+static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
+			            const char *rbl_domain)
+{
+    const char *myname = "rbl_reject_reply";
+    VSTRING *why = 0;
+    const char *template = 0;
+    char   *low_name;
+    SMTPD_RBL_EXPAND_CONTEXT rbl_exp;
+    int     result;
+
+    if (*var_rbl_reply_maps) {
+	low_name = lowercase(mystrdup(rbl_domain));
+	template = maps_find(rbl_reply_maps, low_name, 0);
+	myfree(low_name);
+    }
+    if (template) {
+	why = vstring_alloc(10);
+	rbl_exp.state = state;			/* XXX */
+	rbl_exp.rbl_state = rbl;
+	rbl_exp.domain = rbl_domain;
+#define NO_SMTPD_EXP_FILTER ((char *) 0)	/* XXX */
+	if (mac_expand(why, template, MAC_EXP_FLAG_NONE,
+		       NO_SMTPD_EXP_FILTER, rbl_expand_lookup,
+		       (char *) &rbl_exp) & MAC_PARSE_ERROR) {
+	    msg_warn("%s: bad rbl template: %s", myname, template);
+	    template = 0;			/* pretend not found */
+	}
+    }
+    if (template) {
+	result = smtpd_check_reject(state, MAIL_ERROR_POLICY, STR(why));
+    } else {
+	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+			"%d Service unavailable; [%s] blocked using %s%s%s",
+				    var_maps_rbl_code, state->addr,
+			rbl_domain, rbl->txt ? ", reason: " : "", rbl->txt);
+    }
+
+    /*
+     * Clean up.
+     */
+    if (why)
+	vstring_free(why);
+
+    return (result);
+}
+
+/* reject_rbl - reject if client address in real-time blackhole list */
+
+static int reject_rbl(SMTPD_STATE *state, const char *rbl_domain)
+{
+    char   *myname = "reject_rbl";
+    ARGV   *octets;
+    VSTRING *query;
     int     i;
     int     result;
-    VSTRING *why;
+    SMTPD_RBL_STATE *rbl;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->addr);
@@ -2065,57 +2320,62 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 #endif
 
     /*
-     * Build the constant part of the RBL query: the reverse client address.
+     * Initialize.
      */
+    query = vstring_alloc(100);
+
+    /*
+     * Reverse the client IPV4 address, tack on the RBL domain name and query
+     * the DNS for an A record. If the record exists, the client address is
+     * blacklisted. If the DNS lookup produces no definitive reply, give the
+     * client the benefit of the doubt. We can't block all email simply
+     * because an RBL server is unavailable.
+     */
+    octets = argv_split(state->addr, ".");
     for (i = octets->argc - 1; i >= 0; i--) {
 	vstring_strcat(query, octets->argv[i]);
 	vstring_strcat(query, ".");
     }
-    reverse_len = VSTRING_LEN(query);
+    argv_free(octets);
+    vstring_strcat(query, rbl_domain);
+    rbl = (SMTPD_RBL_STATE *) ctable_locate(smtpd_rbl_cache, STR(query));
 
-    /*
-     * Tack on each RBL domain name and query the DNS for an A record. If the
-     * record exists, the client address is blacklisted.
-     */
-    why = vstring_alloc(10);
-    while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
-	vstring_truncate(query, reverse_len);
-	vstring_strcat(query, rbl_domain);
-	dns_status = dns_lookup(STR(query), T_A, 0, (DNS_RR **) 0,
-				(VSTRING *) 0, why);
-	if (dns_status == DNS_OK)
-	    break;
-	if (dns_status != DNS_NOTFOUND)
-	    msg_warn("%s: RBL lookup error: %s", STR(query), STR(why));
-    }
-    vstring_free(why);
-
-    /*
-     * Report the result.
-     */
-    if (dns_status == DNS_OK) {
-	if (dns_lookup(STR(query), T_TXT, 0, &txt_list,
-		       (VSTRING *) 0, (VSTRING *) 0) == DNS_OK) {
-	    rbl_fodder = ", reason: ";
-	    rbl_reason = (char *) txt_list->data;
-	} else {
-	    txt_list = 0;
-	    rbl_fodder = rbl_reason = "";
-	}
-	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-			"%d Service unavailable; [%s] blocked using %s%s%s",
-				 var_maps_rbl_code, state->addr, rbl_domain,
-				    rbl_fodder, rbl_reason);
-	if (txt_list)
-	    dns_rr_free(txt_list);
-    } else
+    if (rbl == 0) {
 	result = SMTPD_CHECK_DUNNO;
+    } else {
+	result = rbl_reject_reply(state, rbl, rbl_domain);
+    }
 
     /*
      * Clean up.
      */
-    argv_free(octets);
     vstring_free(query);
+
+    return (result);
+}
+
+/* reject_maps_rbl - reject if client address in real-time blackhole list */
+
+static int reject_maps_rbl(SMTPD_STATE *state)
+{
+    char   *myname = "reject_maps_rbl";
+    char   *saved_domains = mystrdup(var_maps_rbl_domains);
+    char   *bp = saved_domains;
+    char   *rbl_domain;
+    int     result = SMTPD_CHECK_DUNNO;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, state->addr);
+
+    while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
+	result = reject_rbl(state, rbl_domain);
+	if (result != SMTPD_CHECK_DUNNO)
+	    break;
+    }
+
+    /*
+     * Clean up.
+     */
     myfree(saved_domains);
 
     return (result);
@@ -2268,6 +2528,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					 SMTPD_NAME_CLIENT, def_acl);
 	} else if (strcasecmp(name, REJECT_MAPS_RBL) == 0) {
 	    status = reject_maps_rbl(state);
+	} else if (strcasecmp(name, REJECT_RBL) == 0) {
+	    if (*(cpp += 1) == 0)
+		msg_warn("restriction %s requires domain name argument",
+			 REJECT_RBL);
+	    else
+		status = reject_rbl(state, *cpp);
 	}
 
 	/*
@@ -2894,6 +3160,7 @@ char   *var_par_dom_match;
 char   *var_smtpd_null_key;
 char   *var_smtpd_snd_auth_maps;
 char   *var_double_bounce_sender;
+char   *var_rbl_reply_maps;
 
 typedef struct {
     char   *name;
@@ -2920,6 +3187,7 @@ static STRING_TABLE string_table[] = {
     VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps,
     VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key,
     VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender,
+    VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps,
     0,
 };
 
@@ -3255,6 +3523,13 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
 			    var_canonical_maps, DICT_FLAG_LOCK);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], "rbl_reply_maps") == 0) {
+		UPDATE_STRING(var_rbl_reply_maps, args->argv[1]);
+		UPDATE_MAPS(rbl_reply_maps, VAR_RBL_REPLY_MAPS,
+			    var_rbl_reply_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }

@@ -93,6 +93,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->junk_cmds = 0;
     state->defer_if_reject.reason = 0;
     state->defer_if_permit.reason = 0;
+    state->expand_buf = 0;
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))
@@ -129,6 +130,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	vstring_free(state->defer_if_permit.reason);
     if (state->defer_if_reject.reason)
 	vstring_free(state->defer_if_reject.reason);
+    if (state->expand_buf)
+	vstring_free(state->expand_buf);
 
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)

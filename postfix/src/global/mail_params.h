@@ -1202,6 +1202,11 @@ extern int var_access_map_code;
 
 #define WARN_IF_REJECT		"warn_if_reject"
 
+#define REJECT_RBL		"reject_rbl"
+#define VAR_RBL_REPLY_MAPS	"rbl_reply_maps"
+#define DEF_RBL_REPLY_MAPS	""
+extern char *var_rbl_reply_maps;
+
 #define REJECT_MAPS_RBL		"reject_maps_rbl"
 #define VAR_MAPS_RBL_CODE	"maps_rbl_reject_code"
 #define DEF_MAPS_RBL_CODE	554

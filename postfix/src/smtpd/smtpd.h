@@ -89,6 +89,7 @@ typedef struct SMTPD_STATE {
     int     warn_if_reject;		/* force reject into warning */
     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
     SMTPD_DEFER defer_if_permit;	/* force permit into deferral */
+    VSTRING *expand_buf;		/* scratch space for $name expansion */
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);
