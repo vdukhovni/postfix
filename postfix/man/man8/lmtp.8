@@ -104,6 +104,11 @@ Do not wait for the server response after sending QUIT.
 .IP \fBlmtp_tcp_port\fR
 The TCP port to be used when connecting to a LMTP server.  Used as
 backup if the \fBlmtp\fR service is not found in \fBservices\fR(4).
+.IP \fBlmtp_send_xforward_command\fR
+If the LMTP server announces XFORWARD support, send the name,
+address, protocol and HELO name of the original client. This
+can be used to forward client information through a content
+filter to a downstream queuing LMTP server.
 .SH "Authentication controls"
 .IP \fBlmtp_sasl_auth_enable\fR
 Enable per-session authentication as per RFC 2554 (SASL).
@@ -184,6 +189,9 @@ If no connection can be made within the deadline, the message
 is deferred.
 .IP \fBlmtp_lhlo_timeout\fR
 Timeout for sending the \fBLHLO\fR command, and for
+receiving the server response.
+.IP \fBlmtp_xforward_timeout\fR
+Timeout for sending the \fBXFORWARD\fR command, and for
 receiving the server response.
 .IP \fBlmtp_mail_timeout\fR
 Timeout for sending the \fBMAIL FROM\fR command, and for

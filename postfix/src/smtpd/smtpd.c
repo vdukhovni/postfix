@@ -464,7 +464,6 @@
 #include <namadr_list.h>
 #include <input_transp.h>
 #include <anvil_clnt.h>
-#include <xtext.h>
 
 /* Single-threaded server skeleton. */
 
@@ -753,8 +752,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (xclient_allowed)
 	smtpd_chat_reply(state, "250-" XCLIENT_CMD
 			 " " XCLIENT_NAME " " XCLIENT_ADDR
-			 " " XCLIENT_CODE " " XCLIENT_PROTO
-			 " " XCLIENT_HELO);
+			 " " XCLIENT_PROTO " " XCLIENT_HELO);
     if (xforward_allowed)
 	smtpd_chat_reply(state, "250-" XFORWARD_CMD
 			 " " XFORWARD_NAME " " XFORWARD_ADDR
@@ -1723,22 +1721,21 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
     return (0);
 }
 
-/* xclient_cmd - override client attributes */
+/* xclient_cmd - override SMTP client attributes */
 
 static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
-    int     arg_no;
+    SMTPD_TOKEN *argp;
     char   *attr_value;
     char   *attr_name;
     int     update_namaddr = 0;
-    int     code;
-    static NAME_CODE xclient_codes[] = {
-	"OK", SMTPD_PEER_CODE_OK,
-	"PERM", SMTPD_PEER_CODE_PERM,
-	"TEMP", SMTPD_PEER_CODE_TEMP,
-	0, -1,
+    int     peer_code;
+    static NAME_CODE peer_codes[] = {
+	XCLIENT_UNAVAILABLE, SMTPD_PEER_CODE_PERM,
+	XCLIENT_TEMPORARY, SMTPD_PEER_CODE_TEMP,
+	0, SMTPD_PEER_CODE_OK,
     };
-    static NAME_CODE xclient_proto[] = {
+    static NAME_CODE proto_names[] = {
 	MAIL_PROTO_SMTP, 1,
 	MAIL_PROTO_ESMTP, 2,
 	0, -1,
@@ -1755,7 +1752,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: %s name=value...",
+	smtpd_chat_reply(state, "501 Syntax: %s attribute=value...",
 			 XCLIENT_CMD);
 	return (-1);
     }
@@ -1765,122 +1762,99 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
 #define STREQ(x,y)	(strcasecmp((x), (y)) == 0)
-#define UPDATE_STR(s, v) do { if (s) myfree(s); s = (v) ? mystrdup(v) : 0; } while(0)
+#define UPDATE_STR(s, v) do { \
+	    if (s) myfree(s); \
+	    s = (v) ? mystrdup(v) : 0; \
+	} while(0)
+#define NEUTER_CHARACTERS "<>()\\\";:@"
 
     /*
-     * Iterate over all NAME=VALUE attributes.
+     * Iterate over all attribute=value elements.
      */
-    for (arg_no = 1; arg_no < argc; arg_no++) {
-	attr_name = argv[arg_no].strval;
+    for (argp = argv + 1; argp < argv + argc; argp++) {
+	attr_name = argp->strval;
 
 	/*
-	 * For safety's sake mask non-printable characters in the raw and
-	 * decoded values; we don't want to handle unexploded munitions.
-	 * Complain when they send an attribute that we didn't announce.
-	 * 
-	 * An implementation must allow clients to send XCLIENT before the
-	 * HELO/EHLO greeting.
-	 * 
-	 * The client can send multiple XCLIENT attributes in a single command,
-	 * or multiple XCLIENT commands with fewer attributes.
+	 * For safety's sake mask non-printable characters. We'll do more
+	 * specific censoring later.
 	 */
-	if ((attr_value = split_at(attr_name, '=')) == 0) {
+	if ((attr_value = split_at(attr_name, '=')) == 0 || *attr_value == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Error: name=value expected");
+	    smtpd_chat_reply(state, "501 Error: attribute=value expected");
 	    return (-1);
 	}
 	printable(attr_value, '?');
 
 	/*
-	 * NAME=hostname. Also updates the client hostname lookup status
-	 * code. Treat a numerical hostname as an unavailable name.
+	 * NAME=substitute SMTP client hostname. Also updates the client
+	 * hostname lookup status code.
 	 */
 	if (STREQ(attr_name, XCLIENT_NAME)) {
-	    if (*attr_value && !valid_hostaddr(attr_value, DONT_GRIPE)) {
-		if (!valid_hostname(attr_value, DONT_GRIPE)) {
+	    peer_code = name_code(peer_codes, NAME_CODE_FLAG_NONE, attr_value);
+	    if (peer_code != SMTPD_PEER_CODE_OK) {
+		attr_value = CLIENT_NAME_UNKNOWN;
+	    } else {
+		if (!valid_hostname(attr_value, DONT_GRIPE)
+		    || valid_hostaddr(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
 				     XCLIENT_NAME, attr_value);
 		    return (-1);
 		}
-		UPDATE_STR(state->name, attr_value);
-		state->peer_code = SMTPD_PEER_CODE_OK;
-	    } else {
-		UPDATE_STR(state->name, CLIENT_NAME_UNKNOWN);
-		state->peer_code = SMTPD_PEER_CODE_PERM;
 	    }
+	    state->peer_code = peer_code;
+	    UPDATE_STR(state->name, attr_value);
 	    update_namaddr = 1;
 	}
 
 	/*
-	 * ADDR=client network address.
+	 * ADDR=substitute SMTP client network address.
 	 */
 	else if (STREQ(attr_name, XCLIENT_ADDR)) {
-	    if (*attr_value) {
+	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
+		attr_value = CLIENT_ADDR_UNKNOWN;
+	    } else {
 		if (!valid_hostaddr(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
 				     XCLIENT_ADDR, attr_value);
 		    return (-1);
 		}
-		UPDATE_STR(state->addr, attr_value);
-	    } else {
-		UPDATE_STR(state->addr, CLIENT_ADDR_UNKNOWN);
 	    }
+	    UPDATE_STR(state->addr, attr_value);
 	    update_namaddr = 1;
 	}
 
 	/*
-	 * CODE=hostname lookup status. Reset the client hostname if the
-	 * hostname lookup status is not OK.
-	 */
-	else if (STREQ(attr_name, XCLIENT_CODE)) {
-	    if (*attr_value) {
-		if ((code = name_code(xclient_codes, NAME_CODE_FLAG_NONE, attr_value)) < 0) {
-		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s value: %s",
-				     XCLIENT_CODE, attr_value);
-		    return (-1);
-		}
-		state->peer_code = code;
-		if (code != SMTPD_PEER_CODE_OK) {
-		    UPDATE_STR(state->name, CLIENT_NAME_UNKNOWN);
-		    update_namaddr = 1;
-		}
-	    }
-	}
-
-	/*
-	 * HELO=hostname. Disallow characters that could mess up our own
-	 * Received: message headers but allow [].
+	 * HELO=substitute SMTP client HELO parameter. Censor special
+	 * characters that could mess up message headers.
 	 */
 	else if (STREQ(attr_name, XCLIENT_HELO)) {
-	    if (*attr_value) {
+	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
+		attr_value = CLIENT_HELO_UNKNOWN;
+	    } else {
 		if (strlen(attr_value) > VALID_HOSTNAME_LEN) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
 				     XCLIENT_HELO, attr_value);
 		    return (-1);
 		}
-		neuter(attr_value, "<>()\\\";:@", '?');
-		UPDATE_STR(state->helo_name, attr_value);
-	    } else {
-		UPDATE_STR(state->helo_name, CLIENT_HELO_UNKNOWN);
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
+	    UPDATE_STR(state->helo_name, attr_value);
 	}
 
 	/*
-	 * PROTO=protocol name. Disallow characters that could mess up our
-	 * own Received: message headers.
+	 * PROTO=SMTP protocol name.
 	 */
 	else if (STREQ(attr_name, XCLIENT_PROTO)) {
-	    if (name_code(xclient_proto, NAME_CODE_FLAG_NONE, attr_value) < 0) {
+	    if (name_code(proto_names, NAME_CODE_FLAG_NONE, attr_value) < 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "501 Bad %s syntax: %s",
 				 XCLIENT_PROTO, attr_value);
 		return (-1);
 	    }
-	    UPDATE_STR(state->protocol, attr_value);
+	    UPDATE_STR(state->protocol, uppercase(attr_value));
 	}
 
 	/*
@@ -1911,7 +1885,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
-    int     arg_no;
+    SMTPD_TOKEN *argp;
     char   *attr_value;
     char   *attr_name;
     int     updated = 0;
@@ -1934,7 +1908,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: %s name=value...",
+	smtpd_chat_reply(state, "501 Syntax: %s attribute=value...",
 			 XFORWARD_CMD);
 	return (-1);
     }
@@ -1951,22 +1925,18 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_xforward_preset(state);
 
     /*
-     * Iterate over all NAME=VALUE attributes.
+     * Iterate over all attribute=value elements.
      */
-    for (arg_no = 1; arg_no < argc; arg_no++) {
-	attr_name = argv[arg_no].strval;
+    for (argp = argv + 1; argp < argv + argc; argp++) {
+	attr_name = argp->strval;
 
 	/*
-	 * For safety's sake mask non-printable characters in the raw and
-	 * decoded values; we don't want to handle unexploded munitions.
-	 * Complain when they send an attribute that we didn't announce.
-	 * 
-	 * The client can send multiple XFORWARD attributes in a single command,
-	 * or multiple XFORWARD commands with fewer attributes.
+	 * For safety's sake mask non-printable characters. We'll do more
+	 * specific censoring later.
 	 */
-	if ((attr_value = split_at(attr_name, '=')) == 0) {
+	if ((attr_value = split_at(attr_name, '=')) == 0 || *attr_value == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "501 Error: name=value expected");
+	    smtpd_chat_reply(state, "501 Error: attribute=value expected");
 	    return (-1);
 	}
 	printable(attr_value, '?');
@@ -1975,71 +1945,61 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	switch (flag) {
 
 	    /*
-	     * NAME=hostname. Also updates the client hostname lookup status
-	     * code. Treat a numerical hostname as an unavailable name.
+	     * NAME=host name, not necessarily in the DNS. Censor special
+	     * characters that could mess up message headers.
 	     */
 	case SMTPD_XFORWARD_FLAG_NAME:
-	    if (*attr_value && !valid_hostaddr(attr_value, DONT_GRIPE)) {
-		if (!valid_hostname(attr_value, DONT_GRIPE)) {
-		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
-				     XFORWARD_NAME, attr_value);
-		    return (-1);
-		}
-	    } else {
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_NAME_UNKNOWN;
+	    } else {
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
 	    UPDATE_STR(state->xforward.name, attr_value);
 	    break;
 
 	    /*
-	     * ADDR=client network address.
+	     * ADDR=host network address, not necessarily on the Internet.
+	     * Censor special characters that could mess up message headers.
 	     */
 	case SMTPD_XFORWARD_FLAG_ADDR:
-	    if (*attr_value) {
-		if (!valid_hostaddr(attr_value, DONT_GRIPE)) {
-		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
-				     XFORWARD_ADDR, attr_value);
-		    return (-1);
-		}
-	    } else {
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_ADDR_UNKNOWN;
+	    } else {
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
 	    UPDATE_STR(state->xforward.addr, attr_value);
 	    break;
 
 	    /*
-	     * HELO=hostname. Disallow characters that could mess up our own
-	     * Received: message headers but allow [].
+	     * HELO=hostname that the host introduced itself with (not
+	     * necessarily SMTP HELO). Censor special characters that could
+	     * mess up message headers.
 	     */
 	case SMTPD_XFORWARD_FLAG_HELO:
-	    if (*attr_value) {
-		if (strlen(attr_value) > VALID_HOSTNAME_LEN) {
-		    state->error_mask |= MAIL_ERROR_PROTOCOL;
-		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
-				     XFORWARD_HELO, attr_value);
-		    return (-1);
-		}
-		neuter(attr_value, "<>()\\\";:@", '?');
-	    } else {
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_HELO_UNKNOWN;
+	    } else {
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
 	    UPDATE_STR(state->xforward.helo_name, attr_value);
 	    break;
 
 	    /*
-	     * PROTO=protocol name. Neutralize characters that could mess up
-	     * our own Received: message headers.
+	     * PROTO=protocol name, not necessarily SMTP or ESMTP. Censor
+	     * special characters that could mess up message headers.
 	     */
 	case SMTPD_XFORWARD_FLAG_PROTO:
-	    if (strlen(attr_value) > 64) {
-		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 Bad %s syntax: %s",
-				 XFORWARD_PROTO, attr_value);
-		return (-1);
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
+		attr_value = CLIENT_PROTO_UNKNOWN;
+	    } else {
+		if (strlen(attr_value) > 64) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XFORWARD_PROTO, attr_value);
+		    return (-1);
+		}
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
 	    }
-	    neuter(attr_value, "<>()\\\";:@", '?');
 	    UPDATE_STR(state->xforward.protocol, attr_value);
 	    break;
 
@@ -2063,9 +2023,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (state->xforward.namaddr)
 	    myfree(state->xforward.namaddr);
 	state->xforward.namaddr =
+	    IS_AVAIL_CLIENT_ADDR(state->xforward.addr) ?
 	    concatenate(state->xforward.name, "[",
 			state->xforward.addr, "]",
-			(char *) 0);
+			(char *) 0) : mystrdup(state->xforward.name);
     }
     smtpd_chat_reply(state, "250 Ok");
     return (0);

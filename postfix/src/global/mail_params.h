@@ -753,9 +753,9 @@ extern int var_smtp_conn_tmout;
 #define DEF_SMTP_HELO_TMOUT	"300s"
 extern int var_smtp_helo_tmout;
 
-#define VAR_SMTP_XCLNT_TMOUT	"smtp_xclient_timeout"
-#define DEF_SMTP_XCLNT_TMOUT	"300s"
-extern int var_smtp_xclnt_tmout;
+#define VAR_SMTP_XFWD_TMOUT	"smtp_xforward_timeout"
+#define DEF_SMTP_XFWD_TMOUT	"300s"
+extern int var_smtp_xfwd_tmout;
 
 #define VAR_SMTP_MAIL_TMOUT	"smtp_mail_timeout"
 #define DEF_SMTP_MAIL_TMOUT	"300s"
@@ -1032,6 +1032,10 @@ extern int var_lmtp_rset_tmout;
 #define DEF_LMTP_LHLO_TMOUT	"300s"
 extern int var_lmtp_lhlo_tmout;
 
+#define VAR_LMTP_XFWD_TMOUT	"lmtp_xforward_timeout"
+#define DEF_LMTP_XFWD_TMOUT	"300s"
+extern int var_lmtp_xfwd_tmout;
+
 #define VAR_LMTP_MAIL_TMOUT	"lmtp_mail_timeout"
 #define DEF_LMTP_MAIL_TMOUT	"300s"
 extern int var_lmtp_mail_tmout;
@@ -1055,6 +1059,10 @@ extern int var_lmtp_data2_tmout;
 #define VAR_LMTP_QUIT_TMOUT	"lmtp_quit_timeout"
 #define DEF_LMTP_QUIT_TMOUT	"300s"
 extern int var_lmtp_quit_tmout;
+
+#define VAR_LMTP_SEND_XFORWARD	"lmtp_send_xforward_command"
+#define DEF_LMTP_SEND_XFORWARD	0
+extern bool var_lmtp_send_xforward;
 
  /*
   * Cleanup service. Header info that exceeds $header_size_limit bytes forces

@@ -698,17 +698,19 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
      * Sanity checks. Verify that every member has an acceptable value.
      */
     if (user == 0)
-	msg_fatal("missing user= attribute");
+	msg_fatal("missing user= command-line attribute");
     if (attr->command == 0)
-	msg_fatal("missing argv= attribute");
+	msg_fatal("missing argv= command-line attribute");
     if (attr->uid == 0)
-	msg_fatal("request to deliver as root");
+	msg_fatal("user= command-line attribute specifies root privileges");
     if (attr->uid == var_owner_uid)
-	msg_fatal("request to deliver as mail system owner");
+	msg_fatal("user= command-line attribute specifies mail system owner %s",
+		  var_mail_owner);
     if (attr->gid == 0)
-	msg_fatal("request to use privileged group id %ld", (long) attr->gid);
+	msg_fatal("user= command-line attribute specifies privileged group id 0");
     if (attr->gid == var_owner_gid)
-	msg_fatal("request to use mail system owner group id %ld", (long) attr->gid);
+	msg_fatal("user= command-line attribute specifies mail system owner %s group id %ld",
+		  var_mail_owner, (long) attr->gid);
 
     /*
      * Give the poor tester a clue of what is going on.

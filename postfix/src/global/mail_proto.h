@@ -152,14 +152,16 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
 
  /*
-  * XCLIENT in SMTP.
+  * XCLIENT/XFORWARD in SMTP.
   */
 #define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
 #define XCLIENT_NAME		"NAME"		/* client name */
 #define XCLIENT_ADDR		"ADDR"		/* client address */
 #define XCLIENT_PROTO		"PROTO"		/* client protocol */
-#define XCLIENT_CODE		"NAME_CODE"	/* client name status */
 #define XCLIENT_HELO		"HELO"		/* client helo */
+
+#define XCLIENT_UNAVAILABLE	"[UNAVAILABLE]"	/* permanently unavailable */
+#define XCLIENT_TEMPORARY	"[TEMPUNAVAIL]"	/* temporarily unavailable */
 
 #define XFORWARD_CMD		"XFORWARD"	/* XFORWARD command */
 #define XFORWARD_NAME		"NAME"		/* client name */
@@ -167,6 +169,8 @@ extern char *mail_pathname(const char *, const char *);
 #define XFORWARD_PROTO		"PROTO"		/* client protocol */
 #define XFORWARD_HELO		"HELO"		/* client helo */
 #define XFORWARD_IDENT		"IDENT"		/* message identifier */
+
+#define XFORWARD_UNAVAILABLE	"[UNAVAILABLE]"	/* attribute unavailable */
 
 /* LICENSE
 /* .ad

@@ -206,9 +206,8 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define SMTPD_PROXY_XFORWARD_IDENT (1<<4)	/* message identifier */
 
  /*
-  * If forwarding client information, don't mix direct client information
-  * from the current SMTP session with forwarded client information from an
-  * up-stream session.
+  * If forwarding client information, don't mix information from the current
+  * SMTP session with forwarded information from an up-stream session.
   */
 #define FORWARD_CLIENT_ATTR(s, a) \
 	(((s)->xforward.flags & SMTPD_XFORWARD_FLAG_CLIENT_MASK) ? \

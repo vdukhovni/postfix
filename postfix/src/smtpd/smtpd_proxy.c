@@ -156,7 +156,6 @@
 #include <cleanup_user.h>
 #include <mail_params.h>
 #include <rec_type.h>
-#include <xtext.h>
 #include <mail_proto.h>
 
 /* Application-specific. */
@@ -201,10 +200,10 @@ static int smtpd_xforward(SMTPD_STATE *state, VSTRING *buf, const char *name,
      * How much space does this attribute need?
      */
     if (!value_available)
-	value = "";
+	value = XFORWARD_UNAVAILABLE;
     new_len = strlen(name) + strlen(value) + 2;	/* SPACE name = value */
     if (new_len > PAYLOAD_LIMIT)
-	msg_warn("%s payload %s=%.10s... exceeds SMTP protocol limit",
+	msg_warn("%s command payload %s=%.10s... exceeds SMTP protocol limit",
 		 XFORWARD_CMD, name, value);
 
     /*

@@ -21,6 +21,17 @@ lmtp_skip_quit_response = yes
 #
 lmtp_tcp_port = 24
 
+# The lmtp_send_xforward_command parameter controls whether the Postfix
+# LMTP client will send an XFORWARD command to the SMTP server, when
+# the ELMTP HELO response of the remote host indicates XFORWARD support.
+# This allows an "smtp" delivery agent, used for content filter
+# message injection, to forward the name, address, protocol and HELO
+# name of the original client to the content filter and downstream
+# queuing LMTP server. Before you change the value to yes, it is best
+# to make sure your content filter supports this command.
+# 
+lmtp_send_xforward_command = no
+
 #
 # RESOURCE AND RATE CONTROLS
 #
@@ -82,6 +93,18 @@ lmtp_connect_timeout = 0s
 # The default time unit is s (seconds).
 #
 lmtp_lhlo_timeout = 300s
+
+# The lmtp_xforward_timeout parameter specifies the LMTP client timeout
+# for sending the LMTP XFORWARD command, and for receiving the server
+# response.
+#
+# In case of problems the client does NOT try the next address on
+# the mail exchanger list.
+#
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+lmtp_xforward_timeout = 300s
 
 # The lmtp_mail_timeout parameter specifies the LMTP client timeout
 # for sending the LMTP MAIL FROM command, and for receiving the server

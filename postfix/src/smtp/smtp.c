@@ -109,6 +109,12 @@
 /*	Never send EHLO at the start of a connection.
 /* .IP \fBsmtp_bind_address\fR
 /*	Numerical source network address to bind to when making a connection.
+/* .IP \fBsmtp_defer_if_no_mx_address_found\fR
+/*	If no, bounce mail when no MX host resolves to an address
+/*	(Postfix always ignores MX hosts with equal or worse preference
+/*	than the local MTA).
+/*	If yes, keep trying until a suitable MX host resolves or until
+/*	the mail is too old.
 /* .IP \fBsmtp_line_length_limit\fR
 /*	Length limit for SMTP message content lines. Zero means no limit.
 /*	Some SMTP servers misbehave on long lines.
@@ -142,6 +148,11 @@
 /*	The maximal nesting level of multipart mail that the MIME
 /*	processor can handle. Refuse mail that is nested deeper,
 /*	when converting from 8BITMIME format to 7BIT format.
+/* .IP \fBsmtp_send_xforward_command\fR
+/*	If the SMTP server announces XFORWARD support, send the name,
+/*	address, protocol and HELO name of the original client. This
+/*	can be used to forward client information through a content
+/*	filter to a downstream queuing SMTP server.
 /* .SH "Authentication controls"
 /* .IP \fBsmtp_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -212,17 +223,6 @@
 /*	Timeout for sending the "\fB.\fR" command, and for
 /*	receiving the server response. When no response is received, a
 /*	warning is logged that the mail may be delivered multiple times.
-/* .IP \fBsmtp_defer_if_no_mx_address_found\fR
-/*	If no, bounce mail when no MX host resolves to an address
-/*	(Postfix always ignores MX hosts with equal or worse preference
-/*	than the local MTA).
-/*	If yes, keep trying until a suitable MX host resolves or until
-/*	the mail is too old.
-/* .IP \fBsmtp_send_xforward_command\fR
-/*	If the SMTP server announces XFORWARD support, send the name,
-/*	address, protocol and HELO name of the original client. This
-/*	can be used to forward client information through a content
-/*	filter to a downstream queuing SMTP server.
 /* .IP \fBsmtp_rset_timeout\fR
 /*	Timeout for sending the \fBRSET\fR command.
 /* .IP \fBsmtp_quit_timeout\fR
@@ -283,7 +283,7 @@
   */
 int     var_smtp_conn_tmout;
 int     var_smtp_helo_tmout;
-int     var_smtp_xclnt_tmout;
+int     var_smtp_xfwd_tmout;
 int     var_smtp_mail_tmout;
 int     var_smtp_rcpt_tmout;
 int     var_smtp_data0_tmout;
@@ -502,7 +502,7 @@ int     main(int argc, char **argv)
     static CONFIG_TIME_TABLE time_table[] = {
 	VAR_SMTP_CONN_TMOUT, DEF_SMTP_CONN_TMOUT, &var_smtp_conn_tmout, 0, 0,
 	VAR_SMTP_HELO_TMOUT, DEF_SMTP_HELO_TMOUT, &var_smtp_helo_tmout, 1, 0,
-	VAR_SMTP_XCLNT_TMOUT, DEF_SMTP_XCLNT_TMOUT, &var_smtp_xclnt_tmout, 1, 0,
+	VAR_SMTP_XFWD_TMOUT, DEF_SMTP_XFWD_TMOUT, &var_smtp_xfwd_tmout, 1, 0,
 	VAR_SMTP_MAIL_TMOUT, DEF_SMTP_MAIL_TMOUT, &var_smtp_mail_tmout, 1, 0,
 	VAR_SMTP_RCPT_TMOUT, DEF_SMTP_RCPT_TMOUT, &var_smtp_rcpt_tmout, 1, 0,
 	VAR_SMTP_DATA0_TMOUT, DEF_SMTP_DATA0_TMOUT, &var_smtp_data0_tmout, 1, 0,

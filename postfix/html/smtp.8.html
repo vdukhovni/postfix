@@ -135,6 +135,13 @@ SMTP(8)                                                   SMTP(8)
               Numerical  source  network  address to bind to when
               making a connection.
 
+       <b>smtp_defer_if_no_mx_address_found</b>
+              If no, bounce mail when no MX host resolves  to  an
+              address (Postfix always ignores MX hosts with equal
+              or worse preference than the local MTA).   If  yes,
+              keep  trying  until  a suitable MX host resolves or
+              until the mail is too old.
+
        <b>smtp_line_length_limit</b>
               Length limit for SMTP message content  lines.  Zero
               means  no  limit.   Some  SMTP servers misbehave on
@@ -185,6 +192,13 @@ SMTP(8)                                                   SMTP(8)
               the MIME processor can handle. Refuse mail that  is
               nested deeper, when converting from 8BITMIME format
               to 7BIT format.
+
+       <b>smtp_send_xforward_command</b>
+              If the SMTP server announces XFORWARD support, send
+              the  name,  address,  protocol and HELO name of the
+              original client. This can be used to forward client
+              information  through  a  content  filter to a down-
+              stream queuing SMTP server.
 
 <b>Authentication controls</b>
        <b>smtp_sasl_auth_enable</b>
@@ -273,20 +287,6 @@ SMTP(8)                                                   SMTP(8)
               receiving the server response. When no response  is
               received,  a warning is logged that the mail may be
               delivered multiple times.
-
-       <b>smtp_defer_if_no_mx_address_found</b>
-              If no, bounce mail when no MX host resolves  to  an
-              address (Postfix always ignores MX hosts with equal
-              or worse preference than the local MTA).   If  yes,
-              keep  trying  until  a suitable MX host resolves or
-              until the mail is too old.
-
-       <b>smtp_send_xforward_command</b>
-              If the SMTP server announces XFORWARD support, send
-              the  name,  address,  protocol and HELO name of the
-              original client. This can be used to forward client
-              information  through  a  content  filter to a down-
-              stream queuing SMTP server.
 
        <b>smtp_rset_timeout</b>
               Timeout for sending the <b>RSET</b> command.

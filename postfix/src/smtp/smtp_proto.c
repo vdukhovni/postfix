@@ -104,7 +104,6 @@
 #include <quote_821_local.h>
 #include <mail_proto.h>
 #include <mime_state.h>
-#include <xtext.h>
 
 /* Application-specific. */
 
@@ -125,8 +124,8 @@
   * SMTP_STATE_DOT) must have smaller numerical values than the non-sending
   * states (SMTP_STATE_ABORT .. SMTP_STATE_LAST).
   */
-#define SMTP_STATE_XFORWARD_ADDR 0
-#define SMTP_STATE_XFORWARD_HELO 1
+#define SMTP_STATE_XFORWARD_NAME_ADDR 0
+#define SMTP_STATE_XFORWARD_PROTO_HELO 1
 #define SMTP_STATE_MAIL		2
 #define SMTP_STATE_RCPT		3
 #define SMTP_STATE_DATA		4
@@ -136,8 +135,8 @@
 #define SMTP_STATE_LAST		8
 
 int    *xfer_timeouts[SMTP_STATE_LAST] = {
-    &var_smtp_xclnt_tmout,
-    &var_smtp_xclnt_tmout,
+    &var_smtp_xfwd_tmout,		/* name/addr */
+    &var_smtp_xfwd_tmout,		/* helo/proto */
     &var_smtp_mail_tmout,
     &var_smtp_rcpt_tmout,
     &var_smtp_data0_tmout,
@@ -147,8 +146,8 @@ int    *xfer_timeouts[SMTP_STATE_LAST] = {
 };
 
 char   *xfer_states[SMTP_STATE_LAST] = {
-    "sending XFORWARD address and name",
-    "sending XFORWARD helo_name and protocol",
+    "sending XFORWARD name/address",
+    "sending XFORWARD protocol/helo_name",
     "sending MAIL FROM",
     "sending RCPT TO",
     "sending DATA command",
@@ -267,11 +266,11 @@ int     smtp_helo(SMTP_STATE *state)
 		state->features |= SMTP_FEATURE_8BITMIME;
 	    else if (strcasecmp(word, "PIPELINING") == 0)
 		state->features |= SMTP_FEATURE_PIPELINING;
-	    else if (strcasecmp(word, "XFORWARD") == 0) {
+	    else if (strcasecmp(word, "XFORWARD") == 0)
 		while ((word = mystrtok(&words, " \t")) != 0)
 		    state->features |= name_code(xforward_features,
 						 NAME_CODE_FLAG_NONE, word);
-	    } else if (strcasecmp(word, "SIZE") == 0) {
+	    else if (strcasecmp(word, "SIZE") == 0) {
 		state->features |= SMTP_FEATURE_SIZE;
 		if ((word = mystrtok(&words, " \t")) != 0) {
 		    if (!alldig(word))
@@ -395,6 +394,8 @@ int     smtp_xfer(SMTP_STATE *state)
     int     mail_from_rejected;
     int     downgrading;
     int     mime_errs;
+    int     send_name_addr;
+    int     send_proto_helo;
 
     /*
      * Macros for readability.
@@ -498,11 +499,20 @@ int     smtp_xfer(SMTP_STATE *state)
      * amount of information is available.
      */
     nrcpt = 0;
-    if (var_smtp_send_xforward
-	&& (state->features & SMTP_FEATURE_XFORWARD_MASK)
-	&& (DEL_REQ_ATTR_AVAIL(request->client_name)
-	    || DEL_REQ_ATTR_AVAIL(request->client_addr)))
-	recv_state = send_state = SMTP_STATE_XFORWARD_ADDR;
+    send_name_addr =
+	(var_smtp_send_xforward
+	 && (state->features & SMTP_FEATURE_XFORWARD_NAME_ADDR)
+	 && (DEL_REQ_ATTR_AVAIL(request->client_name)
+	     || DEL_REQ_ATTR_AVAIL(request->client_addr)));
+    send_proto_helo =
+	(var_smtp_send_xforward
+	 && (state->features & SMTP_FEATURE_XFORWARD_PROTO_HELO)
+	 && (DEL_REQ_ATTR_AVAIL(request->client_proto)
+	     || DEL_REQ_ATTR_AVAIL(request->client_helo)));
+    if (send_name_addr)
+	recv_state = send_state = SMTP_STATE_XFORWARD_NAME_ADDR;
+    else if (send_proto_helo)
+	recv_state = send_state = SMTP_STATE_XFORWARD_PROTO_HELO;
     else
 	recv_state = send_state = SMTP_STATE_MAIL;
     next_rcpt = send_rcpt = recv_rcpt = 0;
@@ -526,33 +536,32 @@ int     smtp_xfer(SMTP_STATE *state)
 	     * information, the command length stays within the 512 byte
 	     * command line length limit.
 	     */
-	case SMTP_STATE_XFORWARD_ADDR:
+	case SMTP_STATE_XFORWARD_NAME_ADDR:
 	    vstring_strcpy(next_command, XFORWARD_CMD);
-	    if (state->features & SMTP_FEATURE_XFORWARD_NAME) {
-		vstring_strcat(next_command, " " XCLIENT_NAME "=");
-		if (DEL_REQ_ATTR_AVAIL(request->client_name))
-		    xtext_quote_append(next_command, request->client_name, "");
-	    }
-	    if (state->features & SMTP_FEATURE_XFORWARD_ADDR) {
-		vstring_strcat(next_command, " " XFORWARD_ADDR "=");
-		if (DEL_REQ_ATTR_AVAIL(request->client_addr))
-		    xtext_quote_append(next_command, request->client_addr, "");
-	    }
-	    next_state = SMTP_STATE_XFORWARD_HELO;
+	    if (state->features & SMTP_FEATURE_XFORWARD_NAME)
+		vstring_sprintf_append(next_command, " %s=%s",
+		   XFORWARD_NAME, DEL_REQ_ATTR_AVAIL(request->client_name) ?
+			       request->client_name : XFORWARD_UNAVAILABLE);
+	    if (state->features & SMTP_FEATURE_XFORWARD_ADDR)
+		vstring_sprintf_append(next_command, " %s=%s",
+		   XFORWARD_ADDR, DEL_REQ_ATTR_AVAIL(request->client_addr) ?
+			       request->client_addr : XFORWARD_UNAVAILABLE);
+	    if (send_proto_helo)
+		next_state = SMTP_STATE_XFORWARD_PROTO_HELO;
+	    else
+		next_state = SMTP_STATE_MAIL;
 	    break;
 
-	case SMTP_STATE_XFORWARD_HELO:
+	case SMTP_STATE_XFORWARD_PROTO_HELO:
 	    vstring_strcpy(next_command, XFORWARD_CMD);
-	    if (state->features & SMTP_FEATURE_XFORWARD_HELO) {
-		vstring_strcat(next_command, " " XCLIENT_HELO "=");
-		if (DEL_REQ_ATTR_AVAIL(request->client_helo))
-		    xtext_quote_append(next_command, request->client_helo, "");
-	    }
-	    if (state->features & SMTP_FEATURE_XFORWARD_ADDR) {
-		vstring_strcat(next_command, " " XFORWARD_PROTO "=");
-		if (DEL_REQ_ATTR_AVAIL(request->client_proto))
-		    xtext_quote_append(next_command, request->client_proto, "");
-	    }
+	    if (state->features & SMTP_FEATURE_XFORWARD_PROTO)
+		vstring_sprintf_append(next_command, " %s=%s",
+		 XFORWARD_PROTO, DEL_REQ_ATTR_AVAIL(request->client_proto) ?
+			      request->client_proto : XFORWARD_UNAVAILABLE);
+	    if (state->features & SMTP_FEATURE_XFORWARD_HELO)
+		vstring_sprintf_append(next_command, " %s=%s",
+		   XFORWARD_HELO, DEL_REQ_ATTR_AVAIL(request->client_helo) ?
+			       request->client_helo : XFORWARD_UNAVAILABLE);
 	    next_state = SMTP_STATE_MAIL;
 	    break;
 
@@ -665,7 +674,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		/*
 		 * Sanity check.
 		 */
-		if (recv_state < SMTP_STATE_XFORWARD_ADDR
+		if (recv_state < SMTP_STATE_XFORWARD_NAME_ADDR
 		    || recv_state > SMTP_STATE_QUIT)
 		    msg_panic("%s: bad receiver state %d (sender state %d)",
 			      myname, recv_state, send_state);
@@ -689,21 +698,24 @@ int     smtp_xfer(SMTP_STATE *state)
 		    /*
 		     * Process the XFORWARD response.
 		     */
-		case SMTP_STATE_XFORWARD_ADDR:
+		case SMTP_STATE_XFORWARD_NAME_ADDR:
 		    if (resp->code / 100 != 2)
 			msg_warn("host %s said: %s (in reply to %s)",
 				 session->namaddr,
 				 translit(resp->str, "\n", " "),
-				 xfer_request[SMTP_STATE_MAIL]);
-		    recv_state = SMTP_STATE_XFORWARD_HELO;
+				 xfer_request[SMTP_STATE_XFORWARD_NAME_ADDR]);
+		    if (send_proto_helo)
+			recv_state = SMTP_STATE_XFORWARD_PROTO_HELO;
+		    else
+			recv_state = SMTP_STATE_MAIL;
 		    break;
 
-		case SMTP_STATE_XFORWARD_HELO:
+		case SMTP_STATE_XFORWARD_PROTO_HELO:
 		    if (resp->code / 100 != 2)
 			msg_warn("host %s said: %s (in reply to %s)",
 				 session->namaddr,
 				 translit(resp->str, "\n", " "),
-				 xfer_request[SMTP_STATE_MAIL]);
+				 xfer_request[SMTP_STATE_XFORWARD_PROTO_HELO]);
 		    recv_state = SMTP_STATE_MAIL;
 		    break;
 

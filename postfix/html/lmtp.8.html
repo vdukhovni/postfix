@@ -107,6 +107,13 @@ LMTP(8)                                                   LMTP(8)
               server.  Used as backup if the <b>lmtp</b> service is  not
               found in <b>services</b>(4).
 
+       <b>lmtp_send_xforward_command</b>
+              If the LMTP server announces XFORWARD support, send
+              the name, address, protocol and HELO  name  of  the
+              original client. This can be used to forward client
+              information through a content  filter  to  a  down-
+              stream queuing LMTP server.
+
 <b>Authentication controls</b>
        <b>lmtp_sasl_auth_enable</b>
               Enable  per-session  authentication as per <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>
@@ -206,16 +213,20 @@ LMTP(8)                                                   LMTP(8)
               Timeout  for  sending  the  <b>LHLO</b>  command,  and for
               receiving the server response.
 
+       <b>lmtp_xforward_timeout</b>
+              Timeout for sending the <b>XFORWARD</b> command,  and  for
+              receiving the server response.
+
        <b>lmtp_mail_timeout</b>
-              Timeout for sending the <b>MAIL FROM</b> command, and  for
+              Timeout  for sending the <b>MAIL FROM</b> command, and for
               receiving the server response.
 
        <b>lmtp_rcpt_timeout</b>
-              Timeout  for  sending  the <b>RCPT TO</b> command, and for
+              Timeout for sending the <b>RCPT TO</b>  command,  and  for
               receiving the server response.
 
        <b>lmtp_data_init_timeout</b>
-              Timeout for  sending  the  <b>DATA</b>  command,  and  for
+              Timeout  for  sending  the  <b>DATA</b>  command,  and for
               receiving the server response.
 
        <b>lmtp_data_xfer_timeout</b>
@@ -223,16 +234,16 @@ LMTP(8)                                                   LMTP(8)
 
        <b>lmtp_data_done_timeout</b>
               Timeout  for  sending  the  "<b>.</b>"  command,  and  for
-              receiving the server response. When no response  is
-              received,  a warning is logged that the mail may be
+              receiving  the server response. When no response is
+              received, a warning is logged that the mail may  be
               delivered multiple times.
 
        <b>lmtp_rset_timeout</b>
-              Timeout for  sending  the  <b>RSET</b>  command,  and  for
+              Timeout  for  sending  the  <b>RSET</b>  command,  and for
               receiving the server response.
 
        <b>lmtp_quit_timeout</b>
-              Timeout  for  sending  the  <b>QUIT</b>  command,  and for
+              Timeout for  sending  the  <b>QUIT</b>  command,  and  for
               receiving the server response.
 
 <b>SEE ALSO</b>
@@ -245,7 +256,7 @@ LMTP(8)                                                   LMTP(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

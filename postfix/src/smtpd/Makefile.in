@@ -151,7 +151,6 @@ smtpd.o: ../../include/namadr_list.h
 smtpd.o: ../../include/input_transp.h
 smtpd.o: ../../include/anvil_clnt.h
 smtpd.o: ../../include/attr_clnt.h
-smtpd.o: ../../include/xtext.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
@@ -261,13 +260,13 @@ smtpd_proxy.o: ../../include/vstring.h
 smtpd_proxy.o: ../../include/stringops.h
 smtpd_proxy.o: ../../include/connect.h
 smtpd_proxy.o: ../../include/iostuff.h
+smtpd_proxy.o: ../../include/name_code.h
 smtpd_proxy.o: ../../include/mail_error.h
 smtpd_proxy.o: ../../include/name_mask.h
 smtpd_proxy.o: ../../include/smtp_stream.h
 smtpd_proxy.o: ../../include/cleanup_user.h
 smtpd_proxy.o: ../../include/mail_params.h
 smtpd_proxy.o: ../../include/rec_type.h
-smtpd_proxy.o: ../../include/xtext.h
 smtpd_proxy.o: ../../include/mail_proto.h
 smtpd_proxy.o: ../../include/attr.h
 smtpd_proxy.o: smtpd.h

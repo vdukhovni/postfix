@@ -1,0 +1,95 @@
+Purpose of the XFORWARD extension to SMTP
+========================================
+
+The XFORWARD command targets the following problem:
+
+- Logging after SMTP-based content filter. With the deployment of
+Internet->MTA1->filter->MTA2 style content filter applications,
+the logging of client and message identifying information changes
+when MTA1 gives the mail to the content filter.  To simplify the
+interpretation of MTA2 logging, it would help if MTA1 could forward
+remote client and/or message identifying information through the
+content filter to MTA2, so that the information could be logged as
+part of mail handling transactions.
+
+Command syntax
+==============
+
+In SMTP server EHLO replies, the keyword associated with this
+extension is XFORWARD. The keyword is followed by the names of the
+attributes that the XFORWARD implementation supports.
+
+The general command syntax is described below.  Upper case and
+quoted strings specify terminals, lowercase strings specify meta
+terminals, and SP is whitespace.  Although command and attribute
+names are shown in upper case, they are in fact case insensitive.
+
+    xclient-command = XFORWARD 1*( SP attribute )
+
+    attribute = name"="value
+
+    name = ( NAME | ADDR | PROTO | HELO | IDENT )
+
+The XFORWARD command can be sent at any time except in the middle
+of a mail delivery transaction (i.e.  between MAIL and DOT).  The
+command may be pipelined if the server EHLO reply announces ESMTP
+pipelining support.
+
+The XFORWARD reply codes are as follows:
+
+   Code | Meaning
+   -----|------------
+    250 | success 
+    501 | bad command parameter syntax
+    503 | mail transaction in progress
+    421 | unable to proceed
+
+The information specified with XFORWARD attribues is not limited
+to DNS hostnames, IP addresses or SMTP protocol names.  Attribute
+values may contain arbitrary text, but must not contain control
+characters, non-ASCII characters, whitespace, or other characters
+that are special in message headers.
+
+The NAME attribute specifies an up-stream client hostname, or
+[UNAVAILABLE] when the information is unavailable. The hostname
+may be a non-DNS hostname.
+
+The ADDR attribute specifies an up-stream client network address,
+or [UNAVAILABLE] when the information is unavailable.  Address
+information is not enclosed with []. The address may be a non-IP
+address.
+
+The PROTO attribute specifies the mail protocol that was used by
+the up-stream client. This may be an SMTP non-SMTP protocol name
+of up to 64 characters, or [UNAVAILABLE] when the information is
+unavailable.
+
+The HELO attribute specifies the hostname that the up-stream client
+host introduced itself with (for example, via the SMTP HELO command),
+or [UNAVAILABLE] when the information is unavailable. The hostname
+may be a non-DNS hostname.
+
+Note 1: DNS hostnames can be up to 255 characters long. The XFORWARD
+client implementation must not send XFORWARD commands that exceed
+the 512 character limit for SMTP commands.
+
+Note 2: [UNAVAILABLE] may be specified in upper case, lower case
+or mixed case.
+
+Note 3: the XFORWARD server implementation must not mix information
+from the current SMTP session with forwarded information from an
+up-stream session.
+
+Security
+========
+
+The XFORWARD command changes audit trails.  Use of this command
+must be restricted to authorized clients.
+
+SMTP connection caching
+=======================
+
+SMTP connection caching makes it possible to deliver multiple
+messages within the same SMTP session. The XFORWARD attributes are
+reset after the MAIL FROM command completes, so there is no risk
+of information leakage.

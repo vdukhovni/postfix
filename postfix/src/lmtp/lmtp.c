@@ -88,6 +88,11 @@
 /* .IP \fBlmtp_tcp_port\fR
 /*	The TCP port to be used when connecting to a LMTP server.  Used as
 /*	backup if the \fBlmtp\fR service is not found in \fBservices\fR(4).
+/* .IP \fBlmtp_send_xforward_command\fR
+/*	If the LMTP server announces XFORWARD support, send the name,
+/*	address, protocol and HELO name of the original client. This
+/*	can be used to forward client information through a content
+/*	filter to a downstream queuing LMTP server.
 /* .SH "Authentication controls"
 /* .IP \fBlmtp_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -168,6 +173,9 @@
 /*	is deferred.
 /* .IP \fBlmtp_lhlo_timeout\fR
 /*	Timeout for sending the \fBLHLO\fR command, and for
+/*	receiving the server response.
+/* .IP \fBlmtp_xforward_timeout\fR
+/*	Timeout for sending the \fBXFORWARD\fR command, and for
 /*	receiving the server response.
 /* .IP \fBlmtp_mail_timeout\fR
 /*	Timeout for sending the \fBMAIL FROM\fR command, and for
@@ -263,6 +271,7 @@ int     var_lmtp_tcp_port;
 int     var_lmtp_conn_tmout;
 int     var_lmtp_rset_tmout;
 int     var_lmtp_lhlo_tmout;
+int     var_lmtp_xfwd_tmout;
 int     var_lmtp_mail_tmout;
 int     var_lmtp_rcpt_tmout;
 int     var_lmtp_data0_tmout;
@@ -276,6 +285,7 @@ char   *var_error_rcpt;
 char   *var_lmtp_sasl_opts;
 char   *var_lmtp_sasl_passwd;
 bool    var_lmtp_sasl_enable;
+bool    var_lmtp_send_xforward;
 
  /*
   * Global variables.
@@ -538,6 +548,7 @@ int     main(int argc, char **argv)
 	VAR_LMTP_CONN_TMOUT, DEF_LMTP_CONN_TMOUT, &var_lmtp_conn_tmout, 0, 0,
 	VAR_LMTP_RSET_TMOUT, DEF_LMTP_RSET_TMOUT, &var_lmtp_rset_tmout, 1, 0,
 	VAR_LMTP_LHLO_TMOUT, DEF_LMTP_LHLO_TMOUT, &var_lmtp_lhlo_tmout, 1, 0,
+	VAR_LMTP_XFWD_TMOUT, DEF_LMTP_XFWD_TMOUT, &var_lmtp_xfwd_tmout, 1, 0,
 	VAR_LMTP_MAIL_TMOUT, DEF_LMTP_MAIL_TMOUT, &var_lmtp_mail_tmout, 1, 0,
 	VAR_LMTP_RCPT_TMOUT, DEF_LMTP_RCPT_TMOUT, &var_lmtp_rcpt_tmout, 1, 0,
 	VAR_LMTP_DATA0_TMOUT, DEF_LMTP_DATA0_TMOUT, &var_lmtp_data0_tmout, 1, 0,

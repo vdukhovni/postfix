@@ -1,182 +1,98 @@
 Purpose of the XCLIENT extension to SMTP
 ========================================
 
-The XCLIENT command targets problems in the following areas:
+The XCLIENT command targets the following problems:
 
 1 - Access control tests. SMTP server access rules are difficult
 to verify when decisions can be triggered only by remote clients.
 In order to facilitate access rule testing, an authorized SMTP
 client test program needs the ability to override the SMTP server's
-idea of the SMTP client hostname, network address, and other
+idea of the SMTP client hostname, network address, and other client
 information, for the entire duration of an SMTP session.
 
-2 - Logging after SMTP-based content filter. With the deployment
-of Internet->MTA1->filter->MTA2 style content filter applications,
-remote client information is lost when MTA1 gives the mail to the
-content filter.  To simplify the interpretation of MTA2 logging,
-it would help if MTA1 could forward client information through the
-content filter to MTA2.
+2 - Client software that downloads mail from an up-stream mail
+server and injects it into a local MTA via SMTP. In order to take
+advantage of the local MTA's access rules, the client software
+needs the ability to override the SMTP server's idea of the remote
+client name, client address and other information.  Such information
+can typically be extracted from the up-stream mail server's Received:
+message header.
 
 3 - Post-filter access control and logging. With Internet->filter->MTA
 style content filter applications, the filter can be simplified if
 it can delegate decisions concerning mail relay and other access
-control to the MTA. As in the first example, this requires that
-the filter can override the MTA's idea of the SMTP client hostname,
-network address, and other information, for the entire duration of
-an SMTP session.
+control to the MTA. This is especially useful when the filter acts
+as a transparent proxy for SMTP commands. As in the first example,
+this requires that the filter can override the MTA's idea of the
+SMTP client hostname, network address, and other information.
 
-4 - Fetchmail.
+Command syntax
+==============
 
-Command overview
-================
-
-The EHLO keyword associated with this extension is XCLIENT. In EHLO
-replies, XCLIENT is followed by the names of the supported XCLIENT
-functions.
-
-The XCLIENT OVERRIDE function updates remote client attributes that
-the MTA normally uses for access control, message headers, logging
-and so on, for the duration of an entire SMTP session.
-
-The XCLIENT FORWARD function updates temporary remote client
-attributes that the MTA uses for transaction logging. These attributes
-are valid for only one message delivery attempt.  In the absence
-of forwarded attributes the MTA must use the normal remote client
-attribute values.
+In SMTP server EHLO replies, the keyword associated with this
+extension is XCLIENT. It is followed by the names of the attributes
+that the XCLIENT implementation supports.
 
 The general command syntax is described below.  Upper case and
 quoted strings specify terminals, lowercase strings specify meta
-terminals, SP is whitespace, and descriptive text is enclosed in
-{}.  Although command and attribute names are shown below in upper
-case, they are in fact case insensitive.
+terminals, and SP is whitespace.  Although command and attribute
+names are shown in upper case, they are in fact case insensitive.
 
-    xclient-command = XCLIENT SP function SP 1*( attribute )
-
-    function = ( OVERRIDE | FORWARD )
+    xclient-command = XCLIENT 1*( SP attribute )
 
     attribute = name"="value
 
-    name = ( NAME|ADDR|CODE|PROTO|HELO )
-
-    value = ( { empty } | xtext )
-
-    xtext = { attribute value encoded as per RFC 1891 }
+    name = ( NAME | ADDR | PROTO | HELO )
 
 The XCLIENT command can be sent at any time except in the middle
 of a mail delivery transaction (i.e.  between MAIL and DOT).  The
-command may be pipelined after the server EHLO reply announces
-ESMTP pipelining support.
+command may be pipelined if the server EHLO reply announces ESMTP
+pipelining support.
 
-The server reply codes are as follows:
+The XCLIENT reply codes are as follows:
 
    Code | Meaning
    -----|------------
     250 | success 
-    501 | bad command parameter
+    501 | bad command parameter syntax
     503 | mail transaction in progress
     421 | unable to proceed
 
-The server must report success in case of an unrecognized attribute
-name, although it may log a warning.
+The NAME attribute specifies an SMTP client hostname (not an SMTP
+client address), [unavailable] when client hostname lookup failed
+due to a permanent error, or [temporary] when the lookup error
+condition was transient.
 
-Specific usage scenarios
-========================
+The ADDR attribute specifies an SMTP client numerical IPv4 network
+address, an IPv6 address prefixed with IPV6:, or [unavailable]
+when the address information is unavailable.  Address information
+is not enclosed with [].
 
-This section discusses the semantics of XCLIENT requests.  Specific
-syntax details are given in the next section.
+The PROTO attribute specifies either SMTP or ESMTP.
 
-The XCLIENT OVERRIDE request modifies remote client attributes that
-the MTA normally uses for access control, message headers, logging,
-and for other purposes, for the duraction of the entire SMTP session.
-Attributes that are not specified in XCLIENT OVERRIDE requests are
-not modified.
+The HELO attribute specifies a HELO parameter value, or the value
+[unavailable] when the information is unavailable.
 
-The following example overrides only the client hostname and network
-address, leaving unchanged all other client attributes such as the
-mail protocol or the hostname given in the HELO command:
-
-    XCLIENT OVERRIDE NAME=spike.porcupine.org
-    XCLIENT OVERRIDE ADDR=168.100.189.2
-
-The XCLIENT FORWARD request specifies remote client attributes that
-are logged with one message delivery attempt. The attributes are
-discarded after the MAIL FROM transaction finishes. In the absence
-of any XCLIENT FORWARD attributes, the MTA must use the normal
-client attributes.
-
-If only a subset of all possible XCLIENT FORWARD attributes is
-specified, the unspecified attributes must be treated as if they
-are unknown. The implementation must not replace missing XCLIENT
-FORWARD attributes by normal attributes.
-
-The following example updates all forwarded client attributes that
-are defined in this document, leaving none at their default unknown
-value:
-
-    XCLIENT FORWARD NAME=spike.porcupine.org ADDR=168.100.189.2
-    XCLIENT FORWARD HELO=spike.porcupine.org PROTO=ESMTP
-
-Note 1: attributes specified with successive XCLIENT commands
-accumulate.
-
-Note 2: XCLIENT FORWARD attributes take precedence over XCLIENT
-OVERRIDE attributes.
-
-Attribute value details
-=======================
-
-Attribute values are encoded as RFC 1891 xtext strings. To explicitly
-specify that an attribute value is unavailable, the value must be
-empty; the client must not send its own internal representation of
-unavailable information.
-
-The NAME_CODE attribute specifies NAME hostname lookup status
-information.  Values are OK (success), TEMP (temporary lookup
-failure) or PERM (permanent lookup failure). When CODE is set to
-any value other than OK, the NAME attribute is automatically set
-to the unknown value.
-
-The NAME attribute specifies a name space (typically, DNS) and
-an MTA name within that name space.
-and not a numerical address.  When a null client name is specified
-(i.e.  the client name is unknown), the CODE attribute is implicitly
-set to PERM. When a valid domain name is specified, CODE is implicitly
-set to OK. The server may process a syntactically invalid domain
-name as if it were unknown.
-
-The ADDR attribute must specify a numerical network address without
-[].
-
-The PROTO attribute should be a string of up to 64 printable
-characters, where printable is defined by the ANSI C isascii() and
-isprint() predicates.
-
-The HELO attribute should be a syntactically valid HELO
-parameter value.
-
-Note 3: syntactically valid NAME and HELO attributes can be up to
+Note 1: syntactically valid NAME and HELO attributes can be up to
 255 characters long. The client must not send XCLIENT commands that
-exceed the 512 character limit of SMTP commands.
+exceed the 512 character limit for SMTP commands.
 
-Note 4: attribute values may end up in Received: or other message
-headers.  The receiving MTA may substitute characters in order to
-not violate RFC 822 or RFC 2822.
+Note 2: [UNAVAILABLE], [TEMPORARY] and IPV6:  may be specified in
+upper case, lower case or mixed case.
 
 Security
 ========
 
 The XCLIENT command changes audit trails and/or client access
-permissions. For these reasons, use of these commands must be
-restricted to authorized clients only.
+permissions. Use of this command must be restricted to authorized
+clients.
 
-The examples in this document assume that XCLIENT does not override
-its own access control mechanism.
+The XCLIENT should not override its own access control mechanism.
 
 SMTP connection caching
 =======================
 
 SMTP connection caching makes it possible to deliver multiple
-messages within the same SMTP session. Thus, one persistent SMTP
-session with a content filter can carry messages from unrelated
-clients.  The XCLIENT FORWARD attributes are reset after the MAIL
-FROM command completes, so there is no risk of information leakage.
+messages within the same SMTP session. The XCLIENT attributes are 
+persistent across deliveries, and need to be reset as appropriate
+in order to avoid information leakage.

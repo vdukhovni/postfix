@@ -8832,6 +8832,29 @@ Apologies for any names omitted.
 	because the deliver_pass.c module was not updated for the
 	changed message delivery protocol.
 
+20031211
+
+	Safety: in dynamically growing data structures, update the
+	length info after (instead of before) updating the data
+	size. Files:  util/argv.c, util/inet_addrlist.c, util/intv.c,
+	util/mvect.c, util/vstring.c, global/recipient_list.c,
+	*qmgr/qmgr_rcpt_list.c.
+
+20031212
+
+	Cleanup: separate extensions XCLIENT (impersonate SMTP
+	client) and XFORWARD (down-stream logging of up-stream
+	session information, not necessarily SMTP related). The
+	protocol is extensible: the server advertises what attributes
+	XCLIENT or XFORWARD will accept.  The requirement for xtext
+	encoding is dropped as no attribute currently needs it.
+	All errors are reported by the server and are logged by
+	the client.  See also: XCLIENT_README and XFORWARD_README.
+
+20031214
+
+	Feature: XCLIENT and XFORWARD support in the LMTP client.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content

@@ -27,7 +27,8 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
 	write_buf.c write_wait.c auto_clnt.c attr_clnt.c attr_scan_plain.c \
-	attr_print_plain.c sane_connect.c neuter.c name_code.c
+	attr_print_plain.c sane_connect.c neuter.c name_code.c \
+	uppercase.c
 OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
@@ -56,7 +57,8 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
 	write_buf.o write_wait.o auto_clnt.o attr_clnt.o attr_scan_plain.o \
-	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o name_code.o
+	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o name_code.o \
+	uppercase.o
 HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
 	dict_cidr.h dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
@@ -1292,6 +1294,11 @@ unix_trigger.o: trigger.h
 unsafe.o: unsafe.c
 unsafe.o: sys_defs.h
 unsafe.o: safe.h
+uppercase.o: uppercase.c
+uppercase.o: sys_defs.h
+uppercase.o: stringops.h
+uppercase.o: vstring.h
+uppercase.o: vbuf.h
 username.o: username.c
 username.o: sys_defs.h
 username.o: username.h

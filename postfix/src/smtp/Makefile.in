@@ -154,6 +154,7 @@ smtp_proto.o: ../../include/stringops.h
 smtp_proto.o: ../../include/mymalloc.h
 smtp_proto.o: ../../include/iostuff.h
 smtp_proto.o: ../../include/split_at.h
+smtp_proto.o: ../../include/name_code.h
 smtp_proto.o: ../../include/mail_params.h
 smtp_proto.o: ../../include/smtp_stream.h
 smtp_proto.o: ../../include/mail_queue.h
@@ -173,7 +174,6 @@ smtp_proto.o: ../../include/mail_proto.h
 smtp_proto.o: ../../include/attr.h
 smtp_proto.o: ../../include/mime_state.h
 smtp_proto.o: ../../include/header_opts.h
-smtp_proto.o: ../../include/xtext.h
 smtp_proto.o: smtp.h
 smtp_proto.o: ../../include/argv.h
 smtp_proto.o: smtp_sasl.h
