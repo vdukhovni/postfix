@@ -8,9 +8,9 @@ load, at the cost of a small but noticeable slowdown when one runs
 
 Postfix no longer automatically delivers recipients one at a time
 when their domain is listed in $mydestination.  This change solves
-delivery performance problems with delivery via LMTP, and with
-firewall relays that forward all mail for $mydestination to an
-inside host.
+delivery performance problems with delivery via LMTP, with virus
+scanning, and with firewall relays that forward all mail for
+$mydestination to an inside host.
 
 The "one recipient at a time" delivery behavior is now controlled
 by the per-transport recipient limit (xxx_destination_recipient_limit,

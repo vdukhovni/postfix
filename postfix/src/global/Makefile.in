@@ -781,7 +781,9 @@ mynetworks.o: ../../include/msg.h
 mynetworks.o: ../../include/vstring.h
 mynetworks.o: ../../include/vbuf.h
 mynetworks.o: ../../include/inet_addr_list.h
+mynetworks.o: ../../include/name_mask.h
 mynetworks.o: own_inet_addr.h
+mynetworks.o: mail_params.h
 mynetworks.o: mynetworks.h
 mypwd.o: mypwd.c
 mypwd.o: ../../include/sys_defs.h

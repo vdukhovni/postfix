@@ -6,13 +6,17 @@
 /* SYNOPSIS
 /*	#include <inet_addr_local.h>
 /*
-/*	int	inet_addr_local(list)
-/*	INET_ADDR_LIST *list;
+/*	int	inet_addr_local(addr_list, mask_list)
+/*	INET_ADDR_LIST *addr_list;
+/*	INET_ADDR_LIST *mask_list;
 /* DESCRIPTION
 /*	inet_addr_local() determines all active IP interface addresses
 /*	of the local system. Any address found is appended to the
 /*	specified address list. The result value is the number of
 /*	active interfaces found.
+/*
+/*	The mask_list is either a null pointer, or it is an list
+/*	that receives the netmasks corresponding to the address list.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory.
 /* SEE ALSO
@@ -68,7 +72,7 @@
 
 /* inet_addr_local - find all IP addresses for this host */
 
-int     inet_addr_local(INET_ADDR_LIST *addr_list)
+int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list)
 {
     char   *myname = "inet_addr_local";
     struct ifconf ifc;
@@ -119,8 +123,15 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
     for (ifr = ifc.ifc_req; ifr < the_end;) {
 	if (ifr->ifr_addr.sa_family == AF_INET) {	/* IP interface */
 	    addr = ((struct sockaddr_in *) & ifr->ifr_addr)->sin_addr;
-	    if (addr.s_addr != INADDR_ANY)	/* has IP address */
+	    if (addr.s_addr != INADDR_ANY) {	/* has IP address */
 		inet_addr_list_append(addr_list, &addr);
+		if (mask_list) {
+		    if (ioctl(sock, SIOCGIFNETMASK, ifr) < 0)
+			msg_fatal("%s: ioctl SIOCGIFNETMASK: %m", myname);
+		    addr = ((struct sockaddr_in *) & ifr->ifr_addr)->sin_addr;
+		    inet_addr_list_append(mask_list, &addr);
+		}
+	    }
 	}
 	ifr = NEXT_INTERFACE(ifr);
     }
@@ -137,12 +148,14 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
 int     main(int unused_argc, char **argv)
 {
     INET_ADDR_LIST addr_list;
+    INET_ADDR_LIST mask_list;
     int     i;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
     inet_addr_list_init(&addr_list);
-    inet_addr_local(&addr_list);
+    inet_addr_list_init(&mask_list);
+    inet_addr_local(&addr_list, &mask_list);
 
     if (addr_list.used == 0)
 	msg_fatal("cannot find any active network interfaces");
@@ -150,10 +163,13 @@ int     main(int unused_argc, char **argv)
     if (addr_list.used == 1)
 	msg_warn("found only one active network interface");
 
-    for (i = 0; i < addr_list.used; i++)
-	vstream_printf("%s\n", inet_ntoa(addr_list.addrs[i]));
+    for (i = 0; i < addr_list.used; i++) {
+	vstream_printf("%s/", inet_ntoa(addr_list.addrs[i]));
+	vstream_printf("%s\n", inet_ntoa(mask_list.addrs[i]));
+    }
     vstream_fflush(VSTREAM_OUT);
     inet_addr_list_free(&addr_list);
+    inet_addr_list_free(&mask_list);
 }
 
 #endif

@@ -87,7 +87,7 @@
 /* safe_open_exist - open existing file */
 
 static VSTREAM *safe_open_exist(const char *path, int flags,
-			              struct stat * fstat_st, VSTRING * why)
+				        struct stat * fstat_st, VSTRING *why)
 {
     struct stat local_statbuf;
     struct stat lstat_st;
@@ -127,17 +127,26 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
      * slowed down by arbitrary amounts, and there it would make sense to
      * compare even more file attributes, such as the inode generation number
      * on systems that have one.
+     * 
+     * Grr. Solaris /dev/whatever is a symlink. We'll have to make an exception
+     * for symlinks owned by root. NEVER, NEVER, make exceptions for symlinks
+     * owned by a non-root user. This would open a security hole when
+     * delivering mail to a world-writable mailbox directory.
      */
-    else if (lstat(path, &lstat_st) < 0
-	     || fstat_st->st_dev != lstat_st.st_dev
-	     || fstat_st->st_ino != lstat_st.st_ino
+    else if (lstat(path, &lstat_st) < 0) {
+	vstring_sprintf(why, "file status changed unexpectedly: %m");
+    } else if (S_ISLNK(lstat_st.st_mode)) {
+	if (lstat_st.st_uid == 0)
+	    return (fp);
+	vstring_sprintf(why, "file is a symbolic link");
+    } else if (fstat_st->st_dev != lstat_st.st_dev
+	       || fstat_st->st_ino != lstat_st.st_ino
 #ifdef HAS_ST_GEN
-	     || fstat_st->st_gen != lstat_st.st_gen
+	       || fstat_st->st_gen != lstat_st.st_gen
 #endif
-	     || fstat_st->st_nlink != lstat_st.st_nlink
-	     || fstat_st->st_mode != lstat_st.st_mode) {
-	vstring_sprintf(why, "%s", S_ISLNK(lstat_st.st_mode) ?
-	    "file is a symbolic link" : "file status changed unexpectedly");
+	       || fstat_st->st_nlink != lstat_st.st_nlink
+	       || fstat_st->st_mode != lstat_st.st_mode) {
+	vstring_sprintf(why, "file status changed unexpectedly");
     }
 
     /*
@@ -159,7 +168,7 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
 /* safe_open_create - create new file */
 
 static VSTREAM *safe_open_create(const char *path, int flags, int mode,
-	           struct stat * st, uid_t user, uid_t group, VSTRING * why)
+	            struct stat * st, uid_t user, uid_t group, VSTRING *why)
 {
     VSTREAM *fp;
 
@@ -207,7 +216,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
 /* safe_open - safely open or create file */
 
 VSTREAM *safe_open(const char *path, int flags, int mode,
-	           struct stat * st, uid_t user, gid_t group, VSTRING * why)
+	            struct stat * st, uid_t user, gid_t group, VSTRING *why)
 {
     VSTREAM *fp;
 

@@ -123,21 +123,34 @@ mail_owner = postfix
 # RELAY CONTROL
 
 # The mynetworks parameter specifies the list of networks that make
-# up the local neighborhood. The list is used by the anti-UCE software
-# to distinguish local clients from strangers. See permit_mynetworks
-# and smtpd_recipient_restrictions in the file sample-smtpd.cf file.
+# up the local neighborhood. The list is used by the anti-UCE
+# software to relay authorize clients. See the check_relay_domains
+# and and smtpd_recipient_restrictions in the sample-smtpd.cf file.
 #
-# The default is a list of all networks attached to the machine:  a
-# complete class A network (X.0.0.0/8), a complete class B network
-# (X.X.0.0/16), and so on.
+# By default, Postfix derives the mynetworks setting from the local
+# machine network addresses.
+
+# The mynetworks_style parameter specifies how Postfix computes the
+# mynetworks default value from the local machine network addresses.
+#
+# By default (mynetworks_style = subnet), Postfix relay authorizes
+# all clients in the subnets that are attached to this machine.
 # 
-# YOU MUST CHANGE THIS DEFAULT SETTING IF YOUR ADDRESS BLOCK IS PART
-# OF A LARGER ADDRESS RANGE THAT IS OWNED BY YOUR PROVIDER - IT WOULD
-# CAUSE POSTFIX TO RELAY MAIL FROM ALL THEIR CUSTOMERS.
+# Specify "mynetworks_style = class" when you want to relay authorize
+# all clients in the class A, B or C networks that are attached to
+# to this machine.
+#  
+# Specify "mynetworks_style = host" if you do not want to relay
+# authorize clients other than the local machine.
 # 
-# If you need stricter control than the default, specify a list of
-# network/mask patterns, where the mask specifies the number of bits
-# in the network part of a host address.
+# mynetworks_style = class
+# mynetworks_style = subnet
+# mynetworks_style = host
+
+# Instead of implicitly deriving the mynetworks value from local
+# machine addresses, you can specify an explicit list of network/mask
+# patterns, where the mask specifies the number of bits in the network
+# part of a host address.
 #
 # You can also specify the absolute pathname of a pattern file instead
 # of listing the patterns here.

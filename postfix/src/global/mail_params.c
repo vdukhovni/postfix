@@ -60,6 +60,7 @@
 /*	char	*var_relay_domains;
 /*	char	*var_fflush_domains;
 /*	char	*var_def_transport;
+/*	char	*var_mynetworks_style;
 /*
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
@@ -172,6 +173,7 @@ char   *var_syslog_facility;
 char   *var_relay_domains;
 char   *var_fflush_domains;
 char   *var_def_transport;
+char   *var_mynetworks_style;
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -290,6 +292,7 @@ void    mail_params_init()
 	VAR_EXPORT_ENVIRON, DEF_EXPORT_ENVIRON, &var_export_environ, 0, 0,
 	VAR_IMPORT_ENVIRON, DEF_IMPORT_ENVIRON, &var_import_environ, 0, 0,
 	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
+	VAR_MYNETWORKS_STYLE, DEF_MYNETWORKS_STYLE, &var_mynetworks_style, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

@@ -74,6 +74,7 @@ If your system is supported, it is one of
     Linux SuSE 6.x
     Linux SuSE 7.x
     Mac OS X server
+    Mac OS X Public Beta
     NEXTSTEP 3.x
     NetBSD 1.x
     OPENSTEP 4.x
@@ -416,10 +417,10 @@ Finally, if you haven't used Sendmail prior to using Postfix, you
 will have to build the alias database (with: sendmail -bi, or:
 newaliases). Be sure to set up aliases for root and postmaster that
 forward mail to a real person. Postfix has a sample aliases file
-the conf/aliases.
+conf/aliases that you can adapt to local conditions.
 
 11 - To chroot or not to chroot
-==============================
+===============================
 
 Postfix can run most daemon processes in a chroot jail, that is,
 the processes run at a fixed low privilege and with access only to

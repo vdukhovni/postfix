@@ -4870,13 +4870,6 @@ Apologies for any names omitted.
 	will give more insight into how Postfix uses its lookup
 	tables. User interface comes later.  File:  util/dict_debug.c.
 
-20010215
-
-	The showq output format assumes queue IDs of up to 10
-	characters.  It can be more with large  file systems.
-	Workaround for 11 character queue IDs by Lamont Jones.
-	File: showq/showq.c.
-
 20010216
 
 	Bugfix: the pipe delivery agent expanded $size as if it
@@ -4889,12 +4882,13 @@ Apologies for any names omitted.
 	in $mydestination, because Postfix would send one recipient
 	at a time, with multiple deliveries of recipients of the
 	same message in parallel; a similar problem could exist
-	with firewall relay hosts that forward mail for $mydestination
-	to an inside machine. This behavior is now changed to depend
-	on the transport-specific xxx_destination_recipient_limit
-	parameter.  This also means that you can now get qmail behavior
-	for SMTP deliveries by setting smtp_destination_recipient_limit=1.
-	File:  {qmgr,nqmgr}/qmgr_message.c.
+	with virus scanning and with firewall relay hosts that
+	forward mail for $mydestination to an inside machine. This
+	behavior is now changed to depend on the transport-specific
+	xxx_destination_recipient_limit parameter.  This also means
+	that you can now get qmail behavior for SMTP deliveries by
+	setting smtp_destination_recipient_limit=1.  File:
+	{qmgr,nqmgr}/qmgr_message.c.
 
 	Workaround: Solaris socketpair() can fail with EINTR. Added
 	a sane_socketpair.c module that joins the ranks of the other
@@ -4912,3 +4906,29 @@ Apologies for any names omitted.
 	configuration file edits" has a section that explains that
 	mynetworks should be properly configured in order to reject
 	unauthorized mail relay requests from strangers.
+
+20010223
+
+	Documentation: the basic.html document has a section that
+	explains that mynetworks should be properly configured in
+	order to reject unauthorized mail relay requests from
+	strangers.
+
+	Feature: new "mynetworks_style" parameter that controls
+	how mynetworks (trusted networks) is derived from the
+	inet_interfaces (machine interfaces) setting. Specify
+	"class" for entire class A, B, C networks; "subnet" for
+	the local subnets only; or "host" for maximal privacy.
+	Files:  util/inet_addr_local.[hc], global/own_inet_addr.[hc],
+	global/mynetworks.[hc], postconf/postconf.c.
+
+	Portability: MACOSX patches by Gerben Wierda.
+
+	Portability: Solaris /dev/null is a symlink, which tripped
+	up the code to safely open a file before delivery. We now
+	grudgingly allow symlinks owned by root. File: util/safe_open.c.
+
+20010224
+
+	Bugfix: "postconf mynetworks" ignored the inet_interfaces
+	setting. That was a very old one. File: postconf/postconf.c.

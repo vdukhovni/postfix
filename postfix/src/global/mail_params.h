@@ -990,6 +990,14 @@ extern int var_trigger_timeout;
 #define VAR_MYNETWORKS		"mynetworks"
 extern char *var_mynetworks;
 
+#define VAR_MYNETWORKS_STYLE	"mynetworks_style"
+#define DEF_MYNETWORKS_STYLE	MYNETWORKS_STYLE_SUBNET
+extern char *var_mynetworks_style;
+
+#define	MYNETWORKS_STYLE_CLASS	"class"
+#define	MYNETWORKS_STYLE_SUBNET	"subnet"
+#define	MYNETWORKS_STYLE_HOST	"host"
+
 #define VAR_RELAY_DOMAINS	"relay_domains"
 #define DEF_RELAY_DOMAINS	"$mydestination"
 extern char *var_relay_domains;
