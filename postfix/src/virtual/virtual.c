@@ -70,11 +70,9 @@
 /*	numerical user ID values that may be specified in any
 /*	\fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR.
 /* SECURITY
-/* .ad
-/* .fi
 /*	The virtual delivery agent is not security sensitive, provided
-/*	that the lookup tables with recipient user/group ID information are
-/*	adequately protected. This program is not designed to run chrooted.
+/*	that the lookup tables with recipient information are adequately
+/*	protected. This program is not designed to run chrooted.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* DIAGNOSTICS
@@ -140,7 +138,7 @@
 /*	This setting is ignored with \fBmaildir\fR style delivery,
 /*	because such deliveries are safe without explicit locks.
 /*
-/*	Use the command \fBpostconf -l\fR to find out what locking methods
+/*	Use the command \fBpostconf -m\fR to find out what locking methods
 /*	are available on your system.
 /* .IP \fBdeliver_lock_attempts\fR
 /*	Limit the number of attempts to acquire an exclusive lock

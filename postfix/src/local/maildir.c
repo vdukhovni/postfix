@@ -153,8 +153,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     set_eugid(var_owner_uid, var_owner_gid);
 
     if (status)
-	status = (errno == ENOSPC || errno == ESTALE ?
-		  defer_append : bounce_append)
+	status = (errno == ENOSPC ? defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "maildir delivery failed: %s", vstring_str(why));
     else

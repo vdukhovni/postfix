@@ -82,7 +82,6 @@
 #include <vstring_vstream.h>
 #include <stringops.h>
 #include <mymalloc.h>
-#include <iostuff.h>
 
 /* Global library. */
 
@@ -179,11 +178,8 @@ int     smtp_helo(SMTP_STATE *state)
      * does not span a packet boundary. This hurts performance so it is not
      * on by default.
      */
-    if (resp->str[strspn(resp->str, "20 *\t\n")] == 0) {
-	msg_info("enabling PIX <CRLF>.<CRLF> workaround for %s",
-		 session->namaddr);
+    if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
 	state->features |= SMTP_FEATURE_MAYBEPIX;
-    }
 
     /*
      * See if we are talking to ourself. This should not be possible with the
@@ -200,9 +196,9 @@ int     smtp_helo(SMTP_STATE *state)
 	} else if (strcasecmp(word, "ESMTP") == 0)
 	    state->features |= SMTP_FEATURE_ESMTP;
     }
-    if (var_smtp_always_ehlo && (state->features & SMTP_FEATURE_MAYBEPIX) == 0)
+    if (var_smtp_always_ehlo)
 	state->features |= SMTP_FEATURE_ESMTP;
-    if (var_smtp_never_ehlo || (state->features & SMTP_FEATURE_MAYBEPIX) != 0)
+    if (var_smtp_never_ehlo)
 	state->features &= ~SMTP_FEATURE_ESMTP;
 
     /*
@@ -661,11 +657,9 @@ int     smtp_xfer(SMTP_STATE *state)
 
 	    if (prev_type == REC_TYPE_CONT)	/* missing newline at end */
 		smtp_fputs("", 0, session->stream);
-	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0) {
+	    if ((state->features & SMTP_FEATURE_ESMTP) == 0
+		&& (state->features & SMTP_FEATURE_MAYBEPIX) != 0)
 		vstream_fflush(session->stream);/* hurts performance */
-		sock_empty_wait(vstream_fileno(session->stream),
-				session->stream->timeout / 2);
-	    }
 	    if (vstream_ferror(state->src))
 		msg_fatal("queue file read error");
 	    if (rec_type != REC_TYPE_XTRA)

@@ -213,8 +213,8 @@ In order to install or upgrade Postfix:
 
 - Run the INSTALL.sh script as the super-user:
 
-    # make install       (interactive version, first time install)
-    # make upgrade       (non-interactive version, for upgrades)
+    # make install              (interactive version, first time install)
+    # make install </dev/null   (non-interactive version, for upgrades)
 
   The non-interactive version needs the /etc/postfix/install.cf
   file from a previous installation. If the file does not exist,
