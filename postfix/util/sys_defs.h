@@ -19,16 +19,13 @@
   * directory. Adding support for a new system type means updating the
   * makedefs script, and adding a section below for the new system.
   */
-#if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 104250000)
-#define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* sendmail 8.10 */
-#endif
-
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(FREEBSD5) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(NETBSD1)
 #define SUPPORTED
 #include <sys/types.h>
+#include <sys/param.h>
 #define USE_PATHS_H
 #define USE_FLOCK_LOCK
 #define HAS_SUN_LEN
@@ -36,6 +33,9 @@
 #define HAS_DB
 #define HAS_SA_LEN
 #define DEF_DB_TYPE	"hash"
+#if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 104250000)
+#define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* sendmail 8.10 */
+#endif
 #ifndef ALIAS_DB_MAP
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
 #endif
@@ -56,6 +56,7 @@
 #endif
 
 #if defined(NETBSD1)
+#define ANAL_CAST
 #define USE_DOT_LOCK
 #endif
 
@@ -647,6 +648,14 @@ extern int h_errno;
   */
 #ifndef SUPPORTED
 #error "unsupported platform"
+#endif
+
+#ifndef ANAL_CAST
+#define CAST_CHAR_PTR_TO_INT(cptr)	((int) (long) (cptr))
+#define CAST_INT_TO_CHAR_PTR(ival)	((char *) (long) (ival))
+#else
+#define CAST_CHAR_PTR_TO_INT(cptr)	((int) (cptr))
+#define CAST_INT_TO_CHAR_PTR(ival)	((char *) (ival))
 #endif
 
 #ifdef DUP2_DUPS_CLOSE_ON_EXEC

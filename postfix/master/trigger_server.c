@@ -240,7 +240,7 @@ static void trigger_server_wakeup(int fd)
 static void trigger_server_accept_fifo(int unused_event, char *context)
 {
     char   *myname = "trigger_server_accept_fifo";
-    int     listen_fd = (int) context;
+    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
 
     if (trigger_server_lock != 0
 	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
@@ -263,7 +263,7 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
 static void trigger_server_accept_local(int unused_event, char *context)
 {
     char   *myname = "trigger_server_accept_local";
-    int     listen_fd = (int) context;
+    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
     int     time_left = 0;
     int     fd;
 
@@ -578,7 +578,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     if (var_idle_limit > 0)
 	event_request_timer(trigger_server_timeout, (char *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
-	event_enable_read(fd, trigger_server_accept, (char *) fd);
+	event_enable_read(fd, trigger_server_accept, CAST_INT_TO_CHAR_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);
     }
     event_enable_read(MASTER_STATUS_FD, trigger_server_abort, (char *) 0);

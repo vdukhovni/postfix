@@ -3942,5 +3942,23 @@ Apologies for any names omitted.
 	Bugfix: Postfix would incorrectly reject domain names with
 	adjacent - characters. File: util/valid_hostname.c.
 
-	The 20000505 pipeline tarpit delay flush was wrong and
-	caused SMTP protocol errors.
+	Bugfix: the 20000505 pipeline tarpit delay flush was wrong
+	and caused the client and server to get out of phase. Yuck!
+
+20000513
+
+	Feature: VSTREAMs now have the concept of last fill/flush
+	time, which is needed to prevent timeouts with pipelined
+	SMTP sessions as detailed in the next item.
+
+	Bugfix: automatic SMTP command/reply flushing to prevent
+	delays from accumulating within pipelined SMTP sessions.
+	For example, client-side delays happen when a client does
+	DNS lookups to replace hostname aliases in a MAIL FROM or
+	RCPT TO commands; server-side delays happen when an UCE
+	restriction involves a time-consuming DNS lookup, or when
+	a server generates a tarpit delay.  Files:  */*chat.c.
+
+	Portability: define ANAL_CAST for compilation environments
+	that complain about explicit casts between pointers and
+	integral types. File: util/sys_defs.h, master/*server.c.

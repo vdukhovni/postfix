@@ -1,3 +1,15 @@
+Major changes with snapshot-20000513
+====================================
+
+LaMont Jones and Patrik Rak reported two different scenarios in
+which pipelined SMTP sessions could time out forever. Postfix now
+automatically flushes delayed SMTP commands/replies to prevent
+delays from accumulating and causing timeouts in pipelined SMTP
+sessions.  For example, client-side delays happen when a client
+does DNS lookups to replace hostname aliases in a MAIL FROM or RCPT
+TO commands; server-side delays happen when an UCE restriction
+involves DNS lookup, or when a server generates a tarpit delay.
+
 Incompatible changes with snapshot-20000507
 ===========================================
 

@@ -164,6 +164,15 @@ void    lmtp_chat_cmd(LMTP_STATE *state, char *fmt,...)
      * Send the command to the LMTP server.
      */
     smtp_fputs(STR(state->buffer), LEN(state->buffer), session->stream);
+
+    /*
+     * Flush unsent output if no I/O happened for a while. This avoids
+     * timeouts with pipelined LMTP sessions that have lots of client-side
+     * delays. The code is here so that it applies to the entire
+     * conversation, never mind that it violates layering.
+     */
+    if (time((time_t *) 0) - vstream_ftime(session->stream) > 10)
+	vstream_fflush(session->stream);
 }
 
 /* lmtp_chat_resp - read and process LMTP server response */

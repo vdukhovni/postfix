@@ -56,6 +56,7 @@
 #include <sys_defs.h>
 #include <setjmp.h>
 #include <unistd.h>
+#include <time.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 
@@ -133,7 +134,6 @@ void    smtpd_chat_query(SMTPD_STATE *state)
 void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
 {
     va_list ap;
-    int     slept = 0;
 
     va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
@@ -150,19 +150,19 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
      * errors within a session.
      */
     if (state->error_count > var_smtpd_soft_erlim)
-	sleep(slept = state->error_count);
+	sleep(state->error_count);
     else if (STR(state->buffer)[0] == '4' || STR(state->buffer)[0] == '5')
-	sleep(slept = var_smtpd_err_sleep);
+	sleep(var_smtpd_err_sleep);
 
     smtp_fputs(STR(state->buffer), LEN(state->buffer), state->client);
 
     /*
-     * Flush unsent output AFTER writing instead of before sleeping (so that
-     * vstream_fflush() flushes the output half of a bidirectional stream).
-     * Pipelined error responses could result in client-side timeouts.
+     * Flush unsent output if no I/O happened for a while. This avoids
+     * timeouts with pipelined SMTP sessions that have lots of server-side
+     * delays (tarpit delays or DNS lookups for UCE restrictions).
      */
-    if (slept)
-	(vstream_fflush(state->client));
+    if (time((time_t *) 0) - vstream_ftime(state->client) > 10)
+	vstream_fflush(state->client);
 }
 
 /* print_line - line_wrap callback */

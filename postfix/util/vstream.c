@@ -100,6 +100,9 @@
 /*	void	longjmp(stream, val)
 /*	VSTREAM	*stream;
 /*	int	val;
+/*
+/*	time_t	vstream_ftime(stream)
+/*	VSTREAM	*stream;
 /* DESCRIPTION
 /*	The \fIvstream\fR module implements light-weight buffered I/O
 /*	similar to the standard I/O routines.
@@ -277,6 +280,11 @@
 /*
 /*	NB: non-local jumps such as vstream_longjmp() are not safe
 /*	for jumping out of any vstream routine.
+/*
+/*	vstream_ftime() returns the time of initialization, the last buffer
+/*	fill operation, or the last buffer flush operation for the specified
+/*	stream. This information is maintained only when stream timeouts are
+/*	enabled.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -305,6 +313,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 #include <errno.h>
 #include <string.h>
 
@@ -522,6 +531,8 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
      * any.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
+	if (stream->timeout)
+	    stream->iotime = time((time_t *) 0);
 	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout, stream->context)) <= 0) {
 	    bp->flags |= VSTREAM_FLAG_ERR;
 	    if (errno == ETIMEDOUT)
@@ -648,6 +659,8 @@ static int vstream_buf_get_ready(VBUF *bp)
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
      */
+    if (stream->timeout)
+	stream->iotime = time((time_t *) 0);
     switch (n = stream->read_fn(stream->fd, bp->data, bp->len, stream->timeout, stream->context)) {
     case -1:
 	bp->flags |= VSTREAM_FLAG_ERR;
@@ -899,6 +912,7 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     stream->timeout = 0;
     stream->context = 0;
     stream->jbuf = 0;
+    stream->iotime = 0;
     return (stream);
 }
 
@@ -1048,6 +1062,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->waitpid_fn = va_arg(ap, VSTREAM_WAITPID_FN);
 	    break;
 	case VSTREAM_CTL_TIMEOUT:
+	    if (stream->timeout == 0)
+		stream->iotime = time((time_t *) 0);
 	    stream->timeout = va_arg(ap, int);
 	    break;
 	case VSTREAM_CTL_EXCEPT:

@@ -37,6 +37,9 @@
 /*	int	vbuf_eof(bp)
 /*	VBUF	*bp;
 /*
+/*	int	vbuf_timeout(bp)
+/*	VBUF	*bp;
+/*
 /*	int	vbuf_clearerr(bp)
 /*	VBUF	*bp;
 /* DESCRIPTION
@@ -78,9 +81,17 @@
 /*	number of bytes transferred. A short count is returned in case of
 /*	an error.
 /*
-/*	vbuf_err() (vbuf_eof()) is a macro that returns non-zero if an error
-/*	(end-of-file) condition was detected while reading or writing the
-/*	buffer. The error status can be reset by calling vbuf_clearerr().
+/*	vbuf_timeout() is a macro that returns non-zero if a timeout error
+/*	condition was detected while reading or writing the buffer. The 
+/*	error status can be reset by calling vbuf_clearerr().
+/*
+/*	vbuf_err() is a macro that returns non-zero if a non-EOF error
+/*	(including timeout) condition was detected while reading or writing 
+/*	the buffer. The error status can be reset by calling vbuf_clearerr().
+/*
+/*	vbuf_eof() is a macro that returns non-zero if an end-of-file
+/*	condition was detected while reading or writing the buffer. The error 
+/*	status can be reset by calling vbuf_clearerr().
 /* APPLICATION CALLBACK SYNOPSIS
 /*	int	get_ready(bp)
 /*	VBUF	*bp;

@@ -148,6 +148,15 @@ void    smtp_chat_cmd(SMTP_STATE *state, char *fmt,...)
      * Send the command to the SMTP server.
      */
     smtp_fputs(STR(state->buffer), LEN(state->buffer), session->stream);
+
+    /*
+     * Flush unsent output if no I/O happened for a while. This avoids
+     * timeouts with pipelined SMTP sessions that have lots of client-side
+     * delays. The code is here so that it applies to the entire
+     * conversation, never mind that it violates layering.
+     */
+    if (time((time_t *) 0) - vstream_ftime(session->stream) > 10)
+	vstream_fflush(session->stream);
 }
 
 /* smtp_chat_resp - read and process SMTP server response */
