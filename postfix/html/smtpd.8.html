@@ -170,42 +170,32 @@ SMTPD(8)                                                 SMTPD(8)
               Hostnames, domain names and/or addresses of clients
               that are authorized to use the XVERP extension.
 
-       <b>smtpd_authorized_xaddr_clients</b>
+       <b>smtpd_authorized_xclient_hosts</b>
               Hostnames, domain names and/or addresses of clients
-              that are  authorized  to  use  the  "XADDR  client-
-              address  client-name"  command.  This changes Post-
-              fix's idea of the SMTP client IP address and  host-
-              name for access control and for logging purposes.
-
-       <b>smtpd_authorized_xloginfo_clients</b>
-              Hostnames, domain names and/or addresses of clients
-              that are authorized to use  the  "XLOGINFO  client-
-              address  client-name"  command.   This  changes the
-              client name and address that are used for  logging,
-              without  affecting  the client IP address and host-
-              name that are used for access control.  XLOGINFO is
-              typically  used to propagate remote client informa-
-              tion through an SMTP-based content  filter  to  the
-              after-filter SMTP server.
+              that are authorized to  use  the  XCLIENT  command.
+              This  command changes client information for access
+              control and/or logging purposes, with the exception
+              of  the  <b>smtpd_authorized_xclient_hosts</b> access con-
+              trol itself.
 
        <b>debug_peer_level</b>
-              Increment  in  verbose  logging level when a remote
+              Increment in verbose logging level  when  a  remote
               host  matches  a  pattern  in  the  <b>debug_peer_list</b>
               parameter.
 
        <b>debug_peer_list</b>
-              List  of  domain or network patterns. When a remote
-              host matches a pattern, increase the  verbose  log-
-              ging   level   by   the  amount  specified  in  the
+              List of domain or network patterns. When  a  remote
+              host  matches  a pattern, increase the verbose log-
+              ging  level  by  the  amount   specified   in   the
               <b>debug_peer_level</b> parameter.
 
        <b>default_verp_delimiters</b>
               The default VERP delimiter characters that are used
-              when   the   XVERP  command  is  specified  without
+              when  the  XVERP  command  is   specified   without
               explicit delimiters.
 
        <b>error_notice_recipient</b>
-              Recipient   of    protocol/policy/resource/software
+              Recipient    of   protocol/policy/resource/software
               error notices.
 
        <b>hopcount_limit</b>
@@ -214,18 +204,18 @@ SMTPD(8)                                                 SMTPD(8)
        <b>notify_classes</b>
               List of error classes. Of special interest are:
 
-              <b>policy</b> When  a  client  violates any policy, mail a
+              <b>policy</b> When a client violates any  policy,  mail  a
                      transcript of the entire SMTP session to the
                      postmaster.
 
               <b>protocol</b>
-                     When  a client violates the SMTP protocol or
+                     When a client violates the SMTP protocol  or
                      issues  an  unimplemented  command,  mail  a
                      transcript of the entire SMTP session to the
                      postmaster.
 
        <b>smtpd_banner</b>
-              Text that follows the <b>220</b> status code in  the  SMTP
+              Text  that  follows the <b>220</b> status code in the SMTP
               greeting banner.
 
        <b>smtpd_expansion_filter</b>
@@ -233,57 +223,57 @@ SMTPD(8)                                                 SMTPD(8)
               expansion of rbl template responses and other text.
 
        <b>smtpd_recipient_limit</b>
-              Restrict  the  number  of  recipients that the SMTP
+              Restrict the number of  recipients  that  the  SMTP
               server accepts per message delivery.
 
        <b>smtpd_timeout</b>
-              Limit the time to send a  server  response  and  to
+              Limit  the  time  to  send a server response and to
               receive a client request.
 
        <b>soft_bounce</b>
-              Change  hard (5xx) reject responses into soft (4xx)
-              reject responses.  This can be useful  for  testing
+              Change hard (5xx) reject responses into soft  (4xx)
+              reject  responses.   This can be useful for testing
               purposes.
 
        <b>verp_delimiter_filter</b>
-              The  characters that Postfix accepts as VERP delim-
+              The characters that Postfix accepts as VERP  delim-
               iter characters.
 
 <b>Known versus unknown recipients</b>
        <b>show_user_unknown_table_name</b>
-              Whether or not to reveal  the  table  name  in  the
-              "User  unknown"  responses.  The extra detail makes
-              trouble shooting easier but also  reveals  informa-
+              Whether  or  not  to  reveal  the table name in the
+              "User unknown" responses. The  extra  detail  makes
+              trouble  shooting  easier but also reveals informa-
               tion that is nobody elses business.
 
        <b>unknown_local_recipient_reject_code</b>
               The response code when a client specifies a recipi-
-              ent  whose   domain   matches   <b>$mydestination</b>   or
+              ent   whose   domain   matches   <b>$mydestination</b>  or
               <b>$inet_interfaces</b>,  while  <b>$local_recipient_maps</b>  is
-              non-empty and does not list the  recipient  address
+              non-empty  and  does not list the recipient address
               or address local-part.
 
        <b>unknown_relay_recipient_reject_code</b>
               The response code when a client specifies a recipi-
               ent  whose  domain  matches  <b>$relay_domains</b>,  while
-              <b>$relay_recipient_maps</b>  is  non-empty  and  does not
+              <b>$relay_recipient_maps</b> is  non-empty  and  does  not
               list the recipient address.
 
        <b>unknown_virtual_alias_reject_code</b>
               The response code when a client specifies a recipi-
-              ent  whose  domain  matches <b>$virtual_alias_domains</b>,
-              while  the  recipient  is  not  listed   in   <b>$vir-</b>
+              ent whose  domain  matches  <b>$virtual_alias_domains</b>,
+              while   the   recipient  is  not  listed  in  <b>$vir-</b>
               <b>tual_alias_maps</b>.
 
        <b>unknown_virtual_mailbox_reject_code</b>
               The response code when a client specifies a recipi-
-              ent whose domain matches  <b>$virtual_mailbox_domains</b>,
+              ent  whose domain matches <b>$virtual_mailbox_domains</b>,
               while the recipient is not listed in <b>$virtual_mail-</b>
               <b>box_maps</b>.
 
 <b>Resource controls</b>
        <b>line_length_limit</b>
-              Limit the amount of memory in bytes  used  for  the
+              Limit  the  amount  of memory in bytes used for the
               handling of partial input lines.
 
        <b>message_size_limit</b>
@@ -291,9 +281,9 @@ SMTPD(8)                                                 SMTPD(8)
               ing on-disk storage for envelope information.
 
        <b>queue_minfree</b>
-              Minimal amount of free space in bytes in the  queue
-              file  system for the SMTP server to accept any mail
-              at  all  (default:  twice  the   <b>message_size_limit</b>
+              Minimal  amount of free space in bytes in the queue
+              file system for the SMTP server to accept any  mail
+              at   all  (default:  twice  the  <b>message_size_limit</b>
               value).
 
        <b>smtpd_history_flush_threshold</b>
@@ -303,21 +293,21 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd_client_connection_count_limit</b>
               The maximal number of simultaneous connections that
-              any client is allowed  to  make  to  this  service.
-              When  a  client  exceeds the limit, the SMTP server
+              any  client  is  allowed  to  make to this service.
+              When a client exceeds the limit,  the  SMTP  server
               logs a warning with the client name/address and the
               service name as configured in master.cf.
 
        <b>smtpd_client_connection_rate_limit</b>
-              The  maximal  number  of  connections per unit time
+              The maximal number of  connections  per  unit  time
               (specified with <b>connection_rate_time_unit</b>) that any
-              client  is  allowed to make to this service. When a
-              client exceeds the limit, the SMTP  server  logs  a
-              warning  with  the client name/address and the ser-
+              client is allowed to make to this service.  When  a
+              client  exceeds  the  limit, the SMTP server logs a
+              warning with the client name/address and  the  ser-
               vice name as configured in master.cf.
 
        <b>smtpd_client_connection_limit_exceptions</b>
-              Hostnames, .domain  names  and/or  network  address
+              Hostnames,  .domain  names  and/or  network address
               blocks of clients that are excluded from connection
               count or rate limits.
 
@@ -328,17 +318,17 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd_soft_error_limit</b>
               When an SMTP client has made this number of errors,
-              wait <i>error</i><b>_</b><i>count</i> seconds before responding  to  any
+              wait  <i>error</i><b>_</b><i>count</i>  seconds before responding to any
               client request.
 
        <b>smtpd_hard_error_limit</b>
-              Disconnect  after  a client has made this number of
+              Disconnect after a client has made this  number  of
               errors.
 
        <b>smtpd_junk_command_limit</b>
               Limit the number of times a client can issue a junk
-              command  such  as  NOOP,  VRFY, ETRN or RSET in one
-              SMTP session before it  is  penalized  with  tarpit
+              command such as NOOP, VRFY, ETRN  or  RSET  in  one
+              SMTP  session  before  it  is penalized with tarpit
               delays.
 
 <b>Delegated policy</b>
@@ -347,17 +337,17 @@ SMTPD(8)                                                 SMTPD(8)
               receiving from a delegated SMTPD policy server.
 
        <b>smtpd_policy_service_max_idle</b>
-              Time after which an  unused  SMTPD  policy  service
+              Time  after  which  an  unused SMTPD policy service
               connection is closed.
 
        <b>smtpd_policy_service_timeout</b>
-              Time  after  which  an  active SMTPD policy service
+              Time after which an  active  SMTPD  policy  service
               connection is closed.
 
 <b>UCE control restrictions</b>
        <b>parent_domain_matches_subdomains</b>
-              List of Postfix features that use  <i>domain.tld</i>  pat-
-              terns   to  match  <i>sub.domain.tld</i>  (as  opposed  to
+              List  of  Postfix features that use <i>domain.tld</i> pat-
+              terns  to  match  <i>sub.domain.tld</i>  (as  opposed   to
               requiring <i>.domain.tld</i> patterns).
 
        <b>smtpd_client_restrictions</b>
@@ -365,19 +355,19 @@ SMTPD(8)                                                 SMTPD(8)
               tem.
 
        <b>smtpd_helo_required</b>
-              Require  that  clients  introduce themselves at the
+              Require that clients introduce  themselves  at  the
               beginning of an SMTP session.
 
        <b>smtpd_helo_restrictions</b>
-              Restrict what client hostnames are allowed in  <b>HELO</b>
+              Restrict  what client hostnames are allowed in <b>HELO</b>
               and <b>EHLO</b> commands.
 
        <b>smtpd_sender_restrictions</b>
-              Restrict  what sender addresses are allowed in <b>MAIL</b>
+              Restrict what sender addresses are allowed in  <b>MAIL</b>
               <b>FROM</b> commands.
 
        <b>smtpd_recipient_restrictions</b>
-              Restrict what recipient addresses  are  allowed  in
+              Restrict  what  recipient  addresses are allowed in
               <b>RCPT TO</b> commands.
 
        <b>smtpd_etrn_restrictions</b>
@@ -385,96 +375,96 @@ SMTPD(8)                                                 SMTPD(8)
               mands, and what clients may issue <b>ETRN</b> commands.
 
        <b>smtpd_data_restrictions</b>
-              Restrictions on the <b>DATA</b>  command.  Currently,  the
-              only   restriction   that   makes   sense  here  is
+              Restrictions  on  the  <b>DATA</b> command. Currently, the
+              only  restriction  that   makes   sense   here   is
               <b>reject_unauth_pipelining</b>.
 
        <b>allow_untrusted_routing</b>
-              Allow untrusted clients to specify  addresses  with
-              sender-specified  routing.   Enabling this opens up
-              nasty relay loopholes involving trusted  backup  MX
+              Allow  untrusted  clients to specify addresses with
+              sender-specified routing.  Enabling this  opens  up
+              nasty  relay  loopholes involving trusted backup MX
               hosts.
 
        <b>smtpd_restriction_classes</b>
-              Declares  the  name of zero or more parameters that
-              contain a list of UCE restrictions.  The  names  of
-              these  parameters  can  then be used instead of the
+              Declares the name of zero or more  parameters  that
+              contain  a  list  of UCE restrictions. The names of
+              these parameters can then be used  instead  of  the
               restriction lists that they represent.
 
        <b>smtpd_null_access_lookup_key</b>
-              The lookup key to be used in  SMTPD  access  tables
-              instead  of  the null sender address. A null sender
+              The  lookup  key  to be used in SMTPD access tables
+              instead of the null sender address. A  null  sender
               address cannot be looked up.
 
        <b>maps_rbl_domains</b> (deprecated)
-              List of DNS domains that publish the  addresses  of
+              List  of  DNS domains that publish the addresses of
               blacklisted hosts. This is used with the deprecated
               <b>reject_maps_rbl</b> restriction.
 
        <b>permit_mx_backup_networks</b>
-              Only domains  whose  primary  MX  hosts  match  the
-              listed   networks   are   eligible   for  the  <b>per-</b>
+              Only  domains  whose  primary  MX  hosts  match the
+              listed  networks  are   eligible   for   the   <b>per-</b>
               <b>mit_mx_backup</b> feature.
 
        <b>relay_domains</b>
-              Restrict what domains this mail system  will  relay
-              mail  to.  The  domains  are routed to the delivery
+              Restrict  what  domains this mail system will relay
+              mail to. The domains are  routed  to  the  delivery
               agent specified with the <b>relay_transport</b> setting.
 
 <b>Sender/recipient address verification</b>
        Address verification is implemented by sending probe email
-       messages  that  are not actually delivered, and is enabled
-       via   the   reject_unverified_{sender,recipient}    access
-       restriction.   The  status of verification probes is main-
+       messages that are not actually delivered, and  is  enabled
+       via    the   reject_unverified_{sender,recipient}   access
+       restriction.  The status of verification probes  is  main-
        tained by the address verification service.
 
        <b>address_verify_poll_count</b>
-              How many times to query  the  address  verification
-              service  for  completion of an address verification
-              request.  Specify 1 to implement a simple  form  of
-              greylisting,  that is, always defer the request for
+              How  many  times  to query the address verification
+              service for completion of an  address  verification
+              request.   Specify  1 to implement a simple form of
+              greylisting, that is, always defer the request  for
               a new sender or recipient address.
 
        <b>address_verify_poll_delay</b>
-              Time to wait after querying the  address  verifica-
+              Time  to  wait after querying the address verifica-
               tion service for completion of an address verifica-
               tion request.
 
 <b>UCE control responses</b>
        <b>access_map_reject_code</b>
-              Response code when  a  client  violates  an  access
+              Response  code  when  a  client  violates an access
               database restriction.
 
        <b>default_rbl_reply</b>
               Default template reply when a request is RBL black-
-              listed.  This template is used by the  <b>reject_rbl_*</b>
-              and    <b>reject_rhsbl_*</b>   restrictions.   See   also:
+              listed.   This template is used by the <b>reject_rbl_*</b>
+              and   <b>reject_rhsbl_*</b>   restrictions.   See    also:
               <b>rbl_reply_maps</b> and <b>smtpd_expansion_filter</b>.
 
        <b>defer_code</b>
-              Response code when a client request is rejected  by
+              Response  code when a client request is rejected by
               the <b>defer</b> restriction.
 
        <b>invalid_hostname_reject_code</b>
-              Response   code   when   a   client   violates  the
+              Response  code   when   a   client   violates   the
               <b>reject_invalid_hostname</b> restriction.
 
        <b>maps_rbl_reject_code</b>
               Response code when a request is RBL blacklisted.
 
        <b>multi_recipient_bounce_reject_code</b>
-              Response code  when  a  multi-recipient  bounce  is
+              Response  code  when  a  multi-recipient  bounce is
               blocked.
 
        <b>rbl_reply_maps</b>
-              Table  with  template responses for RBL blacklisted
-              requests, indexed by RBL domain  name.  These  tem-
+              Table with template responses for  RBL  blacklisted
+              requests,  indexed  by  RBL domain name. These tem-
               plates   are   used   by   the   <b>reject_rbl_*</b>   and
-              <b>reject_rhsbl_*</b>     restrictions.     See      also:
+              <b>reject_rhsbl_*</b>      restrictions.     See     also:
               <b>default_rbl_reply</b> and <b>smtpd_expansion_filter</b>.
 
        <b>reject_code</b>
-              Response  code  when  the  client  matches a <b>reject</b>
+              Response code when  the  client  matches  a  <b>reject</b>
               restriction.
 
        <b>relay_domains_reject_code</b>
@@ -482,7 +472,7 @@ SMTPD(8)                                                 SMTPD(8)
               mail relay policy.
 
        <b>unknown_address_reject_code</b>
-              Response   code   when   a   client   violates  the
+              Response  code   when   a   client   violates   the
               <b>reject_unknown_address</b> restriction.
 
        <b>unknown_client_reject_code</b>
@@ -491,15 +481,15 @@ SMTPD(8)                                                 SMTPD(8)
               tion.
 
        <b>unknown_hostname_reject_code</b>
-              Response  code   when   a   client   violates   the
+              Response   code   when   a   client   violates  the
               <b>reject_unknown_hostname</b> restriction.
 
        <b>unverified_sender_reject_code</b>
-              Response  code when a sender address is known to be
+              Response code when a sender address is known to  be
               undeliverable.
 
        <b>unverified_recipient_reject_code</b>
-              Response code when a recipient address is known  to
+              Response  code when a recipient address is known to
               be undeliverable.
 
 <b>SEE ALSO</b>
@@ -510,7 +500,7 @@ SMTPD(8)                                                 SMTPD(8)
        <a href="verify.8.html">verify(8)</a> address verification service
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

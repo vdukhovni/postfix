@@ -168,6 +168,10 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->warn_time = 0;
     message->rcpt_offset = 0;
     message->verp_delims = 0;
+    message->client_name = 0;
+    message->client_addr = 0;
+    message->client_proto = 0;
+    message->client_helo = 0;
     qmgr_rcpt_list_init(&message->rcpt_list);
     message->rcpt_count = 0;
     message->rcpt_limit = var_qmgr_msg_rcpt_limit;
@@ -525,6 +529,27 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    myfree(message->encoding);
 		message->encoding = mystrdup(value);
 	    }
+	    /* Original client attributes. */
+	    if (strcmp(name, MAIL_ATTR_CLIENT_NAME) == 0) {
+		if (message->client_name != 0)
+		    myfree(message->client_name);
+		message->client_name = mystrdup(value);
+	    }
+	    if (strcmp(name, MAIL_ATTR_CLIENT_ADDR) == 0) {
+		if (message->client_addr != 0)
+		    myfree(message->client_addr);
+		message->client_addr = mystrdup(value);
+	    }
+	    if (strcmp(name, MAIL_ATTR_PROTO_NAME) == 0) {
+		if (message->client_proto != 0)
+		    myfree(message->client_proto);
+		message->client_proto = mystrdup(value);
+	    }
+	    if (strcmp(name, MAIL_ATTR_HELO_NAME) == 0) {
+		if (message->client_helo != 0)
+		    myfree(message->client_helo);
+		message->client_helo = mystrdup(value);
+	    }
 	    /* Optional tracing flags. */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
 		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
@@ -586,6 +611,14 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->return_receipt = mystrdup("");
     if (message->encoding == 0)
 	message->encoding = mystrdup(MAIL_ATTR_ENC_NONE);
+    if (message->client_name == 0)
+	message->client_name = mystrdup(CLIENT_NAME_UNKNOWN);
+    if (message->client_addr == 0)
+	message->client_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+    if (message->client_proto == 0)
+	message->client_proto = mystrdup(PROTOCOL_UNKNOWN);
+    if (message->client_helo == 0)
+	message->client_helo = mystrdup(HELO_NAME_UNKNOWN);
 
     /*
      * Clean up.

@@ -40,6 +40,10 @@ typedef struct DELIVER_REQUEST {
     long    arrival_time;		/* arrival time */
     RECIPIENT_LIST rcpt_list;		/* envelope recipients */
     char   *hop_status;			/* reason if unavailable */
+    char   *client_name;		/* client hostname */
+    char   *client_addr;		/* client address */
+    char   *client_proto;		/* client protocol */
+    char   *client_helo;		/* helo parameter */
 } DELIVER_REQUEST;
 
 #define DEL_REQ_FLAG_DEFLT	(DEL_REQ_FLAG_SUCCESS | DEL_REQ_FLAG_BOUNCE)

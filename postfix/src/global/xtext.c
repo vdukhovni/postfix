@@ -2,7 +2,7 @@
 /* NAME
 /*	xtext 3
 /* SUMMARY
-/*	quote/unquote text, HTTP style.
+/*	quote/unquote text, xtext style.
 /* SYNOPSIS
 /*	#include <xtext.h>
 /*
@@ -11,6 +11,10 @@
 /*	const char *unquoted;
 /*	const char *special;
 /*
+/*	VSTRING	*xtext_unquote_append(unquoted, quoted)
+/*	VSTRING	*unquoted;
+/*	const char *quoted;
+/*
 /*	VSTRING	*xtext_unquote(unquoted, quoted)
 /*	VSTRING	*unquoted;
 /*	const char *quoted;
@@ -18,6 +22,9 @@
 /*	xtext_quote() takes a null-terminated string and replaces characters
 /*	+, <33(10) and >126(10), as well as characters specified with "special"
 /*	by +XX, XX being the two-digit uppercase hexadecimal equivalent.
+/*
+/*	xtext_quote_append() is like xtext_quote(), but appends the conversion
+/*	result to the result buffer.
 /*
 /*	xtext_unquote() performs the opposite transformation. This function
 /*	understands lowercase, uppercase, and mixed case +XX sequences. The
@@ -53,22 +60,32 @@
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
 
-/* xtext_quote - unquoted data to quoted */
+/* xtext_quote_append - append unquoted data to quoted data */
 
-VSTRING *xtext_quote(VSTRING *quoted, const char *unquoted, const char *special)
+VSTRING *xtext_quote_append(VSTRING *quoted, const char *unquoted,
+			            const char *special)
 {
     const char *cp;
     int     ch;
 
-    VSTRING_RESET(quoted);
     for (cp = unquoted; (ch = *(unsigned const char *) cp) != 0; cp++) {
-	if (ch != '+' && ch > 32 && ch < 127 && strchr(special, ch) == 0) {
+	if (ch != '+' && ch > 32 && ch < 127
+	    && (*special == 0 || strchr(special, ch) == 0)) {
 	    VSTRING_ADDCH(quoted, ch);
 	} else {
 	    vstring_sprintf_append(quoted, "+%02X", ch);
 	}
     }
     VSTRING_TERMINATE(quoted);
+    return (quoted);
+}
+
+/* xtext_quote - unquoted data to quoted */
+
+VSTRING *xtext_quote(VSTRING *quoted, const char *unquoted, const char *special)
+{
+    VSTRING_RESET(quoted);
+    xtext_quote_append(quoted, unquoted, special);
     return (quoted);
 }
 

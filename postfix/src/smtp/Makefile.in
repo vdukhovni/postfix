@@ -7,9 +7,6 @@ OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o
 HDRS	= smtp.h smtp_sasl.h
 TESTSRC	= 
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= smtp_unalias
@@ -176,6 +173,7 @@ smtp_proto.o: ../../include/mail_proto.h
 smtp_proto.o: ../../include/attr.h
 smtp_proto.o: ../../include/mime_state.h
 smtp_proto.o: ../../include/header_opts.h
+smtp_proto.o: ../../include/xtext.h
 smtp_proto.o: smtp.h
 smtp_proto.o: ../../include/argv.h
 smtp_proto.o: smtp_sasl.h

@@ -753,6 +753,10 @@ extern int var_smtp_conn_tmout;
 #define DEF_SMTP_HELO_TMOUT	"300s"
 extern int var_smtp_helo_tmout;
 
+#define VAR_SMTP_XCLNT_TMOUT	"smtp_xclient_timeout"
+#define DEF_SMTP_XCLNT_TMOUT	"300s"
+extern int var_smtp_xclnt_tmout;
+
 #define VAR_SMTP_MAIL_TMOUT	"smtp_mail_timeout"
 #define DEF_SMTP_MAIL_TMOUT	"300s"
 extern int var_smtp_mail_tmout;
@@ -840,6 +844,10 @@ extern int var_smtp_pix_delay;
 #define VAR_SMTP_DEFER_MXADDR	"smtp_defer_if_no_mx_address_found"
 #define DEF_SMTP_DEFER_MXADDR	0
 extern bool var_smtp_defer_mxaddr;
+
+#define VAR_SMTP_SEND_XCLIENT	"smtp_send_xclient_command"
+#define DEF_SMTP_SEND_XCLIENT	0
+extern bool var_smtp_send_xclient;
 
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
@@ -1567,15 +1575,11 @@ extern bool var_verp_bounce_off;
 extern char *var_verp_clients;
 
  /*
-  * XADDR.
+  * XCLIENT, for rule testing and improved post-filter logging.
   */
-#define VAR_XADDR_CLIENTS		"smtpd_authorized_xaddr_clients"
-#define DEF_XADDR_CLIENTS		""
-extern char *var_xaddr_clients;
-
-#define VAR_XLOGINFO_CLIENTS		"smtpd_authorized_xloginfo_clients"
-#define DEF_XLOGINFO_CLIENTS		""
-extern char *var_xloginfo_clients;
+#define VAR_XCLIENT_HOSTS		"smtpd_authorized_xclient_hosts"
+#define DEF_XCLIENT_HOSTS		""
+extern char *var_xclient_hosts;
 
  /*
   * Inbound mail flow control. This allows for a stiffer coupling between

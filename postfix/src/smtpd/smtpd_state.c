@@ -85,6 +85,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->history = 0;
     state->reason = 0;
     state->sender = 0;
+    state->verp_delims = 0;
     state->recipient = 0;
     state->etrn_name = 0;
     state->protocol = MAIL_PROTO_SMTP;
@@ -101,6 +102,8 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->expand_buf = 0;
     state->proxy = 0;
     state->proxy_buffer = 0;
+    state->proxy_mail = 0;
+    state->proxy_features = 0;
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))
@@ -113,6 +116,11 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
      * Initialize peer information.
      */
     smtpd_peer_init(state);
+
+    /*
+     * Initialize xclient information.
+     */
+    smtpd_xclient_init(state);
 
     /*
      * Initialize the conversation history.
@@ -133,6 +141,7 @@ void    smtpd_state_reset(SMTPD_STATE *state)
     if (state->buffer)
 	vstring_free(state->buffer);
     smtpd_peer_reset(state);
+    smtpd_xclient_reset(state, XCLIENT_OVER_NONE);
     if (state->defer_if_permit.reason)
 	vstring_free(state->defer_if_permit.reason);
     if (state->defer_if_reject.reason)

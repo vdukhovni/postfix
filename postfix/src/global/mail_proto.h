@@ -15,6 +15,7 @@
   * System library.
   */
 #include <stdarg.h>
+#include <string.h>
 
  /*
   * Utility library.
@@ -149,6 +150,24 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ORIGIN	"message_origin"	/* hostname[address] */
 #define MAIL_ATTR_ORG_NONE	"unknown"	/* origin unknown */
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
+
+ /*
+  * Internal forms for unknown XCLIENT information.
+  */
+#define CLIENT_NAME_UNKNOWN	"unknown"
+#define CLIENT_ADDR_UNKNOWN	"unknown"
+#define CLIENT_NAMADDR_UNKNOWN	CLIENT_NAME_UNKNOWN "[" CLIENT_ADDR_UNKNOWN "]"
+#define HELO_NAME_UNKNOWN	""	/* or NULL */
+#define PROTOCOL_UNKNOWN	"unknown"
+
+ /*
+  * Internal forms: recognizing unknown XCLIENT information.
+  */
+#define IS_UNK_CLNT_NAME(v)	(!(v) || !strcmp((v), CLIENT_NAME_UNKNOWN))
+#define IS_UNK_CLNT_ADDR(v)	(!(v) || !strcmp((v), CLIENT_ADDR_UNKNOWN))
+#define IS_UNK_CLNT_NAMADDR(v)	(!(v) || !strcmp((v), CLIENT_NAMADDR_UNKNOWN))
+#define IS_UNK_HELO_NAME(v)	(!(v) || !*(v))
+#define IS_UNK_PROTOCOL(v)	(!(v) || !strcmp((v), PROTOCOL_UNKNOWN))
 
 /* LICENSE
 /* .ad

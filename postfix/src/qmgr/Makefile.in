@@ -7,9 +7,6 @@ OBJS	= qmgr.o qmgr_active.o qmgr_transport.o qmgr_queue.o qmgr_entry.o \
 	qmgr_defer.o qmgr_enable.o qmgr_scan.o qmgr_bounce.o
 HDRS	= qmgr.h
 TESTSRC	=
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 

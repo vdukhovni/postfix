@@ -10,9 +10,6 @@ LIB_OBJ	= single_server.o multi_server.o trigger_server.o master_proto.o \
 	mail_flow.o
 HDRS	= mail_server.h master_proto.h mail_flow.h
 INT_HDR	= master.h
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 LIB	= libmaster.a

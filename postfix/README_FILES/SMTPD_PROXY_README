@@ -68,7 +68,7 @@ How Postfix talks to the before-queue content filter
 The before-filter Postfix SMTP server connects to the content
 filter, delivers one message, and disconnects.  While sending mail
 into the content filter, Postfix speaks ESMTP but uses no command
-pipelining.  Postfix generates its own EHLO, XLOGINFO (for logging
+pipelining.  Postfix generates its own EHLO, XCLIENT (for logging
 the remote client IP address instead of localhost[127.0.0.1]), DATA
 and QUIT commands, and forwards unmodified copies of all the MAIL
 FROM and RCPT TO commands that the before-filter Postfix SMTP server
@@ -84,6 +84,9 @@ back to the before-filter Postfix SMTP server, and it should abort
 the connection with the after-filter Postfix SMTP server without
 completing the SMTP conversation with the after-filter Postfix SMTP
 server.
+
+More details on the postfix-to-proxy interaction is at the end of
+this document, in the section titled "Transparency".
 
 Configuration parameters
 ========================
@@ -119,7 +122,7 @@ for testing, of course.
     smtp      inet  n       -       n       -       -       smtpd
         -o smtpd_proxy_filter=26
     :26       inet  n       -       n       -       -       smtpd
-	-o smtpd_authorized_xloginfo_clients=127.0.0.0/8
+	-o smtpd_authorized_xclient_hosts=127.0.0.0/8
 	-o smtpd_client_restrictions=
 	-o smtpd_helo_restrictions=
 	-o smtpd_sender_restrictions=
@@ -132,10 +135,10 @@ Note: do not specify spaces around the "=" or "," characters.
 The ":26" causes Postfix to listen on the localhost address only.
 DO NOT expose the secondary SMTP server to the Internet :-)
 
-The smtpd_authorized_xloginfo_clients parameter allows the before
-filter SMTP server to pass the remote SMTP client name and address
-to the after-filter SMTP server, so that the after-filter Postfix
-daemons log the remote client name and address instead of logging
+The smtpd_authorized_xclient_hosts parameter allows the before
+filter SMTP server to forward remote SMTP client information to
+the after-filter SMTP server, so that the after-filter Postfix
+daemons log the remote SMTP client information instead of logging
 localhost[127.0.0.1].
 
 The other parameter settings avoid duplication of effort that is
@@ -149,3 +152,36 @@ This configuration is sufficient for stress testing.
 
 Other suggestions for test configurations: use the Postfix smtp-sink
 command as the proxy, or something as basic as netcat.
+
+Transparency
+============
+
+The before-filter Postfix SMTP server forwards the MAIL FROM, RCPT
+TO and DATA commands that it has approved, but it does not forward
+other commands such as TLS or SASL commands.  It can therefore not
+be transparent.
+
+The real-time content filter, on the other hand, has to be transparent.
+In order to support non-transparent real-time content filters,
+Postfix would have to reconcile the before-filter Postfix ESMTP
+feature set with the feature set that Postfix receives from the
+real-time content filter.
+
+- When a future Postfix version supports DSN, but the content filter
+does not announce DSN support in the EHLO reply, then the before-filter
+SMTP server would have to either 1) suppress the DSN feature in
+its EHLO announcement, or 2) duplicate all the work that needs to
+be done when delivering DSN-aware mail to a non-DSN destination.
+
+- When the content filter does not announce 8BITMIME support in
+the EHLO reply, then the before-filter SMTP server would have to
+either 1) suppress the 8BITMIME feature in its EHLO announcement,
+or 2) convert the content to quoted-printable before giving it to
+the content filter.
+
+- Performance: when Postfix has to suppress elements from the
+before-filter EHLO reply because they are incompatible with the
+real-time content filter, then Postfix has to connect to the content
+filter as soon as the client sends a valid EHLO command. This wastes
+a lot of resources when all the MAIL FROM or RCPT TO commands are
+rejected.

@@ -233,11 +233,18 @@ one would set up the service in the Postfix master.cf file:
 
     /etc/postfix/master.cf:
         scan      unix  -       -       n       -       10       smtp
+	#	-o smtp_send_xclient_command=yes
 
 Instead of a limit of 10 concurrent processes, use whatever process
 limit is feasible for your machine.  Content inspection software
 can gobble up a lot of system resources, so you don't want to have
 too much of it running at the same time.
+
+Uncomment (but keep the leading white-space) the option setting:
+"smtp_send_xclient_command=yes", if you would like the scan transport
+to forward the original client name and IP address to the backend smtpd
+so that mail transaction logs show the real client name IP address.
+See sample-smtp.cf and smtp(8).
 
 The content filter can be set up with the Postfix spawn service,
 which is the Postfix equivalent of inetd. For example, to instantiate

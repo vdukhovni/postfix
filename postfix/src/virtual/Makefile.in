@@ -3,9 +3,6 @@ SRCS	= virtual.c mailbox.c recipient.c deliver_attr.c maildir.c unknown.c
 OBJS	= virtual.o mailbox.o recipient.o deliver_attr.o maildir.o unknown.o
 HDRS	= virtual.h
 TESTSRC	=
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 PROG	= virtual

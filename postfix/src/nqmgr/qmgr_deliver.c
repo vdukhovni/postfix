@@ -161,6 +161,10 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_ERRTO, message->errors_to,
 	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, message->return_receipt,
 	       ATTR_TYPE_LONG, MAIL_ATTR_TIME, message->arrival_time,
+	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, message->client_name,
+	       ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, message->client_addr,
+	       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, message->client_proto,
+	       ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME, message->client_helo,
 	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);

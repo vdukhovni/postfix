@@ -103,6 +103,7 @@
 #include <quote_821_local.h>
 #include <mail_proto.h>
 #include <mime_state.h>
+#include <xtext.h>
 
 /* Application-specific. */
 
@@ -123,15 +124,19 @@
   * SMTP_STATE_DOT) must have smaller numerical values than the non-sending
   * states (SMTP_STATE_ABORT .. SMTP_STATE_LAST).
   */
-#define SMTP_STATE_MAIL		0
-#define SMTP_STATE_RCPT		1
-#define SMTP_STATE_DATA		2
-#define SMTP_STATE_DOT		3
-#define SMTP_STATE_ABORT	4
-#define SMTP_STATE_QUIT		5
-#define SMTP_STATE_LAST		6
+#define SMTP_STATE_XCLIENT_ADDR	0
+#define SMTP_STATE_XCLIENT_HELO	1
+#define SMTP_STATE_MAIL		2
+#define SMTP_STATE_RCPT		3
+#define SMTP_STATE_DATA		4
+#define SMTP_STATE_DOT		5
+#define SMTP_STATE_ABORT	6
+#define SMTP_STATE_QUIT		7
+#define SMTP_STATE_LAST		8
 
 int    *xfer_timeouts[SMTP_STATE_LAST] = {
+    &var_smtp_xclnt_tmout,
+    &var_smtp_xclnt_tmout,
     &var_smtp_mail_tmout,
     &var_smtp_rcpt_tmout,
     &var_smtp_data0_tmout,
@@ -141,6 +146,8 @@ int    *xfer_timeouts[SMTP_STATE_LAST] = {
 };
 
 char   *xfer_states[SMTP_STATE_LAST] = {
+    "sending XCLIENT address and name",
+    "sending XCLIENT helo_name and protocol",
     "sending MAIL FROM",
     "sending RCPT TO",
     "sending DATA command",
@@ -150,6 +157,8 @@ char   *xfer_states[SMTP_STATE_LAST] = {
 };
 
 char   *xfer_request[SMTP_STATE_LAST] = {
+    "XCLIENT command",
+    "XCLIENT command",
     "MAIL FROM command",
     "RCPT TO command",
     "DATA command",
@@ -250,6 +259,8 @@ int     smtp_helo(SMTP_STATE *state)
 		state->features |= SMTP_FEATURE_8BITMIME;
 	    else if (strcasecmp(word, "PIPELINING") == 0)
 		state->features |= SMTP_FEATURE_PIPELINING;
+	    else if (strcasecmp(word, "XCLIENT") == 0)
+		state->features |= SMTP_FEATURE_XCLIENT;
 	    else if (strcasecmp(word, "SIZE") == 0) {
 		state->features |= SMTP_FEATURE_SIZE;
 		if ((word = mystrtok(&words, " \t")) != 0) {
@@ -374,6 +385,8 @@ int     smtp_xfer(SMTP_STATE *state)
     int     mail_from_rejected;
     int     downgrading;
     int     mime_errs;
+    int     send_xclient_addr = 0;
+    int     send_xclient_helo = 0;
 
     /*
      * Macros for readability.
@@ -472,9 +485,23 @@ int     smtp_xfer(SMTP_STATE *state)
      * receiver detects a serious problem (MAIL FROM rejected, all RCPT TO
      * commands rejected, DATA rejected) it forces the sender to abort the
      * SMTP dialog with RSET and QUIT.
+     * 
+     * Send "XCLIENT LOG" information only if we have a surrogate remote client
+     * name and address, i.e. the mail was actually received from the
+     * network. Since "XCLIENT LOG" overrides all remote client logging
+     * attributes, there is no need to send helo or protocol information that
+     * we do not have.
      */
     nrcpt = 0;
-    recv_state = send_state = SMTP_STATE_MAIL;
+    send_xclient_addr = (state->features & SMTP_FEATURE_XCLIENT)
+	&& !IS_UNK_CLNT_NAME(request->client_name)
+	&& !IS_UNK_CLNT_ADDR(request->client_addr);
+    if (send_xclient_addr) {
+	send_xclient_helo = !IS_UNK_HELO_NAME(request->client_helo)
+	    || !IS_UNK_PROTOCOL(request->client_proto);
+	recv_state = send_state = SMTP_STATE_XCLIENT_ADDR;
+    } else
+	recv_state = send_state = SMTP_STATE_MAIL;
     next_rcpt = send_rcpt = recv_rcpt = 0;
     mail_from_rejected = 0;
 
@@ -490,6 +517,41 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	default:
 	    msg_panic("%s: bad sender state %d", myname, send_state);
+
+	    /*
+	     * Build the XCLIENT command. Send what we know, converting
+	     * internal form to external form. With properly sanitized
+	     * information, this stays within the 512 byte command line
+	     * length limit.
+	     */
+	case SMTP_STATE_XCLIENT_ADDR:
+	    vstring_sprintf(next_command, "XCLIENT LOG");
+	    if (!IS_UNK_CLNT_NAME(request->client_name)) {
+		vstring_strcat(next_command, " CLIENT_NAME=");
+		xtext_quote_append(next_command, request->client_name, "");
+	    }
+	    if (!IS_UNK_CLNT_ADDR(request->client_addr)) {
+		vstring_strcat(next_command, " CLIENT_ADDR=");
+		xtext_quote_append(next_command, request->client_addr, "");
+	    }
+	    if (send_xclient_helo)
+		next_state = SMTP_STATE_XCLIENT_HELO;
+	    else
+		next_state = SMTP_STATE_MAIL;
+	    break;
+
+	case SMTP_STATE_XCLIENT_HELO:
+	    vstring_sprintf(next_command, "XCLIENT");
+	    if (!IS_UNK_HELO_NAME(request->client_helo)) {
+		vstring_strcat(next_command, " HELO_NAME=");
+		xtext_quote_append(next_command, request->client_helo, "");
+	    }
+	    if (!IS_UNK_PROTOCOL(request->client_proto)) {
+		vstring_strcat(next_command, " PROTOCOL=");
+		xtext_quote_append(next_command, request->client_proto, "");
+	    }
+	    next_state = SMTP_STATE_MAIL;
+	    break;
 
 	    /*
 	     * Build the MAIL FROM command.
@@ -600,7 +662,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		/*
 		 * Sanity check.
 		 */
-		if (recv_state < SMTP_STATE_MAIL
+		if (recv_state < SMTP_STATE_XCLIENT_ADDR
 		    || recv_state > SMTP_STATE_QUIT)
 		    msg_panic("%s: bad receiver state %d (sender state %d)",
 			      myname, recv_state, send_state);
@@ -620,6 +682,20 @@ int     smtp_xfer(SMTP_STATE *state)
 		 * Process the response.
 		 */
 		switch (recv_state) {
+
+		    /*
+		     * Ignore the XCLIENT response. No Duff device needed.
+		     */
+		case SMTP_STATE_XCLIENT_ADDR:
+		    if (send_xclient_helo)
+			recv_state = SMTP_STATE_XCLIENT_HELO;
+		    else
+			recv_state = SMTP_STATE_MAIL;
+		    break;
+
+		case SMTP_STATE_XCLIENT_HELO:
+		    recv_state = SMTP_STATE_MAIL;
+		    break;
 
 		    /*
 		     * Process the MAIL FROM response. When the server

@@ -8755,6 +8755,39 @@ Apologies for any names omitted.
 	controls periodic logging of maximal connection counts or
 	rates.  The default logging interval is 10 minutes.
 
+	Feature: "make makefiles WARN=stuff..." overrides the
+	built-in GCC warning options that are used when "make" is
+	invoked from within a source subdirectory. Files:  makedefs,
+	*/Makefile.in.
+
+20031125
+
+	Feature: qmgr logs "queueid: deleted", just like postsuper,
+	when it removes a message from the mail queue.
+
+	Performance: smtpd connects to the cleanup or proxy server
+	AFTER the first valid RCPT TO command, instead of after
+	the first valid MAIL FROM command. This avoid wasting
+	real-time proxy filter resources when mail is stopped by
+	the SMTP server's access blocks.  File: smtpd/smtpd.c.
+
+20031126
+
+	Bugfix: "panic: mymalloc: requested length 0" when master.cf
+	specified an invalid host name or address.  Postfix now
+	logs more specific information. File:  master/master_ent.c.
+	Reported by several people.
+
+20031125-8
+
+	Feature: XCLIENT support to override the SMTP server's
+	client information for logging and/or access control. This
+	replaces the short-lived XADDR and XLOGINFO extensions.
+	Based on code by Victor Duchovni, with major simplifications.
+	Files: smtpd/{smtpd,smtpd_check,smtpd_proxy,smtpd_xclient}.c
+	smtp/smtp_smtp_proto.c, *qmgr/qmgr_message.c,
+	global/deliver_request.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content

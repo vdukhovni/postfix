@@ -1,14 +1,13 @@
 SHELL	= /bin/sh
 SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
-	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c
+	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
+	smtpd_xclient.c
 OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
-	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o
+	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
+	smtpd_xclient.o
 HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
 	smtpd_sasl_glue.h smtpd_proxy.h
 TESTSRC	= smtpd_token_test.c
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= smtpd_token smtpd_check
@@ -122,6 +121,7 @@ smtpd.o: ../../include/dict.h
 smtpd.o: ../../include/argv.h
 smtpd.o: ../../include/watchdog.h
 smtpd.o: ../../include/iostuff.h
+smtpd.o: ../../include/split_at.h
 smtpd.o: ../../include/mail_params.h
 smtpd.o: ../../include/record.h
 smtpd.o: ../../include/rec_type.h
@@ -150,6 +150,7 @@ smtpd.o: ../../include/namadr_list.h
 smtpd.o: ../../include/input_transp.h
 smtpd.o: ../../include/anvil_clnt.h
 smtpd.o: ../../include/attr_clnt.h
+smtpd.o: ../../include/xtext.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
@@ -243,8 +244,11 @@ smtpd_peer.o: ../../include/valid_hostname.h
 smtpd_peer.o: ../../include/stringops.h
 smtpd_peer.o: ../../include/vstring.h
 smtpd_peer.o: ../../include/vbuf.h
-smtpd_peer.o: smtpd.h
+smtpd_peer.o: ../../include/mail_proto.h
 smtpd_peer.o: ../../include/vstream.h
+smtpd_peer.o: ../../include/iostuff.h
+smtpd_peer.o: ../../include/attr.h
+smtpd_peer.o: smtpd.h
 smtpd_peer.o: ../../include/argv.h
 smtpd_peer.o: ../../include/mail_stream.h
 smtpd_proxy.o: smtpd_proxy.c
@@ -262,6 +266,9 @@ smtpd_proxy.o: ../../include/smtp_stream.h
 smtpd_proxy.o: ../../include/cleanup_user.h
 smtpd_proxy.o: ../../include/mail_params.h
 smtpd_proxy.o: ../../include/rec_type.h
+smtpd_proxy.o: ../../include/xtext.h
+smtpd_proxy.o: ../../include/mail_proto.h
+smtpd_proxy.o: ../../include/attr.h
 smtpd_proxy.o: smtpd.h
 smtpd_proxy.o: ../../include/argv.h
 smtpd_proxy.o: ../../include/mail_stream.h
@@ -331,3 +338,16 @@ smtpd_token.o: ../../include/mvect.h
 smtpd_token.o: smtpd_token.h
 smtpd_token.o: ../../include/vstring.h
 smtpd_token.o: ../../include/vbuf.h
+smtpd_xclient.o: smtpd_xclient.c
+smtpd_xclient.o: ../../include/sys_defs.h
+smtpd_xclient.o: ../../include/mymalloc.h
+smtpd_xclient.o: ../../include/msg.h
+smtpd_xclient.o: ../../include/mail_proto.h
+smtpd_xclient.o: ../../include/vstream.h
+smtpd_xclient.o: ../../include/vbuf.h
+smtpd_xclient.o: ../../include/iostuff.h
+smtpd_xclient.o: ../../include/attr.h
+smtpd_xclient.o: smtpd.h
+smtpd_xclient.o: ../../include/vstring.h
+smtpd_xclient.o: ../../include/argv.h
+smtpd_xclient.o: ../../include/mail_stream.h

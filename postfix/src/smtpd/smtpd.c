@@ -143,20 +143,12 @@
 /* .IP \fBsmtpd_authorized_verp_clients\fR
 /*	Hostnames, domain names and/or addresses of clients that are
 /*	authorized to use the XVERP extension.
-/* .IP \fBsmtpd_authorized_xaddr_clients\fR
+/* .IP \fBsmtpd_authorized_xclient_hosts\fR
 /*	Hostnames, domain names and/or addresses of clients that are
-/*	authorized to use the "XADDR client-address client-name" command.
-/*	This changes Postfix's
-/*	idea of the SMTP client IP address and hostname for access
-/*	control and for logging purposes.
-/* .IP \fBsmtpd_authorized_xloginfo_clients\fR
-/*	Hostnames, domain names and/or addresses of clients that are
-/*	authorized to use the "XLOGINFO client-address client-name" command.
-/*	This changes the client
-/*	name and address that are used for logging, without affecting the
-/*	client IP address and hostname that are used for access control.
-/*	XLOGINFO is typically used to propagate remote client information
-/*	through an SMTP-based content filter to the after-filter SMTP server.
+/*	authorized to use the XCLIENT command.  This command changes
+/*	client information for access control and/or logging purposes,
+/*	with the exception of the
+/*	\fBsmtpd_authorized_xclient_hosts\fR access control itself.
 /* .IP \fBdebug_peer_level\fR
 /*	Increment in verbose logging level when a remote host matches a
 /*	pattern in the \fBdebug_peer_list\fR parameter.
@@ -437,6 +429,7 @@
 #include <dict.h>
 #include <watchdog.h>
 #include <iostuff.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -461,6 +454,7 @@
 #include <namadr_list.h>
 #include <input_transp.h>
 #include <anvil_clnt.h>
+#include <xtext.h>
 
 /* Single-threaded server skeleton. */
 
@@ -557,8 +551,7 @@ char   *var_input_transp;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
-char   *var_xaddr_clients;
-char   *var_xloginfo_clients;
+char   *var_xclient_hosts;
 int     var_smtpd_crate_limit;
 int     var_smtpd_cconn_limit;
 char   *var_smtpd_hoggers;
@@ -578,16 +571,9 @@ char   *var_smtpd_hoggers;
 static NAMADR_LIST *verp_clients;
 
  /*
-  * XADDR command.
+  * XCLIENT command.
   */
-#define XADDR_CMD		"XADDR"
-
-static NAMADR_LIST *xaddr_clients;
-
- /*
-  * XLOGINFO command.
-  */
-static NAMADR_LIST *xloginfo_clients;
+static NAMADR_LIST *xclient_hosts;
 
  /*
   * Client connection and rate limiting.
@@ -630,11 +616,10 @@ static int sasl_client_exception(SMTPD_STATE *state)
 	return (0);
 
     match = namadr_list_match(sasl_exceptions_networks,
-			      state->name, state->addr);
+			      ACL_NAME(state), ACL_ADDR(state));
 
     if (msg_verbose)
-	msg_info("sasl_exceptions: %s[%s], match=%d",
-		 state->name, state->addr, match);
+	msg_info("sasl_exceptions: %s, match=%d", ACL_NAMADDR(state), match);
 
     return (match);
 }
@@ -679,6 +664,8 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     mail_reset(state);
     rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
+    neuter(state->helo_name, "<>()\\\";:@", '?');
+    /* Changing the protocol name breaks the unauthorized pipelining check. */
     if (strcmp(state->protocol, MAIL_PROTO_ESMTP) != 0)
 	state->protocol = MAIL_PROTO_SMTP;
     smtpd_chat_reply(state, "250 %s", var_myhostname);
@@ -715,6 +702,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     mail_reset(state);
     rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
+    neuter(state->helo_name, "<>()\\\";:@", '?');
     state->protocol = MAIL_PROTO_ESMTP;
     smtpd_chat_reply(state, "250-%s", var_myhostname);
     smtpd_chat_reply(state, "250-PIPELINING");
@@ -733,12 +721,11 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "250-AUTH=%s", state->sasl_mechanism_list);
     }
 #endif
-    if (namadr_list_match(verp_clients, state->name, state->addr))
+    if (namadr_list_match(verp_clients, ACL_NAME(state), ACL_ADDR(state)))
 	smtpd_chat_reply(state, "250-%s", VERP_CMD);
-    if (namadr_list_match(xaddr_clients, state->name, state->addr))
-	smtpd_chat_reply(state, "250-%s", XADDR_CMD);
-    if (namadr_list_match(xloginfo_clients, state->name, state->addr))
-	smtpd_chat_reply(state, "250-%s", XLOGINFO_CMD);
+    /* XCLIENT must not override its own access control. */
+    if (namadr_list_match(xclient_hosts, state->name, state->addr))
+	smtpd_chat_reply(state, "250-%s", XCLIENT_CMD);
     smtpd_chat_reply(state, "250 8BITMIME");
     return (0);
 }
@@ -754,8 +741,7 @@ static void helo_reset(SMTPD_STATE *state)
 
 /* mail_open_stream - open mail queue file or IPC stream */
 
-static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
-		              const char *encoding, const char *verp_delims)
+static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv)
 {
     char   *postdrop_command;
     int     cleanup_flags;
@@ -816,7 +802,7 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
 	smtpd_sasl_mail_log(state);
     else
 #endif
-	msg_info("%s: client=%s", state->queue_id, state->namaddr);
+	msg_info("%s: client=%s", state->queue_id, LOG_NAMADDR(state));
 
     /*
      * Record the time of arrival, the sender envelope address, some session
@@ -828,24 +814,29 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
     }
     rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
-    if (encoding != 0)
+    if (state->encoding != 0)
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ENCODING, encoding);
+		    MAIL_ATTR_ENCODING, state->encoding);
+
+    /*
+     * Store the client attributes for logging purposes.
+     */
     if (SMTPD_STAND_ALONE(state) == 0) {
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_NAME, state->name);
+		    MAIL_ATTR_CLIENT_NAME, LOG_NAME(state));
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_ADDR, state->addr);
+		    MAIL_ATTR_CLIENT_ADDR, LOG_ADDR(state));
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ORIGIN, state->namaddr);
-	if (state->helo_name != 0)
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_HELO_NAME, state->helo_name);
+		    MAIL_ATTR_ORIGIN, LOG_NAMADDR(state));
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_PROTO_NAME, state->protocol);
+		    MAIL_ATTR_HELO_NAME,
+		    IS_UNK_HELO_NAME(LOG_HELO_NAME(state)) ?
+		    HELO_NAME_UNKNOWN : LOG_HELO_NAME(state));
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_PROTO_NAME, LOG_PROTOCOL(state));
     }
-    if (verp_delims)
-	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
+    if (state->verp_delims)
+	rec_fputs(state->cleanup, REC_TYPE_VERP, state->verp_delims);
 }
 
 /* extract_addr - extract address from rubble */
@@ -965,8 +956,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     int     narg;
     char   *arg;
     char   *verp_delims = 0;
-    char   *encoding = 0;
 
+    state->encoding = 0;
     state->msg_size = 0;
 
     /*
@@ -983,7 +974,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
 	return (-1);
     }
-#define IN_MAIL_TRANSACTION(state) ((state)->cleanup || (state)->proxy)
+#define IN_MAIL_TRANSACTION(state) ((state)->sender != 0)
 
     if (IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -998,7 +989,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Bad address syntax");
+	smtpd_chat_reply(state, "501 Bad sender address syntax");
 	return (-1);
     }
     if ((err = extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR, var_strict_rfc821_env)) != 0) {
@@ -1009,9 +1000,9 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     for (narg = 3; narg < argc; narg++) {
 	arg = argv[narg].strval;
 	if (strcasecmp(arg, "BODY=8BITMIME") == 0) {	/* RFC 1652 */
-	    encoding = MAIL_ATTR_ENC_8BIT;
+	    state->encoding = MAIL_ATTR_ENC_8BIT;
 	} else if (strcasecmp(arg, "BODY=7BIT") == 0) {	/* RFC 1652 */
-	    encoding = MAIL_ATTR_ENC_7BIT;
+	    state->encoding = MAIL_ATTR_ENC_7BIT;
 	} else if (strncasecmp(arg, "SIZE=", 5) == 0) {	/* RFC 1870 */
 	    /* Reject non-numeric size. */
 	    if (!alldig(arg + 5)) {
@@ -1032,11 +1023,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 #endif
-	} else if (namadr_list_match(verp_clients, state->name, state->addr)) {
-	    if (strcasecmp(arg, VERP_CMD) == 0) {
+	} else if (namadr_list_match(verp_clients, ACL_NAME(state),
+				     ACL_ADDR(state))
+		   && strncasecmp(arg, VERP_CMD, VERP_CMD_LEN) == 0
+		   && (arg[VERP_CMD_LEN] == '=' || arg[VERP_CMD_LEN] == 0)) {
+	    if (arg[VERP_CMD_LEN] == 0) {
 		verp_delims = var_verp_delims;
-	    } else if (strncasecmp(arg, VERP_CMD, VERP_CMD_LEN) == 0
-		       && arg[VERP_CMD_LEN] == '=') {
+	    } else {
 		verp_delims = arg + VERP_CMD_LEN + 1;
 		if (verp_delims_verify(verp_delims) != 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1065,28 +1058,26 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     state->time = time((time_t *) 0);
 
     /*
-     * Open connection to SMTP proxy server.
+     * Check the queue file space, if applicable.
      */
-    if (SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt) {
-	if (smtpd_proxy_open(state, var_smtpd_proxy_filt, var_smtpd_proxy_tmout,
-			   var_smtpd_proxy_ehlo, STR(state->buffer)) != 0) {
-	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+#define USE_SMTPD_PROXY(state) \
+	(SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt)
+
+    if (!USE_SMTPD_PROXY(state)) {
+	if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
+	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
     }
 
     /*
-     * Open queue file, or open connection to queue file writing process.
-     * Check for queue file space first.
+     * No more early returns. The mail transaction is in progress.
      */
-    else {
-	if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	mail_open_stream(state, argv, encoding, verp_delims);
-    }
     state->sender = mystrdup(argv[2].strval);
+    if (verp_delims)
+	state->verp_delims = mystrdup(verp_delims);
+    if (USE_SMTPD_PROXY(state))
+	state->proxy_mail = mystrdup(STR(state->buffer));
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -1115,6 +1106,10 @@ static void mail_reset(SMTPD_STATE *state)
 	myfree(state->sender);
 	state->sender = 0;
     }
+    if (state->verp_delims) {
+	myfree(state->verp_delims);
+	state->verp_delims = 0;
+    }
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_mail_reset(state);
@@ -1128,6 +1123,10 @@ static void mail_reset(SMTPD_STATE *state)
     if (state->proxy) {
 	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_NONE, "QUIT");
 	smtpd_proxy_close(state);
+    }
+    if (state->proxy_mail) {
+	myfree(state->proxy_mail);
+	state->proxy_mail = 0;
     }
 }
 
@@ -1161,7 +1160,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Bad address syntax");
+	smtpd_chat_reply(state, "501 Bad recipient address syntax");
 	return (-1);
     }
     if ((err = extract_addr(state, argv + 2, REJECT_EMPTY_ADDR, var_strict_rfc821_env)) != 0) {
@@ -1187,6 +1186,21 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
+    }
+
+    /*
+     * Don't access the proxy, queue file, or queue file writer process until
+     * we have a valid recipient address.
+     */
+    if (state->proxy == 0 && state->proxy_mail) {
+	if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
+			     var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
+			     state->proxy_mail) != 0) {
+	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	    return (-1);
+	}
+    } else if (state->cleanup == 0) {
+	mail_open_stream(state, argv);
     }
     if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK,
 					"%s", STR(state->buffer)) != 0) {
@@ -1284,36 +1298,41 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Terminate the message envelope segment. Start the message content
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
+     * 
+     * Suppress our own Received: header in the unlikely case that we are an
+     * intermediate proxy.
      */
     if (state->cleanup)
 	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
-    out_fprintf(out_stream, REC_TYPE_NORM,
-		"Received: from %s (%s [%s])",
-		state->helo_name ? state->helo_name : state->name,
-		state->name, state->addr);
-    if (state->rcpt_count == 1 && state->recipient) {
+    if (!state->proxy || state->xclient.addr == 0) {
 	out_fprintf(out_stream, REC_TYPE_NORM,
-		    state->cleanup ? "\tby %s (%s) with %s id %s" :
-		    "\tby %s (%s) with %s",
-		    var_myhostname, var_mail_name,
-		    state->protocol, state->queue_id);
-	quote_822_local(state->buffer, state->recipient);
-	out_fprintf(out_stream, REC_TYPE_NORM,
+		    "Received: from %s (%s [%s])",
+		    state->helo_name ? state->helo_name : state->name,
+		    state->name, state->addr);
+	if (state->rcpt_count == 1 && state->recipient) {
+	    out_fprintf(out_stream, REC_TYPE_NORM,
+			state->cleanup ? "\tby %s (%s) with %s id %s" :
+			"\tby %s (%s) with %s",
+			var_myhostname, var_mail_name,
+			state->protocol, state->queue_id);
+	    quote_822_local(state->buffer, state->recipient);
+	    out_fprintf(out_stream, REC_TYPE_NORM,
 	      "\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
-    } else {
-	out_fprintf(out_stream, REC_TYPE_NORM,
-		    state->cleanup ? "\tby %s (%s) with %s id %s;" :
-		    "\tby %s (%s) with %s;",
-		    var_myhostname, var_mail_name,
-		    state->protocol, state->queue_id);
-	out_fprintf(out_stream, REC_TYPE_NORM,
-		    "\t%s", mail_date(state->time));
-    }
+	} else {
+	    out_fprintf(out_stream, REC_TYPE_NORM,
+			state->cleanup ? "\tby %s (%s) with %s id %s;" :
+			"\tby %s (%s) with %s;",
+			var_myhostname, var_mail_name,
+			state->protocol, state->queue_id);
+	    out_fprintf(out_stream, REC_TYPE_NORM,
+			"\t%s", mail_date(state->time));
+	}
 #ifdef RECEIVED_ENVELOPE_FROM
-    quote_822_local(state->buffer, state->sender);
-    out_fprintf(out_stream, REC_TYPE_NORM,
-		"\t(envelope-from %s)", STR(state->buffer));
+	quote_822_local(state->buffer, state->sender);
+	out_fprintf(out_stream, REC_TYPE_NORM,
+		    "\t(envelope-from %s)", STR(state->buffer));
 #endif
+    }
     smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
 
     /*
@@ -1650,75 +1669,213 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
     return (0);
 }
 
-/* xaddr_cmd - process XADDR */
+/* xclient_cmd - process XCLIENT */
 
-static int xaddr_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
+static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
+    int     arg_no;
+    char   *raw_value;
+    char   *cooked_value;
+    char   *arg_val;
+    int     update_namaddr = 0;
 
     /*
-     * Sanity checks.
+     * Sanity checks. The XCLIENT command does not override its own access
+     * control.
      */
-    if (namadr_list_match(xaddr_clients, state->name, state->addr) == 0) {
+    if (namadr_list_match(xclient_hosts, state->name, state->addr) == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "554 Error: insufficient authorization");
 	return (-1);
     }
-    /* Todo: "XADDR address" to let Postfix look up the client name. */
-    if (argc != 3
-	|| !valid_hostaddr(argv[1].strval, DONT_GRIPE)
-	|| !valid_hostname(argv[2].strval, DONT_GRIPE)) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: %s address hostname", XADDR_CMD);
-	return (-1);
+#define STREQ(x,y) (strcasecmp((x), (y)) == 0)
+#define UPDATE_STR(s, v) { if (s) myfree(s); s = mystrdup(v); }
+
+    /*
+     * Iterate over all XCLIENT arguments.
+     */
+    for (arg_no = 1; arg_no < argc; arg_no++) {
+	arg_val = argv[arg_no].strval;
+
+	/*
+	 * Request name: what should happen with the stored attributes.
+	 * Complain about unrecognized request names. The set of requests is
+	 * unlikely to change.
+	 */
+	if ((raw_value = split_at(arg_val, '=')) == 0) {
+	    printable(arg_val, '?');
+	    if (STREQ(arg_val, "RST")) {	/* blow them away */
+		smtpd_xclient_reset(state, XCLIENT_OVER_NONE);
+	    } else if (STREQ(arg_val, "ACL")) {	/* access control and logging */
+		smtpd_xclient_reset(state, XCLIENT_OVER_ACL | XCLIENT_OVER_LOG);
+	    } else if (STREQ(arg_val, "LOG")) {	/* logging only */
+		smtpd_xclient_reset(state, XCLIENT_OVER_LOG);
+	    } else {				/* error */
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 Bad request: %s", arg_val);
+		return (-1);
+	    }
+	}
+
+	/*
+	 * NAME=VALUE attribute. Decode the attribute and for safety's sake
+	 * mask non-printable characters in the raw and decoded values; we
+	 * don't want to handle unexploded munitions. Do not complain about
+	 * unrecognized attribute names. The set of attributes may change
+	 * over time.
+	 * 
+	 * The client can send multiple XCLIENT attributes in a single command,
+	 * or multiple XCLIENT commands with fewer attributes.
+	 * 
+	 * Note: XCLIENT ACL overrides only specific logging and access control
+	 * attributes (desirable for testing), while XCLIENT LOG overrides
+	 * all logging attributes (for audit trail consistency).
+	 */
+	else {
+	    if (state->xclient.mode == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "503 Error: send %s ACL or LOG first",
+				 XCLIENT_CMD);
+		return (-1);
+	    }
+	    if (xtext_unquote(state->buffer, raw_value) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 Bad attribute value syntax: %s",
+				 printable(raw_value, '?'));
+		return (-1);
+	    }
+	    cooked_value = printable(STR(state->buffer), '?');
+	    (void) printable(raw_value, '?');
+
+	    /*
+	     * CLIENT_NAME=hostname. Also updates the client hostname lookup
+	     * status code. Treat a numerical hostname as an unavailable
+	     * name.
+	     */
+	    if (STREQ(arg_val, "CLIENT_NAME")) {
+		if (*raw_value && !valid_hostaddr(cooked_value, DONT_GRIPE)) {
+		    if (!valid_hostname(cooked_value, DONT_GRIPE)) {
+			state->error_mask |= MAIL_ERROR_PROTOCOL;
+			smtpd_chat_reply(state, "501 Bad hostname syntax: %s",
+					 cooked_value);
+			return (-1);
+		    }
+		    UPDATE_STR(state->xclient.name, cooked_value);
+		    state->xclient.peer_code = SMTPD_PEER_CODE_OK;
+		} else {
+		    UPDATE_STR(state->xclient.name, CLIENT_NAME_UNKNOWN);
+		    state->xclient.peer_code = SMTPD_PEER_CODE_PERM;
+		}
+		update_namaddr = 1;
+	    }
+
+	    /*
+	     * CLIENT_ADDR=client network address.
+	     */
+	    else if (STREQ(arg_val, "CLIENT_ADDR")) {
+		if (*raw_value) {
+		    if (!valid_hostaddr(cooked_value, DONT_GRIPE)) {
+			state->error_mask |= MAIL_ERROR_PROTOCOL;
+			smtpd_chat_reply(state, "501 Bad address syntax: %s",
+					 cooked_value);
+			return (-1);
+		    }
+		    UPDATE_STR(state->xclient.addr, cooked_value);
+		} else {
+		    UPDATE_STR(state->xclient.name, CLIENT_NAME_UNKNOWN);
+		}
+		update_namaddr = 1;
+	    }
+
+	    /*
+	     * CLIENT_CODE=status. Reset the client hostname if the hostname
+	     * lookup status is not OK.
+	     */
+	    else if (STREQ(arg_val, "CLIENT_CODE")) {
+		if (STREQ(cooked_value, "OK")) {
+		    state->xclient.peer_code = SMTPD_PEER_CODE_OK;
+		} else if (STREQ(cooked_value, "TEMP")) {
+		    state->xclient.peer_code = SMTPD_PEER_CODE_TEMP;
+		    UPDATE_STR(state->xclient.name, CLIENT_NAME_UNKNOWN);
+		    update_namaddr = 1;
+		} else if (STREQ(cooked_value, "PERM")) {
+		    state->xclient.peer_code = SMTPD_PEER_CODE_PERM;
+		    UPDATE_STR(state->xclient.name, CLIENT_NAME_UNKNOWN);
+		    update_namaddr = 1;
+		} else {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 Bad hostname status: %s",
+				     cooked_value);
+		    return (-1);
+		}
+	    }
+
+	    /*
+	     * HELO_NAME=hostname. An empty value means the information was
+	     * not provided by the client and that we must not fall back to
+	     * the non-XCLIENT value. Disallow characters that could mess up
+	     * our own Received: message headers but allow [].
+	     */
+	    else if (STREQ(arg_val, "HELO_NAME")) {
+		if (*raw_value) {
+		    if (strlen(cooked_value) > VALID_HOSTNAME_LEN) {
+			state->error_mask |= MAIL_ERROR_PROTOCOL;
+			smtpd_chat_reply(state, "501 Bad HELO syntax: %s",
+					 cooked_value);
+			return (-1);
+		    }
+		    neuter(cooked_value, "<>()\\\";:@", '?');
+		    UPDATE_STR(state->xclient.helo_name, cooked_value);
+		} else {
+		    UPDATE_STR(state->xclient.helo_name, HELO_NAME_UNKNOWN);
+		}
+	    }
+
+	    /*
+	     * PROTOCOL=protocol name. Disallow characters that could mess up
+	     * our own Received: message headers.
+	     */
+	    else if (STREQ(arg_val, "PROTOCOL")) {
+		if (*raw_value) {
+		    if (*cooked_value == 0 || strlen(cooked_value) > 64) {
+			state->error_mask |= MAIL_ERROR_PROTOCOL;
+			smtpd_chat_reply(state, "501 Bad protocol syntax: %s",
+					 cooked_value);
+			return (-1);
+		    }
+		    neuter(cooked_value, "[]<>()\\\";:@", '?');
+		    UPDATE_STR(state->xclient.protocol, cooked_value);
+		} else {
+		    UPDATE_STR(state->xclient.protocol, PROTOCOL_UNKNOWN);
+		}
+	    }
+
+	    /*
+	     * Unknown attribute name. Don't complain, and log a warning.
+	     * Logging is safe because only authorized clients can issue
+	     * XCLIENT commands.
+	     */
+	    else {
+		msg_warn("unknown %s attribute from %s: %s=%s",
+			 XCLIENT_CMD, state->namaddr, arg_val, cooked_value);
+	    }
+	}
     }
 
     /*
-     * Change peer information for logging and for access control. Change a
-     * numerical hostname into "unknown", to make it easy to extract client
-     * information from Received: headers.
+     * Update the combined name and address when either has changed.
      */
-#define FIX_NUMERICAL_NAME(s) \
-	(valid_hostaddr((s), DONT_GRIPE) ?  "unknown" : (s))
+#define MAYBE_OVERRIDE(state, attr) \
+	((state)->xclient.attr ? (state)->xclient.attr : (state)->attr)
 
-    smtpd_peer_reset(state);
-    state->name = mystrdup(FIX_NUMERICAL_NAME(argv[2].strval));
-    state->addr = mystrdup(argv[1].strval);
-    state->namaddr =
-	concatenate(state->name, "[", state->addr, "]", (char *) 0);
-    state->peer_code = strcmp(state->name, "unknown") ? 2 : 5;
-    smtpd_chat_reply(state, "250 Ok");
-    return (0);
-}
-
-/* xloginfo_cmd - process XLOGINFO */
-
-static int xloginfo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
-{
-
-    /*
-     * Sanity checks.
-     */
-    if (namadr_list_match(xloginfo_clients, state->name, state->addr) == 0) {
-	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "554 Error: insufficient authorization");
-	return (-1);
+    if (update_namaddr) {
+	if (state->xclient.namaddr)
+	    myfree(state->xclient.namaddr);
+	state->xclient.namaddr =
+	    concatenate(MAYBE_OVERRIDE(state, name), "[",
+			MAYBE_OVERRIDE(state, addr), "]",
+			(char *) 0);
     }
-    if (argc != 3
-	|| !valid_hostaddr(argv[1].strval, DONT_GRIPE)
-	|| !valid_hostname(argv[2].strval, DONT_GRIPE)) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: %s address hostname", XLOGINFO_CMD);
-	return (-1);
-    }
-
-    /*
-     * Change peer information for logging but not for access control. Change
-     * a numerical hostname into "unknown", for consistency with XADDR.
-     */
-    myfree(state->namaddr);
-    state->namaddr =
-	concatenate(FIX_NUMERICAL_NAME(argv[2].strval),
-		    "[", argv[1].strval, "]", (char *) 0);
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -1774,8 +1931,7 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "VRFY", vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
     "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     "QUIT", quit_cmd, 0,
-    "XADDR", xaddr_cmd, SMTPD_CMD_FLAG_LIMIT,
-    "XLOGINFO", xloginfo_cmd, SMTPD_CMD_FLAG_LIMIT,
+    "XCLIENT", xclient_cmd, SMTPD_CMD_FLAG_LIMIT,
     "Received:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
     "Reply-To:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
     "Message-ID:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
@@ -1835,6 +1991,12 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	break;
 
     case 0:
+
+	/*
+	 * XXX The client connection count/rate control uses the real client
+	 * name/address to maintain consistency between connect and
+	 * disconnect events.
+	 */
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && anvil_clnt
 	    && !namadr_list_match(hogger_list, state->name, state->addr)
@@ -1855,6 +2017,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		break;
 	    }
 	}
+	/* XXX We use the real client for connect access control. */
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && var_smtpd_delay_reject == 0
 	    && (state->access_denied = smtpd_check_client(state)) != 0) {
@@ -1900,6 +2063,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
 		break;
 	    }
+	    /* XXX We use the real client for connect access control. */
 	    if (state->access_denied && cmdp->action != quit_cmd) {
 		smtpd_chat_reply(state, "503 Error: access denied for %s",
 				 state->namaddr);	/* RFC 2821 Sec 3.1 */
@@ -1917,6 +2081,12 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	}
 	break;
     }
+
+    /*
+     * XXX The client connection count/rate control uses the real client
+     * name/address to maintain consistency between connect and disconnect
+     * events.
+     */
     if (SMTPD_STAND_ALONE(state) == 0
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
@@ -2014,8 +2184,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
     smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
-    xaddr_clients = namadr_list_init(MATCH_FLAG_NONE, var_xaddr_clients);
-    xloginfo_clients = namadr_list_init(MATCH_FLAG_NONE, var_xloginfo_clients);
+    xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
     hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
@@ -2153,8 +2322,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
 	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
-	VAR_XADDR_CLIENTS, DEF_XADDR_CLIENTS, &var_xaddr_clients, 0, 0,
-	VAR_XLOGINFO_CLIENTS, DEF_XLOGINFO_CLIENTS, &var_xloginfo_clients, 0, 0,
+	VAR_XCLIENT_HOSTS, DEF_XCLIENT_HOSTS, &var_xclient_hosts, 0, 0,
 	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
 	0,
     };

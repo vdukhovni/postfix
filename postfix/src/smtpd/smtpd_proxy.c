@@ -51,12 +51,12 @@
 /*	have the same interface as the routines that are used for non-proxied
 /*	mail.
 /*
-/*	smtpd_proxy_open() should be called after receiving the MAIL FROM
-/*	command. It connects to the proxy service, sends EHLO, sends the
-/*	MAIL FROM command, and receives the reply. A non-zero result means
+/*	smtpd_proxy_open() connects to the proxy service, sends EHLO, sends
+/*	client information with the XCLIENT command if possible, sends
+/*	the MAIL FROM command, and receives the reply. A non-zero result means
 /*	trouble: either the proxy is unavailable, or it did not send the
 /*	expected reply.
-/*	All results are reported via the state->proxy_buffer field in a form
+/*	The result is reported via the state->proxy_buffer field in a form
 /*	that can be sent to the SMTP client. In case of error, the
 /*	state->error_mask and state->err fields are updated.
 /*	A state->proxy_buffer field is created automatically; this field
@@ -155,6 +155,8 @@
 #include <cleanup_user.h>
 #include <mail_params.h>
 #include <rec_type.h>
+#include <xtext.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -168,7 +170,7 @@
 #define LEN(x)	VSTRING_LEN(x)
 #define SMTPD_PROXY_CONNECT ((char *) 0)
 
-/* smtpd_proxy_open - open proxy connection after MAIL FROM */
+/* smtpd_proxy_open - open proxy connection */
 
 int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 			         int timeout, const char *ehlo_name,
@@ -177,6 +179,8 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     int     fd;
     char   *lines;
     char   *line;
+    VSTRING *buf;
+    int     bad;
 
     /*
      * This buffer persists beyond the end of a proxy session so we can
@@ -205,7 +209,8 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
      * 
      * If this fails then we have a problem because the proxy should always
      * accept our connection. Make up our own response instead of passing
-     * back the greeting banner: the client expects a MAIL FROM reply.
+     * back the greeting banner: the proxy open might be delayed to the point
+     * that the client expects a MAIL FROM or RCPT TO reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, SMTPD_PROXY_CONNECT) != 0) {
 	vstring_sprintf(state->proxy_buffer,
@@ -217,8 +222,9 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     /*
      * Send our own EHLO command. If this fails then we have a problem
      * because the proxy should always accept our EHLO command. Make up our
-     * own response instead of passing back the EHLO reply: the client
-     * expects a MAIL FROM reply.
+     * own response instead of passing back the EHLO reply: the proxy open
+     * might be delayed to the point that the client expects a MAIL FROM or
+     * RCPT TO reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "EHLO %s", ehlo_name) != 0) {
 	vstring_sprintf(state->proxy_buffer,
@@ -228,17 +234,46 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     }
 
     /*
-     * Parse the EHLO reply and see if we can forward the client hostname and
-     * address info for logging purposes. If the command fails, then proceed.
-     * It is not the end of the world.
+     * Parse the EHLO reply and see if we can forward logging information.
      */
+    state->proxy_features = 0;
     lines = STR(state->proxy_buffer);
     while ((line = mystrtok(&lines, "\n")) != 0)
 	if (ISDIGIT(line[0]) && ISDIGIT(line[1]) && ISDIGIT(line[2])
 	    && (line[3] == ' ' || line[3] == '-')
-	    && strcmp(line + 4, XLOGINFO_CMD) == 0)
-	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s %s %s",
-				   XLOGINFO_CMD, state->addr, state->name);
+	    && strcmp(line + 4, XCLIENT_EHLO) == 0)
+	    state->proxy_features |= SMTPD_FEATURE_XCLIENT;
+
+    /*
+     * Send our XCLIENT attributes. Transform internal forms to external
+     * forms and encode the result as xtext.
+     */
+    if (state->proxy_features & SMTPD_FEATURE_XCLIENT) {
+	buf = vstring_alloc(100);
+	vstring_sprintf(buf, "%s LOG CLIENT_NAME=", XCLIENT_CMD);
+	if (!IS_UNK_CLNT_NAME(LOG_NAME(state)))
+	    xtext_quote_append(buf, LOG_NAME(state), "");
+	vstring_strcat(buf, " CLIENT_ADDR=");
+	if (!IS_UNK_CLNT_ADDR(LOG_ADDR(state)))
+	    xtext_quote_append(buf, LOG_ADDR(state), "");
+	bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
+	if (bad == 0) {
+	    vstring_sprintf(buf, "%s HELO_NAME=", XCLIENT_CMD);
+	    if (!IS_UNK_HELO_NAME(LOG_HELO_NAME(state)))
+		xtext_quote_append(buf, LOG_HELO_NAME(state), "");
+	    vstring_strcat(buf, " PROTOCOL=");
+	    if (!IS_UNK_PROTOCOL(LOG_PROTOCOL(state)))
+		xtext_quote_append(buf, LOG_PROTOCOL(state), "");
+	    bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
+	}
+	vstring_free(buf);
+	if (bad) {
+	    vstring_sprintf(state->proxy_buffer,
+			    "451 Error: queue file write error");
+	    smtpd_proxy_close(state);
+	    return (-1);
+	}
+    }
 
     /*
      * Pass-through the client's MAIL FROM command. If this fails, then we

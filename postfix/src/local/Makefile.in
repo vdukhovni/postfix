@@ -9,9 +9,6 @@ OBJS	= alias.o command.o delivered.o dotforward.o file.o forward.o \
 	local_expand.o
 HDRS	= local.h
 TESTSRC	=
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 PROG	= local

@@ -64,6 +64,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_STARTTLS	(1<<4)
 #define SMTP_FEATURE_AUTH	(1<<5)
 #define SMTP_FEATURE_MAYBEPIX	(1<<6)	/* PIX smtp fixup mode */
+#define SMTP_FEATURE_XCLIENT	(1<<7)	/* server supports XCLIENT */
 
  /*
   * smtp.c

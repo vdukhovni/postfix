@@ -740,7 +740,7 @@ int     main(int argc, char **argv)
     for (fd = 0; fd < 3; fd++)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
-	    msg_fatal_status(EX_UNAVAILABLE, "open /dev/null: %m");
+	    msg_fatal_status(EX_OSERR, "open /dev/null: %m");
 
     /*
      * The CDE desktop calendar manager leaks a parent file descriptor into

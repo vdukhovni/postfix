@@ -809,15 +809,15 @@ static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
 
     vstring_sprintf(buf, "%s: %s: %s from %s: %s;",
 		    state->queue_id ? state->queue_id : "NOQUEUE",
-		    whatsup, state->where, state->namaddr, text);
+		    whatsup, state->where, LOG_NAMADDR(state), text);
     if (state->sender)
 	vstring_sprintf_append(buf, " from=<%s>", state->sender);
     if (state->recipient)
 	vstring_sprintf_append(buf, " to=<%s>", state->recipient);
-    if (state->protocol)
-	vstring_sprintf_append(buf, " proto=%s", state->protocol);
-    if (state->helo_name)
-	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
+    if (!IS_UNK_PROTOCOL(ACL_PROTOCOL(state)))
+	vstring_sprintf_append(buf, " proto=%s", ACL_PROTOCOL(state));
+    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state)))
+	vstring_sprintf_append(buf, " helo=<%s>", ACL_HELO_NAME(state));
     msg_info("%s", STR(buf));
     vstring_free(buf);
 }
@@ -968,14 +968,14 @@ static int reject_unknown_client(SMTPD_STATE *state)
     char   *myname = "reject_unknown_client";
 
     if (msg_verbose)
-	msg_info("%s: %s %s", myname, state->name, state->addr);
+	msg_info("%s: %s %s", myname, ACL_NAME(state), ACL_ADDR(state));
 
-    if (strcasecmp(state->name, "unknown") == 0)
+    if (IS_UNK_CLNT_NAME(ACL_NAME(state)))
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 		 "%d Client host rejected: cannot find your hostname, [%s]",
-				   state->peer_code == 5 ?
+			      ACL_PEER_CODE(state) == SMTPD_PEER_CODE_PERM ?
 				   var_unk_client_code : 450,
-				   state->addr));
+				   ACL_ADDR(state)));
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -986,9 +986,9 @@ static int permit_mynetworks(SMTPD_STATE *state)
     char   *myname = "permit_mynetworks";
 
     if (msg_verbose)
-	msg_info("%s: %s %s", myname, state->name, state->addr);
+	msg_info("%s: %s %s", myname, ACL_NAME(state), ACL_ADDR(state));
 
-    if (namadr_list_match(mynetworks, state->name, state->addr))
+    if (namadr_list_match(mynetworks, ACL_NAME(state), ACL_ADDR(state)))
 	return (SMTPD_CHECK_OK);
     return (SMTPD_CHECK_DUNNO);
 }
@@ -1207,7 +1207,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
     /*
      * Permit if the client matches the relay_domains list.
      */
-    if (domain_list_match(relay_domains, state->name))
+    if (domain_list_match(relay_domains, ACL_NAME(state)))
 	return (SMTPD_CHECK_OK);
 
     /*
@@ -1309,7 +1309,7 @@ static int reject_unauth_pipelining(SMTPD_STATE *state,
     if (state->client != 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& vstream_peek(state->client) > 0
-	&& (strcasecmp(state->protocol, "ESMTP") != 0
+	&& (strcasecmp(ACL_PROTOCOL(state), MAIL_PROTO_ESMTP) != 0
 	    || strcasecmp(state->where, "DATA") == 0)) {
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
 	   "503 <%s>: %s rejected: Improper use of SMTP command pipelining",
@@ -2518,13 +2518,14 @@ static const char *smtpd_expand_lookup(const char *name, int unused_mode,
      * Return NULL only for non-existent names.
      */
     if (STREQ(name, MAIL_ATTR_CLIENT)) {
-	return (state->namaddr);
+	return (ACL_NAMADDR(state));
     } else if (STREQ(name, MAIL_ATTR_CLIENT_ADDR)) {
-	return (state->addr);
+	return (ACL_ADDR(state));
     } else if (STREQ(name, MAIL_ATTR_CLIENT_NAME)) {
-	return (state->name);
+	return (ACL_NAME(state));
     } else if (STREQ(name, MAIL_ATTR_HELO_NAME)) {
-	return (state->helo_name ? state->helo_name : "");
+	return (IS_UNK_HELO_NAME(ACL_HELO_NAME(state)) ?
+		"" : ACL_HELO_NAME(state));
     } else if (STREQN(name, MAIL_ATTR_SENDER, CONST_LEN(MAIL_ATTR_SENDER))) {
 	return (smtpd_expand_addr(state->expand_buf, state->sender,
 				  name, CONST_LEN(MAIL_ATTR_SENDER)));
@@ -2820,7 +2821,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     static int warned;
 
     if (msg_verbose)
-	msg_info("%s: %s", myname, state->addr);
+	msg_info("%s: %s", myname, ACL_ADDR(state));
 
     if (warned == 0) {
 	warned++;
@@ -2829,7 +2830,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 		 REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
     }
     while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
-	result = reject_rbl_addr(state, rbl_domain, state->addr,
+	result = reject_rbl_addr(state, rbl_domain, ACL_ADDR(state),
 				 SMTPD_NAME_CLIENT);
 	if (result != SMTPD_CHECK_DUNNO)
 	    break;
@@ -2906,11 +2907,12 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
 			ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
 			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
-		       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, state->protocol,
-			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,
-			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, state->name,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, ACL_PROTOCOL(state),
+		      ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, ACL_ADDR(state),
+		      ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, ACL_NAME(state),
 			  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME,
-			  state->helo_name ? state->helo_name : "",
+			  IS_UNK_HELO_NAME(ACL_HELO_NAME(state)) ?
+			  "" : ACL_HELO_NAME(state),
 			  ATTR_TYPE_STR, MAIL_ATTR_SENDER,
 			  state->sender ? state->sender : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_RECIP,
@@ -3075,8 +3077,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
 	} else if (is_map_command(state, name, CHECK_CLIENT_ACL, &cpp)) {
-	    status = check_namadr_access(state, *cpp, state->name, state->addr,
-					 FULL, &found, state->namaddr,
+	    status = check_namadr_access(state, *cpp, ACL_NAME(state), ACL_ADDR(state),
+					 FULL, &found, ACL_NAMADDR(state),
 					 SMTPD_NAME_CLIENT, def_acl);
 	} else if (strcasecmp(name, REJECT_MAPS_RBL) == 0) {
 	    status = reject_maps_rbl(state);
@@ -3085,7 +3087,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
 	    else
-		status = reject_rbl_addr(state, *(cpp += 1), state->addr,
+		status = reject_rbl_addr(state, *(cpp += 1), ACL_ADDR(state),
 					 SMTPD_NAME_CLIENT);
 	} else if (strcasecmp(name, REJECT_RHSBL_CLIENT) == 0) {
 	    if (cpp[1] == 0)
@@ -3093,69 +3095,73 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 name);
 	    else {
 		cpp += 1;
-		if (strcasecmp(state->name, "unknown") != 0)
-		    status = reject_rbl_domain(state, *cpp, state->name,
+		if (!IS_UNK_CLNT_NAME(ACL_NAME(state)))
+		    status = reject_rbl_domain(state, *cpp, ACL_NAME(state),
 					       SMTPD_NAME_CLIENT);
 	    }
 	}
 
 	/*
 	 * HELO/EHLO parameter restrictions.
+	 * 
+	 * XXX With XCLIENT overrides, a zero-length name means the client did
+	 * not send a HELO/EHLO command. Do not fall back to the non-XCLIENT
+	 * HELO/EHLO value.
 	 */
 	else if (is_map_command(state, name, CHECK_HELO_ACL, &cpp)) {
-	    if (state->helo_name)
-		status = check_domain_access(state, *cpp, state->helo_name,
-					     FULL, &found, state->helo_name,
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state)))
+		status = check_domain_access(state, *cpp, ACL_HELO_NAME(state),
+					 FULL, &found, ACL_HELO_NAME(state),
 					     SMTPD_NAME_HELO, def_acl);
 	} else if (strcasecmp(name, REJECT_INVALID_HOSTNAME) == 0) {
-	    if (state->helo_name) {
-		if (*state->helo_name != '[')
-		    status = reject_invalid_hostname(state, state->helo_name,
-					 state->helo_name, SMTPD_NAME_HELO);
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state))) {
+		if (*ACL_HELO_NAME(state) != '[')
+		    status = reject_invalid_hostname(state, ACL_HELO_NAME(state),
+				     ACL_HELO_NAME(state), SMTPD_NAME_HELO);
 		else
-		    status = reject_invalid_hostaddr(state, state->helo_name,
-					 state->helo_name, SMTPD_NAME_HELO);
+		    status = reject_invalid_hostaddr(state, ACL_HELO_NAME(state),
+				     ACL_HELO_NAME(state), SMTPD_NAME_HELO);
 	    }
 	} else if (strcasecmp(name, REJECT_UNKNOWN_HOSTNAME) == 0) {
-	    if (state->helo_name) {
-		if (*state->helo_name != '[')
-		    status = reject_unknown_hostname(state, state->helo_name,
-					 state->helo_name, SMTPD_NAME_HELO);
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state))) {
+		if (*ACL_HELO_NAME(state) != '[')
+		    status = reject_unknown_hostname(state, ACL_HELO_NAME(state),
+				     ACL_HELO_NAME(state), SMTPD_NAME_HELO);
 		else
-		    status = reject_invalid_hostaddr(state, state->helo_name,
-					 state->helo_name, SMTPD_NAME_HELO);
+		    status = reject_invalid_hostaddr(state, ACL_HELO_NAME(state),
+				     ACL_HELO_NAME(state), SMTPD_NAME_HELO);
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
 	    msg_warn("restriction %s is deprecated. Use %s instead",
 		     PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS);
-	    if (state->helo_name) {
-		if (state->helo_name[strspn(state->helo_name, "0123456789.")] == 0
-		&& (status = reject_invalid_hostaddr(state, state->helo_name,
-				   state->helo_name, SMTPD_NAME_HELO)) == 0)
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state))) {
+		if (ACL_HELO_NAME(state)[strspn(ACL_HELO_NAME(state), "0123456789.")] == 0
+		    && (status = reject_invalid_hostaddr(state, ACL_HELO_NAME(state),
+			       ACL_HELO_NAME(state), SMTPD_NAME_HELO)) == 0)
 		    status = SMTPD_CHECK_OK;
 	    }
 	} else if (is_map_command(state, name, CHECK_HELO_NS_ACL, &cpp)) {
-	    if (state->helo_name) {
-		status = check_server_access(state, *cpp, state->helo_name,
-					     T_NS, state->helo_name,
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state))) {
+		status = check_server_access(state, *cpp, ACL_HELO_NAME(state),
+					     T_NS, ACL_HELO_NAME(state),
 					     SMTPD_NAME_HELO, def_acl);
-		forbid_whitelist(state, name, status, state->helo_name);
+		forbid_whitelist(state, name, status, ACL_HELO_NAME(state));
 	    }
 	} else if (is_map_command(state, name, CHECK_HELO_MX_ACL, &cpp)) {
-	    if (state->helo_name) {
-		status = check_server_access(state, *cpp, state->helo_name,
-					     T_MX, state->helo_name,
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state))) {
+		status = check_server_access(state, *cpp, ACL_HELO_NAME(state),
+					     T_MX, ACL_HELO_NAME(state),
 					     SMTPD_NAME_HELO, def_acl);
-		forbid_whitelist(state, name, status, state->helo_name);
+		forbid_whitelist(state, name, status, ACL_HELO_NAME(state));
 	    }
 	} else if (strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
-	    if (state->helo_name) {
-		if (*state->helo_name != '[')
-		    status = reject_non_fqdn_hostname(state, state->helo_name,
-					 state->helo_name, SMTPD_NAME_HELO);
+	    if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state))) {
+		if (*ACL_HELO_NAME(state) != '[')
+		    status = reject_non_fqdn_hostname(state, ACL_HELO_NAME(state),
+				     ACL_HELO_NAME(state), SMTPD_NAME_HELO);
 		else
-		    status = reject_invalid_hostaddr(state, state->helo_name,
-					 state->helo_name, SMTPD_NAME_HELO);
+		    status = reject_invalid_hostaddr(state, ACL_HELO_NAME(state),
+				     ACL_HELO_NAME(state), SMTPD_NAME_HELO);
 	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_HELO) == 0) {
 	    if (cpp[1] == 0)
@@ -3163,8 +3169,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 name);
 	    else {
 		cpp += 1;
-		if (state->helo_name)
-		    status = reject_rbl_domain(state, *cpp, state->helo_name,
+		if (!IS_UNK_HELO_NAME(ACL_HELO_NAME(state)))
+		    status = reject_rbl_domain(state, *cpp, ACL_HELO_NAME(state),
 					       SMTPD_NAME_HELO);
 	    }
 	}
@@ -3361,7 +3367,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     /*
      * Initialize.
      */
-    if (state->name == 0 || state->addr == 0)
+    if (ACL_NAME(state) == 0 || ACL_ADDR(state) == 0)
 	return (0);
 
 #define SMTPD_CHECK_RESET() { \
@@ -3381,7 +3387,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && client_restrctions->argc)
-	status = generic_checks(state, client_restrctions, state->namaddr,
+	status = generic_checks(state, client_restrctions, ACL_NAMADDR(state),
 				SMTPD_NAME_CLIENT, CHECK_CLIENT_ACL);
     state->defer_if_permit_client = state->defer_if_permit.active;
 
@@ -3435,7 +3441,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && helo_restrctions->argc)
-	status = generic_checks(state, helo_restrctions, state->helo_name,
+	status = generic_checks(state, helo_restrctions, ACL_HELO_NAME(state),
 				SMTPD_NAME_HELO, CHECK_HELO_ACL);
     state->defer_if_permit_helo = state->defer_if_permit.active;
 
@@ -3547,7 +3553,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      */
     if (var_smtpd_delay_reject)
 	if ((err = smtpd_check_client(state)) != 0
-	    || (err = smtpd_check_helo(state, state->helo_name)) != 0
+	    || (err = smtpd_check_helo(state, ACL_HELO_NAME(state))) != 0
 	    || (err = smtpd_check_mail(state, state->sender)) != 0)
 	    SMTPD_CHECK_RCPT_RETURN(err);
 
@@ -3616,7 +3622,7 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
      */
     if (var_smtpd_delay_reject)
 	if ((err = smtpd_check_client(state)) != 0
-	    || (err = smtpd_check_helo(state, state->helo_name)) != 0)
+	    || (err = smtpd_check_helo(state, ACL_HELO_NAME(state))) != 0)
 	    SMTPD_CHECK_ETRN_RETURN(err);
 
     /*
@@ -4316,7 +4322,7 @@ int     main(int argc, char **argv)
 		if (args->argc == 4)
 		    state.peer_code = atoi(args->argv[3]);
 		else
-		    state.peer_code = 2;
+		    state.peer_code = SMTPD_PEER_CODE_OK;
 		if (state.namaddr)
 		    myfree(state.namaddr);
 		state.namaddr = concatenate(state.name, "[", state.addr,

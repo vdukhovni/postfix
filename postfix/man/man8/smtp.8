@@ -210,6 +210,9 @@ exchanger list.
 .IP \fBsmtp_helo_timeout\fR
 Timeout for sending the \fBHELO\fR command, and for
 receiving the server response.
+.IP \fBsmtp_xclient_timeout\fR
+Timeout for sending the \fBXCLIENT\fR command, and for
+receiving the server response.
 .IP \fBsmtp_mail_timeout\fR
 Timeout for sending the \fBMAIL FROM\fR command, and for
 receiving the server response.
@@ -231,6 +234,11 @@ If no, bounce mail when no MX host resolves to an address
 than the local MTA).
 If yes, keep trying until a suitable MX host resolves or until
 the mail is too old.
+.IP \fBsmtp_send_xclient_command\fR
+If the SMTP server announces XCLIENT support, send the name,
+address, protocol and HELO name of the original client. This
+can be used to forward client information through a content
+filter to a downstream queuing SMTP server.
 .IP \fBsmtp_rset_timeout\fR
 Timeout for sending the \fBRSET\fR command.
 .IP \fBsmtp_quit_timeout\fR

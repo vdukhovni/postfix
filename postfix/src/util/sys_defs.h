@@ -59,18 +59,39 @@
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #endif
 
-#if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4)
-#define HAS_DUPLEX_PIPE
-#endif
+/* __FreeBSD_version version is major+minor */
 
-#if defined(OPENBSD2) || defined(OPENBSD3) \
-    || defined(FREEBSD3) || defined(FREEBSD4)
+#if __FreeBSD_version >= 200000
+#define HAS_DUPLEX_PIPE
 #define HAS_ISSETUGID
 #endif
 
-#if defined(NETBSD1)
+#if __FreeBSD_version >= 400000
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
+#endif
+
+/* OpenBSD version is year+month */
+
+#if OpenBSD >= 200000			/* XXX */
+#define HAS_ISSETUGID
+#endif
+
+#if OpenBSD >= 200200			/* XXX */
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
+#endif
+
+/* __NetBSD_Version__ is major+minor */
+
+#if __NetBSD_Version__ >= 103000000	/* XXX */
 #undef DEF_MAILBOX_LOCK
 #define DEF_MAILBOX_LOCK "flock, dotlock"
+#endif
+
+#if __NetBSD_Version__ >= 106000000	/* XXX */
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
 #endif
 
  /*
@@ -493,6 +514,7 @@ extern int initgroups(const char *, int);
 #ifdef LINUX2
 #define SUPPORTED
 #include <sys/types.h>
+#include <features.h>
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
@@ -516,6 +538,10 @@ extern int initgroups(const char *, int);
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
+#endif
 #endif
 
 #ifdef LINUX1
@@ -908,6 +934,9 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 #endif
 #define OPTIND  (optind > 0 ? optind : 1)
 
+ /*
+  * Check for required but missing definitions.
+  */
 #if !defined(HAS_FCNTL_LOCK) && !defined(HAS_FLOCK_LOCK)
 #error "define HAS_FCNTL_LOCK and/or HAS_FLOCK_LOCK"
 #endif
@@ -929,7 +958,7 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 #endif
 
  /*
-  * Defaults for normal systems.
+  * Defaults for systems that pre-date POSIX socklen_t.
   */
 #ifndef SOCKADDR_SIZE
 #define SOCKADDR_SIZE	int
@@ -939,6 +968,9 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 #define SOCKOPT_SIZE	int
 #endif
 
+ /*
+  * Defaults for normal systems.
+  */
 #ifndef LOCAL_LISTEN
 #define LOCAL_LISTEN	unix_listen
 #define LOCAL_ACCEPT	unix_accept

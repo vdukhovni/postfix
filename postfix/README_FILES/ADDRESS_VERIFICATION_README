@@ -9,7 +9,9 @@ normal mail, but are discarded instead of being deferred or bounced.
 
 The same technique may be useful to block mail for undeliverable
 recipients, for example on mail relay hosts that do not have a copy
-of all the relayed recipient addresses.
+of all the relayed recipient addresses. This prevents undeliverable
+junk mail from entering the queue, so that Postfix doesn't have to
+waste resources trying to send mailer-daemon messages back.
 
 With address verification turned on, normal mail will suffer only
 a short delay of up to 6 seconds while an address is verified for
@@ -95,6 +97,8 @@ specific domains that often appear in forged email.
 /etc/postfix/main.cf:
     smtpd_sender_restrictions = hash:/etc/postfix/sender_access
     unverified_sender_reject_code = 550
+    # Be sure to read the "Caching" section below!
+    address_verify_map = btree:/var/mta/verify
  
 /etc/postfix/sender_access:
     aol.com     reject_unverified_sender
@@ -120,6 +124,7 @@ To find out how sender address verification would affect your mail,
 specify "warn_if_reject reject_unverified_sender" so that you can
 see what mail would be blocked:
 
+/etc/postfix/main.cf:
     smtpd_sender_restrictions = 
 	permit_mynetworks
 	... 
@@ -127,6 +132,8 @@ see what mail would be blocked:
 	reject_unknown_sender_domain
 	warn_if_reject reject_unverified_sender 
 	...
+    # Be sure to read the "Caching" section below!
+    address_verify_map = btree:/var/mta/verify
 
 This is also a good way to populate your cache with address
 verification results before you start to actually reject mail.
@@ -160,7 +167,7 @@ Caching
 NOTE: By default, address verification information is not stored
 in a persistent file. You have to specify one in main.cf (see
 below). Persistent storage is off by default because it may need
-more disk space than is available in your root file system.
+more disk space than is available in your file system.
 
 Address verification information is cached by the Postfix verify
 daemon.  Postfix has a bunch of parameters that control the caching
@@ -173,9 +180,9 @@ verification results.  If you don't specify a file, all address
 verification information is lost after "postfix reload" or "postfix
 stop".
 
-If your root file system has sufficient space, try:
+If your /var file system has sufficient space, try:
 
-    address_verify_map = btree:/etc/postfix/verify
+    address_verify_map = btree:/var/mta/verify
 
 NOTE: Do not put this file in a file system that fills up. When
 the address verification table gets corrupted the world comes to
@@ -197,8 +204,8 @@ accepted) and for negative results (address was rejected).
 
 Right now, no tools are provided to manage the address verification
 database. If the file gets too big, or if it gets corrupted, you
-can manually delete the file and run "postfix reload".  The new
-verify daemon process will then create a new, empty, database.
+can manually rename or delete the file and run "postfix reload".
+The new verify daemon process will then create a new database.
 
 Controlling the routing of address verification probes
 ======================================================
@@ -249,6 +256,7 @@ for address verification probes and leave everything else alone:
 /etc/postfix/main.cf:
     relayhost = $mydomain
     address_verify_relayhost =
+    ...
 
 Sites behind an address translation relay might have to use a
 different SMTP client that sends the correct hostname information:

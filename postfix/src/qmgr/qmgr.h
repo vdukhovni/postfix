@@ -236,6 +236,10 @@ struct QMGR_MESSAGE {
     char   *redirect_addr;		/* info@spammer.tld */
     long    data_size;			/* message content size */
     long    rcpt_offset;		/* more recipients here */
+    char   *client_name;		/* client hostname */
+    char   *client_addr;		/* client address */
+    char   *client_proto;		/* client protocol */
+    char   *client_helo;		/* helo parameter */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
 };
 

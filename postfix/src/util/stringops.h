@@ -20,6 +20,7 @@
   * External interface.
   */
 extern char *printable(char *, int);
+extern char *neuter(char *, const char *, int);
 extern char *lowercase(char *);
 extern char *skipblanks(const char *);
 extern char *trimblanks(char *, int);

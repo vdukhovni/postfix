@@ -489,8 +489,9 @@ static void qmgr_active_done_3_generic(QMGR_MESSAGE *message)
 			  message->queue_id, message->queue_name);
 	    msg_warn("%s: remove %s from %s: %m", myname,
 		     message->queue_id, message->queue_name);
-	} else if (msg_verbose) {
-	    msg_info("%s: remove %s", myname, message->queue_id);
+	} else {
+	    /* Same format as logged by postsuper. */
+	    msg_info("%s: removed", message->queue_id);
 	}
     }
 

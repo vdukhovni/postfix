@@ -387,7 +387,7 @@ static MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
   * Outputs and state changes are interleaved, so we must maintain separate
   * offsets for header and body segments.
   */
-#define HEAD_OUT(ptr, info) do { \
+#define HEAD_OUT(ptr, info, len) do { \
 	(ptr)->head_out((ptr)->app_context, (ptr)->curr_state, \
 			(info), (ptr)->output_buffer, (ptr)->head_offset); \
 	(ptr)->head_offset += (len) + 1; \
@@ -805,7 +805,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		    || header_info->type != HDR_CONTENT_TRANSFER_ENCODING
 		    || (state->static_flags & MIME_OPT_DOWNGRADE) == 0
 		    || state->curr_domain == MIME_ENC_7BIT)
-		    HEAD_OUT(state, header_info);
+		    HEAD_OUT(state, header_info, len);
 		state->prev_rec_type = 0;
 		VSTRING_RESET(state->output_buffer);
 	    }
@@ -855,7 +855,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		cp = CU_CHAR_PTR("quoted-printable");
 	    vstring_sprintf(state->output_buffer,
 			    "Content-Transfer-Encoding: %s", cp);
-	    HEAD_OUT(state, (HEADER_OPTS *) 0);
+	    HEAD_OUT(state, (HEADER_OPTS *) 0, len);
 	    VSTRING_RESET(state->output_buffer);
 	}
 

@@ -27,7 +27,7 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
 	write_buf.c write_wait.c auto_clnt.c attr_clnt.c attr_scan_plain.c \
-	attr_print_plain.c sane_connect.c
+	attr_print_plain.c sane_connect.c neuter.c
 OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
@@ -56,7 +56,7 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
 	write_buf.o write_wait.o auto_clnt.o attr_clnt.o attr_scan_plain.o \
-	attr_print_plain.o sane_connect.o $(STRCASE)
+	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o
 HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
 	dict_cidr.h dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
@@ -78,9 +78,6 @@ HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	auto_clnt.h attr_clnt.h sane_connect.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
-WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused
 DEFS	= -I. -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
@@ -1046,6 +1043,11 @@ netstring.o: vstream.h
 netstring.o: vbuf.h
 netstring.o: vstring.h
 netstring.o: netstring.h
+neuter.o: neuter.c
+neuter.o: sys_defs.h
+neuter.o: stringops.h
+neuter.o: vstring.h
+neuter.o: vbuf.h
 non_blocking.o: non_blocking.c
 non_blocking.o: sys_defs.h
 non_blocking.o: msg.h

@@ -194,6 +194,9 @@
 /* .IP \fBsmtp_helo_timeout\fR
 /*	Timeout for sending the \fBHELO\fR command, and for
 /*	receiving the server response.
+/* .IP \fBsmtp_xclient_timeout\fR
+/*	Timeout for sending the \fBXCLIENT\fR command, and for
+/*	receiving the server response.
 /* .IP \fBsmtp_mail_timeout\fR
 /*	Timeout for sending the \fBMAIL FROM\fR command, and for
 /*	receiving the server response.
@@ -215,6 +218,11 @@
 /*	than the local MTA).
 /*	If yes, keep trying until a suitable MX host resolves or until
 /*	the mail is too old.
+/* .IP \fBsmtp_send_xclient_command\fR
+/*	If the SMTP server announces XCLIENT support, send the name,
+/*	address, protocol and HELO name of the original client. This
+/*	can be used to forward client information through a content
+/*	filter to a downstream queuing SMTP server.
 /* .IP \fBsmtp_rset_timeout\fR
 /*	Timeout for sending the \fBRSET\fR command.
 /* .IP \fBsmtp_quit_timeout\fR
@@ -275,6 +283,7 @@
   */
 int     var_smtp_conn_tmout;
 int     var_smtp_helo_tmout;
+int     var_smtp_xclnt_tmout;
 int     var_smtp_mail_tmout;
 int     var_smtp_rcpt_tmout;
 int     var_smtp_data0_tmout;
@@ -305,6 +314,7 @@ char   *var_smtp_helo_name;
 char   *var_smtp_host_lookup;
 bool    var_smtp_quote_821_env;
 bool    var_smtp_defer_mxaddr;
+bool    var_smtp_send_xclient;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -492,6 +502,7 @@ int     main(int argc, char **argv)
     static CONFIG_TIME_TABLE time_table[] = {
 	VAR_SMTP_CONN_TMOUT, DEF_SMTP_CONN_TMOUT, &var_smtp_conn_tmout, 0, 0,
 	VAR_SMTP_HELO_TMOUT, DEF_SMTP_HELO_TMOUT, &var_smtp_helo_tmout, 1, 0,
+	VAR_SMTP_XCLNT_TMOUT, DEF_SMTP_XCLNT_TMOUT, &var_smtp_xclnt_tmout, 1, 0,
 	VAR_SMTP_MAIL_TMOUT, DEF_SMTP_MAIL_TMOUT, &var_smtp_mail_tmout, 1, 0,
 	VAR_SMTP_RCPT_TMOUT, DEF_SMTP_RCPT_TMOUT, &var_smtp_rcpt_tmout, 1, 0,
 	VAR_SMTP_DATA0_TMOUT, DEF_SMTP_DATA0_TMOUT, &var_smtp_data0_tmout, 1, 0,
@@ -518,6 +529,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
 	VAR_SMTP_QUOTE_821_ENV, DEF_SMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,
 	VAR_SMTP_DEFER_MXADDR, DEF_SMTP_DEFER_MXADDR, &var_smtp_defer_mxaddr,
+	VAR_SMTP_SEND_XCLIENT, DEF_SMTP_SEND_XCLIENT, &var_smtp_send_xclient,
 	0,
     };
 

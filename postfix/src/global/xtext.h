@@ -13,13 +13,14 @@
 
  /*
   * Utility library.
- */
+  */
 #include <vstring.h>
 
  /*
   * External interface.
   */
 extern VSTRING *xtext_quote(VSTRING *, const char *, const char *);
+extern VSTRING *xtext_quote_append(VSTRING *, const char *, const char *);
 extern VSTRING *xtext_unquote(VSTRING *, const char *);
 
 /* LICENSE

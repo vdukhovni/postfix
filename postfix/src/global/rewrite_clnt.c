@@ -182,6 +182,7 @@ VSTRING *rewrite_clnt_internal(const char *ruleset, const char *addr, VSTRING *r
 #include <stdlib.h>
 #include <string.h>
 #include <msg_vstream.h>
+#include <split_at.h>
 #include <vstring_vstream.h>
 #include <mail_conf.h>
 #include <mail_params.h>
@@ -237,8 +238,8 @@ int     main(int argc, char **argv)
 	VSTRING *buffer = vstring_alloc(1);
 
 	while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
-	    if ((rule = strtok(STR(buffer), " \t,")) == 0
-		|| (addr = strtok((char *) 0, " \t,")) == 0)
+	    if ((addr = split_at(STR(buffer), ' ')) == 0
+		|| *(rule = STR(buffer)) == 0)
 		usage(argv[0]);
 	    rewrite(rule, addr, reply);
 	}

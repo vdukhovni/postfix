@@ -84,6 +84,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <utime.h>
+#include <string.h>
 
 /* Utility library. */
 

@@ -1,0 +1,185 @@
+Purpose of the XCLIENT extension to SMTP
+========================================
+
+The XCLIENT command targets problems in the following areas:
+
+1 - Access control tests. SMTP server access rules are difficult
+to verify when decisions can be triggered only by remote clients.
+In order to facilitate access rule testing, an SMTP client test
+program needs the ability to override the SMTP server's idea of
+the SMTP client hostname, network address, and other information.
+
+2 - Logging after content filter. With Internet->MTA1->filter->MTA2
+style content filter applications, remote client information is
+lost when MTA1 gives the mail to the content filter.  This complicates
+the interpretation of the audit trail.  In order maintain audit
+trail continuity, MTA1 needs the ability to forward client information
+through the content filter to MTA2.
+
+3 - Post-filter access control and logging. With Internet->filter->MTA
+style content filter applications, the content filter can be greatly
+simplified if it can delegate all decisions concerning mail relay
+and other access control to the MTA. This requires that the filter
+can forward client information to the MTA for access control
+purposes.
+
+The preceding suggests that there is a need for two modes of
+operation:
+
+  - Operation mode 1: override the SMTP server's idea of SMTP
+    client information for access control and audit trail purposes.
+    Attributes that one may want to override are:
+
+        client network address 
+        client hostname 
+        hostname lookup failure type (permanent or temporary)
+	client protocol (e.g., SMTP or ESMTP)
+
+  - Operation mode 2: forward remote client information for audit
+    trail purposes only.  Examples of attributes are:
+
+        client network address 
+        client hostname 
+	client protocol (e.g., SMTP or ESMTP)
+	client SMTP HELO parameter
+
+General XCLIENT command syntax
+==============================
+
+The XCLIENT command maintains one set of attributes with surrogate
+client information. The general XCLIENT command syntax is described
+below.  Upper case and quoted strings specify terminals, lowercase
+strings specify meta terminals, SP is whitespace, and descriptive
+text is in {}.  Although shown below in upper case, command and
+attribute names are in fact case insensitive.
+
+    xclient-command = XCLIENT *( SP argument )
+
+    argument = ( request | attribute )
+
+    request = ( RST | ACL | LOG )
+
+    attribute = name"="value
+
+    name = ( CLIENT_NAME | CLIENT_ADDR | CLIENT_CODE | PROTOCOL | HELO_NAME )
+
+    value = ( { empty } | xtext )
+
+    xtext = { attribute value encoded as per RFC 1891 }
+
+The XCLIENT command is typically sent immediately before or after
+the EHLO command, may be pipelined after the server announces ESMTP
+pipelining support, and must not be used in the middle of an SMTP
+transaction (i.e. between MAIL and DOT).
+
+The server reply codes are as follows:
+
+   Code | Meaning
+   -----|------------
+    250 | success 
+    501 | command syntax error
+    502 | unrecognized request name
+    503 | command out of order (name=value without prior ACL or LOG request)
+    421 | unable to proceed
+
+The server must report success in case of an unrecognized attribute
+name, although it may log a warning.
+
+Specific XCLIENT usage scenarios
+================================
+
+This section discusses the semantics of XCLIENT requests.  Specific
+syntax information is given in the next section.
+
+The RST request resets all XCLIENT attributes and disables any
+override of access control or audit trail attributes. Example:
+
+    XCLIENT RST
+
+The ACL request resets all XCLIENT attributes and must be specified
+before sending surrogate attributes for access control and audit
+trail purposes.  Attributes that are not explicitly specified will
+default to their actual value.  Example:
+
+    XCLIENT ACL CLIENT_NAME=spike.porcupine.org
+    XCLIENT CLIENT_ADDR=168.100.189.2
+
+This overrides only the client hostname and network address, but
+none of the other client attributes.
+
+The LOG request resets all XCLIENT attributes and must be specified
+before sending surrogate attributes for audit trail purposes.
+Attributes that are not explicitly specified will default to the
+unknown value.  Example:
+
+    XCLIENT LOG CLIENT_NAME=spike.porcupine.org CLIENT_ADDR=168.100.189.2
+    XCLIENT HELO_NAME=spike.porcupine.org PROTOCOL=ESMTP
+
+This overrides all client attributes that are defined in this
+document, leaving none at their default unknown value.
+
+Note 1: it is an error to specify name=value pairs without prior
+ACL or LOG request.
+
+Note 2: after an ACL or LOG request, attributes specified with
+successive XCLIENT commands accumulate until the next RST, ACL or
+LOG request.
+
+Note 3: if one XCLIENT command specifies multiple requests (e.g.,
+both ACL and LOG), only the last request takes effect.
+
+XCLIENT attribute value details
+===============================
+
+Attribute values are encoded as RFC 1891 xtext strings. To explicitly
+specify that an attribute value is unknown, the value must be empty;
+the client is not allowed to send its own internal representation
+for unknown information.
+
+CLIENT_CODE specifies CLIENT_NAME hostname lookup status information.
+Values are OK (success), TEMP (temporary lookup failure) or PERM
+(permanent lookup failure). When CLIENT_CODE is set to any value
+other than OK, the CLIENT_NAME attribute is set to the unknown
+value.
+
+CLIENT_NAME should specify a syntactically valid domain name and
+not a numerical address.  When a null client name is specified
+(i.e.  the client name is unknown), the CLIENT_CODE attribute is
+set to PERM. When a valid domain name is specified, CLIENT_CODE is
+set to OK. The server may process a syntactically invalid domain
+name as if it were unknown.
+
+CLIENT_ADDR must specify a numerical network address without [].
+
+PROTOCOL is a string of up to 64 printable characters.
+
+HELO_NAME should be a syntactically valid domain name.
+
+Note 4: syntactically valid CLIENT_NAME and HELO_NAME attributes
+can be up to 255 characters long. The client must not send XCLIENT
+commands that exceed the 512 character limit of SMTP commands.
+
+Note 5: attribute values may end up in Received: or other message
+headers.  The server may substitute any characters that are special
+according to RFC 822 or RFC 2822.
+
+Security
+========
+
+The XCLIENT command changes audit trails and changes client access
+permissions. For these reasons, use of the XCLIENT command must be
+restricted to authorized clients only. 
+
+The examples in this document assume that XCLIENT does not override
+its own access control mechanism.
+
+SMTP connection caching
+=======================
+
+SMTP connection caching makes it possible to deliver multiple
+messages within the same SMTP session. Thus, one persistent SMTP
+session with a content filter can carry messages from unrelated
+clients.  Attributes from one remote client should not affect the
+delivery of mail from a different remote client.  In order to
+prevent such information leakage, use the XCLIENT RST, ACL or LOG
+requests as appropriate.

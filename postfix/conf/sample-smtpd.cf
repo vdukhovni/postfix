@@ -154,32 +154,14 @@ smtpd_client_connection_limit_exceptions = $mynetworks
 #
 #disable_vrfy_command = no
 
-# The smtpd_authorized_xaddr_clients parameter specifies what clients
-# are allowed to specify the SMTP "XADDR client-address client-name"
-# command. This command changes Postfix's idea of the client hostname
-# and IP address for logging and for access control. Typical use is
-# for SMTPD access testing.
+# The smtpd_authorized_xclient_hosts parameter specifies what clients
+# are allowed to specify the XCLIENT extension to SMTP.
 #
-# By default, no clients are allowed to specify XADDR.
+# This command overrides SMTP client information that is used for
+# logging or access control. Typical use is for SMTP-based content
+# filters or for SMTP server access rule testing.
 #
-# Specify an explicit list of network/netmask patterns, where the
-# mask specifies the number of bits in the network part of a host
-# address. You can also specify hostnames or .domain names (the
-# initial dot causes the domain to match any name below it).
-#
-# You can also specify the absolute pathname of a pattern file instead
-# of listing the patterns here. Specify type:table for table-based lookups
-# (the value on the table right-hand side is not used).
-#
-smtpd_authorized_xaddr_clients =
-
-# The smtpd_authorized_xloginfo_clients parameter specifies what
-# clients are allowed to specify the SMTP "XLOGINFO client-address
-# client-name" command. This command changes Postfix's idea of the
-# client hostname and IP address for logging but not for access
-# control. Typical use is for SMTP-based content filters.
-#
-# By default, no clients are allowed to specify XLOGINFO.
+# By default, no clients are allowed to specify XCLIENT.
 #
 # Specify an explicit list of network/netmask patterns, where the
 # mask specifies the number of bits in the network part of a host
@@ -190,7 +172,7 @@ smtpd_authorized_xaddr_clients =
 # of listing the patterns here. Specify type:table for table-based lookups
 # (the value on the table right-hand side is not used).
 #
-smtpd_authorized_xloginfo_clients =
+smtpd_authorized_xclient_hosts =
 
 # The smtpd_authorized_verp_clients parameter specifies what clients
 # are allowed to specify the SMTP XVERP command. This command requests
