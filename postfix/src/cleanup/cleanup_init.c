@@ -264,5 +264,6 @@ void    cleanup_post_jail(char *unused_name, char **unused_argv)
     /*
      * Control how unmatched extensions are propagated.
      */
-    cleanup_ext_prop_mask = ext_prop_mask(var_prop_extension);
+    cleanup_ext_prop_mask =
+	ext_prop_mask(VAR_PROP_EXTENSION, var_prop_extension);
 }

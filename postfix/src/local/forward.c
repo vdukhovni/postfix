@@ -140,8 +140,11 @@ static FORWARD_INFO *forward_open(char *sender)
     info->cleanup = cleanup;
     info->queue_id = mystrdup(vstring_str(buffer));
     info->posting_time = time((time_t *) 0);
+
+#define FORWARD_CLEANUP_FLAGS (CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL)
+
     attr_print(cleanup, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_BOUNCE,
+	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS,
 	       ATTR_TYPE_END);
 
     /*

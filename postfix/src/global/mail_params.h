@@ -1841,6 +1841,15 @@ extern char *var_smtpd_proxy_ehlo;
 #define DEF_SMTPD_PROXY_TMOUT		"100s"
 extern int var_smtpd_proxy_tmout;
 
+ /*
+  * Transparency options for mail input interfaces and for the cleanup server
+  * behind them. These should turn off stuff we don't want to happen, because
+  * the default is to do a lot of things.
+  */
+#define VAR_INPUT_TRANSP		"receive_override_options"
+#define DEF_INPUT_TRANSP		""
+extern char *var_smtpd_input_transp;
+
 /* LICENSE
 /* .ad
 /* .fi

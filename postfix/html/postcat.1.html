@@ -20,8 +20,8 @@ POSTCAT(1)                                             POSTCAT(1)
               directory  instead  of  the  default  configuration
               directory.
 
-       <b>-q</b>     Search the Postfix queue  for  <i>files</i>.  By  default,
-              file names are taken literally.
+       <b>-q</b>     Search  the  Postfix  queue  for  the  named  <i>files</i>
+              instead of taking the names literally.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
               tiple <b>-v</b> options  make  the  software  increasingly
@@ -34,9 +34,9 @@ POSTCAT(1)                                             POSTCAT(1)
        <b>MAIL</b><i>_</i><b>CONFIG</b>
               Directory with Postfix configuration files.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        See  the  Postfix  <b>main.cf</b> file for syntax details and for
-       default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
+       default values. Use the <b>postfix  reload</b>  command  after  a
        configuration change.
 
        <b>queue</b><i>_</i><b>directory</b>

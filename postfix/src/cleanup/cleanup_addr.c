@@ -98,15 +98,17 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
 	if (strcasecmp(STR(clean_addr), STR(state->temp1)) == 0)
 	    vstring_strcpy(clean_addr, "");
     }
-    if (cleanup_send_canon_maps)
-	cleanup_map11_internal(state, clean_addr, cleanup_send_canon_maps,
-			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-    if (cleanup_comm_canon_maps)
-	cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-    if (cleanup_masq_domains
-	&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_FROM))
-	cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+    if (state->flags & CLEANUP_FLAG_MAP_OK) {
+	if (cleanup_send_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_send_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_comm_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_FROM))
+	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+    }
     CLEANUP_OUT_BUF(state, REC_TYPE_FROM, clean_addr);
     if (state->sender == 0)
 	state->sender = mystrdup(STR(clean_addr));
@@ -127,15 +129,17 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     const char *bcc;
 
     cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
-    if (cleanup_rcpt_canon_maps)
-	cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
-			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-    if (cleanup_comm_canon_maps)
-	cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-    if (cleanup_masq_domains
-	&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
-	cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+    if (state->flags & CLEANUP_FLAG_MAP_OK) {
+	if (cleanup_rcpt_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_comm_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
+	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+    }
     cleanup_out_recipient(state, state->orig_rcpt, STR(clean_addr));
     if (state->recip == 0)
 	state->recip = mystrdup(STR(clean_addr));
@@ -155,15 +159,17 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
     VSTRING *clean_addr = vstring_alloc(100);
 
     cleanup_rewrite_internal(clean_addr, bcc);
-    if (cleanup_rcpt_canon_maps)
-	cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
-			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-    if (cleanup_comm_canon_maps)
-	cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-    if (cleanup_masq_domains
-	&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
-	cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+    if (state->flags & CLEANUP_FLAG_MAP_OK) {
+	if (cleanup_rcpt_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_comm_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
+	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+    }
     cleanup_out_recipient(state, STR(clean_addr), STR(clean_addr));
     vstring_free(clean_addr);
 }

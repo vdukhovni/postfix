@@ -86,6 +86,23 @@ The name of a mail delivery transport that filters mail and that
 either bounces mail or re-injects the result back into Postfix.
 This parameter uses the same syntax as the right-hand side of
 a Postfix transport table.
+.IP \fBreceive_override_options\fB
+The following options override \fBmain.cf\fR settings.
+The options are either implemented by the SMTP server or
+are passed on to the downstream cleanup server.
+.RS
+.IP \fBno_unknown_recipient_checks\fR
+Do not try to reject unknown recipients. This is typically specified
+with the SMTP server \fBafter\fR an external content filter.
+.IP \fBno_address_mappings\fR
+Disable canonical address mapping, virtual alias map expansion,
+address masquerading, and automatic BCC recipients. This is
+typically specified with the SMTP server \fBbefore\fR an external
+content filter.
+.IP \fBno_header_body_checks\fR
+Disable header/body_checks. This is typically specified with the
+SMTP server \fBafter\fR an external content filter.
+.RE
 .SH "Authentication controls"
 .IP \fBenable_sasl_authentication\fR
 Enable per-session authentication as per RFC 2554 (SASL).

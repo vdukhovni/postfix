@@ -1,26 +1,26 @@
 Purpose of the SMTPD pass-through proxy feature
 ===============================================
 
-The Postfix SMTP server can be configured to forward all mail to
-a proxy server, for example, a real-time SPAM filter. The proxy is
-supposed to send the mail into another Postfix SMTP server process
-for normal delivery.
+Normally, Postfix receives mail, stores it in the mail queue and
+then delivers it.  The Postfix SMTP server can be configured to
+forward all incoming mail to an SMTP proxy server (for example, a
+real-time SPAM filter) that inspects all mail BEFORE it is stored
+in the Postfix mail queue.
 
-The proxy server receives only the commands that the Postfix SMTP
-server has approved. The proxy server should accept the same MAIL
-FROM and RCPT TO command syntax as Postfix, but does not need to
-support ESMTP command pipelining.
+[This is not to be confused with the approach described in the
+FILTER_README document, where all mail is inspected AFTER it is
+stored in the Postfix mail queue]
 
-This feature is meant to be used as follows:
+The SMTP proxy server receives unfiltered mail from Postfix and
+does one of the following:
 
-    Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue
-               Postfix           Postfix   Postfix   Postfix
+1 - Re-inject the mail back into Postfix, perhaps after changing
+    content.
 
-For reference, this is the normal path from network to mail queue:
+2 - Reject the mail (by sending a suitable status code back to
+    Postfix) so that it is returned to sender.
 
-    Internet -> smtpd -> cleanup -> queue
-               Postfix   Postfix   Postfix
-
+3 - Send the mail somewhere else.
 
 Limitations
 ===========
@@ -47,6 +47,36 @@ triggers a Postfix header_checks FILTER action, or send the mail
 into Postfix via an alternative Postfix SMTP server that always
 turns on content filtering.
 
+How the Postfix talks to the SMTP proxy
+=======================================
+
+When Postfix talks to the SMTP proxy server it generates its own
+EHLO, DATA and QUIT commands, and forwards unmodified copies of
+the MAIL FROM and RCPT TO commands that the Postfix SMTP server
+has approved.  All commands are sent without using ESMTP command
+pipelining. The SMTP proxy server must accept the same MAIL FROM
+and RCPT TO command syntax as the Postfix SMTP server.
+
+This feature is meant to be used as follows:
+                                                             / smtp
+    Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue -> local
+               Postfix           Postfix                     \ virtual etc.
+
+For reference, this is the normal path through Postfix:
+
+                                           / smtp
+    Internet -> smtpd -> cleanup -> queue -> local
+                Postfix                    \ virtual etc.
+
+For comparison, this is the FILTER_README approach with an SMTP-based
+content filter:
+                                           / smtp
+    Internet -> smtpd -> cleanup -> queue -> local
+               Postfix      ^         v    \ virtual etc.
+                          smtpd      smtp
+                         Postfix   Postfix
+                            \         /
+                             filter <-
 Configuration parameters 
 ========================
 
@@ -77,13 +107,20 @@ process.
 
 /etc/postfix/master.cf
     smtp      inet  n       -       n       -       -       smtpd 
-	-o smtpd_proxy_filter=26
+        -o smtpd_proxy_filter=26
     :26       inet  n       -       n       -       -       smtpd
+        -o receive_override_options=no_unknown_recipient_checks
+
+Note: do not specify spaces around the "=" or "," characters.
 
 The ":26" causes Postfix to listen on the localhost address only.
+DO NOT expose the secondary SMTP server to the Internet :-)
 
 The result is as follows:
 
     Internet -> smtpd on port 25 -> smtpd on port 26 -> cleanup -> queue
 
 This configuration is sufficient for stress testing.
+
+Other suggestions for test configurations: use the Postfix smtp-sink
+command as the proxy, or something as basic as netcat.

@@ -101,7 +101,6 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 				       dsn_action, why);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
-#define NULL_CLEANUP_FLAGS	0
 #define NULL_TRACE_FLAGS	0
 #define BOUNCE_HEADERS		1
 #define BOUNCE_ALL		0
@@ -145,7 +144,7 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_2bounce_rcpt,
-						 NULL_CLEANUP_FLAGS,
+						 CLEANUP_FLAG_MASK_INTERNAL,
 						 NULL_TRACE_FLAGS)) != 0) {
 
 		/*
@@ -169,7 +168,7 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
      */
     else {
 	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
-					     NULL_CLEANUP_FLAGS,
+					     CLEANUP_FLAG_MASK_INTERNAL,
 					     NULL_TRACE_FLAGS)) != 0) {
 
 	    /*
@@ -206,7 +205,7 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 	     */
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_bounce_rcpt,
-						 NULL_CLEANUP_FLAGS,
+						 CLEANUP_FLAG_MASK_INTERNAL,
 						 NULL_TRACE_FLAGS)) != 0) {
 		if (bounce_header(bounce, bounce_info, var_bounce_rcpt) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0

@@ -157,5 +157,33 @@ body_checks = regexp:/etc/postfix/body_checks
 # 
 # By default, only the first 50 kbytes of a message body segment are
 # inspected with body_checks patterns.
-# 
+#
 body_checks_max_size = 51200
+
+# The receive_override_options parameter controls what input processing
+# happens before or after an external content filter.
+# 
+# Specify zero or more of the following options.  The options override
+# main.cf settings and are either implemented by the SMTP server, by
+# the QMQP server, or by the pickup server, or they are passed on to
+# the cleanup server.
+#
+# When the receive_override_options setting BEFORE the content filter 
+# is specified in the main.cf file, specify the "AFTER content filter"
+# receive_override_options setting in master.cf (or vice versa).
+# 
+# - no_unknown_recipient_checks: Do not try to reject unknown
+#   recipients (SMTP server only).  This is typically specified AFTER
+#   an external content filter.
+# 
+# - no_address_mappings: Disable canonical address mapping, virtual
+#   alias map expansion, address masquerading, and automatic BCC
+#   recipients. This is typically specified BEFORE an external content
+#   filter.
+# 
+# - no_header_body_checks: Disable header/body_checks. This is
+#   typically specified AFTER an external content filter.
+#
+# receive_override_options = no_unknown_recipient_checks, no_header_body_checks
+# receive_override_options = no_address_mappings
+receive_override_options =

@@ -37,10 +37,10 @@ QMQPD(8)                                                 QMQPD(8)
        Postfix replies immediately and closes the connection.  It
        is left up to the client to handle the situation.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
@@ -71,7 +71,7 @@ QMQPD(8)                                                 QMQPD(8)
               reject responses.  This can be useful  for  testing
               purposes.
 
-<b>Content</b> <b>inspection</b> <b>controls</b>
+<b>Content inspection controls</b>
        <b>content</b><i>_</i><b>filter</b>
               The  name of a mail delivery transport that filters
               mail and that either bounces mail or re-injects the
@@ -79,7 +79,24 @@ QMQPD(8)                                                 QMQPD(8)
               same syntax as the right-hand  side  of  a  Postfix
               transport table.
 
-<b>Resource</b> <b>controls</b>
+       <b>receive</b><i>_</i><b>override</b><i>_</i><b>options</b>
+              The  following  options  override <b>main.cf</b> settings.
+              The options are passed on to the downstream cleanup
+              server.
+
+              <b>no</b><i>_</i><b>address</b><i>_</i><b>mappings</b>
+                     Disable  canonical  address mapping, virtual
+                     alias map expansion,  address  masquerading,
+                     and  automatic  BCC recipients. Specify this
+                     if address mapping etc. are to be done <b>after</b>
+                     an external content filter.
+
+              <b>no</b><i>_</i><b>header</b><i>_</i><b>body</b><i>_</i><b>checks</b>
+                     Disable  header/body_checks. Specify this if
+                     header/body_checks are to be done  <b>after</b>  an
+                     external content filter.
+
+<b>Resource controls</b>
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
               Limit  the  amount  of memory in bytes used for the
               handling of partial input lines, and the length  of
@@ -96,7 +113,7 @@ QMQPD(8)                                                 QMQPD(8)
               Time to wait in seconds before informing the client
               of a problem. This slows down run-away errors.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="http://cr.yp.to/proto/qmqp.html">http://cr.yp.to/proto/qmqp.html</a>, QMQP protocol
        <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
        <a href="master.8.html">master(8)</a> process manager

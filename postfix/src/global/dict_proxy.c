@@ -174,9 +174,11 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
      * Sanity checks.
      */
     if (dict_flags & DICT_FLAG_NO_PROXY)
-	msg_fatal("%s: proxy map must not be used with this map type", map);
+	msg_fatal("%s: %s map is not allowed for security sensitive data",
+		  map, DICT_TYPE_PROXY);
     if (open_flags != O_RDONLY)
-	msg_fatal("%s: proxy map open requires O_RDONLY access mode", map);
+	msg_fatal("%s: %s map open requires O_RDONLY access mode",
+		  map, DICT_TYPE_PROXY);
 
     /*
      * Local initialization.

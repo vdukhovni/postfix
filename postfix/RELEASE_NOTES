@@ -22,6 +22,16 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Major changes with Postfix snapshot 2.0.13-20030705
+===================================================
+
+New receive_override_options parameter that eliminates the need
+for different cleanup service instances before and after an external
+content filter. One parameter controls what happens before or after
+the content filter: rejecting unknown recipients, canonical mapping,
+virtual alias expansion, masquerading, automatic BCC recipients
+and header/body checks. See sample-filter.cf for details.
+
 Incompatible changes with Postfix snapshot 2.0.13-20030704
 ==========================================================
 

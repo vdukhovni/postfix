@@ -72,6 +72,23 @@
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
+/* .IP \fBreceive_override_options\fB
+/*	The following options override \fBmain.cf\fR settings.
+/*	The options are either implemented by the SMTP server or
+/*	are passed on to the downstream cleanup server.
+/* .RS
+/* .IP \fBno_unknown_recipient_checks\fR
+/*	Do not try to reject unknown recipients. This is typically specified
+/*	with the SMTP server \fBafter\fR an external content filter.
+/* .IP \fBno_address_mappings\fR
+/*	Disable canonical address mapping, virtual alias map expansion,
+/*	address masquerading, and automatic BCC recipients. This is
+/*	typically specified with the SMTP server \fBbefore\fR an external
+/*	content filter.
+/* .IP \fBno_header_body_checks\fR
+/*	Disable header/body_checks. This is typically specified with the
+/*	SMTP server \fBafter\fR an external content filter.
+/* .RE
 /* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -396,6 +413,7 @@
 #include <quote_822_local.h>
 #include <lex_822.h>
 #include <namadr_list.h>
+#include <input_transp.h>
 
 /* Single-threaded server skeleton. */
 
@@ -484,10 +502,10 @@ char   *var_verp_clients;
 int     var_show_unk_rcpt_table;
 int     var_verify_poll_count;
 int     var_verify_poll_delay;
-
 char   *var_smtpd_proxy_filt;
 int     var_smtpd_proxy_tmout;
 char   *var_smtpd_proxy_ehlo;
+char   *var_input_transp;
 
  /*
   * Silly little macros.
@@ -502,6 +520,11 @@ char   *var_smtpd_proxy_ehlo;
 #define VERP_CMD_LEN	5
 
 static NAMADR_LIST *verp_clients;
+
+ /*
+  * Other application-specific globals.
+  */
+int     smtpd_input_transp_mask;
 
  /*
   * Forward declarations.
@@ -624,6 +647,7 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
 		              const char *encoding, const char *verp_delims)
 {
     char   *postdrop_command;
+    int     cleanup_flags;
 
     /*
      * XXX 2821: An SMTP server is not allowed to "clean up" mail except in
@@ -641,14 +665,18 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
      * If running from the master or from inetd, connect to the cleanup
      * service.
      */
-#define SMTPD_CLEANUP_FLAGS (CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK)
+    cleanup_flags = CLEANUP_FLAG_MASK_EXTERNAL;
+    if (smtpd_input_transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
+	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
+    if (smtpd_input_transp_mask & INPUT_TRANSP_HEADER_BODY)
+	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
 
     if (SMTPD_STAND_ALONE(state) == 0) {
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
-			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, SMTPD_CLEANUP_FLAGS,
+			  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, cleanup_flags,
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PUBLIC, var_cleanup_service);
@@ -983,10 +1011,11 @@ static void mail_reset(SMTPD_STATE *state)
     state->discard = 0;
 
     /*
-     * Try to be nice. Don't bother when we lost the connection.
+     * Try to be nice. Don't bother when we lost the connection. Don't bother
+     * waiting for a reply, it just increases latency.
      */
     if (state->proxy) {
-	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "QUIT");
+	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_NONE, "QUIT");
 	smtpd_proxy_close(state);
     }
 }
@@ -1648,7 +1677,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    if (cmdp->flags & SMTPD_CMD_FLAG_FORBIDDEN) {
 		msg_warn("%s sent non-SMTP command: %.100s",
-		    state->namaddr, vstring_str(state->buffer));
+			 state->namaddr, vstring_str(state->buffer));
 		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
 		break;
 	    }
@@ -1782,6 +1811,19 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 #endif
 }
 
+/* post_jail_init - post-jail initialization */
+
+static void post_jail_init(char *unused_name, char **unused_argv)
+{
+
+    /*
+     * Initialize the receive transparency options: do we want unknown
+     * recipient checks, address mapping, header_body_checks?.
+     */
+    smtpd_input_transp_mask =
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+}
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -1862,6 +1904,7 @@ int     main(int argc, char **argv)
 	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
 	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
 	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
+	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {
@@ -1881,5 +1924,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
+		       MAIL_SERVER_POST_INIT, post_jail_init,
 		       0);
 }

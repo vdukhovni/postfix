@@ -319,6 +319,7 @@
 #include <mail_proto.h>
 #include <mail_addr.h>
 #include <verify_clnt.h>
+#include <input_transp.h>
 
 /* Application-specific. */
 
@@ -3294,6 +3295,8 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      * Duplicate suppression. There's an implicit check_recipient_maps
      * restriction at the end of all recipient restrictions.
      */
+    if (smtpd_input_transp_mask & INPUT_TRANSP_UNKNOWN_RCPT)
+	return (0);
     if (state->rcptmap_checked == 1)
 	return (0);
     state->rcptmap_checked = 1;

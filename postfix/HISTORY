@@ -8273,11 +8273,6 @@ Apologies for any names omitted.
 	avoiding code tries a little harder when it encounters a
 	race condition. File: util/safe_open.c.
 
-20030623
-
-	Non-prod operator precedence bug with detecting end of
-	DATA. Matthias Andree. File: smtpd/smtpd.c.
-
 20030624
 
 	Bugfix: reject_unverified_address() set the defer_if_reject
@@ -8335,10 +8330,15 @@ Apologies for any names omitted.
 	Feature: TCP lookup table support, finally finished.  Files:
 	proto/tcp_table, proto/dict_tcp.[hc].
 
-20030703
+20030705
 
-	Non-prod: the SMTPD proxy client lost the reply to ".".
-	Amazing.
+	Feature: new receive_override_options parameter controls
+	what happens before or after an external content filter:
+	rejecting unknown recipients, canonical and virtual address
+	mapping, address masquerading, automatic BCC recipients
+	and header/body checks. This is more convenient than having
+	to specify two different cleanup services in the master.cf
+	file.
 
 Open problems:
 

@@ -88,7 +88,6 @@ int     bounce_trace_service(char *service, char *queue_name,
 				   encoding, BOUNCE_MSG_STATUS);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
-#define NULL_CLEANUP_FLAGS	0
 #define NULL_TRACE_FLAGS	0
 #define BOUNCE_ALL		0
 
@@ -98,7 +97,7 @@ int     bounce_trace_service(char *service, char *queue_name,
      * per-recipient status, and a copy of the original message.
      */
     if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
-					 NULL_CLEANUP_FLAGS,
+					 CLEANUP_FLAG_MASK_INTERNAL,
 					 NULL_TRACE_FLAGS)) != 0) {
 	if (bounce_header(bounce, bounce_info, recipient) == 0
 	    && bounce_boilerplate(bounce, bounce_info) == 0

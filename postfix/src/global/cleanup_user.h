@@ -20,6 +20,19 @@
 #define CLEANUP_FLAG_HOLD	(1<<2)	/* Place message on hold */
 #define CLEANUP_FLAG_DISCARD	(1<<3)	/* Discard message silently */
 #define CLEANUP_FLAG_BCC_OK	(1<<4)	/* Ok to add auto-BCC addresses */
+#define CLEANUP_FLAG_MAP_OK	(1<<5)	/* Ok to map addresses */
+
+ /*
+  * These are normally set when receiving mail from outside.
+  */
+#define CLEANUP_FLAG_MASK_EXTERNAL \
+	(CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK)
+
+ /*
+  * These are normally set when generating notices or when forwarding mail
+  * internally.
+  */
+#define CLEANUP_FLAG_MASK_INTERNAL CLEANUP_FLAG_MAP_OK
 
  /*
   * These are set on the fly while processing SMTP envelopes or message

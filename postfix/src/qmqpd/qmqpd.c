@@ -52,7 +52,7 @@
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .IP \fBqmqpd_authorized_clients\fR
-/*      A list of domain or network patterns that specifies what
+/*	A list of domain or network patterns that specifies what
 /*	clients are allowed to use the service.
 /* .IP \fBqmqpd_timeout\fR
 /*	Limit the time to send a server response and to receive a client
@@ -66,6 +66,19 @@
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
+/* .IP \fBreceive_override_options\fB
+/*	The following options override \fBmain.cf\fR settings.
+/*	The options are passed on to the downstream cleanup server.
+/* .RS
+/* .IP \fBno_address_mappings\fR
+/*	Disable canonical address mapping, virtual alias map expansion,
+/*	address masquerading, and automatic BCC recipients. Specify this
+/*	if address mapping etc. are to be done \fBafter\fR an external
+/*	content filter.
+/* .IP \fBno_header_body_checks\fR
+/*	Disable header/body_checks. Specify this if header/body_checks
+/*	are to be done \fBafter\fR an external content filter.
+/* .RE
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -136,6 +149,7 @@
 #include <match_parent_style.h>
 #include <lex_822.h>
 #include <verp_sender.h>
+#include <input_transp.h>
 
 /* Single-threaded server skeleton. */
 
@@ -155,6 +169,7 @@ int     var_qmqpd_timeout;
 int     var_qmqpd_err_sleep;
 char   *var_filter_xport;
 char   *var_qmqpd_clients;
+char   *var_input_transp;
 
  /*
   * Silly little macros.
@@ -171,20 +186,31 @@ char   *var_qmqpd_clients;
   */
 static NAMADR_LIST *qmqpd_clients;
 
+ /*
+  * Transparency: before mail is queued, do we allow address mapping,
+  * automatic bcc, header/body checks?
+  */
+int     qmqpd_input_transp_mask;
+
 /* qmqpd_open_file - open a queue file */
 
 static void qmqpd_open_file(QMQPD_STATE *state)
 {
+    int     cleanup_flags;
 
     /*
      * Connect to the cleanup server. Log client name/address with queue ID.
      */
-#define QMQPD_CLEANUP_FLAGS (CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK)
+    cleanup_flags = CLEANUP_FLAG_MASK_EXTERNAL;
+    if (qmqpd_input_transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
+	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
+    if (qmqpd_input_transp_mask & INPUT_TRANSP_HEADER_BODY)
+	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
 
     state->dest = mail_stream_service(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (state->dest == 0
 	|| attr_print(state->dest->stream, ATTR_FLAG_NONE,
-		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, QMQPD_CLEANUP_FLAGS,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, cleanup_flags,
 		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to connect to the %s %s service",
 		  MAIL_CLASS_PUBLIC, var_cleanup_service);
@@ -654,7 +680,7 @@ static void qmqpd_service(VSTREAM *stream, char *unused_service, char **argv)
 static void pre_accept(char *unused_name, char **unused_argv)
 {
     const char *table;
- 
+
     if ((table = dict_changed_name()) != 0) {
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);
@@ -671,6 +697,19 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			 var_qmqpd_clients);
 }
 
+/* post_jail_init - post-jail initialization */
+
+static void post_jail_init(char *unused_name, char **unused_argv)
+{
+
+    /*
+     * Initialize the receive transparency options: do we want unknown
+     * recipient checks, do we want address mapping.
+     */
+    qmqpd_input_transp_mask =
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+}
+
 /* main - the main program */
 
 int     main(int argc, char **argv)
@@ -683,6 +722,7 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_QMQPD_CLIENTS, DEF_QMQPD_CLIENTS, &var_qmqpd_clients, 0, 0,
+	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	0,
     };
 
@@ -694,5 +734,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
+		       MAIL_SERVER_POST_INIT, post_jail_init,
 		       0);
 }

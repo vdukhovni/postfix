@@ -636,7 +636,8 @@ static void local_mask_init(void)
 					var_allow_files);
     local_cmd_deliver_mask = name_mask(VAR_ALLOW_COMMANDS, command_mask,
 				       var_allow_commands);
-    local_ext_prop_mask = ext_prop_mask(var_prop_extension);
+    local_ext_prop_mask =
+	ext_prop_mask(VAR_PROP_EXTENSION, var_prop_extension);
     local_deliver_hdr_mask = name_mask(VAR_DELIVER_HDR, deliver_mask,
 				       var_deliver_hdr);
     local_mbox_lock_mask = mbox_lock_mask(var_mailbox_lock);

@@ -14,13 +14,11 @@
  /*
   * External interface.
   */
-#define EXT_PROP_CANONICAL	(1<<0)
-#define EXT_PROP_VIRTUAL	(1<<1)
-#define EXT_PROP_ALIAS		(1<<2)
-#define EXT_PROP_FORWARD	(1<<3)
-#define EXT_PROP_INCLUDE	(1<<4)
+#define INPUT_TRANSP_UNKNOWN_RCPT	(1<<0)
+#define INPUT_TRANSP_ADDRESS_MAPPING	(1<<1)
+#define INPUT_TRANSP_HEADER_BODY	(1<<2)
 
-extern int ext_prop_mask(const char *, const char *);
+extern int input_transp_mask(const char *, const char *);
 
 /* LICENSE
 /* .ad

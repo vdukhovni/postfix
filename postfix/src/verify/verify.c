@@ -410,7 +410,6 @@ static void verify_query_service(VSTREAM *client_stream)
     (addr_status == DEL_RCPT_STAT_OK && updated + var_verify_pos_try < now)
 #define NEGATIVE_REFRESH_NEEDED(addr_status, updated) \
     (addr_status != DEL_RCPT_STAT_OK && updated + var_verify_neg_try < now)
-#define NULL_CLEANUP_FLAGS	0
 
 	if (now - probed > PROBE_TTL
 	    && (POSITIVE_REFRESH_NEEDED(addr_status, updated)
@@ -420,7 +419,7 @@ static void verify_query_service(VSTREAM *client_stream)
 			 STR(addr), addr_status, now, updated);
 	    post_mail_fopen_async(strcmp(var_verify_sender, "<>") == 0 ?
 				  "" : var_verify_sender, STR(addr),
-				  NULL_CLEANUP_FLAGS,
+				  CLEANUP_FLAG_MASK_INTERNAL,
 				  DEL_REQ_FLAG_VERIFY,
 				  verify_post_mail_action,
 				  (void *) 0);

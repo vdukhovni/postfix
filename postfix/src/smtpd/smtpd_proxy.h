@@ -18,9 +18,10 @@
  /*
   * Application-specific.
   */
-#define SMTPD_PROX_WANT_ANY	0
-#define SMTPD_PROX_WANT_OK	2
-#define SMTPD_PROX_WANT_MORE	3
+#define SMTPD_PROX_WANT_NONE	'\0'	/* Do not receive reply */
+#define SMTPD_PROX_WANT_ANY	'0'	/* Expect any reply */
+#define SMTPD_PROX_WANT_OK	'2'	/* Expect 2XX reply */
+#define SMTPD_PROX_WANT_MORE	'3'	/* Expect 3XX reply */
 
 extern int smtpd_proxy_open(SMTPD_STATE *, const char *, int, const char *, const char *);
 extern int smtpd_proxy_cmd(SMTPD_STATE *, int, const char *,...);

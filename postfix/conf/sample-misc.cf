@@ -429,7 +429,7 @@ recipient_delimiter =
 # By default, this feature is disabled. 
 #
 # Specify the types and names of databases to use.  After change,
-# run "postmap /etc/postfix/relocated", then "postfix reload".
+# run "postmap /etc/postfix/recipient_bcc".
 #
 # NOTE: if mail to the BCC address bounces it will be returned to
 # the sender.
@@ -492,7 +492,7 @@ resolve_dequoted_address = no
 # By default, this feature is disabled. 
 #
 # Specify the types and names of databases to use.  After change,
-# run "postmap /etc/postfix/relocated", then "postfix reload".
+# run "postmap /etc/postfix/sender_bcc".
 #
 # NOTE: if mail to the BCC address bounces it will be returned to
 # the sender.

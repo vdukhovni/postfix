@@ -77,4 +77,5 @@ pickup.o: ../../include/mail_conf.h
 pickup.o: ../../include/record.h
 pickup.o: ../../include/rec_type.h
 pickup.o: ../../include/lex_822.h
+pickup.o: ../../include/input_transp.h
 pickup.o: ../../include/mail_server.h

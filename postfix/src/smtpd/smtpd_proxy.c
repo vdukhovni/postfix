@@ -11,7 +11,7 @@
 /* .in +4
 /*		/* other fields... */
 /*		VSTREAM *proxy;		/* connection to SMTP proxy */
-/*		VSTRING *proxy_reply;	/* last SMTP proxy response */
+/*		VSTRING *proxy_buffer;	/* last SMTP proxy response */
 /*		/* other fields... */
 /* .in -4
 /*	} SMTPD_STATE;
@@ -56,17 +56,17 @@
 /*	MAIL FROM command, and receives the reply. A non-zero result means
 /*	trouble: either the proxy is unavailable, or it did not send the
 /*	expected reply.
-/*	All results are reported via the state->proxy_reply field in a form
+/*	All results are reported via the state->proxy_buffer field in a form
 /*	that can be sent to the SMTP client. In case of error, the
 /*	state->error_mask and state->err fields are updated.
-/*	A state->proxy_reply field is created automatically; this field
+/*	A state->proxy_buffer field is created automatically; this field
 /*	persists beyond the end of a proxy session.
 /*
 /*	smtpd_proxy_cmd() formats and sends the specified command to the
 /*	proxy server, and receives the proxy server reply. A non-zero result
 /*	means trouble: either the proxy is unavailable, or it did not send the
 /*      expected reply.
-/*	All results are reported via the state->proxy_reply field in a form
+/*	All results are reported via the state->proxy_buffer field in a form
 /*	that can be sent to the SMTP client. In case of error, the
 /*	state->error_mask and state->err fields are updated.
 /*
@@ -100,12 +100,14 @@
 /*	Expected proxy server reply status code range. A warning is logged
 /*	when an unexpected reply is received. Specify one of the following:
 /* .RS
-/* .IP SMTPD_PROX_WANT_ANY
-/*	The caller has no expectation. Do not warn for unexpected replies.
 /* .IP SMTPD_PROX_WANT_OK
 /*	The caller expects a reply in the 200 range.
 /* .IP SMTPD_PROX_WANT_MORE
 /*	The caller expects a reply in the 300 range.
+/* .IP SMTPD_PROX_WANT_ANY
+/*	The caller has no expectation. Do not warn for unexpected replies.
+/* .IP SMTPD_PROX_WANT_NONE
+/*	Do not bother waiting for a reply.
 /* .RE
 /* .IP format
 /*	A format string.
@@ -200,7 +202,8 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
      * Get server greeting banner.
      * 
      * If this fails then we have a problem because the proxy should always
-     * accept our connection.
+     * accept our connection. Make up our own response instead of passing
+     * back the greeting banner: the client expects a MAIL FROM reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, SMTPD_PROXY_CONNECT) != 0) {
 	vstring_sprintf(state->proxy_buffer,
@@ -210,10 +213,10 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     }
 
     /*
-     * Send our own EHLO command.
-     * 
-     * If this fails then we have a problem because the proxy should always
-     * accept our EHLO command.
+     * Send our own EHLO command. If this fails then we have a problem
+     * because the proxy should always accept our EHLO command. Make up our
+     * own response instead of passing back the EHLO reply: the client
+     * expects a MAIL FROM reply.
      */
     if (smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK, "EHLO %s", ehlo_name) != 0) {
 	vstring_sprintf(state->proxy_buffer,
@@ -234,9 +237,9 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     return (0);
 }
 
-/* smtpd_proxy_comms_error - report proxy communication error */
+/* smtpd_proxy_rdwr_error - report proxy communication error */
 
-static int smtpd_proxy_comms_error(VSTREAM *stream, int err)
+static int smtpd_proxy_rdwr_error(VSTREAM *stream, int err)
 {
     switch (err) {
 	case SMTP_ERR_EOF:
@@ -246,7 +249,7 @@ static int smtpd_proxy_comms_error(VSTREAM *stream, int err)
 	msg_warn("timeout talking to proxy %s", VSTREAM_PATH(stream));
 	return (err);
     default:
-	msg_panic("smtpd_proxy_comms_error: unknown proxy %s stream error %d",
+	msg_panic("smtpd_proxy_rdwr_error: unknown proxy %s stream error %d",
 		  VSTREAM_PATH(stream), err);
     }
 }
@@ -287,7 +290,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 	|| vstream_ferror(state->proxy)
 	|| vstream_feof(state->proxy)
 	|| ((err = vstream_setjmp(state->proxy) != 0)
-	    && smtpd_proxy_comms_error(state->proxy, err))) {
+	    && smtpd_proxy_rdwr_error(state->proxy, err))) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	state->err |= CLEANUP_STAT_PROXY;
 	vstring_sprintf(state->proxy_buffer,
@@ -326,6 +329,13 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
     }
 
     /*
+     * Early return if we don't want to wait for a server reply (such as
+     * after sending QUIT.
+     */
+    if (expect == SMTPD_PROX_WANT_NONE)
+	return (0);
+
+    /*
      * Censor out non-printable characters in server responses and keep the
      * last line of multi-line responses.
      */
@@ -362,8 +372,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
      * Log a warning in case the proxy does not send the expected response.
      * Silently accept any response when the client expressed no expectation.
      */
-    if (expect != SMTPD_PROX_WANT_ANY
-	&& expect != (STR(state->proxy_buffer)[0] - '0')) {
+    if (expect != SMTPD_PROX_WANT_ANY && expect != *STR(state->proxy_buffer)) {
 	va_start(ap, fmt);
 	smtpd_proxy_cmd_error(state, fmt, ap);
 	va_end(ap);
@@ -387,7 +396,7 @@ int     smtpd_proxy_rec_put(VSTREAM *stream, int rec_type,
 	|| vstream_feof(stream))
 	return (REC_TYPE_ERROR);
     if ((err = vstream_setjmp(stream)) != 0)
-	return (smtpd_proxy_comms_error(stream, err), REC_TYPE_ERROR);
+	return (smtpd_proxy_rdwr_error(stream, err), REC_TYPE_ERROR);
 
     /*
      * Send one content record. Errors and results must be as with rec_put().
@@ -416,7 +425,7 @@ int     smtpd_proxy_rec_fprintf(VSTREAM *stream, int rec_type,
 	|| vstream_feof(stream))
 	return (REC_TYPE_ERROR);
     if ((err = vstream_setjmp(stream)) != 0)
-	return (smtpd_proxy_comms_error(stream, err), REC_TYPE_ERROR);
+	return (smtpd_proxy_rdwr_error(stream, err), REC_TYPE_ERROR);
 
     /*
      * Send one content record. Errors and results must be as with

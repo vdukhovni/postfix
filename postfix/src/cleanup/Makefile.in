@@ -423,6 +423,7 @@ cleanup_out_recipient.o: ../../include/been_here.h
 cleanup_out_recipient.o: ../../include/mail_params.h
 cleanup_out_recipient.o: ../../include/rec_type.h
 cleanup_out_recipient.o: ../../include/ext_prop.h
+cleanup_out_recipient.o: ../../include/cleanup_user.h
 cleanup_out_recipient.o: cleanup.h
 cleanup_out_recipient.o: ../../include/vstring.h
 cleanup_out_recipient.o: ../../include/vbuf.h

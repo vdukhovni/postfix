@@ -45,6 +45,19 @@
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
+/* .IP \fBreceive_override_options\fB
+/*	The following options override \fBmain.cf\fR settings.
+/*	The options are passed on to the downstream cleanup server.
+/* .RS
+/* .IP \fBno_address_mappings\fR
+/*	Disable canonical address mapping, virtual alias map expansion,
+/*	address masquerading, and automatic BCC recipients. Specify this
+/*	if address mapping etc. are to be done \fBafter\fR an external
+/*	content filter.
+/* .IP \fBno_header_body_checks\fR
+/*	Disable header/body_checks. Specify this if header/body_checks
+/*	are to be done \fBafter\fR an external content filter.
+/* .RE
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -101,6 +114,7 @@
 #include <record.h>
 #include <rec_type.h>
 #include <lex_822.h>
+#include <input_transp.h>
 
 /* Single-threaded server skeleton. */
 
@@ -109,6 +123,7 @@
 /* Application-specific. */
 
 char   *var_filter_xport;
+char   *var_input_transp;
 
  /*
   * Structure to bundle a bunch of information about a queue file.
@@ -127,6 +142,12 @@ typedef struct {
   */
 #define REMOVE_MESSAGE_FILE	1
 #define KEEP_MESSAGE_FILE	2
+
+ /*
+  * Transparency: before mail is queued, do we allow address mapping,
+  * automatic bcc, header/body checks?
+  */
+int     pickup_input_transp_mask;
 
 /* file_read_error - handle error while reading queue file */
 
@@ -324,6 +345,7 @@ static int pickup_file(PICKUP_INFO *info)
     int     status;
     VSTREAM *qfile;
     VSTREAM *cleanup;
+    int     cleanup_flags;
 
     /*
      * Open the submitted file. If we cannot open it, and we're not having a
@@ -354,15 +376,18 @@ static int pickup_file(PICKUP_INFO *info)
      * easier to implement the many possible error exits without forgetting
      * to close files, or to release memory.
      */
-#define PICKUP_CLEANUP_FLAGS \
-	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK)
+    cleanup_flags = (CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_EXTERNAL);
+    if (pickup_input_transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
+	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
+    if (pickup_input_transp_mask & INPUT_TRANSP_HEADER_BODY)
+	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buf,
 		  ATTR_TYPE_END) != 1
 	|| attr_print(cleanup, ATTR_FLAG_NONE,
-		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, PICKUP_CLEANUP_FLAGS,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, cleanup_flags,
 		      ATTR_TYPE_END) != 0) {
 	status = KEEP_MESSAGE_FILE;
     } else {
@@ -440,9 +465,9 @@ static void pickup_service(char *unused_buf, int unused_len,
     } while (file_count);
 }
 
-/* drop_privileges - drop privileges */
+/* post_jail_init - drop privileges */
 
-static void drop_privileges(char *unused_name, char **unused_argv)
+static void post_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*
@@ -450,6 +475,13 @@ static void drop_privileges(char *unused_name, char **unused_argv)
      */
     if (getuid() != var_owner_uid)
 	set_ugid(var_owner_uid, var_owner_gid);
+
+    /*
+     * Initialize the receive transparency options: do we want unknown
+     * recipient checks, do we want address mapping.
+     */
+    pickup_input_transp_mask =
+	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 }
 
 /* main - pass control to the multi-threaded server skeleton */
@@ -458,6 +490,7 @@ int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
+	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	0,
     };
 
@@ -467,7 +500,7 @@ int     main(int argc, char **argv)
      */
     trigger_server_main(argc, argv, pickup_service,
 			MAIL_SERVER_STR_TABLE, str_table,
-			MAIL_SERVER_POST_INIT, drop_privileges,
+			MAIL_SERVER_POST_INIT, post_jail_init,
 			MAIL_SERVER_SOLITARY,
 			0);
 }

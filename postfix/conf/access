@@ -110,7 +110,7 @@
 #               A  network  address  is  a  sequence of one or more
 #               octets separated by ".".
 # 
-#               NOTE: use the cidr lookup table type if to  specify
+#               NOTE: use the cidr lookup  table  type  to  specify
 #               network/netmask  patterns.  See  cidr_table(5)  for
 #               details.
 # 

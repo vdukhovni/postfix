@@ -80,6 +80,19 @@ The name of a mail delivery transport that filters mail and that
 either bounces mail or re-injects the result back into Postfix.
 This parameter uses the same syntax as the right-hand side of
 a Postfix transport table.
+.IP \fBreceive_override_options\fB
+The following options override \fBmain.cf\fR settings.
+The options are passed on to the downstream cleanup server.
+.RS
+.IP \fBno_address_mappings\fR
+Disable canonical address mapping, virtual alias map expansion,
+address masquerading, and automatic BCC recipients. Specify this
+if address mapping etc. are to be done \fBafter\fR an external
+content filter.
+.IP \fBno_header_body_checks\fR
+Disable header/body_checks. Specify this if header/body_checks
+are to be done \fBafter\fR an external content filter.
+.RE
 .SH "Resource controls"
 .ad
 .fi

@@ -46,7 +46,15 @@
 /*	Enable header/body filtering. This should be enabled only with mail
 /*	that enters Postfix, not with locally forwarded mail or with bounce
 /*	messages.
+/* .IP CLEANUP_FLAG_MAP_OK
+/*	Enable canonical and virtual mapping, and address masquerading.
 /* .PP
+/*	For convenience the CLEANUP_FLAG_MASK_EXTERNAL macro specifies
+/*	the options that are normally needed for mail that enters
+/*	Postfix from outside, and CLEANUP_FLAG_MASK_INTERNAL specifies
+/*	the options that are normally needed for internally generated or
+/*	forwarded mail.
+/*
 /*	CLEANUP_RECORD() is a macro that processes one message record,
 /*	that copies the result to the queue file, and that maintains a
 /*	little state machine. The last record in a valid message has type
