@@ -553,6 +553,13 @@ do
        *) continue;;
     esac
 
+    # Skip over files that ought to be removed.
+    # Leave it up to post-install to report them to the user.
+
+    case $flags in
+    *o*) continue
+    esac
+
     # Skip over files that must be preserved.
 
     case $flags in

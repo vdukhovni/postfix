@@ -143,7 +143,11 @@ void    smtpd_state_reset(SMTPD_STATE *state)
     if (state->protocol)
 	myfree(state->protocol);
     smtpd_peer_reset(state);
-    smtpd_xclient_reset(state);
+
+    /*
+     * Buffers that are created on the fly and that may be shared among mail
+     * deliveries within the same SMTP session.
+     */
     if (state->defer_if_permit.reason)
 	vstring_free(state->defer_if_permit.reason);
     if (state->defer_if_reject.reason)

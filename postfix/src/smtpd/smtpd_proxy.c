@@ -250,24 +250,24 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
      * forms and encode the result as xtext.
      */
     if ((state->proxy_features & SMTPD_FEATURE_XCLIENT)
-	&& (!IS_UNK_CLIENT_NAME(FORWARD_NAME(state))
-	    || !IS_UNK_CLIENT_ADDR(FORWARD_ADDR(state)))) {
+	&& (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state))
+	    || IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))) {
 	buf = vstring_alloc(100);
 	vstring_strcpy(buf, XCLIENT_CMD " " XCLIENT_FORWARD
 		       " " XCLIENT_NAME "=");
-	if (!IS_UNK_CLIENT_NAME(FORWARD_NAME(state)))
+	if (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)))
 	    xtext_quote_append(buf, FORWARD_NAME(state), "");
 	vstring_strcat(buf, " " XCLIENT_ADDR "=");
-	if (!IS_UNK_CLIENT_ADDR(FORWARD_ADDR(state)))
+	if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
 	    xtext_quote_append(buf, FORWARD_ADDR(state), "");
 	bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
 	if (bad == 0) {
 	    vstring_strcpy(buf, XCLIENT_CMD " " XCLIENT_FORWARD
 			   " " XCLIENT_HELO "=");
-	    if (!IS_UNK_CLIENT_HELO(FORWARD_HELO(state)))
+	    if (IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)))
 		xtext_quote_append(buf, FORWARD_HELO(state), "");
 	    vstring_strcat(buf, " " XCLIENT_PROTO "=");
-	    if (!IS_UNK_CLIENT_PROTO(FORWARD_PROTO(state)))
+	    if (IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)))
 		xtext_quote_append(buf, FORWARD_PROTO(state), "");
 	    bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
 	}

@@ -410,7 +410,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <signal.h>
-#include <stddef.h>
+#include <stddef.h>			/* offsetof() */
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -572,7 +572,8 @@ char   *var_smtpd_hoggers;
 static NAMADR_LIST *verp_clients;
 
  /*
-  * XCLIENT command.
+  * XCLIENT command. Access control is cached, so that XCLIENT can't override
+  * its own access control.
   */
 static NAMADR_LIST *xclient_hosts;
 static int xclient_allowed;
@@ -621,7 +622,8 @@ static int sasl_client_exception(SMTPD_STATE *state)
 			      state->name, state->addr);
 
     if (msg_verbose)
-	msg_info("sasl_exceptions: %s, match=%d", state->namaddr, match);
+	msg_info("sasl_exceptions: %s[%s], match=%d",
+		 state->name, state->addr, match);
 
     return (match);
 }
@@ -830,19 +832,19 @@ static void mail_open_stream(SMTPD_STATE *state)
      * Store the client attributes for logging purposes.
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
-	if (!IS_UNK_CLIENT_NAME(FORWARD_NAME(state)))
+	if (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)))
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_CLIENT_NAME, FORWARD_NAME(state));
-	if (!IS_UNK_CLIENT_ADDR(FORWARD_ADDR(state)))
+	if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_CLIENT_ADDR, FORWARD_ADDR(state));
-	if (!IS_UNK_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
+	if (IS_AVAIL_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ORIGIN, FORWARD_NAMADDR(state));
-	if (!IS_UNK_CLIENT_HELO(FORWARD_HELO(state)))
+	if (IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)))
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_HELO_NAME, FORWARD_HELO(state));
-	if (!IS_UNK_CLIENT_PROTO(FORWARD_PROTO(state)))
+	if (IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)))
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_PROTO_NAME, FORWARD_PROTO(state));
     }
@@ -1316,7 +1318,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     if (state->cleanup)
 	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
-    if (!state->proxy || state->xclient.addr == 0) {
+    if (!state->proxy || state->xclient.used == 0) {
 	out_fprintf(out_stream, REC_TYPE_NORM,
 		    "Received: from %s (%s [%s])",
 		    state->helo_name ? state->helo_name : state->name,
@@ -1799,14 +1801,13 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 * The client can send multiple XCLIENT attributes in a single command,
 	 * or multiple XCLIENT commands with fewer attributes.
 	 * 
-	 * Note: XCLIENT OVERRIDE overrides only the specified logging and
-	 * access control attributes (desirable for testing), while XCLIENT
-	 * FORWARD overrides all logging attributes (for audit trail
-	 * consistency).
+	 * Note: XCLIENT OVERRIDE overrides only the specified remote client
+	 * attributes (for testing), while XCLIENT FORWARD overrides all
+	 * remote client attributes (for consistency).
 	 */
 	if ((raw_value = split_at(arg_val, '=')) == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	    smtpd_chat_reply(state, "503 Error: name=value expected");
+	    smtpd_chat_reply(state, "501 Error: name=value expected");
 	    return (-1);
 	}
 	if (xtext_unquote(state->buffer, raw_value) == 0) {
@@ -1858,8 +1859,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
 
 	/*
-	 * CLIENT_CODE=status. Reset the client hostname if the hostname
-	 * lookup status is not OK.
+	 * CLIENT_CODE=hostname lookup status. Reset the client hostname if
+	 * the hostname lookup status is not OK.
 	 */
 	else if (STREQ(arg_val, XCLIENT_CODE)) {
 	    if (STREQ(cooked_value, "OK")) {

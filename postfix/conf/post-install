@@ -201,6 +201,7 @@ USAGE="Usage: $0 [name=value] command
 # IFS=value setting permanent. But some broken standard allows it.
 
 create=; set_perms=; upgrade_perms=; upgrade_conf=; first_install_reminder=
+obsolete=
 
 for arg
 do
@@ -422,6 +423,13 @@ test -n "$create" && {
 	case $flags in *u*) upgrade_flag=1;; *) upgrade_flag=;; esac
 	case $flags in *c*) create_flag=1;; *) create_flag=;; esac
 	case $flags in *r*) recursive="-R";; *) recursive=;; esac
+	case $flags in *o*) obsolete_flag=1;; *) obsolete_flag=;; esac
+	# Flag obsolete objects. XXX Solaris 2..9 does not have "test -e".
+	if [ -n "$obsolete_flag" -a -r $path ]
+	then
+	    obsolete="$obsolete $path"
+	    continue;
+	fi
 	# Create missing directories with proper owner/group/mode settings.
 	if [ -n "$create" -a "$type" = "d" -a -n "$create_flag" -a ! -d "$path" ]
 	then
@@ -581,6 +589,19 @@ EOF
 	echo Editing $config_directory/master.cf, adding missing entry for anvil service
 	cat >>$config_directory/master.cf <<EOF || exit 1
 anvil	  unix	-	-	n	-	1	anvil
+EOF
+    }
+
+    # Report (but do not remove) obsolete files/directories.
+
+    test -n "$obsolete" && {
+	cat <<EOF | ${FMT}
+
+    Note: the following files or directories still exist but are
+    no longer part of Postfix:
+
+    $obsolete
+
 EOF
     }
 

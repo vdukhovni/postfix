@@ -233,7 +233,12 @@ one would set up the service in the Postfix master.cf file:
 
     /etc/postfix/master.cf:
         scan      unix  -       -       n       -       10       smtp
+		-o myhostname=localhost.my.domain
 	#	-o smtp_send_xclient_command=yes
+
+The "-o myhostname=localhost.domain.tld" overrides main.cf and
+avoids false alarms ("host <servername> greeted me with my own
+hostname") that result in mail being bounced.
 
 Instead of a limit of 10 concurrent processes, use whatever process
 limit is feasible for your machine.  Content inspection software
@@ -242,9 +247,9 @@ too much of it running at the same time.
 
 Uncomment (but keep the leading white-space) the option setting:
 "smtp_send_xclient_command=yes", if you would like the scan transport
-to forward the original client name and IP address to the backend smtpd
-so that mail transaction logs show the real client name IP address.
-See sample-smtp.cf and smtp(8).
+to forward the original client name and IP address to the after-filter
+smtpd so that filtered mail is logged with the real client name IP
+address.  See sample-smtp.cf and smtp(8).
 
 The content filter can be set up with the Postfix spawn service,
 which is the Postfix equivalent of inetd. For example, to instantiate
@@ -289,7 +294,6 @@ a dedicated listener on port localhost 10026:
         localhost:10026     inet  n      -      n      -      10      smtpd
             -o content_filter= 
             -o receive_override_options=no_unknown_recipient_checks,no_header_body_checks
-            -o myhostname=localhost.domain.tld
             -o smtpd_helo_restrictions=
             -o smtpd_client_restrictions=
             -o smtpd_sender_restrictions=
@@ -311,11 +315,6 @@ attempts to find out if a recipient is unknown, and header/body
 checks that can suck up lots of CPU cycles. These override options
 are either implemented by the SMTP server itself, or they are passed
 on to the cleanup server.
-
-The "-o myhostname=localhost.domain.tld" overrides main.cf and
-avoids false alarms ("host <servername> greeted me with my own
-hostname") if your content filter is based on a proxy that simply
-relays SMTP commands.
 
 The "-o smtpd_xxx_restrictions" and "-o mynetworks=127.0.0.0/8"
 override main.cf and turn off UCE controls that would only waste

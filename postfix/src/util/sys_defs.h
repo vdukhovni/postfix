@@ -63,6 +63,9 @@
 
 #if __FreeBSD_version >= 200000
 #define HAS_DUPLEX_PIPE
+#endif
+
+#if __FreeBSD_version >= 300000
 #define HAS_ISSETUGID
 #endif
 
@@ -87,6 +90,10 @@
 #if __NetBSD_Version__ >= 103000000	/* XXX */
 #undef DEF_MAILBOX_LOCK
 #define DEF_MAILBOX_LOCK "flock, dotlock"
+#endif
+
+#if __NetBSD_Version__ >= 105000000	/* XXX */
+#define HAS_ISSETUGID
 #endif
 
 #if __NetBSD_Version__ >= 106000000	/* XXX */

@@ -8788,6 +8788,13 @@ Apologies for any names omitted.
 	smtp/smtp_smtp_proto.c, *qmgr/qmgr_message.c,
 	global/deliver_request.c.
 
+20031202
+
+	Cleanup: postfix-files now has support for files that are
+	no longer part of Postfix. When upgrading Postfix, the
+	post-install script gives the user a reminder. Files:
+	conf/postfix-files, conf/post-install.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content

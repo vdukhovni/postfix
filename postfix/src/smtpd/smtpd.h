@@ -75,9 +75,9 @@ typedef struct SMTPD_STATE {
     char   *access_denied;
     ARGV   *history;
     char   *reason;
-    char   *sender;
-    char   *encoding;
-    char   *verp_delims;
+    char   *sender;			
+    char   *encoding;			/* owned by mail_cmd() */
+    char   *verp_delims;		/* owned by mail_cmd() */
     char   *recipient;
     char   *etrn_name;
     char   *protocol;
@@ -109,7 +109,7 @@ typedef struct SMTPD_STATE {
     VSTRING *expand_buf;		/* scratch space for $name expansion */
     VSTREAM *proxy;			/* proxy handle */
     VSTRING *proxy_buffer;		/* proxy query/reply buffer */
-    char   *proxy_mail;			/* proxy MAIL FROM command */
+    char   *proxy_mail;			/* owned by mail_cmd() */
     int     proxy_features;		/* proxy ESMTP features */
     SMTPD_XCLIENT_ATTR xclient;		/* override access control */
 } SMTPD_STATE;
@@ -143,8 +143,18 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 
  /*
   * Choose between normal or forwarded attributes.
+  * 
+  * Note 1: inside the SMTP server, forwarded attributes must have the exact
+  * same representation as normal attributes: unknown string values are
+  * "unknown", except for HELO which defaults to null. This is better than
+  * having to change every piece of code that accesses a possibly forwarded
+  * attribute.
+  * 
+  * Note 2: outside the SMTP server, the representation of unknown/known
+  * attribute values is different in queue files, in queue manager delivery
+  * requests, and in over-the-network XCLIENT commands.
   */
-#define SMTPD_FEATURE_XCLIENT (1<<0)	/* XCLIENT supported */
+#define SMTPD_FEATURE_XCLIENT (1<<0)	/* proxy announces XCLIENT */
 
 #define MAYBE_FORWARD(s, a) \
 	((s)->xclient.used ? (s)->xclient.a : (s)->a)

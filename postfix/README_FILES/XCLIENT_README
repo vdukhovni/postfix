@@ -3,19 +3,19 @@ Purpose of the XCLIENT extension to SMTP
 
 The XCLIENT command targets problems in the following areas:
 
-1 - Access control tests. SMTP server access rules can be difficult
-to verify when decisions can be triggered by remote clients only.
-In order to facilitate access rule testing, an SMTP client test
-program needs the ability to override the SMTP server's idea of
-the SMTP client hostname, network address, and other information,
-for the entire duration of an SMTP session.
+1 - Access control tests. SMTP server access rules are difficult
+to verify when decisions can be triggered only by remote clients.
+In order to facilitate access rule testing, an authorized SMTP
+client test program needs the ability to override the SMTP server's
+idea of the SMTP client hostname, network address, and other
+information, for the entire duration of an SMTP session.
 
-2 - Logging after content filter. With Internet->MTA1->filter->MTA2
-style content filter applications, remote client information is
-lost when MTA1 gives the mail to the content filter.  To simplify
-the interpretation of MTA2 logging, it would help if MTA1 could
-forward client information through the content filter to MTA2, for
-a single message delivery.
+2 - Logging after SMTP-based content filter. With the deployment
+of Internet->MTA1->filter->MTA2 style content filter applications,
+remote client information is lost when MTA1 gives the mail to the
+content filter.  To simplify the interpretation of MTA2 logging,
+it would help if MTA1 could forward client information through the
+content filter to MTA2.
 
 3 - Post-filter access control and logging. With Internet->filter->MTA
 style content filter applications, the filter can be simplified if
@@ -28,15 +28,15 @@ an SMTP session.
 Command overview
 ================
 
-XCLIENT is an extension to SMTP.  The EHLO keyword associated with
-this extension is XCLIENT.
+The EHLO keyword associated with this extension is XCLIENT.
 
-The XCLIENT OVERRIDE command updates the remote client attributes
-that the MTA normally uses for access control, message headers,
-logging and so on, for the duration of an entire SMTP session.
+The XCLIENT OVERRIDE command updates remote client attributes that
+the MTA normally uses for access control, message headers, logging
+and so on, for the duration of an entire SMTP session.
 
-The XCLIENT FORWARD command maintains an additional set of attributes
-that concern only one message delivery attempt.  In the absence of
+The XCLIENT FORWARD command updates temporary remote client attributes
+that the MTA uses for transaction logging. These attributes are
+valid for only one message delivery attempt.  In the absence of
 forwarded attributes the MTA must use the normal remote client
 attribute values.
 
@@ -68,8 +68,8 @@ The server reply codes are as follows:
    Code | Meaning
    -----|------------
     250 | success 
-    501 | command syntax error
-    502 | unrecognized request name
+    501 | bad command parameter
+    503 | mail transaction in progress
     421 | unable to proceed
 
 The server must report success in case of an unrecognized attribute
@@ -94,11 +94,11 @@ mail protocol or the hostname given in the HELO command:
     XCLIENT OVERRIDE CLIENT_NAME=spike.porcupine.org
     XCLIENT OVERRIDE CLIENT_ADDR=168.100.189.2
 
-The XCLIENT FORWARD request specifies remote client attributes
-concerning only one message delivery attempt. The attributes are
-discarded after the next MAIL FROM transaction finishes. In the
-absence of any XCLIENT FORWARD attributes, the MTA must use the
-normal client attributes.
+The XCLIENT FORWARD request specifies remote client attributes that
+are logged with one message delivery attempt. The attributes are
+discarded after the MAIL FROM transaction finishes. In the absence
+of any XCLIENT FORWARD attributes, the MTA must use the normal
+client attributes.
 
 If only a subset of all possible XCLIENT FORWARD attributes is
 specified, the unspecified attributes must be treated as if they

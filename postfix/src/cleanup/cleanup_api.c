@@ -259,7 +259,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 			      state->recip ? state->recip : "unknown",
 			      state->recip ? state->recip : "unknown",
-			      (long) 0, "cleanup", state->time,
+			      (long) 0, "none", state->time,
 			      "%s", state->reason ? state->reason :
 			      cleanup_strerror(state->errs)) == 0
 		&& bounce_flush(BOUNCE_FLAG_CLEAN, state->queue_name,

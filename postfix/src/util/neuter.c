@@ -2,7 +2,7 @@
 /* NAME
 /*	neuter 3
 /* SUMMARY
-/*	mask non-neuter characters
+/*	neutralize characters before they can explode
 /* SYNOPSIS
 /*	#include <stringops.h>
 /*

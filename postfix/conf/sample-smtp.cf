@@ -226,16 +226,29 @@ smtp_host_lookup = dns, native
 smtp_connect_timeout = 30s
 
 # The smtp_helo_timeout parameter specifies the SMTP client timeout
-# for receiving the SMTP greeting banner.
+# for sending the SMTP HELO or EHLO command, and for receiving the
+# server response.
 #
-# When the server drops the connection without sending a greeting
-# banner, or when it sends no greeting banner within the deadline,
-# the SMTP client tries the next address on the mail exchanger list.
+# In case of problems the client does NOT try the next address on
+# the mail exchanger list.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
 smtp_helo_timeout = 300s
+
+# The smtp_xclient_timeout parameter specifies the SMTP client timeout
+# for sending the SMTP XCLIENT command, and for receiving the server
+# response.
+# for receiving the SMTP greeting banner.
+#
+# In case of problems the client does NOT try the next address on
+# the mail exchanger list.
+#
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+smtp_xclient_timeout = 300s
 
 # The smtp_mail_timeout parameter specifies the SMTP client timeout
 # for sending the SMTP MAIL FROM command, and for receiving the server

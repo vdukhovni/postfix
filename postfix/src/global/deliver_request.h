@@ -50,7 +50,7 @@ typedef struct DELIVER_REQUEST {
   * Since we can't send null pointers, null strings represent unavailable
   * attributes instead. They're less likely to explode in our face, too.
   */
-#define DEL_REQ_ATTR_UNAVAIL(a)	(*(a))
+#define DEL_REQ_ATTR_AVAIL(a)	(*(a))
 
  /*
   * How to deliver, really?
