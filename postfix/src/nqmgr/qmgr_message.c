@@ -98,7 +98,6 @@
 /* Utility library. */
 
 #include <msg.h>
-#include <events.h>
 #include <mymalloc.h>
 #include <vstring.h>
 #include <vstream.h>
@@ -107,6 +106,7 @@
 #include <argv.h>
 #include <stringops.h>
 #include <myflock.h>
+#include <sane_time.h>
 
 /* Global library. */
 
@@ -148,7 +148,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->refcount = 0;
     message->single_rcpt = 0;
     message->arrival_time = 0;
-    message->queued_time = event_time();
+    message->queued_time = sane_time();
     message->data_offset = 0;
     message->queue_id = mystrdup(queue_id);
     message->queue_name = mystrdup(queue_name);

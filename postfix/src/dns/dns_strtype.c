@@ -60,6 +60,9 @@ static struct dns_type_map dns_type_map[] = {
 #ifdef T_A
     T_A, "A",
 #endif
+#ifdef T_AAAA
+    T_AAAA, "AAAA",
+#endif
 #ifdef T_NS
     T_NS, "NS",
 #endif

@@ -45,5 +45,6 @@ exec sed '
 	s/[<bB>]*relocated[</bB>]*(5)/<a href="relocated.5.html">&<\/a>/
 	s/[<bB>]*trans[-</bB>]*\n*[ <bB>]*port[</bB>]*(5)/<a href="transport.5.html">&<\/a>/
 	s/[<bB>]*virtual[</bB>]*(5)/<a href="virtual.5.html">&<\/a>/
+	s/[<bB>]*virtual[</bB>]*(8)/<a href="virtual.8.html">&<\/a>/
 	s/RFC *\([0-9]*\)/<a href="http:\/\/www.faqs.org\/rfcs\/rfc\1.html">&<\/a>/
 ' "$@"

@@ -4824,7 +4824,27 @@ Apologies for any names omitted.
 	can do their own manual page processing. See scripts in
 	the mantools directory.
 
-	Updated the reference to sendmail in the html/index.html page.
+	Documentation: updated the reference to sendmail in the
+	html/index.html page.
 
-	Added note about the Cisco PIX "fixup smtp" bug when "."
-	and "CRLF" arrive in separate packets. File:  html/faq.html.
+	Documentation: added note about the Cisco PIX "fixup smtp"
+	bug that causes mail delivery problems when "." and "CRLF"
+	arrive in separate packets. File:  html/faq.html.
+
+20010131
+
+	The code that reports a DNS lookup error now includes the
+	record type that was being looked up, so that people will
+	not misinterpret an MX lookup problem as an A record lookup
+	problem.  File:  dns/dns_lookup.c.
+
+20010201
+
+	Bugfix: another missing initialization in the mysql client.
+	File: util/dict_mysql.c.
+
+	Sanitized time routine by Patrik Rak, to make his nqmgr
+	robust against people who set their clock back.  Files:
+	util/sane_time.[hc].
+
+	Bumped the default mailbox file size limits to 50MB.

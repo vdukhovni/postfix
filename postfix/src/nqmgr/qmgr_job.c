@@ -59,9 +59,9 @@
 /* Utility library. */
 
 #include <msg.h>
-#include <events.h>
 #include <htable.h>
 #include <mymalloc.h>
+#include <sane_time.h>
 
 /* Application-specific. */
 
@@ -483,7 +483,7 @@ static QMGR_JOB *qmgr_job_candidate(QMGR_JOB *current)
             max_needed_entries,
             max_total_entries;
     int     delay;
-    time_t  now = event_time();
+    time_t  now = sane_time();
 
     /*
      * Fetch the result directly from the cache if the cache is still valid.
@@ -519,9 +519,6 @@ static QMGR_JOB *qmgr_job_candidate(QMGR_JOB *current)
      * need to do is to make sure we do not include any of the stack parents.
      * And, because the leaf children are not ordered by the time since
      * queued, we have to exclude them from the early loop end test.
-     * 
-     * By the way, the selection is reasonably resistant to OS time warping,
-     * too.
      * 
      * However, don't bother searching if we can't find anything suitable
      * anyway.

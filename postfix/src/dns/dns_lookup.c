@@ -168,8 +168,8 @@ static int dns_query(const char *name, int type, int flags,
     len = res_search((char *) name, C_IN, type, reply->buf, sizeof(reply->buf));
     if (len < 0) {
 	if (why)
-	    vstring_sprintf(why, "Name service error for domain %s: %s",
-			    name, dns_strerror(h_errno));
+	    vstring_sprintf(why, "Name service error for %s (%s) while looking up the %s record.",
+			    name, dns_strerror(h_errno), dns_strtype(type));
 	if (msg_verbose)
 	    msg_info("dns_query: %s (%s): %s",
 		     name, dns_strtype(type), dns_strerror(h_errno));

@@ -202,10 +202,10 @@ local_destination_concurrency_limit = 2
 
 # The mailbox_size_limit parameter controls the maximal size of a
 # mailbox or maildir file (in fact, it limits the size of any file
-# that is written to upon local delivery) The default is 20MBytes.
+# that is written to upon local delivery) The default is 50 MBytes.
 # This limit must not be set smaller than the message size limit.
 # 
-mailbox_size_limit = 20480000
+mailbox_size_limit = 51200000
 
 # The local_destination_recipient_limit parameter limits the number
 # of recipients per local message delivery.  The default limit is

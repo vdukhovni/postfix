@@ -356,6 +356,7 @@ maildir.o: ../../include/get_hostname.h
 maildir.o: ../../include/sane_fsops.h
 maildir.o: ../../include/mail_copy.h
 maildir.o: ../../include/bounce.h
+maildir.o: ../../include/defer.h
 maildir.o: ../../include/sent.h
 maildir.o: ../../include/mail_params.h
 maildir.o: local.h

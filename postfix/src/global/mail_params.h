@@ -384,7 +384,7 @@ extern char *var_mailbox_lock;
   * the message size limit is implemented, but that is not clean.
   */
 #define VAR_MAILBOX_LIMIT	"mailbox_size_limit"
-#define DEF_MAILBOX_LIMIT	(DEF_MESSAGE_LIMIT * 2)
+#define DEF_MAILBOX_LIMIT	(DEF_MESSAGE_LIMIT * 5)
 extern int var_mailbox_limit;
 
  /*
@@ -1214,7 +1214,7 @@ extern int var_virt_minimum_uid;
 extern char *var_virt_mailbox_base;
 
 #define VAR_VIRT_MAILBOX_LIMIT		"virtual_mailbox_limit"
-#define DEF_VIRT_MAILBOX_LIMIT		(2 * DEF_MESSAGE_LIMIT)
+#define DEF_VIRT_MAILBOX_LIMIT		(5 * DEF_MESSAGE_LIMIT)
 extern int var_virt_mailbox_limit;
 
 #define VAR_VIRT_MAILBOX_LOCK		"virtual_mailbox_lock"

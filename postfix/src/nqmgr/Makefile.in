@@ -169,9 +169,9 @@ qmgr_entry.o: ../../include/argv.h
 qmgr_job.o: qmgr_job.c
 qmgr_job.o: ../../include/sys_defs.h
 qmgr_job.o: ../../include/msg.h
-qmgr_job.o: ../../include/events.h
 qmgr_job.o: ../../include/htable.h
 qmgr_job.o: ../../include/mymalloc.h
+qmgr_job.o: ../../include/sane_time.h
 qmgr_job.o: qmgr.h
 qmgr_job.o: ../../include/vstream.h
 qmgr_job.o: ../../include/vbuf.h
@@ -182,7 +182,6 @@ qmgr_job.o: ../../include/argv.h
 qmgr_message.o: qmgr_message.c
 qmgr_message.o: ../../include/sys_defs.h
 qmgr_message.o: ../../include/msg.h
-qmgr_message.o: ../../include/events.h
 qmgr_message.o: ../../include/mymalloc.h
 qmgr_message.o: ../../include/vstring.h
 qmgr_message.o: ../../include/vbuf.h
@@ -192,6 +191,7 @@ qmgr_message.o: ../../include/valid_hostname.h
 qmgr_message.o: ../../include/argv.h
 qmgr_message.o: ../../include/stringops.h
 qmgr_message.o: ../../include/myflock.h
+qmgr_message.o: ../../include/sane_time.h
 qmgr_message.o: ../../include/dict.h
 qmgr_message.o: ../../include/mail_queue.h
 qmgr_message.o: ../../include/mail_params.h

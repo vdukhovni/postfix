@@ -344,7 +344,7 @@ static void plmysql_down_host(HOST *host)
  *    parse the map's config file
  *    allocate memory
  **********************************************************************/
-DICT   *dict_mysql_open(const char *name, int unused_flags, int unused_dict_flags)
+DICT   *dict_mysql_open(const char *name, int unused_open_flags, int dict_flags)
 {
     DICT_MYSQL *dict_mysql;
     int     connections;
@@ -353,6 +353,7 @@ DICT   *dict_mysql_open(const char *name, int unused_flags, int unused_dict_flag
 					   sizeof(DICT_MYSQL));
     dict_mysql->dict.lookup = dict_mysql_lookup;
     dict_mysql->dict.close = dict_mysql_close;
+    dict_mysql->dict.flags = dict_flags | DICT_FLAG_FIXED;
     dict_mysql->name = mysqlname_parse(name);
     dict_mysql->pldb = plmysql_init(dict_mysql->name->hostnames,
 				    dict_mysql->name->len_hosts);
