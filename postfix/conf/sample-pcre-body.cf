@@ -11,9 +11,6 @@
 #	the forward slash is used). The regular expression can contain
 #	whitespace.
 #
-#	When the regular expression is prefixed by `!', the pattern
-#	succeeds when it does not match.
-#
 #	By default, matching is case-INsensitive, although following
 #	the second slash with an 'i' will reverse this. Other flags are
 #	supported, but the only other useful one is 'U', which makes

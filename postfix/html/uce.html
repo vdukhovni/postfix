@@ -348,8 +348,8 @@ reject_rbl_client relays.mail-abuse.org</b> (paid service)
 <dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
 reject_rbl_client relays.ordb.org</b> (free service)
 
-<dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
-reject_rhsbl_client dsn.rfc-ignorant.org</b> (free service)
+<dd> <b>smtpd_sender_restrictions = hash:/etc/postfix/access,
+reject_rhsbl_sender dsn.rfc-ignorant.org</b> (free service)
 
 <dd> <b>smtpd_client_restrictions = permit_mynetworks,
 reject_unknown_client</b>
@@ -934,19 +934,19 @@ lookup tables:
 
 <table border="1">
 
-<tr><th>Recipient domain matches <th>Recipient lookup table 
+<tr><th>Recipient domain matches</th> <th>Recipient lookup table</th> 
 
-<tr><td><a href="basic.html#mydestination"> $mydestination</a> or
-<a href="basic.html#inet_interfaces">$inet_interfaces</a> 
-<td>$local_recipient_maps
+</tr><tr><td><a href="basic.html#mydestination"> $mydestination</a> or
+<a href="basic.html#inet_interfaces">$inet_interfaces</a></td> 
+<td>$local_recipient_maps</td>
 
-<tr><td>$virtual_alias_domains <td>$virtual_alias_maps 
+</tr><tr><td>$virtual_alias_domains</td> <td>$virtual_alias_maps</td> 
 
-<tr><td>$virtual_mailbox_domains <td>$virtual_mailbox_maps 
+</tr><tr><td>$virtual_mailbox_domains</td> <td>$virtual_mailbox_maps</td> 
 
-<tr><td>$relay_domains <td>$relay_recipient_maps 
+</tr><tr><td>$relay_domains</td> <td>$relay_recipient_maps</td> 
 
-</table>
+</tr></table>
 
 </blockquote>
 

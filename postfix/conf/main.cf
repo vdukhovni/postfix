@@ -147,6 +147,9 @@ mail_owner = postfix
 # a name matches a lookup key (the right-hand side is ignored).
 # Continue long lines by starting the next line with whitespace.
 #
+# DO NOT LIST RELAY DESTINATIONS IN MYDESTINATION.
+# SPECIFY RELAY DESTINATIONS IN RELAY_DOMAINS.
+#
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
 #mydestination = $myhostname, localhost.$mydomain

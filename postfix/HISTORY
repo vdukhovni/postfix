@@ -7865,6 +7865,13 @@ Apologies for any names omitted.
 	formatted numerical port.  Files:  util/find_inet.c,
 	smtp/smtp_connect.c, lmtp/lmtp_connect.c.
 
+20030905
+
+	Workaround: Solaris 8 select() claims that a non-blocking
+	socket is readable and then read() fails with EAGAIN. Files:
+	util/timed_read.c and as precautionary measure,
+	util/timed_write.c.
+
 Open problems:
 
 	Doc: mention the proxy_interfaces parameter everywhere the
