@@ -207,6 +207,11 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why)
     /*
      * As long as we are able to look up any host address, we ignore problems
      * with DNS lookups.
+     * 
+     * XXX 2821: update smtp_errno (0->FAIL upon unrecoverable lookup error,
+     * any->RETRY upon temporary lookup error) so that we can correctly
+     * handle the case of no resolvable MX host. Currently this is always
+     * treated as a soft error. RFC 2821 wants a more precise response.
      */
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX)
@@ -320,6 +325,19 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
      * as we're looking up all the hosts, it would be better to look up the
      * least preferred host first, so that DNS lookup error messages make
      * more sense.
+     * 
+     * XXX 2821: RFC 2821 says that the sender must shuffle equal-preference MX
+     * hosts, whereas multiple A records per hostname must be used in the
+     * order as received. They make the bogus assumption that a hostname with
+     * multiple A records corresponds to one machine with multiple network
+     * interfaces.
+     * 
+     * XXX 2821: Postfix recognizes the local machine by looking for its own IP
+     * address in the list of mail exchangers. RFC 2821 says one has to look
+     * at the mail exchanger hostname as well, making the bogus assumption
+     * that an IP address is listed only under one hostname. However, looking
+     * at hostnames provides a partial solution for MX hosts behind a NAT
+     * gateway.
      */
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
     default:

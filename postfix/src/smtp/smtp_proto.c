@@ -213,10 +213,13 @@ int     smtp_helo(SMTP_STATE *state)
      * overflow detection, ignore the message size limit advertised by the
      * SMTP server. Otherwise, we might do the wrong thing when the server
      * advertises a really huge message size limit.
+     * 
+     * XXX Allow for "code (SP|-) ehlo-keyword (SP|=) ehlo-param...", because
+     * MicroSoft implemented AUTH based on an old draft.
      */
     lines = resp->str;
     while ((words = mystrtok(&lines, "\n")) != 0) {
-	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t")) != 0) {
+	if (mystrtok(&words, "- =") && (word = mystrtok(&words, " \t")) != 0) {
 	    if (strcasecmp(word, "8BITMIME") == 0)
 		state->features |= SMTP_FEATURE_8BITMIME;
 	    else if (strcasecmp(word, "PIPELINING") == 0)
@@ -226,8 +229,6 @@ int     smtp_helo(SMTP_STATE *state)
 #ifdef USE_SASL_AUTH
 	    else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
 		smtp_sasl_helo_auth(state, words);
-	    else if (var_smtp_sasl_enable && strncasecmp(word, "AUTH=", 5) == 0)
-		smtp_sasl_helo_auth(state, word + 5);
 #endif
 	    else if (strcasecmp(word, var_myhostname) == 0) {
 		msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
@@ -480,9 +481,16 @@ int     smtp_xfer(SMTP_STATE *state)
 		     * rejected, ignore RCPT TO responses: all recipients are
 		     * dead already. When all recipients are rejected the
 		     * receiver may apply a course correction.
+		     * 
+		     * XXX 2821: Section 4.5.3.1 says that a 552 RCPT TO reply
+		     * must be treated as if the server replied with 452.
 		     */
 		case SMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
+#ifndef RFC821_SYNTAX
+			if (resp->code == 552)
+			    resp->code = 452;
+#endif
 			if (resp->code / 100 == 2) {
 			    ++nrcpt;
 			} else {

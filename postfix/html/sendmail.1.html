@@ -43,14 +43,14 @@ SENDMAIL(1)                                           SENDMAIL(1)
               daemon.
 
        <b>newaliases</b>
-              Initialize the alias database. If no alias database
-              type is specified, the program uses the type speci-
-              fied  in the <b>database</b><i>_</i><b>type</b> configuration parameter;
-              if no input file is  specified,  the  program  pro-
-              cesses    the    file(s)    specified    with   the
-              <b>alias</b><i>_</i><b>database</b> configuration parameter.  This  mode
-              of  operation is implemented by running the <b>postal-</b>
-              <b>ias</b>(1) command.
+              Initialize the alias database.  If no input file is
+              specified (with the <b>-oA</b>  option,  see  below),  the
+              program  processes  the  file(s) specified with the
+              <b>alias</b><i>_</i><b>database</b>  configuration  parameter.   If   no
+              alias  database type is specified, the program uses
+              the type specified with the <b>database</b><i>_</i><b>type</b>  configu-
+              ration parameter.  This mode of operation is imple-
+              mented by running the <a href="postalias.1.html"><b>postalias</b>(1)</a> command.
 
               Note: it may take a minute or so  before  an  alias
               database  update  becomes  visible. Use the <b>postfix</b>

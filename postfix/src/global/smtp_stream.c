@@ -200,6 +200,9 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
      * Allow for partial long lines (we will read the remainder later) and
      * allow for lines ending in bare LF. The idea is to be liberal in what
      * we accept, strict in what we send.
+     * 
+     * XXX 2821: Section 4.1.1.4 says that an SMTP server must not recognize
+     * bare LF as record terminator.
      */
     smtp_timeout_reset(stream);
     last_char = (bound == 0 ? vstring_get(vp, stream) :

@@ -224,6 +224,10 @@ extern char *var_always_bcc;
 
  /*
   * What to put in the To: header when no recipients were disclosed.
+  * 
+  * XXX 2822: When no recipient headers remain, a system should insert a Bcc:
+  * header without additional information. That is not so great given that
+  * MTAs routinely strip Bcc: headers from message headers.
   */
 #define VAR_RCPT_WITHELD	"undisclosed_recipients_header"
 #define DEF_RCPT_WITHELD	"To: undisclosed-recipients:;"
@@ -634,6 +638,9 @@ extern int var_hash_queue_depth;
   * determines how many recipient addresses the SMTP client sends along with
   * each message. Unfortunately, some mailers misbehave and disconnect (smap)
   * when given more recipients than they are willing to handle.
+  * 
+  * XXX 2821: A mail system is supposed to use EHLO instead of HELO, and to fall
+  * back to HELO if EHLO is not supported.
   */
 #define VAR_BESTMX_TRANSP	"best_mx_transport"
 #define DEF_BESTMX_TRANSP	""
@@ -688,7 +695,11 @@ extern bool var_ign_mx_lookup_err;
 extern bool var_skip_quit_resp;
 
 #define VAR_SMTP_ALWAYS_EHLO	"smtp_always_send_ehlo"
+#ifdef RFC821_SYNTAX
 #define DEF_SMTP_ALWAYS_EHLO	0
+#else
+#define DEF_SMTP_ALWAYS_EHLO	1
+#endif
 extern bool var_smtp_always_ehlo;
 
 #define VAR_SMTP_NEVER_EHLO	"smtp_never_send_ehlo"

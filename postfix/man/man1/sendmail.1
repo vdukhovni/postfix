@@ -40,12 +40,13 @@ be delivered.  If mail could not be delivered upon the last attempt,
 the reason for failure is shown. This mode of operation is implemented
 by connecting to the \fBshowq\fR(8) daemon.
 .IP \fBnewaliases\fR
-Initialize the alias database. If no alias database type is
-specified, the program uses the type specified in the
-\fBdatabase_type\fR configuration parameter; if no input file
-is specified, the program processes the file(s) specified with the
-\fBalias_database\fR configuration parameter. This mode of operation
-is implemented by running the \fBpostalias\fR(1) command.
+Initialize the alias database.  If no input file is specified (with
+the \fB-oA\fR option, see below), the program processes the file(s)
+specified with the \fBalias_database\fR configuration parameter.
+If no alias database type is specified, the program uses the type
+specified with the \fBdatabase_type\fR configuration parameter.
+This mode of operation is implemented by running the \fBpostalias\fR(1)
+command.
 .sp
 Note: it may take a minute or so before an alias database update
 becomes visible. Use the \fBpostfix reload\fR command to eliminate

@@ -234,8 +234,6 @@ int     var_smtp_data1_tmout;
 int     var_smtp_data2_tmout;
 int     var_smtp_quit_tmout;
 char   *var_inet_interfaces;
-char   *var_debug_peer_list;
-int     var_debug_peer_level;
 char   *var_notify_classes;
 int     var_smtp_skip_4xx_greeting;
 int     var_smtp_skip_5xx_greeting;
@@ -395,7 +393,6 @@ static void pre_exit(void)
 int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
-	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
 	VAR_FALLBACK_RELAY, DEF_FALLBACK_RELAY, &var_fallback_relay, 0, 0,
 	VAR_BESTMX_TRANSP, DEF_BESTMX_TRANSP, &var_bestmx_transp, 0, 0,
@@ -417,7 +414,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
-	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

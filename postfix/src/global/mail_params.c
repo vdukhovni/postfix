@@ -65,6 +65,8 @@
 /*
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
+/*	char	*var_debug_peer_list;
+/*	int	var_debug_peer_level;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -181,6 +183,8 @@ char   *var_mynetworks_style;
 
 char   *var_import_environ;
 char   *var_export_environ;
+char   *var_debug_peer_list;
+int     var_debug_peer_level;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -298,6 +302,7 @@ void    mail_params_init()
 	VAR_IMPORT_ENVIRON, DEF_IMPORT_ENVIRON, &var_import_environ, 0, 0,
 	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
 	VAR_MYNETWORKS_STYLE, DEF_MYNETWORKS_STYLE, &var_mynetworks_style, 1, 0,
+	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -312,6 +317,7 @@ void    mail_params_init()
 	VAR_HASH_QUEUE_DEPTH, DEF_HASH_QUEUE_DEPTH, &var_hash_queue_depth, 1, 0,
 	VAR_FORK_TRIES, DEF_FORK_TRIES, &var_fork_tries, 1, 0,
 	VAR_FLOCK_TRIES, DEF_FLOCK_TRIES, &var_flock_tries, 1, 0,
+	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {

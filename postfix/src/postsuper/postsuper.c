@@ -170,29 +170,43 @@ static int delete_one(const char *queue_id)
 	MAIL_QUEUE_ACTIVE,		/* foolproof but adequate */
 	0,
     };
+    const char *log_queue_names[] = {
+	MAIL_QUEUE_BOUNCE,
+	MAIL_QUEUE_DEFER,
+	0,
+    };
     struct stat st;
-    const char **cpp;
-    const char *path;
+    const char **msg_qpp;
+    const char **log_qpp;
+    const char *msg_path;
+    VSTRING *log_path_buf = vstring_alloc(100);
     int     found = 0;
 
     /*
-     * Do not delete defer or bounce logfiles, because we could lose a race
-     * and delete a defer/bounce logfile from a message that reuses the queue
-     * ID.
+     * Delete defer or bounce logfiles before deleting the corresponding
+     * message file, and only if the message file exists. This minimizes but
+     * does not eliminate a race condition with queue ID reuse which results
+     * in deleting the wrong files.
      */
-    for (cpp = msg_queue_names; *cpp != 0; cpp++) {
-	if (!mail_open_ok(*cpp, queue_id, &st, &path)) {
+    for (msg_qpp = msg_queue_names; *msg_qpp != 0; msg_qpp++) {
+	if (!mail_open_ok(*msg_qpp, queue_id, &st, &msg_path))
 	    continue;
-	} else if (unlink(path) == 0) {
+	for (log_qpp = log_queue_names; *log_qpp != 0; log_qpp++)
+	    (void) mail_queue_path(log_path_buf, *log_qpp, queue_id);
+	if (unlink(STR(log_path_buf)) < 0 && errno != ENOENT)
+	    msg_warn("remove file %s: %m", STR(log_path_buf));
+	if (unlink(msg_path) == 0) {
 	    found = 1;
-	    msg_info("removed file %s", path);
+	    msg_info("removed file %s", msg_path);
 	    break;
-	} else if (errno != ENOENT) {
-	    msg_warn("remove file %s: %m", path);
+	}
+	if (errno != ENOENT) {
+	    msg_warn("remove file %s: %m", msg_path);
 	} else if (msg_verbose) {
-	    msg_info("remove file %s: %m", path);
+	    msg_info("remove file %s: %m", msg_path);
 	}
     }
+    vstring_free(log_path_buf);
     return (found);
 }
 

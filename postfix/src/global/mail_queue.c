@@ -378,6 +378,13 @@ VSTREAM *mail_queue_enter(const char *queue_name, int mode)
     file_id = get_file_id(fd);
     GETTIMEOFDAY(&tv);
 
+    /*
+     * XXX Some systems seem to have clocks that correlate with process
+     * scheduling or something. Unfortunately, we cannot add random
+     * quantities to the time, because the non-inode part of a queue ID must
+     * not repeat within the same second. The queue ID is the sole thing that
+     * prevents multiple messages from getting the same Message-ID value.
+     */
     for (count = 0;; count++) {
 	vstring_sprintf(id_buf, "%05X%s", (int) tv.tv_usec, file_id);
 	mail_queue_path(path_buf, queue_name, STR(id_buf));

@@ -6,17 +6,15 @@
 /* SYNOPSIS
 /*	#include <post_mail.h>
 /*
-/*	VSTREAM	*post_mail_fopen(sender, recipient, flags, via)
+/*	VSTREAM	*post_mail_fopen(sender, recipient, flags)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	flags;
-/*	const char *via;
 /*
-/*	VSTREAM	*post_mail_fopen_nowait(sender, recipient, flags, via)
+/*	VSTREAM	*post_mail_fopen_nowait(sender, recipient, flags)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	flags;
-/*	const char *via;
 /*
 /*	int	post_mail_fprintf(stream, format, ...)
 /*	VSTREAM	*stream;
@@ -132,7 +130,7 @@
 /* post_mail_init - initial negotiations */
 
 static void post_mail_init(VSTREAM *stream, const char *sender,
-		          const char *recipient, int flags, const char *via)
+			           const char *recipient, int flags)
 {
     VSTRING *id = vstring_alloc(100);
     long    now = time((time_t *) 0);
@@ -158,8 +156,8 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
      * Do the Received: and Date: header lines. This allows us to shave a few
      * cycles by using the expensive date conversion result for both.
      */
-    post_mail_fprintf(stream, "Received: by %s (%s) via %s",
-		      var_myhostname, var_mail_name, via);
+    post_mail_fprintf(stream, "Received: by %s (%s)",
+		      var_myhostname, var_mail_name);
     post_mail_fprintf(stream, "\tid %s; %s", vstring_str(id), date);
     post_mail_fprintf(stream, "Date: %s", date);
     vstring_free(id);
@@ -167,26 +165,25 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 
 /* post_mail_fopen - prepare for posting a message */
 
-VSTREAM *post_mail_fopen(const char *sender, const char *recipient,
-			         int flags, const char *via)
+VSTREAM *post_mail_fopen(const char *sender, const char *recipient, int flags)
 {
     VSTREAM *stream;
 
     stream = mail_connect_wait(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
-    post_mail_init(stream, sender, recipient, flags, via);
+    post_mail_init(stream, sender, recipient, flags);
     return (stream);
 }
 
 /* post_mail_fopen_nowait - prepare for posting a message */
 
 VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
-				        int flags, const char *via)
+				        int flags)
 {
     VSTREAM *stream;
 
     if ((stream = mail_connect(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP,
 			       BLOCKING)) != 0)
-	post_mail_init(stream, sender, recipient, flags, via);
+	post_mail_init(stream, sender, recipient, flags);
     return (stream);
 }
 

@@ -12,7 +12,7 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c maps.c \
 	mark_corrupt.c mkmap_db.c mkmap_dbm.c mkmap_open.c mynetworks.c \
 	mypwd.c namadr_list.c off_cvt.c opened.c own_inet_addr.c \
-	peer_name.c pipe_command.c post_mail.c quote_821_local.c \
+	pipe_command.c post_mail.c quote_821_local.c \
 	quote_822_local.c rec_streamlf.c rec_type.c recipient_list.c \
 	record.c remove.c resolve_clnt.c resolve_local.c rewrite_clnt.c \
 	sent.c smtp_stream.c split_addr.c string_list.c sys_exits.c \
@@ -32,7 +32,7 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o maps.o \
 	mark_corrupt.o mkmap_db.o mkmap_dbm.o mkmap_open.o mynetworks.o \
 	mypwd.o namadr_list.o off_cvt.o opened.o own_inet_addr.o \
-	peer_name.o pipe_command.o post_mail.o quote_821_local.o \
+	pipe_command.o post_mail.o quote_821_local.o \
 	quote_822_local.o rec_streamlf.o rec_type.o recipient_list.o \
 	record.o remove.o resolve_clnt.o resolve_local.o rewrite_clnt.o \
 	sent.o smtp_stream.o split_addr.o string_list.o sys_exits.o \
@@ -49,7 +49,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h mail_stream.h \
 	mail_task.h mail_version.h maps.h mark_corrupt.h mkmap.h \
 	mynetworks.h mypwd.h namadr_list.h off_cvt.h opened.h \
-	own_inet_addr.h peer_name.h pipe_command.h post_mail.h \
+	own_inet_addr.h pipe_command.h post_mail.h \
 	quote_821_local.h quote_822_local.h rec_streamlf.h rec_type.h \
 	recipient_list.h record.h resolve_clnt.h resolve_local.h \
 	rewrite_clnt.h sent.h smtp_stream.h split_addr.h string_list.h \
@@ -65,7 +65,7 @@ INCL	=
 LIB	= libglobal.a
 TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
-	off_cvt peer_name quote_822_local rec2stream recdump resolve_clnt \
+	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time
 

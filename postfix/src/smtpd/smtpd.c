@@ -311,8 +311,6 @@ int     var_smtpd_soft_erlim;
 int     var_smtpd_hard_erlim;
 int     var_queue_minfree;		/* XXX use off_t */
 char   *var_smtpd_banner;
-char   *var_debug_peer_list;
-int     var_debug_peer_level;
 char   *var_notify_classes;
 char   *var_client_checks;
 char   *var_helo_checks;
@@ -416,6 +414,11 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *err;
 
+    /*
+     * XXX 2821 new feature: Section 4.1.4 specifies that a server must clear
+     * all buffers and reset the state exactly as if a RSET command had been
+     * issued.
+     */
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: EHLO hostname");
@@ -423,7 +426,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (state->helo_name != 0)
 	helo_reset(state);
-#if 0
+#ifndef RFC821_SYNTAX
     mail_reset(state);
     rcpt_reset(state);
 #endif
@@ -444,6 +447,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 (unsigned long) var_message_limit);	/* XXX */
     else
 	smtpd_chat_reply(state, "250-SIZE");
+    if (var_disable_vrfy_cmd == 0)
+	smtpd_chat_reply(state, "250-VRFY");
     smtpd_chat_reply(state, "250-ETRN");
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable) {
@@ -470,6 +475,18 @@ static void helo_reset(SMTPD_STATE *state)
 static void mail_open_stream(SMTPD_STATE *state)
 {
     char   *postdrop_command;
+
+    /*
+     * XXX 2821: An SMTP server is not allowed to "clean up" mail except in
+     * the case of original submissions. Presently, Postfix always runs all
+     * mail through the cleanup server.
+     * 
+     * We could approximate the RFC as follows: Postfix rewrites mail if it
+     * comes from a source that we are willing to relay for. This way, we
+     * avoid rewriting most mail that comes from elsewhere. However, that
+     * requires moving functionality away from the cleanup daemon elsewhere,
+     * such as virtual address expansion, and header/body pattern matching.
+     */
 
     /*
      * If running from the master or from inetd, connect to the cleanup
@@ -613,6 +630,12 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * Sanity checks. XXX Ignore bad SIZE= values until we can reliably and
      * portably detect overflows while converting from string to off_t.
+     * 
+     * XXX 2821 pedantism: Section 4.1.2 says that SMTP servers that receive a
+     * command in which invalid character codes have been employed, and for
+     * which there are no other reasons for rejection, MUST reject that
+     * command with a 501 response. So much for the principle of "be liberal
+     * in what you accept, be strict in what you send".
      */
     if (var_helo_required && state->helo_name == 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -746,6 +769,12 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
     /*
      * Sanity checks.
+     * 
+     * XXX 2821 pedantism: Section 4.1.2 says that SMTP servers that receive a
+     * command in which invalid character codes have been employed, and for
+     * which there are no other reasons for rejection, MUST reject that
+     * command with a 501 response. So much for the principle of "be liberal
+     * in what you accept, be strict in what you send".
      */
     if (state->cleanup == 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1024,6 +1053,15 @@ static int noop_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
 
     /*
+     * XXX 2821 incompatibility: Section 4.1.1.9 says that NOOP can have a
+     * parameter string which is to be ignored. NOOP instructions with
+     * parameters? Go figure.
+     * 
+     * RFC 2821 violates RFC 821, which says that NOOP takes no parameters.
+     */
+#ifdef RFC821_SYNTAX
+
+    /*
      * Sanity checks.
      */
     if (argc != 1) {
@@ -1031,6 +1069,7 @@ static int noop_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "501 Syntax: NOOP");
 	return (-1);
     }
+#endif
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -1051,6 +1090,17 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * address forms. Therefore we must parse out the address, or we must
      * stop doing recipient restriction checks and lose the opportunity to
      * say "user unknown" at the SMTP port.
+     * 
+     * XXX 2821 incompatibility and brain damage: Section 4.5.1 requires that
+     * VRFY is implemented. RFC 821 specifies that VRFY is optional. It gets
+     * even worse: section 3.5.3 says that a 502 (command recognized but not
+     * implemented) reply is not fully compliant.
+     * 
+     * Thus, an RFC 2821 compliant implementation cannot refuse to supply
+     * information in reply to VRFY queries. That is simply bogus. The only
+     * reply we could supply is a generic 252 reply. This causes spammers to
+     * add tons of bogus addresses to their mailing lists (spam harvesting by
+     * trying out large lists of potential recipient names with VRFY).
      */
 #define SLOPPY	0
 
@@ -1076,7 +1126,17 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    smtpd_chat_reply(state, "252 <%s>", argv[1].strval);
+
+    /*
+     * XXX 2821 new feature: Section 3.5.1 requires that the VRFY response is
+     * either "full name <user@domain>" or "user@domain". Postfix replies
+     * with the address that was provided by the client, whether or not it is
+     * in fully qualified domain form or not.
+     * 
+     * Reply code 250 is reserved for the case where the address is verified;
+     * reply code 252 should be used when no definitive certainty exists.
+     */
+    smtpd_chat_reply(state, "252 %s", argv[1].strval);
     return (0);
 }
 
@@ -1256,7 +1316,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 		continue;
 	    }
 	    if (state->access_denied && cmdp->action != quit_cmd) {
-		smtpd_chat_reply(state, "%s", state->access_denied);
+		smtpd_chat_reply(state, "503 Error: access denied for %s",
+				 state->namaddr);	/* RFC 2821 Sec 3.1 */
 		state->error_count++;
 		continue;
 	    }
@@ -1445,7 +1506,6 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SOFT_ERLIM, DEF_SMTPD_SOFT_ERLIM, &var_smtpd_soft_erlim, 1, 0,
 	VAR_SMTPD_HARD_ERLIM, DEF_SMTPD_HARD_ERLIM, &var_smtpd_hard_erlim, 1, 0,
 	VAR_QUEUE_MINFREE, DEF_QUEUE_MINFREE, &var_queue_minfree, 0, 0,
-	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
 	VAR_UNK_CLIENT_CODE, DEF_UNK_CLIENT_CODE, &var_unk_client_code, 0, 0,
 	VAR_BAD_NAME_CODE, DEF_BAD_NAME_CODE, &var_bad_name_code, 0, 0,
 	VAR_UNK_NAME_CODE, DEF_UNK_NAME_CODE, &var_unk_name_code, 0, 0,
@@ -1475,7 +1535,6 @@ int     main(int argc, char **argv)
     };
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
-	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
 	VAR_CLIENT_CHECKS, DEF_CLIENT_CHECKS, &var_client_checks, 0, 0,
 	VAR_HELO_CHECKS, DEF_HELO_CHECKS, &var_helo_checks, 0, 0,
