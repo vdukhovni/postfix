@@ -38,6 +38,9 @@
 #       off in the second cleanup server. More info about content
 #	filtering is in the Postfix FILTER_README file. This feature
 #	overrides the main.cf content_filter setting.
+# REDIRECT user@domain
+#	Send the message to the specified address instead of the
+#	intended recipient(s). This feature overrides the FILTER action.
 #
 # By default, these patterns apply the primary message headers, to
 # MIME headers, and to the headers of attached messages. With older
@@ -82,6 +85,9 @@ header_checks = regexp:/etc/postfix/header_checks
 #       off in the second cleanup server. More info about content
 #	filtering is in the Postfix FILTER_README file. This feature
 #	overrides the main.cf content_filter setting.
+# REDIRECT user@domain
+#	Send the message to the specified address instead of the
+#	intended recipient(s). This feature overrides the FILTER action.
 #
 # By default, the same patterns are applied as for header_checks.
 #

@@ -67,6 +67,7 @@ typedef struct CLEANUP_STATE {
     MIME_STATE *mime_state;		/* MIME state engine */
     int     mime_errs;			/* MIME error flags */
     char   *filter;			/* from header/body patterns */
+    char   *redirect;			/* from header/body patterns */
 } CLEANUP_STATE;
 
  /*

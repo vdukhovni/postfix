@@ -164,8 +164,17 @@
 #               about  content  filters  is  in  the  Postfix  FIL-
 #               TER_README file.
 # 
-#               Note:  this action currently affects all recipients
-#               of the message.
+#               Note:   this  action  overrides  the  main.cf  con-
+#               tent_filter  setting,  and  currently  affects  all
+#               recipients of the message.
+# 
+#        REDIRECT user@domain
+#               After  the  message  is queued, send the message to
+#               the  specified  address  instead  of  the  intended
+#               recipient(s).
+# 
+#               Note:  this action overrides the FILTER action, and
+#               currently affects all recipients of the message.
 # 
 #        restriction...
 #               Apply the named UCE restriction(s) (permit, reject,

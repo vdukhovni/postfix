@@ -300,7 +300,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *peer, QMGR_MESSAGE *message)
 	    && (now = event_time()) >= queue->clog_time_to_warn) {
 	    active_share = queue_length / (double) qmgr_message_count;
 	    msg_warn("mail for %s is using up %d of %d active queue entries",
-		     queue->name, queue_length, qmgr_message_count);
+		     queue->nexthop, queue_length, qmgr_message_count);
 	    if (active_share < 0.9)
 		msg_warn("this may slow down other mail deliveries");
 	    transport = queue->transport;
@@ -314,7 +314,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *peer, QMGR_MESSAGE *message)
 			 VAR_QMGR_ACT_LIMIT, var_qmgr_active_limit);
 	    else if (queue->peers.next != queue->peers.prev)
 		msg_warn("you may need a separate master.cf transport for %s",
-			 queue->name);
+			 queue->nexthop);
 	    else {
 		msg_warn("you may need to reduce %s connect and helo timeouts",
 			 transport->name);

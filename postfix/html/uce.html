@@ -168,6 +168,11 @@ off in the second cleanup server. More details about content
 filtering are in the Postfix FILTER_README file. This feature
 overrides the main.cf <b>content_filter</b> setting.
 
+<dt>REDIRECT <i>user</i>@<i>domain</i> <dd>
+After the message is queued, send the message to the
+specified address instead of the intended recipients.
+overrides the FILTER action.
+
 </dl>
 
 <p>
@@ -266,6 +271,11 @@ before and after the filter, with header/body checks turned
 off in the second cleanup server. More details about content
 filtering are in the Postfix FILTER_README file. This feature
 overrides the main.cf <b>content_filter</b> setting.
+
+<dt>REDIRECT <i>user</i>@<i>domain</i> <dd>
+After the message is queued, send the message to the 
+specified address instead of the intended recipients.
+overrides the FILTER action.
 
 </dl>
 

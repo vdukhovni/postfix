@@ -63,7 +63,7 @@
 #	Note: lookup of the null sender address is not possible with
 #	some types of lookup table. By default, Postfix uses \fB<>\fR
 #	as the lookup key for such addresses. The value is specified with
-#	the \fBsmtpd_null_access_lookup_key\fR parameter in the Postfix 
+#	the \fBsmtpd_null_access_lookup_key\fR parameter in the Postfix
 #	\fBmain.cf\fR file.
 # ADDRESS EXTENSION
 # .fi
@@ -100,8 +100,8 @@
 #	the numerical code and text.
 # .IP \fBREJECT\fR
 # .IP "\fBREJECT \fIoptional text...\fR
-#	Reject the address etc. that matches the pattern. Reply with 
-#	\fI$reject_code optional text...\fR when the optional text is 
+#	Reject the address etc. that matches the pattern. Reply with
+#	\fI$reject_code optional text...\fR when the optional text is
 #	specified, otherwise reply with a generic error response message.
 # .IP \fBOK\fR
 #	Accept the address etc. that matches the pattern.
@@ -136,7 +136,14 @@
 #       a content filter.  More information about content filters
 #	is in the Postfix FILTER_README file.
 # .sp
-#	Note: this action currently affects all recipients of the message.
+#	Note: this action overrides the \fBmain.cf content_filter\fR setting,
+#	and currently affects all recipients of the message.
+# .IP "\fBREDIRECT \fIuser@domain\fR"
+#	After the message is queued, send the message to the specified
+#       address instead of the intended recipient(s).
+# .sp
+#	Note: this action overrides the FILTER action, and currently affects
+#	all recipients of the message.
 # .IP \fIrestriction...\fR
 #	Apply the named UCE restriction(s) (\fBpermit\fR, \fBreject\fR,
 #	\fBreject_unauth_destination\fR, and so on).

@@ -140,7 +140,8 @@ struct QMGR_ENTRY_LIST {
 };
 
 struct QMGR_QUEUE {
-    char   *name;			/* domain name */
+    char   *name;			/* domain name or address */
+    char   *nexthop;			/* domain name */
     int     todo_refcount;		/* queue entries (todo list) */
     int     busy_refcount;		/* queue entries (busy list) */
     int     window;			/* slow open algorithm */
@@ -157,7 +158,7 @@ struct QMGR_QUEUE {
 
 extern int qmgr_queue_count;
 
-extern QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *, const char *);
+extern QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *, const char *, const char *);
 extern QMGR_QUEUE *qmgr_queue_select(QMGR_TRANSPORT *);
 extern void qmgr_queue_done(QMGR_QUEUE *);
 extern void qmgr_queue_throttle(QMGR_QUEUE *, const char *);
@@ -231,6 +232,7 @@ struct QMGR_MESSAGE {
     char   *return_receipt;		/* confirm receipt address */
     char   *filter_xport;		/* filtering transport */
     char   *inspect_xport;		/* inspecting transport */
+    char   *redirect_addr;		/* info@spammer.tld */
     long    data_size;			/* message content size */
     long    rcpt_offset;		/* more recipients here */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */

@@ -322,8 +322,8 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	} else {
 	    if (state->filter)
 		myfree(state->filter);
-	    /* XXX should log something? */
 	    state->filter = mystrdup(optional_text);
+	    cleanup_act_log(state, "filter", context, buf, optional_text);
 	}
 	return (CLEANUP_ACT_KEEP);
     }
@@ -336,6 +336,19 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
     if (STREQUAL(value, "HOLD", command_len)) {
 	cleanup_act_log(state, "hold", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_HOLD;
+	return (CLEANUP_ACT_KEEP);
+    }
+    if (STREQUAL(value, "REDIRECT", command_len)) {
+	if (strchr(optional_text, '@') == 0) {
+	    msg_warn("bad REDIRECT target \"%s\" in %s map, need user@domain",
+		     optional_text, map_class);
+	} else {
+	    if (state->redirect)
+		myfree(state->redirect);
+	    state->redirect = mystrdup(optional_text);
+	    cleanup_act_log(state, "redirect", context, buf, optional_text);
+	    state->flags &= ~CLEANUP_FLAG_FILTER;
+	}
 	return (CLEANUP_ACT_KEEP);
     }
     if (*optional_text)

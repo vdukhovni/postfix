@@ -43,7 +43,11 @@
 #       After the message is queued, send the entire message through
 #       a content filter. This requires different cleanup servers
 #       before and after the filter, with header/body checks turned
-#       off in the second cleanup server.
+#       off in the second cleanup server. This overrides the main.cf
+#	content filter setting.
+# REDIRECT user@domain
+#	Send the message to the specified address instead of the
+#	intended recipient(s). This overrides the FILTER action.
 
 /^Subject: Make Money Fast/	REJECT
 /^To: friend@public.com/	REJECT

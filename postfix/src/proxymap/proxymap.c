@@ -149,14 +149,14 @@
 char   *var_local_rcpt_maps;
 char   *var_virt_alias_maps;
 char   *var_virt_alias_doms;
-char   *var_virt_mbox_maps;
-char   *var_virt_mbox_doms;
+char   *var_virt_mailbox_maps;
+char   *var_virt_mailbox_doms;
 char   *var_relay_rcpt_maps;
 char   *var_relay_domains;
 char   *var_canonical_maps;
 char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;
-char   *var_relocatedmaps;
+char   *var_relocated_maps;
 char   *var_transport_maps;
 char   *var_proxy_read_maps;
 
@@ -385,14 +385,14 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
 	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
-	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mbox_maps, 0, 0,
-	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mbox_doms, 0, 0,
+	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
+	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms, 0, 0,
 	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
 	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
 	VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
-	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocatedmaps, 0, 0,
+	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
 	VAR_PROXY_READ_MAPS, DEF_PROXY_READ_MAPS, &var_proxy_read_maps, 0, 0,
 	0,

@@ -22,6 +22,27 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.3-20030125
+=========================================================
+
+This release adds a new queue file record type for the address
+specified in "REDIRECT user@domain" actions in access maps or
+header/body_checks.
+
+Major changes with Postfix snapshot 2.0.3-20030125
+==================================================
+
+Code cleanup up of queue manager internals. Queue names are no
+longer mixed up with the next-hop destination, and the address
+resolver loop is now easier to understand.
+
+New "REDIRECT user@domain" action for access maps and header/body_checks
+that overrides all the originally specified recipients of a message.
+I would never recommend that people use this to redirect (bounced)
+SPAM to the beneficiaries of an advertisement campaign. It would
+have helped when someone began spamming the network with sender
+addresses in one of my domains, and I got all the bounces.
+
 Incompatible changes with Postfix snapshot 2.0.1-20030112
 =========================================================
 

@@ -7796,6 +7796,22 @@ Apologies for any names omitted.
 	Postfix now uses TIME.DEVICE_INODE.HOST. Files: local/maildir.c,
 	virtual/maildir.c.
 
+20030124
+
+	Cleanup: queue structures no longer overload queue name
+	and nexthop destination. Files: *qmgr/qmgr_message.c,
+	*qmgr/qmgr_queue.c, *qmgr/qmgr_deliver.c.
+
+20030125
+
+	Feature: "REDIRECT user@domain" action in access maps or
+	in header/body_checks causes mail to be sent to the specified
+	address instead of the intended recipient(s). I would never
+	recommend that people use this to redirect (bounced) SPAM
+	to the beneficiaries of an advertisement campaign.  Files:
+	smtpd/smtpd_check.c, cleanup/cleanup_message.c,
+	*qmgr/qmgr_message.c.
+
 Open problems:
 
 	Med: make qmgr recipient bounce/defer activity asynchronous

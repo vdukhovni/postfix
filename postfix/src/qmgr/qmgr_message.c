@@ -115,6 +115,7 @@
 
 /* Client stubs. */
 
+#include <rewrite_clnt.h>
 #include <resolve_clnt.h>
 
 /* Application-specific. */
@@ -149,6 +150,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->return_receipt = 0;
     message->filter_xport = 0;
     message->inspect_xport = 0;
+    message->redirect_addr = 0;
     message->data_size = 0;
     message->warn_offset = 0;
     message->warn_time = 0;
@@ -266,6 +268,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->inspect_xport != 0)
 		myfree(message->inspect_xport);
 	    message->inspect_xport = mystrdup(start);
+	} else if (rec_type == REC_TYPE_RDR) {
+	    if (message->redirect_addr != 0)
+		myfree(message->redirect_addr);
+	    message->redirect_addr = mystrdup(start);
 	} else if (rec_type == REC_TYPE_FROM) {
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
@@ -452,14 +458,14 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
 	/*
 	 * Compare message transport.
 	 */
-	if ((result = strcasecmp(queue1->transport->name,
-				 queue2->transport->name)) != 0)
+	if ((result = strcmp(queue1->transport->name,
+			     queue2->transport->name)) != 0)
 	    return (result);
 
 	/*
-	 * Compare next-hop hostname.
+	 * Compare queue name (nexthop or recipient@nexthop).
 	 */
-	if ((result = strcasecmp(queue1->name, queue2->name)) != 0)
+	if ((result = strcmp(queue1->name, queue2->name)) != 0)
 	    return (result);
     }
 
@@ -499,6 +505,24 @@ static void qmgr_message_sort(QMGR_MESSAGE *message)
     }
 }
 
+/* qmgr_resolve_one - resolve or skip one recipient */
+
+static int qmgr_resolve_one(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
+			            const char *addr, RESOLVE_REPLY *reply)
+{
+    resolve_clnt_query(addr, reply);
+    if (reply->flags & RESOLVE_FLAG_FAIL) {
+	qmgr_defer_recipient(message, recipient, "address resolver failure");
+	return (-1);
+    } else if (reply->flags & RESOLVE_FLAG_ERROR) {
+	qmgr_bounce_recipient(message, recipient,
+			      "bad address syntax: \"%s\"", addr);
+	return (-1);
+    } else {
+	return (0);
+    }
+}
+
 /* qmgr_message_resolve - resolve recipients */
 
 static void qmgr_message_resolve(QMGR_MESSAGE *message)
@@ -509,6 +533,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     QMGR_TRANSPORT *transport = 0;
     QMGR_QUEUE *queue = 0;
     RESOLVE_REPLY reply;
+    VSTRING *queue_name;
     char   *at;
     char  **cpp;
     char   *nexthop;
@@ -521,62 +546,74 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 #define UPDATE(ptr,new)	{ myfree(ptr); ptr = mystrdup(new); }
 
     resolve_clnt_init(&reply);
+    queue_name = vstring_alloc(1);
     for (recipient = list.info; recipient < list.info + list.len; recipient++) {
 
 	/*
-	 * Resolve the destination to (transport, nexthop, address). The
-	 * result address may differ from the one specified by the sender.
+	 * Redirect overrides all else. But only once (per batch of
+	 * recipients). For consistency with the remainder of Postfix,
+	 * rewrite the address to canonical form before resolving it.
 	 */
-	if (var_sender_routing == 0) {
-	    resolve_clnt_query(recipient->address, &reply);
-	    if (reply.flags & RESOLVE_FLAG_FAIL) {
-		qmgr_defer_recipient(message, recipient,
-				     "address resolver failure");
+	if (message->redirect_addr) {
+	    if (recipient > list.info) {
+		recipient->queue = 0;
 		continue;
 	    }
-	    if (reply.flags & RESOLVE_FLAG_ERROR) {
-		qmgr_bounce_recipient(message, recipient,
-				      "bad address syntax: \"%s\"",
-				      recipient->address);
+	    rewrite_clnt_internal(REWRITE_CANON, message->redirect_addr,
+				  reply.recipient);
+	    UPDATE(recipient->address, STR(reply.recipient));
+	    if (qmgr_resolve_one(message, recipient,
+				 recipient->address, &reply) < 0)
 		continue;
-	    }
-	} else {
-	    resolve_clnt_query(message->sender, &reply);
-	    if (reply.flags & RESOLVE_FLAG_FAIL) {
-		qmgr_defer_recipient(message, recipient,
-				     "address resolver failure");
-		continue;
-	    }
-	    if (reply.flags & RESOLVE_FLAG_ERROR) {
-		qmgr_bounce_recipient(message, recipient,
-				      "bad address syntax: \"%s\"",
-				      message->sender);
-		continue;
-	    }
-	    vstring_strcpy(reply.recipient, recipient->address);
+	    if (!STREQ(recipient->address, STR(reply.recipient)))
+		UPDATE(recipient->address, STR(reply.recipient));
 	}
-	if (message->filter_xport) {
+
+	/*
+	 * Content filtering overrides the address resolver.
+	 */
+	else if (message->filter_xport) {
 	    vstring_strcpy(reply.transport, message->filter_xport);
 	    if ((nexthop = split_at(STR(reply.transport), ':')) == 0
 		|| *nexthop == 0)
 		nexthop = var_myhostname;
 	    vstring_strcpy(reply.nexthop, nexthop);
-	} else {
+	    vstring_strcpy(reply.recipient, recipient->address);
+	}
+
+	/*
+	 * Resolve the destination to (transport, nexthop, address). The
+	 * result address may differ from the one specified by the sender.
+	 */
+	else if (var_sender_routing == 0) {
+	    if (qmgr_resolve_one(message, recipient,
+				 recipient->address, &reply) < 0)
+		continue;
 	    if (!STREQ(recipient->address, STR(reply.recipient)))
 		UPDATE(recipient->address, STR(reply.recipient));
 	}
+
+	/*
+	 * XXX Sender-based routing does not work very well, because it has
+	 * problems with sending bounces.
+	 */
+	else {
+	    if (qmgr_resolve_one(message, recipient,
+				 message->sender, &reply) < 0)
+		continue;
+	    vstring_strcpy(reply.recipient, recipient->address);
+	}
+
+	/*
+	 * Bounce null recipients. This should never happen, but is most
+	 * likely the result of a fault in a different program, so aborting
+	 * the queue manager process does not help.
+	 */
 	if (recipient->address[0] == 0) {
 	    qmgr_bounce_recipient(message, recipient,
 				  "null recipient address");
 	    continue;
 	}
-
-	/*
-	 * XXX The nexthop destination is also used as lookup key for the
-	 * per-destination queue. Fold the nexthop to lower case so that we
-	 * don't have multiple queues for the same site.
-	 */
-	lowercase(STR(reply.nexthop));
 
 	/*
 	 * Bounce recipient addresses that start with `-'. External commands
@@ -597,46 +634,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
-	 * Queues are identified by the transport name and by the next-hop
-	 * hostname. When the delivery agent accepts only one recipient per
-	 * delivery, give each recipient its own queue, so that deliveries to
-	 * different recipients of the same message can happen in parallel.
-	 * This also has the benefit that one bad recipient cannot interfere
-	 * with deliveries to other recipients. XXX Should split the address
-	 * on the recipient delimiter if one is defined, but doing a proper
-	 * job requires knowledge of local aliases. Yuck! I don't want to
-	 * duplicate delivery-agent specific knowledge in the queue manager.
-	 * 
-	 * XXX The nexthop field is overloaded to serve as destination and as
-	 * queue name. Should have separate fields for queue name and for
-	 * destination, so that we don't have to make a special case for the
-	 * error delivery agent (where nexthop is arbitrary text). See also:
-	 * qmgr_deliver.c.
-	 */
-	at = strrchr(STR(reply.recipient), '@');
-	len = (at ? (at - STR(reply.recipient)) : strlen(STR(reply.recipient)));
-
-	/*
-	 * Look up or instantiate the proper transport. We're working a
-	 * little ahead, doing queue management stuff that used to be done
-	 * way down.
-	 */
-	if (transport == 0 || !STREQ(transport->name, STR(reply.transport))) {
-	    if ((transport = qmgr_transport_find(STR(reply.transport))) == 0)
-		transport = qmgr_transport_create(STR(reply.transport));
-	    queue = 0;
-	}
-	if (strcmp(transport->name, MAIL_SERVICE_ERROR) != 0
-	    && transport->recipient_limit == 1) {
-	    VSTRING_SPACE(reply.nexthop, len + 2);
-	    memmove(STR(reply.nexthop) + len + 1, STR(reply.nexthop),
-		    LEN(reply.nexthop) + 1);
-	    memcpy(STR(reply.nexthop), STR(reply.recipient), len);
-	    STR(reply.nexthop)[len] = '@';
-	    lowercase(STR(reply.nexthop));
-	}
-
-	/*
 	 * Discard mail to the local double bounce address here, so this
 	 * system can run without a local delivery agent. They'd still have
 	 * to configure something for mail directed to the local postmaster,
@@ -646,6 +643,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * be directed to a general-purpose null delivery agent.
 	 */
 	if (reply.flags & RESOLVE_CLASS_LOCAL) {
+	    at = strrchr(STR(reply.recipient), '@');
+	    len = (at ? (at - STR(reply.recipient))
+		   : strlen(STR(reply.recipient)));
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {
@@ -679,16 +679,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
-	 * XXX Gross hack alert. We want to group recipients by transport and
-	 * by next-hop hostname, in order to minimize the number of network
-	 * transactions. However, it would be wasteful to have an in-memory
-	 * resolver reply structure for each in-core recipient. Instead, we
-	 * bind each recipient to an in-core queue instance which is needed
-	 * anyway. That gives all information needed for recipient grouping.
-	 */
-#if 0
-
-	/*
 	 * Look up or instantiate the proper transport.
 	 */
 	if (transport == 0 || !STREQ(transport->name, STR(reply.transport))) {
@@ -696,7 +686,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		transport = qmgr_transport_create(STR(reply.transport));
 	    queue = 0;
 	}
-#endif
 
 	/*
 	 * This transport is dead. Defer delivery to this recipient.
@@ -707,12 +696,49 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
+	 * The nexthop destination provides the default name for the
+	 * per-destination queue. When the delivery agent accepts only one
+	 * recipient per delivery, give each recipient its own queue, so that
+	 * deliveries to different recipients of the same message can happen
+	 * in parallel, and so that we can enforce per-recipient concurrency
+	 * limits and prevent one recipient from tying up all the delivery
+	 * agent resources. We use recipient@nexthop as queue name rather
+	 * than the actual recipient domain name, so that one recipient in
+	 * multiple equivalent domains cannot evade the per-recipient
+	 * concurrency limit. XXX Should split the address on the recipient
+	 * delimiter if one is defined, but doing a proper job requires
+	 * knowledge of local aliases. Yuck! I don't want to duplicate
+	 * delivery-agent specific knowledge in the queue manager.
+	 * 
+	 * Fold the result to lower case so that we don't have multiple queues
+	 * for the same name.
+	 * 
+	 * Important! All recipients in a queue must have the same nexthop
+	 * value. It is OK to have multiple queues with the same nexthop
+	 * value, but only when those queues are named after recipients.
+	 */
+	vstring_strcpy(queue_name, STR(reply.nexthop));
+	if (strcmp(transport->name, MAIL_SERVICE_ERROR) != 0
+	    && transport->recipient_limit == 1) {
+	    at = strrchr(STR(reply.recipient), '@');
+	    len = (at ? (at - STR(reply.recipient))
+		   : strlen(STR(reply.recipient)));
+	    VSTRING_SPACE(queue_name, len + 2);
+	    memmove(STR(queue_name) + len + 1, STR(queue_name),
+		    LEN(queue_name) + 1);
+	    memcpy(STR(queue_name), STR(reply.recipient), len);
+	    STR(queue_name)[len] = '@';
+	}
+	lowercase(STR(queue_name));
+
+	/*
 	 * This transport is alive. Find or instantiate a queue for this
 	 * recipient.
 	 */
-	if (queue == 0 || !STREQ(queue->name, STR(reply.nexthop))) {
-	    if ((queue = qmgr_queue_find(transport, STR(reply.nexthop))) == 0)
-		queue = qmgr_queue_create(transport, STR(reply.nexthop));
+	if (queue == 0 || !STREQ(queue->name, STR(queue_name))) {
+	    if ((queue = qmgr_queue_find(transport, STR(queue_name))) == 0)
+		queue = qmgr_queue_create(transport, STR(queue_name),
+					  STR(reply.nexthop));
 	}
 
 	/*
@@ -729,6 +755,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	recipient->queue = queue;
     }
     resolve_clnt_free(&reply);
+    vstring_free(queue_name);
 }
 
 /* qmgr_message_assign - assign recipients to specific delivery requests */
@@ -791,6 +818,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->filter_xport);
     if (message->inspect_xport)
 	myfree(message->inspect_xport);
+    if (message->redirect_addr)
+	myfree(message->redirect_addr);
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);

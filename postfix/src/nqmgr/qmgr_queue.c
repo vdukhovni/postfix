@@ -8,16 +8,17 @@
 /*
 /*	int	qmgr_queue_count;
 /*
-/*	QMGR_QUEUE *qmgr_queue_create(transport, site)
+/*	QMGR_QUEUE *qmgr_queue_create(transport, name, nexthop)
 /*	QMGR_TRANSPORT *transport;
-/*	const char *site;
+/*	const char *name;
+/*	const char *nexthop;
 /*
 /*	void	qmgr_queue_done(queue)
 /*	QMGR_QUEUE *queue;
 /*
-/*	QMGR_QUEUE *qmgr_queue_find(transport, site)
+/*	QMGR_QUEUE *qmgr_queue_find(transport, name)
 /*	QMGR_TRANSPORT *transport;
-/*	const char *site;
+/*	const char *name;
 /*
 /*	void	qmgr_queue_throttle(queue, reason)
 /*	QMGR_QUEUE *queue;
@@ -34,7 +35,7 @@
 /*	qmgr_queue_count is a global counter for the total number
 /*	of in-core queue structures.
 /*
-/*	qmgr_queue_create() creates an empty queue for the named
+/*	qmgr_queue_create() creates an empty named queue for the named
 /*	transport and destination. The queue is given an initial
 /*	concurrency limit as specified with the
 /*	\fIinitial_destination_concurrency\fR configuration parameter,
@@ -45,9 +46,8 @@
 /*	its entries have been taken care of. It is an error to dispose
 /*	of a dead queue.
 /*
-/*	qmgr_queue_find() looks up the queue for the named destination
-/*	for the named transport. A null result means that the queue
-/*	was not found.
+/*	qmgr_queue_find() looks up the named queue for the named
+/*	transport. A null result means that the queue was not found.
 /*
 /*	qmgr_queue_throttle() handles a delivery error, and decrements the
 /*	concurrency limit for the destination. When the concurrency limit
@@ -212,13 +212,15 @@ void    qmgr_queue_done(QMGR_QUEUE *queue)
     QMGR_LIST_UNLINK(transport->queue_list, QMGR_QUEUE *, queue, peers);
     htable_delete(transport->queue_byname, queue->name, (void (*) (char *)) 0);
     myfree(queue->name);
+    myfree(queue->nexthop);
     qmgr_queue_count--;
     myfree((char *) queue);
 }
 
 /* qmgr_queue_create - create in-core queue for site */
 
-QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *site)
+QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *name,
+			              const char *nexthop)
 {
     QMGR_QUEUE *queue;
 
@@ -229,7 +231,8 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *site)
 
     queue = (QMGR_QUEUE *) mymalloc(sizeof(QMGR_QUEUE));
     qmgr_queue_count++;
-    queue->name = mystrdup(site);
+    queue->name = mystrdup(name);
+    queue->nexthop = mystrdup(nexthop);
     queue->todo_refcount = 0;
     queue->busy_refcount = 0;
     queue->transport = transport;
@@ -240,13 +243,13 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *site)
     queue->clog_time_to_warn = 0;
     queue->blocker_tag = 0;
     QMGR_LIST_APPEND(transport->queue_list, queue, peers);
-    htable_enter(transport->queue_byname, site, (char *) queue);
+    htable_enter(transport->queue_byname, name, (char *) queue);
     return (queue);
 }
 
-/* qmgr_queue_find - find in-core queue for site */
+/* qmgr_queue_find - find in-core named queue */
 
-QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *transport, const char *site)
+QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *transport, const char *name)
 {
-    return ((QMGR_QUEUE *) htable_find(transport->queue_byname, site));
+    return ((QMGR_QUEUE *) htable_find(transport->queue_byname, name));
 }

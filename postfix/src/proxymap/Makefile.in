@@ -61,6 +61,8 @@ proxymap.o: ../../include/msg.h
 proxymap.o: ../../include/mymalloc.h
 proxymap.o: ../../include/vstring.h
 proxymap.o: ../../include/vbuf.h
+proxymap.o: ../../include/htable.h
+proxymap.o: ../../include/stringops.h
 proxymap.o: ../../include/dict.h
 proxymap.o: ../../include/vstream.h
 proxymap.o: ../../include/argv.h

@@ -37,6 +37,7 @@
 #define REC_TYPE_WARN	'W'		/* warning message time */
 #define REC_TYPE_ATTR	'A'		/* named attribute for extensions */
 
+#define REC_TYPE_RDR	'>'		/* redirect target */
 #define REC_TYPE_FLGS	'f'		/* cleanup processing flags */
 
 #define REC_TYPE_MESG	'M'		/* start message records */
@@ -64,9 +65,9 @@
   * allow for the presence of A records in the extracted segment, because it
   * can be requested to re-process already queued mail with `postsuper -r'.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA"
+#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA>"
 #define REC_TYPE_CONTENT	"XLN"
-#define REC_TYPE_EXTRACT	"EDROPreAFI"
+#define REC_TYPE_EXTRACT	"EDROPreAFI>"
 
  /*
   * The record at the beginning of the envelope segment specifies the message

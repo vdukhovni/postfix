@@ -90,6 +90,14 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
 	cleanup_out_string(state, REC_TYPE_FILT, state->filter);
 
     /*
+     * Output the optional redirect target address before the mandatory
+     * Return-Receipt-To and Errors-To queue file records so that the queue
+     * manager will pick up the address before starting deliveries.
+     */
+    if (state->redirect != 0)
+	cleanup_out_string(state, REC_TYPE_RDR, state->redirect);
+
+    /*
      * Older Postfix versions didn't emit encoding information, so this
      * record can only be optional. Putting this before the mandatory
      * Return-Receipt-To and Errors-To ensures that the queue manager will

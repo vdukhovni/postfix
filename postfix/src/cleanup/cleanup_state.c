@@ -92,6 +92,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->mime_state = 0;
     state->mime_errs = 0;
     state->filter = 0;
+    state->redirect = 0;
     return (state);
 }
 
@@ -131,5 +132,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	mime_state_free(state->mime_state);
     if (state->filter)
 	myfree(state->filter);
+    if (state->redirect)
+	myfree(state->redirect);
     myfree((char *) state);
 }

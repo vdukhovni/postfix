@@ -152,7 +152,14 @@ After the message is queued, send the entire message through
 a content filter.  More information about content filters
 is in the Postfix FILTER_README file.
 .sp
-Note: this action currently affects all recipients of the message.
+Note: this action overrides the \fBmain.cf content_filter\fR setting,
+and currently affects all recipients of the message.
+.IP "\fBREDIRECT \fIuser@domain\fR"
+After the message is queued, send the message to the specified
+address instead of the intended recipient(s).
+.sp
+Note: this action overrides the FILTER action, and currently affects
+all recipients of the message.
 .IP \fIrestriction...\fR
 Apply the named UCE restriction(s) (\fBpermit\fR, \fBreject\fR,
 \fBreject_unauth_destination\fR, and so on).
