@@ -9398,6 +9398,22 @@ Apologies for any names omitted.
 
 	Documentation: typo fixes by IKEDA Nozomu.
 
+20040616
+
+	Bugfix: one missed variadic argument list fix. Victor
+	Duchovni, Morgan Stanley. File: global/verify.c.
+
+	Bugfix: the resolver client cache should be context dependent
+	because address verification probes may use a different
+	route than normal mail deliveries. File: global/resolve_clnt.c.
+
+	Safety: added similar context dependence to the address
+	rewriting client in order to avoid trouble when Postfix is
+	changed. File: global/rewrite_clnt.c.
+
+	Bugfix: space in HELO commands could end up in XFORWARD
+	commands.  File: smtpd/smtpd.c.
+
 Open problems:
 
 	Low: make sure CCARGS -I options come at the end.
