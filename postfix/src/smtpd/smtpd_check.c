@@ -90,6 +90,9 @@
 /* .IP "check_recipient_access maptype:mapname"
 /*	Look up the resolved recipient address in the named access table,
 /*	any parent domains of the recipient domain, and the localpart@.
+/* .IP "check_recipient_maps"
+/*	Reject recipients not listed as valid local, virtual or relay
+/*	recipients.
 /* .IP reject_rbl_client rbl.domain.tld
 /*	Look up the reversed client network address in the specified
 /*	real-time blackhole DNS zone.  The \fIrbl_reply_maps\fR configuration
@@ -191,7 +194,8 @@
 /*	TO command.
 /* .PP
 /*	smtpd_check_rcptmap() validates the recipient address provided
-/*	with an RCPT TO request. Relevant configuration parameters:
+/*	with an RCPT TO request and sets the rcptmap_checked flag.
+/*	Relevant configuration parameters:
 /* .IP local_recipients_map
 /*	Tables of user names (not addresses) that exist in $mydestination.
 /*	Mail for local users not in these tables is rejected.
@@ -401,6 +405,11 @@ static VSTRING *expand_filter;
   * The routine that recursively applies restrictions.
   */
 static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, const char *);
+
+ /*
+  * Recipient table check.
+  */
+static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
 
  /*
   * Reject context.
@@ -2768,6 +2777,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		    status = reject_rbl_domain(state, *cpp, state->recipient,
 					       SMTPD_NAME_RECIPIENT);
 	    }
+	} else if (strcasecmp(name, CHECK_RCPT_MAPS) == 0) {
+	    if (state->recipient && *state->recipient)
+		status = check_rcpt_maps(state, state->recipient);
 	}
 
 	/*
@@ -2984,6 +2996,15 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     }
 
     /*
+     * The "check_recipient_maps" restriction is relevant only when
+     * responding to RCPT TO. It's effectively disabled with DATA (recipient
+     * context is explicitly turned off) and not applicable with undelayed
+     * client/helo/sender restrictions (no recipient info) or with ETRN
+     * (command not allowed in the middle of an ongoing MAIL transaction).
+     */
+    state->rcptmap_checked = 0;
+
+    /*
      * Apply delayed restrictions.
      */
     if (var_smtpd_delay_reject)
@@ -3005,7 +3026,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && rcpt_restrctions->argc)
-	status = generic_checks(state, rcpt_restrctions,
+	    status = generic_checks(state, rcpt_restrctions,
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
 
     /*
@@ -3085,30 +3106,33 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 {
     char   *myname = "smtpd_check_rcptmap";
-    char   *saved_recipient;
-    const RESOLVE_REPLY *reply;
     int     status;
 
-    /*
-     * XXX This module does a lot of unnecessary guessing. This functionality
-     * will eventually become part of the trivial-rewrite resolver, including
-     * the canonical and virtual mapping.
-     */
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
 
     /*
-     * Minor kluge so that we can delegate work to the generic routine and so
-     * that we can syslog the recipient with the reject messages.
-     */
-    SMTPD_CHECK_PUSH(saved_recipient, state->recipient, recipient);
-
-    /*
      * Return here in case of serious trouble.
      */
-    if ((status = setjmp(smtpd_check_buf)) != 0)
-	SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ?
-				STR(error_text) : 0);
+    if ((status = setjmp(smtpd_check_buf)) == 0)
+	status = check_rcpt_maps(state, recipient);
+
+    return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+}
+
+/* check_rcpt_maps - generic_checks() interface for recipient table check */
+
+static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
+{
+    const RESOLVE_REPLY *reply;
+
+    /*
+     * Duplicate suppression. There's an implicit check_recipient_maps
+     * restriction at the end of all recipient restrictions.
+     */
+    if (state->rcptmap_checked == 1)
+	return (0);
+    state->rcptmap_checked = 1;
 
     /*
      * Resolve the address.
@@ -3130,33 +3154,32 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
     (checkv8_maps_find(state, recipient, map, rcpt) == 0)
 
     /*
-     * XXX We throw up our hands if the address matches a canonical or
-     * virtual alias map. Eventually, the address resolver should give us the
-     * final resolved recipient address, and the SMTP server should write the
-     * final recipient address to the output record stream. See also the next
-     * comment block on recipients in simulated virtual domains.
+     * XXX We assume the recipient address is OK if it matches a canonical
+     * map or virtual alias map. Eventually, the address resolver should give
+     * us the final resolved recipient address, and the SMTP server should
+     * write the final resolved recipient address to the output record
+     * stream. See also the next comment block on recipients in virtual alias
+     * domains.
      */
     if (MATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
 	|| MATCH(canonical_maps, CONST_STR(reply->recipient))
 	|| MATCH(virt_alias_maps, CONST_STR(reply->recipient)))
-	SMTPD_CHECK_RCPT_RETURN(0);
+	return (0);
 
     /*
      * At this point, anything that resolves to the error mailer is known to
      * be undeliverable.
      * 
      * XXX Until the address resolver does final address resolution, known and
-     * unknown recipients in simulated virtual domains will both resolve to
+     * unknown recipients in virtual alias domains will both resolve to
      * "error:user unknown".
      */
-    if (strcmp(STR(reply->transport), MAIL_SERVICE_ERROR) == 0) {
-	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				  "%d <%s>: %s",
-				  (reply->flags & RESOLVE_CLASS_ALIAS) ?
-				  var_virt_alias_code : 550,
-				  recipient, STR(reply->nexthop));
-	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-    }
+    if (strcmp(STR(reply->transport), MAIL_SERVICE_ERROR) == 0)
+	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				   "%d <%s>: %s",
+				   (reply->flags & RESOLVE_CLASS_ALIAS) ?
+				   var_virt_alias_code : 550,
+				   recipient, STR(reply->nexthop)));
 
     /*
      * Reject mail to unknown addresses in local domains (domains that match
@@ -3172,41 +3195,41 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      */
     if ((reply->flags & RESOLVE_CLASS_LOCAL)
 	&& *var_local_rcpt_maps
-	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
-	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-			   "%d <%s>: User unknown in local recipient table",
-				  var_local_rcpt_code, recipient);
-	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-    }
+	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient)))
+	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				   "%d <%s>: User unknown%s",
+				   var_local_rcpt_code, recipient,
+				   var_show_unk_rcpt_table ?
+				   " in local recipient table" : ""));
 
     /*
      * Reject mail to unknown addresses in virtual mailbox domains.
      */
     if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
-	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))) {
-	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-			   "%d <%s>: User unknown in virtual mailbox table",
-				  var_virt_mailbox_code, recipient);
-	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-    }
+	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient)))
+	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				   "%d <%s>: User unknown%s",
+				   var_virt_mailbox_code, recipient,
+				   var_show_unk_rcpt_table ?
+				   " in virtual mailbox table" : ""));
 
     /*
      * Reject mail to unknown addresses in relay domains.
      */
     if ((reply->flags & RESOLVE_CLASS_RELAY)
 	&& *var_relay_rcpt_maps
-	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient))) {
-	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-			   "%d <%s>: User unknown in relay recipient table",
-				  var_relay_rcpt_code, recipient);
-	SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-    }
+	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient)))
+	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				   "%d <%s>: User unknown%s",
+				   var_relay_rcpt_code, recipient,
+				   var_show_unk_rcpt_table ?
+				   " in relay recipient table" : ""));
 
     /*
      * Accept all other addresses - including addresses that passed the above
      * tests because of some table lookup problem.
      */
-    SMTPD_CHECK_RCPT_RETURN(0);
+    return (0);
 }
 
 /* smtpd_check_size - check optional SIZE parameter value */

@@ -320,8 +320,8 @@ smtpd_sender_restrictions =
 # recipient addresses that SMTP clients can send in RCPT TO commands.
 #
 # By default, Postfix relays mail
-# - from trusted clients whose IP address matches $mynetworks,
-# - from untrusted clients to destinations that match $relay_domains
+# - from "trusted" clients (IP address matches $mynetworks) to any destination,
+# - from "untrusted" clients to destinations that match $relay_domains
 #   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination.
 #

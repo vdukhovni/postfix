@@ -86,6 +86,7 @@ typedef struct SMTPD_STATE {
     VSTRING *sasl_encoded;
     VSTRING *sasl_decoded;
 #endif
+    int     rcptmap_checked;
     int     warn_if_reject;		/* force reject into warning */
     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
     SMTPD_DEFER defer_if_permit;	/* force permit into deferral */

@@ -32,7 +32,7 @@ mime_boundary_length_limit = 2048
 # receiving mail, or when converting 8BITMIME to 7BIT while delivering
 # mail.
 # 
-mime_nesting_limit = 20
+mime_nesting_limit = 100
 
 # Specify "yes" to reject mail with 8-bit text in message headers.
 # This optional restriction is enforced while receiving mail.

@@ -29,18 +29,15 @@ then you have not properly followed the installation procedure.
 
 The Postfix SMTP server now rejects mail for $mydestination domain
 recipients that it does not know about. This keeps undeliverable
-mail out of your queue. For safety's sake, the default is to reply
-with a 450 (try again later) status code so that you don't suddenly
-lose mail.
+mail out of your queue.
 
-For this to work correctly, you need to review the section titled
-"REJECTING UNKNOWN LOCAL USERS" in conf/main.cf if one of the
-following is true:
+To avoid losing mail when upgrading from Postfix 1.1, you need to
+review the LOCAL_RECIPIENT_README file if one of the following is
+true:
 
 - You define $mydestination domain recipients in files other than
-  /etc/passwd, /etc/aliases, or the $virtual_alias_maps files.
-  For example, you define $mydestination domain recipients in the
-  $virtual_mailbox_maps files.
+  /etc/passwd or /etc/aliases.  For example, you define $mydestination
+  domain recipients in the $virtual_mailbox_maps files.
 - You run the Postfix SMTP server chrooted (see master.cf).
 - You redefined the local delivery agent in master.cf.
 - You redefined the "local_transport" setting in main.cf.
@@ -48,24 +45,20 @@ following is true:
 - You use the fallback_transport feature of the Postfix local delivery agent.
 - You use the luser_relay feature of the Postfix local delivery agent.
 
-Specify "local_recipient_maps =" (i.e. empty) to make the SMTP
-server accept mail for all known and unknown local recipients.
-That was the default setting prior to Postfix version 2.0.
-
 Postfix no longer defaults to the "smtp" transport for all non-local
 destinations. This may affect your defer_transports settings. In
 particular, Postfix now uses the "relay" mail delivery transport
-for domains matching $relay_domains.  The old "smtp" transport is
-now the default mail delivery transport for non-local domains that
-do not match relay_domains.
+for delivery to domains matching $relay_domains.  The old "smtp"
+transport is now the default mail delivery transport for non-local
+domains that do not match relay_domains.
 
 The "virtual_maps" configuration parameter is now called
 "virtual_alias_maps", for consistency with "virtual_mailbox_maps".
 Default settings are backwards compatible with Postfix 1.1.
 
-Postfix-style virtual domains are now called simulated virtual
-domains.  Sendmail-style virtual domains are no longer documented.
-This part of Postfix was too confusing.
+Postfix-style virtual domains are now called virtual alias domains.
+Sendmail-style virtual domains are no longer documented.  This part
+of Postfix was too confusing.
 
 The default queue directory hash_queue_depth setting is reduced to
 1 level of subdirectories per Postfix queue. This improves "mailq"
@@ -122,26 +115,22 @@ having its own default mail delivery transport:
   $relay_domains           $relay_transport        relay
   other                    $default_transport      smtp
 
-The benefits of these changes are that:
+The benefits of these changes are:
 
 - You no longer need to specify all the virtual(8) domains in the
-  Postfix transport map.
+  Postfix transport map. The virtual(8) delivery agent has
+  become a first-class citizen just like local(8) or smtp(8).
 
-- A lot of table lookups could be eliminated from the SMTP server's
-  mail relay control and unknown user blocking code.
+- On mail gateway systems, separation of inbound mail relay traffic
+  from outbound traffic. This eliminates a problem where inbound
+  mail deliveries could become resource starved in the presence of
+  a high volume of outbound mail.
 
-This release introduces better handling of unknown recipients. Each
-address domain class now has its own table with known recipients,
-so that you can reject mail for unknown addresses consistently.
+- The SMTP server rejects unknown recipients in a more consistent
+  manner than was possible with previous Postfix versions.
 
-  Destination matches      Recipients defined by   Remarks
-  --------------------------------------------------------------
-  $mydestination or
-     $inet_interfaces      $local_recipient_maps   optional
-  $virtual_alias_domains   $virtual_alias_maps     none
-  $virtual_mailbox_domains $virtual_mailbox_maps   none
-  $relay_domains           $relay_recipient_maps   optional
-  other                    (not applicable)        (not applicable)
+See the ADDRESS_CLASS_README file for a description of address
+classes, their benefits, and their incompatibilities.
 
 Finally, regular expression maps are now allowed with local delivery
 agent alias tables and with all virtual delivery agent lookup tables.

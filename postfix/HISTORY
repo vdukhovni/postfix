@@ -7491,6 +7491,26 @@ Apologies for any names omitted.
 	Workaround: preliminary IPV6 support in valid_hostliteral().
 	File: util/valid_hostname.c.
 
+20021220
+
+	Bugfix: the reject_multi_recipient_bounce restriction had
+	an off-by-one error when used in smtpd_data_restrictions.
+	File: smtpd/smtpd_check.c.
+
+	Feature: new check_recipient_maps restriction that gives
+	finer control over when unknown recipients are rejected.
+	As with Postfix 1.1, the default is to do this at the end
+	of the recipient restrictions. Sites that want to improve
+	performance can put check_recipient_maps at the start of
+	the smtpd_client_restrictions list and avoid doing unnecessary
+	RBL lookups etc.  File:  smtpd/smtpd_check.c.
+
+	Feature: new show_user_unknown_recipient_table parameter
+	controls whether or not to reveal the lookup table name in
+	"User unknown" responses. The extra detail makes trouble
+	shooting easier but also reveals information that is nobody
+	elses business.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

@@ -161,6 +161,7 @@
 /*	master(8) process manager
 /*	syslogd(8) system logging
 /*	transport(5) transport table format
+/*	relocated(5) format of the "user has moved" table
 /* LICENSE
 /* .ad
 /* .fi
@@ -230,6 +231,7 @@ char   *var_virt_mailbox_doms;
 char   *var_relocated_maps;
 char   *var_def_transport;
 char   *var_empty_addr;
+int     var_show_unk_rcpt_table;
 
 /* rewrite_service - read request and send reply */
 
@@ -314,6 +316,7 @@ int     main(int argc, char **argv)
 	VAR_APP_AT_MYORIGIN, DEF_APP_AT_MYORIGIN, &var_append_at_myorigin,
 	VAR_PERCENT_HACK, DEF_PERCENT_HACK, &var_percent_hack,
 	VAR_RESOLVE_DEQUOTED, DEF_RESOLVE_DEQUOTED, &var_resolve_dequoted,
+	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
 	0,
     };
 

@@ -407,7 +407,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 			 rcpt_domain, VAR_VIRT_ALIAS_DOMS,
 			 VAR_VIRT_MAILBOX_DOMS);
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
-	    vstring_strcpy(nexthop, "User unknown in virtual alias table");
+	    vstring_sprintf(nexthop, "User unknown%s",
+			    var_show_unk_rcpt_table ?
+			    " in virtual alias table" : "");
 	    *flags |= RESOLVE_CLASS_ALIAS;
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_ALIAS_DOMS);

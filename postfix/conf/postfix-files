@@ -168,6 +168,7 @@ $sample_directory/sample-smtp.cf:f:root:-:644
 $sample_directory/sample-smtpd.cf:f:root:-:644
 $sample_directory/sample-transport.cf:f:root:-:644
 $sample_directory/sample-virtual.cf:f:root:-:644
+$readme_directory/ADDRESS_CLASS_README:f:root:-:644
 $readme_directory/DB_README:f:root:-:644
 $readme_directory/DEBUG_README:f:root:-:644
 $readme_directory/ETRN_README:f:root:-:644
@@ -176,6 +177,7 @@ $readme_directory/INSTALL:f:root:-:644
 $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
 $readme_directory/LMTP_README:f:root:-:644
+$readme_directory/LOCAL_RECIPIENT_README:f:root:-:644
 $readme_directory/MACOSX_README:f:root:-:644
 $readme_directory/MAILDROP_README:f:root:-:644
 $readme_directory/MYSQL_README:f:root:-:644

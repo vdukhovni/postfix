@@ -22,185 +22,189 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>o</b>      To redirect mail for one address  to  one  or  more
               addresses.
 
-       <b>o</b>      To  simulate  virtual  domains  where  all  virtual
-              addresses are aliased to non-virtual addresses.
+       <b>o</b>      To   implement  virtual  alias  domains  where  all
+              addresses  are  aliased  to  addresses   in   other
+              domains.
 
-              Simulated virtual domains are not  to  be  confused
-              with  the true virtual domains that are implemented
-              with the Postfix <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent.
+              Virtual  alias  domains are not to be confused with
+              the virtual mailbox domains  that  are  implemented
+              with  the  Postfix  <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent.
+              With  virtual  mailbox  domains,   each   recipient
+              address can have its own mailbox.
 
-       Virtual aliasing is applied  only  to  recipient  envelope
-       addresses,  and  does  not  affect message headers.  Think
-       Sendmail rule set <b>S0</b>, if you like. Use  <a href="canonical.5.html"><b>canonical</b>(5)</a>  map-
-       ping  to rewrite header and envelope addresses in general.
+       Virtual  aliasing  is  applied  only to recipient envelope
+       addresses, and does not  affect  message  headers.   Think
+       Sendmail  rule  set <b>S0</b>, if you like. Use <a href="canonical.5.html"><b>canonical</b>(5)</a> map-
+       ping to rewrite header and envelope addresses in  general.
 
-       Normally, the <b>virtual</b> alias table is specified as  a  text
-       file  that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
-       result, an indexed file in <b>dbm</b> or <b>db</b> format, is  used  for
-       fast  searching  by  the  mail system. Execute the command
+       Normally,  the  <b>virtual</b> alias table is specified as a text
+       file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.   The
+       result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
+       fast searching by the mail  system.  Execute  the  command
        <b>postmap</b>  <b>/etc/postfix/virtual</b>  in  order  to  rebuild  the
        indexed file after changing the text file.
 
-       When  the  table  is provided via other means such as NIS,
-       LDAP or SQL, the same lookups are  done  as  for  ordinary
+       When the table is provided via other means  such  as  NIS,
+       LDAP  or  SQL,  the  same lookups are done as for ordinary
        indexed files.
 
-       Alternatively,  the  table  can  be provided as a regular-
+       Alternatively, the table can be  provided  as  a  regular-
        expression map where patterns are given as regular expres-
-       sions.  In  that  case, the lookups are done in a slightly
+       sions. In that case, the lookups are done  in  a  slightly
        different way as described below.
 
 <b>TABLE</b> <b>FORMAT</b>
-       The format of the virtual table is  as  follows,  mappings
+       The  format  of  the virtual table is as follows, mappings
        being tried in the order as listed in this manual page:
 
        <i>pattern</i> <i>result</i>
-              When  <i>pattern</i> matches a mail address, replace it by
+              When <i>pattern</i> matches a mail address, replace it  by
               the corresponding <i>result</i>.
 
        blank lines and comments
-              Empty lines and whitespace-only lines are  ignored,
-              as  are  lines whose first non-whitespace character
+              Empty  lines and whitespace-only lines are ignored,
+              as are lines whose first  non-whitespace  character
               is a `#'.
 
        multi-line text
-              A logical line starts with non-whitespace  text.  A
-              line  that starts with whitespace continues a logi-
+              A  logical  line starts with non-whitespace text. A
+              line that starts with whitespace continues a  logi-
               cal line.
 
        With lookups from indexed files such as DB or DBM, or from
-       networked  tables  such  as NIS, LDAP or SQL, patterns are
+       networked tables such as NIS, LDAP or  SQL,  patterns  are
        tried in the order as listed below:
 
        <i>user</i>@<i>domain</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail for  <i>user</i>@<i>domain</i>  is  redirected  to  <i>address</i>.
+              Mail  for  <i>user</i>@<i>domain</i>  is  redirected  to <i>address</i>.
               This form has the highest precedence.
 
        <i>user</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail  for  <i>user</i>@<i>site</i>  is redirected to <i>address</i> when
-              <i>site</i> is equal to $<b>myorigin</b>, when <i>site</i> is listed  in
+              Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
+              <i>site</i>  is equal to $<b>myorigin</b>, when <i>site</i> is listed in
               $mydestination,   or   when   it   is   listed   in
               $<i>inet_interfaces</i>.
 
-              This functionality overlaps with  functionality  of
-              the  local  <i>aliases</i>(5)  database. The difference is
-              that <b>virtual</b> mapping can be  applied  to  non-local
+              This  functionality  overlaps with functionality of
+              the local <i>aliases</i>(5) database.  The  difference  is
+              that  <b>virtual</b>  mapping  can be applied to non-local
               addresses.
 
        @<i>domain</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail  for  any  user  in  <i>domain</i>  is  redirected to
+              Mail for  any  user  in  <i>domain</i>  is  redirected  to
               <i>address</i>.  This form has the lowest precedence.
 
-       In all the above forms, when <i>address</i> has the form  @<i>other-</i>
-       <i>domain</i>,  the result is the same user in <i>otherdomain</i>.  This
+       In  all the above forms, when <i>address</i> has the form @<i>other-</i>
+       <i>domain</i>, the result is the same user in <i>otherdomain</i>.   This
        works for the first address in the expansion only.
 
 <b>ADDRESS</b> <b>EXTENSION</b>
        When a mail address localpart contains the optional recip-
-       ient  delimiter  (e.g., <i>user+foo</i>@<i>domain</i>), the lookup order
+       ient delimiter (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order
        becomes: <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and
-       @<i>domain</i>.   An unmatched address extension (<i>+foo</i>) is propa-
+       @<i>domain</i>.  An unmatched address extension (<i>+foo</i>) is  propa-
        gated to the result of table lookup.
 
-<b>SIMULATED</b> <b>VIRTUAL</b> <b>DOMAINS</b>
-       Besides virtual aliases, the virtual alias table can  also
-       be used to simulate virtual domains. With a simulated vir-
-       tual domain, all recipient addresses are aliased  to  non-
-       virtual  addresses.   These  non-virtual  addresses may be
-       either local or remote.
+<b>VIRTUAL</b> <b>ALIAS</b> <b>DOMAINS</b>
+       Besides  virtual aliases, the virtual alias table can also
+       be used to implement virtual alias domains. With a virtual
+       alias  domain,  all  recipient  addresses  are  aliased to
+       addresses in other domains.
 
-       Simulated virtual domains are not to be confused with  the
-       true virtual domains that are implemented with the Postfix
-       <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent. With true virtual domains,
-       each recipient address can have its own mailbox.
+       Virtual alias domains are not to be confused with the vir-
+       tual mailbox domains that are implemented with the Postfix
+       <a href="virtual.8.html"><b>virtual</b>(8)</a>  mail  delivery  agent.  With  virtual  mailbox
+       domains,  each recipient address can have its own mailbox.
 
-       With  a  simulated  virtual domain, the virtual domain has
-       its own user name space. Local  (i.e.  non-virtual)  user-
-       names  are  not  visible in a simulated virtual domain. In
-       particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and local mailing  lists  are
-       not visible as <i>localname@simulated.domain</i>.
+       With a virtual alias domain, the virtual  domain  has  its
+       own  user  name  space. Local (i.e. non-virtual) usernames
+       are not visible in a virtual alias domain. In  particular,
+       local  <a href="aliases.5.html"><b>aliases</b>(5)</a>  and local mailing lists are not visible
+       as <i>localname@virtual-alias.domain</i>.
 
-       Support for a simulated virtual domain looks like:
+       Support for a virtual alias domain looks like:
 
        /etc/postfix/main.cf:
            virtual_alias_maps = hash:/etc/postfix/virtual
 
-           Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
+           Note: some systems use <b>dbm</b> databases instead of  <b>hash</b>.
            See the output from <b>postconf</b> <b>-m</b> for available database
            types.
 
        /etc/postfix/virtual:
-           <i>simulated.domain</i>     <i>anything</i> (right-hand content does not matter)
-           <i>postmaster@simulated.domain</i>  <i>postmaster</i>
-           <i>user1@simulated.domain</i>       <i>address1</i>
-           <i>user2@simulated.domain</i>       <i>address2,</i> <i>address3</i>
+           <i>virtual-alias.domain</i> <i>anything</i> (right-hand content does not matter)
+           <i>postmaster@virtual-alias.domain</i>      <i>postmaster</i>
+           <i>user1@virtual-alias.domain</i>   <i>address1</i>
+           <i>user2@virtual-alias.domain</i>   <i>address2,</i> <i>address3</i>
 
-       The <i>simulated.domain</i> <i>anything</i> entry is required for a sim-
-       ulated virtual domain. Without this entry,  mail  will  be
-       rejected with a "relay access denied" error condition.
+       The <i>virtual-alias.domain</i> <i>anything</i> entry is required for  a
+       virtual alias domain. Without this entry, mail is rejected
+       with "relay access denied", or bounces  with  "mail  loops
+       back to myself".
 
-       Do not list a simulated virtual domain name in the <b>main.cf</b>
+       Do  not  specify virtual alias domain names in the <b>main.cf</b>
+       <b>mydestination</b> or <b>relay</b><i>_</i><b>domains</b> configuration parameters.
+
+       With a virtual  alias  domain,  the  Postfix  SMTP  server
+       accepts   mail  for  <i>known-user@virtual-alias.domain</i>,  and
+       rejects  mail  for  <i>unknown-user</i>@<i>virtual-alias.domain</i>   as
+       undeliverable.
+
+       Instead  of  specifying  the virtual alias domain name via
+       the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it  via
+       the <b>main.cf</b> <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> configuration parameter.
+       This latter parameter uses the same syntax as the  <b>main.cf</b>
        <b>mydestination</b> configuration parameter.
 
-       With a simulated virtual domain, the Postfix  SMTP  server
-       accepts  mail for <i>known-user@simulated.domain</i>, and rejects
-       mail for <i>unknown-user</i>@<i>simulated.domain</i> as undeliverable.
-
-       Instead of specifying the simulated  virtual  domain  name
-       via  the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it
-       via the <b>main.cf</b> <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> configuration param-
-       eter.   This  latter parameter uses the same syntax as the
-       <b>main.cf</b> <b>mydestination</b> configuration parameter.
-
 <b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
-       This section describes how the table lookups  change  when
+       This  section  describes how the table lookups change when
        the table is given in the form of regular expressions. For
-       a description of regular expression lookup  table  syntax,
+       a  description  of regular expression lookup table syntax,
        see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
 
-       Each  pattern  is  a regular expression that is applied to
+       Each pattern is a regular expression that  is  applied  to
        the entire address being looked up. Thus, <i>user@domain</i> mail
-       addresses  are  not  broken up into their <i>user</i> and <i>@domain</i>
+       addresses are not broken up into their  <i>user</i>  and  <i>@domain</i>
        constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
        <i>foo</i>.
 
-       Patterns  are  applied  in  the  order as specified in the
-       table, until a pattern is found that  matches  the  search
+       Patterns are applied in the  order  as  specified  in  the
+       table,  until  a  pattern is found that matches the search
        string.
 
-       Results  are  the  same as with indexed file lookups, with
-       the additional feature that parenthesized substrings  from
+       Results are the same as with indexed  file  lookups,  with
+       the  additional feature that parenthesized substrings from
        the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
 
 <b>BUGS</b>
-       The  table format does not understand quoting conventions.
+       The table format does not understand quoting  conventions.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
+       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
        command after a configuration change.
 
        <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b>
               List of virtual aliasing tables.
 
        <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b>
-              List  of  simulated  virtual domains. This uses the
-              same syntax as the <b>mydestination</b> parameter.
+              List of virtual alias domains. This uses  the  same
+              syntax as the <b>mydestination</b> parameter.
 
        Other parameters of interest:
 
        <b>inet</b><i>_</i><b>interfaces</b>
-              The network interface addresses  that  this  system
+              The  network  interface  addresses that this system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
        <b>mydestination</b>
-              List of domains that  this  mail  system  considers
+              List  of  domains  that  this mail system considers
               local.
 
        <b>myorigin</b>
-              The  domain  that  is  appended to any address that
+              The domain that is appended  to  any  address  that
               does not have a domain.
 
        <b>owner</b><i>_</i><b>request</b><i>_</i><b>special</b>
@@ -214,7 +218,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <a href="pcre_table.5.html">pcre_table(5)</a> Perl Compatible Regular Expression table format
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

@@ -24,12 +24,13 @@ The main applications of virtual aliasing are:
 .IP \(bu
 To redirect mail for one address to one or more addresses.
 .IP \(bu
-To simulate virtual domains where all virtual addresses are aliased
-to non-virtual addresses.
+To implement virtual alias domains where all addresses are aliased
+to addresses in other domains.
 .sp
-Simulated virtual domains are not to be confused with the true virtual
+Virtual alias domains are not to be confused with the virtual mailbox
 domains that are implemented with the Postfix \fBvirtual\fR(8) mail
-delivery agent.
+delivery agent. With virtual mailbox domains, each recipient address
+can have its own mailbox.
 .PP
 Virtual aliasing is applied only to recipient
 envelope addresses, and does not affect message headers.
@@ -97,28 +98,27 @@ When a mail address localpart contains the optional recipient delimiter
 \fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR, \fIuser+foo\fR,
 \fIuser\fR, and @\fIdomain\fR.  An unmatched address extension
 (\fI+foo\fR) is propagated to the result of table lookup.
-.SH SIMULATED VIRTUAL DOMAINS
+.SH VIRTUAL ALIAS DOMAINS
 .na
 .nf
 .ad
 .fi
 Besides virtual aliases, the virtual alias table can also be used
-to simulate virtual domains. With a simulated virtual domain, all
-recipient addresses are aliased to non-virtual addresses.  These
-non-virtual addresses may be either local or remote.
+to implement virtual alias domains. With a virtual alias domain, all
+recipient addresses are aliased to addresses in other domains.
 
-Simulated virtual domains are not to be confused with the true virtual
+Virtual alias domains are not to be confused with the virtual mailbox
 domains that are implemented with the Postfix \fBvirtual\fR(8) mail
-delivery agent. With true virtual domains, each recipient address can
-have its own mailbox.
+delivery agent. With virtual mailbox domains, each recipient address
+can have its own mailbox.
 
-With a simulated virtual domain, the virtual domain has its
+With a virtual alias domain, the virtual domain has its
 own user name space. Local (i.e. non-virtual) usernames are not
-visible in a simulated virtual domain. In particular, local
+visible in a virtual alias domain. In particular, local
 \fBaliases\fR(5) and local mailing lists are not visible as
-\fIlocalname@simulated.domain\fR.
+\fIlocalname@virtual-alias.domain\fR.
 
-Support for a simulated virtual domain looks like:
+Support for a virtual alias domain looks like:
 
 /etc/postfix/main.cf:
 .in +4
@@ -131,27 +131,28 @@ See the output from \fBpostconf -m\fR for available database types.
 /etc/postfix/virtual:
 .nf
 .na
-\fIsimulated.domain     anything\fR (right-hand content does not matter)
-\fIpostmaster@simulated.domain  postmaster\fR
-\fIuser1@simulated.domain       address1\fR
-\fIuser2@simulated.domain       address2, address3\fR
+\fIvirtual-alias.domain anything\fR (right-hand content does not matter)
+\fIpostmaster@virtual-alias.domain      postmaster\fR
+\fIuser1@virtual-alias.domain   address1\fR
+\fIuser2@virtual-alias.domain   address2, address3\fR
 .fi
 .in -4
 .ad
 .fi
 .sp
-The \fIsimulated.domain anything\fR entry is required for a
-simulated virtual domain. Without this entry, mail will
-be rejected with a "relay access denied" error condition.
+The \fIvirtual-alias.domain anything\fR entry is required for a
+virtual alias domain. Without this entry, mail is rejected
+with "relay access denied", or bounces with
+"mail loops back to myself".
 
-Do not list a simulated virtual domain name in the \fBmain.cf
-mydestination\fR configuration parameter.
+Do not specify virtual alias domain names in the \fBmain.cf
+mydestination\fR or \fBrelay_domains\fR configuration parameters.
 
-With a simulated virtual domain, the Postfix SMTP server
-accepts mail for \fIknown-user@simulated.domain\fR, and rejects
-mail for \fIunknown-user\fR@\fIsimulated.domain\fR as undeliverable.
+With a virtual alias domain, the Postfix SMTP server
+accepts mail for \fIknown-user@virtual-alias.domain\fR, and rejects
+mail for \fIunknown-user\fR@\fIvirtual-alias.domain\fR as undeliverable.
 
-Instead of specifying the simulated virtual domain name via
+Instead of specifying the virtual alias domain name via
 the \fBvirtual_alias_maps\fR table, you may also specify it via
 the \fBmain.cf virtual_alias_domains\fR configuration parameter.
 This latter parameter uses the same syntax as the \fBmain.cf
@@ -193,7 +194,7 @@ a configuration change.
 .IP \fBvirtual_alias_maps\fR
 List of virtual aliasing tables.
 .IP \fBvirtual_alias_domains\fR
-List of simulated virtual domains. This uses the same syntax
+List of virtual alias domains. This uses the same syntax
 as the \fBmydestination\fR parameter.
 .PP
 Other parameters of interest:

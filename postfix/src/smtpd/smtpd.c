@@ -149,6 +149,10 @@
 /* .SH "Known versus unknown recipients"
 /* .ad
 /* .fi
+/* .IP \fBshow_user_unknown_table_name\fR
+/*	Whether or not to reveal the table name in the "User unknown"
+/*	responses. The extra detail makes trouble shooting easier
+/*	but also reveals information that is nobody elses business.
 /* .IP \fBunknown_local_recipient_reject_code\fR
 /*	The response code when a client specifies a recipient whose domain
 /*	matches \fB$mydestination\fR or \fB$inet_interfaces\fR, while
@@ -433,6 +437,7 @@ int     var_virt_alias_code;
 int     var_virt_mailbox_code;
 int     var_relay_rcpt_code;
 char   *var_verp_clients;
+int     var_show_unk_rcpt_table;
 
  /*
   * Silly little macros.
@@ -942,11 +947,11 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
+	if ((err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
-	if ((err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
+	if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
@@ -1658,6 +1663,7 @@ int     main(int argc, char **argv)
 	VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
 	VAR_SMTPD_SASL_ENABLE, DEF_SMTPD_SASL_ENABLE, &var_smtpd_sasl_enable,
 	VAR_BROKEN_AUTH_CLNTS, DEF_BROKEN_AUTH_CLNTS, &var_broken_auth_clients,
+	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

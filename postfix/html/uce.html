@@ -339,10 +339,13 @@ restrictions are evaluated after the RCPT TO command.
 <dt>Examples:
 
 <dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
-reject_rbl_client relays.mail-abuse.org</b>
+reject_rbl_client relays.mail-abuse.org</b> (paid service)
 
 <dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
-reject_rhsbl_client dsn.rfc-ignorant.org</b>
+reject_rbl_client relays.ordb.org</b> (free service)
+
+<dd> <b>smtpd_client_restrictions = hash:/etc/postfix/access,
+reject_rhsbl_client dsn.rfc-ignorant.org</b> (free service)
 
 <dd> <b>smtpd_client_restrictions = permit_mynetworks,
 reject_unknown_client</b>
@@ -528,16 +531,6 @@ reject_invalid_hostname</b>
 the client HELO or EHLO parameter has a bad hostname syntax. The
 <b>invalid_hostname_reject_code</b> specifies the response code to
 rejected requests (default:  501).
-
-<p>
-
-<a name="permit_naked_ip_address">
-
-<dt> <b>permit_naked_ip_address</b> <dd> Permit the request when
-the client HELO (EHLO) command contains a naked IP address without
-the enclosing <b>[]</b> brackets that the RFC requires. Unfortunately,
-some popular PC mail clients send <b>HELO</b> greetings in this
-manner.
 
 <p>
 
@@ -778,7 +771,7 @@ relays mail:
 <ul>
 
 <li>from trusted clients whose IP address matches <a
-href="basic.html#mynetworks">$mynetworks</a>,
+href="basic.html#mynetworks">$mynetworks</a> to any destination,
 
 <li>from untrusted clients to destinations that match <a
 href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
@@ -850,7 +843,7 @@ to receive mail otherwise. </i>
 
 <a name="permit_auth_destination">
 
-<dt> <b>permit_auth_destination</b> <dd> Ignore the client hostname.
+<dt> <b>permit_auth_destination</b> <dd> 
 Permit the request when one of the following is true:
 
 <ul>
@@ -868,14 +861,12 @@ href="virtual.8.html">$virtual_mailbox_domains</a>.
 
 </ul>
 
-Otherwise proceed with the next restriction. 
-
 <p>
 
 <a name="reject_unauth_destination">
 
-<dt> <b>reject_unauth_destination</b> <dd> Ignore the client
-hostname.  Reject the request unless one of the following is true:
+<dt> <b>reject_unauth_destination</b> <dd> 
+Reject the request unless one of the following is true:
 
 <ul>
 
@@ -926,6 +917,42 @@ href="basic.html#inet_interfaces"> $inet_interfaces</a>.
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the resolved destination
 address, recipient domain or parent domain, or <i>localpart</i>@. 
+
+<p>
+
+<a name="check_recipient_maps">
+
+<dt> <b>check_recipient_maps</b> <dd> Reject the request
+when the recipient address is not listed in one of the following
+lookup tables:
+
+<blockquote>
+
+<table border="1">
+
+<tr><th>Recipient domain matches <th>Recipient lookup table 
+
+<tr><td><a href="basic.html#mydestination"> $mydestination</a> or
+<a href="basic.html#inet_interfaces">$inet_interfaces</a> 
+<td>$local_recipient_maps
+
+<tr><td>$virtual_alias_domains <td>$virtual_alias_maps 
+
+<tr><td>$virtual_mailbox_domains <td>$virtual_mailbox_maps 
+
+<tr><td>$relay_domains <td>$relay_recipient_maps 
+
+</table>
+
+</blockquote>
+
+Note 1: a null $local_recipient_maps or $relay_recipient_maps setting
+means that no recipient check is done for the corresponding domains.
+
+<p>
+
+Note 2: Postfix applies an implicit <b>check_recipient_maps</b>
+restriction at the end of all recipient restrictions.
 
 <p>
 

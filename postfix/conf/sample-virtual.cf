@@ -5,17 +5,17 @@
 # parameters that control virtual alias database lookups.
 
 # This file describes configuration settings that can be used for
-# aliasing and for implementing SIMULATED VIRTUAL DOMAINS (domains
-# for which all mail is aliased to one or more local or remote
-# addresses). For details, see the virtual(5) manual page.
+# virtual aliasing and for implementing VIRTUAL ALIAS DOMAINS (domains
+# for which all addresses are aliased to addresses in other domains).
+# For details, see the virtual(5) manual page.
 # 
-# If you need TRUE VIRTUAL DOMAINS (domains where each virtual address
-# can have its own mailbox), then you should use the virtual(8)
+# If you need VIRTUAL MAILBOX DOMAINS (domains where each virtual
+# address can have its own mailbox), then you should use the virtual(8)
 # delivery agent instead.  For details, see the VIRTUAL_README file.
 
 # The virtual_alias_maps parameter specifies optional lookup tables to
 # alias specific addresses or even complete domains to another
-# address. This is typically used to simulate virtual domain support.
+# address. This is typically used to implement virtual domain support.
 # 
 # By default, no address aliasing is done. 
 #
@@ -31,12 +31,12 @@
 #virtual_alias_maps = hash:/etc/postfix/virtual, netinfo:/virtual
 virtual_alias_maps = 
 
-# The virtual_alias_domains parameter specifies the names of simulated
-# virtual domains, that is, domains for which all mail is aliased to
-# one or more local or remote addresses.
+# The virtual_alias_domains parameter specifies the names of virtual
+# alias domains, that is, domains for which all addresses are aliased
+# to addresses in other domains.
 # 
 # By default, this is set to $virtual_alias_maps so that you can keep
-# all information about simulated virtual domains in one place.  If
+# all information about virtual alias domains in one place.  If
 # you have many users, it is better to separate information that
 # changes more frequently (virtual address -> local or remote address
 # mapping) from information that changes less frequently (the list

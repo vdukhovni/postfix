@@ -163,6 +163,10 @@ The characters that Postfix accepts as VERP delimiter characters.
 .SH "Known versus unknown recipients"
 .ad
 .fi
+.IP \fBshow_user_unknown_table_name\fR
+Whether or not to reveal the table name in the "User unknown"
+responses. The extra detail makes trouble shooting easier
+but also reveals information that is nobody elses business.
 .IP \fBunknown_local_recipient_reject_code\fR
 The response code when a client specifies a recipient whose domain
 matches \fB$mydestination\fR or \fB$inet_interfaces\fR, while
