@@ -248,7 +248,7 @@ extern int smtp_quit(SMTP_STATE *);
   */
 typedef struct SMTP_RESP {		/* server response */
     int     code;			/* status */
-    char    dsn[DSN_BUFSIZE];		/* DSN detail */
+    DSN_BUF dsn;			/* DSN detail */
     char   *str;			/* text */
     VSTRING *buf;			/* origin of text */
 } SMTP_RESP;

@@ -575,8 +575,8 @@ int     pipe_command(VSTREAM *src, DSN_VSTRING *why,...)
 	    else if (dsn_valid(log_buf) > 0) {
 		/* XXX Assumes dsn_split() does not require 5.x.x in log_buf */
 		dsn_split(&dp, "5.3.0", log_buf);
-		dsn_vstring_update(why, dp.dsn, "%s", dp.text);
-		return (dp.dsn[0] == '4' ?
+		dsn_vstring_update(why, DSN_CODE(dp.dsn), "%s", dp.text);
+		return (DSN_CLASS(dp.dsn) == '4' ?
 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
 	    }
 	    /* Use <sysexits.h> compatible exit status. */

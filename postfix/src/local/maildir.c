@@ -225,9 +225,10 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
 	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
-	deliver_status = (why->dsn[0] == '4' ? defer_append : bounce_append)
+	deliver_status = (DSN_CLASS(why->dsn) == '4' ?
+			  defer_append : bounce_append)
 	    (BOUNCE_FLAGS(state.request),
-	     BOUNCE_ATTR(state.msg_attr, why->dsn),
+	     BOUNCE_ATTR(state.msg_attr, DSN_CODE(why->dsn)),
 	     "maildir delivery failed: %s", vstring_str(why->vstring));
 	if (errno == EACCES) {
 	    msg_warn("maildir access problem for UID/GID=%lu/%lu: %s",

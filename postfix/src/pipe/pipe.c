@@ -1076,7 +1076,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     argv_free(export_env);
 
     deliver_status = eval_command_status(command_status, service, request,
-					 request->fp, why->dsn,
+					 request->fp, DSN_CODE(why->dsn),
 					 vstring_str(why->vstring));
 
     /*

@@ -101,22 +101,8 @@ void    tls_session_stop(SSL_CTX *ctx, VSTREAM *stream, int timeout,
 	if (retval == 0)
 	    tls_bio_shutdown(vstream_fileno(stream), timeout, TLScontext);
     }
-
-    /*
-     * Free the SSL structure and the BIOs. Warning: the internal_bio is
-     * connected to the SSL structure and is automatically freed with it. Do
-     * not free it again (core dump)!! Only free the network_bio.
-     * 
-     * XXX SSL_CTX_flush_sessions() searches memory for expired sessions and
-     * removes them from memory and external cache.
-     */
-    SSL_free(TLScontext->con);
-
-    BIO_free(TLScontext->network_bio);
-    FREE_TLS_CONTEXT(TLScontext);
+    tls_free_context(TLScontext);
     tls_stream_stop(stream);
-    SSL_CTX_flush_sessions(ctx, time(NULL));
-
     *tls_info = tls_info_zero;
 }
 

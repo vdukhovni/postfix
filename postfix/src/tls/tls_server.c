@@ -143,13 +143,6 @@ static char server_session_id_context[] = "Postfix/TLS";
 
 static int tls_server_cache = 0;
 
-/* server_verify_callback - server verification wrapper */
-
-static int server_verify_callback(int ok, X509_STORE_CTX *ctx)
-{
-    return (tls_verify_certificate_callback(ok, ctx, TLS_VERIFY_DEFAULT));
-}
-
 /* get_server_session_cb - callback to retrieve session from server cache */
 
 static SSL_SESSION *get_server_session_cb(SSL *unused_ssl,
@@ -161,13 +154,10 @@ static SSL_SESSION *get_server_session_cb(SSL *unused_ssl,
     VSTRING *session_data = vstring_alloc(2048);
     SSL_SESSION *session = 0;
 
-#define MAKE_SERVER_CACHE_ID(id, len) \
+#define HEX_CACHE_ID(id, len) \
     hex_encode(vstring_alloc(2 * (len) + 1), (char *) (id), (len))
 
-    /*
-     * Encode the session ID.
-     */
-    cache_id = MAKE_SERVER_CACHE_ID(session_id, session_id_length);
+    cache_id = HEX_CACHE_ID(session_id, session_id_length);
     if (var_smtpd_tls_loglevel >= 3)
 	msg_info("looking up session %s in server cache", STR(cache_id));
 
@@ -175,7 +165,6 @@ static SSL_SESSION *get_server_session_cb(SSL *unused_ssl,
      * Load the session from cache and decode it.
      */
     if (tls_mgr_lookup(tls_server_cache, STR(cache_id),
-		       OPENSSL_VERSION_NUMBER, TLS_MGR_NO_FLAGS,
 		       session_data) == TLS_MGR_STAT_OK) {
 	session = tls_session_activate(STR(session_data), LEN(session_data));
 	if (session && (var_smtpd_tls_loglevel >= 3))
@@ -191,6 +180,23 @@ static SSL_SESSION *get_server_session_cb(SSL *unused_ssl,
     return (session);
 }
 
+/* uncache_session - remove session from internal & external cache */
+
+static void uncache_session(SSL_CTX *ctx, TLScontext_t *TLScontext)
+{
+    VSTRING *cache_id;
+    SSL_SESSION *session = SSL_get_session(TLScontext->con);
+
+    SSL_CTX_remove_session(ctx, session);
+
+    cache_id = HEX_CACHE_ID(session->session_id, session->session_id_length);
+    if (var_smtpd_tls_loglevel >= 3)
+	msg_info("remove session %s from server cache", STR(cache_id));
+
+    tls_mgr_delete(tls_server_cache, STR(cache_id));
+    vstring_free(cache_id);
+}
+
 /* new_server_session_cb - callback to save session to server cache */
 
 static int new_server_session_cb(SSL *unused_ssl, SSL_SESSION *session)
@@ -198,11 +204,7 @@ static int new_server_session_cb(SSL *unused_ssl, SSL_SESSION *session)
     VSTRING *cache_id;
     VSTRING *session_data;
 
-    /*
-     * Encode the session ID.
-     */
-    cache_id =
-	MAKE_SERVER_CACHE_ID(session->session_id, session->session_id_length);
+    cache_id = HEX_CACHE_ID(session->session_id, session->session_id_length);
     if (var_smtpd_tls_loglevel >= 3)
 	msg_info("save session %s to server cache", STR(cache_id));
 
@@ -212,7 +214,6 @@ static int new_server_session_cb(SSL *unused_ssl, SSL_SESSION *session)
     session_data = tls_session_passivate(session);
     if (session_data)
 	tls_mgr_update(tls_server_cache, STR(cache_id),
-		       OPENSSL_VERSION_NUMBER, TLS_MGR_NO_FLAGS,
 		       STR(session_data), LEN(session_data));
 
     /*
@@ -381,16 +382,25 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
      */
     if (askcert)
 	verify_flags = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
-    SSL_CTX_set_verify(server_ctx, verify_flags, server_verify_callback);
+    SSL_CTX_set_verify(server_ctx, verify_flags,
+		       tls_verify_certificate_callback);
     if (*var_smtpd_tls_CAfile)
 	SSL_CTX_set_client_CA_list(server_ctx,
 			     SSL_load_client_CA_file(var_smtpd_tls_CAfile));
 
     /*
-     * Initialize the session cache. In order to share cached sessions among
-     * multiple SMTP server processes, we use an external cache and set the
-     * internal cache size to a minimum value of 1. Access to the external
-     * cache is handled by the appropriate callback functions.
+     * Initialize the session cache.
+     * 
+     * With a large number of concurrent smtpd(8) processes, it is not a good
+     * idea to cache multiple large session objects in each process. We set
+     * the internal cache size to 1, and don't register a "remove_cb" so as
+     * to avoid deleting good sessions from the external cache prematurely
+     * (when the internal cache is full, OpenSSL removes sessions from the
+     * external cache also)!
+     * 
+     * This makes SSL_CTX_remove_session() not useful for flushing broken
+     * sessions from the external cache, so we must delete them directly (not
+     * via a callback).
      * 
      * Set a session id context to identify to what type of server process
      * created a session. In our case, the context is simply the name of the
@@ -415,7 +425,8 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
     if (tls_mgr_policy(&cache_types) == TLS_MGR_STAT_OK
 	&& (tls_server_cache = (cache_types & TLS_MGR_SCACHE_SERVER)) != 0) {
 	SSL_CTX_set_session_cache_mode(server_ctx,
-		      SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
+				       SSL_SESS_CACHE_SERVER |
+				       SSL_SESS_CACHE_NO_AUTO_CLEAR);
 	SSL_CTX_sess_set_get_cb(server_ctx, get_server_session_cb);
 	SSL_CTX_sess_set_new_cb(server_ctx, new_server_session_cb);
     }
@@ -448,7 +459,6 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     int     verify_flags;
     unsigned int n;
     TLScontext_t *TLScontext;
-    SSL_SESSION *session;
     SSL_CIPHER *cipher;
     X509   *peer;
 
@@ -459,29 +469,19 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
      * Allocate a new TLScontext for the new connection and get an SSL
      * structure. Add the location of TLScontext to the SSL to later retrieve
      * the information inside the tls_verify_certificate_callback().
-     * 
-     * XXX Need a dedicated procedure for consistent initialization of all the
-     * fields in this structure.
      */
-#define PEERNAME_SIZE sizeof(TLScontext->peername_save)
-
-    NEW_TLS_CONTEXT(TLScontext);
-    TLScontext->log_level = var_smtpd_tls_loglevel;
-    strncpy(TLScontext->peername_save, peername, PEERNAME_SIZE - 1);
-    TLScontext->peername_save[PEERNAME_SIZE - 1] = 0;
-    (void) lowercase(TLScontext->peername_save);
+    TLScontext = tls_alloc_context(var_smtpd_tls_loglevel, peername);
 
     if ((TLScontext->con = (SSL *) SSL_new(server_ctx)) == NULL) {
 	msg_info("Could not allocate 'TLScontext->con' with SSL_new()");
 	tls_print_errors();
-	FREE_TLS_CONTEXT(TLScontext);
+	tls_free_context(TLScontext);
 	return (0);
     }
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
 	msg_info("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();
-	SSL_free(TLScontext->con);
-	FREE_TLS_CONTEXT(TLScontext);
+	tls_free_context(TLScontext);
 	return (0);
     }
 
@@ -493,7 +493,8 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 	verify_flags = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
 	verify_flags |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
 	TLScontext->enforce_verify_errors = 1;
-	SSL_set_verify(TLScontext->con, verify_flags, server_verify_callback);
+	SSL_set_verify(TLScontext->con, verify_flags,
+		       tls_verify_certificate_callback);
     } else {
 	TLScontext->enforce_verify_errors = 0;
     }
@@ -511,8 +512,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 			  &TLScontext->network_bio, TLS_BIO_BUFSIZE)) {
 	msg_info("Could not obtain BIO_pair");
 	tls_print_errors();
-	SSL_free(TLScontext->con);
-	FREE_TLS_CONTEXT(TLScontext);
+	tls_free_context(TLScontext);
 	return (0);
     }
 
@@ -559,9 +559,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     if (sts <= 0) {
 	msg_info("SSL_accept error from %s[%s]: %d", peername, peeraddr, sts);
 	tls_print_errors();
-	SSL_free(TLScontext->con);
-	BIO_free(TLScontext->network_bio);	/* 200411 */
-	FREE_TLS_CONTEXT(TLScontext);
+	tls_free_context(TLScontext);
 	return (0);
     }
     /* Only loglevel==4 dumps everything */
@@ -651,11 +649,8 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     if (requirecert) {
 	if (!tls_info->peer_verified || !tls_info->peer_CN) {
 	    msg_info("Re-used session without peer certificate removed");
-	    session = SSL_get_session(TLScontext->con);
-	    SSL_CTX_remove_session(server_ctx, session);
-	    SSL_free(TLScontext->con);
-	    BIO_free(TLScontext->network_bio);	/* 200411 */
-	    FREE_TLS_CONTEXT(TLScontext);
+	    uncache_session(server_ctx, TLScontext);
+	    tls_free_context(TLScontext);
 	    return (0);
 	}
     }

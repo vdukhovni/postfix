@@ -10488,7 +10488,7 @@ Apologies for any names omitted.
 20050321-27
 
 	Support for RFC 3463 enhanced status codes.  See also the
-	ENHANCED_STATUS_README file for background.
+	ENHANCED_STATUS_README (a hacker's guide) for background.
 
 	New module to pass around (status code + text) instead of
 	just text.  File: Files: global/dsn_util.c.
@@ -10547,6 +10547,25 @@ Apologies for any names omitted.
 	The TLS client session cache ID is now derived from the
 	server IP address, TCP Port, and server HELO hostname
 	if available. File: smtp/smtp_proto.c.
+
+20050328
+
+	Cleanup: the REPLACE action is no longer implemented as
+	PREPEND+IGNORE. The result remains in the input stream,
+	and is subject to address rewriting and other processing
+	where applicable.  File: cleanup/cleanup_message.c.
+
+	Feature: the TLS server name verification status is moved
+	out of the TLS session cache. This not only simplifies the
+	client-side TLS cache implementation, but also provides
+	better cache support for clients that connect to multiple
+	independent MTAs under the same DNS hostname or IP address,
+	provided that each MTA replies with a unique name in the
+	EHLO response. Patch by Victor Duchovni. Files: tlsmgr/tlsmgr.c,
+	tls/tls_verify.c, tls/tls_session.c, tls/tls_server.c,
+	tls/tls_scache.h, tls/tls_scache.c, tls/tls_misc.c,
+	tls/tls_mgr.h, tls/tls_mgr.c, tls/tls_client.c, tls/tls.h,
+	smtp/smtp_proto.c.
 
 Open problems:
 

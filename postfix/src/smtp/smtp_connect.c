@@ -757,11 +757,13 @@ int     smtp_connect(SMTP_STATE *state)
 	     */
 	    state->final_server = 1;		/* XXX */
 	    if (smtp_errno == SMTP_ERR_RETRY) {
-		why->dsn[0] = '4';
-		smtp_site_fail(state, why->dsn, 450, "%s", STR(why->vstring));
+		DSN_CLASS(why->dsn) = '4';
+		smtp_site_fail(state, DSN_CODE(why->dsn), 450,
+			       "%s", STR(why->vstring));
 	    } else {
-		why->dsn[0] = '5';
-		smtp_site_fail(state, why->dsn, 550, "%s", STR(why->vstring));
+		DSN_CLASS(why->dsn) = '5';
+		smtp_site_fail(state, DSN_CODE(why->dsn), 550,
+			       "%s", STR(why->vstring));
 	    }
 
 	    /*

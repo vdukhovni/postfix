@@ -173,7 +173,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 	if (rcpt->offset >= 0) {
 	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
 				   rcpt->orig_addr, rcpt->address,
-				   rcpt->offset, "none", dp.dsn,
+				   rcpt->offset, "none", DSN_CODE(dp.dsn),
 				   request->arrival_time,
 				   "%s", dp.text);
 	    if (status == 0)

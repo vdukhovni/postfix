@@ -401,12 +401,12 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 	 */
 	if ((state->session = lmtp_connect(request->nexthop, why)) == 0) {
 	    if (lmtp_errno == LMTP_RETRY) {
-		why->dsn[0] = '4';
-		lmtp_site_fail(state, why->dsn, 450,
+		DSN_CLASS(why->dsn) = '4';
+		lmtp_site_fail(state, DSN_CODE(why->dsn), 450,
 			       "%s", vstring_str(why->vstring));
 	    } else {
-		why->dsn[0] = '5';
-		lmtp_site_fail(state, why->dsn, 550,
+		DSN_CLASS(why->dsn) = '5';
+		lmtp_site_fail(state, DSN_CODE(why->dsn), 550,
 			       "%s", vstring_str(why->vstring));
 	    }
 	}

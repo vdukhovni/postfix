@@ -212,9 +212,10 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
 	deliver_status = DEL_STAT_DEFER;
     } else if (mail_copy_status != 0) {
-	deliver_status = (why->dsn[0] == '4' ? defer_append : bounce_append)
+	deliver_status = (DSN_CLASS(why->dsn) == '4' ?
+			  defer_append : bounce_append)
 	    (BOUNCE_FLAGS(state.request),
-	     BOUNCE_ATTR(state.msg_attr, why->dsn),
+	     BOUNCE_ATTR(state.msg_attr, DSN_CODE(why->dsn)),
 	     "cannot update mailbox %s for user %s. %s",
 	     mailbox, state.msg_attr.user, vstring_str(why->vstring));
     } else {

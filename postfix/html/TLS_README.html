@@ -553,7 +553,8 @@ can specify any database type that can store objects of several
 kbytes and that supports the sequence operator. DBM databases are
 not suitable because they can only store small objects. The cache
 is maintained by the <a href="tlsmgr.8.html">tlsmgr(8)</a> process, so there is no problem with
-concurrent access. </p>
+concurrent access. Session caching is highly recommended, because
+the cost of repeatedly negotiating TLS session keys is high.</p>
 
 <p> Example: </p>
  
@@ -904,7 +905,10 @@ can specify any database type that can store objects of several
 kbytes and that supports the sequence operator. DBM databases are
 not suitable because they can only store small objects. The cache
 is maintained by the <a href="tlsmgr.8.html">tlsmgr(8)</a> process, so there is no problem with
-concurrent access. </p>
+concurrent access. Session caching is highly recommended, because
+the cost of repeatedly negotiating TLS session keys is high.  Future
+Postfix SMTP servers may limit the number of sessions that a client
+is allowed to negotiate per unit time.</p>
 
 
 <p> Example: </p>

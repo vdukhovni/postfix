@@ -260,7 +260,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
 	if (VSTRING_LEN(reason)) {
 	    /* Sanitize the DSN status from delivery agent. */
 	    dsn_split(&dp, "4.0.0", printable(vstring_str(reason), '?'));
-	    qmgr_queue_throttle(queue, dp.dsn, *dp.text ?
+	    qmgr_queue_throttle(queue, DSN_CODE(dp.dsn), *dp.text ?
 				dp.text : "unknown problem");
 	    if (queue->window == 0)
 		qmgr_defer_todo(queue, queue->dsn, queue->reason);

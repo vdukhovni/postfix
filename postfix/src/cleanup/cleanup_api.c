@@ -259,7 +259,7 @@ DSN_SPLIT dp;
 
     if (state->errs != 0) {
 	if (CAN_BOUNCE()) {
-	    if (state->reason) 
+	    if (state->reason)
 		dsn_split(&dp, "5.0.0", state->reason);
 	    else
 		detail = cleanup_stat_detail(state->errs);
@@ -267,8 +267,8 @@ DSN_SPLIT dp;
 			      state->recip ? state->recip : "unknown",
 			      state->recip ? state->recip : "unknown",
 			      (long) 0, "none",
-			      detail ? detail->dsn : dp.dsn, 
-			      state->time, "%s", 
+			      detail ? detail->dsn : DSN_CODE(dp.dsn),
+			      state->time, "%s",
 			      detail ? detail->text : dp.text) == 0
 		&& bounce_flush(BOUNCE_FLAG_CLEAN, state->queue_name,
 				state->queue_id,

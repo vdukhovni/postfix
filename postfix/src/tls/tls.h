@@ -59,7 +59,7 @@ typedef struct {
     char    issuer_CN[CCERT_BUFSIZ];
     unsigned char md[EVP_MAX_MD_SIZE];
     char    fingerprint[EVP_MAX_MD_SIZE * 3];
-    char    peername_save[HOST_BUFSIZ + 1];
+    char   *peername;
     int     enforce_verify_errors;
     int     enforce_CN;
     int     hostname_matched;
@@ -67,18 +67,6 @@ typedef struct {
 } TLScontext_t;
 
 #define TLS_BIO_BUFSIZE	8192
-
-#define NEW_TLS_CONTEXT(p) do { \
-	p = (TLScontext_t *) mymalloc(sizeof(*p)); \
-	memset((char *) p, 0, sizeof(*p)); \
-	p->serverid = 0; \
-    } while (0)
-    
-#define FREE_TLS_CONTEXT(p) do { \
-	if ((p)->serverid) \
-	    myfree((p)->serverid); \
-	myfree((char *) (p)); \
-    } while (0)
 
 typedef struct {
     int     peer_verified;
@@ -179,10 +167,7 @@ extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
  /*
   * tls_verify.c
   */
-extern int tls_verify_certificate_callback(int, X509_STORE_CTX *, int);
-
-#define TLS_VERIFY_DEFAULT	(0)
-#define TLS_VERIFY_PEERNAME	(1<<0)
+extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
 
  /*
   * tls_certkey.c
@@ -198,6 +183,8 @@ extern int tls_set_my_certificate_key_info(SSL_CTX *, const char *,
   */
 extern int TLScontext_index;
 
+extern TLScontext_t *tls_alloc_context(int, const char *);
+extern void tls_free_context(TLScontext_t *);
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
 extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);

@@ -224,7 +224,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      * Read and parse the server's LMTP greeting banner.
      */
     if (((resp = lmtp_chat_resp(state))->code / 100) != 2)
-	return (lmtp_site_fail(state, resp->dsn, resp->code,
+	return (lmtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
 			       "host %s refused to talk to me: %s",
 			 session->namaddr, translit(resp->str, "\n", " ")));
 
@@ -233,7 +233,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      */
     lmtp_chat_cmd(state, "LHLO %s", var_myhostname);
     if ((resp = lmtp_chat_resp(state))->code / 100 != 2)
-	return (lmtp_site_fail(state, resp->dsn, resp->code,
+	return (lmtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
 			       "host %s refused to talk to me: %s",
 			       session->namaddr,
 			       translit(resp->str, "\n", " ")));
@@ -594,7 +594,8 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case LMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
-			lmtp_mesg_fail(state, resp->dsn, resp->code,
+			lmtp_mesg_fail(state, DSN_CODE(resp->dsn),
+				       resp->code,
 				       "host %s said: %s (in reply to %s)",
 				       session->namaddr,
 				       translit(resp->str, "\n", " "),
@@ -634,7 +635,8 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
 					request->queue_id, rcpt->orig_addr,
 					rcpt->address, rcpt->offset,
-					session->namaddr, resp->dsn,
+					session->namaddr,
+					DSN_CODE(resp->dsn),
 					request->arrival_time, "%s",
 				     translit(resp->str, "\n", " ")) == 0) {
 				if (request->flags & DEL_REQ_FLAG_SUCCESS)
@@ -642,7 +644,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 				rcpt->offset = 0;	/* in case deferred */
 			    }
 			} else {
-			    lmtp_rcpt_fail(state, resp->dsn,
+			    lmtp_rcpt_fail(state, DSN_CODE(resp->dsn),
 					   resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
@@ -665,7 +667,8 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		case LMTP_STATE_DATA:
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
-			    lmtp_mesg_fail(state, resp->dsn, resp->code,
+			    lmtp_mesg_fail(state, DSN_CODE(resp->dsn),
+					   resp->code,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -692,7 +695,8 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 				if (sent(DEL_REQ_TRACE_FLAGS(request->flags),
 					 request->queue_id, rcpt->orig_addr,
 					 rcpt->address, rcpt->offset,
-					 session->namaddr, resp->dsn,
+					 session->namaddr,
+					 DSN_CODE(resp->dsn),
 					 request->arrival_time,
 					 "%s", resp->str) == 0) {
 				    if (request->flags & DEL_REQ_FLAG_SUCCESS)
@@ -701,7 +705,7 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 				}
 			    }
 			} else {
-			    lmtp_rcpt_fail(state, resp->dsn,
+			    lmtp_rcpt_fail(state, DSN_CODE(resp->dsn),
 					   resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,

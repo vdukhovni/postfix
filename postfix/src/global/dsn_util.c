@@ -6,9 +6,24 @@
 /* SYNOPSIS
 /*	#include <dsn_util.h>
 /*
+/*	#define DSN_SIZE ...
+/*
+/*	typedef struct { ... } DSN_BUF;
+/*
+/*	void	DSN_UPDATE(dsn_buf, dsn, len)
+/*	DSN_BUF	dsn_buf;
+/*	const char *dsn;
+/*	size_t	len;
+/*
+/*	const char *DSN_CODE(dsn_buf)
+/*	DSN_BUF	dsn_buf;
+/*
+/*	char	*DSN_CLASS(dsn_buf)
+/*	DSN_BUF	dsn_buf;
+/*
 /*	typedef struct {
 /* .in +4
-/*		char dsn[...];		/* RFC 3463 */
+/*		DSN_BUF dsn;		/* RFC 3463 detail */
 /*		const char *text;	/* Free text */
 /* .in -4
 /*	} DSN_SPLIT;
@@ -24,7 +39,7 @@
 /*
 /*	typedef struct {
 /* .in +4
-/*		char dsn[...];		/* RFC 3463 */
+/*		DSN_BUF dsn;		/* RFC 3463 detail */
 /*		VSTRING *text;		/* Free text */
 /* .in -4
 /*	} DSN_VSTRING;
@@ -71,6 +86,18 @@
 /*
 /*	dsn_vstring_free() recycles the storage that was allocated
 /*	by dsn_vstring_alloc() and dsn_vstring_update().
+/*
+/*	DSN_UPDATE() is a helper macro to safely update an
+/*	RFC 3463 detail code.
+/*
+/*	DSN_CODE() is a helper macro to safely read an
+/*	RFC 3463 detail code.
+/*
+/*	DSN_CLASS() is a helper macro to safely read or update an
+/*	RFC 3463 detail code class (i.e. the first digit).
+/*
+/*	DSN_SIZE is the maximal length of an enhanced status
+/*	code including the null string terminator.
 /*
 /*	dsn_valid() returns the length of the RFC 3463 detail code
 /*	at the beginning of text, or zero. It does not skip initial
@@ -167,15 +194,11 @@ DSN_SPLIT *dsn_split(DSN_SPLIT *dp, const char *def_dsn, const char *text)
     while (ISSPACE(*cp))
 	cp++;
     if ((len = dsn_valid(cp)) > 0) {
-	if (len >= sizeof(dp->dsn))
-	    msg_panic("dsn_split: bad DSN code length %d", len);
-	DSN_BUF_UPDATE(dp->dsn, cp, len);
+	DSN_UPDATE(dp->dsn, cp, len);
 	cp += len + 1;
     } else {
 	len = strlen(def_dsn);
-	if (len >= sizeof(dp->dsn))
-	    msg_panic("dsn_split: bad default DSN code length %d", len);
-	DSN_BUF_UPDATE(dp->dsn, def_dsn, len);
+	DSN_UPDATE(dp->dsn, def_dsn, len);
     }
 
     /*
@@ -195,7 +218,7 @@ char   *dsn_prepend(const char *def_dsn, const char *text)
     DSN_SPLIT dp;
 
     dsn_split(&dp, def_dsn, text);
-    return (concatenate(dp.dsn, " ", dp.text, (char *) 0));
+    return (concatenate(DSN_CODE(dp.dsn), " ", dp.text, (char *) 0));
 }
 
 /* dsn_vstring_alloc - create DSN+string storage */
@@ -205,7 +228,7 @@ DSN_VSTRING *dsn_vstring_alloc(int len)
     DSN_VSTRING *dv;
 
     dv = (DSN_VSTRING *) mymalloc(sizeof(*dv));
-    dv->dsn[0] = 0;
+    DSN_CLASS(dv->dsn) = 0;
     dv->vstring = vstring_alloc(len);
     return(dv);
 }
@@ -227,9 +250,9 @@ DSN_VSTRING *dsn_vstring_update(DSN_VSTRING *dv, const char *dsn,
     size_t  len;
 
     if (dsn && *dsn) {
-	if ((len = dsn_valid(dsn)) == 0 || len >= sizeof(dv->dsn))
+	if ((len = dsn_valid(dsn)) == 0)
 	    msg_panic("dsn_vstring_update: bad dsn: \"%s\"", dsn);
-	DSN_BUF_UPDATE(dv->dsn, dsn, len);
+	DSN_UPDATE(dv->dsn, dsn, len);
     }
     if (format && *format) {
 	va_start(ap, format);

@@ -27,12 +27,9 @@
 #define TLS_MGR_ATTR_CACHE_TYPE	"cache_type"
 #define TLS_MGR_ATTR_SEED	"seed"
 #define TLS_MGR_ATTR_CACHE_ID	"cache_id"
-#define TLS_MGR_ATTR_VERSION	"version"
-#define TLS_MGR_ATTR_FLAGS	"flags"
 #define TLS_MGR_ATTR_SESSION	"session"
 #define TLS_MGR_ATTR_SIZE	"size"
 #define TLS_MGR_ATTR_STATUS	"status"
-#define TLS_MGR_ATTR_FLAGS	"flags"
 
  /*
   * TLS manager request status codes.
@@ -52,11 +49,9 @@
   */
 extern int tls_mgr_seed(VSTRING *, int);
 extern int tls_mgr_policy(int *);
-extern int tls_mgr_lookup(int, const char *, long, int, VSTRING *);
-extern int tls_mgr_update(int, const char *, long, int, const char *, int);
+extern int tls_mgr_lookup(int, const char *, VSTRING *);
+extern int tls_mgr_update(int, const char *, const char *, int);
 extern int tls_mgr_delete(int, const char *);
-
-#define TLS_MGR_NO_FLAGS	0
 
 /* LICENSE
 /* .ad

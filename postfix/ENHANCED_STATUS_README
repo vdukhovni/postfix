@@ -48,12 +48,13 @@ EACCES.  The latter happens to work because mbox_open() does not
 need to unlock the output file, so it won't clobber the errno value.
 
 - Avoid passing around strings that combine enhanced status code
-and diagnostic text, because the compiler can't help to enforce
-that everything has a status code.  Currently there are two exceptions
-to this rule: the cleanup server status reply, and the delivery
-agent status reply.  Once these protocols are updated we can remove
-the dns_prepend() routine. The third exception, enhanced status
-codes in external command output, is a feature.
+and diagnostic text. Instead, use separate variables for status
+code and text, so that the compiler can enforce that everything has
+a status code.  Currently there are two exceptions to this rule:
+the cleanup server status reply, and the delivery agent status
+reply.  Once these protocols are updated we can remove the dns_prepend()
+routine. The third exception, enhanced status codes in external
+command output, is a feature.
 
 - The bounce/defer/sent library modules will catch the cases where
 an enhanced status code does not match the reject/defer/success

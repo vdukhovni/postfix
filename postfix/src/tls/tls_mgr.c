@@ -13,21 +13,15 @@
 /*	int	tls_mgr_policy(cache_types)
 /*	int	*cache_types;
 /*
-/*	int	tls_mgr_update(cache_type, cache_id,
-/*				openssl_version, flags, buf, len)
+/*	int	tls_mgr_update(cache_type, cache_id, buf, len)
 /*	int	cache_type;
 /*	const char *cache_id;
-/*	long	openssl_version;
-/*	int	flags;
 /*	const char *buf;
 /*	int	len;
 /*
-/*	int	tls_mgr_lookup(cache_type, cache_id,
-/*				openssl_version, flags, buf)
+/*	int	tls_mgr_lookup(cache_type, cache_id, buf)
 /*	int	cache_type;
 /*	const char *cache_id;
-/*	long	openssl_version;
-/*	int	flags;
 /*	VSTRING	*buf;
 /*
 /*	int	tls_mgr_delete(cache_type, cache_id)
@@ -66,12 +60,6 @@
 /*	One of TLS_MGR_SCACHE_CLIENT or TLS_MGR_SCACHE_SERVER (see above).
 /* .IP cache_id
 /*	The session cache lookup key.
-/* .IP openssl_version
-/*	The OpenSSL version. Sessions saved by the wrong OpenSSL version are
-/*	deleted, to avoid compatibility problems.
-/* .IP flags
-/*	Flags that must be set in the retrieved cache entry; it not,
-/*	the cache entry is deleted.
 /* .IP buf
 /*	The result or input buffer.
 /* .IP len
@@ -211,8 +199,7 @@ int     tls_mgr_policy(int *policy)
 
 /* tls_mgr_lookup - request cached session */
 
-int     tls_mgr_lookup(int cache_type, const char *cache_id,
-		               long openssl_vsn, int flags, VSTRING *buf)
+int     tls_mgr_lookup(int cache_type, const char *cache_id, VSTRING *buf)
 {
     int     status;
 
@@ -230,8 +217,6 @@ int     tls_mgr_lookup(int cache_type, const char *cache_id,
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_LOOKUP,
 			  ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
-			  ATTR_TYPE_LONG, TLS_MGR_ATTR_VERSION, openssl_vsn,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_FLAGS, flags,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
 			  ATTR_TYPE_NUM, TLS_MGR_ATTR_STATUS, &status,
@@ -244,7 +229,6 @@ int     tls_mgr_lookup(int cache_type, const char *cache_id,
 /* tls_mgr_update - save session to cache */
 
 int     tls_mgr_update(int cache_type, const char *cache_id,
-		               long openssl_vsn, int flags,
 		               const char *buf, int len)
 {
     int     status;
@@ -263,8 +247,6 @@ int     tls_mgr_update(int cache_type, const char *cache_id,
 			ATTR_TYPE_STR, TLS_MGR_ATTR_REQ, TLS_MGR_REQ_UPDATE,
 			  ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
-			  ATTR_TYPE_LONG, TLS_MGR_ATTR_VERSION, openssl_vsn,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_FLAGS, flags,
 			  ATTR_TYPE_DATA, TLS_MGR_ATTR_SESSION, len, buf,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply */
@@ -363,24 +345,18 @@ int     main(int unused_ac, char **av)
 	    vstream_printf("status=%d seed=%s\n", status, STR(hex));
 	    vstring_free(hex);
 	    vstring_free(buf);
-	} else if (COMMAND(argv, "lookup", 5)) {
+	} else if (COMMAND(argv, "lookup", 3)) {
 	    VSTRING *buf = vstring_alloc(10);
 	    int     cache_type = atoi(argv->argv[1]);
-	    long    openssl_vsn = atol(argv->argv[3]);
-	    int     flags = atoi(argv->argv[4]);
 
-	    status = tls_mgr_lookup(cache_type, argv->argv[2],
-				    openssl_vsn, flags, buf);
+	    status = tls_mgr_lookup(cache_type, argv->argv[2], buf);
 	    vstream_printf("status=%d session=%.*s\n",
 			   status, LEN(buf), STR(buf));
-	} else if (COMMAND(argv, "update", 6)) {
+	} else if (COMMAND(argv, "update", 4)) {
 	    int     cache_type = atoi(argv->argv[1]);
-	    long    openssl_vsn = atol(argv->argv[3]);
-	    int     flags = atoi(argv->argv[4]);
 
 	    status = tls_mgr_update(cache_type, argv->argv[2],
-				    openssl_vsn, flags,
-				    argv->argv[5], strlen(argv->argv[5]));
+				    argv->argv[3], strlen(argv->argv[3]));
 	    vstream_printf("status=%d\n", status);
 	} else if (COMMAND(argv, "delete", 3)) {
 	    int     cache_type = atoi(argv->argv[1]);
@@ -391,8 +367,8 @@ int     main(int unused_ac, char **av)
 	    vstream_printf("usage:\n"
 			   "seed byte_count\n"
 			   "policy\n"
-			"lookup cache_type cache_id openssl_version flags\n"
-		"update cache_type cache_id openssl_version flags session\n"
+			   "lookup cache_type cache_id\n"
+			   "update cache_type cache_id session\n"
 			   "delete cache_type cache_id\n");
 	}
 	vstream_fflush(VSTREAM_OUT);

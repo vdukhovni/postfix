@@ -17,8 +17,18 @@ Incompatibility with Postfix 2.1 and earlier
 If you upgrade from Postfix 2.1 or earlier, read RELEASE_NOTES-2.2
 before proceeding.
 
+Incompatibility with snapshot 20050329
+======================================
+
+If you use TLS, you need to execute "postfix reload" because the
+TLS manager protocol has changed.
+
 Incompatibility with snapshot 20050328
 ======================================
+
+The logging format has changed. Postfix delivery agents now log the
+RFC 3463 enhanced status code as "dsn=x.y.z" where y and z can be
+up to three digits each.
 
 After you upgrade from Postfix 2.2 or 2.3 you need to execute
 "postfix reload", otherwise you will keep running the old Postfix

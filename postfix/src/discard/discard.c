@@ -171,8 +171,8 @@ static int deliver_message(DELIVER_REQUEST *request)
 	if (rcpt->offset >= 0) {
 	    status = sent(BOUNCE_FLAGS(request), request->queue_id,
 			  rcpt->orig_addr, rcpt->address, rcpt->offset,
-			  "none", dp.dsn, request->arrival_time,
-			  "%s", dp.text);
+			  "none", DSN_CODE(dp.dsn),
+			  request->arrival_time, "%s", dp.text);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
 	    result |= status;

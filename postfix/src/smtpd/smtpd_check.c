@@ -1873,7 +1873,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, "REJECT", cmd_len)) {
 	dsn_split(&dp, "5.7.1", cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   var_access_map_code, dp.dsn,
+				   var_access_map_code, DSN_CODE(dp.dsn),
 				   "<%s>: %s rejected: %s",
 				   reply_name, reply_class,
 				   *dp.text ? dp.text : "Access denied"));
@@ -1982,7 +1982,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			 450, dp.dsn,
+			 450, DSN_CODE(dp.dsn),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -1996,7 +1996,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, DEFER_IF_REJECT, cmd_len)) {
 	dsn_split(&dp, "4.7.1", cmd_text);
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
-			 450, dp.dsn,
+			 450, DSN_CODE(dp.dsn),
 			 "<%s>: %s rejected: %s",
 			 reply_name, reply_class,
 			 *dp.text ? dp.text : "Service unavailable");
@@ -2045,9 +2045,10 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	def_dsn[0] = value[0];
 	dsn_split(&dp, def_dsn, cmd_text);
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   code, dp.dsn,
+				   code, DSN_CODE(dp.dsn),
 				   "<%s>: %s rejected: %s",
-				   reply_name, reply_class, dp.text));
+				   reply_name, reply_class,
+				   *dp.text ? dp.text : "Access denied"));
     }
 
     /*
@@ -2892,7 +2893,8 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
 	code = atoi(STR(why));
 	dsn_split(&dp, "4.7.1", STR(why) + 4);
 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				    code, dp.dsn, "%s", *dp.text ?
+				    code, DSN_CODE(dp.dsn),
+				    "%s", *dp.text ?
 				    dp.text : "Service unavailable");
     }
 

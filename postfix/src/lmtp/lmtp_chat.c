@@ -233,16 +233,16 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
      * Extract RFC 821 reply code and RFC 2034 detail code. Use a default
      * detail code if none was given.
      */
-    rdata.dsn[0] = 0;
+    DSN_CLASS(rdata.dsn) = 0;
     if (three_digs != 0) {
 	rdata.code = atoi(STR(state->buffer));
 	for (cp = STR(state->buffer) + 4; *cp == ' '; cp++)
 	     /* void */ ;
-	if ((len = dsn_valid(cp)) > 0 && len < sizeof(rdata.dsn)) {
-	    DSN_BUF_UPDATE(rdata.dsn, cp, len);
+	if ((len = dsn_valid(cp)) > 0 && len < sizeof(DSN_SIZE)) {
+	    DSN_UPDATE(rdata.dsn, cp, len);
 	} else if (strchr("245", STR(state->buffer)[0]) != 0) {
-	    DSN_BUF_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
-	    rdata.dsn[0] = STR(state->buffer)[0];
+	    DSN_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
+	    DSN_CLASS(rdata.dsn) = STR(state->buffer)[0];
 	}
     } else {
 	rdata.code = 0;

@@ -7,6 +7,13 @@
 /*	#define TLS_INTERNAL
 /*	#include <tls.h>
 /*
+/*	TLScontext_t *tls_alloc_context(log_level, peername)
+/*	int	log_level;
+/*	const char *peername;
+/*
+/*	void	tls_free_context(TLScontext)
+/*	TLScontext_t *TLScontext;
+/*
 /*	void	tls_print_errors()
 /*
 /*	void    tls_info_callback(ssl, where, ret)
@@ -24,6 +31,12 @@
 /* DESCRIPTION
 /*	This module implements routines that support the TLS client
 /*	and server internals.
+/*
+/*	tls_alloc_context() creates an initialized TLScontext
+/*	structure with the specified peer name and logging level.
+/*
+/*	tls_free_context() destroys a TLScontext structure
+/*	together with OpenSSL structures that are attached to it.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -69,6 +82,7 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <vstring.h>
+#include <stringops.h>
 
 /* TLS library. */
 
@@ -82,6 +96,52 @@
   * so that it can be accessed by call-back routines.
   */
 int     TLScontext_index = -1;
+
+/* tls_alloc_context - allocate TLScontext */
+
+TLScontext_t *tls_alloc_context(int log_level, const char *peername)
+{
+    TLScontext_t *TLScontext;
+
+    /*
+     * PORTABILITY: Do not assume that null pointers are all-zero bits.
+     * Use explicit assignments to initialize pointers.
+     * 
+     * See the C language FAQ item 5.17, or if you have time to burn,
+     * http://www.google.com/search?q=zero+bit+null+pointer
+     */
+    TLScontext = (TLScontext_t *) mymalloc(sizeof(TLScontext_t));
+    memset((char *) TLScontext, 0, sizeof(*TLScontext));
+    TLScontext->con = 0;
+    TLScontext->internal_bio = 0;
+    TLScontext->network_bio = 0;
+    TLScontext->serverid = 0;
+    TLScontext->log_level = log_level;
+    TLScontext->peername = lowercase(mystrdup(peername));
+
+    return (TLScontext);
+}
+
+/* tls_free_context - deallocate TLScontext and members */
+
+void    tls_free_context(TLScontext_t *TLScontext)
+{
+
+    /*
+     * Free the SSL structure and the BIOs. Warning: the internal_bio is
+     * connected to the SSL structure and is automatically freed with it. Do
+     * not free it again (core dump)!! Only free the network_bio.
+     */
+    if (TLScontext->con != 0)
+	SSL_free(TLScontext->con);
+    if (TLScontext->network_bio)
+	BIO_free(TLScontext->network_bio);
+    if (TLScontext->peername)
+	myfree(TLScontext->peername);
+    if (TLScontext->serverid)
+	myfree(TLScontext->serverid);
+    myfree((char *) TLScontext);
+}
 
 /* tls_print_errors - print and clear the error stack */
 

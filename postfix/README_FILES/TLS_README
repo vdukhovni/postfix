@@ -364,7 +364,9 @@ between multiple smtpd(8) processes, a persistent session cache can be used.
 You can specify any database type that can store objects of several kbytes and
 that supports the sequence operator. DBM databases are not suitable because
 they can only store small objects. The cache is maintained by the tlsmgr(8)
-process, so there is no problem with concurrent access.
+process, so there is no problem with concurrent access. Session caching is
+highly recommended, because the cost of repeatedly negotiating TLS session keys
+is high.
 
 Example:
 
@@ -608,7 +610,10 @@ between multiple smtp(8) processes, a persistent session cache can be used. You
 can specify any database type that can store objects of several kbytes and that
 supports the sequence operator. DBM databases are not suitable because they can
 only store small objects. The cache is maintained by the tlsmgr(8) process, so
-there is no problem with concurrent access.
+there is no problem with concurrent access. Session caching is highly
+recommended, because the cost of repeatedly negotiating TLS session keys is
+high. Future Postfix SMTP servers may limit the number of sessions that a
+client is allowed to negotiate per unit time.
 
 Example:
 

@@ -105,7 +105,7 @@ extern int lmtp_rset(LMTP_STATE *);
   */
 typedef struct LMTP_RESP {		/* server response */
     int     code;			/* status */
-    char    dsn[DSN_BUFSIZE];		/* DSN detail */
+    DSN_BUF dsn;			/* DSN detail */
     char   *str;			/* text */
     VSTRING *buf;			/* origin of text */
 } LMTP_RESP;

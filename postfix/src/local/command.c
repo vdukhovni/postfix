@@ -232,9 +232,10 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	break;
     case PIPE_STAT_BOUNCE:
     case PIPE_STAT_DEFER:
-	deliver_status = (why->dsn[0] == '4' ? defer_append : bounce_append)
+	deliver_status = (DSN_CLASS(why->dsn) == '4' ?
+			  defer_append : bounce_append)
 	    (BOUNCE_FLAGS(state.request),
-	     BOUNCE_ATTR(state.msg_attr, why->dsn),
+	     BOUNCE_ATTR(state.msg_attr, DSN_CODE(why->dsn)),
 	     "%s", vstring_str(why->vstring));
 	break;
     case PIPE_STAT_CORRUPT:

@@ -521,8 +521,6 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
     static VSTRING *buffer = 0;
     int     cache_type;
     int     len;
-    long    openssl_vsn;
-    int     flags;
     static char wakeup[] = {		/* master wakeup request */
 	TRIGGER_REQ_WAKEUP,
 	0,
@@ -560,20 +558,13 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, &cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
-			  ATTR_TYPE_LONG, TLS_MGR_ATTR_VERSION, &openssl_vsn,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_FLAGS, &flags,
-			  ATTR_TYPE_END) == 4) {
+			  ATTR_TYPE_END) == 2) {
 		if ((cache = WHICH_CACHE_INFO(cache_type)) == 0) {
 		    msg_warn("bogus cache type \"%d\" in \"%s\" request",
 			     cache_type, TLS_MGR_REQ_LOOKUP);
 		    VSTRING_RESET(buffer);
 		} else {
-		    status =
-			tls_scache_lookup(cache, STR(cache_id), openssl_vsn,
-					  flags,
-					  TLS_SCACHE_DONT_NEED_OPENSSL_VSN,
-					  TLS_SCACHE_DONT_NEED_FLAGS,
-					  buffer) ?
+		    status = tls_scache_lookup(cache, STR(cache_id), buffer) ?
 			TLS_MGR_STAT_OK : TLS_MGR_STAT_ERR;
 		}
 	    }
@@ -591,17 +582,15 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			ATTR_TYPE_NUM, TLS_MGR_ATTR_CACHE_TYPE, &cache_type,
 			  ATTR_TYPE_STR, TLS_MGR_ATTR_CACHE_ID, cache_id,
-			  ATTR_TYPE_LONG, TLS_MGR_ATTR_VERSION, &openssl_vsn,
-			  ATTR_TYPE_NUM, TLS_MGR_ATTR_FLAGS, &flags,
 			  ATTR_TYPE_DATA, TLS_MGR_ATTR_SESSION, buffer,
-			  ATTR_TYPE_END) == 5) {
+			  ATTR_TYPE_END) == 3) {
 		if ((cache = WHICH_CACHE_INFO(cache_type)) == 0) {
 		    msg_warn("bogus cache type \"%d\" in \"%s\" request",
 			     cache_type, TLS_MGR_REQ_UPDATE);
 		} else {
 		    status =
-			tls_scache_update(cache, STR(cache_id), openssl_vsn,
-					  flags, STR(buffer), LEN(buffer)) ?
+			tls_scache_update(cache, STR(cache_id),
+					  STR(buffer), LEN(buffer)) ?
 			TLS_MGR_STAT_OK : TLS_MGR_STAT_ERR;
 		}
 	    }

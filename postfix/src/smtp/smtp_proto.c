@@ -275,10 +275,10 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	case 5:
 	    if (var_smtp_skip_5xx_greeting) {
 		resp->code = 400;
-		resp->dsn[0] = '4';
+		DSN_CLASS(resp->dsn) = '4';
 	    }
 	default:
-	    return (smtp_site_fail(state, resp->dsn, resp->code,
+	    return (smtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -336,7 +336,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
     if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
 	smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
 	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-	    return (smtp_site_fail(state, resp->dsn, resp->code,
+	    return (smtp_site_fail(state, DSN_CODE(resp->dsn), resp->code,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -520,7 +520,8 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
 	    if (session->tls_enforce_tls)
-		return (smtp_site_fail(state, resp->dsn, resp->code,
+		return (smtp_site_fail(state, DSN_CODE(resp->dsn),
+				       resp->code,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
@@ -600,9 +601,8 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      * use TLS session caching???
      */
     serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%u", session->addr, ntohs(session->port));
-    if (session->helo != 0)
-	vstring_sprintf_append(serverid, ":%s", session->helo);
+    vstring_sprintf(serverid, "%s:%u:%s", session->addr,
+		  ntohs(session->port), session->helo ? session->helo : "");
     session->tls_context =
 	tls_client_start(smtp_tls_ctx, session->stream,
 			 var_smtp_starttls_tmout,
@@ -614,49 +614,6 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
     if (session->tls_context == 0)
 	return (smtp_site_fail(state, "4.7.5", 450,
 			       "Cannot start TLS: handshake failure"));
-
-    /*
-     * Give up when TLS is required, we can parse the server certificate's
-     * CommonName field, but server certificate verification failed.
-     * 
-     * In enforce_peername state, the handshake would already have been
-     * terminated by the certificate verification call-back routine, so the
-     * check here is for logging only.
-     * 
-     * XXX It appears that the CommonName field is used as an indicator that a
-     * server certificate is available. If the latter is what we want, then
-     * we should test for that instead.
-     */
-    if (session->tls_info.peer_CN != NULL) {
-	if (!session->tls_info.peer_verified) {
-	    msg_info("Server certificate could not be verified");
-	    if (session->tls_enforce_tls) {
-		tls_client_stop(smtp_tls_ctx, session->stream,
-				var_smtp_starttls_tmout, 1,
-				&(session->tls_info));
-		return (smtp_site_fail(state, "4.7.5", 450,
-			  "TLS failure: Cannot verify server certificate"));
-	    }
-	}
-    }
-
-    /*
-     * Give up when TLS is required but no server certificate is available
-     * (or we could not parse the certificate's CommonName) field.
-     * 
-     * XXX The test below is not accurate: the server hostname verification may
-     * use the dNSNames instead of the CommonName. We really should be
-     * testing if a certificate is available.
-     */
-    else {
-	if (session->tls_enforce_tls) {
-	    tls_client_stop(smtp_tls_ctx, session->stream,
-			    var_smtp_starttls_tmout, 1,
-			    &(session->tls_info));
-	    return (smtp_site_fail(state, "4.7.5", 450,
-			     "TLS failure: Cannot verify server hostname"));
-	}
-    }
 
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the
@@ -1206,7 +1163,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case SMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
-			smtp_mesg_fail(state, resp->dsn, resp->code,
+			smtp_mesg_fail(state, DSN_CODE(resp->dsn), resp->code,
 				       "host %s said: %s (in reply to %s)",
 				       session->namaddr,
 				       translit(resp->str, "\n", " "),
@@ -1233,7 +1190,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #ifdef notdef
 			if (resp->code == 552) {
 			    resp->code = 452;
-			    resp->dsn[0] = '4';
+			    DSN_CLASS(resp->dsn) = '4';
 			}
 #endif
 			rcpt = request->rcpt_list.info + recv_rcpt;
@@ -1241,10 +1198,10 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
 			    if (DEL_REQ_TRACE_ONLY(request->flags))
-				smtp_rcpt_done(state, resp->dsn,
+				smtp_rcpt_done(state, DSN_CODE(resp->dsn),
 					       resp->str, rcpt);
 			} else {
-			    smtp_rcpt_fail(state, resp->dsn,
+			    smtp_rcpt_fail(state, DSN_CODE(resp->dsn),
 					   resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
@@ -1267,7 +1224,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DATA:
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
-			    smtp_mesg_fail(state, resp->dsn, resp->code,
+			    smtp_mesg_fail(state, DSN_CODE(resp->dsn),
+					   resp->code,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1289,7 +1247,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DOT:
 		    if (nrcpt > 0) {
 			if (resp->code / 100 != 2) {
-			    smtp_mesg_fail(state, resp->dsn, resp->code,
+			    smtp_mesg_fail(state, DSN_CODE(resp->dsn),
+					   resp->code,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1298,7 +1257,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
 				if (!SMTP_RCPT_ISMARKED(rcpt))
-				    smtp_rcpt_done(state, resp->dsn,
+				    smtp_rcpt_done(state, DSN_CODE(resp->dsn),
 						   resp->str, rcpt);
 			    }
 			}
