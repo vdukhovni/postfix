@@ -77,7 +77,7 @@ qmgr	  fifo	n	-	n	300	1	qmgr
 rewrite	  unix	-	-	n	-	-	trivial-rewrite
 bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
-flush	  unix	-	-	n	1000?	0	flush
+flush	  unix	n	-	n	1000?	0	flush
 smtp	  unix	-	-	n	-	-	smtp
 showq     unix	n	-	n	-	-	showq
 error     unix	-	-	n	-	-	error

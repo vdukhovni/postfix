@@ -325,13 +325,6 @@
 #define SM_MODE_FLUSHQ		6	/* user (stand-alone) mode */
 
  /*
-  * Queue file name. Global, so that the cleanup routine can find it when
-  * called by the run-time error handler.
-  */
-static void sendmail_cleanup(void);
-static NORETURN PRINTFLIKE(2, 3) fatal_error(int, const char *,...);
-
- /*
   * Flag parade.
   */
 #define SM_FLAG_AEOF	(1<<0)		/* archaic EOF */
@@ -393,7 +386,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	    msg_warn("-f option specified malformed sender: %s", sender);
     } else {
 	if ((sender = username()) == 0)
-	    fatal_error(EX_OSERR, "unable to find out your login name");
+	    msg_fatal_status(EX_OSERR, "unable to find out your login name");
 	saved_sender = mystrdup(sender);
     }
 
@@ -402,11 +395,11 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
      * the content. XXX Make postdrop a manifest constant.
      */
     errno = 0;
-    postdrop_command = concatenate(var_command_dir, "/postdrop",
+    postdrop_command = concatenate(var_command_dir, "/postdrop -r",
 			      msg_verbose ? " -v" : (char *) 0, (char *) 0);
     if ((handle = mail_stream_command(postdrop_command)) == 0)
-	fatal_error(EX_UNAVAILABLE, "%s(%ld): unable to execute %s: %m",
-		    saved_sender, (long) uid, postdrop_command);
+	msg_fatal_status(EX_UNAVAILABLE, "%s(%ld): unable to execute %s: %m",
+			 saved_sender, (long) uid, postdrop_command);
     myfree(postdrop_command);
     dst = handle->stream;
 
@@ -438,9 +431,9 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 		if (tp->type == TOK822_ADDR) {
 		    tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
 		    if (REC_PUT_BUF(dst, REC_TYPE_RCPT, buf) < 0)
-			fatal_error(EX_TEMPFAIL,
+			msg_fatal_status(EX_TEMPFAIL,
 				    "%s(%ld): error writing queue file: %m",
-				    saved_sender, (long) uid);
+					 saved_sender, (long) uid);
 		}
 	    }
 	    tok822_free_tree(tree);
@@ -481,8 +474,9 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	if ((flags & SM_FLAG_AEOF) && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
 	    break;
 	if (REC_PUT_BUF(dst, type, buf) < 0)
-	    fatal_error(EX_TEMPFAIL, "%s(%ld): error writing queue file: %m",
-			saved_sender, (long) uid);
+	    msg_fatal_status(EX_TEMPFAIL,
+			     "%s(%ld): error writing queue file: %m",
+			     saved_sender, (long) uid);
     }
 
     /*
@@ -503,13 +497,13 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
      * handler from removing the file.
      */
     if (vstream_ferror(VSTREAM_IN))
-	fatal_error(EX_DATAERR, "%s(%ld): error reading input: %m",
-		    saved_sender, (long) uid);
+	msg_fatal_status(EX_DATAERR, "%s(%ld): error reading input: %m",
+			 saved_sender, (long) uid);
     if ((status = mail_stream_finish(handle, (VSTRING *) 0)) != 0)
-	fatal_error((status & CLEANUP_STAT_BAD) ? EX_SOFTWARE :
-		    (status & CLEANUP_STAT_WRITE) ? EX_TEMPFAIL :
-		    EX_UNAVAILABLE, "%s(%ld): %s", saved_sender,
-		    (long) uid, cleanup_strerror(status));
+	msg_fatal_status((status & CLEANUP_STAT_BAD) ? EX_SOFTWARE :
+			 (status & CLEANUP_STAT_WRITE) ? EX_TEMPFAIL :
+			 EX_UNAVAILABLE, "%s(%ld): %s", saved_sender,
+			 (long) uid, cleanup_strerror(status));
 
     /*
      * Cleanup. Not really necessary as we're about to exit, but good for
@@ -517,35 +511,6 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
      */
     vstring_free(buf);
     myfree(saved_sender);
-}
-
-static int fatal_status;
-
-/* sendmail_cleanup - callback for the runtime error handler */
-
-static NORETURN sendmail_cleanup(void)
-{
-
-    /*
-     * We're possibly running from a signal handler, so we should not be
-     * doing complicated things such as memory of buffer management, but if
-     * for some reason we can't cleanup it is even worse to just die quietly.
-     */
-    exit(fatal_status > 0 ? fatal_status : 1);
-}
-
-/* fatal_error - give up and notify parent */
-
-static void fatal_error(int status, const char *fmt,...)
-{
-    VSTRING *text = vstring_alloc(10);
-    va_list ap;
-
-    fatal_status = status;
-    va_start(ap, fmt);
-    vstring_vsprintf(text, fmt, ap);
-    va_end(ap);
-    msg_fatal("%s", vstring_str(text));
 }
 
 /* main - the main program */
@@ -580,7 +545,7 @@ int     main(int argc, char **argv)
     for (fd = 0; fd < 3; fd++)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
-	    fatal_error(EX_UNAVAILABLE, "open /dev/null: %m");
+	    msg_fatal_status(EX_UNAVAILABLE, "open /dev/null: %m");
 
     /*
      * The CDE desktop calendar manager leaks a parent file descriptor into
@@ -628,7 +593,7 @@ int     main(int argc, char **argv)
      */
     mail_conf_read();
     if (chdir(var_queue_dir))
-	fatal_error(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
+	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
 
     /*
      * Stop run-away process accidents by limiting the queue file size. This
@@ -638,7 +603,6 @@ int     main(int argc, char **argv)
 	set_file_limit((off_t) var_message_limit);
 
     signal(SIGPIPE, SIG_IGN);
-    msg_cleanup(sendmail_cleanup);
 
     /*
      * Optionally start the debugger on ourself. This must be done after
@@ -692,7 +656,7 @@ int     main(int argc, char **argv)
 		msg_info("-%c option ignored", c);
 	    break;
 	case 'n':
-	    fatal_error(EX_USAGE, "-%c option not supported", c);
+	    msg_fatal_status(EX_USAGE, "-%c option not supported", c);
 	case 'F':				/* full name */
 	    full_name = optarg;
 	    break;
@@ -701,14 +665,14 @@ int     main(int argc, char **argv)
 	    break;
 	case 'V':				/* VERP */
 	    if (verp_delims_verify(optarg) != 0)
-		fatal_error(EX_USAGE, "-V requires two characters from %s",
-			    var_verp_filter);
+		msg_fatal_status(EX_USAGE, "-V requires two characters from %s",
+				 var_verp_filter);
 	    verp_delims = optarg;
 	    break;
 	case 'b':
 	    switch (*optarg) {
 	    default:
-		fatal_error(EX_USAGE, "unsupported: -%c%c", c, *optarg);
+		msg_fatal_status(EX_USAGE, "unsupported: -%c%c", c, *optarg);
 	    case 'd':				/* daemon mode */
 		if (mode == SM_MODE_FLUSHQ)
 		    msg_warn("ignoring -q option in daemon mode");
@@ -742,7 +706,7 @@ int     main(int argc, char **argv)
 		break;
 	    case 'A':
 		if (optarg[1] == 0)
-		    fatal_error(EX_USAGE, "-oA requires pathname");
+		    msg_fatal_status(EX_USAGE, "-oA requires pathname");
 		myfree(var_alias_db_map);
 		var_alias_db_map = mystrdup(optarg + 1);
 		set_mail_conf_str(VAR_ALIAS_DB_MAP, var_alias_db_map);
@@ -772,7 +736,8 @@ int     main(int argc, char **argv)
 		if (*site_to_flush == 0)
 		    msg_fatal("specify: -qRsitename");
 	    } else {
-		fatal_error(EX_USAGE, "-q%c is not implemented", optarg[0]);
+		msg_fatal_status(EX_USAGE, "-q%c is not implemented",
+				 optarg[0]);
 	    }
 	    break;
 	case 't':
@@ -782,7 +747,7 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	case '?':
-	    fatal_error(EX_USAGE, "usage: %s [options]", argv[0]);
+	    msg_fatal_status(EX_USAGE, "usage: %s [options]", argv[0]);
 	}
     }
 

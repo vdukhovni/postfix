@@ -8,11 +8,11 @@ Postfix queue control
 .SH SYNOPSIS
 .na
 .nf
-\fBpostqueue\fR \fB-f\fR
+\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-f\fR
 .br
-\fBpostqueue\fR \fB-p\fR
+\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-p\fR
 .br
-\fBpostqueue\fR \fB-s \fIsite\fR
+\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -21,6 +21,10 @@ for queue management. It implements all the operations that are
 traditionally available via the \fBsendmail\fR(1) command.
 
 The following options are recognized:
+.IP \fB-c \fIconfig_dir\fR
+The \fBmain.cf\fR configuration file is in the named directory
+instead of the default configuration directory. See also the
+MAIL_CONFIG environment setting below.
 .IP \fB-f\fR
 Flush the queue: attempt to deliver all queued mail.
 
@@ -38,7 +42,7 @@ See \fBflush\fR(8) for more information about the "fast flush"
 service.
 
 This option implements the traditional \fBsendmail -qR\fIsite\fR
-command, by connecting to the SMTP server at \fB$myhostname\fR.
+command, by contacting the Postfix \fBflush\fR(8) daemon.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.
@@ -47,8 +51,8 @@ options make the software increasingly verbose.
 .nf
 .ad
 .fi
-By design, this program is set-user (or group) id, so that it
-can connect to public, but protected, Postfix daemon processes.
+This program is designed to run with set-group ID privileges, so
+that it can connect to Postfix daemon processes.
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -59,8 +63,17 @@ stream.
 .nf
 .ad
 .fi
-The program deletes most environment information, because the C
-library can't be trusted.
+.IP MAIL_CONFIG
+Directory with the \fBmain.cf\fR file.
+
+In order to avoid exploitation of set-group ID privileges, it is not
+possible to specify arbitrary directory names.
+
+A non-standard directory is allowed only if the name is listed in the
+standard \fBmain.cf\fR file, in the \fBalternate_config_directory\fR
+configuration parameter value.
+
+Only the super-user is allowed to specify arbitrary directory names.
 .SH FILES
 .na
 .nf

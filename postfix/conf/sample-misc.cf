@@ -286,6 +286,8 @@ parent_domain_matches_subdomains = debug_peer_list,fast_flush_domains,
 # to the Postfix queue directory. This facility is used by the master
 # daemon to lock out other master daemon instances.
 #
+# Note: this is a read-only variable.
+#
 process_id_directory = pid
 
 # The program_directory parameter specifies the location of Postfix

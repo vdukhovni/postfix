@@ -5875,7 +5875,19 @@ Apologies for any names omitted.
 	Cleanup: the code for "mailq", "sendmail -q", and for
 	"sendmail -qRsite" was moved from the sendmail command to
 	a new set-gid postqueue command. The pickup and qmgr FIFOs
-	are no longer world writable.
+	are no longer world writable. Files: sendmail/sendmail.c,
+	postqueue/postqueue.c.
+
+20020101
+
+	Security: new alternate_config_directory parameter that
+	lists directories that a set-gid command will accept as
+	its configuration directory. The list must be specified in
+	the default main.cf file. File: global/mail_conf.c.
+
+	Cleanup: "sendmail -qRsite" is no longer implemented by
+	connecting to the SMTP port. It is now implemented by
+	talking to the fast flush service. File: postqueue/postqueue.c.
 
 Open problems:
 

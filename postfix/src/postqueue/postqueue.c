@@ -4,17 +4,21 @@
 /* SUMMARY
 /*	Postfix queue control
 /* SYNOPSIS
-/*	\fBpostqueue\fR \fB-f\fR
+/*	\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-f\fR
 /* .br
-/*	\fBpostqueue\fR \fB-p\fR
+/*	\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-p\fR
 /* .br
-/*	\fBpostqueue\fR \fB-s \fIsite\fR
+/*	\fBpostqueue\fR [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
 /* DESCRIPTION
 /*	The \fBpostqueue\fR program implements the Postfix user interface
 /*	for queue management. It implements all the operations that are
 /*	traditionally available via the \fBsendmail\fR(1) command.
 /*
 /*	The following options are recognized:
+/* .IP \fB-c \fIconfig_dir\fR
+/*	The \fBmain.cf\fR configuration file is in the named directory
+/*	instead of the default configuration directory. See also the
+/*	MAIL_CONFIG environment setting below.
 /* .IP \fB-f\fR
 /*	Flush the queue: attempt to deliver all queued mail.
 /*
@@ -32,23 +36,32 @@
 /*	service.
 /*
 /*	This option implements the traditional \fBsendmail -qR\fIsite\fR
-/*	command, by connecting to the SMTP server at \fB$myhostname\fR.
+/*	command, by contacting the Postfix \fBflush\fR(8) daemon.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* SECURITY
 /* .ad
 /* .fi
-/*	By design, this program is set-user (or group) id, so that it
-/*	can connect to public, but protected, Postfix daemon processes.
+/*	This program is designed to run with set-group ID privileges, so
+/*	that it can connect to Postfix daemon processes.
 /* DIAGNOSTICS
 /*	Problems are logged to \fBsyslogd\fR(8) and to the standard error
 /*	stream.
 /* ENVIRONMENT
 /* .ad
 /* .fi
-/*	The program deletes most environment information, because the C
-/*	library can't be trusted.
+/* .IP MAIL_CONFIG
+/*	Directory with the \fBmain.cf\fR file.
+/*
+/*	In order to avoid exploitation of set-group ID privileges, it is not
+/*	possible to specify arbitrary directory names.
+/*
+/*	A non-standard directory is allowed only if the name is listed in the
+/*	standard \fBmain.cf\fR file, in the \fBalternate_config_directory\fR
+/*	configuration parameter value.
+/*
+/*	Only the super-user is allowed to specify arbitrary directory names.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /*	/etc/postfix, configuration files
@@ -89,7 +102,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <signal.h>
 #include <sysexits.h>
 
@@ -104,6 +116,7 @@
 #include <argv.h>
 #include <safe.h>
 #include <connect.h>
+#include <valid_hostname.h>
 
 /* Global library. */
 
@@ -114,6 +127,7 @@
 #include <debug_process.h>
 #include <mail_run.h>
 #include <mail_flush.h>
+#include <flush_clnt.h>
 #include <smtp_stream.h>
 
 /* Application-specific. */
@@ -125,12 +139,6 @@
 #define PQ_MODE_MAILQ_LIST	1	/* list mail queue */
 #define PQ_MODE_FLUSH_QUEUE	2	/* flush queue */
 #define PQ_MODE_FLUSH_SITE	3	/* flush site */
-
- /*
-  * Error handlers.
-  */
-static void postqueue_cleanup(void);
-static NORETURN PRINTFLIKE(2, 3) fatal_error(int, const char *,...);
 
  /*
   * Silly little macros (SLMs).
@@ -184,8 +192,8 @@ static void show_queue(void)
      * showq daemon.
      */
     else {
-	fatal_error(EX_UNAVAILABLE,
-		    "Queue report unavailable - mail system is down");
+	msg_fatal_status(EX_UNAVAILABLE,
+			 "Queue report unavailable - mail system is down");
     }
 }
 
@@ -198,107 +206,39 @@ static void flush_queue(void)
      * Trigger the flush queue service.
      */
     if (mail_flush_deferred() < 0)
-	fatal_error(EX_UNAVAILABLE,
-		    "Cannot flush mail queue - mail system is down");
-}
-
-/* chat - send command and examine reply */
-
-static void chat(VSTREAM * fp, VSTRING * buf, const char *fmt,...)
-{
-    va_list ap;
-
-    smtp_get(buf, fp, var_line_limit);
-    if (STR(buf)[0] != '2')
-	fatal_error(EX_UNAVAILABLE, "server rejected ETRN request: %s",
-		    STR(buf));
-
-    if (msg_verbose)
-	msg_info("<<< %s", STR(buf));
-
-    if (msg_verbose) {
-	va_start(ap, fmt);
-	vstring_vsprintf(buf, fmt, ap);
-	va_end(ap);
-	msg_info(">>> %s", STR(buf));
-    }
-    va_start(ap, fmt);
-    smtp_vprintf(fp, fmt, ap);
-    va_end(ap);
+	msg_fatal_status(EX_UNAVAILABLE,
+			 "Cannot flush mail queue - mail system is down");
 }
 
 /* flush_site - flush mail for site */
 
 static void flush_site(const char *site)
 {
-    VSTRING *buf = vstring_alloc(10);
-    VSTREAM *fp;
-    int     sock;
     int     status;
 
-    /*
-     * Make connection to the local SMTP server. Translate "connection
-     * refused" into something less misleading.
-     */
-    vstring_sprintf(buf, "%s:smtp", var_myhostname);
-    if ((sock = inet_connect(STR(buf), BLOCKING, 10)) < 0) {
-	if (errno == ECONNREFUSED)
-	    fatal_error(EX_UNAVAILABLE, "mail service at %s is down",
-			var_myhostname);
-	fatal_error(EX_UNAVAILABLE, "connect to mail service at %s: %m",
-		    var_myhostname);
+    switch (status = flush_send(site)) {
+    case FLUSH_STAT_OK:
+	exit(0);
+    case FLUSH_STAT_BAD:
+	msg_fatal_status(EX_USAGE, "Invalid request: \"%s\"", site);
+    case FLUSH_STAT_FAIL:
+	msg_fatal_status(EX_UNAVAILABLE,
+			 "Cannot flush mail queue - mail system is down");
+    case FLUSH_STAT_DENY:
+	msg_fatal_status(EX_UNAVAILABLE,
+		   "Flush service is not configured for destination \"%s\"",
+			 site);
+    default:
+	msg_fatal_status(EX_SOFTWARE,
+			 "Unknown flush server reply status %d", status);
     }
-    fp = vstream_fdopen(sock, O_RDWR);
-
-    /*
-     * Prepare for trouble.
-     */
-    vstream_control(fp, VSTREAM_CTL_EXCEPT, VSTREAM_CTL_END);
-    status = vstream_setjmp(fp);
-    if (status != 0) {
-	switch (status) {
-	case SMTP_ERR_EOF:
-	    fatal_error(EX_UNAVAILABLE, "server at %s aborted connection",
-			var_myhostname);
-	case SMTP_ERR_TIME:
-	    fatal_error(EX_IOERR,
-		   "timeout while talking to server at %s", var_myhostname);
-	}
-    }
-    smtp_timeout_setup(fp, 60);
-
-    /*
-     * Chat with the SMTP server.
-     */
-    chat(fp, buf, "helo %s", var_myhostname);
-    chat(fp, buf, "etrn %s", site);
-    chat(fp, buf, "quit");
-
-    vstream_fclose(fp);
-    vstring_free(buf);
 }
 
-static int fatal_status;
+/* usage - scream and die */
 
-/* postqueue_cleanup - callback for the runtime error handler */
-
-static NORETURN postqueue_cleanup(void)
+static NORETURN usage(void)
 {
-    exit(fatal_status > 0 ? fatal_status : 1);
-}
-
-/* fatal_error - give up and notify parent */
-
-static void fatal_error(int status, const char *fmt,...)
-{
-    VSTRING *text = vstring_alloc(10);
-    va_list ap;
-
-    fatal_status = status;
-    va_start(ap, fmt);
-    vstring_vsprintf(text, fmt, ap);
-    va_end(ap);
-    msg_fatal("%s", vstring_str(text));
+    msg_fatal_status(EX_USAGE, "usage: specify one of -f, -p, or -s");
 }
 
 /* main - the main program */
@@ -310,9 +250,9 @@ int     main(int argc, char **argv)
     int     c;
     int     fd;
     int     mode = PQ_MODE_DEFAULT;
-    int     debug_me = 0;
     char   *site_to_flush = 0;
     ARGV   *import_env;
+    char   *last;
 
     /*
      * Be consistent with file permissions.
@@ -327,7 +267,7 @@ int     main(int argc, char **argv)
     for (fd = 0; fd < 3; fd++)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
-	    fatal_error(EX_UNAVAILABLE, "open /dev/null: %m");
+	    msg_fatal_status(EX_UNAVAILABLE, "open /dev/null: %m");
 
     /*
      * Initialize. Set up logging, read the global configuration file and
@@ -339,6 +279,60 @@ int     main(int argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(mail_task("postqueue"), LOG_PID, LOG_FACILITY);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
+
+    /*
+     * Parse JCL. This program is set-gid and must sanitize all command-line
+     * parameters. The configuration directory argument is validated by the
+     * mail configuration read routine.
+     */
+    while ((c = GETOPT(argc, argv, "c:fps:v")) > 0) {
+	switch (c) {
+	case 'c':				/* non-default configuration */
+	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
+		msg_fatal_status(EX_UNAVAILABLE, "out of memory");
+	    break;
+	case 'f':				/* flush queue */
+	    if (mode != PQ_MODE_DEFAULT)
+		usage();
+	    mode = PQ_MODE_FLUSH_QUEUE;
+	    break;
+	case 'p':				/* traditional mailq */
+	    if (mode != PQ_MODE_DEFAULT)
+		usage();
+	    mode = PQ_MODE_MAILQ_LIST;
+	    break;
+	    break;
+	case 's':				/* flush site */
+	    if (mode != PQ_MODE_DEFAULT)
+		usage();
+	    mode = PQ_MODE_FLUSH_SITE;
+	    if (*optarg == '[' && *(last = optarg + strlen(optarg) - 1) == ']') {
+
+		*last = 0;
+		if (valid_hostaddr(optarg + 1, DONT_GRIPE))
+		    site_to_flush = optarg;
+		else
+		    site_to_flush = 0;
+		*last = ']';
+	    } else {
+		if (valid_hostname(optarg, DONT_GRIPE)
+		    || valid_hostaddr(optarg, DONT_GRIPE))
+		    site_to_flush = optarg;
+		else
+		    site_to_flush = 0;
+	    }
+	    if (site_to_flush == 0)
+		msg_fatal_status(EX_USAGE,
+				 "Cannot flush mail queue - invalid destination: \"%.100s%s\"",
+				 optarg, strlen(optarg) > 100 ? "..." : "");
+	    break;
+	case 'v':
+	    msg_verbose++;
+	    break;
+	default:
+	    usage();
+	}
+    }
 
     /*
      * Further initialization...
@@ -353,34 +347,9 @@ int     main(int argc, char **argv)
     argv_free(import_env);
 
     if (chdir(var_queue_dir))
-	fatal_error(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
+	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
 
     signal(SIGPIPE, SIG_IGN);
-    msg_cleanup(postqueue_cleanup);
-
-    /*
-     * Parse JCL.
-     */
-    while ((c = GETOPT(argc, argv, "fps:v")) > 0) {
-	switch (c) {
-	case 'f':				/* flush queue */
-	    mode = PQ_MODE_FLUSH_QUEUE;
-	    break;
-	case 'p':				/* traditional mailq */
-	    mode = PQ_MODE_MAILQ_LIST;
-	    break;
-	    break;
-	case 's':				/* flush site */
-	    mode = PQ_MODE_FLUSH_SITE;
-	    site_to_flush = optarg;
-	    break;
-	case 'v':
-	    msg_verbose++;
-	    break;
-	default:
-	    fatal_error(EX_USAGE, "usage: %s -[fpsv]", argv[0]);
-	}
-    }
 
     /*
      * Start processing.
@@ -402,7 +371,7 @@ int     main(int argc, char **argv)
 	exit(0);
 	break;
     case PQ_MODE_DEFAULT:
-	fatal_error(EX_USAGE, "usage: %s -[fpsv]", argv[0]);
-	break;
+	usage();
+	/* NOTREACHED */
     }
 }

@@ -31,6 +31,7 @@ extern char *basename(const char *);
 #endif
 extern VSTRING *unescape(VSTRING *, const char *);
 extern int alldig(const char *);
+extern const char *split_nameval(char *, char **, char **);
 
 /* LICENSE
 /* .ad

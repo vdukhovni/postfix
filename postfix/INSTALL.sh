@@ -3,44 +3,59 @@
 # Sample Postfix installation script. Run this from the top-level
 # Postfix source directory.
 
-PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc
+PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc:/usr/contrib/bin:/usr/gnu/bin:/usr/ucb:/usr/bsd
 umask 022
 
-test -t 0 &&
-cat <<EOF
+test -t 0 && cat <<EOF
 
 Warning: this script replaces existing sendmail or Postfix programs.
 Make backups if you want to be able to recover.
 
-In addition to doing a fresh install, this script can change an
-existing installation from using a world-writable maildrop to a
-group-writable one. It cannot be used to change Postfix queue
-file/directory ownership.
-
 Before installing files, this script prompts you for some definitions.
 Most definitions will be remembered, so you have to specify them
 only once. All definitions have a reasonable default value.
-
-    install_root - prefix for installed file names (for package building)
-
-    tempdir - where to write scratch files while installing Postfix
-
-    config_directory - directory with Postfix configuration files.
-    daemon_directory - directory with Postfix daemon programs.
-    command_directory - directory with Postfix administrative commands.
-    queue_directory - directory with Postfix queues.
-
-    sendmail_path - full pathname of the Postfix sendmail command.
-    newaliases_path - full pathname of the Postfix newaliases command.
-    mailq_path - full pathname of the Postfix mailq command.
-
-    mail_owner - Postfix queue account (with unique user/group id numbers).
-
-    setgid - group for submission (with a unique group id number).
-
-    manpages - "no" or path to man tree. Example: /usr/local/man.
-
 EOF
+
+install_root_text="the prefix for installed file names. This is
+useful only if you are building ready-to-install packages for other
+machines."
+
+tempdir_text="directory for scratch files while installing Postfix.
+You must must have write permission in this directory."
+
+config_directory_text="the directory with Postfix configuration
+files. For security reasons this directory must be owned by the
+super-user."
+
+daemon_directory_text="the directory with Postfix daemon programs.
+This directory should not be in the command search path of any
+users."
+
+command_directory_text="the directory with Postfix administrative
+commands.  This directory should be in the command search path of
+adminstrative users."
+
+queue_directory_text="the directory with Postfix queues."
+
+sendmail_path_text="the full pathname of the Postfix sendmail
+command. This is the Sendmail-compatible mail posting interface."
+
+newaliases_path_text="the full pathname of the Postfix newaliases
+command.  This is the Sendmail-compatible command to build alias
+databases."
+
+mailq_path_text="the full pathname of the Postfix mailq command.
+This is the Sendmail-compatible mail queue listing command."
+
+mail_owner_text="the owner of the Postfix queue. Specify a user
+account with numerical user ID and group ID values that are not
+used by any other user accounts."
+
+setgid_text="the group for mail submission and queue management
+commands.  Specify a group name with a numerical group ID that is
+not shared with other accounts, not even with the Postfix account."
+
+manpages_text="where to install the Postfix on-line manual pages."
 
 # By now, shells must have functions. Ultrix users must use sh5 or lose.
 # The following shell functions replace files/symlinks while minimizing
@@ -131,6 +146,8 @@ for name in install_root tempdir config_directory
 do
     while :
     do
+	echo
+	eval echo Please specify \$${name}_text | fmt
 	eval echo \$n "$name: [\$$name]\  \$c"
 	read ans
 	case $ans in
@@ -188,6 +205,8 @@ for name in daemon_directory command_directory \
 do
     while :
     do
+	echo
+	eval echo Please specify \$${name}_text | fmt
 	eval echo \$n "$name: [\$$name]\  \$c"
 	read ans
 	case $ans in
@@ -198,6 +217,16 @@ do
 done
 
 # Sanity checks
+
+case $manpages in
+ no) echo Error: manpages no longer accepts "no" values. 1>&2
+     echo Error: re-run this script in interactive mode. 1>&2; exit 1;;
+esac
+
+case $setgid in
+ no) echo Error: setgid no longer accepts "no" values. 1>&2
+     echo Error: re-run this script in interactive mode. 1>&2; exit 1;;
+esac
 
 for path in $daemon_directory $command_directory \
     $queue_directory $sendmail_path $newaliases_path $mailq_path $manpages
@@ -372,20 +401,25 @@ grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
 	ed $CONFIG_DIRECTORY/master.cf <<EOF
 /^pickup[ 	]*fifo[ 	]*n[ 	]*n/
 s/\(n[ 	]*\)n/\1-/
+p
 w
 q
 EOF
 }
-grep "^cleanup[ 	]*unix[ 	]*-" \
-    $CONFIG_DIRECTORY/master.cf >/dev/null && {
-	echo changing master.cf, making the cleanup service public
-	ed $CONFIG_DIRECTORY/master.cf <<EOF
-/^cleanup[ 	]*unix[ 	]*-/
+for name in cleanup flush
+do
+    grep "^$name[ 	]*unix[ 	]*-" \
+	$CONFIG_DIRECTORY/master.cf >/dev/null && {
+	    echo changing master.cf, making the $name service public
+	    ed $CONFIG_DIRECTORY/master.cf <<EOF
+/^$name[ 	]*unix[ 	]*-/
 s/-/n/
+p
 w
 q
 EOF
-}
+    }
+done
 
 found=`bin/postconf -c $CONFIG_DIRECTORY -h hash_queue_names`
 missing=

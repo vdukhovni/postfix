@@ -6,7 +6,7 @@ POSTDROP(1)                                           POSTDROP(1)
        postdrop - Postfix mail posting utility
 
 <b>SYNOPSIS</b>
-       <b>postdrop</b> [<i>option</i> <i>...</i>]
+       <b>postdrop</b> [<i>-rv</i>] [<b>-c</b> <i>config_dir</i>]
 
 <b>DESCRIPTION</b>
        The <b>postdrop</b> command creates a file in the <b>maildrop</b> direc-
@@ -14,25 +14,46 @@ POSTDROP(1)                                           POSTDROP(1)
 
        Options:
 
+       <b>-c</b>     The <b>main.cf</b> configuration  file  is  in  the  named
+              directory  instead  of  the  default  configuration
+              directory. See  also  the  MAIL_CONFIG  environment
+              setting below.
+
+       <b>-r</b>     Use  a  Postfix-internal  protocol  for reading the
+              message from standard input, and for reporting sta-
+              tus  information  on  standard output. This is cur-
+              rently the only supported method.
+
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
               tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>SECURITY</b>
-       The command is designed to run  with  set-gid  privileges,
-       and  with  group  write  permission  to the <b>maildrop</b> queue
-       directory.
+       The command is designed to run with  set-group  ID  privi-
+       leges,  so  that it can write to the <b>maildrop</b> queue direc-
+       tory and so that it can connect  to  Postfix  daemon  pro-
+       cesses.
 
 <b>DIAGNOSTICS</b>
-       Fatal errors: malformed input, I/O error, out  of  memory.
-       Problems  are  logged  to  <b>syslogd</b>(8)  and to the standard
-       error stream.  When the input is incomplete, or  when  the
-       process  receives  a  HUP,  INT,  QUIT or TERM signal, the
+       Fatal  errors:  malformed input, I/O error, out of memory.
+       Problems are logged to  <b>syslogd</b>(8)  and  to  the  standard
+       error  stream.   When the input is incomplete, or when the
+       process receives a HUP, INT,  QUIT  or  TERM  signal,  the
        queue file is deleted.
 
 <b>ENVIRONMENT</b>
-       The program deletes most environment information,  because
-       the C library can't be trusted.
+       MAIL_CONFIG
+              Directory  with the <b>main.cf</b> file. In order to avoid
+              exploitation of set-group ID privileges, it is  not
+              possible to specify arbitrary directory names.
+
+              A  non-standard  directory  is  allowed only if the
+              name is listed in the standard <b>main.cf</b> file, in the
+              <b>alternate</b><i>_</i><b>config</b><i>_</i><b>directory</b>  configuration parameter
+              value.
+
+              Only the super-user is allowed to specify arbitrary
+              directory names.
 
 <b>FILES</b>
        /var/spool/postfix, mail queue

@@ -513,6 +513,7 @@ mail_conf.o: ../../include/dict.h
 mail_conf.o: ../../include/argv.h
 mail_conf.o: ../../include/safe.h
 mail_conf.o: ../../include/stringops.h
+mail_conf.o: ../../include/safe_open.h
 mail_conf.o: mail_params.h
 mail_conf.o: mail_conf.h
 mail_conf_bool.o: mail_conf_bool.c

@@ -1,26 +1,32 @@
-Incompatible changes with snapshot-20011230
+Incompatible changes with snapshot-200201XX
 ===========================================
 
-This release modifies the existing master.cf file, making the local
-pickup unprivileged, and making the cleanup service "public" (for
-future performance improvements of local mail submission).
+If you run multiple Postfix instances then you have to specify
+their configuration directories in the default main.cf file as
+"alternate_config_directory = /dir1 /dir2 ...". Otherwise, some
+Postfix sendmail commands will no longer work (namely, the ones
+that are now implemented by set-group ID client programs).
+
+This release modifies the existing master.cf file. The local pickup
+service is now unprivileged, and the cleanup and flush service are
+now "public".
 
 Should you have to back out to a previous release, then you have
 to edit the master.cf file, making the pickup service "privileged",
-and making the cleanup service "private".
+and making the cleanup and flush service "private".
 
-Major changes with snapshot-20011230
+Major changes with snapshot-200201XX
 ====================================
 
 Simplification of the local Postfix security model.
 
-- The world-writable maildrop directory is gone. Postfix now uses
-  the set-gid postdrop command for local mail submissions.  The
-  local mail pickup daemon is now an unprivileged process.
+- The world-writable maildrop directory is gone. Postfix now always
+  uses the set-gid postdrop command for local mail submissions.
+  The local mail pickup daemon is now an unprivileged process.
 
-- The world-writable pickup and queue manager FIFOs are gone.
-  Postfix now uses the new set-gid postqueue command for all the
-  queue operations that were implemented by the Postfix sendmail
+- The world-accessible pickup and queue manager server FIFOs are
+  gone.  Postfix now uses a new set-gid postqueue command for all
+  the queue operations that were implemented by the Postfix sendmail
   command.
 
 Incompatible changes with snapshot-20011226

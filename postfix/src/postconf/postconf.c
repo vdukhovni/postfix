@@ -280,7 +280,6 @@ static void edit_parameters(int argc, char **argv)
     VSTRING *buf = vstring_alloc(100);
     VSTRING *key = vstring_alloc(10);
     char   *cp;
-    char   *ep;
     char   *edit_key;
     char   *edit_val;
     HTABLE *table;
@@ -292,18 +291,7 @@ static void edit_parameters(int argc, char **argv)
     HTABLE_INFO **ht_info;
     HTABLE_INFO **ht;
     int     interesting;
-
-    /*
-     * Ugly macros to make complex expressions less unreadable.
-     */
-#define SKIP(start, var, cond) \
-        for (var = start; *var && (cond); var++);
-
-#define TRIM(s) { \
-        char *p; \
-        for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
-        *p = 0; \
-    }
+    const char *err;
 
     /*
      * Store command-line parameters for quick lookup.
@@ -312,17 +300,12 @@ static void edit_parameters(int argc, char **argv)
     while ((cp = *argv++) != 0) {
 	if (strchr(cp, '\n') != 0)
 	    msg_fatal("edit accepts no multi-line input");
-	SKIP(cp, edit_key, ISSPACE(*edit_key));	/* find key begin */
-	if (*edit_key == '#')
+	while (ISSPACE(*cp))
+            cp++;
+	if (*cp == '#')
 	    msg_fatal("edit accepts no comment input");
-	SKIP(edit_key, ep, !ISSPACE(*ep) && *ep != '=');	/* key end */
-	SKIP(ep, cp, ISSPACE(*cp));		/* skip blanks before '=' */
-	if (*cp != '=')				/* need '=' */
-	    msg_fatal("missing '=' after attribute name: \"%s\"", edit_key);
-	*ep = 0;				/* terminate key */
-	cp++;					/* skip over '=' */
-	SKIP(cp, edit_val, ISSPACE(*edit_val));	/* skip leading blanks */
-	TRIM(edit_val);				/* trim trailing blanks */
+	if ((err = split_nameval(cp, &edit_key, &edit_val)) != 0)
+	    msg_fatal("%s: \"%s\"", err, cp);
 	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
 	cvalue->value = edit_val;
 	cvalue->found = 0;
@@ -366,7 +349,8 @@ static void edit_parameters(int argc, char **argv)
 
     interesting = 0;
     while (vstring_get(buf, src) != VSTREAM_EOF) {
-	SKIP(STR(buf), cp, ISSPACE(*cp) /* including newline */ );
+	for (cp = STR(buf); ISSPACE(*cp) /* including newline */ ; cp++)
+             /* void */ ;
 	/* Copy comment, all-whitespace, or empty line. */
 	if (*cp == '#' || *cp == 0) {
 	    vstream_fputs(STR(buf), dst);

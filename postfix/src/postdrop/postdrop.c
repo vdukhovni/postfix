@@ -4,20 +4,29 @@
 /* SUMMARY
 /*	Postfix mail posting utility
 /* SYNOPSIS
-/*	\fBpostdrop\fR [\fIoption ...\fR]
+/*	\fBpostdrop\fR [\fI-rv\fR] [\fB-c \fIconfig_dir\fR]
 /* DESCRIPTION
 /*	The \fBpostdrop\fR command creates a file in the \fBmaildrop\fR
 /*	directory and copies its standard input to the file.
 /*
 /*	Options:
+/* .IP \fB-c \fIconfig_dir\fR
+/*	The \fBmain.cf\fR configuration file is in the named directory
+/*	instead of the default configuration directory. See also the
+/*	MAIL_CONFIG environment setting below.
+/* .IP \fB-r\fR
+/*	Use a Postfix-internal protocol for reading the message from
+/*	standard input, and for reporting status information on standard
+/*	output. This is currently the only supported method.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* SECURITY
 /* .ad
 /* .fi
-/*	The command is designed to run with set-gid privileges, and with
-/*	group write permission to the \fBmaildrop\fR queue directory.
+/*	The command is designed to run with set-group ID privileges, so
+/*	that it can write to the \fBmaildrop\fR queue directory and so that
+/*	it can connect to Postfix daemon processes.
 /* DIAGNOSTICS
 /*	Fatal errors: malformed input, I/O error, out of memory. Problems
 /*	are logged to \fBsyslogd\fR(8) and to the standard error stream.
@@ -26,8 +35,16 @@
 /* ENVIRONMENT
 /* .ad
 /* .fi
-/*	The program deletes most environment information, because the C
-/*	library can't be trusted.
+/* .IP MAIL_CONFIG
+/*	Directory with the \fBmain.cf\fR file. In order to avoid exploitation
+/*	of set-group ID privileges, it is not possible to specify arbitrary
+/*	directory names.
+/*
+/*	A non-standard directory is allowed only if the name is listed in the
+/*	standard \fBmain.cf\fR file, in the \fBalternate_config_directory\fR
+/*	configuration parameter value.
+/*
+/*	Only the super-user is allowed to specify arbitrary directory names.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /*	/etc/postfix, configuration files
@@ -187,6 +204,27 @@ int     main(int argc, char **argv)
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
+     * Parse JCL. This program is set-gid and must sanitize all command-line
+     * arguments. The configuration directory argument is validated by the
+     * mail configuration read routine.
+     */
+    while ((c = GETOPT(argc, argv, "c:rv")) > 0) {
+	switch (c) {
+	case 'c':
+	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
+		msg_fatal("out of memory");
+	    break;
+	case 'r':				/* forward compatibility */
+	    break;
+	case 'v':
+	    msg_verbose++;
+	    break;
+	default:
+	    msg_fatal("usage: %s [-c config_dir] [-v]", argv[0]);
+	}
+    }
+
+    /*
      * Read the global configuration file and extract configuration
      * information. Some claim that the user should supply the working
      * directory instead. That might be OK, given that this command needs
@@ -228,19 +266,6 @@ int     main(int argc, char **argv)
     signal(SIGQUIT, postdrop_sig);
     signal(SIGTERM, postdrop_sig);
     msg_cleanup(postdrop_cleanup);
-
-    /*
-     * Parse JCL.
-     */
-    while ((c = GETOPT(argc, argv, "v")) > 0) {
-	switch (c) {
-	case 'v':
-	    msg_verbose++;
-	    break;
-	default:
-	    msg_fatal("usage: %s [-v]", argv[0]);
-	}
-    }
 
     /*
      * Create queue file. mail_stream_file() never fails. Send the queue ID

@@ -19,8 +19,8 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	read_wait.c readable.c readlline.c ring.c safe_getenv.c \
 	safe_open.c sane_accept.c sane_link.c sane_rename.c \
 	sane_socketpair.c sane_time.c scan_dir.c set_eugid.c set_ugid.c \
-	sigdelay.c skipblanks.c sock_empty_wait.c spawn_command.c \
-	split_at.c stat_as.c stream_connect.c stream_listen.c \
+	sigdelay.c skipblanks.c spawn_command.c split_at.c \
+	split_nameval.c stat_as.c stream_connect.c stream_listen.c \
 	stream_trigger.c sys_compat.c timed_connect.c timed_read.c \
 	timed_wait.c timed_write.c translit.c trimblanks.c unescape.c \
 	unix_connect.c unix_listen.c unix_trigger.c unsafe.c username.c \
@@ -47,8 +47,8 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	read_wait.o readable.o readlline.o ring.o safe_getenv.o \
 	safe_open.o sane_accept.o sane_link.o sane_rename.o \
 	sane_socketpair.o sane_time.o scan_dir.o set_eugid.o set_ugid.o \
-	sigdelay.o skipblanks.o sock_empty_wait.o spawn_command.o \
-	split_at.o stat_as.o stream_connect.o stream_listen.o \
+	sigdelay.o skipblanks.o spawn_command.o split_at.o \
+	split_nameval.o stat_as.o stream_connect.o stream_listen.o \
 	stream_trigger.o sys_compat.o timed_connect.o timed_read.o \
 	timed_wait.o timed_write.o translit.o trimblanks.o unescape.o \
 	unix_connect.o unix_listen.o unix_trigger.o unsafe.o username.o \
@@ -1038,10 +1038,6 @@ skipblanks.o: sys_defs.h
 skipblanks.o: stringops.h
 skipblanks.o: vstring.h
 skipblanks.o: vbuf.h
-sock_empty_wait.o: sock_empty_wait.c
-sock_empty_wait.o: sys_defs.h
-sock_empty_wait.o: msg.h
-sock_empty_wait.o: iostuff.h
 spawn_command.o: spawn_command.c
 spawn_command.o: sys_defs.h
 spawn_command.o: msg.h
@@ -1054,6 +1050,12 @@ spawn_command.o: clean_env.h
 split_at.o: split_at.c
 split_at.o: sys_defs.h
 split_at.o: split_at.h
+split_nameval.o: split_nameval.c
+split_nameval.o: sys_defs.h
+split_nameval.o: msg.h
+split_nameval.o: stringops.h
+split_nameval.o: vstring.h
+split_nameval.o: vbuf.h
 stat_as.o: stat_as.c
 stat_as.o: sys_defs.h
 stat_as.o: msg.h

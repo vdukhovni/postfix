@@ -202,6 +202,10 @@ extern time_t var_starttime;
 #endif
 extern char *var_config_dir;
 
+#define VAR_CONFIG_DIRS		"alternate_config_directory"
+#define DEF_CONFIG_DIRS		""
+extern char *var_config_dirs;
+
  /*
   * Preferred type of indexed files. The DEF_DB_TYPE macro value is system
   * dependent. It is defined in <sys_defs.h>.
