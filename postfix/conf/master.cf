@@ -67,7 +67,7 @@
 #
 # ==========================================================================
 # service type	private	unpriv	chroot	wakeup	maxproc	command + args
-# 		(yes)	(yes)	(yes)	(never)	(50)
+# 		(yes)	(yes)	(yes)	(never)	(100)
 # ==========================================================================
 smtp	  inet	n	-	n	-	-	smtpd
 #628	  inet	n	-	n	-	-	qmqpd
@@ -79,6 +79,7 @@ rewrite	  unix	-	-	n	-	-	trivial-rewrite
 bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
 flush	  unix	n	-	n	1000?	0	flush
+proxymap  unix	-	-	n	-	-	proxymap
 smtp	  unix	-	-	n	-	-	smtp
 relay	  unix	-	-	n	-	-	smtp
 #	-o smtp_helo_timeout=5 -o smtp_connect_timeout=5

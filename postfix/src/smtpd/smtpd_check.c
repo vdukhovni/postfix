@@ -315,6 +315,7 @@
 #include <record.h>
 #include <rec_type.h>
 #include <mail_proto.h>
+#include <mail_addr.h>
 
 /* Application-specific. */
 
@@ -1678,6 +1679,10 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, "FILTER", cmd_len)) {
 	if (*cmd_text == 0) {
 	    msg_warn("access map %s entry %s has FILTER entry without value",
+		     table, datum);
+	    return (SMTPD_CHECK_DUNNO);
+	} else if (strchr(cmd_text, ':') == 0) {
+	    msg_warn("access map %s entry %s requires transport:destination",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else {
@@ -3193,8 +3198,14 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      * local delivery, because the virtual delivery agent requires
      * user@domain style addresses in its user database.
      */
+#define MATCH_LEFT(l, r, n) (strncasecmp((l), (r), (n)) == 0 && (r)[n] == '@')
+
     if ((reply->flags & RESOLVE_CLASS_LOCAL)
 	&& *var_local_rcpt_maps
+	&& !MATCH_LEFT(var_double_bounce_sender, CONST_STR(reply->recipient),
+		       strlen(var_double_bounce_sender))
+	&& !MATCH_LEFT(MAIL_ADDR_POSTMASTER, CONST_STR(reply->recipient),
+		       strlen(MAIL_ADDR_POSTMASTER))
 	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient)))
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown%s",
@@ -3206,6 +3217,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      * Reject mail to unknown addresses in virtual mailbox domains.
      */
     if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
+	&& *var_virt_mailbox_maps
 	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient)))
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown%s",

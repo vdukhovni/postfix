@@ -1,3 +1,14 @@
+==============================================================
+NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE
+==============================================================
+Before upgrading from Postfix 1.1 you must stop Postfix ("postfix
+stop").  Some internal protocols have changed.  No mail will be
+lost if you fail to stop and restart Postfix, but Postfix won't be
+able to receive any new mail, either.
+==============================================================
+NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE
+==============================================================
+
 In the text below, changes are labeled with the Postfix snapshot
 that introduced the change, and whether the change introduced a
 feature, an incompatibility, or whether the feature is obsolete.
@@ -13,8 +24,44 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Major changes with Postfix version 2.0.0 (released 20021222)
+Incompatible changes with Postfix version 2.0.1 (released 20030112)
+===================================================================
+
+If you upgrade from Postfix 1.1 you need to restart Postfix.
+
+If you upgrade from Postfix 2.0 you need to "reload" Postfix.
+
+Version 2.0.1 introduces the proxymap service for centralized table
+lookup. The upgrade procedure adds the proxymap service to the
+master.cf file.  If you see errors about problems contacting the
+proxymap service, then you did not properly upgrade Postfix.
+
+The Postfix SMTP server now by default looks up the UNIX passwd
+file via the new proxymap service, in order to make chrooted
+operation easier.
+
+The Postfix build procedure now uses the pcre-config utility (part
+of PCRE version 3) to find out the pathnames of the PCRE include
+file and object library, instead of probing /usr/include and/or
+/usr/lib. To build with PCRE version 2 support you will have to
+specify pathnames as described in PCRE_README. To build without
+PCRE support, specify:  make Makefiles CCARGS="-DNO_PRCE".
+
+Major changes with Postfix version 2.0.1 (released 20030112)
 ============================================================
+
+This release introduces the proxymap service for Postfix lookup
+table access. This can be used to overcome chroot restrictions in
+the Postfix SMTP server (specify proxy:unix:passwd.byname for
+password file lookup through the proxymap server) and can be used
+to consolidate the number of open tables by sharing one open table
+among multiple processes (specify proxy:mysql:/file/name to avoid
+"too many connections" conditions). The proxy_read_maps parameter
+specifies what maps are approved for access via the proxy service
+(only map references starting with "proxy:" are considered approved).
+
+Major changes with Postfix version 2.0.0 (released 20021222, 20021223)
+======================================================================
 
 First comes the bad news - things that may break when you upgrade
 from Postfix 1.1. Then comes the good news - things that evolved
@@ -74,6 +121,14 @@ is now used for address lookups only.
   in one file, just like before.
 
 For details, see the VIRTUAL_README file.
+
+[Incompat 20021209] If you use the "advanced content filter"
+technique, you MUST NOT override the virtual aliases and virtual
+mailbox settings in the SMTP server that receives mail from the
+content filter, or else mail for virtual recipients will be rejected
+with "User unknown".
+
+For details, see the FILTER_README file.
 
 Incompatible queue file format changes
 ======================================
@@ -138,7 +193,7 @@ for details.
 MIME headers in attachments. This is much more efficient than
 previous versions that recognized MIME headers via body_checks.
 MIME headers are now processed one multi-line header at a time,
-instead of one body line at a time.  To get the the old behavior,
+instead of one body line at a time.  To get the old behavior,
 specify "disable_mime_input_processing = yes".  More details in
 conf/sample-filter.cf.
 
@@ -252,19 +307,25 @@ appended to the previous line. More details about the syntax are
 given in the pcre_table(5) and regexp_table(5) manual pages.
 
 [Feature 20020717] The default timeout for establishing an SMTP
-connection has been reduced to 30 seconds, because many systems
-have an atrociously large default timeout value.
+connection has been reduced to 30 seconds, because many system
+TCP/IP stacks have an atrociously large default timeout value.
 
 [Feature 20020505] Finer control over Berkeley DB memory usage,
 The parameter "berkeley_db_create_buffer_size" (default:  16 MBytes)
 specifies the buffer size for the postmap and postalias commands.
-The parameter "berkeley_db_read_buffer_size" (default:  256 kBytes)
-speficies the buffer size for all other applications.  Specify
+The parameter "berkeley_db_read_buffer_size" (default:  128 kBytes)
+specifies the buffer size for all other applications.  Specify
 "berkeley_db_read_buffer_size = 1048576" to get the old read buffer
-size. For more information, see the last paragraphs of the DB_README
-file.
+size. Contributed by Victor Duchovni. For more information, see
+the last paragraphs of the DB_README file.
 
-Improved compatibitity
+[Incompat 20021211] The default process limit is doubled from 50
+to 100. The default limits on the number of active queue files or
+recipients are doubled from 10000 to 20000. The default concurrency
+for parallel delivery to the same destination is doubled from 10
+to 20.
+
+Improved compatibility
 ======================
 
 [Feature 20020527] The Postfix SMTP client will now convert 8BITMIME
@@ -622,7 +683,7 @@ for details.
 MIME headers in attachments. This is much more efficient than
 previous versions that recognized MIME headers via body_checks.
 MIME headers are now processed one multi-line header at a time,
-instead of one body line at a time.  To get the the old behavior,
+instead of one body line at a time.  To get the old behavior,
 specify "disable_mime_input_processing = yes".  More details in
 conf/sample-filter.cf.
 
@@ -682,6 +743,11 @@ Assorted changes
 [Feature 20021028] The local(8) and virtual(8) delivery agents now record
 the original recipient address in the X-Original-To: message header.
 This header can also be emitted by the pipe(8) delivery agent.
+
+[Incompat 20021028] With "domain in one mailbox", one message with
+multiple recipients is no longer delivered only once. It is now
+delivered as one copy for each original recipient, with the original
+recipient address listed in the X-Original-To: message header.
 
 [Feature 20021024] New proxy_interfaces parameter, for sites behind a
 network address translation gateway or other type of proxy. You
@@ -793,7 +859,7 @@ Berkeley DB related changes
 The parameter "berkeley_db_create_buffer_size" (default:  16 MBytes)
 specifies the buffer size for the postmap and postalias commands.
 The parameter "berkeley_db_read_buffer_size" (default:  256 kBytes)
-speficies the buffer size for all other applications.  Specify
+specifies the buffer size for all other applications.  Specify
 "berkeley_db_read_buffer_size = 1048576" to get the old read buffer
 size. For more information, see the last paragraphs of the DB_README
 file.

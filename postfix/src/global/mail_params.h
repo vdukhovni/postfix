@@ -580,7 +580,7 @@ extern int var_init_dest_concurrency;
 
 #define VAR_DEST_CON_LIMIT	"default_destination_concurrency_limit"
 #define _DEST_CON_LIMIT		"_destination_concurrency_limit"
-#define DEF_DEST_CON_LIMIT	10
+#define DEF_DEST_CON_LIMIT	20
 extern int var_dest_con_limit;
 
 #define VAR_LOCAL_CON_LIMIT	"local" _DEST_CON_LIMIT
@@ -1294,12 +1294,31 @@ extern char *var_smtpd_exp_filter;
   * Heuristic to reject unknown local recipients at the SMTP port.
   */
 #define VAR_LOCAL_RCPT_MAPS	"local_recipient_maps"
-#define DEF_LOCAL_RCPT_MAPS	"unix:passwd.byname $alias_maps"
+#define DEF_LOCAL_RCPT_MAPS	"proxy:unix:passwd.byname $alias_maps"
 extern char *var_local_rcpt_maps;
 
 #define VAR_LOCAL_RCPT_CODE	"unknown_local_recipient_reject_code"
 #define DEF_LOCAL_RCPT_CODE	550
 extern int var_local_rcpt_code;
+
+ /*
+  * List of pre-approved maps that are OK to open with the proxymap service.
+  */
+#define VAR_PROXY_READ_MAPS     "proxy_read_maps"
+#define DEF_PROXY_READ_MAPS     "$" VAR_LOCAL_RCPT_MAPS \
+                                " $" VAR_MYDEST \
+                                " $" VAR_VIRT_ALIAS_MAPS \
+                                " $" VAR_VIRT_ALIAS_DOMS \
+                                " $" VAR_VIRT_MAILBOX_MAPS \
+                                " $" VAR_VIRT_MAILBOX_DOMS \
+                                " $" VAR_RELAY_RCPT_MAPS \
+                                " $" VAR_RELAY_DOMAINS \
+                                " $" VAR_CANONICAL_MAPS \
+                                " $" VAR_SEND_CANON_MAPS \
+                                " $" VAR_RCPT_CANON_MAPS \
+                                " $" VAR_RELOCATED_MAPS \
+                                " $" VAR_TRANSPORT_MAPS
+extern char *var_proxy_read_maps;
 
  /*
   * Other.

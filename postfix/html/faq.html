@@ -80,6 +80,8 @@ domains with "relay access denied"</a>
 
 <li><a href="#nopass">What does "warning: cannot access UNIX password database" mean?</a>
 
+<li><a href="#loop">What does "Error: too many hops" mean?</a>
+
 <li><a href="#noalias">What does "fatal: open database /etc/aliases.db" mean?</a>
 
 <li><a href="#noservice">What does "fatal: unknown service: smtp/tcp" mean?</a>
@@ -315,6 +317,10 @@ mailbox</a>
 </ul>
 
 <a name="content_filtering"><h3>Content filtering</h3>
+
+<ul>
+
+<li><a href="#loop">What does "Error: too many hops" mean?</a>
 
 </ul>
 
@@ -668,7 +674,7 @@ to send mail only to <i>user@domain.com</i>.
 Specify what recipients exist (so that your queue does not fill up
 with undeliverable mail from spammers).
 
-<p.
+<p>
 
 Specify <tt>local_recipient_maps =</tt> if maintaining recipient
 information is not practical.
@@ -1275,19 +1281,66 @@ clients?
 
 <p>
 
-Your problem could be that the disk is saturated with I/O from
+Your problem could be one of several.
+
+<p>
+
+<ul>
+
+<li>You're trying to send mail to difficult to reach sites (Hotmail,
+Yahoo, etc.). Solution: set up transport map entries that give special
+treatment (many parallel connections, short connection timeouts):
+
+<p>
+
+<pre>
+/etc/postfix/main.cf:
+    transport_maps = hash:/etc/postfix/transport
+    deadbeats_destination_concurrency_limit = 50
+
+/etc/postfix/transport:
+    hotmail.com		deadbeats:
+    yahoo.com		deadbeats:
+
+/etc/postfix/master.cf:
+    deadbeats	  unix	-	-	n	-	-	smtp
+	-o smtp_connect_timeout=5 -o smtp_helo_timeout=5
+</pre>
+
+<p>
+
+<li>Incoming mail, destined for a small number of inside mailhubs,
+is competing with outgoing mail to the Internet. As of Postfix
+version 2, this should be less of a problem. However, when a single
+internal mailhub goes down, it can totally ruin the performance
+because Postfix is wasting huge amounts of time on connection
+timeouts. The solution is to specify shorter connection timeouts
+for the inbound <b>relay</b> transport:
+
+<p>
+
+<pre>
+/etc/postfix/main.cf:
+    mydestination = my.own.host.name
+    relay_domains = my.corp.domain
+    relay_transport = relay
+
+/etc/postfix/master.cf:
+    relay	  unix	-	-	n	-	-	smtp
+	-o smtp_connect_timeout=2 -o smtp_helo_timeout=2
+</pre>
+
+<p>
+
+<li>The disk is saturated with I/O from
 receiving mail, so that the Postfix queue manager gets insufficient
 chance to process the requests (many SMTP server processes are
 competing for disk access against one poor queue manager).
 
 <p>
 
-You solve the problem by getting faster disks.
-
-<p>
-
-I am still solving the scheduling problem from the software side,
-but don't hold your breath.
+You solve the problem by getting faster disks, and/or by using
+different disk drives for logging, mail queue, and mailboxes.
 
 <p>
 
@@ -1321,6 +1374,8 @@ depending on the interface that it is supposed to handle.
         myhostname = foo1.my.domain
         inet_interfaces = $myhostname
 </pre>
+
+</ul>
 
 <hr>
 
@@ -1706,6 +1761,12 @@ your nslookup test should begin with asking for the MX record. Some
 DNS servers are broken and produce no reply when asked for a
 non-existent MX record.
 
+<p> <li> Secondly, the nslookup test is invalid if you ran it as
+a privileged user. Postfix DNS lookups are known to fail because
+of incorrect permissions on system files and directories. For
+example, a common beginner's mistake is to lose world read permission
+for the <b>/etc/resolv.conf</b> file.
+
 <p> <li>
 
 Check out your Postfix <b>master.cf</b> file. If the SMTP client
@@ -1954,8 +2015,8 @@ systems for performance and/or security reasons.
 
 <p>
 
-The warning message means that new mail notificiation failed because
-the <b>comsat</b> network service is turned off.
+The Postfix warning message means that new mail notification failed
+because the <b>comsat</b> network service is turned off.
 
 <p>
 
@@ -1968,6 +2029,12 @@ specify:
 /etc/postfix/main.cf:
     biff = no
 </pre>
+
+<p>
+
+Note: recent versions of <b>procmail</b> also produce <b>biff</b>
+notifications. To silence <b>biff</b> completely you may also have
+to update <b>procmail</b> configuration files.
 
 <p>
 
@@ -2023,8 +2090,14 @@ you use the default Postfix local delivery agent:
 
 <pre>
     /etc/postfix/main.cf:
-        local_recipient_maps = $alias_maps, unix:passwd.byname
+        local_recipient_maps = $alias_maps, proxy:unix:passwd.byname
 </pre>
+
+<p>
+
+You need the <b>proxy:</b> part only if <b>master.cf</b> specifies
+that the Postfix SMTP server runs chrooted. As distributed by the
+author, Postfix runs no daemons chrooted.
 
 <p>
 
@@ -2040,10 +2113,12 @@ To stop Postfix from rejecting local mail incorrectly:
 
 <ul>
 
-<li> If you run the Postfix SMTP server chrooted, it may be necessary
-to place a copy of the passwd file inside the chroot jail (typically:
-in <b>/var/spool/postfix/etc</b>).  This is system dependent. The
-only way to find out is to try.
+<li> If you run the Postfix SMTP server chrooted, you need to access
+the system password database through the Postfix <a href="proxymap.8.html">
+proxymap</a> service, as shown in the above example. The alternative
+is simply not practical:  placing a copy of the passwd file inside
+the chroot jail (typically:  in <b>/var/spool/postfix/etc</b>)
+together with a list of system dependent files.
 
 <p>
 
@@ -2246,21 +2321,30 @@ database" mean?</h3></a>
 This message is logged when, for example, the Postfix SMTP server
 is unable to access the UNIX password database.
 
+<p>
+
 <ul>
 
 <li> If you're running the Postfix SMTP server chrooted (see
-<b>master.cf</b>) then you may have to copy the password file and
-perhaps a bunch of other files into Postfix queue directory; a
-typical destination would be <b>/var/spool/postfix/etc</b>. See also
-the chroot setup scripts in the <b>examples</b> directory of the
-Postfix source code distribution.
+<b>master.cf</b>) then you need to access the system password
+database through the Postfix <a href="proxymap.8.html">proxymap</a>
+service. The alternative is not practical: copying the password
+file and perhaps a bunch of other system dependent files into the
+Postfix queue directory.
 
 <p>
 
-<li> Be sure that you have world execute permissions on directories
-and world read permission on the passwd file and any auxiliary
-files that may be needed (such as <b>/etc/nsswitch.conf</b> and
-<b>libnss*.so*</b> files referenced by <b>/etc/nsswitch.conf</b>).
+<pre>
+    /etc/postfix/main.cf:
+	local_recipient_maps = proxy:unix:passwd.byname $alias_maps ...
+</pre>
+
+<p>
+
+<li> Chrooted or not, be sure that you have world execute permissions
+on directories and world read permission on the passwd file and
+any auxiliary files that may be needed (such as <b>/etc/nsswitch.conf</b>
+and <b>libnss*.so*</b> files referenced by <b>/etc/nsswitch.conf</b>).
 
 </ul>
 
@@ -2571,25 +2655,32 @@ destinations don't work in virtual domains</h3>
 
 <p>
 
-Quick answer: set up a transport map entry that gives the mail to
-the Postfix local delivery agent:
+Quick answer: set up "punch through" virtual aliases that redirect
+the mail to local Postfix aliases:
 
 <p>
 
 <pre>
     /etc/postfix/main.cf:
-        transport_maps = hash:/etc/postfix/transport
+        virtual_alias_maps = hash:/etc/postfix/virtual
 
-    /etc/postfix/transport:
-        listname@virtual.tld            local:
-        owner-listname@virtual.tld      local:
-        listname-request@virtual.tld    local:
+    /etc/postfix/virtual:
+        listname@virtual.tld            listname
+        owner-listname@virtual.tld      owner-listname
+        listname-request@virtual.tld    listname-request
 
     /etc/aliases:
         listname: "|whatever"
         owner-listname: user@domain
         listname-request: "|whatever"
 </pre>
+
+<p>
+
+This redirects mail for virtual address <i>listname@virtual.tld</i>
+etc. to local address <i>listname@your.domain.tld</i> etc.. Mail
+for these local aliases is then delivered to external commands or
+files etc. by the Postfix local delivery agent.
 
 <p>
 
@@ -2710,6 +2801,32 @@ effective.
 <p>
 
 <hr>
+
+<a name="loop"><h3>What does "Error: too many hops" mean?</h3></a>
+
+Short answer: this message means that mail is probably looping. If
+you see this after you turned on Postfix content filtering, then
+you have made a mistake that causes mail to be filtered repeatedly.
+This is cured by appropriate use of <tt>content_filter=</tt>,
+<tt>header_checks=</tt>, and <tt>body_checks=</tt>.
+
+<p>
+
+Long answer: the message has too many Received: message headers.
+A received header is added whenever Postfix (or any MTA) receives
+a message. A large number of Received: message headers
+is an indication that mail is looping around.
+
+<p>
+
+Side comment: email uses the opposite of the technique that is used
+to avoid IP forwarding loops. With IP, the sender sets a TTL (time
+to live) field in the IP header. The field is decremented by each
+router. When the TTL reaches zero the packet is discarded and an
+ICMP error message is returned to the sender.
+
+<hr>
+
 
 <a name="uucp-tcp"><h3>Using UUCP over TCP</h3>
 

@@ -39,28 +39,45 @@ The envelope recipient address that is passed on to \fInexthop\fR.
 .fi
 By default, Postfix uses one of the following delivery methods.
 This may be overruled with the optional transport(5) table.
-.IP \(bu
-The recipient domain matches \fB$mydestination\fR or
-\fB$inet_interfaces\fR. The transport and optional nexthop
+The default delivery method is selected by matching the
+recipient address domain against one of the following:
+.IP \fB$mydestination\fR
+.IP \fB$inet_interfaces\fR
+The transport and optional nexthop
 are specified with \fB$local_transport\fR.
 The default nexthop is the recipient domain.
-.IP \(bu
-The recipient domain matches \fB$virtual_mailbox_domains\fR.
+.IP \fB$virtual_alias_domains\fR
+The recipient address is undeliverable (user unknown).
+By definition, all known addresses in a virtual alias domain
+are aliased to other addresses.
+.IP \fB$virtual_mailbox_domains\fR
 The transport and optional nexthop are specified with
 \fB$virtual_transport\fR.
 The default nexthop is the recipient domain.
-.IP \(bu
-The recipient domain matches \fB$relay_domains\fR. The
-transport and optional nexthop are specified with
+.IP \fB$relay_domains\fR
+The transport and optional nexthop are specified with
 \fB$relay_transport\fR. This overrides the optional nexthop
 information that is specified with \fB$relayhost\fR.
 The default nexthop is the recipient domain.
-.IP \(bu
-All other destinations. the transport and optional nexthop are
-specified with \fB$relay_transport\fR.
+.IP "none of the above"
+The transport and optional nexthop are specified with
+\fB$default_transport\fR.
 This overrides the optional nexthop information that is specified
 with \fB$relayhost\fR.
 The default nexthop is the recipient domain.
+.SH SERVER PROCESS MANAGEMENT
+.na
+.nf
+.ad
+.fi
+The trivial-rewrite servers run under control by the Postfix master
+server.  Each server can handle multiple simultaneous connections.
+When all servers are busy while a client connects, the master
+creates a new server process, provided that the trivial-rewrite
+server process limit is not exceeded.
+Each trivial-rewrite server terminates after
+serving at least \fB$max_use\fR clients of after \fB$max_idle\fR
+seconds of idle time.
 .SH STANDARDS
 .na
 .nf

@@ -40,29 +40,50 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 <b>DEFAULT</b> <b>DELIVERY</b> <b>METHODS</b>
        By  default,  Postfix  uses  one of the following delivery
        methods.  This may be overruled with the  optional  <a href="transport.5.html">trans-</a>
-       <a href="transport.5.html">port(5)</a> table.
+       <a href="transport.5.html">port(5)</a> table.  The default delivery method is selected by
+       matching the recipient address domain against one  of  the
+       following:
 
-       <b>o</b>      The  recipient  domain  matches  <b>$mydestination</b>  or
-              <b>$inet</b><i>_</i><b>interfaces</b>. The transport and  optional  nex-
-              thop  are  specified  with  <b>$local</b><i>_</i><b>transport</b>.   The
-              default nexthop is the recipient domain.
+       <b>$mydestination</b>
 
-       <b>o</b>      The   recipient   domain   matches   <b>$virtual</b><i>_</i><b>mail-</b>
-              <b>box</b><i>_</i><b>domains</b>.   The  transport  and optional nexthop
-              are specified with <b>$virtual</b><i>_</i><b>transport</b>.  The default
-              nexthop is the recipient domain.
+       <b>$inet</b><i>_</i><b>interfaces</b>
+              The  transport  and  optional nexthop are specified
+              with <b>$local</b><i>_</i><b>transport</b>.  The default nexthop is  the
+              recipient domain.
 
-       <b>o</b>      The  recipient  domain  matches <b>$relay</b><i>_</i><b>domains</b>. The
-              transport and optional nexthop are  specified  with
-              <b>$relay</b><i>_</i><b>transport</b>.  This overrides the optional nex-
-              thop information that is specified with <b>$relayhost</b>.
-              The default nexthop is the recipient domain.
+       <b>$virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b>
+              The   recipient   address  is  undeliverable  (user
+              unknown).  By definition, all known addresses in  a
+              virtual   alias   domain   are   aliased  to  other
+              addresses.
 
-       <b>o</b>      All  other destinations. the transport and optional
-              nexthop are specified with <b>$relay</b><i>_</i><b>transport</b>.   This
-              overrides  the optional nexthop information that is
-              specified with <b>$relayhost</b>.  The default nexthop  is
+       <b>$virtual</b><i>_</i><b>mailbox</b><i>_</i><b>domains</b>
+              The transport and optional  nexthop  are  specified
+              with  <b>$virtual</b><i>_</i><b>transport</b>.   The  default nexthop is
               the recipient domain.
+
+       <b>$relay</b><i>_</i><b>domains</b>
+              The transport and optional  nexthop  are  specified
+              with  <b>$relay</b><i>_</i><b>transport</b>. This overrides the optional
+              nexthop information that is specified with  <b>$relay-</b>
+              <b>host</b>.  The default nexthop is the recipient domain.
+
+       none of the above
+              The transport and optional  nexthop  are  specified
+              with   <b>$default</b><i>_</i><b>transport</b>.    This   overrides  the
+              optional nexthop information that is specified with
+              <b>$relayhost</b>.   The  default nexthop is the recipient
+              domain.
+
+<b>SERVER</b> <b>PROCESS</b> <b>MANAGEMENT</b>
+       The trivial-rewrite servers run under control by the Post-
+       fix master server.  Each server can handle multiple simul-
+       taneous connections.  When all servers are  busy  while  a
+       client  connects, the master creates a new server process,
+       provided that the trivial-rewrite server process limit  is
+       not  exceeded.   Each  trivial-rewrite  server  terminates
+       after serving at least <b>$max</b><i>_</i><b>use</b> clients of after <b>$max</b><i>_</i><b>idle</b>
+       seconds of idle time.
 
 <b>STANDARDS</b>
        None.  The  command  does  not  interact  with the outside

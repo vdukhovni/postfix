@@ -7451,7 +7451,6 @@ Apologies for any names omitted.
 	properly quoted just like the null address. File:
 	global/quote_82[12]_local.c.
 
-
 20021217
 
 	Cleanup: more work on the trivial-rewrite address rewriting
@@ -7501,6 +7500,51 @@ Apologies for any names omitted.
 	Workaround: don't allow the transport map to override the
 	virtual alias class (error:User unknown) result.  File:
 	trivial-rewrite/transport.c.
+
+20030101
+
+	Documentation update: new-style virtual domains broke the
+	advanced content filtering example. Files: FILTER_README,
+	RELEASE_NOTES.
+
+20030104
+
+	Cleanup: avoid warnings about flag mismatches when the same
+	lookup table is listed under both virtual_alias_maps and
+	virtual_mailbox_maps. Files: global/virtual8.h, virtual/virtual.c.
+
+	Bugfix: an obscure memory leak that puzzled me for more
+	than a year until I found out how to reproduce it. File:
+	util/vstream.c.
+
+20030106
+
+	Robustness: the master no longer aborts with "address
+	already in use" when inet_interfaces specifies the same IP
+	address multiple times, or when a TCP service in master.cf
+	specifies a hostname for which the same IP address is listed
+	multiple times. File: master/master_ent.c.
+
+20030107
+
+	Robustness: check that FILTER actions in SMTPD access maps
+	or cleanup header/body_checks have plausible syntax. Files:
+	smtpd/smtpd_check.c, cleanup/cleanup_message.c.
+
+20030110
+
+	Cleanup: the virtual_mailbox_maps parameter is now optional
+	even when virtual_mailbox_domains is specified. This makes
+	virtual mailbox domains more like relay domains and the
+	local domain.
+
+	Portability: the makedefs script now uses the pcre-config
+	utility to find out where things are installed.
+
+	Bugfix: the SMTP server did not recognize the local built-in
+	double bounce address as local. Reported by Matthias Andree.
+	For safety sake, threw in the local postmaster address as
+	well.  File:  smtpd/smtpd_check.c.
 
 Open problems:
 

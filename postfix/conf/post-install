@@ -535,6 +535,15 @@ EOF
 	$POSTCONF -e "$unknown_local = 450" || exit 1
     fi
 
+    # Add missing proxymap service to master.cf.
+
+    grep '^proxymap.*proxymap' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for proxymap service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+proxymap  unix        -       -       n       -       -       proxymap
+EOF
+    }
+
 }
 
 # A reminder if this is the first time Postfix is being installed.

@@ -294,6 +294,8 @@ int     transport_lookup(const char *addr, const char *rcpt_domain,
     /*
      * Fall back to the wild-card entry.
      */
+    if (transport_errno) 
+	transport_wildcard_init();
     if (transport_errno) {
 	dict_errno = transport_errno;
 	RETURN_FREE(NOTFOUND);
