@@ -10,7 +10,7 @@
 /*	directory and copies its standard input to the file.
 /*
 /*	Options:
-/* .IP \fB-c \fIconfig_dir\fR
+/* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory. See also the
 /*	MAIL_CONFIG environment setting below.
@@ -266,7 +266,8 @@ int     main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
     signal(SIGXFSZ, SIG_IGN);
 
-    signal(SIGHUP, postdrop_sig);
+    if (signal(SIGHUP, SIG_IGN) == SIG_DFL)
+	signal(SIGHUP, postdrop_sig);
     signal(SIGINT, postdrop_sig);
     signal(SIGQUIT, postdrop_sig);
     signal(SIGTERM, postdrop_sig);

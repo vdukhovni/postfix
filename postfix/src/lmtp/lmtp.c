@@ -417,10 +417,14 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 	lmtp_chat_notify(state);
 
     /*
-     * Disconnect if we're not cacheing connections. The pipelined protocol
-     * state machine knows if it should have sent a QUIT command.
+     * Disconnect if we're not caching connections. The pipelined protocol
+     * state machine knows if it should have sent a QUIT command. Do not
+     * cache a broken connection.
      */
-    if (state->session != 0 && !var_lmtp_cache_conn)
+    if (state->session != 0
+	&& (!var_lmtp_cache_conn
+	    || vstream_ferror(state->session->stream)
+	    || vstream_feof(state->session->stream)))
 	state->session = lmtp_session_free(state->session);
 
     /*

@@ -956,8 +956,11 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     if (var_smtpd_rcpt_limit && state->rcpt_count >= var_smtpd_rcpt_limit) {
-	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "452 Error: too many recipients");
+	/* XXX Turning off the error sleep involves too invasive changes. */
+	if (state->rcpt_overshoot++ < 1000)
+	    return (0);
+	state->error_mask |= MAIL_ERROR_POLICY;
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
@@ -987,6 +990,8 @@ static void rcpt_reset(SMTPD_STATE *state)
 	state->recipient = 0;
     }
     state->rcpt_count = 0;
+    /* XXX Must flush the command history. */
+    state->rcpt_overshoot = 0;
 }
 
 /* data_cmd - process DATA command */

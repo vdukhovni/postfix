@@ -73,6 +73,7 @@ typedef struct SMTPD_STATE {
     int     recursion;
     off_t   msg_size;
     int     junk_cmds;
+    int     rcpt_overshoot;
 #ifdef USE_SASL_AUTH
 #if SASL_VERSION_MAJOR >= 2
     const char *sasl_mechanism_list;

@@ -200,6 +200,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    tok822_free_tree(tree); \
 	if (addr_buf) \
 	    vstring_free(addr_buf); \
+	return; \
     }
 
     /*

@@ -7977,6 +7977,43 @@ Apologies for any names omitted.
 	keys.  Problem reported by Andrei Koulik. Files:
 	util/match_ops.c, src/trivial-rewrite/transport.c.
 
+20040401
+
+	Bugfix: the MySQL client aborted because of a spurious
+	dict_register() call, causing complaints about a table
+	already being registered. File: util/dict_mysql.c.
+
+20040407
+
+	Bugfix: missing return statement at the end of the
+	FREE_MEMORY_AND_RETURN error handling macro. This could
+	cause core dump after table lookup failure.  Adi Prasaja.
+	File: trivial-rewrite/resolve.c.
+
+20040414
+
+	Bugfix: postdrop should not enable SIGHUP (and abort mail
+	delivery) when SIGHUP was ignored by the parent process.
+	File: postdrop/postdrop.c.  Victor Duchovni, Morgan Stanley.
+
+
+20040415
+
+	Bugfix: the LMTP client attempted to reuse a connection
+	after timeout, causing protocol synchronization errors.
+	Reported by Rob Mueller. File: lmtp/lmtp.c.
+
+20040421
+
+	Workaround: allow pipelined SMTP clients to overshoot the
+	SMTP server recipient limit without triggering the server
+	hard error limit.  The SMTP server does not count "too many
+	recipients" towards the hard error limit, as long as the
+	number of excess recipients stays within a hard-coded
+	overshoot limit of 1000.  Based on a Postfix 2.1 solution
+	that was developed in cooperation with Victor Duchovni.
+	Files:  smtpd/smtpd.c, smtpd/smtpd_state.c, smtpd/smtpd.h.
+
 Open problems:
 
 	Doc: mention the proxy_interfaces parameter everywhere the

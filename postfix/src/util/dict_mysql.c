@@ -373,7 +373,6 @@ DICT   *dict_mysql_open(const char *name, int unused_open_flags, int dict_flags)
 				    dict_mysql->name->len_hosts);
     if (dict_mysql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
-    dict_register(name, (DICT *) dict_mysql);
     return (DICT_DEBUG (&dict_mysql->dict));
 }
 
