@@ -5158,3 +5158,8 @@ Apologies for any names omitted.
 
 	Bugfix: reset the smtpd command transaction log between
 	deliveries. File: smtpd/smtpd.c.
+
+20011115
+
+	Bugfix: reset the smtpd command transaction log between
+	non-deliveries. File: smtpd/smtpd.c.
