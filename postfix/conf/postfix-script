@@ -98,9 +98,8 @@ start)
 			$FATAL Postfix integrity check failed!
 			exit 1
 		}
-		# Warning checks proceed in the background.
-		$INFO starting background file permission checks in 60 seconds
-		(sleep 60; $config_directory/postfix-script check-warn) &
+		# Foreground this so it can be stopped. All inodes are cached.
+		$config_directory/postfix-script check-warn
 	fi
 	$INFO starting the Postfix mail system
 	$daemon_directory/master &

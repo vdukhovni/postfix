@@ -20,6 +20,11 @@
 #include <tok822.h>
 
  /*
+  * Connection management.
+  */
+int     server_flags;
+
+ /*
   * rewrite.c
   */
 typedef struct {
@@ -27,7 +32,7 @@ typedef struct {
     char  **origin;			/* default origin */
     const char *domain_name;		/* name of variable */
     char  **domain;			/* default domain */
-} RWR_CONTEXT;
+}       RWR_CONTEXT;
 
 #define REW_PARAM_VALUE(x) (*(x))	/* make it easy to do it right */
 

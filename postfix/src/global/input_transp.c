@@ -55,6 +55,7 @@
 /* Utility library. */
 
 #include <name_mask.h>
+#include <msg.h>
 
 /* Global library. */
 
@@ -80,9 +81,17 @@ int     input_transp_mask(const char *param_name, const char *pattern)
 
 int     input_transp_cleanup(int cleanup_flags, int transp_mask)
 {
+    const char *myname = "input_transp_cleanup";
+
+    if (msg_verbose)
+	msg_info("before %s: cleanup flags = %s",
+		 myname, cleanup_strflags(cleanup_flags));
     if (transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
 	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
     if (transp_mask & INPUT_TRANSP_HEADER_BODY)
 	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
+    if (msg_verbose)
+	msg_info("after %s: cleanup flags = %s",
+		 myname, cleanup_strflags(cleanup_flags));
     return (cleanup_flags);
 }

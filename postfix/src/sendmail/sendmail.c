@@ -556,6 +556,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     SM_STATE state;
     int     mime_errs;
     const char *errstr;
+    int     addr_count;
 
     /*
      * Access control is enforced in the postdrop command. The code here
@@ -643,7 +644,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     if (recipients) {
 	for (cpp = recipients; *cpp != 0; cpp++) {
 	    tree = tok822_parse(*cpp);
-	    for (tp = tree; tp != 0; tp = tp->next) {
+	    for (addr_count = 0, tp = tree; tp != 0; tp = tp->next) {
 		if (tp->type == TOK822_ADDR) {
 		    tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
 		    if (REC_PUT_BUF(dst, REC_TYPE_RCPT, buf) < 0)
@@ -651,9 +652,17 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 				    "%s(%ld): error writing queue file: %m",
 					 saved_sender, (long) uid);
 		    ++rcpt_count;
+		    ++addr_count;
 		}
 	    }
 	    tok822_free_tree(tree);
+	    if (addr_count == 0) {
+		if (rec_put(dst, REC_TYPE_RCPT, "", 0) < 0)
+		    msg_fatal_status(EX_TEMPFAIL,
+				     "%s(%ld): error writing queue file: %m",
+				     saved_sender, (long) uid);
+		++rcpt_count;
+	    }
 	}
     }
 

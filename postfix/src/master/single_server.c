@@ -598,7 +598,10 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     if ((generation = getenv(MASTER_GEN_NAME)) != 0) {
 	if (!alldig(generation))
 	    msg_fatal("bad generation: %s", generation);
-	single_server_generation = strtoul(generation, (char **) 0, 8);
+	OCTAL_TO_UNSIGNED(single_server_generation, generation);
+	if (msg_verbose)
+	    msg_info("process generation: %s (%o)",
+		     generation, single_server_generation);
     }
 
     /*

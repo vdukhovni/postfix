@@ -74,6 +74,7 @@
 #include <match_parent_style.h>
 #include <maps.h>
 #include <mail_addr_find.h>
+#include <valid_mailhost_addr.h>
 
 /* Application-specific. */
 
@@ -639,6 +640,7 @@ int     resolve_proto(RES_CONTEXT *context, VSTREAM *stream)
 		 STR(nexthop), STR(nextrcpt), flags);
 
     attr_print(stream, ATTR_FLAG_NONE,
+	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, server_flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, STR(channel),
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, STR(nexthop),
 	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, STR(nextrcpt),

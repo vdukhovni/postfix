@@ -840,7 +840,7 @@ static void anvil_status_dump(char *unused_name, char **unused_argv)
 	max_rcpt = 0;
     }
     if (max_cache > 0) {
-	msg_info("statistics: max ident cache size %d at %.15s",
+	msg_info("statistics: max cache size %d at %.15s",
 		 max_cache, ctime(&max_cache_time) + 4);
 	max_cache = 0;
     }

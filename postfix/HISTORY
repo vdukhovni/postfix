@@ -10242,13 +10242,28 @@ Apologies for any names omitted.
 	it is adjusted to maximal_queue_lifetime, and a warning is
 	logged. Files:  *qmgr/qmgr.c.
 
-	Cleanup: trivial-rewrite detects changes to maps even in
-	the absence of connection events. File: trivial-rewrite.c.
+20050203
+
+	Cleanup: trivial-rewrite now restarts more timely after
+	changes in lookup tables.  Of the all the alternatives
+	tested, the simplest one produces the most bang for the
+	buck. The other code is left in place for illustrative
+	purposes. File:  trivial-rewrite/trivial-rewrite.c.
+
+	Cleanup: sendmail no longer ignores null command-line
+	recipients.  File: sendmail/sendmail.c.
+
+	Cleanup: "postfix start" background checks moved back
+	to the foreground so they can be stopped more easily.
+	File: conf/postfix-script.
 
 Open problems:
 
-	Med: SunOS 4 has no strtoul(). Instead of sprintf/strtoul()
-	use hexen/decode() for the process generation number.
+	Med: local and remote source port and IP address for
+	smtpd policy hook.
+
+	Med: smtp_connect_timeout_budget (default: 2x smtp_connect_timeout)
+	to limit the total time spent trying to connect.
 
 	Low: pointers to postfinger and saslfinger. postfinger
 	is now bundled.
@@ -10355,8 +10370,6 @@ Open problems:
 	(unquoted) or externalized (quoted) forms as lookup keys.
 	smtpd, qmgr, local, etc. use unquoted address forms as
 	keys.  cleanup uses quoted forms.
-
-	Low: sendmail does not store null command-line recipients.
 
 	Low: have a configurable list of errno values for mailbox
 	or maildir delivery that result in deferral rather than

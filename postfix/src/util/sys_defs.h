@@ -303,6 +303,7 @@ extern int opterr;
 #define NATIVE_COMMAND_DIR "/usr/etc"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #define STRCASECMP_IN_STRINGS_H
+#define OCTAL_TO_UNSIGNED(res, str) sscanf((str), "%o", &(res))
 #endif
 
  /*
@@ -1116,6 +1117,10 @@ extern int inet_pton(int, const char *, void *);
 typedef int WAIT_STATUS_T;
 
 #define NORMAL_EXIT_STATUS(status)	((status) == 0)
+#endif
+
+#ifndef OCTAL_TO_UNSIGNED
+#define OCTAL_TO_UNSIGNED(res, str)	((res) = strtoul((str), (char **) 0, 8))
 #endif
 
  /*

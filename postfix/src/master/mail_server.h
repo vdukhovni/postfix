@@ -52,6 +52,7 @@ extern NORETURN single_server_main(int, char **, SINGLE_SERVER_FN, ...);
 typedef void (*MULTI_SERVER_FN) (VSTREAM *, char *, char **);
 extern NORETURN multi_server_main(int, char **, MULTI_SERVER_FN,...);
 extern void multi_server_disconnect(VSTREAM *);
+extern int multi_server_drain(void);
 
  /*
   * trigger_server.c

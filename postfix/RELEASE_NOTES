@@ -7,14 +7,17 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
-Incompatible changes with snapshot Postfix-2.2-20050202
+Incompatible changes with snapshot Postfix-2.2-20050203
 =======================================================
 
 Postfix rewrites message header addresses only in mail that originates
 from the local machine. Specify "local_header_rewrite_clients =
 static:all" to get the old behavior of Postfix 2.1 and earlier.
 
-Major changes with snapshot Postfix-2.2-20050202
+All "postfix start" file permission checks are run in the foreground
+while Postfix is started.
+
+Major changes with snapshot Postfix-2.2-20050203
 ================================================
 
 To create a ready-to-install package for distribution to other
@@ -24,7 +27,7 @@ deprecated). See the PACKAGE_README file for details.
 
 New "permit_inet_interfaces" access restriction to allow access
 from local IP addresses only. This is used for the default, purist,
-setting of local_header_rewrite_clients.
+setting of local_header_rewrite_clients in the previous paragraph.
 
 New "sleep time-in-seconds" pseudo access restriction to block
 zombie clients with reject_unauthorized_pipelining before the
@@ -33,7 +36,7 @@ for example.
 
 Safety: Postfix no longer tries to send mail to the fallback_relay
 when the local machine is MX host for the mail destination. See
-postconf(5) description of fallback_relay for details.
+the postconf(5) description of fallback_relay for details.
 
 Incompatible changes with snapshot Postfix-2.2-20050117
 =======================================================
@@ -44,9 +47,6 @@ speeds up Postfix boot time without compromising performance under
 high load too much. Hashing is now turned on only for the defer and
 deferred queue directories, because those contain lots of mail when
 undeliverable mail is backing up.
-
-In order to speed up start-up, some Postfix file permission checks
-are run in the background after Postfix is started.
 
 The SMTP server now requires that IPv6 addresses in SMTP commands
 are specified as [ipv6:ipv6address], as described in RFC 2821.

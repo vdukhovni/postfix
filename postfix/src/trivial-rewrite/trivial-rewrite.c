@@ -9,7 +9,7 @@
 /*	The \fBtrivial-rewrite\fR daemon processes three types of client
 /*	service requests:
 /* .IP "\fBrewrite \fIcontext address\fR"
-/*	Rewrite an address to standard form, according to the 
+/*	Rewrite an address to standard form, according to the
 /*	address rewriting context:
 /* .RS
 /* .IP \fBlocal\fR
@@ -39,7 +39,7 @@
 /* .IP \fIrecipient\fR
 /*	The envelope recipient address that is passed on to \fInexthop\fR.
 /* .IP \fIflags\fR
-/*	The address class, whether the address requires relaying, 
+/*	The address class, whether the address requires relaying,
 /*	whether the address has problems, and whether the request failed.
 /* .RE
 /* .IP "\fBverify \fIaddress\fR"
@@ -251,6 +251,7 @@
 #include <split_at.h>
 #include <stringops.h>
 #include <dict.h>
+#include <events.h>
 
 /* Global library. */
 
@@ -328,14 +329,70 @@ RES_CONTEXT resolve_verify = {
     VAR_VRFY_XPORT_MAPS, &var_vrfy_xport_maps, 0
 };
 
+ /*
+  * Connection management. When file-based lookup tables change we should
+  * restart at our convenience, but avoid client read errors. We restart
+  * rather than reopen, because the process may be chrooted (and if it isn't
+  * we still need code that handles the chrooted case anyway).
+  * 
+  * Three variants are implemented. Only one should be used.
+  * 
+  * ifdef DETACH_AND_ASK_CLIENTS_TO_RECONNECT
+  * 
+  * This code detaches the trivial-rewrite process from the master, stops
+  * accepting new clients, and handles established clients in the background,
+  * asking them to reconnect the next time they send a request. The master
+  * create a new process that accepts connections. This is reasonably safe
+  * because the number of trivial-rewrite server processes is small compared
+  * to the number of trivial-rewrite client processes. The few extra
+  * background processes should not make a difference in Postfix's footprint.
+  * However, once a daemon detaches from the master, its exit status will be
+  * lost, and abnormal termination may remain undetected. Timely restart is
+  * achieved by checking the table changed status every 10 seconds or so
+  * before responding to a client request.
+  * 
+  * ifdef CHECK_TABLE_STATS_PERIODICALLY
+  * 
+  * This code runs every 10 seconds and terminates the process when lookup
+  * tables have changed. This is subject to race conditions when established
+  * clients send a request while the server exits; those clients may read EOF
+  * instead of a server reply. If the experience with the oldest option
+  * (below) is anything to go by, however, then this is unlikely to be a
+  * problem during real deployment.
+  * 
+  * ifdef CHECK_TABLE_STATS_BEFORE_ACCEPT
+  * 
+  * This is the old code. It checks the table changed status when a new client
+  * connects (i.e. before the server calls accept()), and terminates
+  * immediately. This is invisible for the connecting client, but is subject
+  * to race conditions when established clients send a request while the
+  * server exits; those clients may read EOF instead of a server reply. This
+  * has, however, not been a problem in real deployment. With the old code,
+  * timely restart is achieved by setting the ipc_ttl parameter to 60
+  * seconds, so that the table change status is checked several times a
+  * minute.
+  */
+int     server_flags;
+
+ /*
+  * Define exactly one of these.
+  */
+/* #define DETACH_AND_ASK_CLIENTS_TO_RECONNECT	/* correct and complex */
+#define CHECK_TABLE_STATS_PERIODICALLY	/* quick */
+/* #define CHECK_TABLE_STATS_BEFORE_ACCEPT	/* slow */
+
 /* rewrite_service - read request and send reply */
 
 static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 {
     int     status = -1;
+
+#ifdef DETACH_AND_ASK_CLIENTS_TO_RECONNECT
     static time_t last;
-    time_t  now = event_time();
+    time_t  now;
     const char *table;
+
+#endif
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -344,15 +401,18 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
-     * Connections are persistent. Be sure to refesh timely.
+     * Client connections are long-lived. Be sure to refesh timely.
      */
-    if (now - last > 10) {
+#ifdef DETACH_AND_ASK_CLIENTS_TO_RECONNECT
+    if (server_flags == 0 && (now = event_time()) - last > 10) {
 	if ((table = dict_changed_name()) != 0) {
 	    msg_info("table %s has changed -- restarting", table);
-	    exit(0);
+	    if (multi_server_drain() == 0)
+		server_flags = 1;
 	}
 	last = now;
     }
+#endif
 
     /*
      * This routine runs whenever a client connects to the UNIX-domain socket
@@ -375,6 +435,37 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
     if (status < 0)
 	multi_server_disconnect(stream);
 }
+
+/* pre_accept - see if tables have changed */
+
+#ifdef CHECK_TABLE_STATS_BEFORE_ACCEPT
+
+static void pre_accept(char *unused_name, char **unused_argv)
+{
+    const char *table;
+
+    if ((table = dict_changed_name()) != 0) {
+	msg_info("table %s has changed -- restarting", table);
+	exit(0);
+    }
+}
+
+#endif
+
+#ifdef CHECK_TABLE_STATS_PERIODICALLY
+
+static void check_table_stats(int unused_event, char *unused_context)
+{
+    const char *table;
+
+    if ((table = dict_changed_name()) != 0) {
+	msg_info("table %s has changed -- restarting", table);
+	exit(0);
+    }
+    event_request_timer(check_table_stats, (char *) 0, 10);
+}
+
+#endif
 
 /* pre_jail_init - initialize before entering chroot jail */
 
@@ -401,6 +492,9 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	transport_post_init(resolve_regular.transport_info);
     if (resolve_verify.transport_info)
 	transport_post_init(resolve_verify.transport_info);
+#ifdef CHECK_TABLE_STATS_PERIODICALLY
+    check_table_stats(0, (char *) 0);
+#endif
 }
 
 /* main - pass control to the multi-threaded skeleton code */
@@ -444,5 +538,8 @@ int     main(int argc, char **argv)
 		      MAIL_SERVER_BOOL_TABLE, bool_table,
 		      MAIL_SERVER_PRE_INIT, pre_jail_init,
 		      MAIL_SERVER_POST_INIT, post_jail_init,
+#ifdef CHECK_TABLE_STATS_BEFORE_ACCEPT
+		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
+#endif
 		      0);
 }

@@ -15,6 +15,8 @@
 /*	void	multi_server_disconnect(stream, argv)
 /*	VSTREAM *stream;
 /*	char	**argv;
+/*
+/*	void	multi_server_drain()
 /* DESCRIPTION
 /*	This module implements a skeleton for multi-threaded
 /*	mail subsystems: mail subsystem programs that service multiple
@@ -113,6 +115,11 @@
 /*	multi_server_disconnect() should be called by the application
 /*	when a client disconnects.
 /*
+/*	multi_server_drain() should be called when the application
+/*	no longer wishes to accept new client connections. Existing
+/*	clients are handled in a background process. A non-zero
+/*	result means this call should be tried again later.
+/*
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
 /*	This value is taken from the global \fBmain.cf\fR configuration
@@ -199,6 +206,7 @@
   */
 static int client_count;
 static int use_count;
+static int socket_count = 1;
 
 static void (*multi_server_service) (VSTREAM *, char *, char **);
 static char *multi_server_name;
@@ -236,6 +244,28 @@ static void multi_server_timeout(int unused_event, char *unused_context)
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
     multi_server_exit();
+}
+
+/*  multi_server_drain - stop accepting new clients */
+
+int multi_server_drain(void)
+{
+    int     fd;
+
+    switch (fork()) {
+	/* Try again later. */
+    case -1:
+	return (-1);
+	/* Finish existing clients in the background, then terminate. */
+    case 0:
+	for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++)
+	    event_disable_readwrite(fd);
+	var_use_limit = 1;
+	return (0);
+	/* Let the master start a new process. */
+    default:
+	exit(0);
+    }
 }
 
 /* multi_server_disconnect - terminate client session */
@@ -433,7 +463,6 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     char   *service_name = basename(argv[0]);
     int     delay;
     int     c;
-    int     socket_count = 1;
     int     fd;
     va_list ap;
     MAIL_SERVER_INIT_FN pre_init = 0;
@@ -656,7 +685,10 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     if ((generation = getenv(MASTER_GEN_NAME)) != 0) {
 	if (!alldig(generation))
 	    msg_fatal("bad generation: %s", generation);
-	multi_server_generation = strtoul(generation, (char **) 0, 8);
+	OCTAL_TO_UNSIGNED(multi_server_generation, generation);
+	if (msg_verbose)
+	    msg_info("process generation: %s (%o)",
+		     generation, multi_server_generation);
     }
 
     /*
