@@ -63,7 +63,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
 	match_parent_style.h quote_flags.h mime_state.h header_token.h \
 	lex_822.h strip_addr.h virtual8_maps.h hold_message.h verify_clnt.h \
-	trace.h log_adhoc.h verify.h dict_proxy.h mail_dict.h
+	trace.h log_adhoc.h verify.h dict_proxy.h mail_dict.h qmgr_user.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \

@@ -55,6 +55,16 @@
 #define REC_TYPE_END	'E'		/* terminator, required */
 
  /*
+  * What I expect to see in a "pure recipient" sequence at the end of the
+  * initial or extracted envelope segments, respectively. When a queue file
+  * contains pure recipient sequences only, then the queue manager will not
+  * have to read all the queue file records before starting delivery. This
+  * is often the case with list mail, where such optimization is desirable.
+  */
+#define REC_TYPE_ENV_RECIPIENT	"MDRO"
+#define REC_TYPE_EXT_RECIPIENT	"EDRO"
+
+ /*
   * The types of records that I expect to see while processing different
   * record groups. The first member in each set is the record type that
   * indicates the end of that record group.
@@ -74,13 +84,15 @@
 
  /*
   * The record at the beginning of the envelope segment specifies the message
-  * content size, data offset, and recipient count. These are fixed-width
-  * fields so they can be updated in place.
+  * content size, data offset, recipient count, and processing flags. These
+  * are fixed-width fields so they can be updated in place. Flags are defined
+  * in cleanup_user.h
   */
-#define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld"	/* size/count format */
+#define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld %15ld"
 #define REC_TYPE_SIZE_CAST1	long
 #define REC_TYPE_SIZE_CAST2	long
 #define REC_TYPE_SIZE_CAST3	long
+#define REC_TYPE_SIZE_CAST4	long
 
  /*
   * The record at the beginning of the message content records specifies the

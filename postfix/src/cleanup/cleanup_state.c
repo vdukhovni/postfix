@@ -71,6 +71,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->return_receipt = 0;
     state->errors_to = 0;
     state->flags = 0;
+    state->qmgr_opts = 0;
     state->errs = 0;
     state->err_mask = 0;
     state->headers_seen = 0;
@@ -80,9 +81,6 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->action = cleanup_envelope;
     state->data_offset = -1;
     state->xtra_offset = -1;
-    state->warn_seen = 0;
-    state->verp_seen = 0;
-    state->end_seen = 0;
     state->rcpt_count = 0;
     state->reason = 0;
     state->attr = nvtable_create(10);

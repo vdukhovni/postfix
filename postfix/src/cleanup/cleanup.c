@@ -68,14 +68,14 @@
 /*	These filters see physical lines one at a time, in chunks of
 /*	at most line_length_limit bytes.
 /* .IP \fBbody_checks_size_limit\fP
-/*	The amount of content per message body segment that is 
+/*	The amount of content per message body segment that is
 /*	subjected to \fB$body_checks\fR filtering.
 /* .IP \fBheader_checks\fR
 /* .IP "\fBmime_header_checks\fR (default: \fB$header_checks\fR)"
 /* .IP "\fBnested_header_checks\fR (default: \fB$header_checks\fR)"
 /*	Lookup tables with content filters for message header lines:
-/*	respectively, these are applied to the primary message headers 
-/*	(not including MIME headers), to the MIME headers anywhere in 
+/*	respectively, these are applied to the primary message headers
+/*	(not including MIME headers), to the MIME headers anywhere in
 /*	the message, and to the initial headers of attached messages.
 /*	These filters see logical headers one at a time, including headers
 /*	that span multiple lines.
@@ -83,13 +83,13 @@
 /* .ad
 /* .fi
 /* .IP \fBdisable_mime_input_processing\fR
-/*	While receiving, give no special treatment to \fBContent-Type:\fR 
-/*	message headers; all text after the initial message headers is 
+/*	While receiving, give no special treatment to \fBContent-Type:\fR
+/*	message headers; all text after the initial message headers is
 /*	considered to be part of the message body.
 /* .IP \fBmime_boundary_length_limit\fR
 /*	The amount of space that will be allocated for MIME multipart
 /*	boundary strings. The MIME processor is unable to distinguish
-/*	between boundary strings that do not differ in the first 
+/*	between boundary strings that do not differ in the first
 /*	\fB$mime_boundary_length_limit\fR characters.
 /* .IP \fBmime_nesting_limit\fR
 /*	The maximal nesting level of multipart mail that the MIME
@@ -100,10 +100,10 @@
 /*	Reject mail with 8-bit text in message headers. This blocks
 /*	mail from poorly written applications.
 /* .IP \fBstrict_8bitmime_body\fR
-/*	Reject mail with 8-bit text in content that claims to be 7-bit, 
-/*	or in content that has no explicit content encoding information. 
-/*	This blocks mail from poorly written mail software. Unfortunately, 
-/*	this also breaks majordomo approval requests when the included 
+/*	Reject mail with 8-bit text in content that claims to be 7-bit,
+/*	or in content that has no explicit content encoding information.
+/*	This blocks mail from poorly written mail software. Unfortunately,
+/*	this also breaks majordomo approval requests when the included
 /*	request contains valid 8-bit MIME mail, and it breaks bounces from
 /*	mailers that do not properly encapsulate 8-bit content (for example,
 /*	bounces from qmail or from old versions of Postfix).

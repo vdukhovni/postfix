@@ -99,8 +99,6 @@ typedef struct SMTPD_STATE {
     int     session_discard;		/* per-session discard_action */
     char   *session_filter;		/* per-session filter action */
     char   *session_redirect;		/* per-session redirect action */
-    char   *filter;			/* per-message filter action */
-    char   *redirect;			/* per-message redirect action */
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

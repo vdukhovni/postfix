@@ -1805,7 +1805,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 		    || STREQ(reply_class, SMTPD_NAME_HELO))) {
 		SAFE_STRDUP(state->session_filter, cmd_text);
 	    } else {
-		SAFE_STRDUP(state->filter, cmd_text);
+#ifndef TEST
+		rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
+#endif
 	    }
 	    return (SMTPD_CHECK_DUNNO);
 	}
@@ -1859,9 +1861,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    state->session_discard = 1;
 	} else {
 #ifndef TEST
-	    state->discard = 1;
 	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
 			CLEANUP_FLAG_DISCARD);
+	    state->discard = 1;
 #endif
 	}
 	return (SMTPD_CHECK_OK);
@@ -1892,7 +1894,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 		    || STREQ(reply_class, SMTPD_NAME_HELO))) {
 		SAFE_STRDUP(state->session_redirect, cmd_text);
 	    } else {
-		SAFE_STRDUP(state->redirect, cmd_text);
+#ifndef TEST
+		rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", cmd_text);
+#endif
 	    }
 	    return (SMTPD_CHECK_DUNNO);
 	}
@@ -3126,19 +3130,22 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     /*
      * Actions that were triggered during connect or HELO need to be repeated
      * with each MAIL FROM command.
-     * 
-     * XXX Left-hand side should always be zero. But this may not be the case
-     * during stand-alone testing when commands can execute out of protocol.
      */
     if (var_smtpd_delay_reject == 0) {
-	if( state->session_hold)
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_HOLD);
-	if( state->session_discard)
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_DISCARD);
-	SAFE_STRDUP(state->filter, state->session_filter);
-	SAFE_STRDUP(state->redirect, state->session_redirect);
+#ifndef TEST
+	if (state->session_hold)
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_HOLD);
+	if (state->session_discard)
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_DISCARD);
+	if (state->session_redirect)
+	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s",
+			state->session_redirect);
+	if (state->session_filter)
+	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s",
+			state->session_filter);
+#endif
     }
 
     /*
@@ -3548,19 +3555,6 @@ char   *smtpd_check_data(SMTPD_STATE *state)
 	state->recipient = saved_recipient;
 
     return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
-}
-
-/* smtpd_check_dot - do stuff after message transfer */
-
-char   *smtpd_check_dot(SMTPD_STATE *state)
-{
-    if (state->redirect)
-	rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s",
-		    state->redirect);
-    if (state->filter)
-	rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s",
-		    state->filter);
-    return (0);
 }
 
 #ifdef TEST

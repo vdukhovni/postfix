@@ -8104,7 +8104,7 @@ Apologies for any names omitted.
 	descriptor is writable while write() transfers zero bytes.
 	File:  global/pipe_command.c.
 
-2003052[3-6]
+2003052[3-9]
 
 	Cleanup: rewrote the queue file record processing loops in
 	cleanup and in [n]qmgr. This code had deteriorated a lot
@@ -8118,11 +8118,30 @@ Apologies for any names omitted.
 	(a.k.a.  20010228). Files: cleanup/cleanup_extracted.c,
 	showq/showq.c.
 
+	Performance: the queue manager no longer has to examine
+	every queue file record before it can start deliveries.
+	This helps to avoid thrashing with very large mailing lists.
+	Postfix queue files have an extra field in the size record
+	with queue manager processing hints.  This change is backward
+	and forward compatible.  Files:  cleanup/cleanup_envelope.c,
+	cleanup/cleanup_extracted.c, *qmgr/qmgr_message.c.
+
 20030528
 
 	Compatibility: "sendmail -q<time>" without -bd option causes
 	the command to exit instead of waiting for input on the
 	standard input stream. File: sendmail/sendmail.c.
+
+20030530
+
+	Bugfix: client access denied with smtpd_delay_reject=no
+	broke "sendmail -bs". Fix by Victor Duchovni, Morgan Stanley.
+	File: smtpd/smtpd.c.
+
+20030531
+
+	Compatibility: allow <@site,@site:address> route addresses
+	in SMTP commands.  File: smtpd/smtpd.c.
 
 Open problems:
 

@@ -220,42 +220,26 @@ QMGR(8)                                                   QMGR(8)
        In the text below, <i>transport</i> is the first field in a  <b>mas-</b>
        <b>ter.cf</b> entry.
 
-       <b>qmgr</b><i>_</i><b>fudge</b><i>_</i><b>factor</b> (valid range: 10..100)
-              The  percentage  of  delivery resources that a busy
-              mail system will use up for  delivery  of  a  large
-              mailing  list  message.  With 100%, delivery of one
-              message does not begin before the previous  message
-              has  been  delivered.  This results in good perfor-
-              mance for large mailing lists, but results in  poor
-              response  time for one-to-one mail.  With less than
-              100%, response time for one-to-one  mail  improves,
-              but  large  mailing  list delivery performance suf-
-              fers. In the worst case, recipients near the begin-
-              ning  of  a  large list receive a burst of messages
-              immediately, while recipients near the end of  that
-              list  receive  that  same burst of messages a whole
-              day later.
-
        <b>initial</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b>
-              Initial per-destination concurrency level for  par-
+              Initial  per-destination concurrency level for par-
               allel delivery to the same destination.
 
        <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Default  limit on the number of parallel deliveries
+              Default limit on the number of parallel  deliveries
               to the same destination.
 
        <i>transport_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Limit on the number of parallel deliveries  to  the
-              same  destination,  for delivery via the named mes-
+              Limit  on  the number of parallel deliveries to the
+              same destination, for delivery via the  named  mes-
               sage <i>transport</i>.
 
 <b>Recipient</b> <b>controls</b>
        <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Default limit on the number of recipients per  mes-
+              Default  limit on the number of recipients per mes-
               sage transfer.
 
        <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit  on  the  number  of  recipients  per message
+              Limit on  the  number  of  recipients  per  message
               transfer, for the named message <i>transport</i>.
 
 <b>SEE</b> <b>ALSO</b>
@@ -264,7 +248,7 @@ QMGR(8)                                                   QMGR(8)
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -112,6 +112,7 @@
 #include <opened.h>
 #include <verp_sender.h>
 #include <mail_proto.h>
+#include <qmgr_user.h>
 
 /* Client stubs. */
 
@@ -137,6 +138,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->flags = 0;
     message->qflags = qflags;
     message->tflags = 0;
+    message->rflags = QMGR_READ_FLAG_DEFAULT;
     message->fp = 0;
     message->refcount = 0;
     message->single_rcpt = 0;
@@ -319,6 +321,14 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * number of in-core recipients per message would asymptotically approach
      * (global recipient limit)/(active queue size limit), which gives equal
      * delay per recipient rather than equal delay per message.
+     * 
+     * On the first open, we must examine all non-recipient records.
+     * 
+     * XXX We know how to skip over large numbers of recipient records in the
+     * initial envelope segment but we haven't yet implemented code to skip
+     * over large numbers of recipient records in the extracted envelope
+     * segment. This is not a problem as long as only "sendmail -t" produces
+     * extracted segment recipients.
      */
     for (;;) {
 	if ((curr_offset = vstream_ftell(message->fp)) < 0)
@@ -335,8 +345,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	start = vstring_str(buf);
 	if (msg_verbose > 1)
 	    msg_info("record %c %s", rec_type, start);
-	if (rec_type == REC_TYPE_END)
+	if (rec_type == REC_TYPE_END) {
+	    message->rflags |= QMGR_READ_FLAG_SEEN_ALL_NON_RCPT;
 	    break;
+	}
 	if (rec_type == REC_TYPE_RCPT) {
 	    /* See also below for code setting orig_rcpt. */
 	    if (message->rcpt_offset == 0) {
@@ -351,10 +363,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));
 		    /* We already examined all non-recipient records. */
-		    if (message->errors_to)
+		    if (message->rflags & QMGR_READ_FLAG_SEEN_ALL_NON_RCPT)
 			break;
 		    /* Examine non-recipient records in extracted segment. */
-		    if (curr_offset < message->data_offset
+		    if ((message->rflags & QMGR_READ_FLAG_MIXED_RCPT_OTHER) == 0
+			&& curr_offset < message->data_offset
 			&& vstream_fseek(message->fp, message->data_offset
 					 + message->data_size, SEEK_SET) < 0)
 			msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
@@ -372,7 +385,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	}
 	if (orig_rcpt != 0) {
 	    /* REC_TYPE_ORCP must go before REC_TYPE_RCPT or REC_TYPE DONE. */
-	    msg_warn("%s: out-of-order original recipient record <%.200s>",
+	    msg_warn("%s: ignoring out-of-order original recipient <%.200s>",
 		     message->queue_id, orig_rcpt);
 	    myfree(orig_rcpt);
 	    orig_rcpt = 0;
@@ -383,17 +396,24 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		orig_rcpt = mystrdup(start);
 	    continue;
 	}
-	if (message->errors_to)
+	if (message->rflags & QMGR_READ_FLAG_SEEN_ALL_NON_RCPT)
 	    /* We already examined all non-recipient records. */
 	    continue;
 	if (rec_type == REC_TYPE_SIZE) {
 	    if (message->data_offset == 0) {
-		if ((count = sscanf(start, "%ld %ld %d", &message->data_size,
-				    &message->data_offset, &nrcpt)) == 3) {
+		if ((count = sscanf(start, "%ld %ld %d %d",
+				 &message->data_size, &message->data_offset,
+				    &nrcpt, &message->rflags)) >= 3) {
 		    /* Postfix >= 1.0 (a.k.a. 20010228). */
 		    if (message->data_offset <= 0 || message->data_size <= 0) {
-			msg_warn("invalid size record, file %s",
-				 VSTREAM_PATH(message->fp));
+			msg_warn("%s: invalid size record: %.100s",
+				 message->queue_id, start);
+			rec_type = REC_TYPE_ERROR;
+			break;
+		    }
+		    if (message->rflags & (~0 << 16)) {
+			msg_warn("%s: invalid flags in size record: %.100s",
+				 message->queue_id, start);
 			rec_type = REC_TYPE_ERROR;
 			break;
 		    }
@@ -402,7 +422,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    qmgr_message_oldstyle_scan(message);
 		} else {
 		    /* Can't happen. */
-		    msg_warn("%s: weird size record", message->queue_id);
+		    msg_warn("%s: message rejected: weird size record",
+			     message->queue_id);
 		    rec_type = REC_TYPE_ERROR;
 		    break;
 		}
@@ -463,9 +484,6 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (rec_type == REC_TYPE_ERTO) {
 	    if (message->errors_to == 0)
 		message->errors_to = mystrdup(start);
-	    /* We already examined all non-recipient records. */
-	    if (message->rcpt_offset)
-		break;
 	    continue;
 	}
 	if (rec_type == REC_TYPE_RRTO) {
@@ -482,8 +500,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	}
 	if (rec_type == REC_TYPE_VERP) {
 	    if (message->verp_delims == 0) {
-		if (verp_delims_verify(start) != 0) {
-		    msg_warn("%s: bad VERP record content: \"%s\"",
+		if (message->sender == 0 || message->sender[0] == 0) {
+		    msg_warn("%s: ignoring VERP request for null sender",
+			     message->queue_id);
+		} else if (verp_delims_verify(start) != 0) {
+		    msg_warn("%s: ignoring bad VERP request: \"%.100s\"",
 			     message->queue_id, start);
 		} else {
 		    message->single_rcpt = 1;
@@ -499,7 +520,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      */
     if (orig_rcpt != 0) {
 	if (rec_type > 0)
-	    msg_warn("%s: out-of-order original recipient <%.200s>",
+	    msg_warn("%s: ignoring out-of-order original recipient <%.200s>",
 		     message->queue_id, orig_rcpt);
 	myfree(orig_rcpt);
     }
@@ -526,13 +547,17 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * including the queue file end marker.
      */
     if (rec_type <= 0) {
-	msg_warn("%s: missing end record", message->queue_id);
+	msg_warn("%s: message rejected: missing end record",
+		 message->queue_id);
     } else if (message->arrival_time == 0) {
-	msg_warn("%s: missing arrival time record", message->queue_id);
+	msg_warn("%s: message rejected: missing arrival time record",
+		 message->queue_id);
     } else if (message->sender == 0) {
-	msg_warn("%s: missing sender record", message->queue_id);
+	msg_warn("%s: message rejected: missing sender record",
+		 message->queue_id);
     } else if (message->data_offset == 0) {
-	msg_warn("%s: missing size record", message->queue_id);
+	msg_warn("%s: message rejected: missing size record",
+		 message->queue_id);
     } else {
 	return (0);
     }

@@ -192,6 +192,7 @@ cleanup_envelope.o: ../../include/htable.h
 cleanup_envelope.o: ../../include/record.h
 cleanup_envelope.o: ../../include/rec_type.h
 cleanup_envelope.o: ../../include/cleanup_user.h
+cleanup_envelope.o: ../../include/qmgr_user.h
 cleanup_envelope.o: ../../include/tok822.h
 cleanup_envelope.o: ../../include/resolve_clnt.h
 cleanup_envelope.o: ../../include/mail_params.h
@@ -222,6 +223,7 @@ cleanup_extracted.o: ../../include/mymalloc.h
 cleanup_extracted.o: ../../include/nvtable.h
 cleanup_extracted.o: ../../include/htable.h
 cleanup_extracted.o: ../../include/cleanup_user.h
+cleanup_extracted.o: ../../include/qmgr_user.h
 cleanup_extracted.o: ../../include/record.h
 cleanup_extracted.o: ../../include/rec_type.h
 cleanup_extracted.o: ../../include/mail_params.h

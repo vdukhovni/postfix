@@ -185,6 +185,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define USE_STATFS
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
+#define BROKEN_WRITE_SELECT_ON_NON_BLOCKING_PIPE
 #endif
 
  /*

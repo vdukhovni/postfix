@@ -216,6 +216,7 @@ struct QMGR_MESSAGE {
     int     flags;			/* delivery problems */
     int     qflags;			/* queuing flags */
     int     tflags;			/* tracing flags */
+    int     rflags;			/* queue file read flags */
     VSTREAM *fp;			/* open queue file or null */
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
@@ -237,6 +238,11 @@ struct QMGR_MESSAGE {
     long    rcpt_offset;		/* more recipients here */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
 };
+
+ /*
+  * Flags 0-15 are reserved for qmgr_user.h.
+  */
+#define QMGR_READ_FLAG_SEEN_ALL_NON_RCPT	(1<<16)
 
 #define QMGR_MESSAGE_LOCKED	((QMGR_MESSAGE *) 1)
 

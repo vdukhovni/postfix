@@ -639,7 +639,9 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     int     naddr;
     int     non_addr;
     char   *err = 0;
-    char   *junk;
+    char   *junk = 0;
+    char   *text;
+    char   *colon;
 
     /*
      * Special case.
@@ -663,11 +665,19 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 	msg_info("%s: input: %s", myname, STR(arg->vstrval));
     if (STR(arg->vstrval)[0] == '<'
 	&& STR(arg->vstrval)[LEN(arg->vstrval) - 1] == '>') {
-	junk = mystrndup(STR(arg->vstrval) + 1, LEN(arg->vstrval) - 2);
-	tree = tok822_parse(junk);
-	myfree(junk);
+	junk = text = mystrndup(STR(arg->vstrval) + 1, LEN(arg->vstrval) - 2);
     } else
-	tree = tok822_parse(STR(arg->vstrval));
+	text = STR(arg->vstrval);
+
+    /*
+     * Truncate deprecated route address form.
+     */
+    if (*text == '@' && (colon = strchr(text, ':')) != 0)
+	text = colon + 1;
+    tree = tok822_parse(text);
+
+    if (junk)
+	myfree(junk);
 
     /*
      * Find trouble.
@@ -710,7 +720,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
      */
-    if (arg->strval[0] == 0 && !allow_empty_addr) {
+    if ((arg->strval[0] == 0 && !allow_empty_addr) || arg->strval[0] == '@') {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
 	err = "501 Bad address syntax";
@@ -904,14 +914,6 @@ static void mail_reset(SMTPD_STATE *state)
 	smtpd_sasl_mail_reset(state);
 #endif
     state->discard = 0;
-    if (state->filter) {
-	myfree(state->filter);
-	state->filter = 0;
-    }
-    if (state->redirect) {
-	myfree(state->redirect);
-	state->redirect = 0;
-    }
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1104,31 +1106,23 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * Send the end-of-content marker, then do some post-message checks
-and send the end-of-file marker.
+     * Send the end-of-segment markers.
      */
-    if (state->err == CLEANUP_STAT_OK) {
-	rec_fputs(state->cleanup, REC_TYPE_XTRA, "");
-	err = smtpd_check_dot(state);
-	if (rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
+    if (state->err == CLEANUP_STAT_OK)
+	if (rec_fputs(state->cleanup, REC_TYPE_XTRA, "") < 0
+	    || rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
 	    || vstream_fflush(state->cleanup))
 	    state->err = CLEANUP_STAT_WRITE;
-    }
 
     /*
      * Finish the queue file or finish the cleanup conversation.
      */
-    if (state->err == 0 && err == 0)
+    if (state->err == 0)
 	state->err = mail_stream_finish(state->dest, why = vstring_alloc(10));
     else
 	mail_stream_cleanup(state->dest);
     state->dest = 0;
     state->cleanup = 0;
-
-    if (err != 0) {
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
-    }
 
     /*
      * Handle any errors. One message may suffer from multiple errors, so
@@ -1484,7 +1478,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	break;
 
     case 0:
-	if (var_smtpd_delay_reject == 0
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && var_smtpd_delay_reject == 0
 	    && (state->access_denied = smtpd_check_client(state)) != 0) {
 	    smtpd_chat_reply(state, "%s", state->access_denied);
 	} else {

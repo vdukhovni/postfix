@@ -12,7 +12,7 @@
 /* .nf
 
  /*
-  * Options.
+  * Client processing options. Flags 16- are reserved for cleanup.h.
   */
 #define CLEANUP_FLAG_NONE	0	/* No special features */
 #define CLEANUP_FLAG_BOUNCE	(1<<0)	/* Bounce bad messages */
@@ -20,11 +20,6 @@
 #define CLEANUP_FLAG_HOLD	(1<<2)	/* Place message on hold */
 #define CLEANUP_FLAG_DISCARD	(1<<3)	/* Discard message silently */
 #define CLEANUP_FLAG_BCC_OK	(1<<4)	/* Ok to add auto-BCC addresses */
-
- /*
-  * Status.
-  */
-#define CLEANUP_FLAG_INRCPT	(1<<16)	/* Expecting recipient records only */
 
  /*
   * These are set on the fly while processing SMTP envelopes or message
@@ -36,9 +31,7 @@
  /*
   * Diagnostics.
   */
-
 #define CLEANUP_STAT_OK		0	/* Success. */
-
 #define CLEANUP_STAT_BAD	(1<<0)	/* Internal protocol error */
 #define CLEANUP_STAT_WRITE	(1<<1)	/* Error writing message file */
 #define CLEANUP_STAT_SIZE	(1<<2)	/* Message file too big */

@@ -648,8 +648,8 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
      * This should never happen.
      */
     else {
-	msg_warn("%s: unexpected record type in message content: %d"
-		 ": message rejected", myname, type);
+	msg_warn("%s: message rejected: "
+	      "unexpected record type %d in message content", myname, type);
 	state->errs |= CLEANUP_STAT_BAD;
     }
 }
@@ -683,7 +683,7 @@ void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, int len
     int     mime_options;
 
     /*
-     * Write the start-of-content segment marker. 
+     * Write the start-of-content segment marker.
      */
     cleanup_out_string(state, REC_TYPE_MESG, "");
     if ((state->data_offset = vstream_ftell(state->dst)) < 0)

@@ -188,7 +188,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
     if (CLEANUP_OUT_OK(state)) {
 	if (state->recip == 0)
 	    state->errs |= CLEANUP_STAT_RCPT;
-	if (state->end_seen == 0)
+	if ((state->flags & CLEANUP_FLAG_END_SEEN) == 0)
 	    state->errs |= CLEANUP_STAT_BAD;
     }
 

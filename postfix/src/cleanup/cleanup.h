@@ -47,7 +47,8 @@ typedef struct CLEANUP_STATE {
     char   *orig_rcpt;			/* original recipient address */
     char   *return_receipt;		/* return-receipt address */
     char   *errors_to;			/* errors-to address */
-    int     flags;			/* processing options */
+    int     flags;			/* processing options, status flags */
+    int     qmgr_opts;			/* qmgr processing options */
     int     errs;			/* any badness experienced */
     int     err_mask;			/* allowed badness */
     int     headers_seen;		/* which headers were seen */
@@ -56,10 +57,7 @@ typedef struct CLEANUP_STATE {
     BH_TABLE *dups;			/* recipient dup filter */
     void    (*action) (struct CLEANUP_STATE *, int, const char *, int);
     off_t   data_offset;		/* start of message content */
-    off_t   xtra_offset;		/* start of extracted content */
-    int     warn_seen;			/* REC_TYPE_WARN seen */
-    int     verp_seen;			/* REC_TYPE_VERP seen */
-    int     end_seen;			/* REC_TYPE_END seen */
+    off_t   xtra_offset;		/* start of extra segment */
     int     rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
     NVTABLE *attr;			/* queue file attribute list */
@@ -68,6 +66,13 @@ typedef struct CLEANUP_STATE {
     char   *filter;			/* from header/body patterns */
     char   *redirect;			/* from header/body patterns */
 } CLEANUP_STATE;
+
+ /*
+  * Status flags. Flags 0-15 are reserved for cleanup_user.h.
+  */
+#define CLEANUP_FLAG_INRCPT	(1<<16)	/* Processing recipient records */
+#define CLEANUP_FLAG_WARN_SEEN	(1<<17)	/* REC_TYPE_WARN record seen */
+#define CLEANUP_FLAG_END_SEEN	(1<<18)	/* REC_TYPE_END record seen */
 
  /*
   * Mappings.
