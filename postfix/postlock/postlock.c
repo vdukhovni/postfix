@@ -5,7 +5,7 @@
 /*	lock mail folder and execute command
 /* SYNOPSIS
 /* .fi
-/*	\fBpostlock\fR [\fB-c \fIconfig_dir\fB] [\fB-v\fR] 
+/*	\fBpostlock\fR [\fB-c \fIconfig_dir\fB] [\fB-v\fR]
 /*		\fIfile command...\fR
 /* DESCRIPTION
 /*	The \fBpostlock\fR command locks \fIfile\fR for exclusive
@@ -14,17 +14,17 @@
 /*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
-/*	Read configuration information from \fBmain.cf\fR in the named 
+/*	Read configuration information from \fBmain.cf\fR in the named
 /*	configuration directory.
 /* .IP \fB-v\fR
-/*	Enable verbose mode for debugging purposes. Multiple \fB-v\fR 
+/*	Enable verbose mode for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* .PP
 /*	Arguments:
 /* .IP \fIfile\fR
 /*	A mailbox file. The user should have read/write permission.
 /* .IP \fIcommand...\fR
-/*	The command to execute while \fIfile\fR is locked for exclusive 
+/*	The command to execute while \fIfile\fR is locked for exclusive
 /*	access.  The command is executed directly, i.e. without
 /*	interpretation by a shell command interpreter.
 /* DIAGNOSTICS
@@ -50,7 +50,7 @@
 /*      and for default values.
 /* .SH "Locking controls"
 /* .ad
-/* .fi 
+/* .fi
 /* .IP \fBdeliver_lock_attempts\fR
 /*	Limit the number of attempts to acquire an exclusive lock.
 /* .IP \fBdeliver_lock_delay\fR
@@ -137,10 +137,12 @@ int     main(int argc, char **argv)
 
     /*
      * To minimize confusion, make sure that the standard file descriptors
-     * are open before opening anything else.
+     * are open before opening anything else. XXX Work around for 44BSD where
+     * fstat can return EBADF on an open file descriptor.
      */
     for (fd = 0; fd < 3; fd++)
-	if (fstat(fd, &st) == -1 && open("/dev/null", 2) != fd)
+	if (fstat(fd, &st) == -1
+	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal("open /dev/null: %m");
 
     /*

@@ -105,7 +105,7 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * \user is special: it means don't do any alias or forward expansion.
      */
     if (state.msg_attr.recipient[0] == '\\') {
-	state.msg_attr.recipient++;
+	state.msg_attr.recipient++, state.msg_attr.local++;
 	if (*var_rcpt_delim)
 	    state.msg_attr.extension =
 		split_addr(state.msg_attr.local, *var_rcpt_delim);

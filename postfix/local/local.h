@@ -126,7 +126,9 @@ typedef struct LOCAL_STATE {
 
 #define MSG_LOG_STATE(m, s) \
 	msg_info("%s[%d]: local %s recip %s exten %s deliver %s", m, \
-                s.level, s.msg_attr.local, s.msg_attr.recipient, \
+                s.level, \
+		s.msg_attr.local ? s.msg_attr.local : "" , \
+		s.msg_attr.recipient ? s.msg_attr.recipient : "", \
 		s.msg_attr.extension ? s.msg_attr.extension : "", \
 		s.msg_attr.delivered ? s.msg_attr.delivered : "")
 

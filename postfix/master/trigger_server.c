@@ -136,6 +136,7 @@
 #include <myflock.h>
 #include <safe_open.h>
 #endif
+#include <listen.h>
 
 /* Global library. */
 
@@ -231,7 +232,7 @@ static void trigger_server_wakeup(int fd)
     use_count++;
 }
 
-/* trigger_server_accept_fifo - accept socket client request */
+/* trigger_server_accept_fifo - accept fifo client request */
 
 static void trigger_server_accept_fifo(int unused_event, char *context)
 {
@@ -260,20 +261,15 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
     trigger_server_wakeup(listen_fd);
 }
 
-/* trigger_server_accept_socket - accept socket client request */
+/* trigger_server_accept_local - accept socket client request */
 
-static void trigger_server_accept_socket(int unused_event, char *context)
+static void trigger_server_accept_local(int unused_event, char *context)
 {
-    char   *myname = "trigger_server_accept_socket";
+    char   *myname = "trigger_server_accept_local";
     int     listen_fd = (int) context;
     int     time_left = 0;
     int     fd;
 
-#ifndef NO_SELECT_COLLISION
-    if (trigger_server_lock != 0
-	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
-	msg_fatal("select unlock: %m");
-#endif
 
     if (msg_verbose)
 	msg_info("%s: trigger arrived", myname);
@@ -281,6 +277,7 @@ static void trigger_server_accept_socket(int unused_event, char *context)
     /*
      * Some buggy systems cause Postfix to lock up.
      */
+    signal(SIGALRM, trigger_server_watchdog);
     alarm(1000);
 
     /*
@@ -292,7 +289,14 @@ static void trigger_server_accept_socket(int unused_event, char *context)
      */
     if (var_idle_limit > 0)
 	time_left = event_cancel_timer(trigger_server_timeout, (char *) 0);
-    if ((fd = sane_accept(listen_fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0)) < 0) {
+
+    fd = LOCAL_ACCEPT(listen_fd);
+#ifndef NO_SELECT_COLLISION
+    if (trigger_server_lock != 0
+	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
+    if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_fatal("accept connection: %m");
 	if (time_left >= 0)
@@ -469,14 +473,15 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * problems, witness the workarounds in the fifo_listen() routine.
      * Therefore we support both FIFOs and UNIX-domain sockets, so that the
      * user can choose whatever works best.
+     * 
+     * Well, I give up. Solaris UNIX-domain sockets still don't work properly,
+     * so it will have to limp along with a streams-specific alternative.
      */
     if (stream == 0) {
 	if (transport == 0)
 	    msg_fatal("no transport type specified");
-	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) == 0)
-	    trigger_server_accept = trigger_server_accept_socket;
 	if (strcasecmp(transport, MASTER_XPORT_NAME_UNIX) == 0)
-	    trigger_server_accept = trigger_server_accept_socket;
+	    trigger_server_accept = trigger_server_accept_local;
 	else if (strcasecmp(transport, MASTER_XPORT_NAME_FIFO) == 0)
 	    trigger_server_accept = trigger_server_accept_fifo;
 	else

@@ -18,7 +18,8 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	translit.c trimblanks.c unix_connect.c unix_listen.c unix_trigger.c \
 	unsafe.c username.c valid_hostname.c vbuf.c vbuf_print.c \
 	vstream.c vstream_popen.c vstring.c vstring_vstream.c writable.c \
-	write_buf.c write_wait.c dict_unix.c dict_pcre.c
+	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
+	stream_connect.c stream_trigger.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_ni.o dict_nis.o \
@@ -38,7 +39,8 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	translit.o trimblanks.o unix_connect.o unix_listen.o unix_trigger.o \
 	unsafe.o username.o valid_hostname.o vbuf.o vbuf_print.o \
 	vstream.o vstream_popen.o vstring.o vstring_vstream.o writable.o \
-	write_buf.o write_wait.o dict_unix.o dict_pcre.o
+	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
+	stream_connect.o stream_trigger.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_ni.h dict_nis.h \
 	dict_nisplus.h dir_forest.h events.h exec_command.h find_inet.h \
@@ -478,6 +480,7 @@ inet_listen.o: find_inet.h
 inet_listen.o: inet_util.h
 inet_listen.o: iostuff.h
 inet_listen.o: listen.h
+inet_listen.o: sane_accept.h
 inet_trigger.o: inet_trigger.c
 inet_trigger.o: sys_defs.h
 inet_trigger.o: msg.h
@@ -661,6 +664,15 @@ select_bug.o: msg.h
 select_bug.o: vstream.h
 select_bug.o: vbuf.h
 select_bug.o: msg_vstream.h
+sendfd_test.o: sendfd_test.c
+sendfd_test.o: sys_defs.h
+sendfd_test.o: sendfd_test.c
+sendfd_test.o: iostuff.h
+sendfd_test.o: msg.h
+sendfd_test.o: msg_vstream.h
+sendfd_test.o: vstream.h
+sendfd_test.o: vbuf.h
+sendfd_test.o: listen.h
 set_eugid.o: set_eugid.c
 set_eugid.o: sys_defs.h
 set_eugid.o: msg.h
@@ -685,6 +697,22 @@ stat_as.o: sys_defs.h
 stat_as.o: msg.h
 stat_as.o: set_eugid.h
 stat_as.o: stat_as.h
+stream_connect.o: stream_connect.c
+stream_connect.o: sys_defs.h
+stream_connect.o: msg.h
+stream_connect.o: connect.h
+stream_connect.o: iostuff.h
+stream_listen.o: stream_listen.c
+stream_listen.o: sys_defs.h
+stream_listen.o: msg.h
+stream_listen.o: listen.h
+stream_listen.o: iostuff.h
+stream_trigger.o: stream_trigger.c
+stream_trigger.o: sys_defs.h
+stream_trigger.o: msg.h
+stream_trigger.o: connect.h
+stream_trigger.o: iostuff.h
+stream_trigger.o: trigger.h
 sys_compat.o: sys_compat.c
 sys_compat.o: sys_defs.h
 timed_connect.o: timed_connect.c
@@ -714,6 +742,7 @@ unix_listen.o: sys_defs.h
 unix_listen.o: msg.h
 unix_listen.o: iostuff.h
 unix_listen.o: listen.h
+unix_listen.o: sane_accept.h
 unix_trigger.o: unix_trigger.c
 unix_trigger.o: sys_defs.h
 unix_trigger.o: msg.h

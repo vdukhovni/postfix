@@ -577,6 +577,7 @@ mail_trigger.o: mail_params.h
 mail_trigger.o: mail_proto.h
 mail_trigger.o: ../include/vstream.h
 mail_trigger.o: ../include/vbuf.h
+mail_version.o: mail_version.c
 maps.o: maps.c
 maps.o: ../include/sys_defs.h
 maps.o: ../include/argv.h

@@ -99,7 +99,7 @@ static void master_wakeup_timer_event(int unused_event, char *context)
 	    status = inet_trigger(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);
 	    break;
 	case MASTER_SERV_TYPE_UNIX:
-	    status = unix_trigger(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);
+	    status = LOCAL_TRIGGER(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);
 	    break;
 	case MASTER_SERV_TYPE_FIFO:
 	    status = fifo_trigger(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);

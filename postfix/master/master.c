@@ -152,6 +152,19 @@
 
 #include "master.h"
 
+/* master_watchdog - something got stuck */
+
+static NORETURN master_watchdog(int unused_sig)
+{
+
+    /*
+     * This runs as a signal handler. We should not do anything that could
+     * involve memory managent, but exiting without explanation would be
+     * worse.
+     */
+    msg_fatal("watchdog timer");
+}
+
 int     main(int argc, char **argv)
 {
     static VSTREAM *lock_fp;
@@ -316,7 +329,9 @@ int     main(int argc, char **argv)
      * multiple things at the same time, it really is all a single thread, so
      * that there are no concurrency conflicts within the master process.
      */
+    signal(SIGALRM, master_watchdog);
     for (;;) {
+	alarm(1000);				/* same as trigger servers */
 	event_loop(-1);
 	if (master_gotsighup) {
 	    msg_info("reload configuration");

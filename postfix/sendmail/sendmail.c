@@ -564,10 +564,12 @@ int     main(int argc, char **argv)
 
     /*
      * To minimize confusion, make sure that the standard file descriptors
-     * are open before opening anything else.
+     * are open before opening anything else. XXX Work around for 44BSD where
+     * fstat can return EBADF on an open file descriptor.
      */
     for (fd = 0; fd < 3; fd++)
-	if (fstat(fd, &st) == -1 && open("/dev/null", 2) != fd)
+	if (fstat(fd, &st) == -1
+	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal("open /dev/null: %m");
 
     /*

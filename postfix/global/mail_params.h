@@ -235,21 +235,6 @@ extern bool var_append_dot_mydomain;
 extern bool var_percent_hack;
 
  /*
-  * LDAP lookups. Preliminary code, interface subject to change.
-  */
-#define VAR_LDAP_SERVER		"ldap_server_host"
-#define DEF_LDAP_SERVER		""
-extern char *var_ldap_server;
-
-#define VAR_LDAP_SEARCH		"ldap_search_base"
-#define DEF_LDAP_SEARCH		""
-extern char *var_ldap_search;
-
-#define VAR_LDAP_TIMEOUT	"ldap_lookup_timeout"
-#define DEF_LDAP_TIMEOUT	10
-extern int var_ldap_timeout;
-
- /*
   * Local delivery: alias databases.
   */
 #define VAR_ALIAS_MAPS		"alias_maps"
@@ -622,6 +607,14 @@ extern int var_flock_delay;
 #define VAR_FLOCK_STALE		"stale_lock_time"
 #define DEF_FLOCK_STALE		500
 extern int var_flock_stale;
+
+ /*
+  * How long a daemon command may take to receive or deliver a message etc.
+  * before we assume it is wegded (should never happen).
+  */
+#define VAR_DAEMON_TIMEOUT	"daemon_timeout"
+#define DEF_DAEMON_TIMEOUT	18000
+extern int var_daemon_timeout;
 
  /*
   * How long an intra-mail command may take before we assume the mail system

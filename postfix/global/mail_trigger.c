@@ -83,9 +83,9 @@ int     mail_trigger(const char *class, const char *service,
     } else if (S_ISFIFO(st.st_mode)) {
 	status = fifo_trigger(path, req_buf, req_len, var_trigger_timeout);
 	if (status < 0 && S_ISSOCK(st.st_mode))
-	    status = unix_trigger(path, req_buf, req_len, var_trigger_timeout);
+	    status = LOCAL_TRIGGER(path, req_buf, req_len, var_trigger_timeout);
     } else if (S_ISSOCK(st.st_mode)) {
-	status = unix_trigger(path, req_buf, req_len, var_trigger_timeout);
+	status = LOCAL_TRIGGER(path, req_buf, req_len, var_trigger_timeout);
     } else {
 	msg_warn("%s is not a socket or a fifo", path);
 	status = -1;

@@ -151,7 +151,11 @@ extern int opterr;
 #define DBM_NO_TRAILING_NULL
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* Solaris 2.5.1, reportedly */
+#define STREAM_CONNECTIONS		/* connld module */
+#define LOCAL_LISTEN	stream_listen
+#define LOCAL_ACCEPT	stream_accept
+#define LOCAL_CONNECT	stream_connect
+#define LOCAL_TRIGGER	stream_trigger
 #endif
 
 #ifdef UW7		/* UnixWare 7 */
@@ -259,6 +263,10 @@ extern int initgroups(const char *, int);
 #define DBM_NO_TRAILING_NULL		/* XXX check */
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
+#endif
+
+#if defined(IRIX5)
+#define usleep	doze
 #endif
 
 #ifdef LINUX2
@@ -501,6 +509,13 @@ extern int opterr;
 
 #ifndef SOCKOPT_SIZE
 #define SOCKOPT_SIZE	int
+#endif
+
+#ifndef LOCAL_LISTEN
+#define LOCAL_LISTEN	unix_listen
+#define LOCAL_ACCEPT	unix_accept
+#define LOCAL_CONNECT	unix_connect
+#define LOCAL_TRIGGER	unix_trigger
 #endif
 
 #if !defined (HAVE_SYS_NDIR_H) && !defined (HAVE_SYS_DIR_H) \

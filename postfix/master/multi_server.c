@@ -137,6 +137,7 @@
 #include <myflock.h>
 #include <safe_open.h>
 #endif
+#include <listen.h>
 
 /* Global library. */
 
@@ -164,6 +165,7 @@ static int use_count;
 static void (*multi_server_service) (VSTREAM *, char *, char **);
 static char *multi_server_name;
 static char **multi_server_argv;
+static void (*multi_server_accept) (int, char *);
 static void (*multi_server_onexit) (void);
 
 #ifndef NO_SELECT_COLLISION
@@ -178,6 +180,19 @@ static NORETURN multi_server_exit(void)
     if (multi_server_onexit)
 	multi_server_onexit();
     exit(0);
+}
+
+/* multi_server_watchdog - something got stuck */
+
+static NORETURN multi_server_watchdog(int unused_sig)
+{
+
+    /*
+     * This runs as a signal handler. We should not do anything that could
+     * involve memory managent, but exiting without explanation would be
+     * worse.
+     */
+    msg_fatal("watchdog timer");
 }
 
 /* multi_server_abort - terminate after abnormal master exit */
@@ -234,20 +249,35 @@ static void multi_server_execute(int unused_event, char *context)
 	event_request_timer(multi_server_timeout, (char *) 0, var_idle_limit);
 }
 
-/* multi_server_accept - accept client connection request */
+/* multi_server_wakeup - wake up application */
 
-static void multi_server_accept(int unused_event, char *context)
+static void multi_server_wakeup(int fd)
+{
+    VSTREAM *stream;
+
+    if (msg_verbose)
+	msg_info("connection established fd %d", fd);
+    non_blocking(fd, BLOCKING);
+    close_on_exec(fd, CLOSE_ON_EXEC);
+    client_count++;
+    stream = vstream_fdopen(fd, O_RDWR);
+    timed_ipc_setup(stream);
+    event_enable_read(fd, multi_server_execute, (char *) stream);
+}
+
+/* multi_server_accept_local - accept client connection request */
+
+static void multi_server_accept_local(int unused_event, char *context)
 {
     int     listen_fd = (int) context;
     int     time_left = -1;
     int     fd;
-    VSTREAM *stream;
 
-#ifndef NO_SELECT_COLLISION
-    if (multi_server_lock != 0
-	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
-	msg_fatal("select unlock: %m");
-#endif
+    /*
+     * Some buggy systems cause Postfix to lock up.
+     */
+    signal(SIGALRM, multi_server_watchdog);
+    alarm(var_daemon_timeout);
 
     /*
      * Be prepared for accept() to fail because some other process already
@@ -258,21 +288,62 @@ static void multi_server_accept(int unused_event, char *context)
      */
     if (client_count == 0 && var_idle_limit > 0)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
-    if ((fd = sane_accept(listen_fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0)) < 0) {
+
+    fd = LOCAL_ACCEPT(listen_fd);
+#ifndef NO_SELECT_COLLISION
+    if (multi_server_lock != 0
+	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
+    if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_fatal("accept connection: %m");
 	if (time_left >= 0)
 	    event_request_timer(multi_server_timeout, (char *) 0, time_left);
 	return;
     }
-    if (msg_verbose)
-	msg_info("connection established fd %d", fd);
-    non_blocking(fd, BLOCKING);
-    close_on_exec(fd, CLOSE_ON_EXEC);
-    client_count++;
-    stream = vstream_fdopen(fd, O_RDWR);
-    timed_ipc_setup(stream);
-    event_enable_read(fd, multi_server_execute, (char *) stream);
+    multi_server_wakeup(fd);
+}
+
+/* multi_server_accept_inet - accept client connection request */
+
+static void multi_server_accept_inet(int unused_event, char *context)
+{
+    int     listen_fd = (int) context;
+    int     time_left = -1;
+    int     fd;
+    VSTREAM *stream;
+
+    /*
+     * Some buggy systems cause Postfix to lock up.
+     */
+    signal(SIGALRM, multi_server_watchdog);
+    alarm(var_daemon_timeout);
+
+    /*
+     * Be prepared for accept() to fail because some other process already
+     * got the connection (the number of processes competing for clients is
+     * kept small, so this is not a "thundering herd" problem). If the
+     * accept() succeeds, be sure to disable non-blocking I/O, in order to
+     * minimize confusion.
+     */
+    if (client_count == 0 && var_idle_limit > 0)
+	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
+
+    fd = inet_accept(listen_fd);
+#ifndef NO_SELECT_COLLISION
+    if (multi_server_lock != 0
+	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
+    if (fd < 0) {
+	if (errno != EAGAIN)
+	    msg_fatal("accept connection: %m");
+	if (time_left >= 0)
+	    event_request_timer(multi_server_timeout, (char *) 0, time_left);
+	return;
+    }
+    multi_server_wakeup(fd);
 }
 
 /* multi_server_main - the real main program */
@@ -428,8 +499,11 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     if (stream == 0) {
 	if (transport == 0)
 	    msg_fatal("no transport type specified");
-	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) != 0
-	    && strcasecmp(transport, MASTER_XPORT_NAME_UNIX) != 0)
+	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) == 0)
+	    multi_server_accept = multi_server_accept_inet;
+	else if (strcasecmp(transport, MASTER_XPORT_NAME_UNIX) == 0)
+	    multi_server_accept = multi_server_accept_local;
+	else
 	    msg_fatal("unsupported transport type: %s", transport);
     }
 

@@ -80,13 +80,13 @@ void    master_listen_init(MASTER_SERV *serv)
     switch (serv->type) {
 
 	/*
-	 * UNIX-domain listener endpoints always come as singlets.
+	 * UNIX-domain or stream listener endpoints always come as singlets.
 	 */
     case MASTER_SERV_TYPE_UNIX:
 	set_eugid(var_owner_uid, var_owner_gid);
 	serv->listen_fd[0] =
-	    unix_listen(serv->name, serv->max_proc > var_proc_limit ?
-			serv->max_proc : var_proc_limit, NON_BLOCKING);
+	    LOCAL_LISTEN(serv->name, serv->max_proc > var_proc_limit ?
+			 serv->max_proc : var_proc_limit, NON_BLOCKING);
 	close_on_exec(serv->listen_fd[0], CLOSE_ON_EXEC);
 	set_eugid(getuid(), getgid());
 	break;

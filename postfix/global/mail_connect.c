@@ -81,7 +81,7 @@ VSTREAM *mail_connect(const char *class, const char *name, int block_mode)
     int     fd;
 
     path = mail_pathname(class, name);
-    if ((fd = unix_connect(path, block_mode, 0)) < 0) {
+    if ((fd = LOCAL_CONNECT(path, block_mode, 0)) < 0) {
 	if (msg_verbose)
 	    msg_info("connect to subsystem %s: %m", path);
 	stream = 0;

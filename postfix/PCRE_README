@@ -22,6 +22,8 @@ and add the path to the PCRE library to AUXLIBS, for example:
    make -f Makefile.init makefiles 'CCARGS=-DHAS_PCRE -I../../pcre-2.04' \
       'AUXLIBS=../../pcre-2.04/libpcre.a'
 
+[note: earlier pcre versions have problems -- Wietse]
+
 One possible use is to add a line to main.cf:
 
    smtpd_recipient_restrictions = pcre:/opt/postfix/etc/smtprecipient

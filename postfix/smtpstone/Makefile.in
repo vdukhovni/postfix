@@ -78,9 +78,10 @@ smtp-sink.o: ../include/smtp_stream.h
 smtp-source.o: smtp-source.c
 smtp-source.o: ../include/sys_defs.h
 smtp-source.o: ../include/msg.h
-smtp-source.o: ../include/vstring.h
-smtp-source.o: ../include/vbuf.h
+smtp-source.o: ../include/msg_vstream.h
 smtp-source.o: ../include/vstream.h
+smtp-source.o: ../include/vbuf.h
+smtp-source.o: ../include/vstring.h
 smtp-source.o: ../include/vstring_vstream.h
 smtp-source.o: ../include/get_hostname.h
 smtp-source.o: ../include/split_at.h

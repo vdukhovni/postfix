@@ -55,10 +55,7 @@
 /*	int	var_soft_bounce;
 /*	time_t	var_starttime;
 /*	int	var_ownreq_special;
-/*
-/*	char	*var_ldap_server_host;
-/*	char	*var_ldap_search_base;
-/*	int	var_ldap_timeout;
+/*	int	var_daemon_timeout;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -160,14 +157,7 @@ int     var_disable_dns;
 int     var_soft_bounce;
 time_t  var_starttime;
 int     var_ownreq_special;
-
-#ifdef HAS_LDAP
-
-char   *var_ldap_server_host;
-char   *var_ldap_search_base;
-int     var_ldap_timeout;
-
-#endif
+int     var_daemon_timeout;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -259,10 +249,6 @@ void    mail_params_init()
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
-#ifdef HAS_LDAP
-	VAR_LDAP_SERVER, DEF_LDAP_SERVER, &var_ldap_server_host, 0, 0,
-	VAR_LDAP_SEARCH, DEF_LDAP_SEARCH, &var_ldap_search_base, 0, 0,
-#endif
 	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 1,
 	0,
     };
@@ -279,15 +265,13 @@ void    mail_params_init()
 	VAR_MESSAGE_LIMIT, DEF_MESSAGE_LIMIT, &var_message_limit, 0, 0,
 	VAR_IPC_IDLE, DEF_IPC_IDLE, &var_ipc_idle_limit, 1, 0,
 	VAR_HASH_QUEUE_DEPTH, DEF_HASH_QUEUE_DEPTH, &var_hash_queue_depth, 1, 0,
-#ifdef HAS_LDAP
-	VAR_LDAP_TIMEOUT, DEF_LDAP_TIMEOUT, &var_ldap_timeout, 1, 0,
-#endif
 	VAR_TRIGGER_TIMEOUT, DEF_TRIGGER_TIMEOUT, &var_trigger_timeout, 1, 0,
 	VAR_FORK_TRIES, DEF_FORK_TRIES, &var_fork_tries, 1, 0,
 	VAR_FORK_DELAY, DEF_FORK_DELAY, &var_fork_delay, 1, 0,
 	VAR_FLOCK_TRIES, DEF_FLOCK_TRIES, &var_flock_tries, 1, 0,
 	VAR_FLOCK_DELAY, DEF_FLOCK_DELAY, &var_flock_delay, 1, 0,
 	VAR_FLOCK_STALE, DEF_FLOCK_STALE, &var_flock_stale, 1, 0,
+	VAR_DAEMON_TIMEOUT, DEF_DAEMON_TIMEOUT, &var_daemon_timeout, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_defaults[] = {

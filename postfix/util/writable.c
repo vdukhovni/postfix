@@ -77,7 +77,7 @@ int     writable(int fd)
 	switch (select(fd + 1, (fd_set *) 0, &write_fds, &except_fds, &tv)) {
 	case -1:
 	    if (errno != EINTR)
-		msg_fatal("select");
+		msg_fatal("select: %m");
 	    continue;
 	default:
 	    return (FD_ISSET(fd, &write_fds));

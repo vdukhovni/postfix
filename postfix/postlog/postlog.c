@@ -29,7 +29,7 @@
 /*	Specifies the logging tag, that is, the identifying name that
 /*	appears at the beginning of each logging record.
 /* .IP \fB-v\fR
-/*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR 
+/*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* SEE ALSO
 /*	syslogd(8) syslog daemon.
@@ -151,10 +151,12 @@ int     main(int argc, char **argv)
 
     /*
      * To minimize confusion, make sure that the standard file descriptors
-     * are open.
+     * are open before opening anything else. XXX Work around for 44BSD where
+     * fstat can return EBADF on an open file descriptor.
      */
     for (fd = 0; fd < 3; fd++)
-	if (fstat(fd, &st) == -1 && open("/dev/null", 2) != fd)
+	if (fstat(fd, &st) == -1
+	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal("open /dev/null: %m");
 
     /*

@@ -128,6 +128,7 @@
 #include <myflock.h>
 #include <safe_open.h>
 #endif
+#include <listen.h>
 
 /* Global library. */
 
@@ -154,6 +155,7 @@ static int use_count;
 static void (*single_server_service) (VSTREAM *, char *, char **);
 static char *single_server_name;
 static char **single_server_argv;
+static void (*single_server_accept) (int, char *);
 static void (*single_server_onexit) (void);
 
 #ifndef NO_SELECT_COLLISION
@@ -168,6 +170,19 @@ static NORETURN single_server_exit(void)
     if (single_server_onexit)
 	single_server_onexit();
     exit(0);
+}
+
+/* single_server_watchdog - something got stuck */
+
+static NORETURN single_server_watchdog(int unused_sig)
+{
+
+    /*
+     * This runs as a signal handler. We should not do anything that could
+     * involve memory managent, but exiting without explanation would be
+     * worse.
+     */
+    msg_fatal("watchdog timer");
 }
 
 /* single_server_abort - terminate after abnormal master exit */
@@ -188,37 +203,11 @@ static void single_server_timeout(int unused_event, char *unused_context)
     single_server_exit();
 }
 
-/* single_server_accept - accept client connection request */
+/* single_server_wakeup - wake up application */
 
-static void single_server_accept(int unused_event, char *context)
+static void single_server_wakeup(int fd)
 {
-    int     listen_fd = (int) context;
     VSTREAM *stream;
-    int     time_left = -1;
-    int     fd;
-
-#ifndef NO_SELECT_COLLISION
-    if (single_server_lock != 0
-	&& myflock(vstream_fileno(single_server_lock), MYFLOCK_NONE) < 0)
-	msg_fatal("select unlock: %m");
-#endif
-
-    /*
-     * Be prepared for accept() to fail because some other process already
-     * got the connection. We use select() + accept(), instead of simply
-     * blocking in accept(), because we must be able to detect that the
-     * master process has gone away unexpectedly.
-     */
-    if (var_idle_limit > 0)
-	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
-
-    if ((fd = sane_accept(listen_fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0)) < 0) {
-	if (errno != EAGAIN)
-	    msg_fatal("accept connection: %m");
-	if (time_left >= 0)
-	    event_request_timer(single_server_timeout, (char *) 0, time_left);
-	return;
-    }
 
     /*
      * If the accept() succeeds, be sure to disable non-blocking I/O, because
@@ -243,6 +232,84 @@ static void single_server_accept(int unused_event, char *context)
     use_count++;
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
+}
+
+/* single_server_accept_local - accept client connection request */
+
+static void single_server_accept_local(int unused_event, char *context)
+{
+    int     listen_fd = (int) context;
+    int     time_left = -1;
+    int     fd;
+
+    /*
+     * Some buggy systems cause Postfix to lock up.
+     */
+    signal(SIGALRM, single_server_watchdog);
+    alarm(var_daemon_timeout);
+
+    /*
+     * Be prepared for accept() to fail because some other process already
+     * got the connection. We use select() + accept(), instead of simply
+     * blocking in accept(), because we must be able to detect that the
+     * master process has gone away unexpectedly.
+     */
+    if (var_idle_limit > 0)
+	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
+
+    fd = LOCAL_ACCEPT(listen_fd);
+#ifndef NO_SELECT_COLLISION
+    if (single_server_lock != 0
+	&& myflock(vstream_fileno(single_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
+    if (fd < 0) {
+	if (errno != EAGAIN)
+	    msg_fatal("accept connection: %m");
+	if (time_left >= 0)
+	    event_request_timer(single_server_timeout, (char *) 0, time_left);
+	return;
+    }
+    single_server_wakeup(fd);
+}
+
+/* single_server_accept_inet - accept client connection request */
+
+static void single_server_accept_inet(int unused_event, char *context)
+{
+    int     listen_fd = (int) context;
+    int     time_left = -1;
+    int     fd;
+
+    /*
+     * Some buggy systems cause Postfix to lock up.
+     */
+    signal(SIGALRM, single_server_watchdog);
+    alarm(var_daemon_timeout);
+
+    /*
+     * Be prepared for accept() to fail because some other process already
+     * got the connection. We use select() + accept(), instead of simply
+     * blocking in accept(), because we must be able to detect that the
+     * master process has gone away unexpectedly.
+     */
+    if (var_idle_limit > 0)
+	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
+
+    fd = inet_accept(listen_fd);
+#ifndef NO_SELECT_COLLISION
+    if (single_server_lock != 0
+	&& myflock(vstream_fileno(single_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
+    if (fd < 0) {
+	if (errno != EAGAIN)
+	    msg_fatal("accept connection: %m");
+	if (time_left >= 0)
+	    event_request_timer(single_server_timeout, (char *) 0, time_left);
+	return;
+    }
+    single_server_wakeup(fd);
 }
 
 /* single_server_main - the real main program */
@@ -398,8 +465,11 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     if (stream == 0) {
 	if (transport == 0)
 	    msg_fatal("no transport type specified");
-	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) != 0
-	    && strcasecmp(transport, MASTER_XPORT_NAME_UNIX) != 0)
+	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) == 0)
+	    single_server_accept = single_server_accept_inet;
+	else if (strcasecmp(transport, MASTER_XPORT_NAME_UNIX) == 0)
+	    single_server_accept = single_server_accept_local;
+	else
 	    msg_fatal("unsupported transport type: %s", transport);
     }
 

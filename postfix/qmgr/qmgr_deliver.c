@@ -290,5 +290,5 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
     /*
      * Guard against broken systems.
      */
-    event_request_timer(qmgr_deliver_abort, (char *) entry, var_ipc_timeout);
+    event_request_timer(qmgr_deliver_abort, (char *) entry, var_daemon_timeout);
 }

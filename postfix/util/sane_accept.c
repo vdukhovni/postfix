@@ -9,7 +9,7 @@
 /*	int	sane_accept(sock, buf, len)
 /*	int	sock;
 /*	struct sockaddr	*buf;
-/*	int	len;
+/*	SOCKADDR_SIZE *len;
 /* DESCRIPTION
 /*	sane_accept() implements the accept(2) socket call, and maps
 /*	known harmless error results to EAGAIN.

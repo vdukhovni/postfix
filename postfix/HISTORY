@@ -2346,6 +2346,31 @@ Apologies for any names omitted.
 	recipients to a master.cf entry called "cyrus", allowing
 	you to have both UNIX and non-UNIX mailboxes side by side.
 
+19990319
+
+	Workaround: on 4.4 BSD derivatives, fstat() can return
+	EBADF on an open file descriptor. Now, that was a surprise.
+	This caused std{out,err} from cron commands to not be
+	delivered.
+
+	Bugfix: "local -v" stopped working.
+
+	Workaround: more watchdog timers for postfix-unfriendly
+	systems. By now every Postfix daemon has one. Call it life
+	insurance. 
+
+	Robustness: increased the maximal time to receive or deliver
+	mail from $ipc_timeout (default: 3600 seconds) to the more
+	generous $daemon_timeout (default: 18000 seconds). We don't
+	want false alarms.
+
+	Portability: IRIX 5.2 does not have usleep().
+
+19990320
+
+	Bugfix: \username was broken. Frank Dziuba was the first
+	to notice.
+
 Future:
 
 	Planned: must be able to list the same hash table in

@@ -299,7 +299,8 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
     /*
      * Guard against broken systems.
      */
-    event_request_timer(qmgr_transport_abort, (char *) alloc, var_ipc_timeout);
+    event_request_timer(qmgr_transport_abort, (char *) alloc,
+			var_daemon_timeout);
 }
 
 /* qmgr_transport_create - create transport instance */

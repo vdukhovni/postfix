@@ -10,10 +10,15 @@
 /*	const char *addr;
 /*	int	backlog;
 /*	int	block_mode;
+/*
+/*	int	inet_accept(fd)
+/*	int	fd;
 /* DESCRIPTION
 /*	The \fBinet_listen\fR routine starts a listener in the INET domain
 /*	on the specified address, with the specified backlog, and returns
 /*	the resulting file descriptor.
+/*
+/*	inet_accept() accepts a connection and sanitizes error results.
 /*
 /*	Arguments:
 /* .IP addr
@@ -25,8 +30,11 @@
 /* .IP block_mode
 /*	Either NON_BLOCKING for a non-blocking socket, or BLOCKING for
 /*	blocking mode.
+/* .IP fd
+/*	File descriptor returned by inet_listen().
 /* DIAGNOSTICS
-/*	Fatal errors: all errors are fatal.
+/*	Fatal errors: inet_listen() aborts upon any system call failure.
+/*	inet_accept() leaves all error handling up to the caller.
 /* LICENSE
 /* .ad
 /* .fi
@@ -59,6 +67,7 @@
 #include "inet_util.h"
 #include "iostuff.h"
 #include "listen.h"
+#include "sane_accept.h"
 
 /* Application-specific stuff. */
 
@@ -101,4 +110,11 @@ int     inet_listen(const char *addr, int backlog, int block_mode)
     if (listen(sock, backlog) < 0)
 	msg_fatal("listen: %m");
     return (sock);
+}
+
+/* inet_accept - accept connection */
+
+int     inet_accept(int fd)
+{
+    return (sane_accept(fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0));
 }

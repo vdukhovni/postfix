@@ -10,10 +10,15 @@
 /*	const char *addr;
 /*	int	backlog;
 /*	int	block_mode;
+/*
+/*	int	unix_accept(fd)
+/*	int	fd;
 /* DESCRIPTION
 /*	The \fBunix_listen\fR() routine starts a listener in the UNIX domain
 /*	on the specified address, with the specified backlog, and returns
 /*	the resulting file descriptor.
+/*
+/*	unix_accept() accepts a connection and sanitizes error results.
 /*
 /*	Arguments:
 /* .IP addr
@@ -23,8 +28,11 @@
 /* .IP block_mode
 /*	Either NON_BLOCKING for a non-blocking socket, or BLOCKING for
 /*	blocking mode.
+/* .IP fd
+/*	File descriptor returned by unix_listen().
 /* DIAGNOSTICS
-/*	Fatal errors: all errors are fatal.
+/*	Fatal errors: unix_listen() aborts upon any system call failure.
+/*	unix_accept() leaves all error handling up to the caller.
 /* LICENSE
 /* .ad
 /* .fi
@@ -50,6 +58,7 @@
 #include "msg.h"
 #include "iostuff.h"
 #include "listen.h"
+#include "sane_accept.h"
 
 /* unix_listen - create UNIX-domain listener */
 
@@ -92,4 +101,11 @@ int     unix_listen(const char *addr, int backlog, int block_mode)
     if (listen(sock, backlog) < 0)
 	msg_fatal("listen: %m");
     return (sock);
+}
+
+/* unix_accept - accept connection */
+
+int     unix_accept(int fd)
+{
+    return (sane_accept(fd, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0));
 }
