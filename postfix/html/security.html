@@ -82,8 +82,8 @@ per-process file system name spaces.
 Initially, the <b>maildrop</b> queue directory was world-writable,
 so that local processes could submit mail without assistance from
 a set-uid or set-gid command or from a mail daemon process.  The
-maildrop directory was never used for mail coming in via the network,
-and its queue files were never not readable for other users.
+maildrop directory was not used for mail coming in via the network,
+and its queue files were not readable for unprivileged users.
 
 <p>
 

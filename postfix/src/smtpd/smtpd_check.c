@@ -2151,11 +2151,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
-#ifdef USE_SASL_AUTH
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 	    if (var_smtpd_sasl_enable)
+#ifdef USE_SASL_AUTH
 		status = permit_sasl_auth(state,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
+#else
+		msg_warn("restriction `%s' ignored: no SASL support", name);
 #endif
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)

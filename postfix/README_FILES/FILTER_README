@@ -211,11 +211,19 @@ a dedicated listener on port localhost 10026:
 
     /etc/postfix/master.cf:
         localhost:10026     inet  n      -      n      -      10      smtpd
-	    -o content_filter= -o myhostname=localhost.domain.name
+	    -o content_filter= 
+	    -o local_recipient_maps=
+	    -o myhostname=localhost.domain.name
 
 This is just another SMTP server. It is configured NOT to request
-content filtering for incoming mail, has the same process limit
-as the filter master.cf entry, and is configured to use a different
-hostname in the greeting message (this is necessary for testing
-when I simply use no filtering program and let the SMTP content
-filtering interfaces talk directly to each other).
+content filtering for incoming mail. The server has the same process
+limit as the filter master.cf entry.
+
+The "-o local_recipient_maps=" is a safety in case you have specified
+local_recipient_maps in the main.cf file. That setting could
+interfere with content filtering.
+
+The SMTP server is configured to use a different hostname in the
+greeting message (this is necessary for testing when I simply use
+no filtering program and let the SMTP content filtering interfaces
+talk directly to each other).

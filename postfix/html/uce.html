@@ -162,7 +162,7 @@ clients this system accepts SMTP connections from.
 
 By default, this restriction is applied when the client sends the
 RCPT TO command. In order to have the restriction take effect
-as soon as possible, specify <b>smtpd_delay_reject = yes</b> in
+as soon as possible, specify <b>smtpd_delay_reject = no</b> in
 the Postfix <b>main.cf</b> configuration file. Doing so may cause
 unexpected results with poorly implemented client software.
 
@@ -560,7 +560,7 @@ response code to rejected requests (default:  <b>504</b>).
 
 <a name="reject_sender_login_mismatch">
 
-<dt> <b>reject_sender_login_mismatch</b> (Postfix versions >= 20011125)
+<dt> <b>reject_sender_login_mismatch</b>
 
 <dd> Reject the request when <a href="#smtpd_sender_login_maps">
 $smtpd_sender_owner_maps</a> specifies an owner for the MAIL FROM
@@ -1021,7 +1021,7 @@ specifies the response code to rejected requests (default:
 
 <a name="warn_if_reject">
 
-<dt> <b>warn_if_reject</b> (Postfix versions 20011119 and later)
+<dt> <b>warn_if_reject</b>
 <dd> Change the meaning of the next restriction, so that it logs
 a warning instead of rejecting a request (look for logfile records
 that contain "reject_warning").  This is useful for testing new

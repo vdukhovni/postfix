@@ -38,7 +38,7 @@ update: ../../bin/$(PROG) $(SAMPLES)
 ../../bin/$(PROG): $(PROG)
 	cp $(PROG) ../../bin
 
-$(MAKES): $(INC_DIR)/mail_params.h
+$(MAKES): $(INC_DIR)/mail_params.h ../global/mail_params.c
 	$(AWK) -f extract.awk ../*/*.c
 
 printfck: $(OBJS) $(PROG)

@@ -147,20 +147,20 @@ types.
 	virtual_uid_maps = hash:/etc/postfix/vuid
 	virtual_gid_maps = hash:/etc/postfix/vgid
 
-	# All domains that have final delivery on this machine
+	# All domains that are listed in $mydestination are delivered
+	# with $local_transport, which is the virtual delivery agent.
 
-	mydestination = $myhostname localhost.$mydomain
+	mydestination = 
+	    $myhostname localhost.$mydomain virtual1.domain virtual2.domain
 
-    # Define a virtual delivery agent if the entry doesn't already exist
+Define a virtual delivery agent if the entry doesn't already exist:
 
     /etc/postfix/master.cf:
 	virtual     unix  -       n       n       -       -       virtual
 
-    # Example recipients, one UNIX-style mailbox, one qmail-style maildir:
+Example recipients, one UNIX-style mailbox, one qmail-style maildir:
 
     /etc/postfix/vmailbox:
-	virtual1.domain		dummy to prevent relay access denied errors
-	virtual2.domain		dummy to prevent relay access denied errors
 	test1@virtual1.domain test1
 	test2@virtual2.domain test2/
 
@@ -205,33 +205,30 @@ types.
 	virtual_gid_maps = static:5000
 	transport_maps = hash:/etc/postfix/transport
 
-	# All domains that have final delivery on this machine
+	# All domains that are delivered by the local delivery agent.
 
-	mydestination = 
-	    $myhostname $localhost.$mydomain virtual1.domain virtual2.domain
+	mydestination = $myhostname $localhost.$mydomain
 
-	# Reject unknown local and virtual recipients at the SMTP port
+	# Reject unknown local recipients at the SMTP port.
 
-	local_recipient_maps = 
-	    unix:passwd.byname $alias_maps $virtual_mailbox_maps
+	local_recipient_maps = unix:passwd.byname $alias_maps
 
-    # Define a virtual delivery agent if the entry doesn't already exist
+Define a virtual delivery agent if the entry doesn't already exist:
 
     /etc/postfix/master.cf:
 	virtual     unix  -       n       n       -       -       virtual
 
-    # Route specific domains to the virtual delivery agent; by default, 
-    # mail for domains in $mydestination goes to the local delivery agent
+Route virtual domains to the virtual delivery agent:
 
     /etc/postfix/transport:
 	virtual1.domain		virtual
 	virtual2.domain		virtual
 
-    # Example recipients, one UNIX-style mailbox, one qmail-style maildir:
+Example recipients, one UNIX-style mailbox, one qmail-style maildir:
 
     /etc/postfix/vmailbox:
-	virtual1.domain		dummy to prevent relay access denied errors
-	virtual2.domain		dummy to prevent relay access denied errors
+	virtual1.domain		required to prevent relay access denied errors
+	virtual2.domain		required to prevent relay access denied errors
 	test1@virtual1.domain test1
 	test2@virtual2.domain test2/
 

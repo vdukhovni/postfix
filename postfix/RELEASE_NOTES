@@ -11,6 +11,13 @@ parameter contains the release date.  Patches change the patchlevel
 and the release date. Snapshots change only the release date, unless
 they include the same bugfix as a patch release.
 
+Incompatible changes with Postfix version 1.1.1 (released 20020122)
+===================================================================
+
+When the postmap command creates a non-existent result file, the
+new file inherits the group/other read permissions of the source
+file.
+
 Incompatible changes with Postfix version 1.1.0 (released 20020117)
 ===================================================================
 
@@ -21,7 +28,7 @@ date.
 type that is used only for messages that actually use VERP (variable
 envelope return path) support.  With this sole exception, the queue
 file format is entirely backwards compatible with the previous
-official Postfix release (20020228, a.k.a. Postfix 1.1.0).
+official Postfix release (20020228, a.k.a. Postfix 1.0.0).
 
 [snapshot-20020106] This release modifies the existing master.cf
 file. The local pickup service is now unprivileged, and the cleanup

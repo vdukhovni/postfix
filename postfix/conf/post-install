@@ -426,6 +426,7 @@ test -n "$create" && {
 	# Pick up the flags.
 	case $flags in *u*) upgrade_flag=1;; *) upgrade_flag=;; esac
 	case $flags in *c*) create_flag=1;; *) create_flag=;; esac
+	case $flags in *r*) recursive="-R";; *) recursive=;; esac
 	# Create missing directories with proper owner/group/mode settings.
 	if [ -n "$create" -a "$type" = "d" -a -n "$create_flag" -a ! -d "$path" ]
 	then
@@ -442,8 +443,8 @@ test -n "$create" && {
 	    set_permission=1
 	fi
 	test -n "$set_permission" && {
-	    chown $owner $path || exit 1
-	    test -z "$group" || chgrp $group $path || exit 1
+	    chown $recursive $owner $path || exit 1
+	    test -z "$group" || chgrp $recursive $group $path || exit 1
 	    chmod $mode $path || exit 1
 	}
     done

@@ -16,6 +16,9 @@
 /* .ti +4
 /*	\fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
 /*
+/*	If the result files do not exist they will be created with the
+/*	same group and other read permissions as the source file.
+/*
 /*	While the table update is in progress, signal delivery is
 /*	postponed, and an exclusive, advisory, lock is placed on the
 /*	entire table, in order to avoid surprises in spectator
@@ -185,6 +188,8 @@ static void postmap(char *map_type, char *path_name,
     int     lineno;
     char   *key;
     char   *value;
+    struct stat st;
+    mode_t  saved_mask;
 
     /*
      * Initialize.
@@ -196,6 +201,14 @@ static void postmap(char *map_type, char *path_name,
     } else if ((source_fp = vstream_fopen(path_name, O_RDONLY, 0)) == 0) {
 	msg_fatal("open %s: %m", path_name);
     }
+    if (fstat(vstream_fileno(source_fp), &st) < 0)
+	msg_fatal("fstat %s: %m", path_name);
+
+    /*
+     * Turn off group/other read permissions as indicated in the source file.
+     */
+    if (S_ISREG(st.st_mode))
+	saved_mask = umask(022 | (~st.st_mode & 077));
 
     /*
      * Open the database, optionally create it when it does not exist,
@@ -203,6 +216,12 @@ static void postmap(char *map_type, char *path_name,
      * spectators.
      */
     mkmap = mkmap_open(map_type, path_name, open_flags, dict_flags);
+
+    /*
+     * And restore the umask, in case it matters.
+     */
+    if (S_ISREG(st.st_mode))
+	umask(saved_mask);
 
     /*
      * Add records to the database.

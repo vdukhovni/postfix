@@ -15,7 +15,7 @@
 /*	traditionally available via the \fBsendmail\fR(1) command.
 /*
 /*	The following options are recognized:
-/* .IP \fB-c \fIconfig_dir\fR
+/* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory. See also the
 /*	MAIL_CONFIG environment setting below.
@@ -354,14 +354,14 @@ int     main(int argc, char **argv)
      */
     if (site_to_flush != 0) {
 	if (*site_to_flush == '['
-	    && *(last = optarg + strlen(site_to_flush) - 1) == ']') {
+	    && *(last = site_to_flush + strlen(site_to_flush) - 1) == ']') {
 	    *last = 0;
-	    if (!valid_hostaddr(optarg + 1, DONT_GRIPE))
+	    if (!valid_hostaddr(site_to_flush + 1, DONT_GRIPE))
 		site_to_flush = 0;
 	    *last = ']';
 	} else {
-	    if (!valid_hostname(optarg, DONT_GRIPE)
-		&& !valid_hostaddr(optarg, DONT_GRIPE))
+	    if (!valid_hostname(site_to_flush, DONT_GRIPE)
+		&& !valid_hostaddr(site_to_flush, DONT_GRIPE))
 		site_to_flush = 0;
 	}
 	if (site_to_flush == 0)

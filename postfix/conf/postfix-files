@@ -29,6 +29,7 @@
 #	p=preserve existing file, do not replace (postfix-install).
 #	u=update owner/group/mode (post-install upgrade-permissions).
 #	c=create missing directory (post-install create-missing).
+#	r=apply owner/group recursively (post-install set/upgrade-permissions).
 #
 # Note: the "u" flag is for upgrading the permissions of existing files
 # or directories after changes in Postfix architecture. For robustness
@@ -40,15 +41,15 @@ $daemon_directory:d:root:-:755:u
 $queue_directory:d:root:-:755:uc
 $sample_directory:d:root:-:755
 $readme_directory:d:root:-:755
-$queue_directory/active:d:$mail_owner:-:700:uc
-$queue_directory/bounce:d:$mail_owner:-:700:uc
-$queue_directory/corrupt:d:$mail_owner:-:700:uc
-$queue_directory/defer:d:$mail_owner:-:700:uc
-$queue_directory/deferred:d:$mail_owner:-:700:uc
-$queue_directory/flush:d:$mail_owner:-:700:uc
-$queue_directory/incoming:d:$mail_owner:-:700:uc
+$queue_directory/active:d:$mail_owner:-:700:ucr
+$queue_directory/bounce:d:$mail_owner:-:700:ucr
+$queue_directory/corrupt:d:$mail_owner:-:700:ucr
+$queue_directory/defer:d:$mail_owner:-:700:ucr
+$queue_directory/deferred:d:$mail_owner:-:700:ucr
+$queue_directory/flush:d:$mail_owner:-:700:ucr
+$queue_directory/incoming:d:$mail_owner:-:700:ucr
 $queue_directory/private:d:$mail_owner:-:700:uc
-$queue_directory/saved:d:$mail_owner:-:700:uc
+$queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:uc
 $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc

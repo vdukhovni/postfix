@@ -5982,6 +5982,30 @@ Apologies for any names omitted.
 	Portability: patch from LaMont Jones for compiling dict_ldap.c
 	with the Netscape SDK.
 
+	Feature: added "r" (recursive chown/chgrp) flag to the
+	postfix-files database, for more convenient change of
+	Postfix queue ownership. Files: conf/postfix-files,
+	conf/post-install.
+
+20020122
+
+	Documentation: lots of little fixes.
+
+	Documentation: updates for the VIRTUAL_README file by Victor
+	Duchovni, Morgan Stanley.
+
+	Bugfix: postqueue -s dereferenced a null pointer when given
+	a numerical domain argument. LaMont Jones, HP.
+
+	Cleanup: smtpd now logs a warning when permit_sasl_authenticated
+	is used while SASL authentication is disabled, instead of
+	simply ignoring the restriction. LaMont Jones, HP. File:
+	smtpd/smtpd.c.
+
+	Safety: when postmap creates a non-existent file, the new
+	file inherits group/other read permissions from the source
+	file.  LaMont Jones, HP.  File: postmap/postmap.c.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in
