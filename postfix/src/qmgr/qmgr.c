@@ -418,10 +418,10 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
      * Global flow control. If enabled, slow down receiving processes that
      * get ahead of the queue manager, but don't block them completely.
      */
-    if (var_glob_flow_ctl) {
+    if (var_in_flow_delay > 0) {
 	if (in_path != 0)
 	    mail_flow_put(1);
-	else if ((token_count = peekfd(MASTER_FLOW_READ)) < var_proc_limit)
+	else if ((token_count = mail_flow_count()) < var_proc_limit)
 	    mail_flow_put(var_proc_limit - token_count);
 	else if (token_count > var_proc_limit)
 	    mail_flow_get(token_count - var_proc_limit);

@@ -296,6 +296,9 @@ domains with "relay access denied"</a>
 <li><a href="#domain_mailbox">Receiving a virtual domain in a
 mailbox</a>
 
+<li><a href="#virtual_logging">Postfix logs delivery to virtual
+address with the wrong name</a>
+
 </ul>
 
 <a name="address_rewriting"><h3>Address rewriting</h3>
@@ -2713,6 +2716,44 @@ Instead of <b>regexp </b> maps your Postfix system may also support
 your system supports, use the command <b>postconf -m</b>.
 
 </ul>
+
+<hr>
+
+<a name="virtual_logging"><h3>Postfix logs delivery to virtual
+address with the wrong name</h3></a>
+
+When Postfix delivers mail for a virtual address <i>vuser@vdomain.name</i>
+that is aliased to a local user, then Postfix logs the local username
+instead of the virtual one.
+
+<p>
+
+Changing this requires non-trivial changes, because Postfix only
+remembers the address that it delivers to, not the address that
+was original specified in, for example, the SMTP MAIL FROM command.
+
+<p>
+
+A workaround exists. It uses regular expressions. This
+can be expensive if you have many virtual domains.
+
+<p>
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    virtual_maps = regexp:/etc/postfix/virtual_regexp
+    recipient_delimiter = +
+
+/etc/postfix/virtual_regexp:
+    /^vdomain\.name$/            whatever
+    /(.*)@vdomain\.name$/        localuser+$1=vdomain.name
+</pre>
+</blockquote>
+
+<p>
+
+This delivers the mail as
+<i>localuser+vuser=vdomain.name@your.domain</i>.
 
 <hr>
 

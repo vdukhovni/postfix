@@ -421,7 +421,7 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
 {
     char   *in_path = 0;
     char   *df_path = 0;
-int token_count;
+    int     token_count;
 
     /*
      * This routine runs as part of the event handling loop, after the event
@@ -456,13 +456,13 @@ int token_count;
      * Global flow control. If enabled, slow down receiving processes that
      * get ahead of the queue manager, but don't block them completely.
      */
-    if (var_glob_flow_ctl) {
-        if (in_path != 0)
-            mail_flow_put(1);
-        else if ((token_count = peekfd(MASTER_FLOW_READ)) < var_proc_limit)
-            mail_flow_put(var_proc_limit - token_count);
-        else if (token_count > var_proc_limit)
-            mail_flow_get(token_count - var_proc_limit);
+    if (var_in_flow_delay > 0) {
+	if (in_path != 0)
+	    mail_flow_put(1);
+	else if ((token_count = mail_flow_count()) < var_proc_limit)
+	    mail_flow_put(var_proc_limit - token_count);
+	else if (token_count > var_proc_limit)
+	    mail_flow_get(token_count - var_proc_limit);
     }
     if (in_path || df_path)
 	return (DONT_WAIT);
@@ -514,7 +514,7 @@ static void qmgr_post_init(char *unused_name, char **unused_argv)
     qmgr_incoming = qmgr_scan_create(MAIL_QUEUE_INCOMING);
     qmgr_deferred = qmgr_scan_create(MAIL_QUEUE_DEFERRED);
     qmgr_scan_request(qmgr_incoming, QMGR_SCAN_START);
-    qmgr_deferred_run_event(0, (char *) 0);
+    qmgr_deferred_run_event(0, (char *)0);
 }
 
 /* main - the main program */

@@ -69,7 +69,7 @@
 /*	char	*var_export_environ;
 /*	char	*var_debug_peer_list;
 /*	int	var_debug_peer_level;
-/*	int	var_glob_flow_ctl;
+/*	int	var_in_flow_delay;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -186,7 +186,7 @@ char   *var_def_transport;
 char   *var_mynetworks_style;
 char   *var_verp_delims;
 char   *var_verp_filter;
-int     var_glob_flow_ctl;
+int     var_in_flow_delay;
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -327,7 +327,6 @@ void    mail_params_init()
 	VAR_FORK_TRIES, DEF_FORK_TRIES, &var_fork_tries, 1, 0,
 	VAR_FLOCK_TRIES, DEF_FLOCK_TRIES, &var_flock_tries, 1, 0,
 	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
-	VAR_GLOB_FLOW_CTL, DEF_GLOB_FLOW_CTL, &var_glob_flow_ctl, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {
@@ -339,6 +338,7 @@ void    mail_params_init()
 	VAR_FLOCK_DELAY, DEF_FLOCK_DELAY, &var_flock_delay, 1, 0,
 	VAR_FLOCK_STALE, DEF_FLOCK_STALE, &var_flock_stale, 1, 0,
 	VAR_DAEMON_TIMEOUT, DEF_DAEMON_TIMEOUT, &var_daemon_timeout, 1, 0,
+	VAR_IN_FLOW_DELAY, DEF_IN_FLOW_DELAY, &var_in_flow_delay, 0, 10,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_defaults[] = {

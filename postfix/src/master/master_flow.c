@@ -27,4 +27,7 @@ void    master_flow_init(void)
 
     non_blocking(master_flow_pipe[0], NON_BLOCKING);
     non_blocking(master_flow_pipe[1], NON_BLOCKING);
+
+    close_on_exec(master_flow_pipe[0], CLOSE_ON_EXEC);
+    close_on_exec(master_flow_pipe[1], CLOSE_ON_EXEC);
 }

@@ -16,6 +16,7 @@
   */
 extern int mail_flow_get(int);
 extern int mail_flow_put(int);
+extern int mail_flow_count(void);
 
 /* LICENSE
 /* .ad

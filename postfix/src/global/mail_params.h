@@ -1284,15 +1284,17 @@ extern char *var_verp_delims;
 extern char *var_verp_filter;
 
  /*
-  * Global flow control. This allows for a stiffer coupling between receiving
-  * programs and the queue manager, so that receiving processes cannot easily
-  * overwhelm the file system. The coupling is not so tight that Postfix
-  * stops receiving mail althogether. It just slows down a bit so that
-  * sending processes get a chance to read from the disk.
+  * Inbound mail flow control. This allows for a stiffer coupling between
+  * receiving mail and sending mail. A sending process produces one token for
+  * each message that it takes from the incoming queue; a receiving process
+  * consumes one token for each message that it adds to the incoming queue.
+  * When no token is available (Postfix receives more mail than it is able to
+  * deliver) a receiving process pauses for $in_flow_delay seconds so that
+  * the sending processes get a chance to access the disk.
   */
-#define VAR_GLOB_FLOW_CTL			"global_mail_flow_control"
-#define DEF_GLOB_FLOW_CTL			0
-extern int var_glob_flow_ctl;
+#define VAR_IN_FLOW_DELAY			"in_flow_delay"
+#define DEF_IN_FLOW_DELAY			"1s"
+extern int var_in_flow_delay;
 
 /* LICENSE
 /* .ad

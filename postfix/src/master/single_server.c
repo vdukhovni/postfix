@@ -92,6 +92,9 @@
 /*	Function to be executed prior to accepting a new connection.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
+/* .IP "MAIL_SERVER_IN_FLOW_DELAY (int)"
+/*	The amount of seconds to pause when no "mail flow control token"
+/*	is available. A token is consumed for each connection request.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -184,7 +187,7 @@ static void (*single_server_accept) (int, char *);
 static void (*single_server_onexit) (char *, char **);
 static void (*single_server_pre_accept) (char *, char **);
 static VSTREAM *single_server_lock;
-static int single_server_flow_ctl;
+static int single_server_in_flow_delay;
 
 /* single_server_exit - normal termination */
 
@@ -233,6 +236,8 @@ static void single_server_wakeup(int fd)
     timed_ipc_setup(stream);
     if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
 	single_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
+    if (single_server_in_flow_delay > 0 && mail_flow_get(1) < 0)
+	doze(single_server_in_flow_delay * 1000000);
     single_server_service(stream, single_server_name, single_server_argv);
     (void) vstream_fclose(stream);
     if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
@@ -240,9 +245,6 @@ static void single_server_wakeup(int fd)
     if (msg_verbose)
 	msg_info("connection closed");
     use_count++;
-    if (single_server_flow_ctl)
-	if (mail_flow_get(1) < 0)
-	    rand_sleep(single_server_flow_ctl, 0);
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
 }
@@ -474,8 +476,8 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	case MAIL_SERVER_PRE_ACCEPT:
 	    single_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
-	case MAIL_SERVER_FLOW_CTL:
-	    single_server_flow_ctl = var_glob_flow_ctl;
+	case MAIL_SERVER_IN_FLOW_DELAY:
+	    single_server_in_flow_delay = va_arg(ap, int);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

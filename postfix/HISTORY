@@ -5350,13 +5350,27 @@ Apologies for any names omitted.
 
 20010719
 
-	Feature: stiffer coupling between mail arrival rates and
-	mail delivery rates, using a trivial token-based scheme
-	where qmgr provides a token when it retrieves mail from
-	the incoming queue, and where the cleanup daemon wants a
-	token after enqueueing mail. If no token is available the
-	cleanup server pauses briefly and proceeds anyway. This
-	allows input rates to gradually exceed output rates.  After
-	sustained exposure to high input loads Postfix reverts to
-	the old situation where it sacrifices output rates in favor
-	of receiving mail.
+	Feature: stiffer coupling between mail receiving rates and
+	mail delivery rates, using a trivial token-based scheme,
+	implemented by reading and writing an in-memory pipe.  The
+	queue manager produces one token when it retrieves mail
+	from the incoming queue. The cleanup daemon consumes one
+	token when it adds mail to the incoming queue. If no token
+	is available the cleanup server pauses for $in_flow_delay
+	seconds and proceeds anyway. The delay allows mail sending
+	process to catch up and access the disk. Valid delays are
+	0..10 seconds.
+
+20010727
+
+	Bugfix: updated LDAP client module from LaMont Jones, HP.
+
+20010729
+
+	Bugfix: recursive restrictions could clobber non-reentrant
+	address resolving results. Problem found by Victor Duchovni,
+	morganstanley.com.
+
+	Bugfix: the not yet published DUNNO table lookup result
+	did not prevent further partial key lookups in the same
+	table. Problem found by Victor Duchovni, morganstanley.com.

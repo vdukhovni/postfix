@@ -11,6 +11,8 @@
 /*
 /*	void	mail_flow_put(count)
 /*	int	count;
+/*
+/*	int	mail_flow_count()
 /* DESCRIPTION
 /*	This module implements a simple flow control mechanism that
 /*	is based on tokens that are consumed by mail receiving processes
@@ -23,6 +25,8 @@
 /*	mail_flow_put() produces the specified number of tokens. The
 /*	token producing process is expected to produce new tokens
 /*	whenever it falls idle and no more tokens are available.
+/*
+/*	mail_flow_count() returns the number of available tokens.
 /* BUGS
 /*	The producer needs to wake up periodically to ensure that
 /*	tokens are not lost due to leakage.
@@ -109,4 +113,16 @@ int     mail_flow_put(int len)
     if (msg_verbose)
 	msg_info("%s: %d %d", myname, len, len - count);
     return (len - count);
+}
+
+/* mail_flow_count - return number of available tokens */
+
+int     mail_flow_count(void)
+{
+    char   *myname = "mail_flow_count";
+    int     count;
+
+    if ((count = peekfd(MASTER_FLOW_READ)) < 0)
+	msg_warn("%s: %m", myname);
+    return (count);
 }
