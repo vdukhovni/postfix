@@ -170,7 +170,9 @@ Greylisting mail from frequently forged domains
 -----------------------------------------------
 
 It is relatively safe to turn on greylisting for specific domains
-that often appear in forged email.
+that often appear in forged email. However, sites like AOL may
+blacklist you when they find that you are probing them too often
+and/or if you're probing them too often for non-existent addresses.
 
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
@@ -229,7 +231,7 @@ database will eventually run your file system out of space.
 When the status file exceeds some reasonable size you can simply
 delete the file without adverse effects. In the worst case, new
 mail will be delayed by one hour. To lessen the impact, delete the
-file in the middle of the night.
+file in the middle of the night during a weekend.
 
 SAMPLE POLICY ROUTINE
 =====================

@@ -107,9 +107,12 @@
 /*	Apply the specified access table to the DNS server host name and IP
 /*	addresses for the helo hostname, sender, or recipient, respectively.
 /*	If no NS record is found, the parent domain is used instead.
-/* .IP "check_recipient_maps"
-/*	Reject recipients not listed as valid local, virtual or relay
-/*	recipients.
+/* .IP "reject_unlisted_sender"
+/*	Reject senders in local, virtual or relay domains that are not
+/*	listed as a valid address.
+/* .IP "reject_unlisted_recipient"
+/*	Reject recipients in local, virtual or relay domains that are
+/*	not listed as a valid address.
 /* .IP reject_multi_recipient_bounce
 /*	Reject mail from <> with multiple envelope recipients.
 /* .IP reject_rbl_client rbl.domain.tld
@@ -442,7 +445,9 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
  /*
   * Recipient table check.
   */
-static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
+static int check_sender_rcpt_maps(SMTPD_STATE *, const char *);
+static int check_recipient_rcpt_maps(SMTPD_STATE *, const char *);
+static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
 
  /*
   * Reject context.
@@ -3282,6 +3287,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		    status = reject_rbl_domain(state, *cpp, state->sender,
 					       SMTPD_NAME_SENDER);
 	    }
+	} else if (strcasecmp(name, REJECT_UNLISTED_SENDER) == 0) {
+	    if (state->sender && *state->sender)
+		status = check_sender_rcpt_maps(state, state->sender);
 	}
 
 	/*
@@ -3348,9 +3356,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		    status = reject_rbl_domain(state, *cpp, state->recipient,
 					       SMTPD_NAME_RECIPIENT);
 	    }
-	} else if (strcasecmp(name, CHECK_RCPT_MAPS) == 0) {
+	} else if (strcasecmp(name, CHECK_RCPT_MAPS) == 0
+		   || strcasecmp(name, REJECT_UNLISTED_RCPT) == 0) {
 	    if (state->recipient && *state->recipient)
-		status = check_rcpt_maps(state, state->recipient);
+		status = check_recipient_rcpt_maps(state, state->recipient);
 	} else if (strcasecmp(name, REJECT_MUL_RCPT_BOUNCE) == 0) {
 	    if (state->sender && *state->sender == 0 && state->rcpt_count
 		> (strcmp(state->where, "DATA") ? 0 : 1))
@@ -3416,7 +3425,6 @@ int     smtpd_check_addr(const char *addr)
 {
     const RESOLVE_REPLY *resolve_reply;
     char   *myname = "smtpd_check_addr";
-    int     status;
 
     if (msg_verbose)
 	msg_info("%s: addr=%s", myname, addr);
@@ -3556,6 +3564,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
      */
     state->defer_if_permit.active = state->defer_if_permit_client
 	| state->defer_if_permit_helo;
+    state->sender_rcptmap_checked = 0;
 
     /*
      * Apply restrictions in the order as specified.
@@ -3566,6 +3575,14 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
 	status = generic_checks(state, mail_restrctions, sender,
 				SMTPD_NAME_SENDER, CHECK_SENDER_ACL);
     state->defer_if_permit_sender = state->defer_if_permit.active;
+
+    /*
+     * If the "check_recipient_maps" restriction was not applied, and if mail
+     * is not being rejected or discarded, validate the recipient here.
+     */
+    if (status != SMTPD_CHECK_REJECT && state->sender_rcptmap_checked == 0
+	&& state->discard == 0 && *sender)
+	status = check_sender_rcpt_maps(state, sender);
 
     SMTPD_CHECK_MAIL_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
@@ -3623,7 +3640,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * The "check_recipient_maps" restriction is relevant only when
      * responding to RCPT TO or VRFY.
      */
-    state->rcptmap_checked = 0;
+    state->recipient_rcptmap_checked = 0;
 
     /*
      * Apply delayed restrictions.
@@ -3662,9 +3679,9 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * If the "check_recipient_maps" restriction was not applied, and if mail
      * is not being rejected or discarded, validate the recipient here.
      */
-    if (status != SMTPD_CHECK_REJECT && state->rcptmap_checked == 0
+    if (status != SMTPD_CHECK_REJECT && state->recipient_rcptmap_checked == 0
 	&& state->discard == 0)
-	status = check_rcpt_maps(state, recipient);
+	status = check_recipient_rcpt_maps(state, recipient);
 
     SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
@@ -3730,11 +3747,10 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     SMTPD_CHECK_ETRN_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
-/* check_rcpt_maps - generic_checks() interface for recipient table check */
+/* check_recipient_rcpt_maps - generic_checks() recipient table check */
 
-static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
+static int check_recipient_rcpt_maps(SMTPD_STATE *state, const char *recipient)
 {
-    const RESOLVE_REPLY *reply;
 
     /*
      * Duplicate suppression. There's an implicit check_recipient_maps
@@ -3742,9 +3758,35 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      */
     if (smtpd_input_transp_mask & INPUT_TRANSP_UNKNOWN_RCPT)
 	return (0);
-    if (state->rcptmap_checked == 1)
+    if (state->recipient_rcptmap_checked == 1)
 	return (0);
-    state->rcptmap_checked = 1;
+    state->recipient_rcptmap_checked = 1;
+    return (check_rcpt_maps(state, recipient, SMTPD_NAME_RECIPIENT));
+}
+
+/* check_sender_rcpt_maps - generic_checks() sender table check */
+
+static int check_sender_rcpt_maps(SMTPD_STATE *state, const char *sender)
+{
+
+    /*
+     * Duplicate suppression. There's an implicit check_sender_maps
+     * restriction at the end of all sender restrictions.
+     */
+    if (smtpd_input_transp_mask & INPUT_TRANSP_UNKNOWN_RCPT)
+	return (0);
+    if (state->sender_rcptmap_checked == 1)
+	return (0);
+    state->sender_rcptmap_checked = 1;
+    return (check_rcpt_maps(state, sender, SMTPD_NAME_SENDER));
+}
+
+/* check_rcpt_maps - generic_checks() interface for recipient table check */
+
+static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
+			           const char *reply_class)
+{
+    const RESOLVE_REPLY *reply;
 
     if (msg_verbose)
 	msg_info(">>> CHECKING RECIPIENT MAPS <<<");
@@ -3788,10 +3830,11 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      */
     if (strcmp(STR(reply->transport), MAIL_SERVICE_ERROR) == 0)
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: %s",
+				   "%d <%s>: %s rejected: %s",
 				   (reply->flags & RESOLVE_CLASS_ALIAS) ?
 				   var_virt_alias_code : 550,
-				   recipient, STR(reply->nexthop)));
+				   recipient, reply_class,
+				   STR(reply->nexthop)));
 
     /*
      * Reject mail to unknown addresses in local domains (domains that match
@@ -3807,52 +3850,60 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      */
 #define MATCH_LEFT(l, r, n) (strncasecmp((l), (r), (n)) == 0 && (r)[n] == '@')
 
-    if ((reply->flags & RESOLVE_CLASS_LOCAL)
-	&& *var_local_rcpt_maps
-    /* Generated by bounce, absorbed by qmgr. */
+    switch (reply->flags & RESOLVE_CLASS_MASK) {
+
+    case RESOLVE_CLASS_LOCAL:
+	if (*var_local_rcpt_maps
+	/* Generated by bounce, absorbed by qmgr. */
 	&& !MATCH_LEFT(var_double_bounce_sender, CONST_STR(reply->recipient),
 		       strlen(var_double_bounce_sender))
-    /* Absorbed by qmgr. */
-	&& !MATCH_LEFT(MAIL_ADDR_POSTMASTER, CONST_STR(reply->recipient),
-		       strlen(MAIL_ADDR_POSTMASTER))
-    /* Generated by bounce. */
-	&& !MATCH_LEFT(MAIL_ADDR_MAIL_DAEMON, CONST_STR(reply->recipient),
-		       strlen(MAIL_ADDR_MAIL_DAEMON))
-	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient)))
-	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: User unknown%s",
-				   var_local_rcpt_code, recipient,
-				   var_show_unk_rcpt_table ?
-				   " in local recipient table" : ""));
+	/* Absorbed by qmgr. */
+	    && !MATCH_LEFT(MAIL_ADDR_POSTMASTER, CONST_STR(reply->recipient),
+			   strlen(MAIL_ADDR_POSTMASTER))
+	/* Generated by bounce. */
+	  && !MATCH_LEFT(MAIL_ADDR_MAIL_DAEMON, CONST_STR(reply->recipient),
+			 strlen(MAIL_ADDR_MAIL_DAEMON))
+	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient)))
+	    return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				     "%d <%s>: %s rejected: User unknown%s",
+				       var_local_rcpt_code, recipient,
+				       reply_class, var_show_unk_rcpt_table ?
+				       " in local recipient table" : ""));
+	break;
 
-    /*
-     * Reject mail to unknown addresses in virtual mailbox domains.
-     */
-    if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
-	&& *var_virt_mailbox_maps
-	&& NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient)))
-	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: User unknown%s",
-				   var_virt_mailbox_code, recipient,
-				   var_show_unk_rcpt_table ?
-				   " in virtual mailbox table" : ""));
+	/*
+	 * Reject mail to unknown addresses in virtual mailbox domains.
+	 */
+    case RESOLVE_CLASS_VIRTUAL:
+	if (*var_virt_mailbox_maps
+	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient)))
+	    return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				     "%d <%s>: %s rejected: User unknown%s",
+				       var_virt_mailbox_code, recipient,
+				       reply_class, var_show_unk_rcpt_table ?
+				       " in virtual mailbox table" : ""));
+	break;
 
-    /*
-     * Reject mail to unknown addresses in relay domains.
-     */
-    if ((reply->flags & RESOLVE_CLASS_RELAY)
-	&& *var_relay_rcpt_maps
-	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient)))
-	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				   "%d <%s>: User unknown%s",
-				   var_relay_rcpt_code, recipient,
-				   var_show_unk_rcpt_table ?
-				   " in relay recipient table" : ""));
+	/*
+	 * Reject mail to unknown addresses in relay domains.
+	 */
+    case RESOLVE_CLASS_RELAY:
+	if (*var_relay_rcpt_maps
+	    && NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient)))
+	    return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				     "%d <%s>: %s rejected: User unknown%s",
+				       var_relay_rcpt_code, recipient,
+				       reply_class, var_show_unk_rcpt_table ?
+				       " in relay recipient table" : ""));
+	break;
 
-    /*
-     * Accept all other addresses - including addresses that passed the above
-     * tests because of some table lookup problem.
-     */
+	/*
+	 * Accept all other addresses - including addresses that passed the
+	 * above tests because of some table lookup problem.
+	 */
+    default:
+	break;
+    }
     return (0);
 }
 

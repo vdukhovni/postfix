@@ -1315,6 +1315,8 @@ extern int var_non_fqdn_code;
 #define REJECT_UNKNOWN_SENDDOM	"reject_unknown_sender_domain"
 #define REJECT_UNKNOWN_RCPTDOM	"reject_unknown_recipient_domain"
 #define REJECT_UNKNOWN_ADDRESS	"reject_unknown_address"
+#define REJECT_UNLISTED_SENDER	"reject_unlisted_sender"
+#define REJECT_UNLISTED_RCPT	"reject_unlisted_recipient"
 #define CHECK_RCPT_MAPS		"check_recipient_maps"
 #define VAR_UNK_ADDR_CODE	"unknown_address_reject_code"
 #define DEF_UNK_ADDR_CODE	450

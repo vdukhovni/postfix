@@ -491,11 +491,15 @@ smtpd_helo_restrictions =
 # The smtpd_sender_restrictions parameter specifies optional restrictions
 # on sender addresses that SMTP clients can send in MAIL FROM commands.
 #
-# The default is to permit any sender address.  The following
-# restrictions are available:
+# The default is to permit any sender address that passes the restrictions
+# marked with (+).  The following restrictions are available:
 #
 #   permit_mynetworks: permit if the client address matches $mynetworks.
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
+#  +reject_unlisted_sender: reject a sender address in a local, virtual or
+#	relay domain that is not listed as a valid address.
+#	This restriction is automatically added at the end if not explicitly
+#	specified.
 #   reject_rhsbl_sender domain.tld: reject sender domain name if it is listed
 #	in an A record under domain.tld.
 #   check_sender_access maptype:mapname
@@ -559,10 +563,13 @@ smtpd_sender_restrictions =
 # - destinations that match $virtual_mailbox_domains.
 # These destinations do not need to be listed in $relay_domains.
 #
-# The following restrictions are available (* is part of default setting):
+# The following restrictions are available (* is part of default setting,
+# and + is appended by default if not explicitly specified):
 #
 #  *permit_mynetworks: permit if the client address matches $mynetworks.
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
+#   reject_unlisted_sender: reject a sender address in a local, virtual or
+#	relay domain that is not listed as a valid address.
 #   reject_unverified_sender: reject undeliverable sender address.
 #   reject_unverified_recipient: reject undeliverable recipient address.
 #   reject_multi_recipient_bounce: reject mail from <> with multiple recipients.
@@ -583,6 +590,12 @@ smtpd_sender_restrictions =
 #       Use the optional permit_mx_backup_networks parameter to also
 #	require that the primary MX hosts match a list of network blocks.
 #   reject_unknown_recipient_domain: reject domains without A or MX record.
+#  +reject_unlisted_recipient: reject a recipient address in a local, virtual
+#	or relay domain that is not listed as a valid address. 
+#	This restriction is automatically added at the end if not explicitly
+#	specified.
+#  +check_recipient_maps: a backwards compatibility alias for the
+#	reject_unlisted_recipient restriction.
 #   check_recipient_access maptype:mapname
 #	look up recipient address, parent domain, or localpart@.
 #	see access(5) for possible lookup results.

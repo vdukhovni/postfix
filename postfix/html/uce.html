@@ -815,6 +815,42 @@ the MAIL FROM command.
 
 <p>
 
+<a name="reject_unlisted_sender">
+
+<dt> <b>reject_unlisted_sender</b> <dd> Reject the request when
+the sender address matches one of the domain lists below, but
+is not listed in one of the corresponding address lists:
+
+<blockquote>
+
+<table border="1">
+
+<tr><th>Domain list</th> <th>Address list</th> 
+
+</tr><tr><td><a href="basic.html#mydestination"> $mydestination</a> or
+<a href="basic.html#inet_interfaces">$inet_interfaces</a></td> 
+<td>$local_recipient_maps</td>
+
+</tr><tr><td>$virtual_alias_domains</td> <td>$virtual_alias_maps</td> 
+
+</tr><tr><td>$virtual_mailbox_domains</td> <td>$virtual_mailbox_maps</td> 
+
+</tr><tr><td>$relay_domains</td> <td>$relay_recipient_maps</td> 
+
+</tr></table>
+
+</blockquote>
+
+Note 1: a null $local_recipient_maps or $relay_recipient_maps setting
+means that no address check is done for the corresponding domains.
+
+<p>
+
+Note 2: Postfix applies an implicit <b>reject_unlisted_sender</b>
+restriction at the end of all sender restrictions.
+
+<p>
+
 <a name="reject_non_fqdn_sender">
 
 <dt> <b>reject_non_fqdn_sender</b> <dd> Reject the request when
@@ -1062,17 +1098,17 @@ with the RCPT TO command.
 
 <p>
 
-<a name="check_recipient_maps">
+<a name="reject_unlisted_recipient">
 
-<dt> <b>check_recipient_maps</b> <dd> Reject the request
-when the recipient address is not listed in one of the following
-lookup tables:
+<dt> <b>reject_unlisted_recipient</b> <dd> Reject the request when
+the recipient address matches one of the domain lists below, but
+is not listed in one of the corresponding lookup tables:
 
 <blockquote>
 
 <table border="1">
 
-<tr><th>Recipient domain matches</th> <th>Recipient lookup table</th> 
+<tr><th>Domain list</th> <th>Address list</th> 
 
 </tr><tr><td><a href="basic.html#mydestination"> $mydestination</a> or
 <a href="basic.html#inet_interfaces">$inet_interfaces</a></td> 
@@ -1089,12 +1125,18 @@ lookup tables:
 </blockquote>
 
 Note 1: a null $local_recipient_maps or $relay_recipient_maps setting
-means that no recipient check is done for the corresponding domains.
+means that no address check is done for the corresponding domains.
 
 <p>
 
-Note 2: Postfix applies an implicit <b>check_recipient_maps</b>
+Note 2: Postfix applies an implicit <b>reject_unlisted_recipient</b>
 restriction at the end of all recipient restrictions.
+
+<p>
+
+Note 3: the <b>check_recipient_maps</b> restriction is a backwards
+compatible alias for <b>reject_unlisted_recipient</b>. It will
+eventually be removed from Postfix.
 
 <p>
 

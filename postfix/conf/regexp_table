@@ -41,6 +41,8 @@
 # 
 #        if /pattern/flags
 # 
+#        endif
+# 
 #        if !/pattern/flags
 # 
 #        endif  Match   the  search  string  against  the  patterns

@@ -8942,6 +8942,22 @@ Apologies for any names omitted.
 	Bugfix: stricter address syntax test broke "sendmail -bs".
 	File: smtpd/smtpd.c.
 
+20040101
+
+	Cleanup: the Postfix SMTP server rejects a MAIL FROM address
+	that matches a local, virtual or relay domain, while the
+	address is not listed in the corresponding local, virtual
+	or relay recipient table.
+
+	Feature: the reject_unlisted_sender(recipient) SMTPD access
+	restriction rejects an address that matches a local, virtual
+	or relay domain, while the address is not listed in the
+	corresponding local, virtual or relay recipient table. 
+
+	Compatibility: the check_recipient_maps restriction works
+	like reject_unlisted_recipient, but will eventually be
+	removed from Postfix.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and

@@ -153,8 +153,6 @@ distribution list</a>
 
 <li><a href="#majordomo-approve">Postfix breaks the majordomo "approve" command</a>
 
-<li><a href="#skip_greeting">Postfix does not try all the MX addresses</a>
-
 <li><a href="#worm">Postfix accepts MAIL FROM and RCPT TO "| command"</a>
 
 </ul>
@@ -220,8 +218,6 @@ domains with "relay access denied"</a>
 <li><a href="#dns-again">Mail stays queued with: Host not found, try again</a>
 
 <li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
-
-<li><a href="#skip_greeting">Postfix does not try all the MX addresses</a>
 
 <li><a href="#noservice">What does "fatal: unknown service: smtp/tcp" mean?</a>
 
@@ -1903,21 +1899,6 @@ an MTU lightly smaller than the default 1500 for ethernet.
 
 Fix: find the router that drops the ICMP MUST FRAGMENT messages,
 and convince the person responsible for it to fix the configuration.
-
-<hr>
-
-<a name="skip_greeting"><h3>Postfix does not try all the MX
-addresses</h3>
-
-When delivering mail, Postfix tries all MX addresses in order of
-preference, and stops at the first server that speaks SMTP.  However,
-once an SMTP greeting is received, Postfix will not move on to the
-next MX host if the delivery fails.  
-
-<p>
-
-This will eventually be solved when Postfix implements SMTP
-connection caching.
 
 <hr>
 

@@ -106,7 +106,8 @@ typedef struct SMTPD_STATE {
     /*
      * Specific to smtpd access checks.
      */
-    int     rcptmap_checked;
+    int     sender_rcptmap_checked;	/* sender validated against maps */
+    int     recipient_rcptmap_checked;	/* recipient validated against maps */
     int     warn_if_reject;		/* force reject into warning */
     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
     SMTPD_DEFER defer_if_permit;	/* force permit into deferral */
