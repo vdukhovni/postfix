@@ -52,6 +52,7 @@ typedef struct SMTP_STATE {
     VSTRING *sasl_decoded;		/* decoding buffer */
     sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
 #endif
+    off_t   size_limit;			/* server limit or unknown */
 } SMTP_STATE;
 
 #define SMTP_FEATURE_ESMTP	(1<<0)

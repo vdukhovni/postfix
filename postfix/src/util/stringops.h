@@ -30,6 +30,7 @@ extern char *translit(char *, const char *, const char *);
 extern char *basename(const char *);
 #endif
 extern VSTRING *unescape(VSTRING *, const char *);
+extern int alldig(const char *);
 
 /* LICENSE
 /* .ad

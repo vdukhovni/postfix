@@ -177,33 +177,34 @@ check)
 	test -d maildrop || {
 		$WARN creating missing Postfix maildrop directory
 		mkdir maildrop || exit 1
-		chmod 1733 maildrop
-		chown $mail_owner maildrop
+		chmod 1733 maildrop || exit 1
+		chown $mail_owner maildrop || exit 1
 	}
 	test -d pid || {
 		$WARN creating missing Postfix pid directory
 		mkdir pid || exit 1
-		chmod 755 pid
+		chmod 755 pid || exit 1
 	}
 	for dir in incoming active bounce defer deferred flush saved corrupt; do
 		test -d $dir || {
 			$WARN creating missing Postfix $dir directory
 			mkdir $dir || exit 1
-			chmod 700 $dir; $CHATTR $dir 2>/dev/null
-			chown $mail_owner $dir
+			chmod 700 $dir || exit 1
+			$CHATTR $dir 2>/dev/null
+			chown $mail_owner $dir || exit 1
 		}
 	done
 	test -d public || {
 		$WARN creating missing Postfix public directory
 		mkdir public || exit 1
-		chmod 755 public
-		chown $mail_owner public
+		chmod 755 public || exit 1
+		chown $mail_owner public || exit 1
 	}
 	test -d private || {
 		$WARN creating missing Postfix private directory
 		mkdir private || exit 1
-		chmod 700 private
-		chown $mail_owner private
+		chmod 700 private || exit 1
+		chown $mail_owner private || exit 1
 	}
 	find `ls -d $queue_directory/* | \
 	    egrep '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private|flush)$'` \

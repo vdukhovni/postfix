@@ -237,8 +237,16 @@ int     smtp_helo(SMTP_STATE *state)
 		state->features |= SMTP_FEATURE_8BITMIME;
 	    else if (strcasecmp(word, "PIPELINING") == 0)
 		state->features |= SMTP_FEATURE_PIPELINING;
-	    else if (strcasecmp(word, "SIZE") == 0)
+	    else if (strcasecmp(word, "SIZE") == 0) {
 		state->features |= SMTP_FEATURE_SIZE;
+		if ((word = mystrtok(&words, " \t=")) != 0) {
+		    if (!alldig(word))
+			msg_warn("bad size limit \"%s\" in EHLO reply from %s",
+				 word, session->namaddr);
+		    else
+			state->size_limit = off_cvt_string(word);
+		}
+	    }
 #ifdef USE_SASL_AUTH
 	    else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
 		smtp_sasl_helo_auth(state, words);
@@ -310,6 +318,19 @@ int     smtp_xfer(SMTP_STATE *state)
 
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)
+
+    /*
+     * See if we should even try to send this message at all. This code sits
+     * here rather than in the EHLO processing code, because of future SMTP
+     * connection caching.
+     */
+    if (state->size_limit > 0 && state->size_limit < request->data_size) {
+	smtp_mesg_fail(state, resp->code,
+		    "message size %lu exceeds size limit %.0f of server %s",
+		       request->data_size, (double) state->size_limit,
+		       session->namaddr);
+	return (0);
+    }
 
     /*
      * We use SMTP command pipelining if the server said it supported it.

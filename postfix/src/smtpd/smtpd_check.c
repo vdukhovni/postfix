@@ -1449,7 +1449,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * All-numeric result probably means OK - some out-of-band authentication
      * mechanism uses this as time stamp.
      */
-    if (*value && value[strspn(value, "0123456789")] == 0)
+    if (alldig(value))
 	return (SMTPD_CHECK_OK);
 
     /*
@@ -1865,7 +1865,7 @@ static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
     if (login) {
 	if (owner == 0 || strcasecmp(login, owner) != 0)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-	      "553 <%s>: Sender address rejected: not owned by username %s",
+		  "553 <%s>: Sender address rejected: not owned by user %s",
 				       sender, login));
     } else {
 	if (owner)
@@ -2027,6 +2027,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_mail_access(state, *cpp, state->sender,
 					   &found, state->sender,
 					   SMTPD_NAME_SENDER, def_acl);
+	    if (state->sender && !*state->sender)
+		status = check_access(state, *cpp, var_smtpd_null_key, FULL,
+				      &found, state->sender,
+				      SMTPD_NAME_SENDER, def_acl);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_ADDRESS) == 0) {
 	    if (state->sender && *state->sender)
 		status = reject_unknown_address(state, state->sender,
@@ -2529,6 +2533,8 @@ char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 char   *var_perm_mx_networks;
 char   *var_par_dom_match;
+char   *var_smtpd_null_key;
+char   *var_smtpd_snd_auth_maps;
 
 typedef struct {
     char   *name;
@@ -2552,6 +2558,8 @@ static STRING_TABLE string_table[] = {
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
     VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks,
     VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match,
+    VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps,
+    VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key,
     0,
 };
 
@@ -2652,7 +2660,7 @@ static int int_update(char **argv)
 typedef struct {
     char   *name;
     ARGV  **target;
-}       REST_TABLE;
+} REST_TABLE;
 
 static REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,
@@ -2749,7 +2757,7 @@ VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
 {
     if (addr == STR(result))
 	msg_panic("canon_addr_internal: result clobbers input");
-    if (strchr(addr, '@') == 0)
+    if (*addr && strchr(addr, '@') == 0)
 	msg_fatal("%s: address rewriting is disabled", addr);
     vstring_strcpy(result, addr);
 }
@@ -2787,6 +2795,7 @@ int     main(int argc, char **argv)
     ARGV   *args;
     char   *bp;
     char   *resp;
+    char   *addr;
 
     /*
      * Initialization. Use dummies for client information.
@@ -2918,18 +2927,29 @@ int     main(int argc, char **argv)
 	    /*
 	     * Try restrictions.
 	     */
+#define TRIM_ADDR(src, res) { \
+	    if (*(res = src) == '<') { \
+		res += strlen(res) - 1; \
+		if (*res == '>') \
+		    *res = 0; \
+		res = src + 1; \
+	    } \
+	}
+
 	    if (strcasecmp(args->argv[0], "helo") == 0) {
 		state.where = "HELO";
 		resp = smtpd_check_helo(&state, args->argv[1]);
 		UPDATE_STRING(state.helo_name, args->argv[1]);
 	    } else if (strcasecmp(args->argv[0], "mail") == 0) {
 		state.where = "MAIL";
-		resp = smtpd_check_mail(&state, args->argv[1]);
-		UPDATE_STRING(state.sender, args->argv[1]);
+		TRIM_ADDR(args->argv[1], addr);
+		UPDATE_STRING(state.sender, addr);
+		resp = smtpd_check_mail(&state, addr);
 	    } else if (strcasecmp(args->argv[0], "rcpt") == 0) {
 		state.where = "RCPT";
-		(resp = smtpd_check_rcpt(&state, args->argv[1]))
-		    || (resp = smtpd_check_rcptmap(&state, args->argv[1]));
+		TRIM_ADDR(args->argv[1], addr);
+		(resp = smtpd_check_rcpt(&state, addr))
+		    || (resp = smtpd_check_rcptmap(&state, addr));
 	    }
 	    break;
 

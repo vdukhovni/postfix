@@ -218,9 +218,10 @@ static const char *check_myhostname(void)
     name = get_hostname();
     if ((dot = strchr(name, '.')) == 0) {
 	if ((domain = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0)
-	    msg_fatal("My hostname %s is not a fully qualified name - set %s or %s in %s/main.cf",
-		      name, VAR_MYHOSTNAME, VAR_MYDOMAIN, var_config_dir);
-	name = concatenate(name, ".", domain, (char *) 0);
+	    msg_warn("My hostname %s is not a fully qualified name - set %s or %s in %s/main.cf",
+		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN, var_config_dir);
+	else
+	    name = concatenate(name, ".", domain, (char *) 0);
     }
     return (name);
 }

@@ -20,10 +20,7 @@
  /*
   * External interface.
   */
-extern VSTRING *readlline(VSTRING *, VSTREAM *, int *, int);
-
-#define READLL_STRIP_NOISE	1
-#define READLL_KEEP_NOISE	0
+extern VSTRING *readlline(VSTRING *, VSTREAM *, int *);
 
 /* LICENSE
 /* .ad

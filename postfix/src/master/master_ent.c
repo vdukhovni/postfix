@@ -242,7 +242,7 @@ MASTER_SERV *get_master_ent()
      * Skip blank lines and comment lines.
      */
     do {
-	if (readlline(buf, master_fp, &master_line, READLL_STRIP_NOISE) == 0) {
+	if (readlline(buf, master_fp, &master_line) == 0) {
 	    vstring_free(buf);
 	    vstring_free(junk);
 	    return (0);

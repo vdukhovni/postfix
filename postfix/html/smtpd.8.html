@@ -67,19 +67,19 @@ SMTPD(8)                                                 SMTPD(8)
               the AUTH protocol, and that expect an EHLO response
               of "250 AUTH=list" instead of "250 AUTH list".
 
-<b>Content</b> <b>inspection</b> <b>controls</b>
-       <b>content</b><i>_</i><b>filter</b>
-              The name of a mail delivery transport that  filters
-              mail and that either bounces mail or re-injects the
-              result back into Postfix.  This parameter uses  the
-              same  syntax  as  the  right-hand side of a Postfix
-              transport table.
-
        <b>smtpd</b><i>_</i><b>noop</b><i>_</i><b>commands</b>
               List of commands that are treated as NOOP (no oper-
               ation)   commands,  without  any  parameter  syntax
               checking and without any state change.   This  list
               overrides built-in command definitions.
+
+<b>Content</b> <b>inspection</b> <b>controls</b>
+       <b>content</b><i>_</i><b>filter</b>
+              The  name of a mail delivery transport that filters
+              mail and that either bounces mail or re-injects the
+              result  back into Postfix.  This parameter uses the
+              same syntax as the right-hand  side  of  a  Postfix
+              transport table.
 
 <b>Authentication</b> <b>controls</b>
        <b>enable</b><i>_</i><b>sasl</b><i>_</i><b>authentication</b>
@@ -262,6 +262,11 @@ SMTPD(8)                                                 SMTPD(8)
               contain a list of UCE restrictions.  The  names  of
               these  parameters  can  then be used instead of the
               restriction lists that they represent.
+
+       <b>smtpd</b><i>_</i><b>null</b><i>_</i><b>access</b><i>_</i><b>lookup</b><i>_</i><b>key</b>
+              The lookup key to be used in  SMTPD  access  tables
+              instead  of  the null sender address. A null sender
+              address cannot be looked up.
 
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b>
               List of DNS domains that publish the  addresses  of

@@ -33,7 +33,9 @@
 #define REC_TYPE_FROM	'S'		/* sender, required */
 #define REC_TYPE_DONE	'D'		/* delivered recipient, optional */
 #define REC_TYPE_RCPT	'R'		/* todo recipient, optional */
+#define REC_TYPE_ORCP	'O'		/* original recipient, optional */
 #define REC_TYPE_WARN	'W'		/* warning message time */
+#define REC_TYPE_ATTR	'A'		/* named attribute for extensions */
 
 #define REC_TYPE_MESG	'M'		/* start message records */
 
@@ -54,9 +56,9 @@
   * record groups. The first member in each set is the record type that
   * indicates the end of that record group.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDRWV"
+#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA"
 #define REC_TYPE_CONTENT	"XLN"
-#define REC_TYPE_EXTRACT	"EDRPre"
+#define REC_TYPE_EXTRACT	"EDROPre"	/* NOT A */
 #define REC_TYPE_NOEXTRACT	"E"
 
  /*

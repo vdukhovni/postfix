@@ -1175,6 +1175,10 @@ extern int var_smtpd_delay_reject;
 
 #define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
 
+#define VAR_SMTPD_NULL_KEY	"smtpd_null_access_lookup_key"
+#define DEF_SMTPD_NULL_KEY	""
+extern char *var_smtpd_null_key;
+
  /*
   * Heuristic to reject most unknown recipients at the SMTP port.
   */

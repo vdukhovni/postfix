@@ -76,16 +76,16 @@ the RFC822-style address forms with comments that Sendmail allows.
 Support older Microsoft clients that mis-implement the AUTH
 protocol, and that expect an EHLO response of "250 AUTH=list"
 instead of "250 AUTH list".
+.IP \fBsmtpd_noop_commands\fR
+List of commands that are treated as NOOP (no operation) commands,
+without any parameter syntax checking and without any state change.
+This list overrides built-in command definitions.
 .SH "Content inspection controls"
 .IP \fBcontent_filter\fR
 The name of a mail delivery transport that filters mail and that
 either bounces mail or re-injects the result back into Postfix.
 This parameter uses the same syntax as the right-hand side of
 a Postfix transport table.
-.IP \fBsmtpd_noop_commands\fR
-List of commands that are treated as NOOP (no operation) commands,
-without any parameter syntax checking and without any state change.
-This list overrides built-in command definitions.
 .SH "Authentication controls"
 .IP \fBenable_sasl_authentication\fR
 Enable per-session authentication as per RFC 2554 (SASL).
@@ -218,6 +218,9 @@ trusted backup MX hosts.
 Declares the name of zero or more parameters that contain a
 list of UCE restrictions. The names of these parameters can
 then be used instead of the restriction lists that they represent.
+.IP \fBsmtpd_null_access_lookup_key\fR
+The lookup key to be used in SMTPD access tables instead of the
+null sender address. A null sender address cannot be looked up.
 .IP \fBmaps_rbl_domains\fR
 List of DNS domains that publish the addresses of blacklisted
 hosts.

@@ -566,7 +566,7 @@ int     main(int unused_argc, char **unused_argv)
     TOK822 *list;
     VSTRING *buf = vstring_alloc(100);
 
-    while (readlline(buf, VSTREAM_IN, (int *) 0, READLL_KEEPNL)) {
+    while (readlline(buf, VSTREAM_IN, (int *) 0)) {
 	while (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\n') {
 	    vstring_end(buf)[-1] = 0;
 	    vstring_truncate(buf, VSTRING_LEN(buf) - 1);

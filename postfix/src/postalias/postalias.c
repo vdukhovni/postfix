@@ -198,17 +198,7 @@ static void postalias(char *map_type, char *path_name,
      * Add records to the database.
      */
     lineno = 0;
-    while (readlline(line_buffer, source_fp, &lineno, READLL_STRIP_NOISE)) {
-
-	/*
-	 * Weird stuff. Normally, a line that begins with whitespace is a
-	 * continuation of the previous line.
-	 */
-	if (ISSPACE(*STR(line_buffer))) {
-	    msg_warn("%s, line %d: malformed line",
-		     VSTREAM_PATH(source_fp), lineno);
-	    continue;
-	}
+    while (readlline(line_buffer, source_fp, &lineno)) {
 
 	/*
 	 * Tokenize the input, so that we do the right thing when a quoted

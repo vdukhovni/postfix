@@ -84,7 +84,7 @@
 #include <mymalloc.h>
 #include <argv.h>
 #include <split_at.h>
-#include <readlline.h>
+#include <vstring_vstream.h>
 #include <myflock.h>
 
 /* Global library. */
@@ -280,9 +280,10 @@ static void edit_parameters(int argc, char **argv)
     VSTRING *buf = vstring_alloc(100);
     VSTRING *key = vstring_alloc(10);
     char   *cp;
-    char   *value;
+    char   *ep;
+    char   *edit_key;
+    char   *edit_val;
     HTABLE *table;
-    int     first = 1;
     struct cvalue {
 	char   *value;
 	int     found;
@@ -290,21 +291,42 @@ static void edit_parameters(int argc, char **argv)
     struct cvalue *cvalue;
     HTABLE_INFO **ht_info;
     HTABLE_INFO **ht;
+    int     interesting;
+
+    /*
+     * Ugly macros to make complex expressions less unreadable.
+     */
+#define SKIP(start, var, cond) \
+        for (var = start; *var && (cond); var++);
+
+#define TRIM(s) { \
+        char *p; \
+        for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
+        *p = 0; \
+    }
 
     /*
      * Store command-line parameters for quick lookup.
      */
     table = htable_create(argc);
     while ((cp = *argv++) != 0) {
-	if ((value = split_at(cp, '=')) == 0
-	    || *(cp += strspn(cp, " \t\r\n")) == 0)
-	    msg_fatal("edit requires \"key = value\" arguments");
-	while (*value && ISSPACE(*value))
-	    value++;
+	if (strchr(cp, '\n') != 0)
+	    msg_fatal("edit accepts no multi-line input");
+	SKIP(cp, edit_key, ISSPACE(*edit_key));	/* find key begin */
+	if (*edit_key == '#')
+	    msg_fatal("edit accepts no comment input");
+	SKIP(edit_key, ep, !ISSPACE(*ep) && *ep != '=');	/* key end */
+	SKIP(ep, cp, ISSPACE(*cp));		/* skip blanks before '=' */
+	if (*cp != '=')				/* need '=' */
+	    msg_fatal("missing '=' after attribute name: \"%s\"", edit_key);
+	*ep = 0;				/* terminate key */
+	cp++;					/* skip over '=' */
+	SKIP(cp, edit_val, ISSPACE(*edit_val));	/* skip leading blanks */
+	TRIM(edit_val);				/* trim trailing blanks */
 	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
-	cvalue->value = value;
+	cvalue->value = edit_val;
 	cvalue->found = 0;
-	htable_enter(table, mystrtok(&cp, " \t\r\n"), (char *) cvalue);
+	htable_enter(table, edit_key, (char *) cvalue);
     }
 
     /*
@@ -342,26 +364,29 @@ static void edit_parameters(int argc, char **argv)
      */
 #define STR(x) vstring_str(x)
 
-    while (readlline(buf, src, (int *) 0, READLL_KEEP_NOISE)) {
-	cp = STR(buf);
-	if (first) {
-	    first = 0;
-	    if (ISSPACE(*cp))
-		msg_fatal("%s: file starts with whitespace", path);
-	}
-	if (*cp == '#') {
+    interesting = 0;
+    while (vstring_get(buf, src) != VSTREAM_EOF) {
+	SKIP(STR(buf), cp, ISSPACE(*cp) /* including newline */ );
+	/* Copy comment, all-whitespace, or empty line. */
+	if (*cp == '#' || *cp == 0) {
 	    vstream_fputs(STR(buf), dst);
-	    continue;
 	}
-	cp += strspn(cp, " \t\r\n");
-	vstring_strncpy(key, cp, strcspn(cp, " \t\r\n="));
-	cvalue = (struct cvalue *) htable_find(table, STR(key));
-	if (cvalue == 0) {
-	    vstream_fputs(STR(buf), dst);
-	} else {
-	    if (cvalue->found++ == 1)
-		msg_warn("%s: multiple entries for key %s", path, STR(key));
-	    vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
+	/* Copy or skip continued text. */
+	else if (cp > STR(buf)) {
+	    if (interesting == 0)
+		vstream_fputs(STR(buf), dst);
+	}
+	/* Copy or replace start of logical line. */
+	else {
+	    vstring_strncpy(key, cp, strcspn(cp, " \t\r\n="));
+	    cvalue = (struct cvalue *) htable_find(table, STR(key));
+	    if ((interesting = !!cvalue) != 0) {
+		if (cvalue->found++ == 1)
+		    msg_warn("%s: multiple entries for \"%s\"", path, STR(key));
+		vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
+	    } else {
+		vstream_fputs(STR(buf), dst);
+	    }
 	}
     }
 

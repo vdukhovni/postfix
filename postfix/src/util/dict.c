@@ -394,17 +394,16 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     buf = vstring_alloc(100);
     lineno = 0;
 
-    while (readlline(buf, fp, &lineno, READLL_STRIP_NOISE)) {
+    while (readlline(buf, fp, &lineno)) {
 	start = STR(buf);
 	SKIP(start, member, ISSPACE(*member));	/* find member begin */
 	SKIP(member, ep, !ISSPACE(*ep) && *ep != '=');	/* find member end */
 	SKIP(ep, cp, ISSPACE(*cp));		/* skip blanks before '=' */
-	if (*cp && *cp != '=')			/* need '=' or end of string */
-	    msg_fatal("%s, line %d: whitespace in attribute name: \"%s\"",
+	if (*cp != '=')				/* need '=' */
+	    msg_fatal("%s, line %d: missing '=' after attribute name: \"%s\"",
 		      VSTREAM_PATH(fp), lineno, member);
-	if (*cp)
-	    cp++;				/* skip over '=' */
 	*ep = 0;				/* terminate member name */
+	cp++;					/* skip over '=' */
 	SKIP(cp, val, ISSPACE(*val));		/* skip leading blanks */
 	TRIM(val);				/* trim trailing blanks */
 	dict_update(dict_name, member, val);

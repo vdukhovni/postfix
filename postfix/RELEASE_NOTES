@@ -1,18 +1,22 @@
-Incompatible changes with snapshot-20011217
+Incompatible changes with snapshot-200112XX
 ===========================================
 
 Postfix configuration file comments no longer continue on the next
 line when that next line starts with whitespace. This change avoids
 surprises, but it may cause unexpected behavior with existing,
-poorly formatted, configuration files. Caveat user.
+improperly formatted, configuration files. Caveat user.
 
-Major changes with snapshot-20011217
+Major changes with snapshot-200112XX
 ====================================
 
-Postfix configuration files now support whitespace before comments.
-This allows you to comment out just one line in the middle of a
-block of multi-line input. A comment that starts at the beginning
-of a line always terminates previous data.
+In Postfix configuration files, comment lines are allowed to begin
+with whitespace, and multi-line input is no longer terminated by
+a comment line, by an all whitespace line, or by an empty line.
+
+Postfix will now do null address lookups in SMTPD access maps.  If
+your access maps cannot store or look up null string key values,
+specify "smtpd_null_access_lookup_key = <>" and the null sender
+address will be looked up as <> instead.
 
 Incompatible changes with snapshot-20011210
 ===========================================

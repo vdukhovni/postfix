@@ -5789,12 +5789,6 @@ Apologies for any names omitted.
 	Bugfix: postmap/postalias queries ignored the -f flag.
 	Reported by Hamish Marson.
 
-20011215-6
-
-	Safety: config file comments no longer span multiple lines
-	when the next line starts with whitespace; a comment that
-	is preceded by whitespace does not break multi-line input.
-
 20011217
 
 	Compatibility: Sendmail now has a -L option to set the
@@ -5803,21 +5797,50 @@ Apologies for any names omitted.
 
 	Security: subtle hardening of the Postfix chroot jail,
 	Postfix queue file permissions and access methods, in case
-	someone compromises the postfix account.  Michael Tokarev
-	claims he got the insights from Solar Designer.  Files:
+	someone compromises the postfix account.  Michael Tokarev,
+	who received the insights from Solar Designer, who tested
+	Postfix with his "openwatch" kernel module.  Files:
 	master/master_wakeup.c, util/fifo_trigger.c, postfix-script.
+
+	Convenience: issue a warning instead of aborting when the
+	local machine name is not in fully-qualified domain form.
+	This would otherwise break initial postfix installation
+	which needs the postconf command. File: global/mail_params.c.
+
+20011220
+
+	Added more garbage detection to postconf -e input processing.
+
+20011221
+
+	Feature: SMTPD access map lookups of null sender addresses.
+	If your access maps cannot store or look up null string
+	key values, specify "smtpd_null_access_lookup_key = <>"
+	and the null sender address will be looked up as <> instead.
+	File:  src/smtpd_access.c.
+
+20011223
+
+	Safety: configuration file comments no longer span multiple
+	lines when the next line begins with whitespace; multi-line
+	input is no longer terminated by a comment line, by an all
+	white space line, or by an empty line. Files:  util/readlline.c,
+	postconf/postconf.c.
+
+	Cleanup: proper detection of big number overflow in EHLO
+	and MAIL FROM size announcements. Files: global/off_cvt.c,
+	smtpd/smtpd.c, smtp/smtp_proto.c, util/alldig.c.
+
+	Forward compatibility: added queue file record types for
+	original recipient and for generic named attributes.
+
+	Cleanup: safe_open() now returns sensible errno values so
+	that the fifo_trigger() external interface is restored.
 
 Open problems:
 
-	Low: warn about undomained hostnames instead of aborting.
-
 	Low: after reorganizing configuration parameters, add flags
 	to all parameters whose value can be read from file.
-
-	Low: replace null sender address internal representation
-	by <> so that it can be looked up reliably in maps.  Must
-	prevent attempts to rewrite this address with canonical
-	maps, or else accidents are bound to happen.
 
 	Medium: need in-process caching for map lookups. LDAP
 	servers seem to need this in particular. Need a way to
@@ -5838,8 +5861,5 @@ Open problems:
 	in Postfix. Problem reported by Michael Smith, texas.net.
 	This should be documented, or better, the code should warn
 	about attempts to set read-only parameters.
-
-	Low: the virtual delivery agent needs a way to specify
-	fixed uid/gid for all deliveries.
 
 	Low: postconf -e edits parameters that postconf won't list.

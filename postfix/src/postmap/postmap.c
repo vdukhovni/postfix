@@ -208,34 +208,20 @@ static void postmap(char *map_type, char *path_name,
      * Add records to the database.
      */
     lineno = 0;
-    while (readlline(line_buffer, source_fp, &lineno, READLL_STRIP_NOISE)) {
-
-	/*
-	 * Skip comments.
-	 */
-	if (*STR(line_buffer) == '#')
-	    continue;
+    while (readlline(line_buffer, source_fp, &lineno)) {
 
 	/*
 	 * Split on the first whitespace character, then trim leading and
 	 * trailing whitespace from key and value.
 	 */
 	key = STR(line_buffer);
-	value = STR(line_buffer) + strcspn(STR(line_buffer), " \t\r\n");
+	value = key + strcspn(key, " \t\r\n");
 	if (*value)
 	    *value++ = 0;
-	while (ISSPACE(*key))
-	    key++;
 	while (ISSPACE(*value))
 	    value++;
 	trimblanks(key, 0)[0] = 0;
 	trimblanks(value, 0)[0] = 0;
-
-	/*
-	 * Skip empty lines, or lines with whitespace characters only.
-	 */
-	if (*key == 0 && *value == 0)
-	    continue;
 
 	/*
 	 * Enforce the "key whitespace value" format. Disallow missing keys

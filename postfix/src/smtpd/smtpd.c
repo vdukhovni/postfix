@@ -62,16 +62,16 @@
 /*	Support older Microsoft clients that mis-implement the AUTH
 /*	protocol, and that expect an EHLO response of "250 AUTH=list"
 /*	instead of "250 AUTH list".
+/* .IP \fBsmtpd_noop_commands\fR
+/*	List of commands that are treated as NOOP (no operation) commands,
+/*	without any parameter syntax checking and without any state change.
+/*	This list overrides built-in command definitions.
 /* .SH "Content inspection controls"
 /* .IP \fBcontent_filter\fR
 /*	The name of a mail delivery transport that filters mail and that
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
-/* .IP \fBsmtpd_noop_commands\fR
-/*	List of commands that are treated as NOOP (no operation) commands,
-/*	without any parameter syntax checking and without any state change.
-/*	This list overrides built-in command definitions.
 /* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -204,6 +204,9 @@
 /*	Declares the name of zero or more parameters that contain a
 /*	list of UCE restrictions. The names of these parameters can
 /*	then be used instead of the restriction lists that they represent.
+/* .IP \fBsmtpd_null_access_lookup_key\fR
+/*	The lookup key to be used in SMTPD access tables instead of the
+/*	null sender address. A null sender address cannot be looked up.
 /* .IP \fBmaps_rbl_domains\fR
 /*	List of DNS domains that publish the addresses of blacklisted
 /*	hosts.
@@ -375,6 +378,7 @@ bool    var_broken_auth_clients;
 char   *var_perm_mx_networks;
 char   *var_smtpd_snd_auth_maps;
 char   *var_smtpd_noop_cmds;
+char   *var_smtpd_null_key;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -667,8 +671,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     state->msg_size = 0;
 
     /*
-     * Sanity checks. XXX Ignore bad SIZE= values until we can reliably and
-     * portably detect overflows while converting from string to off_t.
+     * Sanity checks.
      * 
      * XXX 2821 pedantism: Section 4.1.2 says that SMTP servers that receive a
      * command in which invalid character codes have been employed, and for
@@ -708,8 +711,18 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    || strcasecmp(arg, "BODY=7BIT") == 0) {
 	     /* void */ ;
 	} else if (strncasecmp(arg, "SIZE=", 5) == 0) {
-	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0)
-		state->msg_size = 0;
+	    /* Reject non-numeric size. */
+	    if (!alldig(arg + 5)) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "501 Bad message size syntax");
+		return (-1);
+	    }
+	    /* Reject size overflow. */
+	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0) {
+		smtpd_chat_reply(state, "552 Message size exceeds file system imposed limit");
+		state->error_mask |= MAIL_ERROR_POLICY;
+		return (-1);
+	    }
 #ifdef USE_SASL_AUTH
 	} else if (var_smtpd_sasl_enable && strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
@@ -1645,6 +1658,7 @@ int     main(int argc, char **argv)
 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
+	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
 	0,
     };
 
