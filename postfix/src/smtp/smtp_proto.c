@@ -186,6 +186,8 @@ int     smtp_helo(SMTP_STATE *state)
     }
     if (var_smtp_always_ehlo)
 	state->features |= SMTP_FEATURE_ESMTP;
+    if (var_smtp_never_ehlo)
+	state->features &= ~SMTP_FEATURE_ESMTP;
 
     /*
      * Return the compliment. Fall back to SMTP if our ESMTP recognition

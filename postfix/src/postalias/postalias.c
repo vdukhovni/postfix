@@ -77,6 +77,10 @@
 /*	Problems are logged to the standard error stream. No output means
 /*	no problems were detected. Duplicate entries are skipped and are
 /*	flagged with a warning.
+/*
+/*	\fBpostalias\fR terminates with zero exit status in case of success
+/*	(including successful \fBpostmap -q\fR lookup) and terminates
+/*	with non-zero exit status in case of failure.
 /* BUGS
 /*	The "delete key" support is limited to one delete operation
 /*	per command invocation.

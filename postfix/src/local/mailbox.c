@@ -65,9 +65,6 @@
 /* Global library. */
 
 #include <mail_copy.h>
-#include <safe_open.h>
-#include <deliver_flock.h>
-#include <dot_lockfile.h>
 #include <defer.h>
 #include <sent.h>
 #include <mypwd.h>
@@ -96,7 +93,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     char   *spool_dir;
     char   *mailbox;
     VSTRING *why;
-    MBOX *mp;
+    MBOX   *mp;
     int     status;
     int     copy_flags;
     VSTRING *biff;
@@ -181,14 +178,14 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 
     set_eugid(spool_uid, spool_gid);
     mp = mbox_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
-		    S_IRUSR | S_IWUSR, &st, chown_uid, chown_gid,
-		    local_mbox_lock_mask, why);
+		   S_IRUSR | S_IWUSR, &st, chown_uid, chown_gid,
+		   local_mbox_lock_mask, why);
     if (mp != 0) {
 	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
 	    set_eugid(usr_attr.uid, usr_attr.gid);
 	if (S_ISREG(st.st_mode) == 0) {
 	    vstream_fclose(mp->fp);
-	    vstring_sprintf(why, "file %s should be a regular file", mailbox);
+	    vstring_sprintf(why, "destination is not a regular file");
 	    errno = 0;
 	} else {
 	    end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END);
@@ -201,12 +198,15 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     }
     set_eugid(var_owner_uid, var_owner_gid);
 
+    /*
+     * As the mail system, bounce, defer delivery, or report success.
+     */
     if (status != 0) {
 	status = (errno == EAGAIN || errno == ENOSPC ?
 		  defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-	     "cannot access mailbox for user %s. %s",
-	     state.msg_attr.user, vstring_str(why));
+	     "cannot access mailbox %s for user %s. %s",
+	     mailbox, state.msg_attr.user, vstring_str(why));
     } else {
 	sent(SENT_ATTR(state.msg_attr), "mailbox");
 	if (var_biff) {
@@ -216,6 +216,10 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    vstring_free(biff);
 	}
     }
+
+    /*
+     * Clean up.
+     */
     myfree(mailbox);
     vstring_free(why);
     return (status);

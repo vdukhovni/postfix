@@ -670,6 +670,10 @@ extern bool var_skip_quit_resp;
 #define DEF_SMTP_ALWAYS_EHLO	0
 extern bool var_smtp_always_ehlo;
 
+#define VAR_SMTP_NEVER_EHLO	"smtp_never_send_ehlo"
+#define DEF_SMTP_NEVER_EHLO	0
+extern bool var_smtp_never_ehlo;
+
 #define VAR_SMTP_BIND_ADDR	"smtp_bind_address"
 #define DEF_SMTP_BIND_ADDR	""
 extern char *var_smtp_bind_addr;

@@ -68,7 +68,7 @@ VSTREAM *open_lock(const char *path, int flags, int mode, VSTRING *why)
 	return (0);
     if (myflock(vstream_fileno(fp), INTERNAL_LOCK,
 		MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT) < 0) {
-	vstring_sprintf(why, "file %s: unable to lock: %m", path);
+	vstring_sprintf(why, "unable to set exclusive lock: %m");
 	vstream_fclose(fp);
 	return (0);
     }

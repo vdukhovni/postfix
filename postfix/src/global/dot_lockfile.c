@@ -85,7 +85,8 @@ int     dot_lockfile(const char *path, VSTRING *why)
 
 	/*
 	 * Attempt to create the lock. This code relies on O_EXCL | O_CREAT
-	 * to not follow symlinks.
+	 * to not follow symlinks. With NFS file systems this operation can
+	 * at the same time succeed and fail with errno of EEXIST.
 	 */
 	if ((fd = open(lock_file, O_WRONLY | O_EXCL | O_CREAT, 0)) >= 0) {
 	    close(fd);

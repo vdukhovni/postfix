@@ -91,6 +91,7 @@
 #include <mail_params.h>
 #include <mail_addr.h>
 #include <post_mail.h>
+#include <mail_error.h>
 
 /* Application-specific. */
 
@@ -156,7 +157,6 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
     static SMTP_RESP rdata;
-    int     more;
     char   *cp;
     int     last_char;
 
@@ -174,17 +174,12 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
     VSTRING_RESET(rdata.buf);
     for (;;) {
 	last_char = smtp_get(state->buffer, session->stream, var_line_limit);
-	cp = printable(STR(state->buffer), '?');
+	printable(STR(state->buffer), '?');
 	if (last_char != '\n')
 	    msg_warn("%s: response longer than %d: %.30s...",
-		     session->namaddr, var_line_limit, cp);
+		     session->namaddr, var_line_limit, STR(state->buffer));
 	if (msg_verbose)
-	    msg_info("< %s: %s", session->namaddr, cp);
-	while (ISDIGIT(*cp))
-	    cp++;
-	rdata.code = (cp - STR(state->buffer) == 3 ?
-		      atoi(STR(state->buffer)) : 0);
-	more = (*cp == '-');
+	    msg_info("< %s: %s", session->namaddr, STR(state->buffer));
 
 	/*
 	 * Defend against a denial of service attack by limiting the amount
@@ -196,13 +191,23 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
 	    vstring_strcat(rdata.buf, STR(state->buffer));
 	    smtp_chat_append(state, "In:  ", STR(state->buffer));
 	}
-	if (VSTRING_LEN(state->buffer) == 0)	/* XXX remote brain damage */
-	    continue;
-	if (!ISDIGIT(STR(state->buffer)[0]))	/* XXX remote brain damage */
-	    continue;
-	if (more == 0)
-	    break;
+
+	/*
+	 * Parse into code and text. Ignore unrecognized garbage. This means
+	 * that any character except space (or end of line) will have the
+	 * same effect as the '-' line continuation character.
+	 */
+	for (cp = STR(state->buffer); *cp && ISDIGIT(*cp); cp++)
+	     /* void */ ;
+	if (cp - STR(state->buffer) == 3) {
+	    if (*cp == '-')
+		continue;
+	    if (*cp == ' ' || *cp == 0)
+		break;
+	}
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
     }
+    rdata.code = atoi(STR(state->buffer));
     VSTRING_TERMINATE(rdata.buf);
     rdata.str = STR(rdata.buf);
     return (&rdata);

@@ -97,7 +97,7 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
      * Open an existing file.
      */
     if ((fp = vstream_fopen(path, flags & ~(O_CREAT | O_EXCL), 0)) == 0) {
-	vstring_sprintf(why, "error opening file %s: %m", path);
+	vstring_sprintf(why, "cannot open existing file: %m");
 	return (0);
     }
 
@@ -109,11 +109,11 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
     if (fstat_st == 0)
 	fstat_st = &local_statbuf;
     if (fstat(vstream_fileno(fp), fstat_st) < 0) {
-	msg_fatal("file %s: bad status after open: %m", path);
+	msg_fatal("bad open file status: %m");
     } else if (fstat_st->st_nlink != 1) {
-	vstring_sprintf(why, "file %s: should not have multiple links", path);
+	vstring_sprintf(why, "file has multiple hard links");
     } else if (S_ISDIR(fstat_st->st_mode)) {
-	vstring_sprintf(why, "file %s: should not be a directory", path);
+	vstring_sprintf(why, "file is a directory");
     }
 
     /*
@@ -135,8 +135,8 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
 #endif
 	     || fstat_st->st_nlink != lstat_st.st_nlink
 	     || fstat_st->st_mode != lstat_st.st_mode) {
-	vstring_sprintf(why, "file %s: %s", path, S_ISLNK(lstat_st.st_mode) ?
-	  "should not be a symbolic link" : "status changed after opening");
+	vstring_sprintf(why, "%s", S_ISLNK(lstat_st.st_mode) ?
+	    "file is a symbolic link" : "file status changed unexpectedly");
     }
 
     /*
@@ -167,7 +167,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
      * follow symbolic links.
      */
     if ((fp = vstream_fopen(path, flags | (O_CREAT | O_EXCL), mode)) == 0) {
-	vstring_sprintf(why, "file %s: cannot open: %m", path);
+	vstring_sprintf(why, "cannot create file exclusively: %m");
 	return (0);
     }
 
@@ -180,14 +180,14 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
 
     if (CHANGE_OWNER(user, group)
 	&& fchown(vstream_fileno(fp), user, group) < 0) {
-	vstring_sprintf(why, "file %s: cannot change ownership: %m", path);
+	vstring_sprintf(why, "cannot change file ownership: %m");
     }
 
     /*
      * Optionally look up the file attributes.
      */
     if (st != 0 && fstat(vstream_fileno(fp), st) < 0)
-	msg_fatal("file %s: cannot get status after open: %m", path);
+	msg_fatal("bad open file status: %m");
 
     /*
      * We are almost there...

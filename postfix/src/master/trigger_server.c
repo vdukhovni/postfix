@@ -534,7 +534,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	why = vstring_alloc(1);
 	if ((trigger_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
 					     (struct stat *) 0, -1, -1, why)) == 0)
-	    msg_fatal("%s", vstring_str(why));
+	    msg_fatal("open lock file %s: %s", lock_path, vstring_str(why));
 	close_on_exec(vstream_fileno(trigger_server_lock), CLOSE_ON_EXEC);
 	myfree(lock_path);
 	vstring_free(why);

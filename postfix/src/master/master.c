@@ -300,7 +300,8 @@ int     main(int argc, char **argv)
     if (test_lock)
 	exit(lock_fp ? 0 : 1);
     if (lock_fp == 0)
-	msg_fatal("%s", vstring_str(why));
+	msg_fatal("open lock file %s: %s",
+		  vstring_str(lock_path), vstring_str(why));
     vstream_fprintf(lock_fp, "%*lu\n", (int) sizeof(unsigned long) * 4,
 		    (unsigned long) var_pid);
     if (vstream_fflush(lock_fp))

@@ -34,7 +34,7 @@
 /*	file ownership will succeed only if the process runs with
 /*	adequate effective privileges.
 /*	The \fBlock_style\fR argument specifies a lock style from
-/*	mbox_lock_mask(). Kernel locks are applied to regular files only.
+/*	mbox_lock_mask(). Locks are applied to regular files only.
 /*	The result is a handle that must be destroyed by mbox_release().
 /*
 /*	mbox_release() releases the named mailbox. It is up to the
@@ -86,68 +86,79 @@ MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
     MBOX   *mp;
     int     locked = 0;
     VSTREAM *fp;
-
-    /*
-     * Create dotlock file. This locking method does not work well over NFS:
-     * creating files atomically is a problem, and a successful operation can
-     * fail with EEXIST.
-     * 
-     * If file.lock can't be created, ignore the problem if the application says
-     * so. We need this so that Postfix can deliver as unprivileged user to
-     * /dev/null style aliases. Alternatively, we could open the file first,
-     * and dot-lock the file only if it is a regular file, just like we do
-     * with kernel locks.
-     */
-    if (lock_style & MBOX_DOT_LOCK) {
-	if (dot_lockfile(path, why) == 0) {
-	    locked |= MBOX_DOT_LOCK;
-	} else {
-	    if (errno == EEXIST) {
-		errno = EAGAIN;
-		return (0);
-	    }
-	    if ((lock_style & MBOX_DOT_LOCK_MAY_FAIL) == 0) {
-		return (0);
-	    }
-	}
-    }
+    int     saved_errno;
 
     /*
      * Open or create the target file. In case of a privileged open, the
-     * privileged user may be attacked through an unsafe parent directory. In
-     * case of an unprivileged open, the mail system may be attacked by a
-     * malicious user-specified path, and the unprivileged user may be
-     * attacked through an unsafe parent directory. Open non-blocking to fend
-     * off attacks involving FIFOs and other weird targets.
+     * privileged user may be attacked with hard/soft link tricks in an
+     * unsafe parent directory. In case of an unprivileged open, the mail
+     * system may be attacked by a malicious user-specified path, or the
+     * unprivileged user may be attacked with hard/soft link tricks in an
+     * unsafe parent directory. Open non-blocking to fend off attacks
+     * involving non-file targets.
+     * 
+     * We open before locking, so that we can avoid attempts to dot-lock
+     * destinations such as /dev/null.
      */
     if (st == 0)
 	st = &local_statbuf;
     if ((fp = safe_open(path, flags, mode | O_NONBLOCK, st,
 			chown_uid, chown_gid, why)) == 0) {
-	if (locked & MBOX_DOT_LOCK)
-	    dot_unlockfile(path);
 	return (0);
     }
-    non_blocking(vstream_fileno(fp), BLOCKING);
     close_on_exec(vstream_fileno(fp), CLOSE_ON_EXEC);
 
     /*
-     * Acquire kernel locks, but only if the target is a regular file, in
-     * case we're running on some overly pedantic system. flock() locks do
-     * not work over NFS; fcntl() locks are supposed to work over NFS, but in
-     * the real world, NFS lock daemons often have serious problems.
+     * If this is a regular file, create a dotlock file. This locking method
+     * does not work well over NFS, but it is better than some alternatives.
+     * With NFS, creating files atomically is a problem, and a successful
+     * operation can fail with EEXIST.
+     * 
+     * If filename.lock can't be created for reasons other than "file exists",
+     * issue only a warning if the application says it is non-fatal. This is
+     * for bass-awkward compatibility with existing installations that
+     * deliver to files in non-writable directories.
+     * 
+     * Alternatively, we could dot-lock the file before opening, but then we
+     * would be doing silly things like dot-locking /dev/null, something that
+     * an unprivileged user is not supposed to be able to do.
      */
-#define LOCK_FAIL(mbox_lock, myflock_style) ((lock_style & (mbox_lock)) != 0 \
-         && deliver_flock(vstream_fileno(fp), (myflock_style), why) < 0)
-
-    if (S_ISREG(st->st_mode)
-	&& (LOCK_FAIL(MBOX_FLOCK_LOCK, MYFLOCK_STYLE_FLOCK)
-	    || LOCK_FAIL(MBOX_FCNTL_LOCK, MYFLOCK_STYLE_FCNTL))) {
-	if (myflock_locked(vstream_fileno(fp)))
+    if (S_ISREG(st->st_mode) && (lock_style & MBOX_DOT_LOCK)) {
+	if (dot_lockfile(path, why) == 0) {
+	    locked |= MBOX_DOT_LOCK;
+	} else if (errno == EEXIST) {
 	    errno = EAGAIN;
-	if (locked & MBOX_DOT_LOCK)
-	    dot_unlockfile(path);
-	return (0);
+	    vstream_fclose(fp);
+	    return (0);
+	} else if (lock_style & MBOX_DOT_LOCK_MAY_FAIL) {
+	    msg_warn("%s", vstring_str(why));
+	} else {
+	    vstream_fclose(fp);
+	    return (0);
+	}
+    }
+
+    /*
+     * If this is a regular file, acquire kernel locks. flock() locks are not
+     * intended to work across a network; fcntl() locks are supposed to work
+     * over NFS, but in the real world, NFS lock daemons often have serious
+     * problems.
+     */
+#define HUNKY_DORY(lock_mask, myflock_style) ((lock_style & (lock_mask)) == 0 \
+         || deliver_flock(vstream_fileno(fp), (myflock_style), why) == 0)
+
+    if (S_ISREG(st->st_mode)) {
+	if (HUNKY_DORY(MBOX_FLOCK_LOCK, MYFLOCK_STYLE_FLOCK)
+	    && HUNKY_DORY(MBOX_FCNTL_LOCK, MYFLOCK_STYLE_FCNTL)) {
+	    locked |= lock_style;
+	} else {
+	    saved_errno = errno;
+	    if (locked & MBOX_DOT_LOCK)
+		dot_unlockfile(path);
+	    vstream_fclose(fp);
+	    errno = saved_errno;
+	    return (0);
+	}
     }
     mp = (MBOX *) mymalloc(sizeof(*mp));
     mp->path = mystrdup(path);
@@ -160,6 +171,15 @@ MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
 
 void    mbox_release(MBOX *mp)
 {
+
+    /*
+     * Unfortunately we can't close the stream, because on some file systems
+     * (AFS), the only way to find out if a file was written successfully is
+     * to close it, and therefore the close() operation is in the mail_copy()
+     * routine. If we really insist on owning the vstream member, then we
+     * should export appropriate methods that mail_copy() can use in order
+     * to manipulate a message stream.
+     */
     if (mp->locked & MBOX_DOT_LOCK)
 	dot_unlockfile(mp->path);
     myfree(mp->path);

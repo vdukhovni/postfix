@@ -81,7 +81,7 @@
 /*	or if a destination is unreachable.
 /* .IP \fBignore_mx_lookup_error\fR
 /*	When a name server fails to respond to an MX query, search for an
-/*	A record instead of assuming that the name server will recover.
+/*	A record instead deferring mail delivery.
 /* .IP \fBinet_interfaces\fR
 /*	The network interface addresses that this mail system receives
 /*	mail on. When any of those addresses appears in the list of mail
@@ -92,6 +92,8 @@
 /*	postmaster with transcripts of SMTP sessions with protocol errors.
 /* .IP \fBsmtp_always_send_ehlo\fR
 /*	Always send EHLO at the start of a connection.
+/* .IP \fBsmtp_never_send_ehlo\fR
+/*	Never send EHLO at the start of a connection.
 /* .IP \fBsmtp_skip_4xx_greeting\fR
 /*	Skip servers that greet us with a 4xx status code.
 /* .IP \fBsmtp_skip_5xx_greeting\fR
@@ -239,6 +241,7 @@ char   *var_fallback_relay;
 char   *var_bestmx_transp;
 char   *var_error_rcpt;
 int     var_smtp_always_ehlo;
+int     var_smtp_never_ehlo;
 char   *var_smtp_sasl_opts;
 char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
@@ -307,17 +310,17 @@ static int deliver_message(DELIVER_REQUEST *request)
 	    smtp_chat_notify(state);
 	smtp_session_free(state->session);
 	debug_peer_restore();
-}
+    }
 
- /*
-  * Clean up.
-  */
-vstring_free(why);
-smtp_chat_reset(state);
-result = state->status;
-smtp_state_free(state);
+    /*
+     * Clean up.
+     */
+    vstring_free(why);
+    smtp_chat_reset(state);
+    result = state->status;
+    smtp_state_free(state);
 
-return (result);
+    return (result);
 }
 
 /* smtp_service - perform service for client */
@@ -412,6 +415,7 @@ int     main(int argc, char **argv)
 	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
 	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
 	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
+	VAR_SMTP_NEVER_EHLO, DEF_SMTP_NEVER_EHLO, &var_smtp_never_ehlo,
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
 	0,
     };

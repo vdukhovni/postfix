@@ -86,7 +86,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     struct stat st;
     MBOX   *mp;
     VSTRING *why;
-    int     status;
+    int     status = -1;
     int     copy_flags;
 
     /*
@@ -141,7 +141,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 
     /*
      * As the specified user, open or create the file, lock it, and append
-     * the message. XXX We may attempt to create a lockfile for /dev/null.
+     * the message.
      */
     copy_flags = MAIL_COPY_MBOX;
     if ((local_deliver_hdr_mask & DELIVER_HDR_FILE) == 0)
@@ -151,25 +151,33 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     mp = mbox_open(path, O_APPEND | O_CREAT | O_WRONLY,
 		   S_IRUSR | S_IWUSR, &st, -1, -1,
 		   local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL, why);
-    if (mp == 0) {
-	status = (errno == EAGAIN ? defer_append : bounce_append)
-	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-	     "cannot access destination file %s: %s", path, STR(why));
-    } else if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
-	vstream_fclose(mp->fp);
-	status = bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			       "executable destination file %s", path);
-    } else if (mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
-	S_ISREG(st.st_mode) ? copy_flags : (copy_flags & ~MAIL_COPY_TOFILE),
-			 "\n", why)) {
-	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			      "cannot append destination file %s: %s",
-			      path, STR(why));
-    } else {
-	status = sent(SENT_ATTR(state.msg_attr), "%s", path);
+    if (mp != 0) {
+	if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
+	    vstream_fclose(mp->fp);
+	    vstring_sprintf(why, "destination file is executable");
+	    errno = 0;
+	} else {
+	    status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
+			       S_ISREG(st.st_mode) ? copy_flags :
+			       (copy_flags & ~MAIL_COPY_TOFILE),
+			       "\n", why);
+	}
+	mbox_release(mp);
     }
-    mbox_release(mp);
     set_eugid(var_owner_uid, var_owner_gid);
+
+    /*
+     * As the mail system, bounce, defer delivery, or report success.
+     */
+    if (status != 0) {
+	status = (errno == EAGAIN || errno == ENOSPC ?
+		  defer_append : bounce_append)
+	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+	     "cannot append message to destination file %s: %s",
+	     path, STR(why));
+    } else {
+	sent(SENT_ATTR(state.msg_attr), "%s", path);
+    }
 
     /*
      * Clean up.

@@ -15,7 +15,6 @@
   * External interface.
   */
 extern int myflock(int, int, int);
-extern int myflock_locked(int);
 
  /*
   * Lock styles.
@@ -26,10 +25,11 @@ extern int myflock_locked(int);
  /*
   * Lock request types.
   */
-#define MYFLOCK_OP_NONE	0
+#define MYFLOCK_OP_NONE		0
 #define MYFLOCK_OP_SHARED	1
 #define MYFLOCK_OP_EXCLUSIVE	2
 #define MYFLOCK_OP_NOWAIT	4
+
 #define MYFLOCK_OP_BITS \
 	(MYFLOCK_OP_SHARED | MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT)
 

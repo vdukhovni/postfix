@@ -11,9 +11,10 @@
 /*	int	lock_style;
 /*	VSTRING	*why;
 /* DESCRIPTION
-/*	deliver_flock() sets one exclusive kernel lock on an open file
-/*	for the purpose of mail delivery. It attempts to acquire
-/*	the exclusive lock several times before giving up.
+/*	deliver_flock() sets one exclusive kernel lock on an open file,
+/*	for example in order to deliver mail.
+/*      It performs several non-blocking attempts to acquire an exclusive
+/*	lock before giving up.
 /*
 /*	Arguments:
 /* .IP fd
@@ -58,17 +59,17 @@
 
 /* deliver_flock - lock open file for mail delivery*/
 
-int     deliver_flock(int fd, int lock_style, VSTRING *why)
+int     deliver_flock(int fd, int lock_style, VSTRING * why)
 {
     int     i;
 
-    for (i = 0; /* void */ ; i++) {
+    for (i = 1; /* void */ ; i++) {
+	if (myflock(fd, lock_style,
+		    MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT) == 0)
+	    return (0);
 	if (i >= var_flock_tries)
 	    break;
-	if (i > 0)
-	    sleep(var_flock_delay);
-	if (myflock(fd, lock_style, MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT) == 0)
-	    return (0);
+	sleep(var_flock_delay);
     }
     if (why)
 	vstring_sprintf(why, "unable to lock for exclusive access: %m");

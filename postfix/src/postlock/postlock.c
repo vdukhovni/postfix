@@ -101,7 +101,6 @@
 #include <vstream.h>
 #include <msg_vstream.h>
 #include <iostuff.h>
-#include <safe_open.h>
 
 /* Global library. */
 
@@ -201,7 +200,8 @@ int     main(int argc, char **argv)
     command = argv + optind + 1;
 
     /*
-     * Read the config file.
+     * Read the config file. The command line lock style can override the
+     * configured lock style.
      */
     mail_conf_read();
     lock_mask = mbox_lock_mask(lock_style ? lock_style :
@@ -215,28 +215,27 @@ int     main(int argc, char **argv)
     if ((mp = mbox_open(folder, O_APPEND | O_WRONLY | O_CREAT,
 			S_IRUSR | S_IWUSR, (struct stat *) 0,
 			-1, -1, lock_mask, why)) == 0)
-	msg_fatal("%s", vstring_str(why));
+	msg_fatal("open file %s: %s", folder, vstring_str(why));
 
     /*
      * Run the command. Remove the lock after completion.
      */
-    for (count = 0; count < var_fork_tries; count++) {
-	switch (pid = fork()) {
-	case -1:
-	    msg_warn("fork %s: %m", command[0]);
-	    break;
-	case 0:
-	    execvp(command[0], command);
-	    msg_fatal("execvp %s: %m", command[0]);
-	default:
-	    if (waitpid(pid, &status, 0) < 0)
-		msg_fatal("waitpid: %m");
+    for (count = 1; (pid = fork()) == -1; count++) {
+	msg_warn("fork %s: %m", command[0]);
+	if (count >= var_fork_tries) {
 	    mbox_release(mp);
-	    exit(WIFEXITED(status) ? WEXITSTATUS(status) : 1);
+	    exit(EX_TEMPFAIL);
 	}
-	if (count + 1 < var_fork_tries)
-	    sleep(var_fork_delay);
+	sleep(var_fork_delay);
     }
-    mbox_release(mp);
-    exit(EX_TEMPFAIL);
+    switch (pid) {
+    case 0:
+	execvp(command[0], command);
+	msg_fatal("execvp %s: %m", command[0]);
+    default:
+	if (waitpid(pid, &status, 0) < 0)
+	    msg_fatal("waitpid: %m");
+	mbox_release(mp);
+	exit(WIFEXITED(status) ? WEXITSTATUS(status) : 1);
+    }
 }
