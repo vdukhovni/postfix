@@ -1,52 +1,52 @@
-rule       canonical
+rule       local
 address    !
 result     ""@
 
-rule       canonical
+rule       local
 address    a!
 result     ""@a.MYDOMAIN
 
-rule       canonical
+rule       local
 address    !b
 result     b@
 
-rule       canonical
+rule       local
 address    a!b
 result     b@a.MYDOMAIN
 
-rule       canonical
+rule       local
 address    %
 result     ""@
 
-rule       canonical
+rule       local
 address    a%
 result     a@
 
-rule       canonical
+rule       local
 address    %b
 result     ""@b.MYDOMAIN
 
-rule       canonical
+rule       local
 address    a%b
 result     a@b.MYDOMAIN
 
-rule       canonical
+rule       local
 address    @
 result     ""
 
-rule       canonical
+rule       local
 address    a@
 result     a@
 
-rule       canonical
+rule       local
 address    a@.
 result     a@.
 
-rule       canonical
+rule       local
 address    a@b
 result     a@b.MYDOMAIN
 
-rule       canonical
+rule       local
 address    a@b.
 result     a@b
 

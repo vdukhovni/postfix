@@ -10,9 +10,14 @@ issued for snapshot releases.
 Incompatible changes with snapshot Postfix-2.2-20041019
 =======================================================
 
+You must reload or restart Postfix, because the protocol between
+queue manager and delivery agents has changed.  If you forget this,
+mail will remain queued until you restart/reload Postfix.
+
 Support for return addresses in the non-standard Errors-To: message
 headers is removed. It was already disabled by default with Postfix
-version 2.1.
+version 2.1. Since it is non-standard, there was no guarantee that
+it would have effect on other MTAs.
 
 Major changes with snapshot Postfix-2.2-20041019
 ================================================
@@ -36,17 +41,15 @@ and whether headers are rewritten at all.
 
 The "local" address rewriting context is used for mail submitted
 with the Postfix sendmail command, for mail from clients that match
-$local_header_rewrite_context_clients (default: $inet_interfaces
-$mynetworks), and for mail from SASL authenticated clients.  It is
-not automatically used for pop-before-smtp clients; you'll have to
-specify their lookup table via the local_header_rewrite_context_clients
-parameter.
+$local_header_rewrite_context_clients (default:  $mynetworks), and
+for mail from SASL authenticated clients.  It is not automatically
+used for pop-before-smtp clients; you'll have to specify their
+lookup table via the local_header_rewrite_context_clients parameter.
 
 The smtpd_remote_header_rewrite_context parameter specifies the
-address
-rewriting context for remote mail. The backwards compatible default
-is "local".  Purists will specify "none", so that Postfix does not
-modify headers (not even with canonical mappings or address
+address rewriting context for remote mail. The backwards compatible
+default is "local".  Purists will specify "none", so that Postfix
+does not modify headers (not even with canonical mappings or address
 masquerading).
 
 Postix always uses the "local" context for envelope addresses,

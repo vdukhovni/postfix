@@ -94,7 +94,7 @@
 /*	filtering, or address mapping.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBlocal_header_rewrite_context_clients ($inet_interfaces $mynetworks)\fR"
+/* .IP "\fBlocal_header_rewrite_context_clients ($mynetworks)\fR"
 /*	Append the domain names in $myorigin and $mydomain to incomplete
 /*	message header addresses from these clients.
 /* .IP "\fBremote_header_rewrite_context_name (local)\fR"
@@ -2372,6 +2372,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	     * DOMAIN=local or remote.
 	     */
 	case SMTPD_STATE_XFORWARD_DOMAIN:
+	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE))
+		attr_value = XFORWARD_DOM_LOCAL;
 	    context_name[1] = var_remote_rwr_name;
 	    if ((context_code = name_code(xforward_to_context,
 					  NAME_CODE_FLAG_NONE,
@@ -2716,12 +2718,6 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      */
     state.xforward_allowed =
 	namadr_list_match(xforward_hosts, state.name, state.addr);
-
-    /*
-     * Choose a default address rewriting context. This should be made more
-     * configurable.
-     */
-    smtpd_check_rewrite(&state);
 
     /*
      * See if we need to turn on verbose logging for this client.

@@ -2104,8 +2104,7 @@ extern char *var_remote_rwr_name;
 #define REWRITE_NONE	"none"
 
 #define VAR_LOC_RWR_CLIENTS		"local_header_rewrite_context_clients"
-#define DEF_LOC_RWR_CLIENTS		"$" VAR_INET_INTERFACES \
-					" $" VAR_MYNETWORKS
+#define DEF_LOC_RWR_CLIENTS		"$" VAR_MYNETWORKS
 extern char *var_local_rwr_clients;
 
 /* LICENSE

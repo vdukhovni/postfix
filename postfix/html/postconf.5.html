@@ -3083,24 +3083,34 @@ into concurrency per domain.  </p>
 </DD>
 
 <DT><b><a name="local_header_rewrite_context_clients">local_header_rewrite_context_clients</a>
-(default: $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
-$<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
+(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
 
 <p> Append the domain names in $<a href="postconf.5.html#myorigin">myorigin</a> and $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete
 message header addresses from these clients.  </p>
 
 <p> Specify a list of network addresses or network/netmask patterns,
-separated by comma or whitespace. The list is matched left to right,
-and the search stops on the first match.  Specify !address or
-!network/netmask to exclude an address or network block from the
-list.  A network mask specifies the number of bits in the network
-part of a host address. Continue long lines by starting the next
-line with whitespace. </p>
+separated by comma or whitespace. Continue long lines by starting
+the next line with whitespace. </p>
 
-<p> You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns.
-A "/file/name" pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>"
-lookup table is matched when a client name or address matches a
-lookup key (the lookup result is ignored). </p>
+<p> A network mask specifies the number of bits in the network part
+of a host address.  You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>"
+patterns.  A "/file/name" pattern is replaced by its contents; a
+"<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a client name or address
+matches a lookup key (the lookup result is ignored). </p>
+
+<p> The list is matched left to right, and the search stops on the
+first match.  Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+<p>
+Examples:
+</p>
+
+<pre>
+<a href="postconf.5.html#local_header_rewrite_context_clients">local_header_rewrite_context_clients</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+<a href="postconf.5.html#local_header_rewrite_context_clients">local_header_rewrite_context_clients</a> = !192.168.0.1 $<a href="postconf.5.html#mynetworks">mynetworks</a>
+<a href="postconf.5.html#local_header_rewrite_context_clients">local_header_rewrite_context_clients</a> = static:all
+</pre>
 
 
 </DD>
@@ -3967,22 +3977,25 @@ If you specify the <a href="postconf.5.html#mynetworks">mynetworks</a> list by h
 Postfix ignores the <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> setting.
 </p>
 
-<p>
-Specify a list of network/netmask patterns, separated by commas
-and/or whitespace. The mask specifies the number of bits in the
-network part of a host address.  You can also specify "/file/name"
-or "<a href="DATABASE_README.html">type:table</a>" patterns.  A "/file/name" pattern is replaced by
-its contents; a "<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a table
-entry matches a lookup string (the lookup result is ignored).
-Continue long lines by starting the next line with whitespace.
-</p>
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. Continue long lines by
+starting the next line with whitespace. </p>
 
-<p>
-Examples:
-</p>
+<p> The netmask specifies the number of bits in the network part
+of a host address.  You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>"
+patterns.  A "/file/name" pattern is replaced by its contents; a
+"<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a table entry matches a
+lookup string (the lookup result is ignored). </p>
+
+<p> The list is matched left to right, and the search stops on the
+first match.  Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+<p> Examples:  </p>
 
 <pre>
 <a href="postconf.5.html#mynetworks">mynetworks</a> = 168.100.189.0/28, 127.0.0.0/8
+<a href="postconf.5.html#mynetworks">mynetworks</a> = !192.168.0.1, 192.168.0.0/28
 <a href="postconf.5.html#mynetworks">mynetworks</a> = $<a href="postconf.5.html#config_directory">config_directory</a>/mynetworks
 <a href="postconf.5.html#mynetworks">mynetworks</a> = hash:/etc/postfix/network_table
 </pre>

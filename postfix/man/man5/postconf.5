@@ -1564,25 +1564,35 @@ the entry in the master.cf file.
 Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
-<DT>\fBlocal_header_rewrite_context_clients
-(default: $inet_interfaces
-$mynetworks)\fR</DT><DD>
-.PP
+.SH local_header_rewrite_context_clients (default: $mynetworks)
 Append the domain names in $myorigin and $mydomain to incomplete
 message header addresses from these clients.
 .PP
 Specify a list of network addresses or network/netmask patterns,
-separated by comma or whitespace. The list is matched left to right,
-and the search stops on the first match.  Specify !address or
-!network/netmask to exclude an address or network block from the
-list.  A network mask specifies the number of bits in the network
-part of a host address. Continue long lines by starting the next
-line with whitespace.
+separated by comma or whitespace. Continue long lines by starting
+the next line with whitespace.
 .PP
-You can also specify "/file/name" or "type:table" patterns.
-A "/file/name" pattern is replaced by its contents; a "type:table"
-lookup table is matched when a client name or address matches a
-lookup key (the lookup result is ignored).
+A network mask specifies the number of bits in the network part
+of a host address.  You can also specify "/file/name" or "type:table"
+patterns.  A "/file/name" pattern is replaced by its contents; a
+"type:table" lookup table is matched when a client name or address
+matches a lookup key (the lookup result is ignored).
+.PP
+The list is matched left to right, and the search stops on the
+first match.  Specify "!pattern" to exclude an address or network
+block from the list.
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+local_header_rewrite_context_clients = $mynetworks
+local_header_rewrite_context_clients = !192.168.0.1 $mynetworks
+local_header_rewrite_context_clients = static:all
+.fi
+.ad
+.ft R
 .SH local_recipient_maps (default: proxy:unix:passwd.byname $alias_maps)
 Lookup tables with all names or addresses of local recipients:
 a recipient address is local when its domain matches $mydestination,
@@ -2058,13 +2068,19 @@ information.
 If you specify the mynetworks list by hand,
 Postfix ignores the mynetworks_style setting.
 .PP
-Specify a list of network/netmask patterns, separated by commas
-and/or whitespace. The mask specifies the number of bits in the
-network part of a host address.  You can also specify "/file/name"
-or "type:table" patterns.  A "/file/name" pattern is replaced by
-its contents; a "type:table" lookup table is matched when a table
-entry matches a lookup string (the lookup result is ignored).
-Continue long lines by starting the next line with whitespace.
+Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. Continue long lines by
+starting the next line with whitespace.
+.PP
+The netmask specifies the number of bits in the network part
+of a host address.  You can also specify "/file/name" or "type:table"
+patterns.  A "/file/name" pattern is replaced by its contents; a
+"type:table" lookup table is matched when a table entry matches a
+lookup string (the lookup result is ignored).
+.PP
+The list is matched left to right, and the search stops on the
+first match.  Specify "!pattern" to exclude an address or network
+block from the list.
 .PP
 Examples:
 .PP
@@ -2072,6 +2088,7 @@ Examples:
 .na
 .ft C
 mynetworks = 168.100.189.0/28, 127.0.0.0/8
+mynetworks = !192.168.0.1, 192.168.0.0/28
 mynetworks = $config_directory/mynetworks
 mynetworks = hash:/etc/postfix/network_table
 .fi

@@ -2481,22 +2481,25 @@ If you specify the mynetworks list by hand,
 Postfix ignores the mynetworks_style setting.
 </p>
 
-<p>
-Specify a list of network/netmask patterns, separated by commas
-and/or whitespace. The mask specifies the number of bits in the
-network part of a host address.  You can also specify "/file/name"
-or "type:table" patterns.  A "/file/name" pattern is replaced by
-its contents; a "type:table" lookup table is matched when a table
-entry matches a lookup string (the lookup result is ignored).
-Continue long lines by starting the next line with whitespace.
-</p>
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. Continue long lines by
+starting the next line with whitespace. </p>
 
-<p>
-Examples:
-</p>
+<p> The netmask specifies the number of bits in the network part
+of a host address.  You can also specify "/file/name" or "type:table"
+patterns.  A "/file/name" pattern is replaced by its contents; a
+"type:table" lookup table is matched when a table entry matches a
+lookup string (the lookup result is ignored). </p>
 
-<pre>
+<p> The list is matched left to right, and the search stops on the
+first match.  Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+<p> Examples:  </p>
+
+<pre> 
 mynetworks = 168.100.189.0/28, 127.0.0.0/8
+mynetworks = !192.168.0.1, 192.168.0.0/28
 mynetworks = $config_directory/mynetworks
 mynetworks = hash:/etc/postfix/network_table
 </pre>
@@ -7215,24 +7218,35 @@ remote clients, when $remote_header_rewrite_context_name is set to
 "invalid".  This is one way to avoid appending your own domain to
 addresses in spam from poorly written software. </p>
 
-%PARAM local_header_rewrite_context_clients $inet_interfaces
-$mynetworks
+%PARAM local_header_rewrite_context_clients $mynetworks
 
 <p> Append the domain names in $myorigin and $mydomain to incomplete
 message header addresses from these clients.  </p>
 
 <p> Specify a list of network addresses or network/netmask patterns,
-separated by comma or whitespace. The list is matched left to right,
-and the search stops on the first match.  Specify !address or
-!network/netmask to exclude an address or network block from the
-list.  A network mask specifies the number of bits in the network
-part of a host address. Continue long lines by starting the next
-line with whitespace. </p>
+separated by comma or whitespace. Continue long lines by starting
+the next line with whitespace. </p>
 
-<p> You can also specify "/file/name" or "type:table" patterns.
-A "/file/name" pattern is replaced by its contents; a "type:table"
-lookup table is matched when a client name or address matches a
-lookup key (the lookup result is ignored). </p>
+<p> A network mask specifies the number of bits in the network part
+of a host address.  You can also specify "/file/name" or "type:table"
+patterns.  A "/file/name" pattern is replaced by its contents; a
+"type:table" lookup table is matched when a client name or address
+matches a lookup key (the lookup result is ignored). </p>
+
+<p> The list is matched left to right, and the search stops on the
+first match.  Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+
+<p>
+Examples:
+</p>
+
+<pre>
+local_header_rewrite_context_clients = $mynetworks
+local_header_rewrite_context_clients = !192.168.0.1 $mynetworks
+local_header_rewrite_context_clients = static:all
+</pre>
 
 %PARAM remote_header_rewrite_context_name local
 

@@ -9791,11 +9791,10 @@ Apologies for any names omitted.
 	The new "none" address rewriting context does not modify
 	message header addresses at all.
 
-	Postfix uses the "local" rewriting context for mail from
-	the machine itself, from clients listed with the
-	local_rewrite_context_clients parameter (default:
-	$inet_interfaces $mynetworks) and from SASL authenticated
-	clients.
+	Postfix uses the "local" rewriting context for mail posted
+	with Postfix sendmail, from clients listed with the
+	local_rewrite_context_clients parameter (default:  $mynetworks)
+	and from SASL authenticated clients.
 
 	The context specified with remote_rewrite_context_name is
 	used for all other clients. The default setting is backwards

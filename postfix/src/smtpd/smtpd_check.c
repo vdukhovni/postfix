@@ -3378,11 +3378,10 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 #define NOT_SASL_AUTHENTICATED	0
 
     /*
-     * XXX We want to be able to use !pattern to make exceptions, but then we
-     * should not confuse matters by mixing names with addresses.
+     * XXX We accept same syntax as mynetwork.
      */
     if (SMTPD_STAND_ALONE(state)
-	|| namadr_list_match(local_rewrite_clients, " ", state->addr)
+	|| namadr_list_match(local_rewrite_clients, state->name, state->addr)
 #ifdef USE_SASL_AUTH
 	|| permit_sasl_auth(state, SASL_AUTHENTICATED,
 			    NOT_SASL_AUTHENTICATED)
