@@ -33,7 +33,8 @@ test:	$(TESTPROG)
 
 tests:	test
 
-update: ../../bin/smtp-source ../../bin/smtp-sink ../../bin/qmqp-source
+update: ../../bin/smtp-source ../../bin/smtp-sink ../../bin/qmqp-source \
+	../../bin/qmqp-sink
 
 ../../bin/smtp-source: smtp-source
 	cp $? $@

@@ -36,8 +36,8 @@
 /* .IP "\fBopen\fR \fImaptype:mapname flags\fR"
 /*	Open the table with type \fImaptype\fR and name \fImapname\fR,
 /*	as controlled by \fIflags\fR. The reply includes the \fImaptype\fR
-/*	dependent flags (to distinguish a fixed string table from regular
-/*	a expression table).
+/*	dependent flags (to distinguish a fixed string table from a regular
+/*	expression table).
 /* .IP "\fBlookup\fR \fImaptype:mapname flags key\fR"
 /*	Look up the data stored under the requested key.
 /*	The reply is the request completion status code (below) and

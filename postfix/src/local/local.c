@@ -31,7 +31,14 @@
 /*	The system administrator can specify a comma/space separated list
 /*	of ~\fR/.\fBforward\fR like files through the \fBforward_path\fR
 /*	configuration parameter. Upon delivery, the local delivery agent
-/*	tries each pathname in the list until a file is found.
+/*	tries each pathname in the list until a file is found. 
+/*
+/*	Delivery via ~/.\fB.forward\fR files is done with the privileges 
+/*	of the recipient.
+/*	Thus, ~/.\fBforward\fR like files must be readable by the
+/*	recipient, and their parent directory needs to have "execute"
+/*	permission for the recipient.
+/*
 /*	The \fBforward_path\fR parameter is subject to interpolation of
 /*	\fB$user\fR (recipient username), \fB$home\fR (recipient home
 /*	directory), \fB$shell\fR (recipient shell), \fB$recipient\fR

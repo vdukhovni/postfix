@@ -9364,7 +9364,43 @@ Apologies for any names omitted.
 	Bugfix: missing "sasl enabled" guard in the SMTPD policy
 	client.  File: smtpd/smtpd_check.c.
 
+20040606
+
+	Portability. UnixWare has strcasecmp() in strings.h.  Patch
+	by Andreas Winkelmann. File: util/sys_defs.h.
+
+	Portability. The postlink script is transformed from sed(1)
+	to perl(1).
+
+20040608
+
+	Portability. Introduced SET_H_ERRNO() macro for compilation
+	environments where h_errno can't be used as an lvalue.
+	Files:  util/sys_defs.h, dns/dns_lookup.c.
+
+	Portability. Eliminate assumption on bits per byte from
+	vbuf_print.c.
+
+20040614
+
+	Bugfix: the SMTP client did not reset per-session EHLO,
+	SASL, and history information when opening a connection to
+	an alternate SMTP server.  This is the result of abstraction
+	no longer matching function. Reported and diagnosed by
+	Victor Duchovni, Morgan Stanley.
+
+	Bugfix: non-portable reuse of variadic argument lists.
+	Fix by Victor Duchovni, Morgan Stanley. Files:  global/bounce.c,
+	global/defer.c, global/sent.c, global/trace.c, global/verify.c.
+
+	Portability: NetBSD 2.0 has changed from statfs to statvfs.
+	John Heasley. File: util/sys_defs.h.
+
+	Documentation: typo fixes by IKEDA Nozomu.
+
 Open problems:
+
+	Low: make sure CCARGS -I options come at the end.
 
 	Low: add INSTALL section for pre-existing Postfix systems.
 

@@ -177,17 +177,18 @@ VIRTUAL(8)                                             VIRTUAL(8)
        Available in Postfix version 2.0 and later:
 
        <b><a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> ($<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>)</b>
-              The list of domains  that  are  delivered  via  the
-              $<a href="postconf.5.html#virtual_transport">virtual_transport</a> mail delivery transport.
+              Postfix is final destination for the specified list
+              of   domains;  mail  is  delivered  via  the  $<a href="postconf.5.html#virtual_transport">vir</a>-
+              <a href="postconf.5.html#virtual_transport">tual_transport</a> mail delivery transport.
 
        <b><a href="postconf.5.html#virtual_transport">virtual_transport</a> (virtual)</b>
-              The  default  mail  delivery  transport for domains
-              that match the  $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>  parameter
+              The default mail  delivery  transport  for  domains
+              that  match  the $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> parameter
               value.
 
 <b>LOCKING CONTROLS</b>
        <b><a href="postconf.5.html#virtual_mailbox_lock">virtual_mailbox_lock</a> (see 'postconf -d' output)</b>
-              How  to lock a UNIX-style <a href="virtual.8.html">virtual(8)</a> mailbox before
+              How to lock a UNIX-style <a href="virtual.8.html">virtual(8)</a> mailbox  before
               attempting delivery.
 
        <b><a href="postconf.5.html#deliver_lock_attempts">deliver_lock_attempts</a> (20)</b>
@@ -195,37 +196,37 @@ VIRTUAL(8)                                             VIRTUAL(8)
               sive lock on a mailbox file or <a href="bounce.8.html">bounce(8)</a> logfile.
 
        <b><a href="postconf.5.html#deliver_lock_delay">deliver_lock_delay</a> (1s)</b>
-              The  time  between attempts to acquire an exclusive
+              The time between attempts to acquire  an  exclusive
               lock on a mailbox file or <a href="bounce.8.html">bounce(8)</a> logfile.
 
        <b><a href="postconf.5.html#stale_lock_time">stale_lock_time</a> (500s)</b>
-              The time after  which  a  stale  exclusive  mailbox
+              The  time  after  which  a  stale exclusive mailbox
               lockfile is removed.
 
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#virtual_destination_concurrency_limit">virtual_destination_concurrency_limit</a>   ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_concurrency_limit">tion_concurrency_limit</a>)</b>
-              The  maximal  number  of parallel deliveries to the
-              same destination via the virtual  message  delivery
+              The maximal number of parallel  deliveries  to  the
+              same  destination  via the virtual message delivery
               transport.
 
        <b><a href="postconf.5.html#virtual_destination_recipient_limit">virtual_destination_recipient_limit</a>     ($<a href="postconf.5.html#default_destination_recipient_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">tion_recipient_limit</a>)</b>
-              The  maximal  number of recipients per delivery via
+              The maximal number of recipients per  delivery  via
               the virtual message delivery transport.
 
        <b><a href="postconf.5.html#virtual_mailbox_limit">virtual_mailbox_limit</a> (51200000)</b>
-              The maximal size in bytes of an individual  mailbox
+              The  maximal size in bytes of an individual mailbox
               or maildir file, or zero (no limit).
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -233,31 +234,31 @@ VIRTUAL(8)                                             VIRTUAL(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID of a Postfix command or daemon  pro-
+              The  process ID of a Postfix command or daemon pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The location of the Postfix top-level queue  direc-
+              The  location of the Postfix top-level queue direc-
               tory.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail system name that is prepended to the pro-
+              The mail system name that is prepended to the  pro-
               cess  name  in  syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
@@ -271,20 +272,20 @@ VIRTUAL(8)                                             VIRTUAL(8)
        <a href="VIRTUAL_README.html">VIRTUAL_README</a>, domain hosting howto
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>HISTORY</b>
-       This delivery agent was originally based  on  the  Postfix
-       local  delivery  agent.  Modifications mainly consisted of
-       removing code that either was not applicable or  that  was
-       not  safe  in this context: aliases, ~user/.forward files,
+       This  delivery  agent  was originally based on the Postfix
+       local delivery agent. Modifications  mainly  consisted  of
+       removing  code  that either was not applicable or that was
+       not safe in this context: aliases,  ~user/.forward  files,
        delivery to "|command" or to /file/name.
 
        The <b>Delivered-To:</b> message header appears in the <b>qmail</b> sys-
        tem by Daniel Bernstein.
 
-       The  <b>maildir</b>  structure  appears  in  the  <b>qmail</b> system by
+       The <b>maildir</b> structure  appears  in  the  <b>qmail</b>  system  by
        Daniel Bernstein.
 
 <b>AUTHOR(S)</b>

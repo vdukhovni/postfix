@@ -11,7 +11,7 @@ Print Postfix queue domain and age distribution
 .fi
 \fBqshape\fR [\fB-s\fR] [\fB-p\fR] [\fB-m \fImin_subdomains\fR]
         [\fB-b \fIbucket_count\fR] [\fB-t \fIbucket_time\fR]
-        [\fB-w \fIterminal_width\fR]
+        [\fB-l\fR] [\fB-w \fIterminal_width\fR]
         [\fB-c \fIconfig_directory\fR] [\fIqueue_name\fR ...]
 .SH DESCRIPTION
 .ad
@@ -44,10 +44,15 @@ increasing intervals. This option sets the number of intervals
 or "buckets". Each bucket has a maximum queue age that is twice
 as large as that of the previous bucket. The last bucket has no
 age limit.
-.IP "\fB-b \fIbucket_time\fR"
+.IP "\fB-t \fIbucket_time\fR"
 The age limit in minutes for the first time bucket. The default
 value is 5, meaning that the first bucket counts messages between
 0 and 5 minutes old.
+.IP "\fB-l\fR"
+Instead of using a geometric age sequence, use a linear age sequence,
+in other words simple multiples of \fBbucket_time\fR.
+
+This feature is available in Postfix 2.2 and later.
 .IP "\fB-w \fIterminal_width\fR"
 The output is right justified, with the counts for the last
 bucket shown on the 80th column, the \fIterminal_width\fR can be

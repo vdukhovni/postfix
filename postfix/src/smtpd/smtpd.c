@@ -259,9 +259,9 @@
 /*	Parameters concerning known/unknown recipients in virtual alias
 /*	domains:
 /* .IP "\fBvirtual_alias_domains ($virtual_alias_maps)\fR"
-/*	Optional list of names of virtual alias domains, that is,
-/*	domains for which all addresses are aliased to addresses in other
-/*	local or remote domains.
+/*	Postfix is final destination for the specified list of virtual
+/*	alias domains, that is, domains for which all addresses are aliased
+/*	to addresses in other local or remote domains.
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
 /*	Optional lookup tables that alias specific mail addresses or domains
 /*	to other local or remote address.
@@ -273,8 +273,8 @@
 /*	Parameters concerning known/unknown recipients in virtual mailbox
 /*	domains:
 /* .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-/*	The list of domains that are delivered via the $virtual_transport
-/*	mail delivery transport.
+/*	Postfix is final destination for the specified list of domains;
+/*	mail is delivered via the $virtual_transport mail delivery transport.
 /* .IP "\fBvirtual_mailbox_maps (empty)\fR"
 /*	Optional lookup tables with all valid addresses in the domains that
 /*	match $virtual_mailbox_domains.
@@ -351,9 +351,6 @@
 /*	As of version 2.1, Postfix can be configured to delegate access
 /*	policy decisions to an external server that runs outside Postfix.
 /*	See the file SMTPD_POLICY_README for more information.
-/* .IP "\fBsmtpd_policy_service_timeout (100s)\fR"
-/*	The time limit for connecting to, writing to or receiving from a
-/*	delegated SMTPD policy server.
 /* .IP "\fBsmtpd_policy_service_max_idle (300s)\fR"
 /*	The time after which an idle SMTPD policy service connection is
 /*	closed.
@@ -426,7 +423,7 @@
 /* SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
-/*	Postfix version 2.1 introduces sender and address verification.
+/*	Postfix version 2.1 introduces sender and recipient address verification.
 /*	This feature is implemented by sending probe email messages that
 /*	are not actually delivered.
 /*	This feature is requested via the reject_unverified_sender and
@@ -537,7 +534,7 @@
 /*	The list of "trusted" SMTP clients that have more privileges than
 /*	"strangers".
 /* .IP "\fBmyorigin ($myhostname)\fR"
-/*	The default domain name that locally-posted mail appears to come
+/*	The domain name that locally-posted mail appears to come
 /*	from, and that locally posted mail is delivered to.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.

@@ -102,10 +102,10 @@ VSTRING *base64_decode(VSTRING *result, const char *in, int len)
     static unsigned char *un_b64 = 0;
     const unsigned char *cp;
     int     count;
-    int     ch0;
-    int     ch1;
-    int     ch2;
-    int     ch3;
+    unsigned int ch0;
+    unsigned int ch1;
+    unsigned int ch2;
+    unsigned int ch3;
 
 #define CHARS_PER_BYTE	(UCHAR_MAX + 1)
 #define INVALID		0xff

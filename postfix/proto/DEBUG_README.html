@@ -377,8 +377,9 @@ so that it invokes the <b>gdb</b> debugger: </p>
 <pre>
 /etc/postfix/main.cf:
     debugger_command =
-        PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont;
-        echo where) | gdb $daemon_directory/$process_name $process_id 2&gt&amp;1
+        PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont; echo
+        where; sleep 8640000) | gdb $daemon_directory/$process_name 
+        $process_id 2&gt&amp;1
         &gt;$config_directory/$process_name.$process_id.log &amp; sleep 5
 </pre>
 </blockquote>

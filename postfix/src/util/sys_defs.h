@@ -50,8 +50,13 @@
 #endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
-#define USE_STATFS
-#define STATFS_IN_SYS_MOUNT_H
+#if (defined(__NetBSD_Version__) && __NetBSD_Version__ > 200040000)
+# define USE_STATVFS
+# define STATVFS_IN_SYS_STATVFS_H
+#else
+# define USE_STATFS
+# define STATFS_IN_SYS_MOUNT_H
+#endif
 #define HAS_POSIX_REGEXP
 #define HAS_ST_GEN	/* struct stat contains inode generation number */
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
@@ -333,6 +338,7 @@ extern int opterr;
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
+#define STRCASECMP_IN_STRINGS_H
 #endif
 
 #ifdef UW21				/* UnixWare 2.1.x */
@@ -1119,7 +1125,7 @@ typedef int pid_t;
   * sections above.
   */
 #ifndef PRINTFLIKE
-#if __GNUC__ == 2 && __GNUC_MINOR__ >= 7
+#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ == 3
 #define PRINTFLIKE(x,y) __attribute__ ((format (printf, (x), (y))))
 #else
 #define PRINTFLIKE(x,y)
@@ -1127,7 +1133,7 @@ typedef int pid_t;
 #endif
 
 #ifndef SCANFLIKE
-#if __GNUC__ == 2 && __GNUC_MINOR__ >= 7
+#if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ == 3
 #define SCANFLIKE(x,y) __attribute__ ((format (scanf, (x), (y))))
 #else
 #define SCANFLIKE(x,y)
@@ -1151,6 +1157,14 @@ typedef int pid_t;
 #define __MAXINT__(T) ((T) (((((T) 1) << ((sizeof(T) * CHAR_BIT) - 1)) ^ ((T) -1))))
 #ifndef OFF_T_MAX
 #define OFF_T_MAX __MAXINT__(off_t)
+#endif
+
+ /*
+  * Setting globals like h_errno can be problematic when Postfix is linked
+  * with multi-threaded libraries.
+  */
+#ifndef SET_H_ERRNO
+#define SET_H_ERRNO(err) (h_errno = (err))
 #endif
 
  /*

@@ -74,7 +74,7 @@
 /* .ad
 /* .fi
 /* .IP "\fBmyorigin ($myhostname)\fR"
-/*	The default domain name that locally-posted mail appears to come
+/*	The domain name that locally-posted mail appears to come
 /*	from, and that locally posted mail is delivered to.
 /* .IP "\fBallow_percent_hack (yes)\fR"
 /*	Enable the rewriting of the form "user%domain" to "user@domain".
@@ -120,7 +120,7 @@
 /* ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
-/*	Postfix version 2.1 introduces sender and address verification.
+/*	Postfix version 2.1 introduces sender and recipient address verification.
 /*	This feature is implemented by sending probe email messages that
 /*	are not actually delivered.
 /*	By default, address verification probes use the same route

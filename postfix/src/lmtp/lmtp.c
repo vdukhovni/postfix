@@ -330,7 +330,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
      * Note: `state' was made global (to this file) so that we can cache
      * connections and so that we can close a cached connection via the
      * MAIL_SERVER_EXIT function (cleanup). The alloc for `state' is
-     * performed in the MAIL_SERVER_PRE_INIT function (pre_init).
+     * performed in the MAIL_SERVER_POST_INIT function (post_init).
      * 
      */
     why = vstring_alloc(100);

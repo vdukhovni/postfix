@@ -188,8 +188,8 @@ delivery.
 .PP
 Available in Postfix version 2.0 and later:
 .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-The list of domains that are delivered via the $virtual_transport
-mail delivery transport.
+Postfix is final destination for the specified list of domains;
+mail is delivered via the $virtual_transport mail delivery transport.
 .IP "\fBvirtual_transport (virtual)\fR"
 The default mail delivery transport for domains that match the
 $virtual_mailbox_domains parameter value.

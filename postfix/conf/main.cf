@@ -498,7 +498,7 @@ unknown_local_recipient_reject_code = 550
 # JUNK MAIL CONTROLS
 # 
 # The controls listed here are only a very small subset. The file
-# SPTMD_ACCESS_README provides an overview.
+# SMTPD_ACCESS_README provides an overview.
 
 # The header_checks parameter specifies an optional table with patterns
 # that each logical message header is matched against, including
