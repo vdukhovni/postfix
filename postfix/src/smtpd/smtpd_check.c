@@ -2183,7 +2183,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 				      FULL, &found, reply_name, reply_class,
 					  def_acl)) != 0 || found)
 	    CHECK_SERVER_RETURN(status);
-	h_errno = 0;				/* XXX */
+	SET_H_ERRNO(0);				/* XXX */
 	if ((hp = gethostbyname((char *) server->data)) == 0) {
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,

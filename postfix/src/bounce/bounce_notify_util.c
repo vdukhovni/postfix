@@ -345,12 +345,10 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
      * Initialize the bounce_info structure. Forge a logfile record for just
      * one recipient.
      */
-#define REALLY_BOUNCE	1
-
     log_handle = bounce_log_forge(orig_recipient, recipient, offset, dsn_status,
 				  dsn_action, why);
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id,
-				    encoding, REALLY_BOUNCE, log_handle);
+				    encoding, BOUNCE_MSG_FAIL, log_handle);
     return (bounce_info);
 }
 

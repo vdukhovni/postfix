@@ -512,7 +512,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 	    vstring_sprintf(why,
 		   "Name service error for %s: invalid host or domain name",
 			    name);
-	h_errno = HOST_NOT_FOUND;
+	SET_H_ERRNO(HOST_NOT_FOUND);
 	return (DNS_NOTFOUND);
     }
 
@@ -524,7 +524,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 	    vstring_sprintf(why,
 		   "Name service error for %s: invalid host or domain name",
 			    name);
-	h_errno = HOST_NOT_FOUND;
+	SET_H_ERRNO(HOST_NOT_FOUND);
 	return (DNS_NOTFOUND);
     }
 
