@@ -22,27 +22,14 @@ top of main.cf that advises the user of the existence of the
 sample-xxx files. Without the sample-xxx files, Postfix will be
 much more difficult to configure.
 
-Postfix Installation parameter defaults
-=======================================
+Postfix Installation parameters
+===============================
 
 Postfix installation is controlled by a dozen installation parameters.
-See the postfix-install and post-install files for details. Built-in
-default settings can be changed at compile time with:
-
-    % make makefiles CCARGS=whatever
-
-Names of C symbolic constants and their meaning:
-
-    DEF_CONFIG_DIR          default configuration directory
-    DEF_QUEUE_DIR           default queue directory
-    DEF_DAEMON_DIR          default daemon directory
-    DEF_COMMAND_DIR         default command directory
-    DEF_SENDMAIL_PATH       default Postfix sendmail command
-    DEF_MAILQ_PATH          default Postfix mailq command
-    DEF_NEWALIAS_PATH       default Postfix newaliases command
-    DEF_MANPAGE_DIR         default manual page directory
-    DEF_SAMPLE_DIR          default directory for sample configuration files
-    DEF_README_DIR          default directory for README files
+See the postfix-install and post-install files for details.  Most
+parameters have system-dependent default settings that aren't
+configurable at compile time. This will hopefully be rectified in
+a later release.
 
 Preparing a pre-built package for distribution to other systems
 ===============================================================

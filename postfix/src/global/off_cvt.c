@@ -74,7 +74,7 @@ off_t   off_cvt_string(const char *str)
     /*
      * Multiplication by numbers > 2 can overflow without producing a smaller
      * result mod 2^N (where N is the number of bits in the result type).
-     * (Victor Duchovny, Morgan Stanley).
+     * (Victor Duchovni, Morgan Stanley).
      */
     for (result = 0; (ch = *(unsigned char *) str) != 0; str++) {
 	if (!ISDIGIT(ch))

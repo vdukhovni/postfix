@@ -100,6 +100,14 @@
 #include <ldap.h>
 #include <string.h>
 
+/* Handle differences between LDAP SDK's constant definitions */
+#ifndef LDAP_CONST
+#define LDAP_CONST const
+#endif
+#ifndef LDAP_OPT_SUCCESS
+#define LDAP_OPT_SUCCESS 0
+#endif
+
 /* Utility library. */
 
 #include "match_list.h"
@@ -146,8 +154,10 @@ typedef struct {
  */
 static jmp_buf env;
 
-static void dict_ldap_logprint(LDAP_CONST char *data) {
+static void dict_ldap_logprint(LDAP_CONST char *data)
+{
     char   *myname = "dict_ldap_debug";
+
     msg_info("%s: %s", myname, data);
 }
 
@@ -165,6 +175,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 
 #ifdef LDAP_API_FEATURE_X_MEMCACHE
     LDAPMemCache *dircache;
+
 #endif
 
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
@@ -190,8 +201,8 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
     mytimeval.tv_sec = dict_ldap->timeout;
     mytimeval.tv_usec = 0;
     if (ldap_set_option(dict_ldap->ld, LDAP_OPT_NETWORK_TIMEOUT, &mytimeval) !=
-		LDAP_OPT_SUCCESS)
-	msg_warn("%s: Unable to set network timeout.", myname); 
+	LDAP_OPT_SUCCESS)
+	msg_warn("%s: Unable to set network timeout.", myname);
 #else
     if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
 	msg_warn("%s: Error setting signal handler for open timeout: %m",
@@ -227,19 +238,20 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
      */
 #if (LDAP_API_VERSION >= 2000)
     if (ldap_set_option(dict_ldap->ld, LDAP_OPT_DEREF,
-		        &(dict_ldap->dereference)) != LDAP_OPT_SUCCESS)
+			&(dict_ldap->dereference)) != LDAP_OPT_SUCCESS)
 	msg_warn("%s: Unable to set dereference option.", myname);
 #else
     dict_ldap->ld->ld_deref = dict_ldap->dereference;
 #endif
 
 #if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
-    if(ber_set_option(NULL, LBER_OPT_LOG_PRINT_FN,
-		      (LDAP_CONST *)dict_ldap_logprint) != LBER_OPT_SUCCESS)
-       msg_warn("%s: Unable to set ber logprint function.", myname);
-    if(ldap_set_option(dict_ldap->ld, LDAP_OPT_DEBUG_LEVEL,
-		       &(dict_ldap->debuglevel)) != LDAP_OPT_SUCCESS)
-       msg_warn("%s: Unable to set LDAP debug level.", myname);
+    if (dict_ldap->debuglevel > 0 &&
+	ber_set_option(NULL, LBER_OPT_LOG_PRINT_FN,
+		     (LDAP_CONST *) dict_ldap_logprint) != LBER_OPT_SUCCESS)
+	msg_warn("%s: Unable to set ber logprint function.", myname);
+    if (ldap_set_option(dict_ldap->ld, LDAP_OPT_DEBUG_LEVEL,
+			&(dict_ldap->debuglevel)) != LDAP_OPT_SUCCESS)
+	msg_warn("%s: Unable to set LDAP debug level.", myname);
 #endif
 
 
@@ -293,7 +305,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 	    } else {
 		if (msg_verbose)
 		    msg_info("%s: Caching enabled for %s",
-			      myname, dict_ldap->ldapsource);
+			     myname, dict_ldap->ldapsource);
 	    }
 	}
 #else
@@ -400,21 +412,23 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 					    0, &tv, &resloop);
 		    }
 		    switch (rc) {
-			case LDAP_SUCCESS:
-			    dict_ldap_get_values(dict_ldap, resloop, result);
-			    break;
-			case LDAP_NO_SUCH_OBJECT:
-			    /* Go ahead and treat this as though the DN existed
-			     * and just didn't have any result attributes.
-			     */
-			    msg_warn("%s: DN %s not found, skipping ", myname,
-				vals[i]);
-			    break;
-			default:
-			    msg_warn("%s: search error %d: %s ", myname, rc,
+		    case LDAP_SUCCESS:
+			dict_ldap_get_values(dict_ldap, resloop, result);
+			break;
+		    case LDAP_NO_SUCH_OBJECT:
+
+			/*
+			 * Go ahead and treat this as though the DN existed
+			 * and just didn't have any result attributes.
+			 */
+			msg_warn("%s: DN %s not found, skipping ", myname,
+				 vals[i]);
+			break;
+		    default:
+			msg_warn("%s: search error %d: %s ", myname, rc,
 				 ldap_err2string(rc));
-			    dict_errno = DICT_ERR_RETRY;
-			    break;
+			dict_errno = DICT_ERR_RETRY;
+			break;
 		    }
 
 		    if (resloop != 0)
@@ -454,11 +468,12 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
      * load on the LDAP server.
      */
     if (dict_ldap->domain) {
-	const char *p=strrchr(name,'@');
+	const char *p = strrchr(name, '@');
+
 	if (p != 0)
-	    p=p+1;
+	    p = p + 1;
 	else
-	    p=name;
+	    p = name;
 	if (match_list_match(dict_ldap->domain, p) == 0) {
 	    if (msg_verbose)
 		msg_info("%s: domain of %s not found in domain list", myname,
@@ -566,31 +581,32 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 
 	    /*
 	     * Make sure it's %[sud] and not something else.  For backward
-	     * compatibilty, treat anything other than %u or %d as %s, with
-	     * a warning.
+	     * compatibilty, treat anything other than %u or %d as %s, with a
+	     * warning.
 	     */
 	    if (*(sub) == '%') {
-		char *u=vstring_str(escaped_name);
-		char *p=strchr(u,'@');
-		switch (*(sub+1)) { 
-		    case 'd':
-			if (p)
-			    vstring_strcat(filter_buf, p+1);
-			break;
-		    case 'u':
-			if (p)
-			    vstring_strncat(filter_buf, u, p-u);
-			else
-			    vstring_strcat(filter_buf, u);
-			break;
-		    default:
-			msg_warn
-			    ("%s: Invalid lookup substitution format '%%%c'!",
-			     myname, *(sub + 1));
-			/* fall through */
-		    case 's':
+		char   *u = vstring_str(escaped_name);
+		char   *p = strchr(u, '@');
+
+		switch (*(sub + 1)) {
+		case 'd':
+		    if (p)
+			vstring_strcat(filter_buf, p + 1);
+		    break;
+		case 'u':
+		    if (p)
+			vstring_strncat(filter_buf, u, p - u);
+		    else
 			vstring_strcat(filter_buf, u);
-			break;
+		    break;
+		default:
+		    msg_warn
+			("%s: Invalid lookup substitution format '%%%c'!",
+			 myname, *(sub + 1));
+		    /* fall through */
+		case 's':
+		    vstring_strcat(filter_buf, u);
+		    break;
 		}
 		sub++;
 	    } else
@@ -614,8 +630,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 
     if (rc == LDAP_SERVER_DOWN) {
 	if (msg_verbose)
-	   msg_info("%s: Lost connection for LDAP source %s, reopening",
-		    myname, dict_ldap->ldapsource);
+	    msg_info("%s: Lost connection for LDAP source %s, reopening",
+		     myname, dict_ldap->ldapsource);
 
 	ldap_unbind(dict_ldap->ld);
 	dict_ldap->ld = NULL;
@@ -625,7 +641,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	 * if dict_ldap_connect() set dict_errno, abort.
 	 */
 	if (dict_errno)
-	   return (0);
+	    return (0);
 
 	rc = ldap_search_st(dict_ldap->ld, dict_ldap->search_base,
 			    dict_ldap->scope,
@@ -634,7 +650,6 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 			    0, &tv, &res);
 
     }
-
     if (rc == LDAP_SUCCESS) {
 
 	/*
@@ -650,7 +665,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 
 #if (LDAP_API_VERSION >= 2000)
 	if (ldap_get_option(dict_ldap->ld, LDAP_OPT_ERROR_NUMBER, &rc) !=
-		LDAP_OPT_SUCCESS)
+	    LDAP_OPT_SUCCESS)
 	    msg_warn("%s: Unable to get last error number.", myname);
 	if (rc != LDAP_SUCCESS && rc != LDAP_DECODING_ERROR)
 	    msg_warn("%s: Had some trouble with entries returned by search: %s", myname, ldap_err2string(rc));
@@ -694,7 +709,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	ldap_msgfree(res);
     if (filter_buf != 0)
 	vstring_free(filter_buf);
-    if (escaped_name != 0) 
+    if (escaped_name != 0)
 	vstring_free(escaped_name);
 
     /*
@@ -956,7 +971,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 #if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
     vstring_sprintf(config_param, "%s_debuglevel", ldapsource);
     dict_ldap->debuglevel = get_mail_conf_int(vstring_str(config_param), 0, 0,
-					        0);
+					      0);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->debuglevel);
@@ -978,7 +993,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     /*
      * Otherwise, we're all set. Return the new dict_ldap structure.
      */
-    return (DICT_DEBUG(&dict_ldap->dict));
+    return (DICT_DEBUG (&dict_ldap->dict));
 }
 
 #endif

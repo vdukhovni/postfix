@@ -42,6 +42,7 @@
 /*	int	var_line_limit;
 /*	char	*var_alias_db_map;
 /*	int	var_message_limit;
+/*	char	*var_mail_release;
 /*	char	*var_mail_version;
 /*	int	var_ipc_idle_limit;
 /*	char	*var_db_type;
@@ -170,6 +171,7 @@ char   *var_double_bounce_sender;
 int     var_line_limit;
 char   *var_alias_db_map;
 int     var_message_limit;
+char   *var_mail_release;
 char   *var_mail_version;
 int     var_ipc_idle_limit;
 char   *var_db_type;
@@ -395,6 +397,7 @@ void    mail_params_init()
 	VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender, 1, 0,
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
 	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 0, 0,
+	VAR_MAIL_RELEASE, DEF_MAIL_RELEASE, &var_mail_release, 1, 0,
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,

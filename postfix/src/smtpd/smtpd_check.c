@@ -1758,7 +1758,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     /*
      * Source-routed, non-local, recipient addresses are too suspicious for
      * returning an "OK" result. The complicated expression below was brought
-     * to you by the keyboard of Victor Duchovny, Morgan Stanley and hacked
+     * to you by the keyboard of Victor Duchovni, Morgan Stanley and hacked
      * up a bit by Wietse.
      */
 #define SUSPICIOUS(domain, reply, state, reply_name, reply_class) \

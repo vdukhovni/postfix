@@ -5632,7 +5632,7 @@ Apologies for any names omitted.
 20011116
 
 	Bugfix: consolidated all the command transaction log resets
-	and eliminated one missing reset (Victor Duchovny, Morgan
+	and eliminated one missing reset (Victor Duchovni, Morgan
 	Stanley). File: smtpd/smtpd.c.
 
 20011118
@@ -5831,7 +5831,7 @@ Apologies for any names omitted.
 
 	Cleanup: proper detection of big number overflow in EHLO
 	and MAIL FROM size announcements, with input from Victor
-	Duchovny, Morgan Stanley. Files: global/off_cvt.c,
+	Duchovni, Morgan Stanley. Files: global/off_cvt.c,
 	smtpd/smtpd.c, smtp/smtp_proto.c, util/alldig.c.
 
 	Forward compatibility: added queue file record types for
@@ -5906,7 +5906,7 @@ Apologies for any names omitted.
 
 	Cleanup: SMTPD access maps now return DUNNO (undetermined)
 	instead of OK when a recipient address contains multiple
-	domains (user@dom1@dom2, etcetera).  Victor Duchovny, Morgan
+	domains (user@dom1@dom2, etcetera).  Victor Duchovni, Morgan
 	Stanley.  File:  smtpd/smtpd_check.c.
 
 20020106
@@ -5920,7 +5920,7 @@ Apologies for any names omitted.
 	queue directory, still referenced install.cf when setting
 	maildrop directory group ownership; and the postfix command
 	did not export the setgid_group parameter to the postfix-script
-	shell script.  Victor Duchovny.
+	shell script.  Victor Duchovni.
 
 	Bugfix: postfix-script, when creating a missing public
 	queue directory, did not set group ownership of the public
@@ -5947,7 +5947,7 @@ Apologies for any names omitted.
 20020111
 
 	Feedback: feedback, bugfixes, and brain-dead shell workarounds
-	for the install scripts by Victor Duchovny and Simon Mudd.
+	for the install scripts by Victor Duchovni and Simon Mudd.
 
 20020113
 
@@ -5960,7 +5960,7 @@ Apologies for any names omitted.
 
 	Bugfix: alternate_config_directories did not take comma
 	or whitespace as separators. File: global/mail_conf.c.
-	Victor Duchovny, Norgan Stanley.
+	Victor Duchovni, Morgan Stanley.
 
 	Bugfix: the rewritten postfix-install script did not chattr
 	+S the Postfix queue.
@@ -5976,6 +5976,11 @@ Apologies for any names omitted.
 	parameter settings, and input filters the environment, so
 	that the startup shell scripts produce a consistent result.
 	Files: postconf.c.
+
+20020117
+
+	Portability: patch from LaMont Jones for compiling dict_ldap.c
+	with the Netscape SDK.
 
 Open problems:
 

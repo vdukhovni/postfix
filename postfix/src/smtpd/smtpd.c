@@ -180,7 +180,7 @@
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
-/* .IP "\fBparent_domain_matches_subdomains\fR (versions >= 20011119)"
+/* .IP \fBparent_domain_matches_subdomains\fR
 /*	List of Postfix features that use \fIdomain.name\fR patterns
 /*	to match \fIsub.domain.name\fR (as opposed to
 /*	requiring \fI.domain.name\fR patterns).

@@ -149,11 +149,7 @@ types.
 
 	# All domains that have final delivery on this machine
 
-	mydestination = $myhostname virtual1.domain virtual2.domain
-
-	# Reject unknown recipients at the SMTP port
-
-	local_recipient_maps = $virtual_mailbox_maps
+	mydestination = $myhostname localhost.$mydomain
 
     # Define a virtual delivery agent if the entry doesn't already exist
 

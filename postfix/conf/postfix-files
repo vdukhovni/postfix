@@ -31,7 +31,9 @@
 #	c=create missing directory (post-install create-missing).
 #
 # Note: the "u" flag is for upgrading the permissions of existing files
-# or directories after changes in Postfix architecture.
+# or directories after changes in Postfix architecture. For robustness
+# it is a good idea to "u" all the files that have special ownership or
+# permissions, so that running "make install" fixes any glitches.
 #
 $config_directory:d:root:-:755:u
 $daemon_directory:d:root:-:755:u
@@ -77,8 +79,8 @@ $command_directory/postlock:f:root:-:755
 $command_directory/postlog:f:root:-:755
 $command_directory/postmap:f:root:-:755
 $command_directory/postsuper:f:root:-:755
-$command_directory/postdrop:f:root:$setgid_group:2755
-$command_directory/postqueue:f:root:$setgid_group:2755
+$command_directory/postdrop:f:root:$setgid_group:2755:u
+$command_directory/postqueue:f:root:$setgid_group:2755:u
 $sendmail_path:f:root:-:755
 $newaliases_path:l:root:-:755
 $mailq_path:l:root:-:755
@@ -168,6 +170,7 @@ $readme_directory/DB_README:f:root:-:644
 $readme_directory/DEBUG_README:f:root:-:644
 $readme_directory/ETRN_README:f:root:-:644
 $readme_directory/FILTER_README:f:root:-:644
+$readme_directory/INSTALL:f:root:-:644
 $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
 $readme_directory/LMTP_README:f:root:-:644

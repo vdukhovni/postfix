@@ -88,6 +88,7 @@
 #	The destination directory for Postfix daemon programs. This directory
 #	should not be in the command search path of any users.
 #	The built-in default directory name is /usr/libexec/postfix.
+#	This parameter setting is recorded in the installed main.cf file.
 # .IP command_directory
 #	The destination directory for Postfix administrative commands. This
 #	directory should be in the command search path of adminstrative users.
@@ -530,7 +531,7 @@ MANPAGE_DIRECTORY=$install_root$manpage_directory
 SAMPLE_DIRECTORY=$install_root$sample_directory
 README_DIRECTORY=$install_root$readme_directory
 
-# Avoid repeated tests for existence of these.
+# Avoid repeated tests for existence of these; default permissions suffice.
 
 test -d $DAEMON_DIRECTORY || mkdir -p $DAEMON_DIRECTORY || exit 1
 test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
