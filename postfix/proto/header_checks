@@ -145,12 +145,6 @@
 # .IP \fBIGNORE\fR
 #	Delete the current line from the input and inspect
 #	the next input line.
-# .IP "\fBPREPEND \fItext...\fR"
-#	Prepend one line with the specified text and inspect the next
-#	input line. The prepended line of text is output before the
-#	input line that triggered the \fBPREPEND\fR pattern.
-# .sp
-#	Note: this action cannot be used to prepend multi-line text.
 # .IP "\fBREDIRECT \fIuser@domain\fR"
 #	Write a message redirection request to the queue file and
 #	inspect the next input line. After the message is queued,

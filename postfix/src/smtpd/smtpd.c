@@ -1470,6 +1470,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     /*
      * Send the end of DATA and finish the proxy connection. Set the
      * CLEANUP_STAT_PROXY error flag in case of trouble.
+     * 
+     * XXX The low-level proxy output routines should set "state" error
+     * attributes. This requires making "state" a context attribute of the
+     * VSTREAM.
      */
     if (state->proxy) {
 	if (state->err == CLEANUP_STAT_OK) {
@@ -1477,6 +1481,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    if (state->err == CLEANUP_STAT_OK &&
 		*STR(state->proxy_buffer) != '2')
 		state->err = CLEANUP_STAT_CONT;
+	} else {
+	    state->error_mask |= MAIL_ERROR_SOFTWARE;
+	    state->err |= CLEANUP_STAT_PROXY;
+	    vstring_sprintf(state->proxy_buffer,
+			    "451 Error: queue file write error");
 	}
 	smtpd_proxy_close(state);
     }

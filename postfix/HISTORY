@@ -9117,6 +9117,13 @@ Apologies for any names omitted.
 	Cleanup: sample-filter.cf is gone. Better documentation is
 	available with "man header_checks".
 
+20040209
+
+	Bugfix: when delivery to smtpd_proxy_filter fails, report
+	"451 Queue file write error" instead of repeating the
+	previous "354 End data with <CR><LF>.<CR><LF>" response.
+	File:  smtpd/smtpd.c.
+
 Open problems:
 
 	Low: log xdelay (esp. for SMTP and delivery to command).
