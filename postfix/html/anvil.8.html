@@ -66,28 +66,33 @@ ANVIL(8)                                                 ANVIL(8)
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
-       Upon process exit, the server logs the maximal  count  and
-       rate  values measured, together with (service, client) and
-       time associated with those events.
+       Upon exit, and every  <b>client_connection_status_update_time</b>
+       seconds, the server logs the maximal count and rate values
+       measured, together with (service, client) information  and
+       the time of day associated with those events.
 
 <b>BUGS</b>
-       Systems behind  network  address  translating  routers  or
+       Systems  behind  network  address  translating  routers or
        proxies appear to have the same client address and can run
        into connection count and/or rate limits falsely.
 
        In this preliminary implementation, a count (or rate) lim-
-       ited  server can have only one remote client at a time. If
-       a server reports multiple simultaneous  clients,  all  but
+       ited server can have only one remote client at a time.  If
+       a  server  reports  multiple simultaneous clients, all but
        the last reported client are ignored.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. Use the <b>postfix reload</b>  command  after  a
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program.  Use the <b>postfix reload</b> command after a
        configuration change.
 
-       <b>connection_rate_time_unit</b>
-              The  unit  of  time over which connection rates are
+       <b>client_connection_rate_time_unit</b>
+              The unit of time over which  connection  rates  are
               calculated.
+
+       <b>client_connection_status_update_time</b>
+              Time  interval  for  logging the maximal connection
+              count and connection rate information.
 
 <b>SEE ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server

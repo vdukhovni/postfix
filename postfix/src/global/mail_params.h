@@ -1917,9 +1917,13 @@ extern int var_smtpd_cconn_limit;
 #define DEF_SMTPD_HOGGERS		"$" VAR_MYNETWORKS
 extern char *var_smtpd_hoggers;
 
-#define VAR_ANVIL_TIME_UNIT		"connection_rate_time_unit"
+#define VAR_ANVIL_TIME_UNIT		"client_connection_rate_time_unit"
 #define DEF_ANVIL_TIME_UNIT		"60s"
 extern int var_anvil_time_unit;
+
+#define VAR_ANVIL_STAT_TIME		"client_connection_status_update_time"
+#define DEF_ANVIL_STAT_TIME		"600s"
+extern int var_anvil_stat_time;
 
  /*
   * Temporary stop gap.
@@ -1927,7 +1931,7 @@ extern int var_anvil_time_unit;
 #if 0
 #include <anvil_clnt.h>
 
-#define VAR_ANVIL_SERVICE		"connection_rate_service"
+#define VAR_ANVIL_SERVICE		"client_connection_rate_service"
 #define DEF_ANVIL_SERVICE		"local:" ANVIL_CLASS "/" ANVIL_SERVICE
 extern char *var_anvil_service;
 #endif

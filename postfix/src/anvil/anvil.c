@@ -74,8 +74,9 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
-/*	Upon process exit, the server logs the maximal count and rate
-/*	values measured, together with (service, client) and time
+/*	Upon exit, and every \fBclient_connection_status_update_time\fR
+/*	seconds, the server logs the maximal count and rate values measured,
+/*	together with (service, client) information and the time of day
 /*	associated with those events.
 /* BUGS
 /*	Systems behind network address translating routers or proxies
@@ -92,8 +93,11 @@
 /*	The following \fBmain.cf\fR parameters are especially relevant to
 /*	this program. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
-/* .IP \fBconnection_rate_time_unit\fR
+/* .IP \fBclient_connection_rate_time_unit\fR
 /*	The unit of time over which connection rates are calculated.
+/* .IP \fBclient_connection_status_update_time\fR
+/*	Time interval for logging the maximal connection count
+/*	and connection rate information.
 /* SEE ALSO
 /*	smtpd(8) Postfix SMTP server
 /* LICENSE
@@ -136,6 +140,7 @@
 /* Application-specific. */
 
 int     var_anvil_time_unit;
+int     var_anvil_stat_time;
 
  /*
   * State.
@@ -144,8 +149,8 @@ static HTABLE *anvil_remote_map;	/* indexed by service+ remote client */
 static BINHASH *anvil_local_map;	/* indexed by local client handle */
 
  /*
-  * Absent a real-time query interface, these are logged at process exit
-  * time.
+  * Absent a real-time query interface, these are logged at process exit time
+  * and at regular intervals.
   */
 static int max_count;
 static char *max_count_user;
@@ -537,6 +542,12 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
+    static void anvil_status_update(int, char *);
+
+    /*
+     * Dump and reset extreme usage every so often.
+     */
+    event_request_timer(anvil_status_update, (char *) 0, var_anvil_stat_time);
 
     /*
      * Initial client state tables.
@@ -550,17 +561,29 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     var_use_limit = 0;
 }
 
-/* anvil_status_dump - log the extremes before terminating */
+/* anvil_status_dump - log and reset extreme usage */
 
 static void anvil_status_dump(char *unused_name, char **unused_argv)
 {
-    if (max_rate > 0)
-	msg_info("statistics: maximal rate %d/%ds for (%s) at %.15s",
+    if (max_rate > 1) {
+	msg_info("statistics: max connection rate %d/%ds for (%s) at %.15s",
 		 max_rate, var_anvil_time_unit,
 		 max_rate_user, ctime(&max_rate_time) + 4);
-    if (max_count > 0)
-	msg_info("statistics: maximal count %d for (%s) at %.15s",
+	max_rate = 0;
+    }
+    if (max_count > 1) {
+	msg_info("statistics: max connection count %d for (%s) at %.15s",
 		 max_count, max_count_user, ctime(&max_count_time) + 4);
+	max_count = 0;
+    }
+}
+
+/* anvil_status_update - log and reset extreme usage periodically */
+
+static void anvil_status_update(int unused_event, char *context)
+{
+    anvil_status_dump((char *) 0, (char **) 0);
+    event_request_timer(anvil_status_update, context, var_anvil_stat_time);
 }
 
 /* main - pass control to the multi-threaded skeleton */
@@ -569,6 +592,7 @@ int     main(int argc, char **argv)
 {
     static CONFIG_TIME_TABLE time_table[] = {
 	VAR_ANVIL_TIME_UNIT, DEF_ANVIL_TIME_UNIT, &var_anvil_time_unit, 1, 0,
+	VAR_ANVIL_STAT_TIME, DEF_ANVIL_STAT_TIME, &var_anvil_stat_time, 1, 0,
 	0,
     };
 

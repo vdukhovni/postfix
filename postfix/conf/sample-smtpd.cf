@@ -123,7 +123,7 @@ smtpd_client_connection_count_limit = 50
 # connection attempts any client is allowed to make to this service
 # per time unit.
 # 
-# The time unit is specified with the connection_rate_time_unit
+# The time unit is specified with the client_connection_rate_time_unit
 # configuration parameter, and defaults to one minute.
 # 
 # By default, every client can make as many connections as Postfix

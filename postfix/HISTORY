@@ -8735,19 +8735,25 @@ Apologies for any names omitted.
 	to disable the restriction for authorized clients.  Most
 	work is implemented by a new "anvil" server.  Parameters:
 	smtpd_client_connection_count_limit, smtpd_client_connection-
-	_rate_limit, smtpd_client_connection_limit_exceptions,
-	connection_rate_time_unit, and connection_rate_purge_delay.
-	Documentation:  smtpd(8), anvil(8), sample-smtpd.cf. Files:
-	smtpd/smtpd.c, global/anvil_clnt.[hc], anvil/anvil.c.  The
-	anvil server logs peak count and rate information per client
-	when it terminates after running out of work or after
-	"postfix reload".
+	_rate_limit, smtpd_client_connection_limit_exceptions, and
+	client_connection_rate_time_unit.  Documentation:  smtpd(8),
+	anvil(8), sample-smtpd.cf. Files:  smtpd/smtpd.c,
+	global/anvil_clnt.[hc], anvil/anvil.c.  The anvil server
+	logs peak count and rate information per client when it
+	terminates after running out of work or after "postfix
+	reload".
 
 20031110
 
 	Cleanup: Postfix now supports the /0 netmask (match every
 	address).  This is useful as a catch-all pattern at the
 	end of a table.  Files:  util/dict_cidr.c, util/match_ops.c.
+
+20031112
+
+	Feature: client_connection_status_update_time parameter
+	controls periodic logging of maximal connection counts or
+	rates.  The default logging interval is 10 minutes.
 
 Open problems:
 

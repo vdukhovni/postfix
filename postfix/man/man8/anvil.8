@@ -86,8 +86,9 @@ is kept.
 .fi
 Problems and transactions are logged to \fBsyslogd\fR(8).
 
-Upon process exit, the server logs the maximal count and rate
-values measured, together with (service, client) and time
+Upon exit, and every \fBclient_connection_status_update_time\fR
+seconds, the server logs the maximal count and rate values measured,
+together with (service, client) information and the time of day
 associated with those events.
 .SH BUGS
 .ad
@@ -108,8 +109,11 @@ are ignored.
 The following \fBmain.cf\fR parameters are especially relevant to
 this program. Use the \fBpostfix reload\fR command after
 a configuration change.
-.IP \fBconnection_rate_time_unit\fR
+.IP \fBclient_connection_rate_time_unit\fR
 The unit of time over which connection rates are calculated.
+.IP \fBclient_connection_status_update_time\fR
+Time interval for logging the maximal connection count
+and connection rate information.
 .SH SEE ALSO
 .na
 .nf

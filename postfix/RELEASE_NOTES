@@ -37,7 +37,8 @@ and no limit is imposed on the number of successive connections
 per time unit that a client is allowed to make.
 
 The new anvil server maintains the connection statistics, and logs
-the maximum connection count and connection rate per client whenever
+the maximum connection count and connection rate per client every
+client_connection_status_update_time seconds (10 minutes), or when
 it terminates (when there is no work to be done, or when "postfix
 reload" was issued). Once you have an idea what the numbers look
 like, you can clamp down the limits for your system.
@@ -46,8 +47,8 @@ The relevant main.cf configuration parameters are: smtpd_client_-
 connection_count_limit for the number of simultaneous connections
 per client, and smtpd_client_connection_rate_limit for the number
 of successive connections per unit time and client. The time unit
-is specified with the connection_rate_time_unit parameter, and is
-one minute by default.
+is specified with the client_connection_rate_time_unit parameter,
+and is one minute by default.
 
 When Postfix rejects a client, it sends a 450 status code and
 disconnects, and logs a warning with the client name/address and
