@@ -122,6 +122,7 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, VRFY_REQ_QUERY,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_MISSING,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &request_status,
 			 ATTR_TYPE_NUM, MAIL_ATTR_ADDR_STATUS, addr_status,

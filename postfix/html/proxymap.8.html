@@ -80,9 +80,9 @@ PROXYMAP(8)                                           PROXYMAP(8)
        connections.  When all servers are  busy  while  a  client
        connects,  the  master  creates a new proxymap server pro-
        cess, provided that the proxymap server process  limit  is
-       not  exceeded.   Each  proxymap server stops accepting new
-       connections after serving <b>$max</b><i>_</i><b>use</b> clients  or  terminates
-       after <b>$max</b><i>_</i><b>idle</b> seconds of idle time.
+       not exceeded.  Each proxymap server terminates after serv-
+       ing at least <b>$max</b><i>_</i><b>use</b> clients or after  <b>$max</b><i>_</i><b>idle</b>  seconds
+       of idle time.
 
 <b>SECURITY</b>
        The  proxymap  server  opens only tables that are approved

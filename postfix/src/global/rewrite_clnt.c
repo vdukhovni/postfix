@@ -131,6 +131,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 		       ATTR_TYPE_STR, MAIL_ATTR_RULE, rule,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_STR, MAIL_ATTR_ADDR, result,
 			 ATTR_TYPE_END) != 1) {

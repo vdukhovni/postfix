@@ -69,8 +69,8 @@
 /*	When all servers are busy while a client connects, the master
 /*	creates a new proxymap server process, provided that the proxymap
 /*	server process limit is not exceeded.
-/*	Each proxymap server stops accepting new connections after serving
-/*	\fB$max_use\fR clients or terminates after \fB$max_idle\fR seconds
+/*	Each proxymap server terminates after serving
+/*	at least \fB$max_use\fR clients or after \fB$max_idle\fR seconds
 /*	of idle time.
 /* SECURITY
 /* .ad
@@ -359,7 +359,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	do {
 	    type_name += PROXY_COLON_LEN;
 	} while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
-	if (htable_locate(proxy_read_maps, type_name) == 0)
+	if (strchr(type_name, ':') != 0
+	    && htable_locate(proxy_read_maps, type_name) == 0)
 	    (void) htable_enter(proxy_read_maps, type_name, (char *) 0);
     }
     myfree(saved_filter);

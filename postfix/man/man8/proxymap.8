@@ -77,8 +77,8 @@ server.  Each server can handle multiple simultaneous connections.
 When all servers are busy while a client connects, the master
 creates a new proxymap server process, provided that the proxymap
 server process limit is not exceeded.
-Each proxymap server stops accepting new connections after serving
-\fB$max_use\fR clients or terminates after \fB$max_idle\fR seconds
+Each proxymap server terminates after serving
+at least \fB$max_use\fR clients or after \fB$max_idle\fR seconds
 of idle time.
 .SH SECURITY
 .na

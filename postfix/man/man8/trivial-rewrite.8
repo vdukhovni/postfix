@@ -75,8 +75,8 @@ server.  Each server can handle multiple simultaneous connections.
 When all servers are busy while a client connects, the master
 creates a new server process, provided that the trivial-rewrite
 server process limit is not exceeded.
-Each trivial-rewrite server stops accepting new connections after
-serving \fB$max_use\fR clients or terminates after \fB$max_idle\fR
+Each trivial-rewrite server terminates after
+serving at least \fB$max_use\fR clients of after \fB$max_idle\fR
 seconds of idle time.
 .SH STANDARDS
 .na

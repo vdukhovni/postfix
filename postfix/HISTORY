@@ -7690,7 +7690,7 @@ Apologies for any names omitted.
 	It should not try to open any user/domain/uce related tables
 	at all. File:  smtpd/smtpd.c.
 
-20020106
+20030106
 
 	Bugfix: bouncing to owner-alias was broken, i.e. the mail
 	kept being deferred, and when that was fixed, another buglet
@@ -7702,7 +7702,31 @@ Apologies for any names omitted.
 	specifies a hostname for which the same IP address is listed
 	multiple times. File: master/master_ent.c.
 
+20030107
+
+	Robustness: check that FILTER actions in SMTPD access maps
+	or cleanup header/body_checks have plausible syntax. Files:
+	smtpd/smtpd_check.c, cleanup/cleanup_message.c.
+
+20030109
+
+	Cleanup: unnecessary "premature end of file on xxx while
+	reading yyy" warnings became exposed after some code
+	simplification. Files" global/*_clnt.c, global/dict_proxy.c
+
+	Robustness: undo the change that causes a multi-server
+	process to stop accepting new connections while it still
+	services existing clients for an extended amount of time.
+	We need a better process retirement strategy. File:
+	master/multi_server.c.
+
 Open problems:
+
+	Med: make qmgr recipient bounce/defer activity asynchronous
+	or add a multi-recipient operation that reduces overhead.
+
+	Low: postmap/postalias should not try to open a bogus file
+	when given an unsupported dictionary type.
 
 	Med: do not postpone rejected "MAIL FROM" size information,
 	and find a way to log the sender address in the rejected

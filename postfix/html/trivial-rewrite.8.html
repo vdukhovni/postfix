@@ -81,9 +81,9 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
        taneous connections.  When all servers are  busy  while  a
        client  connects, the master creates a new server process,
        provided that the trivial-rewrite server process limit  is
-       not exceeded.  Each trivial-rewrite server stops accepting
-       new connections after serving <b>$max</b><i>_</i><b>use</b> clients  or  termi-
-       nates after <b>$max</b><i>_</i><b>idle</b> seconds of idle time.
+       not  exceeded.   Each  trivial-rewrite  server  terminates
+       after serving at least <b>$max</b><i>_</i><b>use</b> clients of after <b>$max</b><i>_</i><b>idle</b>
+       seconds of idle time.
 
 <b>STANDARDS</b>
        None.  The  command  does  not  interact  with the outside

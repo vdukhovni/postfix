@@ -189,6 +189,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, RESOLVE_ADDR,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 		       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, reply->transport,
 			 ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, reply->nexthop,

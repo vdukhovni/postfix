@@ -2,8 +2,7 @@
 # for a description of the syntax.
 #
 # Message headers are filtered one at a time. This filter understands
-# multi-line mail headers. However, the message header filter has no
-# knowledge of MIME headers that are embedded in the message body.
+# multi-line mail headers, including MIME headers in the message body.
 #
 # The general format of a table entry is PATTERN RESULT. 
 #

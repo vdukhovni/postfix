@@ -111,10 +111,6 @@
 /*	This value is taken from the global \fBmain.cf\fR configuration
 /*	file. Setting \fBvar_use_limit\fR to zero disables the client limit.
 /*
-/*	When the use count reaches the use limit, the process no longer
-/*	accepts new connections.  Once all existing clients disconnect the
-/*	process terminates.
-/*
 /*	The var_idle_limit variable limits the time that a service
 /*	receives no client connection requests before it commits suicide.
 /*	This value is taken from the global \fBmain.cf\fR configuration
@@ -241,6 +237,7 @@ void    multi_server_disconnect(VSTREAM *stream)
     event_disable_readwrite(vstream_fileno(stream));
     (void) vstream_fclose(stream);
     client_count--;
+    use_count++;
 }
 
 /* multi_server_execute - in case (char *) != (struct *) */
@@ -258,10 +255,10 @@ static void multi_server_execute(int unused_event, char *context)
      * Do not bother the application when the client disconnected.
      */
     if (peekfd(vstream_fileno(stream)) > 0) {
-	if (var_use_limit >= 0 && master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
+	if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
 	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
 	multi_server_service(stream, multi_server_name, multi_server_argv);
-	if (var_use_limit >= 0 && master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
+	if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
 	    multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     } else {
 	multi_server_disconnect(stream);
@@ -291,7 +288,6 @@ static void multi_server_wakeup(int fd)
     non_blocking(fd, BLOCKING);
     close_on_exec(fd, CLOSE_ON_EXEC);
     client_count++;
-    use_count++;
     stream = vstream_fdopen(fd, O_RDWR);
     tmp = concatenate(multi_server_name, " socket", (char *) 0);
     vstream_control(stream, VSTREAM_CTL_PATH, tmp, VSTREAM_CTL_END);
@@ -682,43 +678,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     /*
      * The event loop, at last.
      */
-    for (;;) {
-
-	/*
-	 * When the use count reaches the use limit, notify the master daemon
-	 * that we are no longer listening, close the listen sockets, and
-	 * dispose of the accept lock if any. A use_limit < 0 indicates that
-	 * the client limit was reached.
-	 */
-	if (var_use_limit > 0 && use_count >= var_use_limit) {
-	    if (msg_verbose)
-		msg_info("use limit reached -- closing listen socket");
-	    if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
-		multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
-	    for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
-		event_disable_readwrite(fd);
-		(void) close(fd);
-	    }
-	    if (multi_server_lock != 0) {
-		(void) vstream_fclose(multi_server_lock);
-		multi_server_lock = 0;
-	    }
-	    var_use_limit = -1;
-	}
-
-	/*
-	 * Terminate if the client limit was reached and no connections remain.
-	 */
-	if (var_use_limit < 0 && client_count == 0) {
-	    if (msg_verbose)
-		msg_info("all clients disconnected -- exiting");
-	    break;
-	}
-
-	/*
-	 * Grab the optional accept lock, do some optional idle processing,
-	 * and wait for the next event.
-	 */
+    while (var_use_limit == 0 || use_count < var_use_limit || client_count > 0) {
 	if (multi_server_lock != 0) {
 	    watchdog_stop(watchdog);
 	    if (myflock(vstream_fileno(multi_server_lock), INTERNAL_LOCK,

@@ -110,6 +110,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 		       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, dict_proxy->in_flags,
 		       ATTR_TYPE_STR, MAIL_ATTR_KEY, key,
 		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_STR, MAIL_ATTR_VALUE, dict_proxy->result,
