@@ -21,8 +21,9 @@ manager.
 
 The \fBlocal\fR daemon updates queue files and marks recipients
 as finished, or it informs the queue manager that delivery should
-be tried again at a later time. Delivery problem reports are sent
-to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+be tried again at a later time. Delivery status reports are sent
+to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
+appropriate.
 .SH "SYSTEM-WIDE AND USER-LEVEL ALIASING"
 .na
 .nf
@@ -451,31 +452,44 @@ The separator between user names and address extensions (user+foo).
 .IP "\fBrequire_home_directory (no)\fR"
 Whether or not a local(8) recipient's home directory must exist
 before mail delivery is attempted.
-.SH "HISTORY"
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.SH "FILES"
 .na
 .nf
-.ad
-.fi
-The \fBDelivered-To:\fR header appears in the \fBqmail\fR system
-by Daniel Bernstein.
-
-The \fImaildir\fR structure appears in the \fBqmail\fR system
-by Daniel Bernstein.
+The following are examples; details differ between systems.
+$HOME/.forward, per-user aliasing
+/etc/aliases, sytem-wide alias database
+/var/spool/mail, system mailboxes
 .SH "SEE ALSO"
 .na
 .nf
-aliases(5) format of alias database
-bounce(8) non-delivery status reports
-postconf(5) configuration parameters
-postalias(1) create/update alias database
-syslogd(8) system logging
-qmgr(8) queue manager
+qmgr(8), queue manager
+bounce(8), delivery status reports
+newaliases(1), create/update alias database
+postalias(1), create/update alias database
+aliases(5), format of alias database
+postconf(5), configuration parameters
+syslogd(8), system logging
 .SH "LICENSE"
 .na
 .nf
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+.ad
+.fi
+The \fBDelivered-To:\fR message header appears in the \fBqmail\fR
+system by Daniel Bernstein.
+
+The \fImaildir\fR structure appears in the \fBqmail\fR system
+by Daniel Bernstein.
 .SH "AUTHOR(S)"
 .na
 .nf

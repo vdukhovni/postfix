@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/DB_README.html]
-
 PPoossttffiixx BBeerrkkeelleeyy DDBB HHoowwttoo
 
 -------------------------------------------------------------------------------
@@ -12,7 +10,7 @@ Postfix database type of "hash" and "btree". The name of a Postfix Berkeley DB
 database is the name of the database file without the ".db" suffix. Berkeley DB
 databases are maintained with the postmap(1) command.
 
-This document describes
+This document describes:
 
  1. How to build Postfix on systems without Berkeley DB library.
 
@@ -20,6 +18,8 @@ This document describes
     versions.
 
  3. How to tweak performance.
+
+ 4. Missing pthread library trouble.
 
 BBuuiillddiinngg PPoossttffiixx oonn ssyysstteemmss wwiitthhoouutt BBeerrkkeelleeyy DDBB
 
@@ -111,7 +111,7 @@ memory Berkeley DB will use.
   * berkeley_db_create_buffer_size (default: 16 MBytes per table). This setting
     is used by the commands that maintain Berkeley DB files: postalias(1) and
     postmap(1). For "hash" files, create performance degrades rapidly unless
-    the memory pool is O(file size). For "btree" files, create peformance is
+    the memory pool is O(file size). For "btree" files, create performance is
     good with sorted input even for small memory pools, but with random input
     degrades rapidly unless the memory pool is O(file size).
 
@@ -122,4 +122,19 @@ memory Berkeley DB will use.
     must be large enough to contain the entire path from the root node.
     Empirical evidence shows that 64 kBytes may be sufficient. We double the
     size to play safe, and to anticipate changes in implementation and bloat.
+
+MMiissssiinngg pptthhrreeaadd lliibbrraarryy ttrroouubbllee
+
+When building Postfix fails with:
+
+    undefined reference to `pthread_condattr_setpshared'
+    undefined reference to `pthread_mutexattr_destroy'
+    undefined reference to `pthread_mutexattr_init'
+    undefined reference to `pthread_mutex_trylock'
+
+Add the "-lpthread" library to the "make makefiles" command.
+
+    % make makefiles .... AUXLIBS="... -lpthread"
+
+More information is available at http://www.sleepycat.com/.
 

@@ -48,10 +48,14 @@
 /* .IP \fBdefer\fR
 /*	Per-recipient status information about why mail is delayed.
 /*	These files are maintained by the \fBdefer\fR(8) daemon.
+/* .IP \fBtrace\fR
+/*	Per-recipient status information as requested with the
+/*	Postfix "\fBsendmail -v\fR" or "\fBsendmail -bv" command\fR.
+/*	These files are maintained by the \fBtrace\fR(8) daemon.
 /* .PP
 /*	The \fBqmgr\fR daemon is responsible for asking the
-/*	\fBbounce\fR(8) or \fBdefer\fR(8) daemons to send non-delivery
-/*	reports.
+/*	\fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemons to
+/*	send delivery reports.
 /* STRATEGIES
 /* .ad
 /* .fi
@@ -141,9 +145,9 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      Changes to \fBmain.cf\fR are not picked up automatically as qmgr(8)
+/*	Changes to \fBmain.cf\fR are not picked up automatically as qmgr(8)
 /*	processes are persistent. Use the \fBpostfix reload\fR command after
-/*      a configuration change.
+/*	a configuration change.
 /*
 /*	The text below provides only a parameter summary. See
 /*	postconf(5) for more details including examples.
@@ -264,14 +268,28 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* FILES
+/*	/var/spool/postfix/incoming, incoming queue
+/*	/var/spool/postfix/active, active queue
+/*	/var/spool/postfix/deferred, deferred queue
+/*	/var/spool/postfix/bounce, non-delivery status
+/*	/var/spool/postfix/defer, non-delivery status
+/*	/var/spool/postfix/trace, delivery status
 /* SEE ALSO
-/*	master(8), process manager
-/*	postconf(5) configuration parameters
-/*	syslogd(8) system logging
 /*	trivial-rewrite(8), address routing
+/*	bounce(8), delivery status reports
+/*	postconf(5) configuration parameters
+/*	master(8), process manager
+/*	syslogd(8) system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	SCHEDULER_README, scheduling algorithm
+/*	QSHAPE_README, Postfix queue analysis
 /* LICENSE
 /* .ad
 /* .fi

@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/DEBUG_README.html]
-
 PPoossttffiixx DDeebbuuggggiinngg HHoowwttoo
 
 -------------------------------------------------------------------------------
@@ -37,8 +35,8 @@ Postfix logs all failed and successful deliveries to a logfile. The file is
 usually called /var/log/maillog or /var/log/mail; the exact pathname is defined
 in the /etc/syslog.conf file.
 
-The first order of business is to look for errors that prevent Postfix from
-working properly:
+When Postfix does not receive or deliver mail, the first order of business is
+to look for errors that prevent Postfix from working properly:
 
     % egrep '(warning|error|fatal|panic):' /some/log/file | more
 
@@ -85,8 +83,9 @@ gone away.
 
 If turning off chrooted operation made the problem go away, then
 congratulations. Leaving Postfix running in this way is adequate for most
-sites. If you prefer chrooted operation, see the Postfix INSTALL file for
-information about how to prepare Postfix for chrooted operation.
+sites. If you prefer chrooted operation, see the Postfix
+BASIC_CONFIGURATION_README file for information about how to prepare Postfix
+for chrooted operation.
 
 VVeerrbboossee llooggggiinngg ffoorr ssppeecciiffiicc SSMMTTPP ccoonnnneeccttiioonnss
 

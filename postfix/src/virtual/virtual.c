@@ -148,9 +148,6 @@
 /* .IP "\fBvirtual_mailbox_maps (empty)\fR"
 /*	Optional lookup tables with all valid addresses in the domains that
 /*	match $virtual_mailbox_domains.
-/* .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-/*	The list of domains that are by default delivered via the
-/*	$virtual_transport mail delivery transport.
 /* .IP "\fBvirtual_minimum_uid (100)\fR"
 /*	The minimum user ID value that the virtual(8) delivery agent accepts
 /*	as a result from \fB$virtual_uid_maps\fR table lookup.
@@ -160,6 +157,11 @@
 /* .IP "\fBvirtual_gid_maps (empty)\fR"
 /*	Lookup tables with the per-recipient group ID for virtual(8) mailbox
 /*	delivery.
+/* .PP
+/*	Available in Postfix version 2.0 and later:
+/* .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
+/*	The list of domains that are delivered via the $virtual_transport
+/*	mail delivery transport.
 /* .IP "\fBvirtual_transport (virtual)\fR"
 /*	The default mail delivery transport for domains that match the
 /*	$virtual_mailbox_domains parameter value.
@@ -213,6 +215,23 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* SEE ALSO
+/*	qmgr(8), queue manager
+/*	bounce(8), delivery status reports
+/*	postconf(5), configuration parameters
+/*	syslogd(8), system logging
+/* README_FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	VIRTUAL_README, domain hosting howto
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
 /* HISTORY
 /* .ad
 /* .fi
@@ -221,23 +240,11 @@
 /*	was not applicable or that was not safe in this context: aliases,
 /*	~user/.forward files, delivery to "|command" or to /file/name.
 /*
-/*	The \fBDelivered-To:\fR header appears in the \fBqmail\fR system
-/*	by Daniel Bernstein.
+/*	The \fBDelivered-To:\fR message header appears in the \fBqmail\fR
+/*	system by Daniel Bernstein.
 /*
 /*	The \fBmaildir\fR structure appears in the \fBqmail\fR system
 /*	by Daniel Bernstein.
-/* SEE ALSO
-/*	postconf(5) configuration parameters
-/*	bounce(8) non-delivery status reports
-/*	syslogd(8) system logging
-/*	qmgr(8) queue manager
-/* README_FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
-/*	VIRTUAL_README, domain hosting howto
-/* LICENSE
-/* .ad
-/* .fi
-/*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

@@ -84,6 +84,10 @@ postconf(5) for more details including examples.
 .IP "\fBresolve_dequoted_address (yes)\fR"
 Resolve a recipient address safely instead of correctly, by
 looking inside quotes.
+.IP "\fBresolve_null_domain (no)\fR"
+Resolve an address that ends in the "@" null domain as if the
+local hostname were specified, instead of rejecting the address as
+invalid.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf
@@ -109,7 +113,10 @@ Enable the rewriting of "site!user" into "user@site".
 .nf
 .ad
 .fi
-The following is applicable to Postfix version 2.0 and later:
+The following is applicable to Postfix version 2.0 and later.
+Earlier versions do not have support for: virtual_transport,
+relay_transport, virtual_alias_domains, virtual_mailbox_domains
+or proxy_interfaces.
 .IP "\fBlocal_transport (local:$myhostname)\fR"
 The default mail delivery transport for domains that match
 $mydestination, $inet_interfaces or $proxy_interfaces.
@@ -196,6 +203,11 @@ The location of the Postfix top-level queue directory.
 .IP "\fBshow_user_unknown_table_name (yes)\fR"
 Display the name of the recipient table in the "User unknown"
 responses.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .PP
 Available in Postfix version 2.0 and later:
 .IP "\fBhelpful_warnings (yes)\fR"
@@ -204,11 +216,11 @@ helpful suggestions.
 .SH "SEE ALSO"
 .na
 .nf
-master(8) process manager
-postconf(5) configuration parameters
-syslogd(8) system logging
-transport(5) transport table format
-relocated(5) format of the "user has moved" table
+postconf(5), configuration parameters
+transport(5), transport table format
+relocated(5), format of the "user has moved" table
+master(8), process manager
+syslogd(8), system logging
 .SH "README FILES"
 .na
 .nf

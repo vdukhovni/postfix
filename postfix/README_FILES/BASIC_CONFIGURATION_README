@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/BASIC_CONFIGURATION_README.html]
-
 PPoossttffiixx BBaassiicc CCoonnffiigguurraattiioonn
 
 -------------------------------------------------------------------------------
@@ -48,8 +46,16 @@ address translator, and you are running a backup MX host for some other domain:
 
   * Proxy/NAT external network addresses
 
-By the way, if you change main.cf or master.cf parameters of a running Postfix
-system, don't forget to issue a postfix reload command.
+Postfix daemon processes run in the background, and log problems and normal
+activity to the syslog daemon. Here are a few things that you need to be aware
+of:
+
+  * What you need to know about Postfix logging
+
+If your machine has unusual security requirements you may want to run Postfix
+daemon processes inside a chroot environment.
+
+  * Running Postfix daemon processes chrooted
 
 If you run Postfix on a virtual network interface, or if your machine runs
 other mailers on virtual interfaces, you'll have to look at the other
@@ -310,9 +316,16 @@ The meaning of the classes is as follows:
 
 PPrrooxxyy//NNAATT eexxtteerrnnaall nneettwwoorrkk aaddddrreesssseess
 
-The proxy_interfaces parameter specifies all network addresses that the Postfix
-receives mail on by way of a proxy or network address translation unit. You may
-specify symbolic hostnames instead of network addresses.
+Some mail servers are connected to the Internet via a network address
+translator (NAT) or proxy. This means that systems on the Internet connect to
+the address of the NAT or proxy, instead of connecting to the network address
+of the mail server. The NAT or proxy forwards the connection to network address
+of the mail server, but Postfix does not know this.
+
+If you run a Postfix server behind a proxy or NAT, you need to configure the
+proxy_interfaces parameter and specify all the external proxy or NAT addresses
+that Postfix receives mail on. You may specify symbolic hostnames instead of
+network addresses.
 
 IMPORTANT: You must specify your proxy/NAT external addresses when your system
 is a backup MX host for other domains, otherwise mail delivery loops will
@@ -322,6 +335,82 @@ Example: host behind NAT box running a backup MX host.
 
     /etc/postfix/main.cf:
         proxy_interfaces = 1.2.3.4 (the proxy/NAT external network address)
+
+WWhhaatt yyoouu nneeeedd ttoo kknnooww aabboouutt PPoossttffiixx llooggggiinngg
+
+Postfix daemon processes run in the background, and log problems and normal
+activity to the syslog daemon. The syslogd process sorts events by class and
+severity, and appends them to logfiles. The logging classes, levels and logfile
+names are usually specified in /etc/syslog.conf. At the very least you need
+something like:
+
+    /etc/syslog.conf:
+        mail.err                                    /dev/console
+        mail.debug                                  /var/log/maillog
+
+After changing the syslog.conf file, send a "HUP" signal to the syslogd
+process.
+
+IMPORTANT: many syslogd implementations will not create files. You must create
+files before (re)starting syslogd.
+
+IMPORTANT: on Linux you need to put a "-" character before the pathname, e.g.,
+-/var/log/maillog, otherwise the syslogd process will use more system resources
+than Postfix.
+
+Hopefully, the number of problems will be small, but it is a good idea to run
+every night before the syslog files are rotated:
+
+    # postfix check
+    # egrep '(reject|warning|error|fatal|panic):' /some/log/file
+
+  * The first line (postfix check) causes Postfix to report file permission/
+    ownership discrepancies.
+
+  * The second line looks for problem reports from the mail software, and
+    reports how effective the relay and junk mail access blocks are. This may
+    produce a lot of output. You will want to apply some postprocessing to
+    eliminate uninteresting information.
+
+The DEBUG_README document describes the meaning of the "warning" etc. labels in
+Postfix logging.
+
+RRuunnnniinngg PPoossttffiixx ddaaeemmoonn pprroocceesssseess cchhrrooootteedd
+
+Postfix daemon processes can be configured (via the master.cf file) to run in a
+chroot jail. The processes run at a fixed low privilege and with file system
+access limited to the Postfix queue directories (/var/spool/postfix). This
+provides a significant barrier against intrusion. The barrier is not
+impenetrable (chroot limits file system access only), but every little bit
+helps.
+
+With the exception of Postfix daemons that deliver mail locally and/or that
+execute non-Postfix commands, every Postfix daemon can run chrooted.
+
+Sites with high security requirements should consider to chroot all daemons
+that talk to the network: the smtp(8) and smtpd(8) processes, and perhaps also
+the lmtp(8) client. The author's own porcupine.org mail server runs all daemons
+chrooted that can be chrooted.
+
+The default /etc/postfix/master.cf file specifies that no Postfix daemon runs
+chrooted. In order to enable chroot operation, edit the file /etc/postfix/
+master.cf, and follow instructions in the file. When you're finished, execute
+"postfix reload" to make the change effective.
+
+Note that a chrooted daemon resolves all filenames relative to the Postfix
+queue directory (/var/spool/postfix). For successful use of a chroot jail, most
+UNIX systems require you to bring in some files or device nodes. The examples/
+chroot-setup directory in the source code distribution has a collection of
+scripts that help you set up Postfix chroot environments on different operating
+systems.
+
+Additionally, you almost certainly need to configure syslogd so that it listens
+on a socket inside the Postfix queue directory. Examples of syslogd command
+line options that achieve this for specific systems:
+
+FreeBSD: syslogd -l /var/spool/postfix/var/run/log
+
+Linux, OpenBSD: syslogd -a /var/spool/postfix/dev/log
 
 MMyy oowwnn hhoossttnnaammee
 

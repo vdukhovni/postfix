@@ -19,6 +19,8 @@
 /* .IP \fB-q\fR
 /*	Search the Postfix queue for the named \fIfiles\fR instead
 /*	of taking the names literally.
+/*
+/*	Available in Postfix version 2.0 and later.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -42,6 +44,10 @@
 /*	configuration files.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* FILES
+/*	/var/spool/postfix, Postfix queue directory
+/* SEE ALSO
+/*	postconf(5), Postfix configuration
 /* LICENSE
 /* .ad
 /* .fi

@@ -326,6 +326,19 @@ that is received by the Postfix mail system.
 .PP
 NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
+.SH anvil_rate_time_unit (default: 60s)
+The time unit over which client connection rates and other rates
+are calculated.
+.PP
+This feature is implemented by the anvil(8) service which is not
+part of the stable Postfix 2.1 release.
+.PP
+The default interval is relatively short. Because of the high
+frequency of updates, the anvil(8) server uses volatile memory
+only. Thus, information is lost whenever the process terminates.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
 .SH append_at_myorigin (default: yes)
 Append the string "@$myorigin" to mail addresses without domain
 information.
@@ -347,6 +360,25 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH authorized_verp_clients (default: $mynetworks)
+What SMTP clients are allowed to specify the XVERP command.
+This command requests that mail be delivered one recipient at a
+time with a per recipient return address.
+.PP
+By default, only trusted clients are allowed to specify XVERP.
+.PP
+This parameter was introduced with Postfix version 1.1.  Postfix
+version 2.1 renamed this parameter to smtpd_authorized_verp_clients
+and changed the default to none.
+.PP
+Specify a list of network/netmask patterns, separated by commas
+and/or whitespace. The mask specifies the number of bits in the
+network part of a host address. You can also specify hostnames or
+.domain names (the initial dot causes the domain to match any name
+below it),  "/file/name" or "type:table" patterns.  A "/file/name"
+pattern is replaced by its contents; a "type:table" lookup table
+is matched when a table entry matches a lookup string (the lookup
+result is ignored).  Continue long lines by starting the next line
 .SH backwards_bounce_logfile_compatibility (default: yes)
 Produce additional bounce(8) logfile records that can be read by
 older Postfix versions. The current and more extensible "name =
@@ -393,6 +425,9 @@ drain.  Specify "biff = no" to disable.
 .SH body_checks (default: empty)
 Optional lookup tables for content inspection as specified in
 the body_checks(5) manual page.
+.PP
+Note: with Postfix versions before 2.0, these rules inspect
+all content after the primary message headers.
 .SH body_checks_size_limit (default: 51200)
 How much text in a message body segment (or attachment, if you
 prefer to use that term) is subjected to body_checks inspection.
@@ -466,19 +501,6 @@ logs peak usage information.
 .PP
 This feature is implemented by the anvil(8) service which is not
 part of the stable Postfix 2.1 release.
-.PP
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-.SH client_rate_time_unit (default: 60s)
-The time unit over which client connection rates and other rates
-are calculated.
-.PP
-This feature is implemented by the anvil(8) service which is not
-part of the stable Postfix 2.1 release.
-.PP
-The default interval is relatively short. Because of the high
-frequency of updates, the anvil(8) server uses volatile memory
-only. Thus, information is lost whenever the process terminates.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -556,7 +578,7 @@ debug_peer_list = some.domain
 The external command to execute when a Postfix daemon program is
 invoked with the -D option.
 .PP
-Use "command .. & sleep 5" so that the debugger can attach before
+Use "command .. &amp; sleep 5" so that the debugger can attach before
 the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 .PP
@@ -567,7 +589,7 @@ Example:
 .ft C
 debugger_command =
     PATH=/usr/bin:/usr/X11R6/bin
-    xxgdb $daemon_directory/$process_name $process_id & sleep 5
+    xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
 .fi
 .ad
 .ft R
@@ -754,9 +776,12 @@ default_transport = uucp:relayhostname
 .ad
 .ft R
 .SH default_verp_delimiters (default: +=)
-The two default VERP delimiter characters. These are used when no
-explicit delimiters are specified with the SMTP XVERP command or
-with the "\fBsendmail -V\fR" command-line option.
+The two default VERP delimiter characters. These are used when
+no explicit delimiters are specified with the SMTP XVERP command
+or with the "\fBsendmail -V\fR" command-line option. Specify
+characters that are allowed by the verp_delimiter_filter setting.
+.PP
+This feature is available in Postfix 1.1 and later.
 .SH defer_code (default: 450)
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "defer" restriction.
@@ -831,6 +856,8 @@ This feature is available in Postfix 2.0 and later.
 Disable sending one bounce report per recipient.
 .PP
 The default, one per recipient, is what ezmlm needs.
+.PP
+This feature is available in Postfix 1.1 and later.
 .SH disable_vrfy_command (default: no)
 Disable the SMTP VRFY command. This stops some techniques used to
 harvest email addresses.
@@ -861,10 +888,10 @@ The recipient of mail addressed to the null address.  Postfix does
 not accept such addresses in SMTP commands, but they may still be
 created locally as the result of configuration or software error.
 .SH enable_errors_to (default: no)
-Report errors to the address specified with the non-standard
-Errors-To: message header, instead of the envelope sender address.
-This support is disabled by default with Postfix 2.1 and later,
-and is always turned on with older Postfix versions.
+Report mail delivery errors to the address specified with the
+non-standard Errors-To: message header, instead of the envelope
+sender address.  This support is disabled by default with Postfix
+2.1 and later, and is always turned on with older Postfix versions.
 .SH enable_original_recipient (default: yes)
 Enable support for the X-Original-To message header. This header
 is needed for multi-recipient mailboxes.
@@ -1084,6 +1111,9 @@ home_mailbox = Maildir/
 The maximal number of Received:  message headers that is allowed
 in the primary message headers. A message that exceeds the limit
 is bounced, in order to stop a mailer loop.
+.SH html_directory (default: see "postconf -d" output)
+The location of Postfix HTML files that describe how to build,
+configure or operate a specific Postfix subsystem or feature.
 .SH ignore_mx_lookup_error (default: no)
 Ignore DNS MX lookups that produce no response.  By default,
 Postfix defers delivery and tries again after some delay.  This
@@ -1768,10 +1798,12 @@ Do not change this unless you have a complete understanding of RFC 821.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH mydestination (default: $myhostname, localhost.$mydomain, localhost)
-The list of domains that are by default delivered via the
-$local_transport mail delivery transport. By default this is the
-Postfix local(8) delivery agent which looks up all recipients in
-/etc/passwd and /etc/aliases.
+The list of domains that are delivered via the $local_transport
+mail delivery transport. By default this is the Postfix local(8)
+delivery agent which looks up all recipients in /etc/passwd and
+/etc/aliases. The SMTP server validates recipient addresses with
+$local_recipient_maps and rejects non-existent recipients. See also
+the local domain class in the ADDRESS_CLASS_README file.
 .PP
 The default mydestination value specifies names for the local
 machine only.  On a mail domain gateway, you should also include
@@ -2081,6 +2113,8 @@ The minimal delay between warnings that a specific destination is
 clogging up the Postfix active queue. Specify 0 to disable.
 .PP
 This feature is enabled with the helpful_warnings parameter.
+.PP
+This feature is available in Postfix 2.0 and later.
 .SH qmgr_fudge_factor (default: 100)
 Obsolete feature: the percentage of delivery resources that a busy
 mail system will use up for delivery of a large mailing  list
@@ -2183,13 +2217,13 @@ This feature is available in Postfix 2.0 and later.
 The location of Postfix README files that describe how to build,
 configure or operate a specific Postfix subsystem or feature.
 .SH receive_override_options (default: empty)
-What input processing happens before or after an external content
-filter.
+Enable or disable recipient validation, built-in content
+filtering, or address rewriting.
 .PP
-Specify zero or more of the following options.  The options override
-main.cf settings and are either implemented by the Postfix SMTP server, by
-the QMQP server, or by the pickup server, or they are passed on to
-the cleanup server.
+Specify zero or more of the following options.  The options
+override main.cf settings and are either implemented by the Postfix
+SMTP server, by the QMQP server, or by the pickup server, or they
+are passed on to the cleanup server.
 .IP "\fBno_unknown_recipient_checks\fR"
 Do not try to reject unknown recipients (SMTP server only).
 This is typically specified AFTER an external content filter.
@@ -2311,18 +2345,28 @@ Setting this parameter to a value of 1 changes the meaning of
 relay_destination_concurrency_limit from concurrency per domain
 into concurrency per recipient.
 .SH relay_domains (default: $mydestination)
-What destination domains (and subdomains thereof) this system will
-relay mail to. Subdomain matching is controlled with the
+What destination domains (and subdomains thereof) this system
+will relay mail to. Subdomain matching is controlled with the
 parent_domain_matches_subdomains parameter. For details about how
 the relay_domains value is used, see the description of the
 permit_auth_destination and reject_unauth_destination SMTP recipient
 restrictions.
 .PP
-Domains that match $relay_domains are by default delivered with
-the $relay_transport mail delivery transport.
+Domains that match $relay_domains are delivered with the
+$relay_transport mail delivery transport. The SMTP server validates
+recipient addresses with $relay_recipient_maps and rejects non-existent
+recipients. See also the relay domains address class in the
+ADDRESS_CLASS_README file.
 .PP
-NOTE: Postfix will not automatically forward mail for domains that
-list this system as their primary or backup MX host. See the
+The list of domains that are by default delivered via the
+$local_transport mail delivery transport. By default this is the
+Postfix local(8) delivery agent which looks up all recipients in
+/etc/passwd and /etc/aliases. The SMTP server validates recipient
+addresses with $local_recipient_maps. See also the local domain
+address class in the ADDRESS_CLASS_README file.
+.PP
+NOTE: Postfix will not automatically forward mail for domains
+that list this system as their primary or backup MX host. See the
 permit_mx_backup restriction in the postconf(5) manual page.
 .PP
 Specify a list of host or domain names, "/file/name" patterns
@@ -2347,6 +2391,9 @@ use the result from table lookup.
 .PP
 If this parameter is non-empty, then the Postfix SMTP server will reject
 mail to unknown relay users. This feature is off by default.
+.PP
+See also the relay domains address class in the ADDRESS_CLASS_README
+file.
 .PP
 Example:
 .PP
@@ -2439,6 +2486,18 @@ resolver will not know about additional @ etc. operators in the
 address localpart. This opens opportunities for obscure mail relay
 attacks with user@domain@domain addresses when Postfix provides
 backup MX service for Sendmail systems.
+.SH resolve_null_domain (default: no)
+Resolve an address that ends in the "@" null domain as if the
+local hostname were specified, instead of rejecting the address as
+invalid.
+.PP
+This feature is available in Postfix version 2.1 and later.
+Earlier versions always resolve the null domain as the local
+hostname.
+.PP
+The Postfix SMTP server uses this feature to reject mail from
+or to addresses that end in the "@" null domain, and from addresses
+that rewrite into a form that ends in the "@" null domain.
 .SH rewrite_service_name (default: rewrite)
 The name of the address rewriting service. This service rewrites
 addresses to standard form and resolves them to a (delivery method,
@@ -2450,8 +2509,8 @@ The name of the directory with example Postfix configuration files.
 .SH sender_based_routing (default: no)
 This parameter should not be used.
 .SH sender_bcc_maps (default: empty)
-Optional BCC (blind carbon-copy) address lookup tables, indexed by
-sender address.  The BCC address (multiple results are not
+Optional BCC (blind carbon-copy) address lookup tables, indexed
+by sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
 This feature is available in Postfix 2.1 and later.
@@ -2635,7 +2694,7 @@ client, for example:
 This feature is available in Postfix 2.0 and later.
 .SH smtp_helo_timeout (default: 300s)
 The SMTP client time limit for sending the HELO or EHLO command,
-and for receiving the server response.
+and for receiving the initial server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -2831,14 +2890,14 @@ The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtpd_authorized_verp_clients (default: $authorized_verp_clients)
-What SMTP clients are allowed to specify the XVERP command. This
-command requests that mail be delivered one recipient at a time
-with a per recipient return address.
+What SMTP clients are allowed to specify the XVERP command.
+This command requests that mail be delivered one recipient at a
+time with a per recipient return address.
 .PP
 By default, no clients are allowed to specify XVERP.
 .PP
-This parameter was renamed with Postfix 2.1. The default value is
-backwards compatible with Postfix 2.0.
+This parameter was renamed with Postfix 2.1. The default value
+is backwards compatible with Postfix 2.0.
 .PP
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
@@ -2928,7 +2987,7 @@ This feature is not part of the stable Postfix 2.1 release.
 .SH smtpd_client_connection_rate_limit (default: 0)
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.  The time unit is specified
-with the client_rate_time_unit configuration parameter, and defaults
+with the anvil_rate_time_unit configuration parameter, and defaults
 to one minute.
 .PP
 By default, a client can make as many connections per time unit as
@@ -3424,8 +3483,7 @@ $virtual_alias_domains, or $virtual_mailbox_domains, and contains
 no sender-specified routing (user@elsewhere@domain).
  The relay_domains_reject_code parameter specifies the response
 code for rejected requests (default: 554).
-.IP "\fB<a
-name="reject_unknown_recipient_domain">reject_unknown_recipient_domain\fR"
+.IP "\fBreject_unknown_recipient_domain\fR"
 Reject the request when the RCPT TO address has no DNS A or MX
 record.
 .br
@@ -3472,7 +3530,7 @@ smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 .SH smtpd_reject_unlisted_recipient (default: yes)
 Request that the Postfix SMTP server rejects mail for unknown
 recipient addresses, even when no explicit reject_unlisted_recipient
-recipient restriction is specified. This prevents the Postfix queue
+access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 .IP \(bu
 The recipient domain matches $mydestination, $inet_interfaces
@@ -3495,8 +3553,8 @@ This feature is available in Postfix 2.1 and later.
 .SH smtpd_reject_unlisted_sender (default: no)
 Request that the Postfix SMTP server rejects mail from unknown
 sender addresses, even when no explicit reject_unlisted_sender
-restriction is specified. This can slow down an explosion of forged
-mail from worms or viruses.
+access restriction is specified. This can slow down an explosion
+of forged mail from worms or viruses.
 .IP \(bu
 The sender domain matches $mydestination, $inet_interfaces or
 $proxy_interfaces, but the recipient is not listed in
@@ -3984,7 +4042,7 @@ of lookup tables that does not match the recipient address.
 This feature is available in Postfix 2.0 and later.
 .SH unknown_virtual_mailbox_reject_code (default: 550)
 The SMTP server reply code when a recipient address matches
-$virtual_mailbox_domains, and$virtual_mailbox_maps specifies a list
+$virtual_mailbox_domains, and $virtual_mailbox_maps specifies a list
 of lookup tables that does not match the recipient address.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -4010,11 +4068,16 @@ Do not change this unless you have a complete understanding of RFC 821.
 This feature is available in Postfix 2.1 and later.
 .SH verp_delimiter_filter (default: -=+)
 The characters Postfix accepts as VERP delimiter characters on the
-sendmail(1) command line and in SMTP commands.
+Postfix sendmail(1) command line and in SMTP commands.
+.PP
+This feature is available in Postfix 1.1 and later.
 .SH virtual_alias_domains (default: $virtual_alias_maps)
-Optional list of names of virtual alias domains, that is, domains
-for which all addresses are aliased to addresses in other local or
-remote domains.
+Optional list of names of virtual alias domains, that is,
+domains for which all addresses are aliased to addresses in other
+local or remote domains. The SMTP server validates recipient
+addresses with $virtual_alias_maps and rejects non-existent
+recipients. See also the virtual alias domain class in the
+ADDRESS_CLASS_README file
 .PP
 This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix 1.1.
@@ -4130,9 +4193,15 @@ virtual_mailbox_base = /var/mail
 .ad
 .ft R
 .SH virtual_mailbox_domains (default: $virtual_mailbox_maps)
-The list of domains that are by default delivered via the
-$virtual_transport mail delivery transport.  This list uses the
-same syntax as the mydestination configuration parameter.
+The list of domains that are delivered via the $virtual_transport
+mail delivery transport.  By default this is the Postfix virtual(8)
+delivery agent.  The SMTP server validates recipient addresses with
+$virtual_mailbox_maps and rejects mail for non-existent recipients.
+See also the virtual mailbox domain class in the ADDRESS_CLASS_README
+file.
+.PP
+This parameter expects the same syntax as the mydestination
+configuration parameter.
 .PP
 This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix 1.1.

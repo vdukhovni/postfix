@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/LOCAL_RECIPIENT_README.html]
-
 RReejjeeccttiinngg UUnnkknnoowwnn LLooccaall RReecciippiieennttss wwiitthh PPoossttffiixx
 
 -------------------------------------------------------------------------------
@@ -8,8 +6,8 @@ IInnttrroodduuccttiioonn
 
 As of Postfix version 2.0, the Postfix SMTP server rejects mail for unknown
 recipients in local domains (domains that match $mydestination or the IP
-addresses in $inet_interfaces or $proxy_interfaces). This feature was optional
-with earlier Postfix versions.
+addresses in $inet_interfaces or $proxy_interfaces) with "User unknown in local
+recipient table". This feature was optional with earlier Postfix versions.
 
 The good news is that this keeps undeliverable mail out of your queue, so that
 your mail queue is not clogged up with undeliverable MAILER-DAEMON messages.
@@ -18,7 +16,7 @@ The bad news is that it may cause mail to be rejected when you upgrade from a
 Postfix system that was not configured to reject mail for unknown local
 recipients.
 
-This document describes what steps ar needed in order reject mail correctly.
+This document describes what steps are needed in order reject mail correctly.
 
   * Configuring local_recipient_maps in main.cf
   * When you need to change the local_recipient_maps setting in main.cf
@@ -29,8 +27,9 @@ CCoonnffiigguurriinngg llooccaall__rreecciippiieenntt_
 The local_recipient_maps parameter specifies lookup tables with all names or
 addresses of local recipients. A recipient address is local when its domain
 matches $mydestination, $inet_interfaces or $proxy_interfaces. If a local
-username or address is not listed in these tables, then the Postfix SMTP server
-will reject mail for it.
+username or address is not listed in $local_recipient_maps, then the Postfix
+SMTP server will reject the address with "User unknown in local recipient
+table".
 
 The default setting, shown below, assumes that you use the default Postfix
 local(8) delivery agent for local delivery, where recipients are either UNIX
@@ -68,7 +67,8 @@ WWhheenn yyoouu nneeeedd ttoo cchhaannggee tthhee llooc
     the table should be populated.
 
   * Problem: you use the mailbox_transport or fallback_transport feature of the
-    Postfix local(8) delivery agent in order to deliver mail non-UNIX accounts.
+    Postfix local(8) delivery agent in order to deliver mail to non-UNIX
+    accounts.
 
     Solution: you need to add the database that lists the non-UNIX users:
 

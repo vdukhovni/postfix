@@ -200,7 +200,7 @@
 # 
 #        Each  pattern  is  a regular expression that is applied to
 #        the   entire    address    being    looked    up.    Thus,
-#        some.domain.hierarchy  is  not looked up up via its parent
+#        some.domain.hierarchy  is  not  looked  up  via its parent
 #        domains, nor is user+foo@domain looked up as  user@domain.
 # 
 #        Patterns  are  applied  in  the  order as specified in the
@@ -242,15 +242,13 @@
 #               List of transport lookup tables.
 # 
 # SEE ALSO
-#        postmap(1) create mapping table
-#        trivial-rewrite(8) rewrite and resolve addresses
-#        pcre_table(5) format of PCRE tables
-#        regexp_table(5) format of POSIX regular expression tables
-#        tcp_table(5) TCP client/server table lookup protocol
+#        trivial-rewrite(8), rewrite and resolve addresses
+#        postconf(5), configuration parameters
+#        postmap(1), Postfix lookup table manager
 # 
 # README FILES
 #        Use "postconf readme_directory" to locate this information.
-#        DATABASE_README, Postfix database introduction
+#        DATABASE_README, Postfix lookup table overview
 #        FILTER_README, external content filter
 # 
 # LICENSE

@@ -207,7 +207,7 @@ or \fBpcre_table\fR(5).
 
 Each pattern is a regular expression that is applied to the entire
 address being looked up. Thus, \fIsome.domain.hierarchy\fR is not
-looked up up via its parent domains,
+looked up via its parent domains,
 nor is \fIuser+foo@domain\fR looked up as \fIuser@domain\fR.
 
 Patterns are applied in the order as specified in the table, until a
@@ -249,16 +249,14 @@ List of transport lookup tables.
 .SH "SEE ALSO"
 .na
 .nf
-postmap(1) create mapping table
-trivial-rewrite(8) rewrite and resolve addresses
-pcre_table(5) format of PCRE tables
-regexp_table(5) format of POSIX regular expression tables
-tcp_table(5) TCP client/server table lookup protocol
+trivial-rewrite(8), rewrite and resolve addresses
+postconf(5), configuration parameters
+postmap(1), Postfix lookup table manager
 .SH "README FILES"
 .na
 .nf
 Use "\fBpostconf readme_directory\fR" to locate this information.
-DATABASE_README, Postfix database introduction
+DATABASE_README, Postfix lookup table overview
 FILTER_README, external content filter
 .SH "LICENSE"
 .na

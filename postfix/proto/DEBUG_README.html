@@ -32,8 +32,6 @@ actual location of this directory on your machine. </p>
 <p> Listed in order of increasing invasiveness, the debugging
 techniques are as follows: </p>
 
-<p>
-
 <ul>
 
 <li><a href="#logging">Look for obvious signs of trouble</a>
@@ -72,8 +70,9 @@ debugger</a>
 The file is usually called /var/log/maillog or /var/log/mail; the
 exact pathname is defined in the /etc/syslog.conf file. </p>
 
-<p> The first order of business is to look for errors that prevent
-Postfix from working properly:  </p>
+<p> When Postfix does not receive or deliver mail, the first order
+of business is to look for errors that prevent Postfix from working
+properly:  </p>
 
 <blockquote>
 <pre>
@@ -135,8 +134,9 @@ and edit the entries in question.  After executing the command
 <p> If turning off chrooted operation made the problem go away,
 then congratulations.  Leaving Postfix running in this way is
 adequate for most sites.  If you prefer chrooted operation, see
-the Postfix INSTALL file for information about how to prepare
-Postfix for chrooted operation. </p>
+the Postfix <a href="BASIC_CONFIGURATION_README.html#chroot_setup">
+BASIC_CONFIGURATION_README</a> file for information about how to
+prepare Postfix for chrooted operation. </p>
 
 <h2><a name="debug_peer">Verbose logging for specific SMTP
 connections</a></h2>
@@ -263,7 +263,7 @@ so that it invokes the call tracer of your choice, for example:
 /etc/postfix/main.cf:
     debugger_command =
          PATH=/bin:/usr/bin:/usr/local/bin;
-         (truss -p $process_id 2>&1 | logger -p mail.info) & sleep 5
+         (truss -p $process_id 2&gt&amp;1 | logger -p mail.info) &amp; sleep 5
 </pre>
 </blockquote>
 
@@ -284,7 +284,7 @@ so that it invokes <b>xxgdb</b>: </p>
 /etc/postfix/main.cf:
     debugger_command =
          PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-         xxgdb $daemon_directory/$process_name $process_id & sleep 5
+         xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
 </pre>
 </blockquote>
 
@@ -332,8 +332,8 @@ so that it invokes the <b>gdb</b> debugger: </p>
 /etc/postfix/main.cf:
     debugger_command =
         PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont;
-        echo where) | gdb $daemon_directory/$process_name $process_id 2>&1
-        >$config_directory/$process_name.$process_id.log & sleep 5
+        echo where) | gdb $daemon_directory/$process_name $process_id 2&gt&amp;1
+        &gt;$config_directory/$process_name.$process_id.log &amp; sleep 5
 </pre>
 </blockquote>
 

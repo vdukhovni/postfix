@@ -34,7 +34,7 @@ delivery agent into Postfix: </p>
 
 <h2><a name="direct">Direct delivery without the local delivery agent</a></h2>
 
-<p> Postfix can be configured to deliver mail directly to maildrop,
+<p> Postfix can be configured to deliver mail directly to <a href="QSHAPE_README.html#maildrop_queue">maildrop</a>,
 without using the <a href="local.8.html">local(8)</a> delivery agent as an intermediate.  This
 means that you do not get local <a href="aliases.5.html">aliases(5)</a> expansion or $HOME/.forward
 file processing. You would typically do this for <a href="VIRTUAL_README.html#canonical">hosted domains</a> with 
@@ -131,7 +131,7 @@ of local <a href="aliases.5.html">aliases(5)</a> expansion and $HOME/.forward fi
 You would typically use this for domains that are listed in
 <a href="postconf.5.html#mydestination">mydestination</a> and that have users with a UNIX system account. </p>
 
-<p> To configure maildrop delivery for all UNIX system accounts: <p>
+<p> To configure maildrop delivery for all UNIX system accounts: </p>
 
 <blockquote>
 <pre>
@@ -157,7 +157,7 @@ use the Postfix <a href="local.8.html">local(8)</a> delivery agent's <a href="po
 </blockquote>
 
 <p> Maildrop delivery for specific users is also possible by
-invoking it from the user's $HOME/.forward file: <p>
+invoking it from the user's $HOME/.forward file: </p>
 
 <blockquote>
 <pre>

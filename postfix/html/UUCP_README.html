@@ -21,7 +21,7 @@
 
 <p> Despite a serious lack of sex-appeal, email via UUCP over TCP
 is a practical option for sites without permanent Internet connection,
-and for sites without a fixed IP address.  For first-hand information,
+and for sites without a fixed IP address. For first-hand information,
 see the following guides: </p>
 
 <ul>
@@ -34,14 +34,36 @@ using stunnel at <a href="http://taz.net.au/postfix/uucp/">http://taz.net.au/pos
 
 </ul>
 
-<p> This document covers the following topics: </p>
+Here's a graphical description of what this document is about:
+
+<blockquote>
+
+<table>
+
+<tr> <td> Local network &lt;---&gt; </td>
+
+<td bgcolor="#f0f0ff" align="center"><a href="#lan-uucp">LAN to<br>
+UUCP<br> Gateway</a></td>
+
+<td> &lt;--- UUCP ---&gt; </td>
+
+<td bgcolor="#f0f0ff" align="center"><a href="#internet-uucp">Internet<br>
+to UUCP<br> Gateway</a></td>
+
+<td> &lt;---&gt;  Internet </td> </tr>
+
+</table>
+
+</blockquote>
+
+<p> And here's the table of contents of this document: </p>
 
 <ul>
 
 <li><a href="#internet-uucp">Setting up a Postfix Internet to UUCP
 gateway</a>
 
-<li><a href="#uucp-only">Setting up a Postfix LAN to UUCP
+<li><a href="#lan-uucp">Setting up a Postfix LAN to UUCP
 gateway</a>
 
 </ul>
@@ -51,7 +73,7 @@ gateway</a></h2>
 
 <p> Here is how to set up a machine that sits on the Internet and
 that forwards mail to a LAN that is connected via UUCP. See
-the <a href="#uucp-only">LAN to UUCP gateway</a> section for
+the <a href="#lan-uucp">LAN to UUCP gateway</a> section for
 the other side of the story. </p>
 
 <ul>
@@ -90,8 +112,6 @@ delivered via UUCP, to a host named <i>uucp-host</i>: </p>
 
 <p> See the <a href="transport.5.html">transport(5)</a> manual page for more details. </p>
 
-<p>
-
 <li> <p> Execute the command "<b>postmap /etc/postfix/transport</b>"
 whenever you change the <b>transport</b> file. </p>
 
@@ -122,7 +142,7 @@ changes effective. </p>
 
 </ul>
 
-<h2><a name="uucp-only">Setting up a Postfix LAN to UUCP
+<h2><a name="lan-uucp">Setting up a Postfix LAN to UUCP
 gateway</a></h2>
 
 <p> Here is how to relay mail from a LAN via UUCP to the

@@ -20,6 +20,13 @@ Installation From Source Code </h1>
 
 <h2> <a name="1">1 - Purpose of this document</a> </h2>
 
+<p> This is a bootstrap document that helps you get Postfix up and
+running from scratch with the minimal number of steps.  If you are
+using a pre-compiled version of Postfix, you should be reading the
+general Postfix documentation which aims to describe the system in
+more detail.  This bootstrap document should not be considered part
+of the general Postfix documentation.  </p>
+
 <p> This document describes how to build, install and configure a
 Postfix system so that it can do one of the following: </p>
 
@@ -92,11 +99,24 @@ receive mail via virtual interface </a>
 
 <h2> <a name="3">3 - Documentation</a> </h2>
 
-<p> Documentation is available as README files (under the README_FILES
-directory), as HTML web pages (point your browser to "html/index.html")
-and as UNIX-style manual pages. In order to view the manual pages
-before installing Postfix, point your MANPATH environment variable
-to the "man" subdirectory; be sure to use an absolute path.  </p>
+<p> Documentation is available as README files (start with the file
+README_FILES/AAAREADME), as HTML web pages (point your browser to
+"html/index.html") and as UNIX-style manual pages. </p>
+
+<p> You should view the README files with a pager such as more(1)
+or less(1), because the files use backspace characters in order to
+produce <b>bold</b> font. To print a README file without backspace
+characters, use the col(1) command.  For example: </p>
+
+<blockquote>
+<pre>
+% col -bx &lt;file | lpr
+</pre>
+</blockquote>
+
+<p> In order to view the manual pages before installing Postfix,
+point your MANPATH environment variable to the "man" subdirectory;
+be sure to use an absolute path.  </p>
 
 <blockquote>
 <pre>
@@ -275,7 +295,7 @@ default</th> </tr>
 <tr> <td>DEF_COMMAND_DIR</td> <td><a href="postconf.5.html#command_directory">command_directory</a></td>
 <td>/usr/sbin</td> </tr>
 
-<tr> <td>DEF_CONFIG_DIR</td> <td><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a></td>
+<tr> <td>DEF_CONFIG_DIR</td> <td><a href="postconf.5.html#config_directory">config_directory</a></td>
 <td>/etc/postfix</td> </tr>
 
 <tr> <td>DEF_DAEMON_DIR</td> <td><a href="postconf.5.html#daemon_directory">daemon_directory</a></td>
@@ -283,6 +303,9 @@ default</th> </tr>
 
 <tr> <td>DEF_MAILQ_PATH</td> <td><a href="postconf.5.html#mailq_path">mailq_path</a></td> <td>/usr/bin/mailq</td>
 </tr>
+
+<tr> <td>DEF_HTML_DIR</td> <td>html_directory</td>
+<td>no</td> </tr>
 
 <tr> <td>DEF_MANPAGE_DIR</td> <td><a href="postconf.5.html#manpage_directory">manpage_directory</a></td>
 <td>/usr/local/man</td> </tr>
@@ -294,7 +317,7 @@ default</th> </tr>
 <td>/var/spool/postfix</td> </tr>
 
 <tr> <td>DEF_README_DIR</td> <td><a href="postconf.5.html#readme_directory">readme_directory</a></td>
-<td>/etc/postfix</td> </tr>
+<td>no</td> </tr>
 
 <tr> <td>DEF_SENDMAIL_PATH</td> <td><a href="postconf.5.html#sendmail_path">sendmail_path</a></td>
 <td>/usr/sbin/sendmail</td> </tr>
@@ -339,7 +362,7 @@ Postfix (section 6).
 <p> If the command produces compiler error messages, it may be time
 to search the web or to ask the postfix-users@postfix.org mailing
 list, but be sure to search the mailing list archives first. Some
-mailing list archives are linked from <a href="http://www.postfix.org/.">http://www.postfix.org/.</a> </p>
+mailing list archives are linked from <a href="http://www.postfix.org/">http://www.postfix.org/</a>. </p>
 
 <h2> <a name="5">5 - Porting Postfix to on an unsupported system</a> </h2>
 
@@ -572,9 +595,6 @@ receive mail while leaving your Sendmail setup intact, by running
 Postfix on a virtual interface address.  Simply configure your mail
 user agent to directly invoke the Postfix sendmail program.  </p>
 
-<p> The examples/virtual-setup directory gives instructions for
-setting up virtual interfaces for a variety of UNIX versions. </p>
-
 <p> In the /etc/postfix/main.cf file, I would specify </p>
 
 <blockquote>
@@ -582,7 +602,7 @@ setting up virtual interfaces for a variety of UNIX versions. </p>
 /etc/postfix/main.cf:
     <a href="postconf.5.html#myhostname">myhostname</a> = virtual.host.tld
     <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = $<a href="postconf.5.html#myhostname">myhostname</a>
-    <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a>
+    <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a>
 </pre>
 </blockquote>
 
@@ -608,7 +628,7 @@ name="#hamlet">To chroot or not to chroot</a>" text in section
 </blockquote>
 
 <p> and watch your maillog file for any error messages. The pathname
-is /var/log/maillog, /var/log/mail, /var/log/syslog, or someting
+is /var/log/maillog, /var/log/mail, /var/log/syslog, or something
 else. Typically, the pathname is defined in the /etc/syslog.conf
 file. </p>
 
@@ -705,9 +725,9 @@ below.  </p>
 <h2><a name="mandatory">10 - Mandatory configuration file edits</a></h2>
 
 <p> Note: the material covered in this section is covered in more
-detail in the <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a> and <a href="STANDARD_CONFIGURATION_README.html">STANDARD_CONFIGURATION_README</a>
-documents. The information presented below is targeted at experienced
-system administrators.  </p>
+detail in the <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a> document. The information
+presented below is targeted at experienced system administrators.
+</p>
 
 <h3>10.1 - Postfix configuration files</h3>
 
@@ -783,9 +803,9 @@ locally. </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a>, localhost
-    <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a>, localhost, $<a href="postconf.5.html#mydomain">mydomain</a>
-    <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a>
+    <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a>, localhost
+    <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a>, localhost, $<a href="postconf.5.html#mydomain">mydomain</a>
+    <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a>
 </pre>
 </blockquote>
 
@@ -793,7 +813,28 @@ locally. </p>
 is appropriate for the mailserver for an entire domain. The third
 example should be used when running on a virtual host interface.</p>
 
-<h3>10.4 - What local clients to relay mail from </h3>
+<h3>10.4 - Proxy/NAT interface addresses </h3>
+
+<p> The <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> parameter specifies all network addresses
+that the Postfix receives mail on by way of a proxy or network
+address translation unit. You may specify symbolic hostnames instead
+of network addresses. </p>
+
+<p> IMPORTANT: You must specify your proxy/NAT external addresses
+when your system is a backup MX host for other domains, otherwise
+mail delivery loops will happen when the primary MX host is down.
+</p>
+
+<p> Example: host behind NAT box running a backup MX host. </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> = 1.2.3.4 (the proxy/NAT external network address)
+</pre>
+</blockquote>
+
+<h3>10.5 - What local clients to relay mail from </h3>
 
 <p> If your machine is on an open network then you must specify
 what client IP addresses are authorized to relay their mail through
@@ -808,12 +849,12 @@ permission to too many clients.  My own settings are: </p>
 </pre>
 </blockquote>
 
-<h3>10.5 - What relay destinations to accept from strangers </h3>
+<h3>10.6 - What relay destinations to accept from strangers </h3>
 
 <p> If your machine is on an open network then you must also specify
 whether Postfix will forward mail from strangers.  The default
 setting will forward mail to all domains (and subdomains of) what
-is listed in $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>.  This may give relay permission for
+is listed in $<a href="postconf.5.html#mydestination">mydestination</a>.  This may give relay permission for
 too many destinations.  Recommended settings (use only one): </p>
 
 <blockquote>
@@ -825,7 +866,7 @@ too many destinations.  Recommended settings (use only one): </p>
 </pre>
 </blockquote>
 
-<h3>10.6 - Optional: configure a smart host for remote delivery</h3>
+<h3>10.7 - Optional: configure a smart host for remote delivery</h3>
 
 <p> If you're behind a firewall, you should set up a <a href="postconf.5.html#relayhost">relayhost</a>.  If
 you can, specify the organizational domain name so that Postfix
@@ -859,7 +900,7 @@ turn off SMTP client DNS lookups like this: </p>
 <p> The <a href="STANDARD_CONFIGURATION_README.html">STANDARD_CONFIGURATION_README</a> file has more hints and tips for
 firewalled and/or dial-up networks. </p>
 
-<h3>10.7 - Create the aliases database</h3>
+<h3>10.8 - Create the aliases database</h3>
 
 <p> Finally, if you haven't used Sendmail prior to using Postfix, you
 will have to build the alias database with one of the following
@@ -878,18 +919,21 @@ mail to a real person. Postfix has a sample aliases file
 
 <h2><a name="hamlet">11 - To chroot or not to chroot</a></h2>
 
-<p> Postfix can run most daemon processes in a chroot jail.  The
-processes run at a fixed low privilege and with access only to the
-Postfix queue directories (/var/spool/postfix).  This provides a
-significant barrier against intrusion. The barrier is not impenetrable,
-but every little bit helps. </p>
+<p> Postfix daemon processes can be configured (via master.cf) to
+run in a chroot jail.  The processes run at a fixed low privilege
+and with access only to the Postfix queue directories (/var/spool/postfix).
+This provides a significant barrier against intrusion. The barrier
+is not impenetrable, but every little bit helps. </p>
 
-<p> With the exception of the Postfix daemons that deliver mail
-locally, every Postfix daemon can run chrooted. </p>
+<p> With the exception of Postfix daemons that deliver mail locally
+and/or that execute non-Postfix commands, every Postfix daemon can
+run chrooted. </p>
 
 <p> Sites with high security requirements should consider to chroot
 all daemons that talk to the network:  the <a href="smtp.8.html">smtp(8)</a> and <a href="smtpd.8.html">smtpd(8)</a>
-processes, and perhaps also the <a href="lmtp.8.html">lmtp(8)</a> client. </p>
+processes, and perhaps also the <a href="lmtp.8.html">lmtp(8)</a> client. The author's own
+porcupine.org mail server runs all daemons chrooted that can be
+chrooted. </p>
 
 <p> The default /etc/postfix/master.cf file specifies that no
 Postfix daemon runs chrooted.  In order to enable chroot operation,
@@ -903,6 +947,14 @@ some files or device nodes.  The examples/chroot-setup directory
 in the source code distribution has a collection of scripts that
 help you set up Postfix chroot environments on different operating
 systems. </p>
+
+<p> Additionally, you almost certainly need to configure syslogd
+so that it listens on a socket inside the Postfix queue directory.
+Examples for specific systems: </p>
+
+<p> FreeBSD: <tt>syslogd -l /var/spool/postfix/var/run/log</tt> </p>
+
+<p> Linux, OpenBSD: <tt>syslogd -a /var/spool/postfix/dev/log</tt> </p>
 
 <h2><a name="care">12 - Care and feeding of the Postfix system</a></h2>
 
@@ -936,16 +988,22 @@ idea to run every night before the syslog files are rotated: </p>
 </pre>
 </blockquote>
 
-<p> Typical logfile names are: /var/log/maillog or /var/log/syslog.
-See /etc/syslog.conf for actual logfile names. </p>
+<ul>
 
-<p> The first line (postfix check) causes Postfix to report file
-permission/ownership discrepancies. </p>
+<li> <p> The first line (postfix check) causes Postfix to report
+file permission/ownership discrepancies. </p>
 
-<p> The second line looks for problem reports from the mail software,
-and reports how effective the anti-relay and anti-UCE blocks are.
-This may produce a lot of output.  You will want to apply some
-postprocessing to eliminate uninteresting information.  </p>
+<li> <p> The second line looks for problem reports from the mail
+software, and reports how effective the relay and junk mail access
+blocks are.  This may produce a lot of output.  You will want to
+apply some postprocessing to eliminate uninteresting information.
+</p>
+
+</ul>
+
+<p>  The <a href="DEBUG_README.html#logging"> DEBUG_README </a>
+document describes the meaning of the "warning" etc. labels in
+Postfix logging. </p>
 
 </body>
 

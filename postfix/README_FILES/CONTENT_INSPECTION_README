@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/CONTENT_INSPECTION_README.html]
-
 PPoossttffiixx CCoonntteenntt IInnssppeeccttiioonn
 
 -------------------------------------------------------------------------------
@@ -12,12 +10,12 @@ bbuuiilltt--iinn,, lliigghhtt--wweeiigghhtt,, rreeaall
     This method inspects mail BEFORE it is stored in the queue, and uses
     Postfix's built-in message header and message body inspection. Although the
     main purpose is to stop a specific flood of mail from worms or viruses, it
-    is also useful to block a flood of email notifications from virus detection
-    systems. The built-in regular expressions are not meant to implement
-    general SPAM and virus detection. For that, you should use one of the
-    content inspection methods described below. Details are described in the
-    header_checks(5) and body_checks(5) manual pages, and in the
-    BACKSCATTER_README document.
+    is also useful to block a flood of bounced junk email and email
+    notifications from virus detection systems. The built-in regular
+    expressions are not meant to implement general SPAM and virus detection.
+    For that, you should use one of the content inspection methods described
+    below. Details are described in the BUILTIN_FILTER_README and
+    BACKSCATTER_README documents.
 
 eexxtteerrnnaall,, hheeaavvyy--wweeiigghhtt,, nnoott rreeaall ttiimmee
     This method inspects mail AFTER it is stored in the queue, and uses
@@ -42,12 +40,9 @@ eexxtteerrnnaall,, mmeeddiiuumm--wweeiigghhtt,, rreeaa
 
 The more sophisticated content filtering software is not built into Postfix for
 good reasons: writing an MTA requires different skills than writing a SPAM or
-virus killer. Postfix uses standard protocols such as SMTP for content
-scanning, instead of special-purpose protocols that are often MTA specific.
-
-Postfix encourages the use of external filters and standard protocols because
-this allows you to choose the best MTA and the best content inspection software
-for your purpose. Information about external content inspection software can be
-found on the Postfix website at http://www.postfix.org, and on the postfix-
-users@postfix.org mailing list.
+virus killer. Postfix encourages the use of external filters and standard
+protocols because this allows you to choose the best MTA and the best content
+inspection software for your purpose. Information about external content
+inspection software can be found on the Postfix website at http://
+www.postfix.org/, and on the postfix-users@postfix.org mailing list.
 

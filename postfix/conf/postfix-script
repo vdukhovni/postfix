@@ -233,6 +233,14 @@ check)
 	exit 0
 	;;
 
+set-permissions|upgrade-configuration)
+	$config_directory/post-install create-missing "$@"
+	;;
+
+post-install)
+	shift
+	$config_directory/post-install "$@"
+	;;
 *)
 
 	$FATAL "usage: postfix start (or stop, reload, abort, flush, or check)"

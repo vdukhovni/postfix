@@ -32,7 +32,7 @@
 /*	int	*count;
 /*	int	*rate;
 /* DESCRIPTION
-/*	anvil_clnt_create() instantiates a anvil service client endpoint.
+/*	anvil_clnt_create() instantiates an anvil service client endpoint.
 /*
 /*	anvil_clnt_connect() informs the anvil server that a
 /*	client has connected, and returns the current connection
@@ -44,7 +44,7 @@
 /*	anvil_clnt_lookup() looks up the current connection
 /*	count and connection rate for that client.
 /*
-/*	anvil_clnt_free() destroys a anvil service client endpoint.
+/*	anvil_clnt_free() destroys an anvil service client endpoint.
 /*
 /*	Arguments:
 /* .IP anvil_clnt

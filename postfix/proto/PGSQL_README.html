@@ -68,103 +68,46 @@ map type in main.cf like this: </p>
 
 <p> The file /etc/postfix/pgsql-aliases.cf specifies lots of
 information telling postfix how to reference the pgsql database.
-An example pgsql map config file follows: </p>
+For a complete description, see the pgsql_table(5) manual page. </p>
 
-<blockquote>
+<h2>Example: local aliases </h2>
+
 <pre>
 #
-# pgsql config file for alias lookups on postfix
-# comments are ok.
+# pgsql config file for local(8) aliases(5) lookups
 #
 
-# the user name and password to log into the pgsql server
-user = someone
-password = some_password 
+#
+# The hosts that Postfix will try to connect to
+hosts = host1.some.domain host2.some.domain
 
-# the database name on the servers
+# The user name and password to log into the pgsql server.
+user = someone
+password = some_password
+
+# The database name on the servers.
 dbname = customer_database
 
-# the table name
+# The table name.
 table = mxaliases
 
-# these should be obvious :-)
+# Query components, see below.
 select_field = forw_addr
 where_field = alias
 
-# you may specify additional_conditions here
+# You may specify additional_conditions or leave this empty.
 additional_conditions = and status = 'paid'
 
-# the above variables will result in a query of the form: 
+# The above variables will result in a query of the form:
 #
 # select forw_addr from mxaliases where alias = '$lookup' and status = 'paid'
 #
 # ($lookup is escaped so if it contains single quotes or other odd
-# characters, it will not cause a parse error in the sql).
-
-# Alternatively, you can override the default SELECT statement (and the
-# above table, select_field, where_field, and additional_conditions) by
-# specifying the query:
-
-#query = select forw_addr from mxaliases where alias = '%s' and status = 'paid'
-
-# Before the query is actually issued, all occurences of %s are replaced
-# with the address to look up, %u are replaced with the user portion,
-# and %d with the domain portion.
-
-# If you just want to use a PostgreSQL function, you can ignore the
-# table name, select_field, where_field and additional_conditions, and
-# just specify a database function to call:
-
-#select_function = my_lookup_user_alias
-
-# This is equivalent to:
+# characters, it will not cause problems).
 #
-#query = select my_lookup_user_alias('%s')
-#
-# and overrides both the query parameter and the table-related fields
-# above.
-#
-# As of 25-Jun-2002, if the function returns a single row and a single
-# column AND that value is NULL, then the result will be treated as
-# if the key was not in the dictionary.
-#
-# Future versions of PG will allow functions to return result sets.
-
-#
-# The hosts that postfix will try to connect to and query from (in the
-# order listed); specify unix: for unix-domain sockets, inet: for TCP
-# connections (default)
-hosts = host1.some.domain host2.some.domain unix:/file/name
-
-# end pgsql config file
+# You may also override the built-in SELECT template. See pgsql_table(5)
+# for details.
 </pre>
-</blockquote>
-
-<p> Alternatively, these parameters can be defined in main.cf.  To
-that effect, the map should be specified as "pgsql:<i>name</i>",
-and the parameters should be prefixed with the name you've given
-the map in its definition, and an underscore.  For example, the
-above settings can also be written in main.cf as: </p>
-
-<blockquote>
-<pre>
-# pgsql definitions in main.cf
-
-alias_maps = pgsql:pgsqlsource
-
-pgsqlsource_user = someone
-pgsqlsource_password = some_password
-pgsqlsource_dbname = customer_database
-pgsqlsource_table = mxaliases
-pgsqlsource_select_field = forw_addr
-pgsqlsource_where_field = alias
-pgsqlsource_additional_conditions = and status = 'paid'
-# pgsqlsource_select_function = my_lookup_user_alias
-pgsqlsource_hosts = host1.some.domain host2.some.domain unix:/file/name
-
-# end pgsql definitions
-</pre>
-</blockquote>
 
 <h2>Using mirrored databases</h2>
 
@@ -178,10 +121,9 @@ will work if sites set up mirrored pgsql databases on two or more
 hosts. </p>
 
 <p> Whenever queries fail with an error at one host, the rest of
-the hosts will be tried in order.  Each host that is in an error
-state will undergo a reconnection attempt every so often, and if
-no pgsql server hosts are reachable, then mail will be deferred
-until at least one of those hosts is reachable. </p>
+the hosts will be tried in random order.  If no pgsql server hosts
+are reachable, then mail will be deferred until at least one of
+those hosts is reachable. </p>
 
 <h2>Credits</h2>
 

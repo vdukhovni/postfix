@@ -17,7 +17,7 @@
 
 <hr>
 
-<h2>Purpose of the Postfix fast ETRN service</a></h2>
+<h2>Purpose of the Postfix fast ETRN service</h2>
 
 <p> The SMTP ETRN command was designed for sites that have intermittent
 Internet connectivity. With ETRN, a site can tell the mail server
@@ -152,6 +152,12 @@ that have mail for the destination in question.  This does not
 perform well when queue files have recipients in many different
 domains.  </p>
 
+<li> <p> The flush(8) daemon maintains per-destination logfiles
+only for destinations listed with $fast_flush_domains. With other
+destinations it not possible to trigger delivery with "sendmail
+-qR<i>destination</i>" or, with Postfix version 1.1 and later,
+"postqueue -s<i>destination</i>". </p>
+
 <li> <p> Up to and including early versions of Postfix version 2.1,
 the "fast flush" service may not deliver some messages if the
 request to "deliver mail now" is received while a deferred queue
@@ -218,7 +224,7 @@ and so that it maintains no per-destination logfiles, specify: </p>
 spontaneous attempts to deliver mail to it. These attempts are
 separated in time by increasing time intervals, ranging from
 $minimal_backoff_time to $maximal_backoff_time, and should not be
-a problem unless a lot of mail is queued. <p>
+a problem unless a lot of mail is queued. </p>
 
 <p> To prevent Postfix from making spontaneous delivery attempts
 you can configure Postfix to always defer mail for the "ETRN"
@@ -268,10 +274,11 @@ feature. </p>
 so that spontaneous mail delivery is disabled. </p>
 
 <li> <p> Lines 13-16: Mail for the customer is given to the
-"etrn-only" mail delivery service. The "[mailhost.customer.tld]"
-turns off MX record lookups; you need to specify this only if you
-configure your Postfix server as the primary MX host for the
-customer's domain.  </p>
+"etrn-only" mail delivery service. </p>
+
+<li> <p> Line 16: The "[mailhost.customer.tld]" turns off MX record
+lookups; you must specify this if your Postfix server is the primary
+MX host for the customer's domain.  </p>
 
 </ul>
 

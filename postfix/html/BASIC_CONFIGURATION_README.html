@@ -3,9 +3,6 @@
 
 <html>
 
-<!-- TODO: Move more <a href="INSTALL.html">INSTALL</a> material here (such as: Care and
-feeding) and shorten the <a href="INSTALL.html">INSTALL</a> document.  -->
-
 <head>
 
 <title> Postfix Basic Configuration </title>
@@ -87,10 +84,26 @@ addresses </a> </p>
 
 </ul>
 
-<p> By the way, if you change main.cf or master.cf parameters of
-a running Postfix system, don't forget to issue a postfix
-reload command. <p>
+<p>  Postfix daemon processes run in the background, and log problems
+and normal activity to the syslog daemon. Here are a few things
+that you need to be aware of: </p>
 
+<ul>
+
+<li> <p> <a href="#syslog_howto"> What you need to know about
+Postfix logging </a> </p>
+
+</ul>
+
+<p> If your machine has unusual security requirements you may
+want to run Postfix daemon processes inside a chroot environment. </p>
+
+<ul>
+
+<li> <p> <a href="#chroot_setup"> Running Postfix daemon processes
+chrooted </a> </p>
+
+</ul>
 <p> If you run Postfix on a virtual network interface, or if your
 machine runs other mailers on virtual interfaces, you'll have to
 look at the other parameters listed here as well: </p>
@@ -197,8 +210,8 @@ See the <a href="VIRTUAL_README.html">VIRTUAL_README</a> file for how to configu
 <a href="VIRTUAL_README.html#canonical">hosted domains</a>. </p>
 
 <p> You can specify zero or more domain names, "/file/name" patterns
-and/or "type:name" lookup tables (such as hash:, btree:, nis:, <a href="LDAP_README.html">ldap</a>:,
-or <a href="MYSQL_README.html">mysql</a>:), separated by whitespace and/or commas.  A "/file/name"
+and/or "type:name" lookup tables (such as hash:, btree:, nis:, <a href="ldap_table.5.html">ldap</a>:,
+or <a href="mysql_table.5.html">mysql</a>:), separated by whitespace and/or commas.  A "/file/name"
 pattern is replaced by its contents; "type:name" requests that a
 table lookup is done and merely tests for existence: the lookup
 result is ignored.  </p>
@@ -440,10 +453,17 @@ specified with the <a href="postconf.5.html#error_notice_recipient">error_notice
 <h2><a name="proxy_interfaces"> Proxy/NAT external network
 addresses</a> </h2>
 
-<p> The <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> parameter specifies all network addresses
-that the Postfix receives mail on by way of a proxy or network
-address translation unit. You may specify symbolic hostnames instead
-of network addresses.  </p>
+<p> Some mail servers are connected to the Internet via a network
+address translator (NAT) or proxy. This means that systems on the
+Internet connect to the address of the NAT or proxy, instead of
+connecting to the network address of the mail server. The NAT or
+proxy forwards the connection to network address of the mail server,
+but Postfix does not know this.  </p>
+
+<p> If you run a Postfix server behind a proxy or NAT, you need to
+configure the <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> parameter and specify all the external
+proxy or NAT addresses that Postfix receives mail on. You may
+specify symbolic hostnames instead of network addresses.  </p>
 
 <p> IMPORTANT: You must specify your proxy/NAT external addresses
 when your system is a backup MX host for other domains, otherwise
@@ -458,6 +478,103 @@ mail delivery loops will happen when the primary MX host is down.
     <a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> = 1.2.3.4 (the proxy/NAT external network address)
 </pre>
 </blockquote>
+
+<h2> <a name="syslog_howto"> What you need to know about
+Postfix logging </a> </h2>
+
+<p> Postfix daemon processes run in the background, and log problems
+and normal activity to the syslog daemon. The syslogd process sorts
+events by class and severity, and appends them to logfiles. The
+logging classes, levels and logfile names are usually specified in
+/etc/syslog.conf. At the very least you need something like:  </p>
+
+<blockquote>
+<pre>
+/etc/syslog.conf:
+    mail.err                                    /dev/console
+    mail.debug                                  /var/log/maillog
+</pre>
+</blockquote>
+
+<p> After changing the syslog.conf file, send a "HUP" signal to
+the syslogd process.  </p>
+
+<p> IMPORTANT: many syslogd implementations will not create files.
+You must create files before (re)starting syslogd. </p>
+
+<p> IMPORTANT: on Linux you need to put a "-" character before the
+pathname, e.g., -/var/log/maillog, otherwise the syslogd process
+will use more system resources than Postfix. </p>
+
+<p> Hopefully, the number of problems will be small, but it is a good
+idea to run every night before the syslog files are rotated: </p>
+
+<blockquote>
+<pre>
+# postfix check
+# egrep '(reject|warning|error|fatal|panic):' /some/log/file
+</pre>
+</blockquote>
+
+<ul>
+
+<li> <p> The first line (postfix check) causes Postfix to report
+file permission/ownership discrepancies. </p>
+
+<li> <p> The second line looks for problem reports from the mail
+software, and reports how effective the relay and junk mail access
+blocks are.  This may produce a lot of output.  You will want to
+apply some postprocessing to eliminate uninteresting information.
+</p>
+
+</ul>
+
+<p> The <a href="DEBUG_README.html#logging"> DEBUG_README </a>
+document describes the meaning of the "warning" etc. labels in
+Postfix logging. </p>
+
+<h2> <a name="chroot_setup"> Running Postfix daemon processes
+chrooted </a> </h2>
+
+<p> Postfix daemon processes can be configured (via the master.cf
+file) to run in a chroot jail.  The processes run at a fixed low
+privilege and with file system access limited to the Postfix queue
+directories (/var/spool/postfix).  This provides a significant
+barrier against intrusion. The barrier is not impenetrable (chroot
+limits file system access only), but every little bit helps.</p>
+
+<p>With the exception of Postfix daemons that deliver mail locally
+and/or that execute non-Postfix commands, every Postfix daemon can
+run chrooted.</p>
+
+<p>Sites with high security requirements should consider to chroot
+all daemons that talk to the network: the <a href="smtp.8.html">smtp(8)</a> and <a href="smtpd.8.html">smtpd(8)</a>
+processes, and perhaps also the <a href="lmtp.8.html">lmtp(8)</a> client. The author's own
+porcupine.org mail server runs all daemons chrooted that can be
+chrooted.  </p>
+
+<p>The default /etc/postfix/master.cf file specifies that no Postfix
+daemon runs chrooted. In order to enable chroot operation, edit
+the file /etc/postfix/master.cf, and follow instructions in the
+file.  When you're finished, execute "postfix reload" to make the
+change effective. </p>
+
+<p>Note that a chrooted daemon resolves all filenames relative to
+the Postfix queue directory (/var/spool/postfix). For successful
+use of a chroot jail, most UNIX systems require you to bring in
+some files or device nodes. The examples/chroot-setup directory in
+the source code distribution has a collection of scripts that help
+you set up Postfix chroot environments on different operating
+systems.</p>
+
+<p> Additionally, you almost certainly need to configure syslogd
+so that it listens on a socket inside the Postfix queue directory.
+Examples of syslogd command line options that achieve this for
+specific systems: </p>
+
+<p> FreeBSD: <tt>syslogd -l /var/spool/postfix/var/run/log</tt> </p>
+
+<p> Linux, OpenBSD: <tt>syslogd -a /var/spool/postfix/dev/log</tt> </p>
 
 <h2><a name="myhostname"> My own hostname </a> </h2>
 

@@ -14,8 +14,9 @@
 /*
 /*	The SMTP client updates the queue file and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
-/*	be tried again at a later time. Delivery problem reports are sent
-/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+/*	be tried again at a later time. Delivery status reports are sent
+/*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
+/*	appropriate.
 /*
 /*	The SMTP client looks up a list of mail exchanger addresses for
 /*	the destination host, sorts the list by preference, and connects
@@ -136,10 +137,7 @@
 /*	zero (use the operating system built-in time limit).
 /* .IP "\fBsmtp_helo_timeout (300s)\fR"
 /*	The SMTP client time limit for sending the HELO or EHLO command,
-/*	and for receiving the server response.
-/* .IP "\fBsmtp_helo_timeout (300s)\fR"
-/*	The SMTP client time limit for sending the HELO or EHLO command,
-/*	and for receiving the server response.
+/*	and for receiving the initial server response.
 /* .IP "\fBsmtp_xforward_timeout (300s)\fR"
 /*	The SMTP client time limit for sending the XFORWARD command, and
 /*	for receiving the server response.
@@ -234,12 +232,17 @@
 /*	address.
 /* .IP "\fBsmtp_randomize_addresses (yes)\fR"
 /*	Randomize the order of equal-preference MX host addresses.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	bounce(8) non-delivery status reports
-/*	master(8) process manager
-/*	postconf(5) configuration parameters
-/*	qmgr(8) queue manager
-/*	syslogd(8) system logging
+/*	qmgr(8), queue manager
+/*	bounce(8), delivery status reports
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	SASL_README, Postfix SASL howto

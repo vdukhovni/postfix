@@ -1,15 +1,13 @@
-[hyperlinked version: www.postfix.org/VERP_README.html]
-
 PPoossttffiixx VVEERRPP HHoowwttoo
 
 -------------------------------------------------------------------------------
 
 PPoossttffiixx VVEERRPP ssuuppppoorrtt
 
-Postfix supports variable envelope return path addresses on request. When VERP
-style delivery is requested, each recipient of a message receives a customized
-copy of the message, with his/her own recipient address encoded in the envelope
-sender address.
+Postfix versions 1.1 and later support variable envelope return path addresses
+on request. When VERP style delivery is requested, each recipient of a message
+receives a customized copy of the message, with his/her own recipient address
+encoded in the envelope sender address.
 
 For example, when VERP style delivery is requested, Postfix delivers mail from
 "owner-listname@origin" for a recipient "user@domain", with a sender address
@@ -54,6 +52,9 @@ smtpd_authorized_verp_clients (default value: none)
     QMQP server uses its own access control mechanism, and local submission
     (via /usr/sbin/sendmail etc.) is always authorized. To authorize a host,
     list its name, IP address, subnet (net/mask) or parent .domain.
+
+    With Postfix versions 1.1 and 2.0, this parameter is called
+    authorized_verp_clients (default: $mynetworks).
 
 disable_verp_bounces (default: no)
     if Postfix sends one bounce report for multi-recipient VERP mail, or one
@@ -118,7 +119,7 @@ pull out the user=domain part from the recipient address.
 
 VVEERRPP ssuuppppoorrtt iinn tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
 
-The Postfix SMTP server inplements a command XVERP to enable VERP style
+The Postfix SMTP server implements a command XVERP to enable VERP style
 delivery. The syntax allows two forms:
 
     MAIL FROM:<sender@domain> XVERP

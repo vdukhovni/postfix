@@ -9233,13 +9233,65 @@ Apologies for any names omitted.
 	be closed when idle for more than 1 minute; Liviu Daia.
 	Files: global/dict*sql.c.
 
+20040401
+
+	Sanity: the SMTP server no longer accepts sender or recipient
+	addresses that end in the "@" null domain, as well as
+	addresses that rewrite into such a form.  Specify
+	"resolve_null_domain=yes" to get the old behavior back.
+	File:  trivial-rewrite/resolve.c.
+
+20040402
+
+	Cleanup: added WARN action support for access maps, for
+	consistency with the WARN action in header and body checks.
+	File:  smtpd/smtpd_check.c.
+
+20040407
+
+	Bugfix: missing return statement at the end of the
+	FREE_MEMORY_AND_RETURN error handling macro. Adi Prasaja.
+	File: trivial-rewrite/resolve.c.
+
+20040411
+
+	Future proofing: client_rate_time_unit is renamed to
+	anvil_rate_time_unit, so that it is no longer limited to
+	clients only. File: src/global/mail_params.h.
+
+	Cleanup: postalias and postmap now log problems to syslogd.
+	Files: postalias/postalias.c, postmap/postmap.c.
+
+20040413
+
+	Feature: "postfix set-permissions" (re)sets ownership and
+	access permissions of Postfix files and directories.
+
+	Feature: "postfix upgrade-configuration" updates main.cf
+	and master.cf. This is for people who people copy over
+	their old files after installing a newer Postfix version.
+
+	Feature: HTML files are now optionally installed under
+	control of the html_directory configuration parameter.
+	Files: postfix-install, conf/postfix-files, conf/post-install.
+
+	Cleanup: README file installation is now optional.  Files:
+	postfix-install, conf/postfix-files, conf/post-install.
+
 Open problems:
 
-	High: randomize deferred mail backoff.
+	Low: noise filter: allow smtp(8) to retry immediately if
+	all MXes return a quick ECONNRESET or 4xx reply during the
+	initial handshake.
+
+	Low: qmgr should truncate trace logfile before attempting
+	delivery.
+
+	Low: randomize deferred mail backoff.
 
 	Med: separate ulimit for delivery to command?
 
-	Med: option to open queue file after MAIL FROM.
+	Med: option to open queue file early, after MAIL FROM.
 
 	Low: log xdelay (esp. for SMTP and delivery to command).
 

@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - tcp_table(5) </title>
 </head> <body> <pre>
 TCP_TABLE(5)                                         TCP_TABLE(5)
 
@@ -82,16 +82,20 @@ TCP_TABLE(5)                                         TCP_TABLE(5)
        poses.   The client-server connection is not protected and
        the server is not authenticated.
 
-<b>SEE ALSO</b>
-       <a href="regexp_table.5.html">regexp_table(5)</a> format of regular expression tables
-       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
-       <a href="cidr_table.5.html">cidr_table(5)</a> format of CIDR tables
-
 <b>BUGS</b>
        Only the lookup method is currently implemented.
 
        The client does not hang up when the  connection  is  idle
        for a long time.
+
+<b>SEE ALSO</b>
+       <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
+       <a href="regexp_table.5.html">regexp_table(5)</a> format of regular expression tables
+       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
+       <a href="cidr_table.5.html">cidr_table(5)</a> format of CIDR tables
+
+<b>README FILES</b>
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this

@@ -13,7 +13,7 @@
 
 <body>
 
-<h1><img src="postfix-logo.jpg" width="203" height="98">Postfix Configuration Parameters </h1>
+<h1><img src="postfix-logo.jpg" width="203" height="98" alt="">Postfix Configuration Parameters </h1>
 
 <hr>
 

@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - anvil(8) </title>
 </head> <body> <pre>
 ANVIL(8)                                                 ANVIL(8)
 
@@ -19,6 +19,10 @@ ANVIL(8)                                                 ANVIL(8)
        connection attempts within a configurable  time  interval.
        This  server is designed to run under control by the Post-
        fix master server.
+
+       The <b>anvil</b> server maintains no persistent  database.  Stan-
+       dard library utilities do not meet Postfix performance and
+       robustness requirements.
 
 <b>PROTOCOL</b>
        When a remote client  connects,  a  connection  count  (or
@@ -94,18 +98,18 @@ ANVIL(8)                                                 ANVIL(8)
        The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+       <b><a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> (60s)</b>
+              The  time  unit  over which client connection rates
+              and other rates are calculated.
+
+       <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
-
-       <b><a href="postconf.5.html#client_rate_time_unit">client_rate_time_unit</a> (60s)</b>
-              The time unit over which  client  connection  rates
-              and other rates are calculated.
 
        <b><a href="postconf.5.html#client_event_status_update_time">client_event_status_update_time</a> (600s)</b>
               How  frequently  the  <a href="anvil.8.html">anvil(8)</a>  connection and rate
@@ -132,9 +136,20 @@ ANVIL(8)                                                 ANVIL(8)
               The  process  name  of  a Postfix command or daemon
               process.
 
+       <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
+              The syslog facility of Postfix logging.
+
+       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
+              The mail system name that is prepended to the  pro-
+              cess  name  in  syslog  records,  so  that  "smtpd"
+              becomes, for example, "postfix/smtpd".
+
 <b>SEE ALSO</b>
-       <a href="postconf.5.html">postconf(5)</a> configuration parameters
-       <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
+       <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+
+<b>README FILES</b>
+       <a href="TUNING_README.html">TUNING_README</a>, performance tuning
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this

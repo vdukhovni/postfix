@@ -41,15 +41,15 @@
 /*
 /*	The text below provides only a parameter summary. See
 /*	postconf(5) for more details including examples.
-/* EXTERNAL CONTENT INSPECTION CONTROLS
+/* CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
 /* .IP "\fBcontent_filter (empty)\fR"
 /*	The name of a mail delivery transport that filters mail after
 /*	it is queued.
 /* .IP "\fBreceive_override_options (empty)\fR"
-/*	What input processing happens before or after an external content
-/*	filter.
+/*	Enable or disable recipient validation, built-in content
+/*	filtering, or address rewriting.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -108,14 +108,19 @@
 /*	What clients are allowed to connect to the QMQP server port.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .IP "\fBverp_delimiter_filter (-=+)\fR"
 /*	The characters Postfix accepts as VERP delimiter characters on the
-/*	sendmail(1) command line and in SMTP commands.
+/*	Postfix sendmail(1) command line and in SMTP commands.
 /* SEE ALSO
 /*	http://cr.yp.to/proto/qmqp.html, QMQP protocol
-/*	cleanup(8) message canonicalization
-/*	master(8) process manager
-/*	syslogd(8) system logging
+/*	cleanup(8), message canonicalization
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	QMQP_README, Postfix ezmlm-idx howto.
@@ -123,6 +128,10 @@
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/* .ad
+/* .fi
+/*	The qmqpd service was introduced with Postfix version 1.1.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

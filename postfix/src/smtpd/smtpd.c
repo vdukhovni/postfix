@@ -67,8 +67,6 @@
 /*	version of the AUTH command (RFC 2554).
 /* .IP "\fBdisable_vrfy_command (no)\fR"
 /*	Disable the SMTP VRFY command.
-/* .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
-/*	What SMTP clients Postfix will not offer AUTH support to.
 /* .IP "\fBsmtpd_noop_commands (empty)\fR"
 /*	List of commands that the Postfix SMTP server replies to with "250
 /*	Ok", without doing any syntax checks and without changing state.
@@ -76,6 +74,18 @@
 /*	Require that addresses received in SMTP MAIL FROM and RCPT TO
 /*	commands are enclosed with <>, and that those addresses do
 /*	not contain RFC 822 style comments or phrases.
+/* .PP
+/*	Available in Postfix version 2.1 and later:
+/* .IP "\fBresolve_null_domain (no)\fR"
+/*	Resolve an address that ends in the "@" null domain as if the
+/*	local hostname were specified, instead of rejecting the address as
+/*	invalid.
+/* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
+/*	Request that the Postfix SMTP server rejects mail from unknown
+/*	sender addresses, even when no explicit reject_unlisted_sender
+/*	access restriction is specified.
+/* .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
+/*	What SMTP clients Postfix will not offer AUTH support to.
 /* AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -101,16 +111,23 @@
 /* .IP "\fBsmtpd_proxy_timeout (100s)\fR"
 /*	The time limit for connecting to a proxy filter and for sending or
 /*	receiving information.
-/* EXTERNAL CONTENT INSPECTION SUPPORT CONTROLS
+/* GENERAL CONTENT INSPECTION CONTROLS
+/* .ad
+/* .fi
+/*	The following parameters are applicable for both built-in
+/*	and external content filters.
+/* .PP
+/*	Available in Postfix version 2.1 and later:
+/* .IP "\fBreceive_override_options (empty)\fR"
+/*	Enable or disable recipient validation, built-in content
+/*	filtering, or address rewriting.
+/* EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
 /*	The following parameters are applicable for both before-queue
 /*	and after-queue content filtering.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
-/* .IP "\fBreceive_override_options (empty)\fR"
-/*	What input processing happens before or after an external content
-/*	filter.
 /* .IP "\fBsmtpd_authorized_xforward_hosts (empty)\fR"
 /*	What SMTP clients are allowed to use the XFORWARD feature.
 /* SASL AUTHENTICATION CONTROLS
@@ -120,6 +137,9 @@
 /*	SMTP clients to the Postfix SMTP server, and to authenticate the
 /*	Postfix SMTP client to a remote SMTP server.
 /*	See the SASL_README document for details.
+/* .IP "\fBbroken_sasl_auth_clients (no)\fR"
+/*	Enable inter-operability with SMTP clients that implement an obsolete
+/*	version of the AUTH command (RFC 2554).
 /* .IP "\fBsmtpd_sasl_auth_enable (no)\fR"
 /*	Enable SASL authentication in the Postfix SMTP server.
 /* .IP "\fBsmtpd_sasl_application_name (smtpd)\fR"
@@ -132,6 +152,10 @@
 /* .IP "\fBsmtpd_sender_login_maps (empty)\fR"
 /*	Optional lookup table with the SASL login names that own sender
 /*	(MAIL FROM) addresses.
+/* .PP
+/*	Available in Postfix version 2.1 and later:
+/* .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
+/*	What SMTP clients Postfix will not offer AUTH support to.
 /* VERP SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -141,14 +165,21 @@
 /*	describes configuration and operation details of Postfix support
 /*	for variable envelope return path addresses.  VERP style delivery
 /*	is requested with the SMTP XVERP command or with the "sendmail
-/*	-V" command-line option.
+/*	-V" command-line option and is available in Postfix version 1.1
+/*	and later.
 /* .IP "\fBdefault_verp_delimiters (+=)\fR"
 /*	The two default VERP delimiter characters.
-/* .IP "\fBsmtpd_authorized_verp_clients ($authorized_verp_clients)\fR"
-/*	What SMTP clients are allowed to specify the XVERP command.
 /* .IP "\fBverp_delimiter_filter (-=+)\fR"
 /*	The characters Postfix accepts as VERP delimiter characters on the
-/*	sendmail(1) command line and in SMTP commands.
+/*	Postfix sendmail(1) command line and in SMTP commands.
+/* .PP
+/*	Available in Postfix version 1.1 and 2.0:
+/* .IP "\fBauthorized_verp_clients ($mynetworks)\fR"
+/*	What SMTP clients are allowed to specify the XVERP command.
+/* .PP
+/*	Available in Postfix version 2.1 and later:
+/* .IP "\fBsmtpd_authorized_verp_clients ($authorized_verp_clients)\fR"
+/*	What SMTP clients are allowed to specify the XVERP command.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -196,8 +227,8 @@
 /* .PP
 /*	Parameters concerning known/unknown local recipients:
 /* .IP "\fBmydestination ($myhostname, localhost.$mydomain, localhost)\fR"
-/*	The list of domains that are by default delivered via the
-/*	$local_transport mail delivery transport.
+/*	The list of domains that are delivered via the $local_transport
+/*	mail delivery transport.
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on.
@@ -215,8 +246,8 @@
 /* .PP
 /*	Parameters concerning known/unknown recipients of relay destinations:
 /* .IP "\fBrelay_domains ($mydestination)\fR"
-/*	What destination domains (and subdomains thereof) this system will
-/*	relay mail to.
+/*	What destination domains (and subdomains thereof) this system
+/*	will relay mail to.
 /* .IP "\fBrelay_recipient_maps (empty)\fR"
 /*	Optional lookup tables with all valid addresses in the domains
 /*	that match $relay_domains.
@@ -228,9 +259,9 @@
 /*	Parameters concerning known/unknown recipients in virtual alias
 /*	domains:
 /* .IP "\fBvirtual_alias_domains ($virtual_alias_maps)\fR"
-/*	Optional list of names of virtual alias domains, that is, domains
-/*	for which all addresses are aliased to addresses in other local or
-/*	remote domains.
+/*	Optional list of names of virtual alias domains, that is,
+/*	domains for which all addresses are aliased to addresses in other
+/*	local or remote domains.
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
 /*	Optional lookup tables that alias specific mail addresses or domains
 /*	to other local or remote address.
@@ -242,14 +273,14 @@
 /*	Parameters concerning known/unknown recipients in virtual mailbox
 /*	domains:
 /* .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-/*	The list of domains that are by default delivered via the
-/*	$virtual_transport mail delivery transport.
+/*	The list of domains that are delivered via the $virtual_transport
+/*	mail delivery transport.
 /* .IP "\fBvirtual_mailbox_maps (empty)\fR"
 /*	Optional lookup tables with all valid addresses in the domains that
 /*	match $virtual_mailbox_domains.
 /* .IP "\fBunknown_virtual_mailbox_reject_code (550)\fR"
 /*	The SMTP server reply code when a recipient address matches
-/*	$virtual_mailbox_domains, and$virtual_mailbox_maps specifies a list
+/*	$virtual_mailbox_domains, and $virtual_mailbox_maps specifies a list
 /*	of lookup tables that does not match the recipient address.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
@@ -311,7 +342,7 @@
 /* .ad
 /* .fi
 /*	As of version 2.1, Postfix can be configured to delegate access
-/*	policy decisions to an external server that runs outside Postfix. 
+/*	policy decisions to an external server that runs outside Postfix.
 /*	See the file SMTPD_POLICY_README for more information.
 /* .IP "\fBsmtpd_policy_service_timeout (100s)\fR"
 /*	The time limit for connecting to, writing to or receiving from a
@@ -335,9 +366,6 @@
 /*	$smtpd_client_restrictions, $smtpd_helo_restrictions and
 /*	$smtpd_sender_restrictions, or wait until the ETRN command before
 /*	evaluating $smtpd_client_restrictions and $smtpd_helo_restrictions.
-/* .IP "\fBsmtpd_expansion_filter (see 'postconf -d' output)\fR"
-/*	What characters are allowed in $name expansions of RBL reply
-/*	templates.
 /* .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
 /*	What Postfix features match subdomains of "domain.tld" automatically,
 /*	instead of requiring an explicit ".domain.tld" pattern.
@@ -371,26 +399,29 @@
 /*	Restrict the use of the permit_mx_backup SMTP access feature to
 /*	only domains whose primary MX hosts match the listed networks.
 /* .PP
-/*	Available in Postfix 2.0 and later:
+/*	Available in Postfix version 2.0 and later:
 /* .IP "\fBsmtpd_data_restrictions (empty)\fR"
 /*	Optional access restrictions that the Postfix SMTP server applies
 /*	in the context of the SMTP DATA command.
+/* .IP "\fBsmtpd_expansion_filter (see 'postconf -d' output)\fR"
+/*	What characters are allowed in $name expansions of RBL reply
+/*	templates.
 /* .PP
-/*	Available in Postfix 2.1 and later:
+/*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 /*	Request that the Postfix SMTP server rejects mail from unknown
 /*	sender addresses, even when no explicit reject_unlisted_sender
-/*	restriction is specified.
+/*	access restriction is specified.
 /* .IP "\fBsmtpd_reject_unlisted_recipient (yes)\fR"
 /*	Request that the Postfix SMTP server rejects mail for unknown
 /*	recipient addresses, even when no explicit reject_unlisted_recipient
-/*	recipient restriction is specified.
+/*	access restriction is specified.
 /* SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
 /*	Postfix version 2.1 introduces sender and address verification.
-/*	This feature is implemented by sending probe email messages that 
-/*	are not actually delivered. 
+/*	This feature is implemented by sending probe email messages that
+/*	are not actually delivered.
 /*	This feature is requested via the reject_unverified_sender and
 /*	reject_unverified_recipient access restrictions.  The status of
 /*	verification probes is maintained by the verify(8) server.
@@ -454,7 +485,7 @@
 /*	specified with the HELO or EHLO command is rejected by the
 /*	reject_unknown_hostname restriction.
 /* .PP
-/*	Available in Postfix 2.0 and later:
+/*	Available in Postfix version 2.0 and later:
 /* .IP "\fBdefault_rbl_reply (see 'postconf -d' output)\fR"
 /*	The default SMTP server response template for a request that is
 /*	rejected by an RBL-based restriction.
@@ -512,13 +543,18 @@
 /* .IP "\fBsmtpd_banner ($myhostname ESMTP $mail_name)\fR"
 /*	The text that follows the 220 status code in the SMTP greeting
 /*	banner.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	cleanup(8) message canonicalization
-/*	master(8) process manager
-/*	postconf(5) configuration parameters
-/*	syslogd(8) system logging
-/*	trivial-rewrite(8) address resolver
-/*	verify(8) address verification service
+/*	cleanup(8), message canonicalization
+/*	trivial-rewrite(8), address resolver
+/*	verify(8), address verification service
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	ADDRESS_CLASS_README, blocking unknown hosted or relay recipients

@@ -18,9 +18,9 @@ Address Rewriting </h1>
 
 <hr>
 
-<h2> Introduction </h2>
+<h2> <a name="purpose"> Postfix address rewriting purpose </a> </h2>
 
-<p> Address rewriting is the heart of the Postfix mail system.
+<p> Address rewriting is at the heart of the Postfix mail system.
 Postfix rewrites addresses for many different purposes. Some are
 merely cosmetic, and some are necessary to deliver correctly
 formatted mail to the correct destination. Examples of
@@ -28,21 +28,21 @@ address rewriting in Postfix are:  </p>
 
 <ul>
 
-<p> Transform an incomplete address into a complete address.
+<li> <p> Transform an incomplete address into a complete address.
 For example, transform "username" into "username@example.com", or
 transform "username@hostname" into "username@hostname.example.com".
 </p>
 
-<p> Replace an address by an equivalent address.  For example,
+<li> <p> Replace an address by an equivalent address.  For example,
 replace "username@example.com" by "firstname.lastname@example.com"
 when sending mail, and do the reverse transformation when receiving
 mail.  </p>
 
-<p> Replace an address by multiple addresses. For example,
+<li> <p> Replace an address by multiple addresses. For example,
 replace the address of an alias by the addresses listed under that
 alias.  </p>
 
-<p> Determine how and where to deliver mail for a specific
+<li> <p> Determine how and where to deliver mail for a specific
 address.  For example, deliver mail for "username@example.com" with
 the <a href="smtp.8.html">smtp(8)</a> delivery agent, to the hosts that are listed in the
 DNS as the mail servers for the domain "example.com". </p>
@@ -59,12 +59,45 @@ files, or in the form of NIS, LDAP or SQL databases.  The
 <a href="DATABASE_README.html">DATABASE_README</a> document gives an introduction to Postfix lookup
 tables. </p>
 
-<h2>Postfix address rewriting overview </h2>
+<p> Topics covered in this document: </p>
 
-<p> The figure below shows how mail travels through the Postfix
-mail system, together with the main address rewriting opportunities.
-Names followed by a number are Postfix daemon programs, while other
-names represent Postfix queues. </p>
+<ul>
+
+<li> <a href="#purpose"> Postfix address rewriting purpose </a>
+
+<li> <a href="#overview"> Postfix address rewriting overview </a>
+
+<li> <a href="#standard"> Rewrite addresses to standard form</a>
+
+<li> <a href="#canonical"> Canonical address mapping </a>
+
+<li> <a href="#masquerade"> Address masquerading </a>
+
+<li> <a href="#virtual"> Virtual aliasing </a>
+
+<li> <a href="#resolve"> Resolve address to destination </a>
+
+<li> <a href="#transport"> Mail transport switch </a>
+
+<li> <a href="#relocated"> Relocated users table </a>
+
+<li> <a href="#aliases"> Local alias database </a>
+
+<li> <a href="#forward"> Local per-user .forward files </a>
+
+<li> <a href="#luser_relay"> Local catch-all address </a>
+
+<li> <a href="#debugging"> Debugging your address manipulations </a>
+
+</ul>
+
+<h2> <a name="overview"> Postfix address rewriting overview </a> </h2>
+
+<p> The figure below zooms in on those parts of Postfix that are most
+involved with address rewriting activity. See the <a href="OVERVIEW.html">OVERVIEW</a> document
+for an overview of the complete Postfix architecture.  Names followed
+by a number are Postfix daemon programs, while unnumbered names
+represent Postfix queues or internal sources of mail messages. </p>
 
 <blockquote>
 
@@ -74,13 +107,13 @@ names represent Postfix queues. </p>
 
 <td colspan="2"> </td>
 
-<td bgcolor="#f0f0ff" align="center"> <a href="trivial-rewrite.h.html">
+<td bgcolor="#f0f0ff" align="center"> <a href="trivial-rewrite.8.html">
 trivial-<br>rewrite(8)<br>(std form)</a> </td>
 
 <td colspan="5"> </td>
 
-<td bgcolor="#f0f0ff" align="center"> <a href="trivial-rewrite.h.html">
-trivial-<br>rewrite(8)<br>(resolve)</a> 
+<td bgcolor="#f0f0ff" align="center"> <a href="trivial-rewrite.8.html">
+trivial-<br>rewrite(8)<br>(resolve)</a> </td>
 
 </tr>
 
@@ -102,20 +135,22 @@ align="center">|<br>v</td></tr></table>
 
 <tr>
 
-<td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="smtpd.8.html">smtpd(8)</a> </td>
+<td bgcolor="#f0f0ff" align="center" valign="middle"> <a href="smtpd.8.html">smtpd(8)</a>
+</td>
 
 <td rowspan="3" align="center" valign="middle"> &gt;- </td>
 
 <td rowspan="3" bgcolor="#f0f0ff" align="center"> <a href="cleanup.8.html">cleanup(8)</a> </td>
 
-<td rowspan="3" align="center" valign="middle"> -&gt;
-</td>
+<td rowspan="3" align="center" valign="middle"> -&gt; </td>
 
-<td rowspan="3" bgcolor="#f0f0ff" align="center"> incoming </td>
+<td rowspan="3" bgcolor="#f0f0ff" align="center"> <a
+href="QSHAPE_README.html#incoming_queue"> incoming </a> </td>
 
 <td rowspan="3" align="center" valign="middle"> -&gt; </td>
 
-<td rowspan="3" bgcolor="#f0f0ff" align="center"> active </td>
+<td rowspan="3" bgcolor="#f0f0ff" align="center"> <a
+href="QSHAPE_README.html#active_queue"> active </a> </td>
 
 <td rowspan="3" align="center" valign="middle"> -&gt; </td>
 
@@ -148,9 +183,11 @@ align="center">|<br>v</td></tr></table>
 
 <tr>
 
+<td colspan="2"> </td>
+
 <td align="center">^<br>|</td>
 
-<td colspan="5"> </td>
+<td colspan="3"> </td>
 
 <td align="center"><table><tr><td align="center">^<br>|</td><td
 align="center">|<br>v</td></tr></table>
@@ -161,11 +198,14 @@ align="center">|<br>v</td></tr></table>
 
 <tr>
 
-<td bgcolor="#f0f0ff" align="center"> <br>maildrop<br><br> </a>
+<td colspan="2"> </td>
 
-<td colspan="5"> </td>
+<td align="center"> bounces<br> forwarding<br> notices</td>
 
-<td bgcolor="#f0f0ff" align="center"> <br>deferred<br><br> </a>
+<td colspan="3"> </td>
+
+<td bgcolor="#f0f0ff" align="center"> <a
+href="QSHAPE_README.html#deferred_queue"> deferred </a>
 
 <td colspan="2"> </td>
 
@@ -173,30 +213,12 @@ align="center">|<br>v</td></tr></table>
 
 </blockquote>
 
-<p> Mail from the network enters Postfix via the <a href="smtpd.8.html">smtpd(8)</a> or <a href="qmqpd.8.html">qmqpd(8)</a>
-servers. These servers remove the SMTP or QMQP protocol encapsulation,
-enforce some sanity checks, and give the sender, recipients and
-message content to the <a href="cleanup.8.html">cleanup(8)</a> server.  As of version 2.0 the
-Postfix <a href="smtpd.8.html">smtpd(8)</a> server validates recipient addresses and rejects
-mail for non-existent addresses.  This validation duplicates some
-of the address rewriting effort that happens elsewhere in Postfix.
-The duplicate effort is not shown in the figure because it is an
-artefact of implementation that will eventually be removed from
-Postfix.  </p>
+<h3>Address rewriting when mail is received</h3>
 
-<p> Locally submitted mail is queued in the maildrop directory by
-the <a href="postdrop.1.html">postdrop(1)</a> command; this allows you to submit mail even while
-the Postfix mail system is not running.  The local <a href="pickup.8.html">pickup(8)</a> server
-picks up the mail, enforces some sanity checks, and gives the
-sender, recipients and message content to the <a href="cleanup.8.html">cleanup(8)</a> server.
-</p>
-
-<p> Mail that is forwarded from within Postfix by the <a href="local.8.html">local(8)</a>
-delivery agent is given directly to the cleanup server. The same
-happens with undeliverable mail that Postfix returns to the sender,
-and with other notifications that are generated by the Postfix mail
-system.  These paths are internal to Postfix, and are not shown in
-the figure above. </p>
+<p> The <a href="cleanup.8.html">cleanup(8)</a> server receives mail from outside of Postfix as
+well as mail from internal sources such as forwarded mail,
+undeliverable mail that is bounced to the sender, and postmaster
+notifications about problems with the mail system.  </p>
 
 <p> The <a href="cleanup.8.html">cleanup(8)</a> server transforms the sender, recipients and
 message content into a standard form before writing it to an incoming
@@ -205,7 +227,7 @@ message headers and in the envelope, adds missing message headers
 such as From: or Date: that are required by mail standards, and
 removes message headers such as Bcc: that should not be present.
 The <a href="cleanup.8.html">cleanup(8)</a> server delegates the more complex address manipulations
-to the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> server as described later in this document.
+to the <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> server as described later in this document.
 </p>
 
 <p> Address manipulations at this stage are:  </p>
@@ -222,13 +244,15 @@ to the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html"
 
 </ul>
 
+<h3>Address rewriting when mail is delivered </h3>
+
 <p> The Postfix queue manager sorts mail according to its destination
 and gives it to Postfix delivery agents such as <a href="local.8.html">local(8)</a>, <a href="smtp.8.html">smtp(8)</a>,
 or <a href="lmtp.8.html">lmtp(8)</a>. Just like the <a href="cleanup.8.html">cleanup(8)</a> server, the Postfix queue
 manager delegates the more complex address manipulations to the
-<a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> server. </p>
+<a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> server. </p>
 
-<p> Address manupulations at this stage are:  </p>
+<p> Address manipulations at this stage are:  </p>
 
 <ul>
 
@@ -244,7 +268,7 @@ manager delegates the more complex address manipulations to the
 destination, while encapsulating the sender, recipients, and message
 content according to the rules of the SMTP, LMTP, etc.  protocol.
 When mail cannot be delivered, it is either returned to the sender
-or moved to the deferred queue and tried again later.  </p>
+or moved to the <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> and tried again later.  </p>
 
 <p> Address manipulations when mail is delivered via the <a href="local.8.html">local(8)</a>
 delivery agent: </p>
@@ -268,11 +292,11 @@ documentation with examples. </p>
 <p> Before the <a href="cleanup.8.html">cleanup(8)</a> daemon runs an address through any address
 mapping lookup table, it first rewrites the address to the standard
 "user@fully.qualified.domain" form, by sending the address to the
-<a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon.  The purpose of rewriting to standard
+<a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> daemon.  The purpose of rewriting to standard
 form is to reduce the number of entries needed in lookup tables.
 </p>
 
-<p> The Postfix <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon implements the following
+<p> The Postfix <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> daemon implements the following
 hard-coded address manipulations: </p>
 
 <blockquote>
@@ -313,7 +337,7 @@ the form "user@domain".  </p>
 <p> If your machine is not the main machine for $<a href="postconf.5.html#myorigin">myorigin</a> and you
 wish to have some users delivered locally without going via that
 main machine, make an entry in the <a href="#virtual">virtual
-alias</a> table that redirects "user@$<a href="postconf.5.html#myorigin">myorigin</a>" to
+alias</a> table that redirects "user@$myorigin" to
 "user@$<a href="postconf.5.html#myhostname">myhostname</a>". See also the "delivering some
 users locally" section in the <a href="STANDARD_CONFIGURATION_README.html">STANDARD_CONFIGURATION_README</a>
 document. </p> </dd>
@@ -324,11 +348,9 @@ Rewrite "user@host" to "user@host.$<a href="postconf.5.html#mydomain">mydomain</
 
 <dd> <p> This feature is controlled by the boolean <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>
 parameter (default: yes).  The purpose is to get consistent treatment
-of different forms of the same hostname.
+of different forms of the same hostname. </p>
 
-<p>
-
-Some will argue that rewriting "host" to "host.$<a href="postconf.5.html#mydomain">mydomain</a>"
+<p> Some will argue that rewriting "host" to "host.$<a href="postconf.5.html#mydomain">mydomain</a>"
 is bad. That is why it can be turned off. Others like the convenience
 of having the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> appended automatically. </p> </dd>
 
@@ -366,6 +388,12 @@ more lookup tables, separated by whitespace or commas. </p>
     wietse        Wietse.Venema
 </pre>
 </blockquote>
+
+<p> For static mappings as shown above, lookup tables such as hash:,
+<a href="ldap_table.5.html">ldap</a>:, <a href="mysql_table.5.html">mysql</a>:  or <a href="pgsql_table.5.html">pgsql</a>: are sufficient. For dynamic mappings you
+can use regular expression tables. This requires that you become
+intimately familiar with the ideas expressed in <a href="regexp_table.5.html">regexp_table(5)</a>,
+<a href="pcre_table.5.html">pcre_table(5)</a> and <a href="canonical.5.html">canonical(5)</a>.  </p>
 
 <p> In addition to the canonical maps which are applied to both sender
 and recipient addresses, you can specify canonical maps that are
@@ -427,8 +455,6 @@ this domain or its subdomains: </p>
 
 <p> does not change "any.thing.foo.example.com" and "foo.example.com",
 but strips "any.thing.else.example.com" to "example.com". </p>
-
-<p>
 
 <p> The <a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a> configuration parameter specifies
 what user names should not be subjected to address masquerading.
@@ -502,14 +528,20 @@ commas. </p>
 iteration of virtual aliasing, but are not subjected to canonical
 mapping, in order to avoid loops. </p>
 
+<p> For static mappings as shown above, lookup tables such as hash:,
+<a href="ldap_table.5.html">ldap</a>:, <a href="mysql_table.5.html">mysql</a>: or <a href="pgsql_table.5.html">pgsql</a>: are sufficient. For dynamic mappings you
+can use regular expression tables. This requires that you become
+intimately familiar with the ideas expressed in <a href="regexp_table.5.html">regexp_table(5)</a>,
+<a href="pcre_table.5.html">pcre_table(5)</a> and <a href="virtual.5.html">virtual(5)</a>.  </p>
+
 <p> At this point the message is ready to be stored into the
-Postfix incoming queue. </p>
+Postfix <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>. </p>
 
 <h2> <a name="resolve"> Resolve address to destination </a> </h2>
 
 <p> The Postfix <a href="qmgr.8.html">qmgr(8)</a> queue manager selects new mail from the
-incoming queue or old mail from the deferred queue, and asks the
-<a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> address rewriting and resolving daemon where it
+<a href="QSHAPE_README.html#incoming_queue">incoming queue</a> or old mail from the <a href="QSHAPE_README.html#deferred_queue">deferred queue</a>, and asks the
+<a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> address rewriting and resolving daemon where it
 should be delivered. </p>
 
 <p> As of version 2.0, Postfix distinguishes four major address
@@ -527,7 +559,7 @@ and everything else.  </p>
 align="left">Default delivery method </th> <th>Availability
 </th> </tr>
 
-<tr><td>$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> </td>
+<tr><td>$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> </td>
 <td>$<a href="postconf.5.html#local_transport">local_transport</a> </td> <td>Postfix 1.0</td></tr>
 
 <tr><td>$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> </td> <td>$<a href="postconf.5.html#virtual_transport">virtual_transport</a> </td>
@@ -545,7 +577,7 @@ align="left">Default delivery method </th> <th>Availability
 
 <h2> <a name="transport"> Mail transport switch </a> </h2>
 
-<p> Once the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon has determined a default
+<p> Once the <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> daemon has determined a default
 delivery method it searches the optional <a href="transport.5.html">transport(5)</a> table for
 information that overrides the message destination and/or delivery
 method.  Typical use of the <a href="transport.5.html">transport(5)</a> is to send mail to a system
@@ -569,7 +601,7 @@ one or more lookup tables, separated by whitespace or commas. </p>
 
 <h2> <a name="relocated"> Relocated users table </a> </h2>
 
-<p> Next, the <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> address rewriting and resolving
+<p> Next, the <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> address rewriting and resolving
 daemon runs each recipient through the <a href="relocated.5.html">relocated(5)</a> database.  This
 table provides information on how to reach users that no longer
 have an account, or what to do with mail for entire domains that
@@ -716,6 +748,108 @@ extension, is appended to "sysadmin". For example, mail for
 
 </dl>
 
+</blockquote>
+
+<h2> <a name="debugging"> Debugging your address manipulations </a> </h2>
+
+<p> With Postfix version 2.1 and later you can ask Postfix to
+produce mail delivery reports for debugging purposes. These reports
+not only show sender/recipient addresses after address rewriting
+and alias expansion or forwarding, they also show information about
+delivery to mailbox, delivery to non-Postfix command, and so on.
+</p>
+
+<p> Postfix can produce two types of mail delivery reports for
+debugging: </p>
+
+<ul>
+
+<li> <p> What-if: report what would happen, but do not actually
+deliver mail. This mode of operation is requested with: </p>
+
+<pre>
+$ <b>/usr/sbin/sendmail -bv address...</b>
+Mail Delivery Status Report will be mailed to &lt;your login name&gt;.
+</pre>
+
+<li> <p> What happened: deliver mail and report successes and/or
+failures, including replies from remote SMTP servers.  This mode
+of operation is requested with: </p>
+
+<pre>
+$ <b>/usr/sbin/sendmail -v address...</b>
+Mail Delivery Status Report will be mailed to &lt;your login name&gt;.
+</pre>
+
+</ul>
+
+<p> These reports contain information that is generated by Postfix
+delivery agents. Since these run as daemon processes and do not
+interact with users directly, the result is sent as mail to the
+sender of the test message. The format of these reports is practically
+identical to that of ordinary non-delivery notifications. </p>
+
+<p> As an example, below is the delivery report that is
+produced with the command "sendmail -bv postfix-users@postfix.org".
+The first part of the report contains human-readable text: </p>
+
+<blockquote>
+<pre>
+Content-Description: Notification
+Content-Type: text/plain
+
+This is the Postfix program at host spike.porcupine.org.
+
+Enclosed is the mail delivery report that you requested.
+
+			The Postfix program
+
+&lt;postfix-users@postfix.org&gt;: delivery via mail.cloud9.net[168.100.1.4]: 250 Ok
+</pre>
+</blockquote>
+
+<p> The second part of the report is in machine-readable form, and
+includes the envelope sender (wietse@porcupine.org) and recipient
+(postfix-users@postfix.org) addresses. If the recipient address
+was changed by Postfix address rewriting then Postfix also includes
+the original recipient address. </p>
+
+<blockquote>
+<pre>
+Content-Description: Delivery report
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; spike.porcupine.org
+X-Postfix-Queue-ID: 84863BC0E5
+X-Postfix-Sender: rfc822; wietse@porcupine.org
+Arrival-Date: Tue, 13 Apr 2004 19:27:43 -0400 (EDT)
+
+Final-Recipient: rfc822; postfix-users@postfix.org
+Action: deliverable
+Status: 2.0.0
+Diagnostic-Code: X-Postfix; delivery via mail.cloud9.net[168.100.1.4]: 250 Ok
+</pre>
+</blockquote>
+
+<p> The third part of the report contains the message that Postfix
+would have delivered, including From:  and To: message headers, so
+that you can see any effects of address rewriting on those. Mail
+submitted with "sendmail -bv" has no body content so none is shown
+in the example below. </p>
+
+<blockquote>
+<pre>
+Content-Description: Message
+Content-Type: message/rfc822
+
+Received: by spike.porcupine.org (Postfix, from userid 1001)
+	id 84863BC0E5; Tue, 13 Apr 2004 19:27:43 -0400 (EDT)
+Subject: probe
+To: postfix-users@postfix.org
+Message-Id: &lt;20040413232743.84863BC0E5@spike.porcupine.org&gt;
+Date: Tue, 13 Apr 2004 19:27:43 -0400 (EDT)
+From: wietse@porcupine.org (Wietse Venema)
+</pre>
 </blockquote>
 
 </body>

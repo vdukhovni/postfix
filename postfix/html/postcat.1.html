@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - postcat(1) </title>
 </head> <body> <pre>
 POSTCAT(1)                                             POSTCAT(1)
 
@@ -28,6 +28,8 @@ POSTCAT(1)                                             POSTCAT(1)
        <b>-q</b>     Search  the  Postfix  queue  for  the  named  <i>files</i>
               instead of taking the names literally.
 
+              Available in Postfix version 2.0 and later.
+
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
               tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
@@ -46,13 +48,19 @@ POSTCAT(1)                                             POSTCAT(1)
        The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+       <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
               The location of the Postfix top-level queue  direc-
               tory.
+
+<b>FILES</b>
+       /var/spool/postfix, Postfix queue directory
+
+<b>SEE ALSO</b>
+       <a href="postconf.5.html">postconf(5)</a>, Postfix configuration
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this

@@ -58,9 +58,10 @@ smtp delivery agent. This helps to keep Postfix configurations
 simple. </p>
 
 <li> <p> The list of valid recipient addresses for that address
-class.  This helps to keep the queue free of undeliverable
-MAILER-DAEMON messages.  The Postfix SMTP server uses this information
-to reject mail for unknown recipients.  </p>
+class. The Postfix SMTP server rejects invalid recipients with
+"User unknown in &lt;name of address class here&gt; table".  This
+helps to keep the Postfix queue free of undeliverable MAILER-DAEMON
+messages. </p>
 
 </ul>
 
@@ -87,10 +88,11 @@ when the IP address is listed with the inet_interfaces or
 proxy_interfaces parameters. </p>
 
 <li> <p> Valid recipient addresses are listed with the local_recipient_maps
-parameter, as decribed in LOCAL_RECIPIENT_README. This information
-is currently used by the Postfix SMTP server only. If the
-local_recipient_maps parameter value is empty, then the Postfix
-SMTP server accepts any address in the local domain class. </p>
+parameter, as described in LOCAL_RECIPIENT_README. The Postfix SMTP
+server rejects invalid recipients with "User unknown in local
+recipient table". If the local_recipient_maps parameter value is
+empty, then the Postfix SMTP server accepts any address in the
+local domain class. </p>
 
 <li> <p> The mail delivery transport is specified with the
 local_transport parameter. The default value is <b>local:$myhostname</b>
@@ -112,8 +114,9 @@ default value is $virtual_alias_maps for Postfix 1.1 compatibility.
 </p>
 
 <li> <p> Valid recipient addresses are listed with the virtual_alias_maps
-parameter.  The default value is $virtual_maps for Postfix 1.1
-compatibility. </p>
+parameter. The Postfix SMTP server rejects invalid recipients with
+"User unknown in virtual alias table".  The default value is
+$virtual_maps for Postfix 1.1 compatibility. </p>
 
 <li> <p> There is no mail delivery transport parameter. Every
 address must be aliased to some other address. </p>
@@ -135,9 +138,10 @@ parameter. The default value is $virtual_mailbox_maps for Postfix
 1.1 compatibility. </p>
 
 <li> <p> Valid recipient addresses are listed with the virtual_mailbox_maps
-parameter. If this parameter value is empty, the Postfix SMTP server
-accepts all recipients for domains listed in $virtual_mailbox_domains.
-</p>
+parameter. The Postfix SMTP server rejects invalid recipients with
+"User unknown in virtual mailbox table". If this parameter value
+is empty, the Postfix SMTP server accepts all recipients for domains
+listed in $virtual_mailbox_domains.  </p>
 
 <li> <p> The mail delivery transport is specified with the
 virtual_transport parameter. The default value is <b>virtual</b>
@@ -151,17 +155,19 @@ for delivery with the virtual(8) delivery agent. </p>
 
 <li> <p> Purpose: mail forwarding to remote destinations that list
 your system as primary or backup MX host. For a discussion of the
-basic configuration details, see BASIC_CONFIG_README.html document.
-For a discussion of the difference between canonical domains, hosted
-domains and other domains, see the VIRTUAL_README file. </p>
+basic configuration details, see BASIC_CONFIGURATION_README.html
+document.  For a discussion of the difference between canonical
+domains, hosted domains and other domains, see the VIRTUAL_README
+file. </p>
 
 <li> <p> Domain names are listed with the relay_domains parameter.
 </p>
 
 <li> <p> Valid recipient addresses are listed with the relay_recipient_maps
-parameter. If this parameter value is empty, the Postfix SMTP server
-accepts all recipients for domains listed with the relay_domains
-parameter. </p>
+parameter. The Postfix SMTP server rejects invalid recipients with
+"User unknown in relay recipients table". If this parameter value
+is empty, the Postfix SMTP server accepts all recipients for domains
+listed with the relay_domains parameter. </p>
 
 <li> <p> The mail delivery transport is specified with the
 relay_transport parameter. The default value is <b>relay</b> which
@@ -176,9 +182,9 @@ is a clone of the smtp(8) delivery agent. </p>
 
 <li> <p> Purpose: mail forwarding to the Internet on behalf of
 authorized clients. For a discussion of the basic configuration
-details, see the BASIC_CONFIG_README.html file. For a discussion
-of the difference between canonical domains, hosted domains and
-other domains, see the VIRTUAL_README file. </p>
+details, see the BASIC_CONFIGURATION_README.html file. For a
+discussion of the difference between canonical domains, hosted
+domains and other domains, see the VIRTUAL_README file. </p>
 
 <li> <p> This class has no destination domain table. </p>
 
@@ -216,9 +222,9 @@ mail) out of the mail queue. This is controlled by the
 smtpd_reject_unlisted_recipient configuration parameter. </p>
 
 <li> <p> As of Postfix version 2.1, the SMTP server also rejects
-unknown sender addresses (addresses that it would reject as unknown
-recipient addresses).  Sender "egress filtering" can help to slow
-down an email worm explosion.  This is controlled by the
+unknown sender addresses (i.e. addresses that it would reject as
+unknown recipient addresses).  Sender "egress filtering" can help
+to slow down an email worm explosion.  This is controlled by the
 smtpd_reject_unlisted_sender configuration parameter. </p>
 
 </ul>

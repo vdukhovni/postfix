@@ -12,6 +12,10 @@
 /*	attempts within a configurable time interval.
 /*	This server is designed to run under control by the Postfix
 /*	master server.
+/*
+/*	The \fBanvil\fR server maintains no persistent database. Standard
+/*	library utilities do not meet Postfix performance and robustness
+/*	requirements.
 /* PROTOCOL
 /* .ad
 /* .fi
@@ -96,15 +100,15 @@
 /*
 /*	The text below provides only a parameter summary. See
 /*	postconf(5) for more details including examples.
+/* .IP "\fBanvil_rate_time_unit (60s)\fR"
+/*	The time unit over which client connection rates and other rates
+/*	are calculated.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBdaemon_timeout (18000s)\fR"
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
-/* .IP "\fBclient_rate_time_unit (60s)\fR"
-/*	The time unit over which client connection rates and other rates
-/*	are calculated.
 /* .IP "\fBclient_event_status_update_time (600s)\fR"
 /*	How frequently the anvil(8) connection and rate limiting server
 /*	logs peak usage information.
@@ -121,9 +125,17 @@
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
 /*	The process name of a Postfix command or daemon process.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	postconf(5) configuration parameters
-/*	smtpd(8) Postfix SMTP server
+/*	smtpd(8), Postfix SMTP server
+/*	postconf(5), configuration parameters
+/* README FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	TUNING_README, performance tuning
 /* LICENSE
 /* .ad
 /* .fi

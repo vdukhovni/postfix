@@ -58,10 +58,14 @@ These files are maintained by the \fBbounce\fR(8) daemon.
 .IP \fBdefer\fR
 Per-recipient status information about why mail is delayed.
 These files are maintained by the \fBdefer\fR(8) daemon.
+.IP \fBtrace\fR
+Per-recipient status information as requested with the
+Postfix "\fBsendmail -v\fR" or "\fBsendmail -bv\fR" command.
+These files are maintained by the \fBtrace\fR(8) daemon.
 .PP
 The \fBoqmgr\fR daemon is responsible for asking the
-\fBbounce\fR(8) or \fBdefer\fR(8) daemons to send non-delivery
-reports.
+\fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemons to
+send delivery reports.
 .SH "STRATEGIES"
 .na
 .nf
@@ -263,13 +267,33 @@ The process ID of a Postfix command or daemon process.
 The process name of a Postfix command or daemon process.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix/incoming, incoming queue
+/var/spool/postfix/active, active queue
+/var/spool/postfix/deferred, deferred queue
+/var/spool/postfix/bounce, non-delivery status
+/var/spool/postfix/defer, non-delivery status
+/var/spool/postfix/trace, delivery status
 .SH "SEE ALSO"
 .na
 .nf
-master(8), process manager
-postconf(5), configuration parameters
-syslogd(8) system logging
 trivial-rewrite(8), address routing
+bounce(8), delivery status reports
+postconf(5), configuration parameters
+master(8), process manager
+syslogd(8) system logging
+.SH "README FILES"
+.na
+.nf
+Use "\fBpostconf readme_directory\fR" to locate this information.
+QSHAPE_README, Postfix queue analysis
 .SH "LICENSE"
 .na
 .nf

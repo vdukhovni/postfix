@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - local(8) </title>
 </head> <body> <pre>
 LOCAL(8)                                                 LOCAL(8)
 
@@ -17,14 +17,14 @@ LOCAL(8)                                                 LOCAL(8)
        Postfix queue manager to deliver mail to local recipients.
        Each  delivery  request  specifies  a queue file, a sender
        address, a domain or host to deliver to, and one  or  more
-       recipients.   This program expects to be run from the <a href="master.8.html"><b>mas</a>-</b>
-       <b><a href="master.8.html">ter</b>(8)</a> process manager.
+       recipients.   This program expects to be run from the <a href="master.8.html"><b>mas-</b></a>
+       <a href="master.8.html"><b>ter</b>(8)</a> process manager.
 
        The <b>local</b> daemon updates queue files and marks  recipients
        as finished, or it informs the queue manager that delivery
-       should be tried again at a later  time.  Delivery  problem
-       reports  are  sent  to the <a href="bounce.8.html"><b>bounce</b>(8)</a> or <a href="defer.8.html"><b>defer</b>(8)</a> daemon as
-       appropriate.
+       should be tried again at a  later  time.  Delivery  status
+       reports  are  sent  to the <a href="bounce.8.html"><b>bounce</b>(8)</a>, <a href="defer.8.html"><b>defer</b>(8)</a> or <a href="trace.8.html"><b>trace</b>(8)</a>
+       daemon as appropriate.
 
 <b>SYSTEM-WIDE AND USER-LEVEL ALIASING</b>
        The system administrator can set up one  or  more  system-
@@ -35,21 +35,21 @@ LOCAL(8)                                                 LOCAL(8)
        undeliverable.
 
        The  system  administrator can specify a comma/space sepa-
-       rated list of  ~/.<b>forward</b>  like  files  through  the  <b>for-</b>
-       <b>ward_path</b>  configuration  parameter.  Upon  delivery,  the
+       rated list of  ~/.<b>forward</b>  like  files  through  the  <b><a href="postconf.5.html#forward_path">for</a>-</b>
+       <b><a href="postconf.5.html#forward_path">ward_path</a></b>  configuration  parameter.  Upon  delivery,  the
        local delivery agent tries each pathname in the list until
        a file is found.  The <b><a href="postconf.5.html#forward_path">forward_path</a></b> parameter is subject to
        interpolation of <b>$user</b> (recipient username), <b>$home</b> (recip-
        ient home directory), <b>$shell</b> (recipient shell), <b>$recipient</b>
        (complete  recipient   address),   <b>$extension</b>   (recipient
        address  extension),  <b>$domain</b>  (recipient  domain),  <b>local</b>
-       (entire recipient address localpart) and <b>$recipient_delim-</b>
-       <b>iter.</b>  The  forms  <i>${name?value}</i>  and <i>${name:value}</i> expand
+       (entire recipient address localpart) and <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delim</a>-</b>
+       <b><a href="postconf.5.html#recipient_delimiter">iter</a>.</b>  The  forms  <i>${name?value}</i>  and <i>${name:value}</i> expand
        conditionally to <i>value</i> when <i>$name</i>  is  (is  not)  defined.
        Characters  that  may have special meaning to the shell or
        file system are replaced  by  underscores.   The  list  of
-       acceptable characters is specified with the <b>forward_expan-</b>
-       <b>sion_filter</b> configuration parameter.
+       acceptable characters is specified with the <b><a href="postconf.5.html#forward_expansion_filter">forward_expan</a>-</b>
+       <b><a href="postconf.5.html#forward_expansion_filter">sion_filter</a></b> configuration parameter.
 
        An alias or ~/.<b>forward</b> file may list  any  combination  of
        external   commands,  destination  file  names,  <b>:include:</b>
@@ -69,8 +69,8 @@ LOCAL(8)                                                 LOCAL(8)
        chunks of length <b><a href="postconf.5.html#line_length_limit">line_length_limit</a></b>.
 
        While  expanding aliases, ~/.<b>forward</b> files, and so on, the
-       program attempts to avoid duplicate deliveries. The <b>dupli-</b>
-       <b>cate_filter_limit</b>  configuration parameter limits the num-
+       program attempts to avoid duplicate deliveries. The <b><a href="postconf.5.html#duplicate_filter_limit">dupli</a>-</b>
+       <b><a href="postconf.5.html#duplicate_filter_limit">cate_filter_limit</a></b>  configuration parameter limits the num-
        ber of remembered recipients.
 
 <b>MAIL FORWARDING</b>
@@ -87,8 +87,8 @@ LOCAL(8)                                                 LOCAL(8)
 <b>MAILBOX DELIVERY</b>
        The default per-user mailbox is a file in  the  UNIX  mail
        spool  directory (<b>/var/mail/</b><i>user</i> or <b>/var/spool/mail/</b><i>user</i>);
-       the location can be specified with  the  <b>mail_spool_direc-</b>
-       <b>tory</b>  configuration  parameter. Specify a name ending in <b>/</b>
+       the location can be specified with  the  <b><a href="postconf.5.html#mail_spool_directory">mail_spool_direc</a>-</b>
+       <b><a href="postconf.5.html#mail_spool_directory">tory</a></b>  configuration  parameter. Specify a name ending in <b>/</b>
        for <b>qmail</b>-compatible <b>maildir</b> delivery.
 
        Alternatively, the per-user mailbox can be a file  in  the
@@ -105,8 +105,8 @@ LOCAL(8)                                                 LOCAL(8)
        <b><a href="postconf.5.html#default_privs">default_privs</a></b>).
 
        Mailbox  delivery  can be delegated to alternative message
-       transports specified in the  <b>master.cf</b>  file.   The  <b>mail-</b>
-       <b>box_transport</b>  configuration parameter specifies a message
+       transports specified in the  <b>master.cf</b>  file.   The  <b><a href="postconf.5.html#mailbox_transport">mail</a>-</b>
+       <b><a href="postconf.5.html#mailbox_transport">box_transport</a></b>  configuration parameter specifies a message
        transport that is to be used  for  all  local  recipients,
        regardless  of  whether  they are found in the UNIX passwd
        database.  The <b><a href="postconf.5.html#fallback_transport">fallback_transport</a></b>  parameter  specifies  a
@@ -152,8 +152,8 @@ LOCAL(8)                                                 LOCAL(8)
        A  limited amount of message context is exported via envi-
        ronment variables. Characters that may have special  mean-
        ing to the shell are replaced by underscores.  The list of
-       acceptable characters is specified with the <b>command_expan-</b>
-       <b>sion_filter</b> configuration parameter.
+       acceptable characters is specified with the <b><a href="postconf.5.html#command_expansion_filter">command_expan</a>-</b>
+       <b><a href="postconf.5.html#command_expansion_filter">sion_filter</a></b> configuration parameter.
 
        <b>SHELL</b>  The recipient user's login shell.
 
@@ -297,8 +297,8 @@ LOCAL(8)                                                 LOCAL(8)
 
 <b>DELIVERY METHOD CONTROLS</b>
        The  precedence  of <a href="local.8.html">local(8)</a> delivery methods from high to
-       low is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,  mail-
-       box_command_maps,      <a href="postconf.5.html#mailbox_command">mailbox_command</a>,      <a href="postconf.5.html#home_mailbox">home_mailbox</a>,
+       low is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,  <a href="postconf.5.html#mailbox_command_maps">mail</a>-
+       <a href="postconf.5.html#mailbox_command_maps">box_command_maps</a>,      <a href="postconf.5.html#mailbox_command">mailbox_command</a>,      <a href="postconf.5.html#home_mailbox">home_mailbox</a>,
        <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and  <a href="postconf.5.html#luser_relay">luser_relay</a>.
 
        <b><a href="postconf.5.html#alias_maps">alias_maps</a> (see 'postconf -d' output)</b>
@@ -407,7 +407,7 @@ LOCAL(8)                                                 LOCAL(8)
               agent  allows in $name expansions of $<a href="postconf.5.html#forward_path">forward_path</a>.
 
 <b>MISCELLANEOUS CONTROLS</b>
-       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+       <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
@@ -466,24 +466,39 @@ LOCAL(8)                                                 LOCAL(8)
               Whether or not a <a href="local.8.html">local(8)</a> recipient's  home  direc-
               tory  must exist before mail delivery is attempted.
 
-<b>HISTORY</b>
-       The <b>Delivered-To:</b> header appears in the  <b>qmail</b>  system  by
-       Daniel Bernstein.
+       <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
+              The syslog facility of Postfix logging.
 
-       The  <i>maildir</i>  structure  appears  in  the  <b>qmail</b> system by
-       Daniel Bernstein.
+       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
+              The mail system name that is prepended to the  pro-
+              cess  name  in  syslog  records,  so  that  "smtpd"
+              becomes, for example, "postfix/smtpd".
+
+<b>FILES</b>
+       The following are examples; details differ between systems.
+       $HOME/.forward, per-user aliasing
+       /etc/aliases, sytem-wide alias database
+       /var/spool/mail, system mailboxes
 
 <b>SEE ALSO</b>
-       <a href="aliases.5.html">aliases(5)</a> format of alias database
-       <a href="bounce.8.html">bounce(8)</a> non-delivery status reports
-       <a href="postconf.5.html">postconf(5)</a> configuration parameters
-       <a href="postalias.1.html">postalias(1)</a> create/update alias database
-       syslogd(8) system logging
-       <a href="qmgr.8.html">qmgr(8)</a> queue manager
+       <a href="qmgr.8.html">qmgr(8)</a>, queue manager
+       <a href="bounce.8.html">bounce(8)</a>, delivery status reports
+       <a href="newaliases.1.html">newaliases(1)</a>, create/update alias database
+       <a href="postalias.1.html">postalias(1)</a>, create/update alias database
+       <a href="aliases.5.html">aliases(5)</a>, format of alias database
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       syslogd(8), system logging
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this
        software.
+
+<b>HISTORY</b>
+       The <b>Delivered-To:</b> message header appears in the <b>qmail</b> sys-
+       tem by Daniel Bernstein.
+
+       The <i>maildir</i> structure  appears  in  the  <b>qmail</b>  system  by
+       Daniel Bernstein.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

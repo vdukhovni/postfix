@@ -49,7 +49,7 @@
 #	0 and 5 minutes old.
 # .IP "\fB-w \fIterminal_width\fR"
 #	The output is right justified, with the counts for the last
-#	bucket shown on the 80th column, the \fIterminal_witdth\fR can be
+#	bucket shown on the 80th column, the \fIterminal_width\fR can be
 #	adjusted for wider screens allowing more buckets to be displayed
 #	with truncating the domain names on the left. When a row for a
 #	full domain name and its counters does not fit in the specified

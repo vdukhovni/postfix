@@ -33,6 +33,9 @@ Flush the queue: attempt to deliver all queued mail.
 
 This option implements the traditional \fBsendmail -q\fR command,
 by contacting the Postfix \fBqmgr\fR(8) daemon.
+
+Warning: flushing undeliverable mail frequently will result in
+poor delivery performance of all other mail.
 .IP \fB-p\fR
 Produce a traditional sendmail-style queue listing.
 This option implements the traditional \fBmailq\fR command,
@@ -91,11 +94,6 @@ The name is listed in the standard \fBmain.cf\fR file with the
 .IP \(bu
 The command is invoked by the super-user.
 .RE
-.SH "FILES"
-.na
-.nf
-/var/spool/postfix, mail queue
-/etc/postfix, configuration files
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -122,17 +120,26 @@ The list of environment parameters that a Postfix process will
 import from a non-Postfix parent process.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .IP "\fBtrigger_timeout (10s)\fR"
 The time limit for sending a trigger to a Postfix daemon (for
 example, the pickup(8) or qmgr(8) daemon).
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix, mail queue
 .SH "SEE ALSO"
 .na
 .nf
-sendmail(1) sendmail-compatible user interface
-postsuper(1) privileged queue operations
-qmgr(8) queue manager
-showq(8) list mail queue
-flush(8) fast flush service
+qmgr(8), queue manager
+showq(8), list mail queue
+flush(8), fast flush service
+sendmail(1), Sendmail-compatible user interface
+postsuper(1), privileged queue operations
 .SH "README FILES"
 .na
 .nf

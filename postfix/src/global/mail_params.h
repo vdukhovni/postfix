@@ -1691,7 +1691,12 @@ extern int var_fault_inj_code;
 
 #define VAR_README_DIR			"readme_directory"
 #ifndef DEF_README_DIR
-#define DEF_README_DIR			DEF_CONFIG_DIR
+#define DEF_README_DIR			"no"
+#endif
+
+#define VAR_HTML_DIR			"html_directory"
+#ifndef DEF_HTML_DIR
+#define DEF_HTML_DIR			"no"
 #endif
 
  /*
@@ -1704,6 +1709,10 @@ extern int var_fault_inj_code;
 #define VAR_RESOLVE_DEQUOTED		"resolve_dequoted_address"
 #define DEF_RESOLVE_DEQUOTED		1
 extern bool var_resolve_dequoted;
+
+#define VAR_RESOLVE_NULLDOM		"resolve_null_domain"
+#define DEF_RESOLVE_NULLDOM		0
+extern bool var_resolve_nulldom;
 
  /*
   * Service names. The transport (TCP, FIFO or UNIX-domain) type is frozen
@@ -1962,7 +1971,7 @@ extern int var_smtpd_cconn_limit;
 #define DEF_SMTPD_HOGGERS		"$" VAR_MYNETWORKS
 extern char *var_smtpd_hoggers;
 
-#define VAR_ANVIL_TIME_UNIT		"client_rate_time_unit"
+#define VAR_ANVIL_TIME_UNIT		"anvil_rate_time_unit"
 #define DEF_ANVIL_TIME_UNIT		"60s"
 extern int var_anvil_time_unit;
 

@@ -15,7 +15,7 @@ Postfix fast flush server
 The flush server maintains a record of deferred mail by destination.
 This information is used to improve the performance of the SMTP
 \fBETRN\fR request, and of its command-line equivalent,
-\fBsendmail -qR\fR.
+"\fBsendmail -qR\fR" or "\fBpostqueue -f\fR".
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
@@ -32,50 +32,23 @@ specified with the \fBfast_flush_domains\fR configuration parameter,
 which defaults to \fB$relay_domains\fR.
 
 This server implements the following requests:
-.IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
-Inform the fast flush server that the specified message is queued for
-\fIsitename\fR. Depending on logging policy, the fast flush server
-stores or ignores the information.
-.IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
-Request delivery of mail that is queued for \fIsitename\fR.
-If the destination is eligible for a fast flush logfile,
-this request triggers delivery of messages listed in that
-destination's logfile, and the logfile is truncated to zero length;
-if mail is undeliverable it will be added back to the logfile.
-.sp
-If the destination is not eligible for a fast flush logfile,
-this request is rejected (see below for status codes).
-.IP \fBTRIGGER_REQ_WAKEUP\fR
-This wakeup request from the master is an alternative way to
-request \fBFLUSH_REQ_REFRESH\fR.
-.IP "\fBFLUSH_REQ_REFRESH\fR (completes in the background)"
+.IP "\fBadd\fI sitename queueid\fR"
+Inform the fast flush server that the message with the specified
+queue ID is queued for the specified destination.
+.IP "\fBsend\fI sitename\fR"
+Request delivery of mail that is queued for the specified
+destination.
+.IP \fBrefresh\fR
 Refresh non-empty per-destination logfiles that were not read in
-\fBfast_flush_refresh_time\fR hours, by simulating
+\fB$fast_flush_refresh_time\fR hours, by simulating
 send requests (see above) for the corresponding destinations.
 .sp
 Delete empty per-destination logfiles that were not updated in
-\fBfast_flush_purge_time\fR days.
-.IP "\fBFLUSH_REQ_PURGE\fR (completes in the background)"
-Refresh all non-empty per-destination logfiles, by simulating
-send requests (see above) for the corresponding destinations.
-This can be incredibly expensive when logging is enabled for
-many destinations, and is not recommended.
+\fB$fast_flush_purge_time\fR days.
 .sp
-Delete empty per-destination logfiles that were not updated in
-\fBfast_flush_purge_time\fR days.
-.PP
-The server response is one of:
-.IP \fBFLUSH_STAT_OK\fR
-The request completed normally.
-.IP \fBFLUSH_STAT_BAD\fR
-The flush server rejected the request (bad request name, bad
-request parameter value).
-.IP \fBFLUSH_STAT_FAIL\fR
-The request failed.
-.IP \fBFLUSH_STAT_DENY\fR
-The request was denied because the destination domain is not
-eligible for fast flush service, or because the fast flush
-service is disabled.
+This request completes in the background.
+.IP \fBpurge\fR
+Do a \fBrefresh\fR for all per-destination logfiles.
 .SH "SECURITY"
 .na
 .nf
@@ -91,23 +64,19 @@ Problems and transactions are logged to \fBsyslogd\fR(8).
 .SH BUGS
 .ad
 .fi
-Fast flush logfiles are truncated only after a \fBFLUSH_REQ_SEND\fR
+Fast flush logfiles are truncated only after a "send"
 request, not when mail is actually delivered, and therefore can
 accumulate outdated or redundant data. In order to maintain sanity,
-\fBFLUSH_REQ_REFRESH\fR must be executed periodically. This can
+"refresh" must be executed periodically. This can
 be automated with a suitable wakeup timer setting in the
 \fBmaster.cf\fR configuration file.
 
-Upon receipt of a request to deliver all mail for an eligible
+Upon receipt of a request to deliver mail for an eligible
 destination, the \fBflush\fR server requests delivery of all messages
 that are listed in that destination's logfile, regardless of the
 recipients of those messages. This is not an issue for mail
 that is sent to a \fBrelay_domains\fR destination because
 such mail typically only has recipients in one domain.
-.SH "FILES"
-.na
-.nf
-$queue_directory/flush, location of "fast flush" logfiles.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -152,13 +121,23 @@ The process ID of a Postfix command or daemon process.
 The process name of a Postfix command or daemon process.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix/flush, "fast flush" logfiles.
 .SH "SEE ALSO"
 .na
 .nf
-postconf(5) configuration parameters
-smtpd(8) Postfix SMTP server
-qmgr(8) Postfix queue manager
-syslogd(8) system logging
+smtpd(8), SMTP server
+qmgr(8), queue manager
+postconf(5), configuration parameters
+master(8), process manager
+syslogd(8), system logging
 .SH "README FILES"
 .na
 .nf
@@ -170,6 +149,10 @@ ETRN_README, Postfix ETRN howto
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+This service was introduced with Postfix version 1.0.
 .SH "AUTHOR(S)"
 .na
 .nf

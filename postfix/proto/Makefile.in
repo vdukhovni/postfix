@@ -3,14 +3,17 @@ SHELL	= /bin/sh
 # For now, just hard-coded rules.
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
-	../conf/transport ../conf/virtual ../conf/header_checks
+	../conf/transport ../conf/virtual ../conf/header_checks \
+	../conf/ldap_table ../conf/mysql_table ../conf/pgsql_table
 
 HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/ADDRESS_REWRITING_README.html \
 	../html/ADDRESS_VERIFICATION_README.html \
 	../html/BACKSCATTER_README.html \
 	../html/BASIC_CONFIGURATION_README.html \
+	../html/BUILTIN_FILTER_README.html \
 	../html/CONTENT_INSPECTION_README.html \
+	../html/CYRUS_README.html \
 	../html/DATABASE_README.html ../html/DB_README.html \
 	../html/DEBUG_README.html \
 	../html/ETRN_README.html ../html/FILTER_README.html \
@@ -18,6 +21,7 @@ HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/LINUX_README.html ../html/LMTP_README.html \
 	../html/LOCAL_RECIPIENT_README.html ../html/MAILDROP_README.html \
 	../html/MYSQL_README.html ../html/NFS_README.html \
+	../html/OVERVIEW.html \
 	../html/PACKAGE_README.html ../html/PCRE_README.html \
 	../html/PGSQL_README.html ../html/QMQP_README.html \
 	../html/QSHAPE_README.html \
@@ -26,6 +30,7 @@ HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/SMTPD_POLICY_README.html \
 	../html/SMTPD_PROXY_README.html \
 	../html/STANDARD_CONFIGURATION_README.html \
+	../html/TUNING_README.html \
 	../html/UUCP_README.html ../html/ULTRIX_README.html \
 	../html/VERP_README.html ../html/VIRTUAL_README.html \
 	../html/XCLIENT_README.html ../html/XFORWARD_README.html \
@@ -36,7 +41,9 @@ README	= ../README_FILES/ADDRESS_CLASS_README \
 	../README_FILES/ADDRESS_VERIFICATION_README \
 	../README_FILES/BACKSCATTER_README \
 	../README_FILES/BASIC_CONFIGURATION_README \
+	../README_FILES/BUILTIN_FILTER_README \
 	../README_FILES/CONTENT_INSPECTION_README \
+	../README_FILES/CYRUS_README \
 	../README_FILES/DATABASE_README ../README_FILES/DB_README \
 	../README_FILES/DEBUG_README \
 	../README_FILES/ETRN_README ../README_FILES/FILTER_README \
@@ -44,6 +51,7 @@ README	= ../README_FILES/ADDRESS_CLASS_README \
 	../README_FILES/LINUX_README ../README_FILES/LMTP_README \
 	../README_FILES/LOCAL_RECIPIENT_README ../README_FILES/MAILDROP_README \
 	../README_FILES/MYSQL_README ../README_FILES/NFS_README \
+	../README_FILES/OVERVIEW \
 	../README_FILES/PACKAGE_README ../README_FILES/PCRE_README \
 	../README_FILES/PGSQL_README ../README_FILES/QMQP_README \
 	../README_FILES/QSHAPE_README \
@@ -52,9 +60,11 @@ README	= ../README_FILES/ADDRESS_CLASS_README \
 	../README_FILES/SMTPD_ACCESS_README \
 	../README_FILES/SMTPD_POLICY_README ../README_FILES/SMTPD_PROXY_README \
 	../README_FILES/STANDARD_CONFIGURATION_README \
+	../README_FILES/TUNING_README \
 	../README_FILES/UUCP_README ../README_FILES/ULTRIX_README \
 	../README_FILES/VERP_README ../README_FILES/VIRTUAL_README \
-	../README_FILES/XCLIENT_README ../README_FILES/XFORWARD_README
+	../README_FILES/XCLIENT_README ../README_FILES/XFORWARD_README \
+	../README_FILES/AAAREADME
 
 MAN	= ../man/man5/postconf.5
 
@@ -62,6 +72,7 @@ AWK	= awk '{ print; if (NR == 1) print ".pl 9999" }'
 SRCTOMAN= ../mantools/srctoman
 POSTLINK= ../mantools/postlink
 HT2READ	= ../mantools/html2readme
+MAKEAAA	= ../mantools/makereadme
 
 update:	$(CONFIG) $(HTML) $(README) $(MAN)
 
@@ -79,37 +90,46 @@ clobber:
 #$(README): $(HT2READ)
 #$(HTML): $(POSTLINK)
 
-../conf/access: access.proto
+../conf/access: access
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/aliases: aliases0 aliases.proto
+../conf/aliases: aliases0 aliases
 	(cat aliases0; $(SRCTOMAN) - aliases | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /') >$@
 
-../conf/canonical: canonical.proto
+../conf/canonical: canonical
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/cidr_table: cidr_table.proto
+../conf/cidr_table: cidr_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/header_checks: header_checks.proto
+../conf/header_checks: header_checks
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/pcre_table: pcre_table.proto
+../conf/ldap_table: ldap_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/regexp_table: regexp_table.proto
+../conf/mysql_table: mysql_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/relocated: relocated.proto
+../conf/pcre_table: pcre_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/tcp_table: tcp_table.proto
+../conf/pgsql_table: pgsql_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/transport: transport.proto
+../conf/regexp_table: regexp_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/virtual: virtual.proto
+../conf/relocated: relocated
+	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/tcp_table: tcp_table
+	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/transport: transport
+	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/virtual: virtual
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../html/ADDRESS_CLASS_README.html: ADDRESS_CLASS_README.html
@@ -127,7 +147,13 @@ clobber:
 ../html/CONTENT_INSPECTION_README.html: CONTENT_INSPECTION_README.html
 	$(POSTLINK) $? >$@
 
+../html/CYRUS_README.html: CYRUS_README.html
+	$(POSTLINK) $? >$@
+
 ../html/BASIC_CONFIGURATION_README.html: BASIC_CONFIGURATION_README.html
+	$(POSTLINK) $? >$@
+
+../html/BUILTIN_FILTER_README.html: BUILTIN_FILTER_README.html
 	$(POSTLINK) $? >$@
 
 ../html/DATABASE_README.html: DATABASE_README.html
@@ -169,6 +195,9 @@ clobber:
 ../html/NFS_README.html: NFS_README.html
 	$(POSTLINK) $? >$@
 
+../html/OVERVIEW.html: OVERVIEW.html
+	$(POSTLINK) $? >$@
+
 ../html/PACKAGE_README.html: PACKAGE_README.html
 	$(POSTLINK) $? >$@
 
@@ -205,6 +234,9 @@ clobber:
 ../html/STANDARD_CONFIGURATION_README.html: STANDARD_CONFIGURATION_README.html
 	$(POSTLINK) $? >$@
 
+../html/TUNING_README.html: TUNING_README.html
+	$(POSTLINK) $? >$@
+
 ../html/UUCP_README.html: UUCP_README.html
 	$(POSTLINK) $? >$@
 
@@ -238,7 +270,13 @@ clobber:
 ../README_FILES/BASIC_CONFIGURATION_README: BASIC_CONFIGURATION_README.html
 	$(HT2READ) $? >$@
 
+../README_FILES/BUILTIN_FILTER_README: BUILTIN_FILTER_README.html
+	$(HT2READ) $? >$@
+
 ../README_FILES/CONTENT_INSPECTION_README: CONTENT_INSPECTION_README.html
+	$(HT2READ) $? >$@
+
+../README_FILES/CYRUS_README: CYRUS_README.html
 	$(HT2READ) $? >$@
 
 ../README_FILES/DATABASE_README: DATABASE_README.html
@@ -280,6 +318,9 @@ clobber:
 ../README_FILES/NFS_README: NFS_README.html
 	$(HT2READ) $? >$@
 
+../README_FILES/OVERVIEW: OVERVIEW.html
+	$(HT2READ) $? >$@
+
 ../README_FILES/PACKAGE_README: PACKAGE_README.html
 	$(HT2READ) $? >$@
 
@@ -316,6 +357,9 @@ clobber:
 ../README_FILES/STANDARD_CONFIGURATION_README: STANDARD_CONFIGURATION_README.html
 	$(HT2READ) $? >$@
 
+../README_FILES/TUNING_README: TUNING_README.html
+	$(HT2READ) $? >$@
+
 ../README_FILES/UUCP_README: UUCP_README.html
 	$(HT2READ) $? >$@
 
@@ -333,6 +377,9 @@ clobber:
 
 ../README_FILES/XFORWARD_README: XFORWARD_README.html
 	$(HT2READ) $? >$@
+
+../README_FILES/AAAREADME: ../html/index.html $(MAKEAAA)
+	$(MAKEAAA) ../html/index.html | $(HT2READ) >$@
 
 ../man/man5/postconf.5: postconf.man.prolog postconf.proto postconf.man.epilog \
 	../mantools/xpostconf ../mantools/postconf2html ../mantools/postconf2man

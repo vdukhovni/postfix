@@ -10,7 +10,7 @@ Postfix alias database maintenance
 .nf
 .fi
 \fBpostalias\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
-        [\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
+[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
         [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
 .ad
@@ -86,7 +86,11 @@ ignore them.
 .PP
 Arguments:
 .IP \fIfile_type\fR
-The type of database to be produced.
+The database type. To find out what types are supported, use
+the "\fBpostconf -m" command.
+
+The \fBpostalias\fR command can query any supported file type,
+but it can create only the following file types:
 .RS
 .IP \fBbtree\fR
 The output is a btree file, named \fIfile_name\fB.db\fR.
@@ -112,7 +116,8 @@ The name of the alias database source file when creating a database.
 .SH DIAGNOSTICS
 .ad
 .fi
-Problems are logged to the standard error stream. No output means
+Problems are logged to the standard error stream and to
+\fBsyslogd\fR(8).  No output means that
 no problems were detected. Duplicate entries are skipped and are
 flagged with a warning.
 
@@ -153,6 +158,11 @@ hash or btree tables.
 .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
 The default database type for use in newaliases(1), postalias(1)
 and postmap(1) commands.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .SH "STANDARDS"
 .na
 .nf
@@ -160,15 +170,18 @@ RFC 822 (ARPA Internet Text Messages)
 .SH "SEE ALSO"
 .na
 .nf
-aliases(5) format of alias database input file.
-local(5) Postfix local delivery agent.
-postconf(5) configuration parameters
-sendmail(1) mail posting and compatibility interface.
+aliases(5), format of alias database input file.
+local(8), Postfix local delivery agent.
+postconf(1), supported database types
+postconf(5), configuration parameters
+postmap(1), create/update/query lookup tables
+newaliases(1), Sendmail compatibility interface.
+syslogd(8), system logging
 .SH "README FILES"
 .na
 .nf
 Use "\fBpostconf readme_directory\fR" to locate this information.
-DATABASE_README, Postfix database introduction
+DATABASE_README, Postfix lookup table overview
 .SH "LICENSE"
 .na
 .nf

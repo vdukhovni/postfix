@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - aliases(5) </title>
 </head> <body> <pre>
 ALIASES(5)                                             ALIASES(5)
 
@@ -107,8 +107,13 @@ ALIASES(5)                                             ALIASES(5)
        The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
+       <b><a href="postconf.5.html#alias_database">alias_database</a></b>
+              List of alias databases that  are  updated  by  the
+              <a href="newaliases.1.html">newaliases(1)</a> command.
+
        <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>
-              List of alias databases.
+              List  of  alias  databases  queried by the <a href="local.8.html">local(8)</a>
+              delivery agent.
 
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a></b>
               Restrict the usage of  mail  delivery  to  external
@@ -141,10 +146,13 @@ ALIASES(5)                                             ALIASES(5)
        <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> (ARPA Internet Text Messages)
 
 <b>SEE ALSO</b>
-       <a href="local.8.html">local(8)</a> local delivery agent
-       <a href="newaliases.1.html">newaliases(1)</a> alias database management
-       <a href="regexp_table.5.html">regexp_table(5)</a> POSIX regular expression table format
-       <a href="pcre_table.5.html">pcre_table(5)</a> Perl Compatible Regular Expression table format
+       <a href="local.8.html">local(8)</a>, local delivery agent
+       <a href="newaliases.1.html">newaliases(1)</a>, create/update alias database
+       <a href="postalias.1.html">postalias(1)</a>, create/update alias database
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+
+<b>README FILES</b>
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this

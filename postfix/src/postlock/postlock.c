@@ -78,6 +78,8 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
+/* SEE ALSO
+/*	postconf(5), configuration parameters
 /* LICENSE
 /* .ad
 /* .fi

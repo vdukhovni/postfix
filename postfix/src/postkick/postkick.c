@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /* .fi
 /*	\fBpostkick\fR [\fB-c \fIconfig_dir\fR] [\fB-v\fR]
-/*		\fIclass service request\fR
+/*	\fIclass service request\fR
 /* DESCRIPTION
 /*	The \fBpostkick\fR command sends \fIrequest\fR to the
 /*	specified \fIservice\fR over a local transport channel.
@@ -55,10 +55,13 @@
 /*	server's input buffer before giving up.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* FILES
+/*	/var/spool/postfix/private, private class endpoints
+/*	/var/spool/postfix/public, public class endpoints
 /* SEE ALSO
-/*	qmgr(8) queue manager trigger protocol
-/*	pickup(8) local pickup daemon
-/*	postconf(5) configuration parameters
+/*	qmgr(8), queue manager trigger protocol
+/*	pickup(8), local pickup daemon
+/*	postconf(5), configuration parameters
 /* LICENSE
 /* .ad
 /* .fi
@@ -130,7 +133,7 @@ int     main(int argc, char **argv)
      * Initialize. Set up logging, read the global configuration file and
      * extract configuration information.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0)
+    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));

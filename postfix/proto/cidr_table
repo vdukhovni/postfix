@@ -52,9 +52,12 @@
 #       192.168.0.0/16          REJECT
 # .in -4
 # SEE ALSO
+#	postmap(1), Postfix lookup table manager
 #	regexp_table(5) format of regular expression tables
 #	pcre_table(5) format of PCRE tables
-#	tcp_table(5) TCP client/server table lookup protocol
+# README FILES
+#	Use "\fBpostconf readme_directory\fR" to locate this information.
+#	DATABASE_README, Postfix lookup table overview
 # AUTHOR(S)
 #	The CIDR table lookup code was originally written by:
 #	Jozsef Kadlecsik

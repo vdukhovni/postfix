@@ -41,15 +41,15 @@
 /*
 /*	The text below provides only a parameter summary. See
 /*	postconf(5) for more details including examples.
-/* EXTERNAL CONTENT INSPECTION CONTROLS
+/* CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
 /* .IP "\fBcontent_filter (empty)\fR"
 /*	The name of a mail delivery transport that filters mail after
 /*	it is queued.
 /* .IP "\fBreceive_override_options (empty)\fR"
-/*	What input processing happens before or after an external content
-/*	filter.
+/*	Enable or disable recipient validation, built-in content
+/*	filtering, or address rewriting.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -77,12 +77,18 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	cleanup(8) message canonicalization
-/*	master(8) process manager
-/*	postconf(5) configuration parameters
-/*	sendmail(1), postdrop(8) mail posting agent
-/*	syslogd(8) system logging
+/*	cleanup(8), message canonicalization
+/*	sendmail(1), Sendmail-compatible interface
+/*	postdrop(1), mail posting agent
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

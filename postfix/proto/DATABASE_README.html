@@ -30,8 +30,6 @@ This document covers the following topics:
 
 <li><a href="#preparing">Preparing Postfix for LDAP or SQL lookups</a>
 
-<li><a href="#lists_again">LDAP or SQL lists versus tables</a>
-
 <li><a href="#detect">Maintaining Postfix lookup table files</a>
 
 <li><a href="#safe_db">Updating Berkeley DB files safely</a>
@@ -57,10 +55,10 @@ documentation: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    virtual_alias_maps = hash:/etc/postfix/virtual    (address rewriting)
-    transport_maps = hash:/etc/postfix/transport      (routing table)
     alias_maps = hash:/etc/postfix/aliases            (local aliasing)
     header_checks = regexp:/etc/postfix/header_checks (content filtering)
+    transport_maps = hash:/etc/postfix/transport      (routing table)
+    virtual_alias_maps = hash:/etc/postfix/virtual    (address rewriting)
 </pre>
 </blockquote>
 
@@ -121,11 +119,11 @@ and are easy to debug with the postmap(1) command:  </p>
 </blockquote>
 
 <p> Once you have local files working properly you can follow the
-instructions in LDAP_README, MYSQL_README or PGSQL_README to replace
-local file lookups with LDAP or SQL lookups.  When you do this,
-you should use the postmap(1) command again, to verify that database
-lookups still produce the exact same results as local file lookup:
-</p>
+instructions in ldap_table(5), mysql_table(5) or pgsql_table(5)
+and replace local file lookups with LDAP or SQL lookups.  When you
+do this, you should use the postmap(1) command again, to verify
+that database lookups still produce the exact same results as local
+file lookup:  </p>
 
 <blockquote>
 <pre>
@@ -138,43 +136,6 @@ queries that are documented under "table search order" in the
 relevant manual page:  access(5), canonical(5), virtual(5),
 transport(5), or under the relevant configuration parameter:
 mynetworks, relay_domains, parent_domain_matches_subdomains. </p>
-
-<h2> <a name="lists_again">LDAP or SQL lists versus tables</a> </h2>
-
-<p> When using LDAP or SQL to store lists such as $mynetworks,
-$mydestination, $relay_domains, virtual_alias_domains,
-virtual_mailbox_domains, etc., (see "<a href="#lists">Postfix lists
-versus tables</a>" above) it is important to understand that the
-table must store each list member as a separate key. The table
-lookup verifies the *existence* of the key. </p>
-
-<ul>
-
-<li> <p> Do NOT create tables that return the full list of domains in
-$mydestination or $relay_domains etc., or IP addresses in $mynetworks.
-</p>
-
-<dl> <dt> Bad: </dt>
-
-        <dd> ldap_query_filter = domain=* </dd>
-        <dd> ldap_result_attribute = domain </dd>
-
-</dl>
-
-<li> <p> DO create tables with each matching item as a key and with
-an arbitrary value.  With databases it is not uncommon to return
-the key itself (with LDAP/SQL) or a constant value (with SQL). </p>
-
-<dl> <dt> Good: </dt>
-
-        <dd> ldap_query_filter = domain=%s </dd>
-        <dd> ldap_result_attribute = domain </dd>
-
-</dl>
-
-</ul>
-
-<p> Similar examples apply to SQL. </p>
 
 <h2><a name="detect">Maintaining Postfix lookup table files</a></h2>
 
@@ -236,7 +197,7 @@ existing database file instead of overwriting it:  </p>
 
 <blockquote>
 <pre>
-# <b>postmap access.in && mv access.in.db access.db</b>
+# <b>postmap access.in &amp;&amp; mv access.in.db access.db</b>
 </pre>
 </blockquote>
 
@@ -298,6 +259,12 @@ created with the postmap(1) or postalias(1) command. The lookup
 table name as used in "btree:table" is the database file name
 without the ".db" suffix.  </dd>
 
+<dt> <b>cidr</b> </dt>
+
+<dd> A table that associates values with class independent routing
+(CIDR) patterns. The table format is described in cidr_table(5).
+</dd>
+
 <dt> <b>dbm</b> </dt>
 
 <dd> An indexed file type based on hashing.  This is available only
@@ -322,25 +289,25 @@ name as used in "hash:table" is the database file name without the
 
 <dt> <b>ldap</b> (read-only) </dt>
 
-<dd> Perform lookups using the LDAP protocol. This is described in
-the LDAP_README file. </dd>
+<dd> Perform lookups using the LDAP protocol. Configuration details
+are given in the ldap_table(5). </dd>
 
 <dt> <b>mysql</b> (read-only) </dt>
 
-<dd> Perform lookups using the MYSQL protocol. This is described
-in the MYSQL_README file. </dd>
+<dd> Perform MySQL database lookup. Configuration details are given
+in mysql_table(5). </dd>
 
 <dt> <b>pcre</b> (read-only) </dt>
 
 <dd> A lookup table based on Perl Compatible Regular Expressions.
-The file format is described in pcre_table(5). The lookup table name
-as used in "pcre:table" is the name of the regular expression file.
-</dd>
+The file format is described in pcre_table(5). The lookup table
+name as used in "pcre:table" is the name of the regular expression
+file.  </dd>
 
 <dt> <b>pgsql</b> (read-only) </dt>
 
-<dd> Perform lookups using the PostgreSQL protocol. This is described
-in the PGSQL_README file. </dd>
+<dd> Perform PostgreSQL database lookup.  Configuration details
+are given in pgsql_table(5). </dd>
 
 <dt> <b>proxy</b> (read-only) </dt>
 

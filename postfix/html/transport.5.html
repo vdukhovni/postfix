@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - transport(5) </title>
 </head> <body> <pre>
 TRANSPORT(5)                                         TRANSPORT(5)
 
@@ -19,13 +19,13 @@ TRANSPORT(5)                                         TRANSPORT(5)
 <b>DESCRIPTION</b>
        The  optional  <b>transport</b>  table  specifies  a mapping from
        email addresses  to  message  delivery  transports  and/or
-       relay hosts. The mapping is used by the <a href="trivial-rewrite.8.html"><b>triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite</b>(8)</a>
+       relay hosts. The mapping is used by the <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a>
        daemon.
 
        This mapping overrides the default routing that  is  built
        into Postfix:
 
-       <b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b>
+       <b><a href="postconf.5.html#mydestination">mydestination</a></b>
               A  list of domains that is by default delivered via
               <b>$<a href="postconf.5.html#local_transport">local_transport</a></b>. This also includes  domains  that
               match <b>$<a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b> or <b>$<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
@@ -206,7 +206,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        Each  pattern  is  a regular expression that is applied to
        the   entire    address    being    looked    up.    Thus,
-       <i>some.domain.hierarchy</i>  is  not looked up up via its parent
+       <i>some.domain.hierarchy</i>  is  not  looked  up  via its parent
        domains, nor is <i>user+foo@domain</i> looked up as  <i>user@domain</i>.
 
        Patterns  are  applied  in  the  order as specified in the
@@ -248,14 +248,12 @@ TRANSPORT(5)                                         TRANSPORT(5)
               List of transport lookup tables.
 
 <b>SEE ALSO</b>
-       <a href="postmap.1.html">postmap(1)</a> create mapping table
-       <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> rewrite and resolve addresses
-       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
-       <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
-       <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
+       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, rewrite and resolve addresses
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
 
 <b>README FILES</b>
-       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix database introduction
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
        <a href="FILTER_README.html">FILTER_README</a>, external content filter
 
 <b>LICENSE</b>

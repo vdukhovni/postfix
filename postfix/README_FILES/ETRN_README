@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/ETRN_README.html]
-
 PPoossttffiixx EETTRRNN HHoowwttoo
 
 -------------------------------------------------------------------------------
@@ -90,6 +88,11 @@ service for every possible destination.
     destination in question. This does not perform well when queue files have
     recipients in many different domains.
 
+  * The flush(8) daemon maintains per-destination logfiles only for
+    destinations listed with $fast_flush_domains. With other destinations it
+    not possible to trigger delivery with "sendmail -qRdestination" or, with
+    Postfix version 1.1 and later, "postqueue -sdestination".
+
   * Up to and including early versions of Postfix version 2.1, the "fast flush"
     service may not deliver some messages if the request to "deliver mail now"
     is received while a deferred queue scan is already in progress. The reason
@@ -175,9 +178,11 @@ Translation:
     spontaneous mail delivery is disabled.
 
   * Lines 13-16: Mail for the customer is given to the "etrn-only" mail
-    delivery service. The "[mailhost.customer.tld]" turns off MX record
-    lookups; you need to specify this only if you configure your Postfix server
-    as the primary MX host for the customer's domain.
+    delivery service.
+
+  * Line 16: The "[mailhost.customer.tld]" turns off MX record lookups; you
+    must specify this if your Postfix server is the primary MX host for the
+    customer's domain.
 
 TTeessttiinngg tthhee PPoossttffiixx ffaasstt EETTRRNN sseerrvviiccee
 

@@ -26,31 +26,12 @@
 /*	group.
 /*
 /*	This server implements the following requests:
-/* .IP "\fBVRFY_ADDR_UPDATE\fI address status text\fR"
-/*	Update the status of the specified address.
-/* .IP "\fBVRFY_ADDR_QUERY\fI address\fR"
-/*	Look up the \fIstatus\fR and \fItext\fR of the specified address.
-/*	If the status is unknown, a probe is sent and a default status is
-/*	returned.
-/* .PP
-/*	The server reply status is one of:
-/* .IP \fBVRFY_STAT_OK\fR
-/*	The request completed normally.
-/* .IP \fBVRFY_STAT_BAD\fR
-/*	The server rejected the request (bad request name, bad
-/*	request parameter value).
-/* .IP \fBVRFY_STAT_FAIL\fR
-/*	The request failed.
-/* .PP
-/*	The recipient status is one of:
-/* .IP \fBDEL_RCPT_STAT_OK\fR
-/*	The address is deliverable.
-/* .IP \fBDEL_RCPT_STAT_DEFER\fR
-/*	The address is undeliverable due to a temporary problem.
-/* .IP \fBDEL_RCPT_STAT_BOUNCE\fR
-/*	The address is undeliverable due to a permanent problem.
-/* .IP \fBDEL_RCPT_STAT_TODO\fR
-/*	The address status is being determined.
+/* .IP "\fBupdate\fI address status text\fR"
+/*	Update the status and text of the specified address.
+/* .IP "\fBquery\fI address\fR"
+/*	Look up the \fIstatus\fR and \fItext\fR for the specified address.
+/*	If the status is unknown, a probe is sent and an "in progress"
+/*	status is returned.
 /* SECURITY
 /* .ad
 /* .fi
@@ -147,9 +128,16 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	postconf(5) configuration parameters
-/*	trivial-rewrite(8) address rewriting and resolving
+/*	smtpd(8), Postfix SMTP server
+/*	cleanup(8), enqueue Postfix message
+/*	postconf(5), configuration parameters
+/*	syslogd(5), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	ADDRESS_VERIFICATION_README, address verification howto
@@ -160,7 +148,7 @@
 /* HISTORY
 /* .ad
 /* .fi
-/*	The verify service was introduced with Postfix 2.1.
+/*	This service was introduced with Postfix version 2.1.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - header_checks(5) </title>
 </head> <body> <pre>
 HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
 
@@ -235,7 +235,11 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
        Many people overlook the main limitations  of  header  and
        <a href="postconf.5.html#body_checks">body_checks</a>  rules.   These  rules  operate on one logical
        message header or one body line at a time, and a  decision
-       made for one line is not carried over to the next line.
+       made  for  one  line is not carried over to the next line.
+       If text in the message body is encoded (<a href="http://www.faqs.org/rfcs/rfc2045.html">RFC 2045</a>) then the
+       rules  have  to specified for the encoded form.  Likewise,
+       when message headers are encoded (<a href="http://www.faqs.org/rfcs/rfc2047.html">RFC 2047</a>) then the rules
+       need to be specified for the encoded form.
 
        Message  headers added by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon itself are
        excluded from inspection. Examples of such message headers
@@ -301,18 +305,20 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
            REJECT IFRAME vulnerability exploit
 
 <b>SEE ALSO</b>
-       <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue Postfix message
-       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
-       <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
-       <a href="postconf.1.html">postconf(1)</a> Postfix configuration utility
-       <a href="postmap.1.html">postmap(1)</a> Postfix lookup table management
-       <a href="postsuper.1.html">postsuper(1)</a> Postfix janitor
-       <a href="postcat.1.html">postcat(1)</a> show Postfix queue file contents
+       <a href="cleanup.8.html">cleanup(8)</a>, canonicalize and enqueue Postfix message
+       <a href="pcre_table.5.html">pcre_table(5)</a>, format of PCRE lookup tables
+       <a href="regexp_table.5.html">regexp_table(5)</a>, format of POSIX regular expression tables
+       <a href="postconf.1.html">postconf(1)</a>, Postfix configuration utility
+       <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table management
+       <a href="postsuper.1.html">postsuper(1)</a>, Postfix janitor
+       <a href="postcat.1.html">postcat(1)</a>, show Postfix queue file contents
+       <a href="http://www.faqs.org/rfcs/rfc2045.html">RFC 2045</a>, base64 and quoted-printable encoding rules
+       <a href="http://www.faqs.org/rfcs/rfc2047.html">RFC 2047</a>, message header encoding for non-ASCII text
 
 <b>README FILES</b>
-       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix database introduction
-       <a href="FILTER_README.html">FILTER_README</a>, external content filter
-       <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a>, real-time external content filter
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
+       <a href="CONTENT_INSPECTION_README.html">CONTENT_INSPECTION_README</a>, Postfix content inspection overview
+       <a href="BUILTIN_FILTER_README.html">BUILTIN_FILTER_README</a>, Postfix built-in content inspection
        <a href="BACKSCATTER_README.html">BACKSCATTER_README</a>, blocking returned forged mail
 
 <b>LICENSE</b>

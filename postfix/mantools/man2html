@@ -2,12 +2,21 @@
 
 # Crude script to convert formatted manual pages to HTML
 
-echo '<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
+while :
+do
+    case $1 in
+    -t) title=$2; shift; shift;;
+    -*) echo "Usage: $0 [-t title] [file(s)]" 1>&2; exit 1;;
+     *) break;;
+    esac
+done
+
+echo "<!doctype html public \"-//W3C//DTD HTML 4.01 Transitional//EN\"
+        \"http://www.w3.org/TR/html4/loose.dtd\">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
-</head> <body> <pre>'
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=us-ascii\">
+<title> $title </title>
+</head> <body> <pre>"
 
 sed '
 	s/\([<>&]\)\1/\1/g

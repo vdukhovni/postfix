@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/UUCP_README.html]
-
 PPoossttffiixx aanndd UUUUCCPP
 
 -------------------------------------------------------------------------------
@@ -15,7 +13,13 @@ fixed IP address. For first-hand information, see the following guides:
   * Craig Sanders's guide for SSL-encrypted UUCP over TCP using stunnel at
     http://taz.net.au/postfix/uucp/.
 
-This document covers the following topics:
+Here's a graphical description of what this document is about:
+
+                        LAN to                 Internet
+    Local network <--->  UUCP   <--- UUCP ---> to UUCP  <---> Internet
+                        Gateway                Gateway
+
+And here's the table of contents of this document:
 
   * Setting up a Postfix Internet to UUCP gateway
   * Setting up a Postfix LAN to UUCP gateway

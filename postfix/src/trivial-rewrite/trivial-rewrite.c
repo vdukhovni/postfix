@@ -66,6 +66,10 @@
 /* .IP "\fBresolve_dequoted_address (yes)\fR"
 /*	Resolve a recipient address safely instead of correctly, by
 /*	looking inside quotes.
+/* .IP "\fBresolve_null_domain (no)\fR"
+/*	Resolve an address that ends in the "@" null domain as if the
+/*	local hostname were specified, instead of rejecting the address as
+/*	invalid.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -87,7 +91,10 @@
 /* ROUTING CONTROLS
 /* .ad
 /* .fi
-/*	The following is applicable to Postfix version 2.0 and later:
+/*	The following is applicable to Postfix version 2.0 and later.
+/*	Earlier versions do not have support for: virtual_transport,
+/*	relay_transport, virtual_alias_domains, virtual_mailbox_domains
+/*	or proxy_interfaces.
 /* .IP "\fBlocal_transport (local:$myhostname)\fR"
 /*	The default mail delivery transport for domains that match
 /*	$mydestination, $inet_interfaces or $proxy_interfaces.
@@ -114,7 +121,7 @@
 /* .ad
 /* .fi
 /*	Postfix version 2.1 introduces sender and address verification.
-/*	This feature is implemented by sending probe email messages that 
+/*	This feature is implemented by sending probe email messages that
 /*	are not actually delivered.
 /*	By default, address verification probes use the same route
 /*	as regular mail. To override specific aspects of message
@@ -170,17 +177,22 @@
 /* .IP "\fBshow_user_unknown_table_name (yes)\fR"
 /*	Display the name of the recipient table in the "User unknown"
 /*	responses.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
 /*	Available in Postfix version 2.0 and later:
 /* .IP "\fBhelpful_warnings (yes)\fR"
 /*	Log warnings about problematic configuration settings, and provide
 /*	helpful suggestions.
 /* SEE ALSO
-/*	master(8) process manager
-/*	postconf(5) configuration parameters
-/*	syslogd(8) system logging
-/*	transport(5) transport table format
-/*	relocated(5) format of the "user has moved" table
+/*	postconf(5), configuration parameters
+/*	transport(5), transport table format
+/*	relocated(5), format of the "user has moved" table
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	ADDRESS_CLASS_README, Postfix address classes howto
@@ -255,6 +267,7 @@ char   *var_relocated_maps;
 char   *var_def_transport;
 char   *var_empty_addr;
 int     var_show_unk_rcpt_table;
+int     var_resolve_nulldom;
 
  /*
   * Shadow personality for address verification.
@@ -391,6 +404,7 @@ int     main(int argc, char **argv)
 	VAR_PERCENT_HACK, DEF_PERCENT_HACK, &var_percent_hack,
 	VAR_RESOLVE_DEQUOTED, DEF_RESOLVE_DEQUOTED, &var_resolve_dequoted,
 	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
+	VAR_RESOLVE_NULLDOM, DEF_RESOLVE_NULLDOM, &var_resolve_nulldom,
 	0,
     };
 

@@ -5,11 +5,11 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
-/*		[\fIparameter ...\fR]
+/*	\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR] 
+/*	[\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
-/*		[\fIparameter=value ...\fR]
+/*	[\fIparameter=value ...\fR]
 /* DESCRIPTION
 /*	The \fBpostconf\fR command prints the actual value of
 /*	\fIparameter\fR (all known parameters by default) one
@@ -56,6 +56,9 @@
 /*	A sorted, balanced tree structure.
 /*	This is available only on systems with support for Berkeley DB
 /*	databases.
+/* .IP \fBcidr\fR
+/*	A table that associates values with class independent routing
+/*	(CIDR) patterns. This is described in \fBcidr_table\fR(5).
 /* .IP \fBdbm\fR
 /*	An indexed file type based on hashing.
 /*	This is available only on systems with support for DBM databases.
@@ -69,16 +72,16 @@
 /*	databases.
 /* .IP "\fBldap\fR (read-only)"
 /*	Perform lookups using the LDAP protocol. This is described
-/*	in an LDAP_README file.
+/*	in \fBldap_table\fR(5).
 /* .IP "\fBmysql\fR (read-only)"
 /*	Perform lookups using the MYSQL protocol. This is described
-/*	in a MYSQL_README file.
+/*	in \fBmysql_table\fR(5).
 /* .IP "\fBpcre\fR (read-only)"
 /*	A lookup table based on Perl Compatible Regular Expressions. The
 /*	file format is described in \fBpcre_table\fR(5).
 /* .IP "\fBpgsql\fR (read-only)"
 /*	Perform lookups using the PostgreSQL protocol. This is described
-/*	in a PGSQL_README file.
+/*	in \fBpgsql_table\fR(5).
 /* .IP "\fBproxy\fR (read-only)"
 /*	A lookup table that is implemented via the Postfix
 /*	\fBproxymap\fR(8) service. The table name syntax is
@@ -105,7 +108,7 @@
 /* .sp
 /*	Other table types may exist depending on how Postfix was built.
 /* .IP \fB-n\fR
-/*	Print parameter settings that are not left at their built-in 
+/*	Print parameter settings that are not left at their built-in
 /*	default value, because they are explicitly specified in main.cf.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
@@ -128,14 +131,13 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
+/* FILES
+/*	/etc/postfix/main.cf, Postfix configuration parameters
 /* SEE ALSO
-/*	postconf(5) configuration parameters
+/*	postconf(5), configuration parameters
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
-/*	DATABASE_README, Postfix database introduction
-/*	LDAP_README, Postfix LDAP client howto
-/*	MYSQL_README, Postfix MySQL client howto
-/*	PGSQL_README, Postfix PostgreSQL client howto
+/*	DATABASE_README, Postfix lookup table overview
 /* LICENSE
 /* .ad
 /* .fi

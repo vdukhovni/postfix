@@ -201,17 +201,15 @@
 #               addresses.
 # 
 # SEE ALSO
-#        cleanup(8) canonicalize and enqueue mail
-#        postmap(1) create mapping table
-#        virtual(5) virtual domain mapping
-#        pcre_table(5) format of PCRE tables
-#        regexp_table(5) format of POSIX regular expression tables
-#        tcp_table(5) TCP client/server table lookup protocol
+#        cleanup(8), canonicalize and enqueue mail
+#        postmap(1), Postfix lookup table manager
+#        postconf(5), configuration parameters
+#        virtual(5), virtual aliasing
 # 
 # README FILES
 #        Use "postconf readme_directory" to locate this information.
-#        DATABASE_README, Postfix database introduction
-#        ADDRESS_REWRITING_README, address rewriting howto
+#        DATABASE_README, Postfix lookup table overview
+#        ADDRESS_REWRITING_README, address rewriting guide
 # 
 # LICENSE
 #        The Secure Mailer license must be  distributed  with  this

@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /* .fi
 /*	\fBpostmap\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
-/*		[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
+/*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
 /*	The \fBpostmap\fR command creates or queries one or more Postfix
@@ -101,7 +101,11 @@
 /* .PP
 /*	Arguments:
 /* .IP \fIfile_type\fR
-/*	The type of database to be produced.
+/*	The database type. To find out what types are supported, use
+/*	the "\fBpostconf -m" command.
+/*
+/*	The \fBpostmap\fR command can query any supported file type,
+/*	but it can create only the following file types:
 /* .RS
 /* .IP \fBbtree\fR
 /*	The output file is a btree file, named \fIfile_name\fB.db\fR.
@@ -124,8 +128,9 @@
 /* .IP \fIfile_name\fR
 /*	The name of the lookup table source file when rebuilding a database.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to the standard error
-/*	stream. No output means no problems. Duplicate entries are
+/*	Problems are logged to the standard error stream and to
+/*	\fBsyslogd\fR(8).
+/*	No output means that no problems were detected. Duplicate entries are
 /*	skipped and are flagged with a warning.
 /*
 /*	\fBpostmap\fR terminates with zero exit status in case of success
@@ -157,9 +162,19 @@
 /* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
 /*	The default database type for use in newaliases(1), postalias(1)
 /*	and postmap(1) commands.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* SEE ALSO
+/*	postalias(1), create/update/query alias database
+/*	postconf(1), supported database types
+/*	postconf(5), configuration parameters
+/*	syslogd(8), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
-/*	DATABASE_README, Postfix database introduction
+/*	DATABASE_README, Postfix lookup table overview
 /* LICENSE
 /* .ad
 /* .fi
@@ -188,6 +203,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <msg_vstream.h>
+#include <msg_syslog.h>
 #include <readlline.h>
 #include <stringops.h>
 #include <split_at.h>
@@ -200,6 +216,7 @@
 #include <mail_dict.h>
 #include <mail_params.h>
 #include <mkmap.h>
+#include <mail_task.h>
 
 /* Application-specific. */
 
@@ -510,9 +527,10 @@ int     main(int argc, char **argv)
      * Initialize. Set up logging, read the global configuration file and
      * extract configuration information.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0)
+    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
 
     /*
      * Parse JCL.

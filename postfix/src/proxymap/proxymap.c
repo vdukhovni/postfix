@@ -7,7 +7,7 @@
 /*	\fBproxymap\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The \fBproxymap\fR server provides read-only table
-/*	lookup service to Postfix client processes. The purpose
+/*	lookup service to Postfix processes. The purpose
 /*	of the service is:
 /* .IP \(bu
 /*	To overcome chroot restrictions. For example, a chrooted SMTP
@@ -33,45 +33,31 @@
 /*	proxymap server processes.
 /* .PP
 /*	The proxymap server implements the following requests:
-/* .IP "\fBPROXY_REQ_OPEN\fI maptype:mapname flags\fR"
+/* .IP "\fBopen\fR \fImaptype:mapname flags\fR"
 /*	Open the table with type \fImaptype\fR and name \fImapname\fR,
-/*	as controlled by \fIflags\fR.
-/*	The reply is the request completion status code (below) and the
-/*	map type dependent flags.
-/* .IP "\fBPROXY_REQ_LOOKUP\fI maptype:mapname flags key\fR"
+/*	as controlled by \fIflags\fR. The reply includes the \fImaptype\fR
+/*	dependent flags (to distinguish a fixed string table from regular
+/*	a expression table).
+/* .IP "\fBlookup\fR \fImaptype:mapname flags key\fR"
 /*	Look up the data stored under the requested key.
 /*	The reply is the request completion status code (below) and
 /*	the lookup result value.
 /*	The \fImaptype:mapname\fR and \fIflags\fR are the same
-/*	as with the \fBPROXY_REQ_OPEN\fR request.
+/*	as with the \fBopen\fR request.
 /* .PP
-/*	There is no close command, nor are tables implicitly closed
-/*	when a client disconnects. One of the purposes of the proxymap
-/*	server is to share tables among multiple client processes.
-/*
-/*	The request completion status code is one of:
-/* .IP \fBPROXY_STAT_OK\fR
-/*	The specified table was opened, or the requested entry was found.
-/* .IP \fBPROXY_STAT_NOKEY\fR
-/*	The requested table entry was not found.
-/* .IP \fBPROXY_STAT_BAD\fR
-/*	The request was rejected (bad request parameter value).
-/* .IP \fBPROXY_STAT_RETRY\fR
-/*	The lookup request could not be completed.
-/* .IP \fBPROXY_STAT_DENY\fR
-/*	The specified table was not approved for access via the
-/*	proxymap service.
+/*	There is no \fBclose\fR command, nor are tables implicitly closed
+/*	when a client disconnects. The purpose is to share tables among
+/*	multiple client processes.
 /* SERVER PROCESS MANAGEMENT
 /* .ad
 /* .fi
-/*	The proxymap servers run under control by the Postfix master
+/*	\fBproxymap\fR servers run under control by the Postfix \fBmaster\fR
 /*	server.  Each server can handle multiple simultaneous connections.
-/*	When all servers are busy while a client connects, the master
-/*	creates a new proxymap server process, provided that the proxymap
-/*	server process limit is not exceeded.
-/*	Each proxymap server terminates after serving
-/*	at least \fB$max_use\fR clients or after \fB$max_idle\fR seconds
-/*	of idle time.
+/*	When all servers are busy while a client connects, the \fBmaster\fR
+/*	creates a new \fBproxymap\fR server process, provided that the
+/*	process limit is not exceeded.
+/*	Each server terminates after serving at least \fB$max_use\fR clients
+/*	or after \fB$max_idle\fR seconds of idle time.
 /* SECURITY
 /* .ad
 /* .fi
@@ -93,7 +79,7 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	On busy mail systems a long time may pass before proxymap(8) relevant 
+/*	On busy mail systems a long time may pass before proxymap(8) relevant
 /*	changes to \fBmain.cf\fR are picked up. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*

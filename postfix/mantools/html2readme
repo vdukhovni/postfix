@@ -2,13 +2,18 @@
 
 HTML2TEXT="html2text -style pretty -rcfile html2text.rc"
 
-for file 
-do
-    cat <<EOF | fmt
-[hyperlinked version: www.postfix.org/$file]
-EOF
-     $HTML2TEXT $file
-done | sed '
+#case $# in
+# 0) $HTML2TEXT;;
+# *) for file 
+#    do
+#        cat <<EOF | fmt
+#[hyperlinked version: www.postfix.org/$file]
+#EOF
+#         $HTML2TEXT $file
+#    done;;
+#esac | sed '
+
+$HTML2TEXT "$@" | sed '
 :top
 / -$/ {
 	N

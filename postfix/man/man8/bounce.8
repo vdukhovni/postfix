@@ -22,19 +22,19 @@ manager.
 
 The \fBbounce\fR daemon processes two types of service requests:
 .IP \(bu
-Append a recipient non-delivery status record to a per-message
+Append a recipient (non-)delivery status record to a per-message
 log file.
 .IP \(bu
 Enqueue a bounce message, with a copy of a per-message log file
 and of the corresponding message. When the bounce message is
 enqueued successfully, the per-message log file is deleted.
 .PP
-The software does a best effort to notify the sender that there
-was a problem. A notification is sent even when the log file
-or original message cannot be read.
+The software does a best notification effort. A non-delivery
+notification is sent even when the log file or the original
+message cannot be read.
 
-Optionally, a client can request that the per-message log file be
-deleted when the requested operation fails.
+Optionally, a bounce (defer, trace) client can request that the
+per-message log file be deleted when the requested operation fails.
 This is used by clients that cannot retry transactions by
 themselves, and that depend on retry logic in their own client.
 .SH "STANDARDS"
@@ -107,13 +107,24 @@ The process ID of a Postfix command or daemon process.
 The process name of a Postfix command or daemon process.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix/bounce/* non-delivery records
+/var/spool/postfix/defer/* non-delivery records
+/var/spool/postfix/trace/* delivery status records
 .SH "SEE ALSO"
 .na
 .nf
-master(8) process manager
-postconf(5) configuration parameters
-qmgr(8) queue manager
-syslogd(8) system logging
+qmgr(8), queue manager
+postconf(5), configuration parameters
+master(8), process manager
+syslogd(8), system logging
 .SH "LICENSE"
 .na
 .nf

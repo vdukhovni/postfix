@@ -123,9 +123,12 @@
 #
 #	# Put your own body patterns here.
 # SEE ALSO
-#	pcre_table(5) format of PCRE tables
-#	cidr_table(5) format of CIDR tables
-#	tcp_table(5) TCP client/server table lookup protocol
+#	postmap(1), Postfix lookup table manager
+#	pcre_table(5), format of PCRE tables
+#	cidr_table(5), format of CIDR tables
+# README FILES
+#	Use "\fBpostconf readme_directory\fR" to locate this information.
+#	DATABASE_README, Postfix lookup table overview
 # AUTHOR(S)
 #	The regexp table lookup code was originally written by:
 #	LaMont Jones

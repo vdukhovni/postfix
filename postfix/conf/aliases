@@ -139,8 +139,13 @@ decode:		root
 #        The  text  below  provides  only  a parameter summary. See
 #        postconf(5) for more details including examples.
 # 
+#        alias_database
+#               List of alias databases that  are  updated  by  the
+#               newaliases(1) command.
+# 
 #        alias_maps
-#               List of alias databases.
+#               List  of  alias  databases  queried by the local(8)
+#               delivery agent.
 # 
 #        allow_mail_to_commands
 #               Restrict the usage of  mail  delivery  to  external
@@ -173,10 +178,14 @@ decode:		root
 #        RFC 822 (ARPA Internet Text Messages)
 # 
 # SEE ALSO
-#        local(8) local delivery agent
-#        newaliases(1) alias database management
-#        regexp_table(5) POSIX regular expression table format
-#        pcre_table(5) Perl Compatible Regular Expression table format
+#        local(8), local delivery agent
+#        newaliases(1), create/update alias database
+#        postalias(1), create/update alias database
+#        postconf(5), configuration parameters
+# 
+# README FILES
+#        Use "postconf readme_directory" to locate this information.
+#        DATABASE_README, Postfix lookup table overview
 # 
 # LICENSE
 #        The  Secure  Mailer  license must be distributed with this

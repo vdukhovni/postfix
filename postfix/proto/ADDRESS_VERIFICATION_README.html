@@ -29,7 +29,7 @@ below for details. </p>
 
 <p> Address verification is a feature that allows the Postfix SMTP
 server to block a sender (MAIL FROM) or recipient (RCPT TO) address
-until the address has been verified to be deliverable.  <p>
+until the address has been verified to be deliverable.  </p>
 
 <p> The technique has obvious uses in order to reject junk mail
 with an unreplyable sender address.  </p>
@@ -155,7 +155,7 @@ suffer only a short delay of up to 6 seconds while an address is
 being verified for the first time.  Once an address status is known,
 the status is cached and Postfix replies immediately. </p>
 
-</p> When verification takes too long the Postfix SMTP server defers
+<p> When verification takes too long the Postfix SMTP server defers
 the sender or recipient address with a 450 reply. Normal mail
 clients will connect again after some delay.  The address verification
 delay is configurable with the main.cf address_verify_poll_count

@@ -29,7 +29,7 @@ below for details. </p>
 
 <p> Address verification is a feature that allows the Postfix SMTP
 server to block a sender (MAIL FROM) or recipient (RCPT TO) address
-until the address has been verified to be deliverable.  <p>
+until the address has been verified to be deliverable.  </p>
 
 <p> The technique has obvious uses in order to reject junk mail
 with an unreplyable sender address.  </p>
@@ -155,7 +155,7 @@ suffer only a short delay of up to 6 seconds while an address is
 being verified for the first time.  Once an address status is known,
 the status is cached and Postfix replies immediately. </p>
 
-</p> When verification takes too long the Postfix SMTP server defers
+<p> When verification takes too long the Postfix SMTP server defers
 the sender or recipient address with a 450 reply. Normal mail
 clients will connect again after some delay.  The address verification
 delay is configurable with the main.cf <a href="postconf.5.html#address_verify_poll_count">address_verify_poll_count</a>
@@ -229,13 +229,13 @@ succeeds, then Postfix accepts mail for the recipient address. </p>
         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
         ...
         <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>
-        <a href="postconf.5.html#reject_unverified_recipient">reject_unveri</a><a href="postconf.5.html#reject_unverified_recipient">fied_recipient</a>
+        <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>
         ...
 </pre>
 </blockquote>
 
 <p> The "<a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>" restriction blocks mail
-for non-existent domains. Putting this before "<a href="postconf.5.html#reject_unverified_recipient">reject_unveri</a><a href="postconf.5.html#reject_unverified_recipient">fied_recipient</a>"
+for non-existent domains. Putting this before "<a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>"
 avoids the overhead of generating unnecessary probe messages. </p>
 
 <p> The <a href="postconf.5.html#unverified_recipient_reject_code">unverified_recipient_reject_code</a> parameter (default 450)
@@ -421,7 +421,7 @@ file.  </p>
 <tr> <th> Domain list </th> <th> Regular transport</th> <th> Verify
 transport </th> </tr>
 
-<tr> <td> <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> </td> <td> <a href="postconf.5.html#local_transport">local_transport</a> </td> <td>
+<tr> <td> <a href="postconf.5.html#mydestination">mydestination</a> </td> <td> <a href="postconf.5.html#local_transport">local_transport</a> </td> <td>
 <a href="postconf.5.html#address_verify_local_transport">address_verify_local_transport</a> </td> </tr>
 
 <tr> <td> <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> </td> <td> (not applicable) </td>

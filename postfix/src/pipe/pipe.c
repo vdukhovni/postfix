@@ -17,8 +17,9 @@
 /*
 /*	The \fBpipe\fR daemon updates queue files and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
-/*	be tried again at a later time. Delivery problem reports are sent
-/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+/*	be tried again at a later time. Delivery status reports are sent
+/*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
+/*	appropriate.
 /* SINGLE-RECIPIENT DELIVERY
 /* .ad
 /* .fi
@@ -239,12 +240,17 @@
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBrecipient_delimiter (empty)\fR"
 /*	The separator between user names and address extensions (user+foo).
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	bounce(8) non-delivery status reports
-/*	master(8) process manager
-/*	postconf(5) configuration parameters
-/*	qmgr(8) queue manager
-/*	syslogd(8) system logging
+/*	qmgr(8), queue manager
+/*	bounce(8), delivery status reports
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

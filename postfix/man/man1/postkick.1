@@ -10,7 +10,7 @@ kick a Postfix service
 .nf
 .fi
 \fBpostkick\fR [\fB-c \fIconfig_dir\fR] [\fB-v\fR]
-        \fIclass service request\fR
+\fIclass service request\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -67,12 +67,17 @@ How long the postkick(1) command waits for a request to enter the
 server's input buffer before giving up.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix/private, private class endpoints
+/var/spool/postfix/public, public class endpoints
 .SH "SEE ALSO"
 .na
 .nf
-qmgr(8) queue manager trigger protocol
-pickup(8) local pickup daemon
-postconf(5) configuration parameters
+qmgr(8), queue manager trigger protocol
+pickup(8), local pickup daemon
+postconf(5), configuration parameters
 .SH "LICENSE"
 .na
 .nf

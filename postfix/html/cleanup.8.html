@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - cleanup(8) </title>
 </head> <body> <pre>
 CLEANUP(8)                                             CLEANUP(8)
 
@@ -26,7 +26,7 @@ CLEANUP(8)                                             CLEANUP(8)
        <b>o</b>      Transform  envelope  and  header  addresses  to the
               standard <i>user@fully-qualified-domain</i> form  that  is
               expected  by  other Postfix programs.  This task is
-              delegated to the <a href="trivial-rewrite.8.html"><b>triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite</b>(8)</a> daemon.
+              delegated to the <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a> daemon.
 
        <b>o</b>      Eliminate duplicate envelope recipient addresses.
 
@@ -85,9 +85,9 @@ CLEANUP(8)                                             CLEANUP(8)
        Available in Postfix version 2.1 and later:
 
        <b>enable_errors_to (no)</b>
-              Report errors to the  address  specified  with  the
-              non-standard  Errors-To: message header, instead of
-              the envelope sender address.
+              Report mail delivery errors to the  address  speci-
+              fied   with  the  non-standard  Errors-To:  message
+              header, instead of the envelope sender address.
 
 <b>BUILT-IN CONTENT FILTERING CONTROLS</b>
        Postfix built-in content filtering  is  meant  to  stop  a
@@ -170,7 +170,7 @@ CLEANUP(8)                                             CLEANUP(8)
               tables, indexed by recipient address.
 
 <b>ADDRESS TRANSFORMATION CONTROLS</b>
-       Address rewriting is delegated to  the  <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a>
+       Address rewriting is delegated to  the  <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>
        daemon.   The  <a href="cleanup.8.html">cleanup(8)</a>  server  implements table driven
        address mapping.
 
@@ -276,7 +276,7 @@ CLEANUP(8)                                             CLEANUP(8)
               sion.
 
 <b>MISCELLANEOUS CONTROLS</b>
-       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+       <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
@@ -326,28 +326,37 @@ CLEANUP(8)                                             CLEANUP(8)
               Safety net to keep mail queued that would otherwise
               be returned to the sender.
 
+       <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
+              The syslog facility of Postfix logging.
+
+       <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
+              The  mail system name that is prepended to the pro-
+              cess  name  in  syslog  records,  so  that  "smtpd"
+              becomes, for example, "postfix/smtpd".
+
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
               Enable   support   for  the  X-Original-To  message
               header.
 
-<b>SEE ALSO</b>
-       <a href="header_checks.5.html">body_checks(5)</a> body parts content inspection
-       <a href="canonical.5.html">canonical(5)</a> canonical address lookup table format
-       <a href="header_checks.5.html">header_checks(5)</a> message header content inspection
-       <a href="postconf.5.html">postconf(5)</a> configuration parameters
-       <a href="qmgr.8.html">qmgr(8)</a> queue manager daemon
-       syslogd(8) system logging
-       <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> address rewriting
-       <a href="virtual.5.html">virtual(5)</a> virtual alias lookup table format
-
-<b>README FILES</b>
-       <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> Postfix address manipulation
-
 <b>FILES</b>
        /etc/postfix/canonical*, canonical mapping table
        /etc/postfix/virtual*, virtual mapping table
+
+<b>SEE ALSO</b>
+       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address rewriting
+       <a href="qmgr.8.html">qmgr(8)</a>, queue manager
+       <a href="header_checks.5.html">header_checks(5)</a>, message header content inspection
+       <a href="header_checks.5.html">body_checks(5)</a>, body parts content inspection
+       <a href="canonical.5.html">canonical(5)</a>, canonical address lookup table format
+       <a href="virtual.5.html">virtual(5)</a>, virtual alias lookup table format
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="master.8.html">master(8)</a>, process manager
+       syslogd(8), system logging
+
+<b>README FILES</b>
+       <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> Postfix address manipulation
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this

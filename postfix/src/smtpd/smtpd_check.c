@@ -54,153 +54,6 @@
 /*	\fIsmtpd_{client,helo,sender,recipient}_restrictions.\fR Each
 /*	configuration parameter specifies a list of zero or more
 /*	restrictions that are applied in the order as specified.
-/*
-/*	Restrictions that can appear in some or all restriction
-/*	lists:
-/* .IP reject
-/* .IP defer
-/* .IP permit
-/*	Reject, defer or permit the request unconditionally. This is to be used
-/*	at the end of a restriction list in order to make the default
-/*	action explicit.
-/* .IP "check_policy_service transport:server"
-/*	query an external policy service with client, helo, sender, recipient
-/*	and queue ID attributes.
-/* .IP reject_unknown_client
-/*	Reject the request when the client hostname could not be found.
-/*	The \fIunknown_client_reject_code\fR configuration parameter
-/*	specifies the reject status code (default: 450).
-/* .IP permit_mynetworks
-/*	Allow the request when the client address matches the \fImynetworks\fR
-/*	configuration parameter.
-/* .IP maptype:mapname
-/*	Meaning depends on context: client name/address, helo name, sender
-/*	or recipient address.
-/*	Perform a lookup in the specified access table. Reject the request
-/*	when the lookup result is REJECT or when the result begins with a
-/*	4xx or 5xx status code. Other numerical status codes are not
-/*	permitted. DUNNO suppresses less precise searches in the same map, but
-/*	neither allows nor denies the request. Allow the request otherwise.
-/*	The \fIaccess_map_reject_code\fR configuration parameter specifies
-/*	the reject status code (default: 554).
-/* .IP "check_client_access maptype:mapname"
-/*	Look up the client host name or any of its parent domains, or
-/*	the client address or any network obtained by stripping octets
-/*	from the address.
-/* .IP "check_helo_access maptype:mapname"
-/*	Look up the HELO/EHLO hostname or any of its parent domains.
-/* .IP "check_sender_access maptype:mapname"
-/*	Look up the resolved sender address, any parent domains of the
-/*	resolved sender address domain, or the localpart@.
-/* .IP "check_recipient_access maptype:mapname"
-/*	Look up the resolved recipient address in the named access table,
-/*	any parent domains of the recipient domain, and the localpart@.
-/* .IP "check_helo_mx_access maptype:mapname"
-/* .IP "check_sender_mx_access maptype:mapname"
-/* .IP "check_recipient_mx_access maptype:mapname"
-/*	Apply the specified access table to the MX server host name and IP
-/*	addresses for the helo hostname, sender, or recipient, respectively.
-/*	If no MX record is found the A record is used instead.
-/* .IP "check_helo_ns_access maptype:mapname"
-/* .IP "check_sender_ns_access maptype:mapname"
-/* .IP "check_recipient_ns_access maptype:mapname"
-/*	Apply the specified access table to the DNS server host name and IP
-/*	addresses for the helo hostname, sender, or recipient, respectively.
-/*	If no NS record is found, the parent domain is used instead.
-/* .IP "reject_unlisted_sender"
-/*	Reject senders in local, virtual or relay domains that are not
-/*	listed as a valid address.
-/* .IP "reject_unlisted_recipient"
-/*	Reject recipients in local, virtual or relay domains that are
-/*	not listed as a valid address.
-/* .IP reject_multi_recipient_bounce
-/*	Reject mail from <> with multiple envelope recipients.
-/* .IP reject_rbl_client rbl.domain.tld
-/*	Look up the reversed client network address in the specified
-/*	real-time blackhole DNS zone.  The \fIrbl_reply_maps\fR configuration
-/*	parameter is used to generate the template for the reject message.
-/*	If it is not specified, or the rbl domain cannot be found, then a
-/*	default template is used.  The \fImaps_rbl_reject_code\fR
-/*	configuration parameter specifies the reject status code used in
-/*	the default template (default: 554).
-/* .IP reject_rhsbl_client rbl.domain.tld
-/* .IP reject_rhsbl_helo rbl.domain.tld
-/* .IP reject_rhsbl_sender rbl.domain.tld
-/* .IP reject_rhsbl_recipient rbl.domain.tld
-/*	Look up the client/helo/sender/recipient domain name in the specified
-/*	real-time blackhole DNS zone.  The \fIrbl_reply_maps\fR configuration
-/*	parameter is used to generate the template for the reject message.
-/*	If it is not specified, or the rbl domain cannot be found, then a
-/*	default template is used.  The \fImaps_rbl_reject_code\fR
-/*	configuration parameter specifies the reject status code used in
-/*	the default template (default: 554).
-/* .IP permit_naked_ip_address
-/*	Permit the use of a naked IP address (without enclosing [])
-/*	in HELO/EHLO commands.
-/*	This violates the RFC. You must enable this for some popular
-/*	PC mail clients.
-/* .IP reject_non_fqdn_hostname
-/* .IP reject_non_fqdn_sender
-/* .IP reject_non_fqdn_recipient
-/*	Require that the HELO, MAIL FROM or RCPT TO commands specify
-/*	a fully-qualified domain name. The non_fqdn_reject_code parameter
-/*	specifies the error code (default: 504).
-/* .IP reject_invalid_hostname
-/*	Reject the request when the HELO/EHLO hostname does not satisfy RFC
-/*	requirements.  The underscore is considered a legal hostname character,
-/*	and so is a trailing dot.
-/*	The \fIinvalid_hostname_reject_code\fR configuration parameter
-/*	specifies the reject status code (default:501).
-/* .IP reject_unknown_hostname
-/*	Reject the request when the HELO/EHLO hostname has no A or MX record.
-/*	The \fIunknown_hostname_reject_code\fR configuration
-/*	parameter specifies the reject status code (default: 450).
-/* .IP reject_unknown_sender_domain
-/*	Reject the request when the resolved sender address has no
-/*	DNS A or MX record.
-/*	The \fIunknown_address_reject_code\fR configuration parameter
-/*	specifies the reject status code (default: 450).
-/* .IP reject_unverified_sender
-/*	Reject the request when mail to the sender address is known to
-/*	bounce, or when the sender's address destination is not reachable.
-/*	Address verification information is managed by the verify(8) daemon.
-/* .IP reject_unverified_recipient
-/*	Reject the request when mail to the recipient address is known to
-/*	bounce, or when the recipient's address destination is not reachable.
-/*	Address verification information is managed by the verify(8) daemon.
-/* .IP reject_unknown_recipient_domain
-/*	Reject the request when the resolved recipient address has no
-/*	DNS A or MX record.
-/*	The \fIunknown_address_reject_code\fR configuration parameter
-/*	specifies the reject status code (default: 450).
-/* .IP permit_auth_destination
-/*	Permit the request when the resolved recipient domain matches the
-/*	\fIrelay_domains\fR configuration parameter or a subdomain thereof,
-/*	or when the destination somehow resolves locally ($inet_interfaces,
-/*	$proxy_interfaces,
-/*	$mydestination, $virtual_alias_domains, or $virtual_mailbox_domains).
-/* .IP reject_unauth_destination
-/*	Reject the request when the resolved recipient domain does not match
-/*	the \fIrelay_domains\fR configuration parameter or a subdomain
-/*	thereof, and when the destination does not somehow resolve locally
-/*	($inet_interfaces, $proxy_interfaces,
-/*	$mydestination, $virtual_alias_domains, or
-/*	$virtual_mailbox_domains).
-/*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
-/*	the reject status code (default: 554).
-/* .IP reject_unauth_pipelining
-/*	Reject the request when the client has already sent the next request
-/*	without being told that the server implements SMTP command pipelining.
-/*	Reject the DATA command when the client sends message content before
-/*	Postfix has sent the DATA command reply.
-/* .IP permit_mx_backup
-/*	Allow the request when all primary MX hosts for the recipient
-/*	are in the networks specified with the $permit_mx_backup_networks
-/*	configuration parameter, or when the local system is the final
-/*	destination.
-/* .IP restriction_classes
-/*	Defines a list of parameter names, each parameter being a list
-/*	of restrictions that can be used anywhere a restriction is legal.
 /* .PP
 /*	smtpd_check_client() validates the client host name or address.
 /*	Relevant configuration parameters:
@@ -1853,6 +1706,14 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
+     * WARN. Text is optional.
+     */
+    if (STREQUAL(value, "WARN", cmd_len)) {
+	log_whatsup(state, "warn", cmd_text);
+	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
      * FILTER means deliver to content filter. But we may still change our
      * mind, and reject/discard the message for other reasons.
      */
@@ -3046,7 +2907,8 @@ static int is_map_command(SMTPD_STATE *state, const char *name,
     if (strcasecmp(name, command) != 0) {
 	return (0);
     } else if (*(*argp + 1) == 0 || strchr(*(*argp += 1), ':') == 0) {
-	msg_warn("restriction %s requires maptype:mapname", command);
+	msg_warn("restriction %s: bad argument \"%s\": need maptype:mapname",
+		 command, **argp);
 	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
 					 "451 Server configuration error"));
     } else {

@@ -19,10 +19,11 @@
 
 <h2>Postfix VERP support</h2>
 
-<p> Postfix supports variable envelope return path addresses on
-request.  When VERP style delivery is requested, each recipient of
-a message receives a customized copy of the message, with his/her
-own recipient address encoded in the envelope sender address.  </p>
+<p> Postfix versions 1.1 and later support variable envelope return
+path addresses on request.  When VERP style delivery is requested,
+each recipient of a message receives a customized copy of the
+message, with his/her own recipient address encoded in the envelope
+sender address.  </p>
 
 <p> For example, when VERP style delivery is requested, Postfix
 delivers mail from "<tt>owner-listname@origin</tt>" for a recipient
@@ -82,7 +83,7 @@ parameters.
     part of a username or domain name (such as alphanumerics), or
     because they are non-ASCII or control characters.  And who
     knows, some characters may tickle bugs in vulnerable software,
-    and we would not want that to happen.  </p>
+    and we would not want that to happen.  </p> </dd>
 
 <dt> smtpd_authorized_verp_clients (default value: none) 
 
@@ -92,11 +93,14 @@ parameters.
     is always authorized. To authorize a host, list its name, IP
     address, subnet (net/mask) or parent .domain. </p>
 
+    <p> With Postfix versions 1.1 and 2.0, this parameter is called
+    authorized_verp_clients (default: $mynetworks). </p> </dd>
+
 <dt> disable_verp_bounces (default: no) 
 
     <dd> <p> if Postfix sends one bounce report for multi-recipient
     VERP mail, or one bounce report per recipient. The default,
-    one per recipient, is what ezmlm needs. </p>
+    one per recipient, is what ezmlm needs. </p> </dd>
 
 </dl>
 
@@ -184,7 +188,7 @@ line and to pull out the user=domain part from the recipient address.
 
 <h2> <a name="smtp"> VERP support in the Postfix SMTP server </a> </h2>
 
-<p> The Postfix SMTP server inplements a command XVERP to enable
+<p> The Postfix SMTP server implements a command XVERP to enable
 VERP style delivery. The syntax allows two forms: </p>
 
 <blockquote>

@@ -5,12 +5,49 @@ incompatibility.
 
 Official Postfix releases are called a.b.c where a=major release
 number, b=minor release number, c=patchlevel.  Snapshot releases
-are now called a.b.c-yyyymmdd where yyyymmdd is the release date
+are now called a.b-yyyymmdd where yyyymmdd is the release date
 (yyyy=year, mm=month, dd=day).  The mail_release_date configuration
 parameter contains the release date (both for official release and
 snapshot release).  Patches change the patchlevel and the release
-date. Snapshots change only the release date, unless they include
-the same bugfixes as a patch release.
+date. Snapshot names change only in the release date, and do not
+include a patchlevel.
+
+Incompatible changes with Postfix 2.1 Release Candidate 2
+=========================================================
+
+The Postfix SMTP server no longer accepts mail from or to an address
+ending in "@", including address forms that rewrite into an address
+that ends in "@"). Specify "resolve_null_domain = yes" to get the
+old behavior.
+
+The SMTP server no longer rejects non-existent sender addresses.
+Specify "smtpd_reject_unlisted_sender = yes" to enable this form
+of egress filtering, and help to slow down worms and viruses.
+
+The LMTP, Cyrus and Qmail related README files will not be included
+in the Postfix version 2.1 distribution. They will be made available
+via http://www.postfix.org/, and in Postfix 2.2 snapshots.
+
+Major changes with Postfix 2.1 Release Candidate 2
+==================================================
+
+You can now install documentation in HTML format besides the README
+files.  Installation of README files is now optional.
+
+New architecture OVERVIEW document that shows all Postfix commands
+and daemons in context. The HTML version is of course clickable.
+
+New postfix(1) command features: 
+- "postfix set-permissions" corrects Postfix file and directory
+permissions and allows you to change mail_owner or setgid_group
+after Postfix is installed; 
+- "postfix upgrade-configuration" fixes Postfix systems that are
+broken when people copy over their old configuration files after
+installing a new Postfix system.
+
+The postmap and postalias commands now report errors to syslogd in
+addition to reporting them to the standard error output. This makes
+logfile analysis easier.
 
 Incompatible changes with Postfix 2.1 Release Candidate 1
 =========================================================
@@ -35,6 +72,9 @@ Complete documentation rewrite.
   is now available in HTML documents, README files and UNIX man pages).
 Some README files still need to be done (LMTP, Cyrus, Qmail) but
 the core material is there.
+
+Updated and enhanced LDAP, MySQL and PostgreSQL clients by Liviu
+Daia.
 
 Incompatible changes with Postfix snapshot 2.0.18-2004122
 ==========================================================

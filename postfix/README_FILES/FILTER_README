@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/FILTER_README.html]
-
 PPoossttffiixx AAfftteerr--QQuueeuuee CCoonntteenntt FFiilltteerr
 
 -------------------------------------------------------------------------------
@@ -10,21 +8,22 @@ This document requires Postfix version 2.1 or later.
 
 Normally, Postfix receives mail, stores it in the mail queue and then delivers
 it. With the external content filter described here, mail is filtered AFTER it
-is queued. This gives you maximal control over how many filtering processes you
+is queued. This approach decouples mail receiving processes from mail filtering
+processes, and gives you maximal control over how many filtering processes you
 are willing to run in parallel.
 
 The after-queue content filter is meant to be used as follows:
 
-    Internet -> Postfix -> CCoonntteenntt -> Postfix -> Mailbox or
-    or local     queue     ffiilltteerr      queue      network
+    Network or  -> Postfix -> CCoonntteenntt -> Postfix ->  Network or
+    local users     queue     ffiilltteerr      queue     local mailbox
 
 This document describes implementations that use a single Postfix instance for
 everything: receiving, filtering and delivering mail. Applications that use two
 separate Postfix instances will be covered by a later version of this document.
 
 The after-queue content filter is not to be confused with the approach that is
-described described in the SMTPD_PROXY_README document, where incoming SMTP
-mail is filtered BEFORE it is stored into the Postfix queue.
+described in the SMTPD_PROXY_README document, where incoming SMTP mail is
+filtered BEFORE it is stored into the Postfix queue.
 
 This document describes two approaches to content filter all email, as well as
 several options filter mail selectively:
@@ -33,6 +32,7 @@ several options filter mail selectively:
   * Simple content filter example
   * Simple content filter limitations
   * Advanced content filter example
+  * Advanced content filter performance
   * Filtering mail from outside users only
   * Different filters for different domains
   * FILTER actions in access or header/body tables
@@ -48,16 +48,16 @@ further below) and does one of the following:
  2. Reject the mail (by sending a suitable status code back to Postfix).
     Postfix will return the mail to the sender.
 
-Note: in this time of mail worms and forged spam, it is a VERY BAD IDEA to send
+NOTE: in this time of mail worms and forged spam, it is a VERY BAD IDEA to send
 viruses back to the sender address, because the sender address is almost
 certainly not the originator. It is better to discard known viruses, and to
-quarantaine material that is suspect so that a human can decide what to do with
+quarantine material that is suspect so that a human can decide what to do with
 it.
 
 SSiimmppllee ccoonntteenntt ffiilltteerr eexxaammppllee
 
 The first example is simple to set up. Postfix receives unfiltered mail from
-the network with the smtp(8) server, and delivers unfiltered mail to a content
+the network with the smtpd(8) server, and delivers unfiltered mail to a content
 filter with the Postfix pipe(8) delivery agent. The content filter injects
 filtered mail back into Postfix with the Postfix sendmail(1) command, so that
 Postfix can deliver it to the final destination.
@@ -65,15 +65,20 @@ Postfix can deliver it to the final destination.
 This means that mail submitted via the Postfix sendmail(1) command cannot be
 content filtered.
 
-    Unfiltered ->  smtpd(8)                              local(8) -> Filtered
-                              >- cleanup(8)  -> queue -< smtp(8)  -> Filtered
-                   pickup(8)                             pipe(8)
+In the figure below, names followed by a number represent Postfix commands or
+daemon programs. See the OVERVIEW document for an introduction to the Postfix
+architecture.
 
-                         ^                                    |
-                         |                                    v
+    Unfiltered -> smtpd(8)                   qmgr(8)     local(8) -> Filtered
+                            >- cleanup(8) -> Postfix  -< smtp(8)  -> Filtered
+                  pickup(8)                   queue      pipe(8)
 
-                    Postfix   <-   Postfix   <-   Content filter
-                  postdrop(1)    sendmail(1)
+                        ^                                     |
+                        |                                     v
+
+                  maildrop      Postfix      Postfix     Content
+                    queue   <-  postdrop  <- sendmail <-  filter
+                                  (1)          (1)
 
 The content filter can be a simple shell script like this:
 
@@ -126,7 +131,7 @@ Notes:
 
   * Note: in this time of mail worms and spam, it is a BAD IDEA to send known
     viruses or spam back to the sender, because that address is likely to be
-    forged. It is safer to discard known to be bad content and to quarantaine
+    forged. It is safer to discard known to be bad content and to quarantine
     suspicious content so that it can be inspected by a human being.
 
   * Line 28: If the content is OK, it is given as input to the Postfix sendmail
@@ -230,20 +235,24 @@ For non-SMTP capable content filtering software, Bennett Todd's SMTP proxy
 implements a nice PERL/SMTP content filtering framework. See: http://
 bent.latency.net/smtpprox/.
 
-    Unfiltered -> smtpd(8)                              smtp(8)  -> Filtered
-                            >- cleanup(8) ->  queue  -<
-    Unfiltered -> pickup(8)                             local(8) -> Filtered
+In the figure below, names followed by a number represent Postfix commands or
+daemon programs. See the OVERVIEW document for an introduction to the Postfix
+architecture.
 
-                                     ^           |
-                                     |           v
+    Unfiltered -> smtpd(8)                   qmgr(8)     smtp(8)  -> Filtered
+                            >- cleanup(8) -> Postfix  -<
+    Unfiltered -> pickup(8)                   queue      local(8) -> Filtered
+
+                                     ^            |
+                                     |            v
 
                                 smtpd(8)     smtp(8)
                                  10026
 
-                                     ^           |
-                                     |           v
+                                     ^            |
+                                     |            v
 
-                               content filter 10025
+                                content filter 10025
 
 The example given here filters all mail, including mail that arrives via SMTP
 and mail that is locally submitted via the Postfix sendmail command. See
@@ -307,7 +316,7 @@ the Postfix master.cf file:
     process, so that filtered mail is logged with the real client name IP
     address. See smtp(8) and XFORWARD_README for more information.
 
-AAddvvaanncceedd ccoonntteenntt ffiilltteerr:: rruunnnniinngg tthhee tthhee ccoonntteenntt ffiilltteerr
+AAddvvaanncceedd ccoonntteenntt ffiilltteerr:: rruunnnniinngg tthhee ccoonntteenntt ffiilltteerr
 
 The content filter can be set up with the Postfix spawn service, which is the
 Postfix equivalent of inetd. For example, to instantiate up to 10 content
@@ -388,6 +397,20 @@ without sending `.' on the connection that injects mail back into Postfix.
     transport will try to forward the original client name and IP address to
     the after-filter smtpd process, so that filtered mail is logged with the
     real client name IP address. See XFORWARD_README and smtpd(8).
+
+AAddvvaanncceedd ccoonntteenntt ffiilltteerr ppeerrffoorrmmaannccee
+
+With the "sandwich" approach to content filtering described here, it is
+important to match the filter concurrency to the available CPU, memory and I/
+O resources. Too few content filter processes and mail accumulates in the
+active queue even with low traffic volume; too much concurrency and Postfix
+ends up deferring mail destined for the content filter because processes fail
+due to insufficient resources.
+
+Currently, content filter performance tuning is a process of trial and error;
+analysis is handicapped because filtered and unfiltered messages share the same
+queue. As mentioned in the introduction of this document, content filtering
+with multiple Postfix instances will be covered in a future version.
 
 FFiilltteerriinngg mmaaiill ffrroomm oouuttssiiddee uusseerrss oonnllyy
 

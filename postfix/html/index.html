@@ -15,19 +15,17 @@
 
 <body>
 
-<h1><img src="postfix-logo.jpg" width="203" height="98" alt=""> Postfix 2.1 Preliminary Documentation </h1>
+<h1><img src="postfix-logo.jpg" width="203" height="98" alt=""> Postfix Documentation </h1>
 
 <hr>
 
-<table width="100%" border="0">
+<table border="0">
 
 <tr> <td width="30%" align="left" valign="top">
 
-<h3>General configuration </h3>
+<p><strong>General configuration </strong></p>
 
 <ul>
-
-<li> <a href="postconf.5.html"> All main.cf parameters </a>
 
 <li> <a href="BASIC_CONFIGURATION_README.html"> Basic configuration
 </a>
@@ -46,17 +44,19 @@ configuration examples </a>
 
 </ul>
 
-<h3>Trouble shooting </h3>
+<p><strong>Problem solving </strong></p>
 
 <ul>
 
-<li> <a href="QSHAPE_README.html"> Bottleneck diagnosis  </a>
+<li> <a href="QSHAPE_README.html"> Bottleneck analysis  </a>
+
+<li> <a href="TUNING_README.html"> Performance tuning </a>
 
 <li> <a href="DEBUG_README.html"> Debugging strategies  </a>
 
 </ul>
 
-<h3>Content inspection </h3>
+<p><strong>Content inspection </strong></p>
 
 <ul>
 
@@ -66,12 +66,12 @@ overview </a>
 <li> <a href="BACKSCATTER_README.html"> Stopping backscatter mail
 </a>
 
+<li> <a href="BUILTIN_FILTER_README.html"> Built-in content inspection </a>
+
 <li> <a href="FILTER_README.html"> After-queue content filter </a>
 
 <li> <a href="SMTPD_PROXY_README.html"> Before-queue content
 Filter  </a>
-
-<li> <a href="XFORWARD_README.html"> XFORWARD Command </a>
 
 </ul>
 
@@ -79,7 +79,7 @@ Filter  </a>
 
 <td width="30%" align="left" valign="top">
 
-<h3>SMTP Relay and access control </h3>
+<p><strong>SMTP Relay and access control </strong></p>
 
 <ul>
 
@@ -99,11 +99,9 @@ Per-client/user/etc. access </a>
 
 <li> <a href="UUCP_README.html"> LAN connected via UUCP </a>
 
-<li> <a href="XCLIENT_README.html"> XCLIENT Command </a>
-
 </ul>
 
-<h3> Lookup tables (databases) </h3>
+<p><strong> Lookup tables (databases) </strong></p>
 
 <ul>
 
@@ -121,12 +119,11 @@ Per-client/user/etc. access </a>
 
 </ul>
 
-<h3> Mailing list support </h3>
+<p><strong> Mailing list support </strong></p>
 
 <ul>
 
-<li> <a href="QMQP_README.html"> QMQP support for ezmlm </a> (todo:
-document qmail-local compatibility)
+<li> qmail/ezmlm support (*)
 
 <li> <a href="VERP_README.html"> VERP Support </a>
 
@@ -136,7 +133,7 @@ document qmail-local compatibility)
 
 <td width="30%" align="left" valign="top">
 
-<h3> Specific environments </h3>
+<p><strong> Specific environments </strong></p>
 
 <ul>
 
@@ -148,36 +145,47 @@ document qmail-local compatibility)
 
 </ul>
 
-<h3> Other mail delivery agents </h3>
+<p><strong> Other mail delivery agents </strong></p>
 
 <ul>
 
-<li> Cyrus IMAP  (todo)
+<li> Cyrus (*)
 
 <li> <a href="MAILDROP_README.html"> Maildrop  </a>
 
-<li> <a href="LMTP_README.html"> LMTP  </a> (todo: remove Cyrus
-specific material)
+<li> LMTP (*)
 
 </ul>
 
-<h3> Other topics </h3>
+<p><strong> Other topics </strong></p>
 
 <ul>
+
+<li> <a href="OVERVIEW.html"> Architecture overview </a>
+
+<li> <a href="postconf.5.html"> All main.cf parameters </a>
 
 <li> <a href="LOCAL_RECIPIENT_README.html"> Rejecting Unknown Local
 Recipients </a>
 
 <li> <a href="ADDRESS_CLASS_README.html"> Address Classes </a>
 
-<li> <a href="SCHEDULER_README.html"> Queue Scheduler </a>
-
 <li> <a href="PACKAGE_README.html"> Guidelines for Package Builders
 </a>
+
+<li> <a href="SCHEDULER_README.html"> Queue Scheduler </a>
+
+<li> <a href="XCLIENT_README.html"> XCLIENT Command </a>
+
+<li> <a href="XFORWARD_README.html"> XFORWARD Command </a>
 
 </ul>
 
 </td>
+
+<tr> <td colspan="3"> <font size="-1"> (*) These documents will be
+made available via <a href="http://www.postfix.org/">
+http://www.postfix.org/</a> and mirror sites. </font> </td> </tr>
 
 </table>
 

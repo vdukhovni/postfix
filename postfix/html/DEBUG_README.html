@@ -26,13 +26,11 @@ processes under control of a call tracer or debugger. </p>
 
 <p> The text assumes that the Postfix main.cf and master.cf
 configuration files are stored in directory /etc/postfix. You can
-use the command "<b>postconf <a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a></b>" to find out the
+use the command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" to find out the
 actual location of this directory on your machine. </p>
 
 <p> Listed in order of increasing invasiveness, the debugging
 techniques are as follows: </p>
-
-<p>
 
 <ul>
 
@@ -72,8 +70,9 @@ debugger</a>
 The file is usually called /var/log/maillog or /var/log/mail; the
 exact pathname is defined in the /etc/syslog.conf file. </p>
 
-<p> The first order of business is to look for errors that prevent
-Postfix from working properly:  </p>
+<p> When Postfix does not receive or deliver mail, the first order
+of business is to look for errors that prevent Postfix from working
+properly:  </p>
 
 <blockquote>
 <pre>
@@ -135,8 +134,9 @@ and edit the entries in question.  After executing the command
 <p> If turning off chrooted operation made the problem go away,
 then congratulations.  Leaving Postfix running in this way is
 adequate for most sites.  If you prefer chrooted operation, see
-the Postfix <a href="INSTALL.html">INSTALL</a> file for information about how to prepare
-Postfix for chrooted operation. </p>
+the Postfix <a href="BASIC_CONFIGURATION_README.html#chroot_setup">
+BASIC_CONFIGURATION_README</a> file for information about how to
+prepare Postfix for chrooted operation. </p>
 
 <h2><a name="debug_peer">Verbose logging for specific SMTP
 connections</a></h2>
@@ -190,7 +190,7 @@ Example: </p>
 
 <p> This makes the Postfix SMTP server more verbose. To diagnose
 problems with address rewriting one would specify a "<b>-v</b>"
-option for the <a href="cleanup.8.html">cleanup(8)</a> and/or <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> daemon, and to
+option for the <a href="cleanup.8.html">cleanup(8)</a> and/or <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> daemon, and to
 diagnose problems with mail delivery one would specify a "<b>-v</b>"
 option for the <a href="qmgr.8.html">qmgr(8)</a> or <a href="qmgr.8.html">oqmgr(8)</a> queue manager, or for the <a href="lmtp.8.html">lmtp(8)</a>,
 <a href="local.8.html">local(8)</a>, <a href="pipe.8.html">pipe(8)</a>, <a href="smtp.8.html">smtp(8)</a>, or <a href="virtual.8.html">virtual(8)</a> delivery agent.  </p>
@@ -263,7 +263,7 @@ so that it invokes the call tracer of your choice, for example:
 /etc/postfix/main.cf:
     <a href="postconf.5.html#debugger_command">debugger_command</a> =
          PATH=/bin:/usr/bin:/usr/local/bin;
-         (truss -p $<a href="postconf.5.html#process_id">process_id</a> 2>&1 | logger -p mail.info) & sleep 5
+         (truss -p $<a href="postconf.5.html#process_id">process_id</a> 2&gt&amp;1 | logger -p mail.info) &amp; sleep 5
 </pre>
 </blockquote>
 
@@ -284,7 +284,7 @@ so that it invokes <b>xxgdb</b>: </p>
 /etc/postfix/main.cf:
     <a href="postconf.5.html#debugger_command">debugger_command</a> =
          PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-         xxgdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> & sleep 5
+         xxgdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> &amp; sleep 5
 </pre>
 </blockquote>
 
@@ -332,8 +332,8 @@ so that it invokes the <b>gdb</b> debugger: </p>
 /etc/postfix/main.cf:
     <a href="postconf.5.html#debugger_command">debugger_command</a> =
         PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont;
-        echo where) | gdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> 2>&1
-        >$<a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a>/$<a href="postconf.5.html#process_name">process_name</a>.$<a href="postconf.5.html#process_id">process_id</a>.log & sleep 5
+        echo where) | gdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> 2&gt&amp;1
+        &gt;$<a href="postconf.5.html#config_directory">config_directory</a>/$<a href="postconf.5.html#process_name">process_name</a>.$<a href="postconf.5.html#process_id">process_id</a>.log &amp; sleep 5
 </pre>
 </blockquote>
 

@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - postkick(1) </title>
 </head> <body> <pre>
 POSTKICK(1)                                           POSTKICK(1)
 
@@ -10,8 +10,7 @@ POSTKICK(1)                                           POSTKICK(1)
        postkick - kick a Postfix service
 
 <b>SYNOPSIS</b>
-       <b>postkick</b> [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-v</b>]
-               <i>class service request</i>
+       <b>postkick</b> [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-v</b>] <i>class service request</i>
 
 <b>DESCRIPTION</b>
        The  <b>postkick</b>  command sends <i>request</i> to the specified <i>ser-</i>
@@ -61,7 +60,7 @@ POSTKICK(1)                                           POSTKICK(1)
        summary.  See <a href="postconf.5.html">postconf(5)</a> for more details including exam-
        ples.
 
-       <b><a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> (see 'postconf -d' output)</b>
+       <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
@@ -74,10 +73,14 @@ POSTKICK(1)                                           POSTKICK(1)
               The  location of the Postfix top-level queue direc-
               tory.
 
+<b>FILES</b>
+       /var/spool/postfix/private, private class endpoints
+       /var/spool/postfix/public, public class endpoints
+
 <b>SEE ALSO</b>
-       <a href="qmgr.8.html">qmgr(8)</a> queue manager trigger protocol
-       <a href="pickup.8.html">pickup(8)</a> local pickup daemon
-       <a href="postconf.5.html">postconf(5)</a> configuration parameters
+       <a href="qmgr.8.html">qmgr(8)</a>, queue manager trigger protocol
+       <a href="pickup.8.html">pickup(8)</a>, local pickup daemon
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
 
 <b>LICENSE</b>
        The Secure Mailer license must be  distributed  with  this

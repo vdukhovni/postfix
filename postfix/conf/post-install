@@ -158,6 +158,8 @@
 #	The group for mail submission and for queue management commands.
 #	Its numerical group ID must not be used by any other accounts on the
 #	system, not even by the mail_owner account.
+# .IP html_directory
+#	The directory for the Postfix HTML files.
 # .IP manpage_directory
 #	The directory for the Postfix on-line manual pages.
 # .IP sample_directory
@@ -286,7 +288,7 @@ grep setgid_group $config_directory/main.cf >/dev/null 2>&1 || {
 test -f $config_directory/main.cf && {
     for name in daemon_directory command_directory queue_directory mail_owner \
         setgid_group sendmail_path newaliases_path mailq_path \
-	manpage_directory sample_directory readme_directory
+	html_directory manpage_directory sample_directory readme_directory
     do
 	eval junk=\$$name
         case "$junk" in
@@ -309,8 +311,7 @@ case $setgid_group in
 esac
 
 for path in "$daemon_directory" "$command_directory" "$queue_directory" \
-    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory" \
-    "$sample_directory"
+    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory"
 do
    case "$path" in
    /*) ;;
@@ -318,7 +319,7 @@ do
    esac
 done
 
-for path in "$readme_directory"
+for path in "$html_directory" "$readme_directory"
 do
    case "$path" in
    /*) ;;
@@ -333,7 +334,7 @@ done
 missing=
 for name in daemon_directory command_directory queue_directory mail_owner \
     setgid_group sendmail_path newaliases_path mailq_path manpage_directory \
-    sample_directory readme_directory
+    readme_directory html_directory
 do
     eval test -n \"\$$name\" || missing="$missing $name"
 done
@@ -368,7 +369,7 @@ POSTCONF="$command_directory/postconf"
 override=
 for name in daemon_directory command_directory queue_directory mail_owner \
     setgid_group sendmail_path newaliases_path mailq_path manpage_directory \
-    sample_directory readme_directory
+    sample_directory readme_directory html_directory
 do
     eval test \"\$$name\" = \"`$POSTCONF -c $config_directory -h $name`\" || {
 	override=1
@@ -386,6 +387,7 @@ test -n "$override" && {
 	"sendmail_path = $sendmail_path" \
 	"mailq_path = $mailq_path" \
 	"newaliases_path = $newaliases_path" \
+	"html_directory = $html_directory" \
 	"manpage_directory = $manpage_directory" \
 	"sample_directory = $sample_directory" \
 	"readme_directory = $readme_directory" \

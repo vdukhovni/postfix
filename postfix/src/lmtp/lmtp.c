@@ -14,8 +14,9 @@
 /*
 /*	The LMTP client updates the queue file and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
-/*	be tried again at a later time. Delivery problem reports are sent
-/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+/*	be tried again at a later time. Delivery status reports are sent
+/*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
+/*	appropriate.
 /*
 /*	The LMTP client connects to the destination specified in the message
 /*	delivery request. The destination, usually specified in the Postfix
@@ -190,15 +191,18 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	bounce(8) non-delivery status reports
-/*	local(8) local mail delivery
-/*	master(8) process manager
-/*	postconf(5) configuration parameters
-/*	qmgr(8) queue manager
-/*	services(4) Internet services and aliases
-/*	spawn(8) auxiliary command spawner
-/*	syslogd(8) system logging
+/*	bounce(8), delivery status reports
+/*	qmgr(8), queue manager
+/*	postconf(5), configuration parameters
+/*	services(4), Internet services and aliases
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* README FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	LMTP_README, Postfix LMTP client howto

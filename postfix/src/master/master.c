@@ -15,8 +15,8 @@
 /*
 /*	Postfix daemons terminate voluntarily, either after being idle for
 /*	a configurable amount of time, or after having serviced a
-/*	configurable number of requests. The exception to this rule is the
-/*	resident Postfix queue manager.
+/*	configurable number of requests. Exceptions to this rule are the
+/*	resident queue manager and the resident address verification server.
 /*
 /*	The behavior of the \fBmaster\fR daemon is controlled by the
 /*	\fBmaster.cf\fR configuration file. The table specifies zero or
@@ -103,6 +103,11 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
+/* .IP "\fBdaemon_directory (see 'postconf -d' output)\fR"
+/*	The directory with Postfix support programs and daemon programs.
+/* .IP "\fBdebugger_command (empty)\fR"
+/*	The external command to execute when a Postfix daemon program is
+/*	invoked with the -D option.
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on.
@@ -112,23 +117,26 @@
 /* .IP "\fBmail_owner (postfix)\fR"
 /*	The UNIX system account that owns the Postfix queue and most Postfix
 /*	daemon processes.
-/* .IP "\fBdaemon_directory (see 'postconf -d' output)\fR"
-/*	The directory with Postfix support programs and daemon programs.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* FILES
-/*	$config_directory/main.cf: global configuration file.
-/*	$config_directory/master.cf: master server configuration file.
-/*	$queue_directory/pid/master.pid: master lock file.
+/*	/etc/postfix/main.cf, global configuration file.
+/*	/etc/postfix/master.cf, master server configuration file.
+/*	/var/spool/postfix/pid/master.pid, master lock file.
 /* SEE ALSO
-/*	postconf(5) configuration parameters
-/*	qmgr(8) queue manager
-/*	pickup(8) local mail pickup
-/*	syslogd(8) system logging
+/*	qmgr(8), queue manager
+/*	verify(8), address verification
+/*	postconf(5), configuration parameters
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

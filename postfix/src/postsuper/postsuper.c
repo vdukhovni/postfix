@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /* .fi
 /*	\fBpostsuper\fR [\fB-psv\fR]
-/*		[\fB-c \fIconfig_dir\fR] [\fB-d \fIqueue_id\fR]
+/*	[\fB-c \fIconfig_dir\fR] [\fB-d \fIqueue_id\fR]
 /*		[\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
 /*		[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION
@@ -45,19 +45,17 @@
 /*	As a safety measure, the word \fBALL\fR must be specified in upper
 /*	case.
 /* .sp
-/* .ft B
-/*	Postfix queue IDs are reused.
+/*	Warning: Postfix queue IDs are reused.
 /*	There is a very small possibility that postsuper deletes the
 /*	wrong message file when it is executed while the Postfix mail
-/*	system is running.
-/* .ft R
+/*	system is delivering mail.
 /* .sp
 /*	The scenario is as follows:
 /* .RS
 /* .IP 1)
 /*	The Postfix queue manager deletes the message that \fBpostsuper\fR
-/*	is supposed to delete, because Postfix is finished with the
-/*	message.
+/*	is asked to delete, because Postfix is finished with the
+/*	message (it is delivered, or it is returned to the sender).
 /* .IP 2)
 /*	New mail arrives, and the new message is given the same queue ID
 /*	as the message that \fBpostsuper\fR is supposed to delete.
@@ -83,7 +81,7 @@
 /* .sp
 /*	Note: while mail is "on hold" it will not expire when its
 /*	time in the queue exceeds the \fBmaximal_queue_lifetime\fR
-/*	or \fBbounce_queue_lifetime\fR setting. It becomes subject to 
+/*	or \fBbounce_queue_lifetime\fR setting. It becomes subject to
 /*	expiration after it is released from "hold".
 /* .IP "\fB-H \fIqueue_id\fR"
 /*	Release mail that was put "on hold".
@@ -117,13 +115,13 @@
 /*	substitution. This is useful when rewriting rules or virtual
 /*	mappings have changed.
 /* .sp
-/*	Postfix queue IDs are reused.
+/*	Warning: Postfix queue IDs are reused.
 /*	There is a very small possibility that \fBpostsuper\fR requeues
 /*	the wrong message file when it is executed while the Postfix mail
 /*	system is running, but no harm should be done.
 /* .IP \fB-s\fR
-/*	Structure check and structure repair.  It is highly recommended
-/*	to perform this operation once before Postfix startup.
+/*	Structure check and structure repair.  This should be done once
+/*	before Postfix startup.
 /* .RS
 /* .IP \(bu
 /*	Rename files whose name does not match the message file inode
@@ -141,12 +139,12 @@
 /*	options make the software increasingly verbose.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream and to
-/*	\fBsyslogd\fR.
+/*	\fBsyslogd\fR(8).
 /*
 /*	\fBpostsuper\fR reports the number of messages deleted with \fB-d\fR,
 /*	the number of messages requeued with \fB-r\fR, and the number of
 /*	messages whose queue file name was fixed with \fB-s\fR. The report
-/*	is written to the standard error stream and to \fBsyslogd\fR.
+/*	is written to the standard error stream and to \fBsyslogd\fR(8).
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -173,9 +171,14 @@
 /*	subdirectory levels.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	sendmail(1) sendmail-compatible user interface
-/*	postqueue(1) unprivileged queue operations
+/*	sendmail(1), Sendmail-compatible user interface
+/*	postqueue(1), unprivileged queue operations
 /* LICENSE
 /* .ad
 /* .fi
@@ -1009,7 +1012,7 @@ int     main(int argc, char **argv)
     /*
      * Initialize logging.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0)
+    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);

@@ -85,12 +85,6 @@ is guaranteed to not contain the % or NEWLINE character.
 Do not use TCP lookup tables for security critical purposes.
 The client-server connection is not protected and the server
 is not authenticated.
-.SH "SEE ALSO"
-.na
-.nf
-regexp_table(5) format of regular expression tables
-pcre_table(5) format of PCRE tables
-cidr_table(5) format of CIDR tables
 .SH BUGS
 .ad
 .fi
@@ -98,6 +92,17 @@ Only the lookup method is currently implemented.
 
 The client does not hang up when the connection is idle for
 a long time.
+.SH "SEE ALSO"
+.na
+.nf
+postmap(1), Postfix lookup table manager
+regexp_table(5) format of regular expression tables
+pcre_table(5) format of PCRE tables
+cidr_table(5) format of CIDR tables
+.SH "README FILES"
+.na
+.nf
+DATABASE_README, Postfix lookup table overview
 .SH "LICENSE"
 .na
 .nf

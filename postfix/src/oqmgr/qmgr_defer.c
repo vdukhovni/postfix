@@ -156,5 +156,6 @@ void    qmgr_defer_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
     message->flags |= defer_append(message->tflags, message->queue_id,
 				   recipient->orig_rcpt, recipient->address,
 				   recipient->offset, "none",
-				   message->arrival_time, "%s", reason);
+				   message->arrival_time,
+       "delivery temporarily suspended: %s", reason);
 }

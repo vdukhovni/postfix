@@ -197,6 +197,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	    tok822_free_tree(tree); \
 	if (addr_buf) \
 	    vstring_free(addr_buf); \
+	return; \
     }
 
     /*
@@ -252,7 +253,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	/*
 	 * Strip trailing @.
 	 */
-	if (tree->tail
+	if (var_resolve_nulldom
+	    && tree->tail
 	    && tree->tail->type == '@')
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
 

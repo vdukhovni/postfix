@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
-<title> </title>
+<title> Postfix manual - virtual(5) </title>
 </head> <body> <pre>
 VIRTUAL(5)                                             VIRTUAL(5)
 
@@ -88,7 +88,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <i>user address, address, ...</i>
               Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
               <i>site</i>  is equal to $<b><a href="postconf.5.html#myorigin">myorigin</a></b>, when <i>site</i> is listed in
-              $<b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b>,   or   when   it   is   listed   in
+              $<b><a href="postconf.5.html#mydestination">mydestination</a></b>,   or   when   it   is   listed   in
               $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b> or $<b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
 
               This  functionality  overlaps with functionality of
@@ -152,7 +152,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>back to myself".</b>
 
        Do not specify <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a> names in  the  <b>main.cf</b>
-       <b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b> or <b><a href="postconf.5.html#relay_domains">relay_domains</a></b> configuration parameters.
+       <b><a href="postconf.5.html#mydestination">mydestination</a></b> or <b><a href="postconf.5.html#relay_domains">relay_domains</a></b> configuration parameters.
 
        With  a  virtual  alias  domain,  the  Postfix SMTP server
        accepts  mail  for  <i>known-user@virtual-alias.domain</i>,   and
@@ -163,7 +163,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        the  <b><a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a></b> table, you may also specify it via
        the <b>main.cf <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a></b> configuration parameter.
        This  latter parameter uses the same syntax as the <b>main.cf</b>
-       <b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b> configuration parameter.
+       <b><a href="postconf.5.html#mydestination">mydestination</a></b> configuration parameter.
 
 <b>REGULAR EXPRESSION TABLES</b>
        This section describes how the table lookups  change  when
@@ -212,7 +212,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
 
        <b><a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a></b>
               List  of  <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>. This uses the same
-              syntax as the <b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b> parameter.
+              syntax as the <b><a href="postconf.5.html#mydestination">mydestination</a></b> parameter.
 
        <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>
               A list of address rewriting  or  forwarding  mecha-
@@ -228,7 +228,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
-       <b><a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a></b>
+       <b><a href="postconf.5.html#mydestination">mydestination</a></b>
               List of domains that  this  mail  system  considers
               local.
 
@@ -246,15 +246,15 @@ VIRTUAL(5)                                             VIRTUAL(5)
               tor.
 
 <b>SEE ALSO</b>
-       <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue mail
-       <a href="postmap.1.html">postmap(1)</a> create mapping table
-       <a href="regexp_table.5.html">regexp_table(5)</a> POSIX regular expression table format
-       <a href="pcre_table.5.html">pcre_table(5)</a> Perl Compatible Regular Expression table format
-       <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
+       <a href="cleanup.8.html">cleanup(8)</a>, canonicalize and enqueue mail
+       <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="canonical.5.html">canonical(5)</a>, canonical address mapping
 
 <b>README FILES</b>
-       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix database introduction
-       <a href="VIRTUAL_README.html">VIRTUAL_README</a>, domain hosting howto
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
+       <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>, address rewriting guide
+       <a href="VIRTUAL_README.html">VIRTUAL_README</a>, domain hosting guide
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this

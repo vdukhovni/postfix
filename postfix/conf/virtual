@@ -240,16 +240,16 @@
 #               tor.
 # 
 # SEE ALSO
-#        cleanup(8) canonicalize and enqueue mail
-#        postmap(1) create mapping table
-#        regexp_table(5) POSIX regular expression table format
-#        pcre_table(5) Perl Compatible Regular Expression table format
-#        tcp_table(5) TCP client/server table lookup protocol
+#        cleanup(8), canonicalize and enqueue mail
+#        postmap(1), Postfix lookup table manager
+#        postconf(5), configuration parameters
+#        canonical(5), canonical address mapping
 # 
 # README FILES
 #        Use postconf readme_directory to locate this information.
-#        DATABASE_README, Postfix database introduction
-#        VIRTUAL_README, domain hosting howto
+#        DATABASE_README, Postfix lookup table overview
+#        ADDRESS_REWRITING_README, address rewriting guide
+#        VIRTUAL_README, domain hosting guide
 # 
 # LICENSE
 #        The  Secure  Mailer  license must be distributed with this

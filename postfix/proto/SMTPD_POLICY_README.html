@@ -17,7 +17,7 @@
 
 <hr>
 
-<h2>Introduction</h2>
+<h2>Purpose of Postfix SMTP access policy delegation</h2>
 
 <p> The Postfix SMTP server has a number of built-in mechanisms to
 block or accept mail at specific SMTP protocol stages. As of version
@@ -47,8 +47,6 @@ environments. </p>
 <li><a href="#client_config">Policy client/server configuration</a>
 
 <li><a href="#greylist">Example: greylist policy server</a>
-
-<li><a href="#pros_cons">Pros and cons of greylisting</a>
 
 <li><a href="#frequent">Greylisting mail from frequently forged domains</a>
 
@@ -157,7 +155,7 @@ retry the request at some later time.  </p>
 <h2><a name="client_config">Policy client/server configuration</a></h2>
 
 <p> The Postfix delegated policy client can connect to a TCP socket
-or to a UNIX-domain socket. Examples: <p>
+or to a UNIX-domain socket. Examples: </p>
 
 <blockquote>
 <pre>
@@ -309,18 +307,49 @@ processes only: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/master.cf:
-    policy  unix  -       n       n       -       -       spawn
-      user=nobody argv=/usr/bin/perl /usr/libexec/postfix/greylist.pl
+1 /etc/postfix/master.cf:
+2     policy  unix  -       n       n       -       -       spawn
+3       user=nobody argv=/usr/bin/perl /usr/libexec/postfix/greylist.pl
+4 
+5 /etc/postfix/main.cf:
+6      policy_time_limit = 3600
 </pre>
 </blockquote>
 
-<p> Note: on Solaris you must use inet: style sockets instead of
-unix:  style, as detailed in the "<a href="#client_config">Policy
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Line 3: Specify "greylist.pl -v" for verbose logging of
+each request and reply. </p>
+
+<li> <p> Lines 2, 6: the Postfix spawn(8) daemon by default kills
+its child process after 1000 seconds.  This is too short for a
+policy daemon that may run for as long as an SMTP client is connected
+to an SMTP server process. The default time limit is overruled in
+main.cf with an explicit "policy_time_limit" setting.  The name of
+the parameter is the name of the master.cf entry ("policy")
+concatenated with the "_time_limit" suffix.  </p>
+
+</ul>
+
+<p> On Solaris you must use inet: style sockets instead of unix:
+style, as detailed in the "<a href="#client_config">Policy
 client/server configuration</a>" section above.  </p>
 
-<p> Specify "...postfix/greylist.pl -v" for verbose logging of
-each request and reply. </p>
+<blockquote>
+<pre>
+1 /etc/postfix/master.cf:
+2     127.0.0.1:9998  unix  -       n       n       -       -       spawn
+3       user=nobody argv=/usr/bin/perl /usr/libexec/postfix/greylist.pl
+4 
+5 /etc/postfix/main.cf:
+6      127.0.0.1:9998_time_limit = 3600
+</pre>
+</blockquote>
+
+<p> To invoke this service you would specify "check_policy_service
+inet:127.0.0.1:9998". </p>
 
 <h2><a name="frequent">Greylisting mail from frequently forged domains</a></h2>
 
@@ -340,13 +369,12 @@ http://www.monkeys.com/anti-spam/filtering/sender-domain-validate.in.
  7         ...
  8     restriction_classes = greylist
  9     greylist = check_policy_service unix:private/policy
-10     policy_time_limit = 3600
-11 
-12 /etc/postfix/sender_access:
-13     aol.com     greylist
-14     hotmail.com greylist
-15     bigfoot.com greylist
-16     ... <i>etcetera</i> ...
+10 
+11 /etc/postfix/sender_access:
+12     aol.com     greylist
+13     hotmail.com greylist
+14     bigfoot.com greylist
+15     ... <i>etcetera</i> ...
 </pre>
 </blockquote>
 
@@ -355,8 +383,8 @@ http://www.monkeys.com/anti-spam/filtering/sender-domain-validate.in.
 <ul>
 
 <li> <p> Line 9: On Solaris you must use inet: style sockets
-instead of unix: style, as detailed in the "<a href="#client_config">Policy
-client/server configuration</a>" section above.  </p>
+instead of unix: style, as detailed in the "<a href="#greylist">Example:
+greylist policy server</a>" section above.  </p>
 
 <li> <p> Line 6: Be sure to specify "check_sender_access" AFTER
 "reject_unauth_destination" or else your system could become an
@@ -370,14 +398,6 @@ Postfix 2.1 understands both forms. </p>
 bogus addresses.  It helps if you protect greylist lookups with
 other restrictions that reject unknown senders and/or recipients.
 </p>
-
-<li> <p> Line 10: the Postfix spawn(8) daemon by default kills
-its child process after 1000 seconds.  This is too short for a
-policy daemon that may run for as long as an SMTP client is connected
-to an SMTP server process. The default time limit is overruled in
-main.cf with an explicit "policy_time_limit" setting.  The name of
-the parameter is the name of the master.cf entry ("policy")
-concatenated with the "_time_limit" suffix.  </p>
 
 </ul>
 
@@ -398,11 +418,10 @@ database relatively quickly. </p>
  6         check_sender_access hash:/etc/postfix/sender_access
  7         check_policy_service unix:private/policy
  8         ...
- 9     policy_time_limit = 3600
-10 
-11 /etc/postfix/sender_access:
-12     securityfocus.com OK
-13     ...
+ 9 
+10 /etc/postfix/sender_access:
+11     securityfocus.com OK
+12     ...
 </pre>
 </blockquote>
 
@@ -411,8 +430,8 @@ database relatively quickly. </p>
 <ul>
 
 <li> <p> Line 7: On Solaris you must use inet: style sockets
-instead of unix: style, as detailed in the "<a href="#client_config">Policy
-client/server configuration</a>" section above.  </p>
+instead of unix: style, as detailed in the "<a href="#greylist">Example:
+greylist policy server</a>" section above.  </p>
 
 <li> <p> Lines 6-7: Be sure to specify check_sender_access and
 check_policy_service AFTER reject_unauth_destination or else your
@@ -421,14 +440,6 @@ system could become an open mail relay. </p>
 <li> <p> Line 3: The greylist database gets polluted quickly with
 bogus addresses.  It helps if you precede greylist lookups with
 restrictions that reject unknown senders and/or recipients. </p>
-
-<li> <p> Line 9: the Postfix spawn(8) daemon by default kills
-its child process after 1000 seconds.  This is too short for a
-policy daemon that may run for as long as an SMTP client is connected
-to an SMTP server process. The default time limit is overruled in
-main.cf with an explicit "policy_time_limit" setting.  The name of
-the parameter is the name of the master.cf entry ("policy")
-concatenated with the "_time_limit" suffix.  </p>
 
 </ul>
 

@@ -26,11 +26,11 @@ Berkeley DB implements the Postfix database type of "hash" and
 of the database file without the ".db" suffix. Berkeley DB databases
 are maintained with the <a href="postmap.1.html">postmap(1)</a> command.  </p>
 
-<p> This document describes </p>
+<p> This document describes: </p>
 
 <ol>
 
-<li> <p> How to build Postfix on <a href="no_db">systems without
+<li> <p> How to build Postfix on <a href="#no_db">systems without
 Berkeley DB library</a>. </p>
 
 <li> <p> How to build Postfix on <a href="#bsd">BSD</a> or <a
@@ -38,6 +38,8 @@ href="#linux">Linux</a> systems with multiple Berkeley DB
 versions.  </p>
 
 <li> <p> How to <a href="#tweak">tweak</a> performance. </p>
+
+<li> <p> Missing <a href="#pthread">pthread</a> library trouble. </p>
 
 </ol>
 
@@ -156,7 +158,7 @@ much buffering memory Berkeley DB will use. </p>
 table).  This setting is used by the commands that maintain Berkeley
 DB files: <a href="postalias.1.html">postalias(1)</a> and <a href="postmap.1.html">postmap(1)</a>.  For "hash" files, create
 performance degrades rapidly unless the memory pool is O(file size).
-For "btree" files, create peformance is good with sorted input even
+For "btree" files, create performance is good with sorted input even
 for small memory pools, but with random input degrades rapidly
 unless the memory pool is O(file size). </p>
 
@@ -170,6 +172,29 @@ shows that 64 kBytes may be sufficient. We double the size to play
 safe, and to anticipate changes in implementation and bloat. </p>
 
 </ul>
+
+<h2><a name="pthread">Missing pthread library trouble</a></h2>
+
+<p> When building Postfix fails with: </p>
+
+<blockquote>
+<pre>
+undefined reference to `pthread_condattr_setpshared'
+undefined reference to `pthread_mutexattr_destroy'
+undefined reference to `pthread_mutexattr_init'
+undefined reference to `pthread_mutex_trylock'
+</pre>
+</blockquote>
+
+<p> Add the "-lpthread" library to the "make makefiles" command. </p>
+
+<blockquote>
+<pre>
+% make makefiles .... AUXLIBS="... -lpthread"
+</pre>
+</blockquote>
+
+<p> More information is available at <a href="http://www.sleepycat.com/">http://www.sleepycat.com/</a>. </p>
 
 </body>
 

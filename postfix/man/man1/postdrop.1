@@ -58,11 +58,6 @@ The name is listed in the standard \fBmain.cf\fR file with the
 .IP \(bu
 The command is invoked by the super-user.
 .RE
-.SH "FILES"
-.na
-.nf
-$queue_directory/*, mail queue
-$config_directory/*, configuration files
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -84,14 +79,24 @@ The list of environment parameters that a Postfix process will
 import from a non-Postfix parent process.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .IP "\fBtrigger_timeout (10s)\fR"
 The time limit for sending a trigger to a Postfix daemon (for
 example, the pickup(8) or qmgr(8) daemon).
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix/maildrop, maildrop queue
 .SH "SEE ALSO"
 .na
 .nf
-sendmail(1) compatibility interface
-syslogd(8) system logging
+sendmail(1), compatibility interface
+postconf(5), configuration parameters
+syslogd(8), system logging
 .SH "LICENSE"
 .na
 .nf

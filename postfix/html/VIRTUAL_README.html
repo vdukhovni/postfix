@@ -20,6 +20,8 @@ Virtual Domain Hosting Howto</h1>
 
 <h2>Purpose of this document</h2>
 
+<p> This document requires Postfix version 2.0 or later. </p>
+
 <p> This document gives an overview of how Postfix can be used for
 hosting multiple Internet domains, both for final delivery on the
 machine itself and for the purpose of forwarding to destinations
@@ -108,7 +110,7 @@ that network database lookups produce the exact same results as
 local file lookup. </p>
 
 <blockquote>
-Example: <tt>postmap -q info@example.com <a href="LDAP_README.html">ldap</a>:/etc/postfix/virtual.cf</tt>
+Example: <tt>postmap -q info@example.com <a href="ldap_table.5.html">ldap</a>:/etc/postfix/virtual.cf</tt>
 </blockquote>
 
 <h2><a name="local">As simple as can be: shared domains, UNIX system
@@ -253,37 +255,36 @@ section at the top of this document.</p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
-    <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> = example.com ...more domains...
-    <a href="postconf.5.html#virtual_mailbox_base">virtual_mailbox_base</a> = /var/mail/vhosts
-    <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> = hash:/etc/postfix/vmailbox
-    <a href="postconf.5.html#virtual_minimum_uid">virtual_minimum_uid</a> = 100
-    <a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a> = static:5000
-    <a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a> = static:5000
-    <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
-
-/etc/postfix/vmailbox:
-    info@example.com    example.com/info
-    sales@example.com   example.com/sales/
-    # Comment out the entry below to implement a catch-all.
-    # @example.com      example.com/catchall
-    ...virtual mailboxes for more domains...
-
-/etc/postfix/virtual:
-    postmaster@example.com postmaster
+ 1 /etc/postfix/main.cf:
+ 2     <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> = example.com ...more domains...
+ 3     <a href="postconf.5.html#virtual_mailbox_base">virtual_mailbox_base</a> = /var/mail/vhosts
+ 4     <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> = hash:/etc/postfix/vmailbox
+ 5     <a href="postconf.5.html#virtual_minimum_uid">virtual_minimum_uid</a> = 100
+ 6     <a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a> = static:5000
+ 7     <a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a> = static:5000
+ 8     <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
+ 9 
+10 /etc/postfix/vmailbox:
+11     info@example.com    example.com/info
+12     sales@example.com   example.com/sales/
+13     # Comment out the entry below to implement a catch-all.
+14     # @example.com      example.com/catchall
+15     ...virtual mailboxes for more domains...
+16 
+17 /etc/postfix/virtual:
+18     postmaster@example.com postmaster
 </pre>
 </blockquote>
 
-<p>This example assumes that main.cf lists the value of <a href="postconf.5.html#myorigin">myorigin</a> in
-the <a href="postconf.5.html#mydestination">mydestination</a> parameter setting.  If that is not the case,
-specify an explicit domain name on the right-hand side of the
-virtual alias table entries. </p>
+<p> Notes: </p>
 
-<p> The <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> setting tells Postfix that example.com
-is a so-called <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual mailbox domain</a>. If you omit this setting
-then Postfix will reject mail (relay access denied) or will not be
-able to deliver it (mail for example.com loops back to myself).
-</p>
+<ul>
+
+<li> <p> Line 2: The <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> setting tells Postfix
+that example.com is a so-called <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual mailbox domain</a>. If you omit
+this setting then Postfix will reject mail (relay access denied)
+or will not be able to deliver it (mail for example.com loops back
+to myself).  </p>
 
 <p> NEVER list a <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual MAILBOX domain</a> name as a <a href="postconf.5.html#mydestination">mydestination</a>
 domain! </p>
@@ -291,42 +292,50 @@ domain! </p>
 <p> NEVER list a <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual MAILBOX domain</a> name as a virtual ALIAS
 domain! </p>
 
-<p> The <a href="postconf.5.html#virtual_mailbox_base">virtual_mailbox_base</a> parameter specifies a prefix for all
-virtual mailbox pathnames. This is a safety mechanism in case
-someone makes a mistake. It prevents mail from being delivered all
-over the file system. </p>
+<li> <p> Line 3: The <a href="postconf.5.html#virtual_mailbox_base">virtual_mailbox_base</a> parameter specifies a
+prefix for all virtual mailbox pathnames. This is a safety mechanism
+in case someone makes a mistake. It prevents mail from being
+delivered all over the file system. </p>
 
-<p> The <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> parameter specifies the lookup table
-with mailbox (or maildir) pathnames, indexed by the virtual mail
-address.  In this example, mail for info@example.com goes to the
-mailbox at /var/mail/vhosts/example.com/info while mail for
-sales@example.com goes to the maildir located at
+<li> <p> Lines 4, 10-15: The <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> parameter specifies
+the lookup table with mailbox (or maildir) pathnames, indexed by
+the virtual mail address.  In this example, mail for info@example.com
+goes to the mailbox at /var/mail/vhosts/example.com/info while mail
+for sales@example.com goes to the maildir located at
 /var/mail/vhosts/example.com/sales/. </p>
 
-<p> The <a href="postconf.5.html#virtual_minimum_uid">virtual_minimum_uid</a> specifies a lower bound on the mailbox
-or maildir owner's UID.  This is a safety mechanism in case someone
-makes a mistake. It prevents mail from being written to sensitive
-files. </p>
+<li> <p> Line 5: The <a href="postconf.5.html#virtual_minimum_uid">virtual_minimum_uid</a> specifies a lower bound
+on the mailbox or maildir owner's UID.  This is a safety mechanism
+in case someone makes a mistake. It prevents mail from being written
+to sensitive files. </p>
 
-<p> In the above example, the <a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a> and <a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a>
+<li> <p> Lines 6, 7: The <a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a> and <a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a>
 parameters specify that all the virtual mailboxes are owned by a
 fixed uid and gid 5000.  If this is not what you want, specify
 lookup tables that are searched by the recipient's mail address.
 </p>
 
-<p> The commented out entry (text after #) shows how one would
-implement a catch-all virtual mailbox address. Be prepared to
-receive a lot of spam, as well as bounced spam that was sent in
+<li> <p> Line 14: The commented out entry (text after #) shows how
+one would implement a catch-all virtual mailbox address. Be prepared
+to receive a lot of spam, as well as bounced spam that was sent in
 the name of anything@example.com. </p>
 
 <p> NEVER put a virtual MAILBOX wild-card in the virtual ALIAS
 file!! </p>
 
-<p> As you see above, it is possible to mix virtual aliases with
-virtual mailboxes. We use this feature to redirect mail for
-example.com's postmaster address to the local postmaster. You can
-use the same mechanism to redirect an address to a remote address.
-</p>
+<li> <p> Lines 8, 17, 18: As you see, it is possible to mix virtual
+aliases with virtual mailboxes. We use this feature to redirect
+mail for example.com's postmaster address to the local postmaster.
+You can use the same mechanism to redirect an address to a remote
+address.  </p>
+
+<li> <p> Line 18: This example assumes that in main.cf, $<a href="postconf.5.html#myorigin">myorigin</a>
+is listed under the <a href="postconf.5.html#mydestination">mydestination</a> parameter setting.  If that is
+not the case, specify an explicit domain name on the right-hand
+side of the virtual alias table entries or else mail will go to
+the wrong domain. </p>
+
+</ul>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>" after
 changing the virtual file, execute "<b>postmap /etc/postfix/vmailbox</b>"
@@ -334,10 +343,12 @@ after changing the vmailbox file, and execute the command "<b>postfix
 reload</b>" after changing the main.cf file. </p>
 
 <p> Note: mail delivery happens with the recipient's UID/GID
-privileges.  Postfix will not create mailDIRs; you must create them
-in advance before you can use them. Postfix may be able to create
-mailBOX files by itself, depending on directory write permissions,
-but it is safer to create mailBOX files ahead of time. </p>
+privileges specified with <a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a> and <a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a>.
+Postfix 2.0 and earlier will not create mailDIRs in world-writable
+parent directories; you must create them in advance before you can
+use them. Postfix may be able to create mailBOX files by itself,
+depending on parent directory write permissions, but it is safer
+to create mailBOX files ahead of time. </p>
 
 <p> More details about the virtual mailbox delivery agent are given
 in the <a href="virtual.8.html">virtual(8)</a> manual page. </p>
@@ -364,34 +375,34 @@ to a non-Postfix delivery agent: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
-    <a href="postconf.5.html#virtual_transport">virtual_transport</a> = ...see below...
-    <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> = example.com ...more domains...
-    <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> = hash:/etc/postfix/vmailbox
-    <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
-
-/etc/postfix/vmailbox:
-    info@example.com    whatever
-    sales@example.com   whatever
-    # Comment out the entry below to implement a catch-all.
-    # Configure the mailbox store to accept all addresses.
-    # @example.com      whatever
-    ...virtual mailboxes for more domains...
-
-/etc/postfix/virtual:
-    postmaster@example.com postmaster
+ 1 /etc/postfix/main.cf:
+ 2     <a href="postconf.5.html#virtual_transport">virtual_transport</a> = ...see below...
+ 3     <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> = example.com ...more domains...
+ 4     <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> = hash:/etc/postfix/vmailbox
+ 5     <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
+ 6 
+ 7 /etc/postfix/vmailbox:
+ 8     info@example.com    whatever
+ 9     sales@example.com   whatever
+10     # Comment out the entry below to implement a catch-all.
+11     # Configure the mailbox store to accept all addresses.
+12     # @example.com      whatever
+13     ...virtual mailboxes for more domains...
+14 
+15 /etc/postfix/virtual:
+16     postmaster@example.com postmaster
 </pre>
 </blockquote>
 
-<p> This example assumes that main.cf lists the value of <a href="postconf.5.html#myorigin">myorigin</a>
-in the <a href="postconf.5.html#mydestination">mydestination</a> parameter setting.  If that is not the case,
-specify an explicit domain name on the right-hand side of any
-virtual alias table entries. </p>
+<p> Notes: </p>
 
-<p> With delivery to a non-Postfix mailbox store for <a href="VIRTUAL_README.html#canonical">hosted domains</a>,
-the <a href="postconf.5.html#virtual_transport">virtual_transport</a> parameter usually specifies the Postfix LMTP
-client, or the name of a master.cf entry that executes non-Postfix
-software via the pipe delivery agent.  Typical examples: </p>
+<ul>
+
+<li> <p> Line 2: With delivery to a non-Postfix mailbox store for
+<a href="VIRTUAL_README.html#canonical">hosted domains</a>, the <a href="postconf.5.html#virtual_transport">virtual_transport</a> parameter usually specifies
+the Postfix LMTP client, or the name of a master.cf entry that
+executes non-Postfix software via the pipe delivery agent.  Typical
+examples (use only one): </p>
 
 <blockquote>
 <pre>
@@ -401,16 +412,17 @@ software via the pipe delivery agent.  Typical examples: </p>
 </pre>
 </blockquote>
 
-<p> Postfix comes ready with support for LMTP.  And an example maildrop
-delivery method is already defined in the default Postfix master.cf
-file. </p>
+<p> Postfix comes ready with support for LMTP.  And an example
+maildrop delivery method is already defined in the default Postfix
+master.cf file. See the <a href="MAILDROP_README.html">MAILDROP_README</a> document for more details.
+</p>
 
-<p> In the main.cf file example above, the <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>
-setting tells Postfix that example.com is delivered via the
-<a href="postconf.5.html#virtual_transport">virtual_transport</a> that was discussed in the previous paragraph. If
-you omit this <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> setting then Postfix will
-either reject mail (relay access denied) or will not be able to
-deliver it (mail for example.com loops back to myself). </p>
+<li> <p> Line 3: The <a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> setting tells Postfix
+that example.com is delivered via the <a href="postconf.5.html#virtual_transport">virtual_transport</a> that was
+discussed in the previous paragraph. If you omit this
+<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> setting then Postfix will either reject
+mail (relay access denied) or will not be able to deliver it (mail
+for example.com loops back to myself). </p>
 
 <p> NEVER list a <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual MAILBOX domain</a> name as a <a href="postconf.5.html#mydestination">mydestination</a>
 domain!  </p>
@@ -418,18 +430,18 @@ domain!  </p>
 <p> NEVER list a <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual MAILBOX domain</a> name as a virtual ALIAS
 domain!  </p>
 
-<p> The <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> parameter above specifies the lookup
-table with all valid recipient addresses. The lookup result is
-ignored by Postfix.  In the above example, info@example.com and
-sales@example.com are listed as valid addresses, and mail for
+<li> <p> Lines 4, 7-13: The <a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> parameter specifies
+the lookup table with all valid recipient addresses. The lookup
+result is ignored by Postfix.  In the above example, info@example.com
+and sales@example.com are listed as valid addresses, and mail for
 anything else is rejected with "User unknown". If you intend to
 use LDAP, MySQL or PgSQL instead of local files, be sure to review
 the <a href="#local_vs_database"> "local files versus databases"</a>
 section at the top of this document! </p>
 
-<p> The commented out entry (text after #) shows how one would
-inform Postfix of the existence of a catch-all address. Again, the
-lookup result is ignored by Postfix. </p>
+<li> <p> Line 12: The commented out entry (text after #) shows how
+one would inform Postfix of the existence of a catch-all address.
+Again, the lookup result is ignored by Postfix. </p>
 
 <p> NEVER put a virtual MAILBOX wild-card in the virtual ALIAS
 file!! </p>
@@ -438,11 +450,19 @@ file!! </p>
 you still need to configure the non-Postfix mailbox store to receive
 mail for any address in that domain. </p>
 
-<p> As you see above, it is possible to mix virtual aliases with
-virtual mailboxes. We use this feature to redirect mail for
-example.com's postmaster address to the local postmaster. You can
-use the same mechanism to redirect any addresses to a local or
-remote address.  </p>
+<li> <p> Lines 5, 15, 16: As you see above, it is possible to mix
+virtual aliases with virtual mailboxes. We use this feature to
+redirect mail for example.com's postmaster address to the local
+postmaster. You can use the same mechanism to redirect any addresses
+to a local or remote address.  </p>
+
+<li> <p> Line 16: This example assumes that in main.cf, $<a href="postconf.5.html#myorigin">myorigin</a>
+is listed under the <a href="postconf.5.html#mydestination">mydestination</a> parameter setting.  If that is
+not the case, specify an explicit domain name on the right-hand
+side of the virtual alias table entries or else mail will go to
+the wrong domain. </p>
+
+</ul>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>" after
 changing the virtual file, execute "<b>postmap /etc/postfix/vmailbox</b>"
@@ -458,43 +478,51 @@ as a mail forwarding domain: </p>
 
 <blockquote>
 <pre>
-/etc/postfix/main.cf:
-    <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> = example.com ...other <a href="VIRTUAL_README.html#canonical">hosted domains</a>...
-    <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
-
-/etc/postfix/virtual:
-    postmaster@example.com postmaster
-    joe@example.com        joe@somewhere
-    jane@example.com       jane@somewhere-else
-    # Uncomment entry below to implement a catch-all address
-    # @example.com         jim@yet-another-site
-    ...virtual aliases for more domains...
+ 1 /etc/postfix/main.cf:
+ 2     <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> = example.com ...other <a href="VIRTUAL_README.html#canonical">hosted domains</a>...
+ 3     <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
+ 4 
+ 5 /etc/postfix/virtual:
+ 6     postmaster@example.com postmaster
+ 7     joe@example.com        joe@somewhere
+ 8     jane@example.com       jane@somewhere-else
+ 9     # Uncomment entry below to implement a catch-all address
+10     # @example.com         jim@yet-another-site
+11     ...virtual aliases for more domains...
 </pre>
 </blockquote>
 
-<p> The <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> setting tells Postfix that example.com
-is a so-called <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a>. If you omit this setting then
-Postfix will reject mail (relay access denied) or will not be able
-to deliver it (mail for example.com loops back to myself). </p>
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Line 2: The <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> setting tells Postfix
+that example.com is a so-called <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a>. If you omit
+this setting then Postfix will reject mail (relay access denied)
+or will not be able to deliver it (mail for example.com loops back
+to myself). </p>
 
 <p> NEVER list a <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a> name as a <a href="postconf.5.html#mydestination">mydestination</a>
 domain! </p>
 
-<p> The /etc/postfix/virtual file contains the virtual aliases.
-With the example above, mail for postmaster@example.com goes to
-the local postmaster, while mail for joe@example.com goes to the
-remote address joe@somewhere, and mail for jane@example.com goes
-to the remote address jane@somewhere-else.  Mail for all other
+<li> <p> Lines 3-11: The /etc/postfix/virtual file contains the
+virtual aliases.  With the example above, mail for postmaster@example.com
+goes to the local postmaster, while mail for joe@example.com goes
+to the remote address joe@somewhere, and mail for jane@example.com
+goes to the remote address jane@somewhere-else.  Mail for all other
 addresses in example.com is rejected with the error message "User
 unknown". </p>
 
-<p> The commented out entry (text after #) shows how one would
-implement a catch-all virtual alias that receives mail for every
-example.com address not listed in the virtual alias file. This is
-not without risk.  Spammers nowadays try to send mail from (or mail
-to) every possible name that they can think of. A catch-all mailbox
-is likely to receive many spam messages, and many bounces for spam
-messages that were sent in the name of anything@example.com. </p>
+<li> <p> Line 10: The commented out entry (text after #) shows how
+one would implement a catch-all virtual alias that receives mail
+for every example.com address not listed in the virtual alias file.
+This is not without risk.  Spammers nowadays try to send mail from
+(or mail to) every possible name that they can think of. A catch-all
+mailbox is likely to receive many spam messages, and many bounces
+for spam messages that were sent in the name of anything@example.com.
+</p>
+
+</ul>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>" after
 changing the virtual file, and execute the command "<b>postfix
@@ -533,10 +561,11 @@ virtual addresses to the local delivery agent: </p>
 </pre>
 </blockquote>
 
-<p> This example assumes that main.cf lists the value of <a href="postconf.5.html#myorigin">myorigin</a>
-in the <a href="postconf.5.html#mydestination">mydestination</a> parameter setting.  If that is not the case,
+<p> This example assumes that in main.cf, $<a href="postconf.5.html#myorigin">myorigin</a> is listed under
+the <a href="postconf.5.html#mydestination">mydestination</a> parameter setting.  If that is not the case,
 specify an explicit domain name on the right-hand side of the
-virtual alias table. </p>
+virtual alias table entries or else mail will go to the wrong
+domain. </p>
 
 <p> More information about the Postfix local delivery agent can be
 found in the <a href="local.8.html">local(8)</a> manual page. </p>

@@ -121,6 +121,7 @@ to be the result of forgery:</p>
 Received: from host.example.com ([1.2.3.4] helo=porcupine.org) ...
 Received: from [1.2.3.4] (port=12345 helo=porcupine.org) ...
 Received: from host.example.com (HELO porcupine.org) ...
+Received: from host.example.com (EHLO porcupine.org) ...
 </pre>
 </blockquote>
 
@@ -136,13 +137,13 @@ patterns like this: </p>
 /etc/postfix/header_checks:
     /^Received: +from +(porcupine\.org) +/
         reject forged client name in Received: header: $1
-    /^Received: +from +[^ ]+ +\(([^ ]+ +helo=|helo +)(porcupine\.org)\)/
+    /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
 
 /etc/postfix/body_checks:
-    /^[> ]*Received: +from +(porcupine\.org) /
+    /^[&gt; ]*Received: +from +(porcupine\.org) /
         reject forged client name in Received: header: $1
-    /^[> ]*Received: +from +[^ ]+ +\(([^ ]+ +helo=|helo +)(porcupine\.org)\)/
+    /^[&gt; ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
 </pre>
 </blockquote>

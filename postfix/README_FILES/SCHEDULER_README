@@ -1,5 +1,3 @@
-[hyperlinked version: www.postfix.org/SCHEDULER_README.html]
-
 PPoossttffiixx QQuueeuuee SScchheedduulleerr
 
 -------------------------------------------------------------------------------
@@ -54,7 +52,7 @@ not mentioned in our conversations.
 However, even from programmer's point of view, there is nothing more to add to
 the message scheduling idea itself. There are few things which make it look
 more complicated than it is, but the algorithm is the same as the user
-percieves it. The summary of the differences of the programmer's view from the
+perceives it. The summary of the differences of the programmer's view from the
 user's view are:
 
  1. Simplification of terms for users: The user knows about messages and

@@ -216,7 +216,11 @@ before applying more drastic actions.
 Many people overlook the main limitations of header and body_checks
 rules.  These rules operate on one logical message header or one body
 line at a time, and a decision made for one line is not carried over
-to the next line.
+to the next line.  If text in the message body is encoded
+(RFC 2045) then the rules have to specified for the encoded
+form.  Likewise, when message headers are encoded (RFC
+2047) then the rules need to be specified for the encoded
+form.
 
 Message headers added by the \fBcleanup\fR(8) daemon itself
 are excluded from inspection. Examples of such message headers
@@ -283,20 +287,22 @@ REJECT IFRAME vulnerability exploit
 .SH "SEE ALSO"
 .na
 .nf
-cleanup(8) canonicalize and enqueue Postfix message
-pcre_table(5) format of PCRE tables
-regexp_table(5) format of POSIX regular expression tables
-postconf(1) Postfix configuration utility
-postmap(1) Postfix lookup table management
-postsuper(1) Postfix janitor
-postcat(1) show Postfix queue file contents
+cleanup(8), canonicalize and enqueue Postfix message
+pcre_table(5), format of PCRE lookup tables
+regexp_table(5), format of POSIX regular expression tables
+postconf(1), Postfix configuration utility
+postmap(1), Postfix lookup table management
+postsuper(1), Postfix janitor
+postcat(1), show Postfix queue file contents
+RFC 2045, base64 and quoted-printable encoding rules
+RFC 2047, message header encoding for non-ASCII text
 .SH "README FILES"
 .na
 .nf
 Use "\fBpostconf readme_directory\fR" to locate this information.
-DATABASE_README, Postfix database introduction
-FILTER_README, external content filter
-SMTPD_PROXY_README, real-time external content filter
+DATABASE_README, Postfix lookup table overview
+CONTENT_INSPECTION_README, Postfix content inspection overview
+BUILTIN_FILTER_README, Postfix built-in content inspection
 BACKSCATTER_README, blocking returned forged mail
 .SH "LICENSE"
 .na

@@ -23,9 +23,10 @@
 
 <p> Normally, Postfix receives mail, stores it in the mail queue
 and then delivers it. With the external content filter described
-here, mail is filtered AFTER it is queued. This gives you maximal
-control over how many filtering processes you are willing to run
-in parallel. </p>
+here, mail is filtered AFTER it is queued. This approach decouples
+mail receiving processes from mail filtering processes, and gives
+you maximal control over how many filtering processes you are
+willing to run in parallel.  </p>
 
 <p> The after-queue content filter is meant to be used as follows: </p>
 
@@ -36,7 +37,7 @@ in parallel. </p>
 <tr>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
-        Internet<br> or local </td>
+        Network or<br> local users </td>
 
     <td align="center" valign="middle"> -&gt; </td>
 
@@ -56,7 +57,7 @@ in parallel. </p>
     <td align="center" valign="middle"> -&gt; </td>
 
         <td bgcolor="#f0f0ff" align="center" valign="middle">
-        Mailbox or<br> network </td>
+        Network or<br> local mailbox </td>
 
 </tr>
 
@@ -70,9 +71,9 @@ mail.  Applications that use two separate Postfix instances will
 be covered by a later version of this document.  </p>
 
 <p> The after-queue content filter is not to be confused with the
-approach that is described described in the SMTPD_PROXY_README
-document, where incoming SMTP mail is filtered BEFORE it is stored
-into the Postfix queue.  </p>
+approach that is described in the SMTPD_PROXY_README document,
+where incoming SMTP mail is filtered BEFORE it is stored into the
+Postfix queue.  </p>
 
 <p> This document describes two approaches to content filter
 all email, as well as several options filter mail selectively: </p>
@@ -87,6 +88,8 @@ all email, as well as several options filter mail selectively: </p>
 
 <li><a href="#advanced_filter">Advanced content filter example</a>
 
+<li><a href="#performance">Advanced content filter performance</a>
+
 <li><a href="#remote_only">Filtering mail from outside users only</a>
 
 <li><a href="#domain_dependent">Different filters for different domains</a>
@@ -96,7 +99,7 @@ all email, as well as several options filter mail selectively: </p>
 </ul>
 
 
-<h3><a name="principles">Principles of operation</a> </h3>
+<h2><a name="principles">Principles of operation</a> </h2>
 
 <p> An external content filter receives unfiltered mail from Postfix
 (as described further below) and does one of the following: </p>
@@ -111,16 +114,16 @@ all email, as well as several options filter mail selectively: </p>
 
 </ol>
 
-<p> Note: in this time of mail worms and forged spam, it is a VERY
+<p> NOTE: in this time of mail worms and forged spam, it is a VERY
 BAD IDEA to send viruses back to the sender address, because the
 sender address is almost certainly not the originator. It is better
-to discard known viruses, and to quarantaine material that is
+to discard known viruses, and to quarantine material that is
 suspect so that a human can decide what to do with it. </p>
 
 <h2><a name="simple_filter">Simple content filter example</a></h2>
 
 <p> The first example is simple to set up.  Postfix receives
-unfiltered mail from the network with the smtp(8) server, and
+unfiltered mail from the network with the smtpd(8) server, and
 delivers unfiltered mail to a content filter with the Postfix
 pipe(8) delivery agent.  The content filter injects filtered mail
 back into Postfix with the Postfix sendmail(1) command, so that
@@ -128,6 +131,10 @@ Postfix can deliver it to the final destination. </p>
 
 <p> This means that mail submitted via the Postfix sendmail(1)
 command cannot be content filtered. </p>
+
+<p> In the figure below, names followed by a number represent
+Postfix commands or daemon programs. See the OVERVIEW
+document for an introduction to the Postfix architecture. </p>
 
 <blockquote>
 
@@ -149,8 +156,8 @@ command cannot be content filtered. </p>
 
    <td align="center" valign="middle"> -&gt; </td>
 
-       <td bgcolor="#f0f0ff" align="center" valign="middle"> queue
-       </td>
+       <td bgcolor="#f0f0ff" align="center" valign="middle">
+       qmgr(8)<br> Postfix <br> queue </td>
 
    <td align="center" valign="middle"> -&lt; </td>
 
@@ -181,18 +188,24 @@ command cannot be content filtered. </p>
 
    <td colspan="2"> </td>
 
-        <td bgcolor="#f0f0ff" align="center"
-        valign="middle">Postfix<br> postdrop(1) </td>
+	<td bgcolor="#f0f0ff" align="center" valign="middle">
+	<a href="QSHAPE_README.html#maildrop_queue"> maildrop <br>
+	queue </a> </td>
 
    <td align="center" valign="middle"> &lt;- </td>
 
-        <td bgcolor="#f0f0ff" align="center"
-        valign="middle">Postfix<br> sendmail(1) </td>
+	<td bgcolor="#f0f0ff" align="center" valign="middle">Postfix<br>
+	postdrop(1) </td>
 
    <td align="center" valign="middle"> &lt;- </td>
 
-        <td colspan="3" bgcolor="#f0f0ff" align="center"
-        valign="middle">Content filter </td>
+	<td bgcolor="#f0f0ff" align="center" valign="middle">Postfix<br>
+	sendmail(1) </td>
+
+   <td align="center" valign="middle"> &lt;- </td>
+
+	<td bgcolor="#f0f0ff" align="center" valign="middle">Content
+	<br> filter </td>
 
    <td colspan="2"> </td>
 
@@ -263,7 +276,7 @@ Postfix will return the message to the sender as undeliverable.
 <li> <p> Note: in this time of mail worms and spam, it is a BAD
 IDEA to send known viruses or spam back to the sender, because that
 address is likely to be forged. It is safer to discard known to be
-bad content and to quarantaine suspicious content so that it can
+bad content and to quarantine suspicious content so that it can
 be inspected by a human being. </p>
 
 <li> <p> Line 28: If the content is OK, it is given as input to
@@ -389,6 +402,10 @@ mail back into Postfix with SMTP on localhost port 10026. </p>
 SMTP proxy implements a nice PERL/SMTP content filtering framework.
 See: http://bent.latency.net/smtpprox/. </p>
 
+<p> In the figure below, names followed by a number represent
+Postfix commands or daemon programs. See the OVERVIEW
+document for an introduction to the Postfix architecture. </p>
+
 <blockquote>
 
 <table>
@@ -410,8 +427,8 @@ See: http://bent.latency.net/smtpprox/. </p>
 
    <td align="center" valign="middle"> -&gt; </td>
 
-       <td bgcolor="#f0f0ff" align="center" valign="middle"> queue
-       </td>
+       <td bgcolor="#f0f0ff" align="center" valign="middle">
+       qmgr(8)<br> Postfix <br> queue </td>
 
    <td align="center" valign="middle"> -&lt; </td>
 
@@ -572,7 +589,7 @@ for more information. </p>
 
 </ul>
 
-<h3>Advanced content filter: running the the content filter</h3>
+<h3>Advanced content filter: running the content filter</h3>
 
 <p> The content filter can be set up with the Postfix spawn service,
 which is the Postfix equivalent of inetd. For example, to instantiate
@@ -678,6 +695,22 @@ mail is logged with the real client name IP address.  See
 XFORWARD_README and smtpd(8). </p>
 
 </ul>
+
+<h2><a name="performance">Advanced content filter performance</a></h2>
+
+<p> With the "sandwich" approach to content filtering described
+here, it is important to match the filter concurrency to the
+available CPU, memory and I/O resources.  Too few content filter
+processes and mail accumulates in the active queue even with low
+traffic volume; too much concurrency and Postfix ends up deferring
+mail destined for the content filter because processes fail due to
+insufficient resources. </p>
+
+<p> Currently, content filter performance tuning is a process of
+trial and error; analysis is handicapped because filtered and
+unfiltered messages share the same queue.  As mentioned in the
+introduction of this document, content filtering with multiple
+Postfix instances will be covered in a future version.  </p>
 
 <h2><a name="remote_only">Filtering mail from outside users only</a></h2>
 

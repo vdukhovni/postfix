@@ -13,7 +13,7 @@
 
 <body>
 
-<h1><img src="postfix-logo.jpg" width="203" height="98">Postfix Configuration Parameters </h1>
+<h1><img src="postfix-logo.jpg" width="203" height="98" alt="">Postfix Configuration Parameters </h1>
 
 <hr>
 
@@ -581,7 +581,7 @@ cannot match Postfix access tables, because the address is ambiguous.
 
 <p>
 A list of non-default Postfix configuration directories that may
-be specified with "-c <a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a>" on the command line, or
+be specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line, or
 via the MAIL_CONFIG environment parameter.
 </p>
 
@@ -605,6 +605,33 @@ that is received by the Postfix mail system.
 <p>
 NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
+</p>
+
+
+</DD>
+
+<DT><b><a name="anvil_rate_time_unit">anvil_rate_time_unit</a>
+(default: 60s)</b></DT><DD>
+
+<p>
+The time unit over which client connection rates and other rates
+are calculated.
+</p>
+
+<p>
+This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is not
+part of the stable Postfix 2.1 release.
+</p>
+
+<p>
+The default interval is relatively short. Because of the high
+frequency of updates, the <a href="anvil.8.html">anvil(8)</a> server uses volatile memory
+only. Thus, information is lost whenever the process terminates.
+</p>
+
+<p>
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
 </p>
 
 
@@ -663,6 +690,32 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="authorized_verp_clients">authorized_verp_clients</a>
+(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
+
+<p> What SMTP clients are allowed to specify the XVERP command.
+This command requests that mail be delivered one recipient at a
+time with a per recipient return address.  </p>
+
+<p> By default, only trusted clients are allowed to specify XVERP.
+</p>
+
+<p> This parameter was introduced with Postfix version 1.1.  Postfix
+version 2.1 renamed this parameter to <a href="postconf.5.html#smtpd_authorized_verp_clients">smtpd_authorized_verp_clients</a>
+and changed the default to none. </p>
+
+<p> Specify a list of network/netmask patterns, separated by commas
+and/or whitespace. The mask specifies the number of bits in the
+network part of a host address. You can also specify hostnames or
+.domain names (the initial dot causes the domain to match any name
+below it),  "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns.  A "/file/name"
+pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>" lookup table
+is matched when a table entry matches a lookup string (the lookup
+result is ignored).  Continue long lines by starting the next line
+
+
+</DD>
+
 <DT><b><a name="backwards_bounce_logfile_compatibility">backwards_bounce_logfile_compatibility</a>
 (default: yes)</b></DT><DD>
 
@@ -717,7 +770,7 @@ This feature is available in Postfix 2.0 and later.
 Where the Postfix SMTP client should deliver mail when it detects
 a "mail loops back to myself" error condition. This happens when
 the local MTA is the best SMTP mail exchanger for a destination
-not listed in $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
+not listed in $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>.  By default,
 the Postfix SMTP client returns such mail as undeliverable.
 </p>
@@ -761,10 +814,11 @@ drain.  Specify "<a href="postconf.5.html#biff">biff</a> = no" to disable.
 <DT><b><a name="body_checks">body_checks</a>
 (default: empty)</b></DT><DD>
 
-<p>
-Optional lookup tables for content inspection as specified in
-the <a href="header_checks.5.html">body_checks(5)</a> manual page.
-</p>
+<p> Optional lookup tables for content inspection as specified in
+the <a href="header_checks.5.html">body_checks(5)</a> manual page.  </p>
+
+<p> Note: with Postfix versions before 2.0, these rules inspect
+all content after the primary message headers. </p>
 
 
 </DD>
@@ -934,33 +988,6 @@ The default time unit is s (seconds).
 
 </DD>
 
-<DT><b><a name="client_rate_time_unit">client_rate_time_unit</a>
-(default: 60s)</b></DT><DD>
-
-<p>
-The time unit over which client connection rates and other rates
-are calculated.
-</p>
-
-<p>
-This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is not
-part of the stable Postfix 2.1 release.
-</p>
-
-<p>
-The default interval is relatively short. Because of the high
-frequency of updates, the <a href="anvil.8.html">anvil(8)</a> server uses volatile memory
-only. Thus, information is lost whenever the process terminates.
-</p>
-
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
-
-
-</DD>
-
 <DT><b><a name="command_directory">command_directory</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -1017,9 +1044,9 @@ and commands). </p>
 </ul>
 
 <p> With Postfix command that run with set-gid privileges, a
-<a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a> override requires either root privileges, or it
+<a href="postconf.5.html#config_directory">config_directory</a> override requires either root privileges, or it
 requires that the directory is listed with the <a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a>
-parameter in the default main.cf file.  <p>
+parameter in the default main.cf file.  </p>
 
 
 </DD>
@@ -1112,7 +1139,7 @@ invoked with the -D option.
 </p>
 
 <p>
-Use "command .. & sleep 5" so that the debugger can attach before
+Use "command .. &amp; sleep 5" so that the debugger can attach before
 the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 </p>
@@ -1124,7 +1151,7 @@ Example:
 <pre>
 <a href="postconf.5.html#debugger_command">debugger_command</a> =
     PATH=/usr/bin:/usr/X11R6/bin
-    xxgdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> & sleep 5
+    xxgdb $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/$<a href="postconf.5.html#process_name">process_name</a> $<a href="postconf.5.html#process_id">process_id</a> &amp; sleep 5
 </pre>
 
 
@@ -1443,7 +1470,7 @@ and <a href="postconf.5.html#qmgr_message_recipient_minimum">qmgr_message_recipi
 
 <p>
 The default mail delivery transport for domains that do not match
-$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
+$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, or $<a href="postconf.5.html#relay_domains">relay_domains</a>.
 This information can be overruled with the <a href="transport.5.html">transport(5)</a> table.
 </p>
@@ -1469,10 +1496,14 @@ Example:
 <DT><b><a name="default_verp_delimiters">default_verp_delimiters</a>
 (default: +=)</b></DT><DD>
 
+<p> The two default VERP delimiter characters. These are used when
+no explicit delimiters are specified with the SMTP XVERP command
+or with the "<b>sendmail -V</b>" command-line option. Specify
+characters that are allowed by the <a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> setting.
+</p>
+
 <p>
-The two default VERP delimiter characters. These are used when no
-explicit delimiters are specified with the SMTP XVERP command or
-with the "<b>sendmail -V</b>" command-line option.
+This feature is available in Postfix 1.1 and later.
 </p>
 
 
@@ -1656,6 +1687,10 @@ Disable sending one bounce report per recipient.
 The default, one per recipient, is what ezmlm needs.
 </p>
 
+<p>
+This feature is available in Postfix 1.1 and later.
+</p>
+
 
 </DD>
 
@@ -1725,10 +1760,11 @@ created locally as the result of configuration or software error.
 <DT><b><a name="enable_errors_to">enable_errors_to</a>
 (default: no)</b></DT><DD>
 
-<p> Report errors to the address specified with the non-standard
-Errors-To: message header, instead of the envelope sender address.
-This support is disabled by default with Postfix 2.1 and later,
-and is always turned on with older Postfix versions.  </p>
+<p> Report mail delivery errors to the address specified with the
+non-standard Errors-To: message header, instead of the envelope
+sender address.  This support is disabled by default with Postfix
+2.1 and later, and is always turned on with older Postfix versions.
+</p>
 
 
 </DD>
@@ -2190,6 +2226,17 @@ Examples:
 The maximal number of Received:  message headers that is allowed
 in the primary message headers. A message that exceeds the limit
 is bounced, in order to stop a mailer loop.
+</p>
+
+
+</DD>
+
+<DT><b><a name="html_directory">html_directory</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p>
+The location of Postfix HTML files that describe how to build,
+configure or operate a specific Postfix subsystem or feature.
 </p>
 
 
@@ -2782,7 +2829,7 @@ Example:
 delivery transport to the same recipient (when
 "<a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> = 1") or the maximal number of
 parallel deliveries to the same <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> (when
-"<a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> > 1"). This limit is enforced by
+"<a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> &gt; 1"). This limit is enforced by
 the queue manager. The message delivery transport name is the first
 field in the entry in the master.cf file. </p>
 
@@ -2802,7 +2849,7 @@ local mail delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the master.cf file. </p>
 
-<p> Setting this parameter to a value > 1 changes the meaning of
+<p> Setting this parameter to a value &gt; 1 changes the meaning of
 <a href="postconf.5.html#local_destination_concurrency_limit">local_destination_concurrency_limit</a> from concurrency per recipient
 into concurrency per domain.  </p>
 
@@ -2813,12 +2860,12 @@ into concurrency per domain.  </p>
 (default: <a href="proxymap.8.html">proxy</a>:unix:passwd.byname $<a href="postconf.5.html#alias_maps">alias_maps</a>)</b></DT><DD>
 
 <p> Lookup tables with all names or addresses of local recipients:
-a recipient address is local when its domain matches $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>,
+a recipient address is local when its domain matches $<a href="postconf.5.html#mydestination">mydestination</a>,
 $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  Specify @domain as a
 wild-card for domains that do not have a valid recipient list.
 Technically, tables listed with $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> are used as
 lists: Postfix needs to know only if a lookup string is found or
-not, but it does not use the result from table lookup.  </p> </p>
+not, but it does not use the result from table lookup.  </p>
 
 <p>
 If this parameter is non-empty (the default), then the Postfix SMTP server
@@ -2873,7 +2920,7 @@ Examples:
 (default: local:$<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
 
 <p> The default mail delivery transport for domains that match
-$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  This
+$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  This
 information can be overruled with the <a href="transport.5.html">transport(5)</a> table.  </p>
 
 <p>
@@ -2903,7 +2950,7 @@ SMTP server may reject mail for local recipients.
 <p>
 Optional catch-all destination for unknown <a href="local.8.html">local(8)</a> recipients.
 By default, mail for unknown recipients in domains that match
-$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> is returned
+$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> is returned
 as undeliverable.
 </p>
 
@@ -3544,15 +3591,16 @@ This feature is available in Postfix 2.1 and later.
 <DT><b><a name="mydestination">mydestination</a>
 (default: $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a>, localhost)</b></DT><DD>
 
-<p>
-The list of domains that are by default delivered via the
-$<a href="postconf.5.html#local_transport">local_transport</a> mail delivery transport. By default this is the
-Postfix <a href="local.8.html">local(8)</a> delivery agent which looks up all recipients in
-/etc/passwd and /etc/aliases.
+<p> The list of domains that are delivered via the $<a href="postconf.5.html#local_transport">local_transport</a>
+mail delivery transport. By default this is the Postfix <a href="local.8.html">local(8)</a>
+delivery agent which looks up all recipients in /etc/passwd and
+/etc/aliases. The SMTP server validates recipient addresses with
+$<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> and rejects non-existent recipients. See also
+the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> class in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file.
 </p>
 
 <p>
-The default <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> value specifies names for the local
+The default <a href="postconf.5.html#mydestination">mydestination</a> value specifies names for the local
 machine only.  On a mail domain gateway, you should also include
 $<a href="postconf.5.html#mydomain">mydomain</a>.
 </p>
@@ -3597,8 +3645,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a> $<a href="postconf.5.html#mydomain">mydomain</a>
-<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a> www.$<a href="postconf.5.html#mydomain">mydomain</a>, ftp.$<a href="postconf.5.html#mydomain">mydomain</a>
+<a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a> $<a href="postconf.5.html#mydomain">mydomain</a>
+<a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a> www.$<a href="postconf.5.html#mydomain">mydomain</a>, ftp.$<a href="postconf.5.html#mydomain">mydomain</a>
 </pre>
 
 
@@ -3686,7 +3734,7 @@ Examples:
 
 <pre>
 <a href="postconf.5.html#mynetworks">mynetworks</a> = 168.100.189.0/28, 127.0.0.0/8
-<a href="postconf.5.html#mynetworks">mynetworks</a> = $<a href="postconf.5.html#config_directory">config_direc</a><a href="postconf.5.html#config_directory">tory</a>/mynetworks
+<a href="postconf.5.html#mynetworks">mynetworks</a> = $<a href="postconf.5.html#config_directory">config_directory</a>/mynetworks
 <a href="postconf.5.html#mynetworks">mynetworks</a> = hash:/etc/postfix/network_table
 </pre>
 
@@ -3908,7 +3956,7 @@ only domains whose primary MX hosts match the listed networks.
 
 <p>
 The name of the <a href="pickup.8.html">pickup(8)</a> service. This service picks up local mail
-submissions from the Postfix maildrop queue.
+submissions from the Postfix <a href="QSHAPE_README.html#maildrop_queue">maildrop queue</a>.
 </p>
 
 <p>
@@ -4068,11 +4116,15 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The minimal delay between warnings that a specific destination is
-clogging up the Postfix active queue. Specify 0 to disable.
+clogging up the Postfix <a href="QSHAPE_README.html#active_queue">active queue</a>. Specify 0 to disable.
 </p>
 
 <p>
 This feature is enabled with the <a href="postconf.5.html#helpful_warnings">helpful_warnings</a> parameter.
+</p>
+
+<p>
+This feature is available in Postfix 2.0 and later.
 </p>
 
 
@@ -4099,7 +4151,7 @@ current queue manager solves the problem in a better way.
 (default: 20000)</b></DT><DD>
 
 <p>
-The maximal number of messages in the active queue.
+The maximal number of messages in the <a href="QSHAPE_README.html#active_queue">active queue</a>.
 </p>
 
 
@@ -4255,7 +4307,7 @@ zero means there is no minimum required amount of free space.
 (default: 1000s)</b></DT><DD>
 
 <p>
-The time between deferred queue scans by the queue manager.
+The time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the queue manager.
 </p>
 
 <p>
@@ -4313,17 +4365,13 @@ configure or operate a specific Postfix subsystem or feature.
 <DT><b><a name="receive_override_options">receive_override_options</a>
 (default: empty)</b></DT><DD>
 
-<p>
-What input processing happens before or after an external content
-filter.
-</p>
+<p> Enable or disable recipient validation, built-in content
+filtering, or address rewriting. </p>
 
-<p>
-Specify zero or more of the following options.  The options override
-main.cf settings and are either implemented by the Postfix SMTP server, by
-the QMQP server, or by the pickup server, or they are passed on to
-the cleanup server.
-</p>
+<p> Specify zero or more of the following options.  The options
+override main.cf settings and are either implemented by the Postfix
+SMTP server, by the QMQP server, or by the pickup server, or they
+are passed on to the cleanup server.  </p>
 
 <dl>
 
@@ -4397,11 +4445,11 @@ optional address extension.
 address extension.
 
 <li> Look up the "user+extension" address local part when the
-recipient domain equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+recipient domain equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
 or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
 <li> Look up the "user" address local part when the recipient domain
-equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
+equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
 <li> Look up the "@domain.tld" part.
 
@@ -4516,27 +4564,31 @@ into concurrency per recipient.  </p>
 </DD>
 
 <DT><b><a name="relay_domains">relay_domains</a>
-(default: $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>)</b></DT><DD>
+(default: $<a href="postconf.5.html#mydestination">mydestination</a>)</b></DT><DD>
 
-<p>
-What destination domains (and subdomains thereof) this system will
-relay mail to. Subdomain matching is controlled with the
+<p> What destination domains (and subdomains thereof) this system
+will relay mail to. Subdomain matching is controlled with the
 <a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a> parameter. For details about how
 the <a href="postconf.5.html#relay_domains">relay_domains</a> value is used, see the description of the
 <a href="postconf.5.html#permit_auth_destination">permit_auth_destination</a> and <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> SMTP recipient
-restrictions.
-</p>
+restrictions.  </p>
 
-<p>
-Domains that match $<a href="postconf.5.html#relay_domains">relay_domains</a> are by default delivered with
-the $<a href="postconf.5.html#relay_transport">relay_transport</a> mail delivery transport.
-</p>
+<p> Domains that match $<a href="postconf.5.html#relay_domains">relay_domains</a> are delivered with the
+$<a href="postconf.5.html#relay_transport">relay_transport</a> mail delivery transport. The SMTP server validates
+recipient addresses with $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> and rejects non-existent
+recipients. See also the <a href="ADDRESS_CLASS_README.html#relay_domain_class">relay domains</a> address class in the
+<a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file.  </p>
 
-<p>
-NOTE: Postfix will not automatically forward mail for domains that
-list this system as their primary or backup MX host. See the
-<a href="postconf.5.html#permit_mx_backup">permit_mx_backup</a> restriction in the <a href="postconf.5.html">postconf(5)</a> manual page.
-</p>
+<p> The list of domains that are by default delivered via the
+$<a href="postconf.5.html#local_transport">local_transport</a> mail delivery transport. By default this is the
+Postfix <a href="local.8.html">local(8)</a> delivery agent which looks up all recipients in
+/etc/passwd and /etc/aliases. The SMTP server validates recipient
+addresses with $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>. See also the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a>
+address class in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file.  </p>
+
+<p> NOTE: Postfix will not automatically forward mail for domains
+that list this system as their primary or backup MX host. See the
+<a href="postconf.5.html#permit_mx_backup">permit_mx_backup</a> restriction in the <a href="postconf.5.html">postconf(5)</a> manual page.  </p>
 
 <p> Specify a list of host or domain names, "/file/name" patterns
 or "<a href="DATABASE_README.html">type:table</a>" lookup tables, separated by commas and/or whitespace.
@@ -4577,6 +4629,11 @@ use the result from table lookup.  </p>
 <p>
 If this parameter is non-empty, then the Postfix SMTP server will reject
 mail to unknown relay users. This feature is off by default.
+</p>
+
+<p>
+See also the <a href="ADDRESS_CLASS_README.html#relay_domain_class">relay domains</a> address class in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a>
+file.
 </p>
 
 <p>
@@ -4722,6 +4779,24 @@ backup MX service for Sendmail systems.  </p>
 
 </DD>
 
+<DT><b><a name="resolve_null_domain">resolve_null_domain</a>
+(default: no)</b></DT><DD>
+
+<p> Resolve an address that ends in the "@" null domain as if the
+local hostname were specified, instead of rejecting the address as
+invalid.  </p>
+
+<p> This feature is available in Postfix version 2.1 and later.
+Earlier versions always resolve the null domain as the local
+hostname.  </p>
+
+<p> The Postfix SMTP server uses this feature to reject mail from
+or to addresses that end in the "@" null domain, and from addresses
+that rewrite into a form that ends in the "@" null domain.  </p>
+
+
+</DD>
+
 <DT><b><a name="rewrite_service_name">rewrite_service_name</a>
 (default: rewrite)</b></DT><DD>
 
@@ -4761,11 +4836,9 @@ This parameter should not be used.
 <DT><b><a name="sender_bcc_maps">sender_bcc_maps</a>
 (default: empty)</b></DT><DD>
 
-<p>
-Optional BCC (blind carbon-copy) address lookup tables, indexed by
-sender address.  The BCC address (multiple results are not
-supported) is added when mail enters from outside of Postfix.
-</p>
+<p> Optional BCC (blind carbon-copy) address lookup tables, indexed
+by sender address.  The BCC address (multiple results are not
+supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -4784,11 +4857,11 @@ optional address extension.
 address extension.
 
 <li> Look up the "user+extension" address local part when the
-recipient domain equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+recipient domain equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
 or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
 <li> Look up the "user" address local part when the recipient domain
-equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
+equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
 <li> Look up the "@domain.tld" part.
 
@@ -4861,7 +4934,7 @@ submit mail into the Postfix queue.
 (default: 60s)</b></DT><DD>
 
 <p>
-How long the Postfix <a href="master.8.html">mas</a><a href="master.8.html">ter(8)</a> waits before forking a server that
+How long the Postfix <a href="master.8.html">master(8)</a> waits before forking a server that
 appears to be malfunctioning.
 </p>
 
@@ -5117,7 +5190,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The SMTP client time limit for sending the HELO or EHLO command,
-and for receiving the server response.
+and for receiving the initial server response.
 </p>
 
 <p>
@@ -5541,25 +5614,18 @@ This feature is available in Postfix 2.1 and later.
 </DD>
 
 <DT><b><a name="smtpd_authorized_verp_clients">smtpd_authorized_verp_clients</a>
-(default: $authorized_verp_clients)</b></DT><DD>
+(default: $<a href="postconf.5.html#authorized_verp_clients">authorized_verp_clients</a>)</b></DT><DD>
 
-<p>
-What SMTP clients are allowed to specify the XVERP command. This
-command requests that mail be delivered one recipient at a time
-with a per recipient return address.
-</p>
+<p> What SMTP clients are allowed to specify the XVERP command.
+This command requests that mail be delivered one recipient at a
+time with a per recipient return address.  </p>
 
-<p>
-By default, no clients are allowed to specify XVERP.
-</p>
+<p> By default, no clients are allowed to specify XVERP.  </p>
 
-<p>
-This parameter was renamed with Postfix 2.1. The default value is
-backwards compatible with Postfix 2.0.
-</p>
+<p> This parameter was renamed with Postfix 2.1. The default value
+is backwards compatible with Postfix 2.0.  </p>
 
-<p>
-Specify a list of network/netmask patterns, separated by commas
+<p> Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
 .domain names (the initial dot causes the domain to match any name
@@ -5714,7 +5780,7 @@ This feature is not part of the stable Postfix 2.1 release.
 <p>
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.  The time unit is specified
-with the <a href="postconf.5.html#client_rate_time_unit">client_rate_time_unit</a> configuration parameter, and defaults
+with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> configuration parameter, and defaults
 to one minute.
 </p>
 
@@ -5773,7 +5839,7 @@ client network address information.
 
 <dl>
 
-<dt><b><a name="check_client_access">check_client_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
@@ -6036,7 +6102,7 @@ received with the ETRN command.
 
 <dl>
 
-<dt><b><a name="check_etrn_access">check_etrn_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_etrn_access">check_etrn_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the ETRN domain name
 or its parent domains. See the <a href="access.5.html">access(5)</a> manual page for details.
@@ -6146,20 +6212,20 @@ received with the HELO or EHLO command.
 
 <dl>
 
-<dt><b><a name="check_helo_access">check_helo_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_helo_access">check_helo_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the HELO or EHLO
 hostname or parent domains, and execute the corresponding action.
 </dd>
 
-<dt><b><a name="check_helo_mx_access">check_helo_mx_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_helo_mx_access">check_helo_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
-<dt><b><a name="check_helo_ns_access">check_helo_ns_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_helo_ns_access">check_helo_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
@@ -6400,7 +6466,7 @@ for addresses that contain sender-specified routing
 (user@elsewhere@domain), or:
 
 <li> Mail to local destinations that match $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
-or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or
+or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or
 $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>.
 
 </ul>
@@ -6429,20 +6495,20 @@ that is received with the RCPT TO command.
 
 <dl>
 
-<dt><b><a name="check_recipient_access">check_recipient_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_recipient_access">check_recipient_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the resolved RCPT
 TO address, domain, parent domains, or localpart@, and execute the
 corresponding action.  </dd>
 
-<dt><b><a name="check_recipient_mx_access">check_recipient_mx_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for the
 RCPT TO address, and execute the corresponding action.  Note: a
 result of "OK" is not allowed for safety reasons.  This feature is
 available in Postfix 2.1 and later. </dd>
 
-<dt><b><a name="check_recipient_ns_access">check_recipient_ns_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_recipient_ns_access">check_recipient_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the DNS servers
 for the RCPT TO address, and execute the corresponding action.
@@ -6460,7 +6526,7 @@ $<a href="postconf.5.html#relay_domains">relay_domains</a> or a subdomain thereo
 sender-specified routing (user@elsewhere@domain),
 
 <li> Postfix is the final destination: the resolved RCPT TO address
-matches $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
+matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and the address
 contains no sender-specified routing (user@elsewhere@domain).
 
@@ -6509,15 +6575,14 @@ $<a href="postconf.5.html#relay_domains">relay_domains</a> or a subdomain thereo
 routing (user@elsewhere@domain),
 
 <li> Postfix is the final destination: the resolved RCPT TO address
-matches $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
+matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>, $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>,
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and contains
 no sender-specified routing (user@elsewhere@domain).
 
 </ul> The <a href="postconf.5.html#relay_domains_reject_code">relay_domains_reject_code</a> parameter specifies the response
 code for rejected requests (default: 554). </dd>
 
-<dt><b><a
-name="<a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>"><a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></a></b></dt>
+<dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when the RCPT TO address has no DNS A or MX
 record. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies
@@ -6578,13 +6643,13 @@ Example:
 <p>
 Request that the Postfix SMTP server rejects mail for unknown
 recipient addresses, even when no explicit <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a>
-recipient restriction is specified. This prevents the Postfix queue
+access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 </p>
 
 <ul>
 
-<li> The recipient domain matches $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+<li> The recipient domain matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
 or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, but the recipient is not listed in
 $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> is not null.
 
@@ -6612,16 +6677,14 @@ This feature is available in Postfix 2.1 and later.
 <DT><b><a name="smtpd_reject_unlisted_sender">smtpd_reject_unlisted_sender</a>
 (default: no)</b></DT><DD>
 
-<p>
-Request that the Postfix SMTP server rejects mail from unknown
+<p> Request that the Postfix SMTP server rejects mail from unknown
 sender addresses, even when no explicit <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a>
-restriction is specified. This can slow down an explosion of forged
-mail from worms or viruses.
-</p>
+access restriction is specified. This can slow down an explosion
+of forged mail from worms or viruses.  </p>
 
 <ul>
 
-<li> The sender domain matches $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or
+<li> The sender domain matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or
 $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, but the recipient is not listed in
 $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> is not null.
 
@@ -6860,7 +6923,7 @@ sender address of <i>user@domain</i>:  </p>
 <dt> 2) <i>user</i> </dt>
 
 <dd>This table lookup is done only when the <i>domain</i> part of the
-sender address matches $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+sender address matches $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
 or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>. </dd>
 
 <dt> 3) <i>@domain</i> </dt>
@@ -6903,20 +6966,20 @@ received with the MAIL FROM command.
 
 <dl>
 
-<dt><b><a name="check_sender_access">check_sender_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_sender_access">check_sender_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MAIL FROM
 address, domain, parent domains, or localpart@, and execute the
 corresponding action. </dd>
 
-<dt><b><a name="check_sender_mx_access">check_sender_mx_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_sender_mx_access">check_sender_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for
 the MAIL FROM address, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons.  This feature
 is available in Postfix 2.1 and later. </dd>
 
-<dt><b><a name="check_sender_ns_access">check_sender_ns_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_sender_ns_access">check_sender_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the DNS servers
 for the MAIL FROM address, and execute the corresponding action.
@@ -7421,7 +7484,7 @@ Do not change this unless you have a complete understanding of <a href="http://w
 The numerical Postfix SMTP server response code when a recipient
 address is local, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> specifies a list of
 lookup tables that does not match the recipient.  A recipient
-address is local when its domain matches $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>,
+address is local when its domain matches $<a href="postconf.5.html#mydestination">mydestination</a>,
 $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> or $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>.
 </p>
 
@@ -7483,7 +7546,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The SMTP server reply code when a recipient address matches
-$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and$<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> specifies a list
+$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> specifies a list
 of lookup tables that does not match the recipient address.
 </p>
 
@@ -7499,7 +7562,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The numerical Postfix SMTP server response when a recipient address
-is rejected by the <a href="postconf.5.html#reject_unverified_recipient">reject_unveri</a><a href="postconf.5.html#reject_unverified_recipient">fied_recipient</a> restriction.
+is rejected by the <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a> restriction.
 </p>
 
 <p>
@@ -7547,7 +7610,11 @@ This feature is available in Postfix 2.1 and later.
 
 <p>
 The characters Postfix accepts as VERP delimiter characters on the
-<a href="sendmail.1.html">sendmail(1)</a> command line and in SMTP commands.
+Postfix <a href="sendmail.1.html">sendmail(1)</a> command line and in SMTP commands.
+</p>
+
+<p>
+This feature is available in Postfix 1.1 and later.
 </p>
 
 
@@ -7556,11 +7623,12 @@ The characters Postfix accepts as VERP delimiter characters on the
 <DT><b><a name="virtual_alias_domains">virtual_alias_domains</a>
 (default: $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>)</b></DT><DD>
 
-<p>
-Optional list of names of <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>, that is, domains
-for which all addresses are aliased to addresses in other local or
-remote domains.
-</p>
+<p> Optional list of names of <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>, that is,
+domains for which all addresses are aliased to addresses in other
+local or remote domains. The SMTP server validates recipient
+addresses with $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> and rejects non-existent
+recipients. See also the <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a> class in the
+<a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
@@ -7750,11 +7818,15 @@ Example:
 <DT><b><a name="virtual_mailbox_domains">virtual_mailbox_domains</a>
 (default: $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>)</b></DT><DD>
 
-<p>
-The list of domains that are by default delivered via the
-$<a href="postconf.5.html#virtual_transport">virtual_transport</a> mail delivery transport.  This list uses the
-same syntax as the <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> configuration parameter.
-</p>
+<p> The list of domains that are delivered via the $<a href="postconf.5.html#virtual_transport">virtual_transport</a>
+mail delivery transport.  By default this is the Postfix <a href="virtual.8.html">virtual(8)</a>
+delivery agent.  The SMTP server validates recipient addresses with
+$<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> and rejects mail for non-existent recipients.
+See also the <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual mailbox domain</a> class in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a>
+file.  </p>
+
+<p> This parameter expects the same syntax as the <a href="postconf.5.html#mydestination">mydestination</a>
+configuration parameter.  </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default

@@ -30,8 +30,6 @@ This document covers the following topics:
 
 <li><a href="#preparing">Preparing Postfix for LDAP or SQL lookups</a>
 
-<li><a href="#lists_again">LDAP or SQL lists versus tables</a>
-
 <li><a href="#detect">Maintaining Postfix lookup table files</a>
 
 <li><a href="#safe_db">Updating Berkeley DB files safely</a>
@@ -57,10 +55,10 @@ documentation: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual    (address rewriting)
-    <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport      (routing table)
     <a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/postfix/aliases            (local aliasing)
     <a href="postconf.5.html#header_checks">header_checks</a> = <a href="regexp_table.5.html">regexp</a>:/etc/postfix/header_checks (content filtering)
+    <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport      (routing table)
+    <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual    (address rewriting)
 </pre>
 </blockquote>
 
@@ -97,7 +95,7 @@ action such as "reject"). </p>
 <p> With some tables, however, Postfix needs to know only if the
 lookup key exists.  The lookup result itself is not used. Examples
 are the <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> that determine what local recipients
-Postfix accepts in mail from the network, the <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> parameter
+Postfix accepts in mail from the network, the <a href="postconf.5.html#mydestination">mydestination</a> parameter
 that specifies what domains Postfix delivers locally, or the
 <a href="postconf.5.html#mynetworks">mynetworks</a> parameter that specifies the IP addresses of trusted
 clients or client networks.  Technically, these are lists, not
@@ -121,15 +119,15 @@ and are easy to debug with the <a href="postmap.1.html">postmap(1)</a> command: 
 </blockquote>
 
 <p> Once you have local files working properly you can follow the
-instructions in <a href="LDAP_README.html">LDAP_README</a>, <a href="MYSQL_README.html">MYSQL_README</a> or <a href="PGSQL_README.html">PGSQL_README</a> to replace
-local file lookups with LDAP or SQL lookups.  When you do this,
-you should use the <a href="postmap.1.html">postmap(1)</a> command again, to verify that database
-lookups still produce the exact same results as local file lookup:
-</p>
+instructions in <a href="ldap_table.5.html">ldap_table(5)</a>, <a href="mysql_table.5.html">mysql_table(5)</a> or <a href="pgsql_table.5.html">pgsql_table(5)</a>
+and replace local file lookups with LDAP or SQL lookups.  When you
+do this, you should use the <a href="postmap.1.html">postmap(1)</a> command again, to verify
+that database lookups still produce the exact same results as local
+file lookup:  </p>
 
 <blockquote>
 <pre>
-% <b>postmap -q info@example.com <a href="LDAP_README.html">ldap</a>:/etc/postfix/virtual.cf </b>
+% <b>postmap -q info@example.com <a href="ldap_table.5.html">ldap</a>:/etc/postfix/virtual.cf </b>
 </pre>
 </blockquote>
 
@@ -138,43 +136,6 @@ queries that are documented under "table search order" in the
 relevant manual page:  <a href="access.5.html">access(5)</a>, <a href="canonical.5.html">canonical(5)</a>, <a href="virtual.5.html">virtual(5)</a>,
 <a href="transport.5.html">transport(5)</a>, or under the relevant configuration parameter:
 <a href="postconf.5.html#mynetworks">mynetworks</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, <a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a>. </p>
-
-<h2> <a name="lists_again">LDAP or SQL lists versus tables</a> </h2>
-
-<p> When using LDAP or SQL to store lists such as $<a href="postconf.5.html#mynetworks">mynetworks</a>,
-$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, $<a href="postconf.5.html#relay_domains">relay_domains</a>, <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,
-virtual_mailbox_domains, etc., (see "<a href="#lists">Postfix lists
-versus tables</a>" above) it is important to understand that the
-table must store each list member as a separate key. The table
-lookup verifies the *existence* of the key. </p>
-
-<ul>
-
-<li> <p> Do NOT create tables that return the full list of domains in
-$<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> or $<a href="postconf.5.html#relay_domains">relay_domains</a> etc., or IP addresses in $<a href="postconf.5.html#mynetworks">mynetworks</a>.
-</p>
-
-<dl> <dt> Bad: </dt>
-
-        <dd> ldap_query_filter = domain=* </dd>
-        <dd> ldap_result_attribute = domain </dd>
-
-</dl>
-
-<li> <p> DO create tables with each matching item as a key and with
-an arbitrary value.  With databases it is not uncommon to return
-the key itself (with LDAP/SQL) or a constant value (with SQL). </p>
-
-<dl> <dt> Good: </dt>
-
-        <dd> ldap_query_filter = domain=%s </dd>
-        <dd> ldap_result_attribute = domain </dd>
-
-</dl>
-
-</ul>
-
-<p> Similar examples apply to SQL. </p>
 
 <h2><a name="detect">Maintaining Postfix lookup table files</a></h2>
 
@@ -205,7 +166,7 @@ examines the file again.  </p>
 "postfix reload" after making a change. </p>
 
 <li> <p> If the file is being used by a long-running process such
-as <a href="trivial-rewrite.8.html">triv</a><a href="trivial-rewrite.8.html">ial-</a><a href="trivial-rewrite.8.html">rewrite(8)</a> on a busy server it may be necessary to
+as <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> on a busy server it may be necessary to
 execute "postfix reload". </p>
 
 </ul>
@@ -236,7 +197,7 @@ existing database file instead of overwriting it:  </p>
 
 <blockquote>
 <pre>
-# <b>postmap access.in && mv access.in.db access.db</b>
+# <b>postmap access.in &amp;&amp; mv access.in.db access.db</b>
 </pre>
 </blockquote>
 
@@ -298,6 +259,12 @@ created with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1
 table name as used in "btree:table" is the database file name
 without the ".db" suffix.  </dd>
 
+<dt> <b>cidr</b> </dt>
+
+<dd> A table that associates values with class independent routing
+(CIDR) patterns. The table format is described in <a href="cidr_table.5.html">cidr_table(5)</a>.
+</dd>
+
 <dt> <b>dbm</b> </dt>
 
 <dd> An indexed file type based on hashing.  This is available only
@@ -322,25 +289,25 @@ name as used in "hash:table" is the database file name without the
 
 <dt> <b>ldap</b> (read-only) </dt>
 
-<dd> Perform lookups using the LDAP protocol. This is described in
-the <a href="LDAP_README.html">LDAP_README</a> file. </dd>
+<dd> Perform lookups using the LDAP protocol. Configuration details
+are given in the <a href="ldap_table.5.html">ldap_table(5)</a>. </dd>
 
 <dt> <b>mysql</b> (read-only) </dt>
 
-<dd> Perform lookups using the MYSQL protocol. This is described
-in the <a href="MYSQL_README.html">MYSQL_README</a> file. </dd>
+<dd> Perform MySQL database lookup. Configuration details are given
+in <a href="mysql_table.5.html">mysql_table(5)</a>. </dd>
 
 <dt> <b>pcre</b> (read-only) </dt>
 
 <dd> A lookup table based on Perl Compatible Regular Expressions.
-The file format is described in <a href="pcre_table.5.html">pcre_table(5)</a>. The lookup table name
-as used in "<a href="pcre_table.5.html">pcre</a>:table" is the name of the regular expression file.
-</dd>
+The file format is described in <a href="pcre_table.5.html">pcre_table(5)</a>. The lookup table
+name as used in "<a href="pcre_table.5.html">pcre</a>:table" is the name of the regular expression
+file.  </dd>
 
 <dt> <b>pgsql</b> (read-only) </dt>
 
-<dd> Perform lookups using the PostgreSQL protocol. This is described
-in the <a href="PGSQL_README.html">PGSQL_README</a> file. </dd>
+<dd> Perform PostgreSQL database lookup.  Configuration details
+are given in <a href="pgsql_table.5.html">pgsql_table(5)</a>. </dd>
 
 <dt> <b>proxy</b> (read-only) </dt>
 

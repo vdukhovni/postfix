@@ -31,12 +31,12 @@ mail is queued. Each approach serves a different purpose.  </p>
 and uses Postfix's built-in message header and message body
 inspection. Although the main purpose is to stop a specific flood
 of mail from worms or viruses, it is also useful to block a flood
-of email notifications from virus detection systems.  The built-in
-regular expressions are not meant to implement general SPAM and
-virus detection. For that, you should use one of the content
-inspection methods described below. Details are described in the
-header_checks(5) and body_checks(5) manual pages, and in the
-BACKSCATTER_README document.  </p>
+of bounced junk email and email notifications from virus detection
+systems.  The built-in regular expressions are not meant to implement
+general SPAM and virus detection. For that, you should use one of
+the content inspection methods described below. Details are described
+in the BUILTIN_FILTER_README and BACKSCATTER_README documents.
+</p>
 
 <dt> <b> external, heavy-weight, not real time </b> </dt>
 
@@ -68,16 +68,12 @@ Postfix version 2.1 and later.  </p>
 
 <p> The more sophisticated content filtering software is not built
 into Postfix for good reasons: writing an MTA requires different
-skills than writing a SPAM or virus killer. Postfix uses standard
-protocols such as SMTP for content scanning, instead of special-purpose
-protocols that are often MTA specific.  </p>
-
-<p> Postfix encourages the use of external filters and standard
-protocols because this allows you to choose the best MTA and the
-best content inspection software for your purpose.  Information
-about external content inspection software can be found on the
-Postfix website at http://www.postfix.org, and on the
-postfix-users@postfix.org mailing list. </p>
+skills than writing a SPAM or virus killer. Postfix encourages the
+use of external filters and standard protocols because this allows
+you to choose the best MTA and the best content inspection software
+for your purpose.  Information about external content inspection
+software can be found on the Postfix website at http://www.postfix.org/,
+and on the postfix-users@postfix.org mailing list. </p>
 
 </body>
 

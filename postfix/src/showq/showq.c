@@ -65,12 +65,20 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* FILES
+/*	/var/spool/postfix, queue directories
 /* SEE ALSO
-/*	cleanup(8) canonicalize and enqueue mail
-/*	pickup(8) local mail pickup service
-/*	postconf(5) configuration parameters
-/*	qmgr(8) mail being delivered, delayed mail
-/*	syslogd(8) system logging
+/*	pickup(8), local mail pickup service
+/*	cleanup(8), canonicalize and enqueue mail
+/*	qmgr(8), queue manager
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

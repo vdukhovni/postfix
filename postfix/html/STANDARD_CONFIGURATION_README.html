@@ -65,7 +65,7 @@ hostname</a>
 <p> Postfix should work out of the box without change on a stand-alone
 machine that has direct Internet access.  At least, that is how
 Postfix installs when you download the Postfix source code via
-<a href="http://www.postfix.org/.">http://www.postfix.org/.</a> </p>
+<a href="http://www.postfix.org/">http://www.postfix.org/</a>. </p>
 
 <p> You can use the command "postconf -n" to find out what settings
 are overruled by your main.cf. Besides a few pathname settings,
@@ -143,7 +143,7 @@ As usual we assume that the Internet domain name is "example.com".
 All systems are configured to send mail as "user@example.com", and
 all systems receive mail for "user@hostname.example.com".  The main
 server also receives mail for "user@example.com". We call this
-machine by the name of mailhost.example.com. <p>
+machine by the name of mailhost.example.com. </p>
 
 <p> A drawback of sending mail as "user@example.com" is that mail
 for "root" and other system accounts is also sent to the central
@@ -196,7 +196,7 @@ mail as "user@example.com" and is final destination for
  3 
  4 /etc/postfix/main.cf:
  5     <a href="postconf.5.html#myorigin">myorigin</a> = $<a href="postconf.5.html#mydomain">mydomain</a>
- 6     <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> = $<a href="postconf.5.html#myhostname">myhostname</a> localhost.$<a href="postconf.5.html#mydomain">mydomain</a> localhost $<a href="postconf.5.html#mydomain">mydomain</a>
+ 6     <a href="postconf.5.html#mydestination">mydestination</a> = $<a href="postconf.5.html#myhostname">myhostname</a> localhost.$<a href="postconf.5.html#mydomain">mydomain</a> localhost $<a href="postconf.5.html#mydomain">mydomain</a>
  7     <a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8 10.0.0.0/24
  8     <a href="postconf.5.html#relay_domains">relay_domains</a> =
  9     # Optional: forward all non-local mail to firewall
@@ -280,7 +280,7 @@ harder to break. </p>
 <pre>
 1 /etc/postfix/main.cf:
 2     <a href="postconf.5.html#myorigin">myorigin</a> = example.com
-3     <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> =
+3     <a href="postconf.5.html#mydestination">mydestination</a> =
 4     <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> =
 5     <a href="postconf.5.html#local_transport">local_transport</a> = error:local mail delivery is disabled
 6 
@@ -325,7 +325,7 @@ All the mail to these two accounts is forwarded to an inside address.
 
 <ul>
 
-<li> <p> Because <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a> is empty (see the previous example),
+<li> <p> Because <a href="postconf.5.html#mydestination">mydestination</a> is empty (see the previous example),
 only address literals matching $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>
 are deemed local.  So "localpart@[a.d.d.r]" can be matched as simply
 "localpart" in <a href="canonical.5.html">canonical(5)</a> and <a href="virtual.5.html">virtual(5)</a>. This avoids the need to
@@ -417,7 +417,7 @@ follows:  </p>
 
 <li> <p> Line 5: As described in the <a href="virtual.5.html">virtual(5)</a> manual page, the
 bare name "root" matches "root@site" when "site" is equal to
-$<a href="postconf.5.html#myorigin">myorigin</a>, when "site" is listed in $<a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>, or when it
+$<a href="postconf.5.html#myorigin">myorigin</a>, when "site" is listed in $<a href="postconf.5.html#mydestination">mydestination</a>, or when it
 matches $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>. </p>
 
 </ul>
@@ -531,7 +531,7 @@ need the above, plus: </p>
 
 <ul>
 
-<li><p>Do not list the.backed-up.domain.tld in <a href="postconf.5.html#mydestination">mydestina</a><a href="postconf.5.html#mydestination">tion</a>.</p>
+<li><p>Do not list the.backed-up.domain.tld in <a href="postconf.5.html#mydestination">mydestination</a>.</p>
 
 <li><p>Do not list the.backed-up.domain.tld in <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>.</p>
 

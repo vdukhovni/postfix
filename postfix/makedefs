@@ -101,6 +101,8 @@ case "$SYSTEM.$RELEASE" in
 		;;
    NetBSD.1*)	SYSTYPE=NETBSD1
 		;;
+   NetBSD.2*)	SYSTYPE=NETBSD2
+		;;
    BSD/OS.2*)	SYSTYPE=BSDI2
 		;;
    BSD/OS.3*)	SYSTYPE=BSDI3

@@ -17,7 +17,7 @@
 
 <hr>
 
-<h2>Purpose of the Postfix fast ETRN service</a></h2>
+<h2>Purpose of the Postfix fast ETRN service</h2>
 
 <p> The SMTP ETRN command was designed for sites that have intermittent
 Internet connectivity. With ETRN, a site can tell the mail server
@@ -128,8 +128,8 @@ per eligible<br> domain </td>
 </blockquote>
 
 <p> When Postfix receives a request to "deliver mail for a domain
-now", the <a href="flush.8.html">flush(8)</a> daemon moves all deferred queue files that are
-listed for that domain to the incoming queue, and requests that
+now", the <a href="flush.8.html">flush(8)</a> daemon moves all <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> files that are
+listed for that domain to the <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>, and requests that
 the queue manager delivers them. In order to force delivery, the
 queue manager temporarily ignores the lists of undeliverable
 destinations:  the volatile in-memory list of dead domains, and
@@ -152,9 +152,15 @@ that have mail for the destination in question.  This does not
 perform well when queue files have recipients in many different
 domains.  </p>
 
+<li> <p> The <a href="flush.8.html">flush(8)</a> daemon maintains per-destination logfiles
+only for destinations listed with $<a href="postconf.5.html#fast_flush_domains">fast_flush_domains</a>. With other
+destinations it not possible to trigger delivery with "sendmail
+-qR<i>destination</i>" or, with Postfix version 1.1 and later,
+"postqueue -s<i>destination</i>". </p>
+
 <li> <p> Up to and including early versions of Postfix version 2.1,
 the "fast flush" service may not deliver some messages if the
-request to "deliver mail now" is received while a deferred queue
+request to "deliver mail now" is received while a <a href="QSHAPE_README.html#deferred_queue">deferred queue</a>
 scan is already in progress. The reason is that the queue manager
 does not ignore the volatile in-memory list of dead domains, and
 the list of message delivery transports specified with the
@@ -217,8 +223,8 @@ and so that it maintains no per-destination logfiles, specify: </p>
 <p> While an "ETRN" customer is off-line, Postfix will make
 spontaneous attempts to deliver mail to it. These attempts are
 separated in time by increasing time intervals, ranging from
-$<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> to $<a href="postconf.5.html#maximal_backoff_time">maxi</a><a href="postconf.5.html#maximal_backoff_time">mal_backoff_time</a>, and should not be
-a problem unless a lot of mail is queued. <p>
+$<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> to $<a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a>, and should not be
+a problem unless a lot of mail is queued. </p>
 
 <p> To prevent Postfix from making spontaneous delivery attempts
 you can configure Postfix to always defer mail for the "ETRN"
@@ -268,10 +274,11 @@ feature. </p>
 so that spontaneous mail delivery is disabled. </p>
 
 <li> <p> Lines 13-16: Mail for the customer is given to the
-"etrn-only" mail delivery service. The "[mailhost.customer.tld]"
-turns off MX record lookups; you need to specify this only if you
-configure your Postfix server as the primary MX host for the
-customer's domain.  </p>
+"etrn-only" mail delivery service. </p>
+
+<li> <p> Line 16: The "[mailhost.customer.tld]" turns off MX record
+lookups; you must specify this if your Postfix server is the primary
+MX host for the customer's domain.  </p>
 
 </ul>
 

@@ -599,10 +599,11 @@ drain.  Specify "biff = no" to disable.
 
 %PARAM body_checks 
 
-<p>
-Optional lookup tables for content inspection as specified in
-the body_checks(5) manual page.
-</p>
+<p> Optional lookup tables for content inspection as specified in
+the body_checks(5) manual page.  </p>
+
+<p> Note: with Postfix versions before 2.0, these rules inspect
+all content after the primary message headers. </p>
 
 %PARAM body_checks_size_limit 51200
 
@@ -1711,7 +1712,7 @@ local_command_shell = /some/where/smrsh -c
 delivery transport to the same recipient (when
 "local_destination_recipient_limit = 1") or the maximal number of
 parallel deliveries to the same local domain (when
-"local_destination_recipient_limit > 1"). This limit is enforced by
+"local_destination_recipient_limit &gt; 1"). This limit is enforced by
 the queue manager. The message delivery transport name is the first
 field in the entry in the master.cf file. </p>
 
@@ -1727,7 +1728,7 @@ local mail delivery transport. This limit is enforced by the queue
 manager. The message delivery transport name is the first field in
 the entry in the master.cf file. </p>
 
-<p> Setting this parameter to a value > 1 changes the meaning of
+<p> Setting this parameter to a value &gt; 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.  </p>
 
@@ -1739,7 +1740,7 @@ $inet_interfaces or $proxy_interfaces.  Specify @domain as a
 wild-card for domains that do not have a valid recipient list.
 Technically, tables listed with $local_recipient_maps are used as
 lists: Postfix needs to know only if a lookup string is found or
-not, but it does not use the result from table lookup.  </p> </p>
+not, but it does not use the result from table lookup.  </p>
 
 <p>
 If this parameter is non-empty (the default), then the Postfix SMTP server
@@ -2234,11 +2235,12 @@ This feature is available in Postfix 2.1 and later.
 
 %PARAM mydestination $myhostname, localhost.$mydomain, localhost
 
-<p>
-The list of domains that are by default delivered via the
-$local_transport mail delivery transport. By default this is the
-Postfix local(8) delivery agent which looks up all recipients in
-/etc/passwd and /etc/aliases.
+<p> The list of domains that are delivered via the $local_transport
+mail delivery transport. By default this is the Postfix local(8)
+delivery agent which looks up all recipients in /etc/passwd and
+/etc/aliases. The SMTP server validates recipient addresses with
+$local_recipient_maps and rejects non-existent recipients. See also
+the local domain class in the ADDRESS_CLASS_README file.
 </p>
 
 <p>
@@ -2660,17 +2662,13 @@ This feature is available in Postfix 2.0 and later.
 
 %PARAM receive_override_options 
 
-<p>
-What input processing happens before or after an external content
-filter.
-</p>
+<p> Enable or disable recipient validation, built-in content
+filtering, or address rewriting. </p>
 
-<p>
-Specify zero or more of the following options.  The options override
-main.cf settings and are either implemented by the Postfix SMTP server, by
-the QMQP server, or by the pickup server, or they are passed on to
-the cleanup server.
-</p>
+<p> Specify zero or more of the following options.  The options
+override main.cf settings and are either implemented by the Postfix
+SMTP server, by the QMQP server, or by the pickup server, or they
+are passed on to the cleanup server.  </p>
 
 <dl>
 
@@ -2819,25 +2817,29 @@ Do not change this unless you have a complete understanding of RFC 821.
 
 %PARAM relay_domains $mydestination
 
-<p>
-What destination domains (and subdomains thereof) this system will
-relay mail to. Subdomain matching is controlled with the
+<p> What destination domains (and subdomains thereof) this system
+will relay mail to. Subdomain matching is controlled with the
 parent_domain_matches_subdomains parameter. For details about how
 the relay_domains value is used, see the description of the
 permit_auth_destination and reject_unauth_destination SMTP recipient
-restrictions.
-</p>
+restrictions.  </p>
 
-<p>
-Domains that match $relay_domains are by default delivered with
-the $relay_transport mail delivery transport.
-</p>
+<p> Domains that match $relay_domains are delivered with the
+$relay_transport mail delivery transport. The SMTP server validates
+recipient addresses with $relay_recipient_maps and rejects non-existent
+recipients. See also the relay domains address class in the
+ADDRESS_CLASS_README file.  </p>
 
-<p>
-NOTE: Postfix will not automatically forward mail for domains that
-list this system as their primary or backup MX host. See the
-permit_mx_backup restriction in the postconf(5) manual page.
-</p>
+<p> The list of domains that are by default delivered via the
+$local_transport mail delivery transport. By default this is the
+Postfix local(8) delivery agent which looks up all recipients in
+/etc/passwd and /etc/aliases. The SMTP server validates recipient
+addresses with $local_recipient_maps. See also the local domain
+address class in the ADDRESS_CLASS_README file.  </p>
+
+<p> NOTE: Postfix will not automatically forward mail for domains
+that list this system as their primary or backup MX host. See the
+permit_mx_backup restriction in the postconf(5) manual page.  </p>
 
 <p> Specify a list of host or domain names, "/file/name" patterns
 or "type:table" lookup tables, separated by commas and/or whitespace.
@@ -2870,6 +2872,11 @@ use the result from table lookup.  </p>
 <p>
 If this parameter is non-empty, then the Postfix SMTP server will reject
 mail to unknown relay users. This feature is off by default.
+</p>
+
+<p>
+See also the relay domains address class in the ADDRESS_CLASS_README
+file.
 </p>
 
 <p>
@@ -2968,13 +2975,25 @@ address localpart. This opens opportunities for obscure mail relay
 attacks with user@domain@domain addresses when Postfix provides
 backup MX service for Sendmail systems.  </p>
 
-%PARAM sender_bcc_maps 
+%PARAM resolve_null_domain no
 
-<p>
-Optional BCC (blind carbon-copy) address lookup tables, indexed by
-sender address.  The BCC address (multiple results are not
-supported) is added when mail enters from outside of Postfix.
-</p>
+<p> Resolve an address that ends in the "@" null domain as if the
+local hostname were specified, instead of rejecting the address as
+invalid.  </p>
+
+<p> This feature is available in Postfix version 2.1 and later.
+Earlier versions always resolve the null domain as the local
+hostname.  </p>
+
+<p> The Postfix SMTP server uses this feature to reject mail from
+or to addresses that end in the "@" null domain, and from addresses
+that rewrite into a form that ends in the "@" null domain.  </p>
+
+%PARAM sender_bcc_maps
+
+<p> Optional BCC (blind carbon-copy) address lookup tables, indexed
+by sender address.  The BCC address (multiple results are not
+supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -3261,7 +3280,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The SMTP client time limit for sending the HELO or EHLO command,
-and for receiving the server response.
+and for receiving the initial server response.
 </p>
 
 <p>
@@ -3570,25 +3589,40 @@ The default time unit is s (seconds).
 This feature is available in Postfix 2.1 and later.
 </p>
 
+%PARAM authorized_verp_clients $mynetworks
+
+<p> What SMTP clients are allowed to specify the XVERP command.
+This command requests that mail be delivered one recipient at a
+time with a per recipient return address.  </p>
+
+<p> By default, only trusted clients are allowed to specify XVERP.
+</p>
+
+<p> This parameter was introduced with Postfix version 1.1.  Postfix
+version 2.1 renamed this parameter to smtpd_authorized_verp_clients
+and changed the default to none. </p>
+
+<p> Specify a list of network/netmask patterns, separated by commas
+and/or whitespace. The mask specifies the number of bits in the
+network part of a host address. You can also specify hostnames or
+.domain names (the initial dot causes the domain to match any name
+below it),  "/file/name" or "type:table" patterns.  A "/file/name"
+pattern is replaced by its contents; a "type:table" lookup table
+is matched when a table entry matches a lookup string (the lookup
+result is ignored).  Continue long lines by starting the next line
+
 %PARAM smtpd_authorized_verp_clients $authorized_verp_clients
 
-<p>
-What SMTP clients are allowed to specify the XVERP command. This
-command requests that mail be delivered one recipient at a time
-with a per recipient return address.
-</p>
+<p> What SMTP clients are allowed to specify the XVERP command.
+This command requests that mail be delivered one recipient at a
+time with a per recipient return address.  </p>
 
-<p>
-By default, no clients are allowed to specify XVERP.
-</p>
+<p> By default, no clients are allowed to specify XVERP.  </p>
 
-<p>
-This parameter was renamed with Postfix 2.1. The default value is
-backwards compatible with Postfix 2.0.
-</p>
+<p> This parameter was renamed with Postfix 2.1. The default value
+is backwards compatible with Postfix 2.0.  </p>
 
-<p>
-Specify a list of network/netmask patterns, separated by commas
+<p> Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
 .domain names (the initial dot causes the domain to match any name
@@ -3719,7 +3753,7 @@ This feature is not part of the stable Postfix 2.1 release.
 <p>
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.  The time unit is specified
-with the client_rate_time_unit configuration parameter, and defaults
+with the anvil_rate_time_unit configuration parameter, and defaults
 to one minute.
 </p>
 
@@ -3774,7 +3808,7 @@ client network address information.
 
 <dl>
 
-<dt><b><a name="check_client_access">check_client_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
@@ -4018,7 +4052,7 @@ received with the ETRN command.
 
 <dl>
 
-<dt><b><a name="check_etrn_access">check_etrn_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_etrn_access">check_etrn_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the ETRN domain name
 or its parent domains. See the access(5) manual page for details.
@@ -4104,20 +4138,20 @@ received with the HELO or EHLO command.
 
 <dl>
 
-<dt><b><a name="check_helo_access">check_helo_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_helo_access">check_helo_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the HELO or EHLO
 hostname or parent domains, and execute the corresponding action.
 </dd>
 
-<dt><b><a name="check_helo_mx_access">check_helo_mx_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_helo_mx_access">check_helo_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
-<dt><b><a name="check_helo_ns_access">check_helo_ns_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_helo_ns_access">check_helo_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
@@ -4303,20 +4337,20 @@ that is received with the RCPT TO command.
 
 <dl>
 
-<dt><b><a name="check_recipient_access">check_recipient_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_recipient_access">check_recipient_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the resolved RCPT
 TO address, domain, parent domains, or localpart@, and execute the
 corresponding action.  </dd>
 
-<dt><b><a name="check_recipient_mx_access">check_recipient_mx_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for the
 RCPT TO address, and execute the corresponding action.  Note: a
 result of "OK" is not allowed for safety reasons.  This feature is
 available in Postfix 2.1 and later. </dd>
 
-<dt><b><a name="check_recipient_ns_access">check_recipient_ns_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_recipient_ns_access">check_recipient_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the RCPT TO address, and execute the corresponding action.
@@ -4390,8 +4424,7 @@ no sender-specified routing (user@elsewhere@domain).
 </ul> The relay_domains_reject_code parameter specifies the response
 code for rejected requests (default: 554). </dd>
 
-<dt><b><a
-name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
+<dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when the RCPT TO address has no DNS A or MX
 record. <br> The unknown_address_reject_code parameter specifies
@@ -4654,20 +4687,20 @@ received with the MAIL FROM command.
 
 <dl>
 
-<dt><b><a name="check_sender_access">check_sender_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_sender_access">check_sender_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MAIL FROM
 address, domain, parent domains, or localpart@, and execute the
 corresponding action. </dd>
 
-<dt><b><a name="check_sender_mx_access">check_sender_mx_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_sender_mx_access">check_sender_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for
 the MAIL FROM address, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons.  This feature
 is available in Postfix 2.1 and later. </dd>
 
-<dt><b><a name="check_sender_ns_access">check_sender_ns_access <i><a href="DATABASE_README.html">type:table</a></i></a></b></dt>
+<dt><b><a name="check_sender_ns_access">check_sender_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the MAIL FROM address, and execute the corresponding action.
@@ -5034,11 +5067,12 @@ This feature is available in Postfix 2.1 and later.
 
 %PARAM virtual_alias_domains $virtual_alias_maps
 
-<p>
-Optional list of names of virtual alias domains, that is, domains
-for which all addresses are aliased to addresses in other local or
-remote domains.
-</p>
+<p> Optional list of names of virtual alias domains, that is,
+domains for which all addresses are aliased to addresses in other
+local or remote domains. The SMTP server validates recipient
+addresses with $virtual_alias_maps and rejects non-existent
+recipients. See also the virtual alias domain class in the
+ADDRESS_CLASS_README file </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
@@ -5143,7 +5177,7 @@ invoked with the -D option.
 </p>
 
 <p>
-Use "command .. & sleep 5" so that the debugger can attach before
+Use "command .. &amp; sleep 5" so that the debugger can attach before
 the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 </p>
@@ -5155,7 +5189,7 @@ Example:
 <pre>
 debugger_command =
     PATH=/usr/bin:/usr/X11R6/bin
-    xxgdb $daemon_directory/$process_name $process_id & sleep 5
+    xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
 </pre>
 
 %PARAM 2bounce_notice_recipient postmaster
@@ -5304,10 +5338,11 @@ The default time unit is s (seconds).
 
 %PARAM enable_errors_to no
 
-<p> Report errors to the address specified with the non-standard
-Errors-To: message header, instead of the envelope sender address.
-This support is disabled by default with Postfix 2.1 and later,
-and is always turned on with older Postfix versions.  </p>
+<p> Report mail delivery errors to the address specified with the
+non-standard Errors-To: message header, instead of the envelope
+sender address.  This support is disabled by default with Postfix
+2.1 and later, and is always turned on with older Postfix versions.
+</p>
 
 %PARAM extract_recipient_limit 10240
 
@@ -5320,7 +5355,7 @@ from message headers when mail is submitted with "sendmail -t".
 This feature was removed in Postfix 2.1.
 </p>
 
-%PARAM client_rate_time_unit 60s
+%PARAM anvil_rate_time_unit 60s
 
 <p>
 The time unit over which client connection rates and other rates
@@ -5408,15 +5443,20 @@ encoded in the envelope sender address.  The VERP_README file
 describes configuration and operation details of Postfix support
 for variable envelope return path addresses.  VERP style delivery
 is requested with the SMTP XVERP command or with the "<b>sendmail
--V</b>" command-line option.
+-V</b>" command-line option and is available in Postfix version 
+1.1 and later.
 </p>
 
 %PARAM default_verp_delimiters +=
 
+<p> The two default VERP delimiter characters. These are used when
+no explicit delimiters are specified with the SMTP XVERP command
+or with the "<b>sendmail -V</b>" command-line option. Specify
+characters that are allowed by the verp_delimiter_filter setting.
+</p>
+
 <p>
-The two default VERP delimiter characters. These are used when no
-explicit delimiters are specified with the SMTP XVERP command or
-with the "<b>sendmail -V</b>" command-line option.
+This feature is available in Postfix 1.1 and later.
 </p>
 
 %PARAM defer_service_name defer
@@ -5515,6 +5555,10 @@ Disable sending one bounce report per recipient.
 
 <p>
 The default, one per recipient, is what ezmlm needs.
+</p>
+
+<p>
+This feature is available in Postfix 1.1 and later.
 </p>
 
 %PARAM dont_remove 0
@@ -5976,6 +6020,10 @@ clogging up the Postfix active queue. Specify 0 to disable.
 This feature is enabled with the helpful_warnings parameter.
 </p>
 
+<p>
+This feature is available in Postfix 2.0 and later.
+</p>
+
 %PARAM qmgr_fudge_factor 100
 
 <p>
@@ -6017,6 +6065,13 @@ queue and schedules delivery requests.
 
 <p>
 This feature is available in Postfix 2.0 and later.
+</p>
+
+%PARAM html_directory see "postconf -d" output
+
+<p>
+The location of Postfix HTML files that describe how to build,
+configure or operate a specific Postfix subsystem or feature.
 </p>
 
 %PARAM readme_directory see "postconf -d" output
@@ -6271,7 +6326,7 @@ This feature is available in Postfix 2.1 and later.
 <p>
 Request that the Postfix SMTP server rejects mail for unknown
 recipient addresses, even when no explicit reject_unlisted_recipient
-recipient restriction is specified. This prevents the Postfix queue
+access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 </p>
 
@@ -6301,12 +6356,10 @@ This feature is available in Postfix 2.1 and later.
 
 %PARAM smtpd_reject_unlisted_sender no
 
-<p>
-Request that the Postfix SMTP server rejects mail from unknown
+<p> Request that the Postfix SMTP server rejects mail from unknown
 sender addresses, even when no explicit reject_unlisted_sender
-restriction is specified. This can slow down an explosion of forged
-mail from worms or viruses.
-</p>
+access restriction is specified. This can slow down an explosion
+of forged mail from worms or viruses.  </p>
 
 <ul>
 
@@ -6482,7 +6535,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The SMTP server reply code when a recipient address matches
-$virtual_mailbox_domains, and$virtual_mailbox_maps specifies a list
+$virtual_mailbox_domains, and $virtual_mailbox_maps specifies a list
 of lookup tables that does not match the recipient address.
 </p>
 
@@ -6494,7 +6547,11 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 The characters Postfix accepts as VERP delimiter characters on the
-sendmail(1) command line and in SMTP commands.
+Postfix sendmail(1) command line and in SMTP commands.
+</p>
+
+<p>
+This feature is available in Postfix 1.1 and later.
 </p>
 
 %PARAM virtual_gid_maps 
@@ -6549,11 +6606,15 @@ virtual_mailbox_base = /var/mail
 
 %PARAM virtual_mailbox_domains $virtual_mailbox_maps
 
-<p>
-The list of domains that are by default delivered via the
-$virtual_transport mail delivery transport.  This list uses the
-same syntax as the mydestination configuration parameter.
-</p>
+<p> The list of domains that are delivered via the $virtual_transport
+mail delivery transport.  By default this is the Postfix virtual(8)
+delivery agent.  The SMTP server validates recipient addresses with
+$virtual_mailbox_maps and rejects mail for non-existent recipients.
+See also the virtual mailbox domain class in the ADDRESS_CLASS_README
+file.  </p>
+
+<p> This parameter expects the same syntax as the mydestination
+configuration parameter.  </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
@@ -6709,7 +6770,7 @@ and commands). </p>
 <p> With Postfix command that run with set-gid privileges, a
 config_directory override requires either root privileges, or it
 requires that the directory is listed with the alternate_config_directories
-parameter in the default main.cf file.  <p>
+parameter in the default main.cf file.  </p>
 
 %PARAM virtual_maps
 

@@ -37,7 +37,7 @@
 /* .fi
 /* .IP MAIL_CONFIG
 /*	Directory with the \fBmain.cf\fR file. In order to avoid exploitation
-/*	of set-group ID privileges, a non-standard directory is allowed only 
+/*	of set-group ID privileges, a non-standard directory is allowed only
 /*	if:
 /* .RS
 /* .IP \(bu
@@ -46,9 +46,6 @@
 /* .IP \(bu
 /*	The command is invoked by the super-user.
 /* .RE
-/* FILES
-/*	$queue_directory/*, mail queue
-/*	$config_directory/*, configuration files
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -68,12 +65,20 @@
 /*	import from a non-Postfix parent process.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .IP "\fBtrigger_timeout (10s)\fR"
 /*	The time limit for sending a trigger to a Postfix daemon (for
 /*	example, the pickup(8) or qmgr(8) daemon).
+/* FILES
+/*	/var/spool/postfix/maildrop, maildrop queue
 /* SEE ALSO
-/*	sendmail(1) compatibility interface
-/*	syslogd(8) system logging
+/*	sendmail(1), compatibility interface
+/*	postconf(5), configuration parameters
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

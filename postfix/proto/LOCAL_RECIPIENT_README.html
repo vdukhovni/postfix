@@ -22,8 +22,8 @@
 <p> As of Postfix version 2.0, the Postfix SMTP server rejects mail
 for unknown recipients in local domains (domains that match
 $mydestination or the IP addresses in $inet_interfaces or
-$proxy_interfaces).  This feature was optional with earlier Postfix
-versions. </p>
+$proxy_interfaces) with "User unknown in local recipient table".
+This feature was optional with earlier Postfix versions. </p>
 
 <p> The good news is that this keeps undeliverable mail out of your
 queue, so that your mail queue is not clogged up with undeliverable
@@ -33,7 +33,7 @@ MAILER-DAEMON messages. </p>
 upgrade from a Postfix system that was not configured to reject
 mail for unknown local recipients. </p>
 
-<p> This document describes what steps ar needed in order reject
+<p> This document describes what steps are needed in order reject
 mail correctly. </p>
 
 <ul>
@@ -55,8 +55,8 @@ in main.cf</a></h2>
 all names or addresses of local recipients. A recipient address is
 local when its domain matches $mydestination, $inet_interfaces or
 $proxy_interfaces. If a local username or address is not listed in
-these tables, then the Postfix SMTP server will reject mail for
-it. </p>
+$local_recipient_maps, then the Postfix SMTP server will reject
+the address with "User unknown in local recipient table".  </p>
 
 <p> The default setting, shown below, assumes that you use the
 default Postfix local(8) delivery agent for local delivery, where
@@ -113,7 +113,7 @@ setting in main.cf</a></h2>
 
     <li> <p> Problem: you use the mailbox_transport or fallback_transport
     feature of the Postfix local(8) delivery agent in order to
-    deliver mail non-UNIX accounts. </p>
+    deliver mail to non-UNIX accounts. </p>
 
     <p> Solution: you need to add the database that lists the
     non-UNIX users: </p>

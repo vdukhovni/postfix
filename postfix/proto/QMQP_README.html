@@ -5,7 +5,7 @@
 
 <head>
 
-<title>Postfix QMQP support for ezmlm</title>
+<title>Postfix qmail and ezmlm support</title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 
@@ -13,114 +13,11 @@
 
 <body>
 
-<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix QMQP support for ezmlm</h1>
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix qmail and ezmlm support</h1>
 
 <hr>
 
-<h2>Postfix QMQP server support</h2>
-
-<p> Postfix has preliminary server support for the QMQP protocol,
-so that Postfix can be used as a backend for the Ezmlm-idx mailing
-list manager. This support includes the qmqp-source and qmqp-sink
-programs for protocol stress testing. </p>
-
-<h2>Turning on the Postfix QMQP service</h2>
-
-<p> Postfix is distributed with QMQP support turned off. To enable
-QMQP server support on an existing Postfix system you have to add
-the following line to /etc/postfix/master.cf: </p>
-
-<blockquote>
-<pre>
-/etc/postfix/master.cf:
-    628       inet  n       -       n       -       -       qmqpd
-</pre>
-</blockquote>
-
-<p> A "<b>postfix reload</b>" command is necessary to enable the
-service. </p>
-
-<h2>Postfix QMQP server access control</h2>
-
-<p> By default, the QMQP server does not accept mail from any
-client.  This is because the QMQP server relays mail to any
-destination. Even if the server had mail relay restrictions, the
-protocol would have no provision to reject specific recipients in
-a multi-recipient delivery request.  </p>
-
-<p> To authorize QMQP clients, edit /etc/postfix/main.cf and specify
-a list of client patterns. </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    qmqpd_authorized_clients = client, client, ...
-</pre>
-</blockquote>
-
-<p> Example: </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    qmqpd_authorized_clients = $mynetworks
-</pre>
-</blockquote>
-
-<p> Some comments about the access list syntax:
-
-<ul>
-
-<li> <p> A client pattern specifies a host name, a domain name, an
-internet address, or a network/mask pattern, where the mask specifies
-the number of bits in the network part. </p>
-
-<li> <p> When a client pattern specifies a file name, the file
-contents are used instead. </p>
-
-<li> <p> When a pattern is a type:name table specification, table
-lookup is used instead (the actual result of table lookup is
-ignored).  This allows you to administer the trusted clients in
-LDAP or regular expression maps, both of which are probably overkill.
-</p>
-
-<li> <p> Patterns are separated by whitespace and/or commas. In
-order to reverse the result, precede a non-file name pattern with
-an exclamation point (!). </p>
-
-</ul>
-
-<h2>Setting up ezmlm-idx to use Postfix QMQP support</h2>
-
-<p> Note: you still need qmail to feed the messages INTO ezmlm-idx.
-Postfix presently only supports distribution of mailing list traffic
-FROM ezmlm-idx. </p>
-
-<p> http://www.ezmlm.org/faq-0.40/FAQ-4.html#ss4.19 describes how
-to make ezmlm-idx work over QMQP. </p>
-
-<p> The following is based on hearsay. Please do not ask Wietse
-how to make ezmlm-idx work. Wietse does not have the time to
-personally install and play with every mailing list manager. </p>
-
-<ul>
-
-    <li> <p> You must list QMQP servers with numerical IP address.
-    Hostnames do not work. This means you cannot DNS-based load
-    balancing to spread the load over multiple QMQP servers. </p>
-
-    <li> <p> QMQP support is incomplete with ezmlm-idx-0.40. </p>
-
-    <li> <p> ezmlm-send will use QMQP if you specify the undocumented
-    -Q command-line option in your .qmail-listname file. </p>
-
-    <li> <p> ezmlm-get will use QMQP if the file qmpqservers/0
-    exists. </p>
-
-    <li> <p> ezmlm-moderate does not support QMQP. This is not a
-    problem if you only use unmoderated mailing lists. </p>
-
-</ul>
+<p> This document will be made available via http://www.postfix.org/. </p>
 
 </body>
 

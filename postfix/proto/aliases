@@ -92,8 +92,10 @@
 #	The following \fBmain.cf\fR parameters are especially relevant.
 #	The text below provides only a parameter summary. See
 #	postconf(5) for more details including examples.
+# .IP \fBalias_database\fR
+#	List of alias databases that are updated by the newaliases(1) command.
 # .IP \fBalias_maps\fR
-#	List of alias databases.
+#	List of alias databases queried by the local(8) delivery agent.
 # .IP \fBallow_mail_to_commands\fR
 #	Restrict the usage of mail delivery to external command.
 # .IP \fBallow_mail_to_files\fR
@@ -115,10 +117,13 @@
 # STANDARDS
 #	RFC 822 (ARPA Internet Text Messages)
 # SEE ALSO
-#	local(8) local delivery agent
-#	newaliases(1) alias database management
-#	regexp_table(5) POSIX regular expression table format
-#	pcre_table(5) Perl Compatible Regular Expression table format
+#	local(8), local delivery agent
+#	newaliases(1), create/update alias database
+#	postalias(1), create/update alias database
+#	postconf(5), configuration parameters
+# README FILES
+#	Use "\fBpostconf readme_directory\fR" to locate this information.
+#	DATABASE_README, Postfix lookup table overview
 # LICENSE
 # .ad
 # .fi

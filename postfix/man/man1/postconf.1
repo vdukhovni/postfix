@@ -10,10 +10,10 @@ Postfix configuration utility
 .nf
 .fi
 \fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
-        [\fIparameter ...\fR]
+[\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
-        [\fIparameter=value ...\fR]
+[\fIparameter=value ...\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -62,6 +62,9 @@ syntax depends on the lookup table type.
 A sorted, balanced tree structure.
 This is available only on systems with support for Berkeley DB
 databases.
+.IP \fBcidr\fR
+A table that associates values with class independent routing
+(CIDR) patterns. This is described in \fBcidr_table\fR(5).
 .IP \fBdbm\fR
 An indexed file type based on hashing.
 This is available only on systems with support for DBM databases.
@@ -75,16 +78,16 @@ This is available only on systems with support for Berkeley DB
 databases.
 .IP "\fBldap\fR (read-only)"
 Perform lookups using the LDAP protocol. This is described
-in an LDAP_README file.
+in \fBldap_table\fR(5).
 .IP "\fBmysql\fR (read-only)"
 Perform lookups using the MYSQL protocol. This is described
-in a MYSQL_README file.
+in \fBmysql_table\fR(5).
 .IP "\fBpcre\fR (read-only)"
 A lookup table based on Perl Compatible Regular Expressions. The
 file format is described in \fBpcre_table\fR(5).
 .IP "\fBpgsql\fR (read-only)"
 Perform lookups using the PostgreSQL protocol. This is described
-in a PGSQL_README file.
+in \fBpgsql_table\fR(5).
 .IP "\fBproxy\fR (read-only)"
 A lookup table that is implemented via the Postfix
 \fBproxymap\fR(8) service. The table name syntax is
@@ -140,18 +143,19 @@ postconf(5) for more details including examples.
 .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 The default location of the Postfix main.cf and master.cf
 configuration files.
+.SH "FILES"
+.na
+.nf
+/etc/postfix/main.cf, Postfix configuration parameters
 .SH "SEE ALSO"
 .na
 .nf
-postconf(5) configuration parameters
+postconf(5), configuration parameters
 .SH "README FILES"
 .na
 .nf
 Use "\fBpostconf readme_directory\fR" to locate this information.
-DATABASE_README, Postfix database introduction
-LDAP_README, Postfix LDAP client howto
-MYSQL_README, Postfix MySQL client howto
-PGSQL_README, Postfix PostgreSQL client howto
+DATABASE_README, Postfix lookup table overview
 .SH "LICENSE"
 .na
 .nf

@@ -176,9 +176,6 @@ results from $virtual_mailbox_maps table lookups.
 .IP "\fBvirtual_mailbox_maps (empty)\fR"
 Optional lookup tables with all valid addresses in the domains that
 match $virtual_mailbox_domains.
-.IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-The list of domains that are by default delivered via the
-$virtual_transport mail delivery transport.
 .IP "\fBvirtual_minimum_uid (100)\fR"
 The minimum user ID value that the virtual(8) delivery agent accepts
 as a result from \fB$virtual_uid_maps\fR table lookup.
@@ -188,6 +185,11 @@ delivery agent uses while writing to the recipient's mailbox.
 .IP "\fBvirtual_gid_maps (empty)\fR"
 Lookup tables with the per-recipient group ID for virtual(8) mailbox
 delivery.
+.PP
+Available in Postfix version 2.0 and later:
+.IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
+The list of domains that are delivered via the $virtual_transport
+mail delivery transport.
 .IP "\fBvirtual_transport (virtual)\fR"
 The default mail delivery transport for domains that match the
 $virtual_mailbox_domains parameter value.
@@ -247,28 +249,18 @@ The process ID of a Postfix command or daemon process.
 The process name of a Postfix command or daemon process.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
-.SH "HISTORY"
-.na
-.nf
-.ad
-.fi
-This delivery agent was originally based on the Postfix local delivery
-agent. Modifications mainly consisted of removing code that either
-was not applicable or that was not safe in this context: aliases,
-~user/.forward files, delivery to "|command" or to /file/name.
-
-The \fBDelivered-To:\fR header appears in the \fBqmail\fR system
-by Daniel Bernstein.
-
-The \fBmaildir\fR structure appears in the \fBqmail\fR system
-by Daniel Bernstein.
+.IP "\fBsyslog_facility (mail)\fR"
+The syslog facility of Postfix logging.
+.IP "\fBsyslog_name (postfix)\fR"
+The mail system name that is prepended to the process name in syslog
+records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .SH "SEE ALSO"
 .na
 .nf
-postconf(5) configuration parameters
-bounce(8) non-delivery status reports
-syslogd(8) system logging
-qmgr(8) queue manager
+qmgr(8), queue manager
+bounce(8), delivery status reports
+postconf(5), configuration parameters
+syslogd(8), system logging
 .SH "README_FILES"
 .na
 .nf
@@ -280,6 +272,21 @@ VIRTUAL_README, domain hosting howto
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+.ad
+.fi
+This delivery agent was originally based on the Postfix local delivery
+agent. Modifications mainly consisted of removing code that either
+was not applicable or that was not safe in this context: aliases,
+~user/.forward files, delivery to "|command" or to /file/name.
+
+The \fBDelivered-To:\fR message header appears in the \fBqmail\fR
+system by Daniel Bernstein.
+
+The \fBmaildir\fR structure appears in the \fBqmail\fR system
+by Daniel Bernstein.
 .SH "AUTHOR(S)"
 .na
 .nf

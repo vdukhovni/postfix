@@ -69,8 +69,9 @@
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBenable_errors_to (no)\fR"
-/*	Report errors to the address specified with the non-standard
-/*	Errors-To: message header, instead of the envelope sender address.
+/*	Report mail delivery errors to the address specified with the
+/*	non-standard Errors-To: message header, instead of the envelope
+/*	sender address.
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
 /* .fi
@@ -126,8 +127,8 @@
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsender_bcc_maps (empty)\fR"
-/*	Optional BCC (blind carbon-copy) address lookup tables, indexed by
-/*	sender address.
+/*	Optional BCC (blind carbon-copy) address lookup tables, indexed
+/*	by sender address.
 /* .IP "\fBrecipient_bcc_maps (empty)\fR"
 /*	Optional BCC (blind carbon-copy) address lookup tables, indexed by
 /*	recipient address.
@@ -242,25 +243,31 @@
 /* .IP "\fBsoft_bounce (no)\fR"
 /*	Safety net to keep mail queued that would otherwise be returned to
 /*	the sender.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBenable_original_recipient (yes)\fR"
 /*	Enable support for the X-Original-To message header.
-/* SEE ALSO
-/*	body_checks(5) body parts content inspection
-/*	canonical(5) canonical address lookup table format
-/*	header_checks(5) message header content inspection
-/*	postconf(5) configuration parameters
-/*	qmgr(8) queue manager daemon
-/*	syslogd(8) system logging
-/*	trivial-rewrite(8) address rewriting
-/*	virtual(5) virtual alias lookup table format
-/* README FILES
-/*	Use "\fBpostconf readme_directory\fR" to locate this information.
-/*	ADDRESS_REWRITING_README Postfix address manipulation
 /* FILES
 /*	/etc/postfix/canonical*, canonical mapping table
 /*	/etc/postfix/virtual*, virtual mapping table
+/* SEE ALSO
+/*	trivial-rewrite(8), address rewriting
+/*	qmgr(8), queue manager
+/*	header_checks(5), message header content inspection
+/*	body_checks(5), body parts content inspection
+/*	canonical(5), canonical address lookup table format
+/*	virtual(5), virtual alias lookup table format
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
+/* README FILES
+/*	Use "\fBpostconf readme_directory\fR" to locate this information.
+/*	ADDRESS_REWRITING_README Postfix address manipulation
 /* LICENSE
 /* .ad
 /* .fi

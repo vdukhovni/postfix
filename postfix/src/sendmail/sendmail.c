@@ -12,14 +12,14 @@
 /*	\fBnewaliases\fR
 /*	\fBsendmail -I\fR
 /* DESCRIPTION
-/*	The \fBsendmail\fR program implements the Postfix to Sendmail
+/*	The Postfix \fBsendmail\fR command implements the Postfix to Sendmail
 /*	compatibility interface.
 /*	For the sake of compatibility with existing applications, some
 /*	Sendmail command-line options are recognized but silently ignored.
 /*
-/*	By default, \fBsendmail\fR reads a message from standard input
+/*	By default, Postfix \fBsendmail\fR reads a message from standard input
 /*	until EOF or until it reads a line with only a \fB.\fR character,
-/*	and arranges for delivery.  \fBsendmail\fR relies on the
+/*	and arranges for delivery.  Postfix \fBsendmail\fR relies on the
 /*	\fBpostdrop\fR(1) command to create a queue file in the \fBmaildrop\fR
 /*	directory.
 /*
@@ -72,7 +72,7 @@
 /* .IP \fB-bs\fR
 /*	Stand-alone SMTP server mode. Read SMTP commands from
 /*	standard input, and write responses to standard output.
-/*	In stand-alone SMTP server mode, UCE restrictions and
+/*	In stand-alone SMTP server mode, mail relaying and other
 /*	access controls are disabled by default. To enable them,
 /*	run the process as the \fBmail_owner\fR user.
 /* .sp
@@ -82,6 +82,8 @@
 /*	Do not collect or deliver a message. Instead, send an email
 /*	report after verifying each recipient address.  This is useful
 /*	for testing address rewriting and routing configurations.
+/* .sp
+/*	This feature is available in Postfix version 2.1 and later.
 /* .IP "\fB-C \fIconfig_file\fR (ignored)"
 /*	The path name of the \fBsendmail.cf\fR file. Postfix configuration
 /*	files are kept in the \fB/etc/postfix\fR directory.
@@ -139,6 +141,9 @@
 /* .IP \fB-q\fR
 /*	Attempt to deliver all queued mail. This is implemented by
 /*	executing the \fBpostqueue\fR(1) command.
+/*
+/*	Warning: flushing undeliverable mail frequently will result in
+/*	poor delivery performance of all other mail.
 /* .IP "\fB-q\fIinterval\fR (ignored)"
 /*	The interval between queue runs. Use the \fBqueue_run_delay\fR
 /*	configuration parameter instead.
@@ -155,6 +160,9 @@
 /* .IP \fB-t\fR
 /*	Extract recipients from message headers. These are added to any
 /*	recipients specified on the command line.
+/*
+/*	With Postfix versions prior to 2.1, this option requires that
+/*	no recipient addresses are specified on the command line.
 /* .IP "\fB-U\fR (ignored)"
 /*	Initial user submission.
 /* .IP \fB-V\fR
@@ -167,12 +175,15 @@
 /*	\fIowner-listname\fB+\fIuser\fB=\fIdomain\fR@\fIorigin\fR. The default
 /*	\fB+\fR and \fB=\fR characters are configurable with the
 /*	\fBdefault_verp_delimiters\fR configuration parameter.
+/* .sp
+/*	This feature is available in Postfix version 1.1 and later.
 /* .IP \fB-V\fIxy\fR
 /*	As \fB-V\fR, but uses \fIx\fR and \fIy\fR as the VERP delimiter
 /*	characters, instead of the characters specified with the
 /*	\fBdefault_verp_delimiters\fR configuration parameter.
 /* .IP \fB-v\fR
-/*	Send an email report of the first delivery attempt. Mail delivery
+/*	Send an email report of the first delivery attempt (Postfix
+/*	versions 2.1 and later). Mail delivery
 /*	always happens in the background. When multiple \fB-v\fR
 /*	options are given, enable verbose logging for debugging purposes.
 /* .IP "\fB-X \fIlog_file\fR (ignored)"
@@ -198,9 +209,6 @@
 /* .IP \fBMAIL_DEBUG\fR
 /*	Enable debugging with an external command, as specified with the
 /*	\fBdebugger_command\fR configuration parameter.
-/* FILES
-/*	/var/spool/postfix, mail queue
-/*	/etc/postfix, configuration files
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -211,7 +219,7 @@
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
-/*	The DEBUG_README file gives examples of how to trouble shoot a 
+/*	The DEBUG_README file gives examples of how to trouble shoot a
 /*	Postfix system.
 /* .IP "\fBdebugger_command (empty)\fR"
 /*	The external command to execute when a Postfix daemon program is
@@ -256,7 +264,7 @@
 /*	The two default VERP delimiter characters.
 /* .IP "\fBverp_delimiter_filter (-=+)\fR"
 /*	The characters Postfix accepts as VERP delimiter characters on the
-/*	sendmail(1) command line and in SMTP commands.
+/*	Postfix sendmail(1) command line and in SMTP commands.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -281,20 +289,28 @@
 /*	daemon processes.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .IP "\fBtrigger_timeout (10s)\fR"
 /*	The time limit for sending a trigger to a Postfix daemon (for
 /*	example, the pickup(8) or qmgr(8) daemon).
+/* FILES
+/*	/var/spool/postfix, mail queue
+/*	/etc/postfix, configuration files
 /* SEE ALSO
-/*	pickup(8) mail pickup daemon
-/*	postsuper(1) queue maintenance
-/*	postalias(1) maintain alias database
-/*	postdrop(1) mail posting utility
-/*	postfix(1) mail system control
-/*	postqueue(1) mail queue control
-/*	qmgr(8) queue manager
-/*	smtpd(8) SMTP server
-/*	flush(8) fast flush service
-/*	syslogd(8) system logging
+/*	pickup(8), mail pickup daemon
+/*	qmgr(8), queue manager
+/*	smtpd(8), SMTP server
+/*	flush(8), fast flush service
+/*	postsuper(1), queue maintenance
+/*	postalias(1), create/update/query alias database
+/*	postdrop(1), mail posting utility
+/*	postfix(1), mail system control
+/*	postqueue(1), mail queue control
+/*	syslogd(8), system logging
 /* README_FILES
 /*	Use "\fBpostconf readme_directory\fR" to locate this information.
 /*	DEBUG_README, Postfix debugging howto
@@ -806,7 +822,7 @@ int     main(int argc, char **argv)
      * extract configuration information. Set up signal handlers so that we
      * can clean up incomplete output.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0)
+    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);

@@ -43,8 +43,6 @@
 /*	maps(3), multi-dictionary search
 /*	strip_addr(3), strip extension from address
 /*	transport(5), format of transport map
-/* FILES
-/*	/etc/postfix/transport*
 /* CONFIGURATION PARAMETERS
 /*	transport_maps, names of maps to be searched.
 /* LICENSE

@@ -40,6 +40,7 @@ export_environment
 forward_expansion_filter
 forward_path
 hash_queue_names
+html_directory
 import_environment
 mail_release_date
 mail_spool_directory

@@ -25,6 +25,8 @@ instead of the default configuration directory.
 .IP \fB-q\fR
 Search the Postfix queue for the named \fIfiles\fR instead
 of taking the names literally.
+
+Available in Postfix version 2.0 and later.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.
@@ -54,6 +56,14 @@ The default location of the Postfix main.cf and master.cf
 configuration files.
 .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 The location of the Postfix top-level queue directory.
+.SH "FILES"
+.na
+.nf
+/var/spool/postfix, Postfix queue directory
+.SH "SEE ALSO"
+.na
+.nf
+postconf(5), Postfix configuration
 .SH "LICENSE"
 .na
 .nf
