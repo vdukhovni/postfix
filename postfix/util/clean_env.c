@@ -31,10 +31,7 @@
 /* Utility library. */
 
 #include <msg.h>
-
-/* Global library. */
-
-#include "clean_env.h"
+#include <clean_env.h>
 
 /* clean_env - clean up the environment */
 

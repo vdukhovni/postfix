@@ -706,7 +706,7 @@ extern char *var_etrn_checks;
 #define PERMIT_ALL		"permit"
 #define REJECT_ALL		"reject"
 #define VAR_REJECT_CODE		"reject_code"
-#define DEF_REJECT_CODE		550
+#define DEF_REJECT_CODE		554
 extern int var_reject_code;
 
 #define REJECT_UNKNOWN_CLIENT	"reject_unknown_client"
@@ -744,13 +744,13 @@ extern int var_unk_addr_code;
 
 #define CHECK_RELAY_DOMAINS	"check_relay_domains"
 #define VAR_RELAY_CODE		"relay_domains_reject_code"
-#define DEF_RELAY_CODE		550
+#define DEF_RELAY_CODE		554
 extern int var_relay_code;
 
 #define PERMIT_MX_BACKUP	"permit_mx_backup"
 
 #define VAR_ACCESS_MAP_CODE	"access_map_reject_code"
-#define DEF_ACCESS_MAP_CODE	550
+#define DEF_ACCESS_MAP_CODE	554
 extern int var_access_map_code;
 
 #define CHECK_CLIENT_ACL	"check_client_access"
@@ -761,7 +761,7 @@ extern int var_access_map_code;
 
 #define REJECT_MAPS_RBL		"reject_maps_rbl"
 #define VAR_MAPS_RBL_CODE	"maps_rbl_reject_code"
-#define DEF_MAPS_RBL_CODE	550
+#define DEF_MAPS_RBL_CODE	554
 extern int var_maps_rbl_code;
 
 #define VAR_MAPS_RBL_DOMAINS	"maps_rbl_domains"

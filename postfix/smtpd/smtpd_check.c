@@ -68,7 +68,7 @@
 /*	4xx or 5xx status code. Other numerical status codes are not
 /*	permitted. Allow the request otherwise. The
 /*	\fIaccess_map_reject_code\fR configuration parameter specifies the
-/*	reject status code (default: 550).
+/*	reject status code (default: 554).
 /* .IP "check_client_access maptype:mapname"
 /*	Look up the client host name or any of its parent domains, or
 /*	the client address or any network obtained by stripping octets
@@ -86,7 +86,7 @@
 /*	DNS zones below the domains listed in the "maps_rbl_domains"
 /*	configuration parameter. The \fImaps_rbl_reject_code\fR
 /*	configuration parameter specifies the reject status code
-/*	(default: 550).
+/*	(default: 554).
 /* .IP permit_naked_ip_address
 /*	Permit the use of a naked IP address (without enclosing [])
 /*	in HELO/EHLO commands.
@@ -123,7 +123,7 @@
 /*	recipient domain matches the \fIrelay_domains\fR configuration
 /*	parameter.  Reject the request otherwise.
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
-/*	the reject status code (default: 550).
+/*	the reject status code (default: 554).
 /* .IP permit_mx_backup
 /*	Allow the request when the local mail system is mail exchanger
 /*	for the recipient domain (this includes the case where the local

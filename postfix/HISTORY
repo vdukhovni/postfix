@@ -2651,3 +2651,16 @@ Apologies for any names omitted.
 	report as part of the first message segment, because users
 	had trouble extracting the delivery error report from the
 	attachment.
+
+19990423
+
+	Cleanup: the default junk mail reject code is now 554
+	(service unavailable) rather than 550 (user unknown).
+
+	Folded in the updated dict_ldap.c module by John Hensley,
+	Merit Network, USA.
+
+	Folded in the vstream_popen.c updates by Philip A.
+	Prindeville, Mirapoint, Inc., USA.  This copies a lot of
+	code from pipe_command(); the next step is to trim that
+	module.

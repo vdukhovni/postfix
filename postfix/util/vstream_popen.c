@@ -12,6 +12,9 @@
 /*
 /*	int	vstream_pclose(stream)
 /*	VSTREAM	*stream;
+/*
+/*	VSTREAM	*vstream_popen_vargs(key, value, ...)
+/*	int	key;
 /* DESCRIPTION
 /*	vstream_popen() opens a one-way or two-way stream to the specified
 /*	\fIcommand\fR, which is executed by a child process. The \fIflags\fR
@@ -19,6 +22,41 @@
 /*	standard output are redirected to the stream, which is based on a
 /*	socketpair.
 /*
+/*	vstream_popen_vargs() offers the user more control over the
+/*	child process and over how it is managed. The key argument
+/*	specifies what value will follow. pipe_command() takes a list
+/*	of (key, value) arguments, terminated by VSTREAM_POPEN_END. The
+/*	following is a listing of key codes together with the expected
+/*	value type.
+/* .RS
+/* .IP "VSTREAM_POPEN_COMMAND (char *)"
+/*	Specifies the command to execute as a string. The string is
+/*	passed to the shell when it contains shell meta characters
+/*	or when it appears to be a shell built-in command, otherwise
+/*	the command is executed without invoking a shell.
+/*	One of VSTREAM_POPEN_COMMAND or VSTREAM_POPEN_ARGV must be specified.
+/* .IP "VSTREAM_POPEN_ARGV (char **)"
+/*	The command is specified as an argument vector. This vector is
+/*	passed without further inspection to the \fIexecvp\fR() routine.
+/*	One of VSTREAM_POPEN_COMMAND or VSTREAM_POPEN_ARGV must be specified.
+/*	See also the VSTREAM_POPEN_SHELL attribute below.
+/* .IP "VSTREAM_POPEN_ENV (char **)"
+/*	Additional environment information, in the form of a null-terminated
+/*	list of name, value, name, value, ... elements. By default only the
+/*	command search path is initialized to _PATH_DEFPATH.
+/* .IP "VSTREAM_POPEN_UID (int)"
+/*	The user ID to execute the command as. The user ID must be non-zero.
+/* .IP "VSTREAM_POPEN_GID (int)"
+/*	The group ID to execute the command as. The group ID must be non-zero.
+/* .IP "VSTREAM_POPEN_SHELL (char *)"
+/*	The shell to use when executing the command specified with
+/*	VSTREAM_POPEN_COMMAND. This shell is invoked regardless of the
+/*	command content.
+/* .IP "VSTREAM_POPEN_WAITPID_FN ((*)(pid_t, WAIT_STATUS_T *, int))"
+/*	waitpid()-like function to reap the child exit status when
+/*	vstream_pclose() is called.
+/* .RE
+/* .PP
 /*	vstream_pclose() closes the named stream and returns the child
 /*	exit status. It is an error to specify a stream that was not
 /*	returned by vstream_popen() or that is no longer open.
@@ -55,27 +93,119 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <errno.h>
+#ifdef USE_PATHS_H
+#include <paths.h>
+#endif
+#include <syslog.h>
 
 /* Utility library. */
 
 #include <msg.h>
-#include <binhash.h>
 #include <exec_command.h>
 #include <vstream.h>
+#include <argv.h>
+#include <set_ugid.h>
+#include <clean_env.h>
 
 /* Application-specific. */
 
-static BINHASH *vstream_popen_table = 0;
+typedef struct VSTREAM_POPEN_ARGS {
+    char  **argv;
+    char   *command;
+    uid_t   uid;
+    gid_t   gid;
+    int     privileged;
+    char  **env;
+    char   *shell;
+    VSTREAM_WAITPID_FN waitpid_fn;
+} VSTREAM_POPEN_ARGS;
 
-/* vstream_popen - open stream to child process */
+/* vstream_parse_args - get arguments from variadic list */
 
-VSTREAM *vstream_popen(const char *command, int flags)
+static VSTREAM *vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
 {
+    char   *myname = "vstream_parse_args";
+    int     key;
+
+    /*
+     * First, set the default values (on all non-zero entries)
+     */
+    args->argv = 0;
+    args->command = 0;
+    args->uid = 0;
+    args->gid = 0;
+    args->privileged = 0;
+    args->env = 0;
+    args->shell = 0;
+    args->waitpid_fn = 0;
+
+    /*
+     * Then, override the defaults with user-supplied inputs.
+     */
+    while ((key = va_arg(ap, int)) != VSTREAM_POPEN_END) {
+	switch (key) {
+	case VSTREAM_POPEN_ARGV:
+	    if (args->command != 0)
+		msg_panic("%s: got VSTREAM_POPEN_ARGV and VSTREAM_POPEN_COMMAND", myname);
+	    args->argv = va_arg(ap, char **);
+	    break;
+	case VSTREAM_POPEN_COMMAND:
+	    if (args->argv != 0)
+		msg_panic("%s: got VSTREAM_POPEN_ARGV and VSTREAM_POPEN_COMMAND", myname);
+	    args->command = va_arg(ap, char *);
+	    break;
+	case VSTREAM_POPEN_UID:
+	    args->privileged = 1;
+	    args->uid = va_arg(ap, int);
+	    break;
+	case VSTREAM_POPEN_GID:
+	    args->privileged = 1;
+	    args->gid = va_arg(ap, int);
+	    break;
+	case VSTREAM_POPEN_ENV:
+	    args->env = va_arg(ap, char **);
+	    break;
+	case VSTREAM_POPEN_SHELL:
+	    args->shell = va_arg(ap, char *);
+	    break;
+	case VSTREAM_POPEN_WAITPID_FN:
+	    args->waitpid_fn = va_arg(ap, VSTREAM_WAITPID_FN);
+	    break;
+	default:
+	    msg_panic("%s: unknown key: %d", myname, key);
+	}
+    }
+
+    if (args->command == 0 && args->argv == 0)
+	msg_panic("%s: missing VSTREAM_POPEN_ARGV or VSTREAM_POPEN_COMMAND", myname);
+    if (args->privileged != 0 && args->uid == 0)
+	msg_panic("%s: privileged uid", myname);
+    if (args->privileged != 0 && args->gid == 0)
+	msg_panic("%s: privileged gid", myname);
+}
+
+/* vstream_popen_vargs - open stream to child process */
+
+VSTREAM *vstream_popen_vargs(int flags,...)
+{
+    char   *myname = "vstream_popen_vargs";
+    VSTREAM_POPEN_ARGS args;
+    va_list ap;
     VSTREAM *stream;
     int     sockfd[2];
-    pid_t   pid;
+    int     pid;
     int     fd;
+    ARGV   *argv;
+    char  **cpp;
+
+    va_start(ap, flags);
+    vstream_parse_args(&args, ap);
+    va_end(ap);
+
+    if (args.command == 0)
+	args.command = args.argv[0];
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) < 0)
 	return (0);
@@ -92,48 +222,87 @@ VSTREAM *vstream_popen(const char *command, int flags)
 		    msg_fatal("dup2: %m");
 	if (sockfd[0] >= 2 && close(sockfd[0]))
 	    msg_warn("close: %m");
-	exec_command(command);
+
+	/*
+	 * Don't try to become someone else unless the user specified it.
+	 */
+	if (args.privileged)
+	    set_ugid(args.uid, args.gid);
+
+	/*
+	 * Environment plumbing. Always reset the command search path. XXX
+	 * That should probably be done by clean_env().
+	 */
+	clean_env();
+	if (setenv("PATH", _PATH_DEFPATH, 1))
+	    msg_fatal("%s: setenv: %m", myname);
+	if (args.env)
+	    for (cpp = args.env; *cpp; cpp += 2)
+		if (setenv(cpp[0], cpp[1], 1))
+		    msg_fatal("setenv: %m");
+
+	/*
+	 * Process plumbing. If possible, avoid running a shell.
+	 */
+	closelog();
+	if (args.argv) {
+	    execvp(args.argv[0], args.argv);
+	    msg_fatal("%s: execvp %s: %m", myname, args.argv[0]);
+	} else if (args.shell && *args.shell) {
+	    argv = argv_split(args.shell, " \t\r\n");
+	    argv_add(argv, args.command, (char *) 0);
+	    argv_terminate(argv);
+	    execvp(argv->argv[0], argv->argv);
+	    msg_fatal("%s: execvp %s: %m", myname, argv->argv[0]);
+	} else {
+	    exec_command(args.command);
+	}
 	/* NOTREACHED */
     default:					/* parent */
 	if (close(sockfd[0]))
 	    msg_warn("close: %m");
 	stream = vstream_fdopen(sockfd[1], flags);
-	if (vstream_popen_table == 0)
-	    vstream_popen_table = binhash_create(10);
-	binhash_enter(vstream_popen_table, (char *) &stream,
-		      sizeof(stream), (char *) pid);
+	stream->waitpid_fn = args.waitpid_fn;
+	stream->pid = pid;
 	return (stream);
     }
+}
+
+/* vstream_popen - retro-compatible wrapper for new interface */
+
+VSTREAM *vstream_popen(const char *command, int flags)
+{
+    return (vstream_popen_vargs(flags,
+				VSTREAM_POPEN_COMMAND, command,
+				VSTREAM_POPEN_END));
 }
 
 /* vstream_pclose - close stream to child process */
 
 int     vstream_pclose(VSTREAM *stream)
 {
-    char   *myname = "vstream_pclose";
-    BINHASH_INFO *info;
-    int     pid;
+    pid_t   saved_pid = stream->pid;
+    VSTREAM_WAITPID_FN saved_waitpid_fn = stream->waitpid_fn;
+    pid_t   pid;
     WAIT_STATUS_T wait_status;
 
     /*
-     * Sanity check.
+     * Close the pipe. Don't trigger an alarm in vstream_fclose().
      */
-    if (vstream_popen_table == 0
-	|| (info = binhash_locate(vstream_popen_table, (char *) &stream,
-				  sizeof(stream))) == 0)
-	msg_panic("%s: spurious stream %p", myname, (char *) stream);
+    if (saved_pid == 0)
+	msg_panic("vstream_pclose: stream has no process");
+    stream->pid = 0;
+    vstream_fclose(stream);
 
     /*
-     * Close the stream and reap the child exit status. Ignore errors while
-     * flushing the stream. The child might already have terminated.
+     * Reap the child exit status.
      */
-    (void) vstream_fclose(stream);
     do {
-	pid = waitpid((pid_t) info->value, &wait_status, 0);
+	if (saved_waitpid_fn != 0)
+	    pid = saved_waitpid_fn(saved_pid, &wait_status, 0);
+	else
+	    pid = waitpid(saved_pid, &wait_status, 0);
     } while (pid == -1 && errno == EINTR);
-    binhash_delete(vstream_popen_table, (char *) &stream, sizeof(stream),
-		   (void (*) (char *)) 0);
-
     return (pid == -1 ? -1 :
 	    WIFSIGNALED(wait_status) ? WTERMSIG(wait_status) :
 	    WEXITSTATUS(wait_status));

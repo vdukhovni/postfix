@@ -1,5 +1,5 @@
 SHELL	= /bin/sh
-SRCS	= been_here.c bounce.c canon_addr.c clean_env.c cleanup_strerror.c \
+SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c \
 	config.c config_bool.c config_int.c config_str.c debug_peer.c \
 	debug_process.c defer.c deliver_completed.c deliver_flock.c \
 	deliver_request.c domain_list.c dot_lockfile.c file_id.c \
@@ -17,7 +17,7 @@ SRCS	= been_here.c bounce.c canon_addr.c clean_env.c cleanup_strerror.c \
 	split_addr.c string_list.c sys_exits.c timed_ipc.c tok822_find.c \
 	tok822_node.c tok822_parse.c tok822_resolve.c tok822_rewrite.c \
 	tok822_tree.c clnt_stream.c deliver_pass.c config_raw.c
-OBJS	= been_here.o bounce.o canon_addr.o clean_env.o cleanup_strerror.o \
+OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o \
 	config.o config_bool.o config_int.o config_str.o debug_peer.o \
 	debug_process.o defer.o deliver_completed.o deliver_flock.o \
 	deliver_request.o domain_list.o dot_lockfile.o file_id.o \
@@ -35,7 +35,7 @@ OBJS	= been_here.o bounce.o canon_addr.o clean_env.o cleanup_strerror.o \
 	split_addr.o string_list.o sys_exits.o timed_ipc.o tok822_find.o \
 	tok822_node.o tok822_parse.o tok822_resolve.o tok822_rewrite.o \
 	tok822_tree.o clnt_stream.o deliver_pass.o config_raw.o
-HDRS	= been_here.h bounce.h canon_addr.h clean_env.h cleanup_user.h \
+HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_request.h domain_list.h dot_lockfile.h \
 	file_id.h header_opts.h is_header.h mail_addr.h mail_addr_crunch.h \
@@ -238,10 +238,6 @@ canon_addr.o: ../include/vbuf.h
 canon_addr.o: ../include/mymalloc.h
 canon_addr.o: rewrite_clnt.h
 canon_addr.o: canon_addr.h
-clean_env.o: clean_env.c
-clean_env.o: ../include/sys_defs.h
-clean_env.o: ../include/msg.h
-clean_env.o: clean_env.h
 cleanup_strerror.o: cleanup_strerror.c
 cleanup_strerror.o: ../include/sys_defs.h
 cleanup_strerror.o: ../include/vstring.h
@@ -499,6 +495,7 @@ mail_params.o: ../include/sys_defs.h
 mail_params.o: ../include/msg.h
 mail_params.o: ../include/get_hostname.h
 mail_params.o: ../include/valid_hostname.h
+mail_params.o: ../include/stringops.h
 mail_params.o: mynetworks.h
 mail_params.o: config.h
 mail_params.o: mail_version.h
@@ -694,7 +691,7 @@ pipe_command.o: ../include/set_ugid.h
 pipe_command.o: ../include/argv.h
 pipe_command.o: mail_params.h
 pipe_command.o: mail_copy.h
-pipe_command.o: clean_env.h
+pipe_command.o: ../include/clean_env.h
 pipe_command.o: pipe_command.h
 pipe_command.o: ../include/exec_command.h
 pipe_command.o: sys_exits.h

@@ -103,7 +103,19 @@ extern VSTREAM *vstream_printf(const char *,...);
 extern VSTREAM *vstream_fprintf(VSTREAM *, const char *,...);
 
 extern VSTREAM *vstream_popen(const char *, int);
+extern VSTREAM *vstream_popen_vargs(int,...);
 extern int vstream_pclose(VSTREAM *);
+
+#define vstream_ispipe(vp)	((vp)->pid != 0)
+
+#define VSTREAM_POPEN_END	0	/* terminator */
+#define VSTREAM_POPEN_COMMAND	1	/* command is string */
+#define VSTREAM_POPEN_ARGV	2	/* command is array */
+#define VSTREAM_POPEN_UID	3	/* privileges */
+#define VSTREAM_POPEN_GID	4	/* privileges */
+#define VSTREAM_POPEN_ENV	5	/* extra environment */
+#define VSTREAM_POPEN_SHELL	6	/* alternative shell */
+#define VSTREAM_POPEN_WAITPID_FN 7	/* child catcher, waitpid() compat. */
 
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 

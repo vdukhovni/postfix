@@ -188,7 +188,7 @@ significant octets.  Reject the request if the result is <b>REJECT</b>
 or "[<b>45</b>]<i>XX text</i>". Permit the request if the result
 is anything else.  The <b>access_map_reject_code</b> parameter
 specifies the response code for <b>REJECT</b> results (default:
-<b>550</b>).
+<b>554</b>).
 
 <p>
 
@@ -198,7 +198,7 @@ specifies the response code for <b>REJECT</b> results (default:
 network address is listed under any of the domains listed in <a
 href="#maps_rbl_domains">$maps_rbl_domains</a>. The <b>
 maps_rbl_reject_code</b> parameter specifies the response code for
-rejected requests (default: <b>550</b>).
+rejected requests (default: <b>554</b>).
 
 <p>
 
@@ -333,7 +333,7 @@ or parent domains in the specified table.  Reject the request if
 the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>". Permit
 the request when the result is anything else.  The
 <b>access_map_reject_code </b> parameter specifies the response
-code for <b>REJECT</b> results (default:  <b>550</b>).
+code for <b>REJECT</b> results (default:  <b>554</b>).
 
 <p>
 
@@ -420,7 +420,7 @@ parent domain, or <i>localpart</i>@. Reject the request if the
 result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>". Permit the
 request if the result is anything else.  The <b>access_map_reject_code
 </b> parameter specifies the result code for rejected requests
-(default: <b>550</b>).
+(default: <b>554</b>).
 
 <p>
 
@@ -519,7 +519,7 @@ client hostname matches <a href="#relay_domains">$relay_domains</a>,
 or when the resolved destination address matches <a href="#relay_domains">
 $relay_domains</a>, otherwise reject.  The <b>relay_domains_reject_code</b>
 parameter specifies the response code for rejected requests (default:
-<b>550</b>).
+<b>554</b>).
 
 <p>
 
@@ -542,7 +542,7 @@ address, parent domain, or <i>localpart</i>@. Reject the request
 if the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".
 Permit the request if the result is anything else.  The
 <b>access_map_reject_code </b> parameter specifies the result code
-for rejected requests (default: <b>550</b>).
+for rejected requests (default: <b>554</b>).
 
 <p>
 
@@ -661,7 +661,7 @@ in the ETRN command, or its parent domains. Reject the request if
 the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".  Permit
 the request if the result is anything else.  The <b>access_map_reject_code
 </b> parameter specifies the result code for rejected requests
-(default: <b>550</b>).
+(default: <b>554</b>).
 
 <p>
 
@@ -727,7 +727,7 @@ policy explicit.
 is useful at the end of a restriction list, to make the default
 policy explicit. The <b>reject_code</b> configuration parameter
 specifies the response code to rejected requests (default:
-<b>550</b>).
+<b>554</b>).
 
 </dl>
 

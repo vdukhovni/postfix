@@ -70,7 +70,7 @@ Defaults are given in parentheses:
     result_attribute (maildrop)
 	The attribute Postfix will read from any directory entries
 	returned by the lookup, to be resolved to an email address.
-		ldapsource_result = mailbox
+		ldapsource_result_attribute = mailbox
 
     bind (yes)
     	Whether or not to bind to the LDAP server. Newer LDAP
@@ -184,6 +184,12 @@ NOTES AND THINGS TO THINK ABOUT
 
   Any performance reports will be much appreciated on the postfix-users
   list.
+
+  UPDATE: At Merit, I've seen over 150000 deliveries per day with no
+  noticeable delay from our OpenLDAP server. I'd now recommend not
+  resorting to the above unless you anticipate much more traffic than
+  that. It makes management of your directory less intuitive, which is
+  probably not worth the reduction in lookups.
 
 CREDITS
 =======
