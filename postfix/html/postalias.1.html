@@ -39,26 +39,26 @@ POSTALIAS(1)                                         POSTALIAS(1)
               tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
 
+       B-w    Do  not  warn  about  duplicate  entries;  silently
+              ignore them.
+
        Arguments:
 
        <i>file_type</i>
               The type of database to be produced.
 
-              <b>btree</b>  The   output   is   a   btree   file,  named
-                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
-                     systems with support for <b>db</b> databases.
-
-              <b>dbm</b>    The  output  consists  of  two  files, named
-                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
-                     available  only  on systems with support for
-                     <b>dbm</b> databases.
-
-              <b>hash</b>   The  output  is   a   hashed   file,   named
+              <b>btree</b>  The  output   is   a   btree   file,   named
                      <i>file_name</i><b>.db</b>.   This  is  available  only on
                      systems with support for <b>db</b> databases.
 
-              When no <i>file_type</i> is specified, the  software  uses
-              the  database  type specified via the <b>database</b><i>_</i><b>type</b>
+              <b>dbm</b>    The output  consists  of  two  files,  named
+                     <i>file_name</i><b>.pag</b>  and  <i>file_name</i><b>.dir</b>.   This is
+                     available only on systems with  support  for
+                     <b>dbm</b> databases.
+
+              <b>hash</b>   The   output   is   a   hashed  file,  named
+                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
+                     systems with support for <b>db</b> databases.
 
 
 
@@ -71,15 +71,17 @@ POSTALIAS(1)                                         POSTALIAS(1)
 POSTALIAS(1)                                         POSTALIAS(1)
 
 
-              configuration parameter.   The  default  value  for
+              When  no  <i>file_type</i> is specified, the software uses
+              the database type specified via  the  <b>database</b><i>_</i><b>type</b>
+              configuration  parameter.   The  default  value for
               this parameter depends on the host environment.
 
        <i>file_name</i>
-              The  name  of  the  alias database source file when
+              The name of the alias  database  source  file  when
               rebuilding a database.
 
 <b>DIAGNOSTICS</b>
-       Problems are logged to the standard error stream. No  out-
+       Problems  are logged to the standard error stream. No out-
        put means no problems were detected. Duplicate entries are
        skipped and are flagged with a warning.
 
@@ -91,12 +93,12 @@ POSTALIAS(1)                                         POSTALIAS(1)
               Enable verbose logging for debugging purposes.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  program. See the Postfix <b>main.cf</b> file for syntax
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. See the Postfix <b>main.cf</b> file  for  syntax
        details and for default values.
 
        <b>database</b><i>_</i><b>type</b>
-              Default alias database type. On many UNIX  systems,
+              Default  alias database type. On many UNIX systems,
               the default type is either <b>dbm</b> or <b>hash</b>.
 
 <b>STANDARDS</b>
@@ -107,7 +109,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <a href="sendmail.1.html">sendmail(1)</a> mail posting and compatibility interface.
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -115,8 +117,6 @@ POSTALIAS(1)                                         POSTALIAS(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
 
 
 

@@ -82,6 +82,8 @@ smtp.o: ../include/mail_params.h
 smtp.o: ../include/config.h
 smtp.o: ../include/debug_peer.h
 smtp.o: ../include/mail_error.h
+smtp.o: ../include/mail_proto.h
+smtp.o: ../include/iostuff.h
 smtp.o: ../include/mail_server.h
 smtp.o: smtp.h
 smtp.o: ../include/argv.h

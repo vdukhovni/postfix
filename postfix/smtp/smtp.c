@@ -55,6 +55,10 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBbest_mx_transport\fR
+/*	Name of the delivery transport to use when the local machine
+/*	is the most-preferred mail exchanger (by default, a mailer
+/*	loop is reported, and the message is bounced).
 /* .IP \fBdebug_peer_level\fR
 /*	Verbose logging level increment for hosts that match a
 /*	pattern in the \fBdebug_peer_list\fR parameter.
@@ -62,6 +66,8 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBerror_notice_recipient\fR
+/*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBfallback_relay\fR
 /*	Hosts to hand off mail to if a message destination is not found
 /*	or if a destination is unreachable.
@@ -163,6 +169,7 @@
 #include <config.h>
 #include <debug_peer.h>
 #include <mail_error.h>
+#include <deliver_pass.h>
 
 /* Single server skeleton. */
 
@@ -192,6 +199,8 @@ int     var_smtp_skip_4xx_greeting;
 int     var_ign_mx_lookup_err;
 int     var_skip_quit_resp;
 char   *var_fallback_relay;
+char   *var_bestmx_transp;
+char   *var_error_rcpt;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -245,16 +254,21 @@ static int deliver_message(DELIVER_REQUEST *request)
 	msg_info("%s: file %s", myname, VSTREAM_PATH(state->src));
 
     /*
-     * Establish an SMTP session and deliver this message to (limited batches
-     * of) recipients. XXX By doing the recipient batching in the SMTP agent
-     * instead of in the queue manager, we're stuck with one connection per
-     * message per domain. But, the queue manager should not have hard-wired
-     * logic that is specific to SMTP processing. At the end, notify the
-     * postmaster of any protocol errors.
+     * Establish an SMTP session and deliver this message to all requested
+     * recipients. At the end, notify the postmaster of any protocol errors.
+     * Optionally deliver mail locally when this machine is the best mail
+     * exchanger.
      */
     if ((state->session = smtp_connect(request->nexthop, why)) == 0) {
-	smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
-		       "%s", vstring_str(why));
+	if (smtp_errno == SMTP_OK) {
+	    if (*var_bestmx_transp == 0)
+		msg_panic("smtp_errno botch");
+	    state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
+					     var_bestmx_transp,
+					     request);
+	} else
+	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
+			   "%s", vstring_str(why));
     } else {
 	debug_peer_check(state->session->host, state->session->addr);
 	if (smtp_helo(state) == 0)
@@ -314,6 +328,8 @@ int     main(int argc, char **argv)
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
 	VAR_FALLBACK_RELAY, DEF_FALLBACK_RELAY, &var_fallback_relay, 0, 0,
+	VAR_BESTMX_TRANSP, DEF_BESTMX_TRANSP, &var_bestmx_transp, 0, 0,
+	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

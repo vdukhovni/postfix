@@ -71,6 +71,10 @@ a configuration change.
 .SH Miscellaneous
 .ad
 .fi
+.IP \fBbest_mx_transport\fR
+Name of the delivery transport to use when the local machine
+is the most-preferred mail exchanger (by default, a mailer
+loop is reported, and the message is bounced).
 .IP \fBdebug_peer_level\fR
 Verbose logging level increment for hosts that match a
 pattern in the \fBdebug_peer_list\fR parameter.
@@ -78,6 +82,8 @@ pattern in the \fBdebug_peer_list\fR parameter.
 List of domain or network patterns. When a remote host matches
 a pattern, increase the verbose logging level by the amount
 specified in the \fBdebug_peer_level\fR parameter.
+.IP \fBerror_notice_recipient\fR
+Recipient of protocol/policy/resource/software error notices.
 .IP \fBfallback_relay\fR
 Hosts to hand off mail to if a message destination is not found
 or if a destination is unreachable.

@@ -305,13 +305,14 @@ mailbox.o: ../include/sent.h
 mailbox.o: ../include/mypwd.h
 mailbox.o: ../include/been_here.h
 mailbox.o: ../include/mail_params.h
+mailbox.o: ../include/deliver_pass.h
+mailbox.o: ../include/deliver_request.h
+mailbox.o: ../include/recipient_list.h
 mailbox.o: ../include/mail_proto.h
 mailbox.o: ../include/iostuff.h
 mailbox.o: local.h
 mailbox.o: ../include/tok822.h
 mailbox.o: ../include/resolve_clnt.h
-mailbox.o: ../include/deliver_request.h
-mailbox.o: ../include/recipient_list.h
 mailbox.o: biff_notify.h
 maildir.o: maildir.c
 maildir.o: ../include/sys_defs.h

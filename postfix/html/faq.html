@@ -42,6 +42,8 @@
 
 <li><a href="#fax">Sending mail to a FAX machine</a>
 
+<li><a href="#timeouts">Mail fails with timeout or lost connection</a>
+
 <li><a href="#bind">Undefined symbols: ___dn_expand, ___res_init etc.</a>
 
 <li><a href="#db">Using DB libraries on Solaris etc.</a>
@@ -595,6 +597,78 @@ In the transports map:
 <p>
 
 Note: be sure to not advertise <b>fax.your.domain</b> in the DNS...
+
+<hr>
+
+<a name="timeouts"><h2>Mail fails with timeout or lost connection</h2></a>
+
+Occasionally, mail fails with "timed out while sending end of data
+-- message may be sent more than once", or with: "lost connection after DATA". 
+Network outages happen, systems crash. There isn't much you can
+do about it.
+
+<p>
+
+However, when you see mail deliveries fail consistently, you may
+have a different problem: broken path MTU discovery.
+
+<p>
+
+A little background is in order. With the SMTP protocol, the HELO,
+MAIL FROM and RCPT TO commands and responses are relatively short.
+When you're talking to sendmail, every command and every response
+is sent as a separate packet, because sendmail cannot implement
+ESMTP command pipelining.
+
+<p>
+
+The message content, however, is sent as a few datagrams, each
+datagram typically a kbyte large or even bigger, depending on your
+local network MTU.
+
+<p>
+
+When mail fails consistently due to a timeout, I suspect that the
+sending machine runs a modern UNIX which implements path MTU
+discovery.  That causes the machine to send packets as large as it
+would send over the LAN, with the IP DONT'T FRAGMENT bit set,
+preventing intermediate routers from fragmenting the packets that
+are too big for their networks.
+
+<p>
+
+Depending on what network path a message follows, some router on
+the way responds with an ICMP MUST FRAGMENT message saying the
+packet is too big. Normally, the sending machine will re-send the
+data after chopping it up into smaller pieces.
+
+<p>
+
+However, things break when some router closer to the sending system
+is dropping such ICMP feedback messages, in a mistaken attempt to
+protect systems against certain attacks. In that case, the ICMP
+feedback message never reaches the sending machine, and the connection
+times out.
+
+<p>
+
+This is the same configuration problem that causes trouble with
+web servers behind a misconfigured packet filter: small images/files
+are sent intact, large images/files time out because the server
+does not see the MUST FRAGMENT ICMP feedback messages.
+
+<p>
+
+Workaround: disable path MTU discovery at the sending machine. Mail
+will get out, but of course everyone else will still suffer. How
+to disable path MTU discovery? It depends. Solaris has an <b>ndd</b>
+command; other systems use different means such as <b>sysctl</b>
+to control kernel parameters on a running system.
+
+<p>
+
+Fix: find the router that drops the ICMP MUST FRAGMENT messages,
+and convince the person responsible for it to fix the configuration.
 
 <hr>
 

@@ -7,7 +7,9 @@
 # Service: any name that is valid for the specified transport type
 # (the next field).  With INET transports, a service is specified as
 # host:port.  The host part (and colon) may be omitted. Either host
-# or port may be given in symbolic form or in numeric form.
+# or port may be given in symbolic form or in numeric form. Examples
+# for the SMTP server:  localhost:smtp receives mail via the loopback
+# interface only; 10025 receives mail on port 10025.
 #
 # Transport type: "inet" for Internet sockets, "unix" for UNIX-domain
 # sockets, "fifo" for named pipes.

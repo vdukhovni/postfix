@@ -55,9 +55,9 @@ BOUNCE(8)                                               BOUNCE(8)
        details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
-       <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
-              Limit  the  amount of original message context that
-              is sent in a non-delivery notification.
+       <b>bounce</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+              The  recipient of single bounce postmaster notices.
+
 
 
 
@@ -71,13 +71,23 @@ BOUNCE(8)                                               BOUNCE(8)
 BOUNCE(8)                                               BOUNCE(8)
 
 
+       <b>2bounce</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+              The recipient of double bounce postmaster  notices.
+
+       <b>delay</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+              The recipient of "delayed mail" postmaster notices.
+
+       <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+              Limit the amount of original message  context  that
+              is sent in a non-delivery notification.
+
        <b>mail</b><i>_</i><b>name</b>
-              Use this mail system name in the introductory  text
+              Use  this mail system name in the introductory text
               at the start of a bounce message.
 
        <b>notify</b><i>_</i><b>classes</b>
-              Notify  the  postmaster  of  bounced mail when this
-              parameter includes the <b>bounce</b>  class.  For  privacy
+              Notify the postmaster of  bounced  mail  when  this
+              parameter  includes  the  <b>bounce</b> class. For privacy
               reasons, the message body is not included.
 
 <b>SEE</b> <b>ALSO</b>
@@ -86,7 +96,7 @@ BOUNCE(8)                                               BOUNCE(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -94,16 +104,6 @@ BOUNCE(8)                                               BOUNCE(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
 
 
 

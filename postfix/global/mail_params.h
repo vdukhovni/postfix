@@ -81,6 +81,25 @@ extern char *var_myhostname;
 extern char *var_mydomain;
 
  /*
+  * Where to send postmaster copies of bounced mail, and other notices.
+  */
+#define VAR_BOUNCE_RCPT		"bounce_notice_recipient"
+#define DEF_BOUNCE_RCPT		"postmaster"
+extern char *var_bounce_rcpt;
+
+#define VAR_2BOUNCE_RCPT	"2bounce_notice_recipient"
+#define DEF_2BOUNCE_RCPT	"postmaster"
+extern char *var_2bounce_rcpt;
+
+#define VAR_DELAY_RCPT		"delay_notice_recipient"
+#define DEF_DELAY_RCPT		"postmaster"
+extern char *var_delay_rcpt;
+
+#define VAR_ERROR_RCPT		"error_notice_recipient"
+#define DEF_ERROR_RCPT		"postmaster"
+extern char *var_error_rcpt;
+
+ /*
   * Virtual host support. Default is to listen on all machine interfaces.
   */
 #define VAR_INET_INTERFACES	"inet_interfaces"	/* listen addresses */
@@ -471,6 +490,10 @@ extern int var_hash_queue_depth;
   * each message. Unfortunately, some mailers misbehave and disconnect (smap)
   * when given more recipients than they are willing to handle.
   */
+#define VAR_BESTMX_TRANSP	"best_mx_transport"
+#define DEF_BESTMX_TRANSP	""
+extern char *var_bestmx_transp;
+
 #define VAR_SMTP_CONN_TMOUT	"smtp_connect_timeout"
 #define DEF_SMTP_CONN_TMOUT	0
 extern int var_smtp_conn_tmout;

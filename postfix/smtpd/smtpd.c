@@ -67,6 +67,8 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBerror_notice_recipient\fR
+/*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .IP \fBnotify_classes\fR
@@ -273,6 +275,7 @@ int     var_reject_code;
 int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
 char   *var_always_bcc;
+char   *var_error_rcpt;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1153,6 +1156,7 @@ int     main(int argc, char **argv)
 	VAR_ETRN_CHECKS, DEF_ETRN_CHECKS, &var_etrn_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
+	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	0,
     };
 

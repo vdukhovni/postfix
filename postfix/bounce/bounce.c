@@ -45,6 +45,12 @@
 /*	this program. See the Postfix \fBmain.cf\fR file for syntax details
 /*	and for default values. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
+/* .IP \fBbounce_notice_recipient\fR
+/*	The recipient of single bounce postmaster notices.
+/* .IP \fB2bounce_notice_recipient\fR
+/*	The recipient of double bounce postmaster notices.
+/* .IP \fBdelay_notice_recipient\fR
+/*	The recipient of "delayed mail" postmaster notices.
 /* .IP \fBbounce_size_limit\fR
 /*	Limit the amount of original message context that is sent in
 /*	a non-delivery notification.
@@ -104,6 +110,9 @@ int     var_bounce_limit;
 int     var_max_queue_time;
 int     var_delay_warn_time;
 char   *var_notify_classes;
+char   *var_bounce_rcpt;
+char   *var_2bounce_rcpt;
+char   *var_delay_rcpt;
 
  /*
   * We're single threaded, so we can avoid some memory allocation overhead.
@@ -276,6 +285,9 @@ int     main(int argc, char **argv)
     };
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
+	VAR_BOUNCE_RCPT, DEF_BOUNCE_RCPT, &var_bounce_rcpt, 1, 0,
+	VAR_2BOUNCE_RCPT, DEF_2BOUNCE_RCPT, &var_2bounce_rcpt, 1, 0,
+	VAR_DELAY_RCPT, DEF_DELAY_RCPT, &var_delay_rcpt, 1, 0,
 	0,
     };
 

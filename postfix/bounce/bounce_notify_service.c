@@ -105,11 +105,13 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
 		      MAIL_ADDR_MAIL_DAEMON);
 
     if (flush) {
-	post_mail_fputs(bounce, STREQ(dest, mail_addr_postmaster()) ?
+	post_mail_fputs(bounce, dest == var_bounce_rcpt
+		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
 			"Subject: Postmaster Copy: Undelivered Mail" :
 			"Subject: Undelivered Mail Returned to Sender");
     } else {
-	post_mail_fputs(bounce, STREQ(dest, mail_addr_postmaster()) ?
+	post_mail_fputs(bounce, dest == var_bounce_rcpt
+		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
 			"Subject: Postmaster Warning: Delayed Mail" :
 			"Subject: Delayed Mail (still being retried)");
     }
@@ -335,6 +337,7 @@ int     bounce_notify_service(char *service, char *queue_name,
     VSTREAM *bounce;
     int     notify_mask = name_mask(mail_error_masks, var_notify_classes);
     VSTRING *boundary = vstring_alloc(100);
+    char   *postmaster;
 
     /*
      * Unique string for multi-part message boundaries.
@@ -382,8 +385,9 @@ int     bounce_notify_service(char *service, char *queue_name,
 	if (SKIP_IF_BOUNCE || SKIP_IF_DELAY) {
 	    bounce_status = 0;
 	} else {
+	    postmaster = flush ? var_2bounce_rcpt : var_delay_rcpt;
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
-						 mail_addr_postmaster(),
+						 postmaster,
 						 NULL_CLEANUP_FLAGS,
 						 "BOUNCE")) != 0) {
 
@@ -393,7 +397,7 @@ int     bounce_notify_service(char *service, char *queue_name,
 		 * reason for the bounce, and the headers of the original
 		 * message. Don't bother sending the boiler-plate text.
 		 */
-		if (!bounce_header(bounce, buf, mail_addr_postmaster(),
+		if (!bounce_header(bounce, buf, postmaster,
 				   STR(boundary), flush)
 		    && bounce_diagnostics(service, bounce, buf, queue_id,
 					  STR(boundary)) == 0)
@@ -447,11 +451,12 @@ int     bounce_notify_service(char *service, char *queue_name,
 	     * don't retransmit the bounce that we just generated, just log a
 	     * warning.
 	     */
+	    postmaster = flush ? var_bounce_rcpt : var_delay_rcpt;
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
-						 mail_addr_postmaster(),
+						 postmaster,
 						 NULL_CLEANUP_FLAGS,
 						 "BOUNCE")) != 0) {
-		if (!bounce_header(bounce, buf, mail_addr_postmaster(),
+		if (!bounce_header(bounce, buf, postmaster,
 				   STR(boundary), flush)
 		    && bounce_diagnostics(service, bounce, buf,
 					  queue_id, STR(boundary)) == 0)

@@ -12,6 +12,7 @@ TESTPROG=
 MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h
 PROG	= postconf
+SAMPLES	= ../conf/main.cf.default
 INC_DIR	= ../include
 LIBS	= ../lib/libglobal.a ../lib/libutil.a
 
@@ -20,12 +21,15 @@ LIBS	= ../lib/libglobal.a ../lib/libutil.a
 $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
+../conf/main.cf.default: $(PROG) Makefile
+	./$(PROG) -d |egrep -v '^(myhostname|mydomain|mynetworks) ' >$@
+
 Makefile: Makefile.in
 	(set -e; echo "# DO NOT EDIT"; $(OPTS) sh ../makedefs; cat $?) >$@
 
 test:	$(TESTPROG)
 
-update: ../bin/$(PROG)
+update: ../bin/$(PROG) $(SAMPLES)
 
 ../bin/$(PROG): $(PROG)
 	cp $(PROG) ../bin

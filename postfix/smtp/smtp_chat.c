@@ -246,7 +246,7 @@ void    smtp_chat_notify(SMTP_STATE *state)
 #define INDENT	4
 
     notice = post_mail_fopen_nowait(mail_addr_double_bounce(),
-				    mail_addr_postmaster(),
+				    var_error_rcpt,
 				    NULL_CLEANUP_FLAGS, "NOTICE");
     if (notice == 0) {
 	msg_warn("postmaster notify: %m");
@@ -254,7 +254,7 @@ void    smtp_chat_notify(SMTP_STATE *state)
     }
     post_mail_fprintf(notice, "From: %s (Mail Delivery System)",
 		      mail_addr_mail_daemon());
-    post_mail_fprintf(notice, "To: %s (Postmaster)", mail_addr_postmaster());
+    post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
     post_mail_fprintf(notice, "Subject: %s SMTP client: errors from %s",
 		      var_mail_name, session->host);
     post_mail_fputs(notice, "");

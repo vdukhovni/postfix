@@ -191,6 +191,15 @@ myorigin = $myhostname
 # notify_classes = 2bounce,resource,software
 notify_classes = resource,software
 
+# The following parameters specify who gets postmaster notices if
+# one of the above error conditions is recognized. All parameters
+# default to "postmaster".
+#
+bounce_notice_recipient = postmaster
+2bounce_notice_recipient = postmaster
+delay_notice_recipient = postmaster
+error_notice_recipient = postmaster
+
 # The process_id_directory specifies a lock file directory relative
 # to the Postfix queue directory. This facility is used by the master
 # daemon to lock out other master daemon instances.

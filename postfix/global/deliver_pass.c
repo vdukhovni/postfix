@@ -12,10 +12,19 @@
 /*	DELIVER_REQUEST *request;
 /*	const char *address;
 /*	long	offset;
+/*
+/*	int	deliver_pass_all(class, service, request)
+/*	const char *class;
+/*	const char *service;
+/*	DELIVER_REQUEST *request;
 /* DESCRIPTION
 /*	This module implements the client side of the `queue manager
 /*	to delivery agent' protocol, passing one recipient on from
 /*	one delivery agent to another.
+/*
+/*	deliver_pass() delegates delivery of the named recipient.
+/*
+/*	deliver_pass_all() delegates an entire delivery request.
 /*
 /*	Arguments:
 /* .IP class
@@ -56,8 +65,7 @@
 
 /* Global library. */
 
-#include <mail_proto.h>
-#include <deliver_request.h>
+#include <deliver_pass.h>
 
 /* deliver_pass_initial_reply - retrieve initial delivery process response */
 
@@ -144,5 +152,21 @@ int     deliver_pass(const char *class, const char *service,
     vstream_fclose(stream);
     vstring_free(reason);
 
+    return (status);
+}
+
+/* deliver_pass_all - pass entire delivery request */
+
+int     deliver_pass_all(const char *class, const char *service,
+			         DELIVER_REQUEST *request)
+{
+    RECIPIENT_LIST *list;
+    RECIPIENT *rcpt;
+    int     status = 0;
+
+    list = &request->rcpt_list;
+    for (rcpt = list->info; rcpt < list->info + list->len; rcpt++)
+	status |= deliver_pass(class, service, request,
+			       rcpt->address, rcpt->offset);
     return (status);
 }

@@ -5,6 +5,14 @@
 # MISCELLANEOUS CONTROLS
 #
 
+# The best_mx_transport parameter controls what happens when the
+# local system is listed as the best MX host for a destination. By
+# default, Postfix reports a "mail loops back to myself" error and
+# bounces the message. Specify "best_mx_transport = local" to pass
+# the mail to the local delivery agent.
+#
+best_mx_transport =
+
 # The fallback_relay parameter specifies zero or more hosts or domains
 # to hand off mail to if a message destination is not found, or if a
 # destination is unreachable.

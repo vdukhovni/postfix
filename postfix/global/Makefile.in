@@ -48,7 +48,7 @@ HDRS	= been_here.h bounce.h canon_addr.h clean_env.h cleanup_user.h \
 	quote_822_local.h rec_streamlf.h rec_type.h recipient_list.h \
 	record.h resolve_clnt.h resolve_local.h rewrite_clnt.h sent.h \
 	smtp_stream.h split_addr.h string_list.h sys_exits.h timed_ipc.h \
-	tok822.h clnt_stream.h
+	tok822.h clnt_stream.h deliver_pass.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -341,10 +341,11 @@ deliver_pass.o: ../include/msg.h
 deliver_pass.o: ../include/vstring.h
 deliver_pass.o: ../include/vbuf.h
 deliver_pass.o: ../include/vstream.h
-deliver_pass.o: mail_proto.h
-deliver_pass.o: ../include/iostuff.h
+deliver_pass.o: deliver_pass.h
 deliver_pass.o: deliver_request.h
 deliver_pass.o: recipient_list.h
+deliver_pass.o: mail_proto.h
+deliver_pass.o: ../include/iostuff.h
 deliver_request.o: deliver_request.c
 deliver_request.o: ../include/sys_defs.h
 deliver_request.o: ../include/msg.h

@@ -22,7 +22,10 @@
 /*	exchanger hosts listed for the named domain. Addresses are
 /*	returned in most-preferred first order. The result is truncated
 /*	so that it contains only hosts that are more preferred than the
-/*	local mail server itself.
+/*	local mail server itself. When the "best MX is local" feature
+/*	is enabled, the local system is allowed to be the best mail
+/*	exchanger, and the result is a null list pointer. Otherwise,
+/*	mailer loops are treated as an error.
 /*
 /*	When no mail exchanger is listed in the DNS for \fIname\fR, the
 /*	request is passed to smtp_host_addr().
@@ -286,8 +289,11 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref,
 		smtp_print_addr("truncated", addr);
 	    dns_rr_free(addr);
 	    if (last == 0) {
-		vstring_sprintf(why, "mail for %s loops back to myself", name);
-		smtp_errno = SMTP_FAIL;
+		if (*var_bestmx_transp == 0) {
+		    vstring_sprintf(why, "mail for %s loops back to myself",
+				    name);
+		    smtp_errno = SMTP_FAIL;
+		}
 		addr_list = 0;
 	    } else {
 		last->next = 0;

@@ -93,38 +93,38 @@ SMTPD(8)                                                 SMTPD(8)
               ging   level   by   the  amount  specified  in  the
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
 
+       <b>error</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+              Recipient   of    protocol/policy/resource/software
+              error notices.
+
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
        <b>notify</b><i>_</i><b>classes</b>
               List of error classes. Of special interest are:
 
-              <b>policy</b> When a client violates any  policy,  mail  a
+              <b>policy</b> When  a  client  violates any policy, mail a
                      transcript of the entire SMTP session to the
                      postmaster.
 
               <b>protocol</b>
-                     When a client violates the SMTP protocol  or
+                     When  a client violates the SMTP protocol or
                      issues  an  unimplemented  command,  mail  a
                      transcript of the entire SMTP session to the
                      postmaster.
 
        <b>smtpd</b><i>_</i><b>banner</b>
-              Text  that  follows the <b>220</b> status code in the SMTP
+              Text that follows the <b>220</b> status code in  the  SMTP
               greeting banner.
 
        <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Restrict the number of  recipients  that  the  SMTP
+              Restrict  the  number  of  recipients that the SMTP
               server accepts per message delivery.
 
        <b>smtpd</b><i>_</i><b>timeout</b>
-              Limit  the  time  to  send a server response and to
+              Limit the time to send a  server  response  and  to
               receive a client request.
 
-<b>Resource</b> <b>controls</b>
-       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
-              Limit the amount of memory in bytes  used  for  the
-              handling of partial input lines.
 
 
 
@@ -137,13 +137,18 @@ SMTPD(8)                                                 SMTPD(8)
 SMTPD(8)                                                 SMTPD(8)
 
 
+<b>Resource</b> <b>controls</b>
+       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+              Limit  the  amount  of memory in bytes used for the
+              handling of partial input lines.
+
        <b>message</b><i>_</i><b>size</b><i>_</i><b>limit</b>
               Limit the total size in bytes of a message, includ-
               ing on-disk storage for envelope information.
 
        <b>queue</b><i>_</i><b>minfree</b>
-              Minimal amount of free space in bytes in the  queue
-              file  system for the SMTP server to accept any mail
+              Minimal  amount of free space in bytes in the queue
+              file system for the SMTP server to accept any  mail
               at all.
 
 <b>Tarpitting</b>
@@ -153,11 +158,11 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd</b><i>_</i><b>soft</b><i>_</i><b>error</b><i>_</i><b>limit</b>
               When an SMTP client has made this number of errors,
-              wait <i>error_count</i> seconds before responding  to  any
+              wait  <i>error_count</i>  seconds before responding to any
               client request.
 
        <b>smtpd</b><i>_</i><b>hard</b><i>_</i><b>error</b><i>_</i><b>limit</b>
-              Disconnect  after  a client has made this number of
+              Disconnect after a client has made this  number  of
               errors.
 
 <b>UCE</b> <b>control</b> <b>restrictions</b>
@@ -166,31 +171,26 @@ SMTPD(8)                                                 SMTPD(8)
               tem.
 
        <b>smtpd</b><i>_</i><b>helo</b><i>_</i><b>required</b>
-              Require  that  clients  introduce themselves at the
+              Require that clients introduce  themselves  at  the
               beginning of an SMTP session.
 
        <b>smtpd</b><i>_</i><b>helo</b><i>_</i><b>restrictions</b>
-              Restrict what client hostnames are allowed in  <b>HELO</b>
+              Restrict  what client hostnames are allowed in <b>HELO</b>
               and <b>EHLO</b> commands.
 
        <b>smtpd</b><i>_</i><b>sender</b><i>_</i><b>restrictions</b>
-              Restrict  what sender addresses are allowed in <b>MAIL</b>
+              Restrict what sender addresses are allowed in  <b>MAIL</b>
               <b>FROM</b> commands.
 
        <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>restrictions</b>
-              Restrict what recipient addresses  are  allowed  in
+              Restrict  what  recipient  addresses are allowed in
               <b>RCPT</b> <b>TO</b> commands.
 
        <b>smtpd</b><i>_</i><b>etrn</b><i>_</i><b>restrictions</b>
               Restrict what domain names can be used in <b>ETRN</b> com-
               mands, and what clients may issue <b>ETRN</b> commands.
 
-       <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b>
-              List of DNS domains that publish the  addresses  of
-              blacklisted hosts.
 
-       <b>relay</b><i>_</i><b>domains</b>
-              Restrict  what domains or networks this mail system
 
 
 
@@ -203,40 +203,46 @@ SMTPD(8)                                                 SMTPD(8)
 SMTPD(8)                                                 SMTPD(8)
 
 
+       <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b>
+              List  of  DNS domains that publish the addresses of
+              blacklisted hosts.
+
+       <b>relay</b><i>_</i><b>domains</b>
+              Restrict what domains or networks this mail  system
               will relay mail from or to.
 
 <b>UCE</b> <b>control</b> <b>responses</b>
        <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client  violates  an  access
+              Server  response  when  a client violates an access
               database restriction.
 
        <b>invalid</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
+              Server  response  when  a   client   violates   the
               <b>reject</b><i>_</i><b>invalid</b><i>_</i><b>hostname</b> restriction.
 
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Server   response   when   a  client  violates  the
               <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b> restriction.
 
        <b>reject</b><i>_</i><b>code</b>
-              Response  code  when  the  client  matches a <b>reject</b>
+              Response code when  the  client  matches  a  <b>reject</b>
               restriction.
 
        <b>relay</b><i>_</i><b>domains</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client attempts  to  violate
+              Server  response  when a client attempts to violate
               the mail relay policy.
 
        <b>unknown</b><i>_</i><b>address</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
+              Server  response  when  a   client   violates   the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>address</b> restriction.
 
        <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client  without  address  to
-              name  mapping  violates  the <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
+              Server  response  when  a client without address to
+              name mapping  violates  the  <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
               restriction.
 
        <b>unknown</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Server   response   when   a  client  violates  the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>hostname</b> restriction.
 
 <b>SEE</b> <b>ALSO</b>
@@ -245,12 +251,24 @@ SMTPD(8)                                                 SMTPD(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
+
+
+
+                                                                4
+
+
+
+
+
+SMTPD(8)                                                 SMTPD(8)
+
+
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
@@ -260,7 +278,55 @@ SMTPD(8)                                                 SMTPD(8)
 
 
 
-                                                                4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                5
 
 
 </pre> </body> </html>

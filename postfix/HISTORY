@@ -2537,7 +2537,23 @@ Apologies for any names omitted.
 19990406
 
 	Cleanup: changed MIME header information to make bounces
-	RFC 1892 compliant.
+	more RFC 1892 compliant.
+
+19990407
+
+	Feature: "best_mx_transport = local" delivers mail locally
+	if the local machine is the best mail exchanger (by default,
+	mail is bounced with a "mail loops back to myself" error).
+
+	Config: in order to make feature tracking easier the source
+	code distribution now has a copy of the default settings in
+	conf/main.cf.default.
+
+	Feature: separate configurable postmaster addresses for
+	single bounces (bounce_notice_recipient), double bounces
+	(2bounce_notice_recipient), delayed mail (delay_notice_recipient),
+	and for other mailer errors (error_notice_recipient).  The
+	default for all is "postmaster".
 
 Future:
 

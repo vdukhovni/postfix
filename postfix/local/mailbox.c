@@ -74,7 +74,7 @@
 #include <mypwd.h>
 #include <been_here.h>
 #include <mail_params.h>
-#include <mail_proto.h>
+#include <deliver_pass.h>
 
 /* Application-specific. */
 

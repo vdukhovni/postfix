@@ -57,8 +57,8 @@ POSTMAP(1)                                             POSTMAP(1)
               tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
 
-       Arguments:
-
+       B-w    Do  not  warn  about  duplicate  entries;  silently
+              ignore them.
 
 
 
@@ -71,28 +71,30 @@ POSTMAP(1)                                             POSTMAP(1)
 POSTMAP(1)                                             POSTMAP(1)
 
 
+       Arguments:
+
        <i>file_type</i>
               The type of database to be produced.
 
-              <b>btree</b>  The  output  file  is  a  btree  file, named
-                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
-                     systems with support for <b>db</b> databases.
-
-              <b>dbm</b>    The  output  consists  of  two  files, named
-                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
-                     available  only  on systems with support for
-                     <b>dbm</b> databases.
-
-              <b>hash</b>   The output file  is  a  hashed  file,  named
+              <b>btree</b>  The output  file  is  a  btree  file,  named
                      <i>file_name</i><b>.db</b>.   This  is  available  only on
                      systems with support for <b>db</b> databases.
 
-              When no <i>file_type</i> is specified, the  software  uses
-              the  database  type specified via the <b>database</b><i>_</i><b>type</b>
+              <b>dbm</b>    The output  consists  of  two  files,  named
+                     <i>file_name</i><b>.pag</b>  and  <i>file_name</i><b>.dir</b>.   This is
+                     available only on systems with  support  for
+                     <b>dbm</b> databases.
+
+              <b>hash</b>   The  output  file  is  a  hashed file, named
+                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
+                     systems with support for <b>db</b> databases.
+
+              When  no  <i>file_type</i> is specified, the software uses
+              the database type specified via  the  <b>database</b><i>_</i><b>type</b>
               configuration parameter.
 
        <i>file_name</i>
-              The name of  the  lookup  table  source  file  when
+              The  name  of  the  lookup  table  source file when
               rebuilding a database.
 
 <b>DIAGNOSTICS</b>
@@ -109,12 +111,12 @@ POSTMAP(1)                                             POSTMAP(1)
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        <b>database</b><i>_</i><b>type</b>
-              Default  output  database  type.  On many UNIX sys-
-              tems, the default database type is either  <b>hash</b>  or
+              Default output database type.  On  many  UNIX  sys-
+              tems,  the  default database type is either <b>hash</b> or
               <b>dbm</b>.
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -122,8 +124,6 @@ POSTMAP(1)                                             POSTMAP(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
 
 
 
