@@ -180,13 +180,13 @@ static void qmqpd_open_file(QMQPD_STATE *state)
     /*
      * Connect to the cleanup server. Log client name/address with queue ID.
      */
-    state->dest = mail_stream_service(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
+    state->dest = mail_stream_service(MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP);
     if (state->dest == 0
 	|| attr_print(state->dest->stream, ATTR_FLAG_NONE,
 		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
 		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to connect to the %s %s service",
-		  MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
+		  MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP);
     state->cleanup = state->dest->stream;
     state->queue_id = mystrdup(state->dest->id);
     msg_info("%s: client=%s", state->queue_id, state->namaddr);

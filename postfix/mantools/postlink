@@ -36,6 +36,8 @@ exec sed '
 	s/[<bB>]*postlock[</bB>]*(1)/<a href="postlock.1.html">&<\/a>/
 	s/[<bB>]*postlog[</bB>]*(1)/<a href="postlog.1.html">&<\/a>/
 	s/[<bB>]*postmap[</bB>]*(1)/<a href="postmap.1.html">&<\/a>/
+	s/[<bB>]*postqueue[</bB>]*(1)/<a href="postqueue.1.html">&<\/a>/
+	s/[<bB>]*postsuper[</bB>]*(1)/<a href="postsuper.1.html">&<\/a>/
 	s/[<bB>]*send[-</bB>]*\n*[ <bB>]*mail[</bB>]*(1)/<a href="sendmail.1.html">&<\/a>/
 	s/[<bB>]*access[</bB>]*(5)/<a href="access.5.html">&<\/a>/
 	s/[<bB>]*aliases[</bB>]*(5)/<a href="aliases.5.html">&<\/a>/

@@ -4,7 +4,7 @@
 .SH NAME
 postdrop
 \-
-Postfix mail posting agent
+Postfix mail posting utility
 .SH SYNOPSIS
 .na
 .nf
@@ -15,13 +15,6 @@ Postfix mail posting agent
 The \fBpostdrop\fR command creates a file in the \fBmaildrop\fR
 directory and copies its standard input to the file.
 
-The command is designed to run with set-gid privileges, and with
-group write permission to the \fBmaildrop\fR queue directory.
-
-The \fBpostdrop\fR command is automatically invoked by the
-\fBsendmail\fR(1) mail posting agent when the \fBmaildrop\fR
-queue directory is not world-writable.
-
 Options:
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
@@ -31,8 +24,8 @@ options make the software increasingly verbose.
 .nf
 .ad
 .fi
-This program is designed so that it can run with set-user (or
-group) id privileges.
+The command is designed to run with set-gid privileges, and with
+group write permission to the \fBmaildrop\fR queue directory.
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -45,7 +38,7 @@ INT, QUIT or TERM signal, the queue file is deleted.
 .nf
 .ad
 .fi
-The program deletes all environment information, because the C
+The program deletes most environment information, because the C
 library can't be trusted.
 .SH FILES
 .na

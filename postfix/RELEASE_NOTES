@@ -1,3 +1,28 @@
+Incompatible changes with snapshot-20011230
+===========================================
+
+This release modifies the existing master.cf file, making the local
+pickup unprivileged, and making the cleanup service "public" (for
+future performance improvements of local mail submission).
+
+Should you have to back out to a previous release, then you have
+to edit the master.cf file, making the pickup service "privileged",
+and making the cleanup service "private".
+
+Major changes with snapshot-20011230
+====================================
+
+Simplification of the local Postfix security model.
+
+- The world-writable maildrop directory is gone. Postfix now uses
+  the set-gid postdrop command for local mail submissions.  The
+  local mail pickup daemon is now an unprivileged process.
+
+- The world-writable pickup and queue manager FIFOs are gone.
+  Postfix now uses the new set-gid postqueue command for all the
+  queue operations that were implemented by the Postfix sendmail
+  command.
+
 Incompatible changes with snapshot-20011226
 ===========================================
 

@@ -5850,7 +5850,37 @@ Apologies for any names omitted.
 	Distant derivative of code by Michael Tokarev.  File:
 	smtpd/smtpd.c.
 
+20011228
+
+	Bugfix: a readlline() error message showed less text than
+	intended. Christian von Roques.
+
+	Cleanup: postfix now installs with group-writable maildrop
+	directory and with a set-gid postdrop mail submission
+	command.  The pickup service is now unprivileged.  The
+	world-writable maildrop directory no longer exists.
+
+	The cleanup service is now public, in preparation for local
+	sendmail/postdrop mail submission that avoids the maildrop
+	queue directory while Postfix is up.
+
+	Cleanup: moved the main.cf/master.cf file editing from the
+	postfix-script file to the INSTALL.sh file.
+
+	Cleanup: INSTALL.sh no longer accepts "no" as the destination
+	of Postfix manual pages.
+
+20011230
+
+	Cleanup: the code for "mailq", "sendmail -q", and for
+	"sendmail -qRsite" was moved from the sendmail command to
+	a new set-gid postqueue command. The pickup and qmgr FIFOs
+	are no longer world writable.
+
 Open problems:
+
+	Low: don't do user@domain and @domain lookups in
+	local_recipient_maps queries.
 
 	Low: after reorganizing configuration parameters, add flags
 	to all parameters whose value can be read from file.

@@ -32,9 +32,10 @@ struct MAIL_STREAM {
     MAIL_STREAM_CLOSE_FN close;		/* close stream */
     char   *class;			/* trigger class */
     char   *service;			/* trigger service */
+    int     mode;			/* additional permissions */
 };
 
-extern MAIL_STREAM *mail_stream_file(const char *, const char *, const char *);
+extern MAIL_STREAM *mail_stream_file(const char *, const char *, const char *, int);
 extern MAIL_STREAM *mail_stream_service(const char *, const char *);
 extern MAIL_STREAM *mail_stream_command(const char *);
 extern void mail_stream_cleanup(MAIL_STREAM *);

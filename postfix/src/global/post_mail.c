@@ -173,7 +173,7 @@ VSTREAM *post_mail_fopen(const char *sender, const char *recipient, int flags)
 {
     VSTREAM *stream;
 
-    stream = mail_connect_wait(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
+    stream = mail_connect_wait(MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP);
     post_mail_init(stream, sender, recipient, flags);
     return (stream);
 }
@@ -185,7 +185,7 @@ VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
 {
     VSTREAM *stream;
 
-    if ((stream = mail_connect(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP,
+    if ((stream = mail_connect(MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP,
 			       BLOCKING)) != 0)
 	post_mail_init(stream, sender, recipient, flags);
     return (stream);

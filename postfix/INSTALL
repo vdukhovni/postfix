@@ -197,10 +197,11 @@ programs may be in a different place):
 
 In order to install or upgrade Postfix:
 
-- Create a user "postfix" with a unique user id and group id.
-  Preferably, this is an account that no-one can log into.  The
-  account does not need an executable login shell, and needs no
-  existing home directory.  My password file entry looks like this:
+- Create a user account "postfix" with a user id and group id that
+  are not used by any other user account.  Preferably, this is an
+  account that no-one can log into.  The account does not need an
+  executable login shell, and needs no existing home directory.
+  My password file entry looks like this:
 
     postfix:*:12345:12345:postfix:/no/where:/no/shell
 
@@ -208,8 +209,14 @@ In order to install or upgrade Postfix:
 
     postfix: root
 
-- Review section 12 of this file, and decide if a world-writable
-  maildrop is OK, or if Postfix needs a set-gid posting agent.
+- Create a group "postdrop" with a group id that is not used by
+  any other user account. Not even by the postfix user account.
+  My group file entry looks like:
+
+    postdrop:*:54321:
+
+  NB: this group was optional with older Postfix releases; it is
+  now required.
 
 - Run the INSTALL.sh script as the super-user:
 
@@ -245,8 +252,8 @@ to change your existing sendmail setup. Instead, set up your mail
 user agent so that it calls the Postfix sendmail program directly.
 
 Follow the instructions in the "Mandatory configuration file edits"
-in section 10, review the "To chroot or not to chroot" text in
-section 11, and choose a security model according to section 12.
+in section 10, and review the "To chroot or not to chroot" text in
+section 11.
 
 You MUST comment out the `smtp inet' entry in /etc/postfix/master.cf,
 in order to avoid conflicts with the real sendmail.
@@ -294,8 +301,8 @@ In the /etc/postfix/main.cf file, I would specify
     mydestination = $myhostname
 
 Follow the instructions in the "Mandatory configuration file edits"
-in section 10, review the "To chroot or not to chroot" text in
-section 11, and choose a security model according to section 12.
+in section 10, and review the "To chroot or not to chroot" text in
+section 11.
 
 Start the mail system:
 
@@ -473,52 +480,7 @@ files or device nodes.  The examples/chroot-setup directory has a
 collection of scripts that help you set up chroot environments for
 Postfix systems.
 
-12 - Security: writable versus protected maildrop directory
-===========================================================
-
-Postfix offers a choice of submission mechanisms.
-
-1 - Postfix can use a world-writable, sticky, mode 1733 maildrop
-    directory where local users can submit mail. This approach
-    avoids the need for set-uid or set-gid software. Mail can be
-    posted even while the mail system is down.  Queue files in the
-    maildrop directory have no read/write/execute permission for
-    other users.  The maildrop directory is not used for mail
-    received via the network.
-
-    With directory world write permission come opportunities for
-    annoyance: a local user can make hard links to someone else's
-    maildrop files so they don't go away and may be delivered
-    multiple times; a local user can fill the maildrop directory
-    with junk and try to crash the mail system; and a local user
-    can hard link someone else's files into the maildrop directory
-    and try to have them delivered as mail.  However, Postfix queue
-    files have a specific format; less than one in 10^12 non-Postfix
-    files would be recognized as a valid Postfix queue file.
-
-    In order to enable maildrop world-write permission: 
-
-    - Specify "no" when asked by the INSTALL.sh script whether
-      Postfix needs set-gid privileges.
-
-2 - On systems with many users it may be desirable to revoke maildrop
-    directory world write permission, and to enable set-gid privileges
-    on a small "maildrop" command that is provided for this purpose.
-
-    In order to revoke maildrop world-write permission:
-
-    - Create a group "maildrop" that is unique and that does not
-      share its group ID with any other user, certainly not with
-      the postfix account,
-
-    - Specify "maildrop" when asked by the INSTALL.sh script whether
-      Postfix needs set-gid privileges.
-
-    The sendmail posting program will automatically invoke the
-    postdrop command when maildrop directory write permission is
-    restricted.
-
-13 - Care and feeding of the Postfix system
+12 - Care and feeding of the Postfix system
 ===========================================
 
 The Postfix programs log all problems to the syslog daemon. The

@@ -25,11 +25,9 @@ Sendmail command-line options are recognized but silently ignored.
 
 By default, \fBsendmail\fR reads a message from standard input
 until EOF or until it reads a line with only a \fB.\fR character,
-and arranges for delivery.  \fBsendmail\fR attempts to create
-a queue file in the \fBmaildrop\fR directory. If that directory
-is not world-writable, the message is piped through the
-\fBpostdrop\fR(1) command, which is expected to execute with
-suitable privileges.
+and arranges for delivery.  \fBsendmail\fR relies on the
+\fBpostdrop\fR(1) command to create a queue file in the \fBmaildrop\fR
+directory.
 
 Specific command aliases are provided for other common modes of
 operation:
@@ -38,7 +36,7 @@ List the mail queue. Each entry shows the queue file ID, message
 size, arrival time, sender, and the recipients that still need to
 be delivered.  If mail could not be delivered upon the last attempt,
 the reason for failure is shown. This mode of operation is implemented
-by connecting to the \fBshowq\fR(8) daemon.
+by executing the \fBpostqueue\fR(1) command.
 .IP \fBnewaliases\fR
 Initialize the alias database.  If no input file is specified (with
 the \fB-oA\fR option, see below), the program processes the file(s)
@@ -150,8 +148,8 @@ Set the envelope sender address. This is the address where
 delivery problems are sent to, unless the message contains an
 \fBErrors-To:\fR message header.
 .IP \fB-q\fR
-Attempt to deliver all queued mail. This is implemented by kicking the
-\fBqmgr\fR(8) daemon.
+Attempt to deliver all queued mail. This is implemented by
+executing the \fBpostqueue\fR(1) command.
 .IP "\fB-q\fIinterval\fR (ignored)"
 The interval between queue runs. Use the \fBqueue_run_delay\fR
 configuration parameter instead.
@@ -159,7 +157,7 @@ configuration parameter instead.
 Schedule immediate delivery of all mail that is queued for the named
 \fIsite\fR. This option accepts only \fIsite\fR names that are
 eligible for the "fast flush" service, and is implemented by
-connecting to the local SMTP server at \fB$myhostname\fR.
+executing the \fBpostqueue\fR(1) command.
 See \fBflush\fR(8) for more information about the "fast flush"
 service.
 .IP \fB-qS\fIsite\fR
@@ -233,10 +231,9 @@ The VERP delimiter characters that are used when the \fB-V\fR
 command line option is specified without delimiter characters.
 .IP \fBfast_flush_domains\fR
 List of domains that will receive "fast flush" service (default: all
-domains that this system is willing to relay mail to). This greatly
-improves the performance of the SMTP \fBETRN\fR request, and of the
-\fBsendmail -qR\fR command. For domains not in the list, Postfix simply
-attempts to deliver all queued mail.
+domains that this system is willing to relay mail to). This list
+specifies the domains that Postfix accepts in the SMTP \fBETRN\fR
+request and in the \fBsendmail -qR\fR command.
 .IP \fBfork_attempts\fR
 Number of attempts to \fBfork\fR() a process before giving up.
 .IP \fBfork_delay\fR
@@ -263,13 +260,12 @@ The characters that Postfix accepts as VERP delimiter characters.
 .nf
 pickup(8) mail pickup daemon
 postalias(1) maintain alias database
-postdrop(1) privileged posting agent
+postdrop(1) mail posting utility
 postfix(1) mail system control
-postkick(1) kick a Postfix daemon
+postqueue(1) mail queue control
 qmgr(8) queue manager
-showq(8) list mail queue
 smtpd(8) SMTP server
-flushd(8) fast flush service
+flush(8) fast flush service
 syslogd(8) system logging
 .SH LICENSE
 .na

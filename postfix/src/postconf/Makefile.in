@@ -82,7 +82,7 @@ postconf.o: ../../include/argv.h
 postconf.o: ../../include/safe.h
 postconf.o: ../../include/mymalloc.h
 postconf.o: ../../include/split_at.h
-postconf.o: ../../include/readlline.h
+postconf.o: ../../include/vstring_vstream.h
 postconf.o: ../../include/myflock.h
 postconf.o: ../../include/mynetworks.h
 postconf.o: ../../include/mail_conf.h

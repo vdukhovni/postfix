@@ -160,7 +160,7 @@
 /*	Minimal amount of free space in bytes in the queue file system
 /*	for the SMTP server to accept any mail at all.
 /* .IP \fBsmtpd_history_flush_threshold\fR
-/*	Flush the command history to postmaster after receipt of RSET etc. 
+/*	Flush the command history to postmaster after receipt of RSET etc.
 /*	only if the number of history lines exceeds the given threshold.
 /* .SH Tarpitting
 /* .ad
@@ -385,12 +385,6 @@ char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
 
  /*
-  * Global state, for stand-alone mode queue file cleanup. When this is
-  * non-null at cleanup time, the named file is removed.
-  */
-char   *smtpd_path;
-
- /*
   * Silly little macros.
   */
 #define STR(x)	vstring_str(x)
@@ -537,25 +531,14 @@ static void mail_open_stream(SMTPD_STATE *state)
      * service.
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
-	state->dest = mail_stream_service(MAIL_CLASS_PRIVATE,
+	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  MAIL_SERVICE_CLEANUP);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
 			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
-		      MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
-    }
-
-    /*
-     * Otherwise, if the maildrop is writable, create a maildrop file.
-     * Arrange for pickup service notification. Make a copy of the pathname
-     * so that the file can be deleted in case of a fatal run-time error.
-     */
-    else if (access(MAIL_QUEUE_MAILDROP, W_OK) == 0) {
-	state->dest = mail_stream_file(MAIL_QUEUE_MAILDROP,
-				    MAIL_CLASS_PUBLIC, MAIL_SERVICE_PICKUP);
-	smtpd_path = mystrdup(VSTREAM_PATH(state->dest->stream));
+		      MAIL_CLASS_PUBLIC, MAIL_SERVICE_CLEANUP);
     }
 
     /*
@@ -814,14 +797,6 @@ static void mail_reset(SMTPD_STATE *state)
 	myfree(state->queue_id);
 	state->queue_id = 0;
     }
-    if (smtpd_path) {
-	if (remove(smtpd_path))
-	    msg_warn("remove %s: %m", smtpd_path);
-	else if (msg_verbose)
-	    msg_info("remove %s", smtpd_path);
-	myfree(smtpd_path);
-	smtpd_path = 0;
-    }
     if (state->sender) {
 	myfree(state->sender);
 	state->sender = 0;
@@ -1039,20 +1014,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	mail_stream_cleanup(state->dest);
     state->dest = 0;
     state->cleanup = 0;
-
-    /*
-     * Delete the queue file or disable delete on fatal error or interrupt.
-     */
-    if (smtpd_path) {
-	if (state->err != 0) {
-	    if (remove(smtpd_path))
-		msg_warn("remove %s: %m", smtpd_path);
-	    else if (msg_verbose)
-		msg_info("remove %s", smtpd_path);
-	}
-	myfree(smtpd_path);
-	smtpd_path = 0;
-    }
 
     /*
      * Handle any errors. One message may suffer from multiple errors, so
@@ -1529,33 +1490,6 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
     debug_peer_restore();
 }
 
-/* smtpd_cleanup - stand-alone mode queue file cleanup */
-
-static void smtpd_cleanup(void)
-{
-    char   *myname = "smtpd_cleanup";
-
-    /*
-     * This routine is called by the run-time error handler, right before
-     * program exit.
-     */
-    if (smtpd_path) {
-	if (remove(smtpd_path))
-	    msg_warn("%s: remove %s: %m", myname, smtpd_path);
-	else if (msg_verbose)
-	    msg_info("%s: remove %s", myname, smtpd_path);
-	smtpd_path = 0;
-    }
-}
-
-/* smtpd_sig - signal handler */
-
-static void smtpd_sig(int sig)
-{
-    smtpd_cleanup();
-    exit(sig);
-}
-
 /* pre_accept - see if tables have changed */
 
 static void pre_accept(char *unused_name, char **unused_argv)
@@ -1564,20 +1498,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
 	msg_info("lookup table has changed -- exiting");
 	exit(0);
     }
-}
-
-/* post_jail_init - post-jail initialization */
-
-static void post_jail_init(char *unused_name, char **unused_argv)
-{
-
-    /*
-     * Set up signal handlers so that we clean up in stand-alone mode.
-     */
-    signal(SIGHUP, smtpd_sig);
-    signal(SIGINT, smtpd_sig);
-    signal(SIGQUIT, smtpd_sig);
-    signal(SIGTERM, smtpd_sig);
 }
 
 /* pre_jail_init - pre-jail initialization */
@@ -1592,7 +1512,6 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
     smtpd_check_init();
     debug_peer_init();
-    msg_cleanup(smtpd_cleanup);
 
     if (var_smtpd_sasl_enable)
 #ifdef USE_SASL_AUTH
@@ -1678,7 +1597,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
-		       MAIL_SERVER_POST_INIT, post_jail_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

@@ -107,6 +107,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
     char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' : ' ');
+    long    offset;
 
     while (!vstream_ferror(client) && (rec_type = rec_get(qfile, buf, 0)) > 0) {
 	start = vstring_str(buf);
@@ -115,7 +116,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    arrival_time = atol(start);
 	    break;
 	case REC_TYPE_SIZE:
-	    msg_size = atol(start);
+	    if ((msg_size = atol(start)) <= 0)
+		msg_size = size;
 	    break;
 	case REC_TYPE_FROM:
 	    if (*start == 0)
@@ -133,7 +135,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 				"", "", "", printable(start, '?'));
 	    break;
 	case REC_TYPE_MESG:
-	    if (vstream_fseek(qfile, atol(start), SEEK_SET) < 0)
+	    if ((offset = atol(start)) > 0
+		&& vstream_fseek(qfile, offset, SEEK_SET) < 0)
 		msg_fatal("seek file %s: %m", VSTREAM_PATH(qfile));
 	    break;
 	case REC_TYPE_END:

@@ -34,9 +34,10 @@ only once. All definitions have a reasonable default value.
     newaliases_path - full pathname of the Postfix newaliases command.
     mailq_path - full pathname of the Postfix mailq command.
 
-    mail_owner - owner of Postfix queue files.
+    mail_owner - Postfix queue account (with unique user/group id numbers).
 
-    setgid - groupname, e.g., postdrop (default: no). See INSTALL section 12.
+    setgid - group for submission (with a unique group id number).
+
     manpages - "no" or path to man tree. Example: /usr/local/man.
 
 EOF
@@ -120,7 +121,7 @@ fi
 : ${newaliases_path=/usr/bin/newaliases}
 : ${mailq_path=/usr/bin/mailq}
 : ${mail_owner=postfix}
-: ${setgid=no}
+: ${setgid=postdrop}
 : ${manpages=/usr/local/man}
 
 # Find out the location of configuration files.
@@ -203,7 +204,6 @@ for path in $daemon_directory $command_directory \
 do
    case $path in
    /*) ;;
-   no) ;;
     *) echo Error: $path should be an absolute path name. 1>&2; exit 1;;
    esac
 done
@@ -227,14 +227,11 @@ chown "$mail_owner" $tempdir/junk >/dev/null 2>&1 || {
     exit 1
 }
 
-case $setgid in
-no) ;;
- *) chgrp "$setgid" $tempdir/junk >/dev/null 2>&1 || {
-        echo Error: $setgid needs an entry in the group file. 1>&2
-        echo Remember, $setgid must have a dedicated group id. 1>&2
-        exit 1
-    }
-esac
+chgrp "$setgid" $tempdir/junk >/dev/null 2>&1 || {
+    echo Error: $setgid needs an entry in the group file. 1>&2
+    echo Remember, $setgid must have a dedicated group id. 1>&2
+    exit 1
+}
 
 rm -f $tempdir/junk
 
@@ -308,52 +305,100 @@ done) >$tempdir/junk || exit 1
 compare_or_move a+x,go-w $tempdir/junk $CONFIG_DIRECTORY/install.cf || exit 1
 rm -f $tempdir/junk
 
-# Use set-gid privileges instead of writable maildrop (optional).
-
-test -d $QUEUE_DIRECTORY/maildrop || {
-    mkdir -p $QUEUE_DIRECTORY/maildrop || exit 1
-    chown $mail_owner $QUEUE_DIRECTORY/maildrop || exit 1
-}
-
-case $setgid in
-no)
-    chmod 1733 $QUEUE_DIRECTORY/maildrop || exit 1
-    chmod g-s $COMMAND_DIRECTORY/postdrop || exit 1
-    postfix_script=conf/postfix-script-nosgid
-    ;;
- *) 
-    chgrp $setgid $COMMAND_DIRECTORY/postdrop || exit 1
-    chmod g+s $COMMAND_DIRECTORY/postdrop || exit 1
-    chgrp $setgid $QUEUE_DIRECTORY/maildrop || exit 1
-    chmod 1730 $QUEUE_DIRECTORY/maildrop || exit 1
-    postfix_script=conf/postfix-script-sgid
-    ;;
-esac
-
-compare_or_replace a+x,go-w $postfix_script $CONFIG_DIRECTORY/postfix-script ||
+compare_or_replace a+x,go-w conf/postfix-script $CONFIG_DIRECTORY/postfix-script ||
     exit 1
 
-# Install manual pages (optional).
+# Install manual pages.
 
-case $manpages in
-no) ;;
- *) (
-     cd man || exit 1
-     for dir in man?
-	 do test -d $MANPAGES/$dir || mkdir -p $MANPAGES/$dir || exit 1
-     done
-     for file in `censored_ls man?/*`
-     do
-	 (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file &&
-	  echo Skipping $MANPAGES/$file...) || {
-	     echo Updating $MANPAGES/$file...
-	     rm -f $MANPAGES/$file
-	     cp $file $MANPAGES/$file || exit 1
-	     chmod 644 $MANPAGES/$file || exit 1
-	 }
-     done
-    )
-esac
+(cd man || exit 1
+for dir in man?
+    do test -d $MANPAGES/$dir || mkdir -p $MANPAGES/$dir || exit 1
+done
+for file in `censored_ls man?/*`
+do
+    (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file &&
+     echo Skipping $MANPAGES/$file...) || {
+	echo Updating $MANPAGES/$file...
+	rm -f $MANPAGES/$file
+	cp $file $MANPAGES/$file || exit 1
+	chmod 644 $MANPAGES/$file || exit 1
+    }
+done)
+
+# Use set-gid/group privileges for restricted access.
+
+for directory in maildrop
+do
+    test -d $QUEUE_DIRECTORY/$directory || {
+	mkdir -p $QUEUE_DIRECTORY/$directory || exit 1
+	chown $mail_owner $QUEUE_DIRECTORY/$directory || exit 1
+    }
+    # Fix group if upgrading from world-writable maildrop.
+    chgrp $setgid $QUEUE_DIRECTORY/$directory || exit 1
+    chmod 730 $QUEUE_DIRECTORY/$directory || exit 1
+done
+
+for directory in public
+do
+    test -d $QUEUE_DIRECTORY/$directory || {
+	mkdir -p $QUEUE_DIRECTORY/$directory || exit 1
+	chown $mail_owner $QUEUE_DIRECTORY/$directory || exit 1
+    }
+    # Fix group if upgrading from world-accessible directory.
+    chgrp $setgid $QUEUE_DIRECTORY/$directory || exit 1
+    chmod 710 $QUEUE_DIRECTORY/$directory || exit 1
+done
+
+for directory in pid
+do
+    test -d $QUEUE_DIRECTORY/$directory && {
+	chown root $QUEUE_DIRECTORY/$directory || exit 1
+    }
+done
+
+chgrp $setgid $COMMAND_DIRECTORY/postdrop $COMMAND_DIRECTORY/postqueue || exit 1
+chmod g+s $COMMAND_DIRECTORY/postdrop $COMMAND_DIRECTORY/postqueue || exit 1
+
+grep 'flush.*flush' $CONFIG_DIRECTORY/master.cf >/dev/null || {
+	echo adding missing entry for flush service to master.cf
+	cat >>$CONFIG_DIRECTORY/master.cf <<EOF
+flush     unix  -       -       n       1000?   0       flush
+EOF
+}
+
+grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
+    $CONFIG_DIRECTORY/master.cf >/dev/null && {
+	echo changing master.cf, making the pickup service unprivileged
+	ed $CONFIG_DIRECTORY/master.cf <<EOF
+/^pickup[ 	]*fifo[ 	]*n[ 	]*n/
+s/\(n[ 	]*\)n/\1-/
+w
+q
+EOF
+}
+grep "^cleanup[ 	]*unix[ 	]*-" \
+    $CONFIG_DIRECTORY/master.cf >/dev/null && {
+	echo changing master.cf, making the cleanup service public
+	ed $CONFIG_DIRECTORY/master.cf <<EOF
+/^cleanup[ 	]*unix[ 	]*-/
+s/-/n/
+w
+q
+EOF
+}
+
+found=`bin/postconf -c $CONFIG_DIRECTORY -h hash_queue_names`
+missing=
+(echo "$found" | grep active >/dev/null) || missing="$missing active"
+(echo "$found" | grep bounce >/dev/null) || missing="$missing bounce"
+(echo "$found" | grep defer >/dev/null)  || missing="$missing defer"
+(echo "$found" | grep flush >/dev/null)  || missing="$missing flush"
+(echo "$found" | grep incoming>/dev/null)|| missing="$missing incoming"
+(echo "$found" | grep deferred>/dev/null)|| missing="$missing deferred"
+test -n "$missing" && {
+	echo fixing main.cf hash_queue_names for missing $missing
+	bin/postconf -c $CONFIG_DIRECTORY -e hash_queue_names="$found$missing"
+}
 
 test "$need_config" = 1 || exit 0
 

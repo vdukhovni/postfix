@@ -2,19 +2,12 @@
 /* NAME
 /*	postdrop 1
 /* SUMMARY
-/*	Postfix mail posting agent
+/*	Postfix mail posting utility
 /* SYNOPSIS
 /*	\fBpostdrop\fR [\fIoption ...\fR]
 /* DESCRIPTION
 /*	The \fBpostdrop\fR command creates a file in the \fBmaildrop\fR
 /*	directory and copies its standard input to the file.
-/*
-/*	The command is designed to run with set-gid privileges, and with
-/*	group write permission to the \fBmaildrop\fR queue directory.
-/*
-/*	The \fBpostdrop\fR command is automatically invoked by the
-/*	\fBsendmail\fR(1) mail posting agent when the \fBmaildrop\fR
-/*	queue directory is not world-writable.
 /*
 /*	Options:
 /* .IP \fB-v\fR
@@ -23,8 +16,8 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	This program is designed so that it can run with set-user (or
-/*	group) id privileges.
+/*	The command is designed to run with set-gid privileges, and with
+/*	group write permission to the \fBmaildrop\fR queue directory.
 /* DIAGNOSTICS
 /*	Fatal errors: malformed input, I/O error, out of memory. Problems
 /*	are logged to \fBsyslogd\fR(8) and to the standard error stream.
@@ -33,7 +26,7 @@
 /* ENVIRONMENT
 /* .ad
 /* .fi
-/*	The program deletes all environment information, because the C
+/*	The program deletes most environment information, because the C
 /*	library can't be trusted.
 /* FILES
 /*	/var/spool/postfix, mail queue
@@ -139,12 +132,17 @@ static void postdrop_cleanup(void)
 
 static void postdrop_sig(int sig)
 {
-    signal(SIGHUP, SIG_IGN);
-    signal(SIGINT, SIG_IGN);
-    signal(SIGQUIT, SIG_IGN);
-    signal(SIGTERM, SIG_IGN);
-    postdrop_cleanup();
-    exit(sig);
+
+    /*
+     * Assume atomic signal() updates, even when emulated with sigaction().
+     */
+    if (signal(SIGHUP, SIG_IGN) != SIG_IGN
+	&& signal(SIGINT, SIG_IGN) != SIG_IGN
+	&& signal(SIGQUIT, SIG_IGN) != SIG_IGN
+	&& signal(SIGTERM, SIG_IGN) != SIG_IGN) {
+	postdrop_cleanup();
+	exit(sig);
+    }
 }
 
 /* main - the main program */
@@ -250,7 +248,7 @@ int     main(int argc, char **argv)
      * clean up in case of a fatal error or an interrupt.
      */
     dst = mail_stream_file(MAIL_QUEUE_MAILDROP, MAIL_CLASS_PUBLIC,
-			   MAIL_SERVICE_PICKUP);
+			   MAIL_SERVICE_PICKUP, 0444);
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, dst->id,
 	       ATTR_TYPE_END);

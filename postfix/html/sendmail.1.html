@@ -22,11 +22,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        By default, <b>sendmail</b> reads a message from  standard  input
        until  EOF  or until it reads a line with only a <b>.</b> charac-
-       ter, and arranges for delivery.  <b>sendmail</b> attempts to cre-
-       ate a queue file in the <b>maildrop</b> directory. If that direc-
-       tory is not world-writable, the message is  piped  through
-       the <a href="postdrop.1.html"><b>postdrop</b>(1)</a> command, which is expected to execute with
-       suitable privileges.
+       ter, and arranges for delivery.  <b>sendmail</b>  relies  on  the
+       <a href="postdrop.1.html"><b>postdrop</b>(1)</a> command to create a queue file in the <b>maildrop</b>
+       directory.
 
        Specific command aliases are  provided  for  other  common
        modes of operation:
@@ -36,8 +34,8 @@ SENDMAIL(1)                                           SENDMAIL(1)
               the recipients that still need to be delivered.  If
               mail could not be delivered upon the last  attempt,
               the reason for failure is shown. This mode of oper-
-              ation is implemented by connecting to the  <a href="showq.8.html"><b>showq</b>(8)</a>
-              daemon.
+              ation is implemented by executing the  <a href="postqueue.1.html"><b>postqueue</b>(1)</a>
+              command.
 
        <b>newaliases</b>
               Initialize the alias database.  If no input file is
@@ -177,7 +175,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
               the  message contains an <b>Errors-To:</b> message header.
 
        <b>-q</b>     Attempt to deliver all queued mail. This is  imple-
-              mented by kicking the <a href="qmgr.8.html"><b>qmgr</b>(8)</a> daemon.
+              mented by executing the <a href="postqueue.1.html"><b>postqueue</b>(1)</a> command.
 
        <b>-q</b><i>interval</i> (ignored)
               The   interval   between   queue   runs.   Use  the
@@ -187,9 +185,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
               Schedule immediate delivery of  all  mail  that  is
               queued for the named <i>site</i>. This option accepts only
               <i>site</i> names that are eligible for the  "fast  flush"
-              service,  and  is  implemented by connecting to the
-              local SMTP server at <b>$myhostname</b>.  See <a href="flushd.8.html"><b>flush</b>(8)</a> for
-              more information about the "fast flush" service.
+              service,   and  is  implemented  by  executing  the
+              <a href="postqueue.1.html"><b>postqueue</b>(1)</a> command.  See <a href="flushd.8.html"><b>flush</b>(8)</a> for more infor-
+              mation about the "fast flush" service.
 
        <b>-qS</b><i>site</i>
               This  command  is  not  implemented. Use the slower
@@ -270,11 +268,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
        <b>fast</b><i>_</i><b>flush</b><i>_</i><b>domains</b>
               List of domains that will receive "fast flush" ser-
               vice  (default:  all  domains  that  this system is
-              willing to relay mail to).  This  greatly  improves
-              the  performance  of  the SMTP <b>ETRN</b> request, and of
-              the <b>sendmail</b> <b>-qR</b> command. For domains  not  in  the
-              list, Postfix simply attempts to deliver all queued
-              mail.
+              willing to relay mail to). This list specifies  the
+              domains  that  Postfix  accepts  in  the  SMTP <b>ETRN</b>
+              request and in the <b>sendmail</b> <b>-qR</b> command.
 
        <b>fork</b><i>_</i><b>attempts</b>
               Number of attempts to <b>fork</b>() a process before  giv-
@@ -315,13 +311,12 @@ SENDMAIL(1)                                           SENDMAIL(1)
 <b>SEE</b> <b>ALSO</b>
        <a href="pickup.8.html">pickup(8)</a> mail pickup daemon
        <a href="postalias.1.html">postalias(1)</a> maintain alias database
-       <a href="postdrop.1.html">postdrop(1)</a> privileged posting agent
+       <a href="postdrop.1.html">postdrop(1)</a> mail posting utility
        <a href="postfix.1.html">postfix(1)</a> mail system control
-       <a href="postkick.1.html">postkick(1)</a> kick a Postfix daemon
+       <a href="postqueue.1.html">postqueue(1)</a> mail queue control
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
-       <a href="showq.8.html">showq(8)</a> list mail queue
        <a href="smtpd.8.html">smtpd(8)</a> SMTP server
-       flushd(8) fast flush service
+       <a href="flushd.8.html">flush(8)</a> fast flush service
        syslogd(8) system logging
 
 <b>LICENSE</b>

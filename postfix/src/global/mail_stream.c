@@ -14,10 +14,11 @@
 /* .in -4
 /*	} MAIL_STREAM;
 /*
-/*	MAIL_STREAM *mail_stream_file(queue, class, service)
+/*	MAIL_STREAM *mail_stream_file(queue, class, service, mode)
 /*	const char *queue;
 /*	const char *class;
 /*	const char *service;
+/*	int	mode;
 /*
 /*	MAIL_STREAM *mail_stream_service(class, service)
 /*	const char *class;
@@ -42,7 +43,8 @@
 /*
 /*	mail_stream_file() opens a mail stream to a newly-created file and
 /*	arranges for trigger delivery at finish time. This call never fails.
-/*	But it may take forever.
+/*	But it may take forever. The mode argument specifies additional
+/*	file permissions that will be OR-ed in.
 /*
 /*	mail_stream_command() opens a mail stream to external command,
 /*	and receives queue ID information from the command. The result
@@ -137,7 +139,7 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
      * END record are discarded.
      */
     if (vstream_fflush(info->stream)
-	|| fchmod(vstream_fileno(info->stream), 0700)
+	|| fchmod(vstream_fileno(info->stream), 0700 | info->mode)
 #ifdef HAS_FSYNC
 	|| fsync(vstream_fileno(info->stream))
 #endif
@@ -205,12 +207,12 @@ int     mail_stream_finish(MAIL_STREAM * info, VSTRING *why)
 /* mail_stream_file - destination is file */
 
 MAIL_STREAM *mail_stream_file(const char *queue, const char *class,
-			              const char *service)
+			              const char *service, int mode)
 {
     MAIL_STREAM *info;
     VSTREAM *stream;
 
-    stream = mail_queue_enter(queue, 0600);
+    stream = mail_queue_enter(queue, 0600 | mode);
     if (msg_verbose)
 	msg_info("open %s", VSTREAM_PATH(stream));
 
@@ -221,6 +223,7 @@ MAIL_STREAM *mail_stream_file(const char *queue, const char *class,
     info->id = mystrdup(basename(VSTREAM_PATH(stream)));
     info->class = mystrdup(class);
     info->service = mystrdup(service);
+    info->mode = mode;
     return (info);
 }
 

@@ -108,7 +108,7 @@ VSTRING *readlline(VSTRING *buf, VSTREAM *fp, int *lineno)
     if (LEN(buf) > 0 && ISSPACE(*STR(buf))) {
 	msg_warn("%s: logical line must not start with whitespace: \"%.30s%s\"",
 		 VSTREAM_PATH(fp), STR(buf),
-		 LEN(buf) > 100 ? "..." : "");
+		 LEN(buf) > 30 ? "..." : "");
 	return (readlline(buf, fp, lineno));
     }
 

@@ -43,6 +43,6 @@ addresses (breaking down user@domain into user@, domain, user,
 @domain) that is normally done with Postfix access control tables,
 canonical maps and virtual maps.
 
-As a side effect, pcre maps can only match user@domain strings, so
-that regexps cannot be used for local alias database lookups.  That
-would be a security exposure anyway.
+An additional restriction is that regular expression tables cannot
+cannot be used for local alias database lookups.  That would be a
+security exposure anyway.
