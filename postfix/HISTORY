@@ -4147,3 +4147,12 @@ Apologies for any names omitted.
 	that cannot be represented with the off_t type that is used
 	by standard functions such as lseek(2). Problem reported
 	by Blaz Zupan @ amis.net.
+
+20000823
+
+	Feature: all this discussion about when to reject mail and
+	when not made me decide to implement a TCP-based map type
+	so that it becomes relatively simple to implement dynamic
+	access controls, for example, hold off mail from an unknown
+	client or sender until we have completed some investigation,
+	after which we will either reject or accept.

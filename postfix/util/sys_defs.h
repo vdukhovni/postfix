@@ -825,7 +825,7 @@ typedef int pid_t;
 #if __GNUC__ == 2 && __GNUC_MINOR__ >= 7
 #define PRINTFLIKE(x,y) __attribute__ ((format (printf, (x), (y))))
 #else
-#define PRINTFLIKE
+#define PRINTFLIKE(x,y)
 #endif
 #endif
 

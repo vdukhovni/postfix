@@ -156,6 +156,7 @@
 #include <dict.h>
 #include <dict_env.h>
 #include <dict_unix.h>
+#include <dict_tcp.h>
 #include <dict_dbm.h>
 #include <dict_db.h>
 #include <dict_nis.h>
@@ -180,6 +181,7 @@ typedef struct {
 static DICT_OPEN_INFO dict_open_info[] = {
     "environ", dict_env_open,
     "unix", dict_unix_open,
+    "tcp", dict_tcp_open,
 #ifdef HAS_DBM
     "dbm", dict_dbm_open,
 #endif
@@ -318,6 +320,7 @@ ARGV   *dict_mapnames()
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 
 /* Utility library. */
 
@@ -342,6 +345,8 @@ main(int argc, char **argv)
     char   *key;
     const char *value;
     int     ch;
+
+    signal(SIGPIPE, SIG_IGN);
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     while ((ch = GETOPT(argc, argv, "v")) > 0) {
@@ -380,7 +385,9 @@ main(int argc, char **argv)
 		vstream_printf("%s: deleted\n", key);
 	} else if (strcmp(cmd, "get") == 0 && key && !value) {
 	    if ((value = dict_get(dict, key)) == 0) {
-		vstream_printf("%s: not found\n", key);
+		vstream_printf("%s: %s\n", key,
+			       dict_errno == DICT_ERR_RETRY ?
+			       "soft error" : "not found");
 	    } else {
 		vstream_printf("%s=%s\n", key, value);
 	    }
@@ -388,7 +395,7 @@ main(int argc, char **argv)
 	    dict_put(dict, key, value);
 	    vstream_printf("%s=%s\n", key, value);
 	} else {
-	    vstream_printf("usage: del key|get key|put key=value");
+	    vstream_printf("usage: del key|get key|put key=value\n");
 	}
 	vstream_fflush(VSTREAM_OUT);
     }

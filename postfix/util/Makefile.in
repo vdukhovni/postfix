@@ -21,7 +21,8 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
-	sane_link.c unescape.c timed_read.c timed_write.c 
+	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
+	hex_quote.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -44,7 +45,8 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
-	sane_link.o unescape.o timed_read.o timed_write.o 
+	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
+	hex_quote.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -59,7 +61,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
-	watchdog.h spawn_command.h sane_fsops.h 
+	watchdog.h spawn_command.h sane_fsops.h dict_tcp.h hex_quote.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -75,7 +77,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
-	watchdog unescape
+	watchdog unescape hex_quote
 
 LIB_DIR	= ../lib
 INC_DIR	= ../include
@@ -249,6 +251,11 @@ unescape: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+hex_quote: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
 	set -e; for i in [a-z][a-z0-9]*.c; do \
@@ -260,7 +267,8 @@ depend: $(MAKES)
 stream_test: stream_test.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
-tests: valid_hostname_test mac_expand_test dict_test unescape_test
+tests: valid_hostname_test mac_expand_test dict_test unescape_test \
+	hex_quote_test
 
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
@@ -276,6 +284,12 @@ unescape_test: unescape unescape.in unescape.ref
 	./unescape <unescape.in | od -cb >unescape.tmp
 	diff -b unescape.ref unescape.tmp
 	rm -f unescape.tmp
+
+hex_quote_test: hex_quote
+	./hex_quote <hex_quote.c | od -cb >hex_quote.tmp
+	od -cb <hex_quote.c >hex_quote.ref
+	cmp hex_quote.ref hex_quote.tmp
+	rm -f hex_quote.ref hex_quote.tmp
 
 DB_TYPE	= `../postconf/postconf -h default_database_type`
 
@@ -416,6 +430,7 @@ dict_open.o: vstream.h
 dict_open.o: vbuf.h
 dict_open.o: dict_env.h
 dict_open.o: dict_unix.h
+dict_open.o: dict_tcp.h
 dict_open.o: dict_dbm.h
 dict_open.o: dict_db.h
 dict_open.o: dict_nis.h
@@ -445,6 +460,20 @@ dict_regexp.o: dict.h
 dict_regexp.o: argv.h
 dict_regexp.o: dict_regexp.h
 dict_regexp.o: mac_parse.h
+dict_tcp.o: dict_tcp.c
+dict_tcp.o: sys_defs.h
+dict_tcp.o: msg.h
+dict_tcp.o: mymalloc.h
+dict_tcp.o: vstring.h
+dict_tcp.o: vbuf.h
+dict_tcp.o: vstream.h
+dict_tcp.o: vstring_vstream.h
+dict_tcp.o: connect.h
+dict_tcp.o: iostuff.h
+dict_tcp.o: hex_quote.h
+dict_tcp.o: dict.h
+dict_tcp.o: argv.h
+dict_tcp.o: dict_tcp.h
 dict_unix.o: dict_unix.c
 dict_unix.o: sys_defs.h
 dict_unix.o: msg.h
@@ -465,6 +494,7 @@ doze.o: doze.c
 doze.o: sys_defs.h
 doze.o: msg.h
 doze.o: iostuff.h
+dup2_pass_on_exec.o: dup2_pass_on_exec.c
 duplex_pipe.o: duplex_pipe.c
 duplex_pipe.o: sys_defs.h
 duplex_pipe.o: iostuff.h
@@ -526,6 +556,12 @@ get_hostname.o: mymalloc.h
 get_hostname.o: msg.h
 get_hostname.o: valid_hostname.h
 get_hostname.o: get_hostname.h
+hex_quote.o: hex_quote.c
+hex_quote.o: sys_defs.h
+hex_quote.o: msg.h
+hex_quote.o: vstring.h
+hex_quote.o: vbuf.h
+hex_quote.o: hex_quote.h
 htable.o: htable.c
 htable.o: sys_defs.h
 htable.o: mymalloc.h
@@ -948,6 +984,7 @@ vstring_vstream.o: vstream.h
 vstring_vstream.o: vstring_vstream.h
 watchdog.o: watchdog.c
 watchdog.o: sys_defs.h
+watchdog.o: posix_signals.h
 watchdog.o: msg.h
 watchdog.o: mymalloc.h
 watchdog.o: watchdog.h
