@@ -286,8 +286,11 @@ DICT   *dict_pcre_open(const char *map, int unused_flags)
 
 	/* Search for second delimiter, handling backslash escape */
 	while (*p) {
-	    if (*p == re_delimiter &&
-		(p > vstring_str(line_buffer) && *(p - 1) != '\\'))
+	    if (*p == '\\') {
+		++p;
+		if (*p == 0)
+		    break;
+	    } else if (*p == re_delimiter)
 		break;
 	    ++p;
 	}
@@ -371,12 +374,12 @@ DICT   *dict_pcre_open(const char *map, int unused_flags)
 	else
 	    pcre_list->next = pl;
 	pcre_list = pl;
-    }
+}
 
-    vstring_free(line_buffer);
-    vstream_fclose(map_fp);
+vstring_free(line_buffer);
+vstream_fclose(map_fp);
 
-    return (&dict_pcre->dict);
+return (&dict_pcre->dict);
 }
 
 #endif					/* HAS_PCRE */

@@ -132,7 +132,9 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
     /*
      * Optionally append a null byte to key and value.
      */
-    if (dict_dbm->flags & DICT_DBM_TRY1NULL) {
+    if ((dict_dbm->flags & DICT_DBM_TRY1NULL)
+	&& strcmp(name, "YP_MASTER_NAME") != 0
+	&& strcmp(name, "YP_LAST_MODIFIED") != 0) {
 	dbm_key.dsize++;
 	dbm_value.dsize++;
     }

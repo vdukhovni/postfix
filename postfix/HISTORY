@@ -2416,13 +2416,31 @@ Apologies for any names omitted.
 19990324
 
 	Bugfix: missing map name in check_xxx_access restrictions
-	could casue a segmentation error. Lamont Jones, Hewlett-
+	could cause a segmentation error. Lamont Jones, Hewlett-
 	Packard.
 
 	Feature: forward_path configuration parameter (default:
 	$home/.forward$recipient_delimiter$extension,$home/.forward).
 	Based on initial code by Philip A.  Prindeville, Mirapoint,
 	Inc., USA.  Files:  local/dotforward.c.
+
+19990325
+
+	Workaround: Solaris NIS alias maps need special entries
+	(YP_MASTER_NAME, YP_LAST_MODIFIED). What's worse, normal
+	keys/values include a null byte at the end, but the YP_XXX
+	ones don't.  File: postalias/postalias.c.
+
+	Compatibility: Solaris NIS apparently does include a null
+	byte at the end of keys and values. File: util/sys_defs.h.
+
+	Feature: library support for config parameters that are
+	not $name expanded at program start-up. This was needed
+	for forward_path, and will also be needed to make message
+	headers customizable.
+
+	Bugfix: pcre didn't handle \\ right. Lamont Jones, Hewlett-
+	Packard. File: util/dict_pcre.c.
 
 Future:
 

@@ -51,6 +51,12 @@
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
+/* .IP "MAIL_SERVER_RAW_TABLE (CONFIG_STR_TABLE *)"
+/*	A table with configurable parameters, to be loaded from the
+/*	global Postfix configuration file. Tables are loaded in the
+/*	order as specified, and multiple instances of the same type
+/*	are allowed. Raw parameters are not subjected to $name
+/*	evaluation.
 /* .IP "MAIL_SERVER_PRE_INIT (void *(void))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has read the global configuration file
@@ -369,6 +375,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    break;
 	case MAIL_SERVER_BOOL_TABLE:
 	    get_config_bool_table(va_arg(ap, CONFIG_BOOL_TABLE *));
+	    break;
+	case MAIL_SERVER_RAW_TABLE:
+	    get_config_raw_table(va_arg(ap, CONFIG_STR_TABLE *));
 	    break;
 	case MAIL_SERVER_PRE_INIT:
 	    pre_init = va_arg(ap, MAIL_SERVER_INIT_FN);

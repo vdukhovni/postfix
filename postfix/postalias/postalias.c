@@ -106,6 +106,7 @@
 #include <readline.h>
 #include <stringops.h>
 #include <split_at.h>
+#include <get_hostname.h>
 
 /* Global library. */
 
@@ -242,6 +243,13 @@ static void postalias(char *map_type, char *path_name, int incremental)
      * sendmail.
      */
     mkmap_append(mkmap, "@", "@");
+
+    /*
+     * NIS compatibility: add time and master info.
+     */
+    vstring_sprintf(value_buffer, "%010ld", (long) time((time_t *) 0));
+    mkmap_append(mkmap, "YP_LAST_MODIFIED", STR(value_buffer));
+    mkmap_append(mkmap, "YP_MASTER_NAME", get_hostname());
 
     /*
      * Close the alias database, and release the lock.

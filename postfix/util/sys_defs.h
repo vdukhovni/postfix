@@ -148,10 +148,9 @@ extern int opterr;
 #define GETTIMEOFDAY(t)	gettimeofday(t)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
 #define FIONREAD_IN_SYS_FILIO_H
-#define DBM_NO_TRAILING_NULL
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define STREAM_CONNECTIONS		/* connld module */
+#define STREAM_CONNECTIONS		/* avoid UNIX-domain sockets */
 #define LOCAL_LISTEN	stream_listen
 #define LOCAL_ACCEPT	stream_accept
 #define LOCAL_CONNECT	stream_connect

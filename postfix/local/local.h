@@ -124,13 +124,13 @@ typedef struct LOCAL_STATE {
 #define OPENED_ATTR(attr)	attr.queue_id, attr.sender
 #define COPY_ATTR(attr)		attr.sender, attr.delivered, attr.fp
 
-#define MSG_LOG_STATE(m, s) \
+#define MSG_LOG_STATE(m, p) \
 	msg_info("%s[%d]: local %s recip %s exten %s deliver %s", m, \
-                s.level, \
-		s.msg_attr.local ? s.msg_attr.local : "" , \
-		s.msg_attr.recipient ? s.msg_attr.recipient : "", \
-		s.msg_attr.extension ? s.msg_attr.extension : "", \
-		s.msg_attr.delivered ? s.msg_attr.delivered : "")
+                p.level, \
+		p.msg_attr.local ? p.msg_attr.local : "" , \
+		p.msg_attr.recipient ? p.msg_attr.recipient : "", \
+		p.msg_attr.extension ? p.msg_attr.extension : "", \
+		p.msg_attr.delivered ? p.msg_attr.delivered : "")
 
  /*
   * "inner" nodes of the delivery graph.

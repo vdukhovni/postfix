@@ -16,7 +16,7 @@ SRCS	= been_here.c bounce.c canon_addr.c clean_env.c cleanup_strerror.c \
 	resolve_clnt.c resolve_local.c rewrite_clnt.c sent.c smtp_stream.c \
 	split_addr.c string_list.c sys_exits.c timed_ipc.c tok822_find.c \
 	tok822_node.c tok822_parse.c tok822_resolve.c tok822_rewrite.c \
-	tok822_tree.c clnt_stream.c deliver_pass.c
+	tok822_tree.c clnt_stream.c deliver_pass.c config_raw.c
 OBJS	= been_here.o bounce.o canon_addr.o clean_env.o cleanup_strerror.o \
 	config.o config_bool.o config_int.o config_str.o debug_peer.o \
 	debug_process.o defer.o deliver_completed.o deliver_flock.o \
@@ -34,7 +34,7 @@ OBJS	= been_here.o bounce.o canon_addr.o clean_env.o cleanup_strerror.o \
 	resolve_clnt.o resolve_local.o rewrite_clnt.o sent.o smtp_stream.o \
 	split_addr.o string_list.o sys_exits.o timed_ipc.o tok822_find.o \
 	tok822_node.o tok822_parse.o tok822_resolve.o tok822_rewrite.o \
-	tok822_tree.o clnt_stream.o deliver_pass.o
+	tok822_tree.o clnt_stream.o deliver_pass.o config_raw.o
 HDRS	= been_here.h bounce.h canon_addr.h clean_env.h cleanup_user.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_request.h domain_list.h dot_lockfile.h \
@@ -286,6 +286,11 @@ config_int.o: ../include/vstream.h
 config_int.o: ../include/vbuf.h
 config_int.o: ../include/stringops.h
 config_int.o: config.h
+config_raw.o: config_raw.c
+config_raw.o: ../include/sys_defs.h
+config_raw.o: ../include/msg.h
+config_raw.o: ../include/mymalloc.h
+config_raw.o: config.h
 config_str.o: config_str.c
 config_str.o: ../include/sys_defs.h
 config_str.o: ../include/msg.h

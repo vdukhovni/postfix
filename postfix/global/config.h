@@ -45,6 +45,7 @@ extern const char *config_lookup_eval(const char *);
 extern char *get_config_str(const char *, const char *, int, int);
 extern int get_config_int(const char *, int, int, int);
 extern int get_config_bool(const char *, int);
+extern char *get_config_raw(const char *, const char *, int, int);
 
 extern int get_config_int2(const char *, const char *, int, int, int);
 
@@ -54,6 +55,7 @@ extern int get_config_int2(const char *, const char *, int, int, int);
 extern char *get_config_str_fn(const char *, const char *(*) (void), int, int);
 extern int get_config_int_fn(const char *, int (*) (void), int, int);
 extern int get_config_bool_fn(const char *, int (*) (void));
+extern char *get_config_raw_fn(const char *, const char *(*) (void), int, int);
 
  /*
   * Update dictionary.
@@ -91,6 +93,7 @@ typedef struct {
 extern void get_config_str_table(CONFIG_STR_TABLE *);
 extern void get_config_int_table(CONFIG_INT_TABLE *);
 extern void get_config_bool_table(CONFIG_BOOL_TABLE *);
+extern void get_config_raw_table(CONFIG_STR_TABLE *);
 
  /*
   * Tables to initialize parameters from the global configuration file or
@@ -121,6 +124,7 @@ typedef struct {
 extern void get_config_str_fn_table(CONFIG_STR_FN_TABLE *);
 extern void get_config_int_fn_table(CONFIG_INT_FN_TABLE *);
 extern void get_config_bool_fn_table(CONFIG_BOOL_FN_TABLE *);
+extern void get_config_raw_fn_table(CONFIG_STR_FN_TABLE *);
 
 /* LICENSE
 /* .ad

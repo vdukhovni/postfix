@@ -541,11 +541,8 @@ int     main(int argc, char **argv)
 	0,
     };
 
-    /*
-     * XXX We need to extend the config_XXX() interface to request no $name
-     * expansion in a given value or in the default value.
-     */
-    static CONFIG_STR_TABLE straight_str_table[] = {
+    /* Suppress $name expansion upon loading. */
+    static CONFIG_STR_TABLE raw_table[] = {
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	0,
     };
@@ -553,6 +550,7 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, local_service,
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       0);

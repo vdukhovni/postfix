@@ -255,8 +255,8 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	VSTRING_RESET(path);
 	mac_parse(lhs, dotforward_parse_callback, (char *) &fw_context);
 	if (fw_context.failures == 0) {
-	    lookup_status = lstat_as(STR(path), &st,
-				     usr_attr.uid, usr_attr.gid);
+	    lookup_status =
+		lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);
 	    if (msg_verbose)
 		msg_info("%s: path %s status %d", myname,
 			 STR(path), lookup_status);

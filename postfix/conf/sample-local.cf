@@ -24,6 +24,14 @@
 #
 #local_command_shell = /some/where/smrsh -c
 
+# The forward_path parameter specifies a search list. The first file
+# that is found is used. In the path you can specify $user (login
+# name), $home (home directory), $recipient_delimiter, and $extension
+# (address extension).
+#
+#forward_path = /var/forward/$user
+forward_path = $home/.forward$recipient_delimiter$extension,$home/.forward
+
 # The allow_mail_to_commands parameter restricts mail delivery to
 # external commands. The default is to disallow delivery to "|command"
 # in :include: files.
