@@ -10376,9 +10376,9 @@ Apologies for any names omitted.
 20050215
 
 	Bugfix: don't chmod queue files while running "postfix
-	set-permissions". This avoids mail inadvertantly being
-	labeled as "corrupt" when a live Postfix system is upgraded.
-	Found by Victor Duchovni.  File: conf/post-install.
+	set-permissions". This prevents mail from being labeled as
+	"corrupt" when a live Postfix system is upgraded.  Found
+	by Victor Duchovni.  File: conf/post-install.
 
 20050216
 

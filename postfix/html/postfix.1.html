@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - postfix(1) </title>
 </head> <body> <pre>
-POSTFIX(1)                                             POSTFIX(1)
+POSTFIX(1)                                                          POSTFIX(1)
 
 <b>NAME</b>
        postfix - Postfix control program
@@ -67,17 +67,21 @@ POSTFIX(1)                                             POSTFIX(1)
               setting for an already installed Postfix system.
 
               This feature is available in Postfix 2.1 and later.
+              With  Postfix  2.0  and  earlier,  use  "<b>/etc/post-</b>
+              <b>fix/post-install set-permissions</b>".
 
        <b>upgrade-configuration [</b><i>name</i>=<i>value ...</i><b>]</b>
-              Update the <b>main.cf</b> and <b>master.cf</b> files with  infor-
-              mation  that  Postfix needs in order to run: add or
-              update services, and add  or  update  configuration
+              Update  the <b>main.cf</b> and <b>master.cf</b> files with infor-
+              mation that Postfix needs in order to run:  add  or
+              update  services,  and  add or update configuration
               parameter settings.
 
-              Specify  <i>name</i>=<i>value</i> to override and update specific
+              Specify <i>name</i>=<i>value</i> to override and update  specific
               main.cf configuration parameters.
 
               This feature is available in Postfix 2.1 and later.
+              With  Postfix  2.0  and  earlier,  use  "<b>/etc/post-</b>
+              <b>fix/post-install upgrade-configuration</b>".
 
        The following options are implemented:
 
@@ -102,16 +106,16 @@ POSTFIX(1)                                             POSTFIX(1)
        variables before executing the <b>postfix-script</b> file:
 
        <b>MAIL_CONFIG</b>
-              This is set when the -c command-line option is pre-
-              sent.
+              This is set when  the  -c  command-line  option  is
+              present.
 
        <b>MAIL_VERBOSE</b>
-              This is set when the -v command-line option is pre-
-              sent.
+              This  is  set  when  the  -v command-line option is
+              present.
 
        <b>MAIL_DEBUG</b>
-              This is set when the -D command-line option is pre-
-              sent.
+              This is set when  the  -D  command-line  option  is
+              present.
 
 <b>CONFIGURATION PARAMETERS</b>
        The   following   <b>main.cf</b>   configuration  parameters  are
@@ -174,15 +178,15 @@ POSTFIX(1)                                             POSTFIX(1)
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
               The list of environment parameters that  a  Postfix
-              process  will import from a non-Postfix parent pro-
-              cess.
+              process  will  import  from  a  non-Postfix  parent
+              process.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The mail system name that is prepended to the  pro-
-              cess  name  in  syslog  records,  so  that  "smtpd"
+              The mail system  name  that  is  prepended  to  the
+              process  name  in  syslog  records, so that "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>FILES</b>
@@ -279,5 +283,5 @@ POSTFIX(1)                                             POSTFIX(1)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                       POSTFIX(1)
+                                                                    POSTFIX(1)
 </pre> </body> </html>
