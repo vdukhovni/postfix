@@ -84,10 +84,10 @@ ARGV   *mail_addr_crunch(const char *string, const char *extension)
 	tok822_externalize(extern_addr, tpp[0]->head, TOK822_STR_DEFL);
 	canon_addr_external(canon_addr, STR(extern_addr));
 	if (extension) {
+	    VSTRING_SPACE(canon_addr, extlen + 1);
 	    if ((ratsign = strrchr(STR(canon_addr), '@')) == 0) {
 		vstring_strcat(canon_addr, extension);
 	    } else {
-		VSTRING_SPACE(canon_addr, extlen + 1);
 		memmove(ratsign + extlen, ratsign, strlen(ratsign) + 1);
 		memcpy(ratsign, extension, extlen);
 		VSTRING_SKIP(canon_addr);

@@ -1,7 +1,6 @@
 This is a very first implementation of Postfix content filtering.
-A Postfix content filter re-injects filtered mail back into Postfix.
-If all you want is content _inspection_, see the INSPECT_README
-file instead.
+A Postfix content filter receives unfiltered mail from Postfix and
+re-injects filtered mail back into Postfix.
 
 It involves an incompatible change to queue file formats.  Older
 Postfix versions will reject mail that needs to be content filtered,

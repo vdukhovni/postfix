@@ -4055,12 +4055,6 @@ Apologies for any names omitted.
 	lying around after unsuccessful delivery (problem reported
 	by Brian Laughton @ Corp.Axxent.Ca).
 
-20000619
-
-	Workaround: if append_dot_mydomain=no, turn on parent domain
-	search in the Postfix SMTP client, so that mail does not
-	bounce. Files: smtp/smtp.c, smtp/smtp_unalias.c.
-
 20000621
 
 	AIX 4.x had POSIX regular expression support all the time
@@ -4127,7 +4121,7 @@ Apologies for any names omitted.
 	not exist, defer mail instead of bouncing it (which would
 	lose the mail if the bounce would have to be delivered to
 	that same non-existent relayhost). Problem reported by
-	Chris Cooper @ maths.ox.ac.uk.
+	Chris Cooper @ maths.ox.ac.uk. File: smtp/smtp_connect.c.
 
 20000821
 
@@ -4136,6 +4130,7 @@ Apologies for any names omitted.
 	Cleanup: smtpd now replies with 555 when the client sends
 	unrecognized RCPT TO parameters, as required by RFC 1869
 	(problem report by Robert Norris @ its.monash.edu.au).
+	File: smtpd/smtpd.c.
 
 20000822
 
@@ -4156,3 +4151,58 @@ Apologies for any names omitted.
 	access controls, for example, hold off mail from an unknown
 	client or sender until we have completed some investigation,
 	after which we will either reject or accept.
+
+20000905
+
+	Robustness: the dns client now rejects malformed domain
+	names rather than depending on the DNS to report that the
+	name does not exist. Linux returns a rather misleading
+	server failure code as found out by Patrik Rak. File:
+	dns/dns_lookup.c.
+
+20000911
+
+	Feature: added IGNORE keyword to header_checks and body_checks
+	to pretend that certain data does not exist. File:
+	cleanup/cleanup_message.c.
+
+20000911
+
+	Bugfix: the SASL code did not allow MAIL FROM... AUTH=sender
+	without prior authentication. The RFC allows this, although
+	one wonders what the reasoning behind this is. File:
+	smtpd/smtpd_sasl_proto.c.
+
+20000913
+
+	Bugfix: the rmail script did not handle remote UUCP systems
+	that send a from_ line with unqualified envelope sender.
+	Reported by Luciano Mannucci.
+
+	Compatibility: don't insert Sender: header lines. Sendmail
+	has not done so for at least 10 years, if it ever did.
+	Problem reported by Brad Knowles. File: cleanup/cleanup_message.c.
+
+20000916
+
+	Bugfix: when propagating an address extension in a virtual
+	or canonical mapping, cleanup accesses memory that is no
+	longer allocated. This can happen when the result address
+	length is more than 100 characters.  Problem reported by
+	Adi Prasaja @ satunet.com. File: global/mail_addr_crunch.c.
+
+	Bugfix: fixed a misleading error message when the cleanup
+	server reaches the queue file size limit. Fix by Robby
+	Griffin @ MIT.EDU.  File: cleanup/cleanup_extracted.c.
+
+20000917
+
+	Bugfix: postalias -i would complain about duplicate entries
+	for the Sendmail-compatible @ entry and for the NIS-compatible
+	YP_LAST_MODIFIED and YP_MASTER_NAME entries.
+
+20000918
+
+	Gross hack: prevent looping a bad recipient by always
+	forwarding recipients in :include: files, even when
+	owner-listname is not set. File: local/recipient.c.

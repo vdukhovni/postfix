@@ -43,6 +43,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        lowing:
 
            <i>virtual.domain</i>       <i>anything</i> (right-hand content does not matter)
+           <i>postmaster@virtual.domain</i>    <i>postmaster</i>
            <i>user1@virtual.domain</i> <i>address1</i>
            <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
 
@@ -57,8 +58,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
               Blank  lines  are  ignored,  as are lines beginning
               with `#'.
 
-       <i>pattern</i> <i>result</i>
-              When <i>pattern</i> matches a mail address, replace it  by
+
 
 
 
@@ -71,6 +71,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
+       <i>pattern</i> <i>result</i>
+              When <i>pattern</i> matches a mail address, replace it  by
               the corresponding <i>result</i>.
 
        With lookups from indexed files such as DB or DBM, or from
@@ -124,8 +126,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
        table,  until  a  pattern is found that matches the search
        string.
 
-       Results are the same as with normal indexed file  lookups,
-
 
 
                                                                 2
@@ -137,6 +137,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
+       Results are the same as with normal indexed file  lookups,
        with  the additional feature that parenthesized substrings
        from the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so  on.
 
@@ -184,7 +185,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
 
 
 

@@ -8,11 +8,9 @@ POSTFIX_DIR=${POSTFIX_DIR-/var/spool/postfix}
 cd ${POSTFIX_DIR}
 
 mkdir etc
-cp /etc/localtime /etc/services /etc/resolv.conf etc
+cp /etc/localtime /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
 mkdir -p usr/lib/zoneinfo
 ln -s /etc/localtime usr/lib/zoneinfo
 
-if [ -e /lib/libnss_dns.so.1 ]; then
-    mkdir lib
-    cp /lib/libnss_dns.so.1 lib
-fi
+mkdir lib
+cp /lib/libnss_* lib

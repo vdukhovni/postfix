@@ -176,10 +176,12 @@ char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	return ("503 Error: authentication disabled");
     }
+#if 0
     if (state->sasl_username == 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	return ("503 Error: send AUTH command first");
     }
+#endif
     if (state->sasl_sender != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	return ("503 Error: multiple AUTH= options");

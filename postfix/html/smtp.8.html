@@ -75,9 +75,6 @@ SMTP(8)                                                   SMTP(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>append</b><i>_</i><b>dot</b><i>_</i><b>mydomain</b>
-              Rewrite <i>user</i>@<i>host</i> to <i>user</i>@<i>host</i>.$<b>mydomain</b>.
-
        <b>best</b><i>_</i><b>mx</b><i>_</i><b>transport</b>
               Name  of  the  delivery  transport  to use when the
               local machine is the most-preferred mail  exchanger
@@ -126,6 +123,9 @@ SMTP(8)                                                   SMTP(8)
        <b>smtp</b><i>_</i><b>always</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
               Always send EHLO at the start of a connection.
 
+       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
+              Skip  servers that greet us with a 4xx status code.
+
 
 
                                                                 2
@@ -136,9 +136,6 @@ SMTP(8)                                                   SMTP(8)
 
 SMTP(8)                                                   SMTP(8)
 
-
-       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
-              Skip  servers that greet us with a 4xx status code.
 
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>5xx</b><i>_</i><b>greeting</b>
               Skip servers that greet us with a 5xx status  code.
@@ -191,6 +188,9 @@ SMTP(8)                                                   SMTP(8)
               ery.   The  default  limit  is   taken   from   the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
 
+<b>Timeout</b> <b>controls</b>
+       <b>smtp</b><i>_</i><b>connect</b><i>_</i><b>timeout</b>
+              Timeout in seconds for completing a TCP connection.
 
 
 
@@ -203,9 +203,6 @@ SMTP(8)                                                   SMTP(8)
 SMTP(8)                                                   SMTP(8)
 
 
-<b>Timeout</b> <b>controls</b>
-       <b>smtp</b><i>_</i><b>connect</b><i>_</i><b>timeout</b>
-              Timeout in seconds for completing a TCP connection.
               When no connection can be made within the deadline,
               the  SMTP client tries the next address on the mail
               exchanger list.
@@ -257,6 +254,9 @@ SMTP(8)                                                   SMTP(8)
        The Secure Mailer license must be  distributed  with  this
        software.
 
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
 
 
 
@@ -269,11 +269,11 @@ SMTP(8)                                                   SMTP(8)
 SMTP(8)                                                   SMTP(8)
 
 
-<b>AUTHOR(S)</b>
-       Wietse Venema
-       IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+
+
 
 
 

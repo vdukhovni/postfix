@@ -267,6 +267,8 @@ static void cleanup_header(CLEANUP_STATE *state)
 			 state->queue_id, header, state->sender,
 			 state->recip ? state->recip : "unknown");
 		state->errs |= CLEANUP_STAT_CONT;
+	    } else if (strcasecmp(value, "IGNORE") == 0) {
+		return;
 	    }
 	}
     }
@@ -346,12 +348,8 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
     }
 
     /*
-     * Add a missing (Resent-)From: header. If a (Resent-)From: header is
-     * present, see if we need a (Resent-)Sender: header.
+     * Add a missing (Resent-)From: header.
      */
-#define NOT_SPECIAL_SENDER(addr) (*(addr) != 0 \
-	   && strcasecmp(addr, mail_addr_double_bounce()) != 0)
-
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_FROM : HDR_FROM))) == 0) {
 	quote_822_local(state->temp1, *state->sender ?
@@ -366,15 +364,6 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 	    tok822_free_tree(token);
 	}
 	CLEANUP_OUT_BUF(state, REC_TYPE_NORM, state->temp2);
-    } else if ((state->headers_seen & (1 << (state->resent[0] ?
-				      HDR_RESENT_SENDER : HDR_SENDER))) == 0
-	       && NOT_SPECIAL_SENDER(state->sender)) {
-	from = (state->resent[0] ? state->resent_from : state->from);
-	if (from == 0 || strcasecmp(state->sender, from) != 0) {
-	    quote_822_local(state->temp1, state->sender);
-	    cleanup_out_format(state, REC_TYPE_NORM, "%sSender: %s",
-			       state->resent, vstring_str(state->temp1));
-	}
     }
 
     /*
@@ -508,6 +497,8 @@ static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int 
 			     state->queue_id, buf, state->sender,
 			     state->recip ? state->recip : "unknown");
 		    state->errs |= CLEANUP_STAT_CONT;
+		} else if (strcasecmp(value, "IGNORE") == 0) {
+		    return;
 		}
 	    }
 	}

@@ -42,8 +42,9 @@
 /*	data to stable storage, and truncate the destination
 /*	file to its original length in case of problems.
 /* .IP MAIL_COPY_FROM
-/*	Prepend a UNIX-style From_ line to the message, and append
-/*	an empty line to the end of the message.
+/*	Prepend a UNIX-style From_ line to the message.
+/* .IP MAIL_COPY_BLANK
+/*	Append an empty line to the end of the message.
 /* .IP MAIL_COPY_DELIVERED
 /*	Prepend a Delivered-To: header with the name of the
 /*	\fIdelivered\fR attribute.

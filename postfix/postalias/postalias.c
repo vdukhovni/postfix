@@ -264,6 +264,12 @@ static void postalias(char *map_type, char *path_name,
     }
 
     /*
+     * Update or append sendmail and NIS signatures.
+     */
+    if ((open_flags & O_TRUNC) == 0)
+	mkmap->dict->flags |= DICT_FLAG_DUP_REPLACE;
+
+    /*
      * Sendmail compatibility: add the @:@ signature to indicate that the
      * database is complete. This might be needed by NIS clients running
      * sendmail.
@@ -328,7 +334,7 @@ static int postalias_delete(const char *map_type, const char *map_name,
     dict = dict_open3(map_type, map_name, O_RDWR, DICT_FLAG_LOCK);
     status = dict_del(dict, key);
     dict_close(dict);
-    return (status);
+    return (status == 0);
 }
 
 /* usage - explain */

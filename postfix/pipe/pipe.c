@@ -33,8 +33,7 @@
 /* .IP \fBF\fR
 /*	Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 /*	the message content.
-/*	This is expected by, for example, \fBUUCP\fR software. The \fBF\fR
-/*	flag also causes an empty line to be appended to the message.
+/*	This is expected by, for example, \fBUUCP\fR software.
 /* .IP \fBR\fR
 /*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
 /*	address.

@@ -50,10 +50,6 @@
 #include <vstring.h>
 #include <msg.h>
 
-/* Global library. */
-
-#include <mail_params.h>
-
 /* DNS library. */
 
 #include <dns.h>
@@ -77,11 +73,8 @@ const char *smtp_unalias_name(const char *name)
      * after servicing a limited number of requests, so there is no need to
      * prevent the cache from growing too large, or to expire old entries.
      */
-    if (cache == 0) {
+    if (cache == 0)
 	cache = htable_create(10);
-	if (var_append_dot_mydomain == 0)
-	    smtp_unalias_flags |= RES_DNSRCH;
-    }
 
     /*
      * Look up the fqdn. If none is found use the query name instead, so that
