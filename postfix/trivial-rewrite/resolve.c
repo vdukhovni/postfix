@@ -72,7 +72,6 @@
 #include <mail_conf.h>
 #include <quote_822_local.h>
 #include <tok822.h>
-#include <local_transport.h>
 
 /* Application-specific. */
 
@@ -181,8 +180,8 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 
     /*
      * Non-local delivery, presumably. Set up the default remote transport
-     * specified with var_local_transports. Use the destination's mail
-     * exchanger unless a default mail relay is specified with var_relayhost.
+     * specified with var_def_transport. Use the destination's mail exchanger
+     * unless a default mail relay is specified with var_relayhost.
      */
     else if (domain != 0) {
 	vstring_strcpy(channel, var_def_transport);
@@ -197,7 +196,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * next-hop hostname (myself).
      */
     else {
-	vstring_strcpy(channel, get_def_local_transport());
+	vstring_strcpy(channel, var_local_transport);
 	vstring_strcpy(nexthop, var_myhostname);
     }
 

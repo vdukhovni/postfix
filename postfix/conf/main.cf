@@ -277,14 +277,17 @@ mail_owner = postfix
 # mail to.  See the smtpd_recipient_restrictions restriction in the
 # file sample-smtpd.cf.
 #
-# By default, Postfix relays mail from clients whose IP address
-# matches $mynetworks, and from clients or to destination domains
-# matching $relay_domains or subdomains thereof. The default
-# relay_domains value is $mydestination.
+# By default, Postfix relays mail
+# - from clients whose IP address matches $mynetworks, 
+# - from clients matching $relay_domains or subdomains thereof,
+# - to destinations that match $relay_domains or subdomains thereof.
+# The default relay_domains value is $mydestination.
 # 
-# By default, the Postfix SMTP server accepts mail for domains listed
-# in $mydestination and in $virtual_maps, and for destinations that
-# resolve to a mail delivery transport listed in $local_transports.
+# In addition to the above, the Postfix SMTP server by default accepts mail
+# that Postfix is final destination for:
+# - destinations that match $inet_interfaces,
+# - destinations that match $mydestination
+# - destinations that match $virtual_maps.
 # These destinations do not need to be listed in $relay_domains.
 # 
 # Specify a list of hosts or domains, /file/name patterns or type:name

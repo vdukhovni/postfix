@@ -149,6 +149,10 @@ clients this system accepts SMTP connections from.
 
 <dt>Default:
 
+<dd><b>smtpd_client_restrictions =</b>
+
+<p>
+
 <dd>Allow SMTP connections from any client.
 
 <p>
@@ -246,6 +250,10 @@ SMTP session.  Requiring this will stop some UCE software.
 
 <dt>Default:
 
+<dd><b>smtpd_helo_required = no</b>
+
+<p>
+
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
 does not require the use of <b>HELO</b> (<b>EHLO</b>).
 
@@ -275,8 +283,13 @@ UCE software can be stopped by being strict here.
 
 <dt>Default:
 
+<dd><b>smtpd_helo_restrictions =</b>
+
+<p>
+
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
-accepts any garbage in the <b>HELO</b> (<b>EHLO</b>) command.
+accepts any garbage in the <b>HELO</b> (<b>EHLO</b>) command. There
+is a lot of broken or misconfigured software on the Internet.
 
 <p>
 
@@ -296,7 +309,8 @@ on the client hostname or network address.
 
 <dt>Example:
 
-<dd> <b>smtpd_helo_restrictions = reject_invalid_hostname</b>
+<dd> <b>smtpd_helo_restrictions = permit_mynetworks,
+reject_invalid_hostname</b>
 
 <p>
 
@@ -389,8 +403,11 @@ the response code for <b>REJECT</b> results (default:  <b>554</b>).
 
 The <b>strict_rfc821_envelopes</b> parameter controls how tolerant
 Postfix is with respect to addresses given in MAIL FROM or RCPT TO
-commands. Being strict to the RFC not only stops unwanted mail,
-but also blocks legitimate mail from poorly-written mail applications.
+commands. Unfortunately, the widely-used Sendmail program tolerates
+lots of non-standard behavior, so a lot of software expects to get
+away with it.  Being strict to the RFC not only stops unwanted
+mail, it also blocks legitimate mail from poorly-written mail
+applications.
 
 <p>
 
@@ -398,10 +415,15 @@ but also blocks legitimate mail from poorly-written mail applications.
 
 <dt> Default:
 
+<dd><b>strict_rfc821_envelopes = no</b>
+
+<p>
+
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
-accepts any address form that it can make sense of, including forms
-that contain RFC 822-style comments, or addresses not enclosed in
-&lt;&gt;.
+accepts any address form that it can make sense of, including
+address forms that contain RFC 822-style comments, or addresses
+not enclosed in &lt;&gt;. There is a lot of broken or misconfigured
+software out there on the Internet.
 
 <p>
 
@@ -423,6 +445,10 @@ addresses this system accepts in MAIL FROM commands.
 <dl>
 
 <dt> Default:
+
+<dd><b>smtpd_sender_restrictions =</b>
+
+<p>
 
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
 accepts any sender address.
@@ -446,7 +472,8 @@ network address.
 
 <dt> Example:
 
-<dd> <b>smtpd_sender_restrictions = reject_unknown_sender_domain</b>
+<dd> <b>smtpd_sender_restrictions = hash:/etc/postfix/access,
+reject_unknown_sender_domain</b>
 
 <p>
 
@@ -535,23 +562,49 @@ recipient addresses this system accepts in RCPT TO commands.
 
 <dl>
 
-<dt>Default:
+<dt>Default: 
 
-<dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
-relays mail from any client whose IP address matches <a
-href="basic.html#mynetworks">$mynetworks</a> or whose hostname
-matches <a href="#relay_domains">$relay_domains</a> or a subdomain
-thereof, and relays mail to any destination that matches <a
-href="#relay_domains"> $relay_domains</a> or a subdomain thereof.
+<dd><b>smtpd_recipient_restrictions = permit_mynetworks, check_relay_domains</b>
 
 <p>
 
-In addition, the Postfix <a href="smtpd.8.html">SMTP server</a> by
-default accepts mail for which Postfix is the final destination:
-anything that matches <a href="basic.html#mydomain">$mydomain</a>,
-<a href="basic.html#mynetworks">$mynetworks</a> or <a
-href="virtual.5.html">$virtual_maps</a>, or anything that resolves
-to a mail delivery transport whose name is listed in $local_transports.
+<dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
+relays mail:
+
+<p>
+
+<ul>
+
+<li>from clients whose IP address matches <a
+href="basic.html#mynetworks">$mynetworks</a>,
+
+<li>from clients whose hostname matches <a
+href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+
+<li>to destinations that match <a href="#relay_domains">
+$relay_domains</a> or a subdomain thereof.
+
+</ul>
+
+<p>
+
+In addition to the above, the Postfix <a href="smtpd.8.html">SMTP
+server</a> by default accepts mail for which Postfix is the final
+destination:
+
+<p>
+
+<ul>
+
+<li>to destinations that match <a
+href="basic.html#inet_interfaces">$inet_interfaces</a>,
+
+<li>to destinations that match <a
+href="basic.html#mydestination">$mydestination</a>,
+
+<li>to destinations that match <a href="virtual.5.html">$virtual_maps</a>.
+
+</ul>
 
 <p>
 
@@ -580,21 +633,36 @@ reject_unauth_destination</b>
 
 <p>
 
+<dd><i>Note: you must specify at least one of the following
+restrictions: </i><b>reject</b>, <b>check_relay_domains</b> or
+<b>reject_unauth_destination</b>. <i>Postfix will refuse to
+receive mail otherwise. </i>
+
+<p>
+
 <dt> Restrictions:
 
 <dl>
 
 <a name="check_relay_domains">
 
-<dt> <b>check_relay_domains</b> <dd> Permit the request when the
-client hostname matches <a href="#relay_domains">$relay_domains</a>
-or a subdomain thereof, or when the resolved destination address
-matches <a href="#relay_domains">$relay_domains</a> or a subdomain
-thereof, or when Postfix is the final destination:  anything that
-matches <a href="basic.html#mydomain">$mydomain</a>, <a
-href="basic.html#mynetworks">$mynetworks</a> or <a
-href="virtual.5.html">$virtual_maps</a>, or anything that resolves
-to a mail delivery transport whose name is listed in $local_transports.
+<dt> <b>check_relay_domains</b> <dd> Permit the request when 
+
+<ul>
+
+<li>the client hostname matches <a href="#relay_domains">$relay_domains</a>
+or a subdomain thereof,
+
+<li>the resolved destination address matches <a
+href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+
+<li>Postfix is the final destination:  any destination that matches
+<a href="basic.html#mydestination">$mydestination</a>, <a
+href="basic.html#inet_interfaces">$inet_interfaces</a> or <a
+href="virtual.5.html">$virtual_maps</a>.
+
+</ul>
+
 Otherwise reject the request.  The <b>relay_domains_reject_code</b>
 parameter specifies the response code for rejected requests (default:
 <b>554</b>).
@@ -604,27 +672,41 @@ parameter specifies the response code for rejected requests (default:
 <a name="permit_auth_destination">
 
 <dt> <b>permit_auth_destination</b> <dd> Ignore the client hostname.
-Permit the request when the resolved destination address matches
-<a href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
-or when Postfix is the final destination:  anything that matches
-<a href="basic.html#mydomain">$mydomain</a>, <a
-href="basic.html#mynetworks">$mynetworks</a> or <a
-href="virtual.5.html">$virtual_maps</a>, or anything that resolves
-to a mail delivery transport whose name is listed in $local_transports.
+Permit the request when:
+
+<ul>
+
+<li>the resolved destination address matches <a
+href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+
+<li>Postfix is the final destination:  any destination that matches
+<a href="basic.html#mydestination">$mydestination</a>, <a
+href="basic.html#inet_interfaces">$inet_interfaces</a> or <a
+href="virtual.5.html">$virtual_maps</a>.
+
+</ul>
+
+Otherwise proceed with the next restriction. 
 
 <p>
 
 <a name="reject_unauth_destination">
 
 <dt> <b>reject_unauth_destination</b> <dd> Ignore the client
-hostname.  Reject the request when the resolved destination address
-does not match <a href="#relay_domains"> $relay_domains</a> or a
-subdomain thereof, and when Postfix is not the final destination.
-Postfix is final destination for anything that matches <a
-href="basic.html#mydomain">$mydomain</a>, <a
-href="basic.html#mynetworks">$mynetworks</a> or <a
-href="virtual.5.html">$virtual_maps</a>, or anything that resolves
-to a mail delivery transport whose name is listed in $local_transports.
+hostname.  Reject the request unless:
+
+<ul>
+
+<li>the resolved destination address matches <a
+href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+
+<li>Postfix is the final destination:  any destination that matches
+<a href="basic.html#mydestination">$mydestination</a>, <a
+href="basic.html#inet_interfaces">$inet_interfaces</a> or <a
+href="virtual.5.html">$virtual_maps</a>.
+
+</ul>
+
 The <b>relay_domains_reject_code</b> parameter specifies the response
 code for rejected requests (default:  <b>554</b>).
 
@@ -736,12 +818,16 @@ useful results with the <a href="aliases.5.html">aliases</a> and
 <h2> ETRN command restrictions</h2>
 
 Not really an UCE restriction, the <b>smtpd_etrn_restrictions</b>
-parameter restricts what domains may be specified in ETRN commands,
-and what clients may issue ETRN commands.
+parameter restricts what domains can be specified in ETRN commands,
+and what clients can issue ETRN commands.
 
 <dl>
 
 <dt>Default:
+
+<dd><b>smtpd_etrn_restrictions =</b>
+
+<p>
 
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
 accepts any ETRN command from any client.
@@ -765,7 +851,8 @@ address.
 
 <dt> Example:
 
-<dd> <b>smtpd_etrn_restrictions = permit_mynetworks, reject</b>
+<dd> <b>smtpd_etrn_restrictions = permit_mynetworks,
+hash:/etc/postfix/etrn_access, reject</b>
 
 <p>
 
@@ -926,7 +1013,27 @@ restriction list.
 <dt>Default:
 
 <dd><b>relay_domains = <a href="basic.html#mydestination">
-$mydestination</a>, <a href="rewrite.html#virtual">$virtual_maps</a>.</b>
+$mydestination</a></b>
+
+<p>
+
+<dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
+relays mail:
+
+<p>
+
+<ul>
+
+<li>from clients whose IP address matches <a
+href="basic.html#mynetworks">$mynetworks</a>,
+
+<li>from clients whose hostname matches <a
+href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+
+<li>to destinations that match <a href="#relay_domains">
+$relay_domains</a> or a subdomain thereof.
+
+</ul>
 
 <p>
 

@@ -152,6 +152,7 @@ bool    var_swap_bangpath;
 bool    var_append_dot_mydomain;
 bool    var_append_at_myorigin;
 bool    var_percent_hack;
+char   *var_local_transport;
 
 /* rewrite_service - read request and send reply */
 
@@ -210,6 +211,7 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
 	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
+	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

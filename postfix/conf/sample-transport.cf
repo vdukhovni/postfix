@@ -4,14 +4,6 @@
 # This file contains example settings of Postfix configuration
 # parameters that control the optional transport table lookups.
 
-# The local_transports parameter defines the name of the default
-# transport for local mail delivery, plus zero or more names of
-# additional transports that are known to deliver locally. By default,
-# the SMTP server's UCE restrictions permit mail for any destination
-# that resolves to a mail delivery transport in $local_transports.
-#
-local_transports = local,cyrus
-
 # The transport_maps parameter specifies optional tables with domain
 # to (transport, nexthop) mappings. See transport(5) for syntax details.
 #

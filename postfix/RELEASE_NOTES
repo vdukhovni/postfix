@@ -1,10 +1,10 @@
-Incompatible changes with snapshot 19991219
+Incompatible changes with snapshot 19991223
 ===========================================
 
-- The experimental permit_recipient_map feature is gone. It was
-never part of an official release.  It is replaced by a
-"local_recipient_map" parameter that allows the SMTP server to
-reject mail for unknown local users (see below).
+- The experimental permit_recipient_map and local_transports features
+are gone. They were never part of an official release.  Both are
+replaced by a "local_recipient_map" parameter that allows the SMTP
+server to reject mail for unknown local users (see below).
 
 - In an SMTPD access map, an all-numeric right-hand side now means
 OK.  This is for better cooperation with out-of-band authentication
@@ -21,19 +21,30 @@ main.cf.
 SMTPD access control tables. Use the local_recipient_maps feature
 instead.
 
-- transport_maps entries override mydestination.  For every
-$mydestination domain that matches a transport map entry, or a
-parent domain of a transport map entry, you must now add a
-corresponding "domain.name local:" entry in your transport_maps.
-See the html/faq.html sections for firewalls and intranets.
+- transport_maps entries override mydestination.  If you use
+transport maps, it is better to always have explicit entries for
+all domain names you have in $mydestination.  See the html/faq.html
+sections for firewalls and intranets.
 
-Major changes with snapshot 19991219
+Major changes with snapshot 19991223
 ====================================
+
+- It is now much more difficult to configure Postfix as an open
+relay. The SMTP server requires that "smtpd_recipient_restrictions"
+contains at least one restriction that by default refuses mail (as
+is the default).  There were too many accidents with changes to
+the UCE restrictions.
+
+- The relay_domains parameter no longer needs to contain $virtual_maps.
 
 - Overhauled FAQ (html/faq.html) with many more examples.
 
+- Updated UCE documentation (html/uce.html) with more examples.
+More UCE configuration examples in sample configuration files.
+
 - Several little improvements to the installation procedure:
-relative symlinks, configurable directory for scratch files.
+relative symlinks, configurable directory for scratch files so the
+installation can be done without write access to the build tree.
 
 - Updated LDAP client code (John Hensley).
 

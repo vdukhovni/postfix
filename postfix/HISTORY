@@ -2600,7 +2600,7 @@ Apologies for any names omitted.
 19990410
 
 	Bugfix: auto-detection of changes to DB or DBM lookup
-	tables wan't done for TCP connections.
+	tables wasn't done for TCP connections.
 
 19990410
 
@@ -3412,7 +3412,12 @@ Apologies for any names omitted.
 
 19991217
 
-	Cleanup: no more UCE checks for VRFY commands.
+	Cleanup: no more UCE checks for VRFY commands. It still
+	reports unknown local/virtual users. File:  smtpd/smtpd_check.c.
+
+	Robustness: upon Postfix startup, report discrepancies
+	between system files inside and outside the chroot jail.
+	Files: conf/postfix-script-nosgid, conf/postfix-script-sgid.
 
 19991218
 
@@ -3422,17 +3427,47 @@ Apologies for any names omitted.
 19991219
 
 	Documentation: completely reorganized the FAQ and added
-	many new entries.
+	many new entries. Rewrote the UCE html documentation.
 
 	Cleanup: INSTALL.sh uses a configurable directory for
 	scratch files, so that it can install from a file system
 	that is not writable by the super-user.
 
+	Cleanup: INSTALL.sh gives helpful hints when the "mv"
+	command is unable to move symlinks across file system
+	boundaries.
+
 19991220
 
 	Cleanup: it is no longer necessary to list $virtual_maps
 	as part of the relay_domains definition. The SMTP server
-	now by default accepts mail for domains that match
-	$mydestination or $virtual_maps, or that resolve to a mail
-	delivery transport that is listed in $local_transport.
-	Files: smtpd/smtpd_check.c and lots of documentation.
+	now by default accepts mail for destinations that match
+	$inet_interfaces, $mydestination or $virtual_maps, whether
+	or not these are specified in relay_domains.  We still need
+	the ugly "virtual.domain whatever" hack in the virtual
+	maps. Files:  smtpd/smtpd_check.c and lots of documentation
+	and sample config files.
+
+19991221
+
+	Removed cyrus -q flag (ignore quotas) from the sample
+	master.cf file.
+
+19991223
+
+	Bugfix: smtpd should not check for unknown users when
+	running in stand-alone (sendmail -bs) mode. Problem
+	experienced by Chuck Mead.  File: smtpd/smtpd.c.
+
+	Retraction: the "local_transports" configuration parameter
+	is gone. Adjusted code and documentation accordingly.
+	Instead, use just one "local_transport" parameter with the
+	name of the default local transport. Files:  smtpd/smtpd_check.c,
+	qmgr/qmgr_message.c, trivial-rewrite/ resolve.c, local/resolve.c.
+
+	Feature: Postfix SMTPD now insists that the smtpd recipient
+	restrictions contain at least one restriction that by
+	default rejects mail. This should make it much more difficult
+	to change Postfix into an open relay.  File:  smtpd/smtpd_check.c.
+
+	Retraction: null-length inet_interfaces is too confusing.

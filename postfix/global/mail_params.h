@@ -81,11 +81,11 @@ extern char *var_myhostname;
 extern char *var_mydomain;
 
  /*
-  * Transports that deliver locally. Order matters.
+  * The default local delivery transport.
   */
-#define VAR_LOCAL_TRANSP	"local_transports"
-#define DEF_LOCAL_TRANSP	"local,cyrus"
-extern char *var_local_transports;
+#define VAR_LOCAL_TRANSPORT	"local_transport"
+#define DEF_LOCAL_TRANSPORT	"local"
+extern char *var_local_transport;
 
  /*
   * Where to send postmaster copies of bounced mail, and other notices.

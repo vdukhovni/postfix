@@ -109,14 +109,12 @@ VSTREAM *mail_connect_wait(const char *class, const char *name)
      * XXX Solaris workaround for ECONNREFUSED on a busy socket.
      */
     while ((stream = mail_connect(class, name, BLOCKING)) == 0) {
-	if (errno == ECONNREFUSED || errno == ENOENT) {
-	    if (count++ >= 10) {
-		msg_fatal("connect #%d to subsystem %s/%s: %m",
-			  count, class, name);
-	    } else {
-		msg_warn("connect #%d to subsystem %s/%s: %m",
-			 count, class, name);
-	    }
+	if (count++ >= 10) {
+	    msg_fatal("connect #%d to subsystem %s/%s: %m",
+		      count, class, name);
+	} else {
+	    msg_warn("connect #%d to subsystem %s/%s: %m",
+		     count, class, name);
 	}
 	sleep(10);				/* XXX make configurable */
     }

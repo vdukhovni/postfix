@@ -57,7 +57,6 @@
 /*	time_t	var_starttime;
 /*	int	var_ownreq_special;
 /*	int	var_daemon_timeout;
-/*	char	*var_local_transports;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -162,7 +161,6 @@ int     var_soft_bounce;
 time_t  var_starttime;
 int     var_ownreq_special;
 int     var_daemon_timeout;
-char   *var_local_transports;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -261,7 +259,7 @@ void    mail_params_init()
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,
-	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 0, 0,
+	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 1, 0,
 	VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender, 1, 0,
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
 	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 1, 0,
@@ -269,7 +267,6 @@ void    mail_params_init()
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
 	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 1,
-	VAR_LOCAL_TRANSP, DEF_LOCAL_TRANSP, &var_local_transports, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

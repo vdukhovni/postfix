@@ -39,7 +39,7 @@ depend_update:
 tidy:	clean
 	rm -f Makefile */Makefile
 	cp Makefile.init Makefile
-	-rm -f *core */*core .nfs* .pure bin/* lib/* include/* libexec/* \
+	-rm -f junk *core */*core .nfs* .pure bin/* lib/* include/* libexec/* \
 	*/.nfs* */.pure *.out */*.out */*.db */*.a *~ */*~ *- */*- *.orig \
 	*/*.orig *.bak */*.bak make.err conf/main.cf.default
 	find . -type s -print | xargs rm -f

@@ -3,7 +3,7 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	debug_peer.c debug_process.c defer.c deliver_completed.c \
 	deliver_flock.c deliver_pass.c deliver_request.c domain_list.c \
 	dot_lockfile.c dot_lockfile_as.c ext_prop.c file_id.c \
-	header_opts.c is_header.c local_transport.c mail_addr.c \
+	header_opts.c is_header.c mail_addr.c \
 	mail_addr_crunch.c mail_addr_find.c mail_addr_map.c \
 	mail_command_read.c mail_command_write.c mail_conf.c \
 	mail_conf_bool.c mail_conf_int.c mail_conf_raw.c mail_conf_str.c \
@@ -22,7 +22,7 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
 	dot_lockfile.o dot_lockfile_as.o ext_prop.o file_id.o \
-	header_opts.o is_header.o local_transport.o mail_addr.o \
+	header_opts.o is_header.o mail_addr.o \
 	mail_addr_crunch.o mail_addr_find.o mail_addr_map.o \
 	mail_command_read.o mail_command_write.o mail_conf.o \
 	mail_conf_bool.o mail_conf_int.o mail_conf_raw.o mail_conf_str.o \
@@ -41,7 +41,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
 	dot_lockfile.h dot_lockfile_as.h ext_prop.h file_id.h \
-	header_opts.h is_header.h local_transport.h mail_addr.h \
+	header_opts.h is_header.h mail_addr.h \
 	mail_addr_crunch.h mail_addr_find.h mail_addr_map.h mail_conf.h \
 	mail_copy.h mail_date.h mail_error.h mail_flush.h mail_open_ok.h \
 	mail_params.h mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h \

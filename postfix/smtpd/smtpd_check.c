@@ -122,20 +122,20 @@
 /*	Allow the request when either the client hostname or the resolved
 /*	recipient domain matches the \fIrelay_domains\fR configuration
 /*	parameter or a subdomain therereof, or when the destination somehow
-/*	resolves locally (see $mydestination, $virtual_maps or
-/*	$local_transports).  Reject the request otherwise.
+/*	resolves locally ($inet_interfaces, $mydestination or $virtual_maps).
+/*	Reject the request otherwise.
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
 /* .IP permit_auth_destination
 /*	Permit the request when the resolved recipient domain matches the
 /*	\fIrelay_domains\fR configuration parameter or a subdomain therereof,
-/*	or when the destination somehow resolves locally (see $mydestination,
-/*	$virtual_maps or $local_transports).
+/*	or when the destination somehow resolves locally ($inet_interfaces,
+/*	$mydestination or $virtual_maps).
 /* .IP reject_unauth_destination
 /*	Reject the request when the resolved recipient domain does not match
 /*	the \fIrelay_domains\fR configuration parameter or a subdomain
 /*	therereof, and when the destination does not somehow resolve locally
-/*	(see $mydestination, $virtual_maps or $local_transports).
+/*	($inet_interfaces, $mydestination or $virtual_maps).
 /*	Same error code as check_relay_domains.
 /* .IP reject_unauth_pipelining
 /*	Reject the request when the client has already sent the next request
@@ -277,7 +277,6 @@
 #include <mail_conf.h>
 #include <maps.h>
 #include <mail_addr_find.h>
-#include <local_transport.h>
 
 /* Application-specific. */
 
@@ -305,7 +304,9 @@ static VSTRING *query;
 static VSTRING *error_text;
 
  /*
-  * Pre-opened SMTP recipient maps.
+  * Pre-opened SMTP recipient maps so we can reject mail for unknown users.
+  * XXX This does not belong here and will eventually become part of the
+  * trivial-rewrite resolver.
   */
 static MAPS *local_rcpt_maps;
 static MAPS *rcpt_canon_maps;
@@ -376,6 +377,24 @@ static ARGV *smtpd_check_parse(const char *checks)
     return (argv);
 }
 
+/* check_required - make sure minimally-required restriction is present */
+
+static void check_required(char *name, ARGV *restrictions, char **required)
+{
+    char  **rest;
+    char  **reqd;
+    VSTRING *example;
+
+    for (rest = restrictions->argv; *rest; rest++)
+	for (reqd = required; *reqd; reqd++)
+	    if (strcmp(*rest, *reqd) == 0)
+		return;
+    example = vstring_alloc(10);
+    for (reqd = required; *reqd; reqd++)
+	vstring_sprintf_append(example, "%s ", *reqd);
+    msg_fatal("%s requires at least one of %s", name, STR(example));
+}
+
 /* smtpd_check_init - initialize once during process lifetime */
 
 void    smtpd_check_init(void)
@@ -384,6 +403,12 @@ void    smtpd_check_init(void)
     const char *name;
     const char *value;
     char   *cp;
+    static char *rcpt_required[] = {
+	CHECK_RELAY_DOMAINS,
+	REJECT_UNAUTH_DEST,
+	REJECT_ALL,
+	0,
+    };
 
     /*
      * Pre-open access control lists before going to jail.
@@ -422,6 +447,12 @@ void    smtpd_check_init(void)
     etrn_restrctions = smtpd_check_parse(var_etrn_checks);
 
     /*
+     * People screw up the relay restrictions too often. Require that they
+     * list at least one restriction that rejects mail by default.
+     */
+    check_required(VAR_RCPT_CHECKS, rcpt_restrctions, rcpt_required);
+
+    /*
      * Parse the pre-defined restriction classes.
      */
     smtpd_rest_classes = htable_create(1);
@@ -441,7 +472,7 @@ void    smtpd_check_init(void)
      * as check_relay_domains in terms of more elementary restrictions.
      */
 #if 0
-    htable_enter("check_relay_domains",
+    htable_enter(smtpd_rest_classes, "check_relay_domains",
 	    smtpd_check_parse("permit_mydomain reject_unauth_destination"));
 #endif
 }
@@ -731,8 +762,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
      * mydestination or virtual_maps, or it resolves to any transport that
      * delivers locally.
      */
-    if (match_any_local_transport(STR(reply.transport))
-	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
     if (resolve_local(domain)
@@ -774,8 +804,7 @@ static int permit_auth_destination(char *recipient)
      * mydestination or virtual_maps, or it resolves to any transport that
      * delivers locally.
      */
-    if (match_any_local_transport(STR(reply.transport))
-	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
     if (resolve_local(domain)
@@ -815,8 +844,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
      * mydestination or virtual_maps, or it resolves to any transport that
      * delivers locally.
      */
-    if (match_any_local_transport(STR(reply.transport))
-	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
     if (resolve_local(domain)
@@ -921,8 +949,7 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
      * If the destination is local, it is acceptable, because we are
      * supposedly MX for our own address.
      */
-    if (match_any_local_transport(STR(reply.transport))
-	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
     if (resolve_local(domain)
@@ -1056,8 +1083,7 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr,
     /*
      * Skip local destinations and non-DNS forms.
      */
-    if (match_any_local_transport(STR(reply.transport))
-	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
     if (resolve_local(domain)
@@ -1868,9 +1894,9 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
     char   *domain;
 
     /*
-     * XXX This module does a lot of unnecessary guessing. The SMTP server
-     * (and presumably, pickup daemon) should run the envelopes through a
-     * rewriting service that does all the canonical and virtual mapping.
+     * XXX This module does a lot of unnecessary guessing. This functionality
+     * will eventually become part of the trivial-rewrite resolver, including
+     * the canonical and virtual mapping.
      */
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);

@@ -65,7 +65,7 @@ showq     unix	n	-	n	-	-	showq
 error     unix	-	-	n	-	-	error
 local	  unix	-	n	n	-	-	local
 cyrus	  unix	-	n	n	-	-	pipe
-    flags=R user=cyrus argv=/cyrus/bin/deliver -e -q -m ${extension} ${user}
+    flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
 uucp	  unix	-	n	n	-	-	pipe
     flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 ifmail    unix  -       n       n       -       -       pipe

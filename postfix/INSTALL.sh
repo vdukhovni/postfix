@@ -20,9 +20,9 @@ Before installing files, this script prompts you for some definitions.
 Most definitions will be remembered, so you have to specify them
 only once. All definitions have a reasonable default value.
 
-    tempdir - where to write scratch files
-
     install_root - prefix for installed file names (for package building)
+
+    tempdir - where to write scratch files
 
     config_directory - directory with Postfix configuration files.
     daemon_directory - directory with Postfix daemon programs.
@@ -60,9 +60,9 @@ compare_or_symlink() {
 	rm -f $tempdir/junk || exit 1
 	target=`echo $1 | sed '
 	    s;^'$install_root';;
-	    s;//;/;g
 	    s;/\./;/;g
-	    s;^/*;;
+	    s;//*;/;g
+	    s;^/;;
 	    H
 	    s;/[^/]*$;/;
 	    s;[^/]*/;../;g
@@ -72,7 +72,8 @@ compare_or_symlink() {
 	ln -s $target $tempdir/junk || exit 1
 	mv -f $tempdir/junk $2 || { 
 	    echo Error: your mv command is unable to rename symlinks. 1>&2
-	    echo If you run Linux, upgrade to GNU fileutils-4.0 or better. 1>&2
+	    echo If you run Linux, upgrade to GNU fileutils-4.0 or better, 1>&2
+	    echo or choose a tempdir that is in the same file system as $2. 1>&2
 	    exit 1
 	}
     }
@@ -94,8 +95,8 @@ esac
 
 # Default settings. Most are clobbered by remembered settings.
 
-tempdir=`pwd`
 install_root=/
+tempdir=`pwd`
 config_directory=/etc/postfix
 daemon_directory=/usr/libexec/postfix
 command_directory=/usr/sbin
@@ -109,7 +110,7 @@ manpages=/usr/local/man
 
 # Find out the location of configuration files.
 
-for name in tempdir install_root config_directory
+for name in install_root tempdir config_directory
 do
     while :
     do

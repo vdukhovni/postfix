@@ -110,7 +110,7 @@
 #include <deliver_completed.h>
 #include <mail_addr_find.h>
 #include <opened.h>
-#include <local_transport.h>
+#include <resolve_local.h>
 
 /* Client stubs. */
 
@@ -526,7 +526,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
 	 */
-	if (match_def_local_transport(STR(reply.transport))) {
+	if ((at = strrchr(STR(reply.recipient), '@')) == 0
+	    || resolve_local(at + 1)) {
 	    vstring_strcpy(reply.nexthop, STR(reply.recipient));
 	    (void) split_at_right(STR(reply.nexthop), '@');
 #if 0

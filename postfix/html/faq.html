@@ -72,7 +72,11 @@
 
 <li><a href="#verbose">Postfix breaks "sendmail -v"</a>
 
+<li><a href="#delayed">Postfix sends no "delayed mail" notices</a>
+
 <li><a href="#root">Root's mail is delivered to nobody</a>
+
+<li><a href="#bogus">Postfix accepts mail for non-existing users</a>
 
 <li><a href="#duplicate">Postfix sends duplicate mail</a>
 
@@ -88,6 +92,8 @@ distribution list</a>
 <a name="relaying"><h3>Mail relaying</h3>
 
 <ul>
+
+<li><a href="#open_relay">Help! Postfix is an open relay</a>
 
 <li><a href="#mobile">Relaying mail for mobile users</a>
 
@@ -111,6 +117,8 @@ virtual domains</a>
 <ul>
 
 <li><a href="#root">Root's mail is delivered to nobody</a>
+
+<li><a href="#bogus">Postfix accepts mail for non-existing users</a>
 
 <li><a href="#some_local">Delivering some users locally while
 sending mail as user@domain</a>
@@ -596,6 +604,35 @@ Postfix more secure than ordinary mailers.
 
 <hr>
 
+<a name="delayed"><h3>Postfix sends no "delayed mail" notices</h3>
+
+<blockquote>
+
+When I was using Sendmail, after 4 hours, it would always send a receipt
+back to the sender saying mail delivery is delayed.
+
+</blockquote>
+
+<p>
+
+In order to make Postfix send "delayed mail" notifications after
+four hours, specify:
+
+<p>
+
+<pre>
+    <b>/etc/postfix/main.cf</b>
+	delay_warning_time = 4
+</pre>
+
+<p>
+
+
+With Postfix, delayed mail notices are turned off by default -
+people get enough mail already.
+
+<hr>
+
 <a name="duplicate"><h3>Postfix sends duplicate mail</h3> </a>
 
 Some people will complain that Postfix sends duplicate messages.
@@ -647,6 +684,67 @@ Wietse believes that Postfix implements the "right" behavior,
 and suspects that Sendmail's default behavior is a remnant from a
 dark past when Sendmail used a pretty crummy algorithm to avoid
 aliasing loops.
+
+<hr>
+
+<a name="open_relay"><h3>Help! Postfix is an open relay</h3>
+
+According to some relay checking software, Postfix accepts
+mail for arbitrary non-local destinations:
+
+<p>
+
+<pre>
+    &gt;&gt;&gt; MAIL FROM:&lt;someone@some.where&gt;
+    &lt;&lt;&lt; 250 Ok
+    &gt;&gt;&gt; RCPT TO:&lt;test@some.other.site@your.site&gt;
+    &lt;&lt;&lt; 250 Ok
+    &gt;&gt;&gt; DATA
+    &lt;&lt;&lt; 354 End data with &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;
+    &gt;&gt;&gt; (message body)
+    &lt;&lt;&lt; 250 Ok: queued as A958F5A15
+</pre>
+
+
+<p>
+
+Don't Panic!
+
+<p>
+
+If the mail for domain <i>your.site</i> is handled by a Postfix
+machine, the mail bounces because <i>test@some.other.site</i> is
+not a known user in domain <i>your.site</i>.  In fact, the above
+mail is rejected immediately when the Postfix SMTP server is
+configured to <a href="#bogus">reject mail for unknown local
+users</a>.
+
+<p>
+
+However, there will be a problem when you are backup MX host for
+a domain that runs Sendmail, because many Sendmail configurations
+will forward the above mail to <i>test@some.other.site</i>.  The
+bad news is that your machine will be put on the black list because
+it accepted the mail, even though the problem is with the configuration
+of a Sendmail machine that is not under your control.
+
+<p>
+
+So, if you're MX relay for other sites it is prudent to block
+addresses with multiple address operators at the SMTP port, even
+though you would also block legitimate addresses.
+
+<p>
+
+<pre>
+    <b>/etc/postfix/main.cf:</b> 
+        smtpd_recipient_restrictions = 
+                regexp:/etc/postfix/regexp_access
+                ...other UCE restrictions...
+
+    <b>/etc/postfix/regexp_access</b>:
+        /[%!@].*[%!@]/ 550 Sender specified routing is not supported here.
+</pre>
 
 <hr>
 
@@ -936,6 +1034,49 @@ alias database.
 On some systems the alias database is not in <b>/etc/aliases</b>.
 To find out the location for your system, execute the command
 <b>postconf alias_maps</b>.
+
+<hr>
+
+<a name="bogus"><h3>Postfix accepts mail for non-existing users</h3>
+
+The information in this section applies to Postfix versions 19991216
+and later.
+
+<p>
+
+By default, the Postfix SMTP server does not know what local users
+exist, and will happily accept mail for <i>unknown@your.site</i>.
+The reason is that different local delivery agents have different
+types of user databases.
+
+<p>
+
+Of course mail for a non-existent local user will eventually bounce
+as undeliverable, but why accept such mail in the first place? You
+can tell the Postfix SMTP server how find out if a user exists by
+listing all tables with local addresses in the <b>local_recipient_maps</b>
+parameter:
+
+<p>
+
+<pre>
+    <b>/etc/postfix/main.cf</b>
+	local_recipient_maps = $alias_maps, unix:passwd.byname
+</pre>
+
+<p>
+
+The above should work on UNIX systems, provided that you use the
+Postfix local delivery agent. However, if you run the Postfix SMTP
+server chrooted, on some systems it will be necessary to have a
+copy of the passwd file inside the chroot jail (typically: in
+<b>/var/spool/postfix/etc</b>).
+
+<p>
+
+By default, the Postfix SMTP server does know about Postfix <a
+href="virtual.5.html">virtual</a> maps, and will reject mail for
+<i>unknown@virtual.domain</i> without further configuration.
 
 <hr>
 
@@ -1421,13 +1562,6 @@ domain name:
 
 <p>
 
-<li>Verify that
-the <a
-href="uce.html#relay_domains">relay_domains</a> parameter contains
-<b>$virtual_maps</b>. This is the default setting.
-
-<p>
-
 <li>Verify that the <a
 href="uce.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
 parameter contains a restriction that depends on <a
@@ -1648,7 +1782,7 @@ is willing to relay mail for.
 
 <pre>
     <b>/etc/postfix/main.cf</b>:
-        relay_domains = some.domain $mydestination $virtual_maps ...
+        relay_domains = some.domain $mydestination ...
 </pre>
 
 <p>
