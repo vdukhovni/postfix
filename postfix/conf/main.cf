@@ -1,5 +1,5 @@
 # Global Postfix configuration file. This file lists only a subset
-# of all 100+ parameters. See the sample-xxx.cf files for a full list.
+# of all 250+ parameters. See the sample-xxx.cf files for a full list.
 # 
 # The general format is lines with parameter = value pairs. Lines
 # that begin with whitespace continue the previous line. A value can
@@ -418,6 +418,11 @@ mail_owner = postfix
 # IGNORE the header line is silently discarded.
 # WARN   the header is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
+# FILTER transport:nexthop
+#	after the message is queued, send the entire message through
+#	a content filter. This requires different cleanup servers
+#	before and after the filter, with header/body checks turned
+#	off in the second cleanup server.
 #
 # By default, these patterns also apply to MIME headers and to the
 # headers of attached messages. With older Postfix versions, MIME and

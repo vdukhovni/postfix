@@ -26,6 +26,14 @@
 #	IGNORE		The line is silently discarded.
 #	WARN		The line is logged (not rejected) with a warning.
 #	WARN text....	As above, and the text is logged, too.
+#	FILTER transport:nexthop
+#			After the message is queued, send the entire
+#			message through a content filter. This
+#			requires different cleanup servers before
+#			and after the filter, with header/body
+#			checks turned off in the second cleanup
+#			server. More information about content filters
+#			is in the Postfix FILTER_README file.
 #
 #	Substitution of sub-strings from the matched expression is
 #	possible using the conventional perl syntax. The macros in the

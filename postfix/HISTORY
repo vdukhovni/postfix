@@ -6473,12 +6473,14 @@ Apologies for any names omitted.
 	Feature: new MIME parser, written from scratch, that
 	recognizes the structure of MIME encapsulated mail. Influenced
 	by comments from Victor Duchovny. This code can detect but
-	will not fix illegal MIME encapsulations that Liviu Daia
-	expresses concern about.  MIME header scanning now happens
-	in header_checks, and is faster than body_checks could ever
-	be. Thus also eliminates the problem with multi-line MIME
-	headers being matched one line at a time.  Files:
-	global/mime_state.[hc], cleanup/cleanup_message.c.
+	will not decode obscure MIME formats or obscure character
+	string encoding that Liviu Daia expresses concern about.
+
+	MIME header scanning now happens in header_checks, and is
+	faster than body_checks could ever be. This also eliminates
+	the problem with multi-line MIME headers being matched one
+	line at a time.  Files:  global/mime_state.[hc],
+	cleanup/cleanup_message.c.
 
 20020521-22
 
@@ -6486,12 +6488,12 @@ Apologies for any names omitted.
 	the Postfix SMTP client. File: smtp/smtp_proto.c.
 
 	Logging: the Postfix SMTP and LMTP clients now report the
-	stage of the protocol when they report a server reply.
-	File:  smtp/smtp_proto.c, lmtp/lmtp_proto.c.
+	the protocol stage when they report a server reply.  File:
+	smtp/smtp_proto.c, lmtp/lmtp_proto.c.
 
-	Bugfix: the SMTP server warned about ignored client
-	attributes (introduced in 20020510) in mail submitted with
-	"sendmail -bs".  File: smtpd/smtpd.c.
+	Bugfix: the SMTP server warned about ignored client attributes
+	(these were introduced 20020510) in mail that was submitted
+	with "sendmail -bs".  File: smtpd/smtpd.c.
 
 20020525
 
@@ -6521,19 +6523,29 @@ Apologies for any names omitted.
 
 	Feature: disable_mime_output_conversion=yes/no controls
 	whether Postfix will convert 8BITMIME to 7BIT mail when
-	delivering to an SMTP server that does not announce 8BITMIME.
-	Default is NO.
+	delivering mail to an SMTP server that does not announce
+	8BITMIME support.  Default is NO.
 
 	Feature: strict_8bitmime=yes/no controls whether Postfix
 	rejects 8-bit characters in headers and 7-bit body parts.
-	This blocks mail from poorly written software, as well as
-	mail that is piped into ancient /bin/mail implementations
-	that do not MIME format 8-bit content. Default is NO.
+	This blocks mail from poorly written software, including
+	majordomo approval requests that contain a valid 8BITMIME
+	email message, as well as mail that is piped into ancient
+	/bin/mail implementations that do not MIME format 8-bit
+	content. Default is NO.
 
 	Feature: strict_mime_encoding_domain=yes/no controls whether
 	Postfix rejects illegal content transfer encodings for
 	multipart/* and message/*. This blocks mail from poorly
 	written software. Default is NO.
+
+20020527
+
+	Feature: "FILTER transport:nexthop" in header/body checks.
+	After the message is queued, the message is sent through
+	a content filter. This requires different cleanup servers
+	before and after the filter, with header/body checks turned
+	off in the second cleanup server.
 
 Open problems:
 

@@ -12,36 +12,59 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.10-20020526
+Incompatible changes with Postfix snapshot 1.1.11-20020527
 ==========================================================
 
 Message headers in MIME attachments etc. are no longer matched by
 body_checks, one input line at a time. They are now by default
 matched by header_checks, one multi-line header at a time.  To get
-the old behavior, specify "disable_mime_input_processing = yes".
+the old behavior, specify "disable_mime_input_processing = yes",
+or specify separate patterns for header_checks, mime_header_checks
+and nested_header_checks. See conf/sample-mime.cf for details.
 
-Postfix rejects mail if the MIME multipart structure is nested more
-than mime_nesting_limit levels (default: 20) while receiving mail,
-or when Postfix is performing 8BITMIME to 7BIT conversion while
-delivering mail.
+Postfix now rejects mail if the MIME multipart structure is nested
+more than mime_nesting_limit levels (default: 20) when MIME input
+processing is enabled while receiving mail, or when Postfix is
+performing 8BITMIME to 7BIT conversion while delivering mail.
 
 Postfix now recognizes "name :" as a valid message header, but
 normalizes it to "name:" for consistency (actually, there is so
-much code in Postfix that would break with "name :" that there
-is little choice, except to not recognize "name :" headers).
+much code in Postfix that would break with "name :" that there is
+little choice, except to not recognize "name :" headers).
 
-Major changes with Postfix snapshot 1.1.10-20020526
+Queue files created with the header/body_checks "FILTER" feature
+are not compatible with "postqueue -r" (move queue files back to
+the maildrop directory) of previous Postfix releases.
+
+Major changes with Postfix snapshot 1.1.11-20020527
 ===================================================
 
-Postfix now properly recognizes MIME headers in attachments, which
-is much more efficient than recognizing them via body_checks.  In
-fact, Postfix now has three classes of header patterns:  header_checks
-(for primary message headers except MIME headers), mime_header_checks
-(for MIME headers), and nested_header_checks (for headers of attached
-email messages except MIME headers).  By default, all headers are
-matched with header_checks.  To revert to the the old behavior,
-specify "disable_mime_input_processing = yes".  More details in
-conf/sample-filter.cf.
+Postfix now has real MIME support. This improves content filtering
+efficiency and accuracy, and improves inter-operability with mail
+systems that cannot receive 8-bit mail. See conf/sample-mime.cf
+for details.
+
+Postfix header_checks now properly recognize MIME headers in
+attachments. This is much more efficient than previous versions
+that recognized MIME headers via body_checks.  MIME headers are
+now processed one multi-line header at a time, instead of one body
+line at a time.  
+
+In fact, Postfix now has three classes of header patterns:
+header_checks (for primary message headers except MIME headers),
+mime_header_checks (for MIME headers), and nested_header_checks
+(for headers of attached email messages except MIME headers).  By
+default, all headers are matched with header_checks.  To get the
+the old behavior, specify "disable_mime_input_processing = yes".
+More details in conf/sample-filter.cf.
+
+Selective content filtering. In header/body_check patterns, specify
+"FILTER transport:nexthop" for mail that needs filtering. This
+requires different cleanup servers before and after the filter,
+with header/body checks turned off in the second cleanup server.
+More info about content filtering is in the Postfix FILTER_README
+file. Examples for this new feature still need to be developed.
+This feature overrides the main.cf content_filter setting.
 
 The Postfix SMTP client will now convert 8BITMIME mail to 7BIT when
 delivering to an SMTP server that does not announce 8BITMIME support.
@@ -52,7 +75,8 @@ Postfix can enforce some aspects of the MIME standards while
 receiving mail. Specify "strict_8bitmime = yes" to disallow 8-bit
 characters except where allowed by the MIME standard, and specify
 "strict_mime_encoding_domain = yes" to block mail from poorly
-written mail software. More details in conf/sample-mime.cf.
+written mail software, including majordomo approval requests that
+contain valid 8BITMIME mail. More details in conf/sample-mime.cf.
 
 Incompatible changes with Postfix snapshot 1.1.10-20020514
 ==========================================================

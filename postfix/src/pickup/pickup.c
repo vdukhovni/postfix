@@ -212,7 +212,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		     (long) info->st.st_uid, attr_name, attr_value);
 	    continue;
 	}
-	if (type == REC_TYPE_FILT && *expected == REC_TYPE_ENVELOPE[0])
+	if (type == REC_TYPE_FILT && info->st.st_uid != var_owner_uid)
 	    continue;
 	else {
 

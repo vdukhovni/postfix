@@ -294,6 +294,16 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 		 cleanup_strerror(CLEANUP_STAT_CONT));
 	return (CLEANUP_ACT_KEEP);
     }
+    if (STREQUAL(value, "FILTER", command_len)) {
+	if (*optional_text == 0) {
+	    msg_warn("missing FILTER command argument in %s map", map_class);
+	} else {
+	    if (state->filter)
+		myfree(state->filter);
+	    state->filter = mystrdup(optional_text);
+	}
+	return (CLEANUP_ACT_KEEP);
+    }
     if (*optional_text)
 	msg_warn("unexpected text after command in %s map: %s",
 		 map_class, value);

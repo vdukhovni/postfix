@@ -5,14 +5,14 @@
 # parameters that control MIME processing.
 
 # Specify "yes" to disable special processing of Content-Type: headers
-# while receiving mail. This treats all text after the primary mail
+# while RECEIVING mail. This treats all text after the primary mail
 # headers as message body text, and disables the optional features
 # below that enforce some aspects of MIME standards.
 #
 disable_mime_input_processing = no
 
 # Specify "yes" to disable special processing of Content-Type: headers
-# while delivering mail. This treats all text after the primary mail
+# while DELIVERING mail. This treats all text after the primary mail
 # headers as message body text, and disables 8BITMIME to 7BIT conversion
 # when delivering mail to an SMTP server that does not announce
 # 8BITMIME support.
@@ -23,7 +23,7 @@ disable_mime_output_conversion = no
 # boundary strings. The MIME processor is unable to distinguish
 # between boundary strings that are identical in the first
 # $mime_boundary_length_limit characters. The default limit is the
-# input line length limit.
+# Postfix input line length limit.
 #
 mime_boundary_length_limit = 2048
 

@@ -378,11 +378,13 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->arrival_time == 0)
 		message->arrival_time = atol(start);
 	} else if (rec_type == REC_TYPE_FILT) {
-	    if (message->filter_xport == 0)
-		message->filter_xport = mystrdup(start);
+	    if (message->filter_xport != 0)
+		myfree(message->filter_xport);
+	    message->filter_xport = mystrdup(start);
 	} else if (rec_type == REC_TYPE_INSP) {
-	    if (message->inspect_xport == 0)
-		message->inspect_xport = mystrdup(start);
+	    if (message->inspect_xport != 0)
+		myfree(message->inspect_xport);
+	    message->inspect_xport = mystrdup(start);
 	} else if (rec_type == REC_TYPE_FROM) {
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);

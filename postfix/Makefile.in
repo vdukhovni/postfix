@@ -62,6 +62,7 @@ tidy:	clean
 	    *.orig */*.orig */*/*.orig \
 	    *.bak */*.bak */*/*.bak \
 	    make.err */make.err */*/make.err \
+	    *.gmon */*.gmon */*/*.gmon \
 	    conf/main.cf.default
 	find . -type s -print | xargs rm -f
 	find . -type d -print | xargs chmod 755

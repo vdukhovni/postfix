@@ -82,6 +82,14 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
     cleanup_out_string(state, REC_TYPE_XTRA, "");
 
     /*
+     * Put the optional content filter before the mandatory Return-Receipt-To
+     * and Errors-To so that the queue manager will pick up the filter name
+     * before starting deliveries.
+     */
+    if (state->filter != 0)
+	cleanup_out_string(state, REC_TYPE_FILT, state->filter);
+
+    /*
      * Older Postfix versions didn't emit encoding information, so this
      * record can only be optional. Putting this before the mandatory
      * Return-Receipt-To and Errors-To ensures that the queue manager will

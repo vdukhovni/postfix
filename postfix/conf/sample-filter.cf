@@ -16,6 +16,13 @@
 # IGNORE the header line is silently discarded.
 # WARN   the header is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
+# FILTER transport:nexthop
+#       after the message is queued, the message is sent through
+#       a content filter. This requires different cleanup servers
+#       before and after the filter, with header/body checks turned
+#       off in the second cleanup server. More info about content
+#	filtering is in the Postfix FILTER_README file. This feature
+#	overrides the main.cf content_filter setting.
 #
 # By default, these patterns apply the primary message headers, to
 # MIME headers, and to the headers of attached messages. With older
@@ -38,6 +45,13 @@ header_checks = regexp:/etc/postfix/header_checks
 # IGNORE the header line is silently discarded.
 # WARN   the header is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
+# FILTER transport:nexthop
+#       after the message is queued, the message is sent through
+#       a content filter. This requires different cleanup servers
+#       before and after the filter, with header/body checks turned
+#       off in the second cleanup server. More info about content
+#	filtering is in the Postfix FILTER_README file. This feature
+#	overrides the main.cf content_filter setting.
 #
 # By default, the same patterns are applied as for header_checks.
 #
@@ -56,6 +70,13 @@ mime_header_checks = $header_checks
 # IGNORE the header line is silently discarded.
 # WARN   the header is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
+# FILTER transport:nexthop
+#       after the message is queued, the message is sent through
+#       a content filter. This requires different cleanup servers
+#       before and after the filter, with header/body checks turned
+#       off in the second cleanup server. More info about content
+#	filtering is in the Postfix FILTER_README file. This feature
+#	overrides the main.cf content_filter setting.
 #
 # By default, the same patterns are applied as for header_checks.
 #
@@ -76,5 +97,12 @@ nested_header_checks = $header_checks
 # IGNORE the body line is silently discarded.
 # WARN   the body line is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
+# FILTER transport:nexthop
+#       after the message is queued, the message is sent through
+#       a content filter. This requires different cleanup servers
+#       before and after the filter, with header/body checks turned
+#       off in the second cleanup server. More info about content
+#	filtering is in the Postfix FILTER_README file. This feature
+#	overrides the main.cf content_filter setting.
 #
 body_checks = regexp:/etc/postfix/body_checks

@@ -89,6 +89,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->attr = nvtable_create(10);
     state->mime_state = 0;
     state->mime_errs = 0;
+    state->filter = 0;
     return (state);
 }
 
@@ -122,5 +123,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
     nvtable_free(state->attr);
     if (state->mime_state)
 	mime_state_free(state->mime_state);
+    if (state->filter)
+	myfree(state->filter);
     myfree((char *) state);
 }

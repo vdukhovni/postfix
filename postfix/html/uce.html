@@ -138,6 +138,14 @@ the originator.
 
 <dt>WARN text... <dd> As above, and also log the text.
 
+<dt>FILTER <i>transport</i>:<i>nexthop</i> <dd>
+After the message is queued, send the entire message through
+a content filter. This requires different cleanup servers
+before and after the filter, with header/body checks turned
+off in the second cleanup server. More details about content
+filtering are in the Postfix FILTER_README file. This feature
+overrides the main.cf <b>content_filter</b> setting.
+
 </dl>
 
 <p>
@@ -206,6 +214,14 @@ the originator.
 <dt>WARN <dd> Log (but do not reject) the matched line with a warning.
 
 <dt>WARN text... <dd> As above, and also log the text.
+
+<dt>FILTER <i>transport</i>:<i>nexthop</i> <dd>
+After the message is queued, send the entire message through
+a content filter. This requires different cleanup servers
+before and after the filter, with header/body checks turned
+off in the second cleanup server. More details about content
+filtering are in the Postfix FILTER_README file. This feature
+overrides the main.cf <b>content_filter</b> setting.
 
 </dl>
 
