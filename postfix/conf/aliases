@@ -16,6 +16,7 @@ nobody:		root
 uucp:		root
 www:		root
 ftp-bugs:	root
+postfix:	root
 
 # Put your local aliases here.
 

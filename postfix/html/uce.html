@@ -103,9 +103,14 @@ is allowed in message headers.
 
 <dt>Syntax:
 
-<dd>Specify a list of zero or more lookup tables. Whenever a
-header matches a table, a REJECT result means reject the
-message; an OK result means pass.
+<dd>Specify a list of zero or more lookup tables. Whenever a header
+matches a table, a REJECT result means reject the message. 
+
+<p>
+
+<i>A rule ending in OK affects only the header being matched. The
+next header may still result in a REJECT match, causing the mail
+still to be rejected.</i>
 
 </dl>
 
@@ -797,7 +802,7 @@ subdomain under any of the domains listed in <b>$maps_rbl_domains.</b>
 <dt> <b>relay_domains</b>
 
 <dd> This parameter controls the behavior of the <a
-href="#check_relay_domains"> check_relay_domains</a> and a
+href="#check_relay_domains"> check_relay_domains</a> and <a
 href="#reject_unauth_destination"> reject_unauth_destination</a>
 restrictions that can appear as part of a recipient address
 restriction list.

@@ -276,7 +276,7 @@ static void postalias(char *map_type, char *path_name,
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-c config_directory] [-i] [-v] [-w] [output_type:]file...",
+    msg_fatal("usage: %s [-c config_dir] [-i] [-v] [-w] [output_type:]file...",
 	      myname);
 }
 

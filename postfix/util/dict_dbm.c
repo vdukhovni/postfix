@@ -166,7 +166,7 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
      * Do the update.
      */
     if ((status = dbm_store(dict_dbm->dbm, dbm_key, dbm_value,
-       (dict->flags & DICT_FLAG_DUP_REPLACE) ? DBM_REPLACE : DBM_INSERT)) < 0)
+     (dict->flags & DICT_FLAG_DUP_REPLACE) ? DBM_REPLACE : DBM_INSERT)) < 0)
 	msg_fatal("error writing DBM database %s: %m", dict_dbm->path);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
@@ -385,6 +385,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     if (fstat(dict_dbm->dict.fd, &st) < 0)
 	msg_fatal("dict_dbm_open: fstat: %m");
     dict_dbm->dict.mtime = st.st_mtime;
+    close_on_exec(dbm_pagfno(dbm), CLOSE_ON_EXEC);
+    close_on_exec(dbm_dirfno(dbm), CLOSE_ON_EXEC);
     dict_dbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_dbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);

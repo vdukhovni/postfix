@@ -343,7 +343,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_cmd_exp_filter;
 
 #define VAR_FWD_EXP_FILTER	"forward_expansion_filter"
-#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,.\
+#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,./\
 abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_fwd_exp_filter;

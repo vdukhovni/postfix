@@ -20,6 +20,8 @@ update printfck:
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@) || exit 1; \
 	done
 
+printfck: update
+
 depend clean:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $@) || exit 1; \

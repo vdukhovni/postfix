@@ -389,6 +389,10 @@ like this:
 
     postfix:*:12345:12345:postfix:/no/where:/no/shell
 
+And there is a corresponding alias in /etc/aliases:
+
+    postfix: root
+
 Secondly, you must specify what domain will be appended to a
 local address. The "myorigin" parameter defaults to the local
 hostname, but that is probably OK only for very small sites.

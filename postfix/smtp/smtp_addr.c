@@ -324,8 +324,7 @@ static DNS_RR *smtp_find_self(DNS_RR *addr_list)
 
 /* smtp_truncate_self - truncate address list at self and equivalents */
 
-static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref,
-				          char *name, VSTRING *why)
+static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref, char *name)
 {
     DNS_RR *addr;
     DNS_RR *last;
@@ -336,11 +335,6 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref,
 		smtp_print_addr("truncated", addr);
 	    dns_rr_free(addr);
 	    if (last == 0) {
-		if (*var_bestmx_transp == 0) {
-		    vstring_sprintf(why, "mail for %s loops back to myself",
-				    name);
-		    smtp_errno = SMTP_FAIL;
-		}
 		addr_list = 0;
 	    } else {
 		last->next = 0;
@@ -369,6 +363,11 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
     unsigned best_found;
 
     /*
+     * Preferences from DNS use 0..32767, fall-backs use 32768+.
+     */
+#define IMPOSSIBLE_PREFERENCE	(~0)
+
+    /*
      * Sanity check.
      */
     if (var_disable_dns)
@@ -381,8 +380,19 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
      * preferred than myself. When no MX resource records exist, look up the
      * addresses listed for this name.
      * 
+     * Normally it is OK if an MX host cannot be found in the DNS; we'll just
+     * use a backup one, and silently ignore the better MX host. However, if
+     * the best backup that we can find in the DNS is the local machine, then
+     * we must remember that the local machine is not the primary MX host, or
+     * else we will claim that mail loops back.
+     * 
      * XXX Optionally do A lookups even when the MX lookup didn't complete.
      * Unfortunately with some DNS servers this is not a transient problem.
+     * 
+     * XXX Ideally we would perform A lookups only as far as needed. But as long
+     * as we're looking up all the hosts, it would be better to look up the
+     * least preferred host first, so that DNS lookup error messages make
+     * more sense.
      */
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
     default:
@@ -397,20 +407,29 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 	break;
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, smtp_compare_mx);
-	best_pref = (mx_names ? mx_names->pref : ~0);
+	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
-	best_found = (addr_list ? addr_list->pref : ~0);
+	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
 	if (*var_fallback_relay)
 	    addr_list = smtp_addr_fallback(addr_list);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
-	if ((self = smtp_find_self(addr_list)) != 0)
-	    addr_list = smtp_truncate_self(addr_list, self->pref, name, why);
-	if (addr_list == 0 && best_pref < best_found) {
-	    vstring_sprintf(why, "unable to find primary mail relay for %s",
-			    name);
-	    smtp_errno = SMTP_RETRY;
+	if ((self = smtp_find_self(addr_list)) != 0) {
+	    addr_list = smtp_truncate_self(addr_list, self->pref, name);
+	    if (addr_list == 0) {
+		if (best_pref != best_found) {
+		    vstring_sprintf(why, "unable to find primary relay for %s",
+				    name);
+		    smtp_errno = SMTP_RETRY;
+		} else if (*var_bestmx_transp != 0) {	/* we're best MX */
+		    smtp_errno = SMTP_OK;
+		} else {
+		    vstring_sprintf(why, "mail for %s loops back to myself",
+				    name);
+		    smtp_errno = SMTP_FAIL;
+		}
+	    }
 	}
 	break;
     case DNS_NOTFOUND:

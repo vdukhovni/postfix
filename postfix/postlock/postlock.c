@@ -200,21 +200,21 @@ int     main(int argc, char **argv)
 #ifdef USE_DOT_LOCK
     if (dot_lockfile(folder, why) < 0) {
 	if (errno == EEXIST) {
-	    msg_warn("dotlock file %s: %s", folder, vstring_str(why));
+	    msg_warn("%s", vstring_str(why));
 	    exit(EX_TEMPFAIL);
 	}
-	msg_fatal("dotlock file %s: %s", folder, vstring_str(why));
+	msg_fatal("%s", vstring_str(why));
     }
 #endif
     if (deliver_flock(fd, why) < 0) {
 	if (errno == EAGAIN) {
-	    msg_warn("lock %s: %s", folder, vstring_str(why));
+	    msg_warn("file %s: %s", folder, vstring_str(why));
 #ifdef USE_DOT_LOCK
 	    dot_unlockfile(folder);
 #endif
 	    exit(EX_TEMPFAIL);
 	}
-	msg_fatal("lock %s: %s", folder, vstring_str(why));
+	msg_fatal("file %s: %s", folder, vstring_str(why));
     }
 
     /*

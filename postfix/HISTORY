@@ -2993,5 +2993,18 @@ Apologies for any names omitted.
 	that rejects destinations not in $relay_domains.  By Lamont
 	Jones of Hewlett-Packard.  File: smtpd/smtpd_check.c.
 
-	Robustness: postconf now validates the syntax of all main.cf
-	parameters.
+	Security: do not allow weird characters in the expansion
+	of $names that appear in $forward_path. Just like with
+	shell commands, replace bad characters in expansions by
+	underscores.  Configuration parameter:  forward_expansion_filter.
+
+19990902
+
+	Documentation: added a sample postfix alias to the examples
+	in the INSTALL document and in the conf/aliases file.
+	Reminded by Simon J.  Mudd @ alltrading.com.
+
+19990903
+
+	Bugfix: in case of some error conditions the pickup daemon
+	could leak small amounts of memory.

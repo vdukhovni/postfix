@@ -43,6 +43,7 @@
 /*	Characters that may have special meaning to the shell or file system
 /*	are replaced by underscores.  The list of acceptable characters
 /*	is specified with the \fBforward_expansion_filter\fR configuration
+/*	parameter.
 /*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
 /*	commands, destination file names, \fB:include:\fR directives, or

@@ -169,8 +169,8 @@ smtpd_helo_restrictions =
 # Specify a list of restrictions, separated by commas and/or whitespace.
 # Continue long lines by starting the next line with whitespace.
 #
-# smtpd_sender_restrictions = reject_unknown_address
-# smtpd_sender_restrictions = reject_unknown_address, hash:/etc/postfix/access
+# smtpd_sender_restrictions = reject_unknown_sender_domain
+# smtpd_sender_restrictions = reject_unknown_sender_domain, hash:/etc/postfix/access
 smtpd_sender_restrictions = 
 
 # The smtpd_recipient_restrictions parameter specifies restrictions on
@@ -289,7 +289,8 @@ reject_code = 550
 relay_domains_reject_code = 550
 
 # The unknown_address_reject_code parameter specifies the SMTP server
-# response when a client violates the reject_unknown_address restriction.
+# response when a client violates the reject_unknown_sender_domain
+# or reject_unknown_recipient_domain restrictions.
 #
 # Do not change this unless you have a complete understanding of RFC 822.
 #

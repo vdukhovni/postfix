@@ -290,7 +290,7 @@ program_directory = /some/where/postfix/bin
 # is built-in. Specify "/^header-name: stuff you do not want/ REJECT"
 # in the pattern file. Patterns are case-insensitive by default. Note:
 # specify only patterns ending in REJECT. Patterns ending in OK are
-# a waste of cycles.
+# mostly a waste of cycles.
 #
 #header_checks = regexp:/etc/postfix/filename
 #header_checks = pcre:/etc/postfix/filename

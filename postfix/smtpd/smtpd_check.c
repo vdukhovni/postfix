@@ -125,9 +125,9 @@
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
 /* .IP reject_unauth_destination
-/*	Allow the request when the resolved recipient domain matches the
-/*	\fIrelay_domains\fR configuration parameter.  Reject the request
-/*	otherwise.  Same error code as check_relay_domains.
+/*	Reject the request when the resolved recipient domain does not match
+/*	the \fIrelay_domains\fR configuration parameter.  Same error code as
+/*	check_relay_domains.
 /* .IP permit_mx_backup
 /*	Allow the request when the local mail system is mail exchanger
 /*	for the recipient domain (this includes the case where the local
@@ -688,7 +688,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
     resolve_clnt_query(STR(query), &reply);
 
     /*
-     * Permit if destination is local. XXX This must be generalized for
+     * Pass if destination is local. XXX This must be generalized for
      * per-domain user tables and for non-UNIX local delivery agents.
      */
     if (STR(reply.nexthop)[0] == 0
@@ -697,13 +697,13 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
     domain += 1;
 
     /*
-     * Permit if the destination matches the relay_domains list.
+     * Pass if the destination matches the relay_domains list.
      */
     if (domain_list_match(relay_domains, domain))
 	return (SMTPD_CHECK_DUNNO);
 
     /*
-     * Deny relaying between sites that both are not in relay_domains.
+     * Reject relaying to sites that are not listed in relay_domains.
      */
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			       "%d <%s>: Relay access denied",

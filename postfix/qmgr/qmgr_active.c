@@ -127,29 +127,28 @@ static void qmgr_active_corrupt(const char *queue_id)
 
 /* qmgr_active_defer - defer queue file */
 
-static void qmgr_active_defer(QMGR_MESSAGE *message, time_t delay)
+static void qmgr_active_defer(const char *queue_name, const char *queue_id,
+			              int delay)
 {
     char   *myname = "qmgr_active_defer";
     const char *path;
     struct utimbuf tbuf;
 
     if (msg_verbose)
-	msg_info("wakeup %s after %ld secs", message->queue_id, (long) delay);
+	msg_info("wakeup %s after %ld secs", queue_id, (long) delay);
 
     tbuf.actime = tbuf.modtime = event_time() + delay;
-    path = mail_queue_path((VSTRING *) 0, message->queue_name,
-			   message->queue_id);
+    path = mail_queue_path((VSTRING *) 0, queue_name, queue_id);
     if (utime(path, &tbuf) < 0)
 	msg_fatal("%s: update %s time stamps: %m", myname, path);
-    if (mail_queue_rename(message->queue_id, message->queue_name,
-			  MAIL_QUEUE_DEFERRED)) {
+    if (mail_queue_rename(queue_id, queue_name, MAIL_QUEUE_DEFERRED)) {
 	if (errno != ENOENT)
 	    msg_fatal("%s: rename %s from %s to %s: %m", myname,
-	       message->queue_id, message->queue_name, MAIL_QUEUE_DEFERRED);
+		      queue_id, queue_name, MAIL_QUEUE_DEFERRED);
 	msg_warn("%s: rename %s from %s to %s: %m", myname,
-	       message->queue_id, message->queue_name, MAIL_QUEUE_DEFERRED);
+		 queue_id, queue_name, MAIL_QUEUE_DEFERRED);
     } else if (msg_verbose) {
-	msg_info("%s: defer %s", myname, message->queue_id);
+	msg_info("%s: defer %s", myname, queue_id);
     }
 }
 
@@ -218,7 +217,7 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 				      scan_info->flags)) == 0) {
 	qmgr_active_corrupt(queue_id);
     } else if (message == QMGR_MESSAGE_LOCKED) {
-	qmgr_active_defer(message, (time_t) var_min_backoff_time);
+	qmgr_active_defer(MAIL_QUEUE_ACTIVE, queue_id, var_min_backoff_time);
     } else {
 
 	/*
@@ -245,7 +244,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
     char   *myname = "qmgr_active_done";
     struct stat st;
     const char *path;
-    time_t  delay;
+    int     delay;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, message->queue_id);
@@ -359,7 +358,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 	} else {
 	    delay = var_min_backoff_time;
 	}
-	qmgr_active_defer(message, delay);
+	qmgr_active_defer(message->queue_name, message->queue_id, delay);
     }
 
     /*

@@ -231,8 +231,6 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * If the segment contains a recipient address, include the optional
      * always_bcc recipient.
      */
-    info->sender = 0;
-    info->rcpt = 0;
     if ((status = copy_segment(qfile, cleanup, info, buf, REC_TYPE_ENVELOPE)) != 0)
 	return (status);
     if (info->sender == 0) {
@@ -241,12 +239,10 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     }
     msg_info("%s: uid=%d from=<%s>", info->id,
 	     (int) info->st.st_uid, info->sender);
-    myfree(info->sender);
 
     if (info->rcpt) {
 	if (*var_always_bcc)
 	    rec_fputs(cleanup, REC_TYPE_RCPT, var_always_bcc);
-	myfree(info->rcpt);
     }
 
     /*
@@ -361,8 +357,29 @@ static int pickup_file(PICKUP_INFO *info)
     vstream_fclose(qfile);
     vstream_fclose(cleanup);
     vstring_free(buf);
-    myfree(info->id);
     return (status);
+}
+
+/* pickup_init - init info structure */
+
+static void pickup_init(PICKUP_INFO *info)
+{
+    info->id = 0;
+    info->path = 0;
+    info->sender = 0;
+    info->rcpt = 0;
+}
+
+/* pickup_free - wipe info structure */
+
+static void pickup_free(PICKUP_INFO *info)
+{
+#define SAFE_FREE(x) { if (x) myfree(x); }
+
+    SAFE_FREE(info->id);
+    SAFE_FREE(info->path);
+    SAFE_FREE(info->sender);
+    SAFE_FREE(info->rcpt);
 }
 
 /* pickup_service - service client */
@@ -395,6 +412,7 @@ static void pickup_service(char *unused_buf, int unused_len,
 	scan = scan_dir_open(queue_name);
 	while ((id = scan_dir_next(scan)) != 0) {
 	    if (mail_open_ok(queue_name, id, &info.st, &path) == MAIL_OPEN_YES) {
+		pickup_init(&info);
 		info.path = mystrdup(path);
 		if (pickup_file(&info) == REMOVE_MESSAGE_FILE) {
 		    if (REMOVE(info.path))
@@ -402,7 +420,7 @@ static void pickup_service(char *unused_buf, int unused_len,
 		    else
 			file_count++;
 		}
-		myfree(info.path);
+		pickup_free(&info);
 	    }
 	}
 	scan_dir_close(scan);

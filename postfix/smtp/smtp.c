@@ -215,7 +215,6 @@ int     smtp_errno;
 
 static int deliver_message(DELIVER_REQUEST *request)
 {
-    char   *myname = "deliver_message";
     VSTRING *why;
     SMTP_STATE *state;
     int     result;

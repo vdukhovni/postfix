@@ -245,6 +245,7 @@
 #include <safe.h>
 #include <iostuff.h>
 #include <stringops.h>
+#include <set_ugid.h>
 
 /* Global library. */
 
@@ -596,17 +597,18 @@ int     main(int argc, char **argv)
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
-     * Do not set[e]uid(getuid()). This allows the real user to manipulate
-     * the process, which is dangerous, because some systems do not reset the
-     * saved set-userid unless euid == 0.
+     * Some sites mistakenly install Postfix sendmail as set-uid root. Drop
+     * set-uid privileges only when root, otherwise some systems will not
+     * reset the saved set-userid, which would be a security vulnerability.
      */
-#ifdef WARN_SETXID_SENDMAIL
-    if (geteuid() != getuid())
-	msg_warn("sendmail is set-uid or is run from a set-uid process");
-    if (getegid() != getgid())
-	msg_warn("sendmail is set-gid or is run from a set-gid process");
-#endif
+    if (geteuid() == 0 && getuid() != 0) {
+	msg_warn("sendmail is set-uid root, or is run from a set-uid root process");
+	set_ugid(getuid(), getgid());
+    }
 
+    /*
+     * Further initialization...
+     */
     mail_conf_read();
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);

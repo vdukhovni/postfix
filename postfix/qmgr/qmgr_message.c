@@ -672,6 +672,7 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	return (0);
     }
     if (myflock(vstream_fileno(message->fp), QMGR_LOCK_MODE) < 0) {
+	msg_info("%s: skipped, still being delivered", queue_id);
 	qmgr_message_close(message);
 	qmgr_message_free(message);
 	return (QMGR_MESSAGE_LOCKED);
