@@ -23,15 +23,15 @@
 /*
 /*	The following expansions are implemented:
 /* .IP "$name, ${name}, $(name)"
-/*	Unconditional expansion. If the named attribute is defined, the
+/*	Unconditional expansion. If the named attribute is non-empty, the
 /*	expansion is the value of the named attribute,  optionally subjected
 /*	to further $name expansions.  Otherwise, the expansion is empty.
 /* .IP "${name?text}, $(name?text)"
-/*	Conditional expansion. If the named attribute is defined, the
+/*	Conditional expansion. If the named attribute is non-empty, the
 /*	expansion is the given text, subjected to another iteration of
 /*	$name expansion.  Otherwise, the expansion is empty.
 /* .IP "${name:text}, $(name:text)"
-/*	Conditional expansion. If the named attribute is undefined, the
+/*	Conditional expansion. If the named attribute is empty or undefined,
 /*	the expansion is the given text, subjected to another iteration
 /*	of $name expansion.  Otherwise, the expansion is empty.
 /* .PP
@@ -71,7 +71,7 @@
 /*	A syntax error was found in \fBpattern\fR, or some macro had
 /*	an unreasonable nesting depth.
 /* .IP MAC_PARSE_UNDEF
-/*	A macro was expanded but not defined.
+/*	A macro was expanded but its value not defined.
 /* SEE ALSO
 /*	mac_parse(3) locate macro references in string.
 /* LICENSE
@@ -170,11 +170,11 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	 */
 	switch (ch) {
 	case '?':
-	    if (text != 0)
+	    if (text != 0 && *text != 0)
 		mac_parse(cp, mac_expand_callback, (char *) mc);
 	    break;
 	case ':':
-	    if (text == 0)
+	    if (text == 0 || *text == 0)
 		mac_parse(cp, mac_expand_callback, (char *) mc);
 	    break;
 	default:

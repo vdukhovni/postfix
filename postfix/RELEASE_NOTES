@@ -12,6 +12,34 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20020922
+==========================================================
+
+Subtle change in ${name:result} macro expansions:  the expansion
+no longer happens when $name is an empty string.
+
+Major changes with Postfix snapshot 1.1.11-20020922
+===================================================
+
+Complete rewrite of RBL internals to avoid unnecessary code
+duplication and to implement caching of results.
+
+Feature: "reject_rbl rbl.domain.tld" for client IP address
+blacklisting.  The old "reject_maps_rbl" is now implemented as a
+wrapper around the reject_rbl code.  Based on code by LaMont Jones.
+
+Feature: "reject_rhsbl rbl.domain.tld" for sender domain based
+blacklisting.
+
+"rbl_reply_maps" configuration parameter for lookup tables with
+template responses per RBL server.  The template responses support
+$name expansion of client, helo, sender, recipient and RBL server
+attributes. See sample-smtpd.cf for details. Based on code by LaMont
+Jones.
+
+"smtpd_expansion_filter" configuration parameter to control what
+characters are allowed in the expansion of $name macros.
+
 Incompatible changes with Postfix snapshot 1.1.11-20020917
 ==========================================================
 

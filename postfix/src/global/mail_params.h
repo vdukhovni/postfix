@@ -1203,6 +1203,7 @@ extern int var_access_map_code;
 #define WARN_IF_REJECT		"warn_if_reject"
 
 #define REJECT_RBL		"reject_rbl"
+#define REJECT_RHSBL		"reject_rhsbl"
 #define VAR_RBL_REPLY_MAPS	"rbl_reply_maps"
 #define DEF_RBL_REPLY_MAPS	""
 extern char *var_rbl_reply_maps;
@@ -1225,6 +1226,12 @@ extern int var_smtpd_delay_reject;
 #define VAR_SMTPD_NULL_KEY	"smtpd_null_access_lookup_key"
 #define DEF_SMTPD_NULL_KEY	"<>"
 extern char *var_smtpd_null_key;
+
+#define VAR_SMTPD_EXP_FILTER	"smtpd_expansion_filter"
+#define DEF_SMTPD_EXP_FILTER	"\\t\\40!\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`\
+abcdefghijklmnopqrstuvwxyz{|}~"
+extern char *var_smtpd_exp_filter;
 
  /*
   * Heuristic to reject most unknown recipients at the SMTP port.

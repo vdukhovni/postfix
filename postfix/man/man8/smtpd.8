@@ -149,6 +149,9 @@ postmaster.
 .RE
 .IP \fBsmtpd_banner\fR
 Text that follows the \fB220\fR status code in the SMTP greeting banner.
+.IP \fBsmtpd_expansion_filter\fR
+Controls what characters are allowed in $name expansion of
+rbl template responses and other text.
 .IP \fBsmtpd_recipient_limit\fR
 Restrict the number of recipients that the SMTP server accepts
 per message delivery.
@@ -226,9 +229,10 @@ then be used instead of the restriction lists that they represent.
 .IP \fBsmtpd_null_access_lookup_key\fR
 The lookup key to be used in SMTPD access tables instead of the
 null sender address. A null sender address cannot be looked up.
-.IP \fBmaps_rbl_domains\fR
+.IP "\fBmaps_rbl_domains\fR (deprecated)"
 List of DNS domains that publish the addresses of blacklisted
-hosts.
+hosts. This is used with the deprecated \fBreject_maps_rbl\fR
+restriction.
 .IP \fBpermit_mx_backup_networks\fR
 Only domains whose primary MX hosts match the listed networks
 are eligible for the \fBpermit_mx_backup\fR feature.
@@ -249,6 +253,10 @@ restriction.
 .IP \fBmaps_rbl_reject_code\fR
 Server response when a client violates the \fBmaps_rbl_domains\fR
 restriction.
+.IP \fBrbl_reply_maps\fR
+Table with template responses, indexed by RBL domain name. These
+templates are used by the \fBreject_rbl\fR and \fBreject_rhsbl\fR
+restrictions. See also: \fBsmtpd_expansion_filter\fR.
 .IP \fBreject_code\fR
 Response code when the client matches a \fBreject\fR restriction.
 .IP \fBrelay_domains_reject_code\fR

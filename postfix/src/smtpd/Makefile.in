@@ -36,7 +36,7 @@ SMTPD_CHECK_OBJ = smtpd_state.o smtpd_peer.o
 smtpd_token: smtpd_token.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
 
-smtpd_check: smtpd_check.c $(SMTPD_CHECK_OBJ) $(LIBS)
+smtpd_check: smtpd_check.o smtpd_check.c $(SMTPD_CHECK_OBJ) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ smtpd_check.c $(SMTPD_CHECK_OBJ) \
 		$(LIBS) $(SYSLIBS)

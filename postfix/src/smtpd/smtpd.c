@@ -135,6 +135,9 @@
 /* .RE
 /* .IP \fBsmtpd_banner\fR
 /*	Text that follows the \fB220\fR status code in the SMTP greeting banner.
+/* .IP \fBsmtpd_expansion_filter\fR
+/*	Controls what characters are allowed in $name expansion of
+/*	rbl template responses and other text.
 /* .IP \fBsmtpd_recipient_limit\fR
 /*	Restrict the number of recipients that the SMTP server accepts
 /*	per message delivery.
@@ -212,9 +215,10 @@
 /* .IP \fBsmtpd_null_access_lookup_key\fR
 /*	The lookup key to be used in SMTPD access tables instead of the
 /*	null sender address. A null sender address cannot be looked up.
-/* .IP \fBmaps_rbl_domains\fR
+/* .IP "\fBmaps_rbl_domains\fR (deprecated)"
 /*	List of DNS domains that publish the addresses of blacklisted
-/*	hosts.
+/*	hosts. This is used with the deprecated \fBreject_maps_rbl\fR
+/*	restriction.
 /* .IP \fBpermit_mx_backup_networks\fR
 /*	Only domains whose primary MX hosts match the listed networks
 /*	are eligible for the \fBpermit_mx_backup\fR feature.
@@ -235,6 +239,10 @@
 /* .IP \fBmaps_rbl_reject_code\fR
 /*	Server response when a client violates the \fBmaps_rbl_domains\fR
 /*	restriction.
+/* .IP \fBrbl_reply_maps\fR
+/*	Table with template responses, indexed by RBL domain name. These
+/*	templates are used by the \fBreject_rbl\fR and \fBreject_rhsbl\fR
+/*	restrictions. See also: \fBsmtpd_expansion_filter\fR.
 /* .IP \fBreject_code\fR
 /*	Response code when the client matches a \fBreject\fR restriction.
 /* .IP \fBrelay_domains_reject_code\fR
@@ -393,6 +401,7 @@ char   *var_smtpd_snd_auth_maps;
 char   *var_smtpd_noop_cmds;
 char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
+char   *var_smtpd_exp_filter;
 
  /*
   * Silly little macros.
@@ -1637,6 +1646,10 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
 	0,
     };
+    static CONFIG_RAW_TABLE raw_table[] = {
+	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,
+	0,
+    };
 
     /*
      * Pass control to the single-threaded service skeleton.
@@ -1644,6 +1657,7 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, smtpd_service,
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,

@@ -168,6 +168,10 @@ SMTPD(8)                                                 SMTPD(8)
               Text that follows the <b>220</b> status code in  the  SMTP
               greeting banner.
 
+       <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
+              Controls  what  characters  are  allowed  in  $name
+              expansion of rbl template responses and other text.
+
        <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
               Restrict  the  number  of  recipients that the SMTP
               server accepts per message delivery.
@@ -276,35 +280,42 @@ SMTPD(8)                                                 SMTPD(8)
               instead of the null sender address. A  null  sender
               address cannot be looked up.
 
-       <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b>
+       <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b> (deprecated)
               List  of  DNS domains that publish the addresses of
-              blacklisted hosts.
+              blacklisted hosts. This is used with the deprecated
+              <b>reject</b><i>_</i><b>maps</b><i>_</i><b>rbl</b> restriction.
 
        <b>permit</b><i>_</i><b>mx</b><i>_</i><b>backup</b><i>_</i><b>networks</b>
-              Only domains  whose  primary  MX  hosts  match  the
-              listed   networks   are   eligible   for  the  <b>per-</b>
+              Only  domains  whose  primary  MX  hosts  match the
+              listed  networks  are   eligible   for   the   <b>per-</b>
               <b>mit</b><i>_</i><b>mx</b><i>_</i><b>backup</b> feature.
 
        <b>relay</b><i>_</i><b>domains</b>
-              Restrict what domains or networks this mail  system
+              Restrict  what domains or networks this mail system
               will relay mail from or to.
 
 <b>UCE</b> <b>control</b> <b>responses</b>
        <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a client violates an access
+              Server response when a client  violates  an  access
               database restriction.
 
        <b>defer</b><i>_</i><b>code</b>
-              Server response when a client request  is  rejected
+              Server  response  when a client request is rejected
               by the <b>defer</b> restriction.
 
        <b>invalid</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
+              Server  response  when  a   client   violates   the
               <b>reject</b><i>_</i><b>invalid</b><i>_</i><b>hostname</b> restriction.
 
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Server   response   when   a  client  violates  the
               <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b> restriction.
+
+       <b>rbl</b><i>_</i><b>reply</b><i>_</i><b>maps</b>
+              Table  with  template  responses,  indexed  by  RBL
+              domain  name.  These  templates  are  used  by  the
+              <b>reject</b><i>_</i><b>rbl</b> and <b>reject</b><i>_</i><b>rhsbl</b> restrictions. See also:
+              <b>smtpd</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>.
 
        <b>reject</b><i>_</i><b>code</b>
               Response  code  when  the  client  matches a <b>reject</b>
