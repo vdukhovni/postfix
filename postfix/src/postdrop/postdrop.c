@@ -172,6 +172,9 @@ static void postdrop_cleanup(void)
 
     /*
      * This is the fatal error handler. Don't try to do anything fancy.
+     * 
+     * msg_xxx() does not allocate memory, so it is safe as long as the signal
+     * handler can't be invoked recursively.
      */
     if (postdrop_path) {
 	if (remove(postdrop_path))
@@ -189,13 +192,18 @@ static void postdrop_sig(int sig)
 
     /*
      * Assume atomic signal() updates, even when emulated with sigaction().
+     * We use the in-kernel SIGINT handler address as an atomic variable to
+     * prevent nested postdrop_sig() calls. For this reason, main() must
+     * configure postdrop_sig() as SIGINT handler before other signal
+     * handlers are allowed to invoke postdrop_sig().
      */
-    if (signal(SIGHUP, SIG_IGN) != SIG_IGN
-	&& signal(SIGINT, SIG_IGN) != SIG_IGN
-	&& signal(SIGQUIT, SIG_IGN) != SIG_IGN
-	&& signal(SIGTERM, SIG_IGN) != SIG_IGN) {
+    if (signal(SIGINT, SIG_IGN) != SIG_IGN) {
+	(void)signal(SIGQUIT, SIG_IGN);
+	(void)signal(SIGTERM, SIG_IGN);
+	(void)signal(SIGHUP, SIG_IGN);
 	postdrop_cleanup();
-	exit(sig);
+	/* Future proofing. If you need exit() here then you broke Postfix. */
+	_exit(sig);
     }
 }
 
@@ -308,15 +316,20 @@ int     main(int argc, char **argv)
     /*
      * Set up signal handlers and a runtime error handler so that we can
      * clean up incomplete output.
+     * 
+     * postdrop_sig() uses the in-kernel SIGINT handler address as an atomic
+     * variable to prevent nested postdrop_sig() calls. For this reason, the
+     * SIGINT handler must be configured before other signal handlers are
+     * allowed to invoke postdrop_sig().
      */
     signal(SIGPIPE, SIG_IGN);
     signal(SIGXFSZ, SIG_IGN);
 
-    if (signal(SIGHUP, SIG_IGN) == SIG_DFL)
-	signal(SIGHUP, postdrop_sig);
     signal(SIGINT, postdrop_sig);
     signal(SIGQUIT, postdrop_sig);
     signal(SIGTERM, postdrop_sig);
+    if (signal(SIGHUP, SIG_IGN) == SIG_DFL)
+	signal(SIGHUP, postdrop_sig);
     msg_cleanup(postdrop_cleanup);
 
     /* End of initializations. */

@@ -31,6 +31,12 @@
 /*	const char *addr;
 /*	int	*rcpts;
 /*
+/*	int	anvil_clnt_newtls(anvil_clnt, service, addr, newtls)
+/*	ANVIL_CLNT *anvil_clnt;
+/*	const char *service;
+/*	const char *addr;
+/*	int	*newtls;
+/*
 /*	int	anvil_clnt_disconnect(anvil_clnt, service, addr)
 /*	ANVIL_CLNT *anvil_clnt;
 /*	const char *service;
@@ -57,6 +63,10 @@
 /*
 /*	anvil_clnt_rcpt() registers a RCPT TO event and returns
 /*	the current RCPT TO rate for the specified client.
+/*
+/*	anvil_clnt_newtls() registers a request to negotiate a new
+/*	(uncached) TLS session and returns the current request rate
+/*	for the specified client.
 /*
 /*	anvil_clnt_disconnect() informs the anvil server that a
 /*	client has disconnected.
@@ -85,6 +95,9 @@
 /* .IP rcpts
 /*	Pointer to storage for the current recipient rate for this
 /*	remote client.
+/* .IP newtls
+/*	Pointer to storage for the current "new TLS session" rate
+/*	for this remote client.
 /* DIAGNOSTICS
 /*	anvil_clnt_connect() and anvil_clnt_disconnect() return
 /*	ANVIL_STAT_OK in case of success, ANVIL_STAT_FAIL otherwise
@@ -252,15 +265,39 @@ int     anvil_clnt_rcpt(ANVIL_CLNT *anvil_clnt, const char *service,
     return (status);
 }
 
-/* anvil_clnt_disconnect - heads-up only */
+/* anvil_clnt_newtls - heads-up and policy query */
 
-int     anvil_clnt_disconnect(ANVIL_CLNT *anvil_clnt, const char *service,
-			              const char *addr)
+int	anvil_clnt_newtls(ANVIL_CLNT *anvil_clnt, const char *service,
+				const	char *addr, int *newtls)
 {
     char   *ident = ANVIL_IDENT(service, addr);
-    int     status;
+    int	    status;
 
-    if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
+    if (attr_clnt_request((ATTR_CLNT *)anvil_clnt,
+			  ATTR_FLAG_NONE,	/* Query attributes. */
+			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_NEWTLS,
+			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  ATTR_TYPE_END,
+			  ATTR_FLAG_MISSING,	/* Reply attributes. */
+			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, newtls,
+			  ATTR_TYPE_END) != 2)
+	status = ANVIL_STAT_FAIL;
+    else if (status != ANVIL_STAT_OK)
+	status = ANVIL_STAT_FAIL;
+    myfree(ident);
+    return (status);
+}
+
+/* anvil_clnt_disconnect - heads-up only */
+
+int	anvil_clnt_disconnect(ANVIL_CLNT *anvil_clnt, const char *service,
+			  	const	char *addr)
+{
+    char   *ident = ANVIL_IDENT(service, addr);
+    int	    status;
+
+    if (attr_clnt_request((ATTR_CLNT *)anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
 			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_DISC,
 			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
@@ -295,18 +332,18 @@ static void usage(void)
 		   ANVIL_REQ_MAIL, ANVIL_REQ_RCPT);
 }
 
-int     main(int unused_argc, char **argv)
+int	main(int unused_argc, char **argv)
 {
     VSTRING *inbuf = vstring_alloc(1);
     char   *bufp;
     char   *cmd;
-    int     cmd_len;
+    int	    cmd_len;
     char   *service;
     char   *addr;
-    int     count;
-    int     rate;
-    int     msgs;
-    int     rcpts;
+    int	    count;
+    int	    rate;
+    int	    msgs;
+    int	    rcpts;
     ANVIL_CLNT *anvil;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);

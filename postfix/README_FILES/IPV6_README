@@ -56,6 +56,11 @@ where you must not. It is a good idea to use "[]" only in the few places where
 you have to. Check out the postconf(5) manual whenever you do IPv6 related
 configuration work with Postfix.
 
+  * Instead of hard-coding 127.0.0.1 and ::1 loopback addresses in master.cf,
+    specify "inet_interfaces = loopback-only" in main.cf. This way you can use
+    the same master.cf file regardless of whether or not Postfix will run on an
+    IPv6-enabled system.
+
   * The first new parameter is called inet_protocols. This specifies what
     protocols Postfix will use when it makes or accepts network connections,
     and also controls what DNS lookups Postfix will use when it makes network

@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - master(5) </title>
 </head> <body> <pre>
-MASTER(5)                                               MASTER(5)
+MASTER(5)                                                            MASTER(5)
 
 <b>NAME</b>
        master - Postfix master process configuration file format
@@ -84,6 +84,12 @@ MASTER(5)                                               MASTER(5)
                      all    interfaces    configured   with   the
                      <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b> parameter.
 
+                     Note: with Postfix  version  2.2  and  later
+                     specify "<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only</b>" in
+                     main.cf, instead of hard-coding loopback  IP
+                     address   information  in  master.cf  or  in
+                     main.cf.
+
               <b>unix</b>   The service listens on a UNIX-domain  socket
                      and is accessible for local clients only.
 
@@ -149,8 +155,8 @@ MASTER(5)                                               MASTER(5)
 
        <b>Process limit (default: $<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
               The  maximum  number  of processes that may execute
-              this service simultaneously. Specify 0 for no  pro-
-              cess count limit.
+              this  service  simultaneously.  Specify  0  for  no
+              process count limit.
 
               NOTE: Some Postfix services must be configured as a
               single-process service (for example,  <a href="qmgr.8.html"><b>qmgr</b>(8)</a>)  and
@@ -227,5 +233,5 @@ MASTER(5)                                               MASTER(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                        MASTER(5)
+                                                                     MASTER(5)
 </pre> </body> </html>

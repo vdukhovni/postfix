@@ -104,7 +104,7 @@
 /* .IP "\fBtcp\fR (read-only)"
 /*	Perform lookups using a simple request-reply protocol that is
 /*	described in \fBtcp_table\fR(5).
-/*	This feature is not included with Postfix 2.1.
+/*	This feature is not included with Postfix 2.2.
 /* .IP "\fBunix\fR (read-only)"
 /*	A limited way to query the UNIX authentication database. The
 /*	following tables are implemented:

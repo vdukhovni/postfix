@@ -10392,6 +10392,19 @@ Apologies for any names omitted.
 	Bugfix: typo in tls_server.c, breaking CApath.  Fix by
 	Philipp Morger. File: tls/tls_server.c.
 
+20050227
+
+	Bugfix (bug introduced 20040331): with SIGHUP ignored, the
+	postdrop signal handler would effectively ignore SIGINT,
+	SIGQUIT and SIGTERM.  Simplified the overly-conservative
+	protection against nested signals in postdrop, and added
+	some future proofing comments.  File:  postdrop/postdrop.c
+
+	Cleanup: when address rewriting is enabled, don't change
+	the capitalization of header labels, i.e. don't replace
+	FROM: or CC: by From: or Cc:. Files: cleanup/cleanup_message.c,
+	smtp/smtp_proto.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

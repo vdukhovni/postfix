@@ -69,6 +69,7 @@ OOtthheerr ttooppiiccss
   * postconf(5): All main.cf parameters
   * LOCAL_RECIPIENT_README: Rejecting Unknown Local Recipients
   * ADDRESS_CLASS_README: Address Classes
+  * CONNECTION_CACHE_README: Connection cache howto
   * PACKAGE_README: Guidelines for Package Builders
   * SCHEDULER_README: Queue Scheduler
   * XCLIENT_README: XCLIENT Command

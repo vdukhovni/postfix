@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - smtpd(8) </title>
 </head> <body> <pre>
-SMTPD(8)                                                 SMTPD(8)
+SMTPD(8)                                                              SMTPD(8)
 
 <b>NAME</b>
        smtpd - Postfix SMTP server
@@ -564,8 +564,7 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b><a href="postconf.5.html#smtpd_client_event_limit_exceptions">smtpd_client_event_limit_exceptions</a> ($<a href="postconf.5.html#mynetworks">mynetworks</a>)</b>
               Clients  that  are  excluded from connection count,
-              connection rate, message  rate  or  recipient  rate
-              restrictions.
+              connection rate, or SMTP request rate restrictions.
 
 <b>TARPIT CONTROLS</b>
        When  a  remote SMTP client makes errors, the Postfix SMTP
@@ -726,8 +725,8 @@ SMTPD(8)                                                 SMTPD(8)
        ered.  This feature is requested  via  the  <a href="postconf.5.html#reject_unverified_sender">reject_unveri</a>-
        <a href="postconf.5.html#reject_unverified_sender">fied_sender</a>    and    <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>   access
        restrictions.  The status of verification probes is  main-
-       tained by the <a href="verify.8.html"><b>verify</b>(8)</a> server.  See the file ADDRESS_VER-
-       <a href="IFICATION_README.html">IFICATION_README</a> for information about  how  to  configure
+       tained by the <a href="verify.8.html"><b>verify</b>(8)</a> server.  See the file <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VER</a>-
+       <a href="ADDRESS_VERIFICATION_README.html">IFICATION_README</a> for information about  how  to  configure
        and operate the Postfix sender/recipient address verifica-
        tion service.
 
@@ -883,8 +882,8 @@ SMTPD(8)                                                 SMTPD(8)
               ered to.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID of a Postfix command or daemon  pro-
-              cess.
+              The process ID  of  a  Postfix  command  or  daemon
+              process.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
               The  process  name  of  a Postfix command or daemon
@@ -906,8 +905,8 @@ SMTPD(8)                                                 SMTPD(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail system name that is prepended to the pro-
-              cess  name  in  syslog  records,  so  that  "smtpd"
+              The  mail  system  name  that  is  prepended to the
+              process name in syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
        Available in Postfix version 2.2 and later:
@@ -959,5 +958,5 @@ SMTPD(8)                                                 SMTPD(8)
        Universitaetsplatz 3-4
        D-03044 Cottbus, Germany
 
-                                                         SMTPD(8)
+                                                                      SMTPD(8)
 </pre> </body> </html>

@@ -1,4 +1,4 @@
-# RELOCATED(5)                                         RELOCATED(5)
+# RELOCATED(5)                                                      RELOCATED(5)
 # 
 # NAME
 #        relocated - Postfix relocated table format
@@ -78,41 +78,43 @@
 #        description of regular expression lookup table syntax, see
 #        regexp_table(5) or pcre_table(5). For a description of the
 #        TCP client/server table lookup protocol, see tcp_table(5).
+#        This  feature is not available up to and including Postfix
+#        version 2.2.
 # 
-#        Each  pattern  is  a regular expression that is applied to
+#        Each pattern is a regular expression that  is  applied  to
 #        the entire address being looked up. Thus, user@domain mail
-#        addresses  are  not  broken up into their user and @domain
+#        addresses are not broken up into their  user  and  @domain
 #        constituent parts, nor is user+foo broken up into user and
 #        foo.
 # 
-#        Patterns  are  applied  in  the  order as specified in the
-#        table, until a pattern is found that  matches  the  search
+#        Patterns are applied in the order as specified in the  ta-
+#        ble,  until  a  pattern  is  found that matches the search
 #        string.
 # 
-#        Results  are  the  same as with indexed file lookups, with
-#        the additional feature that parenthesized substrings  from
+#        Results are the same as with indexed  file  lookups,  with
+#        the  additional feature that parenthesized substrings from
 #        the pattern can be interpolated as $1, $2 and so on.
 # 
 # TCP-BASED TABLES
-#        This  section  describes how the table lookups change when
+#        This section describes how the table lookups  change  when
 #        lookups are directed to a TCP-based server. For a descrip-
-#        tion   of  the  TCP  client/server  lookup  protocol,  see
-#        tcp_table(5).  This feature is not  available  up  to  and
-#        including Postfix version 2.2.
+#        tion of the TCP client/server lookup protocol, see tcp_ta-
+#        ble(5).  This feature is not available up to and including
+#        Postfix version 2.2.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
-#        user@domain mail addresses are not broken  up  into  their
+#        user@domain  mail  addresses  are not broken up into their
 #        user and @domain constituent parts, nor is user+foo broken
 #        up into user and foo.
 # 
 #        Results are the same as with indexed file lookups.
 # 
 # BUGS
-#        The table format does not understand quoting  conventions.
+#        The  table format does not understand quoting conventions.
 # 
 # CONFIGURATION PARAMETERS
-#        The  following main.cf parameters are especially relevant.
-#        The text below provides  only  a  parameter  summary.  See
+#        The following main.cf parameters are especially  relevant.
+#        The  text  below  provides  only  a parameter summary. See
 #        postconf(5) for more details including examples.
 # 
 #        relocated_maps
@@ -121,12 +123,12 @@
 #        Other parameters of interest:
 # 
 #        inet_interfaces
-#               The network interface addresses  that  this  system
+#               The  network  interface  addresses that this system
 #               receives mail on.  You need to stop and start Post-
 #               fix when this parameter changes.
 # 
 #        mydestination
-#               List of domains that  this  mail  system  considers
+#               List  of  domains  that  this mail system considers
 #               local.
 # 
 #        myorigin
@@ -143,13 +145,13 @@
 #        postconf(5), configuration parameters
 # 
 # README FILES
-#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        Use  "postconf  readme_directory" or "postconf html_direc-
 #        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 #        ADDRESS_REWRITING_README, address rewriting guide
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)
@@ -158,4 +160,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                      RELOCATED(5)
+#                                                                   RELOCATED(5)

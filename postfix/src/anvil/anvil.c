@@ -268,6 +268,10 @@ static int max_rcpt;
 static char *max_rcpt_user;
 static time_t max_rcpt_time;
 
+static int max_newtls;
+static char *max_newtls_user;
+static time_t max_newtls_time;
+
 static int max_cache;
 static time_t max_cache_time;
 
@@ -280,6 +284,7 @@ typedef struct {
     int     rate;			/* connection rate */
     int     mail;			/* message rate */
     int     rcpt;			/* recipient rate */
+    int     newtls;			/* newtls rate */
     time_t  start;			/* time of first rate sample */
 } ANVIL_REMOTE;
 
@@ -314,6 +319,7 @@ typedef struct {
 	(remote)->rate = 1; \
 	(remote)->mail = 0; \
 	(remote)->rcpt = 0; \
+	(remote)->newtls = 0; \
 	(remote)->start = event_time(); \
     } while(0)
 
@@ -334,6 +340,7 @@ typedef struct {
 	    (remote)->rate = 1; \
 	    (remote)->mail = 0; \
 	    (remote)->rcpt = 0; \
+	    (remote)->newtls = 0; \
 	    (remote)->start = _now; \
 	} else if ((remote)->rate < INT_MAX) { \
 	    (remote)->rate += 1; \
@@ -350,6 +357,7 @@ typedef struct {
 	    (remote)->rate = 0; \
 	    (remote)->mail = 1; \
 	    (remote)->rcpt = 0; \
+	    (remote)->newtls = 0; \
 	    (remote)->start = _now; \
 	} else if ((remote)->mail < INT_MAX) { \
             (remote)->mail += 1; \
@@ -363,9 +371,24 @@ typedef struct {
 	    (remote)->rate = 0; \
 	    (remote)->mail = 0; \
 	    (remote)->rcpt = 1; \
+	    (remote)->newtls = 0; \
 	    (remote)->start = _now; \
 	} else if ((remote)->rcpt < INT_MAX) { \
             (remote)->rcpt += 1; \
+	} \
+    } while(0)
+
+#define ANVIL_ADD_STARTTLS(remote) \
+    do { \
+	time_t _now = event_time(); \
+	if ((remote)->start + var_anvil_time_unit < _now) { \
+	    (remote)->rate = 0; \
+	    (remote)->mail = 0; \
+	    (remote)->rcpt = 0; \
+	    (remote)->newtls = 1; \
+	    (remote)->start = _now; \
+	} else if ((remote)->rcpt < INT_MAX) { \
+            (remote)->newtls += 1; \
 	} \
     } while(0)
 
@@ -667,6 +690,43 @@ static void anvil_remote_rcpt(VSTREAM *client_stream, const char *ident)
     }
 }
 
+/* anvil_remote_newtls - register newtls event */
+
+static void anvil_remote_newtls(VSTREAM *client_stream, const char *ident)
+{
+    ANVIL_REMOTE *anvil_remote;
+
+    /*
+     * Be prepared for "postfix reload" after "connect".
+     */
+    if ((anvil_remote =
+	 (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) == 0)
+	anvil_remote = anvil_remote_conn_update(client_stream, ident);
+
+    /*
+     * Update newtls rate and respond to local client.
+     */
+    ANVIL_ADD_STARTTLS(anvil_remote);
+    attr_print_plain(client_stream, ATTR_FLAG_NONE,
+		     ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
+		     ATTR_TYPE_NUM, ANVIL_ATTR_RATE, anvil_remote->newtls,
+		     ATTR_TYPE_END);
+
+    /*
+     * Update local statistics.
+     */
+    if (anvil_remote->newtls > max_newtls) {
+	max_newtls = anvil_remote->newtls;
+	if (max_newtls_user == 0) {
+	    max_newtls_user = mystrdup(anvil_remote->ident);
+	} else if (!STREQ(max_newtls_user, anvil_remote->ident)) {
+	    myfree(max_newtls_user);
+	    max_newtls_user = mystrdup(anvil_remote->ident);
+	}
+	max_newtls_time = event_time();
+    }
+}
+
 /* anvil_remote_disconnect - report disconnect event */
 
 static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
@@ -764,6 +824,8 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 	    anvil_remote_mail(client_stream, STR(ident));
 	} else if (STREQ(STR(request), ANVIL_REQ_RCPT)) {
 	    anvil_remote_rcpt(client_stream, STR(ident));
+	} else if (STREQ(STR(request), ANVIL_REQ_NEWTLS)) {
+	    anvil_remote_newtls(client_stream, STR(ident));
 	} else if (STREQ(STR(request), ANVIL_REQ_DISC)) {
 	    anvil_remote_disconnect(client_stream, STR(ident));
 	} else if (STREQ(STR(request), ANVIL_REQ_LOOKUP)) {
@@ -834,6 +896,12 @@ static void anvil_status_dump(char *unused_name, char **unused_argv)
 		 max_rcpt, var_anvil_time_unit,
 		 max_rcpt_user, ctime(&max_rcpt_time) + 4);
 	max_rcpt = 0;
+    }
+    if (max_newtls > 0) {
+	msg_info("statistics: max newtls rate %d/%ds for (%s) at %.15s",
+		 max_newtls, var_anvil_time_unit,
+		 max_newtls_user, ctime(&max_newtls_time) + 4);
+	max_newtls = 0;
     }
     if (max_cache > 0) {
 	msg_info("statistics: max cache size %d at %.15s",

@@ -424,7 +424,7 @@
 /*	Postfix actually accepts those recipients.
 /* .IP "\fBsmtpd_client_event_limit_exceptions ($mynetworks)\fR"
 /*	Clients that are excluded from connection count, connection rate,
-/*	message rate or recipient rate restrictions.
+/*	or SMTP request rate restrictions.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi

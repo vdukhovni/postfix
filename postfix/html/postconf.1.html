@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - postconf(1) </title>
 </head> <body> <pre>
-POSTCONF(1)                                           POSTCONF(1)
+POSTCONF(1)                                                        POSTCONF(1)
 
 <b>NAME</b>
        postconf - Postfix configuration utility
@@ -62,8 +62,8 @@ POSTCONF(1)                                           POSTCONF(1)
               In Postfix configuration files, lookup  tables  are
               specified  as  <i>type</i><b>:</b><i>name</i>,  where <i>type</i> is one of the
               types listed below. The table <i>name</i>  syntax  depends
-              on  the  lookup  table  type  as  described  in the
-              <a href="DATABASE_README.html">DATABASE_README</a> document.
+              on  the lookup table type as described in the <a href="DATABASE_README.html">DATA</a>-
+              <a href="DATABASE_README.html">BASE_README</a> document.
 
               <b>btree</b>  A sorted, balanced tree structure.  This  is
                      available on systems with support for Berke-
@@ -115,8 +115,8 @@ POSTCONF(1)                                           POSTCONF(1)
 
               <b>regexp</b> (read-only)
                      A lookup table based on regular expressions.
-                     The   file   format  is  described  in  <a href="regexp_table.5.html"><b>reg-</b></a>
-                     <a href="regexp_table.5.html"><b>exp_table</b>(5)</a>.
+                     The  file  format is described in <a href="regexp_table.5.html"><b>regexp_ta-</b></a>
+                     <a href="regexp_table.5.html"><b>ble</b>(5)</a>.
 
               <b>sdbm</b>   An indexed file type based on hashing.  This
                      is  available  on  systems  with support for
@@ -132,7 +132,7 @@ POSTCONF(1)                                           POSTCONF(1)
                      Perform lookups using a simple request-reply
                      protocol that is described in  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
                      This  feature  is  not included with Postfix
-                     2.1.
+                     2.2.
 
               <b>unix</b> (read-only)
                      A limited way to query the UNIX  authentica-
@@ -140,16 +140,16 @@ POSTCONF(1)                                           POSTCONF(1)
                      implemented:
 
                      <b>unix:passwd.byname</b>
-                             The  table  is  the  UNIX   password
-                             database.  The  key is a login name.
-                             The result is a password file  entry
-                             in <b>passwd</b>(5) format.
+                            The table is the UNIX password  data-
+                            base.  The  key is a login name.  The
+                            result is a password  file  entry  in
+                            <b>passwd</b>(5) format.
 
                      <b>unix:group.byname</b>
-                             The   table   is   the   UNIX  group
-                             database. The key is a  group  name.
-                             The  result is a group file entry in
-                             <b>group</b>(5) format.
+                            The table is the UNIX group database.
+                            The key is a group name.  The  result
+                            is  a  group  file  entry in <b>group</b>(5)
+                            format.
 
        Other table types may exist depending on how  Postfix  was
        built.
@@ -199,5 +199,5 @@ POSTCONF(1)                                           POSTCONF(1)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                      POSTCONF(1)
+                                                                   POSTCONF(1)
 </pre> </body> </html>

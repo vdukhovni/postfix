@@ -68,7 +68,13 @@
 /*	Message header that the Postfix \fBcleanup\fR(8) server inserts when a
 /*	message contains no To: or Cc: message header.
 /* .PP
-/*	Available in Postfix version 2.1 and later:
+/*	Available in Postfix version 2.1 only:
+/* .IP "\fBenable_errors_to (no)\fR"
+/*	Report mail delivery errors to the address specified with the
+/*	non-standard Errors-To: message header, instead of the envelope
+/*	sender address (this feature is removed with Postfix 2.2, is
+/*	turned off by default with Postfix 2.1, and is always turned on
+/*	with older Postfix versions).
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
 /* .fi

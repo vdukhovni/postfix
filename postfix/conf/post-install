@@ -634,6 +634,20 @@ discard	  unix	-	-	n	-	-	discard
 EOF
     }
 
+    # Update the tlsmgr fifo->unix service.
+
+    grep "^tlsmgr[ 	]*fifo[ 	]" \
+	$config_directory/master.cf >/dev/null && {
+	    echo Editing $config_directory/master.cf, updating the tlsmgr fifo->unix service
+	    ed $config_directory/master.cf <<EOF || exit 1
+/^tlsmgr[ 	]*fifo[ 	]/
+s/fifo/unix/
+p
+w
+q
+EOF
+    }
+
     # Add missing tlsmgr service to master.cf.
 
     grep '^tlsmgr.*tlsmgr' $config_directory/master.cf >/dev/null || {

@@ -33,6 +33,7 @@
 #include <sys_defs.h>
 #include <unistd.h>
 #include <stddef.h>			/* offsetof() */
+#include <string.h>
 
 /* Utility library. */
 

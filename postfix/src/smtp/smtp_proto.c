@@ -759,7 +759,8 @@ static void smtp_header_rewrite(void *context, int header_class,
 	    did_rewrite |= smtp_map11_tree(tpp[0], smtp_generic_maps,
 				     smtp_ext_prop_mask & EXT_PROP_GENERIC);
 	if (did_rewrite) {
-	    vstring_sprintf(buf, "%s: ", header_info->name);
+	    vstring_truncate(buf, strlen(header_info->name));
+	    vstring_strcat(buf, ": ");
 	    tok822_externalize(buf, tree, TOK822_STR_HEAD);
 	}
 	myfree((char *) addr_list);

@@ -72,6 +72,12 @@
 #	\fB10025\fR accepts connections on TCP port 10025 via
 #	all interfaces configured with the \fBinet_interfaces\fR
 #	parameter.
+#
+# .sp
+#	Note: with Postfix version 2.2 and later specify
+#	"\fBinet_interfaces = loopback-only\fR" in main.cf, instead
+#	of hard-coding loopback IP address information in master.cf
+#	or in main.cf.
 # .IP \fBunix\fR
 #	The service listens on a UNIX-domain socket and is accessible
 #	for local clients only.

@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - postalias(1) </title>
 </head> <body> <pre>
-POSTALIAS(1)                                         POSTALIAS(1)
+POSTALIAS(1)                                                      POSTALIAS(1)
 
 <b>NAME</b>
        postalias - Postfix alias database maintenance
@@ -139,10 +139,10 @@ POSTALIAS(1)                                         POSTALIAS(1)
                      databases.
 
               When no <i>file</i><b>_</b><i>type</i> is specified, the  software  uses
-              the     database    type    specified    via    the
-              <b><a href="postconf.5.html#default_database_type">default_database_type</a></b> configuration parameter.  The
-              default  value  for  this  parameter depends on the
-              host environment.
+              the  database  type specified via the <b><a href="postconf.5.html#default_database_type">default_data</a>-</b>
+              <b><a href="postconf.5.html#default_database_type">base_type</a></b>  configuration  parameter.   The  default
+              value  for this parameter depends on the host envi-
+              ronment.
 
        <i>file</i><b>_</b><i>name</i>
               The name of the alias  database  source  file  when
@@ -196,8 +196,8 @@ POSTALIAS(1)                                         POSTALIAS(1)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail system name that is prepended to the pro-
-              cess  name  in  syslog  records,  so  that  "smtpd"
+              The  mail  system  name  that  is  prepended to the
+              process name in syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
 <b>STANDARDS</b>
@@ -225,5 +225,5 @@ POSTALIAS(1)                                         POSTALIAS(1)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                     POSTALIAS(1)
+                                                                  POSTALIAS(1)
 </pre> </body> </html>

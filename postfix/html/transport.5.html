@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - transport(5) </title>
 </head> <body> <pre>
-TRANSPORT(5)                                         TRANSPORT(5)
+TRANSPORT(5)                                                      TRANSPORT(5)
 
 <b>NAME</b>
        transport - Postfix transport table format
@@ -215,8 +215,8 @@ TRANSPORT(5)                                         TRANSPORT(5)
        <i>some.domain.hierarchy</i>  is  not  looked  up  via its parent
        domains, nor is <i>user+foo@domain</i> looked up as  <i>user@domain</i>.
 
-       Patterns  are  applied  in  the  order as specified in the
-       table, until a pattern is found that  matches  the  search
+       Patterns  are applied in the order as specified in the ta-
+       ble, until a pattern is  found  that  matches  the  search
        string.
 
        Results  are  the  same as with indexed file lookups, with
@@ -226,9 +226,9 @@ TRANSPORT(5)                                         TRANSPORT(5)
 <b>TCP-BASED TABLES</b>
        This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
-       tion   of  the  TCP  client/server  lookup  protocol,  see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  up  to  and
-       including Postfix version 2.2.
+       tion of the TCP client/server lookup protocol, see <a href="tcp_table.5.html"><b>tcp_ta-</b></a>
+       <a href="tcp_table.5.html"><b>ble</b>(5)</a>.  This feature is not available up to and including
+       Postfix version 2.2.
 
        Each  lookup  operation  uses the entire recipient address
        once.  Thus, <i>some.domain.hierarchy</i> is not  looked  up  via
@@ -273,5 +273,5 @@ TRANSPORT(5)                                         TRANSPORT(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                     TRANSPORT(5)
+                                                                  TRANSPORT(5)
 </pre> </body> </html>

@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - virtual(5) </title>
 </head> <body> <pre>
-VIRTUAL(5)                                             VIRTUAL(5)
+VIRTUAL(5)                                                          VIRTUAL(5)
 
 <b>NAME</b>
        virtual - Postfix virtual alias table format
@@ -148,8 +148,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
 
            Note: some systems use <b>dbm</b> databases instead of  <b>hash</b>.
-           See  the  output  from  "<b>postconf  -m</b>"  for  available
-           database types.
+           See  the output from "<b>postconf -m</b>" for available data-
+           base types.
 
        /etc/postfix/virtual:
            <i>virtual-alias.domain anything</i> (right-hand content does not matter)
@@ -188,8 +188,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
        <i>foo</i>.
 
-       Patterns are applied in the  order  as  specified  in  the
-       table,  until  a  pattern is found that matches the search
+       Patterns are applied in the order as specified in the  ta-
+       ble,  until  a  pattern  is  found that matches the search
        string.
 
        Results are the same as with indexed  file  lookups,  with
@@ -199,9 +199,9 @@ VIRTUAL(5)                                             VIRTUAL(5)
 <b>TCP-BASED TABLES</b>
        This section describes how the table lookups  change  when
        lookups are directed to a TCP-based server. For a descrip-
-       tion  of  the  TCP  client/server  lookup  protocol,   see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.   This  feature  is  not available up to and
-       including Postfix version 2.2.
+       tion of the TCP client/server lookup protocol, see <a href="tcp_table.5.html"><b>tcp_ta-</b></a>
+       <a href="tcp_table.5.html"><b>ble</b>(5)</a>.  This feature is not available up to and including
+       Postfix version 2.2.
 
        Each lookup operation uses the entire address once.  Thus,
        <i>user@domain</i>  mail  addresses  are not broken up into their
@@ -278,5 +278,5 @@ VIRTUAL(5)                                             VIRTUAL(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                       VIRTUAL(5)
+                                                                    VIRTUAL(5)
 </pre> </body> </html>

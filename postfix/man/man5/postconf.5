@@ -675,7 +675,8 @@ How frequently the \fBscache\fR(8) server logs usage statistics with
 connection cache hit and miss rates for logical destinations and for
 physical endpoints.
 .SH connection_cache_ttl_limit (default: 2s)
-The maximal time-to-live value that the connection cache server
+The maximal time-to-live value that the \fBscache\fR(8) connection
+cache server
 allows. Requests that specify a larger TTL will be stored with the
 maximum allowed TTL. The purpose of this additional control is to
 protect the infrastructure against careless people. The cache TTL
@@ -1711,8 +1712,7 @@ Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority.
-.IP "\fB check_address_map \fI<a
-href="DATABASE_README.html">type:table\fR \fR"
+.IP "\fB check_address_map \fItype:table\fR \fR"
 .IP "\fB \fItype:table\fR \fR"
 Append the domain name in $myorigin or $mydomain when the
 client IP address matches the specified lookup table.
@@ -3145,17 +3145,19 @@ Specify a comma or white space separated list of destinations
 or pseudo-destinations:
 .IP \(bu
 if mail is sent without a relay host: a domain name (the
-right-hand side of an email address, without the optional []),
+right-hand side of an email address, without the [] around a numeric
+IP address),
 .IP \(bu
-if mail is sent via a relay host: a relay host (without the
-optional [] or non-default TCP port), as specified in main.cf or
-in the transport map,
+if mail is sent via a relay host: a relay host name (without
+[] or non-default TCP port), as specified in main.cf or in the
+transport map,
 .IP \(bu
-a /file/name with domains and/or relay hosts,
+a /file/name with domain names and/or relay host names as
+defined above,
 .IP \(bu
-a "type:table" with domains and/or relay hosts on the left-hand
-side.  The right-hand side result from "type:table" lookups is
-ignored.
+a "type:table" with domain names and/or relay hosts name on
+the left-hand side.  The right-hand side result from "type:table"
+lookups is ignored.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_on_demand (default: yes)
@@ -3873,7 +3875,7 @@ smtpd_client_connection_rate_limit = 1000
 .ft R
 .SH smtpd_client_event_limit_exceptions (default: $mynetworks)
 Clients that are excluded from connection count, connection rate,
-message rate or recipient rate restrictions.
+or SMTP request rate restrictions.
 .PP
 By default, clients in trusted networks are excluded. Specify a
 list of network blocks, hostnames or .domain names (the initial

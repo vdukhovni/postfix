@@ -1284,7 +1284,8 @@ physical endpoints. </p>
 <DT><b><a name="connection_cache_ttl_limit">connection_cache_ttl_limit</a>
 (default: 2s)</b></DT><DD>
 
-<p> The maximal time-to-live value that the connection cache server
+<p> The maximal time-to-live value that the <a href="scache.8.html">scache(8)</a> connection
+cache server
 allows. Requests that specify a larger TTL will be stored with the
 maximum allowed TTL. The purpose of this additional control is to
 protect the infrastructure against careless people. The cache TTL
@@ -3263,8 +3264,7 @@ client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority. </dd>
 
-<dt><b> <a name="check_address_map">check_address_map</a> <i><a
-href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b> <a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dt><b> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
@@ -5708,23 +5708,24 @@ seconds.  This allows connections to be reused for other deliveries,
 and can improve mail delivery performance. </p>
 
 <p> Specify a comma or white space separated list of destinations
-or pseudo-destinations:
-</p>
+or pseudo-destinations: </p>
 
 <ul>
 
 <li> if mail is sent without a relay host: a domain name (the
-right-hand side of an email address, without the optional []),
+right-hand side of an email address, without the [] around a numeric
+IP address),
 
-<li> if mail is sent via a relay host: a relay host (without the
-optional [] or non-default TCP port), as specified in main.cf or
-in the transport map,
+<li> if mail is sent via a relay host: a relay host name (without
+[] or non-default TCP port), as specified in main.cf or in the
+transport map,
 
-<li> a /file/name with domains and/or relay hosts,
+<li> a /file/name with domain names and/or relay host names as
+defined above,
 
-<li> a "<a href="DATABASE_README.html">type:table</a>" with domains and/or relay hosts on the left-hand
-side.  The right-hand side result from "<a href="DATABASE_README.html">type:table</a>" lookups is
-ignored.
+<li> a "<a href="DATABASE_README.html">type:table</a>" with domain names and/or relay hosts name on
+the left-hand side.  The right-hand side result from "<a href="DATABASE_README.html">type:table</a>"
+lookups is ignored.
 
 </ul>
 
@@ -6954,7 +6955,7 @@ Example:
 
 <p>
 Clients that are excluded from connection count, connection rate,
-message rate or recipient rate restrictions.
+or SMTP request rate restrictions.
 </p>
 
 <p>

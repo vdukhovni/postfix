@@ -195,7 +195,8 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	}
     }
     if (did_rewrite) {
-	vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
+	vstring_truncate(header_buf, strlen(hdr_opts->name));
+	vstring_strcat(header_buf, ": ");
 	tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
     }
     myfree((char *) addr_list);
@@ -250,7 +251,8 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	}
     }
     if (did_rewrite) {
-	vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
+	vstring_truncate(header_buf, strlen(hdr_opts->name));
+	vstring_strcat(header_buf, ": ");
 	tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
     }
     myfree((char *) addr_list);

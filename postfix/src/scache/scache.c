@@ -2,7 +2,7 @@
 /* NAME
 /*	scache 8
 /* SUMMARY
-/*	Postfix connection cache server
+/*	Postfix shared connection cache server
 /* SYNOPSIS
 /*	\fBscache\fR [generic Postfix daemon options]
 /* DESCRIPTION
@@ -82,7 +82,8 @@
 /* .ad
 /* .fi
 /* .IP "\fBconnection_cache_ttl_limit (2s)\fR"
-/*	The maximal time-to-live value that the connection cache server
+/*	The maximal time-to-live value that the \fBscache\fR(8) connection
+/*	cache server
 /*	allows.
 /* .IP "\fBconnection_cache_status_update_time (600s)\fR"
 /*	How frequently the \fBscache\fR(8) server logs usage statistics with
@@ -117,6 +118,14 @@
 /*	postconf(5), configuration parameters
 /*	master(8), process manager
 /*	syslogd(8), system logging
+/* README FILES
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
+/*	CONNECTION_CACHE_README, Postfix connection cache
 /* LICENSE
 /* .ad
 /* .fi

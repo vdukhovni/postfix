@@ -32,6 +32,7 @@
 #define ANVIL_REQ_DISC		"disconnect"
 #define ANVIL_REQ_MAIL		"message"
 #define ANVIL_REQ_RCPT		"recipient"
+#define ANVIL_REQ_NEWTLS	"newtls"
 #define ANVIL_REQ_LOOKUP	"lookup"
 #define ANVIL_ATTR_IDENT	"ident"
 #define ANVIL_ATTR_COUNT	"count"
@@ -52,6 +53,7 @@ extern ANVIL_CLNT *anvil_clnt_create(void);
 extern int anvil_clnt_connect(ANVIL_CLNT *, const char *, const char *, int *, int *);
 extern int anvil_clnt_mail(ANVIL_CLNT *, const char *, const char *, int *);
 extern int anvil_clnt_rcpt(ANVIL_CLNT *, const char *, const char *, int *);
+extern int anvil_clnt_newtls(ANVIL_CLNT *, const char *, const char *, int *);
 extern int anvil_clnt_lookup(ANVIL_CLNT *, const char *, const char *, int *, int *, int *, int *);
 extern int anvil_clnt_disconnect(ANVIL_CLNT *, const char *, const char *);
 extern void anvil_clnt_free(ANVIL_CLNT *);
