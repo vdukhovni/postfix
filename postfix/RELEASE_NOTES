@@ -1,11 +1,15 @@
-Incompatible changes with snapshot 19990911
+Incompatible changes with snapshot XXXXXXXX
 ===========================================
+
+- Recipient addresses may no longer begin with `-'. In order to
+reinstate the old behavior, specify "allow_min_user = yes" in
+main.cf.
 
 - You can not longer use virtual, canonical or aliases tables as
 SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for.
 
-Major changes with snapshot 19990911
+Major changes with snapshot XXXXXXXX
 ====================================
 
 - Per-client/helo/sender/recipient UCE restrictions: you can now
@@ -23,7 +27,7 @@ UCE restrictions.  For example in main.cf:
     restrictive = reject_unknown_sender reject_unknown_client ...
     permissive = permit
 
-Then use "restrictive" or "restrictive" on the right-hand side of
+Then use "restrictive" or "permissive" on the right-hand side of
 your per-client/helo/sender/recipient SMTPD access tables.
 
 - Reject mail for non-existent local accounts. You can now use
@@ -51,8 +55,8 @@ permit_mynetworks, because permit_mynetworks accepts mail for
 non-existent local recipients.
 
 Unfortunately, permit_recipient_map does not combine well with
-check_relay_domains, because check_relay_domains permits either
-rejects mail, or accepts mail for non-existent local recipients.
+check_relay_domains, because check_relay_domains either rejects
+mail, or accepts mail regardless of whether a recipient exists.
 
 Incompatible changes with postfix-19990906
 ==========================================

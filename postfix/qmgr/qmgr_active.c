@@ -221,14 +221,6 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
     } else {
 
 	/*
-	 * Reset the defer log. Leave the bounce log alone; if it is still
-	 * around, something did not send it previously.
-	 */
-	if (mail_queue_remove(MAIL_QUEUE_DEFER, queue_id) && errno != ENOENT)
-	    msg_fatal("%s: %s: remove %s %s: %m", myname,
-		      queue_id, MAIL_QUEUE_DEFER, queue_id);
-
-	/*
 	 * Special case if all recipients were already delivered. Send any
 	 * bounces and clean up.
 	 */

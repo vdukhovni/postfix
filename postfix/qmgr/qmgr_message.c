@@ -490,6 +490,24 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
+	 * Bounce recipient addresses that start with `-'. External commands
+	 * may misinterpret such addresses as command-line options.
+	 * 
+	 * In theory I could say people should always carefully set up their
+	 * master.cf pipe mailer entries with `--' before the first
+	 * non-option argument, but mistakes will happen regardless.
+	 * 
+	 * Therefore the protection is put in place here, in the queue manager,
+	 * where it cannot be bypassed.
+	 */
+	if (var_allow_min_user == 0 && recipient->address[0] == '-') {
+	    qmgr_bounce_recipient(message, recipient,
+				  "invalid recipient syntax: \"%s\"",
+				  recipient->address);
+	    continue;
+	}
+
+	/*
 	 * Queues are identified by the transport name and by the next-hop
 	 * hostname. When the destination is local (no next hop), derive the
 	 * queue name from the recipient name. XXX Should split the address
@@ -682,6 +700,17 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	qmgr_message_free(message);
 	return (0);
     } else {
+
+	/*
+	 * Reset the defer log. This code should not be here, but we must
+	 * reset the defer log *after* acquiring the exclusive lock on the
+	 * queue file and *before* resolving new recipients. Since all those
+	 * operations are encapsulated so nicely by this routine, the defer
+	 * log reset has to be done here as well.
+	 */
+	if (mail_queue_remove(MAIL_QUEUE_DEFER, queue_id) && errno != ENOENT)
+	    msg_fatal("%s: %s: remove %s %s: %m", myname,
+		      queue_id, MAIL_QUEUE_DEFER, queue_id);
 	qmgr_message_sort(message);
 	qmgr_message_resolve(message);
 	qmgr_message_sort(message);

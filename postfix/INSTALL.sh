@@ -28,9 +28,9 @@ your changes interactively.
     command_directory - directory with Postfix administrative commands.
     queue_directory - directory with Postfix queues.
 
-    sendmail_path - full pathname of the sendmail command.
-    newaliases_path - full pathname of the newaliases command.
-    mailq_path - full pathname of the mailq command.
+    sendmail_path - full pathname of the Postfix sendmail command.
+    newaliases_path - full pathname of the Postfix newaliases command.
+    mailq_path - full pathname of the Postfix mailq command.
 
     owner - owner of Postfix queue files.
 
@@ -138,7 +138,7 @@ do
    esac
 done
 
-grep "^$owner:" /etc/passwd >/dev/null || {
+bin/postmap -c ./conf -q "$owner" unix:passwd.byname >/dev/null || {
     echo "$owner needs an entry in the passwd file" 1>&2
     echo "Remember, $owner must have a dedicated user id and group id." 1>&2
     exit 1
@@ -146,7 +146,7 @@ grep "^$owner:" /etc/passwd >/dev/null || {
 
 case $setgid in
 no) ;;
- *) grep "^$setgid:" /etc/group >/dev/null || {
+ *) bin/postmap -c ./conf -q "$setgid" unix:group.byname >/dev/null || {
 	echo "$setgid needs an entry in the group file" 1>&2
 	echo "Remember, $setgid must have a dedicated group id." 1>&2
 	exit 1
@@ -174,7 +174,7 @@ rm -f junk
 
 # Install files. Be careful to not copy over running programs.
 
-for file in `ls libexec | grep '^[a-z]'`
+for file in `ls libexec`
 do
     compare_or_replace a+x,go-w libexec/$file $daemon_directory/$file || exit 1
 done
@@ -199,7 +199,7 @@ test -f $config_directory/main.cf || {
 	s;^daemon_directory .*;daemon_directory = $daemon_directory;
 	s;^command_directory .*;command_directory = $command_directory;
 	s;^queue_directory .*;queue_directory = $queue_directory;
-	s;^mail_owner .*;mail_owner = $mail_owner;
+	s;^mail_owner .*;mail_owner = $owner;
     " conf/main.cf >$config_directory/main.cf || exit 1
 
     echo "Warning: you still need to edit myorigin/mydestination in" 1>&2

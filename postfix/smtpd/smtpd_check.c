@@ -1078,6 +1078,13 @@ static int check_table_result(SMTPD_STATE *state, char *table,
 			     var_access_map_code, reply_name, reply_class));
 
     /*
+     * All-numeric result probably means OK - some out-of-band authentication
+     * mechanism uses this as time stamp.
+     */
+    if (value[strcspn(value, "0123456789")] == 0)
+	return (SMTPD_CHECK_OK);
+
+    /*
      * 4xx or 5xx means NO as well. smtpd_check_reject() will validate the
      * response status code.
      */

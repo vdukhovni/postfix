@@ -151,6 +151,7 @@ Test programs:
 
 Miscellaneous:
 
+    auxiliary/		Auxiliary software etc.
     bin/		Postfix command executables
     conf/		Sample configuration files
     include/		Installed include files

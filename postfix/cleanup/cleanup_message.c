@@ -234,7 +234,7 @@ static void cleanup_header(void)
     if (msg_verbose)
 	msg_info("%s: '%s'", myname, vstring_str(cleanup_header_buf));
 
-    if (cleanup_header_checks) {
+    if ((cleanup_flags & CLEANUP_FLAG_FILTER) && cleanup_header_checks) {
 	char   *header = vstring_str(cleanup_header_buf);
 	const char *value;
 

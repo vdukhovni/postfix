@@ -22,7 +22,7 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
-/* .IP "\fBflags=FR>\fR (optional)"
+/* .IP "\fBflags=FR.>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
 /* .RS
@@ -34,6 +34,9 @@
 /* .IP \fBR\fR
 /*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
 /*	address.
+/* .IP \fB.\fR
+/*	Prepend \fB.\fR to lines starting with "\fB.\fR". This is needed
+/*	by, for example, \fBBSMTP\fR software.
 /* .IP \fB>\fR
 /*	Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
 /*	by, for example, \fBUUCP\fR software.
@@ -429,6 +432,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 		switch (*cp) {
 		case 'F':
 		    attr->flags |= MAIL_COPY_FROM;
+		    break;
+		case '.':
+		    attr->flags |= MAIL_COPY_DOT;
 		    break;
 		case '>':
 		    attr->flags |= MAIL_COPY_QUOTE;

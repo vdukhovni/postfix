@@ -1,0 +1,36 @@
+mail from:<wietse@porcupine.org>
+Token value: mail
+Token value: from:
+Token value: <wietse@porcupine.org>
+mail from:<"wietse venema"@porcupine.org>
+Token value: mail
+Token value: from:
+Token value: <"wietse venema"@porcupine.org>
+mail from:wietse@porcupine.org
+Token value: mail
+Token value: from:
+Token value: wietse@porcupine.org
+mail from:<wietse @ porcupine.org>
+Token value: mail
+Token value: from:
+Token value: <wietse @ porcupine.org>
+mail from:<"wietse venema"@porcupine.org ("wietse ) venema")>
+Token value: mail
+Token value: from:
+Token value: <"wietse venema"@porcupine.org ("wietse ) venema")>
+mail from:<"wietse venema" <wietse@porcupine.org>>
+Token value: mail
+Token value: from:
+Token value: <"wietse venema" <wietse@porcupine.org>>
+mail from:<"wietse venema"@porcupine.org ( ("wietse ) venema") )>
+Token value: mail
+Token value: from:
+Token value: <"wietse venema"@porcupine.org ( ("wietse ) venema") )>
+mail from:"wietse venema"@porcupine.org
+Token value: mail
+Token value: from:
+Token value: "wietse venema"@porcupine.org
+mail from:wietse\ venema@porcupine.org
+Token value: mail
+Token value: from:
+Token value: wietse venema@porcupine.org

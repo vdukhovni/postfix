@@ -163,7 +163,10 @@ static int dns_query(const char *name, int type, int flags,
      * only if the name server told us so.
      */
     len = res_search((char *) name, C_IN, type, reply->buf, sizeof(reply->buf));
+    reply_header = (HEADER *) reply->buf;
     if (len < 0) {
+	if (reply_header->rcode == SERVFAIL)
+	    h_errno = NO_RECOVERY;
 	if (why)
 	    vstring_sprintf(why, "Name service error for domain %s: %s",
 			    name, dns_strerror(h_errno));
@@ -189,7 +192,6 @@ static int dns_query(const char *name, int type, int flags,
      */
     if ((reply->end = reply->buf + len) > reply->buf + sizeof(reply->buf))
 	reply->end = reply->buf + sizeof(reply->buf);
-    reply_header = (HEADER *) reply->buf;
     reply->query_start = reply->buf + sizeof(HEADER);
     reply->answer_start = 0;
     reply->query_count = ntohs(reply_header->qdcount);

@@ -100,6 +100,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
               Log  mailer  traffic.  Use  the <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b> and
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> configuration parameters  instead.
 
+       <b>-U</b> (ignored)
+              Initial user submission.
+
        <b>-bd</b>    Go  into  daemon  mode.  This  mode of operation is
               implemented by executing the <b>postfix</b> <b>start</b> command.
 
@@ -121,9 +124,6 @@ SENDMAIL(1)                                           SENDMAIL(1)
               address where delivery problems are sent to, unless
               the message contains an <b>Errors-To:</b> message  header.
 
-       <b>-h</b> <i>hop_count</i> (ignored)
-              Hop  count limit. Use the <b>hopcount</b><i>_</i><b>limit</b> configura-
-              tion parameter instead.
 
 
 
@@ -136,6 +136,10 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
 SENDMAIL(1)                                           SENDMAIL(1)
 
+
+       <b>-h</b> <i>hop_count</i> (ignored)
+              Hop  count limit. Use the <b>hopcount</b><i>_</i><b>limit</b> configura-
+              tion parameter instead.
 
        <b>-i</b> (ignored)
               Lines beginning with "." get special treatment only
@@ -187,10 +191,6 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
 <b>SECURITY</b>
        By design, this program is not  set-user  (or  group)  id.
-       However,  it  must  handle  data  from  untrusted users or
-       untrusted machines.  Thus, the usual precautions  need  to
-       be taken against malicious inputs.
-
 
 
 
@@ -202,6 +202,10 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
 SENDMAIL(1)                                           SENDMAIL(1)
 
+
+       However,  it  must  handle  data  from  untrusted users or
+       untrusted machines.  Thus, the usual precautions  need  to
+       be taken against malicious inputs.
 
 <b>DIAGNOSTICS</b>
        Problems  are  logged  to  <b>syslogd</b>(8)  and to the standard
@@ -252,11 +256,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
               List  of  domain or network patterns. When a remote
-              host matches a pattern, increase the  verbose  log-
-              ging   level   by   the  amount  specified  in  the
-              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
-
-
+              host  matches  a  pattern,  increase  the   verbose
 
 
 
@@ -268,6 +268,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
 SENDMAIL(1)                                           SENDMAIL(1)
 
+
+              logging  level  by  the  amount  specified  in  the
+              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
 
        <b>fork</b><i>_</i><b>attempts</b>
               Number of attempts to <b>fork</b>() a process before  giv-
@@ -320,13 +323,76 @@ SENDMAIL(1)                                           SENDMAIL(1)
        Wietse Venema
        IBM T.J. Watson Research
        P.O. Box 704
+
+
+
+                                                                5
+
+
+
+
+
+SENDMAIL(1)                                           SENDMAIL(1)
+
+
        Yorktown Heights, NY 10598, USA
 
 
 
 
 
-                                                                5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                6
 
 
 </pre> </body> </html>

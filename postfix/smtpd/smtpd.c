@@ -232,6 +232,7 @@
 #include <mail_flush.h>
 #include <mail_stream.h>
 #include <mail_queue.h>
+#include <tok822.h>
 
 /* Single-threaded server skeleton. */
 
@@ -392,7 +393,7 @@ static void mail_open_stream(SMTPD_STATE *state)
 	state->dest = mail_stream_service(MAIL_CLASS_PRIVATE,
 					  MAIL_SERVICE_CLEANUP);
 	if (state->dest == 0
-	    || mail_print(state->dest->stream, "%d", CLEANUP_FLAG_NONE) != 0)
+	 || mail_print(state->dest->stream, "%d", CLEANUP_FLAG_FILTER) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
     }
@@ -424,6 +425,50 @@ static void mail_open_stream(SMTPD_STATE *state)
     state->queue_id = mystrdup(state->dest->id);
 }
 
+/* extract_addr - extract address from rubble */
+
+static VSTRING *extract_addr(SMTPD_STATE *state, VSTRING *buf)
+{
+    char   *myname = "extract_addr";
+    TOK822 *tree;
+    TOK822 *tp;
+    int     naddr;
+    int     non_addr;
+
+    /*
+     * Some mailers send RFC822-style address forms (with comments and such)
+     * in SMTP envelopes. We cannot blame users for this: the blame is with
+     * programmers violating the RFC, and with sendmail for being permissive.
+     * 
+     * Extract the address from any surrounding junk. XXX Because of this, the
+     * SMTP command tokenizer must leave the address in externalized (quoted)
+     * form.
+     */
+#define STR(x)	vstring_str(x)
+#define LEN(x)	VSTRING_LEN(x)
+
+    if (msg_verbose)
+	msg_info("%s: input: %s", myname, STR(buf));
+    tree = tok822_parse(STR(buf));
+    for (naddr = non_addr = 0, tp = tree; tp != 0; tp = tp->next) {
+	if (tp->type == TOK822_ADDR) {
+	    if (++naddr == 1)
+		tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
+	    else if (naddr == 2)
+		msg_warn("Multiple addresses from %s in %s command: %s",
+			 state->namaddr, state->where, STR(buf));
+	} else if (tp->type != '<' && tp->type != '>') {
+	    if (++non_addr == 1)
+		msg_warn("Non-RFC 821 syntax from %s in %s command: %s",
+			 state->namaddr, state->where, STR(buf));
+	}
+    }
+    tok822_free_tree(tree);
+    if (msg_verbose)
+	msg_info("%s: result: %s", myname, STR(buf));
+    return (buf);
+}
+
 /* mail_cmd - process MAIL command */
 
 static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
@@ -447,14 +492,14 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: nested MAIL command");
 	return (-1);
     }
-    if (argc < 4
-	|| strcasecmp(argv[1].strval, "from") != 0
-	|| strcmp(argv[2].strval, ":") != 0) {
+    if (argc < 3
+	|| strcasecmp(argv[1].strval, "from:") != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: MAIL FROM: <address>");
 	return (-1);
     }
-    for (narg = 4; narg < argc; narg++) {
+    argv[2].strval = STR(extract_addr(state, argv[2].vstrval));
+    for (narg = 3; narg < argc; narg++) {
 	arg = argv[narg].strval;
 	if (strcasecmp(arg, "BODY=8BITMIME") == 0
 	    || strcasecmp(arg, "BODY=7BIT") == 0) {
@@ -471,7 +516,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     state->time = time((time_t *) 0);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& var_smtpd_delay_reject == 0
-	&& (err = smtpd_check_mail(state, argv[3].strval)) != 0) {
+	&& (err = smtpd_check_mail(state, argv[2].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
@@ -491,8 +536,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
 		(long) time((time_t *) 0));
-    rec_fputs(state->cleanup, REC_TYPE_FROM, argv[3].strval);
-    state->sender = mystrdup(argv[3].strval);
+    rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
+    state->sender = mystrdup(argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -545,20 +590,20 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: need MAIL command");
 	return (-1);
     }
-    if (argc != 4
-	|| strcasecmp(argv[1].strval, "to") != 0
-	|| strcmp(argv[2].strval, ":") != 0) {
+    if (argc != 3
+	|| strcasecmp(argv[1].strval, "to:") != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: RCPT TO: <address>");
 	return (-1);
     }
+    argv[2].strval = STR(extract_addr(state, argv[2].vstrval));
     if (var_smtpd_rcpt_limit && state->rcpt_count >= var_smtpd_rcpt_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "452 Error: too many recipients");
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0
-	&& (err = smtpd_check_rcpt(state, argv[3].strval)) != 0) {
+	&& (err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
@@ -568,8 +613,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     state->rcpt_count++;
     if (state->recipient == 0)
-	state->recipient = mystrdup(argv[3].strval);
-    rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[3].strval);
+	state->recipient = mystrdup(argv[2].strval);
+    rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -596,10 +641,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     first = 1;
 
     /*
-     * Sanity checks.
+     * Sanity checks. With ESMTP command pipelining the client can send DATA
+     * before all recipients are rejected, so don't report that as a protocol
+     * error.
      */
     if (state->rcpt_count == 0) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	if (state->cleanup == 0)
+	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 Error: need RCPT command");
 	return (-1);
     }

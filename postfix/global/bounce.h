@@ -39,6 +39,7 @@ extern int bounce_flush(int, const char *, const char *, const char *);
 #define BOUNCE_FLAG_NONE	0	/* no flags up */
 #define BOUNCE_FLAG_CLEAN	(1<<0)	/* remove log on error */
 #define BOUNCE_FLAG_COPY	(1<<1)	/* postmaster notice */
+#define BOUNCE_FLAG_VERP	(1<<2)	/* personalized bounce */
 
  /*
   * Backwards compatibility.

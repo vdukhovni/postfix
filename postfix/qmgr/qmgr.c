@@ -266,6 +266,7 @@ int     var_dest_rcpt_limit;
 char   *var_relocated_maps;
 char   *var_virtual_maps;
 char   *var_defer_xports;
+bool    var_allow_min_user;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -458,6 +459,10 @@ int     main(int argc, char **argv)
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
+	0,
+    };
+    static CONFIG_BOOL_TABLE bool_table[] = {
+	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	0,
     };
 

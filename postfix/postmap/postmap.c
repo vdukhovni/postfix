@@ -5,12 +5,12 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-c \fIconfig_dir\fR] [\fB-i\fR] [\fB-v\fR]
-/*		[\fB-w\fR] [\fIfile_type\fR:]\fIfile_name\fR
+/*	\fBpostmap\fR [\fB-ivw\fR] [\fB-c \fIconfig_dir\fR] [\fB-q \fIkey\fR]
+/*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
-/*	The \fBpostmap\fR command creates a new Postfix lookup table,
-/*	or updates an existing one. The input and output formats are
-/*	expected to be compatible with:
+/*	The \fBpostmap\fR command creates or queries one or more Postfix
+/*	lookup tables, or updates an existing one. The input and output
+/*	file formats are expected to be compatible with:
 /*
 /* .ti +4
 /*	\fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
@@ -44,10 +44,14 @@
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR creates
 /*	a new database from the entries in \fBfile_name\fR.
+/* .IP "\fB-q \fIkey\fR"
+/*	Search the specified maps for \fIkey\fR and print the first value
+/*	found on the standard output stream. The exit status is non-zero
+/*	if the requested information was not found.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
-/* .IP \f\B-w\fR
+/* .IP \fB-w\fR
 /*	Do not warn about duplicate entries; silently ignore them.
 /* .PP
 /*	Arguments:
@@ -226,11 +230,28 @@ static void postmap(char *map_type, char *path_name,
 	vstream_fclose(source_fp);
 }
 
+/* postmap_query - query a map and print the result to stdout */
+
+static int postmap_query(const char *map_type, const char *map_name,
+			         const char *key)
+{
+    DICT   *dict;
+    const char *value;
+
+    dict = dict_open3(map_type, map_name, O_RDONLY, DICT_FLAG_LOCK);
+    if ((value = dict_get(dict, key)) != 0) {
+	vstream_printf("%s\n", value);
+	vstream_fflush(VSTREAM_OUT);
+    }
+    dict_close(dict);
+    return (value != 0);
+}
+
 /* usage - explain */
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-c config_dir] [-i] [-v] [-w] [output_type:]file...",
+    msg_fatal("usage: %s [-ivw] [-c config_dir] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -243,6 +264,8 @@ int     main(int argc, char **argv)
     struct stat st;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = DICT_FLAG_DUP_WARN;
+    char   *query = 0;
+    int     found;
 
     /*
      * Be consistent with file permissions.
@@ -277,7 +300,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:ivw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:iq:vw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -288,6 +311,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'i':
 	    open_flags &= ~O_TRUNC;
+	    break;
+	case 'q':
+	    query = optarg;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -304,15 +330,31 @@ int     main(int argc, char **argv)
      * Use the map type specified by the user, or fall back to a default
      * database type.
      */
-    if (optind + 1 > argc)
-	usage(argv[0]);
-    while (optind < argc) {
-	if ((path_name = split_at(argv[optind], ':')) != 0) {
-	    postmap(argv[optind], path_name, open_flags, dict_flags);
-	} else {
-	    postmap(var_db_type, argv[optind], open_flags, dict_flags);
+    if (query == 0) {				/* create/update map(s) */
+	if (optind + 1 > argc)
+	    usage(argv[0]);
+	while (optind < argc) {
+	    if ((path_name = split_at(argv[optind], ':')) != 0) {
+		postmap(argv[optind], path_name, open_flags, dict_flags);
+	    } else {
+		postmap(var_db_type, argv[optind], open_flags, dict_flags);
+	    }
+	    optind++;
 	}
-	optind++;
+	exit(0);
+    } else {					/* query map(s) */
+	if (optind + 1 > argc)
+	    usage(argv[0]);
+	while (optind < argc) {
+	    if ((path_name = split_at(argv[optind], ':')) != 0) {
+		found = postmap_query(argv[optind], path_name, query);
+	    } else {
+		found = postmap_query(var_db_type, argv[optind], query);
+	    }
+	    if (found)
+		exit(0);
+	    optind++;
+	}
+	exit(1);
     }
-    exit(0);
 }

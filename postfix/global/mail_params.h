@@ -208,6 +208,13 @@ extern char *var_db_type;
 extern char *var_always_bcc;
 
  /*
+  * Standards violation: permit RFC 822-style addresses in SMTP commands.
+  */
+#define VAR_ALLOW_RFC822_ENV	"allow_rfc822_envelopes"
+#define DEF_ALLOW_RFC822_ENV	1
+extern bool var_allow_rfc822_envelopes;
+
+ /*
   * trivial rewrite/resolve service: mapping tables.
   */
 #define VAR_VIRTUAL_MAPS	"virtual_maps"
@@ -832,6 +839,13 @@ extern bool var_soft_bounce;
 #define VAR_OWNREQ_SPECIAL		"owner_request_special"
 #define DEF_OWNREQ_SPECIAL		1
 extern bool var_ownreq_special;
+
+ /*
+  * Allow/disallow recipient addresses starting with `-'.
+  */
+#define VAR_ALLOW_MIN_USER		"allow_min_user"
+#define DEF_ALLOW_MIN_USER		0
+extern bool var_allow_min_user;
 
 extern void mail_params_init(void);
 

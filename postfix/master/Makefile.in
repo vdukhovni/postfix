@@ -90,6 +90,7 @@ master.o: ../include/iostuff.h
 master.o: ../include/vstream.h
 master.o: ../include/stringops.h
 master.o: ../include/myflock.h
+master.o: ../include/watchdog.h
 master.o: ../include/mail_params.h
 master.o: ../include/debug_process.h
 master.o: ../include/mail_task.h
@@ -202,6 +203,7 @@ multi_server.o: ../include/stringops.h
 multi_server.o: ../include/sane_accept.h
 multi_server.o: ../include/myflock.h
 multi_server.o: ../include/safe_open.h
+multi_server.o: ../include/watchdog.h
 multi_server.o: ../include/mail_task.h
 multi_server.o: ../include/debug_process.h
 multi_server.o: ../include/mail_params.h
@@ -227,6 +229,7 @@ single_server.o: ../include/sane_accept.h
 single_server.o: ../include/myflock.h
 single_server.o: ../include/safe_open.h
 single_server.o: ../include/listen.h
+single_server.o: ../include/watchdog.h
 single_server.o: ../include/mail_params.h
 single_server.o: ../include/mail_task.h
 single_server.o: ../include/debug_process.h
@@ -252,6 +255,7 @@ trigger_server.o: ../include/sane_accept.h
 trigger_server.o: ../include/myflock.h
 trigger_server.o: ../include/safe_open.h
 trigger_server.o: ../include/listen.h
+trigger_server.o: ../include/watchdog.h
 trigger_server.o: ../include/mail_params.h
 trigger_server.o: ../include/mail_task.h
 trigger_server.o: ../include/debug_process.h

@@ -19,6 +19,9 @@
 /* .IP passwd.byname
 /*	The table is the UNIX password database. The key is a login name.
 /*	The result is a password file entry in passwd(5) format.
+/* .IP group.byname
+/*	The table is the UNIX group database. The key is a group name.
+/*	The result is a group file entry in group(5) format.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* DIAGNOSTICS
@@ -37,8 +40,10 @@
 /* System library. */
 
 #include "sys_defs.h"
+#include <unistd.h>
 #include <string.h>
 #include <pwd.h>
+#include <grp.h>
 
 /* Utility library. */
 
@@ -76,6 +81,33 @@ static const char *dict_unix_getpwnam(DICT *unused_dict, const char *key)
     }
 }
 
+/* dict_unix_getgrnam - find group table entry */
+
+static const char *dict_unix_getgrnam(DICT *unused_dict, const char *key)
+{
+    struct group *grp;
+    static VSTRING *buf;
+    char  **cpp;
+
+    dict_errno = 0;
+
+    if ((grp = getgrnam(key)) == 0) {
+	return (0);
+    } else {
+	if (buf == 0)
+	    buf = vstring_alloc(10);
+	vstring_sprintf(buf, "%s:%s:%d:",
+			grp->gr_name, grp->gr_passwd, grp->gr_gid);
+	for (cpp = grp->gr_mem; *cpp; cpp++) {
+	    vstring_strcat(buf, *cpp);
+	    if (cpp[1])
+		VSTRING_ADDCH(buf, ',');
+	}
+	VSTRING_TERMINATE(buf);
+	return (vstring_str(buf));
+    }
+}
+
 /* dict_unix_update - add or update table entry */
 
 static void dict_unix_update(DICT *dict, const char *unused_name, const char *unused_value)
@@ -106,6 +138,7 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
     };
     static struct dict_unix_lookup dict_unix_lookup[] = {
 	"passwd.byname", dict_unix_getpwnam,
+	"group.byname", dict_unix_getgrnam,
 	0,
     };
     struct dict_unix_lookup *lp;

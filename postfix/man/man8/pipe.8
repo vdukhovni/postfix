@@ -30,7 +30,7 @@ to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
-.IP "\fBflags=FR>\fR (optional)"
+.IP "\fBflags=FR.>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
 .RS
@@ -42,6 +42,9 @@ flag also causes an empty line to be appended to the message.
 .IP \fBR\fR
 Prepend a \fBReturn-Path:\fR message header with the envelope sender
 address.
+.IP \fB.\fR
+Prepend \fB.\fR to lines starting with "\fB.\fR". This is needed
+by, for example, \fBBSMTP\fR software.
 .IP \fB>\fR
 Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
 by, for example, \fBUUCP\fR software.

@@ -20,7 +20,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	vstream.c vstream_popen.c vstring.c vstring_vstream.c writable.c \
 	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
-	clean_env.c
+	clean_env.c watchdog.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -42,7 +42,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	vstream.o vstream_popen.o vstring.o vstring_vstream.o writable.o \
 	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
-	clean_env.o
+	clean_env.o watchdog.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -56,7 +56,8 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	sigdelay.h split_at.h stat_as.h stringops.h sys_defs.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
-	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h
+	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
+	watchdog.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -71,7 +72,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok peer_name sigdelay translit valid_hostname vstream_popen \
-	vstring vstring_vstream doze select_bug stream_test mac_expand
+	vstring vstring_vstream doze select_bug stream_test mac_expand \
+	watchdog
 
 LIB_DIR	= ../lib
 INC_DIR	= ../include
@@ -236,6 +238,11 @@ doze: $(LIB)
 	mv junk $@.o
 
 mac_expand: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+watchdog: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -852,6 +859,11 @@ vstring_vstream.o: vstring.h
 vstring_vstream.o: vbuf.h
 vstring_vstream.o: vstream.h
 vstring_vstream.o: vstring_vstream.h
+watchdog.o: watchdog.c
+watchdog.o: sys_defs.h
+watchdog.o: msg.h
+watchdog.o: mymalloc.h
+watchdog.o: watchdog.h
 writable.o: writable.c
 writable.o: sys_defs.h
 writable.o: msg.h

@@ -9,15 +9,15 @@ POSTALIAS(1)                                         POSTALIAS(1)
        postalias - Postfix alias database maintenance
 
 <b>SYNOPSIS</b>
-       <b>postalias</b> [<b>-c</b> <i>config_dir</i>] [<b>-i</b>] [<b>-v</b>] [<b>-w</b>]
+       <b>postalias</b> [<b>-ivw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-q</b> <i>key</i>]
        [<i>file_type</i>:]<i>file_name</i> ...
 
 <b>DESCRIPTION</b>
-       The  <b>postalias</b>  command  creates  a  new   Postfix   alias
-       database, or updates an existing one. The input and output
-       file formats are expected to be compatible  with  Sendmail
-       version  8, and are expected to be suitable for the use as
-       NIS alias maps.
+       The <b>postalias</b> command creates or queries one or more Post-
+       fix alias databases, or updates an existing one. The input
+       and output file formats are expected to be compatible with
+       Sendmail  version  8,  and are expected to be suitable for
+       the use as NIS alias maps.
 
        While a database update is in progress, signal delivery is
        postponed,  and  an exclusive, advisory, lock is placed on
@@ -35,8 +35,13 @@ POSTALIAS(1)                                         POSTALIAS(1)
               default, <b>postalias</b> creates a new database from  the
               entries in <b>file</b><i>_</i><b>name</b>.
 
+       <b>-q</b> <i>key</i> Search  the  specified  maps  for <i>key</i> and print the
+              first value found on the  standard  output  stream.
+              The exit status is non-zero if the requested infor-
+              mation was not found.
+
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
        <b>-w</b>     Do  not  warn  about  duplicate  entries;  silently
@@ -47,18 +52,13 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <i>file_type</i>
               The type of database to be produced.
 
-              <b>btree</b>  The  output   is   a   btree   file,   named
-                     <i>file_name</i><b>.db</b>.   This  is  available  only on
-                     systems with support for <b>db</b> databases.
-
-              <b>dbm</b>    The output  consists  of  two  files,  named
-                     <i>file_name</i><b>.pag</b>  and  <i>file_name</i><b>.dir</b>.   This is
-                     available only on systems with  support  for
-                     <b>dbm</b> databases.
-
-              <b>hash</b>   The   output   is   a   hashed  file,  named
+              <b>btree</b>  The   output   is   a   btree   file,  named
                      <i>file_name</i><b>.db</b>.  This  is  available  only  on
                      systems with support for <b>db</b> databases.
+
+              <b>dbm</b>    The  output  consists  of  two  files, named
+                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
+                     available  only  on systems with support for
 
 
 
@@ -71,17 +71,23 @@ POSTALIAS(1)                                         POSTALIAS(1)
 POSTALIAS(1)                                         POSTALIAS(1)
 
 
-              When  no  <i>file_type</i> is specified, the software uses
-              the database type specified via  the  <b>database</b><i>_</i><b>type</b>
-              configuration  parameter.   The  default  value for
+                     <b>dbm</b> databases.
+
+              <b>hash</b>   The  output  is   a   hashed   file,   named
+                     <i>file_name</i><b>.db</b>.   This  is  available  only on
+                     systems with support for <b>db</b> databases.
+
+              When no <i>file_type</i> is specified, the  software  uses
+              the  database  type specified via the <b>database</b><i>_</i><b>type</b>
+              configuration parameter.   The  default  value  for
               this parameter depends on the host environment.
 
        <i>file_name</i>
-              The name of the alias  database  source  file  when
+              The  name  of  the  alias database source file when
               rebuilding a database.
 
 <b>DIAGNOSTICS</b>
-       Problems  are logged to the standard error stream. No out-
+       Problems are logged to the standard error stream. No  out-
        put means no problems were detected. Duplicate entries are
        skipped and are flagged with a warning.
 
@@ -93,12 +99,12 @@ POSTALIAS(1)                                         POSTALIAS(1)
               Enable verbose logging for debugging purposes.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. See the Postfix <b>main.cf</b> file  for  syntax
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program. See the Postfix <b>main.cf</b> file for syntax
        details and for default values.
 
        <b>database</b><i>_</i><b>type</b>
-              Default  alias database type. On many UNIX systems,
+              Default alias database type. On many UNIX  systems,
               the default type is either <b>dbm</b> or <b>hash</b>.
 
 <b>STANDARDS</b>
@@ -109,7 +115,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <a href="sendmail.1.html">sendmail(1)</a> mail posting and compatibility interface.
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -117,12 +123,6 @@ POSTALIAS(1)                                         POSTALIAS(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
 
 
 

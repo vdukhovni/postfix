@@ -140,7 +140,7 @@ static int file_read_error(PICKUP_INFO *info, int type)
 static int cleanup_service_error(PICKUP_INFO *info, int status)
 {
     msg_warn("%s: %s", info->path, cleanup_strerror(status));
-    return (status == CLEANUP_STAT_BAD ?
+    return ((status & CLEANUP_STAT_BAD) ?
 	    REMOVE_MESSAGE_FILE : KEEP_MESSAGE_FILE);
 }
 
@@ -345,10 +345,12 @@ static int pickup_file(PICKUP_INFO *info)
      * easier to implement the many possible error exits without forgetting
      * to close files, or to release memory.
      */
+#define PICKUP_CLEANUP_FLAGS	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_FILTER)
+
     buf = vstring_alloc(100);
     cleanup = mail_connect_wait(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
     if (mail_scan(cleanup, "%s", buf) != 1
-	|| mail_print(cleanup, "%d", CLEANUP_FLAG_BOUNCE) != 0) {
+	|| mail_print(cleanup, "%d", PICKUP_CLEANUP_FLAGS) != 0) {
 	status = KEEP_MESSAGE_FILE;
     } else {
 	info->id = mystrdup(vstring_str(buf));

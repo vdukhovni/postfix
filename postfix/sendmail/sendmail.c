@@ -70,6 +70,8 @@
 /* .IP "\fB-X \fIlog_file\fR (ignored)"
 /*	Log mailer traffic. Use the \fBdebug_peer_list\fR and
 /*	\fBdebug_peer_level\fR configuration parameters instead.
+/* .IP "\fB-U\fR (ignored)"
+/*	Initial user submission.
 /* .IP \fB-bd\fR
 /*	Go into daemon mode. This mode of operation is implemented by
 /*	executing the \fBpostfix start\fR command.
@@ -660,7 +662,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:IN:R:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "B:C:F:IN:R:UX:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:

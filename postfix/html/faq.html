@@ -56,7 +56,11 @@
 
 <li><a href="#timeouts">Mail fails with timeout or lost connection</a>
 
+<p>
+
 <li><a href="#bind">Undefined symbols: ___dn_expand, ___res_init etc.</a>
+
+<li><a href="#dbm">Undefined symbols: dbm_pagfno, dbm_dirfno etc.</a>
 
 <li><a href="#db">Using DB libraries on Solaris etc.</a>
 
@@ -1047,6 +1051,31 @@ Fix: use the right include files. For example:
 
 <hr>
 
+<a name="dbm"><h2>Undefined symbols: dbm_pagfno, dbm_dirfno etc.</h2></a>
+
+Question: When I build Postfix I get the following errors:
+
+<p>
+
+<pre>
+    Undefined                       first referenced
+     symbol                             in file
+       dbm_pagfno                          ../lib/libutil.a(dict_dbm.o)
+       dbm_dirfno                          ../lib/libutil.a(dict_dbm.o)
+</pre>
+
+<p>
+
+Answer: instead of using /usr/include/ndbm.h, you're building
+Postfix with some incompatible third-party ndbm.h include file,
+typically something in /usr/local/include.
+
+<p>
+
+Fix: get rid of the third-party ndbm.h include file.
+
+<hr>
+
 <a name="db"><h2>Using DB libraries on Solaris etc.</h2> </a>
 
 The old <b>dbm</b> UNIX database has severe limitations when you
@@ -1092,8 +1121,8 @@ include directory and of the object library.
 
 <p>
 
-One problem: older DB versions install a file <b>/usr/include/ndbm.h</b>
-that is incompatible with the one in <b>/usr/include</b>. Be sure
+One problem: older DB versions install a file <b>/usr/local/include/ndbm.h</b>
+that is incompatible with <b>/usr/include/ndbm.h</b>. Be sure
 to get rid of the bogus file, or the linker will fail to find
 <b>dbm_dirfno</b>.
 

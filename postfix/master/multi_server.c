@@ -144,6 +144,7 @@
 #include <myflock.h>
 #include <safe_open.h>
 #include <listen.h>
+#include <watchdog.h>
 
 /* Global library. */
 
@@ -183,19 +184,6 @@ static NORETURN multi_server_exit(void)
     if (multi_server_onexit)
 	multi_server_onexit(multi_server_name, multi_server_argv);
     exit(0);
-}
-
-/* multi_server_watchdog - something got stuck */
-
-static NORETURN multi_server_watchdog(int unused_sig)
-{
-
-    /*
-     * This runs as a signal handler. We should not do anything that could
-     * involve memory managent, but exiting without explanation would be
-     * worse.
-     */
-    msg_fatal("watchdog timer");
 }
 
 /* multi_server_abort - terminate after abnormal master exit */
@@ -275,12 +263,6 @@ static void multi_server_accept_local(int unused_event, char *context)
     int     fd;
 
     /*
-     * Some buggy systems cause Postfix to lock up.
-     */
-    signal(SIGALRM, multi_server_watchdog);
-    alarm(var_daemon_timeout);
-
-    /*
      * Be prepared for accept() to fail because some other process already
      * got the connection (the number of processes competing for clients is
      * kept small, so this is not a "thundering herd" problem). If the
@@ -313,12 +295,6 @@ static void multi_server_accept_inet(int unused_event, char *context)
     int     listen_fd = (int) context;
     int     time_left = -1;
     int     fd;
-
-    /*
-     * Some buggy systems cause Postfix to lock up.
-     */
-    signal(SIGALRM, multi_server_watchdog);
-    alarm(var_daemon_timeout);
 
     /*
      * Be prepared for accept() to fail because some other process already
@@ -369,6 +345,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     char   *lock_path;
     VSTRING *why;
     int     alone = 0;
+    WATCHDOG *watchdog;
 
     /*
      * Process environment options as early as we can.
@@ -585,11 +562,19 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     }
     event_enable_read(MASTER_STATUS_FD, multi_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
+    watchdog = watchdog_create(var_daemon_timeout, (WATCHDOG_FN) 0, (char *) 0);
+
+    /*
+     * The event loop, at last.
+     */
     while (var_use_limit == 0 || use_count < var_use_limit || client_count > 0) {
+	if (multi_server_lock != 0) {
+	    watchdog_stop(watchdog);
+	    if (myflock(vstream_fileno(multi_server_lock), MYFLOCK_EXCLUSIVE) < 0)
+		msg_fatal("select lock: %m");
+	}
+	watchdog_start(watchdog);
 	delay = loop ? loop(multi_server_name, multi_server_argv) : -1;
-	if (multi_server_lock != 0
-	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_EXCLUSIVE) < 0)
-	    msg_fatal("select lock: %m");
 	event_loop(delay);
     }
     multi_server_exit();

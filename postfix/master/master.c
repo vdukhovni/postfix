@@ -142,6 +142,7 @@
 #include <vstream.h>
 #include <stringops.h>
 #include <myflock.h>
+#include <watchdog.h>
 
 /* Global library. */
 
@@ -155,19 +156,6 @@
 
 #include "master.h"
 
-/* master_watchdog - something got stuck */
-
-static NORETURN master_watchdog(int unused_sig)
-{
-
-    /*
-     * This runs as a signal handler. We should not do anything that could
-     * involve memory managent, but exiting without explanation would be
-     * worse.
-     */
-    msg_fatal("watchdog timer");
-}
-
 int     main(int argc, char **argv)
 {
     static VSTREAM *lock_fp;
@@ -180,6 +168,7 @@ int     main(int argc, char **argv)
     int     test_lock = 0;
     int     fd_limit = open_limit(0);
     VSTRING *why;
+    WATCHDOG *watchdog;
 
     /*
      * Initialize.
@@ -332,13 +321,13 @@ int     main(int argc, char **argv)
      * multiple things at the same time, it really is all a single thread, so
      * that there are no concurrency conflicts within the master process.
      */
-    signal(SIGALRM, master_watchdog);
+    watchdog = watchdog_create(1000, (WATCHDOG_FN) 0, (char *) 0);
     for (;;) {
 #ifdef HAS_VOLATILE_LOCKS
 	if (myflock(vstream_fileno(lock_fp), MYFLOCK_EXCLUSIVE) < 0)
 	    msg_fatal("refresh exclusive lock: %m");
 #endif
-	alarm(1000);				/* same as trigger servers */
+	watchdog_start(watchdog);		/* same as trigger servers */
 	event_loop(-1);
 	if (master_gotsighup) {
 	    msg_info("reload configuration");

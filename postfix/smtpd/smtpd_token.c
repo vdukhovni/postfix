@@ -7,8 +7,10 @@
 /*	#include <smtpd_token.h>
 /*
 /*	typedef struct {
-	    int	tokval;
-	    char *strval;
+/* .in +4
+/*	    char *strval;
+/*	    /* other stuff... */
+/* .in -4
 /*	} SMTPD_TOKEN;
 /*
 /*	int	smtpd_token(str, argvp)
@@ -20,8 +22,6 @@
 /*	via the function return value.
 /*
 /*	Token types:
-/* .IP SMTPD_TOK_ADDR
-/*	The token is of the form <text>, not including the angle brackets.
 /* .IP SMTPD_TOK_OTHER
 /*	The token is something else.
 /* .IP SMTPD_TOK_ERROR
@@ -29,8 +29,9 @@
 /* BUGS
 /*	This tokenizer understands just enough to tokenize SMTPD commands.
 /*	It understands backslash escapes, white space, quoted strings,
-/*	and addresses (including quoted text) enclosed by < and >. Any
-/*	other sequence of characters is lumped together as one token.
+/*	and addresses (including quoted text) enclosed by < and >.
+/*	The input is broken up into tokens by whitespace, except for
+/*	whitespace that is protected by quites etc.
 /* LICENSE
 /* .ad
 /* .fi
@@ -47,6 +48,7 @@
 #include <sys_defs.h>
 #include <ctype.h>
 #include <string.h>
+#include <unistd.h>
 
 /* Utility library. */
 
@@ -57,45 +59,43 @@
 
 #include "smtpd_token.h"
 
- /*
-  * Macros to make complex code more readable.
-  */
-#define COLLECT(cp,vp,c,cond) { \
-	while ((c = *cp) != 0) { \
-	    if (c == '\\') { \
-		cp++; \
-		if ((c = *cp) == 0) \
-		    break; \
-	    } else if (!(cond)) { \
-		break; \
-	    } \
-	    cp++; \
-	    VSTRING_ADDCH(vp, c); \
-	} \
-    }
-
 /* smtp_quoted - read until closing quote */
 
-static char *smtp_quoted(char *cp, SMTPD_TOKEN *arg, int last)
+static char *smtp_quoted(char *cp, SMTPD_TOKEN *arg, int start, int last)
 {
+    static VSTRING *stack;
     int     c;
 
-    while ((c = *cp) != 0) {
+    if (stack == 0)
+	stack = vstring_alloc(1);
+    VSTRING_RESET(stack);
+    VSTRING_ADDCH(stack, last);
+
+    VSTRING_ADDCH(arg->vstrval, start);
+    for (;;) {
+	if ((c = *cp) == 0)
+	    break;
 	cp++;
-	if (c == '\\') {			/* parse escape sequence */
-	    if ((c = *cp) == 0)
-		break;				/* end of input, punt */
-	    cp++;
-	    VSTRING_ADDCH(arg->vstrval, c);	/* store escaped character */
-	} else if (c == last) {
-	    return (cp);			/* closing quote */
-	} else if (c == '"') {
-	    cp = smtp_quoted(cp, arg, c);	/* recurse */
+	VSTRING_ADDCH(arg->vstrval, c);
+	if (c == vstring_end(stack)[-1]) {	/* closing quote etc. */
+	    vstring_truncate(stack, VSTRING_LEN(stack) - 1);
+	    if (VSTRING_LEN(stack) == 0)
+		break;
 	} else {
-	    VSTRING_ADDCH(arg->vstrval, c);	/* store character */
+	    if (c == '\\') {			/* parse escape sequence */
+		if ((c = *cp) == 0)
+		    break;
+		cp++;
+		VSTRING_ADDCH(arg->vstrval, c);
+	    } else if (c == '"') {
+		VSTRING_ADDCH(stack, '"');	/* highest precedence */
+	    } else if (c == '(' && vstring_end(stack)[-1] != '"') {
+		VSTRING_ADDCH(stack, ')');	/* medium precedence */
+	    } else if (c == '<' && vstring_end(stack)[-1] == '>') {
+		VSTRING_ADDCH(stack, '>');	/* lowest precedence */
+	    }
 	}
     }
-    arg->tokval = SMTPD_TOK_ERROR;		/* missing end */
     return (cp);
 }
 
@@ -103,45 +103,43 @@ static char *smtp_quoted(char *cp, SMTPD_TOKEN *arg, int last)
 
 static char *smtp_next_token(char *cp, SMTPD_TOKEN *arg)
 {
-    char   *special = "<[\">]:";
     int     c;
 
     VSTRING_RESET(arg->vstrval);
-    arg->tokval = SMTPD_TOK_OTHER;
 
-    for (;;) {
-	if ((c = *cp++) == 0) {
-	    return (0);
-	} else if (ISSPACE(c)) {		/* whitespace, skip */
-	    while (ISSPACE(*cp))
+#define STR(x) vstring_str(x)
+#define LEN(x) VSTRING_LEN(x)
+#define STREQ(x,y,l) ((x)[0] == (x)[0] && strncasecmp((x), (y), (l)) == 0)
+
+    while ((c = *cp) != 0) {
+	cp++;
+	if (ISSPACE(c)) {			/* whitespace, skip */
+	    while (*cp && ISSPACE(*cp))
 		cp++;
-	    continue;
+	    if (LEN(arg->vstrval) > 0)		/* end of token */
+		break;
 	} else if (c == '<') {			/* <stuff> */
-	    arg->tokval = SMTPD_TOK_ADDR;
-	    cp = smtp_quoted(cp, arg, '>');
-	    break;
-	} else if (c == '[') {			/* [stuff], keep [] */
+	    cp = smtp_quoted(cp, arg, c, '>');
+	} else if (c == '[') {			/* [stuff] */
+	    cp = smtp_quoted(cp, arg, c, ']');
+	} else if (c == '"') {			/* "stuff" */
+	    cp = smtp_quoted(cp, arg, c, c);
+	} else if (c == ':') {			/* this is gross, but... */
 	    VSTRING_ADDCH(arg->vstrval, c);
-	    cp = smtp_quoted(cp, arg, ']');
-	    if (cp[-1] == ']')
-		VSTRING_ADDCH(arg->vstrval, ']');
-	    break;
-	} else if (c == '"') {			/* string */
-	    cp = smtp_quoted(cp, arg, c);
-	    break;
-	} else if (ISCNTRL(c) || strchr(special, c)) {
-	    VSTRING_ADDCH(arg->vstrval, c);
-	    break;
+	    if (STREQ(STR(arg->vstrval), "to:", LEN(arg->vstrval))
+		|| STREQ(STR(arg->vstrval), "from:", LEN(arg->vstrval)))
+		break;
 	} else {				/* other */
-	    if (c == '\\')
+	    if (c == '\\') {
 		if ((c = *cp) == 0)
 		    break;
+		cp++;
+	    }
 	    VSTRING_ADDCH(arg->vstrval, c);
-	    COLLECT(cp, arg->vstrval, c,
-		    !ISSPACE(c) && !ISCNTRL(c) && !strchr(special, c));
-	    break;
 	}
     }
+    if (LEN(arg->vstrval) == 0)			/* no token found */
+	return (0);
     VSTRING_TERMINATE(arg->vstrval);
     arg->strval = vstring_str(arg->vstrval);
     return (cp);
@@ -168,7 +166,7 @@ int     smtpd_token(char *cp, SMTPD_TOKEN **argvp)
 
     if (smtp_argv == 0)
 	smtp_argv = (SMTPD_TOKEN *) mvect_alloc(&mvect, sizeof(*smtp_argv), 1,
-					     smtpd_token_init, (MVECT_FN) 0);
+					    smtpd_token_init, (MVECT_FN) 0);
     for (n = 0; /* void */ ; n++) {
 	smtp_argv = (SMTPD_TOKEN *) mvect_realloc(&mvect, n + 1);
 	if ((cp = smtp_next_token(cp, smtp_argv + n)) == 0)
@@ -196,17 +194,18 @@ main(int unused_argc, char **unused_argv)
     int     i;
 
     for (;;) {
-	vstream_printf("enter SMTPD command: ");
+	if (isatty(STDIN_FILENO))
+	    vstream_printf("enter SMTPD command: ");
 	vstream_fflush(VSTREAM_OUT);
 	if (vstring_fgets(vp, VSTREAM_IN) == 0)
 	    break;
+	if (*vstring_str(vp) == '#')
+	    continue;
+	if (!isatty(STDIN_FILENO))
+	    vstream_fputs(vstring_str(vp), VSTREAM_OUT);
 	tok_argc = smtpd_token(vstring_str(vp), &tok_argv);
-	for (i = 0; i < tok_argc; i++) {
-	    vstream_printf("Token type:  %s\n",
-			   tok_argv[i].tokval == SMTPD_TOK_ADDR ?
-			   "address" : "other");
+	for (i = 0; i < tok_argc; i++)
 	    vstream_printf("Token value: %s\n", tok_argv[i].strval);
-	}
     }
     exit(0);
 }

@@ -9,13 +9,13 @@ POSTMAP(1)                                             POSTMAP(1)
        postmap - Postfix lookup table management
 
 <b>SYNOPSIS</b>
-       <b>postmap</b> [<b>-c</b> <i>config_dir</i>] [<b>-i</b>] [<b>-v</b>] [<b>-w</b>]
-       [<i>file_type</i>:]<i>file_name</i>
+       <b>postmap</b> [<b>-ivw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-q</b> <i>key</i>]
+       [<i>file_type</i>:]<i>file_name</i> ...
 
 <b>DESCRIPTION</b>
-       The <b>postmap</b> command creates a new Postfix lookup table, or
-       updates  an existing one. The input and output formats are
-       expected to be compatible with:
+       The <b>postmap</b> command creates or queries one or more Postfix
+       lookup  tables,  or updates an existing one. The input and
+       output file formats are expected to be compatible with:
 
            <b>makemap</b> <i>file_type</i> <i>file_name</i> &lt; <i>file_name</i>
 
@@ -54,11 +54,11 @@ POSTMAP(1)                                             POSTMAP(1)
               default,  <b>postmap</b>  creates  a new database from the
               entries in <b>file</b><i>_</i><b>name</b>.
 
-       <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple  <b>-v</b>  options  make  the software increasingly
-              verbose.
+       <b>-q</b> <i>key</i> Search the specified maps for  <i>key</i>  and  print  the
+              first  value  found  on the standard output stream.
+              The exit status is non-zero if the requested infor-
+              mation was not found.
 
-       B-w    Do  not  warn  about  duplicate  entries;  silently
 
 
 
@@ -71,6 +71,11 @@ POSTMAP(1)                                             POSTMAP(1)
 POSTMAP(1)                                             POSTMAP(1)
 
 
+       <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
+              tiple <b>-v</b> options  make  the  software  increasingly
+              verbose.
+
+       <b>-w</b>     Do  not  warn  about  duplicate  entries;  silently
               ignore them.
 
        Arguments:
@@ -78,25 +83,25 @@ POSTMAP(1)                                             POSTMAP(1)
        <i>file_type</i>
               The type of database to be produced.
 
-              <b>btree</b>  The  output  file  is  a  btree  file, named
-                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
-                     systems with support for <b>db</b> databases.
-
-              <b>dbm</b>    The  output  consists  of  two  files, named
-                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
-                     available  only  on systems with support for
-                     <b>dbm</b> databases.
-
-              <b>hash</b>   The output file  is  a  hashed  file,  named
+              <b>btree</b>  The output  file  is  a  btree  file,  named
                      <i>file_name</i><b>.db</b>.   This  is  available  only on
                      systems with support for <b>db</b> databases.
 
-              When no <i>file_type</i> is specified, the  software  uses
-              the  database  type specified via the <b>database</b><i>_</i><b>type</b>
+              <b>dbm</b>    The output  consists  of  two  files,  named
+                     <i>file_name</i><b>.pag</b>  and  <i>file_name</i><b>.dir</b>.   This is
+                     available only on systems with  support  for
+                     <b>dbm</b> databases.
+
+              <b>hash</b>   The  output  file  is  a  hashed file, named
+                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
+                     systems with support for <b>db</b> databases.
+
+              When  no  <i>file_type</i> is specified, the software uses
+              the database type specified via  the  <b>database</b><i>_</i><b>type</b>
               configuration parameter.
 
        <i>file_name</i>
-              The name of  the  lookup  table  source  file  when
+              The  name  of  the  lookup  table  source file when
               rebuilding a database.
 
 <b>DIAGNOSTICS</b>
@@ -113,18 +118,13 @@ POSTMAP(1)                                             POSTMAP(1)
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        <b>database</b><i>_</i><b>type</b>
-              Default  output  database  type.  On many UNIX sys-
-              tems, the default database type is either  <b>hash</b>  or
+              Default output database type.  On  many  UNIX  sys-
+              tems,  the  default database type is either <b>hash</b> or
               <b>dbm</b>.
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
-
-<b>AUTHOR(S)</b>
-       Wietse Venema
-       IBM T.J. Watson Research
-       P.O. Box 704
 
 
 
@@ -137,11 +137,11 @@ POSTMAP(1)                                             POSTMAP(1)
 POSTMAP(1)                                             POSTMAP(1)
 
 
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

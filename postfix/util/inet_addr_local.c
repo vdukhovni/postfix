@@ -72,12 +72,12 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
 {
     char   *myname = "inet_addr_local";
     struct ifconf ifc;
-    struct ifreq ifreq;
     struct ifreq *ifr;
     struct ifreq *the_end;
     int     sock;
     VSTRING *buf = vstring_alloc(1024);
     int     initial_count = addr_list->used;
+    struct in_addr addr;
 
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
@@ -109,20 +109,18 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
     }
 
     /*
-     * Get the IP address of each active IP network interface.
+     * Get the address of each IP network interface. According to BIND we
+     * must include interfaces that are down because the machine may still
+     * receive packets for that address (yes, via some other interface).
+     * Having no way to verify this claim on every machine, I will give them
+     * the benefit of the doubt.
      */
     the_end = (struct ifreq *) (ifc.ifc_buf + ifc.ifc_len);
     for (ifr = ifc.ifc_req; ifr < the_end;) {
 	if (ifr->ifr_addr.sa_family == AF_INET) {	/* IP interface */
-	    ifreq = *ifr;
-	    if (ioctl(sock, SIOCGIFFLAGS, (char *) &ifreq) < 0)
-		msg_fatal("%s: ioctl SIOCGIFFLAGS: %m", myname);
-	    if (ifreq.ifr_flags & IFF_UP) {	/* active interface */
-		if (ioctl(sock, SIOCGIFADDR, (char *) &ifreq) < 0)
-		    msg_fatal("%s: ioctl SIOCGIFADDR: %m", myname);
-		inet_addr_list_append(addr_list,
-		    &(((struct sockaddr_in *) & ifreq.ifr_addr)->sin_addr));
-	    }
+	    addr = ((struct sockaddr_in *) & ifr->ifr_addr)->sin_addr;
+	    if (addr.s_addr != INADDR_ANY)	/* has IP address */
+		inet_addr_list_append(addr_list, &addr);
 	}
 	ifr = NEXT_INTERFACE(ifr);
     }

@@ -399,7 +399,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 
     /* get configured value of "ldapsource_timeout"; default to 10 */
     vstring_sprintf(config_param, "%s_timeout", ldapsource);
-    dict_ldap->timeout = get_mail_conf_int(config_param, 10, 0, 0);
+    dict_ldap->timeout = get_mail_conf_int(vstring_str(config_param), 10, 0, 0);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->timeout);

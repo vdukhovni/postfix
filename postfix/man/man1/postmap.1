@@ -9,14 +9,14 @@ Postfix lookup table management
 .na
 .nf
 .fi
-\fBpostmap\fR [\fB-c \fIconfig_dir\fR] [\fB-i\fR] [\fB-v\fR]
-[\fB-w\fR] [\fIfile_type\fR:]\fIfile_name\fR
+\fBpostmap\fR [\fB-ivw\fR] [\fB-c \fIconfig_dir\fR] [\fB-q \fIkey\fR]
+[\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
 .ad
 .fi
-The \fBpostmap\fR command creates a new Postfix lookup table,
-or updates an existing one. The input and output formats are
-expected to be compatible with:
+The \fBpostmap\fR command creates or queries one or more Postfix
+lookup tables, or updates an existing one. The input and output
+file formats are expected to be compatible with:
 
 .ti +4
 \fBmakemap \fIfile_type\fR \fIfile_name\fR < \fIfile_name\fR
@@ -50,10 +50,14 @@ Read the \fBmain.cf\fR configuration file in the named directory.
 Incremental mode. Read entries from standard input and do not
 truncate an existing database. By default, \fBpostmap\fR creates
 a new database from the entries in \fBfile_name\fR.
+.IP "\fB-q \fIkey\fR"
+Search the specified maps for \fIkey\fR and print the first value
+found on the standard output stream. The exit status is non-zero
+if the requested information was not found.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.
-.IP \f\B-w\fR
+.IP \fB-w\fR
 Do not warn about duplicate entries; silently ignore them.
 .PP
 Arguments:

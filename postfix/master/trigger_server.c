@@ -143,6 +143,7 @@
 #include <myflock.h>
 #include <safe_open.h>
 #include <listen.h>
+#include <watchdog.h>
 
 /* Global library. */
 
@@ -180,19 +181,6 @@ static NORETURN trigger_server_exit(void)
     if (trigger_server_onexit)
 	trigger_server_onexit(trigger_server_name, trigger_server_argv);
     exit(0);
-}
-
-/* trigger_server_watchdog - something got stuck */
-
-static NORETURN trigger_server_watchdog(int unused_sig)
-{
-
-    /*
-     * This runs as a signal handler. We should not do anything that could
-     * involve memory managent, but exiting without explanation would be
-     * worse.
-     */
-    msg_fatal("watchdog timer");
 }
 
 /* trigger_server_abort - terminate after abnormal master exit */
@@ -250,12 +238,6 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
 	msg_info("%s: trigger arrived", myname);
 
     /*
-     * Some buggy systems cause Postfix to lock up.
-     */
-    signal(SIGALRM, trigger_server_watchdog);
-    alarm(1000);
-
-    /*
      * Read whatever the other side wrote into the FIFO. The FIFO read end is
      * non-blocking so we won't get stuck when multiple processes wake up.
      */
@@ -276,12 +258,6 @@ static void trigger_server_accept_local(int unused_event, char *context)
 
     if (msg_verbose)
 	msg_info("%s: trigger arrived", myname);
-
-    /*
-     * Some buggy systems cause Postfix to lock up.
-     */
-    signal(SIGALRM, trigger_server_watchdog);
-    alarm(1000);
 
     /*
      * Read a message from a socket. Be prepared for accept() to fail because
@@ -339,6 +315,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     char   *lock_path;
     VSTRING *why;
     int     alone = 0;
+    WATCHDOG *watchdog;
 
     /*
      * Process environment options as early as we can.
@@ -566,11 +543,19 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     }
     event_enable_read(MASTER_STATUS_FD, trigger_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
+    watchdog = watchdog_create(1000, (WATCHDOG_FN) 0, (char *) 0);
+
+    /*
+     * The event loop, at last.
+     */
     while (var_use_limit == 0 || use_count < var_use_limit) {
+	if (trigger_server_lock != 0) {
+	    watchdog_stop(watchdog);
+	    if (myflock(vstream_fileno(trigger_server_lock), MYFLOCK_EXCLUSIVE) < 0)
+		msg_fatal("select lock: %m");
+	}
+	watchdog_start(watchdog);
 	delay = loop ? loop(trigger_server_name, trigger_server_argv) : -1;
-	if (trigger_server_lock != 0
-	    && myflock(vstream_fileno(trigger_server_lock), MYFLOCK_EXCLUSIVE) < 0)
-	    msg_fatal("select lock: %m");
 	event_loop(delay);
     }
     trigger_server_exit();

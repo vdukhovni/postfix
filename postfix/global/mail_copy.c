@@ -33,7 +33,9 @@
 /*	The binary OR of zero or more of the following:
 /* .RS
 /* .IP MAIL_COPY_QUOTE
-/*	prepend a `>' character to lines beginning with `From '.
+/*	Prepend a `>' character to lines beginning with `From '.
+/* .IP MAIL_COPY_DOT
+/*	Prepend a `.' character to lines beginning with `.'.
 /* .IP MAIL_COPY_TOFILE
 /*	On systems that support this, use fsync() to flush the
 /*	data to stable storage, and truncate the destination
@@ -166,6 +168,8 @@ int     mail_copy(const char *sender, const char *delivered,
 	bp = vstring_str(buf);
 	if ((flags & MAIL_COPY_QUOTE) && *bp == 'F' && !strncmp(bp, "From ", 5))
 	    VSTREAM_PUTC('>', dst);
+	if ((flags & MAIL_COPY_DOT) && *bp == '.')
+	    VSTREAM_PUTC('.', dst);
 	if (VSTRING_LEN(buf) && VSTREAM_FWRITE_BUF(dst, buf) != VSTRING_LEN(buf))
 	    break;
 	if (type == REC_TYPE_NORM && VSTREAM_PUTC('\n', dst) == VSTREAM_EOF)

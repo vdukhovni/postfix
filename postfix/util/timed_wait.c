@@ -83,6 +83,7 @@ int     timed_waitpid(pid_t pid, WAIT_STATUS_T *statusp, int options,
     char   *myname = "timed_waitpid";
     struct sigaction action;
     struct sigaction old_action;
+    int     time_left;
     int     wpid;
 
     /*
@@ -100,7 +101,7 @@ int     timed_waitpid(pid_t pid, WAIT_STATUS_T *statusp, int options,
     if (sigaction(SIGALRM, &action, &old_action) < 0)
 	msg_fatal("%s: sigaction(SIGALRM): %m", myname);
     timed_wait_expired = 0;
-    alarm(time_limit);
+    time_left = alarm(time_limit);
 
     /*
      * Wait for only a limited amount of time.
@@ -114,6 +115,8 @@ int     timed_waitpid(pid_t pid, WAIT_STATUS_T *statusp, int options,
     alarm(0);
     if (sigaction(SIGALRM, &old_action, (struct sigaction *) 0) < 0)
 	msg_fatal("%s: sigaction(SIGALRM): %m", myname);
+    if (time_left)
+	alarm(time_left);
 
     return (wpid);
 }

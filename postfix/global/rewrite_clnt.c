@@ -71,8 +71,8 @@
   */
 CLNT_STREAM *rewrite_clnt_stream = 0;
 
-VSTRING *last_addr;
-VSTRING *last_result;
+static VSTRING *last_addr;
+static VSTRING *last_result;
 
 /* rewrite_clnt - rewrite address to (transport, next hop, recipient) */
 
