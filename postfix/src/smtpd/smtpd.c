@@ -338,6 +338,8 @@
 /*	The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 /*	SMTP client can send before the Postfix SMTP server starts to
 /*	increment the error counter with each junk command.
+/* .PP
+/*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_recipient_overshoot_limit (1000)\fR"
 /*	The number of recipients that a remote SMTP client can send in
 /*	excess of the limit specified with $smtpd_recipient_limit, before

@@ -1887,8 +1887,8 @@ or you can let Postfix do it for you (which is the default).
 See the description of the mynetworks_style parameter for more
 information.
 .PP
-Alternatively, you can specify the mynetworks list by hand, in
-which case Postfix ignores the mynetworks_style setting.
+If you specify the mynetworks list by hand,
+Postfix ignores the mynetworks_style setting.
 .PP
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
@@ -4092,12 +4092,12 @@ Postfix sendmail(1) command line and in SMTP commands.
 .PP
 This feature is available in Postfix 1.1 and later.
 .SH virtual_alias_domains (default: $virtual_alias_maps)
-Optional list of names of virtual alias domains, that is,
-domains for which all addresses are aliased to addresses in other
-local or remote domains. The SMTP server validates recipient
-addresses with $virtual_alias_maps and rejects non-existent
-recipients. See also the virtual alias domain class in the
-ADDRESS_CLASS_README file
+Postfix is final destination for the specified list of virtual
+alias domains, that is, domains for which all addresses are aliased
+to addresses in other local or remote domains. The SMTP server
+validates recipient addresses with $virtual_alias_maps and rejects
+non-existent recipients. See also the virtual alias domain class
+in the ADDRESS_CLASS_README file
 .PP
 This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix 1.1.
@@ -4213,12 +4213,12 @@ virtual_mailbox_base = /var/mail
 .ad
 .ft R
 .SH virtual_mailbox_domains (default: $virtual_mailbox_maps)
-The list of domains that are delivered via the $virtual_transport
-mail delivery transport.  By default this is the Postfix virtual(8)
-delivery agent.  The SMTP server validates recipient addresses with
-$virtual_mailbox_maps and rejects mail for non-existent recipients.
-See also the virtual mailbox domain class in the ADDRESS_CLASS_README
-file.
+Postfix is final destination for the specified list of domains;
+mail is delivered via the $virtual_transport mail delivery transport.
+By default this is the Postfix virtual(8) delivery agent.  The SMTP
+server validates recipient addresses with $virtual_mailbox_maps
+and rejects mail for non-existent recipients.  See also the virtual
+mailbox domain class in the ADDRESS_CLASS_README file.
 .PP
 This parameter expects the same syntax as the mydestination
 configuration parameter.

@@ -3711,8 +3711,8 @@ information.
 </p>
 
 <p>
-Alternatively, you can specify the <a href="postconf.5.html#mynetworks">mynetworks</a> list by hand, in
-which case Postfix ignores the <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> setting.
+If you specify the <a href="postconf.5.html#mynetworks">mynetworks</a> list by hand,
+Postfix ignores the <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> setting.
 </p>
 
 <p>
@@ -7643,12 +7643,12 @@ This feature is available in Postfix 1.1 and later.
 <DT><b><a name="virtual_alias_domains">virtual_alias_domains</a>
 (default: $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>)</b></DT><DD>
 
-<p> Optional list of names of <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>, that is,
-domains for which all addresses are aliased to addresses in other
-local or remote domains. The SMTP server validates recipient
-addresses with $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> and rejects non-existent
-recipients. See also the <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a> class in the
-<a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file </p>
+<p> Postfix is final destination for the specified list of virtual
+alias domains, that is, domains for which all addresses are aliased
+to addresses in other local or remote domains. The SMTP server
+validates recipient addresses with $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> and rejects
+non-existent recipients. See also the <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a> class
+in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
@@ -7838,12 +7838,12 @@ Example:
 <DT><b><a name="virtual_mailbox_domains">virtual_mailbox_domains</a>
 (default: $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>)</b></DT><DD>
 
-<p> The list of domains that are delivered via the $<a href="postconf.5.html#virtual_transport">virtual_transport</a>
-mail delivery transport.  By default this is the Postfix <a href="virtual.8.html">virtual(8)</a>
-delivery agent.  The SMTP server validates recipient addresses with
-$<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a> and rejects mail for non-existent recipients.
-See also the <a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">virtual mailbox domain</a> class in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a>
-file.  </p>
+<p> Postfix is final destination for the specified list of domains;
+mail is delivered via the $<a href="postconf.5.html#virtual_transport">virtual_transport</a> mail delivery transport.
+By default this is the Postfix <a href="virtual.8.html">virtual(8)</a> delivery agent.  The SMTP
+server validates recipient addresses with $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>
+and rejects mail for non-existent recipients.  See also the virtual
+mailbox domain class in the <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a> file.  </p>
 
 <p> This parameter expects the same syntax as the <a href="postconf.5.html#mydestination">mydestination</a>
 configuration parameter.  </p>

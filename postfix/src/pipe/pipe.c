@@ -53,6 +53,8 @@
 /*	Prepend a "\fBDelivered-To: \fIrecipient\fR" message header with the
 /*	envelope recipient address. Note: for this to work, the
 /*	\fItransport\fB_destination_recipient_limit\fR must be 1.
+/* .sp
+/*	This feature is available as of Postfix 2.0.
 /* .IP \fBF\fR
 /*	Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 /*	the message content.
@@ -61,6 +63,8 @@
 /*	Prepend an "\fBX-Original-To: \fIrecipient\fR" message header
 /*	with the recipient address as given to Postfix. Note: for this to
 /*	work, the \fItransport\fB_destination_recipient_limit\fR must be 1.
+/* .sp
+/*	This feature is available as of Postfix 2.0.
 /* .IP \fBR\fR
 /*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
 /*	address.

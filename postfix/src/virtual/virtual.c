@@ -361,7 +361,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
 	state.msg_attr.recipient = rcpt->address;
 	state.msg_attr.rcpt_offset = rcpt->offset;
 	rcpt_stat = deliver_recipient(state, usr_attr);
-	if (rcpt_stat == 0)
+	if (rcpt_stat == 0 && (rqst->flags & DEL_REQ_FLAG_SUCCESS))
 	    deliver_completed(state.msg_attr.fp, rcpt->offset);
 	msg_stat |= rcpt_stat;
     }

@@ -17,7 +17,7 @@ CONFIG	= access.5.html aliases.5.html canonical.5.html relocated.5.html \
 	transport.5.html virtual.5.html pcre_table.5.html regexp_table.5.html \
 	cidr_table.5.html tcp_table.5.html header_checks.5.html \
 	ldap_table.5.html mysql_table.5.html pgsql_table.5.html
-AWK	= awk '{ print; if (NR == 1) print ".pl 9999" }'
+AWK	= awk '{ print; if (NR == 2) print ".pl 9999\n.ll 65" }'
 MAN2HTML = man2html -t "Postfix manual - `IFS=.; set \`echo $@\`; echo \"$$1($$2)\"`"
 
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG)

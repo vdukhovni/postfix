@@ -9352,7 +9352,23 @@ Apologies for any names omitted.
 	= 1000).  Solution in cooperation with Victor Duchovni.
 	Files:  smtpd/smtpd.c, smtpd/smtpd_state.c, smtpd/smtpd.h.
 
+20040502
+
+	Missing test for a never used flag (the problematic and
+	thus never completed INSPECT feature that doesn't re-inject
+	mail into Postfix).  Victor Duchovni, Morgan Stanley. File:
+	virtual/virtual.c.
+
+20040503
+
+	Bugfix: missing "sasl enabled" guard the SMTPD policy
+	client.  File: smtpd/smtpd_check.c.
+
 Open problems:
+
+	Low: add INSTALL section for pre-existing Postfix systems.
+
+	Low: add INSTALL section for pre-existing RPM Postfixes.
 
 	Low: disallow smtpd_recipient_limit < 100 (the RFC minimum).
 

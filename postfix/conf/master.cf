@@ -105,6 +105,9 @@ anvil     unix  -       -       n       -       1       anvil
 # Interfaces to non-Postfix software. Be sure to examine the manual
 # pages of the non-Postfix software to find out what options it wants.
 #
+# See the pipe(8) man page for information about ${recipient} and
+# other message envelope options.
+#
 # maildrop. See the Postfix MAILDROP_README file for details.
 #
 maildrop  unix  -       n       n       -       -       pipe

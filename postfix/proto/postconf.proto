@@ -2343,8 +2343,8 @@ information.
 </p>
 
 <p>
-Alternatively, you can specify the mynetworks list by hand, in
-which case Postfix ignores the mynetworks_style setting.
+If you specify the mynetworks list by hand, 
+Postfix ignores the mynetworks_style setting.
 </p>
 
 <p>
@@ -5083,12 +5083,12 @@ This feature is available in Postfix 2.1 and later.
 
 %PARAM virtual_alias_domains $virtual_alias_maps
 
-<p> Optional list of names of virtual alias domains, that is,
-domains for which all addresses are aliased to addresses in other
-local or remote domains. The SMTP server validates recipient
-addresses with $virtual_alias_maps and rejects non-existent
-recipients. See also the virtual alias domain class in the
-ADDRESS_CLASS_README file </p>
+<p> Postfix is final destination for the specified list of virtual
+alias domains, that is, domains for which all addresses are aliased
+to addresses in other local or remote domains. The SMTP server
+validates recipient addresses with $virtual_alias_maps and rejects
+non-existent recipients. See also the virtual alias domain class
+in the ADDRESS_CLASS_README file </p>
 
 <p>
 This feature is available in Postfix 2.0 and later. The default
@@ -6622,12 +6622,12 @@ virtual_mailbox_base = /var/mail
 
 %PARAM virtual_mailbox_domains $virtual_mailbox_maps
 
-<p> The list of domains that are delivered via the $virtual_transport
-mail delivery transport.  By default this is the Postfix virtual(8)
-delivery agent.  The SMTP server validates recipient addresses with
-$virtual_mailbox_maps and rejects mail for non-existent recipients.
-See also the virtual mailbox domain class in the ADDRESS_CLASS_README
-file.  </p>
+<p> Postfix is final destination for the specified list of domains;
+mail is delivered via the $virtual_transport mail delivery transport.
+By default this is the Postfix virtual(8) delivery agent.  The SMTP
+server validates recipient addresses with $virtual_mailbox_maps
+and rejects mail for non-existent recipients.  See also the virtual
+mailbox domain class in the ADDRESS_CLASS_README file.  </p>
 
 <p> This parameter expects the same syntax as the mydestination
 configuration parameter.  </p>

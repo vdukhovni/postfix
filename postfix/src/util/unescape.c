@@ -12,7 +12,7 @@
 /* DESCRIPTION
 /*	unescape() translates C-like escape sequences in the null-terminated
 /*	string \fIinput\fR and places the result in \fIresult\fR. The result
-/*	is null-terminated.
+/*	is null-terminated, and is the function result value.
 /*
 /*	Escape sequences and their translations:
 /* .IP \ea
