@@ -42,6 +42,7 @@
 # permissions, so that running "make install" fixes any glitches.
 #
 $config_directory:d:root:-:755:u
+$data_directory:d:$mail_owner:-:700:u
 $daemon_directory:d:root:-:755:u
 $queue_directory:d:root:-:755:uc
 $sample_directory:d:root:-:755:o

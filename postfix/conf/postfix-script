@@ -228,6 +228,9 @@ check-warn)
 		\( -perm -020 -o -perm -002 \) -type f \
 		-exec $WARN group or other writable: {} \;
 
+	find $data_directory/. ! -user $mail_owner \
+		-exec $WARN not owned by $mail_owner: {} \;
+
 	find `ls -d $queue_directory/* | \
 	    egrep '/(incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \

@@ -148,6 +148,13 @@ static void qmgr_queue_resume(int event, char *context)
     queue->window = 1;
     if (queue->todo_refcount > 0)
 	qmgr_active_drain();
+
+    /*
+     * Every event handler that leaves a queue in the "ready" state should
+     * remove the queue when it is empty.
+     */
+    if (QMGR_QUEUE_READY(queue) && queue->todo.next == 0 && queue->busy.next == 0)
+	qmgr_queue_done(queue);
 }
 
 /* qmgr_queue_suspend - briefly suspend a destination */

@@ -817,6 +817,13 @@ request before it is terminated by a built-in watchdog timer.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH data_directory (default: see "postconf -d" output)
+The directory with Postfix-writable data files (for example:
+caches, pseudo-random numbers).  This directory must be owned by
+the mail_owner account, and must not be shared with non-Postfix
+software.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH debug_peer_level (default: 2)
 The increment in verbose logging level when a remote client or
 server matches a pattern in the debug_peer_list parameter.
@@ -3429,8 +3436,10 @@ Table references that don't begin with proxy: are ignored.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH proxy_write_maps (default: see "postconf -d" output)
-The lookup tables that the \fBproxymap\fR(8) server is allowed to
-access for the read-write service.
+The lookup tables that the \fBproxymap\fR(8) server is allowed to access
+for the read-write service. If implemented with local files, these
+tables are preferably stored under the location specified with the
+data_directory configuration parameter.
 Table references that don't begin with proxy: are ignored.
 .PP
 This feature is available in Postfix 2.5 and later.

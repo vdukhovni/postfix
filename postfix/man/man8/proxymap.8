@@ -68,6 +68,13 @@ of 1 in the master.cf file entry for the \fBproxywrite\fR
 service.
 .sp
 This request is supported in Postfix 2.5 and later.
+.IP "\fBdelete\fR \fImaptype:mapname flags key\fR"
+Delete the data stored under the requested key.
+The reply is the request completion status code.
+The \fImaptype:mapname\fR and \fIflags\fR are the same
+as with the \fBopen\fR request.
+.sp
+This request is supported in Postfix 2.5 and later.
 .PP
 The request completion status is one of OK, RETRY, NOKEY
 (lookup failed because the key was not found), BAD (malformed
@@ -110,6 +117,15 @@ In Postfix version 2.2 and later, the proxymap client recognizes
 requests to access a table for security-sensitive purposes,
 and opens the table directly. This allows the same main.cf
 setting to be used by sensitive and non-sensitive processes.
+
+Postfix-writable data files should be stored under a dedicated
+directory that is writable only by the $\fBmail_owner\fR
+account, such as the $\fBdata_directory\fR directory.
+
+In particular, Postfix-writable files should never exist
+in root-owned directories. That would open up a particular
+type of security hole where ownership (root) does not match
+content provenance (Postfix).
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -165,9 +181,12 @@ The lookup tables that the \fBproxymap\fR(8) server is allowed to
 access for the read-only service.
 .PP
 Available in Postfix 2.5 and later:
+.IP "\fBdata_directory (see 'postconf -d' output)\fR"
+The directory with Postfix-writable data files (for example:
+caches, pseudo-random numbers).
 .IP "\fBproxy_write_maps (see 'postconf -d' output)\fR"
-The lookup tables that the \fBproxymap\fR(8) server is allowed to
-access for the read-write service.
+The lookup tables that the \fBproxymap\fR(8) server is allowed to access
+for the read-write service.
 .SH "SEE ALSO"
 .na
 .nf

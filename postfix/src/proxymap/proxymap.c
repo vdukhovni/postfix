@@ -62,6 +62,13 @@
 /*	service.
 /* .sp
 /*	This request is supported in Postfix 2.5 and later.
+/* .IP "\fBdelete\fR \fImaptype:mapname flags key\fR"
+/*	Delete the data stored under the requested key.
+/*	The reply is the request completion status code.
+/*	The \fImaptype:mapname\fR and \fIflags\fR are the same
+/*	as with the \fBopen\fR request.
+/* .sp
+/*	This request is supported in Postfix 2.5 and later.
 /* .PP
 /*	The request completion status is one of OK, RETRY, NOKEY
 /*	(lookup failed because the key was not found), BAD (malformed
@@ -100,6 +107,15 @@
 /*	requests to access a table for security-sensitive purposes,
 /*	and opens the table directly. This allows the same main.cf
 /*	setting to be used by sensitive and non-sensitive processes.
+/*
+/*	Postfix-writable data files should be stored under a dedicated
+/*	directory that is writable only by the $\fBmail_owner\fR
+/*	account, such as the $\fBdata_directory\fR directory.
+/*
+/*	In particular, Postfix-writable files should never exist
+/*	in root-owned directories. That would open up a particular
+/*	type of security hole where ownership (root) does not match
+/*	content provenance (Postfix).
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
@@ -149,9 +165,12 @@
 /*	access for the read-only service.
 /* .PP
 /*	Available in Postfix 2.5 and later:
+/* .IP "\fBdata_directory (see 'postconf -d' output)\fR"
+/*	The directory with Postfix-writable data files (for example:
+/*	caches, pseudo-random numbers).
 /* .IP "\fBproxy_write_maps (see 'postconf -d' output)\fR"
-/*	The lookup tables that the \fBproxymap\fR(8) server is allowed to
-/*	access for the read-write service.
+/*	The lookup tables that the \fBproxymap\fR(8) server is allowed to access
+/*	for the read-write service.
 /* SEE ALSO
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
@@ -397,6 +416,49 @@ static void proxymap_update_service(VSTREAM *client_stream)
 	       ATTR_TYPE_END);
 }
 
+/* proxymap_delete_service - remote delete service */
+
+static void proxymap_delete_service(VSTREAM *client_stream)
+{
+    int     request_flags;
+    DICT   *dict;
+    int     reply_status;
+
+    /*
+     * Process the request.
+     * 
+     * XXX We don't close maps, so we must turn on synchronous update to ensure
+     * that the on-disk data is in a consistent state between updates.
+     */
+    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
+		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
+		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
+		  ATTR_TYPE_STR, MAIL_ATTR_KEY, request_key,
+		  ATTR_TYPE_END) != 3) {
+	reply_status = PROXY_STAT_BAD;
+    } else if (proxy_writer == 0) {
+	msg_warn("refusing %s delete request on non-%s service",
+		 STR(request_map), MAIL_SERVICE_PROXYWRITE);
+	reply_status = PROXY_STAT_DENY;
+    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+				      &reply_status)) == 0) {
+	 /* void */ ;
+    } else {
+	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
+		       | (request_flags & DICT_FLAG_RQST_MASK)
+		       | DICT_FLAG_SYNC_UPDATE);
+	reply_status =
+	    dict_del(dict, STR(request_key)) ? PROXY_STAT_OK : PROXY_STAT_NOKEY;
+    }
+
+    /*
+     * Respond to the client.
+     */
+    attr_print(client_stream, ATTR_FLAG_NONE,
+	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
+	       ATTR_TYPE_END);
+}
+
 /* proxymap_open_service - open remote lookup table */
 
 static void proxymap_open_service(VSTREAM *client_stream)
@@ -457,6 +519,8 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 	    proxymap_lookup_service(client_stream);
 	} else if (VSTREQ(request, PROXY_REQ_UPDATE)) {
 	    proxymap_update_service(client_stream);
+	} else if (VSTREQ(request, PROXY_REQ_DELETE)) {
+	    proxymap_delete_service(client_stream);
 	} else if (VSTREQ(request, PROXY_REQ_OPEN)) {
 	    proxymap_open_service(client_stream);
 	} else {

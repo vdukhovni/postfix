@@ -132,6 +132,11 @@
 /*	The location of Postfix README files that describe how to build,
 /*	configure or operate a specific Postfix subsystem or feature.
 /* .PP
+/*	Available in Postfix version 2.5 and later:
+/* .IP "\fBdata_directory (see 'postconf -d' output)\fR"
+/*	The directory with Postfix-writable data files (for example:
+/*	caches, pseudo-random numbers).
+/* .PP
 /*	Other configuration parameters:
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
@@ -430,6 +435,7 @@ int     main(int argc, char **argv)
 
     check_setenv(VAR_COMMAND_DIR, var_command_dir);	/* main.cf */
     check_setenv(VAR_DAEMON_DIR, var_daemon_dir);	/* main.cf */
+    check_setenv(VAR_DATA_DIR, var_data_dir);	/* main.cf */
     check_setenv(VAR_QUEUE_DIR, var_queue_dir);	/* main.cf */
     check_setenv(VAR_CONFIG_DIR, var_config_dir);	/* main.cf */
 

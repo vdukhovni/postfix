@@ -26,6 +26,7 @@
 /*	gid_t	var_default_gid;
 /*	char	*var_config_dir;
 /*	char	*var_daemon_dir;
+/*	char	*var_data_dir;
 /*	char	*var_command_dir;
 /*	char	*var_queue_dir;
 /*	int	var_use_limit;
@@ -200,6 +201,7 @@ uid_t   var_default_uid;
 gid_t   var_default_gid;
 char   *var_config_dir;
 char   *var_daemon_dir;
+char   *var_data_dir;
 char   *var_command_dir;
 char   *var_queue_dir;
 int     var_use_limit;
@@ -504,6 +506,7 @@ void    mail_params_init()
 	VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin, 1, 0,
 	VAR_RELAYHOST, DEF_RELAYHOST, &var_relayhost, 0, 0,
 	VAR_DAEMON_DIR, DEF_DAEMON_DIR, &var_daemon_dir, 1, 0,
+	VAR_DATA_DIR, DEF_DATA_DIR, &var_data_dir, 1, 0,
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,

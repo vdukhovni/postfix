@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Major changes with Postfix snapshot 20071205
+============================================
+
+The "make install" and "make upgrade" procedures now create a
+postfix-owned directory for Postfix-writable data files such as
+caches and random numbers. The location is specified with the
+"data_directory" variable (default: "/var/lib/postfix").
+
 Incompatibility with Postfix snapshot 20071203
 ==============================================
 

@@ -7216,8 +7216,10 @@ This feature is available in Postfix 2.0 and later.
 %PARAM proxy_write_maps see "postconf -d" output
 
 <p>
-The lookup tables that the proxymap(8) server is allowed to 
-access for the read-write service.
+The lookup tables that the proxymap(8) server is allowed to access
+for the read-write service. If implemented with local files, these
+tables are preferably stored under the location specified with the
+data_directory configuration parameter.
 Table references that don't begin with proxy: are ignored.
 </p>
 
@@ -11028,5 +11030,14 @@ name of the message delivery transport.
 <p> A transport-specific override for the default_recipient_refill_delay
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+%PARAM data_directory see "postconf -d" output
+
+<p> The directory with Postfix-writable data files (for example:
+caches, pseudo-random numbers).  This directory must be owned by
+the mail_owner account, and must not be shared with non-Postfix
+software.  </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>

@@ -516,6 +516,7 @@ static int postalias_deletes(VSTREAM *in, char **maps, const int map_count,
     DICT  **dicts;
     const char *map_name;
     int     n;
+    int     open_flags;
 
     /*
      * Sanity check.
@@ -530,10 +531,12 @@ static int postalias_deletes(VSTREAM *in, char **maps, const int map_count,
     for (n = 0; n < map_count; n++) {
 	map_name = split_at(maps[n], ':');
 	if (map_name && strcmp(maps[n], DICT_TYPE_PROXY) == 0)
-	    msg_fatal("can't delete map entries via the proxy service");
+	    open_flags = O_RDWR | O_CREAT;	/* XXX */
+	else
+	    open_flags = O_RDWR;
 	dicts[n] = (map_name != 0 ?
-		    dict_open3(maps[n], map_name, O_RDWR, dict_flags) :
-		    dict_open3(var_db_type, maps[n], O_RDWR, dict_flags));
+		    dict_open3(maps[n], map_name, open_flags, dict_flags) :
+		  dict_open3(var_db_type, maps[n], open_flags, dict_flags));
     }
 
     /*
@@ -562,10 +565,13 @@ static int postalias_delete(const char *map_type, const char *map_name,
 {
     DICT   *dict;
     int     status;
+    int     open_flags;
 
     if (strcmp(map_type, DICT_TYPE_PROXY) == 0)
-	msg_fatal("can't delete map entries via the proxy service");
-    dict = dict_open3(map_type, map_name, O_RDWR, dict_flags);
+	open_flags = O_RDWR | O_CREAT;		/* XXX */
+    else
+	open_flags = O_RDWR;
+    dict = dict_open3(map_type, map_name, open_flags, dict_flags);
     status = dict_del(dict, key);
     dict_close(dict);
     return (status == 0);

@@ -1502,6 +1502,19 @@ The default time unit is s (seconds).
 
 </DD>
 
+<DT><b><a name="data_directory">data_directory</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The directory with Postfix-writable data files (for example:
+caches, pseudo-random numbers).  This directory must be owned by
+the <a href="postconf.5.html#mail_owner">mail_owner</a> account, and must not be shared with non-Postfix
+software.  </p>
+
+<p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="debug_peer_level">debug_peer_level</a>
 (default: 2)</b></DT><DD>
 
@@ -6168,8 +6181,10 @@ This feature is available in Postfix 2.0 and later.
 (default: see "postconf -d" output)</b></DT><DD>
 
 <p>
-The lookup tables that the <a href="proxymap.8.html">proxymap(8)</a> server is allowed to
-access for the read-write service.
+The lookup tables that the <a href="proxymap.8.html">proxymap(8)</a> server is allowed to access
+for the read-write service. If implemented with local files, these
+tables are preferably stored under the location specified with the
+<a href="postconf.5.html#data_directory">data_directory</a> configuration parameter.
 Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are ignored.
 </p>
 

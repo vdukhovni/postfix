@@ -29,6 +29,7 @@ extern DICT *dict_proxy_open(const char *, int, int);
 #define PROXY_REQ_OPEN		"open"
 #define PROXY_REQ_LOOKUP	"lookup"
 #define PROXY_REQ_UPDATE	"update"
+#define PROXY_REQ_DELETE	"delete"
 
 #define PROXY_STAT_OK		0	/* operation succeeded */
 #define PROXY_STAT_NOKEY	1	/* requested key not found */

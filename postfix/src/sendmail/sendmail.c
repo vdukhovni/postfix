@@ -288,8 +288,9 @@
 /* .IP "\fBhopcount_limit (50)\fR"
 /*	The maximal number of Received:  message headers that is allowed
 /*	in the primary message headers.
-/* .IP "\fBqueue_run_delay (version dependent)\fR"
-/*	The time between deferred queue scans by the queue manager.
+/* .IP "\fBqueue_run_delay (300s)\fR"
+/*	The time between deferred queue scans by the queue manager;
+/*	prior to Postfix 2.4 the default value was 1000s.
 /* FAST FLUSH CONTROLS
 /* .ad
 /* .fi
@@ -687,7 +688,8 @@ static void enqueue(const int flags, const char *encoding,
     rec_fputs(dst, REC_TYPE_FROM, saved_sender);
     if (verp_delims && *saved_sender == 0)
 	msg_fatal_status(EX_USAGE,
-			 "-V option requires non-null sender address");
+		      "%s(%ld): -V option requires non-null sender address",
+			 saved_sender, (long) uid);
     if (encoding)
 	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s", MAIL_ATTR_ENCODING, encoding);
     if (DEL_REQ_TRACE_FLAGS(flags))
@@ -735,7 +737,8 @@ static void enqueue(const int flags, const char *encoding,
     rec_fputs(dst, REC_TYPE_MESG, "");
     if (DEL_REQ_TRACE_ONLY(flags) != 0) {
 	if (flags & SM_FLAG_XRCPT)
-	    msg_fatal_status(EX_USAGE, "-t option cannot be used with -bv");
+	    msg_fatal_status(EX_USAGE, "%s(%ld): -t option cannot be used with -bv",
+			     saved_sender, (long) uid);
 	if (*saved_sender)
 	    rec_fprintf(dst, REC_TYPE_NORM, "From: %s", saved_sender);
 	rec_fprintf(dst, REC_TYPE_NORM, "Subject: probe");
@@ -850,9 +853,10 @@ static void enqueue(const int flags, const char *encoding,
     }
     if (rcpt_count == 0)
 	msg_fatal_status(EX_USAGE, (flags & SM_FLAG_XRCPT) ?
-			 "No recipient addresses found in message header" :
+		 "%s(%ld): No recipient addresses found in message header" :
 			 "Recipient addresses must be specified on"
-			 " the command line or via the -t option");
+			 " the command line or via the -t option",
+			 saved_sender, (long) uid);
 
     /*
      * Identify the end of the queue file.

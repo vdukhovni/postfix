@@ -13894,10 +13894,32 @@ Apologies for any names omitted.
 	map that they can't do. Files: postmap/postmap.c,
 	postalias/postalias.c.
 
-	Bugfix: the proxymap client didn't properly propagate the
-	postmap (postalias) -r and -w options to the proxymap server.
-	File: util/dict.h.
+	Bugfix: the proxymap client didn't properly propagate user
+	options options to the proxymap server.  File: util/dict.h.
 
 	Workaround: force synchronous updates in the proxymap server
 	so that maps will be in a consistent state between updates.
 	File: proxymap/proxymap.c.
+
+	Bugfix: an empty rate-limited queue wasn't removed after
+	timer expiry. Files: *qmgr/qmgr_queue.c.
+
+20071204
+
+	Use different sockets for proxymap (read-only) and proxywrite
+	(read-write) services in the proxy: client. Victor Duchovni.
+	File: global/dict_proxy.c.
+
+	Feature: proxymap delete support by Victor Duchovni.  Files:
+	global/dict_proxy.c, proxymap/proxymap.c.
+
+	Feature: proxymap delete support. Files: postmap/postmap.c
+	postalias/postalias.c.
+
+	Cleanup: the Postfix sendmail command did not include the
+	user (name/uid) information in all error messages. File:
+	sendmail/sendmail.c.
+
+	Feature: data_directory configuration parameter for
+	Postfix-writable data such as caches and random numbers.
+	Files: postfix-install, conf/postfix-files.

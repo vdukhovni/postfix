@@ -41,6 +41,12 @@ command_directory = /usr/sbin
 #
 daemon_directory = /usr/libexec/postfix
 
+# The data_directory parameter specifies the location of Postfix-writable
+# data files (caches, random numbers). This directory must be owned
+# by the mail_owner account (see below).
+#
+data_directory = /var/lib/postfix
+
 # QUEUE AND PROCESS OWNERSHIP
 #
 # The mail_owner parameter specifies the owner of the Postfix queue

@@ -261,6 +261,15 @@ extern char *var_command_dir;
 extern char *var_pid_dir;
 
  /*
+  * Location of writable data files.
+  */
+#define VAR_DATA_DIR		"data_directory"
+#ifndef DEF_DATA_DIR
+#define DEF_DATA_DIR		"/var/lib/postfix"
+#endif
+extern char *var_data_dir;
+
+ /*
   * Program startup time.
   */
 extern time_t var_starttime;
