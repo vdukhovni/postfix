@@ -125,6 +125,7 @@
 #include <dir_forest.h>
 #include <make_dirs.h>
 #include <split_at.h>
+#include <sane_fsops.h>
 
 /* Global library. */
 

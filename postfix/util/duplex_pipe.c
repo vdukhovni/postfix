@@ -29,6 +29,7 @@
 
 #include <sys_defs.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 /* Utility library. */
 

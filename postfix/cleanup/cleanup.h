@@ -22,6 +22,7 @@
 #include <tok822.h>
 #include <been_here.h>
 #include <mail_stream.h>
+#include <mail_conf.h>
 
  /*
   * These state variables are accessed by many functions, and there is only
@@ -30,7 +31,6 @@
 typedef struct CLEANUP_STATE {
     VSTRING *temp1;			/* scratch buffer, local use only */
     VSTRING *temp2;			/* scratch buffer, local use only */
-    VSTREAM *src;			/* current input stream */
     VSTREAM *dst;			/* current output stream */
     MAIL_STREAM *handle;		/* mail stream handle */
     char   *queue_id;			/* queue file basename */
@@ -56,6 +56,7 @@ typedef struct CLEANUP_STATE {
     void    (*action) (struct CLEANUP_STATE *, int, char *, int);
     long    mesg_offset;		/* start of message segment */
     long    data_offset;		/* start of message content */
+    int     end_seen;			/* REC_TYPE_END seen */
 } CLEANUP_STATE;
 
  /*
@@ -92,6 +93,10 @@ extern CLEANUP_STATE *cleanup_open(void);
 extern void cleanup_control(CLEANUP_STATE *, int);
 extern int cleanup_close(CLEANUP_STATE *);
 extern void cleanup_all(void);
+extern void cleanup_pre_jail(char *, char **);
+extern void cleanup_post_jail(char *, char **);
+extern CONFIG_INT_TABLE cleanup_int_table[];
+extern CONFIG_STR_TABLE cleanup_str_table[];
 
 #define CLEANUP_RECORD(s, t, b, l)	((s)->action((s), (t), (b), (l)))
 
@@ -110,21 +115,17 @@ extern void cleanup_out_format(CLEANUP_STATE *, int, char *,...);
  /*
   * cleanup_envelope.c
   */
-extern void cleanup_envelope_init(CLEANUP_STATE *, int, char *, int);
-extern void cleanup_envelope_process(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_envelope(CLEANUP_STATE *, int, char *, int);
 
  /*
   * cleanup_message.c
   */
-extern void cleanup_message_init(CLEANUP_STATE *, int, char *, int);
-extern void cleanup_message_header(CLEANUP_STATE *, int, char *, int);
-extern void cleanup_message_body(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_message(CLEANUP_STATE *, int, char *, int);
 
  /*
   * cleanup_extracted.c
   */
-extern void cleanup_extracted_init(CLEANUP_STATE *, int, char *, int);
-extern void cleanup_extracted_process(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_extracted(CLEANUP_STATE *, int, char *, int);
 
  /*
   * cleanup_rewrite.c

@@ -6,12 +6,27 @@
 /* SYNOPSIS
 /*	#include "cleanup.h"
 /*
-/*	void	cleanup_extracted(void)
+/*	void	cleanup_extracted(state, type, buf, len)
+/*	CLEANUP_STATE *state;
+/*	int	type;
+/*	char	*buf;
+/*	int	len;
 /* DESCRIPTION
-/*	This module processes message segments for information
-/*	extracted from message content. It requires that the input
-/*	contains no extracted information, and writes extracted
+/*	This module processes message records with information extracted
+/*	from message content, or with recipients that are stored after the
+/*	message content. It updates recipient records, and writes extracted
 /*	information records to the output.
+/*
+/*	Arguments:
+/* .IP state
+/*	Queue file and message processing state. This state is updated
+/*	as records are processed and as errors happen.
+/* .IP type
+/*	Record type.
+/* .IP buf
+/*	Record content.
+/* .IP len
+/*	Record content length.
 /* LICENSE
 /* .ad
 /* .fi
@@ -49,22 +64,40 @@
 
 #define STR(x)	vstring_str(x)
 
-/* cleanup_extracted_init - initialize extracted segment */
+static void cleanup_extracted_process(CLEANUP_STATE *, int, char *, int);
 
-void    cleanup_extracted_init(CLEANUP_STATE *state, int type, char *buf, int len)
+/* cleanup_extracted - initialize extracted segment */
+
+void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
 {
 
     /*
      * Start the extracted segment.
      */
     cleanup_out_string(state, REC_TYPE_XTRA, "");
+
+    /*
+     * Always emit Return-Receipt-To and Errors-To records, and always emit
+     * them ahead of extracted recipients, so that the queue manager does not
+     * waste lots of time searching through large numbers of recipient
+     * addresses.
+     */
+    cleanup_out_string(state, REC_TYPE_RRTO, state->return_receipt ?
+		       state->return_receipt : "");
+
+    cleanup_out_string(state, REC_TYPE_ERTO, state->errors_to ?
+		       state->errors_to : state->sender);
+
+    /*
+     * Pass control to the routine that processes the extracted segment.
+     */
     state->action = cleanup_extracted_process;
     cleanup_extracted_process(state, type, buf, len);
 }
 
 /* cleanup_extracted_process - process extracted segment */
 
-void    cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int unused_len)
+static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int unused_len)
 {
     VSTRING *clean_addr;
     ARGV   *rcpt;
@@ -101,18 +134,6 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int
     }
 
     /*
-     * Always emit Return-Receipt-To and Errors-To records, and always try to
-     * emit them ahead of extracted recipients, so that the queue manager
-     * does not waste lots of time searching through large numbers of
-     * recipient addresses.
-     */
-    cleanup_out_string(state, REC_TYPE_RRTO, state->return_receipt ?
-		       state->return_receipt : "");
-
-    cleanup_out_string(state, REC_TYPE_ERTO, state->errors_to ?
-		       state->errors_to : state->sender);
-
-    /*
      * Optionally account for missing recipient envelope records.
      * 
      * Don't extract recipients when some header was too long. We have
@@ -146,4 +167,5 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int
      * Terminate the extracted segment.
      */
     cleanup_out_string(state, REC_TYPE_END, "");
+    state->end_seen = 1;
 }

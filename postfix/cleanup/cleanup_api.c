@@ -2,13 +2,9 @@
 /* NAME
 /*	cleanup_api 3
 /* SUMMARY
-/*	callable interface
+/*	cleanup callable interface, message processing
 /* SYNOPSIS
 /*	#include "cleanup.h"
-/*
-/*	char	*cleanup_path;
-/*
-/*	void	cleanup_all()
 /*
 /*	CLEANUP_STATE *cleanup_open()
 /*
@@ -25,47 +21,37 @@
 /*	int	cleanup_close(state)
 /*	CLEANUP_STATE *state;
 /* DESCRIPTION
-/*	This module implements a callable interface to the cleanup service.
+/*	This module implements a callable interface to the cleanup service
+/*	for processing one message and for writing it to queue file.
 /*	For a description of the cleanup service, see cleanup(8).
 /*
-/*	cleanup_path is a null pointer or it is the name of the queue
-/*	file that currently is being written. This information is used
-/*	by cleanup_all() to clean up in case of fatal errors.
-/*
 /*	cleanup_open() creates a new queue file and performs other
-/*	initialization. The result is a handle that should be given
-/*	to the cleanup_control(), cleanup_record() and cleanup_close()
+/*	per-message initialization. The result is a handle that should be
+/*	given to the cleanup_control(), cleanup_record() and cleanup_close()
 /*	routines. The name of the queue file is in the queue_id result
 /*	structure member.
 /*
-/*	cleanup_control() processes flags specified by the caller.
-/*	These flags control what happens in case of data errors.
+/*	cleanup_control() processes per-message flags specified by the caller.
+/*	These flags control the handling of data errors, and must be set
+/*	before processing the first message record.
 /*
-/*	CLEANUP_RECORD() processes one queue file record and maintains
-/*	a little state machine. CLEANUP_RECORD() is a macro that calls
-/*	the appropriate routine depending on what section of a queue file
-/*	is being processed. In order to find out if a file is corrupted,
-/*	the caller can test the CLEANUP_OUT_OK(state) macro. The result is
-/*	false when further message processing is futile.
+/*	CLEANUP_RECORD() is a macro that processes one message record,
+/*	that copies the result to the queue file, and that maintains a
+/*	little state machine. The last record in a valid message has type
+/*	REC_TYPE_END.  In order to find out if a message is corrupted,
+/*	the caller is encouraged to test the CLEANUP_OUT_OK(state) macro.
+/*	The result is false when further message processing is futile.
+/*	In that case, it is safe to call cleanup_close() immediately.
 /*
 /*	cleanup_close() finishes a queue file. In case of any errors,
-/*	the file is removed. The result status is non-zero in case of
-/*	problems. use cleanup_strerror() to translate the result into
+/*	the file is removed. The result value is non-zero in case of
+/*	problems. Use cleanup_strerror() to translate the result into
 /*	human_readable text.
-/*
-/*	cleanup_all() should be called in case of fatal error, in order
-/*	to remove an incomplete queue file. Typically one registers a 
-/*	msg_cleanup() handler and a signal() handler that call
-/*	cleanup_all() before terminating the process.
-/* STANDARDS
-/*	RFC 822 (ARPA Internet Text Messages)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* SEE ALSO
 /*	cleanup(8) cleanup service description.
-/* FILES
-/*	/etc/postfix/canonical*, canonical mapping table
-/*	/etc/postfix/virtual*, virtual mapping table
+/*	cleanup_init(8) cleanup callable interface, initialization
 /* LICENSE
 /* .ad
 /* .fi
@@ -93,25 +79,17 @@
 #include <cleanup_user.h>
 #include <mail_queue.h>
 #include <mail_proto.h>
-#include <opened.h>
 #include <bounce.h>
 #include <mail_params.h>
 #include <mail_stream.h>
-#include <mail_addr.h>
 
 /* Application-specific. */
 
 #include "cleanup.h"
 
- /*
-  * Global state: any queue files that we have open, so that the error
-  * handler can clean up in case of trouble.
-  */
-char   *cleanup_path;			/* queue file name */
-
 /* cleanup_open - open queue file and initialize */
 
-CLEANUP_STATE * cleanup_open(void)
+CLEANUP_STATE *cleanup_open(void)
 {
     CLEANUP_STATE *state;
     static char *log_queues[] = {
@@ -122,20 +100,13 @@ CLEANUP_STATE * cleanup_open(void)
     char  **cpp;
 
     /*
-     * Initialize.
+     * Initialize private state.
      */
     state = cleanup_state_alloc();
 
     /*
-     * Open the queue file. Send the queue ID to the client so they can use
-     * it for logging purposes. For example, the SMTP server sends the queue
-     * id to the SMTP client after completion of the DATA command; and when
-     * the local delivery agent forwards a message, it logs the new queue id
-     * together with the old one. All this is done to make it easier for mail
-     * admins to follow a message while it hops from machine to machine.
-     * 
-     * Save the queue file name, so that the runtime error handler can clean up
-     * in case of problems.
+     * Open the queue file. Save the queue file name in a global variable, so
+     * that the runtime error handler can clean up in case of problems.
      */
     state->handle = mail_stream_file(MAIL_QUEUE_INCOMING,
 				     MAIL_CLASS_PUBLIC, MAIL_SERVICE_QUEUE);
@@ -174,7 +145,7 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * unrecognizable data (which should never happen) or insufficient space
      * for the queue file (which will happen occasionally). Otherwise,
      * discard input after any lethal error. See the CLEANUP_OUT_OK()
-     * definition.
+     * macro definition.
      */
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
 	state->err_mask =
@@ -192,20 +163,22 @@ int     cleanup_close(CLEANUP_STATE *state)
     int     status;
 
     /*
-     * Now that we have captured the entire message, see if there are any
-     * other errors. For example, if the message needs to be bounced for lack
-     * of recipients. We want to turn on the execute bits on a file only when
-     * we want the queue manager to process it.
+     * See if there are any errors. For example, the message is incomplete,
+     * or it needs to be bounced for lack of recipients. We want to turn on
+     * the execute bits on a file only when we really want the queue manager
+     * to process it.
      */
     if (state->recip == 0)
 	state->errs |= CLEANUP_STAT_RCPT;
+    if (state->end_seen == 0)
+	state->errs |= CLEANUP_STAT_BAD;
 
     /*
      * If there are no errors, be very picky about queue file write errors
      * because we are about to tell the sender that it can throw away its
      * copy of the message.
      */
-    if (state->errs == 0)
+    if ((state->errs & CLEANUP_STAT_LETHAL) == 0)
 	state->errs |= mail_stream_finish(state->handle);
     else
 	mail_stream_cleanup(state->handle);
@@ -231,7 +204,6 @@ int     cleanup_close(CLEANUP_STATE *state)
      * message headers because we could not process all the message headers).
      * However, cleanup_strerror() prioritizes errors so that it can report
      * the cause (e.g., header buffer overflow), which is more useful.
-     * Amazing.
      */
 #define CAN_BOUNCE() \
 	((state->errs & (CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE)) == 0 \
@@ -244,7 +216,7 @@ int     cleanup_close(CLEANUP_STATE *state)
 			     MAIL_QUEUE_INCOMING, state->queue_id,
 			     state->sender, state->recip ?
 			     state->recip : "", "cleanup", state->time,
-			     "Message rejected: %s",
+			     "Message processing aborted: %s",
 			     cleanup_strerror(state->errs)) == 0) {
 		state->errs = 0;
 	    } else {
@@ -274,12 +246,4 @@ int     cleanup_close(CLEANUP_STATE *state)
     status = state->errs & CLEANUP_STAT_LETHAL;
     cleanup_state_free(state);
     return (status);
-}
-
-/* cleanup_all - callback for the runtime error handler */
-
-void cleanup_all(void)
-{
-    if (cleanup_path && REMOVE(cleanup_path))
-	msg_warn("cleanup_all: remove %s: %m", cleanup_path);
 }

@@ -6,23 +6,28 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_envelope_init(state, type, buf, len)
+/*	void	cleanup_envelope(state, type, buf, len)
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	char	*buf;
 /*	int	len;
-/*
-/*	void	cleanup_envelope_process(state, type, buf, len)
-/*	CLEANUP_STATE *state;
-/*	int	type;
-/*	char	*buf;
 /*	int	len;
 /* DESCRIPTION
-/*	This module processes the envelope segment of a mail message.
-/*	While copying records from input to output it validates the
-/*	message structure, rewrites sender/recipient addresses
-/*	to canonical form, expands recipients according to
-/*	entries in the virtual table, and updates the state structure.
+/*	This module processes envelope records and writes the result
+/*	to the queue file.  It validates the message structure, rewrites
+/*	sender/recipient addresses to canonical form, and expands recipients
+/*	according to entries in the virtual table.
+/*
+/*	Arguments:
+/* .IP state
+/*	Queue file and message processing state. This state is updated
+/*	as records are processed and as errors happen.
+/* .IP type
+/*	Record type.
+/* .IP buf
+/*	Record content.
+/* .IP len
+/*	Record content length.
 /* LICENSE
 /* .ad
 /* .fi
@@ -62,9 +67,11 @@
 
 #define STR	vstring_str
 
-/* cleanup_envelope_init - initialization */
+static void cleanup_envelope_process(CLEANUP_STATE *, int, char *, int);
 
-void    cleanup_envelope_init(CLEANUP_STATE *state, int type, char *str, int len)
+/* cleanup_envelope - process message envelope */
+
+void    cleanup_envelope(CLEANUP_STATE *state, int type, char *str, int len)
 {
 
     /*
@@ -74,13 +81,17 @@ void    cleanup_envelope_init(CLEANUP_STATE *state, int type, char *str, int len
      * produce queue file reports.
      */
     cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT, 0L);
+
+    /*
+     * Pass control to the actual envelope processing routine.
+     */
     state->action = cleanup_envelope_process;
     cleanup_envelope_process(state, type, str, len);
 }
 
 /* cleanup_envelope_process - process one envelope record */
 
-void    cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int len)
+static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int len)
 {
     if (type == REC_TYPE_MESG) {
 	if (state->sender == 0 || state->time == 0) {
@@ -93,7 +104,7 @@ void    cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int 
 	    if (state->warn_time)
 		cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
 				   state->warn_time);
-	    state->action = cleanup_message_init;
+	    state->action = cleanup_message;
 	}
 	return;
     }
@@ -136,8 +147,7 @@ void    cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int 
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
-	cleanup_rewrite_internal(clean_addr, *buf ?
-				 buf : var_empty_addr);
+	cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
 	if (cleanup_rcpt_canon_maps)
 	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);

@@ -118,33 +118,22 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <sys/stat.h>
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <errno.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <vstring.h>
-#include <vstream.h>
-#include <mymalloc.h>
-#include <iostuff.h>
 #include <dict.h>
 
 /* Global library. */
 
 #include <mail_conf.h>
 #include <cleanup_user.h>
-#include <mail_queue.h>
 #include <mail_proto.h>
-#include <opened.h>
-#include <bounce.h>
 #include <mail_params.h>
-#include <mail_stream.h>
-#include <mail_addr.h>
-#include <ext_prop.h>
 #include <record.h>
 #include <rec_type.h>
 
@@ -156,39 +145,6 @@
 
 #include "cleanup.h"
 
- /*
-  * Tunable parameters.
-  */
-int     var_hopcount_limit;		/* max mailer hop count */
-int     var_header_limit;		/* max header length */
-char   *var_canonical_maps;		/* common canonical maps */
-char   *var_send_canon_maps;		/* sender canonical maps */
-char   *var_rcpt_canon_maps;		/* recipient canonical maps */
-char   *var_virtual_maps;		/* virtual maps */
-char   *var_masq_domains;		/* masquerade domains */
-char   *var_masq_exceptions;		/* users not masqueraded */
-char   *var_header_checks;		/* any header checks */
-int     var_dup_filter_limit;		/* recipient dup filter */
-char   *var_empty_addr;			/* destination of bounced bounces */
-int     var_delay_warn_time;		/* delay that triggers warning */
-char   *var_prop_extension;		/* propagate unmatched extension */
-char   *var_always_bcc;
-
- /*
-  * Mappings.
-  */
-MAPS   *cleanup_comm_canon_maps;
-MAPS   *cleanup_send_canon_maps;
-MAPS   *cleanup_rcpt_canon_maps;
-MAPS   *cleanup_header_checks;
-MAPS   *cleanup_virtual_maps;
-ARGV   *cleanup_masq_domains;
-
- /*
-  * Address extension propagation restrictions.
-  */
-int     cleanup_ext_prop_mask;
-
 /* cleanup_service - process one request to inject a message into the queue */
 
 static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
@@ -196,7 +152,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     VSTRING *buf = vstring_alloc(100);
     CLEANUP_STATE *state;
     int     flags;
-    int     type;
+    int     type = 0;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -239,10 +195,10 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     }
 
     /*
-     * Keep reading in case of problems, so that the sender is ready to
-     * receive our status report.
+     * Keep reading in case of problems, until the sender is ready to receive
+     * our status report.
      */
-    if (CLEANUP_OUT_OK(state) == 0) {
+    if (CLEANUP_OUT_OK(state) == 0 && type > 0) {
 	if ((state->errs & CLEANUP_STAT_CONT) == 0)
 	    msg_warn("%s: skipping further client input", state->queue_id);
 	while ((type = rec_get(src, buf, 0)) > 0
@@ -253,7 +209,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     /*
      * Finish this message, and report the result status to the client.
      */
-    mail_print(src, "%d", cleanup_close(state));/* we're committed now */
+    mail_print(src, "%d", cleanup_close(state));
 
     /*
      * Cleanup.
@@ -269,31 +225,6 @@ static void cleanup_sig(int sig)
     exit(sig);
 }
 
-/* pre_jail_init - initialize before entering the chroot jail */
-
-static void pre_jail_init(char *unused_name, char **unused_argv)
-{
-    if (*var_canonical_maps)
-	cleanup_comm_canon_maps =
-	maps_create(VAR_CANONICAL_MAPS, var_canonical_maps, DICT_FLAG_LOCK);
-    if (*var_send_canon_maps)
-	cleanup_send_canon_maps =
-	    maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps,
-			DICT_FLAG_LOCK);
-    if (*var_rcpt_canon_maps)
-	cleanup_rcpt_canon_maps =
-	    maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
-			DICT_FLAG_LOCK);
-    if (*var_virtual_maps)
-	cleanup_virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps,
-					   DICT_FLAG_LOCK);
-    if (*var_masq_domains)
-	cleanup_masq_domains = argv_split(var_masq_domains, " ,\t\r\n");
-    if (*var_header_checks)
-	cleanup_header_checks =
-	    maps_create(VAR_HEADER_CHECKS, var_header_checks, DICT_FLAG_LOCK);
-}
-
 /* pre_accept - see if tables have changed */
 
 static void pre_accept(char *unused_name, char **unused_argv)
@@ -304,51 +235,10 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-/* post_jail_init - initialize after entering the chroot jail */
-
-static void post_jail_init(char *unused_name, char **unused_argv)
-{
-
-    /*
-     * Optionally set the file size resource limit. XXX This limits the
-     * message content to somewhat less than requested, because the total
-     * queue file size also includes envelope information. Unless people set
-     * really low limit, the difference is going to matter only when a queue
-     * file has lots of recipients.
-     */
-    if (var_message_limit > 0)
-	set_file_limit((off_t) var_message_limit);
-
-    /*
-     * Control how unmatched extensions are propagated.
-     */
-    cleanup_ext_prop_mask = ext_prop_mask(var_prop_extension);
-}
-
 /* main - the main program */
 
 int     main(int argc, char **argv)
 {
-    static CONFIG_INT_TABLE int_table[] = {
-	VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
-	VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
-	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
-	VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
-	0,
-    };
-    static CONFIG_STR_TABLE str_table[] = {
-	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
-	VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,
-	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
-	VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
-	VAR_MASQ_DOMAINS, DEF_MASQ_DOMAINS, &var_masq_domains, 0, 0,
-	VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
-	VAR_MASQ_EXCEPTIONS, DEF_MASQ_EXCEPTIONS, &var_masq_exceptions, 0, 0,
-	VAR_HEADER_CHECKS, DEF_HEADER_CHECKS, &var_header_checks, 0, 0,
-	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
-	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
-	0,
-    };
 
     /*
      * Clean up an incomplete queue file in case of a fatal run-time error,
@@ -361,10 +251,10 @@ int     main(int argc, char **argv)
      * Pass control to the single-threaded service skeleton.
      */
     single_server_main(argc, argv, cleanup_service,
-		       MAIL_SERVER_INT_TABLE, int_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       MAIL_SERVER_PRE_INIT, pre_jail_init,
-		       MAIL_SERVER_POST_INIT, post_jail_init,
+		       MAIL_SERVER_INT_TABLE, cleanup_int_table,
+		       MAIL_SERVER_STR_TABLE, cleanup_str_table,
+		       MAIL_SERVER_PRE_INIT, cleanup_pre_jail,
+		       MAIL_SERVER_POST_INIT, cleanup_post_jail,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

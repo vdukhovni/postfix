@@ -56,26 +56,32 @@ CLEANUP_STATE *cleanup_state_alloc(void)
 
     state->temp1 = vstring_alloc(10);
     state->temp2 = vstring_alloc(10);
-    state->hop_count = 0;
-    state->headers_seen = 0;
-    state->time = 0;
-    state->errs = 0;
-    state->from = 0;
-    state->fullname = 0;
-    state->header_buf = vstring_alloc(100);
+    state->dst = 0;
+    state->handle = 0;
     state->queue_id = 0;
+    state->time = 0;
+    state->fullname = 0;
+    state->sender = 0;
+    state->from = 0;
+    state->resent_from = 0;
     state->recip = 0;
     state->return_receipt = 0;
     state->errors_to = 0;
+    state->flags = 0;
+    state->errs = 0;
+    state->err_mask = 0;
+    state->header_buf = vstring_alloc(100);
+    state->headers_seen = 0;
+    state->hop_count = 0;
     state->recipients = argv_alloc(2);
-    state->resent = "";
-    state->resent_from = 0;
     state->resent_recip = argv_alloc(2);
-    state->sender = 0;
+    state->resent = "";
     state->dups = been_here_init(var_dup_filter_limit, BH_FLAG_FOLD);
     state->warn_time = 0;
-    state->action = cleanup_envelope_init;
-
+    state->action = cleanup_envelope;
+    state->mesg_offset = -1;
+    state->data_offset = -1;
+    state->end_seen = 0;
     return (state);
 }
 

@@ -6,23 +6,28 @@
 /* SYNOPSIS
 /*	#include "cleanup.h"
 /*
-/*	void	cleanup_message_init(state, type, buf, len)
-/*	CLEANUP_STATE *state;
-/*	int	type;
-/*	char	*buf;
-/*
-/*	void	cleanup_message_process(state, type, buf, len)
+/*	void	cleanup_message(state, type, buf, len)
 /*	CLEANUP_STATE *state;
 /*	int	type;
 /*	char	*buf;
 /*	int	len;
 /* DESCRIPTION
-/*	This module processes message content segments.
-/*	While copying records from input to output, it validates
-/*	the input, rewrites sender/recipient addresses to canonical
-/*	form, inserts missing message headers, and extracts information
-/*	from message headers to be used later when generating the extracted
-/*	output segment.
+/*	This module processes message content records and copies the
+/*	result to the queue file.  It validates the input, rewrites
+/*	sender/recipient addresses to canonical form, inserts missing
+/*	message headers, and extracts information from message headers
+/*	to be used later when generating the extracted output segment.
+/*
+/*	Arguments:
+/* .IP state
+/*	Queue file and message processing state. This state is updated
+/*	as records are processed and as errors happen.
+/* .IP type
+/*	Record type.
+/* .IP buf
+/*	Record content.
+/* .IP len
+/*	Record content length.
 /* LICENSE
 /* .ad
 /* .fi
@@ -73,6 +78,9 @@
 /* Application-specific. */
 
 #include "cleanup.h"
+
+static void cleanup_message_header(CLEANUP_STATE *, int, char *, int);
+static void cleanup_message_body(CLEANUP_STATE *, int, char *, int);
 
 /* cleanup_out_header - output one header as a bunch of records */
 
@@ -364,9 +372,9 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 
 /* cleanup_message - initialize message content segment */
 
-void    cleanup_message_init(CLEANUP_STATE *state, int type, char *buf, int len)
+void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
 {
-    char   *myname = "cleanup_message_init";
+    char   *myname = "cleanup_message";
 
     /*
      * Write a dummy start-of-content segment marker. We'll update it with
@@ -378,16 +386,23 @@ void    cleanup_message_init(CLEANUP_STATE *state, int type, char *buf, int len)
     cleanup_out_format(state, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0L);
     if ((state->data_offset = vstream_ftell(state->dst)) < 0)
 	msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
+
+    /*
+     * Pass control to the header processing routine.
+     */
     state->action = cleanup_message_header;
     cleanup_message_header(state, type, buf, len);
 }
 
 /* cleanup_message_header - process message content, header */
 
-void    cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, int len)
+static void cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, int len)
 {
     char   *myname = "cleanup_message_header";
 
+    /*
+     * Sanity check.
+     */
     if (strchr(REC_TYPE_CONTENT, type) == 0) {
 	msg_warn("%s: %s: unexpected record type %d",
 		 state->queue_id, myname, type);
@@ -406,9 +421,9 @@ void    cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, int le
      */
     if (VSTRING_LEN(state->header_buf) > 0) {
 	if ((VSTRING_LEN(state->header_buf) >= var_header_limit
-	     || type != REC_TYPE_NORM)) {
+	     || type == REC_TYPE_CONT)) {
 	    state->errs |= CLEANUP_STAT_HOVFL;
-	} else if (ISSPACE(*buf)) {
+	} else if (type == REC_TYPE_NORM && ISSPACE(*buf)) {
 	    VSTRING_ADDCH(state->header_buf, '\n');
 	    vstring_strcat(state->header_buf, buf);
 	    return;
@@ -429,7 +444,9 @@ void    cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, int le
      * missing headers. Add one blank line when the message headers are
      * immediately followed by a non-empty message body.
      */
-    if (((state->errs & CLEANUP_STAT_HOVFL) || !is_header(buf))) {
+    if (((state->errs & CLEANUP_STAT_HOVFL)
+	 || type != REC_TYPE_NORM
+	 || !is_header(buf))) {
 	cleanup_missing_headers(state);
 	if (type != REC_TYPE_XTRA && *buf)	/* output blank line */
 	    cleanup_out_string(state, REC_TYPE_NORM, "");
@@ -447,10 +464,20 @@ void    cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, int le
 
 /* cleanup_message_body - process message segment, body */
 
-void    cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int len)
+static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int len)
 {
     char   *myname = "cleanup_message_body";
     long    xtra_offset;
+
+    /*
+     * Sanity check.
+     */
+    if (strchr(REC_TYPE_CONTENT, type) == 0) {
+	msg_warn("%s: %s: unexpected record type %d",
+		 state->queue_id, myname, type);
+	state->errs |= CLEANUP_STAT_BAD;
+	return;
+    }
 
     /*
      * Copy body record to the output.
@@ -484,7 +511,7 @@ void    cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int len)
 			   xtra_offset - state->data_offset);
 	if (vstream_fseek(state->dst, xtra_offset, SEEK_SET) < 0)
 	    msg_fatal("%s: vstream_fseek %s: %m", myname, cleanup_path);
-	state->action = cleanup_extracted_init;
+	state->action = cleanup_extracted;
     }
 
     /*

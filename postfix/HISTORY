@@ -3545,7 +3545,7 @@ Apologies for any names omitted.
 	Knox @ vushta.com.
 
 	Performance: FreeBSD has bidirectional pipes that are faster
-	than socketpairs. Anticpiating on more platform-specific
+	than socketpairs. Anticipating on more platform-specific
 	optimizations, all duplex pipe plumbing is now isolated in
 	a duplex_pipe.c module that provides a system-independent
 	interface.
@@ -3612,3 +3612,30 @@ Apologies for any names omitted.
 	excess mail so that one site with a large backlog does not
 	block other deliveries.
 
+20000129
+
+	Bugfix: extracted recipients were misfiled when a message
+	was moved back to the maildrop queue. But they still worked
+	due to a coincidence.
+
+	Feature: bounce_recip() bounces a recipient immediately
+	without accessing a bounce logfile.  This is necessary for
+	VERP bounces, for bounces by delivery agents that change
+	the sender address, and for bounces that for some reason
+	must not use temporary logfiles.  Files: global/bounce.c,
+	bounce/bounce_recip_service.c.
+
+20000130
+
+	Bugfix: the too long header fix of 20000115-22 lost mail
+	with too long headers that didn't need to extract recipients
+	from message headers.
+
+	Bugfix: the too long header fix of 20000115-22 lost mail
+	without (blank line + message body).
+
+	Code rewrite: reorganized the cleanup daemon source code
+	so that the cleanup service can be called one record at a
+	time (see cleanup/cleanup_api.c); also got rid of the global
+	state variables and fixed a couple bugs that were introduced
+	with 20000115-22.

@@ -16,8 +16,8 @@
 /*	int	flush;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_recip()
-/*	(send bounce message) request. If flush is zero, the logfile
-/*	is not removed, and a warning is sent instead of a bounce.
+/*	(send bounce message) request. If flush is zero, a warning is
+/*	sent instead of a bounce.
 /*
 /*	When a message bounces, a full copy is sent to the originator,
 /*	and an optional  copy of the diagnostics with message headers is

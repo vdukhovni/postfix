@@ -1,12 +1,12 @@
 SHELL	= /bin/sh
 SRCS	= cleanup.c cleanup_out.c cleanup_envelope.c cleanup_message.c \
-	cleanup_extracted.c cleanup_state.c cleanup_api.c cleanup_rewrite.c \
+	cleanup_extracted.c cleanup_state.c cleanup_rewrite.c \
 	cleanup_map11.c cleanup_map1n.c cleanup_masquerade.c \
-	cleanup_out_recipient.c
+	cleanup_out_recipient.c cleanup_init.c cleanup_api.c
 OBJS	= cleanup.o cleanup_out.o cleanup_envelope.o cleanup_message.o \
-	cleanup_extracted.o cleanup_state.o cleanup_api.o cleanup_rewrite.o \
+	cleanup_extracted.o cleanup_state.o cleanup_rewrite.o \
 	cleanup_map11.o cleanup_map1n.o cleanup_masquerade.o \
-	cleanup_out_recipient.o
+	cleanup_out_recipient.o cleanup_init.o cleanup_api.o
 HDRS	=
 TESTSRC	= 
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -65,21 +65,14 @@ cleanup.o: ../include/sys_defs.h
 cleanup.o: ../include/msg.h
 cleanup.o: ../include/vstring.h
 cleanup.o: ../include/vbuf.h
-cleanup.o: ../include/vstream.h
-cleanup.o: ../include/mymalloc.h
-cleanup.o: ../include/iostuff.h
 cleanup.o: ../include/dict.h
+cleanup.o: ../include/vstream.h
 cleanup.o: ../include/argv.h
 cleanup.o: ../include/mail_conf.h
 cleanup.o: ../include/cleanup_user.h
-cleanup.o: ../include/mail_queue.h
 cleanup.o: ../include/mail_proto.h
-cleanup.o: ../include/opened.h
-cleanup.o: ../include/bounce.h
+cleanup.o: ../include/iostuff.h
 cleanup.o: ../include/mail_params.h
-cleanup.o: ../include/mail_stream.h
-cleanup.o: ../include/mail_addr.h
-cleanup.o: ../include/ext_prop.h
 cleanup.o: ../include/record.h
 cleanup.o: ../include/rec_type.h
 cleanup.o: ../include/mail_server.h
@@ -88,6 +81,7 @@ cleanup.o: ../include/maps.h
 cleanup.o: ../include/tok822.h
 cleanup.o: ../include/resolve_clnt.h
 cleanup.o: ../include/been_here.h
+cleanup.o: ../include/mail_stream.h
 cleanup_api.o: cleanup_api.c
 cleanup_api.o: ../include/sys_defs.h
 cleanup_api.o: ../include/msg.h
@@ -99,11 +93,9 @@ cleanup_api.o: ../include/mail_queue.h
 cleanup_api.o: ../include/vstream.h
 cleanup_api.o: ../include/mail_proto.h
 cleanup_api.o: ../include/iostuff.h
-cleanup_api.o: ../include/opened.h
 cleanup_api.o: ../include/bounce.h
 cleanup_api.o: ../include/mail_params.h
 cleanup_api.o: ../include/mail_stream.h
-cleanup_api.o: ../include/mail_addr.h
 cleanup_api.o: cleanup.h
 cleanup_api.o: ../include/argv.h
 cleanup_api.o: ../include/maps.h
@@ -111,6 +103,7 @@ cleanup_api.o: ../include/dict.h
 cleanup_api.o: ../include/tok822.h
 cleanup_api.o: ../include/resolve_clnt.h
 cleanup_api.o: ../include/been_here.h
+cleanup_api.o: ../include/mail_conf.h
 cleanup_envelope.o: cleanup_envelope.c
 cleanup_envelope.o: ../include/sys_defs.h
 cleanup_envelope.o: ../include/msg.h
@@ -131,6 +124,7 @@ cleanup_envelope.o: ../include/maps.h
 cleanup_envelope.o: ../include/dict.h
 cleanup_envelope.o: ../include/been_here.h
 cleanup_envelope.o: ../include/mail_stream.h
+cleanup_envelope.o: ../include/mail_conf.h
 cleanup_extracted.o: cleanup_extracted.c
 cleanup_extracted.o: ../include/sys_defs.h
 cleanup_extracted.o: ../include/msg.h
@@ -151,6 +145,26 @@ cleanup_extracted.o: ../include/tok822.h
 cleanup_extracted.o: ../include/resolve_clnt.h
 cleanup_extracted.o: ../include/been_here.h
 cleanup_extracted.o: ../include/mail_stream.h
+cleanup_extracted.o: ../include/mail_conf.h
+cleanup_init.o: cleanup_init.c
+cleanup_init.o: ../include/sys_defs.h
+cleanup_init.o: ../include/msg.h
+cleanup_init.o: ../include/iostuff.h
+cleanup_init.o: ../include/mail_addr.h
+cleanup_init.o: ../include/mail_params.h
+cleanup_init.o: ../include/ext_prop.h
+cleanup_init.o: cleanup.h
+cleanup_init.o: ../include/vstring.h
+cleanup_init.o: ../include/vbuf.h
+cleanup_init.o: ../include/vstream.h
+cleanup_init.o: ../include/argv.h
+cleanup_init.o: ../include/maps.h
+cleanup_init.o: ../include/dict.h
+cleanup_init.o: ../include/tok822.h
+cleanup_init.o: ../include/resolve_clnt.h
+cleanup_init.o: ../include/been_here.h
+cleanup_init.o: ../include/mail_stream.h
+cleanup_init.o: ../include/mail_conf.h
 cleanup_map11.o: cleanup_map11.c
 cleanup_map11.o: ../include/sys_defs.h
 cleanup_map11.o: ../include/msg.h
@@ -169,6 +183,7 @@ cleanup_map11.o: ../include/tok822.h
 cleanup_map11.o: ../include/resolve_clnt.h
 cleanup_map11.o: ../include/been_here.h
 cleanup_map11.o: ../include/mail_stream.h
+cleanup_map11.o: ../include/mail_conf.h
 cleanup_map1n.o: cleanup_map1n.c
 cleanup_map1n.o: ../include/sys_defs.h
 cleanup_map1n.o: ../include/mymalloc.h
@@ -187,6 +202,7 @@ cleanup_map1n.o: ../include/tok822.h
 cleanup_map1n.o: ../include/resolve_clnt.h
 cleanup_map1n.o: ../include/been_here.h
 cleanup_map1n.o: ../include/mail_stream.h
+cleanup_map1n.o: ../include/mail_conf.h
 cleanup_masquerade.o: cleanup_masquerade.c
 cleanup_masquerade.o: ../include/sys_defs.h
 cleanup_masquerade.o: ../include/msg.h
@@ -206,6 +222,7 @@ cleanup_masquerade.o: ../include/maps.h
 cleanup_masquerade.o: ../include/dict.h
 cleanup_masquerade.o: ../include/been_here.h
 cleanup_masquerade.o: ../include/mail_stream.h
+cleanup_masquerade.o: ../include/mail_conf.h
 cleanup_message.o: cleanup_message.c
 cleanup_message.o: ../include/sys_defs.h
 cleanup_message.o: ../include/msg.h
@@ -232,6 +249,7 @@ cleanup_message.o: ../include/maps.h
 cleanup_message.o: ../include/dict.h
 cleanup_message.o: ../include/been_here.h
 cleanup_message.o: ../include/mail_stream.h
+cleanup_message.o: ../include/mail_conf.h
 cleanup_out.o: cleanup_out.c
 cleanup_out.o: ../include/sys_defs.h
 cleanup_out.o: ../include/msg.h
@@ -249,6 +267,7 @@ cleanup_out.o: ../include/tok822.h
 cleanup_out.o: ../include/resolve_clnt.h
 cleanup_out.o: ../include/been_here.h
 cleanup_out.o: ../include/mail_stream.h
+cleanup_out.o: ../include/mail_conf.h
 cleanup_out_recipient.o: cleanup_out_recipient.c
 cleanup_out_recipient.o: ../include/sys_defs.h
 cleanup_out_recipient.o: ../include/argv.h
@@ -265,6 +284,7 @@ cleanup_out_recipient.o: ../include/dict.h
 cleanup_out_recipient.o: ../include/tok822.h
 cleanup_out_recipient.o: ../include/resolve_clnt.h
 cleanup_out_recipient.o: ../include/mail_stream.h
+cleanup_out_recipient.o: ../include/mail_conf.h
 cleanup_rewrite.o: cleanup_rewrite.c
 cleanup_rewrite.o: ../include/sys_defs.h
 cleanup_rewrite.o: ../include/msg.h
@@ -281,6 +301,7 @@ cleanup_rewrite.o: ../include/maps.h
 cleanup_rewrite.o: ../include/dict.h
 cleanup_rewrite.o: ../include/been_here.h
 cleanup_rewrite.o: ../include/mail_stream.h
+cleanup_rewrite.o: ../include/mail_conf.h
 cleanup_state.o: cleanup_state.c
 cleanup_state.o: ../include/sys_defs.h
 cleanup_state.o: ../include/mymalloc.h
@@ -296,3 +317,4 @@ cleanup_state.o: ../include/dict.h
 cleanup_state.o: ../include/tok822.h
 cleanup_state.o: ../include/resolve_clnt.h
 cleanup_state.o: ../include/mail_stream.h
+cleanup_state.o: ../include/mail_conf.h
