@@ -6572,6 +6572,12 @@ Apologies for any names omitted.
 	pcre_table(5) manual page. Files:  util/dict_pcre.c,
 	proto/pcre_table.
 
+20020529
+
+	Bugfix: mail rejected due to MIME errors was rejected
+	without proper logging. Files: global/mime_state.c,
+	cleanup/cleanup_message.c.
+
 Open problems:
 
 	Medium: old maildrop files are no longer readable by the

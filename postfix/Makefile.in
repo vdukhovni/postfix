@@ -56,6 +56,7 @@ tidy:	clean
 	    .nfs* */.nfs* */*/.nfs* \
 	    .pure */.pure */*/.pure \
 	    *.out */*.out */*/*.out \
+	    *.tmp */*.tmp */*/*.tmp \
 	    *.a */*.a */*/*.a \
 	    *~ */*~ */*/*~ \
 	    *- */*- */*/*- \

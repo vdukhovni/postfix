@@ -219,7 +219,7 @@ mime_state: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-tests: tok822_test mime_test
+tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp
@@ -230,6 +230,26 @@ mime_test: mime_state mime_test.in mime_test.ref
 	./mime_state <mime_test.in >mime_test.tmp
 	diff  mime_test.ref mime_test.tmp
 	rm -f mime_test.tmp
+
+mime_nest: mime_state mime_nest.in mime_nest.ref
+	./mime_state <mime_nest.in >mime_nest.tmp
+	diff  mime_nest.ref mime_nest.tmp
+	rm -f mime_nest.tmp
+
+mime_8bit: mime_state mime_8bit.in mime_8bit.ref
+	./mime_state <mime_8bit.in >mime_8bit.tmp
+	diff  mime_8bit.ref mime_8bit.tmp
+	rm -f mime_8bit.tmp
+
+mime_dom: mime_state mime_dom.in mime_dom.ref
+	./mime_state <mime_dom.in >mime_dom.tmp
+	diff  mime_dom.ref mime_dom.tmp
+	rm -f mime_dom.tmp
+
+mime_trunc: mime_state mime_trunc.in mime_trunc.ref
+	./mime_state <mime_trunc.in >mime_trunc.tmp
+	diff  mime_trunc.ref mime_trunc.tmp
+	rm -f mime_trunc.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

@@ -603,10 +603,6 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 	state->mime_errs = mime_state_update(state->mime_state, type, buf, len);
 	/* Ignore header truncation after primary message headers. */
 	state->mime_errs &= ~MIME_ERR_TRUNC_HEADER;
-	/* Ignore MIME nesting error if bouncing or forwarding mail. */
-	/* XXX Also: ignore if not header checking. */
-	if ((state->flags & CLEANUP_FLAG_FILTER) == 0)
-	    state->mime_errs &= ~MIME_ERR_NESTING;
 	if (state->mime_errs && state->reason == 0) {
 	    state->errs |= CLEANUP_STAT_CONT;
 	    state->reason = mystrdup(mime_state_error(state->mime_errs));
@@ -623,6 +619,27 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
     else {
 	msg_warn("%s: unexpected record type: %d", myname, type);
 	state->errs |= CLEANUP_STAT_BAD;
+    }
+}
+
+/* cleanup_mime_error_callback - error report call-back routine */
+
+static void cleanup_mime_error_callback(void *context, int err_code,
+					        const char *text)
+{
+    CLEANUP_STATE *state = (CLEANUP_STATE *) context;
+    const char *origin;
+
+    /*
+     * Message header too large errors are handled after the end of the
+     * primary message headers.
+     */
+    if ((err_code & ~MIME_ERR_TRUNC_HEADER) != 0) {
+	if ((origin = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
+	    origin = MAIL_ATTR_ORG_NONE;
+	msg_info("%s: reject: mime-error %s: %.100s from %s; from=<%s> to=<%s>",
+		 state->queue_id, mime_state_error(err_code), text, origin,
+		 state->sender, state->recip ? state->recip : "unknown");
     }
 }
 
@@ -653,7 +670,7 @@ void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
     if (var_disable_mime_input) {
 	mime_options |= MIME_OPT_DISABLE_MIME;
     } else {
-	/* Turn off strict MIME checks if bouncing or forwarding mail. */
+	/* Turn off content checks if bouncing or forwarding mail. */
 	if (state->flags & CLEANUP_FLAG_FILTER) {
 	    if (var_strict_8bitmime || var_strict_7bit_hdrs)
 		mime_options |= MIME_OPT_REPORT_8BIT_IN_HEADER;
@@ -661,6 +678,11 @@ void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
 		mime_options |= MIME_OPT_REPORT_8BIT_IN_7BIT_BODY;
 	    if (var_strict_encoding)
 		mime_options |= MIME_OPT_REPORT_ENCODING_DOMAIN;
+	    if (var_strict_8bitmime || var_strict_7bit_hdrs
+		|| var_strict_8bit_body || var_strict_encoding
+		|| *var_header_checks || *var_mimehdr_checks
+		|| *var_nesthdr_checks)
+		mime_options |= MIME_OPT_REPORT_NESTING;
 	}
     }
     state->mime_state = mime_state_alloc(mime_options,
@@ -668,6 +690,7 @@ void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
 					 cleanup_header_done_callback,
 					 cleanup_body_callback,
 					 (MIME_STATE_ANY_END) 0,
+					 cleanup_mime_error_callback,
 					 (void *) state);
 
     /*

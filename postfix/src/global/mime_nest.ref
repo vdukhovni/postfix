@@ -1,0 +1,163 @@
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MAIN	content-type: multipart/mixed; boundary=foobar
+HEADER END
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: PUSH boundary foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+mime_state: header_token: multipart / mixed
+mime_state: header_token: boundary = foobar
+mime_state: warning: MIME nesting exceeds safety limit: content-type: multipart/mixed; boundary=foobar
+MULT	content-type: multipart/mixed; boundary=foobar
+BODY	
+BODY	--foobar
+BODY END
+mime_state: warning: MIME nesting exceeds safety limit
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar
+mime_state: POP boundary foobar

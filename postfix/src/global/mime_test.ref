@@ -19,6 +19,7 @@ mime_state: PUSH boundary pqrs
 NEST	content-type: multipart/mumble; boundary(comment)="pqrs"
 mime_state: header_token: base64  
 NEST	content-transfer-encoding: base64
+mime_state: warning: invalid message/* or multipart/* encoding domain: base64
 BODY	
 BODY	pqrs prolog
 BODY	

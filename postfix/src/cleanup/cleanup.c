@@ -259,16 +259,6 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     }
 
     /*
-     * Can't do header checks if the MIME structure is nested too deeply.
-     */
-    if ((state->mime_errs & MIME_ERR_NESTING)
-	&& (*var_header_checks || *var_mimehdr_checks || *var_nesthdr_checks)
-	&& state->reason == 0) {
-	state->errs |= CLEANUP_STAT_CONT;
-	state->reason = mystrdup("too much MIME nesting");
-    }
-
-    /*
      * Keep reading in case of problems, until the sender is ready to receive
      * our status report.
      */

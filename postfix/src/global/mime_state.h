@@ -28,8 +28,9 @@ typedef struct MIME_STATE MIME_STATE;
 typedef void (*MIME_STATE_HEAD_OUT) (void *, int, HEADER_OPTS *, VSTRING *);
 typedef void (*MIME_STATE_BODY_OUT) (void *, int, const char *, int);
 typedef void (*MIME_STATE_ANY_END) (void *);
+typedef void (*MIME_STATE_ERR_PRINT) (void *, int, const char *);
 
-extern MIME_STATE *mime_state_alloc(int, MIME_STATE_HEAD_OUT, MIME_STATE_ANY_END, MIME_STATE_BODY_OUT, MIME_STATE_ANY_END, void *);
+extern MIME_STATE *mime_state_alloc(int, MIME_STATE_HEAD_OUT, MIME_STATE_ANY_END, MIME_STATE_BODY_OUT, MIME_STATE_ANY_END, MIME_STATE_ERR_PRINT, void *);
 extern int mime_state_update(MIME_STATE *, int, const char *, int);
 extern MIME_STATE *mime_state_free(MIME_STATE *);
 extern const char *mime_state_error(int);
@@ -45,6 +46,7 @@ extern const char *mime_state_error(int);
 #define MIME_OPT_RECURSE_ALL_MESSAGE		(1<<4)
 #define MIME_OPT_REPORT_TRUNC_HEADER		(1<<5)
 #define MIME_OPT_DISABLE_MIME			(1<<6)
+#define MIME_OPT_REPORT_NESTING			(1<<7)
 
  /*
   * Body encoding domains.

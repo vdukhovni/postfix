@@ -771,11 +771,13 @@ int     smtp_xfer(SMTP_STATE *state)
 		 && (state->features & SMTP_FEATURE_8BITMIME) == 0
 		 && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0);
 	    if (downgrading)
-		state->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE,
+		state->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
+						  | MIME_OPT_REPORT_NESTING,
 						     smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
 						     smtp_text_out,
 						     (MIME_STATE_ANY_END) 0,
+						   (MIME_STATE_ERR_PRINT) 0,
 						     (void *) state);
 	    state->space_left = var_smtp_line_limit;
 	    smtp_timeout_setup(state->session->stream,

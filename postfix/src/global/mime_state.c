@@ -7,7 +7,8 @@
 /*	#include <mime_state.h>
 /*
 /*	MIME_STATE *mime_state_alloc(flags, head_out, head_end,
-/*				     body_out, body_end, context)
+/*				     body_out, body_end,
+/*				     err_print, context)
 /*	int	flags;
 /*	void	(*head_out)(void *ptr, int header_class,
 /*				HEADER_OPTS *header_info, VSTRING *buf);
@@ -15,6 +16,7 @@
 /*	void	(*body_out)(void *ptr, int rec_type,
 /*				const char *buf, int len);
 /*	void	(*body_end)(void *ptr);
+/*	void	(*err_print(void *ptr, int err_flag, const char *text)
 /*	void	*context;
 /*
 /*	int	mime_state_update(state, rec_type, buf, len)
@@ -80,6 +82,10 @@
 /*	routines.
 /* .IP enc_type
 /*	The content encoding: MIME_ENC_7BIT or MIME_ENC_8BIT.
+/* .IP err_print
+/*	Null pointer, or pointer to a function that is called with
+/*	arguments: the application context, the error type, and the
+/*	offending input. Only one instance per error type is reported.
 /* .IP flags
 /*	Special processing options. Specify the bit-wise OR of zero or
 /*	more of the following:
@@ -102,6 +108,9 @@
 /* .IP MIME_OPT_REPORT_ENCODING_DOMAIN
 /*	Report errors that set the MIME_ERR_ENCODING_DOMAIN error
 /*	flag (see above).
+/* .IP MIME_OPT_REPORT_NESTING
+/*	Report errors that set the MIME_ERR_NESTING error flag
+/*	(see above).
 /* .IP MIME_OPT_RECURSE_ALL_MESSAGE
 /*	Recurse into message/anything types other than message/rfc822.
 /*	This feature can detect "bad" information in headers of
@@ -274,6 +283,7 @@ struct MIME_STATE {
     MIME_STATE_ANY_END head_end;	/* end of primary header routine */
     MIME_STATE_BODY_OUT body_out;	/* body output routine */
     MIME_STATE_ANY_END body_end;	/* end of body output routine */
+    MIME_STATE_ERR_PRINT err_print;	/* error report */
     void   *app_context;		/* application context */
 };
 
@@ -329,6 +339,15 @@ typedef struct MIME_ENCODING {
 #define MIME_ENC_BINARY		9	/* domain only */
 #endif
 
+static MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
+    "7bit", MIME_ENC_7BIT, MIME_ENC_7BIT,	/* domain */
+    "8bit", MIME_ENC_8BIT, MIME_ENC_8BIT,	/* domain */
+    "binary", MIME_ENC_BINARY, MIME_ENC_BINARY,	/* domain */
+    "base64", MIME_ENC_BASE64, MIME_ENC_7BIT,	/* encoding */
+    "quoted-printable", MIME_ENC_QP, MIME_ENC_7BIT,	/* encoding */
+    0,
+};
+
  /*
   * Silly Little Macros.
   */
@@ -336,6 +355,14 @@ typedef struct MIME_ENCODING {
 #define LEN(x)		VSTRING_LEN(x)
 #define END(x)		vstring_end(x)
 #define CU_CHAR_PTR(x)	((const unsigned char *) (x))
+
+#define REPORT_ERROR(state, err_type, text) do { \
+	if ((state->err_flags & err_type) == 0) { \
+	    if (state->err_print != 0) \
+		state->err_print(state->app_context, err_type, text); \
+	    state->err_flags |= err_type; \
+	} \
+    } while (0)
 
 /* mime_state_push - push boundary onto stack */
 
@@ -355,21 +382,17 @@ static void mime_state_push(MIME_STATE *state, int def_ctype, int def_stype,
      * will still correctly detect all intermediate boundaries and all the
      * message headers that follow those boundaries.
      */
-    if (state->nesting_level > var_mime_maxdepth) {
-	state->err_flags |= MIME_ERR_NESTING;
-    } else {
-	state->nesting_level += 1;
-	stack = (MIME_STACK *) mymalloc(sizeof(*stack));
-	stack->def_ctype = def_ctype;
-	stack->def_stype = def_stype;
-	if ((stack->bound_len = strlen(boundary)) > var_mime_bound_len)
-	    stack->bound_len = var_mime_bound_len;
-	stack->boundary = mystrndup(boundary, stack->bound_len);
-	stack->next = state->stack;
-	state->stack = stack;
-	if (msg_verbose)
-	    msg_info("PUSH boundary %s", stack->boundary);
-    }
+    state->nesting_level += 1;
+    stack = (MIME_STACK *) mymalloc(sizeof(*stack));
+    stack->def_ctype = def_ctype;
+    stack->def_stype = def_stype;
+    if ((stack->bound_len = strlen(boundary)) > var_mime_bound_len)
+	stack->bound_len = var_mime_bound_len;
+    stack->boundary = mystrndup(boundary, stack->bound_len);
+    stack->next = state->stack;
+    state->stack = stack;
+    if (msg_verbose)
+	msg_info("PUSH boundary %s", stack->boundary);
 }
 
 /* mime_state_pop - pop boundary from stack */
@@ -395,6 +418,7 @@ MIME_STATE *mime_state_alloc(int flags,
 			             MIME_STATE_ANY_END head_end,
 			             MIME_STATE_BODY_OUT body_out,
 			             MIME_STATE_ANY_END body_end,
+			             MIME_STATE_ERR_PRINT err_print,
 			             void *context)
 {
     MIME_STATE *state;
@@ -417,6 +441,7 @@ MIME_STATE *mime_state_alloc(int flags,
     state->head_end = head_end;
     state->body_out = body_out;
     state->body_end = body_end;
+    state->err_print = err_print;
     state->app_context = context;
     return (state);
 }
@@ -521,9 +546,16 @@ static void mime_state_content_type(MIME_STATE *state,
 	    while ((tok_count = PARSE_CONTENT_TYPE_HEADER(state, &cp)) >= 0) {
 		if (tok_count >= 3
 		    && TOKEN_MATCH(state->token[0], "boundary")
-		    && state->token[1].type == '=')
-		    mime_state_push(state, def_ctype, def_stype,
-				    state->token[2].u.value);
+		    && state->token[1].type == '=') {
+		    if (state->nesting_level > var_mime_maxdepth) {
+			if (state->static_flags & MIME_OPT_REPORT_NESTING)
+			    REPORT_ERROR(state, MIME_ERR_NESTING,
+					 STR(state->output_buffer));
+		    } else {
+			mime_state_push(state, def_ctype, def_stype,
+					state->token[2].u.value);
+		    }
+		}
 	    }
 	}
 	return;
@@ -544,14 +576,6 @@ static void mime_state_content_encoding(MIME_STATE *state,
 					        HEADER_OPTS *header_info)
 {
     const char *cp;
-    static MIME_ENCODING code_map[] = {	/* RFC 2045 */
-	"7bit", MIME_ENC_7BIT, MIME_ENC_7BIT,	/* domain */
-	"8bit", MIME_ENC_8BIT, MIME_ENC_8BIT,	/* domain */
-	"binary", MIME_ENC_BINARY, MIME_ENC_BINARY,	/* domain */
-	"base64", MIME_ENC_BASE64, MIME_ENC_7BIT,	/* encoding */
-	"quoted-printable", MIME_ENC_QP, MIME_ENC_7BIT,	/* encoding */
-	0,
-    };
     MIME_ENCODING *cmp;
 
 #define PARSE_CONTENT_ENCODING_HEADER(state, ptr) \
@@ -565,7 +589,7 @@ static void mime_state_content_encoding(MIME_STATE *state,
     cp = STR(state->output_buffer) + strlen(header_info->name) + 1;
     if (PARSE_CONTENT_ENCODING_HEADER(state, &cp) > 0
 	&& state->token[0].type == HEADER_TOK_TOKEN) {
-	for (cmp = code_map; cmp->name != 0; cmp++) {
+	for (cmp = mime_encoding_map; cmp->name != 0; cmp++) {
 	    if (strcasecmp(state->token[0].u.value, cmp->name) == 0) {
 		state->curr_encoding = cmp->encoding;
 		state->curr_domain = cmp->domain;
@@ -573,6 +597,18 @@ static void mime_state_content_encoding(MIME_STATE *state,
 	    }
 	}
     }
+}
+
+/* mime_state_enc_name - encoding to printable form */
+
+static const char *mime_state_enc_name(int encoding)
+{
+    MIME_ENCODING *cmp;
+
+    for (cmp = mime_encoding_map; cmp->name != 0; cmp++)
+	if (encoding == cmp->encoding)
+	    return (cmp->name);
+    return ("unknown");
 }
 
 /* mime_state_downgrade - convert 8-bit data to quoted-printable */
@@ -643,10 +679,10 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
     HEADER_OPTS *header_info;
     const unsigned char *cp;
 
-#define SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type) { \
+#define SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type) do { \
 	state->prev_rec_type = rec_type; \
 	return (state->err_flags); \
-    }
+    } while (0)
 
     /*
      * Be sure to flush any partial output line that might still be buffered
@@ -681,7 +717,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 			vstring_strcat(state->output_buffer, text);
 		    } else {
 			if (state->static_flags & MIME_OPT_REPORT_TRUNC_HEADER)
-			    state->err_flags |= MIME_ERR_TRUNC_HEADER;
+			    REPORT_ERROR(state, MIME_ERR_TRUNC_HEADER,
+					 STR(state->output_buffer));
 		    }
 		    SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);
 		}
@@ -691,7 +728,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 			vstring_strcat(state->output_buffer, text);
 		    } else {
 			if (state->static_flags & MIME_OPT_REPORT_TRUNC_HEADER)
-			    state->err_flags |= MIME_ERR_TRUNC_HEADER;
+			    REPORT_ERROR(state, MIME_ERR_TRUNC_HEADER,
+					 STR(state->output_buffer));
 		    }
 		    SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);
 		}
@@ -721,7 +759,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		    for (cp = CU_CHAR_PTR(STR(state->output_buffer));
 			 cp < CU_CHAR_PTR(END(state->output_buffer)); cp++)
 			if (*cp & 0200) {
-			    state->err_flags |= MIME_ERR_8BIT_IN_HEADER;
+			    REPORT_ERROR(state, MIME_ERR_8BIT_IN_HEADER,
+					 STR(state->output_buffer));
 			    break;
 			}
 		}
@@ -803,14 +842,17 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		if (state->curr_stype == MIME_STYPE_PARTIAL
 		    || state->curr_stype == MIME_STYPE_EXTERN_BODY) {
 		    if (state->curr_domain != MIME_ENC_7BIT)
-			state->err_flags |= MIME_ERR_ENCODING_DOMAIN;
+			REPORT_ERROR(state, MIME_ERR_ENCODING_DOMAIN,
+				 mime_state_enc_name(state->curr_encoding));
 		} else {
 		    if (state->curr_encoding != state->curr_domain)
-			state->err_flags |= MIME_ERR_ENCODING_DOMAIN;
+			REPORT_ERROR(state, MIME_ERR_ENCODING_DOMAIN,
+				 mime_state_enc_name(state->curr_encoding));
 		}
 	    } else if (state->curr_ctype == MIME_CTYPE_MULTIPART) {
 		if (state->curr_encoding != state->curr_domain)
-		    state->err_flags |= MIME_ERR_ENCODING_DOMAIN;
+		    REPORT_ERROR(state, MIME_ERR_ENCODING_DOMAIN,
+				 mime_state_enc_name(state->curr_encoding));
 	    }
 	}
 
@@ -885,7 +927,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		&& (state->err_flags & MIME_ERR_8BIT_IN_7BIT_BODY) == 0) {
 		for (cp = CU_CHAR_PTR(text); cp < CU_CHAR_PTR(text + len); cp++)
 		    if (*cp & 0200) {
-			state->err_flags |= MIME_ERR_8BIT_IN_7BIT_BODY;
+			REPORT_ERROR(state, MIME_ERR_8BIT_IN_7BIT_BODY, text);
 			break;
 		    }
 	    }
@@ -944,7 +986,7 @@ const char *mime_state_error(int error_code)
     if (error_code & MIME_ERR_NESTING)
 	return ("MIME nesting exceeds safety limit");
     if (error_code & MIME_ERR_TRUNC_HEADER)
-	return ("message header was truncated");
+	return ("message header length exceeds safety limit");
     if (error_code & MIME_ERR_8BIT_IN_HEADER)
 	return ("improper use of 8-bit data in message header");
     if (error_code & MIME_ERR_8BIT_IN_7BIT_BODY)
@@ -1005,9 +1047,14 @@ static void body_end(void *context)
     vstream_fprintf(stream, "BODY END\n");
 }
 
-int     var_header_limit = DEF_HEADER_LIMIT;
-int     var_mime_maxdepth = DEF_MIME_MAXDEPTH;
-int     var_mime_bound_len = DEF_MIME_BOUND_LEN;
+static void err_print(void *context, int err_flag, const char *text)
+{
+    msg_warn("%s: %.100s", mime_state_error(err_flag), text);
+}
+
+int     var_header_limit = 200;
+int     var_mime_maxdepth = 20;
+int     var_mime_bound_len = 200;
 
 int     main(int unused_argc, char **argv)
 {
@@ -1024,6 +1071,8 @@ int     main(int unused_argc, char **argv)
 	    (MIME_OPT_REPORT_8BIT_IN_7BIT_BODY \
 	    | MIME_OPT_REPORT_8BIT_IN_HEADER \
 	    | MIME_OPT_REPORT_ENCODING_DOMAIN \
+	    | MIME_OPT_REPORT_TRUNC_HEADER \
+	    | MIME_OPT_REPORT_NESTING \
 	    | MIME_OPT_DOWNGRADE)
 
     msg_vstream_init(basename(argv[0]), VSTREAM_OUT);
@@ -1032,6 +1081,7 @@ int     main(int unused_argc, char **argv)
     state = mime_state_alloc(MIME_OPTIONS,
 			     head_out, head_end,
 			     body_out, body_end,
+			     err_print,
 			     (void *) VSTREAM_OUT);
 
     /*
@@ -1048,7 +1098,7 @@ int     main(int unused_argc, char **argv)
      * Error reporting.
      */
     if (err & MIME_ERR_TRUNC_HEADER)
-	msg_warn("message header was truncated");
+	msg_warn("message header length exceeds safety limit");
     if (err & MIME_ERR_NESTING)
 	msg_warn("MIME nesting exceeds safety limit");
     if (err & MIME_ERR_8BIT_IN_HEADER)
