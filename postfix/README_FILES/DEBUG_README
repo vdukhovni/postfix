@@ -48,7 +48,7 @@ Error messages that come later are less useful.
 only a programmer can fix. Postfix cannot proceed until this is
 fixed.
 
-"FATAL" messages are the result of mssing files, incorrect permissions,
+"FATAL" messages are the result of missing files, incorrect permissions,
 incorrect configuration file settings. Postfix cannot proceed until
 this is fixed.
 

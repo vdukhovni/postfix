@@ -1189,6 +1189,8 @@ static void mail_reset(SMTPD_STATE *state)
     }
     if (state->xforward.flags)
 	smtpd_xforward_reset(state);
+    if (state->prepend)
+	state->prepend = argv_free(state->prepend);
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1319,6 +1321,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     (*out_fprintf) (VSTREAM *, int, const char *,...);
     VSTREAM *out_stream;
     int     out_error;
+    char  **cpp;
 
     /*
      * Sanity checks. With ESMTP command pipelining the client can send DATA
@@ -1384,6 +1387,13 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d", state->saved_flags);
 	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
     }
+
+    /*
+     * PREPEND message headers.
+     */
+    if (state->prepend)
+	for (cpp = state->prepend->argv; *cpp; cpp++)
+	    out_fprintf(out_stream, REC_TYPE_NORM, "%s", *cpp);
 
     /*
      * Suppress our own Received: header in the unlikely case that we are an

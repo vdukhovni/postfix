@@ -119,6 +119,7 @@ typedef struct SMTPD_STATE {
     char   *saved_redirect;		/* postponed redirect action */
     int     saved_flags;		/* postponed hold/discard */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
+    ARGV   *prepend;			/* prepended headers */
 
     /*
      * Pass-through proxy client.

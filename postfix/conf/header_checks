@@ -20,7 +20,7 @@
 #        implemented by the Postfix cleanup(8) server.
 # 
 #        Postfix header or body_checks are designed to stop a flood
-#        of mail from worms and viruses. They are not meant to be a
+#        of  mail from worms or viruses. They are not meant to be a
 #        substitute for content filters that decode attachments and
 #        that do other sophisticated content analyses.
 # 
@@ -36,63 +36,67 @@
 # 
 #        nested_header_checks (default: $header_checks)
 #               These  are  applied  to  each  message  header   of
-#               attached email messages.
+#               attached   email  messages  (except  for  the  MIME
+#               related headers).
 # 
 #        body_checks
-#               These  are  applied to every other line of content,
-#               including multi-part message boundaries.
+#               These are applied to all other  content,  including
+#               multi-part message boundaries.
 # 
 #        Note: message headers are examined one logical header at a
-#        time,  even  when  a  message header spans multiple lines.
+#        time, even when a message  header  spans  multiple  lines.
 #        Body lines are always examined one line at a time.
 # 
-# REGEXP AND PCRE TABLE FORMAT
-#        Header and body_checks rules are normally specified in the
-#        form of regular expression lookup tables. The best perfor-
-#        mance is  obtained  with  pcre  (Perl  Compatible  Regular
-#        Expression)  tables,  but the slower regexp (POSIX regular
-#        expressions) support is more  widely  available.  Use  the
-#        command postconf -m to find out what types of lookup table
-#        your Postfix system supports.
+# TABLE FORMAT
+#        This  document  assumes  that header and body_checks rules
+#        are specified in the form of  Postfix  regular  expression
+#        lookup  tables.  Usually  the best performance is obtained
+#        with pcre (Perl Compatible Regular Expression) tables, but
+#        the  slower  regexp (POSIX regular expressions) support is
+#        more widely available.  Use the  command  postconf  -m  to
+#        find  out what lookup table types your Postfix system sup-
+#        ports.
 # 
-#        The general format of a header or body_checks table is:
+#        The general format of a Postfix regular  expression  table
+#        is:
 # 
 #        /pattern/flags action
-#               When pattern matches the input string, execute  the
-#               corresponding  action. See below for a list of pos-
+#               When  pattern matches the input string, execute the
+#               corresponding action. See below for a list of  pos-
 #               sible actions.
 # 
 #        !/pattern/flags action
-#               When pattern does not match the input string,  exe-
+#               When  pattern does not match the input string, exe-
 #               cute the corresponding action.
 # 
 #        if /pattern/flags
 # 
 #        endif  Match the input string against the patterns between
-#               if and endif, if and only if the input string  also
+#               if  and endif, if and only if the input string also
 #               matches pattern. The if..endif can nest.
 # 
-#               Note:  do not prepend whitespace to patterns inside
+#               Note: do not prepend whitespace to patterns  inside
 #               if..endif.
 # 
 #        if !/pattern/flags
 # 
 #        endif  Match the input string against the patterns between
-#               if  and endif, if and only if the input string does
+#               if and endif, if and only if the input string  does
 #               not match pattern. The if..endif can nest.
 # 
 #        blank lines and comments
-#               Empty lines and whitespace-only lines are  ignored,
-#               as  are  lines whose first non-whitespace character
+#               Empty  lines and whitespace-only lines are ignored,
+#               as are lines whose first  non-whitespace  character
 #               is a `#'.
 # 
 #        multi-line text
-#               A pattern/action line  starts  with  non-whitespace
-#               text.  A line that starts with whitespace continues
+#               A  pattern/action  line  starts with non-whitespace
+#               text. A line that starts with whitespace  continues
 #               a logical line.
 # 
-#        For a discussion of pattern syntax and flags details,  see
-#        regexp_table(5) or pcre_table(5), respectively.
+#        For  a  discussion  of  specific  pattern  or flags syntax
+#        details, see  pcre_table(5)  or  regexp_table(5),  respec-
+#        tively.
 # 
 # TABLE SEARCH ORDER
 #        For  each  line of message input, the patterns are applied
@@ -125,9 +129,9 @@
 #               body_checks  inspection  of the current message and
 #               affects all recipients.
 # 
-#        DUNNO  Pretend that the search string was not  found,  and
-#               inspect  the  next  input  line. This action can be
-#               used to shorten the table search.
+#        DUNNO  Pretend that the input line did not match any  pat-
+#               tern,  and inspect the next input line. This action
+#               can be used to shorten the table search.
 # 
 #               For backwards compatibility reasons,  Postfix  also
 #               accepts  OK but it is (and always has been) treated
@@ -136,15 +140,15 @@
 #        FILTER transport:destination
 #               Write a content filter request record to the  queue
 #               file  and  inspect  the next input line.  After the
-#               message is queued, it  will  be  sent  through  the
-#               specified  external  content filter.  More informa-
-#               tion about external content filters is in the Post-
-#               fix FILTER_README file.
+#               complete  message  is  received  it  will  be  sent
+#               through  the  specified  external  content  filter.
+#               More information about external content filters  is
+#               in the Postfix FILTER_README file.
 # 
 #               Note:   this  action  overrides  the  main.cf  con-
 #               tent_filter setting, and affects all recipients  of
 #               the  message.  In  the  case  that  multiple FILTER
-#               actions fire, the only last one is executed.
+#               actions fire, only the last one is executed.
 # 
 #        HOLD optional text...
 #               Arrange for the message to be placed  on  the  hold
@@ -171,7 +175,7 @@
 # 
 #               Note: this action overrides the FILTER action,  and
 #               affects  all recipients of the message. If multiple
-#               REDIRECT actions fire only the  last  one  is  exe-
+#               REDIRECT actions fire, only the last  one  is  exe-
 #               cuted.
 # 
 #        REJECT optional text...
@@ -187,13 +191,17 @@
 #               Log  a  warning with the optional text... (or log a
 #               generic message) and inspect the next  input  line.
 #               This action is useful for debugging and for testing
-#               a pattern before taking more drastic actions.
+#               a pattern before applying more drastic actions.
 # 
 # BUGS
 #        Many people overlook the main limitations  of  header  and
 #        body_checks  rules.   These  rules  operate on one logical
-#        message header or body line at a time, and a decision made
-#        for one line is not carried over to the next line.
+#        message header or one body line at a time, and a  decision
+#        made for one line is not carried over to the next line.
+# 
+#        Message  headers added by the cleanup(8) daemon itself are
+#        excluded from inspection. Examples of such message headers
+#        are From:, To:, Message-ID:, Date:.
 # 
 # CONFIGURATION PARAMETERS
 #        body_checks

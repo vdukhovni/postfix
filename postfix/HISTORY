@@ -8917,7 +8917,8 @@ Apologies for any names omitted.
 	port is specified.  File: smtp/smtp_addr.c.
 
 	Bugfix: restore errno after write failure in SIGCHLD handler.
-	Leandro Santi. File: master/master_sig.c.
+	Leandro Santi (who got the idea from Hernan Perez Masci).
+	File: master/master_sig.c.
 
 	Bugfix: the auto_clnt module disconnected too early, causing
 	unnecessary work by the anvil server.
@@ -8986,12 +8987,12 @@ Apologies for any names omitted.
 	Cleanup: the LDAP client configuration parser is now shared
 	between the LDAP, MySQL, and PGSQL clients.  Liviu Daia.
 	Files: global/cfgparser.[hc], global/dict_ldap.c,
-	global/dict_mtsql.c, global/dict_pgsql.c and documentation.
+	global/dict_mysql.c, global/dict_pgsql.c and documentation.
 
 	Cleanup: moved "util" modules with dependencies on higher-level
 	"global" code from the util directory to the global directory:
 	util/dict_open.c, global/cfgparser.[hc], global/dict_ldap.c,
-	global/dict_mtsql.c, global/dict_pgsql.c, global/mail_dict.c.
+	global/dict_mysql.c, global/dict_pgsql.c, global/mail_dict.c.
 
 	Cleanup: the new queue manager nqmgr replaces the default
 	queue manager qmgr, leaving behind a hard link for backwards
@@ -9073,7 +9074,33 @@ Apologies for any names omitted.
 	Cleanup: support for the non-standard Errors-To: header
 	is removed. File: cleanup/cleanup_message.c.
 
+20040121
+
+	Feature: "PREPEND headername: headervalue" action in Postfix
+	access maps, to facilitate external policy servers that
+	label mail instead of rejecting it. Files: smtpd/smtpd.c,
+	smtpd/smtpd_check.c.
+
+20040122
+
+	UNDO the 20040104 change (vstring_get() etc. return
+	VSTREAM_EOF when they terminate prematurely, instead of
+	returning the last character stored, to avoid mis-leading
+	warnings). File:  global/vstring_vstream.c.
+
+	Portability: test -e is not portable. File: conf/postfix-script.
+
+	Misc. documentation fixes by Victor Duchovni.
+
 Open problems:
+
+	Low: log xdelay (esp. for SMTP and delivery to command).
+
+	Med: smtpd_reject_unknown_sender=yes to control the egress
+	filter.
+
+	Med: cleanup_enable_errors_to=no to control errors-to
+	processing.
 
 	Med: silly queue file bit so that the queue manager doesn't
 	skip files when fast flush is requested while a queue scan

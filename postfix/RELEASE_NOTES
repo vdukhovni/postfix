@@ -12,6 +12,20 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.18-2004122
+==========================================================
+
+This release undoes the snapshot 2004120 changes to the Postfix
+line reading routines. These changes caused surprises with lines
+ending in EOF.
+
+Major changes with Postfix snapshot 2.0.18-20040122
+===================================================
+
+New "PREPEND headername: headervalue" action in Postfix access maps
+that can be used by external SMTPD policy servers in order to label
+mail instead of rejecting it.
+
 Incompatible changes with Postfix snapshot 2.0.17-2004120
 ==========================================================
 

@@ -25,7 +25,7 @@ This document describes two approaches to content filtering: simple
 and advanced. Both approaches filter all the mail by default.
 
 At the end are examples that show 1) how to filter only mail from
-remote users only, 2) how to use different filters for different
+remote users, 2) how to use different filters for different
 domains that you provide MX service for, and 3) how to set up
 selective filtering on the basis of message envelope and/or
 header/body patterns.
@@ -318,8 +318,8 @@ a dedicated listener on port localhost 10026:
 
 - Note: do not use spaces around the "=" or "," characters.
 
-- Note: the SMTP server must not have a smaller same process limit
-  than the "filter" master.cf entry.
+- Note: the SMTP server must not have a smaller process limit than
+  the "filter" master.cf entry.
 
 - The "-o content_filter=" overrides main.cf and requests no content
   filtering for incoming mail. This is required or else mail will

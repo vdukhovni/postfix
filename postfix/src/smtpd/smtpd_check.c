@@ -1760,6 +1760,8 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
 
 #ifndef TEST
 
+static int not_in_client_helo(SMTPD_STATE *, const char *, const char *, const char *);
+
 static int can_delegate_action(SMTPD_STATE *state, const char *table,
 			        const char *action, const char *reply_class)
 {
@@ -1774,6 +1776,14 @@ static int can_delegate_action(SMTPD_STATE *state, const char *table,
 		 table, VAR_SMTPD_PROXY_FILT, action);
 	return (0);
     }
+    return (not_in_client_helo(state, table, action, reply_class));
+}
+
+/* not_in_client_helo - not in client or helo restriction context */
+
+static int not_in_client_helo(SMTPD_STATE *state, const char *table,
+			        const char *action, const char *reply_class)
+{
 
     /*
      * If delay_reject=no, then client and helo restrictions take effect
@@ -1952,6 +1962,27 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			 reply_name, reply_class,
 			 *cmd_text ? cmd_text : "Service unavailable");
 	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
+     * PREPEND prepends the specified message header text.
+     */
+    if (STREQUAL(value, "PREPEND", cmd_len)) {
+#ifndef TEST
+	/* XXX what about ETRN. */
+	if (not_in_client_helo(state, table, "REDIRECT", reply_class) == 0)
+	    return (SMTPD_CHECK_DUNNO);
+#endif
+	if (*cmd_text == 0 || is_header(cmd_text) == 0) {
+	    msg_warn("access map %s entry \"%s\" requires header: text",
+		     table, datum);
+	    return (SMTPD_CHECK_DUNNO);
+	} else {
+	    if (state->prepend == 0)
+		state->prepend = argv_alloc(1);
+	    argv_add(state->prepend, cmd_text, (char *) 0);
+	    return (SMTPD_CHECK_DUNNO);
+	}
     }
 
     /*

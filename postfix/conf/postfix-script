@@ -200,7 +200,7 @@ check)
 	do
 		test -d $dir && find $dir -type f -print | while read path
 		do
-			test -e /$path && {
+			test -f /$path && {
 			    cmp -s $path /$path || 
 				$WARN $queue_directory/$path and /$path differ
 			}

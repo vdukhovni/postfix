@@ -100,6 +100,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->defer_if_permit.reason = 0;
     state->discard = 0;
     state->expand_buf = 0;
+    state->prepend = 0;
     state->proxy = 0;
     state->proxy_buffer = 0;
     state->proxy_mail = 0;

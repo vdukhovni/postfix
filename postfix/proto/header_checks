@@ -22,7 +22,7 @@
 #	This feature is implemented by the Postfix \fBcleanup\fR(8) server.
 #
 #	Postfix header or body_checks are designed to stop a flood of mail
-#	from worms and viruses. They are not meant to be a substitute for
+#	from worms or viruses. They are not meant to be a substitute for
 #	content filters that decode attachments and that do other
 #	sophisticated content analyses.
 #
@@ -33,25 +33,27 @@
 # .IP "\fBmime_header_checks\fR (default: \fB$header_checks\fR)"
 #	These are applied each MIME related message header only.
 # .IP "\fBnested_header_checks\fR (default: \fB$header_checks\fR)"
-#	These are applied to each message header of attached email messages.
+#	These are applied to each message header of attached email
+#	messages (except for the MIME related headers).
 # .IP \fBbody_checks\fR
-#	These are applied to every other line of content, including multi-part
+#	These are applied to all other content, including multi-part
 #	message boundaries.
 # .PP
 #	Note: message headers are examined one logical header at a time,
 #	even when a message header spans multiple lines. Body lines are
 #	always examined one line at a time.
-# REGEXP AND PCRE TABLE FORMAT
+# TABLE FORMAT
 # .ad
 # .fi
-#	Header and body_checks rules are normally specified in the form of
-#	regular expression lookup tables. The best performance is obtained
-#	with \fBpcre\fR (Perl Compatible Regular Expression) tables, but
-#	the slower \fBregexp\fR (POSIX regular expressions) support is
-#	more widely available. Use the command \fBpostconf -m\fR to find
-#	out what types of lookup table your Postfix system supports.
+#	This document assumes that header and body_checks rules are specified
+#	in the form of Postfix regular expression lookup tables. Usually the
+#	best performance is obtained with \fBpcre\fR (Perl Compatible Regular
+#	Expression) tables, but the slower \fBregexp\fR (POSIX regular
+#	expressions) support is more widely available.
+#	Use the command \fBpostconf -m\fR to find out what lookup table
+#	types your Postfix system supports.
 #
-#	The general format of a header or body_checks table is:
+#	The general format of a Postfix regular expression table is:
 # .IP "\fB/\fIpattern\fB/\fIflags action\fR"
 #	When \fIpattern\fR matches the input string, execute
 #	the corresponding \fIaction\fR. See below for a list
@@ -79,8 +81,8 @@
 #	A pattern/action line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
 # .PP
-#	For a discussion of pattern syntax and flags details,
-#	see \fBregexp_table\fR(5) or \fBpcre_table\fR(5), respectively.
+#	For a discussion of specific pattern or flags syntax details,
+#	see \fBpcre_table\fR(5) or \fBregexp_table\fR(5), respectively.
 # TABLE SEARCH ORDER
 # .ad
 # .fi
@@ -113,7 +115,7 @@
 #	Note: this action disables further header or body_checks inspection
 #	of the current message and affects all recipients.
 # .IP \fBDUNNO\fR
-#	Pretend that the search string was not found, and inspect the
+#	Pretend that the input line did not match any pattern, and inspect the
 #	next input line. This action can be used to shorten the table search.
 # .sp
 #	For backwards compatibility reasons, Postfix also accepts
@@ -121,13 +123,13 @@
 # .IP "\fBFILTER \fItransport:destination\fR"
 #	Write a content filter request record to the queue file and
 #	inspect the next input line.
-#	After the message is queued, it will be sent through
+#	After the complete message is received it will be sent through
 #	the specified external content filter.  More information about
 #	external content filters is in the Postfix FILTER_README file.
 # .sp
 #	Note: this action overrides the \fBmain.cf content_filter\fR setting,
 #	and affects all recipients of the message. In the case that multiple
-#	\fBFILTER\fR actions fire, the only last one is executed.
+#	\fBFILTER\fR actions fire, only the last one is executed.
 # .IP "\fBHOLD \fIoptional text...\fR"
 #	Arrange for the message to be placed on the \fBhold\fR queue,
 #	and inspect the next input line.  The message remains on \fBhold\fR
@@ -151,7 +153,7 @@
 # .sp
 #	Note: this action overrides the \fBFILTER\fR action, and affects
 #	all recipients of the message. If multiple \fBREDIRECT\fR actions
-#	fire only the last one is executed.
+#	fire, only the last one is executed.
 # .IP "\fBREJECT \fIoptional text...\fR
 #	Reject the entire message. Reply with \fIoptional text...\fR when
 #	the optional text is specified, otherwise reply with a generic error
@@ -163,12 +165,16 @@
 #	Log a warning with the \fIoptional text...\fR (or log a
 #	generic message) and inspect the next input line. This
 #	action is useful for debugging and for testing a pattern
-#	before taking more drastic actions.
+#	before applying more drastic actions.
 # BUGS
 #	Many people overlook the main limitations of header and body_checks
-#	rules.  These rules operate on one logical message header or body
+#	rules.  These rules operate on one logical message header or one body
 #	line at a time, and a decision made for one line is not carried over
 #	to the next line.
+#
+#	Message headers added by the \fBcleanup\fR(8) daemon itself
+#	are excluded from inspection. Examples of such message headers
+#	are \fBFrom:\fR, \fBTo:\fR, \fBMessage-ID:\fR, \fBDate:\fR.
 # CONFIGURATION PARAMETERS
 # .ad
 # .fi
