@@ -80,10 +80,6 @@ VERIFY(8)                                               VERIFY(8)
        Problems and transactions are logged to <b>syslogd</b>(8).
 
 <b>BUGS</b>
-       This  prototype  server  uses  synchronous  submission for
-       sending a probe message, which  can  be  slow  on  a  busy
-       machine.
-
        If  the  persistent  database ever gets corrupted then the
        world comes to an end and human  intervention  is  needed.
        This violates a basic Postfix principle.

@@ -858,10 +858,12 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * Record the time of arrival and the sender envelope address.
      */
-    rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
-		(long) time((time_t *) 0));
-    if (*var_filter_xport)
-	rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+    if (SMTPD_STAND_ALONE(state) == 0) {
+	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
+		    (long) time((time_t *) 0));
+	if (*var_filter_xport)
+	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+    }
     rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
     if (encoding != 0)
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",

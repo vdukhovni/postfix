@@ -22,6 +22,16 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Major changes with Postfix snapshot 2.0.11-20030611
+===================================================
+
+Better verify server performance on busy servers by avoiding some
+operations that can block the verify server process temporarily.
+Probe messages are no longer subject to cleanup server in_flow_delay
+settings when message arrival rates exceed message delivery rates.
+However, probe messages are still subject to trigger_timeout delays
+when the queue manager FIFO fills up; this is hopefully very rare.
+
 Major changes with Postfix snapshot 2.0.11-20030609
 ===================================================
 

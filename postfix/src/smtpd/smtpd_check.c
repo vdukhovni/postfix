@@ -1650,9 +1650,11 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
     /*
      * Verify the address. Don't waste too much of their or our time.
      */
-    for (count = 0; count < 3; count++) {
+    for (count = 0; /* see below */ ; count++) {
 	verify_status = verify_clnt_query(addr, &rcpt_status, why);
 	if (verify_status != VRFY_STAT_OK || rcpt_status != DEL_RCPT_STAT_TODO)
+	    break;
+	if (count >= 2)
 	    break;
 	sleep(3);
     }

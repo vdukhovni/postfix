@@ -8176,11 +8176,30 @@ Apologies for any names omitted.
 
 20030609
 
+	Workaround: Solaris blocking socket read() may hang.  Hernan
+	Perez Masci and Leandro Santi. File: smtpd/smtpd.c.
+
 	Bugfix: the "unread recipient" counter needs to be restored
 	after the queue manager has a problem reading a queue file.
-	This fix is for purists only, because after such a failure
-	Postfix closes the queue file and parks it in the corrupt
-	queue.  Fix by Patrik Rak. File: nqmgr/qmgr_message.c.
+	Fix by Patrik Rak. File: nqmgr/qmgr_message.c.
+
+20030610
+
+	Cleanup: the verify server now uses asynchronous submission
+	of mail probes, so it will no longer block for in_flow_delay
+	seconds when mail arrives faster than it is delivered.
+	Still need to make mail_stream_finish() asynchronous in
+	order to avoid blocking for trigger_timeout seconds when the
+	queue manager is overwhelmed.  Files:  global/post_mail.c,
+	verify/verify.c.
+
+	Bugfix: removed extraneous sleep() after the last attempt
+	to retrieve address verification status.  File: smtpd/smtpd.c.
+
+20030611
+
+	Bugfix: the stricter postdrop input filter broke "sendmail
+	-bs". Found by Lutz Jaenicke. File: smtpd/smtpd.c.
 
 Open problems:
 

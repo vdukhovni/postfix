@@ -65,9 +65,6 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	This prototype server uses synchronous submission for sending
-/*	a probe message, which can be slow on a busy machine.
-/*
 /*	If the persistent database ever gets corrupted then the world
 /*	comes to an end and human intervention is needed. This violates
 /*	a basic Postfix principle.
@@ -316,6 +313,19 @@ static void verify_update_service(VSTREAM *client_stream)
     vstring_free(text);
 }
 
+/* verify_post_mail_action - callback */
+
+static void verify_post_mail_action(VSTREAM *stream, void *unused_context)
+{
+
+    /*
+     * Probe messages need no body content, because they are never delivered,
+     * deferred, or bounced.
+     */
+    if (stream != 0)
+	post_mail_fclose(stream);
+}
+
 /* verify_query_service - query address status */
 
 static void verify_query_service(VSTREAM *client_stream)
@@ -408,12 +418,13 @@ static void verify_query_service(VSTREAM *client_stream)
 	    if (msg_verbose)
 		msg_info("PROBE %s status=%d probed=%ld updated=%ld",
 			 STR(addr), addr_status, now, updated);
-	    if ((post = post_mail_fopen(strcmp(var_verify_sender, "<>") == 0 ?
-					"" : var_verify_sender, STR(addr),
-					NULL_CLEANUP_FLAGS,
-					DEL_REQ_FLAG_VERIFY)) != 0
-		&& post_mail_fclose(post) == 0
-		&& (updated != 0 || var_verify_neg_cache != 0)) {
+	    post_mail_fopen_async(strcmp(var_verify_sender, "<>") == 0 ?
+				  "" : var_verify_sender, STR(addr),
+				  NULL_CLEANUP_FLAGS,
+				  DEL_REQ_FLAG_VERIFY,
+				  verify_post_mail_action,
+				  (void *) 0);
+	    if (updated != 0 || var_verify_neg_cache != 0) {
 		put_buf = vstring_alloc(10);
 		verify_make_entry(put_buf, addr_status, now, updated, text);
 		if (msg_verbose)

@@ -24,10 +24,10 @@
  /*
   * External interface.
   */
-typedef void (*POST_MAIL_NOTIFY)(void *);
+typedef void (*POST_MAIL_NOTIFY)(VSTREAM *, void *);
 extern VSTREAM *post_mail_fopen(const char *, const char *, int, int);
 extern VSTREAM *post_mail_fopen_nowait(const char *, const char *, int, int);
-extern VSTREAM *post_mail_fopen_async(const char *, const char *, int, int, POST_MAIL_NOTIFY, void *);
+extern void post_mail_fopen_async(const char *, const char *, int, int, POST_MAIL_NOTIFY, void *);
 extern int PRINTFLIKE(2, 3) post_mail_fprintf(VSTREAM *, const char *,...);
 extern int post_mail_fputs(VSTREAM *, const char *);
 extern int post_mail_buffer(VSTREAM *, const char *, int);

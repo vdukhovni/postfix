@@ -12,21 +12,21 @@
 /*	int	cleanup_flags;
 /*	int	trace_flags;
 /*
-/*	VSTREAM	*post_mail_fopen_nowait(sender, recipient, 
+/*	VSTREAM	*post_mail_fopen_nowait(sender, recipient,
 /*					cleanup_flags, trace_flags)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	cleanup_flags;
 /*	int	trace_flags;
 /*
-/*	VSTREAM	*post_mail_fopen_async(sender, recipient, 
+/*	void	post_mail_fopen_async(sender, recipient,
 /*					cleanup_flags, trace_flags,
 /*					notify, context)
 /*	const char *sender;
 /*	const char *recipient;
 /*	int	cleanup_flags;
 /*	int	trace_flags;
-/*	void	(*notify)(char *context);
+/*	void	(*notify)(VSTREAM *stream, char *context);
 /*	char	*context;
 /*
 /*	int	post_mail_fprintf(stream, format, ...)
@@ -65,9 +65,10 @@
 /*
 /*	post_mail_fopen_async() contacts the cleanup service and
 /*	invokes the caller-specified notify routine, with the
-/*	caller-specified context, when the service responds.
-/*	IMPORTANT NOTE: closing the stream will not cancel any
-/*	pending I/O or timeout call-back notification.
+/*	open stream and the caller-specified context when the
+/*	service responds, or with a null stream and the caller-specified
+/*	context when the request could not be completed. It is the
+/*	responsability of the application to close an open stream.
 /*
 /*	post_mail_fprintf() formats message content (header or body)
 /*	and sends it to the cleanup service.
@@ -277,9 +278,9 @@ static void post_mail_open_event(int event, char *context)
 	post_mail_init(state->stream, state->sender,
 		       state->recipient, state->cleanup_flags,
 		       state->trace_flags);
-	state->notify(state->context);
 	myfree(state->sender);
 	myfree(state->recipient);
+	state->notify(state->stream, state->context);
 	myfree((char *) state);
 	return;
 
@@ -288,7 +289,18 @@ static void post_mail_open_event(int event, char *context)
 	 * limit. The system is broken and we give up.
 	 */
     case EVENT_TIME:
-	msg_fatal("timeout connecting to service: %s", var_cleanup_service);
+	if (state->stream) {
+	    msg_warn("timeout connecting to service: %s", var_cleanup_service);
+	    event_disable_readwrite(vstream_fileno(state->stream));
+	    vstream_fclose(state->stream);
+	} else {
+	    msg_warn("connect to service: %s: %m", var_cleanup_service);
+	}
+	myfree(state->sender);
+	myfree(state->recipient);
+	state->notify((VSTREAM *) 0, state->context);
+	myfree((char *) state);
+	return;
 
 	/*
 	 * Broken software or hardware.
@@ -300,29 +312,36 @@ static void post_mail_open_event(int event, char *context)
 
 /* post_mail_fopen_async - prepare for posting a message */
 
-VSTREAM *post_mail_fopen_async(const char *sender, const char *recipient,
-			               int cleanup_flags, int trace_flags,
-			             void (*notify) (void *), void *context)
+void    post_mail_fopen_async(const char *sender, const char *recipient,
+			              int cleanup_flags, int trace_flags,
+			              void (*notify) (VSTREAM *, void *),
+			              void *context)
 {
     VSTREAM *stream;
     POST_MAIL_STATE *state;
 
     stream = mail_connect(MAIL_CLASS_PUBLIC, var_cleanup_service, NON_BLOCKING);
+    state = (POST_MAIL_STATE *) mymalloc(sizeof(*state));
+    state->sender = mystrdup(sender);
+    state->recipient = mystrdup(recipient);
+    state->cleanup_flags = cleanup_flags;
+    state->trace_flags = trace_flags;
+    state->notify = notify;
+    state->context = context;
+    state->stream = stream;
+
+    /*
+     * To keep interfaces as simple as possible we report all errors via the
+     * same interface as all successes.
+     */
     if (stream != 0) {
-	state = (POST_MAIL_STATE *) mymalloc(sizeof(*state));
-	state->sender = mystrdup(sender);
-	state->recipient = mystrdup(recipient);
-	state->cleanup_flags = cleanup_flags;
-	state->trace_flags = trace_flags;
-	state->notify = notify;
-	state->context = context;
-	state->stream = stream;
 	event_enable_write(vstream_fileno(stream), post_mail_open_event,
 			   (void *) state);
 	event_request_timer(post_mail_open_event, (void *) state,
 			    var_daemon_timeout);
+    } else {
+	event_request_timer(post_mail_open_event, (void *) state, 0);
     }
-    return (stream);
 }
 
 /* post_mail_fprintf - format and send message content */
