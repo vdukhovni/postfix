@@ -158,6 +158,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
 	return (0);
 
     /* Search for a matching expression */
+    ctxt.matches = 0;
     for (pcre_list = dict_pcre->head; pcre_list; pcre_list = pcre_list->next) {
 	if (pcre_list->pattern) {
 	    ctxt.matches = pcre_exec(pcre_list->pattern, pcre_list->hints,
@@ -233,7 +234,7 @@ static void dict_pcre_close(DICT *dict)
 /*
  * dict_pcre_open - load and compile a file containing regular expressions
  */
-DICT   *dict_pcre_open(const char *map, int unused_flags)
+DICT   *dict_pcre_open(const char *map, int unused_flags, int dict_flags)
 {
     DICT_PCRE *dict_pcre;
     VSTREAM *map_fp;
@@ -258,7 +259,7 @@ DICT   *dict_pcre_open(const char *map, int unused_flags)
     dict_pcre->dict.close = dict_pcre_close;
     dict_pcre->dict.fd = -1;
     dict_pcre->map = mystrdup(map);
-    dict_pcre->dict.flags = dict_flags;
+    dict_pcre->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dict_pcre->head = NULL;
 
     if (dict_pcre_init == 0) {

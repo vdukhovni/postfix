@@ -226,7 +226,7 @@ DICT   *dict_nis_open(const char *map, int unused_flags, int dict_flags)
     dict_nis->dict.close = dict_nis_close;
     dict_nis->dict.fd = -1;
     dict_nis->map = mystrdup(map);
-    dict_nis->dict.flags = dict_flags;
+    dict_nis->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_nis->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     if (dict_nis_domain == 0)

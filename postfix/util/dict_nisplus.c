@@ -87,6 +87,6 @@ DICT   *dict_nisplus_open(const char *map, int unused_flags, int dict_flags)
     dict_nisplus->dict.close = dict_nisplus_close;
     dict_nisplus->dict.fd = -1;
     dict_nisplus->map = mystrdup(map);
-    dict_nisplus->dict.flags = dict_flags;
+    dict_nisplus->dict.flags = dict_flags | DICT_FLAG_FIXED;
     return (&dict_nisplus->dict);
 }

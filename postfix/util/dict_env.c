@@ -77,7 +77,7 @@ DICT   *dict_env_open(const char *unused_name, int unused_flags, int dict_flags)
     dict->lookup = dict_env_lookup;
     dict->update = dict_env_update;
     dict->close = dict_env_close;
-    dict->flags = dict_flags;
+    dict->flags = dict_flags | DICT_FLAG_FIXED;
     dict->fd = -1;
     return (dict);
 }

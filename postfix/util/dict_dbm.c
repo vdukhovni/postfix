@@ -180,8 +180,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm->dict.close = dict_dbm_close;
     dict_dbm->dict.fd = dbm_dirfno(dbm);
     close_on_exec(dict_dbm->dict.fd, CLOSE_ON_EXEC);
-    dict_dbm->dict.flags = dict_flags;
-    if (dict_flagsflags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
+    dict_dbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
+    if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_dbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);
     dict_dbm->dbm = dbm;
     dict_dbm->path = mystrdup(path);

@@ -37,6 +37,8 @@ typedef struct DICT {
 #define DICT_FLAG_DUP_IGNORE	(1<<1)	/* if file, ignore dups */
 #define DICT_FLAG_TRY0NULL	(1<<2)	/* do not append 0 to key/value */
 #define DICT_FLAG_TRY1NULL	(1<<3)	/* append 0 to key/value */
+#define DICT_FLAG_FIXED		(1<<4)	/* fixed key map */
+#define DICT_FLAG_PATTERN	(1<<5)	/* keys are patterns */
 
 extern int dict_unknown_allowed;
 extern int dict_errno;

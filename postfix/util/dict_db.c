@@ -206,7 +206,7 @@ static DICT *dict_db_open(const char *path, int flags, int type,
     dict_db->dict.close = dict_db_close;
     dict_db->dict.fd = db->fd(db);
     close_on_exec(dict_db->dict.fd, CLOSE_ON_EXEC);
-    dict_db->dict.flags = dict_flags;
+    dict_db->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_db->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     dict_db->db = db;

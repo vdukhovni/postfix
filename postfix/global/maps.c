@@ -6,13 +6,15 @@
 /* SYNOPSIS
 /*	#include <maps.h>
 /*
-/*	MAPS	*maps_create(title, map_names)
+/*	MAPS	*maps_create(title, map_names, flags)
 /*	const char *title;
 /*	const char *map_names;
+/*	int	flags;
 /*
-/*	const char *maps_find(maps, key)
+/*	const char *maps_find(maps, key, flags)
 /*	MAPS	*maps;
 /*	const char *key;
+/*	int	flags;
 /*
 /*	void	maps_free(maps)
 /*	MAPS	*maps;
@@ -26,10 +28,14 @@
 /*	named dictionaries.
 /*	The result is a handle that must be specified along with all
 /*	other maps_xxx() operations.
+/*	see dict_open(3) for a description of flags.
 /*
 /*	maps_find() searches the specified list of dictionaries
 /*	in the specified order for the named key. The result is in
 /*	memory that is overwritten upon each call.
+/*	The flags argument is either 0 or specifies a filter:
+/*	for example, DICT_FLAG_FIXED | DICT_FLAG_PATTERN selects
+/*	dictionaries that have fixed keys or pattern keys.
 /*
 /*	maps_free() releases storage claimed by maps_create()
 /*	and conveniently returns a null pointer.

@@ -122,6 +122,6 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
     dict_unix->dict.close = dict_unix_close;
     dict_unix->dict.fd = -1;
     dict_unix->map = mystrdup(map);
-    dict_unix->dict.flags = dict_flags;
+    dict_unix->dict.flags = dict_flags | DICT_FLAG_FIXED;
     return (&dict_unix->dict);
 }

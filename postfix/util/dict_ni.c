@@ -184,7 +184,7 @@ DICT   *dict_ni_open(const char *path, int unused_flags, int dict_flags)
     d->dict.update = dict_ni_update;
     d->dict.close = dict_ni_close;
     d->dict.fd = -1;
-    d->dict.flags = dict_flags;
+    d->dict.flags = dict_flags | DICT_FLAG_FIXED;
     d->path = mystrdup(path);
 
     return &d->dict;

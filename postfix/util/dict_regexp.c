@@ -218,6 +218,9 @@ static void dict_regexp_close(DICT *dict)
 	myfree((char *) rule->replace);
 	myfree((char *) rule);
     }
+    if (dict_regexp->pmatch)
+	myfree((char *) dict_regexp->pmatch);
+    myfree(dict_regexp->map);
     myfree((char *) dict_regexp);
 }
 
@@ -342,6 +345,7 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(int lineno, char *line, int *nsub
     rule->expr[1] = expr2;
     rule->replace = mystrdup(p);
     rule->lineno = lineno;
+    rule->next = NULL;
     return rule;
 }
 
@@ -368,7 +372,9 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
     dict_regexp->dict.close = dict_regexp_close;
     dict_regexp->dict.fd = -1;
     dict_regexp->map = mystrdup(map);
-    dict_regexp->dict.flags = dict_flags;
+    dict_regexp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
+    dict_regexp->head = 0;
+    dict_regexp->pmatch = 0;
 
     if ((map_fp = vstream_fopen(map, O_RDONLY, 0)) == 0) {
 	msg_fatal("open %s: %m", map);
@@ -394,9 +400,10 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
 	    last_rule = rule;
 	}
     }
-    last_rule->next = NULL;
 
-    dict_regexp->pmatch = (regmatch_t *) mymalloc(sizeof(regmatch_t) * max_nsub);
+    if (max_nsub > 0)
+	dict_regexp->pmatch =
+	    (regmatch_t *) mymalloc(sizeof(regmatch_t) * max_nsub);
     dict_regexp->nmatch = max_nsub;
 
     vstring_free(line_buffer);
@@ -405,4 +412,4 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
     return (&dict_regexp->dict);
 }
 
-#endif					/* NO_POSIX_REGEXP */
+#endif

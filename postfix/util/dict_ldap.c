@@ -321,7 +321,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->dict.update = dict_ldap_update;
     dict_ldap->dict.close = dict_ldap_close;
     dict_ldap->dict.fd = -1;
-    dict_ldap->dict.flags = dict_flags;
+    dict_ldap->dict.flags = dict_flags | DICT_FLAG_FIXED;
 
     if (msg_verbose)
         msg_info("%s: using LDAP source %s", myname, ldapsource);

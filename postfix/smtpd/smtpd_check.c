@@ -563,7 +563,8 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name)
     if (dns_status != DNS_OK)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: Host not found",
-				   var_unk_name_code, name));
+				   dns_status == DNS_NOTFOUND ?
+				   var_unk_name_code : 450, name));
     return (SMTPD_CHECK_DUNNO);
 }
 
