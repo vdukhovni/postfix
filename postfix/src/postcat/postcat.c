@@ -57,6 +57,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <fcntl.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -97,7 +98,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
      * See if this is a plausible file.
      */
     if ((ch = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
-	if (ch != REC_TYPE_TIME && ch != REC_TYPE_SIZE) {
+	if (!strchr(REC_TYPE_ENVELOPE, ch)) {
 	    msg_warn("%s: input is not a valid queue file", VSTREAM_PATH(fp));
 	    return;
 	}

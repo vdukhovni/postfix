@@ -7814,10 +7814,39 @@ Apologies for any names omitted.
 	Workaround: Solaris blocking socket read() may hang.  Hernan
 	Perez Masci and Leandro Santi. File: smtpd/smtpd.c.
 
-20030612
+20030611
 
 	Bugfix: the stricter postdrop input filter broke "sendmail
 	-bs". Found by Lutz Jaenicke. File: smtpd/smtpd.c.
+
+20030616
+
+	Cleanup: more accurate "postfix check" warning for files
+	that miss one or more of the required mode 02111 execute
+	permission bits. Matthias Andree. File: conf/postfix-script.
+
+20030618
+
+	Workaround: after "postfix reload", the master daemon now
+	warns when inet_interfaces has changed, and ignores the
+	change, instead of passing incorrect information to the
+	smtp server. File:  master/master_ent.c.
+
+20030620
+
+	Bugfix: after the last change to postdrop, postcat no longer
+	recognized maildrop queue files as valid. File: postcat/postcat.c.
+
+20030621
+
+	Workaround: the safe_open(O_CREAT) race condition exploit
+	avoiding code tries a little harder when it encounters a
+	race condition. File: util/safe_open.c.
+
+20030629
+
+	Cleanup: replaced references to "simulated virtual domains"
+	by "virtual alias domains". Victor Duchovni, Morgan Stanley.
 
 Open problems:
 

@@ -2618,8 +2618,9 @@ the <b>virtual_mailbox_maps</b> parameter.
 
 <p>
 
-If you want to deliver the domain as a Postfix simulated <a
-href="virtual.8.html">virtual</a>(5) domain, then you should list
+If you want to deliver the domain as a <a href="virtual.8.html">
+virtual</a>(5) alias domain, where each address is aliased to
+a real local or remote address, then you should list
 the virtual domain name in the tables specified with the
 <b>virtual_alias_domains</b> parameter instead.
 
@@ -2638,7 +2639,7 @@ Solutions:
 
 <ul>
 
-<li>Specify a simulated virtual domain as per the
+<li>Specify a virtual alias domain as per the
 <a href="virtual.5.html">virtual(5)</a> manual page.
 
 <p>

@@ -181,7 +181,7 @@ check)
 
 	find $command_directory/postqueue $command_directory/postdrop \
 	    -prune ! -perm -02111 \
-	    -exec $WARN not set-gid: {} \;
+	    -exec $WARN not set-gid or not owner+group+world executable: {} \;
 
 	for name in `ls -d $queue_directory/* | \
 	    egrep '/(bin|etc|lib|usr)$'` ; \
