@@ -1,9 +1,6 @@
 <html> <head> </head> <body> <pre>
 
-
-
 VIRTUAL(8)                                             VIRTUAL(8)
-
 
 <b>NAME</b>
        virtual - Postfix virtual domain mail delivery agent
@@ -59,18 +56,6 @@ VIRTUAL(8)                                             VIRTUAL(8)
 
        The <b>virtual</b> delivery agent daemon prepends a <b>Delivered-To:</b>
        message header with the  envelope  recipient  address  and
-
-
-
-                                                                1
-
-
-
-
-
-VIRTUAL(8)                                             VIRTUAL(8)
-
-
        prepends  a  <b>Return-Path:</b> message header with the envelope
        sender address.
 
@@ -125,18 +110,6 @@ VIRTUAL(8)                                             VIRTUAL(8)
        <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>base</b>
               Specifies a path that is prepended to  all  mailbox
               or  maildir  paths.   This  is  a safety measure to
-
-
-
-                                                                2
-
-
-
-
-
-VIRTUAL(8)                                             VIRTUAL(8)
-
-
               ensure that an out of control map in  <b>virtual</b><i>_</i><b>mail-</b>
               <b>box</b><i>_</i><b>maps</b>  doesn't  litter the filesystem with mail-
               boxes.  While it could be set to "/", this  setting
@@ -192,17 +165,6 @@ VIRTUAL(8)                                             VIRTUAL(8)
               to  acquire an exclusive lock on a UNIX-style mail-
               box file. The actual delay is slightly  randomized.
 
-
-
-                                                                3
-
-
-
-
-
-VIRTUAL(8)                                             VIRTUAL(8)
-
-
        <b>stale</b><i>_</i><b>lock</b><i>_</i><b>time</b>
               Limit  the  time  after  which  a stale lockfile is
               removed (applicable to UNIX-style mailboxes  only).
@@ -257,76 +219,9 @@ VIRTUAL(8)                                             VIRTUAL(8)
        Andrew McNamara
        andrewm@connect.com.au
        connect.com.au Pty. Ltd.
-
-
-
-                                                                4
-
-
-
-
-
-VIRTUAL(8)                                             VIRTUAL(8)
-
-
        Level 3, 213 Miller St
        North Sydney 2060, NSW, Australia
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                5
-
+                                                                1
 
 </pre> </body> </html>

@@ -1,9 +1,6 @@
 <html> <head> </head> <body> <pre>
 
-
-
 LOCAL(8)                                                 LOCAL(8)
-
 
 <b>NAME</b>
        local - Postfix local mail delivery
@@ -59,18 +56,6 @@ LOCAL(8)                                                 LOCAL(8)
        When an address is  found  in  its  own  alias  expansion,
        delivery  is  made  to  the  user  instead. When a user is
        listed in the user's own ~/.<b>forward</b> file, delivery is made
-
-
-
-                                                                1
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
        to  the  user's mailbox instead.  An empty ~/.<b>forward</b> file
        means do not forward mail.
 
@@ -125,18 +110,6 @@ LOCAL(8)                                                 LOCAL(8)
 
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
-
-
-
-                                                                2
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
        each  message,  prepends  an optional <b>Delivered-To:</b> header
        with the envelope recipient address,  prepends  a  <b>Return-</b>
        <b>Path:</b>  header with the envelope sender address, prepends a
@@ -192,17 +165,6 @@ LOCAL(8)                                                 LOCAL(8)
        <b>LOCAL</b>  The entire recipient address localpart (text to the
               left of the rightmost @ character).
 
-
-
-                                                                3
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
        <b>RECIPIENT</b>
               The entire recipient address.
 
@@ -257,18 +219,6 @@ LOCAL(8)                                                 LOCAL(8)
 
 <b>DELIVERY</b> <b>RIGHTS</b>
        Deliveries  to  external  files  and external commands are
-
-
-
-                                                                4
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
        made with the rights of the receiving user on whose behalf
        the  delivery  is made.  In the absence of a user context,
        the <b>local</b> daemon uses the owner rights  of  the  <b>:include:</b>
@@ -321,19 +271,6 @@ LOCAL(8)                                                 LOCAL(8)
        <b>export</b><i>_</i><b>environment</b>
               List of names of environment parameters that can be
               exported to non-Postfix processes.
-
-
-
-
-
-                                                                5
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
 
        <b>forward</b><i>_</i><b>path</b>
               Search list for .forward files.  The names are sub-
@@ -389,18 +326,6 @@ LOCAL(8)                                                 LOCAL(8)
               External command to use for mailbox  delivery.  The
               command  executes  with  the  recipient  privileges
               (exception: root). The string is subject  to  $name
-
-
-
-                                                                6
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
               expansions.
 
        <b>mailbox</b><i>_</i><b>transport</b>
@@ -456,17 +381,6 @@ LOCAL(8)                                                 LOCAL(8)
               that  is written to upon delivery).  Set to zero to
               disable the limit.
 
-
-
-                                                                7
-
-
-
-
-
-LOCAL(8)                                                 LOCAL(8)
-
-
 <b>Security</b> <b>controls</b>
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
               Restrict the usage of  mail  delivery  to  external
@@ -516,15 +430,6 @@ LOCAL(8)                                                 LOCAL(8)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-
-
-
-
-
-
-
-
-                                                                8
-
+                                                                1
 
 </pre> </body> </html>

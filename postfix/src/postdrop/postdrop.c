@@ -137,6 +137,10 @@ static void postdrop_cleanup(void)
 
 static void postdrop_sig(int sig)
 {
+    signal(SIGHUP, SIG_IGN);
+    signal(SIGINT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
     postdrop_cleanup();
     exit(sig);
 }

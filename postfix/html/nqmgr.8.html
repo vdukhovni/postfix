@@ -1,9 +1,6 @@
 <html> <head> </head> <body> <pre>
 
-
-
 NQMGR(8)                                                 NQMGR(8)
-
 
 <b>NAME</b>
        nqmgr - Postfix queue manager
@@ -59,18 +56,6 @@ NQMGR(8)                                                 NQMGR(8)
               <a href="bounce.8.html"><b>bounce</b>(8)</a> daemon.
 
        <b>defer</b>  Per-recipient status information about why mail  is
-
-
-
-                                                                1
-
-
-
-
-
-NQMGR(8)                                                 NQMGR(8)
-
-
               delayed.    These   files  are  maintained  by  the
               <a href="defer.8.html"><b>defer</b>(8)</a> daemon.
 
@@ -125,18 +110,6 @@ NQMGR(8)                                                 NQMGR(8)
        of  trigger  events,  or it waits for a timer to go off. A
        trigger is a one-byte message.  Depending on  the  message
        received,  the queue manager performs one of the following
-
-
-
-                                                                2
-
-
-
-
-
-NQMGR(8)                                                 NQMGR(8)
-
-
        actions (the message is followed by the symbolic  constant
        used internally by the software):
 
@@ -192,17 +165,6 @@ NQMGR(8)                                                 NQMGR(8)
        the postmaster is notified of bounces and of  other  trou-
        ble.
 
-
-
-                                                                3
-
-
-
-
-
-NQMGR(8)                                                 NQMGR(8)
-
-
 <b>BUGS</b>
        A  single  queue  manager  process has to compete for disk
        access with multiple front-end processes such as <b>smtpd</b>.  A
@@ -256,19 +218,6 @@ NQMGR(8)                                                 NQMGR(8)
               in-memory recipients that the  preempting  messages
               can have.
 
-
-
-
-
-                                                                4
-
-
-
-
-
-NQMGR(8)                                                 NQMGR(8)
-
-
        <i>transport_</i><b>extra</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
               Limit  on  the number of in-memory recipients which
               all preempting messages delivered by the  transport
@@ -321,19 +270,6 @@ NQMGR(8)                                                 NQMGR(8)
        <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
               Limit  on  the  number  of  recipients  per message
               transfer, for the named message <i>transport</i>.
-
-
-
-
-
-                                                                5
-
-
-
-
-
-NQMGR(8)                                                 NQMGR(8)
-
 
 <b>Message</b> <b>scheduling</b>
        <i>transport_</i><b>delivery</b><i>_</i><b>slot</b><i>_</i><b>cost</b> (valid range: 0,2,3...)
@@ -389,18 +325,6 @@ NQMGR(8)                                                 NQMGR(8)
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
-
-
-
-                                                                6
-
-
-
-
-
-NQMGR(8)                                                 NQMGR(8)
-
-
        software.
 
 <b>AUTHOR(S)</b>
@@ -414,51 +338,6 @@ NQMGR(8)                                                 NQMGR(8)
        Modra 6
        155 00, Prague, Czech Republic
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                7
-
+                                                                1
 
 </pre> </body> </html>

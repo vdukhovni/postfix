@@ -153,6 +153,10 @@ distribution list</a>
 
 <li><a href="#moby-linux">Running hundreds of Postfix processes on Linux</a>
 
+<li><a href="#moby-sun">Running hundreds of Postfix processes on Solaris</a>
+
+<li><a href="#moby-postfix">Running thousands of Postfix delivery agents</a>
+
 </ul>
 
 
@@ -307,6 +311,8 @@ mailbox</a>
 <a name="other_transports"><h3>Other transports: UUCP, FAX, etc.</h3>
 
 <ul>
+
+<li><a href="#uucp-tcp">Using UUCP over TCP</a>
 
 <li><a href="#internet-uucp">Setting up an Internet to UUCP gateway</a>
 
@@ -1187,6 +1193,42 @@ commands as <b>root</b>:
 <pre>
 # echo 16384 > /proc/sys/fs/file-max
 # echo 2048 > /proc/sys/kernel/threads-max
+</pre>
+</blockquote>
+
+<hr>
+
+<a name="moby-sun"><h3>Running hundreds of Postfix processes on Solaris</h3></a>
+
+In order to run hundreds of processes you may have to adjust the
+per-process open file limit. According to the <a
+href="http://www.wins.uva.nl/pub/solaris/solaris2.html#q3.45">Solaris
+FAQ</a>, add the following lines to /etc/system on Solaris 2.4 and later: 
+
+<p> 
+<blockquote>
+<pre>
+* set hard limit on file descriptors
+set rlim_fd_max = 4096
+* set soft limit on file descriptors
+set rlim_fd_cur = 2048
+</pre>
+</blockquote>
+
+<hr>
+
+<a name="moby-postfix"><h3>Running thousands of Postfix delivery agents</h3></a>
+
+In order to run Postfix with more than a thousand delivery agents you
+need to recompile the software with an appropriate value of the
+<b>FD_SETSIZE</b> constant.
+
+<p>
+<blockquote>
+<pre>
+% make tidy
+% make makefiles "CCARGS=-DFD_SETSIZE=2048"
+% make
 </pre>
 </blockquote>
 
@@ -2599,7 +2641,9 @@ that the mail was sent to.
 Answer: I hope we all agree that delivering a domain to a mailbox
 is disgusting practice. Forwarding mail via SMTP or UUCP would be
 a much better choice.  Unfortunately, neither SMTP nor UUCP are a
-usable alternative for legions of windows users.
+usable alternative for legions of windows users. However, if this
+is an option for you see the <a href="#uucp-tcp">UUCP over TCP</a>
+guide below.
 
 <p>
 
@@ -2784,6 +2828,28 @@ See examples in <b>master.cf</b>.
 
 <hr>
 
+<a name="uucp-tcp"><h3>Using UUCP over TCP</h3>
+
+This subject comes up whenever someone asks about a "domain in
+a mailbox" solution. For first-hand information, see the guides
+listed below.
+
+<ul>
+
+<li>Jim Seymour's guide for using <a
+href="http://jimsun.LinxNet.com/jdp/uucp_over_tcp/index.html"> UUCP
+over TCP</a>.
+
+<p>
+
+<li>Craig Sanders's guide for using <a
+href="http://taz.net.au/postfix/uucp/"> SSL-encrypted UUCP over
+tcp using stunnel</a>.
+
+</ul>
+
+<hr>
+
 <a name="internet-uucp"><h3>Setting up an Internet to UUCP gateway</h3> </a>
 
 Here is how to set up a machine that sits on the Internet and that
@@ -2889,7 +2955,7 @@ changes effective.
 
 Here is how to relay all your mail over a UUCP link.  See the <a
 href="#internet-uucp">Internet to UUCP</a> FAQ entry for setting
-up a machine that gateways between UUCP and SMTP.
+up a machine that gateways between UUCP and SMTP. 
 
 <p>
 

@@ -5221,3 +5221,43 @@ Apologies for any names omitted.
 	sending QUIT after process idle timeout while the LMTP
 	server had disconnected.  Files:  smtp/smtp_proto.c,
 	lmtp/lmtp_proto.c.
+
+20010526
+
+	newaliases no longer complains when an empty list is
+	specified with the alias_database configuration parameter.
+	File:  sendmail/sendmail.c.
+
+20010529
+
+	Workaround: old PIX firewall code messes up when the final
+	".<CR><LF>" at the end of DATA spans a packet boundary.
+	When Postfix detects PIX SMTP fixup mode, Postfix flushes
+	the output buffers before sending the final ".<CR><LF>".
+	File:  smtp/smtp_proto.c.
+
+20010530
+
+	Portability: updated code for Mac OS X, accounting for the
+	post-Beta changes. Code by Joe Block, UCF School of
+	Optics/CREOL.
+
+20010601
+
+	Safety: postdrop turns off interrupts when cleaning up
+	after interrupt. The additional safety does not hurt anyone.
+	File: src/postdrop/postdrop.c.
+
+20010607
+
+	Safety: dropped the RFC 2821 compliant code that treats
+	552 RCPT TO replies as 452. It created more problems than
+	it solved. Files: smtp/smtp_proto.c, lmtp/lmtp_proto.c.
+
+	Logging: the SMTP server now logs a warning if RBL lookups
+	have problems other than "not found". file: smtpd/smtpd_check.c.
+
+20010610
+
+	Feature: address quoting and case folding flags for the
+	pipe(8) mailer.

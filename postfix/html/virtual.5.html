@@ -1,9 +1,6 @@
 <html> <head> </head> <body> <pre>
 
-
-
 VIRTUAL(5)                                             VIRTUAL(5)
-
 
 <b>NAME</b>
        virtual - format of Postfix virtual table
@@ -58,20 +55,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <i>user1@virtual.domain</i> <i>address1</i>
            <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
 
-       The  <i>virtual.domain</i>  <i>anything</i>  entry  is  required  for  a
-
-
-
-                                                                1
-
-
-
-
-
-VIRTUAL(5)                                             VIRTUAL(5)
-
-
-       Postfix-style virtual domain.
+       The <i>virtual.domain</i> <i>anything</i> entry is required for a  Post-
+       fix-style virtual domain.
 
        Do  not list a Postfix-style virtual domain in the <b>main.cf</b>
        <b>mydestination</b> configuration parameter.  Such an  entry  is
@@ -124,20 +109,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
               with `#'.
 
        leading whitespace
-              Lines  that  begin  with  whitespace  continue  the
-
-
-
-                                                                2
-
-
-
-
-
-VIRTUAL(5)                                             VIRTUAL(5)
-
-
-              previous line.
+              Lines that begin with whitespace continue the  pre-
+              vious line.
 
        <i>pattern</i> <i>result</i>
               When  <i>pattern</i> matches a mail address, replace it by
@@ -191,18 +164,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <i>foo</i>.
 
        Patterns  are  applied  in  the  order as specified in the
-
-
-
-                                                                3
-
-
-
-
-
-VIRTUAL(5)                                             VIRTUAL(5)
-
-
        table, until a pattern is found that  matches  the  search
        string.
 
@@ -255,12 +216,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-
-
-
-
-
-                                                                4
-
+                                                                1
 
 </pre> </body> </html>

@@ -891,6 +891,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\tby %s (%s) with %s id %s",
 		    var_myhostname, var_mail_name,
 		    state->protocol, state->queue_id);
+	/* XXX Should RFC 822 externalize recipient address */
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"\tfor <%s>; %s", state->recipient, mail_date(state->time));
     } else {
@@ -901,6 +902,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\tid %s; %s", state->queue_id, mail_date(state->time));
     }
 #ifdef RECEIVED_ENVELOPE_FROM
+    /* XXX Should RFC 822 externalize sender address */
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"\t(envelope-from %s)", state->sender);
 #endif

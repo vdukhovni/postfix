@@ -174,6 +174,14 @@ int     smtp_helo(SMTP_STATE *state)
 			 session->namaddr, translit(resp->str, "\n", " ")));
 
     /*
+     * XXX Some PIX firewall versions require flush before ".<CR><LF>" so it
+     * does not span a packet boundary. This hurts performance so it is not
+     * on by default.
+     */
+    if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
+	state->features |= SMTP_FEATURE_MAYBEPIX;
+
+    /*
      * See if we are talking to ourself. This should not be possible with the
      * way we implement DNS lookups. However, people are known to sometimes
      * screw up the naming service. And, mailer loops are still possible when
@@ -491,10 +499,13 @@ int     smtp_xfer(SMTP_STATE *state)
 		     * 
 		     * XXX 2821: Section 4.5.3.1 says that a 552 RCPT TO reply
 		     * must be treated as if the server replied with 452.
+		     * However, this causes "too much mail data" to be
+		     * treated as a recoverable error, which is wrong. I'll
+		     * stick with RFC 821.
 		     */
 		case SMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
-#ifndef RFC821_SYNTAX
+#ifndef notRFC821_SYNTAX
 			if (resp->code == 552)
 			    resp->code = 452;
 #endif
@@ -644,6 +655,9 @@ int     smtp_xfer(SMTP_STATE *state)
 
 	    if (prev_type == REC_TYPE_CONT)	/* missing newline at end */
 		smtp_fputs("", 0, session->stream);
+	    if ((state->features & SMTP_FEATURE_ESMTP) == 0
+		&& (state->features & SMTP_FEATURE_MAYBEPIX) != 0)
+		vstream_fflush(session->stream);/* hurts performance */
 	    if (vstream_ferror(state->src))
 		msg_fatal("queue file read error");
 	    if (rec_type != REC_TYPE_XTRA)

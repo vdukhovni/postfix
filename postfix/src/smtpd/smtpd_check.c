@@ -1506,6 +1506,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     int     dns_status = DNS_FAIL;
     int     i;
     int     result;
+    VSTRING *why;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->addr);
@@ -1531,14 +1532,18 @@ static int reject_maps_rbl(SMTPD_STATE *state)
      * Tack on each RBL domain name and query the DNS for an A record. If the
      * record exists, the client address is blacklisted.
      */
+    why = vstring_alloc(10);
     while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
 	vstring_truncate(query, reverse_len);
 	vstring_strcat(query, rbl_domain);
 	dns_status = dns_lookup(STR(query), T_A, 0, (DNS_RR **) 0,
-				(VSTRING *) 0, (VSTRING *) 0);
+				(VSTRING *) 0, why);
 	if (dns_status == DNS_OK)
 	    break;
+	if (dns_status != DNS_NOTFOUND)
+	    msg_warn("%s: RBL lookup error: %s", STR(query), STR(why));
     }
+    vstring_free(why);
 
     /*
      * Report the result.

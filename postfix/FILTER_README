@@ -49,7 +49,7 @@ content filtered.
 
     /etc/postfix/master.cf:
       filter    unix  -       n       n       -       -       pipe
-        flags=R user=filter argv=/some/where/filter -f ${sender} -- ${recipient}
+        flags=Rq user=filter argv=/somewhere/filter -f ${sender} -- ${recipient}
 
 The /some/where/filter program can be a simple shell script like this:
 

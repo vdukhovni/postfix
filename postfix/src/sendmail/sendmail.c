@@ -948,6 +948,8 @@ int     main(int argc, char **argv)
     case SM_MODE_NEWALIAS:
 	if (argv[OPTIND])
 	    msg_fatal("alias initialization mode requires no recipient");
+	if (*var_alias_db_map == 0)
+	    return (0);
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postalias", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)

@@ -492,10 +492,13 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		     * 
 		     * XXX 2821: Section 4.5.3.1 says that a 552 RCPT TO reply
 		     * must be treated as if the server replied with 452.
+		     * However, this causes "too much mail data" to be
+		     * treated as a recoverable error, which is wrong. I'll
+		     * stick with RFC 821.
 		     */
 		case LMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
-#ifndef RFC821_SYNTAX
+#ifndef notRFC821_SYNTAX
 			if (resp->code == 552)
 			    resp->code = 452;
 #endif

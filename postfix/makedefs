@@ -178,11 +178,11 @@ case "$SYSTEM.$RELEASE" in
 		# See where GDBM's ndbm.h include file sits.
 		if [ -f /usr/include/gdbm-ndbm.h ]
 		then
-		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H=\\\"<gdbm-ndbm.h>\\\""
+		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H='<gdbm-ndbm.h>'"
 		    GDBM_LIBS=gdbm
 		elif [ -f /usr/include/gdbm/ndbm.h ]
 		then
-		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H=\\\"<gdbm/ndbm.h>\\\""
+		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H='<gdbm/ndbm.h>'"
 		    GDBM_LIBS=gdbm
 		fi
 		SYSLIBS="-ldb"

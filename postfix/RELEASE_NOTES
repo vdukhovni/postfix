@@ -1,3 +1,29 @@
+Incompatible changes with snapshot-20010610
+===========================================
+
+The Postfix pipe delivery agent no longer automatically case-folds
+the expansion of $user, $extension or $mailbox command-line macros.
+Specify the 'u' flag to get the old behavior.
+
+Major changes with snapshot-20010610
+====================================
+
+This release includes a workaround for a bug in old versions of
+the CISCO PIX firewall software that caused mail to be resent
+repeatedly to systems behind such a product.
+
+The pipe mail delivery agent now supports proper quoting of white
+space and other special characters in the expansions of the $sender
+and $recipient command-line macros. This was necessary for correct
+operation of the "simple" content filter, and is also recommended
+for delivery via UUCP or BSMTP.
+
+The pipe mail delivery agent now supports case folding the localpart
+and/or domain part of expansions of the $nexthop, $recipient, $user,
+$extension or $mailbox command-line macros. This is recommended
+for mail delivery via UUCP. Bug: $nexthop is always case folded
+because of problems in the queue manager code.
+
 Incompatible changes with snapshot-20010525
 ===========================================
 

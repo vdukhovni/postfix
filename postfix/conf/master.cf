@@ -84,10 +84,10 @@ local	  unix	-	n	n	-	-	local
 virtual	  unix	-	n	n	-	-	virtual
 lmtp	  unix	-	-	n	-	-	lmtp
 cyrus	  unix	-	n	n	-	-	pipe
-    flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
+  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
 uucp	  unix	-	n	n	-	-	pipe
-    flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
+  flags=Fqhu user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 ifmail    unix  -       n       n       -       -       pipe
-    flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
+  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
 bsmtp     unix  -       n       n       -       -       pipe
-    flags=F. user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
+  flags=Fq. user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
