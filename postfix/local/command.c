@@ -130,7 +130,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
      * Deliver.
      */
     copy_flags = MAIL_COPY_FROM | MAIL_COPY_RETURN_PATH;
-    if ((state.msg_attr.features & FEATURE_NODELIVERED) == 0)
+    if (local_deliver_hdr_mask & DELIVER_HDR_CMD)
 	copy_flags |= MAIL_COPY_DELIVERED;
 
     why = vstring_alloc(1);

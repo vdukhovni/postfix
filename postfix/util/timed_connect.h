@@ -7,14 +7,10 @@
 /* SUMMARY
 /*	connect operation with timeout
 /* SYNOPSIS
+/*	#include <sys/socket.h>
 /*	#include <timed_connect.h>
 /* DESCRIPTION
 /* .nf
-
- /*
-  * System library.
-  */
-#include <sys/socket.h>
 
  /*
   * External interface.

@@ -68,6 +68,7 @@
 #include <sent.h>
 #include <been_here.h>
 #include <mail_params.h>
+#include <dot_lockfile_as.h>
 
 /* Application-specific. */
 
@@ -86,6 +87,11 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     VSTRING *why;
     int     status;
     int     copy_flags;
+
+#ifdef USE_DOT_LOCK
+    int     lock = -1;
+
+#endif
 
     /*
      * Make verbose logging easier to understand.
@@ -143,7 +149,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * existing file.
      */
     copy_flags = MAIL_COPY_MBOX;
-    if (state.msg_attr.features & FEATURE_NODELIVERED)
+    if ((local_deliver_hdr_mask & DELIVER_HDR_FILE) == 0)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
 #define FOPEN_AS(p,u,g) ( \
@@ -166,6 +172,14 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	vstream_fclose(dst);
 	status = bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			       "executable destination file %s", path);
+#ifdef USE_DOT_LOCK
+    } else if ((lock = dot_lockfile_as(path, why, usr_attr.uid, usr_attr.gid)) < 0
+	       && errno == EEXIST) {
+	vstream_fclose(dst);
+	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+			      "cannot append destination file %s: %s",
+			      path, STR(why));
+#endif
     } else if (mail_copy(COPY_ATTR(state.msg_attr), dst, S_ISREG(st.st_mode) ?
 		      copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), why)) {
 	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
@@ -178,6 +192,10 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     /*
      * Clean up.
      */
+#ifdef USE_DOT_LOCK
+    if (lock == 0)
+	dot_unlockfile_as(path, usr_attr.uid, usr_attr.gid);
+#endif
     vstring_free(why);
     return (status);
 }

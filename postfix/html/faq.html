@@ -531,18 +531,31 @@ making Postfix more secure than ordinary mailers.
 
 <a name="delivered"><h2>Getting rid of Delivered-To:</h2> </a>
 
-Some people will complain about the ugly <b>Delivered-To:</b> 
-message header that Postfix prepends to their mail.
+Some people will complain about the ugly <b>Delivered-To:</b>
+message header that Postfix prepends to their mail.  By default,
+Postfix prepends this header when forwarding mail, and when delivering
+to file (mailbox) or command. The purpose is to stop mail forwarding
+loops as early as possible, that is, before they have a chance to
+happen.  But the header is ugly, no question about it.
 
 <p>
 
-With the Postfix architecture, <b>Delivered-To:</b> is required to
-prevent mail forwarding loops.  Fortunately, many mail user agents
-have per-user or even system-wide configuration files that can be
-set up to suppress specific message headers (for example <b>~/.mailrc</b>
-and <b>/usr/lib/Mail.rc</b>).
+Solutions, ranging from fighting symptoms to turning off the
+<b>Delivered-To:</b> header:
 
 <p>
+
+<ul>
+
+<li>
+
+Fortunately, many mail user agents have per-user or even system-wide
+configuration files that can be set up to suppress specific message
+headers (for example <b>~/.mailrc</b> and <b>/usr/lib/Mail.rc</b>).
+
+<p>
+
+<li>
 
 With mailing lists, <b>Delivered-To:</b> can get in the way when
 the list exploder uses a "secret" alias that should not be shown
@@ -581,6 +594,17 @@ POSIX regular expression support (regexp) is enabled by default on
 modern UNIX systems. Perl-compatible regular expression support
 (pcre) is optional; see the PCRE_README file in the top-level
 Postfix source directory.
+
+<p>
+
+<li>
+
+The <b>prepend_delivered_header</b> configuration parameter controls
+when <b>Delivered-To:</b> is prepended. The default setting is
+<b>command, file, forward</b>.  <i>Turning off <b>Delivered-To:</b>
+when forwarding mail is not recommended</i>.
+
+</ul>
 
 <p>
 

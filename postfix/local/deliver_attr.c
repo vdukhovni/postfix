@@ -62,7 +62,6 @@ void    deliver_attr_init(DELIVER_ATTR *attrp)
     attrp->relay = 0;
     attrp->exp_type = 0;
     attrp->exp_from = 0;
-    attrp->features = 0;
 }
 
 /* deliver_attr_dump - log message delivery attributes */
@@ -87,5 +86,4 @@ void    deliver_attr_dump(DELIVER_ATTR *attrp)
     msg_info("relay: %s", attrp->relay ? attrp->relay : "null");
     msg_info("exp_type: %d", attrp->exp_type);
     msg_info("exp_from: %s", attrp->exp_from ? attrp->exp_from : "null");
-    msg_info("features: %d", attrp->features);
 }

@@ -21,7 +21,7 @@ $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) sh ../makedefs; cat $?) >$@
+	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -173,6 +173,7 @@ smtp_session.o: ../include/sys_defs.h
 smtp_session.o: ../include/mymalloc.h
 smtp_session.o: ../include/vstream.h
 smtp_session.o: ../include/vbuf.h
+smtp_session.o: ../include/stringops.h
 smtp_session.o: smtp.h
 smtp_session.o: ../include/vstring.h
 smtp_session.o: ../include/argv.h

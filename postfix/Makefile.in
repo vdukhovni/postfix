@@ -13,7 +13,7 @@ makefiles Makefiles:
 	 (set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
 	 $(MAKE) -f Makefile.in Makefile); \
 	done;
-	rm -f Makefile; (set -e; sh makedefs; cat Makefile.in) >Makefile
+	rm -f Makefile; (set -e; $(SHELL) makedefs; cat Makefile.in) >Makefile
 
 update printfck:
 	set -e; for i in $(DIRS); do \
@@ -36,7 +36,7 @@ tidy:	clean
 	cp Makefile.init Makefile
 	-rm -f *core */*core .nfs* .pure bin/* lib/* include/* libexec/* \
 	*/.nfs* */.pure *.out */*.out */*.db */*.a *~ */*~ *- */*- *.orig \
-	*/*.orig *.bak */*.bak make.err
+	*/*.orig *.bak */*.bak make.err conf/main.cf.default
 	find . -type s -print | xargs rm -f
 	find . -type d -print | xargs chmod 755
 	find . -type f -print | xargs chmod a+r

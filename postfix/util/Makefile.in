@@ -1,7 +1,7 @@
 SHELL	= /bin/sh
 SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	close_on_exec.c concatenate.c dict.c dict_db.c dict_dbm.c \
-	dict_env.c dict_ht.c dict_ldap.c dict_ni.c dict_nis.c \
+	dict_env.c dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
 	dict_nisplus.c dict_open.c dir_forest.c doze.c environ.c \
 	events.c exec_command.c fifo_listen.c fifo_trigger.c file_limit.c \
 	find_inet.c fsspace.c fullname.c get_domainname.c get_hostname.c \
@@ -23,7 +23,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	clean_env.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
-	dict_env.o dict_ht.o dict_ldap.o dict_ni.o dict_nis.o \
+	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
 	dict_nisplus.o dict_open.o dir_forest.o doze.o environ.o \
 	events.o exec_command.o fifo_listen.o fifo_trigger.o file_limit.o \
 	find_inet.o fsspace.o fullname.o get_domainname.o get_hostname.o \
@@ -44,21 +44,21 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
 	clean_env.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
-	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_ni.h dict_nis.h \
-	dict_nisplus.h dir_forest.h events.h exec_command.h find_inet.h \
-	fsspace.h fullname.h get_domainname.h get_hostname.h htable.h \
-	inet_addr_host.h inet_addr_list.h inet_addr_local.h inet_util.h \
-	iostuff.h line_wrap.h listen.h lstat_as.h mac_parse.h make_dirs.h \
-	match_list.h match_ops.h msg.h msg_output.h msg_syslog.h \
-	msg_vstream.h mvect.h myflock.h mymalloc.h name_mask.h open_as.h \
-	open_lock.h percentm.h posix_signals.h readlline.h ring.h safe.h \
-	safe_open.h sane_accept.h scan_dir.h set_eugid.h set_ugid.h \
+	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
+	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
+	exec_command.h find_inet.h fsspace.h fullname.h get_domainname.h \
+	get_hostname.h htable.h inet_addr_host.h inet_addr_list.h \
+	inet_addr_local.h inet_util.h iostuff.h line_wrap.h listen.h lstat_as.h \
+	mac_parse.h make_dirs.h match_list.h match_ops.h msg.h msg_output.h \
+	msg_syslog.h msg_vstream.h mvect.h myflock.h mymalloc.h name_mask.h \
+	open_as.h open_lock.h percentm.h posix_signals.h readlline.h ring.h \
+	safe.h safe_open.h sane_accept.h scan_dir.h set_eugid.h set_ugid.h \
 	sigdelay.h split_at.h stat_as.h stringops.h sys_defs.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
-	stream_test.c
+	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused 
@@ -67,9 +67,9 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
 INCL	=
 LIB	= libutil.a
-TESTPROG= dict_open events exec_command fifo_open fifo_rdonly_bug \
-	fifo_rdwr_bug fifo_trigger fsspace fullname inet_addr_host \
-	inet_addr_local mac_parse make_dirs msg_syslog \
+TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
+	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
+	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok peer_name sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand
 
@@ -81,7 +81,7 @@ INC_DIR	= ../include
 all: $(LIB)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) sh ../makedefs; cat $?) >$@
+	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -119,6 +119,9 @@ clean:
 	rm -rf printfck
 
 tidy:	clean
+
+dup2_pass_on_exec: dup2_pass_on_exec.c
+	$(CC) $(CFLAGS) -o $@ $@.c $(SYSLIBS)
 
 vstring: $(LIB)
 	mv $@.o junk
@@ -294,6 +297,7 @@ close_on_exec.o: close_on_exec.c
 close_on_exec.o: sys_defs.h
 close_on_exec.o: msg.h
 close_on_exec.o: iostuff.h
+compat.o: compat.c
 concatenate.o: concatenate.c
 concatenate.o: sys_defs.h
 concatenate.o: mymalloc.h
@@ -343,6 +347,8 @@ dict_ht.o: vbuf.h
 dict_ht.o: dict_ht.h
 dict_ldap.o: dict_ldap.c
 dict_ldap.o: sys_defs.h
+dict_mysql.o: dict_mysql.c
+dict_mysql.o: sys_defs.h
 dict_ni.o: dict_ni.c
 dict_ni.o: sys_defs.h
 dict_nis.o: dict_nis.c
@@ -379,6 +385,7 @@ dict_open.o: dict_nis.h
 dict_open.o: dict_nisplus.h
 dict_open.o: dict_ni.h
 dict_open.o: dict_ldap.h
+dict_open.o: dict_mysql.h
 dict_open.o: dict_pcre.h
 dict_open.o: dict_regexp.h
 dict_open.o: stringops.h
@@ -418,6 +425,7 @@ doze.o: doze.c
 doze.o: sys_defs.h
 doze.o: msg.h
 doze.o: iostuff.h
+dup2_pass_on_exec.o: dup2_pass_on_exec.c
 environ.o: environ.c
 environ.o: sys_defs.h
 events.o: events.c
@@ -476,7 +484,6 @@ get_hostname.o: mymalloc.h
 get_hostname.o: msg.h
 get_hostname.o: valid_hostname.h
 get_hostname.o: get_hostname.h
-hattr.o: hattr.c
 htable.o: htable.c
 htable.o: sys_defs.h
 htable.o: mymalloc.h

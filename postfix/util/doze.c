@@ -47,7 +47,7 @@ void    doze(unsigned delay)
 
 #define MILLION	1000000
 
-    tv.tv_sec = (delay > MILLION ? delay / MILLION : 0);
+    tv.tv_sec = delay / MILLION;
     tv.tv_usec = delay % MILLION;
     while (select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &tv) < 0)
 	if (errno != EINTR)

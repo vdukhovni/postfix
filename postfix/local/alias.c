@@ -135,6 +135,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
     struct mypasswd *alias_pwd;
     VSTRING *canon_owner;
     DICT   *dict;
+    const char *owner_rhs;			/* owner alias, RHS */
 
     /*
      * Make verbose logging easier to understand.
@@ -249,9 +250,10 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	    concatenate("owner-", name, (char *) 0)))
 
 	    expansion = mystrdup(alias_result);
-	    if (OWNER_ASSIGN(owner) != 0 && maps_find(maps, owner,
-						      DICT_FLAG_FIXED)) {
-		canon_owner = canon_addr_internal(vstring_alloc(10), owner);
+	    if (OWNER_ASSIGN(owner) != 0
+	    && (owner_rhs = maps_find(maps, owner, DICT_FLAG_FIXED)) != 0) {
+		canon_owner = canon_addr_internal(vstring_alloc(10),
+				     var_exp_own_alias ? owner_rhs : owner);
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {
 		canon_owner = 0;

@@ -204,7 +204,6 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     lowercase(state.msg_attr.local);
     if ((state.msg_attr.domain = split_at_right(state.msg_attr.local, '@')) == 0)
 	msg_warn("no @ in recipient address: %s", state.msg_attr.local);
-    state.msg_attr.features = feature_control(state.msg_attr.local);
 
     /*
      * Address extension management.

@@ -79,7 +79,6 @@ typedef struct DELIVER_ATTR {
     long    arrival_time;		/* arrival time */
     int     exp_type;			/* expansion type. see below */
     char   *exp_from;			/* expanded_from */
-    int     features;			/* see below */
 } DELIVER_ATTR;
 
 extern void deliver_attr_init(DELIVER_ATTR *);
@@ -88,8 +87,6 @@ extern void deliver_attr_dump(DELIVER_ATTR *);
 #define EXPAND_TYPE_ALIAS	(1<<0)
 #define EXPAND_TYPE_FWD		(1<<1)
 #define EXPAND_TYPE_INCL	(1<<2)
-
-#define FEATURE_NODELIVERED	(1<<0)	/* no delivered-to */
 
  /*
   * Rather than schlepping around dozens of arguments, here is one that has
@@ -168,6 +165,15 @@ extern int local_cmd_deliver_mask;
   * Restrictions on extension propagation.
   */
 extern int local_ext_prop_mask;
+
+ /*
+  * When to prepend a Delivered-To: header upon external delivery.
+  */
+#define DELIVER_HDR_CMD		(1<<0)
+#define DELIVER_HDR_FILE	(1<<1)
+#define DELIVER_HDR_FWD		(1<<2)
+
+extern int local_deliver_hdr_mask;
 
  /*
   * delivered.c

@@ -1977,7 +1977,8 @@ Apologies for any names omitted.
 19990121
 
 	Feature: pickup (again) logs uid and sender address.
-	On repeated request by Scott Cotton, Internet, IC Group, Inc.
+	On repeated request by Scott Cotton, Internet Consultants
+	Group, Inc.
 
 	Portability: doze() function for systems without usleep().
 
@@ -2796,8 +2797,93 @@ Apologies for any names omitted.
 	user@[ip_address] regardless of destination. Eric Cholet
 	had the honor of suffering from this one.
 
-1990601
+19990527
+
+	More SMTP client logging for easier debugging: the smtp
+	client now logs hostname[ip.addr], and logs every failed
+	attempt to reach an MX host, not just the last one.
+
+19990601
 
 	Bugfix: emit a blank line before a MIME boundary; the line
 	is part of the boundary. File: bounce/bounce_notify_service.c.
 	Wolfgang Segmuller, IBM Research.
+
+19990610
+
+	Bugfix: the "is this the loopback interface" test was
+	broken.  Reported by Claus Fischer @microworld.com.
+	File: smtp/smtp_connect.c.
+
+	Usability: added helpful warnings about restrictions that
+	are being ignored after check_relay_domains, etc.
+
+	Portability: Reliant Unix support by Gert-Jan Looy, Siemens,
+	the Netherlands.
+
+19990611
+
+	Robustness: the postfix-script start-up procedure now
+	detects a missing master program, avoiding misleading
+	warnings that the mail system is already running.  Fix
+	suggested by David E. Smith @technopagan.org.
+
+	Portability: Mac OS X Server Port by Mark Miller @swoon.net.
+
+	Feature: on systems that use dotlock files for mailbox
+	locking, the local delivery agent now will attempt to use
+	dotlock files when delivering to user-specified files.
+	Dotlock files for user-specified destinations are created
+	with the privileges of the user. For backwards compatibility,
+	Postfix will attempt to create dotlocks for user-specified
+	destinations only when the user has parent directory write
+	permission.
+
+	Feature: specify "expand_owner_alias = yes" in order to
+	use the right-hand side of an owner- alias, instead of
+	using the left-hand side address. Needed by Juergen Georgi.
+
+19990622
+
+	Bugfix: the local delivery agent did not set user attributes
+	when delivering to root, so that forward_path did not expand
+	properly. Found by Jozsef Kadlecsik, KFKI Research Institute
+	for Particle and Nuclear Physics, Hungary.  File:
+	local/dotforward.c.
+
+	Bugfix: the unix:passwd.byname mechanism is not suitable
+	for smtpd access control - the user name would have to end
+	in @, or the access control software would have to be
+	changed. Removed the example from the RELEASE_NOTES file.
+
+19990623
+
+	Bugfix: the smtp server did not reset the error flag after
+	".". Found by James Ponder, Oaktree Internet Solutions Ltd.
+	File: smtpd/smtpd.c.
+
+	Bugfix: fencepost error in the doze() routine (an usleep()
+	replacement for systems without one). Found by Simon J Mudd.
+	File: util/doze.c.
+
+19990624
+
+	Portability: support for AIX 3.2.5 (!) by Florian Lohoff
+	@rfc822.org.
+
+	Portability: Ultrix 4.3 support by Christian von Roques
+	@pond.sub.org.
+
+	Feature: mysql support by Scott Cotton and Joshua Marcus,
+	Internet Consultants Group, Inc. Files: util/dict_myqsl.*.
+
+19990627
+
+	Bugfix: Postfix is now distributed under the new IBM Public
+	License (version 1, dated June 14, 1999).
+
+	Feature: the Delivered-To: header can be turned off for
+	delivery to command or file/mailbox. The default setting
+	is:  "prepend_delivered_header = command, file, forward".
+	Turning off the Delivered-To: header when forwarding mail
+	is not recommended.

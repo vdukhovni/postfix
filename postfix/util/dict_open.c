@@ -159,6 +159,7 @@
 #include <dict_nisplus.h>
 #include <dict_ni.h>
 #include <dict_ldap.h>
+#include <dict_mysql.h>
 #include <dict_pcre.h>
 #include <dict_regexp.h>
 #include <stringops.h>
@@ -194,6 +195,9 @@ static DICT_OPEN_INFO dict_open_info[] = {
 #endif
 #ifdef HAS_LDAP
     "ldap", dict_ldap_open,
+#endif
+#ifdef HAS_MYSQL
+    "mysql", dict_mysql_open,
 #endif
 #ifdef HAS_PCRE
     "pcre", dict_pcre_open,

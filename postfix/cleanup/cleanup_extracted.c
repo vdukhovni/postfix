@@ -90,7 +90,8 @@ void    cleanup_extracted(void)
 	} else if (type == REC_TYPE_END) {
 	    break;
 	} else {
-	    msg_warn("unexpected record type %d in extracted segment", type);
+	    msg_warn("%s: unexpected record type %d in extracted segment",
+		     cleanup_queue_id, type);
 	    cleanup_errs |= CLEANUP_STAT_BAD;
 	    if (type >= 0)
 		cleanup_skip();

@@ -149,3 +149,15 @@ local_destination_concurrency_limit = 2
 # effect.
 #
 local_destination_recipient_limit = 1
+
+# DELIVERED-TO
+#
+# The prepend_delivered_header controls when Postfix should prepend 
+# a Delivered-To: message header.  
+#
+# By default, Postfix prepends a Delivered-To: header when forwarding
+# mail and when delivering to file (mailbox) and command. Turning off
+# the Delivered-To: header when forwarding mail is not recommended.
+#
+# prepend_delivered_header = command, file, forward
+# prepend_delivered_header = forward

@@ -205,8 +205,9 @@ static int forward_send(FORWARD_INFO *info, DELIVER_ATTR attr, char *delivered)
 		var_myhostname, var_mail_name);
     rec_fprintf(info->cleanup, REC_TYPE_NORM, "\tid %s; %s",
 		info->queue_id, mail_date(info->posting_time));
-    rec_fprintf(info->cleanup, REC_TYPE_NORM, "Delivered-To: %s",
-		lowercase(vstring_str(buffer)));
+    if (local_deliver_hdr_mask & DELIVER_HDR_FWD)
+	rec_fprintf(info->cleanup, REC_TYPE_NORM, "Delivered-To: %s",
+		    lowercase(vstring_str(buffer)));
     if ((status = vstream_ferror(info->cleanup)) == 0)
 	if (vstream_fseek(attr.fp, attr.offset, SEEK_SET) < 0)
 	    msg_fatal("%s: seek queue file %s: %m:",

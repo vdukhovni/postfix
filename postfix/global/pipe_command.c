@@ -368,9 +368,9 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	 */
 	close(cmd_in_pipe[1]);
 	close(cmd_out_pipe[0]);
-	if (dup2(cmd_in_pipe[0], STDIN_FILENO) < 0
-	    || dup2(cmd_out_pipe[1], STDOUT_FILENO) < 0
-	    || dup2(cmd_out_pipe[1], STDERR_FILENO) < 0)
+	if (DUP2(cmd_in_pipe[0], STDIN_FILENO) < 0
+	    || DUP2(cmd_out_pipe[1], STDOUT_FILENO) < 0
+	    || DUP2(cmd_out_pipe[1], STDERR_FILENO) < 0)
 	    msg_fatal("%s: dup2: %m", myname);
 	close(cmd_in_pipe[0]);
 	close(cmd_out_pipe[1]);

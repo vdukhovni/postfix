@@ -192,6 +192,18 @@ program_directory = /some/where/postfix/bin
 #alias_database = hash:/etc/aliases
 #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
 
+# DELIVERED-TO
+#
+# The prepend_delivered_header controls when Postfix should prepend
+# a Delivered-To: message header.
+#
+# By default, Postfix prepends a Delivered-To: header when forwarding
+# mail and when delivering to file (mailbox) or command.  Turning off
+# the Delivered-To: header when forwarding mail is not recommended.
+#
+# prepend_delivered_header = command, file, forward
+# prepend_delivered_header = forward
+
 # ADDRESS EXTENSIONS (e.g., user+foo)
 #
 # The recipient_delimiter parameter specifies the separator between

@@ -30,6 +30,8 @@
 /*	int	options;
 /*
 /*	int	setsid()
+/*
+/*	void	dup2_pass_on_exec(int oldd, int newd)
 /* DESCRIPTION
 /*	These routines are compiled for platforms that lack the functionality
 /*	or that have broken versions that we prefer to stay away from.
@@ -211,5 +213,24 @@ int     setsid(void)
 #else
 #error MISSING_SETSID
 #endif
+
+#endif
+
+ /*
+  * dup2_pass_on_exec() - dup2() and clear close-on-exec flag on the result
+  */
+#ifdef DUP2_DUPS_CLOSE_ON_EXEC
+
+#include "iostuff.h"
+
+int     dup2_pass_on_exec(int oldd, int newd)
+{
+    int     res;
+
+    if ((res = dup2(oldd, newd)) >= 0)
+	close_on_exec(newd, PASS_ON_EXEC);
+
+    return res;
+}
 
 #endif

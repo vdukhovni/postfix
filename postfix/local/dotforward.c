@@ -147,7 +147,6 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * these are the rights of root, the /file and |command delivery routines
      * will use unprivileged default rights instead. Better safe than sorry.
      */
-    if (mypwd->pw_uid != 0)
 	SET_USER_ATTR(usr_attr, mypwd, state.level);
 
     /*

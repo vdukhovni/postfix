@@ -1,3 +1,34 @@
+Incompatible changes with snapshot-19990627:
+============================================
+
+- On systems that use user.lock files to protect system mailboxes
+against simultaneous updates, Postfix now uses /file/name.lock
+files while delivering to files specified in aliases/forward/include
+files. This is a no-op when the recipient lacks directory write
+permission.
+
+Major changes with snapshot-19990627:
+=====================================
+
+Several bugfixes, none related to security.  See the HISTORY file
+for a complete list of changes.
+
+- Postfix is now distributed under IBM Public License Version 1.0
+(June 14, 1999), which does not carry the controversial termination
+clause. The new license does have a requirement that contributors
+make source code available.
+
+- The ugly Delivered-To: header can now be turned off selectively.
+The default setting is:  "prepend_delivered_header = command, file,
+forward".  Turning off the Delivered-To:  header when forwarding
+mail is not recommended.
+
+- mysql client support by Scott Cotton and Joshua Marcus, Internet
+Consultants Group, Inc. See the file MYSQL_README for instructions.
+
+- Portability to the Mac OS X Server, Reliant Unix, AIX 3.2.5 and
+Ultrix 4.3.
+
 Incompatible changes with postfix-19990601:
 ===========================================
 
@@ -166,11 +197,6 @@ queues.
 
 - Workaround for BSD select() collisions that cause performance
 problems on large BSD systems.
-
-- Use "$alias_maps, unix:passwd.byname" in smtpd access tables to
-recognize known local users. We're almost there with stopping
-unknown users at the RCPT TO command - the syntax for virtual maps
-and sendmail access tables is too different.
 
 - Several questionable but useful features to capture mail:
 "always_bcc = address" to capture a copy of every message that

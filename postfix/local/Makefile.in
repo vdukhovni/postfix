@@ -1,11 +1,11 @@
 SHELL	= /bin/sh
 SRCS	= alias.c command.c delivered.c dotforward.c file.c forward.c \
 	include.c indirect.c local.c mailbox.c recipient.c resolve.c token.c \
-	deliver_attr.c feature.c maildir.c biff_notify.c unknown.c \
+	deliver_attr.c maildir.c biff_notify.c unknown.c \
 	local_expand.c
 OBJS	= alias.o command.o delivered.o dotforward.o file.o forward.o \
 	include.o indirect.o local.o mailbox.o recipient.o resolve.o token.o \
-	deliver_attr.o feature.o maildir.o biff_notify.o unknown.o \
+	deliver_attr.o maildir.o biff_notify.o unknown.o \
 	local_expand.o
 HDRS	= local.h
 TESTSRC	=
@@ -25,7 +25,7 @@ $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) sh ../makedefs; cat $?) >$@
+	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -97,8 +97,6 @@ command.o: ../include/vstring.h
 command.o: ../include/vbuf.h
 command.o: ../include/vstream.h
 command.o: ../include/argv.h
-command.o: ../include/mac_expand.h
-command.o: ../include/mac_parse.h
 command.o: ../include/defer.h
 command.o: ../include/bounce.h
 command.o: ../include/sent.h
@@ -169,22 +167,6 @@ dotforward.o: ../include/tok822.h
 dotforward.o: ../include/resolve_clnt.h
 dotforward.o: ../include/deliver_request.h
 dotforward.o: ../include/recipient_list.h
-feature.o: feature.c
-feature.o: ../include/sys_defs.h
-feature.o: ../include/msg.h
-feature.o: ../include/stringops.h
-feature.o: ../include/mymalloc.h
-feature.o: ../include/mail_params.h
-feature.o: local.h
-feature.o: ../include/htable.h
-feature.o: ../include/vstream.h
-feature.o: ../include/vbuf.h
-feature.o: ../include/vstring.h
-feature.o: ../include/been_here.h
-feature.o: ../include/tok822.h
-feature.o: ../include/resolve_clnt.h
-feature.o: ../include/deliver_request.h
-feature.o: ../include/recipient_list.h
 file.o: file.c
 file.o: ../include/sys_defs.h
 file.o: ../include/msg.h
@@ -200,6 +182,7 @@ file.o: ../include/defer.h
 file.o: ../include/sent.h
 file.o: ../include/been_here.h
 file.o: ../include/mail_params.h
+file.o: ../include/dot_lockfile_as.h
 file.o: local.h
 file.o: ../include/tok822.h
 file.o: ../include/resolve_clnt.h
@@ -408,9 +391,11 @@ token.o: ../include/htable.h
 token.o: ../include/readlline.h
 token.o: ../include/mymalloc.h
 token.o: ../include/vstring_vstream.h
+token.o: ../include/stringops.h
 token.o: ../include/tok822.h
 token.o: ../include/resolve_clnt.h
 token.o: ../include/mail_params.h
+token.o: ../include/bounce.h
 token.o: local.h
 token.o: ../include/been_here.h
 token.o: ../include/deliver_request.h

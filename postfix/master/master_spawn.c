@@ -178,14 +178,14 @@ void    master_spawn(MASTER_SERV *serv)
 	close(serv->status_fd[0]);		/* status channel */
 	if (serv->status_fd[1] <= MASTER_STATUS_FD)
 	    msg_fatal("%s: status file descriptor collision", myname);
-	if (dup2(serv->status_fd[1], MASTER_STATUS_FD) < 0)
+	if (DUP2(serv->status_fd[1], MASTER_STATUS_FD) < 0)
 	    msg_fatal("%s: dup2 status_fd: %m", myname);
 	(void) close(serv->status_fd[1]);
 
 	for (n = 0; n < serv->listen_fd_count; n++) {
 	    if (serv->listen_fd[n] <= MASTER_LISTEN_FD + n)
 		msg_fatal("%s: listen file descriptor collision", myname);
-	    if (dup2(serv->listen_fd[n], MASTER_LISTEN_FD + n) < 0)
+	    if (DUP2(serv->listen_fd[n], MASTER_LISTEN_FD + n) < 0)
 		msg_fatal("%s: dup2 listen_fd %d: %m",
 			  myname, serv->listen_fd[n]);
 	    (void) close(serv->listen_fd[n]);

@@ -1200,12 +1200,18 @@ static int generic_checks(SMTPD_STATE *state, char *name,
      */
     if (strcasecmp(name, PERMIT_ALL) == 0) {
 	*status = SMTPD_CHECK_OK;
+	if ((*cpp)[1] != 0)
+	    msg_warn("restriction `%s' after `%s' is ignored",
+		     (*cpp)[1], PERMIT_ALL);
 	return (1);
     }
     if (strcasecmp(name, REJECT_ALL) == 0) {
 	*status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				     "%d <%s>: %s rejected: Access denied",
 				  var_reject_code, reply_name, reply_class);
+	if ((*cpp)[1] != 0)
+	    msg_warn("restriction `%s' after `%s' is ignored",
+		     (*cpp)[1], REJECT_ALL);
 	return (1);
     }
 
@@ -1486,6 +1492,9 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	} else if (strcasecmp(name, CHECK_RELAY_DOMAINS) == 0) {
 	    status = check_relay_domains(state, recipient,
 					 recipient, SMTPD_NAME_RECIPIENT);
+	    if (cpp[1] != 0)
+		msg_warn("restriction `%s' after `%s' is ignored",
+			 cpp[1], CHECK_RELAY_DOMAINS);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    status = reject_unknown_address(state, recipient,
 					    recipient, SMTPD_NAME_RECIPIENT);

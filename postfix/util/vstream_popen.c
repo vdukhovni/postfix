@@ -218,7 +218,7 @@ VSTREAM *vstream_popen_vargs(int flags,...)
 	    msg_warn("close: %m");
 	for (fd = 0; fd < 2; fd++)
 	    if (sockfd[0] != fd)
-		if (dup2(sockfd[0], fd) < 0)
+		if (DUP2(sockfd[0], fd) < 0)
 		    msg_fatal("dup2: %m");
 	if (sockfd[0] >= 2 && close(sockfd[0]))
 	    msg_warn("close: %m");

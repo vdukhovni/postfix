@@ -66,6 +66,10 @@ cd $daemon_directory || {
 	$FATAL no Postfix daemon directory $daemon_directory!
 	exit 1
 }
+test -x master || {
+	$FATAL no Postfix master program $daemon_directory/master!
+	exit 1
+}
 cd $config_directory || {
 	$FATAL no Postfix configuration directory $config_directory!
 	exit 1

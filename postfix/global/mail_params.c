@@ -272,7 +272,7 @@ void    mail_params_init()
 	VAR_MAX_IDLE, DEF_MAX_IDLE, &var_idle_limit, 1, 0,
 	VAR_IPC_TIMEOUT, DEF_IPC_TIMEOUT, &var_ipc_timeout, 1, 0,
 	VAR_DONT_REMOVE, DEF_DONT_REMOVE, &var_dont_remove, 0, 0,
-	VAR_LINE_LIMIT, DEF_LINE_LIMIT, &var_line_limit, 1024, 0,
+	VAR_LINE_LIMIT, DEF_LINE_LIMIT, &var_line_limit, 512, 0,
 	VAR_MESSAGE_LIMIT, DEF_MESSAGE_LIMIT, &var_message_limit, 0, 0,
 	VAR_IPC_IDLE, DEF_IPC_IDLE, &var_ipc_idle_limit, 1, 0,
 	VAR_HASH_QUEUE_DEPTH, DEF_HASH_QUEUE_DEPTH, &var_hash_queue_depth, 1, 0,

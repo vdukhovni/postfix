@@ -107,6 +107,7 @@ int     dot_lockfile(const char *path, VSTRING *why)
 		if (unlink(lock_file) < 0)
 		    if (errno != ENOENT)
 			break;
+	errno = EEXIST;
     }
     if (status && why)
 	vstring_sprintf(why, "unable to create lock file %s: %m", lock_file);

@@ -176,7 +176,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      * Write the file as the recipient, so that file quota work.
      */
     copy_flags = MAIL_COPY_MBOX;
-    if (state.msg_attr.features & FEATURE_NODELIVERED)
+    if ((local_deliver_hdr_mask & DELIVER_HDR_FILE) == 0)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
     set_eugid(spool_uid, spool_gid);

@@ -39,8 +39,8 @@ On-line resources devoted to the Postfix mail system
 
 Web sites:
 
+    http://www.postfix.org/		current release information
     http://www.ibm.com/alphaworks/	the original distribution site
-    http://www.postfix.org/		post-release information
 
 Mail addresses (please do NOT send mail to my address at work):
 
@@ -81,13 +81,16 @@ an absolute path) for UNIX-style on-line manual pages.  These pages
 are also available through the HTML interface, which allows you to
 navigate faster.
 
+The RELEASE_NOTES file describes new features, and lists incompatible
+changes with respect to previous Postfix versions.
+
+The INSTALL file provides a step-by-step guide for building and
+installing Postfix on many popular UNIX platforms.
+
 The COMPATIBILITY file lists features that Postfix does or does
 not yet implement, and how well it works with other software.
 
 The HISTORY file gives a detailed log of changes to the software.
-
-The INSTALL file provides a step-by-step guide for building and
-installing Postfix on many popular UNIX platforms.
 
 The PORTING file discusses how to go about porting Postfix to other
 UNIX platforms. Some people are looking into a port to Windows NT.
@@ -125,6 +128,7 @@ Postfix daemons:
 
     bounce/		Bounce or defer mail
     cleanup/		Canonicalize and enqueue mail
+    error/		Trivial error mailer
     local/		Local delivery
     master/		Postfix resident superserver
     pickup/		Local pickup
@@ -142,7 +146,8 @@ Test programs:
 
 Miscellaneous:
 
-    bin/		Installed programs
+    bin/		Postfix command executables
     conf/		Sample configuration files
     include/		Installed include files
     lib/		Installed object libraries
+    libexec/		Postfix daemon executables

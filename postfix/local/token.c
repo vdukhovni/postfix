@@ -26,7 +26,10 @@
 /*	This module delivers to addresses listed in an alias database
 /*	entry, in an include file, or in a .forward file.
 /*
-/*	deliver_token() delivers to the address in the given token.
+/*	deliver_token() delivers to the address in the given token:
+/*	an absolute /path/name, a ~/path/name relative to the recipient's
+/*	home directory, an :include:/path/name request, an external 
+/*	"|command", or a mail address.
 /*
 /*	deliver_token_string() delivers to all addresses listed in
 /*	the specified string.
@@ -88,15 +91,42 @@
 #include <readlline.h>
 #include <mymalloc.h>
 #include <vstring_vstream.h>
+#include <stringops.h>
 
 /* Global library. */
 
 #include <tok822.h>
 #include <mail_params.h>
+#include <bounce.h>
 
 /* Application-specific. */
 
 #include "local.h"
+
+/* deliver_token_home - expand ~token */
+
+static int deliver_token_home(LOCAL_STATE state, USER_ATTR usr_attr, char *addr)
+{
+    char   *full_path;
+    int     status;
+
+    if (addr[1] != '/') {			/* disallow ~user */
+	status = bounce_append(BOUNCE_FLAG_KEEP,
+			       BOUNCE_ATTR(state.msg_attr),
+			       "bad home directory syntax for: %s", addr);
+    } else if (usr_attr.home == 0) {		/* require user context */
+	status = bounce_append(BOUNCE_FLAG_KEEP,
+			       BOUNCE_ATTR(state.msg_attr),
+			       "unknown home directory for: %s", addr);
+    } else if (usr_attr.home[0] == '/' && usr_attr.home[1] == 0) {
+	status = deliver_file(state, usr_attr, addr + 1);
+    } else {					/* expand ~ to home */
+	full_path = concatenate(usr_attr.home, addr + 1, (char *) 0);
+	status = deliver_file(state, usr_attr, full_path);
+	myfree(full_path);
+    }
+    return (status);
+}
 
 /* deliver_token - deliver to expansion of include file or alias */
 
@@ -115,6 +145,8 @@ int     deliver_token(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr)
 
     if (*STR(addr_buf) == '/') {
 	status = deliver_file(state, usr_attr, STR(addr_buf));
+    } else if (*STR(addr_buf) == '~') {
+	status = deliver_token_home(state, usr_attr, STR(addr_buf));
     } else if (*STR(addr_buf) == '|') {
 	status = deliver_command(state, usr_attr, STR(addr_buf) + 1);
     } else if (strncasecmp(STR(addr_buf), include, sizeof(include) - 1) == 0) {

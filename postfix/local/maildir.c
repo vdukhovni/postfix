@@ -101,7 +101,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     why = vstring_alloc(100);
 
     copy_flags = MAIL_COPY_TOFILE | MAIL_COPY_RETURN_PATH;
-    if ((state.msg_attr.features & FEATURE_NODELIVERED) == 0)
+    if (local_deliver_hdr_mask & DELIVER_HDR_FILE)
 	copy_flags |= MAIL_COPY_DELIVERED;
 
     newdir = concatenate(path, "new/", (char *) 0);

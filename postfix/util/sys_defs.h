@@ -21,7 +21,7 @@
   */
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
-    || defined(OPENBSD2) || defined(NETBSD1)
+    || defined(OPENBSD2) || defined(NETBSD1) || defined(RHAPSODY5)
 #define SUPPORTED
 #include <sys/types.h>
 #define USE_PATHS_H
@@ -47,13 +47,14 @@
 #define USE_DOT_LOCK
 #endif
 
+#if defined(RHAPSODY5)
+#define NORETURN	void
+#endif
+
 #ifdef ULTRIX4
 #define SUPPORTED
 #include <sys/types.h>
 #define UNSAFE_CTYPE			/* XXX verify */
-#define fpos_t	long			/* XXX verify */
-#define MISSING_SETENV			/* XXX verify */
-#define MISSING_STRERROR		/* XXX verify */
 #define _PATH_MAILDIR	"/var/spool/mail"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
@@ -61,19 +62,34 @@
 #define USE_FLOCK_LOCK
 #define USE_DOT_LOCK
 #define HAS_FSYNC
+/* might be set by makedef */
+#ifdef HAS_DB
+#define DEF_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#else
 #define HAS_DBM
 #define	DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/aliases"
-extern int optind;			/* XXX verify */
-extern char *optarg;			/* XXX verify */
-extern int opterr;			/* XXX verify */
+#endif
+extern int optind;
+extern char *optarg;
+extern int opterr;
 
+#define MISSING_STRFTIME_E
 #define HAS_NIS
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/etc:/usr/etc:/usr/ucb"
-#define USE_STATFS			/* XXX verify */
-#define STATFS_IN_SYS_VFS_H		/* XXX verify */
-#define memmove(d,s,l)	bcopy(s,d,l)	/* XXX verify */
+#define USE_STATFS
+#define USE_STRUCT_FS_DATA
+#define STATFS_IN_SYS_MOUNT_H
+/* Ultrix misses just S_ISSOCK, the others are there */
+#define S_ISSOCK(mode)	(((mode) & (S_IFMT)) == (S_IFSOCK))
+#define DUP2_DUPS_CLOSE_ON_EXEC
+/* Ultrix by default has only 64 descriptors per process */
+#ifndef FD_SETSIZE
+#define FD_SETSIZE	100
+#endif
+#define usleep		doze
 #endif
 
 #ifdef OSF1
@@ -160,7 +176,7 @@ extern int opterr;
 #define HAS_VOLATILE_LOCKS
 #endif
 
-#ifdef UW7		/* UnixWare 7 */
+#ifdef UW7				/* UnixWare 7 */
 #define SUPPORTED
 #include <sys/types.h>
 #define _PATH_MAILDIR	"/var/mail"
@@ -185,29 +201,29 @@ extern int opterr;
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #endif
 
-#ifdef UW21              /* UnixWare 2.1.x */                        
-#define SUPPORTED                                               
-#include <sys/types.h>                                          
-#define _PATH_MAILDIR   "/var/mail"                             
-#define _PATH_BSHELL    "/bin/sh"                               
-#define _PATH_DEFPATH   "/usr/bin:/usr/ucb"                     
-#define _PATH_STDPATH   "/usr/bin:/usr/sbin:/usr/ucb"           
-#define MISSING_SETENV                                          
-#define USE_FCNTL_LOCK                                          
-#define USE_DOT_LOCK                                            
-#define HAS_FSYNC                                               
+#ifdef UW21				/* UnixWare 2.1.x */
+#define SUPPORTED
+#include <sys/types.h>
+#define _PATH_MAILDIR   "/var/mail"
+#define _PATH_BSHELL    "/bin/sh"
+#define _PATH_DEFPATH   "/usr/bin:/usr/ucb"
+#define _PATH_STDPATH   "/usr/bin:/usr/sbin:/usr/ucb"
+#define MISSING_SETENV
+#define USE_FCNTL_LOCK
+#define USE_DOT_LOCK
+#define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE     "dbm"                                   
-#define ALIAS_DB_MAP    "dbm:/etc/mail/aliases"                 
+#define DEF_DB_TYPE     "dbm"
+#define ALIAS_DB_MAP    "dbm:/etc/mail/aliases"
 /* Uncomment the following line if you have NIS package installed
 #define HAS_NIS */
-#define USE_SYS_SOCKIO_H                                        
-#define GETTIMEOFDAY(t) gettimeofday(t,NULL)   
+#define USE_SYS_SOCKIO_H
+#define GETTIMEOFDAY(t) gettimeofday(t,NULL)
 #define ROOT_PATH       "/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
-#define FIONREAD_IN_SYS_FILIO_H                                 
-#define DBM_NO_TRAILING_NULL                                    
-#define USE_STATVFS                                             
-#define STATVFS_IN_SYS_STATVFS_H                                
+#define FIONREAD_IN_SYS_FILIO_H
+#define DBM_NO_TRAILING_NULL
+#define USE_STATVFS
+#define STATVFS_IN_SYS_STATVFS_H
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #endif
 
@@ -235,6 +251,38 @@ extern int opterr;
 #define SOCKOPT_SIZE	size_t
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
+#define STRCASECMP_IN_STRINGS_H
+extern time_t time(time_t *);
+extern int seteuid(uid_t);
+extern int setegid(gid_t);
+extern int initgroups(const char *, int);
+
+#endif
+
+#ifdef AIX3
+#define SUPPORTED
+#include <sys/types.h>
+#define MISSING_SETENV
+#define _PATH_BSHELL	"/bin/sh"
+#define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
+#define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
+#define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
+#define USE_FCNTL_LOCK
+#define USE_DOT_LOCK
+#define USE_SYS_SELECT_H
+#define HAS_FSYNC
+#define HAS_DBM
+#define DEF_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define HAS_NIS
+#define HAS_SA_LEN
+#define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+#define RESOLVE_H_NEEDS_STDIO_H
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
+#define SOCKADDR_SIZE	size_t
+#define SOCKOPT_SIZE	size_t
+#define USE_STATFS
+#define STATFS_IN_SYS_STATFS_H
 #define STRCASECMP_IN_STRINGS_H
 extern time_t time(time_t *);
 extern int seteuid(uid_t);
@@ -477,11 +525,47 @@ extern int opterr;
 #define NORETURN			/* the native compiler */
 #endif
 
+#ifdef ReliantUnix543
+#define SUPPORTED
+#include <sys/types.h>
+#define MISSING_SETENV
+#define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
+#define _PATH_BSHELL	"/bin/sh"
+#define _PATH_MAILDIR	"/var/spool/mail"
+#define USE_FCNTL_LOCK
+#define USE_DOT_LOCK
+#define HAS_FSYNC
+#define FIONREAD_IN_SYS_FILIO_H
+#define USE_SYS_SOCKIO_H
+#define HAS_DBM
+#define DEF_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	"dbm:/var/adm/sendmail/aliases"
+extern int optind;			/* XXX use <getopt.h> */
+extern char *optarg;			/* XXX use <getopt.h> */
+extern int opterr;			/* XXX use <getopt.h> */
+
+#define HAS_NIS
+#define GETTIMEOFDAY(t) gettimeofday(t)
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
+#define USE_STATVFS
+#define STATVFS_IN_SYS_STATVFS_H
+#define usleep	doze
+#endif
+
  /*
   * We're not going to try to guess like configure does.
   */
 #ifndef SUPPORTED
 #error "unsupported platform"
+#endif
+
+#ifdef DUP2_DUPS_CLOSE_ON_EXEC
+/* dup2_pass_on_exec() can be found in util/sys_compat.c */
+extern int dup2_pass_on_exec(int oldd, int newd);
+
+#define DUP2 dup2_pass_on_exec
+#else
+#define DUP2 dup2
 #endif
 
 #ifdef PREPEND_PLUS_TO_OPTSTRING

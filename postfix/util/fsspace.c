@@ -48,6 +48,8 @@
 #include <sys/vfs.h>
 #elif defined(STATVFS_IN_SYS_STATVFS_H)
 #include <sys/statvfs.h>
+#elif defined(STATFS_IN_SYS_STATFS_H)
+#include <sys/statfs.h>
 #else
 #ifdef USE_STATFS
 #error "please specify the include file with `struct statfs'"
@@ -68,12 +70,21 @@ void    fsspace(const char *path, struct fsspace * sp)
     char   *myname = "fsspace";
 
 #ifdef USE_STATFS
+#ifdef USE_STRUCT_FS_DATA			/* Ultrix */
+    struct fs_data fsbuf;
+
+    if (statfs(path, &fsbuf) < 0)
+	msg_fatal("statfs %s: %m", path);
+    sp->block_size = 1024;
+    sp->block_free = fsbuf.fd_bfreen;
+#else
     struct statfs fsbuf;
 
     if (statfs(path, &fsbuf) < 0)
 	msg_fatal("statfs %s: %m", path);
     sp->block_size = fsbuf.f_bsize;
     sp->block_free = fsbuf.f_bavail;
+#endif
 #endif
 #ifdef USE_STATVFS
     struct statvfs fsbuf;

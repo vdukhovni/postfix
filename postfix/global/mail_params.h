@@ -342,9 +342,13 @@ abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_cmd_exp_filter;
 
-#define VAR_RCPT_FDELIM		"recipient_feature_delimiter"
-#define DEF_RCPT_FDELIM		""
-extern char *var_rcpt_fdelim;
+#define VAR_DELIVER_HDR		"prepend_delivered_header"
+#define DEF_DELIVER_HDR		"command, file, forward"
+extern char *var_deliver_hdr;
+
+#define VAR_EXP_OWN_ALIAS		"expand_owner_alias"
+#define DEF_EXP_OWN_ALIAS		0
+extern bool var_exp_own_alias;
 
  /*
   * Queue manager: maximal size of the duplicate expansion filter. By
