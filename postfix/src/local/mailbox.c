@@ -203,7 +203,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      * As the mail system, bounce, defer delivery, or report success.
      */
     if (status != 0) {
-	status = (errno == EAGAIN || errno == ENOSPC ?
+	status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
 		  defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "cannot access mailbox %s for user %s. %s",

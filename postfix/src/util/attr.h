@@ -53,6 +53,18 @@ extern int attr_scan(VSTREAM *, int,...);
 extern int attr_vscan(VSTREAM *, int, va_list);
 
  /*
+  * attr_print0.c.
+  */
+extern int attr_print0(VSTREAM *, int,...);
+extern int attr_vprint0(VSTREAM *, int, va_list);
+
+ /*
+  * attr_scan0.c.
+  */
+extern int attr_scan0(VSTREAM *, int,...);
+extern int attr_vscan0(VSTREAM *, int, va_list);
+
+ /*
   * Attribute names for testing the compatibility of the read and write
   * routines.
   */

@@ -5576,6 +5576,18 @@ Apologies for any names omitted.
 	Bugfix: missing terminator in new attribute-based function
 	call caused signal 11. File: src/cleanup/cleanup.c.
 
+	Lame workaround for ESTALE errors with mail deliver over
+	NFS. Some bandages have been added to the local delivery
+	agent. Wietse maintains that Postfix offers no guarantee
+	for reliable delivery over NFS.
+
+20011107
+
+	Workaround: in order to get mail past PIX firewall bugs,
+	Postfix now waits until the socket send buffer is empty
+	before sending the final ".<CR><LF>". Files:
+	util/sock_empty_wait.c, smtp/smtp_proto.c.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups. LDAP
@@ -5586,6 +5598,8 @@ Open problems:
 
 	Medium: smtpd access maps don't understand the recipient
 	delimiter setting.
+
+	Low: default domain for appending to unqualified recipients.
 
 	Low: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.

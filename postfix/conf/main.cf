@@ -152,9 +152,9 @@ mail_owner = postfix
 # Specify "mynetworks_style = host" when Postfix should "trust"
 # only the local machine.
 # 
-# mynetworks_style = class
-# mynetworks_style = subnet
-# mynetworks_style = host
+#mynetworks_style = class
+#mynetworks_style = subnet
+#mynetworks_style = host
 
 # Alternatively, you can specify the mynetworks list by hand, in
 # which case Postfix ignores the mynetworks_style setting.
@@ -217,10 +217,10 @@ mail_owner = postfix
 #
 # If you're connected via UUCP, see also the default_transport parameter.
 #
-# relayhost = $mydomain
-# relayhost = gateway.my.domain
-# relayhost = uucphost
-# relayhost = [an.ip.add.ress]
+#relayhost = $mydomain
+#relayhost = gateway.my.domain
+#relayhost = uucphost
+#relayhost = [an.ip.add.ress]
 
 # REJECTING UNKNOWN LOCAL USERS
 #
@@ -319,7 +319,7 @@ mail_owner = postfix
 # Basically, the software tries user+foo and .forward+foo before
 # trying user and .forward.
 #
-# recipient_delimiter = +
+#recipient_delimiter = +
 
 # DELIVERY TO MAILBOX
 #
@@ -335,8 +335,8 @@ mail_owner = postfix
 # UNIX-style mailboxes are kept. The default setting depends on the
 # system type.
 #
-# mail_spool_directory = /var/mail
-# mail_spool_directory = /var/spool/mail
+#mail_spool_directory = /var/mail
+#mail_spool_directory = /var/spool/mail
 
 # The mailbox_command parameter specifies the optional external
 # command to use instead of mailbox delivery. The command is run as
@@ -399,9 +399,9 @@ mail_owner = postfix
 #
 # luser_relay works only for the default Postfix local delivery agent.
 #
-# luser_relay = $user@other.host
-# luser_relay = $local@other.host
-# luser_relay = admin+$local
+#luser_relay = $user@other.host
+#luser_relay = $local@other.host
+#luser_relay = admin+$local
   
 # JUNK MAIL CONTROLS
 # 
@@ -481,8 +481,8 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-# debug_peer_list = 127.0.0.1
-# debug_peer_list = some.domain
+#debug_peer_list = 127.0.0.1
+#debug_peer_list = some.domain
 
 # The debugger_command specifies the external command that is executed
 # when a Postfix daemon program is run with the -D option.

@@ -585,6 +585,20 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
 			              char *format,...)
 {
     va_list ap;
+    int     warn_if_reject;
+    const char *whatsup;
+
+    /*
+     * Do not reject mail if we were asked to warn only. However,
+     * configuration errors cannot be converted into warnings.
+     */
+    if (state->warn_if_reject && error_class != MAIL_ERROR_SOFTWARE) {
+	warn_if_reject = 1;
+	whatsup = "reject_warning";
+    } else {
+	warn_if_reject = 0;
+	whatsup = "reject";
+    }
 
     /*
      * Update the error class mask, and format the response. XXX What about
@@ -634,22 +648,22 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * rejected. Print the request, client name/address, and response.
      */
     if (state->recipient && state->sender) {
-	msg_info("reject: %s from %s: %s; from=<%s> to=<%s>",
-		 state->where, state->namaddr, STR(error_text),
+	msg_info("%s: %s from %s: %s; from=<%s> to=<%s>",
+		 whatsup, state->where, state->namaddr, STR(error_text),
 		 state->sender, state->recipient);
     } else if (state->recipient) {
-	msg_info("reject: %s from %s: %s; to=<%s>",
-		 state->where, state->namaddr, STR(error_text),
+	msg_info("%s: %s from %s: %s; to=<%s>",
+		 whatsup, state->where, state->namaddr, STR(error_text),
 		 state->recipient);
     } else if (state->sender) {
-	msg_info("reject: %s from %s: %s; from=<%s>",
-		 state->where, state->namaddr, STR(error_text),
+	msg_info("%s: %s from %s: %s; from=<%s>",
+		 whatsup, state->where, state->namaddr, STR(error_text),
 		 state->sender);
     } else {
-	msg_info("reject: %s from %s: %s",
-		 state->where, state->namaddr, STR(error_text));
+	msg_info("%s: %s from %s: %s",
+		 whatsup, state->where, state->namaddr, STR(error_text));
     }
-    return (SMTPD_CHECK_REJECT);
+    return (warn_if_reject ? 0 : SMTPD_CHECK_REJECT);
 }
 
 /* reject_dict_retry - reject with temporary failure if dict lookup fails */
@@ -1824,6 +1838,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
     int     status = 0;
     ARGV   *list;
     int     found;
+    int     saved_recursion = state->recursion;
 
     if (msg_verbose)
 	msg_info("%s: START", myname);
@@ -1832,6 +1847,15 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 	if (msg_verbose)
 	    msg_info("%s: name=%s", myname, name);
+
+	/*
+	 * Pseudo restrictions.
+	 */
+	if (strcasecmp(name, WARN_IF_REJECT) == 0) {
+	    if (state->warn_if_reject == 0)
+		state->warn_if_reject = state->recursion;
+	    continue;
+	}
 
 	/*
 	 * Spoof the is_map_command() routine, so that we do not have to make
@@ -1847,14 +1871,14 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	 */
 	if (strcasecmp(name, PERMIT_ALL) == 0) {
 	    status = SMTPD_CHECK_OK;
-	    if (cpp[1] != 0)
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], PERMIT_ALL);
 	} else if (strcasecmp(name, REJECT_ALL) == 0) {
 	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				      "%d <%s>: %s rejected: Access denied",
 				  var_reject_code, reply_name, reply_class);
-	    if (cpp[1] != 0)
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], REJECT_ALL);
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
@@ -1963,7 +1987,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->recipient)
 		status = check_relay_domains(state, state->recipient,
 				    state->recipient, SMTPD_NAME_RECIPIENT);
-	    if (cpp[1] != 0)
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
 #ifdef USE_SASL_AUTH
@@ -2011,11 +2035,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	if (msg_verbose)
 	    msg_info("%s: name=%s status=%d", myname, name, status);
 
+	if (state->warn_if_reject >= state->recursion)
+	    state->warn_if_reject = 0;
+
 	if (status != 0)
 	    break;
     }
     if (msg_verbose && name == 0)
 	msg_info("%s: END", myname);
+
+    state->recursion = saved_recursion;
 
     return (status);
 }
@@ -2035,7 +2064,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && client_restrctions->argc)
 	status = generic_checks(state, client_restrctions, state->namaddr,
@@ -2081,7 +2110,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && helo_restrctions->argc)
 	status = generic_checks(state, helo_restrctions, state->helo_name,
@@ -2117,7 +2146,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && mail_restrctions->argc)
 	status = generic_checks(state, mail_restrctions, sender,
@@ -2171,7 +2200,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && rcpt_restrctions->argc)
 	status = generic_checks(state, rcpt_restrctions,
@@ -2216,7 +2245,7 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && etrn_restrctions->argc)
 	status = generic_checks(state, etrn_restrctions, domain,
