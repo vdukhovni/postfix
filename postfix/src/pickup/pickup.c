@@ -49,7 +49,7 @@
 /*	it is queued.
 /* .IP "\fBreceive_override_options (empty)\fR"
 /*	Enable or disable recipient validation, built-in content
-/*	filtering, or address rewriting.
+/*	filtering, or address mapping.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -87,6 +87,7 @@
 /*	sendmail(1), Sendmail-compatible interface
 /*	postdrop(1), mail posting agent
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	master(8), process manager
 /*	syslogd(8), system logging
 /* LICENSE
@@ -137,6 +138,7 @@
 #include <rec_type.h>
 #include <lex_822.h>
 #include <input_transp.h>
+#include <rewrite_clnt.h>		/* XXX */
 
 /* Single-threaded server skeleton. */
 
@@ -292,6 +294,8 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      */
     rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_RWR_CTXT_NAME, REWRITE_LOCAL);
 
     /*
      * Copy the message envelope segment. Allow only those records that we

@@ -339,6 +339,12 @@ trivial-rewrite(8) daemon.  The purpose of rewriting to standard
 form is to reduce the number of entries needed in lookup tables.
 </p>
 
+<p> Postfix versions 2.2 and later do not rewrite message headers
+from remote SMTP clients at all, unless a non-empty domain name is
+specified with the remote_header_rewrite_domain configuration
+parameter.  The local_header_rewrite_clients parameter controls
+what SMTP clients Postfix considers local. </p>
+
 <p> The Postfix trivial-rewrite(8) daemon implements the following
 hard-coded address manipulations: </p>
 
@@ -377,6 +383,11 @@ parameter (default: yes).  You should never turn off this feature,
 because a lot of Postfix components expect that all addresses have
 the form "user@domain".  </p>
 
+<p> Postfix versions 2.2 and later do not rewrite message headers
+from remote SMTP clients at all, or they append the domain name
+specified with the remote_header_rewrite_domain configuration
+parameter.  </p>
+
 <p> If your machine is not the main machine for $myorigin and you
 wish to have some users delivered locally without going via that
 main machine, make an entry in the <a href="#virtual">virtual
@@ -393,7 +404,11 @@ Rewrite "user@host" to "user@host.$mydomain" </dt>
 parameter (default: yes).  The purpose is to get consistent treatment
 of different forms of the same hostname. </p>
 
-<p> Some will argue that rewriting "host" to "host.$mydomain"
+<p> Postfix versions 2.2 and later do not rewrite message headers
+from remote clients at all, or they append the domain name specified
+with the remote_header_rewrite_domain configuration parameter. </p>
+
+<p> Some will argue that rewriting "host" to "host.domain"
 is bad. That is why it can be turned off. Others like the convenience
 of having the local domain appended automatically. </p> </dd>
 
@@ -413,6 +428,12 @@ address. </p> </dd>
 addresses in message envelopes and in message headers.  By default
 all header and envelope addresses are rewritten; this is controlled
 with the canonical_classes configuration parameter.  </p>
+
+<p> Postfix versions 2.2 and later do not rewrite message headers
+from remote clients at all, unless a non-empty domain name is
+specified with the remote_header_rewrite_domain configuration
+parameter.  The local_header_rewrite_clients parameter controls
+what SMTP clients Postfix considers local. </p>
 
 <p> Address rewriting is 
 done for local and remote addresses.  The mapping is useful to
@@ -490,6 +511,12 @@ in the master.cf file.  This feature is available in Postfix version
 behind their mail gateway, and to make it appear as if the mail
 comes from the gateway itself, instead of from individual machines.
 </p>
+
+<p> Postfix versions 2.2 and later do not rewrite message headers
+from remote SMTP clients at all, unless a non-empty domain name is
+specified with the remote_header_rewrite_domain configuration
+parameter.  The local_header_rewrite_clients parameter controls
+what SMTP clients Postfix considers local. </p>
 
 <p> Address masquerading is disabled by default, and is implemented
 by the cleanup(8) server. To enable, edit the masquerade_domains

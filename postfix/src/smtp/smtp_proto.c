@@ -646,7 +646,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			 DEL_REQ_ATTR_AVAIL(request->rewrite_context) == 0 ?
 				       XFORWARD_UNAVAILABLE :
 			   strcmp(request->rewrite_context, REWRITE_LOCAL) ?
-				  XFORWARD_DOM_LOCAL : XFORWARD_DOM_REMOTE);
+				  XFORWARD_DOM_REMOTE : XFORWARD_DOM_LOCAL );
 	    next_state = SMTP_STATE_MAIL;
 	    break;
 

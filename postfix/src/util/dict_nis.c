@@ -143,6 +143,12 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
     int     err;
     static VSTRING *buf;
 
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_nis_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
+
     dict_errno = 0;
     if (dict_nis_domain == dict_nis_disabled)
 	return (0);

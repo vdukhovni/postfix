@@ -267,6 +267,7 @@
 /*	canonical(5), canonical address lookup table format
 /*	virtual(5), virtual alias lookup table format
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	master(8), process manager
 /*	syslogd(8), system logging
 /* README FILES

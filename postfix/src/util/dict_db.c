@@ -167,6 +167,12 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     static VSTRING *buf;
     const char *result = 0;
 
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_db_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
+
     dict_errno = 0;
     memset(&db_key, 0, sizeof(db_key));
     memset(&db_value, 0, sizeof(db_value));
@@ -230,6 +236,12 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     DBT     db_key;
     DBT     db_value;
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_db_update: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     memset(&db_key, 0, sizeof(db_key));
     memset(&db_value, 0, sizeof(db_value));
@@ -301,6 +313,12 @@ static int dict_db_delete(DICT *dict, const char *name)
     DBT     db_key;
     int     status = 1;
     int     flags = 0;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_db_delete: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     memset(&db_key, 0, sizeof(db_key));
 

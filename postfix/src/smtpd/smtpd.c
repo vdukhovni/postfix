@@ -95,13 +95,14 @@
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBlocal_header_rewrite_clients (see 'postconf -d' output)\fR"
-/*	Append the domain name in $myorigin or $mydomain to incomplete
-/*	message header addresses from these clients; append
-/*	$remote_header_rewrite_domain for all other clients.
-/* .IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
-/*	Append this domain name to incomplete message header addresses
-/*	from remote clients; when this domain name is empty, don't rewrite
-/*	remote message headers at all.
+/*	Append the domain name in $myorigin or $mydomain to message
+/*	header addresses from these clients only; either don't rewrite
+/*	message headers from other clients at all, or append the domain
+/*	specified with the remote_header_rewrite_domain parameter.
+/* .IP "\fBremote_header_rewrite_domain (empty)\fR"
+/*	Don't rewrite message headers from remote clients at all when
+/*	this parameter is empty; otherwise, rewrite remote message headers
+/*	and append the specified domain name to incomplete addresses.
 /* AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -1073,21 +1074,21 @@ static void mail_open_stream(SMTPD_STATE *state)
 	if (*var_filter_xport)
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_RWR_CTXT_NAME, state->rewrite_context_name);
-    }
+		    MAIL_ATTR_RWR_CTXT_NAME, FORWARD_DOMAIN(state));
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable) {
-	if (state->sasl_method)
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_SASL_METHOD, state->sasl_method);
-	if (state->sasl_username)
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_SASL_USERNAME, state->sasl_username);
-	if (state->sasl_sender)
-	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			MAIL_ATTR_SASL_SENDER, state->sasl_sender);
-    }
+	if (var_smtpd_sasl_enable) {
+	    if (state->sasl_method)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_SASL_METHOD, state->sasl_method);
+	    if (state->sasl_username)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_SASL_USERNAME, state->sasl_username);
+	    if (state->sasl_sender)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_SASL_SENDER, state->sasl_sender);
+	}
 #endif
+    }
     rec_fputs(state->cleanup, REC_TYPE_FROM, state->sender);
     if (state->encoding != 0)
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
@@ -1537,7 +1538,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * we have a valid recipient address.
      */
     if (state->proxy == 0 && state->cleanup == 0) {
-	smtpd_check_rewrite(state);
+	if (!SMTPD_STAND_ALONE(state))
+	    smtpd_check_rewrite(state);
 	if (state->proxy_mail) {
 	    if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
 				 var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
@@ -2383,13 +2385,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 				 XFORWARD_DOMAIN, attr_value);
 		return (-1);
 	    }
-	    if (state->rewrite_context_name
-		&& strcmp(state->rewrite_context_name,
-			  context_name[context_code])) {
-		myfree(state->rewrite_context_name);
-		state->rewrite_context_name =
-		    mystrdup(context_name[context_code]);
-	    }
+	    UPDATE_STR(state->xforward.domain, context_name[context_code]);
 	    break;
 
 	    /*

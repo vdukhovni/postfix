@@ -106,6 +106,17 @@
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBproxy_read_maps (see 'postconf -d' output)\fR"
 /*	The lookup tables that the proxymap(8) server is allowed to access.
+/* SEE ALSO
+/*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
+/* README FILES
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
+/*	DATABASE_README, Postfix lookup table overview
 /* LICENSE
 /* .ad
 /* .fi

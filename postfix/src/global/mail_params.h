@@ -2092,7 +2092,7 @@ extern char *var_anvil_service;
   * What domain names to assume when no valid domain context exists.
   */
 #define VAR_REM_RWR_DOMAIN		"remote_header_rewrite_domain"
-#define DEF_REM_RWR_DOMAIN		"domain.invalid"
+#define DEF_REM_RWR_DOMAIN		""
 extern char *var_remote_rwr_domain;
 
 #define CHECK_ADDR_MAP			"check_address_map"

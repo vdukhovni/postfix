@@ -85,6 +85,7 @@
 /*	bounce(8), delivery status reports
 /*	discard(8), Postfix discard delivery agent
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	master(8), process manager
 /*	syslogd(8), system logging
 /* LICENSE

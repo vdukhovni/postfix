@@ -113,13 +113,14 @@ filtering, or address mapping.
 .PP
 Available in Postfix version 2.2 and later:
 .IP "\fBlocal_header_rewrite_clients (see 'postconf -d' output)\fR"
-Append the domain name in $myorigin or $mydomain to incomplete
-message header addresses from these clients; append
-$remote_header_rewrite_domain for all other clients.
-.IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
-Append this domain name to incomplete message header addresses
-from remote clients; when this domain name is empty, don't rewrite
-remote message headers at all.
+Append the domain name in $myorigin or $mydomain to message
+header addresses from these clients only; either don't rewrite
+message headers from other clients at all, or append the domain
+specified with the remote_header_rewrite_domain parameter.
+.IP "\fBremote_header_rewrite_domain (empty)\fR"
+Don't rewrite message headers from remote clients at all when
+this parameter is empty; otherwise, rewrite remote message headers
+and append the specified domain name to incomplete addresses.
 .SH "AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS"
 .na
 .nf

@@ -340,7 +340,7 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 					FORWARD_PROTO(state))))
 	 && (!(state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_DOMAIN)
 	     || !(bad = smtpd_xforward(state, buf, XFORWARD_DOMAIN, 1,
-			 STREQ(state->rewrite_context_name, REWRITE_LOCAL) ?
+			       STREQ(FORWARD_DOMAIN(state), REWRITE_LOCAL) ?
 				XFORWARD_DOM_LOCAL : XFORWARD_DOM_REMOTE))))
 	    bad = smtpd_xforward_flush(state, buf);
 	vstring_free(buf);

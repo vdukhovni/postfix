@@ -13,13 +13,12 @@
 /*	address rewriting context:
 /* .RS
 /* .IP \fBlocal\fR
-/* .IP \fBnone\fR
 /*	Append the domain names specified with \fB$myorigin\fR or
 /*	\fB$mydomain\fR to incomplete addresses; do \fBswap_bangpath\fR
 /*	and \fBallow_percent_hack\fR processing as described below, and
 /*	strip source routed addresses (\fI@site,@site:user@domain\fR)
 /*	to \fIuser@domain\fR form.
-/* .IP \fBinvalid\fR
+/* .IP \fBremote\fR
 /*	Append the domain name specified with
 /*	\fB$remote_header_rewrite_domain\fR to incomplete
 /*	addresses. Otherwise the result is identical to that of
@@ -107,10 +106,10 @@
 /*	Enable the rewriting of "site!user" into "user@site".
 /* .PP
 /*	Available in Postfix 2.2 and later:
-/* .IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
-/*	Append this domain to incomplete message header addresses from
-/*	remote clients; when the domain is empty, don't rewrite remote message
-/*	headers at all.
+/* .IP "\fBremote_header_rewrite_domain (empty)\fR"
+/*	Don't rewrite message headers from remote clients at all when
+/*	this parameter is empty; otherwise, rewrite remote message headers
+/*	and append the specified domain name to incomplete addresses.
 /* ROUTING CONTROLS
 /* .ad
 /* .fi

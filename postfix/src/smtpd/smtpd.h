@@ -53,6 +53,7 @@ typedef struct {
     char   *protocol;			/* email protocol */
     char   *helo_name;			/* helo/ehlo parameter */
     char   *ident;			/* message identifier */
+    char   *domain;			/* rewrite context */
 } SMTPD_XFORWARD_ATTR;
 
 typedef struct SMTPD_STATE {
@@ -175,6 +176,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define CLIENT_HELO_UNKNOWN	0
 #define CLIENT_PROTO_UNKNOWN	CLIENT_ATTR_UNKNOWN
 #define CLIENT_IDENT_UNKNOWN	0
+#define CLIENT_DOMAIN_UNKNOWN	0
 
 #define IS_AVAIL_CLIENT_ATTR(v)	((v) && strcmp((v), CLIENT_ATTR_UNKNOWN))
 
@@ -184,6 +186,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define IS_AVAIL_CLIENT_HELO(v)	((v) != 0)
 #define IS_AVAIL_CLIENT_PROTO(v) IS_AVAIL_CLIENT_ATTR(v)
 #define IS_AVAIL_CLIENT_IDENT(v) ((v) != 0)
+#define IS_AVAIL_CLIENT_DOMAIN(v) ((v) != 0)
 
  /*
   * If running in stand-alone mode, do not try to talk to Postfix daemons but
@@ -230,16 +233,19 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) ? \
 	    (s)->xforward.a : (s)->a)
 
-#define FORWARD_IDENT_ATTR(s) \
-	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_IDENT) ? \
-	    (s)->queue_id : (s)->ident)
-
 #define FORWARD_ADDR(s)		FORWARD_CLIENT_ATTR((s), addr)
 #define FORWARD_NAME(s)		FORWARD_CLIENT_ATTR((s), name)
 #define FORWARD_NAMADDR(s)	FORWARD_CLIENT_ATTR((s), namaddr)
 #define FORWARD_PROTO(s)	FORWARD_CLIENT_ATTR((s), protocol)
 #define FORWARD_HELO(s)		FORWARD_CLIENT_ATTR((s), helo_name)
-#define FORWARD_IDENT(s)	FORWARD_IDENT_ATTR(s)
+
+#define FORWARD_IDENT(s) \
+	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_IDENT) ? \
+	    (s)->queue_id : (s)->ident)
+
+#define FORWARD_DOMAIN(s) \
+	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_DOMAIN) ? \
+	    (s)->xforward.domain : (s)->rewrite_context_name)
 
 extern void smtpd_xforward_init(SMTPD_STATE *);
 extern void smtpd_xforward_preset(SMTPD_STATE *);

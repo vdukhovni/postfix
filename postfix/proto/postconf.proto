@@ -7218,19 +7218,35 @@ is already bounded by $max_idle.  </p>
 session cache hit and miss rates for logical destinations and for
 physical endpoints. </p>
 
-%PARAM remote_header_rewrite_domain domain.invalid
+%PARAM remote_header_rewrite_domain 
 
-<p> Append this domain name to incomplete message header addresses
-from remote clients; when this domain name is empty, don't rewrite
-remote message headers at all.  Both stop Postfix from appending
-your own domain to addresses in spam from poorly written software.
-</p>
+<p> Don't rewrite message headers from remote clients at all when
+this parameter is empty; otherwise, rewrite remote message headers
+and append the specified domain name to incomplete addresses. </p>
+
+<p> Examples:  </p>
+
+<p> The safe setting: append "domain.invalid" to incomplete header
+addresses from remote SMTP clients, so that those addresses cannot
+be confused with local addresses. </p>
+
+<pre> 
+    remote_header_rewrite_domain = domain.invalid
+</pre>
+
+<p> The default, purist, setting: don't rewrite headers from remote
+clients at all. </p>
+
+<pre>
+    remote_header_rewrite_domain =
+</pre>
 
 %PARAM local_header_rewrite_clients see "postconf -d" output
 
-<p> Append the domain name in $myorigin or $mydomain to incomplete
-message header addresses from these clients; append
-$remote_header_rewrite_domain for all other clients.  </p>
+<p> Append the domain name in $myorigin or $mydomain to message
+header addresses from these clients only; either don't rewrite
+message headers from other clients at all, or append the domain
+specified with the remote_header_rewrite_domain parameter.  </p>
 
 <p> Specify a list of zero or more of the following:  </p>
 
@@ -7277,7 +7293,25 @@ for pop-before-smtp lookup tables. </dd>
 
 <p> Examples:  </p>
 
+<p> The backwards compatible setting: always rewrite message headers,
+and always append my own domain to incomplete header addresses.  </p>
+
 <pre> 
-local_header_rewrite_clients = static:all
-local_header_rewrite_clients = permit_mynetworks, permit_sasl_authenticated 
+    local_header_rewrite_clients = static:all
+</pre>
+
+<p> The default setting: rewrite headers and append my own domain
+only with mail from local or authorized clients. </p>
+
+<pre>
+    local_header_rewrite_clients = permit_mynetworks, 
+        permit_sasl_authenticated permit_tls_clientcerts
+</pre>
+
+<p> Include clients that are pop-before-smtp authenticated: </p>
+
+<pre>
+    local_header_rewrite_clients = permit_mynetworks, 
+        permit_sasl_authenticated permit_tls_clientcerts
+        check_address_map hash:/etc/postfix/pop-before-smtp 
 </pre>

@@ -157,9 +157,9 @@
 /* .IP "\fBlmtp_data_done_timeout (600s)\fR"
 /*	The LMTP client time limit for sending the LMTP ".", and for
 /*	receiving the server response.
-/* .IP "\fBlmtp_rset_timeout (120s)\fR"
-/*	The LMTP client time limit for sending the RSET command, and for
-/*	receiving the server response.
+/* .IP "\fBlmtp_rset_timeout (20s)\fR"
+/*	The LMTP client time limit for sending the RSET command, and
+/*	for receiving the server response.
 /* .IP "\fBlmtp_quit_timeout (300s)\fR"
 /*	The LMTP client time limit for sending the QUIT command, and for
 /*	receiving the server response.
@@ -200,6 +200,7 @@
 /*	bounce(8), delivery status reports
 /*	qmgr(8), queue manager
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	services(4), Internet services and aliases
 /*	master(8), process manager
 /*	syslogd(8), system logging

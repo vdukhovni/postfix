@@ -1561,9 +1561,10 @@ Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
 .SH local_header_rewrite_clients (default: see "postconf -d" output)
-Append the domain name in $myorigin or $mydomain to incomplete
-message header addresses from these clients; append
-$remote_header_rewrite_domain for all other clients.
+Append the domain name in $myorigin or $mydomain to message
+header addresses from these clients only; either don't rewrite
+message headers from other clients at all, or append the domain
+specified with the remote_header_rewrite_domain parameter.
 .PP
 Specify a list of zero or more of the following:
 .IP "\fB permit_mynetworks \fR"
@@ -1595,11 +1596,37 @@ for pop-before-smtp lookup tables.
 .PP
 Examples:
 .PP
+The backwards compatible setting: always rewrite message headers,
+and always append my own domain to incomplete header addresses.
+.PP
 .nf
 .na
 .ft C
-local_header_rewrite_clients = static:all
-local_header_rewrite_clients = permit_mynetworks, permit_sasl_authenticated
+    local_header_rewrite_clients = static:all
+.fi
+.ad
+.ft R
+.PP
+The default setting: rewrite headers and append my own domain
+only with mail from local or authorized clients.
+.PP
+.nf
+.na
+.ft C
+    local_header_rewrite_clients = permit_mynetworks,
+        permit_sasl_authenticated permit_tls_clientcerts
+.fi
+.ad
+.ft R
+.PP
+Include clients that are pop-before-smtp authenticated:
+.PP
+.nf
+.na
+.ft C
+    local_header_rewrite_clients = permit_mynetworks,
+        permit_sasl_authenticated permit_tls_clientcerts
+        check_address_map hash:/etc/postfix/pop-before-smtp
 .fi
 .ad
 .ft R
@@ -2676,11 +2703,35 @@ relocated_maps = hash:/etc/postfix/relocated
 .fi
 .ad
 .ft R
-.SH remote_header_rewrite_domain (default: domain.invalid)
-Append this domain name to incomplete message header addresses
-from remote clients; when this domain name is empty, don't rewrite
-remote message headers at all.  Both stop Postfix from appending
-your own domain to addresses in spam from poorly written software.
+.SH remote_header_rewrite_domain (default: empty)
+Don't rewrite message headers from remote clients at all when
+this parameter is empty; otherwise, rewrite remote message headers
+and append the specified domain name to incomplete addresses.
+.PP
+Examples:
+.PP
+The safe setting: append "domain.invalid" to incomplete header
+addresses from remote SMTP clients, so that those addresses cannot
+be confused with local addresses.
+.PP
+.nf
+.na
+.ft C
+    remote_header_rewrite_domain = domain.invalid
+.fi
+.ad
+.ft R
+.PP
+The default, purist, setting: don't rewrite headers from remote
+clients at all.
+.PP
+.nf
+.na
+.ft C
+    remote_header_rewrite_domain =
+.fi
+.ad
+.ft R
 .SH require_home_directory (default: no)
 Whether or not a local(8) recipient's home directory must exist
 before mail delivery is attempted. By default this test is disabled.

@@ -21,17 +21,14 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
               Rewrite  an  address to standard form, according to
               the address rewriting context:
 
-              <b>local</b>
-
-              <b>none</b>   Append the domain names specified with <b>$<a href="postconf.5.html#myorigin">myo</a>-</b>
+              <b>local</b>  Append the domain names specified with <b>$<a href="postconf.5.html#myorigin">myo</a>-</b>
                      <b><a href="postconf.5.html#myorigin">rigin</a></b>  or <b>$<a href="postconf.5.html#mydomain">mydomain</a></b> to incomplete addresses;
                      do <b><a href="postconf.5.html#swap_bangpath">swap_bangpath</a></b> and <b><a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a></b> pro-
                      cessing as described below, and strip source
                      routed  addresses  (<i>@site,@site:user@domain</i>)
                      to <i>user@domain</i> form.
 
-              <b>invalid</b>
-                     Append   the   domain  name  specified  with
+              <b>remote</b> Append   the   domain  name  specified  with
                      <b>$<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a></b> to  incomplete
                      addresses. Otherwise the result is identical
                      to that of the <b>local</b> address rewriting  con-
@@ -135,10 +132,11 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
        Available in Postfix 2.2 and later:
 
-       <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (domain.invalid)</b>
-              Append  this  domain  to  incomplete message header
-              addresses from remote clients; when the  domain  is
-              empty, don't rewrite remote message headers at all.
+       <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
+              Don't  rewrite  message headers from remote clients
+              at all when this  parameter  is  empty;  otherwise,
+              rewrite remote message headers and append the spec-
+              ified domain name to incomplete addresses.
 
 <b>ROUTING CONTROLS</b>
        The following is applicable to  Postfix  version  2.0  and

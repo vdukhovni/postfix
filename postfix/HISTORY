@@ -9776,27 +9776,22 @@ Apologies for any names omitted.
 
 20041014-21
 
-	By default, Postfix no longer appends the local domain to
-	incomplete message header addresses from remote clients.
-	Thus, spam from badly written software no longer looks like
-	it came from a local user.
-
-	Instead, Postfix either does not rewrite headers from remote
-	clients at all, or it appends the domain name that is
-	specified with the new invalid_rewrite_context_domain
+	Postfix no longer appends the local domain to header
+	addresses from remote clients.  Instead, Postfix either
+	does not rewrite those headers at all, or it appends the
+	domain specified with the new remote_header_rewrite_domain
 	parameter.
 
 	Postfix still appends $@myorigin or .$mydomain to headers
-	in mail from Postfix sendmail, from clients listed with
-	the local_rewrite_context_clients parameter (default:
+	from the Postfix sendmail command, or from clients listed
+	with the new local_header_rewrite_clients parameter (default:
 	permit_mynetworks, permit_sasl_authenticated).
 
-	The context specified with remote_rewrite_context_name is
-	used for all other clients. The default setting is backwards
-	compatible to avoid surprises.
+20041016
 
-	Postfix still appends $@myorigin or .$mydomain when rewriting
-	incomplete envelope addresses.
+	Bugfix: attr_clnt_request() did not properly skip hash
+	table arguments. Luc Pardon, Skopos Consulting. File:
+	util/attr_clnt.c.
 
 20041018
 
@@ -9807,17 +9802,20 @@ Apologies for any names omitted.
 
 	Support for Errors-To: is permanently removed.
 
-Open problems:
+20041022
 
-	High: document master(5) for generic daemon options.
+	Bugfix: "smtp_connection_cache_on_demand=no" could crash
+	the SMTP client. File: smtp/smtp_connect.c.
+
+	Robustness: extra sanity checks. Files: util/dict_db.c,
+	util/dict_dbm.c.
+
+Open problems:
 
 	Low: reject HELO with any domain name that this MTA is
 	final destination for.
 
 	Low: should the Delivered-To: test in local(8) be configurable?
-
-	Low: append a different domain (like, address.invalid) for
-	mail from clients not in mynetworks.
 
 	Low: document propagate_unmatched_extensions in aliases(5)
 	etc.
@@ -9848,9 +9846,6 @@ Open problems:
 	Low: noise filter: allow smtp(8) to retry immediately if
 	all MXes return a quick ECONNRESET or 4xx reply during the
 	initial handshake.
-
-	Low: add msg_panic() guard to ensure that at least one of
-	DICT_FLAG_TRY1NULL or DICT_FLAG_TRY1NULL is set upon lookup.
 
 	Low: make post-install a "postfix-only script" so it can
 	take data from the environment instead of main.cf.

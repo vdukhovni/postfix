@@ -527,7 +527,7 @@ int     smtp_connect(SMTP_STATE *state)
 	 * high volume of mail in the active queue.
 	 */
 	if (cpp == sites->argv
-	    && ((request->flags & DEL_REQ_FLAG_SCACHE) != 0
+	    && ((var_smtp_cache_demand && (request->flags & DEL_REQ_FLAG_SCACHE) != 0)
 		|| (smtp_cache_dest && string_list_match(smtp_cache_dest, domain)))) {
 	    sess_flags |= SMTP_SESS_FLAG_CACHE;
 	    SET_NEXTHOP_STATE(state, lookup_mx, domain, port);

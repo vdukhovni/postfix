@@ -323,7 +323,6 @@ static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
 #define SMTPD_NAME_RECIPIENT	"Recipient address"
 #define SMTPD_NAME_ETRN		"Etrn command"
 #define SMTPD_NAME_DATA		"Data command"
-#define SMTPD_NAME_REWRITE	"Local address rewriting"
 
  /*
   * YASLM.
@@ -3397,8 +3396,8 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
     DICT   *dict;
 
     /*
-     * We don't use generic_checks() because it produces results that
-     * aren't applicable such as DEFER or REJECT.
+     * We don't use generic_checks() because it produces results that aren't
+     * applicable such as DEFER or REJECT.
      */
     for (cpp = local_rewrite_clients->argv; *cpp != 0; cpp++) {
 	if (msg_verbose)
@@ -3430,6 +3429,8 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	    continue;
 	}
 	if (status == SMTPD_CHECK_OK) {
+	    if (state->rewrite_context_name)
+		myfree(state->rewrite_context_name);
 	    state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
 	    return;
 	}
@@ -4063,7 +4064,7 @@ char   *var_def_rbl_reply;
 char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
-char   *var_remote_rwr_name;
+char   *var_remote_rwr_domain;
 char   *var_local_rwr_clients;
 
 typedef struct {
@@ -4105,7 +4106,7 @@ static STRING_TABLE string_table[] = {
     VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
     VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
-    VAR_REM_RWR_NAME, DEF_REM_RWR_NAME, &var_remote_rwr_name,
+    VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain,
     VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients,
     0,
 };
@@ -4171,6 +4172,8 @@ int     var_verify_poll_delay;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
+int     var_smtpd_rej_unl_from;
+int     var_smtpd_rej_unl_rcpt;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -4195,6 +4198,8 @@ static INT_TABLE int_table[] = {
     VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code,
     VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
     VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count,
+    VAR_SMTPD_REJ_UNL_FROM, DEF_SMTPD_REJ_UNL_FROM, &var_smtpd_rej_unl_from,
+    VAR_SMTPD_REJ_UNL_RCPT, DEF_SMTPD_REJ_UNL_RCPT, &var_smtpd_rej_unl_rcpt,
     0,
 };
 
@@ -4411,7 +4416,7 @@ int     main(int argc, char **argv)
     string_init();
     int_init();
     smtpd_check_init();
-    smtpd_state_init(&state, VSTREAM_IN);
+    smtpd_state_init(&state, VSTREAM_IN, "smtpd");
     state.queue_id = "<queue id>";
 
     /*
@@ -4589,11 +4594,17 @@ int     main(int argc, char **argv)
 	     * Show commands.
 	     */
 	default:
+	    if (strcasecmp(args->argv[0], "check_rewrite") == 0) {
+		smtpd_check_rewrite(&state);
+		resp = state.rewrite_context_name;
+		break;
+	    }
 	    resp = "Commands...\n\
 		client <name> <address> [<code>]\n\
 		helo <hostname>\n\
 		sender <address>\n\
 		recipient <address>\n\
+		check_rewrite\n\
 		msg_verbose <level>\n\
 		client_restrictions <restrictions>\n\
 		helo_restrictions <restrictions>\n\

@@ -465,6 +465,7 @@
 /*	postalias(1), create/update alias database
 /*	aliases(5), format of alias database
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

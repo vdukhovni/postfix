@@ -3075,9 +3075,10 @@ into concurrency per domain.  </p>
 <DT><b><a name="local_header_rewrite_clients">local_header_rewrite_clients</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
-<p> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete
-message header addresses from these clients; append
-$<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> for all other clients.  </p>
+<p> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> to message
+header addresses from these clients only; either don't rewrite
+message headers from other clients at all, or append the domain
+specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter.  </p>
 
 <p> Specify a list of zero or more of the following:  </p>
 
@@ -3124,9 +3125,27 @@ for pop-before-smtp lookup tables. </dd>
 
 <p> Examples:  </p>
 
+<p> The backwards compatible setting: always rewrite message headers,
+and always append my own domain to incomplete header addresses.  </p>
+
 <pre>
-<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all
-<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
+    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all
+</pre>
+
+<p> The default setting: rewrite headers and append my own domain
+only with mail from local or authorized clients. </p>
+
+<pre>
+    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
+        <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
+</pre>
+
+<p> Include clients that are pop-before-smtp authenticated: </p>
+
+<pre>
+    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
+        <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
+        <a href="postconf.5.html#check_address_map">check_address_map</a> hash:/etc/postfix/pop-before-smtp
 </pre>
 
 
@@ -5046,13 +5065,28 @@ Examples:
 </DD>
 
 <DT><b><a name="remote_header_rewrite_domain">remote_header_rewrite_domain</a>
-(default: domain.invalid)</b></DT><DD>
+(default: empty)</b></DT><DD>
 
-<p> Append this domain name to incomplete message header addresses
-from remote clients; when this domain name is empty, don't rewrite
-remote message headers at all.  Both stop Postfix from appending
-your own domain to addresses in spam from poorly written software.
-</p>
+<p> Don't rewrite message headers from remote clients at all when
+this parameter is empty; otherwise, rewrite remote message headers
+and append the specified domain name to incomplete addresses. </p>
+
+<p> Examples:  </p>
+
+<p> The safe setting: append "domain.invalid" to incomplete header
+addresses from remote SMTP clients, so that those addresses cannot
+be confused with local addresses. </p>
+
+<pre>
+    <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> = domain.invalid
+</pre>
+
+<p> The default, purist, setting: don't rewrite headers from remote
+clients at all. </p>
+
+<pre>
+    <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> =
+</pre>
 
 
 </DD>

@@ -193,6 +193,7 @@
 /* SEE ALSO
 /*	smtpd(8), Postfix SMTP server
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /* README FILES
 /* .ad
 /* .fi

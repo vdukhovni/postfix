@@ -78,6 +78,12 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
     static VSTRING *buf;
     const char *result = 0;
 
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_dbm_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
+
     dict_errno = 0;
 
     /*
@@ -136,6 +142,12 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
     datum   dbm_key;
     datum   dbm_value;
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_dbm_update: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     dbm_key.dptr = (void *) name;
     dbm_value.dptr = (void *) value;
@@ -201,6 +213,12 @@ static int dict_dbm_delete(DICT *dict, const char *name)
     datum   dbm_key;
     int     status = 1;
     int     flags = 0;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_dbm_delete: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     /*
      * Acquire an exclusive lock.

@@ -7,54 +7,53 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
-Incompatible changes with snapshot Postfix-2.2-20041019
+Incompatible changes with snapshot Postfix-2.2-20041022
 =======================================================
 
-You must reload or restart Postfix, because the protocol between
-queue manager and delivery agents has changed.  If you forget this,
-mail will remain queued until you restart/reload Postfix.
+You must reload or stop/start Postfix, because the queue manager
+to delivery agent protocol has changed. If you forget this, mail
+will remain queued until the queue manager is restarted.
 
-Support for return addresses in the non-standard Errors-To: message
-headers is removed. It was already disabled by default with Postfix
-version 2.1. Since it is non-standard, there was no guarantee that
-it would have effect on other MTAs.
+Support for the non-standard Errors-To: return addresses is removed.
+It was already disabled by default with Postfix version 2.1. Since
+Errors-To: is non-standard, there was no guarantee that it would
+have effect with other MTAs.
 
-Major changes with snapshot Postfix-2.2-20041019
+Major changes with snapshot Postfix-2.2-20041022
 ================================================
 
 The NIS+ client by Geoff Gibbs is now part of the Postfix source
 tree. Details are given in the nisplus_table(5) manual page.
 
-Message header address rewriting contexts. These control what
-domains are appended to incomplete addresses in message headers,
-and whether headers are rewritten at all.
+By default, Postfix no longer appends the local domain to addresses
+in message headers from remote clients. Thus, spam from poorly
+written software no longer looks like it came from a local user.
 
-- "local": Append the domain names in myorigin or mydomain to
-  incomplete addresses in message headers.
+Postfix either does not rewrite remote message headers at all, or
+it rewrites headers and appends the domain name that is specified
+with the remote_header_rewrite_domain parameter (like "domain.invalid").
 
-- "invalid": append "domain.invalid" (or whatever is specified
-  with the invalid_header_rewrite_context_domain parameter) to
-  incomplete addresses in message headers,
+To get the behavior of earlier Postfix versions specify
 
-- "none": disable header address rewriting (don't even do canonical
-  mapping or address masquerading).
+/etc/postfix/main.cf:
+    local_header_rewrite_clients = static:all
 
-The "local" address rewriting context is used for mail submitted
-with the Postfix sendmail command, for mail from clients that match
-$local_header_rewrite_context_clients (default:  $mynetworks), and
-for mail from SASL authenticated clients.  It is not automatically
-used for pop-before-smtp clients; you'll have to specify their
-lookup table via the local_header_rewrite_context_clients parameter.
+Postfix always appends local domain information in message headers
+from Postfix sendmail and from local clients.
 
-The smtpd_remote_header_rewrite_context parameter specifies the
-address rewriting context for remote mail. The backwards compatible
-default is "local".  Purists will specify "none", so that Postfix
-does not modify headers (not even with canonical mappings or address
-masquerading).
+By default, Postfix considers a client local when its address
+matches mynetworks, or when it is SASL or TLS authenticated.  If
+you want to include a pop-before-smtp table, then you have to
+specify that via the new local_header_rewrite_clients parameter:
 
-Postix always uses the "local" context for envelope addresses,
-because an unqualified address is effectively local when someone
-attempts to reply to it.
+/etc/postfix/main.cf:
+    local_header_rewrite_clients = permit_mynetworks,
+	permit_sasl_authenticated, permit_tls_clientcerts,
+	check_address_map hash:/etc/postfix/pop-before-smtp
+
+As before, Postfix appends local domain information to envelope
+addresses, because an unqualified address is effectively local when
+someone attempts to reply to it.
 
 Incompatible changes with snapshot Postfix-2.2-20041009
 =======================================================

@@ -119,10 +119,11 @@ static const char *dict_nisplus_lookup(DICT *dict, const char *key)
     DICT_NISPLUS *dict_nisplus = (DICT_NISPLUS *) dict;
     static VSTRING *quoted_key;
     static VSTRING *query;
-    static VSTRING *reply;
-    nis_result *nis_alias;
+    static VSTRING *retval;
+    nis_result *reply;
     int     count;
     const char *cp;
+    int     last_col;
     int     ch;
 
     /*
@@ -131,7 +132,7 @@ static const char *dict_nisplus_lookup(DICT *dict, const char *key)
     dict_errno = 0;
     if (quoted_key == 0) {
 	query = vstring_alloc(100);
-	reply = vstring_alloc(100);
+	retval = vstring_alloc(100);
 	quoted_key = vstring_alloc(100);
     }
 
@@ -168,29 +169,35 @@ static const char *dict_nisplus_lookup(DICT *dict, const char *key)
      * addresses (in envelopes or in headers) have a finite length.
      */
     vstring_sprintf(query, dict_nisplus->template, STR(quoted_key));
-    nis_alias = nis_list(STR(query), FOLLOW_LINKS | FOLLOW_PATH, NULL, NULL);
+    reply = nis_list(STR(query), FOLLOW_LINKS | FOLLOW_PATH, NULL, NULL);
 
     /*
-     * When lookup succeeds, the result may be unusable because it is
-     * ambiguous.
+     * When lookup succeeds, the result may be ambiguous, or the requested
+     * column may not exist.
      */
-    if (nis_alias->status == NIS_SUCCESS) {
-	if ((count = NIS_RES_NUMOBJ(nis_alias)) != 1) {
+    if (reply->status == NIS_SUCCESS) {
+	if ((count = NIS_RES_NUMOBJ(reply)) != 1) {
 	    msg_warn("ambiguous match (%d results) for %s in NIS+ map %s:"
 		     " ignoring this request",
 		     count, key, dict_nisplus->dict.name);
-	    nis_freeresult(nis_alias);
+	    nis_freeresult(reply);
 	    return (0);
 	} else {
-	    vstring_strcpy(reply,
-			   NIS_RES_OBJECT(nis_alias)->zo_data.objdata_u
+	    last_col = NIS_RES_OBJECT(reply)->zo_data
+		.objdata_u.en_data.en_cols.en_cols_len - 1;
+	    if (dict_nisplus->column > last_col)
+		msg_fatal("requested column %d > max column %d in table %s",
+			  dict_nisplus->column, last_col,
+			  dict_nisplus->dict.name);
+	    vstring_strcpy(retval,
+			   NIS_RES_OBJECT(reply)->zo_data.objdata_u
 			   .en_data.en_cols.en_cols_val[dict_nisplus->column]
 			   .ec_value.ec_value_val);
 	    if (msg_verbose)
 		msg_info("%s: %s, column %d -> %s", myname, STR(query),
-			 dict_nisplus->column, STR(reply));
-	    nis_freeresult(nis_alias);
-	    return (STR(reply));
+			 dict_nisplus->column, STR(retval));
+	    nis_freeresult(reply);
+	    return (STR(retval));
 	}
     }
 
@@ -200,14 +207,17 @@ static const char *dict_nisplus_lookup(DICT *dict, const char *key)
      * the problem and fix it.
      */
     else {
-	if (nis_alias->status != NIS_NOTFOUND
-	    && nis_alias->status != NIS_PARTIAL) {
+	if (reply->status != NIS_NOTFOUND
+	    && reply->status != NIS_PARTIAL) {
 	    msg_warn("lookup %s, NIS+ map %s: %s",
 		     key, dict_nisplus->dict.name,
-		     nis_sperrno(nis_alias->status));
+		     nis_sperrno(reply->status));
 	    dict_errno = DICT_ERR_RETRY;
+	} else {
+	    if (msg_verbose)
+		msg_info("%s: not found: query %s", myname, STR(query));
 	}
-	nis_freeresult(nis_alias);
+	nis_freeresult(reply);
 	return (0);
     }
 }

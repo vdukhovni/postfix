@@ -59,6 +59,7 @@ void    smtpd_xforward_init(SMTPD_STATE *state)
     state->xforward.protocol = 0;
     state->xforward.helo_name = 0;
     state->xforward.ident = 0;
+    state->xforward.domain = 0;
 }
 
 /* smtpd_xforward_preset - set xforward attributes to "unknown" */
@@ -85,6 +86,7 @@ void    smtpd_xforward_preset(SMTPD_STATE *state)
     /* Leave helo at zero. */
     state->xforward.protocol = mystrdup(CLIENT_PROTO_UNKNOWN);
     /* Leave ident at zero. */
+    /* Leave domain context at zero. */
 }
 
 /* smtpd_xforward_reset - reset XCLIENT attributes */
@@ -100,4 +102,5 @@ void    smtpd_xforward_reset(SMTPD_STATE *state)
     FREE_AND_WIPE(state->xforward.protocol);
     FREE_AND_WIPE(state->xforward.helo_name);
     FREE_AND_WIPE(state->xforward.ident);
+    FREE_AND_WIPE(state->xforward.domain);
 }

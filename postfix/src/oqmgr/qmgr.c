@@ -249,6 +249,7 @@
 /*	trivial-rewrite(8), address routing
 /*	bounce(8), delivery status reports
 /*	postconf(5), configuration parameters
+/*	master(5), generic daemon options
 /*	master(8), process manager
 /*	syslogd(8) system logging
 /* README FILES
