@@ -9124,6 +9124,18 @@ Apologies for any names omitted.
 	previous "354 End data with <CR><LF>.<CR><LF>" response.
 	File:  smtpd/smtpd.c.
 
+20040302
+
+	Bugfix: SMTPD proxy didn't send QUIT as the result of code
+	duplication. Evidence reported by Mark Martinec. File:
+	smtpd/smtpd.c.
+
+20040311
+
+	Bugfix: bad address syntax caused map lookup with zero-length
+	keys.  Problem reported by Andrei Koulik. Files:
+	util/match_ops.c, src/trivial-rewrite/transport.c.
+
 Open problems:
 
 	Low: log xdelay (esp. for SMTP and delivery to command).

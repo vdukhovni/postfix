@@ -1487,7 +1487,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    vstring_sprintf(state->proxy_buffer,
 			    "451 Error: queue file write error");
 	}
-	smtpd_proxy_close(state);
     }
 
     /*

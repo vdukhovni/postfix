@@ -319,7 +319,7 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
      * Specify that the lookup key is partial, to avoid matching partial keys
      * with regular expressions.
      */
-    for (name = ratsign + 1; /* void */ ; name = next) {
+    for (name = ratsign + 1; *name != 0; name = next) {
 	if (find_transport_entry(tp, name, rcpt_domain, PARTIAL, channel, nexthop))
 	    RETURN_FREE(FOUND);
 	if (dict_errno != 0)
