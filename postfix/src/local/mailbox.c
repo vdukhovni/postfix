@@ -86,8 +86,6 @@
 #define YES	1
 #define NO	0
 
-const char *map_command;		/* XXX */
-
 /* deliver_mailbox_file - deliver to recipient mailbox */
 
 static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
@@ -237,6 +235,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     struct mypasswd *mbox_pwd;
     char   *path;
     static MAPS *cmd_maps;
+    const char *map_command;
 
     /*
      * Make verbose logging easier to understand.

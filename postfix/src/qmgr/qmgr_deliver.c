@@ -235,7 +235,9 @@ static void qmgr_deliver_update(int unused_event, char *context)
      */
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
-	qmgr_transport_throttle(transport, "unknown mail transport error -- see a previous warning/fatal/panic record for the problem description");
+	qmgr_transport_throttle(transport, "unknown mail transport error");
+	msg_warn("transport %s failure -- see a previous warning/fatal/panic logfile record for the problem description",
+		 transport->name);
 	qmgr_defer_transport(transport, transport->reason);
     }
 

@@ -243,8 +243,8 @@ int     main(int argc, char **argv)
     HTABLE *table = htable_create(1);
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    htable_enter(table, "foo-name", "foo-value");
-    htable_enter(table, "bar-name", "bar-value");
+    htable_enter(table, "foo-name", mystrdup("foo-value"));
+    htable_enter(table, "bar-name", mystrdup("bar-value"));
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
 	       ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
 	       ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
@@ -264,6 +264,8 @@ int     main(int argc, char **argv)
 	       ATTR_TYPE_END);
     if (vstream_fflush(VSTREAM_OUT) != 0)
 	msg_fatal("write error: %m");
+
+    htable_free(table, myfree);
     return (0);
 }
 

@@ -107,17 +107,6 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	return (0);
 
     /*
-     * DELIVERY POLICY
-     * 
-     * Do we permit mail to shell commands? Allow delivery via mailbox_command.
-     */
-    if (command != var_mailbox_command
-	&& command != map_command		/* XXX */
-	&& (local_cmd_deliver_mask & state.msg_attr.exp_type) == 0)
-	return (bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			      "mail to command is restricted"));
-
-    /*
      * DELIVERY RIGHTS
      * 
      * Choose a default uid and gid when none have been selected (i.e. values

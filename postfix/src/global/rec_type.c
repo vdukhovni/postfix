@@ -47,7 +47,6 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_FILT, "content_filter",
     REC_TYPE_FROM, "sender",
     REC_TYPE_DONE, "done",
-    REC_TYPE_ORCP, "envelope-to-recipient",
     REC_TYPE_RCPT, "recipient",
     REC_TYPE_WARN, "warning_message_time",
     REC_TYPE_MESG, "message_content",

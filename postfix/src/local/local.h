@@ -158,8 +158,6 @@ extern int deliver_indirect(LOCAL_STATE);
 extern int deliver_maildir(LOCAL_STATE, USER_ATTR, char *);
 extern int deliver_unknown(LOCAL_STATE, USER_ATTR);
 
-extern const char *map_command;		/* XXX */
-
  /*
   * Restrictions on delivery to sensitive destinations.
   */

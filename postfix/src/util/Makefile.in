@@ -1,5 +1,5 @@
 SHELL	= /bin/sh
-SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
+SRCS	= argv.c argv_split.c basename.c binhash.c chroot_uid.c \
 	close_on_exec.c concatenate.c dict.c dict_db.c dict_dbm.c \
 	dict_env.c dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
 	dict_nisplus.c dict_open.c dir_forest.c doze.c environ.c \
@@ -25,7 +25,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c \
 	sane_socketpair.c myrand.c netstring.c ctable.c attr_print.c intv.c \
 	attr_scan.c base64_code.c
-OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
+OBJS	= argv.o argv_split.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
 	dict_nisplus.o dict_open.o dir_forest.o doze.o environ.o \

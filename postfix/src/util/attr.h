@@ -51,12 +51,6 @@ extern int attr_scan(VSTREAM *, int,...);
 extern int attr_vscan(VSTREAM *, int, va_list);
 
  /*
-  * attr.c.
-  */
-extern void attr_enter(HTABLE *, int,...);
-extern int attr_find(HTABLE *, int,...);
-
- /*
   * Attribute names for testing the compatibility of the read and write
   * routines.
   */

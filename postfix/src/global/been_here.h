@@ -28,23 +28,12 @@ typedef struct {
 #define BH_FLAG_NONE	0		/* no special processing */
 #define BH_FLAG_FOLD	(1<<0)		/* fold case */
 
- /*
-  * been_here.c
-  */
 extern BH_TABLE *been_here_init(int, int);
 extern void been_here_free(BH_TABLE *);
 extern int been_here_fixed(BH_TABLE *, const char *);
 extern int PRINTFLIKE(2, 3) been_here(BH_TABLE *, const char *,...);
 extern int been_here_check_fixed(BH_TABLE *, const char *);
 extern int PRINTFLIKE(2, 3) been_here_check(BH_TABLE *, const char *,...);
-
- /*
-  * been_here_level.c
-  */
-extern int been_here_level_fixed(BH_TABLE *, int, const char *);
-extern int PRINTFLIKE(3, 4) been_here_level(BH_TABLE *, int, const char *,...);
-extern int been_here_level_check_fixed(BH_TABLE *, const char *);
-extern int PRINTFLIKE(2, 3) been_here_level_check(BH_TABLE *, const char *,...);
 
 /* LICENSE
 /* .ad

@@ -23,7 +23,7 @@ only once. All definitions have a reasonable default value.
 
     install_root - prefix for installed file names (for package building)
 
-    tempdir - where to write scratch files
+    tempdir - where to write scratch files while installing Postfix
 
     config_directory - directory with Postfix configuration files.
     daemon_directory - directory with Postfix daemon programs.

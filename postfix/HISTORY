@@ -5523,6 +5523,12 @@ Apologies for any names omitted.
 	detection of self-referential entries was flawed.  File:
 	cleanup/cleanup_map1n.c.
 
+20011031
+
+	Bugfix: mail_date() mis-formatted negative time zone offsets
+	with fractional hours (-03-30 instead of -0330). Fix by
+	Chad House, greyfirst.ca.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups.
