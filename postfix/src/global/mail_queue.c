@@ -311,7 +311,7 @@ int     mail_queue_id_ok(const char *queue_id)
     /*
      * OK if in valid hostname form.
      */
-    return (valid_hostname(queue_id));
+    return (valid_hostname(queue_id, DO_GRIPE));
 }
 
 /* mail_queue_enter - make mail queue entry with locally-unique name */
@@ -416,7 +416,7 @@ VSTREAM *mail_queue_open(const char *queue_name, const char *queue_id,
      */
     if ((fp = vstream_fopen(path, flags, mode)) == 0)
 	if (errno == ENOENT)
-	if ((flags & O_CREAT) == O_CREAT && mail_queue_mkdirs(path) == 0)
-	    fp = vstream_fopen(path, flags, mode);
+	    if ((flags & O_CREAT) == O_CREAT && mail_queue_mkdirs(path) == 0)
+		fp = vstream_fopen(path, flags, mode);
     return (fp);
 }

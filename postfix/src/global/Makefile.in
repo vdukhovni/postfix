@@ -346,6 +346,7 @@ deliver_flock.o: ../../include/sys_defs.h
 deliver_flock.o: ../../include/vstring.h
 deliver_flock.o: ../../include/vbuf.h
 deliver_flock.o: ../../include/myflock.h
+deliver_flock.o: ../../include/iostuff.h
 deliver_flock.o: mail_params.h
 deliver_flock.o: deliver_flock.h
 deliver_pass.o: deliver_pass.c
@@ -387,6 +388,7 @@ dot_lockfile.o: ../../include/vstring.h
 dot_lockfile.o: ../../include/vbuf.h
 dot_lockfile.o: ../../include/stringops.h
 dot_lockfile.o: ../../include/mymalloc.h
+dot_lockfile.o: ../../include/iostuff.h
 dot_lockfile.o: mail_params.h
 dot_lockfile.o: dot_lockfile.h
 dot_lockfile_as.o: dot_lockfile_as.c
@@ -428,13 +430,6 @@ header_opts.o: header_opts.h
 is_header.o: is_header.c
 is_header.o: ../../include/sys_defs.h
 is_header.o: is_header.h
-local_transport.o: local_transport.c
-local_transport.o: ../../include/sys_defs.h
-local_transport.o: ../../include/msg.h
-local_transport.o: ../../include/mymalloc.h
-local_transport.o: string_list.h
-local_transport.o: mail_params.h
-local_transport.o: local_transport.h
 mail_addr.o: mail_addr.c
 mail_addr.o: ../../include/sys_defs.h
 mail_addr.o: ../../include/stringops.h
@@ -774,6 +769,8 @@ mkmap_open.o: ../../include/dict.h
 mkmap_open.o: ../../include/vstream.h
 mkmap_open.o: ../../include/vbuf.h
 mkmap_open.o: ../../include/argv.h
+mkmap_open.o: ../../include/dict_db.h
+mkmap_open.o: ../../include/dict_dbm.h
 mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/mymalloc.h
 mkmap_open.o: ../../include/myflock.h
@@ -784,7 +781,9 @@ mynetworks.o: ../../include/msg.h
 mynetworks.o: ../../include/vstring.h
 mynetworks.o: ../../include/vbuf.h
 mynetworks.o: ../../include/inet_addr_list.h
+mynetworks.o: ../../include/name_mask.h
 mynetworks.o: own_inet_addr.h
+mynetworks.o: mail_params.h
 mynetworks.o: mynetworks.h
 mypwd.o: mypwd.c
 mypwd.o: ../../include/sys_defs.h

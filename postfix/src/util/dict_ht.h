@@ -20,7 +20,9 @@
  /*
   * External interface.
   */
-extern DICT *dict_ht_open(HTABLE *, void (*) (char *));
+#define DICT_TYPE_HT	"internal"
+
+extern DICT *dict_ht_open(const char *, HTABLE *, void (*) (char *));
 
 /* LICENSE
 /* .ad

@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_NETINFO	"netinfo"
+
 extern DICT *dict_ni_open(const char *, int, int);
 
 /* AUTHOR(S)

@@ -6,11 +6,13 @@
 /* SYNOPSIS
 /*	#include <valid_hostname.h>
 /*
-/*	int	valid_hostname(name)
+/*	int	valid_hostname(name, gripe)
 /*	const char *name;
+/*	int	gripe;
 /*
-/*	int	valid_hostaddr(addr)
+/*	int	valid_hostaddr(addr, gripe)
 /*	const char *addr;
+/*	int	gripe;
 /* DESCRIPTION
 /*	valid_hostname() scrutinizes a hostname: the name should be no
 /*	longer than VALID_HOSTNAME_LEN characters, should contain only
@@ -20,6 +22,10 @@
 /*
 /*	valid_hostaddr() requirs that the input is a valid string
 /*	representation of an internet network address.
+/*
+/*	These routines operate silently unless the gripe parameter
+/*	specifies a non-zero value. The macros DO_GRIPE and DONT_GRIPE
+/*	provide suitable constants.
 /* DIAGNOSTICS
 /*	Both functions return zero if they disagree with the input.
 /* SEE ALSO
@@ -50,7 +56,7 @@
 
 /* valid_hostname - screen out bad hostnames */
 
-int     valid_hostname(const char *name)
+int     valid_hostname(const char *name, int gripe)
 {
     char   *myname = "valid_hostname";
     const char *cp;
@@ -63,7 +69,8 @@ int     valid_hostname(const char *name)
      * Trivial cases first.
      */
     if (*name == 0) {
-	msg_warn("%s: empty hostname", myname);
+	if (gripe)
+	    msg_warn("%s: empty hostname", myname);
 	return (0);
     }
 
@@ -76,37 +83,43 @@ int     valid_hostname(const char *name)
 		label_count++;
 	    label_length++;
 	    if (label_length > VALID_LABEL_LEN) {
-		msg_warn("%s: hostname label too long: %.100s", myname, name);
+		if (gripe)
+		    msg_warn("%s: hostname label too long: %.100s", myname, name);
 		return (0);
 	    }
 	    if (!ISDIGIT(ch))
 		non_numeric = 1;
 	} else if (ch == '.') {
 	    if (label_length == 0 || cp[1] == 0) {
-		msg_warn("%s: misplaced delimiter: %.100s", myname, name);
+		if (gripe)
+		    msg_warn("%s: misplaced delimiter: %.100s", myname, name);
 		return (0);
 	    }
 	    label_length = 0;
 	} else if (ch == '-') {
 	    label_length++;
 	    if (label_length == 1 || cp[1] == 0 || cp[1] == '.') {
-		msg_warn("%s: misplaced hyphen: %.100s", myname, name);
+		if (gripe)
+		    msg_warn("%s: misplaced hyphen: %.100s", myname, name);
 		return (0);
 	    }
 	} else {
-	    msg_warn("%s: invalid character %d(decimal): %.100s",
-		     myname, ch, name);
+	    if (gripe)
+		msg_warn("%s: invalid character %d(decimal): %.100s",
+			 myname, ch, name);
 	    return (0);
 	}
     }
 
     if (non_numeric == 0) {
-	msg_warn("%s: numeric hostname: %.100s", myname, name);
+	if (gripe)
+	    msg_warn("%s: numeric hostname: %.100s", myname, name);
 	/* NOT: return (0); this confuses users of the DNS client */
     }
     if (cp - name > VALID_HOSTNAME_LEN) {
-	msg_warn("%s: bad length %d for %.100s...",
-		 myname, (int) (cp - name), name);
+	if (gripe)
+	    msg_warn("%s: bad length %d for %.100s...",
+		     myname, (int) (cp - name), name);
 	return (0);
     }
     return (1);
@@ -114,7 +127,7 @@ int     valid_hostname(const char *name)
 
 /* valid_hostaddr - test dotted quad string for correctness */
 
-int     valid_hostaddr(const char *addr)
+int     valid_hostaddr(const char *addr, int gripe)
 {
     const char *cp;
     char   *myname = "valid_hostaddr";
@@ -129,7 +142,8 @@ int     valid_hostaddr(const char *addr)
      * Trivial cases first.
      */
     if (*addr == 0) {
-	msg_warn("%s: empty address", myname);
+	if (gripe)
+	    msg_warn("%s: empty address", myname);
 	return (0);
     }
 
@@ -146,28 +160,33 @@ int     valid_hostaddr(const char *addr)
 	    byte_val *= 10;
 	    byte_val += ch - '0';
 	    if (byte_val > 255) {
-		msg_warn("%s: invalid octet value: %.100s", myname, addr);
+		if (gripe)
+		    msg_warn("%s: invalid octet value: %.100s", myname, addr);
 		return (0);
 	    }
 	} else if (ch == '.') {
 	    if (in_byte == 0 || cp[1] == 0) {
-		msg_warn("%s: misplaced dot: %.100s", myname, addr);
+		if (gripe)
+		    msg_warn("%s: misplaced dot: %.100s", myname, addr);
 		return (0);
 	    }
 	    if ((byte_count == 1 && byte_val == 0)) {
-		msg_warn("%s: bad initial octet value: %.100s", myname, addr);
+		if (gripe)
+		    msg_warn("%s: bad initial octet value: %.100s", myname, addr);
 		return (0);
 	    }
 	    in_byte = 0;
 	} else {
-	    msg_warn("%s: invalid character %d(decimal): %.100s",
-		     myname, ch, addr);
+	    if (gripe)
+		msg_warn("%s: invalid character %d(decimal): %.100s",
+			 myname, ch, addr);
 	    return (0);
 	}
     }
 
     if (byte_count != BYTES_NEEDED) {
-	msg_warn("%s: invalid octet count: %.100s", myname, addr);
+	if (gripe)
+	    msg_warn("%s: invalid octet count: %.100s", myname, addr);
 	return (0);
     }
     return (1);
@@ -195,8 +214,8 @@ int     main(int unused_argc, char **argv)
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	msg_info("testing: \"%s\"", vstring_str(buffer));
-	valid_hostname(vstring_str(buffer));
-	valid_hostaddr(vstring_str(buffer));
+	valid_hostname(vstring_str(buffer), DO_GRIPE);
+	valid_hostaddr(vstring_str(buffer), DO_GRIPE);
     }
     exit(0);
 }

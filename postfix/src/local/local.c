@@ -284,9 +284,9 @@
 /*	forwarding mail is not recommended.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
-/* .IP \fBtest_home_directory\fR
+/* .IP \fBrequire_home_directory\fR
 /*	Require that a recipient's home directory is accessible by the
-/*	recipient before attempting delivery.
+/*	recipient before attempting delivery. Defer delivery otherwise.
 /* .SH Mailbox delivery
 /* .ad
 /* .fi
@@ -323,7 +323,7 @@
 /*	an exclusive lock.
 /* .IP \fBstale_lock_time\fR
 /*	Limit the time after which a stale lock is removed.
-/* .IP \fBmailbox__delivery_lock\fR
+/* .IP \fBmailbox_delivery_lock\fR
 /*	What file locking method(s) to use when delivering to a UNIX-style
 /*	mailbox.
 /*	The default setting is system dependent.  For a list of available
@@ -347,13 +347,19 @@
 /*	Limit the number of recipients per message delivery.
 /*	The default limit is taken from the
 /*	\fBdefault_destination_recipient_limit\fR parameter.
+/* .IP \fBmailbox_size_limit\fR
+/*	Limit the size of a mailbox etc. file (any file that is
+/*	written to upon delivery).
+/*	Set to zero to disable the limit.
 /* .SH "Security controls"
 /* .ad
 /* .fi
 /* .IP \fBallow_mail_to_commands\fR
 /*	Restrict the usage of mail delivery to external command.
+/*	Specify zero or more of: \fBalias\fR, \fBforward\fR, \fBinclude\fR.
 /* .IP \fBallow_mail_to_files\fR
 /*	Restrict the usage of mail delivery to external file.
+/*	Specify zero or more of: \fBalias\fR, \fBforward\fR, \fBinclude\fR.
 /* .IP \fBcommand_expansion_filter\fR
 /*	What characters are allowed to appear in $name expansions of
 /*	mailbox_command. Illegal characters are replaced by underscores.
@@ -456,6 +462,7 @@ char   *var_deliver_hdr;
 int     var_stat_home_dir;
 int     var_mailtool_compat;
 char   *var_mailbox_lock;
+int     var_mailbox_limit;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -621,6 +628,32 @@ static void post_init(char *unused_name, char **unused_argv)
     local_mask_init();
 }
 
+/* pre_init - pre-jail initialization */
+
+static void pre_init(char *unused_name, char **unused_argv)
+{
+
+    /*
+     * Reset the file size limit from the message size limit to the mailbox
+     * size limit. XXX This still isn't accurate because the file size limit
+     * also affects delivery to command.
+     * 
+     * A file size limit protects the machine against runaway software errors.
+     * It is not suitable to enforce mail quota, because users can get around
+     * mail quota by delivering to /file/name or to |command.
+     * 
+     * We can't have mailbox size limit smaller than the message size limit,
+     * because that prohibits the delivery agent from updating the queue
+     * file.
+     */
+    if (var_mailbox_limit) {
+	if (var_mailbox_limit < var_message_limit)
+	    msg_fatal("main.cf configuration error: %s is smaller than %s",
+		      VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
+	set_file_limit(var_mailbox_limit);
+    }
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -631,6 +664,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
+	VAR_MAILBOX_LIMIT, DEF_MAILBOX_LIMIT, &var_mailbox_limit, 0, 0,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
@@ -671,6 +705,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
+		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);

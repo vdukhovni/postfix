@@ -1,3 +1,9 @@
+LINUX PORTABILITY
+=================
+
+On RedHat Linux 7.0, you must install the db3-devel RPM before you
+can compile the Postfix source code.
+
 LINUX SYSLOGD PERFORMANCE
 =========================
 

@@ -57,9 +57,9 @@
 /* .IP \fBstrict_rfc821_envelopes\fR
 /*	Disallow non-RFC 821 style addresses in envelopes. For example,
 /*	allow RFC822-style address forms with comments, like Sendmail does.
-/* .IP \fBallow_broken_auth_clients\fR
+/* .IP \fBbroken_sasl_auth_clients\fR
 /*	Support older Microsoft clients that mis-implement the AUTH
-/*      protocol, and that expect an EHLO response of "250 AUTH=list"
+/*	protocol, and that expect an EHLO response of "250 AUTH=list"
 /*	instead of "250 AUTH list".
 /* .SH "Content inspection controls"
 /* .IP \fBcontent_filter\fR
@@ -67,11 +67,13 @@
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
-/* .SH "Authenication controls"
+/* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	This functionality is available only when explicitly selected
 /*	at program build time and explicitly enabled at runtime.
+/* .IP \fBsmtpd_sasl_local_domain\fR
+/*	The name of the local authentication realm.
 /* .IP \fBsmtpd_sasl_security_options\fR
 /*	Zero or more of the following.
 /* .RS
@@ -1094,7 +1096,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (!ISALNUM(argv[1].strval[0]))
 	argv[1].strval++;
-    if (!valid_hostname(argv[1].strval)) {
+    if (!valid_hostname(argv[1].strval, DONT_GRIPE)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Error: invalid parameter syntax");
 	return (-1);
@@ -1415,9 +1417,12 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     debug_peer_init();
     msg_cleanup(smtpd_cleanup);
 
-#ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)
+#ifdef USE_SASL_AUTH
 	smtpd_sasl_initialize();
+#else
+	msg_warn("%s is true, but SASL support is not compiled in",
+		 VAR_SMTPD_SASL_ENABLE);
 #endif
 }
 

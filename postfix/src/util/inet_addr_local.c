@@ -6,13 +6,17 @@
 /* SYNOPSIS
 /*	#include <inet_addr_local.h>
 /*
-/*	int	inet_addr_local(list)
-/*	INET_ADDR_LIST *list;
+/*	int	inet_addr_local(addr_list, mask_list)
+/*	INET_ADDR_LIST *addr_list;
+/*	INET_ADDR_LIST *mask_list;
 /* DESCRIPTION
 /*	inet_addr_local() determines all active IP interface addresses
 /*	of the local system. Any address found is appended to the
 /*	specified address list. The result value is the number of
 /*	active interfaces found.
+/*
+/*	The mask_list is either a null pointer, or it is a list that
+/*	receives the netmasks of the interface addresses that were found.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory.
 /* SEE ALSO
@@ -42,6 +46,7 @@
 #include <sys/sockio.h>
 #endif
 #include <errno.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -57,18 +62,21 @@
 #ifdef _SIZEOF_ADDR_IFREQ
 #define NEXT_INTERFACE(ifr) ((struct ifreq *) \
 	((char *) ifr + _SIZEOF_ADDR_IFREQ(*ifr)))
+#define IFREQ_SIZE(ifr)	_SIZEOF_ADDR_IFREQ(*ifr)
 #else
 #ifdef HAS_SA_LEN
 #define NEXT_INTERFACE(ifr) ((struct ifreq *) \
 	((char *) ifr + sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len))
+#define IFREQ_SIZE(ifr)	(sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len)
 #else
 #define NEXT_INTERFACE(ifr) (ifr + 1)
+#define IFREQ_SIZE(ifr)	sizeof(ifr[0])
 #endif
 #endif
 
 /* inet_addr_local - find all IP addresses for this host */
 
-int     inet_addr_local(INET_ADDR_LIST *addr_list)
+int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list)
 {
     char   *myname = "inet_addr_local";
     struct ifconf ifc;
@@ -78,6 +86,7 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
     VSTRING *buf = vstring_alloc(1024);
     int     initial_count = addr_list->used;
     struct in_addr addr;
+    struct ifreq *ifr_mask;
 
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
@@ -119,8 +128,18 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
     for (ifr = ifc.ifc_req; ifr < the_end;) {
 	if (ifr->ifr_addr.sa_family == AF_INET) {	/* IP interface */
 	    addr = ((struct sockaddr_in *) & ifr->ifr_addr)->sin_addr;
-	    if (addr.s_addr != INADDR_ANY)	/* has IP address */
+	    if (addr.s_addr != INADDR_ANY) {	/* has IP address */
 		inet_addr_list_append(addr_list, &addr);
+		if (mask_list) {
+		    ifr_mask = (struct ifreq *) mymalloc(IFREQ_SIZE(ifr));
+		    memcpy((char *) ifr_mask, (char *) ifr, IFREQ_SIZE(ifr));
+		    if (ioctl(sock, SIOCGIFNETMASK, ifr_mask) < 0)
+			msg_fatal("%s: ioctl SIOCGIFNETMASK: %m", myname);
+		    addr = ((struct sockaddr_in *) & ifr_mask->ifr_addr)->sin_addr;
+		    inet_addr_list_append(mask_list, &addr);
+		    myfree((char *) ifr_mask);
+		}
+	    }
 	}
 	ifr = NEXT_INTERFACE(ifr);
     }
@@ -137,12 +156,14 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
 int     main(int unused_argc, char **argv)
 {
     INET_ADDR_LIST addr_list;
+    INET_ADDR_LIST mask_list;
     int     i;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
     inet_addr_list_init(&addr_list);
-    inet_addr_local(&addr_list);
+    inet_addr_list_init(&mask_list);
+    inet_addr_local(&addr_list, &mask_list);
 
     if (addr_list.used == 0)
 	msg_fatal("cannot find any active network interfaces");
@@ -150,10 +171,13 @@ int     main(int unused_argc, char **argv)
     if (addr_list.used == 1)
 	msg_warn("found only one active network interface");
 
-    for (i = 0; i < addr_list.used; i++)
-	vstream_printf("%s\n", inet_ntoa(addr_list.addrs[i]));
+    for (i = 0; i < addr_list.used; i++) {
+	vstream_printf("%s/", inet_ntoa(addr_list.addrs[i]));
+	vstream_printf("%s\n", inet_ntoa(mask_list.addrs[i]));
+    }
     vstream_fflush(VSTREAM_OUT);
     inet_addr_list_free(&addr_list);
+    inet_addr_list_free(&mask_list);
 }
 
 #endif

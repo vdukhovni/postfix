@@ -1,242 +1,247 @@
-[Based on information that was provided by Amous Gouaux]
+[This file still needs to be updated - some information is obsolete]
 
-Postfix LMTP support
-====================
+1 - Postfix LMTP support
+========================
 
 LMTP stands for Local Mail Transfer Protocol, and is detailed in
-RFC2033.  This protocol is used to communicate with the final
-delivery agent, which may be on the local host or a remote host.
+RFC2033.  Postfix uses this protocol to communicate with the final
+delivery agent, which may run on the local host or a remote host.
 
 This protocol opens up interesting possibilities: one Postfix front
-end system can drive multiple mailbox back end systems over LMTP.
-As the mail load increases you add Postfix front end systems and
-LMTP mailbox back end systems.  You can use LDAP or mysql to share
-the user database among the front end and back end systems.
+end machine can drive multiple mailbox back end machines over LMTP.
+As the mail load increases, you add more Postfix front end systems
+and more LMTP mailbox back end systems.  This is the model that I
+had in mind when I began drafting the design for Postfix - a scalable
+architecture that allows you to keep adding SMTP servers and mailbox
+servers painlessly.
+
+Such a distributed architecture needs glue to keep things together.
+You can use a networked database LDAP or mysql to share the user
+database among the front end and back end systems. Use a replicated
+database so that no machine becomes a single point of failure for
+the entire mail infrastructure.
 
 Postfix LMTP support is based on a modified version of the Postfix
 SMTP client. The initial version was by Philip A.  Prindeville of
 Mirapoint, Inc., USA. This code was modified further by Amos Gouaux
-of University of Texas at Dallas, Richardson, USA.  Wietse Venema
-reduced the code to its present shape.
+of University of Texas at Dallas, Richardson, USA, who also revised
+much of the documentation.  Wietse Venema reduced the code to its
+present shape.
 
 
-Overview
-========
+2 - Overview
+============
 
 Most of the examples in this document involve the CMU Cyrus IMAP/POP
 server, available from:
 
     http://asg.web.cmu.edu/cyrus/
 
-While certainly not the only application that could make use of LMTP,
-it tends to be the most discussed.  These examples are based on the
-forthcoming Cyrus 2.0.10, at least at the time of writing.  The 2.x
-branch of Cyrus places greater emphasis on LMTP delivery than the
-previous releases.  Those using older releases of Cyrus can find a
-discussion in the appendix of this document.
+While certainly not the only application that could make use of
+LMTP, it tends to be the most discussed.  These examples are based
+on the forthcoming Cyrus 2.0.10, at least at the time of writing.
+The 2.x branch of Cyrus places greater emphasis on LMTP delivery
+than the previous releases.  Those using older releases of Cyrus
+can find a discussion in the appendix of this document.
 
 There are a variety of ways LMTP delivery can be configured in
-Postfix.  The two basic flavors are delivery over UNIX-domain sockets
-and delivery over TCP sockets.  Both flavors can be specified in
-either the Postfix main.cf or in a transport map.  The best approach
-to use depends upon the arrangement of your servers and the desired
-level of parallelization.  Please be sure to study this entire
-document as there are trade-offs in convenience and performance with
-these different approaches.
+Postfix.  The two basic flavors are delivery over UNIX-domain
+sockets and delivery over TCP sockets.
+
+  o Connections over UNIX-domain sockets limit delivery to LMTP
+    servers running on the same machine.
+
+  o Connections over TCP sockets allow you to deliver to LMTP
+    servers across a local network.
 
 The precise syntax for UNIX-domain and TCP connection endpoints is
-given in the lmtp(8) manual page.
+given in the lmtp(8) manual page. Examples are also given in the
+text below.
 
+Both socket flavors can be specified in either the Postfix main.cf
+file (see section 5) or in a Postfix transport map (section 6).
+What is the best approach for you depends upon the arrangement of
+your servers and the desired level of parallelization.
 
-Using main.cf configuration
-===========================
+Please be sure to study this entire document as there are trade-offs
+in convenience and in performance with these different approaches.
 
-This is the simplest LMTP configuration.  The settings
-local_transport, mailbox_transport, and fallback_transport can
-support the following connections:
-
-1.  LMTP over TCP sockets.
-
-    mailbox_transport = lmtp
-
-    Instead of delivering local mail to a mail box such as
-    /var/mail/$user, a connection will be made over TCP to an LMTP
-    server.  Currently the default port for this connection is 24,
-    but this can be customized in the "/etc/services" file.
-
-    NOTE:
-
-        With connections over TCP sockets, some Cyrus implementations
-        insist on SASL-style authentication, which is not currently
-        supported by the Postfix LMTP client.  See the examples below 
-        for additional details.
-
-
-2.  LMTP over UNIX-domain sockets.
-
-    mailbox_transport = lmtp:unix:/path/name
-
-    In this case the LMTP connection will be made over a UNIX-domain
-    socket.  This "/path/name" should be the socket created by the
-    LMTP server on the local machine.
-
-    NOTE 1:
-
-        If you configured Cyrus using the "--with-libwrap" option, be 
-        sure to allow access to the "lmtpd" service from "0.0.0.0".
-        Otherwise LMTP deliveries over UNIX-domain sockets will be
-        blocked.  See the examples below for more on using libwrap.
-
-    NOTE 2:
-
-	If you run the lmtp client chrooted, the interpretation of
-	the /path/name is relative to the Postfix queue directory
-	(typically, /var/spool/postfix).
-
-    NOTE 3:
-
-	By default, the Postfix LMTP client does not run chrooted.
-	With LMTP delivery to the local machine there is no good
-	reason to run the Postfix LMTP client chrooted.
-
-
-Examples:
-
-1.  LMTP over UNIX-domain sockets.
-
-    To utilize UNIX-domain sockets for the communication between
-    Postfix and Cyrus, the corresponding configuration files should
-    look something like this:
-
-    /etc/cyrus.conf:
-
-        SERVICES { 
-            ... 
-            lmtpunix cmd="lmtpd" listen="/var/imap/socket/lmtp" prefork=1
-            ... 
-        } 
-
-    /etc/postfix/main.cf:
-
-        mailbox_transport = lmtp:unix:/var/imap/socket/lmtp
-
-    In this case, mail that is resolved to be local will be delivered
-    to the Cyrus lmtpd server via the socket "/var/imap/socket/lmtp".  
-
-    If you configured Cyrus using the "--with-libwrap" option, you
-    will need the following:
-
-    /etc/hosts.allow:
-
-        lmtpd : 0.0.0.0
-
-2.  LMTP over TCP sockets.
-
-    For this example, suppose the following files are configured
-    thusly: 
-
-    /etc/cyrus.conf:
-
-        SERVICES { 
-            ... 
-            lmtp cmd="lmtpd -a" listen="127.0.0.1:lmtp" prefork=0 
-            ... 
-        } 
-
-XXX does this mean that connections will be accepted only on 127.0.0.1?
-
-    /etc/services:
-
-        lmtp 2003/tcp
-
-    /etc/postfix/main.cf:
-
-        mailbox_transport = lmtp
-
-    /etc/postfix/master.cf:
-
-        lmtp      unix  -       -       n       -       -       lmtp
-
-    Mail that Postfix resolves to be local will be delivered via TCP
-    to the Cyrus LMTP server.  Postfix will make a connection to port
-    2003 on the local host, subsequently transmitting the message to
-    the lmtpd server managed by the Cyrus master process.  Since
-    Postfix does not currently support LMTP-AUTH, the "-a" lmtpd
-    option is required.
-
-    CAUTION:
-
-        If you run lmtpd with the "-a" option, be certain that you
-        restrict what systems can connect to this service.  This can
-        be done in either one of two ways:
-
-        a.  Compile Cyrus with libwrap support, configuring
-            "/etc/hosts.allow" to restrict access to this service to
-            only your mail server.
-
-        b.  In the cyrus.conf file, for the "listen" argument to the
-            "lmtp" service, specify the address (in this case
-            localhost), that the service should bind to.  This can
-            also be convenient if you have a private network between
-            your Postfix server and your Cyrus server.
-
-        If neither of these actions are taken, anybody will be able
-        to drop junk into your Cyrus message store!  
-
-
-3.  LMTP over TCP sockets, using hosts.allow.
-
-    While similar to the previous example, this one varies in how the
-    lmtpd service is protected from unauthorized use.  Instead of
-    binding the lmtpd service to a specific Internet address, access
-    will be controlled using the "/etc/hosts.allow" tcp_wrappers
-    configuration file.  The tcp_wrappers package is available from:
-
-        ftp://ftp.porcupine.org/pub/security/index.html
-
-    To take advantage of tcp_wrappers, Cyrus will need to be
-    configured using the "--with-libwrap" option.  See the Cyrus
-    documentation for more details.
-
-    Here are excerpts of the pertinent files:
-
-    /etc/hosts.allow:
-
-        lmtpd : localhost : ALLOW
-        lmtpd : ALL@ALL : DENY
-
-    /etc/cyrus.conf:
-
-        SERVICES { 
-            ... 
-            lmtp cmd="lmtpd -a" listen="lmtp" prefork=0 
-            ... 
-        } 
-
-    /etc/services:
-
-        lmtp 2003/tcp
-
-    /etc/postfix/main.cf:
-
-        mailbox_transport = lmtp
-
-    The syntax shown in the hosts.allow excerpt above is valid if
-    tcp_wrappers is compiled using a "make" argument of:
-
-        STYLE=-DPROCESS_OPTIONS
-
-    See the tcp_wrappers hosts_options(5) man page for more details.
-
-
-Using transport map configuration
+3 - LMTP over UNIX-domain sockets
 =================================
 
-This approach is quite similar to specifying the LMTP service in the
-Postfix main.cf configuration file.  However, now we will use a
-transport map to route mail to the appropriate LMTP server.  Why
-might this approach be useful?  This could be handy if you wish to
-route mail for multiple domains to their respective mail retrieval
+A UNIX-domain socket is specified as the socket type ("unix") and
+a name in the local file system:
+
+    unix:/path/name
+
+The "/path/name" part should be the name of a socket created by
+the LMTP server on the local machine. See the specific examples
+later in this document.
+
+NOTE:
+
+    If you run the lmtp client chrooted, the interpretation of the
+    /path/name is relative to the Postfix queue directory (typically,
+    /var/spool/postfix).
+
+    By default, the Postfix LMTP client does not run chrooted.
+    With LMTP delivery to the local machine there is no good reason
+    to run the Postfix LMTP client chrooted.
+
+4 - LMTP over TCP sockets
+=========================
+
+A TCP destination is specified as the socket type ("inet"), the
+destination hostname and the TCP port:
+
+    inet:hostname:port
+
+The "inet:" part can be omitted, as it is the default socket type.
+
+The destination port can be omitted as well. Currently the default
+TCP port number for this type of connection is 24, but this can be
+customized in the "/etc/services" file.  Specific examples are
+given later in this document.
+
+NOTE:
+
+    With connections over TCP sockets, later Cyrus LMTP server
+    implementations insist on SASL-style authentication. This means
+    that Postfix must be built with SASL support (see SASL_README).
+    The examples below show how to enable this in the Postfix LMTP
+    client.
+
+    Some Cyrus LMTP server implementations do not allow SASL-style
+    authentication via plaintext passwords. You will have to jump
+    some extra hoops in order to enable MD5 password support, or
+    you will have to wait until this restriction is relaxed.
+
+
+5 - Configuring LMTP using main.cf configuration
+================================================
+
+This is the simplest LMTP configuration.  
+
+5.1 - Delivery mechanisms
+-------------------------
+
+Postfix main.cf supports three mechanisms to deliver mail over
+LMTP.  Each method can use UNIX-domain or TCP sockets as described
+in a later section.
+
+main.cf mechanism 1
+-------------------
+
+mailbox_transport = lmtp:unix:/path/name (UNIX-domain socket example)
+mailbox_transport = lmtp:hostname:port   (TCP socket example)
+
+Mail that resolves as local (domain is listed in $mydestination)
+is given to the Postfix local delivery agent.  The Postfix local
+delivery agent expands aliases and .forward files, and delegates
+mailbox delivery to the LMTP server.
+
+main.cf mechanism 2
+-------------------
+
+local_transport = lmtp:unix:/path/name (UNIX-domain socket example)
+local_transport = lmtp:hostname:port   (TCP socket example)
+
+Mail that resolves as local (domain is listed in $mydestination)
+is directly given to the LMTP server.  The mail is not processed
+by the Postfix local delivery agent; therefore aliases and .forward
+files are not processed.
+
+main.cf mechanism 3
+-------------------
+
+fallback_transport = lmtp:unix:/path/name (UNIX-domain socket example)
+fallback_transport = lmtp:hostname:port   (TCP socket example)
+
+Mail that resolves as local (domain is listed in $mydestination)
+is given to the Postfix local delivery agent.  The Postfix local
+delivery agent processes aliases and .forward files, and delivers
+to /var[/spool]/mail/$user for users that have a UNIX account.
+Mail for other local users is delegated to the LMTP server.
+
+5.2 - Examples
+--------------
+
+5.2.1 - LMTP over UNIX-domain sockets
+-------------------------------------
+
+To utilize UNIX-domain sockets for the communication between
+Postfix and Cyrus, the corresponding configuration files should
+look something like this:
+
+/etc/cyrus.conf:
+
+    SERVICES { 
+	... 
+	lmtpunix cmd="lmtpd" listen="/var/imap/socket/lmtp" prefork=1
+	... 
+    } 
+
+/etc/postfix/main.cf:
+
+    mailbox_transport = lmtp:unix:/var/imap/socket/lmtp
+
+In this case, the Postfix local delivery agent expands aliases
+and .forward files, and delegates mailbox delivery to the Cyrus
+lmtpd server via the socket "/var/imap/socket/lmtp".
+
+5.2.2 - LMTP over TCP sockets
+-----------------------------
+
+For this example, suppose the following files are configured
+thusly: 
+
+/etc/cyrus.conf:
+
+    SERVICES { 
+	... 
+	lmtp cmd="lmtpd" listen="127.0.0.1:lmtp" prefork=0 
+	... 
+    } 
+
+/etc/services:
+
+    lmtp 24/tcp
+
+/etc/postfix/main.cf:
+
+    mailbox_transport = lmtp:localhost
+    lmtp_sasl_auth_enable = yes
+    lmtp_sasl_password_maps = hash:/etc/postfix/lmtp_sasl_pass
+
+/etc/postfix/master.cf:
+
+    lmtp      unix  -       -       n       -       -       lmtp
+
+/etc/postfix/lmtp_sasl_pass:
+    localhost.my.domain	username:password
+
+Instead of "hash", use the map type of your choice.  Some systems
+use "dbm" instead.  Use "postconf -m" to find out what map types
+are supported.
+
+With the above settings, the Postfix local delivery agent expands
+aliases and .forward files, and delegates mailbox delivery to the
+the Cyrus LMTP server.  Postfix makes a connection to port 24 on
+the local host, subsequently transmitting the message to the lmtpd
+server managed by the Cyrus master process.
+
+
+6 - Configuring LMTP using transport map configuration
+======================================================
+
+This approach is quite similar to specifying the LMTP service in
+the Postfix main.cf configuration file.  However, now we will use
+a transport map to route mail to the appropriate LMTP server,
+instead of depending on delegation by the Postfix local delivery
+agent.
+
+Why might this approach be useful?  This could be handy if you wish
+to route mail for multiple domains to their respective mail retrieval
 (IMAP/POP) server.  Example:
 
     /etc/postfix/transport:
@@ -253,51 +258,55 @@ route mail for multiple domains to their respective mail retrieval
 
         transport_maps = hash:/etc/postfix/transport
 
+For details of the Cyrus LMTP server configuration, see section 5.
+
 Instead of "hash", use the map type of your choice.  Some systems use
 "dbm" instead.  Use "postconf -m" to find out what map types are
 supported.
 
 
-Performance considerations
-==========================
+7 - Performance considerations
+==============================
 
 Hopefully the preceding discussion has seemed pretty straight
 forward.  Now things get interesting.  After reading the following
-you will see that there are more factors to consider when setting up
-LMTP services.
+you will see that there are more factors to consider when setting
+up LMTP services.
 
 
-Single instance message store
-=============================
+8 - Single instance message store
+=================================
 
 Presently this topic is more pertinent to sites running Cyrus, but
 may be a factor with other applications as well.
 
 Since 1.6.22, Cyrus has had the feature that if a message containing
-multiple recipients is received via the LMTP protocol, and all these
-recipients were on the same Cyrus partition, only one instance of
-this message would be written to the file system.  The other
+multiple recipients is received via the LMTP protocol, and all
+these recipients were on the same Cyrus partition, only one instance
+of this message would be written to the file system.  The other
 recipients would then see a hard link of this single instance.
-Depending on your user base, this can be considerable motivation to
-using LMTP. 
+Depending on your user base, this can be considerable motivation
+to using LMTP.
 
-However, there is a catch: currently the Postfix local delivery
-mechanisms are only designed to handle one recipient at a time, which
-in most cases is more than adequate.  So, if you wish to support
-single instance message store delivery, you will have to use a
-transport table to map these users to the appropriate LMTP
-destination.
+However, there is a catch: the Postfix local delivery agent is
+designed to deliver one recipient at a time, which in most cases
+is more than adequate.  So, if you wish to support single instance
+message store delivery, you will have to use a virtual table to
+map these users to the appropriate LMTP destination (at the time
+of writing, the Postfix transport table supports only per-domain
+routing, and not per-recipient routing).
 
-While the simplest thing to do would be to list the entire domain in
-the transport map for LMTP delivery, this by-passes alias expansion
-for otherwise local addresses.  If the site is to run software via
-aliases, like most Mailing List Management (MLM) software, a more
-complex solution is required.  Fortunately, a virtual table should do
-the trick.
+While the simplest thing to do would be to list the entire domain
+in the transport map for LMTP delivery, this by-passes alias
+expansion for otherwise local addresses (see section 5.1, delivery
+mechanism 2).  If the site is to run software via aliases, like
+most Mailing List Management (MLM) software, a more complex solution
+is required.  A virtual table should do the trick.
 
 As an example, suppose we wanted to support single instance message
-store delivery for the domain "example.org".  The configuration files
-for this domain could look something like this:
+store delivery for the hosted (not local) domain "example.org".
+The configuration files for this domain could look something like
+this:
 
     /etc/postfix/virtual:
 
@@ -334,21 +343,22 @@ for this domain could look something like this:
 Breaking things down, we begin with the address "mlist@example.org",
 which represents a mailing list.  By placing an entry in the virtual
 map to direct this mail to "mlist@localhost", we can override the
-transport map that would by default route all "@example.org" mail to
-a LMTP server via a UNIX-domain socket.
+transport map that would by default route all "@example.org" mail
+to a LMTP server via a UNIX-domain socket.
 
-To summarize, all mail that is to be processed by an alias entry must 
-first be diverted with a virtual table entry so that it does not fall 
-into the more general routing established by the transport table.
+To summarize, all mail that is to be processed by an alias entry
+must first be diverted with a virtual table entry so that it does
+not fall into the more general routing established by the transport
+table.
 
 
-Improving connection caching performance
-========================================
+9 - Improving connection caching performance
+============================================
 
 After delivering a message via LMTP, Postfix will keep the connection
 open for a while, so that it can be reused for a subsequent delivery.
 This reduces overhead of LMTP servers that create one process per
-connection.  
+connection.
 
 For LMTP connection caching to work, the Postfix LMTP client should
 not switch destination hosts.  This is no problem when you run only
@@ -356,7 +366,7 @@ one LMTP server. However, if you run multiple LMTP servers, this
 can be an issue.
 
 You can prevent the LMTP client from switching between servers by
-configuring a separate mail delivery transport for each LMTP server:
+configuring a separate LMTP delivery transport for each LMTP server:
 
     /etc/postfix/master.cf:
 
@@ -374,8 +384,8 @@ mail lmtp2 transport for the LMTP server #2, and so on.
         bar.com lmtp2:lmtp2host
 
 
-Appendix: Older Cyrus versions
-==============================
+10 - Appendix: Older Cyrus versions
+===================================
 
 First of all, if you are using a Cyrus 2.x version prior to 2.0.10,
 it would be good to upgrade.  The previous 2.x releases were beta
@@ -399,7 +409,7 @@ configure inetd.  This involves the following file edits:
 
     /etc/services:
 
-        lmtp 2003/tcp
+        lmtp 24/tcp
 
     /etc/inetd.conf:
 
@@ -454,14 +464,3 @@ you will notice the one significant difference with the Postfix
 configuration is the lack of mention of the UNIX-domain sockets.
 That is because delivery over UNIX-domain sockets is new with Cyrus
 2.x, yet another reason to upgrade.  :-)
-
-
-
-# Local Variables:
-# mode: text
-# mode: flyspell
-# fill-column: 69
-# End:
-
-
-

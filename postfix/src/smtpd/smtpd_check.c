@@ -281,6 +281,7 @@
 /* Application-specific. */
 
 #include "smtpd.h"
+#include "smtpd_sasl_glue.h"
 #include "smtpd_check.h"
 
  /*
@@ -636,7 +637,7 @@ static int reject_invalid_hostaddr(SMTPD_STATE *state, char *addr,
     /*
      * Validate the address.
      */
-    if (!valid_hostaddr(test_addr))
+    if (!valid_hostaddr(test_addr, DONT_GRIPE))
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  "%d <%s>: %s rejected: invalid ip address",
 				var_bad_name_code, reply_name, reply_class);
@@ -672,7 +673,7 @@ static int reject_invalid_hostname(SMTPD_STATE *state, char *name,
     /*
      * Validate the hostname.
      */
-    if (!valid_hostname(test_name))
+    if (!valid_hostname(test_name, DONT_GRIPE))
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  "%d <%s>: %s rejected: Invalid name",
 				var_bad_name_code, reply_name, reply_class);
@@ -708,7 +709,7 @@ static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name,
     /*
      * Validate the hostname.
      */
-    if (!valid_hostname(test_name) || !strchr(test_name, '.'))
+    if (!valid_hostname(test_name, DONT_GRIPE) || !strchr(test_name, '.'))
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 		      "%d <%s>: %s rejected: need fully-qualified hostname",
 				var_non_fqdn_code, reply_name, reply_class);
@@ -1062,7 +1063,7 @@ static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr,
     /*
      * Validate the domain.
      */
-    if (!*test_dom || !valid_hostname(test_dom) || !strchr(test_dom, '.'))
+    if (!*test_dom || !valid_hostname(test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 		       "%d <%s>: %s rejected: need fully-qualified address",
 				var_non_fqdn_code, reply_name, reply_class);

@@ -21,14 +21,14 @@
 /*	delivery request. The destination, usually specified in the Postfix
 /*	\fBtransport\fR(5) table, has the form:
 /* .IP \fBunix\fR:\fIpathname\fR
-/*	Connect to the UNIX-domain server that is bound to the specified
+/*	Connect to the local UNIX-domain server that is bound to the specified
 /*	\fIpathname\fR. If the process runs chrooted, an absolute pathname
 /*	is interpreted relative to the changed root directory.
 /* .IP "\fBinet\fR:\fIhost\fR, \fBinet\fB:\fIhost\fR:\fIport\fR (symbolic host)"
 /* .IP "\fBinet\fR:[\fIaddr\fR], \fBinet\fR:[\fIaddr\fR]:\fIport\fR (numeric host)"
-/*	Connect to the specified IPV4 TCP port on the specified host. If no
-/*	port is specified, connect to the port defined as \fBlmtp\fR in
-/*	\fBservices\fR(4).
+/*	Connect to the specified IPV4 TCP port on the specified local or
+/*	remote host. If no port is specified, connect to the port defined as
+/*	\fBlmtp\fR in \fBservices\fR(4).
 /*	If no such service is found, the \fBlmtp_tcp_port\fR configuration
 /*	parameter (default value of 24) will be used.
 /*
@@ -458,9 +458,12 @@ static void post_init(char *unused_name, char **unused_argv)
 static void pre_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
-#ifdef USE_SASL_AUTH
     if (var_lmtp_sasl_enable)
+#ifdef USE_SASL_AUTH
 	lmtp_sasl_initialize();
+#else
+	msg_warn("%s is true, but SASL support is not compiled in",
+		 VAR_LMTP_SASL_ENABLE);
 #endif
 }
 
@@ -525,6 +528,7 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_LMTP_CACHE_CONN, DEF_LMTP_CACHE_CONN, &var_lmtp_cache_conn,
 	VAR_LMTP_SKIP_QUIT_RESP, DEF_LMTP_SKIP_QUIT_RESP, &var_lmtp_skip_quit_resp,
+	VAR_LMTP_SASL_ENABLE, DEF_LMTP_SASL_ENABLE, &var_lmtp_sasl_enable,
 	0,
     };
 

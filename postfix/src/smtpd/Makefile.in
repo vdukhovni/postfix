@@ -179,6 +179,7 @@ smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/mail_addr_find.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../../include/mail_stream.h
+smtpd_check.o: smtpd_sasl_glue.h
 smtpd_check.o: smtpd_check.h
 smtpd_peer.o: smtpd_peer.c
 smtpd_peer.o: ../../include/sys_defs.h

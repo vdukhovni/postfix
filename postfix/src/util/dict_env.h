@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_ENVIRON	"environ"
+
 extern DICT *dict_env_open(const char *, int, int);
 
 /* LICENSE

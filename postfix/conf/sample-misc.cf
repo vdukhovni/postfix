@@ -211,23 +211,41 @@ mydestination = $myhostname, localhost.$mydomain
 # myorigin = $mydomain
 myorigin = $myhostname
 
-# The mynetworks parameter specifies the list of networks that are
-# local to this machine.  The list is used by the anti-UCE software
-# to distinguish local clients from strangers. See permit_mynetworks
-# in the sample-smtpd.cf file.
+# The mynetworks parameter specifies the list of "trusted" SMTP
+# clients that have more privileges than "strangers".
 #
-# The mynetworks parameter specifies the list of networks that are
-# local to this machine.  The list is used by the anti-UCE software
-# to distinguish local clients from strangers. See permit_mynetworks
-# and smtpd_recipient_restrictions in the file sample-smtpd.cf file.
+# In particular, "trusted" SMTP clients are allowed to relay mail
+# through Postfix.  See the smtpd_recipient_restrictions parameter
+# in file sample-smtpd.cf.
 #
-# The default is a list of all networks attached to the machine:  a
-# complete class A network (X.0.0.0/8), a complete class B network
-# (X.X.0.0/16), and so on. If you want stricter control, specify a
-# list of network/mask patterns, where the mask specifies the number
-# of bits in the network part of a host address. You can also specify
-# the absolute pathname of a pattern file instead of listing the
-# patterns here.
+# You can specify the list of "trusted" network addresses by hand
+# or you can let Postfix do it for you (which is the default).
+#
+# By default (mynetworks_style = subnet), Postfix "trusts" SMTP
+# clients in the same IP subnetworks as the local machine.
+# 
+# Specify "mynetworks_style = class" when Postfix should "trust" SMTP
+# clients in the same IP class A/B/C networks as the local machine.
+# Don't do this with a dialup site - it would cause Postfix to "trust"
+# your entire provider's network.  Instead, specify an explicit
+# mynetworks list by hand, as described below.
+#  
+# Specify "mynetworks_style = host" when Postfix should "trust"
+# only the local machine.
+# 
+# mynetworks_style = class
+# mynetworks_style = subnet
+# mynetworks_style = host
+
+# Alternatively, you can specify the mynetworks list by hand, in
+# which case Postfix ignores the mynetworks_style setting.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here.
 #
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 

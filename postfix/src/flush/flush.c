@@ -466,14 +466,14 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);
 	    if (mail_command_read(client_stream, "%s %s", site, queue_id) == 2
-		&& valid_hostname(STR(site))
+		&& valid_hostname(STR(site), DONT_GRIPE)
 		&& mail_queue_id_ok(STR(queue_id)))
 		status = flush_add_service(lowercase(STR(site)), STR(queue_id));
 	    mail_print(client_stream, "%d", status);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
 	    site = vstring_alloc(10);
 	    if (mail_command_read(client_stream, "%s", site) == 1
-		&& valid_hostname(STR(site)))
+		&& valid_hostname(STR(site), DONT_GRIPE))
 		status = flush_send_service(lowercase(STR(site)));
 	    mail_print(client_stream, "%d", status);
 	} else if (STREQ(STR(request), FLUSH_REQ_REFRESH)

@@ -3987,13 +3987,6 @@ Apologies for any names omitted.
 	Bugfix: the code for masquerade_exceptions was case sensitive.
 	Reported by Eduard Vopicka.  File: cleanup/cleanup_masquerade.c.
 
-20000526
-
-	Feature: experimental queue manager by Patrik Rak with a
-	fancy pre-emptive scheduling algorithm that improves delivery
-	performance of mail with few recipients. This queue manager
-	is made available as "nqmgr".
-
 20000528
 
 	Feature: the SMTP client SASL password file can contain
@@ -4025,9 +4018,6 @@ Apologies for any names omitted.
 
 	Added a simple shell-script based content filtering example
 	to the FILTER_README file.
-
-	Content filtering support for nqmgr by Patrik Rak.  File:
-	nqmgr/qmgr_message.c.
 
 	Renamed "content inspection" etc. to "content filtering"
 	in anticipation of a new hook for content inspection that
@@ -4261,9 +4251,6 @@ Apologies for any names omitted.
 
 20000922
 
-	nqmgr update from Patrik Rak for the changed queue manager
-	to delivery agent protocol.
-
 	Lame feature: syslog_facility parameter to control where
 	syslogd sends Postfix logging (default: syslog_facility =
 	mail).  However, errors during command-line parsing are
@@ -4474,11 +4461,6 @@ Apologies for any names omitted.
 
 	Bugfix: the recipient home directory test broke mailbox_transport
 	support for non-UNIX recipients.  File:  local/recipient.c.
-
-20001117
-
-	Robustness: additional integrity tests for the nqmgr by
-	Patrik Rak. File: nqmgr/qmgr_message.c.
 
 20001118
 
@@ -4733,7 +4715,6 @@ Apologies for any names omitted.
 
 	Feature: SASL support for the LMTP client. Recent CYRUS
 	software requires this for Postfix over TCP sockets.
-	This was just a cloning operation.
 
 20010120
 
@@ -4745,5 +4726,196 @@ Apologies for any names omitted.
 
 20010121
 
+	Workaround: specify "broken_sasl_auth_clients = yes" in
+	order to support old Microsoft clients that implement
+	a non-standard version of RFC 2554 (AUTH command).
+
 	Workaround: Lotus Domino 5.0.4 violates RFC 2554 and replies
 	to EHLO with AUTH=LOGIN. File: smtp/smtp_proto.c.
+
+20010125
+
+	Code cleanup: wrote creator/destructor for dictionary
+	objects that provides default methods that trap all attempts
+	to perform an unimplemented operation. Based on an ansatz
+	by Laurent Wacrenier (teaser.fr).  Files: util/dict*.[hc].
+
+	Code cleanup: INSTALL.sh does not ask questions when stdin
+	is not connected to a tty (as in: make install</dev/null).
+	To automate a customized install, the script imports
+	environment variables for install_root etc.
+
+20010127
+
+	Workaround: randomize the delay between attempts to lock
+	a file, so that multiple bounce or defer servers are less
+	likely to retry all at the same time.  likely.  File:
+	util/rand_sleep.c, global/deliver_flock.c, global/dot_lockfile.c.
+
+20010128
+
+	Code cleanup: complaints about invalid or numeric hostnames
+	either provide specific context or are removed as redundant.
+	Files:  util/valid_hostname.c dns/dns_lookup.c.
+
+	Code cleanup: new mailbox_size_limit parameter (default:
+	20MB).  Until now, the mailbox size limit was the same as
+	the message size limit, due to artefact of implementation.
+	Files: global/mail_params.h, local/local.c.
+
+	Bugfix: fix for the ldap_domains parameter, both semantics
+	and documentation by LaMont Jones. Files:  LDAP_README,
+	conf/sample-ldap.cf, util/dict_ldap.c.
+
+20010129
+
+	Cleanup: clarified documentation and boundary cases in the
+	random_sleep() routine.
+
+	Bugfix: the MISSING_USLEEP feature was used backwards.
+	Patrik Rak. File: util/random_sleep.c.
+
+20010130
+
+	Workaround: Linux usleep() is void, BSD/Solaris usleep()
+	returns int, don't use it. File util/random_sleep.c.
+
+	Made local maildir bounce/defer handling mode consistent
+	with local mailbox delivery. File local/maildir.c.
+
+	The smtp client now defers delivery when all MX hosts have
+	no A record. File: smtp/smtp_addr.c
+
+	Bundled the man2html and postlink quick hacks so people
+	can do their own manual page processing. See scripts in
+	the mantools directory.
+
+	Documentation: updated the reference to sendmail in the
+	html/index.html page.
+
+	Documentation: added note about the Cisco PIX "fixup smtp"
+	bug that causes mail delivery problems when "." and "CRLF"
+	arrive in separate packets. File:  html/faq.html.
+
+20010201
+
+	Bugfix: another missing initialization in the mysql client.
+	File: util/dict_mysql.c.
+
+	Bumped the default mailbox file size limits to 50MB.
+
+20010202
+
+	Bugfix: fixed the way the master resets the file size limit
+	to avoid problems when a Postfix daemon updates a queue
+	file.  The file size limit is now increased to INT_MAX if
+	it is smaller than INT_MAX, so that it is less likely to
+	interfere than the old setting of message_size_limit.
+
+	Feature: disable mailbox size limits for the local and
+	virtual delivery agents by setting mailbox_size_limit or
+	virtual_mailbox_limit to zero.
+
+20010203
+
+	Cleanup: added one gruesome command to the postlink script
+	for hyperlinking nroff manual page output. Word abbreviation
+	broke some <a href...> </a> instances across line boundaries.
+	sed(1) is an amazing tool.  File: mantools/postlink.
+
+20010204
+
+	Laid the ground work for logging of table accesses. This
+	will give more insight into how Postfix uses its lookup
+	tables. User interface comes later.  File:  util/dict_debug.c.
+
+20010216
+
+	Bugfix: the pipe delivery agent expanded $size as if it
+	were a recipient, instead of expanding it as $nexthop or
+	as $sender. Reported by Michael Tokarev. File: pipe/pipe.c.
+
+20010221
+
+	Bugfix: poor LMTP performance for domains that are listed
+	in $mydestination, because Postfix would send one recipient
+	at a time, with multiple deliveries of recipients of the
+	same message in parallel; a similar problem could exist
+	with virus scanning and with firewall relay hosts that
+	forward mail for $mydestination to an inside machine. This
+	behavior is now changed to depend on the transport-specific
+	xxx_destination_recipient_limit parameter.  This also means
+	that you can now get qmail behavior for SMTP deliveries by
+	setting smtp_destination_recipient_limit=1.  File:
+	{qmgr,nqmgr}/qmgr_message.c.
+
+	Workaround: Solaris socketpair() can fail with EINTR. Added
+	a sane_socketpair.c module that joins the ranks of the other
+	sane_whatever workarounds. Reported by Andrew McNamara.
+	File: util/sane_socketpair.[hc]
+
+20010222
+
+	Documentation: the default main.cf file has a prominent
+	warning that mynetworks should be properly configured in
+	order to reject unauthorized mail relay requests from
+	strangers.
+
+	Documentation: the INSTALL document, section "mandatory
+	configuration file edits" has a section that explains that
+	mynetworks should be properly configured in order to reject
+	unauthorized mail relay requests from strangers.
+
+20010223
+
+	Documentation: the basic.html document has a section that
+	explains that mynetworks should be properly configured in
+	order to reject unauthorized mail relay requests from
+	strangers.
+
+	Feature: new "mynetworks_style" parameter that controls
+	how mynetworks (trusted networks) is derived from the
+	inet_interfaces (machine interfaces) setting. Specify
+	"class" for entire class A, B, C networks; "subnet" for
+	the local subnets only; or "host" for maximal privacy.
+	Files:  util/inet_addr_local.[hc], global/own_inet_addr.[hc],
+	global/mynetworks.[hc], postconf/postconf.c.
+
+	Portability: MACOSX patches by Gerben Wierda.
+
+	Portability: Solaris /dev/null is a symlink, which tripped
+	up the code to safely open a file before local delivery. We now
+	grudgingly allow symlinks owned by root. File: util/safe_open.c.
+
+20010224
+
+	Bugfix: "postconf mynetworks" ignored the inet_interfaces
+	setting. That was a very old one. File: postconf/postconf.c.
+
+	INCOMPATIBLE CHANGE: POSTFIX NO LONGER RELAYS MAIL FOR
+	CLIENTS IN THE ENTIRE CLASS A/B/C NETWORK. POSTFIX BY
+	DEFAULT RELAYS MAIL FOR CLIENTS IN THE LOCAL SUBNETWORK.
+	Specify "mynetworks_style = class" to get the old behavior.
+
+20010225
+
+	Portability: master sigchld handler based on writing to a
+	pipe, so that the master wakes up from select(). Based on
+	code by Erik Forsberg, Linkoping University, Sweden.  File:
+	master/master_sig.c. Disabled until after the major release.
+
+	Code cleanup: Postfix should now run with no alias database.
+
+	Code cleanup: local_destination_recipient_limit and
+	local_destination_concurrency_limit have become first-class
+	configuration parameters. Files: global/mail_params.h,
+	*qmgr/qmgr.c, postconf/postconf.c.
+
+20010226
+
+	Documentation suggestions by Lars Hecking and Richard
+	Huxton, Matthias Andree and many others.
+
+	Code cleanup: some queue/transport operations need to be
+	moved, after the code cleanup of the recipient/concurrency
+	limit handling. Patrik Rak.  Files: *qmgr/qmgr_message.c.

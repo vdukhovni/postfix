@@ -15,7 +15,7 @@
   * Version of this program.
   */
 #define VAR_MAIL_VERSION	"mail_version"
-#define DEF_MAIL_VERSION	"Release-20010120"
+#define DEF_MAIL_VERSION	"Release-20010228"
 extern char *var_mail_version;
 
 /* LICENSE

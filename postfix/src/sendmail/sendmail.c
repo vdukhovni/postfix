@@ -735,7 +735,8 @@ int     main(int argc, char **argv)
      * reset the saved set-userid, which would be a security vulnerability.
      */
     if (geteuid() == 0 && getuid() != 0) {
-	msg_warn("sendmail has set-uid root file permissions, or is run from a set-uid root process");
+	msg_warn("the Postfix sendmail command has set-uid root file permissions");
+	msg_warn("or the command is run from a set-uid root process");
 	msg_warn("the Postfix sendmail command must be installed without set-uid root file permissions");
 	set_ugid(getuid(), getgid());
     }
@@ -903,7 +904,7 @@ int     main(int argc, char **argv)
 	msg_fatal("-t can be used only in delivery mode");
 
     if (site_to_flush && mode != SM_MODE_ENQUEUE)
-	msg_fatal("-t can be used only in delivery mode");
+	msg_fatal("-qR can be used only in delivery mode");
 
     if (extract_recipients && argv[OPTIND])
 	msg_fatal("cannot handle command-line recipients with -t");

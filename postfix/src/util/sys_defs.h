@@ -853,6 +853,7 @@ typedef int pid_t;
 #define S_ISSOCK(mode)	(((mode) & (_S_IFMT)) == (_S_IFSOCK))
 #define S_ISFIFO(mode)	(((mode) & (_S_IFMT)) == (_S_IFIFO))
 #define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
+#define S_ISLNK(mode)	(((mode) & (_S_IFMT)) == (_S_IFLNK))
 #endif
 
 #ifdef MISSING_POSIX_S_MODES

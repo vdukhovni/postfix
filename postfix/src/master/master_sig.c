@@ -56,6 +56,17 @@
 
 /* Local stuff. */
 
+#ifdef USE_SIG_PIPE
+#include <errno.h>
+#include <fcntl.h>
+#include <iostuff.h>
+
+int     master_sig_pipe[2];
+
+#define SIG_PIPE_WRITE_FD master_sig_pipe[1]
+#define SIG_PIPE_READ_FD master_sig_pipe[0]
+#endif
+
 int     master_gotsigchld;
 int     master_gotsighup;
 
@@ -99,6 +110,29 @@ static void master_sigchld(int sig, int code, struct sigcontext * scp)
 
 #else
 
+#ifdef USE_SIG_PIPE
+
+/* master_sigchld - force wakeup from select() */
+
+static void master_sigchld(int sig)
+{
+    if (write(SIG_PIPE_WRITE_FD, "", 1) != 1)
+	msg_warn("write to SIG_PIPE_WRITE_FD failed: %m");
+}
+
+/* master_sig_event - called upon return from select() */
+
+static void master_sig_event(int unused_event, char *unused_context)
+{
+    char    c[1];
+
+    while (read(SIG_PIPE_READ_FD, c, 1) > 0)
+	 /* void */ ;
+    master_gotsigchld = 1;
+}
+
+#else
+
 static void master_sigchld(int sig)
 {
 
@@ -111,6 +145,7 @@ static void master_sigchld(int sig)
     master_gotsigchld = sig;
 }
 
+#endif
 #endif
 
 /* master_sigdeath - die, women and children first */
@@ -173,6 +208,16 @@ void    master_sigsetup(void)
     for (i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++)
 	if (sigaction(sigs[i], &action, (struct sigaction *) 0) < 0)
 	    msg_fatal("%s: sigaction(%d): %m", myname, sigs[i]);
+
+#ifdef USE_SIG_PIPE
+    if (pipe(master_sig_pipe))
+	msg_fatal("pipe: %m");
+    non_blocking(SIG_PIPE_WRITE_FD, NON_BLOCKING);
+    non_blocking(SIG_PIPE_READ_FD, NON_BLOCKING);
+    close_on_exec(SIG_PIPE_WRITE_FD, CLOSE_ON_EXEC);
+    close_on_exec(SIG_PIPE_READ_FD, CLOSE_ON_EXEC);
+    event_enable_read(SIG_PIPE_READ_FD, master_sig_event, (char *) 0);
+#endif
 
     /*
      * Intercept SIGHUP (re-read config file) and SIGCHLD (child exit).

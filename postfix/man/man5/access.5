@@ -76,8 +76,10 @@ the numerical code and text.
 Reject the address etc. that matches the pattern. A generic
 error response message is generated.
 .IP \fBOK\fR
-.IP "\fIAny other text\fR"
 Accept the address etc. that matches the pattern.
+.IP \fIrestriction...\fR
+Apply the named UCE restriction (\fBpermit\fR, \fRreject\fR,
+\fBreject_unauth_destination\fR, and so on).
 .SH REGULAR EXPRESSION TABLES
 .na
 .nf

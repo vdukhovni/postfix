@@ -60,6 +60,7 @@
 /*	char	*var_relay_domains;
 /*	char	*var_fflush_domains;
 /*	char	*var_def_transport;
+/*	char	*var_mynetworks_style;
 /*
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
@@ -172,6 +173,7 @@ char   *var_syslog_facility;
 char   *var_relay_domains;
 char   *var_fflush_domains;
 char   *var_def_transport;
+char   *var_mynetworks_style;
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -280,7 +282,7 @@ void    mail_params_init()
 	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 1, 0,
 	VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender, 1, 0,
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
-	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 1, 0,
+	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 0, 0,
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
@@ -290,6 +292,7 @@ void    mail_params_init()
 	VAR_EXPORT_ENVIRON, DEF_EXPORT_ENVIRON, &var_export_environ, 0, 0,
 	VAR_IMPORT_ENVIRON, DEF_IMPORT_ENVIRON, &var_import_environ, 0, 0,
 	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
+	VAR_MYNETWORKS_STYLE, DEF_MYNETWORKS_STYLE, &var_mynetworks_style, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -340,8 +343,10 @@ void    mail_params_init()
      * the domain.
      */
     get_mail_conf_str_fn_table(function_str_defaults);
-    if (!valid_hostname(var_myhostname) || !valid_hostname(var_mydomain))
-	msg_fatal("host or domain name configuration error");
+    if (!valid_hostname(var_myhostname, DO_GRIPE)
+	|| !valid_hostname(var_mydomain, DO_GRIPE))
+	msg_fatal("main.cf configuration error: bad %s or %s parameter value",
+		  VAR_MYHOSTNAME, VAR_MYDOMAIN);
 
     /*
      * Variables that are needed by almost every program.

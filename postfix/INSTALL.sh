@@ -6,6 +6,7 @@
 PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc
 umask 022
 
+test -t 0 &&
 cat <<EOF
 
 Warning: this script replaces existing sendmail or Postfix programs.
@@ -124,6 +125,7 @@ fi
 
 # Find out the location of configuration files.
 
+test -t 0 &&
 for name in install_root tempdir config_directory
 do
     while :
@@ -168,6 +170,7 @@ test -f $CONFIG_DIRECTORY/install.cf && . $CONFIG_DIRECTORY/install.cf
 
 # Override default settings.
 
+test -t 0 &&
 for name in daemon_directory command_directory \
     queue_directory sendmail_path newaliases_path mailq_path mail_owner\
     setgid manpages
@@ -342,14 +345,18 @@ no) ;;
     )
 esac
 
-test "$need_config" = 1 && cat <<EOF 1>&2
+test "$need_config" = 1 || exit 0
+
+ALIASES=`bin/postconf -h alias_database | sed 's/^[^:]*://'`
+cat <<EOF 1>&2
     
-    Warning: you still need to edit myorigin/mydestination in
-    $CONFIG_DIRECTORY/main.cf. See also html/faq.html for dialup
+    Warning: you still need to edit myorigin/mydestination/mynetworks
+    in $CONFIG_DIRECTORY/main.cf. See also html/faq.html for dialup
     sites or for sites inside a firewalled network.
     
-    BTW: Edit your alias database and be sure to set up aliases
-    for root and postmaster, then run $NEWALIASES_PATH.
+    BTW: Check your $ALIASES file and be sure to set up aliases
+    for root and postmaster that direct mail to a real person, then
+    run $NEWALIASES_PATH.
 
 EOF
 

@@ -179,38 +179,38 @@ typedef struct {
 } DICT_OPEN_INFO;
 
 static DICT_OPEN_INFO dict_open_info[] = {
-    "environ", dict_env_open,
-    "unix", dict_unix_open,
+    DICT_TYPE_ENVIRON, dict_env_open,
+    DICT_TYPE_UNIX, dict_unix_open,
 #if 0
-    "tcp", dict_tcp_open,
+    DICT_TYPE_TCP, dict_tcp_open,
 #endif
 #ifdef HAS_DBM
-    "dbm", dict_dbm_open,
+    DICT_TYPE_DBM, dict_dbm_open,
 #endif
 #ifdef HAS_DB
-    "hash", dict_hash_open,
-    "btree", dict_btree_open,
+    DICT_TYPE_HASH, dict_hash_open,
+    DICT_TYPE_BTREE, dict_btree_open,
 #endif
 #ifdef HAS_NIS
-    "nis", dict_nis_open,
+    DICT_TYPE_NIS, dict_nis_open,
 #endif
 #ifdef HAS_NISPLUS
-    "nisplus", dict_nisplus_open,
+    DICT_TYPE_NISPLUS, dict_nisplus_open,
 #endif
 #ifdef HAS_NETINFO
-    "netinfo", dict_ni_open,
+    DICT_TYPE_NETINFO, dict_ni_open,
 #endif
 #ifdef HAS_LDAP
-    "ldap", dict_ldap_open,
+    DICT_TYPE_LDAP, dict_ldap_open,
 #endif
 #ifdef HAS_MYSQL
-    "mysql", dict_mysql_open,
+    DICT_TYPE_MYSQL, dict_mysql_open,
 #endif
 #ifdef HAS_PCRE
-    "pcre", dict_pcre_open,
+    DICT_TYPE_PCRE, dict_pcre_open,
 #endif
 #ifdef HAS_POSIX_REGEXP
-    "regexp", dict_regexp_open,
+    DICT_TYPE_REGEXP, dict_regexp_open,
 #endif
     0,
 };

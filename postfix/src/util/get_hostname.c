@@ -66,7 +66,7 @@ const char *get_hostname(void)
 	if (gethostname(namebuf, sizeof(namebuf)) < 0)
 	    msg_fatal("gethostname: %m");
 	namebuf[MAXHOSTNAMELEN] = 0;
-	if (valid_hostname(namebuf) == 0)
+	if (valid_hostname(namebuf, DO_GRIPE) == 0)
 	    msg_fatal("unable to use my own hostname");
 	my_host_name = mystrdup(namebuf);
     }

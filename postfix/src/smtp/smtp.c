@@ -360,9 +360,12 @@ static void pre_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
 
-#ifdef USE_SASL_AUTH
     if (var_smtp_sasl_enable)
+#ifdef USE_SASL_AUTH
 	smtp_sasl_initialize();
+#else
+	msg_warn("%s is true, but SASL support is not compiled in",
+		 VAR_SMTP_SASL_ENABLE);
 #endif
 }
 

@@ -187,7 +187,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      */
     smtp_timeout_setup(state->session->stream, var_lmtp_lhlo_tmout);
     if ((except = vstream_setjmp(state->session->stream)) != 0)
-	return (smtp_stream_except(state, except, "sending LHLO"));
+	return (lmtp_stream_except(state, except, "sending LHLO"));
 
     /*
      * Read and parse the server's LMTP greeting banner.
@@ -456,7 +456,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		smtp_timeout_setup(state->session->stream,
 				   *xfer_timeouts[recv_state]);
 		if ((except = vstream_setjmp(state->session->stream)) != 0)
-		    RETURN(smtp_stream_except(state, except,
+		    RETURN(lmtp_stream_except(state, except,
 					      xfer_states[recv_state]));
 		resp = lmtp_chat_resp(state);
 
@@ -628,7 +628,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 	    smtp_timeout_setup(state->session->stream,
 			       var_lmtp_data1_tmout);
 	    if ((except = vstream_setjmp(state->session->stream)) != 0)
-		RETURN(smtp_stream_except(state, except,
+		RETURN(lmtp_stream_except(state, except,
 					  "sending message body"));
 
 	    if (vstream_fseek(state->src, request->data_offset, SEEK_SET) < 0)

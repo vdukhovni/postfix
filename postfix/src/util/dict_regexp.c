@@ -83,18 +83,6 @@ struct dict_regexp_context {
 };
 
 /*
- *  dict_regexp_update - not supported
- */
-static void dict_regexp_update(DICT *dict, const char *unused_name,
-			               const char *unused_value)
-{
-    DICT_REGEXP *dict_regexp = (DICT_REGEXP *) dict;
-
-    msg_fatal("dict_regexp_update: attempt to update regexp map %s",
-	      dict_regexp->map);
-}
-
-/*
  * Macro expansion callback - replace $0-${99} with strings cut from
  * matched string.
  */
@@ -109,7 +97,7 @@ static int dict_regexp_action(int type, VSTRING *buf, char *ptr)
 	n = atoi(vstring_str(buf));
 	if (n >= dict->nmatch)
 	    msg_fatal("regexp %s, line %d: replacement index out of range",
-		      dict->map, rule->lineno);
+		      dict->dict.name, rule->lineno);
 	if (dict->pmatch[n].rm_so < 0 ||
 	    dict->pmatch[n].rm_so == dict->pmatch[n].rm_eo) {
 	    return (MAC_PARSE_UNDEF);		/* empty string or not
@@ -138,7 +126,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
     dict_errno = 0;
 
     if (msg_verbose)
-	msg_info("dict_regexp_lookup: %s: %s", dict_regexp->map, name);
+	msg_info("dict_regexp_lookup: %s: %s", dict_regexp->dict.name, name);
 
     /* Search for a matching expression */
     for (rule = dict_regexp->head; rule; rule = rule->next) {
@@ -155,7 +143,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
 
 		    (void) regerror(error, rule->expr[1], errbuf, sizeof(errbuf));
 		    msg_fatal("regexp map %s, line %d: %s.",
-			      dict_regexp->map, rule->lineno, errbuf);
+			      dict_regexp->dict.name, rule->lineno, errbuf);
 		}
 	    }
 
@@ -174,7 +162,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
 
 	    if (mac_parse(rule->replace, dict_regexp_action, (char *) &ctxt) & MAC_PARSE_ERROR)
 		msg_fatal("regexp map %s, line %d: bad replacement syntax.",
-			  dict_regexp->map, rule->lineno);
+			  dict_regexp->dict.name, rule->lineno);
 
 	    VSTRING_TERMINATE(buf);
 	    return (vstring_str(buf));
@@ -183,7 +171,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
 
 	    (void) regerror(error, rule->expr[0], errbuf, sizeof(errbuf));
 	    msg_fatal("regexp map %s, line %d: %s.",
-		      dict_regexp->map, rule->lineno, errbuf);
+		      dict_regexp->dict.name, rule->lineno, errbuf);
 	    return ((char *) 0);
 	}
     }
@@ -212,8 +200,7 @@ static void dict_regexp_close(DICT *dict)
     }
     if (dict_regexp->pmatch)
 	myfree((char *) dict_regexp->pmatch);
-    myfree(dict_regexp->map);
-    myfree((char *) dict_regexp);
+    dict_free(dict);
 }
 
 static regex_t *dict_regexp_get_expr(int lineno, char **bufp, VSTREAM *map_fp)
@@ -358,12 +345,10 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
 
     line_buffer = vstring_alloc(100);
 
-    dict_regexp = (DICT_REGEXP *) mymalloc(sizeof(*dict_regexp));
+    dict_regexp = (DICT_REGEXP *) dict_alloc(DICT_TYPE_REGEXP, map,
+					     sizeof(*dict_regexp));
     dict_regexp->dict.lookup = dict_regexp_lookup;
-    dict_regexp->dict.update = dict_regexp_update;
     dict_regexp->dict.close = dict_regexp_close;
-    dict_regexp->dict.fd = -1;
-    dict_regexp->map = mystrdup(map);
     dict_regexp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dict_regexp->head = 0;
     dict_regexp->pmatch = 0;
@@ -401,7 +386,7 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
     vstring_free(line_buffer);
     vstream_fclose(map_fp);
 
-    return (&dict_regexp->dict);
+    return (DICT_DEBUG(&dict_regexp->dict));
 }
 
 #endif

@@ -22,9 +22,15 @@
 
 <ul>
 
+<li><a href="#poppers">POP or IMAP problems</a>
+
+<li><a href="#warnings">Postfix warnings and error messages</a>
+
 <li><a href="#example_config">Example configurations</a>
 
 <li><a href="#sendmail_incompatibility">Sendmail incompatibility</a>
+
+<li><a href="#moby">Running hundreds of Postfix processes</a>
 
 <li><a href="#performance">Postfix performance</a>
 
@@ -54,6 +60,26 @@
 
 <p>
 
+<a name="warnings"><h3>Postfix warnings and error messages</h3>
+
+<ul>
+
+<li><a href="#biff">What does "biff_notify: Connection refused" mean?</a>
+
+<li><a href="#nisdom">What does "NIS domain name not set - NIS lookups disabled" mean?</a>
+
+<li><a href="#dns-again">Mail stays queued with: Host not found, try again</a>
+
+<li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
+
+<li><a href="#noalias">What does "fatal: open database /etc/aliases.db" mean?</a>
+
+<li><a href="#nosuid">sendmail has set-uid root file permissions, or is run from a set-uid root process</a>
+
+</ul>
+
+<p>
+
 <a name="example_config"><h3>Example configurations</h3>
 
 <ul>
@@ -71,6 +97,8 @@
 <li><a href="#dialup">Running Postfix on a dialup machine</a>
 
 </ul>
+
+<p>
 
 <a name="sendmail_incompatibility"><h3>Sendmail incompatibility</h3>
 
@@ -99,11 +127,22 @@ distribution list</a>
 
 </ul>
 
+<a name="moby"><h3>Running hundreds of Postfix processes</h3>
+
+<ul>
+
+<li><a href="#moby-freebsd">Running hundreds of Postfix processes on FreeBSD</a>
+
+<li><a href="#moby-linux">Running hundreds of Postfix processes on Linux</a>
+
+</ul>
+
+
 <a name="performance"><h3>Postfix performance</h3>
 
 <ul>
 
-<li><a href="#incoming">Too much mail in the incoming queue</a>
+<li><a href="#incoming">Mail stays queued in the incoming queue</a>
 
 <li><a href="#delay">Postfix responds slowly to incoming SMTP connections</a>
 
@@ -141,7 +180,7 @@ domains with "relay access denied"</a>
 
 <ul>
 
-<li><a href="#dns-again">All remote mail stays queued with: Host not found, try again</a>
+<li><a href="#dns-again">Mail stays queued with: Host not found, try again</a>
 
 <li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
 
@@ -156,6 +195,8 @@ domains with "relay access denied"</a>
 <li><a href="#root">Root's mail is delivered to nobody</a>
 
 <li><a href="#biff">What does "biff_notify: Connection refused" mean?</a>
+
+<li><a href="#nisdom">What does "NIS domain name not set - NIS lookups disabled" mean?</a>
 
 <li><a href="#bogus">Postfix accepts mail for non-existing local users</a>
 
@@ -174,6 +215,8 @@ sending mail as user@domain</a>
 distribution list</a>
 
 <li><a href="#owner-foo">Postfix ignores the owner-list alias</a>
+
+<li><a href="#noalias">What does "fatal: open database /etc/aliases.db" mean?</a>
 
 </ul>
 
@@ -270,10 +313,48 @@ mailbox</a>
 
 <hr>
 
+<a name="poppers"><h3>POP or IMAP problems</h3>
+
+Postfix is a mail delivery system. Postfix does not implement
+services such as POP or IMAP to read mail. Several POP/IMAP
+implementations exist that can cooperate with software such as
+Postfix.
+
+<p>
+
+Examples of software that is used successfully with Postfix:
+
+<p>
+
+<ul>
+
+<li><a href="http://asg.web.cmu.edu/cyrus/">Cyrus IMAP</a> implements
+IMAP, POP3, and KPOP, later versions also support TLS. This software
+implements its own private mail database system. Not for beginners.
+
+<p>
+
+<li><a href="http://www.inter7.com/courierimap/">Courier-Imap</a>
+provides POP3, IMAP, POP3 and IMAP, and supports access over SSL.
+This software supports the maildir-style mailbox format only
+(one message per file, same format as qmail).
+
+<p>
+
+<li><a href="http://www.eudora.com/qpopper/">Qpopper</a> supports 
+POP3, TLS (SSL), and uses the traditional UNIX-style mailbox format
+(multiple messages per file, each message starts with "From sender date...").
+
+</ul>
+
+<p>
+
+<hr>
+
 <a name="stand_alone"><h3>Stand-alone machine</h3>
 
 Out of the box, Postfix should work without change on a stand-alone
-machine that is has direct Internet access.  At least, that is how
+machine that has direct Internet access.  At least, that is how
 Postfix installs when you download the Postfix source code. If you
 are on a firewalled intranet, or if your machine is dial-up connected
 only a small part of the time, see the respective sections.
@@ -486,31 +567,39 @@ execute the command <b>postconf mail_version</b>.
 <p>
 
 How to set up Postfix on the firewall machine so that it relays
-mail for <i>my.domain</i> to a gateway machine on the inside, and
-so that it refuses mail for <i>*.my.domain</i>? The problem is that
-the standard <a href="uce.html#relay_domains">relay_domains</a>
-mail relaying restriction allows mail to <i>*.my.domain</i> when
-you specify <i>my.domain</i>.
+mail for <i>domain.com</i> to a gateway machine on the inside, and
+so that it refuses mail for <i>*.domain.com</i>? The problem is that
+the default <a href="uce.html#relay_domains">relay_domains</a>
+mail relaying restriction allows mail to <i>*.domain.com</i> when
+you specify <i>domain.com</i>.
 
 <p>
 
 <ul>
 
-<li>Specify a null <a href="uce.html#relay_domains">relay_domains</a>
-parameter plus a <a href="transport.5.html">transport</a> table to
-route mail for <i>my.domain</i> to the inside machine:
+<li>Specify a <a href="transport.5.html">transport</a> table to
+route mail for <i>domain.com</i> to the inside machine.
+
+<p>
+
+Specify explicit settings for <a
+href="uce.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
+and for <a href="basic.html#mynetworks">mynetworks</a> that allow
+local systems to send mail anywhere, and that allow remote systems
+to send mail only to <i>user@domain.com</i>.
 
 <p>
 
 <pre>
 /etc/postfix/main.cf:
-    mydestination = $myhostname, my.domain, localhost.my.domain
-    relay_domains =
+    myorigin = domain.com
+    mydestination = domain.com
     transport_maps = hash:/etc/postfix/transport
+    mynetworks = 12.34.56.0/24
+    smtpd_recipient_restrictions = permit_mynetworks reject_unauth_destination
 
 /etc/postfix/transport:
-    my.domain   smtp:inside-gateway.my.domain   (forwards user@domain)
-    .my.domain  smtp:inside-gateway.my.domain   (forwards user@firewall)
+    domain.com   smtp:inside-gateway.domain.com   (forwards user@domain)
 
 /etc/postfix/master.cf:
     Comment out the local delivery agent
@@ -806,7 +895,161 @@ delivery agent deals with undeliverable mail.
 
 <hr>
 
-<a name="incoming"><h3>Too much mail in the incoming queue</h3></a>
+<a name="noalias"><h3>What does "fatal: open database /etc/aliases.db" mean?</h3></a>
+
+Your aliases database is corrupt or it is missing. Execute the 
+following command as root:
+
+<p>
+
+<pre>
+    # newaliases
+</pre>
+
+<hr>
+
+<a name="nosuid"><h1>sendmail has set-uid root file permissions, or is run from a
+set-uid root process</h3></a>
+
+Traditionally, the UNIX <b>sendmail</b> command is installed with
+set-uid root permissions. Even many MTAs other than Sendmail ship
+with a set-uid root <b>sendmail</b> command. This is not the case
+with Postfix.  The Postfix <b>sendmail</b> command is designed not
+to be set-uid.
+
+<p>
+
+Unfortunately, some Linux systems have a helpful utility called
+<b>linuxconf</b> that automatically "fixes" file permissions to
+what they are supposed to be for Sendmail's <b>sendmail</b> command.
+Even when you reset the set-uid bit on the Postfix <b>sendmail</b>
+executable file, <b>linuxconf</b> will happily turn it on again
+for you.
+
+<p>
+
+On SuSE systems the file permission fixing utulity is called
+<b>SuSEconfig</b>.  Other Linux systems may use different names.
+The usual disclaimers about mileages etc. apply.
+
+<p>
+
+<h4>Solutions</h4>
+
+<ul>
+
+<li>Rask Ingemann Lambertsen has a particularly effective
+solution :-)
+
+<blockquote>
+<pre>
+# /etc/rc.d/init.d/linuxconf stop && rpm --erase linuxconf 
+</pre>
+</blockquote>
+
+<li>According to Matthias Andree, the band-aid fix for SuSE is to
+add to /etc/permissions.local the following line:
+
+<blockquote>
+<pre>
+/usr/sbin/sendmail root.root 755
+</pre>
+</blockquote>
+
+and to make sure that in /etc/rc.config,
+PERMISSIONS_SECURITY mentions local last, EXAMPLE:
+
+<blockquote>
+<pre>
+CHECK_PERMISSIONS=set
+PERMISSION_SECURITY="secure local"
+</pre>
+</blockquote>
+
+</ul>
+
+<hr>
+
+<a name="moby-freebsd"><h3>Running hundreds of Postfix processes on FreeBSD</h3></a>
+
+With hundreds of Postfix processes, the kernel will eventually
+run out of file handles; after that, it will run out of sockets.
+
+<p>
+
+To set kernel parameters at boot time, add the following lines to
+the <b>/boot/loader.conf</b> file (this is specific to FreeBSD 4.x):
+
+<p>
+
+<blockquote>
+<pre>
+kern.ipc.maxsockets="5000"
+kern.maxfiles="16384"
+kern.maxfilesperproc="16384"
+kern.ipc.nmbclusters="65536"
+</pre>
+</blockquote>
+
+<p>
+
+To set kernel parameters at run time execute the following commands
+as root (this is specific to FreeBSD 4.x):
+
+<p>
+
+<blockquote>
+<pre>
+# sysctl -w kern.ipc.maxsockets=5000
+# sysctl -w kern.maxfiles=16384
+# sysctl -w kern.maxfilesperproc=16384
+# sysctl -w kern.ipc.nmbclusters=65536
+</pre>
+</blockquote>
+
+<hr>
+
+<a name="moby-linux"><h3>Running hundreds of Postfix processes on Linux</h3></a>
+
+When you increase the number of Postfix processes into the hundreds,
+the kernel will eventually run out of file handles; after that it
+is likely to run out of process slots.
+
+<p>
+
+The following information is kernel version dependent.
+
+<p>
+
+To set parameters at boot time on Linux systems that have
+<b>/etc/sysctl.conf</b>, add the following lines:
+
+<p>
+
+<blockquote>
+<pre>
+fs.file-max = 16384
+kernel.threads-max = 2048
+</pre>
+</blockquote>
+
+<p>
+
+To set kernel parameters at run time, execute the following
+commands as <b>root</b>:
+
+<p>
+
+<blockquote>
+<pre>
+# echo 16384 > /proc/sys/fs/file-max
+# echo 2048 > /proc/sys/kernel/threads-max
+</pre>
+</blockquote>
+
+<hr>
+
+<a name="incoming"><h3>Mail stays queued in the incoming queue</h3></a>
 
 <blockquote>
 
@@ -829,14 +1072,16 @@ You solve the problem by getting faster disks.
 
 <p>
 
-I am still solving the scheduling problem from the software side.
+I am still solving the scheduling problem from the software side,
+but don't hold your breath.
 
 <p>
 
 Currently, the workaround is to configure multiple IP addresses
-per machine, and to run one Postfix instance per IP address.  The
-Postfix instances can't share queue directories, but sharing mailbox
-directories is OK.
+per machine, and to run one Postfix instance per IP address, each
+instance preferably on a different disk.  The Postfix instances
+can't share queue directories, but sharing mailbox directories is
+OK.
 
 <p>
 
@@ -857,9 +1102,10 @@ depending on the interface that it is supposed to handle.
 <p>
 
 <pre>
-    queue_directory = /my/own/queue/directory
-    myhostname = foo1.my.domain
-    inet_interfaces = $myhostname
+    /my/own/main.cf:
+	queue_directory = /my/own/queue/directory
+	myhostname = foo1.my.domain
+	inet_interfaces = $myhostname
 </pre>
 
 <hr>
@@ -1242,7 +1488,8 @@ host.
 
 <a name="backup"><h3>Configuring Postfix as backup MX host</h3></a>
 
-When you are SECONDARY MX for some other domain this is all you need:
+When you are <b>secondary mx</b> for a <b>remote site</b> this is
+all you need:
 
 <p>
 
@@ -1251,12 +1498,14 @@ When you are SECONDARY MX for some other domain this is all you need:
         the.backed-up.domain.name        IN      MX 100 your.machine.name
 
     /etc/postfix/main.cf:
-        relay_domains = the.backed-up.domain.name
+        relay_domains = $mydestination the.backed-up.domain.name
+	smtpd_recipient_restrictions = permit_mynetworks check_relay_domains
 </pre>
 
 <p>
 
-When you are PRIMARY MX for some other domain you also need:
+When you are <b>primary mx</b> for a <b>remote site</b> you also
+need:
 
 <p>
 
@@ -1276,11 +1525,11 @@ types Postfix supports, use the command <b>postconf -m</b>.
 
 <hr>
 
-<a name="dns-again"><h3>All remote mail stays queued with: Host not found, try again</h3></a>
+<a name="dns-again"><h3>Mail stays queued with: Host not found, try again</h3></a>
 
 <blockquote>
 
-When I connect send mail to a remote address, the following happens:
+When I send mail to a remote address, the following happens:
 
 <p>
 
@@ -1292,14 +1541,34 @@ When I connect send mail to a remote address, the following happens:
 	service error for domain recip.domain: Host not found, try again)
 </pre>
 
+<p>
+
+However, I can nslookup the hostname just fine.
+
 </blockquote>
 
 <p>
+
+There can be several different problems.
+
+<p>
+
+<ul>
+
+<li> First of all, the result of nslookup for the hostname may be
+irrelevant. Postfix is required to look up the MX record first. So
+your nslookup test should begin with asking for the MX record. Some
+DNS servers are broken and produce no reply when asked for a
+non-existent MX record.
+
+<p> <li>
 
 Check out your Postfix <b>master.cf</b> file. If the SMTP client
 runs chrooted, then it needs a bunch of files inside the Postfix
 queue directory.  Examples are in the source distribution in the
 <b>examples</b> subdirectory.
+
+</ul>
 
 <hr>
 
@@ -1314,9 +1583,39 @@ by itself.
 <p>
 
 However, when you see mail deliveries fail consistently, you may
-have a different problem: broken path MTU discovery.
+have a different problem: broken path MTU discovery. Or it could
+be a broken PIX firewall.
+
+<h4>Cisco PIX "fixup protocol smtp" bug</h4>
+
+The Cisco PIX firewall has a bug when running software older than
+version 5.2(4) or 6.0(1).
 
 <p>
+
+The bug ID is CSCds90792. The "fixup protocol smtp" feature does
+not correctly handle the case where the "." and the "CRLF" at the
+end of mail are sent in separate packets.
+
+<p>
+
+How does one recognize a mailer behind a Cisco PIX with "fixup
+protocol smtp" enabled? As of version 5.1 and later, the fixup
+protocol smtp command changes the characters in the SMTP banner to
+asterisks except for the "2", "0" and "0 SPACE" characters. 
+
+<p>
+
+When you connect to a mailer behind such a filter you see something
+like:
+
+<blockquote>
+<pre>
+220 **************************************0******0*********20 ****200**0*********0*00
+</pre>
+</blockquote>
+
+<h4>IP path MTU discovery</h4>
 
 A little background is in order. With the SMTP protocol, the HELO,
 MAIL FROM and RCPT TO commands and responses are relatively short.
@@ -1506,7 +1805,36 @@ specify:
 <p>
 
 To enable the <b>comsat</b> network service, uncomment the
-corresponding entry in the <b>inetd.conf</b> file.
+corresponding entry in the <b>inetd.conf</b> file, and <b>kill -HUP</b>
+the <b>inetd</b> process.
+
+<hr>
+
+<a name="nisdom"><h3>What does "NIS domain name not set - NIS lookups disabled" mean?</h3>
+
+<p>
+
+The warning message means that NIS (Network Information Service)
+is not enabled on your machine.  That is perfectly OK. It's just
+hard for Postfix to find out about these things ahead of time.
+
+<p>
+
+To disable the <b>NIS</b> client code in the Postfix local delivery agent,
+update the corresponding section in the <b>main.cf</b> file and specify
+one of the following, depending on the type of aliases file:
+
+<p>
+
+<pre>
+/etc/postfix/main.cf:
+    alias_maps = $alias_database
+</pre>
+
+<p>
+
+This forces Postfix to use only the local aliases database, if one
+is defined.
 
 <hr>
 
@@ -2368,7 +2696,7 @@ with Postfix and HylaFax. Here's the setup used:
 
 <pre>
     /etc/postfix/master.cf:
-        fax       unix  -       n       n       -       -       pipe
+        fax       unix  -       n       n       -       1       pipe
             flags= user=fax argv=/usr/bin/faxmail -d -n ${user}
 
     /etc/postfix/transport:
@@ -2378,6 +2706,12 @@ with Postfix and HylaFax. Here's the setup used:
         transport_maps = hash:/etc/postfix/transport
 	fax_destination_recipient_limit = 1
 </pre>
+
+<p>
+
+The process limit of 1 in the <b>master.cf</b> file is necessary
+with fax software that cannot handle multiple requests at the same
+time. It won't hurt otherwise.
 
 <p>
 
@@ -2393,14 +2727,14 @@ types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
-Note: be sure to not advertise <b>fax.your.domain</b> in the DNS...
+Note: be sure to not advertise <b>fax.your.domain</b> in the DNS :-)
 
 <hr>
 
 <a name="deleting"><h3>Deleting a message from the Postfix queue</h3></a>
 
-To delete ONE message with queue id ABCDEF from the Postfix queue,
-it is not necessary to stop Postfix.
+To delete ONE message with queue id ABCDEF (e.g., from <b>mailq</b>
+output) from the Postfix queue, it is not necessary to stop Postfix.
 
 <p>
 
@@ -2417,8 +2751,8 @@ the same queue file name.
 
 <p>
 
-If you have to delete a large amount of mail, it is safer to stop
-Postfix first.
+If you have to delete a large amount of mail, you must stop Postfix
+first.
 
 <p>
 <pre>
@@ -2431,9 +2765,9 @@ Postfix first.
 
 <p>
 
-Do not use the above command on a running Postfix system, because
-it can delete files that belong to new mail that arrives while you
-are deleting queue files.
+Do not use the above <b>find</b> command on a running Postfix
+system, because it can delete files that belong to new mail that
+arrives while you are deleting queue files.
 
 <hr>
 

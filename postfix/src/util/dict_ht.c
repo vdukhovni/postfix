@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <dict_ht.h>
 /*
-/*	DICT	*dict_ht_open(table, remove)
+/*	DICT	*dict_ht_open(name, table, remove)
+/*	const char *name;
 /*	HTABLE	*table;
 /*	void	(*remove)(char *value)
 /* DESCRIPTION
@@ -82,20 +83,19 @@ static void dict_ht_close(DICT *dict)
 
     if (dict_ht->remove)
 	htable_free(dict_ht->table, dict_ht->remove);
-    myfree((char *) dict);
+    dict_free(dict);
 }
 
 /* dict_ht_open - create association with hash table */
 
-DICT   *dict_ht_open(HTABLE *table, void (*remove) (char *))
+DICT   *dict_ht_open(const char *name, HTABLE *table, void (*remove) (char *))
 {
     DICT_HT *dict_ht;
 
-    dict_ht = (DICT_HT *) mymalloc(sizeof(*dict_ht));
+    dict_ht = (DICT_HT *) dict_alloc(DICT_TYPE_HT, name, sizeof(*dict_ht));
     dict_ht->dict.lookup = dict_ht_lookup;
     dict_ht->dict.update = dict_ht_update;
     dict_ht->dict.close = dict_ht_close;
-    dict_ht->dict.fd = -1;
     dict_ht->table = table;
     dict_ht->remove = remove;
     return (&dict_ht->dict);

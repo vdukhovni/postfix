@@ -10,6 +10,8 @@
 /*	struct in_addr *addr;
 /*
 /*	INET_ADDR_LIST *own_inet_addr_list()
+/*
+/*	INET_ADDR_LIST *own_inet_mask_list()
 /* DESCRIPTION
 /*	own_inet_addr() determines if the specified IP address belongs
 /*	to this mail system instance, i.e. if this mail system instance
@@ -17,6 +19,9 @@
 /*
 /*	own_inet_addr_list() returns the list of all addresses that
 /*	belong to this mail system instance.
+/*
+/*	own_inet_mask_list() returns the list of all corresponding
+/*	netmasks.
 /* LICENSE
 /* .ad
 /* .fi
@@ -56,24 +61,31 @@
 /* Application-specific. */
 
 static INET_ADDR_LIST addr_list;
+static INET_ADDR_LIST mask_list;
 
 /* own_inet_addr_init - initialize my own address list */
 
-static void own_inet_addr_init(INET_ADDR_LIST *addr_list)
+static void own_inet_addr_init(INET_ADDR_LIST *addr_list,
+			               INET_ADDR_LIST *mask_list)
 {
+    INET_ADDR_LIST local_addrs;
+    INET_ADDR_LIST local_masks;
     char   *hosts;
     char   *host;
     char   *sep = " \t,";
     char   *bufp;
+    int     nvirtual;
+    int     nlocal;
 
     inet_addr_list_init(addr_list);
+    inet_addr_list_init(mask_list);
 
     /*
      * If we are listening on all interfaces (default), ask the system what
      * the interfaces are.
      */
     if (strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) == 0) {
-	if (inet_addr_local(addr_list) == 0)
+	if (inet_addr_local(addr_list, mask_list) == 0)
 	    msg_fatal("could not find any active network interfaces");
 #if 0
 	if (addr_list->used == 1)
@@ -94,6 +106,26 @@ static void own_inet_addr_init(INET_ADDR_LIST *addr_list)
 		msg_fatal("config variable %s: host not found: %s",
 			  VAR_INET_INTERFACES, host);
 	myfree(hosts);
+
+	inet_addr_list_init(&local_addrs);
+	inet_addr_list_init(&local_masks);
+	if (inet_addr_local(&local_addrs, &local_masks) == 0)
+	    msg_fatal("could not find any active network interfaces");
+	for (nvirtual = 0; nvirtual < addr_list->used; nvirtual++) {
+	    for (nlocal = 0; /* see below */ ; nlocal++) {
+		if (nlocal >= local_addrs.used)
+		    msg_fatal("parameter %s: no local interface found for %s",
+			      VAR_INET_INTERFACES,
+			      inet_ntoa(addr_list->addrs[nvirtual]));
+		if (addr_list->addrs[nvirtual].s_addr
+		    == local_addrs.addrs[nlocal].s_addr) {
+		    inet_addr_list_append(mask_list, &local_masks.addrs[nlocal]);
+		    break;
+		}
+	    }
+	}
+	inet_addr_list_free(&local_addrs);
+	inet_addr_list_free(&local_masks);
     }
 }
 
@@ -104,7 +136,7 @@ int     own_inet_addr(struct in_addr * addr)
     int     i;
 
     if (addr_list.used == 0)
-	own_inet_addr_init(&addr_list);
+	own_inet_addr_init(&addr_list, &mask_list);
 
     for (i = 0; i < addr_list.used; i++)
 	if (addr->s_addr == addr_list.addrs[i].s_addr)
@@ -117,7 +149,17 @@ int     own_inet_addr(struct in_addr * addr)
 INET_ADDR_LIST *own_inet_addr_list(void)
 {
     if (addr_list.used == 0)
-	own_inet_addr_init(&addr_list);
+	own_inet_addr_init(&addr_list, &mask_list);
 
     return (&addr_list);
+}
+
+/* own_inet_mask_list - return list of addresses */
+
+INET_ADDR_LIST *own_inet_mask_list(void)
+{
+    if (addr_list.used == 0)
+	own_inet_addr_init(&addr_list, &mask_list);
+
+    return (&mask_list);
 }

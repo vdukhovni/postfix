@@ -162,9 +162,9 @@ smtp_proto.o: ../../include/record.h
 smtp_proto.o: ../../include/rec_type.h
 smtp_proto.o: ../../include/off_cvt.h
 smtp_proto.o: ../../include/mark_corrupt.h
+smtp_proto.o: ../../include/quote_821_local.h
 smtp_proto.o: smtp.h
 smtp_proto.o: ../../include/argv.h
-smtp_proto.o: ../../include/quote_821_local.h
 smtp_proto.o: smtp_sasl.h
 smtp_sasl_glue.o: smtp_sasl_glue.c
 smtp_sasl_glue.o: ../../include/sys_defs.h

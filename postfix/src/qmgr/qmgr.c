@@ -292,6 +292,7 @@ bool    var_allow_min_user;
 int     var_qmgr_fudge;
 int     var_qmgr_hog;
 int     var_local_rcpt_lim;		/* XXX */
+int     var_local_con_lim;		/* XXX */
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -489,6 +490,7 @@ int     main(int argc, char **argv)
 	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
 	VAR_QMGR_HOG, DEF_QMGR_HOG, &var_qmgr_hog, 10, 100,
 	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
+	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

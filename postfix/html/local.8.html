@@ -16,8 +16,8 @@ LOCAL(8)                                                 LOCAL(8)
        Postfix queue manager to deliver mail to local recipients.
        Each  delivery  request  specifies  a queue file, a sender
        address, a domain or host to deliver to, and one  or  more
-       recipients.   This program expects to be run from the <a href="master.8.html"><b>mas-</b>
-       <b>ter</b>(8)</a> process manager.
+       recipients.   This program expects to be run from the <a href="master.8.html"><b>mas-</b></a>
+       <a href="master.8.html"><b>ter</b>(8)</a> process manager.
 
        The <b>local</b> daemon updates queue files and marks  recipients
        as finished, or it informs the queue manager that delivery
@@ -360,9 +360,10 @@ LOCAL(8)                                                 LOCAL(8)
        <b>recipient</b><i>_</i><b>delimiter</b>
               Separator between username and address extension.
 
-       <b>test</b><i>_</i><b>home</b><i>_</i><b>directory</b>
+       <b>require</b><i>_</i><b>home</b><i>_</i><b>directory</b>
               Require that a recipient's home directory is acces-
               sible by the recipient before attempting  delivery.
+              Defer delivery otherwise.
 
 <b>Mailbox</b> <b>delivery</b>
        <b>fallback</b><i>_</i><b>transport</b>
@@ -388,7 +389,6 @@ LOCAL(8)                                                 LOCAL(8)
               External command to use for mailbox  delivery.  The
               command  executes  with  the  recipient  privileges
               (exception: root). The string is subject  to  $name
-              expansions.
 
 
 
@@ -400,6 +400,8 @@ LOCAL(8)                                                 LOCAL(8)
 
 LOCAL(8)                                                 LOCAL(8)
 
+
+              expansions.
 
        <b>mailbox</b><i>_</i><b>transport</b>
               Message  transport  to  use for mailbox delivery to
@@ -420,7 +422,7 @@ LOCAL(8)                                                 LOCAL(8)
        <b>stale</b><i>_</i><b>lock</b><i>_</i><b>time</b>
               Limit the time after which a stale lock is removed.
 
-       <b>mailbox</b><i>__</i><b>delivery</b><i>_</i><b>lock</b>
+       <b>mailbox</b><i>_</i><b>delivery</b><i>_</i><b>lock</b>
               What file locking method(s) to use when  delivering
               to  a  UNIX-style  mailbox.  The default setting is
               system dependent.  For a  list  of  available  file
@@ -449,12 +451,10 @@ LOCAL(8)                                                 LOCAL(8)
               ery.    The   default   limit  is  taken  from  the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
 
-<b>Security</b> <b>controls</b>
-       <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
-              Restrict the usage of  mail  delivery  to  external
-              command.
-
-
+       <b>mailbox</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+              Limit the size of a mailbox  etc.  file  (any  file
+              that  is written to upon delivery).  Set to zero to
+              disable the limit.
 
 
 
@@ -467,9 +467,16 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+<b>Security</b> <b>controls</b>
+       <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
+              Restrict the usage of  mail  delivery  to  external
+              command.   Specify zero or more of: <b>alias</b>, <b>forward</b>,
+              <b>include</b>.
+
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b>
-              Restrict  the  usage  of  mail delivery to external
-              file.
+              Restrict the usage of  mail  delivery  to  external
+              file.   Specify  zero  or  more of: <b>alias</b>, <b>forward</b>,
+              <b>include</b>.
 
        <b>command</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
               What characters are  allowed  to  appear  in  $name
@@ -508,13 +515,6 @@ LOCAL(8)                                                 LOCAL(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
 
 
 

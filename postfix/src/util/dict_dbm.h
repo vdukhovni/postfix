@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_DBM	"dbm"
+
 extern DICT *dict_dbm_open(const char *, int, int);
 
 /* LICENSE

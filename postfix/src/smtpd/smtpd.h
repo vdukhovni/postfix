@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <unistd.h>
+
+ /*
   * SASL library.
   */
 #ifdef USE_SASL_AUTH

@@ -1,14 +1,40 @@
-#ifdef HAS_MYSQL
+#ifndef _DICT_MYSQL_H_INCLUDED_
+#define _DICT_MYSQL_H_INCLUDED_
 
-#include <time.h>
-#include "mysql.h"
+/*++
+/* NAME
+/*	dict_mysql 3h
+/* SUMMARY
+/*	dictionary manager interface to mysql databases
+/* SYNOPSIS
+/*	#include <dict_mysql.h>
+/* DESCRIPTION
+/* .nf
 
-#define STATACTIVE 0
-#define STATFAIL 1
-#define STATUNTRIED 2
-#define RETRY_CONN_INTV 60		/* 1 minute */
+ /*
+  * Utility library.
+  */
+#include <dict.h>
 
-extern DICT *dict_mysql_open(const char *name, int unused_flags, int dict_flags);
+ /*
+  * External interface.
+  */
+#define DICT_TYPE_MYSQL	"mysql"
 
+extern DICT *dict_mysql_open(const char *, int, int);
+
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Scott Cotton
+/*	IC Group, Inc.
+/*	scott@icgroup.com
+/*
+/*	Joshua Marcus
+/*	IC Group, Inc.
+/*	josh@icgroup.com
+/*--*/
 
 #endif

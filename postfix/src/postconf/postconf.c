@@ -130,7 +130,6 @@ DICT   *text_table;
  /*
   * Manually extracted.
   */
-#include "local_vars.h"
 #include "smtp_vars.h"
 
  /*
@@ -153,7 +152,6 @@ static CONFIG_INT_TABLE int_table[] = {
 
 static CONFIG_STR_TABLE str_table[] = {
 #include "str_table.h"
-#include "local_table.h"		/* XXX */
 #include "smtp_table.h"			/* XXX */
     0,
 };
@@ -253,8 +251,20 @@ static const char *check_mydomainname(void)
 
 static const char *check_mynetworks(void)
 {
-    if (var_inet_interfaces == 0)
-	var_inet_interfaces = mystrdup(DEF_INET_INTERFACES);
+    const char *junk;
+
+    if (var_inet_interfaces == 0) {
+	if ((mode & SHOW_DEFS)
+	    || !(junk = mail_conf_lookup(VAR_INET_INTERFACES)))
+	    junk = DEF_INET_INTERFACES;
+	var_inet_interfaces = mystrdup(junk);
+    }
+    if (var_mynetworks_style == 0) {
+	if ((mode & SHOW_DEFS)
+	    || !(junk = mail_conf_lookup(VAR_MYNETWORKS_STYLE)))
+	    junk = DEF_MYNETWORKS_STYLE;
+	var_mynetworks_style = mystrdup(junk);
+    }
     return (mynetworks());
 }
 
@@ -420,7 +430,7 @@ static void set_parameters(void)
      * bool_table, int_table, str_table, and raw_table. Look up each
      * parameter name in the configuration parameter dictionary. If the
      * parameter is not set, take the default value, or take the value from
-     * in main.c, without doing $name expansions. This includes converting
+     * main.cf, without doing $name expansions. This includes converting
      * default values from numeric/boolean internal forms to external string
      * form.
      * 
@@ -658,9 +668,7 @@ static void print_parameter(int mode, char *ptr)
 #define INSIDE(p,t) (ptr >= (char *) t && ptr < ((char *) t) + sizeof(t))
 
     /*
-     * This is gross, but the best we can do on short notice. Instead of
-     * guessing we should use a tagged union. This is what code looks like
-     * when written under the pressure of a first public release.
+     * This is gross, but the best we can do on short notice.
      */
     if (INSIDE(ptr, time_table))
 	print_time(mode, (CONFIG_TIME_TABLE *) ptr);
@@ -789,9 +797,6 @@ int     main(int argc, char **argv)
 	    break;
 	case 'd':
 	    mode |= SHOW_DEFS;
-	    break;
-	case 'E':
-	    mode |= SHOW_EVAL;
 	    break;
 	case 'e':
 	    mode |= EDIT_MAIN;

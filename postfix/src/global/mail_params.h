@@ -241,7 +241,7 @@ extern bool var_strict_rfc821_env;
   * Standards violation: send "250 AUTH=list" in order to accomodate broken
   * Microsoft clients.
   */
-#define VAR_BROKEN_AUTH_CLNTS	"allow_broken_auth_clients"
+#define VAR_BROKEN_AUTH_CLNTS	"broken_sasl_auth_clients"
 #define DEF_BROKEN_AUTH_CLNTS	0
 extern bool var_broken_auth_clients;
 
@@ -380,6 +380,14 @@ extern char *var_forward_path;
 extern char *var_mailbox_lock;
 
  /*
+  * Mailbox size limit. This used to be enforced as a side effect of the way
+  * the message size limit is implemented, but that is not clean.
+  */
+#define VAR_MAILBOX_LIMIT	"mailbox_size_limit"
+#define DEF_MAILBOX_LIMIT	(DEF_MESSAGE_LIMIT * 5)
+extern int var_mailbox_limit;
+
+ /*
   * Miscellaneous.
   */
 #define VAR_PROP_EXTENSION	"propagate_unmatched_extensions"
@@ -484,12 +492,12 @@ extern int var_stack_rcpt_limit;
   */
 #define VAR_DELIVERY_SLOT_COST	"default_delivery_slot_cost"
 #define _DELIVERY_SLOT_COST	"_delivery_slot_cost"
-#define DEF_DELIVERY_SLOT_COST	10
+#define DEF_DELIVERY_SLOT_COST	5
 extern int var_delivery_slot_cost;
 
 #define VAR_DELIVERY_SLOT_LOAN	"default_delivery_slot_loan"
 #define _DELIVERY_SLOT_LOAN	"_delivery_slot_loan"
-#define DEF_DELIVERY_SLOT_LOAN	5
+#define DEF_DELIVERY_SLOT_LOAN	3
 extern int var_delivery_slot_loan;
 
 #define VAR_DELIVERY_SLOT_DISCOUNT	"default_delivery_slot_discount"
@@ -522,6 +530,10 @@ extern int var_init_dest_concurrency;
 #define DEF_DEST_CON_LIMIT	10
 extern int var_dest_con_limit;
 
+#define VAR_LOCAL_CON_LIMIT	"local" _DEST_CON_LIMIT
+#define DEF_LOCAL_CON_LIMIT	2
+extern int var_local_con_lim;
+
  /*
   * Queue manager: default number of recipients per transaction.
   */
@@ -532,6 +544,7 @@ extern int var_dest_rcpt_limit;
 
 #define VAR_LOCAL_RCPT_LIMIT	"local" _DEST_RCPT_LIMIT	/* XXX */
 #define DEF_LOCAL_RCPT_LIMIT	1	/* XXX */
+extern int var_local_rcpt_lim;
 
  /*
   * Queue manager: default delay before retrying a dead transport.
@@ -609,7 +622,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"active,bounce,defer,flush"
+#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
@@ -750,6 +763,54 @@ extern char *var_smtp_sasl_passwd;
 extern char *var_smtp_sasl_opts;
 
  /*
+  * LMTP server. The soft error limit determines how many errors an LMTP
+  * client may make before we start to slow down; the hard error limit
+  * determines after how many client errors we disconnect.
+  */
+#define VAR_LMTPD_BANNER	"lmtpd_banner"
+#define DEF_LMTPD_BANNER	"$myhostname $mail_name"
+extern char *var_lmtpd_banner;
+
+#define VAR_LMTPD_TMOUT		"lmtpd_timeout"
+#define DEF_LMTPD_TMOUT		"300s"
+extern int var_lmtpd_tmout;
+
+#define VAR_LMTPD_RCPT_LIMIT	"lmtpd_recipient_limit"
+#define DEF_LMTPD_RCPT_LIMIT	1000
+extern int var_lmtpd_rcpt_limit;
+
+#define VAR_LMTPD_SOFT_ERLIM	"lmtpd_soft_error_limit"
+#define DEF_LMTPD_SOFT_ERLIM	10
+extern int var_lmtpd_soft_erlim;
+
+#define VAR_LMTPD_HARD_ERLIM	"lmtpd_hard_error_limit"
+#define DEF_LMTPD_HARD_ERLIM	100
+extern int var_lmtpd_hard_erlim;
+
+#define VAR_LMTPD_ERR_SLEEP	"lmtpd_error_sleep_time"
+#define DEF_LMTPD_ERR_SLEEP	"5s"
+extern int var_lmtpd_err_sleep;
+
+#define VAR_LMTPD_JUNK_CMD	"lmtpd_junk_command_limit"
+#define DEF_LMTPD_JUNK_CMD	1000
+extern int var_lmtpd_junk_cmd_limit;
+
+ /*
+  * SASL authentication support, LMTP server side.
+  */
+#define VAR_LMTPD_SASL_ENABLE	"lmtpd_sasl_auth_enable"
+#define DEF_LMTPD_SASL_ENABLE	0
+extern bool var_lmtpd_sasl_enable;
+
+#define VAR_LMTPD_SASL_OPTS	"lmtpd_sasl_security_options"
+#define DEF_LMTPD_SASL_OPTS	"noanonymous"
+extern char *var_lmtpd_sasl_opts;
+
+#define VAR_LMTPD_SASL_REALM	"lmtpd_sasl_local_domain"
+#define DEF_LMTPD_SASL_REALM	"$myhostname"
+extern char *var_lmtpd_sasl_realm;
+
+ /*
   * SASL authentication support, LMTP client side.
   */
 #define VAR_LMTP_SASL_ENABLE	"lmtp_sasl_auth_enable"
@@ -888,7 +949,7 @@ extern int var_fork_delay;
   * When locking a mailbox, how often to try and how long to wait.
   */
 #define VAR_FLOCK_TRIES          "deliver_lock_attempts"
-#define DEF_FLOCK_TRIES          10
+#define DEF_FLOCK_TRIES          20
 extern int var_flock_tries;
 
 #define VAR_FLOCK_DELAY          "deliver_lock_delay"
@@ -933,6 +994,14 @@ extern int var_trigger_timeout;
   */
 #define VAR_MYNETWORKS		"mynetworks"
 extern char *var_mynetworks;
+
+#define VAR_MYNETWORKS_STYLE	"mynetworks_style"
+#define DEF_MYNETWORKS_STYLE	MYNETWORKS_STYLE_SUBNET
+extern char *var_mynetworks_style;
+
+#define	MYNETWORKS_STYLE_CLASS	"class"
+#define	MYNETWORKS_STYLE_SUBNET	"subnet"
+#define	MYNETWORKS_STYLE_HOST	"host"
 
 #define VAR_RELAY_DOMAINS	"relay_domains"
 #define DEF_RELAY_DOMAINS	"$mydestination"
@@ -992,7 +1061,7 @@ extern int var_unk_client_code;
 
 #define REJECT_INVALID_HOSTNAME	"reject_invalid_hostname"
 #define VAR_BAD_NAME_CODE	"invalid_hostname_reject_code"
-#define DEF_BAD_NAME_CODE	501
+#define DEF_BAD_NAME_CODE	501	/* SYNTAX */
 extern int var_bad_name_code;
 
 #define REJECT_UNKNOWN_HOSTNAME	"reject_unknown_hostname"
@@ -1004,7 +1073,7 @@ extern int var_unk_name_code;
 #define REJECT_NON_FQDN_SENDER	"reject_non_fqdn_sender"
 #define REJECT_NON_FQDN_RCPT	"reject_non_fqdn_recipient"
 #define VAR_NON_FQDN_CODE	"non_fqdn_reject_code"
-#define DEF_NON_FQDN_CODE	504
+#define DEF_NON_FQDN_CODE	504	/* POLICY */
 extern int var_non_fqdn_code;
 
 #define REJECT_UNKNOWN_SENDDOM	"reject_unknown_sender_domain"
@@ -1133,29 +1202,33 @@ extern char *var_export_environ;
  /*
   * Tunables for the "virtual" local delivery agent
   */
-#define VAR_VIRT_MAILBOX_MAPS	"virtual_mailbox_maps"
-#define DEF_VIRT_MAILBOX_MAPS	""
-extern char *var_mailbox_maps;
+#define VAR_VIRT_MAILBOX_MAPS		"virtual_mailbox_maps"
+#define DEF_VIRT_MAILBOX_MAPS		""
+extern char *var_virt_mailbox_maps;
 
-#define VAR_VIRT_UID_MAPS	"virtual_uid_maps"
-#define DEF_VIRT_UID_MAPS	""
-extern char *var_uid_maps;
+#define VAR_VIRT_UID_MAPS		"virtual_uid_maps"
+#define DEF_VIRT_UID_MAPS		""
+extern char *var_virt_uid_maps;
 
-#define VAR_VIRT_GID_MAPS	"virtual_gid_maps"
-#define DEF_VIRT_GID_MAPS	""
-extern char *var_gid_maps;
+#define VAR_VIRT_GID_MAPS		"virtual_gid_maps"
+#define DEF_VIRT_GID_MAPS		""
+extern char *var_virt_gid_maps;
 
-#define VAR_VIRT_USEDOTLOCK	"virtual_usedotlock"
-#define DEF_VIRT_USEDOTLOCK	0
-extern bool var_virt_usedotlock;
-
-#define VAR_VIRT_MINUID		"virtual_minimum_uid"
-#define DEF_VIRT_MINUID		100
+#define VAR_VIRT_MINUID			"virtual_minimum_uid"
+#define DEF_VIRT_MINUID			100
 extern int var_virt_minimum_uid;
 
-#define VAR_VIRT_MAILBOX_BASE	"virtual_mailbox_base"
-#define DEF_VIRT_MAILBOX_BASE	""
+#define VAR_VIRT_MAILBOX_BASE		"virtual_mailbox_base"
+#define DEF_VIRT_MAILBOX_BASE		""
 extern char *var_virt_mailbox_base;
+
+#define VAR_VIRT_MAILBOX_LIMIT		"virtual_mailbox_limit"
+#define DEF_VIRT_MAILBOX_LIMIT		(5 * DEF_MESSAGE_LIMIT)
+extern int var_virt_mailbox_limit;
+
+#define VAR_VIRT_MAILBOX_LOCK		"virtual_mailbox_lock"
+#define DEF_VIRT_MAILBOX_LOCK		"fcntl"
+extern char *var_virt_mailbox_lock;
 
 /* LICENSE
 /* .ad

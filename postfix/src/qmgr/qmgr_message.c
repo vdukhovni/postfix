@@ -461,7 +461,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if ((at = strrchr(recipient->address, '@')) != 0
 	    && (at + 1)[strspn(at + 1, "[]0123456789.")] != 0
-	    && valid_hostname(at + 1) == 0) {
+	    && valid_hostname(at + 1, DONT_GRIPE) == 0) {
 	    qmgr_bounce_recipient(message, recipient,
 				  "bad host/domain syntax: \"%s\"", at + 1);
 	    continue;
@@ -550,8 +550,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 
 	/*
 	 * Queues are identified by the transport name and by the next-hop
-	 * hostname. When the destination is local (no next hop), derive the
-	 * queue name from the recipient name. XXX Should split the address
+	 * hostname. When the delivery agent accepts only one recipient per
+	 * delivery, give each recipient its own queue, so that deliveries to
+	 * different recipients of the same message can happen in parallel.
+	 * This also has the benefit that one bad recipient cannot interfere
+	 * with deliveries to other recipients. XXX Should split the address
 	 * on the recipient delimiter if one is defined, but doing a proper
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
@@ -559,26 +562,38 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * queue name. Should have separate fields for queue name and for
 	 * destination.
 	 */
-	if ((at = strrchr(STR(reply.recipient), '@')) == 0
-	    || resolve_local(at + 1)) {
-	    len = (at != 0 ? (at - STR(reply.recipient))
-		   : strlen(STR(reply.recipient)));
+	at = strrchr(STR(reply.recipient), '@');
+	len = (at ? (at - STR(reply.recipient)) : strlen(STR(reply.recipient)));
+
+	/*
+	 * Look up or instantiate the proper transport. We're working a
+	 * little ahead, doing queue management stuff that used to be done
+	 * way down.
+	 */
+	if (transport == 0 || !STREQ(transport->name, STR(reply.transport))) {
+	    if ((transport = qmgr_transport_find(STR(reply.transport))) == 0)
+		transport = qmgr_transport_create(STR(reply.transport));
+	    queue = 0;
+	}
+	if (transport->recipient_limit == 1) {
 	    VSTRING_SPACE(reply.nexthop, len + 1);
 	    memmove(STR(reply.nexthop) + len + 1, STR(reply.nexthop),
 		    LEN(reply.nexthop) + 1);
 	    memcpy(STR(reply.nexthop), STR(reply.recipient), len);
 	    STR(reply.nexthop)[len] = '@';
 	    lowercase(STR(reply.nexthop));
+	}
 
-	    /*
-	     * Discard mail to the local double bounce address here, so this
-	     * system can run without a local delivery agent. They'd still
-	     * have to configure something for mail directed to the local
-	     * postmaster, though, but that is an RFC requirement anyway.
-	     */
+	/*
+	 * Discard mail to the local double bounce address here, so this
+	 * system can run without a local delivery agent. They'd still have
+	 * to configure something for mail directed to the local postmaster,
+	 * though, but that is an RFC requirement anyway.
+	 */
+	if (at == 0 || resolve_local(at + 1)) {
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
-			    at - STR(reply.recipient)) == 0
-		&& !var_double_bounce_sender[at - STR(reply.recipient)]) {
+			    len) == 0
+		&& !var_double_bounce_sender[len]) {
 		sent(message->queue_id, recipient->address,
 		     "none", message->arrival_time, "discarded");
 		deliver_completed(message->fp, recipient->offset);
@@ -613,6 +628,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * bind each recipient to an in-core queue instance which is needed
 	 * anyway. That gives all information needed for recipient grouping.
 	 */
+#if 0
 
 	/*
 	 * Look up or instantiate the proper transport.
@@ -622,6 +638,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		transport = qmgr_transport_create(STR(reply.transport));
 	    queue = 0;
 	}
+#endif
 
 	/*
 	 * This transport is dead. Defer delivery to this recipient.

@@ -79,7 +79,7 @@ PEER_NAME *peer_name(int sock)
 	    peer.type = PEER_TYPE_INET;
 	    hp = gethostbyaddr((char *) &(sin.sin_addr),
 			       sizeof(sin.sin_addr), AF_INET);
-	    peer.name = (hp && valid_hostname(hp->h_name) ?
+	    peer.name = (hp && valid_hostname(hp->h_name, DO_GRIPE) ?
 			 hp->h_name : "unknown");
 	    peer.addr = inet_ntoa(sin.sin_addr);
 	    return (&peer);
