@@ -2,60 +2,33 @@ This is a very first implementation of Postfix content filtering.
 A Postfix content filter receives unfiltered mail from Postfix and
 either bounces the mail or re-injects filtered mail back into Postfix.
 
-It involves an incompatible change to queue file formats.  Older
-Postfix versions will reject mail that needs to be content filtered,
-and will move the queue file to the "corrupt" mail queue subdirectory.
-
 This document describes two approaches to content filtering.
 
 Simple content filtering example
 ================================
 
-The first example is simpler to set up, but is also more resource
-intensive.  With the shell script as shown you will lose a factor
-of four in Postfix performance for transit mail that arrives and
-leaves via SMTP. You will lose another factor in transit performance
-for each additional temporary file that is created and deleted in
-the process of content filtering.  The performance impact is less
-for mail that is submitted or delivered locally, because such
-deliveries are not as fast as SMTP transit mail.
+The first example is simple to set up.  It uses a shell script that
+receives unfiltered mail from the Postfix pipe delivery agent, and
+that feeds filtered mail back into the Postfix sendmail command.
+Only mail arriving via SMTP will be content filtered.
 
-The example assumes that only mail arriving via SMTP needs to be
-content filtered.
-
-      ..................................
-      :            Postfix             :
-   ----->smtpd \                /local---->
-      :         -cleanup->queue-       :
-   ---->pickup /                \smtp----->
-   ^  :                        |       :
-   |  :                         \pipe-----+
-   |  ..................................  |
-   |                                      |
-   |                                      |
-   +------sendmail<-------filter<---------+
-
-1 - Create a dedicated local user account called "filter".  The
-    user will never log in, and can be given a "*" password and
-    non-existent shell and home directory. This user handles all
-    potentially dangerous mail content - that is why it should be
-    a separate account.
-
-2 - Create a directory /var/spool/filter that is accessible only
-    to the "filter" user. This is where the content filtering will
-    store its temporary files.
-
-3 - Define a content filtering entry in the Postfix master file:
-
-    /etc/postfix/master.cf:
-      filter    unix  -       n       n       -       -       pipe
-        flags=Rq user=filter argv=/somewhere/filter -f ${sender} -- ${recipient}
+                  ..................................
+                  :            Postfix             :
+Unfiltered mail----->smtpd \                /local---->Filtered mail
+                  :         -cleanup->queue-       :
+               ---->pickup /                \smtp----->Filtered mail
+               ^  :                        |       :
+               |  :                         \pipe-----+
+               |  ..................................  |
+               |                                      |
+               |                                      |
+               +-Postfix sendmail<----filter script<--+
 
 The /some/where/filter program can be a simple shell script like this:
 
     #!/bin/sh
 
-    # Localize these
+    # Localize these.
     INSPECT_DIR=/var/spool/filter
     SENDMAIL="/usr/sbin/sendmail -i"
 
@@ -88,21 +61,53 @@ exit status of the filter command is whatever exit status Postfix
 sendmail produces.
 
 I suggest that you play with this script for a while until you are
-satisfied with the results. Run it as the filter user, with a real
-message (headers+body) as input:
+satisfied with the results. Run it with a real message (headers+body)
+as input:
 
     % /some/where/filter -f sender recipient... <message-file
 
-Turn on content filtering for mail arriving via SMTP only, by
-appending "-o content_filter=filter:dummy" to the master.cf
-entry that defines the Postfix SMTP server:
+Once you're satisfied with the content filtering script:
+
+1 - Create a dedicated local user account called "filter".  This
+    user handles all potentially dangerous mail content - that is
+    why it should be a separate account. Do not use "nobody", and
+    most certainly do not use "root" or "postfix".  The user will
+    never log in, and can be given a "*" password and non-existent
+    shell and home directory.
+
+2 - Create a directory /var/spool/filter that is accessible only
+    to the "filter" user. This is where the content filtering script
+    is supposed to store its temporary files.
+
+3 - Define the content filter in the Postfix master file:
+
+    /etc/postfix/master.cf:
+      filter    unix  -       n       n       -       -       pipe
+        flags=Rq user=filter argv=/somewhere/filter -f ${sender} -- ${recipient}
+
+To turn on content filtering for mail arriving via SMTP only, append
+"-o content_filter=filter:" to the master.cf entry that defines
+the Postfix SMTP server:
 
     /etc/postfix/master.cf:
 	smtp      inet     ...stuff...      smtpd
-	    -o content_filter=filter:dummy
+	    -o content_filter=filter:
 
-The content_filter configuration parameter accepts the same
-syntax as the right-hand side in a Postfix transport table.
+Note the ":" at the end!!  The content_filter configuration parameter
+accepts the same syntax as the right-hand side in a Postfix transport
+table. Execute "postfix reload" to complete the change.
+
+To turn off content filtering, edit the master.cf file, remove the
+"-o content_filter=filter:" text from the entry that defines the
+Postfix SMTP server, and execute another "postfix reload".
+
+With the shell script as shown above you will lose a factor of four
+in Postfix performance for transit mail that arrives and leaves
+via SMTP. You will lose another factor in transit performance for
+each additional temporary file that is created and deleted in the
+process of content filtering.  The performance impact is less for
+mail that is submitted or delivered locally, because such deliveries
+are already slower than SMTP transit mail.
 
 Simple content filter limitations
 =================================

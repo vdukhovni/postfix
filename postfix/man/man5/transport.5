@@ -53,7 +53,10 @@ Mail for \fIdomain\fR is delivered through \fItransport\fR to
 \fInexthop\fR.
 .IP "\fI.domain transport\fR:\fInexthop\fR"
 Mail for any subdomain of \fIdomain\fR is delivered through
-\fItransport\fR to \fInexthop\fR.
+\fItransport\fR to \fInexthop\fR. This applies only when the
+string \fBtransport_maps\fR is not listed in the
+\fBparent_domain_matches_subdomains\fR configuration setting.
+Otherwise, a domain name matches itself and its subdomains.
 .PP
 Note: transport map entries take precedence over domains
 specified in the \fBmydestination\fR parameter. If you use
@@ -140,7 +143,7 @@ broken up into parent domains.
 Patterns are applied in the order as specified in the table, until a
 pattern is found that matches the search string.
 
-Results are the same as with normal indexed file lookups, with
+Results are the same as with indexed file lookups, with
 the additional feature that parenthesized substrings from the
 pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
 .SH CONFIGURATION PARAMETERS

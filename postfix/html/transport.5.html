@@ -57,7 +57,11 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        <i>.domain</i> <i>transport</i>:<i>nexthop</i>
               Mail for  any  subdomain  of  <i>domain</i>  is  delivered
-              through <i>transport</i> to <i>nexthop</i>.
+              through  <i>transport</i>  to  <i>nexthop</i>.  This applies only
+              when the string <b>transport</b><i>_</i><b>maps</b> is not listed in the
+              <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b> configuration set-
+              ting.  Otherwise, a domain name matches itself  and
+              its subdomains.
 
        Note:  transport  map entries take precedence over domains
        specified in the <b>mydestination</b> parameter. If you  use  the
@@ -135,18 +139,18 @@ TRANSPORT(5)                                         TRANSPORT(5)
        table,  until  a  pattern is found that matches the search
        string.
 
-       Results are the same as with normal indexed file  lookups,
-       with  the additional feature that parenthesized substrings
-       from the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so  on.
+       Results are the same as with indexed  file  lookups,  with
+       the  additional feature that parenthesized substrings from
+       the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
        <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b> (versions &gt;= 20011119)
-              List of Postfix features that use <i>domain.name</i>  pat-
+              List  of Postfix features that use <i>domain.name</i> pat-
               terns  to  match  <i>sub.domain.name</i>  (as  opposed  to
               requiring <i>.domain.name</i> patterns).
 
@@ -156,7 +160,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
        Other parameters of interest:
 
        <b>default</b><i>_</i><b>transport</b>
-              The transport to use when no transport  is  explic-
+              The  transport  to use when no transport is explic-
               itly specified.
 
        <b>relayhost</b>
@@ -170,7 +174,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

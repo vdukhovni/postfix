@@ -78,13 +78,11 @@
 # ADDRESS EXTENSION
 # .fi
 # .ad
-#	When table lookup fails, and the address localpart contains the
-#	optional recipient delimiter (e.g., \fIuser+foo\fR@\fIdomain\fR), the
-#	search is repeated for the unextended address (e.g.
-#	\fIuser\fR@\fIdomain\fR), and the unmatched extension is propagated
-#	to the result of table lookup. The matching order is:
-#	\fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR,
-#	\fIuser+foo\fR, \fIuser\fR, and @\fIdomain\fR.
+#	When a mail address localpart contains the optional recipient delimiter
+#	(e.g., \fIuser+foo\fR@\fIdomain\fR), the lookup order becomes:
+#	\fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR, \fIuser+foo\fR,
+#	\fIuser\fR, and @\fIdomain\fR.  An unmatched address extension
+#	(\fI+foo\fR) is propagated to the result of table lookup.
 # REGULAR EXPRESSION TABLES
 # .ad
 # .fi
@@ -101,7 +99,7 @@
 #	Patterns are applied in the order as specified in the table, until a
 #	pattern is found that matches the search string.
 #
-#	Results are the same as with normal indexed file lookups, with
+#	Results are the same as with indexed file lookups, with
 #	the additional feature that parenthesized substrings from the
 #	pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
 # BUGS

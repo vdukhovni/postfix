@@ -22,20 +22,15 @@
 #               When  pattern matches a search string, use the cor-
 #               responding result.
 # 
-#        multi-line text
-#               A line that starts with whitespace (space  or  tab)
-#               is  a  continuation  of the previous line. An empty
-#               line terminates the previous line, as does  a  line
-#               that  starts with non-whitespace (text or comment).
-#               A comment line that starts with whitespace does not
-#               terminate multi-line text.
+#        blank lines and comments
+#               Empty lines and whitespace-only lines are  ignored,
+#               as  are  lines whose first non-whitespace character
+#               is a `#'.
 # 
-#        comments
-#               The  # is recognized as the start of a comment, but
-#               only when it is the first non-whitespace  character
-#               on  a line.  A comment terminates at the end of the
-#               line, even when the next line starts  with  whites-
-#               pace.
+#        multi-line text
+#               A logical line starts with non-whitespace  text.  A
+#               line  that starts with whitespace continues a logi-
+#               cal line.
 # 
 #        pattern1!pattern2 result
 #               Matches pattern1 but not pattern2.
@@ -43,28 +38,28 @@
 #        Each pattern is a regular expression enclosed by a pair of
 #        delimiters.  The regular expression syntax is described in
 #        re_format(7).  The expression delimiter can be any charac-
-#        ter, except whitespace or  characters  that  have  special
-#        meaning  (traditionally  the  forward  slash is used). The
+#        ter,  except  whitespace  or  characters that have special
+#        meaning (traditionally the forward  slash  is  used).  The
 #        regular expression can contain whitespace.
 # 
 #        By default, matching is case-insensitive, although follow-
-#        ing  the  second slash with an `i' flag will reverse this.
-#        Other flags are `x' (disable extended expression  syntax),
+#        ing the second slash with an `i' flag will  reverse  this.
+#        Other  flags are `x' (disable extended expression syntax),
 #        and `m' (enable multi-line mode).
 # 
-#        Each  pattern  is applied to the entire lookup key string.
-#        Depending on the application, that  string  is  an  entire
+#        Each pattern is applied to the entire lookup  key  string.
+#        Depending  on  the  application,  that string is an entire
 #        client hostname, an entire client IP address, or an entire
-#        mail address.  Thus, no parent domain  or  parent  network
-#        search  is  done,  and  user@domain mail addresses are not
-#        broken up into their user and  domain  constituent  parts,
+#        mail  address.   Thus,  no parent domain or parent network
+#        search is done, and user@domain  mail  addresses  are  not
+#        broken  up  into  their user and domain constituent parts,
 #        nor is user+foo broken up into user and foo.
 # 
-#        Patterns  are  applied  in  the  order as specified in the
-#        table, until a pattern is found that  matches  the  search
+#        Patterns are applied in the  order  as  specified  in  the
+#        table,  until  a  pattern is found that matches the search
 #        string.
 # 
-#        Substitution  of  substrings  from  the matched expression
+#        Substitution of substrings  from  the  matched  expression
 #        into the result string is possible using $1, $2, etc.. The
 #        macros in the result string may need to be written as ${n}
 #        or $(n) if they aren't followed by whitespace.

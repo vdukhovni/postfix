@@ -5902,6 +5902,16 @@ Apologies for any names omitted.
 	Security: additional run-time checks to discourage sharing
 	of Postfix user/group ID values with other accounts.
 
+20020104
+
+	Cleanup: SMTPD access maps now return DUNNO (undetermined)
+	instead of OK when a recipient address contains multiple
+	domains (user@dom1@dom2, etcetera).  Victor Duchovny, Morgan
+	Stanley.  File:  smtpd/smtpd_check.c.
+
+	Bugfix: SMTPD access maps did not handle address extensions.
+	File: smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in
@@ -5916,9 +5926,6 @@ Open problems:
 
 	Medium: make address rewriting on/off configurable for
 	envelopes and/or headers.
-
-	Medium: smtpd access maps don't understand the recipient
-	delimiter setting.
 
 	Low: generic showq protocol, to allow for more intelligent
 	processing than just mailq. Maybe marry this with postsuper.

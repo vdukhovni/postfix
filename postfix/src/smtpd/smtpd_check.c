@@ -290,6 +290,7 @@
 #include <maps.h>
 #include <mail_addr_find.h>
 #include <match_parent_style.h>
+#include <split_addr.h>
 
 /* Application-specific. */
 
@@ -736,6 +737,29 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
     return (result);
 }
 
+/* resolve_final - do we do final delivery for the domain? */
+
+static int resolve_final(SMTPD_STATE *state, const char *reply_name, 
+const char *domain)
+{
+
+    /* If matches $mydestination or $inet_interfaces. */
+    if (resolve_local(domain))
+	return (1);
+
+    /* If Postfix-style virtual domain. */
+    if (*var_virtual_maps
+	&& check_maps_find(state, reply_name, virtual_maps, domain, 0))
+	return (1);
+
+    /* If virtual mailbox domain. */
+    if (*var_virt_mailbox_maps
+	&& check_maps_find(state, reply_name, virt_mailbox_maps, domain, 0))
+	return (1);
+
+    return (0);
+}
+
 /* reject_unknown_client - fail if client hostname is unknown */
 
 static int reject_unknown_client(SMTPD_STATE *state)
@@ -997,14 +1021,10 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
     domain += 1;
 
     /*
-     * Permit final delivery: the destination matches mydestination or
-     * virtual_maps.
+     * Permit final delivery: the destination matches mydestination, 
+     * virtual_maps, or virtual_mailbox_maps.
      */
-    if (resolve_local(domain)
-	|| (*var_virtual_maps
-	    && check_maps_find(state, recipient, virtual_maps, domain, 0))
-	|| (*var_virt_mailbox_maps
-	&& check_maps_find(state, recipient, virt_mailbox_maps, domain, 0)))
+    if (resolve_final(state, recipient, domain))
 	return (SMTPD_CHECK_OK);
 
     /*
@@ -1261,11 +1281,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
-    if (resolve_local(domain)
-	|| (*var_virtual_maps
-	    && check_maps_find(state, recipient, virtual_maps, domain, 0))
-	|| (*var_virt_mailbox_maps
-	&& check_maps_find(state, recipient, virt_mailbox_maps, domain, 0)))
+    if (resolve_final(state, recipient, domain))
 	return (SMTPD_CHECK_OK);
 
     if (msg_verbose)
@@ -1397,11 +1413,7 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
-    if (resolve_local(domain)
-	|| (*var_virtual_maps
-	    && check_maps_find(state, reply_name, virtual_maps, domain, 0))
-	|| (*var_virt_mailbox_maps
-       && check_maps_find(state, reply_name, virt_mailbox_maps, domain, 0)))
+    if (resolve_final(state, reply_name, domain))
 	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '#')
 	return (SMTPD_CHECK_DUNNO);
@@ -1693,9 +1705,12 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 {
     char   *myname = "check_mail_access";
     const RESOLVE_REPLY *reply;
-    const char *ratsign;
+    const char *domain;
     int     status;
     char   *local_at;
+    char   *bare_addr;
+    char   *bare_ext;
+    char   *bare_at;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, addr);
@@ -1709,50 +1724,114 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Garbage in, garbage out. Every address from canon_addr_internal() and
      * from resolve_clnt_query() must be fully qualified.
      */
-    if ((ratsign = strrchr(CONST_STR(reply->recipient), '@')) == 0) {
-	msg_warn("%s: no @domain in address: %s", myname, CONST_STR(reply->recipient));
+    if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0) {
+	msg_warn("%s: no @domain in address: %s", myname, 
+	CONST_STR(reply->recipient));
 	return (0);
     }
+    domain += 1;
 
     /*
-     * Avoid surprise matches with source-routed, non-local addresses.
+     * In case of address extensions.
      */
-    if (var_allow_untrust_route == 0
-	&& (reply->flags & RESOLVE_FLAG_ROUTED)
-	&& !resolve_local(ratsign + 1))
-	return (SMTPD_CHECK_DUNNO);
+    if (*var_rcpt_delim == 0) {
+	bare_addr = 0;
+    } else {
+	bare_addr = mystrdup(addr);
+	if ((bare_at = strrchr(bare_addr, '@')) != 0)
+	    *bare_at = 0;
+	if ((bare_ext = split_addr(bare_addr, *var_rcpt_delim)) != 0) {
+	    if (bare_at != 0) {
+		*bare_at = '@';
+		memmove(bare_ext - 1, bare_at, strlen(bare_at) + 1);
+		bare_at = bare_ext - 1;
+	    }
+	} else {
+	    myfree(bare_addr);
+	    bare_addr = 0;
+	}
+    }
+
+#define CHECK_MAIL_ACCESS_RETURN(x) \
+	{ if (bare_addr) myfree(bare_addr); return(x); }
 
     /*
-     * Look up the full address.
+     * Source-routed, non-local, recipient addresses are too suspicious for
+     * returning an "OK" result. The complicated expression below was brought
+     * to you by the keyboard of Victor Duchovny, Morgan Stanley and hacked
+     * up a bit by Wietse.
+     */
+#define SUSPICIOUS(domain, reply, state, reply_name, reply_class) \
+	(var_allow_untrust_route == 0 \
+	&& (reply->flags & RESOLVE_FLAG_ROUTED) \
+	&& strcmp(reply_class, SMTPD_NAME_RECIPIENT) == 0 \
+	&& !resolve_final(state, reply_name, domain))
+
+    /*
+     * Look up user+foo@domain if the address has an extension, user@domain
+     * otherwise.
      */
     if ((status = check_access(state, table, CONST_STR(reply->recipient), FULL,
 			       found, reply_name, reply_class, def_acl)) != 0
 	|| *found)
-	return (status);
+	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
+	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				 SMTPD_CHECK_DUNNO : status);
+
+    /*
+     * Try user@domain if the address has an extension.
+     */
+    if (bare_addr)
+	if ((status = check_access(state, table, bare_addr, PARTIAL,
+			      found, reply_name, reply_class, def_acl)) != 0
+	    || *found)
+	    CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
+	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				     SMTPD_CHECK_DUNNO : status);
 
     /*
      * Look up the domain name, or parent domains thereof.
      */
-    if ((status = check_domain_access(state, table, ratsign + 1, PARTIAL,
+    if ((status = check_domain_access(state, table, domain, PARTIAL,
 			      found, reply_name, reply_class, def_acl)) != 0
 	|| *found)
-	return (status);
+	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
+	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				 SMTPD_CHECK_DUNNO : status);
 
     /*
-     * Look up localpart@
+     * Look up user+foo@ if the address has an extension, user@ otherwise.
+     * XXX This leaks a little memory if map lookup is aborted.
      */
     local_at = mystrndup(CONST_STR(reply->recipient),
-			 ratsign - CONST_STR(reply->recipient) + 1);
+			 domain - CONST_STR(reply->recipient));
     status = check_access(state, table, local_at, PARTIAL, found,
 			  reply_name, reply_class, def_acl);
     myfree(local_at);
     if (status != 0 || *found)
-	return (status);
+	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
+	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				 SMTPD_CHECK_DUNNO : status);
+
+    /*
+     * Look up user@ if the address has an extension. XXX Same problem here.
+     */
+    if (bare_addr) {
+	local_at = (bare_at ? mystrndup(bare_addr, bare_at + 1 - bare_addr) :
+		    mystrdup(bare_addr));
+	status = check_access(state, table, local_at, PARTIAL, found,
+			      reply_name, reply_class, def_acl);
+	myfree(local_at);
+	if (status != 0 || *found)
+	    CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
+	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				     SMTPD_CHECK_DUNNO : status);
+    }
 
     /*
      * Undecided when no match found.
      */
-    return (SMTPD_CHECK_DUNNO);
+    CHECK_MAIL_ACCESS_RETURN(SMTPD_CHECK_DUNNO);
 }
 
 /* reject_maps_rbl - reject if client address in real-time blackhole list */

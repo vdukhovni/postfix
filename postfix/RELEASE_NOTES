@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-200201XX
+Incompatible changes with snapshot-20020106
 ===========================================
 
 Postfix will not run if it detects that the postfix user or group
@@ -23,7 +23,13 @@ main.cf file as "alternate_config_directories = /dir1 /dir2 ...".
 Otherwise, some Postfix commands will no longer work (namely, the
 ones that are now implemented by set-group ID client programs).
 
-Major changes with snapshot-200201XX
+Postfix SMTP access maps no longer return OK for non-local recipient
+mail addresses that contain multiple domains (user@dom1@dom2,
+user%dom1@dom2, etcetera); the lookup now returns DUNNO (undetermined).
+Non-local multi-domain addresses were already prohibited from
+matching the permit_mx_backup and the relay_domains-based restrictions.
+
+Major changes with snapshot-20020106
 ====================================
 
 Simplification of the local Postfix security model.
@@ -69,12 +75,6 @@ address will be looked up as <> instead.
 
 Incompatible changes with snapshot-20011210
 ===========================================
-
-Postfix SMTPD access maps no longer match non-local mail addresses
-that contain multiple domains (user@dom1@dom2, user%dom1@dom2,
-etcetera).  This change prevents false or spurious matches.
-Non-local multi-domain addresses are already prohibited from matching
-permit_mx_backup and the relay_domains-based restrictions.
 
 Stricter checking of Postfix chroot configurations.  The Postfix
 startup procedure now warns if "system" directories (etc, bin, lib,
