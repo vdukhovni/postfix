@@ -210,7 +210,7 @@ smtpd_check.o: ../../include/match_ops.h
 smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/domain_list.h
 smtpd_check.o: ../../include/mail_params.h
-smtpd_check.o: ../../include/canon_addr.h
+smtpd_check.o: ../../include/rewrite_clnt.h
 smtpd_check.o: ../../include/resolve_clnt.h
 smtpd_check.o: ../../include/mail_error.h
 smtpd_check.o: ../../include/name_mask.h

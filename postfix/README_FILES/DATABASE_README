@@ -201,6 +201,13 @@ To find out what database types your Postfix system supports, use the "postconf
     mmyyssqqll (read-only)
         Perform MySQL database lookups. Configuration details are given in
         mysql_table(5).
+    nneettiinnffoo (read-only)
+        Perform Netinfo database lookups.
+    nniiss (read-only)
+        Perform NIS database lookups.
+    nniisspplluuss (read-only)
+        Perform NIS+ database lookups. Configuration details are given in
+        nisplus_table(5).
     ppccrree (read-only)
         A lookup table based on Perl Compatible Regular Expressions. The file
         format is described in pcre_table(5). The lookup table name as used in

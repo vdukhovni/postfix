@@ -2794,7 +2794,7 @@ This feature is available in Postfix 2.0 and later.
 %PARAM receive_override_options 
 
 <p> Enable or disable recipient validation, built-in content
-filtering, or address rewriting. Typically, these are specified in
+filtering, or address mapping. Typically, these are specified in
 master.cf as command-line arguments for the smtpd(8), qmqpd(8) or
 pickup(8) daemons. </p>
 
@@ -5546,8 +5546,9 @@ and postdrop(1).
 %PARAM append_at_myorigin yes
 
 <p>
-Append the string "@$myorigin" to mail addresses without domain
-information.
+With locally submitted mail, append the string "@$myorigin" to mail
+addresses without domain information. With remotely submitted mail,
+append the string "@$invalid_domain" instead.
 </p>
 
 <p>
@@ -5558,8 +5559,9 @@ Postfix does not support domain-less addresses.
 %PARAM append_dot_mydomain yes
 
 <p>
-Append the string ".$mydomain" to addresses that have no ".domain"
-information.
+With locally submitted mail, append the string ".$mydomain" to
+addresses that have no ".domain" information. With remotely submitted
+mail, append the string ".$invalid_domain" instead.
 </p>
 
 <p>
@@ -7205,3 +7207,59 @@ is already bounded by $max_idle.  </p>
 <p> How frequently the scache(8) server logs usage statistics with
 session cache hit and miss rates for logical destinations and for
 physical endpoints. </p>
+
+%PARAM invalid_header_rewrite_context_domain domain.invalid
+
+<p> Append this domain to incomplete message header addresses from
+remote clients, when $remote_header_rewrite_context_name is set to
+"invalid".  This is one way to avoid appending your own domain to
+addresses in spam from poorly written software. </p>
+
+%PARAM local_header_rewrite_context_clients $inet_interfaces
+$mynetworks
+
+<p> Append the domain names in $myorigin and $mydomain to incomplete
+message header addresses from these clients.  </p>
+
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by comma or whitespace. The list is matched left to right,
+and the search stops on the first match.  Specify !address or
+!network/netmask to exclude an address or network block from the
+list.  A network mask specifies the number of bits in the network
+part of a host address. Continue long lines by starting the next
+line with whitespace. </p>
+
+<p> You can also specify "/file/name" or "type:table" patterns.
+A "/file/name" pattern is replaced by its contents; a "type:table"
+lookup table is matched when a client name or address matches a
+lookup key (the lookup result is ignored). </p>
+
+%PARAM remote_header_rewrite_context_name local
+
+<p> The address rewriting context that should be used for incomplete
+mail header addresses from remote clients. </p>
+
+<ul>
+
+<li> <p> <b>local</b> Append the domains specified with $myorigin
+or $mydomain to incomplete message header addresses from remote
+clients.  </p>
+
+<li> <p> <b>invalid</b> Append the domain specified with
+$invalid_header_rewrite_context_domain to incomplete message header
+addresses from remote clients. This is one way to avoid appending
+your own domain to addresses in spam from poorly written software.
+This is a safe choice for gateways that have no control over
+address rewriting by down-stream systems.
+</p>
+
+<li> <p> <b>none</b> Don't modify message headers from remote
+clients at all. This is another way to avoid appending your own
+domain to addresses in spam from poorly written software. This
+is the preferred choice for purists. </p>
+
+</ul>
+
+<p> Note: Postfix always appends the domains specified with $myorigin
+or $mydomain to incomplete envelope addresses, because those
+addresses are effectively equivalent to local addresses. </p>

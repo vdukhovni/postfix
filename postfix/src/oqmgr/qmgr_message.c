@@ -122,6 +122,7 @@
 #include <verp_sender.h>
 #include <mail_proto.h>
 #include <qmgr_user.h>
+#include <split_addr.h>
 
 /* Client stubs. */
 
@@ -175,6 +176,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->sasl_method = 0;
     message->sasl_username = 0;
     message->sasl_sender = 0;
+    message->rewrite_context = 0;
     qmgr_rcpt_list_init(&message->rcpt_list);
     return (message);
 }
@@ -549,6 +551,13 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    msg_warn("%s: ignoring multiple %s attribute: %s",
 			message->queue_id, MAIL_ATTR_SASL_SENDER, value);
 	    }
+	    if (strcmp(name, MAIL_ATTR_RWR_CTXT_NAME) == 0) {
+		if (message->rewrite_context == 0)
+		    message->rewrite_context = mystrdup(value);
+		else
+		    msg_warn("%s: ignoring multiple %s attribute: %s",
+			message->queue_id, MAIL_ATTR_RWR_CTXT_NAME, value);
+	    }
 	    /* Optional tracing flags. */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
 		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
@@ -628,6 +637,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->sasl_username = mystrdup("");
     if (message->sasl_sender == 0)
 	message->sasl_sender = mystrdup("");
+    if (message->rewrite_context == 0)
+	message->rewrite_context = mystrdup("");
 
     /*
      * Clean up.

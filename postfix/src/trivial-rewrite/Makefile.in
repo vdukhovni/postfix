@@ -146,7 +146,6 @@ trivial-rewrite.o: ../../include/attr.h
 trivial-rewrite.o: ../../include/resolve_local.h
 trivial-rewrite.o: ../../include/mail_conf.h
 trivial-rewrite.o: ../../include/resolve_clnt.h
-trivial-rewrite.o: ../../include/rewrite_clnt.h
 trivial-rewrite.o: ../../include/tok822.h
 trivial-rewrite.o: ../../include/mail_addr.h
 trivial-rewrite.o: ../../include/mail_server.h

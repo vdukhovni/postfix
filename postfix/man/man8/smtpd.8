@@ -102,6 +102,28 @@ sender addresses, even when no explicit reject_unlisted_sender
 access restriction is specified.
 .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
 What SMTP clients Postfix will not offer AUTH support to.
+.SH "ADDRESS REWRITING CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBreceive_override_options (empty)\fR"
+Enable or disable recipient validation, built-in content
+filtering, or address mapping.
+.PP
+Available in Postfix version 2.2 and later:
+.IP "\fBlocal_header_rewrite_context_clients ($inet_interfaces $mynetworks)\fR"
+Append the domain names in $myorigin and $mydomain to incomplete
+message header addresses from these clients.
+.IP "\fBremote_header_rewrite_context_name (local)\fR"
+The address rewriting context that should be used for incomplete
+mail header addresses from remote clients.
+.PP
+Implemented by the trivial-rewrite(8) server:
+.IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
+Append this domain to incomplete message header addresses from
+remote clients, when $remote_header_rewrite_context_name is set to
+"invalid".
 .SH "AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS"
 .na
 .nf
@@ -142,7 +164,7 @@ and external content filters.
 Available in Postfix version 2.1 and later:
 .IP "\fBreceive_override_options (empty)\fR"
 Enable or disable recipient validation, built-in content
-filtering, or address rewriting.
+filtering, or address mapping.
 .SH "EXTERNAL CONTENT INSPECTION CONTROLS"
 .na
 .nf

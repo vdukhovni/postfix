@@ -98,31 +98,10 @@ clobber:
 ../conf/canonical: canonical
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/cidr_table: cidr_table
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
 ../conf/header_checks: header_checks
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
-../conf/ldap_table: ldap_table
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
-../conf/mysql_table: mysql_table
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
-../conf/pcre_table: pcre_table
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
-../conf/pgsql_table: pgsql_table
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
-../conf/regexp_table: regexp_table
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
 ../conf/relocated: relocated
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
-
-../conf/tcp_table: tcp_table
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/transport: transport

@@ -17,52 +17,71 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
        The <b>trivial-rewrite</b> daemon processes three types of client
        service requests:
 
-       <b>rewrite</b>
-              Rewrite  an  address to standard form. The <b>trivial-</b>
-              <b>rewrite</b> daemon  by  default  appends  local  domain
-              information  to  unqualified  addresses, swaps bang
-              paths to domain form,  and  strips  source  routing
-              information.  This process is under control of sev-
-              eral configuration parameters (see below).
+       <b>rewrite</b> <i>context address</i>
+              Rewrite  an  address to standard form, according to
+              the address rewriting context:
 
-       <b>resolve</b>
+              <b>local</b>
+
+              <b>none</b>   Append the domain names specified with <b>$<a href="postconf.5.html#myorigin">myo</a>-</b>
+                     <b><a href="postconf.5.html#myorigin">rigin</a></b>  or <b>$<a href="postconf.5.html#mydomain">mydomain</a></b> to incomplete addresses;
+                     do <b><a href="postconf.5.html#swap_bangpath">swap_bangpath</a></b> and <b><a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a></b> pro-
+                     cessing as described below, and strip source
+                     routed  addresses  (<i>@site,@site:user@domain</i>)
+                     to <i>user@domain</i> form.
+
+              <b>invalid</b>
+                     Append   the   domain  name  specified  with
+                     <b>$<a href="postconf.5.html#invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a></b>    to
+                     incomplete  addresses.  Otherwise the result
+                     is identical to that of  the  <b>local</b>  address
+                     rewriting  context.  This  prevents  Postfix
+                     from appending the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> to spam from
+                     poorly written remote clients.
+
+       <b>resolve</b> <i>address</i>
               Resolve an address to a (<i>transport</i>, <i>nexthop</i>, <i>recip-</i>
-              <i>ient</i>) triple. The meaning of the results is as fol-
-              lows:
+              <i>ient</i>, <i>flags</i>) quadruple. The meaning of the  results
+              is as follows:
 
               <i>transport</i>
                      The delivery agent to use. This is the first
                      field of an entry in the <b>master.cf</b> file.
 
               <i>nexthop</i>
-                     The  host  to  send to and optional delivery
+                     The host to send to  and  optional  delivery
                      method information.
 
               <i>recipient</i>
-                     The  envelope  recipient  address  that   is
+                     The   envelope  recipient  address  that  is
                      passed on to <i>nexthop</i>.
 
-       <b>verify</b> Resolve  an  address  for address verification pur-
+              <i>flags</i>  The  address  class,  whether  the   address
+                     requires  relaying,  whether the address has
+                     problems, and whether the request failed.
+
+       <b>verify</b> <i>address</i>
+              Resolve an address for  address  verification  pur-
               poses.
 
 <b>SERVER PROCESS MANAGEMENT</b>
        The trivial-rewrite servers run under control by the Post-
        fix master server.  Each server can handle multiple simul-
-       taneous connections.  When all servers are  busy  while  a
-       client  connects, the master creates a new server process,
-       provided that the trivial-rewrite server process limit  is
+       taneous  connections.   When  all servers are busy while a
+       client connects, the master creates a new server  process,
+       provided  that the trivial-rewrite server process limit is
        not  exceeded.   Each  trivial-rewrite  server  terminates
        after serving at least <b>$<a href="postconf.5.html#max_use">max_use</a></b> clients of after <b>$<a href="postconf.5.html#max_idle">max_idle</a></b>
        seconds of idle time.
 
 <b>STANDARDS</b>
-       None.  The  command  does  not  interact  with the outside
+       None. The command  does  not  interact  with  the  outside
        world.
 
 <b>SECURITY</b>
-       The <b>trivial-rewrite</b> daemon is not security sensitive.   By
-       default,  this  daemon  does  not  talk to remote or local
-       users.  It can run at a fixed low privilege in a  chrooted
+       The  <b>trivial-rewrite</b> daemon is not security sensitive.  By
+       default, this daemon does not  talk  to  remote  or  local
+       users.   It can run at a fixed low privilege in a chrooted
        environment.
 
 <b>DIAGNOSTICS</b>
@@ -70,15 +89,15 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
 <b>CONFIGURATION PARAMETERS</b>
        On busy mail systems a long time may pass before a <b>main.cf</b>
-       change affecting trivial_rewrite(8) is picked up. Use  the
+       change  affecting trivial_rewrite(8) is picked up. Use the
        command "<b>postfix reload</b>" to speed up a change.
 
-       The  text  below  provides  only  a parameter summary. See
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
 <b>COMPATIBILITY CONTROLS</b>
        <b><a href="postconf.5.html#resolve_dequoted_address">resolve_dequoted_address</a> (yes)</b>
-              Resolve a recipient address safely instead of  cor-
+              Resolve  a recipient address safely instead of cor-
               rectly, by looking inside quotes.
 
        <b><a href="postconf.5.html#resolve_null_domain">resolve_null_domain</a> (no)</b>
@@ -89,28 +108,45 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 <b>ADDRESS REWRITING CONTROLS</b>
        <b><a href="postconf.5.html#myorigin">myorigin</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
               The domain name that locally-posted mail appears to
-              come from, and that locally posted mail  is  deliv-
+              come  from,  and that locally posted mail is deliv-
               ered to.
 
        <b><a href="postconf.5.html#allow_percent_hack">allow_percent_hack</a> (yes)</b>
-              Enable  the  rewriting of the form "user%domain" to
+              Enable the rewriting of the form  "user%domain"  to
               "user@domain".
 
        <b><a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a> (yes)</b>
-              Append the string "@$<a href="postconf.5.html#myorigin">myorigin</a>"  to  mail  addresses
-              without domain information.
+              With  locally  submitted  mail,  append  the string
+              "@$<a href="postconf.5.html#myorigin">myorigin</a>"  to  mail  addresses  without   domain
+              information.
 
        <b><a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a> (yes)</b>
-              Append  the  string  ".$<a href="postconf.5.html#mydomain">mydomain</a>" to addresses that
-              have no ".domain" information.
+              With  locally  submitted  mail,  append  the string
+              ".$<a href="postconf.5.html#mydomain">mydomain</a>" to addresses that  have  no  ".domain"
+              information.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
               The separator between user names and address exten-
               sions (user+foo).
 
        <b><a href="postconf.5.html#swap_bangpath">swap_bangpath</a> (yes)</b>
-              Enable    the   rewriting   of   "site!user"   into
+              Enable   the   rewriting   of   "site!user"    into
               "user@site".
+
+       Available in Postfix 2.2 and later:
+
+       <b><a href="postconf.5.html#invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a> (domain.invalid)</b>
+              Append  this  domain  to  incomplete message header
+              addresses     from     remote     clients,     when
+              $<a href="postconf.5.html#remote_header_rewrite_context_name">remote_header_rewrite_context_name</a>   is   set   to
+              "invalid".
+
+       Implemented by the <a href="smtpd.8.html">smtpd(8)</a> server:
+
+       <b><a href="postconf.5.html#remote_header_rewrite_context_name">remote_header_rewrite_context_name</a> (local)</b>
+              The address rewriting context that should  be  used
+              for  incomplete  mail  header addresses from remote
+              clients.
 
 <b>ROUTING CONTROLS</b>
        The following is applicable to  Postfix  version  2.0  and

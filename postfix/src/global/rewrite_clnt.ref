@@ -1,52 +1,104 @@
-rule       x
+rule       canonical
 address    !
 result     ""@
 
-rule       x
+rule       canonical
 address    a!
 result     ""@a.MYDOMAIN
 
-rule       x
+rule       canonical
 address    !b
 result     b@
 
-rule       x
+rule       canonical
 address    a!b
 result     b@a.MYDOMAIN
 
-rule       x
+rule       canonical
 address    %
 result     ""@
 
-rule       x
+rule       canonical
 address    a%
 result     a@
 
-rule       x
+rule       canonical
 address    %b
 result     ""@b.MYDOMAIN
 
-rule       x
+rule       canonical
 address    a%b
 result     a@b.MYDOMAIN
 
-rule       x
+rule       canonical
 address    @
 result     ""
 
-rule       x
+rule       canonical
 address    a@
 result     a@
 
-rule       x
+rule       canonical
 address    a@.
 result     a@.
 
-rule       x
+rule       canonical
 address    a@b
 result     a@b.MYDOMAIN
 
-rule       x
+rule       canonical
+address    a@b.
+result     a@b
+
+rule       invalid
+address    !
+result     ""@
+
+rule       invalid
+address    a!
+result     ""@a.domain.invalid
+
+rule       invalid
+address    !b
+result     b@
+
+rule       invalid
+address    a!b
+result     b@a.domain.invalid
+
+rule       invalid
+address    %
+result     ""@
+
+rule       invalid
+address    a%
+result     a@
+
+rule       invalid
+address    %b
+result     ""@b.domain.invalid
+
+rule       invalid
+address    a%b
+result     a@b.domain.invalid
+
+rule       invalid
+address    @
+result     ""
+
+rule       invalid
+address    a@
+result     a@
+
+rule       invalid
+address    a@.
+result     a@.
+
+rule       invalid
+address    a@b
+result     a@b.domain.invalid
+
+rule       invalid
 address    a@b.
 result     a@b
 

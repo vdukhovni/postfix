@@ -52,9 +52,9 @@ overview</a>
 
 <p> Each Postfix manual page is numbered after a section of the
 UNIX manual: examples are mailq(1) or access(5). Unfortunately,
-the organization of manual pages depends on the UNIX version being
-used.  Postfix documentation assumes the following convention:
-</p>
+there is no single universal method to organize manual pages; each
+UNIX flavor appears to be different. Postfix documentation assumes
+the following convention:  </p>
 
 <blockquote>
 

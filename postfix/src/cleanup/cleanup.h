@@ -41,8 +41,6 @@ typedef struct CLEANUP_STATE {
     time_t  time;			/* posting time */
     char   *fullname;			/* envelope sender full name */
     char   *sender;			/* envelope sender address */
-    char   *from;			/* From: address */
-    char   *resent_from;		/* Resent-From: address */
     char   *recip;			/* envelope recipient address */
     char   *orig_rcpt;			/* original recipient address */
     char   *return_receipt;		/* return-receipt address */
@@ -63,6 +61,7 @@ typedef struct CLEANUP_STATE {
     NVTABLE *attr;			/* queue file attribute list */
     MIME_STATE *mime_state;		/* MIME state engine */
     int     mime_errs;			/* MIME error flags */
+    char   *rewrite_context_name;	/* address rewrite context */
     char   *filter;			/* from header/body patterns */
     char   *redirect;			/* from header/body patterns */
 } CLEANUP_STATE;
@@ -175,9 +174,9 @@ extern void cleanup_extracted(CLEANUP_STATE *, int, const char *, int);
  /*
   * cleanup_rewrite.c
   */
-extern void cleanup_rewrite_external(VSTRING *, const char *);
-extern void cleanup_rewrite_internal(VSTRING *, const char *);
-extern void cleanup_rewrite_tree(TOK822 *);
+extern void cleanup_rewrite_external(const char *, VSTRING *, const char *);
+extern void cleanup_rewrite_internal(const char *, VSTRING *, const char *);
+extern void cleanup_rewrite_tree(const char *, TOK822 *);
 
  /*
   * cleanup_map11.c

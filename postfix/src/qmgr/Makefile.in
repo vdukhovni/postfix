@@ -201,6 +201,7 @@ qmgr_message.o: ../../include/mail_proto.h
 qmgr_message.o: ../../include/iostuff.h
 qmgr_message.o: ../../include/attr.h
 qmgr_message.o: ../../include/qmgr_user.h
+qmgr_message.o: ../../include/split_addr.h
 qmgr_message.o: ../../include/rewrite_clnt.h
 qmgr_message.o: ../../include/resolve_clnt.h
 qmgr_message.o: qmgr.h

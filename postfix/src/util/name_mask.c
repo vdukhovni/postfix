@@ -60,7 +60,7 @@
 
 /* name_mask - compute mask corresponding to list of names */
 
-int     name_mask(const char *context, NAME_MASK * table, const char *names)
+int     name_mask(const char *context, NAME_MASK *table, const char *names)
 {
     char   *myname = "name_mask";
     char   *saved_names = mystrdup(names);
@@ -92,7 +92,7 @@ int     name_mask(const char *context, NAME_MASK * table, const char *names)
 
 /* str_name_mask - mask to string */
 
-const char *str_name_mask(const char *context, NAME_MASK * table, int mask)
+const char *str_name_mask(const char *context, NAME_MASK *table, int mask)
 {
     char   *myname = "name_mask";
     NAME_MASK *np;

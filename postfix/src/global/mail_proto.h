@@ -122,6 +122,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_SASL_USERNAME	"sasl_username"
 #define MAIL_ATTR_SASL_SENDER	"sasl_sender"
 #define MAIL_ATTR_DUMMY		"dummy"
+#define MAIL_ATTR_RWR_CTXT_NAME	"rewrite_context_name"
 
 #define MAIL_ATTR_TTL		"ttl"
 #define MAIL_ATTR_LABEL		"label"
@@ -179,6 +180,9 @@ extern char *mail_pathname(const char *, const char *);
 #define XFORWARD_PROTO		"PROTO"		/* client protocol */
 #define XFORWARD_HELO		"HELO"		/* client helo */
 #define XFORWARD_IDENT		"IDENT"		/* message identifier */
+#define XFORWARD_DOMAIN		"DOMAIN"	/* origin type */
+#define XFORWARD_DOM_LOCAL	"LOCAL"		/* local origin */
+#define XFORWARD_DOM_REMOTE	"REMOTE"	/* remote origin */
 
 #define XFORWARD_UNAVAILABLE	"[UNAVAILABLE]"	/* attribute unavailable */
 

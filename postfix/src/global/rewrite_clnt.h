@@ -15,12 +15,13 @@
   * Utility library.
   */
 #include <vstring.h>
+#include <mail_params.h>
 
  /*
   * External interface.
   */
 #define REWRITE_ADDR	"rewrite"
-#define REWRITE_CANON	"canonicalize"
+#define REWRITE_CANON	REWRITE_LOCAL	/* backwards compatibility */
 
 extern VSTRING *rewrite_clnt(const char *, const char *, VSTRING *);
 extern VSTRING *rewrite_clnt_internal(const char *, const char *, VSTRING *);

@@ -183,6 +183,7 @@ while (<>) {
     s;\binet_interfaces\b;<a href="postconf.5.html#inet_interfaces">$&</a>;g;
     s;\binitial_destination_concurrency\b;<a href="postconf.5.html#initial_destination_concurrency">$&</a>;g;
     s;\binvalid_hostname_reject_code\b;<a href="postconf.5.html#invalid_hostname_reject_code">$&</a>;g;
+    s;\binvalid_header_rewrite_con[-</bB>]*\n* *[<bB>]*text_domain\b;<a href="postconf.5.html#invalid_header_rewrite_context_domain">$&</a>;g;
     s;\bipc_idle\b;<a href="postconf.5.html#ipc_idle">$&</a>;g;
     s;\bipc_timeout\b;<a href="postconf.5.html#ipc_timeout">$&</a>;g;
     s;\bipc_ttl\b;<a href="postconf.5.html#ipc_ttl">$&</a>;g;
@@ -210,6 +211,7 @@ while (<>) {
     s;\blocal_recip[-</bB>]*\n* *[<bB>]*ient_maps\b;<a href="postconf.5.html#local_recipient_maps">$&</a>;g;
     s;\blocal_transport\b;<a href="postconf.5.html#local_transport">$&</a>;g;
     s;\bluser_relay\b;<a href="postconf.5.html#luser_relay">$&</a>;g;
+    s;\blocal_header_rewrite_con[-</bB>]*\n* *[<bB>]*text_clients\b;<a href="postconf.5.html#local_header_rewrite_context_clients">$&</a>;g;
     s;\bmail_name\b;<a href="postconf.5.html#mail_name">$&</a>;g;
     s;\bmail_owner\b;<a href="postconf.5.html#mail_owner">$&</a>;g;
     s;\bmail_release_date\b;<a href="postconf.5.html#mail_release_date">$&</a>;g;
@@ -238,11 +240,11 @@ while (<>) {
     s;\bminimal_backoff_time\b;<a href="postconf.5.html#minimal_backoff_time">$&</a>;g;
     s;\bmulti_recip[-</bB>]*\n* *[<bB>]*ient_bounce_reject_code\b;<a href="postconf.5.html#multi_recipient_bounce_reject_code">$&</a>;g;
     s;\bmydes[-</bB>]*\n*[ <bB>]*tina[-</bB>]*\n*[ <bB>]*tion\b;<a href="postconf.5.html#mydestination">$&</a>;g;
-    s;\bmydomain\b;<a href="postconf.5.html#mydomain">$&</a>;g;
+    s;\bmydo[-</bB>]*\n* *[<bB>]*main\b;<a href="postconf.5.html#mydomain">$&</a>;g;
     s;\bmyhostname\b;<a href="postconf.5.html#myhostname">$&</a>;g;
-    s;\bmynetworks\b;<a href="postconf.5.html#mynetworks">$&</a>;g;
+    s;\bmynet[-</bB>]*\n* *[<bB>]*works\b;<a href="postconf.5.html#mynetworks">$&</a>;g;
     s;\bmynetworks_style\b;<a href="postconf.5.html#mynetworks_style">$&</a>;g;
-    s;\bmyorigin\b;<a href="postconf.5.html#myorigin">$&</a>;g;
+    s;\bmyo[-</bB>]*\n*[ <bB>]*rigin\b;<a href="postconf.5.html#myorigin">$&</a>;g;
     s;\bnested_header_checks\b;<a href="postconf.5.html#nested_header_checks">$&</a>;g;
     s;\bnewaliases_path\b;<a href="postconf.5.html#newaliases_path">$&</a>;g;
     s;\bnon_fqdn_reject_code\b;<a href="postconf.5.html#non_fqdn_reject_code">$&</a>;g;
@@ -274,6 +276,7 @@ while (<>) {
     s;\brbl_reply_maps\b;<a href="postconf.5.html#rbl_reply_maps">$&</a>;g;
     s;\breadme_directory\b;<a href="postconf.5.html#readme_directory">$&</a>;g;
     s;\breceive_override_options\b;<a href="postconf.5.html#receive_override_options">$&</a>;g;
+    s;\bremote_header_rewrite_con[-</bB>]*\n* *[<bB>]*text_name\b;<a href="postconf.5.html#remote_header_rewrite_context_name">$&</a>;g;
     s;\bno_unknown_recip[-</bB>]*\n* *[<bB>]*ient_checks\b;<a href="postconf.5.html#no_unknown_recipient_checks">$&</a>;g;
     s;\bno_address_mappings\b;<a href="postconf.5.html#no_address_mappings">$&</a>;g;
     s;\bno_header_body_checks\b;<a href="postconf.5.html#no_header_body_checks">$&</a>;g;
@@ -494,6 +497,7 @@ while (<>) {
     s/[<bB>]*ldap[<\/bBiI>]*_[<\/iIbB>]*table[<\/bB>]*\(5\)/<a href="ldap_table.5.html">$&<\/a>/g;
     s/[<bB>]*mas[-<\/bB>]*\n* *[<bB>]*ter[<\/bB>]*\(5\)/<a href="master.5.html">$&<\/a>/g;
     s/[<bB>]*mysql[<\/bBiI>]*_[<\/iIbB>]*table[<\/bB>]*\(5\)/<a href="mysql_table.5.html">$&<\/a>/g;
+    s/[<bB>]*nisplus[<\/bBiI>]*_[<\/iIbB>]*table[<\/bB>]*\(5\)/<a href="nisplus_table.5.html">$&<\/a>/g;
     s/[<bB>]*pcre[<\/bBiI>]*_[<\/iIbB>]*table[<\/bB>]*\(5\)/<a href="pcre_table.5.html">$&<\/a>/g;
     s/[<bB>]*pgsql[<\/bBiI>]*_[<\/iIbB>]*table[<\/bB>]*\(5\)/<a href="pgsql_table.5.html">$&<\/a>/g;
     s/[<bB>]*postconf[<\/bB>]*\(5\)/<a href="postconf.5.html">$&<\/a>/g;
@@ -628,6 +632,7 @@ while (<>) {
     s/\b(proxy):/<a href="proxymap.8.html">$1<\/a>:/g;
     s/\b(pgsql):/<a href="pgsql_table.5.html">$1<\/a>:/g;
     s/\b(mysql):/<a href="mysql_table.5.html">$1<\/a>:/g;
+    s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;

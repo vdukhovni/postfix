@@ -551,10 +551,6 @@ extern char *var_deliver_hdr;
 #define DEF_ENABLE_ORCPT	1
 extern bool var_enable_orcpt;
 
-#define VAR_ENABLE_ERRORS_TO	"enable_errors_to"
-#define DEF_ENABLE_ERRORS_TO	0
-extern bool var_enable_errors_to;
-
 #define VAR_EXP_OWN_ALIAS	"expand_owner_alias"
 #define DEF_EXP_OWN_ALIAS	0
 extern bool var_exp_own_alias;
@@ -2091,6 +2087,26 @@ extern int var_anvil_stat_time;
 extern char *var_anvil_service;
 
 #endif
+
+ /*
+  * What domain names to assume when no valid domain context exists.
+  */
+#define VAR_INV_RWR_DOMAIN		"invalid_header_rewrite_context_domain"
+#define DEF_INV_RWR_DOMAIN		"domain.invalid"
+extern char *var_inv_rwr_domain;
+
+#define VAR_REM_RWR_NAME		"remote_header_rewrite_context_name"
+#define DEF_REM_RWR_NAME		REWRITE_LOCAL
+extern char *var_remote_rwr_name;
+
+#define REWRITE_LOCAL	"local"
+#define REWRITE_INVALID	"invalid"
+#define REWRITE_NONE	"none"
+
+#define VAR_LOC_RWR_CLIENTS		"local_header_rewrite_context_clients"
+#define DEF_LOC_RWR_CLIENTS		"$" VAR_INET_INTERFACES \
+					" $" VAR_MYNETWORKS
+extern char *var_local_rwr_clients;
 
 /* LICENSE
 /* .ad

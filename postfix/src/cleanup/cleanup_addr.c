@@ -83,6 +83,7 @@
 
 #define STR			vstring_str
 #define IGNORE_EXTENSION	(char **) 0
+#define STREQ(x,y)		(strcmp((x), (y)) == 0)
 
 /* cleanup_addr_sender - process envelope sender record */
 
@@ -91,7 +92,7 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     VSTRING *clean_addr = vstring_alloc(100);
     const char *bcc;
 
-    cleanup_rewrite_internal(clean_addr, buf);
+    cleanup_rewrite_internal(REWRITE_LOCAL, clean_addr, buf);
     if (strncasecmp(STR(clean_addr), MAIL_ADDR_MAIL_DAEMON "@",
 		    sizeof(MAIL_ADDR_MAIL_DAEMON)) == 0) {
 	canon_addr_internal(state->temp1, MAIL_ADDR_MAIL_DAEMON);
@@ -130,7 +131,8 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     VSTRING *clean_addr = vstring_alloc(100);
     const char *bcc;
 
-    cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
+    cleanup_rewrite_internal(REWRITE_LOCAL,
+			     clean_addr, *buf ? buf : var_empty_addr);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	if (cleanup_rcpt_canon_maps
 	    && (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))
@@ -162,7 +164,7 @@ void    cleanup_addr_bcc(CLEANUP_STATE *state, const char *bcc)
 {
     VSTRING *clean_addr = vstring_alloc(100);
 
-    cleanup_rewrite_internal(clean_addr, bcc);
+    cleanup_rewrite_internal(REWRITE_LOCAL, clean_addr, bcc);
     if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	if (cleanup_rcpt_canon_maps
 	    && (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_ENV_RCPT))

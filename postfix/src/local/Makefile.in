@@ -438,8 +438,8 @@ resolve.o: ../../include/iostuff.h
 resolve.o: ../../include/attr.h
 resolve.o: ../../include/resolve_clnt.h
 resolve.o: ../../include/rewrite_clnt.h
-resolve.o: ../../include/tok822.h
 resolve.o: ../../include/mail_params.h
+resolve.o: ../../include/tok822.h
 resolve.o: ../../include/defer.h
 resolve.o: ../../include/bounce.h
 resolve.o: ../../include/deliver_request.h

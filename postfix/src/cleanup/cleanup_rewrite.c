@@ -6,15 +6,18 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_rewrite_external(result, addr)
+/*	void	cleanup_rewrite_external(context_name, result, addr)
+/*	const char *context;
 /*	VSTRING	*result;
 /*	const char *addr;
 /*
-/*	void	cleanup_rewrite_internal(result, addr)
+/*	void	cleanup_rewrite_internal(context_name, result, addr)
+/*	const char *context;
 /*	VSTRING	*result;
 /*	const char *addr;
 /*
-/*	void	cleanup_rewrite_tree(tree)
+/*	void	cleanup_rewrite_tree(context_name, tree)
+/*	const char *context;
 /*	TOK822	*tree;
 /* DESCRIPTION
 /*	This module rewrites addresses to canonical form, adding missing
@@ -33,6 +36,15 @@
 /*	cleanup_rewrite_tree() is a wrapper around the
 /*	cleanup_rewrite_external() routine that transforms from
 /*	internal parse tree form to external form and back.
+/*
+/*	Arguments:
+/* .IP context_name
+/*	The name of an address rewriting context that supplies
+/*	the equivalents of myorigin and mydomain.
+/* .IP result
+/*	Result buffer.
+/* .IP addr
+/*	Input buffer.
 /* DIAGNOSTICS
 /* LICENSE
 /* .ad
@@ -57,8 +69,8 @@
 /* Global library. */
 
 #include <tok822.h>
-#include <rewrite_clnt.h>
 #include <quote_822_local.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -68,20 +80,21 @@
 
 /* cleanup_rewrite_external - rewrite address external form */
 
-void    cleanup_rewrite_external(VSTRING *result, const char *addr)
+void    cleanup_rewrite_external(const char *context_name, VSTRING *result,
+				         const char *addr)
 {
-    rewrite_clnt(REWRITE_CANON, addr, result);
+    rewrite_clnt(context_name, addr, result);
 }
 
 /* cleanup_rewrite_tree - rewrite address node */
 
-void    cleanup_rewrite_tree(TOK822 *tree)
+void    cleanup_rewrite_tree(const char *context_name, TOK822 *tree)
 {
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);
 
     tok822_externalize(src, tree->head, TOK822_STR_DEFL);
-    cleanup_rewrite_external(dst, STR(src));
+    cleanup_rewrite_external(context_name, dst, STR(src));
     tok822_free_tree(tree->head);
     tree->head = tok822_scan(STR(dst), &tree->tail);
     vstring_free(dst);
@@ -90,13 +103,14 @@ void    cleanup_rewrite_tree(TOK822 *tree)
 
 /* cleanup_rewrite_internal - rewrite address internal form */
 
-void    cleanup_rewrite_internal(VSTRING *result, const char *addr)
+void    cleanup_rewrite_internal(const char *context_name,
+				         VSTRING *result, const char *addr)
 {
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);
 
     quote_822_local(src, addr);
-    cleanup_rewrite_external(dst, STR(src));
+    cleanup_rewrite_external(context_name, dst, STR(src));
     unquote_822_local(result, STR(dst));
     vstring_free(dst);
     vstring_free(src);

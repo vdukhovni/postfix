@@ -225,7 +225,7 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 			SKIP_ARG(ap, long);
 			break;
 		    case ATTR_TYPE_HASH:
-			SKIP_ARG(ap, HTABLE *);
+			(void) va_arg(ap, HTABLE *);
 			break;
 		    default:
 			msg_panic("%s: unexpected attribute type %d",

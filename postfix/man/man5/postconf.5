@@ -358,14 +358,16 @@ part of the stable Postfix 2.1 release.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH append_at_myorigin (default: yes)
-Append the string "@$myorigin" to mail addresses without domain
-information.
+With locally submitted mail, append the string "@$myorigin" to mail
+addresses without domain information. With remotely submitted mail,
+append the string "@$invalid_domain" instead.
 .PP
 This feature is enabled by default and must not be turned off.
 Postfix does not support domain-less addresses.
 .SH append_dot_mydomain (default: yes)
-Append the string ".$mydomain" to addresses that have no ".domain"
-information.
+With locally submitted mail, append the string ".$mydomain" to
+addresses that have no ".domain" information. With remotely submitted
+mail, append the string ".$invalid_domain" instead.
 .PP
 This feature is enabled by default. If disabled, users will not be
 able to send mail to "user@partialdomainname" but will have to
@@ -1306,6 +1308,11 @@ and via the pipe(8) and virtual(8) delivery agents.
 .PP
 Warning: with concurrency of 1, one bad message can be enough to
 block all mail to a site.
+.SH invalid_header_rewrite_context_domain (default: domain.invalid)
+Append this domain to incomplete message header addresses from
+remote clients, when $remote_header_rewrite_context_name is set to
+"invalid".  This is one way to avoid appending your own domain to
+addresses in spam from poorly written software.
 .SH invalid_hostname_reject_code (default: 501)
 The numerical Postfix SMTP server response code when the client
 HELO or EHLO command parameter is rejected by the reject_invalid_hostname
@@ -1557,6 +1564,25 @@ the entry in the master.cf file.
 Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
+<DT>\fBlocal_header_rewrite_context_clients
+(default: $inet_interfaces
+$mynetworks)\fR</DT><DD>
+.PP
+Append the domain names in $myorigin and $mydomain to incomplete
+message header addresses from these clients.
+.PP
+Specify a list of network addresses or network/netmask patterns,
+separated by comma or whitespace. The list is matched left to right,
+and the search stops on the first match.  Specify !address or
+!network/netmask to exclude an address or network block from the
+list.  A network mask specifies the number of bits in the network
+part of a host address. Continue long lines by starting the next
+line with whitespace.
+.PP
+You can also specify "/file/name" or "type:table" patterns.
+A "/file/name" pattern is replaced by its contents; a "type:table"
+lookup table is matched when a client name or address matches a
+lookup key (the lookup result is ignored).
 .SH local_recipient_maps (default: proxy:unix:passwd.byname $alias_maps)
 Lookup tables with all names or addresses of local recipients:
 a recipient address is local when its domain matches $mydestination,
@@ -2361,7 +2387,7 @@ The location of Postfix README files that describe how to build,
 configure or operate a specific Postfix subsystem or feature.
 .SH receive_override_options (default: empty)
 Enable or disable recipient validation, built-in content
-filtering, or address rewriting. Typically, these are specified in
+filtering, or address mapping. Typically, these are specified in
 master.cf as command-line arguments for the smtpd(8), qmqpd(8) or
 pickup(8) daemons.
 .PP
@@ -2623,6 +2649,29 @@ relocated_maps = hash:/etc/postfix/relocated
 .fi
 .ad
 .ft R
+.SH remote_header_rewrite_context_name (default: local)
+The address rewriting context that should be used for incomplete
+mail header addresses from remote clients.
+.IP \(bu
+\fBlocal\fR Append the domains specified with $myorigin
+or $mydomain to incomplete message header addresses from remote
+clients.
+.IP \(bu
+\fBinvalid\fR Append the domain specified with
+$invalid_header_rewrite_context_domain to incomplete message header
+addresses from remote clients. This is one way to avoid appending
+your own domain to addresses in spam from poorly written software.
+This is a safe choice for gateways that have no control over
+address rewriting by down-stream systems.
+.IP \(bu
+\fBnone\fR Don't modify message headers from remote
+clients at all. This is another way to avoid appending your own
+domain to addresses in spam from poorly written software. This
+is the preferred choice for purists.
+.PP
+Note: Postfix always appends the domains specified with $myorigin
+or $mydomain to incomplete envelope addresses, because those
+addresses are effectively equivalent to local addresses.
 .SH require_home_directory (default: no)
 Whether or not a local(8) recipient's home directory must exist
 before mail delivery is attempted. By default this test is disabled.

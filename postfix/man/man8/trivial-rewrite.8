@@ -14,15 +14,29 @@ Postfix address rewriting and resolving daemon
 .fi
 The \fBtrivial-rewrite\fR daemon processes three types of client
 service requests:
-.IP \fBrewrite\fR
-Rewrite an address to standard form. The \fBtrivial-rewrite\fR
-daemon by default appends local domain information to unqualified
-addresses, swaps bang paths to domain form, and strips source
-routing information. This process is under control of several
-configuration parameters (see below).
-.IP \fBresolve\fR
+.IP "\fBrewrite \fIcontext address\fR"
+Rewrite an address to standard form, according to the
+address rewriting context:
+.RS
+.IP \fBlocal\fR
+.IP \fBnone\fR
+Append the domain names specified with \fB$myorigin\fR or
+\fB$mydomain\fR to incomplete addresses; do \fBswap_bangpath\fR
+and \fBallow_percent_hack\fR processing as described below, and
+strip source routed addresses (\fI@site,@site:user@domain\fR)
+to \fIuser@domain\fR form.
+.IP \fBinvalid\fR
+Append the domain name specified with
+\fB$invalid_header_rewrite_context_domain\fR to incomplete
+addresses. Otherwise the result is identical to that of
+the \fBlocal\fR address rewriting context. This prevents
+Postfix from appending the local domain to spam from poorly
+written remote clients.
+.RE
+.IP "\fBresolve \fIaddress\fR"
 Resolve an address to a (\fItransport\fR, \fInexthop\fR,
-\fIrecipient\fR) triple. The meaning of the results is as follows:
+\fIrecipient\fR, \fIflags\fR) quadruple. The meaning of
+the results is as follows:
 .RS
 .IP \fItransport\fR
 The delivery agent to use. This is the first field of an entry
@@ -31,8 +45,11 @@ in the \fBmaster.cf\fR file.
 The host to send to and optional delivery method information.
 .IP \fIrecipient\fR
 The envelope recipient address that is passed on to \fInexthop\fR.
+.IP \fIflags\fR
+The address class, whether the address requires relaying,
+whether the address has problems, and whether the request failed.
 .RE
-.IP \fBverify\fR
+.IP "\fBverify \fIaddress\fR"
 Resolve an address for address verification purposes.
 .SH "SERVER PROCESS MANAGEMENT"
 .na
@@ -99,15 +116,26 @@ from, and that locally posted mail is delivered to.
 .IP "\fBallow_percent_hack (yes)\fR"
 Enable the rewriting of the form "user%domain" to "user@domain".
 .IP "\fBappend_at_myorigin (yes)\fR"
-Append the string "@$myorigin" to mail addresses without domain
-information.
+With locally submitted mail, append the string "@$myorigin" to mail
+addresses without domain information.
 .IP "\fBappend_dot_mydomain (yes)\fR"
-Append the string ".$mydomain" to addresses that have no ".domain"
-information.
+With locally submitted mail, append the string ".$mydomain" to
+addresses that have no ".domain" information.
 .IP "\fBrecipient_delimiter (empty)\fR"
 The separator between user names and address extensions (user+foo).
 .IP "\fBswap_bangpath (yes)\fR"
 Enable the rewriting of "site!user" into "user@site".
+.PP
+Available in Postfix 2.2 and later:
+.IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
+Append this domain to incomplete message header addresses from
+remote clients, when $remote_header_rewrite_context_name is set to
+"invalid".
+.PP
+Implemented by the smtpd(8) server:
+.IP "\fBremote_header_rewrite_context_name (local)\fR"
+The address rewriting context that should be used for incomplete
+mail header addresses from remote clients.
 .SH "ROUTING CONTROLS"
 .na
 .nf

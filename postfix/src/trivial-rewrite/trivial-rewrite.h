@@ -22,10 +22,21 @@
  /*
   * rewrite.c
   */
+typedef struct {
+    const char *origin_name;		/* name of variable */
+    char  **origin;			/* default origin */
+    const char *domain_name;		/* name of variable */
+    char  **domain;			/* default domain */
+} RWR_CONTEXT;
+
+#define REW_PARAM_VALUE(x) (*(x))	/* make it easy to do it right */
+
 extern void rewrite_init(void);
 extern int rewrite_proto(VSTREAM *);
-extern void rewrite_addr(char *, char *, VSTRING *);
-extern void rewrite_tree(char *, TOK822 *);
+extern void rewrite_addr(RWR_CONTEXT *, char *, VSTRING *);
+extern void rewrite_tree(RWR_CONTEXT *, TOK822 *);
+extern RWR_CONTEXT local_context;
+extern RWR_CONTEXT inval_context;
 
  /*
   * resolve.c
@@ -61,4 +72,3 @@ extern int resolve_proto(RES_CONTEXT *, VSTREAM *);
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
-

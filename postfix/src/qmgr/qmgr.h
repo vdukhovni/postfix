@@ -286,6 +286,7 @@ struct QMGR_MESSAGE {
     char   *sasl_method;		/* SASL method */
     char   *sasl_username;		/* SASL user name */
     char   *sasl_sender;		/* SASL sender */
+    char   *rewrite_context;		/* address qualification */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
     int     rcpt_count;			/* used recipient slots */
     int     rcpt_limit;			/* maximum read in-core */

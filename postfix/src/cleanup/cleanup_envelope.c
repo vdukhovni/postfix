@@ -57,6 +57,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <nvtable.h>
+#include <name_code.h>
 
 /* Global library. */
 
@@ -66,6 +67,7 @@
 #include <qmgr_user.h>
 #include <mail_params.h>
 #include <verp_sender.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -109,6 +111,12 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     char   *attr_value;
     const char *error_text;
     int     extra_opts;
+    NAME_CODE rewrite_context_names[] = {
+	REWRITE_LOCAL, 1,
+	REWRITE_INVALID, 1,
+	REWRITE_NONE, 1,
+	0, 0,
+    };
 
     if (msg_verbose)
 	msg_info("initial envelope %c %.*s", type, len, buf);
@@ -277,6 +285,18 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    state->errs |= CLEANUP_STAT_BAD;
 	    myfree(sbuf);
 	    return;
+	}
+	if (strcmp(attr_name, MAIL_ATTR_RWR_CTXT_NAME) == 0) {
+	    if (name_code(rewrite_context_names, NAME_CODE_FLAG_STRICT_CASE,
+			  attr_value) == 0) {
+		msg_warn("%s: message rejected: bad rewriting context: %.100s",
+			 state->queue_id, attr_value);
+		state->errs |= CLEANUP_STAT_BAD;
+		return;
+	    } else {
+		myfree(state->rewrite_context_name);
+		state->rewrite_context_name = mystrdup(attr_value);
+	    }
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
 	myfree(sbuf);

@@ -29,6 +29,7 @@
 /*		char	*sasl_method;
 /*		char	*sasl_username;
 /*		char	*sasl_sender;
+/*		char	*rewrite_context;
 /* .in -5
 /*	} DELIVER_REQUEST;
 /*
@@ -189,6 +190,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *sasl_method;
     static VSTRING *sasl_username;
     static VSTRING *sasl_sender;
+    static VSTRING *rewrite_context;
     long    offset;
 
     /*
@@ -212,6 +214,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	sasl_method = vstring_alloc(10);
 	sasl_username = vstring_alloc(10);
 	sasl_sender = vstring_alloc(10);
+	rewrite_context = vstring_alloc(10);
     }
 
     /*
@@ -237,7 +240,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD, sasl_method,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, sasl_username,
 		  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, sasl_sender,
-		  ATTR_TYPE_END) != 18) {
+		  ATTR_TYPE_STR, MAIL_ATTR_RWR_CTXT_NAME, rewrite_context,
+		  ATTR_TYPE_END) != 19) {
 	msg_warn("%s: error receiving common attributes", myname);
 	return (-1);
     }
@@ -259,6 +263,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     request->sasl_method = mystrdup(vstring_str(sasl_method));
     request->sasl_username = mystrdup(vstring_str(sasl_username));
     request->sasl_sender = mystrdup(vstring_str(sasl_sender));
+    request->rewrite_context = mystrdup(vstring_str(rewrite_context));
 
     /*
      * Extract the recipient offset and address list. Skip over any

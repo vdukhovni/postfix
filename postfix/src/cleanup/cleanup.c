@@ -68,10 +68,6 @@
 /*	message contains no To: or Cc: message header.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
-/* .IP "\fBenable_errors_to (no)\fR"
-/*	Report mail delivery errors to the address specified with the
-/*	non-standard Errors-To: message header, instead of the envelope
-/*	sender address.
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
 /* .fi

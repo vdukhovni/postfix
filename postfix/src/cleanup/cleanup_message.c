@@ -166,16 +166,16 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	msg_info("rewrite_sender: %s", hdr_opts->name);
 
     /*
-     * Parse the header line, rewrite each address found, save copies of
-     * sender addresses, and regenerate the header line. Finally, pipe the
-     * result through the header line folding routine.
+     * Parse the header line, rewrite each address found, and regenerate the
+     * header line. Finally, pipe the result through the header line folding
+     * routine.
      */
     tree = tok822_parse_limit(vstring_str(header_buf)
 			      + strlen(hdr_opts->name) + 1,
 			      var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	cleanup_rewrite_tree(*tpp);
+	cleanup_rewrite_tree(state->rewrite_context_name, *tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	    if (cleanup_send_canon_maps
 		&& (cleanup_send_canon_flags & CLEANUP_CANON_FLAG_HDR_FROM))
@@ -189,20 +189,6 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 		&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_FROM))
 		cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	}
-	if (hdr_opts->type == HDR_FROM && state->from == 0)
-	    state->from = cleanup_extract_internal(header_buf, *tpp);
-	if (hdr_opts->type == HDR_RESENT_FROM && state->resent_from == 0)
-	    state->resent_from =
-		cleanup_extract_internal(header_buf, *tpp);
-#if 0
-	if (hdr_opts->type == HDR_RETURN_RECEIPT_TO && !state->return_receipt)
-	    state->return_receipt =
-		cleanup_extract_internal(header_buf, *tpp);
-#endif
-	if (var_enable_errors_to)
-	    if (hdr_opts->type == HDR_ERRORS_TO && !state->errors_to)
-		state->errors_to =
-		    cleanup_extract_internal(header_buf, *tpp);
     }
     vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
     tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
@@ -225,16 +211,16 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	msg_info("rewrite_recip: %s", hdr_opts->name);
 
     /*
-     * Parse the header line, rewrite each address found, save copies of
-     * recipient addresses, and regenerate the header line. Finally, pipe the
-     * result through the header line folding routine.
+     * Parse the header line, rewrite each address found, and regenerate the
+     * header line. Finally, pipe the result through the header line folding
+     * routine.
      */
     tree = tok822_parse_limit(vstring_str(header_buf)
 			      + strlen(hdr_opts->name) + 1,
 			      var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	cleanup_rewrite_tree(*tpp);
+	cleanup_rewrite_tree(state->rewrite_context_name, *tpp);
 	if (state->flags & CLEANUP_FLAG_MAP_OK) {
 	    if (cleanup_rcpt_canon_maps
 		&& (cleanup_rcpt_canon_flags & CLEANUP_CANON_FLAG_HDR_RCPT))
@@ -511,9 +497,11 @@ static void cleanup_header_callback(void *context, int header_class,
 	if (CLEANUP_OUT_OK(state)) {
 	    if (hdr_opts->flags & HDR_OPT_RR)
 		state->resent = "Resent-";
-	    if (hdr_opts->flags & HDR_OPT_SENDER) {
+	    if ((hdr_opts->flags & HDR_OPT_SENDER)
+		&& strcmp(state->rewrite_context_name, REWRITE_NONE) != 0) {
 		cleanup_rewrite_sender(state, hdr_opts, header_buf);
-	    } else if (hdr_opts->flags & HDR_OPT_RECIP) {
+	    } else if ((hdr_opts->flags & HDR_OPT_RECIP)
+		&& strcmp(state->rewrite_context_name, REWRITE_NONE) != 0) {
 		cleanup_rewrite_recip(state, hdr_opts, header_buf);
 	    } else if ((hdr_opts->flags & HDR_OPT_DROP) == 0) {
 		cleanup_out_header(state, header_buf);

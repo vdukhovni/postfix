@@ -101,7 +101,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_ADDR	(1<<8)
 #define SMTP_FEATURE_XFORWARD_PROTO	(1<<9)
 #define SMTP_FEATURE_XFORWARD_HELO	(1<<10)
-
+#define SMTP_FEATURE_XFORWARD_DOMAIN	(1<<11)
 #define SMTP_FEATURE_BEST_MX		(1<<12)	/* for next-hop or fall-back */
 #define SMTP_FEATURE_RSET_REJECTED	(1<<13)	/* RSET probe rejected */
 #define SMTP_FEATURE_FROM_CACHE		(1<<14)	/* cached session */

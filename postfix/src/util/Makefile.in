@@ -693,10 +693,11 @@ dict_nisplus.o: dict_nisplus.c
 dict_nisplus.o: sys_defs.h
 dict_nisplus.o: msg.h
 dict_nisplus.o: mymalloc.h
-dict_nisplus.o: htable.h
+dict_nisplus.o: vstring.h
+dict_nisplus.o: vbuf.h
+dict_nisplus.o: stringops.h
 dict_nisplus.o: dict.h
 dict_nisplus.o: vstream.h
-dict_nisplus.o: vbuf.h
 dict_nisplus.o: argv.h
 dict_nisplus.o: dict_nisplus.h
 dict_open.o: dict_open.c

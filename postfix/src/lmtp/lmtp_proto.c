@@ -209,6 +209,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
 	XFORWARD_ADDR, LMTP_FEATURE_XFORWARD_ADDR,
 	XFORWARD_PROTO, LMTP_FEATURE_XFORWARD_PROTO,
 	XFORWARD_HELO, LMTP_FEATURE_XFORWARD_HELO,
+	XFORWARD_DOMAIN, LMTP_FEATURE_XFORWARD_DOMAIN,
 	0, 0,
     };
 
@@ -418,6 +419,12 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		vstring_sprintf_append(next_command, " %s=%s",
 		   XFORWARD_HELO, DEL_REQ_ATTR_AVAIL(request->client_helo) ?
 			       request->client_helo : XFORWARD_UNAVAILABLE);
+            if (state->features & LMTP_FEATURE_XFORWARD_DOMAIN)
+                vstring_sprintf_append(next_command, " %s=%s", XFORWARD_DOMAIN,
+                         DEL_REQ_ATTR_AVAIL(request->rewrite_context) == 0 ?
+                                       XFORWARD_UNAVAILABLE :
+                           strcmp(request->rewrite_context, REWRITE_LOCAL) ?
+                                  XFORWARD_DOM_LOCAL : XFORWARD_DOM_REMOTE);
 	    next_state = LMTP_STATE_MAIL;
 	    break;
 

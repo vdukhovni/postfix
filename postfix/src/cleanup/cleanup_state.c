@@ -64,8 +64,6 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->time = 0;
     state->fullname = 0;
     state->sender = 0;
-    state->from = 0;
-    state->resent_from = 0;
     state->recip = 0;
     state->orig_rcpt = 0;
     state->return_receipt = 0;
@@ -86,6 +84,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->attr = nvtable_create(10);
     state->mime_state = 0;
     state->mime_errs = 0;
+    state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
     state->filter = 0;
     state->redirect = 0;
     return (state);
@@ -101,10 +100,6 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->fullname);
     if (state->sender)
 	myfree(state->sender);
-    if (state->from)
-	myfree(state->from);
-    if (state->resent_from)
-	myfree(state->resent_from);
     if (state->recip)
 	myfree(state->recip);
     if (state->orig_rcpt)
@@ -127,5 +122,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->filter);
     if (state->redirect)
 	myfree(state->redirect);
+    if (state->rewrite_context_name)
+	myfree(state->rewrite_context_name);
     myfree((char *) state);
 }

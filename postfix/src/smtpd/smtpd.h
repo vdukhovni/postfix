@@ -87,6 +87,9 @@ typedef struct SMTPD_STATE {
     off_t   msg_size;			/* MAIL FROM message size */
     int     junk_cmds;			/* counter */
     int     rcpt_overshoot;		/* counter */
+    char   *rewrite_context_name;	/* address rewriting context */
+    int     xclient_allowed;		/* permission to use XCLIENT */
+    int     xforward_allowed;		/* permission to use XFORWARD */
 
     /*
      * SASL specific.
@@ -145,6 +148,7 @@ typedef struct SMTPD_STATE {
 #define SMTPD_STATE_XFORWARD_PROTO (1<<3)	/* protocol received */
 #define SMTPD_STATE_XFORWARD_HELO  (1<<4)	/* client helo received */
 #define SMTPD_STATE_XFORWARD_IDENT (1<<5)	/* message identifier */
+#define SMTPD_STATE_XFORWARD_DOMAIN (1<<6)	/* message identifier */
 
 #define SMTPD_STATE_XFORWARD_CLIENT_MASK \
 	(SMTPD_STATE_XFORWARD_NAME | SMTPD_STATE_XFORWARD_ADDR \

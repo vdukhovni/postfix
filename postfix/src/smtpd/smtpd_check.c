@@ -12,6 +12,9 @@
 /*	int	smtpd_check_addr(address)
 /*	const char *address;
 /*
+/*	char	*smtpd_check_rewrite(state)
+/*	SMTPD_STATE *state;
+/*
 /*	char	*smtpd_check_client(state)
 /*	SMTPD_STATE *state;
 /*
@@ -44,6 +47,10 @@
 /*
 /*	smtpd_check_addr() sanity checks an email address and returns
 /*	non-zero in case of badness.
+/*
+/*	smtpd_check_rewrite() shuod be called before opening a queue
+/*	file or proxy connection, in order to establish the proper
+/*	header address rewriting context.
 /*
 /*	Each of the following routines scrutinizes the argument passed to
 /*	an SMTP command such as HELO, MAIL FROM, RCPT TO, or scrutinizes
@@ -186,7 +193,7 @@
 #include <namadr_list.h>
 #include <domain_list.h>
 #include <mail_params.h>
-#include <canon_addr.h>
+#include <rewrite_clnt.h>
 #include <resolve_clnt.h>
 #include <mail_error.h>
 #include <resolve_local.h>
@@ -269,6 +276,7 @@ static MAPS *smtpd_sender_login_maps;
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
 static NAMADR_LIST *perm_mx_networks;
+static NAMADR_LIST *local_rewrite_clients;
 
  /*
   * How to do parent domain wildcard matching, if any.
@@ -415,7 +423,7 @@ static void *resolve_pagein(const char *addr, void *unused_context)
     /*
      * Resolve the address.
      */
-    canon_addr_internal(query, addr);
+    rewrite_clnt_internal(REWRITE_LOCAL, addr, query);
     resolve_clnt_query(STR(query), reply);
     lowercase(STR(reply->recipient));
 
@@ -563,6 +571,8 @@ void    smtpd_check_init(void)
     perm_mx_networks =
 	namadr_list_init(match_parent_style(VAR_PERM_MX_NETWORKS),
 			 var_perm_mx_networks);
+    local_rewrite_clients =
+	namadr_list_init(MATCH_FLAG_NONE, var_local_rwr_clients);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -1646,8 +1656,8 @@ static int not_in_client_helo(SMTPD_STATE *state, const char *table,
      * Thus, if delay_reject=no, client and helo actions such as FILTER or
      * HOLD also should not affect subsequent mail deliveries. Hmm...
      * 
-     * XXX If the MAIL FROM command is rejected then we have to reset access
-     * map side effects such as FILTER.
+     * XXX If the MAIL FROM command is rejected then we have to reset access map
+     * side effects such as FILTER.
      */
     if (state->sender == 0) {
 	msg_warn("access table %s: with %s=%s, "
@@ -2240,8 +2250,8 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 	reject_dict_retry(state, addr);
 
     /*
-     * Garbage in, garbage out. Every address from canon_addr_internal() and
-     * from resolve_clnt_query() must be fully qualified.
+     * Garbage in, garbage out. Every address from rewrite_clnt_internal()
+     * and from resolve_clnt_query() must be fully qualified.
      */
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0) {
 	msg_warn("%s: no @domain in address: %s", myname,
@@ -3356,6 +3366,33 @@ int     smtpd_check_addr(const char *addr)
     return (0);
 }
 
+/* smtpd_check_rewrite - choose address qualification context */
+
+void    smtpd_check_rewrite(SMTPD_STATE *state)
+{
+
+    /*
+     * This should be made more configurable.
+     */
+#define SASL_AUTHENTICATED	1
+#define NOT_SASL_AUTHENTICATED	0
+
+    /*
+     * XXX We want to be able to use !pattern to make exceptions, but then we
+     * should not confuse matters by mixing names with addresses.
+     */
+    if (SMTPD_STAND_ALONE(state)
+	|| namadr_list_match(local_rewrite_clients, " ", state->addr)
+#ifdef USE_SASL_AUTH
+	|| permit_sasl_auth(state, SASL_AUTHENTICATED,
+			    NOT_SASL_AUTHENTICATED)
+#endif
+	)
+	state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
+    else
+	state->rewrite_context_name = mystrdup(var_remote_rwr_name);
+}
+
 /* smtpd_check_client - validate client name or address */
 
 char   *smtpd_check_client(SMTPD_STATE *state)
@@ -3532,7 +3569,9 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     if (*recipient) {
 	if (canon_verify_sender == 0) {
 	    canon_verify_sender = vstring_alloc(10);
-	    canon_addr_internal(canon_verify_sender, var_verify_sender);
+	    rewrite_clnt_internal(REWRITE_LOCAL,
+				  var_verify_sender,
+				  canon_verify_sender);
 	}
 	if (strcasecmp(STR(canon_verify_sender), recipient) == 0)
 	    return (0);
@@ -3875,7 +3914,7 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 char   *smtpd_check_data(SMTPD_STATE *state)
 {
     int     status;
-    char *NOCLOBBER saved_recipient;
+    char   *NOCLOBBER saved_recipient;
 
     /*
      * Minor kluge so that we can delegate work to the generic routine. We
@@ -3979,6 +4018,8 @@ char   *var_def_rbl_reply;
 char   *var_relay_rcpt_maps;
 char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
+char   *var_remote_rwr_name;
+char   *var_local_rwr_clients;
 
 typedef struct {
     char   *name;
@@ -4019,6 +4060,8 @@ static STRING_TABLE string_table[] = {
     VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
     VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name,
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
+    VAR_REM_RWR_NAME, DEF_REM_RWR_NAME, &var_remote_rwr_name,
+    VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients,
     0,
 };
 
@@ -4243,12 +4286,13 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
     return (VRFY_STAT_OK);
 }
 
-/* canon_addr_internal - stub */
+/* rewrite_clnt_internal - stub */
 
-VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
+VSTRING *rewrite_clnt_internal(const char *context, const char *addr,
+			               VSTRING *result)
 {
     if (addr == STR(result))
-	msg_panic("canon_addr_internal: result clobbers input");
+	msg_panic("rewrite_clnt_internal: result clobbers input");
     if (*addr && strchr(addr, '@') == 0)
 	msg_fatal("%s: address rewriting is disabled", addr);
     vstring_strcpy(result, addr);

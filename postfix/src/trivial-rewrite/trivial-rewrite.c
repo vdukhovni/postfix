@@ -8,15 +8,29 @@
 /* DESCRIPTION
 /*	The \fBtrivial-rewrite\fR daemon processes three types of client
 /*	service requests:
-/* .IP \fBrewrite\fR
-/*	Rewrite an address to standard form. The \fBtrivial-rewrite\fR
-/*	daemon by default appends local domain information to unqualified
-/*	addresses, swaps bang paths to domain form, and strips source
-/*	routing information. This process is under control of several
-/*	configuration parameters (see below).
-/* .IP \fBresolve\fR
+/* .IP "\fBrewrite \fIcontext address\fR"
+/*	Rewrite an address to standard form, according to the 
+/*	address rewriting context:
+/* .RS
+/* .IP \fBlocal\fR
+/* .IP \fBnone\fR
+/*	Append the domain names specified with \fB$myorigin\fR or
+/*	\fB$mydomain\fR to incomplete addresses; do \fBswap_bangpath\fR
+/*	and \fBallow_percent_hack\fR processing as described below, and
+/*	strip source routed addresses (\fI@site,@site:user@domain\fR)
+/*	to \fIuser@domain\fR form.
+/* .IP \fBinvalid\fR
+/*	Append the domain name specified with
+/*	\fB$invalid_header_rewrite_context_domain\fR to incomplete
+/*	addresses. Otherwise the result is identical to that of
+/*	the \fBlocal\fR address rewriting context. This prevents
+/*      Postfix from appending the local domain to spam from poorly
+/*	written remote clients.
+/* .RE
+/* .IP "\fBresolve \fIaddress\fR"
 /*	Resolve an address to a (\fItransport\fR, \fInexthop\fR,
-/*	\fIrecipient\fR) triple. The meaning of the results is as follows:
+/*      \fIrecipient\fR, \fIflags\fR) quadruple. The meaning of
+/*	the results is as follows:
 /* .RS
 /* .IP \fItransport\fR
 /*	The delivery agent to use. This is the first field of an entry
@@ -25,8 +39,11 @@
 /*	The host to send to and optional delivery method information.
 /* .IP \fIrecipient\fR
 /*	The envelope recipient address that is passed on to \fInexthop\fR.
+/* .IP \fIflags\fR
+/*	The address class, whether the address requires relaying, 
+/*	whether the address has problems, and whether the request failed.
 /* .RE
-/* .IP \fBverify\fR
+/* .IP "\fBverify \fIaddress\fR"
 /*	Resolve an address for address verification purposes.
 /* SERVER PROCESS MANAGEMENT
 /* .ad
@@ -79,15 +96,26 @@
 /* .IP "\fBallow_percent_hack (yes)\fR"
 /*	Enable the rewriting of the form "user%domain" to "user@domain".
 /* .IP "\fBappend_at_myorigin (yes)\fR"
-/*	Append the string "@$myorigin" to mail addresses without domain
-/*	information.
+/*	With locally submitted mail, append the string "@$myorigin" to mail
+/*	addresses without domain information.
 /* .IP "\fBappend_dot_mydomain (yes)\fR"
-/*	Append the string ".$mydomain" to addresses that have no ".domain"
-/*	information.
+/*	With locally submitted mail, append the string ".$mydomain" to
+/*	addresses that have no ".domain" information.
 /* .IP "\fBrecipient_delimiter (empty)\fR"
 /*	The separator between user names and address extensions (user+foo).
 /* .IP "\fBswap_bangpath (yes)\fR"
 /*	Enable the rewriting of "site!user" into "user@site".
+/* .PP
+/*	Available in Postfix 2.2 and later:
+/* .IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
+/*	Append this domain to incomplete message header addresses from
+/*	remote clients, when $remote_header_rewrite_context_name is set to
+/*	"invalid".
+/* .PP
+/*	Implemented by the smtpd(8) server:
+/* .IP "\fBremote_header_rewrite_context_name (local)\fR"
+/*	The address rewriting context that should be used for incomplete
+/*	mail header addresses from remote clients.
 /* ROUTING CONTROLS
 /* .ad
 /* .fi
@@ -273,6 +301,7 @@ char   *var_def_transport;
 char   *var_empty_addr;
 int     var_show_unk_rcpt_table;
 int     var_resolve_nulldom;
+char   *var_inv_rwr_domain;
 
  /*
   * Shadow personality for address verification.
@@ -400,6 +429,7 @@ int     main(int argc, char **argv)
 	VAR_VRFY_RELAY_XPORT, DEF_VRFY_RELAY_XPORT, &var_vrfy_relay_xport, 1, 0,
 	VAR_VRFY_DEF_XPORT, DEF_VRFY_DEF_XPORT, &var_vrfy_def_xport, 1, 0,
 	VAR_VRFY_RELAYHOST, DEF_VRFY_RELAYHOST, &var_vrfy_relayhost, 0, 0,
+	VAR_INV_RWR_DOMAIN, DEF_INV_RWR_DOMAIN, &var_inv_rwr_domain, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

@@ -279,7 +279,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	if (tok822_rfind_type(tree->tail, '@')
 	    || (var_swap_bangpath && tok822_rfind_type(tree->tail, '!'))
 	    || (var_percent_hack && tok822_rfind_type(tree->tail, '%'))) {
-	    rewrite_tree(REWRITE_CANON, tree);
+	    rewrite_tree(&local_context, tree);
 	    continue;
 	}
 
@@ -306,7 +306,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	    }
 	    tok822_free(tree->head);
 	    tree->head = tok822_scan(STR(addr_buf), &tree->tail);
-	    rewrite_tree(REWRITE_CANON, tree);
+	    rewrite_tree(&local_context, tree);
 	    continue;
 	}
 

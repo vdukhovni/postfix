@@ -162,8 +162,9 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, message->client_proto,
 	       ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME, message->client_helo,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD, message->sasl_method,
-	       ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
+	     ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME, message->sasl_username,
 	       ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER, message->sasl_sender,
+	   ATTR_TYPE_STR, MAIL_ATTR_RWR_CTXT_NAME, message->rewrite_context,
 	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);

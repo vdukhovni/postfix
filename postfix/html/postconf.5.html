@@ -670,8 +670,9 @@ The default time unit is s (seconds).
 (default: yes)</b></DT><DD>
 
 <p>
-Append the string "@$<a href="postconf.5.html#myorigin">myorigin</a>" to mail addresses without domain
-information.
+With locally submitted mail, append the string "@$<a href="postconf.5.html#myorigin">myorigin</a>" to mail
+addresses without domain information. With remotely submitted mail,
+append the string "@$invalid_domain" instead.
 </p>
 
 <p>
@@ -686,8 +687,9 @@ Postfix does not support domain-less addresses.
 (default: yes)</b></DT><DD>
 
 <p>
-Append the string ".$<a href="postconf.5.html#mydomain">mydomain</a>" to addresses that have no ".domain"
-information.
+With locally submitted mail, append the string ".$<a href="postconf.5.html#mydomain">mydomain</a>" to
+addresses that have no ".domain" information. With remotely submitted
+mail, append the string ".$invalid_domain" instead.
 </p>
 
 <p>
@@ -2571,6 +2573,17 @@ block all mail to a site.
 
 </DD>
 
+<DT><b><a name="invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a>
+(default: domain.invalid)</b></DT><DD>
+
+<p> Append this domain to incomplete message header addresses from
+remote clients, when $<a href="postconf.5.html#remote_header_rewrite_context_name">remote_header_rewrite_context_name</a> is set to
+"invalid".  This is one way to avoid appending your own domain to
+addresses in spam from poorly written software. </p>
+
+
+</DD>
+
 <DT><b><a name="invalid_hostname_reject_code">invalid_hostname_reject_code</a>
 (default: 501)</b></DT><DD>
 
@@ -3065,6 +3078,29 @@ the entry in the master.cf file. </p>
 <p> Setting this parameter to a value &gt; 1 changes the meaning of
 <a href="postconf.5.html#local_destination_concurrency_limit">local_destination_concurrency_limit</a> from concurrency per recipient
 into concurrency per domain.  </p>
+
+
+</DD>
+
+<DT><b><a name="local_header_rewrite_context_clients">local_header_rewrite_context_clients</a>
+(default: $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+$<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
+
+<p> Append the domain names in $<a href="postconf.5.html#myorigin">myorigin</a> and $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete
+message header addresses from these clients.  </p>
+
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by comma or whitespace. The list is matched left to right,
+and the search stops on the first match.  Specify !address or
+!network/netmask to exclude an address or network block from the
+list.  A network mask specifies the number of bits in the network
+part of a host address. Continue long lines by starting the next
+line with whitespace. </p>
+
+<p> You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns.
+A "/file/name" pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>"
+lookup table is matched when a client name or address matches a
+lookup key (the lookup result is ignored). </p>
 
 
 </DD>
@@ -4579,7 +4615,7 @@ configure or operate a specific Postfix subsystem or feature.
 (default: empty)</b></DT><DD>
 
 <p> Enable or disable recipient validation, built-in content
-filtering, or address rewriting. Typically, these are specified in
+filtering, or address mapping. Typically, these are specified in
 master.cf as command-line arguments for the <a href="smtpd.8.html">smtpd(8)</a>, <a href="qmqpd.8.html">qmqpd(8)</a> or
 <a href="pickup.8.html">pickup(8)</a> daemons. </p>
 
@@ -4975,6 +5011,40 @@ Examples:
 <a href="postconf.5.html#relocated_maps">relocated_maps</a> = dbm:/etc/postfix/relocated
 <a href="postconf.5.html#relocated_maps">relocated_maps</a> = hash:/etc/postfix/relocated
 </pre>
+
+
+</DD>
+
+<DT><b><a name="remote_header_rewrite_context_name">remote_header_rewrite_context_name</a>
+(default: local)</b></DT><DD>
+
+<p> The address rewriting context that should be used for incomplete
+mail header addresses from remote clients. </p>
+
+<ul>
+
+<li> <p> <b>local</b> Append the domains specified with $<a href="postconf.5.html#myorigin">myorigin</a>
+or $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete message header addresses from remote
+clients.  </p>
+
+<li> <p> <b>invalid</b> Append the domain specified with
+$<a href="postconf.5.html#invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a> to incomplete message header
+addresses from remote clients. This is one way to avoid appending
+your own domain to addresses in spam from poorly written software.
+This is a safe choice for gateways that have no control over
+address rewriting by down-stream systems.
+</p>
+
+<li> <p> <b>none</b> Don't modify message headers from remote
+clients at all. This is another way to avoid appending your own
+domain to addresses in spam from poorly written software. This
+is the preferred choice for purists. </p>
+
+</ul>
+
+<p> Note: Postfix always appends the domains specified with $<a href="postconf.5.html#myorigin">myorigin</a>
+or $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete envelope addresses, because those
+addresses are effectively equivalent to local addresses. </p>
 
 
 </DD>
