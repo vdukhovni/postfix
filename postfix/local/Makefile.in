@@ -201,7 +201,6 @@ forward.o: ../include/vstring_vstream.h
 forward.o: ../include/iostuff.h
 forward.o: ../include/stringops.h
 forward.o: ../include/mail_proto.h
-forward.o: ../include/mail_queue.h
 forward.o: ../include/cleanup_user.h
 forward.o: ../include/sent.h
 forward.o: ../include/record.h
@@ -265,7 +264,6 @@ local.o: ../include/iostuff.h
 local.o: ../include/name_mask.h
 local.o: ../include/set_eugid.h
 local.o: ../include/dict.h
-local.o: ../include/mail_queue.h
 local.o: ../include/recipient_list.h
 local.o: ../include/deliver_request.h
 local.o: ../include/deliver_completed.h

@@ -78,7 +78,6 @@ smtp.o: ../include/name_mask.h
 smtp.o: ../include/deliver_request.h
 smtp.o: ../include/vstring.h
 smtp.o: ../include/recipient_list.h
-smtp.o: ../include/mail_queue.h
 smtp.o: ../include/mail_params.h
 smtp.o: ../include/mail_conf.h
 smtp.o: ../include/debug_peer.h

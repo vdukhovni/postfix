@@ -39,6 +39,7 @@
 #include <sys/stat.h>
 #include <ndbm.h>
 #include <string.h>
+#include <unistd.h>
 
 /* Utility library. */
 
@@ -48,6 +49,7 @@
 #include "iostuff.h"
 #include "vstring.h"
 #include "myflock.h"
+#include "stringops.h"
 #include "dict.h"
 #include "dict_dbm.h"
 
@@ -349,6 +351,16 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     DICT_DBM *dict_dbm;
     struct stat st;
     DBM    *dbm;
+    char   *dbm_path;
+    int     lock_fd;
+
+    if (dict_flags & DICT_FLAG_LOCK) {
+	dbm_path = concatenate(path, ".pag", (char *) 0);
+	if ((lock_fd = open(dbm_path, open_flags, 0644)) < 0)
+	    msg_fatal("open database %s: %m", dbm_path);
+	if (myflock(lock_fd, MYFLOCK_SHARED) < 0)
+	    msg_fatal("shared-lock database %s for open: %m", dbm_path);
+    }
 
     /*
      * XXX SunOS 5.x has no const in dbm_open() prototype.
@@ -356,6 +368,13 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     if ((dbm = dbm_open((char *) path, open_flags, 0644)) == 0)
 	msg_fatal("open database %s.{dir,pag}: %m", path);
 
+    if (dict_flags & DICT_FLAG_LOCK) {
+	if (myflock(lock_fd, MYFLOCK_NONE) < 0)
+	    msg_fatal("unlock database %s for open: %m", dbm_path);
+	if (close(lock_fd) < 0)
+	    msg_fatal("close database %s: %m", dbm_path);
+	myfree(dbm_path);
+    }
     dict_dbm = (DICT_DBM *) mymalloc(sizeof(*dict_dbm));
     dict_dbm->dict.lookup = dict_dbm_lookup;
     dict_dbm->dict.update = dict_dbm_update;
@@ -366,7 +385,6 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     if (fstat(dict_dbm->dict.fd, &st) < 0)
 	msg_fatal("dict_dbm_open: fstat: %m");
     dict_dbm->dict.mtime = st.st_mtime;
-    close_on_exec(dict_dbm->dict.fd, CLOSE_ON_EXEC);
     dict_dbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_dbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);

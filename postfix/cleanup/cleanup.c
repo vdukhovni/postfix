@@ -56,13 +56,15 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      The following \fBmain.cf\fR parameters are especially relevant to
-/*      this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*      and for default values. Use the \fBpostfix reload\fR command after
-/*      a configuration change.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	a configuration change.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBalways_bcc\fR
+/*	Address to send a copy of each message that enters the system.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .SH "Address transformations"
@@ -174,6 +176,7 @@ int     var_dup_filter_limit;		/* recipient dup filter */
 char   *var_empty_addr;			/* destination of bounced bounces */
 int     var_delay_warn_time;		/* delay that triggers warning */
 char   *var_prop_extension;		/* propagate unmatched extension */
+char   *var_always_bcc;
 
  /*
   * Mappings.
@@ -400,7 +403,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (*var_masq_domains)
 	cleanup_masq_domains = argv_split(var_masq_domains, " ,\t\r\n");
     if (*var_header_checks)
-	cleanup_header_checks = 
+	cleanup_header_checks =
 	    maps_create(VAR_HEADER_CHECKS, var_header_checks, DICT_FLAG_LOCK);
 }
 
@@ -456,6 +459,7 @@ int     main(int argc, char **argv)
 	VAR_MASQ_EXCEPTIONS, DEF_MASQ_EXCEPTIONS, &var_masq_exceptions, 0, 0,
 	VAR_HEADER_CHECKS, DEF_HEADER_CHECKS, &var_header_checks, 0, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
+	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	0,
     };
 

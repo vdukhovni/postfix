@@ -24,9 +24,9 @@
 # Chroot: whether or not the service runs chrooted to the mail queue
 # directory (pathname is controlled by the queue_directory configuration
 # variable in the main.cf file). Presently, all Postfix daemons can run
-# chrooted, except for the pipe and local daemons. The contributed
-# source code from http://www.postfix.org/ describes how to set up
-# a Postfix chroot environment for your type of machine.
+# chrooted, except for the pipe and local daemons. The files in the
+# examples/chroot-setup subdirectory describe how to set up a Postfix
+# chroot environment for your type of machine.
 #
 # Wakeup time: automatically wake up the named service after the
 # specified number of seconds.  Specify 0 for no wakeup. Presently,
@@ -70,3 +70,6 @@ uucp	  unix	-	n	n	-	-	pipe
     flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 ifmail    unix  -       n       n       -       -       pipe
     flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
+bsmtp     unix  -       n       n       -       -       pipe
+    flags=F user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
+

@@ -10,6 +10,10 @@
 # second (if present) must not match.  The first matching line wins,
 # terminating processing of the ruleset.
 
+# Disallow sender-specified routing. This is a must if you relay mail
+#for other domains.
+/[%!@].*@/				550 Sender-specified routing rejected
+
 # Postmaster is OK, that way they can talk to us about how to fix their problem.
 /^postmaster@.*$/			OK
 

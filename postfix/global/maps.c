@@ -148,6 +148,13 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
     const char *expansion;
     DICT   *dict;
 
+    /*
+     * Temp. workaround, for buggy callers that pass zero-length keys when
+     * given partial addresses.
+     */
+    if (*name == 0)
+	return (0);
+
     for (map_name = maps->argv->argv; *map_name; map_name++) {
 	if ((dict = dict_handle(*map_name)) == 0)
 	    msg_panic("%s: dictionary not found: %s", myname, *map_name);

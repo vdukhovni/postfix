@@ -102,7 +102,7 @@ case "$SYSTEM.$RELEASE" in
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		case $RELEASE in
-		    5.[0-4]) CCARGS="$CCARGS -Dusleep=doze";;
+		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP";;
 			  *) CCARGS="$CCARGS -DHAS_POSIX_REGEXP";;
 		esac
 		# Avoid common types of braindamage
@@ -170,7 +170,7 @@ case "$SYSTEM.$RELEASE" in
 		;;
 HP-UX.A.09.*)	SYSTYPE=HPUX9
 		SYSLIBS=-ldbm
-		CCARGS="$CCARGS -Dusleep=doze"
+		CCARGS="$CCARGS -DMISSING_USLEEP"
 		if [ -f /usr/lib/libdb.a ]; then
 		    CCARGS="$CCARGS -DHAS_DB"
 		    SYSLIBS="$SYSLIBS -ldb"
@@ -178,7 +178,7 @@ HP-UX.A.09.*)	SYSTYPE=HPUX9
 		;;
 HP-UX.B.10.*)	SYSTYPE=HPUX10
 		CCARGS="$CCARGS `nm /usr/lib/libc.a 2>/dev/null |
-		    (grep usleep >/dev/null || echo '-Dusleep=doze')`"
+		    (grep usleep >/dev/null || echo '-DMISSING_USLEEP')`"
 		if [ -f /usr/lib/libdb.a ]; then
 		    CCARGS="$CCARGS -DHAS_DB"
 		    SYSLIBS=-ldb
@@ -196,6 +196,9 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		;;
  Rhapsody.5*)	SYSTYPE=RHAPSODY5
+		# Use the native compiler by default
+		: ${CC=cc}
+		AWK=gawk
 		;;
 	 ".")	if [ -d /NextApps ]; then
 		    SYSTYPE=`hostinfo | sed -n \
@@ -204,6 +207,7 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 			SYSTYPE=`hostinfo | sed -n \
 			    's/^.*NeXT Mach 4.*$/OPENSTEP4/;/OPENSTEP4/{p;q;}'`
 		    fi
+		    : ${CC=cc}
 		    RANLIB="sleep 5; ranlib"
 		else
 		    echo "Unable to determine your system type." 1>&2; exit 1
@@ -226,9 +230,9 @@ case "$CC" in
         *) : ${OPT='-O'};;
 esac
 
-: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'}
+: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk}
 
-export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG OPTS
+export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 
 sed 's/  / /g' <<EOF
 SYSTYPE	= $SYSTYPE
@@ -239,4 +243,5 @@ SYSLIBS	= $AUXLIBS $SYSLIBS
 CC	= $CC $CCARGS
 OPT	= $OPT
 DEBUG	= $DEBUG
+AWK	= $AWK
 EOF

@@ -20,6 +20,9 @@
 /*
 /*	split_at_right() looks for the rightmost delimiter
 /*	occurrence, but is otherwise identical to split_at().
+/* DIAGNOSTICS
+/*	The result is a null pointer when the delimiter character
+/*	was not found.
 /* HISTORY
 /* .ad
 /* .fi

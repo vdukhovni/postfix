@@ -85,13 +85,17 @@ CLEANUP(8)                                             CLEANUP(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
+       <b>always</b><i>_</i><b>bcc</b>
+              Address to send a copy of each message that  enters
+              the system.
+
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
 <b>Address</b> <b>transformations</b>
        <b>empty</b><i>_</i><b>address</b><i>_</i><b>recipient</b>
-              The destination for  undeliverable  mail  from  &lt;&gt;.
-              This  substitution is done before all other address
+              The  destination  for  undeliverable  mail from &lt;&gt;.
+              This substitution is done before all other  address
               rewriting.
 
        <b>canonical</b><i>_</i><b>maps</b>
@@ -107,11 +111,11 @@ CLEANUP(8)                                             CLEANUP(8)
               header sender addresses.
 
        <b>masquerade</b><i>_</i><b>domains</b>
-              List  of  domains  that hide their subdomain struc-
+              List of domains that hide  their  subdomain  struc-
               ture.
 
        <b>masquerade</b><i>_</i><b>exceptions</b>
-              List of user names that are not subject to  address
+              List  of user names that are not subject to address
               masquerading.
 
        <b>virtual</b><i>_</i><b>maps</b>
@@ -120,11 +124,7 @@ CLEANUP(8)                                             CLEANUP(8)
 
 <b>Resource</b> <b>controls</b>
        <b>duplicate</b><i>_</i><b>filter</b><i>_</i><b>limit</b>
-              Limit the number of envelope  recipients  that  are
-              remembered.
-
-       <b>header</b><i>_</i><b>size</b><i>_</i><b>limit</b>
-              Limit the amount of memory in bytes used to process
+              Limit  the  number  of envelope recipients that are
 
 
 
@@ -137,6 +137,10 @@ CLEANUP(8)                                             CLEANUP(8)
 CLEANUP(8)                                             CLEANUP(8)
 
 
+              remembered.
+
+       <b>header</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+              Limit the amount of memory in bytes used to process
               a message header.
 
 <b>SEE</b> <b>ALSO</b>
@@ -151,7 +155,7 @@ CLEANUP(8)                                             CLEANUP(8)
        /etc/postfix/virtual*, virtual mapping table
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -159,10 +163,6 @@ CLEANUP(8)                                             CLEANUP(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

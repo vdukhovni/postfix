@@ -180,9 +180,6 @@ int     smtp_helo(SMTP_STATE *state)
 	if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
 	    msg_warn("host %s greeted me with my own hostname %s",
 		     session->namaddr, var_myhostname);
-	    return (smtp_site_fail(state, session->best ? 550 : 450,
-				   "mail for %s loops back to myself",
-				   request->nexthop));
 	} else if (strcasecmp(word, "ESMTP") == 0)
 	    state->features |= SMTP_FEATURE_ESMTP;
     }
@@ -213,7 +210,6 @@ int     smtp_helo(SMTP_STATE *state)
      * advertises a really huge message size limit.
      */
     lines = resp->str;
-    (void) mystrtok(&lines, "\n");
     while ((words = mystrtok(&lines, "\n")) != 0) {
 	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t")) != 0) {
 	    if (strcasecmp(word, "8BITMIME") == 0)
@@ -222,6 +218,13 @@ int     smtp_helo(SMTP_STATE *state)
 		state->features |= SMTP_FEATURE_PIPELINING;
 	    else if (strcasecmp(word, "SIZE") == 0)
 		state->features |= SMTP_FEATURE_SIZE;
+	    else if (strcasecmp(word, var_myhostname) == 0) {
+		msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
+			 session->namaddr, var_myhostname);
+		return (smtp_site_fail(state, session->best ? 550 : 450,
+				       "mail for %s loops back to myself",
+				       request->nexthop));
+	    }
 	}
     }
     if (msg_verbose)

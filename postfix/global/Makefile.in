@@ -314,6 +314,7 @@ deliver_request.o: ../include/vbuf.h
 deliver_request.o: ../include/vstring.h
 deliver_request.o: ../include/mymalloc.h
 deliver_request.o: ../include/iostuff.h
+deliver_request.o: ../include/myflock.h
 deliver_request.o: mail_queue.h
 deliver_request.o: mail_proto.h
 deliver_request.o: mail_open_ok.h

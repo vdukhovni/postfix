@@ -181,7 +181,6 @@
 
 #include <recipient_list.h>
 #include <deliver_request.h>
-#include <mail_queue.h>
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <bounce.h>
@@ -561,7 +560,6 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     char   *myname = "deliver_message";
     static PIPE_PARAMS conf;
     static PIPE_ATTR attr;
-    VSTREAM *src;
     RECIPIENT_LIST *rcpt_list = &request->rcpt_list;
     VSTRING *why = vstring_alloc(100);
     VSTRING *buf;
@@ -604,34 +602,19 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     }
 
     /*
-     * Open the queue file. Opening the file can fail for a variety of
-     * reasons, such as the system running out of resources. Instead of
-     * throwing away mail, we're raising a fatal error which forces the mail
-     * system to back off, and retry later. XXX deliver_request() should
-     * pre-open the queue file while it does all its sanity checks.
-     */
-    src = mail_queue_open(request->queue_name, request->queue_id, O_RDWR, 0);
-    if (src == 0)
-	msg_fatal("%s: open %s %s: %m", myname,
-		  request->queue_name, request->queue_id);
-    if (msg_verbose)
-	msg_info("%s: file %s", myname, VSTREAM_PATH(src));
-    close_on_exec(vstream_fileno(src), CLOSE_ON_EXEC);
-
-    /*
      * Deliver. Set the nexthop and sender variables, and expand the command
      * argument vector. Recipients will be expanded on the fly. XXX Rewrite
      * envelope and header addresses according to transport-specific
      * rewriting rules.
      */
-    if (vstream_fseek(src, request->data_offset, SEEK_SET) < 0)
-	msg_fatal("seek queue file %s: %m", VSTREAM_PATH(src));
+    if (vstream_fseek(request->fp, request->data_offset, SEEK_SET) < 0)
+	msg_fatal("seek queue file %s: %m", VSTREAM_PATH(request->fp));
 
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, request->sender);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);
     expanded_argv = expand_argv(attr.command, rcpt_list);
 
-    command_status = pipe_command(src, why,
+    command_status = pipe_command(request->fp, why,
 				  PIPE_CMD_UID, attr.uid,
 				  PIPE_CMD_GID, attr.gid,
 				  PIPE_CMD_SENDER, request->sender,
@@ -641,14 +624,11 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				  PIPE_CMD_END);
 
     deliver_status = eval_command_status(command_status, service, request,
-					 src, vstring_str(why));
+					 request->fp, vstring_str(why));
 
     /*
      * Clean up.
      */
-    if (vstream_fclose(src))
-	msg_warn("close %s %s: %m", request->queue_name, request->queue_id);
-
     vstring_free(why);
     argv_free(expanded_argv);
 

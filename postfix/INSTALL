@@ -46,6 +46,7 @@ those embedded manual pages are available in the mantools directory.
 
 If your system is supported, it is one of
 
+    AIX 3.2.5
     AIX 4.1.x
     AIX 4.2.0
     BSD/OS 2.x
@@ -65,16 +66,20 @@ If your system is supported, it is one of
     Linux RedHat 5.x
     Linux Slackware 3.5
     Linux SuSE 5.x
+    Mac OS X server
     NEXTSTEP 3.x
     NetBSD 1.x
     OPENSTEP 4.x
+    OSF1.V3 (Digital UNIX)
     OSF1.V4 aka Digital UNIX V4
     OpenBSD 2.x
+    Reliant UNIX 5.x
+    Rhapsody 5.x
     SunOS 4.1.x
     SunOS 5.4..5.7 (Solaris 2.4..7)
+    Ultrix 4.x
 
-or something closely resemblant. Some platforms such as Ultrix 4
-need a bit of work because their shell is a bit brain damaged.
+or something closely resemblant.
 
 If at any time in the build process you get messages like: "make:
 don't know how to ..." you should be able to recover by running
@@ -210,7 +215,7 @@ Installing Postfix by hand takes only a few steps.
 - On-line manual pages:
 
     # mkdir /some/where/man
-    # (cd man; tar cf - .) | (cd /some/where/man; tar xvf -)
+    # (cd man && tar cf - .) | (cd /some/where/man && tar xvf -)
 
   Alternative: leave the manpages in the Postfix source tree.
 

@@ -1,8 +1,5 @@
-#!/bin/sh
-
 # Extract initialization tables from actual source code.
 
-awk '
 /static CONFIG_INT_TABLE/,/};/ { 
     if ($1 ~ /VAR/) {
 	print "int " substr($3,2,length($3)-2) ";" > "int_vars.h"
@@ -21,4 +18,3 @@ awk '
 	print | "sort -u >bool_table.h" 
     }
 }
-' $*

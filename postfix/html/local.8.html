@@ -44,7 +44,11 @@ LOCAL(8)                                                 LOCAL(8)
        address  extension),  <b>$domain</b>  (recipient  domain),  <b>local</b>
        (entire recipient address localpart) and <b>$recipient</b><i>_</i><b>delim-</b>
        <b>iter.</b>  The  forms  <i>${name?value}</i>  and <i>${name:value}</i> expand
-       conditionally to <i>value</i> when <i>$name</i> is (is not) defined.
+       conditionally to <i>value</i> when <i>$name</i>  is  (is  not)  defined.
+       Characters  that  may have special meaning to the shell or
+       file system are replaced  by  underscores.   The  list  of
+       acceptable characters is specified with the <b>forward</b><i>_</i><b>expan-</b>
+       <b>sion</b><i>_</i><b>filter</b> configuration
 
        An alias or ~/.<b>forward</b> file may list  any  combination  of
        external   commands,  destination  file  names,  <b>:include:</b>
@@ -55,10 +59,6 @@ LOCAL(8)                                                 LOCAL(8)
        When an address is  found  in  its  own  alias  expansion,
        delivery  is  made  to  the  user  instead. When a user is
        listed in the user's own ~/.<b>forward</b> file, delivery is made
-       to  the  user's mailbox instead.  An empty ~/.<b>forward</b> file
-       means do not forward mail.
-
-       In  order  to  prevent  the  mail  system  from  using  up
 
 
 
@@ -71,7 +71,11 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-       unreasonable  amounts  of  memory, input records read from
+       to  the  user's mailbox instead.  An empty ~/.<b>forward</b> file
+       means do not forward mail.
+
+       In order to prevent the mail system from using  up  unrea-
+       sonable   amounts  of  memory,  input  records  read  from
        <b>:include:</b> or from ~/.<b>forward</b>  files  are  broken  up  into
        chunks of length <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>.
 
@@ -86,9 +90,10 @@ LOCAL(8)                                                 LOCAL(8)
        rate on-file delivery status record.
 
        In order to stop mail forwarding loops early, the software
-       adds  a  <b>Delivered-To:</b>  header with the envelope recipient
-       address. If mail arrives for a recipient that  is  already
-       listed  in a <b>Delivered-To:</b> header, the message is bounced.
+       adds  an  optional  <b>Delivered-To:</b> header with the envelope
+       recipient address. If mail arrives for a recipient that is
+       already  listed  in a <b>Delivered-To:</b> header, the message is
+       bounced.
 
 <b>MAILBOX</b> <b>DELIVERY</b>
        The default per-user mailbox is a file in  the  UNIX  mail
@@ -120,11 +125,6 @@ LOCAL(8)                                                 LOCAL(8)
 
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
-       each  message,  prepends  an optional <b>Delivered-To:</b> header
-       with the envelope recipient address,  prepends  a  <b>Return-</b>
-       <b>Path:</b>  header with the envelope sender address, prepends a
-       &gt; character to lines beginning with "<b>From</b> ",  and  appends
-       an empty line.  The mailbox is locked for exclusive access
 
 
 
@@ -137,6 +137,11 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       each  message,  prepends  an optional <b>Delivered-To:</b> header
+       with the envelope recipient address,  prepends  a  <b>Return-</b>
+       <b>Path:</b>  header with the envelope sender address, prepends a
+       &gt; character to lines beginning with "<b>From</b> ",  and  appends
+       an empty line.  The mailbox is locked for exclusive access
        while delivery is in progress. In  case  of  problems,  an
        attempt  is  made  to truncate the mailbox to its original
        length.
@@ -187,11 +192,6 @@ LOCAL(8)                                                 LOCAL(8)
        <b>LOCAL</b>  The entire recipient address localpart (text to the
               left of the rightmost @ character).
 
-       <b>RECIPIENT</b>
-              The entire recipient address.
-
-       The <b>PATH</b> environment variable is always reset to a system-
-
 
 
                                                                 3
@@ -203,6 +203,10 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       <b>RECIPIENT</b>
+              The entire recipient address.
+
+       The <b>PATH</b> environment variable is always reset to a system-
        dependent default path, and the <b>TZ</b> (time zone) environment
        variable is always passed on without change.
 
@@ -253,10 +257,6 @@ LOCAL(8)                                                 LOCAL(8)
 
 <b>DELIVERY</b> <b>RIGHTS</b>
        Deliveries  to  external  files  and external commands are
-       made with the rights of the receiving user on whose behalf
-       the  delivery  is made.  In the absence of a user context,
-       the <b>local</b> daemon uses the owner rights  of  the  <b>:include:</b>
-       file or alias database.  When those files are owned by the
 
 
 
@@ -269,6 +269,10 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       made with the rights of the receiving user on whose behalf
+       the  delivery  is made.  In the absence of a user context,
+       the <b>local</b> daemon uses the owner rights  of  the  <b>:include:</b>
+       file or alias database.  When those files are owned by the
        superuser, delivery is made with the rights specified with
        the <b>default</b><i>_</i><b>privs</b> configuration parameter.
 
@@ -318,11 +322,7 @@ LOCAL(8)                                                 LOCAL(8)
        <b>local</b><i>_</i><b>command</b><i>_</i><b>shell</b>
               Shell to use for external  command  execution  (for
               example,  /some/where/smrsh  -c).   When a shell is
-              specified, it is invoked even when the command con-
-              tains  no  shell  built-in commands or meta charac-
-              ters.
-
-
+              specified, it is  invoked  even  when  the  command
 
 
 
@@ -335,16 +335,19 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
-       <b>prepend</b><i>_</i><b>delivered</b><i>_</i><b>header</b>
-              Prepend  an  optional  <b>Delivered-To:</b>  header   upon
-              external  forwarding,  delivery to command or file.
-              Specify zero or more of:  <b>command,</b>  <b>file,</b>  <b>forward</b>.
-              Turning  off  <b>Delivered-To:</b> when forwarding mail is
-              not recommended.
+              contains no shell built-in commands or meta charac-
+              ters.
 
        <b>owner</b><i>_</i><b>request</b><i>_</i><b>special</b>
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
               addresses.
+
+       <b>prepend</b><i>_</i><b>delivered</b><i>_</i><b>header</b>
+              Prepend   an  optional  <b>Delivered-To:</b>  header  upon
+              external forwarding, delivery to command  or  file.
+              Specify  zero  or  more of: <b>command,</b> <b>file,</b> <b>forward</b>.
+              Turning off <b>Delivered-To:</b> when forwarding  mail  is
+              not recommended.
 
        <b>recipient</b><i>_</i><b>delimiter</b>
               Separator between username and address extension.
@@ -387,9 +390,6 @@ LOCAL(8)                                                 LOCAL(8)
               Limit  the  number of attempts to acquire an exclu-
               sive lock on a mailbox or external file.
 
-       <b>deliver</b><i>_</i><b>lock</b><i>_</i><b>delay</b>
-              Time in  seconds  between  successive  attempts  to
-
 
 
                                                                 6
@@ -401,6 +401,8 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       <b>deliver</b><i>_</i><b>lock</b><i>_</i><b>delay</b>
+              Time in  seconds  between  successive  attempts  to
               acquire an exclusive lock.
 
        <b>stale</b><i>_</i><b>lock</b><i>_</i><b>time</b>
@@ -447,12 +449,10 @@ LOCAL(8)                                                 LOCAL(8)
               Default  rights  for  delivery  to external file or
               command.
 
-<b>HISTORY</b>
-       The <b>Delivered-To:</b> header appears in the  <b>qmail</b>  system  by
-       Daniel Bernstein.
-
-       The  <i>maildir</i>  structure  appears  in  the  <b>qmail</b> system by
-       Daniel Bernstein.
+       <b>forward</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
+              What characters are  allowed  to  appear  in  $name
+              expansions  of forward_path. Illegal characters are
+              replaced by underscores.
 
 
 
@@ -466,6 +466,13 @@ LOCAL(8)                                                 LOCAL(8)
 
 LOCAL(8)                                                 LOCAL(8)
 
+
+<b>HISTORY</b>
+       The <b>Delivered-To:</b> header appears in the  <b>qmail</b>  system  by
+       Daniel Bernstein.
+
+       The  <i>maildir</i>  structure  appears  in  the  <b>qmail</b> system by
+       Daniel Bernstein.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="aliases.5.html">aliases(5)</a> format of alias database
@@ -483,13 +490,6 @@ LOCAL(8)                                                 LOCAL(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
 
 
 

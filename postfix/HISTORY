@@ -2887,3 +2887,111 @@ Apologies for any names omitted.
 	is:  "prepend_delivered_header = command, file, forward".
 	Turning off the Delivered-To: header when forwarding mail
 	is not recommended.
+
+19990628
+
+	Feature: the postlock command now returns EX_TEMPFAIL
+	when the destination file is locked by another process.
+
+19990705
+
+	Workaround: in the SMTP client, move the "mail loops back
+	to myself test" from the 220 greeting to the HELO response.
+	This change does not weaken the test, and makes Postfix
+	more robust against broken software that greets with the
+	client hostname.
+
+19990706
+
+	Workaround: in the INSTALL file, use `&&' instead of `;'
+	in (cd path; tar ...) pipelines because some UNIX re-invented
+	shells don't bail out when cd fails. Matthias Andree
+	@dosis.uni-dortmund.de.
+
+19990709
+
+	Bugfix: $user was not set when delivering to a non-user.
+	Found by Vladimir Ulogov @ rohan.control.att.com when
+	configuring a luser_relay that contained $user.
+
+19990714
+
+	Robustness: add PATH statement to Solaris2 chroot setup
+	script to avoid running the ucb commands. Problem found
+	by Panagiotis Astithas @ ece.ntua.gr.
+
+19990721
+
+	Bugfix: don't claim a "mail loops to myself" error when
+	the best MX host was not found in the DNS. Found by Andrew
+	McNamara, connect.com.au Pty Ltd. File: smtp/smtp_addr.c.
+
+19990810
+
+	Feature: added "-c config_directory" support to the postconf
+	command. This probably means that "-f file" will never be
+	implemented.
+
+19990812
+
+	Bugfix: showq didn't print properly when listing a maildrop
+	file.  Fix by: Andrew McNamara, connect.com.au Pty Ltd.
+	File: showq/showq.c.
+
+	Feature: added SENDER to the list of parameters exported
+	to external commands. File: local/command.c. Code by: Lars
+	Hecking, National Microelectronics Research Centre, Ireland.
+
+19990813
+
+	Bugfix: sendmail -t (extract recipients from headers) did not
+	work when the always_bcc feature was turned on. Reported
+	by: Denis Shaposhnikov @ neva.vlink.ru.
+
+19990813
+	Bugfix: "sendmail -bd" returns a bogus exit status (the child
+	process ID). Fix by Lamont Jones of Hewlett-Packard. File:
+	sendmail/sendmail.c.
+
+19990824
+
+	Bugfix: null pointer dereference while rejecting VRFY before
+	MAIL FROM. Found by Laurent Wacrenier @ fr.clara.net.
+
+19990826
+
+	Portability: more MacOS X Server patches; some NEXTSTEP/OPENSTEP
+	code that had been removed for the first public beta release;
+	NEXTSTEP/OPENSTEP now defaults to netinfo for the aliases
+	database.  Submitted by Gerben Wierda.
+
+	Portability: workaround for a FreeBSD 3.x active network
+	interface without IP address by Pierre Beyssac @ enst.fr.
+	File:  inet_addr_local.c.
+
+19990831
+
+	Workaround: sendmail now prints a warning when installed
+	set-uid or when run by a set-uid command. Reportedly, the
+	linuxconf software turns on the set-uid bit, which could
+	open up a security loophole. File: sendmail/sendmail.c.
+
+	Bugfix: Postfix daemons now temporarily lock DB/DBM files
+	while opening them, in order to avoid "invalid argument"
+	errors because some other process is changing the file.
+	Files: util/dict_db.c, util/dict_dbm.c.
+
+	Robustness: Postfix locks queue files during delivery, to
+	prevent duplicate delivery when "postfix reload" is
+	immediately followed by "sendmail -q". This involves a
+	change of the deliver_request interface:  delivery agents
+	no longer need to open and close queue files explicitly.
+	Files:  global/deliver_request.c, pipe/pipe.c, smtp/smtp.c,
+	local/local.c, qmgr/qmgr_active.c, qmgr/qmgr_message.c.
+
+	Feature: reject_unauth_destination SMTP recipient restriction
+	that rejects destinations not in $relay_domains.  By Lamont
+	Jones of Hewlett-Packard.  File: smtpd/smtpd_check.c.
+
+	Robustness: postconf now validates the syntax of all main.cf
+	parameters.

@@ -40,6 +40,9 @@
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
 /*	\fI$name\fR is (is not) defined.
+/*	Characters that may have special meaning to the shell or file system
+/*	are replaced by underscores.  The list of acceptable characters
+/*	is specified with the \fBforward_expansion_filter\fR configuration
 /*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
 /*	commands, destination file names, \fB:include:\fR directives, or
@@ -69,7 +72,8 @@
 /*	a new message, so that each recipient has a separate on-file
 /*	delivery status record.
 /*
-/*	In order to stop mail forwarding loops early, the software adds a
+/*	In order to stop mail forwarding loops early, the software adds an
+/*	optional
 /*	\fBDelivered-To:\fR header with the envelope recipient address. If
 /*	mail arrives for a recipient that is already listed in a
 /*	\fBDelivered-To:\fR header, the message is bounced.
@@ -263,14 +267,14 @@
 /*	/some/where/smrsh -c).
 /*	When a shell is specified, it is invoked even when the command
 /*	contains no shell built-in commands or meta characters.
+/* .IP \fBowner_request_special\fR
+/*	Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
+/*	addresses.
 /* .IP \fBprepend_delivered_header\fR
 /*	Prepend an optional \fBDelivered-To:\fR header upon external
 /*	forwarding, delivery to command or file. Specify zero or more of:
 /*	\fBcommand, file, forward\fR. Turning off \fBDelivered-To:\fR when
 /*	forwarding mail is not recommended.
-/* .IP \fBowner_request_special\fR
-/*	Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
-/*	addresses.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
 /* .SH Mailbox delivery
@@ -340,6 +344,9 @@
 /*	mailbox_command. Illegal characters are replaced by underscores.
 /* .IP \fBdefault_privs\fR
 /*	Default rights for delivery to external file or command.
+/* .IP \fBforward_expansion_filter\fR
+/*	What characters are allowed to appear in $name expansions of
+/*	forward_path. Illegal characters are replaced by underscores.
 /* HISTORY
 /* .ad
 /* .fi
@@ -390,7 +397,6 @@
 
 /* Global library. */
 
-#include <mail_queue.h>
 #include <recipient_list.h>
 #include <deliver_request.h>
 #include <deliver_completed.h>
@@ -428,6 +434,7 @@ char   *var_mailbox_transport;
 char   *var_fallback_transport;
 char   *var_forward_path;
 char   *var_cmd_exp_filter;
+char   *var_fwd_exp_filter;
 char   *var_prop_extension;
 int     var_exp_own_alias;
 char   *var_deliver_hdr;
@@ -470,11 +477,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     deliver_attr_init(&state.msg_attr);
     state.msg_attr.queue_name = rqst->queue_name;
     state.msg_attr.queue_id = rqst->queue_id;
-    state.msg_attr.fp =
-	mail_queue_open(rqst->queue_name, rqst->queue_id, O_RDWR, 0);
-    if (state.msg_attr.fp == 0)
-	msg_fatal("open file %s %s: %m", rqst->queue_name, rqst->queue_id);
-    close_on_exec(vstream_fileno(state.msg_attr.fp), CLOSE_ON_EXEC);
+    state.msg_attr.fp = rqst->fp;
     state.msg_attr.offset = rqst->data_offset;
     state.msg_attr.sender = rqst->sender;
     state.msg_attr.relay = service;
@@ -506,7 +509,6 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
      * Clean up.
      */
     delivered_free(state.loop_info);
-    vstream_fclose(state.msg_attr.fp);
 
     return (msg_stat);
 }
@@ -607,6 +609,7 @@ int     main(int argc, char **argv)
 	VAR_MAILBOX_TRANSP, DEF_MAILBOX_TRANSP, &var_mailbox_transport, 0, 0,
 	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,
 	VAR_CMD_EXP_FILTER, DEF_CMD_EXP_FILTER, &var_cmd_exp_filter, 1, 0,
+	VAR_FWD_EXP_FILTER, DEF_FWD_EXP_FILTER, &var_fwd_exp_filter, 1, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
 	0,

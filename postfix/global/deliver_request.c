@@ -8,6 +8,7 @@
 /*
 /*	typedef struct DELIVER_REQUEST {
 /* .in +5
+/*		VSTREAM	*fp;
 /*		char	*queue_name;
 /*		char	*queue_id;
 /*		long	data_offset;
@@ -34,7 +35,8 @@
 /*	to delivery agent' protocol. In this game, the queue manager is
 /*	the client, while the delivery agent is the server.
 /*
-/*	deliver_request_read() reads a client message delivery request.
+/*	deliver_request_read() reads a client message delivery request,
+/*	opens the queue file, and acquires a shared lock.
 /*	A null result means that the client sent bad information or that
 /*	it went away unexpectedly.
 /*
@@ -46,6 +48,7 @@
 /*
 /*	deliver_request_done() reports the delivery status back to the
 /*	client, including the optional \fIhop_status\fR information,
+/*	closes the queue file,
 /*	and destroys the DELIVER_REQUEST structure. The result is
 /*	non-zero when the status could not be reported to the client.
 /* DIAGNOSTICS
@@ -78,6 +81,7 @@
 #include <vstring.h>
 #include <mymalloc.h>
 #include <iostuff.h>
+#include <myflock.h>
 
 /* Global library. */
 
@@ -141,6 +145,7 @@ static int deliver_request_final(VSTREAM *stream, char *reason, int status)
 
 static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 {
+    char   *myname = "deliver_request_get";
     const char *path;
     struct stat st;
     static VSTRING *queue_name;
@@ -177,6 +182,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     if (mail_open_ok(vstring_str(queue_name),
 		     vstring_str(queue_id), &st, &path) == 0)
 	return (-1);
+
     request->queue_name = mystrdup(vstring_str(queue_name));
     request->queue_id = mystrdup(vstring_str(queue_id));
     request->nexthop = mystrdup(vstring_str(nexthop));
@@ -196,6 +202,29 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	    return (-1);
 	recipient_list_add(&request->rcpt_list, offset, vstring_str(address));
     }
+
+    /*
+     * Open the queue file and set a shared lock, in order to prevent
+     * duplicate deliveries when the queue is flushed immediately after queue
+     * manager restart.
+     * 
+     * Opening the queue file can fail for a variety of reasons, such as the
+     * system running out of resources. Instead of throwing away mail, we're
+     * raising a fatal error which forces the mail system to back off, and
+     * retry later.
+     */
+#define DELIVER_LOCK_MODE (MYFLOCK_SHARED | MYFLOCK_NOWAIT)
+
+    request->fp =
+	mail_queue_open(request->queue_name, request->queue_id, O_RDWR, 0);
+    if (request->fp == 0)
+	msg_fatal("open %s %s: %m", request->queue_name, request->queue_id);
+    if (msg_verbose)
+	msg_info("%s: file %s", myname, VSTREAM_PATH(request->fp));
+    if (myflock(vstream_fileno(request->fp), DELIVER_LOCK_MODE) < 0)
+	msg_fatal("shared lock %s: %m", VSTREAM_PATH(request->fp));
+    close_on_exec(vstream_fileno(request->fp), CLOSE_ON_EXEC);
+
     return (0);
 }
 
@@ -206,6 +235,7 @@ static DELIVER_REQUEST *deliver_request_alloc(void)
     DELIVER_REQUEST *request;
 
     request = (DELIVER_REQUEST *) mymalloc(sizeof(*request));
+    request->fp = 0;
     request->queue_name = 0;
     request->queue_id = 0;
     request->nexthop = 0;
@@ -223,6 +253,8 @@ static DELIVER_REQUEST *deliver_request_alloc(void)
 
 static void deliver_request_free(DELIVER_REQUEST *request)
 {
+    if (request->fp)
+	vstream_fclose(request->fp);
     if (request->queue_name)
 	myfree(request->queue_name);
     if (request->queue_id)

@@ -317,7 +317,8 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 			msg_warn("close file %s %s: %m", *queue, id);
 		} else if (strcmp(*queue, MAIL_QUEUE_MAILDROP) == 0) {
 		    queue_size += st.st_size;
-		    vstream_fprintf(client, DATA_FORMAT, id, (long) st.st_size,
+		    vstream_fprintf(client, DATA_FORMAT, id, ' ',
+				    (long) st.st_size,
 				    asctime(localtime(&st.st_mtime)),
 				    "(to be determined)");
 		} else if (errno != ENOENT)

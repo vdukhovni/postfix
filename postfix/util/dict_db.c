@@ -56,6 +56,7 @@
 #include <db.h>
 #endif
 #include <string.h>
+#include <unistd.h>
 
 /* Utility library. */
 
@@ -345,18 +346,32 @@ static void dict_db_close(DICT *dict)
 
 /* dict_db_open - open data base */
 
-static DICT *dict_db_open(const char *path, int flags, int type,
+static DICT *dict_db_open(const char *path, int open_flags, int type,
 			          void *tweak, int dict_flags)
 {
     DICT_DB *dict_db;
     struct stat st;
     DB     *db;
     char   *db_path;
+    int     lock_fd = -1;
 
     db_path = concatenate(path, ".db", (char *) 0);
-    if ((db = dbopen(db_path, flags, 0644, type, tweak)) == 0)
+
+    if (dict_flags & DICT_FLAG_LOCK) {
+	if ((lock_fd = open(db_path, open_flags, 0644)) < 0)
+	    msg_fatal("open database %s: %m", db_path);
+	if (myflock(lock_fd, MYFLOCK_SHARED) < 0)
+	    msg_fatal("shared-lock database %s for open: %m", db_path);
+    }
+    if ((db = dbopen(db_path, open_flags, 0644, type, tweak)) == 0)
 	msg_fatal("open database %s: %m", db_path);
 
+    if (dict_flags & DICT_FLAG_LOCK) {
+	if (myflock(lock_fd, MYFLOCK_NONE) < 0)
+	    msg_fatal("unlock database %s for open: %m", db_path);
+	if (close(lock_fd) < 0)
+	    msg_fatal("close database %s: %m", db_path);
+    }
     dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;
     dict_db->dict.update = dict_db_update;
@@ -369,7 +384,7 @@ static DICT *dict_db_open(const char *path, int flags, int type,
     dict_db->dict.mtime = st.st_mtime;
     close_on_exec(dict_db->dict.fd, CLOSE_ON_EXEC);
     dict_db->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    if ((flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+    if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_db->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     dict_db->db = db;
     dict_db->path = db_path;

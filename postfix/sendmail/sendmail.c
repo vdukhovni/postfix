@@ -595,6 +595,18 @@ int     main(int argc, char **argv)
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
+    /*
+     * Do not set[e]uid(getuid()). This allows the real user to manipulate
+     * the process, which is dangerous, because some systems do not reset the
+     * saved set-userid unless euid == 0.
+     */
+#ifdef WARN_SETXID_SENDMAIL
+    if (geteuid() != getuid())
+	msg_warn("sendmail is set-uid or is run from a set-uid process");
+    if (getegid() != getgid())
+	msg_warn("sendmail is set-gid or is run from a set-gid process");
+#endif
+
     mail_conf_read();
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);
@@ -773,7 +785,7 @@ int     main(int argc, char **argv)
 	    argv_add(ext_argv, "-v", (char *) 0);
 	argv_add(ext_argv, "start", (char *) 0);
 	argv_terminate(ext_argv);
-	err = mail_run_background(var_command_dir, ext_argv->argv);
+	err = (mail_run_background(var_command_dir, ext_argv->argv) < 0);
 	argv_free(ext_argv);
 	exit(err);
 	break;

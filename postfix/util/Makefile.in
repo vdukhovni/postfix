@@ -297,7 +297,6 @@ close_on_exec.o: close_on_exec.c
 close_on_exec.o: sys_defs.h
 close_on_exec.o: msg.h
 close_on_exec.o: iostuff.h
-compat.o: compat.c
 concatenate.o: concatenate.c
 concatenate.o: sys_defs.h
 concatenate.o: mymalloc.h

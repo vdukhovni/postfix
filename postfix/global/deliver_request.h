@@ -26,6 +26,7 @@
   * Structure of a server mail delivery request.
   */
 typedef struct DELIVER_REQUEST {
+    VSTREAM *fp;			/* stream, shared lock */
     char   *queue_name;			/* message queue name */
     char   *queue_id;			/* message queue id */
     long    data_offset;		/* offset to message */

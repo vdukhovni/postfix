@@ -103,7 +103,7 @@ static const char *local_expand_lookup(const char *name, int mode, char *ptr)
 #define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
 
     if (STREQ(name, "user")) {
-	return (local->usr_attr->logname);
+	return (local->state->msg_attr.user);
     } else if (STREQ(name, "home")) {
 	return (local->usr_attr->home);
     } else if (STREQ(name, "shell")) {

@@ -219,8 +219,8 @@ program_directory = /usr/libexec/postfix
 
 # The queue_directory specifies the location of the Postfix queue.
 # This is also the root directory of Postfix daemons that run chrooted.
-# The contributed source code from http://www.postfix.org/ has examples
-# for setting up Postfix chroot environments on different UNIX systems.
+# The files in the examples/chroot-setup subdirectory describe how
+# to set up Postfix chroot environments on different UNIX systems.
 #
 queue_directory = /var/spool/postfix
 

@@ -83,6 +83,7 @@
 #include <mymalloc.h>
 #include <events.h>
 #include <find_inet.h>
+#include <iostuff.h>
 
 /* Global library. */
 
@@ -261,7 +262,11 @@ static void startup(SESSION *session)
 	    if (!connect(fd, (struct sockaddr *) & sin, sizeof(sin)))
 		break;
 	    if (session->connect_count-- > 1)
+#ifdef MISSING_USLEEP
+		doze(10);
+#else
 		usleep(10);
+#endif
 	}
 	session->stream = vstream_fdopen(fd, O_RDWR);
 	smtp_timeout_setup(session->stream, var_timeout);

@@ -234,6 +234,8 @@ struct QMGR_MESSAGE {
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
 };
 
+#define QMGR_MESSAGE_LOCKED	((QMGR_MESSAGE *) 1)
+
 extern int qmgr_message_count;
 extern int qmgr_recipient_count;
 extern MAPS *qmgr_relocated;

@@ -124,6 +124,10 @@
 /*	parameter.  Reject the request otherwise.
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
+/* .IP reject_unauth_destination
+/*	Allow the request when the resolved recipient domain matches the
+/*	\fIrelay_domains\fR configuration parameter.  Reject the request
+/*	otherwise.  Same error code as check_relay_domains.
 /* .IP permit_mx_backup
 /*	Allow the request when the local mail system is mail exchanger
 /*	for the recipient domain (this includes the case where the local
@@ -400,11 +404,22 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * postmaster notices, this may be the only trace left that service was
      * rejected. Print the request, client name/address, and response.
      */
-    msg_info(state->recipient ? "reject: %s from %s: %s; from=<%s> to=<%s>"
-	     : state->sender ? "reject: %s from %s: %s; from=<%s>"
-	     : "reject: %s from %s: %s",
-	     state->where, state->namaddr, STR(error_text),
-	     state->sender, state->recipient);
+    if (state->recipient && state->sender) {
+	msg_info("reject: %s from %s: %s; from=<%s> to=<%s>",
+		 state->where, state->namaddr, STR(error_text),
+		 state->sender, state->recipient);
+    } else if (state->recipient) {
+	msg_info("reject: %s from %s: %s; to=<%s>",
+		 state->where, state->namaddr, STR(error_text),
+		 state->recipient);
+    } else if (state->sender) {
+	msg_info("reject: %s from %s: %s; from=<%s>",
+		 state->where, state->namaddr, STR(error_text),
+		 state->sender);
+    } else {
+	msg_info("reject: %s from %s: %s",
+		 state->where, state->namaddr, STR(error_text));
+    }
     return (SMTPD_CHECK_REJECT);
 }
 
@@ -654,6 +669,45 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			       "%d <%s>: %s rejected: Relay access denied",
 			       var_relay_code, reply_name, reply_class));
+}
+
+/* reject_unauth_destination - FAIL for message relaying */
+
+static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
+{
+    char   *myname = "reject_unauth_destination";
+    char   *domain;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, recipient);
+
+    /*
+     * Resolve the address.
+     */
+    canon_addr_internal(query, recipient);
+    resolve_clnt_query(STR(query), &reply);
+
+    /*
+     * Permit if destination is local. XXX This must be generalized for
+     * per-domain user tables and for non-UNIX local delivery agents.
+     */
+    if (STR(reply.nexthop)[0] == 0
+	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+	return (SMTPD_CHECK_DUNNO);
+    domain += 1;
+
+    /*
+     * Permit if the destination matches the relay_domains list.
+     */
+    if (domain_list_match(relay_domains, domain))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * Deny relaying between sites that both are not in relay_domains.
+     */
+    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+			       "%d <%s>: Relay access denied",
+			       var_relay_code, recipient));
 }
 
 /* has_my_addr - see if this host name lists one of my network addresses */
@@ -1489,6 +1543,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 				       recipient, SMTPD_NAME_RECIPIENT);
 	} else if (strcasecmp(name, PERMIT_MX_BACKUP) == 0) {
 	    status = permit_mx_backup(state, recipient);
+	} else if (strcasecmp(name, REJECT_UNAUTH_DEST) == 0) {
+	    status = reject_unauth_destination(state, recipient);
 	} else if (strcasecmp(name, CHECK_RELAY_DOMAINS) == 0) {
 	    status = check_relay_domains(state, recipient,
 					 recipient, SMTPD_NAME_RECIPIENT);

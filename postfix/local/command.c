@@ -17,7 +17,7 @@
 /*	Duplicate commands for the same recipient are suppressed.
 /*	A limited amount of information is exported via the environment:
 /*	HOME, SHELL, LOGNAME, USER, EXTENSION, DOMAIN, RECIPIENT (entire
-/*	address) and LOCAL (just the local part). The exported
+/*	address) LOCAL (just the local part) and SENDER. The exported
 /*	information is censored with var_cmd_filter.
 /*
 /*	Arguments:
@@ -150,6 +150,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     argv_add(env,
 	     "LOGNAME", state.msg_attr.user,
 	     "USER", state.msg_attr.user,
+	     "SENDER", state.msg_attr.sender,
 	     "RECIPIENT", state.msg_attr.recipient,
 	     "LOCAL", state.msg_attr.local,
 	     ARGV_END);

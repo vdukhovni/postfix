@@ -49,10 +49,15 @@
 
 #if defined(RHAPSODY5)
 #define NORETURN	void
+#define HAS_NETINFO
 #endif
 
 #ifdef ULTRIX4
 #define SUPPORTED
+/* Ultrix by default has only 64 descriptors per process */
+#ifndef FD_SETSIZE
+#define FD_SETSIZE	96
+#endif
 #include <sys/types.h>
 #define UNSAFE_CTYPE			/* XXX verify */
 #define _PATH_MAILDIR	"/var/spool/mail"
@@ -85,11 +90,7 @@ extern int opterr;
 /* Ultrix misses just S_ISSOCK, the others are there */
 #define S_ISSOCK(mode)	(((mode) & (S_IFMT)) == (S_IFSOCK))
 #define DUP2_DUPS_CLOSE_ON_EXEC
-/* Ultrix by default has only 64 descriptors per process */
-#ifndef FD_SETSIZE
-#define FD_SETSIZE	100
-#endif
-#define usleep		doze
+#define MISSING_USLEEP
 #endif
 
 #ifdef OSF1
@@ -316,7 +317,7 @@ extern int initgroups(const char *, int);
 #endif
 
 #if defined(IRIX5)
-#define usleep	doze
+#define MISSING_USLEEP
 #endif
 
 #ifdef LINUX2
@@ -324,6 +325,7 @@ extern int initgroups(const char *, int);
 #include <sys/types.h>
 #define USE_PATHS_H
 #define USE_FLOCK_LOCK
+#define USE_DOT_LOCK
 #define HAS_FSYNC
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"
@@ -337,6 +339,7 @@ extern int initgroups(const char *, int);
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define PREPEND_PLUS_TO_OPTSTRING
 #define HAS_POSIX_REGEXP
+#define WARN_SETXID_SENDMAIL
 #endif
 
  /*
@@ -460,7 +463,7 @@ extern int h_errno;
 #define _PATH_STDPATH	"/bin:/usr/bin:/usr/ucb"
 #define ROOT_PATH	"/bin:/usr/bin:/usr/etc:/usr/ucb"
 #define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/sendmail/aliases"
+#define ALIAS_DB_MAP	"netinfo:/aliases"
 #include <libc.h>
 #define MISSING_POSIX_S_IS
 #define MISSING_POSIX_S_MODES
@@ -508,7 +511,7 @@ extern int opterr;
 #define _PATH_STDPATH	"/bin:/usr/bin:/usr/ucb"
 #define ROOT_PATH	"/bin:/usr/bin:/usr/etc:/usr/ucb"
 #define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/sendmail/aliases"
+#define ALIAS_DB_MAP	"netinfo:/aliases"
 #include <libc.h>
 #define MISSING_POSIX_S_IS
 #define MISSING_POSIX_S_MODES
@@ -549,7 +552,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
-#define usleep	doze
+#define MISSING_USLEEP
 #endif
 
  /*

@@ -168,7 +168,6 @@
 /* Global library. */
 
 #include <deliver_request.h>
-#include <mail_queue.h>
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <debug_peer.h>
@@ -242,20 +241,7 @@ static int deliver_message(DELIVER_REQUEST *request)
     why = vstring_alloc(100);
     state = smtp_state_alloc();
     state->request = request;
-
-    /*
-     * Open the queue file. Opening the file can fail for a variety of
-     * reasons, such as the system running out of resources. Instead of
-     * throwing away mail, we're raising a fatal error which forces the mail
-     * system to back off, and retry later.
-     */
-    state->src = mail_queue_open(request->queue_name, request->queue_id,
-				 O_RDWR, 0);
-    if (state->src == 0)
-	msg_fatal("%s: open %s %s: %m", myname,
-		  request->queue_name, request->queue_id);
-    if (msg_verbose)
-	msg_info("%s: file %s", myname, VSTREAM_PATH(state->src));
+    state->src = request->fp;
 
     /*
      * Establish an SMTP session and deliver this message to all requested
@@ -287,8 +273,6 @@ static int deliver_message(DELIVER_REQUEST *request)
     /*
      * Clean up.
      */
-    if (vstream_fclose(state->src))
-	msg_warn("close %s %s: %m", request->queue_name, request->queue_id);
     vstring_free(why);
     smtp_chat_reset(state);
     result = state->status;

@@ -1,0 +1,38 @@
+LINUX SYSLOGD PERFORMANCE
+=========================
+
+LINUX syslogd uses synchronous writes by default, which is very
+expensive. For services such a mail it is recommended that you
+disable synchronous logfile writes by prepending a - to the logfile
+name:
+
+    mail.*                          -/var/log/mail.log
+
+SPAM BLOCKING SOURCE ROUTED ADDRESSES
+=====================================
+
+If you relay mail for other domains, you must prevent unauthorized
+relay of addresses such as:
+
+    user@elsewhere@the.other.domain
+    user%elsewhere@the.other.domain
+    elsewhere!user@the.other.domain
+
+The simplest solution is to install a regular expression filter:
+
+    /etc/postfix/main.cf: 
+	smtpd_recipient_restrictions = regexp:/etc/postfix/regexp_access
+
+    /etc/postfix/regexp_access:
+	/[%!@].*@/ 550 Sender specified routing is not supported here.
+
+For the local domain, Postfix will do the right thing with:
+
+    user@elsewhere@my.own.domain
+    user%elsewhere@my.own.domain
+    elsewhere!user@my.own.domain
+
+That is, it bounces the first form because "user@elsewhere" is not
+a valid local user, and it accepts the second and third forms only
+when user@elsewhere is a valid relay destination.
+

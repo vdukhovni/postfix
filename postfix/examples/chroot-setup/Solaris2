@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PATH=/usr/bin:/sbin:/usr/sbin
+
 # Create chroot'd area under Solaris 2.5.1 for postfix.
 #
 # Dug Song <dugsong@UMICH.EDU>

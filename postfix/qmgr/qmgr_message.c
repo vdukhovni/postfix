@@ -36,12 +36,13 @@
 /*	qmgr_message_alloc() creates an in-core message structure
 /*	with sender and recipient information taken from the named queue
 /*	file. A null result means the queue file could not be read or
-/*	that the queue file contained incorrect information. The number
+/*	that the queue file contained incorrect information. A result
+/*	QMGR_MESSAGE_LOCKED means delivery must be deferred. The number
 /*	of recipients read from a queue file is limited by the global
 /*	var_qmgr_rcpt_limit configuration parameter. When the limit
 /*	is reached, the \fIrcpt_offset\fR structure member is set to
 /*	the position where the read was terminated. Recipients are
-/*	ru through the resolver, and are assigned to destination
+/*	run through the resolver, and are assigned to destination
 /*	queues. Recipients that cannot be assigned are deferred or
 /*	bounced. Mail that has bounced twice is silently absorbed.
 /*
@@ -95,6 +96,7 @@
 #include <valid_hostname.h>
 #include <argv.h>
 #include <stringops.h>
+#include <myflock.h>
 
 /* Global library. */
 
@@ -663,9 +665,16 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
      * Extract message envelope information: time of arrival, sender address,
      * recipient addresses. Skip files with malformed envelope information.
      */
+#define QMGR_LOCK_MODE (MYFLOCK_EXCLUSIVE | MYFLOCK_NOWAIT)
+
     if (qmgr_message_open(message) < 0) {
 	qmgr_message_free(message);
 	return (0);
+    }
+    if (myflock(vstream_fileno(message->fp), QMGR_LOCK_MODE) < 0) {
+	qmgr_message_close(message);
+	qmgr_message_free(message);
+	return (QMGR_MESSAGE_LOCKED);
     }
     if (qmgr_message_read(message) < 0) {
 	qmgr_message_close(message);

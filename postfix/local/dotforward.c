@@ -15,7 +15,8 @@
 /*	listed in a recipient's .forward file(s) as specified through
 /*	the forward_path configuration parameter.  The result is
 /*	zero when no acceptable .forward file was found, or when
-/*	a recipient is listed in her own .forward file.
+/*	a recipient is listed in her own .forward file. Expansions
+/*	are scrutinized with the forward_expansion_filter parameter.
 /*
 /*	Arguments:
 /* .IP state
@@ -112,7 +113,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	MSG_LOG_STATE(myname, state);
 
     /*
-     * Skip this module if per-user forwarding is disabled. 
+     * Skip this module if per-user forwarding is disabled.
      */
     if (*var_forward_path == 0)
 	return (NO);
@@ -147,7 +148,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * these are the rights of root, the /file and |command delivery routines
      * will use unprivileged default rights instead. Better safe than sorry.
      */
-	SET_USER_ATTR(usr_attr, mypwd, state.level);
+    SET_USER_ATTR(usr_attr, mypwd, state.level);
 
     /*
      * DELIVERY POLICY
@@ -182,7 +183,8 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     lookup_status = -1;
 
     while ((lhs = mystrtok(&next, ", \t\r\n")) != 0) {
-	expand_status = local_expand(path, lhs, &state, &usr_attr, (char *) 0);
+	expand_status = local_expand(path, lhs, &state, &usr_attr,
+				     var_fwd_exp_filter);
 	if ((expand_status & (MAC_PARSE_ERROR | MAC_PARSE_UNDEF)) == 0) {
 	    lookup_status =
 		lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);

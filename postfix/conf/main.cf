@@ -181,6 +181,7 @@ program_directory = /some/where/postfix/bin
 #alias_maps = dbm:/etc/aliases
 #alias_maps = hash:/etc/aliases
 #alias_maps = hash:/etc/aliases, nis:mail.aliases
+#alias_maps = netinfo:/aliases
 
 # The alias_database parameter specifies the alias database(s) that
 # are built with "newaliases" or "sendmail -bi".  This is a separate
@@ -286,8 +287,10 @@ program_directory = /some/where/postfix/bin
 
 # The header_checks parameter restricts what may appear in message
 # headers. This requires that POSIX or PCRE regular expression support
-# is built-in. Specify "/^header-name: stuff you don not want/ REJECT"
-# in the pattern file. Patterns are case-insensitive by default.
+# is built-in. Specify "/^header-name: stuff you do not want/ REJECT"
+# in the pattern file. Patterns are case-insensitive by default. Note:
+# specify only patterns ending in REJECT. Patterns ending in OK are
+# a waste of cycles.
 #
 #header_checks = regexp:/etc/postfix/filename
 #header_checks = pcre:/etc/postfix/filename

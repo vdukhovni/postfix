@@ -342,6 +342,12 @@ abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_cmd_exp_filter;
 
+#define VAR_FWD_EXP_FILTER	"forward_expansion_filter"
+#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,.\
+abcdefghijklmnopqrstuvwxyz\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+extern char *var_fwd_exp_filter;
+
 #define VAR_DELIVER_HDR		"prepend_delivered_header"
 #define DEF_DELIVER_HDR		"command, file, forward"
 extern char *var_deliver_hdr;
@@ -756,6 +762,7 @@ extern int var_non_fqdn_code;
 #define DEF_UNK_ADDR_CODE	450
 extern int var_unk_addr_code;
 
+#define REJECT_UNAUTH_DEST	"reject_unauth_destination"
 #define CHECK_RELAY_DOMAINS	"check_relay_domains"
 #define VAR_RELAY_CODE		"relay_domains_reject_code"
 #define DEF_RELAY_CODE		554

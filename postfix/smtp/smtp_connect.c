@@ -276,7 +276,7 @@ SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why)
 	    break;
 	}
 	msg_info("%s; address %s port %d", vstring_str(why),
-		 inet_ntoa(*((struct in_addr *) addr->data)), port);
+		 inet_ntoa(*((struct in_addr *) addr->data)), ntohs(port));
     }
     dns_rr_free(addr_list);
     return (session);

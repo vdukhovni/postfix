@@ -28,7 +28,8 @@
 /*	access.  The command is executed directly, i.e. without
 /*	interpretation by a shell command interpreter.
 /* DIAGNOSTICS
-/*	The result status is 255 (on some systems: -1) when \fBpostlock\fR
+/*	The result status is 75 (EX_TEMPFAIL) when the file is locked by
+/*	another process, 255 (on some systems: -1) when \fBpostlock\fR
 /*	could not perform the requested operation.  Otherwise, the
 /*	exit status is the exit status from the command.
 /* BUGS
@@ -84,6 +85,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <sysexits.h>
 
 /* Utility library. */
 
@@ -109,7 +112,7 @@ static NORETURN usage(char *myname)
     msg_fatal("usage: %s [-c config_dir] [-v] folder command...", myname);
 }
 
-/* fatal_exit - as promised, return 255 in case of locking problems */
+/* fatal_exit - as promised, return 255 in case of unexpected problems */
 
 static void fatal_exit(void)
 {
@@ -195,11 +198,24 @@ int     main(int argc, char **argv)
     close_on_exec(fd, CLOSE_ON_EXEC);
     why = vstring_alloc(1);
 #ifdef USE_DOT_LOCK
-    if (dot_lockfile(folder, why) < 0)
+    if (dot_lockfile(folder, why) < 0) {
+	if (errno == EEXIST) {
+	    msg_warn("dotlock file %s: %s", folder, vstring_str(why));
+	    exit(EX_TEMPFAIL);
+	}
 	msg_fatal("dotlock file %s: %s", folder, vstring_str(why));
+    }
 #endif
-    if (deliver_flock(fd, why) < 0)
+    if (deliver_flock(fd, why) < 0) {
+	if (errno == EAGAIN) {
+	    msg_warn("lock %s: %s", folder, vstring_str(why));
+#ifdef USE_DOT_LOCK
+	    dot_unlockfile(folder);
+#endif
+	    exit(EX_TEMPFAIL);
+	}
 	msg_fatal("lock %s: %s", folder, vstring_str(why));
+    }
 
     /*
      * Run the command. Remove the lock after completion.

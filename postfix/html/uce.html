@@ -510,6 +510,9 @@ on the client hostname or network address.
 <dd> <b>smtpd_recipient_restrictions = permit_mynetworks,
 check_relay_domains</b>
 
+<dd> <b>smtpd_recipient_restrictions = permit_mynetworks,
+reject_unauth_destination</b>
+
 <p>
 
 <dt> Restrictions:
@@ -524,6 +527,16 @@ or when the resolved destination address matches <a href="#relay_domains">
 $relay_domains</a>, otherwise reject.  The <b>relay_domains_reject_code</b>
 parameter specifies the response code for rejected requests (default:
 <b>554</b>).
+
+<p>
+
+<a name="reject_unauth_destination">
+
+<dt> <b>reject_unauth_destination</b> <dd> Ignore the client
+hostname.  Permit the request when the resolved destination address
+matches <a href="#relay_domains"> $relay_domains</a>, otherwise
+reject.  The <b>relay_domains_reject_code</b> parameter specifies
+the response code for rejected requests (default:  <b>554</b>).
 
 <p>
 
@@ -784,8 +797,10 @@ subdomain under any of the domains listed in <b>$maps_rbl_domains.</b>
 <dt> <b>relay_domains</b>
 
 <dd> This parameter controls the behavior of the <a
-href="#check_relay_domains"> check_relay_domains</a> restriction
-that can appear as part of a recipient address restriction list.
+href="#check_relay_domains"> check_relay_domains</a> and a
+href="#reject_unauth_destination"> reject_unauth_destination</a>
+restrictions that can appear as part of a recipient address
+restriction list.
 
 <p>
 

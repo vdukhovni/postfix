@@ -9,7 +9,7 @@
 /*	int	inet_addr_local(list)
 /*	INET_ADDR_LIST *list;
 /* DESCRIPTION
-/*	inet_addr_local() determines all active interface addresses
+/*	inet_addr_local() determines all active IP interface addresses
 /*	of the local system. Any address found is appended to the
 /*	specified address list. The result value is the number of
 /*	active interfaces found.
@@ -50,6 +50,21 @@
 #include <vstring.h>
 #include <inet_addr_list.h>
 #include <inet_addr_local.h>
+
+ /*
+  * Support for variable-length addresses.
+  */
+#ifdef _SIZEOF_ADDR_IFREQ
+#define NEXT_INTERFACE(ifr) ((struct ifreq *) \
+	((char *) ifr + _SIZEOF_ADDR_IFREQ(*ifr)))
+#else
+#ifdef HAS_SA_LEN
+#define NEXT_INTERFACE(ifr) ((struct ifreq *) \
+	((char *) ifr + sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len))
+#else
+#define NEXT_INTERFACE(ifr) (ifr + 1)
+#endif
+#endif
 
 /* inet_addr_local - find all IP addresses for this host */
 
@@ -109,16 +124,7 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list)
 		    &(((struct sockaddr_in *) & ifreq.ifr_addr)->sin_addr));
 	    }
 	}
-
-	/*
-	 * Support for variable-length addresses.
-	 */
-#ifdef HAS_SA_LEN
-	ifr = (struct ifreq *)
-	    ((char *) ifr + sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len);
-#else
-	ifr++;
-#endif
+	ifr = NEXT_INTERFACE(ifr);
     }
     vstring_free(buf);
     (void) close(sock);

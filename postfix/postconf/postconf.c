@@ -5,18 +5,20 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-d\fR] [\fB-h\fR] [\fB-n\fR] [\fB-v\fR]
-/*		[\fIparameter ...\fR]
+/*	\fBpostconf\fR [\fB-c \fIconfig_dir\fR] [\fB-d\fR] [\fB-h\fR]
+/*		[\fB-n\fR] [\fB-v\fR] [\fIparameter ...\fR]
 /* DESCRIPTION
 /*	The \fBpostconf\fR command prints the actual value of
 /*	\fIparameter\fR (all known parameters by default), one
 /*	parameter per line.
 /*
 /*	Options:
+/* .IP "\fB-c \fIconfig_dir\fR"
+/*	The \fBmain.cf\fR configuration file is in the named directory.
 /* .IP \fB-d\fR
 /*	Print default parameter settings instead of actual settings.
 /* .IP \fB-h\fR
-/*	Show parameter values only, not the \fIname =\fR information
+/*	Show parameter values only, not the ``name ='' label
 /*	that normally precedes the value.
 /* .IP \fB-n\fR
 /*	Print non-default parameter settings only.
@@ -25,6 +27,8 @@
 /*	options make the software increasingly verbose.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
+/*	Fatal error: out of memory, file not found, invalid \fBmain.cf\fR
+/*	parameter syntax.
 /* LICENSE
 /* .ad
 /* .fi
@@ -289,6 +293,8 @@ static void print_bool(int mode, CONFIG_BOOL_TABLE *cbt)
 	show_strval(mode, cbt->name, cbt->defval ? "yes" : "no");
     } else {
 	value = dict_lookup(CONFIG_DICT, cbt->name);
+	if (value)
+	    (void) get_mail_conf_bool(cbt->name, cbt->defval);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
 		show_strval(mode, cbt->name, cbt->defval ? "yes" : "no");
@@ -312,6 +318,8 @@ static void print_int(int mode, CONFIG_INT_TABLE *cit)
 	show_intval(mode, cit->name, cit->defval);
     } else {
 	value = dict_lookup(CONFIG_DICT, cit->name);
+	if (value)
+	    (void) get_mail_conf_int(cit->name, cit->defval, cit->min, cit->max);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
 		show_intval(mode, cit->name, cit->defval);
@@ -335,6 +343,8 @@ static void print_str(int mode, CONFIG_STR_TABLE *cst)
 	show_strval(mode, cst->name, cst->defval);
     } else {
 	value = dict_lookup(CONFIG_DICT, cst->name);
+	if (value)
+	    (void) get_mail_conf_str(cst->name, cst->defval, cst->min, cst->max);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
 		show_strval(mode, cst->name, cst->defval);
@@ -487,8 +497,12 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "dhnv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:dhnv")) > 0) {
 	switch (ch) {
+	case 'c':
+	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
+		msg_fatal("out of memory");
+	    break;
 	case 'd':
 	    if (mode & SHOW_NONDEF)
 		msg_fatal("specify one of -d and -n");
@@ -506,7 +520,7 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-d (defaults)] [-h (no names)] [-n (non-defaults)] [-v] name...", argv[0]);
+	    msg_fatal("usage: %s [-c config_directory] [-d (defaults)] [-h (no names)] [-n (non-defaults)] [-v] name...", argv[0]);
 	}
     }
 

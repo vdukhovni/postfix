@@ -30,6 +30,8 @@
 
 <li><a href="#local">Delivering some users locally while sending mail as user@domain</a>
 
+<li><a href="#scanning">Support for virus scanning</a>
+
 <li><a href="#maildir">Support for maildir-style mailboxes</a>
 
 <li><a href="#procmail">Using Procmail for local delivery</a>
@@ -323,9 +325,10 @@ that are disconnected most of the time)
 
 <p>
 
-<i> When you disable DNS lookups, you must specify a</i> <b>relayhost</b>
-<i> as either a numeric IP address, or as a hostname that appears
-in</i> <b>/etc/hosts</b>.
+<i> When you disable DNS lookups, you must specify the</i>
+<b>relayhost</b> <i> as either a numeric IP address, or as a hostname
+that resolves to one or more IP addresses (Postfix does no</i>
+<b>MX</b> lookup).
 
 <p>
 
@@ -415,6 +418,49 @@ update the table, and <b>postfix reload</b> to make the changes
 effective.
 
 </ul>
+
+<hr>
+
+<a name="scanning"><h2>Support for virus scanning</h2> </a>
+
+Would not it be great if operating systems and applications actually
+worked the way they are supposed to, instead of being as fragile
+as today's products? Well, we can solve only one problem at a time.
+
+<p>
+
+Currently, Postfix has no hooks to let other programs inspect every
+message, so the scanning has to be done before mail enters Postfix
+or while mail leaves Postfix, for example at mailbox delivery time.
+
+<p>
+
+<dl>
+
+<dt>Examples:
+
+<dl>
+
+<dt><b>mailbox_command = </b><i>/some/program ...</i>
+
+<dd>specifies a command that runs whenever mail is delivered to
+mailbox.  See the sample <b>main.cf</b> file for examples. In
+<b>/etc/aliases</i>, you must specify an alias for <b>root</b> that
+directs mail to a real person, otherwise funny things happen with
+mail sent to <b>root</b>.
+
+<p>
+
+<dt><b> mailbox_transport = </b><i>foo</i>
+
+<dd>delegates local mailbox delivery to the transport <i>foo</i> as
+configured in <b>/etc/postfix/master.cf</b>. If you follow this
+route you will build something around the pipe mailer. See examples
+in <b>master.cf</b>.
+
+</dl>
+
+</dl>
 
 <hr>
 
@@ -570,9 +616,9 @@ expression-based filter at the SMTP port:
 
 <dl>
 
-<dt><tt>smtpd_recipients = ... regexp:/etc/postfix/access_regexp ...</tt>
+<dt><tt>smtpd_recipient_restrictions = ... regexp:/etc/postfix/access_regexp ...</tt>
 
-<dt><tt>smtpd_recipients = ... pcre:/etc/postfix/access_regexp ...</tt>
+<dt><tt>smtpd_recipient_restrictions = ... pcre:/etc/postfix/access_regexp ...</tt>
 
 </dl>
 

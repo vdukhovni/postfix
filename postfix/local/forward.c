@@ -70,7 +70,6 @@
 /* Global library. */
 
 #include <mail_proto.h>
-#include <mail_queue.h>
 #include <cleanup_user.h>
 #include <sent.h>
 #include <record.h>

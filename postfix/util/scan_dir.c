@@ -63,7 +63,20 @@
 /* System library. */
 
 #include <sys_defs.h>
+#ifdef HAVE_DIRENT_H
 #include <dirent.h>
+#else
+#define dirent direct
+#ifdef HAVE_SYS_NDIR_H
+#include <sys/ndir.h>
+#endif
+#ifdef HAVE_SYS_DIR_H
+#include <sys/dir.h>
+#endif
+#ifdef HAVE_NDIR_H
+#include <ndir.h>
+#endif
+#endif
 #include <string.h>
 
 /* Utility library. */

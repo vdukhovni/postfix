@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /* .fi
 /*	\fBpostmap\fR [\fB-c \fIconfig_dir\fR] [\fB-i\fR] [\fB-v\fR]
-/*		[\fIfile_type\fR:]\fIfile_name\fR
+/*		[\fB-w\fR] [\fIfile_type\fR:]\fIfile_name\fR
 /* DESCRIPTION
 /*	The \fBpostmap\fR command creates a new Postfix lookup table,
 /*	or updates an existing one. The input and output formats are

@@ -365,6 +365,8 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
     DNS_RR *self;
+    unsigned best_pref;
+    unsigned best_found;
 
     /*
      * Sanity check.
@@ -395,14 +397,21 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 	break;
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, smtp_compare_mx);
+	best_pref = (mx_names ? mx_names->pref : ~0);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
+	best_found = (addr_list ? addr_list->pref : ~0);
 	if (*var_fallback_relay)
 	    addr_list = smtp_addr_fallback(addr_list);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
 	if ((self = smtp_find_self(addr_list)) != 0)
 	    addr_list = smtp_truncate_self(addr_list, self->pref, name, why);
+	if (addr_list == 0 && best_pref < best_found) {
+	    vstring_sprintf(why, "unable to find primary mail relay for %s",
+			    name);
+	    smtp_errno = SMTP_RETRY;
+	}
 	break;
     case DNS_NOTFOUND:
 	addr_list = smtp_host_addr(name, why);
