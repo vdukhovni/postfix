@@ -112,6 +112,25 @@ mail_owner = postfix
 #mydestination = $myhostname, localhost.$mydomain, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
 
+# INTERNET OR INTRANET
+
+# The relayhost parameter specifies the default host to send mail to
+# when no entry is matched in the optional transport(5) table. When
+# no relayhost is given, mail is routed directly to the destination.
+#
+# On an intranet, specify the organizational domain name. If your
+# internal DNS uses no MX records, specify the name of the intranet
+# gateway host instead.
+#
+# Specify a domain, host, host:port, [host]:port, [address] or
+# [address]:port.  Use the form [name] to turn off MX lookups. See
+# also the default_transport parameter if you're connected via UUCP.
+#
+# relayhost = $mydomain
+# relayhost = gateway.my.domain
+# relayhost = uucphost
+# relayhost = [an.ip.add.ress]
+
 # REJECTING UNKNOWN LOCAL USERS
 #
 # The local_recipient_maps parameter specifies optional lookup tables

@@ -5,8 +5,8 @@
 /*	Postfix-compatible logging utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostlog\fR [\fB-i\fR] [\fB-p \fIpriority\fB] [\fB-t \fItag\fR]
-/*		[\fB-v\fR] [\fItext...\fR]
+/*	\fBpostlog\fR [\fB-iv\fR] [\fB-c \fIconfig_dir\fR]
+/*		[\fB-p \fIpriority\fB] [\fB-t \fItag\fR] [\fItext...\fR]
 /* DESCRIPTION
 /*	The \fBpostlog\fR command implements a Postfix-compatible logging
 /*	interface for use in, for example, shell scripts.
@@ -20,6 +20,9 @@
 /*	is connected to a terminal, logging is sent there as well.
 /*
 /*	The following options are implemented:
+/* .IP "\fB-c \fIconfig_dir\fR"
+/*	Read the \fBmain.cf\fR configuration file in the named directory
+/*	instead of the default configuration directory.
 /* .IP \fB-i\fR
 /*	Include the process ID in the logging tag.
 /* .IP "\fB-p \fIpriority\fR"
@@ -71,6 +74,7 @@
 /* Global library. */
 
 #include <mail_params.h>		/* XXX right place for LOG_FACILITY? */
+#include <mail_conf.h>
 
 /* Application-specific. */
 
@@ -176,7 +180,11 @@ int     main(int argc, char **argv)
     while ((ch = GETOPT(argc, argv, "c:ip:t:v")) > 0) {
 	switch (ch) {
 	default:
-	    msg_fatal("usage: %s [-i] [-p priority] [-t tag] [-v] text", tag);
+	    msg_fatal("usage: %s [-c config_dir] [-i] [-p priority] [-t tag] [-v] [text]", tag);
+	    break;
+	case 'c':
+	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
+		msg_fatal("out of memory");
 	    break;
 	case 'i':
 	    log_flags |= LOG_PID;
@@ -200,6 +208,12 @@ int     main(int argc, char **argv)
     if (isatty(STDERR_FILENO))
 	msg_vstream_init(tag, VSTREAM_ERR);
     msg_syslog_init(tag, log_flags, LOG_FACILITY);
+
+    /*
+     * Process the main.cf file. This overrides any logging facility that was
+     * specified with msg_syslog_init();
+     */
+    mail_conf_read();
 
     /*
      * Log the command line or log lines from standard input.

@@ -81,4 +81,5 @@ pipe.o: ../../include/mail_copy.h
 pipe.o: ../../include/mail_addr.h
 pipe.o: ../../include/canon_addr.h
 pipe.o: ../../include/split_addr.h
+pipe.o: ../../include/off_cvt.h
 pipe.o: ../../include/mail_server.h

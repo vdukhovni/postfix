@@ -227,14 +227,14 @@
 /* .fi
 /* .IP "\fItransport\fB_delivery_slot_cost\fR (valid range: 0,2,3...)
 /*	This parameter basically controls how often a message
-/*	delivered by \fItransport\fB can be preempted by another
+/*	delivered by \fItransport\fR can be preempted by another
 /*	message.
 /*	An internal per-message/transport counter is incremented by one
 /*	for each \fItransport\fB_delivery_slot_cost\fR
 /*	deliveries handled by \fItransport\fR. This counter represents
 /*	the number of "available delivery slots" for use by other messages.
 /*	Current message can be preempted by another message when that
-/*	other message can be delivered using less \fItranpsort\fR agents
+/*	other message can be delivered using less \fItransport\fR agents
 /*	than the value of the "available delivery slots" counter.
 /* .sp
 /*	Value equal to 0 disables the message preemption for \fItransport\fR.
@@ -270,6 +270,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Scheduler enhancements:
+/*	Patrik Rak
+/*	Modra 6
+/*	155 00, Prague, Czech Republic
 /*--*/
 
 /* System library. */

@@ -4258,3 +4258,15 @@ Apologies for any names omitted.
 
 	The MacOSX gcc compiler does not understand the new
 	printf_like/scanf_like attributes. File: util/sys_defs.h.
+
+20000922
+
+	nqmgr update from Patrik Rak for the changed queue manager
+	to delivery agent protocol.
+
+	Lame feature: syslog_facility parameter to control where
+	syslogd sends Postfix logging (default: syslog_facility =
+	mail).  However, errors during command-line parsing are
+	still logged with the default syslog facility, as are errors
+	while processing the main.cf file (surprise).  Based on
+	code by Andrew McNamara.

@@ -355,10 +355,13 @@ recipient.o: ../../include/vbuf.h
 recipient.o: ../../include/dict.h
 recipient.o: ../../include/vstream.h
 recipient.o: ../../include/argv.h
+recipient.o: ../../include/stat_as.h
 recipient.o: ../../include/bounce.h
+recipient.o: ../../include/defer.h
 recipient.o: ../../include/mail_params.h
 recipient.o: ../../include/split_addr.h
 recipient.o: ../../include/ext_prop.h
+recipient.o: ../../include/mypwd.h
 recipient.o: local.h
 recipient.o: ../../include/been_here.h
 recipient.o: ../../include/tok822.h

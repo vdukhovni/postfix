@@ -24,14 +24,6 @@ typedef int bool;
 extern char *var_mail_name;
 
  /*
-  * Logging facility. Configurable so you can distinguish a limited number of
-  * Postfix instances.
-  */
-#define VAR_LOG_FACILITY	"logging_facility"
-#define DEF_LOG_FACILITY	"mail"
-extern char *var_log_facility;
-
- /*
   * What problem classes should be reported to the postmaster via email.
   * Default is bad problems only. See mail_error(3). Even when mail notices
   * are disabled, problems are still logged to the syslog daemon.
@@ -207,9 +199,17 @@ extern char *var_config_dir;
 extern char *var_db_type;
 
  /*
-  * Logging. Changing facility at run-time does not do much good, because
-  * something may have to be logged before parameters are read from file.
+  * What syslog facility to use. Unfortunately, something may have to be
+  * logged before parameters are read from the main.cf file. This logging
+  * will go the LOG_FACILITY facility specified below.
   */
+#define VAR_SYSLOG_FACILITY	"syslog_facility"
+extern char *var_syslog_facility;
+
+#ifndef DEF_SYSLOG_FACILITY
+#define DEF_SYSLOG_FACILITY	"mail"
+#endif
+
 #ifndef LOG_FACILITY
 #define LOG_FACILITY	LOG_MAIL
 #endif

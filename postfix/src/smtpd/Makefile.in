@@ -107,6 +107,7 @@ smtpd.o: ../../include/smtp_stream.h
 smtpd.o: ../../include/valid_hostname.h
 smtpd.o: ../../include/dict.h
 smtpd.o: ../../include/argv.h
+smtpd.o: ../../include/watchdog.h
 smtpd.o: ../../include/mail_params.h
 smtpd.o: ../../include/record.h
 smtpd.o: ../../include/rec_type.h

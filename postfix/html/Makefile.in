@@ -49,7 +49,9 @@ master.8.html: ../src/master/master.c
 	srctoman $? | nroff -man | man2html | postlink >$@
 
 nqmgr.8.html: ../src/nqmgr/qmgr.c
-	srctoman $? | sed -e 's/qmgr[^_]/n&/' -e 's/QMGR[^_]/N&/' | \
+	srctoman $? | sed -e 's/qmgr[^_]/n&/' \
+			  -e 's/qmgr$$/n&/' \
+			  -e 's/QMGR[^_]/N&/' | \
 	    nroff -man | man2html | postlink >$@
 
 pickup.8.html: ../src/pickup/pickup.c

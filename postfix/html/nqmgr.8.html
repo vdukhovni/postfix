@@ -6,7 +6,7 @@ NQMGR(8)                                                 NQMGR(8)
 
 
 <b>NAME</b>
-       qmgr - Postfix queue manager
+       nqmgr - Postfix queue manager
 
 <b>SYNOPSIS</b>
        <b>nqmgr</b> [generic Postfix daemon options]
@@ -338,15 +338,15 @@ NQMGR(8)                                                 NQMGR(8)
 <b>Message</b> <b>scheduling</b>
        <i>transport_</i><b>delivery</b><i>_</i><b>slot</b><i>_</i><b>cost</b> (valid range: 0,2,3...)
               This parameter basically controls how often a  mes-
-              sage  delivered  by  <i>transport</i>  <b>can</b> <b>be</b> <b>preempted</b> <b>by</b>
-              <b>another</b> <b>message.</b>  <b>An</b> <b>internal</b> <b>per-message/transport</b>
-              <b>counter</b>  <b>is</b>  <b>incremented</b>  <b>by</b>  <b>one</b>  <b>for</b>  <b>each</b> <i>trans-</i>
+              sage  delivered  by  <i>transport</i>  can be preempted by
+              another message.  An internal per-message/transport
+              counter  is  incremented  by  one  for  each <i>trans-</i>
               <i>port_</i><b>delivery</b><i>_</i><b>slot</b><i>_</i><b>cost</b>   deliveries   handled   by
               <i>transport</i>.  This  counter  represents the number of
               "available delivery slots" for use  by  other  mes-
               sages.  Current message can be preempted by another
               message when that other message  can  be  delivered
-              using  less  <i>tranpsort</i> agents than the value of the
+              using  less  <i>transport</i> agents than the value of the
               "available delivery slots" counter.
 
               Value equal to 0 disables  the  message  preemption
@@ -409,10 +409,10 @@ NQMGR(8)                                                 NQMGR(8)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-
-
-
-
+       Scheduler enhancements:
+       Patrik Rak
+       Modra 6
+       155 00, Prague, Czech Republic
 
 
 

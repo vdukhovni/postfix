@@ -1,11 +1,24 @@
+Major changes with snapshot-20000923
+====================================
+
+The nqmgr (experimental smarter queue manager) has been updated.
+It no longer worked after the change in queue manager to delivery
+agent protocol.
+
+Specify "syslog_facility = log_local1" etc. to separate the logging
+from multiple Postfix instances. However, a non-default logging
+facility takes effect only after process initialization. Errors
+during command-line parsing are still logged with the default syslog
+facility, as are errors while processing the main.cf file.
+
 Incompatible changes with snapshot-20000921
 ===========================================
 
 After "make install" you need to execute "postfix reload".  The
-protocol between queue manager and delivery agent protocol has
-changed. This does not affect the format of existing queue files.
-You just cannot mix this Postfix version's queue managers or delivery
-agents with older Postfix versions.
+protocol between queue manager and delivery agents has changed.
+This does not affect the format of existing queue files.  You just
+cannot mix this Postfix version's queue managers or delivery agents
+with older Postfix versions.
 
 The notation of [host:port] in transport tables etc. is going away
 but it is still supported. The preferred form is now [host]:port.

@@ -544,6 +544,7 @@ mail_open_ok.o: mail_open_ok.h
 mail_params.o: mail_params.c
 mail_params.o: ../../include/sys_defs.h
 mail_params.o: ../../include/msg.h
+mail_params.o: ../../include/msg_syslog.h
 mail_params.o: ../../include/get_hostname.h
 mail_params.o: ../../include/valid_hostname.h
 mail_params.o: ../../include/stringops.h

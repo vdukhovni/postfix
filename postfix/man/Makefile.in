@@ -49,7 +49,9 @@ man8/master.8: ../src/master/master.c
 
 man8/nqmgr.8: ../src/nqmgr/qmgr.c
 	../mantools/srctoman $? | \
-		sed -e 's/qmgr[^_]/n&/' -e 's/QMGR[^_]/N&/' >$@
+		sed -e 's/qmgr[^_]/n&/' \
+		    -e 's/qmgr$$/n&/' \
+		    -e 's/QMGR[^_]/N&/' >$@
 
 man8/pickup.8: ../src/pickup/pickup.c
 	../mantools/srctoman $? >$@

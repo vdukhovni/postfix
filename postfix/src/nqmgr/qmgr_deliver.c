@@ -39,6 +39,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Scheduler enhancements:
+/*	Patrik Rak
+/*	Modra 6
+/*	155 00, Prague, Czech Republic
 /*--*/
 
 /* System library. */
@@ -61,6 +66,7 @@
 #include <mail_proto.h>
 #include <recipient_list.h>
 #include <mail_params.h>
+#include <deliver_request.h>
 
 /* Application-specific. */
 
@@ -117,7 +123,8 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     QMGR_RCPT *recipient;
     QMGR_MESSAGE *message = entry->message;
 
-    mail_print(stream, "%s %s %ld %ld %s %s %s %s %ld",
+    mail_print(stream, "%d %s %s %ld %ld %s %s %s %s %ld",
+	       message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT,
 	       message->queue_name, message->queue_id,
 	       message->data_offset, message->data_size,
 	       entry->queue->name, message->sender,

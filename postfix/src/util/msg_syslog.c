@@ -10,12 +10,19 @@
 /*	const char *progname;
 /*	int	log_opt;
 /*	int	facility;
+/*
+/*	int     msg_syslog_facility(facility_name)
+/*	const char *facility_name;
 /* DESCRIPTION
 /*	This module implements support to report msg(3) diagnostics
 /*	via the syslog daemon.
 /*
 /*	msg_syslog_init() is a wrapper around the openlog(3) routine
 /*	that directs subsequent msg(3) output to the syslog daemon.
+/*
+/*	msg_syslog_facility() is a helper routine that overrides the
+/*	logging facility that is specified with msg_syslog_init().
+/*	The result is zero in case of an unknown facility name. 
 /* SEE ALSO
 /*	syslog(3) syslog library
 /*	msg(3)	diagnostics module
@@ -37,7 +44,7 @@
 /* System libraries. */
 
 #include <sys_defs.h>
-#include <stdlib.h>		/* 44BSD stdarg.h uses abort() */
+#include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 #include <errno.h>
 #include <syslog.h>
@@ -51,9 +58,84 @@
 #include "msg_syslog.h"
 
  /*
-  * Stay a little below the 2048-byte limit of older syslog() implementations.
+  * Stay a little below the 2048-byte limit of older syslog()
+  * implementations.
   */
 #define MSG_SYSLOG_RECLEN	2000
+
+struct facility_list {
+    char   *name;
+    int     facility;
+};
+
+static struct facility_list facility_list[] = {
+#ifdef LOG_AUTH
+    "auth", LOG_AUTH,
+#endif
+#ifdef LOG_AUTHPRIV
+    "authpriv", LOG_AUTHPRIV,
+#endif
+#ifdef LOG_CRON
+    "cron", LOG_CRON,
+#endif
+#ifdef LOG_DAEMON
+    "daemon", LOG_DAEMON,
+#endif
+#ifdef LOG_FTP
+    "ftp", LOG_FTP,
+#endif
+#ifdef LOG_KERN
+    "kern", LOG_KERN,
+#endif
+#ifdef LOG_LPR
+    "lpr", LOG_LPR,
+#endif
+#ifdef LOG_MAIL
+    "mail", LOG_MAIL,
+#endif
+#ifdef LOG_NEWS
+    "news", LOG_NEWS,
+#endif
+#ifdef LOG_SECURITY
+    "security", LOG_SECURITY,
+#endif
+#ifdef LOG_SYSLOG
+    "syslog", LOG_SYSLOG,
+#endif
+#ifdef LOG_USER
+    "user", LOG_USER,
+#endif
+#ifdef LOG_UUCP
+    "uucp", LOG_UUCP,
+#endif
+#ifdef LOG_LOCAL0
+    "local0", LOG_LOCAL0,
+#endif
+#ifdef LOG_LOCAL1
+    "local1", LOG_LOCAL1,
+#endif
+#ifdef LOG_LOCAL2
+    "local2", LOG_LOCAL2,
+#endif
+#ifdef LOG_LOCAL3
+    "local3", LOG_LOCAL3,
+#endif
+#ifdef LOG_LOCAL4
+    "local4", LOG_LOCAL4,
+#endif
+#ifdef LOG_LOCAL5
+    "local5", LOG_LOCAL5,
+#endif
+#ifdef LOG_LOCAL6
+    "local6", LOG_LOCAL6,
+#endif
+#ifdef LOG_LOCAL7
+    "local7", LOG_LOCAL7,
+#endif
+    0,
+};
+
+static int syslog_facility;
 
 /* msg_syslog_print - log info to syslog daemon */
 
@@ -70,9 +152,10 @@ static void msg_syslog_print(int level, const char *text)
 	msg_panic("msg_syslog_print: invalid severity level: %d", level);
 
     if (level == MSG_INFO) {
-	syslog(log_level[level], "%.*s", MSG_SYSLOG_RECLEN, text);
+	syslog(syslog_facility | log_level[level], "%.*s",
+	       MSG_SYSLOG_RECLEN, text);
     } else {
-	syslog(log_level[level], "%s: %.*s",
+	syslog(syslog_facility | log_level[level], "%s: %.*s",
 	       severity_name[level], MSG_SYSLOG_RECLEN, text);
     }
 }
@@ -88,6 +171,21 @@ void    msg_syslog_init(const char *name, int logopt, int facility)
 	first_call = 0;
 	msg_output(msg_syslog_print);
     }
+}
+
+/* msg_syslog_facility - set logging facility by name */
+
+int     msg_syslog_facility(const char *facility_name)
+{
+    struct facility_list *fnp;
+
+    for (fnp = facility_list; fnp->name; ++fnp) {
+	if (!strcmp(fnp->name, facility_name)) {
+	    syslog_facility = fnp->facility;
+	    return (1);
+	}
+    }
+    return 0;
 }
 
 #ifdef TEST

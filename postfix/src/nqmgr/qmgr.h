@@ -124,11 +124,10 @@ struct QMGR_TRANSPORT {
     int     rcpt_per_stack;		/* extra slots reserved for jobs on
 					 * the job stack */
     int     rcpt_unused;		/* available in-core recipient slots */
-    int     slot_cost;			/* cost of new preemption slot (#
+    int     slot_cost;			/* cost of new preemption slot (# of
 					 * selected entries) */
-    int     slot_loan;			/* preemption boost offset and
-					 * factor, see */
-    int     slot_loan_factor;		/* qmgr_job_preempt() for more info */
+    int     slot_loan;			/* preemption boost offset and */
+    int     slot_loan_factor;		/* factor, see qmgr_job_preempt() */
     int     min_slots;			/* when preemption can take effect at
 					 * all */
     struct HTABLE *queue_byname;	/* queues indexed by domain */
@@ -257,7 +256,8 @@ struct QMGR_MESSAGE {
     char   *sender;			/* complete address */
     char   *errors_to;			/* error report address */
     char   *return_receipt;		/* confirm receipt address */
-    char   *filter_xport;		/* inspection transport */
+    char   *filter_xport;		/* filtering transport */
+    char   *inspect_xport;		/* inspecting transport */
     long    data_size;			/* message content size */
     long    rcpt_offset;		/* more recipients here */
     long    unread_offset;		/* more unread recipients here */
@@ -299,14 +299,14 @@ struct QMGR_JOB {
     QMGR_JOB_LIST message_peers;	/* per message neighbor linkage */
     QMGR_JOB_LIST transport_peers;	/* per transport neighbor linkage */
     QMGR_JOB_LIST stack_peers;		/* transport stack linkage */
-    int     stack_level;		/* job stack nesting level (-1 ->
+    int     stack_level;		/* job stack nesting level (-1 means
 					 * retired) */
     struct HTABLE *peer_byname;		/* message job peers, indexed by
 					 * domain */
     QMGR_PEER_LIST peer_list;		/* list of message job peers */
     int     slots_used;			/* slots used during preemption */
-    int     slots_available;		/* slots available for preemption (*
-					 * slot_cost) */
+    int     slots_available;		/* slots available for preemption (in
+					 * multiples of slot_cost) */
     int     selected_entries;		/* # of entries selected for delivery
 					 * so far */
     int     read_entries;		/* # of entries read in-core so far */
@@ -405,4 +405,9 @@ extern char *qmgr_scan_next(QMGR_SCAN *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Scheduler enhancements:
+/*	Patrik Rak
+/*	Modra 6
+/*	155 00, Prague, Czech Republic
 /*--*/

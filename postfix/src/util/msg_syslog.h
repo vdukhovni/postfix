@@ -19,6 +19,7 @@
   * External interface.
   */
 extern void msg_syslog_init(const char *, int, int);
+extern int msg_syslog_facility(const char *);
 
 /* LICENSE
 /* .ad

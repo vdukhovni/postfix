@@ -57,6 +57,7 @@
 /*	time_t	var_starttime;
 /*	int	var_ownreq_special;
 /*	int	var_daemon_timeout;
+/*	char	*var_syslog_facility;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -96,6 +97,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <msg_syslog.h>
 #include <get_hostname.h>
 #include <valid_hostname.h>
 #include <stringops.h>
@@ -161,6 +163,7 @@ int     var_soft_bounce;
 time_t  var_starttime;
 int     var_ownreq_special;
 int     var_daemon_timeout;
+char   *var_syslog_facility;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -243,6 +246,10 @@ static void check_mail_owner(void)
 
 void    mail_params_init()
 {
+    static CONFIG_STR_TABLE first_str_defaults[] = {
+	VAR_SYSLOG_FACILITY, DEF_SYSLOG_FACILITY, &var_syslog_facility, 1, 0,
+	0,
+    };
     static CONFIG_STR_FN_TABLE function_str_defaults[] = {
 	VAR_MYHOSTNAME, check_myhostname, &var_myhostname, 1, 0,
 	VAR_MYDOMAIN, check_mydomainname, &var_mydomain, 1, 0,
@@ -298,6 +305,16 @@ void    mail_params_init()
 	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
 	0,
     };
+
+    /*
+     * Extract syslog_facility early, so that from here on all errors are
+     * logged with the proper facility.
+     */
+    get_mail_conf_str_table(first_str_defaults);
+
+    if (!msg_syslog_facility(var_syslog_facility))
+	msg_fatal("unknown %s configuration parameter value: %s",
+		  VAR_SYSLOG_FACILITY, var_syslog_facility);
 
     /*
      * Variables whose defaults are determined at runtime. Some sites use

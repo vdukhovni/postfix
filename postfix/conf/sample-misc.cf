@@ -252,6 +252,7 @@ recipient_delimiter =
 # relayhost = $mydomain
 # relayhost = gateway.my.domain
 # relayhost = uucphost
+# relayhost = [an.ip.add.ress]
 relayhost =
 
 # The relocated_maps parameter specifies optional tables with contact
@@ -274,6 +275,18 @@ relocated_maps =
 #
 #sun_mailtool_compatibility = yes
 sun_mailtool_compatibility = no
+
+# The syslog_facility parameter controls where Postfix logging is
+# sent by the syslog daemon. Specify a logging facility as defined
+# in syslog.conf(5). The default logging facility is "mail".
+#
+# Beware: a non-default syslog_facility setting takes effect only
+# after process initialization. Some initialization errors will be
+# logged with the default facility, especially errors while parsing
+# the command line and errors while accessing the Postfix main.cf
+# configuration file.
+#
+syslog_facility = mail
 
 # The trigger_timeout parameter limits the time to send a trigger to
 # a Postfix daemon. This prevents programs from getting stuck when the
