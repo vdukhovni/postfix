@@ -321,7 +321,7 @@ static char *lmtp_parse_destination(const char *destination, char *def_service,
      * address notation, so using split_at_right() is not sufficient. We'd
      * have to count the number of ":" instances.
      */
-    if ((service = split_at_right(host, ':')) == 0)
+    if ((service = split_at_right(host, ':')) == 0 || *service == 0)
 	service = def_service;
     if (*service == 0)
 	msg_fatal("%s: empty service name: %s", myname, destination);

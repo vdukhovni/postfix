@@ -108,17 +108,21 @@ import_environment = MAIL_CONFIG TZ XAUTHORITY DISPLAY
 #
 inet_interfaces = all
 
-# The ipc_idle parameter bounds the idle time in seconds after which
-# an internal IPC client disconnects. The purpose is to allow servers
-# to terminate voluntarily. Currently this is used by the address
-# resolving and rewriting clients.
+# The ipc_idle parameter bounds the idle time for internal communication
+# channels after which a client disconnects voluntarily. The purpose
+# is to allow servers to terminate voluntarily after they become
+# idle. Currently this is used by the address resolving and rewriting
+# clients.
 #
-ipc_idle = 100
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+ipc_idle = 100s
 
-# The ipc_timeout parameter specifies a timeout in seconds for I/O
-# on internal communication channels.  The purpose is to break out
-# of deadlock situations. If the timeout is exceeded the software
-# aborts with a fatal error.
+# The ipc_timeout parameter specifies a timeout for I/O on internal
+# communication channels.  The purpose is to break out of deadlock
+# situations. If the timeout is exceeded the software aborts with a
+# fatal error.
 #
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
@@ -145,11 +149,14 @@ mail_owner = postfix
 #
 mail_version = 19981207
 
-# The max_idle parameter limits the time in seconds that a Postfix
-# daemon process waits for the next service request before exiting.
-# This parameter is ignored by the Postfix queue manager.
+# The max_idle parameter limits the time that a Postfix daemon process
+# waits for the next service request before exiting.  This parameter
+# is ignored by the Postfix queue manager.
 #
-max_idle = 100
+# Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+# The default time unit is s (seconds).
+#
+max_idle = 100s
 
 # The max_use parameter limits the number of service requests handled
 # by a Postfix daemon process before exiting. This parameter is
@@ -344,7 +351,7 @@ syslog_facility = mail
 #
 trigger_timeout = 10s
 
-# The delay_warning_time specifies after how many hours a warning
+# The delay_warning_time specifies after how much time a warning
 # is sent that mail has not yet been delivered. By default, no warning
 # is sent.
 #

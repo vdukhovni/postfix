@@ -138,39 +138,39 @@
 /* .ad
 /* .fi
 /* .PP
-/*	The default time unit is seconds; an explicit time unit can 
-/*	be specified by appending a one-letter suffix: s (seconds), 
-/*	m (minutes), h (hours), d (days) or w (weeks).
+/*	The default time unit is seconds; an explicit time unit can
+/*	be specified by appending a one-letter suffix to the value:
+/*	s (seconds), m (minutes), h (hours), d (days) or w (weeks).
 /* .IP \fBsmtp_connect_timeout\fR
-/*	Timeout (default: seconds) for completing a TCP connection. When no
+/*	Timeout for completing a TCP connection. When no
 /*	connection can be made within the deadline, the SMTP client
 /*	tries the next address on the mail exchanger list.
 /* .IP \fBsmtp_helo_timeout\fR
-/*	Timeout (default: seconds) for receiving the SMTP greeting banner.
+/*	Timeout for receiving the SMTP greeting banner.
 /*	When the server drops the connection without sending a
 /*	greeting banner, or when it sends no greeting banner within the
 /*	deadline, the SMTP client tries the next address on the mail
 /*	exchanger list.
 /* .IP \fBsmtp_helo_timeout\fR
-/*	Timeout (default: seconds) for sending the \fBHELO\fR command, and for
+/*	Timeout for sending the \fBHELO\fR command, and for
 /*	receiving the server response.
 /* .IP \fBsmtp_mail_timeout\fR
-/*	Timeout (default: seconds) for sending the \fBMAIL FROM\fR command, and for
+/*	Timeout for sending the \fBMAIL FROM\fR command, and for
 /*	receiving the server response.
 /* .IP \fBsmtp_rcpt_timeout\fR
-/*	Timeout (default: seconds) for sending the \fBRCPT TO\fR command, and for
+/*	Timeout for sending the \fBRCPT TO\fR command, and for
 /*	receiving the server response.
 /* .IP \fBsmtp_data_init_timeout\fR
-/*	Timeout (default: seconds) for sending the \fBDATA\fR command, and for
+/*	Timeout for sending the \fBDATA\fR command, and for
 /*	receiving the server response.
 /* .IP \fBsmtp_data_xfer_timeout\fR
-/*	Timeout (default: seconds) for sending the message content.
+/*	Timeout for sending the message content.
 /* .IP \fBsmtp_data_done_timeout\fR
-/*	Timeout (default: seconds) for sending the "\fB.\fR" command, and for
+/*	Timeout for sending the "\fB.\fR" command, and for
 /*	receiving the server response. When no response is received, a
 /*	warning is logged that the mail may be delivered multiple times.
 /* .IP \fBsmtp_quit_timeout\fR
-/*	Timeout (default: seconds) for sending the \fBQUIT\fR command, and for
+/*	Timeout for sending the \fBQUIT\fR command, and for
 /*	receiving the server response.
 /* SEE ALSO
 /*	bounce(8) non-delivery status reports

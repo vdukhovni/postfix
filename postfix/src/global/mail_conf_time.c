@@ -121,7 +121,7 @@ static int convert_mail_conf_time(const char *name, int *intval, int def_unit)
 	    return (1);
 	}
     }
-    msg_fatal("bad time parameter configuration: %s = %s", name, strval);
+    msg_fatal("parameter %s: bad time unit: %s", name, strval);
 }
 
 /* check_mail_conf_time - validate integer value */
@@ -221,36 +221,21 @@ int     main(int unused_argc, char **unused_argv)
     static int hours;
     static int days;
     static int weeks;
-    static CONFIG_TIME_TABLE time_table1[] = {
-	"seconds", "10s", &seconds, 's', 0, 0,
-	"minutes", "10m", &minutes, 'm', 0, 0,
-	"hours", "10h", &hours, 'h', 0, 0,
-	"days", "10d", &days, 'd', 0, 0,
-	"weeks", "10w", &weeks, 'w', 0, 0,
-	0,
-    };
-    static CONFIG_TIME_TABLE time_table2[] = {
-	"seconds", "10", &seconds, 's', 0, 0,
-	"minutes", "10", &minutes, 'm', 0, 0,
-	"hours", "10", &hours, 'h', 0, 0,
-	"days", "10", &days, 'd', 0, 0,
-	"weeks", "10", &weeks, 'w', 0, 0,
+    static CONFIG_TIME_TABLE time_table[] = {
+	"seconds", "10s", &seconds, 0, 0,
+	"minutes", "10m", &minutes, 0, 0,
+	"hours", "10h", &hours, 0, 0,
+	"days", "10d", &days, 0, 0,
+	"weeks", "10w", &weeks, 0, 0,
 	0,
     };
 
-    get_mail_conf_time_table(time_table1);
-    vstream_printf("seconds = %d\n", seconds);
-    vstream_printf("minutes = %d\n", minutes);
-    vstream_printf("hours = %d\n", hours);
-    vstream_printf("days = %d\n", days);
-    vstream_printf("weeks = %d\n", weeks);
-
-    get_mail_conf_time_table(time_table2);
-    vstream_printf("seconds = %d\n", seconds);
-    vstream_printf("minutes = %d\n", minutes);
-    vstream_printf("hours = %d\n", hours);
-    vstream_printf("days = %d\n", days);
-    vstream_printf("weeks = %d\n", weeks);
+    get_mail_conf_time_table(time_table);
+    vstream_printf("10 seconds = %d\n", seconds);
+    vstream_printf("10 minutes = %d\n", minutes);
+    vstream_printf("10 hours = %d\n", hours);
+    vstream_printf("10 days = %d\n", days);
+    vstream_printf("10 weeks = %d\n", weeks);
     vstream_fflush(VSTREAM_OUT);
 }
 

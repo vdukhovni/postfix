@@ -339,11 +339,11 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 			"####################################################################");
 	post_mail_fputs(bounce, "");
 	post_mail_fprintf(bounce,
-			"Your message could not be delivered for %d hours.",
-			  var_delay_warn_time);
+			"Your message could not be delivered for %.1g hours.",
+			  var_delay_warn_time / 3600.0);
 	post_mail_fprintf(bounce,
-			  "It will be retried until it is %d days old.",
-			  var_max_queue_time);
+			  "It will be retried until it is %.1g days old.",
+			  var_max_queue_time / 86400.0);
     }
 
     post_mail_fputs(bounce, "");
@@ -478,7 +478,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 #endif
     if (bounce_info->flush == 0)
 	post_mail_fprintf(bounce, "Will-Retry-Until: %s",
-	 mail_date(bounce_info->arrival_time + 86400 * var_max_queue_time));
+	 mail_date(bounce_info->arrival_time + var_max_queue_time));
     return (vstream_ferror(bounce));
 }
 

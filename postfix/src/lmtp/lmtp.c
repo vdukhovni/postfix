@@ -134,33 +134,37 @@
 /* .SH "Timeout controls"
 /* .ad
 /* .fi
+/* .PP
+/*	The default time unit is seconds; an explicit time unit can
+/*	be specified by appending a one-letter suffix to the value:
+/*	s (seconds), m (minutes), h (hours), d (days) or w (weeks).
 /* .IP \fBlmtp_connect_timeout\fR
-/*	Timeout in seconds for opening a connection to the LMTP server.
+/*	Timeout for opening a connection to the LMTP server.
 /*	If no connection can be made within the deadline, the message
 /*	is deferred.
 /* .IP \fBlmtp_lhlo_timeout\fR
-/*	Timeout in seconds for sending the \fBLHLO\fR command, and for
+/*	Timeout for sending the \fBLHLO\fR command, and for
 /*	receiving the server response.
 /* .IP \fBlmtp_mail_timeout\fR
-/*	Timeout in seconds for sending the \fBMAIL FROM\fR command, and for
+/*	Timeout for sending the \fBMAIL FROM\fR command, and for
 /*	receiving the server response.
 /* .IP \fBlmtp_rcpt_timeout\fR
-/*	Timeout in seconds for sending the \fBRCPT TO\fR command, and for
+/*	Timeout for sending the \fBRCPT TO\fR command, and for
 /*	receiving the server response.
 /* .IP \fBlmtp_data_init_timeout\fR
-/*	Timeout in seconds for sending the \fBDATA\fR command, and for
+/*	Timeout for sending the \fBDATA\fR command, and for
 /*	receiving the server response.
 /* .IP \fBlmtp_data_xfer_timeout\fR
-/*	Timeout in seconds for sending the message content.
+/*	Timeout for sending the message content.
 /* .IP \fBlmtp_data_done_timeout\fR
-/*	Timeout in seconds for sending the "\fB.\fR" command, and for
+/*	Timeout for sending the "\fB.\fR" command, and for
 /*	receiving the server response. When no response is received, a
 /*	warning is logged that the mail may be delivered multiple times.
 /* .IP \fBlmtp_rset_timeout\fR
-/*	Timeout in seconds for sending the \fBRSET\fR command, and for
+/*	Timeout for sending the \fBRSET\fR command, and for
 /*	receiving the server response.
 /* .IP \fBlmtp_quit_timeout\fR
-/*	Timeout in seconds for sending the \fBQUIT\fR command, and for
+/*	Timeout for sending the \fBQUIT\fR command, and for
 /*	receiving the server response.
 /* SEE ALSO
 /*	bounce(8) non-delivery status reports
@@ -492,6 +496,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
+		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,

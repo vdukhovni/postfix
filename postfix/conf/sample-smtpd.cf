@@ -52,8 +52,8 @@ smtpd_etrn_restrictions =
 #
 smtpd_recipient_limit = 1000
 
-# The smtpd_timeout parameter limits the time in seconds to send an
-# SMTP server response and to receive an SMTP client request.
+# The smtpd_timeout parameter limits the time to send an SMTP server
+# response and to receive an SMTP client request.
 #
 # Note: if you set SMTP timeouts to large values you must update the
 # global ipc_timeout parameter as well. See sample-misc.cf for details.

@@ -146,7 +146,8 @@ void    mail_scan_register(int letter, const char *name, MAIL_SCAN_FN scanner)
 static int mail_scan_any(VSTREAM *stream, VSTRING *vp, char *what)
 {
     if (vstring_fgets_null(vp, stream) == 0) {
-	msg_warn("mail_scan_any: got EOF; expected: %s", what);
+	msg_warn("end of input while receiving %s data from service %s",
+		 what, VSTREAM_PATH(stream));
 	return (-1);
     }
     if (msg_verbose)

@@ -1097,7 +1097,7 @@ extern int var_fflush_refresh;
   * and what Postfix exports to the external world.
   */
 #define VAR_IMPORT_ENVIRON		"import_environment"
-#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG, TZ, XAUTHORITY, DISPLAY"
+#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG TZ XAUTHORITY DISPLAY"
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"

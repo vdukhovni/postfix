@@ -441,9 +441,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     char   *domain;
     const char *junk;
     char   *nexthop;
+    int     len;
 
 #define STREQ(x,y)	(strcasecmp(x,y) == 0)
 #define STR		vstring_str
+#define LEN		VSTRING_LEN
 #define UPDATE(ptr,new)	{ myfree(ptr); ptr = mystrdup(new); }
 
     resolve_clnt_init(&reply);
@@ -553,18 +555,20 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * on the recipient delimiter if one is defined, but doing a proper
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
+	 * XXX The nexthop field is overloaded to serve as destination and as
+	 * queue name. Should have separate fields for queue name and for
+	 * destination.
 	 */
 	if ((at = strrchr(STR(reply.recipient), '@')) == 0
 	    || resolve_local(at + 1)) {
-	    vstring_strcpy(reply.nexthop, STR(reply.recipient));
+	    len = (at != 0 ? (at - STR(reply.recipient))
+		   : strlen(STR(reply.recipient)));
+	    VSTRING_SPACE(reply.nexthop, len + 1);
+	    memmove(STR(reply.nexthop) + len + 1, STR(reply.nexthop),
+		    LEN(reply.nexthop) + 1);
+	    memcpy(STR(reply.nexthop), STR(reply.recipient), len);
+	    STR(reply.nexthop)[len] = '@';
 	    lowercase(STR(reply.nexthop));
-#if 0
-	    (void) split_at_right(STR(reply.nexthop), '@');
-#endif
-#if 0
-	    if (*var_rcpt_delim)
-		(void) split_addr(STR(reply.nexthop), *var_rcpt_delim);
-#endif
 
 	    /*
 	     * Discard mail to the local double bounce address here, so this
