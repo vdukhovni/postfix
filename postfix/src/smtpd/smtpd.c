@@ -1072,9 +1072,6 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * Check the queue file space, if applicable.
      */
-#define USE_SMTPD_PROXY(state) \
-	(SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt)
-
     if (!USE_SMTPD_PROXY(state)) {
 	if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
@@ -1122,6 +1119,19 @@ static void mail_reset(SMTPD_STATE *state)
 	myfree(state->verp_delims);
 	state->verp_delims = 0;
     }
+    if (state->proxy_mail) {
+	myfree(state->proxy_mail);
+	state->proxy_mail = 0;
+    }
+    if (state->saved_filter) {
+	myfree(state->saved_filter);
+	state->saved_filter = 0;
+    }
+    if (state->saved_redirect) {
+	myfree(state->saved_redirect);
+	state->saved_redirect = 0;
+    }
+    state->saved_flags = 0;
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_mail_reset(state);
@@ -1135,10 +1145,6 @@ static void mail_reset(SMTPD_STATE *state)
     if (state->proxy) {
 	(void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_NONE, "QUIT");
 	smtpd_proxy_close(state);
-    }
-    if (state->proxy_mail) {
-	myfree(state->proxy_mail);
-	state->proxy_mail = 0;
     }
     if (state->xclient.used)
 	smtpd_xclient_reset(state);
@@ -1309,6 +1315,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
+     * Flush out any access table actions that are delegated to the cleanup
+     * server, and that may trigger before we accept the first valid
+     * recipient.
+     * 
      * Terminate the message envelope segment. Start the message content
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
@@ -1316,8 +1326,15 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * Suppress our own Received: header in the unlikely case that we are an
      * intermediate proxy.
      */
-    if (state->cleanup)
+    if (state->cleanup) {
+	if (state->saved_filter)
+	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", state->saved_filter);
+	if (state->saved_redirect)
+	    rec_fprintf(state->cleanup, REC_TYPE_RDR, "%s", state->saved_redirect);
+	if (state->saved_flags)
+	    rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d", state->saved_flags);
 	rec_fputs(state->cleanup, REC_TYPE_MESG, "");
+    }
     if (!state->proxy || state->xclient.used == 0) {
 	out_fprintf(out_stream, REC_TYPE_NORM,
 		    "Received: from %s (%s [%s])",

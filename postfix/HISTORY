@@ -8783,7 +8783,8 @@ Apologies for any names omitted.
 	Feature: XCLIENT support to override the SMTP server's
 	client information for logging and/or access control. This
 	replaces the short-lived XADDR and XLOGINFO extensions.
-	Remotely based on code by Victor Duchovni.  Files:
+	Remotely based on code by Victor Duchovni.  See FILTER_README
+	and SMTPD_PROXY_README for usage details. Files:
 	smtpd/{smtpd,smtpd_check,smtpd_proxy,smtpd_xclient}.c
 	smtp/smtp_smtp_proto.c, *qmgr/qmgr_message.c,
 	global/deliver_request.c.
@@ -8794,6 +8795,14 @@ Apologies for any names omitted.
 	no longer part of Postfix. When upgrading Postfix, the
 	post-install script gives the user a reminder. Files:
 	conf/postfix-files, conf/post-install.
+
+20031203
+
+	Support for SMTPD access map actions (FILTER, REDIRECT,
+	HOLD or DISCARD) that are delegated to the cleanup server,
+	but can trigger before the first valid recipient address
+	is accepted (and thus, before a cleanup server connection
+	is available).  Files:  smtpd/{smtpd,smtpd_state,smtpd_check}.c.
 
 Open problems:
 

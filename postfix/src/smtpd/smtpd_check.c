@@ -451,6 +451,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
   */
 #define STR	vstring_str
 #define CONST_STR(x)	((const char *) vstring_str(x))
+#define UPDATE_STRING(ptr,val) { if (ptr) myfree(ptr); ptr = mystrdup(val); }
 
  /*
   * If some decision can't be made due to a temporary error, then change
@@ -1737,30 +1738,45 @@ static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
     return (rqst_status);
 }
 
-/* warn_skip_access_action - FILTER etc. action in unsupported context */
+/* can_delegate_action - can we delegate this to the cleanup server */
 
-static void warn_skip_access_action(const char *table, const char *action,
-				            const char *reply_class)
+#ifndef TEST
+
+static int can_delegate_action(SMTPD_STATE *state, const char *table,
+			        const char *action, const char *reply_class)
 {
 
     /*
-     * Warn only about FILTER/HOLD/etc. access table actions that appear in
-     * restrictions where they will always be ignored.
+     * If we're not using the cleanup server, then there is no way that we
+     * can support actions such as FILTER or HOLD that are delegated to the
+     * cleanup server.
      */
-    if (strcmp(reply_class, SMTPD_NAME_CLIENT) == 0
-	|| strcmp(reply_class, SMTPD_NAME_HELO) == 0
-	|| strcmp(reply_class, SMTPD_NAME_SENDER) == 0) {
-	if (var_smtpd_delay_reject == 0)
-	    msg_warn("access table %s: with %s=%s, "
-		     "action %s is always skipped in %s restrictions",
-		     table, VAR_SMTPD_DELAY_REJECT, CONFIG_BOOL_NO,
-		     action, reply_class);
-    } else {
-	msg_warn("access table %s: action %s is always "
-		 "skipped in %s restrictions",
-		 table, action, reply_class);
+    if (USE_SMTPD_PROXY(state)) {
+	msg_warn("access table %s: with %s specified, action %s is unavailable",
+		 table, VAR_SMTPD_PROXY_FILT, action);
+	return (0);
     }
+
+    /*
+     * If delay_reject=no, then client and helo restrictions take effect
+     * immediately, outside any particular mail transaction context. For
+     * example, rejecting HELO does not affect subsequent mail deliveries.
+     * Thus, if delay_reject=no, client and helo actions such as FILTER or
+     * HOLD also should not affect subsequent mail deliveries. Hmm...
+     */
+    if (var_smtpd_delay_reject == 0
+	&& (strcmp(reply_class, SMTPD_NAME_CLIENT) == 0
+	    || strcmp(reply_class, SMTPD_NAME_HELO) == 0)) {
+	msg_warn("access table %s: with %s=%s, "
+		 "action %s is always skipped in %s restrictions",
+		 table, VAR_SMTPD_DELAY_REJECT, CONFIG_BOOL_NO,
+		 action, reply_class);
+	return (0);
+    }
+    return (1);
 }
+
+#endif
 
 /* check_table_result - translate table lookup result into pass/reject */
 
@@ -1814,10 +1830,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, "FILTER", cmd_len)) {
 #ifndef TEST
-	if (state->dest == 0) {
-	    warn_skip_access_action(table, "FILTER", reply_class);
+	if (can_delegate_action(state, table, "FILTER", reply_class) == 0)
 	    return (SMTPD_CHECK_DUNNO);
-	}
 #endif
 	if (*cmd_text == 0) {
 	    msg_warn("access map %s entry \"%s\" has FILTER entry without value",
@@ -1832,7 +1846,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "filter", STR(error_text));
 #ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
+	    UPDATE_STRING(state->saved_filter, cmd_text);
 #endif
 	    return (SMTPD_CHECK_DUNNO);
 	}
@@ -1844,17 +1858,14 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, "HOLD", cmd_len)) {
 #ifndef TEST
-	if (state->dest == 0) {
-	    warn_skip_access_action(table, "HOLD", reply_class);
+	if (can_delegate_action(state, table, "HOLD", reply_class) == 0)
 	    return (SMTPD_CHECK_DUNNO);
-	}
 #endif
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers HOLD action");
 	log_whatsup(state, "hold", STR(error_text));
 #ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_HOLD);
+	state->saved_flags |= CLEANUP_FLAG_HOLD;
 #endif
 	return (SMTPD_CHECK_DUNNO);
     }
@@ -1864,17 +1875,14 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, "DISCARD", cmd_len)) {
 #ifndef TEST
-	if (state->dest == 0) {
-	    warn_skip_access_action(table, "DISCARD", reply_class);
+	if (can_delegate_action(state, table, "DISCARD", reply_class) == 0)
 	    return (SMTPD_CHECK_DUNNO);
-	}
 #endif
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers DISCARD action");
 	log_whatsup(state, "discard", STR(error_text));
 #ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_DISCARD);
+	state->saved_flags |= CLEANUP_FLAG_DISCARD;
 	state->discard = 1;
 #endif
 	return (SMTPD_CHECK_OK);
@@ -1886,10 +1894,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, "REDIRECT", cmd_len)) {
 #ifndef TEST
-	if (state->dest == 0) {
-	    warn_skip_access_action(table, "REDIRECT", reply_class);
+	if (can_delegate_action(state, table, "REDIRECT", reply_class) == 0)
 	    return (SMTPD_CHECK_DUNNO);
-	}
 #endif
 	if (strchr(cmd_text, '@') == 0) {
 	    msg_warn("access map %s entry \"%s\" requires user@domain target",
@@ -1900,7 +1906,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "redirect", STR(error_text));
 #ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", cmd_text);
+	    UPDATE_STRING(state->saved_redirect, cmd_text);
 #endif
 	    return (SMTPD_CHECK_DUNNO);
 	}
@@ -4307,8 +4313,6 @@ int     main(int argc, char **argv)
 	     */
 	case 4:
 	case 3:
-#define UPDATE_STRING(ptr,val) { if (ptr) myfree(ptr); ptr = mystrdup(val); }
-
 	    if (strcasecmp(args->argv[0], "client") == 0) {
 		state.where = "CONNECT";
 		UPDATE_STRING(state.name, args->argv[1]);

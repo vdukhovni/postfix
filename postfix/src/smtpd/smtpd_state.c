@@ -104,6 +104,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->proxy_buffer = 0;
     state->proxy_mail = 0;
     state->proxy_features = 0;
+    state->saved_filter = 0;
+    state->saved_redirect = 0;
+    state->saved_flags = 0;
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))

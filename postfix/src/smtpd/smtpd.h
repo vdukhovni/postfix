@@ -75,7 +75,7 @@ typedef struct SMTPD_STATE {
     char   *access_denied;
     ARGV   *history;
     char   *reason;
-    char   *sender;			
+    char   *sender;
     char   *encoding;			/* owned by mail_cmd() */
     char   *verp_delims;		/* owned by mail_cmd() */
     char   *recipient;
@@ -106,6 +106,9 @@ typedef struct SMTPD_STATE {
     int     defer_if_permit_helo;	/* force permit into warning */
     int     defer_if_permit_sender;	/* force permit into warning */
     int     discard;			/* discard message */
+    char   *saved_filter;		/* postponed filter action */
+    char   *saved_redirect;		/* postponed redirect action */
+    int     saved_flags;		/* postponed hold/discard */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
     VSTREAM *proxy;			/* proxy handle */
     VSTRING *proxy_buffer;		/* proxy query/reply buffer */
@@ -130,6 +133,13 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   */
 #define SMTPD_STAND_ALONE(state) \
 	(state->client == VSTREAM_IN && getuid() != var_owner_uid)
+
+ /*
+  * If running as proxy front-end, disable actions that require communication
+  * with the cleanup server.
+  */
+#define USE_SMTPD_PROXY(state) \
+	(SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt)
 
  /*
   * SMTPD peer information lookup.

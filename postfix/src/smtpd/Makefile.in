@@ -30,7 +30,7 @@ update: ../../libexec/$(PROG)
 ../../libexec/$(PROG): $(PROG)
 	cp $(PROG) ../../libexec
 
-SMTPD_CHECK_OBJ = smtpd_state.o smtpd_peer.o
+SMTPD_CHECK_OBJ = smtpd_state.o smtpd_peer.o smtpd_xclient.o
 
 smtpd_token: smtpd_token.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)

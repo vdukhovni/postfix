@@ -22,10 +22,41 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.16-20031203
+==========================================================
+
+Many SMTPD reject logfile entries now show NOQUEUE instead of a
+queue ID.  This is because Postfix no longer creates queue file
+before the SMTP server has received a valid recipient.
+
+The experimental XADDR and XLOGINFO extensions to SMTP are now
+replaced by XCLIENT.
+
+Major changes with Postfix snapshot 2.0.16-20031203
+===================================================
+
+The XCLIENT extension to SMTP replaces the short-lived XADDR and
+XLOGINFO extensions.  Details are given in the XCLIENT_README file.
+
+XCLIENT supports the following features:
+
+- SMTPD access rule testing. Send "xclient override client_name=xxx
+client_addr=yyy" in SMTP sessions and pretend that you are sending
+mail as the specified client.
+
+- Remote client information forwarding through a content filter to
+improve logging by down-stream mail software. Send "xclient forward
+client_name=xxx client_addr=yyy client_proto=aaa client_helo=bbb"
+to specify the original client information that should be logged
+and stored with the next MAIL FROM transaction.
+
 Incompatible changes with Postfix snapshot 2.0.16-20031111
 ==========================================================
 
 The demo greylist policy server is now case insensitive.
+
+The demo greylist policy server now uses BTREE files which greatly
+improves stability.
 
 Major changes with Postfix snapshot 2.0.16-20031111
 ===================================================
