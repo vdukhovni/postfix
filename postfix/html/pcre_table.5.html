@@ -19,18 +19,24 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
        The general form of a PCRE table is:
 
-       blanks and comments
-              Blank  lines  are  ignored,  as are lines beginning
-              with `#'.
-
-       leading whitespace
-              Lines that begin with whitespace continue the  pre-
-              vious line.
-
        <i>pattern</i> <i>result</i>
               When  <i>pattern</i> matches a search string, use the cor-
-              responding <i>result</i>. A line that  starts  with  white
-              space continues the preceding line.
+              responding <i>result</i>.
+
+       multi-line text
+              A line that starts with whitespace (space  or  tab)
+              is  a  continuation  of the previous line. An empty
+              line terminates the previous line, as does  a  line
+              that  starts with non-whitespace (text or comment).
+              A comment line that starts with whitespace does not
+              terminate multi-line text.
+
+       comments
+              The  <b>#</b> is recognized as the start of a comment, but
+              only when it is the first non-whitespace  character
+              on  a line.  A comment terminates at the end of the
+              line, even when the next line starts  with  whites-
+              pace.
 
        Each  pattern  is  a  perl-like  regular  expression.  The
        expression delimiter can be any character, except  whites-
@@ -68,7 +74,7 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
        # Bounce friend@whatever, except when whatever is our domain (you would
        # be better just bouncing all friend@ mail - this is just an example).
-       /^friend@(?!my\.domain).*$/     550 Stick this in your pipe $0
+       /^friend@(?!my\.domain)/        550 Stick this in your pipe $0
 
        # A multi-line entry. The text is sent as one line.
        #
@@ -78,7 +84,7 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
 <b>EXAMPLE</b> <b>HEADER</b> <b>FILTER</b> <b>MAP</b>
        /^Subject: make money fast/     REJECT
-       /^To: friend@public\.com/        REJECT
+       /^To: friend@public\.com/       REJECT
 
 <b>SEE</b> <b>ALSO</b>
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables

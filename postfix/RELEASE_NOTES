@@ -1,3 +1,17 @@
+Incompatible changes with snapshot-20011216
+===========================================
+
+Postfix configuration file comments no longer span multiple lines
+when the next line starts with whitespace. This may cause unexpected
+behavior with existing, improperly formatted, configuration files.
+
+Major changes with snapshot-20011216
+====================================
+
+Postfix configuration files now support whitespace before comments.
+This allows you to comment out just one line in the middle of a
+block of multi-line input.
+
 Incompatible changes with snapshot-20011210
 ===========================================
 
@@ -11,7 +25,7 @@ Stricter checking of Postfix chroot configurations.  The Postfix
 startup procedure now warns if "system" directories (etc, bin, lib,
 usr) under the Postfix top-level queue directory are not owned by
 the super-user (usually the result of well-intended, but misguided,
-applications of "chroot -R postfix /var/spool/postfix).
+applications of "chown -R postfix /var/spool/postfix).
 
 The Postfix sendmail command no longer exits with status 1 when
 mail submission fails, but instead returns a sendmail-compatible

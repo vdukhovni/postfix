@@ -342,7 +342,7 @@ static void edit_parameters(int argc, char **argv)
      */
 #define STR(x) vstring_str(x)
 
-    while (readlline(buf, src, (int *) 0, READLL_KEEPNL)) {
+    while (readlline(buf, src, (int *) 0, READLL_KEEP_NOISE)) {
 	cp = STR(buf);
 	if (first) {
 	    first = 0;

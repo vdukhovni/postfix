@@ -35,7 +35,8 @@
 /*	values from the standard input stream. The exit status is zero
 /*	when at least one of the requested keys was found.
 /* .IP \fB-f\fR
-/*	Do not fold the lookup key to lower case while creating a map.
+/*	Do not fold the lookup key to lower case while creating or querying
+/*	a map.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostalias\fR creates
@@ -197,13 +198,7 @@ static void postalias(char *map_type, char *path_name,
      * Add records to the database.
      */
     lineno = 0;
-    while (readlline(line_buffer, source_fp, &lineno, READLL_STRIPNL)) {
-
-	/*
-	 * Skip comments.
-	 */
-	if (*STR(line_buffer) == '#')
-	    continue;
+    while (readlline(line_buffer, source_fp, &lineno, READLL_STRIP_NOISE)) {
 
 	/*
 	 * Weird stuff. Normally, a line that begins with whitespace is a
@@ -318,7 +313,8 @@ static void postalias(char *map_type, char *path_name,
 
 /* postalias_queries - apply multiple requests from stdin */
 
-static int postalias_queries(VSTREAM *in, char **maps, const int map_count)
+static int postalias_queries(VSTREAM *in, char **maps, const int map_count,
+			             const int dict_flags)
 {
     int     found = 0;
     VSTRING *keybuf = vstring_alloc(100);
@@ -345,6 +341,8 @@ static int postalias_queries(VSTREAM *in, char **maps, const int map_count)
      * maps.
      */
     while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
+	if (dict_flags & DICT_FLAG_FOLD_KEY)
+	    lowercase(STR(keybuf));
 	for (n = 0; n < map_count; n++) {
 	    if (dicts[n] == 0)
 		dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
@@ -572,7 +570,10 @@ int     main(int argc, char **argv)
 	if (optind + 1 > argc)
 	    usage(argv[0]);
 	if (strcmp(query, "-") == 0)
-	    exit(postalias_queries(VSTREAM_IN, argv + optind, argc - optind) == 0);
+	    exit(postalias_queries(VSTREAM_IN, argv + optind, argc - optind,
+				   dict_flags) == 0);
+	if (dict_flags & DICT_FLAG_FOLD_KEY)
+	    lowercase(query);
 	while (optind < argc) {
 	    if ((path_name = split_at(argv[optind], ':')) != 0) {
 		found = postalias_query(argv[optind], path_name, query);

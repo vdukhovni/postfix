@@ -18,18 +18,24 @@
 # 
 #        The general form of a PCRE table is:
 # 
-#        blanks and comments
-#               Blank  lines  are  ignored,  as are lines beginning
-#               with `#'.
-# 
-#        leading whitespace
-#               Lines that begin with whitespace continue the  pre-
-#               vious line.
-# 
 #        pattern result
 #               When  pattern matches a search string, use the cor-
-#               responding result. A line that  starts  with  white
-#               space continues the preceding line.
+#               responding result.
+# 
+#        multi-line text
+#               A line that starts with whitespace (space  or  tab)
+#               is  a  continuation  of the previous line. An empty
+#               line terminates the previous line, as does  a  line
+#               that  starts with non-whitespace (text or comment).
+#               A comment line that starts with whitespace does not
+#               terminate multi-line text.
+# 
+#        comments
+#               The  # is recognized as the start of a comment, but
+#               only when it is the first non-whitespace  character
+#               on  a line.  A comment terminates at the end of the
+#               line, even when the next line starts  with  whites-
+#               pace.
 # 
 #        Each  pattern  is  a  perl-like  regular  expression.  The
 #        expression delimiter can be any character, except  whites-
@@ -55,10 +61,6 @@
 #        table, until a pattern is found that  matches  the  search
 #        string.
 # 
-#                                                                 1
-# 
-# PCRE_TABLE(5)                                       PCRE_TABLE(5)
-# 
 #        Substitution  of  substrings  from  the matched expression
 #        into the result string is possible using the  conventional
 #        perl  syntax  ($1,  $2,  etc.).   The macros in the result
@@ -81,7 +83,7 @@
 # 
 # EXAMPLE HEADER FILTER MAP
 #        /^Subject: make money fast/     REJECT
-#        /^To: friend@public\.com/        REJECT
+#        /^To: friend@public\.com/       REJECT
 # 
 # SEE ALSO
 #        regexp_table(5) format of POSIX regular expression tables
@@ -100,5 +102,5 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                                 2
+#                                                                 1
 # 

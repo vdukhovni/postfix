@@ -15,14 +15,19 @@
 #	supports use the \fBpostconf -m\fR command.
 #
 #	The general form of a Postfix regular expression table is:
-# .IP "blanks and comments"
-#	Blank lines are ignored, as are lines beginning with `#'.
-# .IP "leading whitespace"
-#	Lines that begin with whitespace continue the previous line.
 # .IP "\fIpattern result\fR"
 #	When \fIpattern\fR matches a search string, use the corresponding
-#	\fIresult\fR. A line that starts with white space continues the
-#	preceding line.
+#	\fIresult\fR.
+# .IP "multi-line text"
+#	A line that starts with whitespace (space or tab) is a continuation
+#	of the previous line. An empty line terminates the previous line,
+#	as does a line that starts with non-whitespace (text or comment). A
+#	comment line that starts with whitespace does not terminate multi-line
+#	text.
+# .IP "comments"
+#	The \fB#\fR is recognized as the start of a comment, but only when it is
+#	the first non-whitespace character on a line.  A comment terminates
+#	at the end of the line, even when the next line starts with whitespace.
 # .IP "\fIpattern1!pattern2 result\fR"
 #	Matches \fIpattern1\fR but not \fIpattern2\fR.
 # .PP
@@ -55,18 +60,18 @@
 # EXAMPLE SMTPD ACCESS MAP
 #	# Disallow sender-specified routing. This is a must if you relay mail
 #	# for other domains.
-#	/[%!@].*[%!@]/            550 Sender-specified routing rejected
+#	/[%!@].*[%!@]/	     550 Sender-specified routing rejected
 #
 #	# Postmaster is OK, that way they can talk to us about how to fix
 #	# their problem.
-#	/^postmaster@/            OK
+#	/^postmaster@/	     OK
 #
 #	# Protect your outgoing majordomo exploders
-#	/^(.*)-outgoing@(.*)$/!/^owner-/        550 Use ${1}@${2} instead
+#	/^(.*)-outgoing@(.*)$/!/^owner-/	 550 Use ${1}@${2} instead
 # EXAMPLE HEADER FILTER MAP
 #	# These were once common in junk mail.
 #	/^Subject: make money fast/     REJECT
-#	/^To: friend@public\\.com/        REJECT
+#	/^To: friend@public\\.com/	 REJECT
 # SEE ALSO
 #	pcre_table(5) format of PCRE tables
 # AUTHOR(S)

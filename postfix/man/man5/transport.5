@@ -35,13 +35,19 @@ the lookups are done in a slightly different way as described below.
 .ad
 .fi
 The format of the transport table is as follows:
-.IP "blanks and comments"
-Blank lines are ignored, as are lines beginning with `#'.
-.IP "leading whitespace"
-Lines that begin with whitespace continue the previous line.
 .IP "\fIpattern result\fR"
 When \fIpattern\fR matches the domain, use the corresponding
 \fIresult\fR.
+.IP "multi-line text"
+A line that starts with whitespace (space or tab) is a continuation
+of the previous line. An empty line terminates the previous line,
+as does a line that starts with non-whitespace (text or comment). A
+comment line that starts with whitespace does not terminate multi-line
+text.
+.IP "comments"
+The \fB#\fR is recognized as the start of a comment, but only when it is
+the first non-whitespace character on a line.  A comment terminates
+at the end of the line, even when the next line starts with whitespace.
 .PP
 With lookups from indexed files such as DB or DBM, or from networked
 tables such as NIS, LDAP or SQL, patterns are tried in the order as

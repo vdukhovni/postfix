@@ -227,11 +227,13 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
 
 	/*
 	 * Strip off the record terminator: either CRLF or just bare LF.
+	 * 
+	 * XXX RFC 2821 disallows sending bare CR everywhere. We remove bare CR
+	 * if received before CRLF, and leave it alone otherwise.
 	 */
     case '\n':
-	if (VSTRING_LEN(vp) > 1 && vstring_end(vp)[-2] == '\r')
-	    vstring_truncate(vp, VSTRING_LEN(vp) - 2);
-	else
+	vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
 	    vstring_truncate(vp, VSTRING_LEN(vp) - 1);
 	VSTRING_TERMINATE(vp);
 

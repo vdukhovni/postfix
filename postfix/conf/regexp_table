@@ -18,18 +18,24 @@
 # 
 #        The general form of a Postfix regular expression table is:
 # 
-#        blanks and comments
-#               Blank  lines  are  ignored,  as are lines beginning
-#               with `#'.
-# 
-#        leading whitespace
-#               Lines that begin with whitespace continue the  pre-
-#               vious line.
-# 
 #        pattern result
 #               When  pattern matches a search string, use the cor-
-#               responding result. A line that  starts  with  white
-#               space continues the preceding line.
+#               responding result.
+# 
+#        multi-line text
+#               A line that starts with whitespace (space  or  tab)
+#               is  a  continuation  of the previous line. An empty
+#               line terminates the previous line, as does  a  line
+#               that  starts with non-whitespace (text or comment).
+#               A comment line that starts with whitespace does not
+#               terminate multi-line text.
+# 
+#        comments
+#               The  # is recognized as the start of a comment, but
+#               only when it is the first non-whitespace  character
+#               on  a line.  A comment terminates at the end of the
+#               line, even when the next line starts  with  whites-
+#               pace.
 # 
 #        pattern1!pattern2 result
 #               Matches pattern1 but not pattern2.
@@ -55,11 +61,6 @@
 #        nor is user+foo broken up into user and foo.
 # 
 #        Patterns  are  applied  in  the  order as specified in the
-# 
-#                                                                 1
-# 
-# REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
-# 
 #        table, until a pattern is found that  matches  the  search
 #        string.
 # 
@@ -71,19 +72,19 @@
 # EXAMPLE SMTPD ACCESS MAP
 #        # Disallow sender-specified routing. This is a must if you relay mail
 #        # for other domains.
-#        /[%!@].*[%!@]/            550 Sender-specified routing rejected
+#        /[%!@].*[%!@]/       550 Sender-specified routing rejected
 # 
 #        # Postmaster is OK, that way they can talk to us about how to fix
 #        # their problem.
-#        /^postmaster@/            OK
+#        /^postmaster@/       OK
 # 
 #        # Protect your outgoing majordomo exploders
-#        /^(.*)-outgoing@(.*)$/!/^owner-/        550 Use ${1}@${2} instead
+#        /^(.*)-outgoing@(.*)$/!/^owner-/         550 Use ${1}@${2} instead
 # 
 # EXAMPLE HEADER FILTER MAP
 #        # These were once common in junk mail.
 #        /^Subject: make money fast/     REJECT
-#        /^To: friend@public\.com/        REJECT
+#        /^To: friend@public\.com/       REJECT
 # 
 # SEE ALSO
 #        pcre_table(5) format of PCRE tables
@@ -106,5 +107,5 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                                 2
+#                                                                 1
 # 

@@ -34,9 +34,15 @@
 # .ti +5
 #	\fIname\fR: \fIvalue1\fR, \fIvalue2\fR, \fI...\fR
 # .IP \(bu
-#	Lines that begin with whitespace continue the previous line.
+#	A line that starts with whitespace (space or tab) is a continuation
+#	of the previous line. An empty line terminates the previous line,
+#	as does a line that starts with non-whitespace (text or comment). A
+#	comment line that starts with whitespace does not terminate multi-line
+#	text.
 # .IP \(bu
-#	Blank lines are ignored, as are lines beginning with `#'.
+#	The \fB#\fR is recognized as the start of a comment, but only when it is
+#	the first non-whitespace character on a line.  A comment terminates
+#	at the end of the line, even when the next line starts with whitespace.
 # .PP
 #	The \fIname\fR is a local address (no domain part).
 #	Use double quotes when the name contains any special characters

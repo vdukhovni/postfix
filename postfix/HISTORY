@@ -5770,6 +5770,31 @@ Apologies for any names omitted.
 	to control the delay before sending .<CR><LF> (default: 10
 	seconds) when doing the PIX <CR><LF>.<CR><LF> workaround.
 
+20011210
+
+	Bugfix: the 20011128 change in sendmail and postdrop did
+	not handle the case of message_size_limit=0. Fix by Will
+	Day, Georgia Tech.
+
+20011212
+
+	Compatibility: The SMTP server now accepts <CR><CR><LF> as
+	if the client sent <CR><LF>. Reportedly, some badly written
+	windows software produces such garbage, and some badly
+	written windows anti-VIRUS software cannot handle such
+	garbage. File:  global/smtp_stream.c.
+
+20011214
+
+	Bugfix: postmap/postalias queries ignored the -f flag.
+	Reported by Hamish Marson.
+
+20011215-6
+
+	Safety: config file comments no longer span multiple lines
+	when the next line starts with whitespace; a comment that
+	is preceded by whitespace does not break multi-line input.
+
 Open problems:
 
 	Low: after reorganizing configuration parameters, add flags
@@ -5781,7 +5806,8 @@ Open problems:
 	maps, or else accidents are bound to happen.
 
 	Medium: need in-process caching for map lookups. LDAP
-	servers seem to need this in particular.
+	servers seem to need this in particular. Need a way to
+	expire cached results that are too old.
 
 	Medium: make address rewriting on/off configurable for
 	envelopes and/or headers.

@@ -394,11 +394,9 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     buf = vstring_alloc(100);
     lineno = 0;
 
-    while (readlline(buf, fp, &lineno, READLL_STRIPNL)) {
+    while (readlline(buf, fp, &lineno, READLL_STRIP_NOISE)) {
 	start = STR(buf);
 	SKIP(start, member, ISSPACE(*member));	/* find member begin */
-	if (*member == 0 || *member == '#')
-	    continue;				/* comment or blank line */
 	SKIP(member, ep, !ISSPACE(*ep) && *ep != '=');	/* find member end */
 	SKIP(ep, cp, ISSPACE(*cp));		/* skip blanks before '=' */
 	if (*cp && *cp != '=')			/* need '=' or end of string */

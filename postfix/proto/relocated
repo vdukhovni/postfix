@@ -29,16 +29,22 @@
 # .fi
 #	The format of the table is as follows:
 # .IP \(bu
-#	Blank lines are ignored, as are lines beginning with `#'.
-# .IP \(bu
-#	Lines that begin with whitespace continue the previous line.
-# .IP \(bu
 #	An entry has one of the following form:
 # .ti +5
 #	\fIkey	new_location\fR
 # .br
 #	Where \fInew_location\fR specifies contact information such as
 #	an email address, or perhaps a street address or telephone number.
+# .IP \(bu
+#	A line that starts with whitespace (space or tab) is a continuation
+#	of the previous line. An empty line terminates the previous line,
+#	as does a line that starts with non-whitespace (text or comment). A
+#	comment line that starts with whitespace does not terminate multi-line
+#	text.
+# .IP \(bu
+#	The \fB#\fR is recognized as the start of a comment, but only when it is
+#	the first non-whitespace character on a line.  A comment terminates
+#	at the end of the line, even when the next line starts with whitespace.
 # .PP
 #	With lookups from indexed files such as DB or DBM, or from networked
 #	tables such as NIS, LDAP or SQL, the \fIkey\fR field is one of the

@@ -22,8 +22,8 @@
   */
 extern VSTRING *readlline(VSTRING *, VSTREAM *, int *, int);
 
-#define READLL_STRIPNL	1
-#define READLL_KEEPNL	0
+#define READLL_STRIP_NOISE	1
+#define READLL_KEEP_NOISE	0
 
 /* LICENSE
 /* .ad
