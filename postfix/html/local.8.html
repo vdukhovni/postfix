@@ -110,40 +110,41 @@ LOCAL(8)                                                 LOCAL(8)
 
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
-       each message, prepends an  optional  <b>Delivered-To:</b>  header
-       with  the  envelope  recipient address, prepends a <b>Return-</b>
-       <b>Path:</b> header with the envelope sender address, prepends  a
-       &gt;  character  to lines beginning with "<b>From</b> ", and appends
-       an empty line.  The mailbox is locked for exclusive access
-       while  delivery  is  in  progress. In case of problems, an
-       attempt is made to truncate the mailbox  to  its  original
-       length.
+       each message, prepends an <b>X-Original-To:</b> header  with  the
+       recipient   address  as  given  to  Postfix,  prepends  an
+       optional <b>Delivered-To:</b> header with the envelope  recipient
+       address,  prepends a <b>Return-Path:</b> header with the envelope
+       sender address, prepends a &gt; character to lines  beginning
+       with  "<b>From</b>  ", and appends an empty line.  The mailbox is
+       locked for exclusive access while delivery is in progress.
+       In  case  of  problems, an attempt is made to truncate the
+       mailbox to its original length.
 
        In the case of <b>maildir</b> delivery, the local daemon prepends
        an optional <b>Delivered-To:</b> header with the envelope recipi-
-       ent  address  and  prepends a <b>Return-Path:</b> header with the
+       ent address and prepends a <b>Return-Path:</b>  header  with  the
        envelope sender address.
 
 <b>EXTERNAL</b> <b>COMMAND</b> <b>DELIVERY</b>
-       The   <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>    configuration    parameter
-       restricts  delivery to external commands. The default set-
-       ting (<b>alias,</b>  <b>forward</b>)  forbids  command  destinations  in
+       The    <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>    configuration   parameter
+       restricts delivery to external commands. The default  set-
+       ting  (<b>alias,</b>  <b>forward</b>)  forbids  command  destinations in
        <b>:include:</b> files.
 
-       The  command  is  executed directly where possible. Assis-
-       tance by the shell (<b>/bin/sh</b> on UNIX systems) is used  only
-       when  the command contains shell magic characters, or when
+       The command is executed directly  where  possible.  Assis-
+       tance  by the shell (<b>/bin/sh</b> on UNIX systems) is used only
+       when the command contains shell magic characters, or  when
        the command invokes a shell built-in command.
 
-       A limited amount of command output  (standard  output  and
-       standard  error) is captured for inclusion with non-deliv-
-       ery status reports.  A command is forcibly  terminated  if
-       it  does  not  complete within <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b> seconds.
-       Command exit status codes are expected to follow the  con-
+       A  limited  amount  of command output (standard output and
+       standard error) is captured for inclusion with  non-deliv-
+       ery  status  reports.  A command is forcibly terminated if
+       it does not complete  within  <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>  seconds.
+       Command  exit status codes are expected to follow the con-
        ventions defined in &lt;<b>sysexits.h</b>&gt;.
 
-       A  limited amount of message context is exported via envi-
-       ronment variables. Characters that may have special  mean-
+       A limited amount of message context is exported via  envi-
+       ronment  variables. Characters that may have special mean-
        ing to the shell are replaced by underscores.  The list of
        acceptable characters is specified with the <b>command</b><i>_</i><b>expan-</b>
        <b>sion</b><i>_</i><b>filter</b> configuration parameter.
@@ -175,10 +176,11 @@ LOCAL(8)                                                 LOCAL(8)
        The current working directory is the mail queue directory.
 
        The <b>local</b> daemon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" enve-
-       lope header to each message, prepends an  optional  <b>Deliv-</b>
-       <b>ered-To:</b>  header  with  the  recipient  envelope  address,
-       prepends a <b>Return-Path:</b> header with  the  sender  envelope
-       address, and appends no empty line.
+       lope  header  to  each message, prepends an <b>X-Original-To:</b>
+       header with the recipient address  as  given  to  Postfix,
+       prepends an optional <b>Delivered-To:</b> header with the recipi-
+       ent envelope address, prepends a <b>Return-Path:</b> header  with
+       the sender envelope address, and appends no empty line.
 
 <b>EXTERNAL</b> <b>FILE</b> <b>DELIVERY</b>
        The  delivery  format  depends on the destination filename
@@ -192,14 +194,16 @@ LOCAL(8)                                                 LOCAL(8)
 
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
-       each message, prepends an  optional  <b>Delivered-To:</b>  header
-       with  the recipient envelope address, prepends a &gt; charac-
-       ter to lines beginning with "<b>From</b> ", and appends an  empty
-       line.   The  envelope  sender  address is available in the
-       <b>Return-Path:</b> header.  When the destination  is  a  regular
-       file,  it is locked for exclusive access while delivery is
-       in progress. In case of problems, an attempt  is  made  to
-       truncate a regular file to its original length.
+       each message, prepends an <b>X-Original-To:</b> header  with  the
+       recipient   address  as  given  to  Postfix,  prepends  an
+       optional <b>Delivered-To:</b> header with the recipient  envelope
+       address,  prepends  a  &gt; character to lines beginning with
+       "<b>From</b> ", and appends an empty line.  The  envelope  sender
+       address is available in the <b>Return-Path:</b> header.  When the
+       destination is a regular file, it is locked for  exclusive
+       access while delivery is in progress. In case of problems,
+       an attempt is made to truncate a regular file to its orig-
+       inal length.
 
        In the case of <b>maildir</b> delivery, the local daemon prepends
        an optional <b>Delivered-To:</b> header with the envelope recipi-

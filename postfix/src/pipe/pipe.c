@@ -58,8 +58,8 @@
 /*	This is expected by, for example, \fBUUCP\fR software.
 /* .IP \fBO\fR
 /*	Prepend an "\fBX-Original-To: \fIrecipient\fR" message header
-/*	with the original envelope recipient address. Note: for this to work,
-/*	the \fItransport\fB_destination_recipient_limit\fR must be 1.
+/*	with the recipient address as given to Postfix. Note: for this to
+/*	work, the \fItransport\fB_destination_recipient_limit\fR must be 1.
 /* .IP \fBR\fR
 /*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
 /*	address.

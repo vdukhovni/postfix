@@ -7106,6 +7106,15 @@ Apologies for any names omitted.
 	after HELO. Reported by Karthikeyan Bhargavan, upenn.edu.
 	Files: smtpd/smtpd.c.
 
+20021029
+
+	Bugfix: local(8) did not prepend an X-Original-To:  message
+	header while delivering to command, and local(8) did not
+	document the X-Original-To:  message header.
+
+	Workaround: DJBDNS produces a bogus A record when given a
+	numerical hostname. File: dns/dns_lookup.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.

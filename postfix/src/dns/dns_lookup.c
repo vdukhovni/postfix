@@ -503,7 +503,19 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
      */
     if (!valid_hostname(name, DONT_GRIPE)) {
 	if (why)
-	    vstring_sprintf(why, "Name service error for %s: invalid name",
+	    vstring_sprintf(why,
+		   "Name service error for %s: invalid host or domain name",
+			    name);
+	return (DNS_NOTFOUND);
+    }
+
+    /*
+     * DJBDNS produces a bogus A record when given a numerical hostname.
+     */
+    if (valid_hostaddr(name, DONT_GRIPE)) {
+	if (why)
+	    vstring_sprintf(why,
+		   "Name service error for %s: invalid host or domain name",
 			    name);
 	return (DNS_NOTFOUND);
     }

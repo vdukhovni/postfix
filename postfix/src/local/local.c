@@ -109,6 +109,8 @@
 /*	In the case of UNIX-style mailbox delivery,
 /*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
+/*	\fBX-Original-To:\fR header with the recipient address as given to
+/*	Postfix, prepends an
 /*	optional \fBDelivered-To:\fR header
 /*	with the envelope recipient address, prepends a \fBReturn-Path:\fR
 /*	header with the envelope sender address, prepends a \fB>\fR character
@@ -171,6 +173,8 @@
 /*
 /*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
+/*	\fBX-Original-To:\fR header with the recipient address as given to
+/*	Postfix, prepends an
 /*	optional \fBDelivered-To:\fR
 /*	header with the recipient envelope address, prepends a
 /*	\fBReturn-Path:\fR header with the sender envelope address,
@@ -189,6 +193,8 @@
 /*	In the case of UNIX-style mailbox delivery,
 /*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
+/*	\fBX-Original-To:\fR header with the recipient address as given to
+/*	Postfix, prepends an
 /*	optional \fBDelivered-To:\fR
 /*	header with the recipient envelope address, prepends a \fB>\fR
 /*	character to lines beginning with "\fBFrom \fR", and appends an
