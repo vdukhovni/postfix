@@ -20,13 +20,17 @@ the following sections of this document.
 - TLS and IPv6 support are now built into Postfix, based on code
 from third-party patches.
 
+- Extended query interface for LDAP, MySQL and PostgreSQL with free
+form SQL queries, and domain filters to reduce unnecessary lookups.
+
 - SMTP client-side connection reuse. This can dramatically speed
 up deliveries to high-volume destinations that have some servers
 that respond, and some non-responding mail servers.
 
 - By default, message header address rewriting is now disabled for
-SMTP mail from other systems.  Thus, spam from poorly written
-software no longer looks like it came from a local user.
+SMTP mail from other systems (including masquerading and canonical
+mapping).  Thus, spam from poorly written software no longer looks
+like it came from a local user.
 
 - When your machine does not have its own domain name, Postfix can
 now replace your "home network" email address by your ISP account
@@ -272,6 +276,12 @@ it does not turn off the actual features in the SMTP server.
 
 Major changes - database support
 --------------------------------
+
+[Feature 20050209] Extended LDAP, MySQL and PgSQL query interface
+with free form SQL queries, the domain filter optimization that was
+already available with LDAP and more. This code was worked on by
+many people but Victor Duchovni took the lead. See the respective
+{LDAP,MYSQL,PGSQL}_README and {ldap,mysql,pgsql}_table documents.
 
 [Feature 20041210] You can now dump an entire database with the new
 postmap/postalias "-s" option. This works only for database types

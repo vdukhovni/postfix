@@ -306,6 +306,20 @@ difficult to enforce consistently and globally.
 Enable the rewriting of the form "user%domain" to "user@domain".
 This is enabled by default.
 .PP
+Note: With Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true:
+.IP \(bu
+The message is received with the Postfix \fBsendmail\fR(1) command,
+.IP \(bu
+The message is received from a network client that matches
+$local_header_rewrite_clients,
+.IP \(bu
+The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+.PP
+To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
+.PP
 Example:
 .PP
 .nf
@@ -371,17 +385,45 @@ With locally submitted mail, append the string "@$myorigin" to mail
 addresses without domain information. With remotely submitted mail,
 append the string "@$remote_header_rewrite_domain" instead.
 .PP
-This feature is enabled by default and must not be turned off.
+Note 1: This feature is enabled by default and must not be turned off.
 Postfix does not support domain-less addresses.
+.PP
+Note 2: With Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true:
+.IP \(bu
+The message is received with the Postfix \fBsendmail\fR(1) command,
+.IP \(bu
+The message is received from a network client that matches
+$local_header_rewrite_clients,
+.IP \(bu
+The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+.PP
+To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 .SH append_dot_mydomain (default: yes)
 With locally submitted mail, append the string ".$mydomain" to
 addresses that have no ".domain" information. With remotely submitted
 mail, append the string ".$remote_header_rewrite_domain"
 instead.
 .PP
-This feature is enabled by default. If disabled, users will not be
+Note 1: This feature is enabled by default. If disabled, users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
+.PP
+Note 2: With Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true:
+.IP \(bu
+The message is received with the Postfix \fBsendmail\fR(1) command,
+.IP \(bu
+The message is received from a network client that matches
+$local_header_rewrite_clients,
+.IP \(bu
+The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+.PP
+To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 .SH application_event_drain_time (default: 100s)
 How long the \fBpostkick\fR(1) command waits for a request to enter the
 server's input buffer before giving up.
@@ -589,6 +631,20 @@ If you use this feature, run "\fBpostmap /etc/postfix/canonical\fR" to
 build the necessary DBM or DB file after every change. The changes
 will become visible after a minute or so.  Use "\fBpostfix reload\fR"
 to eliminate the delay.
+.PP
+Note: with Postfix version 2.2, message header address mapping
+happens only when message header address rewriting is enabled:
+.IP \(bu
+The message is received with the Postfix \fBsendmail\fR(1) command,
+.IP \(bu
+The message is received from a network client that matches
+$local_header_rewrite_clients,
+.IP \(bu
+The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+.PP
+To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 .PP
 Examples:
 .PP
@@ -1382,7 +1438,8 @@ inet_interfaces = 192.168.1.2, 127.0.0.1
 The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
 or "ipv6", separated by whitespace or commas. The form
-"all" is equivalent to "ipv4, ipv6".
+"all" is equivalent to "ipv4, ipv6" or "ipv4", depending
+on whether the operating system implements IPv6.
 .PP
 This feature is available in Postfix version 2.2 and later.
 .PP
@@ -2076,6 +2133,20 @@ or its subdomains. Thus,
 .PP
 does not change "user@any.thing.foo.example.com" or "user@foo.example.com",
 but strips "user@any.thing.else.example.com" to "user@example.com".
+.PP
+Note: with Postfix version 2.2, message header address masquerading
+happens only when message header address rewriting is enabled:
+.IP \(bu
+The message is received with the Postfix \fBsendmail\fR(1) command,
+.IP \(bu
+The message is received from a network client that matches
+$local_header_rewrite_clients,
+.IP \(bu
+The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+.PP
+To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 .PP
 Example:
 .PP
@@ -5204,6 +5275,20 @@ Obsolete SUN mailtool compatibility feature. Instead, use
 Enable the rewriting of "site!user" into "user@site".  This is
 necessary if your machine is connected to UUCP networks.  It is
 enabled by default.
+.PP
+Note: With Postfix version 2.2, message header address rewriting
+happens only when one of the following conditions is true:
+.IP \(bu
+The message is received with the Postfix \fBsendmail\fR(1) command,
+.IP \(bu
+The message is received from a network client that matches
+$local_header_rewrite_clients,
+.IP \(bu
+The message is received from the network, and the
+remote_header_rewrite_domain parameter specifies a non-empty value.
+.PP
+To get the behavior before Postfix 2.2, specify
+"local_header_rewrite_clients = static:all".
 .PP
 Example:
 .PP

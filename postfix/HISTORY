@@ -10341,6 +10341,13 @@ Apologies for any names omitted.
 	Cleanup: documented the myorigin/mydomain address rewriting
 	in canonical, generic and virtual alias maps.
 
+	Feature: updated LDAP and *SQL query interfaces using a
+	common infrastructure so that all have the same feature set
+	where possible. Victor Duchovni and many others. This code
+	was tested separately and was merged into the main stream
+	20050308. Files: global/db_common.[hc], global/dict_ldap.c,
+	global/dict_mysql.c, global/dict_pgsql.c, plus documentation.
+
 20050210
 
 	Bugfix: spurious fallback_relay warnings after 20050202.
@@ -10444,6 +10451,11 @@ Apologies for any names omitted.
 	The new public key can be found on the Postfix download
 	webpage. As proof of authenticity the new PGP key is signed
 	with Wietse's old PGP key.
+
+	Cleanup: check_mumble_{ns,mx}_access no longer attempt to
+	do MX or NS lookups for address literals. An address literal
+	is treated as its own MX host; there is no meaningful
+	equivalent for NS access control. File: smtpd/smtpd_check.c.
 
 Open problems:
 

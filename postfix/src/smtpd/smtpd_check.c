@@ -2261,6 +2261,33 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	domain = name;
 
     /*
+     * Treat an address literal as its own MX server, just like we treat a
+     * name without MX record as its own MX server. There is, however, no
+     * applicable NS server equivalent.
+     */
+    if (*domain == '[') {
+	char   *saved_addr;
+	const char *bare_addr;
+	int     len;
+
+	if (type != T_MX)
+	    return (SMTPD_CHECK_DUNNO);
+	len = strlen(domain);
+	if (domain[len - 1] != ']')
+	    return (SMTPD_CHECK_DUNNO);
+	/* Memory leak alert: no early returns after this point. */
+	saved_addr = mystrndup(domain + 1, len - 2);
+	if ((bare_addr = valid_mailhost_addr(saved_addr, DONT_GRIPE)) == 0)
+	    status = SMTPD_CHECK_DUNNO;
+	else
+	    status = check_addr_access(state, table, bare_addr, FULL,
+				       &found, reply_name, reply_class,
+				       def_acl);
+	myfree(saved_addr);
+	return (status);
+    }
+
+    /*
      * If the domain name does not exist then we apply no restriction.
      * 
      * If the domain name exists but no MX record exists, fabricate an MX record

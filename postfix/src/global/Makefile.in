@@ -1,7 +1,7 @@
 SHELL	= /bin/sh
 SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	canon_addr.c cfg_parser.c cleanup_strerror.c cleanup_strflags.c \
-	clnt_stream.c debug_peer.c debug_process.c defer.c \
+	clnt_stream.c debug_peer.c debug_process.c defer.c db_common.c \
 	deliver_completed.c deliver_flock.c deliver_pass.c deliver_request.c \
 	dict_ldap.c dict_mysql.c dict_pgsql.c dict_proxy.c domain_list.c \
 	dot_lockfile.c dot_lockfile_as.c ext_prop.c file_id.c flush_clnt.c \
@@ -28,7 +28,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	wildcard_inet_addr.c valid_mailhost_addr.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
-	clnt_stream.o debug_peer.o debug_process.o defer.o \
+	clnt_stream.o debug_peer.o debug_process.o defer.o db_common.o \
 	deliver_completed.o deliver_flock.o deliver_pass.o deliver_request.o \
 	dict_ldap.o dict_mysql.o dict_pgsql.o dict_proxy.o domain_list.o \
 	dot_lockfile.o dot_lockfile_as.o ext_prop.o file_id.o flush_clnt.o \
@@ -73,7 +73,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	resolve_local.h rewrite_clnt.h sent.h smtp_stream.h split_addr.h \
 	string_list.h strip_addr.h sys_exits.h timed_ipc.h tok822.h \
 	trace.h verify.h verify_clnt.h verp_sender.h virtual8_maps.h \
-	xtext.h scache.h user_acl.h ehlo_mask.h \
+	xtext.h scache.h user_acl.h ehlo_mask.h db_common.h \
 	wildcard_inet_addr.h valid_mailhost_addr.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -520,6 +520,20 @@ clnt_stream.o: mail_proto.h
 clnt_stream.o: ../../include/attr.h
 clnt_stream.o: mail_params.h
 clnt_stream.o: clnt_stream.h
+db_common.o: db_common.c
+db_common.o: ../../include/sys_defs.h
+db_common.o: cfg_parser.h
+db_common.o: ../../include/mymalloc.h
+db_common.o: ../../include/vstring.h
+db_common.o: ../../include/vbuf.h
+db_common.o: ../../include/msg.h
+db_common.o: ../../include/dict.h
+db_common.o: ../../include/vstream.h
+db_common.o: ../../include/argv.h
+db_common.o: db_common.h
+db_common.o: string_list.h
+db_common.o: ../../include/match_list.h
+db_common.o: ../../include/match_ops.h
 debug_peer.o: debug_peer.c
 debug_peer.o: ../../include/sys_defs.h
 debug_peer.o: ../../include/msg.h
@@ -603,10 +617,59 @@ deliver_request.o: recipient_list.h
 deliver_request.o: deliver_request.h
 dict_ldap.o: dict_ldap.c
 dict_ldap.o: ../../include/sys_defs.h
+dict_ldap.o: ../../include/msg.h
+dict_ldap.o: ../../include/mymalloc.h
+dict_ldap.o: ../../include/vstring.h
+dict_ldap.o: ../../include/vbuf.h
+dict_ldap.o: ../../include/dict.h
+dict_ldap.o: ../../include/vstream.h
+dict_ldap.o: ../../include/argv.h
+dict_ldap.o: ../../include/stringops.h
+dict_ldap.o: ../../include/binhash.h
+dict_ldap.o: cfg_parser.h
+dict_ldap.o: db_common.h
+dict_ldap.o: string_list.h
+dict_ldap.o: ../../include/match_list.h
+dict_ldap.o: ../../include/match_ops.h
+dict_ldap.o: dict_ldap.h
 dict_mysql.o: dict_mysql.c
 dict_mysql.o: ../../include/sys_defs.h
+dict_mysql.o: ../../include/dict.h
+dict_mysql.o: ../../include/vstream.h
+dict_mysql.o: ../../include/vbuf.h
+dict_mysql.o: ../../include/argv.h
+dict_mysql.o: ../../include/msg.h
+dict_mysql.o: ../../include/mymalloc.h
+dict_mysql.o: ../../include/vstring.h
+dict_mysql.o: ../../include/split_at.h
+dict_mysql.o: ../../include/find_inet.h
+dict_mysql.o: ../../include/myrand.h
+dict_mysql.o: ../../include/events.h
+dict_mysql.o: cfg_parser.h
+dict_mysql.o: db_common.h
+dict_mysql.o: string_list.h
+dict_mysql.o: ../../include/match_list.h
+dict_mysql.o: ../../include/match_ops.h
+dict_mysql.o: dict_mysql.h
 dict_pgsql.o: dict_pgsql.c
 dict_pgsql.o: ../../include/sys_defs.h
+dict_pgsql.o: ../../include/dict.h
+dict_pgsql.o: ../../include/vstream.h
+dict_pgsql.o: ../../include/vbuf.h
+dict_pgsql.o: ../../include/argv.h
+dict_pgsql.o: ../../include/msg.h
+dict_pgsql.o: ../../include/mymalloc.h
+dict_pgsql.o: ../../include/vstring.h
+dict_pgsql.o: ../../include/split_at.h
+dict_pgsql.o: ../../include/find_inet.h
+dict_pgsql.o: ../../include/myrand.h
+dict_pgsql.o: ../../include/events.h
+dict_pgsql.o: cfg_parser.h
+dict_pgsql.o: db_common.h
+dict_pgsql.o: string_list.h
+dict_pgsql.o: ../../include/match_list.h
+dict_pgsql.o: ../../include/match_ops.h
+dict_pgsql.o: dict_pgsql.h
 dict_proxy.o: dict_proxy.c
 dict_proxy.o: ../../include/sys_defs.h
 dict_proxy.o: ../../include/msg.h
