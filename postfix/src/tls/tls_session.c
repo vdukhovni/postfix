@@ -113,7 +113,7 @@ void    tls_session_stop(SSL_CTX *ctx, VSTREAM *stream, int timeout,
     SSL_free(TLScontext->con);
 
     BIO_free(TLScontext->network_bio);
-    myfree((char *) TLScontext);
+    FREE_TLS_CONTEXT(TLScontext);
     tls_stream_stop(stream);
     SSL_CTX_flush_sessions(ctx, time(NULL));
 

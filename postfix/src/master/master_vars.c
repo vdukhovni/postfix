@@ -25,6 +25,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <string.h>
 #include <unistd.h>
 
 /* Utility library. */

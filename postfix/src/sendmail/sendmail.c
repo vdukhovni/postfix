@@ -447,7 +447,7 @@ typedef struct SM_STATE {
  /*
   * Mail submission ACL
   */
-static char *var_submit_acl;
+char   *var_submit_acl;
 
 static CONFIG_STR_TABLE str_table[] = {
     VAR_SUBMIT_ACL, DEF_SUBMIT_ACL, &var_submit_acl, 0, 0,

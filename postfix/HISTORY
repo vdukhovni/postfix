@@ -10405,17 +10405,50 @@ Apologies for any names omitted.
 	FROM: or CC: by From: or Cc:. Files: cleanup/cleanup_message.c,
 	smtp/smtp_proto.c.
 
+20050228
+
+	Cleanup/portability: missing #includes and bad prototypes.
+	Matthias Andree, Carsten Hoeger, and others.
+
+20050302
+
+	Workaround: make TLS session caching work with perverse
+	sites that have multiple servers per hostname or even
+	multiple servers per IP address, but no shared TLS session
+	cache. The SMTP client TLS session cache is now indexed by
+	(server hostname, server address, server port, server helo
+	hostname). After an idea by Victor Duchovni. Files:
+	smtp/smtp_proto.c, tls/tls_client.c.
+
+20050303
+
+	Bugfix (bug inherited from Postfix/TLS patch): a rare 9kbyte
+	memory leak when in-memory TLS session information expires;
+	found by setting the expiry time shorter than the time to
+	deliver one or two messages with a very slow machine.  This
+	was due to a missing SSL_SESSION_free() call in the "new
+	session" call-back routines. Found by Victor Duchovni.
+	Files: tls/tls_client.c, tls/tls_server.c.
+
+	Workaround: OpenSSL is overly agressive when purging a
+	not-yet expired entry from a full in-memory cache: it also
+	purges the entry from the on-disk server session cache.
+	Workaround is to let only the tlsmgr purge entries from the
+	on-disk server session cache.  Found by Victor Duchovni.
+	File: tls/tls_server.c.
+
+20050304
+
+	Postfix releases are now signed with Wietse's new PGP key.
+	The old key was getting a bit short for today's standards.
+	The new public key can be found on the Postfix download
+	webpage. As proof of authenticity the new PGP key is signed
+	with Wietse's old PGP key.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?
 	Introduce a better concept of original submission?
-
-	Low: 9kbyte memory leak when expired in-memory session
-	information is removed by SSL_CTX_flush_sessions(); found
-	by setting the expiry time shorter than the time to deliver
-	one or two messages. Postfix processes are short-lived,
-	and the occurrance of this leak is rare enough that it is
-	a low priority.
 
 	Low: configurable order of local(8) delivery methods.
 

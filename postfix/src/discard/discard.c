@@ -115,6 +115,7 @@
 #include <bounce.h>
 #include <deliver_completed.h>
 #include <flush_clnt.h>
+#include <sent.h>
 
 /* Single server skeleton. */
 

@@ -387,7 +387,7 @@ typedef struct {
 	    (remote)->rcpt = 0; \
 	    (remote)->newtls = 1; \
 	    (remote)->start = _now; \
-	} else if ((remote)->rcpt < INT_MAX) { \
+	} else if ((remote)->newtls < INT_MAX) { \
             (remote)->newtls += 1; \
 	} \
     } while(0)

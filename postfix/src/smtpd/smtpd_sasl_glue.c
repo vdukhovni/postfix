@@ -93,6 +93,7 @@
 #include <mymalloc.h>
 #include <namadr_list.h>
 #include <name_mask.h>
+#include <stringops.h>
 
 /* Global library. */
 

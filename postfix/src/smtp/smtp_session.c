@@ -96,6 +96,7 @@
 #include <sys_defs.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/in.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -118,6 +119,7 @@
 /* Application-specific. */
 
 #include "smtp.h"
+#include "smtp_sasl.h"
 
 #define STR(x) vstring_str(x)
 
@@ -211,6 +213,7 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
     session->host = mystrdup(host);
     session->addr = mystrdup(addr);
     session->namaddr = concatenate(host, "[", addr, "]", (char *) 0);
+    session->helo = 0;
     session->port = port;
     session->features = 0;
 
@@ -298,6 +301,8 @@ void    smtp_session_free(SMTP_SESSION *session)
     myfree(session->host);
     myfree(session->addr);
     myfree(session->namaddr);
+    if (session->helo)
+	myfree(session->helo);
 
     vstring_free(session->buffer);
     vstring_free(session->scratch);

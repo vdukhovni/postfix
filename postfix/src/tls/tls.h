@@ -52,6 +52,7 @@ typedef struct {
     SSL    *con;
     BIO    *internal_bio;		/* postfix/TLS side of pair */
     BIO    *network_bio;		/* network side of pair */
+    char   *serverid;			/* unique server identifier */
     char    peer_subject[CCERT_BUFSIZ];
     char    peer_issuer[CCERT_BUFSIZ];
     char    peer_CN[CCERT_BUFSIZ];
@@ -66,6 +67,18 @@ typedef struct {
 } TLScontext_t;
 
 #define TLS_BIO_BUFSIZE	8192
+
+#define NEW_TLS_CONTEXT(p) do { \
+	p = (TLScontext_t *) mymalloc(sizeof(*p)); \
+	memset((char *) p, 0, sizeof(*p)); \
+	p->serverid = 0; \
+    } while (0)
+    
+#define FREE_TLS_CONTEXT(p) do { \
+	if ((p)->serverid) \
+	    myfree((p)->serverid); \
+	myfree((char *) (p)); \
+    } while (0)
 
 typedef struct {
     int     peer_verified;
@@ -88,7 +101,8 @@ extern const tls_info_t tls_info_zero;
   */
 extern SSL_CTX *tls_client_init(int);
 extern TLScontext_t *tls_client_start(SSL_CTX *, VSTREAM *, int, int,
-				              const char *, tls_info_t *);
+				              const char *, const char *,
+				              tls_info_t *);
 
 #define tls_client_stop(ctx , stream, timeout, failure, tls_info) \
 	tls_session_stop((ctx), (stream), (timeout), (failure), (tls_info))
@@ -183,7 +197,6 @@ extern int tls_set_my_certificate_key_info(SSL_CTX *, const char *,
   * tls_misc.c
   */
 extern int TLScontext_index;
-extern int TLSpeername_index;
 
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
