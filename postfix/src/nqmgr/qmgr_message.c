@@ -726,9 +726,12 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * on the recipient delimiter if one is defined, but doing a proper
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
+	 * 
 	 * XXX The nexthop field is overloaded to serve as destination and as
 	 * queue name. Should have separate fields for queue name and for
-	 * destination.
+	 * destination, so that we don't have to make a special case for the
+	 * error delivery agent (where nexthop is arbitrary text). See also:
+	 * qmgr_deliver.c.
 	 */
 	at = strrchr(STR(reply.recipient), '@');
 	len = (at ? (at - STR(reply.recipient)) : strlen(STR(reply.recipient)));
@@ -743,7 +746,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		transport = qmgr_transport_create(STR(reply.transport));
 	    queue = 0;
 	}
-	if (transport->recipient_limit == 1) {
+	if (strcmp(transport->name, MAIL_SERVICE_ERROR) != 0
+	    && transport->recipient_limit == 1) {
 	    VSTRING_SPACE(reply.nexthop, len + 2);
 	    memmove(STR(reply.nexthop) + len + 1, STR(reply.nexthop),
 		    LEN(reply.nexthop) + 1);

@@ -22,7 +22,7 @@
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id,
 /*					encoding, orig_recipient,
-/*					recipient, dsn_status, 
+/*					recipient, dsn_status,
 /*					dsn_action, why)
 /*	const char *queue_name;
 /*	const char *queue_id;
@@ -552,6 +552,8 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 
 int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 {
+    char   *fixed_mail_name;
+
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "Final-Recipient: rfc822; %s",
 		      bounce_info->log_handle->recipient);
@@ -563,8 +565,12 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 		      "failed" : bounce_info->log_handle->dsn_action);
     post_mail_fprintf(bounce, "Status: %s",
 		      bounce_info->log_handle->dsn_status);
-    bounce_print_wrap(bounce, bounce_info, "Diagnostic-Code: X-Postfix; %s",
-		      bounce_info->log_handle->text);
+    /* RFC 1894: diagnostic-type is an RFC 822 atom. */
+    fixed_mail_name = mystrdup(var_mail_name);
+    translit(fixed_mail_name, " \t\r\n()<>@,;:\\\".[]", "-----------------");
+    bounce_print_wrap(bounce, bounce_info, "Diagnostic-Code: X-%s; %s",
+		      fixed_mail_name, bounce_info->log_handle->text);
+    myfree(fixed_mail_name);
 #if 0
     post_mail_fprintf(bounce, "Last-Attempt-Date: %s",
 		      bounce_info->log_handle->log_time);
