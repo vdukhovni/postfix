@@ -921,6 +921,8 @@ int     main(int argc, char **argv)
 		}
 	    } else if (optarg[0] == 'R') {
 		site_to_flush = optarg + 1;
+		if (*site_to_flush == 0)
+		    msg_fatal("specify: -qRsitename");
 	    } else {
 		msg_fatal("-q%c is not implemented", optarg[0]);
 	    }

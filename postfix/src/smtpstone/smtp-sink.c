@@ -5,10 +5,10 @@
 /*	multi-threaded SMTP/LMTP test server
 /* SYNOPSIS
 /* .fi
-/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR]
+/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-n \fIcount\fR] [\fB-w \fIdelay\fR]
 /*	[\fBinet:\fR][\fIhost\fR]:\fIport\fR \fIbacklog\fR
 /*
-/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-w \fIdelay\fR]
+/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-n \fIcount\fR] [\fB-w \fIdelay\fR]
 /*	\fBunix:\fR\fIpathname\fR \fIbacklog\fR
 /* DESCRIPTION
 /*	\fIsmtp-sink\fR listens on the named host (or address) and port.
@@ -18,17 +18,29 @@
 /*	Connections can be accepted on IPV4 endpoints or UNIX-domain sockets.
 /*	IPV4 is the default.
 /*	This program is the complement of the \fIsmtp-source\fR program.
-/* .IP -c
+/*
+/*	Arguments:
+/* .IP \fB-c\fR
 /*	Display a running counter that is updated whenever an SMTP
 /*	QUIT command is executed.
-/* .IP -L
+/* .IP \fB-L\fR
 /*	Speak LMTP rather than SMTP.
-/* .IP -p
+/* .IP "\fB-n \fIcount\fR"
+/*	Terminate after \fIcount\fR sessions. This is for memory leak
+/*	testing purposes.
+/* .IP \fB-p\fR
 /*	Disable ESMTP command pipelining.
-/* .IP -v
+/* .IP \fB-v\fR
 /*	Show the SMTP conversations.
-/* .IP "-w delay"
+/* .IP "\fB-w \fIdelay\fR"
 /*	Wait \fIdelay\fR seconds before responding to a DATA command.
+/* .IP [\fBinet:\fR][\fIhost\fR]:\fIport\fR
+/*	Listen on network interface \fIhost\fR (default: any interface)
+/*	TCP port \fIport\fR.
+/* .IP \fBunix:\fR\fIpathname\fR
+/*	Listen on the UNIX-domain socket at \fIpathname\fR.
+/* .IP \fIbacklog\fR
+/*	The maximum length the queue of pending connections.
 /* SEE ALSO
 /*	smtp-source, SMTP/LMTP test message generator
 /* LICENSE
@@ -98,6 +110,7 @@ static int data_read(SINK_STATE *);
 static void disconnect(SINK_STATE *);
 static int count;
 static int counter;
+static int max_count;
 static int disable_pipelining;
 static int fixed_delay;
 static int enable_lmtp;
@@ -396,6 +409,8 @@ static void disconnect(SINK_STATE *state)
     vstream_fclose(state->stream);
     vstring_free(state->buffer);
     myfree((char *) state);
+    if (counter >= max_count)
+	exit(0);
 }
 
 /* connect_event - handle connection events */
@@ -437,7 +452,7 @@ static void connect_event(int unused_event, char *context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-cLpv] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-cLpv] [-n count] [-w delay] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -454,13 +469,16 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "cLpvw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "cLn:pvw:")) > 0) {
 	switch (ch) {
 	case 'c':
 	    count++;
 	    break;
 	case 'L':
 	    enable_lmtp = 1;
+	    break;
+	case 'n':
+	    max_count = atoi(optarg);
 	    break;
 	case 'p':
 	    disable_pipelining = 1;

@@ -47,7 +47,8 @@
 /*	The "fast flush" server rejected the request (invalid request
 /*	parameter).
 /* .IP MAIL_FLUSH_DENY
-/*	The specified domain is not eligible for "fast flush" service.
+/*	The specified domain is not eligible for "fast flush" service,
+/*	or the "fast flush" service is disabled.
 /* SEE ALSO
 /*	flush(8) Postfix fast flush cache manager
 /* LICENSE

@@ -146,7 +146,7 @@
 /*	without being told that the server implements SMTP command pipelining.
 /* .IP permit_mx_backup
 /*	Allow the request when all primary MX hosts for the recipient
-/*	are in the networks specified with the $auth_mx_backup_networks
+/*	are in the networks specified with the $permit_mx_backup_networks
 /*	configuration parameter, or when the local system is the final
 /*	destination.
 /* .IP restriction_classes
@@ -1022,7 +1022,7 @@ static int reject_unauth_pipelining(SMTPD_STATE *state)
     return (SMTPD_CHECK_DUNNO);
 }
 
-/* all_auth_mx_addr - match host addresses against auth_mx_backup_networks */
+/* all_auth_mx_addr - match host addresses against permit_mx_backup_networks */
 
 static int all_auth_mx_addr(char *host)
 {
@@ -1043,7 +1043,7 @@ static int all_auth_mx_addr(char *host)
 #define TRYAGAIN       2
 
     /*
-     * Verify that all host addresses are within auth_mx_backup_networks.
+     * Verify that all host addresses are within permit_mx_backup_networks.
      */
     dns_status = dns_lookup(host, T_A, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status != DNS_OK)
@@ -1051,7 +1051,8 @@ static int all_auth_mx_addr(char *host)
 
     for (rr = addr_list; rr != 0; rr = rr->next) {
 	if (rr->data_len > sizeof(addr)) {
-	    msg_warn("skipping address length %d", rr->data_len);
+	    msg_warn("skipping address length %d for host %s",
+		     rr->data_len, host);
 	    continue;
 	}
 	memcpy((char *) &addr, rr->data, sizeof(addr));
@@ -1062,11 +1063,11 @@ static int all_auth_mx_addr(char *host)
 
 	    /*
 	     * Reject: at least one IP address is not listed in
-	     * auth_mx_backup_networks.
+	     * permit_mx_backup_networks.
 	     */
 	    if (msg_verbose)
-		msg_info("%s: address %s does not match %s",
-			 myname, inet_ntoa(addr), VAR_PERM_MX_NETWORKS);
+		msg_info("%s: address %s for %s does not match %s",
+		       myname, inet_ntoa(addr), host, VAR_PERM_MX_NETWORKS);
 	    dns_rr_free(addr_list);
 	    return (NOPE);
 	}
@@ -1183,7 +1184,7 @@ static int permit_mx_primary(DNS_RR *mx_list)
 
     /*
      * All IP addresses of the best MX hosts are within
-     * auth_mx_backup_networks.
+     * permit_mx_backup_networks.
      */
     return (YUP);
 }

@@ -161,6 +161,8 @@ int     main(int argc, char **argv)
     /*
      * Initialize.
      */
+#define UPDATE(dst, src) { myfree(dst); dst = mystrdup(src); }
+
     mail_conf_read();
     msg_verbose = 1;
     if (chdir(var_queue_dir) < 0)
@@ -168,14 +170,14 @@ int     main(int argc, char **argv)
     path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	msg_info("=== Address extension on, extension propagation on ===");
-	var_rcpt_delim = "+";
+	UPDATE(var_rcpt_delim, "+");
 	if ((result = mail_addr_map(path, STR(buffer), 1)) != 0)
 	    argv_free(result);
 	msg_info("=== Address extension on, extension propagation off ===");
 	if ((result = mail_addr_map(path, STR(buffer), 0)) != 0)
 	    argv_free(result);
 	msg_info("=== Address extension off ===");
-	var_rcpt_delim = "";
+	UPDATE(var_rcpt_delim, "");
 	if ((result = mail_addr_map(path, STR(buffer), 1)) != 0)
 	    argv_free(result);
     }
