@@ -27,6 +27,8 @@
 /*	In violation with RFCs, treat 8-bit text as ordinary text.
 /* .IP QUOTE_FLAG_EXPOSE_AT
 /*	In violation with RFCs, treat `@' as an ordinary character.
+/* .IP QUOTE_FLAG_APPEND
+/*	Append to the result buffer, instead of overwriting it.
 /* .RE
 /* STANDARDS
 /*	RFC 821 (SMTP protocol)
@@ -100,7 +102,8 @@ static int is_821_dot_string(char *local_part, char *end, int flags)
 
 /* make_821_quoted_string - make quoted-string from local-part */
 
-static VSTRING *make_821_quoted_string(VSTRING *dst, char *local_part, char *end)
+static VSTRING *make_821_quoted_string(VSTRING *dst, char *local_part,
+				               char *end, int flags)
 {
     char   *cp;
     int     ch;
@@ -109,10 +112,10 @@ static VSTRING *make_821_quoted_string(VSTRING *dst, char *local_part, char *end
      * Put quotes around the result, and prepend a backslash to characters
      * that need quoting when they occur in a quoted-string.
      */
-    VSTRING_RESET(dst);
     VSTRING_ADDCH(dst, '"');
     for (cp = local_part; cp < end && (ch = *cp) != 0; cp++) {
-	if (ch > 127 || ch == '\r' || ch == '\n' || ch == '"' || ch == '\\')
+	if ((ch > 127 && !(flags & QUOTE_FLAG_8BITCLEAN))
+	    || ch == '\r' || ch == '\n' || ch == '"' || ch == '\\')
 	    VSTRING_ADDCH(dst, '\\');
 	VSTRING_ADDCH(dst, ch);
     }
@@ -134,10 +137,12 @@ VSTRING *quote_821_local(VSTRING *dst, char *addr, int flags)
      */
     if ((at = strrchr(addr, '@')) == 0)		/* just in case */
 	at = addr + strlen(addr);		/* should not happen */
+    if ((flags & QUOTE_FLAG_APPEND) == 0)
+	VSTRING_RESET(dst);
     if (is_821_dot_string(addr, at, flags)) {
-	return (vstring_strcpy(dst, addr));
+	return (vstring_strcat(dst, addr));
     } else {
-	make_821_quoted_string(dst, addr, at);
+	make_821_quoted_string(dst, addr, at, flags & QUOTE_FLAG_8BITCLEAN);
 	return (vstring_strcat(dst, at));
     }
 }
@@ -152,14 +157,15 @@ VSTRING *quote_821_local(VSTRING *dst, char *addr, int flags)
 #include <vstring_vstream.h>
 #include "quote_821_local.h"
 
-main(void)
+int     main(void)
 {
     VSTRING *src = vstring_alloc(100);
     VSTRING *dst = vstring_alloc(100);
 
     while (vstring_fgets_nonl(src, VSTREAM_IN)) {
 	vstream_fprintf(VSTREAM_OUT, "%s\n",
-			vstring_str(quote_821_local(dst, vstring_str(src))));
+			vstring_str(quote_821_local(dst, vstring_str(src),
+						    QUOTE_FLAG_8BITCLEAN)));
 	vstream_fflush(VSTREAM_OUT);
     }
     exit(0);

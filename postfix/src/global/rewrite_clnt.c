@@ -197,7 +197,7 @@ static void rewrite(char *rule, char *addr, VSTRING *reply)
     vstream_fflush(VSTREAM_OUT);
 }
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     VSTRING *reply;
     int     ch;

@@ -12,6 +12,30 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.9-20020509
+=========================================================
+
+The Postfix SMTP server no longer honors OK access rules for
+user@domain@postfix-style.virtual.domain, to close a relaying
+loophole with postfix-style virtual domains that have @domain.name
+catch-all patterns.
+
+The appearance of user@domain1@domain2 addresses has changed.  In
+mail headers, such addresses are now properly quoted as
+"user@domain1"@domain2. This quoted form is now also expected on
+the left-hand side of virtual and canonical lookup tables, but only
+by some of the Postfix components. For now, it is better not to
+use user@domain1@domain2 address forms on the left-hand side of
+lookup tables.
+
+Incompatible changes with Postfix snapshot 1.1.8-20020508
+=========================================================
+
+The Postfix SMTP server by default no longer accepts mail for
+user@domain@postfix-style.virtual.domain, to close a relaying
+loophole with postfix-style virtual domains that have @domain.name
+catch-all patterns.
+
 Incompatible changes with Postfix snapshot 1.1.8-20020505
 =========================================================
 

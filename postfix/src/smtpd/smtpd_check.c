@@ -1760,16 +1760,15 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 	{ if (bare_addr) myfree(bare_addr); return(x); }
 
     /*
-     * Source-routed, non-local, recipient addresses are too suspicious for
-     * returning an "OK" result. The complicated expression below was brought
-     * to you by the keyboard of Victor Duchovni, Morgan Stanley and hacked
-     * up a bit by Wietse.
+     * Source-routed (non-local or virtual) recipient addresses are too
+     * suspicious for returning an "OK" result. The complicated expression
+     * below was brought to you by the keyboard of Victor Duchovni, Morgan
+     * Stanley and hacked up a bit by Wietse.
      */
 #define SUSPICIOUS(domain, reply, state, reply_name, reply_class) \
 	(var_allow_untrust_route == 0 \
 	&& (reply->flags & RESOLVE_FLAG_ROUTED) \
-	&& strcmp(reply_class, SMTPD_NAME_RECIPIENT) == 0 \
-	&& !resolve_final(state, reply_name, domain))
+	&& strcmp(reply_class, SMTPD_NAME_RECIPIENT) == 0)
 
     /*
      * Look up user+foo@domain if the address has an extension, user@domain

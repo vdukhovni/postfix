@@ -13,6 +13,7 @@
   */
 #define QUOTE_FLAG_8BITCLEAN	(1<<0)	/* be 8-bit clean */
 #define QUOTE_FLAG_EXPOSE_AT	(1<<1)	/* @ is ordinary text */
+#define QUOTE_FLAG_APPEND	(1<<2)	/* append, not overwrite */
 
 /* LICENSE
 /* .ad

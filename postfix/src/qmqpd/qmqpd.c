@@ -339,7 +339,7 @@ static void qmqpd_write_content(QMQPD_STATE *state)
 		    "\tid %s; %s", state->queue_id, mail_date(state->time));
     }
 #ifdef RECEIVED_ENVELOPE_FROM
-    quote_822_local(state->buf, state->sender);
+    quote_822_local(state->buf, state->sender, QUOTE_FLAG_8BITCLEAN);
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"\t(envelope-from <%s>)", STR(state->buf));
 #endif

@@ -6353,9 +6353,10 @@ Apologies for any names omitted.
 
 20020508
 
-	Bugfix: close an obscure source routing relaying loophole
-	involving postfix-style virtual domains. Problem reported
-	by Victor Duchovny. File: smtpd/smtpd_check.c.
+	Bugfix: close user@domain@postfix-style.virtual.domain
+	source routing relaying loophole involving postfix-style
+	virtual domains with @virtual.domain catch-all patterns.
+	Problem reported by Victor Duchovny. File:  smtpd/smtpd_check.c.
 
 	Bugfix: mail_addr_map() used the "wrong" @ character in
 	addresses with multiple @. Victor Duchovny. File:
@@ -6367,7 +6368,30 @@ Apologies for any names omitted.
 	not even in SMTP commands.  Files:  global/quote_82[12]_local.c
 	and clients.
 
+20020509
+
+	Safety: don't allow an OK access rule lookup result for
+	user@domain@postfix-style.virtual.domain. Suggested by
+	Victor Duchovny, Morgan Stanley. File: smtpd/smtpd_check.c.
+
+	Bugfix: quote unquoted address localparts that need quoting.
+	Files: global/tok822_parse.c, global/quote_82[12]_local.c.
+
+	Documentation: simplified the advanced content filtering
+	example, and included a more advanced example for those
+	who want to squeeze out more performance without running
+	multiple Postfix instances.  Text by Victor Duchovny, Morgan
+	Stanley. File:  README_FILES/FILTER_README.
+
 Open problems:
+
+	Low: smtpd should reply with the original recipient address,
+	or it should at least externalize it.
+
+	Low: all table lookups should consistently use internalized
+	(unquoted) or externalized (quoted) forms as lookup keys.
+	smtpd, qmgr, local, etc. use internalized forms as keys.
+	cleanup uses externalized forms.
 
 	Low: sendmail does not store null command-line recipients.
 

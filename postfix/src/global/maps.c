@@ -217,7 +217,7 @@ MAPS   *maps_free(MAPS *maps)
 #include <vstream.h>
 #include <vstring_vstream.h>
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     VSTRING *buf = vstring_alloc(100);
     MAPS   *maps;

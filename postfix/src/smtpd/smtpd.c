@@ -312,6 +312,7 @@
 #include <tok822.h>
 #include <verp_sender.h>
 #include <string_list.h>
+#include <quote_822_local.h>
 
 /* Single-threaded server skeleton. */
 
@@ -939,9 +940,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\tby %s (%s) with %s id %s",
 		    var_myhostname, var_mail_name,
 		    state->protocol, state->queue_id);
-	/* XXX Should RFC 822 externalize recipient address */
+	quote_822_local(state->buffer, state->recipient, QUOTE_FLAG_8BITCLEAN);
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		"\tfor <%s>; %s", state->recipient, mail_date(state->time));
+		"\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
     } else {
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		    "\tby %s (%s) with %s",
@@ -950,9 +951,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\tid %s; %s", state->queue_id, mail_date(state->time));
     }
 #ifdef RECEIVED_ENVELOPE_FROM
-    /* XXX Should RFC 822 externalize sender address */
+    quote_822_local(state->buffer, state->sender, QUOTE_FLAG_8BITCLEAN);
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		"\t(envelope-from %s)", state->sender);
+		"\t(envelope-from %s)", STR(state->buffer));
 #endif
     smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
 

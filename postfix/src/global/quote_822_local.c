@@ -35,6 +35,8 @@
 /*	In violation with RFCs, treat 8-bit text as ordinary text.
 /* .IP QUOTE_FLAG_EXPOSE_AT
 /*	In violation with RFCs, treat `@' as an ordinary character.
+/* .IP QUOTE_FLAG_APPEND
+/*	Append to the result buffer, instead of overwriting it.
 /* .RE
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
@@ -114,7 +116,7 @@ static int is_822_dot_string(const char *local_part, const char *end, int flags)
 /* make_822_quoted_string - make quoted-string from local-part */
 
 static VSTRING *make_822_quoted_string(VSTRING *dst, const char *local_part,
-					         const char *end)
+				               const char *end, int flags)
 {
     const char *cp;
     int     ch;
@@ -125,7 +127,8 @@ static VSTRING *make_822_quoted_string(VSTRING *dst, const char *local_part,
      */
     VSTRING_ADDCH(dst, '"');
     for (cp = local_part; cp < end && (ch = *cp) != 0; cp++) {
-	if ( /* ch > 127 || */ ch == '"' || ch == '\\' || ch == '\r')
+	if ((ch > 127 && !(flags & QUOTE_FLAG_8BITCLEAN))
+	    || ch == '"' || ch == '\\' || ch == '\r')
 	    VSTRING_ADDCH(dst, '\\');
 	VSTRING_ADDCH(dst, ch);
     }
@@ -153,11 +156,13 @@ VSTRING *quote_822_local(VSTRING *dst, const char *mbox, int flags)
 	start = mbox;
     if ((end = strrchr(start, '@')) == 0)
 	end = start + strlen(start);
+    if ((flags & QUOTE_FLAG_APPEND) == 0)
+	VSTRING_RESET(dst);
     if (is_822_dot_string(start, end, flags)) {
-	return (vstring_strcpy(dst, mbox));
+	return (vstring_strcat(dst, mbox));
     } else {
-	vstring_strncpy(dst, mbox, start - mbox);
-	make_822_quoted_string(dst, start, end);
+	vstring_strncat(dst, mbox, start - mbox);
+	make_822_quoted_string(dst, start, end, flags & QUOTE_FLAG_8BITCLEAN);
 	return (vstring_strcat(dst, end));
     }
 }
@@ -215,7 +220,7 @@ int     main(int unused_argc, char **unused_argv)
     VSTRING *unquoted = vstring_alloc(100);
 
     while (vstring_fgets_nonl(raw, VSTREAM_IN)) {
-	quote_822_local(quoted, STR(raw));
+	quote_822_local(quoted, STR(raw), QUOTE_FLAG_8BITCLEAN);
 	vstream_printf("quoted:		%s\n", STR(quoted));
 	unquote_822_local(unquoted, STR(quoted));
 	vstream_printf("unquoted:	%s\n", STR(unquoted));

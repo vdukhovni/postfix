@@ -230,7 +230,7 @@ static void resolve(char *addr, RESOLVE_REPLY *reply)
     vstream_fflush(VSTREAM_OUT);
 }
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     RESOLVE_REPLY reply;
     int     ch;

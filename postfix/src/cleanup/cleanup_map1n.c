@@ -10,6 +10,7 @@
 /*	char	*addr;
 /* DESCRIPTION
 /*	This module implements one-to-many table mapping via table lookup.
+/*	Table lookups are done with quoted (externalized) address forms.
 /*	The process is recursive. The recursion terminates when the
 /*	left-hand side appears in its own expansion, or when a maximal
 /*	nesting level is reached.
