@@ -8419,6 +8419,12 @@ Apologies for any names omitted.
 	and dict_mysql modules. These maps must be opened in
 	read-only mode.
 
+20030804
+
+	Bugfix: the 20030712 safety against invalid DNS results
+	was broken. Reported by Ralf Hildebrandt. File:
+	dns/dns_lookup.c.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

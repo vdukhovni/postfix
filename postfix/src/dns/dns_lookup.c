@@ -547,10 +547,6 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 				"Malformed name server reply",
 				name, dns_strtype(type));
 	case DNS_OK:
-	    /* Don't return DNS_OK when all results are censored away. */
-	    if (rrlist && *rrlist == 0)
-		msg_panic("dns_lookup: name=%s type=%s: success but no data",
-			  name, dns_strtype(type));
 	case DNS_NOTFOUND:
 	    return (status);
 	case DNS_RECURSE:
