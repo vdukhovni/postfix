@@ -144,7 +144,6 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
     int     name_len = strlen(name);
     struct dict_pcre_context ctxt;
     static VSTRING *buf;
-    char   *at;
 
     dict_errno = 0;
 

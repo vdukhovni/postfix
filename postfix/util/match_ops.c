@@ -86,7 +86,7 @@ int     match_string(const char *string, const char *pattern)
      */
     if (strchr(pattern, ':') != 0) {
 	key = lowercase(mystrdup(string));
-	match = (dict_lookup(pattern, string) != 0);
+	match = (dict_lookup(pattern, key) != 0);
 	myfree(key);
 	if (match != 0)
 	    return (1);

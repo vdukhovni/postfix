@@ -308,7 +308,6 @@ static void multi_server_accept_inet(int unused_event, char *context)
     int     listen_fd = (int) context;
     int     time_left = -1;
     int     fd;
-    VSTREAM *stream;
 
     /*
      * Some buggy systems cause Postfix to lock up.

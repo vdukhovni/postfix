@@ -7,6 +7,12 @@
 #
 always_bcc =
 
+# The daemon_timeout parameter specifies how much time a daemon may
+# take to handle a request before it assumes it is wedged and commits
+# suicide.
+#
+daemon_timeout = 18000
+
 # The default_database_type parameter specifies the default database
 # type to use in postalias(1) and postmap(1) commands. On many UNIX
 # systems the default type is either `dbm' or `hash'. The default is

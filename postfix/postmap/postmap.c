@@ -47,6 +47,8 @@
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
+/* .IP \f\B-w\fR
+/*	Do not warn about duplicate entries; silently ignore them.
 /* .PP
 /*	Arguments:
 /* .IP \fIfile_type\fR

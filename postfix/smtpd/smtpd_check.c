@@ -925,12 +925,12 @@ static int check_domain_access(SMTPD_STATE *state, char *table,
     for (name = low_domain; (next = strchr(name, '.')) != 0; name = next + 1) {
 	if ((dict = dict_handle(table)) == 0)
 	    msg_panic("%s: dictionary not found: %s", myname, table);
-	if (flags != 0 && (flags & dict->flags) == 0)
-	    continue;
-	if ((value = dict_get(dict, name)) != 0)
-	    CHK_DOMAIN_RETURN(check_table_result(state, table, value, domain));
-	if (dict_errno != 0)
-	    msg_fatal("%s: table lookup problem", table);
+	if (flags == 0 || (flags & dict->flags) != 0) {
+	    if ((value = dict_get(dict, name)) != 0)
+		CHK_DOMAIN_RETURN(check_table_result(state, table, value, domain));
+	    if (dict_errno != 0)
+		msg_fatal("%s: table lookup problem", table);
+	}
 	flags = PARTIAL;
     }
     CHK_DOMAIN_RETURN(SMTPD_CHECK_DUNNO);
@@ -957,12 +957,12 @@ static int check_addr_access(SMTPD_STATE *state, char *table, char *address,
     do {
 	if ((dict = dict_handle(table)) == 0)
 	    msg_panic("%s: dictionary not found: %s", myname, table);
-	if (flags != 0 && (flags & dict->flags) == 0)
-	    continue;
-	if ((value = dict_get(dict, addr)) != 0)
-	    return (check_table_result(state, table, value, address));
-	if (dict_errno != 0)
-	    msg_fatal("%s: table lookup problem", table);
+	if (flags == 0 || (flags & dict->flags) != 0) {
+	    if ((value = dict_get(dict, addr)) != 0)
+		return (check_table_result(state, table, value, address));
+	    if (dict_errno != 0)
+		msg_fatal("%s: table lookup problem", table);
+	}
 	flags = PARTIAL;
     } while (split_at_right(addr, '.'));
 

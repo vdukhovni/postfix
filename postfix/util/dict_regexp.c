@@ -136,7 +136,6 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
     DICT_REGEXP_RULE *rule;
     struct dict_regexp_context ctxt;
     static VSTRING *buf;
-    char   *at;
     int     error;
 
     dict_errno = 0;

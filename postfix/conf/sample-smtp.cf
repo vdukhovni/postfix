@@ -59,7 +59,8 @@ smtp_destination_recipient_limit = $default_destination_recipient_limit
 # TIMEOUT CONTROLS
 #
 # Note: if you set SMTP timeouts to large values you must update the
-# global ipc_timeout parameter as well. See sample-misc.cf for details.
+# global ipc_timeout and daemon_timeout parameters as well. See
+# sample-misc.cf for details.
 #
 
 # The smtp_connect_timeout parameter specifies the SMTP client

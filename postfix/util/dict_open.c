@@ -49,14 +49,14 @@
 /*	support duplicate keys. The default is to terminate with a fatal
 /*	error.
 /* .IP DICT_FLAG_TRY0NULL
-/*      With maps where this is appropriate, append no null byte to
+/*	With maps where this is appropriate, append no null byte to
 /*	keys and values.
 /*	When neither DICT_FLAG_TRY0NULL nor DICT_FLAG_TRY1NULL are
 /*	specified, the software guesses what format to use for reading;
 /*	and in the absence of definite information, a system-dependent
 /*	default is chosen for writing.
 /* .IP DICT_FLAG_TRY1NULL
-/*      With maps where this is appropriate, append one null byte to
+/*	With maps where this is appropriate, append one null byte to
 /*	keys and values.
 /*	When neither DICT_FLAG_TRY0NULL nor DICT_FLAG_TRY1NULL are
 /*	specified, the software guesses what format to use for reading;
@@ -268,6 +268,7 @@ void    dict_open_register(const char *type,
 
 #include <stdlib.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 /* Utility library. */
 

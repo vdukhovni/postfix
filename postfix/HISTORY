@@ -2461,7 +2461,9 @@ Apologies for any names omitted.
 	and appending null bytes to key/value. The latter was needed
 	for a clean implementation of NIS master alias maps support.
 
-	Feature: POSIX regular expressions by Lamont Jones.
+	Feature: POSIX regular expressions by Lamont Jones. See
+	config/sample-regexp.c. Right now, enabled on *BSD and
+	LINUX only.
 
 19990328
 
@@ -2492,6 +2494,12 @@ Apologies for any names omitted.
 
 	Feature: new dictionary types can be registered with
 	dict_open_register(). File: util/dict_open.c.
+
+1990330
+
+	Bug fix: match_list membership dictionary lookups were case
+	sensitive when they should not. Patch by Lutz Jaenicke,
+	BTU Cottbus, Germany.
 
 Future:
 

@@ -130,6 +130,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     uid_t   alias_uid;
     struct mypasswd *alias_pwd;
     VSTRING *canon_owner;
+    DICT   *dict;
 
     /*
      * Make verbose logging easier to understand.
@@ -185,9 +186,17 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * With aliases that have an owner- alias, the latter is used to set the
      * sender and owner attributes. Otherwise, the owner attribute is reset
      * (the alias is globally visible and could be sent to by anyone).
+     * 
+     * Don't match aliases that are based on regexps.
      */
     for (cpp = maps->argv->argv; *cpp; cpp++) {
-	if ((alias_result = dict_lookup(*cpp, state.msg_attr.local)) != 0) {
+	if ((dict = dict_handle(*cpp)) == 0)
+	    msg_panic("%s: dictionary not found: %s", myname, *cpp);
+	if ((dict->flags & DICT_FLAG_FIXED) == 0) {
+	    msg_warn("invalid alias map type: %s", *cpp);
+	    continue;
+	}
+	if ((alias_result = dict_get(dict, state.msg_attr.local)) != 0) {
 	    if (msg_verbose)
 		msg_info("%s: %s: %s = %s", myname, *cpp,
 			 state.msg_attr.local, alias_result);
@@ -228,6 +237,8 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	     * Use the owner- alias if one is specified, otherwise reset the
 	     * owner attribute and use the include file ownership if we can.
 	     * Save the dict_lookup() result before something clobbers it.
+	     * 
+	     * Don't match aliases that are based on regexps.
 	     */
 #define STR(x)	vstring_str(x)
 #define OWNER_ASSIGN(own) \
@@ -235,7 +246,8 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	    concatenate("owner-", state.msg_attr.local, (char *) 0)))
 
 	    expansion = mystrdup(alias_result);
-	    if (OWNER_ASSIGN(owner) != 0 && maps_find(maps, owner, 0)) {
+	    if (OWNER_ASSIGN(owner) != 0 && maps_find(maps, owner,
+						      DICT_FLAG_FIXED)) {
 		canon_owner = canon_addr_internal(vstring_alloc(10), owner);
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {

@@ -65,7 +65,6 @@
 typedef struct {
     DICT    dict;			/* generic members */
     char   *map;			/* NIS map name */
-    int     flags;			/* see below */
 } DICT_NIS;
 
  /*
@@ -154,12 +153,12 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      * See if this NIS map was written with one null byte appended to key and
      * value.
      */
-    if (dict_nis->flags & DICT_FLAG_TRY1NULL) {
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
 	err = yp_match(dict_nis_domain, dict_nis->map,
 		       (void *) key, strlen(key) + 1,
 		       &result, &result_len);
 	if (err == 0) {
-	    dict_nis->flags &= ~DICT_FLAG_TRY0NULL;
+	    dict->flags &= ~DICT_FLAG_TRY0NULL;
 	    return (result);
 	}
     }
@@ -168,12 +167,12 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      * See if this NIS map was written with no null byte appended to key and
      * value. This should never be the case, but better play safe.
      */
-    if (dict_nis->flags & DICT_FLAG_TRY0NULL) {
+    if (dict->flags & DICT_FLAG_TRY0NULL) {
 	err = yp_match(dict_nis_domain, dict_nis->map,
 		       (void *) key, strlen(key),
 		       &result, &result_len);
 	if (err == 0) {
-	    dict_nis->flags &= ~DICT_FLAG_TRY1NULL;
+	    dict->flags &= ~DICT_FLAG_TRY1NULL;
 	    if (buf == 0)
 		buf = vstring_alloc(10);
 	    vstring_strncpy(buf, result, result_len);

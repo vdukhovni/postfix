@@ -267,6 +267,5 @@ DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
 
     return (dict_db_open(path, open_flags, DB_BTREE, (void *) &tweak, dict_flags));
 }
-/**INDENT** Error@188: Unmatched #endif */
 
 #endif
