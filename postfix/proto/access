@@ -110,6 +110,10 @@
 #	the \fBpostsuper\fR(1) command.
 # .IP \fBDISCARD\fR
 #	Claim successful delivery and silently discard the message.
+# .IP "\fBFILTER \fItransport:destination\fR"
+#	After the message is queued, send the entire message through
+#       a content filter.  More information about content filters
+#	is in the Postfix FILTER_README file.
 # .IP \fIrestriction...\fR
 #	Apply the named UCE restriction(s) (\fBpermit\fR, \fBreject\fR,
 #	\fBreject_unauth_destination\fR, and so on).

@@ -302,6 +302,8 @@ static int dict_db_delete(DICT *dict, const char *name)
     int     status = 1;
     int     flags = 0;
 
+    memset(&db_key, 0, sizeof(db_key));
+
     /*
      * Acquire an exclusive lock.
      */

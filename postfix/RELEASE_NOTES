@@ -12,6 +12,21 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Major changes with Postfix snapshot 1.1.11-20020823
+===================================================
+
+More sophisticated handling of UCE-related DNS lookup errors.
+These cause Postfix to not give up so easily, so that some deliveries
+will not have to be deferred after all.  This affects the following
+restrictions:  permit_mx_backup (defer the request if any subsequent
+restriction would cause the request to be rejected, accept the
+request if any subsequent restriction would cause the request to
+be accepted); reject_unknown_hostname, reject_unknown_sender_domain
+and reject_unknown_recipient_domain (defer the request if any
+subsequent restriction would cause the request to be accepted,
+reject the request if any subsequent restriction would cause the
+request to be rejected).
+
 Incompatible changes with Postfix snapshot 1.1.11-20020819
 ==========================================================
 
@@ -38,7 +53,7 @@ rather than $myhostname. This seems to work better with Cyrus SASL
 version 2. This change may cause incompatibility with the saslpasswd2
 command.
 
-Major changes with Postfix snapshot 1.1.11-20020818
+Major changes with Postfix snapshot 1.1.11-20020819
 ===================================================
 
 When the Postfix local delivery agent detects a mail delivery loop

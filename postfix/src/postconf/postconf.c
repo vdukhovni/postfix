@@ -101,6 +101,11 @@
 /*	options make the software increasingly verbose.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
+/* ENVIRONMENT
+/* .ad
+/* .fi
+/* .IP \fBMAIL_CONFIG\fR
+/*	Directory with Postfix configuration files.
 /* LICENSE
 /* .ad
 /* .fi

@@ -6867,6 +6867,27 @@ Apologies for any names omitted.
 	Patches by Will Day, Georgia Tech, and Carsten Hoeger,
 	SUSE.  File: util/dict_ldap.c.
 
+20020823
+
+	Bugfix: added a missing memset() call to wipe the lookup
+	key in dict_db_delete(). This is needed by some Berkeley
+	DB implementations. Patch by Katsu Yamamoto, Fujitsu.
+
+	Bugfix: when permit_mx_backup is unable to make a decision
+	due to DNS problems, set the "defer if reject" flag so that
+	other restrictions will not cause mail to be rejected.
+	File: smtpd/smtpd_check.c.
+
+	Feature: instead of giving up immediately after DNS failure,
+	turn on the "defer_if_permit" flag when reject_unknown_hostname,
+	reject_unknown_sender_domain or reject_unknown_recipient_domain
+	are unable to make a decision, and see if any subsequent
+	restrictions would still cause the mail to be rejected.
+	File:  smtpd/smtpd_check.c.
+
+	Feature: "FILTER transport:nexthop" is now also available
+	in SMTPD access tables.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard
