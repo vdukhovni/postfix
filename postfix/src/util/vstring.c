@@ -67,6 +67,16 @@
 /*	const char *src;
 /*	int	len;
 /*
+/*	VSTRING	*vstring_memcpy(vp, src, len)
+/*	VSTRING	*vp;
+/*	const char *src;
+/*	int	len;
+/*
+/*	VSTRING	*vstring_memcat(vp, src, len)
+/*	VSTRING	*vp;
+/*	const char *src;
+/*	int	len;
+/*
 /*	VSTRING	*vstring_sprintf(vp, format, ...)
 /*	VSTRING	*vp;
 /*	const char *format;
@@ -173,6 +183,14 @@
 /*
 /*	vstring_strncat() copies at most \fIlen\fR characters. Otherwise it is
 /*	identical to vstring_strcat().
+/*
+/*	vstring_memcpy() copies \fIlen\fR bytes to a variable-length string.
+/*	\fIsrc\fP provides the data to be copied; \fIvp\fP is the
+/*	target and result value.  The result is not null-terminated.
+/*
+/*	vstring_memcat() appends \fIlen\fR bytes to a variable-length string.
+/*	\fIsrc\fP provides the data to be copied; \fIvp\fP is the
+/*	target and result value.  The result is not null-terminated.
 /*
 /*	vstring_sprintf() produces a formatted string according to its
 /*	\fIformat\fR argument. See vstring_vsprintf() for details.
@@ -389,6 +407,29 @@ VSTRING *vstring_strncat(VSTRING *vp, const char *src, int len)
 	src++;
     }
     VSTRING_TERMINATE(vp);
+    return (vp);
+}
+
+/* vstring_memcpy - copy buffer of limited length */
+
+VSTRING *vstring_memcpy(VSTRING *vp, const char *src, int len)
+{
+    VSTRING_RESET(vp);
+
+    VSTRING_SPACE(vp, len);
+    memcpy(vstring_str(vp), src, len);
+    VSTRING_AT_OFFSET(vp, len);
+    return (vp);
+}
+
+/* vstring_memcat - append buffer of limited length */
+
+VSTRING *vstring_memcat(VSTRING *vp, const char *src, int len)
+{
+    VSTRING_SPACE(vp, len);
+    memcpy(vstring_end(vp), src, len);
+    len += VSTRING_LEN(vp);
+    VSTRING_AT_OFFSET(vp, len);
     return (vp);
 }
 

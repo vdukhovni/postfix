@@ -505,7 +505,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		     */
 		case SMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
-#ifndef notRFC821_SYNTAX
+#ifdef notdef
 			if (resp->code == 552)
 			    resp->code = 452;
 #endif
@@ -642,6 +642,8 @@ int     smtp_xfer(SMTP_STATE *state)
 		if (prev_type != REC_TYPE_CONT)
 		    if (vstring_str(state->scratch)[0] == '.')
 			smtp_fputc('.', session->stream);
+		if (var_smtp_break_lines)
+		    rec_type = REC_TYPE_NORM;
 		if (rec_type == REC_TYPE_CONT)
 		    smtp_fwrite(vstring_str(state->scratch),
 				VSTRING_LEN(state->scratch),

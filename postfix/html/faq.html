@@ -94,6 +94,12 @@ domains with "relay access denied"</a>
 <li><a href="#broken_transport">Mail delivery fails with: "unknown
 mail transport error"</a>
 
+<li><a href="#msql_limit">Too many connections</a>
+
+<li><a href="#reiser_bugs">write queue file: No such file or directory</a>
+
+<li><a href="#reiser_bugs">write queue file: Unknown error 4294967289</a>
+
 </ul>
 
 <p>
@@ -1033,7 +1039,7 @@ Berkeley DB library version.
 
 <hr>
 
-<a name="nosuid"><h1>sendmail has set-uid root file permissions, or is run from a
+<a name="nosuid"><h3>sendmail has set-uid root file permissions, or is run from a
 set-uid root process</h3></a>
 
 Traditionally, the UNIX <b>sendmail</b> command is installed with
@@ -1126,35 +1132,48 @@ run out of file handles; after that, it will run out of sockets.
 
 <p>
 
-To set kernel parameters at boot time, add the following lines to
-the <b>/boot/loader.conf</b> file (this is specific to FreeBSD 4.x):
+To set the following kernel parameters at boot time, add the
+following lines to the <b>/boot/loader.conf</b> file (this is
+specific to FreeBSD 4.x):
 
 <p>
 
 <blockquote>
 <pre>
 kern.ipc.maxsockets="5000"
-kern.maxfiles="16384"
-kern.maxfilesperproc="16384"
 kern.ipc.nmbclusters="65536"
 </pre>
 </blockquote>
 
 <p>
 
-To set kernel parameters at run time execute the following commands
-as root (this is specific to FreeBSD 4.x):
+These parameters cannot be set at run time (verified with FreeBSD
+4.2).
+
+<p>
+
+To set the following kernel parameters at run time execute the
+following commands as root (this is specific to FreeBSD 4.x):
 
 <p>
 
 <blockquote>
 <pre>
-# sysctl -w kern.ipc.maxsockets=5000
 # sysctl -w kern.maxfiles=16384
 # sysctl -w kern.maxfilesperproc=16384
-# sysctl -w kern.ipc.nmbclusters=65536
 </pre>
 </blockquote>
+
+<p>
+
+These parameters cannot be set from <b>/boot/loader.conf</b>
+(verified with FreeBSD 4.2).
+
+<p>
+
+Other kernel parameters such as <b>kern.maxproc</b> can be increased
+only by recompiling the kernel with a different <b>maxusers</b>
+setting in the kernel configuration file (verified with FreeBSD 4.2).
 
 <hr>
 
@@ -3364,6 +3383,27 @@ bit, but that might equally well fail on other systems. Another
 possibility is to allow non-superusers to set the execute bit on
 files, and to mount the Postfix queue file system with the
 <b>noexec</b> option or equivalent.
+
+<hr>
+
+<a name="msql_limit"><h3>Too many connections</h3></a>
+
+This message is produced by the MYQSL server. You need to increase
+the number of connections that it can handle.  Things to bear in
+mind: the <b>virtual</b> and <b>canonical</b> maps are accessed by
+every <b>smtpd</b> and <b>cleanup</b> process.
+
+<hr>
+
+<a name="reiser_bugs"><h3>write queue file: No such file or directory</h3></a>
+
+<h3>write queue file: Unknown error 4294967289</h3>
+
+Reiserfs reports the wrong error code when a message exceeds the
+<b>message_size_limit</b> setting. As a result, the Postfix SMTP
+server reports a "queue file write error" to the SMTP client, rather
+than reporting a "file too large" condition. The client will keep
+sending the same email again and again until the mail is too old.
 
 <hr>
 

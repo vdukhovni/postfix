@@ -714,6 +714,10 @@ extern char *var_smtp_bind_addr;
 #define DEF_SMTP_RAND_ADDR	1
 extern bool var_smtp_rand_addr;
 
+#define VAR_SMTP_BREAK_LINES	"smtp_break_lines"
+#define DEF_SMTP_BREAK_LINES	1
+extern bool var_smtp_break_lines;
+
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
   * client may make before we start to slow down; the hard error limit
@@ -1251,6 +1255,21 @@ extern char *var_virt_mailbox_lock;
 #define VAR_SYSLOG_NAME			"syslog_name"
 #define DEF_SYSLOG_NAME			"postfix"
 extern char *var_syslog_name;
+
+ /*
+  * QMQPD
+  */
+#define VAR_QMQPD_CLIENTS		"qmqpd_authorized_clients"
+#define DEF_QMQPD_CLIENTS		""
+extern char *var_qmqpd_clients;
+
+#define VAR_QMTPD_TMOUT			"qmqpd_timeout"
+#define DEF_QMTPD_TMOUT			"300s"
+extern int var_qmqpd_timeout;
+
+#define VAR_QMTPD_ERR_SLEEP		"qmqpd_error_delay"
+#define DEF_QMTPD_ERR_SLEEP		"5s"
+extern int var_qmqpd_err_sleep;
 
 /* LICENSE
 /* .ad

@@ -76,7 +76,7 @@
 /*	mail_queue_rename() renames a queue file. A non-zero result
 /*	means the operation failed.
 /*
-/*	mail_queue_remove() renames the named queue file. A non-zero result
+/*	mail_queue_remove() removes the named queue file. A non-zero result
 /*	means the operation failed.
 /*
 /*	mail_queue_name_ok() validates a mail queue name and returns

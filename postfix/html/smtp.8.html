@@ -117,6 +117,11 @@ SMTP(8)                                                   SMTP(8)
        <b>smtp</b><i>_</i><b>never</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
               Never send EHLO at the start of a connection.
 
+       <b>smtp</b><i>_</i><b>break</b><i>_</i><b>lines</b>
+              Break  lines  &gt;  <b>$line</b><i>_</i><b>length</b><i>_</i><b>limit</b>  into  multiple
+              shorter lines.  Some SMTP servers misbehave on long
+              lines.
+
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
               Skip servers that greet us with a 4xx status  code.
 

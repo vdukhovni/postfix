@@ -1,0 +1,39 @@
+Postfix QMQP server support
+===========================
+
+Postfix has preliminary server support for the QMQP protocol, so
+that Postfix can be used as a backend for the Ezmlm-idx mailing
+list manager. This support includes qmqp-source and qmqp-sink
+programs for protocol stress testing.
+
+Turning on the QMQP service
+===========================
+
+To enable QMQP server support on an existing Postfix system you
+have to add the following line to /etc/postfix/master.cf:
+
+628       inet  n       -       n       -       -       qmqpd
+
+
+QMQP server access control
+==========================
+
+By default, the QMQP server does not accept mail from any client.
+This is because the QMQP server relays mail to any destination
+(the "protocol" has no provision to reject specific recipients).
+
+To authorize QMQP clients, edit /etc/postfix/main.cf and specify
+a list of client patterns.
+
+qmqp_authorized_clients = client, client, ...
+
+A list pattern specifies a host name, a domain name, an internet
+address, or a network/mask pattern, where the mask specifies the
+number of bits in the network part.  When a pattern specifies a
+file name, its contents are substituted for the file name; when a
+pattern is a type:name table specification, table lookup is used
+instead.
+
+Patterns are separated by whitespace and/or commas. In order to
+reverse the result, precede a non-file name pattern with an
+exclamation point (!).

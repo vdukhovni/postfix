@@ -498,7 +498,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		     */
 		case LMTP_STATE_RCPT:
 		    if (!mail_from_rejected) {
-#ifndef notRFC821_SYNTAX
+#ifdef notdef
 			if (resp->code == 552)
 			    resp->code = 452;
 #endif

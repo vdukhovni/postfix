@@ -95,6 +95,9 @@
 /*	Always send EHLO at the start of a connection.
 /* .IP \fBsmtp_never_send_ehlo\fR
 /*	Never send EHLO at the start of a connection.
+/* .IP \fBsmtp_break_lines\fR
+/*	Break lines > \fB$line_length_limit\fR into multiple shorter lines.
+/*	Some SMTP servers misbehave on long lines.
 /* .IP \fBsmtp_skip_4xx_greeting\fR
 /*	Skip servers that greet us with a 4xx status code.
 /* .IP \fBsmtp_skip_5xx_greeting\fR
@@ -250,6 +253,7 @@ char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_bind_addr;
 bool    var_smtp_rand_addr;
+bool    var_smtp_break_lines;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -426,6 +430,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_NEVER_EHLO, DEF_SMTP_NEVER_EHLO, &var_smtp_never_ehlo,
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
 	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
+	VAR_SMTP_BREAK_LINES, DEF_SMTP_BREAK_LINES, &var_smtp_break_lines,
 	0,
     };
 

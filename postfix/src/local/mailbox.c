@@ -276,7 +276,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     SET_USER_ATTR(usr_attr, mbox_pwd, state.level);
 
     /*
-     * Deliver to mailbox or to external command.
+     * Deliver to mailbox, maildir or to external command.
      */
 #define LAST_CHAR(s) (s[strlen(s) - 1])
 
@@ -284,6 +284,11 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	status = deliver_command(state, usr_attr, var_mailbox_command);
     else if (*var_home_mailbox && LAST_CHAR(var_home_mailbox) == '/') {
 	path = concatenate(usr_attr.home, "/", var_home_mailbox, (char *) 0);
+	status = deliver_maildir(state, usr_attr, path);
+	myfree(path);
+    } else if (*var_mail_spool_dir && LAST_CHAR(var_mail_spool_dir) == '/') {
+	path = concatenate(var_mail_spool_dir, state.msg_attr.user,
+			   "/", (char *) 0);
 	status = deliver_maildir(state, usr_attr, path);
 	myfree(path);
     } else

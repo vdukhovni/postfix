@@ -19,6 +19,7 @@ exec sed '
 	s/[<bB>]*pickup[</bB>]*(8)/<a href="pickup.8.html">&<\/a>/
 	s/[<bB>]*pipe[</bB>]*(8)/<a href="pipe.8.html">&<\/a>/
 	s/[<bB>]*qmgr[</bB>]*(8)/<a href="qmgr.8.html">&<\/a>/
+	s/[<bB>]*qmqpd[</bB>]*(8)/<a href="qmqpd.8.html">&<\/a>/
 	s/[<bB>]*showq[</bB>]*(8)/<a href="showq.8.html">&<\/a>/
 	s/[<bB>]*smtp[</bB>]*(8)/<a href="smtp.8.html">&<\/a>/
 	s/[<bB>]*smtpd[</bB>]*(8)/<a href="smtpd.8.html">&<\/a>/

@@ -1,23 +1,23 @@
 /*++
 /* NAME
-/*	smtpd_peer 3
+/*	qmqpd_peer 3
 /* SUMMARY
 /*	look up peer name/address information
 /* SYNOPSIS
-/*	#include "smtpd.h"
+/*	#include "qmqpd.h"
 /*
-/*	void	smtpd_peer_init(state)
-/*	SMTPD_STATE *state;
+/*	void	qmqpd_peer_init(state)
+/*	QMQPD_STATE *state;
 /*
-/*	void	smtpd_peer_reset(state)
-/*	SMTPD_STATE *state;
+/*	void	qmqpd_peer_reset(state)
+/*	QMQPD_STATE *state;
 /* DESCRIPTION
-/*	The smtpd_peer_init() routine attempts to produce a printable
+/*	The qmqpd_peer_init() routine attempts to produce a printable
 /*	version of the peer name and address of the specified socket.
 /*	Where information is unavailable, the name and/or address
 /*	are set to "unknown".
 /*
-/*	smtpd_peer_init() updates the following fields:
+/*	qmqpd_peer_init() updates the following fields:
 /* .IP name
 /*	The client hostname. An unknown name is represented by the
 /*	string "unknown".
@@ -25,22 +25,8 @@
 /*	Printable representation of the client address.
 /* .IP namaddr
 /*	String of the form: "name[addr]".
-/* .IP peer_code
-/*	The peer_code result field specifies how the client name
-/*	information should be interpreted:
-/* .RS
-/* .IP 2
-/*	Both name lookup and name verification succeeded.
-/* .IP 4
-/*	The name lookup or name verification failed with a recoverable
-/*	error (no address->name mapping or no name->address mapping).
-/* .IP 5
-/*	The name lookup or verification failed with an unrecoverable
-/*	error (no address->name mapping, bad hostname syntax, no
-/*	name->address mapping, client address not listed for hostname).
-/* .RE
 /* .PP
-/*	smtpd_peer_reset() releases memory allocate by smtpd_peer_init().
+/*	qmqpd_peer_reset() releases memory allocate by qmqpd_peer_init().
 /* LICENSE
 /* .ad
 /* .fi
@@ -96,11 +82,11 @@ static int h_errno = TRY_AGAIN;
 
 /* Application-specific. */
 
-#include "smtpd.h"
+#include "qmqpd.h"
 
-/* smtpd_peer_init - initialize peer information */
+/* qmqpd_peer_init - initialize peer information */
 
-void    smtpd_peer_init(SMTPD_STATE *state)
+void    qmqpd_peer_init(QMQPD_STATE *state)
 {
     struct sockaddr_in sin;
     SOCKADDR_SIZE len = sizeof(sin);
@@ -121,7 +107,6 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     if (errno == ECONNRESET || errno == ECONNABORTED) {
 	state->name = mystrdup("unknown");
 	state->addr = mystrdup("unknown");
-	state->peer_code = 5;
     }
 
     /*
@@ -133,38 +118,34 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 			   sizeof(sin.sin_addr), AF_INET);
 	if (hp == 0) {
 	    state->name = mystrdup("unknown");
-	    state->peer_code = (h_errno == TRY_AGAIN ? 4 : 5);
 	} else if (!valid_hostname(hp->h_name, DONT_GRIPE)) {
 	    state->name = mystrdup("unknown");
-	    state->peer_code = 5;
 	} else {
 	    state->name = mystrdup(hp->h_name);	/* hp->name is clobbered!! */
-	    state->peer_code = 2;
 
 	    /*
 	     * Reject the hostname if it does not list the peer address.
 	     */
-#define REJECT_PEER_NAME(state, code) { \
+#define REJECT_PEER_NAME(state) { \
 	myfree(state->name); \
 	state->name = mystrdup("unknown"); \
-	state->peer_code = code; \
     }
 
 	    hp = gethostbyname(state->name);	/* clobbers hp->name!! */
 	    if (hp == 0) {
 		msg_warn("%s: hostname %s verification failed: %s",
 			 state->addr, state->name, HSTRERROR(h_errno));
-		REJECT_PEER_NAME(state, (h_errno == TRY_AGAIN ? 4 : 5));
+		REJECT_PEER_NAME(state);
 	    } else if (hp->h_length != sizeof(sin.sin_addr)) {
 		msg_warn("%s: hostname %s verification failed: bad address size %d",
 			 state->addr, state->name, hp->h_length);
-		REJECT_PEER_NAME(state, 5);
+		REJECT_PEER_NAME(state);
 	    } else {
 		for (i = 0; /* void */ ; i++) {
 		    if (hp->h_addr_list[i] == 0) {
 			msg_warn("%s: address not listed for hostname %s",
 				 state->addr, state->name);
-			REJECT_PEER_NAME(state, 5);
+			REJECT_PEER_NAME(state);
 			break;
 		    }
 		    if (memcmp(hp->h_addr_list[i],
@@ -183,7 +164,6 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     else {
 	state->name = mystrdup("localhost");
 	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
-	state->peer_code = 2;
     }
 
     /*
@@ -193,9 +173,9 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	concatenate(state->name, "[", state->addr, "]", (char *) 0);
 }
 
-/* smtpd_peer_reset - destroy peer information */
+/* qmqpd_peer_reset - destroy peer information */
 
-void    smtpd_peer_reset(SMTPD_STATE *state)
+void    qmqpd_peer_reset(QMQPD_STATE *state)
 {
     myfree(state->name);
     myfree(state->addr);

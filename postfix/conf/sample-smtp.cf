@@ -65,6 +65,14 @@ smtp_never_send_ehlo = no
 # 
 #smtp_bind_address=111.222.333.444
 
+# The smtp_break_lines parameter controls whether the SMTP client
+# will break lines longer than $line_length_limit characters.
+# 
+# By default, line breaking is turned on, because some fragile SMTP
+# server implementations cannot receive mail with long lines.
+# 
+#smtp_break_lines = yes
+
 # The smtp_skip_4xx_greeting parameter controls what happens when
 # an SMTP server greets us with a 4XX status code (go away, try
 # again later).

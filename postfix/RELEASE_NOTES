@@ -1,3 +1,28 @@
+Incompatible changes with snapshot-20010707
+===========================================
+
+The SMTP client by default breaks lines > 2048 characters, in order
+to avoid problems with mail delivery to fragile SMTP server software.
+To get the old behavior, specify "smtp_break_lines = no" in the
+Postfix main.cf file.
+
+Major changes with snapshot-20010707
+====================================
+
+QMQP server support, so that Postfix can be used as a backend mailer
+for the Ezmlm-idx mailing list manager. The service is disabled by
+default. To enable, follow instructions in the README_QMQP file.
+
+You can now reject unknown virtual(8) recipients at the SMTP port
+by specifying a "domain.name whatever" entry in the tables specified
+with virtual_mailbox_maps, similar to Postfix virtual(5) domains.
+[virtual(8) is the Postfix virtual delivery agent, virtual(5) is
+the Postfix virtual map. The two implement virtual domains in a
+very different manner.]
+
+Specify "mail_spool_directory = /var/mail/" (note the trailing "/"
+character) to enable maildir format for /var/mail/username.
+
 Incompatible changes with snapshot-20010610
 ===========================================
 

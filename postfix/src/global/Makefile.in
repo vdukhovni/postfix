@@ -54,7 +54,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	recipient_list.h record.h resolve_clnt.h resolve_local.h \
 	rewrite_clnt.h sent.h smtp_stream.h split_addr.h string_list.h \
 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
-	mbox_conf.h mbox_open.h abounce.h
+	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \

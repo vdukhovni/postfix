@@ -173,10 +173,10 @@ char   *mystrdup(const char *str)
 char   *mystrndup(const char *str, int len)
 {
     char   *result;
-    int     slen;
+    char   *cp;
 
-    if ((slen = strlen(str)) < len)
-	len = slen;
+    if ((cp = memchr(str, 0, len)) != 0)
+	len = cp - str;
     result = memcpy(mymalloc(len + 1), str, len);
     result[len] = 0;
     return (result);

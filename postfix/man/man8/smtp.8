@@ -111,6 +111,9 @@ postmaster with transcripts of SMTP sessions with protocol errors.
 Always send EHLO at the start of a connection.
 .IP \fBsmtp_never_send_ehlo\fR
 Never send EHLO at the start of a connection.
+.IP \fBsmtp_break_lines\fR
+Break lines > \fB$line_length_limit\fR into multiple shorter lines.
+Some SMTP servers misbehave on long lines.
 .IP \fBsmtp_skip_4xx_greeting\fR
 Skip servers that greet us with a 4xx status code.
 .IP \fBsmtp_skip_5xx_greeting\fR

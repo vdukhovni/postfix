@@ -5261,3 +5261,51 @@ Apologies for any names omitted.
 
 	Feature: address quoting and case folding flags for the
 	pipe(8) mailer.
+
+20010611
+
+	Workaround: some MTAs fall on their face when they receive
+	unexpectedly long lines. From now on, Postfix defaults to
+	breaking long lines at 2048 (like Sendmail so it has got to
+	be right). To get the old, content preserving, behavior
+	specify "smtp_truncate_lines = no". File: smtp/smtp_proto.c.
+
+20010614
+
+	Bugfix: did not really undo 2821 552->452 mapping.
+
+20010628
+
+	Bugfix: postfix-script used a hard-coded maildrop group
+	owner instead of using the install-time specified name
+	stored in /etc/postfix/install.cf. Problem reported by
+	David Terrell @ meat.net.
+
+20010701
+
+	Feature: mail_spool_directory ending in / causes maildir
+	style delivery.
+
+	Bugfix: the FreeBSD kernel parameters kern.ipc.nmbclusters
+	and kern.ipc.maxsockets cannot be set with sysctl commands.
+	File: html/faq.html. Len Conrad @ Go2France.com.
+
+	Cleanup: the virtual delivery agent was poorly integrated
+	so that the SMTP server and queue manager did not reject
+	mail for unknown users. Files: smtpd/smtpd_check.c,
+	*qmgr/qmgr_message.c.
+
+20010705
+
+	Feature: QMQP server for compatibility with the ezmlm list
+	manager. Files:  util/netstring.[hc], qmqpd/qmqpd*.c.
+
+20010706
+
+	Feature: QMQP stress test message generator program.  Files:
+	smtpstone/qmqp-source.c, smtpstone/qmqp-sink.c.
+
+20010708
+
+	Bugfix: with disable_dns=yes, the SMTP client treated all
+	host lookup errors as permanent. File: smtp/smtp_addr.c.

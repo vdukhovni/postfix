@@ -79,9 +79,31 @@
 #include <ctype.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
+#endif
+
+ /*
+  * Older systems don't have h_errno. Even modern systems don't have
+  * hstrerror().
+  */
+#ifdef NO_HERRNO
+
+static int h_errno = TRY_AGAIN;
+
+#define  HSTRERROR(err) "Host not found"
+
+#else
+
+#define  HSTRERROR(err) (\
+        err == TRY_AGAIN ? "Host not found, try again" : \
+        err == HOST_NOT_FOUND ? "Host not found" : \
+        err == NO_DATA ? "Host name has no address" : \
+        err == NO_RECOVERY ? "Name server failure" : \
+        strerror(errno) \
+    )
 #endif
 
 /* Utility library. */
@@ -158,8 +180,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     if (var_disable_dns) {
 	memset((char *) &fixed, 0, sizeof(fixed));
 	if ((hp = gethostbyname(host)) == 0) {
-	    vstring_sprintf(why, "%s: host not found", host);
-	    smtp_errno = SMTP_FAIL;
+	    vstring_sprintf(why, "%s: %s", host, HSTRERROR(h_errno));
+	    smtp_errno = (h_errno == TRY_AGAIN ? SMTP_RETRY : SMTP_FAIL);
 	} else if (hp->h_addrtype != AF_INET) {
 	    vstring_sprintf(why, "%s: host not found", host);
 	    msg_warn("%s: unknown address family %d for %s",

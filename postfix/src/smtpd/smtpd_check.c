@@ -323,6 +323,7 @@ static MAPS *local_rcpt_maps;
 static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virtual_maps;
+static MAPS *virt_mailbox_maps;
 static MAPS *relocated_maps;
 
  /*
@@ -467,6 +468,8 @@ void    smtpd_check_init(void)
 				 DICT_FLAG_LOCK);
     virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps,
 			       DICT_FLAG_LOCK);
+    virt_mailbox_maps = maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
+				    DICT_FLAG_LOCK);
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
 
@@ -565,7 +568,7 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * 
      * We could eliminate the code duplication and implement the soft_bounce
      * safety net only in the code below. But then the safety net would cover
-     * the UCE restrictions only. This would be at odds with the documentation
+     * the UCE restrictions only. This would be at odds with documentation
      * which says soft_bounce changes all 5xx replies into 4xx ones.
      */
     if (var_soft_bounce && STR(error_text)[0] == '5')
@@ -898,7 +901,9 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
      */
     if (resolve_local(domain)
 	|| (*var_virtual_maps
-	    && check_maps_find(state, recipient, virtual_maps, domain, 0)))
+	    && check_maps_find(state, recipient, virtual_maps, domain, 0))
+	|| (*var_virt_mailbox_maps
+	&& check_maps_find(state, recipient, virt_mailbox_maps, domain, 0)))
 	return (SMTPD_CHECK_OK);
 
     /*
@@ -1032,7 +1037,9 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
     domain += 1;
     if (resolve_local(domain)
 	|| (*var_virtual_maps
-	    && check_maps_find(state, recipient, virtual_maps, domain, 0)))
+	    && check_maps_find(state, recipient, virtual_maps, domain, 0))
+	|| (*var_virt_mailbox_maps
+	&& check_maps_find(state, recipient, virt_mailbox_maps, domain, 0)))
 	return (SMTPD_CHECK_OK);
 
     if (msg_verbose)
@@ -1174,7 +1181,9 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr,
     domain += 1;
     if (resolve_local(domain)
 	|| (*var_virtual_maps
-	    && check_maps_find(state, reply_name, virtual_maps, domain, 0)))
+	    && check_maps_find(state, reply_name, virtual_maps, domain, 0))
+	|| (*var_virt_mailbox_maps
+       && check_maps_find(state, reply_name, virt_mailbox_maps, domain, 0)))
 	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '#')
 	return (SMTPD_CHECK_DUNNO);
@@ -2066,6 +2075,23 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (NOMATCH(rcpt_canon_maps, STR(reply.recipient))
 	    && NOMATCH(canonical_maps, STR(reply.recipient))
 	    && NOMATCH(relocated_maps, STR(reply.recipient))
+	    && NOMATCH(virt_mailbox_maps, STR(reply.recipient))
+	    && NOMATCH(virtual_maps, STR(reply.recipient))) {
+	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				   "%d <%s>: User unknown", 550, recipient);
+	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+	}
+    }
+
+    /*
+     * Reject mail to unknown addresses in Postfix-style virtual domains.
+     */
+    if (*var_virt_mailbox_maps
+	&& (check_maps_find(state, recipient, virt_mailbox_maps, domain, 0))) {
+	if (NOMATCH(rcpt_canon_maps, STR(reply.recipient))
+	    && NOMATCH(canonical_maps, STR(reply.recipient))
+	    && NOMATCH(relocated_maps, STR(reply.recipient))
+	    && NOMATCH(virt_mailbox_maps, STR(reply.recipient))
 	    && NOMATCH(virtual_maps, STR(reply.recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown", 550, recipient);
@@ -2082,6 +2108,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (NOMATCH(rcpt_canon_maps, STR(reply.recipient))
 	    && NOMATCH(canonical_maps, STR(reply.recipient))
 	    && NOMATCH(relocated_maps, STR(reply.recipient))
+	    && NOMATCH(virt_mailbox_maps, STR(reply.recipient))
 	    && NOMATCH(virtual_maps, STR(reply.recipient))
 	    && NOMATCH(local_rcpt_maps, STR(reply.recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -2175,6 +2202,7 @@ char   *var_alias_maps;
 char   *var_rcpt_canon_maps;
 char   *var_canonical_maps;
 char   *var_virtual_maps;
+char   *var_virt_mailbox_maps;
 char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 
@@ -2195,6 +2223,7 @@ static STRING_TABLE string_table[] = {
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps,
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps,
     VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps,
+    VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps,
     VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
     0,
@@ -2500,6 +2529,13 @@ main(int argc, char **argv)
 		UPDATE_STRING(var_virtual_maps, args->argv[1]);
 		UPDATE_MAPS(virtual_maps, VAR_VIRTUAL_MAPS,
 			    var_virtual_maps, DICT_FLAG_LOCK);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_VIRT_MAILBOX_MAPS) == 0) {
+		UPDATE_STRING(var_virt_mailbox_maps, args->argv[1]);
+		UPDATE_MAPS(virt_mailbox_maps, VAR_VIRT_MAILBOX_MAPS,
+			    var_virt_mailbox_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }
