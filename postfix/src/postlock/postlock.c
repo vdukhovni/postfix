@@ -142,9 +142,9 @@ int     main(int argc, char **argv)
     int     count;
     WAIT_STATUS_T status;
     pid_t   pid;
-    int     mbox_lock;
+    int     lock_mask;
     char   *lock_style = 0;
-    VSTREAM *fp;
+    MBOX   *mp;
 
     /*
      * Be consistent with file permissions.
@@ -204,7 +204,7 @@ int     main(int argc, char **argv)
      * Read the config file.
      */
     mail_conf_read();
-    mbox_lock = mbox_lock_mask(lock_style ? lock_style :
+    lock_mask = mbox_lock_mask(lock_style ? lock_style :
 	       get_mail_conf_str(VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, 1, 0));
 
     /*
@@ -212,11 +212,10 @@ int     main(int argc, char **argv)
      * command is not supposed to disappear into the background.
      */
     why = vstring_alloc(1);
-    if ((fp = mbox_open(folder, O_APPEND | O_WRONLY | O_CREAT,
+    if ((mp = mbox_open(folder, O_APPEND | O_WRONLY | O_CREAT,
 			S_IRUSR | S_IWUSR, (struct stat *) 0,
-			-1, -1, mbox_lock, why)) == 0)
+			-1, -1, lock_mask, why)) == 0)
 	msg_fatal("%s", vstring_str(why));
-    close_on_exec(vstream_fileno(fp), CLOSE_ON_EXEC);
 
     /*
      * Run the command. Remove the lock after completion.
@@ -232,12 +231,12 @@ int     main(int argc, char **argv)
 	default:
 	    if (waitpid(pid, &status, 0) < 0)
 		msg_fatal("waitpid: %m");
-	    mbox_release(folder, mbox_lock);
+	    mbox_release(mp);
 	    exit(WIFEXITED(status) ? WEXITSTATUS(status) : 1);
 	}
 	if (count + 1 < var_fork_tries)
 	    sleep(var_fork_delay);
     }
-    mbox_release(folder, mbox_lock);
+    mbox_release(mp);
     exit(EX_TEMPFAIL);
 }

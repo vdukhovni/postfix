@@ -21,8 +21,13 @@
  /*
   * External interface.
   */
-extern VSTREAM *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t, int, VSTRING *);
-extern void mbox_release(const char *, int);
+typedef struct {
+    char    *path;			/* saved path, for dot_unlock */
+    VSTREAM *fp;			/* open stream or null */
+    int     locked;			/* what locks were set */
+} MBOX;
+extern MBOX *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t, int, VSTRING *);
+extern void mbox_release(MBOX *);
 
 /* LICENSE
 /* .ad

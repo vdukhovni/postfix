@@ -84,7 +84,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
     char   *myname = "deliver_file";
     struct stat st;
-    VSTREAM *dst;
+    MBOX   *mp;
     VSTRING *why;
     int     status;
     int     copy_flags;
@@ -148,26 +148,27 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
     set_eugid(usr_attr.uid, usr_attr.gid);
-    dst = mbox_open(path, O_APPEND | O_CREAT | O_WRONLY,
-		    S_IRUSR | S_IWUSR, &st, -1, -1,
-		    local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL, why);
-    if (dst == 0) {
+    mp = mbox_open(path, O_APPEND | O_CREAT | O_WRONLY,
+		   S_IRUSR | S_IWUSR, &st, -1, -1,
+		   local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL, why);
+    if (mp == 0) {
 	status = (errno == EAGAIN ? defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "cannot access destination file %s: %s", path, STR(why));
     } else if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
-	vstream_fclose(dst);
+	vstream_fclose(mp->fp);
 	status = bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			       "executable destination file %s", path);
-    } else if (mail_copy(COPY_ATTR(state.msg_attr), dst, S_ISREG(st.st_mode) ?
-		copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), "\n", why)) {
+    } else if (mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
+	S_ISREG(st.st_mode) ? copy_flags : (copy_flags & ~MAIL_COPY_TOFILE),
+			 "\n", why)) {
 	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			      "cannot append destination file %s: %s",
 			      path, STR(why));
     } else {
 	status = sent(SENT_ATTR(state.msg_attr), "%s", path);
     }
-    mbox_release(path, local_mbox_lock_mask);
+    mbox_release(mp);
     set_eugid(var_owner_uid, var_owner_gid);
 
     /*

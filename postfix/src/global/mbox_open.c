@@ -6,7 +6,14 @@
 /* SYNOPSIS
 /*	#include <mbox_open.h>
 /*
-/*	int	mbox_open(path, flags, mode, st, user, group, lock_style, why)
+/*	typedef struct {
+/* .in +4
+/*	/* public members... */
+/*	VSTREAM	*fp;
+/* .in -4
+/*	} MBOX;
+/*
+/*	MBOX	*mbox_open(path, flags, mode, st, user, group, lock_style, why)
 /*	const char *path;
 /*	int	flags;
 /*	int	mode;
@@ -16,9 +23,8 @@
 /*	int	lock_style;
 /*	VSTRING	*why;
 /*
-/*	void	mbox_release(path, lock_style)
-/*	const char *path;
-/*	int	lock_style;
+/*	void	mbox_release(mbox)
+/*	MBOX	*mbox;
 /* DESCRIPTION
 /*	This module manages access to UNIX mailbox-style files.
 /*
@@ -29,9 +35,10 @@
 /*	adequate effective privileges.
 /*	The \fBlock_style\fR argument specifies a lock style from
 /*	mbox_lock_mask(). Kernel locks are applied to regular files only.
+/*	The result is a handle that must be destroyed by mbox_release().
 /*
 /*	mbox_release() releases the named mailbox. It is up to the
-/*	application to close the file.
+/*	application to close the stream.
 /* DIAGNOSTICS
 /*	mbox_open() returns a null pointer in case of problems, and
 /*	sets errno to EAGAIN if someone else has exclusive access.
@@ -59,6 +66,8 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <safe_open.h>
+#include <iostuff.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -69,43 +78,58 @@
 
 /* mbox_open - open mailbox-style file for exclusive access */
 
-VSTREAM *mbox_open(const char *path, int flags, int mode, struct stat * st,
-		           uid_t chown_uid, gid_t chown_gid,
-		           int lock_style, VSTRING *why)
+MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
+		          uid_t chown_uid, gid_t chown_gid,
+		          int lock_style, VSTRING *why)
 {
     struct stat local_statbuf;
+    MBOX   *mp;
+    int     locked = 0;
     VSTREAM *fp;
 
     /*
      * Create dotlock file. This locking method does not work well over NFS:
      * creating files atomically is a problem, and a successful operation can
      * fail with EEXIST.
+     * 
+     * If file.lock can't be created, ignore the problem if the application says
+     * so. We need this so that Postfix can deliver as unprivileged user to
+     * /dev/null style aliases. Alternatively, we could open the file first,
+     * and dot-lock the file only if it is a regular file, just like we do
+     * with kernel locks.
      */
-    if ((lock_style & MBOX_DOT_LOCK) && dot_lockfile(path, why) < 0) {
-	if (errno == EEXIST) {
-	    errno = EAGAIN;
-	    return (0);
+    if (lock_style & MBOX_DOT_LOCK) {
+	if (dot_lockfile(path, why) == 0) {
+	    locked |= MBOX_DOT_LOCK;
+	} else {
+	    if (errno == EEXIST) {
+		errno = EAGAIN;
+		return (0);
+	    }
+	    if ((lock_style & MBOX_DOT_LOCK_MAY_FAIL) == 0) {
+		return (0);
+	    }
 	}
-
-	/*
-	 * If file.lock can't be created, ignore the problem. We need this so
-	 * that Postfix can deliver as unprivileged user to /dev/null
-	 * aliases.
-	 */
-	if ((lock_style & MBOX_DOT_LOCK_MAY_FAIL) == 0)
-	    return (0);
     }
 
     /*
-     * Open or create the target file.
+     * Open or create the target file. In case of a privileged open, the
+     * privileged user may be attacked through an unsafe parent directory. In
+     * case of an unprivileged open, the mail system may be attacked by a
+     * malicious user-specified path, and the unprivileged user may be
+     * attacked through an unsafe parent directory. Open non-blocking to fend
+     * off attacks involving FIFOs and other weird targets.
      */
     if (st == 0)
 	st = &local_statbuf;
-    if ((fp = safe_open(path, flags, mode, st, chown_uid, chown_gid, why)) == 0) {
-	if (lock_style & MBOX_DOT_LOCK)
+    if ((fp = safe_open(path, flags, mode | O_NONBLOCK, st,
+			chown_uid, chown_gid, why)) == 0) {
+	if (locked & MBOX_DOT_LOCK)
 	    dot_unlockfile(path);
 	return (0);
     }
+    non_blocking(vstream_fileno(fp), BLOCKING);
+    close_on_exec(vstream_fileno(fp), CLOSE_ON_EXEC);
 
     /*
      * Acquire kernel locks, but only if the target is a regular file, in
@@ -121,17 +145,23 @@ VSTREAM *mbox_open(const char *path, int flags, int mode, struct stat * st,
 	    || LOCK_FAIL(MBOX_FCNTL_LOCK, MYFLOCK_STYLE_FCNTL))) {
 	if (myflock_locked(vstream_fileno(fp)))
 	    errno = EAGAIN;
-	if (lock_style & MBOX_DOT_LOCK)
+	if (locked & MBOX_DOT_LOCK)
 	    dot_unlockfile(path);
 	return (0);
     }
-    return (fp);
+    mp = (MBOX *) mymalloc(sizeof(*mp));
+    mp->path = mystrdup(path);
+    mp->fp = fp;
+    mp->locked = locked;
+    return (mp);
 }
 
 /* mbox_release - release mailbox exclusive access */
 
-void    mbox_release(const char *path, int lock_style)
+void    mbox_release(MBOX *mp)
 {
-    if (lock_style & MBOX_DOT_LOCK)
-	dot_unlockfile(path);
+    if (mp->locked & MBOX_DOT_LOCK)
+	dot_unlockfile(mp->path);
+    myfree(mp->path);
+    myfree((char *) mp);
 }

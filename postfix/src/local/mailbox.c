@@ -96,7 +96,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     char   *spool_dir;
     char   *mailbox;
     VSTRING *why;
-    VSTREAM *dst;
+    MBOX *mp;
     int     status;
     int     copy_flags;
     VSTRING *biff;
@@ -180,23 +180,24 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
     set_eugid(spool_uid, spool_gid);
-    dst = mbox_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
+    mp = mbox_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
 		    S_IRUSR | S_IWUSR, &st, chown_uid, chown_gid,
 		    local_mbox_lock_mask, why);
-    if (dst != 0) {
+    if (mp != 0) {
 	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
 	    set_eugid(usr_attr.uid, usr_attr.gid);
 	if (S_ISREG(st.st_mode) == 0) {
+	    vstream_fclose(mp->fp);
 	    vstring_sprintf(why, "file %s should be a regular file", mailbox);
 	    errno = 0;
 	} else {
-	    end = vstream_fseek(dst, (off_t) 0, SEEK_END);
-	    status = mail_copy(COPY_ATTR(state.msg_attr), dst,
+	    end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END);
+	    status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
 			       copy_flags, "\n", why);
 	}
 	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
 	    set_eugid(spool_uid, spool_gid);
-	mbox_release(mailbox, local_mbox_lock_mask);
+	mbox_release(mp);
     }
     set_eugid(var_owner_uid, var_owner_gid);
 
