@@ -2,14 +2,16 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 ===============================================================
 
 Do not use this code.  The Postfix SASL support is based on the
-Cyrus SASL library, which is light years away from production
-quality. There is not enough documentation to figure out how the
-software is supposed to work.
+Cyrus SASL library, which has not enough documentation about how
+the software is supposed to work.
 
-The SASL library code works only on LINUX and Solaris.  If you
-build Postfix+SASL on other systems, the software builds without
-trouble but fails at runtime due to no available authentication
-mechanisms. It can be made to work with considerable tweaking.
+Postfix+SASL 1.5.5 appears to work on RedHat 6.1 (pwcheck_method
+of shadow or sasldb), Solaris 2.7 (pwcheck_method of shadow or
+sasldb), and FreeBSD 3.4 (pwcheck_method of sasldb).  On RedHat
+6.1, SASL 1.5.5 needed write access to the sasldb file.
+
+SASL is a lot of complex code. In a future version the Postfix SASL
+code is likely to be put outside the SMTP server.
 
 Introduction
 ============
@@ -18,16 +20,17 @@ The Postfix SASL support (RFC 2554) was originally implemented by
 Till Franke of SuSE Rhein/Main AG.  The present code is a trimmed-down
 version with only the bare necessities.  
 
-When receiving mail, Postfix logs the client-provided username and
-sender address to the maillog file, and optionally grants mail
-relay access to authenticated clients. SASL authentication information
-is not passed on via message headers or via SMTP.  It is no-one's
-business what username and authentication method the poster was
-using in order to access the mail server.
+When receiving mail, Postfix logs the client-provided username,
+authentication method, and sender address to the maillog file, and
+optionally grants mail access via the permit_sasl_authenticated
+UCE restriction.  SASL authentication information is not passed on
+via message headers or via SMTP.  It is no-one's business what
+username and authentication method the poster was using in order
+to access the mail server.
 
-When sending mail, Postfix looks up the server hostname and if
-a username/password is known, it will use that to authenticate
-to the server.
+When sending mail, Postfix looks up the server hostname in a table,
+and if a username/password is found, it will use that username and
+password to authenticate to the server.
 
 Building the SASL library
 =========================
@@ -80,15 +83,13 @@ In order to allow mail relaying by authenticated clients:
 In /usr/local/lib/sasl/smtpd.conf you need to specify what authentication
 mechanism the server will support, for example:
 
-    pwcheck_method:  shadow
+    pwcheck_method:  sasldb
 
-This will use the Linux or Solaris shadow passwd file, which is
-the only way that I was able to test, but which is undesirable
-because it uses plaintext passwords.
-
-If you wish to use the system shadow password file, the Postfix
-SMTP server can't run chrooted (see master.cf), and the postfix
-user or group needs read access to the shadow passwd file.
+This will use the SASL password file (default: /etc/sasldb), which
+is maintained with the saslpasswd command. On some systems the
+saslpasswd command needs to be run multiple times before it stops
+complaining.  The Postfix SMTP server needs read access to the
+sasldb file - you have to play games with group access permissions.
 
 To run chrooted with SASL support is an interesting exercise.
 
@@ -121,8 +122,8 @@ per-host username and password information.
 	smtp_sasl_passwd_maps = hash:/etc/postfix/sasl_passwd
 
     /etc/postfix/sasl_passwd:
-	host.domain	username:password
-	host.domain	username
+	foo.com		username:password
+	bar.com		username
 
 The SASL password file is opened before the SMTP server enters the
 optional chroot jail, so there is no need to copy the sasl_passwd

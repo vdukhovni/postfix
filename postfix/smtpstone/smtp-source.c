@@ -28,6 +28,8 @@
 /*	Old mode: don't send HELO, and don't send message headers.
 /* .IP "-l length"
 /*	Send \fIlength\fR bytes as message payload.
+/* .IP -L
+/*	Speak LMTP rather than SMTP.
 /* .IP "-m message_count"
 /*	Send the specified number of messages (default: 1).
 /* .IP "-r recipient_count"
@@ -104,6 +106,7 @@
   */
 typedef struct SESSION {
     int     xfer_count;			/* # of xfers in session */
+    int     rcpt_done;			/* # of recipients done */
     int     rcpt_count;			/* # of recipients to go */
     VSTREAM *stream;			/* open connection */
     int     connect_count;		/* # of connect()s to retry */
@@ -142,6 +145,7 @@ static int send_headers = 1;
 static int connect_count = 1;
 static int random_delay = 0;
 static int fixed_delay = 0;
+static int talk_lmtp = 0;
 
 static void enqueue_connect(SESSION *);
 static void start_connect(SESSION *);
@@ -445,6 +449,7 @@ static void read_banner(int unused_event, char *context)
 static void send_helo(SESSION *session)
 {
     int     except;
+    char   *protocol = (talk_lmtp ? "LHLO" : "EHLO");
 
     /*
      * Send the standard greeting with our hostname
@@ -452,7 +457,7 @@ static void send_helo(SESSION *session)
     if ((except = setjmp(smtp_timeout_buf)) != 0)
 	msg_fatal("%s while sending HELO", exception_text(except));
 
-    command(session->stream, "HELO %s", var_myhostname);
+    command(session->stream, "%s %s", protocol, var_myhostname);
 
     /*
      * Prepare for the next event.
@@ -520,6 +525,7 @@ static void mail_done(int unused, char *context)
 	msg_fatal("sender rejected: %d %s", resp->code, resp->str);
 
     session->rcpt_count = recipients;
+    session->rcpt_done = 0;
     send_rcpt(unused, context);
 }
 
@@ -542,6 +548,7 @@ static void send_rcpt(int unused_event, char *context)
     else
 	command(session->stream, "RCPT TO:<%s>", recipient);
     session->rcpt_count--;
+    session->rcpt_done++;
 
     /*
      * Prepare for the next event.
@@ -679,8 +686,10 @@ static void dot_done(int unused_event, char *context)
      */
     if ((except = setjmp(smtp_timeout_buf)) != 0)
 	msg_fatal("%s while sending message", exception_text(except));
-    if ((resp = response(session->stream, buffer))->code / 100 != 2)
-	msg_fatal("data %d %s", resp->code, resp->str);
+    do {					/* XXX this could block */
+	if ((resp = response(session->stream, buffer))->code / 100 != 2)
+	    msg_fatal("data %d %s", resp->code, resp->str);
+    } while (talk_lmtp && --session->rcpt_done > 0);
     session->xfer_count++;
 
     /*
@@ -740,7 +749,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "cC:df:l:m:or:R:s:t:vw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "cC:df:l:Lm:or:R:s:t:vw:")) > 0) {
 	switch (ch) {
 	case 'c':
 	    count++;
@@ -764,6 +773,9 @@ int     main(int argc, char **argv)
 		message_data[i - 2] = '\r';
 		message_data[i - 1] = '\n';
 	    }
+	    break;
+	case 'L':
+	    talk_lmtp = 1;
 	    break;
 	case 'm':
 	    if ((message_count = atoi(optarg)) <= 0)

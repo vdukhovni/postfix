@@ -2,9 +2,9 @@
 /* NAME
 /*	smtp-sink 8
 /* SUMMARY
-/*	multi-threaded smtp test server
+/*	multi-threaded SMTP/LMTP test server
 /* SYNOPSIS
-/*	smtp-sink [-c] [-p] [-v] [-w delay] [host]:port backlog
+/*	smtp-sink [-cLpv] [-w delay] [host]:port backlog
 /* DESCRIPTION
 /*	\fIsmtp-sink\fR listens on the named host (or address) and port.
 /*	It takes SMTP messages from the network and throws them away.
@@ -14,6 +14,8 @@
 /* .IP -c
 /*	Display a running counter that is updated whenever an SMTP
 /*	QUIT command is executed.
+/* .IP -L
+/*	Speak LMTP rather than SMTP.
 /* .IP -p
 /*	Disable ESMTP command pipelining.
 /* .IP -v
@@ -21,7 +23,7 @@
 /* .IP "-w delay"
 /*	Wait \fIdelay\fR seconds before responding to a DATA command.
 /* SEE ALSO
-/*	smtp-source, SMTP test message generator
+/*	smtp-source, SMTP/LMTP test message generator
 /* LICENSE
 /* .ad
 /* .fi
@@ -71,6 +73,7 @@ typedef struct SINK_STATE {
     VSTREAM *stream;
     int     data_state;
     int     (*read) (struct SINK_STATE *);
+    int     rcpts;
 } SINK_STATE;
 
 #define ST_ANY			0
@@ -91,6 +94,7 @@ static int count;
 static int counter;
 static int disable_pipelining;
 static int fixed_delay;
+static int enable_lmtp;
 
 /* ehlo_response - respond to EHLO command */
 
@@ -109,6 +113,22 @@ static void ok_response(SINK_STATE *state)
     smtp_printf(state->stream, "250 Ok");
 }
 
+/* mail_response - reset recipient count, send 250 OK */
+
+static void mail_response(SINK_STATE *state)
+{
+    state->rcpts = 0;
+    ok_response(state);
+}
+
+/* rcpt_response - bump recipient count, send 250 OK */
+
+static void rcpt_response(SINK_STATE *state)
+{
+    state->rcpts++;
+    ok_response(state);
+}
+
 /* data_response - respond to DATA command */
 
 static void data_response(SINK_STATE *state)
@@ -125,6 +145,18 @@ static void data_event(int unused_event, char *context)
     SINK_STATE *state = (SINK_STATE *) context;
 
     data_response(state);
+}
+
+/* dot_response - response to . command */
+
+static void dot_response(SINK_STATE *state)
+{
+    if (enable_lmtp) {
+	while (state->rcpts-- > 0)	/* XXX this could block */
+	    ok_response(state);
+    } else {
+	ok_response(state);
+    }
 }
 
 /* quit_response - respond to QUIT command */
@@ -184,7 +216,7 @@ static int data_read(SINK_STATE *state)
 	if (state->data_state == ST_CR_LF_DOT_CR_LF) {
 	    if (msg_verbose)
 		msg_info(".");
-	    ok_response(state);
+	    dot_response(state);
 	    state->read = command_read;
 	    break;
 	}
@@ -203,8 +235,9 @@ typedef struct SINK_COMMAND {
 static SINK_COMMAND command_table[] = {
     "helo", ok_response,
     "ehlo", ehlo_response,
-    "mail", ok_response,
-    "rcpt", ok_response,
+    "lhlo", ehlo_response,
+    "mail", mail_response,
+    "rcpt", rcpt_response,
     "data", data_response,
     "rset", ok_response,
     "noop", ok_response,
@@ -311,7 +344,7 @@ static void connect_event(int unused_event, char *context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-c] [-p] [-v] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-cLpv] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -328,10 +361,13 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "cpvw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "cLpvw:")) > 0) {
 	switch (ch) {
 	case 'c':
 	    count++;
+	    break;
+	case 'L':
+	    enable_lmtp = 1;
 	    break;
 	case 'p':
 	    disable_pipelining = 1;

@@ -3819,4 +3819,11 @@ Apologies for any names omitted.
 20000417
 
 	The SASL authentication in the SMTP server and client works,
-	but only on Linux and Solaris.
+	but only on Linux and Solaris, neither of which I wish to
+	run on my laptop.
+
+20000418
+
+	Added LMTP support to the smtp-source and smtp-sink utilities
+	so that I don't have to install Cyrus IMAP just to test
+	LMTP.

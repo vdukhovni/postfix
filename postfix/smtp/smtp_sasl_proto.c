@@ -14,7 +14,7 @@
 /*	SMTP_STATE *state;
 /* DESCRIPTION
 /*	This module contains random chunks of code that implement
-/*	the SMTP protocol interface for SASL negotiation. The goal 
+/*	the SMTP protocol interface for SASL negotiation. The goal
 /*	is to reduce clutter in the main SMTP client source code.
 /*
 /*	smtp_sasl_helo_auth() processes the AUTH option in the
@@ -71,7 +71,7 @@
 
 /* smtp_sasl_helo_auth - handle AUTH option in EHLO reply */
 
-void smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
+void    smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
 {
 
     /*
@@ -88,20 +88,24 @@ void smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
     if (strlen(words) > 0) {
 	state->sasl_mechanism_list = mystrdup(words);
 	state->features |= SMTP_FEATURE_AUTH;
+    } else {
+	msg_warn("%s offered null AUTH mechanism list",
+		 state->session->namaddr);
     }
 }
 
 /* smtp_sasl_helo_login - perform SASL login */
 
-int smtp_sasl_helo_login(SMTP_STATE *state)
+int     smtp_sasl_helo_login(SMTP_STATE *state)
 {
     VSTRING *why = vstring_alloc(10);
     int     ret = 0;
 
     /*
-     * Skip authentication when we have no authentication info for this
-     * server. In that case it should simply treat us like any stranger.
-     * Otherwise, if authentication fails assume the error is recoverable.
+     * Skip authentication when no authentication info exists for this
+     * server, so that we talk to each other like strangers. Otherwise, if
+     * authentication information exists, assume that authentication is
+     * required, and assume that an authentication error is recoverable.
      */
     if (smtp_sasl_passwd_lookup(state) != 0) {
 	smtp_sasl_start(state);

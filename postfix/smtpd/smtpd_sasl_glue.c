@@ -47,7 +47,7 @@
 /*	This member is a null pointer in the absence of successful
 /*	authentication.
 /* .PP
-/*	smtpd_sasl_logout() cleant up after smtpd_sasl_authenticate().
+/*	smtpd_sasl_logout() cleans up after smtpd_sasl_authenticate().
 /*	This routine exists for the sake of symmetry.
 /*
 /*	smtpd_sasl_disconnect() performs per-connection cleanup.
@@ -186,12 +186,10 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
 	msg_fatal("SASL per-connection server initialization");
 
     /*
-     * Security options. XXX What exactly is this supposed to be doing? The
-     * cyrus-sasl-1.5.15 source code has no documentation at all about this
-     * routine.
-     * 
-     * Disallow anonymous authentication. The permit_sasl_authenticated feature
-     * is restricted to authenticated clients only.
+     * Security options. Some information can be found in the sasl.h include
+     * file. Disallow anonymous authentication; this is because the
+     * permit_sasl_authenticated feature is restricted to authenticated
+     * clients only.
      */
     memset(&sec_props, 0, sizeof(sec_props));
     sec_props.min_ssf = 0;
@@ -277,7 +275,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	dec_buffer = STR(state->sasl_decoded);
 	if (sasl_decode64(init_response, reply_len,
 			  dec_buffer, &dec_length) != SASL_OK)
-	    return ("501 AUTH failed: malformed initial response");
+	    return ("501 Authentication failed: malformed initial response");
 	if (msg_verbose)
 	    msg_info("%s: decoded initial response %s", myname, dec_buffer);
     } else {
@@ -302,6 +300,9 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	 * comes in multiples of four bytes for each triple of input bytes,
 	 * plus four bytes for any incomplete last triple, plus one byte for
 	 * the null terminator.
+	 * 
+	 * XXX Replace the klunky sasl_encode64() interface by something that
+	 * uses VSTRING buffers.
 	 */
 	if (msg_verbose)
 	    msg_info("%s: uncoded challenge: %.*s",
@@ -337,7 +338,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
     }
 
     /*
-     * Cleanup. What a horrible interface.
+     * Cleanup. What an awful interface.
      */
     if (serverout)
 	free(serverout);
