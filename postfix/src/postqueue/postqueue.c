@@ -58,7 +58,7 @@
 /*	possible to specify arbitrary directory names.
 /*
 /*	A non-standard directory is allowed only if the name is listed in the
-/*	standard \fBmain.cf\fR file, in the \fBalternate_config_directory\fR
+/*	standard \fBmain.cf\fR file, in the \fBalternate_config_directories\fR
 /*	configuration parameter value.
 /*
 /*	Only the super-user is allowed to specify arbitrary directory names.
@@ -133,6 +133,19 @@
 /* Application-specific. */
 
  /*
+  * WARNING WARNING WARNING
+  * 
+  * This software is designed to run set-gid. In order to avoid exploitation of
+  * privilege, this software should not run any external commands, nor should
+  * it take any information from the user, unless that information can be
+  * properly sanitized. To get an idea of how much information a process can
+  * inherit from a potentially hostile user, examine all the members of the
+  * process structure (typically, in /usr/include/sys/proc.h): the current
+  * directory, open files, timers, signals, environment, command line, umask,
+  * and so on.
+  */
+
+ /*
   * Modes of operation.
   */
 #define PQ_MODE_DEFAULT		0	/* noop */
@@ -177,7 +190,7 @@ static void show_queue(void)
 
 	msg_warn("Mail system is down -- accessing queue directly");
 	argv = argv_alloc(6);
-	argv_add(argv, MAIL_SERVICE_SHOWQ, "-c", "-u", "-S", (char *) 0);
+	argv_add(argv, MAIL_SERVICE_SHOWQ, "-u", "-S", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
 	    argv_add(argv, "-v", (char *) 0);
 	argv_terminate(argv);
@@ -283,7 +296,8 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL. This program is set-gid and must sanitize all command-line
      * parameters. The configuration directory argument is validated by the
-     * mail configuration read routine.
+     * mail configuration read routine. Don't do complex things until we have
+     * completed initializations.
      */
     while ((c = GETOPT(argc, argv, "c:fps:v")) > 0) {
 	switch (c) {
@@ -306,25 +320,7 @@ int     main(int argc, char **argv)
 	    if (mode != PQ_MODE_DEFAULT)
 		usage();
 	    mode = PQ_MODE_FLUSH_SITE;
-	    if (*optarg == '[' && *(last = optarg + strlen(optarg) - 1) == ']') {
-
-		*last = 0;
-		if (valid_hostaddr(optarg + 1, DONT_GRIPE))
-		    site_to_flush = optarg;
-		else
-		    site_to_flush = 0;
-		*last = ']';
-	    } else {
-		if (valid_hostname(optarg, DONT_GRIPE)
-		    || valid_hostaddr(optarg, DONT_GRIPE))
-		    site_to_flush = optarg;
-		else
-		    site_to_flush = 0;
-	    }
-	    if (site_to_flush == 0)
-		msg_fatal_status(EX_USAGE,
-				 "Cannot flush mail queue - invalid destination: \"%.100s%s\"",
-				 optarg, strlen(optarg) > 100 ? "..." : "");
+	    site_to_flush = optarg;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -350,6 +346,29 @@ int     main(int argc, char **argv)
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
 
     signal(SIGPIPE, SIG_IGN);
+
+    /* End of initializations. */
+
+    /*
+     * Further input validation.
+     */
+    if (site_to_flush != 0) {
+	if (*site_to_flush == '['
+	    && *(last = optarg + strlen(site_to_flush) - 1) == ']') {
+	    *last = 0;
+	    if (!valid_hostaddr(optarg + 1, DONT_GRIPE))
+		site_to_flush = 0;
+	    *last = ']';
+	} else {
+	    if (!valid_hostname(optarg, DONT_GRIPE)
+		&& !valid_hostaddr(optarg, DONT_GRIPE))
+		site_to_flush = 0;
+	}
+	if (site_to_flush == 0)
+	    msg_fatal_status(EX_USAGE,
+	      "Cannot flush mail queue - invalid destination: \"%.100s%s\"",
+			     optarg, strlen(optarg) > 100 ? "..." : "");
+    }
 
     /*
      * Start processing.

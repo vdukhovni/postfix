@@ -227,8 +227,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <dict.h>
-#include <pwd.h>
-#include <grp.h>
 
 /* Utility library. */
 

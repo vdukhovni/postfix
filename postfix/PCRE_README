@@ -7,7 +7,7 @@ non-space.
 
 One possible use is to add a restriction to main.cf:
 
-   smtpd_recipient_restrictions = ... pcre:/opt/postfix/etc/smtprecipient ...
+   smtpd_recipient_restrictions = ... pcre:/etc/postfix/smtprecipient ...
 
 The regular expressions are read from the file specified - sample
 regexp patterns are shown in the Postfix pcre_table(5) manual page.

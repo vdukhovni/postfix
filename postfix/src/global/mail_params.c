@@ -18,6 +18,8 @@
 /*	char	*var_mail_owner;
 /*	uid_t	var_owner_uid;
 /*	gid_t	var_owner_gid;
+/*	char	*var_sgid_group;
+/*	gid_t	var_sgid_gid;
 /*	char	*var_default_privs;
 /*	uid_t	var_default_uid;
 /*	gid_t	var_default_gid;
@@ -104,6 +106,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
+#include <grp.h>
 #include <time.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
@@ -143,6 +146,8 @@ char   *var_syslog_name;
 char   *var_mail_owner;
 uid_t   var_owner_uid;
 gid_t   var_owner_gid;
+char   *var_sgid_group;
+gid_t   var_sgid_gid;
 char   *var_default_privs;
 uid_t   var_default_uid;
 gid_t   var_default_gid;
@@ -199,6 +204,8 @@ char   *var_debug_peer_list;
 int     var_debug_peer_level;
 int     var_fault_inj_code;
 
+#define MAIN_CONF_FILE	"main.cf"
+
 /* check_myhostname - lookup hostname and validate */
 
 static const char *check_myhostname(void)
@@ -220,8 +227,9 @@ static const char *check_myhostname(void)
     name = get_hostname();
     if ((dot = strchr(name, '.')) == 0) {
 	if ((domain = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0)
-	    msg_warn("My hostname %s is not a fully qualified name - set %s or %s in %s/main.cf",
-		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN, var_config_dir);
+	    msg_warn("My hostname %s is not a fully qualified name - set %s or %s in %s/%s",
+		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN, 
+		var_config_dir, MAIN_CONF_FILE);
 	else
 	    name = concatenate(name, ".", domain, (char *) 0);
     }
@@ -250,14 +258,14 @@ static void check_default_privs(void)
     struct passwd *pwd;
 
     if ((pwd = getpwnam(var_default_privs)) == 0)
-	msg_fatal("unknown %s configuration parameter value: %s",
-		  VAR_DEFAULT_PRIVS, var_default_privs);
+	msg_fatal("%s:%s: unknown user name value: %s",
+		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, var_default_privs);
     if ((var_default_uid = pwd->pw_uid) == 0)
-	msg_fatal("%s: %s: privileged user is not allowed",
-		  VAR_DEFAULT_PRIVS, var_default_privs);
+	msg_fatal("%s:%s: privileged user is not allowed: %s",
+		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, var_default_privs);
     if ((var_default_gid = pwd->pw_gid) == 0)
-	msg_fatal("%s: %s: privileged group is not allowed",
-		  VAR_DEFAULT_PRIVS, var_default_privs);
+	msg_fatal("%s:%s: privileged group is not allowed: %s",
+		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, var_default_privs);
 }
 
 /* check_mail_owner - lookup owner user attributes and validate */
@@ -267,14 +275,49 @@ static void check_mail_owner(void)
     struct passwd *pwd;
 
     if ((pwd = getpwnam(var_mail_owner)) == 0)
-	msg_fatal("unknown %s configuration parameter value: %s",
-		  VAR_MAIL_OWNER, var_mail_owner);
+	msg_fatal("%s:%s: unknown user name value: %s",
+		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner);
     if ((var_owner_uid = pwd->pw_uid) == 0)
-	msg_fatal("%s: %s: privileged user is not allowed",
-		  VAR_MAIL_OWNER, var_mail_owner);
+	msg_fatal("%s:%s: privileged user is not allowed: %s",
+		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner);
     if ((var_owner_gid = pwd->pw_gid) == 0)
-	msg_fatal("%s: %s: privileged group is not allowed",
-		  VAR_DEFAULT_PRIVS, var_mail_owner);
+	msg_fatal("%s:%s: privileged group is not allowed: %s",
+		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner);
+
+    /*
+     * This detects only some forms of sharing. Enumerating the entire
+     * password file name space could be expensive. The purpose of this code
+     * is to discourage user ID sharing by developers and package
+     * maintainers.
+     */
+    if ((pwd = getpwuid(var_owner_uid)) != 0
+	&& strcmp(pwd->pw_name, var_mail_owner) != 0)
+	msg_fatal("%s:%s: %s is sharing the user ID with %s",
+		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner, pwd->pw_name);
+}
+
+/* check_sgid_group - lookup setgid group attributes and validate */
+
+static void check_sgid_group(void)
+{
+    struct group *grp;
+
+    if ((grp = getgrnam(var_sgid_group)) == 0)
+	msg_fatal("%s:%s: unknown group name: %s",
+		  MAIN_CONF_FILE, VAR_SGID_GROUP, var_sgid_group);
+    if ((var_sgid_gid = grp->gr_gid) == 0)
+	msg_fatal("%s:%s: privileged group is not allowed: %s",
+		  MAIN_CONF_FILE, VAR_SGID_GROUP, var_sgid_group);
+
+    /*
+     * This detects only some forms of sharing. Enumerating the entire group
+     * file name space could be expensive. The purpose of this code is to
+     * discourage group ID sharing by developers and package maintainers.
+     */
+    if ((grp = getgrgid(var_sgid_gid)) != 0
+	&& strcmp(grp->gr_name, var_sgid_group) != 0)
+	msg_fatal("%s:%s: group %s is sharing the group ID with %s",
+		  MAIN_CONF_FILE, VAR_SGID_GROUP, var_sgid_group, grp->gr_name);
 }
 
 /* mail_params_init - configure built-in parameters */
@@ -294,6 +337,7 @@ void    mail_params_init()
 	VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name, 1, 0,
 	VAR_SYSLOG_NAME, DEF_SYSLOG_NAME, &var_syslog_name, 1, 0,
 	VAR_MAIL_OWNER, DEF_MAIL_OWNER, &var_mail_owner, 1, 0,
+	VAR_SGID_GROUP, DEF_SGID_GROUP, &var_sgid_group, 1, 0,
 	VAR_MYDEST, DEF_MYDEST, &var_mydest, 0, 0,
 	VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin, 1, 0,
 	VAR_RELAYHOST, DEF_RELAYHOST, &var_relayhost, 0, 0,
@@ -389,6 +433,23 @@ void    mail_params_init()
     get_mail_conf_time_table(time_defaults);
     check_default_privs();
     check_mail_owner();
+    check_sgid_group();
+
+    /*
+     * Discourage UID or GID sharing.
+     */
+    if (var_default_uid == var_owner_uid)
+	msg_fatal("%s: %s and %s must not have the same user ID",
+		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER);
+    if (var_default_gid == var_owner_gid)
+	msg_fatal("%s: %s and %s must not have the same group ID",
+		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER);
+    if (var_default_gid == var_sgid_gid)
+	msg_fatal("%s: %s and %s must not have the same group ID",
+		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, VAR_SGID_GROUP);
+    if (var_owner_gid == var_sgid_gid)
+	msg_fatal("%s: %s and %s must not have the same group ID",
+		  MAIN_CONF_FILE, VAR_MAIL_OWNER, VAR_SGID_GROUP);
 
     /*
      * Variables whose defaults are determined at runtime, after other

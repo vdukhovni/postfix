@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	Postfix mail posting utility
 /* SYNOPSIS
-/*	\fBpostdrop\fR [\fI-rv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostdrop\fR [\fB-rv\fR] [\fB-c \fIconfig_dir\fR]
 /* DESCRIPTION
 /*	The \fBpostdrop\fR command creates a file in the \fBmaildrop\fR
 /*	directory and copies its standard input to the file.
@@ -41,7 +41,7 @@
 /*	directory names.
 /*
 /*	A non-standard directory is allowed only if the name is listed in the
-/*	standard \fBmain.cf\fR file, in the \fBalternate_config_directory\fR
+/*	standard \fBmain.cf\fR file, in the \fBalternate_config_directories\fR
 /*	configuration parameter value.
 /*
 /*	Only the super-user is allowed to specify arbitrary directory names.
@@ -116,10 +116,14 @@
  /*
   * WARNING WARNING WARNING
   * 
-  * This software is designed to run set-gid on systems that cannot afford a
-  * world-writable spool directory. In order to make this restriction work,
-  * this software should not run any external commands, nor should it take
-  * any configuration information from the user.
+  * This software is designed to run set-gid. In order to avoid exploitation of
+  * privilege, this software should not run any external commands, nor should
+  * it take any information from the user unless that information can be
+  * properly sanitized. To get an idea of how much information a process can
+  * inherit from a potentially hostile user, examine all the members of the
+  * process structure (typically, in /usr/include/sys/proc.h): the current
+  * directory, open files, timers, signals, environment, command line, umask,
+  * and so on.
   */
 
  /*
@@ -206,7 +210,8 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL. This program is set-gid and must sanitize all command-line
      * arguments. The configuration directory argument is validated by the
-     * mail configuration read routine.
+     * mail configuration read routine. Don't do complex things until we have
+     * completed initializations.
      */
     while ((c = GETOPT(argc, argv, "c:rv")) > 0) {
 	switch (c) {
@@ -266,6 +271,8 @@ int     main(int argc, char **argv)
     signal(SIGQUIT, postdrop_sig);
     signal(SIGTERM, postdrop_sig);
     msg_cleanup(postdrop_cleanup);
+
+    /* End of initializations. */
 
     /*
      * Create queue file. mail_stream_file() never fails. Send the queue ID

@@ -52,6 +52,11 @@
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
 #define HAS_ST_GEN	/* struct stat contains inode generation number */
+#define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4)
@@ -94,6 +99,11 @@
 #define PRINTFLIKE(x,y)
 #define SCANFLIKE(x,y)
 #define HAS_NETINFO
+#define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
  /*
@@ -142,6 +152,9 @@ extern int h_errno;
 #define DUP2_DUPS_CLOSE_ON_EXEC
 #define MISSING_USLEEP
 #define NO_HERRNO
+#define DEF_SENDMAIL_PATH "/usr/lib/sendmail"
+#define DEF_COMMAND_DIR	"/usr/etc"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
  /*
@@ -208,6 +221,11 @@ extern int opterr;
 #define STATFS_IN_SYS_VFS_H
 #define memmove(d,s,l)	bcopy(s,d,l)
 #define NO_HERRNO
+#define DEF_SENDMAIL_PATH "/usr/lib/sendmail"
+#define DEF_MAILQ_PATH "/usr/ucb/mailq"
+#define DEF_NEWALIAS_PATH "/usr/ucb/newaliases"
+#define DEF_COMMAND_DIR	"/usr/etc"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
  /*
@@ -242,6 +260,11 @@ extern int opterr;
 #define LOCAL_CONNECT	stream_connect
 #define LOCAL_TRIGGER	stream_trigger
 #define HAS_VOLATILE_LOCKS
+#define DEF_SENDMAIL_PATH "/usr/lib/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
  /*
@@ -330,6 +353,11 @@ extern int opterr;
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
 #define STRCASECMP_IN_STRINGS_H
+#define DEF_SENDMAIL_PATH "/usr/lib/sendmail"
+#define DEF_MAILQ_PATH	"/usr/sbin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/sbin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
 #ifdef AIX4
@@ -364,6 +392,11 @@ extern int seteuid(uid_t);
 extern int setegid(gid_t);
 extern int initgroups(const char *, int);
 #endif
+#define DEF_SENDMAIL_PATH "/usr/lib/sendmail"
+#define DEF_MAILQ_PATH	"/usr/sbin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/sbin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 
 #endif
 
@@ -397,6 +430,7 @@ extern time_t time(time_t *);
 extern int seteuid(uid_t);
 extern int setegid(gid_t);
 extern int initgroups(const char *, int);
+#define DEF_SENDMAIL_PATH "/usr/lib/sendmail"
 
 #endif
 
@@ -460,6 +494,11 @@ extern int initgroups(const char *, int);
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define PREPEND_PLUS_TO_OPTSTRING
 #define HAS_POSIX_REGEXP
+#define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
  /*
@@ -493,6 +532,11 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define HAS_POSIX_REGEXP
+#define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
 #ifdef HPUX10
@@ -523,6 +567,11 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define HAS_POSIX_REGEXP
+#define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_COMMAND_DIR	"/usr/sbin"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
 #ifdef HPUX9
@@ -555,6 +604,10 @@ extern int h_errno;
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define HAS_POSIX_REGEXP
+#define DEF_SENDMAIL_PATH "/usr/bin/sendmail"
+#define DEF_MAILQ_PATH	"/usr/bin/mailq"
+#define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+#define DEF_DAEMON_DIR	"/usr/libexec/postfix"
 #endif
 
  /*

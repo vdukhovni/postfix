@@ -49,6 +49,11 @@ extern char *var_mail_owner;
 extern uid_t var_owner_uid;
 extern gid_t var_owner_gid;
 
+#define VAR_SGID_GROUP		"setgid_group"
+#define DEF_SGID_GROUP		"postdrop"
+extern char *var_sgid_group;
+extern gid_t var_sgid_gid;
+
 #define VAR_DEFAULT_PRIVS	"default_privs"
 #define DEF_DEFAULT_PRIVS	"nobody"
 extern char *var_default_privs;
@@ -169,13 +174,13 @@ extern char *var_queue_dir;
 
 #define VAR_DAEMON_DIR		"daemon_directory"
 #ifndef DEF_DAEMON_DIR
-#define DEF_DAEMON_DIR		"$program_directory"
+#define DEF_DAEMON_DIR		"/usr/libexec/postfix"
 #endif
 extern char *var_daemon_dir;
 
 #define VAR_COMMAND_DIR		"command_directory"
 #ifndef DEF_COMMAND_DIR
-#define DEF_COMMAND_DIR		"$program_directory"
+#define DEF_COMMAND_DIR		"/usr/sbin"
 #endif
 extern char *var_command_dir;
 
@@ -202,7 +207,7 @@ extern time_t var_starttime;
 #endif
 extern char *var_config_dir;
 
-#define VAR_CONFIG_DIRS		"alternate_config_directory"
+#define VAR_CONFIG_DIRS		"alternate_config_directories"
 #define DEF_CONFIG_DIRS		""
 extern char *var_config_dirs;
 
@@ -1372,6 +1377,27 @@ extern char *var_par_dom_match;
 #define VAR_FAULT_INJ_CODE		"fault_injection_code"
 #define DEF_FAULT_INJ_CODE		0
 extern int var_fault_inj_code;
+
+ /*
+  * Install/upgrade information.
+  */
+#define VAR_SENDMAIL_PATH		"sendmail_path"
+#ifndef DEF_SENDMAIL_PATH
+#define DEF_SENDMAIL_PATH		"/usr/sbin/sendmail"
+#endif
+
+#define VAR_MAILQ_PATH			"mailq_path"
+#ifndef DEF_MAILQ_PATH
+#define DEF_MAILQ_PATH			"/usr/bin/mailq"
+#endif
+
+#define VAR_NEWALIAS_PATH		"newaliases_path"
+#ifndef DEF_NEWALIAS_PATH
+#define DEF_NEWALIAS_PATH		"/usr/bin/newaliases"
+#endif
+
+#define VAR_MANPAGE_PATH		"manpage_path"
+#define DEF_MANPAGE_PATH		"/usr/local/man"
 
 /* LICENSE
 /* .ad

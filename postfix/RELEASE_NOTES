@@ -1,19 +1,27 @@
 Incompatible changes with snapshot-200201XX
 ===========================================
 
-If you run multiple Postfix instances then you have to specify
-their configuration directories in the default main.cf file as
-"alternate_config_directory = /dir1 /dir2 ...". Otherwise, some
-Postfix sendmail commands will no longer work (namely, the ones
-that are now implemented by set-group ID client programs).
+Postfix will not run if it detects that the postfix user or group
+ID are shared with other accounts on the system. The checks aren't
+exhaustive (that would be too resource consuming) but should be
+sufficient to encourage packagers and developers to do the right
+thing.
 
 This release modifies the existing master.cf file. The local pickup
 service is now unprivileged, and the cleanup and flush service are
 now "public".
 
-Should you have to back out to a previous release, then you have
-to edit the master.cf file, making the pickup service "privileged",
-and making the cleanup and flush service "private".
+Should you have to back out to a previous release, then you must
+1) edit the master.cf file, make the pickup service "privileged",
+and make the cleanup and flush services "private"; 2) "chmod 755
+/var/spool/postfix/public".  To revert to a world-writable mail
+submission directory, "chmod 1733 /var/spool/postfix/maildrop".
+
+If you run multiple Postfix instances on the same machine then you
+now have to specify their configuration directories in the default
+main.cf file as "alternate_config_directories = /dir1 /dir2 ...".
+Otherwise, some Postfix commands will no longer work (namely, the
+ones that are now implemented by set-group ID client programs).
 
 Major changes with snapshot-200201XX
 ====================================
@@ -28,6 +36,16 @@ Simplification of the local Postfix security model.
   gone.  Postfix now uses a new set-gid postqueue command for all
   the queue operations that were implemented by the Postfix sendmail
   command.
+
+Simplification of Postfix installation.
+
+- The install.cf file is gone.
+
+- All installation settings are now kept in the main.cf file, and
+  better default settings are now generated for sendmail_path etc.
+
+- Non-default settings can be specified on the INSTALL.sh command
+  line as name=value arguments.
 
 Incompatible changes with snapshot-20011226
 ===========================================
