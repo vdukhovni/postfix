@@ -2212,20 +2212,17 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	domain = name;
 
     /*
-     * If the domain does not exist then we apply no restriction. In all
-     * other cases, DNS lookup failure results in a "try again" status.
+     * If the domain name does not exist then we apply no restriction.
      * 
-     * If the domain name exists but MX lookup fails, fabricate an MX record
+     * If the domain name exists but no MX record exists, fabricate an MX record
      * that points to the domain name itself.
      * 
-     * If the domain name exists but NS lookup fails, look up parent domain
+     * If the domain name exists but no NS record exists, look up parent domain
      * NS records.
      */
     dns_status = dns_lookup(domain, type, 0, &server_list,
 			    (VSTRING *) 0, (VSTRING *) 0);
-    if (dns_status == DNS_NOTFOUND) {
-	if (h_errno != NO_DATA)
-	    return (SMTPD_CHECK_DUNNO);
+    if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
 	if (type == T_MX) {
 	    server_list = dns_rr_create(domain, &fixed, 0,
 					domain, strlen(domain) + 1);
@@ -2241,9 +2238,8 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	}
     }
     if (dns_status != DNS_OK) {
-	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
-			 "450 <%s>: %s rejected: unable to look up %s host",
-			 reply_name, reply_class, dns_strtype(type));
+	msg_warn("Unable to look up %s host for %s", dns_strtype(type),
+		 domain && domain[1] ? domain : reply_name);
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -2257,12 +2253,10 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      */
     for (server = server_list; server != 0; server = server->next) {
 	if ((hp = gethostbyname((char *) server->data)) == 0) {
-	    DEFER_IF_PERMIT4(state, MAIL_ERROR_POLICY,
-			     "450 <%s>: %s rejected: "
-			     "Unable to look up %s host %s",
-			     reply_name, reply_class,
-			     dns_strtype(type), (char *) server->data);
-	    CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
+	    msg_warn("Unable to look up %s host %s for %s %s",
+		     dns_strtype(type), (char *) server->data,
+		     reply_class, reply_name);
+	    continue;
 	}
 	if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
 	    if (msg_verbose)

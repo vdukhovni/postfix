@@ -120,6 +120,7 @@ OK
 >>> helo verisign.com
 OK
 >>> helo example.tld
+./smtpd_check: warning: Unable to look up MX host for example.tld
 OK
 >>> sender_restrictions check_sender_mx_access,hash:smtpd_check_access
 OK
@@ -152,6 +153,7 @@ OK
 >>> helo verisign-wildcard.com
 OK
 >>> helo example.tld
+./smtpd_check: warning: Unable to look up NS host for example.tld
 OK
 >>> sender_restrictions check_sender_ns_access,hash:smtpd_check_access
 OK

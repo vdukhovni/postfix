@@ -8596,6 +8596,13 @@ Apologies for any names omitted.
 	NS records of parent domains, causing mail to be deferred
 	with a 450 status code. File: smtpd/smtpd_check.c.
 
+20030919
+
+	Robustness: check_mumble_{mx,ns}_access skip over DNS lookup
+	failures instead of deferring mail. This is not as bad as
+	it appears to be because the restrictions can't be used
+	for whitelisting.  File: smtpd/smtpd_check.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content
