@@ -7149,6 +7149,22 @@ Apologies for any names omitted.
 	postmap and postalias only) to remove some hurdles for
 	Michael Tokarev's CDB support. Files: global/mkmap*.[hc].
 
+20021105
+
+	Postalias now produces YP_LAST_MODIFIED and YP_MASTER_NAME
+	records only when NIS support is compiled in. File:
+	postalias.c.
+
+20021106
+
+	Postalias now puts $myhostname in the YP_MASTER_NAME record,
+	instead of the possibly bogus gethostname() result.  File:
+	postalias.c.
+
+	The PCRE map code did not reject non-numeric replacement
+	indices in replacement text, and silently treated $text as
+	$0. Found by Michael Tokarev. File: dict_pcre.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
@@ -7159,6 +7175,9 @@ Open problems:
 	keys.  cleanup uses quoted forms.
 
 	Low: sendmail does not store null command-line recipients.
+
+	Low: sendmail, not cleanup, should extract recipients from
+	message headers.
 
 	Low: have a configurable list of errno values for mailbox
 	or maildir delivery that result in deferral rather than

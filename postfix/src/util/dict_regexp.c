@@ -443,9 +443,14 @@ static int dict_regexp_get_pats(const char *mapname, int lineno, char **p,
 	return (0);
     if (**p == '!') {
 #if 0
-	msg_warn("regexp file %s, line %d: /pattern1/!/pattern2/ goes away, "
-		 "use \"if !/pattern2/ ... /pattern1/ ... endif\" instead",
-		 mapname, lineno);
+	static int bitrot_warned = 0;
+
+	if (bitrot_warned == 0) {
+	    msg_warn("regexp file %s, line %d: /pattern1/!/pattern2/ goes away,"
+		 " use \"if !/pattern2/ ... /pattern1/ ... endif\" instead",
+		     mapname, lineno);
+	    bitrot_warned = 1;
+	}
 #endif
 	if (dict_regexp_get_pat(mapname, lineno, p, second_pat) == 0)
 	    return (0);
@@ -464,7 +469,7 @@ static int dict_regexp_prescan(int type, VSTRING *buf, char *context)
 
     if (type == MAC_PARSE_VARNAME) {
 	if (!alldig(vstring_str(buf))) {
-	    msg_warn("regexp map %s, line %d: non-numeric replacement macro name \"%s\"",
+	    msg_warn("regexp map %s, line %d: non-numeric replacement index \"%s\"",
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
 	    return (MAC_PARSE_ERROR);
 	}

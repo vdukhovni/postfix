@@ -5,7 +5,8 @@
 /*	Postfix superintendent
 /* SYNOPSIS
 /* .fi
-/*	\fBpostsuper\fR [\fB-cpsv\fR] [\fB-d \fIqueue_id\fR]
+/*	\fBpostsuper\fR [\fB-psv\fR] 
+/*		[\fB-c \fIconfig_dir\fR] [\fB-d \fIqueue_id\fR]
 /*		[\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
 /*		[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION

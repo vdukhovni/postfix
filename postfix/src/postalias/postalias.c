@@ -162,7 +162,6 @@
 #include <readlline.h>
 #include <stringops.h>
 #include <split_at.h>
-#include <get_hostname.h>
 #include <vstring_vstream.h>
 #include <set_eugid.h>
 
@@ -329,8 +328,10 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
     mkmap->dict->flags &= ~DICT_FLAG_TRY1NULL;
     mkmap->dict->flags |= DICT_FLAG_TRY0NULL;
     vstring_sprintf(value_buffer, "%010ld", (long) time((time_t *) 0));
+#if (defined(HAS_NIS) || defined(HAS_NISPLUS))
     mkmap_append(mkmap, "YP_LAST_MODIFIED", STR(value_buffer));
-    mkmap_append(mkmap, "YP_MASTER_NAME", get_hostname());
+    mkmap_append(mkmap, "YP_MASTER_NAME", var_myhostname);
+#endif
 
     /*
      * Close the alias database, and release the lock.

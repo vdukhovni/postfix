@@ -126,6 +126,14 @@ typedef struct {
 } DICT_PCRE_EXPAND_CONTEXT;
 
  /*
+  * Context for $number pre-scan callback.
+  */
+typedef struct {
+    const char *mapname;		/* name of regexp map */
+    int     lineno;			/* where in file */
+} DICT_PCRE_PRESCAN_CONTEXT;
+
+ /*
   * Compatibility.
   */
 #ifndef MAC_PARSE_OK
@@ -414,6 +422,29 @@ static int dict_pcre_get_pattern(const char *mapname, int lineno, char **bufp,
     return (1);
 }
 
+/* dict_pcre_prescan - sanity check $number instances in replacement text */
+
+static int dict_pcre_prescan(int type, VSTRING *buf, char *context)
+{
+    DICT_PCRE_PRESCAN_CONTEXT *ctxt = (DICT_PCRE_PRESCAN_CONTEXT *) context;
+    size_t  n;
+
+    if (type == MAC_PARSE_VARNAME) {
+	if (!alldig(vstring_str(buf))) {
+	    msg_warn("pcre map %s, line %d: non-numeric replacement index \"%s\"",
+		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
+	    return (MAC_PARSE_ERROR);
+	}
+	n = atoi(vstring_str(buf));
+	if (n < 1) {
+	    msg_warn("pcre map %s, line %d: out of range replacement index \"%s\"",
+		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
+	    return (MAC_PARSE_ERROR);
+	}
+    }
+    return (MAC_PARSE_OK);
+}
+
 /* dict_pcre_compile - compile pattern */
 
 static int dict_pcre_compile(const char *mapname, int lineno,
@@ -472,6 +503,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
     if (!ISALNUM(*p)) {
 	DICT_PCRE_REGEXP regexp;
 	DICT_PCRE_ENGINE engine;
+	DICT_PCRE_PRESCAN_CONTEXT prescan_context;
 	DICT_PCRE_MATCH_RULE *match_rule;
 
 	/*
@@ -488,6 +520,19 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	if (!*p)
 	    msg_warn("%s, line %d: no replacement text: using empty string",
 		     mapname, lineno);
+
+	/*
+	 * Sanity check the $number instances in the replacement text.
+	 */
+	prescan_context.mapname = mapname;
+	prescan_context.lineno = lineno;
+
+	if (mac_parse(p, dict_pcre_prescan, (char *) &prescan_context)
+	    & MAC_PARSE_ERROR) {
+	    msg_warn("pcre map %s, line %d: bad replacement syntax: "
+		     "skipping this rule", mapname, lineno);
+	    return (0);
+	}
 
 	/*
 	 * Compile the pattern.
@@ -646,8 +691,8 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
     }
 
     if (nesting)
-        msg_warn("pcre map %s, line %d: more IFs than ENDIFs",
-                 mapname, lineno);
+	msg_warn("pcre map %s, line %d: more IFs than ENDIFs",
+		 mapname, lineno);
 
     vstring_free(line_buffer);
     vstream_fclose(map_fp);
