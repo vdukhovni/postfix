@@ -19,7 +19,7 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
-	verp_sender.c
+	verp_sender.c match_parent_style.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -40,7 +40,7 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
-	verp_sender.o
+	verp_sender.o match_parent_style.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -56,7 +56,8 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	recipient_list.h record.h resolve_clnt.h resolve_local.h \
 	rewrite_clnt.h sent.h smtp_stream.h split_addr.h string_list.h \
 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
-	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h
+	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
+	match_parent_style.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -321,6 +322,7 @@ debug_peer.o: namadr_list.h
 debug_peer.o: ../../include/match_list.h
 debug_peer.o: ../../include/match_ops.h
 debug_peer.o: debug_peer.h
+debug_peer.o: match_parent_style.h
 debug_process.o: debug_process.c
 debug_process.o: ../../include/sys_defs.h
 debug_process.o: ../../include/msg.h
@@ -723,6 +725,13 @@ mark_corrupt.o: ../../include/vbuf.h
 mark_corrupt.o: mail_queue.h
 mark_corrupt.o: ../../include/vstring.h
 mark_corrupt.o: mark_corrupt.h
+match_parent_style.o: match_parent_style.c
+match_parent_style.o: ../../include/sys_defs.h
+match_parent_style.o: string_list.h
+match_parent_style.o: ../../include/match_list.h
+match_parent_style.o: ../../include/match_ops.h
+match_parent_style.o: mail_params.h
+match_parent_style.o: match_parent_style.h
 mbox_conf.o: mbox_conf.c
 mbox_conf.o: ../../include/sys_defs.h
 mbox_conf.o: ../../include/name_mask.h
@@ -942,6 +951,7 @@ resolve_local.o: ../../include/match_ops.h
 resolve_local.o: mail_params.h
 resolve_local.o: own_inet_addr.h
 resolve_local.o: resolve_local.h
+resolve_local.o: match_parent_style.h
 rewrite_clnt.o: rewrite_clnt.c
 rewrite_clnt.o: ../../include/sys_defs.h
 rewrite_clnt.o: ../../include/msg.h

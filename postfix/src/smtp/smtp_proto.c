@@ -663,8 +663,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		smtp_fputs("", 0, session->stream);
 	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0) {
 		vstream_fflush(session->stream);/* hurts performance */
-		sock_empty_wait(vstream_fileno(session->stream),
-				session->stream->timeout / 2);
+		sleep(10);			/* not to mention this */
 	    }
 	    if (vstream_ferror(state->src))
 		msg_fatal("queue file read error");

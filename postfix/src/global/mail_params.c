@@ -64,6 +64,7 @@
 /*	char	*var_mynetworks_style;
 /*	char	*var_verp_delims;
 /*	char	*var_verp_filter;
+/*	char	*var_par_dom_match;
 /*
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
@@ -187,6 +188,7 @@ char   *var_mynetworks_style;
 char   *var_verp_delims;
 char   *var_verp_filter;
 int     var_in_flow_delay;
+char   *var_par_dom_match;
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -312,6 +314,7 @@ void    mail_params_init()
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_VERP_DELIMS, DEF_VERP_DELIMS, &var_verp_delims, 2, 2,
 	VAR_VERP_FILTER, DEF_VERP_FILTER, &var_verp_filter, 1, 0,
+	VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match, 0, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

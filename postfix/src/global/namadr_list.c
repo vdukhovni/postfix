@@ -39,16 +39,13 @@
 /*	pattern. The matching process is case insensitive.
 /*
 /*	namadr_list_init() performs initializations. The first
-/*	argument is the bit-wise OR of zero or mor of the
+/*	argument is the bit-wise OR of zero or more of the
 /*	following:
 /* .RS
 /* .IP MATCH_FLAG_PARENT
-/*      The hostname pattern foo.com matches itself and any name below
-/*      the domain foo.com.
-/* .IP MATCH_FLAG_DOTPARENT
-/*      The hostname pattern foo.com matches itself only.
-/*      The hostname pattern .foo.com matches any name below the domain
-/*      foo.com.
+/*	The hostname pattern foo.com matches itself and any name below
+/*	the domain foo.com. If this flag is cleared, foo.com matches itself
+/*	only, and .foo.com matches any name below the domain foo.com.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The second argument is a list of patterns, or the absolute
@@ -109,22 +106,22 @@ main(int argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
     while ((ch = GETOPT(argc, argv, "v")) > 0) {
-        switch (ch) {
-        case 'v':
-            msg_verbose++;
-            break;
-        default:
-            usage(argv[0]);
-        }
+	switch (ch) {
+	case 'v':
+	    msg_verbose++;
+	    break;
+	default:
+	    usage(argv[0]);
+	}
     }
     if (argc != optind + 3)
-        usage(argv[0]);
-    list = namadr_list_init(argv[optind]);
+	usage(argv[0]);
+    list = namadr_list_init(MATCH_FLAG_PARENT, argv[optind]);
     host = argv[optind + 1];
     addr = argv[optind + 2];
     vstream_printf("%s/%s: %s\n", host, addr,
-                   namadr_list_match(list, host, addr) ?
-                   "YES" : "NO");
+		   namadr_list_match(list, host, addr) ?
+		   "YES" : "NO");
     vstream_fflush(VSTREAM_OUT);
     namadr_list_free(list);
 }

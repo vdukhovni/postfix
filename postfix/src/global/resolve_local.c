@@ -58,6 +58,7 @@
 #include <mail_params.h>
 #include <own_inet_addr.h>
 #include <resolve_local.h>
+#include <match_parent_style.h>
 
 /* Application-specific */
 

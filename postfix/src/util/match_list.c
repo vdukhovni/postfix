@@ -34,10 +34,8 @@
 /* .RS
 /* .IP MATCH_FLAG_PARENT
 /*	The hostname pattern foo.com matches any name within the domain
-/*	foo.com.
-/* .IP MATCH_FLAG_DOTPARENT
-/*	The hostname pattern .foo.com matches any name under foo.com.
-/*	The pattern foo.com matches itself only.
+/*	foo.com. If this flag is cleared, foo.com matches itself
+/*	only, and .foo.com matches any name below the domain foo.com.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The pattern_list argument specifies a list of patterns.  The third

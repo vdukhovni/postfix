@@ -289,6 +289,7 @@
 #include <mail_conf.h>
 #include <maps.h>
 #include <mail_addr_find.h>
+#include <match_parent_style.h>
 
 /* Application-specific. */
 
@@ -338,6 +339,11 @@ static MAPS *relocated_maps;
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
 static NAMADR_LIST *perm_mx_networks;
+
+ /*
+  * How to do parent domain wildcard matching, if any.
+  */
+static int access_parent_style;
 
  /*
   * Pre-parsed restriction lists.
@@ -456,10 +462,9 @@ static int has_required(ARGV *restrictions, char **required)
 	    rest += 1;
 	    continue;
 	}
-	for (reqd = required; *reqd; reqd++) {
+	for (reqd = required; *reqd; reqd++)
 	    if (strcmp(*rest, *reqd) == 0)
 		return (1);
-	}
 	if ((expansion = (ARGV *) htable_find(smtpd_rest_classes, *rest)) != 0)
 	    if (has_required(expansion, required))
 		return (1);
@@ -486,8 +491,8 @@ static void fail_required(char *name, char **required)
      */
     example = vstring_alloc(10);
     for (reqd = required; *reqd; reqd++)
-	vstring_sprintf_append(example, "%s%s", *reqd, 
-	reqd[1] == 0 ? "" : reqd[2] == 0 ? " or " : ", ");
+	vstring_sprintf_append(example, "%s%s", *reqd,
+			  reqd[1] == 0 ? "" : reqd[2] == 0 ? " or " : ", ");
     msg_fatal("parameter \"%s\": specify at least one working instance of: %s",
 	      name, STR(example));
 }
@@ -510,9 +515,15 @@ void    smtpd_check_init(void)
     /*
      * Pre-open access control lists before going to jail.
      */
-    mynetworks = namadr_list_init(MATCH_FLAG_PARENT, var_mynetworks);
-    relay_domains = domain_list_init(MATCH_FLAG_PARENT, var_relay_domains);
-    perm_mx_networks = namadr_list_init(MATCH_FLAG_PARENT, var_perm_mx_networks);
+    mynetworks =
+	namadr_list_init(match_parent_style(VAR_MYNETWORKS),
+			 var_mynetworks);
+    relay_domains =
+	domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+			 var_relay_domains);
+    perm_mx_networks =
+	namadr_list_init(match_parent_style(VAR_PERM_MX_NETWORKS),
+			 var_perm_mx_networks);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -529,6 +540,8 @@ void    smtpd_check_init(void)
 				    DICT_FLAG_LOCK);
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
+
+    access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
 
     /*
      * error_text is used for returning error responses.
@@ -1562,7 +1575,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
-    for (name = low_domain; /* void */ ; name = next + 1) {
+    for (name = low_domain; /* void */ ; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
@@ -1571,8 +1584,10 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 	    if (dict_errno != 0)
 		msg_fatal("%s: table lookup problem", table);
 	}
-	if ((next = strchr(name, '.')) == 0)
+	if ((next = strchr(name + 1, '.')) == 0)
 	    break;
+	if (access_parent_style == MATCH_FLAG_PARENT)
+	    next += 1;
 	flags = PARTIAL;
     }
     CHK_DOMAIN_RETURN(SMTPD_CHECK_DUNNO, MISSED);
@@ -2456,6 +2471,7 @@ char   *var_virt_mailbox_maps;
 char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 char   *var_perm_mx_networks;
+char   *var_par_dom_match;
 
 typedef struct {
     char   *name;
@@ -2477,7 +2493,8 @@ static STRING_TABLE string_table[] = {
     VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps,
     VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
-    VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
+    VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks,
+    VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match,
     0,
 };
 
@@ -2815,13 +2832,17 @@ int     main(int argc, char **argv)
 	    }
 	    if (strcasecmp(args->argv[0], "mynetworks") == 0) {
 		namadr_list_free(mynetworks);
-		mynetworks = namadr_list_init(MATCH_FLAG_PARENT, args->argv[1]);
+		mynetworks =
+		    namadr_list_init(match_parent_style(VAR_MYNETWORKS),
+				     args->argv[1]);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], "relay_domains") == 0) {
 		domain_list_free(relay_domains);
-		relay_domains = domain_list_init(MATCH_FLAG_PARENT, args->argv[1]);
+		relay_domains =
+		    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+				     args->argv[1]);
 		resp = 0;
 		break;
 	    }

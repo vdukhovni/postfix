@@ -5600,7 +5600,7 @@ Apologies for any names omitted.
 
 	Feature: configurable parent domain matching for domain
 	and hostname/address match lists: either .domain or the
-	domain name itself.
+	domain name itself. Files: util/match_ops.c util/match_list.c
 
 	Feature: added pretend-to-be-behind-PIX mode to the smtp-sink
 	test program, in order to stress test some PIX bug workaround
@@ -5620,6 +5620,11 @@ Apologies for any names omitted.
 
 20011115
 
+	Feature: mailbox_command_maps no longer requires that every
+	user has an entry. If the user does not have a command
+	entry, the local delivery agent tries the other delivery
+	methods instead.  File: local/mailbox.c.
+
 	Bugfix: reset the smtpd command transaction log between
 	non-deliveries. File: smtpd/smtpd.c.
 
@@ -5628,6 +5633,31 @@ Apologies for any names omitted.
 	Bugfix: consolidated all the command transaction log resets
 	and eliminated one missing reset (Victor Duchovny, Morgan
 	Stanley). File: smtpd/smtpd.c.
+
+20011118
+
+	Cleanup: replaced unnecessary wrapper code by macros. Files:
+	global/{string,domain,namadr}_list.[hc].
+
+20011119
+
+	Feature: configurable parent domain matching strategy for
+	transport map lookups. File:  trivial-rewrite/transport.c.
+
+	New parent_domain_matches_subdomains parameter. This lists
+	all the Postfix features where a domain name matches itself
+	and all its subdomains (instead of requiring ".domain.name"
+	for subdomain matches).  Planning for future backwards
+	compatibility :-)  File:  global/match_parent_style.c.
+
+	Workaround: simplified the PIX ".<CR><LF>" bug to always
+	sleep for 10 seconds.  File: smtp/smtp_proto.c.
+
+20011120
+
+	Workaround: disable attribute string length restriction so
+	that trivial-rewrite does not refuse to rewrite broken mail
+	headers.  Files:  util/attr_scan*.c.
 
 Open problems:
 

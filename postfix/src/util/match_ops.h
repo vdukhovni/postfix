@@ -15,8 +15,7 @@
 
 #define MATCH_FLAG_NONE		0
 #define MATCH_FLAG_PARENT	(1<<0)
-#define MATCH_FLAG_DOTPARENT	(1<<1)
-#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT|MATCH_FLAG_DOTPARENT)
+#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT)
 
 extern int match_string(int, const char *, const char *);
 extern int match_hostname(int, const char *, const char *);

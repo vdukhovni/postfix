@@ -1321,6 +1321,21 @@ extern bool var_verp_bounce_off;
 #define DEF_IN_FLOW_DELAY			"1s"
 extern int var_in_flow_delay;
 
+ /*
+  * Backwards compatibility: foo.com matches itself and names below foo.com.
+  */
+#define VAR_PAR_DOM_MATCH		"parent_domain_matches_subdomains"
+#define DEF_PAR_DOM_MATCH		VAR_DEBUG_PEER_LIST "," \
+					VAR_FFLUSH_DOMAINS "," \
+					VAR_MYNETWORKS "," \
+					VAR_PERM_MX_NETWORKS "," \
+					VAR_QMQPD_CLIENTS "," \
+					VAR_RELAY_DOMAINS "," \
+					SMTPD_ACCESS_MAPS
+extern char *var_par_dom_match;
+
+#define SMTPD_ACCESS_MAPS		"smtpd_access_maps"
+
 /* LICENSE
 /* .ad
 /* .fi

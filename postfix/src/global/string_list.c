@@ -98,7 +98,7 @@ main(int argc, char **argv)
     }
     if (argc != optind + 2)
 	usage(argv[0]);
-    list = string_list_init(argv[optind]);
+    list = string_list_init(MATCH_FLAG_NONE, argv[optind]);
     string = argv[optind + 1];
     vstream_printf("%s: %s\n", string, string_list_match(list, string) ?
 		   "YES" : "NO");

@@ -34,10 +34,9 @@
 /*	of the named host. The flags argument specifies the bit-wise OR
 /*	of zero or more of the following:
 /* .IP MATCH_FLAG_PARENT
-/*	The pattern foo.com matches any name within the domain foo.com.
-/* .IP MATCH_FLAG_DOTPARENT
-/*	The pattern .foo.com matches any name under foo.com. The pattern
-/*	foo.com matches itself only.
+/*	The hostname pattern foo.com matches itself and any name below
+/*	the domain foo.com. If this flag is cleared, foo.com matches itself
+/*	only, and .foo.com matches any name below the domain foo.com.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*
@@ -140,25 +139,15 @@ int     match_hostname(int flags, const char *name, const char *pattern)
     if (strchr(pattern, ':') != 0) {
 	temp = lowercase(mystrdup(name));
 	match = 0;
-	if (flags & MATCH_FLAG_PARENT) {
-	    for (entry = temp; /* void */ ; entry = next + 1) {
-		if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
-		    break;
-		if (dict_errno != 0)
-		    msg_fatal("%s: table lookup problem", pattern);
-		if ((next = strchr(entry, '.')) == 0)
-		    break;
-	    }
-	}
-	if (flags & MATCH_FLAG_DOTPARENT) {
-	    for (entry = temp; /* void */ ; entry = next) {
-		if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
-		    break;
-		if (dict_errno != 0)
-		    msg_fatal("%s: table lookup problem", pattern);
-		if ((next = strchr(entry, '.')) == 0)
-		    break;
-	    }
+	for (entry = temp; /* void */ ; entry = next) {
+	    if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
+		break;
+	    if (dict_errno != 0)
+		msg_fatal("%s: table lookup problem", pattern);
+	    if ((next = strchr(entry + 1, '.')) == 0)
+		break;
+	    if (flags & MATCH_FLAG_PARENT)
+		next += 1;
 	}
 	myfree(temp);
 	return (match);
@@ -179,10 +168,9 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 	    pd = name + strlen(name) - strlen(pattern);
 	    if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
 		return (1);
-	}
-	if (flags & MATCH_FLAG_DOTPARENT) {
+	} else if (pattern[0] == '.') {
 	    pd = name + strlen(name) - strlen(pattern);
-	    if (pd > name && pd[-1] == '.' && strcasecmp(pd - 1, pattern) == 0)
+	    if (pd > name && strcasecmp(pd, pattern) == 0)
 		return (1);
 	}
     }

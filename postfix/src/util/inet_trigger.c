@@ -107,6 +107,7 @@ int     inet_trigger(const char *service, const char *buf, int len, int timeout)
 	    msg_warn("%s: connect to %s: %m", myname, service);
 	return (-1);
     }
+    close_on_exec(fd, CLOSE_ON_EXEC);
     ip = (struct inet_trigger *) mymalloc(sizeof(*ip));
     ip->fd = fd;
     ip->service = mystrdup(service);

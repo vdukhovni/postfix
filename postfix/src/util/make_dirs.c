@@ -54,7 +54,7 @@ int     make_dirs(const char *path, int perms)
     int     saved_ch;
     struct stat st;
     int     ret;
-    mode_t  saved_mode;
+    mode_t  saved_mode = 0;
 
     /*
      * Initialize. Make a copy of the path that we can safely clobber.
