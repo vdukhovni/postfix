@@ -195,6 +195,9 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 				      BOUNCE_ATTR(state.msg_attr),
 				      "%s", vstring_str(why));
 	break;
+    case PIPE_STAT_CORRUPT:
+	deliver_status = DEL_STAT_CORRUPT;
+	break;
     default:
 	msg_panic("%s: bad status %d", myname, cmd_status);
 	/* NOTREACHED */

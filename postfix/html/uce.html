@@ -546,13 +546,14 @@ response code to rejected requests (default:  <b>504</b>).
 
 <a name="reject_sender_login_mismatch">
 
-<dt> <b>reject_sender_login_mismatch</b> <dd> Reject the request
-when <a href="#smtpd_sender_login_maps"> $smtpd_sender_owner_maps</a>
-specifies an owner for the MAIL FROM address, but the client is
-not (SASL) logged in as that MAIL FROM address owner; or when the
-client is (SASL) logged in, but the client login name doesn't own
-the MAIL FROM address according to <a href="#smtpd_sender_login_maps">
-$smtpd_sender_login_maps</a>.
+<dt> <b>reject_sender_login_mismatch</b> (Postfix versions >= 20011125)
+
+<dd> Reject the request when <a href="#smtpd_sender_login_maps">
+$smtpd_sender_owner_maps</a> specifies an owner for the MAIL FROM
+address, but the client is not (SASL) logged in as that MAIL FROM
+address owner; or when the client is (SASL) logged in, but the
+client login name doesn't own the MAIL FROM address according to
+<a href="#smtpd_sender_login_maps"> $smtpd_sender_login_maps</a>.
 
 <p>
 

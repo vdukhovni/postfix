@@ -82,6 +82,7 @@ depend: $(MAKES)
 mail_flow.o: mail_flow.c
 mail_flow.o: ../../include/sys_defs.h
 mail_flow.o: ../../include/msg.h
+mail_flow.o: ../../include/iostuff.h
 mail_flow.o: mail_flow.h
 mail_flow.o: master_proto.h
 master.o: master.c

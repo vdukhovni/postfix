@@ -766,6 +766,10 @@ extern int var_smtpd_err_sleep;
 #define DEF_SMTPD_JUNK_CMD	1000
 extern int var_smtpd_junk_cmd_limit;
 
+#define VAR_SMTPD_NOOP_CMDS	"smtpd_noop_commands"
+#define DEF_SMTPD_NOOP_CMDS	""
+extern char *var_smtpd_noop_cmds;
+
  /*
   * SASL authentication support, SMTP server side.
   */

@@ -222,14 +222,16 @@ BOUNCE_INFO *bounce_mail_init(const char *service, const char *queue_name,
      * corrupted just send whatever we can (remember this is a best effort,
      * it does not have to be perfect).
      */
-    while ((rec_type = rec_get(bounce_info->orig_fp,
-			       bounce_info->buf, 0)) > 0) {
-	if (rec_type == REC_TYPE_TIME && bounce_info->arrival_time == 0) {
-	    if ((bounce_info->arrival_time = atol(STR(bounce_info->buf))) < 0)
-		bounce_info->arrival_time = 0;
-	} else if (rec_type == REC_TYPE_MESG) {
-	    bounce_info->orig_offs = vstream_ftell(bounce_info->orig_fp);
-	    break;
+    if (bounce_info->orig_fp != 0) {
+	while ((rec_type = rec_get(bounce_info->orig_fp,
+				   bounce_info->buf, 0)) > 0) {
+	    if (rec_type == REC_TYPE_TIME && bounce_info->arrival_time == 0) {
+		if ((bounce_info->arrival_time = atol(STR(bounce_info->buf))) < 0)
+		    bounce_info->arrival_time = 0;
+	    } else if (rec_type == REC_TYPE_MESG) {
+		bounce_info->orig_offs = vstream_ftell(bounce_info->orig_fp);
+		break;
+	    }
 	}
     }
     return (bounce_info);

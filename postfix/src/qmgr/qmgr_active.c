@@ -131,7 +131,8 @@ static void qmgr_active_corrupt(const char *queue_id)
 	msg_warn("%s: save corrupt file queue %s id %s: %m",
 		 myname, MAIL_QUEUE_ACTIVE, queue_id);
     } else {
-	msg_warn("corrupt file queue %s id %s", MAIL_QUEUE_ACTIVE, queue_id);
+	msg_warn("saving corrupt file \"%s\" from queue \"%s\" to queue \"%s\"", 
+		queue_id, MAIL_QUEUE_ACTIVE, MAIL_QUEUE_CORRUPT);
     }
 }
 
@@ -329,7 +330,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * attributes, and by pretending that delivery was deferred.
      */
     if (message->flags
-	&& !mail_open_ok(MAIL_QUEUE_ACTIVE, message->queue_id, &st, &path)) {
+	&& mail_open_ok(MAIL_QUEUE_ACTIVE, message->queue_id, &st, &path) == MAIL_OPEN_NO) {
 	qmgr_active_corrupt(message->queue_id);
 	qmgr_message_free(message);
 	return;

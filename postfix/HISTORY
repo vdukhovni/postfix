@@ -5690,6 +5690,21 @@ Apologies for any names omitted.
 	file so people can keep track of the difference between
 	the Postfix LMTP client and the non-Postfix LMTP server.
 
+20011126
+
+	Feature: smtpd_noop_commands specifies a list of commands
+	that are treated as NOOP (no operation) commands, without
+	syntax check or state change.  File: smtpd/smtpd.c.
+
+	Bugfix: the "mark queue file as corrupt" code did not work
+	because it was never used.  Files: global/mark_corrupt.c,
+	global/mail_copy.c, global/pipe_command.c, *qmgr/qmgr_active.c,
+	local/maildir.c, local/mailbox.c, local/command.c, pipe/pipe.c,
+	virtual/mailbox.c, virtual/maildir.c.
+
+	Bugfix: the bounce daemon broke in case of a non-existing
+	message queue file. File: bounce/bounce_notify_util.c.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups. LDAP

@@ -50,6 +50,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <iostuff.h>
 
 /* Global library. */
 

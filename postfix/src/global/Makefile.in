@@ -722,8 +722,12 @@ mark_corrupt.o: ../../include/sys_defs.h
 mark_corrupt.o: ../../include/msg.h
 mark_corrupt.o: ../../include/vstream.h
 mark_corrupt.o: ../../include/vbuf.h
+mark_corrupt.o: ../../include/set_eugid.h
 mark_corrupt.o: mail_queue.h
 mark_corrupt.o: ../../include/vstring.h
+mark_corrupt.o: mail_params.h
+mark_corrupt.o: deliver_request.h
+mark_corrupt.o: recipient_list.h
 mark_corrupt.o: mark_corrupt.h
 match_parent_style.o: match_parent_style.c
 match_parent_style.o: ../../include/sys_defs.h

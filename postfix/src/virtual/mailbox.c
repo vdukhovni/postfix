@@ -79,7 +79,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     char   *myname = "deliver_mailbox_file";
     VSTRING *why;
     MBOX   *mp;
-    int     status;
+    int     mail_copy_status;
+    int     deliver_status;
     int     copy_flags;
     long    end;
     struct stat st;
@@ -98,7 +99,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     if (vstream_fseek(state.msg_attr.fp, state.msg_attr.offset, SEEK_SET) < 0)
 	msg_fatal("seek message file %s: %m", VSTREAM_PATH(state.msg_attr.fp));
     state.msg_attr.delivered = state.msg_attr.recipient;
-    status = -1;
+    mail_copy_status = MAIL_COPY_STAT_WRITE;
     why = vstring_alloc(100);
 
     /*
@@ -119,8 +120,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    errno = 0;
 	} else {
 	    end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END);
-	    status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
-			       copy_flags, "\n", why);
+	    mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
+					 copy_flags, "\n", why);
 	}
 	mbox_release(mp);
     }
@@ -129,16 +130,18 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     /*
      * As the mail system, bounce, defer delivery, or report success.
      */
-    if (status != 0)
-	status = (errno == EDQUOT || errno == EFBIG ?
-		  bounce_append : defer_append)
+    if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
+	deliver_status = DEL_STAT_CORRUPT;
+    } else if (mail_copy_status != 0) {
+	deliver_status = (errno == EDQUOT || errno == EFBIG ?
+			  bounce_append : defer_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "mailbox %s: %s", usr_attr.mailbox, vstring_str(why));
-    else
-	sent(SENT_ATTR(state.msg_attr), "mailbox");
-
+    } else {
+	deliver_status = sent(SENT_ATTR(state.msg_attr), "mailbox");
+    }
     vstring_free(why);
-    return (status);
+    return (deliver_status);
 }
 
 /* deliver_mailbox - deliver to recipient mailbox */

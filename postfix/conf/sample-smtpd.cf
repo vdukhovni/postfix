@@ -77,6 +77,13 @@ smtpd_banner = $myhostname ESMTP $mail_name
 #   warn_if_reject: next restriction logs a warning instead of rejecting.
 smtpd_etrn_restrictions =
 
+# The smtpd_noop_commands parameter specifies a list of commands that
+# the Postfix SMTP server replies to with "250 Ok", without doing any
+# syntax checks and without changing state.  This list overrides any
+# commands built into the Postfix SMTP server.
+#
+smtpd_noop_commands =
+
 # The smtpd_recipient_limit parameter restricts the number of recipients
 # that the SMTP server accepts per message delivery.
 #

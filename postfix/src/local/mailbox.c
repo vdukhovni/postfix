@@ -95,7 +95,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     char   *mailbox;
     VSTRING *why;
     MBOX   *mp;
-    int     status;
+    int     mail_copy_status;
+    int     deliver_status;
     int     copy_flags;
     VSTRING *biff;
     long    end;
@@ -119,7 +120,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     if (vstream_fseek(state.msg_attr.fp, state.msg_attr.offset, SEEK_SET) < 0)
 	msg_fatal("seek message file %s: %m", VSTREAM_PATH(state.msg_attr.fp));
     state.msg_attr.delivered = state.msg_attr.recipient;
-    status = -1;
+    mail_copy_status = MAIL_COPY_STAT_WRITE;
     why = vstring_alloc(100);
     if (*var_home_mailbox) {
 	spool_dir = 0;
@@ -190,8 +191,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    errno = 0;
 	} else {
 	    end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END);
-	    status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
-			       copy_flags, "\n", why);
+	    mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
+					 copy_flags, "\n", why);
 	}
 	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
 	    set_eugid(spool_uid, spool_gid);
@@ -202,14 +203,16 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     /*
      * As the mail system, bounce, defer delivery, or report success.
      */
-    if (status != 0) {
-	status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
-		  defer_append : bounce_append)
+    if (mail_copy_status & MAIL_COPY_STAT_CORRUPT) {
+	deliver_status = DEL_STAT_CORRUPT;
+    } else if (mail_copy_status != 0) {
+	deliver_status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
+			  defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "cannot access mailbox %s for user %s. %s",
 	     mailbox, state.msg_attr.user, vstring_str(why));
     } else {
-	sent(SENT_ATTR(state.msg_attr), "mailbox");
+	deliver_status = sent(SENT_ATTR(state.msg_attr), "mailbox");
 	if (var_biff) {
 	    biff = vstring_alloc(100);
 	    vstring_sprintf(biff, "%s@%ld", usr_attr.logname, (long) end);
@@ -223,7 +226,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     myfree(mailbox);
     vstring_free(why);
-    return (status);
+    return (deliver_status);
 }
 
 /* deliver_mailbox - deliver to recipient mailbox */

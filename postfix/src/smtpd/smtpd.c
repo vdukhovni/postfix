@@ -68,6 +68,10 @@
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
+/* .IP \fBsmtpd_noop_commands\fR
+/*	List of commands that are treated as NOOP (no operation) commands
+/*	without any parameter syntax checking. This list overrides built-in
+/*	command definitions.
 /* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -301,6 +305,7 @@
 #include <mail_queue.h>
 #include <tok822.h>
 #include <verp_sender.h>
+#include <string_list.h>
 
 /* Single-threaded server skeleton. */
 
@@ -369,6 +374,7 @@ char   *var_filter_xport;
 bool    var_broken_auth_clients;
 char   *var_perm_mx_networks;
 char   *var_smtpd_snd_auth_maps;
+char   *var_smtpd_noop_cmds;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1329,6 +1335,8 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     0,
 };
 
+static STRING_LIST *smtpd_noop_cmds;
+
 /* smtpd_proto - talk the SMTP protocol */
 
 static void smtpd_proto(SMTPD_STATE *state)
@@ -1387,6 +1395,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "500 Error: bad syntax");
 		state->error_count++;
+		continue;
+	    }
+	    if (*var_smtpd_noop_cmds
+		&& string_list_match(smtpd_noop_cmds, argv[0].strval)) {
+		smtpd_chat_reply(state, "250 Ok");
+		if (state->junk_cmds++ > var_smtpd_junk_cmd_limit)
+		    state->error_count++;
 		continue;
 	    }
 	    for (cmdp = smtpd_cmd_table; cmdp->name != 0; cmdp++)
@@ -1555,6 +1570,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Initialize blacklist/etc. patterns before entering the chroot jail, in
      * case they specify a filename pattern.
      */
+    smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
     smtpd_check_init();
     debug_peer_init();
     msg_cleanup(smtpd_cleanup);
@@ -1628,6 +1644,7 @@ int     main(int argc, char **argv)
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
+	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
 	0,
     };
 

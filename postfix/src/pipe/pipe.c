@@ -11,8 +11,8 @@
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	Message attributes such as sender address, recipient address and 
-/*	next-hop host name can be specified as command-line macros that are 
+/*	Message attributes such as sender address, recipient address and
+/*	next-hop host name can be specified as command-line macros that are
 /*	expanded before the external command is executed.
 /*
 /*	The \fBpipe\fR daemon updates queue files and marks recipients
@@ -56,13 +56,13 @@
 /*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
 /*	address.
 /* .IP \fBh\fR
-/*	Fold the command-line \fB$recipient\fR domain name and \fB$nexthop\fR 
+/*	Fold the command-line \fB$recipient\fR domain name and \fB$nexthop\fR
 /*	host name to lower case.
 /*	This is recommended for delivery via \fBUUCP\fR.
 /* .IP \fBq\fR
 /*	Quote white space and other special characters in the command-line
-/*	\fB$sender\fR and \fB$recipient\fR address localparts (text to the 
-/*	left of the right-most \fB@\fR character), according to an 8-bit 
+/*	\fB$sender\fR and \fB$recipient\fR address localparts (text to the
+/*	left of the right-most \fB@\fR character), according to an 8-bit
 /*	transparent version of RFC 822.
 /*	This is recommended for delivery via \fBUUCP\fR or \fBBSMTP\fR.
 /* .sp
@@ -73,7 +73,7 @@
 /*	address information from the \fB$user\fR, \fB$extension\fR or
 /*	\fB$mailbox\fR command-line macros.
 /* .IP \fBu\fR
-/*	Fold the command-line \fB$recipient\fR address localpart (text to 
+/*	Fold the command-line \fB$recipient\fR address localpart (text to
 /*	the left of the right-most \fB@\fR character) to lower case.
 /*	This is recommended for delivery via \fBUUCP\fR.
 /* .IP \fB.\fR
@@ -716,6 +716,9 @@ static int eval_command_status(int command_status, char *service,
 				   request->queue_id, rcpt->address,
 				 service, request->arrival_time, "%s", why);
 	}
+	break;
+    case PIPE_STAT_CORRUPT:
+	result |= DEL_STAT_CORRUPT;
 	break;
     default:
 	msg_panic("eval_command_status: bad status %d", command_status);

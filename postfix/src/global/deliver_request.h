@@ -41,6 +41,10 @@ typedef struct DELIVER_REQUEST {
     char   *hop_status;			/* reason if unavailable */
 } DELIVER_REQUEST;
 
+#define DEL_STAT_OK		(0)	/* success including bounced */
+#define DEL_STAT_DEFER		(-1)	/* deferred */
+#define DEL_STAT_CORRUPT	(-1)	/* corrupt */
+
 #define DEL_REQ_FLAG_DEFLT	(DEL_REQ_FLAG_SUCCESS | DEL_REQ_FLAG_BOUNCE)
 #define DEL_REQ_FLAG_SUCCESS	(1<<0)	/* delete successful recipients */
 #define DEL_REQ_FLAG_BOUNCE	(1<<1)	/* unimplemented */
