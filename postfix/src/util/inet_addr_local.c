@@ -15,8 +15,8 @@
 /*	specified address list. The result value is the number of
 /*	active interfaces found.
 /*
-/*	The mask_list is either a null pointer, or it is an list
-/*	that receives the netmasks corresponding to the address list.
+/*	The mask_list is either a null pointer, or it is a list that
+/*	receives the netmasks of the interface addresses that were found.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory.
 /* SEE ALSO
@@ -46,6 +46,7 @@
 #include <sys/sockio.h>
 #endif
 #include <errno.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -61,12 +62,15 @@
 #ifdef _SIZEOF_ADDR_IFREQ
 #define NEXT_INTERFACE(ifr) ((struct ifreq *) \
 	((char *) ifr + _SIZEOF_ADDR_IFREQ(*ifr)))
+#define IFREQ_SIZE(ifr)	_SIZEOF_ADDR_IFREQ(*ifr)
 #else
 #ifdef HAS_SA_LEN
 #define NEXT_INTERFACE(ifr) ((struct ifreq *) \
 	((char *) ifr + sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len))
+#define IFREQ_SIZE(ifr)	(sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len)
 #else
 #define NEXT_INTERFACE(ifr) (ifr + 1)
+#define IFREQ_SIZE(ifr)	sizeof(ifr[0])
 #endif
 #endif
 
@@ -82,6 +86,7 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list)
     VSTRING *buf = vstring_alloc(1024);
     int     initial_count = addr_list->used;
     struct in_addr addr;
+    struct ifreq *ifr_mask;
 
     if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
@@ -126,10 +131,13 @@ int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list)
 	    if (addr.s_addr != INADDR_ANY) {	/* has IP address */
 		inet_addr_list_append(addr_list, &addr);
 		if (mask_list) {
-		    if (ioctl(sock, SIOCGIFNETMASK, ifr) < 0)
+		    ifr_mask = (struct ifreq *) mymalloc(IFREQ_SIZE(ifr));
+		    memcpy((char *) ifr_mask, (char *) ifr, IFREQ_SIZE(ifr));
+		    if (ioctl(sock, SIOCGIFNETMASK, ifr_mask) < 0)
 			msg_fatal("%s: ioctl SIOCGIFNETMASK: %m", myname);
-		    addr = ((struct sockaddr_in *) & ifr->ifr_addr)->sin_addr;
+		    addr = ((struct sockaddr_in *) & ifr_mask->ifr_addr)->sin_addr;
 		    inet_addr_list_append(mask_list, &addr);
+		    myfree((char *) ifr_mask);
 		}
 	    }
 	}

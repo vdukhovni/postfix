@@ -247,6 +247,8 @@ EOF
 	(echo "$found" | grep bounce >/dev/null) || missing="$missing bounce"
 	(echo "$found" | grep defer >/dev/null)  || missing="$missing defer"
 	(echo "$found" | grep flush >/dev/null)  || missing="$missing flush"
+	(echo "$found" | grep incoming>/dev/null)|| missing="$missing incoming"
+	(echo "$found" | grep deferred>/dev/null)|| missing="$missing deferred"
 	test -n "$missing" && {
 		$WARN fixing main.cf hash_queue_names for missing $missing
 		$command_directory/postconf -e hash_queue_names="$found$missing"

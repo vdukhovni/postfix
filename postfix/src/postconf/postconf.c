@@ -130,7 +130,6 @@ DICT   *text_table;
  /*
   * Manually extracted.
   */
-#include "local_vars.h"
 #include "smtp_vars.h"
 
  /*
@@ -153,7 +152,6 @@ static CONFIG_INT_TABLE int_table[] = {
 
 static CONFIG_STR_TABLE str_table[] = {
 #include "str_table.h"
-#include "local_table.h"		/* XXX */
 #include "smtp_table.h"			/* XXX */
     0,
 };

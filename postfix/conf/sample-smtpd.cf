@@ -101,6 +101,38 @@ smtpd_hard_error_limit = 100
 # UCE RESTRICTIONS
 #
 
+# The mynetworks parameter specifies the list of "trusted" SMTP
+# clients that have more privileges than "strangers".
+#
+# In particular, "trusted" SMTP clients are allowed to relay mail
+# through Postfix.  See the smtpd_recipient_restrictions parameter
+# in file sample-smtpd.cf.
+#
+# By default (mynetworks_style = subnet), Postfix "trusts" SMTP
+# clients in the same IP subnetworks as the local machine.
+# 
+# Specify "mynetworks_style = class" when Postfix should "trust" SMTP
+# clients in the same IP class A/B/C networks as the local machine.
+# This used to be the default. It is appropriate for service providers.
+#  
+# Specify "mynetworks_style = host" when Postfix should "trust"
+# only the local machine.
+# 
+# mynetworks_style = class
+mynetworks_style = subnet
+# mynetworks_style = host
+
+# Instead of using mynetworks_style to implicitly derive the mynetworks
+# list from local machine addresses, you can specify an explicit list
+# of network/netmask patterns, where the mask specifies the number of
+# bits in the network part of a host address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here.
+#
+#mynetworks = 168.100.189.0/28, 127.0.0.0/8
+#mynetworks = $config_directory/mynetworks
+
 # The smtpd_client_restrictions parameter specifies optional restrictions
 # on SMTP client host names and addresses.
 #

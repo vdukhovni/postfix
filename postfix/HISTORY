@@ -4925,10 +4925,29 @@ Apologies for any names omitted.
 	Portability: MACOSX patches by Gerben Wierda.
 
 	Portability: Solaris /dev/null is a symlink, which tripped
-	up the code to safely open a file before delivery. We now
+	up the code to safely open a file before local delivery. We now
 	grudgingly allow symlinks owned by root. File: util/safe_open.c.
 
 20010224
 
 	Bugfix: "postconf mynetworks" ignored the inet_interfaces
 	setting. That was a very old one. File: postconf/postconf.c.
+
+	INCOMPATIBLE CHANGE: POSTFIX NO LONGER RELAYS MAIL FOR
+	CLIENTS IN THE ENTIRE CLASS A/B/C NETWORK. POSTFIX BY
+	DEFAULT RELAYS MAIL FOR CLIENTS IN THE LOCAL SUBNETWORK.
+	Specify "mynetworks_style = class" to get the old behavior.
+
+20010225
+
+	Portability: master sigchld handler based on writing to a
+	pipe, so that the master wakes up from select(). Based on
+	code by Erik Forsberg, Linkoping University, Sweden.  File:
+	master/master_sig.c. Disabled until after the major release.
+
+	Code cleanup: Postfix should now run with no alias database.
+
+	Code cleanup: local_destination_recipient_limit and
+	local_destination_concurrency_limit are not first-class
+	configuration parameters. Files: global/mail_params.h,
+	*qmgr/qmgr.c, postconf/postconf.c.

@@ -530,6 +530,10 @@ extern int var_init_dest_concurrency;
 #define DEF_DEST_CON_LIMIT	10
 extern int var_dest_con_limit;
 
+#define VAR_LOCAL_CON_LIMIT	"local" _DEST_CON_LIMIT
+#define DEF_LOCAL_CON_LIMIT	2
+extern int var_local_con_lim;
+
  /*
   * Queue manager: default number of recipients per transaction.
   */
@@ -540,6 +544,7 @@ extern int var_dest_rcpt_limit;
 
 #define VAR_LOCAL_RCPT_LIMIT	"local" _DEST_RCPT_LIMIT	/* XXX */
 #define DEF_LOCAL_RCPT_LIMIT	1	/* XXX */
+extern int var_local_rcpt_lim;
 
  /*
   * Queue manager: default delay before retrying a dead transport.

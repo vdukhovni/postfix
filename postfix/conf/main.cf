@@ -120,37 +120,35 @@ mail_owner = postfix
 #mydestination = $myhostname, localhost.$mydomain, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
 
-# RELAY CONTROL
+# TRUST AND RELAY CONTROL
 
-# The mynetworks parameter specifies the list of networks that make
-# up the local neighborhood. The list is used by the anti-UCE
-# software to relay authorize clients. See the check_relay_domains
-# and and smtpd_recipient_restrictions in the sample-smtpd.cf file.
+# The mynetworks parameter specifies the list of "trusted" SMTP
+# clients that have more privileges than "strangers".
 #
-# By default, Postfix derives the mynetworks setting from the local
-# machine network addresses.
-
-# The mynetworks_style parameter specifies how Postfix computes the
-# mynetworks default value from the local machine network addresses.
+# In particular, "trusted" SMTP clients are allowed to relay mail
+# through Postfix.  See the smtpd_recipient_restrictions parameter
+# in file sample-smtpd.cf.
 #
-# By default (mynetworks_style = subnet), Postfix relay authorizes
-# all clients in the subnets that are attached to this machine.
+# By default (mynetworks_style = subnet), Postfix "trusts" SMTP
+# clients in the same IP subnetworks as the local machine.
+# On Linux, this does works correctly only with interfaces specified
+# with the "ifconfig" command.
 # 
-# Specify "mynetworks_style = class" when you want to relay authorize
-# all clients in the class A, B or C networks that are attached to
-# to this machine.
+# Specify "mynetworks_style = class" when Postfix should "trust" SMTP
+# clients in the same IP class A/B/C networks as the local machine.
+# This used to be the default. It is appropriate for service providers.
 #  
-# Specify "mynetworks_style = host" if you do not want to relay
-# authorize clients other than the local machine.
+# Specify "mynetworks_style = host" when Postfix should "trust"
+# only the local machine.
 # 
 # mynetworks_style = class
 # mynetworks_style = subnet
 # mynetworks_style = host
 
-# Instead of implicitly deriving the mynetworks value from local
-# machine addresses, you can specify an explicit list of network/mask
-# patterns, where the mask specifies the number of bits in the network
-# part of a host address.
+# Instead of using mynetworks_style to implicitly derive the mynetworks
+# list from local machine addresses, you can specify an explicit list
+# of network/netmask patterns, where the mask specifies the number of
+# bits in the network part of a host address.
 #
 # You can also specify the absolute pathname of a pattern file instead
 # of listing the patterns here.
@@ -430,10 +428,11 @@ mail_owner = postfix
 # raise eyebrows.
 # 
 # Each message delivery transport has its XXX_destination_concurrency_limit
-# parameter.  The default is $default_destination_concurrency_limit.
+# parameter.  The default is $default_destination_concurrency_limit for
+# most delivery transports. For the local delivery agent the default is 2.
 
-local_destination_concurrency_limit = 2
-default_destination_concurrency_limit = 10
+#local_destination_concurrency_limit = 2
+#default_destination_concurrency_limit = 10
 
 # DEBUGGING CONTROL
 #

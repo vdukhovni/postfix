@@ -332,6 +332,8 @@ char   *var_relocated_maps;
 char   *var_virtual_maps;
 char   *var_defer_xports;
 bool    var_allow_min_user;
+int     var_local_con_lim;
+int     var_local_rcpt_lim;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -530,6 +532,8 @@ int     main(int argc, char **argv)
 	VAR_INIT_DEST_CON, DEF_INIT_DEST_CON, &var_init_dest_concurrency, 1, 0,
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
+	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
+	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

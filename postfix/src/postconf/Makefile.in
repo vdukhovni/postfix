@@ -94,12 +94,10 @@ postconf.o: bool_vars.h
 postconf.o: int_vars.h
 postconf.o: str_vars.h
 postconf.o: raw_vars.h
-postconf.o: local_vars.h
 postconf.o: smtp_vars.h
 postconf.o: time_table.h
 postconf.o: bool_table.h
 postconf.o: int_table.h
 postconf.o: str_table.h
-postconf.o: local_table.h
 postconf.o: smtp_table.h
 postconf.o: raw_table.h

@@ -163,27 +163,20 @@ hostnames of the machine, including $myhostname, and localhost.$mydomain.
 
 <a name="relaying"> <h2> What clients to relay mail for </h2> </a>
 
-By default, Postfix will relay mail for clients in relay authorized
-networks and in relay authorized domains.
+By default, Postfix will relay mail for clients in authorized
+networks and in authorized domains.
 
 <p>
 
-Relay authorized client networks are defined by the <a
+Authorized client networks are defined by the <a
 href="#mynetworks">mynetworks</a> parameter. The default is to
-relay authorize all clients in all class A, B or C networks that
-are attached to the machine.  
+authorize all clients in the IP subnetworks that the local machine
+is attached to.
 
 <p>
 
-<b>YOU MUST <a href="#mynetworks">CHANGE</a> THIS DEFAULT SETTING
-IF YOUR ADDRESS BLOCK IS PART OF A LARGER ADDRESS RANGE THAT IS
-OWNED BY YOUR PROVIDER - IT WOULD CAUSE POSTFIX TO RELAY MAIL FROM
-ALL THEIR CUSTOMERS</b>.
-
-<p>
-
-Relay authorized client domains are by defined by the <a
-href="uce.html#relay_domains"> relay_domains</a> comfiguration
+Authorized client domains are by defined by the <a
+href="uce.html#relay_domains"> relay_domains</a> configuration
 parameter. The default setting trusts clients with hostnames below
 the domain(s) listed in <a href="#mydestination">mydestination</a>.
 
@@ -315,18 +308,54 @@ top-level domain).
 <a name="mynetworks"> <h2> My own networks </h2> </a>
 
 The <b>mynetworks</b> parameter lists all networks that this machine
-is attached to. This information can be used by the <a href="uce.html">
-anti-UCE</a> features to distinguish between relay authorized
-clients and relay unauthorized strangers.
+somehow trusts. This information can be used by the <a href="uce.html">
+anti-UCE</a> features to recognize trusted SMTP clients that are
+allowed to relay mail through Postfix.
 
 <p>
 
-By default, <b>mynetworks</b> is set to the class A, B or C networks
-that the machine is attached to. For example, for my machines at
-home, the result is: <b>168.100.0.0/16 127.0.0.0/8.  </b> However,
-network <b>168.100</b> is owned by my ISP. Of course I do not want
-to consider all their customer systems as relay authorized clients,
-so I use instead:
+You can specify the list of trusted networks in the <b>main.cf</b>
+file, or you can let Postfix deduce the list for you. The default
+is to let Postfix do the work for you.
+
+<p>
+
+<dl>
+
+<dt> Default:
+
+<dd> <b>mynetworks_style = subnet</b>
+
+<p>
+
+<dt>The meaning of the styles is as follows:
+
+<p>
+
+<dl>
+
+<dt> <b>class</b> <dd> Trust SMTP clients in the class A/B/C networks
+that Postfix is connected to.
+
+<p>
+
+<dt> <b>subnet</b> (default) <dd> Trust SMTP clients in the IP
+subnetworks that Postfix is connected to.
+
+<p>
+
+<dt> <b>host</b> <dd> Trust only the local machine.
+
+</dl>
+
+</dl>
+
+<p>
+
+To specify the list of trusted networks by hand, specify 
+network blocks in CIDR (network/mask) notation, for example:
+
+<p>
 
 <dl>
 
@@ -346,9 +375,14 @@ as if it is addressed to a domain listed in <b> $mydestination.
 
 The default is to listen on all active interfaces.  If you run
 mailers on virtual interfaces, you will have to specify what
-interfaces to listen on. This includes the non-virtual mailer that
-receives mail for the machine itself as well: it should never listen
-on the virtual interfaces or you would have a mailer loop.
+interfaces to listen on. 
+
+<p>
+
+You even have to specify explicit machine interfaces for the
+non-virtual mailer that receives mail for the machine itself: the
+non-virtual mailer should never listen on the virtual interfaces
+or you would have a mailer loop.
 
 <dl>
 

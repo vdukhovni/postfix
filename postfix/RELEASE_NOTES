@@ -1,3 +1,11 @@
+Incompatible changes with snapshot-20010225
+===========================================
+
+POSTFIX NO LONGER RELAYS MAIL FOR CLIENTS IN THE ENTIRE CLASS A/B/C
+NETWORK. To get the old behavior, specify "mynetworks_style = class"
+in the main.cf file. The default (mynetworks_style = subnet) is to
+relay for clients in the local IP subnet. See conf/main.cf.
+
 Incompatible changes with snapshot-20010222
 ===========================================
 
