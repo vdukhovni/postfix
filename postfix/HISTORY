@@ -6945,7 +6945,6 @@ Apologies for any names omitted.
 	This involved a further rewrite of the regexp map code.
 	File: util/dict_regexp.c.
 
-
 200209010
 
 	Bugfix: the SMTP client produced suprious warnings about
@@ -7567,7 +7566,6 @@ Apologies for any names omitted.
 	Bugfix: a null address local-part before @domain now is
 	properly quoted just like the null address. File:
 	global/quote_82[12]_local.c.
-
 
 20021217
 
@@ -8446,7 +8444,6 @@ Apologies for any names omitted.
 	"server_host", if Postfix is linked against OpenLDAP.  This
 	allows Postfix to connect to LDAP SSL sources.  By Liviu
 	Daia.  File: util/dict_ldap.c.
-
 
 20030811
 
@@ -9958,6 +9955,30 @@ Apologies for any names omitted.
 	the Postfix/TLS patch. This used the SDBM sequence operator
 	which didn't work as discussed above. Files:  util/dict_dbm.c,
 	util/dict_sdbm.c.
+
+	Feature: the local(8) and pipe(8) delivery agents now make
+	the following attributes available upon delivery (with
+	local(8) names must be spelled in upper case): client_hostname,
+	client_address, client_protocol, client_helo, sasl_method,
+	sasl_sender, sasl_username. Files: local/command.c,
+	pipe/pipe.c, and lots of documentation.
+
+20041216
+
+	"postcat -o" now prints queue file record offsets; this is
+	useful for debugging. File: postcat/postcat.c.
+
+20041218
+
+	Feature: selective suppression of SMTP extensions (pipelining,
+	starttls, auth, etc.); this is useful to work around broken
+	clients or servers.  Specify a list of EHLO keywords with
+	the smtp(d)_disable_ehlo_keywords parameters, or specify
+	one or more lookup tables, indexed by remote network address,
+	with the smtp(d)_disable_ehlo_keyword_address_maps parameters.
+	EHLO keyword lists are case insensitive.  Files:
+	util/name_mask.[hc], global/ehlo_mask.[hc], smtpd/smtpd.c,
+	smtp/smtp.c, smtp/smtp_proto.c.
 
 Open problems:
 

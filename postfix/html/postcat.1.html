@@ -10,7 +10,7 @@ POSTCAT(1)                                             POSTCAT(1)
        postcat - show Postfix queue file contents
 
 <b>SYNOPSIS</b>
-       <b>postcat</b> [<b>-vq</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>files</i>...]
+       <b>postcat</b> [<b>-oqv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>files</i>...]
 
 <b>DESCRIPTION</b>
        The <b>postcat</b> command prints the contents of the named <i>files</i>
@@ -24,6 +24,8 @@ POSTCAT(1)                                             POSTCAT(1)
               The <b>main.cf</b> configuration  file  is  in  the  named
               directory  instead  of  the  default  configuration
               directory.
+
+       <b>-o</b>     Print the queue file offset of each record.
 
        <b>-q</b>     Search  the  Postfix  queue  for  the  named  <i>files</i>
               instead of taking the names literally.

@@ -2114,6 +2114,25 @@ extern char *var_remote_rwr_domain;
 #endif
 extern char *var_local_rwr_clients;
 
+ /*
+  * EHLO keyword filter.
+  */
+#define VAR_SMTPD_EHLO_DIS_WORDS	"smtpd_disable_ehlo_keywords"
+#define DEF_SMTPD_EHLO_DIS_WORDS	""
+extern char *var_smtpd_ehlo_dis_words;
+
+#define VAR_SMTPD_EHLO_DIS_MAPS		"smtpd_disable_ehlo_keyword_address_maps"
+#define DEF_SMTPD_EHLO_DIS_MAPS		""
+extern char *var_smtpd_ehlo_dis_maps;
+
+#define VAR_SMTP_EHLO_DIS_WORDS		"smtp_disable_ehlo_keywords"
+#define DEF_SMTP_EHLO_DIS_WORDS		""
+extern char *var_smtp_ehlo_dis_words;
+
+#define VAR_SMTP_EHLO_DIS_MAPS		"smtp_disable_ehlo_keyword_address_maps"
+#define DEF_SMTP_EHLO_DIS_MAPS		""
+extern char *var_smtp_ehlo_dis_maps;
+
 /* LICENSE
 /* .ad
 /* .fi

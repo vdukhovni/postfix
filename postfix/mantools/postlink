@@ -330,6 +330,9 @@ while (<>) {
     s;\bsmtp_destination_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#smtp_destination_recipient_limit">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_destination_concurrency_limit\b;<a href="postconf.5.html#virtual_destination_concurrency_limit">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_destination_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#virtual_destination_recipient_limit">$&</a>;g;
+    s;\bsmtp_disable_ehlo_keyword_address_maps\b;<a href="postconf.5.html#smtp_disable_ehlo_keyword_address_maps">$&</a>;g;
+    s;\bsmtp_disable_ehlo_keywords\b;<a href="postconf.5.html#smtp_disable_ehlo_keywords">$&</a>;g;
+    s;\bsmtp_helo_name\b;<a href="postconf.5.html#smtp_helo_name">$&</a>;g;
     s;\bsmtp_helo_name\b;<a href="postconf.5.html#smtp_helo_name">$&</a>;g;
     s;\bsmtp_helo_timeout\b;<a href="postconf.5.html#smtp_helo_timeout">$&</a>;g;
     s;\bsmtp_host_lookup\b;<a href="postconf.5.html#smtp_host_lookup">$&</a>;g;
@@ -366,6 +369,8 @@ while (<>) {
     s;\bsmtpd_client_restrictions\b;<a href="postconf.5.html#smtpd_client_restrictions">$&</a>;g;
     s;\bsmtpd_data_restrictions\b;<a href="postconf.5.html#smtpd_data_restrictions">$&</a>;g;
     s;\bsmtpd_delay_reject\b;<a href="postconf.5.html#smtpd_delay_reject">$&</a>;g;
+    s;\bsmtpd_disable_ehlo_keyword_address_maps\b;<a href="postconf.5.html#smtpd_disable_ehlo_keyword_address_maps">$&</a>;g;
+    s;\bsmtpd_disable_ehlo_keywords\b;<a href="postconf.5.html#smtpd_disable_ehlo_keywords">$&</a>;g;
     s;\bsmtpd_end_of_data_restrictions\b;<a href="postconf.5.html#smtpd_end_of_data_restrictions">$&</a>;g;
     s;\bsmtpd_error_sleep_time\b;<a href="postconf.5.html#smtpd_error_sleep_time">$&</a>;g;
     s;\bsmtpd_etrn_restrictions\b;<a href="postconf.5.html#smtpd_etrn_restrictions">$&</a>;g;

@@ -149,8 +149,11 @@ smtpd.o: ../../include/quote_flags.h
 smtpd.o: ../../include/lex_822.h
 smtpd.o: ../../include/namadr_list.h
 smtpd.o: ../../include/input_transp.h
+smtpd.o: ../../include/is_header.h
 smtpd.o: ../../include/anvil_clnt.h
 smtpd.o: ../../include/attr_clnt.h
+smtpd.o: ../../include/ehlo_mask.h
+smtpd.o: ../../include/maps.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h

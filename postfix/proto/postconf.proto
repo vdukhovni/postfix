@@ -2092,6 +2092,26 @@ The following environment variables are exported to the command:
 
 <dl>
 
+<dt><b>CLIENT_ADDRESS</b></dt>
+
+<dd>Remote client network address. Available in Postfix 2.2 and
+later. </dd>
+
+<dt><b>CLIENT_HELO</b></dt>
+
+<dd>Remote client EHLO command parameter. Available in Postfix 2.2
+and later.</dd>
+
+<dt><b>CLIENT_HOSTNAME</b></dt>
+
+<dd>Remote client hostname. Available in Postfix 2.2 and later.
+</dd>
+
+<dt><b>CLIENT_PROTOCOL</b></dt>
+
+<dd>Remote client protocol. Available in Postfix 2.2 and later.
+</dd>
+
 <dt><b>DOMAIN</b></dt>
 
 <dd>The domain part of the recipient address. </dd>
@@ -2115,6 +2135,21 @@ The following environment variables are exported to the command:
 <dt><b>RECIPIENT</b></dt>
 
 <dd>The full recipient address. </dd>
+
+<dt><b>SASL_METHOD</b></dt>
+
+<dd>SASL authentication method specified in the remote client AUTH
+command. Available in Postfix 2.2 and later. </dd>
+
+<dt><b>SASL_SENDER</b></dt>
+
+<dd>SASL sender address specified in the remote client MAIL FROM
+command. Available in Postfix 2.2 and later. </dd>
+
+<dt><b>SASL_USER</b></dt>
+
+<dd>SASL username specified in the remote client AUTH command.
+Available in Postfix 2.2 and later.  </dd>
 
 <dt><b>SENDER</b></dt>
 
@@ -7223,6 +7258,34 @@ and b) addresses that are aliased to addresses in other local or
 remote domains.  Available before Postfix version 2.0. With Postfix 2.1
 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps. </p>
+
+%PARAM smtp_disable_ehlo_keywords
+
+<p> A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP client will ignore in the EHLO response
+from a remote SMTP server. Use the smtp_disable_ehlo_keyword_address_maps
+feature to disable EHLO keywords selectively. </p>
+
+%PARAM smtpd_disable_ehlo_keywords
+
+<p> A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP server will not send in the EHLO response
+to a remote SMTP client. Use the smtpd_disable_ehlo_keyword_address_maps
+feature to disable EHLO keywords selectively.  </p>
+
+%PARAM smtp_disable_ehlo_keyword_address_maps
+
+<p> Lookup tables, indexed by the remote SMTP server address, with
+case insensitive lists of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP client will ignore in the EHLO response
+from a remote SMTP server. </p>
+
+%PARAM smtpd_disable_ehlo_keyword_address_maps
+
+<p> Lookup tables, indexed by the remote SMTP client address, with
+case insensitive lists of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP server will not send in the EHLO response
+to a remote SMTP client. </p>
 
 %PARAM session_cache_service scache
 

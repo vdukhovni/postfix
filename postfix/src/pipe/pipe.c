@@ -131,6 +131,22 @@
 /*	$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
 /*	\fB$\fR is wanted.
 /* .RS
+/* .IP \fB${\fBclient_address\fR}\fR
+/*	This macro expands to the remote client network address.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
+/* .IP \fB${\fBclient_helo\fR}\fR
+/*	This macro expands to the remote client HELO command parameter.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
+/* .IP \fB${\fBclient_hostname\fR}\fR
+/*	This macro expands to the remote client hostname.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
+/* .IP \fB${\fBclient_protocol\fR}\fR
+/*	This macro expands to the remote client protocol.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
 /* .IP \fB${\fBextension\fR}\fR
 /*	This macro expands to the extension part of a recipient address.
 /*	For example, with an address \fIuser+foo@domain\fR the extension is
@@ -359,6 +375,10 @@
 #define PIPE_DICT_EXTENSION	"extension"	/* key */
 #define PIPE_DICT_MAILBOX	"mailbox"	/* key */
 #define PIPE_DICT_SIZE		"size"	/* key */
+#define PIPE_DICT_CLIENT_ADDR	"client_address"	/* key */
+#define PIPE_DICT_CLIENT_NAME	"client_hostname"	/* key */
+#define PIPE_DICT_CLIENT_PROTO	"client_protocol"	/* key */
+#define PIPE_DICT_CLIENT_HELO	"client_helo"	/* key */
 #define PIPE_DICT_SASL_METHOD	"sasl_method"	/* key */
 #define PIPE_DICT_SASL_USERNAME	"sasl_username"	/* key */
 #define PIPE_DICT_SASL_SENDER	"sasl_sender"	/* key */
@@ -443,6 +463,10 @@ static int parse_callback(int type, VSTRING *buf, char *context)
 	PIPE_DICT_EXTENSION, PIPE_FLAG_EXTENSION,
 	PIPE_DICT_MAILBOX, PIPE_FLAG_MAILBOX,
 	PIPE_DICT_SIZE, 0,
+	PIPE_DICT_CLIENT_ADDR, 0,
+	PIPE_DICT_CLIENT_NAME, 0,
+	PIPE_DICT_CLIENT_PROTO, 0,
+	PIPE_DICT_CLIENT_HELO, 0,
 	PIPE_DICT_SASL_METHOD, 0,
 	PIPE_DICT_SASL_USERNAME, 0,
 	PIPE_DICT_SASL_SENDER, 0,
@@ -994,9 +1018,17 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);
     vstring_sprintf(buf, "%ld", (long) request->data_size);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SIZE, STR(buf));
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_ADDR,
+		request->client_addr);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_HELO,
+		request->client_helo);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_NAME,
+		request->client_name);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_CLIENT_PROTO,
+		request->client_proto);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_METHOD,
 		request->sasl_method);
-    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_USERNAME, 
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_USERNAME,
 		request->sasl_username);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_SENDER,
 		request->sasl_sender);

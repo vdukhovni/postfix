@@ -536,15 +536,16 @@ service to Postfix processes. This overcomes chroot restrictions,
 and reduces the number of open lookup tables by sharing one open
 table among multiple processes. </p>
 
-<li> <p> The <a href="scache.8.html">scache(8)</a> server maintains the session cache for the
-Postfix <a href="smtp.8.html">smtp(8)</a> client. When session caching is enabled for selected
+<li> <p> The <a href="scache.8.html">scache(8)</a> server maintains the connection cache for
+the Postfix <a href="smtp.8.html">smtp(8)</a> client. When connection caching is enabled for
+selected
 destinations, the <a href="smtp.8.html">smtp(8)</a> client does not disconnect immediately
-after a mail transaction, but gives the connection to the session
+after a mail transaction, but gives the connection to the connection
 cache server.  The <a href="smtp.8.html">smtp(8)</a> client continues with some other mail
-delivery request. Meanwhile, the session cache server keeps the
+delivery request. Meanwhile, the connection cache server keeps the
 connection open for a limited amount of time.  During that time,
 any <a href="smtp.8.html">smtp(8)</a> process can ask the <a href="scache.8.html">scache(8)</a> server for that cached
-session and use it for mail delivery.  </p>
+connection and use it for mail delivery.  </p>
 
 <table>
 

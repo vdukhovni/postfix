@@ -8,7 +8,7 @@ show Postfix queue file contents
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostcat\fR [\fB-vq\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
+\fBpostcat\fR [\fB-oqv\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
 .SH DESCRIPTION
 .ad
 .fi
@@ -22,6 +22,8 @@ Options:
 .IP "\fB-c \fIconfig_dir\fR"
 The \fBmain.cf\fR configuration file is in the named directory
 instead of the default configuration directory.
+.IP \fB-o\fR
+Print the queue file offset of each record.
 .IP \fB-q\fR
 Search the Postfix queue for the named \fIfiles\fR instead
 of taking the names literally.

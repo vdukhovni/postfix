@@ -30,6 +30,7 @@
 #include <deliver_request.h>
 #include <scache.h>
 #include <string_list.h>
+#include <maps.h>
 
  /*
   * State information associated with each SMTP delivery request.
@@ -142,6 +143,8 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 
 extern SCACHE *smtp_scache;		/* connection cache instance */
 extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
+
+extern MAPS *smtp_ehlo_disable_maps;	/* ehlo keyword filter */
 
  /*
   * smtp_session.c

@@ -110,6 +110,17 @@
 /* .IP "\fBsmtp_skip_4xx_greeting (yes)\fR"
 /*	Skip SMTP servers that greet with a 4XX status code (go away, try
 /*	again later).
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBsmtp_disable_ehlo_keyword_address_maps (empty)\fR"
+/*	Lookup tables, indexed by the remote SMTP server address, with
+/*	case insensitive lists of EHLO keywords (pipelining, starttls,
+/*	auth, etc.) that the SMTP client will ignore in the EHLO response
+/*	from a remote SMTP server.
+/* .IP "\fBsmtp_disable_ehlo_keywords (empty)\fR"
+/*	A case insensitive list of EHLO keywords (pipelining, starttls,
+/*	auth, etc.) that the SMTP client will ignore in the EHLO response
+/*	from a remote SMTP server.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -334,6 +345,7 @@
 #include <flush_clnt.h>
 #include <scache.h>
 #include <string_list.h>
+#include <maps.h>
 
 /* Single server skeleton. */
 
@@ -389,6 +401,8 @@ int     var_smtp_reuse_limit;
 char   *var_smtp_cache_dest;
 char   *var_scache_service;
 bool    var_smtp_cache_demand;
+char   *var_smtp_ehlo_dis_words;
+char   *var_smtp_ehlo_dis_maps;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -398,6 +412,7 @@ int     smtp_errno;
 int     smtp_host_lookup_mask;
 STRING_LIST *smtp_cache_dest;
 SCACHE *smtp_scache;
+MAPS   *smtp_ehlo_disable_maps;
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -540,6 +555,14 @@ static void pre_init(char *unused_name, char **unused_argv)
      */
     if (*var_smtp_cache_dest)
 	smtp_cache_dest = string_list_init(MATCH_FLAG_NONE, var_smtp_cache_dest);
+
+    /*
+     * EHLO keyword filter.
+     */
+    if (*var_smtp_ehlo_dis_maps)
+	smtp_ehlo_disable_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
+					     var_smtp_ehlo_dis_maps,
+					     DICT_FLAG_LOCK);
 }
 
 /* pre_accept - see if tables have changed */
@@ -581,6 +604,8 @@ int     main(int argc, char **argv)
 	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
 	VAR_SMTP_CACHE_DEST, DEF_SMTP_CACHE_DEST, &var_smtp_cache_dest, 0, 0,
 	VAR_SCACHE_SERVICE, DEF_SCACHE_SERVICE, &var_scache_service, 1, 0,
+	VAR_SMTP_EHLO_DIS_WORDS, DEF_SMTP_EHLO_DIS_WORDS, &var_smtp_ehlo_dis_words, 0, 0,
+	VAR_SMTP_EHLO_DIS_MAPS, DEF_SMTP_EHLO_DIS_MAPS, &var_smtp_ehlo_dis_maps, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {

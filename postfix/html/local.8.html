@@ -202,6 +202,37 @@ LOCAL(8)                                                 LOCAL(8)
 
        <b>SENDER</b> The entire sender address.
 
+       Additional remote client information is made available via
+       the following pseudo variables:
+
+       <b>CLIENT_ADDRESS</b>
+              Remote client  network  address.  Available  as  of
+              Postfix 2.2.
+
+       <b>CLIENT_HELO</b>
+              Remote  client EHLO command parameter. Available as
+              of Postfix 2.2.
+
+       <b>CLIENT_HOSTNAME</b>
+              Remote client hostname.  Available  as  of  Postfix
+              2.2.
+
+       <b>CLIENT_PROTOCOL</b>
+              Remote  client  protocol.  Available  as of Postfix
+              2.2.
+
+       <b>SASL_METHOD</b>
+              SASL authentication method specified in the  remote
+              client AUTH command. Available as of Postfix 2.2.
+
+       <b>SASL_SENDER</b>
+              SASL  sender address specified in the remote client
+              MAIL FROM command. Available as of Postfix 2.2.
+
+       <b>SASL_USERNAME</b>
+              SASL username specified in the remote  client  AUTH
+              command.  Available as of Postfix 2.2.
+
        The <b>PATH</b> environment variable is always reset to a system-
        dependent default path, and  environment  variables  whose
        names  are blessed by the <b><a href="postconf.5.html#export_environment">export_environment</a></b> configuration

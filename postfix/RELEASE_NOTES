@@ -7,6 +7,30 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20041218
+================================================
+
+Fine control for SMTP inter-operability problems. You can now
+selectively turn off SMTP extensions (pipelining, starttls, auth,
+etc.), to work around specific broken clients or servers.  Specify
+a list of EHLO keywords with the smtp(d)_disable_ehlo_keywords
+parameters, or specify one or more lookup tables, indexed by remote
+network address, with the smtp(d)_disable_ehlo_keyword_address_maps
+parameters. The EHLO keywords lists are case insensitive.
+
+More client attributes for delivery to command with the local(8)
+and pipe(8) delivery agents: client_hostname, client_address,
+client_protocol, client_helo, sasl_method, sasl_sender, and
+sasl_username.  With local(8), attribute names must be specified
+in upper case.
+
+Major changes with snapshot Postfix-2.2-20041210
+================================================
+
+You can now dump an entire database with the new postmap/postalias
+"-s" option. This works only for database types with Postfix sequence
+operator support: hash, btree, dbm, and sdbm.
+
 Major changes with snapshot Postfix-2.2-20041208
 ================================================
 

@@ -155,6 +155,30 @@ PIPE(8)                                                   PIPE(8)
               and $(<i>name</i>) are also recognized.  Specify <b>$$</b>  where
               a single <b>$</b> is wanted.
 
+              <b>${client_address</b>}
+                     This macro expands to the remote client net-
+                     work address.
+
+                     This is available in Postfix 2.2 and  later.
+
+              <b>${client_helo</b>}
+                     This macro expands to the remote client HELO
+                     command parameter.
+
+                     This is available in Postfix 2.2 and  later.
+
+              <b>${client_hostname</b>}
+                     This  macro  expands  to  the  remote client
+                     hostname.
+
+                     This is available in Postfix 2.2 and  later.
+
+              <b>${client_protocol</b>}
+                     This macro expands to the remote client pro-
+                     tocol.
+
+                     This is available in Postfix 2.2 and  later.
+
               <b>${extension</b>}
                      This  macro expands to the extension part of
                      a recipient address.  For example,  with  an

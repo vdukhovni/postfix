@@ -211,6 +211,26 @@ The entire recipient address.
 .IP \fBSENDER\fR
 The entire sender address.
 .PP
+Additional remote client information is made available via
+the following pseudo variables:
+.IP \fBCLIENT_ADDRESS\fR
+Remote client network address. Available as of Postfix 2.2.
+.IP \fBCLIENT_HELO\fR
+Remote client EHLO command parameter. Available as of Postfix 2.2.
+.IP \fBCLIENT_HOSTNAME\fR
+Remote client hostname. Available as of Postfix 2.2.
+.IP \fBCLIENT_PROTOCOL\fR
+Remote client protocol. Available as of Postfix 2.2.
+.IP \fBSASL_METHOD\fR
+SASL authentication method specified in the
+remote client AUTH command. Available as of Postfix 2.2.
+.IP \fBSASL_SENDER\fR
+SASL sender address specified in the remote client MAIL
+FROM command. Available as of Postfix 2.2.
+.IP \fBSASL_USERNAME\fR
+SASL username specified in the remote client AUTH command.
+Available as of Postfix 2.2.
+.PP
 The \fBPATH\fR environment variable is always reset to a
 system-dependent default path, and environment variables
 whose names are blessed by the \fBexport_environment\fR

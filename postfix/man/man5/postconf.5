@@ -1793,6 +1793,16 @@ This is not a problem, because 1) mail for root should always be
 aliased to a real user and 2) don't log in as root, use "su" instead.
 .PP
 The following environment variables are exported to the command:
+.IP "\fBCLIENT_ADDRESS\fR"
+Remote client network address. Available in Postfix 2.2 and
+later.
+.IP "\fBCLIENT_HELO\fR"
+Remote client EHLO command parameter. Available in Postfix 2.2
+and later.
+.IP "\fBCLIENT_HOSTNAME\fR"
+Remote client hostname. Available in Postfix 2.2 and later.
+.IP "\fBCLIENT_PROTOCOL\fR"
+Remote client protocol. Available in Postfix 2.2 and later.
 .IP "\fBDOMAIN\fR"
 The domain part of the recipient address.
 .IP "\fBEXTENSION\fR"
@@ -1805,6 +1815,15 @@ The recipient address localpart.
 The recipient's username.
 .IP "\fBRECIPIENT\fR"
 The full recipient address.
+.IP "\fBSASL_METHOD\fR"
+SASL authentication method specified in the remote client AUTH
+command. Available in Postfix 2.2 and later.
+.IP "\fBSASL_SENDER\fR"
+SASL sender address specified in the remote client MAIL FROM
+command. Available in Postfix 2.2 and later.
+.IP "\fBSASL_USER\fR"
+SASL username specified in the remote client AUTH command.
+Available in Postfix 2.2 and later.
 .IP "\fBSENDER\fR"
 The full sender address.
 .IP "\fBSHELL\fR"
@@ -3029,6 +3048,16 @@ the entry in the master.cf file.
 Setting this parameter to a value of 1 changes the meaning of
 smtp_destination_concurrency_limit from concurrency per domain
 into concurrency per recipient.
+.SH smtp_disable_ehlo_keyword_address_maps (default: empty)
+Lookup tables, indexed by the remote SMTP server address, with
+case insensitive lists of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP client will ignore in the EHLO response
+from a remote SMTP server.
+.SH smtp_disable_ehlo_keywords (default: empty)
+A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP client will ignore in the EHLO response
+from a remote SMTP server. Use the smtp_disable_ehlo_keyword_address_maps
+feature to disable EHLO keywords selectively.
 .SH smtp_helo_name (default: $myhostname)
 The hostname to send in the SMTP EHLO or HELO command.
 .PP
@@ -3625,6 +3654,16 @@ The default setting has one major benefit: it allows Postfix to log
 recipient address information when rejecting a client name/address
 or sender address, so that it is possible to find out whose mail
 is being rejected.
+.SH smtpd_disable_ehlo_keyword_address_maps (default: empty)
+Lookup tables, indexed by the remote SMTP client address, with
+case insensitive lists of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP server will not send in the EHLO response
+to a remote SMTP client.
+.SH smtpd_disable_ehlo_keywords (default: empty)
+A case insensitive list of EHLO keywords (pipelining, starttls,
+auth, etc.) that the SMTP server will not send in the EHLO response
+to a remote SMTP client. Use the smtpd_disable_ehlo_keyword_address_maps
+feature to disable EHLO keywords selectively.
 .SH smtpd_end_of_data_restrictions (default: empty)
 Optional access restrictions that the Postfix SMTP server
 applies in the context of the SMTP END-OF-DATA command.

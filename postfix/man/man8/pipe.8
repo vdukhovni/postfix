@@ -141,6 +141,22 @@ In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
 $(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
 \fB$\fR is wanted.
 .RS
+.IP \fB${\fBclient_address\fR}\fR
+This macro expands to the remote client network address.
+.sp
+This is available in Postfix 2.2 and later.
+.IP \fB${\fBclient_helo\fR}\fR
+This macro expands to the remote client HELO command parameter.
+.sp
+This is available in Postfix 2.2 and later.
+.IP \fB${\fBclient_hostname\fR}\fR
+This macro expands to the remote client hostname.
+.sp
+This is available in Postfix 2.2 and later.
+.IP \fB${\fBclient_protocol\fR}\fR
+This macro expands to the remote client protocol.
+.sp
+This is available in Postfix 2.2 and later.
 .IP \fB${\fBextension\fR}\fR
 This macro expands to the extension part of a recipient address.
 For example, with an address \fIuser+foo@domain\fR the extension is

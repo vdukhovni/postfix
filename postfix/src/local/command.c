@@ -162,6 +162,18 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	argv_add(env, "DOMAIN", state.msg_attr.domain, ARGV_END);
     if (state.msg_attr.extension)
 	argv_add(env, "EXTENSION", state.msg_attr.extension, ARGV_END);
+
+#define EXPORT_REQUEST(name, value) \
+	if ((value)[0]) argv_add(env, (name), (value), ARGV_END);
+
+    EXPORT_REQUEST("CLIENT_HOSTNAME", state.msg_attr.request->client_name);
+    EXPORT_REQUEST("CLIENT_ADDRESS", state.msg_attr.request->client_addr);
+    EXPORT_REQUEST("CLIENT_HELO", state.msg_attr.request->client_helo);
+    EXPORT_REQUEST("CLIENT_PROTOCOL", state.msg_attr.request->client_proto);
+    EXPORT_REQUEST("SASL_METHOD", state.msg_attr.request->sasl_method);
+    EXPORT_REQUEST("SASL_SENDER", state.msg_attr.request->sasl_sender);
+    EXPORT_REQUEST("SASL_USERNAME", state.msg_attr.request->sasl_username);
+
     argv_terminate(env);
 
     /*
