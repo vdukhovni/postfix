@@ -15,14 +15,17 @@
   * External interface.
   */
 extern int mail_flush_deferred(void);
+extern int mail_flush_enable(const char *);
 extern int mail_flush_site(const char *);
 extern int mail_flush_append(const char *, const char *);
+extern void mail_flush_append_init(void);
 
  /*
   * Mail flush server requests.
   */
-#define FLUSH_REQ_ADD		"add"	/* add queue ID to site log */
+#define FLUSH_REQ_APPEND	"append"/* append queue ID to site log */
 #define FLUSH_REQ_SEND		"send"	/* flush mail queued for site */
+#define FLUSH_REQ_ENABLE	"enable"/* flush mail queued for site */
 
  /*
   * Mail flush server status codes.

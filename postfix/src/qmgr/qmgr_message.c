@@ -501,7 +501,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    } else if (dict_errno != 0) {
 		qmgr_defer_recipient(message, recipient->address,
 				     "relocated map lookup failure");
-XXX mail_flush_append
 		continue;
 	    }
 	}
@@ -590,7 +589,6 @@ XXX mail_flush_append
 	    if (*cpp) {
 		qmgr_defer_recipient(message, recipient->address,
 				     "deferred transport");
-XXX mail_flush_append
 		continue;
 	    }
 	}
@@ -618,7 +616,6 @@ XXX mail_flush_append
 	 */
 	if ((transport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0) {
 	    qmgr_defer_recipient(message, recipient->address, transport->reason);
-XXX mail_flush_append
 	    continue;
 	}
 
@@ -636,7 +633,6 @@ XXX mail_flush_append
 	 */
 	if (queue->window == 0) {
 	    qmgr_defer_recipient(message, recipient->address, queue->reason);
-XXX mail_flush_append
 	    continue;
 	}
 
@@ -653,7 +649,6 @@ XXX mail_flush_append
 		   qmgr_message_count : var_qmgr_active_limit)) {
 		qmgr_defer_recipient(message, recipient->address,
 				     "site destination queue overflow");
-XXX mail_flush_append
 		continue;
 	    }
 	}

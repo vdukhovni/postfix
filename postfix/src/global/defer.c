@@ -42,6 +42,8 @@
 /*	defer_append() appends a record to the per-message defer log,
 /*	with the reason for delayed delivery to the named recipient.
 /*	The result is a convenient non-zero value.
+/*	When the fast flush cache is enabled, the fast flush server is
+/*	notified of deferred mail.
 /*
 /*	vdefer_append() implements an alternative client interface.
 /*
@@ -102,6 +104,7 @@
 #include <sys_defs.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -112,8 +115,12 @@
 
 #include "mail_queue.h"
 #include "mail_proto.h"
+#include "mail_params.h"
+#include "mail_flush.h"
 #include "bounce.h"
 #include "defer.h"
+
+#define STR(x)	vstring_str(x)
 
 /* defer_append - defer message delivery */
 
@@ -136,6 +143,7 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
 {
     VSTRING *why = vstring_alloc(100);
     int     delay = time((time_t *) 0) - entry;
+    const char *rcpt_domain;
 
     vstring_vsprintf(why, fmt, ap);
     if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
@@ -145,6 +153,15 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
     msg_info("%s: to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
 	     id, recipient, relay, delay, vstring_str(why));
     vstring_free(why);
+
+    /*
+     * Notify the fast flush service.
+     */
+    if (var_enable_fflush
+	&& (rcpt_domain = strrchr(recipient, '@')) != 0
+	&& *++rcpt_domain != 0)
+	mail_flush_append(rcpt_domain, id);
+
     return (-1);
 }
 

@@ -1,0 +1,134 @@
+<html> <head> </head> <body> <pre>
+
+
+
+FLUSH(8)                                                 FLUSH(8)
+
+
+<b>NAME</b>
+       flush - Postfix fast flush daemon
+
+<b>SYNOPSIS</b>
+       <b>flush</b> [generic Postfix daemon options]
+
+<b>DESCRIPTION</b>
+       The flush server maintains so-called "fast flush" logfiles
+       with information about what messages are queued for a spe-
+       cific  site.  This program expects to be run from the <a href="master.8.html"><b>mas-</b>
+       <b>ter</b>(8)</a> process manager.
+
+       This server implements the following requests:
+
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>ENABLE</b> <i>sitename</i>
+              Enable fast flush logging for the specified site.
+
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>APPEND</b> <i>sitename</i> <i>queue_id</i>
+              Append <i>queue_id</i> to the fast flush log for the spec-
+              ified site.
+
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b> <i>sitename</i>
+              Arrange  for  the delivery of all messages that are
+              listed in the fast flush logfile for the  specified
+              site.   After the logfile is processed, the file is
+              truncated to length zero.
+
+       The response to the client is one of:
+
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
+              The request completed normally.
+
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>BAD</b>
+              The flush server rejected the request (bad  request
+              name, bad request parameter value).
+
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>UNKNOWN</b>
+              The specified site has no fast flush log.
+
+       Fast  flush  logfiles  are  truncated  only  after a flush
+       request. In order to prevent fast flush logs from  growing
+       too  large, and to prevent them from accumulating too much
+       outdated information, the flush service generates  a  pro-
+       active   flush   request  once  every  every  1000  append
+       requests. This should not impact operation.
+
+<b>SECURITY</b>
+       The fast flush server is not security-sensitive.  It  does
+       not  talk  to  the  network, and it does not talk to local
+       users.  The fast flush server can run  chrooted  at  fixed
+       low privilege.
+
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
+
+
+                                                                1
+
+
+
+
+
+FLUSH(8)                                                 FLUSH(8)
+
+
+<b>BUGS</b>
+       In  reality,  this  server schedules delivery of messages,
+       regardless of their destination. This limitation is due to
+       the fact that one queue runner has to handle mail for mul-
+       tiple destinations.
+
+<b>CONFIGURATION</b> <b>PARAMETERS</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program. See the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       command after a configuration change.
+
+       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+              Maximal  length  of  strings in a fast flush client
+              request.
+
+<b>SEE</b> <b>ALSO</b>
+       <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
+       <a href="qmgr.8.html">qmgr(8)</a> Postfix queue manager
+       syslogd(8) system logging
+
+<b>LICENSE</b>
+       The Secure Mailer license must be  distributed  with  this
+       software.
+
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
+       Yorktown Heights, NY 10598, USA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                2
+
+
+</pre> </body> </html>

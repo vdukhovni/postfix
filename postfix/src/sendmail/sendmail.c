@@ -131,10 +131,11 @@
 /*	configuration parameter instead.
 /* .IP \fB-qR\fIsite\fR
 /*	Schedule immediate delivery of all mail that is queued for the named
-/*	\fIsite\fR.
-/*	This functionality is available only for sites that have a so-called
-/*	\fBfast flush\fR logfile as described in \fBflushd\fR(8).  For other 
-/*	sites, use the slower \fBsendmail -q\fR command instead.
+/*	\fIsite\fR. Depending on the destination, this uses "fast flush"
+/*	service, or it has the same effect as \fBsendmail -q\fR.
+/*	This functionality is implemented by connecting to the local SMTP
+/*	server. See smtpd(8) for more information about the "fast flush"
+/*	service.
 /* .IP \fB-qS\fIsite\fR
 /*	This command is not implemented. Use the slower \fBsendmail -q\fR
 /*	command instead.
@@ -246,13 +247,13 @@
 #include <time.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <mymalloc.h>
 #include <vstream.h>
-#include <vstring.h>
 #include <msg_vstream.h>
 #include <msg_syslog.h>
 #include <vstring_vstream.h>
@@ -263,6 +264,7 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <set_ugid.h>
+#include <connect.h>
 
 /* Global library. */
 
@@ -280,6 +282,7 @@
 #include <tok822.h>
 #include <mail_flush.h>
 #include <mail_stream.h>
+#include <smtp_stream.h>
 
 /* Application-specific. */
 
@@ -557,26 +560,75 @@ static void flush_queue(void)
 	msg_warn("Cannot flush mail queue - mail system is down");
 }
 
+/* chat - send command and examine reply */
+
+static void chat(VSTREAM *fp, VSTRING *buf, const char *fmt,...)
+{
+    va_list ap;
+
+    smtp_get(buf, fp, var_line_limit);
+    if (STR(buf)[0] != '2')
+	msg_fatal("server rejected request: %s", STR(buf));
+
+    if (msg_verbose)
+	msg_info("<<< %s", STR(buf));
+
+    if (msg_verbose) {
+	va_start(ap, fmt);
+	vstring_vsprintf(buf, fmt, ap);
+	va_end(ap);
+	msg_info(">>> %s", STR(buf));
+    }
+    va_start(ap, fmt);
+    smtp_vprintf(fp, fmt, ap);
+    va_end(ap);
+}
+
 /* flush_site - flush mail for site */
 
 static void flush_site(const char *site)
 {
-    int     code;
+    VSTRING *buf = vstring_alloc(10);
+    VSTREAM *fp;
+    int     sock;
+    int     status;
 
-    switch (code = mail_flush_site(site)) {
-    default:
-	msg_panic("flush_site: unknown result code %d", code);
-    case FLUSH_STAT_OK:
-	break;
-    case FLUSH_STAT_UNKNOWN:
-	msg_fatal("No \"sendmail -qR\" support available for %s - use \"sendmail -q\" instead", site);
-	break;
-    case FLUSH_STAT_BAD:
-	msg_fatal("invalid request: %s", site);
-    case FLUSH_STAT_FAIL:
-	msg_warn("Cannot flush mail queue - mail system is down");
-	break;
+    /*
+     * Make connection to the local SMTP server. Translate "connection
+     * refused" into something less misleading.
+     */
+    vstring_sprintf(buf, "%s:smtp", var_myhostname);
+    if ((sock = inet_connect(STR(buf), BLOCKING, 10)) < 0) {
+	if (errno == ECONNREFUSED)
+	    msg_fatal("mail service at %s is down", var_myhostname);
+	msg_fatal("connect to mail service at %s: %m", var_myhostname);
     }
+    fp = vstream_fdopen(sock, O_RDWR);
+
+    /*
+     * Prepare for trouble.
+     */
+    vstream_control(fp, VSTREAM_CTL_EXCEPT, VSTREAM_CTL_END);
+    status = vstream_setjmp(fp);
+    if (status != 0) {
+	switch (status) {
+	case SMTP_ERR_EOF:
+	    msg_fatal("server at %s aborted connection", var_myhostname);
+	case SMTP_ERR_TIME:
+	    msg_fatal("timeout while talking to server at %s", var_myhostname);
+	}
+    }
+    smtp_timeout_setup(fp, 60);
+
+    /*
+     * Chat with the SMTP server.
+     */
+    chat(fp, buf, "helo %s", var_myhostname);
+    chat(fp, buf, "etrn %s", site);
+    chat(fp, buf, "quit");
+
+    vstream_fclose(fp);
+    vstring_free(buf);
 }
 
 /* sendmail_cleanup - callback for the runtime error handler */

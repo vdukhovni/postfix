@@ -1,10 +1,10 @@
 /*++
 /* NAME
-/*	flushd 8
+/*	flush 8
 /* SUMMARY
 /*	Postfix fast flush daemon
 /* SYNOPSIS
-/*	\fBflushd\fR [generic Postfix daemon options]
+/*	\fBflush\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The flush server maintains so-called "fast flush" logfiles with
 /*	information about what messages are queued for a specific site.
@@ -12,7 +12,9 @@
 /*	manager.
 /*
 /*	This server implements the following requests:
-/* .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
+/* .IP "\fBFLUSH_REQ_ENABLE\fI sitename\fR"
+/*	Enable fast flush logging for the specified site.
+/* .IP "\fBFLUSH_REQ_APPEND\fI sitename queue_id\fR"
 /*	Append \fIqueue_id\fR to the fast flush log for the
 /*	specified site.
 /* .IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
@@ -37,12 +39,8 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	The fast flush server is moderately security-sensitive. It does not
-/*	talk to the network, but it does talk to local unprivileged users, in
-/*	order to emulate "sendmail -qRsite" behavior.  For this reason all
-/*	strings in a request are truncated at \fIline_length_limit\fR,
-/*	before they are subjected to further validation.
-/*
+/*	The fast flush server is not security-sensitive. It does not
+/*	talk to the network, and it does not talk to local users.
 /*	The fast flush server can run chrooted at fixed low privilege.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -110,9 +108,9 @@
 /* Application-specific. */
 
 #define STR(x)	vstring_str(x)
-#define FLUSHD_DUP_FILTER_SIZE	10000	/* graceful degradation */
-#define FLUSHD_COMMAND_TIMEOUT	60	/* don't get stuck */
-#define FLUSHD_CHECK_RATE	1000	/* don't accumulate cruft */
+#define FLUSH_DUP_FILTER_SIZE	10000	/* graceful degradation */
+#define FLUSH_COMMAND_TIMEOUT	60	/* don't get stuck */
+#define FLUSH_CHECK_RATE	1000	/* don't accumulate cruft */
 
 /* flush_append - append queue ID to per-site fast flush log */
 
@@ -171,8 +169,8 @@ static int flush_site(const char *site)
     VSTREAM *log;
     struct utimbuf tbuf;
     static char qmgr_trigger[] = {
-	QMGR_REQ_SCAN_DEFERRED,		/* scan deferred queue */
 	QMGR_REQ_SCAN_INCOMING,		/* scan incoming queue */
+	QMGR_REQ_FLUSH_DEAD,		/* flush dead site/transport cache */
     };
     HTABLE *dup_filter;
 
@@ -216,27 +214,25 @@ static int flush_site(const char *site)
 		     STR(queue_id), site);
 	    continue;
 	}
-	if (dup_filter->used >= FLUSHD_DUP_FILTER_SIZE
+	if (dup_filter->used >= FLUSH_DUP_FILTER_SIZE
 	    || htable_find(dup_filter, STR(queue_id)) == 0) {
 	    if (msg_verbose)
 		msg_info("%s: site %s: update %s time stamps",
 			 myname, site, STR(queue_file));
-	    if (dup_filter->used <= FLUSHD_DUP_FILTER_SIZE)
+	    if (dup_filter->used <= FLUSH_DUP_FILTER_SIZE)
 		htable_enter(dup_filter, STR(queue_id), 0);
 
 	    mail_queue_path(queue_file, MAIL_QUEUE_DEFERRED, STR(queue_id));
-	    if (utime(STR(queue_file), &tbuf) == 0)
-		continue;
-	    if (errno != ENOENT)
-		msg_fatal("%s: update %s time stamps: %m",
-			  myname, STR(queue_file));
-
-	    mail_queue_path(queue_file, MAIL_QUEUE_INCOMING, STR(queue_id));
-	    if (utime(STR(queue_file), &tbuf) == 0)
-		continue;
-	    if (errno != ENOENT)
-		msg_fatal("%s: update %s time stamps: %m",
-			  myname, STR(queue_file));
+	    if (utime(STR(queue_file), &tbuf) < 0) {
+		if (errno != ENOENT)
+		    msg_warn("%s: update %s time stamps: %m",
+			     myname, STR(queue_file));
+	    } else if (mail_queue_rename(STR(queue_id), MAIL_QUEUE_DEFERRED,
+					 MAIL_QUEUE_INCOMING) < 0
+		       && errno != ENOENT)
+		msg_warn("%s: rename from %s to %s: %m",
+			 STR(queue_file), MAIL_QUEUE_DEFERRED,
+			 MAIL_QUEUE_INCOMING);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: site %s: skip file %s as duplicate",
@@ -270,6 +266,29 @@ static int flush_site(const char *site)
     return (FLUSH_STAT_OK);
 }
 
+/* flush_enable - enable fast flush logging for site */
+
+static int flush_enable(const char *site)
+{
+    char   *myname = "flush_enable";
+    VSTREAM *log;
+
+    if (msg_verbose)
+	msg_info("%s: site %s", myname, site);
+
+    /*
+     * Open or create the logfile. Multiple requests may arrive in parallel,
+     * so allow for the possibility that the file already exists.
+     */
+    if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_CREAT | O_RDWR, 0600)) == 0)
+	msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
+
+    if (vstream_fclose(log) != 0)
+	msg_warn("write fast flush log for site %s: %m", site);
+
+    return (FLUSH_STAT_OK);
+}
+
 /* flush_service - perform service for client */
 
 static void flush_service(VSTREAM *client_stream, char *unused_service,
@@ -288,14 +307,6 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
-     * Vandalism control. Read no unlimited amounts of garbage from a public
-     * socket. Of course we also have to make sure the content is sane.
-     */
-    vstring_ctl(request, VSTRING_CTL_MAXLEN, var_line_limit, VSTRING_CTL_END);
-    vstring_ctl(site, VSTRING_CTL_MAXLEN, var_line_limit, VSTRING_CTL_END);
-    vstream_control(client_stream, VSTREAM_CTL_TIMEOUT, FLUSHD_COMMAND_TIMEOUT, 
-	VSTREAM_CTL_END);
-    /*
      * This routine runs whenever a client connects to the UNIX-domain socket
      * dedicated to the fast flush service. What we see below is a little
      * protocol to (1) read a request from the client (the name of the site)
@@ -310,16 +321,16 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 
     if (mail_scan(client_stream, "%s %s", request, site) == 2
 	&& valid_hostname(STR(site))) {
-	if (STREQ(STR(request), FLUSH_REQ_ADD)) {
+	if (STREQ(STR(request), FLUSH_REQ_APPEND)) {
 	    queue_id = vstring_alloc(10);
-	    vstring_ctl(queue_id, VSTRING_CTL_MAXLEN, var_line_limit,
-			VSTRING_CTL_END);
 	    if (mail_scan(client_stream, "%s", queue_id) == 1
 		&& mail_queue_id_ok(STR(queue_id)))
 		status = flush_append(STR(site), STR(queue_id));
 	    vstring_free(queue_id);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
 	    status = flush_site(STR(site));
+	} else if (STREQ(STR(request), FLUSH_REQ_ENABLE)) {
+	    status = flush_enable(STR(site));
 	}
     }
     mail_print(client_stream, "%d", status);
@@ -330,8 +341,8 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * contain too much outdated information. Flush our reply to the client
      * so that it does not have to wait while the pro-active flush happens.
      */
-    if (status == FLUSH_STAT_OK && STREQ(STR(request), FLUSH_REQ_ADD)
-	&& (++counter + event_time() + getpid()) % FLUSHD_CHECK_RATE == 0) {
+    if (status == FLUSH_STAT_OK && STREQ(STR(request), FLUSH_REQ_APPEND)
+	&& (++counter + event_time() + getpid()) % FLUSH_CHECK_RATE == 0) {
 	vstream_fflush(client_stream);
 	if (msg_verbose)
 	    msg_info("site %s: time for a pro-active flush", STR(site));

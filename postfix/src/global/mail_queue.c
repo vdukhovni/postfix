@@ -243,10 +243,10 @@ int     mail_queue_rename(const char *queue_id, const char *old_queue,
      * Try the operation. If it fails, see if it is because of missing
      * intermediate directories.
      */
-    error = rename(mail_queue_path(old_buf, old_queue, queue_id),
-		   mail_queue_path(new_buf, new_queue, queue_id));
+    error = sane_rename(mail_queue_path(old_buf, old_queue, queue_id),
+			mail_queue_path(new_buf, new_queue, queue_id));
     if (error != 0 && mail_queue_mkdirs(STR(new_buf)) == 0)
-	error = rename(STR(old_buf), STR(new_buf));
+	error = sane_rename(STR(old_buf), STR(new_buf));
 
     /*
      * Cleanup.
@@ -270,11 +270,12 @@ int     mail_queue_name_ok(const char *queue_name)
 {
     const char *cp;
 
+    if (strlen(queue_name) > 100)
+	return (0);
+
     for (cp = queue_name; *cp; cp++)
 	if (!ISALNUM(*cp))
 	    return (0);
-    if (strlen(queue_name) > 100)
-	return (0);
     return (1);
 }
 
@@ -288,19 +289,29 @@ int     mail_queue_id_ok(const char *queue_id)
 	return (0);
 
     /*
-     * Must be in valid hostname form.
+     * OK if in in time+inum form.
      */
-    if ((strchr(queue_id, '.') || strchr(queue_id, '-'))
-	&& valid_hostname(queue_id))
-	return (1);
+    for (cp = queue_id; /* void */ ; cp++) {
+	if (*cp == 0)
+	    return (1);
+	if (!ISALNUM(*cp))
+	    break;
+    }
 
     /*
-     * Must be in time+inum form.
+     * BAD if in time.pid form.
      */
-    for (cp = queue_id; *cp; cp++)
-	if (!ISALNUM(*cp))
+    for (cp = queue_id; /* void */ ; cp++) {
+	if (*cp == 0)
 	    return (0);
-    return (1);
+	if (!ISDIGIT(*cp) && *cp != '.')
+	    break;
+    }
+
+    /*
+     * OK if in valid hostname form.
+     */
+    return (valid_hostname(queue_id));
 }
 
 /* mail_queue_enter - make mail queue entry with locally-unique name */

@@ -165,7 +165,7 @@ time_t  var_starttime;
 int     var_ownreq_special;
 int     var_daemon_timeout;
 char   *var_syslog_facility;
-int	var_enable_fflush;
+int     var_enable_fflush;
 
 /* check_myhostname - lookup hostname and validate */
 

@@ -103,6 +103,7 @@
 #include <bounce.h>
 #include <defer.h>
 #include <rec_type.h>
+#include <mail_flush.h>
 
 /* Application-specific. */
 
@@ -226,6 +227,13 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 	 */
 	if (message->refcount == 0)
 	    qmgr_active_done(message);
+
+	/*
+	 * Make sure the mail flush dupfilter sees no false positive if we're
+	 * repeatedly trying to deliver the same message.
+	 */
+	else if (var_enable_fflush)
+	    mail_flush_append_init();
     }
 }
 

@@ -310,6 +310,8 @@ defer.o: mail_queue.h
 defer.o: ../../include/vstream.h
 defer.o: mail_proto.h
 defer.o: ../../include/iostuff.h
+defer.o: mail_params.h
+defer.o: mail_flush.h
 defer.o: bounce.h
 defer.o: defer.h
 deliver_completed.o: deliver_completed.c

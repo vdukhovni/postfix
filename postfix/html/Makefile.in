@@ -5,7 +5,7 @@ SHELL	= /bin/sh
 DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html error.8.html local.8.html \
 	lmtp.8.html master.8.html pickup.8.html pipe.8.html qmgr.8.html \
 	showq.8.html smtp.8.html smtpd.8.html trivial-rewrite.8.html \
-	nqmgr.8.html spawn.8.html flushd.8.html
+	nqmgr.8.html spawn.8.html flush.8.html
 COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
 	postconf.1.html postfix.1.html postkick.1.html postlock.1.html \
 	postlog.1.html postdrop.1.html postmap.1.html sendmail.1.html \
@@ -36,7 +36,7 @@ defer.8.html: bounce.8.html
 error.8.html: ../src/error/error.c
 	srctoman $? | nroff -man | man2html | postlink >$@
 
-flushd.8.html: ../src/flushd/flushd.c
+flush.8.html: ../src/flush/flush.c
 	srctoman $? | nroff -man | man2html | postlink >$@
 
 cleanup.8.html: ../src/cleanup/cleanup.c

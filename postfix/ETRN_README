@@ -17,7 +17,10 @@ But first you need to configure Postfix to provide fast ETRN service.
 - Add a "flush" service entry to /etc/postfix/master.cf if you were
   running an older Postfix version:
 
-	flush	  unix	n	-	n	-	0	flushd
+	flush	  unix	-	-	n	-	0	flush
+
+  That is, the same line as bounce, except that bounce is replaced
+  by flush, twice.
 
 - Execute "postconf hash_queue_names" and verify that the output
   includes at the very least the "active", "bounce", "defer", and

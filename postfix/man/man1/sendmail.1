@@ -137,10 +137,11 @@ The interval between queue runs. Use the \fBqueue_run_delay\fR
 configuration parameter instead.
 .IP \fB-qR\fIsite\fR
 Schedule immediate delivery of all mail that is queued for the named
-\fIsite\fR.
-This functionality is available only for sites that have a so-called
-\fBfast flush\fR logfile as described in \fBflushd\fR(8).  For other
-sites, use the slower \fBsendmail -q\fR command instead.
+\fIsite\fR. Depending on the destination, this uses "fast flush"
+service, or it has the same effect as \fBsendmail -q\fR.
+This functionality is implemented by connecting to the local SMTP
+server. See smtpd(8) for more information about the "fast flush"
+service.
 .IP \fB-qS\fIsite\fR
 This command is not implemented. Use the slower \fBsendmail -q\fR
 command instead.

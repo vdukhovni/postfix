@@ -40,6 +40,8 @@
 /*	opens the queue file, and acquires a shared lock.
 /*	A null result means that the client sent bad information or that
 /*	it went away unexpectedly.
+/*	If the fast flush service is enabled, deliver_request_read()
+/*	initializes the client-side fast flush duplicate filter.
 /*
 /*	The \fBflags\fR structure member is the bit-wise OR of zero or more
 /*	of the following:
@@ -63,9 +65,6 @@
 /*	closes the queue file,
 /*	and destroys the DELIVER_REQUEST structure. The result is
 /*	non-zero when the status could not be reported to the client.
-/*
-/*	When the fast flush cache is enabled, the fast flush server is
-/*	notified of deferred mail.
 /* DIAGNOSTICS
 /*	Warnings: bad data sent by the client. Fatal errors: out of
 /*	memory, queue file open errors.
@@ -102,11 +101,11 @@
 
 #include "mail_queue.h"
 #include "mail_proto.h"
+#include "mail_params.h"
+#include "mail_flush.h"
 #include "mail_open_ok.h"
 #include "recipient_list.h"
 #include "deliver_request.h"
-#include "mail_flush.h"
-#include "mail_params.h"
 
 /* deliver_request_initial - send initial status code */
 
@@ -317,8 +316,16 @@ DELIVER_REQUEST *deliver_request_read(VSTREAM *stream)
     request = deliver_request_alloc();
     if (deliver_request_get(stream, request) < 0) {
 	deliver_request_free(request);
-	request = 0;
+	return (0);
     }
+
+    /*
+     * Make sure the mail flush dupfilter sees no false positive if we're
+     * repeatedly delivering the same message.
+     */
+    if (var_enable_fflush)
+	mail_flush_append_init();
+
     return (request);
 }
 
@@ -328,12 +335,7 @@ int     deliver_request_done(VSTREAM *stream, DELIVER_REQUEST *request, int stat
 {
     int     err;
 
-    /*
-     * Optionally add this message to the fast flush log for this site.
-     */
     err = deliver_request_final(stream, request->hop_status, status);
-    if (var_enable_fflush)
-	mail_flush_append(request->nexthop, request->queue_id);
     deliver_request_free(request);
     return (err);
 }

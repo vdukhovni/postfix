@@ -1065,7 +1065,8 @@ extern void mail_params_init(void);
 extern char *var_filter_xport;
 
  /*
-Fast flush service support. */
+  * Fast flush service support.
+  */
 #define VAR_ENABLE_FFLUSH		"enable_fast_flush"
 #define DEF_ENABLE_FFLUSH		0
 extern bool var_enable_fflush;

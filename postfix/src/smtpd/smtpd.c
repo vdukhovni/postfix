@@ -104,7 +104,7 @@
 /*	The "fast flush" cache keeps a record of what mail is queued up for
 /*	specific destinations.
 /*	Currently, "fast flush" support is available only for destinations
-/*      that the local MTA is willing to relay mail to (i.e. the policy
+/*	that the local MTA is willing to relay mail to (i.e. the policy
 /*	is hard coded).
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
@@ -160,14 +160,6 @@
 /*	Limit the number of times a client can issue a junk command
 /*	such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 /*	it is penalized with tarpit delays.
-/* .SH "ETRN service"
-/* .ad
-/* .fi
-/* .IP \fBsmtpd_etrn_restrictions\fR
-/*	Restrict what domain names can be used in \fBETRN\fR commands,
-/*	and what clients may issue \fBETRN\fR commands. The restrictions
-/*	are like the UCE restrictions below. Fast \fBETRN\fR service is
-/*	limited to destinations that list this MTA as mail exchanger.
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
@@ -183,6 +175,9 @@
 /*	Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 /* .IP \fBsmtpd_recipient_restrictions\fR
 /*	Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
+/* .IP \fBsmtpd_etrn_restrictions\fR
+/*	Restrict what domain names can be used in \fBETRN\fR commands,
+/*	and what clients may issue \fBETRN\fR commands.
 /* .IP \fBallow_untrusted_routing\fR
 /*	Allow untrusted clients to specify addresses with sender-specified
 /*	routing.  Enabling this opens up nasty relay loopholes involving
@@ -1116,13 +1111,12 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     switch (mail_flush_site(argv[1].strval)) {
     case FLUSH_STAT_UNKNOWN:
 	if (smtpd_check_etrn_cache_policy_ok(state, argv[1].strval)) {
-	    if ((fp = mail_queue_open(MAIL_QUEUE_FLUSH, argv[1].strval,
-			       O_CREAT | O_APPEND | O_WRONLY, 0600)) == 0) {
-		msg_warn("create fast ETRN cache for %s: %m", argv[1].strval);
+	    if (mail_flush_enable(argv[1].strval) != FLUSH_STAT_OK) {
+		msg_warn("can't create fast ETRN cache for %s", argv[1].strval);
 	    } else {
-		vstream_fclose(fp);
 		msg_info("created fast ETRN cache for %s (client=%s)",
 			 argv[1].strval, state->namaddr);
+		vstream_fclose(fp);
 	    }
 	} else {
 	    msg_info("refused fast ETRN service for %s (client=%s)",
