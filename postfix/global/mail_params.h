@@ -631,6 +631,10 @@ extern int var_flock_delay;
 #define DEF_FLOCK_STALE		500
 extern int var_flock_stale;
 
+#define VAR_FLOCK_DISABLE	"deliver_lock_disable"
+#define DEF_FLOCK_DISABLE	0
+extern int var_flock_disable;
+
  /*
   * How long a daemon command may take to receive or deliver a message etc.
   * before we assume it is wegded (should never happen).

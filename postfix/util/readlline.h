@@ -3,11 +3,11 @@
 
 /*++
 /* NAME
-/*	readline 3h
+/*	readlline 3h
 /* SUMMARY
 /*	read logical line
 /* SYNOPSIS
-/*	#include <readline.h>
+/*	#include <readlline.h>
 /* DESCRIPTION
 /* .nf
 
@@ -20,7 +20,7 @@
  /*
   * External interface.
   */
-extern VSTRING *readline(VSTRING *, VSTREAM *, int *);
+extern VSTRING *readlline(VSTRING *, VSTREAM *, int *);
 
 /* LICENSE
 /* .ad

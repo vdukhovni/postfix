@@ -1,12 +1,60 @@
-Major changes with snapshot-19990322:
+Incompatible changes with snapshot-19990408:
+===========================================
+
+- If an address extension (+foo) matches a user's .forward+foo file
+name, the +foo extension is no longer appended to recipient addresses
+listed in the .forward+foo file. This is more consistent with the
+way Postfix expands aliases.
+
+Major changes with snapshot-19990408:
 =====================================
 
-- The UNIX-domain socket workaround for Solaris was fixed
-after one day of review. More testing is welcome.
+In addition to several little bugfixes, none related to security,
+lots of internal code cleanup, lots of new functionality, and lots
+of Solaris workarounds.
 
-- reject_unknown_{sender,recipient}_domain restrictions that
-distinguish between hard (always 450) and soft (configurable,
-default 450) lookup errors.
+- Regular expression support for all lookup tables, including access
+control (full mail addresses only), address rewriting (canonical/virtual,
+full mail addresses only) and transport tables (full domain names
+only).  However, regular expressions are not allowed for aliases.
+
+- POSIX regular expression support, enabled by default on 4.4BSD,
+LINUX, and HP-UX. See conf/sample-regexp.cf.  Initial code by Lamont
+Jones, Hewlett-Packard, borrowing heavily from the PCRE implementation
+by Andrew McNamara, connect.com.au Pty. Ltd., Australia.
+
+- forward_path configuration parameter for .forward files (default:
+$home/.forward$recipient_delimiter$extension,$home/.forward).
+Macros: $user (login name), $home (home directory), $recipient_delimiter,
+$domain (recipient domain), and $extension (address extension).
+Initial code by Philip A.  Prindeville, Mirapoint, Inc., USA.
+
+- No more Postfix lockups on Solaris. The code no longer uses
+Solaris UNIX-domain sockets, because they are still broken,
+even with Solaris 7.
+
+- Workaround for the Solaris mailtool, which keeps an exclusive
+fcntl/flock lock on the mailbox while its window is not iconified
+(specify "deliver_lock_disable = yes" in main.cf).
+
+- Questionable workaround for Solaris, which reportedly loses
+long-lived exclusive locks that are held by the master daemon.
+
+- New reject_unknown_{sender,recipient}_domain restrictions for
+sender and recipient mail addresses that distinguish between soft
+errors (always 450) and hard errors (unknown_address_reject_code,
+default 450).
+
+- MIME-encapsulated bounce messages as per RFC 1892. Initial
+implementation by Philip A.  Prindeville, Mirapoint, Inc., USA.
+
+- Separately configurable "postmaster" addresses for single bounces
+(bounce_notice_recipient), double bounces (2bounce_notice_recipient),
+delayed mail (delay_notice_recipient), and for mailer error reports
+(error_notice_recipient). See conf/main.cf.
+
+- Questionable feature: specify "best_mx_transport = local" if
+this machine is the best MX host for domains not in mydestinations.
 
 Incompatible changes with postfix-19990317:
 ===========================================

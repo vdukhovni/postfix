@@ -139,7 +139,7 @@
 #include "mymalloc.h"
 #include "vstream.h"
 #include "vstring.h"
-#include "readline.h"
+#include "readlline.h"
 #include "mac_parse.h"
 #include "dict.h"
 #include "dict_ht.h"
@@ -308,7 +308,7 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     buf = vstring_alloc(100);
     lineno = 0;
 
-    while (readline(buf, fp, &lineno)) {
+    while (readlline(buf, fp, &lineno)) {
 	start = STR(buf);
 	SKIP(start, member, ISSPACE(*member));	/* find member begin */
 	if (*member == 0 || *member == '#')

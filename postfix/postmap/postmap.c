@@ -116,7 +116,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <msg_vstream.h>
-#include <readline.h>
+#include <readlline.h>
 #include <stringops.h>
 #include <split_at.h>
 
@@ -164,7 +164,7 @@ static void postmap(char *map_type, char *path_name,
      * Add records to the database.
      */
     lineno = 0;
-    while (readline(line_buffer, source_fp, &lineno)) {
+    while (readlline(line_buffer, source_fp, &lineno)) {
 
 	/*
 	 * Skip comments.

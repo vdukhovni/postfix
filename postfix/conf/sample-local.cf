@@ -26,8 +26,8 @@
 
 # The forward_path parameter specifies a search list. The first file
 # that is found is used. In the path you can specify $user (login
-# name), $home (home directory), $recipient_delimiter, and $extension
-# (address extension).
+# name), $home (home directory), $recipient_delimiter, $domain
+# (recipient domain), and $extension (address extension).
 #
 #forward_path = /var/forward/$user
 forward_path = $home/.forward$recipient_delimiter$extension,$home/.forward

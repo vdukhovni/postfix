@@ -9,9 +9,10 @@
 # local system is listed as the best MX host for a destination. By
 # default, Postfix reports a "mail loops back to myself" error and
 # bounces the message. Specify "best_mx_transport = local" to pass
-# the mail to the local delivery agent.
+# the mail to the local delivery agent. You can specify any transport
+# that is defined in the master.cf file.
 #
-best_mx_transport =
+# best_mx_transport =
 
 # The fallback_relay parameter specifies zero or more hosts or domains
 # to hand off mail to if a message destination is not found, or if a

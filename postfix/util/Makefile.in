@@ -12,7 +12,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	msg_vstream.c mvect.c myflock.c mymalloc.c mystrtok.c name_mask.c \
 	non_blocking.c open_as.c open_limit.c open_lock.c peekfd.c \
 	percentm.c posix_signals.c printable.c read_wait.c readable.c \
-	readline.c ring.c safe_getenv.c safe_open.c sane_accept.c \
+	readlline.c ring.c safe_getenv.c safe_open.c sane_accept.c \
 	scan_dir.c set_eugid.c set_ugid.c sigdelay.c skipblanks.c \
 	split_at.c stat_as.c sys_compat.c timed_connect.c timed_wait.c \
 	translit.c trimblanks.c unix_connect.c unix_listen.c unix_trigger.c \
@@ -33,7 +33,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	msg_vstream.o mvect.o myflock.o mymalloc.o mystrtok.o name_mask.o \
 	non_blocking.o open_as.o open_limit.o open_lock.o peekfd.o \
 	percentm.o posix_signals.o printable.o read_wait.o readable.o \
-	readline.o ring.o safe_getenv.o safe_open.o sane_accept.o \
+	readlline.o ring.o safe_getenv.o safe_open.o sane_accept.o \
 	scan_dir.o set_eugid.o set_ugid.o sigdelay.o skipblanks.o \
 	split_at.o stat_as.o sys_compat.o timed_connect.o timed_wait.o \
 	translit.o trimblanks.o unix_connect.o unix_listen.o unix_trigger.o \
@@ -49,7 +49,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	iostuff.h line_wrap.h listen.h lstat_as.h mac_parse.h make_dirs.h \
 	match_list.h match_ops.h msg.h msg_output.h msg_syslog.h \
 	msg_vstream.h mvect.h myflock.h mymalloc.h name_mask.h open_as.h \
-	open_lock.h percentm.h posix_signals.h readline.h ring.h safe.h \
+	open_lock.h percentm.h posix_signals.h readlline.h ring.h safe.h \
 	safe_open.h sane_accept.h scan_dir.h set_eugid.h set_ugid.h \
 	sigdelay.h split_at.h stat_as.h stringops.h sys_defs.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
@@ -290,7 +290,7 @@ dict.o: mymalloc.h
 dict.o: vstream.h
 dict.o: vbuf.h
 dict.o: vstring.h
-dict.o: readline.h
+dict.o: readlline.h
 dict.o: mac_parse.h
 dict.o: dict.h
 dict.o: dict_ht.h
@@ -378,7 +378,7 @@ dict_regexp.o: vstream.h
 dict_regexp.o: vbuf.h
 dict_regexp.o: vstring.h
 dict_regexp.o: stringops.h
-dict_regexp.o: readline.h
+dict_regexp.o: readlline.h
 dict_regexp.o: dict.h
 dict_regexp.o: dict_regexp.h
 dict_regexp.o: mac_parse.h
@@ -648,12 +648,12 @@ readable.o: readable.c
 readable.o: sys_defs.h
 readable.o: msg.h
 readable.o: iostuff.h
-readline.o: readline.c
-readline.o: sys_defs.h
-readline.o: vstream.h
-readline.o: vbuf.h
-readline.o: vstring.h
-readline.o: readline.h
+readlline.o: readlline.c
+readlline.o: sys_defs.h
+readlline.o: vstream.h
+readlline.o: vbuf.h
+readlline.o: vstring.h
+readlline.o: readlline.h
 ring.o: ring.c
 ring.o: ring.h
 safe_getenv.o: safe_getenv.c

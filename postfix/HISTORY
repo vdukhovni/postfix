@@ -2555,6 +2555,25 @@ Apologies for any names omitted.
 	and for other mailer errors (error_notice_recipient).  The
 	default for all is "postmaster".
 
+19990408
+
+	Workaround: on Solaris 2.x, the master appears to lose its
+	exclusive lock on the master.pid file, so keep grabbing
+	the lock each time the master wakes up from select().
+
+	Robustness: don't flush VSTREAM buffers after I/O error.
+	This prevents surprises when calling vstream_fclose() after
+	truncating a mailbox to its original size.
+
+	Portability: on LINUX systems, if <db_185.h> exists, don't
+	look for <db/db.h>.
+
+	Workaround: on Solaris 2.x, don't put an flock()/fcntl() lock
+	on mailboxes, to avoid clashes with the mailtool application.
+
+	Portability: renamed readline to readlline, to avoid clashes
+	with mysql.
+
 Future:
 
 	Planned: must be able to list the same hash table in

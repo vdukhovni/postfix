@@ -380,7 +380,7 @@ token.o: ../include/vstring.h
 token.o: ../include/vbuf.h
 token.o: ../include/vstream.h
 token.o: ../include/htable.h
-token.o: ../include/readline.h
+token.o: ../include/readlline.h
 token.o: ../include/mymalloc.h
 token.o: ../include/vstring_vstream.h
 token.o: ../include/tok822.h

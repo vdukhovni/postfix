@@ -474,6 +474,8 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
 	msg_panic("%s: to_flush < left_over", myname);
     if (to_flush == 0)
 	return ((bp->flags & VSTREAM_FLAG_ERR) ? VSTREAM_EOF : 0);
+    if (bp->flags & VSTREAM_FLAG_ERR)
+	return (VSTREAM_EOF);
 
     /*
      * When flushing a buffer, allow for partial writes. These can happen

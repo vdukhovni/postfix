@@ -156,6 +156,7 @@ extern int opterr;
 #define LOCAL_ACCEPT	stream_accept
 #define LOCAL_CONNECT	stream_connect
 #define LOCAL_TRIGGER	stream_trigger
+#define HAS_VOLATILE_LOCKS
 #endif
 
 #ifdef UW7		/* UnixWare 7 */
@@ -317,6 +318,7 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
+#define HAS_POSIX_REGEXP
 #endif
 
 #ifdef HPUX10
@@ -344,6 +346,7 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
+#define HAS_POSIX_REGEXP
 #endif
 
 #ifdef HPUX9
@@ -373,6 +376,7 @@ extern int h_errno;
 #define USE_ULIMIT			/* no setrlimit() */
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
+#define HAS_POSIX_REGEXP
 #endif
 
  /*

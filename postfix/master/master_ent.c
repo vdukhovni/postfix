@@ -82,7 +82,7 @@
 #include <vstream.h>
 #include <argv.h>
 #include <stringops.h>
-#include <readline.h>
+#include <readlline.h>
 #include <inet_addr_list.h>
 
 /* Global library. */
@@ -237,7 +237,7 @@ MASTER_SERV *get_master_ent()
      * Skip blank lines and comment lines.
      */
     do {
-	if (readline(buf, master_fp, &master_line) == 0) {
+	if (readlline(buf, master_fp, &master_line) == 0) {
 	    vstring_free(buf);
 	    vstring_free(junk);
 	    return (0);

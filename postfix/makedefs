@@ -132,8 +132,7 @@ case "$SYSTEM.$RELEASE" in
 		done
 		if [ -f /usr/include/db_185.h ]; then
 		    CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
-		fi
-		if [ -f /usr/include/db/db.h ]; then
+		elif [ -f /usr/include/db/db.h ]; then
 		    CCARGS="$CCARGS -DPATH_DB_H='<db/db.h>'"
 		fi
 		;;

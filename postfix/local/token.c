@@ -85,7 +85,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <htable.h>
-#include <readline.h>
+#include <readlline.h>
 #include <mymalloc.h>
 #include <vstring_vstream.h>
 

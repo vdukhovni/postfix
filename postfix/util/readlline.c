@@ -1,17 +1,17 @@
 /*++
 /* NAME
-/*	readline 3
+/*	readlline 3
 /* SUMMARY
 /*	read logical line
 /* SYNOPSIS
-/*	#include <readline.h>
+/*	#include <readlline.h>
 /*
-/*	VSTRING	*readline(buf, fp, lineno)
+/*	VSTRING	*readlline(buf, fp, lineno)
 /*	VSTRING	*buf;
 /*	VSTREAM	*fp;
 /*	int	*lineno;
 /* DESCRIPTION
-/*	readline() reads one logical line from the named stream.
+/*	readlline() reads one logical line from the named stream.
 /*	A line that starts with whitespace is a continuation of
 /*	the previous line. The newline between continued lines
 /*	is deleted from the input. The result value is the input
@@ -44,11 +44,11 @@
 
 #include "vstream.h"
 #include "vstring.h"
-#include "readline.h"
+#include "readlline.h"
 
-/* readline - read one logical line */
+/* readlline - read one logical line */
 
-VSTRING *readline(VSTRING *buf, VSTREAM *fp, int *lineno)
+VSTRING *readlline(VSTRING *buf, VSTREAM *fp, int *lineno)
 {
     int     ch;
     int     next;
