@@ -183,7 +183,7 @@
 /*	for receiving the server response.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBsmtp_connection_cache_domains (empty)\fR"
+/* .IP "\fBsmtp_connection_cache_destinations (empty)\fR"
 /*	The SMTP destinations for which SMTP connection caching is
 /*	enabled.
 /* .IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"

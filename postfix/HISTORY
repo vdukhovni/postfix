@@ -9574,6 +9574,31 @@ Apologies for any names omitted.
 	seconds (default: 600s), as well as upon process exit.
 	File:  scache/scache.c.
 
+20040722
+
+	Workaround: LINUX 2.4 has trouble with mixed data and file
+	descriptor traffic on UNIX-domain stream sockets.
+	Specifically, it cannot handle data write (read) followed
+	by file descriptor send (receive): the receiver hangs in
+	recvmsg(). Workaround is to insert an intervening read
+	(write) operation.  Presumably, LINUX 2.4 is confusing the
+	data and file descriptor.  Lucky Ralf Hildebrandt.  Files:
+	util/sys_defs.h, global/scache_clnt,c, scache/scache.c.
+
+20040723
+
+	Bug? Safety? spawn(8) did not reject a user with the -1
+	UID value, so the command was running as root.  Files:
+	util/spawn_command.c, src/util/spawn.c.
+
+	User interface: parameter smtp_connection_cache_domains
+	renamed to smtp_connection_cache_destinations. Destinations
+	listed here must be specified without [] or :port.  File:
+	smtp/smtp_connect.c.
+
+	Bugfix: "421 Timeout exceeded" wasn't guarded by setjmp().
+	Victor Duchovni, Morgan Stanley. File: smtpd/smtpd.c.
+
 Open problems:
 
 	Low: update events.c so that 1-second timer requests do

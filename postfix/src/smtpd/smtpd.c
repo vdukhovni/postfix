@@ -2393,8 +2393,9 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 
     case SMTP_ERR_TIME:
 	state->reason = "timeout";
-	smtpd_chat_reply(state, "421 %s Error: timeout exceeded",
-			 var_myhostname);
+	if (vstream_setjmp(state->client) == 0)
+	    smtpd_chat_reply(state, "421 %s Error: timeout exceeded",
+			     var_myhostname);
 	break;
 
     case SMTP_ERR_EOF:

@@ -2697,7 +2697,7 @@ the operating system).
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
-.SH smtp_connection_cache_domains (default: empty)
+.SH smtp_connection_cache_destinations (default: empty)
 The SMTP destinations for which SMTP connection caching is
 enabled.  With SMTP connection caching, a connection is not closed
 immediately after completion of a mail transaction.  Instead, the
@@ -2708,11 +2708,12 @@ and can improve mail delivery performance.
 Specify a comma or white space separated list of destinations
 or pseudo-destinations:
 .IP \(bu
-a domain name (the right-hand side of an email address),
+if mail is sent without a relay host: a domain name (the
+right-hand side of an email address, without the optional []),
 .IP \(bu
-a relay host (including optional [] and/or non-default TCP
-port), using the exact same spelling as in main.cf or in the
-transport map,
+if mail is sent via a relay host: a relay host (without the
+optional [] or non-default TCP port), as specified in main.cf or
+in the transport map,
 .IP \(bu
 a /file/name with domains and/or relay hosts,
 .IP \(bu

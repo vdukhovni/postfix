@@ -449,7 +449,7 @@ int     smtp_connect(SMTP_STATE *state)
     SMTP_SESSION *session;
     int     lookup_mx;
     unsigned domain_best_pref;
-    int     sess_flags;
+    int     sess_flags = SMTP_SESS_FLAG_NONE;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -463,16 +463,6 @@ int     smtp_connect(SMTP_STATE *state)
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", request->nexthop);
     argv_split_append(sites, var_fallback_relay, ", \t\r\n");
-
-    /*
-     * Enable session caching by next-hop destination.
-     */
-    if (sites->argv[0]
-	&& smtp_cache_dest
-	&& string_list_match(smtp_cache_dest, sites->argv[0]))
-	sess_flags = SMTP_SESS_FLAG_CACHE;
-    else
-	sess_flags = SMTP_SESS_FLAG_NONE;
 
     /*
      * Don't give up after a hard host lookup error until we have tried the
@@ -526,9 +516,18 @@ int     smtp_connect(SMTP_STATE *state)
 	 * XXX Replace sites->argv by (lookup_mx, domain, port) triples so we
 	 * don't have to make clumsy ad-hoc copies and keep track of who
 	 * free()s the memory.
+	 * 
+	 * XXX smtp_session_cache_destinations specifies domain names without
+	 * :port, because : is already used for maptype:mapname. Because of
+	 * this limitation we use the bare domain without the optional [] or
+	 * non-default TCP port.
 	 */
-	if (cpp == sites->argv && (sess_flags & SMTP_SESS_FLAG_CACHE) != 0)
+	if (cpp == sites->argv
+	    && smtp_cache_dest
+	    && string_list_match(smtp_cache_dest, domain)) {
+	    sess_flags |= SMTP_SESS_FLAG_CACHE;
 	    SET_NEXTHOP_STATE(state, lookup_mx, domain, port);
+	}
 
 	/*
 	 * Don't try any backup host if mail loops to myself. That would just
@@ -576,6 +575,10 @@ int     smtp_connect(SMTP_STATE *state)
 	 * 
 	 * Cache the first good session under the next-hop destination name.
 	 * Cache all good sessions under their physical endpoint.
+	 * 
+	 * Don't query the session cache for primary MX hosts. We already did
+	 * that in smtp_reuse_session(), and if any were found in the cache,
+	 * they were already deleted from the address list.
 	 */
 	for (addr = addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
 	    next = addr->next;

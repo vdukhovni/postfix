@@ -7,13 +7,28 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20040723
+=======================================================
+
+Session caching is enabled with smtp_session_cache_destinations,
+and requires "bare" domain names without "[]" or TCP port.  This
+eliminates a syntax conflict between host:port and maptype:mapname,
+and simplifies the user interface, at the cost of a minor loss of
+control over what sessions are cached.
+
 Major changes with snapshot Postfix-2.2-20040721
 ================================================
 
 The session cache manager now logs cache hit and miss statistics
 every $session_cache_status_update_time seconds (default: 600s).
 It reports the hit and miss rates for lookups by domain, as well
-as for lookups by network address.
+as for lookups by network address. 
+
+Hit rates for cache lookups by domain will tell you how useful
+session caching is.
+
+Cache lookups by network address will always fail, unless you're
+sending mail to different domains that share the same MX host.
 
 Incompatible changes with snapshot Postfix-2.2-20040720
 =======================================================
@@ -37,13 +52,15 @@ is added to your master.cf file when you upgrade Postfix.
 *** You need to execute "postfix stop" when upgrading from Postfix
 *** version 2.0 or earlier. Execute "postfix start" when done.
 
-Session caching is enabled with the new smtp_connection_cache_domains
+Session caching is enabled with the new smtp_connection_cache_destinations
 parameter. Specify a list of destinations or lookup tables:
 
-- a domain name (the right-hand side of an email address),
+- if mail is sent without relay host: a domain (the right-hand side
+of an email address),
 
-- a relay host (including optional [] and/or non-default TCP port),
-using the exact same spelling as in main.cf or in the transport map,
+- if mail is sent via a relay host, the relay host (without [],
+and without non-default TCP port) that is specified in main.cf or
+in the transport map,
 
 - a /file/name with domains and/or relay hosts,
 
@@ -53,11 +70,11 @@ side; the right-hand side result from type:table lookups is ignored.
 The following optimizes deliveries to hosts that your machine relays
 mail to:
 
-    smtp_connection_cache_domains = $relay_domains $relayhost
+    smtp_connection_cache_destinations = $relay_domains $relayhost
 
 A setting that tries to optimize deliveries to problem sites:
 
-    smtp_connection_cache_domains = hotmail.com...
+    smtp_connection_cache_destinations = hotmail.com...
 
 Cached SMTP sessions are allowed to remain unused for only a limited
 amount of time (smtp_connection_cache_time_limit, default:  2

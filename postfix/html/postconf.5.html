@@ -5166,7 +5166,7 @@ The default time unit is s (seconds).
 
 </DD>
 
-<DT><b><a name="smtp_connection_cache_domains">smtp_connection_cache_domains</a>
+<DT><b><a name="smtp_connection_cache_destinations">smtp_connection_cache_destinations</a>
 (default: empty)</b></DT><DD>
 
 <p> The SMTP destinations for which SMTP connection caching is
@@ -5182,11 +5182,12 @@ or pseudo-destinations:
 
 <ul>
 
-<li> a domain name (the right-hand side of an email address),
+<li> if mail is sent without a relay host: a domain name (the
+right-hand side of an email address, without the optional []),
 
-<li> a relay host (including optional [] and/or non-default TCP
-port), using the exact same spelling as in main.cf or in the
-transport map,
+<li> if mail is sent via a relay host: a relay host (without the
+optional [] or non-default TCP port), as specified in main.cf or
+in the transport map,
 
 <li> a /file/name with domains and/or relay hosts,
 

@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	\fBscache\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The scache server maintains the Postfix session cache. This
-/*	information can be used by, for example, the Postfix SMTP client.
+/*	The \fBscache\fR server maintains a shared multi-session
+/*	cache. This information can be used by, for example, Postfix
+/*	SMTP clients or other Postfix delivery agents.
 /*
 /*	The session cache is organized into logical destination
 /*	names, physical endpoint names, and sessions.
@@ -40,7 +41,6 @@
 /*	under the specified endpoint name. The endpoint properties
 /*	are used by the client to re-activate a passivated session
 /*	object.
-/*	queue ID is queued for the specified destination.
 /* .IP "\fBfind_endp\fI endpoint\fR"
 /*	Look up cached properties and a cached file descriptor for the
 /*	specified endpoint.
@@ -171,6 +171,11 @@ static VSTRING *scache_dest_prop;
 static VSTRING *scache_endp_label;
 static VSTRING *scache_endp_prop;
 
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+static VSTRING *scache_dummy;
+
+#endif
+
  /*
   * Session cache instance.
   */
@@ -211,7 +216,17 @@ static void scache_save_endp_service(VSTREAM *client_stream)
 		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_BAD,
 		   ATTR_TYPE_END);
 	return;
-    } else if ((fd = LOCAL_RECV_FD(vstream_fileno(client_stream))) < 0) {
+    } else if (
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+	       attr_print(client_stream, ATTR_FLAG_NONE,
+			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			  ATTR_TYPE_END) != 0
+	       || vstream_fflush(client_stream) != 0
+	       || read_wait(vstream_fileno(client_stream),
+			    client_stream->timeout) < 0	/* XXX */
+	       ||
+#endif
+	       (fd = LOCAL_RECV_FD(vstream_fileno(client_stream))) < 0) {
 	msg_warn("%s: unable to receive file descriptor", myname);
 	attr_print(client_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
@@ -259,6 +274,11 @@ static void scache_find_endp_service(VSTREAM *client_stream)
 		   ATTR_TYPE_STR, MAIL_ATTR_PROP, STR(scache_endp_prop),
 		   ATTR_TYPE_END);
 	if (vstream_fflush(client_stream) != 0
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+	    || attr_scan(client_stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, scache_dummy,
+			 ATTR_TYPE_END) != 1
+#endif
 	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0)
 	    msg_warn("%s: cannot send file descriptor: %m", myname);
 	if (close(fd) < 0)
@@ -335,6 +355,11 @@ static void scache_find_dest_service(VSTREAM *client_stream)
 		   ATTR_TYPE_STR, MAIL_ATTR_PROP, STR(scache_endp_prop),
 		   ATTR_TYPE_END);
 	if (vstream_fflush(client_stream) != 0
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+	    || attr_scan(client_stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, scache_dummy,
+			 ATTR_TYPE_END) != 1
+#endif
 	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0)
 	    msg_warn("%s: cannot send file descriptor: %m", myname);
 	if (close(fd) < 0)
@@ -436,6 +461,9 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     scache_dest_prop = vstring_alloc(10);
     scache_endp_label = vstring_alloc(10);
     scache_endp_prop = vstring_alloc(10);
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+    scache_dummy = vstring_alloc(10);
+#endif
 
     /*
      * Disable the max_use limit. We still terminate when no client is

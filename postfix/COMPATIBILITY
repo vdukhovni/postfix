@@ -58,6 +58,7 @@ sendmail -qSxxx	no
 sendmail -qtime	ignored
 sendmail -v	yes (sends delivery report via email)
 sendmail.cf	no (uses table-driven address rewriting)
+session caching	yes (SMTP shared multi-session; LMTP non-shared single-session)
 size option	yes, server and client
 smarthost	yes (specify relayhost in main.cf)
 spf		yes (delegated policy script)

@@ -13,9 +13,9 @@ SCACHE(8)                                               SCACHE(8)
        <b>scache</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The  scache  server  maintains  the Postfix session cache.
-       This information can be used by, for example, the  Postfix
-       SMTP client.
+       The  <b>scache</b> server maintains a shared multi-session cache.
+       This information can be used by, for example, Postfix SMTP
+       clients or other Postfix delivery agents.
 
        The  session  cache  is organized into logical destination
        names, physical endpoint names, and sessions.
@@ -47,33 +47,32 @@ SCACHE(8)                                               SCACHE(8)
               Save the  specified  file  descriptor  and  session
               property  data  under  the specified endpoint name.
               The endpoint properties are used by the  client  to
-              re-activate  a passivated session object.  queue ID
-              is queued for the specified destination.
+              re-activate a passivated session object.
 
        <b>find_endp</b> <i>endpoint</i>
-              Look  up  cached  properties  and  a  cached   file
+              Look   up  cached  properties  and  a  cached  file
               descriptor for the specified endpoint.
 
        <b>save_dest</b> <i>ttl destination destination</i><b>_</b><i>properties endpoint</i>
-              Save  the binding between a logical destination and
-              an endpoint under the  destination  name,  together
-              with  destination  specific session properties. The
-              destination properties are used by  the  client  to
+              Save the binding between a logical destination  and
+              an  endpoint  under  the destination name, together
+              with destination specific session  properties.  The
+              destination  properties  are  used by the client to
               re-activate a passivated session object.
 
        <b>find_dest</b> <i>destination</i>
-              Look  up cached destination properties, cached end-
-              point properties, and a cached file descriptor  for
+              Look up cached destination properties, cached  end-
+              point  properties, and a cached file descriptor for
               the specified logical destination.
 
 <b>SECURITY</b>
-       The  session  cache  server  is not security-sensitive. It
-       does not talk to the network, and  it  does  not  talk  to
-       local  users.  The scache server can run chrooted at fixed
+       The session cache server  is  not  security-sensitive.  It
+       does  not  talk  to  the  network, and it does not talk to
+       local users.  The scache server can run chrooted at  fixed
        low privilege.
 
        The session cache server is not a trusted process. It must
-       not  be  used to store information that is security sensi-
+       not be used to store information that is  security  sensi-
        tive.
 
 <b>DIAGNOSTICS</b>
@@ -86,32 +85,32 @@ SCACHE(8)                                               SCACHE(8)
        protocol specific handshake.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes   to   <b>main.cf</b>  are  picked  up  automatically  as
+       Changes  to  <b>main.cf</b>  are  picked  up   automatically   as
        <a href="scache.8.html">scache(8)</a> processes run for only a limited amount of time.
        Use the command "<b>postfix reload</b>" to speed up a change.
 
-       The  text  below  provides  only  a parameter summary. See
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
 <b>RESOURCE CONTROLS</b>
        <b><a href="postconf.5.html#session_cache_ttl_limit">session_cache_ttl_limit</a> (2s)</b>
-              The maximal time-to-live  value  that  the  session
+              The  maximal  time-to-live  value  that the session
               cache server allows.
 
        <b>session_cache_status_update_time (600s)</b>
-              How  frequently  the  <a href="scache.8.html">scache(8)</a>  server  logs usage
-              statistics with session cache hit  and  miss  rates
-              for  logical  destinations  and  for  physical end-
+              How frequently  the  <a href="scache.8.html">scache(8)</a>  server  logs  usage
+              statistics  with  session  cache hit and miss rates
+              for logical  destinations  and  for  physical  end-
               points.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  main.cf  and
+              The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much time a Postfix daemon process may take to
-              handle a request  before  it  is  terminated  by  a
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -119,23 +118,23 @@ SCACHE(8)                                               SCACHE(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits for the next service request
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
               before exiting.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID of a Postfix command or daemon  pro-
+              The  process ID of a Postfix command or daemon pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The mail system name that is prepended to the  pro-
+              The  mail system name that is prepended to the pro-
               cess  name  in  syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
@@ -146,7 +145,7 @@ SCACHE(8)                                               SCACHE(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>HISTORY</b>

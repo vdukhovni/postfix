@@ -12,8 +12,9 @@ Postfix session cache server
 .SH DESCRIPTION
 .ad
 .fi
-The scache server maintains the Postfix session cache. This
-information can be used by, for example, the Postfix SMTP client.
+The \fBscache\fR server maintains a shared multi-session
+cache. This information can be used by, for example, Postfix
+SMTP clients or other Postfix delivery agents.
 
 The session cache is organized into logical destination
 names, physical endpoint names, and sessions.
@@ -46,7 +47,6 @@ Save the specified file descriptor and session property data
 under the specified endpoint name. The endpoint properties
 are used by the client to re-activate a passivated session
 object.
-queue ID is queued for the specified destination.
 .IP "\fBfind_endp\fI endpoint\fR"
 Look up cached properties and a cached file descriptor for the
 specified endpoint.

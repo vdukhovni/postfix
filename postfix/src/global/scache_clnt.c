@@ -66,6 +66,9 @@
 typedef struct {
     SCACHE  scache[1];			/* super-class */
     CLNT_STREAM *clnt_stream;		/* client endpoint */
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+    VSTRING *dummy;			/* dummy buffer */
+#endif
 } SCACHE_CLNT;
 
 #define STR(x) vstring_str(x)
@@ -106,6 +109,11 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
 		       ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, sp->dummy,
+			 ATTR_TYPE_END) != 1
+#endif
 	    || LOCAL_SEND_FD(vstream_fileno(stream), fd) < 0
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
@@ -152,7 +160,16 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 			 ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
 			 ATTR_TYPE_END) != 2
 	    || (status == 0
-		&& (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0)) {
+		&& (
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+		    attr_print(stream, ATTR_FLAG_NONE,
+			       ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			       ATTR_TYPE_END) != 0
+		    || vstream_fflush(stream) != 0
+		    || read_wait(vstream_fileno(stream),
+				 stream->timeout) < 0 ||	/* XXX */
+#endif
+		    (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0))) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 VSTREAM_PATH(stream));
@@ -257,7 +274,16 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 			 ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
 			 ATTR_TYPE_END) != 3
 	    || (status == 0
-		&& (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0)) {
+		&& (
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+		    attr_print(stream, ATTR_FLAG_NONE,
+			       ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			       ATTR_TYPE_END) != 0
+		    || vstream_fflush(stream) != 0
+		    || read_wait(vstream_fileno(stream),
+				 stream->timeout) < 0 ||	/* XXX */
+#endif
+		    (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0))) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
 			 VSTREAM_PATH(stream));
@@ -287,6 +313,9 @@ static void scache_clnt_free(SCACHE *scache)
     SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
 
     clnt_stream_free(sp->clnt_stream);
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+    vstring_free(sp->dummy);
+#endif
     myfree((char *) sp);
 }
 
@@ -304,6 +333,9 @@ SCACHE *scache_clnt_create(const char *server, int idle_limit, int ttl_limit)
 
     sp->clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE, server,
 					 idle_limit, ttl_limit);
+#ifdef CANT_WRITE_BEFORE_SENDING_FD
+    sp->dummy = vstring_alloc(1);
+#endif
 
     return (sp->scache);
 }

@@ -121,6 +121,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_SASL_METHOD	"sasl_method"
 #define MAIL_ATTR_SASL_USERNAME	"sasl_username"
 #define MAIL_ATTR_SASL_SENDER	"sasl_sender"
+#define MAIL_ATTR_DUMMY		"dummy"
 
 #define MAIL_ATTR_TTL		"ttl"
 #define MAIL_ATTR_LABEL		"label"

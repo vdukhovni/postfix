@@ -560,6 +560,7 @@ extern int initgroups(const char *, int);
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
 #endif
+#define CANT_WRITE_BEFORE_SENDING_FD
 #endif
 
 #ifdef LINUX1

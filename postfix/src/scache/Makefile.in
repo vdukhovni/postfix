@@ -58,6 +58,7 @@ scache.o: ../../include/msg.h
 scache.o: ../../include/iostuff.h
 scache.o: ../../include/htable.h
 scache.o: ../../include/ring.h
+scache.o: ../../include/events.h
 scache.o: ../../include/mail_params.h
 scache.o: ../../include/mail_proto.h
 scache.o: ../../include/vstream.h

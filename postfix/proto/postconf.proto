@@ -3185,7 +3185,7 @@ not specify larger values without permission from the remote sites.
 an SMTP session is reused before it is closed. 
 </p>
 
-%PARAM smtp_connection_cache_domains
+%PARAM smtp_connection_cache_destinations
 
 <p> The SMTP destinations for which SMTP connection caching is
 enabled.  With SMTP connection caching, a connection is not closed
@@ -3200,11 +3200,12 @@ or pseudo-destinations:
 
 <ul>
 
-<li> a domain name (the right-hand side of an email address),
+<li> if mail is sent without a relay host: a domain name (the
+right-hand side of an email address, without the optional []),
 
-<li> a relay host (including optional [] and/or non-default TCP
-port), using the exact same spelling as in main.cf or in the
-transport map,
+<li> if mail is sent via a relay host: a relay host (without the
+optional [] or non-default TCP port), as specified in main.cf or
+in the transport map,
 
 <li> a /file/name with domains and/or relay hosts,
 

@@ -777,7 +777,7 @@ extern int var_smtp_cache_conn;
 #define DEF_SMTP_REUSE_LIMIT	10
 extern int var_smtp_reuse_limit;
 
-#define VAR_SMTP_CACHE_DEST	"smtp_connection_cache_domains"
+#define VAR_SMTP_CACHE_DEST	"smtp_connection_cache_destinations"
 #define DEF_SMTP_CACHE_DEST	""
 extern char *var_smtp_cache_dest;
 
