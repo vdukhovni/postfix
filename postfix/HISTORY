@@ -6213,17 +6213,20 @@ Apologies for any names omitted.
 
 	Feature: configurable service name for the internal services:
 	bounce, cleanup, defer, error, flush, pickup, queue, rewrite,
-	showq.  Files: global/mail_params.[hc].
+	showq. This allows you to specify, for example, a non-default
+	cleanup service (smtpd -o cleanup_service_name=alt_cleanup).
+	Files: global/mail_params.[hc].
 
-	Feature: SASL version 2 support by Jason Hoos.
+	Feature: SASL version 2 support by Jason Hoos. Files:
+	*/*_sasl_glue.c, SASL_README, conf/sample-auth.cf.
 
 20020330
 
-	Bugfix: postqueue did not pass on configuration directory
-	settings when running showq while the mail system is down.
-	The super-user is now exempted from environment stripping
-	in postqueue/postqueue.c. Problem reported by Victor
-	Duchovni, Morgan Stanley.
+	Bugfix: postqueue did not pass on non-default configuration
+	directory settings when running showq while the mail system
+	is down.  The super-user is now exempted from environment
+	stripping in postqueue/postqueue.c. Problem reported by
+	Victor Duchovni, Morgan Stanley.
 
 Open problems:
 

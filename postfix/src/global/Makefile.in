@@ -253,6 +253,7 @@ abounce.o: ../../include/mymalloc.h
 abounce.o: ../../include/events.h
 abounce.o: ../../include/vstream.h
 abounce.o: ../../include/vbuf.h
+abounce.o: mail_params.h
 abounce.o: mail_proto.h
 abounce.o: ../../include/iostuff.h
 abounce.o: ../../include/attr.h
@@ -334,6 +335,7 @@ defer.o: ../../include/sys_defs.h
 defer.o: ../../include/msg.h
 defer.o: ../../include/vstring.h
 defer.o: ../../include/vbuf.h
+defer.o: mail_params.h
 defer.o: mail_queue.h
 defer.o: ../../include/vstream.h
 defer.o: mail_proto.h
@@ -598,6 +600,7 @@ mail_error.o: mail_error.h
 mail_error.o: ../../include/name_mask.h
 mail_flush.o: mail_flush.c
 mail_flush.o: ../../include/sys_defs.h
+mail_flush.o: mail_params.h
 mail_flush.o: mail_proto.h
 mail_flush.o: ../../include/vstream.h
 mail_flush.o: ../../include/vbuf.h
