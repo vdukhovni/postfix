@@ -9361,7 +9361,7 @@ Apologies for any names omitted.
 
 20040503
 
-	Bugfix: missing "sasl enabled" guard the SMTPD policy
+	Bugfix: missing "sasl enabled" guard in the SMTPD policy
 	client.  File: smtpd/smtpd_check.c.
 
 Open problems:
