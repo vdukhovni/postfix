@@ -79,6 +79,7 @@ static void inet_trigger_event(int event, char *context)
      */
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, ip->service);
+    event_disable_readwrite(ip->fd);
     if (close(ip->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, ip->service);
     myfree(ip->service);

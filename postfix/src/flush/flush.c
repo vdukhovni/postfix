@@ -249,7 +249,8 @@ static int flush_add_service(const char *site, const char *queue_id)
      * Map site to path and update log.
      */
     site_path = flush_site_to_path((VSTRING *) 0, site);
-    status = flush_add_path(STR(site_path), queue_id);
+    status = valid_hostname(STR(site_path), DONT_GRIPE) ?
+	flush_add_path(STR(site_path), queue_id) : FLUSH_STAT_BAD;
     vstring_free(site_path);
 
     return (status);
@@ -317,7 +318,8 @@ static int flush_send_service(const char *site)
      * Map site name to path name and flush the log.
      */
     site_path = flush_site_to_path((VSTRING *) 0, site);
-    status = flush_send_path(STR(site_path));
+    status = valid_hostname(STR(site_path), DONT_GRIPE) ?
+	flush_send_path(STR(site_path)) : FLUSH_STAT_BAD;
     vstring_free(site_path);
 
     return (status);

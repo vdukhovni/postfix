@@ -76,6 +76,7 @@ static void stream_trigger_event(int event, char *context)
      */
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, sp->service);
+    event_disable_readwrite(sp->fd);
     if (close(sp->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, sp->service);
     myfree(sp->service);

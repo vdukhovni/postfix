@@ -77,6 +77,7 @@ static void unix_trigger_event(int event, char *context)
      */
     if (event == EVENT_TIME)
 	msg_warn("%s: read timeout for service %s", myname, up->service);
+    event_disable_readwrite(up->fd);
     if (close(up->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, up->service);
     myfree(up->service);
