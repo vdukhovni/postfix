@@ -117,6 +117,11 @@ case "$SYSTEM.$RELEASE" in
 		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP";;
 			  *) CCARGS="$CCARGS -DHAS_POSIX_REGEXP";;
 		esac
+		# Work around broken str*casecmp(). Do it all here instead
+		# of having half the solution in the sys_defs.h file.
+		CCARGS="$CCARGS -Dstrcasecmp=fix_strcasecmp \
+			-Dstrncasecmp=fix_strncasecmp"
+		STRCASE="strcasecmp.o"
 		# Avoid common types of braindamage
 		case "$LD_LIBRARY_PATH" in
 		?*) echo "Don't set LD_LIBRARY_PATH" 1>&2; exit 1;;
@@ -303,5 +308,6 @@ CC	= $CC $CCARGS
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK
+STRCASE = $STRCASE
 EXPORT	= AUXLIBS="$AUXLIBS" CCARGS="$CCARGS" OPT="$OPT" DEBUG="$DEBUG"
 EOF

@@ -379,7 +379,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
      * time domain) locks while rewriting the entire file.
      */
     if (dict_flags & DICT_FLAG_LOCK) {
-	dbm_path = concatenate(path, ".pag", (char *) 0);
+	dbm_path = concatenate(path, ".dir", (char *) 0);
 	if ((lock_fd = open(dbm_path, open_flags, 0644)) < 0)
 	    msg_fatal("open database %s: %m", dbm_path);
 	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)

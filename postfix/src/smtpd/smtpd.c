@@ -1295,6 +1295,7 @@ typedef struct SMTPD_CMD {
 } SMTPD_CMD;
 
 #define SMTPD_CMD_FLAG_LIMIT    (1<<0)	/* limit usage */
+#define SMTPD_CMD_FLAG_HEADER	(1<<1)	/* RFC 2822 mail header */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT,
@@ -1312,6 +1313,9 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "VRFY", vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
     "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     "QUIT", quit_cmd, 0,
+    "Received:", 0, SMTPD_CMD_FLAG_HEADER,
+    "Subject:", 0, SMTPD_CMD_FLAG_HEADER,
+    "From:", 0, SMTPD_CMD_FLAG_HEADER,
     0,
 };
 
@@ -1393,6 +1397,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_count++;
 		continue;
 	    }
+	    if (cmdp->flags & SMTPD_CMD_FLAG_HEADER) {
+		msg_warn("%s sent mail content instead of SMTP command: %.100s",
+			 state->namaddr, vstring_str(state->buffer));
+		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
+		break;
+	    }
 	    if (state->access_denied && cmdp->action != quit_cmd) {
 		smtpd_chat_reply(state, "503 Error: access denied for %s",
 				 state->namaddr);	/* RFC 2821 Sec 3.1 */
@@ -1405,7 +1415,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    if ((cmdp->flags & SMTPD_CMD_FLAG_LIMIT)
 		&& state->junk_cmds++ > var_smtpd_junk_cmd_limit)
 		state->error_count++;
-
 	    if (cmdp->action == quit_cmd)
 		break;
 	}

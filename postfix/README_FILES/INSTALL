@@ -222,6 +222,11 @@ In order to install or upgrade Postfix:
   NB: this group was optional with older Postfix releases; it is
   now required.
 
+- Optional: If you want to install symbol-stripped (non-debug) versions
+  of the Postfix programs and daemons, do:
+
+    % strip bin/* libexec/*
+
 - Run one of the following commands as the super-user:
 
     # make install       (interactive version, first time install)

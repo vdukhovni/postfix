@@ -6052,6 +6052,49 @@ Apologies for any names omitted.
 	and /usr/sbin/sendmail differ, and will propose to replace
 	one by a symlink to the other. File: conf/postfix-script.
 
+20020204
+
+	Sanity: additional permission checks for "postfix check"
+	that warn for setgid_group group ownership mismatches.  by
+	Matthias Andree, uni-dortmund.de. File: conf/postfix-script.
+
+	Bugfix: "postfix check" used a too simplistic way to
+	recognize file ownership (grepping ls output). It now uses
+	the recently discovered "find -prune".  Peter Bieringer,
+	Matthias Andree. File: conf/postfix-script.
+
+20020218
+
+	Workaround: log a warning and disconnect when an SMTP client
+	ignores our negative replies and starts sending message
+	content without permission. File: smtpd/smtpd.c.
+
+20020220
+
+	Bugfix: mismatch in the file being locked by dict_dbm and
+	the file being locked by postmap, so that locks did not
+	work correctly.  Victor Duchovni, Morgan Stanley.
+
+20020222
+
+	Workaround: Solaris bug 4380626: strcasecmp() and strncasecmp()
+	produce incorrect results with 8-bit characters. For example,
+	non-ASCII characters could compare equal to ASCII characters,
+	and that could result in any number of security problems.
+	Files:  util/strcasecmp.c, COPYRIGHT (the BSD license).
+
+	Bugfix: off-by-one error, causing a null byte to be written
+	outside dynamically allocated memory in the queue manager
+	with addresses of exactly 100 bytes long, resulting in
+	SIGSEGV on systems with an "exact fit" malloc routine.
+	Experienced by Ralf Hildebrandt; diagnosed by Victor
+	Duchovny. Files:  *qmgr/qmgr_message.c.  This is not a
+	security problem.
+
+	Bugfix: make all recipient comparisons transitive, because
+	Solaris qsort() causes SIGSEGV errors otherwise. Victor
+	Duchovny, Morgan Stanley. File: *qmgr/qmgr_message.c.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in
