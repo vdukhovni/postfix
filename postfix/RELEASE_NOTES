@@ -1,3 +1,16 @@
+Major changes with snapshot-20011125
+====================================
+
+New parameter smtpd_sender_login_maps that specifies the (SASL)
+login name that owns a MAIL FROM sender address. Specify a regexp
+table in order to require a simple one-to-one mapping.
+
+New sender anti-spoofing restriction reject_sender_login_mismatch
+that refuses a MAIL FROM address when $smtpd_sender_login_maps
+specifies an owner but the client is not (SASL) logged in as the
+MAIL FROM address owner, or when a client is (SASL) logged in but
+does not own the address according to $smtpd_sender_login_maps.
+
 Incompatible changes with snapshot-20011121
 ===========================================
 

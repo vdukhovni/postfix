@@ -103,6 +103,10 @@ dictionary attack.
 .IP \fBnoanonymous\fR
 Disallow anonymous logins.
 .RE
+.IP \fBsmtpd_sender_login_maps\fR
+Maps that specify the SASL login name that owns a MAIL FROM sender
+address. Used by the \fBreject_sender_login_mismatch\fR sender
+anti-spoofing restriction.
 .SH Miscellaneous
 .ad
 .fi

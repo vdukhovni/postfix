@@ -89,6 +89,10 @@
 /* .IP \fBnoanonymous\fR
 /*	Disallow anonymous logins.
 /* .RE
+/* .IP \fBsmtpd_sender_login_maps\fR
+/*	Maps that specify the SASL login name that owns a MAIL FROM sender
+/*	address. Used by the \fBreject_sender_login_mismatch\fR sender
+/*	anti-spoofing restriction.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -364,6 +368,7 @@ char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
 bool    var_broken_auth_clients;
 char   *var_perm_mx_networks;
+char   *var_smtpd_snd_auth_maps;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1288,6 +1293,7 @@ static void chat_reset(SMTPD_STATE *state)
     if (state->history != 0 && SMTPD_STAND_ALONE(state) == 0
 	&& (state->error_mask & state->notify_mask))
 	smtpd_chat_notify(state);
+    state->error_mask = 0;
     smtpd_chat_reset(state);
 }
 
@@ -1621,6 +1627,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
+	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
 	0,
     };
 

@@ -5665,6 +5665,31 @@ Apologies for any names omitted.
 	Bugfix: missing long integer support in the new IPC protocols.
 	Files: util/attr_scan*.c, util/attr_print*.c.
 
+	Portability: AIX5 (Adrian P. van Bloois), MAC OS X 10.1.1
+	(Gerben Wierda).
+
+20011125
+
+	Bugfix: spurious postmaster notifications because some flag
+	was not reset.
+
+	Feature: new parameter smtpd_sender_login_maps that specifies
+	the (SASL) login name that owns a MAIL FROM address.
+	Specify a regexp table in order to require a simple one-to-one
+	mapping. This is used in the reject_sender_login_mismatch
+	sender anti-spoofing feature.
+
+	Feature: restriction reject_sender_login_mismatch refuses
+	a MAIL FROM address when $smtpd_sender_login_maps specifies
+	an owner but the client is not (SASL) logged in as the MAIL
+	FROM address owner, or when a client is (SASL) logged in
+	but the client login name does not own the MAIL FROM address
+	according to $smtpd_sender_login_maps.  File: smtpd/smpd_check.c.
+
+	Documentation: added some redundancy to the LMTP_README
+	file so people can keep track of the difference between
+	the Postfix LMTP client and the non-Postfix LMTP server.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups. LDAP

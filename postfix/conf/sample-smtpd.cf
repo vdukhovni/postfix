@@ -5,6 +5,36 @@
 # that control the SMTP server program.
 
 #
+# SENDER ANTI-SPOOFING
+#
+
+# The smtpd_sender_login_maps parameter specifies the (SASL) login
+# name that owns a sender (MAIL FROM) address. 
+# 
+# Specify zero or more maptype:mapname entries. Maps are created with
+# postmap(1) or with equivalent means. The maps are searched in the
+# specified order. Regexp tables are allowed.
+# 
+# Each map entry specifies a sender address and the login name that
+# owns the address. The search order is:
+# 
+# 1)  user@domain owner
+# 
+# This form has the highest precedence.
+# 
+# 2)  user        owner
+# 
+# This matches user@site when site is equal to $myorigin, when site
+# is listed in $mydestination, or when it is listed in $inet_interfaces.
+# 
+# 3)  @domain     owner
+# 
+# This matches every address in the specified domain, and has the
+# lowest precedence.
+# 
+#smtpd_sender_login_maps =
+
+#
 # MISCELLANEOUS
 #
 
@@ -26,9 +56,9 @@ smtpd_banner = $myhostname ESMTP $mail_name
 # The smtpd_etrn_restrictions parameter restricts what clients are
 # allowed to issue the ETRN command.
 #
-# The Postfix ETRN command is available only for destinations that
-# that are eligible for the Postfix "fast flush" service. See the
-# sample-flush.cf file for details.
+# The Postfix ETRN command accepts only destinations that are eligible
+# for the Postfix "fast flush" service. See the sample-flush.cf file
+# for details.
 #
 # The default is to allow ETRN from any host.  The following restrictions
 # are available:
@@ -226,6 +256,11 @@ smtpd_helo_restrictions =
 #	Permit if result is OK or all numerical.
 #   check_client_access maptype:mapname: see smtpd_client_restrictions.
 #   check_helo_access maptype:mapname: see smtpd_helo_restrictions.
+#   reject_sender_login_mismatch: reject if $smtpd_sender_login_maps specifies
+#	a MAIL FROM address owner, but the client is not (SASL) logged in as
+#	that MAIL FROM address owner; or if the client is (SASL) logged in, but
+#	the client login name doesn't own the MAIL FROM address according to
+#	$smtpd_sender_login_maps (see above).
 #   reject_non_fqdn_hostname: reject HELO hostname that is not in FQDN form
 #   reject_non_fqdn_sender: reject sender address that is not in FQDN form
 #   reject: reject the request. Place this at the end of a restriction.
@@ -296,6 +331,11 @@ smtpd_sender_restrictions =
 #   check_client_access maptype:mapname: see smtpd_client_restrictions.
 #   check_helo_access maptype:mapname: see smtpd_helo_restrictions.
 #   check_sender_access maptype:mapname: see smtpd_sender_restrictions.
+#   reject_sender_login_mismatch: reject if $smtpd_sender_login_maps specifies
+#	a MAIL FROM address owner, but the client is not (SASL) logged in as
+#	that MAIL FROM address owner; or if the client is (SASL) logged in, but
+#	the client login name doesn't own the MAIL FROM address according to
+#	$smtpd_sender_login_maps (see above).
 #   reject_non_fqdn_hostname: reject HELO hostname that is not in FQDN form
 #   reject_non_fqdn_sender: reject sender address that is not in FQDN form
 #   reject_non_fqdn_recipient: reject recipient address that is not in FQDN form

@@ -334,6 +334,11 @@ static MAPS *virt_mailbox_maps;
 static MAPS *relocated_maps;
 
  /*
+  * Pre-opened sender to login name mapping.
+  */
+static MAPS *smtpd_sender_login_maps;
+
+ /*
   * Pre-opened access control lists.
   */
 static DOMAIN_LIST *relay_domains;
@@ -542,6 +547,13 @@ void    smtpd_check_init(void)
 				 DICT_FLAG_LOCK);
 
     access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
+
+    /*
+     * Sender to login name mapping.
+     */
+    smtpd_sender_login_maps = maps_create(VAR_SMTPD_SND_AUTH_MAPS,
+					       var_smtpd_snd_auth_maps,
+					       DICT_FLAG_LOCK);
 
     /*
      * error_text is used for returning error responses.
@@ -1822,6 +1834,40 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     return (result);
 }
 
+/* reject_sender_login_mismatch - reject login/sender ownership mismatch */
+
+static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
+{
+    const RESOLVE_REPLY *reply;
+    const char *login = 0;
+    const char *owner = 0;
+
+    /*
+     * If the sender address is owned by a login name, or if the client has
+     * logged in, then require that the client is logged in as the owner of
+     * the sender address.
+     */
+    reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
+    owner = check_maps_find(state, sender, smtpd_sender_login_maps,
+			    STR(reply->recipient), 0);
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable && state->sasl_username != 0)
+	login = state->sasl_username;
+#endif
+    if (login) {
+	if (owner == 0 || strcasecmp(login, owner) != 0)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+	      "553 <%s>: Sender address rejected: not owned by username %s",
+				       sender, login));
+    } else {
+	if (owner)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+		"553 <%s>: Sender address rejected: not logged in as owner",
+				       sender));
+    }
+    return (SMTPD_CHECK_DUNNO);
+}
+
 /* is_map_command - restriction has form: check_xxx_access type:name */
 
 static int is_map_command(SMTPD_STATE *state, const char *name,
@@ -1985,6 +2031,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->sender && *state->sender)
 		status = reject_non_fqdn_address(state, state->sender,
 					  state->sender, SMTPD_NAME_SENDER);
+	} else if (strcasecmp(name, REJECT_SENDER_LOGIN_MISMATCH) == 0) {
+	    if (state->sender && *state->sender)
+		status = reject_sender_login_mismatch(state, state->sender);
 	}
 
 	/*

@@ -304,6 +304,34 @@ extern int opterr;
   * AIX: a SYSV-flavored hybrid. NB: fcntl() and flock() access the same
   * underlying locking primitives.
   */
+#ifdef AIX5
+#define SUPPORTED
+#include <sys/types.h>
+#define MISSING_SETENV
+#define _PATH_BSHELL	"/bin/sh"
+#define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
+#define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
+#define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
+#define USE_SYS_SELECT_H
+#define HAS_FSYNC
+#define HAS_DBM
+#define DEF_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define HAS_NIS
+#define HAS_SA_LEN
+#define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+#define RESOLVE_H_NEEDS_STDIO_H
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
+#define SOCKADDR_SIZE	size_t
+#define SOCKOPT_SIZE	size_t
+#define USE_STATVFS
+#define STATVFS_IN_SYS_STATVFS_H
+#define STRCASECMP_IN_STRINGS_H
+#endif
+
 #ifdef AIX4
 #define SUPPORTED
 #include <sys/types.h>

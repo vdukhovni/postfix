@@ -48,11 +48,17 @@ There are a variety of ways LMTP delivery can be configured in
 Postfix.  The two basic flavors are delivery over UNIX-domain
 sockets and delivery over TCP sockets.
 
-  o Connections over UNIX-domain sockets limit delivery to LMTP
-    servers running on the same machine.
+  o Connections from the Postfix LMTP client over UNIX-domain
+    sockets allow you to deliver to non-Postfix LMTP servers running
+    on the same machine.
 
-  o Connections over TCP sockets allow you to deliver to LMTP
-    servers across a local network.
+  o Connections from the Postfix LMTP client over TCP sockets allow
+    you to deliver to non-Postfix LMTP servers across a local
+    network.
+
+Note: the above is not to be confused with the UNIX-domain sockets
+that Postfix uses internally to speak its own protocols with the
+Postfix LMTP client.
 
 The precise syntax for UNIX-domain and TCP connection endpoints is
 given in the lmtp(8) manual page. Examples are also given in the
@@ -69,6 +75,9 @@ in convenience and in performance with these different approaches.
 3 - LMTP over UNIX-domain sockets
 =================================
 
+Use this to deliver mail from the Postfix LMTP client to an LMTP
+server that is running on the same system.
+
 A UNIX-domain socket is specified as the socket type ("unix") and
 a name in the local file system:
 
@@ -80,9 +89,9 @@ later in this document.
 
 NOTE:
 
-    If you run the lmtp client chrooted, the interpretation of the
-    /path/name is relative to the Postfix queue directory (typically,
-    /var/spool/postfix).
+    If you run the Postfix LMTP client chrooted, the interpretation
+    of the /path/name is relative to the Postfix queue directory
+    (typically, /var/spool/postfix).
 
     By default, the Postfix LMTP client does not run chrooted.
     With LMTP delivery to the local machine there is no good reason
@@ -90,6 +99,9 @@ NOTE:
 
 4 - LMTP over TCP sockets
 =========================
+
+Use this to deliver mail from the Postfix LMTP client to an LMTP
+server that is running on the same system or on a different system.
 
 A TCP destination is specified as the socket type ("inet"), the
 destination hostname and the TCP port:
@@ -125,9 +137,9 @@ This is the simplest LMTP configuration.
 5.1 - Delivery mechanisms
 -------------------------
 
-Postfix main.cf supports three mechanisms to deliver mail over
-LMTP.  Each method can use UNIX-domain or TCP sockets as described
-in a later section.
+Postfix main.cf supports three mechanisms to deliver mail to an
+LMTP server.  Each method can use UNIX-domain or TCP sockets as
+described in a later section.
 
 main.cf mechanism 1
 -------------------
@@ -138,7 +150,8 @@ mailbox_transport = lmtp:hostname:port   (TCP socket example)
 Mail that resolves as local (domain is listed in $mydestination)
 is given to the Postfix local delivery agent.  The Postfix local
 delivery agent expands aliases and .forward files, and delegates
-mailbox delivery to the LMTP server.
+mailbox delivery to the Postfix LMTP client which then sends it to
+the non-Postfix LMTP server.
 
 main.cf mechanism 2
 -------------------
@@ -147,9 +160,10 @@ local_transport = lmtp:unix:/path/name (UNIX-domain socket example)
 local_transport = lmtp:hostname:port   (TCP socket example)
 
 Mail that resolves as local (domain is listed in $mydestination)
-is directly given to the LMTP server.  The mail is not processed
-by the Postfix local delivery agent; therefore aliases and .forward
-files are not processed.
+is directly given to the Postfix LMTP client which then sends it
+to the non-Postfix LMTP server.  The mail is not processed by the
+Postfix local delivery agent; therefore aliases and .forward files
+are not processed.
 
 main.cf mechanism 3
 -------------------
@@ -161,7 +175,8 @@ Mail that resolves as local (domain is listed in $mydestination)
 is given to the Postfix local delivery agent.  The Postfix local
 delivery agent processes aliases and .forward files, and delivers
 to /var[/spool]/mail/$user for users that have a UNIX account.
-Mail for other local users is delegated to the LMTP server.
+Mail for other local users is delegated to the Postfix LMTP client
+which then sends it to the non-Postfix LMTP server.
 
 5.2 - Examples
 --------------

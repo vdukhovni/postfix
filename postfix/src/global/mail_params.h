@@ -781,6 +781,12 @@ extern char *var_smtpd_sasl_opts;
 #define DEF_SMTPD_SASL_REALM	"$myhostname"
 extern char *var_smtpd_sasl_realm;
 
+#define VAR_SMTPD_SND_AUTH_MAPS	"smtpd_sender_login_maps"
+#define DEF_SMTPD_SND_AUTH_MAPS	""
+extern char *var_smtpd_snd_auth_maps;
+
+#define REJECT_SENDER_LOGIN_MISMATCH	"reject_sender_login_mismatch"
+
  /*
   * SASL authentication support, SMTP client side.
   */

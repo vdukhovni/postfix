@@ -144,6 +144,12 @@ case "$SYSTEM.$RELEASE" in
 		done
 		;;
        AIX.*)	case "`uname -v`" in
+		5)	SYSTYPE=AIX4
+			case "$CC" in
+			cc|*/cc|xlc|*/xlc) CCARGS="$CCARGS -w -blibpath:/usr/lib:/lib:/usr/local/lib";;
+			esac
+			CCARGS="$CCARGS -D_ALL_SOURCE -DHAS_POSIX_REGEXP"
+			;;
 		4)	SYSTYPE=AIX4
 			# How embarrassing...
 			case "$CC" in

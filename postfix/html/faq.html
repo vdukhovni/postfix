@@ -1138,7 +1138,7 @@ run out of file handles; after that, it will run out of sockets.
 
 To set the following kernel parameters at boot time, add the
 following lines to the <b>/boot/loader.conf</b> file (this is
-specific to FreeBSD 4.x):
+verified with FreeBSD 4.4):
 
 <p>
 
@@ -1146,18 +1146,17 @@ specific to FreeBSD 4.x):
 <pre>
 kern.ipc.maxsockets="5000"
 kern.ipc.nmbclusters="65536"
+kern.maxproc="2048"
+kern.maxfiles="16384"
+kern.maxfilesperproc="16384"
 </pre>
 </blockquote>
 
 <p>
 
-These parameters cannot be set at run time (verified with FreeBSD
-4.2).
-
-<p>
-
-To set the following kernel parameters at run time execute the
-following commands as root (this is specific to FreeBSD 4.x):
+With FreeBSD 4.2, the last three parameters cannot be set from
+<b>/boot/loader.conf</b>. To set the open file limits, execute the
+following commands as root:
 
 <p>
 
@@ -1170,14 +1169,9 @@ following commands as root (this is specific to FreeBSD 4.x):
 
 <p>
 
-These parameters cannot be set from <b>/boot/loader.conf</b>
-(verified with FreeBSD 4.2).
-
-<p>
-
-Other kernel parameters such as <b>kern.maxproc</b> can be increased
-only by recompiling the kernel with a different <b>maxusers</b>
-setting in the kernel configuration file (verified with FreeBSD 4.2).
+With FreeBSD 4.2, <b>kern.maxproc</b> can be set only by recompiling
+the kernel with a different <b>maxusers</b> setting in the kernel
+configuration file.
 
 <hr>
 
