@@ -492,12 +492,12 @@ extern int var_stack_rcpt_limit;
   */
 #define VAR_DELIVERY_SLOT_COST	"default_delivery_slot_cost"
 #define _DELIVERY_SLOT_COST	"_delivery_slot_cost"
-#define DEF_DELIVERY_SLOT_COST	10
+#define DEF_DELIVERY_SLOT_COST	5
 extern int var_delivery_slot_cost;
 
 #define VAR_DELIVERY_SLOT_LOAN	"default_delivery_slot_loan"
 #define _DELIVERY_SLOT_LOAN	"_delivery_slot_loan"
-#define DEF_DELIVERY_SLOT_LOAN	5
+#define DEF_DELIVERY_SLOT_LOAN	3
 extern int var_delivery_slot_loan;
 
 #define VAR_DELIVERY_SLOT_DISCOUNT	"default_delivery_slot_discount"

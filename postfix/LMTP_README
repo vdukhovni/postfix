@@ -16,8 +16,9 @@ the user database among the front end and back end systems.
 Postfix LMTP support is based on a modified version of the Postfix
 SMTP client. The initial version was by Philip A.  Prindeville of
 Mirapoint, Inc., USA. This code was modified further by Amos Gouaux
-of University of Texas at Dallas, Richardson, USA.  Wietse Venema
-reduced the code to its present shape.
+of University of Texas at Dallas, Richardson, USA, who also revised
+much of the documentation.  Wietse Venema reduced the code to its
+present shape.
 
 
 Overview
@@ -53,32 +54,40 @@ Using main.cf configuration
 
 This is the simplest LMTP configuration.  
 
-1.  LMTP over UNIX-domain sockets.
+1. Delivery mechanisms
+
+    Postfix supports three mechanisms to deliver mail over LMTP.
+    Each method can use UNIX-domain or TCP sockets as described in
+    a later section.
+
+    mailbox_transport = lmtp:unix:/path/name (UNIX-domain socket)
+    mailbox_transport = lmtp:hostname:port   (TCP socket)
+
+        The Postfix local delivery agent expands aliases and .forward
+        files, and delegates mailbox delivery to the LMTP server.
+
+    local_transport = lmtp:unix:/path/name (UNIX-domain socket)
+    local_transport = lmtp:hostname:port   (TCP socket)
+
+        Mail that resolves as local is directly given to the LMTP
+        server.  The mail is not processed by the Postfix local
+        delivery agent; therefore aliases and .forward files are
+        not expanded.
+
+    fallback_transport = lmtp:unix:/path/name (UNIX-domain socket)
+    fallback_transport = lmtp:hostname:port   (TCP socket)
+
+	The Postfix local delivery agent expands aliases and .forward
+	files, and delivers to /var[/spool]/mail/$user for users
+	that have a UNIX account.  Mail for other local users is
+	delegated to the LMTP server.
+
+2.  LMTP over UNIX-domain sockets.
 
     The UNIX-domain socket is specified as a name in the local file
     system.  This "/path/name" should be the socket created by the
     LMTP server on the local machine. See the specific examples
     later in this document.
-
-    The settings local_transport, mailbox_transport, and
-    fallback_transport support the following connections:
-
-	mailbox_transport = lmtp:unix:/path/name
-
-    The Postfix local delivery agent expands aliases and .forward
-    files, and delegates mailbox delivery to the LMTP server.
-
-	local_transport = lmtp:unix:/path/name
-
-    Mail that resolves as local is directly given to the LMTP server.
-    The mail is not processed by the Postfix local delivery agent;
-    therefore aliases and .forward files are not expanded.
-
-	fallback_transport = lmtp:unix:/path/name
-
-    The Postfix local delivery agent expands aliases and .forward files,
-    and delivers to /var/mail/$user for users that have a UNIX account.
-    Mail for other local users is delegated to the LMTP server.
 
     NOTE:
 
@@ -90,21 +99,11 @@ This is the simplest LMTP configuration.
 	With LMTP delivery to the local machine there is no good
 	reason to run the Postfix LMTP client chrooted.
 
-2.  LMTP over TCP sockets.
+3.  LMTP over TCP sockets.
 
     Currently the default TCP port number for this type of connection
     is 24, but this can be customized in the "/etc/services" file.
     Specific examples are given later in this document.
-
-    The settings local_transport, mailbox_transport, and
-    fallback_transport support the following connections:
-
-	mailbox_transport = lmtp:hostname:port
-	local_transport = lmtp:hostname:port
-	fallback_transport = lmtp:hostname:port
-
-    See the previous section for a discussion of the differences
-    between these three delivery methods.
 
     NOTE:
 

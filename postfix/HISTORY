@@ -4789,3 +4789,22 @@ Apologies for any names omitted.
 	McNamara.  See VIRTUAL_README for detailed examples.
 
 	Update: merged a re-vamped nqmgr by Patrik Rak.
+
+20010129
+
+	Tweak: several little nqmgr tweaks by Patrik Rak. Files:
+	global/mail_params.h, nqmgr/qmgr_job.c.
+
+	Bugfix: the virtual delivery agent did not save maps_find()
+	results timely. J?rgen Thomsen, postfix.jth.net. File:
+	virtual/mailbox.c.
+
+	Security: disallow regexp tables in the virtual delivery
+	agent.  The $1 etc. substitution mechanism gives too much
+	power to the sender. File: virtual/mailbox.c.
+
+	Cleanup: clarified documentation and boundary cases in the
+	random_sleep() routine.
+
+	Bugfix: the MISSING_USLEEP feature was used backwards.
+	Patrik Rak. File: util/random_sleep.c.

@@ -61,6 +61,8 @@ virtual_mailbox_maps
 
     If a recipient is not found the mail is returned to the sender.
 
+    For security reasons, regexp maps are not allowed here.
+
     The mail administrator is expected to create and chown recipient
     mailbox files or maildir directories ahead of time.
 
@@ -75,10 +77,14 @@ virtual_uid_maps
     Recipients are looked up in this map to determine the UID (owner
     privileges) to be used when writing to the target mailbox.
 
+    For security reasons, regexp maps are not allowed here.
+
 virtual_gid_maps
 
     Recipients are looked up in this map to determine the GID (group
     privileges) to be used when writing to the target mailbox.
+
+    For security reasons, regexp maps are not allowed here.
 
 virtual_mailbox_lock
 

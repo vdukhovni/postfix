@@ -347,6 +347,9 @@
 /*	Limit the number of recipients per message delivery.
 /*	The default limit is taken from the
 /*	\fBdefault_destination_recipient_limit\fR parameter.
+/* .IP \fBmailbox_size_limit\fR
+/*	Limit the size of a mailbox etc. file (any file that is
+/*	written to upon delivery).
 /* .SH "Security controls"
 /* .ad
 /* .fi

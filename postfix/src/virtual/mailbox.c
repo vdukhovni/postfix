@@ -168,7 +168,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Look up the mailbox location. Bounce if not found, defer in case of
      * trouble.
      */
-    mailbox_res = maps_find(virtual_mailbox_maps, state.msg_attr.user, 0);
+    mailbox_res = maps_find(virtual_mailbox_maps, state.msg_attr.user,
+			    DICT_FLAG_FIXED);
     if (mailbox_res == 0) {
 	if (dict_errno == 0)
 	    return (NO);
@@ -178,46 +179,47 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 			  virtual_mailbox_maps->title, state.msg_attr.user);
 	return (YES);
     }
+    usr_attr.mailbox = concatenate(var_virt_mailbox_base, "/",
+				   mailbox_res, (char *) 0);
+
+#define RETURN(res) { myfree(usr_attr.mailbox); return (res); }
 
     /*
      * Look up the mailbox owner rights. Defer in case of trouble.
      */
-    if ((uid_res = maps_find(virtual_uid_maps, state.msg_attr.user, 0)) == 0) {
+    if ((uid_res = maps_find(virtual_uid_maps, state.msg_attr.user,
+			     DICT_FLAG_FIXED)) == 0) {
 	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 				"recipient %s: uid not found in %s",
 			      state.msg_attr.user, virtual_uid_maps->title);
-	return (YES);
+	RETURN(YES);
     }
     if ((n = atol(uid_res)) < var_virt_minimum_uid) {
 	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 				"recipient %s: bad uid %s in %s",
 		     state.msg_attr.user, uid_res, virtual_uid_maps->title);
-	return (YES);
+	RETURN(YES);
     }
     usr_attr.uid = (uid_t) n;
 
     /*
      * Look up the mailbox group rights. Defer in case of trouble.
      */
-    if ((gid_res = maps_find(virtual_gid_maps, state.msg_attr.user, 0)) == 0) {
+    if ((gid_res = maps_find(virtual_gid_maps, state.msg_attr.user,
+			     DICT_FLAG_FIXED)) == 0) {
 	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 				"recipient %s: gid not found in %s",
 			      state.msg_attr.user, virtual_gid_maps->title);
-	return (YES);
+	RETURN(YES);
     }
     if ((n = atol(gid_res)) <= 0) {
 	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 				"recipient %s: bad gid %s in %s",
 		     state.msg_attr.user, gid_res, virtual_gid_maps->title);
-	return (YES);
+	RETURN(YES);
     }
     usr_attr.gid = (gid_t) n;
 
-    /*
-     * No early returns or we have a memory leak.
-     */
-    usr_attr.mailbox = concatenate(var_virt_mailbox_base, "/",
-				   mailbox_res, (char *) 0);
     if (msg_verbose)
 	msg_info("%s[%d]: set user_attr: %s, uid = %d, gid = %d",
 		 myname, state.level,
@@ -236,6 +238,5 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Cleanup.
      */
-    myfree(usr_attr.mailbox);
-    return (YES);
+    RETURN(YES);
 }

@@ -477,7 +477,7 @@ static QMGR_JOB *qmgr_job_candidate(QMGR_JOB *current)
     QMGR_TRANSPORT *transport = current->transport;
     QMGR_JOB *job,
            *best_job = 0;
-    float   score,
+    double  score,
             best_score = 0.0;
     int     max_slots,
             max_needed_entries,
@@ -534,7 +534,7 @@ static QMGR_JOB *qmgr_job_candidate(QMGR_JOB *current)
 	    max_needed_entries = max_total_entries - job->selected_entries;
 	    delay = now - job->message->queued_time + 1;
 	    if (max_needed_entries > 0 && max_needed_entries <= max_slots) {
-		score = (float) delay / max_total_entries;
+		score = (double) delay / max_total_entries;
 		if (score > best_score) {
 		    best_score = score;
 		    best_job = job;

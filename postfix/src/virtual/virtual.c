@@ -107,7 +107,7 @@
 /*	This is a safety measure to ensure that an out of control map in
 /*	\fBvirtual_mailbox_maps\fR doesn't litter the filesystem with mailboxes.
 /*	While it could be set to "/", this setting isn't recommended.
-/* .IP \fBvirtual_mailbox_maps\fR
+/* .IP "\fBvirtual_mailbox_maps\fR (regexp maps disallowed)"
 /*	Recipients are looked up in these maps to determine the path to
 /*	their mailbox or maildir. If the returned path ends in a slash
 /*	("/"), maildir-style delivery is carried out, otherwise the
@@ -120,10 +120,10 @@
 /*	a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup.
 /*	Returned values less than this will be rejected, and the message
 /*	will be deferred.
-/* .IP \fBvirtual_uid_maps\fR
+/* .IP "\fBvirtual_uid_maps\fR (regexp maps disallowed)"
 /*	Recipients are looked up in these maps to determine the user ID to be
 /*	used when writing to the target mailbox.
-/* .IP \fBvirtual_gid_maps\fR
+/* .IP "\fBvirtual_gid_maps\fR (regexp maps disallowed)"
 /*	Recipients are looked up in these maps to determine the group ID to be
 /*	used when writing to the target mailbox.
 /* .SH "Locking controls"

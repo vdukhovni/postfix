@@ -10,15 +10,14 @@
 /*	unsigned delay;
 /*	unsigned variation;
 /* DESCRIPTION
-/*	rand_sleep() blocks the current process for a pseudo-random
-/*	amount of time.
+/*	rand_sleep() blocks the current process for an amount of time
+/*	pseudo-randomly chosen from the interval (delay += variation/2).
 /*
 /*	Arguments:
 /* .IP delay
 /*	Time to sleep in microseconds.
 /* .IP variation
-/*	Sleep time variation in microseconds; must be smaller than
-/*	the time to sleep.
+/*	Variation in microseconds; must not be larger than delay.
 /* DIAGNOSTICS
 /*	Panic: interface violation. All system call errors are fatal.
 /* LICENSE
@@ -61,20 +60,20 @@ void    rand_sleep(unsigned delay, unsigned variation)
      */
     if (delay == 0)
 	msg_panic("%s: bad delay %d", myname, delay);
-    if (variation >= delay)
+    if (variation > delay)
 	msg_panic("%s: bad variation %d", myname, variation);
 
     /*
      * Use the semi-crappy random number generator.
      */
     if (my_pid == 0)
-	srandom(my_pid = getpid() ^ time((time_t *) 0));
+	srandom(my_pid = (getpid() ^ time((time_t *) 0)));
     usec = (delay - variation / 2) + variation * (double) random() / RAND_MAX;
 #ifdef MISSING_USLEEP
+    doze(usec);
+#else
     if (usleep(usec) < 0)
 	msg_fatal("usleep: %m");
-#else
-    doze(usec);
 #endif
 }
 

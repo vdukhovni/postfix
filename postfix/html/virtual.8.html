@@ -142,7 +142,7 @@ VIRTUAL(8)                                             VIRTUAL(8)
               boxes.  While it could be set to "/", this  setting
               isn't recommended.
 
-       <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>maps</b>
+       <b>virtual</b><i>_</i><b>mailbox</b><i>_</i><b>maps</b> (regexp maps disallowed)
               Recipients are looked up in these maps to determine
               the path  to  their  mailbox  or  maildir.  If  the
               returned  path ends in a slash ("/"), maildir-style
@@ -159,12 +159,12 @@ VIRTUAL(8)                                             VIRTUAL(8)
               this  will  be  rejected,  and  the message will be
               deferred.
 
-       <b>virtual</b><i>_</i><b>uid</b><i>_</i><b>maps</b>
+       <b>virtual</b><i>_</i><b>uid</b><i>_</i><b>maps</b> (regexp maps disallowed)
               Recipients are looked up in these maps to determine
               the  user  ID to be used when writing to the target
               mailbox.
 
-       <b>virtual</b><i>_</i><b>gid</b><i>_</i><b>maps</b>
+       <b>virtual</b><i>_</i><b>gid</b><i>_</i><b>maps</b> (regexp maps disallowed)
               Recipients are looked up in these maps to determine
               the  group ID to be used when writing to the target
               mailbox.
