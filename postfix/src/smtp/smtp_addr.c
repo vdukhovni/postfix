@@ -336,6 +336,11 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
+	if (addr_list == 0) {
+	    smtp_errno = SMTP_RETRY;
+	    msg_warn("MX hosts for %s have no valid A record", name);
+	    break;
+	}
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);

@@ -1314,9 +1314,39 @@ by itself.
 <p>
 
 However, when you see mail deliveries fail consistently, you may
-have a different problem: broken path MTU discovery.
+have a different problem: broken path MTU discovery. Or it could
+be a broken PIX firewall.
+
+<h4>Cisco PIX "fixup protocol smtp" bug</h4>
+
+The Cisco PIX has have a bug when running software older than
+version 5.2(4) or 6.0(1).
 
 <p>
+
+The bug ID is CSCds90792. The "fixup protocol smtp" feature does
+not correctly handle the case where the "." and the "CRLF" at the
+end of mail are sent in separate packets.
+
+<p>
+
+How does one recognize a mailer behind a Cisco PIX with "fixup
+protocol smtp" enabled? As of version 5.1 and later, the fixup
+protocol smtp command changes the characters in the SMTP banner to
+asterisks except for the "2", "0", "0" and space characters. 
+
+<p>
+
+When you connect to a mailer behind such a filter you see something
+like:
+
+<blockquote>
+<pre>
+220 **************************************0******0*********20 ****200**0*********0*00
+</pre>
+</blockquote>
+
+<h4>IP path MTU discovery</h4>
 
 A little background is in order. With the SMTP protocol, the HELO,
 MAIL FROM and RCPT TO commands and responses are relatively short.

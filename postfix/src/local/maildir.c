@@ -59,6 +59,7 @@
 
 #include <mail_copy.h>
 #include <bounce.h>
+#include <defer.h>
 #include <sent.h>
 #include <mail_params.h>
 
@@ -152,10 +153,11 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     set_eugid(var_owner_uid, var_owner_gid);
 
     if (status)
-	bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-		      "maildir delivery failed: %s", vstring_str(why));
+	status = (errno == ENOSPC ? defer_append : bounce_append)
+	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+	     "maildir delivery failed: %s", vstring_str(why));
     else
-	sent(SENT_ATTR(state.msg_attr), "maildir");
+	status = sent(SENT_ATTR(state.msg_attr), "maildir");
     vstring_free(buf);
     vstring_free(why);
     myfree(newdir);
@@ -163,5 +165,5 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     myfree(curdir);
     myfree(tmpfile);
     myfree(newfile);
-    return (0);
+    return (status);
 }

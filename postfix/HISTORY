@@ -4808,3 +4808,23 @@ Apologies for any names omitted.
 
 	Bugfix: the MISSING_USLEEP feature was used backwards.
 	Patrik Rak. File: util/random_sleep.c.
+
+20010130
+
+	Workaround: Linux usleep() is void, BSD/Solaris usleep()
+	returns int, don't use it. File util/random_sleep.c.
+
+	Made local maildir bounce/defer handling mode consistent
+	with local mailbox delivery. File local/maildir.c.
+
+	The smtp client now defers delivery when all MX hosts have
+	no A record. File: smtp/smtp_addr.c
+
+	Bundled the man2html and postlink quick hacks so people
+	can do their own manual page processing. See scripts in
+	the mantools directory.
+
+	Updated the reference to sendmail in the html/index.html page.
+
+	Added note about the Cisco PIX "fixup smtp" bug when "."
+	and "CRLF" arrive in separate packets. File:  html/faq.html.
