@@ -1,3 +1,35 @@
+BEGIN WARNING
+=============
+
+The information in this file is outdated. The Postfix LMTP server
+can now make connections over UNIX-domain sockets. 
+
+With connections over TCP sockets, some Cyrus implementations insist
+on SASL-style authentication, which is not supported by the Postfix
+LMTP client. In that case, use UNIX-domain sockets instead.
+
+The precise syntax for UNIX-domain and TCP connection endpoints is
+given in the lmtp(8) manual page.
+
+Examples:
+
+    /etc/postfix/transport:
+	domain1.name		lmtp1:unix:/path/name
+	domain2.name		lmtp2:lmtp2host
+
+    /etc/postfix/master.cf:
+        lmtp1      unix  -       -       n       -       -       lmtp
+        lmtp2      unix  -       -       n       -       -       lmtp
+
+The first example (domain1) uses UNIX-domain connections, the second
+example (domain2) uses TCP. 
+
+For optimal use of connection caching, specify separate mail delivery
+transports for each domain that receives mail via LMTP:
+
+END WARNING
+===========
+
 Postfix LMTP support
 ====================
 

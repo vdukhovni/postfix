@@ -1,23 +1,35 @@
-Incompatible changes with snapshot-20001120
+Incompatible changes with snapshot-20001121
 ===========================================
 
-On RedHat Linux 7.0, you must install the db3-devel RPM before you
-can compile the Postfix source code.
+If this release does not work for you, you can go back to a previous
+Postfix version without losing your mail, subject to the "incompatible
+changes" listed for previous Postfix releases below.
 
-Major changes with snapshot-20001120
+Major changes with snapshot-20001121
 ====================================
 
-The mailbox_transport feature works again.
+Support for RedHat Linux 7.0.  On RedHat Linux 7.0, you must install
+the db3-devel RPM before you can compile the Postfix source code.
 
-Postfix now supports both Sendmail-style virtual domains (all local
-users and aliases are visible in all virtual domains) and Postfix-style
-virtual domains (local users and aliases are not visible in virtual
-domains).  Details and examples are given in the revised virtual
-manual page.
+The mailbox_transport feature works again. It was broken when the
+"require_home_directory" feature was added.
 
-The soft bounce feature now includes the Postfix SMTP server.
-Specify "soft_bounce = yes" in main.cf to prevent the SMTP server
-from bouncing mail while you are testing configurations.
+More general virtual domain support.  Postfix now supports both
+Sendmail-style virtual domains and Postfix-style virtual domains.
+Details and examples are given in the revised virtual manual page.
+
+- With Sendmail-style virtual domains, local users/aliases/mailing
+  lists are visible as localname@virtual.domain. This is convenient
+  if you want to host mailing lists under virtual domains.
+
+- With Postfix-style virtual domains, local users/aliases/mailing
+  lists are not visible as localname@virtual.domain. Each virtual
+  domain has its own separate name space.
+
+More general "soft bounce" feature.  Specify "soft_bounce = yes"
+in main.cf to prevent the SMTP server from bouncing mail while you
+are testing configurations. Until this release the SMTP server was
+not aware of soft bounces.
 
 Incompatible changes with snapshot-20001029
 ===========================================

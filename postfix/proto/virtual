@@ -34,12 +34,12 @@
 #	With a Postfix-style virtual domain, the virtual domain has its
 #	own user name space. Local (i.e. non-virtual) usernames are not
 #	visible in a Postfix-style virtual domain. In particular, local
-#	\fBaliases\fR(5) and mailing lists are not visible in a
-#	Postfix-style virtual domain.
+#	\fBaliases\fR(5) and mailing lists are not visible as
+#	\fIlocalname@virtual.domain\fR.
 #
 #	Use a Sendmail-style virtual domain (see below) if local usernames,
-#	\fBaliases\fR(5) or mailing lists should be visible in that virtual
-#	domain.
+#	\fBaliases\fR(5) or mailing lists should be visible as
+#	\fIlocalname@virtual.domain\fR.
 #
 #	Support for a Postfix-style virtual domain looks like:
 # .sp
@@ -67,13 +67,12 @@
 # .ad
 # .fi
 #	With a Sendmail-style virtual domain, every local (i.e. non-virtual)
-#	username is visible in the virtual domain. In particular, every
-#	local alias and mailing list is visible in a Sendmail-style virtual
-#	domain.
+#	username is visible in the virtual domain. In particular, every local
+#	alias and mailing list is visible as \fIlocalname@virtual.domain\fR.
 #
 #	Use a Postfix-style virtual domain (see above) if local usernames,
-#	\fBaliases\fR(5) or mailing lists should not be visible in that
-#	virtual domain.
+#	\fBaliases\fR(5) or mailing lists should not be visible as
+#	\fIlocalname@virtual.domain\fR.
 #
 #	Support for a Sendmail-style virtual domain looks like:
 # .sp

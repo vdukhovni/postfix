@@ -4516,3 +4516,9 @@ Apologies for any names omitted.
 	that specify the width of %*letter conversions.  On some
 	systems, sizeof and pointer difference expressions are
 	wider than an int.  Reported by Valentin Nechayev @ lucky.net.
+
+20001121:
+
+	Compatibility: Postfix now retries delivery when an external
+	command is killed by a signal, because people expect such
+	behavior from Sendmail. File: global/pipe_command.c.

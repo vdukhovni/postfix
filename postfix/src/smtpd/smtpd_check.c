@@ -1979,8 +1979,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      * Sendmail-style virtual domains.
      */
     if (*var_local_rcpt_maps && resolve_local(domain)) {
-	if (NOMATCH(relocated_maps, STR(reply.recipient))
-	    && NOMATCH(rcpt_canon_maps, STR(reply.recipient))
+	if (NOMATCH(rcpt_canon_maps, STR(reply.recipient))
 	    && NOMATCH(canonical_maps, STR(reply.recipient))
 	    && NOMATCH(relocated_maps, STR(reply.recipient))
 	    && NOMATCH(virtual_maps, STR(reply.recipient))

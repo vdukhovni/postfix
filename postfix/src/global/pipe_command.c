@@ -486,7 +486,7 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 				WTERMSIG(wait_status),
 				args.command,
 			      log_len ? ". Command output: " : "", log_buf);
-		return (PIPE_STAT_BOUNCE);
+		return (PIPE_STAT_DEFER);
 	    } else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
 		vstring_sprintf(why, "%s%s%s",
 				sys_exits_strerror(WEXITSTATUS(wait_status)),
