@@ -38,6 +38,8 @@
 void    clean_env(void)
 {
     char   *TZ;
+    char   *DISPLAY;
+    char   *XAUTHORITY;
     extern char **environ;
 
     /*
@@ -45,6 +47,8 @@ void    clean_env(void)
      * configurable.
      */
     TZ = getenv("TZ");
+    DISPLAY = getenv("DISPLAY");
+    XAUTHORITY = getenv("XAUTHORITY");
 
     /*
      * Truncate the process environment, if available. On some systems
@@ -57,6 +61,10 @@ void    clean_env(void)
      * Restore preserved environment variables.
      */
     if (TZ && setenv("TZ", TZ, 1))
+	msg_fatal("setenv: %m");
+    if (DISPLAY && setenv("DISPLAY", DISPLAY, 1))
+	msg_fatal("setenv: %m");
+    if (XAUTHORITY && setenv("XAUTHORITY", XAUTHORITY, 1))
 	msg_fatal("setenv: %m");
 
     /*

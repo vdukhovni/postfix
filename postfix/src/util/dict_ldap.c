@@ -676,15 +676,17 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     domainlist =
 	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
 					    "", 0, 0));
-    if (domainlist) {
+    if (*domainlist) {
 	dict_ldap->domain = match_list_init(domainlist, 1, match_string);
 	if (dict_ldap->domain == NULL)
 	    msg_warn("%s: domain match list creation using \"%s\" failed, will continue without it", myname, domainlist);
 	if (msg_verbose)
 	    msg_info("%s: domain list created using \"%s\"", myname,
 		     domainlist);
-	myfree(domainlist);
+    } else {
+	dict_ldap->domain = NULL;
     }
+    myfree(domainlist);
 
     /*
      * get configured value of "ldapsource_timeout"; default to 10 seconds

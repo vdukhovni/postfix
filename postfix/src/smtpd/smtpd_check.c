@@ -1956,52 +1956,45 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (!resolve_local(domain))
 	    SMTPD_CHECK_RCPT_RETURN(0);
 
-    /*
-     * Reject mail to unknown addresses in domains that match $mydestination
-     * or $inet_interfaces (Postfix local). Reject mail to unknown addresses
-     * in Postfix virtual domains (Postfix virtual). Accept mail to other
-     * domains. Toss any extension information found by the lookup routines.
-     */
-#define NOP ((char **) 0)
+#define NOMATCH(map, rcpt) \
+    (mail_addr_find(map, rcpt, (char **) 0) == 0 && dict_errno == 0)
 
-    if (resolve_local(domain)) {
-	if (*var_virtual_maps
-	    && maps_find(virtual_maps, domain, 0)) {
-	    msg_warn("virtual domain \"%s\" is listed in $mydestination",
-		     domain);
-	    msg_warn("the $local_recipient_maps feature requires that no");
-	    msg_warn("virtual domains are listed in $mydestination");
-	    msg_warn("be sure to specify the required \"%s whatever\"",
-		     domain);
-	    msg_warn("entry in the virtual map, as explained in the man");
-	    msg_warn("page and in the FAQ entry for virtual domains");
-	    SMTPD_CHECK_RCPT_RETURN(0);
-	}
-	dict_errno = 0;
-	if (*var_local_rcpt_maps
-	    && !mail_addr_find(rcpt_canon_maps, STR(reply.recipient), NOP)
-	    && !mail_addr_find(canonical_maps, STR(reply.recipient), NOP)
-	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
-	    && !mail_addr_find(local_rcpt_maps, STR(reply.recipient), NOP)) {
+    /*
+     * Reject mail to unknown addresses in Postfix-style virtual domains.
+     */
+    if (*var_virtual_maps && maps_find(virtual_maps, domain, 0)) {
+	if (NOMATCH(rcpt_canon_maps, STR(reply.recipient))
+	    && NOMATCH(canonical_maps, STR(reply.recipient))
+	    && NOMATCH(relocated_maps, STR(reply.recipient))
+	    && NOMATCH(virtual_maps, STR(reply.recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				      "%d <%s>: User unknown",
-				      dict_errno ? 450 : 550, recipient);
-	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
-	}
-    } else {
-	dict_errno = 0;
-	if (*var_virtual_maps
-	    && !mail_addr_find(rcpt_canon_maps, STR(reply.recipient), NOP)
-	    && !mail_addr_find(canonical_maps, STR(reply.recipient), NOP)
-	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
-	    && !mail_addr_find(virtual_maps, STR(reply.recipient), NOP)
-	    && maps_find(virtual_maps, domain, 0)) {
-	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				      "%d <%s>: User unknown",
-				      dict_errno ? 450 : 550, recipient);
+				   "%d <%s>: User unknown", 550, recipient);
 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
 	}
     }
+
+    /*
+     * Reject mail to unknown addresses in local domains (domains that match
+     * $mydestination or $inet_interfaces). Accept mail for addresses in
+     * Sendmail-style virtual domains.
+     */
+    if (*var_local_rcpt_maps && resolve_local(domain)) {
+	if (NOMATCH(relocated_maps, STR(reply.recipient))
+	    && NOMATCH(rcpt_canon_maps, STR(reply.recipient))
+	    && NOMATCH(canonical_maps, STR(reply.recipient))
+	    && NOMATCH(relocated_maps, STR(reply.recipient))
+	    && NOMATCH(virtual_maps, STR(reply.recipient))
+	    && NOMATCH(local_rcpt_maps, STR(reply.recipient))) {
+	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+				   "%d <%s>: User unknown", 550, recipient);
+	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+	}
+    }
+
+    /*
+     * Accept all other addresses - including addresses that passed the above
+     * tests because of some table lookup problem.
+     */
     SMTPD_CHECK_RCPT_RETURN(0);
 }
 

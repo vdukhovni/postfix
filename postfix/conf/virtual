@@ -8,45 +8,103 @@
 #        postmap /etc/postfix/virtual
 # 
 # DESCRIPTION
-#        The  optional  virtual  table  specifies  redirections for
-#        local and non-local recipients or  domains.  The  redirec-
-#        tions  are used by the cleanup(8) daemon. The redirections
-#        are recursive.
+#        The  optional virtual table specifies address redirections
+#        for local and non-local recipients or domains.  The  redi-
+#        rections  are  used by the cleanup(8) daemon. The redirec-
+#        tions are recursive.
 # 
-#        The virtual redirection is applied only to  the  recipient
-#        envelope  address,  and  does  not affect message headers.
+#        The virtual redirection is applied only to recipient enve-
+#        lope  addresses,  and  does  not  affect  message headers.
 #        Think Sendmail rule set S0, if you like. Use  canonical(5)
 #        mapping  to  rewrite header and envelope addresses in gen-
 #        eral.
 # 
-#        Normally, the file serves as input to the postmap(1)  com-
-#        mand.  The result, an indexed file in dbm or db format, is
-#        used for fast searching by the mail  system.  Execute  the
-#        command  postmap  /etc/postfix/virtual in order to rebuild
-#        the indexed file after changing the virtual table.
+#        Normally, the virtual table is specified as  a  text  file
+#        that  serves  as  input  to  the  postmap(1) command.  The
+#        result, an indexed file in dbm or db format, is  used  for
+#        fast  searching  by  the  mail system. Execute the command
+#        postmap  /etc/postfix/virtual  in  order  to  rebuild  the
+#        indexed file after changing the text file.
 # 
-#        When the table is provided via other means  such  as  NIS,
-#        LDAP  or  SQL,  the  same lookups are done as for ordinary
+#        When  the  table  is provided via other means such as NIS,
+#        LDAP or SQL, the same lookups are  done  as  for  ordinary
 #        indexed files.
 # 
-#        Alternatively, the table can be  provided  as  a  regular-
+#        Alternatively,  the  table  can  be provided as a regular-
 #        expression map where patterns are given as regular expres-
-#        sions. In that case, the lookups are done  in  a  slightly
+#        sions.  In  that  case, the lookups are done in a slightly
 #        different way as described below.
 # 
-# TABLE FORMAT
-#        Typical  support  for a virtual domain looks like the fol-
-#        lowing:
+# POSTFIX-STYLE VIRTUAL DOMAINS
+#        With a Postfix-style virtual domain,  the  virtual  domain
+#        has  its  own  user  name  space. Local (i.e. non-virtual)
+#        usernames are  not  visible  in  a  Postfix-style  virtual
+#        domain.  In particular, local aliases(5) and mailing lists
+#        are not visible in a Postfix-style virtual domain.
 # 
+#        Use a Sendmail-style virtual domain (see below)  if  local
+#        usernames,  aliases(5)  or mailing lists should be visible
+#        in that virtual domain.
+# 
+#        Support for a Postfix-style virtual domain looks like:
+# 
+#        /etc/postfix/virtual:
 #            virtual.domain       anything (right-hand content does not matter)
 #            postmaster@virtual.domain    postmaster
 #            user1@virtual.domain address1
 #            user2@virtual.domain address2, address3
 # 
-#        With this, the SMTP server accepts mail for virtual.domain
-#        and  rejects mail for unknown@virtual.domain as undeliver-
+#        The  virtual.domain  anything  entry  is  required  for  a
+# 
+#                                                                 1
+# 
+# VIRTUAL(5)                                             VIRTUAL(5)
+# 
+#        Postfix-style virtual domain.
+# 
+#        Do  not  list the virtual domain in the main.cf mydestina-
+#        tion configuration parameter. Such an  entry  is  required
+#        only for a Sendmail-style virtual domain.
+# 
+#        With  a  Postfix-style  virtual  domain,  the Postfix SMTP
+#        server  accepts  mail  for  known-user@virtual.domain  and
+#        rejects mail for unknown-user@virtual.domain as undeliver-
 #        able.
 # 
+# SENDMAIL-STYLE VIRTUAL DOMAINS
+#        With a Sendmail-style virtual domain,  every  local  (i.e.
+#        non-virtual) username is visible in the virtual domain. In
+#        particular, every local alias and mailing list is  visible
+#        in a Sendmail-style virtual domain.
+# 
+#        Use  a  Postfix-style  virtual domain (see above) if local
+#        usernames, aliases(5) or mailing lists should not be visi-
+#        ble in that virtual domain.
+# 
+#        Support for a Sendmail-style virtual domain looks like:
+# 
+#        /etc/postfix/main.cf:
+#            mydestination = $myhostname localhost.$mydomain $mydomain
+#                virtual.domain
+# 
+#        /etc/postfix/virtual:
+#            user1@virtual.domain address1
+#            user2@virtual.domain address2, address3
+# 
+#        The  main.cf  mydestination  entry is required for a Send-
+#        mail-style virtual domain.
+# 
+#        Do not specify a virtual.domain whatever entry in the vir-
+#        tual table. Such an entry is required only with a Postfix-
+#        style virtual domain.
+# 
+#        With a Sendmail-style virtual domain,  the  Postfix  local
+#        delivery  agent  delivers  mail  for  an unknown user@vir-
+#        tual.domain to a local (i.e.  non-virtual) user  that  has
+#        the  same  name;  if no such recipient exists, the Postfix
+#        local delivery agent bounces the mail to the sender.
+# 
+# TABLE FORMAT
 #        The format of the virtual table is  as  follows,  mappings
 #        being tried in the order as listed in this manual page:
 # 
@@ -54,13 +112,14 @@
 #               Blank  lines  are  ignored,  as are lines beginning
 #               with `#'.
 # 
-#                                                                 1
+#        leading whitespace
+#               Lines  that  begin  with  whitespace  continue  the
+# 
+#                                                                 2
 # 
 # VIRTUAL(5)                                             VIRTUAL(5)
 # 
-#        leading whitespace
-#               Lines that begin with whitespace continue the  pre-
-#               vious line.
+#               previous line.
 # 
 #        pattern result
 #               When  pattern matches a mail address, replace it by
@@ -113,11 +172,12 @@
 #        constituent parts, nor is user+foo broken up into user and
 #        foo.
 # 
-#                                                                 2
+#        Patterns  are  applied  in  the  order as specified in the
+# 
+#                                                                 3
 # 
 # VIRTUAL(5)                                             VIRTUAL(5)
 # 
-#        Patterns  are  applied  in  the  order as specified in the
 #        table, until a pattern is found that  matches  the  search
 #        string.
 # 
@@ -170,5 +230,5 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                                 3
+#                                                                 4
 # 

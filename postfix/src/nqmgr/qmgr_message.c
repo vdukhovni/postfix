@@ -51,7 +51,8 @@
 /*	structure members. A null result means that the file could not be
 /*	read or that the file contained incorrect information. Recipient
 /*	limit imposed this time is based on the position of the message
-/*	job(s) on corresponding transport job list(s).
+/*	job(s) on corresponding transport job list(s). It's considered
+/*	an error to call this when the recipient slots can't be allocated.
 /*
 /*	qmgr_message_free() destroys an in-core message structure and makes
 /*	the resources available for reuse. It is an error to destroy
@@ -288,7 +289,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 
     /*
      * If we re-open this file, skip over on-file recipient records that we
-     * already looked at, and reset the in-core recipient address list.
+     * already looked at, and refill the in-core recipient address list.
      * 
      * For the first time, the message recipient limit is calculated from the
      * global recipient limit. This is to avoid reading little recipients
@@ -302,6 +303,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     if (message->rcpt_offset) {
 	if (message->rcpt_list.len)
 	    msg_panic("%s: recipient list not empty on recipient reload", message->queue_id);
+	if (message->rcpt_limit <= message->rcpt_count)
+	    msg_panic("%s: no recipient slots available", message->queue_id);
 	if (vstream_fseek(message->fp, message->rcpt_offset, SEEK_SET) < 0)
 	    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	message->rcpt_offset = 0;

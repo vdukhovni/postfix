@@ -56,7 +56,7 @@ FLUSH(8)                                                 FLUSH(8)
 
        <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>REFRESH</b> (completes in the background)
               Refresh  non-empty  per-destination  logfiles  that
-              were not read in $<b>fast</b><i>_</i><b>flush</b><i>_</i><b>refresh</b><i>_</i><b>time</b> hours, by
+              were not read in <b>$fast</b><i>_</i><b>flush</b><i>_</i><b>refresh</b><i>_</i><b>time</b> hours, by
               simulating send requests (see above) for the corre-
               sponding destinations.
 
@@ -78,8 +78,8 @@ FLUSH(8)                                                 FLUSH(8)
               Refresh  all non-empty per-destination logfiles, by
               simulating send requests (see above) for the corre-
               sponding  destinations.   This  can  be  incredibly
-              expensive when logging is enabled for all  deferred
-              mail, and is not recommended.
+              expensive when logging is enabled for many destina-
+              tions, and is not recommended.
 
               Delete empty per-destination logfiles that were not
               updated in <b>fast</b><i>_</i><b>flush</b><i>_</i><b>purge</b><i>_</i><b>time</b> days.
@@ -115,12 +115,12 @@ FLUSH(8)                                                 FLUSH(8)
        tion file.
 
        Upon receipt of a request to deliver all mail for an  eli-
-       gible  destination,  this  server requests delivery of all
-       messages that are listed in  that  destination's  logfile,
-       regardless  of  the  recipients of those messages. This is
-       not an issue for mail that is sent to a <b>relay</b><i>_</i><b>domains</b> des-
-       tination  because  such mail typically only has recipients
-       in one domain.
+       gible  destination,  the <b>flush</b> server requests delivery of
+       all messages that are listed in  that  destination's  log-
+       file, regardless of the recipients of those messages. This
+       is not an issue for mail that is sent to  a  <b>relay</b><i>_</i><b>domains</b>
+       destination  because  such mail typically only has recipi-
+       ents in one domain.
 
 <b>FILES</b>
        /var/spool/postfix/flush, location of "fast flush" logfiles.

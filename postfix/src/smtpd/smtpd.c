@@ -124,6 +124,9 @@
 /* .IP \fBsmtpd_timeout\fR
 /*	Limit the time to send a server response and to receive a client
 /*	request.
+/* .IP \fBsoft_bounce\fR
+/*	Change hard (5xx) reject responses into soft (4xx) reject responses.
+/*	This can be useful for testing purposes.
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -861,6 +864,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * XXX Force an empty record when the queue file content begins with
      * whitespace, so that it won't be considered as being part of our own
      * Received: header. What an ugly Kluge.
+     * 
+     * XXX Deal with UNIX-style From_ lines at the start of message content
+     * because sendmail permits it.
      */
     if (vstream_fflush(state->cleanup))
 	state->err = CLEANUP_STAT_WRITE;
@@ -873,11 +879,14 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	start = vstring_str(state->buffer);
 	len = VSTRING_LEN(state->buffer);
 	if (first) {
+	    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0) {
+		rec_fprintf(state->cleanup, curr_rec_type,
+			    "Mbox-Line: %s", start);
+		continue;
+	    }
 	    first = 0;
 	    if (len > 0 && ISSPACE(start[0]))
 		rec_put(state->cleanup, REC_TYPE_NORM, "", 0);
-	    else if (strncmp(start + strspn(start, ">"), "From ", 5) == 0)
-		continue;
 	}
 	if (prev_rec_type != REC_TYPE_CONT
 	    && *start == '.' && (++start, --len) == 0)

@@ -47,6 +47,8 @@ OK
 >>> client foo 123.123.123.123
 OK
 >>> helo foo.
+./smtpd_check: warning: valid_hostname: misplaced delimiter: foo.
+./smtpd_check: warning: valid_hostname: misplaced delimiter: foo.
 ./smtpd_check: reject: HELO from foo[123.123.123.123]: 450 <foo.>: Helo command rejected: Host not found
 450 <foo.>: Helo command rejected: Host not found
 >>> helo foo

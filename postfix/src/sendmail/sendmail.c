@@ -59,6 +59,8 @@
 /* .IP "\fB-F \fIfull_name\fR
 /*	Set the sender full name. This is used only with messages that
 /*	have no \fBFrom:\fR message header.
+/* .IP "\fB-G\fR (ignored)"
+/*	Gateway (relay) submission, as opposed to initial user submission.
 /* .IP \fB-I\fR
 /*	Initialize alias database. See the \fBnewaliases\fR
 /*	command above.
@@ -568,7 +570,7 @@ static void flush_queue(void)
 
 /* chat - send command and examine reply */
 
-static void chat(VSTREAM * fp, VSTRING * buf, const char *fmt,...)
+static void chat(VSTREAM *fp, VSTRING *buf, const char *fmt,...)
 {
     va_list ap;
 
@@ -791,7 +793,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:IN:R:UX:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "B:C:F:GIN:R:UX:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:
@@ -804,6 +806,8 @@ int     main(int argc, char **argv)
 	    break;
 	case 'F':				/* full name */
 	    full_name = optarg;
+	    break;
+	case 'G':				/* gateway submission */
 	    break;
 	case 'I':				/* newaliases */
 	    mode = SM_MODE_NEWALIAS;

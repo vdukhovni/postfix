@@ -45,6 +45,10 @@ from:
 IMPORTANT: if you install the Cyrus SASL libraries as per the default,
 you will have to symlink /usr/lib/sasl -> /usr/local/lib/sasl.
 
+Reportedly, Microsoft Internet Explorer version 5 requires the
+non-standard SASL LOGIN authentication method. To enable this
+authentication method, specify ``./configure --enable-login''.
+
 Building Postfix with SASL authentication support
 =================================================
 

@@ -143,6 +143,7 @@
 #include <stringops.h>
 #include <myflock.h>
 #include <watchdog.h>
+#include <clean_env.h>
 
 /* Global library. */
 
@@ -184,6 +185,12 @@ int     main(int argc, char **argv)
 	debug_me = 1;
 
     /*
+     * Ad-hoc environment filter, to enforce consistent behavior whether
+     * Postfix is started by hand, or at system boot time.
+     */
+    clean_env();
+
+    /*
      * Don't die when a process goes away unexpectedly.
      */
     signal(SIGPIPE, SIG_IGN);
@@ -202,12 +209,16 @@ int     main(int argc, char **argv)
      * Some systems such as AIX have a huge per-process open file limit. In
      * those cases, limit the search for potential file descriptor leaks to
      * just the first couple hundred.
+     * 
+     * The Debian post-installation script passes an open file descriptor into
+     * the master process and waits forever for someone to close it. Because
+     * of this we have to close descriptors > 2, and pray that doing so does
+     * not break things.
      */
     if (fd_limit > 500)
 	fd_limit = 500;
     for (fd = 3; fd < fd_limit; fd++)
-	if ((n = fcntl(fd, F_GETFD, 0)) >= 0 && (n & FD_CLOEXEC) == 0)
-	    fcntl(fd, F_SETFD, n | FD_CLOEXEC);
+	(void) close(fd);
 
     /*
      * Initialize logging and exit handler.

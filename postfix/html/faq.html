@@ -128,7 +128,7 @@ addresses</a>
 
 <li><a href="#mobile">Relaying mail for mobile users</a>
 
-<li><a href="#virtual_setup">Postfix refuses mail for virtual
+<li><a href="#virtual_relay">Postfix refuses mail for virtual
 domains with "relay access denied"</a>
 
 <li><a href="#relay_restrict">Restricting what users can send mail to off-site destinations</a>
@@ -154,6 +154,8 @@ domains with "relay access denied"</a>
 <ul>
 
 <li><a href="#root">Root's mail is delivered to nobody</a>
+
+<li><a href="#biff">What does "biff_notify: Connection refused" mean?</a>
 
 <li><a href="#bogus">Postfix accepts mail for non-existing local users</a>
 
@@ -190,27 +192,24 @@ distribution list</a>
 
 <li><a href="#owner-foo">Postfix ignores the owner-list alias</a>
 
+<li><a href="#virtual_command">Commands and mailing lists don't work in Postfix virtual maps</a>
+
 </ul>
 
 <a name="virtual_domains"><h3>Virtual domains</h3>
 
 <ul>
 
-<li><a href="#virtual_setup">How to configure a Postfix virtual domain</a>
+<li><a href="#unknown_virtual_accept">Postfix does not refuse mail for
+unknown users in virtual domains</a>
 
-<li><a href="#virtual_setup">Postfix does not refuse mail for
-unknown virtual users</a>
+<li><a href="#unknown_virtual_loop">Mail for unknown users in
+virtual domains fails with "mail loops back to myself"</a>
 
-<li><a href="#virtual_setup">Mail for unknown virtual users fails
-with "mail loops back to myself"</a>
-
-<li><a href="#virtual_setup">Postfix refuses mail for virtual
-domains with "user unknown"</a>
-
-<li><a href="#virtual_setup">Postfix refuses mail for virtual
+<li><a href="#virtual_relay">Postfix refuses mail for virtual
 domains with "relay access denied"</a>
 
-<li><a href="#command">Commands don't work in Postfix virtual maps</a>
+<li><a href="#virtual_command">Commands and mailing lists don't work in Postfix virtual maps</a>
 
 <li><a href="#domain_mailbox">Receiving a virtual domain in a
 mailbox</a>
@@ -1480,10 +1479,41 @@ To find out the location for your system, execute the command
 
 <hr>
 
+<a name="biff"><h3>What does "biff_notify: Connection refused" mean?</h3>
+
+By default, the Postfix local delivery agent attempts to notify
+local users of the arrival of new mail. This feature makes use of
+the <b>comsat</b> network service, which is turned off on many UNIX
+systems for performance and/or security reasons.
+
+<p>
+
+The warning message means that new mail notificiation failed because
+the <b>comsat</b> network service is turned off.
+
+<p>
+
+To disable the <b>comsat</b> client code in the Postfix delivery agent,
+specify:
+
+<p>
+
+<pre>
+/etc/postfix/main.cf:
+    biff = no
+</pre>
+
+<p>
+
+To enable the <b>comsat</b> network service, uncomment the
+corresponding entry in the <b>inetd.conf</b> file.
+
+<hr>
+
 <a name="bogus"><h3>Postfix accepts mail for non-existing local users</h3>
 
-See elsewhere for how to reject mail for <a href="#virtual_setup">unknown
-virtual</a> users.
+See elsewhere for how to reject mail for <a
+href="#unknown_virtual_accept">unknown users in virtual domains</a>.
 
 <p>
 
@@ -1527,9 +1557,9 @@ The only way to find out is to try.
 
 <p>
 
-By default, the Postfix SMTP server does know about Postfix <a
-href="#virtual_setup">virtual</a> maps, and will reject mail for
-<i>unknown@virtual.domain</i> without further configuration.
+By default, the Postfix SMTP server is aware of Postfix <a
+href="virtual.5.html">virtual</a> maps, and will accept mail for
+<i>known-user@virtual.domain</i> without further configuration.
 
 <hr>
 
@@ -1928,68 +1958,37 @@ sense to make it moderated.
 
 <hr>
 
-<a name="virtual_setup"><h3>How to configure a Postfix virtual domain</h3>
+<a name="unknown_virtual_accept"><h3>Postfix does not refuse mail for
+unknown users in virtual domains</h3></a>
 
-Problem:
+<a name="unknown_virtual_loop"><h3>Mail for unknown users in a
+virtual domain fails with "mail loops back to myself"</h3></a>
 
-<p> 
+<a name="virtual_relay"><h3>Postfix refuses mail for virtual
+domains with "relay access denied"</h3></a>
 
-<ul>
-
-<li>Postfix does not refuse mail for unknown virtual users.
-
-<li>Mail for unknown virtual users fails with "mail loops back to
-myself".
-
-<li>Postfix refuses mail for virtual domains with "user unknown".
-
-<li>Postfix refuses mail for virtual domains with "relay access
-denied".
-
-</ul>
+Solution: specify a Postfix-style virtual domain or a Sendmail-style
+virtual domain.
 
 <p>
 
-Solution:
-
-<p>
-
-<ul>
-
-<li> Add a magical entry to the Postfix virtual maps for
-each Postfix virtual domain:
-
-<p>
-
-<pre>
-    /etc/postfix/virtual:
-        virtual.domain whatever
-</pre>
-
-<p>
-
-<li> Do not list Postfix virtual domains in the <a
-href="basic.html#mydestination">mydestination</a> parameter.
-
-<li> Do not list Postfix virtual maps in the <b>local_recipient_maps</b>
-parameter.
-
-<li>As of Postfix version 19991226 it is no longer necessary to
-specify virtual maps in the <a
-href="uce.html#relay_domains">relay_domains</a> parameter.  To find
-out what Postfix version you have, execute the command <b>postconf
-mail_version</b>.
-
-</ul>
-
-<p>
-
-For more information on how to set up virtual domains, see the <a
-href="virtual.5.html">virtual</a> manual page.
+Be sure to follow instructions in the <a href="virtual.5.html">
+virtual</a> manual page.
 
 <hr>
 
-<a name="command"><h3>Commands don't work in Postfix virtual maps</h3>
+<a name="virtual_command"><h3>Commands and mailing lists don't work
+in Postfix virtual maps</h3>
+
+Short reply: specify a Sendmail-style <a href="virtual.5.html">virtual</a>
+domain, and specify the command or mailing list in the local <a
+href="aliases.5.html">aliases</a> file.
+
+<p>
+
+Long reply follows.
+
+<p>
 
 Delivering mail to a command is a security-sensitive operation,
 because the command must be executed with the right privileges.
@@ -2002,56 +2001,6 @@ For security reasons, Postfix tries to avoid using <b>root</b>
 privileges where possible. In particular, Postfix virtual mapping
 is done by an unprivileged daemon, so there is no secure way to
 execute commands found in virtual maps.
-
-<p>
-
-Solution: specify a local alias instead. The Postfix local delivery
-agent has sufficient privilege to execute commands with the right
-privileges.
-
-<p>
-
-<ul>
-
-<li>Set up a local alias that executes the command:
-
-<p>
-
-<pre>
-    /etc/aliases:
-        name-virtual.domain     "|/some/where/command..."
-</pre>
-
-<p>
-
-<li>Execute the command <b>newaliases</b> whenever you edit the
-alias database.
-
-<p>
-
-<li>Forward mail for the virtual address to the local alias:
-
-<p>
-
-<pre>
-    /etc/postfix/virtual:
-        virtual.domain          whatever
-        name@virtual.domain     name-virtual.domain
-</pre>
-
-<p>
-
-<li>Execute the command <b>postmap /etc/postfix/virtual</b> whenever
-you edit the virtual database.
-
-</ul>
-
-<p>
-
-
-Note: on some systems the alias database is not in <b>/etc/aliases</b>.
-To find out the location for your system, execute the command
-<b>postconf alias_maps</b>.
 
 <hr>
 

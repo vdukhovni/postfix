@@ -177,9 +177,8 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * $HOME/.forward file, then mailbox delivery. Back off when the user's
      * home directory does not exist.
      */
-    if ((mypwd = mypwnam(state.msg_attr.user)) == 0)
-	return (deliver_unknown(state, usr_attr));
     if (var_stat_home_dir
+	&& (mypwd = mypwnam(state.msg_attr.user)) != 0
 	&& stat_as(mypwd->pw_dir, &st, mypwd->pw_uid, mypwd->pw_gid) < 0)
 	return (defer_append(BOUNCE_FLAG_KEEP,
 			     BOUNCE_ATTR(state.msg_attr),

@@ -28,6 +28,8 @@
 /*
 /*	smtpd_chat_reply() formats a server reply, sends it to the
 /*	client, and appends a copy to the SMTP transaction log.
+/*	When soft_bounce is enabled, all 5xx (reject) reponses are
+/*	replaced by 4xx (try again).
 /*
 /*	smtpd_chat_notify() sends a copy of the SMTP transaction log
 /*	to the postmaster for review. The postmaster notice is sent only
@@ -138,6 +140,8 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
     va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
     va_end(ap);
+    if (var_soft_bounce && STR(state->buffer)[0] == '5')
+	STR(state->buffer)[0] = '4';
     smtp_chat_append(state, "Out: ");
 
     if (msg_verbose)

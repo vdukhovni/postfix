@@ -14,7 +14,8 @@ format of the Postfix alias database
 .ad
 .fi
 The \fBaliases\fR file provides a system-wide mechanism to
-redirect mail for local recipients.
+redirect mail for local recipients. The redirections are
+processed by the Postfix \fBlocal\fR(8) delivery agent.
 
 The file serves as input to the \fBpostalias\fR(1) command. The
 result, an indexed file in \fBdbm\fR or \fBdb\fR format, is

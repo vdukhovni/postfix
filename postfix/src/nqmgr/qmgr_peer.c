@@ -116,7 +116,9 @@ QMGR_PEER *qmgr_peer_select(QMGR_JOB *job)
 	if (queue->window > queue->busy_refcount && peer->entry_list.next != 0) {
 	    QMGR_LIST_ROTATE(job->peer_list, peer, peers);
 	    if (msg_verbose)
-		msg_info("qmgr_peer_select: %s %s", job->message->queue_id, queue->name);
+		msg_info("qmgr_peer_select: %s %s %s (%d of %d)",
+		job->message->queue_id, queue->transport->name, queue->name,
+			 queue->busy_refcount + 1, queue->window);
 	    return (peer);
 	}
     }

@@ -12,53 +12,53 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>postmap</b> <b>/etc/postfix/virtual</b>
 
 <b>DESCRIPTION</b>
-       The  optional  <b>virtual</b>  table  specifies  redirections for
-       local and non-local recipients or  domains.  The  redirec-
-       tions  are used by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon. The redirections
-       are recursive.
+       The  optional <b>virtual</b> table specifies address redirections
+       for local and non-local recipients or domains.  The  redi-
+       rections  are  used by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon. The redirec-
+       tions are recursive.
 
-       The <b>virtual</b> redirection is applied only to  the  recipient
-       envelope  address,  and  does  not affect message headers.
+       The <b>virtual</b> redirection is applied only to recipient enve-
+       lope  addresses,  and  does  not  affect  message headers.
        Think Sendmail rule set <b>S0</b>, if you like. Use  <a href="canonical.5.html"><b>canonical</b>(5)</a>
        mapping  to  rewrite header and envelope addresses in gen-
        eral.
 
-       Normally, the file serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a>  com-
-       mand.  The result, an indexed file in <b>dbm</b> or <b>db</b> format, is
-       used for fast searching by the mail  system.  Execute  the
-       command  <b>postmap</b>  <b>/etc/postfix/virtual</b> in order to rebuild
-       the indexed file after changing the virtual table.
+       Normally, the <b>virtual</b> table is specified as  a  text  file
+       that  serves  as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
+       result, an indexed file in <b>dbm</b> or <b>db</b> format, is  used  for
+       fast  searching  by  the  mail system. Execute the command
+       <b>postmap</b>  <b>/etc/postfix/virtual</b>  in  order  to  rebuild  the
+       indexed file after changing the text file.
 
-       When the table is provided via other means  such  as  NIS,
-       LDAP  or  SQL,  the  same lookups are done as for ordinary
+       When  the  table  is provided via other means such as NIS,
+       LDAP or SQL, the same lookups are  done  as  for  ordinary
        indexed files.
 
-       Alternatively, the table can be  provided  as  a  regular-
+       Alternatively,  the  table  can  be provided as a regular-
        expression map where patterns are given as regular expres-
-       sions. In that case, the lookups are done  in  a  slightly
+       sions.  In  that  case, the lookups are done in a slightly
        different way as described below.
 
-<b>TABLE</b> <b>FORMAT</b>
-       Typical  support  for a virtual domain looks like the fol-
-       lowing:
+<b>POSTFIX-STYLE</b> <b>VIRTUAL</b> <b>DOMAINS</b>
+       With a Postfix-style virtual domain,  the  virtual  domain
+       has  its  own  user  name  space. Local (i.e. non-virtual)
+       usernames are  not  visible  in  a  Postfix-style  virtual
+       domain.  In particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and mailing lists
+       are not visible in a Postfix-style virtual domain.
 
+       Use a Sendmail-style virtual domain (see below)  if  local
+       usernames,  <a href="aliases.5.html"><b>aliases</b>(5)</a>  or mailing lists should be visible
+       in that virtual domain.
+
+       Support for a Postfix-style virtual domain looks like:
+
+       /etc/postfix/virtual:
            <i>virtual.domain</i>       <i>anything</i> (right-hand content does not matter)
            <i>postmaster@virtual.domain</i>    <i>postmaster</i>
            <i>user1@virtual.domain</i> <i>address1</i>
            <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
 
-       With this, the SMTP server accepts mail for <i>virtual.domain</i>
-       and  rejects mail for <i>unknown</i>@<i>virtual.domain</i> as undeliver-
-       able.
-
-       The format of the virtual table is  as  follows,  mappings
-       being tried in the order as listed in this manual page:
-
-       blanks and comments
-              Blank  lines  are  ignored,  as are lines beginning
-              with `#'.
-
-
+       The  <i>virtual.domain</i>  <i>anything</i>  entry  is  required  for  a
 
 
 
@@ -71,9 +71,73 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
+       Postfix-style virtual domain.
+
+       Do  not  list the virtual domain in the <b>main.cf</b> <b>mydestina-</b>
+       <b>tion</b> configuration parameter. Such an  entry  is  required
+       only for a Sendmail-style virtual domain.
+
+       With  a  Postfix-style  virtual  domain,  the Postfix SMTP
+       server  accepts  mail  for  <i>known-user@virtual.domain</i>  and
+       rejects mail for <i>unknown-user</i>@<i>virtual.domain</i> as undeliver-
+       able.
+
+<b>SENDMAIL-STYLE</b> <b>VIRTUAL</b> <b>DOMAINS</b>
+       With a Sendmail-style virtual domain,  every  local  (i.e.
+       non-virtual) username is visible in the virtual domain. In
+       particular, every local alias and mailing list is  visible
+       in a Sendmail-style virtual domain.
+
+       Use  a  Postfix-style  virtual domain (see above) if local
+       usernames, <a href="aliases.5.html"><b>aliases</b>(5)</a> or mailing lists should not be visi-
+       ble in that virtual domain.
+
+       Support for a Sendmail-style virtual domain looks like:
+
+       /etc/postfix/main.cf:
+           mydestination = $myhostname localhost.$mydomain $mydomain
+               <i>virtual.domain</i>
+
+       /etc/postfix/virtual:
+           <i>user1@virtual.domain</i> <i>address1</i>
+           <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
+
+       The  <b>main.cf</b>  <b>mydestination</b>  entry is required for a Send-
+       mail-style virtual domain.
+
+       Do not specify a <i>virtual.domain</i> <i>whatever</i> entry in the vir-
+       tual table. Such an entry is required only with a Postfix-
+       style virtual domain.
+
+       With a Sendmail-style virtual domain,  the  Postfix  local
+       delivery  agent  delivers  mail  for  an unknown <i>user</i>@<i>vir-</i>
+       <i>tual.domain</i> to a local (i.e.  non-virtual) user  that  has
+       the  same  name;  if no such recipient exists, the Postfix
+       local delivery agent bounces the mail to the sender.
+
+<b>TABLE</b> <b>FORMAT</b>
+       The format of the virtual table is  as  follows,  mappings
+       being tried in the order as listed in this manual page:
+
+       blanks and comments
+              Blank  lines  are  ignored,  as are lines beginning
+              with `#'.
+
        leading whitespace
-              Lines that begin with whitespace continue the  pre-
-              vious line.
+              Lines  that  begin  with  whitespace  continue  the
+
+
+
+                                                                2
+
+
+
+
+
+VIRTUAL(5)                                             VIRTUAL(5)
+
+
+              previous line.
 
        <i>pattern</i> <i>result</i>
               When  <i>pattern</i> matches a mail address, replace it by
@@ -126,9 +190,11 @@ VIRTUAL(5)                                             VIRTUAL(5)
        constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
        <i>foo</i>.
 
+       Patterns  are  applied  in  the  order as specified in the
 
 
-                                                                2
+
+                                                                3
 
 
 
@@ -137,7 +203,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
-       Patterns  are  applied  in  the  order as specified in the
        table, until a pattern is found that  matches  the  search
        string.
 
@@ -194,7 +259,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
 
 
 
-                                                                3
+
+                                                                4
 
 
 </pre> </body> </html>
