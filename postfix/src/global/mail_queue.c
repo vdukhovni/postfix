@@ -415,6 +415,7 @@ VSTREAM *mail_queue_open(const char *queue_name, const char *queue_id,
      * missing subdirectory.
      */
     if ((fp = vstream_fopen(path, flags, mode)) == 0)
+	if (errno == ENOENT)
 	if ((flags & O_CREAT) == O_CREAT && mail_queue_mkdirs(path) == 0)
 	    fp = vstream_fopen(path, flags, mode);
     return (fp);

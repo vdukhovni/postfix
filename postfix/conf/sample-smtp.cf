@@ -66,11 +66,24 @@ smtp_never_send_ehlo = no
 #smtp_bind_address=111.222.333.444
 
 # The smtp_skip_4xx_greeting parameter controls what happens when
-# an SMTP server greets us with a 4XX status code. By default, Postfix
-# backs off. Specify "smtp_skip_4xx_greeting = yes" to move on the
-# the next mail exchanger.
-# 
-smtp_skip_4xx_greeting = no
+# an SMTP server greets us with a 4XX status code (go away, try
+# again later).
+#
+# By default, Postfix moves on the the next mail exchanger. Specify
+# "smtp_skip_4xx_greeting = no" if Postfix should defer delivery
+# immediately.
+#
+smtp_skip_4xx_greeting = yes
+
+# The smtp_skip_5xx_greeting parameter controls what happens when
+# an SMTP server greets us with a 5XX status code (go away, do not
+# try again later).
+#
+# By default, Postfix moves on the the next mail exchanger. Specify
+# "smtp_skip_5xx_greeting = no" if Postfix should bounce the mail 
+# immediately.
+#
+smtp_skip_5xx_greeting = yes
 
 # The smtp_skip_quit_response parameter controls whether the SMTP
 # client waits for the response to the QUIT command. The default is

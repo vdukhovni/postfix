@@ -339,10 +339,10 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 			"####################################################################");
 	post_mail_fputs(bounce, "");
 	post_mail_fprintf(bounce,
-			"Your message could not be delivered for %.1g hours.",
+			"Your message could not be delivered for %.1f hours.",
 			  var_delay_warn_time / 3600.0);
 	post_mail_fprintf(bounce,
-			  "It will be retried until it is %.1g days old.",
+			  "It will be retried until it is %.1f days old.",
 			  var_max_queue_time / 86400.0);
     }
 

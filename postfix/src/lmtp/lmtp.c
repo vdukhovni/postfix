@@ -49,6 +49,7 @@
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2033 (LMTP protocol)
 /*	RFC 2197 (Pipelining)
+/*	RFC 2554 (AUTH command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can
@@ -85,6 +86,27 @@
 /* .IP \fBlmtp_tcp_port\fR
 /*	The TCP port to be used when connecting to a LMTP server.  Used as
 /*	backup if the \fBlmtp\fR service is not found in \fBservices\fR(4).
+/* .SH "Authentication controls"
+/* .IP \fBlmtp_enable_sasl_auth\fR
+/*	Enable per-session authentication as per RFC 2554 (SASL).
+/*	By default, Postfix is built without SASL support.
+/* .IP \fBlmtp_sasl_password_maps\fR
+/*	Lookup tables with per-host or domain \fIname\fR:\fIpassword\fR entries.
+/*	No entry for a host means no attempt to authenticate.
+/* .IP \fBlmtp_sasl_security_options\fR
+/*	Zero or more of the following.
+/* .RS
+/* .IP \fBnoplaintext\fR
+/*	Disallow authentication methods that use plaintext passwords.
+/* .IP \fBnoactive\fR
+/*	Disallow authentication methods that are vulnerable to non-dictionary
+/*	active attacks.
+/* .IP \fBnodictionary\fR
+/*	Disallow authentication methods that are vulnerable to passive
+/*	dictionary attack.
+/* .IP \fBnoanonymous\fR
+/*	Disallow anonymous logins.
+/* .RE
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -231,6 +253,7 @@
 /* Application-specific. */
 
 #include "lmtp.h"
+#include "lmtp_sasl.h"
 
  /*
   * Tunable parameters. These have compiled-in defaults that can be overruled
@@ -252,6 +275,9 @@ int     var_lmtp_cache_conn;
 int     var_lmtp_skip_quit_resp;
 char   *var_notify_classes;
 char   *var_error_rcpt;
+char   *var_lmtp_sasl_opts;
+char   *var_lmtp_sasl_passwd;
+bool    var_lmtp_sasl_enable;
 
  /*
   * Global variables.
@@ -432,6 +458,10 @@ static void post_init(char *unused_name, char **unused_argv)
 static void pre_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
+#ifdef USE_SASL_AUTH
+    if (var_lmtp_sasl_enable)
+	lmtp_sasl_initialize();
+#endif
 }
 
 /* cleanup - close any open connections, etc. */
@@ -446,6 +476,10 @@ static void cleanup(void)
 	    msg_info("cleanup: just closed down session");
     }
     lmtp_state_free(state);
+#ifdef USE_SASL_AUTH
+    if (var_lmtp_sasl_enable)
+	sasl_done();
+#endif
 }
 
 /* pre_accept - see if tables have changed */
@@ -467,6 +501,8 @@ int     main(int argc, char **argv)
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
+	VAR_LMTP_SASL_PASSWD, DEF_LMTP_SASL_PASSWD, &var_lmtp_sasl_passwd, 0, 0,
+	VAR_LMTP_SASL_OPTS, DEF_LMTP_SASL_OPTS, &var_lmtp_sasl_opts, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

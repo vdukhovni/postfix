@@ -1,10 +1,23 @@
 WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 ===============================================================
 
-Do not use this code.  The Postfix SASL support is based on the
-Cyrus SASL library, which has not enough documentation about how
-the software is supposed to work. It is not clear if the code is
-safe enough for security-critical applications.
+This code is not blessed by Wietse.
+
+People who go to the trouble of installing Postfix may have the
+expectation that Postfix is more secure than some other mailers.
+
+With SASL authentication enabled in the Postfix SMTP client and
+SMTP server, Postfix becomes no more secure than other mail systems
+that use the Cyrus SASL library.
+
+The Cyrus SASL library has too little documentation about how the
+software is supposed to work; and it is too much code to be used
+in a security-sensitive program such as an SMTP client or server.
+
+However, you are pretty much required to build with SASL support
+if you are going to use the LMTP interface of the Cyrus delivery
+agent.  This interface is much faster than forking a new process
+for every message delivery.
 
 Postfix+SASL 1.5.5 appears to work on RedHat 6.1 (pwcheck_method
 set to shadow or sasldb), Solaris 2.7 (pwcheck_method set to shadow
@@ -13,9 +26,6 @@ RedHat 6.1, SASL 1.5.5 insisted on write access to /etc/sasldb.
 Note that this seems to be related to the auto_transition switch in
 SASL. Note also that the Cyrus SASL documentation says that it is
 pointless to enable that if you use "sasldb" for "pwcheck_method".
-
-SASL is a lot of complex code. In a future version the Postfix SASL
-code is likely to be put outside the SMTP server.
 
 Introduction
 ============
@@ -51,6 +61,12 @@ you will have to symlink /usr/lib/sasl -> /usr/local/lib/sasl.
 Reportedly, Microsoft Internet Explorer version 5 requires the
 non-standard SASL LOGIN authentication method. To enable this
 authentication method, specify ``./configure --enable-login''.
+
+Reportedly, older Microsoft software mis-implements the AUTH
+protocol, and requires that the server replies to EHLO with
+"250-AUTH=stuff..." instead of "250-AUTH stuff...". To accomodate
+such clients, set "allow_broken_auth_clients = yes" in the main.cf
+file.
 
 Building Postfix with SASL authentication support
 =================================================

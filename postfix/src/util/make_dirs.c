@@ -81,8 +81,18 @@ int     make_dirs(const char *path, int perms)
 	} else {
 	    if (errno != ENOENT)
 		break;
-	    if ((ret = mkdir(saved_path, perms)) < 0 && errno != EEXIST)
-		break;
+	    if ((ret = mkdir(saved_path, perms)) < 0) {
+		if (errno != EEXIST)
+		    break;
+		/* Race condition? */
+		if ((ret = stat(saved_path, &st)) < 0) 
+		    break;
+		if (!S_ISDIR(st.st_mode)) {
+		    errno = ENOTDIR;
+		    ret = -1;
+		    break;
+		}
+	    }
 	}
 	if (saved_ch != 0)
 	    *cp = saved_ch;

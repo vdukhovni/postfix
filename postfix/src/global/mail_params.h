@@ -238,6 +238,14 @@ extern char *var_rcpt_witheld;
 extern bool var_strict_rfc821_env;
 
  /*
+  * Standards violation: send "250 AUTH=list" in order to accomodate broken
+  * Microsoft clients.
+  */
+#define VAR_BROKEN_AUTH_CLNTS	"allow_broken_auth_clients"
+#define DEF_BROKEN_AUTH_CLNTS	0
+extern bool var_broken_auth_clients;
+
+ /*
   * Standards violation: disable VRFY.
   */
 #define VAR_DISABLE_VRFY_CMD	"disable_vrfy_command"
@@ -712,7 +720,7 @@ extern int var_smtpd_err_sleep;
 extern int var_smtpd_junk_cmd_limit;
 
  /*
-  * SASL authentication support, server side.
+  * SASL authentication support, SMTP server side.
   */
 #define VAR_SMTPD_SASL_ENABLE	"smtpd_sasl_auth_enable"
 #define DEF_SMTPD_SASL_ENABLE	0
@@ -727,7 +735,7 @@ extern char *var_smtpd_sasl_opts;
 extern char *var_smtpd_sasl_realm;
 
  /*
-  * SASL authentication support, client side.
+  * SASL authentication support, SMTP client side.
   */
 #define VAR_SMTP_SASL_ENABLE	"smtp_sasl_auth_enable"
 #define DEF_SMTP_SASL_ENABLE	0
@@ -741,6 +749,24 @@ extern char *var_smtp_sasl_passwd;
 #define DEF_SMTP_SASL_OPTS	"noplaintext, noanonymous"
 extern char *var_smtp_sasl_opts;
 
+ /*
+  * SASL authentication support, LMTP client side.
+  */
+#define VAR_LMTP_SASL_ENABLE	"lmtp_sasl_auth_enable"
+#define DEF_LMTP_SASL_ENABLE	0
+extern bool var_lmtp_sasl_enable;
+
+#define VAR_LMTP_SASL_PASSWD	"lmtp_sasl_password_maps"
+#define DEF_LMTP_SASL_PASSWD	""
+extern char *var_lmtp_sasl_passwd;
+
+#define VAR_LMTP_SASL_OPTS	"lmtp_sasl_security_options"
+#define DEF_LMTP_SASL_OPTS	"noplaintext, noanonymous"
+extern char *var_lmtp_sasl_opts;
+
+ /*
+  * SASL-based relay etc. control.
+  */
 #define PERMIT_SASL_AUTH	"permit_sasl_authenticated"
 
  /*
@@ -1110,18 +1136,23 @@ extern char *var_export_environ;
 #define VAR_VIRT_MAILBOX_MAPS	"virtual_mailbox_maps"
 #define DEF_VIRT_MAILBOX_MAPS	""
 extern char *var_mailbox_maps;
+
 #define VAR_VIRT_UID_MAPS	"virtual_uid_maps"
 #define DEF_VIRT_UID_MAPS	""
 extern char *var_uid_maps;
+
 #define VAR_VIRT_GID_MAPS	"virtual_gid_maps"
 #define DEF_VIRT_GID_MAPS	""
 extern char *var_gid_maps;
+
 #define VAR_VIRT_USEDOTLOCK	"virtual_usedotlock"
 #define DEF_VIRT_USEDOTLOCK	0
 extern bool var_virt_usedotlock;
+
 #define VAR_VIRT_MINUID		"virtual_minimum_uid"
 #define DEF_VIRT_MINUID		100
-extern int  var_virt_minimum_uid;
+extern int var_virt_minimum_uid;
+
 #define VAR_VIRT_MAILBOX_BASE	"virtual_mailbox_base"
 #define DEF_VIRT_MAILBOX_BASE	""
 extern char *var_virt_mailbox_base;

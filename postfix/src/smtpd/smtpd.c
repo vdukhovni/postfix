@@ -57,6 +57,10 @@
 /* .IP \fBstrict_rfc821_envelopes\fR
 /*	Disallow non-RFC 821 style addresses in envelopes. For example,
 /*	allow RFC822-style address forms with comments, like Sendmail does.
+/* .IP \fBallow_broken_auth_clients\fR
+/*	Support older Microsoft clients that mis-implement the AUTH
+/*      protocol, and that expect an EHLO response of "250 AUTH=list"
+/*	instead of "250 AUTH list".
 /* .SH "Content inspection controls"
 /* .IP \fBcontent_filter\fR
 /*	The name of a mail delivery transport that filters mail and that
@@ -343,6 +347,7 @@ bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
+bool    var_broken_auth_clients;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -439,8 +444,11 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "250-SIZE");
     smtpd_chat_reply(state, "250-ETRN");
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
+    if (var_smtpd_sasl_enable) {
 	smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
+	if (var_broken_auth_clients)
+	    smtpd_chat_reply(state, "250-AUTH=%s", state->sasl_mechanism_list);
+    }
 #endif
     smtpd_chat_reply(state, "250 8BITMIME");
     return (0);
@@ -949,7 +957,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_mask |= MAIL_ERROR_BOUNCE;
 	smtpd_chat_reply(state, "554 Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
-	state->error_mask |= MAIL_ERROR_BOUNCE;
+	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "552 Error: content rejected");
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
@@ -1447,6 +1455,7 @@ int     main(int argc, char **argv)
 	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
 	VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
 	VAR_SMTPD_SASL_ENABLE, DEF_SMTPD_SASL_ENABLE, &var_smtpd_sasl_enable,
+	VAR_BROKEN_AUTH_CLNTS, DEF_BROKEN_AUTH_CLNTS, &var_broken_auth_clients,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

@@ -63,6 +63,16 @@ smtpd_recipient_limit = 1000
 #
 smtpd_timeout = 300s
 
+# The strict_rfc821_envelopes configuration parameter controls whether
+# the Postfix SMTP server requires that MAIL FROM and RCPT TO addresses
+# are specified within <>, and that MAIL FROM and RCPT TO addresses
+# do not contain RFC822-style comments or phrases.  It's great to
+# stop SPAM mailers. But it also trips up broken peecee clients.
+# 
+# By default, Postfix SMTPD allows RFC822 syntax in MAIL FROM and RCPT TO.
+# 
+strict_rfc821_envelopes = no
+
 #
 # TARPIT CONTROLS
 #

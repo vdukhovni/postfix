@@ -98,11 +98,11 @@
 #include <rec_type.h>
 #include <off_cvt.h>
 #include <mark_corrupt.h>
+#include <quote_821_local.h>
 
 /* Application-specific. */
 
 #include "smtp.h"
-#include "quote_821_local.h"
 #include "smtp_sasl.h"
 
  /*

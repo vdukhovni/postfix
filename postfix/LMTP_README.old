@@ -1,0 +1,125 @@
+BEGIN WARNING
+=============
+
+The information in this file is outdated. The Postfix LMTP server
+can now make connections over UNIX-domain sockets. 
+
+With connections over TCP sockets, some Cyrus implementations insist
+on SASL-style authentication, which is not supported by the Postfix
+LMTP client. In that case, use UNIX-domain sockets instead.
+
+The precise syntax for UNIX-domain and TCP connection endpoints is
+given in the lmtp(8) manual page.
+
+Examples:
+
+    /etc/postfix/transport:
+	domain1.name		lmtp1:unix:/path/name
+	domain2.name		lmtp2:lmtp2host
+
+    /etc/postfix/master.cf:
+        lmtp1      unix  -       -       n       -       -       lmtp
+        lmtp2      unix  -       -       n       -       -       lmtp
+
+The first example (domain1) uses UNIX-domain connections, the second
+example (domain2) uses TCP. 
+
+For optimal use of connection caching, specify separate mail delivery
+transports for each domain that receives mail via LMTP:
+
+END WARNING
+===========
+
+Postfix LMTP support
+====================
+
+Postfix LMTP support is based on a modified version of the Postfix
+SMTP client. The initial version was by Philip A.  Prindeville of
+Mirapoint, Inc., USA. This code was modified further by Amos Gouaux
+of University of Texas at Dallas, Richardson, USA.  Wietse Venema
+reduced the code to its present shape.
+
+Postfix can be configured to talk to a local or remote LMTP server.
+Most people will run the LMTP server on the same machine that runs
+Postfix. However, a remote LMTP server can be useful if Postfix
+runs on mail relay server(s) that feed incoming mail directly to
+the appropriate mailbox server(s). This way, mailbox servers do
+not need to run an SMTP server at all.  Tidy all the way around.
+
+Configuring the mailbox server (local or remote)
+================================================
+
+On the mailbox server, in this case a CMU Cyrus imapd/popd server,
+add the following to /etc/services:
+
+    pop3            110/tcp                         # Cyrus POP3
+    imap            143/tcp                         # Cyrus IMAP4
+    lmtp            24/tcp
+
+Next, put the following in /etc/inetd.conf:
+
+    lmtp    stream  tcp     nowait  cyrus   /usr/sbin/tcpd  /usr/local/cyrus/bin/deliver -e -l
+
+/usr/sbin/tcpd is from the tcp_wrappers package.  You want this to
+make sure only your mail relay(s) can talk to the LMTP server.
+Postfix by default does multiple deliveries per LMTP session
+(connection caching), so do not worry about the overhead of
+tcp_wrapping the LMTP port.
+
+On some systems, tcpd is built into inetd, so you do not have to
+specify tcpd in the inetd.conf file. Instead of tcpd/inetd, xinetd
+can do a similar job of logging and access control.
+
+Configuring Postfix
+===================
+
+Similar changes to /etc/services:
+
+    lmtp            24/tcp
+
+You may have to add the following entry to /etc/postfix/master.cf:
+
+    lmtp      unix  -       -       n       -       -       lmtp
+
+NOTE:  Root privileges are not necessary!
+
+Put this in /etc/postfix/transport:
+
+    inbox.domain.org     lmtp:inbox.domain.org
+
+Naturally, this means we also need in /etc/postfix/main.cf:
+
+    transport_maps      = hash:/etc/postfix/transport
+
+Instead of "hash", use the map type of your choice. Some systems
+use "dbm" instead. Use "postconf -m" to find out what map types
+are supported.
+
+Improving connection caching performance
+========================================
+
+After delivering a message via LMTP, Postfix will keep the connection
+open for a while, so that it can be reused for a subsequent delivery.
+This reduces overhead of LMTP servers that create one process per
+connection.  
+
+For LMTP connection caching to work, the Postfix LMTP client should
+not switch destination hosts.  This is no problem when you run only
+one LMTP server. However, if you run multiple LMTP servers, this
+can be an issue.
+
+You can prevent the LMTP client from switching between servers by
+configuring a separate mail delivery transport for each LMTP server:
+
+    /etc/postfix/master.cf:
+        lmtp1      unix  -       -       n       -       -       lmtp
+        lmtp2      unix  -       -       n       -       -       lmtp
+          .         .    .       .       .       .       .        .
+
+Configure transport table entries such that the lmtp1 mail delivery
+transport is used for all deliveries to the LMTP server #1, the
+mail lmtp2 transport for the LMTP server #2, and so on.
+
+    /etc/postfix/transport:
+        foo.com lmtp1:lmtp1host
+        bar.com lmtp2:lmtp2host
