@@ -1574,6 +1574,8 @@ extern int var_defer_code;
 #define DEFER_IF_PERMIT		"defer_if_permit"
 #define DEFER_IF_REJECT		"defer_if_reject"
 
+#define SLEEP			"sleep"
+
 #define REJECT_UNKNOWN_CLIENT	"reject_unknown_client"
 #define VAR_UNK_CLIENT_CODE	"unknown_client_reject_code"
 #define DEF_UNK_CLIENT_CODE	450

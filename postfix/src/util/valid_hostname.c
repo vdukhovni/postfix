@@ -317,8 +317,8 @@ int     valid_ipv6_hostaddr(const char *addr, int gripe)
 	    break;
 	default:
 	    /* Advance by at least 1 character position or terminate. */
-	    len = strspn(cp, "0123456789abcdefABCDEF");
-	    if (len /* - strspn(cp, "0") */ > 4) {
+	    len = strspn((char *) cp, "0123456789abcdefABCDEF");
+	    if (len /* - strspn((char *) cp, "0") */ > 4) {
 		if (gripe)
 		    msg_warn("%s: malformed IPv6 address: %.100s",
 			     myname, addr);

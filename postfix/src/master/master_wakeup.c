@@ -104,6 +104,12 @@ static void master_wakeup_timer_event(int unused_event, char *context)
 	case MASTER_SERV_TYPE_UNIX:
 	    status = LOCAL_TRIGGER(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);
 	    break;
+#ifdef MASTER_SERV_TYPE_PASS
+	case MASTER_SERV_TYPE_PASS:
+	    /* Can't send data to a service that expects descriptors. */
+	    status = 0;
+	    break;
+#endif
 
 	    /*
 	     * If someone compromises the postfix account then this must not

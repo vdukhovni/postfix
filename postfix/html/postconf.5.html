@@ -459,6 +459,18 @@ run "<b>newaliases</b>" to build the necessary DBM or DB file.
 </p>
 
 <p>
+The <a href="local.8.html">local(8)</a> delivery agent disallows regular expression substitution
+of $1 etc. in <a href="postconf.5.html#alias_maps">alias_maps</a>, because that would open a security hole.
+</p>
+
+<p>
+The <a href="local.8.html">local(8)</a> delivery agent will silently ignore requests to use
+the <a href="proxymap.8.html">proxymap(8)</a> server within <a href="postconf.5.html#alias_maps">alias_maps</a>. Instead it will open the
+table directly. Before Postfix version 2.2, the <a href="local.8.html">local(8)</a> delivery
+agent will terminate with a fatal error.
+</p>
+
+<p>
 Examples:
 </p>
 
@@ -7156,6 +7168,21 @@ restriction contexts is therefore not recommended.  </dd>
 a restriction list, to make the default policy explicit.  The
 <a href="postconf.5.html#reject_code">reject_code</a> configuration parameter specifies the response code to
 rejected requests (default: 554).</dd>
+
+<dt><b><a name="sleep">sleep <i>seconds</i></a></b></dt>
+
+<dd>Pause for the specified number of seconds and proceed with
+the next restriction in the list, if any. This may stop zombie
+mail when used as:  </dd>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> =
+        sleep 1, <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a>
+    <a href="postconf.5.html#smtpd_delay_reject">smtpd_delay_reject</a> = no
+</pre>
+</blockquote>
 
 <dt><b><a name="warn_if_reject">warn_if_reject</a></b></dt>
 

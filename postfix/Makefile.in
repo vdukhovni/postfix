@@ -37,8 +37,14 @@ printfck: update
 install: update
 	$(SHELL) postfix-install
 
+package: update
+	$(SHELL) postfix-install -package
+
 upgrade: update
 	$(SHELL) postfix-install -non-interactive
+
+non-interactive-package: update
+	$(SHELL) postfix-install -non-interactive -package
 
 depend clean:
 	set -e; for i in $(DIRS); do \

@@ -10230,10 +10230,25 @@ Apologies for any names omitted.
 	than $line_length_limit, causing postdrop to reject the
 	mail. Diagnosis by Victor Duchovni. File:  sendmail/sendmail.c.
 
+20050202
+
+	Cleanup: explicit Makefile targets for "make package" and
+	"make non-interactive-package" to create ready-to-install
+	packages for distribution to other systems. Added extra
+	sanity checks to prevent attempts to overwrite your running
+	Postfix instance. Files:  Makefile.in, proto/PACKAGE_README.
+
+	Cleanup: when bounce_queue_lifetime > maximal_queue_lifetime,
+	it is adjusted to maximal_queue_lifetime, and a warning is
+	logged. Files:  *qmgr/qmgr.c.
+
+	Cleanup: trivial-rewrite detects changes to maps even in
+	the absence of connection events. File: trivial-rewrite.c.
+
 Open problems:
 
-	Low: document regexp usage in aliases and other sensitive
-	maps.
+	Med: SunOS 4 has no strtoul(). Instead of sprintf/strtoul()
+	use hexen/decode() for the process generation number.
 
 	Low: pointers to postfinger and saslfinger. postfinger
 	is now bundled.
@@ -10261,15 +10276,10 @@ Open problems:
 	really try all the possibilities that one might expect to
 	be tried. For now, this gotcha is documented in access(5).
 
-	Low: cap bounce queue life time with regular queue life
-	time.
-
 	Med: the TLS certificate verification depth parameters
 	never worked.
 
 	Med: eliminate the tls_info data structure.
-
-	Low: something to alias sdbm:name into btree:name?
 
 	Med: implement ${name[?:]value} in main.cf or update the
 	postconf(5) manual.
@@ -10279,19 +10289,11 @@ Open problems:
 
 	Low: should the Delivered-To: test in local(8) be configurable?
 
-	Low: document propagate_unmatched_extensions in aliases(5)
-	etc.
-
 	Low: make mail_addr_find() lookup configurable.
-
-	Low: anvil(8) should log cache peak size, like scache(8).
 
 	Low: update events.c so that 1-second timer requests do
 	not suffer from rounding errors. This is needed for 1-second
 	SMTP session caching time limits.
-
-	Low: trivial-rewrite should examine the map change status
-	every N seconds.
 
 	Low: per-sender resolver personalities?
 

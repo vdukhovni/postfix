@@ -427,6 +427,18 @@ If you change the alias database, run "<b>postalias /etc/aliases</b>"
 (or wherever your system stores the mail alias file), or simply
 run "<b>newaliases</b>" to build the necessary DBM or DB file.
 </p>
+  
+<p>
+The local(8) delivery agent disallows regular expression substitution
+of $1 etc. in alias_maps, because that would open a security hole.
+</p>
+
+<p>
+The local(8) delivery agent will silently ignore requests to use
+the proxymap(8) server within alias_maps. Instead it will open the
+table directly. Before Postfix version 2.2, the local(8) delivery
+agent will terminate with a fatal error.
+</p>
 
 <p>
 Examples:
@@ -4439,6 +4451,21 @@ restriction contexts is therefore not recommended.  </dd>
 a restriction list, to make the default policy explicit.  The
 reject_code configuration parameter specifies the response code to
 rejected requests (default: 554).</dd>
+
+<dt><b><a name="sleep">sleep <i>seconds</i></a></b></dt>
+
+<dd>Pause for the specified number of seconds and proceed with
+the next restriction in the list, if any. This may stop zombie
+mail when used as:  </dd>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtpd_client_restrictions = 
+        sleep 1, reject_unauth_pipelining
+    smtpd_delay_reject = no
+</pre>
+</blockquote>
 
 <dt><b><a name="warn_if_reject">warn_if_reject</a></b></dt>
 

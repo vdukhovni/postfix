@@ -102,6 +102,21 @@ ALIASES(5)                                             ALIASES(5)
        <i>user+foo</i>),  the  search  is  repeated  for  the unextended
        address (e.g., <i>user</i>).
 
+       The  <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>   parameter   controls
+       whether  an  unmatched  address extension (<i>+foo</i>) is propa-
+       gated to the result of table lookup.
+
+<b>SECURITY</b>
+       The <a href="local.8.html"><b>local</b>(8)</a> delivery agent disallows  regular  expression
+       substitution  of $1 etc. in <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>, because that would
+       open a security hole.
+
+       The <a href="local.8.html"><b>local</b>(8)</a> delivery agent will silently ignore  requests
+       to  use  the <a href="proxymap.8.html"><b>proxymap</b>(8)</a> server within <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>. Instead
+       it will open the table directly.  Before  Postfix  version
+       2.2,  the  <a href="local.8.html"><b>local</b>(8)</a>  delivery  agent will terminate with a
+       fatal error.
+
 <b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are especially  relevant.
        The  text  below  provides  only  a parameter summary. See
@@ -109,10 +124,10 @@ ALIASES(5)                                             ALIASES(5)
 
        <b><a href="postconf.5.html#alias_database">alias_database</a></b>
               List of alias databases that  are  updated  by  the
-              <a href="newaliases.1.html">newaliases(1)</a> command.
+              <a href="newaliases.1.html"><b>newaliases</b>(1)</a> command.
 
        <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>
-              List  of  alias  databases  queried by the <a href="local.8.html">local(8)</a>
+              List  of  alias  databases  queried by the <a href="local.8.html"><b>local</b>(8)</a>
               delivery agent.
 
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a></b>
@@ -129,6 +144,13 @@ ALIASES(5)                                             ALIASES(5)
               the right-hand side of  the  owner  alias,  instead
               using of the left-hand side address.
 
+       <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>
+              A  list  of  address rewriting or forwarding mecha-
+              nisms that propagate an address extension from  the
+              original  address  to  the  result. Specify zero or
+              more of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,  or
+              <b>include</b>.
+
        <b><a href="postconf.5.html#owner_request_special">owner_request_special</a></b>
               Give  special treatment to <b>owner-</b><i>listname</i> and <i>list-</i>
               <i>name</i><b>-request</b> addresses.
@@ -136,11 +158,6 @@ ALIASES(5)                                             ALIASES(5)
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a></b>
               Delimiter that separates  recipients  from  address
               extensions.
-
-<b>BUGS</b>
-       Regular  expression  alias  lookup tables are allowed, but
-       substitution of $1 etc. is forbidden  because  that  would
-       open a security loophole.
 
 <b>STANDARDS</b>
        <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> (ARPA Internet Text Messages)

@@ -302,6 +302,23 @@
 /*
 /*	Depending on the setting of the \fBnotify_classes\fR parameter,
 /*	the postmaster is notified of bounces and of other trouble.
+/* SECURITY
+/* .ad
+/* .fi
+/*	The \fBlocal\fR(8) delivery agent needs a dual personality
+/*	1) to access the private Postfix queue and IPC mechanisms,
+/*	2) to impersonate the recipient and deliver to recipient-specified
+/*	files or commands. It is therefore security sensitive.
+/*
+/*	The \fBlocal\fR(8) delivery agent disallows regular expression
+/*	substitution of $1 etc. in \fBalias_maps\fR, because that
+/*	would open a security hole.
+/*
+/*	The \fBlocal\fR(8) delivery agent will silently ignore
+/*	requests to use the \fBproxymap\fR(8) server within
+/*	\fBalias_maps\fR. Instead it will open the table directly.
+/*	Before Postfix version 2.2, the \fBlocal\fR(8) delivery
+/*	agent will terminate with a fatal error.
 /* BUGS
 /*	For security reasons, the message delivery status of external commands
 /*	or of external files is never checkpointed to file. As a result,
@@ -314,7 +331,7 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as local(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically, as \fBlocal\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
@@ -338,7 +355,7 @@
 /* DELIVERY METHOD CONTROLS
 /* .ad
 /* .fi
-/*	The precedence of local(8) delivery methods from high to low is:
+/*	The precedence of \fBlocal\fR(8) delivery methods from high to low is:
 /*	aliases, .forward files, mailbox_transport, mailbox_command_maps,
 /*	mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
 /*	and luser_relay.

@@ -333,12 +333,26 @@ RES_CONTEXT resolve_verify = {
 static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 {
     int     status = -1;
+    static time_t last;
+    time_t  now = event_time();
+    const char *table;
 
     /*
      * Sanity check. This service takes no command-line arguments.
      */
     if (argv[0])
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
+     * Connections are persistent. Be sure to refesh timely.
+     */
+    if (now - last > 10) {
+	if ((table = dict_changed_name()) != 0) {
+	    msg_info("table %s has changed -- restarting", table);
+	    exit(0);
+	}
+	last = now;
+    }
 
     /*
      * This routine runs whenever a client connects to the UNIX-domain socket
@@ -360,18 +374,6 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
     }
     if (status < 0)
 	multi_server_disconnect(stream);
-}
-
-/* pre_accept - see if tables have changed */
-
-static void pre_accept(char *unused_name, char **unused_argv)
-{
-    const char *table;
-
-    if ((table = dict_changed_name()) != 0) {
-	msg_info("table %s has changed -- restarting", table);
-	exit(0);
-    }
 }
 
 /* pre_jail_init - initialize before entering chroot jail */
@@ -442,6 +444,5 @@ int     main(int argc, char **argv)
 		      MAIL_SERVER_BOOL_TABLE, bool_table,
 		      MAIL_SERVER_PRE_INIT, pre_jail_init,
 		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		      0);
 }

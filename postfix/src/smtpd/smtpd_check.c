@@ -1285,7 +1285,8 @@ static int reject_unauth_pipelining(SMTPD_STATE *state,
 
     if (state->client != 0
 	&& SMTPD_STAND_ALONE(state) == 0
-	&& vstream_peek(state->client) > 0
+	&& (vstream_peek(state->client) > 0
+	    || peekfd(vstream_fileno(state->client)) > 0)
 	&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
 	    || strcasecmp(state->where, "DATA") == 0)) {
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
@@ -3146,10 +3147,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
 	    status = reject_unauth_pipelining(state, reply_name, reply_class);
 	} else if (strcasecmp(name, CHECK_POLICY_SERVICE) == 0) {
-	    if (cpp[1] == 0)
+	    if (cpp[1] == 0 || strchr(cpp[1], ':') == 0) {
 		msg_warn("restriction %s must be followed by transport:server",
 			 CHECK_POLICY_SERVICE);
-	    else
+		longjmp(smtpd_check_buf, smtpd_check_reject(state,
+		    MAIL_ERROR_SOFTWARE, "451 Server configuration error"));
+	    } else
 		status = check_policy_service(state, *++cpp, reply_name,
 					      reply_class, def_acl);
 	} else if (strcasecmp(name, DEFER_IF_PERMIT) == 0) {
@@ -3160,6 +3163,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
 			 "450 <%s>: %s rejected: defer_if_reject requested",
 			     reply_name, reply_class);
+	} else if (strcasecmp(name, SLEEP) == 0) {
+	    if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
+		msg_warn("restriction %s must be followed by number", SLEEP);
+		longjmp(smtpd_check_buf, smtpd_check_reject(state,
+		    MAIL_ERROR_SOFTWARE, "451 Server configuration error"));
+	    } else
+		sleep(atoi(*++cpp));
 	}
 
 	/*

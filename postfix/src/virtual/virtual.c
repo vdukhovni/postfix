@@ -109,6 +109,15 @@
 /*	The virtual delivery agent is not security sensitive, provided
 /*	that the lookup tables with recipient user/group ID information are
 /*	adequately protected. This program is not designed to run chrooted.
+/*
+/*	The virtual delivery agent disallows regular expression
+/*	substitution of $1 etc. in regular expression lookup tables,
+/*	because that would open a security hole.
+/*
+/*	The virtual delivery agent will silently ignore requests
+/*	to use the proxymap(8) server. Instead it will open the
+/*	table directly. Before Postfix version 2.2, the virtual
+/*	delivery agent will terminate with a fatal error.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* DIAGNOSTICS

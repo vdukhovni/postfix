@@ -7,12 +7,33 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
-Incompatible changes with snapshot Postfix-2.2-20050131
+Incompatible changes with snapshot Postfix-2.2-20050202
 =======================================================
 
 Postfix rewrites message header addresses only in mail that originates
 from the local machine. Specify "local_header_rewrite_clients =
 static:all" to get the old behavior of Postfix 2.1 and earlier.
+
+Major changes with snapshot Postfix-2.2-20050202
+================================================
+
+To create a ready-to-install package for distribution to other
+systems use "make package" or "make non-interactive-package",
+instead of invoking the postfix-install script by hand (which is
+deprecated). See the PACKAGE_README file for details.
+
+New "permit_inet_interfaces" access restriction to allow access
+from local IP addresses only. This is used for the default, purist,
+setting of local_header_rewrite_clients.
+
+New "sleep time-in-seconds" pseudo access restriction to block
+zombie clients with reject_unauthorized_pipelining before the
+Postfix SMTP server sends the SMTP greeting. See postconf(5)
+for example.
+
+Safety: Postfix no longer tries to send mail to the fallback_relay
+when the local machine is MX host for the mail destination. See
+postconf(5) description of fallback_relay for details.
 
 Incompatible changes with snapshot Postfix-2.2-20050117
 =======================================================

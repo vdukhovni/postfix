@@ -272,6 +272,9 @@ static int max_rcpt;
 static char *max_rcpt_user;
 static time_t max_rcpt_time;
 
+static int max_cache;
+static time_t max_cache_time;
+
  /*
   * Remote connection state, one instance for each (service, client) pair.
   */
@@ -522,6 +525,10 @@ static ANVIL_REMOTE *anvil_remote_conn_update(VSTREAM *client_stream, const char
 	anvil_remote = (ANVIL_REMOTE *) mymalloc(sizeof(*anvil_remote));
 	ANVIL_REMOTE_FIRST(anvil_remote, ident);
 	htable_enter(anvil_remote_map, ident, (char *) anvil_remote);
+	if (max_cache < anvil_remote_map->used) {
+	    max_cache = anvil_remote_map->used;
+	    max_cache_time = event_time();
+	}
     } else {
 	ANVIL_REMOTE_NEXT(anvil_remote);
     }
@@ -809,28 +816,33 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 
 static void anvil_status_dump(char *unused_name, char **unused_argv)
 {
-    if (max_rate > 1) {
+    if (max_rate > 0) {
 	msg_info("statistics: max connection rate %d/%ds for (%s) at %.15s",
 		 max_rate, var_anvil_time_unit,
 		 max_rate_user, ctime(&max_rate_time) + 4);
 	max_rate = 0;
     }
-    if (max_count > 1) {
+    if (max_count > 0) {
 	msg_info("statistics: max connection count %d for (%s) at %.15s",
 		 max_count, max_count_user, ctime(&max_count_time) + 4);
 	max_count = 0;
     }
-    if (max_mail > 1) {
+    if (max_mail > 0) {
 	msg_info("statistics: max message rate %d/%ds for (%s) at %.15s",
 		 max_mail, var_anvil_time_unit,
 		 max_mail_user, ctime(&max_mail_time) + 4);
 	max_mail = 0;
     }
-    if (max_rcpt > 1) {
+    if (max_rcpt > 0) {
 	msg_info("statistics: max recipient rate %d/%ds for (%s) at %.15s",
 		 max_rcpt, var_anvil_time_unit,
 		 max_rcpt_user, ctime(&max_rcpt_time) + 4);
 	max_rcpt = 0;
+    }
+    if (max_cache > 0) {
+	msg_info("statistics: max ident cache size %d at %.15s",
+		 max_cache, ctime(&max_cache_time) + 4);
+	max_cache = 0;
     }
 }
 

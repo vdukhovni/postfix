@@ -313,6 +313,23 @@ LOCAL(8)                                                 LOCAL(8)
        the postmaster is notified of bounces and of  other  trou-
        ble.
 
+<b>SECURITY</b>
+       The <a href="local.8.html"><b>local</b>(8)</a> delivery agent needs a dual personality 1) to
+       access the private Postfix queue and IPC mechanisms, 2) to
+       impersonate  the recipient and deliver to recipient-speci-
+       fied files or commands. It is  therefore  security  sensi-
+       tive.
+
+       The  <a href="local.8.html"><b>local</b>(8)</a>  delivery agent disallows regular expression
+       substitution of $1 etc. in <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>, because that  would
+       open a security hole.
+
+       The  <a href="local.8.html"><b>local</b>(8)</a> delivery agent will silently ignore requests
+       to use the <a href="proxymap.8.html"><b>proxymap</b>(8)</a> server within  <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>.  Instead
+       it  will  open the table directly.  Before Postfix version
+       2.2, the <a href="local.8.html"><b>local</b>(8)</a> delivery agent  will  terminate  with  a
+       fatal error.
+
 <b>BUGS</b>
        For  security  reasons,  the  message  delivery  status of
        external commands or of external  files  is  never  check-
@@ -326,7 +343,7 @@ LOCAL(8)                                                 LOCAL(8)
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes   to  <b>main.cf</b>  are  picked  up  automatically,  as
-       <a href="local.8.html">local(8)</a> processes run for only a limited amount of  time.
+       <a href="local.8.html"><b>local</b>(8)</a> processes run for only a limited amount of  time.
        Use the command "<b>postfix reload</b>" to speed up a change.
 
        The  text  below  provides  only  a parameter summary. See
@@ -352,7 +369,7 @@ LOCAL(8)                                                 LOCAL(8)
               Obsolete SUN mailtool compatibility feature.
 
 <b>DELIVERY METHOD CONTROLS</b>
-       The precedence of <a href="local.8.html">local(8)</a> delivery methods from  high  to
+       The precedence of <a href="local.8.html"><b>local</b>(8)</a> delivery methods from  high  to
        low  is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>, <a href="postconf.5.html#mailbox_command_maps">mail</a>-
        <a href="postconf.5.html#mailbox_command_maps">box_command_maps</a>,      <a href="postconf.5.html#mailbox_command">mailbox_command</a>,      <a href="postconf.5.html#home_mailbox">home_mailbox</a>,
        <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,  <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.

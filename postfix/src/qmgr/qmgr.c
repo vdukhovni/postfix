@@ -546,9 +546,14 @@ static void qmgr_post_init(char *name, char **unused_argv)
      * Sanity check.
      */
     if (var_qmgr_rcpt_limit < var_qmgr_active_limit) {
-	msg_warn("%s is smaller than %s",
-		 VAR_QMGR_RCPT_LIMIT, VAR_QMGR_ACT_LIMIT);
+	msg_warn("%s is smaller than %s - adjusting %s",
+	      VAR_QMGR_RCPT_LIMIT, VAR_QMGR_ACT_LIMIT, VAR_QMGR_RCPT_LIMIT);
 	var_qmgr_rcpt_limit = var_qmgr_active_limit;
+    }
+    if (var_dsn_queue_time > var_max_queue_time) {
+	msg_warn("%s is larger than %s - adjusting %s",
+		 VAR_DSN_QUEUE_TIME, VAR_MAX_QUEUE_TIME, VAR_DSN_QUEUE_TIME);
+	var_dsn_queue_time = var_max_queue_time;
     }
 
     /*

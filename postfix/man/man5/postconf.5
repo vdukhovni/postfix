@@ -238,6 +238,14 @@ If you change the alias database, run "\fBpostalias /etc/aliases\fR"
 (or wherever your system stores the mail alias file), or simply
 run "\fBnewaliases\fR" to build the necessary DBM or DB file.
 .PP
+The local(8) delivery agent disallows regular expression substitution
+of $1 etc. in alias_maps, because that would open a security hole.
+.PP
+The local(8) delivery agent will silently ignore requests to use
+the proxymap(8) server within alias_maps. Instead it will open the
+table directly. Before Postfix version 2.2, the local(8) delivery
+agent will terminate with a fatal error.
+.PP
 Examples:
 .PP
 .nf
@@ -704,7 +712,7 @@ debug_peer_list = some.domain
 The external command to execute when a Postfix daemon program is
 invoked with the -D option.
 .PP
-Use "command .. &amp; sleep 5" so that the debugger can attach before
+Use "command .. & sleep 5" so that the debugger can attach before
 the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 .PP
@@ -715,7 +723,7 @@ Example:
 .ft C
 debugger_command =
     PATH=/usr/bin:/usr/X11R6/bin
-    xxgdb $daemon_directory/$process_name $process_id &amp; sleep 5
+    xxgdb $daemon_directory/$process_name $process_id & sleep 5
 .fi
 .ad
 .ft R
@@ -4011,6 +4019,26 @@ Reject the request. This restriction is useful at the end of
 a restriction list, to make the default policy explicit.  The
 reject_code configuration parameter specifies the response code to
 rejected requests (default: 554).
+.IP "\fBsleep \fIseconds\fR\fR"
+Pause for the specified number of seconds and proceed with
+the next restriction in the list, if any. This may stop zombie
+mail when used as:
+.na
+.nf
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtpd_client_restrictions =
+        sleep 1, reject_unauth_pipelining
+    smtpd_delay_reject = no
+.fi
+.ad
+.ft R
+.in -4
+.fi
+.ad
 .IP "\fBwarn_if_reject\fR"
 Change the meaning of the next restriction, so that it logs
 a warning instead of rejecting a request (look for logfile records

@@ -330,6 +330,11 @@ MASTER_SERV *get_master_ent()
     } else if (STR_SAME(transport, MASTER_XPORT_NAME_FIFO)) {
 	serv->type = MASTER_SERV_TYPE_FIFO;
 	serv->listen_fd_count = 1;
+#ifdef MASTER_SERV_TYPE_PASS
+    } else if (STR_SAME(transport, MASTER_XPORT_NAME_PASS)) {
+	serv->type = MASTER_SERV_TYPE_PASS;
+	serv->listen_fd_count = 1;
+#endif
     } else {
 	fatal_with_context("bad transport type: %s", transport);
     }
@@ -353,6 +358,11 @@ MASTER_SERV *get_master_ent()
     } else if (serv->type == MASTER_SERV_TYPE_FIFO) {
 	serv->name = mail_pathname(private ? MAIL_CLASS_PRIVATE :
 				   MAIL_CLASS_PUBLIC, name);
+#ifdef MASTER_SERV_TYPE_PASS
+    } else if (serv->type == MASTER_SERV_TYPE_PASS) {
+	serv->name = mail_pathname(private ? MAIL_CLASS_PRIVATE :
+				   MAIL_CLASS_PUBLIC, name);
+#endif
     } else {
 	msg_panic("bad transport type: %d", serv->type);
     }
@@ -474,6 +484,9 @@ void    print_master_ent(MASTER_SERV *serv)
 	     serv->type == MASTER_SERV_TYPE_UNIX ? MASTER_XPORT_NAME_UNIX :
 	     serv->type == MASTER_SERV_TYPE_FIFO ? MASTER_XPORT_NAME_FIFO :
 	     serv->type == MASTER_SERV_TYPE_INET ? MASTER_XPORT_NAME_INET :
+#ifdef MASTER_SERV_TYPE_PASS
+	     serv->type == MASTER_SERV_TYPE_PASS ? MASTER_XPORT_NAME_PASS :
+#endif
 	     "unknown transport type");
     msg_info("listen_fd_count: %d", serv->listen_fd_count);
     msg_info("wakeup: %d", serv->wakeup_time);

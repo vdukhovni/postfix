@@ -324,6 +324,54 @@ static void trigger_server_accept_local(int unused_event, char *context)
     close(fd);
 }
 
+#ifdef MASTER_XPORT_NAME_PASS
+
+/* trigger_server_accept_pass - accept descriptor */
+
+static void trigger_server_accept_pass(int unused_event, char *context)
+{
+    char   *myname = "trigger_server_accept_pass";
+    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     time_left = 0;
+    int     fd;
+
+    if (msg_verbose)
+	msg_info("%s: trigger arrived", myname);
+
+    /*
+     * Read a message from a socket. Be prepared for accept() to fail because
+     * some other process already got the connection. The socket is
+     * non-blocking so we won't get stuck when multiple processes wake up.
+     * Don't get stuck when the client connects but sends no data. Restart
+     * the idle timer if this was a false alarm.
+     */
+    if (var_idle_limit > 0)
+	time_left = event_cancel_timer(trigger_server_timeout, (char *) 0);
+
+    if (trigger_server_pre_accept)
+	trigger_server_pre_accept(trigger_server_name, trigger_server_argv);
+    fd = PASS_ACCEPT(listen_fd);
+    if (trigger_server_lock != 0
+	&& myflock(vstream_fileno(trigger_server_lock), INTERNAL_LOCK,
+		   MYFLOCK_OP_NONE) < 0)
+	msg_fatal("select unlock: %m");
+    if (fd < 0) {
+	if (errno != EAGAIN)
+	    msg_fatal("accept connection: %m");
+	if (time_left >= 0)
+	    event_request_timer(trigger_server_timeout, (char *) 0, time_left);
+	return;
+    }
+    close_on_exec(fd, CLOSE_ON_EXEC);
+    if (read_wait(fd, 10) == 0)
+	trigger_server_wakeup(fd);
+    else if (time_left >= 0)
+	event_request_timer(trigger_server_timeout, (char *) 0, time_left);
+    close(fd);
+}
+
+#endif
+
 /* trigger_server_main - the real main program */
 
 NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,...)
@@ -556,6 +604,10 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    trigger_server_accept = trigger_server_accept_local;
 	else if (strcasecmp(transport, MASTER_XPORT_NAME_FIFO) == 0)
 	    trigger_server_accept = trigger_server_accept_fifo;
+#ifdef MASTER_XPORT_NAME_PASS
+	else if (strcasecmp(transport, MASTER_XPORT_NAME_PASS) == 0)
+	    trigger_server_accept = trigger_server_accept_pass;
+#endif
 	else
 	    msg_fatal("unsupported transport type: %s", transport);
     }
