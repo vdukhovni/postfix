@@ -215,7 +215,8 @@ extern char *var_db_type;
 extern char *var_always_bcc;
 
  /*
-  * Standards violation: allow/permit RFC 822-style addresses in SMTP commands.
+  * Standards violation: allow/permit RFC 822-style addresses in SMTP
+  * commands.
   */
 #define VAR_STRICT_RFC821_ENV	"strict_rfc821_envelopes"
 #define DEF_STRICT_RFC821_ENV	0
@@ -416,6 +417,10 @@ extern int var_delay_warn_time;
 #define VAR_QMGR_RCPT_LIMIT	"qmgr_message_recipient_limit"
 #define DEF_QMGR_RCPT_LIMIT	10000
 extern int var_qmgr_rcpt_limit;
+
+#define VAR_QMGR_FUDGE		"qmgr_fudge_factor"
+#define DEF_QMGR_FUDGE		100
+extern int var_qmgr_fudge;
 
  /*
   * Queue manager: default destination concurrency levels.

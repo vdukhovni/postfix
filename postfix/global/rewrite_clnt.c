@@ -96,7 +96,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 #define STR vstring_str
 
     if (*addr == 0)
-	msg_panic("rewrite_clnt: empty address");
+	addr = "";
     if (addr == STR(result))
 	msg_panic("rewrite_clnt: result clobbers input");
 

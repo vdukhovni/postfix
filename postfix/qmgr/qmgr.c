@@ -145,6 +145,8 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBallow_min_user\fR
+/*	Do not bounce recipient addresses that begin with '-'.
 /* .IP \fBrelocated_maps\fR
 /*	Tables with contact information for users, hosts or domains
 /*	that no longer exist. See \fBrelocated\fR(5).
@@ -186,6 +188,17 @@
 /* .fi
 /*	In the text below, \fItransport\fR is the first field in a
 /*	\fBmaster.cf\fR entry.
+/* .IP "\fBqmgr_fudge_factor\fR (valid range: 10..100)"
+/*	The percentage of delivery resources that a busy mail system will
+/*	use up for delivery of a large mailing list message.
+/*	With 100%, delivery of one message does not begin before the previous
+/*	message has been delivered. This results in good performance for large
+/*	mailing lists, but results in poor response time for one-to-one mail. 
+/*	With less than 100%, response time for one-to-one mail improves,
+/*	but large mailing list delivery performance suffers. In the worst
+/*	case, recipients near the beginning of a large list receive a burst
+/*	of messages immediately, while recipients near the end of that list
+/*	receive that same burst of messages a whole day later.
 /* .IP \fBinitial_destination_concurrency\fR
 /*	Initial per-destination concurrency level for parallel delivery
 /*	to the same destination.
@@ -267,6 +280,7 @@ char   *var_relocated_maps;
 char   *var_virtual_maps;
 char   *var_defer_xports;
 bool    var_allow_min_user;
+bool    var_qmgr_fudge;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -459,6 +473,7 @@ int     main(int argc, char **argv)
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
+	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

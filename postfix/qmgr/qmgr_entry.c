@@ -162,16 +162,25 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
      * Update the in-core message reference count. When the in-core message
      * structure has no more references, dispose of the message.
      * 
-     * When the in-core recipient count falls below some threshold and this
-     * message has more recipients, read more recipients before concurrency
-     * starts to drop.
+     * When the in-core recipient count falls below a threshold, and this
+     * message has more recipients, read more recipients now. If we read more
+     * recipients as soon as the recipient count falls below the in-core
+     * recipient limit, we do not give other messages a chance until this
+     * message is delivered. That's good for mailing list deliveries, bad for
+     * one-to-one mail. If we wait until the in-core recipient count drops
+     * well below the in-core recipient limit, we give other mail a chance,
+     * but we also allow list deliveries to become interleaved. In the worst
+     * case, people near the start of a mailing list get a burst of postings
+     * today, while people near the end of the list get that same burst of
+     * postings a whole day later.
      */
+#define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))
     message->refcount--;
+    if (message->rcpt_offset > 0
+	     && qmgr_recipient_count < FUDGE(var_qmgr_rcpt_limit))
+	qmgr_message_realloc(message);
     if (message->refcount == 0)
 	qmgr_active_done(message);
-    else if (message->rcpt_offset > 0
-	     && qmgr_recipient_count < var_qmgr_rcpt_limit / 2)
-	qmgr_message_realloc(message);
 }
 
 /* qmgr_entry_create - create queue todo entry */

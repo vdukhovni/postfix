@@ -252,9 +252,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		       message->data_size, "queue %s", message->queue_name);
 	    }
 	} else if (rec_type == REC_TYPE_RCPT) {
-	    if (message->rcpt_list.len < var_qmgr_rcpt_limit) {
+#define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))
+	    if (message->rcpt_list.len < FUDGE(var_qmgr_rcpt_limit)) {
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset, start);
-		if (message->rcpt_list.len >= var_qmgr_rcpt_limit) {
+		if (message->rcpt_list.len >= FUDGE(var_qmgr_rcpt_limit)) {
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));
@@ -325,9 +326,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	|| message->data_offset == 0
 	|| (message->rcpt_offset == 0 && rec_type != REC_TYPE_END)) {
 	msg_warn("%s: envelope records out of order", message->queue_id);
+	message->rcpt_offset = save_offset;	/* restore flag */
 	return (-1);
     } else {
-	message->rcpt_offset = save_offset;	/* restore flag */
 	return (0);
     }
 }
@@ -741,8 +742,6 @@ QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *message)
      */
     if (message->rcpt_offset <= 0)
 	msg_panic("%s: invalid offset: %ld", myname, message->rcpt_offset);
-    if (message->refcount != 0)
-	msg_panic("%s: bad refcount: %d", myname, message->refcount);
     if (msg_verbose)
 	msg_info("%s: %s %s offset %ld", myname, message->queue_name,
 		 message->queue_id, message->rcpt_offset);

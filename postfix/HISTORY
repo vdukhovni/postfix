@@ -3322,21 +3322,15 @@ Apologies for any names omitted.
 	now frees in-memory recipients as soon as a message is
 	delivered to one destination, rather than waiting until
 	all in-memory destinations of that message have been tried.
-	Patch by Patrik Rak @ ein.cz. Files: qmgr/qmgr_entry.c,
+	Patch by Patrik Rak @ ein.cz.  Files: qmgr/qmgr_entry.c,
 	qmgr/qmgr_message.c.
 
 	Performance: when delivering mail to a huge list of
 	recipients, the queue manager now reads more recipients
-	from the queue file before delivery concurrency starts
-	to drop.  Files:  qmgr/qmgr_entry.c, qmgr/qmgr_message.c.
+	from the queue file before delivery concurrency drops too
+	low.  Files:  qmgr/qmgr_entry.c, qmgr/qmgr_message.c.
 
 19991208
-
-	Performance: improved worst-case behavior. A fully loaded
-	Postfix inflicts the same delay to messages with any number
-	of recipients (up to qmgr_message_recipient_limit.) Inspired
-	by discussions with Patrik Rak (although he disagrees with
-	the strategy).  File: qmgr/qmgr_message.c.
 
 	Updated LDAP client code by John Hensley with escape
 	sequences as per RFC 2254. File: util/dict_ldap.c.
@@ -3357,3 +3351,21 @@ Apologies for any names omitted.
 	Robustness: attempt to deliver all addresses in the expansion
 	of an alias or .forward file, even when some addresses must
 	be deferred.  File: local/token.c.
+
+19991211
+
+	Performance: qmgr_fudge_factor controls what percentage of
+	delivery resources Postfix will devote to one message.
+	With 100%, delivery of one message does not begin before
+	delivery of the previous message is completed. This is good
+	for list performance, bad for one-to-one mail. With 10%,
+	response time for one-to-one mail improves much, but list
+	performance suffers. In the worst case, people near the
+	start of a mailing list get a burst of postings today,
+	while people near the end of the list get that same burst
+	of postings a whole day later.  Files: qmgr/qmgr_message.c,
+	qmgr/qmgr_entry.c.
+
+	Bugfix: address rewriting would panic on a lone \ at the
+	end of a line where an address was expected. Jason Hoos @
+	thwack.net. File: global/rewrite_clnt.c.

@@ -1,9 +1,12 @@
-Incompatible changes with snapshot 19991209
+Incompatible changes with snapshot 19991211
 ===========================================
 
 - In an SMTPD access map, an all-numeric right-hand side now means
 OK.  This is for better cooperation with out-of-band authentication
 mechanisms such as POP before SMTP etc.
+
+- You can no longer use an empty right-hand side in SMTPD access
+maps.
 
 - Recipient addresses may no longer begin with `-'. In order to
 reinstate the old behavior, specify "allow_min_user = yes" in
@@ -13,13 +16,29 @@ main.cf.
 SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for (see below).
 
-- transport_maps entries override mydestination.  If any of the
-$mydestination domains matches a transport specification, you also
-need to add a "domain.name local:" entry in your transport_maps.
+- transport_maps entries override mydestination.  For every
+$mydestination domain that matches a transport map entry, or a
+parent domain of a transport map entry, you must now add a
+corresponding "domain.name local:" entry in your transport_maps.
 See the html/faq.html sections for firewalls and intranets.
 
-Major changes with snapshot 19991209
+Major changes with snapshot 19991211
 ====================================
+
+- Updated LDAP client code (John Hensley).
+
+- Updated mysql client code (Scott Cotton).
+
+- New "qmgr_fudge_factor" parameter allows you to balance mailing
+list performance against response time for one-to-one mail.  The
+fudge factor controls what percentage of delivery resources Postfix
+will devote to one message.  With 100%, delivery of one message
+does not begin before delivery of the previous message is completed.
+This is good for list performance, bad for one-to-one mail. With
+10%, response time for one-to-one mail improves much, but list
+performance suffers: in the worst case, people near the start of a
+mailing list get a burst of postings today, while people near the
+end of the list get that same burst of postings a whole day later.
 
 - It is now relatively safe to configure 550 status codes for the
 main.cf unknown_address_reject_code or unknown_client_reject_code
