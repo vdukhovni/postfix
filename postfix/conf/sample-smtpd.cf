@@ -18,18 +18,17 @@
 # status code in the SMTP greeting banner. Some people like to see
 # the mail version advertised. By default, Postfix shows no version.
 #
-# You MUST specify the $myhostname at the start of the text. When
-# the SMTP client sees its own hostname at the start of an SMTP
-# greeting banner it will report a mailer loop. That's better than
-# having a machine meltdown.
+# You MUST specify the $myhostname at the start of the text.
 #
-# smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
+#smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
 smtpd_banner = $myhostname ESMTP $mail_name
 
 # The smtpd_etrn_restrictions parameter restricts what clients are
-# allowed to issue the ETRN command. The present Postfix ETRN differs
-# from other ETRN implementations in that it flushes mail for all
-# destinations. This will change in the future.
+# allowed to issue the ETRN command.
+#
+# The Postfix ETRN command is available only for destinations that
+# that are eligible for the Postfix "fast flush" service. See the
+# sample-flush.cf file for details.
 #
 # The default is to allow ETRN from any host.  The following restrictions
 # are available:
@@ -45,6 +44,7 @@ smtpd_banner = $myhostname ESMTP $mail_name
 #	is listed under $maps_rbl_domains.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
+#   warn_if_reject: next restriction logs a warning instead of rejecting.
 smtpd_etrn_restrictions =
 
 # The smtpd_recipient_limit parameter restricts the number of recipients
@@ -123,9 +123,9 @@ smtpd_hard_error_limit = 100
 # Specify "mynetworks_style = host" when Postfix should "trust"
 # only the local machine.
 # 
-# mynetworks_style = class
+#mynetworks_style = class
 mynetworks_style = subnet
-# mynetworks_style = host
+#mynetworks_style = host
 
 # Alternatively, you can specify the mynetworks list by hand, in
 # which case Postfix ignores the mynetworks_style setting.
@@ -158,6 +158,7 @@ mynetworks_style = subnet
 #   reject_maps_rbl: reject if the client is listed under $maps_rbl_domains.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
+#   warn_if_reject: next restriction logs a warning instead of rejecting.
 #
 # Restrictions are applied in the order as specified; the first
 # restriction that matches wins.
@@ -173,7 +174,7 @@ smtpd_client_restrictions =
 # that SMTP clients must introduce themselves at the beginning of an
 # SMTP session.
 #
-# smtpd_helo_required = yes
+#smtpd_helo_required = yes
 smtpd_helo_required = no
 
 # The smtpd_helo_restrictions parameter specifies optional restrictions
@@ -195,6 +196,7 @@ smtpd_helo_required = no
 #   check_client_access maptype:mapname: see smtpd_client_restrictions.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
+#   warn_if_reject: next restriction logs a warning instead of rejecting.
 #
 # Restrictions are applied in the order as specified; the first
 # restriction that matches wins.
@@ -202,8 +204,8 @@ smtpd_helo_required = no
 # Specify a list of restrictions, separated by commas and/or whitespace.
 # Continue long lines by starting the next line with whitespace.
 #
-# smtpd_helo_restrictions = permit_mynetworks, reject_invalid_hostname
-# smtpd_helo_restrictions = permit_mynetworks, reject_unknown_hostname
+#smtpd_helo_restrictions = permit_mynetworks, reject_invalid_hostname
+#smtpd_helo_restrictions = permit_mynetworks, reject_unknown_hostname
 smtpd_helo_restrictions = 
 
 # The smtpd_sender_restrictions parameter specifies optional restrictions
@@ -228,6 +230,7 @@ smtpd_helo_restrictions =
 #   reject_non_fqdn_sender: reject sender address that is not in FQDN form
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
+#   warn_if_reject: next restriction logs a warning instead of rejecting.
 #
 # Restrictions are applied in the order as specified; the first
 # restriction that matches wins.
@@ -235,8 +238,8 @@ smtpd_helo_restrictions =
 # Specify a list of restrictions, separated by commas and/or whitespace.
 # Continue long lines by starting the next line with whitespace.
 #
-# smtpd_sender_restrictions = reject_unknown_sender_domain
-# smtpd_sender_restrictions = reject_unknown_sender_domain, hash:/etc/postfix/access
+#smtpd_sender_restrictions = reject_unknown_sender_domain
+#smtpd_sender_restrictions = reject_unknown_sender_domain, hash:/etc/postfix/access
 smtpd_sender_restrictions = 
 
 # The smtpd_recipient_restrictions parameter specifies restrictions on
@@ -298,6 +301,7 @@ smtpd_sender_restrictions =
 #   reject_non_fqdn_recipient: reject recipient address that is not in FQDN form
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
+#   warn_if_reject: next restriction logs a warning instead of rejecting.
 #
 # Restrictions are applied in the order as specified; the first
 # restriction that matches wins.

@@ -289,6 +289,7 @@
 #include <mail_conf.h>
 #include <maps.h>
 #include <mail_addr_find.h>
+#include <match_parent_style.h>
 
 /* Application-specific. */
 
@@ -338,6 +339,11 @@ static MAPS *relocated_maps;
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
 static NAMADR_LIST *perm_mx_networks;
+
+ /*
+  * How to do parent domain wildcard matching, if any.
+  */
+static int access_parent_style;
 
  /*
   * Pre-parsed restriction lists.
@@ -452,6 +458,10 @@ static int has_required(ARGV *restrictions, char **required)
      * Recursively check list membership.
      */
     for (rest = restrictions->argv; *rest; rest++) {
+	if (strcmp(*rest, WARN_IF_REJECT) == 0 && rest[1] != 0) {
+	    rest += 1;
+	    continue;
+	}
 	for (reqd = required; *reqd; reqd++)
 	    if (strcmp(*rest, *reqd) == 0)
 		return (1);
@@ -481,8 +491,9 @@ static void fail_required(char *name, char **required)
      */
     example = vstring_alloc(10);
     for (reqd = required; *reqd; reqd++)
-	vstring_sprintf_append(example, "%s ", *reqd);
-    msg_fatal("parameter \"%s\": specify at least one explicit instance of: %s",
+	vstring_sprintf_append(example, "%s%s", *reqd,
+			  reqd[1] == 0 ? "" : reqd[2] == 0 ? " or " : ", ");
+    msg_fatal("parameter \"%s\": specify at least one working instance of: %s",
 	      name, STR(example));
 }
 
@@ -504,9 +515,15 @@ void    smtpd_check_init(void)
     /*
      * Pre-open access control lists before going to jail.
      */
-    mynetworks = namadr_list_init(var_mynetworks);
-    relay_domains = domain_list_init(var_relay_domains);
-    perm_mx_networks = namadr_list_init(var_perm_mx_networks);
+    mynetworks =
+	namadr_list_init(match_parent_style(VAR_MYNETWORKS),
+			 var_mynetworks);
+    relay_domains =
+	domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+			 var_relay_domains);
+    perm_mx_networks =
+	namadr_list_init(match_parent_style(VAR_PERM_MX_NETWORKS),
+			 var_perm_mx_networks);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -523,6 +540,8 @@ void    smtpd_check_init(void)
 				    DICT_FLAG_LOCK);
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
+
+    access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
 
     /*
      * error_text is used for returning error responses.
@@ -585,6 +604,20 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
 			              char *format,...)
 {
     va_list ap;
+    int     warn_if_reject;
+    const char *whatsup;
+
+    /*
+     * Do not reject mail if we were asked to warn only. However,
+     * configuration errors cannot be converted into warnings.
+     */
+    if (state->warn_if_reject && error_class != MAIL_ERROR_SOFTWARE) {
+	warn_if_reject = 1;
+	whatsup = "reject_warning";
+    } else {
+	warn_if_reject = 0;
+	whatsup = "reject";
+    }
 
     /*
      * Update the error class mask, and format the response. XXX What about
@@ -634,22 +667,22 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * rejected. Print the request, client name/address, and response.
      */
     if (state->recipient && state->sender) {
-	msg_info("reject: %s from %s: %s; from=<%s> to=<%s>",
-		 state->where, state->namaddr, STR(error_text),
+	msg_info("%s: %s from %s: %s; from=<%s> to=<%s>",
+		 whatsup, state->where, state->namaddr, STR(error_text),
 		 state->sender, state->recipient);
     } else if (state->recipient) {
-	msg_info("reject: %s from %s: %s; to=<%s>",
-		 state->where, state->namaddr, STR(error_text),
+	msg_info("%s: %s from %s: %s; to=<%s>",
+		 whatsup, state->where, state->namaddr, STR(error_text),
 		 state->recipient);
     } else if (state->sender) {
-	msg_info("reject: %s from %s: %s; from=<%s>",
-		 state->where, state->namaddr, STR(error_text),
+	msg_info("%s: %s from %s: %s; from=<%s>",
+		 whatsup, state->where, state->namaddr, STR(error_text),
 		 state->sender);
     } else {
-	msg_info("reject: %s from %s: %s",
-		 state->where, state->namaddr, STR(error_text));
+	msg_info("%s: %s from %s: %s",
+		 whatsup, state->where, state->namaddr, STR(error_text));
     }
-    return (SMTPD_CHECK_REJECT);
+    return (warn_if_reject ? 0 : SMTPD_CHECK_REJECT);
 }
 
 /* reject_dict_retry - reject with temporary failure if dict lookup fails */
@@ -1542,7 +1575,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
-    for (name = low_domain; /* void */ ; name = next + 1) {
+    for (name = low_domain; /* void */ ; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
 	    if ((value = dict_get(dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
@@ -1551,8 +1584,10 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 	    if (dict_errno != 0)
 		msg_fatal("%s: table lookup problem", table);
 	}
-	if ((next = strchr(name, '.')) == 0)
+	if ((next = strchr(name + 1, '.')) == 0)
 	    break;
+	if (access_parent_style == MATCH_FLAG_PARENT)
+	    next += 1;
 	flags = PARTIAL;
     }
     CHK_DOMAIN_RETURN(SMTPD_CHECK_DUNNO, MISSED);
@@ -1824,6 +1859,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
     int     status = 0;
     ARGV   *list;
     int     found;
+    int     saved_recursion = state->recursion;
 
     if (msg_verbose)
 	msg_info("%s: START", myname);
@@ -1832,6 +1868,15 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 	if (msg_verbose)
 	    msg_info("%s: name=%s", myname, name);
+
+	/*
+	 * Pseudo restrictions.
+	 */
+	if (strcasecmp(name, WARN_IF_REJECT) == 0) {
+	    if (state->warn_if_reject == 0)
+		state->warn_if_reject = state->recursion;
+	    continue;
+	}
 
 	/*
 	 * Spoof the is_map_command() routine, so that we do not have to make
@@ -1847,14 +1892,14 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	 */
 	if (strcasecmp(name, PERMIT_ALL) == 0) {
 	    status = SMTPD_CHECK_OK;
-	    if (cpp[1] != 0)
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], PERMIT_ALL);
 	} else if (strcasecmp(name, REJECT_ALL) == 0) {
 	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				      "%d <%s>: %s rejected: Access denied",
 				  var_reject_code, reply_name, reply_class);
-	    if (cpp[1] != 0)
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], REJECT_ALL);
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
@@ -1963,7 +2008,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->recipient)
 		status = check_relay_domains(state, state->recipient,
 				    state->recipient, SMTPD_NAME_RECIPIENT);
-	    if (cpp[1] != 0)
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
 #ifdef USE_SASL_AUTH
@@ -2011,11 +2056,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	if (msg_verbose)
 	    msg_info("%s: name=%s status=%d", myname, name, status);
 
+	if (state->warn_if_reject >= state->recursion)
+	    state->warn_if_reject = 0;
+
 	if (status != 0)
 	    break;
     }
     if (msg_verbose && name == 0)
 	msg_info("%s: END", myname);
+
+    state->recursion = saved_recursion;
 
     return (status);
 }
@@ -2035,7 +2085,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && client_restrctions->argc)
 	status = generic_checks(state, client_restrctions, state->namaddr,
@@ -2081,7 +2131,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && helo_restrctions->argc)
 	status = generic_checks(state, helo_restrctions, state->helo_name,
@@ -2117,7 +2167,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && mail_restrctions->argc)
 	status = generic_checks(state, mail_restrctions, sender,
@@ -2171,7 +2221,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && rcpt_restrctions->argc)
 	status = generic_checks(state, rcpt_restrctions,
@@ -2216,7 +2266,7 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 0;
+    state->recursion = 1;
     status = setjmp(smtpd_check_buf);
     if (status == 0 && etrn_restrctions->argc)
 	status = generic_checks(state, etrn_restrctions, domain,
@@ -2421,6 +2471,7 @@ char   *var_virt_mailbox_maps;
 char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 char   *var_perm_mx_networks;
+char   *var_par_dom_match;
 
 typedef struct {
     char   *name;
@@ -2442,7 +2493,8 @@ static STRING_TABLE string_table[] = {
     VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps,
     VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
-    VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
+    VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks,
+    VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match,
     0,
 };
 
@@ -2780,13 +2832,17 @@ int     main(int argc, char **argv)
 	    }
 	    if (strcasecmp(args->argv[0], "mynetworks") == 0) {
 		namadr_list_free(mynetworks);
-		mynetworks = namadr_list_init(args->argv[1]);
+		mynetworks =
+		    namadr_list_init(match_parent_style(VAR_MYNETWORKS),
+				     args->argv[1]);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], "relay_domains") == 0) {
 		domain_list_free(relay_domains);
-		relay_domains = domain_list_init(args->argv[1]);
+		relay_domains =
+		    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+				     args->argv[1]);
 		resp = 0;
 		break;
 	    }

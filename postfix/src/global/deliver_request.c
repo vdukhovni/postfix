@@ -196,13 +196,13 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request->flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-		  ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, &request->data_offset,
-		  ATTR_TYPE_NUM, MAIL_ATTR_SIZE, &request->data_size,
+		  ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &request->data_offset,
+		  ATTR_TYPE_LONG, MAIL_ATTR_SIZE, &request->data_size,
 		  ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, nexthop,
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, address,
 		  ATTR_TYPE_STR, MAIL_ATTR_ERRTO, errors_to,
 		  ATTR_TYPE_STR, MAIL_ATTR_RRCPT, return_receipt,
-		  ATTR_TYPE_NUM, MAIL_ATTR_TIME, &request->arrival_time,
+		  ATTR_TYPE_LONG, MAIL_ATTR_TIME, &request->arrival_time,
 		  ATTR_TYPE_END) != 10)
 	return (-1);
     if (mail_open_ok(vstring_str(queue_name),
@@ -222,7 +222,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      */
     for (;;) {
 	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		      ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, &offset,
+		      ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &offset,
 		      ATTR_TYPE_END) != 1)
 	    return (-1);
 	if (offset == 0)

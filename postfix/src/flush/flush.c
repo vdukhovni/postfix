@@ -110,6 +110,10 @@
 /* .IP \fBfast_flush_purge_time\fR
 /*	Remove an empty "fast flush" logfile that was not updated in
 /*	this amount of time (default time unit: days).
+/* .IP "\fBparent_domain_matches_subdomains\fR (versions >= 20011119)"
+/*	List of Postfix features that use \fIdomain.name\fR patterns
+/*	to match \fIsub.domain.name\fR (as opposed to
+/*	requiring \fI.domain.name\fR patterns).
 /* SEE ALSO
 /*	smtpd(8) Postfix SMTP server
 /*	qmgr(8) Postfix queue manager
@@ -160,6 +164,7 @@
 #include <mail_scan_dir.h>
 #include <maps.h>
 #include <domain_list.h>
+#include <match_parent_style.h>
 
 /* Single server skeleton. */
 
@@ -636,7 +641,8 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
-    flush_domains = domain_list_init(var_fflush_domains);
+    flush_domains = domain_list_init(match_parent_style(VAR_FFLUSH_DOMAINS),
+				     var_fflush_domains);
 }
 
 /* main - pass control to the single-threaded skeleton */

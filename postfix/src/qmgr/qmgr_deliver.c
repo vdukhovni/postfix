@@ -158,19 +158,19 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, message->queue_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, message->queue_id,
-	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, message->data_offset,
-	       ATTR_TYPE_NUM, MAIL_ATTR_SIZE, message->data_size,
+	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, message->data_offset,
+	       ATTR_TYPE_LONG, MAIL_ATTR_SIZE, message->data_size,
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, nexthop,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_ERRTO, message->errors_to,
 	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, message->return_receipt,
-	       ATTR_TYPE_NUM, MAIL_ATTR_TIME, message->arrival_time,
+	       ATTR_TYPE_LONG, MAIL_ATTR_TIME, message->arrival_time,
 	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
 	attr_print(stream, ATTR_FLAG_MORE,
-		   ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, recipient->offset,
+		   ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, recipient->offset,
 		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient->address,
 		   ATTR_TYPE_END);
     attr_print(stream, ATTR_FLAG_NONE,

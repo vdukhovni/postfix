@@ -237,6 +237,8 @@ rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
+
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
 <dd> See generic restrictions.
@@ -406,6 +408,8 @@ the response code for <b>REJECT</b> results (default:  <b>554</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
+
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
 <dd> See generic restrictions.
@@ -569,6 +573,8 @@ response code to rejected requests (default:  <b>504</b>).
 <dt> <b><a href="#permit">permit</a></b>
 
 <dt> <b><a href="#reject">reject</a></b>
+
+<dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
 
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
@@ -839,6 +845,8 @@ response code to rejected requests (default:  <b>504</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
+
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
 <dd> See generic restrictions.
@@ -937,6 +945,8 @@ the result code for rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
+
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
 <dd> See generic restrictions.
@@ -976,6 +986,17 @@ is useful at the end of a restriction list, to make the default
 policy explicit. The <b>reject_code</b> configuration parameter
 specifies the response code to rejected requests (default:
 <b>554</b>).
+
+<p>
+
+<a name="warn_if_reject">
+
+<dt> <b>warn_if_reject</b> (Postfix versions 20011119 and later)
+<dd> Change the meaning of the next restriction, so that it logs
+a warning instead of rejecting a request (look for logfile records
+that contain "reject_warning").  This is useful for testing new
+restrictions in a "live" environment without risking unnecessary
+loss of mail.
 
 <p>
 

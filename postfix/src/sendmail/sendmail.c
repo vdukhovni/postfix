@@ -603,7 +603,7 @@ static void chat(VSTREAM *fp, VSTRING *buf, const char *fmt,...)
 
     smtp_get(buf, fp, var_line_limit);
     if (STR(buf)[0] != '2')
-	msg_fatal("server rejected request: %s", STR(buf));
+	msg_fatal("server rejected ETRN request: %s", STR(buf));
 
     if (msg_verbose)
 	msg_info("<<< %s", STR(buf));

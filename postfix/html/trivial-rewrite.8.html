@@ -110,6 +110,11 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
               Syntax is <i>transport</i>:<i>nexthop</i>; see  <a href="transport.5.html"><b>transport</b>(5)</a>  for
               details. The :<i>nexthop</i> part is optional.
 
+       <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b> (versions &gt;= 20011119)
+              List  of Postfix features that use <i>domain.name</i> pat-
+              terns  to  match  <i>sub.domain.name</i>  (as  opposed  to
+              requiring <i>.domain.name</i> patterns).
+
        <b>relayhost</b>
               The  default host to send non-local mail to when no
               entry is matched in the <a href="transport.5.html"><b>transport</b>(5)</a> table.

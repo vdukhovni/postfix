@@ -169,6 +169,10 @@
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
+/* .IP "\fBparent_domain_matches_subdomains\fR (versions >= 20011119)"
+/*	List of Postfix features that use \fIdomain.name\fR patterns
+/*	to match \fIsub.domain.name\fR (as opposed to
+/*	requiring \fI.domain.name\fR patterns).
 /* .IP \fBsmtpd_client_restrictions\fR
 /*	Restrict what clients may connect to this mail system.
 /* .IP \fBsmtpd_helo_required\fR
@@ -1281,7 +1285,7 @@ static void chat_reset(SMTPD_STATE *state)
      * report problems when running in stand-alone mode: postmaster notices
      * require availability of the cleanup service.
      */
-    if (state->history != 0 && state->client != VSTREAM_IN
+    if (state->history != 0 && SMTPD_STAND_ALONE(state) == 0
 	&& (state->error_mask & state->notify_mask))
 	smtpd_chat_notify(state);
     smtpd_chat_reset(state);

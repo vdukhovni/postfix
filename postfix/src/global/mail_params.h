@@ -1140,6 +1140,8 @@ extern int var_access_map_code;
 #define CHECK_RECIP_ACL		"check_recipient_access"
 #define CHECK_ETRN_ACL		"check_etrn_access"
 
+#define WARN_IF_REJECT		"warn_if_reject"
+
 #define REJECT_MAPS_RBL		"reject_maps_rbl"
 #define VAR_MAPS_RBL_CODE	"maps_rbl_reject_code"
 #define DEF_MAPS_RBL_CODE	554
@@ -1318,6 +1320,21 @@ extern bool var_verp_bounce_off;
 #define VAR_IN_FLOW_DELAY			"in_flow_delay"
 #define DEF_IN_FLOW_DELAY			"1s"
 extern int var_in_flow_delay;
+
+ /*
+  * Backwards compatibility: foo.com matches itself and names below foo.com.
+  */
+#define VAR_PAR_DOM_MATCH		"parent_domain_matches_subdomains"
+#define DEF_PAR_DOM_MATCH		VAR_DEBUG_PEER_LIST "," \
+					VAR_FFLUSH_DOMAINS "," \
+					VAR_MYNETWORKS "," \
+					VAR_PERM_MX_NETWORKS "," \
+					VAR_QMQPD_CLIENTS "," \
+					VAR_RELAY_DOMAINS "," \
+					SMTPD_ACCESS_MAPS
+extern char *var_par_dom_match;
+
+#define SMTPD_ACCESS_MAPS		"smtpd_access_maps"
 
 /* LICENSE
 /* .ad

@@ -1,7 +1,32 @@
-Snapshot 20011103 introduces a negligible amount of features and
-is all about revision of Postfix internals. With more than 70 pages
-of context diffs compared to the previous snapshot, this release
-is a baseline for upcoming feature changes.
+Incompatible changes with snapshot-20011121
+===========================================
+
+The internal protocols have changed again, so you must "postfix
+reload" if upgrading from a previous release. The change is from
+base64 encoded strings to null-terminated strings (Postfix now
+supports multiple encodings).
+
+Major changes with snapshot-20011121
+====================================
+
+Configurable host/domain name wildcard matching behavior: choice
+between "pattern `domain.name' matches string `host.domain.name'"
+(to be deprecated in the future) and "pattern `.domain.name' matches
+string `host.domain.name'" (to be preferred in the future).  The
+configuration parameter "parent_domain_matches_subdomains" specifies
+which Postfix features use the behavior that will become deprecated.
+
+New "warn_if_reject" smtpd pseudo restriction that only warns if
+the restriction that follows would reject mail. Look for file
+records that contain the string "reject_warning".
+
+Disgusting workaround for a well-known CISCO PIX firewall bug that
+causes the .<CR>LF> at the end of mail to be lost. The workaround
+has no effect for other mail deliveries.
+
+mailbox_command_maps allows you to configure the external delivery
+command per user (local delivery agent only). This feature has
+precedence over mailbox_command and home_mailbox settings.
 
 Major changes with snapshot-20011103
 ====================================

@@ -23,8 +23,8 @@ SRCS	= argv.c argv_split.c basename.c binhash.c chroot_uid.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
 	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c \
-	sane_socketpair.c myrand.c netstring.c ctable.c attr_print.c intv.c \
-	attr_scan.c base64_code.c
+	sane_socketpair.c myrand.c netstring.c ctable.c attr_print64.c intv.c \
+	attr_scan64.c base64_code.c sock_empty_wait.c attr_print0.c attr_scan0.c
 OBJS	= argv.o argv_split.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -49,8 +49,8 @@ OBJS	= argv.o argv_split.o basename.o binhash.o chroot_uid.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
 	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o \
-	sane_socketpair.o myrand.o netstring.o ctable.o attr_print.o intv.o \
-	attr_scan.o base64_code.o
+	sane_socketpair.o myrand.o netstring.o ctable.o attr_print64.o intv.o \
+	attr_scan64.o base64_code.o sock_empty_wait.o attr_print0.o attr_scan0.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -84,7 +84,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
 	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable \
-	inet_addr_list attr_print attr_scan base64_code
+	inet_addr_list attr_print64 attr_scan64 base64_code attr_print0 \
+	attr_scan0
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -288,17 +289,27 @@ inet_addr_list: $(LIB) $@.o
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-attr_print: $(LIB) $@.o
+attr_print64: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-attr_scan: $(LIB) $@.o
+attr_scan64: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
 base64_code: $(LIB) $@.o
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+attr_print0: $(LIB) $@.o
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+attr_scan0: $(LIB) $@.o
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -316,7 +327,7 @@ stream_test: stream_test.c $(LIB)
 
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
-	attr_scan_test
+	attr_scan64_test attr_scan0_test
 
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
@@ -352,10 +363,15 @@ inet_addr_list_test: inet_addr_list
 base64_code_test: base64_code
 	./base64_code
 
-attr_scan_test: attr_print attr_scan attr_scan.ref
-	(./attr_print 2>&3 | (sleep 1; ./attr_scan)) >attr_scan.tmp 2>&1 3>&1
-	diff attr_scan.ref attr_scan.tmp
-	rm -f attr_scan.tmp
+attr_scan64_test: attr_print64 attr_scan64 attr_scan64.ref
+	(./attr_print64 2>&3 | (sleep 1; ./attr_scan64)) >attr_scan64.tmp 2>&1 3>&1
+	diff attr_scan64.ref attr_scan64.tmp
+	rm -f attr_scan64.tmp
+
+attr_scan0_test: attr_print0 attr_scan0 attr_scan0.ref
+	(./attr_print0 2>&3 | (sleep 1; ./attr_scan0)) >attr_scan0.tmp 2>&1 3>&1
+	diff attr_scan0.ref attr_scan0.tmp
+	rm -f attr_scan0.tmp
 
 DB_TYPE	= `../postconf/postconf -h default_database_type`
 
@@ -391,6 +407,24 @@ attr_print.o: htable.h
 attr_print.o: base64_code.h
 attr_print.o: vstring.h
 attr_print.o: attr.h
+attr_print0.o: attr_print0.c
+attr_print0.o: sys_defs.h
+attr_print0.o: msg.h
+attr_print0.o: mymalloc.h
+attr_print0.o: vstream.h
+attr_print0.o: vbuf.h
+attr_print0.o: htable.h
+attr_print0.o: attr.h
+attr_print64.o: attr_print64.c
+attr_print64.o: sys_defs.h
+attr_print64.o: msg.h
+attr_print64.o: mymalloc.h
+attr_print64.o: vstream.h
+attr_print64.o: vbuf.h
+attr_print64.o: htable.h
+attr_print64.o: base64_code.h
+attr_print64.o: vstring.h
+attr_print64.o: attr.h
 attr_scan.o: attr_scan.c
 attr_scan.o: sys_defs.h
 attr_scan.o: msg.h
@@ -401,6 +435,26 @@ attr_scan.o: vstring.h
 attr_scan.o: htable.h
 attr_scan.o: base64_code.h
 attr_scan.o: attr.h
+attr_scan0.o: attr_scan0.c
+attr_scan0.o: sys_defs.h
+attr_scan0.o: msg.h
+attr_scan0.o: mymalloc.h
+attr_scan0.o: vstream.h
+attr_scan0.o: vbuf.h
+attr_scan0.o: vstring.h
+attr_scan0.o: vstring_vstream.h
+attr_scan0.o: htable.h
+attr_scan0.o: attr.h
+attr_scan64.o: attr_scan64.c
+attr_scan64.o: sys_defs.h
+attr_scan64.o: msg.h
+attr_scan64.o: mymalloc.h
+attr_scan64.o: vstream.h
+attr_scan64.o: vbuf.h
+attr_scan64.o: vstring.h
+attr_scan64.o: htable.h
+attr_scan64.o: base64_code.h
+attr_scan64.o: attr.h
 base64_code.o: base64_code.c
 base64_code.o: sys_defs.h
 base64_code.o: msg.h
@@ -782,6 +836,7 @@ match_list.o: vstring_vstream.h
 match_list.o: stringops.h
 match_list.o: argv.h
 match_list.o: dict.h
+match_list.o: match_ops.h
 match_list.o: match_list.h
 match_ops.o: match_ops.c
 match_ops.o: sys_defs.h
@@ -979,6 +1034,10 @@ skipblanks.o: sys_defs.h
 skipblanks.o: stringops.h
 skipblanks.o: vstring.h
 skipblanks.o: vbuf.h
+sock_empty_wait.o: sock_empty_wait.c
+sock_empty_wait.o: sys_defs.h
+sock_empty_wait.o: msg.h
+sock_empty_wait.o: iostuff.h
 spawn_command.o: spawn_command.c
 spawn_command.o: sys_defs.h
 spawn_command.o: msg.h
