@@ -62,7 +62,7 @@ INCL	=
 LIB	= libglobal.a
 TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
-	off_cvt quote_822_local rec2stream recdump resolve_clnt \
+	off_cvt peer_name quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local
 
@@ -196,6 +196,11 @@ local_transport: $(LIB) $(LIBS)
 
 quote_821_local: quote_821_local.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
+
+peer_name: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
 
 tests: tok822_test
 

@@ -82,7 +82,7 @@
 /*	Look up the resolved recipient address in the named access table,
 /*	any parent domains of the recipient domain, and the localpart@.
 /* .IP reject_maps_rbl
-/*	Look up the client network address in the real-time blackhole
+/*	Look up the reversed client network address in the real-time blackhole
 /*	DNS zones below the domains listed in the "maps_rbl_domains"
 /*	configuration parameter. The \fImaps_rbl_reject_code\fR
 /*	configuration parameter specifies the reject status code

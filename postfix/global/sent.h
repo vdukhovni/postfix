@@ -20,8 +20,8 @@
  /*
   * External interface.
   */
-extern int sent(const char *, const char *, const char *,
-		        time_t, const char *,...);
+extern int PRINTFLIKE(5, 6) sent(const char *, const char *, const char *,
+				         time_t, const char *,...);
 extern int vsent(const char *, const char *, const char *,
 		         time_t, const char *, va_list);
 

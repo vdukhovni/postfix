@@ -99,6 +99,9 @@ A command-line argument that contains \fB${\fBrecipient\fR}\fR
 expands into as many command-line arguments as there are recipients.
 .IP \fB${\fBsender\fR}\fR
 This macro expands to the envelope sender address.
+.IP \fB${\fBsize\fR}\fR
+This macro expands to Postfix's idea of the message size, which
+is an approximation of the size of the message as delivered.
 .IP \fB${\fBuser\fR}\fR
 This macro expands to the username part of a recipient address.
 For example, with an address \fIuser+foo@domain\fR the username

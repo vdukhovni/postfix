@@ -77,6 +77,7 @@
 #include <sys_defs.h>
 #include <unistd.h>
 #include <signal.h>
+#include <posix_signals.h>
 
 /* Utility library. */
 

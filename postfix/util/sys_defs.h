@@ -815,6 +815,29 @@ typedef int pid_t;
 #endif
 
  /*
+  * Turn on format string argument checking. This is more accurate than
+  * printfck, but it misses #ifdef-ed code. XXX I am just guessing at what
+  * gcc versions support this. In order to turn this off for some platforms,
+  * specify #define PRINTFLIKE and #define SCANFLIKE in the system-dependent
+  * sections above.
+  */
+#ifndef PRINTFLIKE
+#if __GNUC__ == 2 && __GNUC_MINOR__ >= 7
+#define PRINTFLIKE(x,y) __attribute__ ((format (printf, (x), (y))))
+#else
+#define PRINTFLIKE
+#endif
+#endif
+
+#ifndef SCANFLIKE
+#if __GNUC__ == 2 && __GNUC_MINOR__ >= 7
+#define SCANFLIKE(x,y) __attribute__ ((format (scanf, (x), (y))))
+#else
+#define SCANFLIKE
+#endif
+#endif
+
+ /*
   * Making the ctype.h macros not more expensive than necessary. On some
   * systems, ctype.h misbehaves with non-ASCII and/or negative characters.
   */

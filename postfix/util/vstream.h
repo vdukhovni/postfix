@@ -111,8 +111,8 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_EXCEPT	9
 #define VSTREAM_CTL_CONTEXT	10
 
-extern VSTREAM *vstream_printf(const char *,...);
-extern VSTREAM *vstream_fprintf(VSTREAM *, const char *,...);
+extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
+extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);
 
 extern VSTREAM *vstream_popen(const char *, int);
 extern VSTREAM *vstream_popen_vargs(int,...);

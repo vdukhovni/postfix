@@ -104,6 +104,10 @@ by its author? There are two possibilities.
 In both cases, the program being executed is not the program that
 was supposed to be executed, so anything can happen.
 
+There is a third possibility:
+
+3 - Bugs in system software (kernel or libraries).
+
 Hardware-related failures happen erratically, and they usually do
 not reproduce after power cycling and rebooting the system.  There's
 little I can do about bad hardware.  Be sure to use hardware that

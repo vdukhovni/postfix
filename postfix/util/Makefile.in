@@ -73,7 +73,7 @@ LIB	= libutil.a
 TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
-	mystrtok peer_name sigdelay translit valid_hostname vstream_popen \
+	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
 	watchdog unescape
 
@@ -225,11 +225,6 @@ vstream_popen: $(LIB)
 	mv junk $@.o
 
 fifo_trigger: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
-
-peer_name: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o

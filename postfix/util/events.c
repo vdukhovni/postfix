@@ -588,7 +588,7 @@ static void dingdong(char *context)
     printf("%c", *context);
     fflush(stdout);
     *context = (ISUPPER(*context) ? TOLOWER(*context) : TOUPPER(*context));
-    event_request_timer(dingdong, context, DELAY);
+    event_request_timer(dingdong, context, (char *) DELAY);
 }
 
 /* echo - echo text received on stdin */
@@ -608,7 +608,7 @@ main(void)
     char   *cp;
 
     for (cp = text; *cp; cp++)
-	event_request_timer(dingdong, cp, 0);
+	event_request_timer(dingdong, cp, (char *) 0);
     event_enable_read(fileno(stdin), echo, (char *) 0);
     for (;;)
 	event_loop(-1);

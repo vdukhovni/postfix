@@ -24,6 +24,14 @@ typedef int bool;
 extern char *var_mail_name;
 
  /*
+  * Logging facility. Configurable so you can distinguish a limited number of
+  * Postfix instances.
+  */
+#define VAR_LOG_FACILITY	"logging_facility"
+#define DEF_LOG_FACILITY	"mail"
+extern char *var_log_facility;
+
+ /*
   * What problem classes should be reported to the postmaster via email.
   * Default is bad problems only. See mail_error(3). Even when mail notices
   * are disabled, problems are still logged to the syslog daemon.

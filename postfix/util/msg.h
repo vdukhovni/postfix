@@ -18,11 +18,11 @@ typedef void (*MSG_CLEANUP_FN) (void);
 
 extern int msg_verbose;
 
-extern void msg_info(const char *,...);
-extern void msg_warn(const char *,...);
-extern void msg_error(const char *,...);
-extern NORETURN msg_fatal(const char *,...);
-extern NORETURN msg_panic(const char *,...);
+extern void PRINTFLIKE(1, 2) msg_info(const char *,...);
+extern void PRINTFLIKE(1, 2) msg_warn(const char *,...);
+extern void PRINTFLIKE(1, 2) msg_error(const char *,...);
+extern NORETURN PRINTFLIKE(1, 2) msg_fatal(const char *,...);
+extern NORETURN PRINTFLIKE(1, 2) msg_panic(const char *,...);
 
 extern int msg_error_limit(int);
 extern void msg_error_clear(void);

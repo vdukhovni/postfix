@@ -27,7 +27,7 @@
 extern VSTREAM *post_mail_fopen(const char *, const char *, int, const char *);
 extern VSTREAM *post_mail_fopen_nowait(const char *, const char *,
 				               int, const char *);
-extern int post_mail_fprintf(VSTREAM *, const char *,...);
+extern int PRINTFLIKE(2, 3) post_mail_fprintf(VSTREAM *, const char *,...);
 extern int post_mail_fputs(VSTREAM *, const char *);
 extern int post_mail_buffer(VSTREAM *, const char *, int);
 extern int post_mail_fclose(VSTREAM *);

@@ -108,7 +108,7 @@ extern CONFIG_STR_TABLE cleanup_str_table[];
   */
 extern void cleanup_out(CLEANUP_STATE *, int, char *, int);
 extern void cleanup_out_string(CLEANUP_STATE *, int, char *);
-extern void cleanup_out_format(CLEANUP_STATE *, int, char *,...);
+extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, char *,...);
 
 #define CLEANUP_OUT_BUF(s, t, b) \
 	cleanup_out((s), (t), vstring_str((b)), VSTRING_LEN((b)))

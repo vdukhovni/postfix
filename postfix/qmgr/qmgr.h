@@ -258,7 +258,7 @@ extern void qmgr_defer_recipient(QMGR_MESSAGE *, const char *, const char *);
  /*
   * qmgr_bounce.c
   */
-extern void qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *,...);
+extern void PRINTFLIKE(3, 4) qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *,...);
 
  /*
   * qmgr_deliver.c

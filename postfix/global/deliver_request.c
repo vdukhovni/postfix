@@ -190,7 +190,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  &request->flags,
 		  queue_name, queue_id, &request->data_offset,
 		  &request->data_size, nexthop, address,
-		  errors_to, return_receipt, &request->arrival_time) != 9)
+		  errors_to, return_receipt, &request->arrival_time) != 10)
 	return (-1);
     if (mail_open_ok(vstring_str(queue_name),
 		     vstring_str(queue_id), &st, &path) == 0)

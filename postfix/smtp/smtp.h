@@ -103,7 +103,7 @@ typedef struct SMTP_RESP {		/* server response */
     VSTRING *buf;			/* origin of text */
 } SMTP_RESP;
 
-extern void smtp_chat_cmd(SMTP_STATE *, char *,...);
+extern void PRINTFLIKE(2, 3) smtp_chat_cmd(SMTP_STATE *, char *,...);
 extern SMTP_RESP *smtp_chat_resp(SMTP_STATE *);
 extern void smtp_chat_reset(SMTP_STATE *);
 extern void smtp_chat_notify(SMTP_STATE *);
@@ -111,10 +111,10 @@ extern void smtp_chat_notify(SMTP_STATE *);
  /*
   * smtp_trouble.c
   */
-extern int smtp_conn_fail(SMTP_STATE *, int, char *,...);
-extern int smtp_site_fail(SMTP_STATE *, int, char *,...);
-extern int smtp_mesg_fail(SMTP_STATE *, int, char *,...);
-extern void smtp_rcpt_fail(SMTP_STATE *, int, RECIPIENT *, char *,...);
+extern int PRINTFLIKE(3, 4) smtp_conn_fail(SMTP_STATE *, int, char *,...);
+extern int PRINTFLIKE(3, 4) smtp_site_fail(SMTP_STATE *, int, char *,...);
+extern int PRINTFLIKE(3, 4) smtp_mesg_fail(SMTP_STATE *, int, char *,...);
+extern void PRINTFLIKE(4, 5) smtp_rcpt_fail(SMTP_STATE *, int, RECIPIENT *, char *,...);
 extern int smtp_stream_except(SMTP_STATE *, int, char *);
 
  /*

@@ -30,7 +30,7 @@
 #define SMTP_ERR_TIME	2		/* time out */
 
 extern void smtp_timeout_setup(VSTREAM *, int);
-extern void smtp_printf(VSTREAM *, const char *,...);
+extern void PRINTFLIKE(2, 3) smtp_printf(VSTREAM *, const char *,...);
 extern int smtp_get(VSTRING *, VSTREAM *, int);
 extern void smtp_fputs(const char *, int len, VSTREAM *);
 extern void smtp_fwrite(const char *, int len, VSTREAM *);

@@ -1,5 +1,5 @@
 SHELL	= /bin/sh
-WARN    = -Wmissing-prototypes
+WARN    = -Wmissing-prototypes -Wformat
 OPTS	= "CC=$(CC)"
 DIRS	= util global dns master postfix smtpstone sendmail error \
 	pickup cleanup smtpd local lmtp trivial-rewrite qmgr smtp bounce pipe \

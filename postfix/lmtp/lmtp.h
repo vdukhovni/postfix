@@ -86,7 +86,7 @@ typedef struct LMTP_RESP {		/* server response */
     VSTRING *buf;			/* origin of text */
 } LMTP_RESP;
 
-extern void lmtp_chat_cmd(LMTP_STATE *, char *,...);
+extern void PRINTFLIKE(2, 3) lmtp_chat_cmd(LMTP_STATE *, char *,...);
 extern LMTP_RESP *lmtp_chat_resp(LMTP_STATE *);
 extern void lmtp_chat_reset(LMTP_STATE *);
 extern void lmtp_chat_notify(LMTP_STATE *);
@@ -94,10 +94,10 @@ extern void lmtp_chat_notify(LMTP_STATE *);
  /*
   * lmtp_trouble.c
   */
-extern int lmtp_conn_fail(LMTP_STATE *, int, char *,...);
-extern int lmtp_site_fail(LMTP_STATE *, int, char *,...);
-extern int lmtp_mesg_fail(LMTP_STATE *, int, char *,...);
-extern void lmtp_rcpt_fail(LMTP_STATE *, int, RECIPIENT *, char *,...);
+extern int PRINTFLIKE(3, 4) lmtp_conn_fail(LMTP_STATE *, int, char *,...);
+extern int PRINTFLIKE(3, 4) lmtp_site_fail(LMTP_STATE *, int, char *,...);
+extern int PRINTFLIKE(3, 4) lmtp_mesg_fail(LMTP_STATE *, int, char *,...);
+extern void PRINTFLIKE(4, 5) lmtp_rcpt_fail(LMTP_STATE *, int, RECIPIENT *, char *,...);
 extern int lmtp_stream_except(LMTP_STATE *, int, char *);
 
  /*

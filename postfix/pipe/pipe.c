@@ -91,6 +91,9 @@
 /*	expands into as many command-line arguments as there are recipients.
 /* .IP \fB${\fBsender\fR}\fR
 /*	This macro expands to the envelope sender address.
+/* .IP \fB${\fBsize\fR}\fR
+/*	This macro expands to Postfix's idea of the message size, which
+/*	is an approximation of the size of the message as delivered.
 /* .IP \fB${\fBuser\fR}\fR
 /*	This macro expands to the username part of a recipient address.
 /*	For example, with an address \fIuser+foo@domain\fR the username
@@ -226,6 +229,7 @@
 #define PIPE_DICT_USER		"user"	/* key */
 #define PIPE_DICT_EXTENSION	"extension"	/* key */
 #define PIPE_DICT_MAILBOX	"mailbox"	/* key */
+#define PIPE_DICT_SIZE		"size"	/* key */
 
  /*
   * Flags used to pass back the type of special parameter found by
@@ -235,6 +239,7 @@
 #define PIPE_FLAG_USER		(1<<1)
 #define PIPE_FLAG_EXTENSION	(1<<2)
 #define PIPE_FLAG_MAILBOX	(1<<3)
+#define PIPE_FLAG_SIZE		(1<<4)
 
  /*
   * Tunable parameters. Values are taken from the config file, after
@@ -284,13 +289,15 @@ static int parse_callback(int type, VSTRING *buf, char *context)
 	    *expand_flag |= PIPE_FLAG_EXTENSION;
 	else if (strcmp(vstring_str(buf), PIPE_DICT_MAILBOX) == 0)
 	    *expand_flag |= PIPE_FLAG_MAILBOX;
+	else if (strcmp(vstring_str(buf), PIPE_DICT_SIZE) == 0)
+	    *expand_flag |= PIPE_FLAG_SIZE;
     }
     return (0);
 }
 
 /* expand_argv - expand macros in the argument vector */
 
-static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list)
+static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, long data_size)
 {
     VSTRING *buf = vstring_alloc(100);
     ARGV   *result;
@@ -387,6 +394,18 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list)
 		    lowercase(STR(buf));
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_MAILBOX, STR(buf));
 		}
+
+		/*
+		 * This argument contains $size.
+		 */
+		if (expand_flag & PIPE_FLAG_SIZE) {
+		    vstring_sprintf(buf, "%ld", data_size);
+		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SIZE, STR(buf));
+		}
+
+		/*
+		 * Done.
+		 */
 		argv_add(result, dict_eval(PIPE_DICT_TABLE, *cpp, NO), ARGV_END);
 	    }
 	}
@@ -670,7 +689,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, request->sender);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);
-    expanded_argv = expand_argv(attr.command, rcpt_list);
+    expanded_argv = expand_argv(attr.command, rcpt_list, request->data_size);
 
     command_status = pipe_command(request->fp, why,
 				  PIPE_CMD_UID, attr.uid,

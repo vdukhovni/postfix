@@ -4095,3 +4095,22 @@ Apologies for any names omitted.
 	delivery agent no longer appends a blank line to mail that
 	is delivered to external command. Files:  pipe/pipe.c,
 	global/mail_copy.[hc].
+
+20000708
+
+	Portability: support for NEXT/OPENSTEP requires extra
+	include file in util/watchdog.c (Masaki Murase).
+
+20000715
+
+	Added macros to turn on vstream/vstring/etc. format string
+	checking by gcc, in addition to the checking that was
+	already implemented with printfck.  File: util/sys_defs.h,
+	the macros for PRINTFLIKE and SCANFLIKE. Problem - unlike
+	the printfck tool, this gcc finds mismatches only in code
+	that isn't #ifdef-ed out.
+
+20000718
+
+	Robustness: make_dirs() now continues when a missing
+	directory is created by another process.

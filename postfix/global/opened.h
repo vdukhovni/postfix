@@ -19,7 +19,8 @@
  /*
   * External interface.
   */
-extern void opened(const char *, const char *, long, const char *,...);
+extern void PRINTFLIKE(4, 5) opened(const char *, const char *, long,
+				            const char *,...);
 extern void vopened(const char *, const char *, long, const char *, va_list);
 
 /* LICENSE

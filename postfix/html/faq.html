@@ -26,6 +26,8 @@
 
 <li><a href="#sendmail_incompatibility">Sendmail incompatibility</a>
 
+<li><a href="#performance">Postfix performance</a>
+
 <li><a href="#receiving">Receiving mail via the network</a>
 
 <li><a href="#relaying">Mail relaying</a>
@@ -95,6 +97,14 @@ distribution list</a>
 
 </ul>
 
+<a name="performance"><h3>Postfix performance</h3>
+
+<ul>
+
+<li><a href="#incoming">Too much mail in the incoming queue</a>
+
+</ul>
+
 <a name="receiving"><h3>Receiving mail via the network</h3>
 
 <ul>
@@ -126,6 +136,8 @@ domains with "relay access denied"</a>
 <a name="remote_delivery"><h3>Remote delivery</h3>
 
 <ul>
+
+<li><a href="#dns-again">All remote mail stays queued with: Host not found, try again</a>
 
 <li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
 
@@ -238,6 +250,8 @@ mailbox</a>
 <li><a href="#dbm_dirfno">Undefined symbols: dbm_pagfno, dbm_dirfno etc.</a>
 
 <li><a href="#db">Using third-party DB libraries</a>
+
+<li><a href="#sgistruct">IRIX problems translating IP address to string</a>
 
 </ul>
 
@@ -432,7 +446,7 @@ else mail will bounce with a "mail loops to myself" condition.
 
 <p>
 
-Specify <b>dbm:/etc/postfix/transport</b> if your system uses
+Specify <b>dbm</b> instead of <b>hash</b> if your system uses
 <b>dbm</b> files instead of <b>db</b>. To find out what map types
 Postfix supports, use the command <b>postconf -m</b>.
 
@@ -491,7 +505,7 @@ route mail for <i>my.domain</i> to the inside machine:
 
 <p>
 
-Specify <b>dbm:/etc/postfix/transport</b> if your system uses
+Specify <b>dbm</b> instead of <b>hash</b> if your system uses
 <b>dbm</b> files instead of <b>db</b>. To find out what map types
 Postfix supports, use the command <b>postconf -m</b>.
 
@@ -776,6 +790,63 @@ which does not know that the sender address is being replaced.
 
 This limitation will be fixed by changing how the Postfix local
 delivery agent deals with undeliverable mail.
+
+<hr>
+
+<a name="incoming"><h3>Too much mail in the incoming queue</h3></a>
+
+<blockquote>
+
+I have lots if mail in the incoming queue, but Postfix only runs
+a few outbound SMTP deliveries. Why is it not running more SMTP
+clients?
+
+</blockquote>
+
+<p>
+
+Your problem is that the disk is saturated with I/O from receiving
+mail, so that the Postfix queue manager gets insufficient chance
+to process the requests (many SMTP server processes against one
+poor queue manager).
+
+<p>
+
+You solve the problem by getting faster disks.
+
+<p>
+
+I am still solving the scheduling problem from the software side.
+
+<p>
+
+Currently, the workaround is to configure multiple IP addresses
+per machine, and to run one Postfix instance per IP address.  The
+Postfix instances can't share queue directories, but sharing mailbox
+directories is OK.
+
+<p>
+
+Just start each Postfix instance with a different configuration
+directory:
+
+<p>
+
+<pre>
+    # postfix -c config_directory start
+</pre>
+
+<p>
+
+Each main.cf file has a different <b>$myhostname</b> setting,
+depending on the interface that it is supposed to handle.
+
+<p>
+
+<pre>
+    myhostname = foo1.my.domain
+    inet_interfaces = $myhostname
+</pre>
 
 <hr>
 
@@ -1188,6 +1259,33 @@ When you are PRIMARY MX for some other domain you also need:
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
 <b>dbm</b> files instead of <b>db</b> files. To find out what map
 types Postfix supports, use the command <b>postconf -m</b>.
+
+<hr>
+
+<a name="dns-again"><h3>All remote mail stays queued with: Host not found, try again</h3></a>
+
+<blockquote>
+
+When I connect send mail to a remote address, the following happens:
+
+<p>
+
+<pre>
+    Jul 14 12:45:38 myhostname postfix/qmgr[2246]: 74FBF30501:
+	from=&lt;sender@sender.domain&gt; size=309 (queue active)
+    Jul 14 12:45:39 myhostname postfix/smtp[2349]: 74FBF30501:
+	to=&lt;recip@recip.domain&gt; relay=none, delay=3944, status=deferred (Name
+	service error for domain recip.domain: Host not found, try again)
+</pre>
+
+</blockquote>
+
+<p>
+
+Check out your Postfix <b>master.cf</b> file. If the SMTP client
+runs chrooted, then it needs a bunch of files inside the Postfix
+queue directory.  Examples are in the source distribution in the
+<b>examples</b> subdirectory.
 
 <hr>
 
@@ -2476,6 +2574,33 @@ db_185.h include file:
 </pre>
 
 </ul>
+
+<hr>
+
+<a name="sgistruct">
+
+<h3>IRIX problems translating IP address to string</h3>
+
+<dl>
+
+<dt>Question:  <dd> While installing IRIX 6.5.7m on a clean disk
+and no special options or software I stumbled upon the following
+problem; the inet_ntoa() function seems to return INADDR_NONE
+(malformed request?) for every call to it.  
+
+<p>
+
+<dt>Answer: <dd>There is an incompatibility between gcc and system
+libraries compiled with SGI's cc.  See a description in <a
+href="http://freeware.sgi.com/shared/howto.html">
+http://freeware.sgi.com/shared/howto.html</a>.
+
+<p>If you must use gcc, a possible workaround is to use the
+inet_ntoa() routine from the BIND source code at <a
+href="http://www.isc.org/"> http://www.isc.org/</a>.
+
+</dl>
+
 <hr>
 
 <a href="index.html">Up one level</a> | Postfix FAQ

@@ -354,10 +354,11 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_FROM : HDR_FROM))) == 0) {
-	quote_822_local(state->temp1, state->sender);
+	quote_822_local(state->temp1, *state->sender ?
+			state->sender : MAIL_ADDR_MAIL_DAEMON);
 	vstring_sprintf(state->temp2, "%sFrom: %s",
 			state->resent, vstring_str(state->temp1));
-	if (state->fullname && *state->fullname) {
+	if (*state->sender && state->fullname && *state->fullname) {
 	    vstring_sprintf(state->temp1, "(%s)", state->fullname);
 	    token = tok822_parse(vstring_str(state->temp1));
 	    vstring_strcat(state->temp2, " ");
