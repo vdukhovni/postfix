@@ -4544,3 +4544,35 @@ Apologies for any names omitted.
 	Feature: specify "smtp_never_send_ehlo = no" to disable
 	ESMTP.  Someone asked for this long ago. Files:  smtp/smtp.c,
 	smtp/smtp_proto.c.
+
+	Feature? Bugfix? The smtp client will now ignore server
+	replies that do not start with "CODE SPACE" or with "CODE
+	HYPHEN". Which means that "CODE TEXT" is now treated as
+	"CODE HYPHEN TEXT", instead of being treated as "CODE SPACE
+	TEXT", the way it was before. File:  smtp/smtp_chat.c.
+
+20001203
+
+	Documentation: postmap(1) and postalias(1) did not document
+	the process exit status for "-q key".
+
+20001204
+
+	Bugfix: master no longer imported MAIL_CONF and other
+	necessary environmental parameters. Postfix now has
+	explicit "import_environment" and "export_environment"
+	configuration parameters that control what environment
+	parameters are imported from or exported to the external
+	environment. Files: util/clean_env.c, util/spawn_command.c,
+	util/vstream_popen.c, global/pipe_command.c, and everything
+	that uses this code.
+
+20001208
+
+	Bugfix: while processing massive amounts of one-recipient
+	mail, qmgr could deadlock for 10 seconds while sending a
+	bounce message. All queue manager bounce send requests are
+	now implemented asynchronously.  Files: global/abounce.[hc]
+	(asynchronous bounce client), qmgr/qmgr_active.c.  Problem
+	reported by El Bunzo (webpower.nl) and Tiger Technologies
+	(tigertech.com).

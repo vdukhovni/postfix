@@ -117,6 +117,8 @@ smtp_chat.o: ../../include/mail_params.h
 smtp_chat.o: ../../include/mail_addr.h
 smtp_chat.o: ../../include/post_mail.h
 smtp_chat.o: ../../include/cleanup_user.h
+smtp_chat.o: ../../include/mail_error.h
+smtp_chat.o: ../../include/name_mask.h
 smtp_chat.o: smtp.h
 smtp_connect.o: smtp_connect.c
 smtp_connect.o: ../../include/sys_defs.h

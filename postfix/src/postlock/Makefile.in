@@ -61,7 +61,6 @@ postlock.o: ../../include/vbuf.h
 postlock.o: ../../include/vstream.h
 postlock.o: ../../include/msg_vstream.h
 postlock.o: ../../include/iostuff.h
-postlock.o: ../../include/safe_open.h
 postlock.o: ../../include/mail_params.h
 postlock.o: ../../include/dot_lockfile.h
 postlock.o: ../../include/deliver_flock.h
@@ -71,3 +70,4 @@ postlock.o: ../../include/sys_exits.h
 postlock.o: ../../include/mbox_conf.h
 postlock.o: ../../include/argv.h
 postlock.o: ../../include/mbox_open.h
+postlock.o: ../../include/safe_open.h

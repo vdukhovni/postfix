@@ -44,6 +44,9 @@
 /*	See the Postfix \fBmain.cf\fR file for syntax details and for
 /*	default values. Use the \fBpostfix reload\fR command after a
 /*	configuration change.
+/* .IP \fBimport_environment\fR
+/*	List of names of environment parameters that can be imported
+/*	from non-Postfix processes.
 /* .IP \fBqueue_directory\fR
 /*	Top-level directory of the Postfix queue. This is also the root
 /*	directory of Postfix daemons that run chrooted.
@@ -81,6 +84,7 @@
 #include <vstring.h>
 #include <msg_vstream.h>
 #include <msg_syslog.h>
+#include <argv.h>
 
 /* Global library. */
 
@@ -153,6 +157,7 @@ int     main(int argc, char **argv)
     };
     char  **expected;
     uid_t   uid = getuid();
+    ARGV   *import_env;
 
     /*
      * Be consistent with file permissions.
@@ -172,7 +177,9 @@ int     main(int argc, char **argv)
     /*
      * Strip the environment so we don't have to trust the C library.
      */
-    clean_env();
+    import_env = argv_split(var_import_environ, ", \t\r\n");
+    clean_env(import_env->argv);
+    argv_free(import_env);
 
     /*
      * Set up logging. Censor the process name: it is provided by the user.

@@ -79,6 +79,10 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBimport_environment\fR
+/* .IP \fBexport_environment\fR
+/*	Lists of names of environment parameters that can be imported
+/*	from (exported to) non-Postfix processes.
 /* .IP \fBmail_owner\fR
 /*	The owner of the mail queue and of most Postfix processes.
 /* .IP \fBcommand_directory\fR
@@ -144,6 +148,7 @@
 #include <myflock.h>
 #include <watchdog.h>
 #include <clean_env.h>
+#include <argv.h>
 
 /* Global library. */
 
@@ -170,6 +175,7 @@ int     main(int argc, char **argv)
     int     fd_limit = open_limit(0);
     VSTRING *why;
     WATCHDOG *watchdog;
+    ARGV   *import_env;
 
     /*
      * Initialize.
@@ -183,12 +189,6 @@ int     main(int argc, char **argv)
 	msg_verbose = 1;
     if (getenv(CONF_ENV_DEBUG))
 	debug_me = 1;
-
-    /*
-     * Ad-hoc environment filter, to enforce consistent behavior whether
-     * Postfix is started by hand, or at system boot time.
-     */
-    clean_env();
 
     /*
      * Don't die when a process goes away unexpectedly.
@@ -278,6 +278,16 @@ int     main(int argc, char **argv)
      * files.
      */
     master_vars_init();
+
+    /*
+     * Environment import filter, to enforce consistent behavior whether
+     * Postfix is started by hand, or at system boot time. The argument list
+     * specifies what environment parameters to preserve.
+     */
+    import_env = argv_split(var_import_environ, ", \t\r\n");
+    clean_env(import_env->argv);
+    argv_free(import_env);
+
     if ((inherited_limit = get_file_limit()) < (off_t) var_message_limit) {
 	msg_warn("file size limit %lu < message_size_limit %lu -- reset",
 	(unsigned long) inherited_limit, (unsigned long) var_message_limit);

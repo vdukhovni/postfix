@@ -127,6 +127,9 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBexport_environment\fR
+/*	List of names of environment parameters that can be exported
+/*	to non-Postfix processes.
 /* .IP \fBmail_owner\fR
 /*	The process privileges used while not running an external command.
 /* .SH "Resource controls"
@@ -629,6 +632,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     ARGV   *expanded_argv = 0;
     int     deliver_status;
     int     command_status;
+    ARGV   *export_env;
 
 #define DELIVER_MSG_CLEANUP() { \
 	vstring_free(why); \
@@ -695,6 +699,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, request->sender);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);
     expanded_argv = expand_argv(attr.command, rcpt_list, request->data_size);
+    export_env = argv_split(var_export_environ, ", \t\r\n");
 
     command_status = pipe_command(request->fp, why,
 				  PIPE_CMD_UID, attr.uid,
@@ -704,7 +709,9 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				  PIPE_CMD_ARGV, expanded_argv->argv,
 				  PIPE_CMD_TIME_LIMIT, conf.time_limit,
 				  PIPE_CMD_EOL, STR(attr.eol),
+				  PIPE_CMD_EXPORT, export_env->argv,
 				  PIPE_CMD_END);
+    argv_free(export_env);
 
     deliver_status = eval_command_status(command_status, service, request,
 					 request->fp, vstring_str(why));

@@ -323,10 +323,6 @@ mailbox.o: ../../include/mymalloc.h
 mailbox.o: ../../include/stringops.h
 mailbox.o: ../../include/set_eugid.h
 mailbox.o: ../../include/mail_copy.h
-mailbox.o: ../../include/safe_open.h
-mailbox.o: ../../include/deliver_flock.h
-mailbox.o: ../../include/myflock.h
-mailbox.o: ../../include/dot_lockfile.h
 mailbox.o: ../../include/defer.h
 mailbox.o: ../../include/bounce.h
 mailbox.o: ../../include/sent.h
@@ -339,6 +335,7 @@ mailbox.o: ../../include/recipient_list.h
 mailbox.o: ../../include/mail_proto.h
 mailbox.o: ../../include/iostuff.h
 mailbox.o: ../../include/mbox_open.h
+mailbox.o: ../../include/safe_open.h
 mailbox.o: local.h
 mailbox.o: ../../include/tok822.h
 mailbox.o: ../../include/resolve_clnt.h

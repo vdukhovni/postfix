@@ -60,6 +60,9 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBexport_environment\fR
+/*	List of names of environment parameters that can be exported
+/*	to non-Postfix processes.
 /* .IP \fBmail_owner\fR
 /*	The process privileges used while not running an external command.
 /* .SH Resource control
@@ -229,6 +232,7 @@ static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
     char   *myname = "spawn_service";
     static SPAWN_ATTR attr;
     WAIT_STATUS_T status;
+    ARGV   *export_env;
 
     /*
      * This routine runs whenever a client connects to the UNIX-domain socket
@@ -248,6 +252,7 @@ static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
     /*
      * Execute the command.
      */
+    export_env = argv_split(var_export_environ, ", \t\r\n");
     status = spawn_command(SPAWN_CMD_STDIN, vstream_fileno(client_stream),
 			   SPAWN_CMD_STDOUT, vstream_fileno(client_stream),
 			   SPAWN_CMD_STDERR, vstream_fileno(client_stream),
@@ -255,7 +260,9 @@ static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
 			   SPAWN_CMD_GID, attr.gid,
 			   SPAWN_CMD_ARGV, attr.argv,
 			   SPAWN_CMD_TIME_LIMIT, attr.time_limit,
+			   SPAWN_CMD_EXPORT, export_env->argv,
 			   SPAWN_CMD_END);
+    argv_free(export_env);
 
     /*
      * Warn about unsuccessful completion.

@@ -263,6 +263,9 @@
 /*	When delivering to an alias that has an owner- companion alias,
 /*	set the envelope sender address to the right-hand side of the
 /*	owner alias, instead using of the left-hand side address.
+/* .IP \fBexport_environment\fR
+/*	List of names of environment parameters that can be exported
+/*	to non-Postfix processes.
 /* .IP \fBforward_path\fR
 /*	Search list for .forward files.  The names are subject to \fI$name\fR
 /*	expansion.

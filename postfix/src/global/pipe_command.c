@@ -42,6 +42,9 @@
 /*	Additional environment information, in the form of a null-terminated
 /*	list of name, value, name, value, ... elements. By default only the
 /*	command search path is initialized to _PATH_DEFPATH.
+/* .IP "PIPE_CMD_EXPORT (char **)"
+/*	Null-terminated array with names of environment parameters
+/*	that can be exported. By default, everything is exported.
 /* .IP "PIPE_CMD_COPY_FLAGS (int)"
 /*	Flags that are passed on to the \fImail_copy\fR() routine.
 /*	The default flags value is 0 (zero).
@@ -146,6 +149,7 @@ struct pipe_args {
     uid_t   uid;			/* privileges */
     gid_t   gid;			/* privileges */
     char  **env;			/* extra environment */
+    char  **export;			/* exportable environment */
     char   *shell;			/* command shell */
 };
 
@@ -171,6 +175,7 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
     args->uid = var_default_uid;
     args->gid = var_default_gid;
     args->env = 0;
+    args->export = 0;
     args->shell = 0;
 
     pipe_command_maxtime = var_command_maxtime;
@@ -213,6 +218,9 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 	    break;
 	case PIPE_CMD_ENV:
 	    args->env = va_arg(ap, char **);
+	    break;
+	case PIPE_CMD_EXPORT:
+	    args->export = va_arg(ap, char **);
 	    break;
 	case PIPE_CMD_SHELL:
 	    args->shell = va_arg(ap, char *);
@@ -384,7 +392,8 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 	 * Environment plumbing. Always reset the command search path. XXX
 	 * That should probably be done by clean_env().
 	 */
-	clean_env();
+	if (args.export)
+	    clean_env(args.export);
 	if (setenv("PATH", _PATH_DEFPATH, 1))
 	    msg_fatal("%s: setenv: %m", myname);
 	if (args.env)

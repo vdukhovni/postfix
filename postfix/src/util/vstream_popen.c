@@ -6,28 +6,21 @@
 /* SYNOPSIS
 /*	#include <vstream.h>
 /*
-/*	VSTREAM	*vstream_popen(command, flags)
-/*	cont char *command;
+/*	VSTREAM	*vstream_popen(flags, key, value, ...)
 /*	int	flags;
+/*	int	key;
 /*
 /*	int	vstream_pclose(stream)
 /*	VSTREAM	*stream;
-/*
-/*	VSTREAM	*vstream_popen_vargs(key, value, ...)
-/*	int	key;
 /* DESCRIPTION
-/*	vstream_popen() opens a one-way or two-way stream to the specified
-/*	\fIcommand\fR, which is executed by a child process. The \fIflags\fR
+/*	vstream_popen() opens a one-way or two-way stream to a user-specified
+/*	command, which is executed by a child process. The \fIflags\fR
 /*	argument is as with vstream_fopen(). The child's standard input and
 /*	standard output are redirected to the stream, which is based on a
-/*	socketpair or other suitable local IPC.
-/*
-/*	vstream_popen_vargs() offers the user more control over the
-/*	child process and over how it is managed. The key argument
-/*	specifies what value will follow. pipe_command() takes a list
-/*	of (key, value) arguments, terminated by VSTREAM_POPEN_END. The
-/*	following is a listing of key codes together with the expected
-/*	value type.
+/*	socketpair or other suitable local IPC. vstream_popen() takes a list
+/*	of (key, value) arguments, terminated by VSTREAM_POPEN_END. The key
+/*	argument specifies what value will follow. The following is a listing
+/*	of key codes together with the expected value type.
 /* .RS
 /* .IP "VSTREAM_POPEN_COMMAND (char *)"
 /*	Specifies the command to execute as a string. The string is
@@ -44,6 +37,9 @@
 /*	Additional environment information, in the form of a null-terminated
 /*	list of name, value, name, value, ... elements. By default only the
 /*	command search path is initialized to _PATH_DEFPATH.
+/* .IP "VSTREAM_POPEN_EXPORT (char **)"
+/*	Null-terminated array of names of environment parameters
+/*	that can be exported. By default, everything is exported.
 /* .IP "VSTREAM_POPEN_UID (int)"
 /*	The user ID to execute the command as. The user ID must be non-zero.
 /* .IP "VSTREAM_POPEN_GID (int)"
@@ -118,6 +114,7 @@ typedef struct VSTREAM_POPEN_ARGS {
     gid_t   gid;
     int     privileged;
     char  **env;
+    char  **export;
     char   *shell;
     VSTREAM_WAITPID_FN waitpid_fn;
 } VSTREAM_POPEN_ARGS;
@@ -138,6 +135,7 @@ static void vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
     args->gid = 0;
     args->privileged = 0;
     args->env = 0;
+    args->export = 0;
     args->shell = 0;
     args->waitpid_fn = 0;
 
@@ -167,6 +165,9 @@ static void vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
 	case VSTREAM_POPEN_ENV:
 	    args->env = va_arg(ap, char **);
 	    break;
+	case VSTREAM_POPEN_EXPORT:
+	    args->export = va_arg(ap, char **);
+	    break;
 	case VSTREAM_POPEN_SHELL:
 	    args->shell = va_arg(ap, char *);
 	    break;
@@ -186,11 +187,11 @@ static void vstream_parse_args(VSTREAM_POPEN_ARGS *args, va_list ap)
 	msg_panic("%s: privileged gid", myname);
 }
 
-/* vstream_popen_vargs - open stream to child process */
+/* vstream_popen - open stream to child process */
 
-VSTREAM *vstream_popen_vargs(int flags,...)
+VSTREAM *vstream_popen(int flags,...)
 {
-    char   *myname = "vstream_popen_vargs";
+    char   *myname = "vstream_popen";
     VSTREAM_POPEN_ARGS args;
     va_list ap;
     VSTREAM *stream;
@@ -233,7 +234,8 @@ VSTREAM *vstream_popen_vargs(int flags,...)
 	 * Environment plumbing. Always reset the command search path. XXX
 	 * That should probably be done by clean_env().
 	 */
-	clean_env();
+	if (args.export)
+	    clean_env(args.export);
 	if (setenv("PATH", _PATH_DEFPATH, 1))
 	    msg_fatal("%s: setenv: %m", myname);
 	if (args.env)
@@ -266,15 +268,6 @@ VSTREAM *vstream_popen_vargs(int flags,...)
 	stream->pid = pid;
 	return (stream);
     }
-}
-
-/* vstream_popen - retro-compatible wrapper for new interface */
-
-VSTREAM *vstream_popen(const char *command, int flags)
-{
-    return (vstream_popen_vargs(flags,
-				VSTREAM_POPEN_COMMAND, command,
-				VSTREAM_POPEN_END));
 }
 
 /* vstream_pclose - close stream to child process */

@@ -114,8 +114,7 @@ extern void vstream_control(VSTREAM *, int,...);
 extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
 extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);
 
-extern VSTREAM *vstream_popen(const char *, int);
-extern VSTREAM *vstream_popen_vargs(int,...);
+extern VSTREAM *vstream_popen(int,...);
 extern int vstream_pclose(VSTREAM *);
 
 #define vstream_ispipe(vp)	((vp)->pid != 0)
@@ -128,6 +127,7 @@ extern int vstream_pclose(VSTREAM *);
 #define VSTREAM_POPEN_ENV	5	/* extra environment */
 #define VSTREAM_POPEN_SHELL	6	/* alternative shell */
 #define VSTREAM_POPEN_WAITPID_FN 7	/* child catcher, waitpid() compat. */
+#define VSTREAM_POPEN_EXPORT	8	/* exportable environment */
 
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 

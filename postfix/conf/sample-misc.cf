@@ -38,6 +38,15 @@ default_transport = smtp
 #
 double_bounce_sender = double-bounce
 
+# The export_environment parameter specifies the names of environment
+# parameters that Postfix will export to non-Postfix processes.
+# 
+# - TZ is needed for sane time keeping on most SYSV-ish systems
+# 
+# Specify a list of names separated by whitespace or comma.
+#
+export_environment = TZ
+
 # The hash_queue_depth parameter specifies the number of subdirectory
 # levels below the queue directories listed in the hash_queue_names
 # parameter.
@@ -69,6 +78,20 @@ hash_queue_names = defer
 # headers. A message that exceeds the limit is bounced.
 #
 hopcount_limit = 50
+
+# The import_environment parameter specifies the names of environment
+# parameters that Postfix processes will import from their parent
+# environment.
+# 
+# - TZ is needed for sane time keeping on most SYSV-ish systems
+# - DISPLAY and XAUTHORITY are needed for debugging Postfix daemons
+#   with an X-windows debugger.
+# - MAIL_CONFIG is needed to make "postfix -c" work.
+# 
+# Specify a list of names separated by whitespace or comma.
+#
+# import_environment = MAIL_CONFIG TZ XAUTHORITY DISPLAY HOME PURIFYOPTIONS
+import_environment = MAIL_CONFIG TZ XAUTHORITY DISPLAY
 
 # The inet_interfaces parameter specifies the network interface
 # addresses that this mail system receives mail on.  By default,

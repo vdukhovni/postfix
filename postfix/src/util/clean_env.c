@@ -6,11 +6,17 @@
 /* SYNOPSIS
 /*	#include <clean_env.h>
 /*
-/*	void	clean_env()
+/*	void	clean_env(export_list)
+/*	const char **export_list;
 /* DESCRIPTION
 /*	clean_env() reduces the process environment to the bare minimum.
-/*	In the initial version, rules are hard-coded. This will be
-/*	made configurable.
+/*	The function takes a null-terminated list of arguments.
+/*	Each argument specifies the name of an environment variable
+/*	that should be preserved.
+/* DIAGNOSTICS
+/*	Fatal error: out of memory.
+/* SEE ALSO
+/*	safe_getenv(3), guarded getenv()
 /* LICENSE
 /* .ad
 /* .fi
@@ -31,28 +37,27 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <argv.h>
+#include <safe.h>
 #include <clean_env.h>
 
 /* clean_env - clean up the environment */
 
-void    clean_env(void)
+void    clean_env(char **export_list)
 {
-    char   *TZ;
-    char   *DISPLAY;
-    char   *XAUTHORITY;
-    char   *HOME;
-    char   *PURIFYOPTIONS;
     extern char **environ;
+    ARGV   *save_list;
+    char   *value;
+    char  **cpp;
 
     /*
-     * Preserve selected environment variables. This list will be
-     * configurable.
+     * Preserve selected environment variables.
      */
-    TZ = getenv("TZ");
-    DISPLAY = getenv("DISPLAY");
-    XAUTHORITY = getenv("XAUTHORITY");
-    HOME = getenv("HOME");
-    PURIFYOPTIONS = getenv("PURIFYOPTIONS");
+    save_list = argv_alloc(10);
+    for (cpp = export_list; *cpp; cpp++)
+	if ((value = safe_getenv(*cpp)) != 0)
+	    argv_add(save_list, *cpp, value, (char *) 0);
+    argv_terminate(save_list);
 
     /*
      * Truncate the process environment, if available. On some systems
@@ -64,18 +69,12 @@ void    clean_env(void)
     /*
      * Restore preserved environment variables.
      */
-    if (TZ && setenv("TZ", TZ, 1))
-	msg_fatal("setenv: %m");
-    if (DISPLAY && setenv("DISPLAY", DISPLAY, 1))
-	msg_fatal("setenv: %m");
-    if (XAUTHORITY && setenv("XAUTHORITY", XAUTHORITY, 1))
-	msg_fatal("setenv: %m");
-    if (HOME && setenv("HOME", HOME, 1))
-	msg_fatal("setenv: %m");
-    if (PURIFYOPTIONS && setenv("PURIFYOPTIONS", PURIFYOPTIONS, 1))
-	msg_fatal("setenv: %m");
+    for (cpp = save_list->argv; *cpp; cpp += 2)
+	if (setenv(cpp[0], cpp[1], 1))
+	    msg_fatal("setenv: %m");
 
     /*
-     * Update the process environment with configurable initial values.
+     * Cleanup.
      */
+    argv_free(save_list);
 }

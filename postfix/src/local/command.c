@@ -89,6 +89,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     int     copy_flags;
     char  **cpp;
     char   *cp;
+    ARGV   *export_env;
 
     /*
      * Make verbose logging easier to understand.
@@ -169,6 +170,8 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
 	for (cp = cpp[1]; *(cp += strspn(cp, var_cmd_exp_filter)) != 0;)
 	    *cp++ = '_';
 
+    export_env = argv_split(var_export_environ, ", \t\r\n");
+
     cmd_status = pipe_command(state.msg_attr.fp, why,
 			      PIPE_CMD_UID, usr_attr.uid,
 			      PIPE_CMD_GID, usr_attr.gid,
@@ -178,9 +181,11 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
 			      PIPE_CMD_DELIVERED, state.msg_attr.delivered,
 			      PIPE_CMD_TIME_LIMIT, var_command_maxtime,
 			      PIPE_CMD_ENV, env->argv,
+			      PIPE_CMD_EXPORT, export_env->argv,
 			      PIPE_CMD_SHELL, var_local_cmd_shell,
 			      PIPE_CMD_END);
 
+    argv_free(export_env);
     argv_free(env);
 
     /*

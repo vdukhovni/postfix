@@ -97,7 +97,7 @@ Hosts to hand off mail to if a message destination is not found
 or if a destination is unreachable.
 .IP \fBignore_mx_lookup_error\fR
 When a name server fails to respond to an MX query, search for an
-A record instead of assuming that the name server will recover.
+A record instead deferring mail delivery.
 .IP \fBinet_interfaces\fR
 The network interface addresses that this mail system receives
 mail on. When any of those addresses appears in the list of mail
@@ -108,6 +108,8 @@ When this parameter includes the \fBprotocol\fR class, send mail to the
 postmaster with transcripts of SMTP sessions with protocol errors.
 .IP \fBsmtp_always_send_ehlo\fR
 Always send EHLO at the start of a connection.
+.IP \fBsmtp_never_send_ehlo\fR
+Never send EHLO at the start of a connection.
 .IP \fBsmtp_skip_4xx_greeting\fR
 Skip servers that greet us with a 4xx status code.
 .IP \fBsmtp_skip_5xx_greeting\fR

@@ -109,8 +109,8 @@ SMTP(8)                                                   SMTP(8)
 
        <b>ignore</b><i>_</i><b>mx</b><i>_</i><b>lookup</b><i>_</i><b>error</b>
               When a name server fails to respond to an MX query,
-              search for an A record instead of assuming that the
-              name server will recover.
+              search  for  an  A  record  instead  deferring mail
+              delivery.
 
        <b>inet</b><i>_</i><b>interfaces</b>
               The network interface addresses that this mail sys-
@@ -139,6 +139,9 @@ SMTP(8)                                                   SMTP(8)
 
        <b>smtp</b><i>_</i><b>always</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
               Always send EHLO at the start of a connection.
+
+       <b>smtp</b><i>_</i><b>never</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
+              Never send EHLO at the start of a connection.
 
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
               Skip servers that greet us with a 4xx status  code.
@@ -189,9 +192,6 @@ SMTP(8)                                                   SMTP(8)
               destination.   The  default limit is taken from the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
 
-       <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit  the  number  of   recipients   per   message
-
 
 
                                                                 3
@@ -203,7 +203,9 @@ SMTP(8)                                                   SMTP(8)
 SMTP(8)                                                   SMTP(8)
 
 
-              delivery.   The  default  limit  is  taken from the
+       <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+              Limit the number of recipients per  message  deliv-
+              ery.    The   default   limit  is  taken  from  the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
 
 <b>Timeout</b> <b>controls</b>
@@ -255,8 +257,6 @@ SMTP(8)                                                   SMTP(8)
        <a href="master.8.html">master(8)</a> process manager
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
        syslogd(8) system logging
-
-
 
 
 

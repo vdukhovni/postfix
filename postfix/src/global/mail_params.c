@@ -60,6 +60,9 @@
 /*	char	*var_relay_domains;
 /*	char	*var_fflush_domains;
 /*
+/*	char	*var_import_environ;
+/*	char	*var_export_environ;
+/*
 /*	void	mail_params_init()
 /* DESCRIPTION
 /*	This module (actually the associated include file) define the names
@@ -166,6 +169,9 @@ int     var_daemon_timeout;
 char   *var_syslog_facility;
 char   *var_relay_domains;
 char   *var_fflush_domains;
+
+char   *var_import_environ;
+char   *var_export_environ;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -278,6 +284,8 @@ void    mail_params_init()
 	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 1,
 	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
 	VAR_FFLUSH_DOMAINS, DEF_FFLUSH_DOMAINS, &var_fflush_domains, 0, 0,
+	VAR_EXPORT_ENVIRON, DEF_EXPORT_ENVIRON, &var_export_environ, 0, 0,
+	VAR_IMPORT_ENVIRON, DEF_IMPORT_ENVIRON, &var_import_environ, 0, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

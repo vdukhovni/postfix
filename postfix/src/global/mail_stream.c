@@ -86,6 +86,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <stringops.h>
+#include <argv.h>
 
 /* Global library. */
 
@@ -93,6 +94,7 @@
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <opened.h>
+#include <mail_params.h>
 #include <mail_stream.h>
 
 /* Application-specific. */
@@ -237,6 +239,7 @@ MAIL_STREAM *mail_stream_command(const char *command)
 {
     VSTREAM *stream;
     MAIL_STREAM *info;
+    ARGV   *export_env;
 
     if (id_buf == 0)
 	id_buf = vstring_alloc(10);
@@ -245,10 +248,16 @@ MAIL_STREAM *mail_stream_command(const char *command)
      * Treat fork() failure as a transient problem. Treat bad handshake as a
      * permanent error.
      */
-    while ((stream = vstream_popen(command, O_RDWR)) == 0) {
+    export_env = argv_split(var_export_environ, ", \t\r\n");
+    while ((stream = vstream_popen(O_RDWR,
+				   VSTREAM_POPEN_COMMAND, command,
+				   VSTREAM_POPEN_EXPORT, export_env->argv,
+				   VSTREAM_POPEN_END)) == 0) {
 	msg_warn("fork: %m");
 	sleep(10);
     }
+    argv_free(export_env);
+
     if (mail_scan(stream, "%s", id_buf) != 1) {
 	vstream_pclose(stream);
 	return (0);

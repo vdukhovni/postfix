@@ -83,16 +83,20 @@ SPAWN(8)                                                 SPAWN(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
+       <b>export</b><i>_</i><b>environment</b>
+              List of names of environment parameters that can be
+              exported to non-Postfix processes.
+
        <b>mail</b><i>_</i><b>owner</b>
-              The process privileges used while  not  running  an
+              The  process  privileges  used while not running an
               external command.
 
 <b>Resource</b> <b>control</b>
        <i>service_</i><b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>
-              The  amount  of  time the command is allowed to run
+              The amount of time the command is  allowed  to  run
               before it is killed with force. The <i>service</i> name is
-              the  name  of  the entry in the <b>master.cf</b> file. The
-              default time limit is  given  by  the  global  <b>com-</b>
+              the name of the entry in the  <b>master.cf</b>  file.  The
+              default  time  limit  is  given  by the global <b>com-</b>
               <b>mand</b><i>_</i><b>time</b><i>_</i><b>limit</b> configuration parameter.
 
 <b>SEE</b> <b>ALSO</b>
@@ -100,7 +104,7 @@ SPAWN(8)                                                 SPAWN(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -108,10 +112,6 @@ SPAWN(8)                                                 SPAWN(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

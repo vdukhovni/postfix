@@ -109,6 +109,10 @@ POSTALIAS(1)                                         POSTALIAS(1)
        put means no problems were detected. Duplicate entries are
        skipped and are flagged with a warning.
 
+       <b>postalias</b> terminates with zero exit status in case of suc-
+       cess  (including  successful <b>postmap</b> <b>-q</b> lookup) and termi-
+       nates with non-zero exit status in case of failure.
+
 <b>BUGS</b>
        The "delete key" support is limited to one  delete  opera-
        tion per command invocation.
@@ -120,10 +124,6 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <b>MAIL</b><i>_</i><b>VERBOSE</b>
               Enable verbose logging for debugging purposes.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details and for default values.
 
 
 
@@ -136,6 +136,11 @@ POSTALIAS(1)                                         POSTALIAS(1)
 
 POSTALIAS(1)                                         POSTALIAS(1)
 
+
+<b>CONFIGURATION</b> <b>PARAMETERS</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. See the Postfix <b>main.cf</b> file  for  syntax
+       details and for default values.
 
        <b>database</b><i>_</i><b>type</b>
               Default  alias database type. On many UNIX systems,
@@ -157,11 +162,6 @@ POSTALIAS(1)                                         POSTALIAS(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
 
 
 

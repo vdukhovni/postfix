@@ -34,6 +34,9 @@
 /*	Additional environment information, in the form of a null-terminated
 /*	list of name, value, name, value, ... elements. By default only the
 /*	command search path is initialized to _PATH_DEFPATH.
+/* .IP "SPAWN_CMD_EXPORT (char **)"
+/*	Null-terminated array of names of environment parameters that can
+/*	be exported. By default, everything is exported.
 /* .IP "SPAWN_CMD_STDIN (int)"
 /* .IP "SPAWN_CMD_STDOUT (int)"
 /* .IP "SPAWN_CMD_STDERR (int)"
@@ -105,6 +108,7 @@ struct spawn_args {
     uid_t   uid;			/* privileges */
     gid_t   gid;			/* privileges */
     char  **env;			/* extra environment */
+    char  **export;			/* exportable environment */
     char   *shell;			/* command shell */
     int     time_limit;			/* command time limit */
 };
@@ -127,6 +131,7 @@ static void get_spawn_args(struct spawn_args * args, int init_key, va_list ap)
     args->uid = (uid_t) - 1;
     args->gid = (gid_t) - 1;
     args->env = 0;
+    args->export = 0;
     args->shell = 0;
     args->time_limit = 0;
 
@@ -167,6 +172,9 @@ static void get_spawn_args(struct spawn_args * args, int init_key, va_list ap)
 	    break;
 	case SPAWN_CMD_ENV:
 	    args->env = va_arg(ap, char **);
+	    break;
+	case SPAWN_CMD_EXPORT:
+	    args->export = va_arg(ap, char **);
 	    break;
 	case SPAWN_CMD_SHELL:
 	    args->shell = va_arg(ap, char *);
@@ -245,7 +253,8 @@ WAIT_STATUS_T spawn_command(int key,...)
 	 * Environment plumbing. Always reset the command search path. XXX
 	 * That should probably be done by clean_env().
 	 */
-	clean_env();
+	if (args.export)
+	    clean_env(args.export);
 	if (setenv("PATH", _PATH_DEFPATH, 1))
 	    msg_fatal("%s: setenv: %m", myname);
 	if (args.env)

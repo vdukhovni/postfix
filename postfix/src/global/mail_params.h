@@ -1092,9 +1092,23 @@ extern int var_fflush_purge;
 #define DEF_FFLUSH_REFRESH		"12h"
 extern int var_fflush_refresh;
 
+ /*
+  * Environmental management - what Postfix imports from the external world,
+  * and what Postfix exports to the external world.
+  */
+#define VAR_IMPORT_ENVIRON		"import_environment"
+#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG, TZ, XAUTHORITY, DISPLAY"
+extern char *var_import_environ;
+
+#define VAR_EXPORT_ENVIRON		"export_environment"
+#define DEF_EXPORT_ENVIRON		"TZ"
+extern char *var_export_environ;
+
 /* LICENSE
 /* .ad
 /* .fi
+Unterminated comment
+
 /*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
 /*	Wietse Venema

@@ -25,6 +25,7 @@
 #define SPAWN_CMD_TIME_LIMIT	8	/* time limit */
 #define SPAWN_CMD_ENV		9	/* extra environment */
 #define SPAWN_CMD_SHELL		10	/* alternative shell */
+#define SPAWN_CMD_EXPORT	11	/* exportable parameters */
 
 extern WAIT_STATUS_T spawn_command(int,...);
 

@@ -342,6 +342,8 @@ chroot_uid.o: chroot_uid.h
 clean_env.o: clean_env.c
 clean_env.o: sys_defs.h
 clean_env.o: msg.h
+clean_env.o: argv.h
+clean_env.o: safe.h
 clean_env.o: clean_env.h
 close_on_exec.o: close_on_exec.c
 close_on_exec.o: sys_defs.h
@@ -715,8 +717,6 @@ mvect.o: mvect.h
 myflock.o: myflock.c
 myflock.o: sys_defs.h
 myflock.o: msg.h
-myflock.o: vstring.h
-myflock.o: vbuf.h
 myflock.o: myflock.h
 mymalloc.o: mymalloc.c
 mymalloc.o: sys_defs.h

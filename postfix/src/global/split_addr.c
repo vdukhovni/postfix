@@ -16,7 +16,7 @@
 /*
 /*	Reserved addresses are not split: postmaster, mailer-daemon,
 /*	double-bounce. Addresses that begin with owner-, or addresses
-/*	that end in -request are not split, unless the owner_request_special
+/*	that end in -request are not split when the owner_request_special
 /*	parameter is set.
 /* LICENSE
 /* .ad

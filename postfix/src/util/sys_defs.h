@@ -34,6 +34,7 @@
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock"
 #define HAS_SUN_LEN
 #define HAS_FSYNC
 #define HAS_DB
@@ -62,11 +63,8 @@
 #endif
 
 #if defined(NETBSD1)
+#undef DEF_MAILBOX_LOCK
 #define DEF_MAILBOX_LOCK "flock, dotlock"
-#endif
-
-#ifndef DEF_MAILBOX_LOCK
-#define DEF_MAILBOX_LOCK "flock"
 #endif
 
  /*
