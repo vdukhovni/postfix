@@ -141,7 +141,8 @@
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
-/*	If non-empty, filters the SMTP server's list of offered SASL mechanisms.
+/*	If non-empty, a Postfix SMTP client filter for the remote SMTP
+/*	server's list of offered SASL mechanisms.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi

@@ -9926,6 +9926,39 @@ Apologies for any names omitted.
 	Hexadecimal encode/decode routines, from the TLS-enabled
 	version. Files:  util/hext_code.[hc].
 
+20041212
+
+	Solaris 10/ix86 chroot setup script update by J.D. Bronson.
+
+20041213
+
+	Updated the SDBM dictionary interface. It had fallen behind
+	with the Postfix dictionary interfaces that were already
+	bundled with Postfix. Files: util/dict_sdbm.[hc].
+
+	Cleanup: "postconf -m" (show all available map types) now
+	produces sorted output.  File: util/dict_open.c.
+
+20041215
+
+	No bugfix: tests with the new "postmap -s" feature show
+	that SDBM first/next operations never worked with Postfix/TLS
+	patch 20040829 (verified with the 20040829 dict_sdbm.c
+	module on Linux and FreeBSD).  The code stops after finding
+	one database element.  Other SDBM versions found on the
+	Internet will find all database entries, but report an I/O
+	error after the last database element is found. All this
+	would be easy enough to fix, but the SDBM library is not
+	part of Postfix, and never will be.
+
+	Bugfix: the sequence operator in the DBM and SDBM clients
+	released the shared lock after reading the next key but
+	before reading the corresponding value. This was never a
+	problem, because the sequence operator was used only in
+	the Postfix/TLS patch. This used the SDBM sequence operator
+	which didn't work as discussed above. Files:  util/dict_dbm.c,
+	util/dict_sdbm.c.
+
 Open problems:
 
 	Med: implement ${name[?:]value} in main.cf or update the
@@ -10023,9 +10056,6 @@ Open problems:
 	Medium: need in-process caching for map lookups. LDAP
 	servers seem to need this in particular. Need a way to
 	expire cached results that are too old.
-
-	Medium: make address rewriting on/off configurable for
-	envelopes and/or headers.
 
 	Low: generic showq protocol, to allow for more intelligent
 	processing than just mailq. Maybe marry this with postsuper.

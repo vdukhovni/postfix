@@ -1070,6 +1070,7 @@ mkmap_open.o: ../../include/argv.h
 mkmap_open.o: ../../include/dict_db.h
 mkmap_open.o: ../../include/dict_cdb.h
 mkmap_open.o: ../../include/dict_dbm.h
+mkmap_open.o: ../../include/dict_sdbm.h
 mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/mymalloc.h
 mkmap_open.o: mkmap.h

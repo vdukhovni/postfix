@@ -213,7 +213,6 @@ static int dict_dbm_delete(DICT *dict, const char *name)
     DICT_DBM *dict_dbm = (DICT_DBM *) dict;
     datum   dbm_key;
     int     status = 1;
-    int     flags = 0;
 
     /*
      * Sanity check.
@@ -281,7 +280,6 @@ static int dict_dbm_sequence(DICT *dict, int function,
     DICT_DBM *dict_dbm = (DICT_DBM *) dict;
     datum   dbm_key;
     datum   dbm_value;
-    int     status = 0;
 
     /*
      * Acquire a shared lock.
@@ -303,13 +301,6 @@ static int dict_dbm_sequence(DICT *dict, int function,
     default:
 	msg_panic("%s: invalid function: %d", myname, function);
     }
-
-    /*
-     * Release the shared lock.
-     */
-    if ((dict->flags & DICT_FLAG_LOCK)
-	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
 
     if (dbm_key.dptr != 0 && dbm_key.dsize > 0) {
 
@@ -349,6 +340,14 @@ static int dict_dbm_sequence(DICT *dict, int function,
 	    msg_fatal("error seeking %s: %m", dict_dbm->dict.name);
 	return (1);				/* no error: eof/not found */
     }
+
+    /*
+     * Release the shared lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
+
     return (0);
 }
 

@@ -3174,11 +3174,12 @@ smtp_sasl_auth_enable = yes
 .ad
 .ft R
 .SH smtp_sasl_mechanism_filter (default: empty)
-If non-empty, filters the SMTP server's list of offered SASL mechanisms.
-Different client and server implementations may support different
-mechanism lists. By default, the client will use the intersection of the
-two. smtp_sasl_mechanism_filter further restricts what server mechanisms
-the client will take into consideration.
+If non-empty, a Postfix SMTP client filter for the remote SMTP
+server's list of offered SASL mechanisms.  Different client and
+server implementations may support different mechanism lists. By
+default, the Postfix SMTP client will use the intersection of the
+two. smtp_sasl_mechanism_filter further restricts what server
+mechanisms the client will take into consideration.
 .PP
 Specify mechanism names, "/file/name" patterns or "type:table"
 lookup tables. The right-hand side result from "type:table" lookups

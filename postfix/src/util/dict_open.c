@@ -42,6 +42,8 @@
 /*	dict_open_register(type, open)
 /*	char	*type;
 /*	DICT	*(*open) (const char *, int, int);
+/*
+/*	ARGV	*dict_mapnames()
 /* DESCRIPTION
 /*	This module implements a low-level interface to multiple
 /*	physical dictionary types.
@@ -135,6 +137,9 @@
 /*	associated data structures.
 /*
 /*	dict_open_register() adds support for a new dictionary type.
+/*
+/*	dict_mapnames() returns a sorted list with the names of all available 
+/*	dictionary types.
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
 /*	update non-writable dictionary.
@@ -153,6 +158,7 @@
 
 #include <sys_defs.h>
 #include <string.h>
+#include <stdlib.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -302,6 +308,13 @@ void    dict_open_register(const char *type,
     htable_enter(dict_open_hash, dp->type, (char *) dp);
 }
 
+/* dict_sort_alpha_cpp - qsort() callback */
+
+static int dict_sort_alpha_cpp(const void *a, const void *b)
+{
+    return (strcmp(((char **) a)[0], ((char **) b)[0]));
+}
+
 /* dict_mapnames - return an ARGV of available map_names */
 
 ARGV   *dict_mapnames()
@@ -318,6 +331,8 @@ ARGV   *dict_mapnames()
 	dp = (DICT_OPEN_INFO *) ht[0]->value;
 	argv_add(mapnames, dp->type, ARGV_END);
     }
+    qsort((void *) mapnames->argv, mapnames->argc, sizeof(mapnames->argv[0]),
+	  dict_sort_alpha_cpp);
     myfree((char *) ht_info);
     argv_terminate(mapnames);
     return mapnames;

@@ -5948,11 +5948,12 @@ Example:
 (default: empty)</b></DT><DD>
 
 <p>
-If non-empty, filters the SMTP server's list of offered SASL mechanisms.
-Different client and server implementations may support different
-mechanism lists. By default, the client will use the intersection of the
-two. <a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> further restricts what server mechanisms
-the client will take into consideration.  </p>
+If non-empty, a Postfix SMTP client filter for the remote SMTP
+server's list of offered SASL mechanisms.  Different client and
+server implementations may support different mechanism lists. By
+default, the Postfix SMTP client will use the intersection of the
+two. <a href="postconf.5.html#smtp_sasl_mechanism_filter">smtp_sasl_mechanism_filter</a> further restricts what server
+mechanisms the client will take into consideration.  </p>
 
 <p> Specify mechanism names, "/file/name" patterns or "<a href="DATABASE_README.html">type:table</a>"
 lookup tables. The right-hand side result from "<a href="DATABASE_README.html">type:table</a>" lookups

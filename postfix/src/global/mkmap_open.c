@@ -65,6 +65,7 @@
 #include <dict_db.h>
 #include <dict_cdb.h>
 #include <dict_dbm.h>
+#include <dict_sdbm.h>
 #include <sigdelay.h>
 #include <mymalloc.h>
 

@@ -89,6 +89,9 @@
 /* .IP "\fBregexp\fR (read-only)"
 /*	A lookup table based on regular expressions. The file format is
 /*	described in \fBregexp_table\fR(5).
+/* .IP \fBsdbm\fR
+/*	An indexed file type based on hashing.
+/*	This is available only on systems with support for SDBM databases.
 /* .IP "\fBstatic\fR (read-only)"
 /*	A table that always returns its name as lookup result. For example,
 /*	\fBstatic:foobar\fR always returns the string \fBfoobar\fR as lookup

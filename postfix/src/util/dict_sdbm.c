@@ -60,8 +60,12 @@
 typedef struct {
     DICT    dict;			/* generic members */
     SDBM   *dbm;			/* open database */
-    char   *path;			/* pathname */
+    VSTRING *key_buf;			/* key buffer */
+    VSTRING *val_buf;			/* result buffer */
 } DICT_SDBM;
+
+#define SCOPY(buf, data, size) \
+    vstring_str(vstring_strncpy(buf ? buf : (buf = vstring_alloc(10)), data, size))
 
 /* dict_sdbm_lookup - find database entry */
 
@@ -70,8 +74,13 @@ static const char *dict_sdbm_lookup(DICT *dict, const char *name)
     DICT_SDBM *dict_sdbm = (DICT_SDBM *) dict;
     datum   dbm_key;
     datum   dbm_value;
-    static VSTRING *buf;
     const char *result = 0;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_sdbm_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     dict_errno = 0;
 
@@ -80,7 +89,7 @@ static const char *dict_sdbm_lookup(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_sdbm->dict.name);
 
     /*
      * See if this DBM file was written with one null byte appended to key
@@ -92,7 +101,7 @@ static const char *dict_sdbm_lookup(DICT *dict, const char *name)
 	dbm_value = sdbm_fetch(dict_sdbm->dbm, dbm_key);
 	if (dbm_value.dptr != 0) {
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;
-	    result = dbm_value.dptr;
+	    result = SCOPY(dict_sdbm->val_buf, dbm_value.dptr, dbm_value.dsize);
 	}
     }
 
@@ -105,11 +114,8 @@ static const char *dict_sdbm_lookup(DICT *dict, const char *name)
 	dbm_key.dsize = strlen(name);
 	dbm_value = sdbm_fetch(dict_sdbm->dbm, dbm_key);
 	if (dbm_value.dptr != 0) {
-	    if (buf == 0)
-		buf = vstring_alloc(10);
-	    vstring_strncpy(buf, dbm_value.dptr, dbm_value.dsize);
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;
-	    result = vstring_str(buf);
+	    result = SCOPY(dict_sdbm->val_buf, dbm_value.dptr, dbm_value.dsize);
 	}
     }
 
@@ -118,7 +124,7 @@ static const char *dict_sdbm_lookup(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->dict.name);
 
     return (result);
 }
@@ -131,6 +137,12 @@ static void dict_sdbm_update(DICT *dict, const char *name, const char *value)
     datum   dbm_key;
     datum   dbm_value;
     int     status;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_sdbm_update: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     dbm_key.dptr = (void *) name;
     dbm_value.dptr = (void *) value;
@@ -163,21 +175,21 @@ static void dict_sdbm_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_sdbm->dict.name);
 
     /*
      * Do the update.
      */
     if ((status = sdbm_store(dict_sdbm->dbm, dbm_key, dbm_value,
      (dict->flags & DICT_FLAG_DUP_REPLACE) ? DBM_REPLACE : DBM_INSERT)) < 0)
-	msg_fatal("error writing SDBM database %s: %m", dict_sdbm->path);
+	msg_fatal("error writing SDBM database %s: %m", dict_sdbm->dict.name);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
 	     /* void */ ;
 	else if (dict->flags & DICT_FLAG_DUP_WARN)
-	    msg_warn("%s: duplicate entry: \"%s\"", dict_sdbm->path, name);
+	    msg_warn("%s: duplicate entry: \"%s\"", dict_sdbm->dict.name, name);
 	else
-	    msg_fatal("%s: duplicate entry: \"%s\"", dict_sdbm->path, name);
+	    msg_fatal("%s: duplicate entry: \"%s\"", dict_sdbm->dict.name, name);
     }
 
     /*
@@ -185,9 +197,8 @@ static void dict_sdbm_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->dict.name);
 }
-
 
 /* dict_sdbm_delete - delete one entry from the dictionary */
 
@@ -196,14 +207,19 @@ static int dict_sdbm_delete(DICT *dict, const char *name)
     DICT_SDBM *dict_sdbm = (DICT_SDBM *) dict;
     datum   dbm_key;
     int     status = 1;
-    int     flags = 0;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	msg_panic("dict_sdbm_delete: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
     /*
      * Acquire an exclusive lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_sdbm->dict.name);
 
     /*
      * See if this DBM file was written with one null byte appended to key
@@ -214,8 +230,8 @@ static int dict_sdbm_delete(DICT *dict, const char *name)
 	dbm_key.dsize = strlen(name) + 1;
 	sdbm_clearerr(dict_sdbm->dbm);
 	if ((status = sdbm_delete(dict_sdbm->dbm, dbm_key)) < 0) {
-	    if (sdbm_error(dict_sdbm->dbm) != 0)	/* fatal error */
-		msg_fatal("error deleting from %s: %m", dict_sdbm->path);
+	    if (sdbm_error(dict_sdbm->dbm) != 0)/* fatal error */
+		msg_fatal("error deleting from %s: %m", dict_sdbm->dict.name);
 	    status = 1;				/* not found */
 	} else {
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;	/* found */
@@ -231,8 +247,8 @@ static int dict_sdbm_delete(DICT *dict, const char *name)
 	dbm_key.dsize = strlen(name);
 	sdbm_clearerr(dict_sdbm->dbm);
 	if ((status = sdbm_delete(dict_sdbm->dbm, dbm_key)) < 0) {
-	    if (sdbm_error(dict_sdbm->dbm) != 0)	/* fatal error */
-		msg_fatal("error deleting from %s: %m", dict_sdbm->path);
+	    if (sdbm_error(dict_sdbm->dbm) != 0)/* fatal error */
+		msg_fatal("error deleting from %s: %m", dict_sdbm->dict.name);
 	    status = 1;				/* not found */
 	} else {
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;	/* found */
@@ -244,7 +260,7 @@ static int dict_sdbm_delete(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->dict.name);
 
     return (status);
 }
@@ -252,26 +268,24 @@ static int dict_sdbm_delete(DICT *dict, const char *name)
 /* traverse the dictionary */
 
 static int dict_sdbm_sequence(DICT *dict, const int function,
-			             const char **key, const char **value)
+			              const char **key, const char **value)
 {
     char   *myname = "dict_sdbm_sequence";
     DICT_SDBM *dict_sdbm = (DICT_SDBM *) dict;
     datum   dbm_key;
     datum   dbm_value;
-    int     status = 0;
-    static VSTRING *key_buf;
-    static VSTRING *value_buf;
 
     /*
      * Acquire a shared lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_sdbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_sdbm->dict.name);
 
     /*
      * Determine and execute the seek function. It returns the key.
      */
+    sdbm_clearerr(dict_sdbm->dbm);
     switch (function) {
     case DICT_SEQ_FUN_FIRST:
 	dbm_key = sdbm_firstkey(dict_sdbm->dbm);
@@ -283,27 +297,12 @@ static int dict_sdbm_sequence(DICT *dict, const int function,
 	msg_panic("%s: invalid function: %d", myname, function);
     }
 
-    /*
-     * Release the shared lock.
-     */
-    if ((dict->flags & DICT_FLAG_LOCK)
-	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->path);
-
     if (dbm_key.dptr != 0 && dbm_key.dsize > 0) {
 
 	/*
-	 * See if this DB file was written with one null byte appended to key
-	 * and value or not. If necessary, copy the key.
+	 * Copy the key so that it is guaranteed null terminated.
 	 */
-	if (((char *) dbm_key.dptr)[dbm_key.dsize - 1] == 0) {
-	    *key = dbm_key.dptr;
-	} else {
-	    if (key_buf == 0)
-		key_buf = vstring_alloc(10);
-	    vstring_strncpy(key_buf, dbm_key.dptr, dbm_key.dsize);
-	    *key = vstring_str(key_buf);
-	}
+	*key = SCOPY(dict_sdbm->key_buf, dbm_key.dptr, dbm_key.dsize);
 
 	/*
 	 * Fetch the corresponding value.
@@ -313,17 +312,9 @@ static int dict_sdbm_sequence(DICT *dict, const int function,
 	if (dbm_value.dptr != 0 && dbm_value.dsize > 0) {
 
 	    /*
-	     * See if this DB file was written with one null byte appended to
-	     * key and value or not. If necessary, copy the key.
+	     * Copy the value so that it is guaranteed null terminated.
 	     */
-	    if (((char *) dbm_value.dptr)[dbm_value.dsize - 1] == 0) {
-		*value = dbm_value.dptr;
-	    } else {
-		if (value_buf == 0)
-		    value_buf = vstring_alloc(10);
-		vstring_strncpy(value_buf, dbm_value.dptr, dbm_value.dsize);
-		*value = vstring_str(value_buf);
-	    }
+	    *value = SCOPY(dict_sdbm->val_buf, dbm_value.dptr, dbm_value.dsize);
 	} else {
 
 	    /*
@@ -331,7 +322,7 @@ static int dict_sdbm_sequence(DICT *dict, const int function,
 	     * condition.
 	     */
 	    if (sdbm_error(dict_sdbm->dbm))
-		msg_fatal("error seeking %s: %m", dict_sdbm->path);
+		msg_fatal("error seeking %s: %m", dict_sdbm->dict.name);
 	    return (1);				/* no error: eof/not found
 						 * (should not happen!) */
 	}
@@ -341,9 +332,17 @@ static int dict_sdbm_sequence(DICT *dict, const int function,
 	 * Determine if we have hit the last record or an error condition.
 	 */
 	if (sdbm_error(dict_sdbm->dbm))
-	    msg_fatal("error seeking %s: %m", dict_sdbm->path);
+	    msg_fatal("error seeking %s: %m", dict_sdbm->dict.name);
 	return (1);				/* no error: eof/not found */
     }
+
+    /*
+     * Release the shared lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_sdbm->dict.name);
+
     return (0);
 }
 
@@ -354,8 +353,11 @@ static void dict_sdbm_close(DICT *dict)
     DICT_SDBM *dict_sdbm = (DICT_SDBM *) dict;
 
     sdbm_close(dict_sdbm->dbm);
-    myfree(dict_sdbm->path);
-    myfree((char *) dict_sdbm);
+    if (dict_sdbm->key_buf)
+	vstring_free(dict_sdbm->key_buf);
+    if (dict_sdbm->val_buf)
+	vstring_free(dict_sdbm->val_buf);
+    dict_free(dict);
 }
 
 /* dict_sdbm_open - open SDBM data base */
@@ -368,8 +370,15 @@ DICT   *dict_sdbm_open(const char *path, int open_flags, int dict_flags)
     char   *dbm_path;
     int     lock_fd;
 
+    /*
+     * Note: DICT_FLAG_LOCK is used only by programs that do fine-grained (in
+     * the time domain) locking while accessing individual database records.
+     * 
+     * Programs such as postmap/postalias use their own large-grained (in the
+     * time domain) locks while rewriting the entire file.
+     */
     if (dict_flags & DICT_FLAG_LOCK) {
-	dbm_path = concatenate(path, ".pag", (char *) 0);
+	dbm_path = concatenate(path, ".dir", (char *) 0);
 	if ((lock_fd = open(dbm_path, open_flags, 0644)) < 0)
 	    msg_fatal("open database %s: %m", dbm_path);
 	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
@@ -387,9 +396,8 @@ DICT   *dict_sdbm_open(const char *path, int open_flags, int dict_flags)
 	    msg_fatal("unlock database %s for open: %m", dbm_path);
 	if (close(lock_fd) < 0)
 	    msg_fatal("close database %s: %m", dbm_path);
-	myfree(dbm_path);
     }
-    dict_sdbm = (DICT_SDBM *) mymalloc(sizeof(*dict_sdbm));
+    dict_sdbm = (DICT_SDBM *) dict_alloc(DICT_TYPE_SDBM, path, sizeof(*dict_sdbm));
     dict_sdbm->dict.lookup = dict_sdbm_lookup;
     dict_sdbm->dict.update = dict_sdbm_update;
     dict_sdbm->dict.delete = dict_sdbm_delete;
@@ -400,15 +408,30 @@ DICT   *dict_sdbm_open(const char *path, int open_flags, int dict_flags)
     if (fstat(dict_sdbm->dict.stat_fd, &st) < 0)
 	msg_fatal("dict_sdbm_open: fstat: %m");
     dict_sdbm->dict.mtime = st.st_mtime;
+
+    /*
+     * Warn if the source file is newer than the indexed file, except when
+     * the source file changed only seconds ago.
+     */
+    if ((dict_flags & DICT_FLAG_LOCK) != 0
+	&& stat(path, &st) == 0
+	&& st.st_mtime > dict_sdbm->dict.mtime
+	&& st.st_mtime < time((time_t *) 0) - 100)
+	msg_warn("database %s is older than source file %s", dbm_path, path);
+
     close_on_exec(sdbm_pagfno(dbm), CLOSE_ON_EXEC);
     close_on_exec(sdbm_dirfno(dbm), CLOSE_ON_EXEC);
     dict_sdbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_sdbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);
     dict_sdbm->dbm = dbm;
-    dict_sdbm->path = mystrdup(path);
+    dict_sdbm->key_buf = 0;
+    dict_sdbm->val_buf = 0;
 
-    return (&dict_sdbm->dict);
+    if ((dict_flags & DICT_FLAG_LOCK))
+	myfree(dbm_path);
+
+    return (DICT_DEBUG (&dict_sdbm->dict));
 }
 
 #endif
