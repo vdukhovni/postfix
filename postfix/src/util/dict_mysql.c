@@ -89,7 +89,7 @@ extern int dict_errno;
 
 /* need some structs to help organize things */
 typedef struct {
-    MYSQL   db;
+    MYSQL  *db;
     char   *hostname;
     int     stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection
@@ -126,7 +126,7 @@ static MYSQL_RES *plmysql_query(PLMYSQL *, const char *, char *, char *, char *)
 static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_down_host(HOST *);
 static void plmysql_connect_single(HOST *, char *, char *, char *);
-static int plmysql_ready_reconn(HOST);
+static int plmysql_ready_reconn(HOST *);
 static void dict_mysql_update(DICT *, const char *, const char *);
 static const char *dict_mysql_lookup(DICT *, const char *);
 DICT   *dict_mysql_open(const char *, int, int);
@@ -235,13 +235,16 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 
 	/* answer already found */
 	if (res != 0 && host->stat == STATACTIVE) {
-	    msg_info("dict_mysql: closing unnessary connection to %s", host->hostname);
-	    mysql_close(&(host->db));
+	    if (msg_verbose)
+		msg_info("dict_mysql: closing unnessary connection to %s",
+			 host->hostname);
 	    plmysql_down_host(host);
 	}
 	/* try to connect for the first time if we don't have a result yet */
 	if (res == 0 && host->stat == STATUNTRIED) {
-	    msg_info("dict_mysql: attempting to connect to host %s", host->hostname);
+	    if (msg_verbose)
+		msg_info("dict_mysql: attempting to connect to host %s",
+			 host->hostname);
 	    plmysql_connect_single(host, dbname, username, password);
 	}
 
@@ -249,8 +252,10 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 	 * try to reconnect if we don't have an answer and the host had a
 	 * prob in the past and it's time for it to reconnect
 	 */
-	if (res == 0 && host->stat == STATFAIL && (plmysql_ready_reconn(*host))) {
-	    msg_warn("dict_mysql: attempting to reconnect to host %s", host->hostname);
+	if (res == 0 && host->stat == STATFAIL && host->ts < time((time_t *) 0)) {
+	    if (msg_verbose)
+		msg_info("dict_mysql: attempting to reconnect to host %s",
+			 host->hostname);
 	    plmysql_connect_single(host, dbname, username, password);
 	}
 
@@ -259,16 +264,16 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 	 * try the query.  If the query fails, mark the host STATFAIL
 	 */
 	if (res == 0 && host->stat == STATACTIVE) {
-	    if (!(mysql_query(&(host->db), query))) {
-		if ((res = mysql_store_result(&(host->db))) == 0) {
-		    msg_warn("%s", mysql_error(&(host->db)));
+	    if (!(mysql_query(host->db, query))) {
+		if ((res = mysql_store_result(host->db)) == 0) {
+		    msg_warn("%s", mysql_error(host->db));
 		    plmysql_down_host(host);
 		} else {
 		    if (msg_verbose)
 			msg_info("dict_mysql: successful query from host %s", host->hostname);
 		}
 	    } else {
-		msg_warn("%s", mysql_error(&(host->db)));
+		msg_warn("%s", mysql_error(host->db));
 		plmysql_down_host(host);
 	    }
 	}
@@ -303,13 +308,15 @@ static void plmysql_connect_single(HOST *host, char *dbname, char *username, cha
 	    port = ntohs(find_inet_port(service, "tcp"));
     }
 
-    host->db = *((MYSQL *) mysql_init(NULL));
-    if (mysql_real_connect(&(host->db), hostname, username, password, dbname, port, unix_socket, 0)) {
-	msg_info("dict_mysql: successful connection to host %s", host->hostname);
+    host->db = mysql_init(NULL);
+    if (mysql_real_connect(host->db, hostname, username, password, dbname, port, unix_socket, 0)) {
+	if (msg_verbose)
+	    msg_info("dict_mysql: successful connection to host %s",
+		     host->hostname);
 	host->stat = STATACTIVE;
     } else {
+	msg_warn("%s", mysql_error(host->db));
 	plmysql_down_host(host);
-	msg_warn("%s", mysql_error(&(host->db)));
     }
     if (hostname)
 	myfree(hostname);
@@ -322,37 +329,11 @@ static void plmysql_connect_single(HOST *host, char *dbname, char *username, cha
 static void plmysql_down_host(HOST *host)
 {
     if (host->stat != STATFAIL) {
-	host->ts = time(&(host->ts));
+	host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
 	host->stat = STATFAIL;
     }
-}
-
-/*
- * plmysql_ready_reconn -
- * given a downed HOST, return whether or not it should retry connection
- */
-static int plmysql_ready_reconn(HOST host)
-{
-    time_t  t;
-    long    now;
-
-    now = (long) time(&t);
-    if (msg_verbose > 1) {
-	msg_info("dict_mysql: plmysql_ready_reconn(): now is %d", now);
-	msg_info("dict_mysql: plmysql_ready_reconn(): ts is %d", (long) host.ts);
-	msg_info("dict_mysql: plmysql_ready_reconn(): RETRY_CONN_INTV is %d", RETRY_CONN_INTV);
-	if ((now - ((long) host.ts)) >= RETRY_CONN_INTV) {
-	    msg_info("dict_mysql: plymsql_ready_reconn(): returning TRUE");
-	    return 1;
-	} else {
-	    msg_info("dict_mysql: plymsql_ready_reconn(): returning FALSE");
-	    return 0;
-	}
-    } else {
-	if ((now - ((long) host.ts)) >= RETRY_CONN_INTV)
-	    return 1;
-	return 0;
-    }
+    mysql_close(host->db);
+    host->db = 0;
 }
 
 /**********************************************************************
@@ -372,7 +353,6 @@ DICT   *dict_mysql_open(const char *name, int unused_flags, int unused_dict_flag
     dict_mysql->dict.close = dict_mysql_close;
     dict_mysql->dict.fd = -1;			/* there's no file descriptor
 						 * for locking */
-    dict_mysql->name = (MYSQL_NAME *) mymalloc(sizeof(MYSQL_NAME));
     dict_mysql->name = mysqlname_parse(name);
     dict_mysql->pldb = plmysql_init(dict_mysql->name->hostnames,
 				    dict_mysql->name->len_hosts);
@@ -463,25 +443,23 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
     else
 	hosts = mystrdup(nameval);
     /* coo argv interface */
-    hosts_argv = argv_split(hosts, " ");
-    argv_terminate(hosts_argv);
+    hosts_argv = argv_split(hosts, " ,\t\r\n");
 
     if (hosts_argv->argc == 0) {		/* no hosts specified,
 						 * default to 'localhost' */
-	msg_info("mysqlname_parse(): no hostnames specified, defaulting to 'localhost'");
-	name->len_hosts = 1;
-	name->hostnames = (char **) mymalloc(sizeof(char *));
-	name->hostnames[0] = mystrdup("localhost");
-    } else {
-	name->len_hosts = hosts_argv->argc;
-	name->hostnames = (char **) mymalloc((sizeof(char *)) * name->len_hosts);
-	i = 0;
-	for (i = 0; hosts_argv->argv[i] != NULL; i++) {
-	    name->hostnames[i] = mystrdup(hosts_argv->argv[i]);
-	    if (msg_verbose)
-		msg_info("mysqlname_parse(): adding host '%s' to list of mysql server hosts",
-			 name->hostnames[i]);
-	}
+	if (msg_verbose)
+	    msg_info("mysqlname_parse(): no hostnames specified, defaulting to 'localhost'");
+	argv_add(hosts_argv, "localhost", ARGV_END);
+	argv_terminate(hosts_argv);
+    }
+    name->len_hosts = hosts_argv->argc;
+    name->hostnames = (char **) mymalloc((sizeof(char *)) * name->len_hosts);
+    i = 0;
+    for (i = 0; hosts_argv->argv[i] != NULL; i++) {
+	name->hostnames[i] = mystrdup(hosts_argv->argv[i]);
+	if (msg_verbose)
+	    msg_info("mysqlname_parse(): adding host '%s' to list of mysql server hosts",
+		     name->hostnames[i]);
     }
     myfree(hosts);
     vstring_free(opt_dict_name);
@@ -494,8 +472,7 @@ static MYSQL_NAME *mysqlname_parse(const char *mysqlcf_path)
  * plmysql_init - initalize a MYSQL database.
  *		    Return NULL on failure, or a PLMYSQL * on success.
  */
-static PLMYSQL *plmysql_init(char *hostnames[],
-			             int len_hosts)
+static PLMYSQL *plmysql_init(char *hostnames[], int len_hosts)
 {
     PLMYSQL *PLDB;
     MYSQL  *dbs;
@@ -518,15 +495,12 @@ static PLMYSQL *plmysql_init(char *hostnames[],
 /* host_init - initialize HOST structure */
 static HOST host_init(char *hostname)
 {
-    int     stat;
-    MYSQL   db;
-    time_t  ts;
     HOST    host;
 
     host.stat = STATUNTRIED;
-    host.hostname = hostname;
-    host.db = db;
-    host.ts = ts;
+    host.hostname = mystrdup(hostname);
+    host.db = 0;
+    host.ts = 0;
     return host;
 }
 
@@ -550,6 +524,7 @@ static void dict_mysql_close(DICT *dict)
     for (i = 0; i < dict_mysql->name->len_hosts; i++) {
 	myfree(dict_mysql->name->hostnames[i]);
     }
+    myfree((char *) dict_mysql->name->hostnames);
     myfree((char *) dict_mysql->name);
 }
 
@@ -559,7 +534,8 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
     int     i;
 
     for (i = 0; i < PLDB->len_hosts; i++) {
-	mysql_close(&(PLDB->db_hosts[i].db));
+	if (PLDB->db_hosts[i].db)
+	    mysql_close(PLDB->db_hosts[i].db);
 	myfree(PLDB->db_hosts[i].hostname);
     }
     myfree((char *) PLDB->db_hosts);

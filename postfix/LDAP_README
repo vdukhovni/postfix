@@ -23,11 +23,15 @@ If you're using the libraries from the UM distribution
 Postfix source tree should work:
 
     % make tidy
-    % make makefiles CCARGS="-I/some/where/include -DHAS_LDAP" \
-	    AUXLIBS="/some/where/lib/libldap.a /some/where/lib/liblber.a"
+    % make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
+	AUXLIBS="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
 
 The 'make tidy' command is needed only if you have previously built
 Postfix without LDAP support.
+
+Instead of '/usr/local' specify the actual locations of your LDAP
+include files and libraries. Be sure to not mix LDAP include files
+and LDAP libraries of different versions!!
 
 If your LDAP libraries were built with Kerberos support, you'll also
 need to include your Kerberos libraries in this line. Note that the KTH

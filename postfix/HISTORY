@@ -4654,6 +4654,13 @@ Apologies for any names omitted.
 	Code cleanup: in a CONFIG_TIME_TABLE, the default time unit
 	is now always the last character of a default time value.
 	It is no longer necessary to specify the default time unit
-	separately. This change means that it is not longer possible
-	to specify default values in the form of function calls.
-	Files: global/mail_conf_time.c, and user code.
+	separately. This change means that it will not be possible
+	to specify default values in the form of function calls,
+	but that was unused anyway.  Files: global/mail_conf_time.c,
+	and user code.
+
+20001217
+
+	Bugfix: reorganized some code in the MYSQL client to end
+	a number of memory allocation/deallocation problems.
+	This code needs more work. File: dict_mysql.c.

@@ -10,8 +10,8 @@ In order to build postfix with mysql map support, you will need to add
 the mysqlclient library (and libm) to AUXLIBS, for example:
 
 make -f Makefile.init makefiles \
-	'CCARGS=-DHAS_MYSQL -I/some/where/include/mysql' \
-	'AUXLIBS=/some/where/lib/mysql/libmysqlclient.a -lm'
+	'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
+	'AUXLIBS=-L/usr/local/mysql/lib -lmysqlclient -lm'
 
 then, just run 'make'.
 
