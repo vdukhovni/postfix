@@ -22,14 +22,42 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.13-20030914
+Major changes with Postfix snapshot 2.0.16-20030917
+===================================================
+
+New check_{helo,sender,recipient}_{ns,mx}_access maptype:mapname
+restriction that applies the specified access table to the NS or
+MX hosts of the host/domain given in HELO, EHLO, MAIL FROM or RCPT
+TO commands.  
+
+This can be used to block mail from so-called spammer havens, or
+from sender addresses that resolve to Verisign's wild-card mail
+responder, currently at IP address 64.94.110.11.
+
+    /etc/postfix/main.cf:
+	smtpd_mumble_restrictions = 
+	    ...
+	    reject_unknown_sender_domain 
+	    check_sender_mx_access hash:/etc/postfix/mx_access
+	    ...
+
+    /etc/postfix/mx_access:
+	spammer.haven.tld reject spammer mx host
+	64.94.110.11 reject verisign wild-card domain
+
+Note: OK actions are not allowed for security reasons. Instead of
+OK, use DUNNO in order to exclude specific hosts from blacklists.
+If an OK result is found for an NS or MX host, Postfix rejects the
+SMTP command with "451 Server configuration error".
+
+Incompatible changes with Postfix snapshot 2.0.16-20030915
 ==========================================================
 
 In header/body_checks actions, the OK action is being phased out,
 and the DUNNO action is being phased in. Both actions still work
 and do the same thing, but hopefully DUNNO causes less confusion.
 
-Major changes with Postfix snapshot 2.0.13-20030914
+Major changes with Postfix snapshot 2.0.16-20030915
 ===================================================
 
 LDAP parameters can now be defined in external files.  Specify the

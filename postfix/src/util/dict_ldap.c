@@ -180,10 +180,16 @@
 #include "dict.h"
 #include "dict_ldap.h"
 #include "stringops.h"
+#include "binhash.h"
 
 /* AAARGH!! */
 
 #include "../global/mail_conf.h"
+
+typedef struct {
+    LDAP   *conn_ld;
+    int     conn_refcount;
+} LDAP_CONN;
 
 /*
  * Structure containing all the configuration parameters for a given
@@ -223,8 +229,13 @@ typedef struct {
     char   *tls_random_file;
     char   *tls_cipher_suite;
 #endif
-    LDAP   *ld;
+    BINHASH_INFO *ht;			/* hash entry for LDAP connection */
+    LDAP   *ld;				/* duplicated from conn->conn_ld */
 } DICT_LDAP;
+
+#define DICT_LDAP_CONN(d) ((LDAP_CONN *)((d)->ht->value))
+
+static BINHASH *conn_hash = 0;
 
 typedef struct {
     char   *(*get_str) (const char *, const char *, const char *, int, int);
@@ -641,11 +652,66 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 	    msg_info("%s: Successful bind to server %s as %s ",
 		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
     }
+    /* Save connection handle in shared container */
+    DICT_LDAP_CONN(dict_ldap)->conn_ld = dict_ldap->ld;
+
     if (msg_verbose)
 	msg_info("%s: Cached connection handle for LDAP source %s",
 		 myname, dict_ldap->ldapsource);
 
     return (0);
+}
+
+/*
+ * Locate or allocate connection cache entry.
+ */
+static void dict_ldap_conn_find(DICT_LDAP *dict_ldap)
+{
+    VSTRING *keybuf = vstring_alloc(10);
+    char   *key;
+    int     len;
+    int     sslon = dict_ldap->start_tls || dict_ldap->ldap_ssl;
+    LDAP_CONN *conn;
+
+#define ADDSTR(vp, s) vstring_memcat((vp), (s), strlen((s))+1)
+#define ADDINT(vp, i) vstring_sprintf_append((vp), "%lu", (unsigned long)(i))
+
+    ADDSTR(keybuf, dict_ldap->server_host);
+    ADDINT(keybuf, dict_ldap->server_port);
+    ADDINT(keybuf, dict_ldap->bind);
+    ADDSTR(keybuf, dict_ldap->bind ? dict_ldap->bind_dn : "");
+    ADDSTR(keybuf, dict_ldap->bind ? dict_ldap->bind_pw : "");
+    ADDINT(keybuf, dict_ldap->dereference);
+    ADDINT(keybuf, dict_ldap->chase_referrals);
+    ADDINT(keybuf, dict_ldap->debuglevel);
+    ADDINT(keybuf, dict_ldap->version);
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
+    ADDINT(keybuf, dict_ldap->ldap_ssl);
+    ADDINT(keybuf, dict_ldap->start_tls);
+    ADDINT(keybuf, sslon ? dict_ldap->tls_require_cert : 0);
+    ADDSTR(keybuf, sslon ? dict_ldap->tls_ca_cert_file : "");
+    ADDSTR(keybuf, sslon ? dict_ldap->tls_ca_cert_dir : "");
+    ADDSTR(keybuf, sslon ? dict_ldap->tls_cert : "");
+    ADDSTR(keybuf, sslon ? dict_ldap->tls_key : "");
+    ADDSTR(keybuf, sslon ? dict_ldap->tls_random_file : "");
+    ADDSTR(keybuf, sslon ? dict_ldap->tls_cipher_suite : "");
+#endif
+
+    key = vstring_str(keybuf);
+    len = VSTRING_LEN(keybuf);
+
+    if (conn_hash == 0)
+	conn_hash = binhash_create(0);
+
+    if ((dict_ldap->ht = binhash_locate(conn_hash, key, len)) == 0) {
+	conn = (LDAP_CONN *) mymalloc(sizeof(LDAP_CONN));
+	conn->conn_ld = 0;
+	conn->conn_refcount = 0;
+	dict_ldap->ht = binhash_enter(conn_hash, key, len, (char *) conn);
+    }
+    ++DICT_LDAP_CONN(dict_ldap)->conn_refcount;
+
+    vstring_free(keybuf);
 }
 
 /*
@@ -907,6 +973,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     VSTRING *escaped_name = 0,
            *filter_buf = 0;
     int     rc = 0;
+    int     sizelimit;
     char   *sub,
            *end;
 
@@ -923,11 +990,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     if (dict_ldap->domain) {
 	const char *p = strrchr(name, '@');
 
-	if (p != 0)
-	    p = p + 1;
-	else
-	    p = name;
-	if (match_list_match(dict_ldap->domain, p) == 0) {
+	if (p == 0 || p == name ||
+	    match_list_match(dict_ldap->domain, ++p) == 0) {
 	    if (msg_verbose)
 		msg_info("%s: domain of %s not found in domain list", myname,
 			 name);
@@ -941,6 +1005,13 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     if (result == 0)
 	result = vstring_alloc(2);
     vstring_strcpy(result, "");
+
+    /*
+     * Because the connection may be shared and invalidated via queries for
+     * another map, update private copy of "ld" from shared connection
+     * container.
+     */
+    dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld;
 
     /*
      * Connect to the LDAP server, if necessary.
@@ -962,6 +1033,18 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	msg_info("%s: Using existing connection for LDAP source %s",
 		 myname, dict_ldap->ldapsource);
 
+    /*
+     * Connection caching, means that the connection handle may have the
+     * wrong size limit. Re-adjust before each query. This is cheap, just
+     * sets a field in the ldap connection handle. We also do this in the
+     * connect code, because we sometimes reconnect (below) in the middle of
+     * a query.
+     */
+    sizelimit = dict_ldap->size_limit ? dict_ldap->size_limit : LDAP_NO_LIMIT;
+    if (ldap_set_option(dict_ldap->ld, LDAP_OPT_SIZELIMIT, &sizelimit)
+	!= LDAP_OPT_SUCCESS)
+	msg_warn("%s: %s: Unable to set query result size limit to %ld.",
+		 myname, dict_ldap->ldapsource, dict_ldap->size_limit);
 
     /*
      * Prepare the query.
@@ -1046,7 +1129,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 		     myname, dict_ldap->ldapsource);
 
 	ldap_unbind(dict_ldap->ld);
-	dict_ldap->ld = NULL;
+	dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld = 0;
 	dict_ldap_connect(dict_ldap);
 
 	/*
@@ -1098,7 +1181,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	 * next lookup.
 	 */
 	ldap_unbind(dict_ldap->ld);
-	dict_ldap->ld = NULL;
+	dict_ldap->ld = DICT_LDAP_CONN(dict_ldap)->conn_ld = 0;
 
 	/*
 	 * And tell the caller to try again later.
@@ -1129,10 +1212,18 @@ static void dict_ldap_close(DICT *dict)
 {
     char   *myname = "dict_ldap_close";
     DICT_LDAP *dict_ldap = (DICT_LDAP *) dict;
+    LDAP_CONN *conn = DICT_LDAP_CONN(dict_ldap);
+    BINHASH_INFO *ht = dict_ldap->ht;
 
-    if (dict_ldap->ld)
-	ldap_unbind(dict_ldap->ld);
-
+    if (--conn->conn_refcount == 0) {
+	if (conn->conn_ld) {
+	    if (msg_verbose)
+		msg_info("%s: Closed connection handle for LDAP source %s",
+			 myname, dict_ldap->ldapsource);
+	    ldap_unbind(conn->conn_ld);
+	}
+	binhash_delete(conn_hash, ht->key, ht->key_len, myfree);
+    }
     myfree(dict_ldap->ldapsource);
     myfree(dict_ldap->server_host);
     myfree(dict_ldap->search_base);
@@ -1272,6 +1363,11 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	}
     }
     dict_ldap->server_host = mystrdup(vstring_str(url_list) + 1);
+
+    /*
+     * With URL scheme, clear port to normalize connection cache key
+     */
+    dict_ldap->server_port = 0;
     if (msg_verbose)
 	msg_info("%s: %s server_host URL is %s", myname, ldapsource,
 		 dict_ldap->server_host);
@@ -1533,6 +1629,11 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s debuglevel is %d", myname, ldapsource,
 		 dict_ldap->debuglevel);
 #endif
+
+    /*
+     * Find or allocate shared LDAP connection container.
+     */
+    dict_ldap_conn_find(dict_ldap);
 
     /*
      * Return the new dict_ldap structure.

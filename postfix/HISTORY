@@ -8558,6 +8558,38 @@ Apologies for any names omitted.
 	Cleanup: postcat is now null-byte transparent. File:
 	postcat/postcat.c.
 
+20030916
+
+	Feature: ``check_{sender,recipient}_mx_access maptype:mapname''
+	applies the named Postfix access table to the MX host name
+	and IP addresses for the sender or recipient address. If
+	no MX record is found, the A record is used instead. File:
+	smtpd/smtpd_check.c.
+
+	Experimental feature: ``check_{sender,recipient}_ns_access
+	maptype:mapname'' applies the named Postfix access table
+	to the DNS server hostname and IP addresses for the sender
+	or recipient address. If no NS record is found, the parent
+	domain is used instead. File: smtpd/smtpd_check.c.
+
+20030917
+
+	Feature: ``check_helo_{ns,mx}_access maptype:mapname'',
+	same semantics as sender and recipient.
+
+	Multiple LDAP lookup tables in the one Postfix process now
+	share one LDAP connection. Code by Victor Duchovni, Morgan
+	Stanley.  File: util/dict_ldap.c.
+
+	Performance: with prefix_domain specified for an LDAP lookup
+	table, lookups of @domain are skipped. Code by Victor
+	Duchovni, Morgan Stanley.  File: util/dict_ldap.c.
+
+	Safety: check_mumble_{mx,ns}_access refuses to be used for
+	whitelisting. The Postfix SMTP server will reject the
+	request with "451 server configuration error" and will log
+	a warning explaining why. File: smtpd/smtpd_check.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content

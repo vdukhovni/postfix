@@ -423,6 +423,12 @@ NOTES AND THINGS TO THINK ABOUT
   they won't be a bottleneck, but it's a good idea to know how to tune
   your directory service.
 
+- Multiple LDAP maps share the same LDAP connection if they differ
+  only in their query related parameters: base, scope, query_filter, and
+  so on. To take advantage of this avoid spurious differences in the
+  definitions of LDAP maps: host selection order, version, bind, tls
+  parameters, ... should be the same for multiple maps whenever possible.
+
 FEEDBACK
 ========
 
@@ -450,9 +456,10 @@ Samuel Tardieu: Noticed that searches could include wildcards, prompting
 Sami Haahtinen: Referral chasing and v3 support.
 Victor Duchovni: ldap_bind() timeout. With fixes from LaMont Jones:
 		 OpenLDAP cache deprecation. Limits on recursion, expansion
-		 and query results size.
+		 and query results size. LDAP connection sharing for maps
+		 differing only in the query parameters.
 Liviu Daia: Support for SSL/STARTTLS. Support for storing map definitions in
-	    external files (ldap:/path/ldap.cf) need to securely store
+	    external files (ldap:/path/ldap.cf) needed to securely store
 	    passwords for plain auth.
 
 And of course Wietse.

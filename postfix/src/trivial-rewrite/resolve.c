@@ -409,9 +409,11 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 		    msg_warn("do not list domain %s in BOTH %s and %s",
 			     rcpt_domain, VAR_VIRT_ALIAS_DOMS,
 			     VAR_RELAY_DOMAINS);
+#if 0
 		if (strcasecmp(rcpt_domain, var_myorigin) == 0)
 		    msg_warn("do not list $%s (%s) in %s",
 			     VAR_MYORIGIN, var_myorigin, VAR_VIRT_ALIAS_DOMS);
+#endif
 	    }
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
 	    vstring_sprintf(nexthop, "User unknown%s",

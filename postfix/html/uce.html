@@ -599,6 +599,22 @@ or parent domains.
 
 <p>
 
+<a name="check_helo_ns_access">
+
+<dt> <b>check_helo_ns_access</b> <i>maptype</i>:<i>mapname</i>
+
+<a name="check_helo_mx_access">
+
+<dt> <b>check_helo_mx_access</b> <i>maptype</i>:<i>mapname</i>
+
+<dd> Apply the specified <a href="access.5.html">access database</a>
+to the DNS (or MX) servers for the host or domain name given with
+the HELO (or EHLO) command.
+
+<dd> Note: an OK result is not allowed for safety reasons.
+
+<p>
+
 <a name="reject_rhsbl_helo">
 
 <dt> <b>reject_rhsbl_helo</b> <i>domain.tld=127.0.0.2</i>
@@ -780,6 +796,22 @@ indexed by RBL domain.
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the sender mail address,
 sender domain and parent domain, or <i>localpart</i>@. 
+
+<p>
+
+<a name="check_sender_ns_access">
+
+<dt> <b>check_sender_ns_access</b> <i>maptype</i>:<i>mapname</i>
+
+<a name="check_sender_mx_access">
+
+<dt> <b>check_sender_mx_access</b> <i>maptype</i>:<i>mapname</i>
+
+<dd> Apply the specified <a href="access.5.html">access database</a>
+to the DNS (or MX) servers for the host or domain name given with
+the MAIL FROM command.
+
+<dd> Note: an OK result is not allowed for safety reasons.
 
 <p>
 
@@ -992,6 +1024,22 @@ href="basic.html#inet_interfaces"> $inet_interfaces</a>.
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the resolved destination
 address, recipient domain or parent domain, or <i>localpart</i>@. 
+
+<p>
+
+<a name="check_recipient_ns_access">
+
+<dt> <b>check_recipient_ns_access</b> <i>maptype</i>:<i>mapname</i>
+
+<a name="check_recipient_mx_access">
+
+<dt> <b>check_recipient_mx_access</b> <i>maptype</i>:<i>mapname</i>
+
+<dd> Apply the specified <a href="access.5.html">access database</a>
+to the DNS servers (or MX hosts) for the host or domain name given
+with the RCPT TO command.
+
+<dd> Note: an OK result is not allowed for safety reasons.
 
 <p>
 

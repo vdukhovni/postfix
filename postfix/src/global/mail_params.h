@@ -1314,6 +1314,13 @@ extern int var_access_map_code;
 #define CHECK_RECIP_ACL		"check_recipient_access"
 #define CHECK_ETRN_ACL		"check_etrn_access"
 
+#define CHECK_HELO_MX_ACL	"check_helo_mx_access"
+#define CHECK_SENDER_MX_ACL	"check_sender_mx_access"
+#define CHECK_RECIP_MX_ACL	"check_recipient_mx_access"
+#define CHECK_HELO_NS_ACL	"check_helo_ns_access"
+#define CHECK_SENDER_NS_ACL	"check_sender_ns_access"
+#define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
+
 #define WARN_IF_REJECT		"warn_if_reject"
 
 #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */

@@ -89,6 +89,18 @@
 /* .IP "check_recipient_access maptype:mapname"
 /*	Look up the resolved recipient address in the named access table,
 /*	any parent domains of the recipient domain, and the localpart@.
+/* .IP "check_helo_mx_access maptype:mapname"
+/* .IP "check_sender_mx_access maptype:mapname"
+/* .IP "check_recipient_mx_access maptype:mapname"
+/*	Apply the specified access table to the MX server host name and IP
+/*	addresses for the helo hostname, sender, or recipient, respectively.
+/*	If no MX record is found the A record is used instead.
+/* .IP "check_helo_ns_access maptype:mapname"
+/* .IP "check_sender_ns_access maptype:mapname"
+/* .IP "check_recipient_ns_access maptype:mapname"
+/*	Apply the specified access table to the DNS server host name and IP
+/*	addresses for the helo hostname, sender, or recipient, respectively.
+/*	If no NS record is found, the parent domain is used instead.
 /* .IP "check_recipient_maps"
 /*	Reject recipients not listed as valid local, virtual or relay
 /*	recipients.
@@ -481,6 +493,12 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
 	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3)); \
     else \
 	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3)); \
+    } while (0)
+#define DEFER_IF_PERMIT4(state, class, fmt, a1, a2, a3, a4) do { \
+    if ((state)->warn_if_reject == 0) \
+	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3), (a4)); \
+    else \
+	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3), (a4)); \
     } while (0)
 
  /*
@@ -2153,6 +2171,127 @@ static int check_namadr_access(SMTPD_STATE *state, const char *table,
     return (SMTPD_CHECK_DUNNO);
 }
 
+/* check_server_access - access control by server host name or address */
+
+static int check_server_access(SMTPD_STATE *state, const char *table,
+			               const char *name,
+			               int type,
+			               const char *reply_name,
+			               const char *reply_class,
+			               const char *def_acl)
+{
+    const char *myname = "check_server_access";
+    const char *domain;
+    int     dns_status;
+    DNS_RR *server_list;
+    DNS_RR *server;
+    int     found = 0;
+    struct in_addr addr;
+    struct hostent *hp;
+    char   *addr_string;
+    int     status;
+    char  **cpp;
+    static DNS_FIXED fixed;
+
+    /*
+     * Sanity check.
+     */
+    if (type != T_MX && type != T_NS)
+	msg_panic("%s: unexpected resource type \"%s\" in request",
+		  myname, dns_strtype(type));
+
+    if (msg_verbose)
+	msg_info("%s: %s %s", myname, dns_strtype(type), name);
+
+    /*
+     * Skip over local-part.
+     */
+    if ((domain = strrchr(name, '@')) != 0)
+	domain += 1;
+    else
+	domain = name;
+
+    /*
+     * If the domain does not exist then we apply no restriction. In all
+     * other cases, DNS lookup failure results in a "try again" status.
+     * 
+     * If the domain name exists but MX lookup fails, fabricate an MX record
+     * that points to the domain name itself.
+     * 
+     * If the domain name exists but NS lookup fails, look up the parent domain
+     * NS record.
+     */
+    dns_status = dns_lookup(domain, type, 0, &server_list,
+			    (VSTRING *) 0, (VSTRING *) 0);
+    if (dns_status == DNS_NOTFOUND && h_errno != HOST_NOT_FOUND) {
+	if (type == T_MX) {
+	    server_list = dns_rr_create(domain, &fixed, 0,
+					domain, strlen(domain) + 1);
+	    dns_status = DNS_OK;
+	} else if (type == T_NS && (domain = strchr(domain, '.')) != 0
+		   && strchr(++domain, '.') != 0) {
+	    dns_status = dns_lookup(domain, T_NS, 0, &server_list,
+				    (VSTRING *) 0, (VSTRING *) 0);
+	    if (dns_status != DNS_OK)
+		dns_status = DNS_RETRY;
+	}
+    }
+    if (dns_status == DNS_NOTFOUND)
+	return (SMTPD_CHECK_DUNNO);
+    if (dns_status != DNS_OK) {
+	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: unable to look up %s host",
+			 reply_name, reply_class, dns_strtype(type));
+	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
+     * No bare returns after this point or we have a memory leak.
+     */
+#define CHECK_SERVER_RETURN(x) { dns_rr_free(server_list); return(x); }
+
+    /*
+     * Check the hostnames first, then the addresses.
+     */
+    for (server = server_list; server != 0; server = server->next) {
+	if ((hp = gethostbyname((char *) server->data)) == 0) {
+	    DEFER_IF_PERMIT4(state, MAIL_ERROR_POLICY,
+			     "450 <%s>: %s rejected: "
+			     "Unable to look up %s host %s",
+			     reply_name, reply_class,
+			     dns_strtype(type), (char *) server->data);
+	    CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
+	}
+	if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
+	    if (msg_verbose)
+		msg_warn("address type %d length %d for %s",
+		       hp->h_addrtype, hp->h_length, (char *) server->data);
+	    continue;				/* XXX */
+	}
+	if (msg_verbose)
+	    msg_info("%s: %s hostname check: %s",
+		     myname, dns_strtype(type), (char *) server->data);
+	if ((status = check_domain_access(state, table, (char *) server->data,
+				      FULL, &found, reply_name, reply_class,
+					  def_acl)) != 0 || found)
+	    CHECK_SERVER_RETURN(status);
+	if (msg_verbose)
+	    msg_info("%s: %s host address check: %s",
+		     myname, dns_strtype(type), (char *) server->data);
+	for (cpp = hp->h_addr_list; *cpp; cpp++) {
+	    memcpy((char *) &addr, *cpp, sizeof(addr));
+	    addr_string = mystrdup(inet_ntoa(addr));
+	    status = check_addr_access(state, table, addr_string, FULL,
+				       &found, reply_name, reply_class,
+				       def_acl);
+	    myfree(addr_string);
+	    if (status != 0 || found)
+		CHECK_SERVER_RETURN(status);
+	}
+    }
+    CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
+}
+
 /* check_mail_access - OK/FAIL based on mail address lookup */
 
 static int check_mail_access(SMTPD_STATE *state, const char *table,
@@ -2818,6 +2957,20 @@ static int is_map_command(SMTPD_STATE *state, const char *name,
     }
 }
 
+/* forbid_whitelist - disallow whitelisting */
+
+static void forbid_whitelist(SMTPD_STATE *state, const char *name,
+			             int status, const char *target)
+{
+    if (status == SMTPD_CHECK_OK) {
+	msg_warn("restriction %s returns OK for %s", name, target);
+	msg_warn("this is not allowed for security reasons");
+	msg_warn("use DUNNO instead of OK if you want to make an exception");
+	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
+					 "451 Server configuration error"));
+    }
+}
+
 /* generic_checks - generic restrictions */
 
 static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
@@ -2979,6 +3132,20 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 				   state->helo_name, SMTPD_NAME_HELO)) == 0)
 		    status = SMTPD_CHECK_OK;
 	    }
+	} else if (is_map_command(state, name, CHECK_HELO_NS_ACL, &cpp)) {
+	    if (state->helo_name) {
+		status = check_server_access(state, *cpp, state->helo_name,
+					     T_NS, state->helo_name,
+					     SMTPD_NAME_HELO, def_acl);
+		forbid_whitelist(state, name, status, state->helo_name);
+	    }
+	} else if (is_map_command(state, name, CHECK_HELO_MX_ACL, &cpp)) {
+	    if (state->helo_name) {
+		status = check_server_access(state, *cpp, state->helo_name,
+					     T_MX, state->helo_name,
+					     SMTPD_NAME_HELO, def_acl);
+		forbid_whitelist(state, name, status, state->helo_name);
+	    }
 	} else if (strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
 	    if (state->helo_name) {
 		if (*state->helo_name != '[')
@@ -3032,6 +3199,20 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, REJECT_SENDER_LOGIN_MISMATCH) == 0) {
 	    if (state->sender && *state->sender)
 		status = reject_sender_login_mismatch(state, state->sender);
+	} else if (is_map_command(state, name, CHECK_SENDER_NS_ACL, &cpp)) {
+	    if (state->sender && *state->sender) {
+		status = check_server_access(state, *cpp, state->sender,
+					     T_NS, state->sender,
+					     SMTPD_NAME_SENDER, def_acl);
+		forbid_whitelist(state, name, status, state->sender);
+	    }
+	} else if (is_map_command(state, name, CHECK_SENDER_MX_ACL, &cpp)) {
+	    if (state->sender && *state->sender) {
+		status = check_server_access(state, *cpp, state->sender,
+					     T_MX, state->sender,
+					     SMTPD_NAME_SENDER, def_acl);
+		forbid_whitelist(state, name, status, state->sender);
+	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_SENDER) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
@@ -3084,6 +3265,20 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->recipient)
 		status = reject_non_fqdn_address(state, state->recipient,
 				    state->recipient, SMTPD_NAME_RECIPIENT);
+	} else if (is_map_command(state, name, CHECK_RECIP_NS_ACL, &cpp)) {
+	    if (state->recipient && *state->recipient) {
+		status = check_server_access(state, *cpp, state->recipient,
+					     T_NS, state->recipient,
+					     SMTPD_NAME_RECIPIENT, def_acl);
+		forbid_whitelist(state, name, status, state->recipient);
+	    }
+	} else if (is_map_command(state, name, CHECK_RECIP_MX_ACL, &cpp)) {
+	    if (state->recipient && *state->recipient) {
+		status = check_server_access(state, *cpp, state->recipient,
+					     T_MX, state->recipient,
+					     SMTPD_NAME_RECIPIENT, def_acl);
+		forbid_whitelist(state, name, status, state->recipient);
+	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_RECIPIENT) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);

@@ -358,6 +358,11 @@ smtpd_helo_required = no
 #   check_helo_access maptype:mapname
 #	look up HELO hostname or parent domains.
 #	see access(5) for possible lookup results.
+#   check_helo_mx_access maptype:mapname
+#   check_helo_ns_access maptype:mapname
+#	look up the helo hostname MX hosts (or name servers) and apply the
+#	specified access table to those hosts.
+#	Note: the OK result is not allowed here for security reasons.
 #   check_policy_service transport:endpoint: delegate the decision to
 #	an external policy server. See SMTPD_POLICY_README for details.
 #   reject_rhsbl_helo domain.tld: reject if the helo argument is listed
@@ -396,6 +401,11 @@ smtpd_helo_restrictions =
 #   check_sender_access maptype:mapname
 #	look up sender address, parent domain, or localpart@.
 #	see access(5) for possible lookup results.
+#   check_sender_mx_access maptype:mapname
+#   check_sender_ns_access maptype:mapname
+#	look up sender address MX hosts (or name servers) and apply the
+#	specified access table to those hosts.
+#	Note: the OK result is not allowed here for security reasons.
 #   reject_sender_login_mismatch: reject if $smtpd_sender_login_maps specifies
 #	a MAIL FROM address owner, but the client is not (SASL) logged in as
 #	that MAIL FROM address owner; or if the client is (SASL) logged in, but
@@ -467,6 +477,11 @@ smtpd_sender_restrictions =
 #   check_recipient_access maptype:mapname
 #	look up recipient address, parent domain, or localpart@.
 #	see access(5) for possible lookup results.
+#   check_recipient_mx_access maptype:mapname
+#   check_recipient_ns_access maptype:mapname
+#	look up the recipient address MX hosts (or name servers) and apply the
+#	specified access table to those hosts.
+#	Note: the OK result is not allowed here for security reasons.
 #   reject_non_fqdn_recipient: reject recipient address that is not in FQDN form
 #   check_policy_service transport:endpoint: delegate the decision to
 #	an external policy server. See SMTPD_POLICY_README for details.
