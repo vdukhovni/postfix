@@ -45,6 +45,7 @@
  /*
   * Tunable parameters.
   */
+char   *var_inet_protocols;
 int     var_proc_limit;
 int     var_throttle_time;
 
@@ -53,6 +54,10 @@ int     var_throttle_time;
 void    master_vars_init(void)
 {
     char   *path;
+    static CONFIG_STR_TABLE str_table[] = {
+	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 1, 0,
+	0,
+    };
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
 	0,
@@ -61,11 +66,20 @@ void    master_vars_init(void)
 	VAR_THROTTLE_TIME, DEF_THROTTLE_TIME, &var_throttle_time, 1, 0,
 	0,
     };
+    static char *saved_inet_protocols;
 
+    if (var_inet_protocols && !saved_inet_protocols)
+	saved_inet_protocols = mystrdup(var_inet_protocols);
     mail_conf_read();
+    get_mail_conf_str_table(str_table);
     get_mail_conf_int_table(int_table);
     get_mail_conf_time_table(time_table);
     path = concatenate(var_config_dir, "/", MASTER_CONF_FILE, (char *) 0);
     fset_master_ent(path);
     myfree(path);
+
+    if (saved_inet_protocols && strcmp(var_inet_protocols, saved_inet_protocols)) {
+	msg_warn("ignoring %s change", VAR_INET_PROTOCOLS);
+	msg_warn("to change %s, stop and start Postfix", VAR_INET_PROTOCOLS);
+    }
 }

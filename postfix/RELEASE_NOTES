@@ -7,6 +7,54 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20050117
+=======================================================
+
+Only the deferred and defer queue directories are hashed by default,
+instead of eight queue directories.  With modern file systems, this
+speeds up Postfix boot time without compromising performance under
+high load too much. Hashing is now turned on only for the defer and
+deferred queue directories, because those contain lots of mail when
+undeliverable mail is backing up.
+
+In order to speed up start-up, some Postfix file permission checks
+are run in the background after Postfix is started.
+
+The SMTP server now requires that IPv6 addresses in SMTP commands
+are specified as [ipv6:ipv6address], as described in RFC 2821.
+
+Incompatible changes with snapshot Postfix-2.2-20050111+IPV6
+============================================================
+
+Postfix version 2.2 IP version 6 support is based on the Postfix/IPv6
+patch by Dean Strik, but differs in a few minor ways.
+
+- Network protocol support including DNS lookup is selected with
+the inet_protocols parameter instead of the inet_interfaces parameter.
+This is needed so that Postfix will not attempt to deliver mail
+via IPv6 when the system has no IPv6 connectivity.
+
+- The lmtp_bind_address6 feature was omitted. The Postfix LMTP
+client will be absorbed into the SMTP client, so there is no reason
+to keep adding features to the LMTP client.
+
+- The cidr-based address matching code was rewritten.  The new
+behavior is believed to be closer to expectation. The results may
+be incompatible with that of the Postfix/IPv6 patch.
+
+Major changes with snapshot Postfix-2.2-20050111+IPV6
+=====================================================
+
+Postfix version 2.2 IP version 6 support based on the Postfix/IPv6
+patch by Dean Strik and others. IP version 6 support is selected
+in main.cf; it is not selected at compile time as with TLS or SASL.
+
+IP version 6 support is always compiled into Postfix on systems
+that have Postfix compatible IP version 6 support. On other systems
+Postfix will simply use IP version 4 just like it did before. See
+the IPV6_README document for what systems are supported, and how
+to turn on IPv6 in main.cf.
+
 Major changes with snapshot Postfix-2.2-20041218
 ================================================
 

@@ -50,6 +50,7 @@ typedef struct {
     char   *name;			/* name for access control */
     char   *addr;			/* address for access control */
     char   *namaddr;			/* name[address] */
+    char   *rfc_addr;			/* address for RFC 2821 */
     char   *protocol;			/* email protocol */
     char   *helo_name;			/* helo/ehlo parameter */
     char   *ident;			/* message identifier */
@@ -65,6 +66,7 @@ typedef struct SMTPD_STATE {
     char   *name;			/* client hostname */
     char   *addr;			/* client host address string */
     char   *namaddr;			/* combined name and address */
+    char   *rfc_addr;			/* address for RFC 2821 */
     int     peer_code;			/* 2=ok, 4=soft, 5=hard */
     int     error_count;		/* reset after DOT */
     int     error_mask;			/* client errors */
@@ -234,7 +236,7 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 	(((s)->xforward.flags & SMTPD_STATE_XFORWARD_CLIENT_MASK) ? \
 	    (s)->xforward.a : (s)->a)
 
-#define FORWARD_ADDR(s)		FORWARD_CLIENT_ATTR((s), addr)
+#define FORWARD_ADDR(s)		FORWARD_CLIENT_ATTR((s), rfc_addr)
 #define FORWARD_NAME(s)		FORWARD_CLIENT_ATTR((s), name)
 #define FORWARD_NAMADDR(s)	FORWARD_CLIENT_ATTR((s), namaddr)
 #define FORWARD_PROTO(s)	FORWARD_CLIENT_ATTR((s), protocol)

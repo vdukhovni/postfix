@@ -51,7 +51,9 @@
 /* .RE
 /* .IP "\fB-s \fIsite\fR"
 /*	Schedule immediate delivery of all mail that is queued for the named
-/*	\fIsite\fR. The site must be eligible for the "fast flush" service.
+/*	\fIsite\fR. A numerical site must be specified as a valid RFC 2821
+/*	address literal enclosed in [], just like in email addresses.
+/*	The site must be eligible for the "fast flush" service.
 /*	See \fBflush\fR(8) for more information about the "fast flush"
 /*	service.
 /*
@@ -187,6 +189,7 @@
 #include <flush_clnt.h>
 #include <smtp_stream.h>
 #include <user_acl.h>
+#include <valid_mailhost_addr.h>
 
 /* Application-specific. */
 
@@ -474,14 +477,10 @@ int     main(int argc, char **argv)
      */
     if (site_to_flush != 0) {
 	bad_site = 0;
-	if (*site_to_flush == '['
-	    && *(last = site_to_flush + strlen(site_to_flush) - 1) == ']') {
-	    *last = 0;
-	    bad_site = !valid_hostaddr(site_to_flush + 1, DONT_GRIPE);
-	    *last = ']';
+	if (*site_to_flush == '[') {
+	    bad_site = !valid_mailhost_literal(site_to_flush, DONT_GRIPE);
 	} else {
-	    bad_site = (!valid_hostname(site_to_flush, DONT_GRIPE)
-			&& !valid_hostaddr(site_to_flush, DONT_GRIPE));
+	    bad_site = !valid_hostname(site_to_flush, DONT_GRIPE);
 	}
 	if (bad_site)
 	    msg_fatal_status(EX_USAGE,

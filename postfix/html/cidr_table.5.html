@@ -32,25 +32,31 @@ CIDR_TABLE(5)                                       CIDR_TABLE(5)
        <i>network</i><b>_</b><i>address</i><b>/</b><i>network</i><b>_</b><i>mask     result</i>
               When a search string matches the specified  network
               block,  use the corresponding <i>result</i> value. Specify
-              0.0.0.0/0 to match every address.
+              0.0.0.0/0 to match every IPv4 address, and ::/0  to
+              match every IPv6 address.
+
+              Note:  address  information  may be enclosed inside
+              "[]" but this form is not recommended.
+
+              IPv6 support is available in Postfix 2.2 and later.
 
        <i>network</i><b>_</b><i>address     result</i>
-              When a search string matches the specified  network
+              When  a search string matches the specified network
               address, use the corresponding <i>result</i> value.
 
        blank lines and comments
-              Empty  lines and whitespace-only lines are ignored,
-              as are lines whose first  non-whitespace  character
+              Empty lines and whitespace-only lines are  ignored,
+              as  are  lines whose first non-whitespace character
               is a `#'.
 
        multi-line text
-              A  logical  line starts with non-whitespace text. A
-              line that starts with whitespace continues a  logi-
+              A logical line starts with non-whitespace  text.  A
+              line  that starts with whitespace continues a logi-
               cal line.
 
 <b>SEARCH ORDER</b>
-       Patterns  are  applied  in  the  order as specified in the
-       table, until a pattern is found that  matches  the  search
+       Patterns are applied in the  order  as  specified  in  the
+       table,  until  a  pattern is found that matches the search
        string.
 
 <b>EXAMPLE SMTPD ACCESS MAP</b>

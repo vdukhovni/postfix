@@ -249,8 +249,11 @@
 /*	Optional list of relay hosts for SMTP destinations that can't be
 /*	found or that are unreachable.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The network interface addresses that this mail system receives mail
-/*	on.
+/*	The network interface addresses that this mail system receives
+/*	mail on.
+/* .IP "\fBinet_protocols (ipv4)\fR"
+/*	The Internet protocols Postfix will attempt to use when making
+/*	or accepting connections.
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
@@ -269,7 +272,10 @@
 /*	on by way of a proxy or network address translation unit.
 /* .IP "\fBsmtp_bind_address (empty)\fR"
 /*	An optional numerical network address that the SMTP client should
-/*	bind to when making a connection.
+/*	bind to when making an IPv4 connection.
+/* .IP "\fBsmtp_bind_address6 (empty)\fR"
+/*	An optional numerical network address that the SMTP client should
+/*	bind to when making an IPv6 connection.
 /* .IP "\fBsmtp_helo_name ($myhostname)\fR"
 /*	The hostname to send in the SMTP EHLO or HELO command.
 /* .IP "\fBsmtp_host_lookup (dns)\fR"
@@ -385,6 +391,7 @@ char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_sasl_mechs;
 char   *var_smtp_bind_addr;
+char   *var_smtp_bind_addr6;
 bool    var_smtp_rand_addr;
 int     var_smtp_pix_thresh;
 int     var_smtp_pix_delay;
@@ -499,11 +506,6 @@ static void post_init(char *unused_name, char **unused_argv)
     };
 
     /*
-     * Turn on per-peer debugging.
-     */
-    debug_peer_init();
-
-    /*
      * Select hostname lookup mechanisms.
      */
     if (var_disable_dns)
@@ -533,6 +535,11 @@ static void post_init(char *unused_name, char **unused_argv)
 
 static void pre_init(char *unused_name, char **unused_argv)
 {
+
+    /*
+     * Turn on per-peer debugging.
+     */
+    debug_peer_init();
 
     /*
      * SASL initialization.
@@ -600,6 +607,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
 	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
+	VAR_SMTP_BIND_ADDR6, DEF_SMTP_BIND_ADDR6, &var_smtp_bind_addr6, 0, 0,
 	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
 	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
 	VAR_SMTP_CACHE_DEST, DEF_SMTP_CACHE_DEST, &var_smtp_cache_dest, 0, 0,

@@ -53,6 +53,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -63,14 +64,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
-
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
-#ifndef INADDR_NONE
-#define INADDR_NONE 0xffffffff
-#endif
 
 #ifndef IPPORT_SMTP
 #define IPPORT_SMTP 25
@@ -89,6 +82,8 @@
 #include <stringops.h>
 #include <host_port.h>
 #include <sane_connect.h>
+#include <myaddrinfo.h>
+#include <sock_addr.h>
 
 /* Global library. */
 
@@ -116,22 +111,26 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
 				               int sess_flags)
 {
     char   *myname = "smtp_connect_addr";
-    struct sockaddr_in sin;
+    struct sockaddr_storage ss;		/* remote */
+    struct sockaddr *sa = (struct sockaddr *) & ss;
+    SOCKADDR_SIZE salen = sizeof(ss);
+    MAI_HOSTADDR_STR hostaddr;
     int     sock;
-    INET_ADDR_LIST *addr_list;
     int     conn_stat;
     int     saved_errno;
     VSTREAM *stream;
     int     ch;
-    unsigned long inaddr;
+    char   *bind_addr;
+    char   *bind_var;
 
     smtp_errno = SMTP_ERR_NONE;			/* Paranoia */
 
     /*
      * Sanity checks.
      */
-    if (addr->data_len > sizeof(sin.sin_addr)) {
-	msg_warn("%s: skip address with length %d", myname, addr->data_len);
+    if (dns_rr_to_sa(addr, port, sa, &salen) != 0) {
+	msg_warn("%s: skip address type %s: %m",
+		 myname, dns_strtype(addr->type));
 	smtp_errno = SMTP_ERR_RETRY;
 	return (0);
     }
@@ -139,65 +138,90 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     /*
      * Initialize.
      */
-    memset((char *) &sin, 0, sizeof(sin));
-    sin.sin_family = AF_INET;
-
-    if ((sock = socket(sin.sin_family, SOCK_STREAM, 0)) < 0)
+    if ((sock = socket(sa->sa_family, SOCK_STREAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
 
     /*
      * Allow the sysadmin to specify the source address, for example, as "-o
      * smtp_bind_address=x.x.x.x" in the master.cf file.
      */
-    if (*var_smtp_bind_addr) {
-	sin.sin_addr.s_addr = inet_addr(var_smtp_bind_addr);
-	if (sin.sin_addr.s_addr == INADDR_NONE)
-	    msg_fatal("%s: bad %s parameter: %s",
-		      myname, VAR_SMTP_BIND_ADDR, var_smtp_bind_addr);
-	if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
-	    msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
-	if (msg_verbose)
-	    msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
+#ifdef HAS_IPV6
+    if (sa->sa_family == AF_INET6) {
+	bind_addr = var_smtp_bind_addr6;
+	bind_var = VAR_SMTP_BIND_ADDR6;
+    } else
+#endif
+    if (sa->sa_family == AF_INET) {
+	bind_addr = var_smtp_bind_addr;
+	bind_var = VAR_SMTP_BIND_ADDR;
+    } else
+	bind_var = bind_addr = "";
+    if (*bind_addr) {
+	int     aierr;
+	struct addrinfo *res0;
+
+	if ((aierr = hostaddr_to_sockaddr(bind_addr, (char *) 0, 0, &res0)) != 0)
+	    msg_fatal("%s: bad %s parameter: %s: %s",
+		      myname, bind_var, bind_addr, MAI_STRERROR(aierr));
+	if (bind(sock, res0->ai_addr, res0->ai_addrlen) < 0)
+	    msg_warn("%s: bind %s: %m", myname, bind_addr);
+	else if (msg_verbose)
+	    msg_info("%s: bind %s", myname, bind_addr);
+	freeaddrinfo(res0);
     }
 
     /*
      * When running as a virtual host, bind to the virtual interface so that
      * the mail appears to come from the "right" machine address.
+     * 
+     * XXX The IPv6 patch expands the null host (as client endpoint) and uses
+     * the result as the loopback address list.
      */
-    else if ((addr_list = own_inet_addr_list())->used == 1) {
-	memcpy((char *) &sin.sin_addr, addr_list->addrs, sizeof(sin.sin_addr));
-	inaddr = ntohl(sin.sin_addr.s_addr);
-	if (!IN_CLASSA(inaddr)
-	    || !(((inaddr & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)) {
-	    if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
-		msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
-	    if (msg_verbose)
-		msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
+    else {
+	int     count = 0;
+	struct sockaddr *own_addr = 0;
+	INET_ADDR_LIST *addr_list = own_inet_addr_list();
+	struct sockaddr_storage *s;
+
+	for (s = addr_list->addrs; s < addr_list->addrs + addr_list->used; s++) {
+	    if (SOCK_ADDR_FAMILY(s) == sa->sa_family) {
+		if (count++ > 0)
+		    break;
+		own_addr = SOCK_ADDR_PTR(s);
+	    }
+	}
+	if (count == 1 && !sock_addr_in_loopback(own_addr)) {
+	    if (bind(sock, own_addr, SOCK_ADDR_LEN(own_addr)) < 0) {
+		SOCKADDR_TO_HOSTADDR(own_addr, SOCK_ADDR_LEN(own_addr),
+				     &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
+		msg_warn("%s: bind %s: %m", myname, hostaddr.buf);
+	    } else if (msg_verbose) {
+		SOCKADDR_TO_HOSTADDR(own_addr, SOCK_ADDR_LEN(own_addr),
+				     &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
+		msg_info("%s: bind %s", myname, hostaddr.buf);
+	    }
 	}
     }
 
     /*
      * Connect to the SMTP server.
      */
-    sin.sin_port = port;
-    memcpy((char *) &sin.sin_addr, addr->data, sizeof(sin.sin_addr));
-
+    SOCKADDR_TO_HOSTADDR(sa, salen, &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
-		 myname, addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
+		 myname, addr->name, hostaddr.buf, ntohs(port));
     if (var_smtp_conn_tmout > 0) {
 	non_blocking(sock, NON_BLOCKING);
-	conn_stat = timed_connect(sock, (struct sockaddr *) & sin,
-				  sizeof(sin), var_smtp_conn_tmout);
+	conn_stat = timed_connect(sock, sa, salen, var_smtp_conn_tmout);
 	saved_errno = errno;
 	non_blocking(sock, BLOCKING);
 	errno = saved_errno;
     } else {
-	conn_stat = sane_connect(sock, (struct sockaddr *) & sin, sizeof(sin));
+	conn_stat = sane_connect(sock, sa, salen);
     }
     if (conn_stat < 0) {
 	vstring_sprintf(why, "connect to %s[%s]: %m",
-			addr->name, inet_ntoa(sin.sin_addr));
+			addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
@@ -208,7 +232,7 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
      */
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
 	vstring_sprintf(why, "connect to %s[%s]: read timeout",
-			addr->name, inet_ntoa(sin.sin_addr));
+			addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	close(sock);
 	return (0);
@@ -220,14 +244,14 @@ static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
 	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
-			addr->name, inet_ntoa(sin.sin_addr));
+			addr->name, hostaddr.buf);
 	smtp_errno = SMTP_ERR_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
     vstream_ungetc(stream, ch);
     return (smtp_session_alloc(stream, dest, addr->name,
-			       inet_ntoa(sin.sin_addr), port, sess_flags));
+			       hostaddr.buf, port, sess_flags));
 }
 
 /* smtp_parse_destination - parse destination */
@@ -249,13 +273,15 @@ static char *smtp_parse_destination(char *destination, char *def_service,
      * Parse the host/port information. We're working with a copy of the
      * destination argument so the parsing can be destructive.
      */
-    if ((err = host_port(buf, hostp, &service, def_service)) != 0)
+    if ((err = host_port(buf, hostp, (char *) 0, &service, def_service)) != 0)
 	msg_fatal("%s in SMTP server description: %s", err, destination);
 
     /*
      * Convert service to port number, network byte order.
      */
-    if (alldig(service) && (port = atoi(service)) != 0) {
+    if (alldig(service)) {
+	if ((port = atoi(service)) >= 65536)
+	    msg_fatal("bad network port in destination: %s", destination);
 	*portp = htons(port);
     } else {
 	if ((sp = getservbyname(service, protocol)) == 0)
@@ -315,19 +341,24 @@ static void smtp_cleanup_session(SMTP_STATE *state)
 
 static void smtp_scrub_addr_list(HTABLE *cached_addr, DNS_RR **addr_list)
 {
+    MAI_HOSTADDR_STR hostaddr;
     DNS_RR *addr;
     DNS_RR *next;
 
-#define INADDRP(x) ((struct in_addr *) (x))
-
+    /*
+     * XXX Extend the DNS_RR structure with fields for the printable address
+     * and/or binary sockaddr representations, so that we can avoid repeated
+     * binary->string transformations for the same address.
+     */
     for (addr = *addr_list; addr; addr = next) {
 	next = addr->next;
-	if (addr->type == T_A) {
-	    if (addr->data_len > sizeof(struct in_addr))
-		continue;
-	    if (htable_locate(cached_addr, inet_ntoa(*INADDRP(addr->data))))
-		*addr_list = dns_rr_remove(*addr_list, addr);
+	if (dns_rr_to_pa(addr, &hostaddr) == 0) {
+	    msg_warn("cannot convert type %s resource record to socket address",
+		     dns_strtype(addr->type));
+	    continue;
 	}
+	if (htable_locate(cached_addr, hostaddr.buf))
+	    *addr_list = dns_rr_remove(*addr_list, addr);
     }
 }
 
@@ -336,9 +367,10 @@ static void smtp_scrub_addr_list(HTABLE *cached_addr, DNS_RR **addr_list)
 static void smtp_update_addr_list(DNS_RR **addr_list, const char *server_addr,
 				          int session_count)
 {
-    struct in_addr server_in_addr;
     DNS_RR *addr;
     DNS_RR *next;
+    int     aierr;
+    struct addrinfo *res0;
 
     if (*addr_list == 0)
 	return;
@@ -359,18 +391,23 @@ static void smtp_update_addr_list(DNS_RR **addr_list, const char *server_addr,
      * 
      * XXX smtp_reuse_session() breaks if we remove two or more adjacent list
      * elements but do not truncate the list to zero length.
+     * 
+     * XXX Extend the SMTP_SESSION structure with sockaddr information so that
+     * we can avoid repeated string->binary transformations for the same
+     * address.
      */
-    server_in_addr.s_addr = inet_addr(server_addr);
-    for (addr = *addr_list; addr; addr = next) {
-	next = addr->next;
-	if (addr->type == T_A) {		/* NOT: switch */
-	    if (addr->data_len > sizeof(server_in_addr))
-		continue;
-	    if (INADDRP(addr->data)->s_addr == server_in_addr.s_addr) {
+    if ((aierr = hostaddr_to_sockaddr(server_addr, (char *) 0, 0, &res0)) != 0) {
+	msg_warn("hostaddr_to_sockaddr %s: %s",
+		 server_addr, MAI_STRERROR(aierr));
+    } else {
+	for (addr = *addr_list; addr; addr = next) {
+	    next = addr->next;
+	    if (DNS_RR_EQ_SA(addr, (struct sockaddr *) res0->ai_addr)) {
 		*addr_list = dns_rr_remove(*addr_list, addr);
 		break;
 	    }
 	}
+	freeaddrinfo(res0);
     }
 }
 

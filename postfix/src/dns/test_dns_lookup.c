@@ -40,14 +40,19 @@
 
 static void print_rr(DNS_RR *rr)
 {
-    struct in_addr addr;
+    MAI_HOSTADDR_STR host;
 
     while (rr) {
 	printf("%s: ttl: %9d ", rr->name, rr->ttl);
 	switch (rr->type) {
 	case T_A:
-	    memcpy((char *) &addr.s_addr, rr->data, sizeof(addr.s_addr));
-	    printf("%s: %s\n", dns_strtype(rr->type), inet_ntoa(addr));
+#ifdef T_AAAA
+	case T_AAAA:
+#endif
+	    if (dns_rr_to_pa(rr, &host) == 0)
+		msg_fatal("conversion error for resource record type %s: %m",
+			  dns_strtype(rr->type));
+	    printf("%s: %s\n", dns_strtype(rr->type), host.buf);
 	    break;
 	case T_CNAME:
 	case T_MB:
@@ -85,7 +90,8 @@ int     main(int argc, char **argv)
 	msg_fatal("invalid query type: %s", argv[1]);
     name = argv[2];
     msg_verbose = 1;
-    switch (dns_lookup_types(name, RES_DEFNAMES | RES_DEBUG, &rr, fqdn, why, type, 0)) {
+    switch (dns_lookup_l(name, RES_DEFNAMES | RES_DEBUG, &rr, fqdn, why,
+			 DNS_REQ_FLAG_ALL, type, 0)) {
     default:
 	msg_fatal("%s", vstring_str(why));
     case DNS_OK:

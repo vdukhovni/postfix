@@ -178,6 +178,7 @@
 #include <dict_ht.h>
 #include <dict.h>
 #include <split_at.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -305,6 +306,8 @@ static void verify_update_service(VSTREAM *client_stream)
 		  ATTR_TYPE_NUM, MAIL_ATTR_ADDR_STATUS, &addr_status,
 		  ATTR_TYPE_STR, MAIL_ATTR_WHY, text,
 		  ATTR_TYPE_END) == 3) {
+	/* FIX 200501 IPv6 patch did not neuter ":" in address literals. */
+	translit(STR(addr), ":", "_");
 	if ((status_name = verify_stat2name(addr_status)) == 0) {
 	    msg_warn("bad recipient status %d for recipient %s",
 		     addr_status, STR(addr));
@@ -394,6 +397,8 @@ static void verify_query_service(VSTREAM *client_stream)
     (addr_status != DEL_RCPT_STAT_OK && updated + var_verify_neg_exp < now)
 #define PROBE_TTL	1000
 
+	/* FIX 200501 IPv6 patch did not neuter ":" in address literals. */
+	translit(STR(addr), ":", "_");
 	if ((raw_data = dict_get(verify_map, STR(addr))) == 0	/* not found */
 	    || ((get_buf = vstring_alloc(10)),
 		vstring_strcpy(get_buf, raw_data),	/* malformed */

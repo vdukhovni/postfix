@@ -225,7 +225,6 @@ void    smtp_printf(VSTREAM *stream, const char *fmt,...)
 
 int     smtp_fgetc(VSTREAM *stream)
 {
-    int     err;
     int     ch;
 
     /*

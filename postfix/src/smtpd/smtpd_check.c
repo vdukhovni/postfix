@@ -164,13 +164,10 @@
 #include <setjmp.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
-#endif
-
-#ifndef INADDR_NONE
-#define INADDR_NONE 0xffffffff
 #endif
 
 /* Utility library. */
@@ -188,6 +185,8 @@
 #include <ctable.h>
 #include <mac_expand.h>
 #include <attr_clnt.h>
+#include <myaddrinfo.h>
+#include <inet_proto.h>
 
 /* DNS library. */
 
@@ -198,6 +197,7 @@
 #include <string_list.h>
 #include <namadr_list.h>
 #include <domain_list.h>
+#include <string_list.h>
 #include <mail_params.h>
 #include <rewrite_clnt.h>
 #include <resolve_clnt.h>
@@ -219,6 +219,7 @@
 #include <input_transp.h>
 #include <is_header.h>
 #include <rewrite_clnt.h>
+#include <valid_mailhost_addr.h>
 
 /* Application-specific. */
 
@@ -370,6 +371,8 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
     defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2))
 #define DEFER_IF_REJECT3(state, class, fmt, a1, a2, a3) \
     defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3))
+#define DEFER_IF_REJECT4(state, class, fmt, a1, a2, a3, a4) \
+    defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3), (a4))
 #define DEFER_IF_PERMIT2(state, class, fmt, a1, a2) do { \
     if ((state)->warn_if_reject == 0) \
 	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2)); \
@@ -944,14 +947,14 @@ static int reject_invalid_hostaddr(SMTPD_STATE *state, char *addr,
 	msg_info("%s: %s", myname, addr);
 
     if (addr[0] == '[' && (len = strlen(addr)) > 2 && addr[len - 1] == ']') {
-	test_addr = mystrndup(&addr[1], len - 2);
+	test_addr = mystrndup(addr + 1, len - 2);
     } else
 	test_addr = addr;
 
     /*
      * Validate the address.
      */
-    if (!valid_hostaddr(test_addr, DONT_GRIPE))
+    if (!valid_mailhost_addr(test_addr, DONT_GRIPE))
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  "%d <%s>: %s rejected: invalid ip address",
 				var_bad_name_code, reply_name, reply_class);
@@ -987,7 +990,8 @@ static int reject_invalid_hostname(SMTPD_STATE *state, char *name,
     /*
      * Validate the hostname.
      */
-    if (!valid_hostname(test_name, DONT_GRIPE))
+    if (!valid_hostname(test_name, DONT_GRIPE)
+	&& !valid_hostaddr(test_name, DONT_GRIPE))	/* XXX back compat */
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  "%d <%s>: %s rejected: Invalid name",
 				var_bad_name_code, reply_name, reply_class);
@@ -1056,8 +1060,9 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 #define RR_ADDR_TYPES	T_A
 #endif
 
-    dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
-				  (VSTRING *) 0, RR_ADDR_TYPES, T_MX, 0);
+    dns_status = dns_lookup_l(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+			      (VSTRING *) 0, DNS_REQ_FLAG_ANY,
+			      RR_ADDR_TYPES, T_MX, 0);
     if (dns_status == DNS_NOTFOUND)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: Host not found",
@@ -1081,8 +1086,9 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
-    dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
-				  (VSTRING *) 0, RR_ADDR_TYPES, T_MX, 0);
+    dns_status = dns_lookup_l(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+			      (VSTRING *) 0, DNS_REQ_FLAG_ANY,
+			      RR_ADDR_TYPES, T_MX, 0);
     if (dns_status == DNS_NOTFOUND)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: Domain not found",
@@ -1238,7 +1244,7 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 		            const char *reply_name, const char *reply_class)
 {
     char   *myname = "all_auth_mx_addr";
-    struct in_addr addr;
+    MAI_HOSTADDR_STR hostaddr;
     DNS_RR *rr;
     DNS_RR *addr_list;
     int     dns_status;
@@ -1255,7 +1261,8 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
     /*
      * Verify that all host addresses are within permit_mx_backup_networks.
      */
-    dns_status = dns_lookup(host, T_A, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0);
+    dns_status = dns_lookup_v(host, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0,
+			      DNS_REQ_FLAG_ALL, inet_proto_info()->dns_atype_list);
     if (dns_status != DNS_OK) {
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
 	"450 <%s>: %s rejected: Unable to look up host %s as mail exchanger",
@@ -1263,16 +1270,15 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 	return (NOPE);
     }
     for (rr = addr_list; rr != 0; rr = rr->next) {
-	if (rr->data_len > sizeof(addr)) {
-	    msg_warn("%s: skipping address length %d for host %s",
-		     state->queue_id, rr->data_len, host);
+	if (dns_rr_to_pa(rr, &hostaddr) == 0) {
+	    msg_warn("%s: skipping record type %s for host %s: %m",
+		     myname, dns_strtype(rr->type), host);
 	    continue;
 	}
-	memcpy((char *) &addr, rr->data, sizeof(addr));
 	if (msg_verbose)
-	    msg_info("%s: checking: %s", myname, inet_ntoa(addr));
+	    msg_info("%s: checking: %s", myname, hostaddr.buf);
 
-	if (!namadr_list_match(perm_mx_networks, host, inet_ntoa(addr))) {
+	if (!namadr_list_match(perm_mx_networks, host, hostaddr.buf)) {
 
 	    /*
 	     * Reject: at least one IP address is not listed in
@@ -1280,7 +1286,7 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 	     */
 	    if (msg_verbose)
 		msg_info("%s: address %s for %s does not match %s",
-		       myname, inet_ntoa(addr), host, VAR_PERM_MX_NETWORKS);
+			 myname, hostaddr.buf, host, VAR_PERM_MX_NETWORKS);
 	    dns_rr_free(addr_list);
 	    return (NOPE);
 	}
@@ -1295,9 +1301,11 @@ static int has_my_addr(SMTPD_STATE *state, const char *host,
 		            const char *reply_name, const char *reply_class)
 {
     char   *myname = "has_my_addr";
-    struct in_addr addr;
-    char  **cpp;
-    struct hostent *hp;
+    struct addrinfo *res;
+    struct addrinfo *res0;
+    int     aierr;
+    MAI_HOSTADDR_STR hostaddr;
+    INET_PROTO_INFO *proto_info = inet_proto_info();
 
     if (msg_verbose)
 	msg_info("%s: host %s", myname, host);
@@ -1308,30 +1316,36 @@ static int has_my_addr(SMTPD_STATE *state, const char *host,
 #define YUP	1
 #define NOPE	0
 
-    if ((hp = gethostbyname(host)) == 0) {
-	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
-	  "450 <%s>: %s rejected: Unable to look up mail exchanger host %s",
-			 reply_name, reply_class, host);
+    aierr = hostname_to_sockaddr(host, (char *) 0, 0, &res0);
+    if (aierr) {
+	DEFER_IF_REJECT4(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: Unable to look up mail exchanger host %s: %s",
+			 reply_name, reply_class, host, MAI_STRERROR(aierr));
 	return (NOPE);
     }
-    if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
-	msg_warn("address type %d length %d for %s",
-		 hp->h_addrtype, hp->h_length, host);
-	return (NOPE);
-    }
-    for (cpp = hp->h_addr_list; *cpp; cpp++) {
-	memcpy((char *) &addr, *cpp, sizeof(addr));
-	if (msg_verbose)
-	    msg_info("%s: addr %s", myname, inet_ntoa(addr));
-	if (own_inet_addr(&addr))
-	    return (YUP);
-	if (proxy_inet_addr(&addr))
-	    return (YUP);
+#define HAS_MY_ADDR_RETURN(x) { freeaddrinfo(res0); return (x); }
+
+    for (res = res0; res != 0; res = res->ai_next) {
+	if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
+	    if (msg_verbose)
+		msg_info("skipping address family %d for host %s",
+			 res->ai_family, host);
+	    continue;
+	}
+	if (msg_verbose) {
+	    SOCKADDR_TO_HOSTADDR(res->ai_addr, res->ai_addrlen,
+				 &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
+	    msg_info("%s: addr %s", myname, hostaddr.buf);
+	}
+	if (own_inet_addr(res->ai_addr))
+	    HAS_MY_ADDR_RETURN(YUP);
+	if (proxy_inet_addr(res->ai_addr))
+	    HAS_MY_ADDR_RETURN(YUP);
     }
     if (msg_verbose)
 	msg_info("%s: host %s: no match", myname, host);
 
-    return (NOPE);
+    HAS_MY_ADDR_RETURN(NOPE);
 }
 
 /* i_am_mx - is this machine listed as MX relay */
@@ -1339,7 +1353,7 @@ static int has_my_addr(SMTPD_STATE *state, const char *host,
 static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list,
 		           const char *reply_name, const char *reply_class)
 {
-    const char *myname = "permit_mx_backup";
+    const char *myname = "i_am_mx";
     DNS_RR *mx;
 
     /*
@@ -1376,8 +1390,12 @@ static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list,
 static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list,
 		            const char *reply_name, const char *reply_class)
 {
+    const char *myname = "permit_mx_primary";
     DNS_RR *mx;
     unsigned int best_pref;
+
+    if (msg_verbose)
+	msg_info("%s", myname);
 
     /*
      * Find the preference of the primary MX hosts.
@@ -2070,6 +2088,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
     char   *addr;
     const char *value;
     DICT   *dict;
+    int     delim;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, address);
@@ -2080,6 +2099,12 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 #define CHK_ADDR_RETURN(x,y) { *found = y; return(x); }
 
     addr = STR(vstring_strcpy(error_text, address));
+#ifdef HAS_IPV6
+    if (strchr(addr, ':') != 0)
+	delim = ':';
+    else
+#endif
+	delim = '.';
 
     if ((dict = dict_handle(table)) == 0)
 	msg_panic("%s: dictionary not found: %s", myname, table);
@@ -2093,7 +2118,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 		msg_fatal("%s: table lookup problem", table);
 	}
 	flags = PARTIAL;
-    } while (split_at_right(addr, '.'));
+    } while (split_at_right(addr, delim));
 
     CHK_ADDR_RETURN(SMTPD_CHECK_DUNNO, MISSED);
 }
@@ -2151,12 +2176,12 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     DNS_RR *server_list;
     DNS_RR *server;
     int     found = 0;
-    struct in_addr addr;
-    struct hostent *hp;
-    char   *addr_string;
+    MAI_HOSTADDR_STR addr_string;
+    int     aierr;
+    struct addrinfo *res0;
+    struct addrinfo *res;
     int     status;
-    char  **cpp;
-    static DNS_FIXED fixed;
+    INET_PROTO_INFO *proto_info;
 
     /*
      * Sanity check.
@@ -2189,7 +2214,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 			    (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status == DNS_NOTFOUND && h_errno == NO_DATA) {
 	if (type == T_MX) {
-	    server_list = dns_rr_create(domain, &fixed, 0,
+	    server_list = dns_rr_create(domain, type, C_IN, 0, 0,
 					domain, strlen(domain) + 1);
 	    dns_status = DNS_OK;
 	} else if (type == T_NS) {
@@ -2216,6 +2241,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     /*
      * Check the hostnames first, then the addresses.
      */
+    proto_info = inet_proto_info();
     for (server = server_list; server != 0; server = server->next) {
 	if (msg_verbose)
 	    msg_info("%s: %s hostname check: %s",
@@ -2224,32 +2250,35 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 				      FULL, &found, reply_name, reply_class,
 					  def_acl)) != 0 || found)
 	    CHECK_SERVER_RETURN(status);
-	SET_H_ERRNO(0);
-	if ((hp = gethostbyname((char *) server->data)) == 0) {
+	if ((aierr = hostname_to_sockaddr((char *) server->data,
+					  (char *) 0, 0, &res0)) != 0) {
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,
-		     reply_class, reply_name, dns_strerror(h_errno));
+		     reply_class, reply_name, MAI_STRERROR(aierr));
 	    continue;
 	}
-	if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
-	    if (msg_verbose)
-		msg_warn("address type %d length %d for %s",
-		       hp->h_addrtype, hp->h_length, (char *) server->data);
-	    continue;				/* XXX */
-	}
+	/* Now we must also free the addrinfo result. */
 	if (msg_verbose)
 	    msg_info("%s: %s host address check: %s",
 		     myname, dns_strtype(type), (char *) server->data);
-	for (cpp = hp->h_addr_list; *cpp; cpp++) {
-	    memcpy((char *) &addr, *cpp, sizeof(addr));
-	    addr_string = mystrdup(inet_ntoa(addr));
-	    status = check_addr_access(state, table, addr_string, FULL,
+	for (res = res0; res != 0; res = res->ai_next) {
+	    if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
+		if (msg_verbose)
+		    msg_info("skipping address family %d for host %s",
+			     res->ai_family, server->data);
+		continue;
+	    }
+	    SOCKADDR_TO_HOSTADDR(res->ai_addr, res->ai_addrlen,
+				 &addr_string, (MAI_SERVPORT_STR *) 0, 0);
+	    status = check_addr_access(state, table, addr_string.buf, FULL,
 				       &found, reply_name, reply_class,
 				       def_acl);
-	    myfree(addr_string);
-	    if (status != 0 || found)
+	    if (status != 0 || found) {
+		freeaddrinfo(res0);		/* 200412 */
 		CHECK_SERVER_RETURN(status);
+	    }
 	}
+	freeaddrinfo(res0);			/* 200412 */
     }
     CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
 }
@@ -2501,12 +2530,13 @@ static const char *smtpd_expand_lookup(const char *name, int unused_mode,
 
 static void *rbl_pagein(const char *query, void *unused_context)
 {
+    const char *myname = "rbl_pagein";
     DNS_RR *txt_list;
     VSTRING *why;
     int     dns_status;
     SMTPD_RBL_STATE *rbl;
     DNS_RR *addr_list;
-    struct in_addr addr;
+    MAI_HOSTADDR_STR hostaddr;
     DNS_RR *rr;
     DNS_RR *next;
     VSTRING *buf;
@@ -2516,6 +2546,8 @@ static void *rbl_pagein(const char *query, void *unused_context)
      * Do the query. If the DNS lookup produces no definitive reply, give the
      * requestor the benefit of the doubt. We can't block all email simply
      * because an RBL server is unavailable.
+     * 
+     * Don't do this for AAAA records. Yet.
      */
     why = vstring_alloc(10);
     dns_status = dns_lookup(query, T_A, 0, &addr_list, (VSTRING *) 0, why);
@@ -2552,8 +2584,11 @@ static void *rbl_pagein(const char *query, void *unused_context)
 	rbl->txt = 0;
     rbl->a = argv_alloc(1);
     for (rr = addr_list; rr != 0; rr = rr->next) {
-	memcpy((char *) &addr.s_addr, addr_list->data, sizeof(addr.s_addr));
-	argv_add(rbl->a, inet_ntoa(addr), ARGV_END);
+	if (dns_rr_to_pa(rr, &hostaddr) == 0)
+	    msg_warn("%s: skipping record type %s for query %s: %m",
+		     myname, dns_strtype(rr->type), query);
+	else
+	    argv_add(rbl->a, hostaddr.buf, ARGV_END);
     }
     dns_rr_free(addr_list);
     return ((void *) rbl);
@@ -2690,12 +2725,10 @@ static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
 	msg_info("%s: %s %s", myname, reply_class, addr);
 
     /*
-     * IPv4 only for now
+     * IPv4 / IPv6-mapped IPv4 (if supported) only for now
      */
-#ifdef INET6
-    if (inet_pton(AF_INET, addr, &a) != 1)
+    if (valid_ipv6_hostaddr(addr, DONT_GRIPE))
 	return SMTPD_CHECK_DUNNO;
-#endif
 
     /*
      * Reverse the client IPV4 address, tack on the RBL domain name and query
@@ -3134,7 +3167,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    msg_warn("restriction %s is deprecated. Use %s instead",
 		     PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS);
 	    if (state->helo_name) {
-		if (state->helo_name[strspn(state->helo_name, "0123456789.")] == 0
+		if (state->helo_name[strspn(state->helo_name, "0123456789.:")] == 0
 		&& (status = reject_invalid_hostaddr(state, state->helo_name,
 				   state->helo_name, SMTPD_NAME_HELO)) == 0)
 		    status = SMTPD_CHECK_OK;
@@ -4095,6 +4128,7 @@ char   *var_mail_checks = "";
 char   *var_rcpt_checks = "";
 char   *var_etrn_checks = "";
 char   *var_data_checks = "";
+char   *var_eod_checks = "";
 char   *var_relay_domains = "";
 char   *var_mynetworks = "";
 char   *var_notify_classes = "";
@@ -4106,6 +4140,7 @@ char   *var_maps_rbl_domains;
 char   *var_myorigin;
 char   *var_mydest;
 char   *var_inet_interfaces;
+char   *var_proxy_interfaces;
 char   *var_rcpt_delim;
 char   *var_rest_classes;
 char   *var_alias_maps;
@@ -4146,6 +4181,7 @@ static STRING_TABLE string_table[] = {
     VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin,
     VAR_MYDEST, DEF_MYDEST, &var_mydest,
     VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces,
+    VAR_PROXY_INTERFACES, DEF_PROXY_INTERFACES, &var_proxy_interfaces,
     VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim,
     VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes,
     VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps,
@@ -4467,6 +4503,7 @@ int     main(int argc, char **argv)
     char   *bp;
     char   *resp;
     char   *addr;
+    INET_PROTO_INFO *proto_info;
 
     /*
      * Initialization. Use dummies for client information.
@@ -4479,6 +4516,8 @@ int     main(int argc, char **argv)
     smtpd_check_init();
     smtpd_state_init(&state, VSTREAM_IN, "smtpd");
     state.queue_id = "<queue id>";
+
+    proto_info = inet_proto_init(argv[0], INET_PROTO_NAME_ALL);
 
     /*
      * Main loop: update config parameters or test the client, helo, sender
@@ -4567,35 +4606,36 @@ int     main(int argc, char **argv)
 		resp = 0;
 		break;
 	    }
-	    if (strcasecmp(args->argv[0], "local_recipient_maps") == 0) {
+	    if (strcasecmp(args->argv[0], VAR_LOCAL_RCPT_MAPS) == 0) {
 		UPDATE_STRING(var_local_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(local_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
 			    var_local_rcpt_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }
-	    if (strcasecmp(args->argv[0], "relay_recipient_maps") == 0) {
+	    if (strcasecmp(args->argv[0], VAR_RELAY_RCPT_MAPS) == 0) {
 		UPDATE_STRING(var_relay_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(relay_rcpt_maps, VAR_RELAY_RCPT_MAPS,
 			    var_relay_rcpt_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }
-	    if (strcasecmp(args->argv[0], "canonical_maps") == 0) {
+	    if (strcasecmp(args->argv[0], VAR_CANONICAL_MAPS) == 0) {
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
 			    var_canonical_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }
-	    if (strcasecmp(args->argv[0], "rbl_reply_maps") == 0) {
+	    if (strcasecmp(args->argv[0], VAR_RBL_REPLY_MAPS) == 0) {
 		UPDATE_STRING(var_rbl_reply_maps, args->argv[1]);
 		UPDATE_MAPS(rbl_reply_maps, VAR_RBL_REPLY_MAPS,
 			    var_rbl_reply_maps, DICT_FLAG_LOCK);
 		resp = 0;
 		break;
 	    }
-	    if (strcasecmp(args->argv[0], "mynetworks") == 0) {
+	    if (strcasecmp(args->argv[0], VAR_MYNETWORKS) == 0) {
+		/* NOT: UPDATE_STRING */
 		namadr_list_free(mynetworks);
 		mynetworks =
 		    namadr_list_init(match_parent_style(VAR_MYNETWORKS),
@@ -4603,10 +4643,20 @@ int     main(int argc, char **argv)
 		resp = 0;
 		break;
 	    }
-	    if (strcasecmp(args->argv[0], "relay_domains") == 0) {
+	    if (strcasecmp(args->argv[0], VAR_RELAY_DOMAINS) == 0) {
+		/* NOT: UPDATE_STRING */
 		domain_list_free(relay_domains);
 		relay_domains =
 		    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+				     args->argv[1]);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_PERM_MX_NETWORKS) == 0) {
+		UPDATE_STRING(var_perm_mx_networks, args->argv[1]);
+		domain_list_free(perm_mx_networks);
+		perm_mx_networks =
+		    namadr_list_init(match_parent_style(VAR_PERM_MX_NETWORKS),
 				     args->argv[1]);
 		resp = 0;
 		break;

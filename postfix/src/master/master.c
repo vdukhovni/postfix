@@ -78,9 +78,6 @@
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBdaemon_timeout (18000s)\fR"
-/*	How much time a Postfix daemon process may take to handle a
-/*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBdefault_process_limit (100)\fR"
 /*	The default maximal number of Postfix child processes that provide
 /*	a given service.
@@ -107,6 +104,9 @@
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on.
+/* .IP "\fBinet_protocols (ipv4)\fR"
+/*	The Internet protocols Postfix will attempt to use when making
+/*	or accepting connections.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
 /*	The list of environment parameters that a Postfix process will
 /*	import from a non-Postfix parent process.
@@ -181,6 +181,7 @@
 #include <mail_task.h>
 #include <mail_conf.h>
 #include <open_lock.h>
+#include <inet_proto.h>
 
 /* Application-specific. */
 
@@ -192,6 +193,13 @@ static void master_exit_event(int unused_event, char *unused_context)
 {
     msg_info("master exit time has arrived");
     exit(0);
+}
+
+/* usage - show hint and terminate */
+
+static NORETURN usage(const char *me)
+{
+    msg_fatal("usage: %s [-c config_dir] [-e exit_time] [-D (debug)] [-t (test)] [-v]", me);
 }
 
 /* main - main program */
@@ -319,10 +327,16 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-e exit_time] [-D (debug)] [-t (test)] [-v]", argv[0]);
+	    usage(argv[0]);
 	    /* NOTREACHED */
 	}
     }
+
+    /*
+     * This program takes no other arguments.
+     */
+    if (argc > optind)
+	usage(argv[0]);
 
     /*
      * Final initializations. Unfortunately, we must read the global Postfix
@@ -331,6 +345,13 @@ int     main(int argc, char **argv)
      * files.
      */
     master_vars_init();
+
+    /*
+     * In case of multi-protocol support. This needs to be done because
+     * master does not invoke mail_params_init() (it was written before that
+     * code existed).
+     */
+    (void) inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
 
     /*
      * Environment import filter, to enforce consistent behavior whether

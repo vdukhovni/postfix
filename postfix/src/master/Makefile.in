@@ -25,7 +25,7 @@ BIN_DIR	= ../../libexec
 all:	$(PROG) $(LIB)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
@@ -106,6 +106,7 @@ master.o: ../../include/debug_process.h
 master.o: ../../include/mail_task.h
 master.o: ../../include/mail_conf.h
 master.o: ../../include/open_lock.h
+master.o: ../../include/inet_proto.h
 master.o: master.h
 master_avail.o: master_avail.c
 master_avail.o: ../../include/sys_defs.h
@@ -129,13 +130,15 @@ master_ent.o: ../../include/argv.h
 master_ent.o: ../../include/stringops.h
 master_ent.o: ../../include/readlline.h
 master_ent.o: ../../include/inet_addr_list.h
-master_ent.o: ../../include/inet_util.h
+master_ent.o: ../../include/myaddrinfo.h
+master_ent.o: ../../include/host_port.h
 master_ent.o: ../../include/inet_addr_host.h
 master_ent.o: ../../include/mail_proto.h
 master_ent.o: ../../include/iostuff.h
 master_ent.o: ../../include/attr.h
 master_ent.o: ../../include/mail_params.h
 master_ent.o: ../../include/own_inet_addr.h
+master_ent.o: ../../include/wildcard_inet_addr.h
 master_ent.o: master_proto.h
 master_ent.o: master.h
 master_flow.o: master_flow.c
@@ -154,8 +157,10 @@ master_listen.o: ../../include/stringops.h
 master_listen.o: ../../include/vstring.h
 master_listen.o: ../../include/vbuf.h
 master_listen.o: ../../include/inet_addr_list.h
+master_listen.o: ../../include/myaddrinfo.h
 master_listen.o: ../../include/set_eugid.h
 master_listen.o: ../../include/set_ugid.h
+master_listen.o: ../../include/sock_addr.h
 master_listen.o: ../../include/mail_params.h
 master_listen.o: master.h
 master_proto.o: master_proto.c
@@ -180,6 +185,8 @@ master_spawn.o: ../../include/msg.h
 master_spawn.o: ../../include/binhash.h
 master_spawn.o: ../../include/mymalloc.h
 master_spawn.o: ../../include/events.h
+master_spawn.o: ../../include/vstring.h
+master_spawn.o: ../../include/vbuf.h
 master_spawn.o: ../../include/argv.h
 master_spawn.o: master_proto.h
 master_spawn.o: master.h

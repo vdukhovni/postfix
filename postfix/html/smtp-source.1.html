@@ -18,33 +18,41 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
        <b>smtp-source</b>  connects  to  the  named  <i>host</i>  and  TCP <i>port</i>
        (default: port 25) and sends one or more messages  to  it,
        either  sequentially  or  in  parallel. The program speaks
-       either SMTP (default) or LMTP. Connections can be made  to
-       UNIX-domain and IPV4 servers.  IPV4 is the default.
+       either SMTP (default) or LMTP.  Connections can be made to
+       UNIX-domain  and  IPv4 or IPv6 servers.  IPv4 and IPv6 are
+       the default.
 
        Arguments:
 
-       <b>-c</b>     Display  a running counter that is incremented each
+       <b>-4</b>     Connect to the server with IPv4. This option has no
+              effect  when Postfix is built without IPv6 support.
+
+       <b>-6</b>     Connect to the server with IPv6. This option is not
+              available  when  Postfix is built without IPv6 sup-
+              port.
+
+       <b>-c</b>     Display a running counter that is incremented  each
               time an SMTP DATA command completes.
 
        <b>-C</b> <i>count</i>
-              When a host sends RESET  instead  of  SYN|ACK,  try
-              <i>count</i>  times before giving up. The default count is
+              When  a  host  sends  RESET instead of SYN|ACK, try
+              <i>count</i> times before giving up. The default count  is
               1. Specify a larger count in order to work around a
               problem with TCP/IP stacks that send RESET when the
               listen queue is full.
 
-       <b>-d</b>     Don't disconnect after sending a message; send  the
+       <b>-d</b>     Don't  disconnect after sending a message; send the
               next message over the same connection.
 
        <b>-f</b> <i>from</i>
-              Use   the   specified   sender   address  (default:
+              Use  the   specified   sender   address   (default:
               &lt;foo@<a href="postconf.5.html#myhostname">myhostname</a>&gt;).
 
-       <b>-o</b>     Old mode: don't send HELO, and don't  send  message
+       <b>-o</b>     Old  mode:  don't send HELO, and don't send message
               headers.
 
        <b>-l</b> <i>length</i>
-              Send  <i>length</i>  bytes  as message payload. The length
+              Send <i>length</i> bytes as message  payload.  The  length
               does not include message headers.
 
        <b>-L</b>     Speak LMTP rather than SMTP.
@@ -52,15 +60,15 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
        <b>-m</b> <i>message</i><b>_</b><i>count</i>
               Send the specified number of messages (default: 1).
 
-       <b>-N</b>     Prepend  a  non-repeating  sequence  number to each
-              recipient address. This avoids the artificial  100%
-              hit  rate  in the resolve and rewrite client caches
-              and exercises the  trivial-rewrite  daemon,  better
-              approximating  Postfix  performance under real-life
+       <b>-N</b>     Prepend a non-repeating  sequence  number  to  each
+              recipient  address. This avoids the artificial 100%
+              hit rate in the resolve and rewrite  client  caches
+              and  exercises  the  trivial-rewrite daemon, better
+              approximating Postfix performance  under  real-life
               work-loads.
 
        <b>-r</b> <i>recipient</i><b>_</b><i>count</i>
-              Send the specified number of recipients per  trans-
+              Send  the specified number of recipients per trans-
               action (default: 1).  Recipient names are generated
               by prepending a number to the recipient address.
 
@@ -69,15 +77,15 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
               lel (default: 1).
 
        <b>-S</b> <i>subject</i>
-              Send  mail  with  the  named subject line (default:
+              Send mail with the  named  subject  line  (default:
               none).
 
-       <b>-t</b> <i>to</i>  Use  the  specified  recipient  address   (default:
+       <b>-t</b> <i>to</i>  Use   the  specified  recipient  address  (default:
               &lt;foo@<a href="postconf.5.html#myhostname">myhostname</a>&gt;).
 
        <b>-R</b> <i>interval</i>
               Wait for a random period of time 0 &lt;= n &lt;= interval
-              between messages.  Suspending one thread  does  not
+              between  messages.   Suspending one thread does not
               affect other delivery threads.
 
        <b>-w</b> <i>interval</i>
@@ -85,7 +93,7 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
               thread does not affect other delivery threads.
 
        [<b>inet:</b>]<i>host</i>[:<i>port</i>]
-              Connect via  TCP  to  host  <i>host</i>,  port  <i>port</i>.  The
+              Connect  via  TCP  to  host  <i>host</i>,  port  <i>port</i>. The
               default port is <b>smtp</b>.
 
        <b>unix:</b><i>pathname</i>
@@ -98,7 +106,7 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
        <a href="smtp-sink.1.html">smtp-sink(1)</a>, SMTP/LMTP message dump
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

@@ -22,7 +22,7 @@ $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -436,8 +436,8 @@ resolve.o: ../../include/mail_proto.h
 resolve.o: ../../include/vstream.h
 resolve.o: ../../include/iostuff.h
 resolve.o: ../../include/attr.h
-resolve.o: ../../include/rewrite_clnt.h
 resolve.o: ../../include/resolve_clnt.h
+resolve.o: ../../include/rewrite_clnt.h
 resolve.o: ../../include/tok822.h
 resolve.o: ../../include/mail_params.h
 resolve.o: ../../include/defer.h

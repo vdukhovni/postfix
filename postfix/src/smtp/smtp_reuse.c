@@ -225,10 +225,9 @@ SMTP_SESSION *smtp_reuse_domain(SMTP_STATE *state, int lookup_mx,
 
 SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, DNS_RR *addr, unsigned port)
 {
+    MAI_HOSTADDR_STR hostaddr;
     SMTP_SESSION *session;
     int     fd;
-
-#define INADDRP(x) ((struct in_addr *) (x))
 
     /*
      * Look up the session by its IP address. This means that we have no
@@ -237,11 +236,10 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, DNS_RR *addr, unsigned port)
      * Note: if the label needs to be made more specific (with e.g., SASL login
      * information), just append the text with vstring_sprintf_append().
      */
-    if (addr->data_len > sizeof(struct in_addr))
+    if (dns_rr_to_pa(addr, &hostaddr) == 0)
 	return (0);
     vstring_sprintf(state->endp_label, SMTP_SCACHE_LABEL(NO_MX_LOOKUP),
-		    state->service, inet_ntoa(*INADDRP(addr->data)),
-		    ntohs(port));
+		    state->service, hostaddr.buf, ntohs(port));
     if ((fd = scache_find_endp(smtp_scache, STR(state->endp_label),
 			       state->endp_prop)) < 0)
 	return (0);

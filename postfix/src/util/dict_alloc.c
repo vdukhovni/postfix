@@ -87,7 +87,7 @@ static int dict_default_delete(DICT *dict, const char *unused_key)
 
 /* dict_default_sequence - trap unimplemented operation */
 
-static int dict_default_sequence(DICT *dict, int function,
+static int dict_default_sequence(DICT *dict, int unused_function,
 		         const char **unused_key, const char **unused_value)
 {
     msg_fatal("%s table %s: sequence operation is not supported",

@@ -34,7 +34,7 @@ the Postfix SMTP client to a remote SMTP server.  </p>
 
 <p> When receiving mail, Postfix logs the client-provided username,
 authentication method, and sender address to the maillog file, and
-optionally grants mail access via the permit_sasl_authenticated
+optionally grants mail access via the <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
 UCE restriction. </p>
 
 <p> Postfix does not record the client's SASL authentication
@@ -187,7 +187,7 @@ SMTP server</a></h2>
 <pre>
 /etc/postfix/main.cf:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
-        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> permit_sasl_authenticated ...
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> ...
 </pre>
 </blockquote>
 

@@ -119,6 +119,8 @@
 /*	Non-default alias database. Specify \fIpathname\fR or
 /*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for
 /*	details.
+/* .IP "\fB-O \fIoption=value\fR (ignored)"
+/*	Backwards compatibility.
 /* .IP "\fB-o7\fR (ignored)"
 /* .IP "\fB-o8\fR (ignored)"
 /*	To send 8-bit or binary content, use an appropriate MIME encapsulation
@@ -941,7 +943,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "A:B:C:F:GIL:N:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "A:B:C:F:GIL:N:O:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:

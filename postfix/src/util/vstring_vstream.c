@@ -184,7 +184,7 @@ int     vstring_get_null_bound(VSTRING *vp, VSTREAM *fp, int bound)
 
 #define TEXT_VSTREAM    "vstring_vstream.c"
 
-main(void)
+int     main(void)
 {
     VSTRING *vp = vstring_alloc(1);
     VSTREAM *fp;

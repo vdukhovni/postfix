@@ -186,6 +186,7 @@ $sample_directory/sample-compatibility.cf:f:root:-:644:o
 $sample_directory/sample-debug.cf:f:root:-:644:o
 $sample_directory/sample-filter.cf:f:root:-:644:o:o
 $sample_directory/sample-flush.cf:f:root:-:644:o
+$sample_directory/sample-ipv6.cf:f:root:-:644:o
 $sample_directory/sample-ldap.cf:f:root:-:644:o
 $sample_directory/sample-lmtp.cf:f:root:-:644:o
 $sample_directory/sample-local.cf:f:root:-:644:o
@@ -224,6 +225,7 @@ $readme_directory/ETRN_README:f:root:-:644
 $readme_directory/FILTER_README:f:root:-:644
 $readme_directory/HOSTING_README:f:root:-:644:o
 $readme_directory/INSTALL:f:root:-:644
+$readme_directory/IPV6_README:f:root:-:644
 $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
 $readme_directory/LMTP_README:f:root:-:644
@@ -267,6 +269,7 @@ $html_directory/DEBUG_README.html:f:root:-:644
 $html_directory/ETRN_README.html:f:root:-:644
 $html_directory/FILTER_README.html:f:root:-:644
 $html_directory/INSTALL.html:f:root:-:644
+$html_directory/IPV6_README.html:f:root:-:644
 $html_directory/LDAP_README.html:f:root:-:644
 $html_directory/LINUX_README.html:f:root:-:644
 $html_directory/LMTP_README.html:f:root:-:644

@@ -16,7 +16,7 @@ $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -78,3 +78,4 @@ postqueue.o: ../../include/flush_clnt.h
 postqueue.o: ../../include/smtp_stream.h
 postqueue.o: ../../include/vstring.h
 postqueue.o: ../../include/user_acl.h
+postqueue.o: ../../include/valid_mailhost_addr.h

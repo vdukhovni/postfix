@@ -162,7 +162,7 @@ int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 
 /* mac_parse_print - print parse tree */
 
-static void mac_parse_print(int type, VSTRING *buf, char *unused_context)
+static int mac_parse_print(int type, VSTRING *buf, char *unused_context)
 {
     char   *type_name;
 
@@ -177,6 +177,7 @@ static void mac_parse_print(int type, VSTRING *buf, char *unused_context)
 	msg_panic("unknown token type %d", type);
     }
     vstream_printf("%s \"%s\"\n", type_name, vstring_str(buf));
+    return (0);
 }
 
 int     main(int unused_argc, char **unused_argv)

@@ -279,8 +279,11 @@ Disable DNS lookups in the Postfix SMTP and LMTP clients.
 Optional list of relay hosts for SMTP destinations that can't be
 found or that are unreachable.
 .IP "\fBinet_interfaces (all)\fR"
-The network interface addresses that this mail system receives mail
-on.
+The network interface addresses that this mail system receives
+mail on.
+.IP "\fBinet_protocols (ipv4)\fR"
+The Internet protocols Postfix will attempt to use when making
+or accepting connections.
 .IP "\fBipc_timeout (3600s)\fR"
 The time limit for sending or receiving information over an internal
 communication channel.
@@ -299,7 +302,10 @@ The network interface addresses that this mail system receives mail
 on by way of a proxy or network address translation unit.
 .IP "\fBsmtp_bind_address (empty)\fR"
 An optional numerical network address that the SMTP client should
-bind to when making a connection.
+bind to when making an IPv4 connection.
+.IP "\fBsmtp_bind_address6 (empty)\fR"
+An optional numerical network address that the SMTP client should
+bind to when making an IPv6 connection.
 .IP "\fBsmtp_helo_name ($myhostname)\fR"
 The hostname to send in the SMTP EHLO or HELO command.
 .IP "\fBsmtp_host_lookup (dns)\fR"

@@ -18,6 +18,7 @@
 /*	BSD TCP/IP network software.
 /*
 /*	find_inet_addr() translates a symbolic or numerical hostname.
+/*	This function is deprecated. Use hostname_to_hostaddr() instead.
 /*
 /*	find_inet_port() translates a symbolic or numerical port name.
 /* BUGS

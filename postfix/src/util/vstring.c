@@ -515,7 +515,7 @@ VSTRING *vstring_vsprintf_append(VSTRING *vp, const char *format, va_list ap)
   */
 #include <stdio.h>
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     VSTRING *vp = vstring_alloc(1);
 

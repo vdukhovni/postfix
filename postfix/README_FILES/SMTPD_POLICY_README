@@ -69,6 +69,9 @@ Notes:
   * When an attribute value is unavailable, the client either does not send the
     attribute, or sends the attribute with an empty value ("name=").
 
+  * The client address is an IPv4 dotted quad in the form 1.2.3.4 or it is an
+    IPv6 address in the form 1:2:3::4:5:6.
+
   * An attribute name must not contain "=", null or newline, and an attribute
     value must not contain null or newline.
 

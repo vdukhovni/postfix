@@ -16,7 +16,7 @@ $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -100,12 +100,19 @@ qmqpd_peer.o: qmqpd_peer.c
 qmqpd_peer.o: ../../include/sys_defs.h
 qmqpd_peer.o: ../../include/msg.h
 qmqpd_peer.o: ../../include/mymalloc.h
-qmqpd_peer.o: ../../include/valid_hostname.h
 qmqpd_peer.o: ../../include/stringops.h
 qmqpd_peer.o: ../../include/vstring.h
 qmqpd_peer.o: ../../include/vbuf.h
-qmqpd_peer.o: qmqpd.h
+qmqpd_peer.o: ../../include/myaddrinfo.h
+qmqpd_peer.o: ../../include/sock_addr.h
+qmqpd_peer.o: ../../include/inet_proto.h
+qmqpd_peer.o: ../../include/mail_proto.h
 qmqpd_peer.o: ../../include/vstream.h
+qmqpd_peer.o: ../../include/iostuff.h
+qmqpd_peer.o: ../../include/attr.h
+qmqpd_peer.o: ../../include/valid_mailhost_addr.h
+qmqpd_peer.o: ../../include/valid_hostname.h
+qmqpd_peer.o: qmqpd.h
 qmqpd_peer.o: ../../include/mail_stream.h
 qmqpd_state.o: qmqpd_state.c
 qmqpd_state.o: ../../include/sys_defs.h

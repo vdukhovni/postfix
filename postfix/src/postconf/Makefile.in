@@ -26,7 +26,7 @@ $(PROG): $(OBJS) $(LIBS)
 	 ./$(PROG) -d) |egrep -v '^(myhostname|mydomain|mynetworks) ' >$@
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -83,6 +83,7 @@ postconf.o: ../../include/mymalloc.h
 postconf.o: ../../include/split_at.h
 postconf.o: ../../include/vstring_vstream.h
 postconf.o: ../../include/myflock.h
+postconf.o: ../../include/inet_proto.h
 postconf.o: ../../include/mynetworks.h
 postconf.o: ../../include/mail_conf.h
 postconf.o: ../../include/mail_dict.h

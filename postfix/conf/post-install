@@ -564,22 +564,13 @@ EOF
 	}
     done
 
-    # With 20000 active queue files, the active queue directory should
-    # be hashed, and so should the other directories, because they
-    # can contain even more mail.
-    #
-    # Unfortunately, this sucks mailq performance on unloaded systems.
-    #
-    # If you don't want slow mailq, be sure to hash defer and deferred,
-    # because those two directories can contain lots of files.
+    # File systems have improved since Postfix came out, and all we
+    # require now is that defer and deferred are hashed because those
+    # can contain lots of files.
 
     found=`$POSTCONF -c $config_directory -h hash_queue_names`
     missing=
-    (echo "$found" | grep active >/dev/null) || missing="$missing active"
-    (echo "$found" | grep bounce >/dev/null) || missing="$missing bounce"
     (echo "$found" | grep defer >/dev/null)  || missing="$missing defer"
-    (echo "$found" | grep flush >/dev/null)  || missing="$missing flush"
-    (echo "$found" | grep incoming>/dev/null)|| missing="$missing incoming"
     (echo "$found" | grep deferred>/dev/null)|| missing="$missing deferred"
     test -n "$missing" && {
 	echo fixing main.cf hash_queue_names for missing $missing

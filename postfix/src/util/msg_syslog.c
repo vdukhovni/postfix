@@ -206,7 +206,7 @@ int     msg_syslog_facility(const char *facility_name)
   * Usage: msg_syslog_test text...
   */
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     VSTRING *vp = vstring_alloc(256);
 

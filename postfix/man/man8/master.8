@@ -92,9 +92,6 @@ Use the \fBpostfix reload\fR command after a configuration change.
 .nf
 .ad
 .fi
-.IP "\fBdaemon_timeout (18000s)\fR"
-How much time a Postfix daemon process may take to handle a
-request before it is terminated by a built-in watchdog timer.
 .IP "\fBdefault_process_limit (100)\fR"
 The default maximal number of Postfix child processes that provide
 a given service.
@@ -123,6 +120,9 @@ invoked with the -D option.
 .IP "\fBinet_interfaces (all)\fR"
 The network interface addresses that this mail system receives mail
 on.
+.IP "\fBinet_protocols (ipv4)\fR"
+The Internet protocols Postfix will attempt to use when making
+or accepting connections.
 .IP "\fBimport_environment (see 'postconf -d' output)\fR"
 The list of environment parameters that a Postfix process will
 import from a non-Postfix parent process.

@@ -256,11 +256,14 @@
 /*	The list of domains that are delivered via the $local_transport
 /*	mail delivery transport.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The network interface addresses that this mail system receives mail
-/*	on.
+/*	The network interface addresses that this mail system receives
+/*	mail on.
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
+/* .IP "\fBinet_protocols (ipv4)\fR"
+/*	The Internet protocols Postfix will attempt to use when making
+/*	or accepting connections.
 /* .IP "\fBlocal_recipient_maps (proxy:unix:passwd.byname $alias_maps)\fR"
 /*	Lookup tables with all names or addresses of local recipients:
 /*	a recipient address is local when its domain matches $mydestination,
@@ -704,6 +707,7 @@
 #include <flush_clnt.h>
 #include <ehlo_mask.h>			/* ehlo filter */
 #include <maps.h>			/* ehlo filter */
+#include <valid_mailhost_addr.h>
 
 /* Single-threaded server skeleton. */
 
@@ -879,7 +883,7 @@ static void chat_reset(SMTPD_STATE *, int);
  /*
   * This filter is applied after printable().
   */
-#define NEUTER_CHARACTERS " <>()\\\";:@"
+#define NEUTER_CHARACTERS " <>()\\\";@"
 
  /*
   * Reasons for losing the client.
@@ -1806,7 +1810,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	out_fprintf(out_stream, REC_TYPE_NORM,
 		    "Received: from %s (%s [%s])",
 		    state->helo_name ? state->helo_name : state->name,
-		    state->name, state->addr);
+		    state->name, state->rfc_addr);
 	if (state->rcpt_count == 1 && state->recipient) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			state->cleanup ? "\tby %s (%s) with %s id %s" :
@@ -2119,9 +2123,15 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "500 Syntax: ETRN domain");
 	return (-1);
     }
-    if (!ISALNUM(argv[1].strval[0]))
-	argv[1].strval++;
-    if (!valid_hostname(argv[1].strval, DONT_GRIPE)) {
+    if (argv[1].strval[0] == '@' || argv[1].strval[0] == '#')
+        argv[1].strval++;
+
+    /*
+     * As an extension to RFC 1985 we also allow an RFC 2821 address literal
+     * enclosed in [].
+     */
+    if (!valid_hostname(argv[1].strval, DONT_GRIPE)
+	&& !valid_mailhost_literal(argv[1].strval, DONT_GRIPE)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Error: invalid parameter syntax");
 	return (-1);
@@ -2188,6 +2198,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     SMTPD_TOKEN *argp;
     char   *attr_value;
+    const char *bare_value;
     char   *attr_name;
     int     update_namaddr = 0;
     int     peer_code;
@@ -2254,8 +2265,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (peer_code != SMTPD_PEER_CODE_OK) {
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
-		if (!valid_hostname(attr_value, DONT_GRIPE)
-		    || valid_hostaddr(attr_value, DONT_GRIPE)) {
+		if (!valid_hostname(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
 				     XCLIENT_NAME, attr_value);
@@ -2273,15 +2283,17 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	else if (STREQ(attr_name, XCLIENT_ADDR)) {
 	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
 		attr_value = CLIENT_ADDR_UNKNOWN;
+		bare_value = attr_value;
 	    } else {
-		if (!valid_hostaddr(attr_value, DONT_GRIPE)) {
+		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
 				     XCLIENT_ADDR, attr_value);
 		    return (-1);
 		}
 	    }
-	    UPDATE_STR(state->addr, attr_value);
+	    UPDATE_STR(state->addr, bare_value);
+	    UPDATE_STR(state->rfc_addr, attr_value);
 	    update_namaddr = 1;
 	}
 
@@ -2347,6 +2359,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     SMTPD_TOKEN *argp;
     char   *attr_value;
+    const char *bare_value;
     char   *attr_name;
     int     updated = 0;
     static NAME_CODE xforward_flags[] = {
@@ -2429,6 +2442,12 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
+		if (!valid_hostname(attr_value, DONT_GRIPE)) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XFORWARD_NAME, attr_value);
+		    return (-1);
+		}
 	    }
 	    UPDATE_STR(state->xforward.name, attr_value);
 	    break;
@@ -2441,10 +2460,18 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	case SMTPD_STATE_XFORWARD_ADDR:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_ADDR_UNKNOWN;
+		bare_value = attr_value;
 	    } else {
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
+		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 Bad %s syntax: %s",
+				     XFORWARD_ADDR, attr_value);
+		    return (-1);
+		}
 	    }
-	    UPDATE_STR(state->xforward.addr, attr_value);
+	    UPDATE_STR(state->xforward.addr, bare_value);
+	    UPDATE_STR(state->xforward.rfc_addr, attr_value);
 	    break;
 
 	    /*
@@ -2906,7 +2933,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
      * Sanity checks. The queue_minfree value should be at least as large as

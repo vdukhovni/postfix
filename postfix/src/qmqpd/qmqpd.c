@@ -49,7 +49,7 @@
 /*	it is queued.
 /* .IP "\fBreceive_override_options (empty)\fR"
 /*	Enable or disable recipient validation, built-in content
-/*	filtering, or address rewriting.
+/*	filtering, or address mapping.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -323,7 +323,7 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
 		    MAIL_ATTR_CLIENT_NAME, state->name);
     if (IS_AVAIL_CLIENT_ADDR(state->addr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_ADDR, state->addr);
+		    MAIL_ATTR_CLIENT_ADDR, state->rfc_addr);
     if (IS_AVAIL_CLIENT_NAMADDR(state->namaddr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_ORIGIN, state->namaddr);
@@ -402,7 +402,7 @@ static void qmqpd_write_content(QMQPD_STATE *state)
      */
     rec_fputs(state->cleanup, REC_TYPE_MESG, "");
     rec_fprintf(state->cleanup, REC_TYPE_NORM, "Received: from %s (%s [%s])",
-		state->name, state->name, state->addr);
+		state->name, state->name, state->rfc_addr);
     if (state->rcpt_count == 1 && state->recipient) {
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		    "\tby %s (%s) with %s id %s",

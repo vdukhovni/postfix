@@ -15,7 +15,7 @@ LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
 all:	$(PROG)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 smtp-sink: smtp-sink.o $(LIBS)
 	$(CC) $(CFLAGS) -o $@ smtp-sink.o $(LIBS) $(SYSLIBS)
@@ -85,6 +85,7 @@ qmqp-sink.o: ../../include/events.h
 qmqp-sink.o: ../../include/mymalloc.h
 qmqp-sink.o: ../../include/msg_vstream.h
 qmqp-sink.o: ../../include/netstring.h
+qmqp-sink.o: ../../include/inet_proto.h
 qmqp-sink.o: ../../include/qmqp_proto.h
 qmqp-source.o: qmqp-source.c
 qmqp-source.o: ../../include/sys_defs.h
@@ -99,9 +100,11 @@ qmqp-source.o: ../../include/connect.h
 qmqp-source.o: ../../include/iostuff.h
 qmqp-source.o: ../../include/mymalloc.h
 qmqp-source.o: ../../include/events.h
-qmqp-source.o: ../../include/find_inet.h
 qmqp-source.o: ../../include/netstring.h
 qmqp-source.o: ../../include/sane_connect.h
+qmqp-source.o: ../../include/host_port.h
+qmqp-source.o: ../../include/myaddrinfo.h
+qmqp-source.o: ../../include/inet_proto.h
 qmqp-source.o: ../../include/mail_date.h
 qmqp-source.o: ../../include/qmqp_proto.h
 smtp-sink.o: smtp-sink.c
@@ -119,6 +122,7 @@ smtp-sink.o: ../../include/mymalloc.h
 smtp-sink.o: ../../include/msg_vstream.h
 smtp-sink.o: ../../include/stringops.h
 smtp-sink.o: ../../include/sane_accept.h
+smtp-sink.o: ../../include/inet_proto.h
 smtp-sink.o: ../../include/smtp_stream.h
 smtp-source.o: smtp-source.c
 smtp-source.o: ../../include/sys_defs.h
@@ -134,7 +138,9 @@ smtp-source.o: ../../include/connect.h
 smtp-source.o: ../../include/iostuff.h
 smtp-source.o: ../../include/mymalloc.h
 smtp-source.o: ../../include/events.h
-smtp-source.o: ../../include/find_inet.h
 smtp-source.o: ../../include/sane_connect.h
+smtp-source.o: ../../include/host_port.h
+smtp-source.o: ../../include/myaddrinfo.h
+smtp-source.o: ../../include/inet_proto.h
 smtp-source.o: ../../include/smtp_stream.h
 smtp-source.o: ../../include/mail_date.h

@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern int inet_addr_local(INET_ADDR_LIST *, INET_ADDR_LIST *);
+extern int inet_addr_local(INET_ADDR_LIST *, INET_ADDR_LIST *, unsigned *);
 
 /* LICENSE
 /* .ad

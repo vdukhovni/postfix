@@ -6,9 +6,12 @@
 /* SYNOPSIS
 /*	#include <dns.h>
 /*
-/*	DNS_RR	*dns_rr_create(name, fixed, preference, data, data_len)
+/*	DNS_RR	*dns_rr_create(name, type, class, ttl, preference, 
+/*				data, data_len)
 /*	const char *name;
-/*	DNS_FIXED *fixed;
+/*	unsigned short type;
+/*	unsigned short class;
+/*	unsigned int ttl;
 /*	unsigned preference;
 /*	const char *data;
 /*	unsigned len;
@@ -39,8 +42,6 @@
 /*
 /*	dns_rr_create() creates and initializes one resource record.
 /*	The \fIname\fR record specifies the record name.
-/*	The \fIfixed\fR argument specifies generic resource record
-/*	information such as resource type and time to live;
 /*	\fIpreference\fR is used for MX records; \fIdata\fR is a null
 /*	pointer or specifies optional resource-specific data;
 /*	\fIdata_len\fR is the amount of resource-specific data.
@@ -90,16 +91,17 @@
 
 /* dns_rr_create - fill in resource record structure */
 
-DNS_RR *dns_rr_create(const char *name, DNS_FIXED *fixed, unsigned pref,
+DNS_RR *dns_rr_create(const char *name, ushort type, ushort class,
+		              unsigned int ttl, unsigned pref,
 		              const char *data, unsigned data_len)
 {
     DNS_RR *rr;
 
     rr = (DNS_RR *) mymalloc(sizeof(*rr) + data_len - 1);
     rr->name = mystrdup(name);
-    rr->type = fixed->type;
-    rr->class = fixed->class;
-    rr->ttl = fixed->ttl;
+    rr->type = type;
+    rr->class = class;
+    rr->ttl = ttl;
     rr->pref = pref;
     if (data && data_len > 0)
 	memcpy(rr->data, data, data_len);
@@ -255,7 +257,7 @@ DNS_RR *dns_rr_shuffle(DNS_RR *list)
 
 DNS_RR *dns_rr_remove(DNS_RR *list, DNS_RR *record)
 {
-    if (list == 0) 
+    if (list == 0)
 	msg_panic("dns_rr_remove: record not found");
 
     if (list == record) {

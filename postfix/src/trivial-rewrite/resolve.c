@@ -356,12 +356,16 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * XXX This may produce incorrect results if we cracked open a quoted
      * local-part with routing operators; see discussion above at the top of
      * the big loop.
+     * 
+     * XXX We explicitly disallow domain names in bare network address form. A
+     * network address destination should be formatted according to RFC 2821:
+     * it should be enclosed in [], and an IPv6 address should have an IPv6:
+     * prefix.
      */
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
     rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
-    if (*rcpt_domain == '[' ? !valid_hostliteral(rcpt_domain, DONT_GRIPE) :
-	(!valid_hostname(rcpt_domain, DONT_GRIPE)
-	 || valid_hostaddr(rcpt_domain, DONT_GRIPE)))
+    if (*rcpt_domain == '[' ? !valid_mailhost_literal(rcpt_domain, DONT_GRIPE) :
+	!valid_hostname(rcpt_domain, DONT_GRIPE))
 	*flags |= RESOLVE_FLAG_ERROR;
     tok822_free_tree(tree);
     tree = 0;

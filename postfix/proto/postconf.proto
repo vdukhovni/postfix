@@ -1406,12 +1406,18 @@ After changing the hash_queue_names or hash_queue_depth parameter,
 execute the command "<b>postfix reload</b>".
 </p>
 
-%PARAM hash_queue_names see "postconf -d" output
+%PARAM hash_queue_names deferred, defer
 
 <p>
 The names of queue directories that are split across multiple
 subdirectory levels.
 </p>
+
+<p> Before Postfix version 2.2, the default list of hashed queues
+was significantly larger. Claims about improvements in file system
+technology suggest that hashing of the incoming and active queues
+is no longer needed. Fewer hashed directories speed up the time
+needed to restart Postfix. </p>
 
 <p>
 After changing the hash_queue_names or hash_queue_depth parameter,
@@ -1540,41 +1546,97 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 
 %PARAM inet_interfaces all
 
-<p>
-The network interface addresses that this mail system receives mail
-on.  By default, the software claims all active interfaces on the
-machine. The parameter also controls delivery of mail to
-user@[ip.address].
-</p>
+<p> The network interface addresses that this mail system receives
+mail on.  By default, the software claims all active interfaces on
+the machine; with Postfix 2.2 and later, specify "<b>loopback-only</b>"
+to select only local interfaces.  The parameter also controls
+delivery of mail to user@[ip.address].  </p>
 
 <p>
-When inet_interfaces consists of just one IP address that is not a
-loopback (net 127) address, the Postfix SMTP client will use this address
-as the IP source address for outbound mail. </p>
+Note: you need to stop and start Postfix when this parameter changes.
+</p>
+
+<p> When inet_interfaces specifies just one IPv4 and/or IPv6 address
+that is not a loopback address, the Postfix SMTP client will use
+this address as the IP source address for outbound mail. </p>
 
 <p>
 On a multi-homed firewall with separate Postfix instances listening on the
 "inside" and "outside" interfaces, this can prevent each instance from
 being able to reach servers on the "other side" of the firewall. Setting
-smtp_bind_address to 0.0.0.0 avoids the potential problem. </p>
+smtp_bind_address to 0.0.0.0 avoids the potential problem for
+IPv4, and setting smtp_bind_address6 to :: solves the problem
+for IPv6. </p>
 
 <p>
-A better solution is to leave inet_interfaces at the default value
+A better solution for multi-homed firewalls is to leave inet_interfaces
+at the default value
 and instead use explicit IP addresses in master.cf. This preserves SMTP
 loop detection, by ensuring that each side of the firewall knows that the
 other IP address is still the same host. Setting $inet_interfaces to a
-single IP address is primarily useful with virtual hosting of domains on
+single IPv4 and/or IPV6 address is primarily useful with virtual
+hosting of domains on
 secondary IP addresses, when each IP address serves a different domain
 (and has a different $myhostname setting). </p>
 
 <p>
 See also the proxy_interfaces parameter, for network addresses that
-are forwarded to us by way of a proxy or address translator.
+are forwarded to Postfix by way of a proxy or address translator.
 </p>
 
 <p>
-Note: you need to stop and start Postfix when this parameter changes.
+Examples:
 </p>
+
+<pre>
+inet_interfaces = all (DEFAULT)
+inet_interfaces = loopback-only
+inet_interfaces = 127.0.0.1
+inet_interfaces = 192.168.1.2, 127.0.0.1
+</pre>
+
+%PARAM inet_protocols ipv4
+
+<p> The Internet protocols Postfix will attempt to use when making
+or accepting connections. Specify one or more of "ipv4" or "ipv6",
+separated by whitespace or commas. The form "all" is equivalent to
+"ipv4, ipv6". </p>
+
+<p> Note: you MUST stop and start Postfix after changing this
+parameter. </p>
+
+<p> On systems that pre-date IPV6_V6ONLY support (RFC 3493), an
+IPv6 server will also accept IPv4 connections, even when IPv4 is
+turned off with the inet_protocols parameter.  On systems with
+IPV6_V6ONLY support, Postfix will use separate server sockets for
+IPv6 and IPv4, and each will accept only connections for the
+corresponding protocol.  </p>
+
+<p> When IPv4 support is enabled via the inet_protocols parameter,
+Postfix will to DNS type A record lookups, and will convert
+IPv4-in-IPv6 client IP addresses (::ffff:1.2.3.4) to their original
+IPv4 form (1.2.3.4).  The latter is needed on hosts that pre-date
+IPV6_V6ONLY support (RFC 3493). </p>
+
+<p> When IPv6 support is enabled via the inet_protocols parameter,
+Postfix will do DNS type AAAA record lookups. </p>
+
+<p> When both IPv4 and IPv6 support are enabled, the Postfix SMTP
+client will attempt to connect via IPv6 before attempting to use
+IPv4.  </p>
+
+<p> This feature is available in Postfix version 2.2 and later. </p>
+
+<p>
+Examples:
+</p>
+
+<pre>
+inet_protocols = ipv4 (DEFAULT)
+inet_protocols = all
+inet_protocols = ipv6
+inet_protocols = ipv4, ipv6
+</pre>
 
 %PARAM initial_destination_concurrency 5
 
@@ -2530,11 +2592,17 @@ lookup string (the lookup result is ignored). </p>
 first match.  Specify "!pattern" to exclude an address or network
 block from the list.  </p>
 
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the mynetworks value, and in files specified with
+"/file/name".  IP version 6 addresses contain the ":" character,
+and would otherwise be confused with a "type:table" pattern.  </p>
+
 <p> Examples:  </p>
 
 <pre> 
-mynetworks = 168.100.189.0/28, 127.0.0.0/8
+mynetworks = 127.0.0.0/8 168.100.189.0/28
 mynetworks = !192.168.0.1, 192.168.0.0/28
+mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:5c7::]/64 
 mynetworks = $config_directory/mynetworks
 mynetworks = hash:/etc/postfix/network_table
 </pre>
@@ -3256,7 +3324,7 @@ the word "ESMTP" appears in the server greeting banner (example:
 
 <p>
 An optional numerical network address that the SMTP client should
-bind to when making a connection.
+bind to when making an IPv4 connection.
 </p>
 
 <p>
@@ -3270,11 +3338,43 @@ for example:
         smtp ... smtp -o smtp_bind_address=11.22.33.44
 </pre>
 
-<p> Note: when inet_interfaces specifies exactly one address that
-is a non-loopback address, it is automatically used as the
-smtp_bind_address.  This supports virtual IP hosting, but can be
-a problem on multi-homed firewalls. See the inet_interfaces
-documentation for more detail. </p>
+<p> Note 1: when inet_interfaces specifies no more than one IPv4
+address, and that address is a non-loopback address, it is
+automatically used as the smtp_bind_address.  This supports virtual
+IP hosting, but can be a problem on multi-homed firewalls. See the
+inet_interfaces documentation for more detail. </p>
+
+<p> Note 2: address information may be enclosed inside <tt>[]</tt>,
+but this form is not recommended. </p>
+
+%PARAM smtp_bind_address6 
+
+<p>
+An optional numerical network address that the SMTP client should
+bind to when making an IPv6 connection.
+</p>
+
+<p>
+This can be specified in the main.cf file for all SMTP clients, or
+it can be specified in the master.cf file for a specific client,
+for example:
+</p>
+
+<pre>
+  /etc/postfix/master.cf:
+        smtp ... smtp -o smtp_bind_address6=1:2:3:4:5:6:7:8
+</pre>
+
+<p> Note 1: when inet_interfaces specifies no more than one IPv6
+address, and that address is a non-loopback address, it is
+automatically used as the smtp_bind_address6.  This supports virtual
+IP hosting, but can be a problem on multi-homed firewalls. See the
+inet_interfaces documentation for more detail. </p>
+
+<p> Note 2: address information may be enclosed inside <tt>[]</tt>,
+but this form is not recommended. </p>
+
+<p> This feature is available in Postfix version 2.2 and later. </p>
 
 %PARAM smtp_connection_cache_time_limit 2s
 
@@ -3881,6 +3981,12 @@ is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
 with whitespace. </p>
 
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the authorized_verp_clients value, and in files
+specified with "/file/name".  IP version 6 addresses contain the
+":" character, and would otherwise be confused with a "type:table"
+pattern.  </p>
+
 %PARAM smtpd_authorized_verp_clients $authorized_verp_clients
 
 <p> What SMTP clients are allowed to specify the XVERP command.
@@ -3901,6 +4007,12 @@ pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
 with whitespace.  </p>
+
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the smtpd_authorized_verp_clients value, and in
+files specified with "/file/name".  IP version 6 addresses contain
+the ":" character, and would otherwise be confused with a "type:table"
+pattern.  </p>
 
 %PARAM smtpd_authorized_xclient_hosts 
 
@@ -3931,6 +4043,12 @@ is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
 with whitespace.  </p>
 
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the smtpd_authorized_xclient_hosts value, and in
+files specified with "/file/name".  IP version 6 addresses contain
+the ":" character, and would otherwise be confused with a "type:table"
+pattern.  </p>
+
 %PARAM smtpd_authorized_xforward_hosts 
 
 <p>
@@ -3958,6 +4076,12 @@ pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
 result is ignored).  Continue long lines by starting the next line
 with whitespace.  </p>
+
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the smtpd_authorized_xforward_hosts value, and in
+files specified with "/file/name".  IP version 6 addresses contain
+the ":" character, and would otherwise be confused with a "type:table"
+pattern.  </p>
 
 %PARAM smtpd_banner $myhostname ESMTP $mail_name
 
@@ -4013,6 +4137,12 @@ By default, clients in trusted networks are excluded. Specify a
 list of network blocks, hostnames or .domain names (the initial
 dot causes the domain to match any name below it).
 </p>
+
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the smtpd_client_event_limit_exceptions value, and
+in files specified with "/file/name".  IP version 6 addresses
+contain the ":" character, and would otherwise be confused with a
+"type:table" pattern.  </p>
 
 <p>
 This feature is available in Postfix 2.2 and later.
@@ -4915,6 +5045,12 @@ network part of a host address. You can also "/file/name" or
 contents; a "type:table" lookup table is matched when a table entry
 matches a lookup string (the lookup result is ignored).  Continue
 long lines by starting the next line with whitespace.  </p>
+
+<p> Note: IP version 6 address information must be specified inside
+<tt>[]</tt> in the smtpd_sasl_exceptions_networks value, and in
+files specified with "/file/name".  IP version 6 addresses contain
+the ":" character, and would otherwise be confused with a "type:table"
+pattern.  </p>
 
 <p>
 Example:
@@ -7255,7 +7391,7 @@ parameter in the default main.cf file.  </p>
 <p> Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
-remote domains.  Available before Postfix version 2.0. With Postfix 2.1
+remote domains.  Available before Postfix version 2.0. With Postfix 2.0
 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps. </p>
 

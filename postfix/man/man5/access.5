@@ -19,7 +19,7 @@ format of Postfix access table
 The optional \fBaccess\fR table directs the Postfix SMTP server
 to selectively reject or accept mail. Access can be allowed or
 denied for specific host names, domain names, networks, host
-network addresses or mail addresses.
+addresses or mail addresses.
 
 For an example, see the EXAMPLE section at the end of this
 manual page.
@@ -110,11 +110,46 @@ order to match subdomains.
 .IP \fInet.work.addr\fR
 .IP \fInet.work\fR
 .IP \fInet\fR
-Matches any host address in the specified network. A network
-address is a sequence of one or more octets separated by ".".
+Matches the specified IPv4 host address or subnetwork. An
+IPv4 host address is a sequence of four decimal octets
+separated by ".".
 
-NOTE: use the \fBcidr\fR lookup table type to specify
+Subnetworks are matched by repeatedly truncating the last
+".octet" from the remote IPv4 host address string until a
+match is found in the access table, or until further
+truncation is not possible.
+
+NOTE 1: The information in the access map should be in
+canonical form, with unnecessary null characters eliminated.
+Address information must not be enclosed with "[]" characters.
+
+NOTE 2: use the \fBcidr\fR lookup table type to specify
 network/netmask patterns. See cidr_table(5) for details.
+.IP \fInet:work:addr:ess\fR
+.IP \fInet:work:addr\fR
+.IP \fInet:work\fR
+.IP \fInet\fR
+Matches the specified IPv6 host address or subnetwork. An
+IPv6 host address is a sequence of three to eight hexadecimal
+octet pairs separated by ":".
+
+Subnetworks are matched by repeatedly truncating the last
+":octetpair" from the remote IPv6 host address string until
+a match is found in the access table, or until further
+truncation is not possible.
+
+NOTE 1: the truncation and comparison are done with the
+string representation of the IPv6 host address. Thus, not
+all the ":" subnetworks will be tried.
+
+NOTE 2: The information in the access map should be in
+canonical form, with unnecessary null characters eliminated.
+Address information must not be enclosed with "[]" characters.
+
+NOTE 3: use the \fBcidr\fR lookup table type to specify
+network/netmask patterns. See cidr_table(5) for details.
+
+IPv6 support is available in Postfix 2.2 and later.
 .SH "ACCEPT ACTIONS"
 .na
 .nf

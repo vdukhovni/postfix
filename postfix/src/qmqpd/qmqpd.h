@@ -36,6 +36,7 @@ typedef struct {
     char   *name;			/* client name */
     char   *addr;			/* client IP address */
     char   *namaddr;			/* name[addr] */
+    char   *rfc_addr;			/* RFC 2821 client IP address */
     char   *queue_id;			/* queue file ID */
     VSTREAM *cleanup;			/* cleanup server */
     MAIL_STREAM *dest;			/* cleanup server */

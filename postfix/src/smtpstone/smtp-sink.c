@@ -15,11 +15,18 @@
 /*	The purpose is to measure client performance, not protocol
 /*	compliance.
 /*
-/*	Connections can be accepted on IPV4 endpoints or UNIX-domain sockets.
-/*	IPV4 is the default.
+/*	Connections can be accepted on IPv4 or IPv6 endpoints, or on
+/*	UNIX-domain sockets.
+/*	IPv4 and IPv6 are the default.
 /*	This program is the complement of the \fBsmtp-source\fR(1) program.
 /*
 /*	Arguments:
+/* .IP \fB-4\fR
+/*	Support IPv4 only. This option has no effect when
+/*	Postfix is built without IPv6 support.
+/* .IP \fB-6\fR
+/*	Support IPv6 only. This option is not available when
+/*	Postfix is built without IPv6 support.
 /* .IP \fB-a\fR
 /*	Do not announce SASL authentication support.
 /* .IP \fB-c\fR
@@ -113,6 +120,7 @@
 #include <msg_vstream.h>
 #include <stringops.h>
 #include <sane_accept.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -480,7 +488,7 @@ static int command_read(SINK_STATE *state)
 	smtp_flush(state->stream);
 	return (0);
     }
-    if (cmdp->flags & FLAG_DISCONNECT) 
+    if (cmdp->flags & FLAG_DISCONNECT)
 	return (-1);
     if (cmdp->flags & FLAG_HARD_ERR) {
 	smtp_printf(state->stream, "500 Error: command failed");
@@ -602,6 +610,8 @@ int     main(int argc, char **argv)
     int     sock;
     int     backlog;
     int     ch;
+    const char *protocols = INET_PROTO_NAME_ALL;
+    INET_PROTO_INFO *proto_info;
 
     /*
      * Initialize diagnostics.
@@ -611,8 +621,14 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "acCef:Fh:Ln:pPq:r:s:vw:8")) > 0) {
+    while ((ch = GETOPT(argc, argv, "46acCef:Fh:Ln:pPq:r:s:vw:8")) > 0) {
 	switch (ch) {
+	case '4':
+	    protocols = INET_PROTO_NAME_IPV4;
+	    break;
+	case '6':
+	    protocols = INET_PROTO_NAME_IPV6;
+	    break;
 	case 'a':
 	    disable_saslauth = 1;
 	    break;
@@ -687,6 +703,7 @@ int     main(int argc, char **argv)
     set_cmds_flags(enable_lmtp ? "lhlo" :
 		   disable_esmtp ? "helo" :
 		   "helo, ehlo", FLAG_ENABLE);
+    proto_info = inet_proto_init("protocols", protocols);
     if (strncmp(argv[optind], "unix:", 5) == 0) {
 	sock = unix_listen(argv[optind] + 5, backlog, BLOCKING);
     } else {

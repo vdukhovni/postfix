@@ -24,7 +24,7 @@ $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs && cat $?) >$@
+	(echo "# DO NOT EDIT"; tail +2 ../../conf/makedefs.out; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -189,7 +189,6 @@ cleanup_envelope.o: ../../include/mymalloc.h
 cleanup_envelope.o: ../../include/stringops.h
 cleanup_envelope.o: ../../include/nvtable.h
 cleanup_envelope.o: ../../include/htable.h
-cleanup_envelope.o: ../../include/name_code.h
 cleanup_envelope.o: ../../include/record.h
 cleanup_envelope.o: ../../include/rec_type.h
 cleanup_envelope.o: ../../include/cleanup_user.h

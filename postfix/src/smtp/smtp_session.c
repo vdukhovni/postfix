@@ -312,7 +312,7 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
      * Allright, bundle up what we have sofar.
      */
     session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR),
-				 dest, host, addr, port, SMTP_SESS_FLAG_NONE);
+			       dest, host, addr, port, SMTP_SESS_FLAG_NONE);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     session->reuse_count = reuse_count - 1;
     session->sndbufsize = sndbufsize;

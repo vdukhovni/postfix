@@ -802,7 +802,7 @@ content filtering turned on. </p>
     #                   (yes)   (yes)   (yes)   (never) (100)
     # =================================================================
     1.2.3.5:smtp  inet  n       -       n       -       -       smtpd
-        -o <a href="postconf.5.html#content_filter">content_filter</a>=foo:bar 
+        -o <a href="postconf.5.html#content_filter">content_filter</a>=filter-service:filter-destination 
         -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_address_mappings">no_address_mappings</a>
 </pre>
 
@@ -828,14 +828,14 @@ address provides a different content filter service. </p>
     # service     type  private unpriv  chroot  wakeup  maxproc command
     #                   (yes)   (yes)   (yes)   (never) (100)
     # =================================================================
-    # SMTP service for domains that are content filtered with foo:bar
+    # SMTP service for domains that are filtered with service1:dest1
     1.2.3.4:smtp  inet  n       -       n       -       -       smtpd
-        -o <a href="postconf.5.html#content_filter">content_filter</a>=foo:bar 
+        -o <a href="postconf.5.html#content_filter">content_filter</a>=service1:dest1 
         -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_address_mappings">no_address_mappings</a>
 
-    # SMTP service for domains that are content filtered with xxx:yyy
+    # SMTP service for domains that are filtered with service2:dest2
     1.2.3.5:smtp  inet  n       -       n       -       -       smtpd
-        -o <a href="postconf.5.html#content_filter">content_filter</a>=xxx:yyy 
+        -o <a href="postconf.5.html#content_filter">content_filter</a>=service2:dest2
         -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_address_mappings">no_address_mappings</a>
 </pre>
 </blockquote>

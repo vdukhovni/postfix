@@ -1086,7 +1086,7 @@ static void body_end(void *context)
     vstream_fprintf(stream, "BODY END\n");
 }
 
-static void err_print(void *context, int err_flag, const char *text)
+static void err_print(void *unused_context, int err_flag, const char *text)
 {
     msg_warn("%s: %.100s", mime_state_error(err_flag), text);
 }

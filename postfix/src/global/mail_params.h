@@ -146,7 +146,9 @@ extern char *var_error_rcpt;
   * Virtual host support. Default is to listen on all machine interfaces.
   */
 #define VAR_INET_INTERFACES	"inet_interfaces"	/* listen addresses */
-#define DEF_INET_INTERFACES	"all"
+#define INET_INTERFACES_ALL	"all"
+#define INET_INTERFACES_LOCAL	"loopback-only"
+#define DEF_INET_INTERFACES	INET_INTERFACES_ALL
 extern char *var_inet_interfaces;
 
 #define VAR_PROXY_INTERFACES	"proxy_interfaces"	/* proxies, NATs */
@@ -784,12 +786,21 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"incoming, active, deferred, bounce, defer, flush, hold, trace"
+#define DEF_HASH_QUEUE_NAMES	"deferred, defer"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
 #define DEF_HASH_QUEUE_DEPTH	1
 extern int var_hash_queue_depth;
+
+ /*
+  * Multi-protocol support.
+  */
+#define INET_PROTO_NAME_IPV4	"ipv4"
+#define INET_PROTO_NAME_IPV6	"ipv6"
+#define INET_PROTO_NAME_ALL	"all"
+#define VAR_INET_PROTOCOLS	"inet_protocols"
+extern char *var_inet_protocols;
 
  /*
   * SMTP client. Timeouts inspired by RFC 1123. The SMTP recipient limit
@@ -893,6 +904,10 @@ extern bool var_smtp_never_ehlo;
 #define VAR_SMTP_BIND_ADDR	"smtp_bind_address"
 #define DEF_SMTP_BIND_ADDR	""
 extern char *var_smtp_bind_addr;
+
+#define VAR_SMTP_BIND_ADDR6	"smtp_bind_address6"
+#define DEF_SMTP_BIND_ADDR6	""
+extern char *var_smtp_bind_addr6;
 
 #define VAR_SMTP_HELO_NAME	"smtp_helo_name"
 #define DEF_SMTP_HELO_NAME	"$myhostname"

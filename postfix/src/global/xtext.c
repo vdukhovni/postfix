@@ -143,7 +143,7 @@ static int read_buf(VSTREAM *fp, VSTRING *buf)
     return (len);
 }
 
-main(int unused_argc, char **unused_argv)
+int     main(int unused_argc, char **unused_argv)
 {
     VSTRING *unquoted = vstring_alloc(BUFLEN);
     VSTRING *quoted = vstring_alloc(100);

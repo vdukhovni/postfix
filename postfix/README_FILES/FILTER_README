@@ -473,7 +473,7 @@ server IP addresses in master.cf:
         #                   (yes)   (yes)   (yes)   (never) (100)
         # =================================================================
         1.2.3.5:smtp  inet  n       -       n       -       -       smtpd
-            -o content_filter=foo:bar
+            -o content_filter=filter-service:filter-destination
             -o receive_override_options=no_address_mappings
 
 After this, you can follow the same procedure as outlined in the "advanced" or
@@ -492,14 +492,14 @@ content filter service.
         # service     type  private unpriv  chroot  wakeup  maxproc command
         #                   (yes)   (yes)   (yes)   (never) (100)
         # =================================================================
-        # SMTP service for domains that are content filtered with foo:bar
+        # SMTP service for domains that are filtered with service1:dest1
         1.2.3.4:smtp  inet  n       -       n       -       -       smtpd
-            -o content_filter=foo:bar
+            -o content_filter=service1:dest1
             -o receive_override_options=no_address_mappings
 
-        # SMTP service for domains that are content filtered with xxx:yyy
+        # SMTP service for domains that are filtered with service2:dest2
         1.2.3.5:smtp  inet  n       -       n       -       -       smtpd
-            -o content_filter=xxx:yyy
+            -o content_filter=service2:dest2
             -o receive_override_options=no_address_mappings
 
 After this, you can follow the same procedure as outlined in the "advanced" or

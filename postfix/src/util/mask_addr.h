@@ -1,19 +1,20 @@
-#ifndef _INET_UTIL_H_INCLUDED_
-#define _INET_UTIL_H_INCLUDED_
+#ifndef _MASK_ADDR_H_INCLUDED_
+#define _MASK_ADDR_H_INCLUDED_
 
 /*++
 /* NAME
-/*	inet_util 3h
+/*	mask_addr 3h
 /* SUMMARY
-/*	INET-domain utilities
+/*	address bit banging
 /* SYNOPSIS
-/*	#include <inet_util.h>
+/*	#include <mask_addr.h>
 /* DESCRIPTION
 /* .nf
 
- /* External interface. */
-
-extern char *inet_parse(const char *, char **, char **);
+ /*
+  * External interface.
+  */
+extern void mask_addr(unsigned char *, unsigned, unsigned);
 
 /* LICENSE
 /* .ad

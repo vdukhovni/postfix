@@ -84,7 +84,7 @@
 #include <stringops.h>
 #include <readlline.h>
 #include <inet_addr_list.h>
-#include <inet_util.h>
+#include <host_port.h>
 #include <inet_addr_host.h>
 
 /* Global library. */
@@ -92,6 +92,7 @@
 #include <mail_proto.h>
 #include <mail_params.h>
 #include <own_inet_addr.h>
+#include <wildcard_inet_addr.h>
 
 /* Local stuff. */
 
@@ -234,6 +235,7 @@ MASTER_SERV *get_master_ent()
     int     n;
     char   *bufp;
     char   *atmp;
+    const char *parse_err;
     static char *saved_interfaces = 0;
 
     if (master_fp == 0)
@@ -297,7 +299,11 @@ MASTER_SERV *get_master_ent()
 		     VAR_INET_INTERFACES);
 	}
 	serv->type = MASTER_SERV_TYPE_INET;
-	atmp = inet_parse(name, &host, &port);
+	atmp = mystrdup(name);
+	if ((parse_err = host_port(atmp, &host, "", &port, (char *) 0)) != 0)
+	    msg_fatal("%s: line %d: %s in \"%s\"",
+		      VSTREAM_PATH(master_fp), master_line,
+		      parse_err, name);
 	if (*host) {
 	    serv->flags |= MASTER_FLAG_INETHOST;/* host:port */
 	    MASTER_INET_ADDRLIST(serv) = (INET_ADDR_LIST *)
@@ -305,14 +311,14 @@ MASTER_SERV *get_master_ent()
 	    inet_addr_list_init(MASTER_INET_ADDRLIST(serv));
 	    if (inet_addr_host(MASTER_INET_ADDRLIST(serv), host) == 0)
 		msg_fatal("%s: line %d: bad hostname or network address: %s",
-			  VSTREAM_PATH(master_fp), master_line, host);
+			  VSTREAM_PATH(master_fp), master_line, name);
 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
-	} else if (strcasecmp(saved_interfaces, DEF_INET_INTERFACES) == 0) {
-	    MASTER_INET_ADDRLIST(serv) = 0;	/* wild-card */
-	    serv->listen_fd_count = 1;
 	} else {
-	    MASTER_INET_ADDRLIST(serv) = own_inet_addr_list();	/* virtual */
+	    MASTER_INET_ADDRLIST(serv) =
+		strcasecmp(saved_interfaces, INET_INTERFACES_ALL) ?
+		own_inet_addr_list() :		/* virtual */
+		wildcard_inet_addr_list();	/* wild-card */
 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	}

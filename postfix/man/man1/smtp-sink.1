@@ -21,11 +21,18 @@ It takes SMTP messages from the network and throws them away.
 The purpose is to measure client performance, not protocol
 compliance.
 
-Connections can be accepted on IPV4 endpoints or UNIX-domain sockets.
-IPV4 is the default.
+Connections can be accepted on IPv4 or IPv6 endpoints, or on
+UNIX-domain sockets.
+IPv4 and IPv6 are the default.
 This program is the complement of the \fBsmtp-source\fR(1) program.
 
 Arguments:
+.IP \fB-4\fR
+Support IPv4 only. This option has no effect when
+Postfix is built without IPv6 support.
+.IP \fB-6\fR
+Support IPv6 only. This option is not available when
+Postfix is built without IPv6 support.
 .IP \fB-a\fR
 Do not announce SASL authentication support.
 .IP \fB-c\fR

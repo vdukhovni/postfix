@@ -104,7 +104,7 @@ int     main(int argc, char **argv)
 	if (stream_send_fd(server_sock, client_fd) < 0)
 	    msg_fatal("send file descriptor: %m");
 	if (close(client_fd) != 0)
-	    msg_fatal("close(%d): %m");
+	    msg_fatal("close(%d): %m", client_fd);
     }
     exit(0);
 }

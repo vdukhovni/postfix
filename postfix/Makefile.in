@@ -13,14 +13,14 @@ MANDIRS	= proto man html
 default: update
 
 makefiles Makefiles:
+	(echo "# Do not edit -- this file documents how Postfix was built for your machine."; $(SHELL) makedefs) >makedefs.tmp
+	set +e; if cmp makedefs.tmp conf/makedefs.out; then rm makedefs.tmp; \
+	else mv makedefs.tmp conf/makedefs.out; fi >/dev/null 2>/dev/null
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
 	 $(MAKE) -f Makefile.in Makefile MAKELEVEL=) || exit 1; \
 	done;
-	rm -f Makefile; (set -e; $(SHELL) makedefs && cat Makefile.in) >Makefile
-	(echo "# Do not edit -- this file documents how Postfix was built for your machine."; $(SHELL) makedefs) >makedefs.tmp
-	set +e; if cmp makedefs.tmp conf/makedefs.out; then rm makedefs.tmp; \
-	else mv makedefs.tmp conf/makedefs.out; fi >/dev/null 2>/dev/null
+	rm -f Makefile; (tail +2 conf/makedefs.out; cat Makefile.in) >Makefile
 
 update printfck tests:
 	set -e; for i in $(DIRS); do \

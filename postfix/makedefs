@@ -125,6 +125,9 @@ case "$SYSTEM.$RELEASE" in
 		# Use the native compiler by default
 		: ${CC=cc}
 		: ${DEBUG="-g3"}
+		case $RELEASE in
+		V[0-4].*) CCARGS="$CCARGS -DNO_IPV6";;
+		esac
 		;;
     SunOS.4*)	SYSTYPE=SUNOS4
 		SYSLIBS=-lresolv
@@ -132,14 +135,17 @@ case "$SYSTEM.$RELEASE" in
     SunOS.5*)	SYSTYPE=SUNOS5
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
+		# Solaris 8 added usleep() and POSIX regular expressions
 		case $RELEASE in
-		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP";;
-			  *) CCARGS="$CCARGS -DHAS_POSIX_REGEXP";;
+		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP -DNO_POSIX_REGEXP";;
 		esac
-		CCARGS="$CCARGS -DCANT_WRITE_BEFORE_SENDING_FD"
+		# Solaris 8 added IPv6
+		case $RELEASE in
+		    5.[0-7]) CCARGS="$CCARGS -DNO_IPV6";;
+		esac
 		# Solaris 9 added closefrom()
 		case $RELEASE in
-		    5.9*|5.[1-9][0-9]*) CCARGS="$CCARGS -DHAS_CLOSEFROM";;
+		    5.[0-8]) CCARGS="$CCARGS -DNO_CLOSEFROM";;
 		esac
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.
@@ -236,6 +242,9 @@ case "$SYSTEM.$RELEASE" in
 			}
 		    done
 		done
+		case "$RELEASE" in
+		2.[0-3].*) CCARGS="$CCARGS -DNO_IPV6";;
+		esac
 		;;
      IRIX*.5.*)	SYSTYPE=IRIX5
 		# Use the native compiler by default
@@ -280,8 +289,10 @@ Rhapsody.5*|Darwin.*)
 		: ${CC=cc}
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk
+			  CCARGS="$CCARGS -DNO_IPV6"
 			  ;;
 		 [2-6].*) AWK=awk
+			  CCARGS="$CCARGS -DNO_IPV6"
 			  SYSLIBS=-flat_namespace
 			  ;;
 		       *) AWK=awk

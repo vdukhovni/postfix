@@ -100,7 +100,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ" SPACE_TAB;
 #include <vstream.h>
 #include <msg_vstream.h>
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     msg_vstream_init(argv[0], VSTREAM_ERR);
     if (argc != 2)

@@ -195,6 +195,7 @@
 #include <split_at.h>
 #include <vstring_vstream.h>
 #include <myflock.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -363,6 +364,7 @@ static const char *check_mydomainname(void)
 
 static const char *check_mynetworks(void)
 {
+    INET_PROTO_INFO *proto_info;
     const char *junk;
 
     if (var_inet_interfaces == 0) {
@@ -376,6 +378,13 @@ static const char *check_mynetworks(void)
 	    || !(junk = mail_conf_lookup_eval(VAR_MYNETWORKS_STYLE)))
 	    junk = DEF_MYNETWORKS_STYLE;
 	var_mynetworks_style = mystrdup(junk);
+    }
+    if (var_inet_protocols == 0) {
+	if ((mode & SHOW_DEFS)
+	    || !(junk = mail_conf_lookup_eval(VAR_INET_PROTOCOLS)))
+	    junk = DEF_INET_PROTOCOLS;
+	var_inet_protocols = mystrdup(junk);
+	proto_info = inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
     }
     return (mynetworks());
 }

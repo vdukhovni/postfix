@@ -13,7 +13,7 @@
 
  /* External interface. */
 
-extern const char *host_port(char *, char **, char **, char *);
+extern const char *host_port(char *, char **, char *, char **, char *);
 
 /* LICENSE
 /* .ad

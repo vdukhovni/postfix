@@ -330,37 +330,47 @@ SMTP(8)                                                   SMTP(8)
               The network interface addresses that this mail sys-
               tem receives mail on.
 
+       <b><a href="postconf.5.html#inet_protocols">inet_protocols</a> (ipv4)</b>
+              The  Internet protocols Postfix will attempt to use
+              when making or accepting connections.
+
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
               The time limit for sending or receiving information
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits for the next service request
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The maximal number of connection requests before  a
+              The  maximal number of connection requests before a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The  process ID of a Postfix command or daemon pro-
+              The process ID of a Postfix command or daemon  pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The process name of a  Postfix  command  or  daemon
+              The  process  name  of  a Postfix command or daemon
               process.
 
        <b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> (empty)</b>
               The network interface addresses that this mail sys-
-              tem receives mail on by way of a proxy  or  network
+              tem  receives  mail on by way of a proxy or network
               address translation unit.
 
        <b><a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> (empty)</b>
               An optional numerical network address that the SMTP
-              client should bind to when making a connection.
+              client  should  bind to when making an IPv4 connec-
+              tion.
 
-       <b><a href="postconf.5.html#<a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a>"><a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a></a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
+       <b><a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a> (empty)</b>
+              An optional numerical network address that the SMTP
+              client  should  bind to when making an IPv6 connec-
+              tion.
+
+       <b><a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
               The hostname to send in the SMTP EHLO or HELO  com-
               mand.
 

@@ -233,7 +233,7 @@ void    watchdog_pat(void)
 
 #include <vstream.h>
 
-main(int unused_argc, char **unused_argv)
+int     main(int unused_argc, char **unused_argv)
 {
     WATCHDOG *wp;
 

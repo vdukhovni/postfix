@@ -171,22 +171,6 @@ const char *str_name_mask_opt(const char *context, NAME_MASK *table,
     return (STR(buf));
 }
 
- /*
-  * ABI backwards compatibility.
-  */
-#undef name_mask
-#undef str_name_mask
-
-int     name_mask(const char *context, NAME_MASK *table, const char *names)
-{
-	return(name_mask_opt(context, table,names, NAME_MASK_DEFAULT));
-}
-
-const char *str_name_mask(const char *context, NAME_MASK *table, int mask)
-{
-    return(str_name_mask_opt(context, table, mask, NAME_MASK_DEFAULT));
-}
-
 #ifdef TEST
 
  /*

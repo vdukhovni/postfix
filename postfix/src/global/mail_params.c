@@ -39,6 +39,7 @@
 /*	int	var_dont_remove;
 /*	char	*var_inet_interfaces;
 /*	char	*var_proxy_interfaces;
+/*	char	*var_inet_protocols;
 /*	char	*var_mynetworks;
 /*	char	*var_double_bounce_sender;
 /*	int	var_line_limit;
@@ -152,15 +153,17 @@
 #ifdef HAS_DB
 #include <dict_db.h>
 #endif
+#include <inet_proto.h>
 
 /* Global library. */
 
-#include "mynetworks.h"
-#include "mail_conf.h"
-#include "mail_version.h"
-#include "mail_proto.h"
-#include "verp_sender.h"
-#include "mail_params.h"
+#include <mynetworks.h>
+#include <mail_conf.h>
+#include <mail_version.h>
+#include <mail_proto.h>
+#include <verp_sender.h>
+#include <own_inet_addr.h>
+#include <mail_params.h>
 
  /*
   * Special configuration variables.
@@ -198,6 +201,7 @@ char   *var_pid_dir;
 int     var_dont_remove;
 char   *var_inet_interfaces;
 char   *var_proxy_interfaces;
+char   *var_inet_protocols;
 char   *var_mynetworks;
 char   *var_double_bounce_sender;
 int     var_line_limit;
@@ -428,6 +432,7 @@ void    mail_params_init()
 {
     static CONFIG_STR_TABLE first_str_defaults[] = {
 	VAR_SYSLOG_FACILITY, DEF_SYSLOG_FACILITY, &var_syslog_facility, 1, 0,
+	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults[] = {
@@ -532,6 +537,7 @@ void    mail_params_init()
 	0,
     };
     const char *cp;
+    INET_PROTO_INFO *proto_info;
 
     /*
      * Extract syslog_facility early, so that from here on all errors are
@@ -543,6 +549,12 @@ void    mail_params_init()
 	msg_fatal("file %s/%s: parameter %s: unrecognized value: %s",
 		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_SYSLOG_FACILITY, var_syslog_facility);
+
+    /*
+     * What protocols should we attempt to support? The result is stored in
+     * the global inet_proto_table variable.
+     */
+    proto_info = inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
 
     /*
      * Variables whose defaults are determined at runtime. Some sites use
@@ -581,6 +593,13 @@ void    mail_params_init()
      * figure out in what order to evaluate things.
      */
     get_mail_conf_str_fn_table(function_str_defaults_2);
+
+    /*
+     * FIX 200412 The IPv6 patch did not call own_inet_addr_list() before
+     * entering the chroot jail on Linux IPv6 systems. Linux has the IPv6
+     * interface list in /proc, which is not available after chrooting.
+     */
+    (void) own_inet_addr_list();
 
     /*
      * The PID variable cannot be set from the configuration file!!

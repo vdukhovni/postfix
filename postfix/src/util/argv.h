@@ -8,8 +8,8 @@
 /*	string array utilities
 /* SYNOPSIS
 /*	#include "argv.h"
- DESCRIPTION
- .nf
+/* DESCRIPTION
+/* .nf
 
  /*
   * External interface.

@@ -66,6 +66,10 @@
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #endif
 
+#ifdef BSDI4
+/* #define HAS_IPV6 find out interface lookup method */
+#endif
+
 /* __FreeBSD_version version is major+minor */
 
 #if __FreeBSD_version >= 200000
@@ -109,8 +113,8 @@
 #define HAS_DEV_URANDOM			/* XXX probably earlier */
 #endif
 
-#if __NetBSD_Version__ >= 105000000	/* XXX maybe earlier */
-#define HAS_ISSETUGID
+#if __NetBSD_Version__ >= 105000000
+#define HAS_ISSETUGID			/* XXX maybe earlier */
 #endif
 
 #if __NetBSD_Version__ >= 106000000	/* XXX maybe earlier */
@@ -120,6 +124,17 @@
 
 #if __NetBSD_Version__ >= 200060000	/* 2.0F */
 #define HAS_CLOSEFROM
+#endif
+
+#if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 105000000) \
+    || (defined(__FreeBSD__) && __FreeBSD__ >= 4) \
+    || (defined(OpenBSD) && OpenBSD >= 200003) \
+    || defined(USAGI_LIBINET6)
+#ifndef NO_IPV6
+# define HAS_IPV6
+# define HAVE_GETIFADDRS
+#endif
+
 #endif
 
  /*
@@ -148,7 +163,11 @@
 #define PRINTFLIKE(x,y)
 #define SCANFLIKE(x,y)
 #ifndef NO_NETINFO
-#define HAS_NETINFO
+# define HAS_NETINFO
+#endif
+#ifndef NO_IPV6
+# define HAS_IPV6
+# define HAVE_GETIFADDRS
 #endif
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
@@ -237,6 +256,10 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
 #define BROKEN_WRITE_SELECT_ON_NON_BLOCKING_PIPE
+#ifndef NO_IPV6
+# define HAS_IPV6
+#endif
+
 #endif
 
  /*
@@ -309,6 +332,7 @@ extern int opterr;
 #define FIONREAD_IN_SYS_FILIO_H
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
+#define INT_MAX_IN_LIMITS_H
 #define STREAM_CONNECTIONS		/* avoid UNIX-domain sockets */
 #define LOCAL_LISTEN	stream_listen
 #define LOCAL_ACCEPT	stream_accept
@@ -318,6 +342,17 @@ extern int opterr;
 #define LOCAL_RECV_FD	stream_recv_fd
 #define HAS_VOLATILE_LOCKS
 #define BROKEN_READ_SELECT_ON_TCP_SOCKET
+#define CANT_WRITE_BEFORE_SENDING_FD
+#ifndef NO_POSIX_REGEXP
+# define HAS_POSIX_REGEXP
+#endif
+#ifndef NO_IPV6
+# define HAS_IPV6
+# define HAS_SIOCGLIF
+#endif
+#ifndef NO_CLOSEFROM
+# define HAS_CLOSEFROM
+#endif
 
 /*
  * Allow build environment to override paths.
@@ -441,7 +476,10 @@ extern int opterr;
 #ifndef CMSG_LEN
 #define CMSG_LEN(len) (_CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
 #endif
-
+#ifndef NO_IPV6
+# define HAS_IPV6
+#endif
+#define BROKEN_AI_PASSIVE_NULL_HOST
 #endif
 
 #ifdef AIX4
@@ -589,6 +627,11 @@ extern int initgroups(const char *, int);
 #if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
+#endif
+#ifndef NO_IPV6
+# define HAS_IPV6
+# define HAS_PROCNET_IFINET6
+# define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
 #endif
 #include <linux/version.h>
 #if !defined(KERNEL_VERSION) || (LINUX_VERSION_CODE < KERNEL_VERSION(2,2,0)) \
@@ -1017,6 +1060,25 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 
 #if !defined(USE_STATFS) && !defined(USE_STATVFS)
 #error "define USE_STATFS or USE_STATVFS"
+#endif
+
+ /*
+  * Defaults for systems that pre-date IPv6 support.
+  */
+#ifndef HAS_IPV6
+#define EMULATE_IPV4_ADDRINFO
+#define MISSING_INET_PTON
+#define MISSING_INET_NTOP
+extern const char *inet_ntop(int, const void *, char *, size_t);
+extern int inet_pton(int, const char *, void *);
+
+#endif
+
+ /*
+  * Defaults for all systems.
+  */
+#ifndef DEF_INET_PROTOCOLS
+#define DEF_INET_PROTOCOLS	"ipv4"
 #endif
 
  /*
