@@ -5953,8 +5953,17 @@ Apologies for any names omitted.
 
 	Rewrote postfix-install. The postfix-files file now controls
 	what is installed.  Refined the semantics of many post-install
-	operations. post-install now auto-saves settings that override
-	main.cf.
+	operations. post-install now auto-saves settings that
+	override main.cf.
+
+20020114
+
+	Bugfix: alternate_config_directories did not take comma
+	or whitespace as separators. File: global/mail_conf.c.
+	Victor Duchovny, Norgan Stanley.
+
+	Bugfix: the rewritten postfix-install script did not chattr
+	+S the Postfix queue.
 
 Open problems:
 

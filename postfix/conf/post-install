@@ -327,11 +327,11 @@ $0: Error: some required installation parameters are not defined.
 - Either the parameters need to be given in the $config_directory/main.cf
 file from a recent Postfix installation,
 
-- Or the parameters need to be specified as name=value arguments
-on the $0 command line,
-
 - Or the parameters need to be specified through the process
 environment.
+
+- Or the parameters need to be specified as name=value arguments
+on the $0 command line,
 
 The following parameters were missing:
 

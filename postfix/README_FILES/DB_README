@@ -56,9 +56,9 @@ be lost when you update a table while Postfix is running.
 Building Postfix on Linux with a specific Berkeley DB version
 =============================================================
 
-Some Linux systems systems ship with multiple Berkeley DB
-implementations.  Normally, Postfix builds with the default DB
-version that ships with the system.
+Some Linux systems ship with multiple Berkeley DB implementations.
+Normally, Postfix builds with the default DB version that ships
+with the system.
 
 On Linux, you need to edit the makedefs script in order to specify
 a non-default DB library.

@@ -44,5 +44,5 @@ addresses (breaking down user@domain into user@, domain, user,
 canonical maps and virtual maps.
 
 An additional restriction is that regular expression tables cannot
-cannot be used for local alias database lookups.  That would be a
-security exposure anyway.
+be used for local alias database lookups.  That would be a security
+exposure anyway.

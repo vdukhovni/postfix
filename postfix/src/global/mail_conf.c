@@ -118,7 +118,7 @@ static void mail_conf_checkdir(const char *config_dir)
     while (found == 0 && readlline(buf, fp, (int *) 0)) {
 	if (split_nameval(vstring_str(buf), &name, &value) == 0
 	    && strcmp(name, VAR_CONFIG_DIRS) == 0) {
-	    while (found == 0 && (cp = mystrtok(&value, "\t\r\n")) != 0)
+	    while (found == 0 && (cp = mystrtok(&value, ", \t\r\n")) != 0)
 		if (strcmp(cp, config_dir) == 0)
 		    found = 1;
 	}

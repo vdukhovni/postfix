@@ -183,6 +183,10 @@ again.
 6 - Installing the software after successful compilation
 ========================================================
 
+This text describes how to install Postfix from source code.  See
+the PACKAGE_README file if you are building a package for distribution
+to other systems.
+
 IMPORTANT: if you are REPLACING an existing sendmail installation
 with Postfix, you may need to keep the old sendmail program running
 for some time in order to flush the mail queue.  As superuser,

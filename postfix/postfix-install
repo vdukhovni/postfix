@@ -77,7 +77,7 @@
 #	This parameter setting is not recorded in the installed main.cf file.
 # .IP tempdir
 #	Directory for scratch files while installing Postfix.
-#	You must must have write permission in this directory.
+#	You must have write permission in this directory.
 #	The built-in default directory name is the current directory.
 #	This parameter setting is not recorded in the installed main.cf file.
 # .IP config_directory
@@ -184,6 +184,17 @@ test -x bin/postconf || {
     exit 1
 }
 
+#
+# LINUX by default does not synchronously update directories -
+# that's dangerous for mail.
+#
+if [ -f /usr/bin/chattr ]
+then
+    CHATTR="/usr/bin/chattr +S"
+else
+    CHATTR=echo
+fi
+
 case `uname -s` in
 HP-UX*) FMT=cat;;
      *) FMT=fmt;;
@@ -277,7 +288,7 @@ useful if you are building ready-to-install packages for distribution
 to other machines."
 
 tempdir_prompt="a directory for scratch files while installing
-Postfix.  You must must have write permission in this directory."
+Postfix.  You must have write permission in this directory."
 
 config_directory_prompt="the destination directory for installed
 Postfix configuration files."
@@ -313,10 +324,10 @@ used by any other accounts on the system."
 setgid_group_prompt="the group for mail submission and for queue
 management commands.  Specify a group name with a numerical group
 ID that is not shared with other accounts, not even with the Postfix
-mail_owner account."
+mail_owner account. You can no longer specify \"no\" here."
 
 manpage_path_prompt="the destination directory for the Postfix on-line
-manual pages."
+manual pages. You can no longer specify \"no\" here."
 
 # Default settings, just to get started.
 
@@ -545,6 +556,7 @@ do
 	      test -z "$owner" || chown $owner $path || exit 1
 	      test -z "$group" || chgrp $group $path || exit 1
 	      chmod $mode $path || exit 1
+	      $CHATTR $path >/dev/null 2>/dev/null
 	  }
 	  continue;;
     [fl]) ;;
@@ -582,29 +594,25 @@ do
     esac) || exit 1
 done
 
-# If Postfix is being installed locally from source code, do the
-# post-install processing now. The post-install script will update
-# main.cf with actual installaton parameter settings.
-#
-# If Postfix is being packaged for distribution to other systems,
-# save the installation parameters to main.cf so they can be used
-# as default settings when the post-install script is executed.
+# Save the installation parameters to main.cf even when they haven't
+# changed from their current default. Defaults can change between
+# Postfix releases, and software should not suddenly be installed in
+# the wrong place when Postfix is being upgraded.
 
-if [ -z "$install_root" ]
-then
-    export daemon_directory command_directory queue_directory mail_owner \
-	setgid_group sendmail_path newaliases_path mailq_path manpage_path
+bin/postconf -c $CONFIG_DIRECTORY -e \
+    "daemon_directory = $daemon_directory" \
+    "command_directory = $command_directory" \
+    "queue_directory = $queue_directory" \
+    "mail_owner = $mail_owner" \
+    "setgid_group = $setgid_group" \
+    "sendmail_path = $sendmail_path" \
+    "mailq_path = $mailq_path" \
+    "newaliases_path = $newaliases_path" \
+    "manpage_path = $manpage_path" \
+|| exit 1
+
+# If Postfix is being installed locally from source code, do the
+# post-install processing now.
+
+test -n "$install_root" ||
     ${SHELL} conf/post-install $post_install_options || exit 1
-else
-    bin/postconf -c $CONFIG_DIRECTORY -e \
-	"daemon_directory = $daemon_directory" \
-	"command_directory = $command_directory" \
-	"queue_directory = $queue_directory" \
-	"mail_owner = $mail_owner" \
-	"setgid_group = $setgid_group" \
-	"sendmail_path = $sendmail_path" \
-	"mailq_path = $mailq_path" \
-	"newaliases_path = $newaliases_path" \
-	"manpage_path = $manpage_path" \
-    || exit 1
-fi

@@ -14,7 +14,7 @@ default: update
 update depend printfck clean tidy depend_update: Makefiles
 	$(MAKE) MAKELEVEL= $@
 
-install:
+install upgrade:
 	@echo Please review the INSTALL instructions first.
 
 makefiles Makefiles:

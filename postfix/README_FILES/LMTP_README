@@ -245,8 +245,8 @@ are supported.
 
 With the above settings, the Postfix local delivery agent expands
 aliases and .forward files, and delegates mailbox delivery to the
-the Cyrus LMTP server.  Postfix makes a connection to port 24 on
-the local host, subsequently transmitting the message to the lmtpd
+Cyrus LMTP server.  Postfix makes a connection to port 24 on the
+local host, subsequently transmitting the message to the lmtpd
 server managed by the Cyrus master process.
 
 
