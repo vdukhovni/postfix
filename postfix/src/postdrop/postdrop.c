@@ -175,13 +175,6 @@ int     main(int argc, char **argv)
 	    msg_fatal("open /dev/null: %m");
 
     /*
-     * Strip the environment so we don't have to trust the C library.
-     */
-    import_env = argv_split(var_import_environ, ", \t\r\n");
-    clean_env(import_env->argv);
-    argv_free(import_env);
-
-    /*
      * Set up logging. Censor the process name: it is provided by the user.
      */
     argv[0] = "postdrop";
@@ -199,6 +192,14 @@ int     main(int argc, char **argv)
      * perform some sanity checks on the input.
      */
     mail_conf_read();
+
+    /*
+     * Strip the environment so we don't have to trust the C library.
+     */
+    import_env = argv_split(var_import_environ, ", \t\r\n");
+    clean_env(import_env->argv);
+    argv_free(import_env);
+
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);
     if (msg_verbose)

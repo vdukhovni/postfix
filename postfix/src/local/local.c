@@ -595,7 +595,8 @@ static void local_mask_init(void)
 	local_mbox_lock_mask &= MBOX_DOT_LOCK;
     }
     if (local_mbox_lock_mask == 0)
-	msg_fatal("no applicable mailbox locking method");
+	msg_fatal("parameter %s specifies no applicable mailbox locking method",
+		  VAR_MAILBOX_LOCK);
 }
 
 /* pre_accept - see if tables have changed */

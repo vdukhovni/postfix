@@ -147,7 +147,6 @@ static VSTRING *command;
   * Tunable parameters.
   */
 char   *var_transport_maps;
-char   *var_def_transport;
 bool    var_swap_bangpath;
 bool    var_append_dot_mydomain;
 bool    var_append_at_myorigin;
@@ -210,7 +209,6 @@ int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
-	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
 	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 0, 0,
 	0,
     };

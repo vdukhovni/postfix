@@ -30,7 +30,8 @@
 /* .IP class
 /*	Destination delivery agent service class
 /* .IP service
-/*	Destination delivery agent service name.
+/*	String of the form \fItransport\fR:\fInexthop\fR. Either transport
+/*	or nexthop are optional. For details see the transport map manual page.
 /* .IP request
 /*	Delivery request with queue file information.
 /* .IP address
@@ -62,9 +63,12 @@
 #include <msg.h>
 #include <vstring.h>
 #include <vstream.h>
+#include <split_at.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
+#include <mail_params.h>
 #include <deliver_pass.h>
 
 /* deliver_pass_initial_reply - retrieve initial delivery process response */
@@ -83,7 +87,7 @@ static int deliver_pass_initial_reply(VSTREAM *stream)
 /* deliver_pass_send_request - send delivery request to delivery process */
 
 static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
-				             const char *addr, long offs)
+		           const char *nexthop, const char *addr, long offs)
 {
     int     stat;
 
@@ -91,7 +95,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	       request->flags,
 	       request->queue_name, request->queue_id,
 	       request->data_offset, request->data_size,
-	       request->nexthop, request->sender,
+	       nexthop, request->sender,
 	       request->errors_to, request->return_receipt,
 	       request->arrival_time,
 	       offs, addr, "0");
@@ -126,11 +130,24 @@ int     deliver_pass(const char *class, const char *service,
     VSTREAM *stream;
     VSTRING *reason;
     int     status;
+    char   *saved_service;
+    char   *transport;
+    char   *nexthop;
+
+    /*
+     * Parse service into transport:nexthop form, and allow for omission of
+     * optional fields
+     */
+    transport = saved_service = mystrdup(service);
+    if ((nexthop = split_at(saved_service, ':')) == 0 || *nexthop == 0)
+	nexthop = request->nexthop;
+    if (*transport == 0)
+	transport = var_def_transport;
 
     /*
      * Initialize.
      */
-    stream = mail_connect_wait(class, service);
+    stream = mail_connect_wait(class, transport);
     reason = vstring_alloc(1);
 
     /*
@@ -144,7 +161,8 @@ int     deliver_pass(const char *class, const char *service,
      * different transport.
      */
     if ((status = deliver_pass_initial_reply(stream)) == 0
-	&& (status = deliver_pass_send_request(stream, request, addr, offs)) == 0)
+	&& (status = deliver_pass_send_request(stream, request, nexthop,
+					       addr, offs)) == 0)
 	status = deliver_pass_final_reply(stream, reason);
 
     /*
@@ -152,6 +170,7 @@ int     deliver_pass(const char *class, const char *service,
      */
     vstream_fclose(stream);
     vstring_free(reason);
+    myfree(saved_service);
 
     return (status);
 }

@@ -1107,8 +1107,6 @@ extern char *var_export_environ;
 /* LICENSE
 /* .ad
 /* .fi
-Unterminated comment
-
 /*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
 /*	Wietse Venema

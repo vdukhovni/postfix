@@ -59,6 +59,7 @@
 /*	char	*var_syslog_facility;
 /*	char	*var_relay_domains;
 /*	char	*var_fflush_domains;
+/*	char	*var_def_transport;
 /*
 /*	char	*var_import_environ;
 /*	char	*var_export_environ;
@@ -111,6 +112,7 @@
 #include "mynetworks.h"
 #include "mail_conf.h"
 #include "mail_version.h"
+#include "mail_proto.h"
 #include "mail_params.h"
 
  /*
@@ -169,6 +171,7 @@ int     var_daemon_timeout;
 char   *var_syslog_facility;
 char   *var_relay_domains;
 char   *var_fflush_domains;
+char   *var_def_transport;
 
 char   *var_import_environ;
 char   *var_export_environ;
@@ -286,6 +289,7 @@ void    mail_params_init()
 	VAR_FFLUSH_DOMAINS, DEF_FFLUSH_DOMAINS, &var_fflush_domains, 0, 0,
 	VAR_EXPORT_ENVIRON, DEF_EXPORT_ENVIRON, &var_export_environ, 0, 0,
 	VAR_IMPORT_ENVIRON, DEF_IMPORT_ENVIRON, &var_import_environ, 0, 0,
+	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 0, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

@@ -150,12 +150,26 @@ mailbox_command =
 # has precedence over the mailbox_command, fallback_transport and
 # luser_relay parameters.
 #
+# Specify a string of the form transport:nexthop, where transport is
+# the name of a mail delivery transport defined in master.cf.  Either
+# transport or nexthop are optional. For more details see the sample
+# transports file.
+#
+# mailbox_transport = lmtp:unix:/file/name
+# mailbox_transport = cyrus
 mailbox_transport =
 
 # The fallback_transport specifies the optional transport in master.cf
 # to use for recipients that are not found in the UNIX passwd database.
 # This parameter has precedence over the luser_relay parameter.
 #
+# Specify a string of the form transport:nexthop, where transport is
+# the name of a mail delivery transport defined in master.cf.  Either
+# transport or nexthop are optional. For more details see the sample
+# transports file.
+#
+# fallback_transport = lmtp:unix:/file/name
+# fallback_transport = cyrus
 fallback_transport =
 
 #
@@ -163,14 +177,15 @@ fallback_transport =
 #
 
 # The local_destination_concurrency_limit parameter limits the number
-# of parallel deliveries to the same local recipient.
+# of parallel deliveries to the local domain. It should therefore be
+# set to zero, in order to prevent poor local delivery performance.
+# In old Postfix versions this parameter implemented a per-user
+# limit. That is no longer the case.
 #
 # The default limit is taken from the default_destination_concurrency_limit
-# parameter. I recommend a low limit of 2, just in case someone has
-# an expensive shell command in a .forward file or in an alias (e.g.,
-# a mailing list manager). You don't want to run lots of those.
+# parameter. 
 #
-local_destination_concurrency_limit = 2
+local_destination_concurrency_limit = 0
 
 # The local_destination_recipient_limit parameter limits the number
 # of recipients per local message delivery.  The default limit is

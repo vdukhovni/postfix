@@ -109,8 +109,8 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
     if (fstat_st == 0)
 	fstat_st = &local_statbuf;
     if (fstat(vstream_fileno(fp), fstat_st) < 0) {
-	msg_fatal("bad open file status: %m");
-    } else if (fstat_st->st_nlink != 1) {
+	msg_fatal("%s: bad open file status: %m", path);
+    } else if (fstat_st->st_nlink > 1) {
 	vstring_sprintf(why, "file has multiple hard links");
     } else if (S_ISDIR(fstat_st->st_mode)) {
 	vstring_sprintf(why, "file is a directory");
@@ -187,7 +187,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
      * Optionally look up the file attributes.
      */
     if (st != 0 && fstat(vstream_fileno(fp), st) < 0)
-	msg_fatal("bad open file status: %m");
+	msg_fatal("%s: bad open file status: %m", path);
 
     /*
      * We are almost there...

@@ -519,7 +519,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 				".", service_name, (char *) 0);
 	why = vstring_alloc(1);
 	if ((single_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
-					    (struct stat *) 0, -1, -1, why)) == 0)
+				      (struct stat *) 0, -1, -1, why)) == 0)
 	    msg_fatal("open lock file %s: %s", lock_path, vstring_str(why));
 	close_on_exec(vstream_fileno(single_server_lock), CLOSE_ON_EXEC);
 	myfree(lock_path);

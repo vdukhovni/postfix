@@ -4576,3 +4576,19 @@ Apologies for any names omitted.
 	(asynchronous bounce client), qmgr/qmgr_active.c.  Problem
 	reported by El Bunzo (webpower.nl) and Tiger Technologies
 	(tigertech.com).
+
+20001209
+
+	Feature: mailbox_transport and fallback_transport can now
+	have the form transport:nexthop, with suitable defaults
+	when either transport or nexthop are omitted, just like in
+	the Postfix transport map. This allows you to specify for
+	example, "mailbox_transport = lmtp:unix:/file/name". File:
+	global/deliver_pass.c.
+
+	Bugfix: local_destination_concurrency_limit no longer works
+	as per-user concurrency limit but as per-domain limit, so
+	the limit of "2" in the sample main.cf files would result
+	in poor local delivery performance. The Postfix install
+	procedure repairs this.  Problem reported by David Schweikert
+	(ee.ethz.ch) and Dallas Wisehaupt (cynicism.com).

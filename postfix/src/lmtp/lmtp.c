@@ -391,7 +391,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 
 /* lmtp_service - perform service for client */
 
-static void lmtp_service(VSTREAM * client_stream, char *unused_service, char **argv)
+static void lmtp_service(VSTREAM *client_stream, char *unused_service, char **argv)
 {
     DELIVER_REQUEST *request;
     int     status;

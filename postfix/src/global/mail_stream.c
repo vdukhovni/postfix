@@ -247,6 +247,12 @@ MAIL_STREAM *mail_stream_command(const char *command)
     /*
      * Treat fork() failure as a transient problem. Treat bad handshake as a
      * permanent error.
+     * 
+     * XXX Are we invoking a Postfix process or a non-Postfix process? In the
+     * former case we can share the full environment; in the latter case only
+     * a restricted environment should be propagated. Even though we are
+     * talking a Postfix-internal protocol there is no way we can tell what
+     * is being executed except by duplicating a lot of existing code.
      */
     export_env = argv_split(var_export_environ, ", \t\r\n");
     while ((stream = vstream_popen(O_RDWR,

@@ -12,7 +12,7 @@
 /*	ARGV	*mbox_lock_names()
 /* DESCRIPTION
 /*	The functions in this module translate between external
-/*	mailbox locking method names and internal forms.
+/*	mailbox locking method names and internal representations.
 /*
 /*	mbox_lock_mask() translates a string with locking method names
 /*	into a bit mask. Names are separated by comma or whitespace.
@@ -21,13 +21,16 @@
 /* .IP "flock (MBOX_FLOCK_LOCK)"
 /*	Use flock() style lock after opening the file. This is the mailbox 
 /*	locking method traditionally used on BSD-ish systems (including 
-/*	Ultrix and SunOS).
+/*	Ultrix and SunOS). It is not suitable for remote file systems.
 /* .IP "fcntl (MBOX_FCNTL_LOCK)"
 /*	Use fcntl() style lock after opening the file. This is the mailbox 
 /*	locking method on System-V-ish systems (Solaris, AIX, IRIX, HP-UX).
+/*	This method is supposed to work for remote systems, but often
+/*	has problems.
 /* .IP "dotlock (MBOX_DOT_LOCK)"
 /*	Create a lock file with the name \fIfilename\fB.lock\fR. This
-/*	method pre-dates kernel locks.
+/*	method pre-dates kernel locks. This works with remote file systems,
+/*	modulo cache coherency problems.
 /* .PP
 /*	mbox_lock_names() returns an array with the names of available
 /*	mailbox locking methods. The result should be given to argv_free().
@@ -60,9 +63,9 @@
 
  /*
   * The table with available mailbox locking methods. Some systems have
-  * flock() locks; all POSIX-compatible systems should have fcntl() locks.
-  * Even though some systems do not use dotlock files, it can be necessary
-  * when accessing mailbox files over NFS.
+  * flock() locks; all POSIX-compatible systems have fcntl() locks. Even
+  * though some systems do not use dotlock files by default (4.4BSD), such
+  * locks can be necessary when accessing mailbox files over NFS.
   */
 static NAME_MASK mbox_mask[] = {
 #ifdef HAS_FLOCK_LOCK

@@ -13,7 +13,7 @@
 /* DESCRIPTION
 /*	deliver_flock() sets one exclusive kernel lock on an open file,
 /*	for example in order to deliver mail.
-/*      It performs several non-blocking attempts to acquire an exclusive
+/*	It performs several non-blocking attempts to acquire an exclusive
 /*	lock before giving up.
 /*
 /*	Arguments:
@@ -57,9 +57,9 @@
 #include "mail_params.h"
 #include "deliver_flock.h"
 
-/* deliver_flock - lock open file for mail delivery*/
+/* deliver_flock - lock open file for mail delivery */
 
-int     deliver_flock(int fd, int lock_style, VSTRING * why)
+int     deliver_flock(int fd, int lock_style, VSTRING *why)
 {
     int     i;
 
