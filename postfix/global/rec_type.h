@@ -58,10 +58,13 @@
 
  /*
   * The record at the beginning of the envelope segment specifies the message
-  * content size. This is the format of the position field. It is a
-  * fixed-width field so it can be updated in place.
+  * content size, data offset, and recipient count. These are fixed-width
+  * fields so they can be updated in place.
   */
-#define REC_TYPE_SIZE_FORMAT	"%15ld"	/* content size format */
+#define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld"	/* size/count format */
+#define REC_TYPE_SIZE_CAST1	long
+#define REC_TYPE_SIZE_CAST2	long
+#define REC_TYPE_SIZE_CAST3	long
 
  /*
   * The record at the beginning of the message content records specifies the
@@ -69,14 +72,15 @@
   * field. It is a fixed-width field so it can be updated in place.
   */
 #define REC_TYPE_MESG_FORMAT	"%15ld"	/* message length format */
+#define REC_TYPE_MESG_CAST	long
 
  /*
-  * The warn record specifies when the next warning that the message
-  * was deferred should be sent.  It is updated in place by qmgr, so
-  * changing this value when there are deferred mesages in the queue
-  * is dangerous!
+  * The warn record specifies when the next warning that the message was
+  * deferred should be sent.  It is updated in place by qmgr, so changing
+  * this value when there are deferred mesages in the queue is dangerous!
   */
 #define REC_TYPE_WARN_FORMAT	"%15ld"	/* warning time format */
+#define REC_TYPE_WARN_CAST	long
 
  /*
   * Programmatic interface.

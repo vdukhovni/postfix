@@ -1,3 +1,5 @@
+SHELL	= /bin/sh
+
 # For now, just hard-coded rules for daemons, commands, config files.
 
 DAEMONS	= man8/bounce.8 man8/defer.8 man8/cleanup.8 man8/error.8 man8/local.8 \
@@ -101,26 +103,26 @@ man1/mailq.1:
 man1/newaliases.1:
 	echo .so man1/sendmail.1 >$@
 
-man5/access.5: ../conf/access
+man5/access.5: ../proto/access
 	srctoman - $? >$@
 
-man5/aliases.5: ../conf/aliases
+man5/aliases.5: ../proto/aliases
 	srctoman - $? >$@
 
-man5/canonical.5: ../conf/canonical
+man5/canonical.5: ../proto/canonical
 	srctoman - $? >$@
 
-man5/pcre_table.5: ../conf/pcre_table
+man5/pcre_table.5: ../proto/pcre_table
 	srctoman - $? >$@
 
-man5/regexp_table.5: ../conf/regexp_table
+man5/regexp_table.5: ../proto/regexp_table
 	srctoman - $? >$@
 
-man5/relocated.5: ../conf/relocated
+man5/relocated.5: ../proto/relocated
 	srctoman - $? >$@
 
-man5/transport.5: ../conf/transport
+man5/transport.5: ../proto/transport
 	srctoman - $? >$@
 
-man5/virtual.5: ../conf/virtual
+man5/virtual.5: ../proto/virtual
 	srctoman - $? >$@

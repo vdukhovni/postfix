@@ -14,7 +14,7 @@
 /*	to a VSTREAM.
 /*
 /*	msg_vstream_init() sets the program name that appears in each output
-/*      record, and directs diagnostics (see msg(3)) to the specified
+/*	record, and directs diagnostics (see msg(3)) to the specified
 /*	VSTREAM. The \fIprogname\fR argument is not copied.
 /* SEE ALSO
 /*	msg(3)

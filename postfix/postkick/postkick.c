@@ -15,8 +15,8 @@
 /*
 /*	Options:
 /* .IP "\fB-c\fR \fIconfig_dir\fR"
-/*      Read configuration information from \fBmain.cf\fR in the named
-/*      configuration directory.
+/*	Read the \fBmain.cf\fR configuration file in the named directory
+/*	instead of the default configuration directory.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -43,9 +43,9 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      The following \fBmain.cf\fR parameters are especially relevant to
-/*      this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*      and for default values.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values.
 /* .IP \fBqueue_directory\fR
 /*	Location of the Postfix queue, and of the local IPC communication
 /*	endpoints.

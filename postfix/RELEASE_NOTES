@@ -1,14 +1,28 @@
-Incompatible changes with snapshot-20000204
+Incompatible changes with snapshot-20000309
 ===========================================
 
 This release is mainly to have a reference point after reorganizing
-the cleanup daemon.
+the cleanup daemon, and before adding some major contributions from
+other people.
 
-Major changes with snapshot-20000204
+Major changes with snapshot-20000309
 ====================================
 
 Questionable feature: with "smtp_skip_5xx_greeting = yes", Postfix
-emulates behavior found in some other MTAs.
+emulates behavior found in some other MTAs. 
+
+Questionable feature: with "smtp_always_send_ehlo = yes", the SMTP
+client sends EHLO regardless of the content of the SMTP server's
+greeting.
+
+Specify "-d key" to postalias or postmap in order to remove one
+key. This still needs to be generalized to multi-key removal (e.g.,
+read keys from stdin).
+
+The manual pages in Postfix configuration files no longer contain
+troff formatting codes.  The text is now generated from prototype
+files in a new "proto" subdirectory.
+        
 
 Incompatible changes with postfix-19991231:
 ===========================================

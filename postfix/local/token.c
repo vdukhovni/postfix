@@ -41,10 +41,10 @@
 /*
 /*	Arguments:
 /* .IP state
-/*      The attributes that specify the message, recipient and more.
+/*	The attributes that specify the message, recipient and more.
 /*	Attributes describing alias, include or forward expansion.
-/*      A table with the results from expanding aliases or lists.
-/*      A table with delivered-to: addresses taken from the message.
+/*	A table with the results from expanding aliases or lists.
+/*	A table with delivered-to: addresses taken from the message.
 /* .IP usr_attr
 /*	Attributes describing user rights and environment.
 /* .IP addr

@@ -165,10 +165,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
 	&& (dict->flags & DICT_FLAG_TRY0NULL)) {
 #ifdef DB_NO_TRAILING_NULL
 	dict->flags &= ~DICT_FLAG_TRY1NULL;
-	dict->flags |= DICT_FLAG_TRY0NULL;
 #else
 	dict->flags &= ~DICT_FLAG_TRY0NULL;
-	dict->flags |= DICT_FLAG_TRY1NULL;
 #endif
     }
 
@@ -200,6 +198,9 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
 	else
 	    msg_fatal("%s: duplicate entry: \"%s\"", dict_db->path, name);
     }
+    if (dict->flags & DICT_FLAG_SYNC_UPDATE)
+	if (db->sync(db, 0) < 0)
+	    msg_fatal("%s: flush dictionary: %m", dict_db->path);
 
     /*
      * Release the exclusive lock.
@@ -210,36 +211,13 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
 
 /* delete one entry from the dictionary */
 
-static int dict_db_delete(DICT *dict, const char *key)
+static int dict_db_delete(DICT *dict, const char *name)
 {
     DICT_DB *dict_db = (DICT_DB *) dict;
     DB     *db = dict_db->db;
     DBT     db_key;
-    int     status;
+    int     status = 1;
     int     flags = 0;
-
-    db_key.data = (void *) key;
-    db_key.size = strlen(key);
-
-    /*
-     * If undecided about appending a null byte to key and value, choose a
-     * default depending on the platform.
-     */
-    if ((dict->flags & DICT_FLAG_TRY1NULL)
-	&& (dict->flags & DICT_FLAG_TRY0NULL)) {
-#ifdef DB_NO_TRAILING_NULL
-	dict->flags = DICT_FLAG_TRY0NULL;
-#else
-	dict->flags = DICT_FLAG_TRY1NULL;
-#endif
-    }
-
-    /*
-     * Optionally append a null byte to key and value.
-     */
-    if (dict->flags & DICT_FLAG_TRY1NULL) {
-	db_key.size++;
-    }
 
     /*
      * Acquire an exclusive lock.
@@ -248,10 +226,30 @@ static int dict_db_delete(DICT *dict, const char *key)
 	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     /*
-     * Do the delete operation.
+     * See if this DB file was written with one null byte appended to key and
+     * value.
      */
-    if ((status = db->del(db, &db_key, flags)) < 0)
-	msg_fatal("error deleting %s: %m", dict_db->path);
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
+	db_key.data = (void *) name;
+	db_key.size = strlen(name) + 1;
+	if ((status = db->del(db, &db_key, flags)) < 0)
+	    msg_fatal("error deleting from %s: %m", dict_db->path);
+	if (status == 0)
+	    dict->flags &= ~DICT_FLAG_TRY0NULL;
+    }
+
+    /*
+     * See if this DB file was written with no null byte appended to key and
+     * value.
+     */
+    if (status > 0 && (dict->flags & DICT_FLAG_TRY0NULL)) {
+	db_key.data = (void *) name;
+	db_key.size = strlen(name);
+	if ((status = db->del(db, &db_key, flags)) < 0)
+	    msg_fatal("error deleting from %s: %m", dict_db->path);
+	if (status == 0)
+	    dict->flags &= ~DICT_FLAG_TRY1NULL;
+    }
 
     /*
      * Release the exclusive lock.

@@ -261,6 +261,7 @@ SMTP_SESSION *smtp_connect_host(char *host, unsigned port, VSTRING *why)
 	    session->best = 1;
 	    break;
 	}
+	msg_info("%s (port %d)", vstring_str(why), ntohs(port));
     }
     dns_rr_free(addr_list);
     return (session);

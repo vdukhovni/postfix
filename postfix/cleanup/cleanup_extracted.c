@@ -41,6 +41,8 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <unistd.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -99,6 +101,7 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
 
 static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int unused_len)
 {
+    char   *myname = "cleanup_extracted_process";
     VSTRING *clean_addr;
     ARGV   *rcpt;
     char  **cpp;
@@ -172,4 +175,41 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
      */
     cleanup_out_string(state, REC_TYPE_END, "");
     state->end_seen = 1;
+
+    /*
+     * vstream_fseek() would flush the buffer anyway, but the code just reads
+     * better if we flush first, because it makes seek error handling more
+     * straightforward.
+     */
+    if (vstream_fflush(state->dst)) {
+	msg_warn("%s: write queue file: %m", state->queue_id);
+	if (errno == EFBIG)
+	    state->errs |= CLEANUP_STAT_SIZE;
+	else
+	    state->errs |= CLEANUP_STAT_WRITE;
+	return;
+    }
+
+    /*
+     * Update the preliminary message size and count fields with the actual
+     * values.  For forward compatibility, we put the info into one record
+     * (so that it is possible to switch back to an older Postfix version).
+     */
+    if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0)
+	msg_fatal("%s: vstream_fseek %s: %m", myname, cleanup_path);
+    cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT,
+	    (REC_TYPE_SIZE_CAST1) (state->xtra_offset - state->data_offset),
+		       (REC_TYPE_SIZE_CAST2) state->data_offset,
+		       (REC_TYPE_SIZE_CAST3) state->rcpt_count);
+
+    /*
+     * Update the preliminary start-of-content marker with the actual value.
+     * For forward compatibility, we keep this information until the end of
+     * the year 2002 (so that it is possible to switch back to an older
+     * Postfix version).
+     */
+    if (vstream_fseek(state->dst, state->mesg_offset, SEEK_SET) < 0)
+	msg_fatal("%s: vstream_fseek %s: %m", myname, cleanup_path);
+    cleanup_out_format(state, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT,
+		       (REC_TYPE_MESG_CAST) state->xtra_offset);
 }

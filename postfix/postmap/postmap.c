@@ -5,8 +5,8 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-Ninvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-q \fIkey\fR]
-/*		[\fIfile_type\fR:]\fIfile_name\fR ...
+/*	\fBpostmap\fR [\fB-Ninvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-d \fIkey\fR]
+/*		[\fB-q \fIkey\fR] [\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
 /*	The \fBpostmap\fR command creates or queries one or more Postfix
 /*	lookup tables, or updates an existing one. The input and output
@@ -43,7 +43,11 @@
 /*	and values. By default, Postfix does whatever is the default for
 /*	the host operating system.
 /* .IP "\fB-c \fIconfig_dir\fR"
-/*	Read the \fBmain.cf\fR configuration file in the named directory.
+/*	Read the \fBmain.cf\fR configuration file in the named directory
+/*	instead of the default configuration directory.
+/* .IP "\fB-d \fIkey\fR"
+/*	Search the specified maps for \fIkey\fR and remove one entry per map.
+/*	The exit status is non-zero if the requested information was not found.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR creates
@@ -60,7 +64,8 @@
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* .IP \fB-w\fR
-/*	Do not warn about duplicate entries; silently ignore them.
+/*	When updating a table, do not warn about duplicate entries; silently
+/*	ignore them.
 /* .PP
 /*	Arguments:
 /* .IP \fIfile_type\fR
@@ -86,6 +91,9 @@
 /*	Problems and transactions are logged to the standard error
 /*	stream. No output means no problems. Duplicate entries are
 /*	skipped and are flagged with a warning.
+/* BUGS
+/*	The "delete key" support is limited to one delete operation
+/*	per command invocation.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -255,11 +263,29 @@ static int postmap_query(const char *map_type, const char *map_name,
     return (value != 0);
 }
 
+/* postmap_delete - delete a (key, value) pair from a map */
+
+static int postmap_delete(const char *map_type, const char *map_name,
+			          const char *key)
+{
+    DICT   *dict;
+    int     status;
+
+    /*
+     * XXX This must be generalized to multi-key (read from stdin) and
+     * multi-map (given on command line) updates.
+     */
+    dict = dict_open3(map_type, map_name, O_RDWR, DICT_FLAG_LOCK);
+    status = dict_del(dict, key);
+    dict_close(dict);
+    return (status);
+}
+
 /* usage - explain */
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-Ninvw] [-c config_dir] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-Ninvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -273,6 +299,7 @@ int     main(int argc, char **argv)
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = DICT_FLAG_DUP_WARN;
     char   *query = 0;
+    char   *delkey = 0;
     int     found;
 
     /*
@@ -308,7 +335,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:inq:vw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:inq:vw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -321,6 +348,11 @@ int     main(int argc, char **argv)
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
 		msg_fatal("out of memory");
 	    break;
+	case 'd':
+	    if (query || delkey)
+		msg_fatal("specify only one of -q or -d");
+	    delkey = optarg;
+	    break;
 	case 'i':
 	    open_flags &= ~O_TRUNC;
 	    break;
@@ -329,6 +361,8 @@ int     main(int argc, char **argv)
 	    dict_flags &= ~DICT_FLAG_TRY1NULL;
 	    break;
 	case 'q':
+	    if (query || delkey)
+		msg_fatal("specify only one of -q or -d");
 	    query = optarg;
 	    break;
 	case 'v':
@@ -346,19 +380,20 @@ int     main(int argc, char **argv)
      * Use the map type specified by the user, or fall back to a default
      * database type.
      */
-    if (query == 0) {				/* create/update map(s) */
+    if (delkey) {				/* remove entry */
 	if (optind + 1 > argc)
 	    usage(argv[0]);
+	found = 0;
 	while (optind < argc) {
 	    if ((path_name = split_at(argv[optind], ':')) != 0) {
-		postmap(argv[optind], path_name, open_flags, dict_flags);
+		found |= postmap_delete(argv[optind], path_name, delkey);
 	    } else {
-		postmap(var_db_type, argv[optind], open_flags, dict_flags);
+		found |= postmap_delete(var_db_type, argv[optind], delkey);
 	    }
 	    optind++;
 	}
-	exit(0);
-    } else {					/* query map(s) */
+	exit(found ? 0 : 1);
+    } else if (query) {				/* query map(s) */
 	if (optind + 1 > argc)
 	    usage(argv[0]);
 	while (optind < argc) {
@@ -372,5 +407,17 @@ int     main(int argc, char **argv)
 	    optind++;
 	}
 	exit(1);
+    } else {					/* create/update map(s) */
+	if (optind + 1 > argc)
+	    usage(argv[0]);
+	while (optind < argc) {
+	    if ((path_name = split_at(argv[optind], ':')) != 0) {
+		postmap(argv[optind], path_name, open_flags, dict_flags);
+	    } else {
+		postmap(var_db_type, argv[optind], open_flags, dict_flags);
+	    }
+	    optind++;
+	}
+	exit(0);
     }
 }

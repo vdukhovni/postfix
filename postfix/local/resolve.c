@@ -21,9 +21,9 @@
 /*
 /*	Arguments:
 /* .IP state
-/*      The attributes that specify the message, sender and more.
-/*      A table with the results from expanding aliases or lists.
-/*      A table with delivered-to: addresses taken from the message.
+/*	The attributes that specify the message, sender and more.
+/*	A table with the results from expanding aliases or lists.
+/*	A table with delivered-to: addresses taken from the message.
 /* .IP addr
 /*	An address from, e.g., alias expansion.
 /* DIAGNOSTICS

@@ -135,9 +135,9 @@ extern QMGR_TRANSPORT *qmgr_transport_find(const char *);
   * transactions. The "todo" queue contains messages that are to be delivered
   * to this next hop. When a message is elected for transmission, it is moved
   * from the "todo" queue to the "busy" queue. Messages are taken from the
-  * "todo" queue by randomly choosing between the first and the last queue
-  * entries. This ensures that one problematic message will not block all
-  * other traffic to that next hop.
+  * "todo" queue in sequence. An initial destination delivery concurrency > 1
+  * ensures that one problematic message will not block all other traffic to
+  * that next hop.
   */
 struct QMGR_ENTRY_LIST {
     QMGR_ENTRY *next;

@@ -69,6 +69,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -94,13 +95,22 @@
 
  /*
   * Per-session data structure with state.
+  * 
+  * This software can maintain multiple parallel connections to the same SMTP
+  * server. However, it makes no more than one connection request at a time
+  * to avoid overwhelming the server with SYN packets and having to back off.
+  * Back-off would screw up the benchmark. Pending connection requests are
+  * kept in a linear list.
   */
-typedef struct {
+typedef struct SESSION {
     int     xfer_count;			/* # of xfers in session */
     int     rcpt_count;			/* # of recipients to go */
     VSTREAM *stream;			/* open connection */
     int     connect_count;		/* # of connect()s to retry */
+    struct SESSION *next;		/* connect() queue linkage */
 } SESSION;
+
+static SESSION *last_session;		/* connect() queue tail */
 
  /*
   * Structure with broken-up SMTP server response.
@@ -133,7 +143,10 @@ static int connect_count = 1;
 static int random_delay = 0;
 static int fixed_delay = 0;
 
+static void enqueue_connect(SESSION *);
+static void start_connect(SESSION *);
 static void connect_done(int, char *);
+static void read_banner(int, char *);
 static void send_helo(SESSION *);
 static void helo_done(int, char *);
 static void send_mail(SESSION *);
@@ -175,6 +188,32 @@ static void command(VSTREAM *stream, char *fmt,...)
     va_start(ap, fmt);
     smtp_vprintf(stream, fmt, ap);
     va_end(ap);
+}
+
+/* socket_error - look up and reset the last socket error */
+
+static int socket_error(int sock)
+{
+    int     error;
+    SOCKOPT_SIZE error_len;
+
+    /*
+     * Some Solaris 2 versions have getsockopt() itself return the error,
+     * instead of returning it via the parameter list.
+     */
+    error = 0;
+    error_len = sizeof(error);
+    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &error, &error_len) < 0)
+	return (-1);
+    if (error) {
+	errno = error;
+	return (-1);
+    }
+
+    /*
+     * No problems.
+     */
+    return (0);
 }
 
 /* response - read and process SMTP server response */
@@ -246,31 +285,13 @@ static char *exception_text(int except)
 
 static void startup(SESSION *session)
 {
-    int     fd;
-
     if (message_count-- <= 0) {
 	myfree((char *) session);
 	session_count--;
 	return;
     }
     if (session->stream == 0) {
-	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	    msg_fatal("socket: %m");
-	for (;;) {
-	    if (session->connect_count == 0)
-		msg_fatal("connect: %m");
-	    if (!connect(fd, (struct sockaddr *) & sin, sizeof(sin)))
-		break;
-	    if (session->connect_count-- > 1)
-#ifdef MISSING_USLEEP
-		doze(10);
-#else
-		usleep(10);
-#endif
-	}
-	session->stream = vstream_fdopen(fd, O_RDWR);
-	smtp_timeout_setup(session->stream, var_timeout);
-	event_enable_read(vstream_fileno(session->stream), connect_done, (char *) session);
+	enqueue_connect(session);
     } else {
 	send_mail(session);
     }
@@ -299,9 +320,100 @@ static void start_another(SESSION *session)
     }
 }
 
+/* enqueue_connect - queue a connection request */
+
+static void enqueue_connect(SESSION *session)
+{
+    session->next = 0;
+    if (last_session == 0) {
+	last_session = session;
+	start_connect(session);
+    } else {
+	last_session->next = session;
+	last_session = session;
+    }
+}
+
+/* dequeue_connect - connection request completed */
+
+static void dequeue_connect(SESSION *session)
+{
+    if (session == last_session) {
+	if (session->next != 0)
+	    msg_panic("dequeue_connect: queue ends after last");
+	last_session = 0;
+    } else {
+	if (session->next == 0)
+	    msg_panic("dequeue_connect: queue ends before last");
+	start_connect(session->next);
+    }
+}
+
+/* fail_connect - handle failed startup */
+
+static void fail_connect(SESSION *session)
+{
+    if (session->connect_count-- == 1)
+	msg_fatal("connect: %m");
+    msg_warn("connect: %m");
+    event_disable_readwrite(vstream_fileno(session->stream));
+    vstream_fclose(session->stream);
+    session->stream = 0;
+#ifdef MISSING_USLEEP
+    doze(10);
+#else
+    usleep(10);
+#endif
+    start_connect(session);
+}
+
+/* start_connect - start TCP handshake */
+
+static void start_connect(SESSION *session)
+{
+    int     fd;
+
+    /*
+     * Some systems don't set the socket error when connect() fails early
+     * (loopback) so we must deal with the error immediately, rather than
+     * retrieving it later with getsockopt(). We can't use MSG_PEEK to
+     * distinguish between server disconnect and connection refused.
+     */
+    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	msg_fatal("socket: %m");
+    (void) non_blocking(fd, NON_BLOCKING);
+    session->stream = vstream_fdopen(fd, O_RDWR);
+    event_enable_write(fd, connect_done, (char *) session);
+    smtp_timeout_setup(session->stream, var_timeout);
+    if (connect(fd, (struct sockaddr *) & sin, sizeof(sin)) < 0
+	&& errno != EINPROGRESS)
+	fail_connect(session);
+}
+
 /* connect_done - send message sender info */
 
 static void connect_done(int unused_event, char *context)
+{
+    SESSION *session = (SESSION *) context;
+    int     fd = vstream_fileno(session->stream);
+
+    /*
+     * Try again after some delay when the connection failed, in case they
+     * run a Mickey Mouse protocol stack.
+     */
+    if (socket_error(fd) < 0) {
+	fail_connect(session);
+    } else {
+	non_blocking(fd, BLOCKING);
+	event_disable_readwrite(fd);
+	event_enable_read(fd, read_banner, (char *) session);
+	dequeue_connect(session);
+    }
+}
+
+/* read_banner - receive SMTP server greeting */
+
+static void read_banner(int unused_event, char *context)
 {
     SESSION *session = (SESSION *) context;
     RESPONSE *resp;
@@ -733,6 +845,7 @@ int     main(int argc, char **argv)
 	session->stream = 0;
 	session->xfer_count = 0;
 	session->connect_count = connect_count;
+	session->next = 0;
 	session_count++;
 	startup(session);
     }

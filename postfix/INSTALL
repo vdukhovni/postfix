@@ -399,17 +399,26 @@ forward mail to a real person.
 11 - To chroot or not to chroot
 ==============================
 
-Most Postfix daemons can run in a chroot jail, that is, in a chroot
-environment at fixed low privilege. This provides a significant
-barrier against intrusion. The barrier is not impenetrable, but
-every little bit helps.
+Postfix can run most daemon processes in a chroot jail, that is,
+the processes run at a fixed low privilege and with access only to
+the Postfix queue directories (/var/spool/postfix).  This provides
+a significant barrier against intrusion. The barrier is not
+impenetrable, but every little bit helps.
 
-The file /etc/postfix/master.cf by default runs no Postfix daemons
-in a chroot jail. However, with the exception of the `local' and
-`pipe' daemons, every Postfix daemon can run chrooted.
+With the exception of the Postfix local delivery and `pipe' daemons,
+every Postfix daemon can run chrooted.
 
-The examples/chroot-setup directory has a collection of scripts
-for setting up chroot environments for Postfix systems.
+By default, no Postfix daemon runs chrooted.  In order to enable
+chroot operation, edit the file /etc/postfix/master.cf.  It is
+highy recommended to chroot the daemons that talk to the network:
+the smtp and smtpd processes.
+
+Note that a chrooted daemon resolves all filenames relative to the
+Postfix queue directory (/var/spool/postfix). For successful use
+of a chroot jail,  most UNIX systems require you to bring in some
+files or device nodes.  The examples/chroot-setup directory has a
+collection of scripts that help you set up chroot environments for
+Postfix systems.
 
 12 - Security: writable versus protected maildrop directory
 ===========================================================

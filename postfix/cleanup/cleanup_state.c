@@ -81,7 +81,9 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->action = cleanup_envelope;
     state->mesg_offset = -1;
     state->data_offset = -1;
+    state->xtra_offset = -1;
     state->end_seen = 0;
+    state->rcpt_count = 0;
     return (state);
 }
 

@@ -138,10 +138,10 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      The following \fBmain.cf\fR parameters are especially relevant to
-/*      this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*      and for default values. Use the \fBpostfix reload\fR command after
-/*      a configuration change.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	a configuration change.
 /* .SH Miscellaneous
 /* .ad
 /* .fi

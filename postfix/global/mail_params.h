@@ -598,6 +598,10 @@ extern bool var_ign_mx_lookup_err;
 #define DEF_SKIP_QUIT_RESP	1
 extern bool var_skip_quit_resp;
 
+#define VAR_SMTP_ALWAYS_EHLO	"smtp_always_send_ehlo"
+#define DEF_SMTP_ALWAYS_EHLO	0
+extern bool var_smtp_always_ehlo;
+
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
   * client may make before we start to slow down; the hard error limit

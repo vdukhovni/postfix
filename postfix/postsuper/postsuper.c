@@ -36,8 +36,8 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      See the Postfix \fBmain.cf\fR file for syntax details and for
-/*      default values.
+/*	See the Postfix \fBmain.cf\fR file for syntax details and for
+/*	default values.
 /* .IP \fBhash_queue_depth\fR
 /*	Number of subdirectory levels for hashed queues.
 /* .IP \fBhash_queue_names\fR

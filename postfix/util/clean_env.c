@@ -9,7 +9,7 @@
 /*	void	clean_env()
 /* DESCRIPTION
 /*	clean_env() reduces the process environment to the bare minimum.
-/*      In the initial version, rules are hard-coded. This will be
+/*	In the initial version, rules are hard-coded. This will be
 /*	made configurable.
 /* LICENSE
 /* .ad

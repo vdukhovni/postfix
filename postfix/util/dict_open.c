@@ -78,6 +78,9 @@
 /* .IP DICT_FLAG_LOCK
 /*	With maps where this is appropriate, acquire an exclusive lock
 /*	before writing, and acquire a shared lock before reading.
+/* .IP DICT_FLAG_SYNC_UPDATE
+/*	With file-based maps, flush I/O buffers to file after each update.
+/*	Thus feature is not supported with some file-based dictionaries.
 /* .PP
 /*	The dictionary types are as follows:
 /* .IP environ
@@ -334,6 +337,8 @@ main(int argc, char **argv)
     DICT   *dict;
     char   *dict_name;
     int     open_flags;
+    char   *bufp;
+    char   *cmd;
     char   *key;
     const char *value;
     int     ch;
@@ -363,25 +368,33 @@ main(int argc, char **argv)
     dict = dict_open(dict_name, open_flags, DICT_FLAG_LOCK);
     dict_register(dict_name, dict);
     while (vstring_fgets_nonl(keybuf, VSTREAM_IN)) {
-	if (dict_changed()) {
-	    msg_warn("dictionary has changed -- exiting");
-	    exit(0);
-	}
-	if ((key = strtok(vstring_str(keybuf), " =")) == 0)
+	bufp = vstring_str(keybuf);
+	if ((cmd = mystrtok(&bufp, " ")) == 0)
 	    continue;
-	if ((value = strtok((char *) 0, " =")) == 0) {
+	key = mystrtok(&bufp, " =");
+	value = mystrtok(&bufp, " ");
+	if (strcmp(cmd, "del") == 0 && key && !value) {
+	    if (dict_del(dict, key))
+		vstream_printf("%s: not found\n", key);
+	    else
+		vstream_printf("%s: deleted\n", key);
+	} else if (strcmp(cmd, "get") == 0 && key && !value) {
 	    if ((value = dict_get(dict, key)) == 0) {
-		vstream_printf("not found\n");
+		vstream_printf("%s: not found\n", key);
 	    } else {
-		vstream_printf("%s\n", value);
+		vstream_printf("%s=%s\n", key, value);
 	    }
-	} else {
+	} else if (strcmp(cmd, "put") == 0 && key && value) {
 	    dict_put(dict, key, value);
+	    vstream_printf("%s=%s\n", key, value);
+	} else {
+	    vstream_printf("usage: del key|get key|put key=value");
 	}
 	vstream_fflush(VSTREAM_OUT);
     }
     vstring_free(keybuf);
     dict_close(dict);
+    return (0);
 }
 
 #endif

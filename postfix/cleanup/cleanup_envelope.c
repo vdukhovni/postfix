@@ -16,7 +16,7 @@
 /*	This module processes envelope records and writes the result
 /*	to the queue file.  It validates the message structure, rewrites
 /*	sender/recipient addresses to canonical form, and expands recipients
-/*	according to entries in the virtual table. This routine absorbs but 
+/*	according to entries in the virtual table. This routine absorbs but
 /*	does not emit the envelope to content boundary record.
 /*
 /*	Arguments:
@@ -76,12 +76,15 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type, char *str, int len)
 {
 
     /*
-     * The message content size record goes first, so it can easily be
+     * The message size and count record goes first, so it can easily be
      * updated in place. This information takes precedence over any size
-     * estimate provided by the client. Size goes first so that it it easy to
-     * produce queue file reports.
+     * estimate provided by the client. It's all in one record for forward
+     * compatibility so we can switch back to an older Postfix version.
      */
-    cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT, 0L);
+    cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT,
+		       (REC_TYPE_SIZE_CAST1) 0,
+		       (REC_TYPE_SIZE_CAST2) 0,
+		       (REC_TYPE_SIZE_CAST3) 0);
 
     /*
      * Pass control to the actual envelope processing routine.

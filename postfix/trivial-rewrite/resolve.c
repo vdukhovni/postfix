@@ -27,7 +27,7 @@
 /*
 /*	resolve_proto() implements the client-server protocol:
 /*	read one address in FQDN form, reply with a (transport,
-/*      nexthop, internalized recipient) triple.
+/*	nexthop, internalized recipient) triple.
 /*
 /*	resolve_addr() gives direct access to the address resolving
 /*	engine. It resolves an internalized address to a (transport,

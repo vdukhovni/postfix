@@ -44,7 +44,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <errno.h>
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
@@ -477,7 +476,6 @@ static void cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, in
 static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int len)
 {
     char   *myname = "cleanup_message_body";
-    long    xtra_offset;
 
     /*
      * Copy body record to the output.
@@ -487,30 +485,12 @@ static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int 
     }
 
     /*
-     * If we have reached the end of the message content segment, update the
-     * start-of-content marker, now that we know how large the message
-     * content segment is, and update the content size indicator at the
-     * beginning of the message envelope segment. vstream_fseek() implicitly
-     * flushes the stream, which may fail for various reasons.
+     * If we have reached the end of the message content segment, record the
+     * current file position so we can compute the message size lateron.
      */
     else if (type == REC_TYPE_XTRA) {
-	if ((xtra_offset = vstream_ftell(state->dst)) < 0)
+	if ((state->xtra_offset = vstream_ftell(state->dst)) < 0)
 	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
-	if (vstream_fseek(state->dst, state->mesg_offset, SEEK_SET) < 0) {
-	    msg_warn("%s: write queue file: %m", state->queue_id);
-	    if (errno == EFBIG)
-		state->errs |= CLEANUP_STAT_SIZE;
-	    else
-		state->errs |= CLEANUP_STAT_WRITE;
-	    return;
-	}
-	cleanup_out_format(state, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, xtra_offset);
-	if (vstream_fseek(state->dst, 0L, SEEK_SET) < 0)
-	    msg_fatal("%s: vstream_fseek %s: %m", myname, cleanup_path);
-	cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT,
-			   xtra_offset - state->data_offset);
-	if (vstream_fseek(state->dst, xtra_offset, SEEK_SET) < 0)
-	    msg_fatal("%s: vstream_fseek %s: %m", myname, cleanup_path);
 	state->action = cleanup_extracted;
     }
 

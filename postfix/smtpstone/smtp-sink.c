@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	smtp-sink [-c] [-p] [-v] [-w delay] [host]:port backlog
 /* DESCRIPTION
-/*      \fIsmtp-sink\fR listens on the named host (or address) and port.
+/*	\fIsmtp-sink\fR listens on the named host (or address) and port.
 /*	It takes SMTP messages from the network and throws them away.
 /*	The purpose is to measure SMTP client performance, not protocol
 /*	compliance.

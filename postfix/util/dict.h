@@ -45,6 +45,7 @@ typedef struct DICT {
 #define DICT_FLAG_PATTERN	(1<<5)	/* keys are patterns */
 #define DICT_FLAG_LOCK		(1<<6)	/* lock before access */
 #define DICT_FLAG_DUP_REPLACE	(1<<7)	/* if file, replace dups */
+#define DICT_FLAG_SYNC_UPDATE	(1<<8)	/* if file, sync updates */
 
 extern int dict_unknown_allowed;
 extern int dict_errno;

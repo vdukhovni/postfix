@@ -18,7 +18,8 @@
 /*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
-/*	The \fBmain.cf\fR configuration file is in the named directory.
+/*	The \fBmain.cf\fR configuration file is in the named directory
+/*	instead of the default configuration directory.
 /* .IP \fB-d\fR
 /*	Print default parameter settings instead of actual settings.
 /* .IP \fB-e\fR

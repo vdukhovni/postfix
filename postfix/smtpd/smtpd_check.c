@@ -1970,16 +1970,19 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	    msg_warn("page and in the FAQ entry for virtual domains");
 	    SMTPD_CHECK_RCPT_RETURN(0);
 	}
+	dict_errno = 0;
 	if (*var_local_rcpt_maps
 	    && !mail_addr_find(rcpt_canon_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(canonical_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(local_rcpt_maps, STR(reply.recipient), NOP)) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				      "550 <%s>: User unknown", recipient);
+				      "%d <%s>: User unknown",
+				      dict_errno ? 450 : 550, recipient);
 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
 	}
     } else {
+	dict_errno = 0;
 	if (*var_virtual_maps
 	    && !mail_addr_find(rcpt_canon_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(canonical_maps, STR(reply.recipient), NOP)
@@ -1987,7 +1990,8 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	    && !mail_addr_find(virtual_maps, STR(reply.recipient), NOP)
 	    && maps_find(virtual_maps, domain, 0)) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
-				      "550 <%s>: User unknown", recipient);
+				      "%d <%s>: User unknown",
+				      dict_errno ? 450 : 550, recipient);
 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
 	}
     }

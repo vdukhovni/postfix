@@ -69,21 +69,31 @@
 /*	by the skeleton after it has read the global configuration file
 /*	and after it has processed command-line arguments, but before
 /*	the skeleton has optionally relinquished the process privileges.
+/* .sp
+/*	Only the last instance of this parameter type is remembered.
 /* .IP "MAIL_SERVER_POST_INIT (void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has optionally relinquished the process
 /*	privileges, but before servicing client connection requests.
+/* .sp
+/*	Only the last instance of this parameter type is remembered.
 /* .IP "MAIL_SERVER_LOOP (int *(char *service_name, char **argv))"
 /*	A pointer to function that is executed from
 /*	within the event loop, whenever an I/O or timer event has happened,
 /*	or whenever nothing has happened for a specified amount of time.
 /*	The result value of the function specifies how long to wait until
 /*	the next event. Specify -1 to wait for "as long as it takes".
+/* .sp
+/*	Only the last instance of this parameter type is remembered.
 /* .IP "MAIL_SERVER_EXIT (void *(char *service_name, char **argv))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
+/* .sp
+/*	Only the last instance of this parameter type is remembered.
 /* .IP "MAIL_SERVER_PRE_ACCEPT (void *(char *service_name, char **argv))"
 /*	Function to be executed prior to accepting a new request.
+/* .sp
+/*	Only the last instance of this parameter type is remembered.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.

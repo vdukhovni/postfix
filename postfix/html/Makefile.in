@@ -1,3 +1,5 @@
+SHELL	= /bin/sh
+
 # For now, just hard-coded rules for daemons, commands, config files.
 
 DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html error.8.html local.8.html \
@@ -104,26 +106,26 @@ newaliases.1.html: sendmail.1.html
 	rm -f $@
 	ln -s $? $@
 
-access.5.html: ../conf/access
+access.5.html: ../proto/access
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-aliases.5.html: ../conf/aliases
+aliases.5.html: ../proto/aliases
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-canonical.5.html: ../conf/canonical
+canonical.5.html: ../proto/canonical
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-pcre_table.5.html: ../conf/pcre_table
+pcre_table.5.html: ../proto/pcre_table
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-regexp_table.5.html: ../conf/regexp_table
+regexp_table.5.html: ../proto/regexp_table
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-relocated.5.html: ../conf/relocated
+relocated.5.html: ../proto/relocated
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-transport.5.html: ../conf/transport
+transport.5.html: ../proto/transport
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
-virtual.5.html: ../conf/virtual
+virtual.5.html: ../proto/virtual
 	srctoman - $? | nroff -man | man2html | postlink >$@

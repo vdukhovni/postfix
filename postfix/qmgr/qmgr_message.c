@@ -209,7 +209,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      */
     if (message->rcpt_offset) {
 	if (message->rcpt_list.len)
-	    msg_panic("%s: recipient list not empty on recipient reload", message->queue_id);
+	    msg_panic("%s: recipient list not empty on recipient reload",
+		      message->queue_id);
 	if (vstream_fseek(message->fp, message->rcpt_offset, SEEK_SET) < 0)
 	    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	message->rcpt_offset = 0;

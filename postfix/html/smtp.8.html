@@ -119,11 +119,11 @@ SMTP(8)                                                   SMTP(8)
               send mail to the  postmaster  with  transcripts  of
               SMTP sessions with protocol errors.
 
+       <b>smtp</b><i>_</i><b>always</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
+              Always send EHLO at the start of a connection.
+
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
               Skip  servers that greet us with a 4xx status code.
-
-       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>5xx</b><i>_</i><b>greeting</b>
-              Skip servers that greet us with a 5xx status  code.
 
 
 
@@ -136,6 +136,9 @@ SMTP(8)                                                   SMTP(8)
 
 SMTP(8)                                                   SMTP(8)
 
+
+       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>5xx</b><i>_</i><b>greeting</b>
+              Skip servers that greet us with a 5xx status  code.
 
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>quit</b><i>_</i><b>response</b>
               Do  not  wait for the server response after sending
@@ -188,9 +191,6 @@ SMTP(8)                                                   SMTP(8)
 
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>done</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending the "<b>.</b>" command, and
-              for receiving the server response. When no response
-              is  received, a warning is logged that the mail may
-              be delivered multiple times.
 
 
 
@@ -202,6 +202,10 @@ SMTP(8)                                                   SMTP(8)
 
 SMTP(8)                                                   SMTP(8)
 
+
+              for receiving the server response. When no response
+              is  received, a warning is logged that the mail may
+              be delivered multiple times.
 
        <b>smtp</b><i>_</i><b>quit</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending  the  <b>QUIT</b>  command,
@@ -222,10 +226,6 @@ SMTP(8)                                                   SMTP(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

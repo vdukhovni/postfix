@@ -36,19 +36,19 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*      The following \fBmain.cf\fR parameters are especially relevant to
-/*      this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*      and for default values. Use the \fBpostfix reload\fR command after
-/*      a configuration change.
+/*	The following \fBmain.cf\fR parameters are especially relevant to
+/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
+/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	a configuration change.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
 /* .IP \fBalways_bcc\fR
 /*	Address to send a copy of each message that enters the system.
 /* .IP \fBmail_owner\fR
-/*      The process privileges used while not opening a \fBmaildrop\fR file.
+/*	The process privileges used while not opening a \fBmaildrop\fR file.
 /* .IP \fBqueue_directory\fR
-/*      Top-level directory of the Postfix queue.
+/*	Top-level directory of the Postfix queue.
 /* SEE ALSO
 /*	cleanup(8) message canonicalization
 /*	master(8) process manager

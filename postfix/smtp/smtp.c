@@ -85,6 +85,8 @@
 /* .IP \fBnotify_classes\fR
 /*	When this parameter includes the \fBprotocol\fR class, send mail to the
 /*	postmaster with transcripts of SMTP sessions with protocol errors.
+/* .IP \fBsmtp_always_send_ehlo\fR
+/*	Always send EHLO at the start of a connection.
 /* .IP \fBsmtp_skip_4xx_greeting\fR
 /*	Skip servers that greet us with a 4xx status code.
 /* .IP \fBsmtp_skip_5xx_greeting\fR
@@ -207,6 +209,7 @@ int     var_skip_quit_resp;
 char   *var_fallback_relay;
 char   *var_bestmx_transp;
 char   *var_error_rcpt;
+int     var_smtp_always_ehlo;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -356,6 +359,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_SKIP_5XX, DEF_SMTP_SKIP_5XX, &var_smtp_skip_5xx_greeting,
 	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
 	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
+	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
 	0,
     };
 

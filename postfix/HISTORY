@@ -3607,10 +3607,10 @@ Apologies for any names omitted.
 20000126
 
 	Emergency feature: qmgr_site_hog_factor (default: 90 percent)
-	limits the amount of resources that Postfix will devote to
-	a single site. With less than 100, Postfix will defer the
+	limits the amount of resources that Postfix devotes to a
+	single destination. With less than 100, Postfix defers the
 	excess mail so that one site with a large backlog does not
-	block other deliveries.
+	block other deliveries. Files: qmgr/qmgr.c, qmgr/qmgr_message.c.
 
 20000128
 
@@ -3669,3 +3669,77 @@ Apologies for any names omitted.
 	to the access, canonical, virtual, transport and relocated
 	man pages, and write new man pages that are specific to
 	regular expressions: pcre_table.5 and regexp_table.5.
+
+20000214
+
+	Bugfix: postconf reported some parameters more than once
+	because the parameter extracting script didn't recognize
+	lines that differ in whitespace only. File: postconf/extract.awk.
+	Reported by Kenn Martin.
+
+20000221
+
+	Logging: the SMTP client now logs log host+port when it is
+	unable to connect to a non-MX host, just like it logs
+	host+port when unable to connect to an MX host.
+
+20000226
+
+	Bugfix: the SMTP server's "User unknown" test didn't notice
+	LDAP etc. dictionary access errors. The code now reports
+	a 450 status (try again instead of bounce) if the reply is
+	not definitive.  File: smtp/smtpd_check.c.
+
+	Robustness: the smtp-source program could stall when making
+	hundreds of parallel connections to a Postfix system with
+	only one SMTP server process. The fix is to use non-blocking
+	connect() calls, very carefully. File: smtpstone/smtp-source.c.
+
+20000303
+
+	Feature: with smtp_always_send_ehlo the SMTP client will
+	send EHLO regardless of the content of the SMTP server's
+	greeting.  File: smtp/smtp_proto.c.
+
+20000304
+
+	Feature: DICT_FLAG_SYNC_UPDATE flag for synchronous dictionary
+	updates, if supported by the underlying mechanism. Files:
+	util/dict.h, util/dict_open.c, util/dict_db.c.
+
+20000307
+
+	Cleanup: the manual pages in Postfix configuration files
+	no longer contain troff formatting codes.  The text is now
+	generated from prototype files in a new "proto" subdirectory.
+	Requested by Matthias Andree @ dt.e-technik.uni-dortmund.de.
+
+20000308
+
+	Bugfix: the unused db and dbm "delete" routines would
+	clobber the per-dictionary flags when called before reading
+	or writing the table. Files: util/dict_dbm.c, util/dict_db.c.
+	Lutz Jaenicke @ aet.TU-Cottbus.DE.
+
+	Bugfix: the SMTP server would produce a cryptic message
+	when a queue file write error happened before it had written
+	any recipients.  Keith Stevenson. File: smtpd/smtpd.c.
+
+	Robustness: the db and dbm "delete" routines didn't adjust
+	to dictionaries with/without one trailing null in lookup
+	keys and values. Did a complete rewrite of the routines.
+	Files: util/dict_db.c, util/dict_dbm.c.
+
+	Feature: specify "-d key" to postalias or postmap in order
+	to remove one key. This still needs to be generalized to
+	multi-key removal (read stdin?). Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+	Test: added test targets for the dictionary delete operations.
+	Files: util/Makefile.in, util/dict_test.{c,in,ref}.
+
+	Feature: added data offset and recipient count fields to
+	the first queue file record output from the cleanup daemon.
+	The recipient counts provides an initial estimate for a
+	more advanced queue manager scheduling algorithm. Files:
+	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c.

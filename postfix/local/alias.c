@@ -32,10 +32,10 @@
 /* .PP
 /*	Arguments:
 /* .IP state
-/*      Attributes that specify the message, recipient and more.
+/*	Attributes that specify the message, recipient and more.
 /*	Expansion type (alias, include, .forward).
-/*      A table with the results from expanding aliases or lists.
-/*      A table with delivered-to: addresses taken from the message.
+/*	A table with the results from expanding aliases or lists.
+/*	A table with delivered-to: addresses taken from the message.
 /* .IP usr_attr
 /*	User attributes (rights, environment).
 /* .IP name

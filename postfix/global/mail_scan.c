@@ -44,12 +44,12 @@
 /*	Anything else in a format string is a fatal error.
 /* .RE
 /* .IP letter
-/*      Format letter that is bound to the \fIscan_fn\fR input
+/*	Format letter that is bound to the \fIscan_fn\fR input
 /*	conversion function.
 /* .IP name
-/*      Descriptive string for verbose logging.
+/*	Descriptive string for verbose logging.
 /* .IP scan_fn
-/*      An input conversion function. It takes as arguments:
+/*	An input conversion function. It takes as arguments:
 /* .RS
 /* .IP string
 /*	The null-terminated string to be converted.

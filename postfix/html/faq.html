@@ -1033,8 +1033,8 @@ LDAP or SQL.
             hash:/etc/postfix/restricted_senders
             ...other stuff...
 
-        restriction_classes = local_only
-        local_only = check_recipient_access hash:/etc/postfix/local_domains, reject
+        smtpd_restriction_classes = local_only
+        local_only = check_sender_access hash:/etc/postfix/local_domains, reject
 
     /etc/postfix/restricted_senders:
         foo@domain      local_only
@@ -1053,7 +1053,7 @@ types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
-The <b>restriction_classes</b> verbiage exists so that Postfix can
+The <b>smtpd_restriction_classes</b> verbiage exists so that Postfix can
 open <b>/etc/postfix/local_domains.db</b> before entering a chroot
 jail, so it is only an artefact of implementation.
 

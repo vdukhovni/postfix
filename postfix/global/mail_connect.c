@@ -30,11 +30,11 @@
 /*
 /*	Arguments:
 /* .IP class
-/*      Name of a class of local transport channel endpoints,
-/*      either \fIpublic\fR (accessible by any local user) or
-/*      \fIprivate\fR (administrative access only).
+/*	Name of a class of local transport channel endpoints,
+/*	either \fIpublic\fR (accessible by any local user) or
+/*	\fIprivate\fR (administrative access only).
 /* .IP service
-/*      The name of a local transport endpoint within the named class.
+/*	The name of a local transport endpoint within the named class.
 /* .IP block_mode
 /*	NON_BLOCKING for a non-blocking connection, or BLOCKING.
 /* SEE ALSO
