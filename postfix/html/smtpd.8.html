@@ -77,7 +77,7 @@ SMTPD(8)                                                 SMTPD(8)
               For  example, allow <a href="http://www.faqs.org/rfcs/rfc822.html">RFC822</a>-style address forms with
               comments, like Sendmail does.
 
-       <b>allow</b><i>_</i><b>broken</b><i>_</i><b>auth</b><i>_</i><b>clients</b>
+       <b>broken</b><i>_</i><b>sasl</b><i>_</i><b>auth</b><i>_</i><b>clients</b>
               Support older Microsoft clients that  mis-implement
               the AUTH protocol, and that expect an EHLO response
               of "250 AUTH=list" instead of "250 AUTH list".
@@ -90,7 +90,7 @@ SMTPD(8)                                                 SMTPD(8)
               same  syntax  as  the  right-hand side of a Postfix
               transport table.
 
-<b>Authenication</b> <b>controls</b>
+<b>Authentication</b> <b>controls</b>
        <b>enable</b><i>_</i><b>sasl</b><i>_</i><b>authentication</b>
               Enable per-session authentication as per  <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC  2554</a>
               (SASL).   This functionality is available only when

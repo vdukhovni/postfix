@@ -658,9 +658,7 @@ static void print_parameter(int mode, char *ptr)
 #define INSIDE(p,t) (ptr >= (char *) t && ptr < ((char *) t) + sizeof(t))
 
     /*
-     * This is gross, but the best we can do on short notice. Instead of
-     * guessing we should use a tagged union. This is what code looks like
-     * when written under the pressure of a first public release.
+     * This is gross, but the best we can do on short notice.
      */
     if (INSIDE(ptr, time_table))
 	print_time(mode, (CONFIG_TIME_TABLE *) ptr);

@@ -57,7 +57,7 @@
 /* .IP \fBstrict_rfc821_envelopes\fR
 /*	Disallow non-RFC 821 style addresses in envelopes. For example,
 /*	allow RFC822-style address forms with comments, like Sendmail does.
-/* .IP \fBallow_broken_auth_clients\fR
+/* .IP \fBbroken_sasl_auth_clients\fR
 /*	Support older Microsoft clients that mis-implement the AUTH
 /*	protocol, and that expect an EHLO response of "250 AUTH=list"
 /*	instead of "250 AUTH list".
@@ -67,7 +67,7 @@
 /*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
-/* .SH "Authenication controls"
+/* .SH "Authentication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	This functionality is available only when explicitly selected
@@ -1415,9 +1415,12 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     debug_peer_init();
     msg_cleanup(smtpd_cleanup);
 
-#ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)
+#ifdef USE_SASL_AUTH
 	smtpd_sasl_initialize();
+#else
+	msg_warn("%s is true, but SASL support is not compiled in",
+		 VAR_SMTPD_SASL_ENABLE);
 #endif
 }
 

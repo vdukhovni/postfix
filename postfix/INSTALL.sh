@@ -6,6 +6,7 @@
 PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc
 umask 022
 
+test -t 0 &&
 cat <<EOF
 
 Warning: this script replaces existing sendmail or Postfix programs.
@@ -124,6 +125,7 @@ fi
 
 # Find out the location of configuration files.
 
+test -t 0 &&
 for name in install_root tempdir config_directory
 do
     while :
@@ -168,6 +170,7 @@ test -f $CONFIG_DIRECTORY/install.cf && . $CONFIG_DIRECTORY/install.cf
 
 # Override default settings.
 
+test -t 0 &&
 for name in daemon_directory command_directory \
     queue_directory sendmail_path newaliases_path mailq_path mail_owner\
     setgid manpages

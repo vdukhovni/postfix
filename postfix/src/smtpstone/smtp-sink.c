@@ -336,11 +336,16 @@ static void connect_event(int unused_event, char *context)
 
     if ((fd = accept(sock, &sa, &len)) >= 0) {
 	if (msg_verbose)
-	    msg_info("connect (%s)", sa.sa_family == AF_LOCAL ? "AF_LOCAL" :
+	    msg_info("connect (%s)",
+#ifdef AF_LOCAL
+		     sa.sa_family == AF_LOCAL ? "AF_LOCAL" :
+#else
+		     sa.sa_family == AF_UNIX ? "AF_UNIX" :
+#endif
+		     sa.sa_family == AF_INET ? "AF_INET" :
 #ifdef AF_INET6
 		     sa.sa_family == AF_INET6 ? "AF_INET6" :
 #endif
-		     sa.sa_family == AF_INET ? "AF_INET" :
 		     "unknown protocol family");
 	non_blocking(fd, NON_BLOCKING);
 	state = (SINK_STATE *) mymalloc(sizeof(*state));

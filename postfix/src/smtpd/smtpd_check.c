@@ -281,6 +281,7 @@
 /* Application-specific. */
 
 #include "smtpd.h"
+#include "smtpd_sasl_glue.h"
 #include "smtpd_check.h"
 
  /*

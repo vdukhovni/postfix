@@ -1,6 +1,6 @@
 This is a very first implementation of Postfix content filtering.
 A Postfix content filter receives unfiltered mail from Postfix and
-re-injects filtered mail back into Postfix.
+either bounces the mail or re-injects filtered mail back into Postfix.
 
 It involves an incompatible change to queue file formats.  Older
 Postfix versions will reject mail that needs to be content filtered,
@@ -24,32 +24,34 @@ The example assumes that only mail arriving via SMTP needs to be
 content filtered.
 
       ..................................
-      .            Postfix             .
-   ------smtpd \                /local-----
-      .         -cleanup->queue-       .
-   -----pickup /                \smtp------
-   ^  .                        |       .
-   |  .                         \pipe-----+
+      :            Postfix             :
+   ----->smtpd \                /local---->
+      :         -cleanup->queue-       :
+   ---->pickup /                \smtp----->
+   ^  :                        |       :
+   |  :                         \pipe-----+
    |  ..................................  |
    |                                      |
    |                                      |
    +------sendmail<-------filter<---------+
 
-Create a dedicated local user account called "filter".  The user
-will never log in, and can be given a "*" password and non-existent
-shell and home.
+1 - Create a dedicated local user account called "filter".  The
+    user will never log in, and can be given a "*" password and
+    non-existent shell and home directory. This user handles all
+    potentially dangerous mail content - that is why it should be
+    a separate account.
 
-Create a directory /var/spool/filter that is accessible only to
-the "filter" user. This is where the content filtering will store
-its temporary files.
+2 - Create a directory /var/spool/filter that is accessible only
+    to the "filter" user. This is where the content filtering will
+    store its temporary files.
 
-Define a content filtering entry in the Postfix master file:
+3 - Define a content filtering entry in the Postfix master file:
 
     /etc/postfix/master.cf:
-	filter	  unix	-	n	n	-	-	pipe
-	    user=filter argv=/some/where/filter -f ${sender} -- ${recipient}
+      filter    unix  -       n       n       -       -       pipe
+        flags=R user=filter argv=/some/where/filter -f ${sender} -- ${recipient}
 
-The filter program can start out as a simple shell script like this:
+The /some/where/filter program can be a simple shell script like this:
 
     #!/bin/sh
 
@@ -85,20 +87,11 @@ content is OK, it is given as input to Postfix sendmail, and the
 exit status of the filter command is whatever exit status Postfix
 sendmail produces.
 
-The problem with content filters like this is that they are not
-very robust, because the software does not talk a well-defined
-protocol with Postfix. If the filter shell script aborts because
-the shell runs into some memory allocation problem, the script will
-not produce a nice exit status as per /usr/include/sysexits.h and
-mail will probably bounce. The same lack of robustness is possible
-when the content filtering software itself runs into a resource
-problem.
-
 I suggest that you play with this script for a while until you are
-satisfied with the results. Run it as root or as the filter user,
-with a real message (headers+body) as input:
+satisfied with the results. Run it as the filter user, with a real
+message (headers+body) as input:
 
-    # /some/where/filter -f sender recipient... <message-file
+    % /some/where/filter -f sender recipient... <message-file
 
 Turn on content filtering for mail arriving via SMTP only, by
 appending "-o content_filter=filter:dummy" to the master.cf
@@ -111,9 +104,17 @@ entry that defines the Postfix SMTP server:
 The content_filter configuration parameter accepts the same
 syntax as the right-hand side in a Postfix transport table.
 
-Postfix snapshot-20000529 requires that you specify a dummy
-destination as shown in the example.  This is no longer necessary
-with later Postfix versions.
+Simple content filter limitations
+=================================
+
+The problem with content filters like the one above is that they
+are not very robust, because the software does not talk a well-defined
+protocol with Postfix. If the filter shell script aborts because
+the shell runs into some memory allocation problem, the script will
+not produce a nice exit status as per /usr/include/sysexits.h and
+mail will probably bounce. The same lack of robustness is possible
+when the content filtering software itself runs into a resource
+problem.
 
 Advanced content filtering example
 ===================================
@@ -132,20 +133,20 @@ port 10025 that receives mail via the SMTP protocol, and that
 submits mail back into Postfix via localhost port 10026.
 
       ..................................
-      .            Postfix             .
-   ------smtpd \                /local-----
-      .         -cleanup->queue-       .
-   -----pickup /    ^       |   \smtp------
-      .             |       v          .
-      .           smtpd    smtp        .
-      .           10026     |          .
+      :            Postfix             :
+   ----->smtpd \                /local---->
+      :         -cleanup->queue-       :
+   ---->pickup /    ^       |   \smtp----->
+      :             |       v          :
+      :           smtpd    smtp        :
+      :           10026     |          :
       ......................|...........
                     ^       |
                     |       v
                 ....|............
-                .   |     10025 .
-                .   filtering   .
-                .               .
+                :   |     10025 :
+                :   filter      :
+                :               :
                 .................
 
 To enable content filtering in this manner, specify in main.cf a
@@ -174,12 +175,8 @@ up to 10 content filtering processes on demand:
 
 "filter" is a dedicated local user account.  The user will never
 log in, and can be given a "*" password and non-existent shell and
-home.
-
-The spawn server is part of Postfix but is not installed by default.
-Edit the top-level Makefile.in file, run "make makefiles", "make",
-and "make install". The manual page isn't installed by default,
-either. See the spawn.c source file.
+home directory.  This user handles all potentially dangerous mail
+content - that is why it should be a separate account.
 
 The /some/where/filter command is most likely a PERL script. PERL
 has modules that make talking SMTP easy. The command-line specifies
@@ -192,7 +189,8 @@ it can be used with other mailers too, which is a nice spin-off.
 The simplest content filter just copies SMTP commands and data
 between its inputs and outputs. If it has a problem, all it has to
 do is to reply to an input of `.' with `550 content rejected', and
-to disconnect its output side instead of sending `.'.
+to disconnect without sending `.' on the connection that injects
+mail back into Postfix.
 
 The job of the content filter is to either bounce mail with a
 suitable diagnostic, or to feed the mail back into Postfix through

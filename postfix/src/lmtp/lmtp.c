@@ -458,9 +458,12 @@ static void post_init(char *unused_name, char **unused_argv)
 static void pre_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
-#ifdef USE_SASL_AUTH
     if (var_lmtp_sasl_enable)
+#ifdef USE_SASL_AUTH
 	lmtp_sasl_initialize();
+#else
+	msg_warn("%s is true, but SASL support is not compiled in",
+		 VAR_LMTP_SASL_ENABLE);
 #endif
 }
 
@@ -525,6 +528,7 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_LMTP_CACHE_CONN, DEF_LMTP_CACHE_CONN, &var_lmtp_cache_conn,
 	VAR_LMTP_SKIP_QUIT_RESP, DEF_LMTP_SKIP_QUIT_RESP, &var_lmtp_skip_quit_resp,
+	VAR_LMTP_SASL_ENABLE, DEF_LMTP_SASL_ENABLE, &var_lmtp_sasl_enable,
 	0,
     };
 

@@ -62,11 +62,14 @@ Reportedly, Microsoft Internet Explorer version 5 requires the
 non-standard SASL LOGIN authentication method. To enable this
 authentication method, specify ``./configure --enable-login''.
 
-Reportedly, older Microsoft software mis-implements the AUTH
-protocol, and requires that the server replies to EHLO with
-"250-AUTH=stuff..." instead of "250-AUTH stuff...". To accomodate
-such clients, set "allow_broken_auth_clients = yes" in the main.cf
-file.
+Older Microsoft SMTP client software implements a non-standard 
+version of the AUTH protocol syntax, and expects that the SMTP
+server replies to EHLO with "250 AUTH=stuff" instead of "250 AUTH
+stuff".  To accomodate such clients in addition to conformant
+clients, set "broken_sasl_auth_clients = yes" in the main.cf file.
+
+The Postfix SMTP client is backwards compatible with SMTP servers
+that use the non-standard AUTH protocol syntax.
 
 Building Postfix with SASL authentication support
 =================================================

@@ -241,7 +241,7 @@ extern bool var_strict_rfc821_env;
   * Standards violation: send "250 AUTH=list" in order to accomodate broken
   * Microsoft clients.
   */
-#define VAR_BROKEN_AUTH_CLNTS	"allow_broken_auth_clients"
+#define VAR_BROKEN_AUTH_CLNTS	"broken_sasl_auth_clients"
 #define DEF_BROKEN_AUTH_CLNTS	0
 extern bool var_broken_auth_clients;
 
