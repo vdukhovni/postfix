@@ -16,9 +16,12 @@ Postfix virtual alias table format
 .SH DESCRIPTION
 .ad
 .fi
-The optional \fBvirtual\fR(5) alias table specifies address aliasing
-for arbitrary local or non-local recipient addresses. Virtual aliasing
-is recursive, and is done by the Postfix \fBcleanup\fR(8) daemon.
+The optional \fBvirtual\fR(5) alias table rewrites recipient
+addresses for all local, virtual and remote mail destinations.
+This is unlike the \fBaliases\fR(5) table which is used
+only for \fBlocal\fR(8) delivery.  Virtual aliasing is
+recursive, and is implemented by the Postfix \fBcleanup\fR(8)
+daemon before mail is queued.
 
 The main applications of virtual aliasing are:
 .IP \(bu

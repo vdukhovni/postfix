@@ -180,6 +180,11 @@
 #	The prepended text is output on a separate line, immediately
 #	before the input that triggered the \fBPREPEND\fR action.
 # .IP \(bu
+#	The prepended text is not considered part of the input
+#	stream: it is not subject to header/body checks or address
+#	rewriting, and it does not affect the way that Postfix adds
+#	missing message headers.
+# .IP \(bu
 #	When prepending text before a message header line, the prepended
 #	text must begin with a valid message header label.
 # .IP \(bu
@@ -202,10 +207,20 @@
 #	Replace the current line with the specified text and inspect the next
 #	input line.
 # .sp
-#	Note: when replacing a message header line, the replacement text
-#	must begin with a valid header label.
+#	This feature is available in Postfix 2.2 and later. The
+#	description below applies to Postfix 2.2.2 and later.
 # .sp
-#	This feature is available in Postfix 2.2 and later.
+#	Notes: 
+# .RS
+# .IP \(bu
+#	When replacing a message header line, the replacement text
+#	must begin with a valid header label.
+# .IP \(bu
+#	The replaced text remains part of the input stream. Unlike
+#	the result from the \fBPREPEND\fR action, a replaced message
+#	header may be subject to address rewriting and may affect
+#	the way that Postfix adds missing message headers.
+# .RE
 # .IP "\fBREJECT \fIoptional text...\fR
 #	Reject the entire message. Reply with \fIoptional text...\fR when
 #	the optional text is specified, otherwise reply with a generic error

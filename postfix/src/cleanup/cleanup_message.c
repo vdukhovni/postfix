@@ -295,18 +295,17 @@ static void cleanup_act_log(CLEANUP_STATE *state,
 
 /* cleanup_act - act upon a header/body match */
 
-static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
-		               const char *value, const char *map_class)
+static const char *cleanup_act(CLEANUP_STATE *state, char *context,
+			               const char *buf, const char *value,
+			               const char *map_class)
 {
     const char *optional_text = value + strcspn(value, " \t");
     int     command_len = optional_text - value;
-    VSTRING *bp;
 
     while (*optional_text && ISSPACE(*optional_text))
 	optional_text++;
 
 #define STREQUAL(x,y,l) (strncasecmp((x), (y), (l)) == 0 && (y)[l] == 0)
-#define CLEANUP_ACT_KEEP 1
 #define CLEANUP_ACT_DROP 0
 
     if (STREQUAL(value, "REJECT", command_len)) {
@@ -316,17 +315,18 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	state->errs |= CLEANUP_STAT_CONT;
 	state->flags &= ~CLEANUP_FLAG_FILTER;
 	cleanup_act_log(state, "reject", context, buf, state->reason);
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     if (STREQUAL(value, "WARN", command_len)) {
 	cleanup_act_log(state, "warning", context, buf, optional_text);
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     if (STREQUAL(value, "FILTER", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("missing FILTER command argument in %s map", map_class);
 	} else if (strchr(optional_text, ':') == 0) {
-	    msg_warn("bad FILTER command %s in %s, need transport:destination",
+	    msg_warn("bad FILTER command %s in %s -- "
+		     "need transport:destination",
 		     optional_text, map_class);
 	} else {
 	    if (state->filter)
@@ -334,57 +334,52 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	    state->filter = mystrdup(optional_text);
 	    cleanup_act_log(state, "filter", context, buf, optional_text);
 	}
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     if (STREQUAL(value, "DISCARD", command_len)) {
 	cleanup_act_log(state, "discard", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_DISCARD;
 	state->flags &= ~CLEANUP_FLAG_FILTER;
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     if (STREQUAL(value, "HOLD", command_len)) {
 	cleanup_act_log(state, "hold", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_HOLD;
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     if (STREQUAL(value, "PREPEND", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("PREPEND action without text in %s map", map_class);
 	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0
 		   && !is_header(optional_text)) {
-	    msg_warn("bad PREPEND header text \"%s\" in %s map, "
+	    msg_warn("bad PREPEND header text \"%s\" in %s map -- "
 		     "need \"headername: headervalue\"",
 		     optional_text, map_class);
 	} else {
 	    cleanup_act_log(state, "prepend", context, buf, optional_text);
 	    cleanup_out_string(state, REC_TYPE_NORM, optional_text);
 	}
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     if (STREQUAL(value, "REPLACE", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("REPLACE action without text in %s map", map_class);
-	    return (CLEANUP_ACT_KEEP);
-	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0) {
-	    if (!is_header(optional_text)) {
-		msg_warn("bad REPLACE header text \"%s\" in %s map, "
-			 "need \"headername: headervalue\"",
-			 optional_text, map_class);
-		return (CLEANUP_ACT_KEEP);
-	    } 
-	    /* XXX Impedance mismatch. */
-	    bp = vstring_strcpy(vstring_alloc(100), optional_text);
-	    cleanup_out_header(state, bp);
-	    vstring_free(bp);
+	    return (buf);
+	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0
+		   && !is_header(optional_text)) {
+	    msg_warn("bad REPLACE header text \"%s\" in %s map -- "
+		     "need \"headername: headervalue\"",
+		     optional_text, map_class);
+	    return (buf);
 	} else {
-	    cleanup_out_string(state, REC_TYPE_NORM, optional_text);
+	    cleanup_act_log(state, "replace", context, buf, optional_text);
+	    return (mystrdup(optional_text));
 	}
-	cleanup_act_log(state, "replace", context, buf, optional_text);
-	return (CLEANUP_ACT_DROP);
     }
     if (STREQUAL(value, "REDIRECT", command_len)) {
 	if (strchr(optional_text, '@') == 0) {
-	    msg_warn("bad REDIRECT target \"%s\" in %s map, need user@domain",
+	    msg_warn("bad REDIRECT target \"%s\" in %s map -- "
+		     "need user@domain",
 		     optional_text, map_class);
 	} else {
 	    if (state->redirect)
@@ -393,7 +388,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	    cleanup_act_log(state, "redirect", context, buf, optional_text);
 	    state->flags &= ~CLEANUP_FLAG_FILTER;
 	}
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
     }
     /* Allow and ignore optional text after the action. */
 
@@ -401,13 +396,13 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	return (CLEANUP_ACT_DROP);
 
     if (STREQUAL(value, "DUNNO", command_len))	/* preferred */
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
 
     if (STREQUAL(value, "OK", command_len))	/* compat */
-	return (CLEANUP_ACT_KEEP);
+	return (buf);
 
     msg_warn("unknown command in %s map: %s", map_class, value);
-    return (CLEANUP_ACT_KEEP);
+    return (buf);
 }
 
 /* cleanup_header_callback - process one complete header line */
@@ -456,10 +451,17 @@ static void cleanup_header_callback(void *context, int header_class,
 	const char *value;
 
 	if ((value = maps_find(checks, header, 0)) != 0) {
-	    if (cleanup_act(state, CLEANUP_ACT_CTXT_HEADER,
-			    header, value, map_class)
-		== CLEANUP_ACT_DROP)
+	    const char *result;
+
+	    if ((result = cleanup_act(state, CLEANUP_ACT_CTXT_HEADER,
+				      header, value, map_class))
+		== CLEANUP_ACT_DROP) {
 		return;
+	    } else if (result != header) {
+		vstring_strcpy(header_buf, result);
+		hdr_opts = header_opts_find(result);
+		myfree((char *) result);
+	    }
 	}
     }
 
@@ -665,10 +667,17 @@ static void cleanup_body_callback(void *context, int type,
 	const char *value;
 
 	if ((value = maps_find(cleanup_body_checks, buf, 0)) != 0) {
-	    if (cleanup_act(state, CLEANUP_ACT_CTXT_BODY,
-			    buf, value, VAR_BODY_CHECKS)
-		== CLEANUP_ACT_DROP)
+	    const char *result;
+
+	    if ((result = cleanup_act(state, CLEANUP_ACT_CTXT_BODY,
+				      buf, value, VAR_BODY_CHECKS))
+		== CLEANUP_ACT_DROP) {
 		return;
+	    } else if (result != buf) {
+		cleanup_out(state, type, result, strlen(result));
+		myfree((char *) result);
+		return;
+	    }
 	}
     }
     cleanup_out(state, type, buf, len);

@@ -209,7 +209,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	    freeaddrinfo(res0);
 	    if (found == 0) {
 		vstring_sprintf(why, "%s: host not found", host);
-		smtp_errno = SMTP_ERR_FAIL;
+		if (smtp_errno != SMTP_ERR_RETRY)
+		    smtp_errno = SMTP_ERR_FAIL;
 	    }
 	    return (addr_list);
 	}

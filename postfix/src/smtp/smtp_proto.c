@@ -91,6 +91,7 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <sys/socket.h>			/* shutdown(2) */
+#include <netinet/in.h>			/* ntohs() */
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */

@@ -198,6 +198,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
     static SMTP_RESP rdata;
     char   *cp;
     int     last_char;
+    int     three_digs = 0;
 
     /*
      * Initialize the response data buffer.
@@ -238,7 +239,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	 */
 	for (cp = STR(session->buffer); *cp && ISDIGIT(*cp); cp++)
 	     /* void */ ;
-	if (cp - STR(session->buffer) == 3) {
+	if ((three_digs = (cp - STR(session->buffer) == 3)) != 0) {
 	    if (*cp == '-')
 		continue;
 	    if (*cp == ' ' || *cp == 0)
@@ -246,7 +247,10 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	}
 	session->error_mask |= MAIL_ERROR_PROTOCOL;
     }
-    rdata.code = atoi(STR(session->buffer));
+    if (three_digs != 0)
+	rdata.code = atoi(STR(session->buffer));
+    else
+	rdata.code = 0;
     VSTRING_TERMINATE(rdata.buf);
     rdata.str = STR(rdata.buf);
     return (&rdata);

@@ -10485,3 +10485,30 @@ Apologies for any names omitted.
 	Bugfix: when <unistd.h> is included, read is a reserved
 	identifier. File: smtpstone/smtp-source.c.
 
+20050317
+
+	Cleanup: change wording of error message when an IPv6 address
+	is mistaken for maptype:mapname. File: util/dict_open.c.
+
+20050321
+
+	Robustness: don't look for SMTP status code when there was
+	none. File: smtp/smtp_chat.c, lmtp/lmtp_chat.c.
+
+	Portability: missing netinet/in.h include, so that ntohs()
+	was not defined on HP-UX. File: smtp/smtp_proto.c.
+
+20050327
+
+	Bugfix: the SMTP and LMTP clients did not ask the queue
+	manager to reduce destination concurrency when "lost
+	connection" or "connection timed out" happened AFTER Postfix
+	received the server greeting. Files: smtp/smtp_trouble.c,
+	lmtp/lmtp-trouble.c.
+
+20050328
+
+	Cleanup: the REPLACE action is no longer implemented as
+	PREPEND+IGNORE. The result remains in the input stream, and
+	is subject to address rewriting and other processing where
+	applicable.  File: cleanup/cleanup_message.c.

@@ -1,4 +1,4 @@
-# HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
+# HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
 # 
 # NAME
 #        header_checks - Postfix built-in header/body inspection
@@ -202,6 +202,12 @@
 #                      line,  immediately  before  the  input  that
 #                      triggered the PREPEND action.
 # 
+#               o      The prepended text is not considered part of
+#                      the  input  stream:  it  is  not  subject to
+#                      header/body checks or address rewriting, and
+#                      it does not affect the way that Postfix adds
+#                      missing message headers.
+# 
 #               o      When prepending text before a message header
 #                      line,  the  prepended text must begin with a
 #                      valid message header label.
@@ -228,11 +234,22 @@
 #               Replace  the  current  line with the specified text
 #               and inspect the next input line.
 # 
-#               Note: when replacing a  message  header  line,  the
-#               replacement  text  must  begin  with a valid header
-#               label.
-# 
 #               This feature is available in Postfix 2.2 and later.
+#               The  description below applies to Postfix 2.2.2 and
+#               later.
+# 
+#               Notes:
+# 
+#               o      When replacing a message  header  line,  the
+#                      replacement  text  must  begin  with a valid
+#                      header label.
+# 
+#               o      The replaced text remains part of the  input
+#                      stream.  Unlike  the result from the PREPEND
+#                      action, a replaced  message  header  may  be
+#                      subject  to address rewriting and may affect
+#                      the way that Postfix  adds  missing  message
+#                      headers.
 # 
 #        REJECT optional text...
 #               Reject  the  entire  message.  Reply  with optional
@@ -359,4 +376,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                  HEADER_CHECKS(5)
+#                                                               HEADER_CHECKS(5)

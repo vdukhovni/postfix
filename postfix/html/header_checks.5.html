@@ -208,6 +208,12 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
                      line,  immediately  before  the  input  that
                      triggered the <b>PREPEND</b> action.
 
+              <b>o</b>      The prepended text is not considered part of
+                     the  input  stream:  it  is  not  subject to
+                     header/body checks or address rewriting, and
+                     it does not affect the way that Postfix adds
+                     missing message headers.
+
               <b>o</b>      When prepending text before a message header
                      line,  the  prepended text must begin with a
                      valid message header label.
@@ -234,11 +240,22 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               Replace  the  current  line with the specified text
               and inspect the next input line.
 
-              Note: when replacing a  message  header  line,  the
-              replacement  text  must  begin  with a valid header
-              label.
-
               This feature is available in Postfix 2.2 and later.
+              The  description below applies to Postfix 2.2.2 and
+              later.
+
+              Notes:
+
+              <b>o</b>      When replacing a message  header  line,  the
+                     replacement  text  must  begin  with a valid
+                     header label.
+
+              <b>o</b>      The replaced text remains part of the  input
+                     stream.  Unlike  the result from the <b>PREPEND</b>
+                     action, a replaced  message  header  may  be
+                     subject  to address rewriting and may affect
+                     the way that Postfix  adds  missing  message
+                     headers.
 
        <b>REJECT</b> <i>optional text...</i>
               Reject  the  entire  message.  Reply  with <i>optional</i>

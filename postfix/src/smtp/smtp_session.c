@@ -129,13 +129,6 @@
 
  /*
   * Per-site policies can override main.cf settings.
-  * 
-  * XXX 200412 This does not work as some people may expect. A policy that
-  * specifies "use TLS" in a policy file while TLS is turned off in main.cf
-  * cannot work, because there is no OpenSSL context for creating sessions
-  * (that context exists only if TLS is enabled via main.cf settings; the
-  * OpenSSL context is created at process initialization time and cannot be
-  * created on the fly).
   */
 typedef struct {
     int     dont_use;			/* don't use TLS */
