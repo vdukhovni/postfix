@@ -21,8 +21,8 @@ the following sections of this document.
 from third-party patches.
 
 - SMTP client-side connection reuse. This can dramatically speed
-up deliveries to high-volume destinations that have good and
-non-responding mail servers.
+up deliveries to high-volume destinations that have some servers
+that respond, and some non-responding mail servers.
 
 - By default, message header address rewriting is now disabled for
 SMTP mail from other systems.  Thus, spam from poorly written
@@ -75,8 +75,8 @@ the Postfix/TLS patch.
 [Feature 20040919] The upgrade procedure adds the discard service
 to the master.cf file.
 
-[Feature 20040720] The upgrade procedure adds the scache (connection
-cache) service to the master.cf file.
+[Feature 20040720] The upgrade procedure adds the scache (shared
+connection cache) service to the master.cf file.
 
 Major changes - IPv6 support
 ----------------------------
@@ -116,15 +116,6 @@ Postfix/TLS patch by Lutz Jaenicke.  TLS support is not compiled
 in by default.  For more information about Postfix 2.2 TLS support,
 see the TLS_README document.
 
-[Feature 20050209] The Postfix SMTP server policy delegation protocol
-now supplies TLS client certificate information after successful
-verification.  The new policy delegation protocol attribute names
-are ccert_subject, ccert_issuer and ccert_fingerprint.
-
-[Feature 20050208] New "check_ccert_maps maptype:mapname" feature
-to enforce access control based on hexadecimal client certificate
-fingerprints.
-
 [Incompat 20041210] Postfix version 2.2 TLS support differs from
 the Postfix/TLS patch by Lutz Jaenicke in a few minor ways.
 
@@ -149,6 +140,15 @@ the Postfix/TLS patch by Lutz Jaenicke in a few minor ways.
   in order to access the tlsmgr(8)'s pseudo-random number generation
   (PRNG) pool, and in order to access the TLS session cache databases.
   Such a protocol cannot be run across fifos.
+
+[Feature 20050209] The Postfix SMTP server policy delegation protocol
+now supplies TLS client certificate information after successful
+verification.  The new policy delegation protocol attribute names
+are ccert_subject, ccert_issuer and ccert_fingerprint.
+
+[Feature 20050208] New "check_ccert_maps maptype:mapname" feature
+to enforce access control based on hexadecimal client certificate
+fingerprints.
 
 Major changes - SMTP client connection cache
 --------------------------------------------

@@ -173,6 +173,7 @@ typedef struct SMTP_SESSION {
     char   *host;			/* mail exchanger */
     char   *addr;			/* mail exchanger */
     char   *namaddr;			/* mail exchanger */
+    char   *helo;			/* helo response */
     unsigned port;			/* network byte order */
 
     VSTRING *buffer;			/* I/O buffer */

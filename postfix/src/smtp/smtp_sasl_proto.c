@@ -98,8 +98,8 @@ static const char *smtp_sasl_compat_mechs(const char *words)
 
     save_mech = mech_list = mystrdup(words);
 
-    while (mech = mystrtok(&mech_list, " \t")) {
-    	if (string_list_match(smtp_sasl_mechs, mech)) {
+    while ((mech = mystrtok(&mech_list, " \t")) != 0) {
+	if (string_list_match(smtp_sasl_mechs, mech)) {
 	    if (VSTRING_LEN(buf) > 0)
 		VSTRING_ADDCH(buf, ' ');
 	    vstring_strcat(buf, mech);

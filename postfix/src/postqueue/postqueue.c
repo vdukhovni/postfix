@@ -222,8 +222,8 @@
  /*
   * Queue manipulation access lists.
   */
-static char *var_flush_acl;
-static char *var_showq_acl;
+char   *var_flush_acl;
+char   *var_showq_acl;
 
 static CONFIG_STR_TABLE str_table[] = {
     VAR_FLUSH_ACL, DEF_FLUSH_ACL, &var_flush_acl, 0, 0,

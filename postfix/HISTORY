@@ -10405,154 +10405,43 @@ Apologies for any names omitted.
 	FROM: or CC: by From: or Cc:. Files: cleanup/cleanup_message.c,
 	smtp/smtp_proto.c.
 
-Open problems:
+20050228
 
-	Med: disable header address rewriting after XCLIENT?
-	Introduce a better concept of original submission?
+	Cleanup/portability: missing #includes and bad prototypes.
+	Matthias Andree, Carsten Hoeger, and others.
 
-	Low: 9kbyte memory leak when expired in-memory session
-	information is removed by SSL_CTX_flush_sessions(); found
-	by setting the expiry time shorter than the time to deliver
-	one or two messages. Postfix processes are short-lived,
-	and the occurrance of this leak is rare enough that it is
-	a low priority.
+20050302
 
-	Low: configurable order of local(8) delivery methods.
+	Workaround: make TLS session caching work with perverse
+	sites that have multiple servers per hostname or even
+	multiple servers per IP address, but no shared TLS session
+	cache. The SMTP client TLS session cache is now indexed by
+	(server hostname, server address, server port, server helo
+	hostname). After an idea by Victor Duchovni. Files:
+	smtp/smtp_proto.c, tls/tls_client.c.
 
-	Med: local and remote source port and IP address for smtpd
-	policy hook.
+20050303
 
-	Med: smtp_connect_timeout_budget (default: 3x smtp_connect_timeout)
-	to limit the total time spent trying to connect.
+	Bugfix (bug inherited from Postfix/TLS patch): a rare 9kbyte
+	memory leak when in-memory TLS session information expires;
+	found by setting the expiry time shorter than the time to
+	deliver one or two messages with a very slow machine.  This
+	was due to a missing SSL_SESSION_free() call in the "new
+	session" call-back routines. Found by Victor Duchovni.
+	Files: tls/tls_client.c, tls/tls_server.c.
 
-	Med: transform IPv4-in-IPv6 address literals to IPv4 form
-	when comparing against local IP addresses?
+	Workaround: OpenSSL is overly agressive when purging a
+	not-yet expired entry from a full in-memory cache: it also
+	purges the entry from the on-disk server session cache.
+	Workaround is to let only the tlsmgr purge entries from the
+	on-disk server session cache.  Found by Victor Duchovni.
+	File: tls/tls_server.c.
 
-	Med: transform IPv4-in-IPv6 address literals to IPv4 form
-	when eliminating MX mailer loops?
+20050304
 
-	Med: Postfix requires [] around IPv6 address information
-	in match lists such as mynetworks, debug_peer_list etc.,
-	but the [] must not be specified in access(5) maps. Other
-	places don't care.  For now, this gotcha is documented in
-	IPV6_README and in postconf(5) with each feature that may
-	use IPv6 address information. The general recommendation
-	is not to use [] unless absolutely necessary.
+	Postfix releases are now signed with Wietse's new PGP key.
+	The old key was getting a bit short for today's standards.
+	The new public key can be found on the Postfix download
+	webpage. As proof of authenticity the new PGP key is signed
+	with Wietse's old PGP key.
 
-	Med: the partial address matching of IPv6 addresses in
-	access(5) maps is a bit lame: it repeatedly truncates the
-	last ":octetpair" from the printable address representation
-	until a match is found or until truncation is no longer
-	possible.  Since one or more ":" are usually omitted from
-	the printable IPv6 address representation, this does not
-	really try all the possibilities that one might expect to
-	be tried. For now, this gotcha is documented in access(5).
-
-	Med: the TLS certificate verification depth parameters
-	never worked.
-
-	Med: eliminate the tls_info data structure.
-
-	Low: reject HELO with any domain name or IP address that
-	this MTA is the final destination for.
-
-	Low: should the Delivered-To: test in local(8) be configurable?
-
-	Low: make mail_addr_find() lookup configurable.
-
-	Low: update events.c so that 1-second timer requests do
-	not suffer from rounding errors. This is needed for 1-second
-	SMTP session caching time limits. A 1-second interval would
-	become arbitrarily short when an event is scheduled just
-	before the current second rolls over.
-
-	Low: per-sender resolver personalities?
-
-	Low: configurable internal/system locking method.
-
-	Low: make sure CCARGS -I options come at the end.
-
-	Low: add INSTALL section for pre-existing Postfix systems.
-
-	Low: add INSTALL section for pre-existing RPM Postfixes.
-
-	Low: disallow smtpd_recipient_limit < 100 (the RFC minimum).
-
-	Low: noise filter: allow smtp(8) to retry immediately if
-	all MXes return a quick ECONNRESET or 4xx reply during the
-	initial handshake.
-
-	Low: make post-install a "postfix-only script" so it can
-	take data from the environment instead of main.cf.
-
-	Low: randomize deferred mail backoff.
-
-	Med: separate ulimit for delivery to command?
-
-	Med: option to open queue file early, after MAIL FROM.
-
-	Low: log xdelay (esp. for SMTP and delivery to command).
-
-	Med: silly queue file bit so that the queue manager doesn't
-	skip files when fast flush is requested while a queue scan
-	is in progress. The bit is set by the flush server and is
-	reset when the mail is deferred, so that it survives queue
-	manager restart.
-
-	Med: postsuper -r should do something with recipients in
-	bounce logfiles.
-
-	Low: postsuper re-run after renaming files, but only a
-	limited number of times.
-
-	Low: smtp-source may block when sending large test messages.
-
-	Med: make qmgr recipient bounce/defer activity asynchronous
-	or add a multi-recipient operation that reduces overhead.
-	One possibility is to pass delivery requests to a retry(8)
-	delivery agent which is error(8) in disguise, and which
-	calls defer_append() instead of bounce_append().
-
-	Low: postmap/postalias should not try to open a bogus file
-	when given an unsupported dictionary type.
-
-	Med: find a way to log the sender address when MAIL FROM
-	is rejected due to lack of disk space.
-
-	Low: revise other local delivery agent duplicate filters.
-
-	Low: all table lookups should consistently use internalized
-	(unquoted) or externalized (quoted) forms as lookup keys.
-	smtpd, qmgr, local, etc. use unquoted address forms as
-	keys.  cleanup uses quoted forms.
-
-	Low: have a configurable list of errno values for mailbox
-	or maildir delivery that result in deferral rather than
-	bouncing mail.
-
-	Low: after reorganizing configuration parameters, add flags
-	to all parameters whose value can be read from file.
-
-	Medium: need in-process caching for map lookups. LDAP
-	servers seem to need this in particular. Need a way to
-	expire cached results that are too old.
-
-	Low: generic showq protocol, to allow for more intelligent
-	processing than just mailq. Maybe marry this with postsuper.
-
-	Low: default domain for appending to unqualified recipients,
-	so that unqualified names can be delivered locally.
-
-	Low: The $process_id_directory setting is not used anywhere
-	in Postfix. Problem reported by Michael Smith, texas.net.
-	This should be documented, or better, the code should warn
-	about attempts to set read-only parameters.
-
-	Low: postconf -e edits parameters that postconf won't list.
-
-	Low: while converting 8bit text to quoted-printable, perhaps
-	use =46rom to avoid having to produce >From when delivering
-	to mailbox.
-
-	virtual_mailbox_path expression like forward_path, so that
-	people can specify prefix and suffix.

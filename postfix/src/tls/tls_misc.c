@@ -82,7 +82,6 @@
   * so that it can be accessed by call-back routines.
   */
 int     TLScontext_index = -1;
-int     TLSpeername_index = -1;
 
 /* tls_print_errors - print and clear the error stack */
 

@@ -219,6 +219,8 @@ char   *xfer_request[SMTP_STATE_LAST] = {
     "QUIT command",
 };
 
+static int smtp_start_tls(SMTP_STATE *, int);
+
 /* smtp_helo - perform initial handshake with SMTP server */
 
 int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
@@ -245,7 +247,6 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
     int     discard_mask;
 
 #ifdef USE_TLS
-    static int smtp_start_tls(SMTP_STATE *, int);
     int     saved_features = session->features;
 
 #endif
@@ -361,9 +362,22 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
      * MicroSoft implemented AUTH based on an old draft.
      */
     lines = resp->str;
-    while ((words = mystrtok(&lines, "\n")) != 0) {
+    for (n = 0; (words = mystrtok(&lines, "\n")) != 0; /* see below */ ) {
 	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t=")) != 0) {
-	    if (strcasecmp(word, "8BITMIME") == 0) {
+	    if (n == 0) {
+		if (session->helo != 0)
+		    myfree(session->helo);
+		session->helo = lowercase(mystrdup(word));
+		if (strcasecmp(word, var_myhostname) == 0
+		    && (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) != 0) {
+		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
+			     session->namaddr, var_myhostname);
+		    return (smtp_site_fail(state,
+		     (session->features & SMTP_FEATURE_BEST_MX) ? 550 : 450,
+					 "mail for %s loops back to myself",
+					   request->nexthop));
+		}
+	    } else if (strcasecmp(word, "8BITMIME") == 0) {
 		if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
 		    session->features |= SMTP_FEATURE_8BITMIME;
 	    } else if (strcasecmp(word, "PIPELINING") == 0) {
@@ -396,16 +410,8 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 		if ((discard_mask & EHLO_MASK_AUTH) == 0)
 		    smtp_sasl_helo_auth(session, words);
 #endif
-	    } else if (strcasecmp(word, var_myhostname) == 0) {
-		if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) {
-		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
-			     session->namaddr, var_myhostname);
-		    return (smtp_site_fail(state,
-		     (session->features & SMTP_FEATURE_BEST_MX) ? 550 : 450,
-					 "mail for %s loops back to myself",
-					   request->nexthop));
-		}
 	    }
+	    n++;
 	}
     }
     if (msg_verbose)
@@ -554,6 +560,7 @@ int     smtp_helo(SMTP_STATE *state, NOCLOBBER int misc_flags)
 static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
 {
     SMTP_SESSION *session = state->session;
+    VSTRING *serverid;
 
     /*
      * Turn off SMTP connection caching. When the TLS handshake succeeds, we
@@ -580,13 +587,26 @@ static int smtp_start_tls(SMTP_STATE *state, int misc_flags)
      * follow below AFTER the tls_client_start() call. These tests should be
      * done inside tls_client_start() or its call-backs, to keep the SMTP
      * client code clean (as it is in the SMTP server).
+     * 
+     * The following assumes sites that use TLS in a perverse configuration:
+     * multiple hosts per hostname, or even multiple hosts per IP address.
+     * All this without a shared TLS session cache, and they still want to
+     * use TLS session caching???
      */
+    serverid = vstring_alloc(10);
+    vstring_sprintf(serverid, "%s:%s:%u",
+		    session->host, session->addr,
+		    ntohs(session->port));
+    if (session->helo && strcasecmp(session->host, session->helo) != 0)
+	vstring_sprintf_append(serverid, ":%s", session->helo);
     session->tls_context =
 	tls_client_start(smtp_tls_ctx, session->stream,
 			 var_smtp_starttls_tmout,
 			 session->tls_enforce_peername,
 			 session->host,
+			 lowercase(vstring_str(serverid)),
 			 &(session->tls_info));
+    vstring_free(serverid);
     if (session->tls_context == 0)
 	return (smtp_site_fail(state, 450,
 			       "Cannot start TLS: handshake failure"));
@@ -741,10 +761,10 @@ static void smtp_header_rewrite(void *context, int header_class,
     char   *end_line;
 
     /*
-     * Rewrite primary header addresses that match the smtp_generic_maps.
-     * The cleanup server already enforces that all headers have proper
-     * lengths and that all addresses are in proper form, so we don't have to
-     * repeat that.
+     * Rewrite primary header addresses that match the smtp_generic_maps. The
+     * cleanup server already enforces that all headers have proper lengths
+     * and that all addresses are in proper form, so we don't have to repeat
+     * that.
      */
     if (header_info && header_class == MIME_HDR_PRIMARY
 	&& (header_info->flags & (HDR_OPT_SENDER | HDR_OPT_RECIP)) != 0) {

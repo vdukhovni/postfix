@@ -191,28 +191,6 @@ static SSL_SESSION *get_server_session_cb(SSL *unused_ssl,
     return (session);
 }
 
-/* remove_server_session_cb - callback to remove session from server cache */
-
-static void remove_server_session_cb(SSL_CTX *unused_ctx, SSL_SESSION *session)
-{
-    VSTRING *cache_id;
-
-    /*
-     * Encode the session ID.
-     */
-    cache_id =
-	MAKE_SERVER_CACHE_ID(session->session_id, session->session_id_length);
-    if (var_smtpd_tls_loglevel >= 3)
-	msg_info("remove session %s from server cache", STR(cache_id));
-
-    /*
-     * Delete the session from cache.
-     */
-    tls_mgr_delete(tls_server_cache, STR(cache_id));
-
-    vstring_free(cache_id);
-}
-
 /* new_server_session_cb - callback to save session to server cache */
 
 static int new_server_session_cb(SSL *unused_ssl, SSL_SESSION *session)
@@ -243,6 +221,7 @@ static int new_server_session_cb(SSL *unused_ssl, SSL_SESSION *session)
     if (session_data)
 	vstring_free(session_data);
     vstring_free(cache_id);
+    SSL_SESSION_free(session);			/* 200502 */
 
     return (1);
 }
@@ -425,6 +404,13 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
 
     /*
      * The session cache is implemented by the tlsmgr(8) server.
+     * 
+     * XXX 200502 Surprise: when OpenSSL purges an entry from the in-memory
+     * cache, it also attempts to purge the entry from the on-disk cache.
+     * This is undesirable, especially when we set the in-memory cache size
+     * to 1. For this reason we don't allow OpenSSL to purge on-disk cache
+     * entries, and leave it up to the tlsmgr process instead. Found by
+     * Victor Duchovni.
      */
     if (tls_mgr_policy(&cache_types) == TLS_MGR_STAT_OK
 	&& (tls_server_cache = (cache_types & TLS_MGR_SCACHE_SERVER)) != 0) {
@@ -432,7 +418,6 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
 		      SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_AUTO_CLEAR);
 	SSL_CTX_sess_set_get_cb(server_ctx, get_server_session_cb);
 	SSL_CTX_sess_set_new_cb(server_ctx, new_server_session_cb);
-	SSL_CTX_sess_set_remove_cb(server_ctx, remove_server_session_cb);
     }
 
     /*
@@ -474,14 +459,13 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
      * Allocate a new TLScontext for the new connection and get an SSL
      * structure. Add the location of TLScontext to the SSL to later retrieve
      * the information inside the tls_verify_certificate_callback().
-     *
+     * 
      * XXX Need a dedicated procedure for consistent initialization of all the
      * fields in this structure.
      */
 #define PEERNAME_SIZE sizeof(TLScontext->peername_save)
 
-    TLScontext = (TLScontext_t *) mymalloc(sizeof(TLScontext_t));
-    memset((char *) TLScontext, 0, sizeof(*TLScontext));
+    NEW_TLS_CONTEXT(TLScontext);
     TLScontext->log_level = var_smtpd_tls_loglevel;
     strncpy(TLScontext->peername_save, peername, PEERNAME_SIZE - 1);
     TLScontext->peername_save[PEERNAME_SIZE - 1] = 0;
@@ -490,14 +474,14 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
     if ((TLScontext->con = (SSL *) SSL_new(server_ctx)) == NULL) {
 	msg_info("Could not allocate 'TLScontext->con' with SSL_new()");
 	tls_print_errors();
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
 	msg_info("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();
 	SSL_free(TLScontext->con);
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
 
@@ -528,7 +512,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 	msg_info("Could not obtain BIO_pair");
 	tls_print_errors();
 	SSL_free(TLScontext->con);
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
 
@@ -577,7 +561,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 	tls_print_errors();
 	SSL_free(TLScontext->con);
 	BIO_free(TLScontext->network_bio);	/* 200411 */
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
     /* Only loglevel==4 dumps everything */
@@ -622,7 +606,6 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 		msg_info("fingerprint=%s", TLScontext->fingerprint);
 	    tls_info->peer_fingerprint = TLScontext->fingerprint;
 	}
-
 	TLScontext->peer_CN[0] = '\0';
 	if (!X509_NAME_get_text_by_NID(X509_get_subject_name(peer),
 				       NID_commonName, TLScontext->peer_CN,
@@ -672,7 +655,7 @@ TLScontext_t *tls_server_start(SSL_CTX *server_ctx, VSTREAM *stream,
 	    SSL_CTX_remove_session(server_ctx, session);
 	    SSL_free(TLScontext->con);
 	    BIO_free(TLScontext->network_bio);	/* 200411 */
-	    myfree((char *) TLScontext);
+	    FREE_TLS_CONTEXT(TLScontext);
 	    return (0);
 	}
     }

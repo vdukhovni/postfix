@@ -9,13 +9,15 @@
 /*	SSL_CTX	*tls_client_init(verifydepth)
 /*	int	verifydepth; /* unused */
 /*
-/*	TLScontext_t *tls_client_start(client_ctx, stream, timeout, peername,
-/*					peeraddr, tls_info)
+/*	TLScontext_t *tls_client_start(client_ctx, stream, timeout, 
+/*					enforce_peername, peername, 
+/*					serverid, tls_info)
 /*	SSL_CTX	*client_ctx;
 /*	VSTREAM	*stream;
 /*	int	timeout;
+/*	int	enforce_peername;
 /*	const char *peername;
-/*	const char *peeraddr;
+/*	const char *serverid;
 /*	tls_info_t *tls_info;
 /*
 /*	void	tls_client_stop(client_ctx, stream, failure, tls_info)
@@ -36,6 +38,9 @@
 /*	passed as argument. We expect that network buffers are flushed and the
 /*	TLS handshake can begin	immediately. Information about the peer
 /*	is stored into the tls_info structure passed as argument.
+/*	The serverid argument specifies a string that hopefully
+/*	uniquely identifies a server. It is used as the client
+/*	session cache lookup key.
 /*
 /*	tls_client_stop() sends the "close notify" alert via
 /*	SSL_shutdown() to the peer and resets all connection specific
@@ -144,12 +149,10 @@ static int client_verify_callback(int ok, X509_STORE_CTX *ctx)
 
 /* load_clnt_session - load session from client cache (non-callback) */
 
-static SSL_SESSION *load_clnt_session(const char *hostname,
+static SSL_SESSION *load_clnt_session(const char *cache_id,
 				              int enforce_peername)
 {
     SSL_SESSION *session = 0;
-    char   *cache_id;
-    VSTRING *cache_id_buffer;
     VSTRING *session_data = vstring_alloc(2048);
     int     flags = 0;
 
@@ -158,7 +161,6 @@ static SSL_SESSION *load_clnt_session(const char *hostname,
     /*
      * Prepare the query.
      */
-    cache_id = lowercase(mystrdup(hostname));
     if (var_smtp_tls_loglevel >= 3)
 	msg_info("looking for session %s in client cache", cache_id);
     if (enforce_peername)
@@ -174,73 +176,15 @@ static SSL_SESSION *load_clnt_session(const char *hostname,
 	if (session) {
 	    if (var_smtp_tls_loglevel >= 3)
 		msg_info("reloaded session %s from client cache", cache_id);
-	    cache_id_buffer =
-		(VSTRING *) SSL_SESSION_get_ex_data(session, TLSpeername_index);
-	    vstring_strcpy(cache_id_buffer, cache_id);
 	}
     }
 
     /*
      * Clean up.
      */
-    myfree(cache_id);
     vstring_free(session_data);
 
     return (session);
-}
-
- /*
-  * The client session cache is indexed by peer name, not by session id. The
-  * following routines maintain string storage for the peer name in an
-  * SSL_SESSION object. We use VSTRING buffers so that we don't have to worry
-  * about hostname length problems.
-  */
-
-/* new_cache_id_func - create space for peer name in SSL_SESSION object */
-
-static int new_cache_id_func(void *unused_parent, void *unused_ptr,
-			             CRYPTO_EX_DATA *ad, int idx,
-			             long unused_argl, void *unused_argp)
-{
-    VSTRING *cache_id_buffer;
-
-    cache_id_buffer = vstring_alloc(32);
-    return (CRYPTO_set_ex_data(ad, idx, (void *) cache_id_buffer));
-}
-
-/* free_cache_id_func - destroy space for peer name in SSL_SESSION object */
-
-static void free_cache_id_func(void *unused_parent, void *unused_ptr,
-			               CRYPTO_EX_DATA *ad, int idx,
-			               long unused_argl, void *unused_argp)
-{
-    VSTRING *cache_id_buffer;
-
-    cache_id_buffer = (VSTRING *) CRYPTO_get_ex_data(ad, idx);
-    vstring_free(cache_id_buffer);
-}
-
-/* dup_cache_id_func - duplicate peer name when SSL_SESSION is duplicated */
-
-static int dup_cache_id_func(CRYPTO_EX_DATA *to, CRYPTO_EX_DATA *from,
-          void *unused_from_d, int idx, long unused_argl, void *unused_argp)
-{
-    const char *myname = "dup_cache_id_func";
-    VSTRING *old_cache_id_buffer;
-    VSTRING *new_cache_id_buffer;
-
-    old_cache_id_buffer = (VSTRING *) CRYPTO_get_ex_data(from, idx);
-    if (old_cache_id_buffer == 0) {
-	msg_warn("%s: cannot get old SSL_SESSION peer name buffer", myname);
-	return (0);
-    }
-    new_cache_id_buffer = (VSTRING *) CRYPTO_get_ex_data(to, idx);
-    if (new_cache_id_buffer == 0) {
-	msg_warn("%s: cannot get new SSL_SESSION peer name buffer", myname);
-	return (0);
-    }
-    vstring_strcpy(new_cache_id_buffer, STR(old_cache_id_buffer));
-    return (1);
 }
 
 /* new_client_session_cb - name new session and save it to client cache */
@@ -249,22 +193,17 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
 {
     TLScontext_t *TLScontext;
     VSTRING *session_data;
-    VSTRING *cache_id_buffer;
+    const char *cache_id;
     int     flags = 0;
 
     /*
-     * Attach the cache ID string to the session object. Don't worry about
-     * the length; that is the concern of the code that updates the session
-     * cache.
+     * Look up the cache ID string for this session object.
      */
-    cache_id_buffer =
-	(VSTRING *) SSL_SESSION_get_ex_data(session, TLSpeername_index);
     TLScontext = SSL_get_ex_data(ssl, TLScontext_index);
-    vstring_strcpy(cache_id_buffer, TLScontext->peername_save);
-    lowercase(STR(cache_id_buffer));		/* just in case */
+    cache_id = TLScontext->serverid;
 
     if (var_smtp_tls_loglevel >= 3)
-	msg_info("save session %s to client cache", STR(cache_id_buffer));
+	msg_info("save session %s to client cache", cache_id);
 
     /*
      * Remember whether peername matching was enforced when the session was
@@ -295,7 +234,7 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
      */
     session_data = tls_session_passivate(session);
     if (session_data)
-	tls_mgr_update(tls_client_cache, STR(cache_id_buffer),
+	tls_mgr_update(tls_client_cache, cache_id,
 		       OPENSSL_VERSION_NUMBER, flags,
 		       STR(session_data), LEN(session_data));
 
@@ -304,6 +243,7 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
      */
     if (session_data)
 	vstring_free(session_data);
+    SSL_SESSION_free(session);			/* 200502 */
 
     return (1);
 }
@@ -479,19 +419,6 @@ SSL_CTX *tls_client_init(int unused_verifydepth)
     if (TLScontext_index < 0)
 	TLScontext_index = SSL_get_ex_new_index(0, "TLScontext ex_data index",
 						NULL, NULL, NULL);
-
-    /*
-     * Create a global index so that we can attach peer name information to
-     * SSL_SESSION objects; the client session cache manager uses this to
-     * generate cache ID strings.
-     */
-    if (TLSpeername_index < 0)
-	TLSpeername_index = SSL_SESSION_get_ex_new_index(0,
-						"TLSpeername ex_data index",
-							 new_cache_id_func,
-							 dup_cache_id_func,
-							 free_cache_id_func);
-
     return (client_ctx);
 }
 
@@ -500,14 +427,15 @@ SSL_CTX *tls_client_init(int unused_verifydepth)
   * buffers are flushed and the "220 Ready to start TLS" was received by us,
   * so that we can immediately start the TLS handshake process.
   */
-TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream, int timeout,
+TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream,
+			               int timeout,
 			               int enforce_peername,
 			               const char *peername,
+			               const char *serverid,
 			               tls_info_t *tls_info)
 {
     int     sts;
-    SSL_SESSION *session,
-           *old_session;
+    SSL_SESSION *session, *old_session;
     SSL_CIPHER *cipher;
     X509   *peer;
     int     verify_flags;
@@ -526,24 +454,24 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream, int timeout
      */
 #define PEERNAME_SIZE sizeof(TLScontext->peername_save)
 
-    TLScontext = (TLScontext_t *) mymalloc(sizeof(TLScontext_t));
-    memset((char *) TLScontext, 0, sizeof(*TLScontext));
+    NEW_TLS_CONTEXT(TLScontext);
     TLScontext->log_level = var_smtp_tls_loglevel;
     strncpy(TLScontext->peername_save, peername, PEERNAME_SIZE - 1);
     TLScontext->peername_save[PEERNAME_SIZE - 1] = 0;
     (void) lowercase(TLScontext->peername_save);
+    TLScontext->serverid = mystrdup(serverid);
 
     if ((TLScontext->con = (SSL *) SSL_new(client_ctx)) == NULL) {
 	msg_info("Could not allocate 'TLScontext->con' with SSL_new()");
 	tls_print_errors();
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
 	msg_info("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();
 	SSL_free(TLScontext->con);
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
 
@@ -574,7 +502,7 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream, int timeout
 	msg_info("Could not obtain BIO_pair");
 	tls_print_errors();
 	SSL_free(TLScontext->con);
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
     old_session = NULL;
@@ -587,7 +515,7 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream, int timeout
      * will be reused.
      */
     if (tls_client_cache) {
-	old_session = load_clnt_session(peername, enforce_peername);
+	old_session = load_clnt_session(serverid, enforce_peername);
 	if (old_session) {
 	    SSL_set_session(TLScontext->con, old_session);
 	    SSL_SESSION_free(old_session);	/* 200411 */
@@ -661,7 +589,7 @@ TLScontext_t *tls_client_start(SSL_CTX *client_ctx, VSTREAM *stream, int timeout
 	}
 	SSL_free(TLScontext->con);
 	BIO_free(TLScontext->network_bio);	/* 200411 */
-	myfree((char *) TLScontext);
+	FREE_TLS_CONTEXT(TLScontext);
 	return (0);
     }
     if (var_smtp_tls_loglevel >= 3 && SSL_session_reused(TLScontext->con))
