@@ -9,6 +9,14 @@
 /* .nf
 
  /*
+  * SASL library.
+  */
+#ifdef USE_SASL_AUTH
+#include <sasl.h>
+#include <saslutil.h>
+#endif
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -35,12 +43,23 @@ typedef struct SMTP_STATE {
     int     features;			/* server features */
     ARGV   *history;			/* transaction log */
     int     error_mask;			/* error classes */
+#ifdef USE_SASL_AUTH
+    char   *sasl_mechanism_list;	/* server mechanism list */
+    char   *sasl_username;		/* client username */
+    char   *sasl_passwd;		/* client password */
+    sasl_conn_t *sasl_conn;		/* SASL internal state */
+    VSTRING *sasl_encoded;		/* encoding buffer */
+    VSTRING *sasl_decoded;		/* decoding buffer */
+    sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
+#endif
 } SMTP_STATE;
 
 #define SMTP_FEATURE_ESMTP	(1<<0)
 #define SMTP_FEATURE_8BITMIME	(1<<1)
 #define SMTP_FEATURE_PIPELINING	(1<<2)
 #define SMTP_FEATURE_SIZE	(1<<3)
+#define SMTP_FEATURE_STARTTLS	(1<<4)
+#define SMTP_FEATURE_AUTH	(1<<5)
 
  /*
   * smtp.c

@@ -5,6 +5,10 @@ This release is mainly to have a reference point after reorganizing
 the cleanup daemon, and before adding some major contributions from
 other people.
 
+The sendmail command now treats a `.' line as end of input, for
+the sake of compatibility. To revert to past behavior, specify the
+`-i' or `-oi' command-line flags.
+
 Major changes with snapshot-20000309
 ====================================
 

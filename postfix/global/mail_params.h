@@ -632,6 +632,27 @@ extern int var_smtpd_hard_erlim;
 extern int var_smtpd_err_sleep;
 
  /*
+  * SASL authentication support.
+  */
+#ifdef USE_SASL_AUTH
+
+#define VAR_SMTPD_SASL_ENABLE	"smtpd_sasl_auth_enable"
+#define DEF_SMTPD_SASL_ENABLE	0
+extern bool var_smtpd_sasl_enable;
+
+#define VAR_SMTP_SASL_ENABLE	"smtp_sasl_auth_enable"
+#define DEF_SMTP_SASL_ENABLE	0
+extern bool var_smtp_sasl_enable;
+
+#define VAR_SMTP_SASL_PWD_MAPS	"smtp_sasl_password_maps"
+#define DEF_SMTP_SASL_PWD_MAPS	""
+extern char *var_smtp_sasl_pwd_maps;
+
+#define PERMIT_SASL_AUTH	"permit_sasl_authenticated"
+
+#endif
+
+ /*
   * Cleanup service. Header info that exceeds $header_size_limit bytes forces
   * the start of the message body.
   */

@@ -18,6 +18,7 @@
 /*	Sendmail command-line options are recognized but silently ignored.
 /*
 /*	By default, \fBsendmail\fR reads a message from standard input
+/*	until EOF or until it reads a line with only a \fB.\fR character,
 /*	and arranges for delivery.  \fBsendmail\fR attempts to create
 /*	a queue file in the \fBmaildrop\fR directory. If that directory
 /*	is not world-writable, the message is piped through the
@@ -95,8 +96,9 @@
 /* .IP "\fB-h \fIhop_count\fR (ignored)"
 /*	Hop count limit. Use the \fBhopcount_limit\fR configuration
 /*	parameter instead.
-/* .IP "\fB-i\fR (ignored)"
-/*	Lines beginning with "." get special treatment only with \fB-bs\fR.
+/* .IP "\fB-i\fR"
+/*	When reading a message from standard input, don\'t treat a line
+/*	with only a \fB.\fR character as the end of input.
 /* .IP "\fB-m\fR (ignored)"
 /*	Backwards compatibility.
 /* .IP "\fB-n\fR (ignored)"
@@ -109,6 +111,9 @@
 /* .IP "\fB-o8\fR (ignored)"
 /*	The message body type. Currently, Postfix implements
 /*	\fBjust-send-eight\fR.
+/* .IP "\fB-oi\fR"
+/*	When reading a message from standard input, don\'t treat a line
+/*	with only a \fB.\fR character as the end of input.
 /* .IP "\fB-om\fR (ignored)"
 /*	The sender is never eliminated from alias etc. expansions.
 /* .IP "\fB-o \fIx value\fR (ignored)"
@@ -286,13 +291,21 @@ static char *sendmail_path;
 static void sendmail_cleanup(void);
 
  /*
+  * Flag parade.
+  */
+#define SM_FLAG_AEOF	(1<<0)		/* archaic EOF */
+
+#define SM_FLAG_DEFAULT	(SM_FLAG_AEOF)
+
+ /*
   * Silly little macros (SLMs).
   */
 #define STR	vstring_str
 
 /* enqueue - post one message */
 
-static void enqueue(const char *sender, const char *full_name, char **recipients)
+static void enqueue(const int flags, const char *sender, const char *full_name,
+		            char **recipients)
 {
     VSTRING *buf;
     VSTREAM *dst;
@@ -425,6 +438,8 @@ static void enqueue(const char *sender, const char *full_name, char **recipients
 	if (strip_cr == STRIP_CR_DO && type == REC_TYPE_NORM)
 	    if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
 		vstring_truncate(buf, VSTRING_LEN(buf) - 1);
+	if ((flags & SM_FLAG_AEOF) && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
+	    break;
 	if (REC_PUT_BUF(dst, type, buf) < 0)
 	    msg_fatal("%s(%d): error writing queue file: %m", saved_sender, uid);
     }
@@ -572,6 +587,7 @@ int     main(int argc, char **argv)
     int     debug_me = 0;
     int     err;
     int     n;
+    int     flags = SM_FLAG_DEFAULT;
 
     /*
      * Be consistent with file permissions.
@@ -587,6 +603,14 @@ int     main(int argc, char **argv)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal("open /dev/null: %m");
+
+    /*
+     * The CDE desktop calendar manager leaks a parent file descriptor into
+     * the child process. For the sake of sendmail compatibility we have to
+     * close the file descriptor otherwise mail notification will hang.
+     */
+    for ( /* void */ ; fd < 100; fd++)
+	(void) close(fd);
 
     /*
      * Process environment options as early as we can. We might be called
@@ -720,6 +744,9 @@ int     main(int argc, char **argv)
 	case 'f':
 	    sender = optarg;
 	    break;
+	case 'i':
+	    flags &= ~SM_FLAG_AEOF;
+	    break;
 	case 'o':
 	    switch (*optarg) {
 	    default:
@@ -735,6 +762,10 @@ int     main(int argc, char **argv)
 		break;
 	    case '7':
 	    case '8':
+		break;
+	    case 'i':
+		flags &= ~SM_FLAG_AEOF;
+		break;
 	    case 'm':
 		break;
 	    }
@@ -780,7 +811,7 @@ int     main(int argc, char **argv)
 	msg_panic("unknown operation mode: %d", mode);
 	/* NOTREACHED */
     case SM_MODE_ENQUEUE:
-	enqueue(sender, full_name, argv + OPTIND);
+	enqueue(flags, sender, full_name, argv + OPTIND);
 	exit(0);
 	break;
     case SM_MODE_MAILQ:

@@ -45,6 +45,7 @@
 #include <mymalloc.h>
 #include <vstream.h>
 #include <name_mask.h>
+#include <msg.h>
 
 /* Global library. */
 
@@ -56,6 +57,7 @@
 
 #include "smtpd.h"
 #include "smtpd_chat.h"
+#include "smtpd_sasl_glue.h"
 
 /* smtpd_state_init - initialize after connection establishment */
 
@@ -88,6 +90,10 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->recursion = 0;
     state->msg_size = 0;
 
+#ifdef USE_SASL_AUTH
+    smtpd_sasl_connect(state);
+#endif
+
     /*
      * Initialize peer information.
      */
@@ -112,4 +118,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
     if (state->buffer)
 	vstring_free(state->buffer);
     smtpd_peer_reset(state);
+
+#ifdef USE_SASL_AUTH
+    smtpd_sasl_disconnect(state);
+#endif
 }

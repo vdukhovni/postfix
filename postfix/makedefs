@@ -143,7 +143,7 @@ case "$SYSTEM.$RELEASE" in
 		4)	SYSTYPE=AIX4
 			# How embarrassing...
 			case "$CC" in
-			cc|*/cc|xlc|*/xlc) OPT=; CCARGS="$CCARGS -w";;
+			cc|*/cc|xlc|*/xlc) OPT=; CCARGS="$CCARGS -w -blibpath:/usr/lib:/lib:/usr/local/lib";;
 			esac
 			CCARGS="$CCARGS -D_ALL_SOURCE"
 			;;
@@ -258,4 +258,5 @@ CC	= $CC $CCARGS
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK
+EXPORT	= AUXLIBS="$AUXLIBS" CCARGS="$CCARGS" OPT="$OPT" DEBUG="$DEBUG"
 EOF

@@ -3743,3 +3743,33 @@ Apologies for any names omitted.
 	The recipient counts provides an initial estimate for a
 	more advanced queue manager scheduling algorithm. Files:
 	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c.
+
+20000311
+
+	Portability: HP-UX awk can't handle bare { in regexps
+	(Lamont Jones. HP). File: postconf/extract.awk.
+
+	Compatibility: sendmail now recognizes '.' as end of input.
+	File: sendmail/sendmail.c.
+
+20000313
+
+	Compatibility: dtcm (CDE desktop calendar manager) leaks
+	a file descriptor into its child process, and requires that
+	sendmail closes the descriptor, otherwise mail notification
+	will hang.  These GUI programmers never figured out that
+	the child process must close the writing ed of a pipe.
+	File:  sendmail/sendmail.c.
+
+20000314
+
+	Feature: SASL authentication in the SMTP server and client.
+	Based on code contributed by Till Franke, SuSE.  Specify:
+	"smtpd_sasl_auth_enable = yes" and "smtp_sasl_auth_enable
+	= yes". The "permit_sasl_authenticated" UCE restriction
+	gives special treatment to authenticated clients.
+
+20000315
+
+	Workaround: added -blibpath option for AIX 4.x, to close
+	hole in case postdrop needs to be set-gid.

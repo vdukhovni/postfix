@@ -15,10 +15,6 @@
 /*	memory for buffers etc.
 /*
 /*	smtp_cleanup() destroys memory allocated by smtp_state_init().
-/* STANDARDS
-/* DIAGNOSTICS
-/* BUGS
-/* SEE ALSO
 /* LICENSE
 /* .ad
 /* .fi
@@ -47,6 +43,7 @@
 /* Application-specific. */
 
 #include "smtp.h"
+#include "smtp_sasl.h"
 
 /* smtp_state_alloc - initialize */
 
@@ -64,6 +61,9 @@ SMTP_STATE *smtp_state_alloc(void)
     state->features = 0;
     state->history = 0;
     state->error_mask = 0;
+#ifdef USE_SASL_AUTH
+    smtp_sasl_connect(state);
+#endif
     return (state);
 }
 
@@ -74,5 +74,8 @@ void    smtp_state_free(SMTP_STATE *state)
     vstring_free(state->buffer);
     vstring_free(state->scratch);
     vstring_free(state->scratch2);
+#ifdef USE_AUTH
+    smtp_sasl_cleanup(state);
+#endif
     myfree((char *) state);
 }

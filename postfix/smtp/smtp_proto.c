@@ -103,6 +103,7 @@
 
 #include "smtp.h"
 #include "quote_821_local.h"
+#include "smtp_sasl.h"
 
  /*
   * Sender and receiver state. A session does not necessarily go through a
@@ -220,6 +221,10 @@ int     smtp_helo(SMTP_STATE *state)
 		state->features |= SMTP_FEATURE_PIPELINING;
 	    else if (strcasecmp(word, "SIZE") == 0)
 		state->features |= SMTP_FEATURE_SIZE;
+#ifdef USE_SASL_AUTH
+	    else if (strcasecmp(word, "AUTH") == 0)
+		smtp_sasl_helo_auth(state, words);
+#endif
 	    else if (strcasecmp(word, var_myhostname) == 0) {
 		msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
 			 session->namaddr, var_myhostname);
@@ -231,6 +236,12 @@ int     smtp_helo(SMTP_STATE *state)
     }
     if (msg_verbose)
 	msg_info("server features: 0x%x", state->features);
+
+#ifdef USE_SASL_AUTH
+    if (state->features & SMTP_FEATURE_AUTH)
+	return (smtp_sasl_helo_login(state));
+#endif
+
     return (0);
 }
 

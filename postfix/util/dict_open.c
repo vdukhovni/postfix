@@ -372,7 +372,7 @@ main(int argc, char **argv)
 	if ((cmd = mystrtok(&bufp, " ")) == 0)
 	    continue;
 	key = mystrtok(&bufp, " =");
-	value = mystrtok(&bufp, " ");
+	value = mystrtok(&bufp, " =");
 	if (strcmp(cmd, "del") == 0 && key && !value) {
 	    if (dict_del(dict, key))
 		vstream_printf("%s: not found\n", key);

@@ -1,9 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
-	smtpd_peer.c
+	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c
 OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
-	smtpd_peer.o
-HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h
+	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o
+HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
+	smtpd_sasl_glue.h
 TESTSRC	= smtpd_token_test.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -64,7 +65,7 @@ depend: $(MAKES)
 	    $(CC) -E $(DEFS) $(INCL) $$i | sed -n -e '/^# *1 *"\([^"]*\)".*/{' \
 	    -e 's//'`echo $$i|sed 's/c$$/o/'`': \1/' -e 'p' -e '}'; \
 	done) | grep -v '[.][o][:][ ][/]' >$$$$ && mv $$$$ Makefile.in
-	@make -f Makefile.in Makefile
+	@$(EXPORT) make -f Makefile.in Makefile 1>&2
 
 tests: smtpd_check_test smtpd_check_test2 smtpd_check_test3 smtpd_token_test
 
@@ -128,6 +129,8 @@ smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
 smtpd.o: smtpd_check.h
 smtpd.o: smtpd_chat.h
+smtpd.o: smtpd_sasl_proto.h
+smtpd.o: smtpd_sasl_glue.h
 smtpd_chat.o: smtpd_chat.c
 smtpd_chat.o: ../include/sys_defs.h
 smtpd_chat.o: ../include/msg.h
@@ -194,6 +197,40 @@ smtpd_peer.o: ../include/vbuf.h
 smtpd_peer.o: ../include/vstring.h
 smtpd_peer.o: ../include/argv.h
 smtpd_peer.o: ../include/mail_stream.h
+smtpd_sasl_glue.o: smtpd_sasl_glue.c
+smtpd_sasl_glue.o: ../include/sys_defs.h
+smtpd_sasl_glue.o: ../include/msg.h
+smtpd_sasl_glue.o: ../include/mymalloc.h
+smtpd_sasl_glue.o: ../include/namadr_list.h
+smtpd_sasl_glue.o: ../include/mail_params.h
+smtpd_sasl_glue.o: ../include/smtp_stream.h
+smtpd_sasl_glue.o: ../include/vstring.h
+smtpd_sasl_glue.o: ../include/vbuf.h
+smtpd_sasl_glue.o: ../include/vstream.h
+smtpd_sasl_glue.o: smtpd.h
+smtpd_sasl_glue.o: ../include/argv.h
+smtpd_sasl_glue.o: ../include/mail_stream.h
+smtpd_sasl_glue.o: smtpd_sasl_glue.h
+smtpd_sasl_glue.o: smtpd_chat.h
+smtpd_sasl_proto.o: smtpd_sasl_proto.c
+smtpd_sasl_proto.o: ../include/sys_defs.h
+smtpd_sasl_proto.o: ../include/msg.h
+smtpd_sasl_proto.o: ../include/mymalloc.h
+smtpd_sasl_proto.o: ../include/mail_params.h
+smtpd_sasl_proto.o: ../include/mail_proto.h
+smtpd_sasl_proto.o: ../include/vstream.h
+smtpd_sasl_proto.o: ../include/vbuf.h
+smtpd_sasl_proto.o: ../include/iostuff.h
+smtpd_sasl_proto.o: ../include/mail_error.h
+smtpd_sasl_proto.o: ../include/name_mask.h
+smtpd_sasl_proto.o: smtpd.h
+smtpd_sasl_proto.o: ../include/vstring.h
+smtpd_sasl_proto.o: ../include/argv.h
+smtpd_sasl_proto.o: ../include/mail_stream.h
+smtpd_sasl_proto.o: smtpd_token.h
+smtpd_sasl_proto.o: smtpd_chat.h
+smtpd_sasl_proto.o: smtpd_sasl_proto.h
+smtpd_sasl_proto.o: smtpd_sasl_glue.h
 smtpd_state.o: smtpd_state.c
 smtpd_state.o: ../include/sys_defs.h
 smtpd_state.o: ../include/events.h
@@ -201,6 +238,7 @@ smtpd_state.o: ../include/mymalloc.h
 smtpd_state.o: ../include/vstream.h
 smtpd_state.o: ../include/vbuf.h
 smtpd_state.o: ../include/name_mask.h
+smtpd_state.o: ../include/msg.h
 smtpd_state.o: ../include/cleanup_user.h
 smtpd_state.o: ../include/mail_params.h
 smtpd_state.o: ../include/mail_error.h
@@ -209,6 +247,7 @@ smtpd_state.o: ../include/vstring.h
 smtpd_state.o: ../include/argv.h
 smtpd_state.o: ../include/mail_stream.h
 smtpd_state.o: smtpd_chat.h
+smtpd_state.o: smtpd_sasl_glue.h
 smtpd_token.o: smtpd_token.c
 smtpd_token.o: ../include/sys_defs.h
 smtpd_token.o: ../include/mymalloc.h

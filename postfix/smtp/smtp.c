@@ -185,6 +185,7 @@
 /* Application-specific. */
 
 #include "smtp.h"
+#include "smtp_sasl.h"
 
  /*
   * Tunable parameters. These have compiled-in defaults that can be overruled
@@ -210,6 +211,14 @@ char   *var_fallback_relay;
 char   *var_bestmx_transp;
 char   *var_error_rcpt;
 int     var_smtp_always_ehlo;
+
+#ifdef USE_SASL_AUTH
+
+char   *var_smtp_sasl_pwd_maps;
+bool    var_smtp_sasl_enable;
+bool    var_smtp_sasl_anon;
+
+#endif
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -318,6 +327,11 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
 static void pre_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
+
+#ifdef USE_SASL_AUTH
+    if (var_smtp_sasl_enable)
+	smtp_sasl_initialize();
+#endif
 }
 
 /* pre_accept - see if tables have changed */
@@ -340,6 +354,9 @@ int     main(int argc, char **argv)
 	VAR_FALLBACK_RELAY, DEF_FALLBACK_RELAY, &var_fallback_relay, 0, 0,
 	VAR_BESTMX_TRANSP, DEF_BESTMX_TRANSP, &var_bestmx_transp, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
+#ifdef USE_SASL_AUTH
+	VAR_SMTP_SASL_PWD_MAPS, DEF_SMTP_SASL_PWD_MAPS, &var_smtp_sasl_pwd_maps, 0, 0,
+#endif
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
@@ -360,6 +377,9 @@ int     main(int argc, char **argv)
 	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
 	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
 	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
+#ifdef USE_SASL_AUTH
+	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
+#endif
 	0,
     };
 

@@ -9,6 +9,14 @@
 /* .nf
 
  /*
+  * SASL library.
+  */
+#ifdef USE_SASL_AUTH
+#include <sasl.h>
+#include <saslutil.h>
+#endif
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -53,6 +61,15 @@ typedef struct SMTPD_STATE {
     char   *where;
     int     recursion;
     off_t   msg_size;
+#ifdef USE_SASL_AUTH
+    char   *sasl_mechanism_list;
+    char   *sasl_method;
+    char   *sasl_username;
+    char   *sasl_sender;
+    sasl_conn_t *sasl_conn;
+    VSTRING *sasl_encoded;
+    VSTRING *sasl_decoded;
+#endif
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

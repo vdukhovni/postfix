@@ -37,6 +37,7 @@
 /*	RFC 1854 (SMTP Pipelining)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command) (partial)
+/*	RFC 2554 (AUTH command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
@@ -58,6 +59,11 @@
 /* .IP \fBstrict_rfc821_envelopes\fR
 /*	Disallow non-RFC 821 style addresses in envelopes. For example,
 /*	allow RFC822-style address forms with comments, like Sendmail does.
+/* .SH "Authenication controls"
+/* .IP \fBenable_sasl_authentication\fR
+/*	Enable per-session authentication as per RFC 2554 (SASL).
+/*	This functionality is available only when explicitly selected
+/*	at program build time and explicitly enabled at runtime.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -257,6 +263,8 @@
 #include "smtpd.h"
 #include "smtpd_check.h"
 #include "smtpd_chat.h"
+#include "smtpd_sasl_proto.h"
+#include "smtpd_sasl_glue.h"
 
  /*
   * Tunable parameters. Make sure that there is some bound on the length of
@@ -306,6 +314,11 @@ char   *var_relocated_maps;
 char   *var_alias_maps;
 char   *var_local_rcpt_maps;
 bool    var_allow_untrust_route;
+
+#ifdef USE_SASL_AUTH
+bool    var_smtpd_sasl_enable;
+
+#endif
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -396,6 +409,10 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     else
 	smtpd_chat_reply(state, "250-SIZE");
     smtpd_chat_reply(state, "250-ETRN");
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable)
+	smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
+#endif
     smtpd_chat_reply(state, "250 8BITMIME");
     return (0);
 }
@@ -592,6 +609,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	} else if (strncasecmp(arg, "SIZE=", 5) == 0) {
 	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0)
 		state->msg_size = 0;
+#ifdef USE_SASL_AUTH
+	} else if (strncasecmp(arg, "AUTH=", 5) == 0) {
+	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
+		smtpd_chat_reply(state, "%s", err);
+		return (-1);
+	    }
+#endif
 	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
 	    smtpd_chat_reply(state, "555 Unsupported option: %s", arg);
@@ -615,7 +639,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Open queue file or IPC stream.
      */
     mail_open_stream(state);
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_mail_log(state);
+    else
+#else
     msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
+#endif
 
     /*
      * Record the time of arrival and the sender envelope address.
@@ -660,6 +690,9 @@ static void mail_reset(SMTPD_STATE *state)
 	myfree(state->sender);
 	state->sender = 0;
     }
+#ifdef USE_SASL_AUTH
+    smtpd_sasl_mail_reset(state);
+#endif
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1061,6 +1094,11 @@ typedef struct SMTPD_CMD {
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd,
     "EHLO", ehlo_cmd,
+
+#ifdef USE_SASL_AUTH
+    "AUTH", smtpd_sasl_auth_cmd,
+#endif
+
     "MAIL", mail_cmd,
     "RCPT", rcpt_cmd,
     "DATA", data_cmd,
@@ -1182,6 +1220,9 @@ static void smtpd_proto(SMTPD_STATE *state)
      * dialog.
      */
     helo_reset(state);
+#ifdef USE_SASL_AUTH
+    smtpd_sasl_auth_reset(state);
+#endif
     mail_reset(state);
     rcpt_reset(state);
     smtpd_chat_reset(state);
@@ -1304,6 +1345,11 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     smtpd_check_init();
     debug_peer_init();
     msg_cleanup(smtpd_cleanup);
+
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_initialize();
+#endif
 }
 
 /* main - the main program */
@@ -1335,6 +1381,9 @@ int     main(int argc, char **argv)
 	VAR_STRICT_RFC821_ENV, DEF_STRICT_RFC821_ENV, &var_strict_rfc821_env,
 	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
 	VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
+#ifdef USE_SASL_AUTH
+	VAR_SMTPD_SASL_ENABLE, DEF_SMTPD_SASL_ENABLE, &var_smtpd_sasl_enable,
+#endif
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
