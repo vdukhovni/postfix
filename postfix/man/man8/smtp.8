@@ -108,9 +108,16 @@ The network interface addresses that this mail system receives
 mail on. When any of those addresses appears in the list of mail
 exchangers for a remote destination, the list is truncated to
 avoid mail delivery loops.
+See also the \fBproxy_interfaces\fR parameter.
 .IP \fBnotify_classes\fR
 When this parameter includes the \fBprotocol\fR class, send mail to the
 postmaster with transcripts of SMTP sessions with protocol errors.
+.IP \fBproxy_interfaces\fR
+Network interfaces that this mail system receives mail on by way
+of a proxy or network address translator. When any of those addresses
+appears in the list of mail exchangers for a remote destination, the
+list is truncated to avoid mail delivery loops.
+See also the \fBinet_interfaces\fR parameter.
 .IP \fBsmtp_always_send_ehlo\fR
 Always send EHLO at the start of a connection.
 .IP \fBsmtp_never_send_ehlo\fR

@@ -1388,6 +1388,8 @@ static int has_my_addr(SMTPD_STATE *state, const char *host,
 	    msg_info("%s: addr %s", myname, inet_ntoa(addr));
 	if (own_inet_addr(&addr))
 	    return (YUP);
+	if (proxy_inet_addr(&addr))
+	    return (YUP);
     }
     if (msg_verbose)
 	msg_info("%s: host %s: no match", myname, host);

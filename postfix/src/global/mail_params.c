@@ -37,6 +37,7 @@
 /*	char	*var_pid_dir;
 /*	int	var_dont_remove;
 /*	char	*var_inet_interfaces;
+/*	char	*var_proxy_interfaces;
 /*	char	*var_mynetworks;
 /*	char	*var_double_bounce_sender;
 /*	int	var_line_limit;
@@ -190,6 +191,7 @@ int     var_ipc_timeout;
 char   *var_pid_dir;
 int     var_dont_remove;
 char   *var_inet_interfaces;
+char   *var_proxy_interfaces;
 char   *var_mynetworks;
 char   *var_double_bounce_sender;
 int     var_line_limit;
@@ -439,6 +441,7 @@ void    mail_params_init()
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,
 	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 1, 0,
+	VAR_PROXY_INTERFACES, DEF_PROXY_INTERFACES, &var_proxy_interfaces, 0, 0,
 	VAR_DOUBLE_BOUNCE, DEF_DOUBLE_BOUNCE, &var_double_bounce_sender, 1, 0,
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
 	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 0, 0,

@@ -118,6 +118,10 @@ extern char *var_error_rcpt;
 #define DEF_INET_INTERFACES	"all"
 extern char *var_inet_interfaces;
 
+#define VAR_PROXY_INTERFACES	"proxy_interfaces"	/* proxies, NATs */
+#define DEF_PROXY_INTERFACES	""
+extern char *var_proxy_interfaces;
+
  /*
   * Masquerading (i.e. subdomain stripping).
   */

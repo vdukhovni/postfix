@@ -7068,6 +7068,13 @@ Apologies for any names omitted.
 	TO addresses. Some remnant of code that someone put in
 	there long ago. File: lmtp/lmtp_proto.c.
 
+20021024
+
+	Feature: proxy_interfaces parameter. Specify your NAT or
+	other proxy addresses here to avoid mail delivery loops.
+	Files: global/mail_params.[hc] global/own_inet_addr.[hc]
+	global/resolve_local.c smtp/smtp_addr.c smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

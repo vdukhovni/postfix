@@ -14,7 +14,8 @@
 /*	resolve_local() determines if the named domain resolves to the
 /*	local mail system, either by case-insensitive exact match
 /*	against the domains, files or tables listed in $mydestination,
-/*	or by any of the network addresses listed in $inet_interfaces.
+/*	or by any of the network addresses listed in $inet_interfaces
+/*	or in $proxy_interfaces.
 /*
 /*	resolve_local_init() performs initialization. If this routine is
 /*	not called explicitly ahead of time, it will be called on the fly.
@@ -118,7 +119,7 @@ int     resolve_local(const char *addr)
 	dest++;
 	dest[len -= 2] = 0;
 	if ((ipaddr.s_addr = inet_addr(dest)) != INADDR_NONE
-	    && own_inet_addr(&ipaddr))
+	    && (own_inet_addr(&ipaddr) || proxy_inet_addr(&ipaddr)))
 	    RETURN(1);
     }
 

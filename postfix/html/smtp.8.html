@@ -107,12 +107,21 @@ SMTP(8)                                                   SMTP(8)
               tem  receives  mail on. When any of those addresses
               appears in the list of mail exchangers for a remote
               destination,  the  list  is truncated to avoid mail
-              delivery loops.
+              delivery  loops.   See  also  the  <b>proxy</b><i>_</i><b>interfaces</b>
+              parameter.
 
        <b>notify</b><i>_</i><b>classes</b>
-              When this parameter includes  the  <b>protocol</b>  class,
-              send  mail  to  the  postmaster with transcripts of
+              When  this  parameter  includes the <b>protocol</b> class,
+              send mail to the  postmaster  with  transcripts  of
               SMTP sessions with protocol errors.
+
+       <b>proxy</b><i>_</i><b>interfaces</b>
+              Network  interfaces  that this mail system receives
+              mail on by way of a proxy or network address trans-
+              lator.  When  any of those addresses appears in the
+              list of mail exchangers for a  remote  destination,
+              the list is truncated to avoid mail delivery loops.
+              See also the <b>inet</b><i>_</i><b>interfaces</b> parameter.
 
        <b>smtp</b><i>_</i><b>always</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
               Always send EHLO at the start of a connection.

@@ -97,9 +97,24 @@ mail_owner = postfix
 # the software claims all active interfaces on the machine. The
 # parameter also controls delivery of mail to user@[ip.address].
 #
+# See also the proxy_interfaces parameter, for network addresses that
+# are forwarded to us via a proxy or network address translator.
+#
 #inet_interfaces = all
 #inet_interfaces = $myhostname
 #inet_interfaces = $myhostname, localhost
+
+# The proxy_interfaces parameter specifies the network interface
+# addresses that this mail system receives mail on by way of a
+# proxy or network address translation unit. This setting extends
+# the address list specified with the inet_interfaces parameter.
+#
+# You must specify your proxy/NAT addresses when your system is a
+# backup MX host for other domains, otherwise mail delivery loops
+# will happen when the primary MX host is down.
+#
+#proxy_interfaces =
+#proxy_interfaces = 1.2.3.4
 
 # The mydestination parameter specifies the list of domains that this
 # machine considers itself the final destination for. That includes

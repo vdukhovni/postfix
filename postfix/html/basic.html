@@ -55,6 +55,18 @@ to the local postmaster:
 
 <p>
 
+Be sure to set the following correctly if you're behind a proxy or
+network address translator, and you are running a backup MX host
+for some other domain:
+
+<p>
+
+<ul>
+
+<li> <a href="#proxy_interfaces"> Proxy/NAT network addresses </a>
+
+</ul>
+
 By the way, if you change parameters of a running Postfix system,
 don't forget to issue a <b>postfix reload</b> command.
 
@@ -256,6 +268,43 @@ due to resource problems (for example, queue file write errors).
 
 <dt> <b>software</b> <dd> Inform the postmaster of mail not delivered
 due to software problems.
+
+</dl>
+
+</dl>
+
+<a name="proxy_interfaces"> <h2> Proxy/NAT network addresses </h2> </a>
+
+The <b>proxy_interfaces</b> parameter specifies all network addresses
+that the Postfix receives mail on by way of a proxy or network
+address translation unit. You may specify symbolic hostnames instead
+of network addresses.
+
+<p>
+
+You must specify your proxy/NAT addresses when your system is a
+backup MX host for other domains, otherwise mail delivery loops
+will happen when the primary MX host is down.
+
+<p>
+
+<dl>
+
+<dt> Examples:
+
+<p>
+
+<dl>
+
+<dt> Default:
+
+<dd> <b>proxy_interfaces = </b>
+
+<p>
+
+<dt> Host running backup MTA:
+
+<dd> <b>proxy_interfaces = 1.2.3.4</b> (the proxy/NAT network address)
 
 </dl>
 
