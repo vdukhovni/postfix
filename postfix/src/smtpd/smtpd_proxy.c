@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	smtpd_proto 3
+/*	smtpd_proxy 3
 /* SUMMARY
 /*	SMTP server pass-through proxy client
 /* SYNOPSIS
@@ -234,7 +234,8 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
      */
     lines = STR(state->proxy_buffer);
     while ((line = mystrtok(&lines, "\n")) != 0)
-	if ((line[3] == ' ' || line[3] == '-')
+	if (ISDIGIT(line[0]) && ISDIGIT(line[1]) && ISDIGIT(line[2])
+	    && (line[3] == ' ' || line[3] == '-')
 	    && strcmp(line + 4, XLOGINFO_CMD) == 0)
 	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s %s %s",
 				   XLOGINFO_CMD, state->addr, state->name);

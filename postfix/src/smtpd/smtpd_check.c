@@ -3812,6 +3812,8 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 	|| BLOCKS(var_message_limit) >= fsbuf.block_free / 2) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_RESOURCE,
 				  "452 Insufficient system storage");
+	msg_warn("not enough free space in mail queue: %lu bytes",
+		 (unsigned long) fsbuf.block_free * fsbuf.block_size);
 	return (STR(error_text));
     }
     return (0);

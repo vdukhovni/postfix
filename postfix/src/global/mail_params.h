@@ -87,7 +87,7 @@ extern char *var_myorigin;
   * mail to other destinations.
   */
 #define VAR_MYDEST		"mydestination"
-#define DEF_MYDEST		"$myhostname, localhost.$mydomain"
+#define DEF_MYDEST		"$myhostname, localhost.$mydomain localhost"
 extern char *var_mydest;
 
  /*

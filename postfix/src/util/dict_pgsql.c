@@ -512,7 +512,6 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
     dict_pgsql->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if (dict_pgsql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
-    dict_register(name, (DICT *) dict_pgsql);
     return &dict_pgsql->dict;
 }
 

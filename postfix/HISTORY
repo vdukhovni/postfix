@@ -8692,6 +8692,20 @@ Apologies for any names omitted.
 	with incorrectly implemented SQL or LDAP tables. File:
 	global/maps_find.c.
 
+20031023
+
+	Bugfix: the MYSQL and PGSQL modules invoked dict_register().
+	This was fixed a while ago but never made it into the
+	distribution. Files: util/dict*sql.c.
+
+	Robustness: added three ISSPACE() calls in the smtpd proxy
+	parser. File: smtpd/smtpd_proxy.c.
+
+20031024
+
+	Portability: added localhost to mydestination for sites that
+	turn off append_dot_mydomain. File: global/mail_params.h.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content
