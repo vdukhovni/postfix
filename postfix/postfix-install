@@ -561,7 +561,7 @@ then
     for file in postdrop postqueue
     do
 	compare_or_replace $EXE bin/$file $COMMAND_DIRECTORY/$file || exit 1
-	echo \$command_directory/$file:f:root:\$setgid_group:1755 \
+	echo \$command_directory/$file:f:root:\$setgid_group:2755 \
 	    >>$CONFIG_DIRECTORY/postfix-files || exit 1
     done
 else
@@ -569,7 +569,7 @@ else
     do
 	compare_or_replace 2$EXE bin/$file $COMMAND_DIRECTORY/$file postdrop \
 	    || exit 1
-	echo \$command_directory/$file:f:root:\$setgid_group:1755 \
+	echo \$command_directory/$file:f:root:\$setgid_group:2755 \
 	    >>$CONFIG_DIRECTORY/postfix-files || exit 1
     done
 fi
