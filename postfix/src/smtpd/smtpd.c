@@ -59,7 +59,7 @@
 /*	Disallow non-RFC 821 style addresses in SMTP commands. For example,
 /*	the RFC822-style address forms with comments that Sendmail allows.
 /* .IP \fBbroken_sasl_auth_clients\fR
-/*	Support older Microsoft clients that mis-implement the AUTH
+/*	Support Microsoft clients that implement an older version of the AUTH
 /*	protocol, and that expect an EHLO response of "250 AUTH=list"
 /*	instead of "250 AUTH list".
 /* .IP \fBsmtpd_noop_commands\fR
@@ -73,7 +73,7 @@
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
 /* .SH "Authentication controls"
-/* .IP \fBenable_sasl_authentication\fR
+/* .IP \fBsmtpd_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	This functionality is available only when explicitly selected
 /*	at program build time and explicitly enabled at runtime.
@@ -1585,13 +1585,6 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
      */
     smtpd_state_init(&state, stream);
     msg_info("connect from %s[%s]", state.name, state.addr);
-
-    /*
-     * XXX non_blocking() aborts upon error.
-     */
-#ifdef BROKEN_READ_SELECT_ON_BLOCKING_SOCKET
-    non_blocking(vstream_fileno(stream), NON_BLOCKING);
-#endif
 
     /*
      * See if we need to turn on verbose logging for this client.

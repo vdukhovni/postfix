@@ -7872,6 +7872,33 @@ Apologies for any names omitted.
 	util/timed_read.c and as precautionary measure,
 	util/timed_write.c.
 
+20030908
+
+	The 20030905 workaround triggers too many warnings. TCP
+	sockets are back to blocking, and keepalives are turned on
+	to kill off dead sockets, as suggested by Leandro Santi.
+	Files: master/{single,multi}_server.c, smtpd/smtpd.c,
+	util/sys_defs.h.
+
+20030909
+
+	Bugfix: the LMTP session caching code had problems with
+	SASL authentication after the first connection, and pipelining
+	was working poorly.  Fix by Viktor Dukhovni, Morgan Stanley.
+	Files: lmtp/lmtp.c, lmtp/lmtp_proto.c.
+
+20030912
+
+	Workaround: besides SMTP server sockets, SMTP client sockets
+	can also hang on Solaris, as reported by Leandro Santi. In
+	order to deal with this at the root, all connection management
+	is now done by sane_accept() and sane_connect().  Both turn
+	on keepalives on Solaris.
+
+20030913
+
+	Safety: set-gid commands don't trust TZ.  File: msg_syslog.c.
+
 Open problems:
 
 	Doc: mention the proxy_interfaces parameter everywhere the

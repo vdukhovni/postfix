@@ -261,7 +261,7 @@ extern int opterr;
 #define LOCAL_CONNECT	stream_connect
 #define LOCAL_TRIGGER	stream_trigger
 #define HAS_VOLATILE_LOCKS
-#define BROKEN_READ_SELECT_ON_BLOCKING_SOCKET
+#define BROKEN_READ_SELECT_ON_TCP_SOCKET
 /*
  * Allow build environment to override paths.
  */

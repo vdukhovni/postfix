@@ -103,6 +103,7 @@
 #include <events.h>
 #include <find_inet.h>
 #include <iostuff.h>
+#include <sane_connect.h>
 
 /* Global library. */
 
@@ -411,7 +412,7 @@ static void start_connect(SESSION *session)
     session->stream = vstream_fdopen(fd, O_RDWR);
     event_enable_write(fd, connect_done, (char *) session);
     smtp_timeout_setup(session->stream, var_timeout);
-    if (connect(fd, sa, sa_length) < 0 && errno != EINPROGRESS)
+    if (sane_connect(fd, sa, sa_length) < 0 && errno != EINPROGRESS)
 	fail_connect(session);
 }
 
