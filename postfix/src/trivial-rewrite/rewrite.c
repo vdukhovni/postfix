@@ -203,7 +203,7 @@ void    rewrite_addr(char *ruleset, char *addr, VSTRING *result)
 
 int     rewrite_proto(VSTREAM *stream)
 {
-    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_RULE, ruleset,
 		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, address,
 		  ATTR_TYPE_END) != 2)

@@ -68,7 +68,6 @@ pickup.o: ../../include/mymalloc.h
 pickup.o: ../../include/mail_proto.h
 pickup.o: ../../include/iostuff.h
 pickup.o: ../../include/attr.h
-pickup.o: ../../include/htable.h
 pickup.o: ../../include/cleanup_user.h
 pickup.o: ../../include/mail_date.h
 pickup.o: ../../include/mail_params.h

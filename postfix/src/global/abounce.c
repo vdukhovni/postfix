@@ -171,7 +171,7 @@ static void abounce_event(int unused_event, char *context)
     int     status;
 
     event_disable_readwrite(vstream_fileno(ap->fp));
-    abounce_done(ap, attr_scan(ap->fp, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    abounce_done(ap, attr_scan(ap->fp, ATTR_FLAG_STRICT,
 			       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			       ATTR_TYPE_END) == 1 ? status : -1);
 }

@@ -77,7 +77,7 @@ static int deliver_pass_initial_reply(VSTREAM *stream)
 {
     int     stat;
 
-    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
 		  ATTR_TYPE_END) != 1) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
@@ -124,7 +124,7 @@ static int deliver_pass_final_reply(VSTREAM *stream, VSTRING *reason)
 {
     int     stat;
 
-    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_WHY, reason,
 		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
 		  ATTR_TYPE_END) != 2) {

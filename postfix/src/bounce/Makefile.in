@@ -66,7 +66,6 @@ bounce.o: ../../include/stringops.h
 bounce.o: ../../include/mail_proto.h
 bounce.o: ../../include/iostuff.h
 bounce.o: ../../include/attr.h
-bounce.o: ../../include/htable.h
 bounce.o: ../../include/mail_queue.h
 bounce.o: ../../include/mail_params.h
 bounce.o: ../../include/mail_conf.h

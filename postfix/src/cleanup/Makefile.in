@@ -73,7 +73,6 @@ cleanup.o: ../../include/cleanup_user.h
 cleanup.o: ../../include/mail_proto.h
 cleanup.o: ../../include/iostuff.h
 cleanup.o: ../../include/attr.h
-cleanup.o: ../../include/htable.h
 cleanup.o: ../../include/mail_params.h
 cleanup.o: ../../include/record.h
 cleanup.o: ../../include/rec_type.h
@@ -96,7 +95,6 @@ cleanup_api.o: ../../include/vstream.h
 cleanup_api.o: ../../include/mail_proto.h
 cleanup_api.o: ../../include/iostuff.h
 cleanup_api.o: ../../include/attr.h
-cleanup_api.o: ../../include/htable.h
 cleanup_api.o: ../../include/bounce.h
 cleanup_api.o: ../../include/mail_params.h
 cleanup_api.o: ../../include/mail_stream.h

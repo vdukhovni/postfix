@@ -192,7 +192,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * Extract the queue file name, data offset, and sender address. Abort
      * the conversation when they send bad information.
      */
-    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA | ATTR_FLAG_MORE,
+    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
 		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request->flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
@@ -221,13 +221,13 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * attributes from the sender that we do not understand.
      */
     for (;;) {
-	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_EXTRA,
+	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		      ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, &offset,
 		      ATTR_TYPE_END) != 1)
 	    return (-1);
 	if (offset == 0)
 	    break;
-	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_EXTRA,
+	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		      ATTR_TYPE_STR, MAIL_ATTR_RECIP, address,
 		      ATTR_TYPE_END) != 1)
 	    return (-1);

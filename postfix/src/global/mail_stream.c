@@ -178,7 +178,7 @@ static int mail_stream_finish_ipc(MAIL_STREAM * info, VSTRING *why)
     /*
      * Receive the peer's completion status.
      */
-    if ((why && attr_scan(info->stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if ((why && attr_scan(info->stream, ATTR_FLAG_STRICT,
 			  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			  ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
 			  ATTR_TYPE_END) != 2)

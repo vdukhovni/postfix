@@ -83,7 +83,6 @@ qmqpd.o: ../../include/rec_type.h
 qmqpd.o: ../../include/mail_proto.h
 qmqpd.o: ../../include/iostuff.h
 qmqpd.o: ../../include/attr.h
-qmqpd.o: ../../include/htable.h
 qmqpd.o: ../../include/cleanup_user.h
 qmqpd.o: ../../include/mail_date.h
 qmqpd.o: ../../include/mail_conf.h

@@ -131,7 +131,7 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 	    vstream_fflush(stream)) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: bad write: %m", myname);
-	} else if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+	} else if (attr_scan(stream, ATTR_FLAG_STRICT,
 			     ATTR_TYPE_STR, MAIL_ATTR_ADDR, result,
 			     ATTR_TYPE_END) != 1) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))

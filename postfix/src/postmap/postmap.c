@@ -5,8 +5,9 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-Ninrvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-d \fIkey\fR]
-/*		[\fB-q \fIkey\fR] [\fIfile_type\fR:]\fIfile_name\fR ...
+/*	\fBpostmap\fR [\fB-Nfinrvw\fR] [\fB-c \fIconfig_dir\fR]
+/*		[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
+/*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
 /*	The \fBpostmap\fR command creates or queries one or more Postfix
 /*	lookup tables, or updates an existing one. The input and output
@@ -52,6 +53,8 @@
 /*	If a key value of \fB-\fR is specified, the program reads key
 /*	values from the standard input stream. The exit status is zero
 /*	when at least one of the requested keys was found.
+/* .IP \fB-f\fR
+/*	Do not fold the lookup key to lower case while creating a map.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR creates
@@ -243,7 +246,8 @@ static void postmap(char *map_type, char *path_name,
 	/*
 	 * Store the value under a case-insensitive key.
 	 */
-	lowercase(key);
+	if (dict_flags & DICT_FLAG_FOLD_KEY)
+	    lowercase(key);
 	mkmap_append(mkmap, key, value);
     }
 
@@ -395,7 +399,7 @@ static int postmap_delete(const char *map_type, const char *map_name,
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-Ninrvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-Nfinrvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -407,7 +411,7 @@ int     main(int argc, char **argv)
     char   *slash;
     struct stat st;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
-    int     dict_flags = DICT_FLAG_DUP_WARN;
+    int     dict_flags = DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_KEY;
     char   *query = 0;
     char   *delkey = 0;
     int     found;
@@ -445,7 +449,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:inq:rvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:finq:rvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -462,6 +466,9 @@ int     main(int argc, char **argv)
 	    if (query || delkey)
 		msg_fatal("specify only one of -q or -d");
 	    delkey = optarg;
+	    break;
+	case 'f':
+	    dict_flags &= ~DICT_FLAG_FOLD_KEY;
 	    break;
 	case 'i':
 	    open_flags &= ~O_TRUNC;

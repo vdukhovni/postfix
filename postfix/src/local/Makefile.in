@@ -452,9 +452,9 @@ unknown.o: ../../include/mail_proto.h
 unknown.o: ../../include/vstream.h
 unknown.o: ../../include/iostuff.h
 unknown.o: ../../include/attr.h
-unknown.o: ../../include/htable.h
 unknown.o: ../../include/bounce.h
 unknown.o: local.h
+unknown.o: ../../include/htable.h
 unknown.o: ../../include/tok822.h
 unknown.o: ../../include/resolve_clnt.h
 unknown.o: ../../include/deliver_request.h

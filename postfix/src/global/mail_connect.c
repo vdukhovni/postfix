@@ -92,7 +92,7 @@ VSTREAM *mail_connect(const char *class, const char *name, int block_mode)
 	    msg_info("connect to subsystem %s", path);
 	stream = vstream_fdopen(fd, O_RDWR);
 	timed_ipc_setup(stream);
-	sock_name = concatenate("socket ", path, (char *) 0);
+	sock_name = concatenate(path, " socket", (char *) 0);
 	vstream_control(stream,
 			VSTREAM_CTL_PATH, sock_name,
 			VSTREAM_CTL_END);

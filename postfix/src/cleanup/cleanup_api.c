@@ -232,8 +232,8 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 			      state->recip ? state->recip : "unknown",
 			      "cleanup", state->time,
-			   "Message processing aborted: %s", state->reason ?
-			 state->reason : cleanup_strerror(state->errs)) == 0
+			      "%s", state->reason ? state->reason :
+			      cleanup_strerror(state->errs)) == 0
 		&& bounce_flush(BOUNCE_FLAG_CLEAN, MAIL_QUEUE_INCOMING,
 				state->queue_id, state->sender) == 0) {
 		state->errs = 0;

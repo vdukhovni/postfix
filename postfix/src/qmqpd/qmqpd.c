@@ -225,6 +225,7 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
      */
     state->where = "receiving sender address";
     netstring_get(state->client, state->buf, var_line_limit);
+    VSTRING_TERMINATE(state->buf);
     verp_requested = ((end_prefix = strstr(STR(state->buf), "-@")) != 0
 		      && (end_origin = strstr(end_prefix + 2, "-@")) != 0
 		      && strncmp(end_origin + 2, "[]", 2) == 0

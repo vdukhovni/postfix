@@ -1,5 +1,5 @@
-#ifndef _ATTR_PRINT_H_INCLUDED_
-#define _ATTR_PRINT_H_INCLUDED_
+#ifndef _ATTR_H_INCLUDED_
+#define _ATTR_H_INCLUDED_
 
 /*++
 /* NAME
@@ -20,22 +20,24 @@
   * Utility library.
   */
 #include <vstream.h>
-#include <htable.h>
 
  /*
-  * External interface.
+  * Attribute types. See attr_scan(3) for documentation.
   */
 #define ATTR_TYPE_END		0	/* end of data */
 #define ATTR_TYPE_NUM		1	/* Unsigned integer */
 #define ATTR_TYPE_STR		2	/* Character string */
-#define ATTR_TYPE_NUM_ARRAY	3	/* Unsigned integer sequence */
-#define ATTR_TYPE_STR_ARRAY	4	/* Character string sequence */
-#define ATTR_TYPE_HASH		5	/* Hash table */
+#define ATTR_TYPE_HASH		3	/* Hash table */
 
+ /*
+  * Flags that control processing. See attr_scan(3) for documentation.
+  */
 #define ATTR_FLAG_NONE		0
 #define ATTR_FLAG_MISSING	(1<<0)	/* Flag missing attribute */
 #define ATTR_FLAG_EXTRA		(1<<1)	/* Flag spurious attribute */
 #define ATTR_FLAG_MORE		(1<<2)	/* Don't skip or terminate */
+
+#define ATTR_FLAG_STRICT	(ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA)
 #define ATTR_FLAG_ALL		(07)
 
  /*
@@ -57,8 +59,6 @@ extern int attr_vscan(VSTREAM *, int, va_list);
 #ifdef TEST
 #define ATTR_NAME_NUM		"number"
 #define ATTR_NAME_STR		"string"
-#define ATTR_NAME_NUM_ARRAY	"number_array"
-#define ATTR_NAME_STR_ARRAY	"string_array"
 #endif
 
 /* LICENSE

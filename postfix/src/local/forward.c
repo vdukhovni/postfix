@@ -129,7 +129,7 @@ static FORWARD_INFO *forward_open(char *sender)
     if (cleanup == 0)
 	return (0);
     close_on_exec(vstream_fileno(cleanup), CLOSE_ON_EXEC);
-    if (attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(cleanup, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buffer,
 		  ATTR_TYPE_END) != 1) {
 	vstream_fclose(cleanup);

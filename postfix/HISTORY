@@ -5495,10 +5495,11 @@ Apologies for any names omitted.
 
 20011010-14
 
-	Replaced the internal protocols by (name,value) attribute
-	lists. This gives better error detection when we start
-	making changes to internal protocols, and allows new
-	attributes to be introduced without breaking protocols.
+	Replaced the ugly mail_print() and mail-scan() protocols
+	by (name,value) attribute lists. This gives better error
+	detection when we start making changes to internal protocols,
+	and allows new attributes to be introduced without breaking
+	everything immediately.
 
 20011015
 
@@ -5529,17 +5530,32 @@ Apologies for any names omitted.
 	with fractional hours (-03-30 instead of -0330). Fix by
 	Chad House, greyfirst.ca.
 
+20011102
+
+	Feature: new -f option to postmap and postalias (do not
+	lowercase the lookup key while creating a table). Files:
+	util/dict.h postmap/postmap.c postalias/postalias.c.
+
+	Code cleanup: simplified the attribute print/scan routines,
+	and removed the never-used support for sending and receiving
+	integer arrays and string arrays. Files: util/attr_print.c,
+	util/attr_scan.c.
+
+	Bugfix: qmqpd could read past the end of a string while
+	looking for the VERP magic token in the envelope sender
+	address.  File: qmqpd/qmqpd.c.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups.
 
-	Minor: The $process_id_directory setting is not used anywhere
+	Low: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.
 	This should either be documented, or better, the code should
 	warn about attempts to set a read-only parameter.
 
-	Medium: address rewriting should be on/off configurable
-	for envelopes and/or headers.
+	Medium: make address rewriting on/off configurable for
+	envelopes and/or headers.
 
 	Medium: smtpd access maps don't understand the recipient
 	delimiter setting.

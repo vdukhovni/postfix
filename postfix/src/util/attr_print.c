@@ -50,13 +50,6 @@
 /* .IP "ATTR_TYPE_STR (char *, char *)"
 /*	This argument is followed by an attribute name and a null-terminated
 /*	string.
-/* .IP "ATTR_TYPE_NUM_ARRAY (char *, int, int *)"
-/*	This argument is followed by an attribute name, an integer array
-/*	element count, and a pointer to integer.
-/* .IP "ATTR_TYPE_NUM_ARRAY (char *, int, char **)"
-/*	This argument is followed by an attribute name, an integer array
-/*	element count, and a pointer to a null-terminated array of
-/*	null-terminated strings.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /*	The content of the hash table is sent as a sequence of string-valued
 /*	attributes with names equal to the hash table lookup key.
@@ -131,10 +124,6 @@ int     attr_vprint(VSTREAM *fp, int flags, va_list ap)
     char   *attr_name;
     unsigned int_val;
     char   *str_val;
-    char  **cpp_val;
-    unsigned *ip_val;
-    int     count_val;
-    int     i;
     HTABLE_INFO **ht_info_list;
     HTABLE_INFO **ht;
 
@@ -142,8 +131,7 @@ int     attr_vprint(VSTREAM *fp, int flags, va_list ap)
      * Sanity check.
      */
     if (flags & ~ATTR_FLAG_ALL)
-	msg_panic("%s: bad flags: 0x%x",
-		  myname, flags);
+	msg_panic("%s: bad flags: 0x%x", myname, flags);
 
     /*
      * Iterate over all (type, name, value) triples, and produce output on
@@ -168,30 +156,6 @@ int     attr_vprint(VSTREAM *fp, int flags, va_list ap)
 	    attr_print_str(fp, str_val, strlen(str_val));
 	    if (msg_verbose)
 		msg_info("send attr %s = %s", attr_name, str_val);
-	    break;
-	case ATTR_TYPE_NUM_ARRAY:
-	    attr_name = va_arg(ap, char *);
-	    attr_print_str(fp, attr_name, strlen(attr_name));
-	    ip_val = va_arg(ap, unsigned int *);
-	    count_val = va_arg(ap, int);
-	    for (i = 0; i < count_val; i++) {
-		VSTREAM_PUTC(':', fp);
-		attr_print_num(fp, (unsigned) *ip_val++);}
-	    if (msg_verbose)
-		msg_info("send attr %s values %d", attr_name, count_val);
-	    break;
-	case ATTR_TYPE_STR_ARRAY:
-	    attr_name = va_arg(ap, char *);
-	    attr_print_str(fp, attr_name, strlen(attr_name));
-	    cpp_val = va_arg(ap, char **);
-	    count_val = va_arg(ap, int);
-	    for (i = 0; i < count_val; i++) {
-		str_val = *cpp_val++;
-		VSTREAM_PUTC(':', fp);
-		attr_print_str(fp, str_val, strlen(str_val));
-	    }
-	    if (msg_verbose)
-		msg_info("send attr %s values %d", attr_name, count_val);
 	    break;
 	case ATTR_TYPE_HASH:
 	    ht_info_list = htable_list(va_arg(ap, HTABLE *));
@@ -236,31 +200,22 @@ int     attr_print(VSTREAM *fp, int flags,...)
   */
 #include <msg_vstream.h>
 
-int     main(int argc, char **argv)
+int     main(int unused_argc, char **argv)
 {
-    static int int_array[] = {0, 1, 2, 3, 4, 5, 6, 7};
-    static char *str_array[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
     HTABLE *table = htable_create(1);
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_verbose = 1;
     htable_enter(table, "foo-name", mystrdup("foo-value"));
     htable_enter(table, "bar-name", mystrdup("bar-value"));
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
 	       ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
 	       ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
-	       ATTR_TYPE_NUM_ARRAY, ATTR_NAME_NUM_ARRAY,
-	       int_array, sizeof(int_array) / sizeof(int_array[0]),
-	       ATTR_TYPE_STR_ARRAY, ATTR_NAME_STR_ARRAY,
-	       str_array, sizeof(str_array) / sizeof(str_array[0]),
 	       ATTR_TYPE_HASH, table,
 	       ATTR_TYPE_END);
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
 	       ATTR_TYPE_NUM, ATTR_NAME_NUM, 4711,
 	       ATTR_TYPE_STR, ATTR_NAME_STR, "whoopee",
-	       ATTR_TYPE_NUM_ARRAY, ATTR_NAME_NUM_ARRAY,
-	       int_array, sizeof(int_array) / sizeof(int_array[0]),
-	       ATTR_TYPE_STR_ARRAY, ATTR_NAME_STR_ARRAY,
-	       str_array, sizeof(str_array) / sizeof(str_array[0]),
 	       ATTR_TYPE_END);
     if (vstream_fflush(VSTREAM_OUT) != 0)
 	msg_fatal("write error: %m");

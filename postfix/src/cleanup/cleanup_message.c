@@ -268,9 +268,12 @@ static int cleanup_check_reject(CLEANUP_STATE *state, const char *value)
      * routine that takes an error code and an optional text.
      */
     if (strncasecmp(value, "REJECT", reason - value) == 0) {
-	if (state->reason == 0)
+	if (state->reason == 0) {
+	    while (*reason && ISSPACE(*reason))
+		reason++;
 	    state->reason = mystrdup(*reason ? reason :
 				     cleanup_strerror(CLEANUP_STAT_CONT));
+	}
 	state->errs |= CLEANUP_STAT_CONT;
 	return (1);
     } else {

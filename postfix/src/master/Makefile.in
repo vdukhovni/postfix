@@ -132,7 +132,6 @@ master_ent.o: ../../include/inet_addr_host.h
 master_ent.o: ../../include/mail_proto.h
 master_ent.o: ../../include/iostuff.h
 master_ent.o: ../../include/attr.h
-master_ent.o: ../../include/htable.h
 master_ent.o: ../../include/mail_params.h
 master_ent.o: ../../include/own_inet_addr.h
 master_ent.o: master_proto.h
@@ -208,7 +207,6 @@ master_wakeup.o: ../../include/vstream.h
 master_wakeup.o: ../../include/vbuf.h
 master_wakeup.o: ../../include/iostuff.h
 master_wakeup.o: ../../include/attr.h
-master_wakeup.o: ../../include/htable.h
 master_wakeup.o: mail_server.h
 master_wakeup.o: master.h
 multi_server.o: multi_server.c

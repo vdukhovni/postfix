@@ -92,7 +92,7 @@ static int qmgr_deliver_initial_reply(VSTREAM *stream)
     if (peekfd(vstream_fileno(stream)) < 0) {
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
-    } else if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    } else if (attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
 			 ATTR_TYPE_END) != 1) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
@@ -111,7 +111,7 @@ static int qmgr_deliver_final_reply(VSTREAM *stream, VSTRING *reason)
     if (peekfd(vstream_fileno(stream)) < 0) {
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
-    } else if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    } else if (attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_STR, MAIL_ATTR_WHY, reason,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
 			 ATTR_TYPE_END) != 2) {

@@ -163,7 +163,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 	    || vstream_fflush(stream)) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: bad write: %m", myname);
-	} else if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+	} else if (attr_scan(stream, ATTR_FLAG_STRICT,
 		       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, reply->transport,
 			   ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, reply->nexthop,
 

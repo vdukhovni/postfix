@@ -51,12 +51,6 @@
 #define MAIL_CLASS_PRIVATE	"private"
 
  /*
-  * When sending across a list of objects, this is how we signal the list
-  * end.
-  */
-#define MAIL_EOF			"@"
-
- /*
   * Generic triggers.
   */
 #define TRIGGER_REQ_WAKEUP	'W'	/* wakeup */
@@ -72,28 +66,12 @@
  /*
   * Functional interface.
   */
-#define MAIL_SCAN_MORE	0
-#define MAIL_SCAN_DONE	1
-#define MAIL_SCAN_ERROR	-1
-
-typedef int (*MAIL_SCAN_FN) (const char *, char *);
-typedef void (*MAIL_PRINT_FN) (VSTREAM *, const char *);
 extern VSTREAM *mail_connect(const char *, const char *, int);
 extern VSTREAM *mail_connect_wait(const char *, const char *);
-extern int mail_scan(VSTREAM *, const char *,...);
-extern void mail_scan_register(int, const char *, MAIL_SCAN_FN);
-extern void mail_print_register(int, const char *, MAIL_PRINT_FN);
-extern int PRINTFLIKE(2, 3) mail_print(VSTREAM *, const char *,...);
 extern int mail_command_client(const char *, const char *,...);
 extern int mail_command_server(VSTREAM *,...);
 extern int mail_trigger(const char *, const char *, const char *, int);
 extern char *mail_pathname(const char *, const char *);
-
- /*
-  * Stuff that needs <stdarg.h>
-  */
-extern int mail_vprint(VSTREAM *, const char *, va_list);
-extern int mail_vscan(VSTREAM *, const char *, va_list);
 
  /*
   * Attribute names.

@@ -543,13 +543,13 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
     if (peekfd(vstream_fileno(client_stream)) <= 2 ?
 	(vstring_get_null(request, client_stream) != VSTREAM_EOF) :
 	(attr_scan(client_stream,
-		   ATTR_FLAG_MORE | ATTR_FLAG_EXTRA | ATTR_FLAG_MISSING,
+		   ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		   ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
 		   ATTR_TYPE_END) == 1)) {
 	if (STREQ(STR(request), FLUSH_REQ_ADD)) {
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);
-	    if (attr_scan(client_stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			  ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
 			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			  ATTR_TYPE_END) == 2
@@ -560,7 +560,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 		       ATTR_TYPE_END);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
 	    site = vstring_alloc(10);
-	    if (attr_scan(client_stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			  ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
 			  ATTR_TYPE_END) == 1)
 		status = flush_send_service(lowercase(STR(site)));

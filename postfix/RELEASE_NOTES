@@ -1,3 +1,20 @@
+This release introduces a negligible amount of features and is all
+about revision of Postfix internals. With more than 70 pages of
+context diffs compared to the previous snapshot, this release is
+a baseline for upcoming feature changes.
+
+Major changes with snapshot-20011102
+====================================
+
+The protocol between Postfix daemons was replaced by something that
+can be extended without breaking everything after each change, and
+that can also be used to talk to non-Postfix programs. The format
+of the protocols is described in src/util/attr_scan.c.
+
+In header/body_check files, REJECT can now be followed by text that
+is sent to the originator. That feature was stuck waiting for the
+internal protocol revision.
+
 Incompatible changes with snapshot-20011008
 ===========================================
 
@@ -34,9 +51,9 @@ parameter.  Postfix refuses to accept mail when permit_mx_backup
 is used while auth_mx_backup_networks is not configured. [This
 change was undone with a later release].
 
-The protocol between Postfix master and child processes has changed.
 You must stop and start Postfix in order to switch between Snapshot
-20010808 and releases that implement the older protocol.
+20010808 and earlier releases.  The protocol between Postfix master
+and child processes has changed.
 
 Major changes with snapshot-20010808
 ====================================

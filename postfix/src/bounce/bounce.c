@@ -299,7 +299,7 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 #define REALLY_BOUNCE	1
 #define JUST_WARN	0
 
-    if (attr_scan(client, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA | ATTR_FLAG_MORE,
+    if (attr_scan(client, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
 		  ATTR_TYPE_NUM, MAIL_ATTR_NREQ, &command, 0) != 1) {
 	msg_warn("malformed request");
 	status = -1;

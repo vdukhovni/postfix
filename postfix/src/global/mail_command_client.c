@@ -74,7 +74,7 @@ int     mail_command_client(const char *class, const char *name,...)
     status = attr_vprint(stream, ATTR_FLAG_NONE, ap);
     va_end(ap);
     if (status != 0
-	|| attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+	|| attr_scan(stream, ATTR_FLAG_STRICT,
 		     ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status, 0) != 1)
 	status = -1;
     (void) vstream_fclose(stream);

@@ -81,6 +81,8 @@
 /* .IP DICT_FLAG_SYNC_UPDATE
 /*	With file-based maps, flush I/O buffers to file after each update.
 /*	Thus feature is not supported with some file-based dictionaries.
+/* .IP DICT_FLAG_FOLD_KEY
+/*	Fold the lookup key to lower case.
 /* .PP
 /*	The dictionary types are as follows:
 /* .IP environ

@@ -181,7 +181,7 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
      * dedicated to address rewriting. All connection-management stuff is
      * handled by the common code in multi_server.c.
      */
-    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA | ATTR_FLAG_MORE,
+    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
 		  ATTR_TYPE_STR, MAIL_ATTR_REQ, command,
 		  ATTR_TYPE_END) == 1) {
 	if (strcmp(vstring_str(command), REWRITE_ADDR) == 0) {

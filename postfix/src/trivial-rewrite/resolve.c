@@ -257,7 +257,7 @@ int     resolve_proto(VSTREAM *stream)
 {
     int     flags;
 
-    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, query,
 		  ATTR_TYPE_END) != 1)
 	return (-1);

@@ -159,9 +159,9 @@ int     main(int unused_argc, char **unused_argv)
     VSTRING *b2 = vstring_alloc(1);
     char   *test = "this is a test";
 
-#define DECODE(b,s,l) { \
-	if (base64_decode((b),(s),(l)) == 0) \
-	    msg_panic("bad base64: %s", (s)); \
+#define DECODE(b,x,l) { \
+	if (base64_decode((b),(x),(l)) == 0) \
+	    msg_panic("bad base64: %s", (x)); \
     }
 #define VERIFY(b,t) { \
 	if (strcmp((b), (t)) != 0) \

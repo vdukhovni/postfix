@@ -367,7 +367,7 @@ static int pickup_file(PICKUP_INFO *info)
 
     buf = vstring_alloc(100);
     cleanup = mail_connect_wait(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
-    if (attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (attr_scan(cleanup, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buf,
 		  ATTR_TYPE_END) != 1
 	|| attr_print(cleanup, ATTR_FLAG_NONE,
