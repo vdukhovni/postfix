@@ -675,5 +675,6 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, flush_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
+		       MAIL_SERVER_UNLIMITED,
 		       0);
 }

@@ -229,7 +229,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
      * XXX This code does not detect the case that the active queue is being
      * starved because incoming mail is pounding the disk.
      */
-    if (var_qmgr_clog_warn_time > 0) {
+    if (var_helpful_warnings && var_qmgr_clog_warn_time > 0) {
 	int     queue_length = queue->todo_refcount + queue->busy_refcount;
 	time_t  now;
 	QMGR_TRANSPORT *transport;

@@ -24,6 +24,13 @@ typedef int bool;
 extern char *var_mail_name;
 
  /*
+  * You want to be helped or not.
+  */
+#define VAR_HELPFUL_WARNINGS	"helpful_warnings"
+#define DEF_HELPFUL_WARNINGS	1
+extern bool var_helpful_warnings;
+
+ /*
   * What problem classes should be reported to the postmaster via email.
   * Default is bad problems only. See mail_error(3). Even when mail notices
   * are disabled, problems are still logged to the syslog daemon.

@@ -98,6 +98,10 @@
 /* .IP "MAIL_SERVER_IN_FLOW_DELAY (none)"
 /*	Pause $in_flow_delay seconds when no "mail flow control token"
 /*	is available. A token is consumed for each connection request.
+/* .IP MAIL_SERVER_SOLITARY
+/*	This service must be configured with process limit of 1.
+/* .IP MAIL_SERVER_UNLIMITED
+/*	This service must be configured with process limit of 0.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
 /*	when a client disconnects.
@@ -388,6 +392,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     char   *lock_path;
     VSTRING *why;
     int     alone = 0;
+    int     zerolimit = 0;
     WATCHDOG *watchdog;
     char   *oval;
 
@@ -436,7 +441,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cDi:lm:n:o:s:St:uv")) > 0) {
+    while ((c = GETOPT(argc, argv, "cDi:lm:n:o:s:St:uvz")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = "setme";
@@ -476,6 +481,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    break;
 	case 'v':
 	    msg_verbose++;
+	    break;
+	case 'z':
+	    zerolimit = 1;
 	    break;
 	default:
 	    msg_fatal("invalid option: %c", c);
@@ -526,6 +534,16 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    break;
 	case MAIL_SERVER_IN_FLOW_DELAY:
 	    multi_server_in_flow_delay = 1;
+	    break;
+	case MAIL_SERVER_SOLITARY:
+	    if (!alone)
+		msg_fatal("service %s requires a process limit of 1",
+			  service_name);
+	    break;
+	case MAIL_SERVER_UNLIMITED:
+	    if (!zerolimit)
+		msg_fatal("service %s requires a process limit of 0",
+			  service_name);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

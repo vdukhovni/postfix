@@ -521,5 +521,6 @@ int     main(int argc, char **argv)
     trigger_server_main(argc, argv, pickup_service,
 			MAIL_SERVER_STR_TABLE, str_table,
 			MAIL_SERVER_POST_INIT, drop_privileges,
+			MAIL_SERVER_SOLITARY,
 			0);
 }

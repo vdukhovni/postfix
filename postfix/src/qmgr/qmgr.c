@@ -515,5 +515,6 @@ int     main(int argc, char **argv)
 			MAIL_SERVER_POST_INIT, qmgr_post_init,
 			MAIL_SERVER_LOOP, qmgr_loop,
 			MAIL_SERVER_PRE_ACCEPT, pre_accept,
+			MAIL_SERVER_SOLITARY,
 			0);
 }

@@ -14,6 +14,7 @@
 /*	char	*var_transit_origin;
 /*	char	*var_transit_dest;
 /*	char	*var_mail_name;
+/*	int	var_helpful_warnings;
 /*	char	*var_syslog_name;
 /*	char	*var_mail_owner;
 /*	uid_t	var_owner_uid;
@@ -167,6 +168,7 @@ char   *var_relayhost;
 char   *var_transit_origin;
 char   *var_transit_dest;
 char   *var_mail_name;
+int     var_helpful_warnings;
 char   *var_syslog_name;
 char   *var_mail_owner;
 uid_t   var_owner_uid;
@@ -511,6 +513,7 @@ void    mail_params_init()
 	VAR_STRICT_ENCODING, DEF_STRICT_ENCODING, &var_strict_encoding,
 	VAR_DISABLE_MIME_INPUT, DEF_DISABLE_MIME_INPUT, &var_disable_mime_input,
 	VAR_DISABLE_MIME_OCONV, DEF_DISABLE_MIME_OCONV, &var_disable_mime_oconv,
+	VAR_HELPFUL_WARNINGS, DEF_HELPFUL_WARNINGS, &var_helpful_warnings,
 	0,
     };
     const char *cp;

@@ -443,5 +443,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_POST_INIT, post_jail_init,
+		       MAIL_SERVER_UNLIMITED,
 		       0);
 }

@@ -230,9 +230,18 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * With virtual, relay, or other non-local destinations, give the highest
      * precedence to delivery transport associated next-hop information.
      * 
+     * XXX With the virtual mailbox transport, set the nexthop information to
+     * $myhostname, so that in default configurations the virtual delivery
+     * agent will not use separate queues for every $virtual_mailbox_domains
+     * domain name. That prevents anomalies where many low-traffic domains
+     * starve a high-traffic domain.
+     * 
      * XXX Nag if the domain is listed in multiple domain lists. The effect is
      * implementation defined, and may break when internals change.
      */
+#define VIRT_ALIAS_TRANSPORT	var_error_transport
+#define VIRT_ALIAS_NEXTHOP	"User unknown in virtual alias table"
+
     dict_errno = 0;
     if (domain != 0) {
 	tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
@@ -242,12 +251,13 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    *flags |= RESOLVE_FLAG_ERROR;
 	if (virt_alias_doms
 	    && string_list_match(virt_alias_doms, STR(nexthop))) {
-	    if (virt_mailbox_doms
+	    if (var_helpful_warnings
+		&& virt_mailbox_doms
 		&& string_list_match(virt_mailbox_doms, STR(nexthop)))
 		msg_warn("do not list domain %s in BOTH %s and %s",
 		  STR(nexthop), VAR_VIRT_ALIAS_DOMS, VAR_VIRT_MAILBOX_DOMS);
-	    vstring_strcpy(channel, var_error_transport);
-	    vstring_strcpy(nexthop, "User unknown in virtual alias table");
+	    vstring_strcpy(channel, VIRT_ALIAS_TRANSPORT);
+	    vstring_strcpy(nexthop, VIRT_ALIAS_NEXTHOP);
 	    blame = VAR_ERROR_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_ALIAS;
 	} else if (dict_errno != 0) {
@@ -256,6 +266,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	} else if (virt_mailbox_doms
 		   && string_list_match(virt_mailbox_doms, STR(nexthop))) {
 	    vstring_strcpy(channel, var_virt_transport);
+	    vstring_strcpy(nexthop, var_myhostname);
 	    blame = VAR_VIRT_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_VIRTUAL;
 	} else if (dict_errno != 0) {
@@ -275,16 +286,24 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 		blame = VAR_DEF_TRANSPORT;
 		*flags |= RESOLVE_CLASS_DEFAULT;
 	    }
-	    if (*var_relayhost)
+	    if (*var_relayhost) {
 		vstring_strcpy(nexthop, var_relayhost);
+		lowercase(STR(nexthop));
+	    }
 	}
-	if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
+	if ((destination = split_at(STR(channel), ':')) != 0 && *destination) {
 	    vstring_strcpy(nexthop, destination);
+	    lowercase(STR(nexthop));
+	}
     }
 
     /*
      * Local delivery. Set up the default local transport and the default
      * next-hop hostname (myself).
+     * 
+     * XXX Set the nexthop information to myhostname, so that the local delivery
+     * agent does not get a queue for every domain name in $mydestination or
+     * for every network address in $inet_interfaces.
      * 
      * XXX Nag if the domain is listed in multiple domain lists. The effect is
      * implementation defined, and may break when internals change.
@@ -292,11 +311,13 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     else {
 	if ((rcpt_domain = strrchr(STR(nextrcpt), '@')) != 0) {
 	    rcpt_domain++;
-	    if (virt_alias_doms
+	    if (var_helpful_warnings
+		&& virt_alias_doms
 		&& string_list_match(virt_alias_doms, rcpt_domain))
 		msg_warn("do not list domain %s in BOTH %s and %s",
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_ALIAS_DOMS);
-	    if (virt_mailbox_doms
+	    if (var_helpful_warnings
+		&& virt_mailbox_doms
 		&& string_list_match(virt_mailbox_doms, rcpt_domain))
 		msg_warn("do not list domain %s in BOTH %s and %s",
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
@@ -338,6 +359,20 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     }
 
     /*
+     * Kludge for virtual alias domains. Their next-hop info is arbitrary
+     * text that must not be passed on to regular delivery agents. So, if the
+     * transport was changed, but the nexthop was not, copy over the local
+     * hostname instead.
+     */
+#define STREQ(x, y) (strcmp((x), (y)) == 0)
+
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0
+	&& (*flags & RESOLVE_CLASS_ALIAS) != 0
+	&& !STREQ(STR(channel), VIRT_ALIAS_TRANSPORT)
+	&& STREQ(STR(nexthop), VIRT_ALIAS_NEXTHOP))
+	vstring_strcpy(nexthop, var_myhostname);
+
+    /*
      * Bounce recipients that have moved, regardless of domain address class.
      * The downside of doing this here is that this table has no effect on
      * local alias expansion results. Such mail will have to make almost an
@@ -345,13 +380,13 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      */
 #define IGNORE_ADDR_EXTENSION   ((char **) 0)
 
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && *var_relocated_maps != 0) {
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && relocated_maps != 0) {
 	const char *newloc;
 
 	if ((newloc = mail_addr_find(relocated_maps, STR(nextrcpt),
 				     IGNORE_ADDR_EXTENSION)) != 0) {
 	    vstring_strcpy(channel, var_error_transport);
-	    vstring_sprintf(nexthop, "user has moved to %s", newloc);
+	    vstring_sprintf(nexthop, "User has moved to %s", newloc);
 	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_RELOCATED_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;

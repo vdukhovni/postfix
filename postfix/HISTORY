@@ -7401,6 +7401,23 @@ Apologies for any names omitted.
 	shooting a little easier. Files: smtpd/smtpd_check.c,
 	trivial-rewrite/resolve.c.
 
+20021213
+
+	Cleanup: transport map entries with null nexthop ignored
+	relayhost settings. Making the code simpler also made it
+	more correct. Files: trivial-rewrite/resolve.c,
+	trivial-rewrite/transport.c.
+
+	Feature: "helpful_warnings" (default: yes) that can be
+	turned off if you really know what you're doing and want
+	to eliminate some unnecessary work.
+
+	Feature: enforcement of master.cf process limits for
+	processes such as qmgr and pickup that must run alone, and
+	processes such as cleanup and bounce that must run without
+	explicit process count limit. If an incorrect process limit
+	is specified in master.cf the service aborts.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

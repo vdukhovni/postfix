@@ -75,6 +75,15 @@ static int transport_match_parent_style;
 static VSTRING *wildcard_channel;
 static VSTRING *wildcard_nexthop;
 
+#define STR(x)	vstring_str(x)
+
+ /*
+  * Macro for consistent updates of the transport and nexthop results.
+  */
+#define UPDATE_IF_SPECIFIED(dst, src) do { \
+	if ((src) && *(src)) vstring_strcpy((dst), (src)); \
+    } while (0)
+
 /* transport_init - pre-jail initialization */
 
 void    transport_init(void)
@@ -84,14 +93,12 @@ void    transport_init(void)
     transport_path = maps_create("transport", var_transport_maps,
 				 DICT_FLAG_LOCK);
     transport_match_parent_style = match_parent_style(VAR_TRANSPORT_MAPS);
-
 }
 
 /* find_transport_entry - look up and parse transport table entry */
 
 static int find_transport_entry(const char *key, int flags,
-				        VSTRING *channel, VSTRING *nexthop,
-				        const char *def_nexthop)
+				        VSTRING *channel, VSTRING *nexthop)
 {
     char   *saved_value;
     const char *host;
@@ -115,27 +122,14 @@ static int find_transport_entry(const char *key, int flags,
     }
 
     /*
-     * Can't do transport:user@domain until we have a way to pass the
-     * recipient back to the application, and until we have verified that
-     * this does not open security holes via, for example, regexp maps.
-     * Nothing is supposed to trust a transport name, envelope recipient
-     * address or next-hop hostname, but to be on the safe side we probably
-     * should add some syntax sanity checks.
+     * Can't do transport:user@domain because the right-hand side can have
+     * arbitrary content (especially in the case of the error mailer).
      */
     else {
 	saved_value = mystrdup(value);
-	if ((host = split_at(saved_value, ':')) != 0 && *host != 0) {
-#if 0
-	    if ((ratsign = strrchr(host, '@'))) {
-		vstring_strcpy(recipient, host);
-		vstring_strcpy(nexthop, ratsign + 1);
-	    } else
-#endif
-		vstring_strcpy(nexthop, host);
-	} else if (def_nexthop != 0)
-	    vstring_strcpy(nexthop, def_nexthop);
-	if (*saved_value != 0)
-	    vstring_strcpy(channel, saved_value);
+	host = split_at(saved_value, ':');
+	UPDATE_IF_SPECIFIED(nexthop, host);
+	UPDATE_IF_SPECIFIED(channel, saved_value);
 	myfree(saved_value);
 	return (FOUND);
     }
@@ -148,11 +142,21 @@ void    transport_wildcard_init(void)
     VSTRING *channel = vstring_alloc(10);
     VSTRING *nexthop = vstring_alloc(10);
 
+    /*
+     * Technically, the wildcard lookup pattern is redundant. A static map
+     * (keys always match, result is fixed string) could achieve the same:
+     * 
+     * transport_maps = hash:/etc/postfix/transport static:xxx:yyy
+     * 
+     * But the user interface of such an approach would be less intuitive. We
+     * tolerate the continued existence of wildcard lookup patterns because
+     * of human interface considerations.
+     */
 #define WILDCARD	"*"
 #define FULL		0
 #define PARTIAL		DICT_FLAG_FIXED
 
-    if (find_transport_entry(WILDCARD, FULL, channel, nexthop, (char *) 0)) {
+    if (find_transport_entry(WILDCARD, FULL, channel, nexthop)) {
 	wildcard_channel = channel;
 	wildcard_nexthop = nexthop;
 	if (msg_verbose)
@@ -174,7 +178,6 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
     const char *name;
     const char *next;
     int     found;
-    const char *def_nexthop = 0;
 
 #define STREQ(x,y)	(strcmp((x), (y)) == 0)
 #define DISCARD_EXTENSION ((char **) 0)
@@ -193,7 +196,7 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * string. Specify the FULL flag to include regexp maps in the query.
      */
     if (STREQ(full_addr, var_xport_null_key)) {
-	if (find_transport_entry(full_addr, FULL, channel, nexthop, def_nexthop))
+	if (find_transport_entry(full_addr, FULL, channel, nexthop))
 	    RETURN_FREE(FOUND);
 	RETURN_FREE(NOTFOUND);
     }
@@ -205,9 +208,7 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
     if ((ratsign = strrchr(full_addr, '@')) == 0 || ratsign[1] == 0)
 	msg_panic("transport_lookup: bad address: \"%s\"", full_addr);
 
-    def_nexthop = ratsign + 1;
-
-    if (find_transport_entry(full_addr, FULL, channel, nexthop, def_nexthop))
+    if (find_transport_entry(full_addr, FULL, channel, nexthop))
 	RETURN_FREE(FOUND);
 
     /*
@@ -217,8 +218,8 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      */
     if ((stripped_addr = strip_addr(full_addr, DISCARD_EXTENSION,
 				    *var_rcpt_delim)) != 0) {
-	if (find_transport_entry(stripped_addr, PARTIAL, channel, nexthop,
-				 def_nexthop)) {
+	if (find_transport_entry(stripped_addr, PARTIAL,
+				 channel, nexthop)) {
 	    myfree(stripped_addr);
 	    RETURN_FREE(FOUND);
 	} else {
@@ -243,7 +244,7 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * with regular expressions.
      */
     for (found = 0, name = ratsign + 1; /* void */ ; name = next) {
-	if (find_transport_entry(name, PARTIAL, channel, nexthop, def_nexthop))
+	if (find_transport_entry(name, PARTIAL, channel, nexthop))
 	    RETURN_FREE(FOUND);
 	if ((next = strchr(name + 1, '.')) == 0)
 	    break;
@@ -255,10 +256,8 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * Fall back to the wild-card entry.
      */
     if (wildcard_channel) {
-	if (*vstring_str(wildcard_channel))
-	    vstring_strcpy(channel, vstring_str(wildcard_channel));
-	if (*vstring_str(wildcard_nexthop))
-	    vstring_strcpy(nexthop, vstring_str(wildcard_nexthop));
+	UPDATE_IF_SPECIFIED(channel, STR(wildcard_channel));
+	UPDATE_IF_SPECIFIED(nexthop, STR(wildcard_nexthop));
 	RETURN_FREE(FOUND);
     }
 
