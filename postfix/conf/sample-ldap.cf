@@ -33,6 +33,11 @@
 #
 #ldap_query_filter = (mailacceptinggeneralid=%s)
 
+# The ldap_result_filter parameter specifies the filter to be applied
+# to the result attribute(s).  See ldap_query_filter for valid expansions.
+#
+#ldap_result_filter = %s
+
 # The ldap_result_attribute parameter specifies the attribute returned by
 # the search.
 #

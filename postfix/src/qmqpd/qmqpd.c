@@ -340,7 +340,7 @@ static void qmqpd_write_content(QMQPD_STATE *state)
 		    "\tby %s (%s) with %s id %s",
 		    var_myhostname, var_mail_name,
 		    state->protocol, state->queue_id);
-	quote_822_local(state->buf, state->recipient, QUOTE_FLAG_8BITCLEAN);
+	quote_822_local(state->buf, state->recipient);
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		 "\tfor <%s>; %s", STR(state->buf), mail_date(state->time));
     } else {

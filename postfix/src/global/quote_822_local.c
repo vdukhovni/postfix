@@ -6,7 +6,11 @@
 /* SYNOPSIS
 /*	#include <quote_822_local.h>
 /*
-/*	VSTRING	*quote_822_local(dst, src, flags)
+/*	VSTRING	*quote_822_local(dst, src)
+/*	VSTRING	*dst;
+/*	const char *src;
+/*
+/*	VSTRING	*quote_822_local_flags(dst, src, flags)
 /*	VSTRING	*dst;
 /*	const char *src;
 /*	int	flags;
@@ -18,7 +22,9 @@
 /*	quote_822_local() quotes the local part of a mailbox and
 /*	returns a result that can be used in message headers as
 /*	specified by RFC 822 (actually, an 8-bit clean version of
-/*	RFC 822).
+/*	RFC 822). It implements an 8-bit clean version of RFC 822.
+/*
+/*	quote_822_local_flags() provides finer control.
 /*
 /*	unquote_822_local() transforms the local part of a mailbox
 /*	address to unquoted (internal) form.
@@ -136,9 +142,9 @@ static VSTRING *make_822_quoted_string(VSTRING *dst, const char *local_part,
     return (dst);
 }
 
-/* quote_822_local - quote local part of mailbox according to rfc 822 */
+/* quote_822_local_flags - quote local part of mailbox according to rfc 822 */
 
-VSTRING *quote_822_local(VSTRING *dst, const char *mbox, int flags)
+VSTRING *quote_822_local_flags(VSTRING *dst, const char *mbox, int flags)
 {
     const char *start;			/* first byte of localpart */
     const char *end;			/* first byte after localpart */
@@ -220,7 +226,7 @@ int     main(int unused_argc, char **unused_argv)
     VSTRING *unquoted = vstring_alloc(100);
 
     while (vstring_fgets_nonl(raw, VSTREAM_IN)) {
-	quote_822_local(quoted, STR(raw), QUOTE_FLAG_8BITCLEAN);
+	quote_822_local(quoted, STR(raw));
 	vstream_printf("quoted:		%s\n", STR(quoted));
 	unquote_822_local(unquoted, STR(quoted));
 	vstream_printf("unquoted:	%s\n", STR(unquoted));

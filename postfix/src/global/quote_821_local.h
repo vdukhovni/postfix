@@ -21,7 +21,9 @@
  /*
   * External interface.
   */
-extern VSTRING *quote_821_local(VSTRING *, char *, int);
+extern VSTRING *quote_821_local_flags(VSTRING *, char *, int);
+#define quote_821_local(dst, src) \
+	quote_821_local_flags((dst), (src), QUOTE_FLAG_8BITCLEAN)
 
 /* LICENSE
 /* .ad

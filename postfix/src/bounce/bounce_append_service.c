@@ -103,8 +103,7 @@ int     bounce_append_service(char *service, char *queue_id,
 
     if (*recipient)
 	vstream_fprintf(log, "<%s>: ",
-	   printable(vstring_str(quote_822_local(in_buf, recipient,
-						 QUOTE_FLAG_8BITCLEAN)), '?'));
+	   printable(vstring_str(quote_822_local(in_buf, recipient)), '?'));
     else
 	vstream_fprintf(log, "<>: ");
     vstream_fputs(printable(why, '?'), log);

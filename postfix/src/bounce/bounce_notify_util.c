@@ -302,8 +302,7 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 			"Subject: Delayed Mail (still being retried)");
     }
     post_mail_fprintf(bounce, "To: %s",
-		      STR(quote_822_local(bounce_info->buf, dest,
-					  QUOTE_FLAG_8BITCLEAN)));
+		      STR(quote_822_local(bounce_info->buf, dest)));
 
     /*
      * MIME header.

@@ -144,7 +144,7 @@ int     mail_copy(const char *sender, const char *delivered,
     if (flags & (MAIL_COPY_FROM | MAIL_COPY_RETURN_PATH)) {
 	if (sender == 0)
 	    msg_panic("%s: null sender", myname);
-	quote_822_local(buf, sender, QUOTE_FLAG_8BITCLEAN);
+	quote_822_local(buf, sender);
 	if (flags & MAIL_COPY_FROM) {
 	    time(&now);
 	    vstream_fprintf(dst, "From %s  %.24s%s", *sender == 0 ?
@@ -159,7 +159,7 @@ int     mail_copy(const char *sender, const char *delivered,
     if (flags & MAIL_COPY_DELIVERED) {
 	if (delivered == 0)
 	    msg_panic("%s: null delivered", myname);
-	quote_822_local(buf, delivered, QUOTE_FLAG_8BITCLEAN);
+	quote_822_local(buf, delivered);
 	vstream_fprintf(dst, "Delivered-To: %s%s",
 			lowercase(vstring_str(buf)), eol);
     }

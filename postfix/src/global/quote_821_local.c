@@ -6,14 +6,20 @@
 /* SYNOPSIS
 /*	#include "quote_821_local.h"
 /*
-/*	VSTRING	*quote_821_local(dst, src, flags)
+/*	VSTRING	*quote_821_local(dst, src)
+/*	VSTRING	*dst;
+/*	char	*src;
+/*
+/*	VSTRING	*quote_821_local_flags(dst, src, flags)
 /*	VSTRING	*dst;
 /*	char	*src;
 /*	int	flags;
 /* DESCRIPTION
 /*	quote_821_local() quotes the local part of a mailbox address and
 /*	returns a result that can be used in SMTP commands as specified
-/*	by RFC 821.
+/*	by RFC 821. It implements an 8-bit clean version of RFC 821.
+/*
+/*	quote_821_local_flags() provides finer control.
 /*
 /*	Arguments:
 /* .IP dst
@@ -124,9 +130,9 @@ static VSTRING *make_821_quoted_string(VSTRING *dst, char *local_part,
     return (dst);
 }
 
-/* quote_821_local - quote local part of address according to rfc 821 */
+/* quote_821_local_flags - quote local part of address according to rfc 821 */
 
-VSTRING *quote_821_local(VSTRING *dst, char *addr, int flags)
+VSTRING *quote_821_local_flags(VSTRING *dst, char *addr, int flags)
 {
     char   *at;
 
@@ -164,8 +170,7 @@ int     main(void)
 
     while (vstring_fgets_nonl(src, VSTREAM_IN)) {
 	vstream_fprintf(VSTREAM_OUT, "%s\n",
-			vstring_str(quote_821_local(dst, vstring_str(src),
-						    QUOTE_FLAG_8BITCLEAN)));
+			vstring_str(quote_821_local(dst, vstring_str(src))));
 	vstream_fflush(VSTREAM_OUT);
     }
     exit(0);

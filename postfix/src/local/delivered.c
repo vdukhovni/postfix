@@ -137,7 +137,7 @@ int     delivered_find(HTABLE *table, char *address)
      * header. We must therefore apply the same transformation when looking
      * up the recipient. Lowercase the delivered-to address for consistency.
      */
-    quote_822_local(buf, address, QUOTE_FLAG_8BITCLEAN);
+    quote_822_local(buf, address);
     lowercase(STR(buf));
     ht = htable_locate(table, STR(buf));
     return (ht != 0);

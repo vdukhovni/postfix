@@ -80,6 +80,12 @@ This information is used to determine if
 List of domains that this machine considers local.
 .IP \fBmyorigin\fR
 The domain that locally-posted mail appears to come from.
+.IP \fBresolve_unquoted_address\fR
+When resolving an address, do not quote the address localpart as
+per RFC 822, so that additional \fB@\fR, \fB%\fR or \fB!\fR
+characters remain visible. This is technically incorrect, but
+allows us to stop relay attacks when forwarding mail to a Sendmail
+primary MX host.
 .SH Rewriting
 .ad
 .fi

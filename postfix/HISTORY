@@ -6417,6 +6417,24 @@ Apologies for any names omitted.
 	recipient address, resulting in too much quoting in bounce
 	reports.  Files:  src/smtp_proto.c, lmtp/lmtp_proto.c.
 
+20020513
+
+
+	Bugfix: the LDAP client used the "wrong" @ character in
+	addresses with multiple @. LaMont Jones, HP. File:
+	util/dict_ldap.c.
+
+	Feature: lots of new LDAP stuff: result_filter (filter to
+	expand results from queries), chase_referrals,
+	LaMont Jones, HP. The LDAP bind timeout now works thanks
+	to Victor Duchovni, Morgan Stanley. File:  util/dict_ldap.c.
+
+	Cleanup: specify "resolve_dequoted_address = no" to prevent
+	Postfix from looking inside quotes for extra @ etc. characters
+	when resolving an address. This behavior is technically
+	more correct, but it opens a mail relay loophole with "user
+	@domain"@domain when relaying mail to a Sendmail system.
+
 Open problems:
 
 	Low: all table lookups should consistently use internalized

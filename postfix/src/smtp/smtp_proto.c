@@ -306,7 +306,7 @@ int     smtp_xfer(SMTP_STATE *state)
      */
 #define REWRITE_ADDRESS(dst, mid, src) do { \
 	if (*(src)) { \
-	    quote_821_local(mid, src, QUOTE_FLAG_8BITCLEAN); \
+	    quote_821_local(mid, src); \
 	    smtp_unalias_addr(dst, vstring_str(mid)); \
 	} else { \
 	    vstring_strcpy(dst, src); \
@@ -315,7 +315,7 @@ int     smtp_xfer(SMTP_STATE *state)
 
 #define QUOTE_ADDRESS(dst, src) do { \
 	if (*(src)) { \
-	    quote_821_local(dst, src, QUOTE_FLAG_8BITCLEAN); \
+	    quote_821_local(dst, src); \
 	} else { \
 	    vstring_strcpy(dst, src); \
 	} \

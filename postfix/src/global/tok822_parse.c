@@ -248,8 +248,8 @@ VSTRING *tok822_externalize(VSTRING *vp, TOK822 *tree, int flags)
 	case TOK822_ADDR:
 	    tmp = vstring_alloc(100);
 	    tok822_internalize(tmp, tp->head, TOK822_STR_NONE);
-	    quote_822_local(vp, vstring_str(tmp),
-			    QUOTE_FLAG_8BITCLEAN | QUOTE_FLAG_APPEND);
+	    quote_822_local_flags(vp, vstring_str(tmp),
+				  QUOTE_FLAG_8BITCLEAN | QUOTE_FLAG_APPEND);
 	    vstring_free(tmp);
 	    break;
 	case TOK822_ATOM:

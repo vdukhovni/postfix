@@ -739,8 +739,8 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 
 /* resolve_final - do we do final delivery for the domain? */
 
-static int resolve_final(SMTPD_STATE *state, const char *reply_name, 
-const char *domain)
+static int resolve_final(SMTPD_STATE *state, const char *reply_name,
+			         const char *domain)
 {
 
     /* If matches $mydestination or $inet_interfaces. */
@@ -1027,7 +1027,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 	return (SMTPD_CHECK_DUNNO);
 
     /*
-     * Permit final delivery: the destination matches mydestination, 
+     * Permit final delivery: the destination matches mydestination,
      * virtual_maps, or virtual_mailbox_maps.
      */
     if (resolve_final(state, recipient, domain))
@@ -1729,8 +1729,8 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * from resolve_clnt_query() must be fully qualified.
      */
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0) {
-	msg_warn("%s: no @domain in address: %s", myname, 
-	CONST_STR(reply->recipient));
+	msg_warn("%s: no @domain in address: %s", myname,
+		 CONST_STR(reply->recipient));
 	return (0);
     }
     domain += 1;
@@ -1765,7 +1765,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * below was brought to you by the keyboard of Victor Duchovni, Morgan
      * Stanley and hacked up a bit by Wietse.
      */
-#define SUSPICIOUS(domain, reply, state, reply_name, reply_class) \
+#define SUSPICIOUS(reply, reply_class) \
 	(var_allow_untrust_route == 0 \
 	&& (reply->flags & RESOLVE_FLAG_ROUTED) \
 	&& strcmp(reply_class, SMTPD_NAME_RECIPIENT) == 0)
@@ -1778,7 +1778,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 			       found, reply_name, reply_class, def_acl)) != 0
 	|| *found)
 	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				 && SUSPICIOUS(reply, reply_class) ?
 				 SMTPD_CHECK_DUNNO : status);
 
     /*
@@ -1789,7 +1789,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 			      found, reply_name, reply_class, def_acl)) != 0
 	    || *found)
 	    CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				     && SUSPICIOUS(reply, reply_class) ?
 				     SMTPD_CHECK_DUNNO : status);
 
     /*
@@ -1799,7 +1799,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 			      found, reply_name, reply_class, def_acl)) != 0
 	|| *found)
 	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				 && SUSPICIOUS(reply, reply_class) ?
 				 SMTPD_CHECK_DUNNO : status);
 
     /*
@@ -1813,7 +1813,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     myfree(local_at);
     if (status != 0 || *found)
 	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				 && SUSPICIOUS(reply, reply_class) ?
 				 SMTPD_CHECK_DUNNO : status);
 
     /*
@@ -1827,7 +1827,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 	myfree(local_at);
 	if (status != 0 || *found)
 	    CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-	      && SUSPICIOUS(domain, reply, state, reply_name, reply_class) ?
+				     && SUSPICIOUS(reply, reply_class) ?
 				     SMTPD_CHECK_DUNNO : status);
     }
 

@@ -954,7 +954,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\tby %s (%s) with %s id %s",
 		    var_myhostname, var_mail_name,
 		    state->protocol, state->queue_id);
-	quote_822_local(state->buffer, state->recipient, QUOTE_FLAG_8BITCLEAN);
+	quote_822_local(state->buffer, state->recipient);
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
     } else {
@@ -965,7 +965,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\tid %s; %s", state->queue_id, mail_date(state->time));
     }
 #ifdef RECEIVED_ENVELOPE_FROM
-    quote_822_local(state->buffer, state->sender, QUOTE_FLAG_8BITCLEAN);
+    quote_822_local(state->buffer, state->sender);
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"\t(envelope-from %s)", STR(state->buffer));
 #endif

@@ -39,6 +39,9 @@
 /* .IP \fIldapsource_\fRquery_filter
 /*	The filter used to search for directory entries, for example
 /*	\fI(mailacceptinggeneralid=%s)\fR.
+/* .IP \fIldapsource_\fRresult_filter
+/*	The filter used to expand results from queries.  Default is
+/*	\fI%s\fR.
 /* .IP \fIldapsource_\fRresult_attribute
 /*	The attribute(s) returned by the search, in which to find
 /*	RFC822 addresses, for example \fImaildrop\fR.
@@ -135,6 +138,7 @@ typedef struct {
     char   *search_base;
     MATCH_LIST *domain;
     char   *query_filter;
+    char   *result_filter;
     ARGV   *result_attributes;
     int     num_attributes;		/* rest of list is DN's. */
     int     bind;
@@ -145,14 +149,24 @@ typedef struct {
     long    cache_expiry;
     long    cache_size;
     int     dereference;
+    int     chase_referrals;
     int     debuglevel;
+    int     version;
     LDAP   *ld;
 } DICT_LDAP;
 
+#ifndef LDAP_OPT_NETWORK_TIMEOUT
 /*
  * LDAP connection timeout support.
  */
 static jmp_buf env;
+
+static void dict_ldap_timeout(int unused_sig)
+{
+    longjmp(env, 1);
+}
+
+#endif
 
 static void dict_ldap_logprint(LDAP_CONST char *data)
 {
@@ -161,16 +175,61 @@ static void dict_ldap_logprint(LDAP_CONST char *data)
     msg_info("%s: %s", myname, data);
 }
 
-static void dict_ldap_timeout(int unused_sig)
+
+static int dict_ldap_get_errno(LDAP * ld)
 {
-    longjmp(env, 1);
+    int     rc;
+
+#if (LDAP_API_VERSION >= 2000)
+    if (ldap_get_option(ld, LDAP_OPT_ERROR_NUMBER, &rc) != LDAP_OPT_SUCCESS)
+	rc = LDAP_OTHER;
+#else
+    rc = dict_ldap->ld->ld_errno;
+#endif
+    return rc;
+}
+
+static int dict_ldap_set_errno(LDAP * ld, int rc)
+{
+#if (LDAP_API_VERSION >= 2000)
+    (void) ldap_set_option(ld, LDAP_OPT_ERROR_NUMBER, &rc);
+#else
+    ld->ld_errno = rc;
+#endif
+    return rc;
+}
+
+/*
+ * We need a version of ldap_bind that times out, otherwise all
+ * of Postfix can get wedged during daemon initialization.
+ */
+static int dict_ldap_bind_st(DICT_LDAP *dict_ldap)
+{
+    int     msgid;
+    LDAPMessage *res;
+    struct timeval mytimeval;
+
+    if ((msgid = ldap_bind(dict_ldap->ld, dict_ldap->bind_dn,
+			   dict_ldap->bind_pw, LDAP_AUTH_SIMPLE)) == -1)
+	return (dict_ldap_get_errno(dict_ldap->ld));
+
+    mytimeval.tv_sec = dict_ldap->timeout;
+    mytimeval.tv_usec = 0;
+
+    if (ldap_result(dict_ldap->ld, msgid, 1, &mytimeval, &res) == -1)
+	return (dict_ldap_get_errno(dict_ldap->ld));
+
+    if (dict_ldap_get_errno(dict_ldap->ld) == LDAP_TIMEOUT) {
+	(void) ldap_abandon(dict_ldap->ld, msgid);
+	return (dict_ldap_set_errno(dict_ldap->ld, LDAP_TIMEOUT));
+    }
+    return (ldap_result2error(dict_ldap->ld, res, 1));
 }
 
 /* Establish a connection to the LDAP server. */
 static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 {
     char   *myname = "dict_ldap_connect";
-    void    (*saved_alarm) (int);
     int     rc = 0;
 
 #ifdef LDAP_API_FEATURE_X_MEMCACHE
@@ -180,6 +239,9 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 
 #ifdef LDAP_OPT_NETWORK_TIMEOUT
     struct timeval mytimeval;
+
+#else
+    void    (*saved_alarm) (int);
 
 #endif
 
@@ -233,6 +295,21 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 #endif
 
     /*
+     * v3 support is needed for referral chasing.  Thanks to Sami Haahtinen
+     * for the patch.
+     */
+#ifdef LDAP_OPT_PROTOCOL_VERSION
+    if (ldap_set_option(dict_ldap->ld, LDAP_OPT_PROTOCOL_VERSION,
+			&dict_ldap->version) != LDAP_OPT_SUCCESS)
+	msg_warn("%s: Unable to set LDAP protocol version", myname);
+
+    if (msg_verbose)
+	msg_warn("%s: Actual Protocol version used was %d.",
+		 myname, ldap_get_option(dict_ldap->ld,
+		    LDAP_OPT_PROTOCOL_VERSION, (int *) dict_ldap->version));
+#endif
+
+    /*
      * Configure alias dereferencing for this connection. Thanks to Mike
      * Mattice for this, and to Hery Rakotoarisoa for the v3 update.
      */
@@ -254,6 +331,22 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 	msg_warn("%s: Unable to set LDAP debug level.", myname);
 #endif
 
+    /* Chase referrals. */
+
+    /*
+     * I have no clue where this was originally added so i'm skipping all
+     * tests
+     */
+#ifdef LDAP_OPT_REFERRALS
+    if (ldap_set_option(dict_ldap->ld, LDAP_OPT_REFERRALS,
+		    dict_ldap->chase_referrals ? LDAP_OPT_ON : LDAP_OPT_OFF)
+	!= LDAP_OPT_SUCCESS)
+	msg_warn("%s: Unable to set Referral chasing.", myname);
+#else
+    if (dict_ldap->chase_referrals) {
+	msg_warn("%s: Unable to set Referral chasing.", myname);
+    }
+#endif
 
     /*
      * If this server requires a bind, do so. Thanks to Sam Tardieu for
@@ -264,8 +357,7 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 	    msg_info("%s: Binding to server %s as dn %s",
 		     myname, dict_ldap->server_host, dict_ldap->bind_dn);
 
-	rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
-			 dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
+	rc = dict_ldap_bind_st(dict_ldap);
 
 	if (rc != LDAP_SUCCESS) {
 	    msg_warn("%s: Unable to bind to server %s as %s: %d (%s)",
@@ -332,6 +424,59 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 }
 
 /*
+ * expand a filter (lookup or result)
+ */
+static void dict_ldap_expand_filter(char *filter, char *value, VSTRING *out)
+{
+    char   *myname = "dict_ldap_expand_filter";
+    char   *sub,
+           *end;
+
+    /*
+     * Yes, replace all instances of %s with the address to look up. Replace
+     * %u with the user portion, and %d with the domain portion.
+     */
+    sub = filter;
+    end = sub + strlen(filter);
+    while (sub < end) {
+
+	/*
+	 * Make sure it's %[sud] and not something else.  For backward
+	 * compatibilty, treat anything other than %u or %d as %s, with a
+	 * warning.
+	 */
+	if (*(sub) == '%') {
+	    char   *u = value;
+	    char   *p = strrchr(u, '@');
+
+	    switch (*(sub + 1)) {
+	    case 'd':
+		if (p)
+		    vstring_strcat(out, p + 1);
+		break;
+	    case 'u':
+		if (p)
+		    vstring_strncat(out, u, p - u);
+		else
+		    vstring_strcat(out, u);
+		break;
+	    default:
+		msg_warn
+		    ("%s: Invalid filter substitution format '%%%c'!",
+		     myname, *(sub + 1));
+		/* fall through */
+	    case 's':
+		vstring_strcat(out, u);
+		break;
+	    }
+	    sub++;
+	} else
+	    vstring_strncat(out, sub, 1);
+	sub++;
+    }
+}
+
+/*
  * dict_ldap_get_values: for each entry returned by a search, get the values
  * of all its attributes. Recurses to resolve any DN or URL values found.
  *
@@ -360,6 +505,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 
     for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL;
 	 entry = ldap_next_entry(dict_ldap->ld, entry)) {
+	ber = NULL;
 	attr = ldap_first_attribute(dict_ldap->ld, entry, &ber);
 	if (attr == NULL) {
 	    if (msg_verbose)
@@ -393,7 +539,11 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 		for (i = 0; vals[i] != NULL; i++) {
 		    if (VSTRING_LEN(result) > 0)
 			vstring_strcat(result, ",");
-		    vstring_strcat(result, vals[i]);
+		    if (dict_ldap->result_filter == NULL)
+			vstring_strcat(result, vals[i]);
+		    else
+			dict_ldap_expand_filter(dict_ldap->result_filter,
+						vals[i], result);
 		}
 	    } else if (dict_ldap->result_attributes->argv[i]) {
 		for (i = 0; vals[i] != NULL; i++) {
@@ -570,49 +720,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 		 dict_ldap->query_filter);
 	vstring_strcpy(filter_buf, dict_ldap->query_filter);
     } else {
-
-	/*
-	 * Yes, replace all instances of %s with the address to look up.
-	 * Replace %u with the user portion, and %d with the domain portion.
-	 */
-	sub = dict_ldap->query_filter;
-	end = sub + strlen(dict_ldap->query_filter);
-	while (sub < end) {
-
-	    /*
-	     * Make sure it's %[sud] and not something else.  For backward
-	     * compatibilty, treat anything other than %u or %d as %s, with a
-	     * warning.
-	     */
-	    if (*(sub) == '%') {
-		char   *u = vstring_str(escaped_name);
-		char   *p = strchr(u, '@');
-
-		switch (*(sub + 1)) {
-		case 'd':
-		    if (p)
-			vstring_strcat(filter_buf, p + 1);
-		    break;
-		case 'u':
-		    if (p)
-			vstring_strncat(filter_buf, u, p - u);
-		    else
-			vstring_strcat(filter_buf, u);
-		    break;
-		default:
-		    msg_warn
-			("%s: Invalid lookup substitution format '%%%c'!",
-			 myname, *(sub + 1));
-		    /* fall through */
-		case 's':
-		    vstring_strcat(filter_buf, u);
-		    break;
-		}
-		sub++;
-	    } else
-		vstring_strncat(filter_buf, sub, 1);
-	    sub++;
-	}
+	dict_ldap_expand_filter(dict_ldap->query_filter,
+				vstring_str(escaped_name), filter_buf);
     }
 
     /*
@@ -663,19 +772,11 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	 * LDAP_DECODING_ERROR; I'm ignoring that for now.
 	 */
 
-#if (LDAP_API_VERSION >= 2000)
-	if (ldap_get_option(dict_ldap->ld, LDAP_OPT_ERROR_NUMBER, &rc) !=
-	    LDAP_OPT_SUCCESS)
-	    msg_warn("%s: Unable to get last error number.", myname);
+	rc = dict_ldap_get_errno(dict_ldap->ld);
 	if (rc != LDAP_SUCCESS && rc != LDAP_DECODING_ERROR)
-	    msg_warn("%s: Had some trouble with entries returned by search: %s", myname, ldap_err2string(rc));
-#else
-	if (dict_ldap->ld->ld_errno != LDAP_SUCCESS &&
-	    dict_ldap->ld->ld_errno != LDAP_DECODING_ERROR)
 	    msg_warn
 		("%s: Had some trouble with entries returned by search: %s",
-		 myname, ldap_err2string(dict_ldap->ld->ld_errno));
-#endif
+		 myname, ldap_err2string(rc));
 
 	if (msg_verbose)
 	    msg_info("%s: Search returned %s", myname,
@@ -735,6 +836,8 @@ static void dict_ldap_close(DICT *dict)
     if (dict_ldap->domain)
 	match_list_free(dict_ldap->domain);
     myfree(dict_ldap->query_filter);
+    if (dict_ldap->result_filter)
+	myfree(dict_ldap->result_filter);
     argv_free(dict_ldap->result_attributes);
     myfree(dict_ldap->bind_dn);
     myfree(dict_ldap->bind_pw);
@@ -865,6 +968,19 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->query_filter);
 
+    vstring_sprintf(config_param, "%s_result_filter", ldapsource);
+    dict_ldap->result_filter =
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
+					    "%s",
+					    0, 0));
+    if (msg_verbose)
+	msg_info("%s: %s is %s", myname, vstring_str(config_param),
+		 dict_ldap->result_filter);
+
+    if (strcmp(dict_ldap->result_filter, "%s") == 0) {
+	myfree(dict_ldap->result_filter);
+	dict_ldap->result_filter = NULL;
+    }
     vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
     attr = mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
 					       "maildrop", 0, 0));
@@ -954,6 +1070,24 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 					       0);
 
     /*
+     * Define LDAP Version.
+     */
+    vstring_sprintf(config_param, "%s_version", ldapsource);
+    dict_ldap->version = get_mail_conf_int(vstring_str(config_param), 2, 0,
+					   0);
+    switch (dict_ldap->version) {
+    case 2:
+	dict_ldap->version = LDAP_VERSION2;
+	break;
+    case 3:
+	dict_ldap->version = LDAP_VERSION3;
+	break;
+    default:
+	msg_warn("%s: Unknown version %d.", myname, dict_ldap->version);
+	dict_ldap->version = LDAP_VERSION2;
+    }
+
+    /*
      * Make sure only valid options for alias dereferencing are used.
      */
     if (dict_ldap->dereference < 0 || dict_ldap->dereference > 3) {
@@ -964,6 +1098,13 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->dereference);
+
+    /* Referral chasing */
+    vstring_sprintf(config_param, "%s_chase_referrals", ldapsource);
+    dict_ldap->chase_referrals = get_mail_conf_bool(vstring_str(config_param), 0);
+    if (msg_verbose)
+	msg_info("%s: %s is %d", myname, vstring_str(config_param),
+		 dict_ldap->chase_referrals);
 
     /*
      * Debug level.

@@ -137,7 +137,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	case REC_TYPE_FROM:
 	    if (*start == 0)
 		start = var_empty_addr;
-	    quote_822_local(printable_quoted_addr, start, QUOTE_FLAG_8BITCLEAN);
+	    quote_822_local(printable_quoted_addr, start);
 	    printable(STR(printable_quoted_addr), '?');
 	    vstream_fprintf(client, DATA_FORMAT, id, status,
 			  msg_size > 0 ? msg_size : size, arrival_time > 0 ?
@@ -147,7 +147,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	case REC_TYPE_RCPT:
 	    if (*start == 0)			/* can't happen? */
 		start = var_empty_addr;
-	    quote_822_local(printable_quoted_addr, start, QUOTE_FLAG_8BITCLEAN);
+	    quote_822_local(printable_quoted_addr, start);
 	    printable(STR(printable_quoted_addr), '?');
 	    if (dup_filter == 0
 	      || htable_locate(dup_filter, STR(printable_quoted_addr)) == 0)

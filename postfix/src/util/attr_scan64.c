@@ -327,7 +327,7 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 		    && strcmp(wanted_name, STR(name_buf)) == 0))
 		break;
 	    if ((flags & ATTR_FLAG_EXTRA) != 0) {
-		msg_warn("spurious attribute %s in input from %s",
+		msg_warn("unexpected attribute %s in input from %s",
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (conversions);
 	    }

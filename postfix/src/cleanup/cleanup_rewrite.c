@@ -95,7 +95,7 @@ void    cleanup_rewrite_internal(VSTRING *result, const char *addr)
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);
 
-    quote_822_local(src, addr, QUOTE_FLAG_8BITCLEAN);
+    quote_822_local(src, addr);
     cleanup_rewrite_external(dst, STR(src));
     unquote_822_local(result, STR(dst));
     vstring_free(dst);

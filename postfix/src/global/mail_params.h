@@ -741,7 +741,7 @@ extern char *var_smtp_helo_name;
 #define VAR_SMTP_RAND_ADDR	"smtp_randomize_addresses"
 #define DEF_SMTP_RAND_ADDR	1
 extern bool var_smtp_rand_addr;
- 
+
 #define VAR_SMTP_LINE_LIMIT	"smtp_line_length_limit"
 #define DEF_SMTP_LINE_LIMIT	990
 extern int var_smtp_line_limit;
@@ -1418,6 +1418,17 @@ extern int var_fault_inj_code;
 #ifndef DEF_README_DIR
 #define DEF_README_DIR			"no"
 #endif
+
+ /*
+  * Safety: resolve the address with unquoted localpart (default, but
+  * technically incorrect), instead of resolving the address with quoted
+  * localpart (technically correct, but unsafe). The default prevents mail
+  * relay loopholes with "user@domain"@domain when relaying mail to a
+  * Sendmail system.
+  */
+#define VAR_RESOLVE_DEQUOTED		"resolve_dequoted_address"
+#define DEF_RESOLVE_DEQUOTED		1
+extern bool var_resolve_dequoted;
 
  /*
   * Service names. The transport (TCP, FIFO or UNIX-domain) type is frozen

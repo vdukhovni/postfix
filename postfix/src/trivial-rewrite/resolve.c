@@ -101,10 +101,17 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * While quoting the address local part, do not treat @ as a special
      * character. This allows us to detect extra @ characters and block
      * source routed relay attempts.
+     * 
+     * But practically, we have to look at the unquoted form so that routing
+     * characters like @ remain visible, in order to stop user@domain@domain
+     * relay attempts when forwarding mail to a primary Sendmail MX host.
      */
-    quote_822_local(addr_buf, addr,
-		    QUOTE_FLAG_8BITCLEAN | QUOTE_FLAG_EXPOSE_AT);
-    tree = tok822_scan_addr(vstring_str(addr_buf));
+    if (var_resolve_dequoted) {
+	tree = tok822_scan_addr(addr);
+    } else {
+	quote_822_local(addr_buf, addr);
+	tree = tok822_scan_addr(vstring_str(addr_buf));
+    }
 
     /*
      * Preliminary resolver: strip off all instances of the local domain.
