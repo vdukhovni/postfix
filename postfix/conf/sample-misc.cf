@@ -19,6 +19,19 @@ always_bcc =
 #
 daemon_timeout = 18000s
 
+# The berkeley_db_create_buffer_size parameter specifies the per-table
+# I/O buffer size for programs that create Berkeley DB hash or btree
+# tables.  Specify a byte count. The default buffer size is 16 MBytes.
+#
+berkeley_db_create_buffer_size = 16777216
+
+# The berkeley_db_read_buffer_size parameter specifies the per-table
+# I/O buffer size for programs that read Berkeley DB hash or btree
+# tables.  Specify a byte count. The default buffer size is 128
+# kBytes.
+#
+berkeley_db_read_buffer_size = 131072
+
 # The default_database_type parameter specifies the default database
 # type to use in postalias(1) and postmap(1) commands. On many UNIX
 # systems the default type is either `dbm' or `hash'. The default is

@@ -305,7 +305,7 @@ int     smtp_xfer(SMTP_STATE *state)
      */
 #define REWRITE_ADDRESS(addr) do { \
 	if (*(addr)) { \
-	    quote_821_local(state->scratch, addr); \
+	    quote_821_local(state->scratch, addr, QUOTE_FLAG_8BITCLEAN); \
 	    smtp_unalias_addr(state->scratch2, vstring_str(state->scratch)); \
 	    myfree(addr); \
 	    addr = mystrdup(vstring_str(state->scratch2)); \
@@ -314,7 +314,7 @@ int     smtp_xfer(SMTP_STATE *state)
 
 #define QUOTE_ADDRESS(addr) do { \
 	if (*(addr)) { \
-	    quote_821_local(state->scratch, addr); \
+	    quote_821_local(state->scratch, addr, QUOTE_FLAG_8BITCLEAN); \
 	    myfree(addr); \
 	    addr = mystrdup(vstring_str(state->scratch)); \
 	} \

@@ -95,13 +95,18 @@ Tweaking performance
 Postfix provides two configuration parameters that control how much
 buffering memory Berkeley DB will use.
 
-- berkeley_db_create_buffer_size (default: 16 MBytes). This setting
-is used by the postalias and postmap commands. For "hash" files
-performance degrades rapidly unless the memory pool is O(file size).
-For "btree" files peformance is good with sorted input even for
-small memory pools, but with random input degrades rapidly unless
-the memory pool is O(file size).
+- berkeley_db_create_buffer_size (default: 16 MBytes per table).
+This setting is used by the postalias and postmap commands. For
+"hash" files, create performance degrades rapidly unless the memory
+pool is O(file size).  For "btree" files, create peformance is good
+with sorted input even for small memory pools, but with random
+input degrades rapidly unless the memory pool is O(file size).
 
-- berkeley_db_read_buffer_size (default: 256 kBytes). This setting
-is used by all other Postfix programs. The buffer size is adequate
-for reading.
+- berkeley_db_read_buffer_size (default: 128 kBytes per table).
+This setting is used by all other Postfix programs. The buffer size
+is adequate for reading. If the cache is smaller than the table,
+random read performance is hardly cache size dependent, except with
+btree tables, where the cache size must be large enough to contain
+the entire path from the root node. Empirical evidence shows that
+64 kBytes may be sufficient. We double the size to play safe, and
+to anticipate changes in implementation and bloat.

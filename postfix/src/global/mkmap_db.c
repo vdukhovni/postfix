@@ -68,13 +68,14 @@ static MKMAP *mkmap_db_open(const char *path,
     MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
 
     /*
-     * Override the default mpool size for map (re)builds.
+     * Override the default per-table cache size for map (re)builds.
      * 
-     * db_mpool_size" is defined in util/dict_db.c and defaults to 256K, which
+     * db_cache_size" is defined in util/dict_db.c and defaults to 128kB, which
      * works well for the lookup code.
      * 
-     * We use a larger memory pool when building ".db" files. For "hash" files
-     * performance degrades rapidly unless the memory pool is O(file size).
+     * We use a larger per-table cache when building ".db" files. For "hash"
+     * files performance degrades rapidly unless the memory pool is O(file
+     * size).
      * 
      * For "btree" files peformance is good with sorted input even for small
      * memory pools, but with random input degrades rapidly unless the memory
@@ -84,7 +85,7 @@ static MKMAP *mkmap_db_open(const char *path,
      * size becomes an object property, instead of being specified by poking
      * a global variable so that it becomes a class property.
      */
-    dict_db_mpool_size = var_db_create_buf;
+    dict_db_cache_size = var_db_create_buf;
 
     /*
      * Fill in the generic members.

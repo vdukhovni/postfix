@@ -166,7 +166,7 @@ VSTRING *rewrite_clnt_internal(const char *ruleset, const char *addr, VSTRING *r
      * Convert the address from internal address form to external RFC822
      * form, then rewrite it. After rewriting, convert to internal form.
      */
-    quote_822_local(src, addr);
+    quote_822_local(src, addr, QUOTE_FLAG_8BITCLEAN);
     rewrite_clnt(ruleset, STR(src), dst);
     unquote_822_local(result, STR(dst));
     vstring_free(src);

@@ -1,27 +1,18 @@
 /*++
 /* NAME
-/*	quote_821_local 3h
+/*	quote_flags 3h
 /* SUMMARY
-/*	quote rfc 821 local part
+/*	quote rfc 821/822 local part
 /* SYNOPSIS
-/*	#include "quote_821_local.h"
+/*	#include "quote_flags.h"
 /* DESCRIPTION
 /* .nf
 
  /*
-  * Utility library.
-  */
-#include <vstring.h>
-
- /*
-  * Global library.
-  */
-#include <quote_flags.h>
-
- /*
   * External interface.
   */
-extern VSTRING *quote_821_local(VSTRING *, char *, int);
+#define QUOTE_FLAG_8BITCLEAN	(1<<0)	/* be 8-bit clean */
+#define QUOTE_FLAG_EXPOSE_AT	(1<<1)	/* @ is ordinary text */
 
 /* LICENSE
 /* .ad

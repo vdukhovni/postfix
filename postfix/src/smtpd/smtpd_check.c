@@ -1021,17 +1021,17 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
     domain += 1;
 
     /*
+     * Skip source-routed non-local or virtual mail (uncertain destination).
+     */
+    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
      * Permit final delivery: the destination matches mydestination, 
      * virtual_maps, or virtual_mailbox_maps.
      */
     if (resolve_final(state, recipient, domain))
 	return (SMTPD_CHECK_OK);
-
-    /*
-     * Skip source-routed mail (uncertain destination).
-     */
-    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
-	return (SMTPD_CHECK_DUNNO);
 
     /*
      * Permit if the destination matches the relay_domains list.

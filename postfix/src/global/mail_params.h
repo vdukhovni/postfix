@@ -1483,7 +1483,7 @@ extern char *var_mdr_defer_errs;
 extern int var_db_create_buf;
 
 #define	VAR_DB_READ_BUF			"berkeley_db_read_buffer_size"
-#define DEF_DB_READ_BUF			(256 *1024)
+#define DEF_DB_READ_BUF			(128 *1024)
 extern int var_db_read_buf;
 
 /* LICENSE

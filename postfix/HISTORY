@@ -6344,6 +6344,29 @@ Apologies for any names omitted.
 	Berkeley DB create and read buffer size controls. Files:
 	util/dict_db.[hc], global/mail_params.[hc], global/mkmap_db.c.
 
+20020507
+
+	Cleanup: simplified the hash/btree cache management code.
+	The caches are now per table instead of shared, and the
+	default read cache size is reduced to 128 kBytes. File:
+	util/dict_db.c.
+
+20020508
+
+	Bugfix: close an obscure source routing relaying loophole
+	involving postfix-style virtual domains. Problem reported
+	by Victor Duchovny. File: smtpd/smtpd_check.c.
+
+	Bugfix: mail_addr_map() used the "wrong" @ character in
+	addresses with multiple @. Victor Duchovny. File:
+	global/mail_addr_map.c.
+
+	Bugfix: for address localpart quoting, now quote @ as a
+	special character everywhere, except when resolving addresses.
+	Previously, the @ was nowhere quoted as a special character,
+	not even in SMTP commands.  Files:  global/quote_82[12]_local.c
+	and clients.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.

@@ -97,8 +97,13 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     /*
      * The address is in internalized (unquoted) form, so we must externalize
      * it first before we can parse it.
+     * 
+     * While quoting the address local part, do not treat @ as a special
+     * character. This allows us to detect extra @ characters and block
+     * source routed relay attempts.
      */
-    quote_822_local(addr_buf, addr);
+    quote_822_local(addr_buf, addr,
+		    QUOTE_FLAG_8BITCLEAN | QUOTE_FLAG_EXPOSE_AT);
     tree = tok822_scan_addr(vstring_str(addr_buf));
 
     /*

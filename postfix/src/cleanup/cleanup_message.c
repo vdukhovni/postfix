@@ -194,6 +194,7 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 		cleanup_extract_internal(state->header_buf, *tpp);
     }
     vstring_sprintf(state->header_buf, "%s: ", hdr_opts->name);
+    /* XXX should quote_822_local the address local parts. */
     tok822_externalize(state->header_buf, tree, TOK822_STR_HEAD);
     myfree((char *) addr_list);
     tok822_free_tree(tree);
@@ -247,6 +248,7 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 	    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
     }
     vstring_sprintf(state->header_buf, "%s: ", hdr_opts->name);
+    /* XXX should quote_822_local the address local parts. */
     tok822_externalize(state->header_buf, tree, TOK822_STR_HEAD);
     myfree((char *) addr_list);
     tok822_free_tree(tree);
@@ -430,7 +432,8 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_FROM : HDR_FROM))) == 0) {
 	quote_822_local(state->temp1, *state->sender ?
-			state->sender : MAIL_ADDR_MAIL_DAEMON);
+			state->sender : MAIL_ADDR_MAIL_DAEMON,
+			QUOTE_FLAG_8BITCLEAN);
 	vstring_sprintf(state->temp2, "%sFrom: %s",
 			state->resent, vstring_str(state->temp1));
 	if (*state->sender && state->fullname && *state->fullname) {

@@ -28,7 +28,7 @@ extern DICT *dict_btree_open(const char *, int, int);
  /*
   * XXX Should be part of the DICT interface.
   */
-extern int dict_db_mpool_size;
+extern int dict_db_cache_size;
 
 /* LICENSE
 /* .ad

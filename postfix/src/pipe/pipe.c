@@ -382,7 +382,7 @@ static void morph_recipient(VSTRING *buf, const char *address, int flags)
      * Quote the recipient address as appropriate.
      */
     if (flags & PIPE_OPT_QUOTE_LOCAL)
-	quote_822_local(buf, address);
+	quote_822_local(buf, address, QUOTE_FLAG_8BITCLEAN);
     else
 	vstring_strcpy(buf, address);
 
@@ -826,7 +826,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 
     buf = vstring_alloc(10);
     if (attr.flags & PIPE_OPT_QUOTE_LOCAL) {
-	quote_822_local(buf, request->sender);
+	quote_822_local(buf, request->sender, QUOTE_FLAG_8BITCLEAN);
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, STR(buf));
     } else
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, request->sender);

@@ -162,7 +162,7 @@ void    cleanup_map11_internal(CLEANUP_STATE *state, VSTRING *addr,
      * checking in one place, instead of having error handling code all over
      * the place.
      */
-    quote_822_local(temp, STR(addr));
+    quote_822_local(temp, STR(addr), QUOTE_FLAG_8BITCLEAN);
     cleanup_map11_external(state, temp, maps, propagate);
     unquote_822_local(addr, STR(temp));
     vstring_free(temp);

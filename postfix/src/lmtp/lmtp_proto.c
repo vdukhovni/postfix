@@ -296,7 +296,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
      */
 #define REWRITE_ADDRESS(addr) do { \
 	  if (*(addr)) { \
-	      quote_821_local(state->scratch, addr); \
+	      quote_821_local(state->scratch, addr, QUOTE_FLAG_8BITCLEAN); \
 	      myfree(addr); \
 	      addr = mystrdup(vstring_str(state->scratch)); \
 	      lowercase(addr); \

@@ -17,9 +17,14 @@
 #include <vstring.h>
 
  /*
+  * Global library.
+  */
+#include <quote_flags.h>
+
+ /*
   * External interface.
   */
-extern VSTRING *quote_822_local(VSTRING *, const char *);
+extern VSTRING *quote_822_local(VSTRING *, const char *, int);
 extern VSTRING *unquote_822_local(VSTRING *, const char *);
 
 /* LICENSE

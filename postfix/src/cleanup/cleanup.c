@@ -232,6 +232,13 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     }
 
     /*
+     * Log something to make timeout errors easier to debug.
+     */
+    if (vstream_ftimeout(src))
+	msg_warn("%s: read timeout on %s",
+		 state->queue_id, VSTREAM_PATH(src));
+
+    /*
      * Finish this message, and report the result status to the client.
      */
     attr_print(src, ATTR_FLAG_NONE,

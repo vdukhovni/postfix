@@ -165,7 +165,7 @@ void    cleanup_masquerade_internal(VSTRING *addr, ARGV *masq_domains)
 {
     VSTRING *temp = vstring_alloc(100);
 
-    quote_822_local(temp, STR(addr));
+    quote_822_local(temp, STR(addr), QUOTE_FLAG_8BITCLEAN);
     cleanup_masquerade_external(temp, masq_domains);
     unquote_822_local(addr, STR(temp));
 

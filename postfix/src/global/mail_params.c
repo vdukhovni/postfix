@@ -525,7 +525,7 @@ void    mail_params_init()
     check_sgid_group();
     check_overlap();
 #ifdef HAS_DB
-    dict_db_mpool_size = var_db_read_buf;
+    dict_db_cache_size = var_db_read_buf;
 #endif
 
     /*

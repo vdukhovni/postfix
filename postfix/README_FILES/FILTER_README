@@ -137,22 +137,24 @@ We will set up a content filtering program that receives SMTP mail
 via localhost port 10025, and that submits SMTP mail back into
 Postfix via localhost port 10026.
 
-      ..................................
-      :            Postfix             :
-   ----->smtpd \                /local---->
-      :         -cleanup->queue-       :
-   ---->pickup /    ^       |   \smtp----->
-      :             |       v          :
-      :           smtpd    smtp        :
-      :           10026     |          :
-      ......................|...........
-                    ^       |
-                    |       v
-                ....|............
-                :   |     10025 :
-                :   filter      :
-                :               :
-                .................
+      ...................................
+      :            Postfix              :
+   ----->smtpd \                        :
+      :         -cleanup-\       /local---->
+   ---->pickup /          -queue-       :
+      :          cleanup2/   |   \smtp----->
+      :             ^        v          :
+      :             |        v          :
+      :           smtpd     smtp        :
+      :           10026      |          :
+      .......................|...........
+                    ^        |
+                    |        v
+                ....|.............
+                :   |      10025 :
+                :   filter       :
+                :                :
+                ..................
 
 To enable content filtering in this manner, specify in main.cf a
 new parameter:
@@ -214,16 +216,31 @@ a dedicated listener on port localhost 10026:
 	    -o content_filter= 
 	    -o local_recipient_maps=
 	    -o myhostname=localhost.domain.name
+	    -o disable_dns_lookups=yes
+	    -o cleanup_service=cleanup2 
+        cleanup2            unix  n      -      n      -       0      cleanup
+	    -o header_checks=
+	    -o body_checks=
 
-This is just another SMTP server. It is configured NOT to request
-content filtering for incoming mail. The server has the same process
-limit as the filter master.cf entry.
+This is just another SMTP server. The "-o content_filter=" requests
+no content filtering for incoming mail. The server has the same
+process limit as the "filter" master.cf entry.
 
 The "-o local_recipient_maps=" is a safety in case you have specified
-local_recipient_maps in the main.cf file. That setting could
-interfere with content filtering.
+local_recipient_maps in the main.cf file. That could interfere with
+content filtering. 
 
-The SMTP server is configured to use a different hostname in the
-greeting message (this is necessary for testing when I simply use
-no filtering program and let the SMTP content filtering interfaces
-talk directly to each other).
+The "-o myhostname=localhost.domain.name" avoids a possible problem
+if the content filter is picky about the hostname that Postfix
+sends in SMTP server replies.
+
+The "-o disable_dns_lookups=yes" turns off unnecessary DNS lookups
+that would only slow things down.
+
+The "-o cleanup_service=cleanup2" specifies that mail received via
+the secondary SMTP server should be send into the cleanup2 service.
+
+As the master.cf entry above shows, the cleanup2 service is like
+the normal cleanup server, but with some features turned off:  no
+processing of header patterns, and no processing of body message
+patterns. This can save you some precious CPU cycles.
