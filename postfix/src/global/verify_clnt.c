@@ -117,24 +117,19 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
      */
     for (;;) {
 	stream = clnt_stream_access(vrfy_clnt);
+	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, VRFY_REQ_QUERY,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_END) != 0
-	    || vstream_fflush(stream)) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT)) {
-		msg_warn("service %s: bad write: %m", var_verify_service);
-		sleep(10);			/* XXX make configurable */
-	    }
-	} else if (attr_scan(stream, ATTR_FLAG_MISSING,
-			   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &request_status,
-			  ATTR_TYPE_NUM, MAIL_ATTR_ADDR_STATUS, addr_status,
-			     ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			     ATTR_TYPE_END) != 3) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT)) {
-		msg_warn("service %s: bad read: %m", var_verify_service);
-		sleep(10);			/* XXX make configurable */
-	    }
+	    || attr_scan(stream, ATTR_FLAG_MISSING,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &request_status,
+			 ATTR_TYPE_NUM, MAIL_ATTR_ADDR_STATUS, addr_status,
+			 ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+			 ATTR_TYPE_END) != 3) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 var_verify_service);
 	} else {
 	    break;
 	}
@@ -181,25 +176,19 @@ int     verify_clnt_vupdate(const char *addr, int addr_status,
     vstring_vsprintf(text, format, ap);
     for (;;) {
 	stream = clnt_stream_access(vrfy_clnt);
+	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, VRFY_REQ_UPDATE,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_NUM, MAIL_ATTR_ADDR_STATUS, addr_status,
 		       ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(text),
 		       ATTR_TYPE_END) != 0
-	    || vstream_fflush(stream)) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT)) {
-		msg_warn("service %s: bad write: %m", var_verify_service);
-		msg_warn("service %s: bad write: %m", var_verify_service);
-		sleep(10);			/* XXX make configurable */
-	    }
-	} else if (attr_scan(stream, ATTR_FLAG_MISSING,
-			   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &request_status,
-			     ATTR_TYPE_END) != 1) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT)) {
-		msg_warn("service %s: bad read: %m", var_verify_service);
-		sleep(10);			/* XXX make configurable */
-	    }
+	    || attr_scan(stream, ATTR_FLAG_MISSING,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &request_status,
+			 ATTR_TYPE_END) != 1) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 var_verify_service);
 	} else {
 	    break;
 	}

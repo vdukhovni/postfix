@@ -125,26 +125,25 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 
     for (;;) {
 	stream = clnt_stream_access(rewrite_clnt_stream);
+	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, REWRITE_ADDR,
 		       ATTR_TYPE_STR, MAIL_ATTR_RULE, rule,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
-		       ATTR_TYPE_END),
-	    vstream_fflush(stream)) {
+		       ATTR_TYPE_END) != 0
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_STR, MAIL_ATTR_ADDR, result,
+			 ATTR_TYPE_END) != 1) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: bad write: %m", myname);
-	} else if (attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_STR, MAIL_ATTR_ADDR, result,
-			     ATTR_TYPE_END) != 1) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: bad read: %m", myname);
+		msg_warn("problem talking to service %s: %m",
+			 var_rewrite_service);
 	} else {
 	    if (msg_verbose)
 		msg_info("rewrite_clnt: %s: %s -> %s",
 			 rule, addr, vstring_str(result));
 	    break;
 	}
-	sleep(10);				/* XXX make configurable */
+	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(rewrite_clnt_stream);
     }
 

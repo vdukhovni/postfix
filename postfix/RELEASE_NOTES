@@ -22,6 +22,37 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.0-20030104
+=========================================================
+
+This release adds the new proxymap service (table lookup via a
+proxy process) to the the master.cf file. If you get warnings about
+problems connecting to the proxymap service, then you did not
+properly upgrade Postfix.
+
+Major changes with Postfix snapshot 2.0.0-20030104
+==================================================
+
+This release introduces the proxymap service for Postfix lookup
+table access. This can be used to overcome chroot restrictions in
+the Postfix SMTP server (specify proxy:unix:passwd.byname for
+password file lookup through the proxymap server) and can be used
+to consolidate the number of open tables by sharing one open table
+among multiple processes (specify proxy:mysql:/file/name to avoid
+"too many connections" conditions). The proxy_read_maps parameter
+specifies what maps are approved for access via the proxy service
+(only map references starting with "proxy:" are considered approved).
+
+Multi-server daemons (servers that accept simultaneous connections
+from multiple clients) will now stop accepting new connections
+after serving $max_use clients. This allows multi-server daemons
+to automatically restart even on busy mail systems.
+
+Clients of multi-server daemons such as trivial-rewrite and the
+new proxymap service now automatically disconnect after $ipc_ttl
+seconds of activity (default: 1000s). This allows multi-server
+daemons to automatically restart even on busy mail mail systems.
+
 Incompatible changes with Postfix snapshot 1.1.11-trace-20021119
 ================================================================
 

@@ -184,22 +184,20 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 
     for (;;) {
 	stream = clnt_stream_access(rewrite_clnt_stream);
+	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, RESOLVE_ADDR,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
-		       ATTR_TYPE_END)
-	    || vstream_fflush(stream)) {
-	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: bad write: %m", myname);
-	} else if (attr_scan(stream, ATTR_FLAG_STRICT,
+		       ATTR_TYPE_END) != 0
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
 		       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, reply->transport,
-			   ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, reply->nexthop,
-
-			   ATTR_TYPE_STR, MAIL_ATTR_RECIP, reply->recipient,
-			     ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &reply->flags,
-			     ATTR_TYPE_END) != 4) {
+			 ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, reply->nexthop,
+			 ATTR_TYPE_STR, MAIL_ATTR_RECIP, reply->recipient,
+			 ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &reply->flags,
+			 ATTR_TYPE_END) != 4) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: bad read: %m", myname);
+		msg_warn("problem talking to service %s: %m",
+			 var_rewrite_service);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: `%s' -> t=`%s' h=`%s' r=`%s'",
@@ -212,7 +210,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 	    else
 		break;
 	}
-	sleep(10);				/* XXX make configurable */
+	sleep(1);				/* XXX make configurable */
 	clnt_stream_recover(rewrite_clnt_stream);
     }
 

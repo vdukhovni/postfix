@@ -29,10 +29,11 @@ extern DICT *dict_proxy_open(const char *, int, int);
 #define PROXY_REQ_OPEN		"open"
 #define PROXY_REQ_LOOKUP	"lookup"
 
-#define PROXY_STAT_OK		0
-#define PROXY_STAT_FAIL		1
-#define PROXY_STAT_BAD		2
-#define PROXY_STAT_RETRY	3
+#define PROXY_STAT_OK		0	/* operation succeeded */
+#define PROXY_STAT_NOKEY	1	/* requested key not found */
+#define PROXY_STAT_RETRY	2	/* try lookup again later */
+#define PROXY_STAT_BAD		3	/* invalid request parameter */
+#define PROXY_STAT_DENY		4	/* table not approved for proxying */
 
 /* LICENSE
 /* .ad

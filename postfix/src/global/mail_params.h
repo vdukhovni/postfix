@@ -1332,8 +1332,8 @@ extern int var_local_rcpt_code;
  /*
   * List of pre-approved maps that are OK to open with the proxymap service.
   */
-#define VAR_PROXYMAP_FILTER	"proxymap_filter"
-#define DEF_PROXYMAP_FILTER	"$" VAR_LOCAL_RCPT_MAPS \
+#define VAR_PROXY_READ_MAPS	"proxy_read_maps"
+#define DEF_PROXY_READ_MAPS	"$" VAR_LOCAL_RCPT_MAPS \
 				" $" VAR_MYDEST \
 				" $" VAR_VIRT_ALIAS_MAPS \
 				" $" VAR_VIRT_ALIAS_DOMS \
@@ -1346,7 +1346,7 @@ extern int var_local_rcpt_code;
 				" $" VAR_RCPT_CANON_MAPS \
 				" $" VAR_RELOCATED_MAPS \
 				" $" VAR_TRANSPORT_MAPS
-extern char *var_proxymap_filter;
+extern char *var_proxy_read_maps;
 
  /*
   * Other.

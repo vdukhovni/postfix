@@ -236,7 +236,7 @@ max_use = 100
 # a name matches a lookup key.  Continue long lines by starting the
 # next line with whitespace.
 #
-# See sample-local.cf for a description of the local_recipient_maps
+# See sample-smtpd.cf for a description of the local_recipient_maps
 # and unknown_local_recipient_reject_code parameters. By default,
 # the SMTP server rejects mail for recipients not listed with the
 # local_recipient_maps parameter.

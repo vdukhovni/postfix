@@ -7630,11 +7630,8 @@ Apologies for any names omitted.
 
 20030102
 
-	Workaround: use different client instances when the same
-	map is opened with different flags. This silences warnings
-	from maps_append() when the same map is opened by
-	virtual_alias_maps and by virtual_mailbox_maps. File:
-	global/maps.c.
+	Cleanup: use different client instances when the same map
+	is opened with different flags. File: global/maps.c.
 
 	Feature: proxymap server for Postfix table lookups. This
 	helps to consolidate the number of open lookup tables (such
@@ -7648,6 +7645,25 @@ Apologies for any names omitted.
 	limit more agressively, by not accepting new connections
 	after the limit is reached.  Based on a patch by Victor
 	Duchovni, Morgan Stanley. File:  master/multi_server.c.
+
+20030103
+
+	Cleanup: client stream endpoints not only have an idle time
+	limit ($ipc_idle) before a connection is closed, they now
+	also have a time to live ($ipc_ttl) to prevent connections
+	from becoming too persistent. This allows multi-servers
+	such as trivial-rewrite or the proxymap server to refresh
+	more frequently on busy systems. File:  global/clnt_stream.c.
+
+20030104
+
+	Cleanup: avoid warnings about flag mismatches when the same
+	lookup table is listed under both virtual_alias_maps and
+	virtual_mailbox_maps. Files: global/virtual8.h, virtual/virtual.c.
+
+	Bugfix: an obscure memory leak that puzzled me for more
+	than a year until I found out how to reproduce it. File:
+	util/vstream.c.
 
 Open problems:
 

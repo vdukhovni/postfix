@@ -17,7 +17,8 @@
 /*	The \fIopen_flags\fR argument must specify O_RDONLY.
 /*
 /*	The connection to the Postfix proxymap server is automatically
-/*	closed after $ipc_idle seconds of idle time.
+/*	closed after $ipc_idle seconds of idle time, or after $ipc_ttl
+/*	seconds of activity.
 /* SECURITY
 /*      The proxy map server is not meant to be a trusted process. Proxy
 /*	maps must not be used to look up security sensitive information
@@ -27,7 +28,7 @@
 /*	clnt_stream(3) client endpoint connection management
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory, unimplemented operation,
-/*	bad request parameter.
+/*	bad request parameter, map not approved for proxy access.
 /* LICENSE
 /* .ad
 /* .fi
@@ -78,8 +79,7 @@ typedef struct {
 #define VSTREQ(v,s)	(strcmp(STR(v),s) == 0)
 
  /*
-  * All proxied maps within the same process share the same query/reply
-  * socket.
+  * All proxied maps within a process share the same query/reply socket.
   */
 static CLNT_STREAM *proxy_stream;
 
@@ -115,25 +115,31 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 			 ATTR_TYPE_STR, MAIL_ATTR_VALUE, dict_proxy->result,
 			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: service %s: %m", VSTREAM_PATH(stream), myname);
+		msg_warn("%s: service %s: %m", myname, VSTREAM_PATH(stream));
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: table=%s flags=0%o key=%s -> status=%d result=%s",
 			 myname, dict->name, dict_proxy->in_flags, key,
 			 status, STR(dict_proxy->result));
-	    if (status == PROXY_STAT_OK) {
+	    switch (status) {
+	    case PROXY_STAT_BAD:
+		msg_fatal("%s lookup failed for table \"%s\" key \"%s\": "
+			  "invalid request",
+			  MAIL_SERVICE_PROXYMAP, dict->name, key);
+	    case PROXY_STAT_DENY:
+		msg_fatal("%s service is not configured for table \"%s\"",
+			  MAIL_SERVICE_PROXYMAP, dict->name);
+	    case PROXY_STAT_OK:
 		return (STR(dict_proxy->result));
-	    } else if (status == PROXY_STAT_FAIL) {
+	    case PROXY_STAT_NOKEY:
 		return (0);
-	    } else if (status == PROXY_STAT_RETRY) {
+	    case PROXY_STAT_RETRY:
 		dict_errno = DICT_ERR_RETRY;
 		return (0);
-	    } else if (status == PROXY_STAT_BAD) {
-		msg_fatal("%s: %s lookup %s failed: bad request",
-			  myname, dict->name, key);
-	    } else {
-		msg_warn("%s: %s lookup %s failed with unknown status %d",
-			 myname, dict->name, key, status);
+	    default:
+		msg_warn("%s lookup failed for table \"%s\" key \"%s\": "
+			 "unexpected reply status %d",
+			 MAIL_SERVICE_PROXYMAP, dict->name, key, status);
 	    }
 	}
 	clnt_stream_recover(proxy_stream);
@@ -166,10 +172,10 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     /*
      * Sanity checks.
      */
+    if (dict_flags & DICT_FLAG_NO_PROXY)
+	msg_fatal("%s: proxy map must not be used with this map type", map);
     if (open_flags != O_RDONLY)
 	msg_fatal("%s: proxy map open requires O_RDONLY access mode", map);
-    if (dict_flags & DICT_FLAG_NO_PROXY)
-	msg_fatal("%s: proxy map is not allowed for this map type", map);
 
     /*
      * Local initialization.
@@ -201,7 +207,9 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     }
 
     /*
-     * Establish initial contact and finalize the flags.
+     * Establish initial contact and get the map type specific flags.
+     * 
+     * XXX Should retrieve flags from local instance.
      */
     for (;;) {
 	stream = clnt_stream_access(proxy_stream);
@@ -217,21 +225,26 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: service %s: %m", VSTREAM_PATH(stream), myname);
-	} else if (status == PROXY_STAT_OK) {
+	} else {
 	    if (msg_verbose)
 		msg_info("%s: connect to map=%s status=%d server_flags=0%o",
 		       myname, dict_proxy->dict.name, status, server_flags);
-	    dict_proxy->dict.flags = dict_proxy->in_flags | server_flags;
-	    break;
-	} else if (status == PROXY_STAT_BAD) {
-	    msg_fatal("%s: %s connection request failed: bad request",
-		      myname, dict_proxy->dict.name);
-	} else {
-	    msg_warn("%s: %s connection request failed with status %d",
-		     myname, dict_proxy->dict.name, status);
+	    switch (status) {
+	    case PROXY_STAT_BAD:
+		msg_fatal("%s open failed for table \"%s\": invalid request",
+			  MAIL_SERVICE_PROXYMAP, dict_proxy->dict.name);
+	    case PROXY_STAT_DENY:
+		msg_fatal("%s service is not configured for table \"%s\"",
+			  MAIL_SERVICE_PROXYMAP, dict_proxy->dict.name);
+	    case PROXY_STAT_OK:
+		dict_proxy->dict.flags = dict_proxy->in_flags | server_flags;
+		return (DICT_DEBUG (&dict_proxy->dict));
+	    default:
+		msg_warn("%s open failed for table \"%s\": unexpected status %d",
+		      MAIL_SERVICE_PROXYMAP, dict_proxy->dict.name, status);
+	    }
 	}
 	clnt_stream_recover(proxy_stream);
 	sleep(1);				/* XXX make configurable */
     }
-    return (DICT_DEBUG (&dict_proxy->dict));
 }
