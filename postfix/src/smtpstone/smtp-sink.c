@@ -249,7 +249,7 @@ static int data_read(SINK_STATE *state)
 	 * VSTREAM and kernel read buffers dry up.
 	 */
 	if (vstream_peek(state->stream) <= 0
-	    && peekfd(vstream_fileno(state->stream)) <= 0)
+	    && readable(vstream_fileno(state->stream)) <= 0)
 	    return (0);
     }
     return (0);
@@ -333,7 +333,7 @@ static int command_read(SINK_STATE *state)
 	 * VSTREAM and kernel read buffers dry up.
 	 */
 	if (vstream_peek(state->stream) <= 0
-	    && peekfd(vstream_fileno(state->stream)) <= 0)
+	    && readable(vstream_fileno(state->stream)) <= 0)
 	    return (0);
     }
 

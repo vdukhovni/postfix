@@ -44,7 +44,7 @@
 /*	standard \fBmain.cf\fR file, in the \fBalternate_config_directories\fR
 /*	configuration parameter value.
 /*
-/*	Only the super-user is allowed to specify arbitrary directory names.
+/*	Only the superuser is allowed to specify arbitrary directory names.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /*	/etc/postfix, configuration files

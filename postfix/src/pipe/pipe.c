@@ -211,7 +211,7 @@
 /*	Limit the time for delivery to external command, for delivery via
 /*	the named \fBtransport\fR. The default limit is taken from the
 /*	\fBcommand_time_limit\fR parameter.
-/*	The limit is enforced by the Postfix queue manager.
+/*	The limit is enforced by the pipe delivery agent.
 /* SEE ALSO
 /*	bounce(8) non-delivery status reports
 /*	master(8) process manager

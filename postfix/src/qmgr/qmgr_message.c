@@ -518,7 +518,12 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * Resolve the destination to (transport, nexthop, address). The
 	 * result address may differ from the one specified by the sender.
 	 */
-	resolve_clnt_query(recipient->address, &reply);
+	if (var_sender_routing == 0) {
+	    resolve_clnt_query(recipient->address, &reply);
+	} else {
+	    resolve_clnt_query(message->sender, &reply);
+	    vstring_strcpy(reply.recipient, recipient->address);
+	}
 	if (message->filter_xport) {
 	    vstring_strcpy(reply.transport, message->filter_xport);
 	    if ((nexthop = split_at(STR(reply.transport), ':')) == 0

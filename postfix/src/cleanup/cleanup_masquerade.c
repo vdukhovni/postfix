@@ -151,10 +151,12 @@ void    cleanup_masquerade_tree(TOK822 *tree, ARGV *masq_domains)
 {
     VSTRING *temp = vstring_alloc(100);
 
+#define NO_TOKEN_LIMIT	0
+
     tok822_externalize(temp, tree->head, TOK822_STR_DEFL);
     cleanup_masquerade_external(temp, masq_domains);
     tok822_free_tree(tree->head);
-    tree->head = tok822_scan(STR(temp), &tree->tail);
+    tree->head = tok822_scan(STR(temp), &tree->tail, NO_TOKEN_LIMIT);
 
     vstring_free(temp);
 }

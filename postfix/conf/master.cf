@@ -19,7 +19,8 @@
 #
 # Unprivileged: whether the service runs with root privileges or as
 # the owner of the Postfix system (the owner name is controlled by the
-# mail_owner configuration variable in the main.cf file).
+# mail_owner configuration variable in the main.cf file). Only the
+# pipe, virtual and local delivery daemons require privileges.
 #
 # Chroot: whether or not the service runs chrooted to the mail queue
 # directory (pathname is controlled by the queue_directory configuration
@@ -87,10 +88,12 @@ lmtp	  unix	-	-	n	-	-	lmtp
 #
 # Interfaces to non-Postfix software. Be sure to examine the manual
 # pages of the non-Postfix software to find out what options it wants.
-# The Cyrus deliver program has changed incompatibly.
+# The Cyrus deliver program has changed incompatibly, multiple times.
 #
-cyrus	  unix	-	n	n	-	-	pipe
+old-cyrus unix	-	n	n	-	-	pipe
   flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
+cyrus	  unix	-	n	n	-	-	pipe
+  user=cyrus argv=/cyrus/bin/deliver -e -r ${recipient} -m ${extension} ${user}
 uucp	  unix	-	n	n	-	-	pipe
   flags=Fqhu user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 ifmail    unix  -       n       n       -       -       pipe

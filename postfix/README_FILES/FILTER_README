@@ -372,7 +372,7 @@ localhost:10026     inet  n      -      n      -       -      smtpd
     -o local_recipient_maps=
     -o virtual_maps=
     -o virtual_mailbox_maps=
-    -o cleanup_service=cleanup2 
+    -o cleanup_service_name=cleanup2 
     -o mynetworks=127.0.0.0/8
     -o mynetworks_style=host
     -o smtpd_restriction_classes=

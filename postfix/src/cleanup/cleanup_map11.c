@@ -142,10 +142,12 @@ void    cleanup_map11_tree(CLEANUP_STATE *state, TOK822 *tree,
      * checking in one place, instead of having error handling code all over
      * the place.
      */
+#define NO_TOKEN_LIMIT	0
+
     tok822_externalize(temp, tree->head, TOK822_STR_DEFL);
     cleanup_map11_external(state, temp, maps, propagate);
     tok822_free_tree(tree->head);
-    tree->head = tok822_scan(STR(temp), &tree->tail);
+    tree->head = tok822_scan(STR(temp), &tree->tail, NO_TOKEN_LIMIT);
     vstring_free(temp);
 }
 

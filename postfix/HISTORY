@@ -6592,6 +6592,23 @@ Apologies for any names omitted.
 	Patch by Sebastian Schaffert @ wastl.net.  File:
 	global/deliver_pass.c.
 
+20020604
+
+	Workaround: Solaris non-blocking read() can fail on a socket
+	with unread data according to ioctl FIONREAD.  Incredible.
+	Diagnosis by Max Pashkov.  File:  smtp/smtp-sink.c.
+
+	Weirdstuff: sender-based routing. This will become more
+	useful once per-address transport map entries are done.
+	File: src/qmgr/qmgr_message.c.
+
+20020605
+
+	Safety: header_address_token_limit limits the amount of
+	memory and CPU that we're willing to spend while parsing
+	addresses in message headers. The limit is expressed as a
+	number of tokens. File: global/tok822_parse.c
+
 Open problems:
 
 	Medium: old maildrop files are no longer readable by the

@@ -249,7 +249,10 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	 * Tokenize the input, so that we do the right thing when a quoted
 	 * localpart contains special characters such as "@", ":" and so on.
 	 */
-	if ((tok_list = tok822_scan(STR(line_buffer), (TOK822 **) 0)) == 0)
+#define NO_TOKEN_LIMIT	0
+
+	if ((tok_list = tok822_scan(STR(line_buffer), (TOK822 **) 0,
+				    NO_TOKEN_LIMIT)) == 0)
 	    continue;
 
 	/*

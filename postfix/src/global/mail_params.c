@@ -90,6 +90,7 @@
 /*	int	var_mime_maxdepth;
 /*	int	var_mime_bound_len;
 /*	int	var_header_limit;
+/*	int	var_token_limit;
 /*	int	var_disable_mime_input;
 /*	int	var_disable_mime_oconv;
 /*	int     var_strict_8bitmime;
@@ -242,6 +243,7 @@ int     var_db_read_buf;
 int     var_mime_maxdepth;
 int     var_mime_bound_len;
 int     var_header_limit;
+int     var_token_limit;
 int     var_disable_mime_input;
 int     var_disable_mime_oconv;
 int     var_strict_8bitmime;
@@ -484,6 +486,7 @@ void    mail_params_init()
 	VAR_DB_CREATE_BUF, DEF_DB_CREATE_BUF, &var_db_create_buf, 1, 0,
 	VAR_DB_READ_BUF, DEF_DB_READ_BUF, &var_db_read_buf, 1, 0,
 	VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
+	VAR_TOKEN_LIMIT, DEF_TOKEN_LIMIT, &var_token_limit, 1, 0,
 	VAR_MIME_MAXDEPTH, DEF_MIME_MAXDEPTH, &var_mime_maxdepth, 1, 0,
 	VAR_MIME_BOUND_LEN, DEF_MIME_BOUND_LEN, &var_mime_bound_len, 1, 0,
 	0,

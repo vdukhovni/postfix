@@ -776,7 +776,7 @@ extern int var_smtpd_rcpt_limit;
 extern int var_smtpd_soft_erlim;
 
 #define VAR_SMTPD_HARD_ERLIM	"smtpd_hard_error_limit"
-#define DEF_SMTPD_HARD_ERLIM	100
+#define DEF_SMTPD_HARD_ERLIM	20
 extern int var_smtpd_hard_erlim;
 
 #define VAR_SMTPD_ERR_SLEEP	"smtpd_error_sleep_time"
@@ -962,8 +962,12 @@ extern int var_lmtp_quit_tmout;
 extern int var_hopcount_limit;
 
 #define VAR_HEADER_LIMIT	"header_size_limit"
-#define DEF_HEADER_LIMIT	10240
+#define DEF_HEADER_LIMIT	102400
 extern int var_header_limit;
+
+#define VAR_TOKEN_LIMIT		"header_address_token_limit"
+#define DEF_TOKEN_LIMIT		10240
+extern int var_token_limit;
 
 #define VAR_EXTRA_RCPT_LIMIT	"extract_recipient_limit"
 #define DEF_EXTRA_RCPT_LIMIT	10240
@@ -1546,6 +1550,13 @@ extern bool var_strict_8bit_body;
 #define VAR_STRICT_ENCODING		"strict_mime_encoding_domain"
 #define DEF_STRICT_ENCODING		0
 extern bool var_strict_encoding;
+
+ /*
+  * Bizarre.
+  */
+#define VAR_SENDER_ROUTING		"sender_based_routing"
+#define DEF_SENDER_ROUTING		0
+extern bool var_sender_routing;
 
 /* LICENSE
 /* .ad

@@ -80,10 +80,12 @@ void    cleanup_rewrite_tree(TOK822 *tree)
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);
 
+#define NO_TOKEN_LIMIT	0
+
     tok822_externalize(src, tree->head, TOK822_STR_DEFL);
     cleanup_rewrite_external(dst, STR(src));
     tok822_free_tree(tree->head);
-    tree->head = tok822_scan(STR(dst), &tree->tail);
+    tree->head = tok822_scan(STR(dst), &tree->tail, NO_TOKEN_LIMIT);
     vstring_free(dst);
     vstring_free(src);
 }

@@ -296,6 +296,7 @@ int     var_local_rcpt_lim;		/* XXX */
 int     var_local_con_lim;		/* XXX */
 int     var_proc_limit;
 bool    var_verp_bounce_off;
+bool    var_sender_routing;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -518,6 +519,7 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
+	VAR_SENDER_ROUTING, DEF_SENDER_ROUTING, &var_sender_routing,
 	0,
     };
 

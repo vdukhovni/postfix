@@ -360,7 +360,7 @@ client. The behavior is controlled by the following parameters:
 
 <a name="#smtpd_error_sleep_time">
 
-<dt> <b>smtpd_error_sleep_time</b> (default: 5 seconds) <dd> When
+<dt> <b>smtpd_error_sleep_time</b> (default: 1 second) <dd> When
 the per-session error count is small, the SMTP server pauses only
 when reporting a problem to a client. The purpose is to prevent
 naive clients from going into a fast <i>connect-error-disconnect</i>
@@ -378,7 +378,7 @@ per-session error count exceeds this value, the SMTP server sleeps
 
 <a name="#smtpd_hard_error_limit">
 
-<dt> <b>smtpd_hard_error_limit</b> (default: 100) <dd> When
+<dt> <b>smtpd_hard_error_limit</b> (default: 20) <dd> When
 the per-session error count exceeds this value, the SMTP server
 disconnects.
 

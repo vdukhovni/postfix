@@ -73,22 +73,32 @@ POSTCONF(1)                                           POSTCONF(1)
                      is available only on  systems  with  support
                      for Berkeley DB databases.
 
-              <b>ldap</b>   Perform  lookups  using  the  LDAP protocol.
+              <b>ldap</b> (read-only)
+                     Perform  lookups  using  the  LDAP protocol.
                      This is described in an LDAP_README file.
 
-              <b>pcre</b>   A lookup table based on Perl Compatible Reg-
-                     ular   Expressions.   The   file  format  is
+              <b>mysql</b> (read-only)
+                     Perform lookups using  the  MYSQL  protocol.
+                     This is described in a MYSQL_README file.
+
+              <b>pcre</b> (read-only)
+                     A lookup table based on Perl Compatible Reg-
+                     ular  Expressions.  The   file   format   is
                      described in <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
 
-              <b>regexp</b> A lookup table based on regular expressions.
-                     The   file   format  is  described  in  <b>reg-</b>
-                     <b>exp</b><i>_</i><b>table</b>(5).
+              <b>regexp</b> (read-only)
+                     A lookup table based on regular expressions.
+                     The  file  format  is  described   in   <a href="regexp_table.5.html"><b>reg-</b>
+                     <b>exp</b><i>_</i><b>table</b>(5)</a>.
 
-              <b>static</b> A table that always returns the same result.
-                     For  example,  <b>static:foobar</b>  always returns
-                     the string <b>foobar</b>.
+              <b>static</b> (read-only)
+                     A  table  that  always  returns  its name as
+                     lookup result.  For  example,  <b>static:foobar</b>
+                     always  returns  the string <b>foobar</b> as lookup
+                     result.
 
-              <b>unix</b>   A limited way to query the UNIX  authentica-
+              <b>unix</b> (read-only)
+                     A limited way to query the UNIX  authentica-
                      tion  database.  The  following  tables  are
                      implemented:
 

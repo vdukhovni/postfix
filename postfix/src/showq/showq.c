@@ -10,7 +10,7 @@
 /*	It is the program that emulates the sendmail `mailq' command.
 /*
 /*	The \fBshowq\fR daemon can also be run in stand-alone mode
-/*	by the super-user. This mode of operation is used to emulate
+/*	by the superuser. This mode of operation is used to emulate
 /*	the `mailq' command while the Postfix mail system is down.
 /* SECURITY
 /* .ad

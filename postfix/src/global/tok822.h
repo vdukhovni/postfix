@@ -74,9 +74,9 @@ extern TOK822 **tok822_grep(TOK822 *, int);
  /*
   * tok822_parse.c
   */
-extern TOK822 *tok822_scan(const char *, TOK822 **);
+extern TOK822 *tok822_scan(const char *, TOK822 **, int);
 extern TOK822 *tok822_scan_addr(const char *);
-extern TOK822 *tok822_parse(const char *);
+extern TOK822 *tok822_parse(const char *, int);
 extern VSTRING *tok822_externalize(VSTRING *, TOK822 *, int);
 extern VSTRING *tok822_internalize(VSTRING *, TOK822 *, int);
 

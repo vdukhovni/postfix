@@ -9,7 +9,7 @@
 /*		[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION
 /*	The \fBpostsuper\fR command does maintenance jobs on the Postfix
-/*	queue. Use of the command is restricted to the super-user.
+/*	queue. Use of the command is restricted to the superuser.
 /*
 /*	By default, \fBpostsuper\fR performs the operations requested with the
 /*	\fB-s\fR and \fB-p\fR command-line options on all Postfix queue
@@ -821,7 +821,7 @@ int     main(int argc, char **argv)
      * owner.
      */
     if (getuid())
-	msg_fatal("use of this command is reserved for the super-user");
+	msg_fatal("use of this command is reserved for the superuser");
     set_ugid(var_owner_uid, var_owner_gid);
 
     /*

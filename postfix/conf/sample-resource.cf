@@ -61,10 +61,17 @@ fork_attempts = 5
 fork_delay = 1s
 
 # The header_size_limit parameter limits the amount of memory in
-# bytes used for processing a message header. If a header is larger,
-# the remainder of the entire message is treated as message body.
+# bytes used for storing a message header. If a header is larger,
+# the remainder of the header is descarded.
 #
 header_size_limit = 102400
+
+# The header_address_token_limit limits the amount of memory and CPU
+# that Postfix will spend while rewriting addresses in message headers.
+# The limit is expressed as a token count. Tokens beyond the limit are
+# discarded.
+# 
+header_address_token_limit = 10240
 
 # The line_length_limit parameter limits the amount of memory in
 # bytes used for handling input lines. Longer lines are chopped up

@@ -70,19 +70,23 @@ useful someday.
 An indexed file type based on hashing.
 This is available only on systems with support for Berkeley DB
 databases.
-.IP \fBldap\fR
+.IP "\fBldap\fR (read-only)"
 Perform lookups using the LDAP protocol. This is described
 in an LDAP_README file.
-.IP \fBpcre\fR
+.IP "\fBmysql\fR (read-only)"
+Perform lookups using the MYSQL protocol. This is described
+in a MYSQL_README file.
+.IP "\fBpcre\fR (read-only)"
 A lookup table based on Perl Compatible Regular Expressions. The
 file format is described in \fBpcre_table\fR(5).
-.IP \fBregexp\fR
+.IP "\fBregexp\fR (read-only)"
 A lookup table based on regular expressions. The file format is
 described in \fBregexp_table\fR(5).
-.IP \fBstatic\fR
-A table that always returns the same result. For example,
-\fBstatic:foobar\fR always returns the string \fBfoobar\fR.
-.IP \fBunix\fR
+.IP "\fBstatic\fR (read-only)"
+A table that always returns its name as lookup result. For example,
+\fBstatic:foobar\fR always returns the string \fBfoobar\fR as lookup
+result.
+.IP "\fBunix\fR (read-only)"
 A limited way to query the UNIX authentication database. The
 following tables are implemented:
 .RS

@@ -38,32 +38,32 @@
 #	Toggles the case sensitivity flag. By default, matching is case
 #	insensitive.
 # .IP "\fBm\fR (default: off)"
-#	Toggles the PCRE_MULTILINE flag. When the flag is on, the \fB^\fR
+#	Toggles the PCRE_MULTILINE flag. When this flag is on, the \fB^\fR
 #	and \fb$\fR metacharacters match immediately after and immediately
 #	before a newline character, respectively, in addition to
 #	matching at the start and end of the subject string.
 # .IP "\fBs\fR (default: on)"
-#	Toggle the PCRE_DOTALL flag. When the flag is on, the \fB.\fR
+#	Toggles the PCRE_DOTALL flag. When this flag is on, the \fB.\fR
 #	metacharacter matches the newline character. With
 #	Postfix versions prior to 20020528, The flag is off by
 #	default, which is inconvenient for multi-line message header
 #	matching.
 # .IP "\fBx\fR (default: off)"
-#	Toggles the pcre extended flag. When the flag is on, whitespace
+#	Toggles the pcre extended flag. When this flag is on, whitespace
 #	in the pattern (other than in a character class) and
 #	characters between a \fB#\fR outside a character class and
 #	the next newline character are ignored. An escaping backslash
 #	can be used to include a whitespace or \fB#\fR character
 #	as part of the pattern.
 # .IP "\fBA\fR (default: off)"
-#       Toggles the PCRE_ANCHORED flag.  When this flag is set,
+#       Toggles the PCRE_ANCHORED flag.  When this flag is on,
 #	the pattern is forced to be "anchored", that is, it is
 #	constrained to match only at the start of the string which
 #	is being searched (the "subject string"). This effect can
 #	also be achieved by appropriate constructs in the pattern
 #	itself.
 # .IP "\fBE\fR (default: off)"
-#	Toggles the PCRE_DOLLAR_ENDONLY flag. When this flag is set,
+#	Toggles the PCRE_DOLLAR_ENDONLY flag. When this flag is on,
 #	a \fB$\fR metacharacter in the pattern matches only at the
 #	end of the subject string. Without this flag, a dollar also
 #	matches immediately before the final character if it is a
@@ -71,14 +71,14 @@
 #	characters). This flag is ignored if PCRE_MULTILINE
 #	flag is set.
 # .IP "\fBU\fR (default: off)"
-#	Toggles the ungreedy matching flag.  When this flag is set,
+#	Toggles the ungreedy matching flag.  When this flag is on,
 #	the pattern matching engine inverts the "greediness" of
 #	the quantifiers so that they are not greedy by default,
 #	but become greedy if followed by "?".  This flag can also
 #	set by a (?U) modifier within the pattern.
 # .IP "\fBX\fR (default: off)"
 #       Toggles the PCRE_EXTRA flag.
-#	When this flag is set, any backslash in a pattern that is
+#	When this flag is on, any backslash in a pattern that is
 #	followed by a letter that has no special meaning causes an
 #	error, thus reserving these combinations for future expansion.
 # .PP

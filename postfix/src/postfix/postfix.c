@@ -8,7 +8,7 @@
 /*	\fBpostfix\fR [\fB-c \fIconfig_dir\fR] [\fB-D\fR] [\fB-v\fR]
 /*		\fIcommand\fR
 /* DESCRIPTION
-/*	This command is reserved for the super-user. To submit mail,
+/*	This command is reserved for the superuser. To submit mail,
 /*	use the Postfix \fBsendmail\fR command.
 /*
 /*	The \fBpostfix\fR command controls the operation of the Postfix

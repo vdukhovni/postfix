@@ -48,21 +48,21 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
               matching is case insensitive.
 
        <b>m</b> (default: off)
-              Toggles the PCRE_MULTILINE flag. When the  flag  is
+              Toggles the PCRE_MULTILINE flag. When this flag  is
               on,  the  <b>^</b>  and $ metacharacters match immediately
               after and immediately before a  newline  character,
               respectively,  in addition to matching at the start
               and end of the subject string.
 
        <b>s</b> (default: on)
-              Toggle the PCRE_DOTALL flag. When the flag  is  on,
+              Toggles the PCRE_DOTALL flag. When this flag is on,
               the <b>.</b>  metacharacter matches the newline character.
               With Postfix versions prior to 20020528,  The  flag
               is off by default, which is inconvenient for multi-
               line message header matching.
 
        <b>x</b> (default: off)
-              Toggles the pcre extended flag. When  the  flag  is
+              Toggles the pcre extended flag. When this  flag  is
               on,  whitespace  in  the  pattern  (other than in a
               character class) and characters between a <b>#</b> outside
               a  character  class  and the next newline character
@@ -72,7 +72,7 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
        <b>A</b> (default: off)
               Toggles the PCRE_ANCHORED flag.  When this flag  is
-              set,  the  pattern is forced to be "anchored", that
+              on,  the  pattern  is forced to be "anchored", that
               is, it is constrained to match only at the start of
               the  string  which  is being searched (the "subject
               string"). This  effect  can  also  be  achieved  by
@@ -80,7 +80,7 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
        <b>E</b> (default: off)
               Toggles  the  PCRE_DOLLAR_ENDONLY  flag.  When this
-              flag is set,  a  <b>$</b>  metacharacter  in  the  pattern
+              flag is  on,  a  <b>$</b>  metacharacter  in  the  pattern
               matches  only  at  the  end  of the subject string.
               Without this flag, a dollar  also  matches  immedi-
               ately before the final character if it is a newline
@@ -90,18 +90,18 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
        <b>U</b> (default: off)
               Toggles the ungreedy matching flag.  When this flag
-              is  set,  the  pattern  matching engine inverts the
+              is  on,  the  pattern  matching  engine inverts the
               "greediness" of the quantifiers so  that  they  are
               not  greedy  by  default, but become greedy if fol-
               lowed by "?".  This flag can also  set  by  a  (?U)
               modifier within the pattern.
 
        <b>X</b> (default: off)
-              Toggles  the  PCRE_EXTRA  flag.   When this flag is
-              set, any backslash in a pattern that is followed by
-              a  letter  that  has  no  special meaning causes an
-              error, thus reserving these combinations for future
-              expansion.
+              Toggles the PCRE_EXTRA flag.  When this flag is on,
+              any backslash in a pattern that is  followed  by  a
+              letter that has no special meaning causes an error,
+              thus reserving these combinations for future expan-
+              sion.
 
        Each  pattern  is applied to the entire lookup key string.
        Depending on the application, that  string  is  an  entire

@@ -125,7 +125,7 @@ strict_rfc821_envelopes = no
 # response. This prevents naive clients from going into an error -
 # disconnect - connect - error loop.
 #
-smtpd_error_sleep_time = 5
+smtpd_error_sleep_time = 1s
 
 # The smtpd_soft_error_limit parameter specifies an error count lower
 # limit.  When an SMTP client has made this number of errors within
@@ -138,7 +138,7 @@ smtpd_soft_error_limit = 10
 # limit.  The SMTP server disconnects after an SMTP client makes this
 # number of errors within a session.
 #
-smtpd_hard_error_limit = 100
+smtpd_hard_error_limit = 20
 
 #
 # UCE RESTRICTIONS

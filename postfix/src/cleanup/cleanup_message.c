@@ -170,8 +170,8 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
      * sender addresses, and regenerate the header line. Finally, pipe the
      * result through the header line folding routine.
      */
-    tree = tok822_parse(vstring_str(header_buf)
-			+ strlen(hdr_opts->name) + 1);
+    tree = tok822_parse(vstring_str(header_buf) + strlen(hdr_opts->name) + 1,
+			var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
 	cleanup_rewrite_tree(*tpp);
@@ -222,8 +222,8 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
      * recipient addresses, and regenerate the header line. Finally, pipe the
      * result through the header line folding routine.
      */
-    tree = tok822_parse(vstring_str(header_buf)
-			+ strlen(hdr_opts->name) + 1);
+    tree = tok822_parse(vstring_str(header_buf) + strlen(hdr_opts->name) + 1,
+			var_token_limit);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
 	cleanup_rewrite_tree(*tpp);
@@ -501,6 +501,8 @@ static void cleanup_header_done_callback(void *context)
     /*
      * Add a missing (Resent-)From: header.
      */
+#define NO_TOKEN_LIMIT	0
+
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_FROM : HDR_FROM))) == 0) {
 	quote_822_local(state->temp1, *state->sender ?
@@ -509,7 +511,7 @@ static void cleanup_header_done_callback(void *context)
 			state->resent, vstring_str(state->temp1));
 	if (*state->sender && state->fullname && *state->fullname) {
 	    vstring_sprintf(state->temp1, "(%s)", state->fullname);
-	    token = tok822_parse(vstring_str(state->temp1));
+	    token = tok822_parse(vstring_str(state->temp1), NO_TOKEN_LIMIT);
 	    vstring_strcat(state->temp2, " ");
 	    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
 	    tok822_free_tree(token);
