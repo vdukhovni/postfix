@@ -7251,6 +7251,16 @@ Apologies for any names omitted.
 	SMTP clients. Files: smtp/smtp_connect.c, lmtp/lmtp_connect.c,
 	util/host_port.[hc].
 
+20021201
+
+	Compatibility: ignore the new Sendmail -A option. File:
+	sendmail/sendmail.c.
+
+	Workaround: sendmail -v now produces no output. You need
+	to specify -v -v instead. This is to avoid problems when
+	people request verbose mail delivery in their mail.rc file.
+	File:  sendmail/sendmail.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.

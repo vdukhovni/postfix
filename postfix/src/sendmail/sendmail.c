@@ -49,6 +49,10 @@
 /*	controlled by parameters in the \fBmain.cf\fR configuration file.
 /*
 /*	The following options are recognized:
+/* .IP "\fB-Am\fR (ignored)"
+/* .IP "\fB-Ac\fR (ignored)"
+/*	Postfix sendmail uses the same configuration file regardless of
+/*	whether or not a message is an initial sumbission.
 /* .IP "\fB-B \fIbody_type\fR"
 /*	The message body MIME type: \fB7BIT\fR or \fB8BITMIME\fR.
 /* .IP "\fB-C \fIconfig_file\fR (ignored :-)"
@@ -165,7 +169,9 @@
 /*	recipients be specified on the command line.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
-/*	options make the software increasingly verbose.
+/*	options make the software increasingly verbose. For compatibility
+/*	with mailx and other mail submission software, a single \fB-v\fR
+/*	option produces no output.
 /* SECURITY
 /* .ad
 /* .fi
@@ -656,7 +662,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:GIL:N:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "A:B:C:F:GIL:N:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:
@@ -766,6 +772,13 @@ int     main(int argc, char **argv)
 	    msg_fatal_status(EX_USAGE, "usage: %s [options]", argv[0]);
 	}
     }
+
+    /*
+     * Workaround: produce no output when verbose delivery is requested in
+     * mail.rc.
+     */
+    if (msg_verbose > 0)
+	msg_verbose--;
 
     /*
      * Look for conflicting options and arguments.

@@ -57,6 +57,13 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        The following options are recognized:
 
+       <b>-Am</b> (ignored)
+
+       <b>-Ac</b> (ignored)
+              Postfix  sendmail  uses the same configuration file
+              regardless of whether or not a message is  an  ini-
+              tial sumbission.
+
        <b>-B</b> <i>body_type</i>
               The message body MIME type: <b>7BIT</b> or <b>8BITMIME</b>.
 
@@ -202,7 +209,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
               tiple  <b>-v</b>  options  make  the software increasingly
-              verbose.
+              verbose. For compatibility  with  mailx  and  other
+              mail  submission  software, a single <b>-v</b> option pro-
+              duces no output.
 
 <b>SECURITY</b>
        By design, this program is not  set-user  (or  group)  id.
