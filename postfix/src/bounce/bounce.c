@@ -315,9 +315,9 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_status,
-			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_status,
+			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 9) {
+			    ATTR_TYPE_END) != 10) {
 	msg_warn("malformed request");
 	return (-1);
     }

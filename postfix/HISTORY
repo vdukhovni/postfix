@@ -7690,6 +7690,18 @@ Apologies for any names omitted.
 	It should not try to open any user/domain/uce related tables
 	at all. File:  smtpd/smtpd.c.
 
+20020106
+
+	Bugfix: bouncing to owner-alias was broken, i.e. the mail
+	kept being deferred, and when that was fixed, another buglet
+	came to light. File: bounce/bounce.c.
+
+	Robustness: the master no longer aborts with "address
+	already in use" when inet_interfaces specifies the same IP
+	address multiple times, or when a TCP service in master.cf
+	specifies a hostname for which the same IP address is listed
+	multiple times. File: master/master_ent.c.
+
 Open problems:
 
 	Med: do not postpone rejected "MAIL FROM" size information,

@@ -22,7 +22,8 @@
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id,
 /*					encoding, orig_recipient,
-/*					recipient, status, why)
+/*					recipient, dsn_status, 
+/*					dsn_action, why)
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
