@@ -5114,8 +5114,14 @@ Apologies for any names omitted.
 
 	Feature: "postsuper -d queueID" deletes one message queue
 	file; "postsuper -d -" reads zero or more queue IDs from
-	standard input.  In order to make this operation usable
-	with a running Postfix mail system, some routines were made
-	more tolerant for sudden queue file disappearances.  Files:
-	postsuper/postsuper.c, global/deliver_request.c,
-	*qmgr/qmgr_move.c.
+	standard input, and deletes one instance of each file.
+	File: postsuper/postsuper.c.
+
+	Code cleanup: in order to make postsuper -d safe with a
+	running Postfix mail system, some routines had to be made
+	tolerant for sudden queue file disappearances.  Files:
+	global/deliver_request.c, *qmgr/qmgr_move.c.
+
+	Code cleanup: in order to make postsuper -d more usable,
+	the showq command was extended to safely list the possibly
+	world-writable maildrop directory.  File:  showq/showq.c.

@@ -1,3 +1,26 @@
+Major changes with snapshot-20010502
+====================================
+
+This snapshot release incorporates all the bugfixes of patch 02
+for the official Postfix release 20010228, and adds a few minor
+features.
+
+The Postfix SMTP client now by default randomly shuffles destination
+IP addresses of equal preference (whether obtained via MX lookup
+or otherwise). Reportedly, this is needed for sites that use
+Bernstein's dnscache program. Specify "smtp_randomize_addresses =
+no" to disable this behavior. Based on shuffling code by Aleph1.
+
+"postmap -q -" and "postmap -d -" read key values from standard
+input, which makes it easier to drive them from another program.
+The same feature was added to the postalias command.
+
+The postsuper command now has an option to delete queue files.  In
+principle this command can be used while Postfix is running, but
+there is a possibility of deleting the wrong queue file when Postfix
+deletes a queue file and reuses the queue ID for a new message.
+In that case, postsuper will delete the new message.
+
 Incompatible changes with snapshot-20010329
 ===========================================
 
@@ -103,7 +126,7 @@ been updated from *.vix.com to *.mail-abuse.org.
 Major changes with snapshot-20010128
 ====================================
 
-Updated nqmgr (experimental queue manager with clever queueing
+Updated nqmgr (experimental queue manager with clever queuing
 strategy) by Patrik Rak. This code is still new. Once it stops
 changing (for a long time!) it will become part of the non-beta
 release.

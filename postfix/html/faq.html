@@ -1261,7 +1261,7 @@ Question:
 
 My Postfix server is too slow. When I telnet to the SMTP port
 (<tt>telnet hostname 25</tt>), the response comes after 40 seconds.
-On the other hand, when I telnet to the the POP port (<tt>telnet
+On the other hand, when I telnet to the POP port (<tt>telnet
 hostname 110</tt>) the response comes with no delay.
 
 </blockquote>
@@ -1614,7 +1614,7 @@ The implementation uses two lookup tables. One table defines what
 users are restricted in where they can send mail, and the other
 table defines what destinations are local. It is left as an exercise
 for the reader to change this into a scheme where only some users
-have permission to send send mail to off-site destinations, and
+have permission to send mail to off-site destinations, and
 where most users are restricted.
 
 <p>
@@ -2180,7 +2180,7 @@ types Postfix supports, use the command <b>postconf -m</b>.
 <p>
 
 <li>Execute the command <b>postmap /etc/postfix/virtual</b> whenever
-you edit the the <b>virtual</b> table.
+you edit the <b>virtual</b> table.
 
 <p>
 
@@ -2987,41 +2987,59 @@ Note: be sure to not advertise <b>fax.your.domain</b> in the DNS :-)
 
 <a name="deleting"><h3>Deleting a message from the Postfix queue</h3></a>
 
-To delete ONE message with queue id ABCDEF (e.g., from <b>mailq</b>
-output) from the Postfix queue, it is not necessary to stop Postfix.
+As of Postfix version 20010502, the <b>postsuper</b> command
+has an option to delete Postfix message queue files. To delete
+the message with queue id ABCDEF, perhaps obtained from <b>mailq</b>
+output, one would use:
 
 <p>
 
+<blockquote>
 <pre>
-    # cd /var/spool/postfix
-    # find incoming active deferred -name ABCDEF -print | sed 1q | xargs rm
+# postsuper -d ABCDEF
 </pre>
+</blockquote>
 
 <p>
 
-The above command is safe because it deletes at most one file.
-There is no risk of deleting newly arrived mail that happens to get
-the same queue file name.
+To delete a large number of files one would use:
 
 <p>
 
-If you have to delete a large amount of mail, you must stop Postfix
-first.
-
-<p>
+<blockquote>
 <pre>
-    # postfix stop
-    # cd /var/spool/postfix
-    # find incoming active deferred defer -type f -print |
-	fgrep -xf /file/with/queue-ids | xargs rm
-    # postfix start
+# postsuper -d - < <i>filename-with-queue-ids</i>
 </pre>
+</blockquote>
 
 <p>
 
-Do not use the above <b>find</b> command on a running Postfix
-system, because it can delete files that belong to new mail that
-arrives while you are deleting queue files.
+It is usually safe to do this while the Postfix system is running.
+However, there is a small chance of deleting the wrong queue
+file. The scenario goes like this:
+
+<p>
+
+<ul>
+
+<li>The Postfix queue manager deletes the file that <b>postsuper</b>
+was supposed to delete, because Postfix was finished with the
+message.
+
+<p>
+
+<li>New mail arrives, and the new message is given the same queue
+ID as the message that <b>postsuper</b> was supposed to delete.
+The probability for reusing a deleted queue ID is about 1 in
+2<sup>15</sup> (the number of different microsecond values that
+the system clock can distinguish).
+
+<p>
+
+<li><b>postsuper</b> deletes the new message file, instead of the
+old file that should have been deleted.
+
+</ul>
 
 <hr>
 

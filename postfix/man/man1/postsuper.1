@@ -14,27 +14,48 @@ Postfix super intendent
 .SH DESCRIPTION
 .ad
 .fi
-The \fBpostsuper\fR command does small maintenance jobs on the named
-Postfix queue directories (default: all).
-Directory names are relative to the Postfix top-level queue directory.
+The \fBpostsuper\fR command does small maintenance jobs. Use of
+the command is restricted to the super-user.
 
 By default, \fBpostsuper\fR performs the operations requested with the
-\fB-s\fR and \fB-p\fR command-line options.
-\fBpostsuper\fR always tries to remove objects that are neither files
-nor directories.  Use of this command is restricted to the super-user.
+\fB-s\fR and \fB-p\fR command-line options on the named Postfix queue
+directories (default: all).
+Directory names are relative to the Postfix top-level queue directory.
 
 Options:
 .IP \fB-d \fIqueue_id\fR
+This option ignores any \fIdirectory\fR argument(s).
 Delete one message queue file with the named queue ID.  Specify
 multiple \fB-d\fR options to delete multiple queue files by name.
 .sp
 Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified, the
 program reads queue IDs from standard input.
 .sp
-This operation can be performed safely while the mail system is
-running, although the queue manager may issue warnings when a
-file suddenly disappears. The exit status is zero if at least one
-of the named message queue files was found.
+The \fBpostsuper\fR exit status is non-zero when no message queue
+file was deleted.
+.sp
+.ft B
+There is a very small possibility that postsuper deletes the
+wrong message file when it is executed while the Postfix mail
+system is running.
+.ft R
+.sp
+The scenario is as follows:
+.RS
+.IP \(bu
+The Postfix queue manager deletes the file that \fBpostsuper\fR
+was supposed to delete, because Postfix was finished with the
+message.
+.IP \(bu
+New mail arrives, and the new message is given the same queue ID
+as the message that \fBpostsuper\fR was supposed to delete.
+The probability for reusing a deleted queue ID is about 1 in 2**15
+(the number of different microsecond values that the system clock
+can distinguish).
+.IP \(bu
+\fBpostsuper\fR deletes the new message file, instead of the
+old file that should have been deleted.
+.RE
 .IP \fB-s\fR
 Structure check.  Move queue files that are in the wrong place
 in the file system hierarchy and remove subdirectories that are

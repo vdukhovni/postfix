@@ -12,7 +12,7 @@
 /*	int	myrand()
 /* DESCRIPTION
 /*	This module implements a wrapper for the portable, pseudo-random
-/*	number generator.
+/*	number generator. The wrapper adds automatic initialization.
 /*
 /*	mysrand() performs initialization. This call may be skipped.
 /*

@@ -314,9 +314,11 @@ DELIVER_REQUEST *deliver_request_read(VSTREAM *stream)
     /*
      * Allocate and read the queue manager's delivery request.
      */
+#define XXX_DEFER_STATUS	-1
+
     request = deliver_request_alloc();
     if (deliver_request_get(stream, request) < 0) {
-	deliver_request_free(request);
+	deliver_request_done(stream, request, XXX_DEFER_STATUS);
 	request = 0;
     }
     return (request);

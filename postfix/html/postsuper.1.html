@@ -12,35 +12,65 @@ POSTSUPER(1)                                         POSTSUPER(1)
        <b>postsuper</b> [<b>-d</b> <i>queue_id</i>] [<b>-p</b>] [<b>-s</b>] [<b>-v</b>] [<i>directory</i> <i>...</i>]
 
 <b>DESCRIPTION</b>
-       The  <b>postsuper</b>  command does small maintenance jobs on the
-       named Postfix queue directories (default: all).  Directory
-       names  are  relative to the Postfix top-level queue direc-
-       tory.
+       The  <b>postsuper</b> command does small maintenance jobs. Use of
+       the command is restricted to the super-user.
 
        By default, <b>postsuper</b> performs  the  operations  requested
-       with the <b>-s</b> and <b>-p</b> command-line options.  <b>postsuper</b> always
-       tries to remove objects that are neither files nor  direc-
-       tories.   Use  of this command is restricted to the super-
-       user.
+       with the <b>-s</b> and <b>-p</b> command-line options on the named Post-
+       fix queue directories (default: all).  Directory names are
+       relative to the Postfix top-level queue directory.
 
        Options:
 
-       <b>-d</b>     Delete one message queue file with the named  queue
+       <b>-d</b>     This  option  ignores  any  <i>directory</i>  argument(s).
+              Delete one message queue file with the named  queue
               ID.  Specify multiple <b>-d</b> options to delete multiple
               queue files by name.
 
               Alternatively, if a <i>queue_id</i> of <b>-</b> is specified, the
               program reads queue IDs from standard input.
 
-              This  operation  can  be performed safely while the
-              mail system is running, although the queue  manager
-              may issue warnings when a file suddenly disappears.
-              The exit status is zero if  at  least  one  of  the
-              named message queue files was found.
+              The  <b>postsuper</b> exit status is non-zero when no mes-
+              sage queue file was deleted.
+
+              <b>There</b> <b>is</b> <b>a</b> <b>very</b> <b>small</b>  <b>possibility</b>  <b>that</b>  <b>postsuper</b>
+              <b>deletes</b>  <b>the</b> <b>wrong</b> <b>message</b> <b>file</b> <b>when</b> <b>it</b> <b>is</b> <b>executed</b>
+              <b>while</b> <b>the</b> <b>Postfix</b> <b>mail</b> <b>system</b> <b>is</b> <b>running.</b>
+
+              The scenario is as follows:
+
+              <b>o</b>      The Postfix queue manager deletes  the  file
+                     that   <b>postsuper</b>  was  supposed  to  delete,
+                     because Postfix was finished with  the  mes-
+                     sage.
+
+              <b>o</b>      New  mail  arrives,  and  the new message is
+                     given the same queue ID as the message  that
+                     <b>postsuper</b> was supposed to delete.  The prob-
+                     ability for reusing a deleted  queue  ID  is
+                     about  1  in  2**15 (the number of different
+                     microsecond values that the system clock can
+                     distinguish).
+
+              <b>o</b>      <b>postsuper</b>  deletes  the  new  message  file,
+                     instead of the old  file  that  should  have
+                     been deleted.
 
        <b>-s</b>     Structure  check.  Move queue files that are in the
               wrong place in the file system hierarchy and remove
               subdirectories  that  are  no  longer  needed. File
+
+
+
+                                                                1
+
+
+
+
+
+POSTSUPER(1)                                         POSTSUPER(1)
+
+
               rearrangements are necessary after a change in  the
               <b>hash</b><i>_</i><b>queue</b><i>_</i><b>names</b> and/or <b>hash</b><i>_</i><b>queue</b><i>_</i><b>depth</b> configura-
               tion parameters. It is highly  recommended  to  run
@@ -59,18 +89,6 @@ POSTSUPER(1)                                         POSTSUPER(1)
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        See  the  Postfix  <b>main.cf</b> file for syntax details and for
-
-
-
-                                                                1
-
-
-
-
-
-POSTSUPER(1)                                         POSTSUPER(1)
-
-
        default values.
 
        <b>hash</b><i>_</i><b>queue</b><i>_</i><b>depth</b>
@@ -89,24 +107,6 @@ POSTSUPER(1)                                         POSTSUPER(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

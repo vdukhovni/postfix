@@ -8,27 +8,48 @@
 /*	\fBpostsuper\fR [\fB-d \fIqueue_id\fR] [\fB-p\fR]
 /*		[\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION
-/*	The \fBpostsuper\fR command does small maintenance jobs on the named
-/*	Postfix queue directories (default: all).
-/*	Directory names are relative to the Postfix top-level queue directory.
+/*	The \fBpostsuper\fR command does small maintenance jobs. Use of
+/*	the command is restricted to the super-user.
 /*
 /*	By default, \fBpostsuper\fR performs the operations requested with the
-/*	\fB-s\fR and \fB-p\fR command-line options.
-/*	\fBpostsuper\fR always tries to remove objects that are neither files
-/*	nor directories.  Use of this command is restricted to the super-user.
+/*	\fB-s\fR and \fB-p\fR command-line options on the named Postfix queue
+/*	directories (default: all).
+/*	Directory names are relative to the Postfix top-level queue directory.
 /*
 /*	Options:
 /* .IP \fB-d \fIqueue_id\fR
+/*	This option ignores any \fIdirectory\fR argument(s).
 /*	Delete one message queue file with the named queue ID.  Specify
 /*	multiple \fB-d\fR options to delete multiple queue files by name.
 /* .sp
 /*	Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified, the
 /*	program reads queue IDs from standard input.
 /* .sp
-/*	This operation can be performed safely while the mail system is
-/*	running, although the queue manager may issue warnings when a
-/*	file suddenly disappears. The exit status is zero if at least one
-/*	of the named message queue files was found.
+/*	The \fBpostsuper\fR exit status is non-zero when no message queue
+/*	file was deleted.
+/* .sp
+/* .ft B
+/*      There is a very small possibility that postsuper deletes the
+/*	wrong message file when it is executed while the Postfix mail
+/*      system is running.
+/* .ft R
+/* .sp
+/*	The scenario is as follows:
+/* .RS
+/* .IP \(bu
+/*	The Postfix queue manager deletes the file that \fBpostsuper\fR
+/*	was supposed to delete, because Postfix was finished with the
+/*	message.
+/* .IP \(bu
+/*	New mail arrives, and the new message is given the same queue ID
+/*	as the message that \fBpostsuper\fR was supposed to delete.
+/*	The probability for reusing a deleted queue ID is about 1 in 2**15
+/*	(the number of different microsecond values that the system clock
+/*	can distinguish).
+/* .IP \(bu
+/*	\fBpostsuper\fR deletes the new message file, instead of the
+/*	old file that should have been deleted.
+/* .RE
 /* .IP \fB-s\fR
 /*	Structure check.  Move queue files that are in the wrong place
 /*	in the file system hierarchy and remove subdirectories that are
@@ -96,6 +117,7 @@
 #include <mail_conf.h>
 #include <mail_params.h>
 #include <mail_queue.h>
+#include <mail_open_ok.h>
 
 /* Application-specific. */
 
@@ -140,16 +162,17 @@ static struct queue_info queue_info[] = {
 static int delete_one(const char *queue_id)
 {
     const char *msg_queue_names[] = {
+	MAIL_QUEUE_MAILDROP,
 	MAIL_QUEUE_INCOMING,		/* twice, to avoid */
 	MAIL_QUEUE_ACTIVE,		/* missing a file while */
 	MAIL_QUEUE_DEFERRED,		/* it is being renamed */
 	MAIL_QUEUE_INCOMING,		/* this is not 100% */
 	MAIL_QUEUE_ACTIVE,		/* foolproof but adequate */
-	MAIL_QUEUE_DEFERRED,
 	0,
     };
+    struct stat st;
     const char **cpp;
-    VSTRING *msg_path = vstring_alloc(100);
+    const char *path;
     int     found = 0;
 
     /*
@@ -158,17 +181,18 @@ static int delete_one(const char *queue_id)
      * ID.
      */
     for (cpp = msg_queue_names; *cpp != 0; cpp++) {
-	(void) mail_queue_path(msg_path, *cpp, queue_id);
-	if (unlink(STR(msg_path)) == 0) {
+	if (!mail_open_ok(*cpp, queue_id, &st, &path)) {
+	    continue;
+	} else if (unlink(path) == 0) {
 	    found = 1;
-	    if (msg_verbose)
-		msg_info("removed file %s", STR(msg_path));
+	    msg_info("removed file %s", path);
 	    break;
 	} else if (errno != ENOENT) {
-	    msg_warn("remove file %s: %m", STR(msg_path));
+	    msg_warn("remove file %s: %m", path);
+	} else if (msg_verbose) {
+	    msg_info("remove file %s: %m", path);
 	}
     }
-    vstring_free(msg_path);
     return (found);
 }
 
@@ -417,6 +441,8 @@ int     main(int argc, char **argv)
      * a non-root user limits the damage to the already compromised mail
      * owner.
      */
+    if (getuid())
+	msg_fatal("use of this command is reserved for the super-user");
     set_ugid(var_owner_uid, var_owner_gid);
 
     /*
