@@ -44,7 +44,7 @@
 /*	request \fBFLUSH_REQ_REFRESH\fR.
 /* .IP "\fBFLUSH_REQ_REFRESH\fR (completes in the background)"
 /*	Refresh non-empty per-destination logfiles that were not read in
-/*	$\fBfast_flush_refresh_time\fR hours, by simulating
+/*	\fB$fast_flush_refresh_time\fR hours, by simulating
 /*	send requests (see above) for the corresponding destinations.
 /* .sp
 /*	Delete empty per-destination logfiles that were not updated in
@@ -53,7 +53,7 @@
 /*	Refresh all non-empty per-destination logfiles, by simulating
 /*	send requests (see above) for the corresponding destinations.
 /*	This can be incredibly expensive when logging is enabled for
-/*	all deferred mail, and is not recommended.
+/*	many destinations, and is not recommended.
 /* .sp
 /*	Delete empty per-destination logfiles that were not updated in
 /*	\fBfast_flush_purge_time\fR days.
@@ -83,8 +83,8 @@
 /*	\fBmaster.cf\fR configuration file.
 /*
 /*	Upon receipt of a request to deliver all mail for an eligible
-/*	destination, this server requests delivery of all messages that
-/*	are listed in that destination's logfile, regardless of the
+/*	destination, the \fBflush\fR server requests delivery of all messages
+/*	that are listed in that destination's logfile, regardless of the
 /*	recipients of those messages. This is not an issue for mail
 /*	that is sent to a \fBrelay_domains\fR destination because
 /*	such mail typically only has recipients in one domain.

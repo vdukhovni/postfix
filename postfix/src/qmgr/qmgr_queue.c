@@ -143,13 +143,12 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 
     /*
      * Increase the destination's concurrency limit until we reach the
-     * transport's concurrency limit. Set the destination's concurrency limit
-     * to the actual concurrency + 1, so that qmgr_queue_throttle() takes
-     * effect quickly.
+     * transport's concurrency limit.
      */
     if (transport->dest_concurrency_limit == 0
-	|| transport->dest_concurrency_limit > queue->busy_refcount)
-	queue->window = queue->busy_refcount + 1;
+	|| transport->dest_concurrency_limit > queue->window)
+	if (queue->window <= queue->busy_refcount)
+	    queue->window++;
 }
 
 /* qmgr_queue_throttle - handle destination delivery failure */

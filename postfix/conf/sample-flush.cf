@@ -25,10 +25,10 @@
 # destinations that the Postfix SMTP server is willing to relay to
 # (see the relay_domains parameter in sample-smtpd.cf).
 #
-# Specify "fast_flush_policy =" to disable the feature altogether.
+# Specify "fast_flush_domains =" to disable the feature altogether.
 #
-fast_flush_policy = $relay_domains
-#fast_flush_policy =
+fast_flush_domains = $relay_domains
+#fast_flush_domains =
 
 # The fast_flush_purge_time parameter controls how long an empty
 # per-destination "fast flush" logfile is allowed to live. 

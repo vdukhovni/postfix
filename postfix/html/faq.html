@@ -1169,7 +1169,7 @@ policy have their mail rejected by the SMTP server.  Like this:
 <blockquote>
 
 <pre>
-550 &lt;user@remote&gt;: Access denied
+554 &lt;user@remote&gt;: Access denied
 </pre>
 
 </blockquote>
@@ -1193,19 +1193,19 @@ LDAP or SQL.
 <pre>
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
-            hash:/etc/postfix/restricted_senders
+            check_sender_access hash:/etc/postfix/restricted_senders
             ...other stuff...
 
         smtpd_restriction_classes = local_only
-        local_only = check_sender_access hash:/etc/postfix/local_domains, reject
+        local_only = check_recipient_access hash:/etc/postfix/local_domains, reject
 
     /etc/postfix/restricted_senders:
         foo@domain      local_only
         bar@domain      local_only
 
     /etc/postfix/local_domains:
-        this.domain     OK      (matches this.domain and subdomains)
-        that.domain     OK      (matches that.domain and subdomains)
+        this.domain     OK      <i>matches this.domain and subdomains</i>
+        that.domain     OK      <i>matches that.domain and subdomains</i>
 </pre>
 
 <p>

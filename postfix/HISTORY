@@ -4419,8 +4419,29 @@ Apologies for any names omitted.
 	programs in order to test the LMTP client UNIX-domain
 	support.
 
-20001039
+20001030
 
 	Bugfix: further testing in preparation for 19991231-pl10
 	revealed that the DB map code was now broken for every
 	platform.
+
+20001031
+
+	Performance: the slow start (gradually increase number of
+	parallel connections to the same site) was too gentle and
+	Postfix would back off too quickly. Files: qmgr/qmgr_queue.c
+	and nqmgr/qmgr_queue.c.
+
+20001101
+
+	FAQ update by Ralph Hildebrandt.
+
+20001104
+
+	Portability: RedHat Linux has changed incompatibly, again.
+	Fixed with the help of Matthias Andree.  File: makedefs.
+
+20001109
+
+	Cleanup: changed prototype of internal function that did
+	not return a useful result. File: src/util/vstream_popen.c.

@@ -362,7 +362,7 @@ mail_owner = postfix
 # eligible for this "fast ETRN/sendmail -qR" service.
 # 
 #fast_flush_domains = $relay_domains
-#fast_flush_policy =
+#fast_flush_domains =
 
 # SHOW SOFTWARE VERSION OR NOT
 #
