@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern DICT *dict_ldap_open(const char *, int);
+extern DICT *dict_ldap_open(const char *, int, int);
 
 /* AUTHOR(S)
 /*	Wietse Venema

@@ -36,6 +36,7 @@
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define USE_STATFS
 #define STATFS_IN_SYS_MOUNT_H
+#define HAS_POSIX_REGEXP
 #endif
 
 #if defined(OPENBSD2)
@@ -285,6 +286,7 @@ extern int initgroups(const char *, int);
 #define STATFS_IN_SYS_VFS_H
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define PREPEND_PLUS_TO_OPTSTRING
+#define HAS_POSIX_REGEXP
 #endif
 
  /*

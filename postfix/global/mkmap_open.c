@@ -6,10 +6,11 @@
 /* SYNOPSIS
 /*	#include <mkmap.h>
 /*
-/*	MKMAP	*mkmap_open(type, path, flags)
+/*	MKMAP	*mkmap_open(type, path, open_flags, dict_flags)
 /*	char	*type;
 /*	char	*path;
-/*	int	flags;
+/*	int	open_flags;
+/*	int	dict_flags;
 /*
 /*	void	mkmap_append(mkmap, key, value, lineno)
 /*	MKMAP	*mkmap;
@@ -26,11 +27,13 @@
 /*	appending the appropriate suffixes to the specified filename.
 /*	Before the database is updated, it is locked for exclusive
 /*	access, and signal delivery is suspended.
+/*	See dict(3) for a description of \fBopen_flags\fR and \fBdict_flags\fR.
 /*	All errors are fatal.
 /*
 /*	mkmap_append() appends the named (key, value) pair to the
 /*	database. Update errors are fatal; duplicate keys are ignored
 /*	(but a warning is issued).
+/*	\fBlineno\fR is used for diagnostics.
 /*
 /*	mkmap_close() closes the database, releases any locks,
 /*	and resumes signal delivery. All errors are fatal.
@@ -118,7 +121,8 @@ void    mkmap_close(MKMAP *mkmap)
 
 /* mkmap_open - create or truncate database */
 
-MKMAP  *mkmap_open(const char *type, const char *path, int flags)
+MKMAP  *mkmap_open(const char *type, const char *path,
+		   int open_flags, int dict_flags)
 {
     MKMAP  *mkmap;
     MKMAP_OPEN_INFO *mp;
@@ -157,7 +161,7 @@ MKMAP  *mkmap_open(const char *type, const char *path, int flags)
      * Truncate the database upon open, and update it. Read-write mode is
      * needed because the underlying routines read as well as write.
      */
-    mkmap->dict = mkmap->open(path, flags);
+    mkmap->dict = mkmap->open(path, open_flags, dict_flags);
     mkmap->dict->fd = -1;			/* XXX just in case */
     mkmap->dict->flags |= DICT_FLAG_DUP_WARN;
     return (mkmap);

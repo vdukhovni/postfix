@@ -70,3 +70,4 @@ postalias.o: ../include/resolve_clnt.h
 postalias.o: ../include/config.h
 postalias.o: ../include/mail_params.h
 postalias.o: ../include/mkmap.h
+postalias.o: ../include/dict.h

@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <dict_pcre.h>
 /*
-/*	DICT	*dict_pcre_open(name, flags)
+/*	DICT	*dict_pcre_open(name, dummy, dict_flags)
 /*	const char *name;
-/*	int	flags;
+/*	int	dummy;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_pcre_open() opens the named file and compiles the contained
 /*	regular expressions.
@@ -16,10 +17,6 @@
 /*	 The lookup interface will match only user@domain form addresses.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
-/* LICENSE
-/* .ad
-/* .fi
-/*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
 /*	Andrew McNamara
 /*	andrewm@connect.com.au
@@ -261,12 +258,12 @@ DICT   *dict_pcre_open(const char *map, int unused_flags)
     dict_pcre->dict.close = dict_pcre_close;
     dict_pcre->dict.fd = -1;
     dict_pcre->map = mystrdup(map);
-    dict_pcre->flags = 0;
+    dict_pcre->dict.flags = dict_flags;
     dict_pcre->head = NULL;
 
     if (dict_pcre_init == 0) {
-	pcre_malloc = (void *(*)(size_t)) mymalloc;
-	pcre_free = (void (*)(void *)) myfree;
+	pcre_malloc = (void *(*) (size_t)) mymalloc;
+	pcre_free = (void (*) (void *)) myfree;
 	dict_pcre_init = 1;
     }
     if ((map_fp = vstream_fopen(map, O_RDONLY, 0)) == 0) {
@@ -374,12 +371,12 @@ DICT   *dict_pcre_open(const char *map, int unused_flags)
 	else
 	    pcre_list->next = pl;
 	pcre_list = pl;
-}
+    }
 
-vstring_free(line_buffer);
-vstream_fclose(map_fp);
+    vstring_free(line_buffer);
+    vstream_fclose(map_fp);
 
-return (&dict_pcre->dict);
+    return (&dict_pcre->dict);
 }
 
 #endif					/* HAS_PCRE */

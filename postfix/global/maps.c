@@ -121,7 +121,7 @@ MAPS   *maps_create(const char *title, const char *map_names)
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, map_type_name);
 	if ((dict = dict_handle(map_type_name)) == 0)
-	    dict = dict_open(map_type_name, O_RDONLY);
+	    dict = dict_open(map_type_name, O_RDONLY, 0);
 	dict_register(map_type_name, dict);
 	argv_add(maps->argv, map_type_name, ARGV_END);
     }

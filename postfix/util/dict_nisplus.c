@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <dict_nisplus.h>
 /*
-/*	DICT	*dict_nisplus_open(map, dummy)
+/*	DICT	*dict_nisplus_open(map, dummy, dict_flags)
 /*	char	*map;
 /*	int	dummy;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_nisplus_open() makes the specified NIS+ map accessible via
 /*	the generic dictionary operations described in dict_open(3).
@@ -76,7 +77,7 @@ static void dict_nisplus_close(DICT *dict)
 
 /* dict_nisplus_open - open NISPLUS map */
 
-DICT   *dict_nisplus_open(const char *map, int unused_flags)
+DICT   *dict_nisplus_open(const char *map, int unused_flags, int dict_flags)
 {
     DICT_NISPLUS *dict_nisplus;
 
@@ -86,5 +87,6 @@ DICT   *dict_nisplus_open(const char *map, int unused_flags)
     dict_nisplus->dict.close = dict_nisplus_close;
     dict_nisplus->dict.fd = -1;
     dict_nisplus->map = mystrdup(map);
+    dict_nisplus->dict.flags = dict_flags;
     return (&dict_nisplus->dict);
 }

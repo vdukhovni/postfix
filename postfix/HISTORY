@@ -2429,7 +2429,8 @@ Apologies for any names omitted.
 	Workaround: Solaris NIS alias maps need special entries
 	(YP_MASTER_NAME, YP_LAST_MODIFIED). What's worse, normal
 	keys/values include a null byte at the end, but the YP_XXX
-	ones don't.  File: postalias/postalias.c.
+	ones don't. Problem reported by Walcir Fontanini, state
+	university of Campinas, Brazil.  File: postalias/postalias.c.
 
 	Compatibility: Solaris NIS apparently does include a null
 	byte at the end of keys and values. File: util/sys_defs.h.
@@ -2441,6 +2442,26 @@ Apologies for any names omitted.
 
 	Bugfix: pcre didn't handle \\ right. Lamont Jones, Hewlett-
 	Packard. File: util/dict_pcre.c.
+
+19990326
+
+	Compatibility: Postfix now puts to spaces after the sender
+	in a "From sender date..." header. Found by John A. Martin,
+	fixed by Lamont Jones, Hewlett-Packard.
+
+	Bugfix: when a recipient appeared multiple times in a local
+	alias or include expansion, the delivery status could be
+	left uninitialized, causing the mail to be deferred and 
+	delivered again. File: local/recipient.c.
+
+19990327
+
+	Cleanup: the dictionary routines now take an extra flag
+	argument to control such things as warning about duplicates,
+	and appending null bytes to key/value. This was needed for
+	a clean implementation of NIS master alias maps support.
+
+	Feature: POSIX regular expressions by Lamont Jones.
 
 Future:
 

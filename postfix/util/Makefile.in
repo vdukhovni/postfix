@@ -19,7 +19,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	unsafe.c username.c valid_hostname.c vbuf.c vbuf_print.c \
 	vstream.c vstream_popen.c vstring.c vstring_vstream.c writable.c \
 	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
-	stream_connect.c stream_trigger.c
+	stream_connect.c stream_trigger.c dict_regexp.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_ni.o dict_nis.o \
@@ -40,7 +40,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	unsafe.o username.o valid_hostname.o vbuf.o vbuf_print.o \
 	vstream.o vstream_popen.o vstring.o vstring_vstream.o writable.o \
 	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
-	stream_connect.o stream_trigger.o
+	stream_connect.o stream_trigger.o dict_regexp.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_ni.h dict_nis.h \
 	dict_nisplus.h dir_forest.h events.h exec_command.h find_inet.h \
@@ -54,7 +54,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	sigdelay.h split_at.h stat_as.h stringops.h sys_defs.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
-	dict_unix.h dict_pcre.h
+	dict_unix.h dict_pcre.h dict_regexp.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -364,10 +364,24 @@ dict_open.o: dict_nisplus.h
 dict_open.o: dict_ni.h
 dict_open.o: dict_ldap.h
 dict_open.o: dict_pcre.h
+dict_open.o: dict_regexp.h
 dict_open.o: stringops.h
 dict_open.o: split_at.h
 dict_pcre.o: dict_pcre.c
 dict_pcre.o: sys_defs.h
+dict_regexp.o: dict_regexp.c
+dict_regexp.o: sys_defs.h
+dict_regexp.o: mymalloc.h
+dict_regexp.o: msg.h
+dict_regexp.o: safe.h
+dict_regexp.o: vstream.h
+dict_regexp.o: vbuf.h
+dict_regexp.o: vstring.h
+dict_regexp.o: stringops.h
+dict_regexp.o: readline.h
+dict_regexp.o: dict.h
+dict_regexp.o: dict_regexp.h
+dict_regexp.o: mac_parse.h
 dict_unix.o: dict_unix.c
 dict_unix.o: sys_defs.h
 dict_unix.o: msg.h
@@ -622,6 +636,7 @@ percentm.o: vbuf.h
 percentm.o: percentm.h
 posix_signals.o: posix_signals.c
 posix_signals.o: sys_defs.h
+posix_signals.o: posix_signals.h
 printable.o: printable.c
 printable.o: sys_defs.h
 printable.o: stringops.h

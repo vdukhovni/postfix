@@ -19,8 +19,8 @@
  /*
   * External interface.
   */
-extern DICT *dict_hash_open(const char *, int);
-extern DICT *dict_btree_open(const char *, int);
+extern DICT *dict_hash_open(const char *, int, int);
+extern DICT *dict_btree_open(const char *, int, int);
 
 /* LICENSE
 /* .ad

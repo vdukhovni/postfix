@@ -35,6 +35,8 @@ typedef struct DICT {
 
 #define DICT_FLAG_DUP_WARN	(1<<0)	/* if file, warn about dups */
 #define DICT_FLAG_DUP_IGNORE	(1<<1)	/* if file, ignore dups */
+#define DICT_FLAG_TRY0NULL	(1<<2)	/* do not append 0 to key/value */
+#define DICT_FLAG_TRY1NULL	(1<<3)	/* append 0 to key/value */
 
 extern int dict_unknown_allowed;
 extern int dict_errno;
@@ -58,8 +60,8 @@ extern const char *dict_eval(const char *, const char *, int);
   * Low-level interface, with physical dictionary handles and no implied
   * locking.
   */
-extern DICT *dict_open(const char *, int);
-extern DICT *dict_open3(const char *, const char *, int);
+extern DICT *dict_open(const char *, int, int);
+extern DICT *dict_open3(const char *, const char *, int, int);
 
 #define dict_get(dp, key)	(dp)->lookup((dp), (key))
 #define dict_put(dp, key, val)	(dp)->update((dp), (key), (val))

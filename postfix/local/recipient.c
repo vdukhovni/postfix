@@ -91,7 +91,7 @@
 static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 {
     char   *myname = "deliver_switch";
-    int     status;
+    int     status = 0;
 
     /*
      * Make verbose logging easier to understand.

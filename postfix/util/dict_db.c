@@ -6,13 +6,15 @@
 /* SYNOPSIS
 /*	#include <dict_db.h>
 /*
-/*	DICT	*dict_hash_open(path, flags)
+/*	DICT	*dict_hash_open(path, open_flags, dict_flags)
 /*	const char *path;
-/*	int	flags;
+/*	int	open_flags;
+/*	int	dict_flags;
 /*
-/*	DICT	*dict_btree_open(path, flags)
+/*	DICT	*dict_btree_open(path, open_flags, dict_flags)
 /*	const char *path;
-/*	int	flags;
+/*	int	open_flags;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_XXX_open() opens the specified DB database.  The result is
 /*	a pointer to a structure that can be used to access the dictionary
@@ -21,8 +23,10 @@
 /*	Arguments:
 /* .IP path
 /*	The database pathname, not including the ".db" suffix.
-/* .IP flags
-/*	flags passed to dbopen().
+/* .IP open_flags
+/*	Flags passed to dbopen().
+/* .IP dict_flags
+/*	Flags used by the dictionary interface.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* DIAGNOSTICS
@@ -71,9 +75,6 @@ typedef struct {
     char   *path;			/* pathname */
 } DICT_DB;
 
-#define DICT_DB_TRY0NULL	(1<<0)
-#define DICT_DB_TRY1NULL	(1<<1)
-
 #define DICT_DB_CACHE_SIZE	(1024 * 1024)
 #define DICT_DB_NELM	4096
 
@@ -92,13 +93,13 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
      * See if this DB file was written with one null byte appended to key and
      * value.
      */
-    if (dict_db->flags & DICT_DB_TRY1NULL) {
+    if (dict_db->flags & DICT_FLAG_TRY1NULL) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name) + 1;
 	if ((status = db->get(db, &db_key, &db_value, 0)) < 0)
 	    msg_fatal("error reading %s: %m", dict_db->path);
 	if (status == 0) {
-	    dict_db->flags &= ~DICT_DB_TRY0NULL;
+	    dict_db->flags &= ~DICT_FLAG_TRY0NULL;
 	    return (db_value.data);
 	}
     }
@@ -107,7 +108,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
      * See if this DB file was written with no null byte appended to key and
      * value.
      */
-    if (dict_db->flags & DICT_DB_TRY0NULL) {
+    if (dict_db->flags & DICT_FLAG_TRY0NULL) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name);
 	if ((status = db->get(db, &db_key, &db_value, 0)) < 0)
@@ -116,7 +117,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 	    if (buf == 0)
 		buf = vstring_alloc(10);
 	    vstring_strncpy(buf, db_value.data, db_value.size);
-	    dict_db->flags &= ~DICT_DB_TRY1NULL;
+	    dict_db->flags &= ~DICT_FLAG_TRY1NULL;
 	    return (vstring_str(buf));
 	}
     }
@@ -142,19 +143,19 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
      * If undecided about appending a null byte to key and value, choose a
      * default depending on the platform.
      */
-    if ((dict_db->flags & DICT_DB_TRY1NULL)
-	&& (dict_db->flags & DICT_DB_TRY0NULL)) {
+    if ((dict_db->flags & DICT_FLAG_TRY1NULL)
+	&& (dict_db->flags & DICT_FLAG_TRY0NULL)) {
 #ifdef DB_NO_TRAILING_NULL
-	dict_db->flags = DICT_DB_TRY0NULL;
+	dict_db->flags = DICT_FLAG_TRY0NULL;
 #else
-	dict_db->flags = DICT_DB_TRY1NULL;
+	dict_db->flags = DICT_FLAG_TRY1NULL;
 #endif
     }
 
     /*
      * Optionally append a null byte to key and value.
      */
-    if (dict_db->flags & DICT_DB_TRY1NULL) {
+    if (dict_db->flags & DICT_FLAG_TRY1NULL) {
 	db_key.size++;
 	db_value.size++;
     }
@@ -188,7 +189,8 @@ static void dict_db_close(DICT *dict)
 
 /* dict_db_open - open data base */
 
-static DICT *dict_db_open(const char *path, int flags, int type, void *tweak)
+static DICT *dict_db_open(const char *path, int flags, int type,
+			          void *tweak, int dict_flags)
 {
     DICT_DB *dict_db;
     DB     *db;
@@ -204,7 +206,9 @@ static DICT *dict_db_open(const char *path, int flags, int type, void *tweak)
     dict_db->dict.close = dict_db_close;
     dict_db->dict.fd = db->fd(db);
     close_on_exec(dict_db->dict.fd, CLOSE_ON_EXEC);
-    dict_db->flags = DICT_DB_TRY1NULL | DICT_DB_TRY0NULL;
+    dict_db->dict.flags = dict_flags;
+    if ((flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	dict_db->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     dict_db->db = db;
     dict_db->path = db_path;
     return (&dict_db->dict);
@@ -212,26 +216,26 @@ static DICT *dict_db_open(const char *path, int flags, int type, void *tweak)
 
 /* dict_hash_open - create association with data base */
 
-DICT   *dict_hash_open(const char *path, int flags)
+DICT   *dict_hash_open(const char *path, int open_flags, int dict_flags)
 {
     HASHINFO tweak;
 
     memset((char *) &tweak, 0, sizeof(tweak));
     tweak.nelem = DICT_DB_NELM;
     tweak.cachesize = DICT_DB_CACHE_SIZE;
-    return (dict_db_open(path, flags, DB_HASH, (void *) &tweak));
+    return (dict_db_open(path, open_flags, DB_HASH, (void *) &tweak, dict_flags));
 }
 
 /* dict_btree_open - create association with data base */
 
-DICT   *dict_btree_open(const char *path, int flags)
+DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
 {
     BTREEINFO tweak;
 
     memset((char *) &tweak, 0, sizeof(tweak));
     tweak.cachesize = DICT_DB_CACHE_SIZE;
 
-    return (dict_db_open(path, flags, DB_BTREE, (void *) &tweak));
+    return (dict_db_open(path, open_flags, DB_BTREE, (void *) &tweak, dict_flags));
 }
 
 #endif

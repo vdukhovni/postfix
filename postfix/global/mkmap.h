@@ -12,17 +12,22 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <dict.h>
+
+ /*
   * A database handle is an opaque structure. The user is not supposed to
   * know its implementation.
   */
 typedef struct MKMAP {
-    struct DICT *(*open) (const char *, int);
+    struct DICT *(*open) (const char *, int, int);
     struct DICT *dict;
     char   *lock_file;
     int     lock_fd;
 } MKMAP;
 
-extern MKMAP *mkmap_open(const char *, const char *, int);
+extern MKMAP *mkmap_open(const char *, const char *, int, int);
 extern void mkmap_append(MKMAP *, const char *, const char *);
 extern void mkmap_close(MKMAP *);
 

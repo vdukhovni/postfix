@@ -6,14 +6,16 @@
 /* SYNOPSIS
 /*	#include <dict.h>
 /*
-/*	DICT	*dict_open(dict_spec, flags)
+/*	DICT	*dict_open(dict_spec, open_flags, dict_flags)
 /*	const char *dict_spec;
-/*	int	flags;
+/*	int	open_flags;
+/*	int	dict_flags;
 /*
-/*	DICT	*dict_open3(dict_type, dict_name, flags)
+/*	DICT	*dict_open3(dict_type, dict_name, open_flags, dict_flags)
 /*	const char *dict_type;
 /*	const char *dict_name;
-/*	int	flags;
+/*	int	open_flags;
+/*	int	dict_flags;
 /*
 /*	void	dict_put(dict, key, value)
 /*	DICT	*dict;
@@ -32,8 +34,18 @@
 /*
 /*	dict_open() takes a type:name pair that specifies a dictionary type
 /*	and dictionary name, opens the dictionary, and returns a dictionary
-/*	handle.  The \fIflags\fR arguments are as in open(2). The dictionary
-/*	types are as follows:
+/*	handle.  The \fIopen_flags\fR arguments are as in open(2). The
+/*	\fIdict_flags\fR are the bit-wise OR of zero or more of the following:
+/* .IP DICT_FLAG_DUP_WARN
+/*	Warn about duplicate keys, if the underlying database does not
+/*	support duplicate keys. The default is to terminate with a fatal
+/*	error.
+/* .IP DICT_FLAG_DUP_IGNORE
+/*	Ignore duplicate keys if the underlying database does not
+/*	support duplicate keys. The default is to terminate with a fatal
+/*	error.
+/* .PP
+/*	The dictionary types are as follows:
 /* .IP environ
 /*	The process environment array. The \fIdict_name\fR argument is ignored.
 /* .IP dbm
@@ -52,6 +64,8 @@
 /*	LDAP ("light-weight" directory access protocol) database access.
 /* .IP pcre
 /*	PERL-compatible regular expressions.
+/* .IP regexp
+/*	POSIX-compatible regular expressions.
 /* .PP
 /*	dict_open3() takes separate arguments for dictionary type and
 /*	name, but otherwise performs the same functions as dict_open().
@@ -103,6 +117,7 @@
 #include <dict_ni.h>
 #include <dict_ldap.h>
 #include <dict_pcre.h>
+#include <dict_regexp.h>
 #include <stringops.h>
 #include <split_at.h>
 
@@ -111,7 +126,7 @@
   */
 typedef struct {
     char   *type;
-    struct DICT *(*open) (const char *, int);
+    struct DICT *(*open) (const char *, int, int);
 } DICT_OPEN_INFO;
 
 static DICT_OPEN_INFO dict_open_info[] = {
@@ -139,12 +154,15 @@ static DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_PCRE
     "pcre", dict_pcre_open,
 #endif
+#ifdef HAS_POSIX_REGEXP
+    "regexp", dict_regexp_open,
+#endif
     0,
 };
 
 /* dict_open - open dictionary */
 
-DICT   *dict_open(const char *dict_spec, int flags)
+DICT   *dict_open(const char *dict_spec, int open_flags, int dict_flags)
 {
     char   *saved_dict_spec = mystrdup(dict_spec);
     char   *dict_name;
@@ -153,7 +171,7 @@ DICT   *dict_open(const char *dict_spec, int flags)
     if ((dict_name = split_at(saved_dict_spec, ':')) == 0)
 	msg_fatal("open dictionary: need \"type:name\" form: %s", dict_spec);
 
-    dict = dict_open3(saved_dict_spec, dict_name, flags);
+    dict = dict_open3(saved_dict_spec, dict_name, open_flags, dict_flags);
     myfree(saved_dict_spec);
     return (dict);
 }
@@ -161,7 +179,8 @@ DICT   *dict_open(const char *dict_spec, int flags)
 
 /* dict_open3 - open dictionary */
 
-DICT   *dict_open3(const char *dict_type, const char *dict_name, int flags)
+DICT   *dict_open3(const char *dict_type, const char *dict_name,
+		           int open_flags, int dict_flags)
 {
     char   *myname = "dict_open";
     DICT_OPEN_INFO *dp;
@@ -169,7 +188,7 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name, int flags)
 
     for (dp = dict_open_info; dp->type; dp++) {
 	if (strcasecmp(dp->type, dict_type) == 0) {
-	    if ((dict = dp->open(dict_name, flags)) == 0)
+	    if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
 		msg_fatal("opening %s:%s %m", dict_type, dict_name);
 	    if (msg_verbose)
 		msg_info("%s: %s:%s", myname, dict_type, dict_name);
@@ -207,7 +226,7 @@ main(int argc, char **argv)
     VSTRING *keybuf = vstring_alloc(1);
     DICT   *dict;
     char   *dict_name;
-    int     dict_flags;
+    int     open_flags;
     char   *key;
     const char *value;
 
@@ -215,15 +234,15 @@ main(int argc, char **argv)
     if (argc != 3)
 	msg_fatal("usage: %s type:file read|write|create", argv[0]);
     if (strcasecmp(argv[2], "create") == 0)
-	dict_flags = O_CREAT | O_RDWR | O_TRUNC;
+	open_flags = O_CREAT | O_RDWR | O_TRUNC;
     else if (strcasecmp(argv[2], "write") == 0)
-	dict_flags = O_RDWR;
+	open_flags = O_RDWR;
     else if (strcasecmp(argv[2], "read") == 0)
-	dict_flags = O_RDONLY;
+	open_flags = O_RDONLY;
     else
 	msg_fatal("unknown access mode: %s", argv[2]);
     dict_name = argv[1];
-    dict = dict_open(dict_name, dict_flags);
+    dict = dict_open(dict_name, open_flags, 0);
     while (vstring_fgets_nonl(keybuf, VSTREAM_IN)) {
 	if ((key = strtok(vstring_str(keybuf), " =")) == 0)
 	    continue;

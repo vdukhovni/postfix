@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <dict_ldap.h>
 /*
-/*	DICT    *dict_ldap_open(attribute, dummy)
+/*	DICT    *dict_ldap_open(attribute, dummy, dict_flags)
 /*	const char *attribute;
 /*	int     dummy;
+/*	int     dict_flags;
 /* DESCRIPTION
 /*	dict_ldap_open() makes LDAP user information accessible via
 /*	the generic dictionary operations described in dict_open(3).
@@ -307,7 +308,7 @@ static void dict_ldap_close(DICT *dict)
 
 /* dict_ldap_open - create association with data base */
 
-DICT   *dict_ldap_open(const char *ldapsource, int flags)
+DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 {
     char   *myname = "dict_ldap_open";
     DICT_LDAP *dict_ldap;
@@ -320,6 +321,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int flags)
     dict_ldap->dict.update = dict_ldap_update;
     dict_ldap->dict.close = dict_ldap_close;
     dict_ldap->dict.fd = -1;
+    dict_ldap->dict.flags = dict_flags;
 
     if (msg_verbose)
         msg_info("%s: using LDAP source %s", myname, ldapsource);

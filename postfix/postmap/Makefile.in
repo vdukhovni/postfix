@@ -67,3 +67,4 @@ postmap.o: ../include/split_at.h
 postmap.o: ../include/config.h
 postmap.o: ../include/mail_params.h
 postmap.o: ../include/mkmap.h
+postmap.o: ../include/dict.h

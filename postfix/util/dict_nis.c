@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <dict_nis.h>
 /*
-/*	DICT	*dict_nis_open(map, dummy)
+/*	DICT	*dict_nis_open(map, dummy, dict_flags)
 /*	const char *map;
 /*	int	dummy;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_nis_open() makes the specified NIS map accessible via
 /*	the generic dictionary operations described in dict_open(3).
@@ -66,9 +67,6 @@ typedef struct {
     char   *map;			/* NIS map name */
     int     flags;			/* see below */
 } DICT_NIS;
-
-#define DICT_NIS_TRY0NULL        (1<<0)
-#define DICT_NIS_TRY1NULL        (1<<1)
 
  /*
   * Class variables, so that multiple maps can share this info.
@@ -156,12 +154,12 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      * See if this NIS map was written with one null byte appended to key and
      * value.
      */
-    if (dict_nis->flags & DICT_NIS_TRY1NULL) {
+    if (dict_nis->flags & DICT_FLAG_TRY1NULL) {
 	err = yp_match(dict_nis_domain, dict_nis->map,
 		       (void *) key, strlen(key) + 1,
 		       &result, &result_len);
 	if (err == 0) {
-	    dict_nis->flags &= ~DICT_NIS_TRY0NULL;
+	    dict_nis->flags &= ~DICT_FLAG_TRY0NULL;
 	    return (result);
 	}
     }
@@ -170,12 +168,12 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      * See if this NIS map was written with no null byte appended to key and
      * value. This should never be the case, but better play safe.
      */
-    if (dict_nis->flags & DICT_NIS_TRY0NULL) {
+    if (dict_nis->flags & DICT_FLAG_TRY0NULL) {
 	err = yp_match(dict_nis_domain, dict_nis->map,
 		       (void *) key, strlen(key),
 		       &result, &result_len);
 	if (err == 0) {
-	    dict_nis->flags &= ~DICT_NIS_TRY1NULL;
+	    dict_nis->flags &= ~DICT_FLAG_TRY1NULL;
 	    if (buf == 0)
 		buf = vstring_alloc(10);
 	    vstring_strncpy(buf, result, result_len);
@@ -218,7 +216,7 @@ static void dict_nis_close(DICT *dict)
 
 /* dict_nis_open - open NIS map */
 
-DICT   *dict_nis_open(const char *map, int unused_flags)
+DICT   *dict_nis_open(const char *map, int unused_flags, int dict_flags)
 {
     DICT_NIS *dict_nis;
 
@@ -228,7 +226,9 @@ DICT   *dict_nis_open(const char *map, int unused_flags)
     dict_nis->dict.close = dict_nis_close;
     dict_nis->dict.fd = -1;
     dict_nis->map = mystrdup(map);
-    dict_nis->flags = (DICT_NIS_TRY1NULL | DICT_NIS_TRY0NULL);
+    dict_nis->dict.flags = dict_flags;
+    if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
+	dict_nis->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     if (dict_nis_domain == 0)
 	dict_nis_init();
     return (&dict_nis->dict);

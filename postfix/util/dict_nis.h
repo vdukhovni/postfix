@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern DICT *dict_nis_open(const char *, int);
+extern DICT *dict_nis_open(const char *, int, int);
 
 /* LICENSE
 /* .ad

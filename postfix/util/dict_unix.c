@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <dict_unix.h>
 /*
-/*	DICT	*dict_unix_open(map, dummy)
+/*	DICT	*dict_unix_open(map, dummy, dict_flags)
 /*	const char *map;
 /*	int	dummy;
+/*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_unix_open() makes the specified UNIX table accessible via
 /*	the generic dictionary operations described in dict_open(3).
@@ -96,7 +97,7 @@ static void dict_unix_close(DICT *dict)
 
 /* dict_unix_open - open UNIX map */
 
-DICT   *dict_unix_open(const char *map, int unused_flags)
+DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
 {
     DICT_UNIX *dict_unix;
     struct dict_unix_lookup {
@@ -121,5 +122,6 @@ DICT   *dict_unix_open(const char *map, int unused_flags)
     dict_unix->dict.close = dict_unix_close;
     dict_unix->dict.fd = -1;
     dict_unix->map = mystrdup(map);
+    dict_unix->dict.flags = dict_flags;
     return (&dict_unix->dict);
 }

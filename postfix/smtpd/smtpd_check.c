@@ -312,7 +312,7 @@ static ARGV *smtpd_check_parse(char *checks)
     while ((name = mystrtok(&bp, " \t\r\n,")) != 0) {
 	argv_add(argv, name, (char *) 0);
 	if (strchr(name, ':') && dict_handle(name) == 0)
-	    dict_register(name, dict_open(name, 0));
+	    dict_register(name, dict_open(name, 0, 0));
     }
     argv_terminate(argv);
 

@@ -102,6 +102,9 @@ static void dotforward_parse_callback(int type, VSTRING *buf, char *context)
     FW_CONTEXT *fw_context = (FW_CONTEXT *) context;
     char   *ptr;
 
+    if (fw_context->failures)
+	return;
+
     /*
      * Find out what data to substitute.
      */

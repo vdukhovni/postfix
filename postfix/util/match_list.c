@@ -109,7 +109,7 @@ static ARGV *match_list_parse(ARGV *list, char *string)
 	} else if (strchr(pattern, ':') != 0) {	/* type:table */
 	    for (cp = pattern; *cp == '!'; cp++)
 		 /* void */ ;
-	    dict_register(pattern, dict_open(pattern, 0));
+	    dict_register(pattern, dict_open(pattern, 0, 0));
 	    argv_add(list, pattern, (char *) 0);
 	} else {				/* other pattern */
 	    argv_add(list, pattern, (char *) 0);
