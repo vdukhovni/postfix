@@ -270,7 +270,7 @@ extern void qmgr_deliver(QMGR_TRANSPORT *, VSTREAM *);
  /*
   * qmgr_active.c
   */
-extern void qmgr_active_feed(QMGR_SCAN *, const char *);
+extern int qmgr_active_feed(QMGR_SCAN *, const char *);
 extern void qmgr_active_drain(void);
 extern void qmgr_active_done(QMGR_MESSAGE *);
 

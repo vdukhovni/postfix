@@ -95,8 +95,8 @@
 /*	Function to be executed prior to accepting a new connection.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_IN_FLOW_DELAY (int)"
-/*	The amount of seconds to pause when no "mail flow control token"
+/* .IP "MAIL_SERVER_IN_FLOW_DELAY (none)"
+/*	Pause $in_flow_delay seconds when no "mail flow control token"
 /*	is available. A token is consumed for each connection request.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
@@ -280,9 +280,9 @@ static void multi_server_wakeup(int fd)
     client_count++;
     stream = vstream_fdopen(fd, O_RDWR);
     timed_ipc_setup(stream);
-    if (multi_server_in_flow_delay > 0 && mail_flow_get(1) < 0)
+    if (multi_server_in_flow_delay && mail_flow_get(1) < 0)
 	event_request_timer(multi_server_enable_read, (char *) stream,
-			    multi_server_in_flow_delay);
+			    var_in_flow_delay);
     else
 	multi_server_enable_read(0, (char *) stream);
 }
@@ -517,7 +517,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    multi_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
 	case MAIL_SERVER_IN_FLOW_DELAY:
-	    multi_server_in_flow_delay = va_arg(ap, int);
+	    multi_server_in_flow_delay = 1;
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

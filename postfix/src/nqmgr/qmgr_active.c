@@ -164,7 +164,7 @@ static void qmgr_active_defer(const char *queue_name, const char *queue_id,
 
 /* qmgr_active_feed - feed one message into active queue */
 
-void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
+int     qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 {
     char   *myname = "qmgr_active_feed";
     QMGR_MESSAGE *message;
@@ -180,7 +180,7 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
      * Make sure this is something we are willing to open.
      */
     if (mail_open_ok(scan_info->queue, queue_id, &st, &path) == MAIL_OPEN_NO)
-	return;
+	return (0);
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, path);
@@ -194,7 +194,7 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 	if (msg_verbose)
 	    msg_info("%s: skip %s (%ld seconds)", myname, queue_id,
 		     (long) (st.st_mtime - event_time()));
-	return;
+	return (0);
     }
 
     /*
@@ -206,7 +206,7 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 		      queue_id, scan_info->queue, MAIL_QUEUE_ACTIVE);
 	msg_warn("%s: %s: rename from %s to %s: %m", myname,
 		 queue_id, scan_info->queue, MAIL_QUEUE_ACTIVE);
-	return;
+	return (0);
     }
 
     /*
@@ -226,8 +226,10 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
     if ((message = qmgr_message_alloc(MAIL_QUEUE_ACTIVE, queue_id,
 				      scan_info->flags)) == 0) {
 	qmgr_active_corrupt(queue_id);
+	return (0);
     } else if (message == QMGR_MESSAGE_LOCKED) {
 	qmgr_active_defer(MAIL_QUEUE_ACTIVE, queue_id, MAIL_QUEUE_INCOMING, 60);
+	return (0);
     } else {
 
 	/*
@@ -236,6 +238,7 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 	 */
 	if (message->refcount == 0)
 	    qmgr_active_done(message);
+	return (1);
     }
 }
 

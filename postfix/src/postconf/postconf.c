@@ -225,7 +225,7 @@ static void get_myhostname(void)
 {
     const char *name;
 
-    if ((name = dict_lookup(CONFIG_DICT, VAR_MYHOSTNAME)) == 0)
+    if ((name = mail_conf_lookup_eval(VAR_MYHOSTNAME)) == 0)
 	name = check_myhostname();
     var_myhostname = mystrdup(name);
 }
@@ -255,13 +255,13 @@ static const char *check_mynetworks(void)
 
     if (var_inet_interfaces == 0) {
 	if ((mode & SHOW_DEFS)
-	    || !(junk = mail_conf_lookup(VAR_INET_INTERFACES)))
+	    || !(junk = mail_conf_lookup_eval(VAR_INET_INTERFACES)))
 	    junk = DEF_INET_INTERFACES;
 	var_inet_interfaces = mystrdup(junk);
     }
     if (var_mynetworks_style == 0) {
 	if ((mode & SHOW_DEFS)
-	    || !(junk = mail_conf_lookup(VAR_MYNETWORKS_STYLE)))
+	    || !(junk = mail_conf_lookup_eval(VAR_MYNETWORKS_STYLE)))
 	    junk = DEF_MYNETWORKS_STYLE;
 	var_mynetworks_style = mystrdup(junk);
     }

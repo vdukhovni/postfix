@@ -382,6 +382,7 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
     char   *in_path = 0;
     char   *df_path = 0;
     int     token_count;
+    int     in_feed = 0;
 
     /*
      * This routine runs as part of the event handling loop, after the event
@@ -409,7 +410,7 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
     if (qmgr_message_count < var_qmgr_active_limit
 	&& qmgr_recipient_count < var_qmgr_rcpt_limit)
 	if ((in_path = qmgr_scan_next(qmgr_incoming)) != 0)
-	    qmgr_active_feed(qmgr_incoming, in_path);
+	    in_feed = qmgr_active_feed(qmgr_incoming, in_path);
     if (qmgr_message_count < var_qmgr_active_limit
 	&& qmgr_recipient_count < var_qmgr_rcpt_limit)
 	if ((df_path = qmgr_scan_next(qmgr_deferred)) != 0)
@@ -420,12 +421,15 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
      * get ahead of the queue manager, but don't block them completely.
      */
     if (var_in_flow_delay > 0) {
-	if (in_path != 0)
-	    mail_flow_put(1);
-	else if ((token_count = mail_flow_count()) < var_proc_limit)
-	    mail_flow_put(var_proc_limit - token_count);
-	else if (token_count > var_proc_limit)
+	token_count = mail_flow_count();
+	if (token_count < var_proc_limit) {
+	    if (in_feed != 0)
+		mail_flow_put(1);
+	    else if (qmgr_incoming->handle == 0)
+		mail_flow_put(var_proc_limit - token_count);
+	} else if (token_count > var_proc_limit) {
 	    mail_flow_get(token_count - var_proc_limit);
+	}
     }
     if (in_path || df_path)
 	return (DONT_WAIT);

@@ -274,6 +274,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_INIT, cleanup_pre_jail,
 		       MAIL_SERVER_POST_INIT, cleanup_post_jail,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_IN_FLOW_DELAY, var_in_flow_delay,
+		       MAIL_SERVER_IN_FLOW_DELAY,
 		       0);
 }

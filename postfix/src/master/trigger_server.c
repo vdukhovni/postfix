@@ -99,8 +99,8 @@
 /*	Function to be executed prior to accepting a new request.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_IN_FLOW_DELAY (int)"
-/*	The amount of seconds to pause when no "mail flow control token"
+/* .IP "MAIL_SERVER_IN_FLOW_DELAY (none)"
+/*	Pause $in_flow_delay seconds when no "mail flow control token"
 /*	is available. A token is consumed for each connection request.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
@@ -235,8 +235,8 @@ static void trigger_server_wakeup(int fd)
      */
     if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
 	trigger_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
-    if (trigger_server_in_flow_delay > 0 && mail_flow_get(1) < 0)
-	doze(trigger_server_in_flow_delay * 1000000);
+    if (trigger_server_in_flow_delay && mail_flow_get(1) < 0)
+	doze(var_in_flow_delay * 1000000);
     if ((len = read(fd, buf, sizeof(buf))) >= 0)
 	trigger_server_service(buf, len, trigger_server_name,
 			       trigger_server_argv);
@@ -477,7 +477,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    trigger_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
 	case MAIL_SERVER_IN_FLOW_DELAY:
-	    trigger_server_in_flow_delay = va_arg(ap, int);
+	    trigger_server_in_flow_delay = 1;
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

@@ -1,11 +1,11 @@
-Incompatible changes with snapshot-20010731
+Incompatible changes with snapshot-20010801
 ===========================================
 
 The protocol between Postfix master and child processes has changed.
 You must stop and start Postfix in order to switch between Snapshot
-20010731 and releases that implement the older protocol.
+20010801 and releases that implement the older protocol.
 
-Major changes with snapshot-20010731
+Major changes with snapshot-20010801
 ====================================
 
 Specify "disable_verp_bounces = yes" to have Postfix send one

@@ -5398,3 +5398,10 @@ Apologies for any names omitted.
 	Postfix send one RFC-standard, non-VERP, bounce report for
 	multi-recipient mail, even when VERP style delivery is
 	requested.
+
+20010801
+
+	Bugfix: postconf was using unexpanded values internally
+	for myhostname, inet_interfaces, and mynetworks_style.
+	This broke the default mynetworks setting calculation.
+	File: postconf/postconf.c.
