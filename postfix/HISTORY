@@ -6585,6 +6585,13 @@ Apologies for any names omitted.
 	after the MIME output conversion. Problem found by Mark
 	Martinec.  File: smtp/smtp_proto.c.
 
+20020601
+
+	Bugfix: the deliver_pass() routine needed updating for the
+	extra MIME encoding attribute that was introduced 20020510.
+	Patch by Sebastian Schaffert @ wastl.net.  File:
+	global/deliver_pass.c.
+
 Open problems:
 
 	Medium: old maildrop files are no longer readable by the
