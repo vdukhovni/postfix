@@ -1,7 +1,7 @@
 #
 # Initialize.
 #
-! ../bin/postmap smtpd_check_access
+#! ../bin/postmap smtpd_check_access
 #msg_verbose 1
 mynetworks 127.0.0.0/8,168.100.189.0/28
 relay_domains porcupine.org

@@ -244,7 +244,7 @@ void    mail_params_init()
     static CONFIG_STR_TABLE other_str_defaults[] = {
 	VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name, 1, 0,
 	VAR_MAIL_OWNER, DEF_MAIL_OWNER, &var_mail_owner, 1, 0,
-	VAR_MYDEST, DEF_MYDEST, &var_mydest, 1, 0,
+	VAR_MYDEST, DEF_MYDEST, &var_mydest, 0, 0,
 	VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin, 1, 0,
 	VAR_RELAYHOST, DEF_RELAYHOST, &var_relayhost, 0, 0,
 	VAR_PROGRAM_DIR, DEF_PROGRAM_DIR, &var_program_dir, 1, 0,
@@ -334,7 +334,7 @@ void    mail_params_init()
     time(&var_starttime);
 
     /*
-     * If have seen this happen just too often.
+     * I have seen this happen just too often.
      */
     if (strcasecmp(var_myhostname, var_relayhost) == 0)
 	msg_fatal("myhostname == relayhost");

@@ -25,10 +25,10 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        By default, <b>sendmail</b> reads a message from  standard  input
        and  arranges for delivery.  <b>sendmail</b> attempts to create a
-       queue file in the <b>maildrop</b> directory. If the  process  has
-       no  write  permission,  the  message  is piped through the
-       <a href="postdrop.1.html"><b>postdrop</b>(1)</a> command, which is  expected  to  execute  with
-       suitable privileges.
+       queue file in the <b>maildrop</b> directory. If that directory is
+       not world-writable, the message is piped through the <b>post-</b>
+       <b>drop</b>(1) command, which is expected to execute  with  suit-
+       able privileges.
 
        Specific  command  aliases  are  provided for other common
        modes of operation:
@@ -165,31 +165,31 @@ SENDMAIL(1)                                           SENDMAIL(1)
               Set option <i>x</i> to <i>value</i>. Use the equivalent  configu-
               ration parameter in <b>main.cf</b> instead.
 
-       <b>-q</b>     Flush  the mail queue. This is implemented by kick-
+       <b>-r</b> <i>sender</i>
+              Set  the  envelope  sender  address.  This  is  the
+              address where delivery problems are sent to, unless
+              the  message contains an <b>Errors-To:</b> message header.
+
+       <b>-q</b>     Flush the mail queue. This is implemented by  kick-
               ing the <a href="qmgr.8.html"><b>qmgr</b>(8)</a> daemon.
 
        <b>-q</b><i>interval</i> (ignored)
-              The  interval   between   queue   runs.   Use   the
+              The   interval   between   queue   runs.   Use  the
               <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b> configuration parameter instead.
 
-       <b>-t</b>     Extract   recipients  from  message  headers.  This
-              requires that no recipients  be  specified  on  the
+       <b>-t</b>     Extract  recipients  from  message  headers.   This
+              requires  that  no  recipients  be specified on the
               command line.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>SECURITY</b>
-       By  design,  this  program  is not set-user (or group) id.
-       However, it must  handle  data  from  untrusted  users  or
-       untrusted  machines.   Thus, the usual precautions need to
+       By design, this program is not  set-user  (or  group)  id.
+       However,  it  must  handle  data  from  untrusted users or
+       untrusted machines.  Thus, the usual precautions  need  to
        be taken against malicious inputs.
-
-<b>DIAGNOSTICS</b>
-       Problems are logged to  <b>syslogd</b>(8)  and  to  the  standard
-       error stream.
-
 
 
 
@@ -203,6 +203,10 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
+<b>DIAGNOSTICS</b>
+       Problems  are  logged  to  <b>syslogd</b>(8)  and to the standard
+       error stream.
+
 <b>ENVIRONMENT</b>
        <b>MAIL</b><i>_</i><b>CONFIG</b>
               Directory with Postfix configuration files.
@@ -212,7 +216,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>MAIL</b><i>_</i><b>DEBUG</b>
               Enable debugging with an external command, as spec-
-              ified  with  the   <b>debugger</b><i>_</i><b>command</b>   configuration
+              ified   with   the  <b>debugger</b><i>_</i><b>command</b>  configuration
               parameter.
 
 <b>FILES</b>
@@ -220,13 +224,13 @@ SENDMAIL(1)                                           SENDMAIL(1)
        /etc/postfix, configuration files
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       See  the  Postfix  <b>main.cf</b> file for syntax details and for
-       default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
+       See the Postfix <b>main.cf</b> file for syntax  details  and  for
+       default  values.  Use  the  <b>postfix</b> <b>reload</b> command after a
        configuration change.
 
        <b>alias</b><i>_</i><b>database</b>
-              Default   alias  database(s)  for  <b>newaliases</b>.  The
-              default value for  this  parameter  is  system-spe-
+              Default  alias  database(s)  for  <b>newaliases</b>.   The
+              default  value  for  this  parameter is system-spe-
               cific.
 
        <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
@@ -242,19 +246,15 @@ SENDMAIL(1)                                           SENDMAIL(1)
               initialized.
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
-              Increment in verbose logging level  when  a  remote
+              Increment  in  verbose  logging level when a remote
               host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
               parameter.
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
-              List of domain or network patterns. When  a  remote
-              host  matches  a pattern, increase the verbose log-
-              ging  level  by  the  amount   specified   in   the
+              List  of  domain or network patterns. When a remote
+              host matches a pattern, increase the  verbose  log-
+              ging   level   by   the  amount  specified  in  the
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
-
-       <b>fork</b><i>_</i><b>attempts</b>
-              Number  of attempts to <b>fork</b>() a process before giv-
-              ing up.
 
 
 
@@ -269,32 +269,36 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
+       <b>fork</b><i>_</i><b>attempts</b>
+              Number of attempts to <b>fork</b>() a process before  giv-
+              ing up.
+
        <b>fork</b><i>_</i><b>delay</b>
-              Delay  in   seconds   between   successive   <b>fork</b>()
+              Delay   in   seconds   between   successive  <b>fork</b>()
               attempts.
 
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
        <b>mail</b><i>_</i><b>owner</b>
-              The  owner  of  the  mail queue and of most Postfix
+              The owner of the mail queue  and  of  most  Postfix
               processes.
 
        <b>command</b><i>_</i><b>directory</b>
-              Directory with Postfix support  commands  (default:
+              Directory  with  Postfix support commands (default:
               <b>$program</b><i>_</i><b>directory</b>).
 
        <b>daemon</b><i>_</i><b>directory</b>
-              Directory  with  Postfix  daemon programs (default:
+              Directory with Postfix  daemon  programs  (default:
               <b>$program</b><i>_</i><b>directory</b>).
 
        <b>queue</b><i>_</i><b>directory</b>
-              Top-level directory of the Postfix queue.  This  is
+              Top-level  directory  of the Postfix queue. This is
               also the root directory of Postfix daemons that run
               chrooted.
 
        <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
-              The time between successive scans of  the  deferred
+              The  time  between successive scans of the deferred
               queue.
 
 <b>SEE</b> <b>ALSO</b>
@@ -309,7 +313,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -317,10 +321,6 @@ SENDMAIL(1)                                           SENDMAIL(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

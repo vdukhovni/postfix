@@ -11,7 +11,9 @@
 /*	long	offset;
 /* DESCRIPTION
 /*	deliver_completed() crosses off the specified recipient from
-/*	an open queue file.
+/*	an open queue file. A -1 offset means ignore the request -
+/*	this is used for delivery requests that are passed on from
+/*	one delivery agent to another.
 /* DIAGNOSTICS
 /*	Fatal error: unable to update the queue file.
 /* LICENSE
@@ -45,6 +47,9 @@
 void    deliver_completed(VSTREAM *stream, long offset)
 {
     char   *myname = "deliver_completed";
+
+    if (offset == -1)
+	return;
 
     if (offset <= 0)
 	msg_panic("%s: bad offset %ld", myname, offset);

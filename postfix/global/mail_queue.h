@@ -40,6 +40,7 @@ extern int mail_queue_rename(const char *, const char *, const char *);
 extern int mail_queue_remove(const char *, const char *);
 extern const char *mail_queue_dir(VSTRING *, const char *, const char *);
 extern const char *mail_queue_path(VSTRING *, const char *, const char *);
+extern int mail_queue_mkdirs(const char *);
 extern int mail_queue_name_ok(const char *);
 extern int mail_queue_id_ok(const char *);
 

@@ -58,7 +58,7 @@
   */
 typedef struct DNS_FIXED {
     unsigned short type;		/* T_A, T_CNAME, etc. */
-    unsigned short class;		/* T_A, T_CNAME, etc. */
+    unsigned short class;		/* C_IN, etc. */
     unsigned int ttl;			/* always */
     unsigned length;			/* record length */
 } DNS_FIXED;
@@ -70,7 +70,7 @@ typedef struct DNS_FIXED {
 typedef struct DNS_RR {
     char   *name;			/* name, mystrdup()ed */
     unsigned short type;		/* T_A, T_CNAME, etc. */
-    unsigned short class;		/* T_A, T_CNAME, etc. */
+    unsigned short class;		/* C_IN, etc. */
     unsigned int ttl;			/* always */
     unsigned short pref;		/* T_MX only */
     struct DNS_RR *next;		/* linkage */
@@ -95,6 +95,7 @@ extern unsigned dns_type(const char *);
 extern DNS_RR *dns_rr_create(const char *, DNS_FIXED *, unsigned,
 			             const char *, unsigned);
 extern void dns_rr_free(DNS_RR *);
+extern DNS_RR *dns_rr_copy(DNS_RR *);
 extern DNS_RR *dns_rr_append(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_sort(DNS_RR *, int (*) (DNS_RR *, DNS_RR *));
 

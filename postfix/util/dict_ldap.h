@@ -1,4 +1,31 @@
+#ifndef _DICT_LDAP_H_INCLUDED_
+#define _DICT_LDAP_H_INCLUDED_
+
+/*++
+/* NAME
+/*	dict_ldap 3h
+/* SUMMARY
+/*	dictionary manager interface to LDAP maps
+/* SYNOPSIS
+/*	#include <dict_ldap.h>
+/* DESCRIPTION
+/* .nf
+
  /*
-  * The LDAP software is not bundled with IBM's public release. It will be
-  * made available as contributed software from http://www.postfix.org/
+  * Utility library.
   */
+#include <dict.h>
+
+ /*
+  * External interface.
+  */
+extern DICT *dict_ldap_open(const char *, int);
+
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10532, USA
+/*--*/
+
+#endif

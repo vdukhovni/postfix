@@ -86,10 +86,18 @@ int     deliver_resolve_addr(LOCAL_STATE state, USER_ATTR usr_attr, char *addr)
 
 int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr)
 {
+    char   *myname = "deliver_resolve_tree";
     RESOLVE_REPLY reply;
     int     status;
     int     ext_len;
     char   *ratsign;
+
+    /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
+    if (msg_verbose)
+	MSG_LOG_STATE(myname, state);
 
     /*
      * Initialize.

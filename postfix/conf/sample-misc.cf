@@ -1,6 +1,12 @@
 # This file contains example settings for miscellaneous Postfix
 # configuration parameters.
 
+# The always_bcc parameter specifies an optional address that
+# receives a copy of each message that enters the Postfix system,
+# not including bounces that are generated locally.
+#
+always_bcc =
+
 # The default_database_type parameter specifies the default database
 # type to use in postalias(1) and postmap(1) commands. On many UNIX
 # systems the default type is either `dbm' or `hash'. The default is
@@ -27,16 +33,26 @@ double_bounce_sender = double-bounce
 # levels below the queue directories listed in the hash_queue_names
 # parameter.
 # 
-# Multiple subdirectory levels can speed up directory searches by
+# Multiple subdirectory levels can speed up directory access by
 # reducing the number of files per directory.
+#
+# After changing the hash_queue_names or hash_queue_depth parameter,
+# run "postfix reload" and "postfix check".
 #
 hash_queue_depth = 2
 
 # The hash_queue_names parameter specifies the names of queue
 # directories that are split across multiple subdirectory levels.
-# Currently, hashing cannot be used for the maildrop, incoming, active
-# or deferred directories. Hashing MUST be used for the defer logfile
-# directory, or mail system performance will suffer.
+# Hashing MUST NOT be used with a world-writable maildrop directory.
+# Hashing MUST be used for the defer logfile directory, or mail system
+# performance will suffer.
+#
+# Unfortunately, hashing the incoming or deferred queue can actually
+# slow the mail system down (mailq with an empty queue can take
+# several seconds) so it should be done only in case of emergency.
+#
+# After changing the hash_queue_names or hash_queue_depth parameter,
+# run "postfix reload" and "postfix check".
 #
 hash_queue_names = defer
 
@@ -165,7 +181,8 @@ myorigin = $myhostname
 # policy (anti-UCE violations) and protocol error (broken mailers)
 # reports.
 #
-# notify_classes = bounce,policy,protocol,resource,software
+# notify_classes = bounce,delay,policy,protocol,resource,software
+# notify_classes = 2bounce,resource,software
 notify_classes = resource,software
 
 # The process_id_directory specifies a lock file directory relative
@@ -230,3 +247,9 @@ relocated_maps =
 # mail system is under heavy load.
 #
 trigger_timeout = 10
+
+# The delay_warning_time specifies after how many hours a warning
+# is sent that mail has not yet been delivered. By default, no warning
+# is sent.
+#
+# delay_warning_time = 0

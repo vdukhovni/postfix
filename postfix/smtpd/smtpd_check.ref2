@@ -1,8 +1,7 @@
 >>> #
 >>> # Initialize.
 >>> #
->>> ! ../bin/postmap smtpd_check_access
-exit 0
+>>> #! ../bin/postmap smtpd_check_access
 >>> #msg_verbose 1
 >>> mynetworks 127.0.0.0/8,168.100.189.0/28
 OK
@@ -171,5 +170,5 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 550 Service unavailable; blocked using rbl.maps.vix.com
-550 Service unavailable; blocked using rbl.maps.vix.com
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 550 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
+550 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com

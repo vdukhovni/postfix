@@ -212,16 +212,48 @@ program_directory = /some/where/postfix/bin
 #
 #home_mailbox = Mailbox
 #home_mailbox = Maildir/
+ 
+# The mail_spool_directory parameter specifies the directory where
+# UNIX-style mailboxes are kept. The default setting depends on the
+# system type.
+#
+# mail_spool_directory = /var/mail
+# mail_spool_directory = /var/spool/mail
 
-# The mailbox_command specifies the optional external command to use
-# instead of mailbox delivery. The command is run with proper HOME,
-# SHELL and LOGNAME settings.
+# The mailbox_command parameter specifies the optional external
+# command to use instead of mailbox delivery. The command is run as
+# the recipient with proper HOME, SHELL and LOGNAME settings.
+# Exception:  delivery for root is done as $default_user.
 # 
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.
 #
 #mailbox_command = /some/where/procmail
 
+# The mailbox_transport specifies the optional transport in master.cf
+# to use after processing aliases and .forward files. This parameter
+# has precedence over the mailbox_command, fallback_transport and
+# luser_relay parameters.
+#
+#mailbox_transport = cyrus
+
+# The fallback_transport specifies the optional transport in master.cf
+# to use for recipients that are not found in the UNIX passwd database.
+# This parameter has precedence over the luser_relay parameter.
+#
+#fallback_transport =
+
+# The luser_relay parameter specifies an optional destination 
+# (@domain, address, "|command", /file/name) for unknown recipients.
+# By default, mail for unknown local recipients is bounced.
+#
+# Specify @domain in order to keep the original recipient name.
+# If an address is specified, and if a recipient delimiter is 
+# specified, the original recipient name is appended to the addres
+# localpart.
+#
+# luser_relay =
+  
 # JUNK MAIL CONTROLS
 # 
 # The controls listed here are only a very small subset. See the file
@@ -244,7 +276,7 @@ program_directory = /some/where/postfix/bin
 # list this system as their primary or backup MX host. See the
 # permit_mx_backup restriction in the file sample-smtpd.cf.
 #
-#relay_domains = $mydestination, $virtual_domains
+#relay_domains = $mydestination, $virtual_maps
 
 # The mynetworks parameter specifies the list of networks that are
 # local to this machine.  The list is used by the anti-UCE software

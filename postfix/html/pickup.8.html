@@ -48,17 +48,17 @@ PICKUP(8)                                               PICKUP(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
+       <b>always</b><i>_</i><b>bcc</b>
+              Address to send a copy of each message that  enters
+              the system.
+
        <b>mail</b><i>_</i><b>owner</b>
-              The process privileges used  while  not  opening  a
+              The  process  privileges  used  while not opening a
               <b>maildrop</b> file.
 
        <b>queue</b><i>_</i><b>directory</b>
               Top-level directory of the Postfix queue.
 
-<b>SEE</b> <b>ALSO</b>
-       <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
-       <a href="master.8.html">master(8)</a> process manager
-       syslogd(8) system logging
 
 
 
@@ -71,8 +71,13 @@ PICKUP(8)                                               PICKUP(8)
 PICKUP(8)                                               PICKUP(8)
 
 
+<b>SEE</b> <b>ALSO</b>
+       <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
+       <a href="master.8.html">master(8)</a> process manager
+       syslogd(8) system logging
+
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -80,11 +85,6 @@ PICKUP(8)                                               PICKUP(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
 
 
 

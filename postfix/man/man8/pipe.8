@@ -30,7 +30,7 @@ to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
-.IP "\fBflags=F>\fR (optional)"
+.IP "\fBflags=FR>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
 .RS
@@ -39,15 +39,21 @@ Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 the message content.
 This is expected by, for example, \fBUUCP\fR software. The \fBF\fR
 flag also causes an empty line to be appended to the message.
+.IP \fBR\fR
+Prepend a \fBReturn-Path:\fR message header with the envelope sender
+address.
 .IP \fB>\fR
-Prepend \fB>\fR to lines starting with "\fBFrom \fR". This expected
+Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
 by, for example, \fBUUCP\fR software.
 .RE
 .IP "\fBuser\fR=\fIusername\fR (required)"
+.IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 The external command is executed with the rights of the
 specified \fIusername\fR.  The software refuses to execute
 commands with root privileges, or with the privileges of the
-mail system owner.
+mail system owner. If \fIgroupname\fR is specified, the
+corresponding group ID is used instead of the group ID of
+of \fIusername\fR.
 .IP "\fBargv\fR=\fIcommand\fR... (required)"
 The command to be executed. This must be specified as the
 last command attribute.

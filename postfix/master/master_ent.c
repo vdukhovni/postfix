@@ -360,7 +360,7 @@ MASTER_SERV *get_master_ent()
     /*
      * Backoff time in case a service is broken.
      */
-    serv->throttle_delay = MASTER_DEF_THROTTLE_DELAY;	/* XXX config */
+    serv->throttle_delay = var_throttle_time;
 
     /*
      * Shared channel for child status updates.
@@ -378,6 +378,8 @@ MASTER_SERV *get_master_ent()
      */
     serv->args = argv_alloc(0);
     argv_add(serv->args, command, (char *) 0);
+    if (serv->max_proc == 1)
+	argv_add(serv->args, "-l", (char *) 0);
     if (strcmp(basename(command), name) != 0)
 	argv_add(serv->args, "-n", name, (char *) 0);
     argv_add(serv->args, "-t", transport, (char *) 0);

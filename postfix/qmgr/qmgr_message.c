@@ -19,6 +19,9 @@
 /*
 /*	void	qmgr_message_free(message)
 /*	QMGR_MESSAGE *message;
+/*
+/*	void	qmgr_message_update_warn(message)
+/*	QMGR_MESSAGE *message;
 /* DESCRIPTION
 /*	This module performs en-gross operations on queue messages.
 /*
@@ -50,6 +53,9 @@
 /*	qmgr_message_free() destroys an in-core message structure and makes
 /*	the resources available for reuse. It is an error to destroy
 /*	a message structure that is still referenced by queue entry structures.
+/*
+/*	qmgr_message_update_warn() takes a closed message, opens it, updates
+/*	the warning field, and closes it again.
 /* DIAGNOSTICS
 /*	Warnings: malformed message file. Fatal errors: out of memory.
 /* SEE ALSO
@@ -136,6 +142,8 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->errors_to = 0;
     message->return_receipt = 0;
     message->data_size = 0;
+    message->warn_offset = 0;
+    message->warn_time = 0;
     message->rcpt_offset = 0;
     qmgr_rcpt_list_init(&message->rcpt_list);
     return (message);
@@ -263,6 +271,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	} else if (rec_type == REC_TYPE_RRTO) {
 	    if (message->return_receipt == 0)
 		message->return_receipt = mystrdup(start);
+	} else if (rec_type == REC_TYPE_WARN) {
+	    if (message->warn_offset == 0) {
+		message->warn_offset = curr_offset;
+		message->warn_time = atol(start);
+	    }
 	}
     } while (rec_type > 0 && rec_type != REC_TYPE_END);
 
@@ -305,6 +318,23 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     } else {
 	return (0);
     }
+}
+
+/* qmgr_message_update_warn - update the time of next delay warning */
+
+void    qmgr_message_update_warn(QMGR_MESSAGE *message)
+{
+
+    /*
+     * XXX eventually this should let us schedule multiple warnings, right
+     * now it just allows for one.
+     */
+    if (qmgr_message_open(message)
+	|| vstream_fseek(message->fp, message->warn_offset, SEEK_SET) < 0
+    || rec_fprintf(message->fp, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT, 0L) < 0
+	|| vstream_fflush(message->fp))
+	msg_fatal("update queue file %s: %m", VSTREAM_PATH(message->fp));
+    qmgr_message_close(message);
 }
 
 /* qmgr_message_sort_compare - compare recipient information */

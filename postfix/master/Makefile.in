@@ -199,6 +199,8 @@ multi_server.o: ../include/msg_vstream.h
 multi_server.o: ../include/mymalloc.h
 multi_server.o: ../include/stringops.h
 multi_server.o: ../include/sane_accept.h
+multi_server.o: ../include/myflock.h
+multi_server.o: ../include/safe_open.h
 multi_server.o: ../include/mail_task.h
 multi_server.o: ../include/debug_process.h
 multi_server.o: ../include/mail_params.h
@@ -221,6 +223,8 @@ single_server.o: ../include/events.h
 single_server.o: ../include/iostuff.h
 single_server.o: ../include/stringops.h
 single_server.o: ../include/sane_accept.h
+single_server.o: ../include/myflock.h
+single_server.o: ../include/safe_open.h
 single_server.o: ../include/mail_params.h
 single_server.o: ../include/mail_task.h
 single_server.o: ../include/debug_process.h
@@ -243,6 +247,8 @@ trigger_server.o: ../include/events.h
 trigger_server.o: ../include/iostuff.h
 trigger_server.o: ../include/stringops.h
 trigger_server.o: ../include/sane_accept.h
+trigger_server.o: ../include/myflock.h
+trigger_server.o: ../include/safe_open.h
 trigger_server.o: ../include/mail_params.h
 trigger_server.o: ../include/mail_task.h
 trigger_server.o: ../include/debug_process.h

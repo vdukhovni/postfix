@@ -75,9 +75,11 @@
 #include <mail_proto.h>
 #include <mail_date.h>
 #include <mail_params.h>
+#include <mail_scan_dir.h>
 #include <config.h>
 #include <record.h>
 #include <rec_type.h>
+#include <htable.h>
 
 /* Single-threaded server skeleton. */
 
@@ -85,25 +87,27 @@
 
 /* Application-specific. */
 
-#define STRING_FORMAT	"%-10s %8s %-20s %s\n"
-#define DATA_FORMAT	"%-10s %8ld %20.20s %s\n"
+int     var_dup_filter_limit;
 
-static void showq_report(VSTREAM *client, char *id, VSTREAM *qfile, long size, int stop)
+#define STRING_FORMAT	"%-10s %8s %-20s %s\n"
+#define DATA_FORMAT	"%-10s%c%8ld %20.20s %s\n"
+
+static void showq_reasons(VSTREAM *, VSTREAM *, HTABLE *);
+
+static void showq_report(VSTREAM *client, char *queue, char *id,
+			         VSTREAM *qfile, long size)
 {
     VSTRING *buf = vstring_alloc(100);
     int     rec_type;
     time_t  arrival_time = 0;
     char   *start;
     long    msg_size = 0;
+    VSTREAM *logfile;
+    HTABLE *dup_filter = 0;
+    char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' : ' ');
 
-    /*
-     * XXX Stop at the designated record type. This is a hack to avoid
-     * listing recipients, so that the defer log can be listed instead.
-     */
     while (!vstream_ferror(client) && (rec_type = rec_get(qfile, buf, 0)) > 0) {
 	start = vstring_str(buf);
-	if (rec_type == stop)
-	    break;
 	switch (rec_type) {
 	case REC_TYPE_TIME:
 	    arrival_time = atol(start);
@@ -114,16 +118,17 @@ static void showq_report(VSTREAM *client, char *id, VSTREAM *qfile, long size, i
 	case REC_TYPE_FROM:
 	    if (*start == 0)
 		start = "(MAILER-DAEMON)";
-	    vstream_fprintf(client, DATA_FORMAT,
-		      id, msg_size > 0 ? msg_size : size, arrival_time > 0 ?
+	    vstream_fprintf(client, DATA_FORMAT, id, status,
+			  msg_size > 0 ? msg_size : size, arrival_time > 0 ?
 			    asctime(localtime(&arrival_time)) : "??",
 			    printable(start, '?'));
 	    break;
 	case REC_TYPE_RCPT:
-	    if (*start == 0)
+	    if (*start == 0)			/* can't happen? */
 		start = "(MAILER-DAEMON)";
-	    vstream_fprintf(client, STRING_FORMAT,
-			    "", "", "", printable(start, '?'));
+	    if (dup_filter == 0 || htable_locate(dup_filter, start) == 0)
+		vstream_fprintf(client, STRING_FORMAT,
+				"", "", "", printable(start, '?'));
 	    break;
 	case REC_TYPE_MESG:
 	    if (vstream_fseek(qfile, atol(start), SEEK_SET) < 0)
@@ -132,13 +137,35 @@ static void showq_report(VSTREAM *client, char *id, VSTREAM *qfile, long size, i
 	case REC_TYPE_END:
 	    break;
 	}
+
+	/*
+	 * With the heading printed, see if there is a defer logfile. The
+	 * defer logfile is not necessarily complete: delivery may be
+	 * interrupted (postfix stop or reload) before all recipients have
+	 * been tried.
+	 * 
+	 * Therefore we keep a record of recipients found in the defer logfile,
+	 * and try to avoid listing those recipients again when processing
+	 * the remainder of the queue file.
+	 */
+	if (rec_type == REC_TYPE_FROM
+	    && dup_filter == 0
+	    && (logfile = mail_queue_open(MAIL_QUEUE_DEFER, id,
+					  O_RDONLY, 0)) != 0) {
+	    dup_filter = htable_create(var_dup_filter_limit);
+	    showq_reasons(client, logfile, dup_filter);
+	    if (vstream_fclose(logfile))
+		msg_warn("close %s %s: %m", MAIL_QUEUE_DEFER, id);
+	}
     }
     vstring_free(buf);
+    if (dup_filter)
+	htable_free(dup_filter, (void (*) (char *)) 0);
 }
 
 /* showq_reasons - show deferral reasons */
 
-static void showq_reasons(VSTREAM *client, VSTREAM *logfile)
+static void showq_reasons(VSTREAM *client, VSTREAM *logfile, HTABLE *dup_filter)
 {
     VSTRING *buf = vstring_alloc(100);
     char   *recipient;
@@ -186,6 +213,16 @@ static void showq_reasons(VSTREAM *client, VSTREAM *logfile)
 	*cp = 0;
 
 	/*
+	 * Update the duplicate filter.
+	 */
+	if (*recipient == 0)			/* can't happen? */
+	    recipient = "(MAILER-DAEMON)";
+	if (var_dup_filter_limit == 0
+	    || dup_filter->used < var_dup_filter_limit)
+	    if (htable_locate(dup_filter, recipient) == 0)
+		htable_enter(dup_filter, recipient, (char *) 0);
+
+	/*
 	 * Find the reason for deferral. Put parentheses around it.
 	 */
 	reason = cp + 2;
@@ -204,7 +241,8 @@ static void showq_reasons(VSTREAM *client, VSTREAM *logfile)
 	    saved_reason = mystrdup(reason);
 	    vstream_fprintf(client, "%78s\n", reason);
 	}
-	vstream_fprintf(client, STRING_FORMAT, "", "", "", recipient);
+	vstream_fprintf(client, STRING_FORMAT, "", "", "",
+			printable(recipient, '?'));
     }
     if (saved_reason)
 	myfree(saved_reason);
@@ -218,7 +256,6 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 {
     char  **queue;
     VSTREAM *qfile;
-    VSTREAM *logfile;
     const char *path;
     int     status;
     char   *id;
@@ -229,6 +266,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	MAIL_QUEUE_INCOMING,
 	MAIL_QUEUE_ACTIVE,
 	MAIL_QUEUE_DEFERRED,
+	/* No maildrop until we can disable recursive scans. */
 	0,
     };
 
@@ -248,7 +286,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	SCAN_DIR *scan = scan_dir_open(*queue);
 	char   *saved_id = 0;
 
-	while ((id = scan_dir_next(scan)) != 0) {
+	while ((id = mail_scan_dir_next(scan)) != 0) {
 
 	    /*
 	     * XXX I have seen showq loop on the same queue id. That would be
@@ -274,18 +312,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 		    vstream_fprintf(client, "\n");
 		if ((qfile = mail_queue_open(*queue, id, O_RDONLY, 0)) != 0) {
 		    queue_size += st.st_size;
-		    if (strcmp(*queue, MAIL_QUEUE_DEFERRED) == 0
-			&& (logfile = mail_queue_open(MAIL_QUEUE_DEFER, id,
-						      O_RDONLY, 0)) != 0) {
-
-			showq_report(client, id, qfile, (long) st.st_size,
-				     REC_TYPE_RCPT);
-			showq_reasons(client, logfile);
-			if (vstream_fclose(logfile))
-			    msg_warn("close %s %s: %m", MAIL_QUEUE_DEFER, id);
-		    } else {
-			showq_report(client, id, qfile, (long) st.st_size, 0);
-		    }
+		    showq_report(client, *queue, id, qfile, (long) st.st_size);
 		    if (vstream_fclose(qfile))
 			msg_warn("close file %s %s: %m", *queue, id);
 		} else if (strcmp(*queue, MAIL_QUEUE_MAILDROP) == 0) {
@@ -316,5 +343,12 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 
 int     main(int argc, char **argv)
 {
-    single_server_main(argc, argv, showq_service, 0);
+    static CONFIG_INT_TABLE int_table[] = {
+	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
+	0,
+    };
+
+    single_server_main(argc, argv, showq_service,
+		       MAIL_SERVER_INT_TABLE, int_table,
+		       0);
 }

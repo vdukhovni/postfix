@@ -77,23 +77,27 @@ void    cleanup_rewrite_external(VSTRING *result, const char *addr)
 
 void    cleanup_rewrite_tree(TOK822 *tree)
 {
-    VSTRING *temp = vstring_alloc(100);
+    VSTRING *dst = vstring_alloc(100);
+    VSTRING *src = vstring_alloc(100);
 
-    tok822_externalize(temp, tree->head, TOK822_STR_DEFL);
-    cleanup_rewrite_external(temp, STR(temp));
+    tok822_externalize(src, tree->head, TOK822_STR_DEFL);
+    cleanup_rewrite_external(dst, STR(src));
     tok822_free_tree(tree->head);
-    tree->head = tok822_scan(STR(temp), &tree->tail);
-    vstring_free(temp);
+    tree->head = tok822_scan(STR(dst), &tree->tail);
+    vstring_free(dst);
+    vstring_free(src);
 }
 
 /* cleanup_rewrite_internal - rewrite address internal form */
 
 void    cleanup_rewrite_internal(VSTRING *result, const char *addr)
 {
-    VSTRING *temp = vstring_alloc(100);
+    VSTRING *dst = vstring_alloc(100);
+    VSTRING *src = vstring_alloc(100);
 
-    quote_822_local(temp, addr);
-    cleanup_rewrite_external(temp, STR(temp));
-    unquote_822_local(result, STR(temp));
-    vstring_free(temp);
+    quote_822_local(src, addr);
+    cleanup_rewrite_external(dst, STR(src));
+    unquote_822_local(result, STR(dst));
+    vstring_free(dst);
+    vstring_free(src);
 }

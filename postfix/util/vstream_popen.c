@@ -74,7 +74,7 @@ VSTREAM *vstream_popen(const char *command, int flags)
 {
     VSTREAM *stream;
     int     sockfd[2];
-    int     pid;
+    pid_t   pid;
     int     fd;
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) < 0)

@@ -102,6 +102,7 @@
 #include <recipient_list.h>
 #include <bounce.h>
 #include <defer.h>
+#include <rec_type.h>
 
 /* Application-specific. */
 
@@ -149,16 +150,10 @@ void    qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
 
     /*
      * Skip files that have time stamps into the future. They need to cool
-     * down. Future time stamps should appear only in the deferred queue.
-     * Look at the clock before looking at the queue file time stamp. On a
-     * busy day, several seconds may pass between queue manager wakeup and
-     * queue file scanning.
+     * down. Incoming and deferred files can have future time stamps.
      */
     if ((scan_info->flags & QMGR_SCAN_ALL) == 0
 	&& st.st_mtime > time((time_t *) 0) + 1) {
-	if (strcmp(scan_info->queue, MAIL_QUEUE_DEFERRED) != 0)
-	    msg_warn("%s: queue %s: mtime %ld seconds into the future",
-		     queue_id, scan_info->queue, st.st_mtime - event_time());
 	if (msg_verbose)
 	    msg_info("%s: skip %s (%ld seconds)", myname, queue_id,
 		     (long) (st.st_mtime - event_time()));
@@ -281,16 +276,28 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
      * If we get to this point we have tried all recipients for this message.
      * If the message is too old, try to bounce it.
      */
+#define HOUR	3600
 #define DAY	86400
 
-    if (message->flags
-	&& event_time() > message->arrival_time + var_max_queue_time * DAY) {
-	if (msg_verbose)
-	    msg_info("%s: too old, bouncing %s", myname, message->queue_id);
-	message->flags = defer_flush(BOUNCE_FLAG_KEEP,
-				     message->queue_name,
-				     message->queue_id,
-				     message->errors_to);
+    if (message->flags) {
+	if (event_time() > message->arrival_time + var_max_queue_time * DAY) {
+	    if (msg_verbose)
+		msg_info("%s: too old, bouncing %s", myname, message->queue_id);
+	    message->flags = defer_flush(BOUNCE_FLAG_KEEP,
+					 message->queue_name,
+					 message->queue_id,
+					 message->errors_to);
+	} else if (message->warn_time > 0
+		   && event_time() > message->warn_time) {
+	    if (msg_verbose)
+		msg_info("%s: sending defer warning for %s", myname, message->queue_id);
+	    if (defer_warn(BOUNCE_FLAG_KEEP,
+			    message->queue_name,
+			    message->queue_id,
+			    message->errors_to) == 0) {
+		qmgr_message_update_warn(message);
+	    }
+	}
     }
 
     /*

@@ -62,29 +62,44 @@
 /* MAILBOX DELIVERY
 /* .ad
 /* .fi
-/*	The per-user mailbox is either a file in the default UNIX mailbox
-/*	directory (\fB/var/mail/\fIuser\fR or \fB/var/spool/mail/\fIuser\fR)
-/*	or it is a file in the user's home directory with a name specified
-/*	via the \fBhome_mailbox\fR configuration parameter. Specify a path
-/*	name ending in \fB/\fR for \fBqmail\fR-compatible \fBmaildir\fR
-/*	delivery.
-/*	Mailbox delivery can be delegated to an external command specified
-/*	with the \fBmailbox_command\fR configuration parameter.
+/*	The default per-user mailbox is a file in the UNIX mail spool
+/*	directory (\fB/var/mail/\fIuser\fR or \fB/var/spool/mail/\fIuser\fR);
+/*	the location can be specified with the \fBmail_spool_directory\fR
+/*	configuration parameter.
 /*
-/*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	Alternatively, the per-user mailbox can be a file in the user's home
+/*	directory with a name specified via the \fBhome_mailbox\fR
+/*	configuration parameter. Specify a relative path name. Specify a name
+/*	ending in \fB/\fR for \fBqmail\fR-compatible \fBmaildir\fR delivery.
+/*
+/*	Mailbox delivery can be delegated to an external command specified
+/*	with the \fBmailbox_command\fR configuration parameter. The command
+/*	executes with the privileges of the recipient user (exception: in
+/*	case of delivery as root, the command executes with the privileges
+/*	of \fBdefault_user\fR).
+/*
+/*	Mailbox delivery can be delegated to alternative message transports
+/*	specified in the \fBmaster.cf\fR file.
+/*	The \fBmailbox_transport\fR configuration parameter specifies a
+/*	message transport that is to be used for all local recipients,
+/*	regardless of whether they are found in the UNIX passwd database.
+/*	The \fBfallback_transport\fR parameter specifies a message transport
+/*	for recipients that are not found in the UNIX passwd database.
+/*
+/*	In the case of UNIX-style mailbox delivery,
+/*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends a \fBDelivered-To:\fR header
-/*	with the envelope recipient address, prepends a \fB>\fR character to
-/*	lines beginning with "\fBFrom \fR", and appends an empty line.
-/*	The envelope sender address is available in the \fBReturn-Path:\fR
-/*	header.
+/*	with the envelope recipient address, prepends a \fBReturn-Path:\fR
+/*	header with the envelope sender address, prepends a \fB>\fR character
+/*	to lines beginning with "\fBFrom \fR", and appends an empty line.
 /*	The mailbox is locked for exclusive access while delivery is in
 /*	progress. In case of problems, an attempt is made to truncate the
 /*	mailbox to its original length.
 /*
 /*	In the case of \fBmaildir\fR delivery, the local daemon prepends
-/*	a \fBDelivered-To:\fR header with the envelope recipient address.
-/*	The envelope sender address is available in the \fBReturn-Path:\fR
-/*	header.
+/*	a \fBDelivered-To:\fR header with the envelope recipient address
+/*	and prepends a \fBReturn-Path:\fR header with the envelope sender
+/*	address.
 /* EXTERNAL COMMAND DELIVERY
 /* .ad
 /* .fi
@@ -114,9 +129,9 @@
 /*
 /*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends a \fBDelivered-To:\fR
-/*	header with the recipient envelope address, and appends an empty line.
-/*	The envelope sender address is available in the \fBReturn-Path:\fR
-/*	header.
+/*	header with the recipient envelope address, prepends a
+/*	\fBReturn-Path:\fR header with the sender envelope address,
+/*	and appends an empty line.
 /* EXTERNAL FILE DELIVERY
 /* .ad
 /* .fi
@@ -197,21 +212,41 @@
 /* .fi
 /* .IP \fBalias_maps\fR
 /*	List of alias databases.
-/* .IP \fBhome_mailbox\fR
-/*	Pathname of a mailbox relative to a user's home directory.
-/*	Specify a path ending in \fB/\fR for maildir-style delivery.
 /* .IP \fBlocal_command_shell\fR
 /*	Shell to use for external command execution (for example,
 /*	/some/where/smrsh -c).
 /*	When a shell is specified, it is invoked even when the command
 /*	contains no shell built-in commands or meta characters.
-/* .IP \fBmailbox_command\fR
-/*	External command to use for mailbox delivery.
 /* .IP \fBowner_request_special\fR
 /*	Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
 /*	addresses.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
+/* .SH Mailbox delivery
+/* .ad
+/* .fi
+/* .IP \fBfallback_transport\fR
+/*	Message transport for recipients that are not found in the UNIX
+/*	passwd database.
+/*	This parameter overrides \fBluser_relay\fR.
+/* .IP \fBhome_mailbox\fR
+/*	Pathname of a mailbox relative to a user's home directory.
+/*	Specify a path ending in \fB/\fR for maildir-style delivery.
+/* .IP \fBluser_relay\fR
+/*	Destination (\fI@domain\fR or \fIaddress\fR) for non-existent users.
+/*	The \fIaddress\fR can be any destination that is valid in an alias
+/*	file.
+/* .IP \fBmail_spool_directory\fR
+/*	Directory with UNIX-style mailboxes. The default pathname is system
+/*	dependent.
+/* .IP \fBmailbox_command\fR
+/*	External command to use for mailbox delivery. The command executes
+/*	with the recipient privileges (exception: root).
+/* .IP \fBmailbox_transport\fR
+/*	Message transport to use for mailbox delivery to all local
+/*	recipients, whether or not they are found in the UNIX passwd database.
+/*	This parameter overrides all other configuration parameters that
+/*	control mailbox delivery, including \fBluser_relay\fR.
 /* .SH "Locking controls"
 /* .ad
 /* .fi
@@ -283,6 +318,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#ifdef USE_PATHS_H
+#include <paths.h>
+#endif
 
 /* Utility library. */
 
@@ -305,6 +343,7 @@
 #include <mail_addr.h>
 #include <config.h>
 #include <been_here.h>
+#include <mail_params.h>
 
 /* Single server skeleton. */
 
@@ -326,7 +365,11 @@ char   *var_home_mailbox;
 char   *var_mailbox_command;
 char   *var_rcpt_fdelim;
 char   *var_local_cmd_shell;
+char   *var_luser_relay;
 int     var_biff;
+char   *var_mail_spool_dir;
+char   *var_mailbox_transport;
+char   *var_fallback_transport;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -376,6 +419,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     RESET_OWNER_ATTR(state.msg_attr, state.level);
     RESET_USER_ATTR(usr_attr, state.level);
     state.loop_info = delivered_init(state.msg_attr);	/* delivered-to */
+    state.request = rqst;
 
     /*
      * Iterate over each recipient named in the delivery request. When the
@@ -480,6 +524,10 @@ int     main(int argc, char **argv)
 	VAR_ALLOW_FILES, DEF_ALLOW_FILES, &var_allow_files, 0, 0,
 	VAR_RCPT_FDELIM, DEF_RCPT_FDELIM, &var_rcpt_fdelim, 0, 0,
 	VAR_LOCAL_CMD_SHELL, DEF_LOCAL_CMD_SHELL, &var_local_cmd_shell, 0, 0,
+	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
+	VAR_MAIL_SPOOL_DIR, DEF_MAIL_SPOOL_DIR, &var_mail_spool_dir, 0, 0,
+	VAR_MAILBOX_TRANSP, DEF_MAILBOX_TRANSP, &var_mailbox_transport, 0, 0,
+	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

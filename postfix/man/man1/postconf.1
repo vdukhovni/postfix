@@ -9,16 +9,21 @@ Postfix configuration utility
 .na
 .nf
 .fi
-\fBpostconf\fR [\fB-d\fR] [\fB-n\fR] [\fB-v\fR] [\fIparameter ...\fR]
+\fBpostconf\fR [\fB-d\fR] [\fB-h\fR] [\fB-n\fR] [\fB-v\fR]
+[\fIparameter ...\fR]
 .SH DESCRIPTION
 .ad
 .fi
 The \fBpostconf\fR command prints the actual value of
-\fIparameter\fR (all known parameters by default).
+\fIparameter\fR (all known parameters by default), one
+parameter per line.
 
 Options:
 .IP \fB-d\fR
 Print default parameter settings instead of actual settings.
+.IP \fB-h\fR
+Show parameter values only, not the \fIname =\fR information
+that normally precedes the value.
 .IP \fB-n\fR
 Print non-default parameter settings only.
 .IP \fB-v\fR

@@ -34,7 +34,7 @@ extern HTABLE_INFO *htable_locate(HTABLE *, const char *);
 extern char *htable_find(HTABLE *, const char *);
 extern void htable_delete(HTABLE *, const char *, void (*) (char *));
 extern void htable_free(HTABLE *, void (*) (char *));
-extern void htable_walk(HTABLE *, void (*) (HTABLE_INFO *));
+extern void htable_walk(HTABLE *, void (*) (HTABLE_INFO *, char *), char *);
 extern HTABLE_INFO **htable_list(HTABLE *);
 
 /* LICENSE

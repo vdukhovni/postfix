@@ -19,9 +19,9 @@
 extern int bounce_append_service(char *, char *, char *, char *);
 
  /*
-  * bounce_flush_service.c
+  * bounce_notify_service.c
   */
-extern int bounce_flush_service(char *, char *, char *, char *);
+extern int bounce_notify_service(char *, char *, char *, char *, int);
 
  /*
   * bounce_cleanup.c

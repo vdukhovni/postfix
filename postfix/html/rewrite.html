@@ -12,7 +12,7 @@
 
 <hr>
 
-<a href="config.html">Up one level</a> |
+<a href="index.html">Up one level</a> |
 <a href="basic.html"> Basic Configuration</a> | <a href="uce.html">UCE
 Controls</a> | <a href="rate.html"> Rate Controls</a> | <a
 href="resource.html"> Resource Controls</a> | Address Manipulation
@@ -72,6 +72,14 @@ Local delivery:
 <ul>
 
 <li> <a href="#aliases"> Alias database</a>
+
+<p>
+
+<li> <a href="#forward"> Per-user .forward files</a>
+
+<p>
+
+<li> <a href="#luser_relay"> Non-existent users</a>
 
 </ul>
 
@@ -392,9 +400,68 @@ are performed with the rights of the alias database owner.  A
 default userid, <b>default_privs</b>, is used for deliveries to
 commands/files in <i>root</i>-owned aliases.
 
+<a name="forward"> <h2> Per-user .forward files</h2>
+
+Users can control their own mail delivery by specifying destinations
+in a file called <b>.forward</b> in their home directories. The
+syntax of these files is the same as with system aliases, except
+that the lookup key and colon are not present.
+
+<a name="luser_relay"> <h2> Non-existent users</h2>
+
+When the local delivery agent finds that a message recipient does
+not exist, the message is normally bounced to the sender ("user
+unknown").  Sometimes it is desirable to forward mail for non-existing
+recipients to another machine.  For this purpose you can specify
+an alternative destination with the <b>luser_relay</b> configuration
+parameter.
+
+<p>
+
+Alternatively, mail for non-existent recipients can be delegated
+to an entirely different message transport, as specified with the
+<b>fallback_transport</b> configuration parameter. For details,
+see the <a href="local.8.html"> local</a> delivery agent.
+
+<p>
+
+<b>luser_relay</b> can specify any number of destinations that are
+valid in an alias file.  In fact, the same restrictions for command
+and file destinations apply as for true aliases.
+
+<p>
+
+In addition, some <b>luser_relay</b> destinations can receive
+special treatment:
+
+<p>
+
+<dl>
+
+<dt><b>luser_relay = </b><i>@some.where.else</i>
+
+<dd>The entire original recipient localpart is prepended. For
+example, mail for <i>unknown+foo</i> is sent to
+<i>unknown+foo@some.where.else</i>.
+
+<p>
+
+<dt><b>luser_relay = </b><i>someone@some.where.else</i>
+<dt><b>luser_relay = </b><i>someone</i>
+
+<dd>If no <b>recipient_delimiter</b> has been specified, mail is
+sent to the <b>luser_relay</b> address. If the <b>recipient_delimiter</b>
+has been specified, the entire original recipient localpart is
+appended as an address extension to the <b>luser_relay</b> address.
+For example, with <b>recipient_delimiter = +</b>, mail for
+<i>unknown+foo</i> is sent to <i>someone+unknown+foo@some.where.else</i>
+and <i>someone+unknown+foo</i>, respectively.
+
+</dl>
+
 <hr>
 
-<a href="config.html">Up one level</a> |
+<a href="index.html">Up one level</a> |
 <a href="basic.html"> Basic Configuration</a> | <a href="uce.html">UCE
 Controls</a> | <a href="rate.html"> Rate Controls</a> | <a
 href="resource.html"> Resource Controls</a> | Address Manipulation

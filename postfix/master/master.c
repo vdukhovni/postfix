@@ -97,6 +97,8 @@
 /*	service requests.
 /* .IP \fBmax_use\fR
 /*	Limit the number of service requests handled by a child process.
+/* .IP \fBservice_throttle_time\fR
+/*	Time to avoid forking a server that appears to be broken.
 /* FILES
 /*	/etc/postfix/main.cf: global configuration file.
 /*	/etc/postfix/master.cf: master process configuration file.

@@ -22,7 +22,7 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
-/* .IP "\fBflags=F>\fR (optional)"
+/* .IP "\fBflags=FR>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
 /* .RS
@@ -31,15 +31,21 @@
 /*	the message content.
 /*	This is expected by, for example, \fBUUCP\fR software. The \fBF\fR
 /*	flag also causes an empty line to be appended to the message.
+/* .IP \fBR\fR
+/*	Prepend a \fBReturn-Path:\fR message header with the envelope sender
+/*	address.
 /* .IP \fB>\fR
-/*	Prepend \fB>\fR to lines starting with "\fBFrom \fR". This expected
+/*	Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
 /*	by, for example, \fBUUCP\fR software.
 /* .RE
 /* .IP "\fBuser\fR=\fIusername\fR (required)"
+/* .IP "\fBuser\fR=\fIusername\fR:\fIgroupname\fR"
 /*	The external command is executed with the rights of the
 /*	specified \fIusername\fR.  The software refuses to execute
 /*	commands with root privileges, or with the privileges of the
-/*	mail system owner.
+/*	mail system owner. If \fIgroupname\fR is specified, the
+/*	corresponding group ID is used instead of the group ID of
+/*	of \fIusername\fR.
 /* .IP "\fBargv\fR=\fIcommand\fR... (required)"
 /*	The command to be executed. This must be specified as the
 /*	last command attribute.
@@ -149,6 +155,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
+#include <grp.h>
 #include <fcntl.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
@@ -236,7 +243,6 @@ typedef struct {
   * Structure for command-line parameters.
   */
 typedef struct {
-    char   *user;			/* user name */
     char  **command;			/* argument vector */
     uid_t   uid;			/* command privileges */
     gid_t   gid;			/* command privileges */
@@ -310,9 +316,9 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list)
 
 		/*
 		 * This argument contains $user. Extract the plain user name.
-		 * Either anything to the left of the extension delimiter
-		 * or, in absence of the latter, anything to the left of
-		 * the rightmost @.
+		 * Either anything to the left of the extension delimiter or,
+		 * in absence of the latter, anything to the left of the
+		 * rightmost @.
 		 * 
 		 * Beware: if the user name is blank (e.g. +user@host), the
 		 * argument is suppressed. This is necessary to allow for
@@ -397,12 +403,16 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 {
     char   *myname = "get_service_attr";
     struct passwd *pwd;
+    struct group *grp;
+    char   *user;			/* user name */
+    char   *group;			/* group name */
     char   *cp;
 
     /*
      * Initialize.
      */
-    attr->user = 0;
+    user = 0;
+    group = 0;
     attr->command = 0;
     attr->flags = 0;
 
@@ -423,6 +433,9 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 		case '>':
 		    attr->flags |= MAIL_COPY_QUOTE;
 		    break;
+		case 'R':
+		    attr->flags |= MAIL_COPY_RETURN_PATH;
+		    break;
 		default:
 		    msg_fatal("unknown flag: %c (ignored)", *cp);
 		    break;
@@ -431,14 +444,23 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	}
 
 	/*
-	 * user=username
+	 * user=username[:groupname]
 	 */
 	else if (strncasecmp("user=", *argv, sizeof("user=") - 1) == 0) {
-	    attr->user = *argv + sizeof("user=") - 1;
-	    if ((pwd = getpwnam(attr->user)) == 0)
-		msg_fatal("%s: unknown username: %s", myname, attr->user);
+	    user = *argv + sizeof("user=") - 1;
+	    if ((group = split_at(user, ':')) != 0)	/* XXX clobbers argv */
+		if (*group == 0)
+		    group = 0;
+	    if ((pwd = getpwnam(user)) == 0)
+		msg_fatal("%s: unknown username: %s", myname, user);
 	    attr->uid = pwd->pw_uid;
-	    attr->gid = pwd->pw_gid;
+	    if (group != 0) {
+		if ((grp = getgrnam(group)) == 0)
+		    msg_fatal("%s: unknown group: %s", myname, group);
+		attr->gid = grp->gr_gid;
+	    } else {
+		attr->gid = pwd->pw_gid;
+	    }
 	}
 
 	/*
@@ -460,7 +482,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     /*
      * Sanity checks. Verify that every member has an acceptable value.
      */
-    if (attr->user == 0)
+    if (user == 0)
 	msg_fatal("missing user= attribute");
     if (attr->command == 0)
 	msg_fatal("missing argv= attribute");
@@ -575,7 +597,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	msg_fatal("empty nexthop hostname");
     if (rcpt_list->len <= 0)
 	msg_fatal("recipient count: %d", rcpt_list->len);
-    if (attr.user == 0) {
+    if (attr.command == 0) {
 	get_service_params(&conf, service);
 	get_service_attr(&attr, argv);
     }

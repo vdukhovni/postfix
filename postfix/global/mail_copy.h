@@ -27,7 +27,8 @@ extern int mail_copy(const char *, const char *, VSTREAM *, VSTREAM *,
 #define MAIL_COPY_TOFILE	(1<<1)	/* fsync, ftruncate() */
 #define MAIL_COPY_FROM		(1<<2)	/* prepend From_ */
 #define MAIL_COPY_DELIVERED	(1<<3)	/* prepend Delivered-To: */
-#define MAIL_COPY_MBOX		017	/* all turned on */
+#define MAIL_COPY_RETURN_PATH	(1<<4)	/* prepend Return-Path: */
+#define MAIL_COPY_MBOX		(~0)	/* all turned on */
 #define MAIL_COPY_NONE		0	/* all turned off */
 
 /* LICENSE

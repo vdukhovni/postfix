@@ -19,8 +19,8 @@
 /*
 /*	By default, \fBsendmail\fR reads a message from standard input
 /*	and arranges for delivery.  \fBsendmail\fR attempts to create
-/*	a queue file in the \fBmaildrop\fR directory. If the process has
-/*	no write permission, the message is piped through the
+/*	a queue file in the \fBmaildrop\fR directory. If that directory
+/*	is not world-writable, the message is piped through the
 /*	\fBpostdrop\fR(1) command, which is expected to execute with
 /*	suitable privileges.
 /*
@@ -112,6 +112,10 @@
 /* .IP "\fB-o \fIx value\fR (ignored)"
 /*	Set option \fIx\fR to \fIvalue\fR. Use the equivalent
 /*	configuration parameter in \fBmain.cf\fR instead.
+/* .IP "\fB-r \fIsender\fR"
+/*	Set the envelope sender address. This is the address where
+/*	delivery problems are sent to, unless the message contains an
+/*	\fBErrors-To:\fR message header.
 /* .IP \fB-q\fR
 /*	Flush the mail queue. This is implemented by kicking the
 /*	\fBqmgr\fR(8) daemon.
@@ -303,6 +307,7 @@ static void enqueue(const char *sender, const char *full_name, char **recipients
     char   *postdrop_command;
     uid_t   uid = getuid();
     int     status;
+    struct stat st;
 
     /*
      * Initialize.
@@ -324,10 +329,12 @@ static void enqueue(const char *sender, const char *full_name, char **recipients
      * Open the queue file. Save the queue file name, so the run-time error
      * handler can clean up in case of errors.
      * 
-     * If the user has no write permission, let the postdrop command open the
+     * If the queue is not world-writable, let the postdrop command open the
      * queue file.
      */
-    if (access(MAIL_QUEUE_MAILDROP, W_OK) == 0) {
+    if (stat(MAIL_QUEUE_MAILDROP, &st) < 0)
+	msg_fatal("No maildrop directory %s: %m", MAIL_QUEUE_MAILDROP);
+    if (st.st_mode & S_IWOTH) {
 	handle = mail_stream_file(MAIL_QUEUE_MAILDROP,
 				  MAIL_CLASS_PUBLIC, MAIL_SERVICE_PICKUP);
 	sendmail_path = mystrdup(VSTREAM_PATH(handle->stream));
@@ -382,7 +389,7 @@ static void enqueue(const char *sender, const char *full_name, char **recipients
      * delivered intact via SMTP. Strip leading From_ lines. For the benefit
      * of UUCP environments, also get rid of leading >>>From_ lines.
      */
-    rec_fprintf(dst, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0);
+    rec_fprintf(dst, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0L);
     skip_from_ = 1;
     strip_cr = STRIP_CR_DUNNO;
     while ((type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
@@ -635,7 +642,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:IN:R:X:b:ce:f:h:imno:p:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "B:C:F:IN:R:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:
@@ -700,6 +707,9 @@ int     main(int argc, char **argv)
 	    case 'm':
 		break;
 	    }
+	    break;
+	case 'r':				/* obsoleted by -f */
+	    sender = optarg;
 	    break;
 	case 'q':
 	    if (optarg[0] && !ISDIGIT(optarg[0]))

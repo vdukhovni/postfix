@@ -141,7 +141,7 @@ reload)
 		exit 1
 	}
 	$INFO refreshing the Postfix mail system
-	kill -HUP `cat pid/master.pid`
+	kill -HUP `sed 1q pid/master.pid`
 	;;
 
 flush)
@@ -150,7 +150,7 @@ flush)
 		$FATAL no Postfix queue directory $queue_directory!
 		exit 1
 	}
-	$command_directory/postkick public qmgr DFA
+	$command_directory/postkick public qmgr IDFA
 	;;
 
 check)
@@ -203,6 +203,8 @@ check)
 	    egrep '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
+
+	$command_directory/postsuper || exit 1
 
 	find corrupt -type f -exec $WARN damaged message: {} \;
 

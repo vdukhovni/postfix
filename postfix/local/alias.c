@@ -136,7 +136,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      */
     state.level++;
     if (msg_verbose)
-	msg_info("%s[%d]: %s", myname, state.level, state.msg_attr.local);
+	MSG_LOG_STATE(myname, state);
 
     /*
      * Do this only once.

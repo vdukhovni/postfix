@@ -12,11 +12,6 @@
 /* .nf
 
  /*
-  * System library.
-  */
-#include <dirent.h>
-
- /*
   * The directory scanner interface.
   */
 typedef struct SCAN_DIR SCAN_DIR;
@@ -24,6 +19,8 @@ typedef struct SCAN_DIR SCAN_DIR;
 extern SCAN_DIR *scan_dir_open(const char *);
 extern char *scan_dir_next(SCAN_DIR *);
 extern char *scan_dir_path(SCAN_DIR *);
+extern void scan_dir_push(SCAN_DIR *, const char *);
+extern SCAN_DIR *scan_dir_pop(SCAN_DIR *);
 extern SCAN_DIR *scan_dir_close(SCAN_DIR *);
 
 /* LICENSE

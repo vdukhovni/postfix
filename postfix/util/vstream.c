@@ -87,6 +87,9 @@
 /*	char	*vstream_vfprintf(vp, format, ap)
 /*	char	*format;
 /*	va_list	*ap;
+/*
+/*	int	vstream_peek(stream)
+/*	VSTREAM	*stream;
 /* DESCRIPTION
 /*	The \fIvstream\fR module implements light-weight buffered I/O
 /*	similar to the standard I/O routines.
@@ -215,6 +218,9 @@
 /*	The argument specifies the file descriptor to be used for writing.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
+/* .IP "VSTREAM_CTL_WAITPID_FN (int (*)(pid_t, WAIT_STATUS_T *, int))"
+/*	A pointer to function that behaves like waitpid(). This information
+/*	is used by the vstream_pclose() routine.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -233,6 +239,9 @@
 /*
 /*	vstream_vfprintf() provides an alternate interface
 /*	for formatting an argument list according to a format string.
+/*
+/*	vstream_peek() returns the number of characters that can be
+/*	read from the named stream without refilling the read buffer.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -833,6 +842,8 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     vstream_buf_init(&stream->buf, flags);
     stream->offset = 0;
     stream->path = 0;
+    stream->pid = 0;
+    stream->waitpid_fn = 0;
     return (stream);
 }
 
@@ -869,6 +880,8 @@ int     vstream_fclose(VSTREAM *stream)
 {
     int     err;
 
+    if (stream->pid != 0)
+	msg_panic("vstream_fclose: stream has process");
     if ((stream->buf.flags & VSTREAM_FLAG_WRITE_DOUBLE) != 0)
 	vstream_fflush(stream);
     err = vstream_ferror(stream);
@@ -971,6 +984,9 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->write_fd = va_arg(ap, int);
 	    stream->buf.flags |= VSTREAM_FLAG_NSEEK;
 	    break;
+	case VSTREAM_CTL_WAITPID_FN:
+	    stream->waitpid_fn = va_arg(ap, VSTREAM_WAITPID_FN);
+	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);
 	}
@@ -983,4 +999,17 @@ VSTREAM *vstream_vfprintf(VSTREAM *vp, const char *format, va_list ap)
 {
     vbuf_print(&vp->buf, format, ap);
     return (vp);
+}
+
+/* vstream_peek - peek at a stream */
+
+int     vstream_peek(VSTREAM *vp)
+{
+    if (vp->buf.flags & VSTREAM_FLAG_READ) {
+	return (-vp->buf.cnt);
+    } else if (vp->buf.flags & VSTREAM_FLAG_DOUBLE) {
+	return (-vp->read_buf.cnt);
+    } else {
+	return (0);
+    }
 }

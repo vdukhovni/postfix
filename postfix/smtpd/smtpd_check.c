@@ -92,6 +92,12 @@
 /*	in HELO/EHLO commands.
 /*	This violates the RFC. You must enable this for some popular
 /*	PC mail clients.
+/* .IP reject_non_fqdn_hostname
+/* .IP reject_non_fqdn_sender
+/* .IP reject_non_fqdn_recipient
+/*	Require that the HELO, MAIL FROM or RCPT TO commands specify
+/*	a fully-qualified domain name. The non_fqdn_reject_code parameter
+/*	specifies the error code (default: 504).
 /* .IP reject_invalid_hostname
 /*	Reject the request when the HELO/EHLO hostname does not satisfy RFC
 /*	requirements.  The underscore is considered a legal hostname character,
@@ -264,6 +270,7 @@ static jmp_buf smtpd_check_buf;
   * memory manager routines.
   */
 static RESOLVE_REPLY reply;
+static VSTRING *query;
 static VSTRING *error_text;
 
  /*
@@ -327,6 +334,7 @@ void    smtpd_check_init(void)
      * used for returning error responses.
      */
     resolve_clnt_init(&reply);
+    query = vstring_alloc(10);
     error_text = vstring_alloc(10);
 
     /*
@@ -410,12 +418,66 @@ static int permit_mynetworks(SMTPD_STATE *state)
     return (SMTPD_CHECK_DUNNO);
 }
 
+/* dup_if_truncate - save hostname and truncate if it ends in dot */
+
+static char *dup_if_truncate(char *name)
+{
+    int     len;
+    char   *result;
+
+    /*
+     * Truncate hostnames ending in dot but not dot-dot.
+     */
+    if ((len = strlen(name)) > 1
+	&& name[len - 1] == '.'
+	&& name[len - 2] != '.') {
+	result = mystrndup(name, len - 1);
+    } else
+	result = name;
+    return (result);
+}
+
+/* reject_invalid_hostaddr - fail if host address is incorrect */
+
+static int reject_invalid_hostaddr(SMTPD_STATE *state, char *addr)
+{
+    char   *myname = "reject_invalid_hostaddr";
+    int     len;
+    char   *test_addr;
+    int     stat;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, addr);
+
+    if (addr[0] == '[' && (len = strlen(addr)) > 2 && addr[len - 1] == ']') {
+	test_addr = mystrndup(&addr[1], len - 2);
+    } else
+	test_addr = addr;
+
+    /*
+     * Validate the address.
+     */
+    if (!valid_hostaddr(test_addr))
+	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				  "%d <%s>: Invalid ip address",
+				  var_bad_name_code, addr);
+    else
+	stat = SMTPD_CHECK_DUNNO;
+
+    /*
+     * Cleanup.
+     */
+    if (test_addr != addr)
+	myfree(test_addr);
+
+    return (stat);
+}
+
 /* reject_invalid_hostname - fail if host/domain syntax is incorrect */
 
 static int reject_invalid_hostname(SMTPD_STATE *state, char *name)
 {
     char   *myname = "reject_invalid_hostname";
-    int     len;
     char   *test_name;
     int     stat;
 
@@ -425,12 +487,7 @@ static int reject_invalid_hostname(SMTPD_STATE *state, char *name)
     /*
      * Truncate hostnames ending in dot but not dot-dot.
      */
-    if ((len = strlen(name)) > 1
-	&& name[len - 1] == '.'
-	&& name[len - 2] != '.') {
-	test_name = mystrndup(name, len - 1);
-    } else
-	test_name = name;
+    test_name = dup_if_truncate(name);
 
     /*
      * Validate the hostname.
@@ -439,6 +496,41 @@ static int reject_invalid_hostname(SMTPD_STATE *state, char *name)
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  "%d <%s>: Invalid name",
 				  var_bad_name_code, name);
+    else
+	stat = SMTPD_CHECK_DUNNO;
+
+    /*
+     * Cleanup.
+     */
+    if (test_name != name)
+	myfree(test_name);
+
+    return (stat);
+}
+
+/* reject_non_fqdn_hostname - fail if host name is not in fqdn form */
+
+static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name)
+{
+    char   *myname = "reject_non_fqdn_hostname";
+    char   *test_name;
+    int     stat;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, name);
+
+    /*
+     * Truncate hostnames ending in dot but not dot-dot.
+     */
+    test_name = dup_if_truncate(name);
+
+    /*
+     * Validate the hostname.
+     */
+    if (!valid_hostname(test_name) || !strchr(test_name, '.'))
+	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				  "%d <%s>: need fully-qualified hostname",
+				  var_non_fqdn_code, name);
     else
 	stat = SMTPD_CHECK_DUNNO;
 
@@ -508,8 +600,8 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient)
     /*
      * Resolve the address.
      */
-    canon_addr_internal(reply.recipient, recipient);
-    resolve_clnt_query(STR(reply.recipient), &reply);
+    canon_addr_internal(query, recipient);
+    resolve_clnt_query(STR(query), &reply);
 
     /*
      * Permit if destination is local. XXX This must be generalized for
@@ -591,8 +683,8 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
     /*
      * Resolve the address.
      */
-    canon_addr_internal(reply.recipient, recipient);
-    resolve_clnt_query(STR(reply.recipient), &reply);
+    canon_addr_internal(query, recipient);
+    resolve_clnt_query(STR(query), &reply);
 
     /*
      * If the destination is local, it is acceptable, because we are
@@ -659,6 +751,58 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
     return (SMTPD_CHECK_DUNNO);
 }
 
+/* reject_non_fqdn_address - fail if address is not in fqdn form */
+
+static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr)
+{
+    char   *myname = "reject_non_fqdn_address";
+    char   *domain;
+    char   *test_dom;
+    int     stat;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, addr);
+
+    /*
+     * Locate the domain information.
+     */
+    if ((domain = strrchr(addr, '@')) != 0)
+	domain++;
+    else
+	domain = "";
+
+    /*
+     * Skip forms that we can't handle yet. Permit user@[ip_address].
+     */
+    if (domain[0] == '#')
+	return (SMTPD_CHECK_DUNNO);
+    if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')
+	return (SMTPD_CHECK_OK);
+
+    /*
+     * Truncate names ending in dot but not dot-dot.
+     */
+    test_dom = dup_if_truncate(domain);
+
+    /*
+     * Validate the domain.
+     */
+    if (!*test_dom || !valid_hostname(test_dom) || !strchr(test_dom, '.'))
+	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				  "%d <%s>: need fully-qualified address",
+				  var_non_fqdn_code, addr);
+    else
+	stat = SMTPD_CHECK_DUNNO;
+
+    /*
+     * Cleanup.
+     */
+    if (test_dom != domain)
+	myfree(test_dom);
+
+    return (stat);
+}
+
 /* reject_unknown_address - fail if address does not resolve */
 
 static int reject_unknown_address(SMTPD_STATE *state, char *addr)
@@ -672,8 +816,8 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr)
     /*
      * Resolve the address.
      */
-    canon_addr_internal(reply.recipient, addr);
-    resolve_clnt_query(STR(reply.recipient), &reply);
+    canon_addr_internal(query, addr);
+    resolve_clnt_query(STR(query), &reply);
 
     /*
      * Skip local destinations and non-DNS forms.
@@ -842,8 +986,8 @@ static int check_mail_access(SMTPD_STATE *state, char *table, char *addr)
     /*
      * Resolve the address.
      */
-    canon_addr_internal(reply.recipient, addr);
-    resolve_clnt_query(STR(reply.recipient), &reply);
+    canon_addr_internal(query, addr);
+    resolve_clnt_query(STR(query), &reply);
 
     /*
      * Garbage in, garbage out. Every address from canon_addr_internal() and
@@ -927,8 +1071,8 @@ static int reject_maps_rbl(SMTPD_STATE *state)
      */
     if (dns_status == DNS_OK)
 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				 "%d Service unavailable; blocked using %s",
-				    var_maps_rbl_code, rbl_domain);
+			    "%d Service unavailable; [%s] blocked using %s",
+				var_maps_rbl_code, state->addr, rbl_domain);
     else
 	result = SMTPD_CHECK_DUNNO;
 
@@ -1014,17 +1158,29 @@ static int generic_checks(SMTPD_STATE *state, char *name,
 	}
 	if (strcasecmp(name, REJECT_INVALID_HOSTNAME) == 0) {
 	    if (*state->helo_name != '[')
-		*status = reject_invalid_hostname(state, what);
+		*status = reject_invalid_hostname(state, state->helo_name);
+	    else
+		*status = reject_invalid_hostaddr(state, state->helo_name);
 	    return (1);
 	}
 	if (strcasecmp(name, REJECT_UNKNOWN_HOSTNAME) == 0) {
 	    if (*state->helo_name != '[')
 		*status = reject_unknown_hostname(state, state->helo_name);
+	    else
+		*status = reject_invalid_hostaddr(state, state->helo_name);
 	    return (1);
 	}
 	if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
-	    if (state->helo_name && inet_addr(state->helo_name) != INADDR_NONE)
+	    if (state->helo_name[strspn(state->helo_name, "0123456789.")] == 0
+		&& (*status = reject_invalid_hostaddr(state, state->helo_name)) == 0)
 		*status = SMTPD_CHECK_OK;
+	    return (1);
+	}
+	if (strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
+	    if (*state->helo_name != '[')
+		*status = reject_non_fqdn_hostname(state, state->helo_name);
+	    else
+		*status = reject_invalid_hostaddr(state, state->helo_name);
 	    return (1);
 	}
     }
@@ -1039,6 +1195,11 @@ static int generic_checks(SMTPD_STATE *state, char *name,
 	}
 	if (strcasecmp(name, REJECT_UNKNOWN_ADDRESS) == 0) {
 	    *status = reject_unknown_address(state, state->sender);
+	    return (1);
+	}
+	if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
+	    if (*state->sender)
+		*status = reject_non_fqdn_address(state, state->sender);
 	    return (1);
 	}
     }
@@ -1083,6 +1244,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     char  **cpp;
     char   *name;
     int     status;
+    char   *saved_helo = state->helo_name;
 
     /*
      * Initialize.
@@ -1107,7 +1269,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
 	    break;
     }
     myfree(state->helo_name);
-    state->helo_name = 0;
+    state->helo_name = saved_helo;
     return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
@@ -1118,6 +1280,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     char  **cpp;
     char   *name;
     int     status;
+    char   *saved_sender = state->sender;
 
     /*
      * Initialize.
@@ -1142,7 +1305,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
 	    break;
     }
     myfree(state->sender);
-    state->sender = 0;
+    state->sender = saved_sender;
     return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
@@ -1173,6 +1336,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	    status = permit_mx_backup(state, recipient);
 	} else if (strcasecmp(name, CHECK_RELAY_DOMAINS) == 0) {
 	    status = check_relay_domains(state, recipient);
+	} else if (strcasecmp(name, REJECT_NON_FQDN_RCPT) == 0) {
+	    status = reject_non_fqdn_address(state, recipient);
 	} else if (generic_checks(state, name, &cpp, &status, recipient) == 0) {
 	    msg_warn("unknown %s check: \"%s\"", VAR_RCPT_CHECKS, name);
 	    break;
@@ -1277,6 +1442,7 @@ char   *var_client_checks = "";
 char   *var_helo_checks = "";
 char   *var_mail_checks = "";
 char   *var_rcpt_checks = "";
+char   *var_etrn_checks = "";
 char   *var_relay_domains = "";
 char   *var_mynetworks = "";
 char   *var_notify_classes = "";
@@ -1345,6 +1511,7 @@ int     var_relay_code;
 int     var_maps_rbl_code;
 int     var_access_map_code;
 int     var_reject_code;
+int     var_non_fqdn_code;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -1356,6 +1523,7 @@ static INT_TABLE int_table[] = {
     VAR_MAPS_RBL_CODE, DEF_MAPS_RBL_CODE, &var_maps_rbl_code,
     VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code,
     VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code,
+    VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
     0,
 };
 
@@ -1392,7 +1560,7 @@ static int int_update(char **argv)
 typedef struct {
     char   *name;
     ARGV  **target;
-} REST_TABLE;
+}       REST_TABLE;
 
 static REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,
@@ -1432,6 +1600,8 @@ void    resolve_clnt_init(RESOLVE_REPLY *reply)
 
 VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
 {
+    if (addr == STR(result))
+	msg_panic("canon_addr_internal: result clobbers input");
     if (strchr(addr, '@') == 0)
 	msg_fatal("%s: address rewriting is disabled", addr);
     vstring_strcpy(result, addr);
@@ -1441,6 +1611,8 @@ VSTRING *canon_addr_internal(VSTRING *result, const char *addr)
 
 void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 {
+    if (addr == STR(reply->recipient))
+	msg_panic("resolve_clnt_query: result clobbers input");
     vstring_strcpy(reply->transport, "foo");
     vstring_strcpy(reply->nexthop, "foo");
     if (strchr(addr, '%'))
@@ -1587,6 +1759,9 @@ main(int argc, char **argv)
     }
     vstring_free(buf);
     smtpd_state_reset(&state);
+#define FREE_STRING(s) { if (s) myfree(s); }
+    FREE_STRING(state.helo_name);
+    FREE_STRING(state.sender);
     exit(0);
 }
 

@@ -4,7 +4,7 @@ OPTS	= "CC=$(CC)"
 DIRS	= util global dns master postfix smtpstone fsstone sendmail \
 	pickup cleanup smtpd local trivial-rewrite qmgr smtp bounce pipe \
 	showq postalias postcat postconf postdrop postkick postlock postlog \
-	postmap # man html
+	postmap postsuper # man html
 
 default: update
 

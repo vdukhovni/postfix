@@ -64,6 +64,10 @@
 #include <mymalloc.h>
 #include <scan_dir.h>
 
+/* Global library. */
+
+#include <mail_scan_dir.h>
+
 /* Application-specific. */
 
 #include "qmgr.h"
@@ -129,14 +133,14 @@ char   *qmgr_scan_next(QMGR_SCAN *scan_info)
      * Restart the scan if we reach the end and a queue scan request has
      * arrived in the mean time.
      */
-    if (scan_info->handle && (path = scan_dir_next(scan_info->handle)) == 0) {
+    if (scan_info->handle && (path = mail_scan_dir_next(scan_info->handle)) == 0) {
 	scan_info->handle = scan_dir_close(scan_info->handle);
 	if (msg_verbose && (scan_info->nflags & QMGR_SCAN_START) == 0)
 	    msg_info("done %s queue scan", scan_info->queue);
     }
     if (!scan_info->handle && (scan_info->nflags & QMGR_SCAN_START)) {
 	qmgr_scan_start(scan_info);
-	path = scan_dir_next(scan_info->handle);
+	path = mail_scan_dir_next(scan_info->handle);
     }
     return (path);
 }

@@ -62,8 +62,6 @@ typedef struct MASTER_SERV {
   * manager runs at high privilege level and has to be kept simple.
   */
 #define MASTER_DEF_MIN_IDLE	1	/* preferred # of idle processes */
-#define MASTER_DEF_MAX_PROC	100	/* max # of processes within service */
-#define MASTER_DEF_THROTTLE_DELAY 100	/* fork delay when in trouble */
 
  /*
   * Structure of child process.

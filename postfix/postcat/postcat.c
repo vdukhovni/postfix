@@ -101,6 +101,10 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
 	    time = atol(STR(buffer));
 	    vstream_printf("arrival_time: %s", asctime(localtime(&time)));
 	    break;
+	case REC_TYPE_WARN:
+	    time = atol(STR(buffer));
+	    vstream_printf("defer_warn_time: %s", asctime(localtime(&time)));
+	    break;
 	case REC_TYPE_CONT:
 	    vstream_printf("%s", STR(buffer));
 	    break;

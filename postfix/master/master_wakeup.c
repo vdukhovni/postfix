@@ -70,7 +70,7 @@
 
 /* master_wakeup_timer_event - wakeup event handler */
 
-static void master_wakeup_timer_event(char *context)
+static void master_wakeup_timer_event(int unused_event, char *context)
 {
     char   *myname = "master_wakeup_timer_event";
     MASTER_SERV *serv = (MASTER_SERV *) context;
@@ -129,7 +129,7 @@ void    master_wakeup_init(MASTER_SERV *serv)
     if (msg_verbose)
 	msg_info("%s: service %s time %d",
 		 myname, serv->name, serv->wakeup_time);
-    master_wakeup_timer_event((char *) serv);
+    master_wakeup_timer_event(0, (char *) serv);
 }
 
 /* master_wakeup_cleanup - cancel wakeup timer */

@@ -83,6 +83,13 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     int     copy_flags;
 
     /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
+    if (msg_verbose)
+	MSG_LOG_STATE(myname, state);
+
+    /*
      * DUPLICATE ELIMINATION
      * 
      * Skip this command if it was already delivered to as this user.
@@ -114,7 +121,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     /*
      * Deliver.
      */
-    copy_flags = MAIL_COPY_FROM;
+    copy_flags = MAIL_COPY_FROM | MAIL_COPY_RETURN_PATH;
     if ((state.msg_attr.features & FEATURE_NODELIVERED) == 0)
 	copy_flags |= MAIL_COPY_DELIVERED;
 

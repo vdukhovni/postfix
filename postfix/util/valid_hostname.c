@@ -8,13 +8,22 @@
 /*
 /*	int	valid_hostname(name)
 /*	const char *name;
+/*
+/*	int	valid_hostaddr(addr)
+/*	const char *addr;
 /* DESCRIPTION
 /*	valid_hostname() scrutinizes a hostname: the name should be no
 /*	longer than VALID_HOSTNAME_LEN characters, should contain only
 /*	letters, digits, dots and hyphens, no adjacent dots and hyphens,
-/*	no leading or trailing dots or hyphens.
+/*	no leading or trailing dots or hyphens, no labels longer than
+/*	VALID_LABEL_LEN characters, and no numeric top-level domain.
+/*
+/*	valid_hostaddr() requirs that the input is a valid string
+/*	representation of an internet network address.
+/* DIAGNOSTICS
+/*	Both functions return zero if they disagree with the input.
 /* SEE ALSO
-/*	RFC 952, 1123
+/*	RFC 952, 1123, RFC 1035
 /* LICENSE
 /* .ad
 /* .fi
@@ -43,62 +52,115 @@
 
 int     valid_hostname(const char *name)
 {
+    char   *myname = "valid_hostname";
     const char *cp;
-    char   *str;
+    int     label_length = 0;
+    int     label_count = 0;
+    int     non_numeric = 0;
     int     ch;
-    int     len;
-    int     bad_val = 0;
-    int     adjacent = 0;
-
-#define DELIMITER(c) (c == '.' || c == '-')
 
     /*
      * Trivial cases first.
      */
     if (*name == 0) {
-	msg_warn("valid_hostname: empty hostname");
+	msg_warn("%s: empty hostname", myname);
 	return (0);
     }
 
     /*
-     * Find bad characters. Find adjacent delimiters.
+     * Find bad characters or label lengths. Find adjacent delimiters.
      */
-    for (cp = name; (ch = *cp) != 0; cp++) {
-	if (DELIMITER(ch)) {
-	    if (DELIMITER(cp[1]))
-		adjacent = 1;
-	} else if (!ISALNUM(ch) && ch != '_') {	/* grr.. */
-	    if (bad_val == 0)
-		bad_val = ch;
+    for (cp = name; (ch = *(unsigned char *) cp) != 0; cp++) {
+	if (ISALNUM(ch) || ch == '_') {		/* grr.. */
+	    if (label_length == 0)
+		label_count++;
+	    label_length++;
+	    if (label_length > VALID_LABEL_LEN) {
+		msg_warn("%s: hostname label too long: %.100s", myname, name);
+		return (0);
+	    }
+	    if (!ISDIGIT(ch))
+		non_numeric = 1;
+	} else if (ch == '.' || ch == '-') {
+	    if (label_length == 0 || cp[1] == 0) {
+		msg_warn("%s: misplaced delimiter: %.100s", myname, name);
+		return (0);
+	    }
+	    label_length = 0;
+	} else {
+	    msg_warn("%s: invalid character %d(decimal): %.100s",
+		     myname, ch, name);
+	    return (0);
 	}
     }
 
+    if (non_numeric == 0) {
+	msg_warn("%s: numeric hostname: %.100s", myname, name);
+	/* NOT: return (0); this confuses users of the DNS client */
+    }
+    if (cp - name > VALID_HOSTNAME_LEN) {
+	msg_warn("%s: bad length %d for %.100s...", myname, cp - name, name);
+	return (0);
+    }
+    return (1);
+}
+
+/* valid_hostaddr - test dotted quad string for correctness */
+
+int     valid_hostaddr(const char *addr)
+{
+    const char *cp;
+    char   *myname = "valid_hostaddr";
+    int     in_byte = 0;
+    int     byte_count = 0;
+    int     byte_val = 0;
+    int     ch;
+
+#define BYTES_NEEDED	4
+
     /*
-     * Before printing the name, validate its length.
+     * Trivial cases first.
      */
-    if ((len = strlen(name)) > VALID_HOSTNAME_LEN) {
-	str = printable(mystrdup(name), '?');
-	msg_warn("valid_hostname: bad length %d for %.100s...", len, str);
-	myfree(str);
+    if (*addr == 0) {
+	msg_warn("%s: empty address", myname);
 	return (0);
     }
 
     /*
-     * Report bad characters.
+     * Scary code to avoid sscanf() overflow nasties.
      */
-    if (bad_val) {
-	str = printable(mystrdup(name), '?');
-	msg_warn("valid_hostname: invalid character %d(decimal) in %s",
-		 bad_val, str);
-	myfree(str);
-	return (0);
+    for (cp = addr; (ch = *(unsigned const char *) cp) != 0; cp++) {
+	if (ISDIGIT(ch)) {
+	    if (in_byte == 0) {
+		in_byte = 1;
+		byte_val = 0;
+		byte_count++;
+	    }
+	    byte_val *= 10;
+	    byte_val += ch - '0';
+	    if (byte_val > 255) {
+		msg_warn("%s: invalid octet value: %.100s", myname, addr);
+		return (0);
+	    }
+	} else if (ch == '.') {
+	    if (in_byte == 0 || cp[1] == 0) {
+		msg_warn("%s: misplaced dot: %.100s", myname, addr);
+		return (0);
+	    }
+	    if ((byte_count == 1 && byte_val == 0)) {
+		msg_warn("%s: bad initial octet value: %.100s", myname, addr);
+		return (0);
+	    }
+	    in_byte = 0;
+	} else {
+	    msg_warn("%s: invalid character %d(decimal): %.100s",
+		     myname, ch, addr);
+	    return (0);
+	}
     }
 
-    /*
-     * Misplaced delimiters.
-     */
-    if (DELIMITER(name[0]) || adjacent || DELIMITER(name[len - 1])) {
-	msg_warn("valid_hostname: misplaced delimiter in %s", name);
+    if (byte_count != BYTES_NEEDED) {
+	msg_warn("%s: invalid octet count: %.100s", myname, addr);
 	return (0);
     }
     return (1);
@@ -124,8 +186,11 @@ int     main(int unused_argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_verbose = 1;
 
-    while (vstring_fgets_nonl(buffer, VSTREAM_IN))
+    while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
+	msg_info("testing: \"%s\"", vstring_str(buffer));
 	valid_hostname(vstring_str(buffer));
+	valid_hostaddr(vstring_str(buffer));
+    }
     exit(0);
 }
 

@@ -1,10 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= alias.c command.c delivered.c dotforward.c file.c forward.c \
 	include.c indirect.c local.c mailbox.c recipient.c resolve.c token.c \
-	deliver_attr.c feature.c maildir.c biff_notify.c
+	deliver_attr.c feature.c maildir.c biff_notify.c unknown.c
 OBJS	= alias.o command.o delivered.o dotforward.o file.o forward.o \
 	include.o indirect.o local.o mailbox.o recipient.o resolve.o token.o \
-	deliver_attr.o feature.o maildir.o biff_notify.o
+	deliver_attr.o feature.o maildir.o biff_notify.o unknown.o
 HDRS	= local.h
 TESTSRC	=
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -277,8 +277,8 @@ mailbox.o: ../include/set_eugid.h
 mailbox.o: ../include/mail_copy.h
 mailbox.o: ../include/safe_open.h
 mailbox.o: ../include/deliver_flock.h
-mailbox.o: ../include/bounce.h
 mailbox.o: ../include/defer.h
+mailbox.o: ../include/bounce.h
 mailbox.o: ../include/sent.h
 mailbox.o: ../include/mypwd.h
 mailbox.o: ../include/been_here.h
@@ -318,7 +318,6 @@ recipient.o: ../include/dict.h
 recipient.o: ../include/vstream.h
 recipient.o: ../include/vbuf.h
 recipient.o: ../include/bounce.h
-recipient.o: ../include/defer.h
 recipient.o: ../include/mail_params.h
 recipient.o: ../include/split_addr.h
 recipient.o: local.h
@@ -356,3 +355,18 @@ token.o: ../include/resolve_clnt.h
 token.o: ../include/mail_params.h
 token.o: local.h
 token.o: ../include/been_here.h
+unknown.o: unknown.c
+unknown.o: ../include/sys_defs.h
+unknown.o: ../include/msg.h
+unknown.o: ../include/stringops.h
+unknown.o: ../include/mymalloc.h
+unknown.o: ../include/been_here.h
+unknown.o: ../include/mail_params.h
+unknown.o: ../include/bounce.h
+unknown.o: local.h
+unknown.o: ../include/htable.h
+unknown.o: ../include/vstream.h
+unknown.o: ../include/vbuf.h
+unknown.o: ../include/vstring.h
+unknown.o: ../include/tok822.h
+unknown.o: ../include/resolve_clnt.h

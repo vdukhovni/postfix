@@ -1,7 +1,7 @@
 SHELL	= /bin/sh
-SRCS	= bounce.c bounce_append_service.c bounce_flush_service.c \
+SRCS	= bounce.c bounce_append_service.c bounce_notify_service.c \
 	bounce_cleanup.c
-OBJS	= bounce.o bounce_append_service.o bounce_flush_service.o \
+OBJS	= bounce.o bounce_append_service.o bounce_notify_service.o \
 	bounce_cleanup.o
 HDRS	= 
 TESTSRC	= 
@@ -91,31 +91,31 @@ bounce_cleanup.o: ../include/vbuf.h
 bounce_cleanup.o: ../include/mail_queue.h
 bounce_cleanup.o: ../include/vstream.h
 bounce_cleanup.o: bounce_service.h
-bounce_flush_service.o: bounce_flush_service.c
-bounce_flush_service.o: ../include/sys_defs.h
-bounce_flush_service.o: ../include/msg.h
-bounce_flush_service.o: ../include/vstring.h
-bounce_flush_service.o: ../include/vbuf.h
-bounce_flush_service.o: ../include/vstream.h
-bounce_flush_service.o: ../include/vstring_vstream.h
-bounce_flush_service.o: ../include/mymalloc.h
-bounce_flush_service.o: ../include/stringops.h
-bounce_flush_service.o: ../include/events.h
-bounce_flush_service.o: ../include/line_wrap.h
-bounce_flush_service.o: ../include/name_mask.h
-bounce_flush_service.o: ../include/mail_queue.h
-bounce_flush_service.o: ../include/mail_proto.h
-bounce_flush_service.o: ../include/iostuff.h
-bounce_flush_service.o: ../include/quote_822_local.h
-bounce_flush_service.o: ../include/mail_params.h
-bounce_flush_service.o: ../include/canon_addr.h
-bounce_flush_service.o: ../include/is_header.h
-bounce_flush_service.o: ../include/record.h
-bounce_flush_service.o: ../include/rec_type.h
-bounce_flush_service.o: ../include/config.h
-bounce_flush_service.o: ../include/post_mail.h
-bounce_flush_service.o: ../include/cleanup_user.h
-bounce_flush_service.o: ../include/mail_addr.h
-bounce_flush_service.o: ../include/mark_corrupt.h
-bounce_flush_service.o: ../include/mail_error.h
-bounce_flush_service.o: bounce_service.h
+bounce_notify_service.o: bounce_notify_service.c
+bounce_notify_service.o: ../include/sys_defs.h
+bounce_notify_service.o: ../include/msg.h
+bounce_notify_service.o: ../include/vstring.h
+bounce_notify_service.o: ../include/vbuf.h
+bounce_notify_service.o: ../include/vstream.h
+bounce_notify_service.o: ../include/vstring_vstream.h
+bounce_notify_service.o: ../include/mymalloc.h
+bounce_notify_service.o: ../include/stringops.h
+bounce_notify_service.o: ../include/events.h
+bounce_notify_service.o: ../include/line_wrap.h
+bounce_notify_service.o: ../include/name_mask.h
+bounce_notify_service.o: ../include/mail_queue.h
+bounce_notify_service.o: ../include/mail_proto.h
+bounce_notify_service.o: ../include/iostuff.h
+bounce_notify_service.o: ../include/quote_822_local.h
+bounce_notify_service.o: ../include/mail_params.h
+bounce_notify_service.o: ../include/canon_addr.h
+bounce_notify_service.o: ../include/is_header.h
+bounce_notify_service.o: ../include/record.h
+bounce_notify_service.o: ../include/rec_type.h
+bounce_notify_service.o: ../include/config.h
+bounce_notify_service.o: ../include/post_mail.h
+bounce_notify_service.o: ../include/cleanup_user.h
+bounce_notify_service.o: ../include/mail_addr.h
+bounce_notify_service.o: ../include/mark_corrupt.h
+bounce_notify_service.o: ../include/mail_error.h
+bounce_notify_service.o: bounce_service.h

@@ -106,9 +106,13 @@
 
  /*
   * Sender and receiver state. A session does not necessarily go through a
-  * linear progression, so states should be compared for equality only.
+  * linear progression, but states are guaranteed to not jump backwards.
   * Normal sessions go from MAIL->RCPT->DATA->DOT->QUIT->LAST. The states
   * MAIL, RCPT, and DATA may also be followed by ABORT->QUIT->LAST.
+  * 
+  * By default, the receiver skips the QUIT response. Some SMTP servers
+  * disconnect after responding to ".", and some SMTP servers wait before
+  * responding to QUIT.
   */
 #define SMTP_STATE_MAIL		0
 #define SMTP_STATE_RCPT		1
@@ -265,7 +269,7 @@ int     smtp_xfer(SMTP_STATE *state)
 #define RETURN(x) do { vstring_free(next_command); return (x); } while (0)
 
 #define SENDER_IS_AHEAD \
-	(recv_state != send_state || recv_rcpt != send_rcpt)
+	(recv_state < send_state || recv_rcpt != send_rcpt)
 
 #define SENDER_IN_WAIT_STATE \
 	(send_state == SMTP_STATE_DOT || send_state == SMTP_STATE_LAST)
@@ -410,7 +414,8 @@ int     smtp_xfer(SMTP_STATE *state)
 		 */
 		if (recv_state < SMTP_STATE_MAIL
 		    || recv_state > SMTP_STATE_QUIT)
-		    msg_panic("%s: bad receiver state %d", myname, recv_state);
+		    msg_panic("%s: bad receiver state %d (sender state %d)",
+			      myname, recv_state, send_state);
 
 		/*
 		 * Receive the next server response. Use the proper timeout,
@@ -510,14 +515,16 @@ int     smtp_xfer(SMTP_STATE *state)
 			    }
 			}
 		    }
-		    recv_state = SMTP_STATE_QUIT;
+		    recv_state = (var_skip_quit_resp ?
+				  SMTP_STATE_LAST : SMTP_STATE_QUIT);
 		    break;
 
 		    /*
 		     * Ignore the RSET response.
 		     */
 		case SMTP_STATE_ABORT:
-		    recv_state = SMTP_STATE_QUIT;
+		    recv_state = (var_skip_quit_resp ?
+				  SMTP_STATE_LAST : SMTP_STATE_QUIT);
 		    break;
 
 		    /*

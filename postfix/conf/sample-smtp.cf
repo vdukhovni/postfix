@@ -2,6 +2,39 @@
 # parameters that control the SMTP client program.
 
 #
+# MISCELLANEOUS CONTROLS
+#
+
+# The fallback_relay parameter specifies zero or more hosts or domains
+# to hand off mail to if a message destination is not found, or if a
+# destination is unreachable.
+#
+# By default, mail is bounced when a destination is not found, and
+# delivery is deferred if a destination is unreachable.
+#
+fallback_relay = 
+
+# The ignore_mx_lookup_error parameter controls what happens when a
+# name server fails to respond to an MX lookup request. By default,
+# Postfix defers delivery and tries again after some delay. Specify
+# "ignore_mx_lookup_error = yes" to force an A record lookup instead.
+#
+ignore_mx_lookup_error = no
+
+# The smtp_skip_4xx_greeting parameter controls what happens when
+# an SMTP server greets us with a 4XX status code. By default, Postfix
+# backs off. Specify "smtp_skip_4xx_greeting = yes" to move on the
+# the next mail exchanger.
+# 
+smtp_skip_4xx_greeting = no
+
+# The smtp_skip_quit_response parameter controls whether the SMTP
+# client waits for the response to the QUIT command. The default is
+# to not wait.
+# 
+smtp_skip_quit_response = yes
+
+#
 # RATE CONTROLS
 #
 

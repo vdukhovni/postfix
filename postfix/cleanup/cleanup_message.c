@@ -276,19 +276,6 @@ static void cleanup_missing_headers(void)
     char   *from;
 
     /*
-     * Add a missing Return-Path: header when the sender address is not
-     * empty. XXX Shouldn't this depend on the delivery transport being used?
-     * But, it is very tempting to use RFC822 as the basis for our canonical
-     * message representation. And, it is easy to delete an unwanted header.
-     */
-    if (*cleanup_sender != 0
-	&& (cleanup_headers_seen & (1 << HDR_RETURN_PATH)) == 0) {
-	quote_822_local(cleanup_temp1, cleanup_sender);
-	cleanup_out_format(REC_TYPE_NORM, "Return-Path: <%s>",
-			   vstring_str(cleanup_temp1));
-    }
-
-    /*
      * Add a missing (Resent-)Message-Id: header. The message ID gives the
      * time in GMT units, plus the local queue ID.
      */
@@ -364,7 +351,7 @@ void    cleanup_message(void)
      */
     if ((mesg_offset = vstream_ftell(cleanup_dst)) < 0)
 	msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
-    cleanup_out_format(REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0);
+    cleanup_out_format(REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0L);
     if ((data_offset = vstream_ftell(cleanup_dst)) < 0)
 	msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
 

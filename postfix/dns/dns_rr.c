@@ -16,6 +16,9 @@
 /*	void	dns_rr_free(list)
 /*	DNS_RR	*list;
 /*
+/*	DNS_RR	*dns_rr_copy(record)
+/*	DNS_RR	*record;
+/*
 /*	DNS_RR	*dns_rr_append(list, record)
 /*	DNS_RR	*list;
 /*	DNS_RR	*record;
@@ -37,6 +40,8 @@
 /*
 /*	dns_rr_free() releases the resource used by of zero or more
 /*	resource records.
+/*
+/*	dns_rr_copy() makes a copy of a resource record.
 /*
 /*	dns_rr_append() appends a resource record to a (list of) resource
 /*	record(s).
@@ -100,6 +105,23 @@ void    dns_rr_free(DNS_RR *rr)
 	myfree(rr->name);
 	myfree((char *) rr);
     }
+}
+
+/* dns_rr_copy - copy resource record */
+
+DNS_RR *dns_rr_copy(DNS_RR *src)
+{
+    int     len = sizeof(*src) + src->data_len - 1;
+    DNS_RR *dst;
+
+    /*
+     * Combine struct assignment and data copy in one block copy operation.
+     */
+    dst = (DNS_RR *) mymalloc(len);
+    memcpy((char *) dst, (char *) src, len);
+    dst->name = mystrdup(src->name);
+    dst->next = 0;
+    return (dst);
 }
 
 /* dns_rr_append - append resource record to list */

@@ -18,13 +18,13 @@
 /*	lookups are done via the Internet domain name service (DNS).
 /*	A reasonable number of CNAME indirections is permitted.
 /*
-/*	smtp_domain_addr() looks up the network addresses for mail 
-/*	exchanger hosts listed for the named domain. Addresses are 
+/*	smtp_domain_addr() looks up the network addresses for mail
+/*	exchanger hosts listed for the named domain. Addresses are
 /*	returned in most-preferred first order. The result is truncated
-/*	so that it contains only hosts that are more preferred than the 
+/*	so that it contains only hosts that are more preferred than the
 /*	local mail server itself.
 /*
-/*	When no mail exchanger is listed in the DNS for \fIname\fR, the 
+/*	When no mail exchanger is listed in the DNS for \fIname\fR, the
 /*	request is passed to smtp_host_addr().
 /*
 /*	smtp_host_addr() looks up all addresses listed for the named
@@ -75,6 +75,7 @@
 #include <vstring.h>
 #include <mymalloc.h>
 #include <inet_addr_list.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -161,6 +162,83 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why)
     return (addr_list);
 }
 
+/* smtp_addr_fallback - add list of fallback addresses */
+
+static DNS_RR *smtp_addr_fallback(DNS_RR *addr_list)
+{
+    static DNS_RR *fallback_list = 0;
+    DNS_RR *mx_names;
+    DNS_RR *mx_addr_list;
+    DNS_RR *addr;
+    char   *saved_fallback_relay;
+    char   *cp;
+    char   *relay;
+    int     saved_smtp_errno = smtp_errno;
+    VSTRING *why;
+    DNS_RR *rr;
+    unsigned int pref;
+
+    /*
+     * Build a cached list of fall-back host addresses. Issue a warning when
+     * a fall-back host or domain is not found. This is most likely a local
+     * configuration problem.
+     * 
+     * XXX For the sake of admin-friendliness we want to support MX lookups for
+     * fall-back relays. This comes at a price: the fallback relay lookup
+     * routine almost entirely duplicates the smtp_domain_addr() routine.
+     * 
+     * Fall-back hosts are given a preference that is outside the range of valid
+     * DNS preferences (unsigned 16-bit integer).
+     */
+#define FB_PREF	(0xffff + 1)
+
+    if (fallback_list == 0) {
+	why = vstring_alloc(1);
+	cp = saved_fallback_relay = mystrdup(var_fallback_relay);
+	for (pref = FB_PREF; (relay = mystrtok(&cp, " \t\r\n,")) != 0; pref++) {
+	    smtp_errno = 0;
+	    switch (dns_lookup(relay, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
+	    default:
+		smtp_errno = SMTP_RETRY;
+		break;
+	    case DNS_FAIL:
+		smtp_errno = SMTP_FAIL;
+		break;
+	    case DNS_OK:
+		mx_addr_list = smtp_addr_list(mx_names, why);
+		dns_rr_free(mx_names);
+		for (addr = mx_addr_list; addr; addr = addr->next)
+		    addr->pref = pref;
+		fallback_list = dns_rr_append(fallback_list, mx_addr_list);
+		break;
+	    case DNS_NOTFOUND:
+		fallback_list = smtp_addr_one(fallback_list, relay, pref, why);
+		break;
+	    }
+	    if (smtp_errno != SMTP_OK)
+		msg_warn("look up fall-back relay %s: %s",
+			 relay, vstring_str(why));
+	}
+	vstring_free(why);
+	myfree(saved_fallback_relay);
+    }
+
+    /*
+     * Append a copy of the fall-back address list to the mail exchanger
+     * address list - which may be an empty list if no mail exchanger was
+     * found.
+     */
+    for (rr = fallback_list; rr; rr = rr->next)
+	addr_list = dns_rr_append(addr_list, dns_rr_copy(rr));
+
+    /*
+     * Clean up.
+     */
+    smtp_errno = saved_smtp_errno;
+
+    return (addr_list);
+}
+
 /* smtp_find_self - spot myself in a crowd of mail exchangers */
 
 static DNS_RR *smtp_find_self(DNS_RR *addr_list)
@@ -241,18 +319,27 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
      * truncate the list so that it contains only hosts that are more
      * preferred than myself. When no MX resource records exist, look up the
      * addresses listed for this name.
+     * 
+     * XXX Optionally do A lookups even when the MX lookup didn't complete.
+     * Unfortunately with some DNS servers this is not a transient problem.
      */
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
     default:
 	smtp_errno = SMTP_RETRY;
+	if (var_ign_mx_lookup_err)
+	    addr_list = smtp_host_addr(name, why);
 	break;
     case DNS_FAIL:
 	smtp_errno = SMTP_FAIL;
+	if (var_ign_mx_lookup_err)
+	    addr_list = smtp_host_addr(name, why);
 	break;
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, smtp_compare_mx);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
+	if (*var_fallback_relay)
+	    addr_list = smtp_addr_fallback(addr_list);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
 	if ((self = smtp_find_self(addr_list)) != 0)
@@ -288,6 +375,8 @@ DNS_RR *smtp_host_addr(char *host, VSTRING *why)
 				  (char *) &addr, sizeof(addr));
     } else {
 	addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
+	if (*var_fallback_relay)
+	    addr_list = smtp_addr_fallback(addr_list);
     }
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);

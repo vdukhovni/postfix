@@ -93,10 +93,9 @@
 
 QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 {
-    int     dir = (rand() & 256);	/* low byte has short cycle */
     QMGR_ENTRY *entry;
 
-    if ((entry = (dir ? queue->todo.prev : queue->todo.next)) != 0) {
+    if ((entry = queue->todo.prev) != 0) {
 	QMGR_LIST_UNLINK(queue->todo, QMGR_ENTRY *, entry);
 	queue->todo_refcount--;
 	QMGR_LIST_APPEND(queue->busy, entry);

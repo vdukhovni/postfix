@@ -28,6 +28,12 @@
 /*	const char *queue;
 /*	const char *id;
 /*	const char *sender;
+/*
+/*	int	defer_warn(flags, queue, id, sender)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *sender;
 /* DESCRIPTION
 /*	This module implements a client interface to the defer service,
 /*	which maintains a per-message logfile with status records for
@@ -42,6 +48,9 @@
 /*	defer_flush() bounces the specified message to the specified
 /*	sender, including the defer log that was built with defer_append().
 /*	The result is zero in case of success, non-zero otherwise.
+/*
+/*	defer_warn() sends a warning message that the mail in question has
+/*	been deferred.  It does not flush the log.
 /*
 /*	Arguments:
 /* .IP flags
@@ -148,6 +157,21 @@ int     defer_flush(int flags, const char *queue, const char *id,
 {
     if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
 			   "%d %d %s %s %s", BOUNCE_CMD_FLUSH,
+			   flags, queue, id, sender) == 0) {
+	return (0);
+    } else {
+	return (-1);
+    }
+}
+
+/* defer_warn - send a copy of the defer log to the sender as a warning bounce
+ * do not flush the log */
+
+int     defer_warn(int flags, const char *queue, const char *id,
+		           const char *sender)
+{
+    if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+			   "%d %d %s %s %s", BOUNCE_CMD_WARN,
 			   flags, queue, id, sender) == 0) {
 	return (0);
     } else {

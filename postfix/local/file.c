@@ -79,12 +79,20 @@
 
 int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
+    char   *myname = "deliver_file";
     struct stat st;
     int     fd;
     VSTREAM *dst;
     VSTRING *why;
     int     status;
     int     copy_flags;
+
+    /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
+    if (msg_verbose)
+	MSG_LOG_STATE(myname, state);
 
     /*
      * DUPLICATE ELIMINATION

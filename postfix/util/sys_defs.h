@@ -19,7 +19,7 @@
   * directory. Adding support for a new system type means updating the
   * makedefs script, and adding a section below for the new system.
   */
-#if defined(FREEBSD2) || defined(FREEBSD3) \
+#if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(NETBSD1)
 #define SUPPORTED
@@ -176,6 +176,32 @@ extern int opterr;
 #define DBM_NO_TRAILING_NULL
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
+#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
+#endif
+
+#ifdef UW21              /* UnixWare 2.1.x */                        
+#define SUPPORTED                                               
+#include <sys/types.h>                                          
+#define _PATH_MAILDIR   "/var/mail"                             
+#define _PATH_BSHELL    "/bin/sh"                               
+#define _PATH_DEFPATH   "/usr/bin:/usr/ucb"                     
+#define _PATH_STDPATH   "/usr/bin:/usr/sbin:/usr/ucb"           
+#define MISSING_SETENV                                          
+#define USE_FCNTL_LOCK                                          
+#define USE_DOT_LOCK                                            
+#define HAS_FSYNC                                               
+#define HAS_DBM
+#define DEF_DB_TYPE     "dbm"                                   
+#define ALIAS_DB_MAP    "dbm:/etc/mail/aliases"                 
+/* Uncomment the following line if you have NIS package installed
+#define HAS_NIS */
+#define USE_SYS_SOCKIO_H                                        
+#define GETTIMEOFDAY(t) gettimeofday(t,NULL)   
+#define ROOT_PATH       "/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
+#define FIONREAD_IN_SYS_FILIO_H                                 
+#define DBM_NO_TRAILING_NULL                                    
+#define USE_STATVFS                                             
+#define STATVFS_IN_SYS_STATVFS_H                                
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #endif
 

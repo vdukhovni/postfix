@@ -59,7 +59,8 @@
 
 ARGV   *mail_addr_crunch(const char *string, const char *extension)
 {
-    VSTRING *buf = vstring_alloc(100);
+    VSTRING *extern_addr = vstring_alloc(100);
+    VSTRING *canon_addr = vstring_alloc(100);
     ARGV   *argv = argv_alloc(1);
     TOK822 *tree;
     TOK822 **addr_list;
@@ -80,24 +81,25 @@ ARGV   *mail_addr_crunch(const char *string, const char *extension)
     tree = tok822_parse(string);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
-	tok822_externalize(buf, tpp[0]->head, TOK822_STR_DEFL);
-	canon_addr_external(buf, STR(buf));
+	tok822_externalize(extern_addr, tpp[0]->head, TOK822_STR_DEFL);
+	canon_addr_external(canon_addr, STR(extern_addr));
 	if (extension) {
-	    if ((ratsign = strrchr(STR(buf), '@')) == 0) {
-		vstring_strcat(buf, extension);
+	    if ((ratsign = strrchr(STR(canon_addr), '@')) == 0) {
+		vstring_strcat(canon_addr, extension);
 	    } else {
-		VSTRING_SPACE(buf, extlen + 1);
+		VSTRING_SPACE(canon_addr, extlen + 1);
 		memmove(ratsign + extlen, ratsign, strlen(ratsign) + 1);
 		memcpy(ratsign, extension, extlen);
-		VSTRING_SKIP(buf);
+		VSTRING_SKIP(canon_addr);
 	    }
 	}
-	argv_add(argv, STR(buf), ARGV_END);
+	argv_add(argv, STR(canon_addr), ARGV_END);
     }
     argv_terminate(argv);
     myfree((char *) addr_list);
     tok822_free_tree(tree);
-    vstring_free(buf);
+    vstring_free(canon_addr);
+    vstring_free(extern_addr);
     return (argv);
 }
 

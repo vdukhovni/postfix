@@ -43,6 +43,8 @@ typedef struct VSTREAM _deliver_vstream_;
 extern DELIVER_REQUEST *deliver_request_read(_deliver_vstream_ *);
 extern int deliver_request_done(_deliver_vstream_ *, DELIVER_REQUEST *, int);
 
+extern int deliver_pass(const char *, const char *, DELIVER_REQUEST *, const char *, long);
+
 /* LICENSE
 /* .ad
 /* .fi

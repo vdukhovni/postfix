@@ -91,6 +91,12 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
     TOK822 *local;
 
     /*
+     * Sanity check.
+     */
+    if (tree->head == 0)
+	msg_panic("rewrite_tree: empty tree");
+
+    /*
      * An empty address is a special case.
      */
     if (tree->head == tree->tail
@@ -151,6 +157,15 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
 void    rewrite_addr(char *ruleset, char *addr, VSTRING *result)
 {
     TOK822 *tree;
+
+    /*
+     * Sanity check. An address is supposed to be in externalized form.
+     */
+    if (*addr == 0) {
+	msg_warn("rewrite_addr: null address, ruleset \"%s\"", ruleset);
+	vstring_strcpy(result, addr);
+	return;
+    }
 
     /*
      * Convert the address from externalized (quoted) form to token list,

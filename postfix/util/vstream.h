@@ -27,6 +27,7 @@
   * official interface and can change without prior notice.
   */
 typedef int (*VSTREAM_FN) (int, void *, unsigned);
+typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 
 typedef struct VSTREAM {
     VBUF    buf;			/* generic intelligent buffer */
@@ -39,6 +40,8 @@ typedef struct VSTREAM {
     int     write_fd;			/* write channel (double-buffered) */
     VBUF    read_buf;			/* read buffer (double-buffered) */
     VBUF    write_buf;			/* write buffer (double-buffered) */
+    pid_t   pid;			/* vstream_popen/close() */
+    VSTREAM_WAITPID_FN waitpid_fn;	/* vstream_popen/close() */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -94,6 +97,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_DOUBLE	4
 #define VSTREAM_CTL_READ_FD	5
 #define VSTREAM_CTL_WRITE_FD	6
+#define VSTREAM_CTL_WAITPID_FN	7
 
 extern VSTREAM *vstream_printf(const char *,...);
 extern VSTREAM *vstream_fprintf(VSTREAM *, const char *,...);
@@ -102,6 +106,8 @@ extern VSTREAM *vstream_popen(const char *, int);
 extern int vstream_pclose(VSTREAM *);
 
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
+
+extern int vstream_peek(VSTREAM *);
 
 /* LICENSE
 /* .ad

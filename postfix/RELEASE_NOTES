@@ -1,3 +1,88 @@
+Incompatible changes with postfix-alpha-19990317:
+=================================================
+
+- You MUST install the new version of /etc/postfix/postfix-script.
+
+- The pipe mailer "flags" syntax has changed. You now explicitly
+MUST specify the R flag in order to generate a Return-Path:  message
+header (as needed by, for example, cyrus).
+
+Major changes since postfix-beta-19990122-pl01:
+===============================================
+
+A detailed record of changes is given in the HISTORY file.
+
+- Less postmaster mail. Undeliverable bounce messages (double
+bounces) are now discarded. Specify "notify_classes = 2bounce..."
+to get copies of double bounces. Specify "notify_classes = bounce..."
+to get copies of normal and double bounces.
+
+- Improved LDAP client code by John Hensley of Merit Network, USA.
+See LDAP_README for details.
+
+- Perl-compatible regular expression support for lookup maps by
+Andrew McNamara, connect.com.au Pty. Ltd., Australia..  Example:
+"check_recipient_access pcre:/etc/postfix/sample-pcre.cf". Regular
+expressions provide a powerful tool not only for SMTP access control
+but also for address rewriting. See PCRE_README for details.
+
+- Automatic notification of delayed mail (disabled by default).
+With "delay_warning_time = 4", Postfix informs senders when mail
+has not been delivered after 4 hours. Initial version of the code
+by Daniel Eisenbud, University of California at Berkeley. In order
+to get postmaster copies of such warnings, specify "notify_classes
+= delay...".
+
+- More configurable local delivery: "mail_spool_directory" to
+specify the UNIX mail spool directory; "mailbox_transport" to
+delegate all mailbox delivery to, for example, cyrus, and
+"fallback_transport" to delegate delivery of only non-UNIX users.
+And all this without losing local aliases and local .forward
+processing.  See config/main.cf and config/master.cf.
+
+- Several changes to improve Postfix behavior under worst-case
+conditions (frequent Postfix restarts/reloads combined with lots
+if inbound mail, intermittent connectivity problems, SMTP servers
+that become comatose after receiving QUIT).
+
+- More NFS-friendly mailbox delivery. The local delivery agent
+now avoids using root privileges where possible.
+
+- For sites that do not receive mail at all, mydestination can now
+be an empty string. Be sure to set up a transport table entry to
+prevent mail from looping.
+
+- New "postsuper" utility to clean up stale files from Postfix
+queues.
+
+- Workaround for BSD select() collisions that cause performance
+problems on large BSD systems.
+
+- Use "$alias_maps, unix:passwd.byname" in smtpd access tables to
+recognize known local users. We're almost there with stopping
+unknown users at the RCPT TO command - the syntax for virtual maps
+and sendmail access tables is too different.
+
+- Several questionable but useful features to capture mail:
+"always_bcc = address" to capture a copy of every message that
+enters the system, and "luser_relay = address" to capture mail for
+unknown recipients (does not work when mailbox_transport or
+fallback_transport are being used).
+
+- Junk mail controls: new reject_non_fqdn_{hostname,sender,recipient}
+restrictions to reject non-FQDN arguments in HELO, MAIL FROM and
+RCPT TO commands, and stricter checking of numeric HELO arguments.
+
+- "fallback_relay" feature for sites that use DNS but that can't
+talk to the entire world. The fall-back relay gets the mail when
+a destination is not found in the DNS or when the destination is
+found but not reachable.
+
+- Several questionable controls that can help to keep mail going:
+specify "smtp_skip_4xx_greeting = yes" to skip SMTP servers that
+greet with 4XX, "ignore_mx_lookup_error = yes" to look up an A
+record when a DNS server does not respond to an MX query.
+
 Incompatible changes with postfix-beta-19990122-pl01:
 =====================================================
 

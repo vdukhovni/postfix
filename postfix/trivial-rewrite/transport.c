@@ -86,7 +86,6 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
     const char *name;
     const char *value;
     const char *host;
-    const char *next;
     char   *saved_value;
     char   *transport;
     int     found = 0;
@@ -96,8 +95,7 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
 
     /*
      * Keep stripping domain components until nothing is left or until a
-     * matching entry is found. Don't do routing on top-level domains.
-     * Transport table lookups are expensive enough already.
+     * matching entry is found.
      * 
      * After checking the full name, check for .upper.domain, to distinguish
      * between the upper domain and it's decendants, ala sendmail and tcp
@@ -106,7 +104,7 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
      * Before changing the DB lookup result, make a copy first, in order to
      * avoid DB cache corruption.
      */
-    for (name = low_domain; (next = strchr(name + 1, '.')) != 0; name = next) {
+    for (name = low_domain; name != 0; name = strchr(name + 1, '.')) {
 	if ((value = maps_find(transport_path, name)) != 0) {
 	    saved_value = mystrdup(value);
 	    if ((host = split_at(saved_value, ':')) == 0 || *host == 0)

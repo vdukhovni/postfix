@@ -105,6 +105,10 @@ extern char *var_masq_exceptions;
 #define DEF_RELAYHOST		""
 extern char *var_relayhost;
 
+#define VAR_FALLBACK_RELAY	"fallback_relay"
+#define DEF_FALLBACK_RELAY	""
+extern char *var_fallback_relay;
+
 #define VAR_DISABLE_DNS		"disable_dns_lookups"
 #define DEF_DISABLE_DNS		0
 extern bool var_disable_dns;
@@ -175,6 +179,14 @@ extern char *var_db_type;
 #ifndef LOG_FACILITY
 #define LOG_FACILITY	LOG_MAIL
 #endif
+
+ /*
+  * Big brother: who receives a blank-carbon copy of all mail that enters
+  * this mail system.
+  */
+#define VAR_ALWAYS_BCC		"always_bcc"
+#define DEF_ALWAYS_BCC		""
+extern char *var_always_bcc;
 
  /*
   * trivial rewrite/resolve service: mapping tables.
@@ -278,6 +290,17 @@ extern char *var_local_cmd_shell;
 #define DEF_ALIAS_DB_MAP	ALIAS_DB_MAP	/* sys_defs.h */
 extern char *var_alias_db_map;
 
+#define VAR_LUSER_RELAY		"luser_relay"
+#define DEF_LUSER_RELAY		""
+extern char *var_luser_relay;
+
+ /*
+  * Local delivery: mailbox delivery.
+  */
+#define VAR_MAIL_SPOOL_DIR	"mail_spool_directory"
+#define DEF_MAIL_SPOOL_DIR	_PATH_MAILDIR
+extern char *var_mail_spool_dir;
+
 #define VAR_HOME_MAILBOX	"home_mailbox"
 #define DEF_HOME_MAILBOX	""
 extern char *var_home_mailbox;
@@ -285,6 +308,21 @@ extern char *var_home_mailbox;
 #define VAR_MAILBOX_COMMAND	"mailbox_command"
 #define DEF_MAILBOX_COMMAND	""
 extern char *var_mailbox_command;
+
+#define VAR_MAILBOX_TRANSP	"mailbox_transport"
+#define DEF_MAILBOX_TRANSP	""
+extern char *var_mailbox_transport;
+
+#define VAR_FALLBACK_TRANSP	"fallback_transport"
+#define DEF_FALLBACK_TRANSP	""
+extern char *var_fallback_transport;
+
+ /*
+  * Local delivery: path to per-user forwarding file.
+  */
+#define VAR_FORWARD_PATH	"forward_path"
+#define DEF_FORWARD_PATH	"$home/.forward"
+extern char *var_forward_path;
 
 #define VAR_RCPT_DELIM		"recipient_delimiter"
 #define DEF_RCPT_DELIM		""
@@ -329,6 +367,10 @@ extern int var_max_backoff_time;
 #define VAR_MAX_QUEUE_TIME	"maximal_queue_lifetime"
 #define DEF_MAX_QUEUE_TIME	5
 extern int var_max_queue_time;
+
+#define VAR_DELAY_WARN_TIME	"delay_warning_time"
+#define DEF_DELAY_WARN_TIME	0
+extern int var_delay_warn_time;
 
 #define VAR_QMGR_ACT_LIMIT	"qmgr_message_active_limit"
 #define DEF_QMGR_ACT_LIMIT	1000
@@ -375,6 +417,13 @@ extern char *var_defer_xports;
 #define VAR_PROC_LIMIT		"default_process_limit"
 #define DEF_PROC_LIMIT		50
 extern int var_proc_limit;
+
+ /*
+  * Master: default time to wait after service is throttled.
+  */
+#define VAR_THROTTLE_TIME	"service_throttle_time"
+#define DEF_THROTTLE_TIME	60
+extern int var_throttle_time;
 
  /*
   * Any subsystem: default maximum number of clients serviced before a mail
@@ -468,6 +517,18 @@ extern int var_smtp_data2_tmout;
 #define VAR_SMTP_QUIT_TMOUT	"smtp_quit_timeout"
 #define DEF_SMTP_QUIT_TMOUT	300
 extern int var_smtp_quit_tmout;
+
+#define VAR_SMTP_SKIP_4XX	"smtp_skip_4xx_greeting"
+#define DEF_SMTP_SKIP_4XX	0
+extern bool var_smtp_skip_4xx_greeting;
+
+#define VAR_IGN_MX_LOOKUP_ERR	"ignore_mx_lookup_error"
+#define DEF_IGN_MX_LOOKUP_ERR	0
+extern bool var_ign_mx_lookup_err;
+
+#define VAR_SKIP_QUIT_RESP	"smtp_skip_quit_response"
+#define DEF_SKIP_QUIT_RESP	1
+extern bool var_skip_quit_resp;
 
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
@@ -642,6 +703,13 @@ extern int var_bad_name_code;
 #define VAR_UNK_NAME_CODE	"unknown_hostname_reject_code"
 #define DEF_UNK_NAME_CODE	450
 extern int var_unk_name_code;
+
+#define REJECT_NON_FQDN_HOSTNAME "reject_non_fqdn_hostname"
+#define REJECT_NON_FQDN_SENDER	"reject_non_fqdn_sender"
+#define REJECT_NON_FQDN_RCPT	"reject_non_fqdn_recipient"
+#define VAR_NON_FQDN_CODE	"non_fqdn_reject_code"
+#define DEF_NON_FQDN_CODE	504
+extern int var_non_fqdn_code;
 
 #define REJECT_UNKNOWN_ADDRESS	"reject_unknown_address"
 #define VAR_UNK_ADDR_CODE	"unknown_address_reject_code"

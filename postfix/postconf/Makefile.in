@@ -30,7 +30,7 @@ update: ../bin/$(PROG)
 ../bin/$(PROG): $(PROG)
 	cp $(PROG) ../bin
 
-$(MAKES):
+$(MAKES): $(INC_DIR)/mail_params.h
 	sh extract.sh ../*/*.c
 
 printfck: $(OBJS) $(PROG)

@@ -79,7 +79,7 @@ static void master_unthrottle(MASTER_SERV *serv);
 
 /* master_unthrottle_wrapper - in case (char *) != (struct *) */
 
-static void master_unthrottle_wrapper(char *ptr)
+static void master_unthrottle_wrapper(int unused_event, char *ptr)
 {
     MASTER_SERV *serv = (MASTER_SERV *) ptr;
 

@@ -1,7 +1,7 @@
 #
 # Initialize.
 #
-! ../bin/postmap smtpd_check_access
+#! ../bin/postmap smtpd_check_access
 #msg_verbose 1
 mynetworks 127.0.0.0/8,168.100.189.0/28
 relay_domains porcupine.org
@@ -129,3 +129,43 @@ rcpt foo@porcupine.org
 helo good.domain
 mail foo@bad.domain
 rcpt foo@porcupine.org
+#
+# FQDN restrictions
+#
+helo_restrictions reject_non_fqdn_hostname
+sender_restrictions reject_non_fqdn_sender
+recipient_restrictions reject_non_fqdn_recipient
+helo foo.bar.
+helo foo.bar
+helo foo
+mail foo@foo.bar.
+mail foo@foo.bar
+mail foo@foo
+mail foo
+rcpt foo@foo.bar.
+rcpt foo@foo.bar
+rcpt foo@foo
+rcpt foo
+#
+# Numerical HELO checks
+#
+msg_verbose 1
+helo_restrictions permit_naked_ip_address,reject_non_fqdn_hostname
+helo [1.2.3.4]
+helo [321.255.255.255]
+helo [0.255.255.255]
+helo [1.2.3.321]
+helo [1.2.3]
+helo [1.2.3.4.5]
+helo [1..2.3.4]
+helo [.1.2.3.4]
+helo [1.2.3.4.5.]
+helo 1.2.3.4
+helo 321.255.255.255
+helo 0.255.255.255
+helo 1.2.3.321
+helo 1.2.3
+helo 1.2.3.4.5
+helo 1..2.3.4
+helo .1.2.3.4
+helo 1.2.3.4.5.

@@ -20,6 +20,7 @@
   */
 #include <been_here.h>
 #include <tok822.h>
+#include <deliver_request.h>
 
  /*
   * User attributes: these control the privileges for delivery to external
@@ -97,6 +98,7 @@ typedef struct LOCAL_STATE {
     DELIVER_ATTR msg_attr;		/* message attributes */
     BH_TABLE *dup_filter;		/* internal duplicate filter */
     HTABLE *loop_info;			/* external loop filter */
+    DELIVER_REQUEST *request;		/* as from queue manager */
 } LOCAL_STATE;
 
 #define RESET_OWNER_ATTR(msg_attr, level) { \
@@ -122,6 +124,12 @@ typedef struct LOCAL_STATE {
 #define OPENED_ATTR(attr)	attr.queue_id, attr.sender
 #define COPY_ATTR(attr)		attr.sender, attr.delivered, attr.fp
 
+#define MSG_LOG_STATE(m, s) \
+	msg_info("%s[%d]: local %s recip %s exten %s deliver %s", m, \
+                s.level, s.msg_attr.local, s.msg_attr.recipient, \
+		s.msg_attr.extension ? s.msg_attr.extension : "", \
+		s.msg_attr.delivered ? s.msg_attr.delivered : "")
+
  /*
   * "inner" nodes of the delivery graph.
   */
@@ -138,11 +146,12 @@ extern int deliver_resolve_addr(LOCAL_STATE, USER_ATTR, char *);
  /*
   * "leaf" nodes of the delivery graph.
   */
-extern int deliver_mailbox(LOCAL_STATE, USER_ATTR);
+extern int deliver_mailbox(LOCAL_STATE, USER_ATTR, int *);
 extern int deliver_command(LOCAL_STATE, USER_ATTR, char *);
 extern int deliver_file(LOCAL_STATE, USER_ATTR, char *);
 extern int deliver_indirect(LOCAL_STATE);
 extern int deliver_maildir(LOCAL_STATE, USER_ATTR, char *);
+extern int deliver_unknown(LOCAL_STATE, USER_ATTR);
 
  /*
   * Restrictions on delivery to sensitive destinations.

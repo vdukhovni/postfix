@@ -1,27 +1,30 @@
 /*++
 /* NAME
-/*	bounce_flush_service 3
+/*	bounce_notify_service 3
 /* SUMMARY
 /*	send non-delivery report to sender, server side
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_flush_service(queue_name, queue_id, sender)
+/*	int     bounce_notify_service(queue_name, queue_id, sender, flush)
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*sender;
+/*	int	flush;
 /* DESCRIPTION
-/*	This module implements the server side of the bounce_flush()
-/*	(send bounce message) request.
+/*	This module implements the server side of the bounce_notify()
+/*	(send bounce message) request. If flush is zero, the logfile
+/*	is not removed, and a warning is sent instead of a bounce.
 /*
 /*	When a message bounces, a full copy is sent to the originator,
-/*	and a copy of the diagnostics with message headers is sent to
-/*	the postmaster.  The result is non-zero when the operation
+/*	and an optional  copy of the diagnostics with message headers is
+/*	sent to the postmaster.  The result is non-zero when the operation
 /*	should be tried again.
 /*
-/*	When a single bounce is sent, the sender address is the empty
-/*	address.  When a double bounce is sent, the sender is taken
-/*	from the configuration parameter \fIdouble_bounce_sender\fR.
+/*	When a bounce is sent, the sender address is the empty
+/*	address.  When a bounce bounces, an optional double bounce
+/*	with the entire undeliverable mail is sent to the postmaster,
+/*	with as sender address the double bounce address.
 /* DIAGNOSTICS
 /*	Fatal error: error opening existing file. Warnings: corrupt
 /*	message file. A corrupt message is saved to the "corrupt"
@@ -88,27 +91,35 @@
 
 /* bounce_header - generate bounce message header */
 
-static int bounce_header(VSTREAM *bounce, VSTRING *buf, char *dest)
+static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest, int flush)
 {
 
     /*
      * Print a minimal bounce header. The cleanup service will add other
      * headers and will make all addresses fully qualified.
      */
+#define STREQ(a, b) (strcasecmp((a), (b)) == 0)
+
     post_mail_fprintf(bounce, "From: %s (Mail Delivery System)",
 		      MAIL_ADDR_MAIL_DAEMON);
-    post_mail_fprintf(bounce, *dest == 0 ?
-		      "Subject: Postmaster Copy: Undelivered Mail" :
-		      "Subject: Undelivered Mail Returned to Sender");
-    quote_822_local(buf, *dest == 0 ? mail_addr_postmaster() : dest);
-    post_mail_fprintf(bounce, "To: %s", STR(buf));
+
+    if (flush) {
+	post_mail_fputs(bounce, STREQ(dest, mail_addr_postmaster()) ?
+			"Subject: Postmaster Copy: Undelivered Mail" :
+			"Subject: Undelivered Mail Returned to Sender");
+    } else {
+	post_mail_fputs(bounce, STREQ(dest, mail_addr_postmaster()) ?
+			"Subject: Postmaster Warning: Delayed Mail" :
+			"Subject: Delayed Mail (still being retried)");
+    }
+    post_mail_fprintf(bounce, "To: %s", STR(quote_822_local(buf, dest)));
     post_mail_fputs(bounce, "");
     return (vstream_ferror(bounce));
 }
 
 /* bounce_boilerplate - generate boiler-plate text */
 
-static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf)
+static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf, int flush)
 {
 
     /*
@@ -121,19 +132,38 @@ static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf)
     post_mail_fprintf(bounce, "This is the %s program at host %s.",
 		      var_mail_name, var_myhostname);
     post_mail_fputs(bounce, "");
-    post_mail_fprintf(bounce,
+    if (flush) {
+	post_mail_fputs(bounce,
 	       "I'm sorry to have to inform you that the message returned");
-    post_mail_fprintf(bounce,
+	post_mail_fputs(bounce,
 	       "below could not be delivered to one or more destinations.");
+    } else {
+	post_mail_fputs(bounce,
+			"####################################################################");
+	post_mail_fputs(bounce,
+			"# THIS IS A WARNING ONLY.  YOU DO NOT NEED TO RESEND YOUR MESSAGE. #");
+	post_mail_fputs(bounce,
+			"####################################################################");
+	post_mail_fputs(bounce, "");
+	post_mail_fprintf(bounce,
+			"Your message could not be delivered for %d hours.",
+			  var_delay_warn_time);
+	post_mail_fprintf(bounce,
+			  "It will be retried until it is %d days old.",
+			  var_max_queue_time);
+    }
+
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce,
 		      "For further assistance, please contact <%s>",
 		      STR(canon_addr_external(buf, MAIL_ADDR_POSTMASTER)));
-    post_mail_fputs(bounce, "");
-    post_mail_fprintf(bounce,
+    if (flush) {
+	post_mail_fputs(bounce, "");
+	post_mail_fprintf(bounce,
 	       "If you do so, please include this problem report. You can");
-    post_mail_fprintf(bounce,
+	post_mail_fprintf(bounce,
 		   "delete your own text from the message returned below.");
+    }
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "\t\t\tThe %s program", var_mail_name);
     return (vstream_ferror(bounce));
@@ -262,92 +292,140 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
     return (status);
 }
 
-/* bounce_flush_service - send a bounce */
+/* bounce_notify_service - send a bounce */
 
-int     bounce_flush_service(char *service, char *queue_name,
-			             char *queue_id, char *recipient)
+int     bounce_notify_service(char *service, char *queue_name,
+			         char *queue_id, char *recipient, int flush)
 {
     VSTRING *buf = vstring_alloc(100);
-    const char *double_bounce_addr;
-    int     status = 1;
+    int     bounce_status = 1;
+    int     postmaster_status = 1;
     VSTREAM *bounce;
+    int     notify_mask = name_mask(mail_error_masks, var_notify_classes);
 
-#define NULL_RECIPIENT		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
-#define TO_POSTMASTER(addr)	(*(addr) == 0)
 #define NULL_CLEANUP_FLAGS	0
 #define BOUNCE_HEADERS		1
 #define BOUNCE_ALL		0
 
     /*
-     * The choice of sender address depends on recipient address. For a
-     * single bounce (typically a non-delivery notification to the message
-     * originator), the sender address is the empty string. For a double
-     * bounce (typically a failed single bounce, or a postmaster notification
-     * that was produced by any of the mail processes) the sender address is
-     * defined by the var_double_bounce_sender configuration variable. When a
-     * double bounce cannot be delivered, the local delivery agent gives
-     * special treatment to the resulting bounce message.
+     * The choice of sender address depends on recipient the address. For a
+     * single bounce (a non-delivery notification to the message originator),
+     * the sender address is the empty string. For a double bounce (typically
+     * a failed single bounce, or a postmaster notification that was produced
+     * by any of the mail processes) the sender address is defined by the
+     * var_double_bounce_sender configuration variable. When a double bounce
+     * cannot be delivered, the queue manager blackholes the resulting triple
+     * bounce message.
      */
-    double_bounce_addr = mail_addr_double_bounce();
 
     /*
-     * Connect to the cleanup service, and request that the cleanup service
-     * takes no special actions in case of problems.
+     * Double bounce failed. Never send a triple bounce.
+     * 
+     * However, this does not prevent double bounces from bouncing on other
+     * systems. In order to cope with this, either the queue manager must
+     * recognize the double-bounce recipient address and discard mail, or
+     * every delivery agent must recognize the double-bounce sender address
+     * and substitute something else so mail does not come back at us.
      */
-    if ((bounce = post_mail_fopen_nowait(TO_POSTMASTER(recipient) ?
-					 double_bounce_addr : NULL_SENDER,
-					 recipient, NULL_CLEANUP_FLAGS,
-					 "BOUNCE")) != 0) {
-
-	/*
-	 * Send the bounce message header, some boilerplate text that
-	 * pretends that we are a polite mail system, the text with reason
-	 * for the bounce, and a copy of the original message.
-	 */
-	if (bounce_header(bounce, buf, recipient) == 0
-	    && bounce_boilerplate(bounce, buf) == 0
-	    && bounce_diagnostics(service, bounce, buf, queue_id) == 0)
-	    bounce_original(service, bounce, buf, queue_name, queue_id, BOUNCE_ALL);
-
-	/*
-	 * Finish the bounce, and retrieve the completion status.
-	 */
-	status = post_mail_fclose(bounce);
+    if (strcasecmp(recipient, mail_addr_double_bounce()) == 0) {
+	bounce_status = 0;
     }
 
     /*
-     * If not sending to the postmaster or double-bounce pseudo accounts,
-     * send a postmaster copy as if it is a double bounce, so it will not
-     * bounce in case of error. This time, block while waiting for resources
-     * to become available. We know they were available just a split second
-     * ago.
+     * Single bounce failed. Optionally send a double bounce to postmaster.
      */
-    if (status == 0 && !TO_POSTMASTER(recipient)
-	&& strcasecmp(recipient, double_bounce_addr) != 0
-	&& (MAIL_ERROR_BOUNCE & name_mask(mail_error_masks, var_notify_classes))) {
+#define ANY_BOUNCE (MAIL_ERROR_2BOUNCE | MAIL_ERROR_BOUNCE)
+#define SKIP_IF_BOUNCE (flush == 1 && (notify_mask & ANY_BOUNCE) == 0)
+#define SKIP_IF_DELAY  (flush == 0 && (notify_mask & MAIL_ERROR_DELAY) == 0)
+
+    else if (*recipient == 0) {
+	if (SKIP_IF_BOUNCE || SKIP_IF_DELAY) {
+	    bounce_status = 0;
+	} else {
+	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
+						 mail_addr_postmaster(),
+						 NULL_CLEANUP_FLAGS,
+						 "BOUNCE")) != 0) {
+
+		/*
+		 * Double bounce to Postmaster. This is the last opportunity
+		 * for this message to be delivered. Send the text with
+		 * reason for the bounce, and the headers of the original
+		 * message. Don't bother sending the boiler-plate text.
+		 */
+		if (!bounce_header(bounce, buf, mail_addr_postmaster(), flush)
+		 && bounce_diagnostics(service, bounce, buf, queue_id) == 0)
+		    bounce_original(service, bounce, buf, queue_name, queue_id,
+				    flush ? BOUNCE_ALL : BOUNCE_HEADERS);
+		bounce_status = post_mail_fclose(bounce);
+	    }
+	}
+    }
+
+    /*
+     * Non-bounce failed. Send a single bounce.
+     */
+    else {
+	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
+					     NULL_CLEANUP_FLAGS,
+					     "BOUNCE")) != 0) {
+
+	    /*
+	     * Send the bounce message header, some boilerplate text that
+	     * pretends that we are a polite mail system, the text with
+	     * reason for the bounce, and a copy of the original message.
+	     */
+	    if (bounce_header(bounce, buf, recipient, flush) == 0
+		&& bounce_boilerplate(bounce, buf, flush) == 0
+		&& bounce_diagnostics(service, bounce, buf, queue_id) == 0)
+		bounce_original(service, bounce, buf, queue_name, queue_id,
+				flush ? BOUNCE_ALL : BOUNCE_HEADERS);
+	    bounce_status = post_mail_fclose(bounce);
+	}
 
 	/*
-	 * Send the text with reason for the bounce, and the headers of the
-	 * original message. Don't bother sending the boiler-plate text.
+	 * Optionally, send a postmaster notice.
+	 * 
+	 * This postmaster notice is not critical, so if it fails don't
+	 * retransmit the bounce that we just generated, just log a warning.
 	 */
-	bounce = post_mail_fopen(double_bounce_addr, NULL_RECIPIENT,
-				 NULL_CLEANUP_FLAGS, "BOUNCE");
-	if (bounce_header(bounce, buf, NULL_RECIPIENT) == 0
-	    && bounce_diagnostics(service, bounce, buf, queue_id) == 0)
-	    bounce_original(service, bounce, buf, queue_name, queue_id, BOUNCE_HEADERS);
+#define WANT_IF_BOUNCE (flush == 1 && (notify_mask & MAIL_ERROR_BOUNCE))
+#define WANT_IF_DELAY  (flush == 0 && (notify_mask & MAIL_ERROR_DELAY))
 
-	/*
-	 * Finish the bounce, and update the completion status.
-	 */
-	status |= post_mail_fclose(bounce);
+	if (bounce_status == 0 && (WANT_IF_BOUNCE || WANT_IF_DELAY)
+	    && strcasecmp(recipient, mail_addr_double_bounce()) != 0) {
+
+	    /*
+	     * Send the text with reason for the bounce, and the headers of
+	     * the original message. Don't bother sending the boiler-plate
+	     * text. This postmaster notice is not critical, so if it fails
+	     * don't retransmit the bounce that we just generated, just log a
+	     * warning.
+	     */
+	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
+						 mail_addr_postmaster(),
+						 NULL_CLEANUP_FLAGS,
+						 "BOUNCE")) != 0) {
+		if (!bounce_header(bounce, buf, mail_addr_postmaster(), flush)
+		 && bounce_diagnostics(service, bounce, buf, queue_id) == 0)
+		    bounce_original(service, bounce, buf, queue_name, queue_id,
+				    BOUNCE_HEADERS);
+		postmaster_status = post_mail_fclose(bounce);
+	    }
+	    if (postmaster_status)
+		msg_warn("postmaster notice failed while bouncing to %s",
+			 recipient);
+	}
     }
 
     /*
      * Examine the completion status. Delete the bounce log file only when
-     * the bounce was posted successfully.
+     * the bounce was posted successfully, and only if we are bouncing for
+     * real, not just warning.
      */
-    if (status == 0 && mail_queue_remove(service, queue_id) && errno != ENOENT)
+    if (flush != 0 && bounce_status == 0 && mail_queue_remove(service, queue_id)
+	&& errno != ENOENT)
 	msg_fatal("remove %s %s: %m", service, queue_id);
 
     /*
@@ -355,5 +433,5 @@ int     bounce_flush_service(char *service, char *queue_name,
      */
     vstring_free(buf);
 
-    return (status);
+    return (bounce_status);
 }

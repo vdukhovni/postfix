@@ -54,6 +54,7 @@ If your system is supported, it is one of
     BSD/OS 4.x
     FreeBSD 2.x
     FreeBSD 3.x
+    FreeBSD 4.x
     HP-UX  9.x
     HP-UX 10.x
     HP-UX 11.x
@@ -110,7 +111,7 @@ of the compiler:
     % make makefiles CC="purify cc"
     % make
 
-and so on. On some cases, optimization is turned off automatically.
+and so on. In some cases, optimization is turned off automatically.
 
 In order to build with non-default settings, for example, with a
 configuration directory other than /etc/postfix, use:
@@ -172,7 +173,7 @@ Installing Postfix by hand takes only a few steps.
     # chmod 755 /etc/postfix
     # cp /some/where/postfix/conf/* /etc/postfix
     # chmod 644 /etc/postfix/*
-    # chmod 755 /etc/postfix/postfix-script
+    # chmod 755 /etc/postfix/postfix-script*
 
   This also installs the LICENSE file, as required.
 

@@ -62,6 +62,12 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBfallback_relay\fR
+/*	Hosts to hand off mail to if a message destination is not found
+/*	or if a destination is unreachable.
+/* .IP \fBignore_mx_lookup_error\fR
+/*	When a name server fails to respond to an MX query, search for an
+/*	A record instead of assuming that the name server will recover.
 /* .IP \fBinet_interfaces\fR
 /*	The network interface addresses that this mail system receives
 /*	mail on. When any of those addresses appears in the list of mail
@@ -70,6 +76,10 @@
 /* .IP \fBnotify_classes\fR
 /*	When this parameter includes the \fBprotocol\fR class, send mail to the
 /*	postmaster with transcripts of SMTP sessions with protocol errors.
+/* .IP \fBsmtp_skip_4xx_greeting\fR
+/*	Skip servers that greet us with a 4xx status code.
+/* .IP \fBsmtp_skip_quit_response\fR
+/*	Do not wait for the server response after sending QUIT.
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -178,6 +188,10 @@ char   *var_inet_interfaces;
 char   *var_debug_peer_list;
 int     var_debug_peer_level;
 char   *var_notify_classes;
+int     var_smtp_skip_4xx_greeting;
+int     var_ign_mx_lookup_err;
+int     var_skip_quit_resp;
+char   *var_fallback_relay;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -299,6 +313,7 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
+	VAR_FALLBACK_RELAY, DEF_FALLBACK_RELAY, &var_fallback_relay, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
@@ -313,10 +328,17 @@ int     main(int argc, char **argv)
 	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
 	0,
     };
+    static CONFIG_BOOL_TABLE bool_table[] = {
+	VAR_SMTP_SKIP_4XX, DEF_SMTP_SKIP_4XX, &var_smtp_skip_4xx_greeting,
+	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
+	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
+	0,
+    };
 
     single_server_main(argc, argv, smtp_service,
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, debug_peer_init,
 		       0);
 }

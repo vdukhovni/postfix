@@ -14,7 +14,7 @@
 /*
 /*	The \fBpostdrop\fR command is automatically invoked by the
 /*	\fBsendmail\fR(1) mail posting agent when the \fBmaildrop\fR
-/*	queue directory is not writable.
+/*	queue directory is not world-writable.
 /*
 /*	Options:
 /* .IP \fB-v\fR

@@ -104,7 +104,7 @@ int     qmgr_queue_count;
 
 /* qmgr_queue_unthrottle_wrapper - in case (char *) != (struct *) */
 
-static void qmgr_queue_unthrottle_wrapper(char *context)
+static void qmgr_queue_unthrottle_wrapper(int unused_event, char *context)
 {
     QMGR_QUEUE *queue = (QMGR_QUEUE *) context;
 
@@ -123,6 +123,7 @@ static void qmgr_queue_unthrottle_wrapper(char *context)
 void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 {
     char   *myname = "qmgr_queue_unthrottle";
+    QMGR_TRANSPORT *transport = queue->transport;
 
     if (msg_verbose)
 	msg_info("%s: queue %s", myname, queue->name);
@@ -136,6 +137,8 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
 	    msg_panic("%s: queue %s: window 0 reason 0", myname, queue->name);
 	myfree(queue->reason);
 	queue->reason = 0;
+	queue->window = transport->init_dest_concurrency;
+	return;
     }
 
     /*
@@ -144,9 +147,8 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
      * to the actual concurrency + 1, so that qmgr_queue_throttle() takes
      * effect quickly.
      */
-#define LIMIT_OK(limit, count) ((limit) == 0 || ((count) < (limit)))
-
-    if (LIMIT_OK(queue->transport->dest_concurrency_limit, queue->window))
+    if (transport->dest_concurrency_limit == 0
+	|| transport->dest_concurrency_limit > queue->busy_refcount)
 	queue->window = queue->busy_refcount + 1;
 }
 
@@ -167,18 +169,15 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, const char *reason)
 
     /*
      * Decrease the destination's concurrency limit until we reach zero, at
-     * which point the destination is declared dead. Set the destination's
-     * concurrency limit to the actual concurrency - 1, so that throttle
-     * operations take effect quickly.
+     * which point the destination is declared dead. Decrease the concurrency
+     * limit by one, instead of using actual concurrency - 1, to avoid
+     * declaring a host dead after just one single delivery failure.
      */
-    queue->window = queue->busy_refcount - 1;
+    if (queue->window > 0)
+	queue->window--;
 
     /*
-     * Special case for a transport that just was declared dead. Gradually
-     * increase the time between the attempts to contact this destination, up
-     * to a configurable upper limit. When the destination is unreachable for
-     * a substantial amount of time, a message will eventually become so old
-     * that it will be bounced.
+     * Special case for a site that just was declared dead.
      */
     if (queue->window == 0) {
 	queue->reason = mystrdup(reason);
@@ -250,7 +249,6 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *site)
      * If possible, choose an initial concurrency of > 1 so that one bad
      * message or one bad network won't slow us down unnecessarily.
      */
-#define LIMIT_OK(limit, count) ((limit) == 0 || ((count) < (limit)))
 
     queue = (QMGR_QUEUE *) mymalloc(sizeof(QMGR_QUEUE));
     qmgr_queue_count++;
@@ -258,14 +256,11 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *site)
     queue->todo_refcount = 0;
     queue->busy_refcount = 0;
     queue->transport = transport;
-    if (LIMIT_OK(transport->dest_concurrency_limit, var_init_dest_concurrency))
-	queue->window = var_init_dest_concurrency;
-    else
-	queue->window = transport->dest_concurrency_limit;
+    queue->window = transport->init_dest_concurrency;
     QMGR_LIST_INIT(queue->todo);
     QMGR_LIST_INIT(queue->busy);
     queue->reason = 0;
-    QMGR_LIST_APPEND(transport->queue_list, queue);
+    QMGR_LIST_PREPEND(transport->queue_list, queue);
     htable_enter(transport->queue_byname, site, (char *) queue);
     return (queue);
 }

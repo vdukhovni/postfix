@@ -55,6 +55,8 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBalways_bcc\fR
+/*	Address to send a copy of each message that enters the system.
 /* .IP \fBcommand_directory\fR
 /*	Location of Postfix support commands (default:
 /*	\fB$program_directory\fR).
@@ -205,11 +207,11 @@
 #include <stringops.h>
 #include <events.h>
 #include <smtp_stream.h>
-#include <peer_name.h>
 #include <valid_hostname.h>
 
 /* Global library. */
 
+#include <peer_name.h>
 #include <mail_params.h>
 #include <record.h>
 #include <rec_type.h>
@@ -269,6 +271,8 @@ char   *var_maps_rbl_domains;
 int     var_helo_required;
 int     var_reject_code;
 int     var_smtpd_err_sleep;
+int     var_non_fqdn_code;
+char   *var_always_bcc;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -580,6 +584,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
      */
+    if (*var_always_bcc)
+	rec_fputs(state->cleanup, REC_TYPE_RCPT, var_always_bcc);
     rec_fputs(state->cleanup, REC_TYPE_MESG, "");
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"Received: from %s (%s [%s])",
@@ -1123,6 +1129,7 @@ int     main(int argc, char **argv)
 	VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code, 0, 0,
 	VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code, 0, 0,
 	VAR_SMTPD_ERR_SLEEP, DEF_SMTPD_ERR_SLEEP, &var_smtpd_err_sleep, 0, 0,
+	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -1140,6 +1147,7 @@ int     main(int argc, char **argv)
 	VAR_RCPT_CHECKS, DEF_RCPT_CHECKS, &var_rcpt_checks, 0, 0,
 	VAR_ETRN_CHECKS, DEF_ETRN_CHECKS, &var_etrn_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
+	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	0,
     };
 

@@ -13,8 +13,8 @@
 /* DESCRIPTION
 /*	This module triggers delivery of backed up mail.
 /*
-/*	mail_flush_deferred() triggers delivery of all mail in the
-/*	deferred queue.
+/*	mail_flush_deferred() triggers delivery of all deferred
+/*	or incoming mail.
 /*
 /*	mail_flush_site() triggers delivery of all mail queued for
 /*	the named site. This routine may degenerate into a
@@ -51,6 +51,7 @@ int     mail_flush_deferred(void)
 	QMGR_REQ_FLUSH_DEAD,		/* all hosts, all transports */
 	QMGR_REQ_SCAN_ALL,		/* all time stamps */
 	QMGR_REQ_SCAN_DEFERRED,		/* scan deferred queue */
+	QMGR_REQ_SCAN_INCOMING,		/* scan incoming queue */
     };
 
     /*

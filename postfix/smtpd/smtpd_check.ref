@@ -1,8 +1,7 @@
 >>> #
 >>> # Initialize.
 >>> #
->>> ! ../bin/postmap smtpd_check_access
-exit 0
+>>> #! ../bin/postmap smtpd_check_access
 >>> #msg_verbose 1
 >>> mynetworks 127.0.0.0/8,168.100.189.0/28
 OK
@@ -63,6 +62,7 @@ OK
 >>> helo_restrictions reject_invalid_hostname,reject_unknown_hostname
 OK
 >>> helo 123.123.123.123
+./smtpd_check: warning: valid_hostname: numeric hostname: 123.123.123.123
 ./smtpd_check: reject: HELO from foo[123.123.123.123]: 450 <123.123.123.123>: Host not found
 450 <123.123.123.123>: Host not found
 >>> helo_restrictions permit_naked_ip_address,reject_invalid_hostname,reject_unknown_hostname
@@ -180,8 +180,8 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 550 Service unavailable; blocked using rbl.maps.vix.com
-550 Service unavailable; blocked using rbl.maps.vix.com
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 550 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
+550 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
 >>> #
 >>> # Hybrids
 >>> #
@@ -209,6 +209,7 @@ OK
 ./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
 550 match bad.domain
 >>> helo 131.155.210.17
+./smtpd_check: warning: valid_hostname: numeric hostname: 131.155.210.17
 OK
 >>> rcpt foo@porcupine.org
 OK
@@ -240,3 +241,157 @@ OK
 550 <wietse@trouble.org> Access denied
 >>> rcpt wietse@porcupine.org
 OK
+>>> #
+>>> # Deferred restrictions
+>>> #
+>>> client_restrictions permit
+OK
+>>> helo_restrictions permit
+OK
+>>> sender_restrictions permit
+OK
+>>> recipient_restrictions check_helo_access,hash:./smtpd_check_access,check_sender_access,hash:./smtpd_check_access
+OK
+>>> helo bad.domain
+OK
+>>> mail foo@good.domain
+OK
+>>> rcpt foo@porcupine.org
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
+550 match bad.domain
+>>> helo good.domain
+OK
+>>> mail foo@bad.domain
+OK
+>>> rcpt foo@porcupine.org
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 550 match bad.domain
+550 match bad.domain
+>>> #
+>>> # FQDN restrictions
+>>> #
+>>> helo_restrictions reject_non_fqdn_hostname
+OK
+>>> sender_restrictions reject_non_fqdn_sender
+OK
+>>> recipient_restrictions reject_non_fqdn_recipient
+OK
+>>> helo foo.bar.
+OK
+>>> helo foo.bar
+OK
+>>> helo foo
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 504 <foo>: need fully-qualified hostname
+504 <foo>: need fully-qualified hostname
+>>> mail foo@foo.bar.
+OK
+>>> mail foo@foo.bar
+OK
+>>> mail foo@foo
+./smtpd_check: reject: MAIL from foo[131.155.210.17]: 504 <foo@foo>: need fully-qualified address
+504 <foo@foo>: need fully-qualified address
+>>> mail foo
+./smtpd_check: reject: MAIL from foo[131.155.210.17]: 504 <foo>: need fully-qualified address
+504 <foo>: need fully-qualified address
+>>> rcpt foo@foo.bar.
+OK
+>>> rcpt foo@foo.bar
+OK
+>>> rcpt foo@foo
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 504 <foo@foo>: need fully-qualified address
+504 <foo@foo>: need fully-qualified address
+>>> rcpt foo
+./smtpd_check: reject: RCPT from foo[131.155.210.17]: 504 <foo>: need fully-qualified address
+504 <foo>: need fully-qualified address
+>>> #
+>>> # Numerical HELO checks
+>>> #
+>>> msg_verbose 1
+OK
+>>> helo_restrictions permit_naked_ip_address,reject_non_fqdn_hostname
+OK
+>>> helo [1.2.3.4]
+./smtpd_check: reject_invalid_hostaddr: [1.2.3.4]
+OK
+>>> helo [321.255.255.255]
+./smtpd_check: reject_invalid_hostaddr: [321.255.255.255]
+./smtpd_check: warning: valid_hostaddr: invalid octet value: 321.255.255.255
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[321.255.255.255]>: Invalid ip address
+501 <[321.255.255.255]>: Invalid ip address
+>>> helo [0.255.255.255]
+./smtpd_check: reject_invalid_hostaddr: [0.255.255.255]
+./smtpd_check: warning: valid_hostaddr: bad initial octet value: 0.255.255.255
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[0.255.255.255]>: Invalid ip address
+501 <[0.255.255.255]>: Invalid ip address
+>>> helo [1.2.3.321]
+./smtpd_check: reject_invalid_hostaddr: [1.2.3.321]
+./smtpd_check: warning: valid_hostaddr: invalid octet value: 1.2.3.321
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3.321]>: Invalid ip address
+501 <[1.2.3.321]>: Invalid ip address
+>>> helo [1.2.3]
+./smtpd_check: reject_invalid_hostaddr: [1.2.3]
+./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3]>: Invalid ip address
+501 <[1.2.3]>: Invalid ip address
+>>> helo [1.2.3.4.5]
+./smtpd_check: reject_invalid_hostaddr: [1.2.3.4.5]
+./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3.4.5
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3.4.5]>: Invalid ip address
+501 <[1.2.3.4.5]>: Invalid ip address
+>>> helo [1..2.3.4]
+./smtpd_check: reject_invalid_hostaddr: [1..2.3.4]
+./smtpd_check: warning: valid_hostaddr: misplaced dot: 1..2.3.4
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1..2.3.4]>: Invalid ip address
+501 <[1..2.3.4]>: Invalid ip address
+>>> helo [.1.2.3.4]
+./smtpd_check: reject_invalid_hostaddr: [.1.2.3.4]
+./smtpd_check: warning: valid_hostaddr: misplaced dot: .1.2.3.4
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[.1.2.3.4]>: Invalid ip address
+501 <[.1.2.3.4]>: Invalid ip address
+>>> helo [1.2.3.4.5.]
+./smtpd_check: reject_invalid_hostaddr: [1.2.3.4.5.]
+./smtpd_check: warning: valid_hostaddr: misplaced dot: 1.2.3.4.5.
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <[1.2.3.4.5.]>: Invalid ip address
+501 <[1.2.3.4.5.]>: Invalid ip address
+>>> helo 1.2.3.4
+./smtpd_check: reject_invalid_hostaddr: 1.2.3.4
+OK
+>>> helo 321.255.255.255
+./smtpd_check: reject_invalid_hostaddr: 321.255.255.255
+./smtpd_check: warning: valid_hostaddr: invalid octet value: 321.255.255.255
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <321.255.255.255>: Invalid ip address
+501 <321.255.255.255>: Invalid ip address
+>>> helo 0.255.255.255
+./smtpd_check: reject_invalid_hostaddr: 0.255.255.255
+./smtpd_check: warning: valid_hostaddr: bad initial octet value: 0.255.255.255
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <0.255.255.255>: Invalid ip address
+501 <0.255.255.255>: Invalid ip address
+>>> helo 1.2.3.321
+./smtpd_check: reject_invalid_hostaddr: 1.2.3.321
+./smtpd_check: warning: valid_hostaddr: invalid octet value: 1.2.3.321
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3.321>: Invalid ip address
+501 <1.2.3.321>: Invalid ip address
+>>> helo 1.2.3
+./smtpd_check: reject_invalid_hostaddr: 1.2.3
+./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3>: Invalid ip address
+501 <1.2.3>: Invalid ip address
+>>> helo 1.2.3.4.5
+./smtpd_check: reject_invalid_hostaddr: 1.2.3.4.5
+./smtpd_check: warning: valid_hostaddr: invalid octet count: 1.2.3.4.5
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3.4.5>: Invalid ip address
+501 <1.2.3.4.5>: Invalid ip address
+>>> helo 1..2.3.4
+./smtpd_check: reject_invalid_hostaddr: 1..2.3.4
+./smtpd_check: warning: valid_hostaddr: misplaced dot: 1..2.3.4
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1..2.3.4>: Invalid ip address
+501 <1..2.3.4>: Invalid ip address
+>>> helo .1.2.3.4
+./smtpd_check: reject_invalid_hostaddr: .1.2.3.4
+./smtpd_check: warning: valid_hostaddr: misplaced dot: .1.2.3.4
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <.1.2.3.4>: Invalid ip address
+501 <.1.2.3.4>: Invalid ip address
+>>> helo 1.2.3.4.5.
+./smtpd_check: reject_invalid_hostaddr: 1.2.3.4.5.
+./smtpd_check: warning: valid_hostaddr: misplaced dot: 1.2.3.4.5.
+./smtpd_check: reject: HELO from foo[131.155.210.17]: 501 <1.2.3.4.5.>: Invalid ip address
+501 <1.2.3.4.5.>: Invalid ip address

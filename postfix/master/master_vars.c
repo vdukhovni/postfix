@@ -46,6 +46,7 @@
   * Tunable parameters.
   */
 int     var_proc_limit;
+int     var_throttle_time;
 
 /* master_vars_init - initialize from global Postfix configuration file */
 
@@ -54,6 +55,7 @@ void    master_vars_init(void)
     char   *path;
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
+	VAR_THROTTLE_TIME, DEF_THROTTLE_TIME, &var_throttle_time, 1, 0,
 	0,
     };
 
@@ -63,4 +65,3 @@ void    master_vars_init(void)
     fset_master_ent(path);
     myfree(path);
 }
-

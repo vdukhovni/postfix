@@ -70,12 +70,10 @@
 /* .IP "\fBslow start\fR"
 /*	This strategy eliminates "thundering herd" problems by slowly
 /*	adjusting the number of parallel deliveries to the same destination.
-/* .IP "\fBround robin\fR and \fBrandom walk\fR"
+/* .IP "\fBround robin\fR
 /*	The queue manager sorts delivery requests by destination.
 /*	Round-robin selection prevents one destination from dominating
 /*	deliveries to other destinations.
-/*	Random walk prevents one problematic message from blocking
-/*	deliveries of other mail to the same destination.
 /* .IP "\fBexponential backoff\fR"
 /*	Mail that cannot be delivered upon the first attempt is deferred.
 /*	The time interval between delivery attempts is doubled after each
@@ -276,7 +274,7 @@ MAPS   *qmgr_virtual;
 
 /* qmgr_deferred_run_event - queue manager heartbeat */
 
-static void qmgr_deferred_run_event(char *dummy)
+static void qmgr_deferred_run_event(int unused_event, char *dummy)
 {
 
     /*
@@ -322,9 +320,11 @@ static void qmgr_trigger_event(char *buf, int len,
 	    break;
 	case QMGR_REQ_FLUSH_DEAD:
 	    deferred_flag |= QMGR_FLUSH_DEAD;
+	    incoming_flag |= QMGR_FLUSH_DEAD;
 	    break;
 	case QMGR_REQ_SCAN_ALL:
 	    deferred_flag |= QMGR_SCAN_ALL;
+	    incoming_flag |= QMGR_SCAN_ALL;
 	    break;
 	default:
 	    if (msg_verbose)
@@ -406,18 +406,22 @@ static void qmgr_post_init(void)
      * This routine runs after the skeleton code has entered the chroot jail.
      * Prevent automatic process suicide after a limited number of client
      * requests or after a limited amount of idle time. Move any left-over
-     * entries from the active queue to the deferred queue, and give them a
+     * entries from the active queue to the incoming queue, and give them a
      * time stamp into the future, in order to allow ongoing deliveries to
      * finish first. Start scanning the incoming and deferred queues.
+     * Left-over active queue entries are moved to the incoming queue because
+     * the incoming queue has priority; moving left-overs to the deferred
+     * queue could cause anomalous delays when "postfix reload/start" are
+     * issued often.
      */
     var_use_limit = 0;
     var_idle_limit = 0;
-    qmgr_move(MAIL_QUEUE_ACTIVE, MAIL_QUEUE_DEFERRED,
-	      event_time() + var_queue_run_delay);
+    qmgr_move(MAIL_QUEUE_ACTIVE, MAIL_QUEUE_INCOMING,
+	      event_time() + var_min_backoff_time);
     qmgr_incoming = qmgr_scan_create(MAIL_QUEUE_INCOMING);
     qmgr_deferred = qmgr_scan_create(MAIL_QUEUE_DEFERRED);
     qmgr_scan_request(qmgr_incoming, QMGR_SCAN_START);
-    qmgr_deferred_run_event((char *) 0);
+    qmgr_deferred_run_event(0, (char *) 0);
 }
 
 /* main - the main program */

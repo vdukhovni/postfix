@@ -169,6 +169,7 @@ char   *var_masq_domains;		/* masquerade domains */
 char   *var_masq_exceptions;		/* users not masqueraded */
 int     var_dup_filter_limit;		/* recipient dup filter */
 char   *var_empty_addr;			/* destination of bounced bounces */
+int     var_delay_warn_time;		/* delay that triggers warning */
 
  /*
   * Mappings.
@@ -411,6 +412,7 @@ int     main(int argc, char **argv)
 	VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
 	VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
 	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
+	VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

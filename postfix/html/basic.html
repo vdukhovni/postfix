@@ -12,7 +12,7 @@
 
 <hr>
 
-<a href="config.html">Up one level</a> | Basic Configuration | <a
+<a href="index.html">Up one level</a> | Basic Configuration | <a
 href="uce.html">UCE Controls</a> | <a href="rate.html"> Rate
 Controls</a> | <a href="resource.html"> Resource Controls</a> | <a
 href="rewrite.html"> Address Manipulation </a>
@@ -177,7 +177,7 @@ report only serious problems (resource, software) to postmaster:
 
 <dl>
 
-<dt> Example:
+<dt> Default:
 
 <dd> <b>notify_classes = resource, software</b>
 
@@ -189,9 +189,23 @@ report only serious problems (resource, software) to postmaster:
 
 <dl>
 
-<dt> <b>bounce</b> <dd> Inform the postmaster of undeliverable
-mail.  For privacy reasons, the postmaster receives the message
-headers only.
+<dt> <b>bounce</b> <dd> Send postmaster copies of undeliverable
+mail.  If mail is undeliverable, a so-called single bounce message
+is sent, with a copy of the message that was not delivered. For
+privacy reasons, the postmaster copy of a single bounce message is
+truncated after the original message headers.  If a single bounce
+message is undeliverable, the postmaster receives a double bounce
+message with a copy of the entire single bounce message.  See also
+the <a href="rewrite.html#luser_relay"> luser_relay</a> feature.
+
+<p>
+
+<dt> <b>2bounce</b> <dd> Send double bounces to the postmaster.
+
+<p>
+
+<dt> <b>delay</b> <dd> Inform the postmaster of delayed mail.
+In this case, the postmaster receives message headers only.
 
 <p>
 
@@ -333,7 +347,7 @@ on the virtual interfaces or you would have a mailer loop.
 
 <hr>
 
-<a href="config.html">Up one level</a> | Basic Configuration | <a
+<a href="index.html">Up one level</a> | Basic Configuration | <a
 href="uce.html">UCE Controls</a> | <a href="rate.html"> Rate
 Controls</a> | <a href="resource.html"> Resource Controls</a> | <a
 href="rewrite.html"> Address Manipulation </a>

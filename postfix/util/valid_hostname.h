@@ -13,9 +13,11 @@
 
  /* External interface */
 
-#define VALID_HOSTNAME_LEN	256
+#define VALID_HOSTNAME_LEN	255	/* RFC 1035 */
+#define VALID_LABEL_LEN		63	/* RFC 1035 */
 
 extern int valid_hostname(const char *);
+extern int valid_hostaddr(const char *);
 
 /* LICENSE
 /* .ad

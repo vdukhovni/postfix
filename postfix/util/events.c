@@ -12,7 +12,7 @@
 /*	int	delay;
 /*
 /*	time_t	event_request_timer(callback, context, delay)
-/*	void	(*callback)(char *context);
+/*	void	(*callback)(int event, char *context);
 /*	char	*context;
 /*	int	delay;
 /*
@@ -57,6 +57,7 @@
 /*	be called with the specified context argument after \fIdelay\fR
 /*	seconds, or as soon as possible thereafter. The delay should
 /*	not be negative.
+/*	The event argument is equal to EVENT_TIME.
 /*	Only one timer request can be active per (callback, context) pair.
 /*	Calling event_request_timer() with an existing (callback, context)
 /*	pair does not schedule a new event, but updates the moment of
@@ -534,7 +535,7 @@ void    event_loop(int delay)
 	if (msg_verbose > 2)
 	    msg_info("%s: timer 0x%lx 0x%lx", myname,
 		     (long) timer->callback, (long) timer->context);
-	timer->callback(timer->context);	/* then this */
+	timer->callback(EVENT_TIME, timer->context);	/* then this */
 	myfree((char *) timer);
     }
 

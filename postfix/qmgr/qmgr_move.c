@@ -45,6 +45,7 @@
 /* Global library. */
 
 #include <mail_queue.h>
+#include <mail_scan_dir.h>
 
 /* Application-specific. */
 
@@ -67,7 +68,7 @@ void    qmgr_move(const char *src_queue, const char *dst_queue,
 	msg_info("start move queue %s -> %s", src_queue, dst_queue);
 
     queue_dir = scan_dir_open(src_queue);
-    while ((queue_id = scan_dir_next(queue_dir)) != 0) {
+    while ((queue_id = mail_scan_dir_next(queue_dir)) != 0) {
 	if (mail_queue_id_ok(queue_id)) {
 	    if (time_stamp > 0) {
 		tbuf.actime = tbuf.modtime = time_stamp;

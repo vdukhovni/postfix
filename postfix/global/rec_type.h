@@ -31,6 +31,7 @@
 #define REC_TYPE_FROM	'S'		/* sender, required */
 #define REC_TYPE_DONE	'D'		/* delivered recipient, optional */
 #define REC_TYPE_RCPT	'R'		/* todo recipient, optional */
+#define REC_TYPE_WARN	'W'		/* warning message time */
 
 #define REC_TYPE_MESG	'M'		/* start message records */
 
@@ -50,7 +51,7 @@
   * record groups. The first member in each set is the record type that
   * indicates the end of that record group.
   */
-#define REC_TYPE_ENVELOPE	"MCTFSDR"
+#define REC_TYPE_ENVELOPE	"MCTFSDRW"
 #define REC_TYPE_CONTENT	"XLN"
 #define REC_TYPE_EXTRACT	"EDRPre"
 #define REC_TYPE_NOEXTRACT	"E"
@@ -60,14 +61,22 @@
   * content size. This is the format of the position field. It is a
   * fixed-width field so it can be updated in place.
   */
-#define REC_TYPE_SIZE_FORMAT	"%9d"	/* content size format */
+#define REC_TYPE_SIZE_FORMAT	"%15ld"	/* content size format */
 
  /*
   * The record at the beginning of the message content records specifies the
   * position of the next record group. This is the format of the position
   * field. It is a fixed-width field so it can be updated in place.
   */
-#define REC_TYPE_MESG_FORMAT	"%9d"	/* message length format */
+#define REC_TYPE_MESG_FORMAT	"%15ld"	/* message length format */
+
+ /*
+  * The warn record specifies when the next warning that the message
+  * was deferred should be sent.  It is updated in place by qmgr, so
+  * changing this value when there are deferred mesages in the queue
+  * is dangerous!
+  */
+#define REC_TYPE_WARN_FORMAT	"%15ld"	/* warning time format */
 
  /*
   * Programmatic interface.

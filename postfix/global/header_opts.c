@@ -66,7 +66,7 @@ static HEADER_OPTS header_opts[] = {
     "Resent-Reply-To", HDR_RESENT_REPLY_TO, HDR_OPT_RECIP | HDR_OPT_RR,
     "Resent-Sender", HDR_RESENT_SENDER, HDR_OPT_SENDER | HDR_OPT_RR,
     "Resent-To", HDR_RESENT_TO, HDR_OPT_XRECIP | HDR_OPT_RR,
-    "Return-Path", HDR_RETURN_PATH, HDR_OPT_SENDER,
+    "Return-Path", HDR_RETURN_PATH, HDR_OPT_DROP | HDR_OPT_SENDER,
     "Return-Receipt-To", HDR_RETURN_RECEIPT_TO, HDR_OPT_RECIP,
     "Sender", HDR_SENDER, HDR_OPT_SENDER,
     "To", HDR_TO, HDR_OPT_XRECIP,

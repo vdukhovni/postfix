@@ -69,6 +69,7 @@
 
 int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
+    char   *myname = "deliver_maildir";
     char   *newdir;
     char   *tmpdir;
     char   *curdir;
@@ -81,8 +82,12 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     int     copy_flags;
     static int count;
 
+    /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
     if (msg_verbose)
-	msg_info("deliver_maildir: %s %s", state.msg_attr.recipient, path);
+	MSG_LOG_STATE(myname, state);
 
     /*
      * Initialize. Assume the operation will fail. Set the delivered
@@ -95,7 +100,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     buf = vstring_alloc(100);
     why = vstring_alloc(100);
 
-    copy_flags = MAIL_COPY_TOFILE;
+    copy_flags = MAIL_COPY_TOFILE | MAIL_COPY_RETURN_PATH;
     if ((state.msg_attr.features & FEATURE_NODELIVERED) == 0)
 	copy_flags |= MAIL_COPY_DELIVERED;
 
@@ -133,7 +138,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	if (mail_copy(COPY_ATTR(state.msg_attr), dst, copy_flags, why) == 0) {
 	    if (link(tmpfile, newfile) < 0
 		&& (errno != ENOENT
-		    || (make_dirs(curdir,0700), make_dirs(newdir, 0700)) < 0
+		    || (make_dirs(curdir, 0700), make_dirs(newdir, 0700)) < 0
 		    || link(tmpfile, newfile) < 0)) {
 		vstring_sprintf(why, "link to %s: %m", newfile);
 	    } else {

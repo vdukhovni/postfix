@@ -24,6 +24,8 @@
 #define MAIL_ERROR_BOUNCE	(1<<2)
 #define MAIL_ERROR_SOFTWARE	(1<<3)
 #define MAIL_ERROR_RESOURCE	(1<<4)
+#define MAIL_ERROR_2BOUNCE	(1<<5)
+#define MAIL_ERROR_DELAY	(1<<6)
 
 extern NAME_MASK mail_error_masks[];
 

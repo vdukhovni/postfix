@@ -2,8 +2,8 @@ SHELL	= /bin/sh
 SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	close_on_exec.c concatenate.c dict.c dict_db.c dict_dbm.c \
 	dict_env.c dict_ht.c dict_ldap.c dict_ni.c dict_nis.c \
-	dict_nisplus.c dict_open.c dir_forest.c environ.c events.c \
-	exec_command.c fifo_listen.c fifo_trigger.c file_limit.c \
+	dict_nisplus.c dict_open.c dir_forest.c doze.c environ.c \
+	events.c exec_command.c fifo_listen.c fifo_trigger.c file_limit.c \
 	find_inet.c fsspace.c fullname.c get_domainname.c get_hostname.c \
 	htable.c inet_addr_host.c inet_addr_list.c inet_addr_local.c \
 	inet_connect.c inet_listen.c inet_trigger.c inet_util.c \
@@ -11,19 +11,19 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	match_list.c match_ops.c msg.c msg_output.c msg_syslog.c \
 	msg_vstream.c mvect.c myflock.c mymalloc.c mystrtok.c name_mask.c \
 	non_blocking.c open_as.c open_limit.c open_lock.c peekfd.c \
-	peer_name.c percentm.c posix_signals.c printable.c read_wait.c \
-	readable.c readline.c ring.c safe_getenv.c safe_open.c \
-	sane_accept.c scan_dir.c set_eugid.c set_ugid.c sigdelay.c \
-	skipblanks.c split_at.c stat_as.c sys_compat.c timed_connect.c \
-	timed_wait.c translit.c trimblanks.c unix_connect.c unix_listen.c \
-	unix_trigger.c unsafe.c username.c valid_hostname.c vbuf.c \
-	vbuf_print.c vstream.c vstream_popen.c vstring.c vstring_vstream.c \
-	writable.c write_buf.c write_wait.c doze.c
+	percentm.c posix_signals.c printable.c read_wait.c readable.c \
+	readline.c ring.c safe_getenv.c safe_open.c sane_accept.c \
+	scan_dir.c set_eugid.c set_ugid.c sigdelay.c skipblanks.c \
+	split_at.c stat_as.c sys_compat.c timed_connect.c timed_wait.c \
+	translit.c trimblanks.c unix_connect.c unix_listen.c unix_trigger.c \
+	unsafe.c username.c valid_hostname.c vbuf.c vbuf_print.c \
+	vstream.c vstream_popen.c vstring.c vstring_vstream.c writable.c \
+	write_buf.c write_wait.c dict_unix.c dict_pcre.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_ni.o dict_nis.o \
-	dict_nisplus.o dict_open.o dir_forest.o environ.o events.o \
-	exec_command.o fifo_listen.o fifo_trigger.o file_limit.o \
+	dict_nisplus.o dict_open.o dir_forest.o doze.o environ.o \
+	events.o exec_command.o fifo_listen.o fifo_trigger.o file_limit.o \
 	find_inet.o fsspace.o fullname.o get_domainname.o get_hostname.o \
 	htable.o inet_addr_host.o inet_addr_list.o inet_addr_local.o \
 	inet_connect.o inet_listen.o inet_trigger.o inet_util.o \
@@ -31,14 +31,14 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	match_list.o match_ops.o msg.o msg_output.o msg_syslog.o \
 	msg_vstream.o mvect.o myflock.o mymalloc.o mystrtok.o name_mask.o \
 	non_blocking.o open_as.o open_limit.o open_lock.o peekfd.o \
-	peer_name.o percentm.o posix_signals.o printable.o read_wait.o \
-	readable.o readline.o ring.o safe_getenv.o safe_open.o \
-	sane_accept.o scan_dir.o set_eugid.o set_ugid.o sigdelay.o \
-	skipblanks.o split_at.o stat_as.o sys_compat.o timed_connect.o \
-	timed_wait.o translit.o trimblanks.o unix_connect.o unix_listen.o \
-	unix_trigger.o unsafe.o username.o valid_hostname.o vbuf.o \
-	vbuf_print.o vstream.o vstream_popen.o vstring.o vstring_vstream.o \
-	writable.o write_buf.o write_wait.o doze.o
+	percentm.o posix_signals.o printable.o read_wait.o readable.o \
+	readline.o ring.o safe_getenv.o safe_open.o sane_accept.o \
+	scan_dir.o set_eugid.o set_ugid.o sigdelay.o skipblanks.o \
+	split_at.o stat_as.o sys_compat.o timed_connect.o timed_wait.o \
+	translit.o trimblanks.o unix_connect.o unix_listen.o unix_trigger.o \
+	unsafe.o username.o valid_hostname.o vbuf.o vbuf_print.o \
+	vstream.o vstream_popen.o vstring.o vstring_vstream.o writable.o \
+	write_buf.o write_wait.o dict_unix.o dict_pcre.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_ni.h dict_nis.h \
 	dict_nisplus.h dir_forest.h events.h exec_command.h find_inet.h \
@@ -47,12 +47,13 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	iostuff.h line_wrap.h listen.h lstat_as.h mac_parse.h make_dirs.h \
 	match_list.h match_ops.h msg.h msg_output.h msg_syslog.h \
 	msg_vstream.h mvect.h myflock.h mymalloc.h name_mask.h open_as.h \
-	open_lock.h peer_name.h percentm.h posix_signals.h readline.h \
-	ring.h safe.h safe_open.h sane_accept.h scan_dir.h set_eugid.h \
-	set_ugid.h sigdelay.h split_at.h stat_as.h stringops.h sys_defs.h \
+	open_lock.h percentm.h posix_signals.h readline.h ring.h safe.h \
+	safe_open.h sane_accept.h scan_dir.h set_eugid.h set_ugid.h \
+	sigdelay.h split_at.h stat_as.h stringops.h sys_defs.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
-	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h
-TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c
+	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
+	dict_unix.h dict_pcre.h
+TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused 
@@ -65,7 +66,7 @@ TESTPROG= dict_open events exec_command fifo_open fifo_rdonly_bug \
 	fifo_rdwr_bug fifo_trigger fsspace fullname inet_addr_host \
 	inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok peer_name sigdelay translit valid_hostname vstream_popen \
-	vstring vstring_vstream doze
+	vstring vstring_vstream doze select_bug
 
 LIB_DIR	= ../lib
 INC_DIR	= ../include
@@ -109,7 +110,7 @@ lint:
 	lint $(SRCS)
 
 clean:
-	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) 
+	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
 	rm -rf printfck
 
 tidy:	clean
@@ -178,6 +179,9 @@ fifo_rdwr_bug: fifo_rdwr_bug.c $(LIB)
 fifo_rdonly_bug: fifo_rdonly_bug.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
+select_bug: select_bug.c $(LIB)
+	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
+
 translit: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
@@ -230,6 +234,13 @@ depend: $(MAKES)
 	    -e 's//'`echo $$i|sed 's/c$$/o/'`': \1/' -e 'p' -e '}'; \
 	done) | grep -v '[.][o][:][ ][/]' >$$$$ && mv $$$$ Makefile.in
 	@make Makefile
+
+tests: valid_hostname_test
+
+valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
+	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
+	diff valid_hostname.ref valid_hostname.tmp
+	rm -f valid_hostname.tmp
 
 # do not edit below this line - it is generated by 'make depend'
 argv.o: argv.c
@@ -310,10 +321,6 @@ dict_ht.o: vbuf.h
 dict_ht.o: dict_ht.h
 dict_ldap.o: dict_ldap.c
 dict_ldap.o: sys_defs.h
-dict_ldap.o: dict.h
-dict_ldap.o: vstream.h
-dict_ldap.o: vbuf.h
-dict_ldap.o: dict_ldap.h
 dict_ni.o: dict_ni.c
 dict_ni.o: sys_defs.h
 dict_nis.o: dict_nis.c
@@ -343,14 +350,27 @@ dict_open.o: dict.h
 dict_open.o: vstream.h
 dict_open.o: vbuf.h
 dict_open.o: dict_env.h
+dict_open.o: dict_unix.h
 dict_open.o: dict_dbm.h
 dict_open.o: dict_db.h
 dict_open.o: dict_nis.h
 dict_open.o: dict_nisplus.h
 dict_open.o: dict_ni.h
 dict_open.o: dict_ldap.h
+dict_open.o: dict_pcre.h
 dict_open.o: stringops.h
 dict_open.o: split_at.h
+dict_pcre.o: dict_pcre.c
+dict_pcre.o: sys_defs.h
+dict_unix.o: dict_unix.c
+dict_unix.o: sys_defs.h
+dict_unix.o: msg.h
+dict_unix.o: mymalloc.h
+dict_unix.o: vstring.h
+dict_unix.o: vbuf.h
+dict_unix.o: dict.h
+dict_unix.o: vstream.h
+dict_unix.o: dict_unix.h
 dir_forest.o: dir_forest.c
 dir_forest.o: sys_defs.h
 dir_forest.o: msg.h
@@ -588,11 +608,6 @@ open_lock.o: open_lock.h
 peekfd.o: peekfd.c
 peekfd.o: sys_defs.h
 peekfd.o: iostuff.h
-peer_name.o: peer_name.c
-peer_name.o: sys_defs.h
-peer_name.o: msg.h
-peer_name.o: valid_hostname.h
-peer_name.o: peer_name.h
 percentm.o: percentm.c
 percentm.o: sys_defs.h
 percentm.o: vstring.h
@@ -636,7 +651,16 @@ scan_dir.o: scan_dir.c
 scan_dir.o: sys_defs.h
 scan_dir.o: msg.h
 scan_dir.o: mymalloc.h
+scan_dir.o: stringops.h
+scan_dir.o: vstring.h
+scan_dir.o: vbuf.h
 scan_dir.o: scan_dir.h
+select_bug.o: select_bug.c
+select_bug.o: sys_defs.h
+select_bug.o: msg.h
+select_bug.o: vstream.h
+select_bug.o: vbuf.h
+select_bug.o: msg_vstream.h
 set_eugid.o: set_eugid.c
 set_eugid.o: sys_defs.h
 set_eugid.o: msg.h

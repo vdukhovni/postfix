@@ -88,7 +88,7 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      */
     state.level++;
     if (msg_verbose)
-	msg_info("%s[%d]: %s", myname, state.level, path);
+	MSG_LOG_STATE(myname, state);
 
     /*
      * DUPLICATE ELIMINATION

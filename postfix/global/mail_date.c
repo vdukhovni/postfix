@@ -31,6 +31,7 @@
 
 #include <sys_defs.h>
 #include <time.h>
+#include <stdlib.h>
 
 /* Utility library. */
 
@@ -44,8 +45,9 @@
  /*
   * Application-specific.
   */
-#define DAY_SEC		(24 * HOUR_SEC)	/* seconds in a day */
-#define	HOUR_SEC	(60)		/* seconds in an hour */
+#define DAY_MIN		(24 * HOUR_MIN)	/* minutes in a day */
+#define	HOUR_MIN	60		/* minutes in an hour */
+#define MIN_SEC		60		/* seconds in a minute */
 
 /* mail_date - return formatted time */
 
@@ -68,18 +70,29 @@ const char *mail_date(time_t when)
     /*
      * POSIX does not require that struct tm has a tm_gmtoff field, so we
      * must compute the time offset from UTC by hand.
+     * 
+     * Starting with the difference in hours/minutes between 24-hour clocks,
+     * adjust for differences in years, in yeardays, and in (leap) seconds.
+     * 
+     * Assume 0..23 hours in a day, 0..59 minutes in an hour. The library spec
+     * has changed: we can no longer assume that there are 0..59 seconds in a
+     * minute.
      */
     gmt = *gmtime(&when);
     lt = localtime(&when);
-    gmtoff = (lt->tm_hour - gmt.tm_hour) * HOUR_SEC + lt->tm_min - gmt.tm_min;
+    gmtoff = (lt->tm_hour - gmt.tm_hour) * HOUR_MIN + lt->tm_min - gmt.tm_min;
     if (lt->tm_year < gmt.tm_year)
-	gmtoff -= DAY_SEC;
+	gmtoff -= DAY_MIN;
     else if (lt->tm_year > gmt.tm_year)
-	gmtoff += DAY_SEC;
+	gmtoff += DAY_MIN;
     else if (lt->tm_yday < gmt.tm_yday)
-	gmtoff -= DAY_SEC;
+	gmtoff -= DAY_MIN;
     else if (lt->tm_yday > gmt.tm_yday)
-	gmtoff += DAY_SEC;
+	gmtoff += DAY_MIN;
+    if (lt->tm_sec <= gmt.tm_sec - MIN_SEC)
+	gmtoff -= 1;
+    else if (lt->tm_sec >= gmt.tm_sec + MIN_SEC)
+	gmtoff += 1;
 
     /*
      * First, format the date and wall-clock time. XXX The %e format (day of
@@ -99,10 +112,10 @@ const char *mail_date(time_t when)
     /*
      * Then, add the UTC offset.
      */
-    if (gmtoff < -DAY_SEC || gmtoff > DAY_SEC)
+    if (gmtoff < -DAY_MIN || gmtoff > DAY_MIN)
 	msg_panic("UTC time offset %d is larger than one day", gmtoff);
-    vstring_sprintf_append(vp, "%+03d%02d", (int) (gmtoff / HOUR_SEC),
-			   (int) (gmtoff % HOUR_SEC));
+    vstring_sprintf_append(vp, "%+03d%02d", (int) (gmtoff / HOUR_MIN),
+			   (int) (gmtoff % HOUR_MIN));
 
     /*
      * Finally, add the time zone name.

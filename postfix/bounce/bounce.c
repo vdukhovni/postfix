@@ -101,6 +101,8 @@
   * Tunables.
   */
 int     var_bounce_limit;
+int     var_max_queue_time;
+int     var_delay_warn_time;
 char   *var_notify_classes;
 
  /*
@@ -150,9 +152,9 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 				  STR(recipient), STR(why)));
 }
 
-/* bounce_flush_proto - bounce_flush server protocol */
+/* bounce_notify_proto - bounce_notify server protocol */
 
-static int bounce_flush_proto(char *service_name, VSTREAM *client)
+static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
 {
     int     flags;
 
@@ -173,7 +175,7 @@ static int bounce_flush_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_flush_proto: service=%s queue=%s id=%s sender=%s",
+	msg_info("bounce_notify_proto: service=%s queue=%s id=%s sender=%s",
 		 service_name, STR(queue_name), STR(queue_id), STR(sender));
 
     /*
@@ -186,8 +188,8 @@ static int bounce_flush_proto(char *service_name, VSTREAM *client)
     /*
      * Execute the request.
      */
-    return (bounce_flush_service(service_name, STR(queue_name),
-				 STR(queue_id), STR(sender)));
+    return (bounce_notify_service(service_name, STR(queue_name),
+				 STR(queue_id), STR(sender), flush));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -210,11 +212,16 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
      * Read and validate the first parameter of the client request. Let the
      * request-specific protocol routines take care of the remainder.
      */
+#define REALLY_BOUNCE	1
+#define JUST_WARN	0
+
     if (mail_scan(client, "%d", &command) != 1) {
 	msg_warn("malformed request");
 	status = -1;
     } else if (command == BOUNCE_CMD_FLUSH) {
-	status = bounce_flush_proto(service_name, client);
+	status = bounce_notify_proto(service_name, client, REALLY_BOUNCE);
+    } else if (command == BOUNCE_CMD_WARN) {
+	status = bounce_notify_proto(service_name, client, JUST_WARN);
     } else if (command == BOUNCE_CMD_APPEND) {
 	status = bounce_append_proto(service_name, client);
     } else {
@@ -263,6 +270,8 @@ int     main(int argc, char **argv)
 {
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_BOUNCE_LIMIT, DEF_BOUNCE_LIMIT, &var_bounce_limit, 1, 0,
+	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 1, 0,
+	VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

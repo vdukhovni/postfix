@@ -13,7 +13,7 @@ Postfix Overview - Queue Management</h1>
 
 <hr>
 
-<a href="overview.html">Up one level</a> | <a
+<a href="index.html">Up one level</a> | <a
 href="motivation.html">Introduction</a> | <a href="goals.html">Goals
 and features</a> | <a href="architecture.html">Global architecture</a>
 | Queue Management | <a href="security.html">Security</a>
@@ -64,17 +64,15 @@ start</i> algorithm
 <h2>Fairness</h2>
 
 Apart from the <i>thundering herd</i> controls, the Postfix delivery
-strategy is based on <i>round-robin</i> selection and <i>random
-walks</i>.  The queue manager sorts message recipients in the active
-queue by destination, makes round-robin walks <i>along</i> all
-destination queues, and makes random walks <i>within</i> each
-destination queue.
+strategy is based on <i>round-robin</i> selection.  The queue
+manager sorts message recipients in the active queue by destination,
+and makes round-robin walks <i>along</i> all destination queues.
 
 <p>
 
 On the average, Postfix will do simultaneous deliveries to the same
 domain only when there is not enough work to keep all outbound SMTP
-channels busy. So, when AOL goes off-line and comes back, it will
+channels busy. So, when AOL goes off-line and comes back, it should
 not stop the system from delivering to other sites.
 
 <p>
@@ -108,7 +106,7 @@ mail backlog.
 
 <hr>
 
-<a href="overview.html">Up one level</a> | <a
+<a href="index.html">Up one level</a> | <a
 href="motivation.html">Introduction</a> | <a href="goals.html">Goals
 and features</a> | <a href="architecture.html">Global architecture</a>
 | Queue Management | <a href="security.html">Security</a>

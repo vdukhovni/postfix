@@ -79,7 +79,6 @@
 /* Global library. */
 
 #include <bounce.h>
-#include <defer.h>
 #include <mail_params.h>
 #include <split_addr.h>
 
@@ -91,13 +90,29 @@
 
 static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 {
+    char   *myname = "deliver_switch";
     int     status;
+
+    /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
+    if (msg_verbose)
+	MSG_LOG_STATE(myname, state);
+
 
     /*
      * \user is special: it means don't do any alias or forward expansion.
      */
-    if (state.msg_attr.recipient[0] == '\\')
-	return (deliver_mailbox(state, usr_attr));
+    if (state.msg_attr.recipient[0] == '\\') {
+	state.msg_attr.recipient++;
+	if (*var_rcpt_delim)
+	    state.msg_attr.extension =
+		split_addr(state.msg_attr.local, *var_rcpt_delim);
+	if (deliver_mailbox(state, usr_attr, &status) == 0)
+	    status = deliver_unknown(state, usr_attr);
+	return (status);
+    }
 
     /*
      * Otherwise, alias expansion has highest precedence.
@@ -137,10 +152,11 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 
     /*
      * Delivery to local user. First try expansion of the recipient's
-     * $HOME/.forward file. Do mailbox delivery as a last resort.
+     * $HOME/.forward file, then mailbox delivery.
      */
-    if (deliver_dotforward(state, usr_attr, &status) == 0)
-	status = deliver_mailbox(state, usr_attr);
+    if (deliver_dotforward(state, usr_attr, &status) == 0
+	&& deliver_mailbox(state, usr_attr, &status) == 0)
+	status = deliver_unknown(state, usr_attr);
     return (status);
 }
 
@@ -148,10 +164,15 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 
 int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 {
+    char   *myname = "deliver_recipient";
     int     rcpt_stat;
 
+    /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
     if (msg_verbose)
-	msg_info("deliver_recipient: %s", state.msg_attr.recipient);
+	MSG_LOG_STATE(myname, state);
 
     /*
      * With each level of recursion, detect and break external message
@@ -173,6 +194,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 	msg_warn("no @ in recipient address: %s", state.msg_attr.local);
     lowercase(state.msg_attr.local);
     state.msg_attr.features = feature_control(state.msg_attr.local);
+    state.msg_attr.extension = 0;
 
     /*
      * Run the recipient through the delivery switch.

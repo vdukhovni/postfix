@@ -39,9 +39,10 @@
 /*	HTABLE	*table;
 /*	void	(*free_fn)(char *);
 /*
-/*	void	htable_walk(table, action)
+/*	void	htable_walk(table, action, ptr)
 /*	HTABLE	*table;
-/*	void	(*action)(HTABLE_INFO *);
+/*	void	(*action)(HTABLE_INFO *, char *ptr);
+/*	char	*ptr;
 /*
 /*	HTABLE_INFO *htable_list(table)
 /*	HTABLE	*table;
@@ -78,7 +79,8 @@
 /*	with the entry.
 /*
 /*	htable_walk() invokes the action function for each table entry, with
-/*	a pointer to the entry as its argument.
+/*	a pointer to the entry as its argument. The ptr argument is passed
+/*	on to the action function.
 /*
 /*	htable_list() returns a null-terminated list of pointers to
 /*	all elements in the named table. The list should be passed to
@@ -296,8 +298,8 @@ void    htable_free(HTABLE *table, void (*free_fn) (char *))
 
 /* htable_walk - iterate over hash table */
 
-void    htable_walk(HTABLE *table, void (*action) (HTABLE_INFO *))
-{
+void    htable_walk(HTABLE *table, void (*action) (HTABLE_INFO *, char *),
+		            char *ptr) {
     if (table) {
 	unsigned i = table->size;
 	HTABLE_INFO **h = table->data;
@@ -305,7 +307,7 @@ void    htable_walk(HTABLE *table, void (*action) (HTABLE_INFO *))
 
 	while (i-- > 0)
 	    for (ht = *h++; ht; ht = ht->next)
-		(*action) (ht);
+		(*action) (ht, ptr);
     }
 }
 

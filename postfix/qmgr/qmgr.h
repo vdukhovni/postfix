@@ -12,6 +12,7 @@
   * Utility library.
   */
 #include <vstream.h>
+#include <scan_dir.h>
 
  /*
   * Global library.
@@ -68,9 +69,13 @@ typedef struct QMGR_SCAN QMGR_SCAN;
 }
 
 #define QMGR_LIST_PREPEND(head, object) { \
-    object->peers.prev = head->prev; \
+    object->peers.prev = head.prev; \
     object->peers.next = 0; \
-    head.prev->next = object; \
+    if (head.prev) { \
+	head.prev->peers.next = object; \
+    } else { \
+	head.next = object; \
+    } \
     head.prev = object; \
 }
 
@@ -106,6 +111,7 @@ struct QMGR_TRANSPORT {
     int     flags;			/* blocked, etc. */
     char   *name;			/* transport name */
     int     dest_concurrency_limit;	/* concurrency per domain */
+    int     init_dest_concurrency;	/* init. per-domain concurrency */
     int     recipient_limit;		/* recipients per transaction */
     struct HTABLE *queue_byname;	/* queues indexed by domain */
     QMGR_QUEUE_LIST queue_list;		/* queues, round robin order */
@@ -215,6 +221,8 @@ struct QMGR_MESSAGE {
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */
     long    arrival_time;		/* time when queued */
+    long    warn_offset;		/* warning bounce flag offset */
+    time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
     char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file */
@@ -232,6 +240,7 @@ extern MAPS *qmgr_relocated;
 extern MAPS *qmgr_virtual;
 
 extern void qmgr_message_free(QMGR_MESSAGE *);
+extern void qmgr_message_update_warn(QMGR_MESSAGE *);
 extern QMGR_MESSAGE *qmgr_message_alloc(const char *, const char *, int);
 extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
 
@@ -245,7 +254,7 @@ extern void qmgr_defer_recipient(QMGR_MESSAGE *, const char *, const char *);
  /*
   * qmgr_bounce.c
   */
-extern void qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *, ...);
+extern void qmgr_bounce_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *,...);
 
  /*
   * qmgr_deliver.c

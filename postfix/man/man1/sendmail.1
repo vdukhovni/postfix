@@ -25,8 +25,8 @@ Sendmail command-line options are recognized but silently ignored.
 
 By default, \fBsendmail\fR reads a message from standard input
 and arranges for delivery.  \fBsendmail\fR attempts to create
-a queue file in the \fBmaildrop\fR directory. If the process has
-no write permission, the message is piped through the
+a queue file in the \fBmaildrop\fR directory. If that directory
+is not world-writable, the message is piped through the
 \fBpostdrop\fR(1) command, which is expected to execute with
 suitable privileges.
 
@@ -118,6 +118,10 @@ The sender is never eliminated from alias etc. expansions.
 .IP "\fB-o \fIx value\fR (ignored)"
 Set option \fIx\fR to \fIvalue\fR. Use the equivalent
 configuration parameter in \fBmain.cf\fR instead.
+.IP "\fB-r \fIsender\fR"
+Set the envelope sender address. This is the address where
+delivery problems are sent to, unless the message contains an
+\fBErrors-To:\fR message header.
 .IP \fB-q\fR
 Flush the mail queue. This is implemented by kicking the
 \fBqmgr\fR(8) daemon.

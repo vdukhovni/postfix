@@ -2,18 +2,24 @@
 /* NAME
 /*	smtp-sink 8
 /* SUMMARY
-/*	smtp test server
+/*	multi-threaded smtp test server
 /* SYNOPSIS
-/*	smtp-sink [-c] [-v] [host]:port backlog
+/*	smtp-sink [-c] [-p] [-v] [-w delay] [host]:port backlog
 /* DESCRIPTION
 /*      \fIsmtp-sink\fR listens on the named host (or address) and port.
 /*	It takes SMTP messages from the network and throws them away.
+/*	The purpose is to measure SMTP client performance, not protocol
+/*	compliance.
 /*	This program is the complement of the \fIsmtp-source\fR program.
 /* .IP -c
 /*	Display a running counter that is updated whenever an SMTP
 /*	QUIT command is executed.
+/* .IP -p
+/*	Disable ESMTP command pipelining.
 /* .IP -v
 /*	Show the SMTP conversations.
+/* .IP "-w delay"
+/*	Wait \fIdelay\fR seconds before responding to a DATA command.
 /* SEE ALSO
 /*	smtp-source, SMTP test message generator
 /* LICENSE
@@ -61,10 +67,11 @@
 
 /* Application-specific. */
 
-struct data_state {
+typedef struct SINK_STATE {
     VSTREAM *stream;
-    int     state;
-};
+    int     data_state;
+    int     (*read) (struct SINK_STATE *);
+} SINK_STATE;
 
 #define ST_ANY			0
 #define ST_CR			1
@@ -77,34 +84,65 @@ static int var_tmout;
 static int var_max_line_length;
 static char *var_myhostname;
 static VSTRING *buffer;
-static void command_read(int, char *);
-static void disconnected(VSTREAM *);
+static int command_read(SINK_STATE *);
+static int data_read(SINK_STATE *);
+static void disconnect(SINK_STATE *);
 static int count;
 static int counter;
+static int disable_pipelining;
+static int fixed_delay;
 
-/* helo - process HELO/EHLO command */
+/* ehlo_response - respond to EHLO command */
 
-static void helo(VSTREAM *stream)
+static void ehlo_response(SINK_STATE *state)
 {
-    smtp_printf(stream, "250-%s", var_myhostname);
-    smtp_printf(stream, "250-8BITMIME");
-    smtp_printf(stream, "250 PIPELINING");
+    smtp_printf(state->stream, "250-%s", var_myhostname);
+    if (!disable_pipelining)
+	smtp_printf(state->stream, "250-PIPELINING");
+    smtp_printf(state->stream, "250 8BITMIME");
 }
 
-/* ok - send 250 OK */
+/* ok_response - send 250 OK */
 
-static void ok(VSTREAM *stream)
+static void ok_response(SINK_STATE *state)
 {
-    smtp_printf(stream, "250 Ok");
+    smtp_printf(state->stream, "250 Ok");
+}
+
+/* data_response - respond to DATA command */
+
+static void data_response(SINK_STATE *state)
+{
+    state->data_state = ST_CR_LF;
+    smtp_printf(state->stream, "354 End data with <CR><LF>.<CR><LF>");
+    state->read = data_read;
+}
+
+/* data_event - delayed response to DATA command */
+
+static void data_event(int unused_event, char *context)
+{
+    SINK_STATE *state = (SINK_STATE *) context;
+
+    data_response(state);
+}
+
+/* quit_response - respond to QUIT command */
+
+static void quit_response(SINK_STATE *state)
+{
+    smtp_printf(state->stream, "221 Bye");
+    if (count) {
+	counter++;
+	vstream_printf("%d\r", counter);
+	vstream_fflush(VSTREAM_OUT);
+    }
 }
 
 /* data_read - read data from socket */
 
-static void data_read(int unused_event, char *context)
+static int data_read(SINK_STATE *state)
 {
-    struct data_state *dstate = (struct data_state *) context;
-    VSTREAM *stream = dstate->stream;
-    int     avail;
     int     ch;
     struct data_trans {
 	int     state;
@@ -120,10 +158,15 @@ static void data_read(int unused_event, char *context)
     };
     struct data_trans *dp;
 
-    avail = peekfd(vstream_fileno(stream));
-    while (avail-- > 0) {
-	ch = VSTREAM_GETC(stream);
-	for (dp = data_trans; dp->state != dstate->state; dp++)
+    /*
+     * We must avoid blocking I/O, so get out of here as soon as both the
+     * VSTREAM and kernel read buffers dry up.
+     */
+    while (vstream_peek(state->stream) > 0
+	   || peekfd(vstream_fileno(state->stream)) > 0) {
+	if ((ch = VSTREAM_GETC(state->stream)) == VSTREAM_EOF)
+	    return (-1);
+	for (dp = data_trans; dp->state != state->data_state; dp++)
 	     /* void */ ;
 
 	/*
@@ -133,141 +176,134 @@ static void data_read(int unused_event, char *context)
 	 * (empty line) right before the end of the message data.
 	 */
 	if (ch == dp->want)
-	    dstate->state = dp->next_state;
+	    state->data_state = dp->next_state;
 	else if (ch == data_trans[0].want)
-	    dstate->state = data_trans[0].next_state;
+	    state->data_state = data_trans[0].next_state;
 	else
-	    dstate->state = ST_ANY;
-	if (dstate->state == ST_CR_LF_DOT_CR_LF) {
+	    state->data_state = ST_ANY;
+	if (state->data_state == ST_CR_LF_DOT_CR_LF) {
 	    if (msg_verbose)
 		msg_info(".");
-	    smtp_printf(stream, "250 Ok");
-	    event_disable_readwrite(vstream_fileno(stream));
-	    event_enable_read(vstream_fileno(stream),
-			      command_read, (char *) stream);
-	    myfree((char *) dstate);
+	    ok_response(state);
+	    state->read = command_read;
+	    break;
 	}
     }
-}
-
-/* data - process DATA command */
-
-static void data(VSTREAM *stream)
-{
-    struct data_state *dstate = (struct data_state *) mymalloc(sizeof(*dstate));
-
-    dstate->stream = stream;
-    dstate->state = ST_CR_LF;
-    smtp_printf(stream, "354 End data with <CR><LF>.<CR><LF>");
-    event_disable_readwrite(vstream_fileno(stream));
-    event_enable_read(vstream_fileno(stream),
-		      data_read, (char *) dstate);
-}
-
-/* quit - process QUIT command */
-
-static void quit(VSTREAM *stream)
-{
-    smtp_printf(stream, "221 Bye");
-    disconnected(stream);
-    if (count) {
-	counter++;
-	vstream_printf("%d\r", counter);
-	vstream_fflush(VSTREAM_OUT);
-    }
+    return (0);
 }
 
  /*
   * The table of all SMTP commands that we can handle.
   */
-typedef struct COMMAND {
+typedef struct SINK_COMMAND {
     char   *name;
-    void    (*action) (VSTREAM *);
-}       COMMAND;
+    void    (*response) (SINK_STATE *);
+} SINK_COMMAND;
 
-static COMMAND command_table[] = {
-    "helo", helo,
-    "ehlo", helo,
-    "mail", ok,
-    "rcpt", ok,
-    "data", data,
-    "rset", ok,
-    "noop", ok,
-    "vrfy", ok,
-    "quit", quit,
+static SINK_COMMAND command_table[] = {
+    "helo", ok_response,
+    "ehlo", ehlo_response,
+    "mail", ok_response,
+    "rcpt", ok_response,
+    "data", data_response,
+    "rset", ok_response,
+    "noop", ok_response,
+    "vrfy", ok_response,
+    "quit", quit_response,
     0,
 };
 
 /* command_read - talk the SMTP protocol, server side */
 
-static void command_read(int unused_event, char *context)
+static int command_read(SINK_STATE *state)
 {
-    VSTREAM *stream = (VSTREAM *) context;
     char   *command;
-    COMMAND *cmdp;
+    SINK_COMMAND *cmdp;
 
-    switch (setjmp(smtp_timeout_buf)) {
-
-    default:
-	msg_panic("unknown error reading input");
-
-    case SMTP_ERR_TIME:
-	smtp_printf(stream, "421 Error: timeout exceeded");
-	msg_warn("timeout reading input");
-	disconnected(stream);
-	break;
-
-    case SMTP_ERR_EOF:
-	msg_warn("lost connection");
-	disconnected(stream);
-	break;
-
-    case 0:
-	smtp_get(buffer, stream, var_max_line_length);
-	if ((command = strtok(vstring_str(buffer), " \t")) == 0) {
-	    smtp_printf(stream, "500 Error: unknown command");
-	    break;
-	}
-	if (msg_verbose)
-	    msg_info("%s", command);
-	for (cmdp = command_table; cmdp->name != 0; cmdp++)
-	    if (strcasecmp(command, cmdp->name) == 0)
-		break;
-	if (cmdp->name == 0) {
-	    smtp_printf(stream, "500 Error: unknown command");
-	    break;
-	}
-	cmdp->action(stream);
-	break;
+    smtp_get(buffer, state->stream, var_max_line_length);
+    if ((command = strtok(vstring_str(buffer), " \t")) == 0) {
+	smtp_printf(state->stream, "500 Error: unknown command");
+	return (0);
     }
-}
-
-/* disconnected - handle disconnection events */
-
-static void disconnected(VSTREAM *stream)
-{
     if (msg_verbose)
-	msg_info("disconnect");
-    event_disable_readwrite(vstream_fileno(stream));
-    vstream_fclose(stream);
+	msg_info("%s", command);
+    for (cmdp = command_table; cmdp->name != 0; cmdp++)
+	if (strcasecmp(command, cmdp->name) == 0)
+	    break;
+    if (cmdp->name == 0) {
+	smtp_printf(state->stream, "500 Error: unknown command");
+	return (0);
+    }
+    if (cmdp->response == data_response && fixed_delay > 0) {
+	event_request_timer(data_event, (char *) state, fixed_delay);
+    } else {
+	cmdp->response(state);
+	if (cmdp->response == quit_response)
+	    return (-1);
+    }
+    return (0);
 }
 
-/* connected - connection established */
+/* read_event - handle command or data read events */
 
-static void connected(int unused_event, char *context)
+static void read_event(int unused_event, char *context)
+{
+    SINK_STATE *state = (SINK_STATE *) context;
+
+    do {
+	switch (setjmp(smtp_timeout_buf)) {
+
+	default:
+	    msg_panic("unknown error reading input");
+
+	case SMTP_ERR_TIME:
+	    msg_panic("attempt to read non-readable socket");
+	    /* NOTREACHED */
+
+	case SMTP_ERR_EOF:
+	    msg_warn("lost connection");
+	    disconnect(state);
+	    return;
+
+	case 0:
+	    if (state->read(state) < 0) {
+		if (msg_verbose)
+		    msg_info("disconnect");
+		disconnect(state);
+		return;
+	    }
+	}
+    } while (vstream_peek(state->stream) > 0);
+}
+
+/* disconnect - handle disconnection events */
+
+static void disconnect(SINK_STATE *state)
+{
+    event_disable_readwrite(vstream_fileno(state->stream));
+    vstream_fclose(state->stream);
+    myfree((char *) state);
+}
+
+/* connect_event - handle connection events */
+
+static void connect_event(int unused_event, char *context)
 {
     int     sock = (int) context;
-    VSTREAM *stream;
+    SINK_STATE *state;
     int     fd;
 
     if ((fd = accept(sock, (struct sockaddr *) 0, (SOCKADDR_SIZE *) 0)) >= 0) {
 	if (msg_verbose)
 	    msg_info("connect");
 	non_blocking(fd, NON_BLOCKING);
-	stream = vstream_fdopen(fd, O_RDWR);
-	smtp_timeout_setup(stream, var_tmout);
-	smtp_printf(stream, "220 %s ESMTP", var_myhostname);
-	event_enable_read(fd, command_read, (char *) stream);
+	state = (SINK_STATE *) mymalloc(sizeof(*state));
+	state->stream = vstream_fdopen(fd, O_RDWR);
+	state->read = command_read;
+	state->data_state = 0;
+	smtp_timeout_setup(state->stream, var_tmout);
+	smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
+	event_enable_read(fd, read_event, (char *) state);
     }
 }
 
@@ -275,7 +311,7 @@ static void connected(int unused_event, char *context)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-c] [-v] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-c] [-p] [-v] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -292,13 +328,20 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "cv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "cpvw:")) > 0) {
 	switch (ch) {
 	case 'c':
 	    count++;
 	    break;
+	case 'p':
+	    disable_pipelining = 1;
+	    break;
 	case 'v':
 	    msg_verbose++;
+	    break;
+	case 'w':
+	    if ((fixed_delay = atoi(optarg)) <= 0)
+		usage(argv[0]);
 	    break;
 	default:
 	    usage(argv[0]);
@@ -319,7 +362,7 @@ int     main(int argc, char **argv)
     /*
      * Start the event handler.
      */
-    event_enable_read(sock, connected, (char *) sock);
+    event_enable_read(sock, connect_event, (char *) sock);
     for (;;)
 	event_loop(-1);
 }

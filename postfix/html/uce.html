@@ -13,7 +13,7 @@ Postfix Configuration - UCE Controls</h1>
 
 <hr>
 
-<a href="config.html">Up one level</a> | <a href="basic.html">Basic
+<a href="index.html">Up one level</a> | <a href="basic.html">Basic
 Configuration</a> | UCE Controls | <a href="rate.html">Rate
 Controls</a> | <a href="resource.html">Resource Controls</a> | <a
 href="rewrite.html">Address Manipulation </a>
@@ -275,6 +275,15 @@ response code to rejected requests (default:  <b>450</b>).
 
 <p>
 
+<a name="reject_non_fqdn_hostname">
+
+<dt> <b>reject_non_fqdn_hostname</b> <dd> Reject the request when
+the hostname in the client HELO (EHLO) command is not in fully-qualified
+domain form. The <b>non_fqdn_reject_code</b> specifies the
+response code to rejected requests (default:  <b>504</b>).
+
+<p>
+
 <a name="check_helo_access">
 
 <dt> <b>check_helo_access</b> <i>maptype</i>:<i>mapname</i>
@@ -375,11 +384,22 @@ request if the result is anything else.  The <b>access_map_reject_code
 
 <p>
 
+<a name="reject_non_fqdn_sender">
+
+<dt> <b>reject_non_fqdn_sender</b> <dd> Reject the request when
+the address in the client MAIL FROM command is not in fully-qualified
+domain form. The <b>non_fqdn_reject_code</b> specifies the
+response code to rejected requests (default:  <b>504</b>).
+
+<p>
+
 <dt> <b><a href="#permit_naked_ip_address">permit_naked_ip_address</a></b>
 
 <dt> <b><a href="#reject_invalid_hostname">reject_invalid_hostname</a></b>
 
 <dt> <b><a href="#reject_unknown_hostname">reject_unknown_hostname</a></b>
+
+<dt> <b><a href="#reject_non_fqdn_hostname">reject_non_fqdn_hostname</a></b>
 
 <dt> <b><a href="#check_helo_access">check_helo_access</a></b> <i>maptype</i>:<i>mapname</i>
 
@@ -486,7 +506,18 @@ for rejected requests (default: <b>550</b>).
 
 <p>
 
+<a name="reject_non_fqdn_recipient">
+
+<dt> <b>reject_non_fqdn_recipient</b> <dd> Reject the request when
+the address in the client RCPT TO command is not in fully-qualified
+domain form. The <b>non_fqdn_reject_code</b> specifies the
+response code to rejected requests (default:  <b>504</b>).
+
+<p>
+
 <dt> <b><a href="#reject_unknown_address">reject_unknown_address</a></b>
+
+<dt> <b><a href="#reject_non_fqdn_sender">reject_non_fqdn_sender</a></b>
 
 <dt> <b><a href="#check_sender_access">check_sender_access</a></b> <i>maptype</i>:<i>mapname</i>
 
@@ -499,6 +530,8 @@ for rejected requests (default: <b>550</b>).
 <dt> <b><a href="#reject_invalid_hostname">reject_invalid_hostname</a></b>
 
 <dt> <b><a href="#reject_unknown_hostname">reject_unknown_hostname</a></b>
+
+<dt> <b><a href="#reject_non_fqdn_hostname">reject_non_fqdn_hostname</a></b>
 
 <dt> <b><a href="#check_helo_access">check_helo_access</a></b> <i>maptype</i>:<i>mapname</i>
 
@@ -670,7 +703,7 @@ appear as part of a client name/address restriction list.
 
 <dt>Default:
 
-<dd><b>maps_rbl_domains = rbl.maps.vix.com</b>
+<dd><b>maps_rbl_domains = rbl.maps.vix.com, dul.maps.vix.com</b>
 
 <p>
 
@@ -727,7 +760,7 @@ tables listed in <b>$relay_domains.</b>
 
 <hr>
 
-<a href="config.html">Up one level</a> | <a href="basic.html">Basic
+<a href="index.html">Up one level</a> | <a href="basic.html">Basic
 Configuration</a> | UCE Controls | <a href="rate.html">Rate
 Controls</a> | <a href="resource.html">Resource Controls</a> | <a
 href="rewrite.html">Address Manipulation </a>

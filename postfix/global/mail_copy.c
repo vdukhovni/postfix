@@ -44,6 +44,9 @@
 /* .IP MAIL_COPY_DELIVERED
 /*	Prepend a Delivered-To: header with the name of the
 /*	\fIdelivered\fR attribute.
+/* .IP MAIL_COPY_RETURN_PATH
+/*	Prepend a Return-Path: header with the value of the
+/*	\fIsender\fR attribute.
 /* .RE
 /*	The manifest constant MAIL_COPY_MBOX is a convenient shorthand for
 /*	all MAIL_COPY_XXX options that are appropriate for mailbox delivery.
@@ -122,14 +125,21 @@ int     mail_copy(const char *sender, const char *delivered,
     /*
      * Prepend a bunch of headers to the message.
      */
-    if (flags & MAIL_COPY_FROM) {
+    if (flags & (MAIL_COPY_FROM | MAIL_COPY_RETURN_PATH)) {
 	if (sender == 0)
 	    msg_panic("%s: null sender", myname);
-	time(&now);
-	vstream_fprintf(dst, "From %s %s", *sender == 0 ?
-			MAIL_ADDR_MAIL_DAEMON :
-			vstring_str(quote_822_local(buf, sender)),
-			asctime(localtime(&now)));
+	quote_822_local(buf, sender);
+	if (flags & MAIL_COPY_FROM) {
+	    time(&now);
+	    vstream_fprintf(dst, "From %s %s", *sender == 0 ?
+			    MAIL_ADDR_MAIL_DAEMON :
+			    vstring_str(buf),
+			    asctime(localtime(&now)));
+	}
+	if (flags & MAIL_COPY_RETURN_PATH) {
+	    vstream_fprintf(dst, "Return-Path: <%s>\n",
+			    *sender ? vstring_str(buf) : "");
+	}
     }
     if (flags & MAIL_COPY_DELIVERED) {
 	if (delivered == 0)

@@ -74,6 +74,9 @@ typedef struct {
 #define DICT_DB_TRY0NULL	(1<<0)
 #define DICT_DB_TRY1NULL	(1<<1)
 
+#define DICT_DB_CACHE_SIZE	(1024 * 1024)
+#define DICT_DB_NELM	4096
+
 /* dict_db_lookup - find database entry */
 
 static const char *dict_db_lookup(DICT *dict, const char *name)
@@ -185,19 +188,14 @@ static void dict_db_close(DICT *dict)
 
 /* dict_db_open - open data base */
 
-static DICT *dict_db_open(const char *path, int flags, int type)
+static DICT *dict_db_open(const char *path, int flags, int type, void *tweak)
 {
     DICT_DB *dict_db;
     DB     *db;
     char   *db_path;
-    HASHINFO tweak;
-
-    memset((char *) &tweak, 0, sizeof(tweak));
-    tweak.nelem = 4096;
-    tweak.cachesize = 1024 * 1024;
 
     db_path = concatenate(path, ".db", (char *) 0);
-    if ((db = dbopen(db_path, flags, 0644, type, (void *) &tweak)) == 0)
+    if ((db = dbopen(db_path, flags, 0644, type, tweak)) == 0)
 	msg_fatal("open database %s: %m", db_path);
 
     dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
@@ -216,14 +214,24 @@ static DICT *dict_db_open(const char *path, int flags, int type)
 
 DICT   *dict_hash_open(const char *path, int flags)
 {
-    return (dict_db_open(path, flags, DB_HASH));
+    HASHINFO tweak;
+
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.nelem = DICT_DB_NELM;
+    tweak.cachesize = DICT_DB_CACHE_SIZE;
+    return (dict_db_open(path, flags, DB_HASH, (void *) &tweak));
 }
 
 /* dict_btree_open - create association with data base */
 
 DICT   *dict_btree_open(const char *path, int flags)
 {
-    return (dict_db_open(path, flags, DB_BTREE));
+    BTREEINFO tweak;
+
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.cachesize = DICT_DB_CACHE_SIZE;
+
+    return (dict_db_open(path, flags, DB_BTREE, (void *) &tweak));
 }
 
 #endif

@@ -50,7 +50,8 @@
 /*	NetInfo table. Only read access is supported.
 /* .IP ldap
 /*	LDAP ("light-weight" directory access protocol) database access.
-/*	The support is still incomplete.
+/* .IP pcre
+/*	PERL-compatible regular expressions.
 /* .PP
 /*	dict_open3() takes separate arguments for dictionary type and
 /*	name, but otherwise performs the same functions as dict_open().
@@ -94,12 +95,14 @@
 #include <msg.h>
 #include <dict.h>
 #include <dict_env.h>
+#include <dict_unix.h>
 #include <dict_dbm.h>
 #include <dict_db.h>
 #include <dict_nis.h>
 #include <dict_nisplus.h>
 #include <dict_ni.h>
 #include <dict_ldap.h>
+#include <dict_pcre.h>
 #include <stringops.h>
 #include <split_at.h>
 
@@ -113,6 +116,7 @@ typedef struct {
 
 static DICT_OPEN_INFO dict_open_info[] = {
     "environ", dict_env_open,
+    "unix", dict_unix_open,
 #ifdef HAS_DBM
     "dbm", dict_dbm_open,
 #endif
@@ -131,6 +135,9 @@ static DICT_OPEN_INFO dict_open_info[] = {
 #endif
 #ifdef HAS_LDAP
     "ldap", dict_ldap_open,
+#endif
+#ifdef HAS_PCRE
+    "pcre", dict_pcre_open,
 #endif
     0,
 };

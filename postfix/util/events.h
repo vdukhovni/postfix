@@ -20,7 +20,7 @@
   * External interface.
   */
 typedef void (*EVENT_NOTIFY_RDWR) (int, char *);
-typedef void (*EVENT_NOTIFY_TIME) (char *);
+typedef void (*EVENT_NOTIFY_TIME) (int, char *);
 
 extern time_t event_time(void);
 extern void event_enable_read(int, EVENT_NOTIFY_RDWR, char *);
@@ -36,6 +36,7 @@ extern void event_loop(int);
 #define EVENT_READ	(1<<0)		/* read event */
 #define EVENT_WRITE	(1<<1)		/* write event */
 #define EVENT_XCPT	(1<<2)		/* exception */
+#define EVENT_TIME	(1<<3)		/* timer event */
 
 #define EVENT_ERROR	EVENT_XCPT
 

@@ -15,10 +15,12 @@
 /*
 /*	The following is a list of implemented names, with the
 /*	corresponding bit masks indicated in parentheses:
-/* .IP "bounce (MAIL_ERROR_BOUNCE)
+/* .IP "bounce (MAIL_ERROR_BOUNCE)"
 /*	A message could not be delivered because it was too large,
 /*	because was sent via too many hops, because the recipient
 /*	does not exist, and so on.
+/* .IP "2bounce (MAIL_ERROR_2BOUNCE)"
+/*	A bounce message could not be delivered.
 /* .IP "policy (MAIL_ERROR_POLICY)"
 /*	Policy violation. This depends on what restrictions have
 /*	been configured locally.
@@ -64,6 +66,8 @@
   */
 NAME_MASK mail_error_masks[] = {
     "bounce", MAIL_ERROR_BOUNCE,
+    "2bounce", MAIL_ERROR_2BOUNCE,
+    "delay", MAIL_ERROR_DELAY,
     "policy", MAIL_ERROR_POLICY,
     "protocol", MAIL_ERROR_PROTOCOL,
     "resource", MAIL_ERROR_RESOURCE,

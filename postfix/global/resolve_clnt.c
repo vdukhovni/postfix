@@ -70,57 +70,15 @@
 
 #include "mail_proto.h"
 #include "mail_params.h"
+#include "clnt_stream.h"
 #include "resolve_clnt.h"
 
 /* Application-specific. */
 
-static VSTREAM *resolve_fp = 0;
-static void resolve_clnt_disconnect(void);
-
-/* resolve_clnt_read - disconnect after EOF */
-
-static void resolve_clnt_read(int unused_event, char *unused_context)
-{
-    resolve_clnt_disconnect();
-}
-
-/* resolve_clnt_time - disconnect after idle timeout */
-
-static void resolve_clnt_time(char *unused_context)
-{
-    resolve_clnt_disconnect();
-}
-
-/* resolve_clnt_disconnect - disconnect from resolve service */
-
-static void resolve_clnt_disconnect(void)
-{
-
-    /*
-     * Be sure to disable read and timer events.
-     */
-    if (msg_verbose)
-	msg_info("resolve service disconnect");
-    event_disable_readwrite(vstream_fileno(resolve_fp));
-    event_cancel_timer(resolve_clnt_time, (char *) 0);
-    (void) vstream_fclose(resolve_fp);
-    resolve_fp = 0;
-}
-
-/* resolve_clnt_connect - connect to resolve service */
-
-static void resolve_clnt_connect(void)
-{
-
-    /*
-     * Register a read event so that we can clean up when the remote side
-     * disconnects, and a timer event so we can cleanup an idle connection.
-     */
-    resolve_fp = mail_connect_wait(MAIL_CLASS_PRIVATE, MAIL_SERVICE_REWRITE);
-    close_on_exec(vstream_fileno(resolve_fp), CLOSE_ON_EXEC);
-    event_enable_read(vstream_fileno(resolve_fp), resolve_clnt_read, (char *) 0);
-    event_request_timer(resolve_clnt_time, (char *) 0, var_ipc_idle_limit);
-}
+ /*
+  * XXX this is shared with the rewrite client to save a file descriptor.
+  */
+extern CLNT_STREAM *rewrite_clnt_stream;
 
 /* resolve_clnt_init - initialize reply */
 
@@ -136,27 +94,35 @@ void    resolve_clnt_init(RESOLVE_REPLY *reply)
 void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 {
     char   *myname = "resolve_clnt_query";
+    VSTREAM *stream;
+
+    /*
+     * Sanity check. The result must not clobber the input because we may
+     * have to retransmit the request.
+     */
+#define STR vstring_str
+
+    if (addr == STR(reply->recipient))
+	msg_panic("%s: result clobbers input", myname);
 
     /*
      * Keep trying until we get a complete response. The resolve service is
      * CPU bound; making the client asynchronous would just complicate the
      * code.
      */
-#define STR vstring_str
+    if (rewrite_clnt_stream == 0)
+	rewrite_clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE,
+				  MAIL_SERVICE_REWRITE, var_ipc_idle_limit);
 
     for (;;) {
-	if (resolve_fp == 0)
-	    resolve_clnt_connect();
-	else
-	    event_request_timer(resolve_clnt_time, (char *) 0,
-				var_ipc_idle_limit);
-	if (mail_print(resolve_fp, "%s %s", RESOLVE_ADDR, addr)
-	    || vstream_fflush(resolve_fp)) {
-	    if (msg_verbose || errno != EPIPE)
+	stream = clnt_stream_access(rewrite_clnt_stream);
+	if (mail_print(stream, "%s %s", RESOLVE_ADDR, addr)
+	    || vstream_fflush(stream)) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: bad write: %m", myname);
-	} else if (mail_scan(resolve_fp, "%s %s %s", reply->transport,
+	} else if (mail_scan(stream, "%s %s %s", reply->transport,
 			     reply->nexthop, reply->recipient) != 3) {
-	    if (msg_verbose || errno != EPIPE)
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: bad read: %m", myname);
 	} else {
 	    if (msg_verbose)
@@ -171,7 +137,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 		break;
 	}
 	sleep(10);				/* XXX make configurable */
-	resolve_clnt_disconnect();
+	clnt_stream_recover(rewrite_clnt_stream);
     }
 }
 

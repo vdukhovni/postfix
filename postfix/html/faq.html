@@ -14,9 +14,7 @@
 
 <hr>
 
-<a href="index.html">Up one level</a> | <a href="overview.html">Postfix
-Overview</a> | <a href="anatomy.html">Postfix Anatomy</a> | <a
-href="config.html">Postfix Configuration</a> | Postfix FAQ
+<a href="index.html">Up one level</a> | Postfix FAQ
 
 <h2>Table of contents</h2>
 
@@ -25,6 +23,8 @@ href="config.html">Postfix Configuration</a> | Postfix FAQ
 <li><a href="#intranet">Running Postfix inside an intranet</a>
 
 <li><a href="#firewall">Running Postfix on a firewall</a>
+
+<li><a href="#local">Delivering some users locally while sending mail as user@domain</a>
 
 <li><a href="#maildir">Support for maildir-style mailboxes</a>
 
@@ -39,6 +39,10 @@ href="config.html">Postfix Configuration</a> | Postfix FAQ
 <li><a href="#uucp">Setting up an Internet to UUCP gateway</a>
 
 <li><a href="#uucp-only">Using UUCP as the default transport</a>
+
+<li><a href="#fax">Sending mail to a FAX machine</a>
+
+<li><a href="#bind">Undefined symbols: ___dn_expand, ___res_init etc.</a>
 
 <li><a href="#db">Using DB libraries on Solaris etc.</a>
 
@@ -87,9 +91,54 @@ specify the gateway host itself:
 <p>
 
 <li>If you want to deliver internal mail directly without going through
-the intranet mail gateway, you have to specify a routing entry in the
-<a href="transport.5.html">transport</a> table, and you have to
-enable <a href="transport.5.html">transport</a> table lookups.
+the intranet mail gateway, there are two possibilities.
+
+<p>
+
+<ol>
+
+<li>Specify the intranet mail gateway as the fall-back relay for
+all mail with an unknown or unreachable destination:
+
+<p>
+
+<dl>
+
+<dl>
+
+<dt>main.cf:
+
+<dd><b>fallback_relay = $mydomain</b>
+
+</dl>
+
+<p>
+
+This assumes that your organization has set up multiple internal
+MX hosts for the local domain.
+
+<p>
+
+If your intranet does not use MX records internally, you have to
+specify the gateway host itself:
+
+<p>
+
+<dl>
+
+<dt>main.cf:
+
+<dd><b>fallback_relay = </b><i>gateway.my.domain</i>
+
+</dl>
+
+</dl>
+
+<p>
+
+<li>Specify routing information for the local domain in the <a
+href="transport.5.html">transport</a> table, and enable <a
+href="transport.5.html">transport</a> table lookups.
 
 <p>
 
@@ -107,6 +156,8 @@ enable <a href="transport.5.html">transport</a> table lookups.
 
 <dd><i>my.domain</i> &nbsp; <b>smtp</b>:
 
+<dd><i>.my.domain</i> &nbsp; <b>smtp</b>:
+
 </dl>
 
 </dl>
@@ -115,6 +166,8 @@ enable <a href="transport.5.html">transport</a> table lookups.
 
 Specify <b>dbm:/etc/postfix/transport</b> if your system
 uses <b>dbm</b> files instead of <b>db</b>.
+
+</ol>
 
 <p>
 
@@ -186,6 +239,67 @@ Unfortunately, the solution cannot use the transport table, because
 that table is ignored for destinations that match <b>$mydestination</b>.
 That's an implementation error, and it will be removed.
 
+
+<hr>
+
+<a name="local"><h2>Delivering some users locally while sending mail as user@domain</h2></a>
+
+<ul>
+
+<li>In order to send mail as <i>user@domain</i>, edit
+<b>/etc/postfix/main.cf</b> and specify that the local domain
+is to be appended to addresses that do not have a domain:
+
+<p>
+
+<dl>
+
+<dd><b>myorigin = </b><i>$mydomain</i>
+
+</dl>
+
+<p>
+
+<li>In order to receive some users locally, such as <b>root</b> or
+<b>postmaster</b>,
+
+<p>
+
+<ul>
+
+<li>edit <b>/etc/postfix/main.cf</b> and specify a virtual lookup table:
+
+<p>
+
+<dl>
+
+<dd><b>virtual_maps = hash:/etc/postfix/virtual</b>
+
+</dl>
+
+<p>
+
+<li>edit <b>/etc/postfix/virtual</b> and specify non-default destinations:
+
+<p>
+
+<dl>
+
+<dd><b>root &nbsp; root@</b><i>my.host.name</i>
+
+<dd><b>postmaster &nbsp; postmaster@</b><i>my.host.name</i>
+
+</dl>
+
+</ul>
+
+<p>
+
+<li>Execute the command <b>postmap /etc/postfix/virtual</b> to
+update the table, and <b>postfix reload</b> to make the changes
+effective.
+
+</ul>
 
 <hr>
 
@@ -448,6 +562,70 @@ changes effective.
 
 </ul>
 
+<hr>
+
+<a name="fax"><h2>Sending mail to a FAX machine</h2></a>
+
+The following information is by Joerg Henne:
+
+<p>
+Over here we are using the scheme <fax number>@fax.our.domain with Postfix and
+HylaFax. Here's the setup used:
+
+<p>
+In master.cf:
+
+<p>
+
+<pre>
+    fax       unix  -       n       n       -       -       pipe
+	flags= user=fax argv=/usr/bin/faxmail -d -n ${user}
+</pre>
+
+<p>
+
+In the transports map:
+
+<p>
+
+<pre>
+    fax.your.domain   fax:localhost
+</pre>
+
+<p>
+
+Note: be sure to not advertise <b>fax.your.domain</b> in the DNS...
+
+<hr>
+
+<a name="bind"><h2>Undefined symbols: ___dn_expand, ___res_init etc.</h2></a>
+
+Question: When I build Postfix I get the following errors:
+
+<p>
+
+<pre>
+    ld: Undefined symbol
+       ___dn_expand
+       ___res_init
+       ___res_search
+    *** Error code 1
+</pre>
+
+<p>
+
+Answer: you're mixing BIND version 8 include files with a
+different version of the resolver library. 
+
+<p>
+
+Fix: use the right include files. For example: 
+
+<p>
+
+<pre>
+    <tt>make makefiles CCARGS="-I/usr/include"</tt>.
+</pre>
 
 <hr>
 
@@ -469,16 +647,23 @@ version</a> which has a db-1.85 compatible interface.
 
 <p>
 
-Use the following commands in the Postfix top-level directory:
+Use the following commands in the Postfix top-level directory.
+The LD_LIBRARY_PATH unsets may be required to avoid linking in the
+wrong libraries.
 
 <dl>
 
-<dd>% <b>make tidy</b>
+<dd>% <tt>LD_LIBRARY_PATH= </tt> &nbsp <i>(Bourne-shell syntax)</i>
 
-<dd>% <b>make makefiles CCARGS="-DHAS_DB
--I</b><i>/some/where/include</i><b>" AUXLIBS=</b><i>/some/where/libdb.a</i>
+<dd>% <tt>unsetenv LD_LIBRARY_PATH </tt> &nbsp <i>(C-shell syntax)</i>
 
-<dd>% <b>make</b>
+<dd>% <tt>make tidy</tt>
+
+<dd>% <tt>make makefiles CCARGS="-DHAS_DB -DPATH_DB_H='&lt;db_185.h&gt;'
+-I</tt><i>/some/where/include</i><tt>" 
+AUXLIBS=</tt><i>/some/where/libdb.a</i>
+
+<dd>% <tt>make</tt>
 
 </dl>
 
@@ -496,9 +681,7 @@ to get rid of the bogus file, or the linker will fail to find
 
 <hr>
 
-<a href="index.html">Up one level</a> | <a href="overview.html">Postfix
-Overview</a> | <a href="anatomy.html">Postfix Anatomy</a> | <a
-href="config.html">Postfix Configuration</a> | Postfix FAQ
+<a href="index.html">Up one level</a> | Postfix FAQ
 
 </body>
 

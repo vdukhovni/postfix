@@ -139,6 +139,10 @@ MASTER(8)                                               MASTER(8)
 
               child process.
 
+       <b>service</b><i>_</i><b>throttle</b><i>_</i><b>time</b>
+              Time to avoid forking a server that appears  to  be
+              broken.
+
 <b>FILES</b>
        /etc/postfix/main.cf: global configuration file.
        /etc/postfix/master.cf: master process configuration file.
@@ -150,7 +154,7 @@ MASTER(8)                                               MASTER(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -158,10 +162,6 @@ MASTER(8)                                               MASTER(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

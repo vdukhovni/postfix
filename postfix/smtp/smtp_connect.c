@@ -128,6 +128,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     int     saved_errno;
     VSTREAM *stream;
     int     ch;
+    unsigned long inaddr;
 
     /*
      * Sanity checks.
@@ -152,14 +153,17 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
      * the mail appears to come from the "right" machine address.
      */
     addr_list = own_inet_addr_list();
-    if (addr_list->used == 1
-	&& strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) != 0) {
+    if (addr_list->used == 1) {
 	sin.sin_port = 0;
 	memcpy((char *) &sin.sin_addr, addr_list->addrs, sizeof(sin.sin_addr));
-	if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
-	    msg_warn("%s: bind %s: %m", myname, inet_ntoa(addr_list->addrs[0]));
-	else if (msg_verbose)
-	    msg_info("%s: bind %s", myname, inet_ntoa(addr_list->addrs[0]));
+	inaddr = ntohl(sin.sin_addr.s_addr);
+	if (!IN_CLASSA(inaddr)
+	|| !((inaddr & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET) {
+	    if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
+		msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
+	    if (msg_verbose)
+		msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
+	}
     }
 
     /*
@@ -211,19 +215,15 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     }
 
     /*
-     * Skip this host if it does not send a numeric response. XXX The
-     * smtp_chat module does allow non-numeric responses, so disallowing them
-     * here seems inconsistent.
+     * Skip this host if it sends a 4xx greeting.
      */
-#if 0
-    if (!ISDIGIT(ch)) {
-	vstring_sprintf(why, "connect to %s: non-numeric server response",
+    if (ch == '4' && var_smtp_skip_4xx_greeting) {
+	vstring_sprintf(why, "connect to %s: server refused mail service",
 			addr->name);
 	smtp_errno = SMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
-#endif
     vstream_ungetc(stream, ch);
     return (smtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr)));
 }

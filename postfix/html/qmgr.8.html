@@ -98,13 +98,11 @@ QMGR(8)                                                   QMGR(8)
               by slowly adjusting the number of parallel deliver-
               ies to the same destination.
 
-       <b>round</b> <b>robin</b> and <b>random</b> <b>walk</b>
+       <b>round</b> <b>robin</b>
               The queue manager sorts delivery requests by desti-
               nation.   Round-robin selection prevents one desti-
               nation from dominating deliveries to other destina-
-              tions.   Random  walk prevents one problematic mes-
-              sage from blocking deliveries of other mail to  the
-              same destination.
+              tions.
 
        <b>exponential</b> <b>backoff</b>
               Mail  that  cannot  be  delivered  upon  the  first
@@ -124,7 +122,9 @@ QMGR(8)                                                   QMGR(8)
        actions  (the message is followed by the symbolic constant
        used internally by the software):
 
-
+       <b>D</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>DEFERRED)</b>
+              Start a deferred queue scan.  If a  deferred  queue
+              scan  is  already  in  progress,  that scan will be
 
 
 
@@ -137,9 +137,6 @@ QMGR(8)                                                   QMGR(8)
 QMGR(8)                                                   QMGR(8)
 
 
-       <b>D</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>DEFERRED)</b>
-              Start a deferred queue scan.  If a  deferred  queue
-              scan  is  already  in  progress,  that scan will be
               restarted as soon as it finishes.
 
        <b>I</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>INCOMING)</b>
@@ -191,6 +188,9 @@ QMGR(8)                                                   QMGR(8)
 <b>BUGS</b>
        A  single  queue  manager  process has to compete for disk
        access with multiple front-end processes such as <b>smtpd</b>.  A
+       sudden  burst  of  inbound mail can negatively impact out-
+       bound delivery rates.
+
 
 
 
@@ -202,9 +202,6 @@ QMGR(8)                                                   QMGR(8)
 
 QMGR(8)                                                   QMGR(8)
 
-
-       sudden  burst  of  inbound mail can negatively impact out-
-       bound delivery rates.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
@@ -256,7 +253,10 @@ QMGR(8)                                                   QMGR(8)
               ken delivery transport.
 
 <b>Concurrency</b> <b>controls</b>
-       In the text below, <i>transport</i>  is  the  first  field  in  a
+       In the text below, <i>transport</i> is the first field in a  <b>mas-</b>
+       <b>ter.cf</b> entry.
+
+
 
 
 
@@ -268,8 +268,6 @@ QMGR(8)                                                   QMGR(8)
 
 QMGR(8)                                                   QMGR(8)
 
-
-       <b>master.cf</b> entry.
 
        <b>initial</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b>
               Initial  per-destination concurrency level for par-
@@ -308,6 +306,8 @@ QMGR(8)                                                   QMGR(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+
 
 
 

@@ -35,7 +35,7 @@ extern BINHASH_INFO *binhash_locate(BINHASH *, const char *, int);
 extern char *binhash_find(BINHASH *, const char *, int);
 extern void binhash_delete(BINHASH *, const char *, int, void (*) (char *));
 extern void binhash_free(BINHASH *, void (*) (char *));
-extern void binhash_walk(BINHASH *, void (*) (BINHASH_INFO *));
+extern void binhash_walk(BINHASH *, void (*) (BINHASH_INFO *, char *), char *);
 extern BINHASH_INFO **binhash_list(BINHASH *);
 
 /* LICENSE

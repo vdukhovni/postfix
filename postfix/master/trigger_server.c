@@ -73,6 +73,9 @@
 /*	or whenever nothing has happened for a specified amount of time.
 /*	The result value of the function specifies how long to wait until
 /*	the next event. Specify -1 to wait for "as long as it takes".
+/* .IP "MAIL_SERVER_EXIT (void *(void))"
+/*	A pointer to function that is executed immediately before normal
+/*	process termination.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -129,6 +132,10 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <sane_accept.h>
+#ifndef NO_SELECT_COLLISION
+#include <myflock.h>
+#include <safe_open.h>
+#endif
 
 /* Global library. */
 
@@ -155,6 +162,34 @@ static TRIGGER_SERVER_FN trigger_server_service;
 static char *trigger_server_name;
 static char **trigger_server_argv;
 static void (*trigger_server_accept) (int, char *);
+static void (*trigger_server_onexit) (void);
+
+#ifndef NO_SELECT_COLLISION
+static VSTREAM *trigger_server_lock;
+
+#endif
+
+/* trigger_server_exit - normal termination */
+
+static NORETURN trigger_server_exit(void)
+{
+    if (trigger_server_onexit)
+	trigger_server_onexit();
+    exit(0);
+}
+
+/* trigger_server_watchdog - something got stuck */
+
+static NORETURN trigger_server_watchdog(int unused_sig)
+{
+
+    /*
+     * This runs as a signal handler. We should not do anything that could
+     * involve memory managent, but exiting without explanation would be
+     * worse.
+     */
+    msg_fatal("watchdog timer");
+}
 
 /* trigger_server_abort - terminate after abnormal master exit */
 
@@ -162,16 +197,16 @@ static void trigger_server_abort(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
-    exit(0);
+    trigger_server_exit();
 }
 
 /* trigger_server_timeout - idle time exceeded */
 
-static void trigger_server_timeout(char *unused_context)
+static void trigger_server_timeout(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
-    exit(0);
+    trigger_server_exit();
 }
 
 /* trigger_server_wakeup - wake up application */
@@ -203,12 +238,19 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
     char   *myname = "trigger_server_accept_fifo";
     int     listen_fd = (int) context;
 
+#ifndef NO_SELECT_COLLISION
+    if (trigger_server_lock != 0
+	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
+
     if (msg_verbose)
 	msg_info("%s: trigger arrived", myname);
 
     /*
      * Some buggy systems cause Postfix to lock up.
      */
+    signal(SIGALRM, trigger_server_watchdog);
     alarm(1000);
 
     /*
@@ -226,6 +268,12 @@ static void trigger_server_accept_socket(int unused_event, char *context)
     int     listen_fd = (int) context;
     int     time_left = 0;
     int     fd;
+
+#ifndef NO_SELECT_COLLISION
+    if (trigger_server_lock != 0
+	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
 
     if (msg_verbose)
 	msg_info("%s: trigger arrived", myname);
@@ -282,6 +330,13 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     int     len;
     char   *transport = 0;
 
+#ifndef NO_SELECT_COLLISION
+    char   *lock_path;
+    VSTRING *why;
+
+#endif
+    int     alone = 0;
+
     /*
      * Process environment options as early as we can.
      */
@@ -335,6 +390,9 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	case MAIL_SERVER_LOOP:
 	    loop = va_arg(ap, MAIL_SERVER_LOOP_FN);
 	    break;
+	case MAIL_SERVER_EXIT:
+	    trigger_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
+	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
 	}
@@ -346,7 +404,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cDi:m:n:s:St:uv")) > 0) {
+    while ((c = GETOPT(argc, argv, "cDi:lm:n:s:St:uv")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = var_queue_dir;
@@ -357,6 +415,9 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	case 'i':
 	    if ((var_idle_limit = atoi(optarg)) <= 0)
 		msg_fatal("invalid max_idle time: %s", optarg);
+	    break;
+	case 'l':
+	    alone = 1;
 	    break;
 	case 'm':
 	    if ((var_use_limit = atoi(optarg)) <= 0)
@@ -396,10 +457,57 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     }
 
     /*
+     * Can options be required?
+     * 
+     * XXX Initially this code was implemented with UNIX-domain sockets, but
+     * Solaris <= 2.5 UNIX-domain sockets misbehave hopelessly when the
+     * client disconnects before the server has accepted the connection.
+     * Symptom: the server accept() fails with EPIPE or EPROTO, but the
+     * socket stays readable, so that the program goes into a wasteful loop.
+     * 
+     * The initial fix was to use FIFOs, but those turn out to have their own
+     * problems, witness the workarounds in the fifo_listen() routine.
+     * Therefore we support both FIFOs and UNIX-domain sockets, so that the
+     * user can choose whatever works best.
+     */
+    if (stream == 0) {
+	if (transport == 0)
+	    msg_fatal("no transport type specified");
+	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) == 0)
+	    trigger_server_accept = trigger_server_accept_socket;
+	if (strcasecmp(transport, MASTER_XPORT_NAME_UNIX) == 0)
+	    trigger_server_accept = trigger_server_accept_socket;
+	else if (strcasecmp(transport, MASTER_XPORT_NAME_FIFO) == 0)
+	    trigger_server_accept = trigger_server_accept_fifo;
+	else
+	    msg_fatal("unsupported transport type: %s", transport);
+    }
+
+    /*
      * Optionally start the debugger on ourself.
      */
     if (debug_me)
 	debug_process();
+
+    /*
+     * Traditionally, BSD select() can't handle multiple processes selecting
+     * on the same socket, and wakes up every process in select(). See TCP/IP
+     * Illustrated volume 2 page 532. We avoid select() collisions with an
+     * external lock file.
+     */
+#ifndef NO_SELECT_COLLISION
+    if (stream == 0 && !alone) {
+	lock_path = concatenate(DEF_PID_DIR, "/", transport,
+				".", service_name, (char *) 0);
+	why = vstring_alloc(1);
+	if ((trigger_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
+					     -1, -1, why)) == 0)
+	    msg_fatal("%s", vstring_str(why));
+	close_on_exec(vstream_fileno(trigger_server_lock), CLOSE_ON_EXEC);
+	myfree(lock_path);
+	vstring_free(why);
+    }
+#endif
 
     /*
      * Run pre-jail initialization.
@@ -430,33 +538,8 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    msg_fatal("read: %m");
 	service(buf, len, service_name, argv + optind);
 	vstream_fflush(stream);
-	exit(0);
+	trigger_server_exit();
     }
-
-    /*
-     * Can options be required?
-     * 
-     * XXX Initially this code was implemented with UNIX-domain sockets, but
-     * Solaris <= 2.5 UNIX-domain sockets misbehave hopelessly when the
-     * client disconnects before the server has accepted the connection.
-     * Symptom: the server accept() fails with EPIPE or EPROTO, but the
-     * socket stays readable, so that the program goes into a wasteful loop.
-     * 
-     * The initial fix was to use FIFOs, but those turn out to have their own
-     * problems, witness the workarounds in the fifo_listen() routine.
-     * Therefore we support both FIFOs and UNIX-domain sockets, so that the
-     * user can choose whatever works best.
-     */
-    if (transport == 0)
-	msg_fatal("no transport type specified");
-    if (strcasecmp(transport, MASTER_XPORT_NAME_INET) == 0)
-	trigger_server_accept = trigger_server_accept_socket;
-    if (strcasecmp(transport, MASTER_XPORT_NAME_UNIX) == 0)
-	trigger_server_accept = trigger_server_accept_socket;
-    else if (strcasecmp(transport, MASTER_XPORT_NAME_FIFO) == 0)
-	trigger_server_accept = trigger_server_accept_fifo;
-    else
-	msg_fatal("unsupported transport type: %s", transport);
 
     /*
      * Running as a semi-resident server. Service connection requests.
@@ -477,7 +560,12 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     while (var_use_limit == 0 || use_count < var_use_limit) {
 	delay = loop ? loop() : -1;
+#ifndef NO_SELECT_COLLISION
+	if (trigger_server_lock != 0
+	    && myflock(vstream_fileno(trigger_server_lock), MYFLOCK_EXCLUSIVE) < 0)
+	    msg_fatal("select lock: %m");
+#endif
 	event_loop(delay);
     }
-    exit(0);
+    trigger_server_exit();
 }

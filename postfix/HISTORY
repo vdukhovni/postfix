@@ -817,7 +817,7 @@ Apologies for any names omitted.
 	are gone and have become db (dbm, nis, etc) maps. Files:
 	smtpd/smtpd_check.c, config/main.cf.
 
-1998029-31
+19980729-31
 
 	Feature: hashed queues. Rewrote parts of the mail queue
 	API.  Configuration parameters: "hash_queue_names" specifies
@@ -1981,7 +1981,7 @@ Apologies for any names omitted.
 
 	Portability: doze() function for systems without usleep().
 
-	Cleanup: clients are logged as host[address].
+	Cleanup: clients are now consistently logged as host[address].
 
 19990122
 
@@ -2063,3 +2063,314 @@ Apologies for any names omitted.
 	Requested by Matthew Green and others. Files: local/alias.c,
 	global/split_addr.c. This affects canonical, virtual and
 	alias lookups.
+
+19990204
+
+	Portability: signal handling for HP-UX 9 by Lamont Jones
+	of Hewlett Packard. File: master/master_sig.c.
+
+	Robustness: disable random walk inside a per-site queue to
+	avoid message starvation under heavy load. File: qmgr_entry.c.
+
+	Robustness: under some conditions the queue manager could
+	declare a host dead after just one delivery failure.  File:
+	qmgr_queue.c.
+
+19990212
+
+	Feature: skip SMTP servers that greet us with a 4XX status
+	code. Example: "smtp_skip_4xx_greeting = yes". By default,
+	the Postfix SMTP client defers delivery when a server
+	declines talking to us. File:  smtp/smtp_connect.c.
+
+	Robustness: upon startup the queue manager now moves active
+	queue files to the incoming queue instead of the deferred
+	queue, to avoid anomalous delivery delays on systems that
+	have a huge incoming queue.  Files: qmgr/qmgr.c,
+	qmgr/qmgr_active.c, global/mail_flush.c, conf/postfix-script*
+
+19990213
+
+	Robustness: added watchdog timers to avoid getting stuck
+	on systems with broken select() socket implementations.
+	File: qmgr_transport.c, qmgr_deliver.c.
+
+19990218
+
+	Feature: NFS-friendly delivery to mailbox by avoiding the
+	use of root privileges as much as possible. With input by
+	Mike Muus, Army Research Lab, USA.
+
+	Feature: the smtp-sink test server now supports SMTP command
+	pipelining. To this end we had to generalize the timer and
+	vstream support. Poor performance is fixed 19990222.
+
+	Cleanup: timer event routines now have the same interface
+	as read/write event routines (event type + context). File:
+	util/events.c.
+
+	Feature: new vstream_peek() routine to tell how much unread
+	data is left in a VSTREAM buffer. This is the vstream
+	variant of the peekfd() routine for kernel read buffers.
+	File: util/vstream.c.
+
+	Feature: directory scanning support for hashed mail queue
+	directories. So far the results are disappointing: with
+	depth = 2 (16 directories with 16 subdirectories), mailq
+	takes 5 seconds with an empty queue unless all directories
+	happen to be cached in memory.  We need a bit map before
+	hashed queue directories become practical. Depth=1 hashing
+	doesn't slow down mailq much, but doesn't help much either.
+	Files: util/scan_dir.c, global/mail_scan_dir.c.
+
+19990221
+
+	Workaround: with "ignore_mx_lookup_error = yes", the SMTP
+	client always performs an A lookup when an MX lookup could
+	not be completed, rather than treating MX lookup failure
+	as a temporary error condition.  Unfortunately there are
+	many broken DNS servers on the Internet. File: smtp/smtp_addr.c.
+
+19990222
+
+	Performance: rewrote the guts of the smtp-sink test server
+	so it can do pipelining without losing performance.
+
+19990223
+
+	Workaround: hotmail.com sometimes drops the connection
+	after "." (causing misleading diagnostics to be logged) or
+	waits minutes after receiving QUIT. Solution: do not wait
+	for the response to QUIT. File: smtp/smtp_proto.c.  This
+	is turned off with: "smtp_skip_quit_response = no".
+
+19990224
+
+	Feature: the pipe mailer accepts user=username:groupname,
+	based on code submitted by Philip A. Prindeville, Mirapoint,
+	Inc., USA.  File: pipe/pipe.c.
+
+	Workaround: use file locking to prevent multiple processes
+	from select()ing on the same socket. This causes performance
+	problems on large BSD systems. Files: master/*_server.c.
+
+19990225
+
+	Bugfix: with "inet_interfaces = 127.0.0.1", don't bind to
+	the loopback interface. Problem reported by Steve Bellovin
+	of AT&T. File: smtp/smtp_addr.c.
+
+	Feature: "postsuper" command to remove stale queue files
+	to update queues after changes to the queue structure
+	parameters (hash_queue_names, hash_queue_depth). This
+	command is to be run from the postfix-script maintenance
+	shell script.
+
+19990301
+
+	Feature: new postconf -h (suppress `name = ' in output)
+	option to make the program easier to use in, e.g., shell
+	scripts.
+
+	Feature: dict_unix module so you can add the UNIX passwd
+	table to the SMTPD access control list.
+
+19990302
+
+	Feature: "luser_relay = destination" captures mail for
+	non-existent local recipients. This works only when the
+	local delivery agent does mailbox delivery (including
+	delivery via mailbox_command), not when mailbox delivery
+	is delegated to another message transport.
+
+	Feature: new reject_non_fqdn_{hostname,sender,recipient}
+	restrictions to require fully.qualified.domain forms in
+	HELO, MAIL FROM and RCPT TO commands (while still allowing
+	the <> sender address).
+
+19990304
+
+	Bugfix: backed out the 19990119 change to always insert
+	Return-Path:  if that header is not present. The pipe and
+	local agents now are responsible for prepending Return-Path:.
+	Files:  cleanup/cleanup_message.c, global/mail_copy.[hc],
+	pipe/pipe.c, global/header_opts.c.  This causes an incompatible
+	change to the pipe flags parameter, because Return-Path:
+	now must be requested explicitly.
+
+19990305
+
+	Bugfix: showq (the mailq server) incorrectly assumed that
+	all recipients of a deferred message are listed in the
+	corresponding defer logfile. It now lists all recipients.
+	Files: showq/showq.c, cleanup/cleanup_envelope.c (ensure
+	that sender records always precede recipient records).
+
+	Cleanup: smtpd HELO restrictions validate [numerical] forms.
+	Files: util/valid_hostname.c, smtpd/smtpd_check.c.  Initial
+	code by Philip A. Prindeville, Mirapoint, Inc., USA.
+
+19990306
+
+	Cleanup: re-vamped the valid_hostname module, and added a
+	maximal label length (63) requirement.
+
+	Feature: fallback_relay parameter to specify extra backup
+	hosts in case the regular relay hosts are not found or not
+	available.  Files:  smtp/smtp_addr.c.
+
+	Feature: "always_bcc = address" specifies where to send a
+	copy of each message that enters he system. However, if
+	that copy bounces, the sender will be informed of the
+	bounce. Files: smtpd/smtpd.c, pickup/pickup.c
+
+	Compatibility: the transport map will now route on top-level
+	domains, so you can dump all of .bitnet to a bitnet relay.
+
+19990307
+
+	Feature: LDAP lookups, updated by Jon Hensley, Merit
+	Network, USA.
+
+	Feature: regular expression (PCRE) support by Andrew
+	McNamara, connect.com.au Pty. Ltd., Australia. In order to
+	use this code specify pcre:/file/name. You can use this
+	anywhere you would use a DB or DBM file, NIS or LDAP.
+	See: PCRE_README for how to enable this code.
+
+	Feature: "delay_warning_time = 4" causes Postfix to send
+	a "your mail is delayed" notice after approx. 4 hours.
+	Daniel Eisenbud, University of California at Berkeley.
+	Files:  qmgr/qmgr_active.c, qmgr/qmgr_message. Postmaster
+	notices for delayed mail are disabled by default. In order
+	to receive postmaster notices, specify "notify_classes =
+	...  delay ...".
+
+	Cleanup: do not send undeliverable bounced mail to postmaster.
+	This was causing lots of pain with junk mail from bogus
+	sender addresses to non-existent recipients.  This change
+	was reversed 19990311.
+
+19990308
+
+	Bugfix: the dotforward routine was too eager with throwing
+	away extension information, so that the Delivered-To: info
+	would differ for \mailbox and |command. Problem reported
+	by Rafi Sadowski, Open University, Israel.
+
+	Bugfix: seems I never got around to fix the btree access
+	method. I finally did. Problem reported by: Matt Smith,
+	AvTel Communications Inc., USA.
+
+19990311
+
+	Back by popular demand: with "notify_classes = 2bounce ..."
+	Postfix will send undeliverable bounced mail to postmaster.
+	The default is to not send double bounces.  This change
+	reverses a change made on 19990307.
+
+19990312
+
+	Feature: configurable exit handler for server skeletons.
+	Philip A.  Prindeville, Mirapoint, Inc., USA. Files:
+	master/*server.c.
+
+	Feature: mail_spool_directory configuration parameter to
+	specify the UNIX mail spool directory.  The default setting
+	is system dependent.
+
+19990313
+
+	Cleanup: share file descriptors for resolve and rewrite
+	client connections. This puts less strain on the trivial-rewrite
+	service.
+
+	Portability: support for UnixWare 2.1 by Dmitry E. Kiselyov,
+	Nizhny Novgorod City Health Emergency Station.
+
+	Feature: configurable delays in the smtpstone test programs.
+	With input by Philip A.  Prindeville, Mirapoint, Inc., USA.
+	Files:  smtpstone/*.c.
+
+	Bugfix: a "signal 11" problem in the trivial-rewrite program
+	that would occasionally happen after "postfix reload".
+	Reason: some rewrite clients would clobber their input,
+	and when they had to retransmit the query, the input would
+	be a zero-length string, which trivial-rewrite isn't supposed
+	to receive.
+
+19990314
+
+	Feature: "mailbox_transport = cyrus" delegates all local
+	mailbox delivery to a master.cf entry called "cyrus" (the
+	same trick for procmail), including users not found in the
+	UNIX passwd database.  This gives the flexibility of $name
+	expansions by the pipe mailer, without losing local aliases
+	and ~/.forward processing.  Result of discussions with Rupa
+	Schomaker, RS Consulting.
+
+19990315
+
+	Feature: the mydestination parameter can now be an empty
+	string, for hosts that don't receive any mail locally. Be
+	sure to specify a default route for mail that comes to the
+	machine or mail will loop.
+
+19990316
+
+	Bugfix: the SMTPD check scaffolding didn't apply the same
+	sanity checks as the production code. Problem reported by
+	Alain Thivillon, Hervé Schauer Consultants, France. File:
+	smtpd/smtpd_check.c.
+
+	Portability: some systems can have more than 59 seconds in
+	a minute. Based on a fix by Liviu Daia, Institute of
+	Mathematics, Romanian Academy.  File:  global/mail_date.c.
+
+	Enhancement: include the client network address in the
+	rejected by RBL response. Lamont Jones, Hewlett-Packard.
+	
+	Workaround: use fstat() to figure out if the maildrop is
+	world-writable. access() uses the real uid, which stinks.
+
+	Robustness: don't do partial address lookups (user@, domain,
+	user, @domain) with regexp-style tables.
+
+	Security: don't allow regexp-style tables to be used for
+	aliases. It would be too easy to slip in "|command" or
+	:include: or /file/name.
+
+19990317
+
+	Feature: "fallback_transport = cyrus" delegates non-UNIX
+	recipients to a master.cf entry called "cyrus", allowing
+	you to have both UNIX and non-UNIX mailboxes side by side.
+
+Future:
+
+	Planned: must be able to list the same hash table in
+	virtual_maps and mydestination.
+
+	Planned: delivered-to cache instead of table.
+
+	Planned: hide internal loop info so that delivered-to is
+	no longer required.
+
+	Planned: DNS lookups for address canonicalization.
+
+	Planned: no more slow-down when qmgr reaches the end of
+	the in-memory recipient list while there's still more
+	recipients in the queue file.
+
+	Planned: pop pre-authentication by Joerg Henne.
+
+	Planned: ident lookup by Jon Ribbens.
+
+	Planned: $logname, $home, $shell, $user, $sender expansions
+	in shell commands, mailbox_command, forward_path.
+
+	Planned: forward_path, for example $home/.forward (default)
+	or /var/forward/$logname (for mail servers).
+
+	Planned: control From_, Return-Path, Delivered-To and other
+	features with local delivery to mailbox or command.

@@ -9,16 +9,19 @@ POSTCONF(1)                                           POSTCONF(1)
        postconf - Postfix configuration utility
 
 <b>SYNOPSIS</b>
-       <b>postconf</b> [<b>-d</b>] [<b>-n</b>] [<b>-v</b>] [<i>parameter</i> <i>...</i>]
+       <b>postconf</b> [<b>-d</b>] [<b>-h</b>] [<b>-n</b>] [<b>-v</b>] [<i>parameter</i> <i>...</i>]
 
 <b>DESCRIPTION</b>
        The  <b>postconf</b> command prints the actual value of <i>parameter</i>
-       (all known parameters by default).
+       (all known parameters by default), one parameter per line.
 
        Options:
 
-       <b>-d</b>     Print default parameter settings instead of  actual
+       <b>-d</b>     Print  default parameter settings instead of actual
               settings.
+
+       <b>-h</b>     Show parameter values only, not the <i>name</i> <i>=</i> informa-
+              tion that normally precedes the value.
 
        <b>-n</b>     Print non-default parameter settings only.
 
@@ -38,9 +41,6 @@ POSTCONF(1)                                           POSTCONF(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
 
 
 

@@ -71,6 +71,9 @@
 /*	or whenever nothing has happened for a specified amount of time.
 /*	The result value of the function specifies how long to wait until
 /*	the next event. Specify -1 to wait for "as long as it takes".
+/* .IP "MAIL_SERVER_EXIT (void *(void))"
+/*	A pointer to function that is executed immediately before normal
+/*	process termination.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
 /*	when a client disconnects.
@@ -130,6 +133,10 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <sane_accept.h>
+#ifndef NO_SELECT_COLLISION
+#include <myflock.h>
+#include <safe_open.h>
+#endif
 
 /* Global library. */
 
@@ -157,6 +164,21 @@ static int use_count;
 static void (*multi_server_service) (VSTREAM *, char *, char **);
 static char *multi_server_name;
 static char **multi_server_argv;
+static void (*multi_server_onexit) (void);
+
+#ifndef NO_SELECT_COLLISION
+static VSTREAM *multi_server_lock;
+
+#endif
+
+/* multi_server_exit - normal termination */
+
+static NORETURN multi_server_exit(void)
+{
+    if (multi_server_onexit)
+	multi_server_onexit();
+    exit(0);
+}
 
 /* multi_server_abort - terminate after abnormal master exit */
 
@@ -164,16 +186,16 @@ static void multi_server_abort(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
-    exit(0);
+    multi_server_exit();
 }
 
 /* multi_server_timeout - idle time exceeded */
 
-static void multi_server_timeout(char *unused_context)
+static void multi_server_timeout(int unused_event, char *unused_context)
 {
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
-    exit(0);
+    multi_server_exit();
 }
 
 /* multi_server_disconnect - terminate client session */
@@ -193,6 +215,12 @@ void    multi_server_disconnect(VSTREAM *stream)
 static void multi_server_execute(int unused_event, char *context)
 {
     VSTREAM *stream = (VSTREAM *) context;
+
+#ifndef NO_SELECT_COLLISION
+    if (multi_server_lock != 0
+	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
 
     /*
      * Do not bother the application when the client disconnected.
@@ -214,6 +242,12 @@ static void multi_server_accept(int unused_event, char *context)
     int     time_left = -1;
     int     fd;
     VSTREAM *stream;
+
+#ifndef NO_SELECT_COLLISION
+    if (multi_server_lock != 0
+	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
+	msg_fatal("select unlock: %m");
+#endif
 
     /*
      * Be prepared for accept() to fail because some other process already
@@ -261,6 +295,13 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     MAIL_SERVER_LOOP_FN loop = 0;
     int     key;
     char   *transport = 0;
+
+#ifndef NO_SELECT_COLLISION
+    char   *lock_path;
+    VSTRING *why;
+
+#endif
+    int     alone = 0;
 
     /*
      * Process environment options as early as we can.
@@ -315,6 +356,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	case MAIL_SERVER_LOOP:
 	    loop = va_arg(ap, MAIL_SERVER_LOOP_FN);
 	    break;
+	case MAIL_SERVER_EXIT:
+	    multi_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
+	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
 	}
@@ -326,7 +370,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cDi:m:n:s:St:uv")) > 0) {
+    while ((c = GETOPT(argc, argv, "cDi:lm:n:s:St:uv")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = var_queue_dir;
@@ -337,6 +381,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	case 'i':
 	    if ((var_idle_limit = atoi(optarg)) <= 0)
 		msg_fatal("invalid max_idle time: %s", optarg);
+	    break;
+	case 'l':
+	    alone = 1;
 	    break;
 	case 'm':
 	    if ((var_use_limit = atoi(optarg)) <= 0)
@@ -376,10 +423,41 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     }
 
     /*
+     * Can options be required?
+     */
+    if (stream == 0) {
+	if (transport == 0)
+	    msg_fatal("no transport type specified");
+	if (strcasecmp(transport, MASTER_XPORT_NAME_INET) != 0
+	    && strcasecmp(transport, MASTER_XPORT_NAME_UNIX) != 0)
+	    msg_fatal("unsupported transport type: %s", transport);
+    }
+
+    /*
      * Optionally start the debugger on ourself.
      */
     if (debug_me)
 	debug_process();
+
+    /*
+     * Traditionally, BSD select() can't handle multiple processes selecting
+     * on the same socket, and wakes up every process in select(). See TCP/IP
+     * Illustrated volume 2 page 532. We avoid select() collisions with an
+     * external lock file.
+     */
+#ifndef NO_SELECT_COLLISION
+    if (stream == 0 && !alone) {
+	lock_path = concatenate(DEF_PID_DIR, "/", transport,
+				".", service_name, (char *) 0);
+	why = vstring_alloc(1);
+	if ((multi_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
+					   -1, -1, why)) == 0)
+	    msg_fatal("%s", vstring_str(why));
+	close_on_exec(vstream_fileno(multi_server_lock), CLOSE_ON_EXEC);
+	myfree(lock_path);
+	vstring_free(why);
+    }
+#endif
 
     /*
      * Run pre-jail initialization.
@@ -413,17 +491,8 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 			VSTREAM_CTL_END);
 	service(stream, service_name, argv + optind);
 	vstream_fflush(stream);
-	exit(0);
+	multi_server_exit();
     }
-
-    /*
-     * Can options be required?
-     */
-    if (transport == 0)
-	msg_fatal("no transport type specified");
-    if (strcasecmp(transport, MASTER_XPORT_NAME_INET) != 0
-	&& strcasecmp(transport, MASTER_XPORT_NAME_UNIX) != 0)
-	msg_fatal("unsupported transport type: %s", transport);
 
     /*
      * Running as a semi-resident server. Service connection requests.
@@ -444,7 +513,12 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     while (var_use_limit == 0 || use_count < var_use_limit || client_count > 0) {
 	delay = loop ? loop() : -1;
+#ifndef NO_SELECT_COLLISION
+	if (multi_server_lock != 0
+	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_EXCLUSIVE) < 0)
+	    msg_fatal("select lock: %m");
+#endif
 	event_loop(delay);
     }
-    exit(0);
+    multi_server_exit();
 }

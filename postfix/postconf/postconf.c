@@ -5,14 +5,19 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-d\fR] [\fB-n\fR] [\fB-v\fR] [\fIparameter ...\fR]
+/*	\fBpostconf\fR [\fB-d\fR] [\fB-h\fR] [\fB-n\fR] [\fB-v\fR]
+/*		[\fIparameter ...\fR]
 /* DESCRIPTION
 /*	The \fBpostconf\fR command prints the actual value of
-/*	\fIparameter\fR (all known parameters by default).
+/*	\fIparameter\fR (all known parameters by default), one
+/*	parameter per line.
 /*
 /*	Options:
 /* .IP \fB-d\fR
 /*	Print default parameter settings instead of actual settings.
+/* .IP \fB-h\fR
+/*	Show parameter values only, not the \fIname =\fR information
+/*	that normally precedes the value.
 /* .IP \fB-n\fR
 /*	Print non-default parameter settings only.
 /* .IP \fB-v\fR
@@ -44,6 +49,10 @@
 #include <strings.h>
 #endif
 
+#ifdef USE_PATHS_H
+#include <paths.h>
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -71,6 +80,7 @@
   */
 #define SHOW_NONDEF	(1<<0)		/* show non-default settings */
 #define SHOW_DEFS	(1<<1)		/* show default setting */
+#define SHOW_NAME	(1<<2)		/* show parameter name */
 
  /*
   * Lookup table for in-core parameter info.
@@ -225,6 +235,28 @@ static void hash_parameters(void)
 	htable_enter(param_table, csft->name, (char *) csft);
 }
 
+/* show_strval - show string-valued parameter */
+
+static void show_strval(int mode, const char *name, const char *value)
+{
+    if (mode & SHOW_NAME) {
+	vstream_printf("%s = %s\n", name, value);
+    } else {
+	vstream_printf("%s\n", value);
+    }
+}
+
+/* show_intval - show integer-valued parameter */
+
+static void show_intval(int mode, const char *name, int value)
+{
+    if (mode & SHOW_NAME) {
+	vstream_printf("%s = %d\n", name, value);
+    } else {
+	vstream_printf("%d\n", value);
+    }
+}
+
 /* print_bool - print boolean parameter */
 
 static void print_bool(int mode, CONFIG_BOOL_TABLE *cbt)
@@ -232,18 +264,18 @@ static void print_bool(int mode, CONFIG_BOOL_TABLE *cbt)
     const char *value;
 
     if (mode & SHOW_DEFS) {
-	vstream_printf("%s = %s\n", cbt->name, cbt->defval ? "yes" : "no");
+	show_strval(mode, cbt->name, cbt->defval ? "yes" : "no");
     } else {
 	value = dict_lookup(CONFIG_DICT, cbt->name);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
-		vstream_printf("%s = %s\n", cbt->name, cbt->defval ? "yes" : "no");
+		show_strval(mode, cbt->name, cbt->defval ? "yes" : "no");
 	    } else {
-		vstream_printf("%s = %s\n", cbt->name, value);
+		show_strval(mode, cbt->name, value);
 	    }
 	} else {
 	    if (value != 0)
-		vstream_printf("%s = %s\n", cbt->name, value);
+		show_strval(mode, cbt->name, value);
 	}
     }
 }
@@ -255,18 +287,18 @@ static void print_int(int mode, CONFIG_INT_TABLE *cit)
     const char *value;
 
     if (mode & SHOW_DEFS) {
-	vstream_printf("%s = %d\n", cit->name, cit->defval);
+	show_intval(mode, cit->name, cit->defval);
     } else {
 	value = dict_lookup(CONFIG_DICT, cit->name);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
-		vstream_printf("%s = %d\n", cit->name, cit->defval);
+		show_intval(mode, cit->name, cit->defval);
 	    } else {
-		vstream_printf("%s = %s\n", cit->name, value);
+		show_strval(mode, cit->name, value);
 	    }
 	} else {
 	    if (value != 0)
-		vstream_printf("%s = %s\n", cit->name, value);
+		show_strval(mode, cit->name, value);
 	}
     }
 }
@@ -278,18 +310,18 @@ static void print_str(int mode, CONFIG_STR_TABLE *cst)
     const char *value;
 
     if (mode & SHOW_DEFS) {
-	vstream_printf("%s = %s\n", cst->name, cst->defval);
+	show_strval(mode, cst->name, cst->defval);
     } else {
 	value = dict_lookup(CONFIG_DICT, cst->name);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
-		vstream_printf("%s = %s\n", cst->name, cst->defval);
+		show_strval(mode, cst->name, cst->defval);
 	    } else {
-		vstream_printf("%s = %s\n", cst->name, value);
+		show_strval(mode, cst->name, value);
 	    }
 	} else {
 	    if (value != 0)
-		vstream_printf("%s = %s\n", cst->name, value);
+		show_strval(mode, cst->name, value);
 	}
     }
 }
@@ -301,18 +333,18 @@ static void print_str_fn(int mode, CONFIG_STR_FN_TABLE *csft)
     const char *value;
 
     if (mode & SHOW_DEFS) {
-	vstream_printf("%s = %s\n", csft->name, csft->defval());
+	show_strval(mode, csft->name, csft->defval());
     } else {
 	value = dict_lookup(CONFIG_DICT, csft->name);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
-		vstream_printf("%s = %s\n", csft->name, csft->defval());
+		show_strval(mode, csft->name, csft->defval());
 	    } else {
-		vstream_printf("%s = %s\n", csft->name, value);
+		show_strval(mode, csft->name, value);
 	    }
 	} else {
 	    if (value != 0)
-		vstream_printf("%s = %s\n", csft->name, value);
+		show_strval(mode, csft->name, value);
 	}
     }
 }
@@ -324,18 +356,18 @@ static void print_str_fn_2(int mode, CONFIG_STR_FN_TABLE *csft)
     const char *value;
 
     if (mode & SHOW_DEFS) {
-	vstream_printf("%s = %s\n", csft->name, csft->defval());
+	show_strval(mode, csft->name, csft->defval());
     } else {
 	value = dict_lookup(CONFIG_DICT, csft->name);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
-		vstream_printf("%s = %s\n", csft->name, csft->defval());
+		show_strval(mode, csft->name, csft->defval());
 	    } else {
-		vstream_printf("%s = %s\n", csft->name, value);
+		show_strval(mode, csft->name, value);
 	    }
 	} else {
 	    if (value != 0)
-		vstream_printf("%s = %s\n", csft->name, value);
+		show_strval(mode, csft->name, value);
 	}
     }
 }
@@ -412,7 +444,7 @@ static void show_parameters(int mode, char **names)
 int     main(int argc, char **argv)
 {
     int     ch;
-    int     mode = 0;
+    int     mode = SHOW_NAME;
     int     fd;
     struct stat st;
 
@@ -432,12 +464,15 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "dnv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "dhnv")) > 0) {
 	switch (ch) {
 	case 'd':
 	    if (mode & SHOW_NONDEF)
 		msg_fatal("specify one of -d and -n");
 	    mode |= SHOW_DEFS;
+	    break;
+	case 'h':
+	    mode &= ~SHOW_NAME;
 	    break;
 	case 'n':
 	    if (mode & SHOW_DEFS)
@@ -448,7 +483,7 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-d (show default)] [-n (show non-default)] [-v] name...", argv[0]);
+	    msg_fatal("usage: %s [-d (defaults)] [-h (no names)] [-n (non-defaults)] [-v] name...", argv[0]);
 	}
     }
 

@@ -26,6 +26,9 @@
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*
+/*	int	mail_queue_mkdirs(path)
+/*	const char *path;
+/*
 /*	int	mail_queue_rename(queue_id, old_queue, new_queue)
 /*	const char *queue_id;
 /*	const char *old_queue;
@@ -65,6 +68,10 @@
 /*	file. When a null result buffer pointer is provided, the result
 /*	is written to a private buffer that may be overwritten upon the
 /*	next call.
+/*
+/*	mail_queue_mkdirs() creates missing parent directories
+/*	for the file named in \fBpath\fR. A non-zero result means
+/*	that the operation failed.
 /*
 /*	mail_queue_rename() renames a queue file. A non-zero result
 /*	means the operation failed.
@@ -204,7 +211,7 @@ const char *mail_queue_path(VSTRING *buf, const char *queue_name,
 
 /* mail_queue_mkdirs - fill in missing directories */
 
-static int mail_queue_mkdirs(const char *path)
+int     mail_queue_mkdirs(const char *path)
 {
     char   *myname = "mail_queue_mkdirs";
     char   *saved_path = mystrdup(path);

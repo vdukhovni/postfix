@@ -90,6 +90,10 @@ static void master_sigchld(int sig, int code, struct sigcontext * scp)
     master_gotsigchld = sig;
     if (scp != NULL && scp->sc_syscall == SYS_select) {
 	scp->sc_syscall_action = SIG_RETURN;
+#ifndef SA_RESTART
+    } else if (scp != NULL) {
+	scp->sc_syscall_action = SIG_RESTART;
+#endif
     }
 }
 

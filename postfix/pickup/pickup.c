@@ -43,6 +43,8 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBalways_bcc\fR
+/*	Address to send a copy of each message that enters the system.
 /* .IP \fBmail_owner\fR
 /*      The process privileges used while not opening a \fBmaildrop\fR file.
 /* .IP \fBqueue_directory\fR
@@ -102,6 +104,8 @@
 #include <mail_server.h>
 
 /* Application-specific. */
+
+char   *var_always_bcc;
 
  /*
   * Structure to bundle a bunch of information about a queue file.
@@ -231,12 +235,15 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 	     (int) info->st.st_uid, info->sender);
     myfree(info->sender);
 
+    if (*var_always_bcc)
+	rec_fputs(cleanup, REC_TYPE_RCPT, var_always_bcc);
+
     /*
      * Message content segment. Send a dummy message length. Prepend a
      * Received: header to the message contents. For tracing purposes,
      * include the message file ownership, without revealing the login name.
      */
-    rec_fprintf(cleanup, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0);
+    rec_fputs(cleanup, REC_TYPE_MESG, "");
     rec_fprintf(cleanup, REC_TYPE_NORM, "Received: by %s (%s, from userid %d)",
 		var_myhostname, var_mail_name, info->st.st_uid);
     rec_fprintf(cleanup, REC_TYPE_NORM, "\tid %s; %s", info->id,
@@ -402,12 +409,17 @@ static void drop_privileges(void)
 
 int     main(int argc, char **argv)
 {
+    static CONFIG_STR_TABLE str_table[] = {
+	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
+	0,
+    };
 
     /*
      * Use the multi-threaded skeleton, because no-one else should be
      * monitoring our service socket while this process runs.
      */
     trigger_server_main(argc, argv, pickup_service,
+			MAIL_SERVER_STR_TABLE, str_table,
 			MAIL_SERVER_POST_INIT, drop_privileges,
 			0);
 }

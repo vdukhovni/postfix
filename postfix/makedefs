@@ -59,9 +59,21 @@ case "$SYSTEM.$RELEASE" in
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		;;
+  UNIX_SV.4.2*)	case "`uname -v`" in
+	      2.1*) SYSTYPE=UW21
+		    CC=/usr/bin/cc
+		    RANLIB=echo
+		    SYSLIBS="-lresolv -lsocket -lnsl -lc -L/usr/ucblib -lucb"
+		    ;;
+	      *) echo "Seems to be UnixWare`uname -v`. Untested." 1>&2; 
+		 exit 1;;
+		esac
+		;;
   FreeBSD.2*)	SYSTYPE=FREEBSD2
 		;;
   FreeBSD.3*)	SYSTYPE=FREEBSD3
+		;;
+  FreeBSD.4*)	SYSTYPE=FREEBSD4
 		;;
   OpenBSD.2*)	SYSTYPE=OPENBSD2
 		;;
@@ -109,6 +121,7 @@ case "$SYSTEM.$RELEASE" in
 			case "$CC" in
 			cc|*/cc|xlc|*/xlc) OPT=;;
 			esac
+			CCARGS="$CCARGS -D_ALL_SOURCE"
 			;;
 		*)	echo "Unknown AIX version: `uname -v`." 1>&2; exit 1;;
 		esac;;

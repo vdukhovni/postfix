@@ -23,9 +23,11 @@
 #define	MAIL_SERVER_PRE_INIT	10
 #define MAIL_SERVER_POST_INIT	11
 #define MAIL_SERVER_LOOP	12
+#define MAIL_SERVER_EXIT	13
 
 typedef void (*MAIL_SERVER_INIT_FN) (void);
 typedef int (*MAIL_SERVER_LOOP_FN) (void);
+typedef void (*MAIL_SERVER_EXIT_FN) (void);
 
  /*
   * single_server.c

@@ -107,7 +107,7 @@ struct QMGR_TRANSPORT_ALLOC {
 
 /* qmgr_transport_unthrottle_wrapper - in case (char *) != (struct *) */
 
-static void qmgr_transport_unthrottle_wrapper(char *context)
+static void qmgr_transport_unthrottle_wrapper(int unused_event, char *context)
 {
     qmgr_transport_unthrottle((QMGR_TRANSPORT *) context);
 }
@@ -162,6 +162,15 @@ void    qmgr_transport_throttle(QMGR_TRANSPORT *transport, const char *reason)
     }
 }
 
+/* qmgr_transport_abort - transport connect watchdog */
+
+static void qmgr_transport_abort(int unused_event, char *context)
+{
+    QMGR_TRANSPORT_ALLOC *alloc = (QMGR_TRANSPORT_ALLOC *) context;
+
+    msg_fatal("timeout connecting to transport: %s", alloc->transport->name);
+}
+
 /* qmgr_transport_event - delivery process availability notice */
 
 static void qmgr_transport_event(int unused_event, char *context)
@@ -174,6 +183,11 @@ static void qmgr_transport_event(int unused_event, char *context)
      */
     if (msg_verbose)
 	msg_info("transport_event: %s", alloc->transport->name);
+
+    /*
+     * Connection request completed. Stop the watchdog timer.
+     */
+    event_cancel_timer(qmgr_transport_abort, context);
 
     /*
      * Disable further read events that end up calling this function.
@@ -281,6 +295,11 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
     alloc->notify = notify;
     transport->flags |= QMGR_TRANSPORT_STAT_BUSY;
     ENABLE_EVENTS(vstream_fileno(alloc->stream), EVENT_HANDLER, (char *) alloc);
+
+    /*
+     * Guard against broken systems.
+     */
+    event_request_timer(qmgr_transport_abort, (char *) alloc, var_ipc_timeout);
 }
 
 /* qmgr_transport_create - create transport instance */
@@ -304,6 +323,12 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
     transport->recipient_limit =
 	get_config_int2(name, "_destination_recipient_limit",
 			var_dest_rcpt_limit, 0, 0);
+
+    if (transport->dest_concurrency_limit == 0
+	|| transport->dest_concurrency_limit >= var_init_dest_concurrency)
+	transport->init_dest_concurrency = var_init_dest_concurrency;
+    else
+	transport->init_dest_concurrency = transport->dest_concurrency_limit;
 
     transport->queue_byname = htable_create(0);
     QMGR_LIST_INIT(transport->queue_list);

@@ -41,6 +41,12 @@
 # option enables symbolic debugging (see the debugger_command variable
 # in the main.cf configuration file).
 #
+# In order to use the "uucp" message tranport below, set up entries
+# in the transport table.
+#
+# In order to use the "cyrus" message transport below, configure it
+# in main.cf as the mailbox_transport.
+#
 # ==========================================================================
 # service type	private	unpriv	chroot	wakeup	maxproc	command + args
 # 		(yes)	(yes)	(yes)	(never)	(50)
@@ -55,7 +61,7 @@ defer	  unix	-	-	n	-	0	bounce
 smtp	  unix	-	-	n	-	-	smtp
 showq     unix	n	-	n	-	-	showq
 local	  unix	-	n	n	-	-	local
-#local	  unix	-	n	n	-	-	pipe
-#    user=cyrus argv=/cyrus/bin/deliver -e -q -m ${extension} ${user}
+cyrus	  unix	-	n	n	-	-	pipe
+    flags=R user=cyrus argv=/cyrus/bin/deliver -e -q -m ${extension} ${user}
 uucp	  unix	-	n	n	-	-	pipe
     flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)

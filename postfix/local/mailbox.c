@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include "local.h"
 /*
-/*	int	deliver_mailbox(state, usr_attr)
+/*	int	deliver_mailbox(state, usr_attr, statusp)
 /*	LOCAL_STATE state;
 /*	USER_ATTR usr_attr;
+/*	int	*statusp;
 /* DESCRIPTION
 /*	deliver_mailbox() delivers to mailbox, with duplicate
 /*	suppression. The default is direct mailbox delivery to
@@ -17,6 +18,8 @@
 /*	and when a \fImailbox_command\fR has been configured, the message
 /*	is piped into the command instead.
 /*
+/*	A zero result means that the named user was not found.
+/*
 /*	Arguments:
 /* .IP state
 /*	The attributes that specify the message, recipient and more.
@@ -24,8 +27,11 @@
 /*	A table with the results from expanding aliases or lists.
 /* .IP usr_attr
 /*	Attributes describing user rights and environment.
+/* .IP statusp
+/*	Delivery status: see below.
 /* DIAGNOSTICS
-/*	deliver_mailbox() returns non-zero when delivery should be tried again,
+/*	The message delivery status is non-zero when delivery should be tried
+/*	again.
 /* LICENSE
 /* .ad
 /* .fi
@@ -44,9 +50,6 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef USE_PATHS_H
-#include <paths.h>
-#endif
 
 /* Utility library. */
 
@@ -66,22 +69,27 @@
 #ifdef USE_DOT_LOCK
 #include <dot_lockfile.h>
 #endif
-#include <bounce.h>
 #include <defer.h>
 #include <sent.h>
 #include <mypwd.h>
 #include <been_here.h>
 #include <mail_params.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
 #include "local.h"
 #include "biff_notify.h"
 
+#define YES	1
+#define NO	0
+
 /* deliver_mailbox_file - deliver to recipient mailbox */
 
 static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 {
+    char   *myname = "deliver_mailbox_file";
+    char   *spool_dir;
     char   *mailbox;
     VSTRING *why;
     VSTREAM *dst;
@@ -89,9 +97,18 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     int     copy_flags;
     VSTRING *biff;
     long    end;
+    struct stat st;
+    uid_t   spool_uid;
+    gid_t   spool_gid;
+    uid_t   chown_uid;
+    gid_t   chown_gid;
 
+    /*
+     * Make verbose logging easier to understand.
+     */
+    state.level++;
     if (msg_verbose)
-	msg_info("deliver_mailbox_file: %s", state.msg_attr.recipient);
+	MSG_LOG_STATE(myname, state);
 
     /*
      * Initialize. Assume the operation will fail. Set the delivered
@@ -102,29 +119,67 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     state.msg_attr.delivered = state.msg_attr.recipient;
     status = -1;
     why = vstring_alloc(100);
-    if (*var_home_mailbox)
+    if (*var_home_mailbox) {
+	spool_dir = 0;
 	mailbox = concatenate(usr_attr.home, "/", var_home_mailbox, (char *) 0);
-    else
-	mailbox = concatenate(_PATH_MAILDIR, "/", state.msg_attr.local, (char *) 0);
+    } else {
+	spool_dir = var_mail_spool_dir;
+	mailbox = concatenate(spool_dir, "/", state.msg_attr.local, (char *) 0);
+    }
+
+    /*
+     * Mailbox delivery with least privilege. As long as we do not use root
+     * privileges this code may also work over NFS.
+     * 
+     * If delivering to the recipient's home directory, perform all operations
+     * (including file locking) as that user (Mike Muuss, Army Research
+     * Laboratory, USA).
+     * 
+     * If delivering to the mail spool directory, and the spool directory is
+     * world-writable, deliver as the recipient; if the spool directory is
+     * group-writable, use the recipient user id and the mail spool group id.
+     * 
+     * Otherwise, use root privileges and chown the mailbox.
+     */
+    if (spool_dir == 0
+	|| stat(spool_dir, &st) < 0
+	|| (st.st_mode & S_IWOTH) != 0) {
+	spool_uid = usr_attr.uid;
+	spool_gid = usr_attr.gid;
+    } else if ((st.st_mode & S_IWGRP) != 0) {
+	spool_uid = usr_attr.uid;
+	spool_gid = st.st_gid;
+    } else {
+	spool_uid = 0;
+	spool_gid = 0;
+    }
+    if (spool_uid == usr_attr.uid) {
+	chown_uid = -1;
+	chown_gid = -1;
+    } else {
+	chown_uid = usr_attr.uid;
+	chown_gid = usr_attr.gid;
+    }
+    if (msg_verbose)
+	msg_info("spool_uid/gid %d/%d chown_uid/gid %d/%d",
+		 spool_uid, spool_gid, chown_uid, chown_gid);
 
     /*
      * Lock the mailbox and open/create the mailbox file. Depending on the
      * type of locking used, we lock first or we open first.
      * 
      * Write the file as the recipient, so that file quota work.
-     * 
-     * Create lock files as root, for non-writable directories.
      */
     copy_flags = MAIL_COPY_MBOX;
     if (state.msg_attr.features & FEATURE_NODELIVERED)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
-    set_eugid(0, 0);
+    set_eugid(spool_uid, spool_gid);
 #ifdef USE_DOT_LOCK
     if (dot_lockfile(mailbox, why) >= 0) {
 #endif
 	dst = safe_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
-			S_IRUSR | S_IWUSR, usr_attr.uid, usr_attr.gid, why);
+			S_IRUSR | S_IWUSR, chown_uid, chown_gid, why);
 	set_eugid(usr_attr.uid, usr_attr.gid);
 	if (dst != 0) {
 	    end = vstream_fseek(dst, (off_t) 0, SEEK_END);
@@ -143,7 +198,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    }
 	}
 #ifdef USE_DOT_LOCK
-	set_eugid(0, 0);
+	set_eugid(spool_uid, spool_gid);
 	dot_unlockfile(mailbox);
     }
 #endif
@@ -161,7 +216,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 
 /* deliver_mailbox - deliver to recipient mailbox */
 
-int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr)
+int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 {
     char   *myname = "deliver_mailbox";
     int     status;
@@ -173,29 +228,30 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     state.level++;
     if (msg_verbose)
-	msg_info("%s[%d]: %s", myname, state.level, state.msg_attr.recipient);
-
-    /*
-     * Strip quoting that was prepended to defeat alias/forward expansion.
-     */
-    if (state.msg_attr.recipient[0] == '\\')
-	state.msg_attr.recipient++, state.msg_attr.local++;
+	MSG_LOG_STATE(myname, state);
 
     /*
      * DUPLICATE ELIMINATION
      * 
-     * Don't deliver more than once to this mailbox.
+     * Don't come here more than once, whether or not the recipient exists.
      */
     if (been_here(state.dup_filter, "mailbox %s", state.msg_attr.local))
-	return (0);
+	return (YES);
 
     /*
-     * Bounce the message when this recipient does not exist. XXX Should
-     * quote_822_local() the recipient.
+     * Delegate mailbox delivery to another message transport.
+     */
+    if (*var_mailbox_transport) {
+	*statusp = deliver_pass(MAIL_CLASS_PRIVATE, var_mailbox_transport,
+			      state.request, state.msg_attr.recipient, -1L);
+	return (YES);
+    }
+
+    /*
+     * Skip delivery when this recipient does not exist.
      */
     if ((mbox_pwd = mypwnam(state.msg_attr.local)) == 0)
-	return (bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			      "unknown user: \"%s\"", state.msg_attr.local));
+	return (NO);
 
     /*
      * No early returns or we have a memory leak.
@@ -209,7 +265,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr)
     SET_USER_ATTR(usr_attr, mbox_pwd, state.level);
 
     /*
-     * Deliver to mailbox or to external delivery agent.
+     * Deliver to mailbox or to external command.
      */
 #define LAST_CHAR(s) (s[strlen(s) - 1])
 
@@ -226,5 +282,6 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr)
      * Cleanup.
      */
     mypwfree(mbox_pwd);
-    return (status);
+    *statusp = status;
+    return (YES);
 }

@@ -5,7 +5,8 @@ DAEMONS	= man8/bounce.8 man8/defer.8 man8/cleanup.8 man8/local.8 \
 	man8/smtp.8 man8/smtpd.8 man8/trivial-rewrite.8
 COMMANDS= man1/postalias.1 man1/postcat.1 man1/postconf.1 man1/postfix.1 \
 	man1/postkick.1 man1/postlock.1 man1/postlog.1 man1/postdrop.1 \
-	man1/postmap.1 man1/sendmail.1 man1/mailq.1 man1/newaliases.1
+	man1/postmap.1 man1/sendmail.1 man1/mailq.1 man1/newaliases.1 \
+	man1/postsuper.1
 CONFIG	= man5/access.5 man5/aliases.5 man5/canonical.5 man5/relocated.5 \
 	man5/transport.5 man5/virtual.5
 
@@ -83,6 +84,9 @@ man1/postlog.1: ../postlog/postlog.c
 	srctoman $? >$@
 
 man1/postmap.1: ../postmap/postmap.c
+	srctoman $? >$@
+
+man1/postsuper.1: ../postsuper/postsuper.c
 	srctoman $? >$@
 
 man1/sendmail.1: ../sendmail/sendmail.c

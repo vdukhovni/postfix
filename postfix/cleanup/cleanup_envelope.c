@@ -57,6 +57,7 @@ void    cleanup_envelope(void)
 {
     VSTRING *clean_addr = vstring_alloc(100);
     int     type = 0;
+    long    warn_time = 0;
 
     /*
      * The message content size record goes first, so it can easily be
@@ -78,6 +79,12 @@ void    cleanup_envelope(void)
 	    if (cleanup_sender == 0 || cleanup_time == 0) {
 		msg_warn("missing sender or time envelope record");
 		cleanup_errs |= CLEANUP_STAT_BAD;
+	    } else {
+		if (warn_time == 0 && var_delay_warn_time > 0)
+		    warn_time = cleanup_time + var_delay_warn_time * 3600L;
+		if (warn_time)
+		    cleanup_out_format(REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
+				       warn_time);
 	    }
 	    break;
 	}
@@ -106,6 +113,11 @@ void    cleanup_envelope(void)
 	    if (cleanup_sender == 0)
 		cleanup_sender = mystrdup(STR(clean_addr));
 	} else if (type == REC_TYPE_RCPT) {
+	    if (cleanup_sender == 0) {		/* protect showq */
+		msg_warn("envelope recipient precedes sender");
+		cleanup_errs |= CLEANUP_STAT_BAD;
+		break;
+	    }
 	    cleanup_rewrite_internal(clean_addr, *STR(cleanup_inbuf) ?
 				     STR(cleanup_inbuf) : var_empty_addr);
 	    if (cleanup_rcpt_canon_maps)
@@ -115,6 +127,11 @@ void    cleanup_envelope(void)
 	    cleanup_out_recipient(STR(clean_addr));
 	    if (cleanup_recip == 0)
 		cleanup_recip = mystrdup(STR(clean_addr));
+	} else if (type == REC_TYPE_WARN) {
+	    if ((warn_time = atol(STR(cleanup_inbuf))) < 0) {
+		cleanup_errs |= CLEANUP_STAT_BAD;
+		break;
+	    }
 	} else {
 	    CLEANUP_OUT_BUF(type, cleanup_inbuf);
 	}

@@ -44,9 +44,10 @@
 /*	BINHASH	*table;
 /*	void	(*free_fn)(char *);
 /*
-/*	void	binhash_walk(table, action)
+/*	void	binhash_walk(table, action, ptr)
 /*	BINHASH	*table;
-/*	void	(*action)(BINHASH_INFO *);
+/*	void	(*action)(BINHASH_INFO *info, char *ptr);
+/*	char	*ptr;
 /*
 /*	BINHASH_INFO **binhash_list(table)
 /*	BINHASH	*table;
@@ -84,7 +85,8 @@
 /*	with the entry.
 /*
 /*	binhash_walk() invokes the action function for each table entry, with
-/*	a pointer to the entry as its argument.
+/*	a pointer to the entry as its argument. The ptr argument is passed
+/*	on to the action function.
 /*
 /*	binhash_list() returns a null-terminated list of pointers to
 /*	all elements in the named table. The list should be passed to
@@ -303,8 +305,8 @@ void    binhash_free(BINHASH *table, void (*free_fn) (char *))
 
 /* binhash_walk - iterate over hash table */
 
-void    binhash_walk(BINHASH *table, void (*action) (BINHASH_INFO *))
-{
+void    binhash_walk(BINHASH *table, void (*action) (BINHASH_INFO *, char *),
+		             char *ptr) {
     if (table != 0) {
 	unsigned i = table->size;
 	BINHASH_INFO **h = table->data;
@@ -312,7 +314,7 @@ void    binhash_walk(BINHASH *table, void (*action) (BINHASH_INFO *))
 
 	while (i-- > 0)
 	    for (ht = *h++; ht; ht = ht->next)
-		(*action) (ht);
+		(*action) (ht, ptr);
     }
 }
 

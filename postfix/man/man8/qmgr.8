@@ -82,12 +82,10 @@ of new mail.
 .IP "\fBslow start\fR"
 This strategy eliminates "thundering herd" problems by slowly
 adjusting the number of parallel deliveries to the same destination.
-.IP "\fBround robin\fR and \fBrandom walk\fR"
+.IP "\fBround robin\fR
 The queue manager sorts delivery requests by destination.
 Round-robin selection prevents one destination from dominating
 deliveries to other destinations.
-Random walk prevents one problematic message from blocking
-deliveries of other mail to the same destination.
 .IP "\fBexponential backoff\fR"
 Mail that cannot be delivered upon the first attempt is deferred.
 The time interval between delivery attempts is doubled after each

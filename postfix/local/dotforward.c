@@ -100,13 +100,14 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     int     forward_found = NO;
     int     lookup_status;
     int     addr_count;
+    char   *extension;
 
     /*
      * Make verbose logging easier to understand.
      */
     state.level++;
     if (msg_verbose)
-	msg_info("%s[%d]: %s", myname, state.level, state.msg_attr.local);
+	MSG_LOG_STATE(myname, state);
 
     /*
      * DUPLICATE/LOOP ELIMINATION
@@ -169,8 +170,8 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     state.msg_attr.owner = state.msg_attr.recipient;
 
     /*
-     * Assume that usernames do not have file system meta characters. Open the
-     * .forward file as the user. Ignore files that aren't regular files,
+     * Assume that usernames do not have file system meta characters. Open
+     * the .forward file as the user. Ignore files that aren't regular files,
      * files that are owned by the wrong user, or files that have world write
      * permission enabled. We take no special precautions to deal with home
      * directories imported via NFS, because mailbox and .forward files
@@ -185,19 +186,20 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 
     status = 0;
     path = vstring_alloc(100);
-    if (state.msg_attr.extension && strchr(state.msg_attr.extension, '/')) {
+    extension = state.msg_attr.extension;
+    if (extension && strchr(extension, '/')) {
 	msg_warn("%s: address with illegal extension: %s",
 		 state.msg_attr.queue_id, state.msg_attr.recipient);
-	state.msg_attr.extension = 0;
+	extension = 0;
     }
-    if (state.msg_attr.extension != 0) {
+    if (extension != 0) {
 	vstring_sprintf(path, "%s/.forward%c%s", mypwd->pw_dir,
-			var_rcpt_delim[0], state.msg_attr.extension);
+			var_rcpt_delim[0], extension);
 	if ((lookup_status = lstat_as(STR(path), &st,
 				      usr_attr.uid, usr_attr.gid)) < 0)
-	    state.msg_attr.extension = 0;
+	    extension = 0;
     }
-    if (state.msg_attr.extension == 0) {
+    if (extension == 0) {
 	vstring_sprintf(path, "%s/.forward", mypwd->pw_dir);
 	lookup_status = lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);
     }
