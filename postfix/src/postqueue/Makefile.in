@@ -72,6 +72,8 @@ postqueue.o: ../../include/valid_hostname.h
 postqueue.o: ../../include/mail_proto.h
 postqueue.o: ../../include/attr.h
 postqueue.o: ../../include/mail_params.h
+postqueue.o: ../../include/crate_clnt.h
+postqueue.o: ../../include/attr_clnt.h
 postqueue.o: ../../include/mail_conf.h
 postqueue.o: ../../include/mail_task.h
 postqueue.o: ../../include/debug_process.h

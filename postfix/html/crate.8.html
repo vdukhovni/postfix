@@ -1,0 +1,106 @@
+<html> <body> <pre>
+CRATE(8)                                                 CRATE(8)
+
+<b>NAME</b>
+       crate - Postfix connection count and rate management
+
+<b>SYNOPSIS</b>
+       <b>crate</b> [generic Postfix daemon options]
+
+<b>DESCRIPTION</b>
+       The  Postfix  <b>crate</b> server maintains statistics that other
+       Postfix servers can use to limit the number of  simultane-
+       ous  connections  as  well  as the frequency of connection
+       attempts over a configurable unit of time.  This server is
+       designed  to  run  under  control  by  the  Postfix master
+       server.
+
+<b>PROTOCOL</b>
+       When a connection is established, a  rate  limited  server
+       sends the following request to the <b>crate</b> server:
+
+           <b>request=connect</b>
+           <b>ident=</b><i>string</i>
+
+       This  registers a new connection for the remote client and
+       the rate limited service specified with <i>string</i>. The  <b>crate</b>
+       server answers with the number of simultaneous connections
+       and the number of connections per unit time for that (ser-
+       vice, client) combination:
+
+           <b>status=0</b>
+           <b>count=</b><i>number</i>
+           <b>rate=</b><i>number</i>
+
+       It is left up to the rate limited service to decide if the
+       remote client connection request is acceptable.
+
+       When a remote client disconnects, a  rate  limited  server
+       sends the following request to the <b>crate</b> server:
+
+           <b>request=disconnect</b>
+           <b>ident=</b><i>string</i>
+
+       This  registers  a  disconnect event for the remote client
+       and the rate limited service specified  with  <i>string</i>.  The
+       rate limit management server replies with:
+
+           <b>status=0</b>
+
+<b>SECURITY</b>
+       The  connection  count  and rate management service is not
+       security sensitive. It does not talk  to  the  network  or
+       local  users,  and it can run chrooted at fixed low privi-
+       lege.
+
+       This server maintains an in-memory table with  information
+       about  past and current clients of a rate limited service.
+       Although state is kept only temporarily, this may  require
+       a  lot  of  memory  when a system handles connections from
+       many remote clients, or when a system comes under  a  dis-
+       tributed  denial  of  service attack. In that case, reduce
+       the time unit over which statistics are kept.
+
+       Systems behind  network  address  translating  routers  or
+       proxies appear to have the same client address and can run
+       into connection count and/or rate limits falsely.
+
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
+<b>BUGS</b>
+       All state is lost when the service is restarted.
+
+       In this first implementation,  a  count  or  rate  limited
+       server can have only one client at a time.
+
+<b>CONFIGURATION PARAMETERS</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. Use the <b>postfix reload</b>  command  after  a
+       configuration change.
+
+       <b>connection_rate_purge_delay</b>
+              How  long  remote  client state is remembered after
+              the remote client has disconnected completely. This
+              should  not  be  smaller than the unit of time over
+              which connection rates are calculated.
+
+       <b>connection_rate_time_unit</b>
+              The unit of time over which  connection  rates  are
+              calculated.
+
+<b>SEE ALSO</b>
+       <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
+
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
+       software.
+
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
+       Yorktown Heights, NY 10598, USA
+
+                                                         CRATE(8)
+</pre> </body> </html>

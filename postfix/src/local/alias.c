@@ -283,10 +283,12 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 		msg_warn("mailing list \"%s\" needs an \"owner-%s\" alias",
 			 name, name);
 #endif
-	    if (alias_count < 1)
+	    if (alias_count < 1) {
+		msg_warn("no recipient in alias lookup result for %s", name);
 		*statusp = defer_append(BOUNCE_FLAGS(state.request),
 					BOUNCE_ATTR(state.msg_attr),
-					"no recipient in alias lookup result");
+					"alias database unavailable");
+	    }
 	    myfree(expansion);
 	    if (owner)
 		myfree(owner);

@@ -22,6 +22,26 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.16-20031110
+==========================================================
+
+The demo greylist policy server is now case insensitive.
+
+Major changes with Postfix snapshot 2.0.16-20031110
+===================================================
+
+Preliminary support for limiting the number of connection attempts
+from an SMTP client. The limits are disabled by default. The
+parameter smtpd_client_connection_count_limit restricts the number
+of simultaneous connections by any client, and the parameter
+smtpd_client_connection_rate_limit restricts the number of connection
+attempts per unit time that any client can make. The time unit is
+specified with the connection_rate_time_unit parameter, default
+one minute). When Postfix rejects a client, it sends a 450 status
+code and disconnects. The smtpd_client_connection_limit_exceptions
+parameter takes a list of network blocks or domain names that are
+excluded from these restrictions (by default, clients in $mynetworks).
+
 Incompatible changes with Postfix snapshot 2.0.16-20031022
 ==========================================================
 

@@ -3799,7 +3799,6 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 				  "552 Message size exceeds fixed limit");
 	return (STR(error_text));
     }
-
     fsspace(".", &fsbuf);
     if (msg_verbose)
 	msg_info("%s: blocks %lu avail %lu min_free %lu msg_size_limit %lu",

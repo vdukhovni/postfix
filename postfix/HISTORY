@@ -8706,6 +8706,48 @@ Apologies for any names omitted.
 	Portability: added localhost to mydestination for sites that
 	turn off append_dot_mydomain. File: global/mail_params.h.
 
+20031027
+
+	Portability: MacOS X Bind8 compatibility. File: makedefs.
+
+20031103
+
+	Robustness: flush pipelined "." and "quit" replies to avoid
+	repeated deliveries in case of a program crash (you know,
+	the kind of thing that happens before Postfix release :-).
+	File:  smtpd/smtpd.c.
+
+20031105
+
+	Portability: turn off NETINFO support for MacOS X Panther
+	by default. Files: makedefs, util/sys_defs.h.
+
+20031106
+
+	Feature: the sample greylist policy server is now case
+	insensitive.  File: examples/smtpd-policy/smtpd-policy.pl.
+
+20031103-20031110
+
+	Feature: preliminary support to restrict the number of
+	simultaneous and successive connections that a client is
+	can make to the Postfix SMTP server, with a whitelist
+	capability to disable the restriction for authorized clients.
+	Most of the work is implemented by a new "crate" server
+	(connection Count and RATE management).  Parameters:
+	smtpd_client_connection_count_limit, smtpd_client_connection-
+	_rate_limit, smtpd_client_connection_limit_exceptions,
+	connection_rate_time_unit, and connection_rate_purge_delay.
+	Documentation:  smtpd(8), crate(8), sample-smtpd.cf. Files:
+	smtpd/smtpd.c, global/crate_clnt.[hc], crate/crate.c.
+	
+
+20031110
+
+	Cleanup: Postfix now supports the /0 netmask (match every
+	address).  This is useful as a catch-all pattern at the
+	end of a table.  Files:  util/dict_cidr.c, util/match_ops.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content

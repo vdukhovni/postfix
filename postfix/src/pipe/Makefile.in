@@ -73,6 +73,9 @@ pipe.o: ../../include/stringops.h
 pipe.o: ../../include/recipient_list.h
 pipe.o: ../../include/deliver_request.h
 pipe.o: ../../include/mail_params.h
+pipe.o: ../../include/crate_clnt.h
+pipe.o: ../../include/attr_clnt.h
+pipe.o: ../../include/attr.h
 pipe.o: ../../include/mail_conf.h
 pipe.o: ../../include/bounce.h
 pipe.o: ../../include/defer.h

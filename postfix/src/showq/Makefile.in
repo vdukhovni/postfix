@@ -73,6 +73,8 @@ showq.o: ../../include/iostuff.h
 showq.o: ../../include/attr.h
 showq.o: ../../include/mail_date.h
 showq.o: ../../include/mail_params.h
+showq.o: ../../include/crate_clnt.h
+showq.o: ../../include/attr_clnt.h
 showq.o: ../../include/mail_scan_dir.h
 showq.o: ../../include/mail_conf.h
 showq.o: ../../include/record.h

@@ -39,9 +39,11 @@
 /*
 /*	Arguments:
 /* .IP max_idle
-/*	Idle time after which the client disconnects.
+/*	Idle time after which the client disconnects. Specify 0 to disable
+/*	the limit.
 /* .IP max_ttl
 /*	Upper bound on the time that a connection is allowed to persist.
+/*	Specify 0 to disable the limit.
 /* .IP open_action
 /*	Application call-back routine that opens a stream or returns a
 /*	null pointer upon failure. In case of success, the call-back routine
@@ -153,10 +155,12 @@ static void auto_clnt_open(AUTO_CLNT *auto_clnt)
 	close_on_exec(vstream_fileno(auto_clnt->vstream), CLOSE_ON_EXEC);
 	event_enable_read(vstream_fileno(auto_clnt->vstream), auto_clnt_event,
 			  (char *) auto_clnt);
-	event_request_timer(auto_clnt_event, (char *) auto_clnt,
-			    auto_clnt->max_idle);
-	event_request_timer(auto_clnt_ttl_event, (char *) auto_clnt,
-			    auto_clnt->max_ttl);
+	if (auto_clnt->max_idle > 0)
+	    event_request_timer(auto_clnt_event, (char *) auto_clnt,
+				auto_clnt->max_idle);
+	if (auto_clnt->max_ttl > 0)
+	    event_request_timer(auto_clnt_ttl_event, (char *) auto_clnt,
+				auto_clnt->max_ttl);
     }
 }
 

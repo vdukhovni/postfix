@@ -56,6 +56,7 @@ $queue_directory/pid:d:root:-:755:uc
 $queue_directory/trace:d:$mail_owner:-:700:ucr
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
+$daemon_directory/crate:f:root:-:755
 $daemon_directory/error:f:root:-:755
 $daemon_directory/flush:f:root:-:755
 $daemon_directory/lmtp:f:root:-:755
@@ -132,6 +133,7 @@ $manpage_directory/man5/transport.5:f:root:-:644
 $manpage_directory/man5/virtual.5:f:root:-:644
 $manpage_directory/man8/bounce.8:f:root:-:644
 $manpage_directory/man8/cleanup.8:f:root:-:644
+$manpage_directory/man8/crate.8:f:root:-:644
 $manpage_directory/man8/defer.8:f:root:-:644
 $manpage_directory/man8/error.8:f:root:-:644
 $manpage_directory/man8/flush.8:f:root:-:644

@@ -238,6 +238,16 @@
 /* .IP \fBsmtpd_history_flush_threshold\fR
 /*	Flush the command history to postmaster after receipt of RSET etc.
 /*	only if the number of history lines exceeds the given threshold.
+/* .IP \fBsmtpd_client_connection_count_limit\fR
+/*	The maximal number of simultaneous connections that any
+/*	client is allowed to make to this service.
+/* .IP \fBsmtpd_client_connection_rate_limit\fR
+/*	The maximal number of connections per unit time (specified
+/*	with \fBconnection_rate_time_unit\fR) that any client
+/*	is allowed to make to this service.
+/* .IP \fBsmtpd_client_connection_limit_exceptions\fR
+/*	Hostnames, .domain names or network address blocks of clients
+/*	that are excluded from connection count or rate limits.
 /* .SH Tarpitting
 /* .ad
 /* .fi
@@ -446,6 +456,7 @@
 #include <lex_822.h>
 #include <namadr_list.h>
 #include <input_transp.h>
+#include <crate_clnt.h>
 
 /* Single-threaded server skeleton. */
 
@@ -544,6 +555,9 @@ int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
 char   *var_xaddr_clients;
 char   *var_xloginfo_clients;
+int     var_smtpd_crate_limit;
+int     var_smtpd_cconn_limit;
+char   *var_smtpd_hoggers;
 
  /*
   * Silly little macros.
@@ -570,6 +584,12 @@ static NAMADR_LIST *xaddr_clients;
   * XLOGINFO command.
   */
 static NAMADR_LIST *xloginfo_clients;
+
+ /*
+  * Client connection and rate limiting.
+  */
+CRATE_CLNT *crate_clnt;
+static NAMADR_LIST *hogger_list;
 
  /*
   * Other application-specific globals.
@@ -1616,6 +1636,13 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
      * Don't bother checking the syntax.
      */
     smtpd_chat_reply(state, "221 Bye");
+
+    /*
+     * When the "." and quit replies are pipelined, make sure they are
+     * flushed now, to avoid repeated mail deliveries in case of a crash in
+     * the "clean up before disconnect" code.
+     */
+    vstream_fflush(state->client);
     return (0);
 }
 
@@ -1663,7 +1690,6 @@ static int xaddr_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static int xloginfo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
-    char   *cp;
 
     /*
      * Sanity checks.
@@ -1760,11 +1786,13 @@ static STRING_LIST *smtpd_noop_cmds;
 
 /* smtpd_proto - talk the SMTP protocol */
 
-static void smtpd_proto(SMTPD_STATE *state)
+static void smtpd_proto(SMTPD_STATE *state, const char *service)
 {
     int     argc;
     SMTPD_TOKEN *argv;
     SMTPD_CMD *cmdp;
+    int     count;
+    int     crate;
 
     /*
      * Print a greeting banner and run the state machine. Read SMTP commands
@@ -1803,6 +1831,26 @@ static void smtpd_proto(SMTPD_STATE *state)
 	break;
 
     case 0:
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && crate_clnt
+	    && !namadr_list_match(hogger_list, state->name, state->addr)
+	    && crate_clnt_connect(crate_clnt, service, state->addr,
+				  &count, &crate) == CRATE_STAT_OK) {
+	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
+		smtpd_chat_reply(state, "450 Too many connections from %s",
+				 state->addr);
+		msg_warn("Too many connections from %s for service %s",
+			 state->addr, service);
+		break;
+	    }
+	    if (var_smtpd_crate_limit > 0 && crate > var_smtpd_crate_limit) {
+		smtpd_chat_reply(state, "450 Too many connections from %s",
+				 state->addr);
+		msg_warn("Too frequent connections from %s for service %s",
+			 state->addr, service);
+		break;
+	    }
+	}
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && var_smtpd_delay_reject == 0
 	    && (state->access_denied = smtpd_check_client(state)) != 0) {
@@ -1865,6 +1913,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	}
 	break;
     }
+    if (crate_clnt)
+	crate_clnt_disconnect(crate_clnt, service, state->addr);
 
     /*
      * Log abnormal session termination, in case postmaster notification has
@@ -1894,7 +1944,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 
 /* smtpd_service - service one client */
 
-static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
+static void smtpd_service(VSTREAM *stream, char *service, char **argv)
 {
     SMTPD_STATE state;
 
@@ -1924,7 +1974,7 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
     /*
      * Provide the SMTP service.
      */
-    smtpd_proto(&state);
+    smtpd_proto(&state, service);
 
     /*
      * After the client has gone away, clean up whatever we have set up at
@@ -1960,6 +2010,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
     xaddr_clients = namadr_list_init(MATCH_FLAG_NONE, var_xaddr_clients);
     xloginfo_clients = namadr_list_init(MATCH_FLAG_NONE, var_xloginfo_clients);
+    hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
     debug_peer_init();
@@ -1988,7 +2039,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
      * Sanity checks. The queue_minfree value should be at least as large as
@@ -1999,8 +2050,14 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	&& var_message_limit > 0
 	&& var_queue_minfree / 2 < var_message_limit)
 	msg_warn("%s(%lu) should be at least 2*%s(%lu)",
-		  VAR_QUEUE_MINFREE, (unsigned long) var_queue_minfree,
-		  VAR_MESSAGE_LIMIT, (unsigned long) var_message_limit);
+		 VAR_QUEUE_MINFREE, (unsigned long) var_queue_minfree,
+		 VAR_MESSAGE_LIMIT, (unsigned long) var_message_limit);
+
+    /*
+     * Connection rate management.
+     */
+    if (var_smtpd_crate_limit || var_smtpd_cconn_limit)
+	crate_clnt = crate_clnt_create();
 }
 
 /* main - the main program */
@@ -2032,6 +2089,8 @@ int     main(int argc, char **argv)
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
 	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
+	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
+	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -2090,6 +2149,7 @@ int     main(int argc, char **argv)
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	VAR_XADDR_CLIENTS, DEF_XADDR_CLIENTS, &var_xaddr_clients, 0, 0,
 	VAR_XLOGINFO_CLIENTS, DEF_XLOGINFO_CLIENTS, &var_xloginfo_clients, 0, 0,
+	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

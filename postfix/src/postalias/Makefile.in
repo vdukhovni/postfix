@@ -97,6 +97,9 @@ postalias.o: ../../include/resolve_clnt.h
 postalias.o: ../../include/mail_conf.h
 postalias.o: ../../include/mail_dict.h
 postalias.o: ../../include/mail_params.h
+postalias.o: ../../include/crate_clnt.h
+postalias.o: ../../include/attr_clnt.h
+postalias.o: ../../include/attr.h
 postalias.o: ../../include/mkmap.h
 postalias.o: ../../include/dict.h
 postalias.o: ../../include/argv.h

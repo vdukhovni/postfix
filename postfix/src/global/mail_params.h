@@ -1902,6 +1902,38 @@ extern int var_smtpd_policy_ttl;
 
 #define CHECK_POLICY_SERVICE		"check_policy_service"
 
+ /*
+  * Client rate control.
+  */
+#define VAR_SMTPD_CRATE_LIMIT		"smtpd_client_connection_rate_limit"
+#define DEF_SMTPD_CRATE_LIMIT		0
+extern int var_smtpd_crate_limit;
+
+#define VAR_SMTPD_CCONN_LIMIT		"smtpd_client_connection_count_limit"
+#define DEF_SMTPD_CCONN_LIMIT		0
+extern int var_smtpd_cconn_limit;
+
+#define VAR_SMTPD_HOGGERS		"smtpd_client_connection_limit_exceptions"
+#define DEF_SMTPD_HOGGERS		"$" VAR_MYNETWORKS
+extern char *var_smtpd_hoggers;
+
+#define VAR_CRATE_SAMPLE		"connection_rate_time_unit"
+#define DEF_CRATE_SAMPLE		"60s"
+extern int var_crate_sample;
+
+#define VAR_CRATE_PURGE			"connection_rate_purge_delay"
+#define DEF_CRATE_PURGE			"$" VAR_CRATE_SAMPLE
+extern int var_crate_purge;
+
+ /*
+  * Temporary stop gap.
+  */
+#include <crate_clnt.h>
+
+#define VAR_CRATE_SERVICE		"connection_rate_service"
+#define DEF_CRATE_SERVICE		"local:" CRATE_CLASS "/" CRATE_SERVICE
+extern char *var_crate_service;
+
 /* LICENSE
 /* .ad
 /* .fi

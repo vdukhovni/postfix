@@ -301,6 +301,20 @@ SMTPD(8)                                                 SMTPD(8)
               receipt of RSET etc.  only if the number of history
               lines exceeds the given threshold.
 
+       <b>smtpd_client_connection_count_limit</b>
+              The maximal number of simultaneous connections that
+              any client is allowed to make to this service.
+
+       <b>smtpd_client_connection_rate_limit</b>
+              The maximal number of  connections  per  unit  time
+              (specified with <b>connection_rate_time_unit</b>) that any
+              client is allowed to make to this service.
+
+       <b>smtpd_client_connection_limit_exceptions</b>
+              Hostnames, .domain names or network address  blocks
+              of  clients that are excluded from connection count
+              or rate limits.
+
 <b>Tarpitting</b>
        <b>smtpd_error_sleep_time</b>
               Time to wait in seconds before sending a 4xx or 5xx
@@ -308,17 +322,17 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd_soft_error_limit</b>
               When an SMTP client has made this number of errors,
-              wait  <i>error</i><b>_</b><i>count</i>  seconds before responding to any
+              wait <i>error</i><b>_</b><i>count</i> seconds before responding  to  any
               client request.
 
        <b>smtpd_hard_error_limit</b>
-              Disconnect after a client has made this  number  of
+              Disconnect  after  a client has made this number of
               errors.
 
        <b>smtpd_junk_command_limit</b>
               Limit the number of times a client can issue a junk
-              command such as NOOP, VRFY, ETRN  or  RSET  in  one
-              SMTP  session  before  it  is penalized with tarpit
+              command  such  as  NOOP,  VRFY, ETRN or RSET in one
+              SMTP session before it  is  penalized  with  tarpit
               delays.
 
 <b>Delegated policy</b>
@@ -327,17 +341,17 @@ SMTPD(8)                                                 SMTPD(8)
               receiving from a delegated SMTPD policy server.
 
        <b>smtpd_policy_service_max_idle</b>
-              Time  after  which  an  unused SMTPD policy service
+              Time after which an  unused  SMTPD  policy  service
               connection is closed.
 
        <b>smtpd_policy_service_timeout</b>
-              Time after which an  active  SMTPD  policy  service
+              Time  after  which  an  active SMTPD policy service
               connection is closed.
 
 <b>UCE control restrictions</b>
        <b>parent_domain_matches_subdomains</b>
-              List  of  Postfix features that use <i>domain.tld</i> pat-
-              terns  to  match  <i>sub.domain.tld</i>  (as  opposed   to
+              List of Postfix features that use  <i>domain.tld</i>  pat-
+              terns   to  match  <i>sub.domain.tld</i>  (as  opposed  to
               requiring <i>.domain.tld</i> patterns).
 
        <b>smtpd_client_restrictions</b>
@@ -345,19 +359,19 @@ SMTPD(8)                                                 SMTPD(8)
               tem.
 
        <b>smtpd_helo_required</b>
-              Require that clients introduce  themselves  at  the
+              Require  that  clients  introduce themselves at the
               beginning of an SMTP session.
 
        <b>smtpd_helo_restrictions</b>
-              Restrict  what client hostnames are allowed in <b>HELO</b>
+              Restrict what client hostnames are allowed in  <b>HELO</b>
               and <b>EHLO</b> commands.
 
        <b>smtpd_sender_restrictions</b>
-              Restrict what sender addresses are allowed in  <b>MAIL</b>
+              Restrict  what sender addresses are allowed in <b>MAIL</b>
               <b>FROM</b> commands.
 
        <b>smtpd_recipient_restrictions</b>
-              Restrict  what  recipient  addresses are allowed in
+              Restrict what recipient addresses  are  allowed  in
               <b>RCPT TO</b> commands.
 
        <b>smtpd_etrn_restrictions</b>
@@ -365,96 +379,96 @@ SMTPD(8)                                                 SMTPD(8)
               mands, and what clients may issue <b>ETRN</b> commands.
 
        <b>smtpd_data_restrictions</b>
-              Restrictions  on  the  <b>DATA</b> command. Currently, the
-              only  restriction  that   makes   sense   here   is
+              Restrictions on the <b>DATA</b>  command.  Currently,  the
+              only   restriction   that   makes   sense  here  is
               <b>reject_unauth_pipelining</b>.
 
        <b>allow_untrusted_routing</b>
-              Allow  untrusted  clients to specify addresses with
-              sender-specified routing.  Enabling this  opens  up
-              nasty  relay  loopholes involving trusted backup MX
+              Allow untrusted clients to specify  addresses  with
+              sender-specified  routing.   Enabling this opens up
+              nasty relay loopholes involving trusted  backup  MX
               hosts.
 
        <b>smtpd_restriction_classes</b>
-              Declares the name of zero or more  parameters  that
-              contain  a  list  of UCE restrictions. The names of
-              these parameters can then be used  instead  of  the
+              Declares  the  name of zero or more parameters that
+              contain a list of UCE restrictions.  The  names  of
+              these  parameters  can  then be used instead of the
               restriction lists that they represent.
 
        <b>smtpd_null_access_lookup_key</b>
-              The  lookup  key  to be used in SMTPD access tables
-              instead of the null sender address. A  null  sender
+              The lookup key to be used in  SMTPD  access  tables
+              instead  of  the null sender address. A null sender
               address cannot be looked up.
 
        <b>maps_rbl_domains</b> (deprecated)
-              List  of  DNS domains that publish the addresses of
+              List of DNS domains that publish the  addresses  of
               blacklisted hosts. This is used with the deprecated
               <b>reject_maps_rbl</b> restriction.
 
        <b>permit_mx_backup_networks</b>
-              Only  domains  whose  primary  MX  hosts  match the
-              listed  networks  are   eligible   for   the   <b>per-</b>
+              Only domains  whose  primary  MX  hosts  match  the
+              listed   networks   are   eligible   for  the  <b>per-</b>
               <b>mit_mx_backup</b> feature.
 
        <b>relay_domains</b>
-              Restrict  what  domains this mail system will relay
-              mail to. The domains are  routed  to  the  delivery
+              Restrict what domains this mail system  will  relay
+              mail  to.  The  domains  are routed to the delivery
               agent specified with the <b>relay_transport</b> setting.
 
 <b>Sender/recipient address verification</b>
        Address verification is implemented by sending probe email
-       messages that are not actually delivered, and  is  enabled
-       via    the   reject_unverified_{sender,recipient}   access
-       restriction.  The status of verification probes  is  main-
+       messages  that  are not actually delivered, and is enabled
+       via   the   reject_unverified_{sender,recipient}    access
+       restriction.   The  status of verification probes is main-
        tained by the address verification service.
 
        <b>address_verify_poll_count</b>
-              How  many  times  to query the address verification
-              service for completion of an  address  verification
-              request.   Specify  1 to implement a simple form of
-              greylisting, that is, always defer the request  for
+              How many times to query  the  address  verification
+              service  for  completion of an address verification
+              request.  Specify 1 to implement a simple  form  of
+              greylisting,  that is, always defer the request for
               a new sender or recipient address.
 
        <b>address_verify_poll_delay</b>
-              Time  to  wait after querying the address verifica-
+              Time to wait after querying the  address  verifica-
               tion service for completion of an address verifica-
               tion request.
 
 <b>UCE control responses</b>
        <b>access_map_reject_code</b>
-              Response  code  when  a  client  violates an access
+              Response code when  a  client  violates  an  access
               database restriction.
 
        <b>default_rbl_reply</b>
               Default template reply when a request is RBL black-
-              listed.   This template is used by the <b>reject_rbl_*</b>
-              and   <b>reject_rhsbl_*</b>   restrictions.   See    also:
+              listed.  This template is used by the  <b>reject_rbl_*</b>
+              and    <b>reject_rhsbl_*</b>   restrictions.   See   also:
               <b>rbl_reply_maps</b> and <b>smtpd_expansion_filter</b>.
 
        <b>defer_code</b>
-              Response  code when a client request is rejected by
+              Response code when a client request is rejected  by
               the <b>defer</b> restriction.
 
        <b>invalid_hostname_reject_code</b>
-              Response  code   when   a   client   violates   the
+              Response   code   when   a   client   violates  the
               <b>reject_invalid_hostname</b> restriction.
 
        <b>maps_rbl_reject_code</b>
               Response code when a request is RBL blacklisted.
 
        <b>multi_recipient_bounce_reject_code</b>
-              Response  code  when  a  multi-recipient  bounce is
+              Response code  when  a  multi-recipient  bounce  is
               blocked.
 
        <b>rbl_reply_maps</b>
-              Table with template responses for  RBL  blacklisted
-              requests,  indexed  by  RBL domain name. These tem-
+              Table  with  template responses for RBL blacklisted
+              requests, indexed by RBL domain  name.  These  tem-
               plates   are   used   by   the   <b>reject_rbl_*</b>   and
-              <b>reject_rhsbl_*</b>      restrictions.     See     also:
+              <b>reject_rhsbl_*</b>     restrictions.     See      also:
               <b>default_rbl_reply</b> and <b>smtpd_expansion_filter</b>.
 
        <b>reject_code</b>
-              Response code when  the  client  matches  a  <b>reject</b>
+              Response  code  when  the  client  matches a <b>reject</b>
               restriction.
 
        <b>relay_domains_reject_code</b>
@@ -462,7 +476,7 @@ SMTPD(8)                                                 SMTPD(8)
               mail relay policy.
 
        <b>unknown_address_reject_code</b>
-              Response  code   when   a   client   violates   the
+              Response   code   when   a   client   violates  the
               <b>reject_unknown_address</b> restriction.
 
        <b>unknown_client_reject_code</b>
@@ -471,15 +485,15 @@ SMTPD(8)                                                 SMTPD(8)
               tion.
 
        <b>unknown_hostname_reject_code</b>
-              Response   code   when   a   client   violates  the
+              Response  code   when   a   client   violates   the
               <b>reject_unknown_hostname</b> restriction.
 
        <b>unverified_sender_reject_code</b>
-              Response code when a sender address is known to  be
+              Response  code when a sender address is known to be
               undeliverable.
 
        <b>unverified_recipient_reject_code</b>
-              Response  code when a recipient address is known to
+              Response code when a recipient address is known  to
               be undeliverable.
 
 <b>SEE ALSO</b>
@@ -490,7 +504,7 @@ SMTPD(8)                                                 SMTPD(8)
        <a href="verify.8.html">verify(8)</a> address verification service
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -20,10 +20,16 @@
   * External interface.
   */
 typedef struct ATTR_CLNT ATTR_CLNT;
+typedef int (*ATTR_CLNT_PRINT_FN) (VSTREAM *, int, va_list);
+typedef int (*ATTR_CLNT_SCAN_FN) (VSTREAM *, int, va_list);
 
 extern ATTR_CLNT *attr_clnt_create(const char *, int, int, int);
 extern int attr_clnt_request(ATTR_CLNT *, int,...);
 extern void attr_clnt_free(ATTR_CLNT *);
+extern void attr_clnt_control(ATTR_CLNT *, int, ...);
+
+#define ATTR_CLNT_CTL_END	0
+#define ATTR_CLNT_CTL_PROTO	1
 
 /* LICENSE
 /* .ad

@@ -575,6 +575,15 @@ proxymap  unix	-	-	n	-	-	proxymap
 EOF
     }
 
+    # Add missing crate service to master.cf.
+
+    grep '^crate.*crate' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for crate service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+crate  unix	-	-	n	-	1	crate
+EOF
+    }
+
 }
 
 # A reminder if this is the first time Postfix is being installed.

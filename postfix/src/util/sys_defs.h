@@ -98,7 +98,9 @@
 #define NORETURN	void
 #define PRINTFLIKE(x,y)
 #define SCANFLIKE(x,y)
+#ifndef NO_NETINFO
 #define HAS_NETINFO
+#endif
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"

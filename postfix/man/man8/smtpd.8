@@ -252,6 +252,16 @@ the \fBmessage_size_limit\fR value).
 .IP \fBsmtpd_history_flush_threshold\fR
 Flush the command history to postmaster after receipt of RSET etc.
 only if the number of history lines exceeds the given threshold.
+.IP \fBsmtpd_client_connection_count_limit\fR
+The maximal number of simultaneous connections that any
+client is allowed to make to this service.
+.IP \fBsmtpd_client_connection_rate_limit\fR
+The maximal number of connections per unit time (specified
+with \fBconnection_rate_time_unit\fR) that any client
+is allowed to make to this service.
+.IP \fBsmtpd_client_connection_limit_exceptions\fR
+Hostnames, .domain names or network address blocks of clients
+that are excluded from connection count or rate limits.
 .SH Tarpitting
 .ad
 .fi

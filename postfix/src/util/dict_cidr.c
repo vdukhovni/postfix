@@ -154,15 +154,20 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(const char *mapname, int lineno,
     /*
      * Parse the key into network and mask, and destroy the key. Treat a bare
      * network address as /32.
+     * 
+     * We need explicit code for /0. The result of << is undefined when the
+     * shift is greater or equal to the number of bits in the shifted
+     * operand.
      */
     if ((mask = split_at(key, '/')) != 0) {
-	if ((mask_shift = atoi(mask)) <= 0 || mask_shift > BITS_PER_ADDR
+	if (!alldig(mask) || (mask_shift = atoi(mask)) > BITS_PER_ADDR
 	    || (net_bits = inet_addr(key)) == INADDR_NONE) {
 	    msg_warn("cidr map %s, line %d: bad net/mask pattern: \"%s/%s\": "
 		     "skipping this rule", mapname, lineno, key, mask);
 	    return (0);
 	}
-	mask_bits = htonl((0xffffffff) << (BITS_PER_ADDR - mask_shift));
+	mask_bits = mask_shift > 0 ?
+	    htonl((0xffffffff) << (BITS_PER_ADDR - mask_shift)) : 0;
 	if (net_bits & ~mask_bits) {
 	    net_addr.s_addr = (net_bits & mask_bits);
 	    msg_warn("cidr map %s, line %d: net/mask pattern \"%s/%s\" with "

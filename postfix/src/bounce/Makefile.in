@@ -72,6 +72,8 @@ bounce.o: ../../include/iostuff.h
 bounce.o: ../../include/attr.h
 bounce.o: ../../include/mail_queue.h
 bounce.o: ../../include/mail_params.h
+bounce.o: ../../include/crate_clnt.h
+bounce.o: ../../include/attr_clnt.h
 bounce.o: ../../include/mail_conf.h
 bounce.o: ../../include/bounce.h
 bounce.o: ../../include/deliver_request.h
@@ -88,6 +90,9 @@ bounce_append_service.o: ../../include/vbuf.h
 bounce_append_service.o: ../../include/vstream.h
 bounce_append_service.o: ../../include/stringops.h
 bounce_append_service.o: ../../include/mail_params.h
+bounce_append_service.o: ../../include/crate_clnt.h
+bounce_append_service.o: ../../include/attr_clnt.h
+bounce_append_service.o: ../../include/attr.h
 bounce_append_service.o: ../../include/mail_queue.h
 bounce_append_service.o: ../../include/quote_822_local.h
 bounce_append_service.o: ../../include/quote_flags.h
@@ -95,7 +100,6 @@ bounce_append_service.o: ../../include/deliver_flock.h
 bounce_append_service.o: ../../include/myflock.h
 bounce_append_service.o: ../../include/mail_proto.h
 bounce_append_service.o: ../../include/iostuff.h
-bounce_append_service.o: ../../include/attr.h
 bounce_append_service.o: bounce_service.h
 bounce_append_service.o: ../../include/bounce_log.h
 bounce_cleanup.o: bounce_cleanup.c
@@ -115,6 +119,9 @@ bounce_notify_service.o: ../../include/vstream.h
 bounce_notify_service.o: ../../include/vbuf.h
 bounce_notify_service.o: ../../include/name_mask.h
 bounce_notify_service.o: ../../include/mail_params.h
+bounce_notify_service.o: ../../include/crate_clnt.h
+bounce_notify_service.o: ../../include/attr_clnt.h
+bounce_notify_service.o: ../../include/attr.h
 bounce_notify_service.o: ../../include/mail_queue.h
 bounce_notify_service.o: ../../include/vstring.h
 bounce_notify_service.o: ../../include/post_mail.h
@@ -137,10 +144,14 @@ bounce_notify_util.o: ../../include/vstream.h
 bounce_notify_util.o: ../../include/line_wrap.h
 bounce_notify_util.o: ../../include/stringops.h
 bounce_notify_util.o: ../../include/xtext.h
+bounce_notify_util.o: ../../include/myflock.h
 bounce_notify_util.o: ../../include/mail_queue.h
 bounce_notify_util.o: ../../include/quote_822_local.h
 bounce_notify_util.o: ../../include/quote_flags.h
 bounce_notify_util.o: ../../include/mail_params.h
+bounce_notify_util.o: ../../include/crate_clnt.h
+bounce_notify_util.o: ../../include/attr_clnt.h
+bounce_notify_util.o: ../../include/attr.h
 bounce_notify_util.o: ../../include/is_header.h
 bounce_notify_util.o: ../../include/record.h
 bounce_notify_util.o: ../../include/rec_type.h
@@ -153,7 +164,6 @@ bounce_notify_util.o: ../../include/bounce_log.h
 bounce_notify_util.o: ../../include/mail_date.h
 bounce_notify_util.o: ../../include/mail_proto.h
 bounce_notify_util.o: ../../include/iostuff.h
-bounce_notify_util.o: ../../include/attr.h
 bounce_notify_util.o: ../../include/lex_822.h
 bounce_notify_util.o: ../../include/deliver_completed.h
 bounce_notify_util.o: bounce_service.h
@@ -164,6 +174,9 @@ bounce_notify_verp.o: ../../include/vstream.h
 bounce_notify_verp.o: ../../include/vbuf.h
 bounce_notify_verp.o: ../../include/name_mask.h
 bounce_notify_verp.o: ../../include/mail_params.h
+bounce_notify_verp.o: ../../include/crate_clnt.h
+bounce_notify_verp.o: ../../include/attr_clnt.h
+bounce_notify_verp.o: ../../include/attr.h
 bounce_notify_verp.o: ../../include/mail_queue.h
 bounce_notify_verp.o: ../../include/vstring.h
 bounce_notify_verp.o: ../../include/post_mail.h
@@ -183,6 +196,9 @@ bounce_one_service.o: ../../include/vstream.h
 bounce_one_service.o: ../../include/vbuf.h
 bounce_one_service.o: ../../include/name_mask.h
 bounce_one_service.o: ../../include/mail_params.h
+bounce_one_service.o: ../../include/crate_clnt.h
+bounce_one_service.o: ../../include/attr_clnt.h
+bounce_one_service.o: ../../include/attr.h
 bounce_one_service.o: ../../include/post_mail.h
 bounce_one_service.o: ../../include/cleanup_user.h
 bounce_one_service.o: ../../include/mail_addr.h
@@ -199,6 +215,9 @@ bounce_trace_service.o: ../../include/msg.h
 bounce_trace_service.o: ../../include/vstream.h
 bounce_trace_service.o: ../../include/vbuf.h
 bounce_trace_service.o: ../../include/mail_params.h
+bounce_trace_service.o: ../../include/crate_clnt.h
+bounce_trace_service.o: ../../include/attr_clnt.h
+bounce_trace_service.o: ../../include/attr.h
 bounce_trace_service.o: ../../include/mail_queue.h
 bounce_trace_service.o: ../../include/vstring.h
 bounce_trace_service.o: ../../include/post_mail.h
@@ -215,6 +234,9 @@ bounce_warn_service.o: ../../include/vstream.h
 bounce_warn_service.o: ../../include/vbuf.h
 bounce_warn_service.o: ../../include/name_mask.h
 bounce_warn_service.o: ../../include/mail_params.h
+bounce_warn_service.o: ../../include/crate_clnt.h
+bounce_warn_service.o: ../../include/attr_clnt.h
+bounce_warn_service.o: ../../include/attr.h
 bounce_warn_service.o: ../../include/mail_queue.h
 bounce_warn_service.o: ../../include/vstring.h
 bounce_warn_service.o: ../../include/post_mail.h

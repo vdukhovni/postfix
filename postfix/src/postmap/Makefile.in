@@ -95,6 +95,9 @@ postmap.o: ../../include/set_eugid.h
 postmap.o: ../../include/mail_conf.h
 postmap.o: ../../include/mail_dict.h
 postmap.o: ../../include/mail_params.h
+postmap.o: ../../include/crate_clnt.h
+postmap.o: ../../include/attr_clnt.h
+postmap.o: ../../include/attr.h
 postmap.o: ../../include/mkmap.h
 postmap.o: ../../include/dict.h
 postmap.o: ../../include/argv.h

@@ -104,6 +104,43 @@ unknown_local_recipient_reject_code = 550
 #smtpd_sender_login_maps =
 
 #
+# Resource limits
+# 
+
+# The smtpd_client_connection_count_limit parameter controls how many
+# simultaneous connections any client is allowed to make to this
+# service.
+# 
+# By default, every client can make as many connections as Postfix
+# can accept (defined by the process limit in the master.cf file).
+# 
+# smtpd_client_connection_count_limit = 10
+smtpd_client_connection_count_limit = 0
+
+# The smtpd_client_connection_rate_limit parameter controls how many
+# connection attempts any client is allowed to make to this service
+# per time unit.
+# 
+# The time unit is specified with the connection_rate_time_unit
+# configuration parameter, and defaults to one minute.
+# 
+# By default, every client can make as many connections as Postfix
+# can accept.
+#
+# smtpd_client_connection_rate_limit = 100
+smtpd_client_connection_rate_limit = 0
+
+# The smtpd_client_connection_limit_exceptions parameter controls what
+# clients are excluded from connection count or connection rate
+# restrictions.
+# 
+# By default, clients in trusted networks are excluded. Specify a
+# list of network blocks, hostnames or .domain names (the initial
+# initial dot causes the domain to match any name below it).
+# 
+smtpd_client_connection_limit_exceptions = $mynetworks
+
+#
 # MISCELLANEOUS
 #
 
@@ -123,7 +160,8 @@ unknown_local_recipient_reject_code = 550
 #
 # Specify an explicit list of network/netmask patterns, where the
 # mask specifies the number of bits in the network part of a host
-# address.
+# address. You can also specify hostnames or .domain names (the
+# initial dot causes the domain to match any name below it).
 #
 # You can also specify the absolute pathname of a pattern file instead
 # of listing the patterns here. Specify type:table for table-based lookups
@@ -141,7 +179,8 @@ smtpd_authorized_xaddr_clients =
 #
 # Specify an explicit list of network/netmask patterns, where the
 # mask specifies the number of bits in the network part of a host
-# address.
+# address. You can also specify hostnames or .domain names (the
+# initial dot causes the domain to match any name below it).
 #
 # You can also specify the absolute pathname of a pattern file instead
 # of listing the patterns here. Specify type:table for table-based lookups
@@ -149,7 +188,7 @@ smtpd_authorized_xaddr_clients =
 #
 smtpd_authorized_xloginfo_clients =
 
-# The smtpd_authorized_xverp_clients parameter specifies what clients
+# The smtpd_authorized_verp_clients parameter specifies what clients
 # are allowed to specify the SMTP XVERP command. This command requests
 # that mail be delivered one recipient at a time with a per recipient
 # return address.
@@ -158,19 +197,21 @@ smtpd_authorized_xloginfo_clients =
 #
 # Specify an explicit list of network/netmask patterns, where the
 # mask specifies the number of bits in the network part of a host
-# address.
+# address. You can also specify hostnames or .domain names (the
+# initial dot causes the domain to match any name below it).
 #
 # You can also specify the absolute pathname of a pattern file instead
 # of listing the patterns here. Specify type:table for table-based lookups
 # (the value on the table right-hand side is not used).
 #
-smtpd_authorized_xverp_clients =
+smtpd_authorized_verp_clients =
 
 # The smtpd_banner parameter specifies the text that follows the 220
 # status code in the SMTP greeting banner. Some people like to see
 # the mail version advertised. By default, Postfix shows no version.
 #
-# You MUST specify the $myhostname at the start of the text.
+# You MUST specify $myhostname at the start of the text. This is
+# required by the SMTP protocol.
 #
 #smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
 smtpd_banner = $myhostname ESMTP $mail_name

@@ -64,6 +64,9 @@ postlock.o: ../../include/vstream.h
 postlock.o: ../../include/msg_vstream.h
 postlock.o: ../../include/iostuff.h
 postlock.o: ../../include/mail_params.h
+postlock.o: ../../include/crate_clnt.h
+postlock.o: ../../include/attr_clnt.h
+postlock.o: ../../include/attr.h
 postlock.o: ../../include/dot_lockfile.h
 postlock.o: ../../include/deliver_flock.h
 postlock.o: ../../include/myflock.h

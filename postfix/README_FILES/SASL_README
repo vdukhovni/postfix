@@ -161,7 +161,8 @@ Alternately, in SASL 1.5.5 and later (including 2.1.1), try:
 
 The saslauthd daemon is also contained in the cyrus-sasl source
 tarball.  It is more flexible than the pwcheck daemon, in that it
-can authenticate against PAM and various other sources.
+can authenticate against PAM and various other sources. To use
+PAM, start saslauthd with "-a pam".
 
 In order to authenticate against SASL's own password database:
 

@@ -73,5 +73,8 @@ postsuper.o: ../../include/sane_fsops.h
 postsuper.o: ../../include/mail_task.h
 postsuper.o: ../../include/mail_conf.h
 postsuper.o: ../../include/mail_params.h
+postsuper.o: ../../include/crate_clnt.h
+postsuper.o: ../../include/attr_clnt.h
+postsuper.o: ../../include/attr.h
 postsuper.o: ../../include/mail_queue.h
 postsuper.o: ../../include/mail_open_ok.h

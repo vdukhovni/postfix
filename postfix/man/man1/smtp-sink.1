@@ -18,8 +18,9 @@ multi-threaded SMTP/LMTP test server
 .fi
 \fIsmtp-sink\fR listens on the named host (or address) and port.
 It takes SMTP messages from the network and throws them away.
-The purpose is to measure SMTP client performance, not protocol
+The purpose is to measure client performance, not protocol
 compliance.
+
 Connections can be accepted on IPV4 endpoints or UNIX-domain sockets.
 IPV4 is the default.
 This program is the complement of the \fIsmtp-source\fR program.
@@ -31,18 +32,18 @@ Do not announce SASL authentication support.
 Display a running counter that is updated whenever an SMTP
 QUIT command is executed.
 .IP \fB-e\fR
-Disable ESMTP support.
+Do not announce ESMTP support.
 .IP "\fB-f  \fIcommand,command,...\fR"
 Reject the specified commands with a hard (5xx) error code.
 .IP \fB-h\fI hostname\fR
 Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 and in the EHLO response. The default hostname is "smtp-sink".
 .IP \fB-L\fR
-Enable LMTP rather than SMTP.
+Enable LMTP instead of SMTP.
 .IP "\fB-n \fIcount\fR"
 Terminate after \fIcount\fR sessions. This is for testing purposes.
 .IP \fB-p\fR
-Disable ESMTP command pipelining.
+Do not announce support for ESMTP command pipelining.
 .IP \fB-P\fR
 Change the server greeting so that it appears to come through
 a CISCO PIX system. Implies \fB-e\fR.
@@ -59,7 +60,7 @@ Show the SMTP conversations.
 .IP "\fB-w \fIdelay\fR"
 Wait \fIdelay\fR seconds before responding to a DATA command.
 .IP \fB-8\fR
-Disable 8BITMIME support.
+Do not announce 8BITMIME support.
 .IP [\fBinet:\fR][\fIhost\fR]:\fIport\fR
 Listen on network interface \fIhost\fR (default: any interface)
 TCP port \fIport\fR. Both \fIhost\fR and \fIport\fR may be

@@ -104,6 +104,9 @@ master.o: ../../include/clean_env.h
 master.o: ../../include/argv.h
 master.o: ../../include/safe.h
 master.o: ../../include/mail_params.h
+master.o: ../../include/crate_clnt.h
+master.o: ../../include/attr_clnt.h
+master.o: ../../include/attr.h
 master.o: ../../include/mail_version.h
 master.o: ../../include/debug_process.h
 master.o: ../../include/mail_task.h
@@ -138,6 +141,8 @@ master_ent.o: ../../include/mail_proto.h
 master_ent.o: ../../include/iostuff.h
 master_ent.o: ../../include/attr.h
 master_ent.o: ../../include/mail_params.h
+master_ent.o: ../../include/crate_clnt.h
+master_ent.o: ../../include/attr_clnt.h
 master_ent.o: ../../include/own_inet_addr.h
 master_ent.o: master_proto.h
 master_ent.o: master.h
@@ -160,6 +165,10 @@ master_listen.o: ../../include/inet_addr_list.h
 master_listen.o: ../../include/set_eugid.h
 master_listen.o: ../../include/set_ugid.h
 master_listen.o: ../../include/mail_params.h
+master_listen.o: ../../include/crate_clnt.h
+master_listen.o: ../../include/attr_clnt.h
+master_listen.o: ../../include/attr.h
+master_listen.o: ../../include/vstream.h
 master_listen.o: master.h
 master_proto.o: master_proto.c
 master_proto.o: ../../include/sys_defs.h
@@ -203,6 +212,10 @@ master_vars.o: ../../include/vbuf.h
 master_vars.o: ../../include/mymalloc.h
 master_vars.o: ../../include/mail_conf.h
 master_vars.o: ../../include/mail_params.h
+master_vars.o: ../../include/crate_clnt.h
+master_vars.o: ../../include/attr_clnt.h
+master_vars.o: ../../include/attr.h
+master_vars.o: ../../include/vstream.h
 master_vars.o: master.h
 master_wakeup.o: master_wakeup.c
 master_wakeup.o: ../../include/sys_defs.h
@@ -217,6 +230,8 @@ master_wakeup.o: ../../include/vbuf.h
 master_wakeup.o: ../../include/iostuff.h
 master_wakeup.o: ../../include/attr.h
 master_wakeup.o: ../../include/mail_params.h
+master_wakeup.o: ../../include/crate_clnt.h
+master_wakeup.o: ../../include/attr_clnt.h
 master_wakeup.o: mail_server.h
 master_wakeup.o: master.h
 multi_server.o: multi_server.c
@@ -241,6 +256,9 @@ multi_server.o: ../../include/split_at.h
 multi_server.o: ../../include/mail_task.h
 multi_server.o: ../../include/debug_process.h
 multi_server.o: ../../include/mail_params.h
+multi_server.o: ../../include/crate_clnt.h
+multi_server.o: ../../include/attr_clnt.h
+multi_server.o: ../../include/attr.h
 multi_server.o: ../../include/mail_conf.h
 multi_server.o: ../../include/mail_dict.h
 multi_server.o: ../../include/timed_ipc.h
@@ -268,6 +286,9 @@ single_server.o: ../../include/listen.h
 single_server.o: ../../include/watchdog.h
 single_server.o: ../../include/split_at.h
 single_server.o: ../../include/mail_params.h
+single_server.o: ../../include/crate_clnt.h
+single_server.o: ../../include/attr_clnt.h
+single_server.o: ../../include/attr.h
 single_server.o: ../../include/mail_task.h
 single_server.o: ../../include/debug_process.h
 single_server.o: ../../include/mail_conf.h
@@ -297,6 +318,9 @@ trigger_server.o: ../../include/listen.h
 trigger_server.o: ../../include/watchdog.h
 trigger_server.o: ../../include/split_at.h
 trigger_server.o: ../../include/mail_params.h
+trigger_server.o: ../../include/crate_clnt.h
+trigger_server.o: ../../include/attr_clnt.h
+trigger_server.o: ../../include/attr.h
 trigger_server.o: ../../include/mail_task.h
 trigger_server.o: ../../include/debug_process.h
 trigger_server.o: ../../include/mail_conf.h

@@ -23,7 +23,8 @@
 #	The general form of a Postfix CIDR table is:
 # .IP "\fInetwork_address\fB/\fInetwork_mask     result\fR"
 #	When a search string matches the specified network block,
-#	use the corresponding \fIresult\fR value.
+#	use the corresponding \fIresult\fR value. Specify
+#	0.0.0.0/0 to match every address.
 # .IP "\fInetwork_address     result\fR"
 #	When a search string matches the specified network address,
 #	use the corresponding \fIresult\fR value.
