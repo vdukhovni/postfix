@@ -94,7 +94,7 @@ int     var_dup_filter_limit;
 char   *var_empty_addr;
 
 #define STRING_FORMAT	"%-10s %8s %-20s %s\n"
-#define DATA_FORMAT	"%-10s%c%8ld %20.20s %s\n"
+#define SENDER_FORMAT	"%-11s%8ld %20.20s %s\n"
 #define DROP_FORMAT	"%-10s%c%8ld %20.20s (maildrop queue, sender UID %u)\n"
 
 static void showq_reasons(VSTREAM *, BOUNCE_LOG *, HTABLE *);
@@ -150,7 +150,9 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 		start = var_empty_addr;
 	    quote_822_local(printable_quoted_addr, start);
 	    printable(STR(printable_quoted_addr), '?');
-	    vstream_fprintf(client, DATA_FORMAT, id, status,
+	    /* quote_822_local() saves buf, so we can reuse its space. */
+	    vstring_sprintf(buf, "%s%c", id, status);
+	    vstream_fprintf(client, SENDER_FORMAT, STR(buf),
 			  msg_size > 0 ? msg_size : size, arrival_time > 0 ?
 			    asctime(localtime(&arrival_time)) : 
 			    asctime(localtime(&mtime)),

@@ -141,7 +141,7 @@ static int dns_query(const char *name, int type, int flags,
 {
     HEADER *reply_header;
     int     len;
-    int     saved_options = _res.options;
+    unsigned long saved_options = _res.options;
 
     /*
      * Initialize the name service.

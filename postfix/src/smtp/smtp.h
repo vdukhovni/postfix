@@ -55,6 +55,7 @@ typedef struct SMTP_STATE {
     off_t   size_limit;			/* server limit or unknown */
     int     space_left;			/* output length control */
     struct MIME_STATE *mime_state;	/* mime state machine */
+    int     final;			/* last possibility to deliver */
 } SMTP_STATE;
 
 #define SMTP_FEATURE_ESMTP	(1<<0)
@@ -95,9 +96,7 @@ extern void smtp_session_free(SMTP_SESSION *);
  /*
   * smtp_connect.c
   */
-extern SMTP_SESSION *smtp_connect(char *, VSTRING *);
-extern SMTP_SESSION *smtp_connect_host(char *, unsigned, VSTRING *);
-extern SMTP_SESSION *smtp_connect_domain(char *, unsigned, VSTRING *, int *);
+extern int smtp_connect(SMTP_STATE *);
 
  /*
   * smtp_proto.c

@@ -72,6 +72,7 @@ SMTP_STATE *smtp_state_alloc(void)
     state->size_limit = 0;
     state->space_left = 0;
     state->mime_state = 0;
+    state->final = 0;
     return (state);
 }
 

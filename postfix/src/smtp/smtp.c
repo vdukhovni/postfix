@@ -265,8 +265,6 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <debug_peer.h>
-#include <mail_error.h>
-#include <deliver_pass.h>
 
 /* Single server skeleton. */
 
@@ -327,7 +325,6 @@ int     smtp_host_lookup_mask;
 
 static int deliver_message(DELIVER_REQUEST *request)
 {
-    VSTRING *why;
     SMTP_STATE *state;
     int     result;
 
@@ -349,7 +346,6 @@ static int deliver_message(DELIVER_REQUEST *request)
      * we can produce understandable diagnostics when something goes wrong
      * many levels below. The alternative would be to make everything global.
      */
-    why = vstring_alloc(100);
     state = smtp_state_alloc();
     state->request = request;
     state->src = request->fp;
@@ -360,35 +356,12 @@ static int deliver_message(DELIVER_REQUEST *request)
      * Optionally deliver mail locally when this machine is the best mail
      * exchanger.
      */
-    if ((state->session = smtp_connect(request->nexthop, why)) == 0) {
-	if (smtp_errno == SMTP_OK) {
-	    if (*var_bestmx_transp == 0)
-		msg_panic("smtp_errno botch");
-	    state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
-					     var_bestmx_transp,
-					     request);
-	} else
-	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
-			   "%s", vstring_str(why));
-    } else {
-	debug_peer_check(state->session->host, state->session->addr);
-	if (smtp_helo(state) == 0)
-	    smtp_xfer(state);
-	if (state->history != 0
-	    && (state->error_mask & name_mask(VAR_NOTIFY_CLASSES,
-				     mail_error_masks, var_notify_classes)))
-	    smtp_chat_notify(state);
-	/* XXX smtp_xfer() may abort in the middle of DATA. */
-	smtp_session_free(state->session);
-	debug_peer_restore();
-    }
+    result = smtp_connect(state);
 
     /*
      * Clean up.
      */
-    vstring_free(why);
     smtp_chat_reset(state);
-    result = state->status;
     smtp_state_free(state);
 
     return (result);

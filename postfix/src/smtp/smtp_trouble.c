@@ -43,6 +43,10 @@
 /*	what appear to be configuration errors - very likely, they
 /*	would suffer the same problem and just cause more trouble.
 /*
+/*	In case of a soft error, action depends on whether there are
+/*	more possibilities to deliver (log one generic record) or whether 
+/*	the error happens with the last possibility (log each recipient).
+/*
 /*	smtp_site_fail() handles the case where the program fails to
 /*	complete the initial SMTP handshake: the server is not reachable,
 /*	is not running, does not want talk to us, or we talk to ourselves.
@@ -158,26 +162,37 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
     va_end(ap);
 
     /*
+     * Don't log deferred recipients yet when there are still untried
+     * possibilities to deliver. Just log why we're abandoning this host.
+     */
+    if (soft_error && state->final == 0) {
+	msg_info("%s: %s", request->queue_id, vstring_str(why));
+	state->status |= -1;
+    }
+
+    /*
      * If this is a soft error, postpone further deliveries to this domain.
      * Otherwise, generate a bounce record for each recipient.
      */
-    for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
-	rcpt = request->rcpt_list.info + nrcpt;
-	if (rcpt->offset == 0)
-	    continue;
-	status = (soft_error ? defer_append : bounce_append)
-	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     rcpt->orig_addr, rcpt->address, rcpt->offset,
-	     session ? session->namaddr : "none",
-	     request->arrival_time, "%s", vstring_str(why));
-	if (status == 0) {
-	    deliver_completed(state->src, rcpt->offset);
-	    rcpt->offset = 0;
+    else {
+	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	    rcpt = request->rcpt_list.info + nrcpt;
+	    if (rcpt->offset == 0)
+		continue;
+	    status = (soft_error ? defer_append : bounce_append)
+		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
+		 rcpt->orig_addr, rcpt->address, rcpt->offset,
+		 session ? session->namaddr : "none",
+		 request->arrival_time, "%s", vstring_str(why));
+	    if (status == 0) {
+		deliver_completed(state->src, rcpt->offset);
+		rcpt->offset = 0;
+	    }
+	    state->status |= status;
 	}
-	state->status |= status;
+	if (soft_error && request->hop_status == 0)
+	    request->hop_status = mystrdup(vstring_str(why));
     }
-    if (soft_error && request->hop_status == 0)
-	request->hop_status = mystrdup(vstring_str(why));
 
     /*
      * Cleanup.
@@ -195,6 +210,7 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
     RECIPIENT *rcpt;
     int     status;
     int     nrcpt;
+    int     soft_error = SMTP_SOFT(code);
     va_list ap;
     VSTRING *why = vstring_alloc(100);
 
@@ -206,23 +222,34 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
     va_end(ap);
 
     /*
+     * Don't log deferred recipients yet when there are still untried
+     * possibilities to deliver. Just log why we're abandoning this host.
+     */
+    if (soft_error && state->final == 0) {
+	msg_info("%s: %s", request->queue_id, vstring_str(why));
+	state->status |= -1;
+    }
+
+    /*
      * If this is a soft error, postpone delivery of this message. Otherwise,
      * generate a bounce record for each recipient.
      */
-    for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
-	rcpt = request->rcpt_list.info + nrcpt;
-	if (rcpt->offset == 0)
-	    continue;
-	status = (SMTP_SOFT(code) ? defer_append : bounce_append)
-	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     rcpt->orig_addr, rcpt->address, rcpt->offset,
-	     session->namaddr, request->arrival_time,
-	     "%s", vstring_str(why));
-	if (status == 0) {
-	    deliver_completed(state->src, rcpt->offset);
-	    rcpt->offset = 0;
+    else {
+	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	    rcpt = request->rcpt_list.info + nrcpt;
+	    if (rcpt->offset == 0)
+		continue;
+	    status = (soft_error ? defer_append : bounce_append)
+		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
+		 rcpt->orig_addr, rcpt->address, rcpt->offset,
+		 session->namaddr, request->arrival_time,
+		 "%s", vstring_str(why));
+	    if (status == 0) {
+		deliver_completed(state->src, rcpt->offset);
+		rcpt->offset = 0;
+	    }
+	    state->status |= status;
 	}
-	state->status |= status;
     }
     smtp_check_code(state, code);
 
@@ -241,21 +268,39 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
     int     status;
+    int     soft_error = SMTP_SOFT(code);
     va_list ap;
+
+    /*
+     * Don't log deferred recipients yet when there are still untried
+     * possibilities to deliver.
+     */
+    if (soft_error && state->final == 0) {
+	VSTRING *buf = vstring_alloc(10);
+
+	va_start(ap, format);
+	vstring_vsprintf(buf, format, ap);
+	va_end(ap);
+	msg_info("%s: %s", request->queue_id, vstring_str(buf));
+	vstring_free(buf);
+	status = -1;
+    }
 
     /*
      * If this is a soft error, postpone delivery to this recipient.
      * Otherwise, generate a bounce record for this recipient.
      */
-    va_start(ap, format);
-    status = (SMTP_SOFT(code) ? vdefer_append : vbounce_append)
-	(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	 rcpt->orig_addr, rcpt->address, rcpt->offset,
-	 session->namaddr, request->arrival_time, format, ap);
-    va_end(ap);
-    if (status == 0) {
-	deliver_completed(state->src, rcpt->offset);
-	rcpt->offset = 0;
+    else {
+	va_start(ap, format);
+	status = (soft_error ? vdefer_append : vbounce_append)
+	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
+	     rcpt->orig_addr, rcpt->address, rcpt->offset,
+	     session->namaddr, request->arrival_time, format, ap);
+	va_end(ap);
+	if (status == 0) {
+	    deliver_completed(state->src, rcpt->offset);
+	    rcpt->offset = 0;
+	}
     }
     smtp_check_code(state, code);
     state->status |= status;
@@ -288,19 +333,30 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
     }
 
     /*
+     * Don't log deferred recipients yet when there are still untried
+     * possibilities to deliver. Just log why we're abandoning this host.
+     */
+    if (state->final == 0) {
+	msg_info("%s: %s", request->queue_id, vstring_str(why));
+	state->status |= -1;
+    }
+
+    /*
      * At this point, the status of individual recipients remains unresolved.
      * All we know is that we should stay away from this host for a while.
      */
-    for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
-	rcpt = request->rcpt_list.info + nrcpt;
-	if (rcpt->offset == 0)
-	    continue;
-	state->status |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
-				      request->queue_id,
-				      rcpt->orig_addr, rcpt->address,
-				      rcpt->offset, session->namaddr,
-				      request->arrival_time,
-				      "%s", vstring_str(why));
+    else {
+	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	    rcpt = request->rcpt_list.info + nrcpt;
+	    if (rcpt->offset == 0)
+		continue;
+	    state->status |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
+					  request->queue_id,
+					  rcpt->orig_addr, rcpt->address,
+					  rcpt->offset, session->namaddr,
+					  request->arrival_time,
+					  "%s", vstring_str(why));
+	}
     }
 
     /*

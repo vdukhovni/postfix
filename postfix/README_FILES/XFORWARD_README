@@ -16,7 +16,7 @@ This extension is implemented as a separate command, so that it
 can be used to transmit client or message attributes incrementally.
 It is not implemented by passing additional parameters via the MAIL
 FROM command, because doing so would require extending the MAIL
-FROM command length limit by another 600 or more characters beyond.
+FROM command length limit by another 600 or more characters.
 
 Command syntax
 ==============
@@ -32,7 +32,7 @@ names are shown in upper case, they are in fact case insensitive.
 
     xforward-command = XFORWARD 1*( SP name"="value )
 
-    name = ( NAME | ADDR | PROTO | HELO | IDENT )
+    name = ( NAME | ADDR | PROTO | HELO )
 
 The XFORWARD command can be sent at any time except in the middle
 of a mail delivery transaction (i.e.  between MAIL and DOT).  The

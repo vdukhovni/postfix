@@ -8818,13 +8818,14 @@ Apologies for any names omitted.
 	of a sender address.  Code by Liviu Daia.  Files:
 	smtpd/smtpd_check.c and documentation.
 
-	The reject_sender_login_mismatch feature is now implemented
-	by elementary features reject_unauth_sender_login_mismatch
+	reject_sender_login_mismatch is now implemented by elementary
+	features reject_unauthenticated_sender_login_mismatch
 	(reject if the client is not SASL logged in but the sender
 	address has an owner in smtpd_sender_login_maps) and
-	reject_auth_sender_login_mismatch (reject if the client is
-	SASL logged in but does not own the sender address).  Code
-	by Liviu Daia.  Files: smtpd/smtpd_check.c and documentation.
+	reject_authenticated_sender_login_mismatch (reject if the
+	client is SASL logged in but does not own the sender
+	address).  Code by Liviu Daia.  Files: smtpd/smtpd_check.c
+	and documentation.
 
 20031207
 
@@ -8864,6 +8865,16 @@ Apologies for any names omitted.
 	settings before and after DNS lookup, to avoid surprises
 	in third-party code. File: dns/dns_lookup.c.
 
+20031216
+
+	Cleanup:  easier to parse mailq output (no more space
+	between short queue ID and message status).  File:
+	showq/showq.c.
+
+	Cleanup: the SMTP client now moves on to the next MX host
+	when delivery fails in the middle of an SMTP session.
+	Files:  smtp/smtp.c, smtp/smtp_connect.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content
@@ -8886,9 +8897,8 @@ Open problems:
 	Low: postmap/postalias should not try to open a bogus file
 	when given an unsupported dictionary type.
 
-	Med: do not postpone rejected "MAIL FROM" size information,
-	and find a way to log the sender address in the rejected
-	command.
+	Med: find a way to log the sender address when MAIL FROM
+	is rejected due to lack of disk space.
 
 	Low: after successful delivery, per-queue window += 1/window,
 	after failure, queue window -= 1 (Victor).
@@ -8929,8 +8939,8 @@ Open problems:
 
 	Low: postconf -e edits parameters that postconf won't list.
 
-	Low: with quoted-printable, perhaps use =46rom instead of
-	>From.
+	Low: while convering 8bit text to quoted-printable, perhaps
+	use =46rom instead of >From.
 
 	virtual_mailbox_path expression like forward_path, so that
 	people can specify prefix and suffix.

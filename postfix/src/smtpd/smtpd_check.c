@@ -347,6 +347,8 @@
 #include "smtpd_sasl_glue.h"
 #include "smtpd_check.h"
 
+#define RESTRICTION_SEPARATORS ", \t\r\n"
+
  /*
   * Eject seat in case of parsing problems.
   */
@@ -596,7 +598,7 @@ static ARGV *smtpd_check_parse(const char *checks)
      * encounter. Dictionaries must be opened before entering the chroot
      * jail.
      */
-    while ((name = mystrtok(&bp, " \t\r\n,")) != 0) {
+    while ((name = mystrtok(&bp, RESTRICTION_SEPARATORS)) != 0) {
 	argv_add(argv, name, (char *) 0);
 	if (last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
 	    policy_client_register(name);
@@ -767,7 +769,7 @@ void    smtpd_check_init(void)
     smtpd_rest_classes = htable_create(1);
     if (*var_rest_classes) {
 	cp = saved_classes = mystrdup(var_rest_classes);
-	while ((name = mystrtok(&cp, " \t\r\n,")) != 0) {
+	while ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) != 0) {
 	    if ((value = mail_conf_lookup_eval(name)) == 0 || *value == 0)
 		msg_fatal("restriction class `%s' needs a definition", name);
 	    htable_enter(smtpd_rest_classes, name,
@@ -2001,7 +2003,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
 #define ADDROF(x) ((char *) &(x))
 
-    restrictions = argv_split(value, " \t\r\n,");
+    restrictions = argv_split(value, RESTRICTION_SEPARATORS);
     memcpy(ADDROF(savebuf), ADDROF(smtpd_check_buf), sizeof(savebuf));
     status = setjmp(smtpd_check_buf);
     if (status != 0) {
@@ -2837,7 +2839,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 		 "use \"%s domain-name\" instead",
 		 REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
     }
-    while ((rbl_domain = mystrtok(&bp, " \t\r\n,")) != 0) {
+    while ((rbl_domain = mystrtok(&bp, RESTRICTION_SEPARATORS)) != 0) {
 	result = reject_rbl_addr(state, rbl_domain, state->addr,
 				 SMTPD_NAME_CLIENT);
 	if (result != SMTPD_CHECK_DUNNO)
@@ -2875,7 +2877,7 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
 	if ((owners = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
 				STR(reply->recipient), (char **) 0)) != 0) {
 	    cp = saved_owners = mystrdup(owners);
-	    while ((name = mystrtok(&cp, ", \t\r\n")) != 0) {
+	    while ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) != 0) {
 		if (strcasecmp(state->sasl_username, name) == 0) {
 		    found = 1;
 		    break;
@@ -4179,7 +4181,7 @@ static void rest_class(char *class)
     if (smtpd_rest_classes == 0)
 	smtpd_rest_classes = htable_create(1);
 
-    if ((name = mystrtok(&cp, " \t\r\n,")) == 0)
+    if ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) == 0)
 	msg_panic("rest_class: null class name");
     if ((entry = htable_locate(smtpd_rest_classes, name)) != 0)
 	argv_free((ARGV *) entry->value);
