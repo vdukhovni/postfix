@@ -7811,8 +7811,13 @@ Apologies for any names omitted.
 
 20030609
 
-	Workaround: Solaris non-blocking socket read() may hang.
-	Leandro Santi. File: smtpd/smtpd.c.
+	Workaround: Solaris blocking socket read() may hang.  Hernan
+	Perez Masci and Leandro Santi. File: smtpd/smtpd.c.
+
+20030612
+
+	Bugfix: the stricter postdrop input filter broke "sendmail
+	-bs". Found by Lutz Jaenicke. File: smtpd/smtpd.c.
 
 Open problems:
 
