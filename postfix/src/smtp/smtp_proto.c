@@ -226,6 +226,8 @@ int     smtp_helo(SMTP_STATE *state)
 #ifdef USE_SASL_AUTH
 	    else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
 		smtp_sasl_helo_auth(state, words);
+	    else if (var_smtp_sasl_enable && strncasecmp(word, "AUTH=", 5) == 0)
+		smtp_sasl_helo_auth(state, word + 5);
 #endif
 	    else if (strcasecmp(word, var_myhostname) == 0) {
 		msg_warn("host %s replied to HELO/EHLO with my own hostname %s",

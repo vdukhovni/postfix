@@ -73,7 +73,7 @@
 
 void    smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
 {
-
+msg_info("smtp_sasl_helo_auth: words=\"%s\"", words);
     /*
      * XXX If the server offers a null list of authentication mechanisms,
      * then pretend that the server doesn't support SASL authentication.
