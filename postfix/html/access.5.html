@@ -65,8 +65,8 @@ ACCESS(5)                                               ACCESS(5)
               address.
 
               The pattern <i>domain.tld</i> also matches subdomains, but
-              only when the string <b>smtpd</b><i>_</i><b>access</b><i>_</i><b>maps</b> is listed in
-              the Postfix  <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b>  con-
+              only when the string <b>smtpd_access_maps</b> is listed in
+              the Postfix  <b>parent_domain_matches_subdomains</b>  con-
               figuration setting.  Otherwise, specify <i>.domain.tld</i>
               (note the initial dot) in  order  to  match  subdo-
               mains.
@@ -77,7 +77,7 @@ ACCESS(5)                                               ACCESS(5)
        Note: lookup of the null sender address  is  not  possible
        with  some types of lookup table. By default, Postfix uses
        &lt;&gt; as the lookup key for  such  addresses.  The  value  is
-       specified  with the <b>smtpd</b><i>_</i><b>null</b><i>_</i><b>access</b><i>_</i><b>lookup</b><i>_</i><b>key</b> parameter
+       specified  with the <b>smtpd_null_access_lookup_key</b> parameter
        in the Postfix <b>main.cf</b> file.
 
 <b>EMAIL ADDRESS EXTENSION</b>
@@ -95,8 +95,8 @@ ACCESS(5)                                               ACCESS(5)
               Matches <i>domain.tld</i>.
 
               The pattern <i>domain.tld</i> also matches subdomains, but
-              only when the string <b>smtpd</b><i>_</i><b>access</b><i>_</i><b>maps</b> is listed in
-              the  Postfix  <b>parent</b><i>_</i><b>domain</b><i>_</i><b>matches</b><i>_</i><b>subdomains</b> con-
+              only when the string <b>smtpd_access_maps</b> is listed in
+              the  Postfix  <b>parent_domain_matches_subdomains</b> con-
               figuration setting.  Otherwise, specify <i>.domain.tld</i>
               (note  the  initial  dot)  in order to match subdo-
               mains.
@@ -124,9 +124,27 @@ ACCESS(5)                                               ACCESS(5)
 
        <b>REJECT</b> <i>optional text...</i>
               Reject  the  address etc. that matches the pattern.
-              Reply with <i>$reject_code optional text...</i>  when  the
+              Reply with <i>$reject</i><b>_</b><i>code optional text...</i>  when  the
               optional  text is specified, otherwise reply with a
               generic error response message.
+
+       <b>DEFER_IF_REJECT</b>
+
+       <b>DEFER_IF_REJECT</b> <i>optional text...</i>
+              Defer the request if some later  restriction  would
+              result in a REJECT action. Reply with "<b>450</b> <i>optional</i>
+              <i>text...</i> when the optional text is specified, other-
+              wise reply with a generic error response message.
+
+       <b>DEFER_IF_PERMIT</b>
+
+       <b>DEFER_IF_PERMIT</b> <i>optional text...</i>
+              Defer  the  request if some later restriction would
+              result in a PERMIT action (there is an implied PER-
+              MIT  at  the  end  of each restriction list). Reply
+              with "<b>450</b> <i>optional text...</i> when the  optional  text
+              is  specified, otherwise reply with a generic error
+              response message.
 
        <b>OK</b>     Accept the address etc. that matches the pattern.
 
@@ -172,7 +190,7 @@ ACCESS(5)                                               ACCESS(5)
               TER_README file.
 
               Note:   this  action  overrides  the  <b>main.cf  con-</b>
-              <b>tent</b><i>_</i><b>filter</b>  setting,  and  currently  affects  all
+              <b>tent_filter</b>  setting,  and  currently  affects  all
               recipients of the message.
 
        <b>REDIRECT</b> <i>user@domain</i>
@@ -185,13 +203,13 @@ ACCESS(5)                                               ACCESS(5)
 
        <i>restriction...</i>
               Apply the named UCE restriction(s) (<b>permit</b>, <b>reject</b>,
-              <b>reject</b><i>_</i><b>unauth</b><i>_</i><b>destination</b>, and so on).
+              <b>reject_unauth_destination</b>, and so on).
 
 <b>REGULAR EXPRESSION TABLES</b>
        This  section  describes how the table lookups change when
        the table is given in the form of regular expressions. For
        a  description  of regular expression lookup table syntax,
-       see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
+       see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
 
        Each pattern is a regular expression that  is  applied  to
        the entire string being looked up. Depending on the appli-
@@ -214,7 +232,7 @@ ACCESS(5)                                               ACCESS(5)
        This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
        tion   of  the  TCP  client/server  lookup  protocol,  see
-       <b>tcp</b><i>_</i><b>table</b>(5).
+       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
 
        Each lookup operation uses the entire query  string  once.
        Depending  on  the  application,  that string is an entire

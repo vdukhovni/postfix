@@ -260,6 +260,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	    if (saved_domain)
 		tok822_free_tree(saved_domain);
 	    saved_domain = domain;
+	    domain = 0;				/* safety for future change */
 	}
 
 	/*

@@ -61,8 +61,8 @@
 /*	given to Postfix, and prepends a
 /*	\fBReturn-Path:\fR message header with the envelope sender address.
 /*
-/*	By definition, \fBmaildir\fR format does not require file locking
-/*	during mail delivery or retrieval.
+/*	By definition, \fBmaildir\fR format does not require application-level
+/*	file locking during mail delivery or retrieval.
 /* MAILBOX OWNERSHIP
 /* .ad
 /* .fi

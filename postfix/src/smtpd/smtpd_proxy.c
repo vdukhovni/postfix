@@ -347,7 +347,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 		     VSTREAM_PATH(state->proxy), var_line_limit,
 		     STR(state->proxy_buffer));
 	if (msg_verbose)
-	    msg_info("< %s: %s", VSTREAM_PATH(state->proxy),
+	    msg_info("< %s: %.100s", VSTREAM_PATH(state->proxy),
 		     STR(state->proxy_buffer));
 
 	/*

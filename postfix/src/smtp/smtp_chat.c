@@ -193,7 +193,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_STATE *state)
 	    msg_warn("%s: response longer than %d: %.30s...",
 		     session->namaddr, var_line_limit, STR(state->buffer));
 	if (msg_verbose)
-	    msg_info("< %s: %s", session->namaddr, STR(state->buffer));
+	    msg_info("< %s: %.100s", session->namaddr, STR(state->buffer));
 
 	/*
 	 * Defend against a denial of service attack by limiting the amount

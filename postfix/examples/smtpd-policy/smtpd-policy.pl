@@ -26,8 +26,10 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # To use this from Postfix SMTPD, use in /etc/postfix/main.cf:
 #
 #    smtpd_recipient_restrictions =
-#	... reject_unauth_destination
-#	check_policy_service unix:private/policy ...
+#	...
+#	reject_unauth_destination
+#	check_policy_service unix:private/policy
+#	...
 #
 # NOTE: specify check_policy_service AFTER reject_unauth_destination
 # or else your system can become an open relay.
@@ -98,13 +100,15 @@ sub smtpd_access_policy {
 	update_database($key, $time_stamp);
     }
 
-    # Specify DUNNO instead of OK so that the check_policy_service restriction
-    # can be followed by other restrictions.
+    # In case of success, return DUNNO instead of OK so that the
+    # check_policy_service restriction can be followed by other restrictions.
+    # In case of failure, specify DEFER_IF_PERMIT so that mail can
+    # still be blocked by other access restrictions.
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
     if ($now - $time_stamp > $greylist_delay) {
 	return "dunno";
     } else {
-	return "450 Service is unavailable";
+	return "defer_if_permit Service is unavailable";
     }
 }
 

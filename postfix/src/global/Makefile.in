@@ -331,6 +331,7 @@ rewrite_clnt_test: rewrite_clnt rewrite_clnt.in rewrite_clnt.ref
 # Requires: Postfix, root, relayhost=$mydomain, no transport map
 
 resolve_clnt_test: resolve_clnt resolve_clnt.in resolve_clnt.ref
+	echo 'This test requires relayhost=$mydomain and no transport map'
 	sed -e "s/MYDOMAIN/`postconf -h mydomain`/g" \
 	    -e "s/MYHOSTNAME/`postconf -h myhostname`/g" \
 	    resolve_clnt.in | ./resolve_clnt >resolve_clnt.tmp

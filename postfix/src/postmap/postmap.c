@@ -47,10 +47,6 @@
 /* COMMAND-LINE ARGUMENTS
 /* .ad
 /* .fi
-/* .IP \fB-N\fR
-/*	Include the terminating null character that terminates lookup keys
-/*	and values. By default, Postfix does whatever is the default for
-/*	the host operating system.
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	Read the \fBmain.cf\fR configuration file in the named directory
 /*	instead of the default configuration directory.
@@ -68,6 +64,10 @@
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR creates
 /*	a new database from the entries in \fBfile_name\fR.
+/* .IP \fB-N\fR
+/*	Include the terminating null character that terminates lookup keys
+/*	and values. By default, Postfix does whatever is the default for
+/*	the host operating system.
 /* .IP \fB-n\fR
 /*	Don't include the terminating null character that terminates lookup
 /*	keys and values. By default, Postfix does whatever is the default for

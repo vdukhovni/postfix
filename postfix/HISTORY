@@ -8405,6 +8405,20 @@ Apologies for any names omitted.
 	Documentation: corrected the command time limit parameter
 	syntax in the spawn(8) manual page.
 
+	Feature: defer_if_permit and defer_if_reject actions in
+	access tables, mainly for use by the delegated policy
+	server. Files: smtpd/smtpd_check.c, proto/access.
+
+20030725
+
+	The dict_pgsql module did not use dict_alloc() and dict_free(),
+	causing improper initialization and a memory leak. Leandro
+	Santi. File: util/dict_pgsql.c.
+
+	Cleanup: added open_flags sanity checks to the dict_pgsql
+	and dict_mysql modules. These maps must be opened in
+	read-only mode.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

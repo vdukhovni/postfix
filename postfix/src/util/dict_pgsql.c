@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <dict_pgsql.h>
 /*
-/*	DICT	*dict_pgsql_open(name, unused_open_flags, unused_dict_flags)
+/*	DICT	*dict_pgsql_open(name, open_flags, dict_flags)
 /*	const char *name;
-/*	int     unused_open_flags;
-/*	int     unused_dict_flags;
+/*	int     open_flags;
+/*	int     dict_flags;
 /* DESCRIPTION
 /*	dict_pgsql_open() creates a dictionary of type 'pgsql'.  This
 /*	dictionary is an interface for the postfix key->value mappings
@@ -48,8 +48,10 @@
 /*
 /* .IP other_name
 /*	reference for outside use.
-/* .IP unusued_flags
-/*	unused flags
+/* .IP open_flags
+/*	Must be O_RDONLY.
+/* .IP dict_flags
+/*	See dict_open(3).
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* AUTHOR(S)
@@ -489,16 +491,25 @@ static void plpgsql_down_host(HOST *host)
  *    parse the map's config file
  *    allocate memory
  **********************************************************************/
-DICT   *dict_pgsql_open(const char *name, int unused_flags, int unused_dict_flags)
+DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_PGSQL *dict_pgsql;
 
-    dict_pgsql = (DICT_PGSQL *) mymalloc(sizeof(DICT_PGSQL));
+    /*
+     * Sanity checks.
+     */
+    if (open_flags != O_RDONLY)
+	msg_fatal("%s:%s map requires O_RDONLY access mode",
+		  DICT_TYPE_PGSQL, name);
+
+    dict_pgsql = (DICT_PGSQL *) dict_alloc(DICT_TYPE_PGSQL, name,
+					   sizeof(DICT_PGSQL));
     dict_pgsql->dict.lookup = dict_pgsql_lookup;
     dict_pgsql->dict.close = dict_pgsql_close;
     dict_pgsql->name = pgsqlname_parse(name);
     dict_pgsql->pldb = plpgsql_init(dict_pgsql->name->hostnames,
 				    dict_pgsql->name->len_hosts);
+    dict_pgsql->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if (dict_pgsql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
     dict_register(name, (DICT *) dict_pgsql);
@@ -701,6 +712,7 @@ static void dict_pgsql_close(DICT *dict)
     }
     myfree((char *) dict_pgsql->name->hostnames);
     myfree((char *) dict_pgsql->name);
+    dict_free(dict);
 }
 
 /* plpgsql_dealloc - free memory associated with PLPGSQL close databases */

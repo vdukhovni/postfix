@@ -7,10 +7,10 @@
 /*	#include <dict.h>
 /*	#include <dict_mysql.h>
 /*
-/*	DICT	*dict_mysql_open(name, dummy, unused_dict_flags)
+/*	DICT	*dict_mysql_open(name, open_flags, dict_flags)
 /*	const char	*name;
-/*	int     dummy;
-/*	int     unused_dict_flags;
+/*	int     open_flags;
+/*	int     dict_flags;
 /* DESCRIPTION
 /*	dict_mysql_open() creates a dictionary of type 'mysql'.  This
 /*	dictionary is an interface for the postfix key->value mappings
@@ -46,8 +46,10 @@
 /*
 /* .IP other_name
 /*	reference for outside use.
-/* .IP unusued_flags
-/*	unused flags
+/* .IP open_flags
+/*	Must be O_RDONLY.
+/* .IP dict_flags
+/*	See dict_open(3).
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* AUTHOR(S)
@@ -358,10 +360,17 @@ static void plmysql_down_host(HOST *host)
  *    parse the map's config file
  *    allocate memory
  **********************************************************************/
-DICT   *dict_mysql_open(const char *name, int unused_open_flags, int dict_flags)
+DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_MYSQL *dict_mysql;
     int     connections;
+
+    /*
+     * Sanity checks.
+     */
+    if (open_flags != O_RDONLY)
+        msg_fatal("%s:%s map requires O_RDONLY access mode",
+                  DICT_TYPE_MYSQL, name);
 
     dict_mysql = (DICT_MYSQL *) dict_alloc(DICT_TYPE_MYSQL, name,
 					   sizeof(DICT_MYSQL));

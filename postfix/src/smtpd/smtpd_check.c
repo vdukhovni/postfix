@@ -1902,6 +1902,30 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
+     * DEFER_IF_PERMIT means NO, eventually. Use optional text or generate a
+     * generic error response.
+     */
+    if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
+	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: %s",
+			 reply_name, reply_class,
+			 *cmd_text ? cmd_text : "Service unavailable");
+	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
+     * DEFER_IF_REJECT means NO, eventually. Use optional text or generate a
+     * generic error response.
+     */
+    if (STREQUAL(value, DEFER_IF_REJECT, cmd_len)) {
+	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: %s",
+			 reply_name, reply_class,
+			 *cmd_text ? cmd_text : "Service unavailable");
+	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
      * All-numeric result probably means OK - some out-of-band authentication
      * mechanism uses this as time stamp.
      */
