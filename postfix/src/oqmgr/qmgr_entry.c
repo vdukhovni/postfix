@@ -94,6 +94,7 @@
 
 QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 {
+    char   *myname = "qmgr_entry_select";
     QMGR_ENTRY *entry;
 
     if ((entry = queue->todo.prev) != 0) {
@@ -101,6 +102,33 @@ QMGR_ENTRY *qmgr_entry_select(QMGR_QUEUE *queue)
 	queue->todo_refcount--;
 	QMGR_LIST_APPEND(queue->busy, entry);
 	queue->busy_refcount++;
+
+	/*
+	 * With opportunistic session caching, the delivery agent must not
+	 * only 1) save a session upon completion, but also 2) reuse a cached
+	 * session upon the next delivery request. In order to not miss out
+	 * on 2), we have to make caching sticky or else we get silly
+	 * behavior when the in-memory queue drains. New connections must not
+	 * be made while cached connections aren't being reused.
+	 * 
+	 * Safety: don't enable opportunistic session caching until the queue
+	 * manager is able to schedule back-to-back deliveries.
+	 */
+	if ((queue->dflags & DEL_REQ_FLAG_SCACHE) == 0) {
+	    if (queue->last_done + 1 >= event_time()) {
+		if (msg_verbose)
+		    msg_info("%s: allowing on-demand session caching for %s",
+			     myname, queue->name);
+		queue->dflags |= DEL_REQ_FLAG_SCACHE;
+	    }
+	} else {
+	    if (queue->last_done + 1 < event_time()) {
+		if (msg_verbose)
+		    msg_info("%s: disallowing on-demand session caching for %s",
+			     myname, queue->name);
+		queue->dflags &= ~DEL_REQ_FLAG_SCACHE;
+	    }
+	}
     }
     return (entry);
 }
@@ -147,6 +175,11 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     myfree((char *) entry);
 
     /*
+     * Maintain back-to-back delivery status.
+     */
+    queue->last_done = event_time();
+
+    /*
      * When the in-core queue for this site is empty and when this site is
      * not dead, discard the in-core queue. When this site is dead, but the
      * number of in-core queues exceeds some threshold, get rid of this
@@ -188,7 +221,6 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 
 QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
 {
-    char   *myname = "qmgr_entry_create";
     QMGR_ENTRY *entry;
 
     /*
@@ -208,22 +240,6 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
     entry->queue = queue;
     QMGR_LIST_APPEND(queue->todo, entry);
     queue->todo_refcount++;
-
-    /*
-     * With opportunistic session caching, the delivery agent must not only
-     * 1) save a session upon completion, but also 2) reuse a cached session
-     * upon the next delivery request. In order to not miss out on 2), we
-     * have to make caching sticky or else we get silly behavior when the
-     * in-memory queue drains. New connections must not be made while cached
-     * connections aren't being reused.
-     */
-    if ((queue->dflags & DEL_REQ_FLAG_SCACHE) == 0
-	&& queue->window < queue->todo_refcount + queue->busy_refcount) {
-	if (msg_verbose)
-	    msg_info("%s: passing on-demand session caching threshold for %s",
-		     myname, queue->name);
-	queue->dflags |= DEL_REQ_FLAG_SCACHE;
-    }
 
     /*
      * Warn if a destination is falling behind while the active queue

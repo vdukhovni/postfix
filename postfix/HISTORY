@@ -9602,7 +9602,7 @@ Apologies for any names omitted.
 20040729
 
 	Feature:  enable SMTP session caching temporarily while a
-	site has a high volume of mail in the active queue.
+	postfix is able to schedule back-to-back deliveries.
 	Parameter:  smtp_connection_cache_on_demand (default:
 	yes).  Files:  smtp/smtp_connect.c, *qmgr/qmgr_entry.c,
 	*qmgr/qmgr_queue.c, *qmgr/qmgr_deliver.c.
@@ -9610,6 +9610,12 @@ Apologies for any names omitted.
 	Feature: smtp-source -N option to generate unique recipient
 	addresses for (trivial-rewrite) stress testing. Victor
 	Duchovni, Morgan Stanley. File: smtpstone/smtp-source.c.
+
+20040730
+
+	Safety: disallow "opportunistic session caching" when the
+	queue manager is unable to schedule back-to-back deliveries.
+	File: *qmgr/qmgr_entry.c.
 
 Open problems:
 
