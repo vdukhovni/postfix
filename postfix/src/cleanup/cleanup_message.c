@@ -178,7 +178,8 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 	if (cleanup_comm_canon_maps)
 	    cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_masq_domains)
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_FROM))
 	    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	if (hdr_opts->type == HDR_FROM && state->from == 0)
 	    state->from = cleanup_extract_internal(state->header_buf, *tpp);
@@ -230,7 +231,8 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 		argv_add(rcpt, vstring_str(state->temp1), (char *) 0);
 	    }
 	}
-	if (cleanup_masq_domains)
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_RCPT))
 	    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	if (hdr_opts->type == HDR_RETURN_RECEIPT_TO && !state->return_receipt)
 	    state->return_receipt =

@@ -124,6 +124,17 @@ extern char *var_masq_domains;
 #define DEF_MASQ_EXCEPTIONS	""
 extern char *var_masq_exceptions;
 
+#define MASQ_CLASS_ENV_FROM	"envelope_sender"
+#define MASQ_CLASS_ENV_RCPT	"envelope_recipient"
+#define MASQ_CLASS_HDR_FROM	"header_sender"
+#define MASQ_CLASS_HDR_RCPT	"header_recipient"
+
+#define VAR_MASQ_CLASSES	"masquerade_classes"
+#define DEF_MASQ_CLASSES	MASQ_CLASS_ENV_FROM ", " \
+				MASQ_CLASS_HDR_FROM ", " \
+				MASQ_CLASS_HDR_RCPT
+extern char *var_masq_classes;
+
  /*
   * Intranet versus internet.
   */
@@ -1111,6 +1122,10 @@ extern int var_relay_code;
 
 #define PERMIT_MX_BACKUP	"permit_mx_backup"
 
+#define VAR_AUTH_MX_NETWORKS	"auth_mx_backup_networks"
+#define DEF_AUTH_MX_NETWORKS	""
+extern char *var_auth_mx_networks;
+
 #define VAR_ACCESS_MAP_CODE	"access_map_reject_code"
 #define DEF_ACCESS_MAP_CODE	554
 extern int var_access_map_code;
@@ -1127,7 +1142,7 @@ extern int var_access_map_code;
 extern int var_maps_rbl_code;
 
 #define VAR_MAPS_RBL_DOMAINS	"maps_rbl_domains"
-#define DEF_MAPS_RBL_DOMAINS	"blackholes.mail-abuse.org"
+#define DEF_MAPS_RBL_DOMAINS	""
 extern char *var_maps_rbl_domains;
 
 #define VAR_SMTPD_DELAY_REJECT	"smtpd_delay_reject"

@@ -5405,3 +5405,19 @@ Apologies for any names omitted.
 	for myhostname, inet_interfaces, and mynetworks_style.
 	This broke the default mynetworks setting calculation.
 	File: postconf/postconf.c.
+
+20010803
+
+	Feature: masquerade_classes parameter for fine control of
+	address masquerading. The default setting is backwards
+	compatible: envelope_sender header_sender header_recipient.
+	Files: cleanup/whatever.c.
+
+20010806
+
+	Bugfix: did not address masquerade the always_bcc recipient
+	after extracting envelope recipients from message headers.
+	File: cleanup/cleanup_extracted.c.
+
+	Bugfix: did not address masquerade the envelope recipients
+	extracted from message headers.  File: cleanup/cleanup_message.c.

@@ -71,6 +71,15 @@ extern MAPS *cleanup_header_checks;
 extern MAPS *cleanup_body_checks;
 extern MAPS *cleanup_virtual_maps;
 extern ARGV *cleanup_masq_domains;
+extern int cleanup_masq_flags;
+
+ /*
+  * Address masquerading fine control.
+  */
+#define CLEANUP_MASQ_FLAG_ENV_FROM	(1<<0)	/* envelope sender */
+#define CLEANUP_MASQ_FLAG_ENV_RCPT	(1<<1)	/* envelope recipient */
+#define CLEANUP_MASQ_FLAG_HDR_FROM	(1<<2)	/* header sender */
+#define CLEANUP_MASQ_FLAG_HDR_RCPT	(1<<3)	/* header recipient */
 
  /*
   * Restrictions on extension propagation.

@@ -722,17 +722,20 @@ code for rejected requests (default:  <b>554</b>).
 <a name="permit_mx_backup">
 
 <dt> <b>permit_mx_backup</b> <dd> Permit the request when the local
-mail system is MX host for the resolved destination. This includes
-the case that the local mail system is the final destination.
-However, the SMTP server will not forward mail with addresses that
-have sender-specified routing information (example:
+mail system is MX host for the resolved destination, provided that
+the primary MX host is within the networks specified with <a
+href="#auth_mx_backup_networks">auth_mx_backup_networks</a> parameter.
+This includes the case that the local mail system is the final
+destination.  However, the SMTP server will not forward mail with
+addresses that have sender-specified routing information (example:
 <i>user@elsewhere@domain</i>),
 
 <p>
 
-Relevant configuration parameters:  <a href="basic.html#mydestination">
-$mydestination</a>, <a href="basic.html#inet_interfaces">
-$inet_interfaces</a>.
+Relevant configuration parameters:  <a
+href="#auth_mx_backup_networks">auth_mx_backup_networks</a>, <a
+href="basic.html#mydestination"> $mydestination</a>, <a
+href="basic.html#inet_interfaces"> $inet_interfaces</a>.
 
 <p>
 
@@ -963,6 +966,52 @@ to speed up deliveries.
 <a name="additional">
 
 <h2> Additional UCE control parameters</h2>
+
+<dl>
+
+<a name="auth_mx_backup_networks">
+
+<dt> <b>auth_mx_backup_networks</b>
+
+<dd>This parameter specifies the networks that are allowed to
+use the <a href="#permit_mx_backup">permit_mx_backup</a>
+relay control feature.
+
+<p>
+
+<dl>
+
+<dt>Default:
+
+<dd><b>auth_mx_backup_networks = </b>
+
+<p>
+
+That is, no networks are authorized by default.
+
+<p>
+
+<dt>Syntax:
+
+<dd> Specify a list of network
+blocks in CIDR (network/mask) notation, for example:
+
+<p>
+
+<dl>
+
+<dd> <b>auth_mx_backup_networks = 168.100.0.0/16</b>
+
+</dl>
+
+<p>
+
+You can also specify the absolute pathname of a pattern file instead
+of listing the patterns in the <b>main.cf</b> file.
+
+</dl>
+
+</dl>
 
 <dl>
 

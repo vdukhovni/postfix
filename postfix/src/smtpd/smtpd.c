@@ -356,6 +356,7 @@ char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
 bool    var_broken_auth_clients;
+char   *var_auth_mx_networks;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1590,6 +1591,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
+	VAR_AUTH_MX_NETWORKS, DEF_AUTH_MX_NETWORKS, &var_auth_mx_networks, 0, 0,
 	0,
     };
 

@@ -1,16 +1,28 @@
-Incompatible changes with snapshot-20010801
+Incompatible changes with snapshot-20010802
 ===========================================
+
+The default setting for the maps_rbl_domains parameter is "empty",
+because mail-abuse.org has become a subscription-based service.
+
+The permit_mx_backup feature has changed. It accepts mail only when
+the primary MX hosts for the recipient match the networks that are
+specified with the new auth_permit_mx_backup configuration parameter.
+Postfix will not accept mail when permit_mx_backup is used while
+auth_permit_mx_backup is not configured.
 
 The protocol between Postfix master and child processes has changed.
 You must stop and start Postfix in order to switch between Snapshot
 20010801 and releases that implement the older protocol.
 
-Major changes with snapshot-20010801
+Major changes with snapshot-20010802
 ====================================
 
 Specify "disable_verp_bounces = yes" to have Postfix send one
 RFC-standard, non-VERP, bounce report for multi-recipient mail,
 even when VERP style delivery is requested.
+
+Fine control over address masquerading. The masquerade_classes
+parameter controls header and envelope sender and recipient addresses.
 
 Variable coupling between message receiving rates and message
 delivery rates. When the message receiving rate exceeds the message
@@ -20,14 +32,14 @@ a chance catch up and access the disk, while still allowing new
 mail to arrive.
 
 The in_flow_delay feature has effect mainly when your system is
-being flooded port through a limited number of SMTP connections.
-This is also useful for mass-mailing applications, because it avoids
-the need to hand-tune the rate at which mail is sent into Postfix.
+being flooded through a limited number of SMTP connections.  This
+is useful for mass-mailing applications, because it eliminates the
+need to hand-tune the rate for sending mail into Postfix.
 
 The in_flow_delay feature has negligible effect when mail arrives
 via many different SMTP connections. With the default limit of 50
 SMTP server processes and with the default $in_flow_delay of 1
-second, total mail inflow is limited to 50 messages per second more
+second, the mail inflow is limited to 50 messages per second more
 than the number of messages that are delivered per second. Many
 systems saturate at values much smaller than 50 messages per second.
 

@@ -35,7 +35,7 @@
 /*	header addresses (i.e. strip host or domain information below
 /*	all domains listed in the \fBmasquerade_domains\fR parameter,
 /*	except for user names listed in \fBmasquerade_exceptions\fR).
-/*	Address masquerading does not affect envelope recipients.
+/*	By default, address masquerading does not affect envelope recipients.
 /* .IP \(bu
 /*	Optionally, expand envelope recipients according to information
 /*	found in the \fBvirtual\fR(5) lookup tables.
@@ -94,6 +94,10 @@
 /* .IP \fBsender_canonical_maps\fR
 /*	Address mapping lookup table for envelope and header sender
 /*	addresses.
+/* .IP \fBmasquerade_classes\fR
+/*      List of address classes subject to masquerading: zero or
+/*      more of \fBenvelope_sender\fR, \fBenvelope_recipient\fR,
+/*	\fBheader_sender\fR, \fBheader_recipient\fR.
 /* .IP \fBmasquerade_domains\fR
 /*	List of domains that hide their subdomain structure.
 /* .IP \fBmasquerade_exceptions\fR

@@ -1521,7 +1521,10 @@ href="uce.html#reject_unauth_destination">reject_unauth_destination</a>:
 reject when the destination is not local.
 
 <li> <a href="uce.html#permit_mx_backup">permit_mx_backup</a>:
-reject when the destination is not local.
+permit if the local system is listed as MX host for the recipient
+domain, provided that the primary MX host for the recipient domain
+is within the networks specified with <a
+href="uce.html#auth_mx_backup_networks">auth_mx_backup_networks</a>.
 
 <li> Other UCE restrictions (e.g., SMTPD access maps) are not aware
 of sender-provided routing information.

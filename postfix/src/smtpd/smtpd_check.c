@@ -145,9 +145,10 @@
 /*	Reject the request when the client has already sent the next request
 /*	without being told that the server implements SMTP command pipelining.
 /* .IP permit_mx_backup
-/*	Allow the request when the local mail system is mail exchanger
-/*	for the recipient domain (this includes the case where the local
-/*	system is the final destination).
+/*	Allow the request when all primary MX hosts for the recipient
+/*	are in the networks specified with the $auth_mx_backup_networks
+/*	configuration parameter, or when the local system is the final
+/*	destination.
 /* .IP restriction_classes
 /*	Defines a list of parameter names, each parameter being a list
 /*	of restrictions that can be used anywhere a restriction is legal.
@@ -308,6 +309,11 @@ static jmp_buf smtpd_check_buf;
 #define SMTPD_CHECK_REJECT	2	/* explicitly reject */
 
  /*
+  * XXX For now define SMTPD_CHECK_TRYAGAIN as SMTPD_CHECK_OK.
+  */
+#define SMTPD_CHECK_TRYAGAIN	1	/* return 4xx try again */
+
+ /*
   * Intermediate results. These are static to avoid unnecessary stress on the
   * memory manager routines.
   */
@@ -331,6 +337,7 @@ static MAPS *relocated_maps;
   */
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
+static NAMADR_LIST *auth_mx_networks;
 
  /*
   * Pre-parsed restriction lists.
@@ -499,6 +506,7 @@ void    smtpd_check_init(void)
      */
     mynetworks = namadr_list_init(var_mynetworks);
     relay_domains = domain_list_init(var_relay_domains);
+    auth_mx_networks = namadr_list_init(var_auth_mx_networks);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -1014,6 +1022,59 @@ static int reject_unauth_pipelining(SMTPD_STATE *state)
     return (SMTPD_CHECK_DUNNO);
 }
 
+/* all_auth_mx_addr - match host addresses against auth_mx_backup_networks */
+
+static int all_auth_mx_addr(char *host)
+{
+    char   *myname = "all_auth_mx_addr";
+    struct in_addr addr;
+    DNS_RR *rr;
+    DNS_RR *addr_list;
+    int     dns_status;
+
+    if (msg_verbose)
+	msg_info("%s: host %s", myname, host);
+
+    /*
+     * If we can't lookup the host, try again.
+     */
+#define NOPE           0
+#define YUP            1
+#define TRYAGAIN       2
+
+    /*
+     * Resolve this host into IP addresses, and check if thy are within
+     * auth_mx_backup_networks
+     */
+    dns_status = dns_lookup(host, T_A, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0);
+    if (dns_status != DNS_OK)
+	return (TRYAGAIN);
+
+    for (rr = addr_list; rr != 0; rr = rr->next) {
+	if (rr->data_len > sizeof(addr)) {
+	    msg_warn("skipping address length %d", rr->data_len);
+	    continue;
+	}
+	memcpy((char *) &addr, rr->data, sizeof(addr));
+	if (msg_verbose)
+	    msg_info("%s: checking: %s", myname, inet_ntoa(addr));
+
+	if (!namadr_list_match(auth_mx_networks, host, inet_ntoa(addr))) {
+
+	    /*
+	     * Reject: IP address not listed in auth_mx_backup_networks.
+	     */
+	    if (msg_verbose)
+		msg_info("%s: address %s does not match %s",
+			 myname, inet_ntoa(addr), VAR_AUTH_MX_NETWORKS);
+	    dns_rr_free(addr_list);
+	    return (NOPE);
+	}
+    }
+    dns_rr_free(addr_list);
+    return (YUP);
+}
+
 /* has_my_addr - see if this host name lists one of my network addresses */
 
 static int has_my_addr(const char *host)
@@ -1054,6 +1115,8 @@ static int has_my_addr(const char *host)
 
     return (NOPE);
 }
+
+#if 0
 
 /* permit_mx_backup - permit use of me as MX backup for recipient domain */
 
@@ -1117,7 +1180,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
     if (dns_status == DNS_NOTFOUND)
 	return (has_my_addr(domain) ? SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
     if (dns_status != DNS_OK)
-	return (SMTPD_CHECK_OK);
+	return (SMTPD_CHECK_TRYAGAIN);
 
     /*
      * First, see if we match any of the MX host names listed. Only if no
@@ -1148,6 +1211,122 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
 
     dns_rr_free(mx_list);
     return (SMTPD_CHECK_DUNNO);
+}
+
+#endif
+
+/* permit_auth_mx_backup - relay for authorized networks */
+
+static int permit_auth_mx_backup(SMTPD_STATE *state, const char *recipient)
+{
+    char   *myname = "permit_auth_mx_backup";
+    const RESOLVE_REPLY *reply;
+    const char *domain;
+
+    DNS_RR *mx_list;
+    DNS_RR *mx;
+    int     dns_status;
+    int     best_pref;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, recipient);
+
+    /*
+     * Sanity check.
+     */
+    if (*var_auth_mx_networks == 0) {
+	msg_warn("The %s feature requires that you specify authorized networks",
+		 PERMIT_MX_BACKUP);
+	msg_warn("via the %s configuration parameter. See examples",
+		 VAR_AUTH_MX_NETWORKS);
+	msg_warn("in the %s/sample-smtpd.cf configuration file.",
+		 var_config_dir);
+	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
+					"%d <%s>: Configuration error in %s",
+						    451, recipient,
+						    VAR_AUTH_MX_NETWORKS));
+    }
+
+    /*
+     * Resolve the address.
+     */
+    reply = (const RESOLVE_REPLY *)
+	ctable_locate(smtpd_resolve_cache, recipient);
+
+    /*
+     * If the destination is local, it is acceptable, because we are
+     * supposedly MX for our own address.
+     */
+    if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
+	return (SMTPD_CHECK_OK);
+    domain += 1;
+    if (resolve_local(domain)
+	|| (*var_virtual_maps
+	    && check_maps_find(state, recipient, virtual_maps, domain, 0))
+	|| (*var_virt_mailbox_maps
+	&& check_maps_find(state, recipient, virt_mailbox_maps, domain, 0)))
+	return (SMTPD_CHECK_OK);
+
+    if (msg_verbose)
+	msg_info("%s: not local: %s", myname, recipient);
+
+    /*
+     * Skip source-routed mail (uncertain destination).
+     */
+    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * Skip numerical forms that didn't match the local system.
+     */
+    if (domain[0] == '#'
+	|| (domain[0] == '[' && domain[strlen(domain) - 1] == ']'))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * Look up the list of MX host names for this domain. If no MX host is
+     * found, perhaps it is a CNAME for the local machine. Clients aren't
+     * supposed to send CNAMEs in SMTP commands, but it happens anyway.
+     */
+    dns_status = dns_lookup(domain, T_MX, 0, &mx_list,
+			    (VSTRING *) 0, (VSTRING *) 0);
+    if (dns_status == DNS_NOTFOUND)
+	return (has_my_addr(domain) ? SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
+    if (dns_status != DNS_OK)
+	return (SMTPD_CHECK_TRYAGAIN);
+
+    /*
+     * Find the preference of the primary MX hosts.
+     */
+    for (best_pref = 0xffff, mx = mx_list; mx != 0; mx = mx->next)
+	if (mx->pref < best_pref)
+	    best_pref = mx->pref;
+
+    /*
+     * See if each best MX host has all IP addresses in
+     * auth_mx_backup_networks.
+     */
+    for (mx = mx_list; mx != 0; mx = mx->next) {
+	if (mx->pref != best_pref)
+	    continue;
+	switch (all_auth_mx_addr((char *) mx->data)) {
+	case NOPE:
+	    dns_rr_free(mx_list);
+	    return (SMTPD_CHECK_DUNNO);
+	case YUP:
+	    continue;
+	case TRYAGAIN:
+	    dns_rr_free(mx_list);
+	    return (SMTPD_CHECK_TRYAGAIN);
+	}
+    }
+
+    /*
+     * All IP addresses of the best MX hosts are within
+     * auth_mx_backup_networks.
+     */
+    dns_rr_free(mx_list);
+    return (SMTPD_CHECK_OK);
 }
 
 /* reject_non_fqdn_address - fail if address is not in fqdn form */
@@ -1808,7 +1987,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					   SMTPD_NAME_RECIPIENT, def_acl);
 	} else if (strcasecmp(name, PERMIT_MX_BACKUP) == 0) {
 	    if (state->recipient)
-		status = permit_mx_backup(state, state->recipient);
+		status = permit_auth_mx_backup(state, state->recipient);
 	} else if (strcasecmp(name, PERMIT_AUTH_DEST) == 0) {
 	    if (state->recipient)
 		status = permit_auth_destination(state, state->recipient);

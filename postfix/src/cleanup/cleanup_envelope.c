@@ -149,7 +149,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	if (cleanup_comm_canon_maps)
 	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_masq_domains)
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_FROM))
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
 	CLEANUP_OUT_BUF(state, type, clean_addr);
 	if (state->sender == 0)
@@ -171,6 +172,9 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	if (cleanup_comm_canon_maps)
 	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
 				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_masq_domains
+	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
+	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
 	cleanup_out_recipient(state, STR(clean_addr));
 	if (state->recip == 0)
 	    state->recip = mystrdup(STR(clean_addr));
