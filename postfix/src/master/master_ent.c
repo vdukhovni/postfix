@@ -84,6 +84,8 @@
 #include <stringops.h>
 #include <readlline.h>
 #include <inet_addr_list.h>
+#include <inet_util.h>
+#include <inet_addr_host.h>
 
 /* Global library. */
 
@@ -222,6 +224,8 @@ MASTER_SERV *get_master_ent()
     MASTER_SERV *serv;
     char   *cp;
     char   *name;
+    char   *host;
+    char   *port;
     char   *transport;
     int     private;
     int     unprivileged;		/* passed on to child */
@@ -229,6 +233,7 @@ MASTER_SERV *get_master_ent()
     char   *command;
     int     n;
     char   *bufp;
+    char   *atmp;
 
     if (master_fp == 0)
 	msg_panic("get_master_ent: config file not open");
@@ -270,13 +275,22 @@ MASTER_SERV *get_master_ent()
     transport = get_str_ent(&bufp, "transport type", (char *) 0);
     if (STR_SAME(transport, MASTER_XPORT_NAME_INET)) {
 	serv->type = MASTER_SERV_TYPE_INET;
-	if (strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) == 0) {
+	atmp = inet_parse(name, &host, &port);
+	if (host && *host) {
+	    serv->flags |= MASTER_FLAG_INETHOST;
+	    serv->addr_list.inet =
+		(INET_ADDR_LIST *) mymalloc(sizeof(*serv->addr_list_buf.inet));
+	    inet_addr_list_init(serv->addr_list.inet);
+	    inet_addr_host(serv->addr_list.inet, host);
+	    serv->listen_fd_count = serv->addr_list.inet->used;
+	} else if (strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) == 0) {
 	    serv->addr_list.inet = 0;		/* wild-card */
 	    serv->listen_fd_count = 1;
 	} else {
 	    serv->addr_list.inet = own_inet_addr_list();	/* virtual */
 	    serv->listen_fd_count = serv->addr_list.inet->used;
 	}
+	myfree(atmp);
     } else if (STR_SAME(transport, MASTER_XPORT_NAME_UNIX)) {
 	serv->type = MASTER_SERV_TYPE_UNIX;
 	serv->listen_fd_count = 1;
@@ -449,6 +463,8 @@ void    free_master_ent(MASTER_SERV *serv)
     /*
      * Undo what get_master_ent() created.
      */
+    if (serv->flags & MASTER_FLAG_INETHOST)
+	inet_addr_list_free(serv->addr_list.inet);
     myfree(serv->name);
     myfree(serv->path);
     argv_free(serv->args);

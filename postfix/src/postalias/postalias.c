@@ -29,7 +29,11 @@
 /*	instead of the default configuration directory.
 /* .IP "\fB-d \fIkey\fR"
 /*	Search the specified maps for \fIkey\fR and remove one entry per map.
-/*	The exit status is non-zero if the requested information was not found.
+/*	The exit status is zero when the requested information was found.
+/*
+/*	If a key value of \fB-\fR is specified, the program reads key
+/*	values from the standard input stream. The exit status is zero
+/*	when at least one of the requested keys was found.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostalias\fR creates
@@ -40,8 +44,13 @@
 /*	the host operating system.
 /* .IP "\fB-q \fIkey\fR"
 /*	Search the specified maps for \fIkey\fR and print the first value
-/*	found on the standard output stream. The exit status is non-zero
-/*	if the requested information was not found.
+/*	found on the standard output stream. The exit status is zero
+/*	when the requested information was found.
+/*
+/*	If a key value of \fB-\fR is specified, the program reads key
+/*	values from the standard input stream and prints one line of
+/*	\fIkey: value\fR output for each key that was found. The exit
+/*	status is zero when at least one of the requested keys was found.
 /* .IP \fB-r\fR
 /*	When updating a table, do not warn about duplicate entries; silently
 /*	replace them.
@@ -137,6 +146,7 @@
 #include <stringops.h>
 #include <split_at.h>
 #include <get_hostname.h>
+#include <vstring_vstream.h>
 
 /* Global library. */
 
@@ -306,6 +316,62 @@ static void postalias(char *map_type, char *path_name,
 	vstream_fclose(source_fp);
 }
 
+/* postalias_queries - apply multiple requests from stdin */
+
+static int postalias_queries(VSTREAM *in, char **maps, const int map_count)
+{
+    int     found = 0;
+    VSTRING *keybuf = vstring_alloc(100);
+    DICT  **dicts;
+    const char *map_name;
+    const char *value;
+    int     n;
+
+    /*
+     * Sanity check.
+     */
+    if (map_count <= 0)
+	msg_panic("postalias_queries: bad map count");
+
+    /*
+     * Prepare to open maps lazily.
+     */
+    dicts = (DICT **) mymalloc(sizeof(*dicts) * map_count);
+    for (n = 0; n < map_count; n++)
+	dicts[n] = 0;
+
+    /*
+     * Perform all queries. Open maps on the fly, to avoid opening unecessary
+     * maps.
+     */
+    while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
+	for (n = 0; n < map_count; n++) {
+	    if (dicts[n] == 0)
+		dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
+		   dict_open3(maps[n], map_name, O_RDONLY, DICT_FLAG_LOCK) :
+		dict_open3(var_db_type, maps[n], O_RDONLY, DICT_FLAG_LOCK));
+	    if ((value = dict_get(dicts[n], STR(keybuf))) != 0) {
+		vstream_printf("%s:	%s\n", STR(keybuf), value);
+		found = 1;
+		break;
+	    }
+	}
+    }
+    if (found)
+	vstream_fflush(VSTREAM_OUT);
+
+    /*
+     * Cleanup.
+     */
+    for (n = 0; n < map_count; n++)
+	if (dicts[n])
+	    dict_close(dicts[n]);
+    myfree((char *) dicts);
+    vstring_free(keybuf);
+
+    return (found);
+}
+
 /* postalias_query - query a map and print the result to stdout */
 
 static int postalias_query(const char *map_type, const char *map_name,
@@ -323,6 +389,50 @@ static int postalias_query(const char *map_type, const char *map_name,
     return (value != 0);
 }
 
+/* postalias_deletes - apply multiple requests from stdin */
+
+static int postalias_deletes(VSTREAM *in, char **maps, const int map_count)
+{
+    int     found = 0;
+    VSTRING *keybuf = vstring_alloc(100);
+    DICT  **dicts;
+    const char *map_name;
+    int     n;
+
+    /*
+     * Sanity check.
+     */
+    if (map_count <= 0)
+	msg_panic("postalias_deletes: bad map count");
+
+    /*
+     * Open maps ahead of time.
+     */
+    dicts = (DICT **) mymalloc(sizeof(*dicts) * map_count);
+    for (n = 0; n < map_count; n++)
+	dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
+		    dict_open3(maps[n], map_name, O_RDWR, DICT_FLAG_LOCK) :
+		  dict_open3(var_db_type, maps[n], O_RDWR, DICT_FLAG_LOCK));
+
+    /*
+     * Perform all requests.
+     */
+    while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF)
+	for (n = 0; n < map_count; n++)
+	    found |= (dict_del(dicts[n], STR(keybuf)) == 0);
+
+    /*
+     * Cleanup.
+     */
+    for (n = 0; n < map_count; n++)
+	if (dicts[n])
+	    dict_close(dicts[n]);
+    myfree((char *) dicts);
+    vstring_free(keybuf);
+
+    return (found);
+}
+
 /* postalias_delete - delete a key value pair from a map */
 
 static int postalias_delete(const char *map_type, const char *map_name,
@@ -331,10 +441,6 @@ static int postalias_delete(const char *map_type, const char *map_name,
     DICT   *dict;
     int     status;
 
-    /*
-     * XXX This must be generalized to multi-key (read from stdin) and
-     * multi-map (given on command line) updates.
-     */
     dict = dict_open3(map_type, map_name, O_RDWR, DICT_FLAG_LOCK);
     status = dict_del(dict, key);
     dict_close(dict);
@@ -447,6 +553,8 @@ int     main(int argc, char **argv)
     if (delkey) {				/* remove entry */
 	if (optind + 1 > argc)
 	    usage(argv[0]);
+	if (strcmp(delkey, "-") == 0)
+	    exit(postalias_deletes(VSTREAM_IN, argv + optind, argc - optind) == 0);
 	found = 0;
 	while (optind < argc) {
 	    if ((path_name = split_at(argv[optind], ':')) != 0) {
@@ -460,6 +568,8 @@ int     main(int argc, char **argv)
     } else if (query) {				/* query map(s) */
 	if (optind + 1 > argc)
 	    usage(argv[0]);
+	if (strcmp(query, "-") == 0)
+	    exit(postalias_queries(VSTREAM_IN, argv + optind, argc - optind) == 0);
 	while (optind < argc) {
 	    if ((path_name = split_at(argv[optind], ':')) != 0) {
 		found = postalias_query(argv[optind], path_name, query);

@@ -823,9 +823,12 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * error.
      */
     if (state->rcpt_count == 0) {
-	if (state->cleanup == 0)
+	if (state->cleanup == 0) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: need RCPT command");
+	    smtpd_chat_reply(state, "503 Error: need RCPT command");
+	} else {
+	    smtpd_chat_reply(state, "550 Error: no valid recipients");
+	}
 	return (-1);
     }
     if (argc != 1) {

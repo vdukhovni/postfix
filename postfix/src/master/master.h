@@ -45,6 +45,7 @@ typedef struct MASTER_SERV {
 #define MASTER_FLAG_THROTTLE	(1<<0)	/* we're having trouble */
 #define MASTER_FLAG_MARK	(1<<1)	/* garbage collection support */
 #define MASTER_FLAG_CONDWAKE	(1<<2)	/* wake up if actually used */
+#define MASTER_FLAG_INETHOST	(1<<3)	/* endpoint name specifies host */
 
 #define MASTER_THROTTLED(f)	((f)->flags & MASTER_FLAG_THROTTLE)
 

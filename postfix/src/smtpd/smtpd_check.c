@@ -1441,6 +1441,14 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 	msg_info("%s: %s", myname, state->addr);
 
     /*
+     * IPv4 only for now
+     */
+#ifdef INET6
+    if (inet_pton(AF_INET, state->addr, &a) != 1)
+	return SMTPD_CHECK_DUNNO;
+#endif
+
+    /*
      * Build the constant part of the RBL query: the reverse client address.
      */
     for (i = octets->argc - 1; i >= 0; i--) {

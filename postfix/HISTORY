@@ -5031,3 +5031,49 @@ Apologies for any names omitted.
 	before the server has received the client's data.  Files:
 	util/{inet,unix,stream}_trigger.c, util/events.c,
 	master/master_trigger.c, postkick/postkick.c.
+
+20010403
+
+	Workaround: the mysql library can return null pointers
+	rather than zero-length strings.
+
+20010404
+
+	Logging: log additional information about why "mail for
+	XXX loops back to myself", when the local machine is the
+	best MX host. File: smtp/smtp_addr.c.
+
+20010406
+
+	Changed some noisy LDAP client warnings into optional
+	logging. LaMont Jones, util/dict_ldap.c.
+
+20010411
+
+	Compatibility: the SMTP server now replies with 550 instead
+	of 503 when it receives the DATA command without having
+	received a valid recipient address. This is needed for the
+	Sendmail client-side pipelining implementation. Problem
+	reported by Lutz Jaenicke. File: smtpd/smtpd.c.
+
+	Cleanup: shut up if chattr fails on Reiserfs and other file
+	systems that do not support the respective attributes.
+	Files: conf/postfix-script-{no,}sgid.
+
+20010413
+
+	Ergonomics: Postfix applications now warn when a DB or DBM
+	file is out of date, and recommends to re-run postmap or
+	postalias. Files: util/dict_db.c, util/dict_dbm.c.
+
+20010414
+
+	Feature: specify a key of "-" to the postmap or postalias
+	-q or -d option, and the keys will be read from standard
+	input, one key per line. Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+	Bugfix: with a non-default inet_interfaces setting, the
+	master daemon ignored host information in explicit host:port
+	settings in master.cf.  Fix by Jun-ichiro itojun Hagino @
+	iijlab.net.  Files: master/master.h, master/master_ent.c.

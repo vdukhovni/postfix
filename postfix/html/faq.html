@@ -82,6 +82,8 @@
 
 <li><a href="#whoami">sendmail: unable to find out your login name</a>
 
+<li><a href="#paranoid">warning: xxx.xxx.xxx.xxx: address not listed
+for hostname yyy.yyy.yyy</a>
 
 <li><a href="#unknown_virtual_loop">Mail for unknown users in
 virtual domains fails with "mail loops back to myself"</a>
@@ -169,6 +171,9 @@ distribution list</a>
 <li><a href="#numerical_log">Postfix logs SMTP clients as IP
 addresses</a>
 
+<li><a href="#paranoid">warning: xxx.xxx.xxx.xxx: address not listed
+for hostname yyy.yyy.yyy</a>
+
 </ul>
 
 <a name="relaying"><h3>Mail relaying</h3>
@@ -249,7 +254,7 @@ distribution list</a>
 
 <li><a href="#owner-foo">Postfix ignores the owner-list alias</a>
 
-<li><a href="#virtual_command">Commands and mailing lists don't work in Postfix virtual maps</a>
+<li><a href="#virtual_command">Commands, mailing lists, and /file/name destinations don't work in Postfix virtual maps</a>
 
 </ul>
 
@@ -266,7 +271,7 @@ virtual domains fails with "mail loops back to myself"</a>
 <li><a href="#virtual_relay">Postfix refuses mail for virtual
 domains with "relay access denied"</a>
 
-<li><a href="#virtual_command">Commands and mailing lists don't work in Postfix virtual maps</a>
+<li><a href="#virtual_command">Commands, mailing lists, and /file/name destinations don't work in Postfix virtual maps</a>
 
 <li><a href="#domain_mailbox">Receiving a virtual domain in a
 mailbox</a>
@@ -1256,6 +1261,43 @@ For more details, see the files in the <b>examples/chroot-setup</b>
 directory of the Postfix source code distribution.
 
 <hr>
+
+<a name="paranoid"><h3>warning: xxx.xxx.xxx.xxx: address not listed
+for hostname yyy.yyy.yyy</h3>
+
+Postfix uses hostnames in its junk mail and mail relay controls.
+This means that in theory someone could be motivated to set up
+bogus DNS information, in order to get past your junk mail or mail
+relay controls.
+
+<p>
+
+When Postfix looks up the SMTP client hostname for the SMTP client
+IP address, then Postfix also checks if the SMTP client IP address
+is listed under the SMTP client hostname.
+
+<p>
+
+If the SMTP client IP address is not listed under the SMTP client
+hostname, then Postfix concludes that the SMTP client hostname does
+not belong to the SMTP client IP address, and ignores the SMTP
+client hostname. A warning is logged, so that you can find out why
+an SMTP client is or is not stopped by your junk mail or mail relay
+checks.
+
+<p>
+
+You could contact the people who maintain the SMTP client's DNS
+records, and explain to them that each IP address needs one PTR
+record, and that this one PTR record needs a matching A record.
+
+<p>
+
+Some people read the RFCs such that one IP address can have multiple
+PTR records, but that makes PTR records even less useful than they
+already are. And in any case, having multiple names per IP address
+would only worsen the problem of finding out the "official name"
+of a machine's IP address.
 
 <a name="open_relay"><h3>Help! Postfix is an open relay</h3>
 
@@ -2416,12 +2458,12 @@ virtual</a> manual page.
 
 <hr>
 
-<a name="virtual_command"><h3>Commands and mailing lists don't work
+<a name="virtual_command"><h3>Commands, mailing, and /file/name destinations don't work
 in Postfix virtual maps</h3>
 
 Short reply: specify a Sendmail-style <a href="virtual.5.html">virtual</a>
-domain, and specify the command or mailing list in the local <a
-href="aliases.5.html">aliases</a> file.
+domain, and specify the command, mailing list, or /file/name
+destination in the local <a href="aliases.5.html">aliases</a> file.
 
 <p>
 
@@ -2429,17 +2471,18 @@ Long reply follows.
 
 <p>
 
-Delivering mail to a command is a security-sensitive operation,
-because the command must be executed with the right privileges.
-Only <b>root</b>-privileged software such as the Postfix local
-delivery agent can set the privileges for a command.
+Delivering mail to a file or command is a security-sensitive
+operation, because the operation must be executed with the right
+privileges.  Only <b>root</b>-privileged software such as the
+Postfix local delivery agent can set the privileges for command
+or file delivery.
 
 <p>
 
 For security reasons, Postfix tries to avoid using <b>root</b>
 privileges where possible. In particular, Postfix virtual mapping
 is done by an unprivileged daemon, so there is no secure way to
-execute commands found in virtual maps.
+execute commands or to deliver to files found in virtual maps.
 
 <hr>
 
