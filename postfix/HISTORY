@@ -5571,6 +5571,11 @@ Apologies for any names omitted.
 	Portability: updated Mac OS X documentation and install
 	scripts by Gerben Wierda.
 
+20011105
+
+	Bugfix: missing terminator in new attribute-based function
+	call caused signal 11. File: src/cleanup/cleanup.c.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups. LDAP
