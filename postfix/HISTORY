@@ -6929,8 +6929,9 @@ Apologies for any names omitted.
 20020906
 
 	Cleanup: dict_regexp module speedups by avoiding unnecessary
-	work while matching strings. This involved major rewriting
-	of the regexp map code.  File: util/dict_regexp.c.
+	substring overhead while matching strings. Based on a
+	suggestion by Liviu Daia. This involved major rewriting of
+	the regexp map code.  File: util/dict_regexp.c.
 
 20020907
 
@@ -6941,8 +6942,8 @@ Apologies for any names omitted.
  
 200209010
 
-	Bugfix: the SMTP client produced unnecessary warnings about
-	trouble with the fallback_relay hosts. File:  smtp/smtp_connect.c.
+	Bugfix: the SMTP client produced suprious warnings about
+	trouble with fallback_relay hosts. File:  smtp/smtp_connect.c.
 
 	Robustness: don't wait with detecting broken SMTP connections
 	until reading input. Leandro Santi. File: smtpd/smtpd_chat.c.
@@ -6953,6 +6954,10 @@ Apologies for any names omitted.
 	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
 
 20020912
+
+	Bugfix: canonical/virtual mapping core dump with a null
+	right-hand side address. Report by Jussi Silvennoinen.
+	File: global/mail-addr_crunch.c.
 
 	Feature: IF..ENDIF support based on code by Bert Driehuis.
 	This involved a rewrite of the pcre map code similar to

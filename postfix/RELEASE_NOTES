@@ -12,11 +12,30 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-20020910
+Incompatible changes with Postfix snapshot 1.1.11-20020916
 ==========================================================
 
 The relayhost setting now behaves as documented, i.e. you can no
 longer specify multiple destinations.
+
+Major changes with Postfix snapshot 1.1.11-20020916
+===================================================
+
+Speedups of regexp table lookups by optimizing the compilation and
+execution settings for the actual number of $number substitutions
+in the right-hand side.  Based on a suggestion by Liviu Daia.
+
+Speedups of regexp and pcre tables, using IF..ENDIF support based
+on an idea by Bert Driehuis. To protect a block of patterns, use:
+
+    if /pattern/
+    /pattern2/	replacement text1
+    /pattern2/	replacement text2
+    endif
+
+IF..ENDIF can nest. Don't specify blanks at the beginning of lines
+inside IF..ENDIF. Lines beginning with whitespace are appended to
+the previous line.
 
 Incompatible changes with Postfix snapshot 1.1.11-20020906
 ==========================================================

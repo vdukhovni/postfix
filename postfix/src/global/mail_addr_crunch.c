@@ -77,6 +77,9 @@ ARGV   *mail_addr_crunch(const char *string, const char *extension)
      * Parse the string, rewrite each address to canonical form, and convert
      * the result to external (quoted) form. Optionally apply the extension
      * to each address found.
+     * 
+     * XXX Workaround for the null address. This works for envelopes but
+     * produces ugly results for message headers.
      */
     if (*string == 0 || strcmp(string, "<>") == 0)
 	string = "\"\"";

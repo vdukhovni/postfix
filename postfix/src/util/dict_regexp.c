@@ -444,7 +444,7 @@ static int dict_regexp_get_pats(const char *mapname, int lineno, char **p,
     if (**p == '!') {
 #if 0
 	msg_warn("regexp file %s, line %d: /pattern1/!/pattern2/ goes away, "
-		 "use \"if /!pattern2/ ... /pattern1/ ... endif\" instead",
+		 "use \"if !/pattern2/ ... /pattern1/ ... endif\" instead",
 		 mapname, lineno);
 #endif
 	if (dict_regexp_get_pat(mapname, lineno, p, second_pat) == 0)
