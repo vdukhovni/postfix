@@ -7711,7 +7711,7 @@ Apologies for any names omitted.
 	Bugfix: extraneous warning about out-of-order original
 	recipient records by Patrik Rak. Files: *qmgr/qmgr_message.c.
 
-10030415
+20030415
 
 	Workaround: log a warning and reset incoming queue file
 	time stamps when the file system clock is ahead of the
@@ -7719,6 +7719,13 @@ Apologies for any names omitted.
 	queue scan. The file system clock drift detection executes
 	only once per process instance, to minimize the performance
 	impact. File: global/mail_stream.c.
+
+20030416
+
+	Bugfix: missing partial last line when 1) someone submits
+	8-bit mail not ending in newline via /usr/sbin/sendmail
+	and 2) MIME input processing is turned off, and 3) MIME
+	8bit->7bit conversion is requested upon delivery via SMTP.
 
 Open problems:
 
