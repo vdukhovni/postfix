@@ -110,12 +110,14 @@ int     var_extra_rcpt_limit;		/* recipient extract limit */
 char   *var_rcpt_witheld;		/* recipients not disclosed */
 char   *var_masq_classes;		/* what to masquerade */
 int     var_qattr_count_limit;		/* named attribute limit */
+int     var_body_check_len;		/* when to stop body scan */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
     VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
     VAR_EXTRA_RCPT_LIMIT, DEF_EXTRA_RCPT_LIMIT, &var_extra_rcpt_limit, 0, 0,
     VAR_QATTR_COUNT_LIMIT, DEF_QATTR_COUNT_LIMIT, &var_qattr_count_limit, 1, 0,
+    VAR_BODY_CHECK_LEN, DEF_BODY_CHECK_LEN, &var_body_check_len, 0, 0,
     0,
 };
 

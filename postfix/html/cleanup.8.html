@@ -77,56 +77,60 @@ CLEANUP(8)                                             CLEANUP(8)
               lines.  These filters see physical lines one  at  a
               time, in chunks of at most line_length_limit bytes.
 
+       <b>body</b><i>_</i><b>checks</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+              The amount of content per message body segment that
+              is subjected to <b>$body</b><i>_</i><b>checks</b> filtering.
+
        <b>header</b><i>_</i><b>checks</b>
 
        <b>mime</b><i>_</i><b>header</b><i>_</i><b>checks</b> (default: <b>$header</b><i>_</i><b>checks</b>)
 
        <b>nested</b><i>_</i><b>header</b><i>_</i><b>checks</b> (default: <b>$header</b><i>_</i><b>checks</b>)
-              Lookup tables  with  content  filters  for  message
-              header  lines:  respectively,  these are applied to
-              the primary message  headers  (not  including  MIME
-              headers),  to the MIME headers anywhere in the mes-
-              sage, and to the initial headers of  attached  mes-
-              sages.   These filters see logical headers one at a
+              Lookup  tables  with  content  filters  for message
+              header lines: respectively, these  are  applied  to
+              the  primary  message  headers  (not including MIME
+              headers), to the MIME headers anywhere in the  mes-
+              sage,  and  to the initial headers of attached mes-
+              sages.  These filters see logical headers one at  a
               time, including headers that span multiple lines.
 
 <b>MIME</b> <b>Processing</b>
        <b>disable</b><i>_</i><b>mime</b><i>_</i><b>input</b><i>_</i><b>processing</b>
-              While receiving, give no special treatment to  <b>Con-</b>
+              While  receiving, give no special treatment to <b>Con-</b>
               <b>tent-Type:</b> message headers; all text after the ini-
-              tial message headers is considered to  be  part  of
+              tial  message  headers  is considered to be part of
               the message body.
 
        <b>mime</b><i>_</i><b>boundary</b><i>_</i><b>length</b><i>_</i><b>limit</b>
               The amount of space that will be allocated for MIME
-              multipart boundary strings. The MIME  processor  is
+              multipart  boundary  strings. The MIME processor is
               unable to distinguish between boundary strings that
               do   not   differ   in   the   first   <b>$mime</b><i>_</i><b>bound-</b>
               <b>ary</b><i>_</i><b>length</b><i>_</i><b>limit</b> characters.
 
        <b>mime</b><i>_</i><b>nesting</b><i>_</i><b>limit</b>
-              The  maximal  nesting  level of multipart mail that
-              the MIME processor can handle. Refuse mail that  is
+              The maximal nesting level of  multipart  mail  that
+              the  MIME processor can handle. Refuse mail that is
               nested deeper.
 
        <b>strict</b><i>_</i><b>8bitmime</b>
-              Turn  on  both <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b> and <b>strict</b><i>_</i><b>8bit-</b>
+              Turn on both <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b>  and  <b>strict</b><i>_</i><b>8bit-</b>
               <b>mime</b><i>_</i><b>body</b>.
 
        <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b>
-              Reject mail with 8-bit  text  in  message  headers.
-              This  blocks mail from poorly written applications.
+              Reject  mail  with  8-bit  text in message headers.
+              This blocks mail from poorly written  applications.
 
        <b>strict</b><i>_</i><b>8bitmime</b><i>_</i><b>body</b>
-              Reject mail with 8-bit text in content that  claims
-              to  be  7-bit,  or  in content that has no explicit
-              content encoding  information.   This  blocks  mail
-              mail  poorly  written mail software. Unfortunately,
-              this also breaks majordomo approval  requests  when
-              the  included  request  contains  valid  8-bit MIME
-              mail, and it breaks bounces from  mailers  that  do
-              not  properly  encapsulate 8-bit content (for exam-
-              ple, bounces from qmail or  from  old  versions  of
+              Reject  mail with 8-bit text in content that claims
+              to be 7-bit, or in content  that  has  no  explicit
+              content  encoding  information.   This  blocks mail
+              mail poorly written mail  software.  Unfortunately,
+              this  also  breaks majordomo approval requests when
+              the included  request  contains  valid  8-bit  MIME
+              mail,  and  it  breaks bounces from mailers that do
+              not properly encapsulate 8-bit content  (for  exam-
+              ple,  bounces  from  qmail  or from old versions of
               Postfix).
 
        <b>strict</b><i>_</i><b>mime</b><i>_</i><b>domain</b><i>_</i><b>encoding</b>
@@ -136,7 +140,7 @@ CLEANUP(8)                                             CLEANUP(8)
 
 <b>Miscellaneous</b>
        <b>always</b><i>_</i><b>bcc</b>
-              Address  to send a copy of each message that enters
+              Address to send a copy of each message that  enters
               the system.
 
        <b>hopcount</b><i>_</i><b>limit</b>
@@ -149,8 +153,8 @@ CLEANUP(8)                                             CLEANUP(8)
 
 <b>Address</b> <b>transformations</b>
        <b>empty</b><i>_</i><b>address</b><i>_</i><b>recipient</b>
-              The destination for  undeliverable  mail  from  &lt;&gt;.
-              This  substitution is done before all other address
+              The  destination  for  undeliverable  mail from &lt;&gt;.
+              This substitution is done before all other  address
               rewriting.
 
        <b>canonical</b><i>_</i><b>maps</b>
@@ -166,16 +170,16 @@ CLEANUP(8)                                             CLEANUP(8)
               header sender addresses.
 
        <b>masquerade</b><i>_</i><b>classes</b>
-              List  of  address  classes subject to masquerading:
-              zero or more of  <b>envelope</b><i>_</i><b>sender</b>,  <b>envelope</b><i>_</i><b>recipi-</b>
+              List of address classes  subject  to  masquerading:
+              zero  or  more of <b>envelope</b><i>_</i><b>sender</b>, <b>envelope</b><i>_</i><b>recipi-</b>
               <b>ent</b>, <b>header</b><i>_</i><b>sender</b>, <b>header</b><i>_</i><b>recipient</b>.
 
        <b>masquerade</b><i>_</i><b>domains</b>
-              List  of  domains  that hide their subdomain struc-
+              List of domains that hide  their  subdomain  struc-
               ture.
 
        <b>masquerade</b><i>_</i><b>exceptions</b>
-              List of user names that are not subject to  address
+              List  of user names that are not subject to address
               masquerading.
 
        <b>virtual</b><i>_</i><b>maps</b>
@@ -184,7 +188,7 @@ CLEANUP(8)                                             CLEANUP(8)
 
 <b>Resource</b> <b>controls</b>
        <b>duplicate</b><i>_</i><b>filter</b><i>_</i><b>limit</b>
-              Limit the number of envelope  recipients  that  are
+              Limit  the  number  of envelope recipients that are
               remembered.
 
        <b>header</b><i>_</i><b>size</b><i>_</i><b>limit</b>
@@ -193,11 +197,11 @@ CLEANUP(8)                                             CLEANUP(8)
 
        <b>in</b><i>_</i><b>flow</b><i>_</i><b>delay</b>
               Amount of time to pause before accepting a message,
-              when  the  message arrival rate exceeds the message
+              when the message arrival rate exceeds  the  message
               delivery rate.
 
        <b>extract</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit the amount of recipients extracted from  mes-
+              Limit  the amount of recipients extracted from mes-
               sage headers.
 
 <b>SEE</b> <b>ALSO</b>
@@ -212,7 +216,7 @@ CLEANUP(8)                                             CLEANUP(8)
        /etc/postfix/virtual*, virtual mapping table
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

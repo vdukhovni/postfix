@@ -344,7 +344,8 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 /* cleanup_header_callback - process one complete header line */
 
 static void cleanup_header_callback(void *context, int header_class,
-			         HEADER_OPTS *hdr_opts, VSTRING *header_buf)
+			         HEADER_OPTS *hdr_opts, VSTRING *header_buf,
+				            off_t unused_offset)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     const char *myname = "cleanup_header_callback";
@@ -581,7 +582,9 @@ static void cleanup_header_done_callback(void *context)
 
 /* cleanup_body_callback - output one body record */
 
-static void cleanup_body_callback(void *context, int type, const char *buf, int len)
+static void cleanup_body_callback(void *context, int type,
+				          const char *buf, int len,
+				          off_t offset)
 {
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
 
@@ -591,7 +594,9 @@ static void cleanup_body_callback(void *context, int type, const char *buf, int 
      * only in chunks of line_length_limit (2048) characters; it is easily
      * bypassed with encodings and other tricks.
      */
-    if ((state->flags & CLEANUP_FLAG_FILTER) && cleanup_body_checks) {
+    if ((state->flags & CLEANUP_FLAG_FILTER)
+	&& cleanup_body_checks
+	&& (var_body_check_len == 0 || offset < var_body_check_len)) {
 	const char *value;
 
 	if ((value = maps_find(cleanup_body_checks, buf, 0)) != 0) {

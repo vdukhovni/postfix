@@ -484,7 +484,7 @@ extern int initgroups(const char *, int);
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
-#define DEF_MAILBOX_LOCK "flock, dotlock"
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"	/* RedHat >= 4.x */
 #define HAS_FSYNC
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"
@@ -512,7 +512,7 @@ extern int initgroups(const char *, int);
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
-#define DEF_MAILBOX_LOCK "flock, dotlock"	/* unverified */
+#define DEF_MAILBOX_LOCK "dotlock"	/* verified RedHat 3.03 */
 #define HAS_FSYNC
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"

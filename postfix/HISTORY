@@ -7032,6 +7032,32 @@ Apologies for any names omitted.
 	result is dynamically allocated.  Victor Duchovni. File:
 	smtpd/smtpd_check.c.
 
+20020929
+
+	Updated MacOSX support scripts from Gerben Wierda.  Files:
+	auxiliary/MacOSX/*.
+
+20021009
+
+	Bugfix: SIZE errors should be reported at MAIL FROM time,
+	and should not be postponed (with smtpd_delay_reject = yes)
+	until RCPT TO time. Reported by Jeroen Scheerder, Utrecht
+	University. Files: smtpd/smtpd.c smtpd/smtpd_check.c.
+
+20021013
+
+	When Postfix development started, Linux mail delivery
+	software such as procmail did not use kernel locks, and
+	Postfix picked one that seemed plausible, namely, flock().
+	In the mean time, Linux mail delivery software seems to
+	have standardized on fcntl() locks. File: util/sys_defs.h.
+
+	Feature: body_checks_size_limit parameter to specify how much
+	of a message body segment (or attachment, if you prefer to
+	use that term) is subjected to body_checks inspection.
+	Default limit:  50 kbytes. Files:  global/mime_state.c,
+	cleanup/cleanup_message.c.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

@@ -144,3 +144,12 @@ nested_header_checks = $header_checks
 #	overrides the main.cf content_filter setting.
 #
 body_checks = regexp:/etc/postfix/body_checks
+
+# The body_checks_max_size parameter controls how much text in a
+# message body segment (or attachment, if you prefer to use that
+# term) is subjected to body_checks inspection.
+# 
+# By default, only the first 50 kbytes of a message body segment are
+# inspected with body_checks patterns.
+# 
+body_checks_max_size = 51200

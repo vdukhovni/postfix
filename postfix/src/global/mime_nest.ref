@@ -1,142 +1,142 @@
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MAIN	content-type: multipart/mixed; boundary=foobar
+MAIN 0	content-type: multipart/mixed; boundary=foobar
 HEADER END
-BODY N	
-BODY N	--foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: PUSH boundary foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 mime_state: header_token: multipart / mixed
 mime_state: header_token: boundary = foobar
 mime_state: warning: MIME nesting exceeds safety limit: content-type: multipart/mixed; boundary=foobar
-MULT	content-type: multipart/mixed; boundary=foobar
-BODY N	
-BODY N	--foobar
+MULT 0	content-type: multipart/mixed; boundary=foobar
+BODY N 0	
+BODY N 1	--foobar
 BODY END
 mime_state: warning: MIME nesting exceeds safety limit
 mime_state: POP boundary foobar

@@ -12,6 +12,27 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20021013
+==========================================================
+
+The default Linux kernel lock style for mailbox delivery is changed
+from flock() to fcntl(). This has no impact if your system uses
+procmail for local delivery, if you use maildir-style mailboxes,
+or when mailbox access software locks mailboxes with username.lock
+files (which is usually the case with non-maildir mailboxes).
+
+Major changes with Postfix snapshot 1.1.11-20021013
+===================================================
+
+The body_checks_max_size parameter limits the amount of text per
+message body segment (or attachment, if you prefer to use that
+term) that is subjected to body_checks inspection.  The default
+limit is 50 kbytes. This speeds up the processing of mail with
+large attachments.
+
+Updated MacOS X support by Gerben Wierda. See the auxiliary/MacOSX
+directory.
+
 Incompatible changes with Postfix snapshot 1.1.11-20020923
 ==========================================================
 

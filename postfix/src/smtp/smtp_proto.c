@@ -288,7 +288,8 @@ int     smtp_helo(SMTP_STATE *state)
 /* smtp_text_out - output one header/body record */
 
 static void smtp_text_out(void *context, int rec_type,
-			          const char *text, int len)
+			          const char *text, int len,
+			          off_t unused_offset)
 {
     SMTP_STATE *state = (SMTP_STATE *) context;
     SMTP_SESSION *session = state->session;
@@ -333,7 +334,8 @@ static void smtp_text_out(void *context, int rec_type,
 /* smtp_header_out - output one message header */
 
 static void smtp_header_out(void *context, int unused_header_class,
-			            HEADER_OPTS *unused_info, VSTRING *buf)
+			            HEADER_OPTS *unused_info, VSTRING *buf,
+			            off_t offset)
 {
     char   *start = vstring_str(buf);
     char   *line;
@@ -342,7 +344,7 @@ static void smtp_header_out(void *context, int unused_header_class,
     for (line = start; line; line = next_line) {
 	next_line = split_at(line, '\n');
 	smtp_text_out(context, REC_TYPE_NORM, line, next_line ?
-		      next_line - line - 1 : strlen(line));
+		      next_line - line - 1 : strlen(line), offset);
     }
 }
 
@@ -799,7 +801,8 @@ int     smtp_xfer(SMTP_STATE *state)
 		if (downgrading == 0) {
 		    smtp_text_out((void *) state, rec_type,
 				  vstring_str(state->scratch),
-				  VSTRING_LEN(state->scratch));
+				  VSTRING_LEN(state->scratch),
+				  (off_t) 0);
 		} else {
 		    mime_errs =
 			mime_state_update(state->mime_state, rec_type,

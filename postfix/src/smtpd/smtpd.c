@@ -781,8 +781,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if ((SMTPD_STAND_ALONE(state) || var_smtpd_delay_reject == 0)
-	&& (err = smtpd_check_size(state, state->msg_size)) != 0) {
+    if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }

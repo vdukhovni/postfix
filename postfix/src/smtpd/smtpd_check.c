@@ -2983,8 +2983,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     if (var_smtpd_delay_reject)
 	if ((err = smtpd_check_client(state)) != 0
 	    || (err = smtpd_check_helo(state, state->helo_name)) != 0
-	    || (err = smtpd_check_mail(state, state->sender)) != 0
-	    || (err = smtpd_check_size(state, state->msg_size)) != 0)
+	    || (err = smtpd_check_mail(state, state->sender)) != 0)
 	    SMTPD_CHECK_RCPT_RETURN(err);
 
     /*
@@ -3165,6 +3164,7 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
     /*
      * Return here in case of serious trouble.
      */
+    SMTPD_CHECK_RESET();
     if ((status = setjmp(smtpd_check_buf)) != 0)
 	return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 

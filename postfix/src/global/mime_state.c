@@ -11,12 +11,14 @@
 /*				     err_print, context)
 /*	int	flags;
 /*	void	(*head_out)(void *ptr, int header_class,
-/*				HEADER_OPTS *header_info, VSTRING *buf);
+/*				HEADER_OPTS *header_info,
+/*				VSTRING *buf, off_t offset);
 /*	void	(*head_end)(void *ptr);
 /*	void	(*body_out)(void *ptr, int rec_type,
-/*				const char *buf, int len);
+/*				const char *buf, int len,
+/*				off_t offset);
 /*	void	(*body_end)(void *ptr);
-/*	void	(*err_print(void *ptr, int err_flag, const char *text)
+/*	void	(*err_print)(void *ptr, int err_flag, const char *text)
 /*	void	*context;
 /*
 /*	int	mime_state_update(state, rec_type, buf, len)
@@ -152,6 +154,9 @@
 /*	the last message header in the first header block is processed.
 /* .IP len
 /*	Length of non-VSTRING input buffer.
+/* .IP offset
+/*	The offset in bytes from the start of the current block of message
+/*	headers or body lines. Line boundaries are counted as one byte.
 /* .IP rec_type
 /*	The input record type as defined in rec_type(3h). State is
 /*	updated for text records (REC_TYPE_NORM or REC_TYPE_CONT).
@@ -274,6 +279,8 @@ struct MIME_STATE {
     HEADER_TOKEN token[MIME_MAX_TOKEN];	/* header token array */
     VSTRING *token_buffer;		/* header parser scratch buffer */
     int     err_flags;			/* processing errors */
+    off_t   head_offset;		/* offset in header block */
+    off_t   body_offset;		/* offset in body block */
 
     /*
      * Static members.
@@ -316,6 +323,18 @@ struct MIME_STATE {
 	(ptr)->curr_stype = (stype); \
 	(ptr)->curr_encoding = (encoding); \
 	(ptr)->curr_domain = (domain); \
+	if ((state) == MIME_STATE_BODY) \
+	    (ptr)->body_offset = 0; \
+	else \
+	    (ptr)->head_offset = 0; \
+    } while (0)
+
+#define SET_CURR_STATE(ptr, state) do { \
+	(ptr)->curr_state = (state); \
+	if ((state) == MIME_STATE_BODY) \
+	    (ptr)->body_offset = 0; \
+	else \
+	    (ptr)->head_offset = 0; \
     } while (0)
 
  /*
@@ -363,6 +382,22 @@ static MIME_ENCODING mime_encoding_map[] = {	/* RFC 2045 */
 	    state->err_flags |= err_type; \
 	} \
     } while (0)
+
+ /*
+  * Outputs and state changes are interleaved, so we must maintain separate
+  * offsets for header and body segments.
+  */
+#define HEAD_OUT(ptr, info) do { \
+	(ptr)->head_out((ptr)->app_context, (ptr)->curr_state, \
+			(info), (ptr)->output_buffer, (ptr)->head_offset); \
+	(ptr)->head_offset += (len) + 1; \
+    } while(0)
+
+#define BODY_OUT(ptr, rec_type, text, len) do { \
+	(ptr)->body_out((ptr)->app_context, (rec_type), \
+			(text), (len), (ptr)->body_offset); \
+	(ptr)->body_offset += (len) + 1; \
+    } while(0)
 
 /* mime_state_push - push boundary onto stack */
 
@@ -635,9 +670,9 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 	if (LEN(state->output_buffer) > 72) {
 	    VSTRING_ADDCH(state->output_buffer, '=');
 	    VSTRING_TERMINATE(state->output_buffer);
-	    state->body_out(state->app_context, REC_TYPE_NORM,
-			    STR(state->output_buffer),
-			    LEN(state->output_buffer));
+	    BODY_OUT(state, REC_TYPE_NORM,
+		     STR(state->output_buffer),
+		     LEN(state->output_buffer));
 	    VSTRING_RESET(state->output_buffer);
 	}
 	/* Append the next character. */
@@ -662,9 +697,9 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 	    QP_ENCODE(state->output_buffer, ch);
 	}
 	VSTRING_TERMINATE(state->output_buffer);
-	state->body_out(state->app_context, REC_TYPE_NORM,
-			STR(state->output_buffer),
-			LEN(state->output_buffer));
+	BODY_OUT(state, REC_TYPE_NORM,
+		 STR(state->output_buffer),
+		 LEN(state->output_buffer));
 	VSTRING_RESET(state->output_buffer);
     }
 }
@@ -770,8 +805,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		    || header_info->type != HDR_CONTENT_TRANSFER_ENCODING
 		    || (state->static_flags & MIME_OPT_DOWNGRADE) == 0
 		    || state->curr_domain == MIME_ENC_7BIT)
-		    state->head_out(state->app_context, state->curr_state,
-				    header_info, state->output_buffer);
+		    HEAD_OUT(state, header_info);
 		state->prev_rec_type = 0;
 		VSTRING_RESET(state->output_buffer);
 	    }
@@ -821,8 +855,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		cp = CU_CHAR_PTR("quoted-printable");
 	    vstring_sprintf(state->output_buffer,
 			    "Content-Transfer-Encoding: %s", cp);
-	    state->head_out(state->app_context, state->curr_state,
-			    0, state->output_buffer);
+	    HEAD_OUT(state, (HEADER_OPTS *) 0);
 	    VSTRING_RESET(state->output_buffer);
 	}
 
@@ -862,9 +895,13 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * agressive mode, examine headers of partial and external-body
 	 * messages. Otherwise, treat such headers as part of the "body". Set
 	 * the proper encoding information for the multipart prolog.
+	 * 
+	 * XXX This changes state to MIME_STATE_NESTED and then outputs a body
+	 * line, so that the body offset is not properly reset.
 	 */
 	if (input_is_text) {
 	    if (*text == 0) {
+		state->body_offset = 0;		/* XXX */
 		if (state->curr_ctype == MIME_CTYPE_MESSAGE) {
 		    if (state->curr_stype == MIME_STYPE_RFC822
 		    || (state->static_flags & MIME_OPT_RECURSE_ALL_MESSAGE))
@@ -872,13 +909,13 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 				       MIME_CTYPE_TEXT, MIME_STYPE_PLAIN,
 				       MIME_ENC_7BIT, MIME_ENC_7BIT);
 		    else
-			state->curr_state = MIME_STATE_BODY;
+			SET_CURR_STATE(state, MIME_STATE_BODY);
 		} else if (state->curr_ctype == MIME_CTYPE_MULTIPART) {
 		    SET_MIME_STATE(state, MIME_STATE_BODY,
 				   MIME_CTYPE_OTHER, MIME_STYPE_OTHER,
 				   MIME_ENC_7BIT, MIME_ENC_7BIT);
 		} else {
-		    state->curr_state = MIME_STATE_BODY;
+		    SET_CURR_STATE(state, MIME_STATE_BODY);
 		}
 	    }
 
@@ -887,8 +924,8 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	     * body state, leaving all other state alone.
 	     */
 	    else {
-		state->body_out(state->app_context, REC_TYPE_NORM, "", 0);
-		state->curr_state = MIME_STATE_BODY;
+		SET_CURR_STATE(state, MIME_STATE_BODY);
+		BODY_OUT(state, REC_TYPE_NORM, "", 0);
 	    }
 	}
 
@@ -896,7 +933,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * This input is not text. Go to body state, unconditionally.
 	 */
 	else {
-	    state->curr_state = MIME_STATE_BODY;
+	    SET_CURR_STATE(state, MIME_STATE_BODY);
 	}
 	/* FALLTHROUGH */
 
@@ -957,7 +994,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		&& state->curr_domain != MIME_ENC_7BIT)
 		mime_state_downgrade(state, rec_type, text, len);
 	    else
-		state->body_out(state->app_context, rec_type, text, len);
+		BODY_OUT(state, rec_type, text, len);
 	}
 
 	/*
@@ -1013,15 +1050,15 @@ const char *mime_state_error(int error_code)
 #define REC_LEN	1024
 
 static void head_out(void *context, int class, HEADER_OPTS *unused_info,
-		             VSTRING *buf)
+		             VSTRING *buf, off_t offset)
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-    vstream_fprintf(stream, "%s\t%s\n",
+    vstream_fprintf(stream, "%s %ld\t%s\n",
 		    class == MIME_HDR_PRIMARY ? "MAIN" :
 		    class == MIME_HDR_MULTIPART ? "MULT" :
 		    class == MIME_HDR_NESTED ? "NEST" :
-		    "ERROR", STR(buf));
+		    "ERROR", (long) offset, STR(buf));
 }
 
 static void head_end(void *context)
@@ -1031,11 +1068,12 @@ static void head_end(void *context)
     vstream_fprintf(stream, "HEADER END\n");
 }
 
-static void body_out(void *context, int rec_type, const char *buf, int len)
+static void body_out(void *context, int rec_type, const char *buf, int len,
+		             off_t offset)
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-    vstream_fprintf(stream, "BODY %c\t", rec_type);
+    vstream_fprintf(stream, "BODY %c %ld\t", rec_type, (long) offset);
     vstream_fwrite(stream, buf, len);
     if (rec_type == REC_TYPE_NORM)
 	VSTREAM_PUTC('\n', stream);

@@ -67,6 +67,9 @@
 /*	Lookup tables with content filters for message body lines.
 /*	These filters see physical lines one at a time, in chunks of
 /*	at most line_length_limit bytes.
+/* .IP \fBbody_checks_size_limit\fP
+/*	The amount of content per message body segment that is 
+/*	subjected to \fB$body_checks\fR filtering.
 /* .IP \fBheader_checks\fR
 /* .IP "\fBmime_header_checks\fR (default: \fB$header_checks\fR)"
 /* .IP "\fBnested_header_checks\fR (default: \fB$header_checks\fR)"

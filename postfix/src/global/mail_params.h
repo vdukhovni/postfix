@@ -1004,6 +1004,10 @@ extern char *var_nesthdr_checks;
 #define DEF_BODY_CHECKS		""
 extern char *var_body_checks;
 
+#define VAR_BODY_CHECK_LEN	"body_checks_size_limit"
+#define DEF_BODY_CHECK_LEN	(50*1024)
+extern int var_body_check_len;
+
  /*
   * Bounce service: truncate bounce message that exceed $bounce_size_limit.
   */

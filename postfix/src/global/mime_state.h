@@ -25,8 +25,8 @@
   * External interface. All MIME_STATE structure members are private.
   */
 typedef struct MIME_STATE MIME_STATE;
-typedef void (*MIME_STATE_HEAD_OUT) (void *, int, HEADER_OPTS *, VSTRING *);
-typedef void (*MIME_STATE_BODY_OUT) (void *, int, const char *, int);
+typedef void (*MIME_STATE_HEAD_OUT) (void *, int, HEADER_OPTS *, VSTRING *, off_t);
+typedef void (*MIME_STATE_BODY_OUT) (void *, int, const char *, int, off_t);
 typedef void (*MIME_STATE_ANY_END) (void *);
 typedef void (*MIME_STATE_ERR_PRINT) (void *, int, const char *);
 
