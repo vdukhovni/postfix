@@ -62,7 +62,7 @@
 #include <rewrite_clnt.h>
 #include <tok822.h>
 #include <mail_params.h>
-#include <resolve_local.h>
+#include <local_transport.h>
 
 /* Application-specific. */
 
@@ -139,7 +139,7 @@ int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr
      * ugly code to force local recursive alias expansions on a host with no
      * authority over the local domain, but that code was just too unclean.
      */
-    if (resolve_local(STR(reply.nexthop))) {
+    if (local_transport(STR(reply.transport))) {
 	status = deliver_recipient(state, usr_attr);
     } else {
 	status = deliver_indirect(state);

@@ -72,6 +72,7 @@
 #include <mail_conf.h>
 #include <quote_822_local.h>
 #include <tok822.h>
+#include <local_transport.h>
 
 /* Application-specific. */
 
@@ -151,43 +152,54 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     }
 
     /*
-     * The transport map, if specified, overrides default routing.
+     * Make sure the resolved envelope recipient has the user@domain form. If
+     * no domain was specified in the address, assume the local machine. See
+     * above for what happens with an empty localpart.
      */
-    if (*var_transport_maps == 0
-	|| (tok822_internalize(addr_buf, domain->next, TOK822_STR_DEFL),
-	    transport_lookup(STR(addr_buf), channel, nexthop)) == 0) {
-
-	/*
-	 * Non-local delivery. Use the default transport specified in
-	 * var_def_transport. If no default mail relay is specified in
-	 * var_relayhost, forward to the domain's mail exchanger.
-	 */
-	if (domain != 0) {
-	    vstring_strcpy(channel, var_def_transport);
-	    if (*var_relayhost)
-		vstring_strcpy(nexthop, var_relayhost);
-	    else
-		tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
-	}
-
-	/*
-	 * Local delivery. Use the default transport and next-hop hostname.
-	 * If no domain was specified, assume the local machine. See above
-	 * for what happens with an empty localpart.
-	 */
-	else {
-	    vstring_strcpy(channel, MAIL_SERVICE_LOCAL);
-	    vstring_strcpy(nexthop, var_myhostname);
-	    if (saved_domain) {
-		tok822_sub_append(tree, saved_domain);
-		saved_domain = 0;
-	    } else {
-		tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
-		tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
-	    }
+    if (domain == 0) {
+	if (saved_domain) {
+	    tok822_sub_append(tree, saved_domain);
+	    saved_domain = 0;
+	} else {
+	    tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
+	    tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
 	}
     }
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
+
+    /*
+     * The transport map overrides the default transport and next-hop host
+     * info that was set up just moments ago. For a long time, it was not
+     * possible to override routing of mail that resolves locally, because
+     * Postfix used a zero-length next-hop hostname result to indicate local
+     * delivery, and transport maps cannot return zero-length hostnames.
+     */
+    if (*var_transport_maps
+    && transport_lookup(strrchr(STR(nextrcpt), '@') + 1, channel, nexthop)) {
+	 /* void */ ;
+    }
+
+    /*
+     * Non-local delivery, presumably. Set up the default remote transport
+     * specified with var_local_transports. Use the destination's mail
+     * exchanger unless a default mail relay is specified with var_relayhost.
+     */
+    else if (domain != 0) {
+	vstring_strcpy(channel, var_def_transport);
+	if (*var_relayhost)
+	    vstring_strcpy(nexthop, var_relayhost);
+	else
+	    tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
+    }
+
+    /*
+     * Local delivery. Set up the default local transport and the default
+     * next-hop hostname.
+     */
+    else {
+	vstring_strcpy(channel, def_local_transport());
+	vstring_strcpy(nexthop, var_myhostname);
+    }
 
     /*
      * Clean up.

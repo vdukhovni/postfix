@@ -75,6 +75,7 @@ dns_lookup.o: ../include/vstring.h
 dns_lookup.o: ../include/vbuf.h
 dns_lookup.o: ../include/msg.h
 dns_lookup.o: ../include/valid_hostname.h
+dns_lookup.o: ../include/stringops.h
 dns_lookup.o: dns.h
 dns_rr.o: dns_rr.c
 dns_rr.o: ../include/sys_defs.h

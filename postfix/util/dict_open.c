@@ -280,6 +280,27 @@ void    dict_open_register(const char *type,
     htable_enter(dict_open_hash, dp->type, (char *) dp);
 }
 
+/* dict_mapnames - return an ARGV of available map_names */
+
+ARGV   *dict_mapnames()
+{
+    HTABLE_INFO **ht_info;
+    HTABLE_INFO **ht;
+    DICT_OPEN_INFO *dp;
+    ARGV   *mapnames;
+
+    if (dict_open_hash == 0)
+	dict_open_init();
+    mapnames = argv_alloc(dict_open_hash->used + 1);
+    for (ht_info = ht = htable_list(dict_open_hash); *ht; ht++) {
+	dp = (DICT_OPEN_INFO *) ht[0]->value;
+	argv_add(mapnames, dp->type, ARGV_END);
+    }
+    myfree((char *) ht_info);
+    argv_terminate(mapnames);
+    return mapnames;
+}
+
 #ifdef TEST
 
  /*

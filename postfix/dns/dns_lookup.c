@@ -247,7 +247,7 @@ static int dns_get_fixed(unsigned char *pos, DNS_FIXED *fixed)
 static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 			          char *rr_name, DNS_FIXED *fixed)
 {
-    char    temp[DNS_NAME_LEN];
+    unsigned char temp[DNS_NAME_LEN];
     int     data_len;
     unsigned pref = 0;
     unsigned char *src;

@@ -275,6 +275,7 @@
 #include <mail_conf.h>
 #include <maps.h>
 #include <mail_addr_find.h>
+#include <local_transport.h>
 
 /* Application-specific. */
 
@@ -712,7 +713,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
      * Permit if destination is local. XXX This must be generalized for
      * per-domain user tables and for non-UNIX local delivery agents.
      */
-    if (resolve_local(STR(reply.nexthop))
+    if (local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
@@ -751,7 +752,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
      * Permit if destination is local. XXX This must be generalized for
      * per-domain user tables and for non-UNIX local delivery agents.
      */
-    if (resolve_local(STR(reply.nexthop))
+    if (local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
@@ -788,7 +789,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
      * Pass if destination is local. XXX This must be generalized for
      * per-domain user tables and for non-UNIX local delivery agents.
      */
-    if (resolve_local(STR(reply.nexthop))
+    if (local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
@@ -890,7 +891,7 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
      * If the destination is local, it is acceptable, because we are
      * supposedly MX for our own address.
      */
-    if (resolve_local(STR(reply.nexthop))
+    if (local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
@@ -1024,7 +1025,7 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr,
     /*
      * Skip local destinations and non-DNS forms.
      */
-    if (resolve_local(STR(reply.nexthop))
+    if (local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
@@ -1064,7 +1065,7 @@ static int permit_rcpt_map(char *table, char *reply_name)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
     if (domain[0] == '#' || domain[0] == '[')
-	if (!resolve_local(STR(reply.nexthop)))
+	if (!local_transport(STR(reply.transport)))
 	    return (SMTPD_CHECK_DUNNO);
 
     /*

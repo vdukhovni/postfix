@@ -3220,6 +3220,23 @@ Apologies for any names omitted.
 	Feature: permit_auth_destination restriction based on code
 	by Jesper Skriver @ skriver.dk.
 
-	Code cleanup: the transport table now can override local
-	deliveries. Postfix no longer uses the "empty next-hop
-	hostname hack" to remember that a destination is local.
+	Code cleanup: the transport table now can override all
+	deliveries, including local ones.
+
+19991116
+
+	Code cleanup: a new "local_transports" configuration
+	parameter explicitly lists all transports that deliver
+	mail locally. The first name listed there is the default
+	local transport.  This is the end of the "empty next-hop
+	hostname" hack to indicate that a destination is local.
+	Files:  trivial-rewrite/resolve.c, global/local_transport.[hc]
+
+	Feature: "postconf -m" shows what lookup table types are
+	available.  Code by Scott Cotton, Internet Consultants
+	Group, Inc.
+
+	Feature: "postconf -e" edits any number of main.cf parameters.
+	The edit is done on a copy, and the copy is renamed into
+	the place of the original. File: postconf/postconf.c,
+	util/readlline.[hc].

@@ -81,6 +81,13 @@ extern char *var_myhostname;
 extern char *var_mydomain;
 
  /*
+  * Transports that deliver locally. Order matters.
+  */
+#define VAR_LOCAL_TRANSP	"local_transports"
+#define DEF_LOCAL_TRANSP	"local"
+extern char *var_local_transports;
+
+ /*
   * Where to send postmaster copies of bounced mail, and other notices.
   */
 #define VAR_BOUNCE_RCPT		"bounce_notice_recipient"

@@ -2,7 +2,8 @@ SHELL	= /bin/sh
 SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	debug_peer.c debug_process.c defer.c deliver_completed.c \
 	deliver_flock.c deliver_pass.c deliver_request.c domain_list.c \
-	dot_lockfile.c file_id.c header_opts.c is_header.c mail_addr.c \
+	dot_lockfile.c dot_lockfile_as.c ext_prop.c file_id.c \
+	header_opts.c is_header.c local_transport.c mail_addr.c \
 	mail_addr_crunch.c mail_addr_find.c mail_addr_map.c \
 	mail_command_read.c mail_command_write.c mail_conf.c \
 	mail_conf_bool.c mail_conf_int.c mail_conf_raw.c mail_conf_str.c \
@@ -16,12 +17,12 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	recipient_list.c record.c remove.c resolve_clnt.c resolve_local.c \
 	rewrite_clnt.c sent.c smtp_stream.c split_addr.c string_list.c \
 	sys_exits.c timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
-	tok822_resolve.c tok822_rewrite.c tok822_tree.c ext_prop.c \
-	dot_lockfile_as.c
+	tok822_resolve.c tok822_rewrite.c tok822_tree.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
-	dot_lockfile.o file_id.o header_opts.o is_header.o mail_addr.o \
+	dot_lockfile.o dot_lockfile_as.o ext_prop.o file_id.o \
+	header_opts.o is_header.o local_transport.o mail_addr.o \
 	mail_addr_crunch.o mail_addr_find.o mail_addr_map.o \
 	mail_command_read.o mail_command_write.o mail_conf.o \
 	mail_conf_bool.o mail_conf_int.o mail_conf_raw.o mail_conf_str.o \
@@ -35,12 +36,12 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	recipient_list.o record.o remove.o resolve_clnt.o resolve_local.o \
 	rewrite_clnt.o sent.o smtp_stream.o split_addr.o string_list.o \
 	sys_exits.o timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
-	tok822_resolve.o tok822_rewrite.o tok822_tree.o ext_prop.o \
-	dot_lockfile_as.o
+	tok822_resolve.o tok822_rewrite.o tok822_tree.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
-	dot_lockfile.h file_id.h header_opts.h is_header.h mail_addr.h \
+	dot_lockfile.h dot_lockfile_as.h ext_prop.h file_id.h \
+	header_opts.h is_header.h local_transport.h mail_addr.h \
 	mail_addr_crunch.h mail_addr_find.h mail_addr_map.h mail_conf.h \
 	mail_copy.h mail_date.h mail_error.h mail_flush.h mail_open_ok.h \
 	mail_params.h mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h \
@@ -50,7 +51,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	quote_822_local.h rec_streamlf.h rec_type.h recipient_list.h \
 	record.h resolve_clnt.h resolve_local.h rewrite_clnt.h sent.h \
 	smtp_stream.h split_addr.h string_list.h sys_exits.h timed_ipc.h \
-	tok822.h ext_prop.h dot_lockfile_as.h
+	tok822.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -62,7 +63,8 @@ LIB	= libglobal.a
 TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
-	resolve_local rewrite_clnt stream2rec string_list tok822_parse
+	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
+	local_transport
 
 LIBS	= ../lib/libutil.a
 LIB_DIR	= ../lib
@@ -183,6 +185,11 @@ mail_addr_crunch: $(LIB) $(LIBS)
 	mv junk $@.o
 
 string_list: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
+local_transport: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
@@ -361,6 +368,13 @@ header_opts.o: header_opts.h
 is_header.o: is_header.c
 is_header.o: ../include/sys_defs.h
 is_header.o: is_header.h
+local_transport.o: local_transport.c
+local_transport.o: ../include/sys_defs.h
+local_transport.o: ../include/msg.h
+local_transport.o: ../include/mymalloc.h
+local_transport.o: string_list.h
+local_transport.o: mail_params.h
+local_transport.o: local_transport.h
 mail_addr.o: mail_addr.c
 mail_addr.o: ../include/sys_defs.h
 mail_addr.o: ../include/stringops.h

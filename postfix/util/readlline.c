@@ -6,14 +6,16 @@
 /* SYNOPSIS
 /*	#include <readlline.h>
 /*
-/*	VSTRING	*readlline(buf, fp, lineno)
+/*	VSTRING	*readlline(buf, fp, lineno, stripnl)
 /*	VSTRING	*buf;
 /*	VSTREAM	*fp;
 /*	int	*lineno;
+/*	int	stripnl;
 /* DESCRIPTION
 /*	readlline() reads one logical line from the named stream.
 /*	A line that starts with whitespace is a continuation of
-/*	the previous line. The newline between continued lines
+/*	the previous line. When the stripnl argument is non-zero,
+/*	the newline between continued lines
 /*	is deleted from the input. The result value is the input
 /*	buffer argument or a null pointer when no input is found.
 /*
@@ -25,6 +27,9 @@
 /* .IP lineno
 /*	A null pointer, or a pointer to an integer that is incremented
 /*	after reading a newline.
+/* .IP stripnl
+/*	Non-zero to strip newlines. readlline.h provides the symbolic
+/*	constants READLL_STRIPNL and READLL_KEEPNL for convenience.
 /* LICENSE
 /* .ad
 /* .fi
@@ -48,7 +53,7 @@
 
 /* readlline - read one logical line */
 
-VSTRING *readlline(VSTRING *buf, VSTREAM *fp, int *lineno)
+VSTRING *readlline(VSTRING *buf, VSTREAM *fp, int *lineno, int stripnl)
 {
     int     ch;
     int     next;
@@ -59,6 +64,8 @@ VSTRING *readlline(VSTRING *buf, VSTREAM *fp, int *lineno)
     VSTRING_RESET(buf);
     while ((ch = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
 	if (ch == '\n') {
+	    if (stripnl == 0)
+		VSTRING_ADDCH(buf, ch);
 	    if (lineno)
 		*lineno += 1;
 	    if ((next = VSTREAM_GETC(fp)) == ' ' || next == '\t') {

@@ -273,7 +273,7 @@ DICT   *dict_pcre_open(const char *map, int unused_flags, int dict_flags)
     if ((map_fp = vstream_fopen(map, O_RDONLY, 0)) == 0) {
 	msg_fatal("open %s: %m", map);
     }
-    while (readlline(line_buffer, map_fp, &lineno)) {
+    while (readlline(line_buffer, map_fp, &lineno, READLL_STRIPNL)) {
 
 	if (*vstring_str(line_buffer) == '#')	/* Skip comments */
 	    continue;

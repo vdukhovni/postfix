@@ -1,29 +1,21 @@
-#ifndef _READLINE_H_INCLUDED_
-#define _READLINE_H_INCLUDED_
+#ifndef _LOCAL_TRANSPORT_H_INCLUDED_
+#define _LOCAL_TRANSPORT_H_INCLUDED_
 
 /*++
 /* NAME
-/*	readlline 3h
+/*	local_transport 3h
 /* SUMMARY
-/*	read logical line
+/*	determine if transport delivers locally
 /* SYNOPSIS
-/*	#include <readlline.h>
+/*	#include <local_transport.h>
 /* DESCRIPTION
 /* .nf
 
  /*
-  * Utility library.
-  */
-#include <vstream.h>
-#include <vstring.h>
-
- /*
   * External interface.
   */
-extern VSTRING *readlline(VSTRING *, VSTREAM *, int *, int);
-
-#define READLL_STRIPNL	1
-#define READLL_KEEPNL	0
+extern const char *def_local_transport(void);
+extern int local_transport(const char *);
 
 /* LICENSE
 /* .ad

@@ -164,7 +164,7 @@ static void postalias(char *map_type, char *path_name,
      * Add records to the database.
      */
     lineno = 0;
-    while (readlline(line_buffer, source_fp, &lineno)) {
+    while (readlline(line_buffer, source_fp, &lineno, READLL_STRIPNL)) {
 
 	/*
 	 * Skip comments.

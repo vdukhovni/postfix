@@ -43,6 +43,9 @@ a process is attempting to do. This is as much information as you
 can get without running an interactive debugger program, as described
 in the next section.
 
+See the next section on how to automatically attach a program to
+a Postfix daemon.
+
 5 - Running daemon programs under an interactive debugger
 =========================================================
 
@@ -68,3 +71,48 @@ Stop and start the Postfix system.
 
 Whenever the suspect daemon process is started, a debugger window
 pops up and you can watch in detail what happens.
+
+6 - Unreasonable behavior
+=========================
+
+Sometimes the behavior exhibit by Postfix just does not match the
+source code. Why can a program deviate from the instructions given
+by its author? There are two possibilities.
+
+1 - The compiler has messed up.
+
+2 - The hardware has messed up.
+
+In both cases, the program being executed is not the program that
+was supposed to be executed, so anything can happen.
+
+Hardware-related failures happen erratically, and they usually do
+not reproduce after power cycling and rebooting the system.  There's
+little I can do about bad hardware.  Be sure to use hardware that
+at the very least can detect memory errors. Otherwise, Postfix will
+just be a sitting duck waiting to be hit by a bit error. Critical
+systems deserve real hardware.
+
+When a compiler messes up, the problem can be reproduced whenever
+the resulting program is run. Compiler errors are most likely to
+happen in the code optimizer. If a problem is reproducible across
+power cycles and system reboots, it can be worthwhile to rebuild
+Postfix with optimization disabled, and to see if optimization
+makes a difference.
+
+In order to compile Postfix with optimizations turned off:
+
+    % make tidy
+    % make makefiles OPT=
+
+This produces a set of Makefiles that do not request compiler
+optomization. 
+
+Once the makefiles are set up, build the software:
+
+    % make
+    % su
+    # make install
+
+And see if the problem reproduces. If the problem goes away, talk
+to your vendor.

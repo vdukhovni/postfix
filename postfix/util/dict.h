@@ -20,6 +20,7 @@
   * Utility library.
   */
 #include <vstream.h>
+#include <argv.h>
 
  /*
   * Generic dictionary interface - in reality, a dictionary extends this
@@ -55,6 +56,11 @@ extern int dict_errno;
   */
 #define DICT_SEQ_FUN_FIRST     0	/* set cursor to first record */
 #define DICT_SEQ_FUN_NEXT      1	/* set cursor to next record */
+
+ /*
+  * Interface for dictionary types.
+  */
+extern ARGV *dict_mapnames(void);
 
  /*
   * High-level interface, with logical dictionary names.
@@ -96,5 +102,6 @@ extern int dict_changed(void);
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
+/**INDENT** Error@47: Unmatched #endif */
 
 #endif

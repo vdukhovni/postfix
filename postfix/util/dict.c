@@ -394,7 +394,7 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     buf = vstring_alloc(100);
     lineno = 0;
 
-    while (readlline(buf, fp, &lineno)) {
+    while (readlline(buf, fp, &lineno, READLL_STRIPNL)) {
 	start = STR(buf);
 	SKIP(start, member, ISSPACE(*member));	/* find member begin */
 	if (*member == 0 || *member == '#')

@@ -5,21 +5,32 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-c \fIconfig_dir\fR] [\fB-d\fR] [\fB-h\fR]
-/*		[\fB-n\fR] [\fB-v\fR] [\fIparameter ...\fR]
+/*	\fBpostconf\fR [\fB-dhnv\fR] [\fB-c \fIconfig_dir\fR]
+/*		[\fIparameter ...\fR]
+/*
+/*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
+/*		[\fIparameter=value ...\fR]
 /* DESCRIPTION
 /*	The \fBpostconf\fR command prints the actual value of
 /*	\fIparameter\fR (all known parameters by default), one
-/*	parameter per line.
+/*	parameter per line, changes its value, or prints other
+/*	information about the Postfix mail system.
 /*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory.
 /* .IP \fB-d\fR
 /*	Print default parameter settings instead of actual settings.
+/* .IP \fB-e\fR
+/*	Edit the \fBmain.cf\fR configuration file. The file is copied
+/*	to a temporary file then renamed into place. Parameters and
+/*	values are specified on the command line. Use quotes in order
+/*	to protect shell metacharacters and whitespace.
 /* .IP \fB-h\fR
 /*	Show parameter values only, not the ``name = '' label
 /*	that normally precedes the value.
+/* .IP \fB-m\fR
+/*	List the names of all supported lookup table types.
 /* .IP \fB-n\fR
 /*	Print non-default parameter settings only.
 /* .IP \fB-v\fR
@@ -42,10 +53,12 @@
 
 #include <sys_defs.h>
 #include <sys/stat.h>
+#include <stdio.h>			/* rename() */
 #include <pwd.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -66,7 +79,10 @@
 #include <dict.h>
 #include <safe.h>
 #include <mymalloc.h>
-#include <line_wrap.h>
+#include <argv.h>
+#include <split_at.h>
+#include <readlline.h>
+#include <myflock.h>
 
 /* Global library. */
 
@@ -78,11 +94,13 @@
 #include <mail_addr.h>
 
  /*
-  * What output we should generate.
+  * What we're supposed to be doing.
   */
 #define SHOW_NONDEF	(1<<0)		/* show non-default settings */
 #define SHOW_DEFS	(1<<1)		/* show default setting */
 #define SHOW_NAME	(1<<2)		/* show parameter name */
+#define SHOW_MAPS	(1<<3)		/* show map types */
+#define EDIT_MAIN	(1<<4)		/* edit main.cf */
 
  /*
   * Lookup table for in-core parameter info.
@@ -212,6 +230,131 @@ static const char *check_mynetworks(void)
     if (var_inet_interfaces == 0)
 	var_inet_interfaces = mystrdup(DEF_INET_INTERFACES);
     return (mynetworks());
+}
+
+/* edit_parameters - edit parameter file */
+
+static void edit_parameters(int argc, char **argv)
+{
+    char   *config_dir;
+    char   *path;
+    char   *temp;
+    VSTREAM *src;
+    VSTREAM *dst;
+    VSTRING *buf = vstring_alloc(100);
+    VSTRING *key = vstring_alloc(10);
+    char   *cp;
+    char   *value;
+    HTABLE *table;
+    int     first = 1;
+    struct cvalue {
+	char   *value;
+	int     found;
+    };
+    struct cvalue *cvalue;
+    HTABLE_INFO **ht_info;
+    HTABLE_INFO **ht;
+
+    /*
+     * Store command-line parameters for quick lookup.
+     */
+    table = htable_create(argc);
+    while ((cp = *argv++) != 0) {
+	if ((value = split_at(cp, '=')) == 0
+	    || *(cp += strspn(cp, " \t\r\n")) == 0)
+	    msg_fatal("edit requires \"key = value\" arguments");
+	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
+	cvalue->value = value;
+	cvalue->found = 0;
+	htable_enter(table, mystrtok(&cp, " \t\r\n"), (char *) cvalue);
+    }
+
+    /*
+     * XXX Avoid code duplication by better code decomposition.
+     */
+    if (var_config_dir)
+	myfree(var_config_dir);
+    var_config_dir = mystrdup((config_dir = safe_getenv(CONF_ENV_PATH)) != 0 ?
+			      config_dir : DEF_CONFIG_DIR);	/* XXX */
+    set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
+
+    /*
+     * Open the original file for input.
+     */
+    path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
+    if ((src = vstream_fopen(path, O_RDONLY, 0)) == 0)
+	msg_fatal("open %s for reading: %m", path);
+
+    /*
+     * Open a temp file for the result. We use a fixed name so we don't leave
+     * behind thrash with random names. Lock the temp file to avoid
+     * accidents. Truncate the file only after we have an exclusive lock.
+     */
+    temp = concatenate(path, ".tmp", (char *) 0);
+    if ((dst = vstream_fopen(temp, O_CREAT | O_WRONLY, 0644)) == 0)
+	msg_fatal("open %s: %m", temp);
+    if (myflock(vstream_fileno(dst), MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("lock %s: %m", temp);
+    if (ftruncate(vstream_fileno(dst), 0) < 0)
+	msg_fatal("truncate %s: %m", temp);
+
+    /*
+     * Copy original file to temp file, while replacing parameters on the
+     * fly. Issue warnings for names found multiple times.
+     */
+#define STR(x) vstring_str(x)
+
+    while (readlline(buf, src, (int *) 0, READLL_KEEPNL)) {
+	cp = STR(buf);
+	if (first) {
+	    first = 0;
+	    if (ISSPACE(*cp))
+		msg_fatal("%s: file starts with whitespace", path);
+	}
+	if (*cp == '#') {
+	    vstream_fputs(STR(buf), dst);
+	    continue;
+	}
+	cp += strspn(cp, " \t\r\n");
+	vstring_strncpy(key, cp, strcspn(cp, " \t\r\n="));
+	cvalue = (struct cvalue *) htable_find(table, STR(key));
+	if (cvalue == 0) {
+	    vstream_fputs(STR(buf), dst);
+	} else {
+	    if (cvalue->found++ == 1)
+		msg_warn("%s: multiple entries for key %s", path, STR(key));
+	    vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
+	}
+    }
+
+    /*
+     * Generate new entries for parameters that were not found.
+     */
+    for (ht_info = ht = htable_list(table); *ht; ht++) {
+	cvalue = (struct cvalue *) ht[0]->value;
+	if (cvalue->found == 0)
+	    vstream_fprintf(dst, "%s = %s\n", ht[0]->key, cvalue->value);
+    }
+    myfree((char *) ht_info);
+
+    /*
+     * When all is well, rename the temp file to the original one.
+     */
+    if (vstream_fclose(src))
+	msg_fatal("read %s: %m", path);
+    if (vstream_fclose(dst))
+	msg_fatal("write %s: %m", temp);
+    if (rename(temp, path) < 0)
+	msg_fatal("rename %s to %s: %m", temp, path);
+
+    /*
+     * Cleanup.
+     */
+    myfree(path);
+    myfree(temp);
+    vstring_free(buf);
+    vstring_free(key);
+    htable_free(table, myfree);
 }
 
 /* read_parameters - read parameter info from file */
@@ -430,6 +573,19 @@ static int comp_names(const void *a, const void *b)
     return (strcmp(ap[0]->key, bp[0]->key));
 }
 
+/* show_maps - show available maps */
+
+static void show_maps(void)
+{
+    ARGV   *maps_argv;
+    int     i;
+
+    maps_argv = dict_mapnames();
+    for (i = 0; i < maps_argv->argc; i++)
+	vstream_printf("%s\n", maps_argv->argv[i]);
+    argv_free(maps_argv);
+}
+
 /* show_parameters - show parameter info */
 
 static void show_parameters(int mode, char **names)
@@ -470,6 +626,7 @@ int     main(int argc, char **argv)
     int     ch;
     int     fd;
     struct stat st;
+    int     junk;
 
     /*
      * To minimize confusion, make sure that the standard file descriptors
@@ -489,44 +646,70 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:dhnv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:dehnmv")) > 0) {
 	switch (ch) {
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
 		msg_fatal("out of memory");
 	    break;
 	case 'd':
-	    if (mode & SHOW_NONDEF)
-		msg_fatal("specify one of -d and -n");
 	    mode |= SHOW_DEFS;
+	    break;
+	case 'e':
+	    mode |= EDIT_MAIN;
 	    break;
 	case 'h':
 	    mode &= ~SHOW_NAME;
 	    break;
+	case 'm':
+	    mode |= SHOW_MAPS;
+	    break;
 	case 'n':
-	    if (mode & SHOW_DEFS)
-		msg_fatal("specify one of -d and -n");
 	    mode |= SHOW_NONDEF;
 	    break;
 	case 'v':
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-h (no names)] [-n (non-defaults)] [-v] name...", argv[0]);
+	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-m (map types) [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
+    }
+
+    /*
+     * Sanity check.
+     */
+    junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | EDIT_MAIN));
+    if (junk != 0 && junk != SHOW_DEFS && junk != SHOW_NONDEF
+	&& junk != SHOW_MAPS && junk != EDIT_MAIN)
+	msg_fatal("specify one of -d, -e, -n and -m");
+
+    /*
+     * If showing map types, show them and exit
+     */
+    if (mode & SHOW_MAPS) {
+	show_maps();
+    }
+
+    /*
+     * Edit main.cf.
+     */
+    if (mode & EDIT_MAIN) {
+	edit_parameters(argc - optind, argv + optind);
     }
 
     /*
      * If showing non-default values, read main.cf.
      */
-    if ((mode & SHOW_DEFS) == 0)
-	read_parameters();
+    else {
+	if ((mode & SHOW_DEFS) == 0)
+	    read_parameters();
 
-    /*
-     * Throw together all parameters and show the asked values.
-     */
-    hash_parameters();
-    show_parameters(mode, argv + optind);
+	/*
+	 * Throw together all parameters and show the asked values.
+	 */
+	hash_parameters();
+	show_parameters(mode, argv + optind);
+    }
     vstream_fflush(VSTREAM_OUT);
     exit(0);
 }
