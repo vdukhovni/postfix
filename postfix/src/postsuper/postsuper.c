@@ -18,7 +18,7 @@
 /*	\fBdefer\fR and \fBflush\fR directories with log files.
 /*
 /*	Options:
-/* .IP "\fB-d \fIqueue_id\fR"
+/* .IP "\fB-d \fIqueue_id\fR (Postfix versions >= 20010525)"
 /*      Delete one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
 /*      \fBdeferred\fR).
@@ -56,7 +56,7 @@
 /* .IP \fB-p\fR
 /*	Purge old temporary files that are left over after system or
 /*	software crashes.
-/* .IP "\fB-r \fIqueue_id\fR"
+/* .IP "\fB-r \fIqueue_id\fR (Postfix versions >= 20010525)"
 /*      Requeue the message with the named queue ID from the named
 /*	mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
 /*      \fBdeferred\fR).
@@ -84,6 +84,7 @@
 /*	to perform this operation once before Postfix startup.
 /* .RS
 /* .IP \(bu
+/*	(Postfix versions >= 20010525)
 /*	Rename files whose name does not match the message file inode
 /*	number. This operation is necessary after restoring a mail queue
 /*	from a different machine, or from backup media.
@@ -874,17 +875,23 @@ int     main(int argc, char **argv)
     /*
      * Basic queue maintenance, as well as mass deletion, mass requeuing, and
      * mass name-to-inode fixing. This ensures that queue files are in the
-     * right place before the queue file by name operations are done.
+     * right place before the file-by-name operations are done.
      */
     if (action & ~ACTIONS_BY_QUEUE_ID)
 	super(queues, action & ~ACTIONS_BY_QUEUE_ID);
+
+    /*
+     * If any file names needed changing to match the message file inode
+     * number, those files were named newqeueid#FIX. We need a second pass to
+     * strip the suffix from the new queue ID.
+     */
     if (inode_mismatch > 0)
 	super(queues, 0);
 
     /*
-     * Delete queue files by name. This must not be done when queue files
-     * have changed names as a result of the structure check, because we
-     * could be deleiting the wrong message.
+     * Delete queue files by name. This must not be done when queue file
+     * names have changed names as a result of inode number mismatches,
+     * because we could be deleting the wrong message.
      */
     if (action & ACTION_DELETE_ONE) {
 	if (inode_mismatch > 0 || inode_fixed > 0) {
@@ -904,9 +911,9 @@ int     main(int argc, char **argv)
     }
 
     /*
-     * Requeue queue files by name. This must not be done when queue files
-     * have changed names as a result of the structure check, because we
-     * could be requeuing the wrong message.
+     * Requeue queue files by name. This must not be done when queue file
+     * names have changed names as a result of inode number mismatches,
+     * because we could be requeuing the wrong message.
      */
     if (action & ACTION_REQUEUE_ONE) {
 	if (inode_mismatch > 0 || inode_fixed > 0) {

@@ -880,9 +880,12 @@ typedef int pid_t;
   * warn for missing initializations and other trouble. However, OPENSTEP4
   * gcc 2.7.x cannot handle this so we define this only if NORETURN isn't
   * already defined above.
+  * 
+  * Data point: gcc 2.7.2 has __attribute__ (Wietse Venema) but gcc 2.6.3 does
+  * not (Clive Jones). So we'll set the threshold at 2.7.
   */
 #ifndef NORETURN
-#if __GNUC__ == 2 && __GNUC_MINOR__ >= 5 || __GNUC__ >= 3
+#if __GNUC__ == 2 && __GNUC_MINOR__ >= 7 || __GNUC__ >= 3
 #define NORETURN	void __attribute__((__noreturn__))
 #endif
 #endif

@@ -1,32 +1,43 @@
-Incompatible changes with snapshot-20010522
+Incompatible changes with snapshot-20010525
 ===========================================
 
-The Postfix SMTP server always sends EHLO at the beginning of an
-SMTP session. Specify "smtp_always_send_ehlo = no" for the old
-behavior, which is to send EHLO only when the server greeting banner
-contains the word ESMTP.
+As per RFC 2821, the Postfix SMTP client now always sends EHLO at
+the beginning of an SMTP session. Specify "smtp_always_send_ehlo
+= no" for the old behavior, which is to send EHLO only when the
+server greeting banner contains the word ESMTP.
 
-Specifying EHLO in the middle of an SMTP session resets the SMTP
-server state just like RSET. This behavior cannot be disabled.
+As per RFC 2821, an EHLO command in the middle of an SMTP session
+resets the Postfix SMTP server state just like RSET. This behavior
+cannot be disabled.
 
-Major changes with snapshot-20010522
+The postfix-script file has changed: "postfix start" no longer does
+a "find" on all Postfix directories for core files; instead, the
+postsuper command now finds and renames all queue files whose names
+do not match their message file inode number.
+
+Major changes with snapshot-20010525
 ====================================
 
-This release contains revisions of some fine details in the light
-of the new RFC 2821 and RFC 2822 standards. Changes that may affect
-interoperability are listed above under "incompatible changes".
+This release contains many little revisions of little details in
+the light of the new RFC 2821 and RFC 2822 standards. Changes that
+may affect interoperability are listed above under "incompatible
+changes".  Other little details are discussed in comments in the
+source code.
 
-The postsuper tool can rename files whose queue ID does not match
-the queue file inode number. This is necessary when a Postfix mail
-queue is restored from another machine or from backups. The feature
-is selected with the -s option, which is the default.
+The postsuper queue maintenance tool now renames files whose name
+(queue ID) does not match the message file inode number. This is
+necessary after a Postfix mail queue is restored from another
+machine or from backups.  The feature is selected with the -s
+option, which is the default.
+
+The postsuper queue maintenance tool has a new -r (requeue) option
+for subjecting some or all queue files to another iteration of
+address rewriting. This is useful after the virtual or canonical
+maps have changed.
 
 The postsuper queue maintenance tool was extended with options to
 read queue IDs from standard input. This makes the tool easier to
 drive from scripts.
-
-The postsuper queue maintenance tool has a new -r (requeue) option
-for subjecting queue files to another iteration of address rewriting.
 
 Major changes with snapshot-20010502
 ====================================

@@ -5174,7 +5174,7 @@ Apologies for any names omitted.
 	822 address parser. File: global/tok822_parse.c.
 
 	Standard: annotated the source code with comments based on
-	RFC 2821 and 2822. Not all the changes make sense.
+	RFC 2821 and 2822. Not all the RFC changes make sense.
 
 	RFC 2821 recommendation: treat a RCPT 552 reply as if the
 	server sent 452. Files: smtp/smtp_proto.c, lmtp/lmtp_proto.c.
@@ -5188,17 +5188,36 @@ Apologies for any names omitted.
 20010522
 
 	Feature: "postsuper -r queueID" re-queues a message, and
-	"postsuper -R" re-queues all mail. The message is moved to
-	the maildrop queue so that the pickup daemon will copy it
-	to a new queue file, and so that address rewriting will be
-	done again. This is useful after changes of address rewriting
-	or virtual mappings.
+	"postsuper -r ALL" re-queues all mail. The message is moved
+	to the maildrop queue so that the pickup daemon will copy
+	it to a new queue file, and so that address rewriting will
+	be done again. This is useful after changes of address
+	rewriting or virtual mappings.
+
+	Feature: "postsuper -d ALL [queue-name]" deletes a bunch
+	of mail.
 
 20010523
 
 	Feature: "postsuper -s" (which is done by default) renames
-	queue files whose queue ID does not match the message file
-	inode number.
+	queue files whose name (queue ID) does not match the message
+	file inode number.
 
 	Bugfix: memory leak in the LDAP client module. Alain
-	Thivillon,France Teaser - Groupe Firstream.
+	Thivillon, France Teaser - Groupe Firstream.
+
+20010525
+
+	Portability: gcc 2.6.3 does not have __attribute__ (Clive
+	Jones, dgw.co.uk). File: util/sys_defs.h.
+
+	Bugfix: the SMTP and LMTP clients claimed that a queue file
+	needed to be delivered again (even when all recipients were
+	erased from the queue file) when no QUIT or RSET reply was
+	received (by default, this does not happen with SMTP mail
+	because the SMTP client does not wait for QUIT replies and
+	does not send RSET to deliver mail).  As a result of the
+	same bug the LMTP client followed a dangling pointer when
+	sending QUIT after process idle timeout while the LMTP
+	server had disconnected.  Files:  smtp/smtp_proto.c,
+	lmtp/lmtp_proto.c.

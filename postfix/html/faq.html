@@ -3063,51 +3063,83 @@ that the file name will collide with another queue file.
 
 <p>
 
-<ul>
+The text below describes two different procedures to restore
+queue files from another machine or from backup.
 
-<li>If your Postfix queue is empty, and if you run a Postfix release
-after 20010524, you can use this procedure to copy a Postfix
-queue from another machine or to restore it from backup.
-
-<p>
+<h4> Procedure 1: Your Postfix queue is empty, and you run Postfix
+release 20010525 or later</h4>
 
 <ul>
 
 <li> Stop Postfix, if it was running.
 
+<blockquote>
+<pre>
+# postfix stop
+</pre>
+</blockquote>
+
 <p>
 
 <li> Execute the <b>mailq</b> command. If there is any output, do
-not complete this procedure, but use the second procedure instead.
+not complete this procedure, but use <b>procedure 2</b> instead.
+
+<blockquote>
+<pre>
+# mailq
+</pre>
+</blockquote>
 
 <p>
 
 <li> Copy or restore the queue to the usual place.
 
+<blockquote>
+<pre>
+# cd /var/spool/postfix
+<i>...restore maildrop, incoming, active, deferred, defer, bounce here...</i>
+</pre>
+</blockquote>
+
 <p>
 
 <li> Run the <b>postsuper</b> command. This command will rename
-queue files so that the name matches the message file inode number.
+queue files so that the file names match their message file inode
+numbers.
+
+<blockquote>
+<pre>
+# postsuper
+</pre>
+</blockquote>
 
 </ul>
 
-<p>
-
-<li> If your Postfix queue is not empty, or if you are running a
-Postfix release prior to 20010524, use the following procedure
-instead.
-
-<p>
+<h4> Procedure 2: Your Postfix queue is not empty, or you are
+running a Postfix release prior to 20010525</h4>
 
 <ul>
 
 <li>Stop Postfix, if it was running.
+
+<blockquote>
+<pre>
+# postfix stop
+</pre>
+</blockquote>
 
 <p>
 
 <li> To avoid queue file name collisions when restoring queue files,
 copy or restore the incoming, active and deferred queue files under
 the maildrop directory instead.
+
+<blockquote>
+<pre>
+# cd /var/spool/postfix/maildrop
+<i>...restore incoming, active, deferred here...</i>
+</pre>
+</blockquote>
 
 <p>
 
@@ -3123,9 +3155,6 @@ move files down from their subdirectories.
 
 <p>
 <pre>
-    # postfix stop
-    # cd /var/spool/postfix/maildrop
-    ... restore incoming/active/deferred queue files under the maildrop directory...
     # find incoming active deferred -type f -exec mv '{}' . ';'
     # rm -rf incoming active deferred
     # postfix start
@@ -3135,8 +3164,6 @@ move files down from their subdirectories.
 
 <li>When Postfix is started, it will pick up queue files from the
 maildrop directory and will give them proper queue file names.
-
-</ul>
 
 </ul>
 
