@@ -218,6 +218,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 		       ATTR_TYPE_STR, MAIL_ATTR_TABLE, dict_proxy->dict.name,
 		       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, dict_proxy->in_flags,
 		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &server_flags,

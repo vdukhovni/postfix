@@ -190,6 +190,7 @@ void    transport_wildcard_init(void)
 #define PARTIAL		DICT_FLAG_FIXED
 
     if (find_transport_entry(WILDCARD, "", FULL, channel, nexthop)) {
+	transport_errno = 0;
 	wildcard_channel = channel;
 	wildcard_nexthop = nexthop;
 	if (msg_verbose)

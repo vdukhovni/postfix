@@ -1611,7 +1611,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
     smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
-    smtpd_check_init();
+    if (getuid() == 0 || getuid() == var_owner_uid)
+	smtpd_check_init();
     debug_peer_init();
 
     if (var_smtpd_sasl_enable)

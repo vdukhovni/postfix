@@ -191,17 +191,6 @@ test -x bin/postconf || {
     exit 1
 }
 
-#
-# LINUX by default does not synchronously update directories -
-# that's dangerous for mail.
-#
-if [ -f /usr/bin/chattr ]
-then
-    CHATTR="/usr/bin/chattr +S"
-else
-    CHATTR=echo
-fi
-
 case `uname -s` in
 HP-UX*) FMT=cat;;
      *) FMT=fmt;;
@@ -600,7 +589,6 @@ do
 	      test -z "$owner" || chown $owner $path || exit 1
 	      test -z "$group" || chgrp $group $path || exit 1
 	      chmod $mode $path || exit 1
-	      $CHATTR $path >/dev/null 2>/dev/null
 	  }
 	  continue;;
     [fl]) ;;
