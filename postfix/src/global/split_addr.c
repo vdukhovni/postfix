@@ -76,7 +76,8 @@ char   *split_addr(char *localpart, int delimiter)
     }
 
     /*
-     * Safe to split this address.
+     * Safe to split this address. Do not split the address if the result
+     * would have a null localpart.
      */
-    return (split_at(localpart, delimiter));
+    return (delimiter == *localpart ? 0 : split_at(localpart, delimiter));
 }

@@ -5096,3 +5096,16 @@ Apologies for any names omitted.
 	of hostnames in $inet_interfaces, so that Postfix does not
 	suddenly refuse to start up after someone changes the DNS.
 	Files:  util/inet_addr_list.c global/own_inet_addr.c.
+
+20010917
+
+	Bugfix: an address extension could be appended multiple
+	times to the result of a canonical or virtual map lookup.
+	File: global/mail_addr_map.c.  Fix by Victor Duchovni,
+	Morgan Stanley.
+
+	Bugfix: because split_addr() would split an address even
+	when there was no data before the recipient delimiter, the
+	above bug could cause an address to grow exponentially in
+	size.  Problem reported by Victor Duchovni, Morgan Stanley.
+	File:  global/split_addr.c.

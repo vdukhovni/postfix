@@ -98,6 +98,24 @@ ARGV   *mail_addr_map(MAPS *path, const char *address, int propagate)
 		vstring_strcpy(buffer, address);
 	    vstring_strcat(buffer, string);
 	    string = STR(buffer);
+
+	    /*
+	     * The above code copies the address, including address
+	     * extension, to the result. Discard the address extension at
+	     * this point, to prevent a second address extension copy by
+	     * mail_addr_crunch() below.  Fix by Victor Duchovni, Morgan
+	     * Stanley.
+	     * 
+	     * In combination with an obscure bug in the split_addr() routine
+	     * that mis-parsed an address without information before the
+	     * extension, this could result in the exponential growth of the
+	     * size of an address. Problem reported by Victor Duchovni,
+	     * Morgan Stanley.
+	     */
+	    if (extension) {
+		myfree(extension);
+		extension = 0;
+	    }
 	}
 
 	/*
@@ -159,6 +177,7 @@ int     main(int argc, char **argv)
      */
     mail_conf_read();
     msg_verbose = 1;
+    var_rcpt_delim = "+";
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);
     path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK);
