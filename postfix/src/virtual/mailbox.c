@@ -225,9 +225,9 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     usr_attr.gid = (gid_t) n;
 
     if (msg_verbose)
-	msg_info("%s[%d]: set user_attr: %s, uid = %d, gid = %d",
-		 myname, state.level,
-		 usr_attr.mailbox, usr_attr.uid, usr_attr.gid);
+	msg_info("%s[%d]: set user_attr: %s, uid = %u, gid = %u",
+		 myname, state.level, usr_attr.mailbox,
+		 (unsigned) usr_attr.uid, (unsigned) usr_attr.gid);
 
     /*
      * Deliver to mailbox or to external command.

@@ -58,7 +58,7 @@ cleanmakefiles:
 tidy:	clean
 	rm -f Makefile */Makefile src/*/Makefile
 	cp Makefile.init Makefile
-	rm -f bin/* lib/* include/* libexec/* \
+	rm -f bin/[!CRS]* lib/[!CRS]* include/[!CRS]* libexec/[!CRS]* \
 	    junk */junk */*/junk \
 	    *core */*core */*/*core \
 	    .nfs* */.nfs* */*/.nfs* \

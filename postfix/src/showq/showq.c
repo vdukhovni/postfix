@@ -92,7 +92,7 @@ int     var_dup_filter_limit;
 
 #define STRING_FORMAT	"%-10s %8s %-20s %s\n"
 #define DATA_FORMAT	"%-10s%c%8ld %20.20s %s\n"
-#define DROP_FORMAT	"%-10s%c%8ld %20.20s (maildrop queue, sender UID %d)\n"
+#define DROP_FORMAT	"%-10s%c%8ld %20.20s (maildrop queue, sender UID %u)\n"
 
 static void showq_reasons(VSTREAM *, BOUNCE_LOG *, HTABLE *);
 
@@ -278,7 +278,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 		    vstream_fprintf(client, DROP_FORMAT, id, ' ',
 				    (long) st.st_size,
 				    asctime(localtime(&st.st_mtime)),
-				    st.st_uid);
+				    (unsigned) st.st_uid);
 		} else if (errno != ENOENT)
 		    msg_fatal("open %s %s: %m", qp->name, id);
 		file_count++;

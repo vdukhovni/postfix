@@ -5949,6 +5949,13 @@ Apologies for any names omitted.
 	Feedback: feedback, bugfixes, and brain-dead shell workarounds
 	for the install scripts by Victor Duchovny and Simon Mudd.
 
+20020113
+
+	Rewrote postfix-install. The postfix-files file now controls
+	what is installed.  Refined the semantics of many post-install
+	operations. post-install now auto-saves settings that override
+	main.cf.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in

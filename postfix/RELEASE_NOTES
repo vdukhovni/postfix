@@ -1,3 +1,13 @@
+Incompatible changes with snapshot-20020113
+===========================================
+
+Another revision of installation procedures. The command interface
+of the postfix-install and $config_directory/post-install scripts
+has changed; see embedded documentation.  postfix-install no longer has
+hard-coded commands to install files:  $config_directory/postfix-files
+now controls what files are installed. The post-install script now
+automatically saves installation parameters to the main.cf file.
+
 Incompatible changes with snapshot-20020111
 ===========================================
 
@@ -10,7 +20,7 @@ parameters such as mail_owner and setgid_group after installing
 Postfix, and apply the correct file/directory ownerships and
 permissions by executing the post-install script as:
 
-    post-install set-permissions config_directory=/etc/postfix
+    post-install set-permissions setgid_group=groupname
 
 Incompatible changes with snapshot-20020110
 ===========================================
