@@ -4734,3 +4734,11 @@ Apologies for any names omitted.
 	Feature: SASL support for the LMTP client. Recent CYRUS
 	software requires this for Postfix over TCP sockets.
 	This was just a cloning operation.
+
+20010120
+
+	Bugfix: the 20001005 revised fallback_relay support caused
+	Postfix to send mail to the fallback even when the local
+	machine was an MX host for the final destination. Result:
+	mailer loop. Found by Laurent Wacrenier (teaser.fr).  Files:
+	smtp/smtp_connect.c, smtp/smtp_addr.c.

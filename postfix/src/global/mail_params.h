@@ -888,7 +888,7 @@ extern int var_fork_delay;
   * When locking a mailbox, how often to try and how long to wait.
   */
 #define VAR_FLOCK_TRIES          "deliver_lock_attempts"
-#define DEF_FLOCK_TRIES          5
+#define DEF_FLOCK_TRIES          10
 extern int var_flock_tries;
 
 #define VAR_FLOCK_DELAY          "deliver_lock_delay"

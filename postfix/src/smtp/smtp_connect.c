@@ -292,7 +292,8 @@ SMTP_SESSION *smtp_connect_host(char *host, unsigned port, VSTRING *why)
 
 /* smtp_connect_domain - connect to smtp server for domain */
 
-SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why)
+SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why,
+				          int *found_myself)
 {
     SMTP_SESSION *session = 0;
     DNS_RR *addr_list;
@@ -306,7 +307,7 @@ SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why)
      * the primary MX host is reachable but does not want to receive our
      * mail, there is no point in trying the backup hosts.
      */
-    addr_list = smtp_domain_addr(name, why);
+    addr_list = smtp_domain_addr(name, why, found_myself);
     for (addr = addr_list; addr; addr = addr->next) {
 	if ((session = smtp_connect_addr(addr, port, why)) != 0) {
 	    session->best = (addr->pref == addr_list->pref);
@@ -393,6 +394,7 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
     char   *save;
     char   *dest;
     char   *cp;
+    int     found_myself;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -417,7 +419,7 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
 	if (var_disable_dns || *dest == '[') {
 	    session = smtp_connect_host(host, port, why);
 	} else {
-	    session = smtp_connect_domain(host, port, why);
+	    session = smtp_connect_domain(host, port, why, &found_myself);
 	}
 	myfree(dest_buf);
 
@@ -426,7 +428,7 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
 	 * is the best MX relay for the destination. Agreed, an errno of OK
 	 * after failure is a weird way to reporting progress.
 	 */
-	if (session != 0 || smtp_errno == SMTP_OK)
+	if (session != 0 || smtp_errno == SMTP_OK || found_myself)
 	    break;
     }
 
