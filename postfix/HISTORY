@@ -1999,3 +1999,67 @@ Apologies for any names omitted.
 	Bugfix: in Received: headers, the "for <recipient>"
 	information was in the wrong place. Pointed out by Jon
 	Ribbens, Oaktree Internet Solutions Ltd.
+
+19990124
+
+	Portability: more workarounds for GNU getopt() by Liviu
+	Daia, Institute of Mathematics, Romanian Academy. File:
+	sendmail/sendmail.c.
+
+19990125
+
+	Bugfix: Postfix should not masquerade recipient addresses
+	extracted from message headers. Problem reported by David
+	Blacka, Network Solutions. File: cleanup/cleanup_message.c.
+
+19990126
+
+	Feature: smtpd_etrn_restrictions parameter to restrict who
+	may use ETRN and what domains may be specified.  Example:
+	"smtpd_etrn_restrictions = permit_mynetworks, reject".
+	Requested by Jon Ribbens, Oaktree Internet Solutions Ltd.
+	File: smtpd/smtpd_check.c.
+
+19990127
+
+	Bugfix: in an attempt to shave some cycles, the anti junk
+	mail routines would use the wrong resolved address. This
+	"optimization" is now turned off. Problem reported by Sam
+	Eaton, Pavilion Internet Plc. File: smtpd/smtpd_check.c.
+
+	Feature: BIFF notifications.  For compatibility reasons
+	this feature is on by default.  This "protocol" can be a
+	real performance pig.  Specify "biff = no" in main.cf if
+	your machine has lots of shell users. Feature requested by
+	Dan Farmer - it's one of the things one does for friends.
+	Files:  local/mailbox.c, local/biff_notify.c.
+
+	Bugfix: another case sensitivity problem, this time with
+	virtual lookups to recognize unknown@virtual.domain.
+	Problem reported by Bo Kleve, Linkoping University. File:
+	qmgr/qmgr_message.c.
+
+19990128
+
+	Feature: with "soft_bounce = yes", defer delivery instead
+	of bouncing mail. This is a safety net for configuration
+	errors with delivery agents. It has no effect on errors in
+	virtual maps, canonical maps, or in junk mail restrictions.
+	Feature requested by Bennett Todd. File: global/bounce.c.
+
+19990129
+
+	Compatibility: the qmail maildir.5 documentation prescribes
+	maildir file names of the form time.pid.hostname, which is
+	wrong because Postfix processes perform multiple deliveries.
+	Elsewhere the qmail author has documented how maildir files
+	should be named under such conditions. Postfix has been
+	changed to be conformant. File: local/maildir.c.
+
+19990131
+
+	Feature: special treatment of owner-foo and foo-request
+	can be turned off. Specify "owner_request_special = no".
+	Requested by Matthew Green and others. Files: local/alias.c,
+	global/split_addr.c. This affects canonical, virtual and
+	alias lookups.

@@ -222,6 +222,7 @@ bounce.o: ../include/sys_defs.h
 bounce.o: ../include/msg.h
 bounce.o: ../include/vstring.h
 bounce.o: ../include/vbuf.h
+bounce.o: mail_params.h
 bounce.o: mail_proto.h
 bounce.o: ../include/vstream.h
 bounce.o: ../include/iostuff.h

@@ -68,6 +68,10 @@ restrictions</a>
 
 <p>
 
+<li> <a href="#smtpd_etrn_restrictions">ETRN command restrictions</a>
+
+<p>
+
 <li> <a href="#generic">Generic restrictions</a>
 
 <p>
@@ -487,6 +491,94 @@ for rejected requests (default: <b>550</b>).
 <dt> <b><a href="#check_sender_access">check_sender_access</a></b> <i>maptype</i>:<i>mapname</i>
 
 <dd> See sender address restrictions.
+
+<p>
+
+<dt> <b><a href="#permit_naked_ip_address">permit_naked_ip_address</a></b>
+
+<dt> <b><a href="#reject_invalid_hostname">reject_invalid_hostname</a></b>
+
+<dt> <b><a href="#reject_unknown_hostname">reject_unknown_hostname</a></b>
+
+<dt> <b><a href="#check_helo_access">check_helo_access</a></b> <i>maptype</i>:<i>mapname</i>
+
+<dd> See HELO (EHLO) hostname restrictions.
+
+<p>
+
+<dt> <b><a href="#reject_unknown_client">reject_unknown_client</a></b>
+
+<dt> <b><a href="#permit_mynetworks">permit_mynetworks</a></b>
+
+<dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
+
+<dd> See client name/address restrictions.
+
+<p>
+
+<dt> <b><a href="#permit">permit</a></b>
+
+<dt> <b><a href="#reject">reject</a></b>
+
+<dd> See generic restrictions.
+
+</dl>
+
+</dl>
+
+<a name="smtpd_etrn_restrictions">
+
+<h2> ETRN command restrictions</h2>
+
+Not really an UCE restriction, the <b>smtpd_etrn_restrictions</b>
+parameter restricts what domains may be specified in ETRN commands,
+and what clients may issue ETRN commands.
+
+<dl>
+
+<dt>Default:
+
+<dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
+accepts any ETRN command from any client.
+
+<p>
+
+<dt>Syntax:
+
+<dd>Specify a list of zero or more restrictions, separated by
+whitespace or commas. Restrictions are applied in the order as
+specified; the first restriction that matches wins.
+
+<p>
+
+In addition to restrictions that are specific to ETRN domain names,
+you can also specify restrictions based on the information passed
+with the HELO/EHLO command, and on the client hostname or network
+address.
+
+<p>
+
+<dt> Example:
+
+<dd> <b>smtpd_etrn_restrictions = permit_mynetworks, reject</b>
+
+<p>
+
+<dt> Restrictions:
+
+<dl>
+
+<a name="check_etrn_access">
+
+<dt> <b>check_etrn_access</b> <i>maptype</i>:<i>mapname</i>
+
+<dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
+href="access.5.html">access database</a> for the domain specified
+in the ETRN command, or its parent domains. Reject the request if
+the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".  Permit
+the request if the result is anything else.  The <b>access_map_reject_code
+</b> parameter specifies the result code for rejected requests
+(default: <b>550</b>).
 
 <p>
 

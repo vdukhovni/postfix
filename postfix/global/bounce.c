@@ -105,6 +105,7 @@
 
 /* Global library. */
 
+#include "mail_params.h"
 #include "mail_proto.h"
 #include "defer.h"
 #include "bounce.h"
@@ -128,17 +129,29 @@ int     bounce_append(int flags, const char *id, const char *recipient,
 int     vbounce_append(int flags, const char *id, const char *recipient,
                const char *relay, time_t entry, const char *fmt, va_list ap)
 {
-    VSTRING *why = vstring_alloc(100);
+    VSTRING *why;
     int     status;
-    int     delay = time((time_t *) 0) - entry;
+    int     delay;
 
+    /*
+     * When we're pretending that we can't bounce, don't create a defer log
+     * file when we wouldn't keep the bounce log file. That's a lot of
+     * negatives in one sentence.
+     */
+    if (var_soft_bounce && (flags & BOUNCE_FLAG_CLEAN))
+	return (-1);
+
+    why = vstring_alloc(100);
+    delay = time((time_t *) 0) - entry;
     vstring_vsprintf(why, fmt, ap);
-    if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_BOUNCE,
+    if (mail_command_write(MAIL_CLASS_PRIVATE, var_soft_bounce ?
+			   MAIL_SERVICE_DEFER : MAIL_SERVICE_BOUNCE,
 			   "%d %d %s %s %s", BOUNCE_CMD_APPEND,
 			   flags, id, recipient, vstring_str(why)) == 0) {
-	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=bounced (%s)",
-		 id, recipient, relay, delay, vstring_str(why));
-	status = 0;
+	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=%s (%s)",
+		 id, recipient, relay, delay, var_soft_bounce ? "deferred" :
+		 "bounced", vstring_str(why));
+	status = (var_soft_bounce ? -1 : 0);
     } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
 	status = defer_append(flags, id, recipient, "bounce", delay,
 			      "bounce failed");
@@ -154,6 +167,13 @@ int     vbounce_append(int flags, const char *id, const char *recipient,
 int     bounce_flush(int flags, const char *queue, const char *id,
 		             const char *sender)
 {
+
+    /*
+     * When we're pretending that we can't bounce, don't send a bounce
+     * message.
+     */
+    if (var_soft_bounce)
+	return (-1);
     if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_BOUNCE,
 			   "%d %d %s %s %s", BOUNCE_CMD_FLUSH,
 			   flags, queue, id, sender) == 0) {

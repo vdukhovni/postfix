@@ -170,7 +170,7 @@ check)
 	test -d maildrop || {
 		$WARN creating missing Postfix maildrop directory
 		mkdir maildrop || exit 1
-		chmod 730 maildrop
+		chmod 1730 maildrop
 		chown $mail_owner maildrop
 		chgrp maildrop maildrop
 	}

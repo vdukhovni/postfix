@@ -177,19 +177,19 @@ SMTPD(8)                                                 SMTPD(8)
               Restrict  what  recipient  addresses are allowed in
               <b>RCPT</b> <b>TO</b> commands.
 
+       <b>smtpd</b><i>_</i><b>etrn</b><i>_</i><b>restrictions</b>
+              Restrict what domain names can be used in <b>ETRN</b> com-
+              mands, and what clients may issue <b>ETRN</b> commands.
+
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b>
-              List of DNS domains that publish the  addresses  of
+              List  of  DNS domains that publish the addresses of
               blacklisted hosts.
 
        <b>relay</b><i>_</i><b>domains</b>
-              Restrict  what domains or networks this mail system
+              Restrict what domains or networks this mail  system
               will relay mail from or to.
 
 <b>UCE</b> <b>control</b> <b>responses</b>
-       <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client  violates  an  access
-              database restriction.
-
 
 
 
@@ -203,33 +203,37 @@ SMTPD(8)                                                 SMTPD(8)
 SMTPD(8)                                                 SMTPD(8)
 
 
+       <b>access</b><i>_</i><b>map</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server  response  when  a client violates an access
+              database restriction.
+
        <b>invalid</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
+              Server  response  when  a   client   violates   the
               <b>reject</b><i>_</i><b>invalid</b><i>_</i><b>hostname</b> restriction.
 
        <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Server   response   when   a  client  violates  the
               <b>maps</b><i>_</i><b>rbl</b><i>_</i><b>domains</b> restriction.
 
        <b>reject</b><i>_</i><b>code</b>
-              Response  code  when  the  client  matches a <b>reject</b>
+              Response code when  the  client  matches  a  <b>reject</b>
               restriction.
 
        <b>relay</b><i>_</i><b>domains</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client attempts  to  violate
+              Server  response  when a client attempts to violate
               the mail relay policy.
 
        <b>unknown</b><i>_</i><b>address</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server   response   when   a  client  violates  the
+              Server  response  when  a   client   violates   the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>address</b> restriction.
 
        <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server response when a client  without  address  to
-              name  mapping  violates  the <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
+              Server  response  when  a client without address to
+              name mapping  violates  the  <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
               restriction.
 
        <b>unknown</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a   client   violates   the
+              Server   response   when   a  client  violates  the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>hostname</b> restriction.
 
 <b>SEE</b> <b>ALSO</b>
@@ -238,7 +242,7 @@ SMTPD(8)                                                 SMTPD(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -246,10 +250,6 @@ SMTPD(8)                                                 SMTPD(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

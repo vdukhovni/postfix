@@ -197,6 +197,11 @@ static void cleanup_rewrite_recip(HEADER_OPTS *hdr_opts)
 	    cleanup_map11_tree(*tpp, cleanup_rcpt_canon_maps);
 	if (cleanup_comm_canon_maps)
 	    cleanup_map11_tree(*tpp, cleanup_comm_canon_maps);
+	tok822_internalize(cleanup_temp1, tpp[0]->head, TOK822_STR_DEFL);
+	if (cleanup_recip == 0 && (hdr_opts->flags & HDR_OPT_EXTRACT) != 0)
+	    argv_add((hdr_opts->flags & HDR_OPT_RR) ?
+		     cleanup_resent_recip : cleanup_recipients,
+		     vstring_str(cleanup_temp1), (char *) 0);
 	if (cleanup_masq_domains)
 	    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	if (hdr_opts->type == HDR_RETURN_RECEIPT_TO && !cleanup_return_receipt)
@@ -205,11 +210,6 @@ static void cleanup_rewrite_recip(HEADER_OPTS *hdr_opts)
 	if (hdr_opts->type == HDR_ERRORS_TO && !cleanup_errors_to)
 	    cleanup_errors_to =
 		cleanup_extract_internal(cleanup_header_buf, *tpp);
-	tok822_internalize(cleanup_temp1, tpp[0]->head, TOK822_STR_DEFL);
-	if (cleanup_recip == 0 && (hdr_opts->flags & HDR_OPT_EXTRACT) != 0)
-	    argv_add((hdr_opts->flags & HDR_OPT_RR) ?
-		     cleanup_resent_recip : cleanup_recipients,
-		     vstring_str(cleanup_temp1), (char *) 0);
     }
     vstring_sprintf(cleanup_header_buf, "%s: ", hdr_opts->name);
     tok822_externalize(cleanup_header_buf, tree, TOK822_STR_HEAD);

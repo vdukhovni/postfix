@@ -30,6 +30,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef USE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 
 /* Utility library. */
 

@@ -76,6 +76,7 @@
 /* Application-specific. */
 
 #include "local.h"
+#include "biff_notify.h"
 
 /* deliver_mailbox_file - deliver to recipient mailbox */
 
@@ -86,6 +87,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     VSTREAM *dst;
     int     status;
     int     copy_flags;
+    VSTRING *biff;
+    long    end;
 
     if (msg_verbose)
 	msg_info("deliver_mailbox_file: %s", state.msg_attr.recipient);
@@ -124,11 +127,20 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 			S_IRUSR | S_IWUSR, usr_attr.uid, usr_attr.gid, why);
 	set_eugid(usr_attr.uid, usr_attr.gid);
 	if (dst != 0) {
+	    end = vstream_fseek(dst, (off_t) 0, SEEK_END);
 	    if (deliver_flock(vstream_fileno(dst), why) < 0)
 		vstream_fclose(dst);
 	    else if (mail_copy(COPY_ATTR(state.msg_attr), dst,
-			       copy_flags, why) == 0)
+			       copy_flags, why) == 0) {
 		status = 0;
+		if (var_biff) {
+		    biff = vstring_alloc(100);
+		    vstring_sprintf(biff, "%s@%ld", usr_attr.logname,
+				    (long) end);
+		    biff_notify(vstring_str(biff), VSTRING_LEN(biff) + 1);
+		    vstring_free(biff);
+		}
+	    }
 	}
 #ifdef USE_DOT_LOCK
 	set_eugid(0, 0);

@@ -52,6 +52,9 @@
 /*	int	var_flock_delay;
 /*	int	var_flock_stale;
 /*	int	var_disable_dns;
+/*	int	var_soft_bounce;
+/*	time_t	var_starttime;
+/*	int	var_ownreq_special;
 /*
 /*	char	*var_ldap_server_host;
 /*	char	*var_ldap_search_base;
@@ -86,6 +89,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pwd.h>
+#include <time.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -153,6 +157,9 @@ int     var_flock_tries;
 int     var_flock_delay;
 int     var_flock_stale;
 int     var_disable_dns;
+int     var_soft_bounce;
+time_t  var_starttime;
+int     var_ownreq_special;
 
 #ifdef HAS_LDAP
 
@@ -285,6 +292,8 @@ void    mail_params_init()
     };
     static CONFIG_BOOL_TABLE bool_defaults[] = {
 	VAR_DISABLE_DNS, DEF_DISABLE_DNS, &var_disable_dns,
+	VAR_SOFT_BOUNCE, DEF_SOFT_BOUNCE, &var_soft_bounce,
+	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
 	0,
     };
 
@@ -318,6 +327,11 @@ void    mail_params_init()
      * The PID variable cannot be set from the configuration file!!
      */
     set_config_int(VAR_PID, var_pid = getpid());
+
+    /*
+     * Neither can the start time variable. It isn't even visible.
+     */
+    time(&var_starttime);
 
     /*
      * If have seen this happen just too often.

@@ -88,6 +88,7 @@
 #include <split_at.h>
 #include <valid_hostname.h>
 #include <argv.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -381,6 +382,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     const char *newloc;
     char   *at;
     char  **cpp;
+    char   *domain;
+    const char *junk;
 
 #define STREQ(x,y)	(strcasecmp(x,y) == 0)
 #define STR		vstring_str
@@ -443,11 +446,15 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if (VSTRING_LEN(reply.nexthop) > 0
 	    && qmgr_virtual != 0
-	    && (at = strrchr(recipient->address, '@')) != 0
-	    && maps_find(qmgr_virtual, at + 1)) {
-	    qmgr_bounce_recipient(message, recipient,
+	    && (at = strrchr(recipient->address, '@')) != 0) {
+	    domain = lowercase(mystrdup(at + 1));
+	    junk = maps_find(qmgr_virtual, domain);
+	    myfree(domain);
+	    if (junk) {
+		qmgr_bounce_recipient(message, recipient,
 				"unknown user: \"%s\"", recipient->address);
-	    continue;
+		continue;
+	    }
 	}
 
 	/*

@@ -479,7 +479,7 @@ Postfix offers a choice of submission mechanims.
     and to make maildrop non-writable for unprivileged users:
 
     # chgrp maildrop /var/spool/postfix/maildrop /some/where/postdrop
-    # chmod 730 /var/spool/postfix/maildrop
+    # chmod 1730 /var/spool/postfix/maildrop
     # chmod 2755 /some/where/postdrop
 
     The sendmail posting program will automatically invoke the

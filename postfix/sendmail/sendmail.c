@@ -726,7 +726,7 @@ int     main(int argc, char **argv)
     if (extract_recipients && mode != SM_MODE_ENQUEUE)
 	msg_fatal("-t can be used only in delivery mode");
 
-    if (extract_recipients && argv[optind])
+    if (extract_recipients && argv[OPTIND])
 	msg_fatal("cannot delete recipients with -t");
 
     /*
@@ -739,7 +739,7 @@ int     main(int argc, char **argv)
 	msg_panic("unknown operation mode: %d", mode);
 	/* NOTREACHED */
     case SM_MODE_ENQUEUE:
-	enqueue(sender, full_name, argv + optind);
+	enqueue(sender, full_name, argv + OPTIND);
 	exit(0);
 	break;
     case SM_MODE_MAILQ:
@@ -751,7 +751,7 @@ int     main(int argc, char **argv)
 	exit(0);
 	break;
     case SM_MODE_DAEMON:
-	if (argv[optind])
+	if (argv[OPTIND])
 	    msg_fatal("daemon mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postfix", (char *) 0);
@@ -764,7 +764,7 @@ int     main(int argc, char **argv)
 	exit(err);
 	break;
     case SM_MODE_NEWALIAS:
-	if (argv[optind])
+	if (argv[OPTIND])
 	    msg_fatal("alias initialization mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postalias", (char *) 0);
@@ -774,7 +774,7 @@ int     main(int argc, char **argv)
 	mail_run_replace(var_command_dir, ext_argv->argv);
 	/* NOTREACHED */
     case SM_MODE_USER:
-	if (argv[optind])
+	if (argv[OPTIND])
 	    msg_fatal("stand-alone mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "smtpd", "-S", (char *) 0);

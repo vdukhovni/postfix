@@ -65,7 +65,9 @@
 /*	The per-user mailbox is either a file in the default UNIX mailbox
 /*	directory (\fB/var/mail/\fIuser\fR or \fB/var/spool/mail/\fIuser\fR)
 /*	or it is a file in the user's home directory with a name specified
-/*	via the \fBhome_mailbox\fR configuration parameter.
+/*	via the \fBhome_mailbox\fR configuration parameter. Specify a path
+/*	name ending in \fB/\fR for \fBqmail\fR-compatible \fBmaildir\fR
+/*	delivery.
 /*	Mailbox delivery can be delegated to an external command specified
 /*	with the \fBmailbox_command\fR configuration parameter.
 /*
@@ -73,9 +75,16 @@
 /*	envelope header to each message, prepends a \fBDelivered-To:\fR header
 /*	with the envelope recipient address, prepends a \fB>\fR character to
 /*	lines beginning with "\fBFrom \fR", and appends an empty line.
+/*	The envelope sender address is available in the \fBReturn-Path:\fR
+/*	header.
 /*	The mailbox is locked for exclusive access while delivery is in
 /*	progress. In case of problems, an attempt is made to truncate the
 /*	mailbox to its original length.
+/*
+/*	In the case of \fBmaildir\fR delivery, the local daemon prepends
+/*	a \fBDelivered-To:\fR header with the envelope recipient address.
+/*	The envelope sender address is available in the \fBReturn-Path:\fR
+/*	header.
 /* EXTERNAL COMMAND DELIVERY
 /* .ad
 /* .fi
@@ -106,21 +115,32 @@
 /*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends a \fBDelivered-To:\fR
 /*	header with the recipient envelope address, and appends an empty line.
+/*	The envelope sender address is available in the \fBReturn-Path:\fR
+/*	header.
 /* EXTERNAL FILE DELIVERY
 /* .ad
 /* .fi
 /*	The \fBallow_mail_to_files\fR configuration parameter restricts
 /*	delivery to external files. The default setting (\fBalias,
 /*	forward\fR) forbids file destinations in \fB:include:\fR files.
+/*	Specify a pathname ending in \fB/\fR for \fBqmail\fR-compatible
+/*	\fBmaildir\fR delivery.
 /*
 /*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends a \fBDelivered-To:\fR
 /*	header with the recipient envelope address, prepends a \fB>\fR
 /*	character to lines beginning with "\fBFrom \fR", and appends an
 /*	empty line.
+/*	The envelope sender address is available in the \fBReturn-Path:\fR
+/*	header.
 /*	When the destination is a regular file, it is locked for exclusive
 /*	access while delivery is in progress. In case of problems, an attempt
 /*	is made to truncate a regular file to its original length.
+/*
+/*	In the case of \fBmaildir\fR delivery, the local daemon prepends
+/*	a \fBDelivered-To:\fR header with the envelope recipient address.
+/*	The envelope sender address is available in the \fBReturn-Path:\fR
+/*	header.
 /* ADDRESS EXTENSION
 /* .ad
 /* .fi
@@ -179,7 +199,7 @@
 /*	List of alias databases.
 /* .IP \fBhome_mailbox\fR
 /*	Pathname of a mailbox relative to a user's home directory.
-/*	Specify \fBmaildir\fR for maildir-style delivery.
+/*	Specify a path ending in \fB/\fR for maildir-style delivery.
 /* .IP \fBlocal_command_shell\fR
 /*	Shell to use for external command execution (for example,
 /*	/some/where/smrsh -c).
@@ -187,6 +207,9 @@
 /*	contains no shell built-in commands or meta characters.
 /* .IP \fBmailbox_command\fR
 /*	External command to use for mailbox delivery.
+/* .IP \fBowner_request_special\fR
+/*	Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
+/*	addresses.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
 /* .SH "Locking controls"
@@ -303,6 +326,7 @@ char   *var_home_mailbox;
 char   *var_mailbox_command;
 char   *var_rcpt_fdelim;
 char   *var_local_cmd_shell;
+int     var_biff;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -458,10 +482,15 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_CMD_SHELL, DEF_LOCAL_CMD_SHELL, &var_local_cmd_shell, 0, 0,
 	0,
     };
+    static CONFIG_BOOL_TABLE bool_table[] = {
+	VAR_BIFF, DEF_BIFF, &var_biff,
+	0,
+    };
 
     single_server_main(argc, argv, local_service,
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       0);
 }

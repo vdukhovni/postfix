@@ -71,6 +71,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
     char   *newdir;
     char   *tmpdir;
+    char   *curdir;
     char   *tmpfile;
     char   *newfile;
     VSTRING *why;
@@ -100,16 +101,27 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 
     newdir = concatenate(path, "new/", (char *) 0);
     tmpdir = concatenate(path, "tmp/", (char *) 0);
+    curdir = concatenate(path, "cur/", (char *) 0);
 
     /*
      * Create and write the file as the recipient, so that file quota work.
-     * Create any missing directories on the fly.
+     * Create any missing directories on the fly. The file name is chosen
+     * according to ftp://koobera.math.uic.edu/www/proto/maildir.html:
+     * 
+     * "A unique name has three pieces, separated by dots. On the left is the
+     * result of time(). On the right is the result of gethostname(). In the
+     * middle is something that doesn't repeat within one second on a single
+     * host. I fork a new process for each delivery, so I just use the
+     * process ID. If you're delivering several messages from one process,
+     * use starttime.pid_count.host, where starttime is the time that your
+     * process started, and count is the number of messages you've
+     * delivered."
      */
 #define STR vstring_str
 
     set_eugid(usr_attr.uid, usr_attr.gid);
-    vstring_sprintf(buf, "%ld.%d.%s.%d", (long) time((time_t *) 0),
-		    var_pid, get_hostname(), count++);
+    vstring_sprintf(buf, "%ld.%d_%d.%s", (long) var_starttime,
+		    var_pid, count++, get_hostname());
     tmpfile = concatenate(tmpdir, STR(buf), (char *) 0);
     newfile = concatenate(newdir, STR(buf), (char *) 0);
     if ((dst = vstream_fopen(tmpfile, O_WRONLY | O_CREAT | O_EXCL, 0600)) == 0
@@ -121,7 +133,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	if (mail_copy(COPY_ATTR(state.msg_attr), dst, copy_flags, why) == 0) {
 	    if (link(tmpfile, newfile) < 0
 		&& (errno != ENOENT
-		    || make_dirs(newdir, 0700) < 0
+		    || (make_dirs(curdir,0700), make_dirs(newdir, 0700)) < 0
 		    || link(tmpfile, newfile) < 0)) {
 		vstring_sprintf(why, "link to %s: %m", newfile);
 	    } else {
@@ -142,6 +154,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     vstring_free(why);
     myfree(newdir);
     myfree(tmpdir);
+    myfree(curdir);
     myfree(tmpfile);
     myfree(newfile);
     return (0);

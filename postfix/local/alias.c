@@ -26,7 +26,8 @@
 /*	When an alias exists for recipient \fIname\fR, and an alias
 /*	exists for \fIowner-name\fR, the sender address is changed
 /*	to \fIowner-name\fR, and the owner delivery attribute is
-/*	set accordingly.
+/*	set accordingly. This feature is disabled with
+/*	"owner_request_special = no".
 /* .PP
 /*	Arguments:
 /* .IP state
@@ -229,10 +230,12 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	     * Save the dict_lookup() result before something clobbers it.
 	     */
 #define STR(x)	vstring_str(x)
+#define OWNER_ASSIGN(own) \
+	    (own = (var_ownreq_special == 0 ? 0 : \
+	    concatenate("owner-", state.msg_attr.local, (char *) 0)))
 
 	    expansion = mystrdup(alias_result);
-	    owner = concatenate("owner-", state.msg_attr.local, (char *) 0);
-	    if (maps_find(maps, owner)) {
+	    if (OWNER_ASSIGN(owner) != 0 && maps_find(maps, owner)) {
 		canon_owner = canon_addr_internal(vstring_alloc(10), owner);
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {
@@ -257,7 +260,8 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 			      "alias database unavailable") :
 	       deliver_token_string(state, usr_attr, expansion, (int *) 0));
 	    myfree(expansion);
-	    myfree(owner);
+	    if (owner)
+		myfree(owner);
 	    if (canon_owner)
 		vstring_free(canon_owner);
 	    if (alias_pwd)

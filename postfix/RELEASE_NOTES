@@ -1,8 +1,28 @@
-This release introduces lots of new functionality in response to feedback
-from users.
+Incompatible changes with postfix-beta-19990122-pl01:
+=====================================================
 
-Incompatible changes:
-=====================
+None.
+
+Major changes with postfix-beta-19990122-pl01:
+==============================================
+
+- Restrict who may use ETRN and what domains may be specified.
+Example:  "smtpd_etrn_restrictions = permit_mynetworks, reject".
+
+- BIFF notifications.  For compatibility reasons this feature is
+on by default.  Specify "biff = no" in main.cf if your machine has
+lots of shell users.
+
+- With "soft_bounce = yes", defer delivery instead of bouncing
+mail. This is a safety net for configuration errors with delivery
+agents. It has no effect on errors in virtual maps, canonical maps,
+or in junk mail restrictions.
+
+- Specify "owner_request_special = no" to turn off special treatment
+of owner-foo and foo-request addresses.
+
+Incompatible changes with postfix-beta-19990122:
+================================================
 
 - The syntax of the transport table has changed. An entry like:
 
@@ -21,8 +41,8 @@ Incompatible changes:
 logged as hostname[address]; the pickup daemon logs queue file uid
 and sender address.
 
-Major changes over the previous version:
-========================================
+Major changes with postfix-beta-19990122:
+=========================================
 
 - Junk mail restrictions can now be postoned to the RCPT TO command.
 Specify: "smtpd_recipient_restrictions = reject_maps_rbl...".

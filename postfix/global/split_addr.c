@@ -15,8 +15,9 @@
 /*	returns a pointer to the remainder.
 /*
 /*	Reserved addresses are not split: postmaster, mailer-daemon,
-/*	double-bounce, addresses that begin with owner-, or addresses
-/*	that end in -request.
+/*	double-bounce. Addresses that begin with owner-, or addresses
+/*	that end in -request are not split, unless the owner_request_special
+/*	parameter is set.
 /* LICENSE
 /* .ad
 /* .fi
@@ -51,7 +52,7 @@
 
 char   *split_addr(char *localpart, int delimiter)
 {
-    int    len;
+    int     len;
 
     /*
      * Don't split these, regardless of what the delimiter is.
@@ -66,11 +67,13 @@ char   *split_addr(char *localpart, int delimiter)
     /*
      * Backwards compatibility: don't split owner-foo or foo-request.
      */
-    if (strncasecmp(localpart, "owner-", 6) == 0)
-	return (0);
-    if ((len = strlen(localpart) - 8) > 0
-	&& strcasecmp(localpart + len, "-request") == 0)
-	return (0);
+    if (var_ownreq_special != 0) {
+	if (strncasecmp(localpart, "owner-", 6) == 0)
+	    return (0);
+	if ((len = strlen(localpart) - 8) > 0
+	    && strcasecmp(localpart + len, "-request") == 0)
+	    return (0);
+    }
 
     /*
      * Safe to split this address.

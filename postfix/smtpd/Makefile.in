@@ -78,6 +78,7 @@ smtpd.o: ../include/stringops.h
 smtpd.o: ../include/events.h
 smtpd.o: ../include/smtp_stream.h
 smtpd.o: ../include/peer_name.h
+smtpd.o: ../include/valid_hostname.h
 smtpd.o: ../include/mail_params.h
 smtpd.o: ../include/record.h
 smtpd.o: ../include/rec_type.h

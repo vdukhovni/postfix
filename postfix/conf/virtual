@@ -87,6 +87,9 @@
 #	List of domains that this mail system considers local.
 # .IP \fBmyorigin\fR
 #	The domain that is appended to locally-posted mail.
+# .IP \fBowner_request_special\fR
+#	Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
+#	addresses.
 # SEE ALSO
 #	cleanup(8) canonicalize and enqueue mail
 #	postmap(1) create mapping table

@@ -148,6 +148,11 @@ extern char *var_command_dir;
 extern char *var_pid_dir;
 
  /*
+  * Program startup time.
+  */
+extern time_t var_starttime;
+
+ /*
   * Location of configuration files.
   */
 #define VAR_CONFIG_DIR		"config_directory"
@@ -242,6 +247,13 @@ extern int var_ldap_timeout;
 #define DEF_ALIAS_MAPS		ALIAS_DB_MAP
 #endif
 extern char *var_alias_maps;
+
+ /*
+  * Local delivery: to BIFF or not to BIFF.
+  */
+#define VAR_BIFF		"biff"
+#define DEF_BIFF		1
+extern bool var_biff;
 
  /*
   * Local delivery: mail to files/commands.
@@ -597,6 +609,10 @@ extern char *var_mail_checks;
 #define DEF_RCPT_CHECKS		PERMIT_MYNETWORKS "," CHECK_RELAY_DOMAINS
 extern char *var_rcpt_checks;
 
+#define VAR_ETRN_CHECKS		"smtpd_etrn_restrictions"
+#define DEF_ETRN_CHECKS		""
+extern char *var_etrn_checks;
+
  /*
   * Names of specific restrictions, and the corresponding configuration
   * parameters that control the status codes sent in response to rejected
@@ -647,6 +663,7 @@ extern int var_access_map_code;
 #define CHECK_HELO_ACL		"check_helo_access"
 #define CHECK_SENDER_ACL	"check_sender_access"
 #define CHECK_RECIP_ACL		"check_recipient_access"
+#define CHECK_ETRN_ACL		"check_etrn_access"
 
 #define REJECT_MAPS_RBL		"reject_maps_rbl"
 #define VAR_MAPS_RBL_CODE	"maps_rbl_reject_code"
@@ -674,6 +691,20 @@ extern int var_pid;
 #define VAR_DONT_REMOVE		"dont_remove"
 #define DEF_DONT_REMOVE		0
 extern bool var_dont_remove;
+
+ /*
+  * Paranoia: defer messages instead of bouncing them.
+  */
+#define VAR_SOFT_BOUNCE		"soft_bounce"
+#define DEF_SOFT_BOUNCE		0
+extern bool var_soft_bounce;
+
+ /*
+  * Give special treatment to owner- and -request.
+  */
+#define VAR_OWNREQ_SPECIAL		"owner_request_special"
+#define DEF_OWNREQ_SPECIAL		1
+extern bool var_ownreq_special;
 
 extern void mail_params_init(void);
 

@@ -23,6 +23,10 @@
 /*	char	*smtpd_check_rcpt(state, recipient)
 /*	SMTPD_STATE *state;
 /*	char	*recipient;
+/*
+/*	char	*smtpd_check_etrn(state, recipient)
+/*	SMTPD_STATE *state;
+/*	char	*recipient;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -116,27 +120,34 @@
 /* .PP
 /*	smtpd_check_client() validates the client host name or address.
 /*	Relevant configuration parameters:
-/* .IP client_restrictions
+/* .IP smtpd_client_restrictions
 /*	Restrictions on the names or addresses of clients that may connect
 /*	to this SMTP server.
 /* .PP
 /*	smtpd_check_helo() validates the hostname provided with the
 /*	HELO/EHLO commands. Relevant configuration parameters:
-/* .IP helo_restrictions
+/* .IP smtpd_helo_restrictions
 /*	Restrictions on the hostname that is sent with the HELO/EHLO
 /*	command.
 /* .PP
 /*	smtpd_check_mail() validates the sender address provided with
 /*	a MAIL FROM request. Relevant configuration parameters:
-/* .IP sender_restrictions
+/* .IP smtpd_sender_restrictions
 /*	Restrictions on the sender address that is sent with the MAIL FROM
 /*	command.
 /* .PP
 /*	smtpd_check_rcpt() validates the recipient address provided
 /*	with an RCPT TO request. Relevant configuration parameters:
-/* .IP recipient_restrictions
+/* .IP smtpd_recipient_restrictions
 /*	Restrictions on the recipient address that is sent with the RCPT
 /*	TO command.
+/* .PP
+/*	smtpd_check_etrn() validates the domain name provided with the
+/*	ETRN command, and other client-provided information. Relevant
+/*	configuration parameters:
+/* .IP smtpd_etrn_restrictions
+/*	Restrictions on the hostname that is sent with the HELO/EHLO
+/*	command.
 /* .PP
 /*	smtpd_check_size() checks if a message with the given size can
 /*	be received (zero means that the message size is unknown).  The
@@ -268,6 +279,7 @@ static ARGV *client_restrctions;
 static ARGV *helo_restrctions;
 static ARGV *mail_restrctions;
 static ARGV *rcpt_restrctions;
+static ARGV *etrn_restrctions;
 
 #define STR	vstring_str
 
@@ -325,6 +337,7 @@ void    smtpd_check_init(void)
     helo_restrctions = smtpd_check_parse(var_helo_checks);
     mail_restrctions = smtpd_check_parse(var_mail_checks);
     rcpt_restrctions = smtpd_check_parse(var_rcpt_checks);
+    etrn_restrctions = smtpd_check_parse(var_etrn_checks);
 }
 
 /* smtpd_check_reject - do the boring things that must be done */
@@ -493,12 +506,10 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient)
 	return (SMTPD_CHECK_OK);
 
     /*
-     * Resolve the address if not yet done.
+     * Resolve the address.
      */
-    if (VSTRING_LEN(reply.recipient) == 0) {
-	canon_addr_internal(reply.recipient, recipient);
-	resolve_clnt_query(STR(reply.recipient), &reply);
-    }
+    canon_addr_internal(reply.recipient, recipient);
+    resolve_clnt_query(STR(reply.recipient), &reply);
 
     /*
      * Permit if destination is local. XXX This must be generalized for
@@ -578,12 +589,10 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
 	msg_info("%s: %s", myname, recipient);
 
     /*
-     * Resolve the address if not yet done.
+     * Resolve the address.
      */
-    if (VSTRING_LEN(reply.recipient) == 0) {
-	canon_addr_internal(reply.recipient, recipient);
-	resolve_clnt_query(STR(reply.recipient), &reply);
-    }
+    canon_addr_internal(reply.recipient, recipient);
+    resolve_clnt_query(STR(reply.recipient), &reply);
 
     /*
      * If the destination is local, it is acceptable, because we are
@@ -661,12 +670,10 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr)
 	msg_info("%s: %s", myname, addr);
 
     /*
-     * Resolve the address if not yet done.
+     * Resolve the address.
      */
-    if (VSTRING_LEN(reply.recipient) == 0) {
-	canon_addr_internal(reply.recipient, addr);
-	resolve_clnt_query(STR(reply.recipient), &reply);
-    }
+    canon_addr_internal(reply.recipient, addr);
+    resolve_clnt_query(STR(reply.recipient), &reply);
 
     /*
      * Skip local destinations and non-DNS forms.
@@ -833,12 +840,10 @@ static int check_mail_access(SMTPD_STATE *state, char *table, char *addr)
 	msg_info("%s: %s", myname, addr);
 
     /*
-     * Resolve the address if not yet done.
+     * Resolve the address.
      */
-    if (VSTRING_LEN(reply.recipient) == 0) {
-	canon_addr_internal(reply.recipient, addr);
-	resolve_clnt_query(STR(reply.recipient), &reply);
-    }
+    canon_addr_internal(reply.recipient, addr);
+    resolve_clnt_query(STR(reply.recipient), &reply);
 
     /*
      * Garbage in, garbage out. Every address from canon_addr_internal() and
@@ -1051,7 +1056,6 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     /*
      * Initialize.
      */
-    VSTRING_RESET(reply.recipient);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1083,7 +1087,6 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     /*
      * Initialize.
      */
-    VSTRING_RESET(reply.recipient);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1119,7 +1122,6 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     /*
      * Initialize.
      */
-    VSTRING_RESET(reply.recipient);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1155,7 +1157,6 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     /*
      * Initialize.
      */
-    VSTRING_RESET(reply.recipient);
     status = setjmp(smtpd_check_buf);
     if (status != 0)
 	return (0);
@@ -1173,6 +1174,39 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	} else if (strcasecmp(name, CHECK_RELAY_DOMAINS) == 0) {
 	    status = check_relay_domains(state, recipient);
 	} else if (generic_checks(state, name, &cpp, &status, recipient) == 0) {
+	    msg_warn("unknown %s check: \"%s\"", VAR_RCPT_CHECKS, name);
+	    break;
+	}
+	if (status != 0)
+	    break;
+    }
+    return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+}
+
+/* smtpd_check_etrn - validate ETRN request */
+
+char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
+{
+    char  **cpp;
+    char   *name;
+    int     status;
+
+    /*
+     * Initialize.
+     */
+    status = setjmp(smtpd_check_buf);
+    if (status != 0)
+	return (0);
+
+    /*
+     * Apply restrictions in the order as specified.
+     */
+    for (cpp = etrn_restrctions->argv; (name = *cpp) != 0; cpp++) {
+	if (strchr(name, ':') != 0) {
+	    status = check_domain_access(state, name, domain);
+	} else if (is_map_command(name, CHECK_ETRN_ACL, &cpp)) {
+	    status = check_domain_access(state, *cpp, domain);
+	} else if (generic_checks(state, name, &cpp, &status, domain) == 0) {
 	    msg_warn("unknown %s check: \"%s\"", VAR_RCPT_CHECKS, name);
 	    break;
 	}
@@ -1358,13 +1392,14 @@ static int int_update(char **argv)
 typedef struct {
     char   *name;
     ARGV  **target;
-}       REST_TABLE;
+} REST_TABLE;
 
 static REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,
     "helo_restrictions", &helo_restrctions,
     "sender_restrictions", &mail_restrctions,
     "recipient_restrictions", &rcpt_restrctions,
+    "etrn_restrictions", &etrn_restrctions,
     0,
 };
 

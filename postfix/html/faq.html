@@ -197,7 +197,14 @@ was introduced with the <b>qmail</b> system by Daniel Bernstein.
 <p>
 
 Postfix supports the <b>maildir</b> mailbox format.  Edit <b>main.cf</b>
-and specify a line with: <b>home_mailbox = maildir</b>.
+and specify a line with: <b>home_mailbox = Maildir/</b> (any relative
+pathname that ends in <b>/</b> will do).
+
+<p>
+
+The maildir format is also supported for delivery from aliases or
+<b>.forward</b> files. Specify <i>/file/name/</i> as destination.
+The trailing <b>/</b> turns on <b>maildir</b> delivery.
 
 <hr>
 
@@ -347,7 +354,7 @@ you change the <b>transport</b> file.
 
 <pre>
     uucp      unix  -       n       n       -       -       pipe
-      flags=F user=uucp argv=uux -n -z -a$sender - $nexthop!rmail ($recipient)
+      flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 </pre>
 
 <p>
@@ -425,7 +432,7 @@ via the <b>uucp</b> message transport:
 
 <pre>
     uucp      unix  -       n       n       -       -       pipe
-      flags=F user=uucp argv=uux -n -z -a$sender - $nexthop!rmail ($recipient)
+      flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 </pre>
 
 This runs the <b>uux</b> command, and substitutes the next-hop

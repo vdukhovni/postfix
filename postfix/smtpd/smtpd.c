@@ -124,6 +124,9 @@
 /*	Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 /* .IP \fBsmtpd_recipient_restrictions\fR
 /*	Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
+/* .IP \fBsmtpd_etrn_restrictions\fR
+/*	Restrict what domain names can be used in \fBETRN\fR commands,
+/*	and what clients may issue \fBETRN\fR commands.
 /* .IP \fBmaps_rbl_domains\fR
 /*	List of DNS domains that publish the addresses of blacklisted
 /*	hosts.
@@ -203,6 +206,7 @@
 #include <events.h>
 #include <smtp_stream.h>
 #include <peer_name.h>
+#include <valid_hostname.h>
 
 /* Global library. */
 
@@ -253,6 +257,7 @@ char   *var_client_checks;
 char   *var_helo_checks;
 char   *var_mail_checks;
 char   *var_rcpt_checks;
+char   *var_etrn_checks;
 int     var_unk_client_code;
 int     var_bad_name_code;
 int     var_unk_name_code;
@@ -789,13 +794,43 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
+    char   *err;
 
     /*
      * Sanity checks.
      */
+    if (var_helo_required && state->helo_name == 0) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "503 Error: send HELO/EHLO first");
+	return (-1);
+    }
+    if (state->cleanup != 0) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "503 Error: MAIL transaction in progress");
+	return (-1);
+    }
     if (argc != 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 Syntax: ETRN domain");
+	smtpd_chat_reply(state, "500 Syntax: ETRN domain");
+	return (-1);
+    }
+    if (!ISALNUM(argv[1].strval[0]))
+	argv[1].strval++;
+    if (!valid_hostname(argv[1].strval)) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "501 Error: invalid parameter syntax");
+	return (-1);
+    }
+
+    /*
+     * XXX The implementation borrows heavily from the code that implements
+     * UCE restrictions. These typically return 450 or 550 when a request is
+     * rejected. RFC 1985 requires that 459 be sent when the server refuses
+     * to perform the request.
+     */
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& (err = smtpd_check_etrn(state, argv[1].strval)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
 
@@ -1103,6 +1138,7 @@ int     main(int argc, char **argv)
 	VAR_HELO_CHECKS, DEF_HELO_CHECKS, &var_helo_checks, 0, 0,
 	VAR_MAIL_CHECKS, DEF_MAIL_CHECKS, &var_mail_checks, 0, 0,
 	VAR_RCPT_CHECKS, DEF_RCPT_CHECKS, &var_rcpt_checks, 0, 0,
+	VAR_ETRN_CHECKS, DEF_ETRN_CHECKS, &var_etrn_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	0,
     };

@@ -140,6 +140,9 @@ Restrict what client hostnames are allowed in \fBHELO\fR and
 Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 .IP \fBsmtpd_recipient_restrictions\fR
 Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
+.IP \fBsmtpd_etrn_restrictions\fR
+Restrict what domain names can be used in \fBETRN\fR commands,
+and what clients may issue \fBETRN\fR commands.
 .IP \fBmaps_rbl_domains\fR
 List of DNS domains that publish the addresses of blacklisted
 hosts.
