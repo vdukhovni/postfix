@@ -290,13 +290,11 @@ esac
 case "$CCARGS" in
 *-DHAS_PCRE*)	;;
  *-DNO_PCRE*)	;;
-           *)	pcre_cflags=`(pcre-config --cflags) 2>/dev/null`
-		pcre_libs=`(pcre-config --libs) 2>/dev/null`
-		if [ -n "$pcre_cflags" -a -n "$pcre_libs" ]
-		then
-		    CCARGS="$CCARGS -DHAS_PCRE $pcre_cflags"
-		    AUXLIBS="$AUXLIBS $pcre_libs"
-		fi
+           *)	pcre_cflags=`(pcre-config --cflags) 2>/dev/null` &&
+		    pcre_libs=`(pcre-config --libs) 2>/dev/null` && {
+			CCARGS="$CCARGS -DHAS_PCRE $pcre_cflags"
+			AUXLIBS="$AUXLIBS $pcre_libs"
+		}
 		;;
 esac
 
