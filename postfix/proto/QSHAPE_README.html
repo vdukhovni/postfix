@@ -19,15 +19,17 @@
 
 <h2>Purpose of this document </h2>
 
-<p> This document describes the "qshape" program which helps the
+<p> This document describes the qshape(1) program which helps the
 administrator understand the Postfix queue message distribution
-sorted by time and by sender or recipient domain. qshape is bundled
-with the Postfix 2.1 source under the "auxiliary" directory. In
-order to understand the output of qshape, it useful to understand
-the various Postfix queues. To this end the role of each Postfix
-queue directory is described briefly in the "Background info:
-Postfix queue directories" section near the end of this document.
+sorted by time and by sender or recipient domain. qshape(1) is
+bundled with the Postfix 2.1 source under the "auxiliary" directory.
 </p>
+
+<p> In order to understand the output of qshape(1), it useful to
+understand the various Postfix queues. To this end the role of each
+Postfix queue directory is described briefly in the "Background
+info:  Postfix queue directories" section near the end of this
+document.  </p>
 
 <p> This document covers the following topics: </p>
 
@@ -71,8 +73,8 @@ queue</a></li>
 
 
 <p> When mail is draining slowly or the queue is unexpectedly large,
-run "qshape" as the super-user (root) to help zero in on the problem.
-The "qshape" program displays a tabular view of the Postfix queue
+run qshape(1) as the super-user (root) to help zero in on the problem.
+The qshape(1) program displays a tabular view of the Postfix queue
 contents.  </p>
 
 <ul>
@@ -217,7 +219,7 @@ $ egrep 'qmgr.*(panic|fatal|error|warning):' /var/log/maillog
 </blockquote>
 
 <p> When all else fails try the Postfix mailing list for help, but
-please don't forget to include the top 10 or 20 lines of "qshape"
+please don't forget to include the top 10 or 20 lines of qshape(1)
 output.  </p>
 
 <h2><a name="healthy">Example 1: Healthy queue</a></h2>
@@ -290,7 +292,7 @@ is the tail end of the time distribution, showing that short term
 arrival rates are moderate. Larger numbers and lower message ages
 are more indicative of current trouble. Old mail still going nowhere
 is largely harmless so long as the active and incoming queues are
-short. We can also see that the groups.msg.com undeliverables are
+short. We can also see that the groups.msn.com undeliverables are
 low rate steady stream rather than a concentrated dictionary attack
 that is now over. </p>
 
@@ -322,7 +324,7 @@ queues large and not shrinking despite very large delivery agent
 process limits.  The thread is archived at:
 http://groups.google.com/groups?th=636626c645f5bbde </p>
 
-<p> Using an older version of "qshape" it was quickly determined
+<p> Using an older version of qshape(1) it was quickly determined
 that all the messages were for just a few destinations: </p>
 
 <blockquote>
@@ -780,7 +782,7 @@ queue flushes.  </p>
 
 <h2><a name="credits">Credits</a></h2>
 
-<p> The "qshape" program was developed by Victor Duchovni of Morgan
+<p> The qshape(1) program was developed by Victor Duchovni of Morgan
 Stanley, who also wrote the initial version of this document.  </p>
 
 </body>

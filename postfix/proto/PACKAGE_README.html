@@ -118,17 +118,18 @@ on non-Postfix directories that need to be created in the process.
 <li> <p> Create the necessary mail_owner account and setgid_group
 group for exclusive use by Postfix. </p>
 
-<li> <p> Execute the post-install script in the Postfix configuration
-directory to set ownership and permission of Postfix files and
-directories. Specify any non-default settings for mail_owner or
-setgid_group on the post-install command line: </p>
+<li> <p> Execute the postfix command to set ownership and permission
+of Postfix files and directories, and to update Postfix configuration
+files. If necessary, specify any non-default settings for mail_owner
+or setgid_group on the postfix command line: </p>
 
 <pre>
-# sh post-install upgrade-package setgid_group=xxx mail_owner=yyy
+# postfix set-permissions upgrade-configuration \
+       setgid_group=xxx mail_owner=yyy
 </pre>
 
-<p> This will also update the main.cf and master.cf files if
-necessary. </p>
+<p> With Postfix versions before 2.1 you achieve the same result
+by invoking the post-install script directly. </p>
 
 </ul>
 

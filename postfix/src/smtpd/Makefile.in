@@ -149,6 +149,8 @@ smtpd.o: ../../include/quote_flags.h
 smtpd.o: ../../include/lex_822.h
 smtpd.o: ../../include/namadr_list.h
 smtpd.o: ../../include/input_transp.h
+smtpd.o: ../../include/anvil_clnt.h
+smtpd.o: ../../include/attr_clnt.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
@@ -230,6 +232,7 @@ smtpd_check.o: ../../include/verify_clnt.h
 smtpd_check.o: ../../include/deliver_request.h
 smtpd_check.o: ../../include/recipient_list.h
 smtpd_check.o: ../../include/input_transp.h
+smtpd_check.o: ../../include/is_header.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../../include/mail_stream.h
 smtpd_check.o: smtpd_sasl_glue.h

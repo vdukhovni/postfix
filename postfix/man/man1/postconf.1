@@ -99,6 +99,10 @@ described in \fBregexp_table\fR(5).
 A table that always returns its name as lookup result. For example,
 \fBstatic:foobar\fR always returns the string \fBfoobar\fR as lookup
 result.
+.IP "\fBtcp\fR (read-only)"
+Perform lookups using a simple request-reply protocol that is
+described in tcp_table(5).
+This feature is not included with Postfix 2.1.
 .IP "\fBunix\fR (read-only)"
 A limited way to query the UNIX authentication database. The
 following tables are implemented:

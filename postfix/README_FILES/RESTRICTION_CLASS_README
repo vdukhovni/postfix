@@ -65,7 +65,8 @@ SMTP client IP address, and therefore is subject to IP spoofing.
             ...the usual stuff...
 
     /etc/postfix/access:
-        all     permit_mynetworks,reject
+        all@my.domain   permit_mynetworks,reject
+        all@my.hostname permit_mynetworks,reject
 
 Specify ddbbmm instead of hhaasshh if your system uses ddbbmm files instead of ddbb files.
 To find out what map types Postfix supports, use the command ppoossttccoonnff --mm.

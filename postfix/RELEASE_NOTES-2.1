@@ -5,19 +5,19 @@ incompatibility.
 
 The official Postfix release is called 2.1.x where 2=major release
 number, 1=minor release number, x=patchlevel.  Snapshot releases
-are now called 2.2-yyyymmdd where yyyymmdd is the release date
-(yyyy=year, mm=month, dd=day).  The mail_release_date configuration
-parameter contains the release date (both for official release and
-snapshot release).  Patches are issued for the official release
-and change the patchlevel and the release date. Patches are never
-issued for snapshot releases.
+are called 2.2-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+mm=month, dd=day).  The mail_release_date configuration parameter
+contains the release date (both for official release and snapshot
+release).  Patches are issued for the official release and change
+the patchlevel and the release date. Patches are never issued for
+snapshot releases.
 
 Major changes - critical
 ------------------------
 
-You must stop Postfix 1.x before upgrading. This is because the
-master-child protocols have changed, and nothing will work with
-the old master daemon process.
+If you run Postfix 1.x or earlier then you must stop Postfix before
+upgrading. This is because the master-child protocols have changed,
+and very little will work with the old master daemon process.
 
 [Incompat 20021119] You can upgrade Postfix 2.0 without stopping.
 After upgrading an existing Postfix 2.0 system you must use "postfix

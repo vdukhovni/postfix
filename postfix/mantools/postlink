@@ -450,6 +450,7 @@ exec sed '
 	s/[<bB>]*smtp-[</bB>]*\n* *[<bB>]*sink[</bB>]*(1)/<a href="smtp-sink.1.html">&<\/a>/g
 	s/[<bB>]*qmqp-[</bB>]*\n* *[<bB>]*source[</bB>]*(1)/<a href="qmqp-source.1.html">&<\/a>/g
 	s/[<bB>]*qmqp-[</bB>]*\n* *[<bB>]*sink[</bB>]*(1)/<a href="qmqp-sink.1.html">&<\/a>/g
+	s/[<bB>]*qshape[</bB>]*(1)/<a href="qshape.1.html">&<\/a>/g
 	s/[<bB>]*access[</bB>]*(5)/<a href="access.5.html">&<\/a>/g
 	s/[<bB>]*aliases[</bB>]*(5)/<a href="aliases.5.html">&<\/a>/g
 	s/[<bB>]*canonical[</bB>]*(5)/<a href="canonical.5.html">&<\/a>/g
@@ -594,6 +595,7 @@ exec sed '
 
 	# Do nice links for smtp:host:port etc.
 
+	s/[[:<:]]\(error\):/<a href="error.8.html">\1<\/a>:/g
 	s/[[:<:]]\(smtp\):/<a href="smtp.8.html">\1<\/a>:/g
 	s/[[:<:]]\(lmtp\):/<a href="lmtp.8.html">\1<\/a>:/g
 

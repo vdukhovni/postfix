@@ -97,10 +97,6 @@ navigate faster.
 The PORTING file discusses how to go about porting Postfix to other
 UNIX platforms.
 
-The TODO file lists things that still need to be done. If you want
-to set your teeth into one of those problems, drop me a note at
-wietse@porcupine.org to avoid duplication of effort.
-
 Documentation:
 
     README_FILES/	Instructions for specific Postfix features
@@ -123,6 +119,7 @@ Command-line utilities:
     src/postalias/	Alias database management
     src/postcat/	List Postfix queue file
     src/postconf/	Configuration utility
+    src/postdrop/	Postfix mail submission program
     src/postfix/	Postfix administrative interface
     src/postkick/	Postfix IPC for shell scripts
     src/postlock/	Postfix locking for shell scripts

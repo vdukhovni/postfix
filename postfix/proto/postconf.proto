@@ -1364,11 +1364,9 @@ is bounced, in order to stop a mailer loop.
 
 %PARAM ignore_mx_lookup_error no
 
-<p>
-Ignore DNS MX lookups that produce no response.  By default,
-Postfix defers delivery and tries again after some delay.  This
-behavior is required by the SMTP standard.
-</p>
+<p> Ignore DNS MX lookups that produce no response.  By default,
+the Postfix SMTP client defers delivery and tries again after some
+delay.  This behavior is required by the SMTP standard.  </p>
 
 <p>
 Specify "<b>ignore_mx_lookup_error = yes</b>" to force a DNS A record
@@ -3565,12 +3563,10 @@ Skip SMTP servers that greet with a 5XX status code (go away, do
 not try again later).
 </p>
 
-<p>
-By default, Postfix moves on the next mail exchanger. Specify
-"smtp_skip_5xx_greeting = no" if Postfix should bounce the mail
-immediately. The default setting is incorrect, but it is what a
-lot of people expect to happen.
-</p>
+<p> By default, the Postfix SMTP client moves on the next mail
+exchanger. Specify "smtp_skip_5xx_greeting = no" if Postfix should
+bounce the mail immediately. The default setting is incorrect, but
+it is what a lot of people expect to happen.  </p>
 
 %PARAM smtp_skip_quit_response yes
 
@@ -4443,7 +4439,8 @@ code for rejected requests (default: 554). </dd>
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when the RCPT TO address has no DNS A or MX
-record. <br> The unknown_address_reject_code parameter specifies
+record and Postfix is not final destination for the recipient
+address. <br> The unknown_address_reject_code parameter specifies
 the response code for rejected requests (default: 450).  The response
 is always 450 in case of a temporary DNS error.</dd>
 
@@ -4767,10 +4764,11 @@ Postfix version 2.1 and later. </dd>
 
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
-<dd>Reject the request when the MAIL FROM address has no DNS A
-or MX record. <br> The unknown_address_reject_code parameter
-specifies the response code for rejected requests (default: 450).
-The response is always 450 in case of a temporary DNS error. </dd>
+<dd>Reject the request when the MAIL FROM address has no DNS A or
+MX record and Postfix is not final destination for the sender
+address. <br> The unknown_address_reject_code parameter specifies
+the response code for rejected requests (default: 450).  The response
+is always 450 in case of a temporary DNS error. </dd>
 
 <dt><b><a name="reject_unlisted_sender">reject_unlisted_sender</a></b></dt>
 

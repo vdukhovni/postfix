@@ -77,29 +77,29 @@ apply to all SMTP mail.
     SMTPD_PROXY_README document. This happens while Postfix receives mail,
     before it is stored in the incoming queue.
 
-  * Require that the client sends the HELO or EHLO command before sending the
+  * Requiring that the client sends the HELO or EHLO command before sending the
     MAIL FROM or ETRN command. This may cause problems with home-grown
     applications that send mail. For this reason, the requirement is disabled
     by default ("smtpd_helo_required = no").
 
-  * Disallow illegal syntax in MAIL FROM or RCPT TO commands. This may cause
+  * Disallowing illegal syntax in MAIL FROM or RCPT TO commands. This may cause
     problems with home-grown applications that send mail, and with ancient PC
     mail clients. For this reason, the requirement is disabled by default
     ("strict_rfc821_envelopes = no").
 
-      o Disallow RFC 822 address syntax (example: "MAIL FROM: the dude
+      o Disallowing RFC 822 address syntax (example: "MAIL FROM: the dude
         <dude@example.com>").
 
-      o Disallow addresses that are not enclosed with <> (example: "MAIL FROM:
-        dude@example.com").
+      o Disallowing addresses that are not enclosed with <> (example: "MAIL
+        FROM: dude@example.com").
 
-  * Reject mail from a non-existent sender address. This form of egress
+  * Rejecting mail from a non-existent sender address. This form of egress
     filtering helps to slow down worms and other malware, but may cause
     problems with home-grown software that sends out mail software with an
     unreplyable address. For this reason the requirement is disabled by default
     ("smtpd_reject_unlisted_sender = no").
 
-  * Reject mail for a non-existent recipient address. This form of ingress
+  * Rejecting mail for a non-existent recipient address. This form of ingress
     filtering helps to keep the mail queue free of undeliverable MAILER-DAEMON
     messages. This requirement is enabled by default
     ("smtpd_reject_unlisted_recipient = yes").
