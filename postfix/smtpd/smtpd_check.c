@@ -1513,16 +1513,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	 * Sender mail address restrictions.
 	 */
 	else if (is_map_command(name, CHECK_SENDER_ACL, &cpp)) {
-	    if (state->sender)
+	    if (state->sender && *state->sender)
 		status = check_mail_access(state, *cpp, state->sender,
 					   state->sender,
 					   SMTPD_NAME_SENDER, def_acl);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_ADDRESS) == 0) {
-	    if (state->sender)
+	    if (state->sender && *state->sender)
 		status = reject_unknown_address(state, state->sender,
 					  state->sender, SMTPD_NAME_SENDER);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_SENDDOM) == 0) {
-	    if (state->sender)
+	    if (state->sender && *state->sender)
 		status = reject_unknown_address(state, state->sender,
 					  state->sender, SMTPD_NAME_SENDER);
 	} else if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {

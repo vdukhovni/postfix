@@ -3089,3 +3089,8 @@ Apologies for any names omitted.
 	and added a test for the case that they specify a lookup
 	table on the right-hand side of an SMTPD access map.
 	File: smtpd/smtpd_access.c.
+
+	Cleanup: removed spurious sender address checks for <>.
+
+	Cleanup: the smtp client now consistently logs host[address]
+	for all connection attempts.

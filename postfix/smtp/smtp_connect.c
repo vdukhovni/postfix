@@ -174,7 +174,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
     memcpy((char *) &sin.sin_addr, addr->data, sizeof(sin.sin_addr));
 
     if (msg_verbose)
-	msg_info("%s: trying: %s/%s port %d...",
+	msg_info("%s: trying: %s[%s] port %d...",
 		 myname, addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
     if (var_smtp_conn_tmout > 0) {
 	non_blocking(sock, NON_BLOCKING);
@@ -187,7 +187,8 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
 	conn_stat = connect(sock, (struct sockaddr *) & sin, sizeof(sin));
     }
     if (conn_stat < 0) {
-	vstring_sprintf(why, "connect to %s: %m", addr->name);
+	vstring_sprintf(why, "connect to %s[%s]: %m",
+			addr->name, inet_ntoa(sin.sin_addr));
 	smtp_errno = SMTP_RETRY;
 	close(sock);
 	return (0);
@@ -197,7 +198,8 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
      * Skip this host if it takes no action within some time limit.
      */
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
-	vstring_sprintf(why, "connect to %s: read timeout", addr->name);
+	vstring_sprintf(why, "connect to %s[%s]: read timeout",
+			addr->name, inet_ntoa(sin.sin_addr));
 	smtp_errno = SMTP_RETRY;
 	close(sock);
 	return (0);
@@ -208,8 +210,8 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	vstring_sprintf(why, "connect to %s: server dropped connection",
-			addr->name);
+	vstring_sprintf(why, "connect to %s[%s]: server dropped connection",
+			addr->name, inet_ntoa(sin.sin_addr));
 	smtp_errno = SMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
@@ -219,8 +221,8 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
      * Skip this host if it sends a 4xx greeting.
      */
     if (ch == '4' && var_smtp_skip_4xx_greeting) {
-	vstring_sprintf(why, "connect to %s: server refused mail service",
-			addr->name);
+	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+			addr->name, inet_ntoa(sin.sin_addr));
 	smtp_errno = SMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);

@@ -1,11 +1,11 @@
-Incompatible changes with snapshot 19990910
+Incompatible changes with snapshot 19990911
 ===========================================
 
 - You can not longer use virtual, canonical or aliases tables as
 SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for.
 
-Major changes with snapshot 19990910
+Major changes with snapshot 19990911
 ====================================
 
 - Per-client/helo/sender/recipient UCE restrictions: you can now
@@ -42,16 +42,26 @@ That should stop a lot of the mail to non-existent recipients.  It
 won't stop mail to broken aliases or to users with broken .forward
 files, though.
 
-All this is great for non-relaying sites. A good example with
-permit_recipient_map for relaying sites still needs to be found.
+For a relaying site, the best we can do is something like:
+
+    smtpd_recipient_restrictions =
+	permit_mynetworks
+	reject_unauth_destination
+	reject_unknown_sender_domain
+	...other checks to reject non-FQDN, RBL, access maps...
+	permit_recipient_map unix:passwd.byname
+	permit_recipient_map hash:/etc/canonical
+	permit_recipient_map hash:/etc/postfix/virtual
+	permit_recipient_map hash:/etc/aliases
+	reject
 
 Unfortunately, permit_recipient_map does not combine well with
-permit_mynetworks, because permit_mynetworks accepts mail for ALL
-destinations, including ALL LOCAL destinations.
+permit_mynetworks, because permit_mynetworks accepts mail for 
+non-existent local recipients.
 
 Unfortunately, permit_recipient_map does not combine well with
-check_relay_domains, because check_relay_domains permits mail for
-ALL LOCAL destinations.
+check_relay_domains, because check_relay_domains permits either
+rejects mail, or accepts mail for non-existent local recipients.
 
 Incompatible changes with postfix-19990906
 ==========================================
