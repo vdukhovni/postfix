@@ -9980,6 +9980,15 @@ Apologies for any names omitted.
 	util/name_mask.[hc], global/ehlo_mask.[hc], smtpd/smtpd.c,
 	smtp/smtp.c, smtp/smtp_proto.c.
 
+20041219
+
+	Bugfix: postcat without -o was broken. File: postcat/postcat.c.
+
+20041220
+
+	Dummy VSTREAM read-write routines. Files: util/dummy_read.c,
+	util/dummy_write.c.
+
 Open problems:
 
 	Med: implement ${name[?:]value} in main.cf or update the

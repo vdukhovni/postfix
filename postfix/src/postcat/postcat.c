@@ -105,6 +105,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
     int     first = 1;
     int     ch;
     off_t   offset;
+    int     in_message = 0;
 
 #define TEXT_RECORD(rec_type) \
 	    (rec_type == REC_TYPE_CONT || rec_type == REC_TYPE_NORM)
@@ -135,8 +136,8 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    vstream_printf("*** ENVELOPE RECORDS %s ***\n", VSTREAM_PATH(fp));
 	    first = 0;
 	}
-	if ((prev_type == REC_TYPE_CONT && !TEXT_RECORD(rec_type))
-	    || !(flags & PC_FLAG_OFFSET))
+	if (prev_type == REC_TYPE_CONT && in_message && !msg_verbose
+	    && ((flags & PC_FLAG_OFFSET) != 0 || !TEXT_RECORD(rec_type)))
 	    VSTREAM_PUTCHAR('\n');
 	if (flags & PC_FLAG_OFFSET)
 	    vstream_printf("%9lu ", (unsigned long) offset);
@@ -147,9 +148,9 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    vstream_printf("%s: %s", rec_type_name(rec_type),
 			   asctime(localtime(&time)));
 	    break;
-	case REC_TYPE_CONT:
+	case REC_TYPE_CONT:			/* REC_TYPE_FILT collision */
 	    if (msg_verbose)
-		vstream_printf("%s: ", rec_type_name(rec_type));
+		vstream_printf("unterminated_text: ");
 	    vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
 	    if (msg_verbose)
 		VSTREAM_PUTCHAR('\n');
@@ -162,9 +163,11 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    break;
 	case REC_TYPE_MESG:
 	    vstream_printf("*** MESSAGE CONTENTS %s ***\n", VSTREAM_PATH(fp));
+	    in_message = 1;
 	    break;
 	case REC_TYPE_XTRA:
 	    vstream_printf("*** HEADER EXTRACTED %s ***\n", VSTREAM_PATH(fp));
+	    in_message = 0;
 	    break;
 	case REC_TYPE_END:
 	    vstream_printf("*** MESSAGE FILE END %s ***\n", VSTREAM_PATH(fp));

@@ -33,6 +33,8 @@ extern int stream_recv_fd(int);
 extern int stream_send_fd(int, int);
 extern int unix_recv_fd(int);
 extern int unix_send_fd(int, int);
+extern int dummy_read(int, void *, unsigned, int, void *);
+extern int dummy_write(int, void *, unsigned, int, void *);
 
 #define BLOCKING	0
 #define NON_BLOCKING	1
