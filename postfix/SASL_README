@@ -137,8 +137,8 @@ Enabling SASL authentication in the Postfix SMTP client
 Turn on client-side SASL authentication, and specify a table with
 per-host or per-destination username and password information.
 Postfix first looks up the server hostname; if no entry is found,
-then Postfix looks up the destination domain name (the address
-remote part).
+then Postfix looks up the destination domain name (usually, the
+remote part of an email address).
 
     /etc/postfix/main.cf:
 	smtp_sasl_auth_enable = yes

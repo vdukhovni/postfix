@@ -4009,3 +4009,12 @@ Apologies for any names omitted.
 	feature uses the same filtering syntax as the header_checks
 	feature.  File:  cleanup/cleanup_message.c. See also the
 	conf/sample-filter.cf file.
+
+20000529
+
+	Feature: full content inspection through external software.
+	This uses existing interfaces for sending and receiving mail
+	from and to the content inspector. Currently, only the SMTP
+	server is suitable for receiving inspected mail. Details
+	in INSPECTION_README. Files: pickup/pickup.c, smtpd/smtpd.c,
+	qmgr/qmgr_message.c.

@@ -47,17 +47,17 @@ PICKUP(8)                                               PICKUP(8)
        details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
        command after a configuration change.
 
+<b>Content</b> <b>inspection</b> <b>controls</b>
+       <b>content</b><i>_</i><b>inspector</b>
+              The name of a mail delivery transport that inspects
+              mail  prior  to  delivery.  This parameter uses the
+              same syntax as the right-hand  side  of  a  Postfix
+              transport table.
+
 <b>Miscellaneous</b>
        <b>always</b><i>_</i><b>bcc</b>
-              Address to send a copy of each message that  enters
+              Address  to send a copy of each message that enters
               the system.
-
-       <b>mail</b><i>_</i><b>owner</b>
-              The  process  privileges  used  while not opening a
-              <b>maildrop</b> file.
-
-       <b>queue</b><i>_</i><b>directory</b>
-              Top-level directory of the Postfix queue.
 
 
 
@@ -71,13 +71,20 @@ PICKUP(8)                                               PICKUP(8)
 PICKUP(8)                                               PICKUP(8)
 
 
+       <b>mail</b><i>_</i><b>owner</b>
+              The process privileges used  while  not  opening  a
+              <b>maildrop</b> file.
+
+       <b>queue</b><i>_</i><b>directory</b>
+              Top-level directory of the Postfix queue.
+
 <b>SEE</b> <b>ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
        <a href="master.8.html">master(8)</a> process manager
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -85,13 +92,6 @@ PICKUP(8)                                               PICKUP(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
 
 
 

@@ -1,4 +1,24 @@
-Major changes with snapshot-20000526
+Incompatible changes with snapshot-20000529
+===========================================
+
+This version introduces an incompatible queue file format change
+when content inspection is enabled. Old Postfix queue files will
+work fine, but new queue files will not work with old Postfix
+versions. They log a warning and move incompatible queue files to
+the "corrupt" mail queue subdirectory.
+
+Major changes with snapshot-20000529
+====================================
+
+This version introduces full content inspection through an external
+process. This involves an incompatible change in queue file format.
+Mail is delivered to content inspection software via an existing
+mail delivery agent, and is re-injected into Postfix via an existing
+mail submission agent.  Presently, only the Postfix SMTP server is
+suitable for receiving already inspected mail. Details in the
+INSPECTION_README file.
+
+Major changes with snapshot-20000528
 ====================================
 
 Specify "body_checks = regexp:/etc/postfix/body_checks" for a quick

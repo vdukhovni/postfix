@@ -59,6 +59,12 @@
 /* .IP \fBstrict_rfc821_envelopes\fR
 /*	Disallow non-RFC 821 style addresses in envelopes. For example,
 /*	allow RFC822-style address forms with comments, like Sendmail does.
+/* .SH "Content inspection controls"
+/* .IP \fBcontent_inspector\fR
+/*	The name of a mail delivery transport that inspects mail prior
+/*	to delivery.
+/*	This parameter uses the same syntax as the right-hand side of
+/*	a Postfix transport table.
 /* .SH "Authenication controls"
 /* .IP \fBenable_sasl_authentication\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
@@ -335,6 +341,7 @@ int     var_smtpd_junk_cmd_limit;
 bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
+char   *var_inspect_xport;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -660,6 +667,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld",
 		(long) time((time_t *) 0));
+    if (*var_inspect_xport)
+	rec_fprintf(state->cleanup, REC_TYPE_INSP, "%s", var_inspect_xport);
     rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
     state->sender = mystrdup(argv[2].strval);
     smtpd_chat_reply(state, "250 Ok");
@@ -1425,6 +1434,7 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
+	VAR_INSPECT_XPORT, DEF_INSPECT_XPORT, &var_inspect_xport, 0, 0,
 	0,
     };
 

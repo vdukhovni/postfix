@@ -75,6 +75,12 @@ a configuration change.
 .IP \fBstrict_rfc821_envelopes\fR
 Disallow non-RFC 821 style addresses in envelopes. For example,
 allow RFC822-style address forms with comments, like Sendmail does.
+.SH "Content inspection controls"
+.IP \fBcontent_inspector\fR
+The name of a mail delivery transport that inspects mail prior
+to delivery.
+This parameter uses the same syntax as the right-hand side of
+a Postfix transport table.
 .SH "Authenication controls"
 .IP \fBenable_sasl_authentication\fR
 Enable per-session authentication as per RFC 2554 (SASL).

@@ -101,7 +101,7 @@
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	By default, Postfix is built without SASL support.
 /* .IP \fBsmtp_sasl_password_maps\fR
-/*	Lookup tables with per-host \fIname\fR:\fIpassword\fR entries.
+/*	Lookup tables with per-host or domain \fIname\fR:\fIpassword\fR entries.
 /*	No entry for a host means no attempt to authenticate.
 /* .IP \fBsmtp_sasl_security_options\fR
 /*	Zero or more of the following.
