@@ -8566,11 +8566,11 @@ Apologies for any names omitted.
 	no MX record is found, the A record is used instead. File:
 	smtpd/smtpd_check.c.
 
-	Experimental feature: ``check_{sender,recipient}_ns_access
-	maptype:mapname'' applies the named Postfix access table
-	to the DNS server hostname and IP addresses for the sender
-	or recipient address. If no NS record is found, the parent
-	domain is used instead. File: smtpd/smtpd_check.c.
+	Feature: ``check_{sender,recipient}_ns_access maptype:mapname''
+	applies the named Postfix access table to the DNS server
+	hostname and IP addresses for the sender or recipient
+	address. If no NS record is found, the parent domain is
+	used instead. File: smtpd/smtpd_check.c.
 
 20030917
 
@@ -8589,6 +8589,12 @@ Apologies for any names omitted.
 	whitelisting. The Postfix SMTP server will reject the
 	request with "451 server configuration error" and will log
 	a warning explaining why. File: smtpd/smtpd_check.c.
+
+20030918
+
+	Bugfix: check_mumble_ns_access did not correctly look up
+	NS records of parent domains, causing mail to be deferred
+	with a 450 status code. File: smtpd/smtpd_check.c.
 
 Open problems:
 

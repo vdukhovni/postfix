@@ -58,3 +58,5 @@ discardtext@hold.domain	discard text
 dunnotext@dunno.domain	dunno text
 64.94.110.11		reject Verisign wild-card
 topica.com		reject
+10.10.10.10		reject mail server 10.10.10.10
+spike.porcupine.org	reject name server spike.porcupine.org

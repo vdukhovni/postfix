@@ -135,6 +135,9 @@ OK
 554 <foo@verisign-wildcard.com>: Recipient address rejected: Verisign wild-card
 >>> rcpt foo@verisign.com
 OK
+>>> rcpt foo@1.2.3.porcupine.org
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@1.2.3.porcupine.org>: Recipient address rejected: mail server 10.10.10.10; from=<foo@verisign.com> to=<foo@1.2.3.porcupine.org> proto=SMTP helo=<example.tld>
+554 <foo@1.2.3.porcupine.org>: Recipient address rejected: mail server 10.10.10.10
 >>> #
 >>> # Check NS access
 >>> #
@@ -170,3 +173,6 @@ OK
 554 <foo@ns1.topica.com>: Recipient address rejected: Access denied
 >>> rcpt foo@verisign-wildcard.com
 OK
+>>> rcpt foo@1.2.3.porcupine.org
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org; from=<foo@verisign-wildcard.com> to=<foo@1.2.3.porcupine.org> proto=SMTP helo=<example.tld>
+554 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org

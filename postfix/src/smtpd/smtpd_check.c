@@ -2218,26 +2218,28 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * If the domain name exists but MX lookup fails, fabricate an MX record
      * that points to the domain name itself.
      * 
-     * If the domain name exists but NS lookup fails, look up the parent domain
-     * NS record.
+     * If the domain name exists but NS lookup fails, look up parent domain
+     * NS records.
      */
     dns_status = dns_lookup(domain, type, 0, &server_list,
 			    (VSTRING *) 0, (VSTRING *) 0);
-    if (dns_status == DNS_NOTFOUND && h_errno != HOST_NOT_FOUND) {
+    if (dns_status == DNS_NOTFOUND) {
+	if (h_errno != NO_DATA)
+	    return (SMTPD_CHECK_DUNNO);
 	if (type == T_MX) {
 	    server_list = dns_rr_create(domain, &fixed, 0,
 					domain, strlen(domain) + 1);
 	    dns_status = DNS_OK;
-	} else if (type == T_NS && (domain = strchr(domain, '.')) != 0
-		   && strchr(++domain, '.') != 0) {
-	    dns_status = dns_lookup(domain, T_NS, 0, &server_list,
-				    (VSTRING *) 0, (VSTRING *) 0);
-	    if (dns_status != DNS_OK)
-		dns_status = DNS_RETRY;
+	} else if (type == T_NS) {
+	    while ((domain = strchr(domain, '.')) != 0 && domain[1]) {
+		domain += 1;
+		dns_status = dns_lookup(domain, type, 0, &server_list,
+					(VSTRING *) 0, (VSTRING *) 0);
+		if (dns_status != DNS_NOTFOUND || h_errno != NO_DATA)
+		    break;
+	    }
 	}
     }
-    if (dns_status == DNS_NOTFOUND)
-	return (SMTPD_CHECK_DUNNO);
     if (dns_status != DNS_OK) {
 	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
 			 "450 <%s>: %s rejected: unable to look up %s host",
