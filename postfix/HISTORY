@@ -4136,3 +4136,14 @@ Apologies for any names omitted.
 	Cleanup: smtpd now replies with 555 when the client sends
 	unrecognized RCPT TO parameters, as required by RFC 1869
 	(problem report by Robert Norris @ its.monash.edu.au).
+
+20000822
+
+	Logging: the SMTP server's SASL code logs the authentication
+	method along with an authentication failure. Suggested by
+	Ronald F. Guilmette @ monkeys.com.
+
+	Workaround: some systems have file size resource limits
+	that cannot be represented with the off_t type that is used
+	by standard functions such as lseek(2). Problem reported
+	by Blaz Zupan @ amis.net.

@@ -148,8 +148,8 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     initial_response = (argc == 3 ? argv[2].strval : 0);
     err = smtpd_sasl_authenticate(state, auth_mechanism, initial_response);
     if (err != 0) {
-	msg_warn("%s[%s]: SASL authentication failed",
-		 state->name, state->addr);
+	msg_warn("%s[%s]: SASL %s authentication failed",
+		 state->name, state->addr, auth_mechanism);
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }

@@ -44,6 +44,7 @@
 #include <sys/resource.h>
 #include <signal.h>
 #endif
+#include <limits.h>
 
 /* Utility library. */
 
@@ -56,18 +57,21 @@
 
 off_t   get_file_limit(void)
 {
-#ifdef USE_ULIMIT
     off_t   limit;
 
+#ifdef USE_ULIMIT
     if ((limit = ulimit(UL_GETFSIZE, 0)) < 0)
 	msg_fatal("ulimit: %m");
+    if (limit > INT_MAX / ULIMIT_BLOCK_SIZE)
+	limit = INT_MAX / ULIMIT_BLOCK_SIZE;
     return (limit * ULIMIT_BLOCK_SIZE);
 #else
     struct rlimit rlim;
 
     if (getrlimit(RLIMIT_FSIZE, &rlim) < 0)
 	msg_fatal("getrlimit: %m");
-    return (rlim.rlim_cur);
+    limit = rlim.rlim_cur;
+    return (limit < 0 ? INT_MAX : rlim.rlim_cur);
 #endif						/* USE_ULIMIT */
 }
 
