@@ -200,19 +200,26 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    }
 #define STREQ(x,y) (strcmp(x,y) == 0)
 
-	    if (info->st.st_uid == var_owner_uid
-		|| (STREQ(attr_name, MAIL_ATTR_ENCODING)
-		    && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
-			|| STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
-			|| STREQ(attr_value, MAIL_ATTR_ENC_NONE)))) {
+	    if (STREQ(attr_name, MAIL_ATTR_ENCODING)
+		&& (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
+		    || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
+		    || STREQ(attr_value, MAIL_ATTR_ENC_NONE))) {
 		rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
 			    attr_name, attr_value);
-		continue;
+	    } else if (info->st.st_uid != var_owner_uid) {
+		msg_warn("uid=%ld: ignoring attribute record: %.200s=%.200s",
+			 (long) info->st.st_uid, attr_name, attr_value);
 	    }
-	    msg_warn("uid=%ld: ignoring attribute record: %.200s=%.200s",
-		     (long) info->st.st_uid, attr_name, attr_value);
 	    continue;
 	}
+	if (type == REC_TYPE_RRTO) 
+	    /* Use message header extracted information instead. */
+	    continue;
+	if (type == REC_TYPE_ERTO) 
+	    /* Use message header extracted information instead. */
+	    continue;
+	if (type == REC_TYPE_INSP && info->st.st_uid != var_owner_uid)
+	    continue;
 	if (type == REC_TYPE_FILT && info->st.st_uid != var_owner_uid)
 	    continue;
 	else {

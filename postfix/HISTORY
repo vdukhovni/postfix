@@ -6623,6 +6623,15 @@ Apologies for any names omitted.
 	address must be handled sensibly. Files: global/resolve_clnt.c,
 	trivial-rewrite/resolve.c. It ain't perfect yet, but close.
 
+20020613
+
+	Bugfix: postsuper -r was broken as of 20020510. The cleanup
+	daemon would discard mail with MIME type information. Moved
+	a bunch of sanity checks from the cleanup daemon to the
+	pickup daemon, so the checks are in one place.  Problem
+	experienced by Pavol Luptak. Files: pickup/pickup.c,
+	cleanup/cleanup_extracted.c.
+
 Open problems:
 
 	Medium: old maildrop files are no longer readable by the
@@ -6630,8 +6639,8 @@ Open problems:
 
 	Low: all table lookups should consistently use internalized
 	(unquoted) or externalized (quoted) forms as lookup keys.
-	smtpd, qmgr, local, etc. use internalized forms as keys.
-	cleanup uses externalized forms.
+	smtpd, qmgr, local, etc. use unquoted address forms as
+	keys.  cleanup uses quoted forms.
 
 	Low: sendmail does not store null command-line recipients.
 

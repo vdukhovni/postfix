@@ -120,21 +120,13 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
 
 /* cleanup_extracted_process - process extracted segment */
 
-static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int unused_len)
+static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int len)
 {
     char   *myname = "cleanup_extracted_process";
     VSTRING *clean_addr;
     ARGV   *rcpt;
     char  **cpp;
 
-    if (type == REC_TYPE_RRTO) {
-	/* XXX Use extracted information instead. */
-	return;
-    }
-    if (type == REC_TYPE_ERTO) {
-	/* XXX Use extracted information instead. */
-	return;
-    }
     if (type == REC_TYPE_RCPT) {
 	clean_addr = vstring_alloc(100);
 	cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
@@ -154,9 +146,7 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 	return;
     }
     if (type != REC_TYPE_END) {
-	msg_warn("%s: unexpected record type %d in extracted segment",
-		 state->queue_id, type);
-	state->errs |= CLEANUP_STAT_BAD;
+	cleanup_out(state, type, buf, len);
 	return;
     }
 

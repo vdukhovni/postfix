@@ -1,4 +1,3 @@
-# 
 # VIRTUAL(5)                                             VIRTUAL(5)
 # 
 # NAME
@@ -132,8 +131,8 @@
 #               $inet_interfaces.
 # 
 #               This functionality overlaps with  functionality  of
-#               the local alias(5) database. The difference is that
-#               virtual  mapping  can  be  applied   to   non-local
+#               the  local  aliases(5)  database. The difference is
+#               that virtual mapping can be  applied  to  non-local
 #               addresses.
 # 
 #        @domain address, address, ...
@@ -216,5 +215,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                                 1
-# 
+#                                                        VIRTUAL(5)
