@@ -149,12 +149,15 @@
 /*	postalias(1), create/update/query alias database
 /*	postcat(1), examine Postfix queue file
 /*	postconf(1), Postfix configuration utility
+/*	postfix(1), Postfix control program
 /*	postkick(1), trigger Postfix daemon
 /*	postlock(1), Postfix-compatible locking
 /*	postlog(1), Postfix-compatible logging
 /*	postmap(1), Postfix lookup table manager
 /*	postqueue(1), Postfix mail queue control
 /*	postsuper(1), Postfix housekeeping
+/*	mailq(1), Sendmail compatibility interface
+/*	newaliases(1), Sendmail compatibility interface
 /*	sendmail(1), Sendmail compatibility interface
 /*
 /*	Postfix configuration:
@@ -164,8 +167,9 @@
 /*	Table-driven mechanisms:
 /*	access(5), Postfix SMTP access control table
 /*	aliases(5), Postfix alias database
-/*	header_checks(5), body_checks(5), content inspection
-/*	canonical(5), Postfix address rewriting
+/*	canonical(5), Postfix input address rewriting
+/*	generics(5), Postfix output address rewriting
+/*	header_checks(5), body_checks(5), Postfix content inspection
 /*	relocated(5), Users that have moved
 /*	transport(5), Postfix routing table
 /*	virtual(5), Postfix virtual aliasing

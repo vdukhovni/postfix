@@ -3246,21 +3246,10 @@ This is needed when the local machine does not have its own Internet
 domain name, but uses something like \fIlocaldomain.local\fR
 instead.
 .PP
-The table search order is described below. The search terminates
-when a match is found. In other words, the search is non-recursive.
-.IP "\fIuser@domain.tld address\fR"
-Replace \fIuser@domain.tld\fR by \fIaddress\fR.  This
-form has the highest precedence.
-.IP "\fIuser address\fR"
-Replace \fIuser@site\fR by \fIaddress\fR when \fIsite\fR is
-equal to $myorigin, when \fIsite\fR is listed in $mydestination,
-or when it matches $inet_interfaces or $proxy_interfaces.
-.IP "\fI@domain.tld address\fR"
-Replace all other addresses in \fIdomain.tld\fR by
-\fIaddress\fR.  This form has the lowest preference.
+The table format and lookups are documented in \fBgenerics\fR(5);
+examples are shown in the ADDRESS_REWRITING_README and
+STANDARD_CONFIGURATION_README documents.
 .PP
-In all cases \fIaddress\fR must specify a username and a
-domain.
 This feature is available in Postfix 2.2 and later.
 .SH smtp_helo_name (default: $myhostname)
 The hostname to send in the SMTP EHLO or HELO command.

@@ -73,7 +73,7 @@ a domain name hierarchy, as described in section "TABLE LOOKUP".
 The \fIresult\fR is of the form \fItransport:nexthop\fR and
 specifies how or where to deliver mail. This is described in
 section "RESULT FORMAT".
-.SH "TABLE LOOKUP"
+.SH "TABLE SEARCH ORDER"
 .na
 .nf
 .ad
@@ -82,17 +82,17 @@ With lookups from indexed files such as DB or DBM, or from networked
 tables such as NIS, LDAP or SQL, patterns are tried in the order as
 listed below:
 .IP "\fIuser+extension@domain transport\fR:\fInexthop\fR"
-Mail for \fIuser+extension@domain\fR is delivered through
+Deliver mail for \fIuser+extension@domain\fR through
 \fItransport\fR to
 \fInexthop\fR.
 .IP "\fIuser@domain transport\fR:\fInexthop\fR"
-Mail for \fIuser@domain\fR is delivered through \fItransport\fR to
+Deliver mail for \fIuser@domain\fR through \fItransport\fR to
 \fInexthop\fR.
 .IP "\fIdomain transport\fR:\fInexthop\fR"
-Mail for \fIdomain\fR is delivered through \fItransport\fR to
+Deliver mail for \fIdomain\fR through \fItransport\fR to
 \fInexthop\fR.
 .IP "\fI.domain transport\fR:\fInexthop\fR"
-Mail for any subdomain of \fIdomain\fR is delivered through
+Deliver mail for any subdomain of \fIdomain\fR through
 \fItransport\fR to \fInexthop\fR. This applies only when the
 string \fBtransport_maps\fR is not listed in the
 \fBparent_domain_matches_subdomains\fR configuration setting.

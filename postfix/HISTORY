@@ -10286,18 +10286,27 @@ Apologies for any names omitted.
 	Cleanup: don't panic in mymalloc() when master can't find
 	any IP addresses. LaMont Jones. File: master/master_ent.c.
 
+20050207
+
+	Documentation: added a generics(5) manual page for consistency
+	with the already existing table driven mechanisms, added
+	references to or examples of the new generic mapping.
+
+	Bugfix: the header_checks REPLACE action mis-handled
+	multi-line replacement text in message headers, for example:
+	/(.*)/ REPLACE X-$1. File:  cleanup/cleanup_message.c.
+
+	Bugfix: the header_checks REPLACE action should not drop
+	the input when the action is NOT executed. File:
+	cleanup/cleanup_message.c.
+
 Open problems:
 
-	Med: document generics mapping in BASIC_CONFIGURATION_README.
-
-	Med: local and remote source port and IP address for
-	smtpd policy hook.
+	Med: local and remote source port and IP address for smtpd
+	policy hook.
 
 	Med: smtp_connect_timeout_budget (default: 2x smtp_connect_timeout)
 	to limit the total time spent trying to connect.
-
-	Low: pointers to postfinger and saslfinger. postfinger
-	is now bundled.
 
 	Med: transform IPv4-in-IPv6 address literals to IPv4 form
 	when comparing against local IP addresses?

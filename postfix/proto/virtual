@@ -59,15 +59,17 @@
 # .IP "multi-line text"
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
-# .PP
+# TABLE SEARCH ORDER
+# .ad
+# .fi
 #	With lookups from indexed files such as DB or DBM, or from networked
 #	tables such as NIS, LDAP or SQL, patterns are tried in the order as
 #	listed below:
 # .IP "\fIuser\fR@\fIdomain address, address, ...\fR"
-#	Mail for \fIuser\fR@\fIdomain\fR is redirected to \fIaddress\fR.
+#	Redirect mail for \fIuser\fR@\fIdomain\fR to \fIaddress\fR.
 #	This form has the highest precedence.
 # .IP "\fIuser address, address, ...\fR"
-#	Mail for \fIuser\fR@\fIsite\fR is redirected to \fIaddress\fR when
+#	Redirect mail for \fIuser\fR@\fIsite\fR to \fIaddress\fR when
 #	\fIsite\fR is equal to $\fBmyorigin\fR, when \fIsite\fR is listed in
 #	$\fBmydestination\fR, or when it is listed in $\fBinet_interfaces\fR
 #	or $\fBproxy_interfaces\fR.
@@ -76,7 +78,7 @@
 #	\fIaliases\fR(5) database. The difference is that \fBvirtual\fR(5)
 #	mapping can be applied to non-local addresses.
 # .IP "@\fIdomain address, address, ...\fR"
-#	Mail for any user in \fIdomain\fR is redirected to \fIaddress\fR.
+#	Redirect mail for other users in \fIdomain\fR to \fIaddress\fR.
 #	This form has the lowest precedence.
 # .PP
 #	In all the above forms, when \fIaddress\fR has the form
@@ -201,7 +203,7 @@
 #	A list of address rewriting or forwarding mechanisms that propagate   
 #	an address extension from the original address to the result.     
 #	Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
-#	\fBforward\fR, or \fBinclude\fR.
+#	\fBforward\fR, \fBinclude\fR, or \fBgenerics\fR.
 # .PP
 #	Other parameters of interest:
 # .IP \fBinet_interfaces\fR

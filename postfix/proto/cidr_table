@@ -49,7 +49,7 @@
 # .IP "multi-line text"
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
-# SEARCH ORDER
+# TABLE SEARCH ORDER
 # .ad
 # .fi
 #	Patterns are applied in the order as specified in the table, until a

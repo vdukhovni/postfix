@@ -3,7 +3,8 @@ SHELL	= /bin/sh
 # For now, just hard-coded rules.
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
-	../conf/transport ../conf/virtual ../conf/header_checks
+	../conf/transport ../conf/virtual ../conf/header_checks \
+	../conf/generics
 
 HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/ADDRESS_REWRITING_README.html \
@@ -102,6 +103,9 @@ clobber:
 	(cat aliases0; $(SRCTOMAN) - aliases | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /') >$@
 
 ../conf/canonical: canonical
+	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/generics: generics
 	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/header_checks: header_checks

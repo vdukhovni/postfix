@@ -16,7 +16,8 @@ CONFIG	= man5/access.5 man5/aliases.5 man5/canonical.5 man5/relocated.5 \
 	man5/transport.5 man5/virtual.5 man5/pcre_table.5 man5/regexp_table.5 \
 	man5/cidr_table.5 man5/tcp_table.5 man5/header_checks.5 \
 	man5/body_checks.5 man5/ldap_table.5 man5/mysql_table.5 \
-	man5/pgsql_table.5 man5/master.5 man5/nisplus_table.5
+	man5/pgsql_table.5 man5/master.5 man5/nisplus_table.5 \
+	man5/generics.5
 TOOLS	= man1/smtp-sink.1 man1/smtp-source.1 man1/qmqp-sink.1 \
 	man1/qmqp-source.1 man1/qshape.1
 
@@ -238,6 +239,9 @@ man5/canonical.5: ../proto/canonical
 	../mantools/srctoman - $? >$@
 
 man5/cidr_table.5: ../proto/cidr_table
+	../mantools/srctoman - $? >$@
+
+man5/generics.5: ../proto/generics
 	../mantools/srctoman - $? >$@
 
 man5/header_checks.5: ../proto/header_checks

@@ -48,6 +48,7 @@
 #               line  that starts with whitespace continues a logi-
 #               cal line.
 # 
+# TABLE SEARCH ORDER
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked  tables  such  as NIS, LDAP or SQL, patterns are
 #        tried in the order as listed below:
@@ -61,8 +62,8 @@
 #               in $inet_interfaces or $proxy_interfaces.
 # 
 #        @domain
-#               Matches  every address in domain. This form has the
-#               lowest precedence.
+#               Matches  every  other  address in domain. This form
+#               has the lowest precedence.
 # 
 # ADDRESS EXTENSION
 #        When a mail address localpart contains the optional recip-

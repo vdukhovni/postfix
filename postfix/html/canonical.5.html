@@ -19,8 +19,8 @@ CANONICAL(5)                                         CANONICAL(5)
 <b>DESCRIPTION</b>
        The  optional <a href="canonical.5.html"><b>canonical</b>(5)</a> table specifies an address map-
        ping for local and non-local  addresses.  The  mapping  is
-       used  by  the  <a href="cleanup.8.html"><b>cleanup</b>(8)</a>  daemon.  The address mapping is
-       recursive.
+       used  by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon, before mail is stored into
+       the queue.  The address mapping is recursive.
 
        Normally, the <a href="canonical.5.html"><b>canonical</b>(5)</a> table is specified  as  a  text
        file  that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
@@ -59,8 +59,7 @@ CANONICAL(5)                                         CANONICAL(5)
        aliasing.  Use the <a href="aliases.5.html"><b>aliases</b>(5)</a> map for that purpose.
 
 <b>TABLE FORMAT</b>
-       make#   The input format for the <a href="postmap.1.html"><b>postmap</b>(1)</a> command is  as
-       follows:
+       The input format for the <a href="postmap.1.html"><b>postmap</b>(1)</a> command is as follows:
 
        <i>pattern result</i>
               When  <i>pattern</i> matches a mail address, replace it by
@@ -76,13 +75,14 @@ CANONICAL(5)                                         CANONICAL(5)
               line  that starts with whitespace continues a logi-
               cal line.
 
+<b>TABLE SEARCH ORDER</b>
        With lookups from indexed files such as DB or DBM, or from
        networked  tables  such  as NIS, LDAP or SQL, patterns are
        tried in the order as listed below:
 
        <i>user</i>@<i>domain address</i>
-              <i>user</i>@<i>domain</i> is replaced by <i>address</i>. This  form  has
-              the highest precedence.
+              Replace <i>user</i>@<i>domain</i> by <i>address</i>. This form  has  the
+              highest precedence.
 
               This  is  useful  to clean up addresses produced by
               legacy mail systems.  It can also be used  to  pro-
@@ -90,17 +90,17 @@ CANONICAL(5)                                         CANONICAL(5)
               below for a simpler solution.
 
        <i>user address</i>
-              <i>user</i>@<i>site</i> is replaced by <i>address</i> when <i>site</i> is equal
-              to  $<b><a href="postconf.5.html#myorigin">myorigin</a></b>,  when  <i>site</i> is listed in $<b><a href="postconf.5.html#mydestination">mydestina</a>-</b>
-              <b><a href="postconf.5.html#mydestination">tion</a></b>, or when it is listed in  $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>  or
+              Replace <i>user</i>@<i>site</i> by <i>address</i> when <i>site</i> is equal  to
+              $<b><a href="postconf.5.html#myorigin">myorigin</a></b>,  when  <i>site</i> is listed in $<b><a href="postconf.5.html#mydestination">mydestination</a></b>,
+              or  when  it  is  listed  in  $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>   or
               $<b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
 
               This  form  is  useful for replacing login names by
               <i>Firstname.Lastname</i>.
 
        @<i>domain address</i>
-              Every address in <i>domain</i>  is  replaced  by  <i>address</i>.
-              This form has the lowest precedence.
+              Replace other addresses in <i>domain</i> by <i>address</i>.  This
+              form has the lowest precedence.
 
        In  all the above forms, when <i>address</i> has the form @<i>other-</i>
        <i>domain</i>, the result is the same user in <i>otherdomain</i>.
@@ -176,8 +176,8 @@ CANONICAL(5)                                         CANONICAL(5)
               A  list  of  address rewriting or forwarding mecha-
               nisms that propagate an address extension from  the
               original  address  to  the result.  Specify zero or
-              more of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,  or
-              <b>include</b>.
+              more  of  <b>canonical</b>,   <b>virtual</b>,   <b>alias</b>,   <b>forward</b>,
+              <b>include</b>, or <b>generics</b>.
 
        Other parameters of interest:
 

@@ -77,19 +77,20 @@ VIRTUAL(5)                                             VIRTUAL(5)
               line that starts with whitespace continues a  logi-
               cal line.
 
+<b>TABLE SEARCH ORDER</b>
        With lookups from indexed files such as DB or DBM, or from
        networked tables such as NIS, LDAP or  SQL,  patterns  are
        tried in the order as listed below:
 
        <i>user</i>@<i>domain address, address, ...</i>
-              Mail  for  <i>user</i>@<i>domain</i>  is  redirected  to <i>address</i>.
-              This form has the highest precedence.
+              Redirect  mail  for  <i>user</i>@<i>domain</i>  to <i>address</i>.  This
+              form has the highest precedence.
 
        <i>user address, address, ...</i>
-              Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
-              <i>site</i>  is equal to $<b><a href="postconf.5.html#myorigin">myorigin</a></b>, when <i>site</i> is listed in
-              $<b><a href="postconf.5.html#mydestination">mydestination</a></b>,   or   when   it   is   listed   in
-              $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b> or $<b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
+              Redirect mail for <i>user</i>@<i>site</i> to <i>address</i> when <i>site</i> is
+              equal  to $<b><a href="postconf.5.html#myorigin">myorigin</a></b>, when <i>site</i> is listed in $<b><a href="postconf.5.html#mydestination">mydes</a>-</b>
+              <b><a href="postconf.5.html#mydestination">tination</a></b>, or when it is listed in  $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>
+              or $<b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
 
               This  functionality  overlaps with functionality of
               the local <i>aliases</i>(5) database.  The  difference  is
@@ -97,8 +98,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
               addresses.
 
        @<i>domain address, address, ...</i>
-              Mail for  any  user  in  <i>domain</i>  is  redirected  to
-              <i>address</i>.  This form has the lowest precedence.
+              Redirect mail for other users in <i>domain</i> to <i>address</i>.
+              This form has the lowest precedence.
 
        In  all the above forms, when <i>address</i> has the form @<i>other-</i>
        <i>domain</i>, the result is the same user in <i>otherdomain</i>.   This
@@ -219,8 +220,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
               A  list  of  address rewriting or forwarding mecha-
               nisms that propagate an address extension from  the
               original  address  to  the result.  Specify zero or
-              more of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,  or
-              <b>include</b>.
+              more  of  <b>canonical</b>,   <b>virtual</b>,   <b>alias</b>,   <b>forward</b>,
+              <b>include</b>, or <b>generics</b>.
 
        Other parameters of interest:
 

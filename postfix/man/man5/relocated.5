@@ -51,7 +51,11 @@ are lines whose first non-whitespace character is a `#'.
 .IP \(bu
 A logical line starts with non-whitespace text. A line that
 starts with whitespace continues a logical line.
-.PP
+.SH "TABLE SEARCH ORDER"
+.na
+.nf
+.ad
+.fi
 With lookups from indexed files such as DB or DBM, or from networked
 tables such as NIS, LDAP or SQL, patterns are tried in the order as
 listed below:
@@ -63,7 +67,7 @@ Matches \fIuser\fR@\fIsite\fR when \fIsite\fR is $\fBmyorigin\fR,
 when \fIsite\fR is listed in $\fBmydestination\fR, or when \fIsite\fR
 is listed in $\fBinet_interfaces\fR or $\fBproxy_interfaces\fR.
 .IP @\fIdomain\fR
-Matches every address in \fIdomain\fR. This form has the lowest
+Matches every other address in \fIdomain\fR. This form has the lowest
 precedence.
 .SH "ADDRESS EXTENSION"
 .na

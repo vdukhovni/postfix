@@ -71,19 +71,20 @@
 #               line that starts with whitespace continues a  logi-
 #               cal line.
 # 
+# TABLE SEARCH ORDER
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked tables such as NIS, LDAP or  SQL,  patterns  are
 #        tried in the order as listed below:
 # 
 #        user@domain address, address, ...
-#               Mail  for  user@domain  is  redirected  to address.
-#               This form has the highest precedence.
+#               Redirect  mail  for  user@domain  to address.  This
+#               form has the highest precedence.
 # 
 #        user address, address, ...
-#               Mail for user@site is redirected  to  address  when
-#               site  is equal to $myorigin, when site is listed in
-#               $mydestination,   or   when   it   is   listed   in
-#               $inet_interfaces or $proxy_interfaces.
+#               Redirect mail for user@site to address when site is
+#               equal  to $myorigin, when site is listed in $mydes-
+#               tination, or when it is listed in  $inet_interfaces
+#               or $proxy_interfaces.
 # 
 #               This  functionality  overlaps with functionality of
 #               the local aliases(5) database.  The  difference  is
@@ -91,8 +92,8 @@
 #               addresses.
 # 
 #        @domain address, address, ...
-#               Mail for  any  user  in  domain  is  redirected  to
-#               address.  This form has the lowest precedence.
+#               Redirect mail for other users in domain to address.
+#               This form has the lowest precedence.
 # 
 #        In  all the above forms, when address has the form @other-
 #        domain, the result is the same user in otherdomain.   This
@@ -213,8 +214,8 @@
 #               A  list  of  address rewriting or forwarding mecha-
 #               nisms that propagate an address extension from  the
 #               original  address  to  the result.  Specify zero or
-#               more of  canonical,  virtual,  alias,  forward,  or
-#               include.
+#               more  of  canonical,   virtual,   alias,   forward,
+#               include, or generics.
 # 
 #        Other parameters of interest:
 # 

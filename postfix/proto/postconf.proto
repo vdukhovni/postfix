@@ -8248,31 +8248,8 @@ This is needed when the local machine does not have its own Internet
 domain name, but uses something like <i>localdomain.local</i>
 instead.  </p>
 
-<p> The table search order is described below. The search terminates
-when a match is found. In other words, the search is non-recursive.
-</p>
+<p> The table format and lookups are documented in generics(5);
+examples are shown in the ADDRESS_REWRITING_README and
+STANDARD_CONFIGURATION_README documents. </p>
 
-<dl>
-
-<dt> <i>user@domain.tld address</i> </dt>
-
-<dd> <p> Replace <i>user@domain.tld</i> by <i>address</i>.  This
-form has the highest precedence. </p> </dd>
-
-<dt> <i>user address</i> </dt>
-
-<dd> <p> Replace <i>user@site</i> by <i>address</i> when <i>site</i> is
-equal to $myorigin, when <i>site</i> is listed in $mydestination,
-or when it matches $inet_interfaces or $proxy_interfaces.  </p>
-</dd>
-
-<dt> <i>@domain.tld address</i> </dt>
-
-<dd> <p> Replace all other addresses in <i>domain.tld</i> by
-<i>address</i>.  This form has the lowest preference. </p> </dd>
-
-</dl>
-
-<p> In all cases <i>address</i> must specify a username and a
-domain. </p> <p> This feature is available in Postfix 2.2 and later.
-</p>
+<p> This feature is available in Postfix 2.2 and later.  </p>

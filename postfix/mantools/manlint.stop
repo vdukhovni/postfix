@@ -103,3 +103,11 @@ man/man1/postfix.1:44:.IP \fBflush\fR
 man/man8/oqmgr.8:55:.IP \fBbounce\fR 
 man/man8/qmgr.8:55:.IP \fBbounce\fR 
 man/man8/trivial-rewrite.8:21:.IP \fBlocal\fR 
+man/man5/aliases.5:140:\fBvirtual\fR, \fBalias\fR, \fBforward\fR, \fBinclude\fR, 
+man/man5/canonical.5:171:Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR, 
+man/man5/generics.5:11:\fBpostmap /etc/postfix/generics\fR 
+man/man5/generics.5:13:\fBpostmap -q "\fIstring\fB" /etc/postfix/generics\fR 
+man/man5/generics.5:15:\fBpostmap -q - /etc/postfix/generics <\fIinputfile\fR 
+man/man5/generics.5:189:Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR, 
+man/man5/postconf.5:2446:and \fBvirtual\fR is likely to cause problems when mail is forwarded 
+man/man5/postconf.5:4575:is \fBsmtpd\fR, corresponding to a SASL configuration file named 

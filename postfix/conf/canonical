@@ -13,8 +13,8 @@
 # DESCRIPTION
 #        The  optional canonical(5) table specifies an address map-
 #        ping for local and non-local  addresses.  The  mapping  is
-#        used  by  the  cleanup(8)  daemon.  The address mapping is
-#        recursive.
+#        used  by the cleanup(8) daemon, before mail is stored into
+#        the queue.  The address mapping is recursive.
 # 
 #        Normally, the canonical(5) table is specified  as  a  text
 #        file  that serves as input to the postmap(1) command.  The
@@ -53,8 +53,7 @@
 #        aliasing.  Use the aliases(5) map for that purpose.
 # 
 # TABLE FORMAT
-#        make#   The input format for the postmap(1) command is  as
-#        follows:
+#        The input format for the postmap(1) command is as follows:
 # 
 #        pattern result
 #               When  pattern matches a mail address, replace it by
@@ -70,13 +69,14 @@
 #               line  that starts with whitespace continues a logi-
 #               cal line.
 # 
+# TABLE SEARCH ORDER
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked  tables  such  as NIS, LDAP or SQL, patterns are
 #        tried in the order as listed below:
 # 
 #        user@domain address
-#               user@domain is replaced by address. This  form  has
-#               the highest precedence.
+#               Replace user@domain by address. This form  has  the
+#               highest precedence.
 # 
 #               This  is  useful  to clean up addresses produced by
 #               legacy mail systems.  It can also be used  to  pro-
@@ -84,17 +84,17 @@
 #               below for a simpler solution.
 # 
 #        user address
-#               user@site is replaced by address when site is equal
-#               to  $myorigin,  when  site is listed in $mydestina-
-#               tion, or when it is listed in  $inet_interfaces  or
+#               Replace user@site by address when site is equal  to
+#               $myorigin,  when  site is listed in $mydestination,
+#               or  when  it  is  listed  in  $inet_interfaces   or
 #               $proxy_interfaces.
 # 
 #               This  form  is  useful for replacing login names by
 #               Firstname.Lastname.
 # 
 #        @domain address
-#               Every address in domain  is  replaced  by  address.
-#               This form has the lowest precedence.
+#               Replace other addresses in domain by address.  This
+#               form has the lowest precedence.
 # 
 #        In  all the above forms, when address has the form @other-
 #        domain, the result is the same user in otherdomain.
@@ -170,8 +170,8 @@
 #               A  list  of  address rewriting or forwarding mecha-
 #               nisms that propagate an address extension from  the
 #               original  address  to  the result.  Specify zero or
-#               more of  canonical,  virtual,  alias,  forward,  or
-#               include.
+#               more  of  canonical,   virtual,   alias,   forward,
+#               include, or generics.
 # 
 #        Other parameters of interest:
 # 

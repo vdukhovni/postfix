@@ -180,8 +180,8 @@ decode:		root
 #               A  list  of  address rewriting or forwarding mecha-
 #               nisms that propagate an address extension from  the
 #               original  address  to  the  result. Specify zero or
-#               more of  canonical,  virtual,  alias,  forward,  or
-#               include.
+#               more  of  canonical,   virtual,   alias,   forward,
+#               include, or generics.
 # 
 #        owner_request_special
 #               Give  special treatment to owner-listname and list-

@@ -607,11 +607,11 @@ localdomain.local. This can be a problem when you want to send mail over the
 Internet, because many mail servers reject mail addresses with invalid domain
 names.
 
-With the smtp_generics_maps parameter you can specify lookup tables that
-replace local mail addresses by valid Internet addresses when mail leaves the
-machine via SMTP. This mapping replaces envelope and header addresses, and is
-non-recursive. It does not happen when you send mail between addresses on the
-local machine.
+With the smtp_generics_maps parameter you can specify generics(5) lookup tables
+that replace local mail addresses by valid Internet addresses when mail leaves
+the machine via SMTP. The generics(5) mapping replaces envelope and header
+addresses, and is non-recursive. It does not happen when you send mail between
+addresses on the local machine.
 
 This feature is available in Postfix version 2.2 and later.
 
@@ -621,15 +621,15 @@ Example:
         smtp_generics_maps = hash:/etc/postfix/generics
 
     /etc/postfix/generics:
-        you@localdomain.local		youraccount@yourisp.example
+        his@localdomain.local		hisaccount@hisisp.example
         her@localdomain.local		heraccount@herisp.example
-        @localdomain.local			youraccount+local@yourisp.example
+        @localdomain.local			hisaccount+local@hisisp.example
 
-When mail is sent to a remote host via SMTP, this replaces your local mail
-address you@localdomain.local by your ISP mail address, replaces
-her@localdomain.local by her ISP mail address, and replaces all other local
-addresses by your ISP account, with an address extension of +local (this
-example assumes that the ISP supports "+" style address extensions).
+When mail is sent to a remote host via SMTP, this replaces
+his@localdomain.local by his ISP mail address, replaces her@localdomain.local
+by her ISP mail address, and replaces other local addresses by his ISP account,
+with an address extension of +local (this example assumes that the ISP supports
+"+" style address extensions).
 
 LLooccaall aalliiaass ddaattaabbaassee
 

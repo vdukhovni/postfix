@@ -43,7 +43,9 @@
 # .IP \(bu
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
-# .PP
+# TABLE SEARCH ORDER
+# .ad
+# .fi
 #	With lookups from indexed files such as DB or DBM, or from networked
 #	tables such as NIS, LDAP or SQL, patterns are tried in the order as
 #	listed below:
@@ -55,7 +57,7 @@
 #	when \fIsite\fR is listed in $\fBmydestination\fR, or when \fIsite\fR
 #	is listed in $\fBinet_interfaces\fR or $\fBproxy_interfaces\fR.
 # .IP @\fIdomain\fR
-#	Matches every address in \fIdomain\fR. This form has the lowest
+#	Matches other addresses in \fIdomain\fR. This form has the lowest
 #	precedence.
 # ADDRESS EXTENSION
 # .fi

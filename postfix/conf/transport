@@ -79,28 +79,28 @@
 #        how or where to deliver mail. This is described in section
 #        "RESULT FORMAT".
 # 
-# TABLE LOOKUP
+# TABLE SEARCH ORDER
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked  tables  such  as NIS, LDAP or SQL, patterns are
 #        tried in the order as listed below:
 # 
 #        user+extension@domain transport:nexthop
-#               Mail for user+extension@domain is delivered through
+#               Deliver  mail  for  user+extension@domain   through
 #               transport to nexthop.
 # 
 #        user@domain transport:nexthop
-#               Mail for user@domain is delivered through transport
-#               to nexthop.
-# 
-#        domain transport:nexthop
-#               Mail for domain is delivered through  transport  to
+#               Deliver  mail  for user@domain through transport to
 #               nexthop.
 # 
+#        domain transport:nexthop
+#               Deliver mail for domain through transport  to  nex-
+#               thop.
+# 
 #        .domain transport:nexthop
-#               Mail  for  any  subdomain  of  domain  is delivered
-#               through transport to  nexthop.  This  applies  only
-#               when the string transport_maps is not listed in the
-#               parent_domain_matches_subdomains configuration set-
+#               Deliver  mail  for  any subdomain of domain through
+#               transport to nexthop. This applies  only  when  the
+#               string  transport_maps  is  not  listed in the par-
+#               ent_domain_matches_subdomains  configuration   set-
 #               ting.   Otherwise, a domain name matches itself and
 #               its subdomains.
 # 

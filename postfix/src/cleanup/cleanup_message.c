@@ -278,6 +278,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 {
     const char *optional_text = value + strcspn(value, " \t");
     int     command_len = optional_text - value;
+    VSTRING *bp;
 
     while (*optional_text && ISSPACE(*optional_text))
 	optional_text++;
@@ -341,15 +342,22 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
     if (STREQUAL(value, "REPLACE", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("REPLACE action without text in %s map", map_class);
-	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0
-		   && !is_header(optional_text)) {
-	    msg_warn("bad REPLACE header text \"%s\" in %s map, "
-		     "need \"headername: headervalue\"",
-		     optional_text, map_class);
+	    return (CLEANUP_ACT_KEEP);
+	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0) {
+	    if (!is_header(optional_text)) {
+		msg_warn("bad REPLACE header text \"%s\" in %s map, "
+			 "need \"headername: headervalue\"",
+			 optional_text, map_class);
+		return (CLEANUP_ACT_KEEP);
+	    } 
+	    /* XXX Impedance mismatch. */
+	    bp = vstring_strcpy(vstring_alloc(100), optional_text);
+	    cleanup_out_header(state, bp);
+	    vstring_free(bp);
 	} else {
-	    cleanup_act_log(state, "replace", context, buf, optional_text);
 	    cleanup_out_string(state, REC_TYPE_NORM, optional_text);
 	}
+	cleanup_act_log(state, "replace", context, buf, optional_text);
 	return (CLEANUP_ACT_DROP);
     }
     if (STREQUAL(value, "REDIRECT", command_len)) {
