@@ -104,7 +104,7 @@ extern void cleanup_state_free(CLEANUP_STATE *);
   */
 extern CLEANUP_STATE *cleanup_open(void);
 extern void cleanup_control(CLEANUP_STATE *, int);
-extern int cleanup_close(CLEANUP_STATE *);
+extern int cleanup_flush(CLEANUP_STATE *);
 extern void cleanup_free(CLEANUP_STATE *);
 extern void cleanup_all(void);
 extern void cleanup_pre_jail(char *, char **);

@@ -345,7 +345,7 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (conversions);
 	    }
-	    number = va_arg(ap, int *);
+	    number = va_arg(ap, unsigned int *);
 	    if ((ch = attr_scan_number(fp, number, str_buf,
 				       "attribute value")) < 0)
 		return (conversions);

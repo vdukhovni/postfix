@@ -48,6 +48,11 @@ compatible with that of versions 2 and 3 (versions 2 and 3 have
 the same format). If you switch between DB versions, then you may
 have to rebuild all your Postfix DB files.
 
+Warning: if you use Berkeley DB version 2 or later, do not enable
+DB 1.85 compatibility mode. Doing so would break file locking on
+Solaris, HP-UX, UNIXWARE, IRIX and other systems, causing mail to
+be lost when you update a table while Postfix is running.
+
 Building Postfix on Linux with a specific Berkeley DB version
 =============================================================
 

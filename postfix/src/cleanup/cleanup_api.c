@@ -18,7 +18,7 @@
 /*	char	*buf;
 /*	int	len;
 /*
-/*	int	cleanup_close(state)
+/*	int	cleanup_flush(state)
 /*	CLEANUP_STATE *state;
 /*
 /*	int	cleanup_free(state)
@@ -30,7 +30,7 @@
 /*
 /*	cleanup_open() creates a new queue file and performs other
 /*	per-message initialization. The result is a handle that should be
-/*	given to the cleanup_control(), cleanup_record(), cleanup_close()
+/*	given to the cleanup_control(), cleanup_record(), cleanup_flush()
 /*	and cleanup_free() routines. The name of the queue file is in the
 /*	queue_id result structure member.
 /*
@@ -54,9 +54,9 @@
 /*	REC_TYPE_END.  In order to find out if a message is corrupted,
 /*	the caller is encouraged to test the CLEANUP_OUT_OK(state) macro.
 /*	The result is false when further message processing is futile.
-/*	In that case, it is safe to call cleanup_close() immediately.
+/*	In that case, it is safe to call cleanup_flush() immediately.
 /*
-/*	cleanup_close() closes a queue file. In case of any errors,
+/*	cleanup_flush() closes a queue file. In case of any errors,
 /*	the file is removed. The result value is non-zero in case of
 /*	problems. In some cases a human-readable text can be found in
 /*	the state->reason member. In all other cases, use cleanup_strerror()
@@ -170,9 +170,9 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
     }
 }
 
-/* cleanup_close - finish queue file */
+/* cleanup_flush - finish queue file */
 
-int     cleanup_close(CLEANUP_STATE *state)
+int     cleanup_flush(CLEANUP_STATE *state)
 {
     char   *junk;
     int     status;
@@ -261,7 +261,7 @@ int     cleanup_close(CLEANUP_STATE *state)
      * initializations at the beginning of cleanup_open().
      */
     if (msg_verbose)
-	msg_info("cleanup_close: status %d", state->errs);
+	msg_info("cleanup_flush: status %d", state->errs);
     status = state->errs;
     return (status);
 }

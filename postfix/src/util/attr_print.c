@@ -172,7 +172,7 @@ int     attr_vprint(VSTREAM *fp, int flags, va_list ap)
 	case ATTR_TYPE_NUM_ARRAY:
 	    attr_name = va_arg(ap, char *);
 	    attr_print_str(fp, attr_name, strlen(attr_name));
-	    ip_val = va_arg(ap, int *);
+	    ip_val = va_arg(ap, unsigned int *);
 	    count_val = va_arg(ap, int);
 	    for (i = 0; i < count_val; i++) {
 		VSTREAM_PUTC(':', fp);

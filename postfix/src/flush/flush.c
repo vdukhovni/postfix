@@ -540,9 +540,12 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * All connection-management stuff is handled by the common code in
      * single_server.c.
      */
-    if (attr_scan(client_stream, ATTR_FLAG_MORE | ATTR_FLAG_EXTRA | ATTR_FLAG_MISSING,
-		  ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
-		  ATTR_TYPE_END) == 1) {
+    if (peekfd(vstream_fileno(client_stream)) <= 2 ?
+	(vstring_get_null(request, client_stream) != VSTREAM_EOF) :
+	(attr_scan(client_stream,
+		   ATTR_FLAG_MORE | ATTR_FLAG_EXTRA | ATTR_FLAG_MISSING,
+		   ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
+		   ATTR_TYPE_END) == 1)) {
 	if (STREQ(STR(request), FLUSH_REQ_ADD)) {
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);

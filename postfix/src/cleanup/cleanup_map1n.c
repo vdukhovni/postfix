@@ -127,7 +127,7 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, char *addr,
 		     * Allow an address to expand into itself once.
 		     */
 		    if (strcasecmp(saved_lhs, STR(state->temp1)) == 0)
-			been_here_fixed(been_here, argv->argv[arg]);
+			been_here_fixed(been_here, saved_lhs);
 		}
 		myfree(saved_lhs);
 		argv_free(lookup);

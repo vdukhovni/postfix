@@ -241,7 +241,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_ATTR attr, char *delivered)
      */
     if (status == 0)
 	if (vstream_fflush(info->cleanup)
-	    || attr_scan(info->cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+	    || attr_scan(info->cleanup, ATTR_FLAG_MISSING,
 			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
 			 ATTR_TYPE_END) != 1)
 	    status = 1;

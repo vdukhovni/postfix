@@ -152,15 +152,16 @@ In any case, if the command
     % make
 
 produces compiler error messages, it may be time to examine the
-FAQ document.
+FAQ document (see htlm/faq.html).
 
 5 - Porting to on an unsupported system
 =======================================
 
-- Choose a SYSTEMTYPE name for the new system. Please use a name
-that includes the major version of the operating system (such as
-SUNOS4 or LINUX2), so that different releases of the same system
-can be supported without confusion.
+- Each system type is identified by a unique name. Examples:
+SUNOS5, FREEBSD4, and so on.  Choose a SYSTEMTYPE name for the new
+system. You must use a name that includes at least the major version
+of the operating system (such as SUNOS4 or LINUX2), so that different
+releases of the same system can be supported without confusion.
 
 - Add a case statement to the "makedefs" shell script in the
 top-level directory that recognizes the new system reliably, and
@@ -222,7 +223,7 @@ In order to install or upgrade Postfix:
   The INSTALL.sh script offers suggestions for pathnames that you
   can override, either by editing INSTALL.sh or by specifying your
   preferences interactively. INSTALL.sh stores your preferences in
-  the Postfix configuration directory in order to ease future installs.
+  /etc/postfix/install.cf in order to ease future installs.
 
 - Proceed to the section on how you wish to run Postfix on your
   particular machine:

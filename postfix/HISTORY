@@ -5489,19 +5489,20 @@ Apologies for any names omitted.
 
 20011010
 
-	Specify the name of the UNIX-domain socket (instead of
-	"unknown stream") when a Postfix daemon complains about a
-	malformed client request. Files:  master/*server.c.
+	Postfix daemons now print the name of the UNIX-domain socket
+	(instead of "unknown stream") complaining about a malformed
+	client request. Files:  master/*server.c.
 
 20011010-14
 
 	Replaced the internal protocols by (name,value) attribute
 	lists. This gives better error detection when we start
-	making changes to internal protocols.
+	making changes to internal protocols, and allows new
+	attributes to be introduced without breaking protocols.
 
 20011015
 
-	Put base 64 encoding into place on the replced internal
+	Put base 64 encoding into place on the replaced internal
 	protocols.  Files: util/base64_code.[hc].
 
 	Feature: header/body REJECT rules can now end in text that
@@ -5524,13 +5525,18 @@ Apologies for any names omitted.
 
 Open problems:
 
+	Medium: need in-process caching for map lookups.
+
 	Minor: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.
 	This should either be documented, or better, the code should
-	issue a warning to set a read-only parameter.
+	warn about attempts to set a read-only parameter.
 
 	Medium: address rewriting should be on/off configurable
 	for envelopes and/or headers.
 
-	Medium: smtpd access maps doesn't understand the recipient
+	Medium: smtpd access maps don't understand the recipient
 	delimiter setting.
+
+	Low: the virtual delivery agent needs a way to specify
+	fixed uid/gid for all deliveries.

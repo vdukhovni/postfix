@@ -236,9 +236,10 @@ int     post_mail_fclose(VSTREAM *cleanup)
     } else {
 	rec_fputs(cleanup, REC_TYPE_XTRA, "");
 	rec_fputs(cleanup, REC_TYPE_END, "");
-	if (vstream_fflush(cleanup) || attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
-				   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
-						 ATTR_TYPE_END) != 1)
+	if (vstream_fflush(cleanup)
+	    || attr_scan(cleanup, ATTR_FLAG_MISSING,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_END) != 1)
 	    status = CLEANUP_STAT_WRITE;
     }
     (void) vstream_fclose(cleanup);

@@ -35,6 +35,8 @@ header_checks = regexp:/etc/postfix/header_checks
 #
 # REJECT the entire message is rejected.
 #
+# REJECT text.... The text is sent to the originator.
+#
 # IGNORE the body line is silently discarded.
 #
 # OK	Nothing happens. The message will still be rejected when some 

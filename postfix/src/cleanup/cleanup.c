@@ -234,7 +234,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      * Finish this message, and report the result status to the client.
      */
     attr_print(src, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, cleanup_close(state),
+	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, cleanup_flush(state),
 	       ATTR_TYPE_STR, MAIL_ATTR_WHY, state->reason ?
 	       state->reason : "",
 	       ATTR_TYPE_END);

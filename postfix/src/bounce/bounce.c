@@ -227,7 +227,7 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
     /*
      * Read and validate the client request.
      */
-    if (attr_scan(client, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+    if (mail_command_server(client,
 		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
