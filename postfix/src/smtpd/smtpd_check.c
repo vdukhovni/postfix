@@ -3269,8 +3269,8 @@ char   *smtpd_check_data(SMTPD_STATE *state)
     }
 
     /*
-     * Reset the defer_if_permit flag. This should not be necessary but we do
-     * it just in case.
+     * Reset the defer_if_permit flag. This is necessary when some recipients
+     * were accepted but the last one was rejected.
      */
     state->defer_if_permit.active = 0;
 
@@ -3284,6 +3284,15 @@ char   *smtpd_check_data(SMTPD_STATE *state)
     if (status == 0 && data_restrctions->argc)
 	status = generic_checks(state, data_restrctions,
 				"DATA", SMTPD_NAME_DATA, NO_DEF_ACL);
+
+    /*
+     * Force permission into deferral when some earlier temporary error may
+     * have prevented us from rejecting mail, and report the earlier problem.
+     */
+    if (status != SMTPD_CHECK_REJECT && state->defer_if_permit.active)
+	status = smtpd_check_reject(state, state->defer_if_permit.class,
+				  "%s", STR(state->defer_if_permit.reason));
+
     if (state->rcpt_count > 1)
 	state->recipient = saved_recipient;
 

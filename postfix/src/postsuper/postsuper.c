@@ -32,7 +32,7 @@
 /*	queue IDs from standard input. For example, to delete all mail
 /*	from or to \fBuser@example.com\fR:
 /* .sp
-/*	mailq | awk  \'BEGIN { RS = "" } \e
+/*	mailq | tail +2 | awk  \'BEGIN { RS = "" } \e
 /* .ti +4
 /*	/ user@example\e.com$/ { print $1 } \e
 /* .br

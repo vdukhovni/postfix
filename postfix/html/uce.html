@@ -358,9 +358,10 @@ reject_unknown_client</b>
 <a name="reject_unknown_client">
 
 <dt> <b>reject_unknown_client</b> <dd> Reject the request when the
-client IP address has no PTR record in the DNS.  The
-<b>unknown_client_reject_code</b> parameter specifies the response
-code to rejected requests (default:  <b>450</b>).
+client IP address has no PTR (address to name) record in the DNS,
+or when the PTR record does not have a matching A (name to address)
+record.  The <b>unknown_client_reject_code</b> parameter specifies
+the response code to rejected requests (default:  <b>450</b>).
 
 <p>
 

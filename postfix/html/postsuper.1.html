@@ -34,7 +34,7 @@ POSTSUPER(1)                                         POSTSUPER(1)
               input.  For  example, to delete all mail from or to
               <b>user@example.com</b>:
 
-              mailq | awk  'BEGIN { RS = "" } \
+              mailq | tail +2 | awk  'BEGIN { RS = "" } \
                   / user@example\.com$/ { print $1 } \
               ' | tr -d '*!' | postsuper -d -
 

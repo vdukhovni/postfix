@@ -553,7 +553,7 @@ unknown_address_reject_code = 450
 
 # The unknown_client_reject_code parameter specifies the SMTP server
 # response when a client without address to name mapping violates
-# the reject_unknown_clients restriction.
+# the reject_unknown_client restriction.
 #
 # Do not change this unless you have a complete understanding of RFC 821.
 #

@@ -7199,6 +7199,26 @@ Apologies for any names omitted.
 	Bugfix: a misguided change to the .forward macro expansion
 	filter broke .forward file lookup.
 
+	Bugfix: missing defer_if_permit test in smtpd_data_restrictions.
+	Victor Duchovni. File:  smtpd/smtpd_check.c.
+
+20021112
+
+	Robustness: increase the mime_nesting_limit from 20 to 100,
+	so that bounces can't loop. Each bounces increases the MIME
+	nesting level by one.  Ralf Hildebrandt and Victor Duchovni.
+
+20021113
+
+	Robustness: reinstated SMTP client command flushing to
+	avoid pipeline stalls.  File: smtp/smtp_chat.c.
+
+20021114
+
+	Robustness: distinguish between timeout and "lost connection"
+	when the SMTP server is unable to send a reply to the remote
+	client. File: smtpd/smtpd_chat.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.

@@ -1564,7 +1564,7 @@ extern int var_qattr_count_limit;
   * MIME support.
   */
 #define VAR_MIME_MAXDEPTH		"mime_nesting_limit"
-#define DEF_MIME_MAXDEPTH		20
+#define DEF_MIME_MAXDEPTH		100
 extern int var_mime_maxdepth;
 
 #define VAR_MIME_BOUND_LEN		"mime_boundary_length_limit"

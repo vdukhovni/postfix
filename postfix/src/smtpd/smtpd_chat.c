@@ -176,6 +176,8 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
     /*
      * Abort immediately if the connection is broken.
      */
+    if (vstream_ftimeout(state->client))
+	vstream_longjmp(state->client, SMTP_ERR_TIME);
     if (vstream_ferror(state->client))
 	vstream_longjmp(state->client, SMTP_ERR_EOF);
 }
