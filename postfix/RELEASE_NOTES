@@ -1,6 +1,9 @@
 ===============================================================
 WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 ===============================================================
+The XCLIENT feature for content filter logging is still changing
+and the design details have already changed again.
+
 The sender/recipient address verification code is lightly documented
 and has been tested lightly. The code is proof-of-concept quality
 and must not be used on high-volume sites.  Use at your own risk.

@@ -8812,6 +8812,11 @@ Apologies for any names omitted.
 	Minor cleanups of the xclient error messages; xclient
 	command lookup tables. File: smtpd/smtpd.c.
 
+20031207
+
+	Bugfix: fallback_transport and mailbox_transport were broken
+	because the deliver_pass.c module was not updated for the
+	changed message delivery protocol.
 Open problems:
 
 	High: when virtual aliasing is turned off after content
