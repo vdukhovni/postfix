@@ -45,7 +45,7 @@ in the main.cf configuration file.
 By default, Postfix "fast ETRN/sendmail -qR" service is available
 only for destinations that Postfix is willing to relay mail to:
 
-    fast_flush_policy = relay
+    fast_flush_domains = $relay_domains
 
 The "relay_domains" parameter specifies what destinations Postfix
 will relay to.  
@@ -54,14 +54,14 @@ For destinations that are not eligible for the new "fast ETRN/sendmail
 -qR" service, Postfix falls back to the old "slow ETRN" method
 which attempts to deliver all queued mail.
 
-To enable "fast ETRN/sendmail -qR" for all destinations, specify:
+To enable "fast ETRN/sendmail -qR" for some other destination, specify:
 
-    fast_flush_policy = all
+    fast_flush_domains = $relay_domains, some.other.domain
 
 To disable "fast ETRN/sendmail -qR", so that Postfix always uses
 the old "slow ETRN" which delivers all queued mail, specify:
 
-    fast_flush_policy = none
+    fast_flush_domains =
 
 Testing the fast ETRN service
 =============================

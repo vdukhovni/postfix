@@ -31,7 +31,7 @@ Next, put the following in /etc/inetd.conf:
 /usr/sbin/tcpd is from the tcp_wrappers package.  You want this to
 make sure only your mail relay(s) can talk to the LMTP server.
 Postfix by default does multiple deliveries per LMTP session
-(connection cacheing), so do not worry about the overhead of
+(connection caching), so do not worry about the overhead of
 tcp_wrapping the LMTP port.
 
 On some systems, tcpd is built into inetd, so you do not have to
@@ -63,15 +63,15 @@ Instead of "hash", use the map type of your choice. Some systems
 use "dbm" instead. Use "postconf -m" to find out what map types
 are supported.
 
-Improving connection cacheing performance
-=========================================
+Improving connection caching performance
+========================================
 
 After delivering a message via LMTP, Postfix will keep the connection
 open for a while, so that it can be reused for a subsequent delivery.
 This reduces overhead of LMTP servers that create one process per
 connection.  
 
-For LMTP connection cacheing to work, the Postfix LMTP client should
+For LMTP connection caching to work, the Postfix LMTP client should
 not switch destination hosts.  This is no problem when you run only
 one LMTP server. However, if you run multiple LMTP servers, this
 can be an issue.

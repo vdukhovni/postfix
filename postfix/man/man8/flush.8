@@ -27,17 +27,10 @@ part on the right-hand side of the right-most \fB@\fR in
 an email address.
 
 Per-destination logfiles of deferred mail are maintained only for
-eligible destinations. The policy is specified with the
-\fBfast_flush_policy\fR configuration parameter:
-.IP \fBall\fR
-Maintain per-destination logfiles for all destinations.
-.IP "\fBrelay\fR (default policy)"
-Maintain per-destination logfiles only for destinations
-that this system is willing to relay mail to (as controlled
-by the \fBrelay_domains\fR configuration parameter).
-.IP \fBnone\fR
-Do not maintain per-destination logfiles.
-.PP
+eligible destinations. The list of eligible destinations is
+specified with the \fBfast_flush_domains\fR configuration parameter,
+which defaults to \fB$relay_domains\fR.
+
 This server implements the following requests:
 .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
 Inform the fast flush server that the specified message is queued for
@@ -119,9 +112,9 @@ such mail typically only has recipients in one domain.
 See the Postfix \fBmain.cf\fR file for syntax details and for
 default values. Use the \fBpostfix reload\fR command after a
 configuration change.
-.IP \fBfast_flush_policy\fR
-What destinations can have a "fast flush" logfile: \fBall\fR,
-\fBrelay\fR (relay destinations) or \fBnone\fR.
+.IP \fBfast_flush_domains\fR
+What destinations can have a "fast flush" logfile. By default,
+this is set to \fB$relay_domains\fR.
 .IP \fBfast_flush_refresh_time\fR
 Refresh a non-empty "fast flush" logfile that was not read in
 this amount of time (default time unit: hours), by simulating

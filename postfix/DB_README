@@ -1,0 +1,21 @@
+Purpose of this document
+========================
+
+This document describes how to build Postfix with Berkeley DB
+support on systems that ship without DB library. The canonical
+third-party source for Berkeley DB is www.sleepycat.com.
+
+The information can also be used to build Postfix with a non-default
+Berkeley DB version. However, the file formats of Berkeley DB
+version 2 and later are not compatible with the older Berkeley DB
+version that ships with, for example, 4.4BSD.
+
+Building Postfix with third-party Berkeley DB support
+=====================================================
+
+If you installed the Berkeley DB from Sleepycat, use something like:
+
+    % make tidy
+    % make makefiles CCARGS="-DHAS_DB -I/usr/local/BerkeleyDB/include" \
+	AUXLIBS=/usr/local/BerkeleyDB/lib/libdb.a
+    % make

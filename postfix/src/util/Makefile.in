@@ -473,6 +473,7 @@ dict_tcp.o: iostuff.h
 dict_tcp.o: hex_quote.h
 dict_tcp.o: dict.h
 dict_tcp.o: argv.h
+dict_tcp.o: stringops.h
 dict_tcp.o: dict_tcp.h
 dict_unix.o: dict_unix.c
 dict_unix.o: sys_defs.h

@@ -1,3 +1,17 @@
+Incompatible changes with snapshot-20001027
+===========================================
+
+Berkeley DB support has changed for Solaris, HP-UX, UNIXWARE, IRIX.
+You can no longer use the DB 1.85 compatibility interface, because
+that interface loses the file lock while building a table, so that
+table lookups fail and mail is lost. See the DB_README file for
+instructions on how to build with third-party Berkeley DB support.
+
+The "fast ETRN" policy configuration has changed. You now specify
+the list of eligible "fast ETRN" domains with the fast_flush_domains
+parameter (default: $relay_domains). In order to disable the feature,
+specify an empty value (fast_flush_domains =).
+
 Incompatible changes with snapshot-20001005
 ===========================================
 
@@ -229,12 +243,12 @@ connections to a specific local interface. Or override the default
 setting in master.cf with "smtp -o smtp_bind_address=x.x.x.x".
 For now, you must specify a numeric IP address.
 
-Preliminary LMTP client support over TCP with connection cacheing.
+Preliminary LMTP client support over TCP with connection caching.
 Support for LMTP over UNIX-domain sockets will be added later as
 an enhancement to the transport table syntax. See the LMTP_README
 file for more details.
 
-By the way, LMTP client-side connection cacheing is a good example
+By the way, LMTP client-side connection caching is a good example
 for how to do the same in the SMTP client.
 
 Preliminary support for SASL authentication, both in the SMTP server
@@ -684,7 +698,7 @@ Incompatible changes with postfix-beta-19990122:
 	customer.org	smtp:[gateway.customer.org]
 	.customer.org	smtp:[gateway.customer.org]
 
-  This change makes tranport tables more compatible with
+  This change makes transport tables more compatible with
   sendmail mailer tables.
 
 - The format of syslog records has changed. A client is now always

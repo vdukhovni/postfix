@@ -298,7 +298,6 @@
   */
 int     var_smtpd_rcpt_limit;
 int     var_smtpd_tmout;
-char   *var_relay_domains;
 int     var_smtpd_soft_erlim;
 int     var_smtpd_hard_erlim;
 int     var_queue_minfree;		/* XXX use off_t */
@@ -870,6 +869,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    first = 0;
 	    if (len > 0 && ISSPACE(start[0]))
 		rec_put(state->cleanup, REC_TYPE_NORM, "", 0);
+	    else if (strncmp(start + strspn(start, ">"), "From ", 5) == 0)
+		continue;
 	}
 	if (prev_rec_type != REC_TYPE_CONT
 	    && *start == '.' && (++start, --len) == 0)
@@ -1430,7 +1431,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
-	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,

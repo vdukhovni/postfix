@@ -28,6 +28,8 @@
 #	The format of the transport table is as follows:
 # .IP "blanks and comments"
 #	Blank lines are ignored, as are lines beginning with `#'.
+# .IP "leading whitespace"
+#	Lines that begin with whitespace continue the previous line.
 # .IP "\fIpattern result\fR"
 #	When \fIpattern\fR matches the domain, use the corresponding
 #	\fIresult\fR.

@@ -43,6 +43,8 @@
 #	The format of the \fBcanonical\fR table is as follows:
 # .IP "blanks and comments"
 #	Blank lines are ignored, as are lines beginning with `#'.
+# .IP "leading whitespace"
+#	Lines that begin with whitespace continue the previous line.
 # .IP "\fIpattern result\fR"
 #	When \fIpattern\fR matches a mail address, replace it by the
 #	corresponding \fIresult\fR.

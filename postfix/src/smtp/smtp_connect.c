@@ -25,6 +25,11 @@
 /*	smtp_connect() attempts to establish an SMTP session with a host
 /*	that represents the named domain.
 /*
+/*	No session and an smtp_errno of SMTP_OK means that the local
+/*	machine is the best mail exchanger for the specified destination.
+/*	It is left up to the caller to decide if this is a mailer loop
+/*	or if this is a "do what I mean" request.
+/*
 /*	The destination is either a host (or domain) name or a numeric
 /*	address. Symbolic or numeric service port information may be
 /*	appended, separated by a colon (":").
@@ -105,6 +110,7 @@
 #include <inet_addr_list.h>
 #include <iostuff.h>
 #include <timed_connect.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -379,34 +385,77 @@ static char *smtp_parse_destination(char *destination, char *def_service,
 
 SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
 {
-    SMTP_SESSION *session;
-    char   *dest_buf;
+    SMTP_SESSION *session = 0;
+    char   *dest_buf = 0;
     char   *host;
     unsigned port;
     char   *def_service = "smtp";	/* XXX configurable? */
+    char   *save;
+    char   *dest;
+    char   *cp;
 
     /*
-     * Parse the destination specification. Default is to use the SMTP port.
+     * First try to deliver to the indicated destination, then try to deliver
+     * to the optional fall-back relays. Each can be a list of destinations
+     * by itself, with domain, host, [], numerical address, and port.
      */
-    dest_buf = smtp_parse_destination(destination, def_service, &host, &port);
+    cp = save = concatenate(destination, " ", var_fallback_relay, (char *) 0);
+
+    while ((dest = mystrtok(&cp, " \t\r\n")) != 0) {
+
+	/*
+	 * Parse the destination. Default is to use the SMTP port.
+	 */
+	dest_buf = smtp_parse_destination(dest, def_service, &host, &port);
+
+	/*
+	 * Connect to an SMTP server. Skip mail exchanger lookups when a
+	 * quoted host is specified, or when DNS lookups are disabled.
+	 */
+	if (msg_verbose)
+	    msg_info("connecting to %s port %d", host, ntohs(port));
+	if (var_disable_dns || *dest == '[') {
+	    session = smtp_connect_host(host, port, why);
+	} else {
+	    session = smtp_connect_domain(host, port, why);
+	}
+	myfree(dest_buf);
+
+	/*
+	 * Done if we have a session, or if we have no session and this host
+	 * is the best MX relay for the destination. Agreed, an errno of OK
+	 * after failure is a weird way to reporting progress.
+	 */
+	if (session != 0 || smtp_errno == SMTP_OK)
+	    break;
+    }
 
     /*
-     * Connect to an SMTP server. Skip mail exchanger lookups when a quoted
-     * host is specified, or when DNS lookups are disabled.
+     * Sanity check. The destination must not be empty or all blanks.
      */
-    if (msg_verbose)
-	msg_info("connecting to %s port %d", host, ntohs(port));
-    if (var_disable_dns || *destination == '[') {
-	session = smtp_connect_host(host, port, why);
-    } else {
-	session = smtp_connect_domain(host, port, why);
+    if (session == 0 && dest_buf == 0)
+	msg_panic("null destination: \"%s\"", destination);
+
+    /*
+     * Pay attention to what could be configuration problems, and pretend
+     * that these are recoverable rather than bouncing the mail.
+     */
+    if (session == 0 && smtp_errno == SMTP_FAIL) {
+	if (strcmp(destination, var_relayhost) == 0) {
+	    msg_warn("%s configuration problem: %s",
+		     VAR_RELAYHOST, var_relayhost);
+	    smtp_errno = SMTP_RETRY;
+	}
+	if (*var_fallback_relay) {
+	    msg_warn("%s configuration problem: %s",
+		     VAR_FALLBACK_RELAY, var_fallback_relay);
+	    smtp_errno = SMTP_RETRY;
+	}
     }
-    if (session == 0
-	&& smtp_errno == SMTP_FAIL
-	&& strcmp(host, var_relayhost) == 0) {
-	msg_warn("relayhost configuration problem: %s", var_relayhost);
-	smtp_errno = SMTP_RETRY;
-    }
-    myfree(dest_buf);
+
+    /*
+     * Cleanup.
+     */
+    myfree(save);
     return (session);
 }

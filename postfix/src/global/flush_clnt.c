@@ -94,7 +94,7 @@ int     flush_purge(void)
     /*
      * Don't bother the server if the service is turned off.
      */
-    if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
+    if (*var_fflush_domains == 0)
 	status = FLUSH_STAT_OK;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
@@ -119,7 +119,7 @@ int     flush_refresh(void)
     /*
      * Don't bother the server if the service is turned off.
      */
-    if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
+    if (*var_fflush_domains == 0)
 	status = FLUSH_STAT_OK;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
@@ -144,7 +144,7 @@ int     flush_send(const char *site)
     /*
      * Don't bother the server if the service is turned off.
      */
-    if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
+    if (*var_fflush_domains == 0)
 	status = mail_flush_deferred();
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
@@ -169,7 +169,7 @@ int     flush_add(const char *site, const char *queue_id)
     /*
      * Don't bother the server if the service is turned off.
      */
-    if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
+    if (*var_fflush_domains == 0)
 	status = FLUSH_STAT_OK;
     else
 	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,

@@ -57,6 +57,30 @@
 #endif
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+
+#if defined(_DB_185_H_) && defined(USE_FCNTL_LOCK)
+#error "Error: this system must not use the db 1.85 compatibility interface"
+#endif
+
+#ifndef DB_VERSION_MAJOR
+#define DB_VERSION_MAJOR 1
+#define DICT_DB_GET(db, key, val, flag)	db->get(db, key, val, flag)
+#define DICT_DB_PUT(db, key, val, flag)	db->put(db, key, val, flag)
+#define DICT_DB_DEL(db, key, flag)	db->del(db, key, flag)
+#define DICT_DB_SYNC(db, flag)		db->sync(db, flag)
+#define DICT_DB_CLOSE(db)		db->close(db)
+#define DONT_CLOBBER			R_NOOVERWRITE
+#endif
+
+#if DB_VERSION_MAJOR > 1
+#define DICT_DB_GET(db, key, val, flag)	sanitize(db->get(db, 0, key, val, flag))
+#define DICT_DB_PUT(db, key, val, flag)	sanitize(db->put(db, 0, key, val, flag))
+#define DICT_DB_DEL(db, key, flag)	sanitize(db->del(db, 0, key, flag))
+#define DICT_DB_SYNC(db, flag)		((errno = db->sync(db, flag)) ? -1 : 0)
+#define DICT_DB_CLOSE(db)		((errno = db->close(db, 0)) ? -1 : 0)
+#define DONT_CLOBBER			DB_NOOVERWRITE
+#endif
 
 /* Utility library. */
 
@@ -78,7 +102,38 @@ typedef struct {
 } DICT_DB;
 
 #define DICT_DB_CACHE_SIZE	(1024 * 1024)
-#define DICT_DB_NELM	4096
+#define DICT_DB_NELM		4096
+
+#if DB_VERSION_MAJOR > 1
+
+/* sanitize - sanitize db_get/put/del result */
+
+static int sanitize(int status)
+{
+
+    /*
+     * XXX This is unclean but avoids a lot of clutter elsewhere. Categorize
+     * results into non-fatal errors (i.e., errors that we can deal with),
+     * success, or fatal error (i.e., all other errors).
+     */
+    switch (status) {
+
+    case DB_NOTFOUND:				/* get, del */
+    case DB_KEYEXIST:				/* put */
+	return (1);				/* non-fatal */
+
+    case 0:
+	return (0);				/* success */
+
+    case DB_KEYEMPTY:				/* get, others? */
+	status = EINVAL;
+    default:
+	errno = status;
+	return (-1);				/* fatal */
+    }
+}
+
+#endif
 
 /* dict_db_lookup - find database entry */
 
@@ -93,6 +148,8 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     const char *result = 0;
 
     dict_errno = 0;
+    memset(&db_key, 0, sizeof(db_key));
+    memset(&db_value, 0, sizeof(db_value));
 
     /*
      * Acquire a shared lock.
@@ -107,7 +164,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     if (dict->flags & DICT_FLAG_TRY1NULL) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name) + 1;
-	if ((status = db->get(db, &db_key, &db_value, 0)) < 0)
+	if ((status = DICT_DB_GET(db, &db_key, &db_value, 0)) < 0)
 	    msg_fatal("error reading %s: %m", dict_db->path);
 	if (status == 0) {
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;
@@ -122,7 +179,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     if (result == 0 && (dict->flags & DICT_FLAG_TRY0NULL)) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name);
-	if ((status = db->get(db, &db_key, &db_value, 0)) < 0)
+	if ((status = DICT_DB_GET(db, &db_key, &db_value, 0)) < 0)
 	    msg_fatal("error reading %s: %m", dict_db->path);
 	if (status == 0) {
 	    if (buf == 0)
@@ -152,6 +209,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     DBT     db_value;
     int     status;
 
+    memset(&db_key, 0, sizeof(db_key));
+    memset(&db_value, 0, sizeof(db_value));
     db_key.data = (void *) name;
     db_value.data = (void *) value;
     db_key.size = strlen(name);
@@ -187,8 +246,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     /*
      * Do the update.
      */
-    if ((status = db->put(db, &db_key, &db_value,
-	    (dict->flags & DICT_FLAG_DUP_REPLACE) ? 0 : R_NOOVERWRITE)) < 0)
+    if ((status = DICT_DB_PUT(db, &db_key, &db_value,
+	     (dict->flags & DICT_FLAG_DUP_REPLACE) ? 0 : DONT_CLOBBER)) < 0)
 	msg_fatal("error writing %s: %m", dict_db->path);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
@@ -199,7 +258,7 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
 	    msg_fatal("%s: duplicate entry: \"%s\"", dict_db->path, name);
     }
     if (dict->flags & DICT_FLAG_SYNC_UPDATE)
-	if (db->sync(db, 0) < 0)
+	if (DICT_DB_SYNC(db, 0) < 0)
 	    msg_fatal("%s: flush dictionary: %m", dict_db->path);
 
     /*
@@ -232,7 +291,7 @@ static int dict_db_delete(DICT *dict, const char *name)
     if (dict->flags & DICT_FLAG_TRY1NULL) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name) + 1;
-	if ((status = db->del(db, &db_key, flags)) < 0)
+	if ((status = DICT_DB_DEL(db, &db_key, flags)) < 0)
 	    msg_fatal("error deleting from %s: %m", dict_db->path);
 	if (status == 0)
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;
@@ -245,7 +304,7 @@ static int dict_db_delete(DICT *dict, const char *name)
     if (status > 0 && (dict->flags & DICT_FLAG_TRY0NULL)) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name);
-	if ((status = db->del(db, &db_key, flags)) < 0)
+	if ((status = DICT_DB_DEL(db, &db_key, flags)) < 0)
 	    msg_fatal("error deleting from %s: %m", dict_db->path);
 	if (status == 0)
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;
@@ -265,6 +324,9 @@ static int dict_db_delete(DICT *dict, const char *name)
 static int dict_db_sequence(DICT *dict, const int function,
 			            const char **key, const char **value)
 {
+#if DB_VERSION_MAJOR > 1
+    msg_fatal("dict_db_sequence - operation is to be implemented");
+#else
     char   *myname = "dict_db_sequence";
     DICT_DB *dict_db = (DICT_DB *) dict;
     DB     *db = dict_db->db;
@@ -328,6 +390,7 @@ static int dict_db_sequence(DICT *dict, const int function,
 	}
     }
     return status;
+#endif
 }
 
 /* dict_db_close - close data base */
@@ -336,7 +399,7 @@ static void dict_db_close(DICT *dict)
 {
     DICT_DB *dict_db = (DICT_DB *) dict;
 
-    if (dict_db->db->close(dict_db->db) < 0)
+    if (DICT_DB_CLOSE(dict_db->db) < 0)
 	msg_fatal("close database %s: %m", dict_db->path);
     myfree(dict_db->path);
     myfree((char *) dict_db);
@@ -353,30 +416,76 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
     char   *db_path;
     int     lock_fd = -1;
 
+#if DB_VERSION_MAJOR > 1
+    int     db_flags;
+
+#endif
+
     db_path = concatenate(path, ".db", (char *) 0);
 
-    if (dict_flags & DICT_FLAG_LOCK) {
-	if ((lock_fd = open(db_path, open_flags, 0644)) < 0)
-	    msg_fatal("open database %s: %m", db_path);
-	if (myflock(lock_fd, MYFLOCK_SHARED) < 0)
-	    msg_fatal("shared-lock database %s for open: %m", db_path);
-    }
+    /*
+     * Use the DB 1.x programming interface. This is the default interface
+     * with 4.4BSD systems. It is also available via the db_185 compatibility
+     * interface, but that interface does not have the undocumented feature
+     * that we need to make file locking safe with POSIX fcntl() locking.
+     */
+#if DB_VERSION_MAJOR < 2
     if ((db = dbopen(db_path, open_flags, 0644, type, tweak)) == 0)
 	msg_fatal("open database %s: %m", db_path);
+    lock_fd = db->fd(db);
+#endif
 
-    if (dict_flags & DICT_FLAG_LOCK) {
-	if (myflock(lock_fd, MYFLOCK_NONE) < 0)
-	    msg_fatal("unlock database %s for open: %m", db_path);
-	if (close(lock_fd) < 0)
-	    msg_fatal("close database %s: %m", db_path);
-    }
+    /*
+     * Use the DB 2.x programming interface. Jump a couple extra hoops.
+     */
+#if DB_VERSION_MAJOR == 2
+    db_flags = DB_FCNTL_LOCKING;
+    if (open_flags == O_RDONLY)
+	db_flags |= DB_RDONLY;
+    if (open_flags & O_CREAT)
+	db_flags |= DB_CREATE;
+    if (open_flags & O_TRUNC)
+	db_flags |= DB_TRUNCATE;
+    if ((errno = db_open(db_path, type, db_flags, 0644, 0, tweak, &db)) != 0)
+	msg_fatal("open database %s: %m", db_path);
+    if (db == 0)
+	msg_panic("db_open null result");
+    if ((errno = db->fd(db, &lock_fd)) != 0)
+	msg_fatal("get database file descriptor: %m");
+#endif
+
+    /*
+     * Use the DB 3.x programming interface. Jump even more hoops.
+     */
+#if DB_VERSION_MAJOR > 2
+    db_flags = DB_FCNTL_LOCKING;
+    if (open_flags == O_RDONLY)
+	db_flags |= DB_RDONLY;
+    if (open_flags & O_CREAT)
+	db_flags |= DB_CREATE;
+    if (open_flags & O_TRUNC)
+	db_flags |= DB_TRUNCATE;
+    if ((errno = db_create(&db, 0, 0)) != 0)
+	msg_fatal("create DB database: %m");
+    if (db == 0)
+	msg_panic("db_create null result");
+    if ((errno = db->set_cachesize(db, 0, DICT_DB_CACHE_SIZE, 0)) != 0)
+	msg_fatal("set DB cache size %d: %m", DICT_DB_CACHE_SIZE);
+    if (type == DB_HASH && db->set_h_nelem(db, DICT_DB_NELM) != 0)
+	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
+    if ((errno = db->open(db, db_path, 0, type, db_flags, 0644)) != 0)
+	msg_fatal("open database %s: %m", db_path);
+    if ((errno = db->fd(db, &lock_fd)) != 0)
+	msg_fatal("get database file descriptor: %m");
+#endif
+
     dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;
     dict_db->dict.update = dict_db_update;
     dict_db->dict.delete = dict_db_delete;
     dict_db->dict.sequence = dict_db_sequence;
     dict_db->dict.close = dict_db_close;
-    dict_db->dict.fd = db->fd(db);
+    dict_db->dict.fd = lock_fd;
     if (fstat(dict_db->dict.fd, &st) < 0)
 	msg_fatal("dict_db_open: fstat: %m");
     dict_db->dict.mtime = st.st_mtime;
@@ -393,11 +502,25 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 
 DICT   *dict_hash_open(const char *path, int open_flags, int dict_flags)
 {
+#if DB_VERSION_MAJOR < 2
     HASHINFO tweak;
 
     memset((char *) &tweak, 0, sizeof(tweak));
     tweak.nelem = DICT_DB_NELM;
     tweak.cachesize = DICT_DB_CACHE_SIZE;
+#endif
+#if DB_VERSION_MAJOR == 2
+    DB_INFO tweak;
+
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.h_nelem = DICT_DB_NELM;
+    tweak.db_cachesize = DICT_DB_CACHE_SIZE;
+#endif
+#if DB_VERSION_MAJOR > 2
+    void   *tweak;
+
+    tweak = 0;
+#endif
     return (dict_db_open(path, open_flags, DB_HASH, (void *) &tweak, dict_flags));
 }
 
@@ -405,10 +528,23 @@ DICT   *dict_hash_open(const char *path, int open_flags, int dict_flags)
 
 DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
 {
+#if DB_VERSION_MAJOR < 2
     BTREEINFO tweak;
 
     memset((char *) &tweak, 0, sizeof(tweak));
     tweak.cachesize = DICT_DB_CACHE_SIZE;
+#endif
+#if DB_VERSION_MAJOR == 2
+    DB_INFO tweak;
+
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.db_cachesize = DICT_DB_CACHE_SIZE;
+#endif
+#if DB_VERSION_MAJOR > 2
+    void   *tweak;
+
+    tweak = 0;
+#endif
 
     return (dict_db_open(path, open_flags, DB_BTREE, (void *) &tweak, dict_flags));
 }

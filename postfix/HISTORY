@@ -104,7 +104,7 @@ Apologies for any names omitted.
 	that use short hostnames will have to specify their FQDN
 	in main.cf (this will eventually be done by the system
 	installation/configuration procedure). Should the config
-	language support backtics so one can say `domainname`? What
+	language support backticks so one can say `domainname`? What
 	about $name stuff between the backtics?
 
 	Security: the master now creates FIFOs and UNIX-domain
@@ -822,7 +822,7 @@ Apologies for any names omitted.
 	Feature: hashed queues. Rewrote parts of the mail queue
 	API.  Configuration parameters: "hash_queue_names" specifies
 	what queue directories will be hashed (default: the defer
-	log drectory), "hash_queue_depth" specifies the number of
+	log directory), "hash_queue_depth" specifies the number of
 	subdirectories used for hashing (default 2).
 
 19980802
@@ -2321,7 +2321,7 @@ Apologies for any names omitted.
 
 	Bugfix: the SMTPD check scaffolding didn't apply the same
 	sanity checks as the production code. Problem reported by
-	Alain Thivillon, Hervé Schauer Consultants, France. File:
+	Alain Thivillon, Herve Schauer Consultants, France. File:
 	smtpd/smtpd_check.c.
 
 	Portability: some systems can have more than 59 seconds in
@@ -2491,7 +2491,7 @@ Apologies for any names omitted.
 	This needed the partial lookup key support to avoid passing
 	partial addresses to regexp-based lookup tables (user,
 	@domain, user@, domain). Files: global/maps.c
-	globl/mail_addr_find.c.
+	global/mail_addr_find.c.
 
 	Feature: new dictionary types can be registered with
 	dict_open_register(). File: util/dict_open.c.
@@ -2670,7 +2670,7 @@ Apologies for any names omitted.
 
 	Workaround: renamed config.h to mail_conf.h etc. in order
 	to avoid name collisions with LINUX (yes, they have a system
-	include file calle config.h). For compatibility with people
+	include file called config.h). For compatibility with people
 	who have written software for Postfix, there's a config.h
 	that aliases the old names to the new ones. That file will
 	go away eventually.
@@ -2906,7 +2906,7 @@ Apologies for any names omitted.
 	Workaround: in the INSTALL file, use `&&' instead of `;'
 	in (cd path; tar ...) pipelines because some UNIX re-invented
 	shells don't bail out when cd fails. Matthias Andree
-	@dosis.uni-dortmund.de.
+	@stud.uni-dortmund.de.
 
 19990709
 
@@ -3566,7 +3566,7 @@ Apologies for any names omitted.
 	Workaround: rename() over NFS can fail with ENOENT even
 	when the operation succeeds (Graham Orndorff @ WebTV). This
 	is not news. Any non-idempotent operation can fail over
-	NFS when the NFS server's acknowledgement is lost and the
+	NFS when the NFS server's acknowledgment is lost and the
 	NFS client code retries the operation (other examples are:
 	create, symlink, link, unlink, mkdir, rmdir).  Postfix has
 	workarounds for the cases where this is most likely to
@@ -3658,7 +3658,7 @@ Apologies for any names omitted.
 	Robustness: limit the number of recipient addresses that
 	can be extracted from message headers. Parameter:
 	extract_recipient_limit (default:  10240). Files:
-	cleaup/cleanup_message.c, cleanup/cleanup_extracted.c.
+	cleanup/cleanup_message.c, cleanup/cleanup_extracted.c.
 
 	Cleanup: the message header reject logging now includes
 	sender and recipient address (if possible), so that the
@@ -3712,7 +3712,7 @@ Apologies for any names omitted.
 	Cleanup: the manual pages in Postfix configuration files
 	no longer contain troff formatting codes.  The text is now
 	generated from prototype files in a new "proto" subdirectory.
-	Requested by Matthias Andree @ dt.e-technik.uni-dortmund.de.
+	Requested by Matthias Andree @ stud.uni-dortmund.de.
 
 20000308
 
@@ -3853,7 +3853,7 @@ Apologies for any names omitted.
 	VSTREAM_CTL_TIMEOUT...) sets the timeout deadline on a
 	stream, and vstream_ftimeout(stream) queries a stream for
 	timeout errors.  This change simplified timeout handling
-	considerably.  Files: util/vbuf.h, util/vstrean.[hc],
+	considerably.  Files: util/vbuf.h, util/vstream.[hc],
 	global/smtp_stream.c, global/timed_ipc.c.
 
 20000504
@@ -4063,7 +4063,7 @@ Apologies for any names omitted.
 20000623
 
 	Bugfix: the SMTP server did not reset the so-called junk
-	command counter after successfull delivery (Mark Hoffman
+	command counter after successful delivery (Mark Hoffman
 	@ wallst.com).  File: smtpd/smtpd.c.
 
 20000625
@@ -4286,7 +4286,7 @@ Apologies for any names omitted.
 
 	Feature: Postfix bounced mail and delayed mail notifications
 	now have the standard RFC 1894 form (DSN). The bounce
-	service now uses the's generic bounce logfile API.  File:
+	service now uses the generic bounce logfile API.  File:
 	bounce/bounce_notify_service.c, bounce/bounce_notify_util.c.
 
 	Cleanup: deleted the per-recipient bounce protocol.  Future
@@ -4353,3 +4353,45 @@ Apologies for any names omitted.
 
 	Portability: Redhat 7 library interfaces have changed
 	incompatibly, which breaks existing software. File makedefs.
+
+	Bugfix: the fallback_relay parameter did not work with []
+	or with network ports, and Postfix would always attempt to
+	perform MX record lookups. Files: smtp/smtp_addr.c
+
+	Convenience: you can now specify multiple destinations in
+	the relayhost configuration parameter. They will be tried
+	in the specified order. File:  smtp/smtp_connect.c.
+
+	Typographical corrections by Matthias Andree.
+
+20001024
+
+	Documentation: the canonical, virtual etc. manual pages
+	did not document the effect of leading whitespace.
+
+20001025
+
+	Bugfix: virtual map expansion stopped too early with
+	self-referential aliases. Reported by Michael Douglass
+	@ datafoundry.net. File: cleanup/cleanup_map1n.c.
+
+20001026
+
+	Horror:  postmap and postalias (newaliases) silently lose
+	the file lock while building a lookup table with Berkeley
+	DB 2.x and later on Solaris, HP-UX or IRIX.  The result is
+	that table lookups fail while the table is being built, so
+	that mail is lost.  In order to avoid this misbehavior one
+	has to use an undocumented feature that is NOT available
+	with the DB1.85 compatibility interface.  Therefore, Postfix
+	now supports three Berkeley DB programming interfaces of
+	increasing complexity. File: util/dict_db.c.
+
+	Bugfix: made some character manipulations independent of
+	signed/unsigned characters. Files: global/quote_821_local.c,
+	global/quote_822_local.c.
+
+	Workaround: some software sends SMTP mail that begins with
+	"From sender time-stamp". Sendmail accepts such RFC vioating
+	garbage, and therefore Postfix needs to jump another hoop.
+	File: smtpd/smtpd.c.

@@ -23,6 +23,8 @@ supports use the \fBpostconf -m\fR command.
 The general form of a Postfix regular expression table is:
 .IP "blanks and comments"
 Blank lines are ignored, as are lines beginning with `#'.
+.IP "leading whitespace"
+Lines that begin with whitespace continue the previous line.
 .IP "\fIpattern result\fR"
 When \fIpattern\fR matches a search string, use the corresponding
 \fIresult\fR. A line that starts with white space continues the

@@ -199,10 +199,10 @@ cleanup_map1n.o: ../../include/mail_addr_map.h
 cleanup_map1n.o: ../../include/maps.h
 cleanup_map1n.o: ../../include/cleanup_user.h
 cleanup_map1n.o: ../../include/quote_822_local.h
+cleanup_map1n.o: ../../include/been_here.h
 cleanup_map1n.o: cleanup.h
 cleanup_map1n.o: ../../include/tok822.h
 cleanup_map1n.o: ../../include/resolve_clnt.h
-cleanup_map1n.o: ../../include/been_here.h
 cleanup_map1n.o: ../../include/mail_stream.h
 cleanup_map1n.o: ../../include/mail_conf.h
 cleanup_masquerade.o: cleanup_masquerade.c

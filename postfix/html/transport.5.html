@@ -39,26 +39,26 @@ TRANSPORT(5)                                         TRANSPORT(5)
               Blank  lines  are  ignored,  as are lines beginning
               with `#'.
 
+       leading whitespace
+              Lines that begin with whitespace continue the  pre-
+              vious line.
+
        <i>pattern</i> <i>result</i>
-              When <i>pattern</i> matches the  domain,  use  the  corre-
+              When  <i>pattern</i>  matches  the  domain, use the corre-
               sponding <i>result</i>.
 
        With lookups from indexed files such as DB or DBM, or from
-       networked tables such as NIS, LDAP or  SQL,  patterns  are
+       networked  tables  such  as NIS, LDAP or SQL, patterns are
        tried in the order as listed below:
 
        <i>domain</i> <i>transport</i>:<i>nexthop</i>
-              Mail  for  <i>domain</i> is delivered through <i>transport</i> to
+              Mail for <i>domain</i> is delivered through  <i>transport</i>  to
               <i>nexthop</i>.
 
        <i>.domain</i> <i>transport</i>:<i>nexthop</i>
-              Mail for  any  subdomain  of  <i>domain</i>  is  delivered
+              Mail  for  any  subdomain  of  <i>domain</i>  is delivered
               through <i>transport</i> to <i>nexthop</i>.
 
-       Note:  transport  map entries take precedence over domains
-       specified in the <b>mydestination</b> parameter. If you  use  the
-       optional  transport  map,  it  may  be  safer  to  specify
-       explicit   entries   for   all   domains   specified    in
 
 
 
@@ -71,60 +71,60 @@ TRANSPORT(5)                                         TRANSPORT(5)
 TRANSPORT(5)                                         TRANSPORT(5)
 
 
-       <b>mydestination</b>, for example:
+       Note: transport map entries take precedence  over  domains
+       specified  in  the <b>mydestination</b> parameter. If you use the
+       optional  transport  map,  it  may  be  safer  to  specify
+       explicit  entries  for all domains specified in <b>mydestina-</b>
+       <b>tion</b>, for example:
 
             <b>hostname.my.domain</b>   <b>local:</b>
             <b>localhost.my.domain</b>      <b>local:</b>
 
-       The  interpretation  of  the  <i>nexthop</i>  field  is transport
+       The interpretation  of  the  <i>nexthop</i>  field  is  transport
        dependent. In the case of SMTP, specify <i>host</i>:<i>service</i> for a
-       non-default  server port, and use [<i>host</i>] or [<i>host</i>]:<i>port</i> in
-       order to disable MX (mail exchanger) DNS lookups.  The  []
-       form  can  also be used with IP addresses instead of host-
+       non-default server port, and use [<i>host</i>] or [<i>host</i>]:<i>port</i>  in
+       order  to  disable MX (mail exchanger) DNS lookups. The []
+       form can also be used with IP addresses instead  of  host-
        names.
 
 <b>EXAMPLES</b>
-       In order to send mail for <b>foo.org</b> and its  subdomains  via
+       In  order  to send mail for <b>foo.org</b> and its subdomains via
        the <b>uucp</b> transport to the UUCP host named <b>foo</b>:
 
             <b>foo.org</b>      <b>uucp:foo</b>
             <b>.foo.org</b>     <b>uucp:foo</b>
 
-       When  no  <i>nexthop</i>  host name is specified, the destination
-       domain name is used instead. For  example,  the  following
-       directs  mail for <i>user</i>@<b>foo.org</b> via the <b>slow</b> transport to a
-       mail exchanger for <b>foo.org</b>.  The <b>slow</b> transport  could  be
-       something  that  runs  at  most  one delivery process at a
+       When no <i>nexthop</i> host name is  specified,  the  destination
+       domain  name  is  used instead. For example, the following
+       directs mail for <i>user</i>@<b>foo.org</b> via the <b>slow</b> transport to  a
+       mail  exchanger  for <b>foo.org</b>.  The <b>slow</b> transport could be
+       something that runs at most  one  delivery  process  at  a
        time:
 
             <b>foo.org</b>      <b>slow:</b>
 
-       When no <i>transport</i> is specified, the default  transport  is
+       When  no  <i>transport</i> is specified, the default transport is
        used, as specified via the <b>default</b><i>_</i><b>transport</b> configuration
-       parameter. The following sends all mail  for  <b>foo.org</b>  and
+       parameter.  The  following  sends all mail for <b>foo.org</b> and
        its subdomains to host <b>gateway.foo.org</b>:
 
             <b>foo.org</b>      <b>:[gateway.foo.org]</b>
             <b>.foo.org</b>     <b>:[gateway.foo.org]</b>
 
-       In  the  above  example,  the  []  are used to suppress MX
-       lookups.  The result would  likely  point  to  your  local
+       In the above example, the  []  are  used  to  suppress  MX
+       lookups.   The  result  would  likely  point to your local
        machine.
 
-       In  the  case  of delivery via SMTP, one may specify <i>host-</i>
+       In the case of delivery via SMTP, one  may  specify  <i>host-</i>
        <i>name</i>:<i>service</i> instead of just a host:
 
             <b>foo.org</b>      <b>smtp:bar.org:2025</b>
 
-       This directs mail for <i>user</i>@<b>foo.org</b> to  host  <b>bar.org</b>  port
-       <b>2025</b>.  Instead  of a numerical port a symbolic name may be
-       used. Specify [] around the hostname in order  to  disable
+       This  directs  mail  for <i>user</i>@<b>foo.org</b> to host <b>bar.org</b> port
+       <b>2025</b>. Instead of a numerical port a symbolic name  may  be
+       used.  Specify  [] around the hostname in order to disable
        MX lookups.
 
-       The error mailer can be used to bounce mail:
-
-            <b>.foo.org</b>       <b>error:mail</b> <b>for</b> <b>*.foo.org</b> <b>is</b> <b>not</b> <b>deliv-</b>
-       <b>erable</b>
 
 
 
@@ -137,31 +137,36 @@ TRANSPORT(5)                                         TRANSPORT(5)
 TRANSPORT(5)                                         TRANSPORT(5)
 
 
-       This causes  all  mail  for  <i>user</i>@<i>anything</i><b>.foo.org</b>  to  be
+       The error mailer can be used to bounce mail:
+
+            <b>.foo.org</b>      <b>error:mail</b> <b>for</b> <b>*.foo.org</b> <b>is</b> <b>not</b>  <b>deliv-</b>
+       <b>erable</b>
+
+       This  causes  all  mail  for  <i>user</i>@<i>anything</i><b>.foo.org</b>  to be
        bounced.
 
 <b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
-       This  section  describes how the table lookups change when
+       This section describes how the table lookups  change  when
        the table is given in the form of regular expressions. For
-       a  description  of regular expression lookup table syntax,
+       a description of regular expression lookup  table  syntax,
        see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
 
-       Each pattern is a regular expression that  is  applied  to
+       Each  pattern  is  a regular expression that is applied to
        the entire domain being looked up. Thus, <i>some.domain.hier-</i>
        <i>archy</i> is not broken up into parent domains.
 
-       Patterns are applied in the  order  as  specified  in  the
-       table,  until  a  pattern is found that matches the search
+       Patterns  are  applied  in  the  order as specified in the
+       table, until a pattern is found that  matches  the  search
        string.
 
-       Results are the same as with normal indexed file  lookups,
-       with  the additional feature that parenthesized substrings
-       from the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so  on.
+       Results  are the same as with normal indexed file lookups,
+       with the additional feature that parenthesized  substrings
+       from  the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
        <b>transport</b><i>_</i><b>maps</b>
@@ -170,7 +175,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
        Other parameters of interest:
 
        <b>default</b><i>_</i><b>transport</b>
-              The transport to use when no transport  is  explic-
+              The  transport  to use when no transport is explic-
               itly specified.
 
        <b>relayhost</b>
@@ -184,13 +189,8 @@ TRANSPORT(5)                                         TRANSPORT(5)
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
-
-<b>AUTHOR(S)</b>
-       Wietse Venema
-       IBM T.J. Watson Research
-       P.O. Box 704
 
 
 
@@ -203,11 +203,11 @@ TRANSPORT(5)                                         TRANSPORT(5)
 TRANSPORT(5)                                         TRANSPORT(5)
 
 
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

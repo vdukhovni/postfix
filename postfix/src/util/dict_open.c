@@ -181,7 +181,7 @@ typedef struct {
 static DICT_OPEN_INFO dict_open_info[] = {
     "environ", dict_env_open,
     "unix", dict_unix_open,
-#if 0
+#if 1
     "tcp", dict_tcp_open,
 #endif
 #ifdef HAS_DBM
@@ -378,6 +378,8 @@ main(int argc, char **argv)
 	bufp = vstring_str(keybuf);
 	if ((cmd = mystrtok(&bufp, " ")) == 0)
 	    continue;
+	if (dict_changed())
+	    msg_warn("dictionary has changed");
 	key = mystrtok(&bufp, " =");
 	value = mystrtok(&bufp, " =");
 	if (strcmp(cmd, "del") == 0 && key && !value) {

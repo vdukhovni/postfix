@@ -37,7 +37,7 @@ map config file follows:
 
 # the user name and password to log into the mysql server
 user = someone
-password = some_passwordd 
+password = some_password 
 
 # the database name on the servers
 dbname = customer_database
@@ -79,7 +79,7 @@ databases on two or more hosts.  Whenever queries fail with an error
 at one host, the rest of the hosts will be tried in order.  Each host
 that is in an error state will undergo a reconnection attempt every so 
 often, and if no mysql server hosts are reachable, then mail will be
-deferred until atleast one of those hosts is reachable.
+deferred until at least one of those hosts is reachable.
 
 Performance of postfix with mysql has not been thoroughly tested,
 however, we have found it to be stable.  Busy mail servers using mysql

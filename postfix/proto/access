@@ -28,6 +28,8 @@
 #	The format of the access table is as follows:
 # .IP "blanks and comments"
 #	Blank lines are ignored, as are lines beginning with `#'.
+# .IP "leading whitespace"
+#	Lines that begin with whitespace continue the previous line.
 # .IP "\fIpattern action\fR"
 #	When \fIpattern\fR matches a mail address, domain or host address,
 #	perform the corresponding \fIaction\fR.

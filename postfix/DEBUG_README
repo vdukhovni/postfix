@@ -128,7 +128,7 @@ In order to compile Postfix with optimizations turned off:
     % make makefiles OPT=
 
 This produces a set of Makefiles that do not request compiler
-optomization. 
+optimization. 
 
 Once the makefiles are set up, build the software:
 

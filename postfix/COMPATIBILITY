@@ -14,7 +14,7 @@ delivered-to	yes
 dsn		not yet
 errors-to:	yes
 esmtp		yes
-etrn support	yes (flushes entire queue)
+etrn support	yes (uses per-destination log or flushes entire queue)
 fcntl locking	yes (compile time)
 flock locking	yes (compile time)
 home mailbox	yes

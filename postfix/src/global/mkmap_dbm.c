@@ -33,6 +33,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <unistd.h>
 
 /* Utility library. */
 

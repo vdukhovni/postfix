@@ -31,7 +31,7 @@ should be executed as an unprivileged user.
 =================
 
 Documentation is available as HTML web pages (point your browser
-to html/index.html) and as UNIX-style manpages (point your MANPATH
+to html/index.html) and as UNIX-style man pages (point your MANPATH
 environment variable to the `man' subdirectory; be sure to use an
 absolute path).
 
@@ -419,7 +419,7 @@ every Postfix daemon can run chrooted.
 
 By default, no Postfix daemon runs chrooted.  In order to enable
 chroot operation, edit the file /etc/postfix/master.cf.  It is
-highy recommended to chroot the daemons that talk to the network:
+highly recommended to chroot the daemons that talk to the network:
 the smtp and smtpd processes.
 
 Note that a chrooted daemon resolves all filenames relative to the
@@ -432,7 +432,7 @@ Postfix systems.
 12 - Security: writable versus protected maildrop directory
 ===========================================================
 
-Postfix offers a choice of submission mechanims.
+Postfix offers a choice of submission mechanisms.
 
 1 - Postfix can use a world-writable, sticky, mode 1733 maildrop
     directory where local users can submit mail. This approach

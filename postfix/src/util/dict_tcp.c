@@ -18,10 +18,33 @@
 /*
 /*	Map names have the form host:port.
 /*
-/*	The TCP map class implements a very simple protocol: a query is sent
-/*	as one line of text, and a reply is sent back in the same format.
-/*	% and non-printable characters are replaced by %xx, xx being the
-/*	corresponding hexadecimal value.
+/*	The TCP map class implements a very simple protocol: the client
+/*	sends a query, and the server sends one reply. Queries and
+/*	replies are sent as one line of ASCII text, terminated by the
+/*	ASCII newline character. Query and reply parameters (see below)
+/*	are separated by whitespace.
+/*
+/*	In query and reply parameters, the character % and any non-printable
+/*	characters (including whitespace) are replaced by %XX, XX being the
+/*	corresponding ASCII hexadecimal character value. The hexadecimal codes
+/*	can be specified in any case (upper, lower, mixed).
+/*
+/*	Queries are strings that serve as lookup key in the simulated
+/*	table.
+/* .IP "get SPACE key NEWLINE"
+/*	Look up data under the specified key.
+/* .IP "put SPACE key SPACE value NEWLINE"
+/*
+/* .PP
+/*      Replies can have the following form:
+/* .IP "500 SPACE text NEWLINE"
+/*	The requested data does not exist. The text is ignored.
+/* .IP "400 SPACE text NEWLINE"
+/*	This indicates an error condition. The text gives the nature of
+/*	the problem.
+/* .IP "200 SPACE text NEWLINE"
+/*	The requested data was found. The text contains an encoded version
+/*	of the requested data.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /*	hex_quote(3) http-style quoting
@@ -45,6 +68,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 /* Utility library. */
 
@@ -56,6 +80,7 @@
 #include "connect.h"
 #include "hex_quote.h"
 #include "dict.h"
+#include "stringops.h"
 #include "dict_tcp.h"
 
 /* Application-specific. */
@@ -148,13 +173,23 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
 	 * is mostly text.
 	 */
 	hex_quote(dict_tcp->hex_buf, key);
-	vstream_fprintf(dict_tcp->fp, "%s\n", STR(dict_tcp->hex_buf));
+	vstream_fprintf(dict_tcp->fp, "get %s\n", STR(dict_tcp->hex_buf));
 	errno = 0;
 	if (vstring_get_nonl(dict_tcp->hex_buf, dict_tcp->fp) == VSTREAM_EOF) {
 	    msg_warn("read TCP map reply from %s: %m", dict_tcp->map);
 	} else if (!hex_unquote(dict_tcp->raw_buf, STR(dict_tcp->hex_buf))) {
 	    msg_warn("read TCP map reply from %s: malformed reply %.100s",
-		     dict_tcp->map, STR(dict_tcp->hex_buf));
+		     dict_tcp->map, 
+		     printable(STR(dict_tcp->hex_buf), '_'));
+	    dict_errno = DICT_ERR_RETRY;
+	    return (0);
+	} else if (ISSPACE(*STR(dict_tcp->raw_buf))) {
+	    msg_warn("TCP map reply from %s failed%s%s",
+		     dict_tcp->map,
+		     STR(dict_tcp->raw_buf)[1] ? ":" : "",
+		     printable(STR(dict_tcp->raw_buf), '_'));
+	    dict_errno = DICT_ERR_RETRY;
+	    return (0);
 	} else {
 	    return (STR(dict_tcp->raw_buf));
 	}

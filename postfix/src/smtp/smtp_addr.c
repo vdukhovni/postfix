@@ -51,6 +51,8 @@
 /*	The request failed due to a soft error, and should be retried later.
 /* .IP SMTP_FAIL
 /*	The request attempt failed due to a hard error.
+/* .IP SMTP_OK
+/*	The local machine is the best mail exchanger.
 /* .PP
 /*	In addition, a textual description of the problem is made available
 /*	via the \fIwhy\fR argument.
@@ -212,83 +214,6 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why)
     return (addr_list);
 }
 
-/* smtp_addr_fallback - add list of fallback addresses */
-
-static DNS_RR *smtp_addr_fallback(DNS_RR *addr_list)
-{
-    static DNS_RR *fallback_list = 0;
-    DNS_RR *mx_names;
-    DNS_RR *mx_addr_list;
-    DNS_RR *addr;
-    char   *saved_fallback_relay;
-    char   *cp;
-    char   *relay;
-    int     saved_smtp_errno = smtp_errno;
-    VSTRING *why;
-    DNS_RR *rr;
-    unsigned int pref;
-
-    /*
-     * Build a cached list of fall-back host addresses. Issue a warning when
-     * a fall-back host or domain is not found. This is most likely a local
-     * configuration problem.
-     * 
-     * XXX For the sake of admin-friendliness we want to support MX lookups for
-     * fall-back relays. This comes at a price: the fallback relay lookup
-     * routine almost entirely duplicates the smtp_domain_addr() routine.
-     * 
-     * Fall-back hosts are given a preference that is outside the range of valid
-     * DNS preferences (unsigned 16-bit integer).
-     */
-#define FB_PREF	(0xffff + 1)
-
-    if (fallback_list == 0) {
-	why = vstring_alloc(1);
-	cp = saved_fallback_relay = mystrdup(var_fallback_relay);
-	for (pref = FB_PREF; (relay = mystrtok(&cp, " \t\r\n,")) != 0; pref++) {
-	    smtp_errno = 0;
-	    switch (dns_lookup(relay, T_MX, RES_DEFNAMES, &mx_names, (VSTRING *) 0, why)) {
-	    default:
-		smtp_errno = SMTP_RETRY;
-		break;
-	    case DNS_FAIL:
-		smtp_errno = SMTP_FAIL;
-		break;
-	    case DNS_OK:
-		mx_addr_list = smtp_addr_list(mx_names, why);
-		dns_rr_free(mx_names);
-		for (addr = mx_addr_list; addr; addr = addr->next)
-		    addr->pref = pref;
-		fallback_list = dns_rr_append(fallback_list, mx_addr_list);
-		break;
-	    case DNS_NOTFOUND:
-		fallback_list = smtp_addr_one(fallback_list, relay, pref, why);
-		break;
-	    }
-	    if (smtp_errno != SMTP_OK)
-		msg_warn("look up fall-back relay %s: %s",
-			 relay, vstring_str(why));
-	}
-	vstring_free(why);
-	myfree(saved_fallback_relay);
-    }
-
-    /*
-     * Append a copy of the fall-back address list to the mail exchanger
-     * address list - which may be an empty list if no mail exchanger was
-     * found.
-     */
-    for (rr = fallback_list; rr; rr = rr->next)
-	addr_list = dns_rr_append(addr_list, dns_rr_copy(rr));
-
-    /*
-     * Clean up.
-     */
-    smtp_errno = saved_smtp_errno;
-
-    return (addr_list);
-}
-
 /* smtp_find_self - spot myself in a crowd of mail exchangers */
 
 static DNS_RR *smtp_find_self(DNS_RR *addr_list)
@@ -411,8 +336,6 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
-	if (*var_fallback_relay)
-	    addr_list = smtp_addr_fallback(addr_list);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
 	if ((self = smtp_find_self(addr_list)) != 0) {
@@ -455,8 +378,6 @@ DNS_RR *smtp_host_addr(char *host, VSTRING *why)
      */
 #define PREF0	0
     addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
-    if (*var_fallback_relay)
-	addr_list = smtp_addr_fallback(addr_list);
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);
     return (addr_list);

@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include <been_here.h>
 /*
-/*	BH_TABLE *been_here_init(size)
+/*	BH_TABLE *been_here_init(size, flags)
 /*	int	size;
+/*	int	flags;
 /*
 /*	int	been_here_fixed(dup_filter, string)
 /*	BH_TABLE *dup_filter;

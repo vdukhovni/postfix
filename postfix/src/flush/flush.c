@@ -21,17 +21,10 @@
 /*	an email address.
 /*
 /*	Per-destination logfiles of deferred mail are maintained only for
-/*	eligible destinations. The policy is specified with the
-/*	\fBfast_flush_policy\fR configuration parameter:
-/* .IP \fBall\fR
-/*	Maintain per-destination logfiles for all destinations.
-/* .IP "\fBrelay\fR (default policy)"
-/*	Maintain per-destination logfiles only for destinations
-/*	that this system is willing to relay mail to (as controlled
-/*	by the \fBrelay_domains\fR configuration parameter).
-/* .IP \fBnone\fR
-/*	Do not maintain per-destination logfiles.
-/* .PP
+/*	eligible destinations. The list of eligible destinations is
+/*	specified with the \fBfast_flush_domains\fR configuration parameter,
+/*	which defaults to \fB$relay_domains\fR.
+/*
 /*	This server implements the following requests:
 /* .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
 /*	Inform the fast flush server that the specified message is queued for
@@ -103,9 +96,9 @@
 /*	See the Postfix \fBmain.cf\fR file for syntax details and for
 /*	default values. Use the \fBpostfix reload\fR command after a
 /*	configuration change.
-/* .IP \fBfast_flush_policy\fR
-/*	What destinations can have a "fast flush" logfile: \fBall\fR,
-/*	\fBrelay\fR (relay destinations) or \fBnone\fR.
+/* .IP \fBfast_flush_domains\fR
+/*	What destinations can have a "fast flush" logfile. By default,
+/*	this is set to \fB$relay_domains\fR.
 /* .IP \fBfast_flush_refresh_time\fR
 /*	Refresh a non-empty "fast flush" logfile that was not read in
 /*	this amount of time (default time unit: hours), by simulating
@@ -173,18 +166,11 @@
   */
 int     var_fflush_refresh;
 int     var_fflush_purge;
-char   *var_relay_domains;
 
  /*
   * Flush policy stuff.
   */
-#define FLUSH_POLICY_UNKNOWN	0
-#define FLUSH_POLICY_ALL	1
-#define FLUSH_POLICY_RELAY	2
-#define FLUSH_POLICY_NONE	3
-
 static DOMAIN_LIST *flush_domains;
-static int flush_policy = FLUSH_POLICY_UNKNOWN;
 
  /*
   * Some hard-wired policy: how many queue IDs we remember while we're
@@ -199,41 +185,14 @@ static int flush_policy = FLUSH_POLICY_UNKNOWN;
 #define STR(x)			vstring_str(x)
 #define STREQ(x,y)		(strcmp(x,y) == 0)
 
-/* flush_policy_init - initialize fast flush policy stuff */
-
-static int flush_policy_init(void)
-{
-
-    if (STREQ(var_fflush_policy, FFLUSH_POLICY_ALL)) {
-	flush_policy = FLUSH_POLICY_ALL;
-    } else if (STREQ(var_fflush_policy, FFLUSH_POLICY_RELAY)) {
-	flush_domains = domain_list_init(var_relay_domains);
-	flush_policy = FLUSH_POLICY_RELAY;
-    } else if (STREQ(var_fflush_policy, FFLUSH_POLICY_NONE)) {
-	flush_policy = FLUSH_POLICY_NONE;
-    } else {
-	msg_fatal("invalid %s configuration parameter value: %s",
-		  VAR_FFLUSH_POLICY, var_fflush_policy);
-    }
-}
-
 /* flush_policy_ok - check logging policy */
 
 static int flush_policy_ok(const char *site)
 {
-    if (flush_policy == FLUSH_POLICY_UNKNOWN)
-	flush_policy_init();
+    if (flush_domains == 0)
+	flush_domains = domain_list_init(var_fflush_domains);
 
-    switch (flush_policy) {
-    case FLUSH_POLICY_ALL:
-	return (1);
-    case FLUSH_POLICY_RELAY:
-	return (domain_list_match(flush_domains, site));
-    case FLUSH_POLICY_NONE:
-	return (0);
-    default:
-	msg_panic("invalid fast flush policy %d", flush_policy);
-    }
+    return (domain_list_match(flush_domains, site));
 }
 
 /* flush_add_service - append queue ID to per-site fast flush log */
@@ -547,13 +506,8 @@ int     main(int argc, char **argv)
 	VAR_FFLUSH_PURGE, DEF_FFLUSH_PURGE, &var_fflush_purge, 'd', 1, 0,
 	0,
     };
-    static CONFIG_STR_TABLE str_table[] = {
-	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
-	0,
-    };
 
     single_server_main(argc, argv, flush_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
 		       0);
 }

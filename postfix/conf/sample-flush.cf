@@ -5,7 +5,7 @@
 # control the fast flush service, which is the code that implements
 # fast ETRN and fast "sendmail -qR".
 
-# The fast_flush_policy parameter specifies what destinations are
+# The fast_flush_domains parameter specifies what destinations are
 # eligible for per-destination logfiles with mail that is queued to
 # those destinations.
 # 
@@ -25,12 +25,10 @@
 # destinations that the Postfix SMTP server is willing to relay to
 # (see the relay_domains parameter in sample-smtpd.cf).
 #
-# Specify "all" to enable "fast flush" logfiles for all destinations,
-# "none" to disable the logfiles altogether.
+# Specify "fast_flush_policy =" to disable the feature altogether.
 #
-#fast_flush_policy = all
-fast_flush_policy = relay
-#fast_flush_policy = none
+fast_flush_policy = $relay_domains
+#fast_flush_policy =
 
 # The fast_flush_purge_time parameter controls how long an empty
 # per-destination "fast flush" logfile is allowed to live. 

@@ -42,6 +42,10 @@
 #else
 #include <ndbm.h>
 #endif
+#ifdef R_FIRST
+#error "Error: you are including the Berkeley DB version of ndbm.h"
+#error "To build with Postfix NDBM support, delete the Berkeley DB ndbm.h file"
+#endif
 #include <string.h>
 #include <unistd.h>
 

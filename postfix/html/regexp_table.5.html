@@ -26,9 +26,13 @@ REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
               Blank  lines  are  ignored,  as are lines beginning
               with `#'.
 
+       leading whitespace
+              Lines that begin with whitespace continue the  pre-
+              vious line.
+
        <i>pattern</i> <i>result</i>
-              When <i>pattern</i> matches a search string, use the  cor-
-              responding  <i>result</i>.  A  line that starts with white
+              When  <i>pattern</i> matches a search string, use the cor-
+              responding <i>result</i>. A line that  starts  with  white
               space continues the preceding line.
 
        <i>pattern1!pattern2</i> <i>result</i>
@@ -37,28 +41,24 @@ REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
        Each pattern is a regular expression enclosed by a pair of
        delimiters.  The regular expression syntax is described in
        <i>re_format</i>(7).  The expression delimiter can be any charac-
-       ter,  except  whitespace  or  characters that have special
-       meaning (traditionally the forward  slash  is  used).  The
+       ter, except whitespace or  characters  that  have  special
+       meaning  (traditionally  the  forward  slash is used). The
        regular expression can contain whitespace.
 
        By default, matching is case-insensitive, although follow-
-       ing the second slash with an `i' flag will  reverse  this.
-       Other  flags are `x' (disable extended expression syntax),
+       ing  the  second slash with an `i' flag will reverse this.
+       Other flags are `x' (disable extended expression  syntax),
        and `m' (enable multi-line mode).
 
-       Each pattern is applied to the entire string being  looked
-       up.   Depending  on  the  application,  that  string is an
+       Each  pattern is applied to the entire string being looked
+       up.  Depending on  the  application,  that  string  is  an
        entire client hostname, an entire client IP address, or an
-       entire  mail  address.   Thus,  no parent domain or parent
+       entire mail address.  Thus, no  parent  domain  or  parent
        network search is done, and <i>user@domain</i> mail addresses are
-       not  broken  up  into  their  <i>user</i>  and <i>domain</i> constituent
+       not broken up  into  their  <i>user</i>  and  <i>domain</i>  constituent
        parts, nor is <i>user+foo</i> broken up into <i>user</i> and <i>foo</i>.
 
-       Patterns are applied in the  order  as  specified  in  the
-       table,  until  a  pattern is found that matches the search
-       string.
-
-       Substitution of sub-strings from the matched expression is
+       Patterns  are  applied  in  the  order as specified in the
 
 
 
@@ -71,8 +71,12 @@ REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
 REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
 
 
+       table, until a pattern is found that  matches  the  search
+       string.
+
+       Substitution of sub-strings from the matched expression is
        possible using $1, $2, etc.. The macros in the replacement
-       string may need to be written as  ${n}  or  $(n)  if  they
+       string  may  need  to  be  written as ${n} or $(n) if they
        aren't followed by whitespace.
 
 <b>EXAMPLES</b>
@@ -107,10 +111,6 @@ REGEXP_TABLE(5)                                   REGEXP_TABLE(5)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

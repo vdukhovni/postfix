@@ -288,7 +288,8 @@ mail_owner = postfix
 # headers. This requires that POSIX or PCRE regular expression support
 # is built-in. Specify "/^header-name: stuff you do not want/ REJECT"
 # in the pattern file. Patterns are case-insensitive by default. Note:
-# specify only patterns ending in REJECT. Patterns ending in OK are
+# specify only patterns ending in REJECT (reject entire message) or
+# IGNORE (silently discard this header). Patterns ending in OK are
 # mostly a waste of cycles.
 #
 #header_checks = regexp:/etc/postfix/filename
@@ -354,14 +355,11 @@ mail_owner = postfix
 # SMTP "ETRN domain.name" command, or after execution of "sendmail
 # -qRdomain.name". This can be slow when a lot of mail is queued.
 # 
-# The fast_flush_policy controls what destinations are eligible for
-# this "fast ETRN/sendmail -qR" service. Specify "all" to make all
-# destinations eligible, "relay" for relay destinations only (the
-# default), and "none" to turn this feature off.
+# The fast_flush_domains controls what destinations are eligible for
+# this "fast ETRN/sendmail -qR" service.
 # 
-#fast_flush_policy = all
-#fast_flush_policy = relay
-#fast_flush_policy = none
+#fast_flush_domains = $relay_domains
+#fast_flush_policy =
 
 # SHOW SOFTWARE VERSION OR NOT
 #

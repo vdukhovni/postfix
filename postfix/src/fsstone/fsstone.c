@@ -4,7 +4,8 @@
 /* SUMMARY
 /*	measure directory operation overhead
 /* SYNOPSIS
-/*	\fBfsstone\fR [\fB-c\fR] [\fB-r\fR] \fImsg_count files_per_dir\fR
+/*	\fBfsstone\fR [\fB-cr\fR] [\fB-s \fIsize\fR]
+/*		\fImsg_count files_per_dir\fR
 /* DESCRIPTION
 /*	The \fBfsstone\fR command measures the cost of creating, renaming
 /*	and deleting queue files versus appending messages to existing
@@ -19,6 +20,8 @@
 /*	Create and delete files.
 /* .IP \fB-r\fR
 /*	Rename files twice (requires \fB-c\fR).
+/* .IP \fB-s \fIsize\fR
+/*	Specify the file size in kbytes.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* BUGS
@@ -66,17 +69,20 @@ static void rename_file(int old, int new)
 
 /* make_file - create a little file and use it */
 
-static void make_file(int seqno)
+static void make_file(int seqno, int size)
 {
     char    path[BUFSIZ];
+    char    buf[1024];
     FILE   *fp;
     int     i;
 
     sprintf(path, "%06d", seqno);
     if ((fp = fopen(path, "w")) == 0)
 	msg_fatal("open %s: %m", path);
-    for (i = 0; i < 400; i++)
-	fprintf(fp, "hello");
+    memset(buf, 'x', sizeof(buf));
+    for (i = 0; i < size; i++)
+	if (fwrite(buf, 1, sizeof(buf), fp) != sizeof(buf))
+	    msg_fatal("fwrite: %m");
     if (fsync(fileno(fp)))
 	msg_fatal("fsync: %m");
     if (fclose(fp))
@@ -141,7 +147,7 @@ static void remove_silent(int seq)
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-c [-r]] messages directory_entries", myname);
+    msg_fatal("usage: %s [-cr] [-s size] messages directory_entries", myname);
 }
 
 int     main(int argc, char **argv)
@@ -153,15 +159,20 @@ int     main(int argc, char **argv)
     int     do_create = 0;
     int     seq;
     int     ch;
+    int     size = 2;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    while ((ch = GETOPT(argc, argv, "cr")) != EOF) {
+    while ((ch = GETOPT(argc, argv, "crs:")) != EOF) {
 	switch (ch) {
 	case 'c':
 	    do_create++;
 	    break;
 	case 'r':
 	    do_rename++;
+	    break;
+	case 's':
+	    if ((size = atoi(optarg)) <= 0)
+		usage(argv[0]);
 	    break;
 	default:
 	    usage(argv[0]);
@@ -179,7 +190,7 @@ int     main(int argc, char **argv)
      * Populate the directory with little files.
      */
     for (seq = 0; seq < max_file; seq++)
-	make_file(seq);
+	make_file(seq, size);
 
     /*
      * Simulate arrival and delivery of mail messages.
@@ -189,7 +200,7 @@ int     main(int argc, char **argv)
 	seq %= max_file;
 	if (do_create) {
 	    remove_file(seq);
-	    make_file(seq);
+	    make_file(seq, size);
 	    if (do_rename) {
 		rename_file(seq, seq + max_file);
 		rename_file(seq + max_file, seq);
