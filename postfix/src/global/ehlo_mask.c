@@ -96,8 +96,7 @@ const char *str_ehlo_mask(int mask_bits)
      * We don't allow non-existent bits. Doing so makes no sense at this
      * time.
      */
-    return (str_name_mask_opt("ehlo bitmask", ehlo_mask_table,
-			      mask_bits, NAME_MASK_NONE));
+    return (str_name_mask("ehlo bitmask", ehlo_mask_table, mask_bits));
 }
 
 #ifdef TEST

@@ -104,12 +104,12 @@ access restriction is specified.
 What SMTP clients Postfix will not offer AUTH support to.
 .PP
 Available in Postfix version 2.2 and later:
-.IP "\fBsmtpd_disable_ehlo_keyword_address_maps (empty)\fR"
+.IP "\fBsmtpd_discard_ehlo_keyword_address_maps (empty)\fR"
 Lookup tables, indexed by the remote SMTP client address, with
 case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
 to a remote SMTP client.
-.IP "\fBsmtpd_disable_ehlo_keywords (empty)\fR"
+.IP "\fBsmtpd_discard_ehlo_keywords (empty)\fR"
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
 to a remote SMTP client.

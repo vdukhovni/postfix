@@ -144,7 +144,7 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 extern SCACHE *smtp_scache;		/* connection cache instance */
 extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
 
-extern MAPS *smtp_ehlo_disable_maps;	/* ehlo keyword filter */
+extern MAPS *smtp_ehlo_dis_maps;	/* ehlo keyword filter */
 
  /*
   * smtp_session.c

@@ -136,14 +136,14 @@ SMTP(8)                                                   SMTP(8)
 
        Available in Postfix version 2.2 and later:
 
-       <b><a href="postconf.5.html#smtp_disable_ehlo_keyword_address_maps">smtp_disable_ehlo_keyword_address_maps</a> (empty)</b>
+       <b><a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a> (empty)</b>
               Lookup tables, indexed by the  remote  SMTP  server
               address,  with  case insensitive lists of EHLO key-
               words (pipelining, starttls, auth, etc.)  that  the
               SMTP client will ignore in the EHLO response from a
               remote SMTP server.
 
-       <b><a href="postconf.5.html#smtp_disable_ehlo_keywords">smtp_disable_ehlo_keywords</a> (empty)</b>
+       <b><a href="postconf.5.html#smtp_discard_ehlo_keywords">smtp_discard_ehlo_keywords</a> (empty)</b>
               A case insensitive list of EHLO keywords  (pipelin-
               ing,  starttls,  auth,  etc.)  that the SMTP client
               will ignore in the EHLO response from a remote SMTP

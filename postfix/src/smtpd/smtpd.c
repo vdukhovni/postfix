@@ -88,12 +88,12 @@
 /*	What SMTP clients Postfix will not offer AUTH support to.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBsmtpd_disable_ehlo_keyword_address_maps (empty)\fR"
+/* .IP "\fBsmtpd_discard_ehlo_keyword_address_maps (empty)\fR"
 /*	Lookup tables, indexed by the remote SMTP client address, with
 /*	case insensitive lists of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP server will not send in the EHLO response
 /*	to a remote SMTP client.
-/* .IP "\fBsmtpd_disable_ehlo_keywords (empty)\fR"
+/* .IP "\fBsmtpd_discard_ehlo_keywords (empty)\fR"
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP server will not send in the EHLO response
 /*	to a remote SMTP client.
@@ -831,7 +831,7 @@ char   *var_smtpd_ehlo_dis_maps;
  /*
   * EHLO keyword filter
   */
-static MAPS *ehlo_disable_maps;
+static MAPS *ehlo_discard_maps;
 
  /*
   * VERP command name.
@@ -975,9 +975,9 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *err;
-    int     todo_mask;
+    int     discard_mask;
     const char *ehlo_words;
-    VSTRING *ehlo_buf;
+    VSTRING *reply_buf;
 
     /*
      * XXX 2821 new feature: Section 4.1.4 specifies that a server must clear
@@ -1022,83 +1022,83 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Determine what server EHLO keywords to suppress, typically to avoid
      * inter-operability problems.
      */
-    if (ehlo_disable_maps == 0
-	|| (ehlo_words = maps_find(ehlo_disable_maps, state->addr, 0)) == 0)
+    if (ehlo_discard_maps == 0
+	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
 	ehlo_words = var_smtpd_ehlo_dis_words;
-    todo_mask = ~ehlo_mask(ehlo_words);
-    if (~todo_mask)
-	msg_info("disabled EHLO keywords: %s", str_ehlo_mask(~todo_mask));
+    discard_mask = ehlo_mask(ehlo_words);
+    if (discard_mask)
+	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
 
     /*
      * Build the EHLO response, suppressing features as requested. We store
-     * each output line in one-element output queue, where it sits until we
+     * each output line in a one-element output queue, where it sits until we
      * know if we need to prepend "250-" or "250 " to it. Each time we
      * enqueue a reply line we flush the one that sits in the queue. We use a
      * couple ugly macros to avoid making mistakes in code that repeats a
      * lot.
      */
-#define ENQUEUE_FIX_REPLY(state, ehlo_buf, cmd) \
+#define ENQUEUE_FIX_REPLY(state, reply_buf, cmd) \
     do { \
-	smtpd_chat_reply((state), "250-%s", STR(ehlo_buf)); \
-	vstring_strcpy((ehlo_buf), (cmd)); \
+	smtpd_chat_reply((state), "250-%s", STR(reply_buf)); \
+	vstring_strcpy((reply_buf), (cmd)); \
     } while (0)
 
-#define ENQUEUE_FMT_REPLY(state, ehlo_buf, fmt, arg) \
+#define ENQUEUE_FMT_REPLY(state, reply_buf, fmt, arg) \
     do { \
-	smtpd_chat_reply((state), "250-%s", STR(ehlo_buf)); \
-	vstring_sprintf((ehlo_buf), (fmt), (arg)); \
+	smtpd_chat_reply((state), "250-%s", STR(reply_buf)); \
+	vstring_sprintf((reply_buf), (fmt), (arg)); \
     } while (0)
 
-    ehlo_buf = vstring_alloc(10);
-    vstring_strcpy(ehlo_buf, var_myhostname);
-    if (todo_mask & EHLO_MASK_PIPELINING)
-	ENQUEUE_FIX_REPLY(state, ehlo_buf, "PIPELINING");
-    if (todo_mask & EHLO_MASK_SIZE) {
+    reply_buf = vstring_alloc(10);
+    vstring_strcpy(reply_buf, var_myhostname);
+    if ((discard_mask & EHLO_MASK_PIPELINING) == 0)
+	ENQUEUE_FIX_REPLY(state, reply_buf, "PIPELINING");
+    if ((discard_mask & EHLO_MASK_SIZE) == 0) {
 	if (var_message_limit)
-	    ENQUEUE_FMT_REPLY(state, ehlo_buf, "SIZE %lu",
+	    ENQUEUE_FMT_REPLY(state, reply_buf, "SIZE %lu",
 			      (unsigned long) var_message_limit);	/* XXX */
 	else
-	    ENQUEUE_FIX_REPLY(state, ehlo_buf, "SIZE");
+	    ENQUEUE_FIX_REPLY(state, reply_buf, "SIZE");
     }
-    if (todo_mask & EHLO_MASK_VRFY)
+    if ((discard_mask & EHLO_MASK_VRFY) == 0)
 	if (var_disable_vrfy_cmd == 0)
-	    ENQUEUE_FIX_REPLY(state, ehlo_buf, "VRFY");
-    if (todo_mask & EHLO_MASK_ETRN)
-	ENQUEUE_FIX_REPLY(state, ehlo_buf, "ETRN");
+	    ENQUEUE_FIX_REPLY(state, reply_buf, "VRFY");
+    if ((discard_mask & EHLO_MASK_ETRN) == 0)
+	ENQUEUE_FIX_REPLY(state, reply_buf, "ETRN");
 #ifdef USE_SASL_AUTH
-    if (todo_mask & EHLO_MASK_AUTH) {
+    if ((discard_mask & EHLO_MASK_AUTH) == 0) {
 	if (var_smtpd_sasl_enable && !sasl_client_exception(state)) {
-	    ENQUEUE_FMT_REPLY(state, ehlo_buf, "AUTH %s",
+	    ENQUEUE_FMT_REPLY(state, reply_buf, "AUTH %s",
 			      state->sasl_mechanism_list);
 	    if (var_broken_auth_clients)
-		ENQUEUE_FMT_REPLY(state, ehlo_buf, "AUTH=%s",
+		ENQUEUE_FMT_REPLY(state, reply_buf, "AUTH=%s",
 				  state->sasl_mechanism_list);
 	}
     }
 #endif
-    if (todo_mask & EHLO_MASK_VERP)
+    if ((discard_mask & EHLO_MASK_VERP) == 0)
 	if (namadr_list_match(verp_clients, state->name, state->addr))
-	    ENQUEUE_FIX_REPLY(state, ehlo_buf, VERP_CMD);
+	    ENQUEUE_FIX_REPLY(state, reply_buf, VERP_CMD);
     /* XCLIENT must not override its own access control. */
-    if (todo_mask & EHLO_MASK_XCLIENT)
+    if ((discard_mask & EHLO_MASK_XCLIENT) == 0)
 	if (xclient_allowed)
-	    ENQUEUE_FIX_REPLY(state, ehlo_buf, XCLIENT_CMD
+	    ENQUEUE_FIX_REPLY(state, reply_buf, XCLIENT_CMD
 			      " " XCLIENT_NAME " " XCLIENT_ADDR
 			      " " XCLIENT_PROTO " " XCLIENT_HELO);
-    if (todo_mask & EHLO_MASK_XFORWARD)
+    if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
 	if (xforward_allowed)
-	    ENQUEUE_FIX_REPLY(state, ehlo_buf, XFORWARD_CMD
+	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
 			      " " XFORWARD_NAME " " XFORWARD_ADDR
 			      " " XFORWARD_PROTO " " XFORWARD_HELO
 			      " " XFORWARD_DOMAIN);
-    if (todo_mask & EHLO_MASK_8BITMIME)
-	ENQUEUE_FIX_REPLY(state, ehlo_buf, "8BITMIME");
-    smtpd_chat_reply(state, "250 %s", STR(ehlo_buf));
+    if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
+	ENQUEUE_FIX_REPLY(state, reply_buf, "8BITMIME");
+    smtpd_chat_reply(state, "250 %s", STR(reply_buf));
 
     /*
      * Clean up.
      */
-    vstring_free(ehlo_buf);
+    vstring_free(reply_buf);
 
     return (0);
 }
@@ -2891,7 +2891,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * EHLO keyword filter.
      */
     if (*var_smtpd_ehlo_dis_maps)
-	ehlo_disable_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
+	ehlo_discard_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
 					var_smtpd_ehlo_dis_maps,
 					DICT_FLAG_LOCK);
 }

@@ -131,8 +131,9 @@ This is of course practical only when you have very few systems that send HELO
 commands like this, and when you never have to send mail to a user on such a
 host.
 
-An alternative would be to remove the hostname with address masquerading, as
-described in the ADDRESS_REWRITING_README document.
+An alternative would be to remove the hostname from "hostname.porcupine.org"
+with address masquerading, as described in the ADDRESS_REWRITING_README
+document.
 
 BBlloocckkiinngg bbaacckkssccaatttteerr mmaaiill wwiitthh ffoorrggeedd sseennddeerr iinnffoorrmmaattiioonn
 
@@ -195,5 +196,6 @@ http://www.t29.dk/antiantivirus.txt.
 
 A plea to virus or spam scanner operators: please do not make the problem worse
 by sending return mail to forged sender addresses. You're only harassing
-innocent people.
+innocent people. If you must return mail to the purported sender, please return
+the full message headers, so that the sender can defend against forgeries.
 

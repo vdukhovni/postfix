@@ -5679,7 +5679,7 @@ into concurrency per recipient.  </p>
 
 </DD>
 
-<DT><b><a name="smtp_disable_ehlo_keyword_address_maps">smtp_disable_ehlo_keyword_address_maps</a>
+<DT><b><a name="smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a>
 (default: empty)</b></DT><DD>
 
 <p> Lookup tables, indexed by the remote SMTP server address, with
@@ -5690,13 +5690,13 @@ from a remote SMTP server. </p>
 
 </DD>
 
-<DT><b><a name="smtp_disable_ehlo_keywords">smtp_disable_ehlo_keywords</a>
+<DT><b><a name="smtp_discard_ehlo_keywords">smtp_discard_ehlo_keywords</a>
 (default: empty)</b></DT><DD>
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Use the <a href="postconf.5.html#smtp_disable_ehlo_keyword_address_maps">smtp_disable_ehlo_keyword_address_maps</a>
-feature to disable EHLO keywords selectively. </p>
+from a remote SMTP server. Use the <a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a>
+feature to discard EHLO keywords selectively. </p>
 
 
 </DD>
@@ -5721,7 +5721,7 @@ client, for example:
 
 <pre>
   /etc/postfix/master.cf:
-        mysmtp ... smtp -o <a href="postconf.5.html#<a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a>"><a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a></a>=foo.bar.com
+        mysmtp ... smtp -o <a href="postconf.5.html#smtp_helo_name">smtp_helo_name</a>=foo.bar.com
 </pre>
 
 <p>
@@ -6726,7 +6726,7 @@ is being rejected.
 
 </DD>
 
-<DT><b><a name="smtpd_disable_ehlo_keyword_address_maps">smtpd_disable_ehlo_keyword_address_maps</a>
+<DT><b><a name="smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>
 (default: empty)</b></DT><DD>
 
 <p> Lookup tables, indexed by the remote SMTP client address, with
@@ -6737,13 +6737,13 @@ to a remote SMTP client. </p>
 
 </DD>
 
-<DT><b><a name="smtpd_disable_ehlo_keywords">smtpd_disable_ehlo_keywords</a>
+<DT><b><a name="smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>
 (default: empty)</b></DT><DD>
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Use the <a href="postconf.5.html#smtpd_disable_ehlo_keyword_address_maps">smtpd_disable_ehlo_keyword_address_maps</a>
-feature to disable EHLO keywords selectively.  </p>
+to a remote SMTP client. Use the <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>
+feature to discard EHLO keywords selectively.  </p>
 
 
 </DD>

@@ -198,7 +198,7 @@
 /*	The entire sender address.
 /* .PP
 /*	Additional remote client information is made available via
-/*	the following pseudo variables:
+/*	the following environment variables:
 /* .IP \fBCLIENT_ADDRESS\fR
 /*	Remote client network address. Available as of Postfix 2.2.
 /* .IP \fBCLIENT_HELO\fR

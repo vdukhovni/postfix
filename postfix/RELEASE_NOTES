@@ -10,13 +10,14 @@ issued for snapshot releases.
 Major changes with snapshot Postfix-2.2-20041218
 ================================================
 
-Fine control for SMTP inter-operability problems. You can now
-selectively turn off SMTP extensions (pipelining, starttls, auth,
-etc.), to work around specific broken clients or servers.  Specify
-a list of EHLO keywords with the smtp(d)_disable_ehlo_keywords
-parameters, or specify one or more lookup tables, indexed by remote
-network address, with the smtp(d)_disable_ehlo_keyword_address_maps
-parameters. The EHLO keywords lists are case insensitive.
+Fine control for SMTP inter-operability problems, by discarding
+keywords sent or received with the EHLO handshake. Typically one
+would discard "pipelining", "starttls", or "auth".  Specify a list
+of EHLO keywords with the smtp(d)_discard_ehlo_keywords parameters,
+or specify one or more lookup tables, indexed by remote network
+address, with the smtp(d)_discard_ehlo_keyword_address_maps
+parameters. Note: this only discards words from the EHLO conversation;
+it does not turn off the actual features in the SMTP server.
 
 More client attributes for delivery to command with the local(8)
 and pipe(8) delivery agents: client_hostname, client_address,

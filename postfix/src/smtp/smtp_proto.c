@@ -230,7 +230,7 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     };
     SOCKOPT_SIZE optlen;
     const char *ehlo_words;
-    int     disable_mask;
+    int     discard_mask;
 
     /*
      * Prepare for disaster.
@@ -310,12 +310,12 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
      * Determine what server EHLO keywords to ignore, typically to avoid
      * inter-operability problems.
      */
-    if (smtp_ehlo_disable_maps == 0
-	|| (ehlo_words = maps_find(smtp_ehlo_disable_maps, state->session->addr, 0)) == 0)
+    if (smtp_ehlo_dis_maps == 0
+	|| (ehlo_words = maps_find(smtp_ehlo_dis_maps, state->session->addr, 0)) == 0)
 	ehlo_words = var_smtp_ehlo_dis_words;
-    disable_mask = ehlo_mask(ehlo_words);
-    if (disable_mask)
-	msg_info("disabled EHLO keywords: %s", str_ehlo_mask(disable_mask));
+    discard_mask = ehlo_mask(ehlo_words);
+    if (discard_mask)
+	msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
 
     /*
      * Pick up some useful features offered by the SMTP server. XXX Until we
@@ -331,18 +331,18 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     while ((words = mystrtok(&lines, "\n")) != 0) {
 	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t=")) != 0) {
 	    if (strcasecmp(word, "8BITMIME") == 0) {
-		if ((disable_mask & EHLO_MASK_8BITMIME) == 0)
+		if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
 		    session->features |= SMTP_FEATURE_8BITMIME;
 	    } else if (strcasecmp(word, "PIPELINING") == 0) {
-		if ((disable_mask & EHLO_MASK_PIPELINING) == 0)
+		if ((discard_mask & EHLO_MASK_PIPELINING) == 0)
 		    session->features |= SMTP_FEATURE_PIPELINING;
 	    } else if (strcasecmp(word, "XFORWARD") == 0) {
-		if ((disable_mask & EHLO_MASK_XFORWARD) == 0)
+		if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
 		    while ((word = mystrtok(&words, " \t")) != 0)
 			session->features |= name_code(xforward_features,
 						 NAME_CODE_FLAG_NONE, word);
 	    } else if (strcasecmp(word, "SIZE") == 0) {
-		if ((disable_mask & EHLO_MASK_SIZE) == 0) {
+		if ((discard_mask & EHLO_MASK_SIZE) == 0) {
 		    session->features |= SMTP_FEATURE_SIZE;
 		    if ((word = mystrtok(&words, " \t")) != 0) {
 			if (!alldig(word))
@@ -354,7 +354,7 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 		}
 #ifdef USE_SASL_AUTH
 	    } else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0) {
-		if ((disable_mask & EHLO_MASK_AUTH) == 0)
+		if ((discard_mask & EHLO_MASK_AUTH) == 0)
 		    smtp_sasl_helo_auth(session, words);
 #endif
 	    } else if (strcasecmp(word, var_myhostname) == 0) {

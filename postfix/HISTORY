@@ -9973,9 +9973,9 @@ Apologies for any names omitted.
 	Feature: selective suppression of SMTP extensions (pipelining,
 	starttls, auth, etc.); this is useful to work around broken
 	clients or servers.  Specify a list of EHLO keywords with
-	the smtp(d)_disable_ehlo_keywords parameters, or specify
+	the smtp(d)_discard_ehlo_keywords parameters, or specify
 	one or more lookup tables, indexed by remote network address,
-	with the smtp(d)_disable_ehlo_keyword_address_maps parameters.
+	with the smtp(d)_discard_ehlo_keyword_address_maps parameters.
 	EHLO keyword lists are case insensitive.  Files:
 	util/name_mask.[hc], global/ehlo_mask.[hc], smtpd/smtpd.c,
 	smtp/smtp.c, smtp/smtp_proto.c.

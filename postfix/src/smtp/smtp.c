@@ -112,12 +112,12 @@
 /*	again later).
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBsmtp_disable_ehlo_keyword_address_maps (empty)\fR"
+/* .IP "\fBsmtp_discard_ehlo_keyword_address_maps (empty)\fR"
 /*	Lookup tables, indexed by the remote SMTP server address, with
 /*	case insensitive lists of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP client will ignore in the EHLO response
 /*	from a remote SMTP server.
-/* .IP "\fBsmtp_disable_ehlo_keywords (empty)\fR"
+/* .IP "\fBsmtp_discard_ehlo_keywords (empty)\fR"
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the SMTP client will ignore in the EHLO response
 /*	from a remote SMTP server.
@@ -412,7 +412,7 @@ int     smtp_errno;
 int     smtp_host_lookup_mask;
 STRING_LIST *smtp_cache_dest;
 SCACHE *smtp_scache;
-MAPS   *smtp_ehlo_disable_maps;
+MAPS   *smtp_ehlo_dis_maps;
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -560,9 +560,9 @@ static void pre_init(char *unused_name, char **unused_argv)
      * EHLO keyword filter.
      */
     if (*var_smtp_ehlo_dis_maps)
-	smtp_ehlo_disable_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
-					     var_smtp_ehlo_dis_maps,
-					     DICT_FLAG_LOCK);
+	smtp_ehlo_dis_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
+					 var_smtp_ehlo_dis_maps,
+					 DICT_FLAG_LOCK);
 }
 
 /* pre_accept - see if tables have changed */

@@ -209,7 +209,8 @@ mapping translates this temporary address into user@porcupine.org.
 that send HELO commands like this, and when you never have to send
 mail to a user on such a host. </p>
 
-<p> An alternative would be to remove the hostname with address
+<p> An alternative would be to remove the hostname from
+"hostname.porcupine.org" with address
 masquerading, as described in the ADDRESS_REWRITING_README document.
 </p>
 
@@ -295,7 +296,9 @@ or http://www.t29.dk/antiantivirus.txt.  </p>
 
 <p> A plea to virus or spam scanner operators: please do not make
 the problem worse by sending return mail to forged sender addresses.
-You're only harassing innocent people.  </p>
+You're only harassing innocent people. If you must return mail to
+the purported sender, please return the full message headers, so
+that the sender can defend against forgeries. </p>
 
 </body>
 
