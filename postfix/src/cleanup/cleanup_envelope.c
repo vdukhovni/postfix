@@ -145,8 +145,9 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 
     if (type != REC_TYPE_RCPT) {
 	if (state->orig_rcpt != 0) {
-	    msg_warn("%s: out-of-order original recipient record <%.200s>",
-		     state->queue_id, state->orig_rcpt);
+	    if (type != REC_TYPE_DONE)
+		msg_warn("%s: out-of-order original recipient record <%.200s>",
+			 state->queue_id, state->orig_rcpt);
 	    myfree(state->orig_rcpt);
 	    state->orig_rcpt = 0;
 	}

@@ -462,8 +462,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    }
 	}
 	if (orig_rcpt != 0) {
-	    msg_warn("%s: out-of-order original recipient record <%.200s>",
-		     message->queue_id, start);
+	    if (rec_type != REC_TYPE_DONE)
+		msg_warn("%s: out-of-order original recipient record <%.200s>",
+			 message->queue_id, start);
 	    myfree(orig_rcpt);
 	    orig_rcpt = 0;
 	}

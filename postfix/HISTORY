@@ -7139,6 +7139,12 @@ Apologies for any names omitted.
 	lock management and requires extra code to remove broken
 	files. Files:  util/dict_db.c, global/mkmap*.[hc].
 
+20021101
+
+	Bugfix: don't complain about out-of-order original recipient
+	records for finished recipients. Files:  *qmgr/qmgr_message.c,
+	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
