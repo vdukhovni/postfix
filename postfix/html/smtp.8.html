@@ -50,6 +50,7 @@ SMTP(8)                                                   SMTP(8)
        <a href="http://www.faqs.org/rfcs/rfc1870.html">RFC 1870</a> (Message Size Declaration)
        <a href="http://www.faqs.org/rfcs/rfc2197.html">RFC 2197</a> (Pipelining)
        <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH command)
+       <a href="http://www.faqs.org/rfcs/rfc2821.html">RFC 2821</a> (SMTP protocol)
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).   Cor-
@@ -58,7 +59,6 @@ SMTP(8)                                                   SMTP(8)
 
        Depending  on the setting of the <b>notify</b><i>_</i><b>classes</b> parameter,
        the postmaster is notified of bounces, protocol  problems,
-       and of other trouble.
 
 
 
@@ -70,6 +70,8 @@ SMTP(8)                                                   SMTP(8)
 
 SMTP(8)                                                   SMTP(8)
 
+
+       and of other trouble.
 
 <b>BUGS</b>
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
@@ -123,8 +125,6 @@ SMTP(8)                                                   SMTP(8)
               When this parameter includes  the  <b>protocol</b>  class,
               send  mail  to  the  postmaster with transcripts of
               SMTP sessions with protocol errors.
-
-
 
 
 

@@ -1,3 +1,31 @@
+Incompatible changes with snapshot-20010522
+===========================================
+
+The Postfix SMTP server always sends EHLO at the beginning of an
+SMTP session. Specify "smtp_always_send_ehlo = no" for the old
+behavior, which is to send EHLO only when the server greeting banner
+contains the word ESMTP.
+
+Specifying EHLO in the middle of an SMTP session resets the SMTP
+server state just like RSET. This behavior cannot be disabled.
+
+Major changes with snapshot-20010522
+====================================
+
+Revision of some fine details in the light of the new RFC 2821 and
+RFC 2822 standards. Changes that may affect interoperability are
+listed above under "incompatible changes".
+
+The postsuper queue maintenance tool was extended with options to
+read queue IDs from standard input (which makes it easier to drive
+the tool from scripts).
+
+The postsuper queue maintenance tool has a new -r (requeue) option
+for subjecting queue files to another iteration of address rewriting.
+
+The postsuper -R option requeues all mail. This is necessary after
+restoring Postfix queues from another machine or from backups.
+
 Major changes with snapshot-20010502
 ====================================
 

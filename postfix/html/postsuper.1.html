@@ -9,13 +9,14 @@ POSTSUPER(1)                                         POSTSUPER(1)
        postsuper - Postfix super intendent
 
 <b>SYNOPSIS</b>
-       <b>postsuper</b> [<b>-d</b> <i>queue_id</i>] [<b>-p</b>] [<b>-s</b>] [<b>-v</b>] [<i>directory</i> <i>...</i>]
+       <b>postsuper</b> [<b>-psv</b>] [<b>-d</b> <i>queue_id</i>] [<b>-r</b> <i>queue_id</i>] [<i>directory</i>
+       <i>...</i>]
 
 <b>DESCRIPTION</b>
-       The  <b>postsuper</b> command does small maintenance jobs. Use of
+       The <b>postsuper</b> command does small maintenance jobs. Use  of
        the command is restricted to the super-user.
 
-       By default, <b>postsuper</b> performs  the  operations  requested
+       By  default,  <b>postsuper</b>  performs the operations requested
        with the <b>-s</b> and <b>-p</b> command-line options on the named Post-
        fix queue directories (default: all).  Directory names are
        relative to the Postfix top-level queue directory.
@@ -23,42 +24,41 @@ POSTSUPER(1)                                         POSTSUPER(1)
        Options:
 
        <b>-d</b>     This  option  ignores  any  <i>directory</i>  argument(s).
-              Delete one message queue file with the named  queue
+              Delete  one message queue file with the named queue
               ID.  Specify multiple <b>-d</b> options to delete multiple
               queue files by name.
 
               Alternatively, if a <i>queue_id</i> of <b>-</b> is specified, the
               program reads queue IDs from standard input.
 
-              The  <b>postsuper</b> exit status is non-zero when no mes-
+              The <b>postsuper</b> exit status is non-zero when no  mes-
               sage queue file was deleted.
 
-              <b>There</b> <b>is</b> <b>a</b> <b>very</b> <b>small</b>  <b>possibility</b>  <b>that</b>  <b>postsuper</b>
-              <b>deletes</b>  <b>the</b> <b>wrong</b> <b>message</b> <b>file</b> <b>when</b> <b>it</b> <b>is</b> <b>executed</b>
+              <b>There</b>  <b>is</b>  <b>a</b>  <b>very</b> <b>small</b> <b>possibility</b> <b>that</b> <b>postsuper</b>
+              <b>deletes</b> <b>the</b> <b>wrong</b> <b>message</b> <b>file</b> <b>when</b> <b>it</b> <b>is</b>  <b>executed</b>
               <b>while</b> <b>the</b> <b>Postfix</b> <b>mail</b> <b>system</b> <b>is</b> <b>running.</b>
 
               The scenario is as follows:
 
-              <b>o</b>      The Postfix queue manager deletes  the  file
-                     that   <b>postsuper</b>  was  supposed  to  delete,
-                     because Postfix was finished with  the  mes-
+              <b>o</b>      The  Postfix  queue manager deletes the file
+                     that  <b>postsuper</b>  was  supposed  to   delete,
+                     because  Postfix  was finished with the mes-
                      sage.
 
-              <b>o</b>      New  mail  arrives,  and  the new message is
-                     given the same queue ID as the message  that
+              <b>o</b>      New mail arrives, and  the  new  message  is
+                     given  the same queue ID as the message that
                      <b>postsuper</b> was supposed to delete.  The prob-
-                     ability for reusing a deleted  queue  ID  is
-                     about  1  in  2**15 (the number of different
+                     ability  for  reusing  a deleted queue ID is
+                     about 1 in 2**15 (the  number  of  different
                      microsecond values that the system clock can
-                     distinguish).
+                     distinguish within a second).
 
               <b>o</b>      <b>postsuper</b>  deletes  the  new  message  file,
-                     instead of the old  file  that  should  have
+                     instead  of  the  old  file that should have
                      been deleted.
 
-       <b>-s</b>     Structure  check.  Move queue files that are in the
-              wrong place in the file system hierarchy and remove
-              subdirectories  that  are  no  longer  needed. File
+       <b>-r</b>     This  option  ignores  any  <i>directory</i>  argument(s).
+              Requeue one message queue file with the named queue
 
 
 
@@ -71,6 +71,26 @@ POSTSUPER(1)                                         POSTSUPER(1)
 POSTSUPER(1)                                         POSTSUPER(1)
 
 
+              ID.  Specify multiple <b>-r</b> options to requeue  multi-
+              ple queue files by name.
+
+              Alternatively, if a <i>queue_id</i> of <b>-</b> is specified, the
+              program reads queue IDs from standard input.
+
+              The queue file is moved to the maildrop queue, from
+              where  it  is  copied by the pickup daemon to a new
+              file whose name is guaranteed to  match  the  queue
+              file inode number. This feature is useful for queue
+              files from another machine or  for  files  restored
+              from  backup. The new queue file is subjected again
+              to address rewriting and substitution.
+
+              The <b>postsuper</b> exit status is non-zero when no  mes-
+              sage queue file was requeued.
+
+       <b>-s</b>     Structure  check.  Move queue files that are in the
+              wrong place in the file system hierarchy and remove
+              subdirectories  that  are  no  longer  needed. File
               rearrangements are necessary after a change in  the
               <b>hash</b><i>_</i><b>queue</b><i>_</i><b>names</b> and/or <b>hash</b><i>_</i><b>queue</b><i>_</i><b>depth</b> configura-
               tion parameters. It is highly  recommended  to  run
@@ -105,6 +125,18 @@ POSTSUPER(1)                                         POSTSUPER(1)
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
+
+
+
+                                                                2
+
+
+
+
+
+POSTSUPER(1)                                         POSTSUPER(1)
+
+
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
@@ -128,7 +160,41 @@ POSTSUPER(1)                                         POSTSUPER(1)
 
 
 
-                                                                2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                3
 
 
 </pre> </body> </html>

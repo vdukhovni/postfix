@@ -9,8 +9,8 @@ Postfix super intendent
 .na
 .nf
 .fi
-\fBpostsuper\fR [\fB-d \fIqueue_id\fR] [\fB-p\fR]
-[\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
+\fBpostsuper\fR [\fB-psv\fR] [\fB-d \fIqueue_id\fR]
+[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -51,11 +51,28 @@ New mail arrives, and the new message is given the same queue ID
 as the message that \fBpostsuper\fR was supposed to delete.
 The probability for reusing a deleted queue ID is about 1 in 2**15
 (the number of different microsecond values that the system clock
-can distinguish).
+can distinguish within a second).
 .IP \(bu
 \fBpostsuper\fR deletes the new message file, instead of the
 old file that should have been deleted.
 .RE
+.IP \fB-r \fIqueue_id\fR
+This option ignores any \fIdirectory\fR argument(s).
+Requeue one message queue file with the named queue ID.  Specify
+multiple \fB-r\fR options to requeue multiple queue files by name.
+.sp
+Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified, the
+program reads queue IDs from standard input.
+.sp
+The queue file is moved to the maildrop queue, from where
+it is copied by the pickup daemon to a new file whose name
+is guaranteed to match the queue file inode number. This
+feature is useful for queue files from another machine or
+for files restored from backup. The new queue file is
+subjected again to address rewriting and substitution.
+.sp
+The \fBpostsuper\fR exit status is non-zero when no message queue
+file was requeued.
 .IP \fB-s\fR
 Structure check.  Move queue files that are in the wrong place
 in the file system hierarchy and remove subdirectories that are

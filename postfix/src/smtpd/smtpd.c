@@ -38,6 +38,7 @@
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
 /*	RFC 2554 (AUTH command)
+/*	RFC 2821 (SMTP protocol)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*

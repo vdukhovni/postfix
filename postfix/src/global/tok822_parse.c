@@ -467,7 +467,8 @@ static const char *tok822_comment(TOK822 *tp, const char *str)
     /*
      * XXX We cheat by storing comments in their external form. Otherwise it
      * would be a royal pain to preserve \ before (. That would require a
-     * recursive parser, which could consume unreasonable amounts of memory.
+     * recursive parser; the easy to implement stack-based recursion would be
+     * too expensive.
      */
     VSTRING_ADDCH(tp->vstr, '(');
 

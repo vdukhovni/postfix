@@ -5,8 +5,8 @@
 /*	Postfix super intendent
 /* SYNOPSIS
 /* .fi
-/*	\fBpostsuper\fR [\fB-d \fIqueue_id\fR] [\fB-p\fR]
-/*		[\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
+/*	\fBpostsuper\fR [\fB-Rpsv\fR] [\fB-d \fIqueue_id\fR]
+/*		[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION
 /*	The \fBpostsuper\fR command does small maintenance jobs. Use of
 /*	the command is restricted to the super-user.
@@ -29,9 +29,9 @@
 /*	file was deleted.
 /* .sp
 /* .ft B
-/*      There is a very small possibility that postsuper deletes the
+/*	There is a very small possibility that postsuper deletes the
 /*	wrong message file when it is executed while the Postfix mail
-/*      system is running.
+/*	system is running.
 /* .ft R
 /* .sp
 /*	The scenario is as follows:
@@ -50,6 +50,34 @@
 /*	\fBpostsuper\fR deletes the new message file, instead of the
 /*	old file that should have been deleted.
 /* .RE
+/* .IP \fB-R\fR
+/*	This option ignores any \fIdirectory\fR argument(s).
+/*	Requeue all message queue files. This option is useful for
+/*	restoring a Postfix queue from another machine or from backup.
+/* .sp
+/*	Each queue file is moved to the maildrop queue, from where
+/*	it is copied by the pickup daemon to a new file whose name
+/*      is guaranteed to match the queue file inode number. The
+/*      new queue file is subjected again to address rewriting and
+/*	substitution. This is useful when rewriting rules or virtual
+/*	mappings have changed.
+/* .IP \fB-r \fIqueue_id\fR
+/*	This option ignores any \fIdirectory\fR argument(s).
+/*	Requeue one message queue file with the named queue ID.  Specify
+/*	multiple \fB-r\fR options to requeue multiple queue files by name.
+/* .sp
+/*	Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified, the
+/*	program reads queue IDs from standard input.
+/* .sp
+/*	The queue file is moved to the maildrop queue, from where
+/*	it is copied by the pickup daemon to a new file whose name
+/*      is guaranteed to match the queue file inode number. The
+/*      new queue file is subjected again to address rewriting and
+/*	substitution. This is useful when rewriting rules or virtual
+/*	mappings have changed.
+/* .sp
+/*	The \fBpostsuper\fR exit status is non-zero when no message queue
+/*	file was requeued.
 /* .IP \fB-s\fR
 /*	Structure check.  Move queue files that are in the wrong place
 /*	in the file system hierarchy and remove subdirectories that are
@@ -110,6 +138,7 @@
 #include <set_ugid.h>
 #include <argv.h>
 #include <vstring_vstream.h>
+#include <sane_fsops.h>
 
 /* Global library. */
 
@@ -127,6 +156,8 @@
 #define ACTION_STRUCT	(1<<0)		/* fix file organization */
 #define ACTION_PURGE	(1<<1)		/* purge old temp files */
 #define ACTION_DELETE	(1<<2)		/* delete named queue file(s) */
+#define ACTION_REQUEUE	(1<<3)		/* requeue named queue file(s) */
+#define ACTION_REQUEUE_ALL (1<<4)	/* requeue all queue file(s) */
 
 #define ACTION_DEFAULT	(ACTION_STRUCT | ACTION_PURGE)
 
@@ -169,6 +200,22 @@ static int postunlink(const char *path)
 	msg_warn("remove file %s: %m", path);
     } else if (msg_verbose) {
 	msg_info("remove file %s: %m", path);
+    }
+    return (ret);
+}
+
+/* postrename - rename file with prejudice */
+
+static int postrename(const char *old, const char *new)
+{
+    int     ret;
+
+    if ((ret = sane_rename(old, new)) == 0) {
+	msg_info("requeued file %s as %s", old, new);
+    } else if (errno != ENOENT) {
+	msg_warn("requeue file %s as %s: %m", old, new);
+    } else if (msg_verbose) {
+	msg_info("requeue file %s as %s: %m", old, new);
     }
     return (ret);
 }
@@ -218,15 +265,51 @@ static int delete_one(const char *queue_id)
     return (found);
 }
 
-/* delete_stream - delete queue IDs given on stream */
+/* requeue_one - requeue one message instance and delete its logfiles */
 
-static int delete_stream(VSTREAM *fp)
+static int requeue_one(const char *queue_id)
+{
+    const char *msg_queue_names[] = {
+	MAIL_QUEUE_INCOMING,		/* twice, to avoid */
+	MAIL_QUEUE_ACTIVE,		/* missing a file while */
+	MAIL_QUEUE_DEFERRED,		/* it is being renamed */
+	MAIL_QUEUE_INCOMING,		/* this is not 100% */
+	MAIL_QUEUE_ACTIVE,		/* foolproof but adequate */
+	0,
+    };
+    struct stat st;
+    const char **msg_qpp;
+    const char *old_path;
+    VSTRING *new_path_buf = vstring_alloc(100);
+    int     found = 0;
+
+    /*
+     * Do not delete defer or bounce logfiles, to avoid losing a race where
+     * the queue manager decides to bounce mail after all recipients have
+     * been tried.
+     */
+    for (msg_qpp = msg_queue_names; *msg_qpp != 0; msg_qpp++) {
+	if (mail_open_ok(*msg_qpp, queue_id, &st, &old_path) != MAIL_OPEN_YES)
+	    continue;
+	(void) mail_queue_path(new_path_buf, MAIL_QUEUE_MAILDROP, queue_id);
+	if (postrename(old_path, STR(new_path_buf)) == 0) {
+	    found = 1;
+	    break;
+	}					/* else: lost a race */
+    }
+    vstring_free(new_path_buf);
+    return (found);
+}
+
+/* operate_stream - operate on queue IDs given on stream */
+
+static int operate_stream(VSTREAM *fp, int (*operator) (const char *))
 {
     VSTRING *buf = vstring_alloc(20);
     int     found = 0;
 
     while (vstring_get_nonl(buf, fp) != VSTREAM_EOF)
-	found |= delete_one(STR(buf));
+	found |= operator(STR(buf));
 
     vstring_free(buf);
     return (found);
@@ -355,6 +438,30 @@ static void super(char **queues, int action)
 		continue;
 
 	    /*
+	     * Requeue this message. This means the pickup daemon will copy
+	     * it to a new queue file, and that address rewriting is applied
+	     * again. XXX Share more code with requeue_one(). Note, that this
+	     * option is intended for large-scale mail queue restore
+	     * operations so that at this stage, the queue file may not even
+	     * be in the "right" place for the current machine. We therefore
+	     * cannot rely on the mail_queue(3) API.()
+	     */
+	    if ((action & ACTION_REQUEUE_ALL)
+		&& strcmp(queue_name, MAIL_QUEUE_MAILDROP) != 0) {
+		(void) mail_queue_path(wanted_path, MAIL_QUEUE_MAILDROP, path);
+		if (rename(STR(actual_path), STR(wanted_path)) < 0) {
+		    if (errno != ENOENT)
+			msg_fatal("rename %s to %s: %m", STR(actual_path),
+				  STR(wanted_path));
+		} else {
+		    if (msg_verbose)
+			msg_info("rename %s to %s", STR(actual_path),
+				 STR(wanted_path));
+		}
+		continue;
+	    }
+
+	    /*
 	     * See if this file sits in the right place in the file system
 	     * hierarchy. Its place may be wrong after a change to the
 	     * hash_queue_{names,depth} parameter settings. The implied
@@ -364,17 +471,19 @@ static void super(char **queues, int action)
 	     * to do everything with the postfix owner privileges regardless,
 	     * in order to limit the amount of damage that we can do.
 	     */
-	    (void) mail_queue_path(wanted_path, queue_name, path);
-	    if (strcmp(STR(actual_path), STR(wanted_path)) != 0) {
-		if (rename(STR(actual_path), STR(wanted_path)) < 0)
-		    if (errno != ENOENT
-			|| mail_queue_mkdirs(STR(wanted_path)) < 0
-			|| rename(STR(actual_path), STR(wanted_path)) < 0)
-			msg_fatal("rename %s to %s: %m", STR(actual_path),
-				  STR(wanted_path));
-		if (msg_verbose)
-		    msg_info("rename %s to %s", STR(actual_path),
-			     STR(wanted_path));
+	    if (action & ACTION_STRUCT) {
+		(void) mail_queue_path(wanted_path, queue_name, path);
+		if (strcmp(STR(actual_path), STR(wanted_path)) != 0) {
+		    if (rename(STR(actual_path), STR(wanted_path)) < 0)
+			if (errno != ENOENT
+			    || mail_queue_mkdirs(STR(wanted_path)) < 0
+			  || rename(STR(actual_path), STR(wanted_path)) < 0)
+			    msg_fatal("rename %s to %s: %m", STR(actual_path),
+				      STR(wanted_path));
+		    if (msg_verbose)
+			msg_info("rename %s to %s", STR(actual_path),
+				 STR(wanted_path));
+		}
 	    }
 	}
 	scan_dir_close(info);
@@ -473,20 +582,30 @@ int     main(int argc, char **argv)
     while ((c = GETOPT(argc, argv, "d:spv")) > 0) {
 	switch (c) {
 	default:
-	    msg_fatal("usage: %s [-d queue_id] [-p (purge stale files)] [-s (fix structure)]",
+	    msg_fatal("usage: %s [-d queue_id (delete message)] [-p (purge stale files)] [-r queue_id (requeue message)] [-R (requeue all)] [-s (fix structure)]",
 		      argv[0]);
 	case 'd':
 	    if (strcmp(optarg, "-") == 0)
-		found |= delete_stream(VSTREAM_IN);
+		found |= operate_stream(VSTREAM_IN, delete_one);
 	    else
 		found |= delete_one(optarg);
 	    action |= ACTION_DELETE;
 	    break;
-	case 's':
-	    action |= ACTION_STRUCT;
-	    break;
 	case 'p':
 	    action |= ACTION_PURGE;
+	    break;
+	case 'r':
+	    if (strcmp(optarg, "-") == 0)
+		found |= operate_stream(VSTREAM_IN, requeue_one);
+	    else
+		found |= requeue_one(optarg);
+	    action |= ACTION_REQUEUE;
+	    break;
+	case 'R':
+	    action |= ACTION_REQUEUE_ALL;
+	    break;
+	case 's':
+	    action |= ACTION_STRUCT;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -505,8 +624,9 @@ int     main(int argc, char **argv)
     else
 	queues = argv + optind;
 
-    if (action & ~ACTION_DELETE)
-	super(queues, action & ~ACTION_DELETE);
+#define ACTIONS_ON_THE_FLY (ACTION_DELETE | ACTION_REQUEUE)
 
-    exit((action & ACTION_DELETE) ? !found : 0);
+    if (action & ~ACTIONS_ON_THE_FLY)
+	super(queues, action & ~ACTIONS_ON_THE_FLY);
+    exit((action & ACTIONS_ON_THE_FLY) ? !found : 0);
 }

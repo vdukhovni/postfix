@@ -388,6 +388,11 @@ VSTREAM *mail_queue_enter(const char *queue_name, int mode)
     for (count = 0;; count++) {
 	vstring_sprintf(id_buf, "%05X%s", (int) tv.tv_usec, file_id);
 	mail_queue_path(path_buf, queue_name, STR(id_buf));
+	if (access(STR(path_buf), X_OK) == 0) {	/* collision. */
+	    if ((int) ++tv.tv_usec < 0)
+		tv.tv_usec = 0;
+	    continue;
+	}
 	if (sane_rename(STR(temp_path), STR(path_buf)) == 0)	/* success */
 	    break;
 	if (errno == EPERM || errno == EISDIR) {/* collision. weird. */
