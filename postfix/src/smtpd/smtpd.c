@@ -385,6 +385,7 @@ char   *smtpd_path;
 static void helo_reset(SMTPD_STATE *);
 static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
+static void chat_reset(SMTPD_STATE *);
 
 /* collapse_args - put arguments together again */
 
@@ -445,6 +446,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (state->helo_name != 0)
 	helo_reset(state);
 #ifndef RFC821_SYNTAX
+    chat_reset(state);
     mail_reset(state);
     rcpt_reset(state);
 #endif
@@ -1060,21 +1062,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     state->where = SMTPD_AFTER_DOT;
 
     /*
-     * Notify the postmaster if there were errors. This usually indicates a
-     * client configuration problem, or that someone is trying nasty things.
-     * Either is significant enough to bother the postmaster. XXX Can't
-     * report problems when running in stand-alone mode: postmaster notices
-     * require availability of the cleanup service.
-     */
-    if (state->history != 0 && state->client != VSTREAM_IN
-	&& (state->error_mask & state->notify_mask))
-	smtpd_chat_notify(state);
-    state->error_mask = 0;
-    smtpd_chat_reset(state);
-
-    /*
      * Cleanup. The client may send another MAIL command.
      */
+    chat_reset(state);
     mail_reset(state);
     rcpt_reset(state);
     if (why)
@@ -1097,21 +1087,9 @@ static int rset_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * Notify the postmaster if there were errors. This usually indicates a
-     * client configuration problem, or that someone is trying nasty things.
-     * Either is significant enough to bother the postmaster. XXX Can't
-     * report problems when running in stand-alone mode: postmaster notices
-     * require availability of the cleanup service.
-     */
-    if (state->history != 0 && state->client != VSTREAM_IN
-	&& (state->error_mask & state->notify_mask))
-	smtpd_chat_notify(state);
-    state->error_mask = 0;
-    smtpd_chat_reset(state);
-
-    /*
      * Restore state to right after HELO/EHLO command.
      */
+    chat_reset(state);
     mail_reset(state);
     rcpt_reset(state);
     smtpd_chat_reply(state, "250 Ok");
@@ -1291,6 +1269,24 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
     return (0);
 }
 
+/* chat_reset - notify postmaster and reset conversation log */
+
+static void chat_reset(SMTPD_STATE *state)
+{
+
+    /*
+     * Notify the postmaster if there were errors. This usually indicates a
+     * client configuration problem, or that someone is trying nasty things.
+     * Either is significant enough to bother the postmaster. XXX Can't
+     * report problems when running in stand-alone mode: postmaster notices
+     * require availability of the cleanup service.
+     */
+    if (state->history != 0 && state->client != VSTREAM_IN
+	&& (state->error_mask & state->notify_mask))
+	smtpd_chat_notify(state);
+    smtpd_chat_reset(state);
+}
+
  /*
   * The table of all SMTP commands that we know. Set the junk limit flag on
   * any command that can be repeated an arbitrary number of times without
@@ -1422,18 +1418,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 		 state->reason, state->where, state->name, state->addr);
 
     /*
-     * Notify the postmaster if there were errors but no message was
-     * collected. This usually indicates a client configuration problem, or
-     * that someone is trying nasty things. Either is significant enough to
-     * bother the postmaster. XXX Can't report problems when running in
-     * stand-alone mode: postmaster notices require availability of the
-     * cleanup service.
-     */
-    if (state->history != 0 && state->client != VSTREAM_IN
-	&& (state->error_mask & state->notify_mask))
-	smtpd_chat_notify(state);
-
-    /*
      * Cleanup whatever information the client gave us during the SMTP
      * dialog.
      */
@@ -1442,9 +1426,9 @@ static void smtpd_proto(SMTPD_STATE *state)
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_auth_reset(state);
 #endif
+    chat_reset(state);
     mail_reset(state);
     rcpt_reset(state);
-    smtpd_chat_reset(state);
 }
 
 /* smtpd_service - service one client */

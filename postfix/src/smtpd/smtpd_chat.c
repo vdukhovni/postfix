@@ -227,7 +227,5 @@ void    smtpd_chat_notify(SMTPD_STATE *state)
     post_mail_fputs(notice, "");
     if (state->reason)
 	post_mail_fprintf(notice, "Session aborted, reason: %s", state->reason);
-    else
-	post_mail_fputs(notice, "No message was collected successfully.");
     (void) post_mail_fclose(notice);
 }

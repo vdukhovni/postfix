@@ -5586,6 +5586,12 @@ Apologies for any names omitted.
 	Bugfix: reset the smtpd command transaction log between
 	non-deliveries. File: smtpd/smtpd.c.
 
+20011116
+
+	Bugfix: consolidated all the command transaction log 
+	resets and eliminated one other case (Victor Duchovny,
+	Morgan Stanley). File: smtpd/smtpd.c.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups. LDAP
