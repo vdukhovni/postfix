@@ -8014,6 +8014,12 @@ Apologies for any names omitted.
 
 	Bugfix: "sendmail -t" broke with unrecognized message headers.
 
+20030419
+
+	Feature: "postcat -q" searches the queue for the named file.
+
+	Cleanup: made postcat "record names" output more consistent.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

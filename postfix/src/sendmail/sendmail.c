@@ -633,7 +633,9 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     }
 
     /*
-     * Finish up MIME processing.
+     * Finish MIME processing. We need a final mime_state_update() call in
+     * order to flush text that is still buffered. That can happen when the
+     * last line did not end in newline.
      */
     if (mime_state) {
 	mime_errs = mime_state_update(mime_state, REC_TYPE_EOF, "", 0);

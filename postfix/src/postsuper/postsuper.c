@@ -164,6 +164,9 @@
 /* .IP \fBhash_queue_names\fR
 /*	The names of queues that are organized into multiple levels of
 /*	subdirectories.
+/* .IP \fBqueue_directory\fR
+/*	Top-level directory of the Postfix queue. This is also the root
+/*	directory of Postfix daemons that run chrooted.
 /* SEE ALSO
 /*	sendmail(1) sendmail-compatible user interface
 /*	postqueue(1) unprivileged queue operations

@@ -4,19 +4,40 @@
 /* SUMMARY
 /*	show Postfix queue file contents
 /* SYNOPSIS
-/*	\fBpostcat\fR [\fB-v\fR] [\fIfiles\fR...]
+/*	\fBpostcat\fR [\fB-vq\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
 /* DESCRIPTION
 /*	The \fBpostcat\fR command prints the contents of the named
-/*	Postfix queue \fIfiles\fR in human-readable form. If no
+/*	\fIfiles\fR in human-readable form. The files are expected
+/*	to be in Postfix queue file format. If no
 /*	\fIfiles\fR are specified on the command line, the program
 /*	reads from standard input.
 /*
 /*	Options:
+/* .IP "\fB-c \fIconfig_dir\fR"
+/*	The \fBmain.cf\fR configuration file is in the named directory
+/*	instead of the default configuration directory.
+/* .IP \fB-q\fR
+/*	Search the Postfix queue for \fIfiles\fR. By default,
+/*	file names are taken literally.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
+/* ENVIRONMENT
+/* .ad
+/* .fi
+/* .IP \fBMAIL_CONFIG\fR
+/*	Directory with Postfix configuration files.
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	See the Postfix \fBmain.cf\fR file for syntax details and for
+/*	default values. Use the \fBpostfix reload\fR command after a
+/*	configuration change.
+/* .IP \fBqueue_directory\fR
+/*	Top-level directory of the Postfix queue. This is also the root
+/*	directory of Postfix daemons that run chrooted.
 /* LICENSE
 /* .ad
 /* .fi
@@ -49,8 +70,13 @@
 
 #include <record.h>
 #include <rec_type.h>
+#include <mail_queue.h>
+#include <mail_conf.h>
+#include <mail_params.h>
 
 /* Application-specific. */
+
+#define PC_FLAG_QUEUE	(1<<0)		/* search queue */
 
 #define STR	vstring_str
 
@@ -86,7 +112,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
 	if (rec_type == REC_TYPE_ERROR)
 	    msg_fatal("record read error");
 	if (rec_type == REC_TYPE_EOF)
-	    return;
+	    break;
 	if (first == 1) {
 	    vstream_printf("*** ENVELOPE RECORDS %s ***\n", VSTREAM_PATH(fp));
 	    first = 0;
@@ -94,26 +120,23 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
 	if (prev_type == REC_TYPE_CONT && !TEXT_RECORD(rec_type))
 	    VSTREAM_PUTCHAR('\n');
 	switch (rec_type) {
-	case REC_TYPE_SIZE:
-	    vstream_printf("message_size: %s\n", STR(buffer));
-	    break;
 	case REC_TYPE_TIME:
-	    time = atol(STR(buffer));
-	    vstream_printf("arrival_time: %s", asctime(localtime(&time)));
-	    break;
 	case REC_TYPE_WARN:
 	    time = atol(STR(buffer));
-	    vstream_printf("defer_warn_time: %s", asctime(localtime(&time)));
+	    vstream_printf("%s: %s", rec_type_name(rec_type),
+			   asctime(localtime(&time)));
 	    break;
 	case REC_TYPE_CONT:
 	    if (msg_verbose)
-		vstream_printf("non-final line fragment: %s\n", STR(buffer));
+		vstream_printf("%s: %s\n", rec_type_name(rec_type),
+			       STR(buffer));
 	    else
 		vstream_printf("%s", STR(buffer));
 	    break;
 	case REC_TYPE_NORM:
 	    if (msg_verbose)
-		vstream_printf("final line fragment: %s\n", STR(buffer));
+		vstream_printf("%s: %s\n", rec_type_name(rec_type),
+			       STR(buffer));
 	    else
 		vstream_printf("%s\n", STR(buffer));
 	    break;
@@ -131,15 +154,16 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
 	    break;
 	}
 	prev_type = rec_type;
-	vstream_fflush(VSTREAM_OUT);
     }
+    vstream_fflush(VSTREAM_OUT);
 }
 
 /* usage - explain and terminate */
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-v] [file(s)...]", myname);
+    msg_fatal("usage: %s [-c config_dir] [-q (access queue)] [-v] [file(s)...]",
+	      myname);
 }
 
 int     main(int argc, char **argv)
@@ -149,6 +173,17 @@ int     main(int argc, char **argv)
     int     ch;
     int     fd;
     struct stat st;
+    int     flags = 0;
+    static char *queue_names[] = {
+	MAIL_QUEUE_MAILDROP,
+	MAIL_QUEUE_INCOMING,
+	MAIL_QUEUE_ACTIVE,
+	MAIL_QUEUE_DEFERRED,
+	MAIL_QUEUE_HOLD,
+	0,
+    };
+    char  **cpp;
+    int     tries;
 
     /*
      * To minimize confusion, make sure that the standard file descriptors
@@ -168,8 +203,15 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "v")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:qv")) > 0) {
 	switch (ch) {
+	case 'c':
+	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
+		msg_fatal("out of memory");
+	    break;
+	case 'q':
+	    flags |= PC_FLAG_QUEUE;
+	    break;
 	case 'v':
 	    msg_verbose++;
 	    break;
@@ -177,6 +219,11 @@ int     main(int argc, char **argv)
 	    usage(argv[0]);
 	}
     }
+
+    /*
+     * Further initialization...
+     */
+    mail_conf_read();
 
     /*
      * Initialize.
@@ -194,6 +241,22 @@ int     main(int argc, char **argv)
     }
 
     /*
+     * Copy the named queue files in the specified order.
+     */
+    else if (flags & PC_FLAG_QUEUE) {
+	if (chdir(var_queue_dir))
+	    msg_fatal("chdir %s: %m", var_queue_dir);
+	while (optind < argc) {
+	    for (fp = 0, tries = 0; fp == 0 && tries < 2; tries++)
+		for (cpp = queue_names; fp == 0 && *cpp != 0; cpp++)
+		    fp = mail_queue_open(*cpp, argv[optind], O_RDONLY, 0);
+	    if (fp == 0)
+		msg_fatal("open queue file %s: %m", argv[optind]);
+	    optind++;
+	}
+    }
+
+    /*
      * Copy the named files in the specified order.
      */
     else {
@@ -206,6 +269,10 @@ int     main(int argc, char **argv)
 	    optind++;
 	}
     }
+
+    /*
+     * Clean up.
+     */
     vstring_free(buffer);
     exit(0);
 }

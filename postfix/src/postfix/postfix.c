@@ -257,9 +257,7 @@ int     main(int argc, char **argv)
 
     /*
      * Copy a bunch of configuration parameters into the environment for easy
-     * access by the maintenance shell script. XXX There should be a postconf
-     * utility that makes config parameters easily accessible for shell
-     * scripts.
+     * access by the maintenance shell script.
      */
     mail_conf_read();
     get_mail_conf_str_table(str_table);
