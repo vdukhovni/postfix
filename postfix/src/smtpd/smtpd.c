@@ -495,6 +495,8 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: HELO hostname");
 	return (-1);
     }
+    if (state->helo_name != 0)
+	helo_reset(state);
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
@@ -503,8 +505,6 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (state->helo_name != 0)
-	helo_reset(state);
     chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
@@ -531,6 +531,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: EHLO hostname");
 	return (-1);
     }
+    if (state->helo_name != 0)
+	helo_reset(state);
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
@@ -539,8 +541,6 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (state->helo_name != 0)
-	helo_reset(state);
     chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
@@ -576,6 +576,26 @@ static void helo_reset(SMTPD_STATE *state)
     if (state->helo_name)
 	myfree(state->helo_name);
     state->helo_name = 0;
+
+    /*
+     * With smtpd_delay_reject=yes, smtpd_helo_restrictions is evaluated at
+     * RCPT TO time, and may be evaluated multiple times per message.
+     * Per-message smtpd_helo_restrictions side effects (HOLD, DISCARD, etc.)
+     * accumulate from one evaluation to the next, and may also depend on
+     * client, sender or recipient information. Therefore, any per-message
+     * helo restriction side effects need to be reset at the end of a mail
+     * delivery transaction.
+     * 
+     * With smtpd_delay_reject=no, smtpd_helo_restrictions is evaluated when
+     * HELO/EHLO is issued, and its per-message side effects change only when
+     * another HELO/EHLO command is issued. Therefore, any per-message helo
+     * restriction side effects must be reset before smtpd_helo_restrictions
+     * is evaluated.
+     */
+    if (var_smtpd_delay_reject == 0) {
+	SMTPD_MSG_ACT_FREE(state->action_helo);
+	SMTPD_MSG_ACT_ZERO(state->action_helo);
+    }
 }
 
 /* mail_open_stream - open mail destination */
@@ -903,6 +923,20 @@ static void mail_reset(SMTPD_STATE *state)
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_mail_reset(state);
 #endif
+
+    /*
+     * With smtpd_delay_reject=yes, smtpd_sender_restrictions is evaluated at
+     * RCPT TO time, and may be evaluated multiple times per message.
+     * Per-message smtpd_sender_restrictions side effects (HOLD, DISCARD,
+     * etc.) accumulate from one evaluation to the next, and may also depend
+     * on client, helo or recipient information.
+     * 
+     * The action_mailrcpt member accumulates both sender and recipient side
+     * effects. It needs to be reset after each mail delivery, whether or not
+     * it is actually completed.
+     */
+    SMTPD_MSG_ACT_FREE(state->action_mailrcpt);
+    SMTPD_MSG_ACT_ZERO(state->action_mailrcpt);
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -961,10 +995,6 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
-	if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
     }
 
     /*
@@ -987,6 +1017,26 @@ static void rcpt_reset(SMTPD_STATE *state)
 	state->recipient = 0;
     }
     state->rcpt_count = 0;
+
+    /*
+     * With smtpd_delay_reject=yes, smtpd_{client,helo}_restrictions are
+     * evaluated at RCPT TO time. They may be evaluated multiple times per
+     * message delivery. Per-message {client,helo} restriction side effects
+     * (HOLD, DISCARD, etc.) accumulate from one evaluation to the next, and
+     * the result may also depend on sender or recipient information.
+     * Therefore, per-message {client,helo} restriction side effects need to
+     * be reset between deliveries.
+     * 
+     * With smtpd_delay_reject=no, smtpd_{client,helo}_restrictions are
+     * evaluated once and take effect over multiple deliveries. Therefore,
+     * their per-message side effects must not be reset between deliveries.
+     */
+    if (var_smtpd_delay_reject) {
+	SMTPD_MSG_ACT_FREE(state->action_client);
+	SMTPD_MSG_ACT_ZERO(state->action_client);
+	SMTPD_MSG_ACT_FREE(state->action_helo);
+	SMTPD_MSG_ACT_ZERO(state->action_helo);
+    }
 }
 
 /* data_cmd - process DATA command */
@@ -1001,6 +1051,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     int     first = 1;
     VSTRING *why = 0;
     int     saved_err;
+    char   *act_value;
 
     /*
      * Sanity checks. With ESMTP command pipelining the client can send DATA
@@ -1033,6 +1084,18 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      */
     if (*var_always_bcc)
 	rec_fputs(state->cleanup, REC_TYPE_RCPT, var_always_bcc);
+    if (SMTPD_MSG_ACT_FLAGS(state) & SMTPD_MSG_ACT_DISCARD) {
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_DISCARD);
+    } else {
+	if (SMTPD_MSG_ACT_FLAGS(state) & SMTPD_MSG_ACT_HOLD)
+	    rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_HOLD);
+	if ((act_value = SMTPD_MSG_ACT_VALUE(state, filter)) != 0)
+	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", act_value);
+	if ((act_value = SMTPD_MSG_ACT_VALUE(state, redirect)) != 0)
+	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", act_value);
+    }
     rec_fputs(state->cleanup, REC_TYPE_MESG, "");
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"Received: from %s (%s [%s])",
@@ -1269,7 +1332,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0
-	&& (err = smtpd_check_rcptmap(state, argv[1].strval)) != 0) {
+	&& (err = smtpd_check_vrfy(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
@@ -1609,7 +1672,7 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
 static void pre_accept(char *unused_name, char **unused_argv)
 {
     const char *table;
- 
+
     if ((table = dict_changed_name()) != 0) {
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);

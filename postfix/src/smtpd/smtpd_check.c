@@ -24,7 +24,7 @@
 /*	SMTPD_STATE *state;
 /*	char	*recipient;
 /*
-/*	char	*smtpd_check_rcptmap(state, recipient)
+/*	char	*smtpd_check_vrfy(state, recipient)
 /*	SMTPD_STATE *state;
 /*	char	*recipient;
 /*
@@ -202,11 +202,13 @@
 /* .IP smtpd_recipient_restrictions
 /*	Restrictions on the recipient address that is sent with the RCPT
 /*	TO command.
+/* .IP local_recipient_maps
+/*	Tables of user names (not addresses) that exist in $mydestination.
+/*	Mail for local users not in these tables is rejected.
 /* .PP
-/*	smtpd_check_rcptmap() validates the recipient address provided
-/*	with an RCPT TO request and sets the rcptmap_checked flag.
-/*	Relevant configuration parameters:
-/* .IP local_recipients_map
+/*	smtpd_check_vrfy() validates the recipient address provided
+/*	with a VRFY request. Relevant configuration parameters:
+/* .IP local_recipient_maps
 /*	Tables of user names (not addresses) that exist in $mydestination.
 /*	Mail for local users not in these tables is rejected.
 /* .PP
@@ -1751,6 +1753,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * mind, and reject/discard the message for other reasons.
      */
     if (STREQUAL(value, "FILTER", cmd_len)) {
+	if (state->action == 0)
+	    return (SMTPD_CHECK_DUNNO);
 	if (*cmd_text == 0) {
 	    msg_warn("access map %s entry \"%s\" has FILTER entry without value",
 		     table, datum);
@@ -1763,9 +1767,10 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    vstring_sprintf(error_text, "<%s>: %s triggers FILTER %s",
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "filter", STR(error_text));
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
-#endif
+	    state->action->flags |= SMTPD_MSG_ACT_FILTER;
+	    if (state->action->filter)
+		myfree(state->action->filter);
+	    state->action->filter = mystrdup(cmd_text);
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -1775,30 +1780,25 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * reject/discard the message for other reasons.
      */
     if (STREQUAL(value, "HOLD", cmd_len)) {
+	if (state->action == 0)
+	    return (SMTPD_CHECK_DUNNO);
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers HOLD action");
 	log_whatsup(state, "hold", STR(error_text));
-#ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_HOLD);
-#endif
+	state->action->flags |= SMTPD_MSG_ACT_HOLD;
 	return (SMTPD_CHECK_DUNNO);
     }
 
     /*
      * DISCARD means silently discard and claim successful delivery.
-     * 
-     * XXX Set some global flag that disables all further restrictions.
-     * Triggering a "reject" or "hold" action after "discard" is silly.
      */
     if (STREQUAL(value, "DISCARD", cmd_len)) {
+	if (state->action == 0)
+	    return (SMTPD_CHECK_DUNNO);
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers DISCARD action");
 	log_whatsup(state, "discard", STR(error_text));
-#ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_DISCARD);
-#endif
+	state->action->flags |= SMTPD_MSG_ACT_DISCARD;
 	return (SMTPD_CHECK_OK);
     }
 
@@ -1807,6 +1807,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * change our mind, and reject/discard the message for other reasons.
      */
     if (STREQUAL(value, "REDIRECT", cmd_len)) {
+	if (state->action == 0)
+	    return (SMTPD_CHECK_DUNNO);
 	if (strchr(cmd_text, '@') == 0) {
 	    msg_warn("access map %s entry \"%s\" requires user@domain target",
 		     table, datum);
@@ -1815,9 +1817,10 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    vstring_sprintf(error_text, "<%s>: %s triggers REDIRECT %s",
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "redirect", STR(error_text));
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", cmd_text);
-#endif
+	    state->action->flags |= SMTPD_MSG_ACT_REDIRECT;
+	    if (state->action->redirect)
+		myfree(state->action->redirect);
+	    state->action->redirect = mystrdup(cmd_text);
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -2646,6 +2649,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
     for (cpp = restrictions->argv; (name = *cpp) != 0; cpp++) {
 
+	if (state->action && SMTPD_MSG_ACT_FLAGS(state) & SMTPD_MSG_ACT_FINAL)
+	    break;
+
 	if (msg_verbose)
 	    msg_info("%s: name=%s", myname, name);
 
@@ -2967,6 +2973,20 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     state->defer_if_permit.active = 0;
 
     /*
+     * With smtpd_delay_reject=yes, smtpd_client_restrictions is evaluated at
+     * RCPT TO time, and may be evaluated multiple times. Per-message side
+     * effects (HOLD, DISCARD, etc.) accumulate from one evaluation to the
+     * next, and may also depend on helo, sender or recipient information.
+     * 
+     * With smtpd_delay_reject=no, smtpd_{client,helo}_restrictions are
+     * evaluated immediately, and HELO may be given multiple times. The same
+     * {client,helo} per-message side effects (HOLD, DISCARD, etc.) apply to
+     * multiple deliveries. Therefore, we need separate per-message side
+     * effect storage for client, helo, and for sender+recipients.
+     */
+    state->action = &state->action_client;
+
+    /*
      * Apply restrictions in the order as specified.
      */
     SMTPD_CHECK_RESET();
@@ -3021,6 +3041,20 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     state->defer_if_permit.active = state->defer_if_permit_client;
 
     /*
+     * With smtpd_delay_reject=yes, smtpd_helo_restrictions is evaluated at
+     * RCPT TO time, and may be evaluated multiple times. Per-message side
+     * effects (HOLD, DISCARD, etc.) accumulate from one evaluation to the
+     * next, and may also depend on sender or recipient information.
+     * 
+     * With smtpd_delay_reject=no, smtpd_{client,helo}_restrictions are
+     * evaluated immediately, and HELO may be given multiple times. The same
+     * {client,helo} per-message side effects (HOLD, DISCARD, etc.) apply to
+     * multiple deliveries. Therefore, we need separate per-message side
+     * effect storage for client, helo, and for sender+recipients.
+     */
+    state->action = &state->action_helo;
+
+    /*
      * Apply restrictions in the order as specified.
      */
     SMTPD_CHECK_RESET();
@@ -3064,6 +3098,14 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
      */
     state->defer_if_permit.active = state->defer_if_permit_client
 	| state->defer_if_permit_helo;
+
+    /*
+     * With smtpd_delay_reject=yes, smtpd_sender_restrictions is evaluated at
+     * RCPT TO time, and may be evaluated multiple times. Per-message side
+     * effects (HOLD, DISCARD, etc.) accumulate from one evaluation to the
+     * next, and may also depend on client, helo or recipient information.
+     */
+    state->action = &state->action_mailrcpt;
 
     /*
      * Apply restrictions in the order as specified.
@@ -3153,6 +3195,13 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     state->defer_if_permit.active = state->defer_if_permit_sender;
 
     /*
+     * Per-message side effects (HOLD, DISCARD, etc.) accumulate from one
+     * recipient to the next, and may also depend on client, helo or sender
+     * information.
+     */
+    state->action = &state->action_mailrcpt;
+
+    /*
      * Apply restrictions in the order as specified.
      */
     SMTPD_CHECK_RESET();
@@ -3168,6 +3217,14 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     if (status != SMTPD_CHECK_REJECT && state->defer_if_permit.active)
 	status = smtpd_check_reject(state, state->defer_if_permit.class,
 				  "%s", STR(state->defer_if_permit.reason));
+
+    /*
+     * If the "check_recipient_maps" restriction was not applied, and if mail
+     * is not being rejected or discarded, validate the recipient here.
+     */
+    if (status == 0 && state->rcptmap_checked == 0
+	&& (SMTPD_MSG_ACT_FLAGS(state) & SMTPD_MSG_ACT_FINAL) == 0)
+	status = check_rcpt_maps(state, recipient);
 
     SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
@@ -3214,6 +3271,11 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 	| state->defer_if_permit_helo;
 
     /*
+     * HOLD, DISCARD, FILTER, etc. are meaningless.
+     */
+    state->action = 0;
+
+    /*
      * Apply restrictions in the order as specified.
      */
     SMTPD_CHECK_RESET();
@@ -3233,11 +3295,11 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     SMTPD_CHECK_ETRN_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
-/* smtpd_check_rcptmap - permit if recipient address matches lookup table */
+/* smtpd_check_vrfy - permit if recipient address matches lookup table */
 
-char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
+char   *smtpd_check_vrfy(SMTPD_STATE *state, char *recipient)
 {
-    char   *myname = "smtpd_check_rcptmap";
+    char   *myname = "smtpd_check_vrfy";
     int     status;
 
     if (msg_verbose)
@@ -3246,6 +3308,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
     /*
      * Return here in case of serious trouble.
      */
+    SMTPD_CHECK_RESET();
     if ((status = setjmp(smtpd_check_buf)) == 0)
 	status = check_rcpt_maps(state, recipient);
 
@@ -3257,14 +3320,6 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
 {
     const RESOLVE_REPLY *reply;
-
-    /*
-     * Duplicate suppression. There's an implicit check_recipient_maps
-     * restriction at the end of all recipient restrictions.
-     */
-    if (state->rcptmap_checked == 1)
-	return (0);
-    state->rcptmap_checked = 1;
 
     /*
      * Resolve the address.
@@ -3622,6 +3677,7 @@ int     var_local_rcpt_code;
 int     var_relay_rcpt_code;
 int     var_virt_mailbox_code;
 int     var_virt_alias_code;
+int     var_show_unk_rcpt_table;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -3644,6 +3700,7 @@ static INT_TABLE int_table[] = {
     VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code,
     VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code,
     VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code,
+    VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
     0,
 };
 
@@ -3902,6 +3959,8 @@ int     main(int argc, char **argv)
 		state.namaddr = concatenate(state.name, "[", state.addr,
 					    "]", (char *) 0);
 		resp = smtpd_check_client(&state);
+                SMTPD_MSG_ACT_FREE(state.action_client);
+                SMTPD_MSG_ACT_ZERO(state.action_client);
 	    }
 	    break;
 
@@ -4013,17 +4072,22 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], "helo") == 0) {
 		state.where = "HELO";
 		resp = smtpd_check_helo(&state, args->argv[1]);
+                SMTPD_MSG_ACT_FREE(state.action_helo);
+                SMTPD_MSG_ACT_ZERO(state.action_helo);
 		UPDATE_STRING(state.helo_name, args->argv[1]);
 	    } else if (strcasecmp(args->argv[0], "mail") == 0) {
 		state.where = "MAIL";
 		TRIM_ADDR(args->argv[1], addr);
 		UPDATE_STRING(state.sender, addr);
 		resp = smtpd_check_mail(&state, addr);
+                SMTPD_MSG_ACT_FREE(state.action_mailrcpt);
+                SMTPD_MSG_ACT_ZERO(state.action_mailrcpt);
 	    } else if (strcasecmp(args->argv[0], "rcpt") == 0) {
 		state.where = "RCPT";
 		TRIM_ADDR(args->argv[1], addr);
-		(resp = smtpd_check_rcpt(&state, addr))
-		    || (resp = smtpd_check_rcptmap(&state, addr));
+		resp = smtpd_check_rcpt(&state, addr);
+                SMTPD_MSG_ACT_FREE(state.action_mailrcpt);
+                SMTPD_MSG_ACT_ZERO(state.action_mailrcpt);
 	    }
 	    break;
 

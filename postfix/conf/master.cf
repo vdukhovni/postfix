@@ -26,6 +26,8 @@
 # directory (pathname is controlled by the queue_directory configuration
 # variable in the main.cf file). Presently, all Postfix daemons can run
 # chrooted, except for the pipe, virtual and local delivery daemons.
+# The proxymap server can run chrooted, but doing so defeats most of
+# the purpose of having that service in the first place.
 # The files in the examples/chroot-setup subdirectory describe how
 # to set up a Postfix chroot environment for your type of machine.
 #
