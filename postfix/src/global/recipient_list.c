@@ -100,7 +100,7 @@ void    recipient_list_add(RECIPIENT_LIST *list, long offset,
 	list->info = (RECIPIENT *)
 	    myrealloc((char *) list->info, list->avail * sizeof(RECIPIENT));
     }
-    list->info[list->len].orig_addr = orig_rcpt ? mystrdup(orig_rcpt) : 0;
+    list->info[list->len].orig_addr = mystrdup(orig_rcpt);
     list->info[list->len].address = mystrdup(rcpt);
     list->info[list->len].offset = offset;
     list->len++;
@@ -113,8 +113,7 @@ void    recipient_list_free(RECIPIENT_LIST *list)
     RECIPIENT *rcpt;
 
     for (rcpt = list->info; rcpt < list->info + list->len; rcpt++) {
-	if (rcpt->orig_addr)
-	    myfree(rcpt->orig_addr);
+	myfree(rcpt->orig_addr);
 	myfree(rcpt->address);
     }
     myfree((char *) list->info);

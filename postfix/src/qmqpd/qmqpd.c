@@ -191,8 +191,7 @@ static void qmqpd_open_file(QMQPD_STATE *state)
 		  MAIL_CLASS_PUBLIC, var_cleanup_service);
     state->cleanup = state->dest->stream;
     state->queue_id = mystrdup(state->dest->id);
-    msg_info("%s: client=%s proto=%s", state->queue_id,
-	     state->namaddr, state->protocol);
+    msg_info("%s: client=%s", state->queue_id, state->namaddr);
 
     /*
      * Record the time of arrival. Optionally, enable content filtering (not

@@ -7090,6 +7090,9 @@ Apologies for any names omitted.
 20020126
 
 	Logging: SMTP UCE reject/warn/hold/discard logging now
+	includes queue ID. This will break some logfile analyzers.
+
+	Logging: SMTP UCE reject/warn/hold/discard logging now
 	includes the protocol name and, if available, the hostname
 	given in the SMTP HELO or EHLO command.
 
@@ -7097,10 +7100,13 @@ Apologies for any names omitted.
 	now includes the protocol name and, if available, the
 	hostname given in the SMTP HELO or EHLO command.
 
-Open problems:
+20021028
 
-	Low: smtpd should log queue ID with reject/warn/hold/discard
-	actions.
+	Bugfix: don't reset state after rejected EHLO. Reset state
+	after HELO. Reported by Karthikeyan Bhargavan, upenn.edu.
+	Files: smtpd/smtpd.c.
+
+Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
 

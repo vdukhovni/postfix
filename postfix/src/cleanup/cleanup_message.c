@@ -299,7 +299,6 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 #define STREQUAL(x,y,l) (strncasecmp((x), (y), (l)) == 0 && (y)[l] == 0)
 #define CLEANUP_ACT_KEEP 1
 #define CLEANUP_ACT_DROP 0
-#define STR(x)		vstring_str(x)
 
     if (STREQUAL(value, "REJECT", command_len)) {
 	if (state->reason == 0)

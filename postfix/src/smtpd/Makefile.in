@@ -278,6 +278,9 @@ smtpd_state.o: ../../include/msg.h
 smtpd_state.o: ../../include/cleanup_user.h
 smtpd_state.o: ../../include/mail_params.h
 smtpd_state.o: ../../include/mail_error.h
+smtpd_state.o: ../../include/mail_proto.h
+smtpd_state.o: ../../include/iostuff.h
+smtpd_state.o: ../../include/attr.h
 smtpd_state.o: smtpd.h
 smtpd_state.o: ../../include/vstring.h
 smtpd_state.o: ../../include/argv.h

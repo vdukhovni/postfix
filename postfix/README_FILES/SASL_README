@@ -216,6 +216,7 @@ can use one of the following commands:
     % perl -MMIME::Base64 -e \
 	'print encode_base64("username\0username\0password");'
 
+mmencode is part of the metamail software.
 MIME::Base64 is available from www.cpan.org.
 
 Enabling SASL authentication in the Postfix SMTP client

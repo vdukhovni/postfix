@@ -117,4 +117,7 @@ qmqpd_state.o: ../../include/vbuf.h
 qmqpd_state.o: ../../include/vstring.h
 qmqpd_state.o: ../../include/mail_stream.h
 qmqpd_state.o: ../../include/cleanup_user.h
+qmqpd_state.o: ../../include/mail_proto.h
+qmqpd_state.o: ../../include/iostuff.h
+qmqpd_state.o: ../../include/attr.h
 qmqpd_state.o: qmqpd.h

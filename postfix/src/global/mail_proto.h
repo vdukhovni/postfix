@@ -24,6 +24,13 @@
 #include <attr.h>
 
  /*
+  * External protocols.
+  */
+#define MAIL_PROTO_SMTP		"SMTP"
+#define MAIL_PROTO_ESMTP	"ESMTP"
+#define MAIL_PROTO_QMQP		"QMQP"
+
+ /*
   * Names of services: these are the names if INET ports, UNIX-domain sockets
   * or FIFOs that a service listens on.
   */

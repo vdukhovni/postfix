@@ -108,7 +108,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, request->return_receipt,
 	       ATTR_TYPE_LONG, MAIL_ATTR_TIME, request->arrival_time,
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offs,
-	       ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orcpt ? orcpt : "",
+	       ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orcpt,
 	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, addr,
 	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, 0,
 	       ATTR_TYPE_END);

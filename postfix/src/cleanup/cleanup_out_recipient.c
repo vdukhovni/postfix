@@ -78,8 +78,7 @@ void    cleanup_out_recipient(CLEANUP_STATE *state, const char *orcpt,
 	return;
 
     if (cleanup_virtual_maps == 0) {
-	if (strcasecmp(orcpt, recip) != 0)
-	    cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
+	cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
 	cleanup_out_string(state, REC_TYPE_RCPT, recip);
 	state->rcpt_count++;
     } else {

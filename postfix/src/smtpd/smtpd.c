@@ -453,8 +453,6 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: HELO hostname");
 	return (-1);
     }
-    if (state->helo_name != 0)
-	helo_reset(state);
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
@@ -463,8 +461,14 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
+    if (state->helo_name != 0)
+	helo_reset(state);
+    chat_reset(state, var_smtpd_hist_thrsh);
+    mail_reset(state);
+    rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
-    state->protocol = "SMTP";
+    if (strcmp(state->protocol, MAIL_PROTO_ESMTP) != 0)
+	state->protocol = MAIL_PROTO_SMTP;
     smtpd_chat_reply(state, "250 %s", var_myhostname);
     return (0);
 }
@@ -485,13 +489,6 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: EHLO hostname");
 	return (-1);
     }
-    if (state->helo_name != 0)
-	helo_reset(state);
-#ifndef RFC821_SYNTAX
-    chat_reset(state, var_smtpd_hist_thrsh);
-    mail_reset(state);
-    rcpt_reset(state);
-#endif
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
@@ -500,8 +497,13 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
+    if (state->helo_name != 0)
+	helo_reset(state);
+    chat_reset(state, var_smtpd_hist_thrsh);
+    mail_reset(state);
+    rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
-    state->protocol = "ESMTP";
+    state->protocol = MAIL_PROTO_ESMTP;
     smtpd_chat_reply(state, "250-%s", var_myhostname);
     smtpd_chat_reply(state, "250-PIPELINING");
     if (var_message_limit)

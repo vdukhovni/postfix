@@ -34,7 +34,7 @@
 /*	const char *encoding;
 /*	const char *sender;
 /*
-/*	int	bounce_one(flags, queue, id, encoding, sender,
+/*	int	bounce_one(flags, queue, id, encoding, sender, orig_rcpt,
 /*				recipient, relay, entry, format, ...)
 /*	int	flags;
 /*	const char *queue;

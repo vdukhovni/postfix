@@ -52,6 +52,7 @@
 #include <cleanup_user.h>
 #include <mail_params.h>
 #include <mail_error.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -86,7 +87,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->sender = 0;
     state->recipient = 0;
     state->etrn_name = 0;
-    state->protocol = "SMTP";
+    state->protocol = MAIL_PROTO_SMTP;
     state->where = SMTPD_AFTER_CONNECT;
     state->recursion = 0;
     state->msg_size = 0;

@@ -246,7 +246,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	    return (-1);
 	}
 	recipient_list_add(&request->rcpt_list, offset,
-		       *vstring_str(orig_addr) ? vstring_str(orig_addr) : 0,
+			   vstring_str(orig_addr),
 			   vstring_str(address));
     }
 

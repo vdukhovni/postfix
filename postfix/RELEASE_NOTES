@@ -12,17 +12,18 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-20021026
+Incompatible changes with Postfix snapshot 1.1.11-20021028
 ==========================================================
 
-Logging formats have changed. This may affect logfile processing
-software.
+Logfile formats have changed. This may affect logfile processing
+software. The queue file format is still compatible with Postfix
+version 1.1 (stable release).
 
-- The Postfix SMTP UCE reject etc. logging now includes the queue
-ID, the mail protocol (SMTP or ESMTP), and the hostname that was
-received with the HELO or EHLO command, if available.
+- The Postfix SMTP server UCE reject etc. logging now includes the
+queue ID, the mail protocol (SMTP or ESMTP), and the hostname that
+was received with the HELO or EHLO command, if available.
 
-- The Postfix header/body_checks logging now includes the the mail
+- The Postfix header/body_checks logging now includes the mail
 protocol (SMTP, ESMTP, QMQP) and the hostname that was received
 with the SMTP HELO or EHLO command, if available.
 
@@ -31,13 +32,15 @@ original recipient address (as received before any address rewriting
 or aliasing).  The original recipient address is logged only when
 it differs from the final recipient address.
 
-Major changes with Postfix snapshot 1.1.11-20021026
+Major changes with Postfix snapshot 1.1.11-20021028
 ===================================================
 
-The Postfix status=sent/bounced/deferred logging now shows the
-original recipient address (as received before any address rewriting
-or aliasing).  The original recipient address is logged only when
-it differs from the final recipient address.
+Postfix logs more information, as described in the "incompatibilities"
+section above.
+
+The local(8) and virtual(8) delivery agents now record the original
+recipient address in the X-Original-To: message header. This header
+can also be emitted by the pipe(8) delivery agent.
 
 Major changes with Postfix snapshot 1.1.11-20021024
 ===================================================
