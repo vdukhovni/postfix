@@ -81,14 +81,14 @@ and that the Cyrus SASL libraries are in /usr/local/lib.
 On some systems this generates the necessary Makefile definitions:
 
     % make tidy # if you have left-over files from a previous build
-    % make makefiles CCARGS=-DUSE_SASL_AUTH" -I/usr/local/include" \
+    % make makefiles CCARGS="-DUSE_SASL_AUTH -I/usr/local/include" \
 	AUXLIBS="-L/usr/local/lib -lsasl"
 
 On Solaris 2.x you need to specify run-time link information,
 otherwise ld.so will not find the SASL shared library:
 
     % make tidy # if you have left-over files from a previous build
-    % make makefiles CCARGS=-DUSE_SASL_AUTH" -I/usr/local/include" \
+    % make makefiles CCARGS="-DUSE_SASL_AUTH -I/usr/local/include" \
 	AUXLIBS="-L/usr/local/lib -R/usr/local/lib -lsasl"
 
 Enabling SASL authentication in the Postfix SMTP server

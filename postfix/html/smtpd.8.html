@@ -97,6 +97,9 @@ SMTPD(8)                                                 SMTPD(8)
               explicitly  selected  at  program  build  time  and
               explicitly enabled at runtime.
 
+       <b>smtpd</b><i>_</i><b>sasl</b><i>_</i><b>local</b><i>_</i><b>domain</b>
+              The name of the local authentication realm.
+
        <b>smtpd</b><i>_</i><b>sasl</b><i>_</i><b>security</b><i>_</i><b>options</b>
               Zero or more of the following.
 
@@ -122,9 +125,6 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>command</b><i>_</i><b>directory</b>
               Location  of  Postfix  support  commands  (default:
-              <b>$program</b><i>_</i><b>directory</b>).
-
-
 
 
 
@@ -136,6 +136,8 @@ SMTPD(8)                                                 SMTPD(8)
 
 SMTPD(8)                                                 SMTPD(8)
 
+
+              <b>$program</b><i>_</i><b>directory</b>).
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
               Increment  in  verbose  logging level when a remote
@@ -189,8 +191,6 @@ SMTPD(8)                                                 SMTPD(8)
        <b>soft</b><i>_</i><b>bounce</b>
               Change hard (5xx) reject responses into soft  (4xx)
               reject  responses.   This can be useful for testing
-              purposes.
-
 
 
 
@@ -202,6 +202,8 @@ SMTPD(8)                                                 SMTPD(8)
 
 SMTPD(8)                                                 SMTPD(8)
 
+
+              purposes.
 
 <b>Resource</b> <b>controls</b>
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
@@ -254,9 +256,7 @@ SMTPD(8)                                                 SMTPD(8)
               Restrict what sender addresses are allowed in  <b>MAIL</b>
               <b>FROM</b> commands.
 
-       <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>restrictions</b>
-              Restrict  what  recipient  addresses are allowed in
-              <b>RCPT</b> <b>TO</b> commands.
+
 
 
 
@@ -268,6 +268,10 @@ SMTPD(8)                                                 SMTPD(8)
 
 SMTPD(8)                                                 SMTPD(8)
 
+
+       <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>restrictions</b>
+              Restrict  what  recipient  addresses are allowed in
+              <b>RCPT</b> <b>TO</b> commands.
 
        <b>smtpd</b><i>_</i><b>etrn</b><i>_</i><b>restrictions</b>
               Restrict what domain names can be used in <b>ETRN</b> com-
@@ -318,10 +322,6 @@ SMTPD(8)                                                 SMTPD(8)
               Server  response  when  a   client   violates   the
               <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>address</b> restriction.
 
-       <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
-              Server  response  when  a client without address to
-              name mapping  violates  the  <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
-              restriction.
 
 
 
@@ -334,6 +334,11 @@ SMTPD(8)                                                 SMTPD(8)
 
 SMTPD(8)                                                 SMTPD(8)
 
+
+       <b>unknown</b><i>_</i><b>client</b><i>_</i><b>reject</b><i>_</i><b>code</b>
+              Server  response  when  a client without address to
+              name mapping  violates  the  <b>reject</b><i>_</i><b>unknown</b><i>_</i><b>clients</b>
+              restriction.
 
        <b>unknown</b><i>_</i><b>hostname</b><i>_</i><b>reject</b><i>_</i><b>code</b>
               Server   response   when   a  client  violates  the
@@ -353,11 +358,6 @@ SMTPD(8)                                                 SMTPD(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
 
 
 

@@ -51,11 +51,16 @@
 
 #include <vstring.h>
 #include <myflock.h>
+#include <iostuff.h>
 
 /* Global library. */
 
 #include "mail_params.h"
 #include "deliver_flock.h"
+
+/* Application-specific. */
+
+#define MILLION	1000000
 
 /* deliver_flock - lock open file for mail delivery */
 
@@ -69,7 +74,7 @@ int     deliver_flock(int fd, int lock_style, VSTRING *why)
 	    return (0);
 	if (i >= var_flock_tries)
 	    break;
-	sleep(var_flock_delay);
+	rand_sleep(var_flock_delay * MILLION, var_flock_delay * MILLION / 2);
     }
     if (why)
 	vstring_sprintf(why, "unable to lock for exclusive access: %m");

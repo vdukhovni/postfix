@@ -4759,3 +4759,10 @@ Apologies for any names omitted.
 	is not connected to a tty. To automate a customized install,
 	the script imports environment variables for install_root
 	etc.
+
+20010127
+
+	Workaround: randomize the delay between lock attempts, so
+	that multiple defer servers are less likely to retry at
+	the same time.  likely.  File:  util/rand_sleep.c,
+	global/deliver_flock.c, global/dot_lockfile.c.

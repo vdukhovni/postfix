@@ -750,6 +750,54 @@ extern char *var_smtp_sasl_passwd;
 extern char *var_smtp_sasl_opts;
 
  /*
+  * LMTP server. The soft error limit determines how many errors an LMTP
+  * client may make before we start to slow down; the hard error limit
+  * determines after how many client errors we disconnect.
+  */
+#define VAR_LMTPD_BANNER	"lmtpd_banner"
+#define DEF_LMTPD_BANNER	"$myhostname $mail_name"
+extern char *var_lmtpd_banner;
+
+#define VAR_LMTPD_TMOUT		"lmtpd_timeout"
+#define DEF_LMTPD_TMOUT		"300s"
+extern int var_lmtpd_tmout;
+
+#define VAR_LMTPD_RCPT_LIMIT	"lmtpd_recipient_limit"
+#define DEF_LMTPD_RCPT_LIMIT	1000
+extern int var_lmtpd_rcpt_limit;
+
+#define VAR_LMTPD_SOFT_ERLIM	"lmtpd_soft_error_limit"
+#define DEF_LMTPD_SOFT_ERLIM	10
+extern int var_lmtpd_soft_erlim;
+
+#define VAR_LMTPD_HARD_ERLIM	"lmtpd_hard_error_limit"
+#define DEF_LMTPD_HARD_ERLIM	100
+extern int var_lmtpd_hard_erlim;
+
+#define VAR_LMTPD_ERR_SLEEP	"lmtpd_error_sleep_time"
+#define DEF_LMTPD_ERR_SLEEP	"5s"
+extern int var_lmtpd_err_sleep;
+
+#define VAR_LMTPD_JUNK_CMD	"lmtpd_junk_command_limit"
+#define DEF_LMTPD_JUNK_CMD	1000
+extern int var_lmtpd_junk_cmd_limit;
+
+ /*
+  * SASL authentication support, LMTP server side.
+  */
+#define VAR_LMTPD_SASL_ENABLE	"lmtpd_sasl_auth_enable"
+#define DEF_LMTPD_SASL_ENABLE	0
+extern bool var_lmtpd_sasl_enable;
+
+#define VAR_LMTPD_SASL_OPTS	"lmtpd_sasl_security_options"
+#define DEF_LMTPD_SASL_OPTS	"noanonymous"
+extern char *var_lmtpd_sasl_opts;
+
+#define VAR_LMTPD_SASL_REALM	"lmtpd_sasl_local_domain"
+#define DEF_LMTPD_SASL_REALM	"$myhostname"
+extern char *var_lmtpd_sasl_realm;
+
+ /*
   * SASL authentication support, LMTP client side.
   */
 #define VAR_LMTP_SASL_ENABLE	"lmtp_sasl_auth_enable"
@@ -888,7 +936,7 @@ extern int var_fork_delay;
   * When locking a mailbox, how often to try and how long to wait.
   */
 #define VAR_FLOCK_TRIES          "deliver_lock_attempts"
-#define DEF_FLOCK_TRIES          10
+#define DEF_FLOCK_TRIES          20
 extern int var_flock_tries;
 
 #define VAR_FLOCK_DELAY          "deliver_lock_delay"

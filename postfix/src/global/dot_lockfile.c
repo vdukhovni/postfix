@@ -31,7 +31,7 @@
 /* DIAGNOSTICS
 /*	dot_lockfile() returns 0 upon success. In case of failure, the
 /*	result is -1, and the errno variable is set appropriately:
-/*	EEXIST when a "fresh" lock file already exists; other values as 
+/*	EEXIST when a "fresh" lock file already exists; other values as
 /*	appropriate.
 /* CONFIGURATION PARAMETERS
 /*	deliver_lock_attempts, how many times to try to create a lock
@@ -63,11 +63,16 @@
 #include <vstring.h>
 #include <stringops.h>
 #include <mymalloc.h>
+#include <iostuff.h>
 
 /* Global library. */
 
 #include "mail_params.h"
 #include "dot_lockfile.h"
+
+/* Application-specific. */
+
+#define MILLION	1000000
 
 /* dot_lockfile - create user.lock file */
 
@@ -113,7 +118,7 @@ int     dot_lockfile(const char *path, VSTRING *why)
 		    if (errno != ENOENT)
 			break;
 
-	sleep(var_flock_delay);
+	rand_sleep(var_flock_delay * MILLION, var_flock_delay * MILLION / 2);
     }
     if (status && why)
 	vstring_sprintf(why, "unable to create lock file %s: %m", lock_file);
