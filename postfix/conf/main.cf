@@ -270,12 +270,25 @@ mail_owner = postfix
 # has precedence over the mailbox_command, fallback_transport and
 # luser_relay parameters.
 #
+# Specify a string of the form transport:nexthop, where transport is
+# the name of a mail delivery transport defined in master.cf.  The
+# :nexthop part is optional. For more details see the sample transport
+# configuration file.
+#
+#mailbox_transport = lmtp:unix:/file/name
 #mailbox_transport = cyrus
 
 # The fallback_transport specifies the optional transport in master.cf
 # to use for recipients that are not found in the UNIX passwd database.
 # This parameter has precedence over the luser_relay parameter.
 #
+# Specify a string of the form transport:nexthop, where transport is
+# the name of a mail delivery transport defined in master.cf.  The
+# :nexthop part is optional. For more details see the sample transport
+# configuration file.
+#
+#fallback_transport = lmtp:unix:/file/name
+#fallback_transport = cyrus
 #fallback_transport =
 
 # The luser_relay parameter specifies an optional destination address

@@ -81,7 +81,7 @@ void    transport_init(void)
 
 /* transport_lookup - map a transport domain */
 
-int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
+int     transport_lookup(const char *domain, VSTRING * channel, VSTRING * nexthop)
 {
     char   *low_domain = lowercase(mystrdup(domain));
     const char *name;
@@ -121,6 +121,7 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
 	    if (*(transport = saved_value) == 0)
 		transport = var_def_transport;
 	    vstring_strcpy(channel, transport);
+	    (void) split_at(vstring_str(channel), ':');
 	    vstring_strcpy(nexthop, host);
 	    myfree(saved_value);
 	    found = 1;

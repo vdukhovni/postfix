@@ -28,7 +28,12 @@ daemon_timeout = 18000
 # delivery transport to use when no transport is explicitly given in
 # the optional transport(5) table.
 #
-# default_transport = uucp
+# Specify a string of the form transport:nexthop, where transport is
+# the name of a mail delivery transport defined in master.cf.  Either
+# transport or nexthop are optional. For more details see the sample
+# transports file.
+#
+# default_transport = uucp:relayhostname
 default_transport = smtp
 
 # The double_bounce_sender parameter specifies the sender address

@@ -142,7 +142,7 @@ int     deliver_pass(const char *class, const char *service,
     if ((nexthop = split_at(saved_service, ':')) == 0 || *nexthop == 0)
 	nexthop = request->nexthop;
     if (*transport == 0)
-	transport = var_def_transport;
+	msg_fatal("missing transport name in \"%s\"", service);
 
     /*
      * Initialize.

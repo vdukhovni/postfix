@@ -37,6 +37,12 @@ require_home_directory = no
 # By default, local mail is delivered to the transport called "local",
 # which is just the name of a service that is defined the master.cf file.
 #
+# Specify a string of the form transport:nexthop, where transport is
+# the name of a mail delivery transport defined in master.cf.  The
+# :nexthop part is optional. For more details see the sample transports
+# file.
+#
+local_transport = lmtp:unix:/file/name
 local_transport = local
 
 #
@@ -159,9 +165,9 @@ mailbox_command =
 # luser_relay parameters.
 #
 # Specify a string of the form transport:nexthop, where transport is
-# the name of a mail delivery transport defined in master.cf.  Either
-# transport or nexthop are optional. For more details see the sample
-# transports file.
+# the name of a mail delivery transport defined in master.cf.  The
+# :nexthop part is optional. For more details see the sample transport
+# configuration file.
 #
 # mailbox_transport = lmtp:unix:/file/name
 # mailbox_transport = cyrus
@@ -172,9 +178,9 @@ mailbox_transport =
 # This parameter has precedence over the luser_relay parameter.
 #
 # Specify a string of the form transport:nexthop, where transport is
-# the name of a mail delivery transport defined in master.cf.  Either
-# transport or nexthop are optional. For more details see the sample
-# transports file.
+# the name of a mail delivery transport defined in master.cf.  The
+# :nexthop part is optional. For more details see the sample transport
+# configuration file.
 #
 # fallback_transport = lmtp:unix:/file/name
 # fallback_transport = cyrus

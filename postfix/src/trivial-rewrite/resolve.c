@@ -85,10 +85,12 @@
 void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 		             VSTRING *nextrcpt, int *flags)
 {
+    char   *myname = "resolve_addr";
     VSTRING *addr_buf = vstring_alloc(100);
     TOK822 *tree;
     TOK822 *saved_domain = 0;
     TOK822 *domain = 0;
+    char   *destination;
 
     *flags = 0;
 
@@ -115,7 +117,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	if (tree->tail->type == '.' || tree->tail->type == '@') {
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
 	    continue;
- 	}
+	}
 
 	/*
 	 * A lone empty string becomes the postmaster.
@@ -205,10 +207,15 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      */
     else if (domain != 0) {
 	vstring_strcpy(channel, var_def_transport);
-	if (*var_relayhost)
+	if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
+	    vstring_strcpy(nexthop, destination);
+	else if (*var_relayhost)
 	    vstring_strcpy(nexthop, var_relayhost);
 	else
 	    tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
+	if (*STR(channel) == 0)
+	    msg_fatal("null transport is not allowed: %s = %s",
+		      VAR_DEF_TRANSPORT, var_def_transport);
     }
 
     /*
@@ -217,8 +224,16 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      */
     else {
 	vstring_strcpy(channel, var_local_transport);
-	vstring_strcpy(nexthop, var_myhostname);
+	if ((destination = split_at(STR(channel), ':')) == 0
+	    || *destination == 0)
+	    destination = var_myhostname;
+	vstring_strcpy(nexthop, destination);
+	if (*STR(channel) == 0)
+	    msg_fatal("null transport is not allowed: %s = %s",
+		      VAR_LOCAL_TRANSPORT, var_local_transport);
     }
+    if (*STR(nexthop) == 0)
+	msg_panic("%s: null nexthop", myname);
 
     /*
      * Clean up.

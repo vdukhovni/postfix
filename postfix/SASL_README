@@ -10,6 +10,9 @@ Postfix+SASL 1.5.5 appears to work on RedHat 6.1 (pwcheck_method
 set to shadow or sasldb), Solaris 2.7 (pwcheck_method set to shadow
 or sasldb), and FreeBSD 3.4 (pwcheck_method set to sasldb).  On
 RedHat 6.1, SASL 1.5.5 insisted on write access to /etc/sasldb.
+Note that this seems to be related to the auto_transition switch in
+SASL. Note also that the Cyrus SASL documentation says that it is
+pointless to enable that if you use "sasldb" for "pwcheck_method".
 
 SASL is a lot of complex code. In a future version the Postfix SASL
 code is likely to be put outside the SMTP server.
@@ -102,6 +105,11 @@ Postfix SMTP server needs read access to the sasldb file - you may
 have to play games with group access permissions. On RedHat 6.1,
 SASL 1.5.5 insists on write access to /etc/sasldb.
 
+IMPORTANT: To get sasldb running, make sure that you set the SASL domain
+(realm) to a fully qualified domain name. 
+
+EXAMPLE: saslpasswd -c -u `postconf -h myhostname` exampleuser
+
 Instead of the SASL-specific password file you can configure the
 Postfix SMTP server to validate client passwords against the UNIX
 shadow password file:
@@ -112,7 +120,7 @@ shadow password file:
 However this requires that Postfix has read access to the UNIX shadow
 password file, which is normally readable only by root.  Shadow
 password support has been found to work for Solaris 2.7 and RedHat
-6. 1 but not with freeBSD 3.4.
+6.1 but not with FreeBSD 3.4.
 
 To run software chrooted with SASL support is an interesting exercise.
 This is one of the many problems with the present SASL support.
@@ -134,6 +142,12 @@ be able to have a conversation like this:
 Instead of dGVzdAB0ZXN0AHRlc3RwYXNz, specify the base64 encoded
 form of username\0username\0password (the \0 is a null byte). The
 example above is for a user named `test' with password `testpass'.
+
+You can use e. g.: printf 'username\0username\0password' | mmencode 
+or perl -MMIME::Base64 -e 'print
+       encode_base64("username\0username\0password");'
+to get this output (MIME::Base64 is available from CPAN in case you
+don't have it).
 
 Enabling SASL authentication in the Postfix SMTP client
 =======================================================

@@ -4632,3 +4632,10 @@ Apologies for any names omitted.
 	after connection timeout. Problem reported by Alain Thivillon.
 	did not take his patch because I have no means to verify
 	the code. File: util/dict_ldap.c.
+
+20001214
+
+	Feature: local_transport and default_transport now also
+	understand the transport[:destination] notation, so that
+	transport parameters are similar again. File:
+	trivial-rewrite/resolve.c, trivial-rewrite/transport.c.
