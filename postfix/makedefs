@@ -58,15 +58,24 @@ case "$VERSION" in
 esac
 
 case "$SYSTEM.$RELEASE" in
+   SCO_SV.3.2)	SYSTYPE=SCO5
+		# Use the native compiler by default
+		: ${CC="/usr/bin/cc -b elf"}
+		: ${DEBUG=}
+		SYSLIBS="-lsocket -ldbm"
+		RANLIB=echo
+		;;
   UnixWare.5*)	SYSTYPE=UW7
-		CC=cc
-		DEBUG=
+		# Use the native compiler by default
+		: ${CC=/usr/bin/cc}
+		: ${DEBUG=}
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		;;
   UNIX_SV.4.2*)	case "`uname -v`" in
 	      2.1*) SYSTYPE=UW21
-		    CC=/usr/bin/cc
+		    # Use the native compiler by default
+		    : ${CC=/usr/bin/cc}
 		    RANLIB=echo
 		    SYSLIBS="-lresolv -lsocket -lnsl -lc -L/usr/ucblib -lucb"
 		    ;;

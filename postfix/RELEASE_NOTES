@@ -88,9 +88,9 @@ installation can be done without write access to the build tree.
 domains that are defined by Postfix virtual maps.
 
 - The SMTP server can reject mail for unknown local users.  Specify
-"local_recipient_maps = $relocated_maps, $alias_maps, unix:passwd.byname"
-if your local mail is delivered by a UNIX-style local delivery
-agent.  See example in conf/main.cf.
+"local_recipient_maps = $alias_maps, unix:passwd.byname" if your
+local mail is delivered by a UNIX-style local delivery agent.  See
+example in conf/main.cf.
 
 - Use "disable_vrfy_command = yes" to disable the SMTP VRFY command.
 This prevents some forms of address harvesting.

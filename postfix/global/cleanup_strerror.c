@@ -39,7 +39,8 @@
  /*
   * Mapping from status code to printable string. One message may suffer from
   * multiple errors, to it is important to list the most severe errors first,
-  * because the result of lookup can be only one string.
+  * or to list the cause (header overflow) before the effect (no recipients),
+  * because cleanup_strerror() can report only one error.
   */
 struct cleanup_stat_map {
     unsigned status;
@@ -48,6 +49,7 @@ struct cleanup_stat_map {
 
 static struct cleanup_stat_map cleanup_stat_map[] = {
     CLEANUP_STAT_BAD, "Internal protocol error",
+    CLEANUP_STAT_HOVFL, "Message header too long",
     CLEANUP_STAT_RCPT, "No recipients specified",
     CLEANUP_STAT_HOPS, "Too many hops",
     CLEANUP_STAT_SIZE, "Message file too big",

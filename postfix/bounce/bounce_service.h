@@ -24,6 +24,11 @@ extern int bounce_append_service(char *, char *, char *, char *);
 extern int bounce_notify_service(char *, char *, char *, char *, int);
 
  /*
+  * bounce_recip_service.c
+  */
+extern int bounce_recip_service(char *, char *, char *, char *, char *, char *, int);
+
+ /*
   * bounce_cleanup.c
   */
 extern VSTRING *bounce_cleanup_path;

@@ -26,6 +26,8 @@
 
 <li><a href="#sendmail_incompatibility">Sendmail incompatibility</a>
 
+<li><a href="#receiving">Receiving mail via the network</a>
+
 <li><a href="#relaying">Mail relaying</a>
 
 <li><a href="#remote_delivery">Remote delivery</a>
@@ -88,6 +90,17 @@ distribution list</a>
 <li><a href="#majordomo-approve">Postfix breaks the majordomo "approve" command</a>
 
 <li><a href="#skip_greeting">Postfix does not try all the MX addresses</a>
+
+<li><a href="#worm">Postfix accepts MAIL FROM and RCPT TO "| command"</a>
+
+</ul>
+
+<a name="receiving"><h3>Receiving mail via the network</h3>
+
+<ul>
+
+<li><a href="#numerical_log">Postfix logs SMTP clients as IP
+addresses</a>
 
 </ul>
 
@@ -663,7 +676,7 @@ four hours, specify:
 
 <pre>
     /etc/postfix/main.cf:
-	delay_warning_time = 4
+        delay_warning_time = 4
 </pre>
 
 <p>
@@ -725,6 +738,45 @@ Wietse believes that Postfix implements the "right" behavior,
 and suspects that Sendmail's default behavior is a remnant from a
 dark past when Sendmail used a pretty crummy algorithm to avoid
 aliasing loops.
+
+<hr>
+
+<a name="numerical_log"><h3>Postfix logs SMTP clients as IP
+addresses</h3>
+
+<blockquote>
+
+The Postfix SMTP server logs client connections with numerical IP
+addresses instead of resolving the hostname. When I use <b>nslookup</b>
+the address does resolve to a name.
+
+</blockquote>
+
+<p>
+
+You run the Postfix SMTP server inside a <b>chroot</b> jail for
+extra security, but some configuration files are missing. In order
+to run inside a chroot jail, the Postfix SMTP client and server
+need copies of system configuration files inside the Postfix queue
+directory.  The exact list of files is very system dependent, but
+you will probably need at the very least:
+
+<p>
+
+<pre>
+    /var/spool/postfix/etc/resolv.conf
+    /var/spool/postfix/etc/services
+</pre>
+
+<p>
+
+Of course, these directories and files must be owned by root, but
+they must be accessible by the postfix user, so directories need
+mode 0755 and files need mode 0644.
+
+<p>
+For more details, see the files in the <b>examples/chroot-setup</b>
+directory of the Postfix source code distribution.
 
 <hr>
 
@@ -838,8 +890,8 @@ ahead of the other SMTPD recipient restrictions:
 <pre>
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions = 
-	    regexp:/etc/postfix/regexp_access
-	    ...other restrictions...
+            regexp:/etc/postfix/regexp_access
+            ...other restrictions...
 
     /etc/postfix/regexp_access:
         /[%!@].*[%!@]/ 550 Sender specified routing is not supported here.
@@ -1142,8 +1194,8 @@ that work around them.
 
 <pre>
     /etc/postfix/main.cf:
-	smtp_skip_4xx_greeting = yes
-	smtp_skip_5xx_greeting = yes
+        smtp_skip_4xx_greeting = yes
+        smtp_skip_5xx_greeting = yes
 </pre>
 
 <p>
@@ -1237,7 +1289,7 @@ in <b>/etc/postfix/master.cf</b>, specify:
 
 <pre>
     /etc/postfix/main.cf:
-	local_recipient_maps = $relocated_maps $alias_maps, unix:passwd.byname
+        local_recipient_maps = $relocated_maps $alias_maps, unix:passwd.byname
 </pre>
 
 <p>
@@ -1445,13 +1497,13 @@ expression-based filter at the SMTP port:
 
 <pre>
     /etc/postfix/main.cf:
-	smtpd_recipient_restrictions = 
-	    ... regexp:/etc/postfix/access_regexp ...
-	smtpd_recipient_restrictions = 
-	    ... pcre:/etc/postfix/access_regexp ...
+        smtpd_recipient_restrictions = 
+            ... regexp:/etc/postfix/access_regexp ...
+        smtpd_recipient_restrictions = 
+            ... pcre:/etc/postfix/access_regexp ...
 
     /etc/postfix/access_regexp:
-	/^(.*)-outgoing@(.*)/   554 Use $1@$2 instead
+        /^(.*)-outgoing@(.*)/   554 Use $1@$2 instead
 </pre>
 
 <p>
@@ -1512,6 +1564,50 @@ A less-preferred workaround is to not insert <b>Delivered-To:</b>
 when delivering to commands such as majordomo. See the FAQ entry
 titled "<a href="#delivered">Getting rid of the ugly Delivered-To:
 header</a>".
+
+<hr>
+
+<a name="worm"><h3>Postfix accepts MAIL FROM and RCPT TO "| command"</h3>
+
+With Postfix, | or / has special meaning only when it appears in
+aliases, .forward files or in :include: files. It has no special
+meaning in mail addresses.
+
+
+<p>
+
+If you must receive mail for systems with 10-year old vulnerabilities,
+it is prudent to set up a regexp filter that rejects potentially
+harmful MAIL FROM or RCPT TO commands.
+
+<p>
+
+<pre>
+    /etc/postfix/main.cf:
+        smtpd_sender_restrictions =
+            regexp:/etc/postfix/envelope-regexp
+            reject_unknown_sender_domain
+        smtpd_recipient_restrictions =
+            regexp:/etc/postfix/envelope-regexp
+            permit_mynetworks
+            check_relay_domains
+
+    /etc/postfix/envelope-regexp:
+        /[/|]/  REJECT
+</pre>
+
+<p>
+
+However, rejecting all envelope addresses with / causes trouble
+with simple-minded X.400 to Internet address mappings that leave
+the X.400 address structure exposed.
+
+<p>
+
+See also the documentation on <a href="uce.html#header_checks">header
+checks</a> restrictions for message header contents. These restrictions
+can be used to protect against attacks with command/file destinations
+in, for example, Errors-To: or Return-Receipt_To:  message headers.
 
 <hr>
 
@@ -1766,14 +1862,14 @@ headers is sufficient to reliably implement a domain in a mailbox.
 
 <pre>
     /etc/postfix/main.cf:
-	recipient_delimiter = +
-	virtual_maps = 
-	    ...non-regexp virtual maps...
-	    regexp:/etc/postfix/virtual_regexp
+        recipient_delimiter = +
+        virtual_maps = 
+            ...non-regexp virtual maps...
+            regexp:/etc/postfix/virtual_regexp
 
     /etc/postfix/virtual_regexp:
-	/^virtual\.domain$/		whatever
-	/^(.*\)@virtual\.domain$/	joe+$1
+        /^virtual\.domain$/             whatever
+        /^(.*\)@virtual\.domain$/       joe+$1
 </pre>
 
 <p>

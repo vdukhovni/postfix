@@ -1,18 +1,21 @@
 /*++
 /* NAME
-/*	bounce_notify_service 3
+/*	bounce_recip_service 3
 /* SUMMARY
 /*	send non-delivery report to sender, server side
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_notify_service(queue_name, queue_id, sender, flush)
+/*	int     bounce_recip_service(queue_name, queue_id, sender,
+/*					bounced_addr, why, flush)
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*sender;
+/*	char	*recipient;
+/*	char	*why;
 /*	int	flush;
 /* DESCRIPTION
-/*	This module implements the server side of the bounce_notify()
+/*	This module implements the server side of the bounce_recip()
 /*	(send bounce message) request. If flush is zero, the logfile
 /*	is not removed, and a warning is sent instead of a bounce.
 /*
@@ -208,10 +211,9 @@ static void bounce_print(const char *str, int len, int indent, char *context)
 
 /* bounce_diagnostics - send bounce log report */
 
-static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
-			              char *queue_id, const char *boundary)
+static int bounce_diagnostics(VSTREAM *bounce, const char *boundary,
+			            const char *unused_recipient, char *why)
 {
-    VSTREAM *log;
 
     /*
      * MIME header.
@@ -225,40 +227,19 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
 #endif
 
     /*
-     * If the bounce log cannot be found, do not raise a fatal run-time
-     * error. There is nothing we can do about the error, and all we are
-     * doing is to inform the sender of a delivery problem, Bouncing a
-     * message does not have to be a perfect job. But if the system IS
-     * running out of resources, raise a fatal run-time error and force a
-     * backoff.
-     */
-    if ((log = mail_queue_open(service, queue_id, O_RDONLY, 0)) == 0) {
-	if (errno != ENOENT)
-	    msg_fatal("open %s %s: %m", service, queue_id);
-	post_mail_fputs(bounce, "\t--- Delivery error report unavailable ---");
-	post_mail_fputs(bounce, "");
-    }
-
-    /*
      * Append a copy of the delivery error log. Again, we're doing a best
      * effort, so there is no point raising a fatal run-time error in case of
      * a logfile read error. Wrap long lines, filter non-printable
      * characters, and prepend one blank, so this data can safely be piped
      * into other programs.
+     * 
+     * XXX recipient may be empty.
      */
-    else {
 
 #define LENGTH	79
 #define INDENT	4
-	while (vstream_ferror(bounce) == 0 && vstring_fgets_nonl(buf, log)) {
-	    printable(STR(buf), '_');
-	    line_wrap(STR(buf), LENGTH, INDENT, bounce_print, (char *) bounce);
-	    if (vstream_ferror(bounce) != 0)
-		break;
-	}
-	if (vstream_fclose(log))
-	    msg_warn("read bounce log %s: %m", queue_id);
-    }
+    printable(why, '_');
+    line_wrap(why, LENGTH, INDENT, bounce_print, (char *) bounce);
     return (vstream_ferror(bounce));
 }
 
@@ -336,10 +317,11 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
     return (status);
 }
 
-/* bounce_notify_service - send a bounce */
+/* bounce_recip_service - send a bounce */
 
-int     bounce_notify_service(char *service, char *queue_name,
-			         char *queue_id, char *recipient, int flush)
+int     bounce_recip_service(char *service, char *queue_name, char *queue_id,
+			             char *recipient, char *bounced_addr,
+			             char *why, int flush)
 {
     VSTRING *buf = vstring_alloc(100);
     int     bounce_status = 1;
@@ -382,7 +364,7 @@ int     bounce_notify_service(char *service, char *queue_name,
      */
     if (strcasecmp(recipient, mail_addr_double_bounce()) == 0) {
 	msg_warn("%s: undeliverable postmaster notification discarded",
-		  queue_id);
+		 queue_id);
 	bounce_status = 0;
     }
 
@@ -411,8 +393,8 @@ int     bounce_notify_service(char *service, char *queue_name,
 		 */
 		if (!bounce_header(bounce, buf, postmaster,
 				   STR(boundary), flush)
-		    && bounce_diagnostics(service, bounce, buf, queue_id,
-					  STR(boundary)) == 0)
+		    && bounce_diagnostics(bounce, STR(boundary),
+					  bounced_addr, why) == 0)
 		    bounce_original(service, bounce, buf, queue_name, queue_id,
 				    STR(boundary),
 				    flush ? BOUNCE_ALL : BOUNCE_HEADERS);
@@ -436,8 +418,8 @@ int     bounce_notify_service(char *service, char *queue_name,
 	     */
 	    if (bounce_header(bounce, buf, recipient, STR(boundary), flush) == 0
 		&& bounce_boilerplate(bounce, buf, STR(boundary), flush) == 0
-		&& bounce_diagnostics(service, bounce, buf, queue_id,
-				      STR(boundary)) == 0)
+		&& bounce_diagnostics(bounce, STR(boundary),
+				      bounced_addr, why) == 0)
 		bounce_original(service, bounce, buf, queue_name, queue_id,
 				STR(boundary),
 				flush ? BOUNCE_ALL : BOUNCE_HEADERS);
@@ -470,8 +452,8 @@ int     bounce_notify_service(char *service, char *queue_name,
 						 "BOUNCE")) != 0) {
 		if (!bounce_header(bounce, buf, postmaster,
 				   STR(boundary), flush)
-		    && bounce_diagnostics(service, bounce, buf,
-					  queue_id, STR(boundary)) == 0)
+		    && bounce_diagnostics(bounce, STR(boundary),
+					  bounced_addr, why) == 0)
 		    bounce_original(service, bounce, buf, queue_name, queue_id,
 				    STR(boundary), BOUNCE_HEADERS);
 		postmaster_status = post_mail_fclose(bounce);
@@ -481,15 +463,6 @@ int     bounce_notify_service(char *service, char *queue_name,
 			 recipient);
 	}
     }
-
-    /*
-     * Examine the completion status. Delete the bounce log file only when
-     * the bounce was posted successfully, and only if we are bouncing for
-     * real, not just warning.
-     */
-    if (flush != 0 && bounce_status == 0 && mail_queue_remove(service, queue_id)
-	&& errno != ENOENT)
-	msg_fatal("remove %s %s: %m", service, queue_id);
 
     /*
      * Cleanup.

@@ -193,12 +193,21 @@
 /*	use up for delivery of a large mailing list message.
 /*	With 100%, delivery of one message does not begin before the previous
 /*	message has been delivered. This results in good performance for large
-/*	mailing lists, but results in poor response time for one-to-one mail. 
+/*	mailing lists, but results in poor response time for one-to-one mail.
 /*	With less than 100%, response time for one-to-one mail improves,
 /*	but large mailing list delivery performance suffers. In the worst
 /*	case, recipients near the beginning of a large list receive a burst
 /*	of messages immediately, while recipients near the end of that list
 /*	receive that same burst of messages a whole day later.
+/* .IP "\fBqmgr_site_hog_factor\fR (valid range: 10..100)"
+/*	The percentage of delivery resources that a busy mail system will
+/*	use up for delivery to a single site.
+/*	With 100%, mail is delivered in first-in, first-out order, so that
+/*	a burst of mail for one site can block mail for other destinations.
+/*	With less than 100%, the excess mail is deferred. The deferred mail
+/*	is delivered in little bursts, the remainder of the backlog being
+/*	deferred again, with a lot of I/O activity happening as Postfix
+/*	searches the deferred queue for deliverable mail.
 /* .IP \fBinitial_destination_concurrency\fR
 /*	Initial per-destination concurrency level for parallel delivery
 /*	to the same destination.
@@ -280,7 +289,9 @@ char   *var_relocated_maps;
 char   *var_virtual_maps;
 char   *var_defer_xports;
 bool    var_allow_min_user;
-bool    var_qmgr_fudge;
+int     var_qmgr_fudge;
+int     var_qmgr_hog;
+int     var_local_rcpt_lim;		/* XXX */
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -474,6 +485,8 @@ int     main(int argc, char **argv)
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
 	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
+	VAR_QMGR_HOG, DEF_QMGR_HOG, &var_qmgr_hog, 10, 100,
+	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

@@ -299,6 +299,7 @@ VSTREAM *mail_queue_enter(const char *queue_name, int mode)
     int     fd;
     const char *file_id;
     VSTREAM *stream;
+    int     count;
 
     /*
      * Initialize.
@@ -349,10 +350,10 @@ VSTREAM *mail_queue_enter(const char *queue_name, int mode)
     file_id = get_file_id(fd);
     GETTIMEOFDAY(&tv);
 
-    for (;;) {
+    for (count = 0;; count++) {
 	vstring_sprintf(id_buf, "%05X%s", (int) tv.tv_usec, file_id);
 	mail_queue_path(path_buf, queue_name, STR(id_buf));
-	if (rename(STR(temp_path), STR(path_buf)) == 0)	/* success */
+	if (sane_rename(STR(temp_path), STR(path_buf)) == 0)	/* success */
 	    break;
 	if (errno == EPERM || errno == EISDIR) {/* collision. weird. */
 	    if ((int) ++tv.tv_usec < 0)
@@ -362,8 +363,10 @@ VSTREAM *mail_queue_enter(const char *queue_name, int mode)
 	if (errno != ENOENT || mail_queue_mkdirs(STR(path_buf)) < 0) {
 	    msg_warn("%s: rename %s to %s: %m", myname,
 		     STR(temp_path), STR(path_buf));
-	    sleep(10);
 	}
+	if (count > 1000)			/* XXX whatever */
+	    msg_fatal("%s: rename %s to %s: giving up", myname,
+		      STR(temp_path), STR(path_buf));
     }
 
     stream = vstream_fdopen(fd, O_RDWR);

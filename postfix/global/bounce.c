@@ -28,6 +28,29 @@
 /*	const char *queue;
 /*	const char *id;
 /*	const char *sender;
+/*
+/*	int	bounce_recip(flags, queue, id, sender, recipient, relay,
+/*					entry, format, ...)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *sender;
+/*	const char *recipient;
+/*	const char *relay;
+/*	time_t	entry;
+/*	const char *format;
+/*
+/*	int	vbounce_recip(flags, queue, id, sender, recipient, relay,
+/*					entry, format, ap)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *sender;
+/*	const char *recipient;
+/*	const char *relay;
+/*	time_t	entry;
+/*	const char *format;
+/*	va_list ap;
 /* DESCRIPTION
 /*	This module implements the client interface to the message
 /*	bounce service, which maintains a per-message log of status
@@ -42,16 +65,17 @@
 /*	the specified sender, including the bounce log that was
 /*	built with bounce_append().
 /*
+/*	bounce_recip() and vbounce_recipient() send one bounce
+/*	message immediately, without accessing a per-message bounce file.
+/*
 /*	Arguments:
 /* .IP flags
-/*	The bitwise OR of zero or mor of the following (specify
+/*	The bitwise OR of zero or more of the following (specify
 /*	BOUNCE_FLAG_NONE to request no special processing):
 /* .RS
 /* .IP BOUNCE_FLAG_CLEAN
 /*	Delete the bounce log in case of an error (as in: pretend
 /*	that we never even tried to bounce this message).
-/* .IP BOUNCE_FLAG_COPY
-/*	Request that a postmaster copy is sent (bounce_flush() only).
 /* .RE
 /* .IP queue
 /*	The message queue name of the original message file.
@@ -184,4 +208,62 @@ int     bounce_flush(int flags, const char *queue, const char *id,
     } else {
 	return (-1);
     }
+}
+
+/* bounce_recip - send bounce for one recipient */
+
+int     bounce_recip(int flags, const char *queue, const char *id,
+		             const char *sender, const char *recipient,
+		             const char *relay, time_t entry,
+		             const char *fmt,...)
+{
+    va_list ap;
+    int     status;
+
+    va_start(ap, fmt);
+    status = vbounce_recip(flags, queue, id, sender, recipient, relay,
+			   entry, fmt, ap);
+    va_end(ap);
+    return (status);
+}
+
+/* vbounce_recip - send bounce for one recipient */
+
+int     vbounce_recip(int flags, const char *queue, const char *id,
+		              const char *sender, const char *recipient,
+		              const char *relay, time_t entry,
+		              const char *fmt, va_list ap)
+{
+    VSTRING *why;
+    int     status;
+    int     delay;
+
+    /*
+     * When we're pretending that we can't bounce, don't create a defer log
+     * file when we wouldn't keep the bounce log file. That's a lot of
+     * negatives in one sentence.
+     */
+    if (var_soft_bounce && (flags & BOUNCE_FLAG_CLEAN))
+	return (-1);
+
+    delay = time((time_t *) 0) - entry;
+    why = vstring_alloc(100);
+    vstring_vsprintf(why, fmt, ap);
+    if (mail_command_write(MAIL_CLASS_PRIVATE, var_soft_bounce ?
+			   MAIL_SERVICE_DEFER : MAIL_SERVICE_BOUNCE,
+			   "%d %d %s %s %s %s %s", BOUNCE_CMD_RECIP,
+			   flags, queue, id, sender, recipient,
+			   vstring_str(why)) == 0) {
+	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=%s (%s)",
+		 id, recipient, relay, delay, var_soft_bounce ? "deferred" :
+		 "bounced", vstring_str(why));
+	status = (var_soft_bounce ? -1 : 0);
+    } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
+	status = defer_append(flags, id, recipient, "bounce", delay,
+			      "bounce failed");
+    } else {
+	status = -1;
+    }
+    vstring_free(why);
+    return (status);
 }

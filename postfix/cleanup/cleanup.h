@@ -25,35 +25,38 @@
 
  /*
   * These state variables are accessed by many functions, and there is only
-  * one instance of each. Rather than passing around lots and lots of
-  * parameters, or passing them around as part of a huge structure, we just
-  * make the variables global, because that is what they are.
+  * one instance of each per message.
   */
-extern VSTRING *cleanup_inbuf;		/* read buffer */
-extern VSTRING *cleanup_temp1;		/* scratch buffer, local use only */
-extern VSTRING *cleanup_temp2;		/* scratch buffer, local use only */
-extern VSTREAM *cleanup_src;		/* current input stream */
-extern VSTREAM *cleanup_dst;		/* current output stream */
-extern MAIL_STREAM *cleanup_handle;	/* mail stream handle */
-extern char *cleanup_queue_id;		/* queue file basename */
-extern time_t cleanup_time;		/* posting time */
-extern char *cleanup_fullname;		/* envelope sender full name */
-extern char *cleanup_sender;		/* envelope sender address */
-extern char *cleanup_from;		/* From: address */
-extern char *cleanup_resent_from;	/* Resent-From: address */
-extern char *cleanup_recip;		/* envelope recipient address */
-extern char *cleanup_return_receipt;	/* return-receipt address */
-extern char *cleanup_errors_to;		/* errors-to address */
-extern int cleanup_flags;		/* processing options */
-extern int cleanup_errs;		/* any badness experienced */
-extern int cleanup_err_mask;		/* allowed badness */
-extern VSTRING *cleanup_header_buf;	/* multi-record header */
-extern int cleanup_headers_seen;	/* which headers were seen */
-extern int cleanup_hop_count;		/* count of received: headers */
-extern ARGV *cleanup_recipients;	/* recipients from regular headers */
-extern ARGV *cleanup_resent_recip;	/* recipients from resent headers */
-extern char *cleanup_resent;		/* any resent- header seen */
-extern BH_TABLE *cleanup_dups;		/* recipient dup filter */
+typedef struct CLEANUP_STATE {
+    VSTRING *temp1;			/* scratch buffer, local use only */
+    VSTRING *temp2;			/* scratch buffer, local use only */
+    VSTREAM *src;			/* current input stream */
+    VSTREAM *dst;			/* current output stream */
+    MAIL_STREAM *handle;		/* mail stream handle */
+    char   *queue_id;			/* queue file basename */
+    time_t  time;			/* posting time */
+    char   *fullname;			/* envelope sender full name */
+    char   *sender;			/* envelope sender address */
+    char   *from;			/* From: address */
+    char   *resent_from;		/* Resent-From: address */
+    char   *recip;			/* envelope recipient address */
+    char   *return_receipt;		/* return-receipt address */
+    char   *errors_to;			/* errors-to address */
+    int     flags;			/* processing options */
+    int     errs;			/* any badness experienced */
+    int     err_mask;			/* allowed badness */
+    VSTRING *header_buf;		/* multi-record header */
+    int     headers_seen;		/* which headers were seen */
+    int     hop_count;			/* count of received: headers */
+    ARGV   *recipients;			/* recipients from regular headers */
+    ARGV   *resent_recip;		/* recipients from resent headers */
+    char   *resent;			/* any resent- header seen */
+    BH_TABLE *dups;			/* recipient dup filter */
+    long    warn_time;			/* cleanup_envelope.c */
+    void    (*action) (struct CLEANUP_STATE *, int, char *, int);
+    long    mesg_offset;		/* start of message segment */
+    long    data_offset;		/* start of message content */
+} CLEANUP_STATE;
 
  /*
   * Mappings.
@@ -79,41 +82,49 @@ extern char *cleanup_path;
  /*
   * cleanup_state.c
   */
-extern void cleanup_state_alloc(void);
-extern void cleanup_state_free(void);
+extern CLEANUP_STATE *cleanup_state_alloc(void);
+extern void cleanup_state_free(CLEANUP_STATE *);
+
+ /*
+  * cleanup_api.c
+  */
+extern CLEANUP_STATE *cleanup_open(void);
+extern void cleanup_control(CLEANUP_STATE *, int);
+extern int cleanup_close(CLEANUP_STATE *);
+extern void cleanup_all(void);
+
+#define CLEANUP_RECORD(s, t, b, l)	((s)->action((s), (t), (b), (l)))
 
  /*
   * cleanup_out.c
   */
-extern void cleanup_out(int, char *, int);
-extern void cleanup_out_string(int, char *);
-extern void cleanup_out_format(int, char *,...);
+extern void cleanup_out(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_out_string(CLEANUP_STATE *, int, char *);
+extern void cleanup_out_format(CLEANUP_STATE *, int, char *,...);
 
-#define CLEANUP_OUT_BUF(t, b) \
-	cleanup_out((t), vstring_str((b)), VSTRING_LEN((b)))
+#define CLEANUP_OUT_BUF(s, t, b) \
+	cleanup_out((s), (t), vstring_str((b)), VSTRING_LEN((b)))
 
-#define CLEANUP_OUT_OK() \
-	((cleanup_errs & cleanup_err_mask) == 0)
+#define CLEANUP_OUT_OK(s)	(((s)->errs & (s)->err_mask) == 0)
 
  /*
   * cleanup_envelope.c
   */
-extern void cleanup_envelope(void);
+extern void cleanup_envelope_init(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_envelope_process(CLEANUP_STATE *, int, char *, int);
 
  /*
   * cleanup_message.c
   */
-extern void cleanup_message(void);
+extern void cleanup_message_init(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_message_header(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_message_body(CLEANUP_STATE *, int, char *, int);
 
  /*
   * cleanup_extracted.c
   */
-extern void cleanup_extracted(void);
-
- /*
-  * cleanup_skip.o
-  */
-extern void cleanup_skip(void);
+extern void cleanup_extracted_init(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_extracted_process(CLEANUP_STATE *, int, char *, int);
 
  /*
   * cleanup_rewrite.c
@@ -125,14 +136,14 @@ extern void cleanup_rewrite_tree(TOK822 *);
  /*
   * cleanup_map11.c
   */
-extern void cleanup_map11_external(VSTRING *, MAPS *, int);
-extern void cleanup_map11_internal(VSTRING *, MAPS *, int);
-extern void cleanup_map11_tree(TOK822 *, MAPS *, int);
+extern void cleanup_map11_external(CLEANUP_STATE *, VSTRING *, MAPS *, int);
+extern void cleanup_map11_internal(CLEANUP_STATE *, VSTRING *, MAPS *, int);
+extern void cleanup_map11_tree(CLEANUP_STATE *, TOK822 *, MAPS *, int);
 
  /*
   * cleanup_map1n.c
   */
-ARGV   *cleanup_map1n_internal(char *, MAPS *, int);
+ARGV   *cleanup_map1n_internal(CLEANUP_STATE *, char *, MAPS *, int);
 
  /*
   * cleanup_masquerade.c
@@ -144,7 +155,7 @@ extern void cleanup_masquerade_tree(TOK822 *, ARGV *);
  /*
   * Cleanup_recipient.c
   */
-extern void cleanup_out_recipient(char *);
+extern void cleanup_out_recipient(CLEANUP_STATE *, char *);
 
 /* LICENSE
 /* .ad

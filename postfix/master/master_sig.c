@@ -159,7 +159,7 @@ void    master_sigsetup(void)
     char   *myname = "master_sigsetup";
     struct sigaction action;
     static int sigs[] = {
-	SIGINT, SIGQUIT, SIGSEGV, SIGILL, SIGTERM,
+	SIGINT, SIGQUIT, SIGILL, SIGBUS, SIGSEGV, SIGTERM,
     };
     unsigned i;
 

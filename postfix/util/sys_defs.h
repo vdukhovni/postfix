@@ -79,7 +79,6 @@
 #define FD_SETSIZE	96
 #endif
 #include <sys/types.h>
-#define UNSAFE_CTYPE			/* XXX verify */
 #define _PATH_MAILDIR	"/var/spool/mail"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/bin:/usr/bin:/usr/ucb"
@@ -603,6 +602,37 @@ extern int opterr;			/* XXX use <getopt.h> */
 #ifndef S_ISSOCK
 #define S_ISSOCK(mode)	((mode&0xF000) == 0xC000)
 #endif
+#endif
+
+#ifdef SCO5
+#define SUPPORTED
+#include <sys/types.h>
+#include <sys/socket.h>
+extern int h_errno;
+
+#define _PATH_MAILDIR	"/usr/spool/mail"
+#define _PATH_BSHELL	"/bin/sh"
+#define _PATH_DEFPATH	"/bin:/usr/bin"
+#define USE_PATHS_H
+#define USE_FCNTL_LOCK
+#define USE_DOT_LOCK
+#define HAS_FSYNC
+#define HAS_DBM
+#define DEF_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#define DBM_NO_TRAILING_NULL
+#define HAS_NIS
+#define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+#define ROOT_PATH	"/bin:/etc:/usr/bin:/tcb/bin"
+#define USE_STATVFS
+#define STATVFS_IN_SYS_STATVFS_H
+#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
+#define MISSING_SETENV
+/* SCO5 misses just S_ISSOCK, the others are there
+ * Use C_ISSOCK definition from cpio.h.
+ */
+#include <cpio.h>
+#define S_ISSOCK(mode)	(((mode) & (S_IFMT)) == (C_ISSOCK))
 #endif
 
  /*

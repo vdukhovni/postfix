@@ -21,6 +21,8 @@
 /*	Post a bounce message, with a copy of a log file and of the
 /*	corresponding message. When the bounce is posted successfully,
 /*	the log file is deleted.
+/* .IP \(bu
+/*	Post a bounce message without accessing a per-message log file.
 /* .PP
 /*	The software does a best effort to notify the sender that there
 /*	was a problem. A notification is sent even when the log file
@@ -198,7 +200,42 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
      * Execute the request.
      */
     return (bounce_notify_service(service_name, STR(queue_name),
-				 STR(queue_id), STR(sender), flush));
+				  STR(queue_id), STR(sender), flush));
+}
+
+/* bounce_recip_proto - bounce_recip server protocol */
+
+static int bounce_recip_proto(char *service_name, VSTREAM *client, int flush)
+{
+    int     flags;
+
+    /*
+     * Read and validate the client request.
+     */
+    if (mail_command_read(client, "%d %s %s %s %s %s",
+			  &flags, queue_name, queue_id,
+			  sender, recipient, why) != 6) {
+	msg_warn("malformed request");
+	return (-1);
+    }
+    if (mail_queue_name_ok(STR(queue_name)) == 0) {
+	msg_warn("malformed queue name: %s", printable(STR(queue_name), '?'));
+	return (-1);
+    }
+    if (mail_queue_id_ok(STR(queue_id)) == 0) {
+	msg_warn("malformed queue id: %s", printable(STR(queue_id), '?'));
+	return (-1);
+    }
+    if (msg_verbose)
+	msg_info("bounce_recip_proto: service=%s queue=%s id=%s sender=%s recip=%s why=%s",
+		 service_name, STR(queue_name), STR(queue_id),
+		 STR(sender), STR(recipient), STR(why));
+
+    /*
+     * Execute the request.
+     */
+    return (bounce_recip_service(service_name, STR(queue_name), STR(queue_id),
+			     STR(sender), STR(recipient), STR(why), flush));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -233,6 +270,8 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 	status = bounce_notify_proto(service_name, client, JUST_WARN);
     } else if (command == BOUNCE_CMD_APPEND) {
 	status = bounce_append_proto(service_name, client);
+    } else if (command == BOUNCE_CMD_RECIP) {
+	status = bounce_recip_proto(service_name, client, REALLY_BOUNCE);
     } else {
 	msg_warn("unknown command: %d", command);
 	status = -1;

@@ -142,8 +142,8 @@
 /*	Restrict what domain names can be used in \fBETRN\fR commands,
 /*	and what clients may issue \fBETRN\fR commands.
 /* .IP \fBallow_untrusted_routing\fR
-/*	Allow untrusted clients to specify addresses with sender-specified 
-/*	routing.  Enabling this opens up nasty relay loopholes involving 
+/*	Allow untrusted clients to specify addresses with sender-specified
+/*	routing.  Enabling this opens up nasty relay loopholes involving
 /*	trusted backup MX hosts.
 /* .IP \fBrestriction_classes\fR
 /*	Declares the name of zero or more parameters that contain a
@@ -302,6 +302,7 @@ bool    var_disable_vrfy_cmd;
 char   *var_canonical_maps;
 char   *var_rcpt_canon_maps;
 char   *var_virtual_maps;
+char   *var_relocated_maps;
 char   *var_alias_maps;
 char   *var_local_rcpt_maps;
 bool    var_allow_untrust_route;
@@ -780,6 +781,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		    "\tid %s; %s", state->queue_id, mail_date(state->time));
     }
+#ifdef RECEIVED_ENVELOPE_FROM
+    rec_fprintf(state->cleanup, REC_TYPE_NORM,
+		"\t(envelope-from %s)", state->sender);
+#endif
     smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
 
     /*
@@ -1347,6 +1352,7 @@ int     main(int argc, char **argv)
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
 	VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
+	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	0,

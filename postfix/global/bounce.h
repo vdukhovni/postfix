@@ -26,20 +26,27 @@ extern int vbounce_append(int, const char *, const char *, const char *,
 			          time_t, const char *, va_list);
 extern int bounce_flush(int, const char *, const char *, const char *);
 
+extern int bounce_recip(int, const char *, const char *, const char *,
+			        const char *, const char *, time_t,
+			        const char *,...);
+extern int vbounce_recip(int, const char *, const char *, const char *,
+			         const char *, const char *, time_t,
+			         const char *, va_list);
+
  /*
   * Bounce/defer protocol commands.
   */
 #define BOUNCE_CMD_APPEND	0	/* append log */
 #define BOUNCE_CMD_FLUSH	1	/* send log */
-#define BOUNCE_CMD_WARN		2	/* send warning bounce, don't delete log */
+#define BOUNCE_CMD_WARN		2	/* send warning bounce, don't delete
+					 * log */
+#define BOUNCE_CMD_RECIP	3	/* immediate bounce, no logfile */
 
  /*
   * Flags.
   */
 #define BOUNCE_FLAG_NONE	0	/* no flags up */
 #define BOUNCE_FLAG_CLEAN	(1<<0)	/* remove log on error */
-#define BOUNCE_FLAG_COPY	(1<<1)	/* postmaster notice */
-#define BOUNCE_FLAG_VERP	(1<<2)	/* personalized bounce */
 
  /*
   * Backwards compatibility.

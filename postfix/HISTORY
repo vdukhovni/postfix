@@ -3543,3 +3543,72 @@ Apologies for any names omitted.
 
 	Portability: Siemens Pyramid (dcosx) patch by Thomas D.
 	Knox @ vushta.com.
+
+	Performance: FreeBSD has bidirectional pipes that are faster
+	than socketpairs. Anticpiating on more platform-specific
+	optimizations, all duplex pipe plumbing is now isolated in
+	a duplex_pipe.c module that provides a system-independent
+	interface.
+
+20000105
+
+	Cleanup: the INSTALL.sh script now updates the sample files
+	in /etc/postfix even when main.cf exists.
+
+20000106
+
+	Bugfix: the SMTP server should consult the relocated map
+	for virtual destinations (Denis Shaposhnikov). Files:
+	smtpd/smtpd.c smtpd/smtpd_check.c.
+
+20000108
+
+	Workaround: rename() over NFS can fail with ENOENT even
+	when the operation succeeds (Graham Orndorff @ WebTV). This
+	is not news. Any non-idempotent operation can fail over
+	NFS when the NFS server's acknowledgement is lost and the
+	NFS client code retries the operation (other examples are:
+	create, symlink, link, unlink, mkdir, rmdir).  Postfix has
+	workarounds for the cases where this is most likely to
+	cause trouble. Files:  util/sane_{rename,link}.[hc].  If
+	you want reliable mail system, do not use NFS.
+
+20000115
+
+	Workaround: better detection of bad hardware. Added SIGBUS
+	to the list of signals that the master will log before
+	exiting.
+
+20000122
+
+	Portability: preliminary SCO5 port Christopher Wong @
+	csports.com. This still needs to a workaround for "find"
+	not supporting "-type s" (actually, UNIX-domain sockets
+	have no unique representation in the file system and show
+	up as FIFOs).
+
+20000115-22
+
+	Bugfix: in case of a too long message header, don't extract
+	recipients from message headers.  With the previous behavior,
+	Bcc information could be left in the message body, as one
+	person found out the hard way.  Files:  cleanup/cleanup.c,
+	cleanup/cleanup_extracted.c, global/cleanup_user.h.
+
+20000124
+
+	Whatever: RFC 1869 amends RFC 821 and specifies that code
+	555 is to be used when a MAIL FROM or RCPT TO parameter is
+	not implemented or not recognized. Russ Allbery @stanford.edu.
+	This reply code is added to the list of reply codes that
+	cause the Postfix SMTP client to mail a transcript to the
+	postmaster.  File: smtp/smtp_trouble.c.
+
+20000126
+
+	Emergency feature: qmgr_site_hog_factor (default: 90 percent)
+	limits the amount of resources that Postfix will devote to
+	a single site. With less than 100, Postfix will defer the
+	excess mail so that one site with a large backlog does not
+	block other deliveries.
+

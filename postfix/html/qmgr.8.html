@@ -289,40 +289,40 @@ QMGR(8)                                                   QMGR(8)
               list receive that same burst of  messages  a  whole
               day later.
 
+       <b>qmgr</b><i>_</i><b>site</b><i>_</i><b>hog</b><i>_</i><b>factor</b> (valid range: 10..100)
+              The  percentage  of  delivery resources that a busy
+              mail system will use up for delivery  to  a  single
+              site.   With  100%,  mail is delivered in first-in,
+              first-out order, so that a burst of  mail  for  one
+              site  can  block mail for other destinations.  With
+              less than 100%, the excess mail  is  deferred.  The
+              deferred  mail  is  delivered in little bursts, the
+              remainder of the backlog being deferred again, with
+              a lot of I/O activity happening as Postfix searches
+              the deferred queue for deliverable mail.
+
        <b>initial</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b>
-              Initial  per-destination concurrency level for par-
+              Initial per-destination concurrency level for  par-
               allel delivery to the same destination.
 
        <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Default limit on the number of parallel  deliveries
+              Default  limit on the number of parallel deliveries
               to the same destination.
 
        <i>transport_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
-              Limit  on  the number of parallel deliveries to the
-              same destination, for delivery via the  named  mes-
+              Limit on the number of parallel deliveries  to  the
+              same  destination,  for delivery via the named mes-
               sage <i>transport</i>.
 
 <b>Recipient</b> <b>controls</b>
        <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Default  limit on the number of recipients per mes-
+              Default limit on the number of recipients per  mes-
               sage transfer.
 
        <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit on  the  number  of  recipients  per  message
+              Limit  on  the  number  of  recipients  per message
               transfer, for the named message <i>transport</i>.
 
-<b>SEE</b> <b>ALSO</b>
-       <a href="master.8.html">master(8)</a>, process manager
-       <a href="relocated.5.html">relocated(5)</a>, format of the "user has moved" table
-       syslogd(8) system logging
-       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
-
-<b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
-       software.
-
-<b>AUTHOR(S)</b>
-       Wietse Venema
 
 
 
@@ -335,21 +335,21 @@ QMGR(8)                                                   QMGR(8)
 QMGR(8)                                                   QMGR(8)
 
 
+<b>SEE</b> <b>ALSO</b>
+       <a href="master.8.html">master(8)</a>, process manager
+       <a href="relocated.5.html">relocated(5)</a>, format of the "user has moved" table
+       syslogd(8) system logging
+       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
+
+<b>LICENSE</b>
+       The Secure Mailer license must be  distributed  with  this
+       software.
+
+<b>AUTHOR(S)</b>
+       Wietse Venema
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

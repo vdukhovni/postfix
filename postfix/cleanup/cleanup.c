@@ -145,6 +145,8 @@
 #include <mail_stream.h>
 #include <mail_addr.h>
 #include <ext_prop.h>
+#include <record.h>
+#include <rec_type.h>
 
 /* Single-threaded server skeleton. */
 
@@ -153,12 +155,6 @@
 /* Application-specific. */
 
 #include "cleanup.h"
-
- /*
-  * Global state: any queue files that we have open, so that the error
-  * handler can clean up in case of trouble.
-  */
-char   *cleanup_path;			/* queue file name */
 
  /*
   * Tunable parameters.
@@ -197,13 +193,10 @@ int     cleanup_ext_prop_mask;
 
 static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
 {
-    char   *junk;
-    static char *log_queues[] = {
-	MAIL_QUEUE_DEFER,
-	MAIL_QUEUE_BOUNCE,
-	0,
-    };
-    char  **cpp;
+    VSTRING *buf = vstring_alloc(100);
+    CLEANUP_STATE *state;
+    int     flags;
+    int     type;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -212,166 +205,60 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
-     * Initialize.
+     * Open a queue file and initialize state.
      */
-    cleanup_state_alloc();
-    cleanup_src = src;
-
-    /*
-     * Open the queue file. Send the queue ID to the client so they can use
-     * it for logging purposes. For example, the SMTP server sends the queue
-     * id to the SMTP client after completion of the DATA command; and when
-     * the local delivery agent forwards a message, it logs the new queue id
-     * together with the old one. All this is done to make it easier for mail
-     * admins to follow a message while it hops from machine to machine.
-     * 
-     * Save the queue file name, so that the runtime error handler can clean up
-     * in case of problems.
-     */
-    cleanup_handle = mail_stream_file(MAIL_QUEUE_INCOMING,
-				      MAIL_CLASS_PUBLIC, MAIL_SERVICE_QUEUE);
-    cleanup_dst = cleanup_handle->stream;
-    cleanup_path = mystrdup(VSTREAM_PATH(cleanup_dst));
-    cleanup_queue_id = mystrdup(cleanup_handle->id);
-    if (msg_verbose)
-	msg_info("cleanup_service: open %s", cleanup_path);
-
-    /*
-     * If there is a time to get rid of spurious bounce/defer log files, this
-     * is it. The down side is that this costs performance for every message,
-     * while the probability of spurious bounce/defer log files is quite low.
-     * Perhaps we should put the queue file ID inside the defer and bounce
-     * files, so that the bounce and defer daemons can figure out if a file
-     * is a left-over from a previous message instance. For now, we play safe
-     * and check each time a new queue file is created.
-     */
-    for (cpp = log_queues; *cpp; cpp++) {
-	if (mail_queue_remove(*cpp, cleanup_queue_id) == 0)
-	    msg_warn("%s: removed spurious %s log", *cpp, cleanup_queue_id);
-	else if (errno != ENOENT)
-	    msg_fatal("%s: remove %s log: %m", *cpp, cleanup_queue_id);
-    }
+    state = cleanup_open();
 
     /*
      * Send the queue id to the client. Read client processing options. If we
      * can't read the client processing options we can pretty much forget
      * about the whole operation.
      */
-    mail_print(cleanup_src, "%s", cleanup_queue_id);
-    if (mail_scan(src, "%d", &cleanup_flags) != 1) {
-	cleanup_errs |= CLEANUP_STAT_BAD;
-	cleanup_flags = 0;
+    mail_print(src, "%s", state->queue_id);
+    if (mail_scan(src, "%d", &flags) != 1) {
+	state->errs |= CLEANUP_STAT_BAD;
+	flags = 0;
     }
+    cleanup_control(state, flags);
 
     /*
-     * If the client requests us to do the bouncing in case of problems,
-     * throw away the input only in case of real show-stopper errors, such as
-     * unrecognizable data (which should never happen) or insufficient space
-     * for the queue file (which will happen occasionally). Otherwise, throw
-     * away the input after any error. See the CLEANUP_OUT_OK() definition.
-     */
-    if (cleanup_flags & CLEANUP_FLAG_BOUNCE) {
-	cleanup_err_mask =
-	    (CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE | CLEANUP_STAT_SIZE);
-    } else {
-	cleanup_err_mask = ~0;
-    }
-
-    /*
+     * XXX Rely on the front-end programs to enforce record size limits.
+     * 
      * First, copy the envelope records to the queue file. Then, copy the
      * message content (headers and body). Finally, attach any information
      * extracted from message headers.
      */
-    cleanup_envelope();
-    if (CLEANUP_OUT_OK())
-	cleanup_message();
-    if (CLEANUP_OUT_OK())
-	cleanup_extracted();
-
-    /*
-     * Now that we have captured the entire message, see if there are any
-     * other errors. For example, if the message needs to be bounced for lack
-     * of recipients. We want to turn on the execute bits on a file only when
-     * we want the queue manager to process it.
-     */
-    if (cleanup_recip == 0)
-	cleanup_errs |= CLEANUP_STAT_RCPT;
-
-    /*
-     * If there are no errors, be very picky about queue file write errors
-     * because we are about to tell the sender that it can throw away its
-     * copy of the message.
-     */
-    if (cleanup_errs == 0)
-	cleanup_errs |= mail_stream_finish(cleanup_handle);
-    else
-	mail_stream_cleanup(cleanup_handle);
-    cleanup_handle = 0;
-    cleanup_dst = 0;
-
-    /*
-     * If there was an error, remove the queue file, after optionally
-     * bouncing it. An incomplete message should never be bounced: it was
-     * canceled by the client, and may not even have an address to bounce to.
-     * That last test is redundant but we keep it just for robustness.
-     * 
-     * If we are responsible for bouncing a message, we must must report success
-     * to the client unless the bounce message file could not be written
-     * (which is just as bad as not being able to write the message queue
-     * file in the first place).
-     * 
-     * Do not log the arrival of a message that will be bounced by the client.
-     */
-#define CAN_BOUNCE() \
-	((cleanup_errs & (CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE)) == 0 \
-	    && cleanup_sender != 0 \
-	    && (cleanup_flags & CLEANUP_FLAG_BOUNCE) != 0)
-
-    if (cleanup_errs) {
-	if (CAN_BOUNCE()) {
-	    if (bounce_append(BOUNCE_FLAG_CLEAN,
-			      cleanup_queue_id, cleanup_recip ?
-			      cleanup_recip : "", "cleanup", cleanup_time,
-			      "%s", cleanup_strerror(cleanup_errs)) == 0
-		&& bounce_flush(BOUNCE_FLAG_CLEAN,
-				MAIL_QUEUE_INCOMING,
-				cleanup_queue_id, cleanup_sender) == 0) {
-		cleanup_errs = 0;
-	    } else {
-		msg_warn("%s: bounce message failure", cleanup_queue_id);
-		cleanup_errs = CLEANUP_STAT_WRITE;
-	    }
+    while (CLEANUP_OUT_OK(state)) {
+	if ((type = rec_get(src, buf, 0)) < 0) {
+	    state->errs |= CLEANUP_STAT_BAD;
+	    break;
 	}
-	if (REMOVE(cleanup_path))
-	    msg_warn("remove %s: %m", cleanup_path);
+	CLEANUP_RECORD(state, type, vstring_str(buf), VSTRING_LEN(buf));
+	if (type == REC_TYPE_END)
+	    break;
     }
 
     /*
-     * Report the completion status back to the client. Order of operations
-     * matters very much: make sure that our queue file will not be deleted
-     * by the error handler AFTER we have taken responsibility for delivery.
-     * Better to deliver twice than to lose mail.
+     * Keep reading in case of problems, so that the sender is ready to
+     * receive our status report.
      */
-    junk = cleanup_path;
-    cleanup_path = 0;				/* don't delete upon error */
-    mail_print(cleanup_src, "%d", cleanup_errs);/* we're committed now */
-    if (msg_verbose)
-	msg_info("cleanup_service: status %d", cleanup_errs);
-    myfree(junk);
+    if (CLEANUP_OUT_OK(state) == 0) {
+	if ((state->errs & CLEANUP_STAT_CONT) == 0)
+	    msg_warn("%s: skipping further client input", state->queue_id);
+	while ((type = rec_get(src, buf, 0)) > 0
+	       && type != REC_TYPE_END)
+	     /* void */ ;
+    }
 
     /*
-     * Cleanup internal state. This is simply complementary to the
-     * initializations at the beginning of this routine.
+     * Finish this message, and report the result status to the client.
      */
-    cleanup_state_free();
-}
+    mail_print(src, "%d", cleanup_close(state));/* we're committed now */
 
-/* cleanup_all - callback for the runtime error handler */
-
-static void cleanup_all(void)
-{
-    if (cleanup_path && REMOVE(cleanup_path))
-	msg_warn("cleanup_all: remove %s: %m", cleanup_path);
+    /*
+     * Cleanup.
+     */
+    vstring_free(buf);
 }
 
 /* cleanup_sig - cleanup after signal */

@@ -6,13 +6,23 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_envelope()
+/*	void	cleanup_envelope_init(state, type, buf, len)
+/*	CLEANUP_STATE *state;
+/*	int	type;
+/*	char	*buf;
+/*	int	len;
+/*
+/*	void	cleanup_envelope_process(state, type, buf, len)
+/*	CLEANUP_STATE *state;
+/*	int	type;
+/*	char	*buf;
+/*	int	len;
 /* DESCRIPTION
 /*	This module processes the envelope segment of a mail message.
 /*	While copying records from input to output it validates the
 /*	message structure, rewrites sender/recipient addresses
-/*	to canonical form, and expands recipients according to
-/*	entries in the virtual table.
+/*	to canonical form, expands recipients according to
+/*	entries in the virtual table, and updates the state structure.
 /* LICENSE
 /* .ad
 /* .fi
@@ -52,13 +62,10 @@
 
 #define STR	vstring_str
 
-/* cleanup_envelope - process envelope segment */
+/* cleanup_envelope_init - initialization */
 
-void    cleanup_envelope(void)
+void    cleanup_envelope_init(CLEANUP_STATE *state, int type, char *str, int len)
 {
-    VSTRING *clean_addr = vstring_alloc(100);
-    int     type = 0;
-    long    warn_time = 0;
 
     /*
      * The message content size record goes first, so it can easily be
@@ -66,92 +73,87 @@ void    cleanup_envelope(void)
      * estimate provided by the client. Size goes first so that it it easy to
      * produce queue file reports.
      */
-    cleanup_out_format(REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT, 0L);
+    cleanup_out_format(state, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT, 0L);
+    state->action = cleanup_envelope_process;
+    cleanup_envelope_process(state, type, str, len);
+}
 
-    /*
-     * XXX Rely on the front-end programs to enforce record size limits.
-     */
-    while (CLEANUP_OUT_OK()) {
-	if ((type = rec_get(cleanup_src, cleanup_inbuf, 0)) < 0) {
-	    cleanup_errs |= CLEANUP_STAT_BAD;
-	    break;
-	}
-	if (type == REC_TYPE_MESG) {
-	    if (cleanup_sender == 0 || cleanup_time == 0) {
-		msg_warn("%s: missing sender or time envelope record",
-			 cleanup_queue_id);
-		cleanup_errs |= CLEANUP_STAT_BAD;
-	    } else {
-		if (warn_time == 0 && var_delay_warn_time > 0)
-		    warn_time = cleanup_time + var_delay_warn_time * 3600L;
-		if (warn_time)
-		    cleanup_out_format(REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-				       warn_time);
-	    }
-	    break;
-	}
-	if (strchr(REC_TYPE_ENVELOPE, type) == 0) {
-	    msg_warn("%s: unexpected record type %d in envelope",
-		     cleanup_queue_id, type);
-	    cleanup_errs |= CLEANUP_STAT_BAD;
-	    break;
-	}
-	if (msg_verbose)
-	    msg_info("envelope %c %s", type, STR(cleanup_inbuf));
+/* cleanup_envelope_process - process one envelope record */
 
-	if (type == REC_TYPE_TIME) {
-	    cleanup_time = atol(STR(cleanup_inbuf));
-	    CLEANUP_OUT_BUF(type, cleanup_inbuf);
-	} else if (type == REC_TYPE_FULL) {
-	    cleanup_fullname = mystrdup(STR(cleanup_inbuf));
-	} else if (type == REC_TYPE_FROM) {
-	    cleanup_rewrite_internal(clean_addr, STR(cleanup_inbuf));
-	    if (cleanup_send_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_send_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	    if (cleanup_comm_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	    if (cleanup_masq_domains)
-		cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-	    CLEANUP_OUT_BUF(type, clean_addr);
-	    if (cleanup_sender == 0)
-		cleanup_sender = mystrdup(STR(clean_addr));
-	} else if (type == REC_TYPE_RCPT) {
-	    if (cleanup_sender == 0) {		/* protect showq */
-		msg_warn("%s: envelope recipient precedes sender",
-			 cleanup_queue_id);
-		cleanup_errs |= CLEANUP_STAT_BAD;
-		break;
-	    }
-	    cleanup_rewrite_internal(clean_addr, *STR(cleanup_inbuf) ?
-				     STR(cleanup_inbuf) : var_empty_addr);
-	    if (cleanup_rcpt_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_rcpt_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	    if (cleanup_comm_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	    cleanup_out_recipient(STR(clean_addr));
-	    if (cleanup_recip == 0)
-		cleanup_recip = mystrdup(STR(clean_addr));
-	} else if (type == REC_TYPE_WARN) {
-	    if ((warn_time = atol(STR(cleanup_inbuf))) < 0) {
-		cleanup_errs |= CLEANUP_STAT_BAD;
-		break;
-	    }
+void    cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int len)
+{
+    if (type == REC_TYPE_MESG) {
+	if (state->sender == 0 || state->time == 0) {
+	    msg_warn("%s: missing sender or time envelope record",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
 	} else {
-	    CLEANUP_OUT_BUF(type, cleanup_inbuf);
+	    if (state->warn_time == 0 && var_delay_warn_time > 0)
+		state->warn_time = state->time + var_delay_warn_time * 3600L;
+	    if (state->warn_time)
+		cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
+				   state->warn_time);
+	    state->action = cleanup_message_init;
 	}
+	return;
     }
+    if (strchr(REC_TYPE_ENVELOPE, type) == 0) {
+	msg_warn("%s: unexpected record type %d in envelope",
+		 state->queue_id, type);
+	state->errs |= CLEANUP_STAT_BAD;
+	return;
+    }
+    if (msg_verbose)
+	msg_info("envelope %c %.*s", type, len, buf);
 
-    /*
-     * XXX Keep reading in case of trouble, so that the sender is ready to
-     * receive our status report.
-     */
-    if (!CLEANUP_OUT_OK())
-	if (type >= 0)
-	    cleanup_skip();
+    if (type == REC_TYPE_TIME) {
+	state->time = atol(buf);
+	cleanup_out(state, type, buf, len);
+    } else if (type == REC_TYPE_FULL) {
+	state->fullname = mystrdup(buf);
+    } else if (type == REC_TYPE_FROM) {
+	VSTRING *clean_addr = vstring_alloc(100);
 
-    vstring_free(clean_addr);
+	cleanup_rewrite_internal(clean_addr, buf);
+	if (cleanup_send_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_send_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_comm_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_masq_domains)
+	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
+	CLEANUP_OUT_BUF(state, type, clean_addr);
+	if (state->sender == 0)
+	    state->sender = mystrdup(STR(clean_addr));
+	vstring_free(clean_addr);
+    } else if (type == REC_TYPE_RCPT) {
+	VSTRING *clean_addr = vstring_alloc(100);
+
+	if (state->sender == 0) {		/* protect showq */
+	    msg_warn("%s: envelope recipient precedes sender",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	cleanup_rewrite_internal(clean_addr, *buf ?
+				 buf : var_empty_addr);
+	if (cleanup_rcpt_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	if (cleanup_comm_canon_maps)
+	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
+	cleanup_out_recipient(state, STR(clean_addr));
+	if (state->recip == 0)
+	    state->recip = mystrdup(STR(clean_addr));
+	vstring_free(clean_addr);
+    } else if (type == REC_TYPE_WARN) {
+	if ((state->warn_time = atol(buf)) < 0) {
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+    } else {
+	cleanup_out(state, type, buf, len);
+    }
 }

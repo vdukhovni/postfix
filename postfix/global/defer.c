@@ -60,8 +60,6 @@
 /* .IP BOUNCE_FLAG_CLEAN
 /*	Delete the defer log in case of an error (as in: pretend
 /*	that we never even tried to defer this message).
-/* .IP BOUNCE_FLAG_COPY
-/*	Request that postmaster a copy is sent (defer_flush() only).
 /* .RE
 /* .IP queue
 /*	The message queue name of the original message file.

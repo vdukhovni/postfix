@@ -72,9 +72,14 @@ int     make_dirs(const char *path, int perms)
 	SKIP_WHILE(*cp != '/', cp);
 	if ((saved_ch = *cp) != 0)
 	    *cp = 0;
-	if ((ret = stat(saved_path, &st)) < 0)
-	    if (errno != ENOENT || (ret = mkdir(saved_path, perms)) < 0)
+	if ((ret = stat(saved_path, &st)) >= 0) {
+	    if (!S_ISDIR(st.st_mode)) {
+		errno = ENOTDIR;
+		ret = -1;
 		break;
+	    }
+	} else if (errno != ENOENT || (ret = mkdir(saved_path, perms)) < 0)
+	    break;
 	if (saved_ch != 0)
 	    *cp = saved_ch;
 	SKIP_WHILE(*cp == '/', cp);

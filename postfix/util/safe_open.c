@@ -46,12 +46,12 @@
 /*	<2rdb0s$568@mail.fwi.uva.nl>, posted to comp.security.unix
 /*	(May 18, 1994).
 /*
-/*	Olaf Kirch discusses how the lstat()/open()+stat() test can
+/*	Olaf Kirch discusses how the lstat()/open()+fstat() test can
 /*	be fooled by delaying the open() until the inode found with
 /*	lstat() has been re-used for a sensitive file (article
 /*	<20000103212443.A5807@monad.swb.de> posted to bugtraq on
-/*	Jan 3, 2000).  This can be a concern for set-uid processes
-/*	that run under the control of a user and this can be
+/*	Jan 3, 2000).  This can be a concern for a set-uid process
+/*	that runs under the control of a user and that can be
 /*	manipulated with start/stop signals.
 /* LICENSE
 /* .ad

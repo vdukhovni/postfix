@@ -1,8 +1,8 @@
 SHELL	= /bin/sh
 SRCS	= bounce.c bounce_append_service.c bounce_notify_service.c \
-	bounce_cleanup.c
+	bounce_recip_service.c bounce_cleanup.c
 OBJS	= bounce.o bounce_append_service.o bounce_notify_service.o \
-	bounce_cleanup.o
+	bounce_recip_service.o bounce_cleanup.o
 HDRS	= 
 TESTSRC	= 
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -119,3 +119,31 @@ bounce_notify_service.o: ../include/mail_addr.h
 bounce_notify_service.o: ../include/mark_corrupt.h
 bounce_notify_service.o: ../include/mail_error.h
 bounce_notify_service.o: bounce_service.h
+bounce_recip_service.o: bounce_recip_service.c
+bounce_recip_service.o: ../include/sys_defs.h
+bounce_recip_service.o: ../include/msg.h
+bounce_recip_service.o: ../include/vstring.h
+bounce_recip_service.o: ../include/vbuf.h
+bounce_recip_service.o: ../include/vstream.h
+bounce_recip_service.o: ../include/vstring_vstream.h
+bounce_recip_service.o: ../include/mymalloc.h
+bounce_recip_service.o: ../include/stringops.h
+bounce_recip_service.o: ../include/events.h
+bounce_recip_service.o: ../include/line_wrap.h
+bounce_recip_service.o: ../include/name_mask.h
+bounce_recip_service.o: ../include/mail_queue.h
+bounce_recip_service.o: ../include/mail_proto.h
+bounce_recip_service.o: ../include/iostuff.h
+bounce_recip_service.o: ../include/quote_822_local.h
+bounce_recip_service.o: ../include/mail_params.h
+bounce_recip_service.o: ../include/canon_addr.h
+bounce_recip_service.o: ../include/is_header.h
+bounce_recip_service.o: ../include/record.h
+bounce_recip_service.o: ../include/rec_type.h
+bounce_recip_service.o: ../include/mail_conf.h
+bounce_recip_service.o: ../include/post_mail.h
+bounce_recip_service.o: ../include/cleanup_user.h
+bounce_recip_service.o: ../include/mail_addr.h
+bounce_recip_service.o: ../include/mark_corrupt.h
+bounce_recip_service.o: ../include/mail_error.h
+bounce_recip_service.o: bounce_service.h

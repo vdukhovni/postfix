@@ -51,6 +51,8 @@ local_transport = local
 # ${name:value} to expand value only when $name does (does not) exist.
 #
 #forward_path = /var/forward/$user
+#forward_path = /var/forward/$user/.forward$recipient_delimiter$extension,
+#	/var/forward/$user/.forward
 forward_path = $home/.forward$recipient_delimiter$extension,$home/.forward
 
 # The allow_mail_to_commands parameter restricts mail delivery to

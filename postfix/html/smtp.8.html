@@ -122,9 +122,9 @@ SMTP(8)                                                   SMTP(8)
        <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
               Skip  servers that greet us with a 4xx status code.
 
-       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>quit</b><i>_</i><b>response</b>
-              Do not wait for the server response  after  sending
-              QUIT.
+       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>5xx</b><i>_</i><b>greeting</b>
+              Skip servers that greet us with a 5xx status  code.
+
 
 
 
@@ -137,38 +137,42 @@ SMTP(8)                                                   SMTP(8)
 SMTP(8)                                                   SMTP(8)
 
 
+       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>quit</b><i>_</i><b>response</b>
+              Do  not  wait for the server response after sending
+              QUIT.
+
 <b>Resource</b> <b>controls</b>
        <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
               Limit the number of parallel deliveries to the same
-              destination.  The default limit is taken  from  the
+              destination.   The  default limit is taken from the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
 
        <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit  the  number of recipients per message deliv-
-              ery.   The  default  limit  is   taken   from   the
+              Limit the number of recipients per  message  deliv-
+              ery.    The   default   limit  is  taken  from  the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
 
 <b>Timeout</b> <b>controls</b>
        <b>smtp</b><i>_</i><b>connect</b><i>_</i><b>timeout</b>
               Timeout in seconds for completing a TCP connection.
               When no connection can be made within the deadline,
-              the  SMTP client tries the next address on the mail
+              the SMTP client tries the next address on the  mail
               exchanger list.
 
        <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>timeout</b>
-              Timeout in seconds for receiving the SMTP  greeting
+              Timeout  in seconds for receiving the SMTP greeting
               banner.  When the server drops the connection with-
-              out sending a greeting banner, or when it sends  no
+              out  sending a greeting banner, or when it sends no
               greeting  banner  within  the  deadline,  the  SMTP
               client tries the next address on the mail exchanger
               list.
 
        <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>timeout</b>
-              Timeout  in  seconds  for sending the <b>HELO</b> command,
+              Timeout in seconds for sending  the  <b>HELO</b>  command,
               and for receiving the server response.
 
        <b>smtp</b><i>_</i><b>mail</b><i>_</i><b>timeout</b>
-              Timeout in seconds for sending the <b>MAIL</b>  <b>FROM</b>  com-
+              Timeout  in  seconds for sending the <b>MAIL</b> <b>FROM</b> com-
               mand, and for receiving the server response.
 
        <b>smtp</b><i>_</i><b>rcpt</b><i>_</i><b>timeout</b>
@@ -176,7 +180,7 @@ SMTP(8)                                                   SMTP(8)
               and for receiving the server response.
 
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>init</b><i>_</i><b>timeout</b>
-              Timeout in seconds for sending  the  <b>DATA</b>  command,
+              Timeout  in  seconds  for sending the <b>DATA</b> command,
               and for receiving the server response.
 
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>xfer</b><i>_</i><b>timeout</b>
@@ -185,12 +189,8 @@ SMTP(8)                                                   SMTP(8)
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>done</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending the "<b>.</b>" command, and
               for receiving the server response. When no response
-              is received, a warning is logged that the mail  may
+              is  received, a warning is logged that the mail may
               be delivered multiple times.
-
-       <b>smtp</b><i>_</i><b>quit</b><i>_</i><b>timeout</b>
-              Timeout  in  seconds  for sending the <b>QUIT</b> command,
-              and for receiving the server response.
 
 
 
@@ -203,6 +203,10 @@ SMTP(8)                                                   SMTP(8)
 SMTP(8)                                                   SMTP(8)
 
 
+       <b>smtp</b><i>_</i><b>quit</b><i>_</i><b>timeout</b>
+              Timeout in seconds for sending  the  <b>QUIT</b>  command,
+              and for receiving the server response.
+
 <b>SEE</b> <b>ALSO</b>
        <a href="bounce.8.html">bounce(8)</a> non-delivery status reports
        <a href="master.8.html">master(8)</a> process manager
@@ -210,7 +214,7 @@ SMTP(8)                                                   SMTP(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -218,10 +222,6 @@ SMTP(8)                                                   SMTP(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

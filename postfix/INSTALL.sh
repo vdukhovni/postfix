@@ -255,9 +255,13 @@ test -f bin/sendmail && {
     compare_or_symlink $SENDMAIL_PATH $MAILQ_PATH
 }
 
-compare_or_replace a+r,go-w conf/LICENSE $CONFIG_DIRECTORY/LICENSE || exit 1
-
-test -f $CONFIG_DIRECTORY/main.cf || {
+if [ -f $CONFIG_DIRECTORY/main.cf ]
+then
+    for file in LICENSE `cd conf; echo sample*` main.cf.default
+    do
+	compare_or_replace a+r,go-w conf/$file $CONFIG_DIRECTORY/$file || exit 1
+    done
+else
     cp conf/* $CONFIG_DIRECTORY || exit 1
     chmod a+r,go-w $CONFIG_DIRECTORY/* || exit 1
 
@@ -269,7 +273,7 @@ test -f $CONFIG_DIRECTORY/main.cf || {
 	echo "BTW: Edit your alias database and be sure to set up aliases" 1>&2
 	echo "for root and postmaster, then run $NEWALIASES_PATH." 1>&2
     }
-}
+fi
 
 # Save settings.
 

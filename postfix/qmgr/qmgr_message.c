@@ -528,8 +528,10 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if ((at = strrchr(STR(reply.recipient), '@')) == 0
 	    || resolve_local(at + 1)) {
+#if 0
 	    vstring_strcpy(reply.nexthop, STR(reply.recipient));
 	    (void) split_at_right(STR(reply.nexthop), '@');
+#endif
 #if 0
 	    if (*var_rcpt_delim)
 		(void) split_addr(STR(reply.nexthop), *var_rcpt_delim);
@@ -541,7 +543,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	     * have to configure something for mail directed to the local
 	     * postmaster, though, but that is an RFC requirement anyway.
 	     */
-	    if (strcasecmp(STR(reply.nexthop), var_double_bounce_sender) == 0) {
+	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
+			    at - STR(reply.recipient)) == 0
+		&& !var_double_bounce_sender[at - STR(reply.recipient)]) {
 		sent(message->queue_id, recipient->address,
 		     "none", message->arrival_time, "discarded");
 		deliver_completed(message->fp, recipient->offset);
@@ -609,6 +613,23 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	if (queue->window == 0) {
 	    qmgr_defer_recipient(message, recipient->address, queue->reason);
 	    continue;
+	}
+
+	/*
+	 * This queue is a hog. Defer this recipient until the queue drains.
+	 * When a site accumulates a large backlog, Postfix will deliver a
+	 * little chunk and hammer the disk as it defers the remainder of the
+	 * backlog and searches the deferred queue for deliverable mail.
+	 */
+	if (var_qmgr_hog < 100) {
+	    if (queue->todo_refcount + queue->busy_refcount
+		> (var_qmgr_hog / 100.0)
+		* (qmgr_recipient_count > 0.8 * var_qmgr_rcpt_limit ?
+		   qmgr_message_count : var_qmgr_active_limit)) {
+		qmgr_defer_recipient(message, recipient->address,
+				     "site destination queue overflow");
+		continue;
+	    }
 	}
 
 	/*

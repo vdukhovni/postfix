@@ -31,6 +31,9 @@
 #define CLEANUP_STAT_HOPS	(1<<4)	/* Too many hops */
 #define CLEANUP_STAT_SYN	(1<<5)	/* Bad address syntax */
 #define CLEANUP_STAT_RCPT	(1<<6)	/* No recipients found */
+#define CLEANUP_STAT_HOVFL	(1<<7)	/* Header overflow */
+
+#define CLEANUP_STAT_LETHAL	(~CLEANUP_STAT_HOVFL)	/* lethal errors */
 
 extern const char *cleanup_strerror(unsigned);
 

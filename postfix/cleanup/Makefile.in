@@ -1,10 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= cleanup.c cleanup_out.c cleanup_envelope.c cleanup_message.c \
-	cleanup_extracted.c cleanup_state.c cleanup_skip.c cleanup_rewrite.c \
+	cleanup_extracted.c cleanup_state.c cleanup_api.c cleanup_rewrite.c \
 	cleanup_map11.c cleanup_map1n.c cleanup_masquerade.c \
 	cleanup_out_recipient.c
 OBJS	= cleanup.o cleanup_out.o cleanup_envelope.o cleanup_message.o \
-	cleanup_extracted.o cleanup_state.o cleanup_skip.o cleanup_rewrite.o \
+	cleanup_extracted.o cleanup_state.o cleanup_api.o cleanup_rewrite.o \
 	cleanup_map11.o cleanup_map1n.o cleanup_masquerade.o \
 	cleanup_out_recipient.o
 HDRS	=
@@ -80,12 +80,37 @@ cleanup.o: ../include/mail_params.h
 cleanup.o: ../include/mail_stream.h
 cleanup.o: ../include/mail_addr.h
 cleanup.o: ../include/ext_prop.h
+cleanup.o: ../include/record.h
+cleanup.o: ../include/rec_type.h
 cleanup.o: ../include/mail_server.h
 cleanup.o: cleanup.h
 cleanup.o: ../include/maps.h
 cleanup.o: ../include/tok822.h
 cleanup.o: ../include/resolve_clnt.h
 cleanup.o: ../include/been_here.h
+cleanup_api.o: cleanup_api.c
+cleanup_api.o: ../include/sys_defs.h
+cleanup_api.o: ../include/msg.h
+cleanup_api.o: ../include/vstring.h
+cleanup_api.o: ../include/vbuf.h
+cleanup_api.o: ../include/mymalloc.h
+cleanup_api.o: ../include/cleanup_user.h
+cleanup_api.o: ../include/mail_queue.h
+cleanup_api.o: ../include/vstream.h
+cleanup_api.o: ../include/mail_proto.h
+cleanup_api.o: ../include/iostuff.h
+cleanup_api.o: ../include/opened.h
+cleanup_api.o: ../include/bounce.h
+cleanup_api.o: ../include/mail_params.h
+cleanup_api.o: ../include/mail_stream.h
+cleanup_api.o: ../include/mail_addr.h
+cleanup_api.o: cleanup.h
+cleanup_api.o: ../include/argv.h
+cleanup_api.o: ../include/maps.h
+cleanup_api.o: ../include/dict.h
+cleanup_api.o: ../include/tok822.h
+cleanup_api.o: ../include/resolve_clnt.h
+cleanup_api.o: ../include/been_here.h
 cleanup_envelope.o: cleanup_envelope.c
 cleanup_envelope.o: ../include/sys_defs.h
 cleanup_envelope.o: ../include/msg.h
@@ -256,33 +281,16 @@ cleanup_rewrite.o: ../include/maps.h
 cleanup_rewrite.o: ../include/dict.h
 cleanup_rewrite.o: ../include/been_here.h
 cleanup_rewrite.o: ../include/mail_stream.h
-cleanup_skip.o: cleanup_skip.c
-cleanup_skip.o: ../include/sys_defs.h
-cleanup_skip.o: ../include/msg.h
-cleanup_skip.o: ../include/vstream.h
-cleanup_skip.o: ../include/vbuf.h
-cleanup_skip.o: ../include/cleanup_user.h
-cleanup_skip.o: ../include/record.h
-cleanup_skip.o: ../include/vstring.h
-cleanup_skip.o: ../include/rec_type.h
-cleanup_skip.o: cleanup.h
-cleanup_skip.o: ../include/argv.h
-cleanup_skip.o: ../include/maps.h
-cleanup_skip.o: ../include/dict.h
-cleanup_skip.o: ../include/tok822.h
-cleanup_skip.o: ../include/resolve_clnt.h
-cleanup_skip.o: ../include/been_here.h
-cleanup_skip.o: ../include/mail_stream.h
 cleanup_state.o: cleanup_state.c
 cleanup_state.o: ../include/sys_defs.h
 cleanup_state.o: ../include/mymalloc.h
 cleanup_state.o: ../include/vstring.h
 cleanup_state.o: ../include/vbuf.h
-cleanup_state.o: ../include/vstream.h
+cleanup_state.o: ../include/argv.h
 cleanup_state.o: ../include/been_here.h
 cleanup_state.o: ../include/mail_params.h
 cleanup_state.o: cleanup.h
-cleanup_state.o: ../include/argv.h
+cleanup_state.o: ../include/vstream.h
 cleanup_state.o: ../include/maps.h
 cleanup_state.o: ../include/dict.h
 cleanup_state.o: ../include/tok822.h

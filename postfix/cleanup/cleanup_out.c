@@ -6,22 +6,27 @@
 /* SYNOPSIS
 /*	#include "cleanup.h"
 /*
-/*	int	CLEANUP_OUT_OK()
+/*	int	CLEANUP_OUT_OK(state)
+/*	CLEANUP_STATE *state;
 /*
-/*	void	cleanup_out(type, data, len)
+/*	void	cleanup_out(state, type, data, len)
+/*	CLEANUP_STATE *state;
 /*	int	type;
 /*	char	*data;
 /*	int	len;
 /*
-/*	void	cleanup_out_string(type, str)
+/*	void	cleanup_out_string(state, type, str)
+/*	CLEANUP_STATE *state;
 /*	int	type;
 /*	char	*str;
 /*
-/*	void	CLEANUP_OUT_BUF(type, buf)
+/*	void	CLEANUP_OUT_BUF(state, type, buf)
+/*	CLEANUP_STATE *state;
 /*	int	type;
 /*	VSTRING	*buf;
 /*
-/*	void	cleanup_out_format(type, format, ...)
+/*	void	cleanup_out_format(state, type, format, ...)
+/*	CLEANUP_STATE *state;
 /*	int	type;
 /*	char	*format;
 /* DESCRIPTION
@@ -57,7 +62,7 @@
 
 #include <sys_defs.h>
 #include <errno.h>
-#include <stdlib.h>		/* 44BSD stdarg.h uses abort() */
+#include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 #include <string.h>
 
@@ -79,17 +84,17 @@
 
 /* cleanup_out - output one single record */
 
-void    cleanup_out(int type, char *string, int len)
+void    cleanup_out(CLEANUP_STATE *state, int type, char *string, int len)
 {
-    if (CLEANUP_OUT_OK()) {
-	if (rec_put(cleanup_dst, type, string, len) < 0) {
+    if (CLEANUP_OUT_OK(state)) {
+	if (rec_put(state->dst, type, string, len) < 0) {
 	    if (errno == EFBIG) {
 		msg_warn("%s: queue file size limit exceeded",
-			 cleanup_queue_id);
-		cleanup_errs |= CLEANUP_STAT_SIZE;
+			 state->queue_id);
+		state->errs |= CLEANUP_STAT_SIZE;
 	    } else {
-		msg_warn("%s: write queue file: %m", cleanup_queue_id);
-		cleanup_errs |= CLEANUP_STAT_WRITE;
+		msg_warn("%s: write queue file: %m", state->queue_id);
+		state->errs |= CLEANUP_STAT_WRITE;
 	    }
 	}
     }
@@ -97,14 +102,14 @@ void    cleanup_out(int type, char *string, int len)
 
 /* cleanup_out_string - output string to one single record */
 
-void    cleanup_out_string(int type, char *string)
+void    cleanup_out_string(CLEANUP_STATE *state, int type, char *string)
 {
-    cleanup_out(type, string, strlen(string));
+    cleanup_out(state, type, string, strlen(string));
 }
 
 /* cleanup_out_format - output one formatted record */
 
-void    cleanup_out_format(int type, char *fmt,...)
+void    cleanup_out_format(CLEANUP_STATE *state, int type, char *fmt,...)
 {
     static VSTRING *vp;
     va_list ap;
@@ -114,5 +119,5 @@ void    cleanup_out_format(int type, char *fmt,...)
     va_start(ap, fmt);
     vstring_vsprintf(vp, fmt, ap);
     va_end(ap);
-    CLEANUP_OUT_BUF(type, vp);
+    CLEANUP_OUT_BUF(state, type, vp);
 }

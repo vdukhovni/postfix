@@ -53,6 +53,7 @@
 #include <make_dirs.h>
 #include <set_eugid.h>
 #include <get_hostname.h>
+#include <sane_fsops.h>
 
 /* Global library. */
 
@@ -136,10 +137,10 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	vstring_sprintf(why, "create %s: %m", tmpfile);
     } else {
 	if (mail_copy(COPY_ATTR(state.msg_attr), dst, copy_flags, why) == 0) {
-	    if (link(tmpfile, newfile) < 0
+	    if (sane_link(tmpfile, newfile) < 0
 		&& (errno != ENOENT
 		    || (make_dirs(curdir, 0700), make_dirs(newdir, 0700)) < 0
-		    || link(tmpfile, newfile) < 0)) {
+		    || sane_link(tmpfile, newfile) < 0)) {
 		vstring_sprintf(why, "link to %s: %m", newfile);
 	    } else {
 		if (unlink(tmpfile) < 0)

@@ -312,6 +312,7 @@ static MAPS *local_rcpt_maps;
 static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virtual_maps;
+static MAPS *relocated_maps;
 
  /*
   * Pre-opened access control lists.
@@ -455,6 +456,8 @@ void    smtpd_check_init(void)
 				 DICT_FLAG_LOCK);
     virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps,
 			       DICT_FLAG_LOCK);
+    relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
+				 DICT_FLAG_LOCK);
 
     /*
      * Reply is used as a cache for resolved addresses, and error_text is
@@ -1969,6 +1972,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (*var_local_rcpt_maps
 	    && !mail_addr_find(rcpt_canon_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(canonical_maps, STR(reply.recipient), NOP)
+	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(local_rcpt_maps, STR(reply.recipient), NOP)) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				      "550 <%s>: User unknown", recipient);
@@ -1978,6 +1982,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	if (*var_virtual_maps
 	    && !mail_addr_find(rcpt_canon_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(canonical_maps, STR(reply.recipient), NOP)
+	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
 	    && !mail_addr_find(virtual_maps, STR(reply.recipient), NOP)
 	    && maps_find(virtual_maps, domain, 0)) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -2064,6 +2069,7 @@ char   *var_alias_maps;
 char   *var_rcpt_canon_maps;
 char   *var_canonical_maps;
 char   *var_virtual_maps;
+char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 
 typedef struct {
@@ -2081,6 +2087,7 @@ static STRING_TABLE string_table[] = {
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps,
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps,
     VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps,
+    VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
     0,
 };

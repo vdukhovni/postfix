@@ -128,7 +128,7 @@ mail_owner = postfix
 # FOR THIS TO WORK, DO NOT SPECIFY VIRTUAL DOMAINS IN MYDESTINATION.
 # MYDESTINATION MUST LIST NON-VIRTUAL DOMAINS ONLY.
 #
-#local_recipient_maps = $relocated_maps $alias_maps unix:passwd.byname
+#local_recipient_maps = $alias_maps unix:passwd.byname
 
 # ADDRESS REWRITING
 #
@@ -325,13 +325,11 @@ mail_owner = postfix
 # SHOW SOFTWARE VERSION OR NOT
 #
 # The smtpd_banner parameter specifies the text that follows the 220
-# status code in the SMTP greeting banner. Some people like to see
+# code in the SMTP server's greeting banner. Some people like to see
 # the mail version advertised. By default, Postfix shows no version.
 #
-# You MUST specify the $myhostname at the start of the text. When
-# the SMTP client sees its own hostname at the start of an SMTP
-# greeting banner it will report a mailer loop. That's better than
-# having a machine meltdown.
+# You MUST specify $myhostname at the start of the text. That is an
+# RFC requirement. Postfix itself does not care.
 #
 #smtpd_banner = $myhostname ESMTP $mail_name
 #smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)

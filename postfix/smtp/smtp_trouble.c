@@ -134,6 +134,7 @@ static void smtp_check_code(SMTP_STATE *state, int code)
      * anti-UCE systems, by people who aren't aware of RFC details.
      */
     if ((!SMTP_SOFT(code) && !SMTP_HARD(code))
+	|| code == 555				/* RFC 1869, section 6.1. */
 	|| (code >= 500 && code < 510))
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 }

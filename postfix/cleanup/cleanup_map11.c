@@ -6,17 +6,20 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_map11_external(addr, maps, propagate)
+/*	void	cleanup_map11_external(state, addr, maps, propagate)
+/*	CLEANUP_STATE *state;
 /*	VSTRING	*addr;
 /*	MAPS	*maps;
 /*	int	propagate;
 /*
-/*	void	cleanup_map11_internal(addr, maps, propagate)
+/*	void	cleanup_map11_internal(state, addr, maps, propagate)
+/*	CLEANUP_STATE *state;
 /*	VSTRING	*addr;
 /*	MAPS	*maps;
 /*	int	propagate;
 /*
-/*	void	cleanup_map11_tree(tree, maps, propagate)
+/*	void	cleanup_map11_tree(state, tree, maps, propagate)
+/*	CLEANUP_STATE *state;
 /*	TOK822	*tree;
 /*	MAPS	*maps;
 /*	int	propagate;
@@ -27,7 +30,7 @@
 /*	subjected to another iteration of rewriting and mapping.
 /*	Recursion continues until an address maps onto itself,
 /*	or until an unreasonable recursion level is reached.
-/*	An unmatched address extension is propagated when 
+/*	An unmatched address extension is propagated when
 /*	\fIpropagate\fR is non-zero.
 /*
 /*	cleanup_map11_external() looks up the external (quoted) string
@@ -87,7 +90,8 @@
 
 /* cleanup_map11_external - one-to-one table lookups */
 
-void    cleanup_map11_external(VSTRING *addr, MAPS *maps, int propagate)
+void    cleanup_map11_external(CLEANUP_STATE *state, VSTRING *addr,
+			               MAPS *maps, int propagate)
 {
     int     count;
     int     expand_to_self;
@@ -104,7 +108,7 @@ void    cleanup_map11_external(VSTRING *addr, MAPS *maps, int propagate)
 	if ((new_addr = mail_addr_map(maps, STR(addr), propagate)) != 0) {
 	    if (new_addr->argc > 1)
 		msg_warn("%s: multi-valued %s entry for %s",
-			 cleanup_queue_id, maps->title, STR(addr));
+			 state->queue_id, maps->title, STR(addr));
 	    saved_addr = mystrdup(STR(addr));
 	    vstring_strcpy(addr, new_addr->argv[0]);
 	    expand_to_self = !strcasecmp(saved_addr, STR(addr));
@@ -114,20 +118,21 @@ void    cleanup_map11_external(VSTRING *addr, MAPS *maps, int propagate)
 		return;
 	} else if (dict_errno != 0) {
 	    msg_warn("%s: %s map lookup problem for %s",
-		     cleanup_queue_id, maps->title, STR(addr));
-	    cleanup_errs |= CLEANUP_STAT_WRITE;
+		     state->queue_id, maps->title, STR(addr));
+	    state->errs |= CLEANUP_STAT_WRITE;
 	    return;
 	} else {
 	    return;
 	}
     }
     msg_warn("%s: unreasonable %s map nesting for %s",
-	     cleanup_queue_id, maps->title, STR(addr));
+	     state->queue_id, maps->title, STR(addr));
 }
 
 /* cleanup_map11_tree - rewrite address node */
 
-void    cleanup_map11_tree(TOK822 *tree, MAPS *maps, int propagate)
+void    cleanup_map11_tree(CLEANUP_STATE *state, TOK822 *tree,
+			           MAPS *maps, int propagate)
 {
     VSTRING *temp = vstring_alloc(100);
 
@@ -138,7 +143,7 @@ void    cleanup_map11_tree(TOK822 *tree, MAPS *maps, int propagate)
      * the place.
      */
     tok822_externalize(temp, tree->head, TOK822_STR_DEFL);
-    cleanup_map11_external(temp, maps, propagate);
+    cleanup_map11_external(state, temp, maps, propagate);
     tok822_free_tree(tree->head);
     tree->head = tok822_scan(STR(temp), &tree->tail);
     vstring_free(temp);
@@ -146,7 +151,8 @@ void    cleanup_map11_tree(TOK822 *tree, MAPS *maps, int propagate)
 
 /* cleanup_map11_internal - rewrite address internal form */
 
-void    cleanup_map11_internal(VSTRING *addr, MAPS *maps, int propagate)
+void    cleanup_map11_internal(CLEANUP_STATE *state, VSTRING *addr,
+			               MAPS *maps, int propagate)
 {
     VSTRING *temp = vstring_alloc(100);
 
@@ -157,7 +163,7 @@ void    cleanup_map11_internal(VSTRING *addr, MAPS *maps, int propagate)
      * the place.
      */
     quote_822_local(temp, STR(addr));
-    cleanup_map11_external(temp, maps, propagate);
+    cleanup_map11_external(state, temp, maps, propagate);
     unquote_822_local(addr, STR(temp));
     vstring_free(temp);
 }

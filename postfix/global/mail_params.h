@@ -420,6 +420,7 @@ extern int var_delay_warn_time;
 
 #define VAR_QMGR_ACT_LIMIT	"qmgr_message_active_limit"
 #define DEF_QMGR_ACT_LIMIT	1000
+extern int var_qmgr_active_limit;
 
 #define VAR_QMGR_RCPT_LIMIT	"qmgr_message_recipient_limit"
 #define DEF_QMGR_RCPT_LIMIT	10000
@@ -429,6 +430,10 @@ extern int var_qmgr_rcpt_limit;
 #define DEF_QMGR_FUDGE		100
 extern int var_qmgr_fudge;
 
+#define VAR_QMGR_HOG		"qmgr_site_hog_factor"
+#define DEF_QMGR_HOG		90
+extern int var_qmgr_hog;
+
  /*
   * Queue manager: default destination concurrency levels.
   */
@@ -437,6 +442,7 @@ extern int var_qmgr_fudge;
 extern int var_init_dest_concurrency;
 
 #define VAR_DEST_CON_LIMIT	"default_destination_concurrency_limit"
+#define _DEST_CON_LIMIT		"_destination_concurrency_limit"
 #define DEF_DEST_CON_LIMIT	10
 extern int var_dest_con_limit;
 
@@ -444,8 +450,12 @@ extern int var_dest_con_limit;
   * Queue manager: default number of recipients per transaction.
   */
 #define VAR_DEST_RCPT_LIMIT	"default_destination_recipient_limit"
+#define _DEST_RCPT_LIMIT	"_destination_recipient_limit"
 #define DEF_DEST_RCPT_LIMIT	50
 extern int var_dest_rcpt_limit;
+
+#define VAR_LOCAL_RCPT_LIMIT	"local" _DEST_RCPT_LIMIT	/* XXX */
+#define DEF_LOCAL_RCPT_LIMIT	1	/* XXX */
 
  /*
   * Queue manager: default delay before retrying a dead transport.

@@ -223,6 +223,15 @@ but large mailing list delivery performance suffers. In the worst
 case, recipients near the beginning of a large list receive a burst
 of messages immediately, while recipients near the end of that list
 receive that same burst of messages a whole day later.
+.IP "\fBqmgr_site_hog_factor\fR (valid range: 10..100)"
+The percentage of delivery resources that a busy mail system will
+use up for delivery to a single site.
+With 100%, mail is delivered in first-in, first-out order, so that
+a burst of mail for one site can block mail for other destinations.
+With less than 100%, the excess mail is deferred. The deferred mail
+is delivered in little bursts, the remainder of the backlog being
+deferred again, with a lot of I/O activity happening as Postfix
+searches the deferred queue for deliverable mail.
 .IP \fBinitial_destination_concurrency\fR
 Initial per-destination concurrency level for parallel delivery
 to the same destination.
