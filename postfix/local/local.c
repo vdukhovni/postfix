@@ -347,7 +347,7 @@
 #include <deliver_completed.h>
 #include <mail_params.h>
 #include <mail_addr.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <been_here.h>
 #include <mail_params.h>
 

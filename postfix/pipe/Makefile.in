@@ -72,7 +72,7 @@ pipe.o: ../include/recipient_list.h
 pipe.o: ../include/deliver_request.h
 pipe.o: ../include/mail_queue.h
 pipe.o: ../include/mail_params.h
-pipe.o: ../include/config.h
+pipe.o: ../include/mail_conf.h
 pipe.o: ../include/bounce.h
 pipe.o: ../include/defer.h
 pipe.o: ../include/deliver_completed.h

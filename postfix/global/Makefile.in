@@ -1,54 +1,54 @@
 SHELL	= /bin/sh
-SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c \
-	config.c config_bool.c config_int.c config_str.c debug_peer.c \
-	debug_process.c defer.c deliver_completed.c deliver_flock.c \
-	deliver_request.c domain_list.c dot_lockfile.c file_id.c \
-	header_opts.c is_header.c mail_addr.c mail_addr_crunch.c \
-	mail_addr_find.c mail_addr_map.c mail_command_read.c \
-	mail_command_write.c mail_connect.c mail_copy.c mail_date.c \
-	mail_error.c mail_flush.c mail_open_ok.c mail_params.c \
-	mail_pathname.c mail_print.c mail_queue.c mail_run.c mail_scan.c \
-	mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c maps.c \
-	mark_corrupt.c mkmap_db.c mkmap_dbm.c mkmap_open.c mynetworks.c \
-	mypwd.c namadr_list.c off_cvt.c opened.c own_inet_addr.c \
-	peer_name.c pipe_command.c post_mail.c quote_822_local.c \
-	rec_streamlf.c rec_type.c recipient_list.c record.c remove.c \
-	resolve_clnt.c resolve_local.c rewrite_clnt.c sent.c smtp_stream.c \
-	split_addr.c string_list.c sys_exits.c timed_ipc.c tok822_find.c \
-	tok822_node.c tok822_parse.c tok822_resolve.c tok822_rewrite.c \
-	tok822_tree.c clnt_stream.c deliver_pass.c config_raw.c
-OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o \
-	config.o config_bool.o config_int.o config_str.o debug_peer.o \
-	debug_process.o defer.o deliver_completed.o deliver_flock.o \
-	deliver_request.o domain_list.o dot_lockfile.o file_id.o \
-	header_opts.o is_header.o mail_addr.o mail_addr_crunch.o \
-	mail_addr_find.o mail_addr_map.o mail_command_read.o \
-	mail_command_write.o mail_connect.o mail_copy.o mail_date.o \
-	mail_error.o mail_flush.o mail_open_ok.o mail_params.o \
-	mail_pathname.o mail_print.o mail_queue.o mail_run.o mail_scan.o \
-	mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o maps.o \
-	mark_corrupt.o mkmap_db.o mkmap_dbm.o mkmap_open.o mynetworks.o \
-	mypwd.o namadr_list.o off_cvt.o opened.o own_inet_addr.o \
-	peer_name.o pipe_command.o post_mail.o quote_822_local.o \
-	rec_streamlf.o rec_type.o recipient_list.o record.o remove.o \
-	resolve_clnt.o resolve_local.o rewrite_clnt.o sent.o smtp_stream.o \
-	split_addr.o string_list.o sys_exits.o timed_ipc.o tok822_find.o \
-	tok822_node.o tok822_parse.o tok822_resolve.o tok822_rewrite.o \
-	tok822_tree.o clnt_stream.o deliver_pass.o config_raw.o
-HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h \
+SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
+	debug_peer.c debug_process.c defer.c deliver_completed.c \
+	deliver_flock.c deliver_pass.c deliver_request.c domain_list.c \
+	dot_lockfile.c file_id.c header_opts.c is_header.c mail_addr.c \
+	mail_addr_crunch.c mail_addr_find.c mail_addr_map.c \
+	mail_command_read.c mail_command_write.c mail_conf.c \
+	mail_conf_bool.c mail_conf_int.c mail_conf_raw.c mail_conf_str.c \
+	mail_connect.c mail_copy.c mail_date.c mail_error.c mail_flush.c \
+	mail_open_ok.c mail_params.c mail_pathname.c mail_print.c \
+	mail_queue.c mail_run.c mail_scan.c mail_scan_dir.c mail_stream.c \
+	mail_task.c mail_trigger.c maps.c mark_corrupt.c mkmap_db.c \
+	mkmap_dbm.c mkmap_open.c mynetworks.c mypwd.c namadr_list.c \
+	off_cvt.c opened.c own_inet_addr.c peer_name.c pipe_command.c \
+	post_mail.c quote_822_local.c rec_streamlf.c rec_type.c \
+	recipient_list.c record.c remove.c resolve_clnt.c resolve_local.c \
+	rewrite_clnt.c sent.c smtp_stream.c split_addr.c string_list.c \
+	sys_exits.c timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
+	tok822_resolve.c tok822_rewrite.c tok822_tree.c
+OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
+	debug_peer.o debug_process.o defer.o deliver_completed.o \
+	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
+	dot_lockfile.o file_id.o header_opts.o is_header.o mail_addr.o \
+	mail_addr_crunch.o mail_addr_find.o mail_addr_map.o \
+	mail_command_read.o mail_command_write.o mail_conf.o \
+	mail_conf_bool.o mail_conf_int.o mail_conf_raw.o mail_conf_str.o \
+	mail_connect.o mail_copy.o mail_date.o mail_error.o mail_flush.o \
+	mail_open_ok.o mail_params.o mail_pathname.o mail_print.o \
+	mail_queue.o mail_run.o mail_scan.o mail_scan_dir.o mail_stream.o \
+	mail_task.o mail_trigger.o maps.o mark_corrupt.o mkmap_db.o \
+	mkmap_dbm.o mkmap_open.o mynetworks.o mypwd.o namadr_list.o \
+	off_cvt.o opened.o own_inet_addr.o peer_name.o pipe_command.o \
+	post_mail.o quote_822_local.o rec_streamlf.o rec_type.o \
+	recipient_list.o record.o remove.o resolve_clnt.o resolve_local.o \
+	rewrite_clnt.o sent.o smtp_stream.o split_addr.o string_list.o \
+	sys_exits.o timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
+	tok822_resolve.o tok822_rewrite.o tok822_tree.o
+HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
-	deliver_flock.h deliver_request.h domain_list.h dot_lockfile.h \
-	file_id.h header_opts.h is_header.h mail_addr.h mail_addr_crunch.h \
-	mail_addr_find.h mail_addr_map.h mail_copy.h mail_date.h \
-	mail_error.h mail_flush.h mail_open_ok.h mail_params.h \
-	mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h mail_stream.h \
-	mail_task.h mail_version.h maps.h mark_corrupt.h mkmap.h \
-	mynetworks.h mypwd.h namadr_list.h off_cvt.h opened.h \
+	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
+	dot_lockfile.h file_id.h header_opts.h is_header.h mail_addr.h \
+	mail_addr_crunch.h mail_addr_find.h mail_addr_map.h mail_conf.h \
+	mail_copy.h mail_date.h mail_error.h mail_flush.h mail_open_ok.h \
+	mail_params.h mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h \
+	mail_stream.h mail_task.h mail_version.h maps.h mark_corrupt.h \
+	mkmap.h mynetworks.h mypwd.h namadr_list.h off_cvt.h opened.h \
 	own_inet_addr.h peer_name.h pipe_command.h post_mail.h \
 	quote_822_local.h rec_streamlf.h rec_type.h recipient_list.h \
 	record.h resolve_clnt.h resolve_local.h rewrite_clnt.h sent.h \
 	smtp_stream.h split_addr.h string_list.h sys_exits.h timed_ipc.h \
-	tok822.h clnt_stream.h deliver_pass.h
+	tok822.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -254,44 +254,6 @@ clnt_stream.o: ../include/iostuff.h
 clnt_stream.o: mail_proto.h
 clnt_stream.o: mail_params.h
 clnt_stream.o: clnt_stream.h
-config.o: config.c
-config.o: ../include/sys_defs.h
-config.o: ../include/msg.h
-config.o: ../include/mymalloc.h
-config.o: ../include/vstream.h
-config.o: ../include/vbuf.h
-config.o: ../include/vstring.h
-config.o: ../include/dict.h
-config.o: ../include/safe.h
-config.o: ../include/stringops.h
-config.o: mail_params.h
-config.o: config.h
-config_bool.o: config_bool.c
-config_bool.o: ../include/sys_defs.h
-config_bool.o: ../include/msg.h
-config_bool.o: ../include/dict.h
-config_bool.o: ../include/vstream.h
-config_bool.o: ../include/vbuf.h
-config_bool.o: config.h
-config_int.o: config_int.c
-config_int.o: ../include/sys_defs.h
-config_int.o: ../include/msg.h
-config_int.o: ../include/mymalloc.h
-config_int.o: ../include/dict.h
-config_int.o: ../include/vstream.h
-config_int.o: ../include/vbuf.h
-config_int.o: ../include/stringops.h
-config_int.o: config.h
-config_raw.o: config_raw.c
-config_raw.o: ../include/sys_defs.h
-config_raw.o: ../include/msg.h
-config_raw.o: ../include/mymalloc.h
-config_raw.o: config.h
-config_str.o: config_str.c
-config_str.o: ../include/sys_defs.h
-config_str.o: ../include/msg.h
-config_str.o: ../include/mymalloc.h
-config_str.o: config.h
 debug_peer.o: debug_peer.c
 debug_peer.o: ../include/sys_defs.h
 debug_peer.o: ../include/msg.h
@@ -302,7 +264,7 @@ debug_process.o: debug_process.c
 debug_process.o: ../include/sys_defs.h
 debug_process.o: ../include/msg.h
 debug_process.o: mail_params.h
-debug_process.o: config.h
+debug_process.o: mail_conf.h
 debug_process.o: debug_process.h
 defer.o: defer.c
 defer.o: ../include/sys_defs.h
@@ -439,6 +401,44 @@ mail_command_write.o: ../include/vstream.h
 mail_command_write.o: ../include/vbuf.h
 mail_command_write.o: mail_proto.h
 mail_command_write.o: ../include/iostuff.h
+mail_conf.o: mail_conf.c
+mail_conf.o: ../include/sys_defs.h
+mail_conf.o: ../include/msg.h
+mail_conf.o: ../include/mymalloc.h
+mail_conf.o: ../include/vstream.h
+mail_conf.o: ../include/vbuf.h
+mail_conf.o: ../include/vstring.h
+mail_conf.o: ../include/dict.h
+mail_conf.o: ../include/safe.h
+mail_conf.o: ../include/stringops.h
+mail_conf.o: mail_params.h
+mail_conf.o: mail_conf.h
+mail_conf_bool.o: mail_conf_bool.c
+mail_conf_bool.o: ../include/sys_defs.h
+mail_conf_bool.o: ../include/msg.h
+mail_conf_bool.o: ../include/dict.h
+mail_conf_bool.o: ../include/vstream.h
+mail_conf_bool.o: ../include/vbuf.h
+mail_conf_bool.o: mail_conf.h
+mail_conf_int.o: mail_conf_int.c
+mail_conf_int.o: ../include/sys_defs.h
+mail_conf_int.o: ../include/msg.h
+mail_conf_int.o: ../include/mymalloc.h
+mail_conf_int.o: ../include/dict.h
+mail_conf_int.o: ../include/vstream.h
+mail_conf_int.o: ../include/vbuf.h
+mail_conf_int.o: ../include/stringops.h
+mail_conf_int.o: mail_conf.h
+mail_conf_raw.o: mail_conf_raw.c
+mail_conf_raw.o: ../include/sys_defs.h
+mail_conf_raw.o: ../include/msg.h
+mail_conf_raw.o: ../include/mymalloc.h
+mail_conf_raw.o: mail_conf.h
+mail_conf_str.o: mail_conf_str.c
+mail_conf_str.o: ../include/sys_defs.h
+mail_conf_str.o: ../include/msg.h
+mail_conf_str.o: ../include/mymalloc.h
+mail_conf_str.o: mail_conf.h
 mail_connect.o: mail_connect.c
 mail_connect.o: ../include/sys_defs.h
 mail_connect.o: ../include/msg.h
@@ -497,7 +497,7 @@ mail_params.o: ../include/get_hostname.h
 mail_params.o: ../include/valid_hostname.h
 mail_params.o: ../include/stringops.h
 mail_params.o: mynetworks.h
-mail_params.o: config.h
+mail_params.o: mail_conf.h
 mail_params.o: mail_version.h
 mail_params.o: mail_params.h
 mail_pathname.o: mail_pathname.c
@@ -591,7 +591,7 @@ maps.o: ../include/vstream.h
 maps.o: ../include/vbuf.h
 maps.o: ../include/stringops.h
 maps.o: ../include/split_at.h
-maps.o: config.h
+maps.o: mail_conf.h
 maps.o: maps.h
 mark_corrupt.o: mark_corrupt.c
 mark_corrupt.o: ../include/sys_defs.h

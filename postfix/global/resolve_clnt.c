@@ -155,7 +155,7 @@ void    resolve_clnt_free(RESOLVE_REPLY *reply)
 #include <stdlib.h>
 #include <msg_vstream.h>
 #include <vstring_vstream.h>
-#include <config.h>
+#include <mail_conf.h>
 
 static NORETURN usage(char *myname)
 {
@@ -180,7 +180,7 @@ main(int argc, char **argv)
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
-    read_config();
+    mail_conf_read();
     msg_info("using config files in %s", var_config_dir);
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);

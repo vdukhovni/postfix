@@ -146,7 +146,7 @@
 #include <mail_params.h>
 #include <debug_process.h>
 #include <mail_task.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <open_lock.h>
 
 /* Application-specific. */
@@ -201,7 +201,7 @@ int     main(int argc, char **argv)
      * Strip and save the process name for diagnostics etc.
      */
     var_procname = mystrdup(basename(argv[0]));
-    set_config_str(VAR_PROCNAME, var_procname);
+    set_mail_conf_str(VAR_PROCNAME, var_procname);
 
     /*
      * When running a child process, don't leak any open files that were

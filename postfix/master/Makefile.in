@@ -89,10 +89,11 @@ master.o: ../include/mymalloc.h
 master.o: ../include/iostuff.h
 master.o: ../include/vstream.h
 master.o: ../include/stringops.h
+master.o: ../include/myflock.h
 master.o: ../include/mail_params.h
 master.o: ../include/debug_process.h
 master.o: ../include/mail_task.h
-master.o: ../include/config.h
+master.o: ../include/mail_conf.h
 master.o: ../include/open_lock.h
 master.o: master.h
 master_avail.o: master_avail.c
@@ -170,7 +171,7 @@ master_vars.o: ../include/sys_defs.h
 master_vars.o: ../include/msg.h
 master_vars.o: ../include/stringops.h
 master_vars.o: ../include/mymalloc.h
-master_vars.o: ../include/config.h
+master_vars.o: ../include/mail_conf.h
 master_vars.o: ../include/mail_params.h
 master_vars.o: master.h
 master_wakeup.o: master_wakeup.c
@@ -204,7 +205,7 @@ multi_server.o: ../include/safe_open.h
 multi_server.o: ../include/mail_task.h
 multi_server.o: ../include/debug_process.h
 multi_server.o: ../include/mail_params.h
-multi_server.o: ../include/config.h
+multi_server.o: ../include/mail_conf.h
 multi_server.o: ../include/timed_ipc.h
 multi_server.o: ../include/resolve_local.h
 multi_server.o: master_proto.h
@@ -229,7 +230,7 @@ single_server.o: ../include/listen.h
 single_server.o: ../include/mail_params.h
 single_server.o: ../include/mail_task.h
 single_server.o: ../include/debug_process.h
-single_server.o: ../include/config.h
+single_server.o: ../include/mail_conf.h
 single_server.o: ../include/timed_ipc.h
 single_server.o: ../include/resolve_local.h
 single_server.o: master_proto.h
@@ -254,7 +255,7 @@ trigger_server.o: ../include/listen.h
 trigger_server.o: ../include/mail_params.h
 trigger_server.o: ../include/mail_task.h
 trigger_server.o: ../include/debug_process.h
-trigger_server.o: ../include/config.h
+trigger_server.o: ../include/mail_conf.h
 trigger_server.o: ../include/resolve_local.h
 trigger_server.o: master_proto.h
 trigger_server.o: mail_server.h

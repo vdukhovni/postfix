@@ -76,7 +76,7 @@
 #include <mail_date.h>
 #include <mail_params.h>
 #include <mail_scan_dir.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <record.h>
 #include <rec_type.h>
 #include <htable.h>

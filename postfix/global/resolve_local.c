@@ -122,13 +122,13 @@ int     resolve_local(const char *addr)
 #ifdef TEST
 
 #include <vstream.h>
-#include <config.h>
+#include <mail_conf.h>
 
 int     main(int argc, char **argv)
 {
     if (argc != 2)
 	msg_fatal("usage: %s domain", argv[0]);
-    read_config();
+    mail_conf_read();
     vstream_printf("%s\n", resolve_local(argv[1]) ? "yes" : "no");
     vstream_fflush(VSTREAM_OUT);
 }

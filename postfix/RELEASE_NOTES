@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-19990423:
+Incompatible changes with snapshot-19990426:
 ===========================================
 
 - If an address extension (+foo) matches a user's .forward+foo file
@@ -6,7 +6,7 @@ name, the +foo extension is no longer appended to recipient addresses
 listed in the .forward+foo file. This is more consistent with the
 way Postfix expands aliases.
 
-Major changes with snapshot-19990423:
+Major changes with snapshot-19990426:
 =====================================
 
 In addition to several little bugfixes, none related to security,

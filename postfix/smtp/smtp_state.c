@@ -42,7 +42,7 @@
 
 /* Global library. */
 
-#include <config.h>
+#include <mail_conf.h>
 
 /* Application-specific. */
 

@@ -42,7 +42,7 @@
 /* Global library. */
 
 #include "mail_params.h"
-#include "config.h"
+#include "mail_conf.h"
 #include "debug_process.h"
 
 /* debug_process - run a debugger on this process */
@@ -54,7 +54,7 @@ void    debug_process(void)
     /*
      * Expand $debugger_command then run it.
      */
-    command = config_lookup_eval(VAR_DEBUG_COMMAND);
+    command = mail_conf_lookup_eval(VAR_DEBUG_COMMAND);
     if (*command == 0)
 	msg_fatal("no %s variable set up", VAR_DEBUG_COMMAND);
     msg_info("running: %s", command);

@@ -1,46 +1,46 @@
 /*++
 /* NAME
-/*	config 3
+/*	mail_conf 3
 /* SUMMARY
 /*	global configuration parameter management
 /* SYNOPSIS
-/*	#include <config.h>
+/*	#include <mail_conf.h>
 /*
-/*	void	read_config()
+/*	void	mail_conf_read()
 /*
-/*	void	config_update(name, value)
+/*	void	mail_conf_update(name, value)
 /*	const char *name;
 /*	const char *value;
 /*
-/*	const char *config_lookup(name)
+/*	const char *mail_conf_lookup(name)
 /*	const char *name;
 /*
-/*	const char *config_eval(string)
+/*	const char *mail_conf_eval(string)
 /*	const char *string;
 /*
-/*	const char *config_lookup_eval(name)
+/*	const char *mail_conf_lookup_eval(name)
 /*	const char *name;
 /* DESCRIPTION
-/*	read_config() reads the global Postfix configuration file, and
+/*	mail_conf_read() reads the global Postfix configuration file, and
 /*	stores its values into a global configuration dictionary.
 /*
 /*	The following routines are wrappers around the generic dictionary
 /*	access routines.
 /*
-/*	config_update() updates the named global parameter. This has
+/*	mail_conf_update() updates the named global parameter. This has
 /*	no effect on parameters whose value has already been looked up.
 /*	The update succeeds or the program terminates with fatal error.
 /*
-/*	config_lookup() looks up the value of the named parameter.
+/*	mail_conf_lookup() looks up the value of the named parameter.
 /*	A null pointer result means the parameter was not found.
 /*	The result is volatile and should be copied if it is to be
 /*	used for any appreciable amount of time.
 /*
-/*	config_eval() recursively expands any $parameters in the
+/*	mail_conf_eval() recursively expands any $parameters in the
 /*	string argument. The result is volatile and should be copied
 /*	if it is to be used for any appreciable amount of time.
 /*
-/*	config_lookup_eval() looks up the named parameter, and expands any
+/*	mail_conf_lookup_eval() looks up the named parameter, and expands any
 /*	$parameters in the result. The result is volatile and should be
 /*	copied if it is to be used for any appreciable amount of time.
 /* DIAGNOSTICS
@@ -52,8 +52,8 @@
 /*	MAIL_VERBOSE, enable verbose mode
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
-/*	config_int(3) integer-valued parameters
-/*	config_str(3) string-valued parameters
+/*	mail_conf_int(3) integer-valued parameters
+/*	mail_conf_str(3) string-valued parameters
 /* LICENSE
 /* .ad
 /* .fi
@@ -83,11 +83,11 @@
 /* Global library. */
 
 #include "mail_params.h"
-#include "config.h"
+#include "mail_conf.h"
 
-/* read_config - read global configuration file */
+/* mail_conf_read - read global configuration file */
 
-void    read_config(void)
+void    mail_conf_read(void)
 {
     char   *config_dir;
     char   *path;
@@ -103,32 +103,32 @@ void    read_config(void)
 	myfree(var_config_dir);
     var_config_dir = mystrdup((config_dir = safe_getenv(CONF_ENV_PATH)) != 0 ?
 			      config_dir : DEF_CONFIG_DIR);	/* XXX */
-    set_config_str(VAR_CONFIG_DIR, var_config_dir);
+    set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
     path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
     dict_load_file(CONFIG_DICT, path);
     myfree(path);
     mail_params_init();
 }
 
-/* config_eval - expand macros in string */
+/* mail_conf_eval - expand macros in string */
 
-const char *config_eval(const char *string)
+const char *mail_conf_eval(const char *string)
 {
 #define RECURSIVE	1
 
     return (dict_eval(CONFIG_DICT, string, RECURSIVE));
 }
 
-/* config_lookup - lookup named variable */
+/* mail_conf_lookup - lookup named variable */
 
-const char *config_lookup(const char *name)
+const char *mail_conf_lookup(const char *name)
 {
     return (dict_lookup(CONFIG_DICT, name));
 }
 
-/* config_lookup_eval - expand named variable */
+/* mail_conf_lookup_eval - expand named variable */
 
-const char *config_lookup_eval(const char *name)
+const char *mail_conf_lookup_eval(const char *name)
 {
     const char *value;
 
@@ -139,9 +139,9 @@ const char *config_lookup_eval(const char *name)
     return (value);
 }
 
-/* config_update - update parameter */
+/* mail_conf_update - update parameter */
 
-void    config_update(const char *key, const char *value)
+void    mail_conf_update(const char *key, const char *value)
 {
     dict_update(CONFIG_DICT, key, value);
 }

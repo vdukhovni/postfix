@@ -328,7 +328,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     vstring_sprintf(config_param, "%s_server_host", ldapsource);
 
     dict_ldap->server_host =
-	mystrdup((char *) get_config_str(vstring_str(config_param),
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
 					 "localhost", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
@@ -340,28 +340,28 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
      */
     vstring_sprintf(config_param, "%s_server_port", ldapsource);
     dict_ldap->server_port =
-	get_config_int(vstring_str(config_param), LDAP_PORT, 0, 0);
+	get_mail_conf_int(vstring_str(config_param), LDAP_PORT, 0, 0);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->server_port);
 
     vstring_sprintf(config_param, "%s_search_base", ldapsource);
     dict_ldap->search_base =
-	mystrdup((char *) get_config_str(vstring_str(config_param), "", 0, 0));
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param), "", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->search_base);
 
     /* get configured value of "ldapsource_timeout"; default to 10 */
     vstring_sprintf(config_param, "%s_timeout", ldapsource);
-    dict_ldap->timeout = get_config_int(config_param, 10, 0, 0);
+    dict_ldap->timeout = get_mail_conf_int(config_param, 10, 0, 0);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->timeout);
 
     vstring_sprintf(config_param, "%s_query_filter", ldapsource);
     dict_ldap->query_filter =
-	mystrdup((char *) get_config_str(vstring_str(config_param),
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
 				      "(mailacceptinggeneralid=%s)", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
@@ -369,7 +369,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 
     vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
     dict_ldap->result_attribute =
-	mystrdup((char *) get_config_str(vstring_str(config_param),
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
 					 "maildrop", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
@@ -377,7 +377,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 
     /* get configured value of "ldapsource_bind"; default to true */
     vstring_sprintf(config_param, "%s_bind", ldapsource);
-    dict_ldap->bind = get_config_bool(vstring_str(config_param), 1);
+    dict_ldap->bind = get_mail_conf_bool(vstring_str(config_param), 1);
     if (msg_verbose)
 	msg_info("%s: %s is %d", myname, vstring_str(config_param),
 		 dict_ldap->bind);
@@ -385,7 +385,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     /* get configured value of "ldapsource_bind_dn"; default to "" */
     vstring_sprintf(config_param, "%s_bind_dn", ldapsource);
     dict_ldap->bind_dn =
-	mystrdup((char *) get_config_str(vstring_str(config_param), "", 0, 0));
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param), "", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->bind_dn);
@@ -393,7 +393,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     /* get configured value of "ldapsource_bind_pw"; default to "" */
     vstring_sprintf(config_param, "%s_bind_pw", ldapsource);
     dict_ldap->bind_pw =
-	mystrdup((char *) get_config_str(vstring_str(config_param), "", 0, 0));
+	mystrdup((char *) get_mail_conf_str(vstring_str(config_param), "", 0, 0));
     if (msg_verbose)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->bind_pw);

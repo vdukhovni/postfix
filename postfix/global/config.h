@@ -5,126 +5,45 @@
 /* NAME
 /*	config 3h
 /* SUMMARY
-/*	global configuration parameter management
+/*	compatibility
 /* SYNOPSIS
 /*	#include <config.h>
 /* DESCRIPTION
 /* .nf
 
  /*
-  * Well known names. These are not configurable. One has to start somewhere.
+  * Global library.
   */
-#define CONFIG_DICT	"mail_dict"	/* global Postfix dictionary */
+#include <mail_conf.h>
 
  /*
-  * Environment variables.
+  * Aliases.
   */
-#define CONF_ENV_PATH	"MAIL_CONFIG"	/* config database */
-#define CONF_ENV_VERB	"MAIL_VERBOSE"	/* verbose mode on */
-#define CONF_ENV_DEBUG	"MAIL_DEBUG"	/* verbose mode on */
-
- /*
-  * External representation for booleans.
-  */
-#define CONFIG_BOOL_YES	"yes"
-#define CONFIG_BOOL_NO	"no"
-
- /*
-  * Basic configuration management.
-  */
-extern void read_config(void);
-
-extern void config_update(const char *, const char *);
-extern const char *config_lookup(const char *);
-extern const char *config_eval(const char *);
-extern const char *config_lookup_eval(const char *);
-
- /*
-  * Specific parameter lookup routines.
-  */
-extern char *get_config_str(const char *, const char *, int, int);
-extern int get_config_int(const char *, int, int, int);
-extern int get_config_bool(const char *, int);
-extern char *get_config_raw(const char *, const char *, int, int);
-
-extern int get_config_int2(const char *, const char *, int, int, int);
-
- /*
-  * Lookup with function-call defaults.
-  */
-extern char *get_config_str_fn(const char *, const char *(*) (void), int, int);
-extern int get_config_int_fn(const char *, int (*) (void), int, int);
-extern int get_config_bool_fn(const char *, int (*) (void));
-extern char *get_config_raw_fn(const char *, const char *(*) (void), int, int);
-
- /*
-  * Update dictionary.
-  */
-extern void set_config_str(const char *, const char *);
-extern void set_config_int(const char *, int);
-extern void set_config_bool(const char *, int);
-
- /*
-  * Tables that allow us to selectively copy values from the global
-  * configuration file to global variables.
-  */
-typedef struct {
-    const char *name;			/* config variable name */
-    const char *defval;			/* default value or null */
-    char  **target;			/* pointer to global variable */
-    int     min;			/* min length or zero */
-    int     max;			/* max length or zero */
-} CONFIG_STR_TABLE;
-
-typedef struct {
-    const char *name;			/* config variable name */
-    int     defval;			/* default value */
-    int    *target;			/* pointer to global variable */
-    int     min;			/* lower bound or zero */
-    int     max;			/* upper bound or zero */
-} CONFIG_INT_TABLE;
-
-typedef struct {
-    const char *name;			/* config variable name */
-    int     defval;			/* default value */
-    int    *target;			/* pointer to global variable */
-} CONFIG_BOOL_TABLE;
-
-extern void get_config_str_table(CONFIG_STR_TABLE *);
-extern void get_config_int_table(CONFIG_INT_TABLE *);
-extern void get_config_bool_table(CONFIG_BOOL_TABLE *);
-extern void get_config_raw_table(CONFIG_STR_TABLE *);
-
- /*
-  * Tables to initialize parameters from the global configuration file or
-  * from function calls.
-  */
-typedef struct {
-    const char *name;			/* config variable name */
-    const char *(*defval) (void);	/* default value provider */
-    char  **target;			/* pointer to global variable */
-    int     min;			/* lower bound or zero */
-    int     max;			/* upper bound or zero */
-} CONFIG_STR_FN_TABLE;
-
-typedef struct {
-    const char *name;			/* config variable name */
-    int     (*defval) (void);		/* default value provider */
-    int    *target;			/* pointer to global variable */
-    int     min;			/* lower bound or zero */
-    int     max;			/* upper bound or zero */
-} CONFIG_INT_FN_TABLE;
-
-typedef struct {
-    const char *name;			/* config variable name */
-    int     (*defval) (void);		/* default value provider */
-    int    *target;			/* pointer to global variable */
-} CONFIG_BOOL_FN_TABLE;
-
-extern void get_config_str_fn_table(CONFIG_STR_FN_TABLE *);
-extern void get_config_int_fn_table(CONFIG_INT_FN_TABLE *);
-extern void get_config_bool_fn_table(CONFIG_BOOL_FN_TABLE *);
-extern void get_config_raw_fn_table(CONFIG_STR_FN_TABLE *);
+#define config_eval			mail_conf_eval
+#define config_lookup			mail_conf_lookup
+#define config_lookup_eval		mail_conf_lookup_eval
+#define config_read			mail_conf_read
+#define read_config			mail_conf_update
+#define get_config_bool			get_mail_conf_bool
+#define get_config_bool_fn		get_mail_conf_bool_fn
+#define get_config_bool_fn_table	get_mail_conf_bool_fn_table
+#define get_config_bool_table		get_mail_conf_bool_table
+#define get_config_int			get_mail_conf_int
+#define get_config_int2			get_mail_conf_int2
+#define get_config_int_fn		get_mail_conf_int_fn
+#define get_config_int_fn_table		get_mail_conf_int_fn_table
+#define get_config_int_table		get_mail_conf_int_table
+#define get_config_raw			get_mail_conf_raw
+#define get_config_raw_fn		get_mail_conf_raw_fn
+#define get_config_raw_fn_table		get_mail_conf_raw_fn_table
+#define get_config_raw_table		get_mail_conf_raw_table
+#define get_config_str			get_mail_conf_str
+#define get_config_str_fn		get_mail_conf_str_fn
+#define get_config_str_fn_table		get_mail_conf_str_fn_table
+#define get_config_str_table		get_mail_conf_str_table
+#define set_config_bool			set_mail_conf_bool
+#define set_config_int			set_mail_conf_int
+#define set_config_str			set_mail_conf_str
 
 /* LICENSE
 /* .ad

@@ -75,7 +75,7 @@ sendmail.o: ../include/mail_params.h
 sendmail.o: ../include/record.h
 sendmail.o: ../include/rec_type.h
 sendmail.o: ../include/rec_streamlf.h
-sendmail.o: ../include/config.h
+sendmail.o: ../include/mail_conf.h
 sendmail.o: ../include/cleanup_user.h
 sendmail.o: ../include/mail_task.h
 sendmail.o: ../include/mail_run.h

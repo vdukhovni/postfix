@@ -150,7 +150,7 @@
 #include <mail_task.h>
 #include <debug_process.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <timed_ipc.h>
 #include <resolve_local.h>
 
@@ -387,7 +387,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * May need this every now and then.
      */
     var_procname = mystrdup(basename(argv[0]));
-    set_config_str(VAR_PROCNAME, var_procname);
+    set_mail_conf_str(VAR_PROCNAME, var_procname);
 
     /*
      * Initialize logging and exit handler. Do the syslog first, so that its
@@ -401,21 +401,21 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Initialize from the configuration file. Allow command-line options to
      * override compiled-in defaults or configured parameter values.
      */
-    read_config();
+    mail_conf_read();
     va_start(ap, service);
     while ((key = va_arg(ap, int)) != 0) {
 	switch (key) {
 	case MAIL_SERVER_INT_TABLE:
-	    get_config_int_table(va_arg(ap, CONFIG_INT_TABLE *));
+	    get_mail_conf_int_table(va_arg(ap, CONFIG_INT_TABLE *));
 	    break;
 	case MAIL_SERVER_STR_TABLE:
-	    get_config_str_table(va_arg(ap, CONFIG_STR_TABLE *));
+	    get_mail_conf_str_table(va_arg(ap, CONFIG_STR_TABLE *));
 	    break;
 	case MAIL_SERVER_BOOL_TABLE:
-	    get_config_bool_table(va_arg(ap, CONFIG_BOOL_TABLE *));
+	    get_mail_conf_bool_table(va_arg(ap, CONFIG_BOOL_TABLE *));
 	    break;
 	case MAIL_SERVER_RAW_TABLE:
-	    get_config_raw_table(va_arg(ap, CONFIG_STR_TABLE *));
+	    get_mail_conf_raw_table(va_arg(ap, CONFIG_STR_TABLE *));
 	    break;
 	case MAIL_SERVER_PRE_INIT:
 	    pre_init = va_arg(ap, MAIL_SERVER_INIT_FN);

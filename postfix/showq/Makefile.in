@@ -70,7 +70,7 @@ showq.o: ../include/iostuff.h
 showq.o: ../include/mail_date.h
 showq.o: ../include/mail_params.h
 showq.o: ../include/mail_scan_dir.h
-showq.o: ../include/config.h
+showq.o: ../include/mail_conf.h
 showq.o: ../include/record.h
 showq.o: ../include/rec_type.h
 showq.o: ../include/htable.h

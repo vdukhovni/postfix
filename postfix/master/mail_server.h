@@ -14,7 +14,7 @@
 #include <vstream.h>
 
  /*
-  * External interface. Tables are defined in config.h.
+  * External interface. Tables are defined in mail_conf.h.
   */
 #define MAIL_SERVER_INT_TABLE	1
 #define MAIL_SERVER_STR_TABLE	2

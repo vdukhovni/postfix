@@ -77,7 +77,7 @@
 #include <is_header.h>
 #include <record.h>
 #include <rec_type.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <post_mail.h>
 #include <mail_addr.h>
 #include <mark_corrupt.h>

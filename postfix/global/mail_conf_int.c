@@ -1,34 +1,34 @@
 /*++
 /* NAME
-/*	config_int 3
+/*	mail_conf_int 3
 /* SUMMARY
 /*	integer-valued configuration parameter support
 /* SYNOPSIS
-/*	#include <config.h>
+/*	#include <mail_conf.h>
 /*
-/*	int	get_config_int(name, defval, min, max);
+/*	int	get_mail_conf_int(name, defval, min, max);
 /*	const char *name;
 /*	int	defval;
 /*	int	min;
 /*	int	max;
 /*
-/*	int	get_config_int_fn(name, defval, min, max);
+/*	int	get_mail_conf_int_fn(name, defval, min, max);
 /*	const char *name;
 /*	int	(*defval)();
 /*	int	min;
 /*	int	max;
 /*
-/*	void	set_config_int(name, value)
+/*	void	set_mail_conf_int(name, value)
 /*	const char *name;
 /*	int	value;
 /*
-/*	void	get_config_int_table(table)
+/*	void	get_mail_conf_int_table(table)
 /*	CONFIG_INT_TABLE *table;
 /*
-/*	void	get_config_int_fn_table(table)
+/*	void	get_mail_conf_int_fn_table(table)
 /*	CONFIG_INT_TABLE *table;
 /* AUXILIARY FUNCTIONS
-/*	int	get_config_int2(name1, name2, defval, min, max);
+/*	int	get_mail_conf_int2(name1, name2, defval, min, max);
 /*	const char *name1;
 /*	const char *name2;
 /*	int	defval;
@@ -38,32 +38,32 @@
 /*	This module implements configuration parameter support
 /*	for integer values.
 /*
-/*	get_config_int() looks up the named entry in the global
+/*	get_mail_conf_int() looks up the named entry in the global
 /*	configuration dictionary. The default value is returned
 /*	when no value was found.
 /*	\fImin\fR is zero or specifies a lower limit on the integer
 /*	value or string length; \fImax\fR is zero or specifies an
 /*	upper limit on the integer value or string length.
 /*
-/*	get_config_int_fn() is similar but specifies a function that
+/*	get_mail_conf_int_fn() is similar but specifies a function that
 /*	provides the default value. The function is called only
 /*	when the default value is needed.
 /*
-/*	set_config_int() updates the named entry in the global
+/*	set_mail_conf_int() updates the named entry in the global
 /*	configuration dictionary. This has no effect on values that
-/*	have been looked up earlier via the get_config_XXX() routines.
+/*	have been looked up earlier via the get_mail_conf_XXX() routines.
 /*
-/*	get_config_int_table() and get_config_int_fn_table() initialize
+/*	get_mail_conf_int_table() and get_mail_conf_int_fn_table() initialize
 /*	lists of variables, as directed by their table arguments. A table
 /*	must be terminated by a null entry.
 /*
-/*	get_config_int2() concatenates the two names and is otherwise
-/*	identical to get_config_int().
+/*	get_mail_conf_int2() concatenates the two names and is otherwise
+/*	identical to get_mail_conf_int().
 /* DIAGNOSTICS
 /*	Fatal errors: malformed numerical value.
 /* SEE ALSO
 /*	config(3) general configuration
-/*	config_str(3) string-valued configuration parameters
+/*	mail_conf_str(3) string-valued configuration parameters
 /* LICENSE
 /* .ad
 /* .fi
@@ -90,16 +90,16 @@
 
 /* Global library. */
 
-#include "config.h"
+#include "mail_conf.h"
 
-/* convert_config_int - look up and convert integer parameter value */
+/* convert_mail_conf_int - look up and convert integer parameter value */
 
-static int convert_config_int(const char *name, int *intval)
+static int convert_mail_conf_int(const char *name, int *intval)
 {
     const char *strval;
     char    junk;
 
-    if ((strval = config_lookup_eval(name)) != 0) {
+    if ((strval = mail_conf_lookup_eval(name)) != 0) {
 	if (sscanf(strval, "%d%c", intval, &junk) != 1)
 	    msg_fatal("bad numerical configuration: %s = %s", name, strval);
 	return (1);
@@ -107,9 +107,9 @@ static int convert_config_int(const char *name, int *intval)
     return (0);
 }
 
-/* check_config_int - validate integer value */
+/* check_mail_conf_int - validate integer value */
 
-static void check_config_int(const char *name, int intval, int min, int max)
+static void check_mail_conf_int(const char *name, int intval, int min, int max)
 {
     if (min && intval < min)
 	msg_fatal("invalid %s: %d (min %d)", name, intval, min);
@@ -117,76 +117,76 @@ static void check_config_int(const char *name, int intval, int min, int max)
 	msg_fatal("invalid %s: %d (max %d)", name, intval, max);
 }
 
-/* get_config_int - evaluate integer-valued configuration variable */
+/* get_mail_conf_int - evaluate integer-valued configuration variable */
 
-int     get_config_int(const char *name, int defval, int min, int max)
+int     get_mail_conf_int(const char *name, int defval, int min, int max)
 {
     int     intval;
 
-    if (convert_config_int(name, &intval) == 0)
-	set_config_int(name, intval = defval);
-    check_config_int(name, intval, min, max);
+    if (convert_mail_conf_int(name, &intval) == 0)
+	set_mail_conf_int(name, intval = defval);
+    check_mail_conf_int(name, intval, min, max);
     return (intval);
 }
 
-/* get_config_int2 - evaluate integer-valued configuration variable */
+/* get_mail_conf_int2 - evaluate integer-valued configuration variable */
 
-int     get_config_int2(const char *name1, const char *name2, int defval,
+int     get_mail_conf_int2(const char *name1, const char *name2, int defval,
 			        int min, int max)
 {
     int     intval;
     char   *name;
 
     name = concatenate(name1, name2, (char *) 0);
-    if (convert_config_int(name, &intval) == 0)
-	set_config_int(name, intval = defval);
-    check_config_int(name, intval, min, max);
+    if (convert_mail_conf_int(name, &intval) == 0)
+	set_mail_conf_int(name, intval = defval);
+    check_mail_conf_int(name, intval, min, max);
     myfree(name);
     return (intval);
 }
 
-/* get_config_int_fn - evaluate integer-valued configuration variable */
+/* get_mail_conf_int_fn - evaluate integer-valued configuration variable */
 
 typedef int (*stupid_indent_int) (void);
 
-int     get_config_int_fn(const char *name, stupid_indent_int defval,
+int     get_mail_conf_int_fn(const char *name, stupid_indent_int defval,
 			          int min, int max)
 {
     int     intval;
 
-    if (convert_config_int(name, &intval) == 0)
-	set_config_int(name, intval = defval());
-    check_config_int(name, intval, min, max);
+    if (convert_mail_conf_int(name, &intval) == 0)
+	set_mail_conf_int(name, intval = defval());
+    check_mail_conf_int(name, intval, min, max);
     return (intval);
 }
 
-/* set_config_int - update integer-valued configuration dictionary entry */
+/* set_mail_conf_int - update integer-valued configuration dictionary entry */
 
-void    set_config_int(const char *name, int value)
+void    set_mail_conf_int(const char *name, int value)
 {
     char    buf[BUFSIZ];		/* yeah! crappy code! */
 
     sprintf(buf, "%d", value);			/* yeah! more crappy code! */
-    config_update(name, buf);
+    mail_conf_update(name, buf);
 }
 
-/* get_config_int_table - look up table of integers */
+/* get_mail_conf_int_table - look up table of integers */
 
-void    get_config_int_table(CONFIG_INT_TABLE *table)
+void    get_mail_conf_int_table(CONFIG_INT_TABLE *table)
 {
     while (table->name) {
-	table->target[0] = get_config_int(table->name, table->defval,
+	table->target[0] = get_mail_conf_int(table->name, table->defval,
 					  table->min, table->max);
 	table++;
     }
 }
 
-/* get_config_int_fn_table - look up integers, defaults are functions */
+/* get_mail_conf_int_fn_table - look up integers, defaults are functions */
 
-void    get_config_int_fn_table(CONFIG_INT_FN_TABLE *table)
+void    get_mail_conf_int_fn_table(CONFIG_INT_FN_TABLE *table)
 {
     while (table->name) {
-	table->target[0] = get_config_int_fn(table->name, table->defval,
+	table->target[0] = get_mail_conf_int_fn(table->name, table->defval,
 					     table->min, table->max);
 	table++;
     }

@@ -112,7 +112,7 @@ ARGV   *mail_addr_crunch(const char *string, const char *extension)
 #include <msg.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <mail_params.h>
 
 int     main(int unused_argc, char **unused_argv)
@@ -122,7 +122,7 @@ int     main(int unused_argc, char **unused_argv)
     ARGV   *argv;
     char  **cpp;
 
-    read_config();
+    mail_conf_read();
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);
 

@@ -135,7 +135,7 @@ ARGV   *mail_addr_map(MAPS *path, const char *address)
   * the lookup result.
   */
 #include <unistd.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
 #include <mail_params.h>
@@ -155,7 +155,7 @@ int     main(int argc, char **argv)
     /*
      * Initialize.
      */
-    read_config();
+    mail_conf_read();
     msg_verbose = 1;
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);

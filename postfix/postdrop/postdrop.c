@@ -87,7 +87,7 @@
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <mail_task.h>
 #include <clean_env.h>
 #include <mail_stream.h>
@@ -180,7 +180,7 @@ int     main(int argc, char **argv)
     argv[0] = "postdrop";
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
-    set_config_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
+    set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
      * Read the global configuration file and extract configuration
@@ -191,7 +191,7 @@ int     main(int argc, char **argv)
      * record-level I/O. With that, we should also take the opportunity to
      * perform some sanity checks on the input.
      */
-    read_config();
+    mail_conf_read();
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);
     if (msg_verbose)

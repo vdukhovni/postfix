@@ -157,7 +157,7 @@ dotforward.o: ../include/mypwd.h
 dotforward.o: ../include/bounce.h
 dotforward.o: ../include/been_here.h
 dotforward.o: ../include/mail_params.h
-dotforward.o: ../include/config.h
+dotforward.o: ../include/mail_conf.h
 dotforward.o: local.h
 dotforward.o: ../include/tok822.h
 dotforward.o: ../include/resolve_clnt.h
@@ -274,13 +274,14 @@ local.o: ../include/vstream.h
 local.o: ../include/iostuff.h
 local.o: ../include/name_mask.h
 local.o: ../include/set_eugid.h
+local.o: ../include/dict.h
 local.o: ../include/mail_queue.h
 local.o: ../include/recipient_list.h
 local.o: ../include/deliver_request.h
 local.o: ../include/deliver_completed.h
 local.o: ../include/mail_params.h
 local.o: ../include/mail_addr.h
-local.o: ../include/config.h
+local.o: ../include/mail_conf.h
 local.o: ../include/been_here.h
 local.o: ../include/mail_server.h
 local.o: local.h

@@ -64,4 +64,4 @@ postlock.o: ../include/iostuff.h
 postlock.o: ../include/mail_params.h
 postlock.o: ../include/dot_lockfile.h
 postlock.o: ../include/deliver_flock.h
-postlock.o: ../include/config.h
+postlock.o: ../include/mail_conf.h

@@ -35,7 +35,7 @@
 
 /* Global library. */
 
-#include <config.h>
+#include <mail_conf.h>
 #include <mail_params.h>
 
 /* Application-specific. */
@@ -59,8 +59,8 @@ void    master_vars_init(void)
 	0,
     };
 
-    read_config();
-    get_config_int_table(int_table);
+    mail_conf_read();
+    get_mail_conf_int_table(int_table);
     path = concatenate(var_config_dir, "/master.cf", (char *) 0);
     fset_master_ent(path);
     myfree(path);

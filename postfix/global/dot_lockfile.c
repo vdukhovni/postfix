@@ -138,7 +138,7 @@ void    dot_unlockfile(const char *path)
 #include <msg.h>
 #include <vstream.h>
 #include <msg_vstream.h>
-#include <config.h>
+#include <mail_conf.h>
 
 main(int argc, char **argv)
 {
@@ -147,7 +147,7 @@ main(int argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
     if (argc != 2)
 	msg_fatal("usage: %s file-to-be-locked", argv[0]);
-    read_config();
+    mail_conf_read();
     if (dot_lockfile(argv[1], why) < 0)
 	msg_fatal("%s", vstring_str(why));
     dot_unlockfile(argv[1]);

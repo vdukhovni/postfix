@@ -194,7 +194,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
   */
 #include <vstream.h>
 #include <vstring_vstream.h>
-#include <config.h>
+#include <mail_conf.h>
 
 int     main(int argc, char **argv)
 {
@@ -213,7 +213,7 @@ int     main(int argc, char **argv)
     /*
      * Initialize.
      */
-    read_config();
+    mail_conf_read();
     path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	extent = 0;

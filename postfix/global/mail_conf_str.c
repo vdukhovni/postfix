@@ -1,52 +1,52 @@
 /*++
 /* NAME
-/*	config_str 3
+/*	mail_conf_str 3
 /* SUMMARY
 /*	string-valued global configuration parameter support
 /* SYNOPSIS
-/*	#include <config.h>
+/*	#include <mail_conf.h>
 /*
-/*	char	*get_config_str(name, defval, min, max)
+/*	char	*get_mail_conf_str(name, defval, min, max)
 /*	const char *name;
 /*	const char *defval;
 /*	int	min;
 /*	int	max;
 /*
-/*	char	*get_config_str_fn(name, defval, min, max)
+/*	char	*get_mail_conf_str_fn(name, defval, min, max)
 /*	const char *name;
 /*	const char *(*defval)(void);
 /*	int	min;
 /*	int	max;
 /*
-/*	void	set_config_str(name, value)
+/*	void	set_mail_conf_str(name, value)
 /*	const char *name;
 /*	const char *value;
 /*
-/*	void	get_config_str_table(table)
+/*	void	get_mail_conf_str_table(table)
 /*	CONFIG_STR_TABLE *table;
 /*
-/*	void	get_config_str_fn_table(table)
+/*	void	get_mail_conf_str_fn_table(table)
 /*	CONFIG_STR_TABLE *table;
 /* DESCRIPTION
 /*	This module implements support for string-valued global
 /*	configuration parameters.
 /*
-/*	get_config_str() looks up the named entry in the global
+/*	get_mail_conf_str() looks up the named entry in the global
 /*	configuration dictionary. The default value is returned when
 /*	no value was found. String results should be passed to myfree()
 /*	when no longer needed.  \fImin\fR is zero or specifies a lower
 /*	bound on the string length; \fImax\fR is zero or specifies an
 /*	upper limit on the string length.
 /*
-/*	get_config_str_fn() is similar but specifies a function that
+/*	get_mail_conf_str_fn() is similar but specifies a function that
 /*	provides the default value. The function is called only when
 /*	the default value is used.
 /*
-/*	set_config_str() updates the named entry in the global
+/*	set_mail_conf_str() updates the named entry in the global
 /*	configuration dictionary. This has no effect on values that
-/*	have been looked up earlier via the get_config_XXX() routines.
+/*	have been looked up earlier via the get_mail_conf_XXX() routines.
 /*
-/*	get_config_str_table() and get_config_str_fn_table() read
+/*	get_mail_conf_str_table() and get_mail_conf_str_fn_table() read
 /*	lists of variables, as directed by their table arguments. A table
 /*	must be terminated by a null entry.
 /* DIAGNOSTICS
@@ -77,11 +77,11 @@
 
 /* Global library. */
 
-#include "config.h"
+#include "mail_conf.h"
 
-/* check_config_str - validate string length */
+/* check_mail_conf_str - validate string length */
 
-static void check_config_str(const char *name, const char *strval,
+static void check_mail_conf_str(const char *name, const char *strval,
 			             int min, int max)
 {
     int     len = strlen(strval);
@@ -94,66 +94,66 @@ static void check_config_str(const char *name, const char *strval,
 		  len, max, name, strval);
 }
 
-/* get_config_str - evaluate string-valued configuration variable */
+/* get_mail_conf_str - evaluate string-valued configuration variable */
 
-char   *get_config_str(const char *name, const char *defval,
+char   *get_mail_conf_str(const char *name, const char *defval,
 		               int min, int max)
 {
     const char *strval;
 
-    if ((strval = config_lookup_eval(name)) == 0) {
-	strval = config_eval(defval);
-	config_update(name, strval);
+    if ((strval = mail_conf_lookup_eval(name)) == 0) {
+	strval = mail_conf_eval(defval);
+	mail_conf_update(name, strval);
     }
-    check_config_str(name, strval, min, max);
+    check_mail_conf_str(name, strval, min, max);
     return (mystrdup(strval));
 }
 
-/* get_config_str_fn - evaluate string-valued configuration variable */
+/* get_mail_conf_str_fn - evaluate string-valued configuration variable */
 
 typedef const char *(*stupid_indent_str) (void);
 
-char   *get_config_str_fn(const char *name, stupid_indent_str defval,
+char   *get_mail_conf_str_fn(const char *name, stupid_indent_str defval,
 			          int min, int max)
 {
     const char *strval;
 
-    if ((strval = config_lookup_eval(name)) == 0) {
-	strval = config_eval(defval());
-	config_update(name, strval);
+    if ((strval = mail_conf_lookup_eval(name)) == 0) {
+	strval = mail_conf_eval(defval());
+	mail_conf_update(name, strval);
     }
-    check_config_str(name, strval, min, max);
+    check_mail_conf_str(name, strval, min, max);
     return (mystrdup(strval));
 }
 
-/* set_config_str - update string-valued configuration dictionary entry */
+/* set_mail_conf_str - update string-valued configuration dictionary entry */
 
-void    set_config_str(const char *name, const char *value)
+void    set_mail_conf_str(const char *name, const char *value)
 {
-    config_update(name, value);
+    mail_conf_update(name, value);
 }
 
-/* get_config_str_table - look up table of strings */
+/* get_mail_conf_str_table - look up table of strings */
 
-void    get_config_str_table(CONFIG_STR_TABLE *table)
+void    get_mail_conf_str_table(CONFIG_STR_TABLE *table)
 {
     while (table->name) {
 	if (table->target[0])
 	    myfree(table->target[0]);
-	table->target[0] = get_config_str(table->name, table->defval,
+	table->target[0] = get_mail_conf_str(table->name, table->defval,
 					  table->min, table->max);
 	table++;
     }
 }
 
-/* get_config_str_fn_table - look up strings, defaults are functions */
+/* get_mail_conf_str_fn_table - look up strings, defaults are functions */
 
-void    get_config_str_fn_table(CONFIG_STR_FN_TABLE *table)
+void    get_mail_conf_str_fn_table(CONFIG_STR_FN_TABLE *table)
 {
     while (table->name) {
 	if (table->target[0])
 	    myfree(table->target[0]);
-	table->target[0] = get_config_str_fn(table->name, table->defval,
+	table->target[0] = get_mail_conf_str_fn(table->name, table->defval,
 					     table->min, table->max);
 	table++;
     }

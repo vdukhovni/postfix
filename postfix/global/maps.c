@@ -97,7 +97,7 @@
 
 /* Global library. */
 
-#include "config.h"
+#include "mail_conf.h"
 #include "maps.h"
 
 /* maps_create - initialize */

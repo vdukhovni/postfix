@@ -237,7 +237,7 @@
 
 #include <mail_queue.h>
 #include <recipient_list.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <mail_params.h>
 #include <mail_proto.h>			/* QMGR_SCAN constants */
 

@@ -92,7 +92,7 @@
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <bounce.h>
 
 /* Single-threaded server skeleton. */

@@ -67,7 +67,7 @@ bounce.o: ../include/mail_proto.h
 bounce.o: ../include/iostuff.h
 bounce.o: ../include/mail_queue.h
 bounce.o: ../include/mail_params.h
-bounce.o: ../include/config.h
+bounce.o: ../include/mail_conf.h
 bounce.o: ../include/bounce.h
 bounce.o: ../include/mail_server.h
 bounce.o: bounce_service.h
@@ -112,7 +112,7 @@ bounce_notify_service.o: ../include/canon_addr.h
 bounce_notify_service.o: ../include/is_header.h
 bounce_notify_service.o: ../include/record.h
 bounce_notify_service.o: ../include/rec_type.h
-bounce_notify_service.o: ../include/config.h
+bounce_notify_service.o: ../include/mail_conf.h
 bounce_notify_service.o: ../include/post_mail.h
 bounce_notify_service.o: ../include/cleanup_user.h
 bounce_notify_service.o: ../include/mail_addr.h

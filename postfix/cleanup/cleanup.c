@@ -133,7 +133,7 @@
 
 /* Global library. */
 
-#include <config.h>
+#include <mail_conf.h>
 #include <cleanup_user.h>
 #include <mail_queue.h>
 #include <mail_proto.h>

@@ -1465,7 +1465,7 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 #include <msg_vstream.h>
 #include <vstring_vstream.h>
 
-#include <config.h>
+#include <mail_conf.h>
 
 #include <smtpd_chat.h>
 

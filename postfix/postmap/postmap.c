@@ -122,7 +122,7 @@
 
 /* Global library. */
 
-#include <config.h>
+#include <mail_conf.h>
 #include <mail_params.h>
 #include <mkmap.h>
 
@@ -298,7 +298,7 @@ int     main(int argc, char **argv)
 	    break;
 	}
     }
-    read_config();
+    mail_conf_read();
 
     /*
      * Use the map type specified by the user, or fall back to a default

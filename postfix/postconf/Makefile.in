@@ -77,7 +77,7 @@ postconf.o: ../include/safe.h
 postconf.o: ../include/mymalloc.h
 postconf.o: ../include/line_wrap.h
 postconf.o: ../include/mynetworks.h
-postconf.o: ../include/config.h
+postconf.o: ../include/mail_conf.h
 postconf.o: ../include/mail_proto.h
 postconf.o: ../include/iostuff.h
 postconf.o: ../include/mail_version.h

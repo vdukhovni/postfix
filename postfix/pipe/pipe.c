@@ -183,7 +183,7 @@
 #include <deliver_request.h>
 #include <mail_queue.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <bounce.h>
 #include <defer.h>
 #include <deliver_completed.h>
@@ -388,7 +388,7 @@ static void get_service_params(PIPE_PARAMS *config, char *service)
      * Figure out the command time limit for this transport.
      */
     config->time_limit =
-	get_config_int2(service, "_time_limit", var_command_maxtime, 1, 0);
+	get_mail_conf_int2(service, "_time_limit", var_command_maxtime, 1, 0);
 
     /*
      * Give the poor tester a clue of what is going on.

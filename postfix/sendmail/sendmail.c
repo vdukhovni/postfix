@@ -254,7 +254,7 @@
 #include <record.h>
 #include <rec_type.h>
 #include <rec_streamlf.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <cleanup_user.h>
 #include <mail_task.h>
 #include <mail_run.h>
@@ -593,9 +593,9 @@ int     main(int argc, char **argv)
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
-    set_config_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
+    set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
-    read_config();
+    mail_conf_read();
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);
 
@@ -704,7 +704,7 @@ int     main(int argc, char **argv)
 		    msg_fatal("-oA requires pathname");
 		myfree(var_alias_db_map);
 		var_alias_db_map = mystrdup(optarg + 1);
-		set_config_str(VAR_ALIAS_DB_MAP, var_alias_db_map);
+		set_mail_conf_str(VAR_ALIAS_DB_MAP, var_alias_db_map);
 		break;
 	    case '7':
 	    case '8':

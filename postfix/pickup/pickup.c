@@ -95,7 +95,7 @@
 #include <cleanup_user.h>
 #include <mail_date.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <record.h>
 #include <rec_type.h>
 

@@ -2664,3 +2664,20 @@ Apologies for any names omitted.
 	Prindeville, Mirapoint, Inc., USA.  This copies a lot of
 	code from pipe_command(); the next step is to trim that
 	module.
+
+19990425
+
+	Workaround: renamed config.h to mail_conf.h etc. in order
+	to avoid name collisions with LINUX (yes, they have a system
+	include file calle config.h). For compatibility with people
+	who have written software for Postfix, there's a config.h
+	that aliases the old names to the new ones. That file will
+	go away eventually.
+
+19990426
+
+	Feature: error mailer, in order to easily bounce mail for
+	specific destinations. In the transport table, specify:
+	"host.domain    error:host.domain is unavailable". Too bad
+	that the transport table triggers on destination domain
+	only; it would be nice to bounce specific users as well.

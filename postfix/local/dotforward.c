@@ -75,7 +75,7 @@
 #include <bounce.h>
 #include <been_here.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 
 /* Application-specific. */
 
@@ -191,10 +191,10 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 
     /*
      * Skip this module if per-user forwarding is disabled. XXX We need to
-     * extend the config_XXX() interface to request no expansion of $names in
+     * extend the mail_conf_XXX() interface to request no expansion of $names in
      * the given value or in the default value.
      */
-    if ((forward_path = config_lookup(VAR_FORWARD_PATH)) == 0)
+    if ((forward_path = mail_conf_lookup(VAR_FORWARD_PATH)) == 0)
 	forward_path = DEF_FORWARD_PATH;
     if (*forward_path == 0)
 	return (NO);

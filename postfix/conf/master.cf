@@ -62,6 +62,7 @@ bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
 smtp	  unix	-	-	n	-	-	smtp
 showq     unix	n	-	n	-	-	showq
+error     unix	-	-	n	-	-	error
 local	  unix	-	n	n	-	-	local
 cyrus	  unix	-	n	n	-	-	pipe
     flags=R user=cyrus argv=/cyrus/bin/deliver -e -q -m ${extension} ${user}

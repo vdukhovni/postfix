@@ -71,7 +71,7 @@
 #include <mail_proto.h>
 #include <resolve_local.h>
 #include <tok822.h>
-#include <config.h>
+#include <mail_conf.h>
 
 /* Application-specific. */
 

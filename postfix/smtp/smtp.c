@@ -167,7 +167,7 @@
 #include <deliver_request.h>
 #include <mail_queue.h>
 #include <mail_params.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <debug_peer.h>
 #include <mail_error.h>
 #include <deliver_pass.h>

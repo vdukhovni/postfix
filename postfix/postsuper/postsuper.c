@@ -80,7 +80,7 @@
 /* Global library. */
 
 #include <mail_task.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <mail_params.h>
 #include <mail_queue.h>
 
@@ -329,9 +329,9 @@ main(int argc, char **argv)
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
-    set_config_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
+    set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
-    read_config();
+    mail_conf_read();
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);
 

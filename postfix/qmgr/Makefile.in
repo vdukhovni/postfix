@@ -64,10 +64,11 @@ qmgr.o: ../include/msg.h
 qmgr.o: ../include/events.h
 qmgr.o: ../include/vstream.h
 qmgr.o: ../include/vbuf.h
+qmgr.o: ../include/dict.h
 qmgr.o: ../include/mail_queue.h
 qmgr.o: ../include/vstring.h
 qmgr.o: ../include/recipient_list.h
-qmgr.o: ../include/config.h
+qmgr.o: ../include/mail_conf.h
 qmgr.o: ../include/mail_params.h
 qmgr.o: ../include/mail_proto.h
 qmgr.o: ../include/iostuff.h
@@ -76,7 +77,6 @@ qmgr.o: ../include/mail_server.h
 qmgr.o: qmgr.h
 qmgr.o: ../include/scan_dir.h
 qmgr.o: ../include/maps.h
-qmgr.o: ../include/dict.h
 qmgr_active.o: qmgr_active.c
 qmgr_active.o: ../include/sys_defs.h
 qmgr_active.o: ../include/msg.h
@@ -238,7 +238,7 @@ qmgr_transport.o: ../include/vbuf.h
 qmgr_transport.o: ../include/iostuff.h
 qmgr_transport.o: ../include/mail_proto.h
 qmgr_transport.o: ../include/recipient_list.h
-qmgr_transport.o: ../include/config.h
+qmgr_transport.o: ../include/mail_conf.h
 qmgr_transport.o: ../include/mail_params.h
 qmgr_transport.o: qmgr.h
 qmgr_transport.o: ../include/scan_dir.h

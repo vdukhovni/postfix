@@ -221,7 +221,7 @@
 #include <mail_proto.h>
 #include <cleanup_user.h>
 #include <mail_date.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <off_cvt.h>
 #include <debug_peer.h>
 #include <mail_error.h>

@@ -69,7 +69,7 @@
 #include <mail_addr.h>
 #include <rewrite_clnt.h>
 #include <resolve_local.h>
-#include <config.h>
+#include <mail_conf.h>
 #include <quote_822_local.h>
 #include <tok822.h>
 
