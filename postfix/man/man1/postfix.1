@@ -75,7 +75,11 @@ Directory with Postfix configuration files.
 This is set when the -v command-line option is present.
 .IP \fBMAIL_DEBUG\fR
 This is set when the -D command-line option is present.
-.PP
+.SH CONFIGURATION PARAMETERS
+.na
+.nf
+.ad
+.fi
 The following \fBmain.cf\fR configuration parameters are made
 available as process environment variables with the same names:
 .IP \fBcommand_directory\fR
@@ -93,6 +97,24 @@ that run in the optional chrooted environment.
 The owner of Postfix queue files and of most Postfix processes.
 .IP \fBsetgid_group\fR
 The group for mail submission and queue management commands.
+.IP \fBsendmail_path
+The full pathname for the Postfix sendmail command.
+.IP \fBnewaliases_path
+The full pathname for the Postfix newaliases command.
+.IP \fBmailq_path
+The full pathname for the Postfix mailq command.
+.IP \fBmanpage_directory
+The directory for the Postfix on-line manual pages.
+.IP \fBsample_directory
+The directory for the Postfix sample configuration files.
+.IP \fBreadme_directory
+The directory for the Postfix README files.
+.SH Other configuration parameters
+.ad
+.fi
+.IP \fBimport_environment\fR
+List of names of environment parameters that can be imported
+from non-Postfix processes.
 .SH FILES
 .na
 .nf

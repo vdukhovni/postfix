@@ -82,6 +82,7 @@ POSTFIX(1)                                             POSTFIX(1)
               This is set when the -D command-line option is pre-
               sent.
 
+<b>CONFIGURATION</b> <b>PARAMETERS</b>
        The following <b>main.cf</b> configuration  parameters  are  made
        available  as  process environment variables with the same
        names:
@@ -110,6 +111,31 @@ POSTFIX(1)                                             POSTFIX(1)
               The  group for mail submission and queue management
               commands.
 
+       <b>sendmail</b><i>_</i><b>path</b>
+              The full pathname for the Postfix sendmail command.
+
+       <b>newaliases</b><i>_</i><b>path</b>
+              The  full  pathname for the Postfix newaliases com-
+              mand.
+
+       <b>mailq</b><i>_</i><b>path</b>
+              The full pathname for the Postfix mailq command.
+
+       <b>manpage</b><i>_</i><b>directory</b>
+              The directory for the Postfix on-line manual pages.
+
+       <b>sample</b><i>_</i><b>directory</b>
+              The  directory for the Postfix sample configuration
+              files.
+
+       <b>readme</b><i>_</i><b>directory</b>
+              The directory for the Postfix README files.
+
+<b>Other</b> <b>configuration</b> <b>parameters</b>
+       <b>import</b><i>_</i><b>environment</b>
+              List of names of environment parameters that can be
+              imported from non-Postfix processes.
+
 <b>FILES</b>
        $<b>config</b><i>_</i><b>directory/postfix-script</b>, administrative commands
        $<b>config</b><i>_</i><b>directory/main.cf</b>, configuration parameters
@@ -119,7 +145,7 @@ POSTFIX(1)                                             POSTFIX(1)
        <a href="master.8.html">master(8)</a> Postfix master program
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

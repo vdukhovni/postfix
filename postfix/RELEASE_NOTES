@@ -1,3 +1,10 @@
+Incompatible changes with snapshot-20020115
+===========================================
+
+Another revision of installation procedures. The location of the
+sample-xxx and XXX_README files is now specified with the
+sample_directory and readme_directory parameters.
+
 Incompatible changes with snapshot-20020113
 ===========================================
 

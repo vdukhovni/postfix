@@ -124,8 +124,14 @@
 #	system, not even by the mail_owner account.
 #	The built-in default group name is postdrop.
 #	This parameter setting is recorded in the installed main.cf file.
-# .IP manpage_path
+# .IP manpage_directory
 #	The destination directory for the Postfix on-line manual pages.
+#	This parameter setting is recorded in the installed main.cf file.
+# .IP sample_directory
+#	The destination directory for the Postfix sample configuration files.
+#	This parameter setting is recorded in the installed main.cf file.
+# .IP readme_directory
+#	The destination directory for the Postfix README files.
 #	This parameter setting is recorded in the installed main.cf file.
 # SEE ALSO
 #	post-install(1) post-installation procedure
@@ -326,8 +332,14 @@ management commands.  Specify a group name with a numerical group
 ID that is not shared with other accounts, not even with the Postfix
 mail_owner account. You can no longer specify \"no\" here."
 
-manpage_path_prompt="the destination directory for the Postfix on-line
+manpage_directory_prompt="the destination directory for the Postfix on-line
 manual pages. You can no longer specify \"no\" here."
+
+sample_directory_prompt="the destination directory for the Postfix
+sample configuration files."
+
+readme_directory_prompt="the destination directory for the Postfix
+README files. Specify \"no\" if you do not want to install these files."
 
 # Default settings, just to get started.
 
@@ -373,11 +385,15 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
     test -f $CONFIG_DIRECTORY/install.cf && {
 	for name in sendmail_path newaliases_path mailq_path setgid manpages
 	do
-	   eval : \${$name="\`. $CONFIG_DIRECTORY/install.cf; echo \$$name\`"} \
+	    eval junk=\$$name
+	    case "$junk" in
+	    "") eval unset $name;;
+	    esac
+	    eval : \${$name="\`. $CONFIG_DIRECTORY/install.cf; echo \$$name\`"} \
 		|| exit 1
 	done
 	: ${setgid_group=$setgid}
-	: ${manpage_path=$manpages}
+	: ${manpage_directory=$manpages}
     }
 }
 
@@ -385,8 +401,13 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
 
 test -f $CONFIG_DIRECTORY/main.cf && {
     for name in daemon_directory command_directory queue_directory mail_owner \
-	setgid_group sendmail_path newaliases_path mailq_path manpage_path
+	setgid_group sendmail_path newaliases_path mailq_path manpage_directory \
+	sample_directory readme_directory
     do
+	eval junk=\$$name
+	case "$junk" in
+	"") eval unset $name;;
+	esac
 	eval : \${$name=\`bin/postconf -c $CONFIG_DIRECTORY -h $name\`} ||
 	    exit 1
     done
@@ -395,8 +416,13 @@ test -f $CONFIG_DIRECTORY/main.cf && {
 # Use built-in defaults as the final source of parameter settings.
 
 for name in daemon_directory command_directory queue_directory mail_owner \
-    setgid_group sendmail_path newaliases_path mailq_path manpage_path
+    setgid_group sendmail_path newaliases_path mailq_path manpage_directory \
+    sample_directory readme_directory
 do
+    eval junk=\$$name
+    case "$junk" in
+    "") eval unset $name;;
+    esac
     eval : \${$name=\`bin/postconf -d -h $name\`} || exit 1
 done
 
@@ -404,7 +430,7 @@ done
 
 test -z "$non_interactive" && for name in daemon_directory command_directory \
     queue_directory sendmail_path newaliases_path mailq_path mail_owner \
-    setgid_group manpage_path
+    setgid_group manpage_directory sample_directory readme_directory
 do
     while :
     do
@@ -421,28 +447,39 @@ done
 
 # Sanity checks
 
-case $setgid_group in
- no) echo $0: Error: the setgid_group parameter no longer accepts 1>&2
-     echo \"no\" values. Try again with \"setgid_group=groupname\" on the 1>&2
-     echo command line or execute \"make install\" and specify setgid_group 1>&2
-     echo interactively. 1>&2
+case "$setgid_group" in
+ no) (echo $0: Error: the setgid_group parameter no longer accepts 
+     echo \"no\" values. Try again with \"setgid_group=groupname\" on the 
+     echo command line or execute \"make install\" and specify setgid_group
+     echo interactively.) | ${FMT} 1>&2
      exit 1;;
 esac
 
-case $manpage_path in
- no) echo $0: Error: the manpage_path parameter no longer accepts 1>&2
-     echo \"no\" values.  Try again with \"manpage_path=/path/name\" on the 1>&2
-     echo command line or execute \"make install\" and specify manpage_path 1>&2
-     echo interactively. 1>&2
+case "$manpage_directory" in
+ no) (echo $0: Error: the manpage_directory parameter no longer accepts 
+     echo \"no\" values.  Try again with \"manpage_directory=/path/name\" 
+     echo on the command line or execute \"make install\" and specify
+     echo manpage_directory interactively.) | ${FMT} 1>&2
      exit 1;;
 esac
 
-for path in $daemon_directory $command_directory \
-    $queue_directory $sendmail_path $newaliases_path $mailq_path $manpage_path
+for path in "$readme_directory"
 do
-   case $path in
+   case "$path" in
    /*) ;;
-    *) echo $0: Error: $path should be an absolute path name. 1>&2; exit 1;;
+   no) ;;
+    *) echo $0: Error: \"$path\" should be \"no\" or an absolute path name. 1>&2
+       exit 1;;
+   esac
+done
+
+for path in "$daemon_directory" "$command_directory" "$queue_directory" \
+    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory" \
+    "$sample_directory"
+do
+   case "$path" in
+   /*) ;;
+    *) echo $0: Error: \"$path\" should be an absolute path name. 1>&2; exit 1;;
    esac
 done
 
@@ -464,14 +501,14 @@ test -z "$install_root" && {
     }
 
     chown "$mail_owner" $tempdir/junk >/dev/null 2>&1 || {
-	echo $0: Error: $mail_owner needs an entry in the passwd file. 1>&2
-	echo Remember, $mail_owner needs a dedicated user id and group id. 1>&2
+	echo $0: Error: \"$mail_owner\" needs an entry in the passwd file. 1>&2
+	echo Remember, \"$mail_owner\" needs a dedicated user and group id. 1>&2
 	exit 1
     }
 
     chgrp "$setgid_group" $tempdir/junk >/dev/null 2>&1 || {
-	echo $0: Error: $setgid needs an entry in the group file. 1>&2
-	echo Remember, $setgid needs a dedicated group id. 1>&2
+	echo $0: Error: \"$setgid_group\" needs an entry in the group file. 1>&2
+	echo Remember, \"$setgid_group\" needs a dedicated group id. 1>&2
 	exit 1
     }
 
@@ -489,12 +526,18 @@ QUEUE_DIRECTORY=$install_root$queue_directory
 SENDMAIL_PATH=$install_root$sendmail_path
 NEWALIASES_PATH=$install_root$newaliases_path
 MAILQ_PATH=$install_root$mailq_path
-MANPAGE_PATH=$install_root$manpage_path
+MANPAGE_DIRECTORY=$install_root$manpage_directory
+SAMPLE_DIRECTORY=$install_root$sample_directory
+README_DIRECTORY=$install_root$readme_directory
 
 # Avoid repeated tests for existence of these.
 
 test -d $DAEMON_DIRECTORY || mkdir -p $DAEMON_DIRECTORY || exit 1
 test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
+test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
+test -d $SAMPLE_DIRECTORY || mkdir -p $SAMPLE_DIRECTORY || exit 1
+test "$readme_directory" = "no" -o -d $README_DIRECTORY || 
+	mkdir -p $README_DIRECTORY || exit 1
 
 # Upgrade or first-time installation?
 
@@ -551,7 +594,7 @@ do
 
     case $type in
        d) eval path=$install_root$path
-	  test -d $path || {
+	  test "$path" = "${install_root}no" -o -d $path || {
 	      mkdir -p $path || exit 1
 	      test -z "$owner" || chown $owner $path || exit 1
 	      test -z "$group" || chgrp $group $path || exit 1
@@ -586,10 +629,17 @@ do
 	'$newaliases_path')
 	    check_parent $NEWALIASES_PATH || exit 1
 	    compare_or_symlink $SENDMAIL_PATH $NEWALIASES_PATH || exit 1;;
-	'$manpage_path')
-	    check_parent $MANPAGE_PATH/$file || exit 1
-	    compare_or_replace 644 "$owner" "$group" man/$file \
-		$MANPAGE_PATH/$file || exit 1;;
+	'$manpage_directory')
+	    check_parent $MANPAGE_DIRECTORY/$file || exit 1
+	    compare_or_replace $mode "$owner" "$group" man/$file \
+		$MANPAGE_DIRECTORY/$file || exit 1;;
+	'$sample_directory')
+	    compare_or_replace $mode "$owner" "$group" conf/$file \
+		$SAMPLE_DIRECTORY/$file || exit 1;;
+	'$readme_directory')
+	    test "$readme_directory" = "no" ||
+		compare_or_replace $mode "$owner" "$group" README_FILES/$file \
+		    $README_DIRECTORY/$file || exit 1;;
 	 *) echo $0: Error: unknown entry $path in conf/postfix-files; exit 1;;
     esac) || exit 1
 done
@@ -608,11 +658,17 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
     "sendmail_path = $sendmail_path" \
     "mailq_path = $mailq_path" \
     "newaliases_path = $newaliases_path" \
-    "manpage_path = $manpage_path" \
+    "manpage_directory = $manpage_directory" \
+    "sample_directory = $sample_directory" \
+    "readme_directory = $readme_directory" \
 || exit 1
 
 # If Postfix is being installed locally from source code, do the
 # post-install processing now.
 
-test -n "$install_root" ||
+test -n "$install_root" || {
+    export daemon_directory command_directory queue_directory sendmail_path \
+	newaliases_path mailq_path mail_owner setgid_group manpage_directory \
+	sample_directory readme_directory
     ${SHELL} conf/post-install $post_install_options || exit 1
+}

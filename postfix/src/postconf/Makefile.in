@@ -99,9 +99,11 @@ postconf.o: int_vars.h
 postconf.o: str_vars.h
 postconf.o: raw_vars.h
 postconf.o: smtp_vars.h
+postconf.o: install_vars.h
 postconf.o: time_table.h
 postconf.o: bool_table.h
 postconf.o: int_table.h
 postconf.o: str_table.h
 postconf.o: smtp_table.h
+postconf.o: install_table.h
 postconf.o: raw_table.h

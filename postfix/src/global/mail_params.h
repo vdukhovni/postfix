@@ -1396,8 +1396,20 @@ extern int var_fault_inj_code;
 #define DEF_NEWALIAS_PATH		"/usr/bin/newaliases"
 #endif
 
-#define VAR_MANPAGE_PATH		"manpage_path"
-#define DEF_MANPAGE_PATH		"/usr/local/man"
+#define VAR_MANPAGE_DIR			"manpage_directory"
+#ifndef DEF_MANPAGE_DIR
+#define DEF_MANPAGE_DIR			"/usr/local/man"
+#endif
+
+#define VAR_SAMPLE_DIR			"sample_directory"
+#ifndef DEF_SAMPLE_DIR
+#define DEF_SAMPLE_DIR			DEF_CONFIG_DIR
+#endif
+
+#define VAR_README_DIR			"readme_directory"
+#ifndef DEF_README_DIR
+#define DEF_README_DIR			"no"
+#endif
 
 /* LICENSE
 /* .ad

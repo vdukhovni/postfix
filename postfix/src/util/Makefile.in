@@ -498,6 +498,7 @@ dict.o: vbuf.h
 dict.o: vstring.h
 dict.o: readlline.h
 dict.o: mac_parse.h
+dict.o: stringops.h
 dict.o: dict.h
 dict.o: argv.h
 dict.o: dict_ht.h

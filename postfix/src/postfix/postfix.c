@@ -67,7 +67,9 @@
 /*	This is set when the -v command-line option is present.
 /* .IP \fBMAIL_DEBUG\fR
 /*	This is set when the -D command-line option is present.
-/* .PP
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
 /*	The following \fBmain.cf\fR configuration parameters are made
 /*	available as process environment variables with the same names:
 /* .IP \fBcommand_directory\fR
@@ -82,9 +84,27 @@
 /*	communication endpoints, and with files needed for daemon programs
 /*	that run in the optional chrooted environment.
 /* .IP \fBmail_owner\fR
-/*	The owner of Postfix queue files and of most Postfix processes.
+/*      The owner of Postfix queue files and of most Postfix processes.
 /* .IP \fBsetgid_group\fR
-/*	The group for mail submission and queue management commands.
+/*      The group for mail submission and queue management commands.
+/* .IP \fBsendmail_path
+/*       The full pathname for the Postfix sendmail command.
+/* .IP \fBnewaliases_path
+/*       The full pathname for the Postfix newaliases command.
+/* .IP \fBmailq_path
+/*       The full pathname for the Postfix mailq command.
+/* .IP \fBmanpage_directory
+/*       The directory for the Postfix on-line manual pages.
+/* .IP \fBsample_directory
+/*       The directory for the Postfix sample configuration files.
+/* .IP \fBreadme_directory
+/*       The directory for the Postfix README files.
+/* .SH Other configuration parameters
+/* .ad
+/* .fi
+/* .IP \fBimport_environment\fR
+/*	List of names of environment parameters that can be imported
+/*	from non-Postfix processes.
 /* FILES
 /*	$\fBconfig_directory/postfix-script\fR, administrative commands
 /*	$\fBconfig_directory/main.cf\fR, configuration parameters
@@ -122,11 +142,22 @@
 #include <msg_vstream.h>
 #include <msg_syslog.h>
 #include <stringops.h>
+#include <clean_env.h>
+#include <argv.h>
 
 /* Global library. */
 
 #include <mail_conf.h>
 #include <mail_params.h>
+
+/* Additional installation parameters. */
+
+static char *var_sendmail_path;
+static char *var_mailq_path;
+static char *var_newalias_path;
+static char *var_manpage_dir;
+static char *var_sample_dir;
+static char *var_readme_dir;
 
 /* check_setenv - setenv() with extreme prejudice */
 
@@ -147,6 +178,16 @@ int     main(int argc, char **argv)
     int     uid;
     int     fd;
     int     ch;
+    ARGV   *import_env;
+    static CONFIG_STR_TABLE str_table[] = {
+	VAR_SENDMAIL_PATH, DEF_SENDMAIL_PATH, &var_sendmail_path, 1, 0,
+	VAR_MAILQ_PATH, DEF_MAILQ_PATH, &var_mailq_path, 1, 0,
+	VAR_NEWALIAS_PATH, DEF_NEWALIAS_PATH, &var_newalias_path, 1, 0,
+	VAR_MANPAGE_DIR, DEF_MANPAGE_DIR, &var_manpage_dir, 1, 0,
+	VAR_SAMPLE_DIR, DEF_SAMPLE_DIR, &var_sample_dir, 1, 0,
+	VAR_README_DIR, DEF_README_DIR, &var_readme_dir, 1, 0,
+	0,
+    };
 
     /*
      * Be consistent with file permissions.
@@ -213,6 +254,17 @@ int     main(int argc, char **argv)
      * scripts.
      */
     mail_conf_read();
+    get_mail_conf_str_table(str_table);
+
+    /*
+     * Environment import filter, to enforce consistent behavior whether this
+     * command is started by hand, or at system boot time. This is necessary
+     * because some shell scripts use environment settings to override
+     * main.cf settings.
+     */
+    import_env = argv_split(var_import_environ, ", \t\r\n");
+    clean_env(import_env->argv);
+    argv_free(import_env);
 
     check_setenv("PATH", ROOT_PATH);		/* sys_defs.h */
     check_setenv(CONF_ENV_PATH, var_config_dir);/* mail_conf.h */
@@ -221,8 +273,18 @@ int     main(int argc, char **argv)
     check_setenv(VAR_DAEMON_DIR, var_daemon_dir);	/* main.cf */
     check_setenv(VAR_QUEUE_DIR, var_queue_dir);	/* main.cf */
     check_setenv(VAR_CONFIG_DIR, var_config_dir);	/* main.cf */
+
+    /*
+     * Do we want to keep adding things here as shell scripts evolve?
+     */
     check_setenv(VAR_MAIL_OWNER, var_mail_owner);	/* main.cf */
     check_setenv(VAR_SGID_GROUP, var_sgid_group);	/* main.cf */
+    check_setenv(VAR_SENDMAIL_PATH, var_sendmail_path);	/* main.cf */
+    check_setenv(VAR_MAILQ_PATH, var_mailq_path);	/* main.cf */
+    check_setenv(VAR_NEWALIAS_PATH, var_newalias_path);	/* main.cf */
+    check_setenv(VAR_MANPAGE_DIR, var_manpage_dir);	/* main.cf */
+    check_setenv(VAR_SAMPLE_DIR, var_sample_dir);	/* main.cf */
+    check_setenv(VAR_README_DIR, var_readme_dir);	/* main.cf */
 
     /*
      * Make sure these directories exist. Run the maintenance scripts with as

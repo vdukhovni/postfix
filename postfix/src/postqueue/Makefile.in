@@ -66,6 +66,7 @@ postqueue.o: ../../include/argv.h
 postqueue.o: ../../include/safe.h
 postqueue.o: ../../include/connect.h
 postqueue.o: ../../include/iostuff.h
+postqueue.o: ../../include/valid_hostname.h
 postqueue.o: ../../include/mail_proto.h
 postqueue.o: ../../include/attr.h
 postqueue.o: ../../include/mail_params.h
@@ -74,5 +75,6 @@ postqueue.o: ../../include/mail_task.h
 postqueue.o: ../../include/debug_process.h
 postqueue.o: ../../include/mail_run.h
 postqueue.o: ../../include/mail_flush.h
+postqueue.o: ../../include/flush_clnt.h
 postqueue.o: ../../include/smtp_stream.h
 postqueue.o: ../../include/vstring.h

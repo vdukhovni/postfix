@@ -5965,6 +5965,18 @@ Apologies for any names omitted.
 	Bugfix: the rewritten postfix-install script did not chattr
 	+S the Postfix queue.
 
+20020115
+
+	Cleanup: added sample_directory and readme_directory
+	installation parameters for sample configuration files and
+	for README files. Files: postconf.c, postfix-install,
+	conf/postfix-files, conf/post-install.
+
+	Robustness: the postfix command now exports all installation
+	parameter settings, and input filters the environment, so
+	that the startup shell scripts produce a consistent result.
+	Files: postconf.c.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in

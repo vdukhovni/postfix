@@ -1,19 +1,51 @@
-Hints and tips for Postfix packagers
-====================================
+Purpose of this document
+========================
 
-1) The installed main.cf file must be small. PLEASE resist the
-temptation to list all 100 million Postfix parameters in the main.cf
-file.  Postfix is supposed to be easy to configure. Listing all
-100 million parameters in main.cf defeats the purpose.
+This document has hints and tips for those who manage their own
+Postfix distribution for internal use, and for those who maintain
+Postfix distributions for general use.
 
-2) Please provide the sample-xxx files. If these files are not
-installed in the same directory as main.cf, PLEASE update the notice
-at the top of main.cf that advises the user of the existence of
-the sample-xxx files. Without the sample-xxx files, Postfix will 
-be much more difficult to configure.
-    
-Building a package for distribution to other systems
-====================================================
+General distributions: please provide a small default main.cf file
+==================================================================
+
+The installed main.cf file must be small. PLEASE resist the temptation
+to list all 100 million Postfix parameters in the main.cf file.
+Postfix is supposed to be easy to configure. Listing all 100 million
+parameters in main.cf defeats the purpose.
+
+General distributions: please include the sample configuration files
+====================================================================
+
+Please provide the sample-xxx files. If these files are not installed
+in the same directory as main.cf, PLEASE update the notice at the
+top of main.cf that advises the user of the existence of the
+sample-xxx files. Without the sample-xxx files, Postfix will be
+much more difficult to configure.
+
+Postfix Installation parameter defaults
+=======================================
+
+Postfix installation is controlled by a dozen installation parameters.
+See the postfix-install and post-install files for details. Built-in
+default settings can be changed at compile time with:
+
+    % make makefiles CCARGS=whatever
+
+Names of C symbolic constants and their meaning:
+
+    DEF_CONFIG_DIR          default configuration directory
+    DEF_QUEUE_DIR           default queue directory
+    DEF_DAEMON_DIR          default daemon directory
+    DEF_COMMAND_DIR         default command directory
+    DEF_SENDMAIL_PATH       default Postfix sendmail command
+    DEF_MAILQ_PATH          default Postfix mailq command
+    DEF_NEWALIAS_PATH       default Postfix newaliases command
+    DEF_MANPAGE_DIR         default manual page directory
+    DEF_SAMPLE_DIR          default directory for sample configuration files
+    DEF_README_DIR          default directory for README files
+
+Preparing a pre-built package for distribution to other systems
+===============================================================
 
 You can build a Postfix package on a machine that does not have
 Postfix installed on it. All you need is Postfix source code and
@@ -32,12 +64,13 @@ installation parameter settings will be recorded in the main.cf
 file, but they won't take effect until the package is unpacked and
 installed on the destination machine.
 
-If you want to fully automate the process, specify all the non-default
-installation parameters on the command line:
+If you want to fully automate this process, specify all the
+non-default installation parameters on the command line:
 
     % sh postfix-install -non-interactive install_root=/some/where ...
 
 Begin Security Alert.
+---------------------
 
 When building an archive for distribution, be sure to archive only
 files and symbolic links, not their parent directories.  Otherwise,
@@ -47,14 +80,17 @@ ownership of system directories such as / /etc /usr /usr/bin /var
 postfix-install (see above) as an unprivileged user.
 
 End Security Alert.
+-------------------
 
-Thus, instead of simply tarring up a pre-built tree it is much
-safer if you jump the following hoops:
+Thus, to tar up the pre-built package, take the following steps:
 
-    % cd /install/root
-    % rm -f /some/where/outputfile
-    % find . \! -type d -print | xargs tar rf /some/where/outputfile
-    % gzip /some/where/outputfile
+    % cd INSTALL_ROOT
+    % rm -f SOMEWHERE/outputfile
+    % find . \! -type d -print | xargs tar rf SOMEWHERE/outputfile
+    % gzip SOMEWHERE/outputfile
+
+This way you will not include any directories that might cause trouble
+upon extraction.
 
 Installing a pre-built Postfix package
 ======================================
