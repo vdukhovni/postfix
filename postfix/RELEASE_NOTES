@@ -12,19 +12,21 @@ server state just like RSET. This behavior cannot be disabled.
 Major changes with snapshot-20010522
 ====================================
 
-Revision of some fine details in the light of the new RFC 2821 and
-RFC 2822 standards. Changes that may affect interoperability are
-listed above under "incompatible changes".
+This release contains revisions of some fine details in the light
+of the new RFC 2821 and RFC 2822 standards. Changes that may affect
+interoperability are listed above under "incompatible changes".
+
+The postsuper tool can rename files whose queue ID does not match
+the queue file inode number. This is necessary when a Postfix mail
+queue is restored from another machine or from backups. The feature
+is selected with the -s option, which is the default.
 
 The postsuper queue maintenance tool was extended with options to
-read queue IDs from standard input (which makes it easier to drive
-the tool from scripts).
+read queue IDs from standard input. This makes the tool easier to
+drive from scripts.
 
 The postsuper queue maintenance tool has a new -r (requeue) option
 for subjecting queue files to another iteration of address rewriting.
-
-The postsuper -R option requeues all mail. This is necessary after
-restoring Postfix queues from another machine or from backups.
 
 Major changes with snapshot-20010502
 ====================================

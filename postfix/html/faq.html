@@ -3063,13 +3063,61 @@ that the file name will collide with another queue file.
 
 <p>
 
-To avoid queue file name collisions when copying queue files,
-restore the incoming, active and deferred queue files under the
-maildrop directory instead.
+<ul>
+
+<li>If your Postfix queue is empty, and if you run a Postfix release
+after 20010524, you can use this procedure to copy a Postfix
+queue from another machine or to restore it from backup.
 
 <p>
 
-As of late 2000, Postfix queues are all hashed (for example, file
+<ul>
+
+<li> Stop Postfix, if it was running.
+
+<p>
+
+<li> Execute the <b>mailq</b> command. If there is any output, do
+not complete this procedure, but use the second procedure instead.
+
+<p>
+
+<li> Copy or restore the queue to the usual place.
+
+<p>
+
+<li> Run the <b>postsuper</b> command. This command will rename
+queue files so that the name matches the message file inode number.
+
+</ul>
+
+<p>
+
+<li> If your Postfix queue is not empty, or if you are running a
+Postfix release prior to 20010524, use the following procedure
+instead.
+
+<p>
+
+<ul>
+
+<li>Stop Postfix, if it was running.
+
+<p>
+
+<li> To avoid queue file name collisions when restoring queue files,
+copy or restore the incoming, active and deferred queue files under
+the maildrop directory instead.
+
+<p>
+
+<li>While the next step is going on, don't submit new mail locally,
+because that could collide with the files you are restoring under
+the maildrop directory.
+
+<p>
+
+<li>As of late 2000, Postfix queues are all hashed (for example, file
 ABCDEF is stored as A/B/ABCDEF), so you need an additional step to
 move files down from their subdirectories.
 
@@ -3083,14 +3131,14 @@ move files down from their subdirectories.
     # postfix start
 </pre>
 
-While all this is going on, don't submit new mail locally, because
-that could collide with the files you are restoring under the
-maildrop directory.
-
 <p>
 
-When Postfix is started, it will pick up queue files from the
+<li>When Postfix is started, it will pick up queue files from the
 maildrop directory and will give them proper queue file names.
+
+</ul>
+
+</ul>
 
 <hr>
 

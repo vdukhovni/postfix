@@ -5187,13 +5187,18 @@ Apologies for any names omitted.
 
 20010522
 
-	Feature: "postsuper -r queueID" re-queues a message. The
-	message is moved to the maildrop queue so that the pickup
-	daemon will copy it to a new file with the "right" name
-	that matches the queue file inode number, and so that
-	address rewriting will be done again. This is useful after
-	changes of address rewriting or virtual mappings.
+	Feature: "postsuper -r queueID" re-queues a message, and
+	"postsuper -R" re-queues all mail. The message is moved to
+	the maildrop queue so that the pickup daemon will copy it
+	to a new queue file, and so that address rewriting will be
+	done again. This is useful after changes of address rewriting
+	or virtual mappings.
 
-	Feature: "postsuper -R" re-queues all mail. This is useful
-	after restoring a Postfix queue from another machine, or
-	from backup.
+20010523
+
+	Feature: "postsuper -s" (which is done by default) renames
+	queue files whose queue ID does not match the message file
+	inode number.
+
+	Bugfix: memory leak in the LDAP client module. Alain
+	Thivillon,France Teaser - Groupe Firstream.

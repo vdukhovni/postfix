@@ -174,9 +174,6 @@ check)
 		\( -perm -020 -o -perm -002 \) \
 		-exec $WARN group or other writable: {} \;
 
-	find $queue_directory/* $config_directory/* -name '*core' \
-		-exec $WARN core file: {} \; 2>/dev/null
-
 	test -d maildrop || {
 		$WARN creating missing Postfix maildrop directory
 		mkdir maildrop || exit 1
@@ -254,10 +251,11 @@ EOF
 		$command_directory/postconf -e hash_queue_names="$found$missing"
 	}
 
-	# See if all queue files are in the right place.
+	# See if all queue files are in the right place. This is slow.
+	# We must scan all queues for mis-named queue files before the
+	# mail system can run.
 
-	$command_directory/postsuper active
-	$command_directory/postsuper &
+	$command_directory/postsuper || exit 1
 
 	find corrupt -type f -exec $WARN damaged message: {} \;
 
