@@ -2095,6 +2095,12 @@ you use the default Postfix local delivery agent:
 
 <p>
 
+You need the <b>proxy:</b> part only if <b>master.cf</b> specifies
+that the Postfix SMTP server runs chrooted. As distributed by the
+author, Postfix runs no daemons chrooted.
+
+<p>
+
 The local recipients tables are searched by the recipient address
 (user@domain) and by the recipient name (the address minus the
 domain). Postfix does not care what the lookup result looks like,

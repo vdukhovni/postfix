@@ -22,6 +22,16 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.1-20030112
+=========================================================
+
+The Postfix build procedure now uses the pcre-config utility (part
+of PCRE version 3) to find out the pathnames of the PCRE include
+file and object library, instead of probing /usr/include and/or
+/usr/lib. To build with PCRE version 2 support you will have to
+specify pathnames as described in PCRE_README. To build without
+PCRE support, specify:  make Makefiles CCARGS="-DNO_PRCE".
+
 Incompatible changes with Postfix snapshot 2.0.0-20030104
 =========================================================
 

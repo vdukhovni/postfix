@@ -68,7 +68,6 @@
 typedef struct {
     DICT    dict;			/* generic members */
     int     in_flags;			/* caller-specified flags */
-    CLNT_STREAM *client;		/* server handle */
     VSTRING *result;			/* storage */
 } DICT_PROXY;
 

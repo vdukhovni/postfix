@@ -202,8 +202,9 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 	PROXY_MAP_FIND_ERROR_RETURN(PROXY_STAT_BAD);
     if (htable_locate(proxy_read_maps, map_type_name) == 0) {
 	msg_warn("request for unapproved table: \"%s\"", map_type_name);
-	msg_warn("to approve a table for %s access, specify it in %s with %s",
-		 MAIL_SERVICE_PROXYMAP, MAIN_CONF_FILE, VAR_PROXY_READ_MAPS);
+	msg_warn("to approve this table for %s access, list %s:%s in %s:%s",
+		 MAIL_SERVICE_PROXYMAP, DICT_TYPE_PROXY, map_type_name,
+		 MAIN_CONF_FILE, VAR_PROXY_READ_MAPS);
 	PROXY_MAP_FIND_ERROR_RETURN(PROXY_STAT_DENY);
     }
 

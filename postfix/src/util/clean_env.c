@@ -6,8 +6,8 @@
 /* SYNOPSIS
 /*	#include <clean_env.h>
 /*
-/*	void	clean_env(export_list)
-/*	const char **export_list;
+/*	void	clean_env(preserve_list)
+/*	const char **preserve_list;
 /* DESCRIPTION
 /*	clean_env() reduces the process environment to the bare minimum.
 /*	The function takes a null-terminated list of arguments.
@@ -43,7 +43,7 @@
 
 /* clean_env - clean up the environment */
 
-void    clean_env(char **export_list)
+void    clean_env(char **preserve_list)
 {
     extern char **environ;
     ARGV   *save_list;
@@ -54,7 +54,7 @@ void    clean_env(char **export_list)
      * Preserve selected environment variables.
      */
     save_list = argv_alloc(10);
-    for (cpp = export_list; *cpp; cpp++)
+    for (cpp = preserve_list; *cpp; cpp++)
 	if ((value = safe_getenv(*cpp)) != 0)
 	    argv_add(save_list, *cpp, value, (char *) 0);
     argv_terminate(save_list);

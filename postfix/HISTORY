@@ -7720,6 +7720,21 @@ Apologies for any names omitted.
 	We need a better process retirement strategy. File:
 	master/multi_server.c.
 
+20030110
+
+	Cleanup: the virtual_mailbox_maps parameter is now optional
+	even when virtual_mailbox_domains is. This makes virtual
+	mailbox domains more like relay domains and the local
+	domain.
+
+	Portability: the makedefs script now uses the pcre-config
+	utility to find out where things are installed.
+
+	Bugfix: the SMTP server did not recognize the local built-in
+	double bounce address as local. Reported by Matthias Andree.
+	For safety sake, threw in the local postmaster address as
+	well.  File:  smtpd/smtpd_check.c.
+
 Open problems:
 
 	Med: make qmgr recipient bounce/defer activity asynchronous

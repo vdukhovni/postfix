@@ -24,6 +24,7 @@ exec sed '
 	s/[<bB>]*smtp[</bB>]*(8)/<a href="smtp.8.html">&<\/a>/
 	s/[<bB>]*smtpd[</bB>]*(8)/<a href="smtpd.8.html">&<\/a>/
 	s/[<bB>]*spawn[</bB>]*(8)/<a href="spawn.8.html">&<\/a>/
+	s/[<bB>]*trace[</bB>]*(8)/<a href="trace.8.html">&<\/a>/
 	s/[<bB>]*triv[-</bB>]*\n*[ <bB>]*ial[-</bB>]*\n*[ <bB>]*rewrite[</bB>]*(8)/<a href="trivial-rewrite.8.html">&<\/a>/
 	s/[<bB>]*mailq[</bB>]*(1)/<a href="mailq.1.html">&<\/a>/
 	s/[<bB>]*newaliases[</bB>]*(1)/<a href="newaliases.1.html">&<\/a>/
