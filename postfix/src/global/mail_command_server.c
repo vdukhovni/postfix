@@ -1,14 +1,15 @@
 /*++
 /* NAME
-/*	mail_command_read 3
+/*	mail_command_server 3
 /* SUMMARY
 /*	single-command server
 /* SYNOPSIS
 /*	#include <mail_proto.h>
 /*
-/*	int	mail_command_read(stream, format, ...)
+/*	int	mail_command_server(stream, type, name, ...)
 /*	VSTREAM	*stream;
-/*	char	*format;
+/*	int	type;
+/*	const char *name;
 /* DESCRIPTION
 /*	This module implements the server interface for single-command
 /*	requests: a clients sends a single command and expects a single
@@ -17,13 +18,15 @@
 /*	Arguments:
 /* .IP stream
 /*	Server endpoint.
-/* .IP format
-/*	Format string understood by mail_print(3) and mail_scan(3).
+/* .IP "type, name, ..."
+/*	Attribute list as defined in attr_scan(3).
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* SEE ALSO
-/*	mail_scan(3)
-/*	mail_command_write(3) client interface
+/*	attr_scan(3)
+/*	mail_command_client(3) client interface
+/*	mail_proto(3h), client-server protocol
+#include <mail_proto.h>
 /* LICENSE
 /* .ad
 /* .fi
@@ -44,26 +47,21 @@
 
 /* Utility library. */
 
-#include <vstring.h>
 #include <vstream.h>
 
 /* Global library. */
 
 #include "mail_proto.h"
 
-/* mail_command_read - read single-command request */
+/* mail_command_server - read single-command request */
 
-int     mail_command_read(VSTREAM *stream, char *fmt,...)
+int     mail_command_server(VSTREAM *stream,...)
 {
-    VSTRING *eof = vstring_alloc(10);
     va_list ap;
     int     count;
 
-    va_start(ap, fmt);
-    count = mail_vscan(stream, fmt, ap);
+    va_start(ap, stream);
+    count = attr_vscan(stream, ATTR_FLAG_MISSING, ap);
     va_end(ap);
-    if (mail_scan(stream, "%s", eof) != 1 || strcmp(vstring_str(eof), MAIL_EOF))
-	count = -1;
-    vstring_free(eof);
     return (count);
 }

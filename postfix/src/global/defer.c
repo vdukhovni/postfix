@@ -145,9 +145,13 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
     const char *rcpt_domain;
 
     vstring_vsprintf(why, fmt, ap);
-    if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
-			   "%d %d %s %s %s", BOUNCE_CMD_APPEND,
-			   flags, id, recipient, vstring_str(why)) != 0)
+    if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+			    ATTR_TYPE_NUM, MAIL_ATTR_REQ, BOUNCE_CMD_APPEND,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
+			    ATTR_TYPE_END) != 0)
 	msg_warn("%s: defer service failure", id);
     msg_info("%s: to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
 	     id, recipient, relay, delay, vstring_str(why));
@@ -175,9 +179,13 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
 int     defer_flush(int flags, const char *queue, const char *id,
 		            const char *sender)
 {
-    if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
-			   "%d %d %s %s %s", BOUNCE_CMD_FLUSH,
-			   flags, queue, id, sender) == 0) {
+    if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+			   ATTR_TYPE_NUM, MAIL_ATTR_REQ, BOUNCE_CMD_FLUSH,
+			   ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
+			   ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			   ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			   ATTR_TYPE_END) == 0) {
 	return (0);
     } else {
 	return (-1);
@@ -190,9 +198,13 @@ int     defer_flush(int flags, const char *queue, const char *id,
 int     defer_warn(int flags, const char *queue, const char *id,
 		           const char *sender)
 {
-    if (mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
-			   "%d %d %s %s %s", BOUNCE_CMD_WARN,
-			   flags, queue, id, sender) == 0) {
+    if (mail_command_client(MAIL_CLASS_PRIVATE, MAIL_SERVICE_DEFER,
+			   ATTR_TYPE_NUM, MAIL_ATTR_REQ, BOUNCE_CMD_WARN,
+			   ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
+			   ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			   ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			   ATTR_TYPE_END) == 0) {
 	return (0);
     } else {
 	return (-1);

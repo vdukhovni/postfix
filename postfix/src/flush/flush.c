@@ -540,31 +540,48 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * All connection-management stuff is handled by the common code in
      * single_server.c.
      */
-    if (mail_scan(client_stream, "%s", request) == 1) {
+    if (attr_scan(client_stream, ATTR_FLAG_MORE | ATTR_FLAG_EXTRA | ATTR_FLAG_MISSING,
+		  ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
+		  ATTR_TYPE_END) == 1) {
 	if (STREQ(STR(request), FLUSH_REQ_ADD)) {
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);
-	    if (mail_command_read(client_stream, "%s %s", site, queue_id) == 2
+	    if (attr_scan(client_stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+		     ATTR_TYPE_STR, MAIL_ATTR_SITE, site, ATTR_FLAG_MISSING,
+			  ATTR_TYPE_STR, MAIL_ATTR_SITE, queue_id,
+			  ATTR_TYPE_END) == 2
 		&& mail_queue_id_ok(STR(queue_id)))
 		status = flush_add_service(lowercase(STR(site)), STR(queue_id));
-	    mail_print(client_stream, "%d", status);
+	    attr_print(client_stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+		       ATTR_TYPE_END);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
 	    site = vstring_alloc(10);
-	    if (mail_command_read(client_stream, "%s", site) == 1)
+	    if (attr_scan(client_stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+			  ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
+			  ATTR_TYPE_END) == 1)
 		status = flush_send_service(lowercase(STR(site)));
-	    mail_print(client_stream, "%d", status);
+	    attr_print(client_stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+		       ATTR_TYPE_END);
 	} else if (STREQ(STR(request), FLUSH_REQ_REFRESH)
 		   || STREQ(STR(request), wakeup)) {
-	    mail_print(client_stream, "%d", FLUSH_STAT_OK);
+	    attr_print(client_stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, FLUSH_STAT_OK,
+		       ATTR_TYPE_END);
 	    vstream_fflush(client_stream);
 	    (void) flush_refresh_service(var_fflush_refresh);
 	} else if (STREQ(STR(request), FLUSH_REQ_PURGE)) {
-	    mail_print(client_stream, "%d", FLUSH_STAT_OK);
+	    attr_print(client_stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, FLUSH_STAT_OK,
+		       ATTR_TYPE_END);
 	    vstream_fflush(client_stream);
 	    (void) flush_refresh_service(0);
 	}
     } else
-	mail_print(client_stream, "%d", status);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+		   ATTR_TYPE_END);
     vstring_free(request);
     if (site)
 	vstring_free(site);

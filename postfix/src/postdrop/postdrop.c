@@ -241,7 +241,9 @@ int     main(int argc, char **argv)
      */
     dst = mail_stream_file(MAIL_QUEUE_MAILDROP, MAIL_CLASS_PUBLIC,
 			   MAIL_SERVICE_PICKUP);
-    mail_print(VSTREAM_OUT, "%s", dst->id);
+    attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
+	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, dst->id,
+	       ATTR_TYPE_END);
     vstream_fflush(VSTREAM_OUT);
     postdrop_path = mystrdup(VSTREAM_PATH(dst->stream));
 
@@ -302,7 +304,9 @@ int     main(int argc, char **argv)
     /*
      * Send the completion status to the caller and terminate.
      */
-    mail_print(VSTREAM_OUT, "%d", status);
+    attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
+	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+	       ATTR_TYPE_END);
     vstream_fflush(VSTREAM_OUT);
     exit(status);
 }

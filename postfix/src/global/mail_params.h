@@ -373,6 +373,10 @@ extern char *var_home_mailbox;
 #define DEF_MAILBOX_COMMAND	""
 extern char *var_mailbox_command;
 
+#define VAR_MAILBOX_CMD_MAPS	"mailbox_command_maps"
+#define DEF_MAILBOX_CMD_MAPS	""
+extern char *var_mailbox_cmd_maps;
+
 #define VAR_MAILBOX_TRANSP	"mailbox_transport"
 #define DEF_MAILBOX_TRANSP	""
 extern char *var_mailbox_transport;

@@ -139,8 +139,12 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
     /*
      * Negotiate with the cleanup service. Give up if we can't agree.
      */
-    if (mail_scan(stream, "%s", id) != 1
-	|| mail_print(stream, "%d", flags) != 0)
+    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+		  ATTR_TYPE_END) != 1
+	|| attr_print(stream, ATTR_FLAG_NONE,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to contact the %s service", MAIL_SERVICE_CLEANUP);
 
     /*
@@ -232,7 +236,9 @@ int     post_mail_fclose(VSTREAM *cleanup)
     } else {
 	rec_fputs(cleanup, REC_TYPE_XTRA, "");
 	rec_fputs(cleanup, REC_TYPE_END, "");
-	if (vstream_fflush(cleanup) || mail_scan(cleanup, "%d", &status) != 1)
+	if (vstream_fflush(cleanup) || attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+				   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+						 ATTR_TYPE_END) != 1)
 	    status = CLEANUP_STAT_WRITE;
     }
     (void) vstream_fclose(cleanup);

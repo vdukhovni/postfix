@@ -24,7 +24,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
 	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c \
 	sane_socketpair.c myrand.c netstring.c ctable.c attr_print.c intv.c \
-	attr_scan.c
+	attr_scan.c attr_table.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -50,7 +50,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
 	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o \
 	sane_socketpair.o myrand.o netstring.o ctable.o attr_print.o intv.o \
-	attr_scan.o
+	attr_scan.o attr_table.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -67,7 +67,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
 	watchdog.h spawn_command.h sane_fsops.h dict_tcp.h hex_quote.h \
 	sane_time.h sane_socketpair.h myrand.h netstring.h ctable.h \
-	attr_io.h intv.h
+	intv.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -84,7 +84,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
 	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable \
-	inet_addr_list attr_print attr_scan
+	inet_addr_list attr_print attr_scan attr_table
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -298,6 +298,11 @@ attr_scan: $(LIB) $@.o
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+attr_table: $(LIB) $@.o
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
 	set -e; for i in [a-z][a-z0-9]*.c; do \
@@ -369,24 +374,43 @@ argv_split.o: vbuf.h
 argv_split.o: argv.h
 attr.o: attr.c
 attr.o: sys_defs.h
+attr.o: msg.h
 attr.o: mymalloc.h
 attr.o: htable.h
 attr.o: attr.h
+attr.o: vstream.h
+attr.o: vbuf.h
 attr_print.o: attr_print.c
 attr_print.o: sys_defs.h
+attr_print.o: msg.h
+attr_print.o: mymalloc.h
 attr_print.o: vstream.h
 attr_print.o: vbuf.h
-attr_print.o: msg.h
-attr_print.o: attr_io.h
+attr_print.o: htable.h
+attr_print.o: attr.h
 attr_scan.o: attr_scan.c
 attr_scan.o: sys_defs.h
+attr_scan.o: msg.h
+attr_scan.o: mymalloc.h
 attr_scan.o: vstream.h
 attr_scan.o: vbuf.h
 attr_scan.o: vstring.h
-attr_scan.o: msg.h
 attr_scan.o: argv.h
 attr_scan.o: intv.h
-attr_scan.o: attr_io.h
+attr_scan.o: attr.h
+attr_scan.o: htable.h
+attr_table.o: attr_table.c
+attr_table.o: sys_defs.h
+attr_table.o: msg.h
+attr_table.o: htable.h
+attr_table.o: mymalloc.h
+attr_table.o: vstring.h
+attr_table.o: vbuf.h
+attr_table.o: vstream.h
+attr_table.o: vstring_vstream.h
+attr_table.o: argv.h
+attr_table.o: intv.h
+attr_table.o: attr.h
 basename.o: basename.c
 basename.o: sys_defs.h
 basename.o: stringops.h

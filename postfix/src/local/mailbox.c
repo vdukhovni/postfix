@@ -72,6 +72,7 @@
 #include <mail_params.h>
 #include <deliver_pass.h>
 #include <mbox_open.h>
+#include <maps.h>
 
 #ifndef EDQUOT
 #define EDQUOT EFBIG
@@ -84,6 +85,8 @@
 
 #define YES	1
 #define NO	0
+
+const char *map_command;		/* XXX */
 
 /* deliver_mailbox_file - deliver to recipient mailbox */
 
@@ -233,6 +236,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     int     status;
     struct mypasswd *mbox_pwd;
     char   *path;
+    static MAPS *cmd_maps;
 
     /*
      * Make verbose logging easier to understand.
@@ -280,9 +284,21 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      */
 #define LAST_CHAR(s) (s[strlen(s) - 1])
 
-    if (*var_mailbox_command)
+    if (*var_mailbox_cmd_maps) {
+	if (cmd_maps == 0)
+	    cmd_maps = maps_create(VAR_MAILBOX_CMD_MAPS, var_mailbox_cmd_maps,
+				   DICT_FLAG_LOCK);
+	if ((map_command = maps_find(cmd_maps, state.msg_attr.user,
+				 DICT_FLAG_FIXED)) != 0) {
+	    status = deliver_command(state, usr_attr, map_command);
+	} else {
+	    msg_warn("user %s not found in %s",
+		     state.msg_attr.user, var_mailbox_cmd_maps);
+	    return (NO);
+	}
+    } else if (*var_mailbox_command) {
 	status = deliver_command(state, usr_attr, var_mailbox_command);
-    else if (*var_home_mailbox && LAST_CHAR(var_home_mailbox) == '/') {
+    } else if (*var_home_mailbox && LAST_CHAR(var_home_mailbox) == '/') {
 	path = concatenate(usr_attr.home, "/", var_home_mailbox, (char *) 0);
 	status = deliver_maildir(state, usr_attr, path);
 	myfree(path);

@@ -4,11 +4,11 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	deliver_flock.c deliver_pass.c deliver_request.c domain_list.c \
 	dot_lockfile.c dot_lockfile_as.c ext_prop.c file_id.c \
 	header_opts.c is_header.c mail_addr.c mail_addr_crunch.c \
-	mail_addr_find.c mail_addr_map.c mail_command_read.c \
-	mail_command_write.c mail_conf.c mail_conf_bool.c mail_conf_int.c \
+	mail_addr_find.c mail_addr_map.c mail_command_server.c \
+	mail_command_client.c mail_conf.c mail_conf_bool.c mail_conf_int.c \
 	mail_conf_raw.c mail_conf_str.c mail_connect.c mail_copy.c \
 	mail_date.c mail_error.c mail_flush.c mail_open_ok.c mail_params.c \
-	mail_pathname.c mail_print.c mail_queue.c mail_run.c mail_scan.c \
+	mail_pathname.c mail_queue.c mail_run.c \
 	mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c maps.c \
 	mark_corrupt.c mkmap_db.c mkmap_dbm.c mkmap_open.c mynetworks.c \
 	mypwd.c namadr_list.c off_cvt.c opened.c own_inet_addr.c \
@@ -25,11 +25,11 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
 	dot_lockfile.o dot_lockfile_as.o ext_prop.o file_id.o \
 	header_opts.o is_header.o mail_addr.o mail_addr_crunch.o \
-	mail_addr_find.o mail_addr_map.o mail_command_read.o \
-	mail_command_write.o mail_conf.o mail_conf_bool.o mail_conf_int.o \
+	mail_addr_find.o mail_addr_map.o mail_command_server.o \
+	mail_command_client.o mail_conf.o mail_conf_bool.o mail_conf_int.o \
 	mail_conf_raw.o mail_conf_str.o mail_connect.o mail_copy.o \
 	mail_date.o mail_error.o mail_flush.o mail_open_ok.o mail_params.o \
-	mail_pathname.o mail_print.o mail_queue.o mail_run.o mail_scan.o \
+	mail_pathname.o mail_queue.o mail_run.o \
 	mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o maps.o \
 	mark_corrupt.o mkmap_db.o mkmap_dbm.o mkmap_open.o mynetworks.o \
 	mypwd.o namadr_list.o off_cvt.o opened.o own_inet_addr.o \
@@ -254,6 +254,8 @@ abounce.o: ../../include/vstream.h
 abounce.o: ../../include/vbuf.h
 abounce.o: mail_proto.h
 abounce.o: ../../include/iostuff.h
+abounce.o: ../../include/attr.h
+abounce.o: ../../include/htable.h
 abounce.o: abounce.h
 abounce.o: bounce.h
 been_here.o: been_here.c
@@ -274,6 +276,8 @@ bounce.o: mail_params.h
 bounce.o: mail_proto.h
 bounce.o: ../../include/vstream.h
 bounce.o: ../../include/iostuff.h
+bounce.o: ../../include/attr.h
+bounce.o: ../../include/htable.h
 bounce.o: defer.h
 bounce.o: bounce.h
 bounce_log.o: bounce_log.c
@@ -308,6 +312,8 @@ clnt_stream.o: ../../include/vbuf.h
 clnt_stream.o: ../../include/events.h
 clnt_stream.o: ../../include/iostuff.h
 clnt_stream.o: mail_proto.h
+clnt_stream.o: ../../include/attr.h
+clnt_stream.o: ../../include/htable.h
 clnt_stream.o: mail_params.h
 clnt_stream.o: clnt_stream.h
 debug_peer.o: debug_peer.c
@@ -331,6 +337,8 @@ defer.o: mail_queue.h
 defer.o: ../../include/vstream.h
 defer.o: mail_proto.h
 defer.o: ../../include/iostuff.h
+defer.o: ../../include/attr.h
+defer.o: ../../include/htable.h
 defer.o: flush_clnt.h
 defer.o: bounce.h
 defer.o: defer.h
@@ -365,6 +373,8 @@ deliver_pass.o: deliver_request.h
 deliver_pass.o: recipient_list.h
 deliver_pass.o: mail_proto.h
 deliver_pass.o: ../../include/iostuff.h
+deliver_pass.o: ../../include/attr.h
+deliver_pass.o: ../../include/htable.h
 deliver_request.o: deliver_request.c
 deliver_request.o: ../../include/sys_defs.h
 deliver_request.o: ../../include/msg.h
@@ -376,6 +386,8 @@ deliver_request.o: ../../include/iostuff.h
 deliver_request.o: ../../include/myflock.h
 deliver_request.o: mail_queue.h
 deliver_request.o: mail_proto.h
+deliver_request.o: ../../include/attr.h
+deliver_request.o: ../../include/htable.h
 deliver_request.o: mail_open_ok.h
 deliver_request.o: recipient_list.h
 deliver_request.o: deliver_request.h
@@ -419,6 +431,8 @@ flush_clnt.o: ../../include/vstream.h
 flush_clnt.o: ../../include/vbuf.h
 flush_clnt.o: mail_proto.h
 flush_clnt.o: ../../include/iostuff.h
+flush_clnt.o: ../../include/attr.h
+flush_clnt.o: ../../include/htable.h
 flush_clnt.o: mail_flush.h
 flush_clnt.o: flush_clnt.h
 flush_clnt.o: mail_params.h
@@ -477,19 +491,22 @@ mail_addr_map.o: mail_addr_find.h
 mail_addr_map.o: maps.h
 mail_addr_map.o: mail_addr_crunch.h
 mail_addr_map.o: mail_addr_map.h
-mail_command_read.o: mail_command_read.c
-mail_command_read.o: ../../include/sys_defs.h
-mail_command_read.o: ../../include/vstring.h
-mail_command_read.o: ../../include/vbuf.h
-mail_command_read.o: ../../include/vstream.h
-mail_command_read.o: mail_proto.h
-mail_command_read.o: ../../include/iostuff.h
-mail_command_write.o: mail_command_write.c
-mail_command_write.o: ../../include/sys_defs.h
-mail_command_write.o: ../../include/vstream.h
-mail_command_write.o: ../../include/vbuf.h
-mail_command_write.o: mail_proto.h
-mail_command_write.o: ../../include/iostuff.h
+mail_command_client.o: mail_command_client.c
+mail_command_client.o: ../../include/sys_defs.h
+mail_command_client.o: ../../include/vstream.h
+mail_command_client.o: ../../include/vbuf.h
+mail_command_client.o: mail_proto.h
+mail_command_client.o: ../../include/iostuff.h
+mail_command_client.o: ../../include/attr.h
+mail_command_client.o: ../../include/htable.h
+mail_command_server.o: mail_command_server.c
+mail_command_server.o: ../../include/sys_defs.h
+mail_command_server.o: ../../include/vstream.h
+mail_command_server.o: ../../include/vbuf.h
+mail_command_server.o: mail_proto.h
+mail_command_server.o: ../../include/iostuff.h
+mail_command_server.o: ../../include/attr.h
+mail_command_server.o: ../../include/htable.h
 mail_conf.o: mail_conf.c
 mail_conf.o: ../../include/sys_defs.h
 mail_conf.o: ../../include/msg.h
@@ -553,6 +570,8 @@ mail_connect.o: ../../include/iostuff.h
 mail_connect.o: ../../include/mymalloc.h
 mail_connect.o: timed_ipc.h
 mail_connect.o: mail_proto.h
+mail_connect.o: ../../include/attr.h
+mail_connect.o: ../../include/htable.h
 mail_copy.o: mail_copy.c
 mail_copy.o: ../../include/sys_defs.h
 mail_copy.o: ../../include/msg.h
@@ -585,6 +604,8 @@ mail_flush.o: mail_proto.h
 mail_flush.o: ../../include/vstream.h
 mail_flush.o: ../../include/vbuf.h
 mail_flush.o: ../../include/iostuff.h
+mail_flush.o: ../../include/attr.h
+mail_flush.o: ../../include/htable.h
 mail_flush.o: mail_flush.h
 mail_open_ok.o: mail_open_ok.c
 mail_open_ok.o: ../../include/sys_defs.h
@@ -610,6 +631,8 @@ mail_params.o: mail_version.h
 mail_params.o: mail_proto.h
 mail_params.o: ../../include/vstream.h
 mail_params.o: ../../include/iostuff.h
+mail_params.o: ../../include/attr.h
+mail_params.o: ../../include/htable.h
 mail_params.o: verp_sender.h
 mail_params.o: mail_params.h
 mail_pathname.o: mail_pathname.c
@@ -620,6 +643,8 @@ mail_pathname.o: ../../include/vbuf.h
 mail_pathname.o: mail_proto.h
 mail_pathname.o: ../../include/vstream.h
 mail_pathname.o: ../../include/iostuff.h
+mail_pathname.o: ../../include/attr.h
+mail_pathname.o: ../../include/htable.h
 mail_print.o: mail_print.c
 mail_print.o: ../../include/sys_defs.h
 mail_print.o: ../../include/msg.h
@@ -628,6 +653,8 @@ mail_print.o: ../../include/vstream.h
 mail_print.o: ../../include/vbuf.h
 mail_print.o: mail_proto.h
 mail_print.o: ../../include/iostuff.h
+mail_print.o: ../../include/attr.h
+mail_print.o: ../../include/htable.h
 mail_queue.o: mail_queue.c
 mail_queue.o: ../../include/sys_defs.h
 mail_queue.o: ../../include/msg.h
@@ -663,6 +690,8 @@ mail_scan.o: ../../include/vstring_vstream.h
 mail_scan.o: ../../include/mymalloc.h
 mail_scan.o: mail_proto.h
 mail_scan.o: ../../include/iostuff.h
+mail_scan.o: ../../include/attr.h
+mail_scan.o: ../../include/htable.h
 mail_scan_dir.o: mail_scan_dir.c
 mail_scan_dir.o: ../../include/sys_defs.h
 mail_scan_dir.o: ../../include/scan_dir.h
@@ -679,6 +708,8 @@ mail_stream.o: ../../include/argv.h
 mail_stream.o: cleanup_user.h
 mail_stream.o: mail_proto.h
 mail_stream.o: ../../include/iostuff.h
+mail_stream.o: ../../include/attr.h
+mail_stream.o: ../../include/htable.h
 mail_stream.o: mail_queue.h
 mail_stream.o: opened.h
 mail_stream.o: mail_params.h
@@ -701,6 +732,8 @@ mail_trigger.o: mail_params.h
 mail_trigger.o: mail_proto.h
 mail_trigger.o: ../../include/vstream.h
 mail_trigger.o: ../../include/vbuf.h
+mail_trigger.o: ../../include/attr.h
+mail_trigger.o: ../../include/htable.h
 mail_version.o: mail_version.c
 maps.o: maps.c
 maps.o: ../../include/sys_defs.h
@@ -860,6 +893,8 @@ post_mail.o: record.h
 post_mail.o: rec_type.h
 post_mail.o: mail_proto.h
 post_mail.o: ../../include/iostuff.h
+post_mail.o: ../../include/attr.h
+post_mail.o: ../../include/htable.h
 post_mail.o: cleanup_user.h
 post_mail.o: post_mail.h
 post_mail.o: mail_date.h
@@ -927,6 +962,8 @@ resolve_clnt.o: ../../include/vstring_vstream.h
 resolve_clnt.o: ../../include/events.h
 resolve_clnt.o: ../../include/iostuff.h
 resolve_clnt.o: mail_proto.h
+resolve_clnt.o: ../../include/attr.h
+resolve_clnt.o: ../../include/htable.h
 resolve_clnt.o: mail_params.h
 resolve_clnt.o: clnt_stream.h
 resolve_clnt.o: resolve_clnt.h
@@ -949,6 +986,8 @@ rewrite_clnt.o: ../../include/events.h
 rewrite_clnt.o: ../../include/iostuff.h
 rewrite_clnt.o: quote_822_local.h
 rewrite_clnt.o: mail_proto.h
+rewrite_clnt.o: ../../include/attr.h
+rewrite_clnt.o: ../../include/htable.h
 rewrite_clnt.o: mail_params.h
 rewrite_clnt.o: clnt_stream.h
 rewrite_clnt.o: rewrite_clnt.h

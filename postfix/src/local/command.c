@@ -9,7 +9,7 @@
 /*	int	deliver_command(state, usr_attr, command)
 /*	LOCAL_STATE state;
 /*	USER_ATTR exp_attr;
-/*	char	*command;
+/*	const char *command;
 /* DESCRIPTION
 /*	deliver_command() runs a command with a message as standard
 /*	input.  A limited amount of standard output and standard error
@@ -79,7 +79,7 @@
 
 /* deliver_command - deliver to shell command */
 
-int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
+int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *command)
 {
     char   *myname = "deliver_command";
     VSTRING *why;
@@ -112,6 +112,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
      * Do we permit mail to shell commands? Allow delivery via mailbox_command.
      */
     if (command != var_mailbox_command
+	&& command != map_command		/* XXX */
 	&& (local_cmd_deliver_mask & state.msg_attr.exp_type) == 0)
 	return (bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			      "mail to command is restricted"));

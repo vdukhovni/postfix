@@ -80,7 +80,7 @@
 /* .fi
 /* .IP \fBlocal_transport\fR
 /*	Where to deliver mail for destinations that match $\fBmydestination\fR
-/*	or $\fBinet_interfaces\fR. 
+/*	or $\fBinet_interfaces\fR.
 /*	The default transport is \fBlocal\fR.
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
@@ -181,7 +181,9 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
      * dedicated to address rewriting. All connection-management stuff is
      * handled by the common code in multi_server.c.
      */
-    if (mail_scan(stream, "%s", command) == 1) {
+    if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA | ATTR_FLAG_MORE,
+		  ATTR_TYPE_STR, MAIL_ATTR_REQ, command,
+		  ATTR_TYPE_END) == 1) {
 	if (strcmp(vstring_str(command), REWRITE_ADDR) == 0) {
 	    status = rewrite_proto(stream);
 	} else if (strcmp(vstring_str(command), RESOLVE_ADDR) == 0) {

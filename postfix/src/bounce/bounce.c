@@ -142,8 +142,11 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
     /*
      * Read the and validate the client request.
      */
-    if (mail_command_read(client, "%d %s %s %s",
-			  &flags, queue_id, recipient, why) != 4) {
+    if (mail_command_server(client, "%d %s %s %s",
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
+			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why, 0) != 4) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -178,8 +181,11 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
     /*
      * Read and validate the client request.
      */
-    if (mail_command_read(client, "%d %s %s %s",
-			  &flags, queue_name, queue_id, sender) != 4) {
+    if (mail_command_server(client, ATTR_FLAG_MISSING,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			 ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender, 0) != 4) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -206,22 +212,25 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
      * Execute the request.
      */
     return (bounce_notify_service(service_name, STR(queue_name),
-				      STR(queue_id), STR(sender), flush));
+				  STR(queue_id), STR(sender), flush));
 }
 
 /* bounce_verp_proto - bounce_notify server protocol, VERP style */
 
 static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
 {
-    char *myname="bounce_verp_proto";
+    char   *myname = "bounce_verp_proto";
     int     flags;
 
     /*
      * Read and validate the client request.
      */
-    if (mail_command_read(client, "%d %s %s %s %s",
-			  &flags, queue_name, queue_id,
-			  sender, verp_delims) != 5) {
+    if (attr_scan(client, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
+		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+		  ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims, 0) != 5) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -287,7 +296,8 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 #define REALLY_BOUNCE	1
 #define JUST_WARN	0
 
-    if (mail_scan(client, "%d", &command) != 1) {
+    if (attr_scan(client, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA | ATTR_FLAG_MORE,
+		  ATTR_TYPE_NUM, MAIL_ATTR_NREQ, &command, 0) != 1) {
 	msg_warn("malformed request");
 	status = -1;
     } else if (command == BOUNCE_CMD_VERP) {
@@ -307,7 +317,9 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
      * When the request has completed, send the completion status to the
      * client.
      */
-    mail_print(client, "%d", status);
+    attr_print(client, ATTR_FLAG_NONE,
+	       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, status,
+	       ATTR_TYPE_END);
     vstream_fflush(client);
 
     /*

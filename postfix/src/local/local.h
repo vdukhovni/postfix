@@ -152,11 +152,13 @@ extern int deliver_resolve_addr(LOCAL_STATE, USER_ATTR, char *);
   * "leaf" nodes of the delivery graph.
   */
 extern int deliver_mailbox(LOCAL_STATE, USER_ATTR, int *);
-extern int deliver_command(LOCAL_STATE, USER_ATTR, char *);
+extern int deliver_command(LOCAL_STATE, USER_ATTR, const char *);
 extern int deliver_file(LOCAL_STATE, USER_ATTR, char *);
 extern int deliver_indirect(LOCAL_STATE);
 extern int deliver_maildir(LOCAL_STATE, USER_ATTR, char *);
 extern int deliver_unknown(LOCAL_STATE, USER_ATTR);
+
+extern const char *map_command;		/* XXX */
 
  /*
   * Restrictions on delivery to sensitive destinations.

@@ -87,7 +87,9 @@ static int qmgr_deliver_initial_reply(VSTREAM *stream)
     if (peekfd(vstream_fileno(stream)) < 0) {
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
-    } else if (mail_scan(stream, "%d", &stat) != 1) {
+    } else if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
+			 ATTR_TYPE_END) != 1) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
     } else {
@@ -104,7 +106,10 @@ static int qmgr_deliver_final_reply(VSTREAM *stream, VSTRING *reason)
     if (peekfd(vstream_fileno(stream)) < 0) {
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
-    } else if (mail_scan(stream, "%s %d", reason, &stat) != 2) {
+    } else if (attr_scan(stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+			 ATTR_TYPE_STR, MAIL_ATTR_WHY, reason,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &stat,
+			 ATTR_TYPE_END) != 2) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
     } else {
@@ -122,6 +127,8 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     char   *cp;
     VSTRING *sender_buf = 0;
     char   *sender;
+    int     flags;
+    char   *nexthop;
 
     /*
      * If variable envelope return path is requested, change prefix+@origin
@@ -132,7 +139,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	sender = message->sender;
     } else {
 	sender_buf = vstring_alloc(100);
-	verp_sender(sender_buf, message->verp_delims, 
+	verp_sender(sender_buf, message->verp_delims,
 		    message->sender, list.info->address);
 	sender = vstring_str(sender_buf);
     }
@@ -143,19 +150,32 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
      * concurrency limits. However, the delivery agent protocol expects
      * nexthop only, so we must strip off the recipient local part.
      */
-    mail_print(stream, "%d %s %s %ld %ld %s %s %s %s %ld",
-	  message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT,
-	       message->queue_name, message->queue_id,
-	       message->data_offset, message->data_size,
-	    (cp = strrchr(entry->queue->name, '@')) != 0 && cp[1] ? cp + 1 :
-	       entry->queue->name, sender,
-	       message->errors_to, message->return_receipt,
-	       message->arrival_time);
+    flags = message->inspect_xport ?
+	DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT;
+    nexthop = (cp = strrchr(entry->queue->name, '@')) != 0 && cp[1] ?
+	cp + 1 : entry->queue->name;
+    attr_print(stream, ATTR_FLAG_MORE,
+	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, message->queue_name,
+	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, message->queue_id,
+	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, message->data_offset,
+	       ATTR_TYPE_NUM, MAIL_ATTR_SIZE, message->data_size,
+	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, nexthop,
+	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+	       ATTR_TYPE_STR, MAIL_ATTR_ERRTO, message->errors_to,
+	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, message->return_receipt,
+	       ATTR_TYPE_NUM, MAIL_ATTR_TIME, message->arrival_time,
+	       ATTR_TYPE_END);
     if (sender_buf != 0)
 	vstring_free(sender_buf);
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
-	mail_print(stream, "%ld %s", recipient->offset, recipient->address);
-    mail_print(stream, "%s", "0");
+	attr_print(stream, ATTR_FLAG_MORE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, recipient->offset,
+		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient->address,
+		   ATTR_TYPE_END);
+    attr_print(stream, ATTR_FLAG_NONE,
+	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, 0,
+	       ATTR_TYPE_END);
     if (vstream_fflush(stream) != 0) {
 	msg_warn("write to process (%s): %m", entry->queue->transport->name);
 	return (-1);
@@ -215,7 +235,7 @@ static void qmgr_deliver_update(int unused_event, char *context)
      */
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
-	qmgr_transport_throttle(transport, "unknown mail transport error");
+	qmgr_transport_throttle(transport, "unknown mail transport error -- see a previous warning/fatal/panic record for the problem description");
 	qmgr_defer_transport(transport, transport->reason);
     }
 

@@ -307,6 +307,9 @@
 /*	External command to use for mailbox delivery. The command executes
 /*	with the recipient privileges (exception: root). The string is subject
 /*	to $name expansions.
+/* .IP \fBmailbox_command_maps\fR
+/*	Lookup tables with per-recipient external commands to use for mailbox 
+/*	delivery. Behavior is as with \fBmailbox_command\fR.
 /* .IP \fBmailbox_transport\fR
 /*	Message transport to use for mailbox delivery to all local
 /*	recipients, whether or not they are found in the UNIX passwd database.
@@ -446,6 +449,7 @@ int     var_dup_filter_limit;
 int     var_command_maxtime;
 char   *var_home_mailbox;
 char   *var_mailbox_command;
+char   *var_mailbox_cmd_maps;
 char   *var_rcpt_fdelim;
 char   *var_local_cmd_shell;
 char   *var_luser_relay;
@@ -695,6 +699,7 @@ int     main(int argc, char **argv)
     static CONFIG_RAW_TABLE raw_table[] = {
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
+	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
 	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
 	0,
     };

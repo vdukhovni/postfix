@@ -161,6 +161,13 @@ home_mailbox =
 # mailbox_command = /some/where/procmail -a "$EXTENSION"
 mailbox_command = 
 
+# The mailbox_command_maps allows you to specify a per-user mailbox
+# command. The maps are keyed by username (not including the domain).
+# Specify one or more maps. If this feature is used then every user
+# must have a matching entry.
+#
+# mailbox_command_maps = hash:/etc/postfix/mailbox_commands
+
 # The mailbox_transport specifies the optional transport in master.cf
 # to use after processing aliases and .forward files. This parameter
 # has precedence over the mailbox_command, fallback_transport and

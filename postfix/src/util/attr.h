@@ -1,23 +1,87 @@
-#ifndef _ATTR_H_INCLUDED_
-#define _ATTR_H_INCLUDED_
+#ifndef _ATTR_PRINT_H_INCLUDED_
+#define _ATTR_PRINT_H_INCLUDED_
 
 /*++
 /* NAME
 /*	attr 3h
 /* SUMMARY
-/*	attribute list manager
+/*	attribute list manipulations
 /* SYNOPSIS
-/*	#include <attr.h>
-/* DESCRIPTION
-/* .nf
+/*	#include "attr.h"
+ DESCRIPTION
+ .nf
+
+ /*
+  * System library.
+  */
+#include <stdarg.h>
+
+ /*
+  * Utility library.
+  */
+#include <vstream.h>
+#include <htable.h>
 
  /*
   * External interface.
   */
-extern void attr_enter(HTABLE *, const char *, const char *);
-extern void attr_free(HTABLE *);
+#define ATTR_TYPE_END		0	/* end of data */
+#define ATTR_TYPE_NUM		1	/* Unsigned integer */
+#define ATTR_TYPE_STR		2	/* Character string */
+#define ATTR_TYPE_NUM_ARRAY	3	/* Unsigned integer sequence */
+#define ATTR_TYPE_STR_ARRAY	4	/* Character string sequence */
+#define ATTR_TYPE_HASH		5	/* Hash table */
 
-#define attr_find(table, name) htable_find((table), (name))
+#define ATTR_FLAG_NONE		0
+#define ATTR_FLAG_MISSING	(1<<0)	/* Flag missing attribute */
+#define ATTR_FLAG_EXTRA		(1<<1)	/* Flag spurious attribute */
+#define ATTR_FLAG_MORE		(1<<2)	/* Don't skip or terminate */
+#define ATTR_FLAG_ALL		(07)
+
+ /*
+  * attr_print.c.
+  */
+extern int attr_print(VSTREAM *, int,...);
+extern int attr_vprint(VSTREAM *, int, va_list);
+
+ /*
+  * attr_scan.c.
+  */
+extern int attr_scan(VSTREAM *, int,...);
+extern int attr_vscan(VSTREAM *, int, va_list);
+
+ /*
+  * attr_table.c.
+  */
+typedef HTABLE ATTR_TABLE;
+
+extern ATTR_TABLE *attr_table_create(int);
+extern void attr_table_free(ATTR_TABLE *);
+extern int attr_table_read(ATTR_TABLE *, int, VSTREAM *);
+extern int attr_table_get(ATTR_TABLE *, int,...);
+extern int attr_table_vget(ATTR_TABLE *, int, va_list);
+
+ /*
+  * attr.c.
+  */
+extern void attr_enter(HTABLE *, int,...);
+extern int attr_find(HTABLE *, int,...);
+
+ /*
+  * Attribute names for testing the compatibility of the read and write
+  * routines.
+  */
+#ifdef TEST
+#define ATTR_NAME_NUM		"number"
+#define ATTR_NAME_STR		"string"
+#define ATTR_NAME_NUM_ARRAY	"number_array"
+#define ATTR_NAME_STR_ARRAY	"string_array"
+#endif
+
+ /*
+  * Testing.
+  */
+#define BASE64_DECODE(buf, str, len)	vstring_strncpy((buf), (str), (len))
 
 /* LICENSE
 /* .ad

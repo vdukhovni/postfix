@@ -295,7 +295,9 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * bounce, the cleanup service can report only soft errors here.
      */
     rec_fputs(cleanup, REC_TYPE_END, "");
-    if (mail_scan(cleanup, "%d", &status) != 1)
+    if (attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+		  ATTR_TYPE_END) != 1)
 	return (cleanup_service_error(info, CLEANUP_STAT_WRITE));
 
     /*
@@ -365,8 +367,12 @@ static int pickup_file(PICKUP_INFO *info)
 
     buf = vstring_alloc(100);
     cleanup = mail_connect_wait(MAIL_CLASS_PRIVATE, MAIL_SERVICE_CLEANUP);
-    if (mail_scan(cleanup, "%s", buf) != 1
-	|| mail_print(cleanup, "%d", PICKUP_CLEANUP_FLAGS) != 0) {
+    if (attr_scan(cleanup, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buf,
+		  ATTR_TYPE_END) != 1
+	|| attr_print(cleanup, ATTR_FLAG_NONE,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, PICKUP_CLEANUP_FLAGS,
+		      ATTR_TYPE_END) != 0) {
 	status = KEEP_MESSAGE_FILE;
     } else {
 	info->id = mystrdup(vstring_str(buf));

@@ -168,7 +168,8 @@ static int mail_stream_finish_ipc(MAIL_STREAM * info)
     /*
      * Receive the peer's completion status.
      */
-    if (mail_scan(info->stream, "%d", &status) != 1)
+    if (attr_scan(info->stream, ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA,
+		  ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status, 0) != 1)
 	status = CLEANUP_STAT_WRITE;
 
     /*
@@ -218,7 +219,8 @@ MAIL_STREAM *mail_stream_service(const char *class, const char *name)
 	id_buf = vstring_alloc(10);
 
     stream = mail_connect_wait(class, name);
-    if (mail_scan(stream, "%s", id_buf) != 1) {
+    if (attr_scan(stream, ATTR_FLAG_MISSING,
+		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id_buf, 0) != 1) {
 	vstream_fclose(stream);
 	return (0);
     } else {
@@ -264,7 +266,8 @@ MAIL_STREAM *mail_stream_command(const char *command)
     }
     argv_free(export_env);
 
-    if (mail_scan(stream, "%s", id_buf) != 1) {
+    if (attr_scan(stream, ATTR_FLAG_MISSING,
+		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id_buf, 0) != 1) {
 	vstream_pclose(stream);
 	return (0);
     } else {
