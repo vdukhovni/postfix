@@ -188,20 +188,24 @@ CLEANUP(8)                                             CLEANUP(8)
 
 <b>Resource</b> <b>controls</b>
        <b>duplicate</b><i>_</i><b>filter</b><i>_</i><b>limit</b>
-              Limit  the  number  of envelope recipients that are
+              Limits  the  number of envelope recipients that are
               remembered.
 
-       <b>header</b><i>_</i><b>size</b><i>_</i><b>limit</b>
-              Limit the amount of memory in bytes used to process
+       <b>header</b><i>_</i><b>address</b><i>_</i><b>token</b><i>_</i><b>limit</b>
+              Limits the number of address tokens used to process
               a message header.
+
+       <b>header</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+              Limits  the  amount of memory in bytes used to pro-
+              cess a message header.
 
        <b>in</b><i>_</i><b>flow</b><i>_</i><b>delay</b>
               Amount of time to pause before accepting a message,
-              when the message arrival rate exceeds  the  message
+              when  the  message arrival rate exceeds the message
               delivery rate.
 
        <b>extract</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit  the amount of recipients extracted from mes-
+              Limit the amount of recipients extracted from  mes-
               sage headers.
 
 <b>SEE</b> <b>ALSO</b>
@@ -216,7 +220,7 @@ CLEANUP(8)                                             CLEANUP(8)
        /etc/postfix/virtual*, virtual mapping table
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -69,7 +69,6 @@
 
 #include <mail_params.h>
 #include <mail_proto.h>
-#include <mail_addr.h>
 #include <rewrite_clnt.h>
 #include <resolve_local.h>
 #include <mail_conf.h>
@@ -320,8 +319,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    tok822_free(tree->head);
 	    tree->head = 0;
 	}
+	/* XXX must be localpart only, not user@domain form. */
 	if (tree->head == 0)
-	    tree->head = tok822_scan(MAIL_ADDR_MAIL_DAEMON, &tree->tail);
+	    tree->head = tok822_scan(var_empty_addr, &tree->tail);
 
 	/*
 	 * We're done. There are no domains left to strip off the address,

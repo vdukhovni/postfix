@@ -51,7 +51,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <b>-i</b>     Incremental mode. Read entries from standard  input
               and  do  not  truncate  an  existing  database.  By
               default, <b>postalias</b> creates a new database from  the
-              entries in <b>file</b><i>_</i><b>name</b>.
+              entries in <i>file_name</i>.
 
        <b>-n</b>     Don't  include  the terminating null character that
               terminates lookup  keys  and  values.  By  default,
@@ -113,7 +113,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
 
        <i>file_name</i>
               The  name  of  the  alias database source file when
-              rebuilding a database.
+              creating a database.
 
 <b>DIAGNOSTICS</b>
        Problems are logged to the standard error stream. No  out-
@@ -136,9 +136,9 @@ POSTALIAS(1)                                         POSTALIAS(1)
        to  this  program. See the Postfix <b>main.cf</b> file for syntax
        details and for default values.
 
-       efault_Bdatabase_type
-              Default alias database type. On many UNIX  systems,
-              the default type is either <b>dbm</b> or <b>hash</b>.
+       <b>default</b><i>_</i><b>database</b><i>_</i><b>type</b>
+              Default database type. On many  UNIX  systems,  the
+              default type is either <b>dbm</b> or <b>hash</b>.
 
        <b>berkeley</b><i>_</i><b>db</b><i>_</i><b>create</b><i>_</i><b>buffer</b><i>_</i><b>size</b>
               Amount  of buffer memory to be used when creating a

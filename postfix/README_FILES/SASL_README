@@ -46,10 +46,11 @@ was contributed by Jason Hoos.
 When receiving mail, Postfix logs the client-provided username,
 authentication method, and sender address to the maillog file, and
 optionally grants mail access via the permit_sasl_authenticated
-UCE restriction.  SASL authentication information is not passed on
-via message headers or via SMTP.  It is no-one's business what
-username and authentication method the poster was using in order
-to access the mail server.
+UCE restriction.
+
+SASL authentication information is not passed on via message headers
+or via SMTP.  It is no-one's business what username and authentication
+method the poster was using in order to access the mail server.
 
 When sending mail, Postfix looks up the server hostname or destination
 domain (the address remote part) in a table, and if a username/password

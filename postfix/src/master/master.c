@@ -5,8 +5,8 @@
 /*	Postfix master process
 /* SYNOPSIS
 /* .fi
-/*	\fBmaster\fR [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
-/*		[\fB-D\fR] [\fB-t\fR] [\fB-v\fR]
+/*	\fBmaster\fR [\fB-Dtv\fR] [\fB-c \fIconfig_dir\fR]
+/*		[\fB-e \fIexit_time\fR]
 /* DESCRIPTION
 /*	The \fBmaster\fR daemon is the resident process that runs Postfix
 /*	daemons on demand: daemons to send or receive messages via the

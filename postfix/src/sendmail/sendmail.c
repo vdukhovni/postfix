@@ -134,8 +134,8 @@
 /*	details.
 /* .IP "\fB-o7\fR (ignored)"
 /* .IP "\fB-o8\fR (ignored)"
-/*	The message body type. Currently, Postfix implements
-/*	\fBjust-send-eight\fR.
+/*	To send 8-bit or binary content, use an appropriate MIME encapsulation
+/*	and specify the appropriate \fB-B\fR command-line option.
 /* .IP "\fB-oi\fR"
 /*	When reading a message from standard input, don\'t treat a line
 /*	with only a \fB.\fR character as the end of input.
@@ -385,10 +385,12 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      * to use login names at all.
      */
     if (sender != 0) {
+	VSTRING_RESET(buf);
+	VSTRING_TERMINATE(buf);
 	tree = tok822_parse(sender);
 	for (naddr = 0, tp = tree; tp != 0; tp = tp->next)
-	    if (tp->type == TOK822_ADDR)
-		naddr++, tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
+	    if (tp->type == TOK822_ADDR && naddr++ == 0)
+		tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
 	tok822_free_tree(tree);
 	saved_sender = mystrdup(STR(buf));
 	if (naddr > 1)
@@ -431,7 +433,8 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 	rec_fputs(dst, REC_TYPE_FULL, full_name);
     rec_fputs(dst, REC_TYPE_FROM, saved_sender);
     if (verp_delims && *saved_sender == 0)
-	msg_fatal("-V option requires non-null sender address");
+	msg_fatal_status(EX_USAGE,
+			 "-V option requires non-null sender address");
     if (encoding)
 	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s", MAIL_ATTR_ENCODING, encoding);
     if (verp_delims)
@@ -756,7 +759,7 @@ int     main(int argc, char **argv)
 	    } else if (optarg[0] == 'R') {
 		site_to_flush = optarg + 1;
 		if (*site_to_flush == 0)
-		    msg_fatal("specify: -qRsitename");
+		    msg_fatal_status(EX_USAGE, "specify: -qRsitename");
 	    } else {
 		msg_fatal_status(EX_USAGE, "-q%c is not implemented",
 				 optarg[0]);
@@ -784,13 +787,14 @@ int     main(int argc, char **argv)
      * Look for conflicting options and arguments.
      */
     if (extract_recipients && mode != SM_MODE_ENQUEUE)
-	msg_fatal("-t can be used only in delivery mode");
+	msg_fatal_status(EX_USAGE, "-t can be used only in delivery mode");
 
     if (site_to_flush && mode != SM_MODE_ENQUEUE)
-	msg_fatal("-qR can be used only in delivery mode");
+	msg_fatal_status(EX_USAGE, "-qR can be used only in delivery mode");
 
     if (extract_recipients && argv[OPTIND])
-	msg_fatal("cannot handle command-line recipients with -t");
+	msg_fatal_status(EX_USAGE,
+			 "cannot handle command-line recipients with -t");
 
     /*
      * Start processing. Everything is delegated to external commands.
@@ -805,7 +809,7 @@ int     main(int argc, char **argv)
 	    exit(0);
 	}
 	if (argv[OPTIND])
-	    msg_fatal("flush site requires no recipient");
+	    msg_fatal_status(EX_USAGE, "flush site requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postqueue", "-s", site_to_flush, (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
@@ -816,7 +820,8 @@ int     main(int argc, char **argv)
 	break;
     case SM_MODE_MAILQ:
 	if (argv[OPTIND])
-	    msg_fatal("display queue mode requires no recipient");
+	    msg_fatal_status(EX_USAGE,
+			     "display queue mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postqueue", "-p", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
@@ -826,7 +831,8 @@ int     main(int argc, char **argv)
 	/* NOTREACHED */
     case SM_MODE_FLUSHQ:
 	if (argv[OPTIND])
-	    msg_fatal("flush queue mode requires no recipient");
+	    msg_fatal_status(EX_USAGE,
+			     "flush queue mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postqueue", "-f", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
@@ -836,7 +842,7 @@ int     main(int argc, char **argv)
 	/* NOTREACHED */
     case SM_MODE_DAEMON:
 	if (argv[OPTIND])
-	    msg_fatal("daemon mode requires no recipient");
+	    msg_fatal_status(EX_USAGE, "daemon mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "postfix", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
@@ -849,7 +855,8 @@ int     main(int argc, char **argv)
 	break;
     case SM_MODE_NEWALIAS:
 	if (argv[OPTIND])
-	    msg_fatal("alias initialization mode requires no recipient");
+	    msg_fatal_status(EX_USAGE,
+			 "alias initialization mode requires no recipient");
 	if (*var_alias_db_map == 0)
 	    return (0);
 	ext_argv = argv_alloc(2);
@@ -862,7 +869,8 @@ int     main(int argc, char **argv)
 	/* NOTREACHED */
     case SM_MODE_USER:
 	if (argv[OPTIND])
-	    msg_fatal("stand-alone mode requires no recipient");
+	    msg_fatal_status(EX_USAGE,
+			     "stand-alone mode requires no recipient");
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "smtpd", "-S", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)

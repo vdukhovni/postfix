@@ -81,7 +81,7 @@
 /* .SH Tarpitting
 /* .ad
 /* .fi
-/* .IP \fBqmqpd_error_sleep_time\fR
+/* .IP \fBqmqpd_error_delay\fR
 /*	Time to wait in seconds before informing the client of
 /*	a problem. This slows down run-away errors.
 /* SEE ALSO

@@ -150,9 +150,11 @@
 /* .ad
 /* .fi
 /* .IP \fBduplicate_filter_limit\fR
-/*	Limit the number of envelope recipients that are remembered.
+/*	Limits the number of envelope recipients that are remembered.
+/* .IP \fBheader_address_token_limit\fR
+/*	Limits the number of address tokens used to process a message header.
 /* .IP \fBheader_size_limit\fR
-/*	Limit the amount of memory in bytes used to process a message header.
+/*	Limits the amount of memory in bytes used to process a message header.
 /* .IP \fBin_flow_delay\fR
 /*	Amount of time to pause before accepting a message, when the
 /*	message arrival rate exceeds the message delivery rate.

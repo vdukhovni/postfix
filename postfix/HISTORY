@@ -7500,9 +7500,6 @@ Open problems:
 	or maildir delivery that result in deferral rather than
 	bouncing mail.
 
-	Low: don't do user@domain and @domain lookups in
-	local_recipient_maps queries.
-
 	Low: after reorganizing configuration parameters, add flags
 	to all parameters whose value can be read from file.
 
@@ -7528,7 +7525,3 @@ Open problems:
 
 	Low: with quoted-printable, perhaps use =46rom instead of
 	>From.
-
-	Low: make it easier to have local_recipient_maps turned on
-	by default. This requires documentation of its existence
-	with anything that replaces or extends local delivery.

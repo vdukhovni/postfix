@@ -173,45 +173,47 @@ LOCAL(8)                                                 LOCAL(8)
        <b>SENDER</b> The entire sender address.
 
        The <b>PATH</b> environment variable is always reset to a system-
-       dependent default path, and the <b>TZ</b> (time zone) environment
-       variable is always passed on without change.
+       dependent  default  path,  and environment variables whose
+       names are blessed by the <b>export</b><i>_</i><b>environment</b> configureation
+       parameter are exported unchanged.
 
        The current working directory is the mail queue directory.
 
        The <b>local</b> daemon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" enve-
-       lope header to each message,  prepends  an  <b>X-Original-To:</b>
-       header  with  the  recipient  address as given to Postfix,
+       lope  header  to  each message, prepends an <b>X-Original-To:</b>
+       header with the recipient address  as  given  to  Postfix,
        prepends an optional <b>Delivered-To:</b> header with the recipi-
-       ent  envelope address, prepends a <b>Return-Path:</b> header with
+       ent envelope address, prepends a <b>Return-Path:</b> header  with
        the sender envelope address, and appends no empty line.
 
 <b>EXTERNAL</b> <b>FILE</b> <b>DELIVERY</b>
-       The delivery format depends on  the  destination  filename
-       syntax.   The default is to use UNIX-style mailbox format.
-       Specify a name ending in <b>/</b>  for  <b>qmail</b>-compatible  <b>maildir</b>
+       The  delivery  format  depends on the destination filename
+       syntax.  The default is to use UNIX-style mailbox  format.
+       Specify  a  name  ending in <b>/</b> for <b>qmail</b>-compatible <b>maildir</b>
        delivery.
 
-       The  <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b> configuration parameter restricts
-       delivery to external files. The  default  setting  (<b>alias,</b>
+       The <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b> configuration parameter  restricts
+       delivery  to  external  files. The default setting (<b>alias,</b>
        <b>forward</b>) forbids file destinations in <b>:include:</b> files.
 
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
-       each  message,  prepends an <b>X-Original-To:</b> header with the
-       recipient  address  as  given  to  Postfix,  prepends   an
-       optional  <b>Delivered-To:</b> header with the recipient envelope
-       address, prepends a &gt; character to  lines  beginning  with
-       "<b>From</b>  ",  and appends an empty line.  The envelope sender
+       each message, prepends an <b>X-Original-To:</b> header  with  the
+       recipient   address  as  given  to  Postfix,  prepends  an
+       optional <b>Delivered-To:</b> header with the recipient  envelope
+       address,  prepends  a  &gt; character to lines beginning with
+       "<b>From</b> ", and appends an empty line.  The  envelope  sender
        address is available in the <b>Return-Path:</b> header.  When the
-       destination  is a regular file, it is locked for exclusive
+       destination is a regular file, it is locked for  exclusive
        access while delivery is in progress. In case of problems,
        an attempt is made to truncate a regular file to its orig-
        inal length.
 
        In the case of <b>maildir</b> delivery, the local daemon prepends
        an optional <b>Delivered-To:</b> header with the envelope recipi-
-       ent address.  The envelope sender address is available  in
-       the <b>Return-Path:</b> header.
+       ent  address,  and  prepends an <b>X-Original-To:</b> header with
+       the recipient address as given to Postfix.   The  envelope
+       sender address is available in the <b>Return-Path:</b> header.
 
 <b>ADDRESS</b> <b>EXTENSION</b>
        The  optional  <b>recipient</b><i>_</i><b>delimiter</b> configuration parameter

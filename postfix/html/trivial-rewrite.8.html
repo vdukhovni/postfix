@@ -30,8 +30,8 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
                      field of an entry in the <b>master.cf</b> file.
 
               <i>nexthop</i>
-                     The host to send to. For local delivery this
-                     is an empty string.
+                     The  host  to  send to and optional delivery
+                     method information.
 
               <i>recipient</i>
                      The  envelope  recipient  address  that   is
@@ -66,11 +66,16 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
+       <b>empty</b><i>_</i><b>address</b><i>_</i><b>recipient</b>
+              The recipient that  is  substituted  for  the  null
+              address.
+
        <b>inet</b><i>_</i><b>interfaces</b>
-              The  network  interfaces  that  this  mail   system
-              receives  mail  on.   This  information  is used to
-              determine if <i>user</i>@[<i>net.work.addr.ess</i>] is  local  or
-              remote.
+              The   network  interfaces  that  this  mail  system
+              receives mail on.   This  information  is  used  to
+              determine  if  <i>user</i>@[<i>net.work.addr.ess</i>] is local or
+              remote.  Mail for  local  users  is  given  to  the
+              <b>$local</b><i>_</i><b>transport</b>.
 
        <b>mydestination</b>
               List of domains that are given to the <b>$local</b><i>_</i><b>trans-</b>

@@ -19,13 +19,12 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	The \fBpickup\fR daemon runs with superuser privileges so that it
-/*	1) can open a queue file with the rights of the submitting user
-/*	and 2) can access the Postfix private IPC channels.
-/*	On the positive side, the program can run chrooted, opens no files
-/*	for writing, is careful about what files it opens for reading, and
-/*	does not actually touch any data that is sent to its public service
-/*	endpoint.
+/*	The \fBpickup\fR daemon is moderately security sensitive. It runs
+/*	with fixed low privilege and can run in a chrooted environment.
+/*	However, the program reads files from potentially hostile users.
+/*	The \fBpickup\fR daemon opens no files for writing, is careful about
+/*	what files it opens for reading, and does not actually touch any data
+/*	that is sent to its public service endpoint.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
@@ -51,8 +50,6 @@
 /* .fi
 /* .IP \fBalways_bcc\fR
 /*	Address to send a copy of each message that enters the system.
-/* .IP \fBmail_owner\fR
-/*	The process privileges used while not opening a \fBmaildrop\fR file.
 /* .IP \fBqueue_directory\fR
 /*	Top-level directory of the Postfix queue.
 /* SEE ALSO

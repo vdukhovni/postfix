@@ -39,7 +39,10 @@
 /*	The \fBvirtual\fR delivery agent prepends a "\fBFrom \fIsender
 /*	time_stamp\fR" envelope header to each message, prepends a
 /*	\fBDelivered-To:\fR message header with the envelope recipient
-/*	address, prepends a \fBReturn-Path:\fR message header with the
+/*	address,
+/*	prepends an \fBX-Original-To:\fR header with the recipient address as
+/*	given to Postfix,
+/*	prepends a \fBReturn-Path:\fR message header with the
 /*	envelope sender address, prepends a \fB>\fR character to lines
 /*	beginning with "\fBFrom \fR", and appends an empty line.
 /*
@@ -223,7 +226,7 @@
 /*	The \fBmaildir\fR structure appears in the \fBqmail\fR system
 /*	by Daniel Bernstein.
 /* SEE ALSO
-/*	regexp_table(5) POSIX regular expression table format 
+/*	regexp_table(5) POSIX regular expression table format
 /*	pcre_table(5) Perl Compatible Regular Expression table format
 /*	bounce(8) non-delivery status reports
 /*	syslogd(8) system logging

@@ -171,8 +171,9 @@
 /*	The entire sender address.
 /* .PP
 /*	The \fBPATH\fR environment variable is always reset to a
-/*	system-dependent default path, and the \fBTZ\fR (time zone)
-/*	environment variable is always passed on without change.
+/*	system-dependent default path, and environment variables
+/*	whose names are blessed by the \fBexport_environment\fR
+/*	configureation parameter are exported unchanged.
 /*
 /*	The current working directory is the mail queue directory.
 /*
@@ -212,7 +213,10 @@
 /*
 /*	In the case of \fBmaildir\fR delivery, the local daemon prepends
 /*	an optional
-/*	\fBDelivered-To:\fR header with the envelope recipient address.
+/*	\fBDelivered-To:\fR header with the envelope recipient address, and
+/*	prepends an
+/*	\fBX-Original-To:\fR header with the recipient address as given to
+/*	Postfix.
 /*	The envelope sender address is available in the \fBReturn-Path:\fR
 /*	header.
 /* ADDRESS EXTENSION

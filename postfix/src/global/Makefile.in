@@ -306,8 +306,7 @@ rewrite_clnt_test: rewrite_clnt rewrite_clnt.in rewrite_clnt.ref
 	    diff - rewrite_clnt.tmp
 	rm -f rewrite_clnt.tmp
 
-# Requires: Postfix, root, myorigin=$myhostname, relayhost=$mydomain,
-# no transport map
+# Requires: Postfix, root, relayhost=$mydomain, no transport map
 
 resolve_clnt_test: resolve_clnt resolve_clnt.in resolve_clnt.ref
 	sed -e "s/MYDOMAIN/`postconf -h mydomain`/g" \

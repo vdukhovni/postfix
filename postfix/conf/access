@@ -129,7 +129,7 @@
 #               tion schemes.
 # 
 #        DUNNO  Pretend that the lookup key was not found  in  this
-#               table,  to  prevents Postfix from trying substrings
+#               table. This prevents Postfix from trying substrings
 #               of the lookup key (such as a subdomain name,  or  a
 #               network address subnetwork).
 # 

@@ -40,9 +40,11 @@ VIRTUAL(8)                                             VIRTUAL(8)
        The  <b>virtual</b>  delivery  agent  prepends  a  "<b>From</b>   <i>sender</i>
        <i>time_stamp</i>"  envelope  header  to each message, prepends a
        <b>Delivered-To:</b> message header with the  envelope  recipient
-       address,  prepends  a <b>Return-Path:</b> message header with the
-       envelope sender address, prepends a &gt; character  to  lines
-       beginning with "<b>From</b> ", and appends an empty line.
+       address, prepends an <b>X-Original-To:</b> header with the recip-
+       ient address as given to Postfix, prepends a  <b>Return-Path:</b>
+       message  header with the envelope sender address, prepends
+       a &gt; character to lines beginning with "<b>From</b> ", and appends
+       an empty line.
 
        The  mailbox is locked for exclusive access while delivery
        is in progress. In case of problems, an attempt is made to

@@ -6,9 +6,9 @@
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/transport\fR
 #
-#       \fBpostmap -q "\fIstring\fB" /etc/postfix/transport\fR
+#	\fBpostmap -q "\fIstring\fB" /etc/postfix/transport\fR
 #
-#       \fBpostmap -q - /etc/postfix/transport <\fIinputfile\fR
+#	\fBpostmap -q - /etc/postfix/transport <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBtransport\fR table specifies a mapping from email
 #	addresses to message delivery transports and/or relay hosts. The
@@ -50,7 +50,7 @@
 #	such as \fBsmtp\fR or \fBlocal\fR. The \fInexthop\fR field
 #	specifies where and how to deliver mail. More details are given
 #	in section "RESULT FORMAT".
-# .SH TABLE LOOKUP
+# TABLE LOOKUP
 # .ad
 # .fi
 #	With lookups from indexed files such as DB or DBM, or from networked
@@ -76,11 +76,21 @@
 #	Note 1: the special pattern \fB*\fR represents any address (i.e. it
 #	functions as the wild-card pattern).
 #
-#	Note 2: the null recipient address is looked up as the local
-#	mailer-daemon address (mailer-daemon@fully-qualified-domain-name).
-# .SH RESULT FORMAT
+#	Note 2: the null recipient address is looked up as
+#	\fB$empty_address_recipient\fR@\fB$myhostname\fR (default:
+#	mailer-daemon@hostname).
+# RESULT FORMAT
 # .ad
 # .fi
+#	The transport field specifies the name of a mail delivery transport
+#	(the first name of a mail delivery service entry in the Postfix
+#	\fBmaster.cf\fR file).
+#
+#	The interpretation of the nexthop field is transport
+#	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
+#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
+#	in order to disable MX (mail exchanger) DNS lookups. The [] form
+#	can also be used with IP addresses instead of hostnames.
 #
 #	A null \fItransport\fR and null \fInexthop\fR result means "do
 #	not change": use the delivery transport and nexthop information
@@ -91,31 +101,30 @@
 #
 #	A null \fItransport\fR field with non-null \fInexthop\fR field
 #	does not modify the transport information.
-# .SH TRANSPORT FIELD
+# DEFAULT DELIVERY METHOD
 # .ad
 # .fi
-#	The transport field specifies the name of a mail delivery transport
-#	(the first name of a mail delivery service entry in the Postfix
-#	\fBmaster.cf\fR file).
-#
-#	When a null transport field is specified, Postfix uses one of the
-#	following transports:
-# .IP \fB$local_transport\fR
-#	The domain matches \fB$mydestination\fR or \fB$inet_interfaces\fR.
-# .IP \fB$virtual_transport\fR
-#	The domain matches \fB$virtual_mailbox_domains\fR.
-# .IP \fB$relay_transport\fR
-#	The domain matches \fB$relay_transport\fR.
-# .IP \fB$default_transport\fR
-#	All other non-local, non-virtual destinations.
-# .SH NEXTHOP FIELD
-# .ad
-# .fi
-#	The interpretation of the nexthop field is transport
-#	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
-#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
-#	in order to disable MX (mail exchanger) DNS lookups. The [] form
-#	can also be used with IP addresses instead of hostnames.
+#	When the recipient address or domain does not match a transport
+#	table entry, Postfix uses one of the following delivery methods,
+#	with the recipient domain as the default nexthop.
+# .IP \(bu
+#	The recipient domain matches \fB$mydestination\fR or
+#	\fB$inet_interfaces\fR. The transport and optional nexthop
+#	are specified with \fB$local_transport\fR.
+# .IP \(bu
+#	The recipient domain matches \fB$virtual_mailbox_domains\fR.
+#	The transport and optional nexthop are specified with
+#	\fB$virtual_transport\fR.
+# .IP \(bu
+#	The recipient domain matches \fB$relay_domains\fR. The
+#	transport and optional nexthop are specified with
+#	\fB$relay_transport\fR. This overrides the nexthop information
+#	that is specified with \fB$relayhost\fR.
+# .IP \(bu
+#	All other destinations. the transport and optional nexthop are
+#	specified with \fB$relay_transport\fR.
+#	This overrides the nexthop information that is specified with
+#	\fB$relayhost\fR.
 # EXAMPLES
 # .ad
 # .fi
@@ -123,8 +132,7 @@
 #	mail relay for all other mail, specify a null entry for
 #	internal destinations (do not change the delivery transport or
 #	the nexthop information) and specify a wildcard for all other
-#	destinations. Note that for this trick to work you should
-#	not specify a \fBrelayhost\fR in the \fBmain.cf\fR file.
+#	destinations.
 #
 # .ti +5
 #	\fB\&my.domain    :\fR
@@ -205,6 +213,8 @@
 #	this topic. See the Postfix \fBmain.cf\fR file for syntax details
 #	and for default values. Use the \fBpostfix reload\fR command after
 #	a configuration change.
+# .IP \fBempty_address_recipient\fR
+#	The address that is looked up instead of the null sender address.
 # .IP \fBparent_domain_matches_subdomains\fR
 #	List of Postfix features that use \fIdomain.tld\fR patterns
 #	to match \fIsub.domain.tld\fR (as opposed to

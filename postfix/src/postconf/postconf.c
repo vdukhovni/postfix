@@ -12,7 +12,7 @@
 /*		[\fIparameter=value ...\fR]
 /* DESCRIPTION
 /*	The \fBpostconf\fR command prints the actual value of
-/*	\fIparameter\fR (all known parameters by default), one
+/*	\fIparameter\fR (all known parameters by default) one
 /*	parameter per line, changes its value, or prints other
 /*	information about the Postfix mail system.
 /*

@@ -49,7 +49,10 @@ messages in one textfile.
 The \fBvirtual\fR delivery agent prepends a "\fBFrom \fIsender
 time_stamp\fR" envelope header to each message, prepends a
 \fBDelivered-To:\fR message header with the envelope recipient
-address, prepends a \fBReturn-Path:\fR message header with the
+address,
+prepends an \fBX-Original-To:\fR header with the recipient address as
+given to Postfix,
+prepends a \fBReturn-Path:\fR message header with the
 envelope sender address, prepends a \fB>\fR character to lines
 beginning with "\fBFrom \fR", and appends an empty line.
 

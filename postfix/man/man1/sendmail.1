@@ -140,8 +140,8 @@ Non-default alias database. Specify \fIpathname\fR or
 details.
 .IP "\fB-o7\fR (ignored)"
 .IP "\fB-o8\fR (ignored)"
-The message body type. Currently, Postfix implements
-\fBjust-send-eight\fR.
+To send 8-bit or binary content, use an appropriate MIME encapsulation
+and specify the appropriate \fB-B\fR command-line option.
 .IP "\fB-oi\fR"
 When reading a message from standard input, don\'t treat a line
 with only a \fB.\fR character as the end of input.

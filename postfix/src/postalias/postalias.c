@@ -43,7 +43,7 @@
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostalias\fR creates
-/*	a new database from the entries in \fBfile_name\fR.
+/*	a new database from the entries in \fIfile_name\fR.
 /* .IP \fB-n\fR
 /*	Don't include the terminating null character that terminates lookup
 /*	keys and values. By default, Postfix does whatever is the default for
@@ -95,7 +95,7 @@
 /*	The default value for this parameter depends on the host environment.
 /* .RE
 /* .IP \fIfile_name\fR
-/*	The name of the alias database source file when rebuilding a database.
+/*	The name of the alias database source file when creating a database.
 /* DIAGNOSTICS
 /*	Problems are logged to the standard error stream. No output means
 /*	no problems were detected. Duplicate entries are skipped and are
@@ -117,8 +117,8 @@
 /*	The following \fBmain.cf\fR parameters are especially relevant to
 /*	this program. See the Postfix \fBmain.cf\fR file for syntax details
 /*	and for default values.
-/* .IP \fdefault_Bdatabase_type\fR
-/*	Default alias database type. On many UNIX systems, the default type
+/* .IP \fBdefault_database_type\fR
+/*	Default database type. On many UNIX systems, the default type
 /*	is either \fBdbm\fR or \fBhash\fR.
 /* .IP \fBberkeley_db_create_buffer_size\fR
 /*	Amount of buffer memory to be used when creating a Berkeley DB

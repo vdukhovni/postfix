@@ -18,8 +18,8 @@
 # 
 #        The main applications of virtual aliasing are:
 # 
-#        o      To redirect mail from one address to  one  or  more
-#               other addresses.
+#        o      To redirect mail for one address  to  one  or  more
+#               addresses.
 # 
 #        o      To  simulate  virtual  domains  where  all  virtual
 #               addresses are aliased to non-virtual addresses.
@@ -48,56 +48,6 @@
 #        expression map where patterns are given as regular expres-
 #        sions.  In  that  case, the lookups are done in a slightly
 #        different way as described below.
-# 
-# SIMULATED VIRTUAL DOMAINS
-#        Besides virtual aliases, the virtual alias table can  also
-#        be used to simulate virtual domains. With a simulated vir-
-#        tual domain, all recipient addresses are aliased  to  non-
-#        virtual  addresses.   These  non-virtual  addresses may be
-#        either local or remote.
-# 
-#        Simulated virtual domains are not to be confused with  the
-#        true virtual domains that are implemented with the Postfix
-#        virtual(8) mail delivery agent. With true virtual domains,
-#        each recipient address can have its own mailbox.
-# 
-#        With  a  simulated  virtual domain, the virtual domain has
-#        its own user name space. Local  (i.e.  non-virtual)  user-
-#        names  are  not  visible in a simulated virtual domain. In
-#        particular, local aliases(5) and local mailing  lists  are
-#        not visible as localname@simulated.domain.
-# 
-#        Support for a simulated virtual domain looks like:
-# 
-#        /etc/postfix/main.cf:
-#            virtual_alias_maps = hash:/etc/postfix/virtual
-# 
-#            Note:  some systems use dbm databases instead of hash.
-#            See the output from postconf -m for available database
-#            types.
-# 
-#        /etc/postfix/virtual:
-#            simulated.domain     anything (right-hand content does not matter)
-#            postmaster@simulated.domain  postmaster
-#            user1@simulated.domain       address1
-#            user2@simulated.domain       address2, address3
-# 
-#        The simulated.domain anything entry is required for a sim-
-#        ulated virtual domain. Without this entry,  mail  will  be
-#        rejected with a "relay access denied" error condition.
-# 
-#        Do not list a simulated virtual domain name in the main.cf
-#        mydestination configuration parameter.
-# 
-#        With a simulated virtual domain, the Postfix  SMTP  server
-#        accepts  mail for known-user@simulated.domain, and rejects
-#        mail for unknown-user@simulated.domain as undeliverable.
-# 
-#        Instead of specifying the simulated  virtual  domain  name
-#        via  the virtual_alias_maps table, you may also specify it
-#        via the main.cf virtual_alias_domains configuration param-
-#        eter.   This  latter parameter uses the same syntax as the
-#        main.cf mydestination configuration parameter.
 # 
 # TABLE FORMAT
 #        The format of the virtual table is  as  follows,  mappings
@@ -150,6 +100,56 @@
 #        becomes: user+foo@domain, user@domain, user+foo, user, and
 #        @domain.   An unmatched address extension (+foo) is propa-
 #        gated to the result of table lookup.
+# 
+# SIMULATED VIRTUAL DOMAINS
+#        Besides virtual aliases, the virtual alias table can  also
+#        be used to simulate virtual domains. With a simulated vir-
+#        tual domain, all recipient addresses are aliased  to  non-
+#        virtual  addresses.   These  non-virtual  addresses may be
+#        either local or remote.
+# 
+#        Simulated virtual domains are not to be confused with  the
+#        true virtual domains that are implemented with the Postfix
+#        virtual(8) mail delivery agent. With true virtual domains,
+#        each recipient address can have its own mailbox.
+# 
+#        With  a  simulated  virtual domain, the virtual domain has
+#        its own user name space. Local  (i.e.  non-virtual)  user-
+#        names  are  not  visible in a simulated virtual domain. In
+#        particular, local aliases(5) and local mailing  lists  are
+#        not visible as localname@simulated.domain.
+# 
+#        Support for a simulated virtual domain looks like:
+# 
+#        /etc/postfix/main.cf:
+#            virtual_alias_maps = hash:/etc/postfix/virtual
+# 
+#            Note:  some systems use dbm databases instead of hash.
+#            See the output from postconf -m for available database
+#            types.
+# 
+#        /etc/postfix/virtual:
+#            simulated.domain     anything (right-hand content does not matter)
+#            postmaster@simulated.domain  postmaster
+#            user1@simulated.domain       address1
+#            user2@simulated.domain       address2, address3
+# 
+#        The simulated.domain anything entry is required for a sim-
+#        ulated virtual domain. Without this entry,  mail  will  be
+#        rejected with a "relay access denied" error condition.
+# 
+#        Do not list a simulated virtual domain name in the main.cf
+#        mydestination configuration parameter.
+# 
+#        With a simulated virtual domain, the Postfix  SMTP  server
+#        accepts  mail for known-user@simulated.domain, and rejects
+#        mail for unknown-user@simulated.domain as undeliverable.
+# 
+#        Instead of specifying the simulated  virtual  domain  name
+#        via  the virtual_alias_maps table, you may also specify it
+#        via the main.cf virtual_alias_domains configuration param-
+#        eter.   This  latter parameter uses the same syntax as the
+#        main.cf mydestination configuration parameter.
 # 
 # REGULAR EXPRESSION TABLES
 #        This section describes how the table lookups  change  when

@@ -22,7 +22,7 @@
 /*	The delivery agent to use. This is the first field of an entry
 /*	in the \fBmaster.cf\fR file.
 /* .IP \fInexthop\fR
-/*	The host to send to. For local delivery this is an empty string.
+/*	The host to send to and optional delivery method information.
 /* .IP \fIrecipient\fR
 /*	The envelope recipient address that is passed on to \fInexthop\fR.
 /* .PP
@@ -56,18 +56,21 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
+/* .IP \fBempty_address_recipient\fR
+/*	The recipient that is substituted for the null address.
 /* .IP \fBinet_interfaces\fR
 /*	The network interfaces that this mail system receives mail on.
 /*	This information is used to determine if
 /*	\fIuser\fR@[\fInet.work.addr.ess\fR] is local or remote.
+/*	Mail for local users is given to the \fB$local_transport\fR.
 /* .IP \fBmydestination\fR
 /*	List of domains that are given to the \fB$local_transport\fR.
-/* .IP \fBvirtual_alias_domains\fT
+/* .IP \fBvirtual_alias_domains\fR
 /*	List of simulated virtual domains (domains with all recipients
 /*	aliased to some other local or remote domain).
-/* .IP \fBvirtual_mailbox_domains\fT
+/* .IP \fBvirtual_mailbox_domains\fR
 /*	List of domains that are given to the \fB$virtual_transport\fR.
-/* .IP \fBrelay_domains\fT
+/* .IP \fBrelay_domains\fR
 /*	List of domains that are given to the \fB$relay_transport\fR.
 /* .IP \fBresolve_unquoted_address\fR
 /*	When resolving an address, do not quote the address localpart as
@@ -176,6 +179,7 @@
 #include <resolve_clnt.h>
 #include <rewrite_clnt.h>
 #include <tok822.h>
+#include <mail_addr.h>
 
 /* Multi server skeleton. */
 
@@ -206,6 +210,7 @@ char   *var_virt_alias_doms;
 char   *var_virt_mailbox_doms;
 char   *var_relocated_maps;
 char   *var_def_transport;
+char   *var_empty_addr;
 
 /* rewrite_service - read request and send reply */
 
@@ -281,6 +286,7 @@ int     main(int argc, char **argv)
 	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
 	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
+	VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

@@ -19,8 +19,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
 
        The main applications of virtual aliasing are:
 
-       <b>o</b>      To redirect mail from one address to  one  or  more
-              other addresses.
+       <b>o</b>      To redirect mail for one address  to  one  or  more
+              addresses.
 
        <b>o</b>      To  simulate  virtual  domains  where  all  virtual
               addresses are aliased to non-virtual addresses.
@@ -49,56 +49,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
        expression map where patterns are given as regular expres-
        sions.  In  that  case, the lookups are done in a slightly
        different way as described below.
-
-<b>SIMULATED</b> <b>VIRTUAL</b> <b>DOMAINS</b>
-       Besides virtual aliases, the virtual alias table can  also
-       be used to simulate virtual domains. With a simulated vir-
-       tual domain, all recipient addresses are aliased  to  non-
-       virtual  addresses.   These  non-virtual  addresses may be
-       either local or remote.
-
-       Simulated virtual domains are not to be confused with  the
-       true virtual domains that are implemented with the Postfix
-       <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent. With true virtual domains,
-       each recipient address can have its own mailbox.
-
-       With  a  simulated  virtual domain, the virtual domain has
-       its own user name space. Local  (i.e.  non-virtual)  user-
-       names  are  not  visible in a simulated virtual domain. In
-       particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and local mailing  lists  are
-       not visible as <i>localname@simulated.domain</i>.
-
-       Support for a simulated virtual domain looks like:
-
-       /etc/postfix/main.cf:
-           virtual_alias_maps = hash:/etc/postfix/virtual
-
-           Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
-           See the output from <b>postconf</b> <b>-m</b> for available database
-           types.
-
-       /etc/postfix/virtual:
-           <i>simulated.domain</i>     <i>anything</i> (right-hand content does not matter)
-           <i>postmaster@simulated.domain</i>  <i>postmaster</i>
-           <i>user1@simulated.domain</i>       <i>address1</i>
-           <i>user2@simulated.domain</i>       <i>address2,</i> <i>address3</i>
-
-       The <i>simulated.domain</i> <i>anything</i> entry is required for a sim-
-       ulated virtual domain. Without this entry,  mail  will  be
-       rejected with a "relay access denied" error condition.
-
-       Do not list a simulated virtual domain name in the <b>main.cf</b>
-       <b>mydestination</b> configuration parameter.
-
-       With a simulated virtual domain, the Postfix  SMTP  server
-       accepts  mail for <i>known-user@simulated.domain</i>, and rejects
-       mail for <i>unknown-user</i>@<i>simulated.domain</i> as undeliverable.
-
-       Instead of specifying the simulated  virtual  domain  name
-       via  the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it
-       via the <b>main.cf</b> <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> configuration param-
-       eter.   This  latter parameter uses the same syntax as the
-       <b>main.cf</b> <b>mydestination</b> configuration parameter.
 
 <b>TABLE</b> <b>FORMAT</b>
        The format of the virtual table is  as  follows,  mappings
@@ -151,6 +101,56 @@ VIRTUAL(5)                                             VIRTUAL(5)
        becomes: <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and
        @<i>domain</i>.   An unmatched address extension (<i>+foo</i>) is propa-
        gated to the result of table lookup.
+
+<b>SIMULATED</b> <b>VIRTUAL</b> <b>DOMAINS</b>
+       Besides virtual aliases, the virtual alias table can  also
+       be used to simulate virtual domains. With a simulated vir-
+       tual domain, all recipient addresses are aliased  to  non-
+       virtual  addresses.   These  non-virtual  addresses may be
+       either local or remote.
+
+       Simulated virtual domains are not to be confused with  the
+       true virtual domains that are implemented with the Postfix
+       <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent. With true virtual domains,
+       each recipient address can have its own mailbox.
+
+       With  a  simulated  virtual domain, the virtual domain has
+       its own user name space. Local  (i.e.  non-virtual)  user-
+       names  are  not  visible in a simulated virtual domain. In
+       particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and local mailing  lists  are
+       not visible as <i>localname@simulated.domain</i>.
+
+       Support for a simulated virtual domain looks like:
+
+       /etc/postfix/main.cf:
+           virtual_alias_maps = hash:/etc/postfix/virtual
+
+           Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
+           See the output from <b>postconf</b> <b>-m</b> for available database
+           types.
+
+       /etc/postfix/virtual:
+           <i>simulated.domain</i>     <i>anything</i> (right-hand content does not matter)
+           <i>postmaster@simulated.domain</i>  <i>postmaster</i>
+           <i>user1@simulated.domain</i>       <i>address1</i>
+           <i>user2@simulated.domain</i>       <i>address2,</i> <i>address3</i>
+
+       The <i>simulated.domain</i> <i>anything</i> entry is required for a sim-
+       ulated virtual domain. Without this entry,  mail  will  be
+       rejected with a "relay access denied" error condition.
+
+       Do not list a simulated virtual domain name in the <b>main.cf</b>
+       <b>mydestination</b> configuration parameter.
+
+       With a simulated virtual domain, the Postfix  SMTP  server
+       accepts  mail for <i>known-user@simulated.domain</i>, and rejects
+       mail for <i>unknown-user</i>@<i>simulated.domain</i> as undeliverable.
+
+       Instead of specifying the simulated  virtual  domain  name
+       via  the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it
+       via the <b>main.cf</b> <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> configuration param-
+       eter.   This  latter parameter uses the same syntax as the
+       <b>main.cf</b> <b>mydestination</b> configuration parameter.
 
 <b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
        This section describes how the table lookups  change  when

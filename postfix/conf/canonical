@@ -72,7 +72,7 @@
 #               user@domain  is  replaced by address. This form has
 #               the highest precedence.
 # 
-#               This form useful to clean up addresses produced  by
+#               This is useful to clean up  addresses  produced  by
 #               legacy  mail  systems.  It can also be used to pro-
 #               duce Firstname.Lastname style  addresses,  but  see
 #               below for a simpler solution.

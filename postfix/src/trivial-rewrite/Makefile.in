@@ -76,7 +76,6 @@ resolve.o: ../../include/mail_params.h
 resolve.o: ../../include/mail_proto.h
 resolve.o: ../../include/iostuff.h
 resolve.o: ../../include/attr.h
-resolve.o: ../../include/mail_addr.h
 resolve.o: ../../include/rewrite_clnt.h
 resolve.o: ../../include/resolve_local.h
 resolve.o: ../../include/mail_conf.h
@@ -152,6 +151,7 @@ trivial-rewrite.o: ../../include/mail_conf.h
 trivial-rewrite.o: ../../include/resolve_clnt.h
 trivial-rewrite.o: ../../include/rewrite_clnt.h
 trivial-rewrite.o: ../../include/tok822.h
+trivial-rewrite.o: ../../include/mail_addr.h
 trivial-rewrite.o: ../../include/mail_server.h
 trivial-rewrite.o: trivial-rewrite.h
 trivial-rewrite.o: transport.h
