@@ -194,8 +194,8 @@
 /* .IP \fBsmtp_helo_timeout\fR
 /*	Timeout for sending the \fBHELO\fR command, and for
 /*	receiving the server response.
-/* .IP \fBsmtp_xclient_timeout\fR
-/*	Timeout for sending the \fBXCLIENT\fR command, and for
+/* .IP \fBsmtp_xforward_timeout\fR
+/*	Timeout for sending the \fBXFORWARD\fR command, and for
 /*	receiving the server response.
 /* .IP \fBsmtp_mail_timeout\fR
 /*	Timeout for sending the \fBMAIL FROM\fR command, and for
@@ -218,8 +218,8 @@
 /*	than the local MTA).
 /*	If yes, keep trying until a suitable MX host resolves or until
 /*	the mail is too old.
-/* .IP \fBsmtp_send_xclient_command\fR
-/*	If the SMTP server announces XCLIENT support, send the name,
+/* .IP \fBsmtp_send_xforward_command\fR
+/*	If the SMTP server announces XFORWARD support, send the name,
 /*	address, protocol and HELO name of the original client. This
 /*	can be used to forward client information through a content
 /*	filter to a downstream queuing SMTP server.
@@ -314,7 +314,7 @@ char   *var_smtp_helo_name;
 char   *var_smtp_host_lookup;
 bool    var_smtp_quote_821_env;
 bool    var_smtp_defer_mxaddr;
-bool    var_smtp_send_xclient;
+bool    var_smtp_send_xforward;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -529,7 +529,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
 	VAR_SMTP_QUOTE_821_ENV, DEF_SMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,
 	VAR_SMTP_DEFER_MXADDR, DEF_SMTP_DEFER_MXADDR, &var_smtp_defer_mxaddr,
-	VAR_SMTP_SEND_XCLIENT, DEF_SMTP_SEND_XCLIENT, &var_smtp_send_xclient,
+	VAR_SMTP_SEND_XFORWARD, DEF_SMTP_SEND_XFORWARD, &var_smtp_send_xforward,
 	0,
     };
 

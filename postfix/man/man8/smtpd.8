@@ -150,7 +150,11 @@ Disallow anonymous logins.
 .IP \fBsmtpd_sender_login_maps\fR
 Maps that specify the SASL login name that owns a MAIL FROM sender
 address. Used by the \fBreject_sender_login_mismatch\fR sender
-anti-spoofing restriction.
+anti-spoofing restriction, as well as by its component restrictions
+\fBreject_authenticated_sender_login_mismatch\fR (an authenticated
+client can't use a MAIL FROM sender address that is owned by someone
+else) and \fBreject_unauthenticated_sender_login_mismatch\fR (a client
+must be authenticated in order to use the MAIL FROM sender address).
 .SH Miscellaneous
 .ad
 .fi
@@ -159,10 +163,14 @@ Hostnames, domain names and/or addresses of clients that are
 authorized to use the XVERP extension.
 .IP \fBsmtpd_authorized_xclient_hosts\fR
 Hostnames, domain names and/or addresses of clients that are
-authorized to use the XCLIENT command.  This command changes
-client information for access control and/or logging purposes,
+authorized to use the XCLIENT command.  This command overrides
+client information for access control and logging purposes,
 with the exception of the
 \fBsmtpd_authorized_xclient_hosts\fR access control itself.
+.IP \fBsmtpd_authorized_xforward_hosts\fR
+Hostnames, domain names and/or addresses of clients that are
+authorized to use the XFORWARD command.  This command accepts
+client and message identofying information for logging purposes.
 .IP \fBdebug_peer_level\fR
 Increment in verbose logging level when a remote host matches a
 pattern in the \fBdebug_peer_list\fR parameter.

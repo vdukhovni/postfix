@@ -608,18 +608,19 @@ void    mail_params_init()
      * I have seen this happen just too often.
      */
     if (strcasecmp(var_myhostname, var_relayhost) == 0)
-	msg_fatal("myhostname == relayhost");
+	msg_fatal("%s and %s parameter settings must not be identical: %s",
+		  VAR_MYHOSTNAME, VAR_RELAYHOST, var_myhostname);
 
     /*
      * XXX These should be caught by a proper parameter parsing algorithm.
      */
     if (var_myorigin[strcspn(var_myorigin, ", \t\r\n")])
-	msg_fatal("myorigin parameter setting contains multiple values: %s",
-		  var_myorigin);
+	msg_fatal("%s parameter setting must not contain multiple values: %s",
+		  VAR_MYORIGIN, var_myorigin);
 
     if (var_relayhost[strcspn(var_relayhost, ", \t\r\n")])
-	msg_fatal("relayhost parameter setting contains multiple values: %s",
-		  var_relayhost);
+	msg_fatal("%s parameter setting must not contain multiple values: %s",
+		  VAR_RELAYHOST, var_relayhost);
 
     /*
      * One more sanity check.

@@ -19,7 +19,7 @@
 # To reject all SMTP connections from unauthenticated clients,
 # specify smtpd_delay_reject=yes (which is the default) and use:
 #
-#	smtpd_client_restrictions = permit_sasl_authenticated
+#	smtpd_client_restrictions = permit_sasl_authenticated, reject
 #
 # In order to enable server-side authentication, build Postfix with
 # SASL support, and install a configuration file /usr/lib/sasl/smtpd.conf

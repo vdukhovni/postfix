@@ -19,7 +19,10 @@ typedef struct {
     int     code;
 } NAME_CODE;
 
-extern int name_code(NAME_CODE *, const char *);
+#define NAME_CODE_FLAG_NONE		0
+#define NAME_CODE_FLAG_STRICT_CASE	(1<<0)
+
+extern int name_code(NAME_CODE *, int, const char *);
 extern const char *str_name_code(NAME_CODE *, int);
 
 /* LICENSE

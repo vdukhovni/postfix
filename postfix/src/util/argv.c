@@ -95,13 +95,16 @@ ARGV   *argv_free(ARGV *argvp)
 ARGV   *argv_alloc(int len)
 {
     ARGV   *argvp;
+    int     sane_len;
 
     /*
      * Make sure that always argvp->argc < argvp->len.
      */
     argvp = (ARGV *) mymalloc(sizeof(*argvp));
-    argvp->len = (len < 2 ? 2 : len);
-    argvp->argv = (char **) mymalloc((argvp->len + 1) * sizeof(char *));
+    argvp->len = 0;
+    sane_len = (len < 2 ? 2 : len);
+    argvp->argv = (char **) mymalloc((sane_len + 1) * sizeof(char *));
+    argvp->len = sane_len;
     argvp->argc = 0;
     argvp->argv[0] = 0;
     return (argvp);
@@ -111,10 +114,12 @@ ARGV   *argv_alloc(int len)
 
 static void argv_extend(ARGV *argvp)
 {
-    argvp->len *= 2;
+    int     new_len;
+
+    new_len = argvp->len * 2;
     argvp->argv = (char **)
-	myrealloc((char *) argvp->argv,
-		  (argvp->len + 1) * sizeof(char *));
+	myrealloc((char *) argvp->argv, (new_len + 1) * sizeof(char *));
+    argvp->len = new_len;
 }
 
 /* argv_add - add string to vector */

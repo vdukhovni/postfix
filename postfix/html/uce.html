@@ -829,11 +829,30 @@ response code to rejected requests (default:  <b>504</b>).
 <dt> <b>reject_sender_login_mismatch</b>
 
 <dd> Reject the request when <a href="#smtpd_sender_login_maps">
-$smtpd_sender_owner_maps</a> specifies an owner for the MAIL FROM
+$smtpd_sender_login_maps</a> specifies an owner for the MAIL FROM
 address, but the client is not (SASL) logged in as that MAIL FROM
 address owner; or when the client is (SASL) logged in, but the
-client login name doesn't own the MAIL FROM address according to
-<a href="#smtpd_sender_login_maps"> $smtpd_sender_login_maps</a>.
+client login name doesn't own the MAIL FROM address.
+
+<p>
+
+<a name="reject_authenticated_sender_login_mismatch">
+
+<dt> <b>reject_authenticated_sender_login_mismatch</b>
+
+<dd> Reject the request when the client is (SASL) logged in but
+the client login name doesn't own the MAIL FROM address according
+to <a href="#smtpd_sender_login_maps">$smtpd_sender_login_maps</a>.
+
+<p>
+
+<a name="reject_unauthenticated_sender_login_mismatch">
+
+<dt> <b>reject_unauthenticated_sender_login_mismatch</b>
+
+<dd> Reject the request when <a href="#smtpd_sender_login_maps">
+$smtpd_sender_login_maps</a> specifies an owner for the address,
+but the client is not (SASL) logged in.
 
 <p>
 
@@ -1583,8 +1602,13 @@ tables listed in <b>$relay_domains.</b>
 <dt> <b>smtpd_sender_login_maps</b>
 
 <dd>This parameter specifies ownership of MAIL FROM addresses, as
-used by the <a href="#reject_sender_login_mismatch">
-reject_sender_login_mismatch</a> sender address restriction.
+used by the <a
+href="#reject_sender_login_mismatch">reject_sender_login_mismatch</a>
+anti-spoofing restriction and by its component sender address
+restrictions:  <a href="#reject_authenticated_sender_login_mismatch">
+reject_authenticated_sender_login_mismatch</a> and <a
+href="#reject_unauthenticated_sender_login_mismatch">
+reject_unauthenticated_sender_login_mismatch</a>.
 
 <p>
 
@@ -1604,30 +1628,31 @@ specified order. Regexp tables are allowed.
 
 <p>
 
-Each map entry specifies a sender address and the login name that
-owns the address. The search order is:
+Each map entry specifies a sender address and a list of login names
+(separated by whitespace and/or commas) that owns the address. The
+search order is:
 
 <p>
 
 <dl>
 
-<dt><i>user@domain owner</i>
+<dt><i>user@domain</i> &nbsp; <i>owner, owner, ...</i>
 
 <dd>This form has the highest precedence.
 
 <p>
 
-<dt><i>user        owner</i>
+<dt><i>user</i> &nbsp; <i>owner, owner, ...</i>
 
-<dd>This matches <i>user@site</i> when <i>site</i> is equal to <a
-href="basic.html#myorigin"> $myorigin</a>, when <i>site</i> is
+<dd>This matches <i>user@site</i> when <i>site</i> is equal to
+<a href="basic.html#myorigin"> $myorigin</a>, when <i>site</i> is
 listed in <a href="basic.html#mydestination"> $mydestination</a>,
 or when it is listed in <a href="basic.html#inet_interfaces">
 $inet_interfaces</a>.
 
 <p>
 
-<dt><i>@domain     owner</i>
+<dt><i>@domain</i> &nbsp; <i>owner, owner, ...</i>
 
 <dd>This matches every address in the specified domain, and has
 the lowest precedence.

@@ -845,9 +845,9 @@ extern int var_smtp_pix_delay;
 #define DEF_SMTP_DEFER_MXADDR	0
 extern bool var_smtp_defer_mxaddr;
 
-#define VAR_SMTP_SEND_XCLIENT	"smtp_send_xclient_command"
-#define DEF_SMTP_SEND_XCLIENT	0
-extern bool var_smtp_send_xclient;
+#define VAR_SMTP_SEND_XFORWARD	"smtp_send_xforward_command"
+#define DEF_SMTP_SEND_XFORWARD	0
+extern bool var_smtp_send_xforward;
 
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
@@ -910,6 +910,10 @@ extern char *var_smtpd_sasl_realm;
 extern char *var_smtpd_snd_auth_maps;
 
 #define REJECT_SENDER_LOGIN_MISMATCH	"reject_sender_login_mismatch"
+#define REJECT_AUTH_SENDER_LOGIN_MISMATCH \
+				"reject_authenticated_sender_login_mismatch"
+#define REJECT_UNAUTH_SENDER_LOGIN_MISMATCH \
+				"reject_unauthenticated_sender_login_mismatch"
 
  /*
   * SASL authentication support, SMTP client side.
@@ -1575,11 +1579,18 @@ extern bool var_verp_bounce_off;
 extern char *var_verp_clients;
 
  /*
-  * XCLIENT, for rule testing and improved post-filter logging.
+  * XCLIENT, for rule testing and fetchmail like apps.
   */
 #define VAR_XCLIENT_HOSTS		"smtpd_authorized_xclient_hosts"
 #define DEF_XCLIENT_HOSTS		""
 extern char *var_xclient_hosts;
+
+ /*
+  * XFORWARD, for improved post-filter logging.
+  */
+#define VAR_XFORWARD_HOSTS		"smtpd_authorized_xforward_hosts"
+#define DEF_XFORWARD_HOSTS		""
+extern char *var_xforward_hosts;
 
  /*
   * Inbound mail flow control. This allows for a stiffer coupling between

@@ -52,7 +52,7 @@
 /*	mail.
 /*
 /*	smtpd_proxy_open() connects to the proxy service, sends EHLO, sends
-/*	client information with the XCLIENT command if possible, sends
+/*	client information with the XFORWARD command if possible, sends
 /*	the MAIL FROM command, and receives the reply. A non-zero result means
 /*	trouble: either the proxy is unavailable, or it did not send the
 /*	expected reply.
@@ -147,6 +147,7 @@
 #include <vstring.h>
 #include <stringops.h>
 #include <connect.h>
+#include <name_code.h>
 
 /* Global library. */
 
@@ -170,6 +171,53 @@
 #define LEN(x)	VSTRING_LEN(x)
 #define SMTPD_PROXY_CONNECT ((char *) 0)
 
+/* smtpd_xforward_flush - flush forwarding information */
+
+static int smtpd_xforward_flush(SMTPD_STATE *state, VSTRING *buf)
+{
+    int     ret;
+
+    if (VSTRING_LEN(buf) > 0) {
+	ret = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK,
+			      XFORWARD_CMD "%s", STR(buf));
+	VSTRING_RESET(buf);
+	return (ret);
+    }
+    return (0);
+}
+
+/* smtpd_xforward - send forwarding information */
+
+static int smtpd_xforward(SMTPD_STATE *state, VSTRING *buf, const char *name,
+			          int value_available, const char *value)
+{
+    size_t  new_len;
+    int     ret;
+
+#define CONSTR_LEN(s)	(sizeof(s) - 1)
+#define PAYLOAD_LIMIT	(512 - CONSTR_LEN("250 " XFORWARD_CMD "\r\n"))
+
+    /*
+     * How much space does this attribute need?
+     */
+    if (!value_available)
+	value = "";
+    new_len = strlen(name) + strlen(value) + 2;	/* SPACE name = value */
+    if (new_len > PAYLOAD_LIMIT)
+	msg_warn("%s payload %s=%.10s... exceeds SMTP protocol limit",
+		 XFORWARD_CMD, name, value);
+
+    /*
+     * Flush the buffer if we need to, and store the attribute.
+     */
+    if (VSTRING_LEN(buf) > 0 && VSTRING_LEN(buf) + new_len > PAYLOAD_LIMIT)
+	if ((ret = smtpd_xforward_flush(state, buf)) < 0)
+	    return (ret);
+    vstring_sprintf_append(buf, " %s=%s", name, value);
+
+    return (0);
+}
+
 /* smtpd_proxy_open - open proxy connection */
 
 int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
@@ -178,9 +226,17 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 {
     int     fd;
     char   *lines;
-    char   *line;
+    char   *words;
     VSTRING *buf;
     int     bad;
+    char   *word;
+    static NAME_CODE xforward_features[] = {
+	XFORWARD_NAME, SMTPD_PROXY_XFORWARD_NAME,
+	XFORWARD_ADDR, SMTPD_PROXY_XFORWARD_ADDR,
+	XFORWARD_PROTO, SMTPD_PROXY_XFORWARD_PROTO,
+	XFORWARD_HELO, SMTPD_PROXY_XFORWARD_HELO,
+	0, 0,
+    };
 
     /*
      * This buffer persists beyond the end of a proxy session so we can
@@ -236,41 +292,41 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     /*
      * Parse the EHLO reply and see if we can forward logging information.
      */
-    state->proxy_features = 0;
+    state->proxy_xforward_features = 0;
     lines = STR(state->proxy_buffer);
-    while ((line = mystrtok(&lines, "\n")) != 0)
-	if (ISDIGIT(line[0]) && ISDIGIT(line[1]) && ISDIGIT(line[2])
-	    && (line[3] == ' ' || line[3] == '-')
-	    && strcmp(line + 4, XCLIENT_CMD) == 0)
-	    state->proxy_features |= SMTPD_FEATURE_XCLIENT;
+    while ((words = mystrtok(&lines, "\n")) != 0) {
+	if (mystrtok(&words, "- ") && (word = mystrtok(&words, " \t")) != 0) {
+	    if (strcasecmp(word, XFORWARD_CMD) == 0)
+		while ((word = mystrtok(&words, " \t")) != 0)
+		    state->proxy_xforward_features |=
+			name_code(xforward_features, NAME_CODE_FLAG_NONE, word);
+	}
+    }
 
     /*
-     * Send all XCLIENT attributes, but only if we have some minimal amount
-     * of remote client information. Transform internal forms to external
-     * forms and encode the result as xtext.
+     * Send XFORWARD attributes. For robustness, explicitly specify what SMTP
+     * session attributes are known and unknown.
      */
-    if ((state->proxy_features & SMTPD_FEATURE_XCLIENT)
-	&& (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state))
-	    || IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))) {
+    if (state->proxy_xforward_features) {
 	buf = vstring_alloc(100);
-	vstring_strcpy(buf, XCLIENT_CMD " " XCLIENT_FORWARD
-		       " " XCLIENT_NAME "=");
-	if (IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)))
-	    xtext_quote_append(buf, FORWARD_NAME(state), "");
-	vstring_strcat(buf, " " XCLIENT_ADDR "=");
-	if (IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)))
-	    xtext_quote_append(buf, FORWARD_ADDR(state), "");
-	bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
-	if (bad == 0) {
-	    vstring_strcpy(buf, XCLIENT_CMD " " XCLIENT_FORWARD
-			   " " XCLIENT_HELO "=");
-	    if (IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)))
-		xtext_quote_append(buf, FORWARD_HELO(state), "");
-	    vstring_strcat(buf, " " XCLIENT_PROTO "=");
-	    if (IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)))
-		xtext_quote_append(buf, FORWARD_PROTO(state), "");
-	    bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
-	}
+	bad = 0;
+	if ((state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_NAME)
+	    && !(bad = smtpd_xforward(state, buf, XFORWARD_NAME,
+				  IS_AVAIL_CLIENT_NAME(FORWARD_NAME(state)),
+				      FORWARD_NAME(state)))
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_ADDR)
+	    && !(bad = smtpd_xforward(state, buf, XFORWARD_ADDR,
+				  IS_AVAIL_CLIENT_ADDR(FORWARD_ADDR(state)),
+				      FORWARD_ADDR(state)))
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_HELO)
+	    && !(bad = smtpd_xforward(state, buf, XFORWARD_HELO,
+				  IS_AVAIL_CLIENT_HELO(FORWARD_HELO(state)),
+				      FORWARD_HELO(state)))
+	    && (state->proxy_xforward_features & SMTPD_PROXY_XFORWARD_PROTO)
+	    && !(bad = smtpd_xforward(state, buf, XFORWARD_PROTO,
+				IS_AVAIL_CLIENT_PROTO(FORWARD_PROTO(state)),
+				      FORWARD_PROTO(state))))
+	    bad = smtpd_xforward_flush(state, buf);
 	vstring_free(buf);
 	if (bad) {
 	    vstring_sprintf(state->proxy_buffer,

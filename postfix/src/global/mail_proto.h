@@ -155,37 +155,18 @@ extern char *mail_pathname(const char *, const char *);
   * XCLIENT in SMTP.
   */
 #define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
-#define XCLIENT_OVERRIDE	"OVERRIDE"	/* override function */
-#define XCLIENT_FORWARD		"FORWARD"	/* forward function */
-#define XCLIENT_NAME		"CLIENT_NAME"	/* client name */
-#define XCLIENT_ADDR		"CLIENT_ADDR"	/* client address */
-#define XCLIENT_PROTO		"CLIENT_PROTO"	/* client protocol */
-#define XCLIENT_CODE		"CLIENT_CODE"	/* client name status */
-#define XCLIENT_HELO		"CLIENT_HELO"	/* client helo */
+#define XCLIENT_NAME		"NAME"		/* client name */
+#define XCLIENT_ADDR		"ADDR"		/* client address */
+#define XCLIENT_PROTO		"PROTO"		/* client protocol */
+#define XCLIENT_CODE		"NAME_CODE"	/* client name status */
+#define XCLIENT_HELO		"HELO"		/* client helo */
 
- /*
-  * This is how Postfix represents unknown client information within smtpd or
-  * qmqpd processes.
-  * 
-  * This is not the representation that Postfix uses in queue files, in queue
-  * manager delivery requests, nor is it the representation of information in
-  * XCLIENT commands!
-  */
-#define CLIENT_ATTR_UNKNOWN	"unknown"
-
-#define CLIENT_NAME_UNKNOWN	CLIENT_ATTR_UNKNOWN
-#define CLIENT_ADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
-#define CLIENT_NAMADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
-#define CLIENT_HELO_UNKNOWN	0
-#define CLIENT_PROTO_UNKNOWN	CLIENT_ATTR_UNKNOWN
-
-#define IS_AVAIL_CLIENT_ATTR(v)	((v) && strcmp((v), CLIENT_ATTR_UNKNOWN))
-
-#define IS_AVAIL_CLIENT_NAME(v)	IS_AVAIL_CLIENT_ATTR(v)
-#define IS_AVAIL_CLIENT_ADDR(v)	IS_AVAIL_CLIENT_ATTR(v)
-#define IS_AVAIL_CLIENT_NAMADDR(v) IS_AVAIL_CLIENT_ATTR(v)
-#define IS_AVAIL_CLIENT_HELO(v)	(v)
-#define IS_AVAIL_CLIENT_PROTO(v) IS_AVAIL_CLIENT_ATTR(v)
+#define XFORWARD_CMD		"XFORWARD"	/* XFORWARD command */
+#define XFORWARD_NAME		"NAME"		/* client name */
+#define XFORWARD_ADDR		"ADDR"		/* client address */
+#define XFORWARD_PROTO		"PROTO"		/* client protocol */
+#define XFORWARD_HELO		"HELO"		/* client helo */
+#define XFORWARD_IDENT		"IDENT"		/* message identifier */
 
 /* LICENSE
 /* .ad

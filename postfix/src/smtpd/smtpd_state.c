@@ -103,7 +103,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->proxy = 0;
     state->proxy_buffer = 0;
     state->proxy_mail = 0;
-    state->proxy_features = 0;
+    state->proxy_xforward_features = 0;
     state->saved_filter = 0;
     state->saved_redirect = 0;
     state->saved_flags = 0;
@@ -121,9 +121,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     smtpd_peer_init(state);
 
     /*
-     * Initialize xclient information.
+     * Initialize xforward information.
      */
-    smtpd_xclient_init(state);
+    smtpd_xforward_init(state);
 
     /*
      * Initialize the conversation history.

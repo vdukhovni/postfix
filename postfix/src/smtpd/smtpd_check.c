@@ -784,6 +784,9 @@ void    smtpd_check_init(void)
     htable_enter(smtpd_rest_classes, "check_relay_domains",
 	    smtpd_check_parse("permit_mydomain reject_unauth_destination"));
 #endif
+    htable_enter(smtpd_rest_classes, REJECT_SENDER_LOGIN_MISMATCH,
+		 (char *) smtpd_check_parse(REJECT_AUTH_SENDER_LOGIN_MISMATCH
+				  " " REJECT_UNAUTH_SENDER_LOGIN_MISMATCH));
 
     /*
      * People screw up the relay restrictions too often. Require that they
@@ -2849,41 +2852,69 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     return (result);
 }
 
-/* reject_sender_login_mismatch - reject login/sender ownership mismatch */
+#ifdef USE_SASL
 
-static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
+/* reject_auth_sender_login_mismatch - logged in client must own sender address */
+
+static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
 {
     const RESOLVE_REPLY *reply;
-    const char *login = 0;
-    const char *owner = 0;
+    const char *owners;
+    char   *saved_owners;
+    char   *cp;
+    char   *name;
+    int     found = 0;
 
     /*
-     * If the sender address is owned by a login name, or if the client has
-     * logged in, then require that the client is logged in as the owner of
-     * the sender address.
+     * Reject if the client is logged in and does not own the sender address.
      */
-    reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
-    if (reply->flags & RESOLVE_FLAG_FAIL)
-	reject_dict_retry(state, sender);
-    owner = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
-				 STR(reply->recipient), (char **) 0);
-#ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable && state->sasl_username != 0)
-	login = state->sasl_username;
-#endif
-    if (login) {
-	if (owner == 0 || strcasecmp(login, owner) != 0)
+    if (var_smtpd_sasl_enable && state->sasl_username != 0) {
+	reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
+	if (reply->flags & RESOLVE_FLAG_FAIL)
+	    reject_dict_retry(state, sender);
+	if ((owners = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
+				STR(reply->recipient), (char **) 0)) != 0) {
+	    cp = saved_owners = mystrdup(owners);
+	    while ((name = mystrtok(&cp, ", \t\r\n")) != 0) {
+		if (strcasecmp(state->sasl_username, name) == 0) {
+		    found = 1;
+		    break;
+		}
+	    }
+	    myfree(saved_owners);
+	}
+	if (!found)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 		  "553 <%s>: Sender address rejected: not owned by user %s",
-				       sender, login));
-    } else {
-	if (owner)
-	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-		"553 <%s>: Sender address rejected: not logged in as owner",
-				       sender));
+				       sender, state->sasl_username));
     }
     return (SMTPD_CHECK_DUNNO);
 }
+
+/* reject_unauth_sender_login_mismatch - sender requires client is logged in */
+
+static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
+{
+    const RESOLVE_REPLY *reply;
+    const char *login = 0;
+
+    /*
+     * Reject if the client is not logged in and the sender address has an
+     * owner.
+     */
+    if (var_smtpd_sasl_enable && state->sasl_username == 0) {
+	reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
+	if (reply->flags & RESOLVE_FLAG_FAIL)
+	    reject_dict_retry(state, sender);
+	if (check_mail_addr_find(state, sender, smtpd_sender_login_maps,
+				 STR(reply->recipient), (char **) 0) != 0)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+	       "553 <%s>: Sender address rejected: not logged in", sender));
+    }
+    return (SMTPD_CHECK_DUNNO);
+}
+
+#endif
 
 /* check_policy_service - check delegated policy service */
 
@@ -3204,9 +3235,22 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->sender && *state->sender)
 		status = reject_non_fqdn_address(state, state->sender,
 					  state->sender, SMTPD_NAME_SENDER);
-	} else if (strcasecmp(name, REJECT_SENDER_LOGIN_MISMATCH) == 0) {
-	    if (state->sender && *state->sender)
-		status = reject_sender_login_mismatch(state, state->sender);
+	} else if (strcasecmp(name, REJECT_AUTH_SENDER_LOGIN_MISMATCH) == 0) {
+#ifdef USE_SASL
+	    if (var_smtpd_sasl_enable) {
+		if (state->sender && *state->sender)
+		    status = reject_auth_sender_login_mismatch(state, state->sender);
+	    } else
+#endif
+		msg_warn("restriction `%s' ignored: no SASL support", name);
+	} else if (strcasecmp(name, REJECT_UNAUTH_SENDER_LOGIN_MISMATCH) == 0) {
+#ifdef USE_SASL
+	    if (var_smtpd_sasl_enable) {
+		if (state->sender && *state->sender)
+		    status = reject_unauth_sender_login_mismatch(state, state->sender);
+	    } else
+#endif
+		msg_warn("restriction `%s' ignored: no SASL support", name);
 	} else if (is_map_command(state, name, CHECK_SENDER_NS_ACL, &cpp)) {
 	    if (state->sender && *state->sender) {
 		status = check_server_access(state, *cpp, state->sender,

@@ -1,10 +1,10 @@
 SHELL	= /bin/sh
 SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
 	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
-	smtpd_xclient.c
+	smtpd_xforward.c
 OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
-	smtpd_xclient.o
+	smtpd_xforward.o
 HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
 	smtpd_sasl_glue.h smtpd_proxy.h
 TESTSRC	= smtpd_token_test.c
@@ -30,7 +30,7 @@ update: ../../libexec/$(PROG)
 ../../libexec/$(PROG): $(PROG)
 	cp $(PROG) ../../libexec
 
-SMTPD_CHECK_OBJ = smtpd_state.o smtpd_peer.o smtpd_xclient.o
+SMTPD_CHECK_OBJ = smtpd_state.o smtpd_peer.o smtpd_xforward.o
 
 smtpd_token: smtpd_token.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
@@ -122,6 +122,7 @@ smtpd.o: ../../include/argv.h
 smtpd.o: ../../include/watchdog.h
 smtpd.o: ../../include/iostuff.h
 smtpd.o: ../../include/split_at.h
+smtpd.o: ../../include/name_code.h
 smtpd.o: ../../include/mail_params.h
 smtpd.o: ../../include/record.h
 smtpd.o: ../../include/rec_type.h
@@ -338,16 +339,16 @@ smtpd_token.o: ../../include/mvect.h
 smtpd_token.o: smtpd_token.h
 smtpd_token.o: ../../include/vstring.h
 smtpd_token.o: ../../include/vbuf.h
-smtpd_xclient.o: smtpd_xclient.c
-smtpd_xclient.o: ../../include/sys_defs.h
-smtpd_xclient.o: ../../include/mymalloc.h
-smtpd_xclient.o: ../../include/msg.h
-smtpd_xclient.o: ../../include/mail_proto.h
-smtpd_xclient.o: ../../include/vstream.h
-smtpd_xclient.o: ../../include/vbuf.h
-smtpd_xclient.o: ../../include/iostuff.h
-smtpd_xclient.o: ../../include/attr.h
-smtpd_xclient.o: smtpd.h
-smtpd_xclient.o: ../../include/vstring.h
-smtpd_xclient.o: ../../include/argv.h
-smtpd_xclient.o: ../../include/mail_stream.h
+smtpd_xforward.o: smtpd_xforward.c
+smtpd_xforward.o: ../../include/sys_defs.h
+smtpd_xforward.o: ../../include/mymalloc.h
+smtpd_xforward.o: ../../include/msg.h
+smtpd_xforward.o: ../../include/mail_proto.h
+smtpd_xforward.o: ../../include/vstream.h
+smtpd_xforward.o: ../../include/vbuf.h
+smtpd_xforward.o: ../../include/iostuff.h
+smtpd_xforward.o: ../../include/attr.h
+smtpd_xforward.o: smtpd.h
+smtpd_xforward.o: ../../include/vstring.h
+smtpd_xforward.o: ../../include/argv.h
+smtpd_xforward.o: ../../include/mail_stream.h

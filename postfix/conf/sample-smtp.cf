@@ -76,16 +76,16 @@ smtp_never_send_ehlo = no
 # 
 smtp_defer_if_no_mx_address_found = no
 
-# The smtp_send_xclient_command parameter controls whether the Postfix
-# SMTP client will send an XCLIENT command to the SMTP server, when
-# the ESMTP HELO response of the remote host indicates XCLIENT support.
+# The smtp_send_xforward_command parameter controls whether the Postfix
+# SMTP client will send an XFORWARD command to the SMTP server, when
+# the ESMTP HELO response of the remote host indicates XFORWARD support.
 # This allows an "smtp" delivery agent, used for content filter
 # message injection, to forward the name, address, protocol and HELO
 # name of the original client to the content filter and downstream
 # queuing SMTP server. Before you change the value to yes, it is best
 # to make sure your content filter supports this command.
 # 
-smtp_send_xclient_command = no
+smtp_send_xforward_command = no
 
 # The smtp_line_length_limit parameter controls the length of
 # message header and body lines that Postfix will send via SMTP.
@@ -237,10 +237,9 @@ smtp_connect_timeout = 30s
 #
 smtp_helo_timeout = 300s
 
-# The smtp_xclient_timeout parameter specifies the SMTP client timeout
-# for sending the SMTP XCLIENT command, and for receiving the server
+# The smtp_xforward_timeout parameter specifies the SMTP client timeout
+# for sending the SMTP XFORWARD command, and for receiving the server
 # response.
-# for receiving the SMTP greeting banner.
 #
 # In case of problems the client does NOT try the next address on
 # the mail exchanger list.
@@ -248,7 +247,7 @@ smtp_helo_timeout = 300s
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
-smtp_xclient_timeout = 300s
+smtp_xforward_timeout = 300s
 
 # The smtp_mail_timeout parameter specifies the SMTP client timeout
 # for sending the SMTP MAIL FROM command, and for receiving the server

@@ -13,8 +13,9 @@
 /* .in -4
 /*	} NAME_CODE;
 /*
-/*	int	name_code(table, name)
+/*	int	name_code(table, flags, name)
 /*	NAME_CODE *table;
+/*	int	flags;
 /*	const char *name;
 /*
 /*	const char *str_name_code(table, code)
@@ -27,7 +28,13 @@
 /*	corresponds to "name not found".
 /*
 /*	name_code() looks up the code that corresponds with the name.
-/*	The lookup is case insensitive.
+/*	The lookup is case insensitive. The flags argument specifies
+/*	zero or more of the following:
+/* .IP NAME_CODE_FLAG_STRICT_CASE
+/*	String lookups are case sensitive.
+/* .PP
+/*	For convenience the constant NAME_CODE_FLAG_NONE requests
+/*	no special processing.
 /*
 /*	str_name_code() translates a number to its equivalend string.
 /* DIAGNOSTICS
@@ -59,12 +66,18 @@
 
 /* name_code - look up code by name */
 
-int     name_code(NAME_CODE *table, const char *name)
+int     name_code(NAME_CODE *table, int flags, const char *name)
 {
     NAME_CODE *np;
+    int     (*lookup) (const char *, const char *);
+
+    if (flags & NAME_CODE_FLAG_STRICT_CASE)
+	lookup = strcmp;
+    else
+	lookup = strcasecmp;
 
     for (np = table; np->name; np++)
-	if (strcasecmp(name, np->name) == 0)
+	if (lookup(name, np->name) == 0)
 	    break;
     return (np->code);
 }

@@ -8812,11 +8812,26 @@ Apologies for any names omitted.
 	Minor cleanups of the xclient error messages; xclient
 	command lookup tables. File: smtpd/smtpd.c.
 
+20031206
+
+	Feature: reject_sender_login_mismatch allows multiple owners
+	of a sender address.  Code by Liviu Daia.  Files:
+	smtpd/smtpd_check.c and documentation.
+
+	The reject_sender_login_mismatch feature is now implemented
+	by elementary features reject_unauth_sender_login_mismatch
+	(reject if the client is not SASL logged in but the sender
+	address has an owner in smtpd_sender_login_maps) and
+	reject_auth_sender_login_mismatch (reject if the client is
+	SASL logged in but does not own the sender address).  Code
+	by Liviu Daia.  Files: smtpd/smtpd_check.c and documentation.
+
 20031207
 
 	Bugfix: fallback_transport and mailbox_transport were broken
 	because the deliver_pass.c module was not updated for the
 	changed message delivery protocol.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content
@@ -8884,3 +8899,6 @@ Open problems:
 
 	Low: with quoted-printable, perhaps use =46rom instead of
 	>From.
+
+	virtual_mailbox_path expression like forward_path, so that
+	people can specify prefix and suffix.

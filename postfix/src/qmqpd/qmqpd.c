@@ -291,8 +291,9 @@ static void qmqpd_write_attributes(QMQPD_STATE *state)
     if (IS_AVAIL_CLIENT_ADDR(state->addr))
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_CLIENT_ADDR, state->addr);
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_ORIGIN, state->namaddr);
+    if (IS_AVAIL_CLIENT_NAMADDR(state->namaddr))
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_ORIGIN, state->namaddr);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_PROTO_NAME, state->protocol);
 }

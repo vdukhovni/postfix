@@ -78,25 +78,25 @@ unknown_local_recipient_reject_code = 550
 #
 
 # The smtpd_sender_login_maps parameter specifies the (SASL) login
-# name that owns a sender (MAIL FROM) address.
+# names that own sender (MAIL FROM) addresses.
 #
 # Specify zero or more maptype:mapname entries. Maps are created with
 # postmap(1) or with equivalent means. The maps are searched in the
 # specified order. Regexp tables are allowed.
 #
-# Each map entry specifies a sender address and the login name that
-# owns the address. The search order is:
+# Each map entry specifies a sender address and a list of login names
+# that owns the address. The search order is:
 #
-# 1)  user@domain owner
+# 1)  user@domain	owner, owner, ...
 #
 # This form has the highest precedence.
 #
-# 2)  user        owner
+# 2)  user		owner, owner, ...
 #
 # This matches user@site when site is equal to $myorigin, when site
 # is listed in $mydestination, or when it is listed in $inet_interfaces.
 #
-# 3)  @domain     owner
+# 3)  @domain		owner, owner, ...
 #
 # This matches every address in the specified domain, and has the
 # lowest precedence.
@@ -158,8 +158,8 @@ smtpd_client_connection_limit_exceptions = $mynetworks
 # are allowed to specify the XCLIENT extension to SMTP.
 #
 # This command overrides SMTP client information that is used for
-# logging or access control. Typical use is for SMTP-based content
-# filters or for SMTP server access rule testing.
+# logging and access control. Typical use is for SMTP-based content
+# filters, fetchmail-like programs, or SMTP server access rule testing.
 #
 # By default, no clients are allowed to specify XCLIENT.
 #
@@ -173,6 +173,25 @@ smtpd_client_connection_limit_exceptions = $mynetworks
 # (the value on the table right-hand side is not used).
 #
 smtpd_authorized_xclient_hosts =
+
+# The smtpd_authorized_xforward_hosts parameter specifies what clients
+# are allowed to specify the XFORWARD extension to SMTP.
+#
+# This command forwards information that is used to improve logging
+# after SMTP-based content filters.
+#
+# By default, no clients are allowed to specify XFORWARD.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address. You can also specify hostnames or .domain names (the
+# initial dot causes the domain to match any name below it).
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here. Specify type:table for table-based lookups
+# (the value on the table right-hand side is not used).
+#
+smtpd_authorized_xforward_hosts =
 
 # The smtpd_authorized_verp_clients parameter specifies what clients
 # are allowed to specify the SMTP XVERP command. This command requests
@@ -487,11 +506,22 @@ smtpd_helo_restrictions =
 #	look up sender address MX hosts (or name servers) and apply the
 #	specified access table to those hosts.
 #	Note: the OK result is not allowed here for security reasons.
-#   reject_sender_login_mismatch: reject if $smtpd_sender_login_maps specifies
-#	a MAIL FROM address owner, but the client is not (SASL) logged in as
-#	that MAIL FROM address owner; or if the client is (SASL) logged in, but
-#	the client login name doesn't own the MAIL FROM address according to
-#	$smtpd_sender_login_maps (see above).
+#   reject_sender_login_mismatch: 
+#	reject if $smtpd_sender_login_maps specifies a MAIL FROM
+#	address owner, but the client is not (SASL) logged in as
+#	that MAIL FROM address owner; or if the client is (SASL)
+#	logged in, but the client login name doesn't own the MAIL
+#	FROM address.
+#   reject_authenticated_sender_login_mismatch:
+#	reject if the client is (SASL) logged in, but the client
+#	login name doesn't own the MAIL FROM address according to
+#	$smtpd_sender_login_maps (see above). This still allows
+#	unauthenticated clients to impersonate the sender.
+#   reject_unauthenticated_sender_login_mismatch:
+#	reject if $smtpd_sender_login_maps specifies a MAIL FROM
+#	address owner, but the client is not (SASL) logged in.
+#	This prevents unauthenticated clients from impersonating
+#	the sender.
 #   reject_non_fqdn_sender: reject sender address that is not in FQDN form
 #   check_policy_service transport:endpoint: delegate the decision to
 #	an external policy server. See SMTPD_POLICY_README for details.
@@ -545,7 +575,7 @@ smtpd_sender_restrictions =
 #	  $virtual_alias_domains, or $virtual_mailbox_domains.
 #	- to destinations matching $relay_domains or subdomain thereof,
 #	  except for addresses with sender-specified routing.
-#   reject_unauth_destination: reject mail unless it is sent
+#  *reject_unauth_destination: reject mail unless it is sent
 #	- to destinations matching $inet_interfaces, $mydestination,
 #	  $virtual_alias_domains, or $virtual_mailbox_domains.
 #	- to destinations matching $relay_domains or subdomain thereof,

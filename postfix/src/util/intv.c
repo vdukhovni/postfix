@@ -86,8 +86,9 @@ INTV   *intv_alloc(int len)
      * Initialize.
      */
     intvp = (INTV *) mymalloc(sizeof(*intvp));
+    intvp->len = 0;
+    intvp->intv = (int *) mymalloc(len * sizeof(intvp->intv[0]));
     intvp->len = len;
-    intvp->intv = (int *) mymalloc(intvp->len * sizeof(intvp->intv[0]));
     intvp->intc = 0;
     return (intvp);
 }
@@ -97,6 +98,7 @@ INTV   *intv_alloc(int len)
 void    intv_add(INTV *intvp, int count,...)
 {
     va_list ap;
+    int     new_len;
 
     /*
      * Make sure that always intvp->intc < intvp->len.
@@ -104,9 +106,10 @@ void    intv_add(INTV *intvp, int count,...)
     va_start(ap, count);
     while (count-- > 0) {
 	if (intvp->intc >= intvp->len) {
-	    intvp->len *= 2;
+	    new_len = intvp->len * 2;
 	    intvp->intv = (int *) myrealloc((char *) intvp->intv,
-					     intvp->len * sizeof(int));
+					    new_len * sizeof(int));
+	    intvp->len = new_len;
 	}
 	intvp->intv[intvp->intc++] = va_arg(ap, int);
     }

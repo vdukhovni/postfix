@@ -210,11 +210,6 @@ local_transport: $(LIB) $(LIBS)
 quote_821_local: quote_821_local.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
 
-peer_name: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
-
 mail_conf_time: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
@@ -1079,11 +1074,6 @@ own_inet_addr.o: ../../include/vstring.h
 own_inet_addr.o: ../../include/vbuf.h
 own_inet_addr.o: mail_params.h
 own_inet_addr.o: own_inet_addr.h
-peer_name.o: peer_name.c
-peer_name.o: ../../include/sys_defs.h
-peer_name.o: ../../include/msg.h
-peer_name.o: ../../include/valid_hostname.h
-peer_name.o: peer_name.h
 pipe_command.o: pipe_command.c
 pipe_command.o: ../../include/sys_defs.h
 pipe_command.o: ../../include/msg.h

@@ -249,8 +249,8 @@ SMTP(8)                                                   SMTP(8)
               Timeout for  sending  the  <b>HELO</b>  command,  and  for
               receiving the server response.
 
-       <b>smtp_xclient_timeout</b>
-              Timeout  for  sending  the <b>XCLIENT</b> command, and for
+       <b>smtp_xforward_timeout</b>
+              Timeout  for  sending the <b>XFORWARD</b> command, and for
               receiving the server response.
 
        <b>smtp_mail_timeout</b>
@@ -281,8 +281,8 @@ SMTP(8)                                                   SMTP(8)
               keep  trying  until  a suitable MX host resolves or
               until the mail is too old.
 
-       <b>smtp_send_xclient_command</b>
-              If the SMTP server announces XCLIENT support,  send
+       <b>smtp_send_xforward_command</b>
+              If the SMTP server announces XFORWARD support, send
               the  name,  address,  protocol and HELO name of the
               original client. This can be used to forward client
               information  through  a  content  filter to a down-

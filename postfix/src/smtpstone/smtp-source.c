@@ -793,8 +793,10 @@ int     main(int argc, char **argv)
 	    count++;
 	    break;
 	case 'C':
-	    if ((connect_count = atoi(optarg)) <= 0)
+	    if ((connect_count = atoi(optarg)) <= 0) {
+		msg_error("bad connection count: %s", optarg);
 		usage(argv[0]);
+	    }
 	    break;
 	case 'd':
 	    disconnect = 0;
@@ -803,8 +805,10 @@ int     main(int argc, char **argv)
 	    sender = optarg;
 	    break;
 	case 'l':
-	    if ((message_length = atoi(optarg)) <= 0)
+	    if ((message_length = atoi(optarg)) <= 0) {
+		msg_error("bad message length: %s", optarg);
 		usage(argv[0]);
+	    }
 	    message_data = mymalloc(message_length);
 	    memset(message_data, 'X', message_length);
 	    for (i = 80; i < message_length; i += 80) {
@@ -817,24 +821,36 @@ int     main(int argc, char **argv)
 	    talk_lmtp = 1;
 	    break;
 	case 'm':
-	    if ((message_count = atoi(optarg)) <= 0)
+	    if ((message_count = atoi(optarg)) <= 0) {
+		msg_error("bad message count: %s", optarg);
 		usage(argv[0]);
+	    }
 	    break;
 	case 'o':
 	    send_helo_first = 0;
 	    send_headers = 0;
 	    break;
 	case 'r':
-	    if ((recipients = atoi(optarg)) <= 0)
+	    if ((recipients = atoi(optarg)) <= 0) {
+		msg_error("bad recipient count: %s", optarg);
 		usage(argv[0]);
+	    }
 	    break;
 	case 'R':
-	    if (fixed_delay > 0 || (random_delay = atoi(optarg)) <= 0)
+	    if (fixed_delay > 0) {
+		msg_error("do not use -w and -R options at the same time");
 		usage(argv[0]);
+	    }
+	    if ((random_delay = atoi(optarg)) <= 0) {
+		msg_error("bad random delay: %s", optarg);
+		usage(argv[0]);
+	    }
 	    break;
 	case 's':
-	    if ((sessions = atoi(optarg)) <= 0)
+	    if ((sessions = atoi(optarg)) <= 0) {
+		msg_error("bad session count: %s", optarg);
 		usage(argv[0]);
+	    }
 	    break;
 	case 'S':
 	    subject = optarg;
@@ -846,8 +862,14 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	case 'w':
-	    if (random_delay > 0 || (fixed_delay = atoi(optarg)) <= 0)
+	    if (random_delay > 0) {
+		msg_error("do not use -w and -R options at the same time");
 		usage(argv[0]);
+	    }
+	    if ((fixed_delay = atoi(optarg)) <= 0) {
+		msg_error("bad fixed delay: %s", optarg);
+		usage(argv[0]);
+	    }
 	    break;
 	default:
 	    usage(argv[0]);

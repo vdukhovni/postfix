@@ -25,19 +25,23 @@ the filter can override the MTA's idea of the SMTP client hostname,
 network address, and other information, for the entire duration of
 an SMTP session.
 
+4 - Fetchmail.
+
 Command overview
 ================
 
-The EHLO keyword associated with this extension is XCLIENT.
+The EHLO keyword associated with this extension is XCLIENT. In EHLO
+replies, XCLIENT is followed by the names of the supported XCLIENT
+functions.
 
-The XCLIENT OVERRIDE command updates remote client attributes that
+The XCLIENT OVERRIDE function updates remote client attributes that
 the MTA normally uses for access control, message headers, logging
 and so on, for the duration of an entire SMTP session.
 
-The XCLIENT FORWARD command updates temporary remote client attributes
-that the MTA uses for transaction logging. These attributes are
-valid for only one message delivery attempt.  In the absence of
-forwarded attributes the MTA must use the normal remote client
+The XCLIENT FORWARD function updates temporary remote client
+attributes that the MTA uses for transaction logging. These attributes
+are valid for only one message delivery attempt.  In the absence
+of forwarded attributes the MTA must use the normal remote client
 attribute values.
 
 The general command syntax is described below.  Upper case and
@@ -52,7 +56,7 @@ case, they are in fact case insensitive.
 
     attribute = name"="value
 
-    name = ( CLIENT_NAME|CLIENT_ADDR|CLIENT_CODE|CLIENT_PROTO|CLIENT_HELO )
+    name = ( NAME|ADDR|CODE|PROTO|HELO )
 
     value = ( { empty } | xtext )
 
@@ -91,8 +95,8 @@ The following example overrides only the client hostname and network
 address, leaving unchanged all other client attributes such as the
 mail protocol or the hostname given in the HELO command:
 
-    XCLIENT OVERRIDE CLIENT_NAME=spike.porcupine.org
-    XCLIENT OVERRIDE CLIENT_ADDR=168.100.189.2
+    XCLIENT OVERRIDE NAME=spike.porcupine.org
+    XCLIENT OVERRIDE ADDR=168.100.189.2
 
 The XCLIENT FORWARD request specifies remote client attributes that
 are logged with one message delivery attempt. The attributes are
@@ -109,8 +113,8 @@ The following example updates all forwarded client attributes that
 are defined in this document, leaving none at their default unknown
 value:
 
-    XCLIENT FORWARD CLIENT_NAME=spike.porcupine.org CLIENT_ADDR=168.100.189.2
-    XCLIENT FORWARD CLIENT_HELO=spike.porcupine.org CLIENT_PROTO=ESMTP
+    XCLIENT FORWARD NAME=spike.porcupine.org ADDR=168.100.189.2
+    XCLIENT FORWARD HELO=spike.porcupine.org PROTO=ESMTP
 
 Note 1: attributes specified with successive XCLIENT commands
 accumulate.
@@ -126,32 +130,33 @@ specify that an attribute value is unavailable, the value must be
 empty; the client must not send its own internal representation of
 unavailable information.
 
-The CLIENT_CODE attribute specifies CLIENT_NAME hostname lookup
-status information.  Values are OK (success), TEMP (temporary lookup
-failure) or PERM (permanent lookup failure). When CLIENT_CODE is
-set to any value other than OK, the CLIENT_NAME attribute is
-automatically set to the unknown value.
+The NAME_CODE attribute specifies NAME hostname lookup status
+information.  Values are OK (success), TEMP (temporary lookup
+failure) or PERM (permanent lookup failure). When CODE is set to
+any value other than OK, the NAME attribute is automatically set
+to the unknown value.
 
-The CLIENT_NAME attribute should specify a syntactically valid
-domain name and not a numerical address.  When a null client name
-is specified (i.e.  the client name is unknown), the CLIENT_CODE
-attribute is implicitly set to PERM. When a valid domain name is
-specified, CLIENT_CODE is implicitly set to OK. The server may
-process a syntactically invalid domain name as if it were unknown.
+The NAME attribute specifies a name space (typically, DNS) and
+an MTA name within that name space.
+and not a numerical address.  When a null client name is specified
+(i.e.  the client name is unknown), the CODE attribute is implicitly
+set to PERM. When a valid domain name is specified, CODE is implicitly
+set to OK. The server may process a syntactically invalid domain
+name as if it were unknown.
 
-The CLIENT_ADDR attribute must specify a numerical network address
-without [].
+The ADDR attribute must specify a numerical network address without
+[].
 
-The CLIENT_PROTO attribute should be a string of up to 64 printable
+The PROTO attribute should be a string of up to 64 printable
 characters, where printable is defined by the ANSI C isascii() and
 isprint() predicates.
 
-The CLIENT_HELO attribute should be a syntactically valid HELO
+The HELO attribute should be a syntactically valid HELO
 parameter value.
 
-Note 3: syntactically valid CLIENT_NAME and CLIENT_HELO attributes
-can be up to 255 characters long. The client must not send XCLIENT
-commands that exceed the 512 character limit of SMTP commands.
+Note 3: syntactically valid NAME and HELO attributes can be up to
+255 characters long. The client must not send XCLIENT commands that
+exceed the 512 character limit of SMTP commands.
 
 Note 4: attribute values may end up in Received: or other message
 headers.  The receiving MTA may substitute characters in order to

@@ -45,15 +45,26 @@ typedef struct SMTPD_DEFER {
     int     class;			/* error notification class */
 } SMTPD_DEFER;
 
-typedef struct SMTPD_XCLIENT_ATTR {
-    int     used;			/* status */
+typedef struct SMTPD_XFORWARD_ATTR {
+    int     flags;			/* see below */
     char   *name;			/* name for access control */
     char   *addr;			/* address for access control */
     char   *namaddr;			/* name[address] */
-    int     peer_code;			/* name status */
     char   *protocol;			/* email protocol */
     char   *helo_name;			/* helo/ehlo parameter */
-} SMTPD_XCLIENT_ATTR;
+    char   *ident;			/* message identifier */
+} SMTPD_XFORWARD_ATTR;
+
+#define SMTPD_XFORWARD_FLAG_INIT (1<<0)	/* preset done */
+#define SMTPD_XFORWARD_FLAG_NAME (1<<1)	/* client name received */
+#define SMTPD_XFORWARD_FLAG_ADDR (1<<2)	/* client address received */
+#define SMTPD_XFORWARD_FLAG_PROTO (1<<3)/* protocol received */
+#define SMTPD_XFORWARD_FLAG_HELO (1<<4)	/* client helo received */
+#define SMTPD_XFORWARD_FLAG_IDENT (1<<5)/* message identifier received */
+
+#define SMTPD_XFORWARD_FLAG_CLIENT_MASK \
+	(SMTPD_XFORWARD_FLAG_NAME | SMTPD_XFORWARD_FLAG_ADDR \
+	| SMTPD_XFORWARD_FLAG_PROTO | SMTPD_XFORWARD_FLAG_HELO)
 
 typedef struct SMTPD_STATE {
     int     err;
@@ -113,8 +124,8 @@ typedef struct SMTPD_STATE {
     VSTREAM *proxy;			/* proxy handle */
     VSTRING *proxy_buffer;		/* proxy query/reply buffer */
     char   *proxy_mail;			/* owned by mail_cmd() */
-    int     proxy_features;		/* proxy ESMTP features */
-    SMTPD_XCLIENT_ATTR xclient;		/* override access control */
+    int     proxy_xforward_features;	/* proxy XFORWARD features */
+    SMTPD_XFORWARD_ATTR xforward;	/* override access control */
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);
@@ -126,6 +137,30 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   */
 #define SMTPD_AFTER_CONNECT	"CONNECT"
 #define SMTPD_AFTER_DOT		"END-OF-MESSAGE"
+
+ /*
+  * Postfix representation of unknown client information within smtpd
+  * processes. This is not the representation that Postfix uses in queue
+  * files, in queue manager delivery requests, nor is it the representation
+  * of information in XCLIENT/XFORWARD commands!
+  */
+#define CLIENT_ATTR_UNKNOWN	"unknown"
+
+#define CLIENT_NAME_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_ADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_NAMADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_HELO_UNKNOWN	0
+#define CLIENT_PROTO_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_IDENT_UNKNOWN	0
+
+#define IS_AVAIL_CLIENT_ATTR(v)	((v) && strcmp((v), CLIENT_ATTR_UNKNOWN))
+
+#define IS_AVAIL_CLIENT_NAME(v)	IS_AVAIL_CLIENT_ATTR(v)
+#define IS_AVAIL_CLIENT_ADDR(v)	IS_AVAIL_CLIENT_ATTR(v)
+#define IS_AVAIL_CLIENT_NAMADDR(v) IS_AVAIL_CLIENT_ATTR(v)
+#define IS_AVAIL_CLIENT_HELO(v)	((v) != 0)
+#define IS_AVAIL_CLIENT_PROTO(v) IS_AVAIL_CLIENT_ATTR(v)
+#define IS_AVAIL_CLIENT_IDENT(v) ((v) != 0)
 
  /*
   * If running in stand-alone mode, do not try to talk to Postfix daemons but
@@ -162,23 +197,37 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
   * 
   * Note 2: outside the SMTP server, the representation of unknown/known
   * attribute values is different in queue files, in queue manager delivery
-  * requests, and in over-the-network XCLIENT commands.
+  * requests, and in over-the-network XFORWARD commands.
   */
-#define SMTPD_FEATURE_XCLIENT (1<<0)	/* proxy announces XCLIENT */
+#define SMTPD_PROXY_XFORWARD_NAME (1<<0)	/* client name */
+#define SMTPD_PROXY_XFORWARD_ADDR (1<<1)	/* client address */
+#define SMTPD_PROXY_XFORWARD_PROTO (1<<2)	/* protocol */
+#define SMTPD_PROXY_XFORWARD_HELO (1<<3)	/* client helo */
+#define SMTPD_PROXY_XFORWARD_IDENT (1<<4)	/* message identifier */
 
-#define MAYBE_FORWARD(s, a) \
-	((s)->xclient.used ? (s)->xclient.a : (s)->a)
+ /*
+  * If forwarding client information, don't mix direct client information
+  * from the current SMTP session with forwarded client information from an
+  * up-stream session.
+  */
+#define FORWARD_CLIENT_ATTR(s, a) \
+	(((s)->xforward.flags & SMTPD_XFORWARD_FLAG_CLIENT_MASK) ? \
+	    (s)->xforward.a : (s)->a)
 
-#define FORWARD_ADDR(s)		MAYBE_FORWARD((s), addr)
-#define FORWARD_NAME(s)		MAYBE_FORWARD((s), name)
-#define FORWARD_NAMADDR(s)	MAYBE_FORWARD((s), namaddr)
-#define FORWARD_CODE(s)		MAYBE_FORWARD((s), peer_code)
-#define FORWARD_PROTO(s)	MAYBE_FORWARD((s), protocol)
-#define FORWARD_HELO(s)		MAYBE_FORWARD((s), helo_name)
+#define FORWARD_IDENT_ATTR(s) \
+	(((s)->xforward.flags & SMTPD_XFORWARD_FLAG_IDENT) ? \
+	    (s)->queue_id : (s)->ident)
 
-extern void smtpd_xclient_init(SMTPD_STATE *state);
-extern void smtpd_xclient_preset(SMTPD_STATE *state);
-extern void smtpd_xclient_reset(SMTPD_STATE *state);
+#define FORWARD_ADDR(s)		FORWARD_CLIENT_ATTR((s), addr)
+#define FORWARD_NAME(s)		FORWARD_CLIENT_ATTR((s), name)
+#define FORWARD_NAMADDR(s)	FORWARD_CLIENT_ATTR((s), namaddr)
+#define FORWARD_PROTO(s)	FORWARD_CLIENT_ATTR((s), protocol)
+#define FORWARD_HELO(s)		FORWARD_CLIENT_ATTR((s), helo_name)
+#define FORWARD_IDENT(s)	FORWARD_IDENT_ATTR(s)
+
+extern void smtpd_xforward_init(SMTPD_STATE *state);
+extern void smtpd_xforward_preset(SMTPD_STATE *state);
+extern void smtpd_xforward_reset(SMTPD_STATE *state);
 
  /*
   * Transparency: before mail is queued, do we check for unknown recipients,
