@@ -52,8 +52,15 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
        <b>-m</b> <i>message</i><b>_</b><i>count</i>
               Send the specified number of messages (default: 1).
 
+       <b>-N</b>     Prepend  a  non-repeating  sequence  number to each
+              recipient address. This avoids the artificial  100%
+              hit  rate  in the resolve and rewrite client caches
+              and exercises the  trivial-rewrite  daemon,  better
+              approximating  Postfix  performance under real-life
+              work-loads.
+
        <b>-r</b> <i>recipient</i><b>_</b><i>count</i>
-              Send  the specified number of recipients per trans-
+              Send the specified number of recipients per  trans-
               action (default: 1).  Recipient names are generated
               by prepending a number to the recipient address.
 
@@ -62,15 +69,15 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
               lel (default: 1).
 
        <b>-S</b> <i>subject</i>
-              Send mail with the  named  subject  line  (default:
+              Send  mail  with  the  named subject line (default:
               none).
 
-       <b>-t</b> <i>to</i>  Use   the  specified  recipient  address  (default:
+       <b>-t</b> <i>to</i>  Use  the  specified  recipient  address   (default:
               &lt;foo@<a href="postconf.5.html#myhostname">myhostname</a>&gt;).
 
        <b>-R</b> <i>interval</i>
               Wait for a random period of time 0 &lt;= n &lt;= interval
-              between  messages.   Suspending one thread does not
+              between messages.  Suspending one thread  does  not
               affect other delivery threads.
 
        <b>-w</b> <i>interval</i>
@@ -78,7 +85,7 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
               thread does not affect other delivery threads.
 
        [<b>inet:</b>]<i>host</i>[:<i>port</i>]
-              Connect  via  TCP  to  host  <i>host</i>,  port  <i>port</i>. The
+              Connect via  TCP  to  host  <i>host</i>,  port  <i>port</i>.  The
               default port is <b>smtp</b>.
 
        <b>unix:</b><i>pathname</i>
@@ -91,7 +98,7 @@ SMTP-SOURCE(1)                                     SMTP-SOURCE(1)
        <a href="smtp-sink.1.html">smtp-sink(1)</a>, SMTP/LMTP message dump
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

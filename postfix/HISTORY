@@ -9583,12 +9583,12 @@ Apologies for any names omitted.
 	recvmsg(). Workaround is to insert an intervening read
 	(write) operation.  Presumably, LINUX 2.4 is confusing the
 	data and file descriptor.  Lucky Ralf Hildebrandt.  Files:
-	util/sys_defs.h, global/scache_clnt,c, scache/scache.c.
+	util/sys_defs.h, global/scache_clnt.c, scache/scache.c.
 
 20040723
 
 	Bug? Safety? spawn(8) did not reject a user with the -1
-	UID value, so the command was running as root.  Files:
+	UID value, so the command could run as root.  Files:
 	util/spawn_command.c, src/util/spawn.c.
 
 	User interface: parameter smtp_connection_cache_domains
@@ -9598,6 +9598,18 @@ Apologies for any names omitted.
 
 	Bugfix: "421 Timeout exceeded" wasn't guarded by setjmp().
 	Victor Duchovni, Morgan Stanley. File: smtpd/smtpd.c.
+
+20040729
+
+	Feature:  enable SMTP session caching temporarily while a
+	site has a high volume of mail in the active queue.
+	Parameter:  smtp_connection_cache_on_demand (default:
+	yes).  Files:  smtp/smtp_connect.c, *qmgr/qmgr_entry.c,
+	*qmgr/qmgr_queue.c, *qmgr/qmgr_deliver.c.
+
+	Feature: smtp-source -N option to generate unique recipient
+	addresses for (trivial-rewrite) stress testing. Victor
+	Duchovni, Morgan Stanley. File: smtpstone/smtp-source.c.
 
 Open problems:
 

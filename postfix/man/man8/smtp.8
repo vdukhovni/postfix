@@ -35,7 +35,11 @@ deliver the mail to an alternate host.
 After a successful mail transaction, a session may be saved
 to the \fBscache(8)\fR session cache server, so that it
 may be used by any SMTP client for a subsequent transaction.
-Session caching is disabled by default.
+
+By default, session caching is enabled temporarily for
+destinations that have a high volume of mail in the active
+queue. Session caching can be enabled permanently for
+specific destinations.
 .SH "SECURITY"
 .na
 .nf
@@ -210,8 +214,11 @@ for receiving the server response.
 .PP
 Available in Postfix version 2.2 and later:
 .IP "\fBsmtp_connection_cache_destinations (empty)\fR"
-The SMTP destinations for which SMTP connection caching is
-enabled.
+Permanently enable SMTP connection caching for the specified
+destinations.
+.IP "\fBsmtp_connection_cache_on_demand (yes)\fR"
+Temporarily enable SMTP session caching while a destination
+has a high volume of mail in the active queue.
 .IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"
 When SMTP session caching is enabled, the number of times that
 an SMTP session is reused before it is closed.

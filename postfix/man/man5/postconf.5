@@ -2698,10 +2698,10 @@ the operating system).
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH smtp_connection_cache_destinations (default: empty)
-The SMTP destinations for which SMTP connection caching is
-enabled.  With SMTP connection caching, a connection is not closed
-immediately after completion of a mail transaction.  Instead, the
-connection is kept open for up to $smtp_connection_cache_time_limit
+Permanently enable SMTP connection caching for the specified
+destinations.  With SMTP connection caching, a connection is not
+closed immediately after completion of a mail transaction.  Instead,
+the connection is kept open for up to $smtp_connection_cache_time_limit
 seconds.  This allows connections to be reused for other deliveries,
 and can improve mail delivery performance.
 .PP
@@ -2721,6 +2721,16 @@ a "type:table" with domains and/or relay hosts on the left-hand
 side.  The right-hand side result from "type:table" lookups is
 ignored.
 .PP
+.SH smtp_connection_cache_on_demand (default: yes)
+Temporarily enable SMTP session caching while a destination
+has a high volume of mail in the active queue.  With SMTP connection
+caching, a connection is not closed immediately after completion
+of a mail transaction.  Instead, the connection is kept open for
+up to $smtp_connection_cache_time_limit seconds.  This allows
+connections to be reused for other deliveries, and can improve mail
+delivery performance.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_reuse_limit (default: 10)
 When SMTP session caching is enabled, the number of times that
 an SMTP session is reused before it is closed.

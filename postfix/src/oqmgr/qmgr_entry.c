@@ -84,6 +84,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <deliver_request.h>		/* opportunistic session caching */
 
 /* Application-specific. */
 
@@ -187,6 +188,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 
 QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
 {
+    char   *myname = "qmgr_entry_create";
     QMGR_ENTRY *entry;
 
     /*
@@ -206,6 +208,22 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
     entry->queue = queue;
     QMGR_LIST_APPEND(queue->todo, entry);
     queue->todo_refcount++;
+
+    /*
+     * With opportunistic session caching, the delivery agent must not only
+     * 1) save a session upon completion, but also 2) reuse a cached session
+     * upon the next delivery request. In order to not miss out on 2), we
+     * have to make caching sticky or else we get silly behavior when the
+     * in-memory queue drains. New connections must not be made while cached
+     * connections aren't being reused.
+     */
+    if ((queue->dflags & DEL_REQ_FLAG_SCACHE) == 0
+	&& queue->window < queue->todo_refcount + queue->busy_refcount) {
+	if (msg_verbose)
+	    msg_info("%s: passing on-demand session caching threshold for %s",
+		     myname, queue->name);
+	queue->dflags |= DEL_REQ_FLAG_SCACHE;
+    }
 
     /*
      * Warn if a destination is falling behind while the active queue

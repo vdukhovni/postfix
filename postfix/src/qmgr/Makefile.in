@@ -157,6 +157,9 @@ qmgr_entry.o: ../../include/events.h
 qmgr_entry.o: ../../include/vstream.h
 qmgr_entry.o: ../../include/vbuf.h
 qmgr_entry.o: ../../include/mail_params.h
+qmgr_entry.o: ../../include/deliver_request.h
+qmgr_entry.o: ../../include/vstring.h
+qmgr_entry.o: ../../include/recipient_list.h
 qmgr_entry.o: qmgr.h
 qmgr_entry.o: ../../include/scan_dir.h
 qmgr_job.o: qmgr_job.c

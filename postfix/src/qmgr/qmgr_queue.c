@@ -181,6 +181,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, const char *reason)
 	queue->reason = mystrdup(reason);
 	event_request_timer(qmgr_queue_unthrottle_wrapper,
 			    (char *) queue, var_min_backoff_time);
+	queue->dflags = 0;
     }
 }
 
@@ -231,6 +232,7 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *name,
 
     queue = (QMGR_QUEUE *) mymalloc(sizeof(QMGR_QUEUE));
     qmgr_queue_count++;
+    queue->dflags = 0;
     queue->name = mystrdup(name);
     queue->nexthop = mystrdup(nexthop);
     queue->todo_refcount = 0;

@@ -781,6 +781,10 @@ extern int var_smtp_reuse_limit;
 #define DEF_SMTP_CACHE_DEST	""
 extern char *var_smtp_cache_dest;
 
+#define VAR_SMTP_CACHE_DEMAND	"smtp_connection_cache_on_demand"
+#define DEF_SMTP_CACHE_DEMAND	1
+extern bool var_smtp_cache_demand;
+
 #define VAR_SMTP_CONN_TMOUT	"smtp_connect_timeout"
 #define DEF_SMTP_CONN_TMOUT	"30s"
 extern int var_smtp_conn_tmout;

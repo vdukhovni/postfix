@@ -62,6 +62,7 @@ typedef struct DELIVER_REQUEST {
 #define DEL_REQ_FLAG_VERIFY	(1<<8)	/* verify recipient, don't deliver */
 #define DEL_REQ_FLAG_EXPAND	(1<<9)	/* verify expansion, don't deliver */
 #define DEL_REQ_FLAG_RECORD	(1<<10)	/* record and deliver */
+#define DEL_REQ_FLAG_SCACHE	(1<<11)	/* opportunistic caching */
 
 #define DEL_REQ_TRACE_FLAGS_MASK \
 	(DEL_REQ_FLAG_VERIFY | DEL_REQ_FLAG_EXPAND | DEL_REQ_FLAG_RECORD)

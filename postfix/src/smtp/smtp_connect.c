@@ -521,10 +521,14 @@ int     smtp_connect(SMTP_STATE *state)
 	 * :port, because : is already used for maptype:mapname. Because of
 	 * this limitation we use the bare domain without the optional [] or
 	 * non-default TCP port.
+	 * 
+	 * Opportunistic (a.k.a. on-demand) session caching on request by the
+	 * queue manager. This is turned temporarily when a destination has a
+	 * high volume of mail in the active queue.
 	 */
 	if (cpp == sites->argv
-	    && smtp_cache_dest
-	    && string_list_match(smtp_cache_dest, domain)) {
+	    && ((request->flags & DEL_REQ_FLAG_SCACHE) != 0
+		|| (smtp_cache_dest && string_list_match(smtp_cache_dest, domain)))) {
 	    sess_flags |= SMTP_SESS_FLAG_CACHE;
 	    SET_NEXTHOP_STATE(state, lookup_mx, domain, port);
 	}

@@ -29,7 +29,11 @@
 /*	After a successful mail transaction, a session may be saved
 /*	to the \fBscache(8)\fR session cache server, so that it
 /*	may be used by any SMTP client for a subsequent transaction.
-/*	Session caching is disabled by default.
+/*
+/*	By default, session caching is enabled temporarily for
+/*	destinations that have a high volume of mail in the active
+/*	queue. Session caching can be enabled permanently for
+/*	specific destinations.
 /* SECURITY
 /* .ad
 /* .fi
@@ -184,8 +188,11 @@
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBsmtp_connection_cache_destinations (empty)\fR"
-/*	The SMTP destinations for which SMTP connection caching is
-/*	enabled.
+/*	Permanently enable SMTP connection caching for the specified
+/*	destinations.
+/* .IP "\fBsmtp_connection_cache_on_demand (yes)\fR"
+/*	Temporarily enable SMTP session caching while a destination
+/*	has a high volume of mail in the active queue.
 /* .IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"
 /*	When SMTP session caching is enabled, the number of times that
 /*	an SMTP session is reused before it is closed.
@@ -374,6 +381,7 @@ int     var_smtp_cache_conn;
 int     var_smtp_reuse_limit;
 char   *var_smtp_cache_dest;
 char   *var_scache_service;
+bool    var_smtp_cache_demand;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -489,7 +497,7 @@ static void post_init(char *unused_name, char **unused_argv)
     /*
      * Session cache instance.
      */
-    if (*var_smtp_cache_dest)
+    if (*var_smtp_cache_dest || var_smtp_cache_demand)
 #if 0
 	smtp_scache = scache_multi_create();
 #else
@@ -601,6 +609,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_QUOTE_821_ENV, DEF_SMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,
 	VAR_SMTP_DEFER_MXADDR, DEF_SMTP_DEFER_MXADDR, &var_smtp_defer_mxaddr,
 	VAR_SMTP_SEND_XFORWARD, DEF_SMTP_SEND_XFORWARD, &var_smtp_send_xforward,
+	VAR_SMTP_CACHE_DEMAND, DEF_SMTP_CACHE_DEMAND, &var_smtp_cache_demand,
 	0,
     };
 

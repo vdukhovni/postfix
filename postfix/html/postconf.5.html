@@ -5169,10 +5169,10 @@ The default time unit is s (seconds).
 <DT><b><a name="smtp_connection_cache_destinations">smtp_connection_cache_destinations</a>
 (default: empty)</b></DT><DD>
 
-<p> The SMTP destinations for which SMTP connection caching is
-enabled.  With SMTP connection caching, a connection is not closed
-immediately after completion of a mail transaction.  Instead, the
-connection is kept open for up to $<a href="postconf.5.html#smtp_connection_cache_time_limit">smtp_connection_cache_time_limit</a>
+<p> Permanently enable SMTP connection caching for the specified
+destinations.  With SMTP connection caching, a connection is not
+closed immediately after completion of a mail transaction.  Instead,
+the connection is kept open for up to $<a href="postconf.5.html#smtp_connection_cache_time_limit">smtp_connection_cache_time_limit</a>
 seconds.  This allows connections to be reused for other deliveries,
 and can improve mail delivery performance. </p>
 
@@ -5198,6 +5198,22 @@ ignored.
 </ul>
 
 <p></p>
+
+
+</DD>
+
+<DT><b><a name="smtp_connection_cache_on_demand">smtp_connection_cache_on_demand</a>
+(default: yes)</b></DT><DD>
+
+<p> Temporarily enable SMTP session caching while a destination
+has a high volume of mail in the <a href="QSHAPE_README.html#active_queue">active queue</a>.  With SMTP connection
+caching, a connection is not closed immediately after completion
+of a mail transaction.  Instead, the connection is kept open for
+up to $<a href="postconf.5.html#smtp_connection_cache_time_limit">smtp_connection_cache_time_limit</a> seconds.  This allows
+connections to be reused for other deliveries, and can improve mail
+delivery performance. </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 
 </DD>

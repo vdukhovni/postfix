@@ -140,6 +140,7 @@ struct QMGR_ENTRY_LIST {
 };
 
 struct QMGR_QUEUE {
+    int     dflags;			/* delivery request options */
     char   *name;			/* domain name or address */
     char   *nexthop;			/* domain name */
     int     todo_refcount;		/* queue entries (todo list) */

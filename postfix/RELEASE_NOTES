@@ -7,14 +7,30 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20040729
+=======================================================
+
+SMTP session caching is enabled temporarily when a destination has
+a high volume of mail in the active queue.  To disable, specify
+"smtp_connection_cache_on_demand = no".
+
+Major changes with snapshot Postfix-2.2-20040729
+================================================
+
+Opportunistic SMTP session caching. When a destination has a high
+volume of mail in the active queue, SMTP session caching is enabled
+temporarily.  This is controlled with a new configuration parameter
+"smtp_connection_cache_on_demand" (default:  yes).
+
 Incompatible changes with snapshot Postfix-2.2-20040723
 =======================================================
 
-Session caching is enabled with smtp_session_cache_destinations,
-and requires "bare" domain names without "[]" or TCP port.  This
-eliminates a syntax conflict between host:port and maptype:mapname,
-and simplifies the user interface, at the cost of a minor loss of
-control over what sessions are cached.
+Permanent SMTP session caching is now enabled with the
+smtp_session_cache_destinations parameter. This requires "bare"
+domain names without "[]" or TCP port.  The change eliminates a
+syntax conflict between host:port and maptype:mapname, and simplifies
+the user interface, at the cost of a minor loss of control over
+what sessions are cached.
 
 Major changes with snapshot Postfix-2.2-20040721
 ================================================
@@ -38,10 +54,10 @@ The default SMTP/LMTP timeouts for sending RSET are reduced to 20s.
 Major changes with snapshot Postfix-2.2-20040720
 ================================================
 
-Selective SMTP session caching. Instead of disconnecting immediately
-after a mail transaction, the SMTP client can save the open session
-to a session cache daemon, so that any SMTP client process can use
-that session for another mail transaction.
+Selective permanent SMTP session caching. Instead of disconnecting
+immediately after a mail transaction, the SMTP client can save the
+open session to a session cache daemon, so that any SMTP client
+process can use that session for another mail transaction.
 
 This feature introduces the scache (session cache) server, which
 is added to your master.cf file when you upgrade Postfix.
