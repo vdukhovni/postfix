@@ -6152,13 +6152,29 @@ Example:
 (default: see "postconf -d" output)</b></DT><DD>
 
 <p>
-The lookup tables that the <a href="proxymap.8.html">proxymap(8)</a> server is allowed to access.
-Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are ignored.  The
-<a href="proxymap.8.html">proxymap(8)</a> table accesses are read-only.
+The lookup tables that the <a href="proxymap.8.html">proxymap(8)</a> server is allowed to
+access for the read-only service.
+Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are ignored.
 </p>
 
 <p>
 This feature is available in Postfix 2.0 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="proxy_write_maps">proxy_write_maps</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p>
+The lookup tables that the <a href="proxymap.8.html">proxymap(8)</a> server is allowed to
+access for the read-write service.
+Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are ignored.
+</p>
+
+<p>
+This feature is available in Postfix 2.5 and later.
 </p>
 
 

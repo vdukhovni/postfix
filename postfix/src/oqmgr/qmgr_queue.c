@@ -304,7 +304,7 @@ void    qmgr_queue_throttle(QMGR_QUEUE *queue, DSN *dsn)
 	queue->fail_cohorts += 1.0 / queue->window;
 	if (transport->fail_cohort_limit > 0
 	    && queue->fail_cohorts >= transport->fail_cohort_limit)
-	    queue->window = 0;
+	    queue->window = QMGR_QUEUE_STAT_THROTTLED;
     }
 
     /*

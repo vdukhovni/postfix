@@ -3423,11 +3423,17 @@ proxy_interfaces = 1.2.3.4
 .ad
 .ft R
 .SH proxy_read_maps (default: see "postconf -d" output)
-The lookup tables that the \fBproxymap\fR(8) server is allowed to access.
-Table references that don't begin with proxy: are ignored.  The
-\fBproxymap\fR(8) table accesses are read-only.
+The lookup tables that the \fBproxymap\fR(8) server is allowed to
+access for the read-only service.
+Table references that don't begin with proxy: are ignored.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH proxy_write_maps (default: see "postconf -d" output)
+The lookup tables that the \fBproxymap\fR(8) server is allowed to
+access for the read-write service.
+Table references that don't begin with proxy: are ignored.
+.PP
+This feature is available in Postfix 2.5 and later.
 .SH qmgr_clog_warn_time (default: 300s)
 The minimal delay between warnings that a specific destination is
 clogging up the Postfix active queue. Specify 0 to disable.

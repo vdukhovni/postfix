@@ -17,6 +17,14 @@ Incompatibility with Postfix 2.3 and earlier
 If you upgrade from Postfix 2.3 or earlier, read RELEASE_NOTES-2.4
 before proceeding.
 
+Incompatibility with Postfix snapshot 20071203
+==============================================
+
+The "make upgrade" procedure adds a new service "proxywrite" to the
+master.cf file, for read/write lookup table access. If you copy
+your old configuration file over the updated one, you will have
+to run "postfix upgrade-configuration" again.
+
 Major changes with Postfix snapshot 20071202
 ============================================
 

@@ -2014,6 +2014,10 @@ extern int var_local_rcpt_code;
 				" $" VAR_MYNETWORKS
 extern char *var_proxy_read_maps;
 
+#define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
+#define DEF_PROXY_WRITE_MAPS	""	/* Add here: "$" VAR_AUTH_FAIL_MAP */
+extern char *var_proxy_write_maps;
+
  /*
   * Other.
   */

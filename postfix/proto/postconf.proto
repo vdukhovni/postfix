@@ -7204,13 +7204,25 @@ This is a read-only parameter.
 %PARAM proxy_read_maps see "postconf -d" output
 
 <p>
-The lookup tables that the proxymap(8) server is allowed to access.
-Table references that don't begin with proxy: are ignored.  The
-proxymap(8) table accesses are read-only.
+The lookup tables that the proxymap(8) server is allowed to 
+access for the read-only service.
+Table references that don't begin with proxy: are ignored.
 </p>
 
 <p>
 This feature is available in Postfix 2.0 and later.
+</p>
+
+%PARAM proxy_write_maps see "postconf -d" output
+
+<p>
+The lookup tables that the proxymap(8) server is allowed to 
+access for the read-write service.
+Table references that don't begin with proxy: are ignored.
+</p>
+
+<p>
+This feature is available in Postfix 2.5 and later.
 </p>
 
 %PARAM qmgr_clog_warn_time 300s

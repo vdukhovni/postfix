@@ -659,6 +659,15 @@ retry     unix  -       -       n       -       -       error
 EOF
     }
 
+    # Add missing proxywrite service to master.cf.
+
+    grep '^proxywrite.*proxymap' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for proxywrite service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+proxywrite unix -       -       n       -       1       proxymap
+EOF
+    }
+
     # Report (but do not remove) obsolete files.
 
     test -n "$obsolete" && {

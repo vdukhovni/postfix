@@ -13878,3 +13878,22 @@ Apologies for any names omitted.
 
 	Bugfix: don't update the back-to-back delivery time stamp
 	while deferring mail. File: *qmgr/qmgr_entry.c.
+
+20071203
+
+	Feature: support for read-write tables in the proxymap
+	service. This is implemented with a separate master.cf entry
+	named "proxywrite" that should run with process limit of 1
+	if you want to update Berkeley DB like tables. This feature
+	requires that tables be authorized with the proxy_write_maps
+	configuration parameter. Files: global/dict_procy.[hc],
+	proxymap/proxymap.c.
+
+	Human factors: the postmap and postalias commands now produce
+	nicer diagnostics when asked to do something with a proxied
+	map that they can't do. Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+	Bugfix: the proxymap client didn't properly propagate the
+	postmap (postalias) -r and -w options to the proxymap server.
+	File: util/dict.h.

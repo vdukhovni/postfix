@@ -66,6 +66,7 @@
 #include <dict_cdb.h>
 #include <dict_dbm.h>
 #include <dict_sdbm.h>
+#include <dict_proxy.h>
 #include <sigdelay.h>
 #include <mymalloc.h>
 
@@ -83,6 +84,7 @@ typedef struct {
 } MKMAP_OPEN_INFO;
 
 MKMAP_OPEN_INFO mkmap_types[] = {
+    DICT_TYPE_PROXY, mkmap_proxy_open,
 #ifdef HAS_CDB
     DICT_TYPE_CDB, mkmap_cdb_open,
 #endif

@@ -14,7 +14,10 @@
 /*	dict_proxy_open() relays read-only operations through
 /*	the Postfix proxymap server.
 /*
-/*	The \fIopen_flags\fR argument must specify O_RDONLY.
+/*	The \fIopen_flags\fR argument must specify O_RDONLY
+/*	or O_RDWR|O_CREAT. Depending on this, the client
+/*	connects to the proxymap multiserver or to the
+/*	proxywrite single updater.
 /*
 /*	The connection to the Postfix proxymap server is automatically
 /*	closed after $ipc_idle seconds of idle time, or after $ipc_ttl
@@ -154,6 +157,69 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
     }
 }
 
+/* dict_proxy_update - update table entry */
+
+static void dict_proxy_update(DICT *dict, const char *key, const char *value)
+{
+    const char *myname = "dict_proxy_update";
+    DICT_PROXY *dict_proxy = (DICT_PROXY *) dict;
+    VSTREAM *stream;
+    int     status;
+    int     count = 0;
+    int     request_flags;
+
+    /*
+     * The client and server live in separate processes that may start and
+     * terminate independently. We cannot rely on a persistent connection,
+     * let alone on persistent state (such as a specific open table) that is
+     * associated with a specific connection. Each lookup needs to specify
+     * the table and the flags that were specified to dict_proxy_open().
+     */
+    request_flags = (dict_proxy->in_flags & DICT_FLAG_RQST_MASK)
+	| (dict->flags & DICT_FLAG_RQST_MASK);
+    for (;;) {
+	stream = clnt_stream_access(proxy_stream);
+	errno = 0;
+	count += 1;
+	if (attr_print(stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_STR, MAIL_ATTR_REQ, PROXY_REQ_UPDATE,
+		       ATTR_TYPE_STR, MAIL_ATTR_TABLE, dict->name,
+		       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, request_flags,
+		       ATTR_TYPE_STR, MAIL_ATTR_KEY, key,
+		       ATTR_TYPE_STR, MAIL_ATTR_VALUE, value,
+		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_END) != 1) {
+	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
+		msg_warn("%s: service %s: %m", myname, VSTREAM_PATH(stream));
+	} else {
+	    if (msg_verbose)
+		msg_info("%s: table=%s flags=%s key=%s value=%s -> status=%d",
+			 myname, dict->name, dict_flags_str(request_flags), 
+			 key, value, status);
+	    switch (status) {
+	    case PROXY_STAT_BAD:
+		msg_fatal("%s lookup failed for table \"%s\" key \"%s\": "
+			  "invalid request",
+			  MAIL_SERVICE_PROXYMAP, dict->name, key);
+	    case PROXY_STAT_DENY:
+		msg_fatal("%s update access is not configured for table \"%s\"",
+			  MAIL_SERVICE_PROXYMAP, dict->name);
+	    case PROXY_STAT_OK:
+		return;
+	    default:
+		msg_warn("%s update failed for table \"%s\" key \"%s\": "
+			 "unexpected reply status %d",
+			 MAIL_SERVICE_PROXYMAP, dict->name, key, status);
+	    }
+	}
+	clnt_stream_recover(proxy_stream);
+	sleep(1);				/* XXX make configurable */
+    }
+}
+
 /* dict_proxy_close - disconnect */
 
 static void dict_proxy_close(DICT *dict)
@@ -178,9 +244,14 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 
     /*
      * Sanity checks.
+     * 
+     * XXX A complete implementation would also allow O_RDWR without O_CREAT.
+     * But we must not pass on every possible set of flags to the proxy
+     * server; only sets that make sense. For now, the flags are passed
+     * implicitly by choosing between the proxymap or proxywrite service.
      */
-    if (open_flags != O_RDONLY)
-	msg_fatal("%s: %s map open requires O_RDONLY access mode",
+    if (open_flags != O_RDONLY && open_flags != (O_RDWR | O_CREAT))
+	msg_fatal("%s: %s map open requires O_RDONLY or O_RDWR|O_CREAT mode",
 		  map, DICT_TYPE_PROXY);
 
     /*
@@ -197,6 +268,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     dict_proxy = (DICT_PROXY *)
 	dict_alloc(DICT_TYPE_PROXY, map, sizeof(*dict_proxy));
     dict_proxy->dict.lookup = dict_proxy_lookup;
+    dict_proxy->dict.update = dict_proxy_update;
     dict_proxy->dict.close = dict_proxy_close;
     dict_proxy->in_flags = dict_flags;
     dict_proxy->result = vstring_alloc(10);
@@ -207,13 +279,18 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
      * XXX Use absolute pathname to make this work from non-daemon processes.
      */
     if (proxy_stream == 0) {
-	if (access(MAIL_CLASS_PRIVATE "/" MAIL_SERVICE_PROXYMAP, F_OK) == 0)
+	if (access(open_flags == O_RDONLY ?
+		   MAIL_CLASS_PRIVATE "/" MAIL_SERVICE_PROXYMAP :
+		   MAIL_CLASS_PRIVATE "/" MAIL_SERVICE_PROXYWRITE,
+		   F_OK) == 0)
 	    prefix = MAIL_CLASS_PRIVATE;
 	else
 	    prefix = kludge = concatenate(var_queue_dir, "/",
 					  MAIL_CLASS_PRIVATE, (char *) 0);
 	proxy_stream = clnt_stream_create(prefix,
-					  MAIL_SERVICE_PROXYMAP,
+					  open_flags == O_RDONLY ?
+					  MAIL_SERVICE_PROXYMAP :
+					  MAIL_SERVICE_PROXYWRITE,
 					  var_ipc_idle_limit,
 					  var_ipc_ttl_limit);
 	if (kludge)

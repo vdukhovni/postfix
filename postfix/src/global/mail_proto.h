@@ -56,6 +56,7 @@
 #define MAIL_SERVICE_TRACE	"trace"
 #define MAIL_SERVICE_RELAY	"relay"
 #define MAIL_SERVICE_PROXYMAP	"proxymap"
+#define MAIL_SERVICE_PROXYWRITE	"proxywrite"
 #define MAIL_SERVICE_SCACHE	"scache"
 
  /*

@@ -28,7 +28,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c trace.c \
 	user_acl.c valid_mailhost_addr.c verify.c verify_clnt.c \
 	verp_sender.c wildcard_inet_addr.c xtext.c delivered_hdr.c \
-	fold_addr.c header_body_checks.c
+	fold_addr.c header_body_checks.c mkmap_proxy.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -58,7 +58,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o trace.o \
 	user_acl.o valid_mailhost_addr.o verify.o verify_clnt.o \
 	verp_sender.o wildcard_inet_addr.o xtext.o delivered_hdr.o \
-	fold_addr.o header_body_checks.o
+	fold_addr.o header_body_checks.o mkmap_proxy.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -1451,8 +1451,19 @@ mkmap_open.o: ../../include/sys_defs.h
 mkmap_open.o: ../../include/vbuf.h
 mkmap_open.o: ../../include/vstream.h
 mkmap_open.o: ../../include/vstring.h
+mkmap_open.o: dict_proxy.h
 mkmap_open.o: mkmap.h
 mkmap_open.o: mkmap_open.c
+mkmap_proxy.o: ../../include/argv.h
+mkmap_proxy.o: ../../include/dict.h
+mkmap_proxy.o: ../../include/mymalloc.h
+mkmap_proxy.o: ../../include/sys_defs.h
+mkmap_proxy.o: ../../include/vbuf.h
+mkmap_proxy.o: ../../include/vstream.h
+mkmap_proxy.o: ../../include/vstring.h
+mkmap_proxy.o: dict_proxy.h
+mkmap_proxy.o: mkmap.h
+mkmap_proxy.o: mkmap_proxy.c
 mkmap_sdbm.o: ../../include/argv.h
 mkmap_sdbm.o: ../../include/dict.h
 mkmap_sdbm.o: ../../include/dict_sdbm.h
