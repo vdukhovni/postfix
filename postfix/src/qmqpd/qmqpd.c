@@ -643,7 +643,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
-    qmqpd_clients = namadr_list_init(var_qmqpd_clients);
+    qmqpd_clients = namadr_list_init(MATCH_FLAG_PARENT, var_qmqpd_clients);
 }
 
 /* main - the main program */

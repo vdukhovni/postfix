@@ -203,7 +203,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      * As the mail system, bounce, defer delivery, or report success.
      */
     if (status != 0) {
-	status = (errno == EAGAIN || errno == ENOSPC ?
+	status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
 		  defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "cannot access mailbox %s for user %s. %s",
@@ -283,18 +283,14 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      */
 #define LAST_CHAR(s) (s[strlen(s) - 1])
 
-    if (*var_mailbox_cmd_maps) {
-	if (cmd_maps == 0)
-	    cmd_maps = maps_create(VAR_MAILBOX_CMD_MAPS, var_mailbox_cmd_maps,
-				   DICT_FLAG_LOCK);
-	if ((map_command = maps_find(cmd_maps, state.msg_attr.user,
-				 DICT_FLAG_FIXED)) != 0) {
-	    status = deliver_command(state, usr_attr, map_command);
-	} else {
-	    msg_warn("user %s not found in %s",
-		     state.msg_attr.user, var_mailbox_cmd_maps);
-	    return (NO);
-	}
+    if (*var_mailbox_cmd_maps && cmd_maps == 0)
+	cmd_maps = maps_create(VAR_MAILBOX_CMD_MAPS, var_mailbox_cmd_maps,
+			       DICT_FLAG_LOCK);
+
+    if (*var_mailbox_cmd_maps
+	&& (map_command = maps_find(cmd_maps, state.msg_attr.user,
+				    DICT_FLAG_FIXED)) != 0) {
+	status = deliver_command(state, usr_attr, map_command);
     } else if (*var_mailbox_command) {
 	status = deliver_command(state, usr_attr, var_mailbox_command);
     } else if (*var_home_mailbox && LAST_CHAR(var_home_mailbox) == '/') {

@@ -318,6 +318,8 @@ debug_peer.o: ../../include/sys_defs.h
 debug_peer.o: ../../include/msg.h
 debug_peer.o: mail_params.h
 debug_peer.o: namadr_list.h
+debug_peer.o: ../../include/match_list.h
+debug_peer.o: ../../include/match_ops.h
 debug_peer.o: debug_peer.h
 debug_process.o: debug_process.c
 debug_process.o: ../../include/sys_defs.h
@@ -388,8 +390,8 @@ deliver_request.o: deliver_request.h
 domain_list.o: domain_list.c
 domain_list.o: ../../include/sys_defs.h
 domain_list.o: ../../include/match_list.h
-domain_list.o: ../../include/match_ops.h
 domain_list.o: domain_list.h
+domain_list.o: ../../include/match_ops.h
 dot_lockfile.o: dot_lockfile.c
 dot_lockfile.o: ../../include/sys_defs.h
 dot_lockfile.o: ../../include/vstring.h
@@ -799,8 +801,8 @@ mypwd.o: mypwd.h
 namadr_list.o: namadr_list.c
 namadr_list.o: ../../include/sys_defs.h
 namadr_list.o: ../../include/match_list.h
-namadr_list.o: ../../include/match_ops.h
 namadr_list.o: namadr_list.h
+namadr_list.o: ../../include/match_ops.h
 off_cvt.o: off_cvt.c
 off_cvt.o: ../../include/sys_defs.h
 off_cvt.o: ../../include/msg.h
@@ -935,6 +937,8 @@ resolve_local.o: ../../include/sys_defs.h
 resolve_local.o: ../../include/msg.h
 resolve_local.o: ../../include/mymalloc.h
 resolve_local.o: string_list.h
+resolve_local.o: ../../include/match_list.h
+resolve_local.o: ../../include/match_ops.h
 resolve_local.o: mail_params.h
 resolve_local.o: own_inet_addr.h
 resolve_local.o: resolve_local.h
@@ -985,8 +989,8 @@ stream2rec.o: rec_type.h
 string_list.o: string_list.c
 string_list.o: ../../include/sys_defs.h
 string_list.o: ../../include/match_list.h
-string_list.o: ../../include/match_ops.h
 string_list.o: string_list.h
+string_list.o: ../../include/match_ops.h
 sys_exits.o: sys_exits.c
 sys_exits.o: ../../include/sys_defs.h
 sys_exits.o: ../../include/msg.h

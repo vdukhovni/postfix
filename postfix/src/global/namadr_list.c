@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <namadr_list.h>
 /*
-/*	NAMADR_LIST *namadr_list_init(pattern_list)
+/*	NAMADR_LIST *namadr_list_init(flags, pattern_list)
+/*	int	flags;
 /*	const char *pattern_list;
 /*
 /*	int	namadr_list_match(list, name, addr)
@@ -17,6 +18,8 @@
 /*	void	namadr_list_free(list)
 /*	NAMADR_LIST *list;
 /* DESCRIPTION
+/*	This is a convenience wrapper around the match_list module.
+/*
 /*	This module implements tests for list membership of a
 /*	hostname or network address.
 /*
@@ -35,9 +38,21 @@
 /*	a pattern, or when any of its parent domains matches a
 /*	pattern. The matching process is case insensitive.
 /*
-/*	namadr_list_init() performs initializations. The argument
-/*	is a list of patterns, or the absolute pathname of a file
-/*	with patterns.
+/*	namadr_list_init() performs initializations. The first
+/*	argument is the bit-wise OR of zero or mor of the
+/*	following:
+/* .RS
+/* .IP MATCH_FLAG_PARENT
+/*      The hostname pattern foo.com matches itself and any name below
+/*      the domain foo.com.
+/* .IP MATCH_FLAG_DOTPARENT
+/*      The hostname pattern foo.com matches itself only.
+/*      The hostname pattern .foo.com matches any name below the domain
+/*      foo.com.
+/* .RE
+/*	Specify MATCH_FLAG_NONE to request none of the above.
+/*	The second argument is a list of patterns, or the absolute
+/*	pathname of a file with patterns.
 /*
 /*	namadr_list_match() matches the specified host name and
 /*	address against the specified list of patterns.
@@ -67,32 +82,10 @@
 /* Utility library. */
 
 #include <match_list.h>
-#include <match_ops.h>
 
 /* Global library. */
 
 #include "namadr_list.h"
-
-/* namadr_list_init - initialize domain list */
-
-NAMADR_LIST *namadr_list_init(const char *patterns)
-{
-    return (match_list_init(patterns, 2, match_hostaddr, match_hostname));
-}
-
-/* namadr_list_match - match host against set of namadr_list patterns */
-
-int     namadr_list_match(NAMADR_LIST *list, const char *name, const char *addr)
-{
-    return (match_list_match(list, addr, name));
-}
-
-/* namadr_list_free - release storage */
-
-void    namadr_list_free(NAMADR_LIST *list)
-{
-    match_list_free(list);
-}
 
 #ifdef TEST
 
@@ -116,22 +109,22 @@ main(int argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
     while ((ch = GETOPT(argc, argv, "v")) > 0) {
-	switch (ch) {
-	case 'v':
-	    msg_verbose++;
-	    break;
-	default:
-	    usage(argv[0]);
-	}
+        switch (ch) {
+        case 'v':
+            msg_verbose++;
+            break;
+        default:
+            usage(argv[0]);
+        }
     }
     if (argc != optind + 3)
-	usage(argv[0]);
+        usage(argv[0]);
     list = namadr_list_init(argv[optind]);
     host = argv[optind + 1];
     addr = argv[optind + 2];
     vstream_printf("%s/%s: %s\n", host, addr,
-		   namadr_list_match(list, host, addr) ?
-		   "YES" : "NO");
+                   namadr_list_match(list, host, addr) ?
+                   "YES" : "NO");
     vstream_fflush(VSTREAM_OUT);
     namadr_list_free(list);
 }

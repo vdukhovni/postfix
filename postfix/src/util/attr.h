@@ -40,17 +40,34 @@
 #define ATTR_FLAG_STRICT	(ATTR_FLAG_MISSING | ATTR_FLAG_EXTRA)
 #define ATTR_FLAG_ALL		(07)
 
- /*
-  * attr_print.c.
-  */
-extern int attr_print(VSTREAM *, int,...);
-extern int attr_vprint(VSTREAM *, int, va_list);
+#define attr_print	attr_print0
+#define attr_vprint	attr_vprint0
+#define attr_scan	attr_scan0
+#define attr_vscan	attr_vscan0
 
  /*
-  * attr_scan.c.
+  * attr_print64.c.
   */
-extern int attr_scan(VSTREAM *, int,...);
-extern int attr_vscan(VSTREAM *, int, va_list);
+extern int attr_print64(VSTREAM *, int,...);
+extern int attr_vprint64(VSTREAM *, int, va_list);
+
+ /*
+  * attr_scan64.c.
+  */
+extern int attr_scan64(VSTREAM *, int,...);
+extern int attr_vscan64(VSTREAM *, int, va_list);
+
+ /*
+  * attr_print0.c.
+  */
+extern int attr_print0(VSTREAM *, int,...);
+extern int attr_vprint0(VSTREAM *, int, va_list);
+
+ /*
+  * attr_scan0.c.
+  */
+extern int attr_scan0(VSTREAM *, int,...);
+extern int attr_vscan0(VSTREAM *, int, va_list);
 
  /*
   * Attribute names for testing the compatibility of the read and write

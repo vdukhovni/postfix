@@ -151,6 +151,7 @@ smtp_proto.o: ../../include/vstream.h
 smtp_proto.o: ../../include/vstring_vstream.h
 smtp_proto.o: ../../include/stringops.h
 smtp_proto.o: ../../include/mymalloc.h
+smtp_proto.o: ../../include/iostuff.h
 smtp_proto.o: ../../include/mail_params.h
 smtp_proto.o: ../../include/smtp_stream.h
 smtp_proto.o: ../../include/mail_queue.h
@@ -179,6 +180,8 @@ smtp_sasl_glue.o: ../../include/split_at.h
 smtp_sasl_glue.o: ../../include/name_mask.h
 smtp_sasl_glue.o: ../../include/mail_params.h
 smtp_sasl_glue.o: ../../include/string_list.h
+smtp_sasl_glue.o: ../../include/match_list.h
+smtp_sasl_glue.o: ../../include/match_ops.h
 smtp_sasl_glue.o: ../../include/maps.h
 smtp_sasl_glue.o: ../../include/dict.h
 smtp_sasl_glue.o: ../../include/vstream.h

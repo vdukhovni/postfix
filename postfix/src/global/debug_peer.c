@@ -97,7 +97,8 @@ void    debug_peer_init(void)
      * Finally.
      */
     if (*var_debug_peer_list)
-	debug_peer_list = namadr_list_init(var_debug_peer_list);
+	debug_peer_list = namadr_list_init(MATCH_FLAG_PARENT,
+					   var_debug_peer_list);
 }
 
 /* debug_peer_check - see if this peer needs verbose logging */

@@ -5576,6 +5576,43 @@ Apologies for any names omitted.
 	Bugfix: missing terminator in new attribute-based function
 	call caused signal 11. File: src/cleanup/cleanup.c.
 
+	Lame workaround for ESTALE errors with mail delivery over
+	NFS. Additional bandages were added to the local delivery
+	agent. However, Wietse maintains that Postfix offers no
+	guarantee for reliable delivery over NFS.
+
+	Feature: put "warn_if_reject" before an smtpd restriction,
+	and the restriction logs a warning without rejecting mail.
+	This makes it easier to configurations in the real world
+	without having to lose mail. File: smtpd/smtpd_check.c.
+
+20011107
+
+	Workaround: in order to get mail past PIX firewall bugs,
+	the Postfix SMTP client now blocks until the socket send
+	buffer is empty before sending the final ".<CR><LF>". Files:
+	util/sock_empty_wait.c, smtp/smtp_proto.c.
+
+20011108
+
+	Feature: added string-null encoding for internal protocols.
+	Files: util/attr_print0.c, util/attr_scan0c.
+
+	Feature: configurable parent domain matching for domain
+	and hostname/address match lists: either .domain or the
+	domain name itself.
+
+	Feature: added pretend-to-be-behind-PIX mode to the smtp-sink
+	test program, in order to stress test some PIX bug workaround
+	code.
+
+20011109
+
+	Workaround: Linux and Solaris systems have no reasonable
+	way to block until a socket drains. On these systems Postfix
+	simply waits for 10 seconds, in order to work around PIX
+	".<CR><LF>" bugs.  File: util/sock_empty_wait.c.
+
 20011114
 
 	Bugfix: reset the smtpd command transaction log between
@@ -5588,9 +5625,9 @@ Apologies for any names omitted.
 
 20011116
 
-	Bugfix: consolidated all the command transaction log 
-	resets and eliminated one other case (Victor Duchovny,
-	Morgan Stanley). File: smtpd/smtpd.c.
+	Bugfix: consolidated all the command transaction log resets
+	and eliminated one missing reset (Victor Duchovny, Morgan
+	Stanley). File: smtpd/smtpd.c.
 
 Open problems:
 
@@ -5602,6 +5639,8 @@ Open problems:
 
 	Medium: smtpd access maps don't understand the recipient
 	delimiter setting.
+
+	Low: default domain for appending to unqualified recipients.
 
 	Low: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.

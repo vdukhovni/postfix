@@ -176,6 +176,8 @@ lmtp_sasl_glue.o: ../../include/split_at.h
 lmtp_sasl_glue.o: ../../include/name_mask.h
 lmtp_sasl_glue.o: ../../include/mail_params.h
 lmtp_sasl_glue.o: ../../include/string_list.h
+lmtp_sasl_glue.o: ../../include/match_list.h
+lmtp_sasl_glue.o: ../../include/match_ops.h
 lmtp_sasl_glue.o: ../../include/maps.h
 lmtp_sasl_glue.o: ../../include/dict.h
 lmtp_sasl_glue.o: ../../include/vstream.h

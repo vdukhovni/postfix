@@ -13,9 +13,14 @@
 
  /* External interface. */
 
-extern int match_string(const char *, const char *);
-extern int match_hostname(const char *, const char *);
-extern int match_hostaddr(const char *, const char *);
+#define MATCH_FLAG_NONE		0
+#define MATCH_FLAG_PARENT	(1<<0)
+#define MATCH_FLAG_DOTPARENT	(1<<1)
+#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT|MATCH_FLAG_DOTPARENT)
+
+extern int match_string(int, const char *, const char *);
+extern int match_hostname(int, const char *, const char *);
+extern int match_hostaddr(int, const char *, const char *);
 
 /* LICENSE
 /* .ad

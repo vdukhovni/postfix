@@ -69,7 +69,7 @@ void    resolve_local_init(void)
 {
     if (resolve_local_list)
 	msg_panic("resolve_local_init: duplicate initialization");
-    resolve_local_list = string_list_init(var_mydest);
+    resolve_local_list = string_list_init(MATCH_FLAG_NONE, var_mydest);
 }
 
 /* resolve_local - match address against list of local destinations */

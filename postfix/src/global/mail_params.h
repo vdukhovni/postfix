@@ -1140,6 +1140,8 @@ extern int var_access_map_code;
 #define CHECK_RECIP_ACL		"check_recipient_access"
 #define CHECK_ETRN_ACL		"check_etrn_access"
 
+#define WARN_IF_REJECT		"warn_if_reject"
+
 #define REJECT_MAPS_RBL		"reject_maps_rbl"
 #define VAR_MAPS_RBL_CODE	"maps_rbl_reject_code"
 #define DEF_MAPS_RBL_CODE	554

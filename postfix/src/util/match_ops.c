@@ -6,15 +6,18 @@
 /* SYNOPSIS
 /*	#include <match_ops.h>
 /*
-/*	int	match_string(string, pattern)
+/*	int	match_string(flags, string, pattern)
+/*	int	flags;
 /*	const char *string;
 /*	const char *pattern;
 /*
-/*	int	match_hostname(name, pattern)
+/*	int	match_hostname(flags, name, pattern)
+/*	int	flags;
 /*	const char *name;
 /*	const char *pattern;
 /*
-/*	int	match_hostaddr(addr, pattern)
+/*	int	match_hostaddr(flags, addr, pattern)
+/*	int	flags;
 /*	const char *addr;
 /*	const char *pattern;
 /* DESCRIPTION
@@ -24,16 +27,25 @@
 /*	or address comparison.
 /*
 /*	match_string() matches the string against the pattern, requiring
-/*	an exact (case-insensitive) match.
+/*	an exact (case-insensitive) match. The flags argument is not used.
 /*
 /*	match_hostname() matches the host name when the hostname matches
 /*	the pattern exactly, or when the pattern matches a parent domain
-/*	of the named host.
+/*	of the named host. The flags argument specifies the bit-wise OR
+/*	of zero or more of the following:
+/* .IP MATCH_FLAG_PARENT
+/*	The pattern foo.com matches any name within the domain foo.com.
+/* .IP MATCH_FLAG_DOTPARENT
+/*	The pattern .foo.com matches any name under foo.com. The pattern
+/*	foo.com matches itself only.
+/* .RE
+/*	Specify MATCH_FLAG_NONE to request none of the above.
 /*
 /*	match_hostaddr() matches a host address when the pattern is
 /*	identical to the host address, or when the pattern is a net/mask
 /*	that contains the address. The mask specifies the number of
-/*	bits in the network part of the pattern.
+/*	bits in the network part of the pattern. The flags argument is
+/*	not used.
 /* LICENSE
 /* .ad
 /* .fi
@@ -72,7 +84,7 @@
 
 /* match_string - match a string literal */
 
-int     match_string(const char *string, const char *pattern)
+int     match_string(int unused_flags, const char *string, const char *pattern)
 {
     char   *myname = "match_string";
     int     match;
@@ -110,7 +122,7 @@ int     match_string(const char *string, const char *pattern)
 
 /* match_hostname - match a host by name */
 
-int     match_hostname(const char *name, const char *pattern)
+int     match_hostname(int flags, const char *name, const char *pattern)
 {
     char   *myname = "match_hostname";
     const char *pd;
@@ -128,13 +140,25 @@ int     match_hostname(const char *name, const char *pattern)
     if (strchr(pattern, ':') != 0) {
 	temp = lowercase(mystrdup(name));
 	match = 0;
-	for (entry = temp; /* void */ ; entry = next + 1) {
-	    if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
-		break;
-	    if (dict_errno != 0)
-		msg_fatal("%s: table lookup problem", pattern);
-	    if ((next = strchr(entry, '.')) == 0)
-		break;
+	if (flags & MATCH_FLAG_PARENT) {
+	    for (entry = temp; /* void */ ; entry = next + 1) {
+		if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
+		    break;
+		if (dict_errno != 0)
+		    msg_fatal("%s: table lookup problem", pattern);
+		if ((next = strchr(entry, '.')) == 0)
+		    break;
+	    }
+	}
+	if (flags & MATCH_FLAG_DOTPARENT) {
+	    for (entry = temp; /* void */ ; entry = next) {
+		if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
+		    break;
+		if (dict_errno != 0)
+		    msg_fatal("%s: table lookup problem", pattern);
+		if ((next = strchr(entry, '.')) == 0)
+		    break;
+	    }
 	}
 	myfree(temp);
 	return (match);
@@ -151,9 +175,16 @@ int     match_hostname(const char *name, const char *pattern)
      * See if the pattern is a parent domain of the hostname.
      */
     else {
-	pd = name + strlen(name) - strlen(pattern);
-	if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
-	    return (1);
+	if (flags & MATCH_FLAG_PARENT) {
+	    pd = name + strlen(name) - strlen(pattern);
+	    if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
+		return (1);
+	}
+	if (flags & MATCH_FLAG_DOTPARENT) {
+	    pd = name + strlen(name) - strlen(pattern);
+	    if (pd > name && pd[-1] == '.' && strcasecmp(pd - 1, pattern) == 0)
+		return (1);
+	}
     }
     return (0);
 }
@@ -181,7 +212,7 @@ static int match_parse_mask(const char *pattern, unsigned long *net_bits,
 
 /* match_hostaddr - match host by address */
 
-int     match_hostaddr(const char *addr, const char *pattern)
+int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
 {
     char   *myname = "match_hostaddr";
     int     mask_shift;

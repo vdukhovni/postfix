@@ -138,7 +138,7 @@ smtp_destination_recipient_limit = $default_destination_recipient_limit
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # The default time unit is s (seconds).
 #
-# smtp_connect_timeout = 30s
+#smtp_connect_timeout = 30s
 smtp_connect_timeout = 0s
 
 # The smtp_helo_timeout parameter specifies the SMTP client timeout
