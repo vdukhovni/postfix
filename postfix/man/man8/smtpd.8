@@ -157,6 +157,10 @@ Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
 .IP \fBsmtpd_etrn_restrictions\fR
 Restrict what domain names can be used in \fBETRN\fR commands,
 and what clients may issue \fBETRN\fR commands.
+.IP \fBallow_untrusted_routing\fR
+Allow untrusted clients to specify addresses with sender-specified
+routing.  Enabling this opens up nasty relay loopholes involving
+trusted backup MX hosts.
 .IP \fBrestriction_classes\fR
 Declares the name of zero or more parameters that contain a
 list of UCE restrictions. The names of these parameters can

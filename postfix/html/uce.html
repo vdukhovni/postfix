@@ -575,14 +575,16 @@ relays mail:
 
 <ul>
 
-<li>from clients whose IP address matches <a
+<li>from trusted clients whose IP address matches <a
 href="basic.html#mynetworks">$mynetworks</a>,
 
-<li>from clients whose hostname matches <a
+<li>from trusted clients whose hostname matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 
-<li>to destinations that match <a href="#relay_domains">
-$relay_domains</a> or a subdomain thereof.
+<li>from untrusted clients to destinations that match <a
+href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
+except for addresses that contain sender-specified routing
+(<i>user@there@here</i>).
 
 </ul>
 
@@ -626,9 +628,6 @@ on the client hostname or network address.
 <dt> Example:
 
 <dd> <b>smtpd_recipient_restrictions = permit_mynetworks,
-check_relay_domains</b>
-
-<dd> <b>smtpd_recipient_restrictions = permit_mynetworks,
 reject_unauth_destination</b>
 
 <p>
@@ -647,6 +646,7 @@ mail otherwise. </i>
 <a name="check_relay_domains">
 
 <dt> <b>check_relay_domains</b> <dd> Permit the request when 
+one of the following is true:
 
 <ul>
 
@@ -655,6 +655,8 @@ or a subdomain thereof,
 
 <li>the resolved destination address matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+and the address contains no sender-specified routing
+(<i>user@there@here</i>),
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
@@ -678,6 +680,8 @@ Permit the request when:
 
 <li>the resolved destination address matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+and the address contains no sender-specified routing
+(<i>user@there@here</i>),
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
@@ -699,6 +703,8 @@ hostname.  Reject the request unless:
 
 <li>the resolved destination address matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
+and the address contains no sender-specified routing
+(<i>user@there@here</i>),
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
@@ -1014,14 +1020,16 @@ relays mail:
 
 <ul>
 
-<li>from clients whose IP address matches <a
+<li>from trusted clients whose IP address matches <a
 href="basic.html#mynetworks">$mynetworks</a>,
 
-<li>from clients whose hostname matches <a
+<li>from trusted clients whose hostname matches <a
 href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 
-<li>to destinations that match <a href="#relay_domains">
-$relay_domains</a> or a subdomain thereof.
+<li>from untrusted clients to destinations that match <a
+href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
+except for addresses that contain sender-specified routing
+(<i>user@there@here</i>).
 
 </ul>
 

@@ -748,9 +748,9 @@ extern char *var_etrn_checks;
 #define DEF_REST_CLASSES	""
 extern char *var_rest_classes;
 
-#define VAR_ALLOW_ROUTED_RELAY	"allow_routed_relaying"
-#define DEF_ALLOW_ROUTED_RELAY	0
-extern bool var_allow_routed_relay;
+#define VAR_ALLOW_UNTRUST_ROUTE	"allow_untrusted_routing"
+#define DEF_ALLOW_UNTRUST_ROUTE	0
+extern bool var_allow_untrust_route;
 
  /*
   * Names of specific restrictions, and the corresponding configuration

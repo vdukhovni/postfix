@@ -140,17 +140,13 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	/*
 	 * After stripping the local domain, if any, replace foo%bar by
 	 * foo@bar, site!user by user@site, rewrite to canonical form, and
-	 * retry. Recognize routing operators in the address localpart. This
-	 * is needed to prevent primary MX hosts from relaying third-party
-	 * destinations from backup MX hosts, otherwise the primary could end
-	 * up on black lists.
+	 * retry.
 	 * 
 	 * Otherwise we're done.
 	 */
 	if (tok822_rfind_type(tree->tail, '@')
 	    || (var_swap_bangpath && tok822_rfind_type(tree->tail, '!'))
 	    || (var_percent_hack && tok822_rfind_type(tree->tail, '%'))) {
-	    *flags |= RESOLVE_FLAG_ROUTED;
 	    rewrite_tree(REWRITE_CANON, tree);
 	} else {
 	    domain = 0;

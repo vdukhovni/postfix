@@ -157,8 +157,7 @@ distribution list</a>
 
 <li><a href="#command">Commands don't work in Postfix virtual maps</a>
 
-<li><a href="#unknown_virtual">Mail for unknown virtual users fails
-with a mail loop error</a>
+<li><a href="#unknown_virtual">Rejecting mail for unknown virtual users</a>
 
 <li><a href="#relay_virtual">Postfix refuses to receive mail for some
 virtual domains</a>
@@ -708,15 +707,15 @@ mail for arbitrary non-local destinations:
 
 <p>
 
-Don't Panic!  Upgrade to a Postfix version of 19991226 or later.
+Don't Panic!  Upgrade to a Postfix version of 19991227 or later.
 
 <p>
 
-Older Postfix versions would either bounce the mail because
+Older Postfix versions would either <i>bounce</i> the mail because
 "test@some.other.site" is not a known local username (which is
-good), or they would forward the mail to a primary MX host for
-"some.site" which would then spam it into the Internet (which is
-bad).
+good), or they would <i>forward</i> the mail to a primary MX host
+for "some.site" which would then spam it into the Internet (which
+is bad).
 
 <hr>
 
@@ -1481,12 +1480,15 @@ To find out the location for your system, execute the command
 
 <hr>
 
-<a name="unknown_virtual"><h3>Mail for unknown virtual users fails
-with a mail loop error</h3>
+<a name="unknown_virtual"><h3>Rejecting mail for unknown virtual users</h3>
+
+Problem: mail for an unknown virtual user is misdelivered to a local
+user with the same name.
+
+<p>
 
 Problem: mail for an unknown virtual user results in an ugly "mail
-loops back to myself" error from the Postfix SMTP client. Why
-doesn't Postfix generate a "user unknown" instead?
+loops back to myself" error from Postfix.
 
 <p>
 

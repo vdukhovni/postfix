@@ -188,9 +188,10 @@ smtpd_sender_restrictions =
 # recipient addresses that SMTP clients can send in RCPT TO commands.
 # 
 # By default, Postfix relays mail
-# - from clients whose IP address matches $mynetworks,
-# - from clients matching $relay_domains or subdomains thereof,
-# - to destinations that match $relay_domains or subdomains thereof.
+# - from trusted clients whose IP address matches $mynetworks,
+# - from trusted clients matching $relay_domains or subdomains thereof,
+# - from untrusted clients to destinations that match $relay_domains
+#   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination.
 #
 # In addition to the above, the Postfix SMTP server by default accepts mail
@@ -209,19 +210,22 @@ smtpd_sender_restrictions =
 #   reject_unknown_hostname: reject HELO hostname without DNS A or MX record.
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
 #  *check_relay_domains: permit only mail 
-#	- from clients matching $relay_domains or subdomain thereof,
-#	- to destinations matching $relay_domains or subdomain thereof,
 #	- to destinations matching $inet_interfaces, $mydestination, 
-#	  or $virtual_maps.
+#	  or $virtual_maps,
+#	- from trusted clients matching $relay_domains or subdomain thereof,
+#	- from untrusted clients to destinations matching $relay_domains or
+#	  subdomain thereof (except addresses with sender-specified routing),
 #	Reject anything else.
 #   permit_auth_destination: permit mail 
-#	- to destinations matching $relay_domains or subdomain thereof,
 #	- to destinations matching $inet_interfaces, $mydestination, 
 #	  or $virtual_maps.
+#	- to destinations matching $relay_domains or subdomain thereof,
+#	  except for addresses with sender-specified routing.
 #   reject_unauth_destination: reject mail unless it is sent 
-#	- to destinations matching $relay_domains or subdomain thereof,
 #	- to destinations matching $inet_interfaces, $mydestination, 
 #	  or $virtual_maps.
+#	- to destinations matching $relay_domains or subdomain thereof,
+#	  except for addresses with sender-specified routing.
 #   reject_unauth_pipelining: reject mail from improperly pipelining spamware
 #   permit_mx_backup: accept mail for sites that list me as MX host.
 #   reject_unknown_recipient_domain: reject domains without A or MX record.
@@ -254,15 +258,17 @@ smtpd_recipient_restrictions = permit_mynetworks,check_relay_domains
 # ADDITIONAL UCE CONTROLS
 #
 
-# The allow_routed_relaying parameter controls whether the host will
-# forward addresses with sender-specified routing. This is disabled
-# by default, in order to close a nasty open relay loophole where a
-# backup MX host can be tricked into forwarding mail to a primary MX
-# host which then spams it out to the world. Don't change this if
-# this system is backup MX host for any domain, or if this system
-# receives mail from any backup MX host.
+# The allow_untrusted_routing parameter controls if Postfix will
+# forward mail with sender-specified routing (user[@%!]remote[@%!]site)
+# from untrusted clients to destinations that are blessed by the
+# relay_domains parameter.
+# 
+# By default, untrusted clients are not allowed to specify routing.
+# This closes a nasty open relay loophole where a backup MX host can
+# be tricked into forwarding junk mail to a primary MX host which
+# then spams it out to the world.
 #
-allow_routed_relaying = no
+allow_untrusted_routing = no
 
 # The maps_rbl_domains parameter specifies an optional list of DNS
 # domains that publish the network addresses of blacklisted hosts.
@@ -282,9 +288,10 @@ maps_rbl_domains = rbl.maps.vix.com
 # this system will relay mail to.
 # 
 # By default, Postfix relays mail
-# - from clients whose IP address matches $mynetworks, 
-# - from clients matching $relay_domains or subdomains thereof,
-# - to destinations that match $relay_domains or subdomains thereof.
+# - from trusted clients whose IP address matches $mynetworks, 
+# - from trusted clients matching $relay_domains or subdomains thereof,
+# - from untrusted clients to destinations that match $relay_domains
+#   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination.  
 # 
 # In addition to the above, the Postfix SMTP server by default accepts mail 

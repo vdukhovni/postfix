@@ -45,8 +45,9 @@
 /*	domain that is handled by the local machine. This flag is currently
 /*	not used.
 /* .IP RESOLVE_FLAG_ROUTED
-/*	The recipient address contains routing information, so the
-/*	destination domain is not necessarily the final destination.
+/*	After address resolution the recipient localpart contains further
+/*	routing information, so the resolved next-hop destination is not
+/*	the final destination.
 /* DIAGNOSTICS
 /*	Warnings: communication failure. Fatal error: mail system is down.
 /* SEE ALSO

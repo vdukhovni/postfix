@@ -278,9 +278,10 @@ mail_owner = postfix
 # file sample-smtpd.cf.
 #
 # By default, Postfix relays mail
-# - from clients whose IP address matches $mynetworks, 
-# - from clients matching $relay_domains or subdomains thereof,
-# - to destinations that match $relay_domains or subdomains thereof.
+# - from trusted clients whose IP address matches $mynetworks, 
+# - from trusted clients matching $relay_domains or subdomains thereof,
+# - from untrusted clients to destinations that match $relay_domains
+#   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination.
 # 
 # In addition to the above, the Postfix SMTP server by default accepts mail

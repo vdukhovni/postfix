@@ -377,22 +377,50 @@ static ARGV *smtpd_check_parse(const char *checks)
     return (argv);
 }
 
-/* check_required - make sure minimally-required restriction is present */
+/* has_required - make sure required restriction is present */
 
-static void check_required(char *name, ARGV *restrictions, char **required)
+static int has_required(ARGV *restrictions, char **required)
 {
     char  **rest;
     char  **reqd;
-    VSTRING *example;
+    ARGV   *expansion;
 
-    for (rest = restrictions->argv; *rest; rest++)
+    /*
+     * Recursively check list membership.
+     */
+    for (rest = restrictions->argv; *rest; rest++) {
 	for (reqd = required; *reqd; reqd++)
 	    if (strcmp(*rest, *reqd) == 0)
-		return;
+		return (1);
+	if ((expansion = (ARGV *) htable_find(smtpd_rest_classes, *rest)) != 0)
+	    if (has_required(expansion, required))
+		return (1);
+    }
+    return (0);
+}
+
+/* fail_required - handle failure to use required restriction */
+
+static void fail_required(char *name, char **required)
+{
+    char   *myname = "fail_required";
+    char  **reqd;
+    VSTRING *example;
+
+    /*
+     * Sanity check.
+     */
+    if (required[0] == 0)
+	msg_panic("%s: null required list", myname);
+
+    /*
+     * Go bust.
+     */
     example = vstring_alloc(10);
     for (reqd = required; *reqd; reqd++)
 	vstring_sprintf_append(example, "%s ", *reqd);
-    msg_fatal("%s requires at least one of %s", name, STR(example));
+    msg_fatal("parameter \"%s\": specify at least one explicit instance of: %s",
+	      name, STR(example));
 }
 
 /* smtpd_check_init - initialize once during process lifetime */
@@ -447,14 +475,6 @@ void    smtpd_check_init(void)
     etrn_restrctions = smtpd_check_parse(var_etrn_checks);
 
     /*
-     * People screw up the relay restrictions too often. Require that they
-     * list at least one restriction that rejects mail by default.
-     */
-#ifndef TEST
-    check_required(VAR_RCPT_CHECKS, rcpt_restrctions, rcpt_required);
-#endif
-
-    /*
      * Parse the pre-defined restriction classes.
      */
     smtpd_rest_classes = htable_create(1);
@@ -476,6 +496,15 @@ void    smtpd_check_init(void)
 #if 0
     htable_enter(smtpd_rest_classes, "check_relay_domains",
 	    smtpd_check_parse("permit_mydomain reject_unauth_destination"));
+#endif
+
+    /*
+     * People screw up the relay restrictions too often. Require that they
+     * list at least one restriction that rejects mail by default.
+     */
+#ifndef TEST
+    if (!has_required(rcpt_restrctions, rcpt_required))
+	fail_required(VAR_RCPT_CHECKS, rcpt_required);
 #endif
 }
 
@@ -799,6 +828,12 @@ static int permit_auth_destination(char *recipient)
 	return (SMTPD_CHECK_OK);
 
     /*
+     * Skip source-routed mail (uncertain destination).
+     */
+    if (var_allow_untrust_route == 0 && (reply.flags & RESOLVE_FLAG_ROUTED))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
      * Permit if the destination matches the relay_domains list.
      */
     if (domain_list_match(relay_domains, domain))
@@ -820,7 +855,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 	msg_info("%s: %s", myname, recipient);
 
     /*
-     * Permit authorized destination.
+     * Skip authorized destination.
      */
     if (permit_auth_destination(recipient) == SMTPD_CHECK_OK)
 	return (SMTPD_CHECK_DUNNO);
@@ -849,52 +884,6 @@ static int reject_unauth_pipelining(SMTPD_STATE *state)
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
 			    "503 Improper use of SMTP command pipelining"));
     }
-    return (SMTPD_CHECK_DUNNO);
-}
-
-/* reject_routed_relay - FAIL for relaying via sender-specified route */
-
-static int reject_routed_relay(SMTPD_STATE *state, char *recipient,
-			               char *reply_name, char *reply_class)
-{
-    char   *myname = "reject_routed_relay";
-    char   *domain;
-
-    if (msg_verbose)
-	msg_info("%s: %s", myname, recipient);
-
-    /*
-     * Resolve the address.
-     */
-    canon_addr_internal(query, recipient);
-    resolve_clnt_query(STR(query), &reply);
-
-    /*
-     * Handle special case that is not supposed to happen.
-     */
-    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
-	return (SMTPD_CHECK_DUNNO);
-    domain += 1;
-
-    /*
-     * Permit final delivery: the destination matches mydestination or
-     * virtual_maps.
-     */
-    if (resolve_local(domain)
-	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
-	return (SMTPD_CHECK_DUNNO);
-
-    /*
-     * Reject source-routed mail to a non-local destination.
-     */
-    if ((reply.flags & RESOLVE_FLAG_ROUTED) != 0)
-	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-		  "%d <%s>: %s rejected: Source-routed relay access denied",
-				   var_relay_code, reply_name, reply_class));
-
-    /*
-     * Something else.
-     */
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1847,13 +1836,10 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      */
     state->recursion = 0;
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && rcpt_restrctions->argc) {
+    if (status == 0 && rcpt_restrctions->argc)
 	status = generic_checks(state, rcpt_restrctions,
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
-	if (var_allow_routed_relay == 0 && status != SMTPD_CHECK_REJECT)
-	    status = reject_routed_relay(state, recipient,
-					 recipient, SMTPD_NAME_RECIPIENT);
-    }
+
     SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
@@ -2114,7 +2100,7 @@ int     var_access_map_code;
 int     var_reject_code;
 int     var_non_fqdn_code;
 int     var_smtpd_delay_reject;
-int     var_allow_routed_relay;
+int     var_allow_untrust_route;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -2128,7 +2114,7 @@ static INT_TABLE int_table[] = {
     VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code,
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
     VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
-    VAR_ALLOW_ROUTED_RELAY, DEF_ALLOW_ROUTED_RELAY, &var_allow_routed_relay,
+    VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
     0,
 };
 
@@ -2165,7 +2151,7 @@ static int int_update(char **argv)
 typedef struct {
     char   *name;
     ARGV  **target;
-} REST_TABLE;
+}       REST_TABLE;
 
 static REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,
