@@ -2,7 +2,7 @@ PPoossttffiixx SSAASSLL HHoowwttoo
 
 -------------------------------------------------------------------------------
 
-WWAARRNNIINNGG WWAARRNNIINNGG WWAARRNNIINNGG
+WWAARRNNIINNGG
 
 People who go to the trouble of installing Postfix may have the expectation
 that Postfix is more secure than some other mailers. The Cyrus SASL library is

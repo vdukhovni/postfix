@@ -8,6 +8,7 @@ address probing	yes (optional persistent database)
 aliases		yes (can enable/disable mail to /file or |command)
 bare newlines	yes (but will send CRLF)
 blacklisting	yes (client name/addr; helo hostname; mail from; rcpt to)
+connection caching yes (SMTP shared cache; LMTP in-process cache)
 content filter	yes (before and after queue, internal and external)
 db tables	yes (compile time option)
 dbm tables	yes (compile time option)
@@ -42,7 +43,7 @@ nis+ tables	yes (contributed)
 no <> in smtp	yes (most common address forms)
 pgsql tables	yes (contributed)
 pipeline option	yes (server and client)
-pop/imap	yes (with third-party daemons that use /var[/spool]/mail)
+pop/imap	yes (with third-party daemons that use mailbox or maildir)
 qmqp server	yes (with verp support)
 rbl support	yes
 return-receipt:	no
@@ -56,7 +57,6 @@ sendmail -qSxxx	no
 sendmail -qtime	ignored
 sendmail -v	yes (sends delivery report via email)
 sendmail.cf	no (uses table-driven address rewriting)
-session caching	yes (SMTP shared multi-session; LMTP non-shared single-session)
 size option	yes, server and client
 smarthost	yes (specify relayhost in main.cf)
 spf		yes (delegated policy script)

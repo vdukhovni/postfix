@@ -1094,7 +1094,8 @@ addresses, in both envelopes and in headers, as controlled
 with the <a href="postconf.5.html#canonical_classes">canonical_classes</a> parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
-are documented in <a href="canonical.5.html">canonical(5)</a>.
+are documented in <a href="canonical.5.html">canonical(5)</a>. For an overview of Postfix address
+manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.
 </p>
 
 <p>
@@ -5895,10 +5896,19 @@ details. </p>
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Specify the pseudo keyword <b>silent-discard</b>
-to prevent this action from being logged. Use the
-<a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a> feature to discard EHLO
-keywords selectively. </p>
+from a remote SMTP server. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
+this action from being logged. </p>
+
+<li> <p> Use the <a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a> feature to
+discard EHLO keywords selectively. </p>
+
+</ul>
 
 
 </DD>
@@ -7359,10 +7369,19 @@ to a remote SMTP client. See <a href="postconf.5.html#smtpd_discard_ehlo_keyword
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Specify the pseudo keyword <b>silent-discard</b>
-to prevent this action from being logged. Use the
-<a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> feature to discard EHLO
-keywords selectively.  </p>
+to a remote SMTP client. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
+this action from being logged. </p>
+
+<li> <p> Use the <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> feature
+to discard EHLO keywords selectively.  </p>
+
+</ul>
 
 
 </DD>
@@ -9494,7 +9513,8 @@ This feature is available in Postfix 2.1 and later.
 <p>
 Optional lookup tables that alias specific mail addresses or domains
 to other local or remote address.  The table format and lookups
-are documented in <a href="virtual.5.html">virtual(5)</a>.
+are documented in <a href="virtual.5.html">virtual(5)</a>. For an overview of Postfix address
+manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.
 </p>
 
 <p>
@@ -9733,8 +9753,8 @@ it will open the table directly. Before Postfix version 2.2, the
 <p> Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
-remote domains.  Available before Postfix version 2.0. With Postfix 2.0
-and later, this is replaced by separate controls: <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>
+remote domains.  Available before Postfix version 2.0. With Postfix
+2.0 and later, this is replaced by separate controls: <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>
 and <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>. </p>
 
 

@@ -333,7 +333,7 @@ SSL_CTX *tls_server_init(int unused_verifydepth, int askcert)
      * copy of the CApath directory for chroot-jail.
      */
     if (tls_set_ca_certificate_info(server_ctx, var_smtpd_tls_CAfile,
-				    var_smtpd_tls_CAfile) < 0) {
+				    var_smtpd_tls_CApath) < 0) {
 	SSL_CTX_free(server_ctx);		/* 200411 */
 	return (0);
     }

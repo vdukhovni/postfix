@@ -582,7 +582,8 @@ addresses, in both envelopes and in headers, as controlled
 with the canonical_classes parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
-are documented in \fBcanonical\fR(5).
+are documented in \fBcanonical\fR(5). For an overview of Postfix address
+manipulations see the ADDRESS_REWRITING_README document.
 .PP
 If you use this feature, run "\fBpostmap /etc/postfix/canonical\fR" to
 build the necessary DBM or DB file after every change. The changes
@@ -3234,10 +3235,15 @@ details.
 .SH smtp_discard_ehlo_keywords (default: empty)
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Specify the pseudo keyword \fBsilent-discard\fR
-to prevent this action from being logged. Use the
-smtp_discard_ehlo_keyword_address_maps feature to discard EHLO
-keywords selectively.
+from a remote SMTP server.
+.PP
+Notes:
+.IP \(bu
+Specify the \fBsilent-discard\fR pseudo keyword to prevent
+this action from being logged.
+.IP \(bu
+Use the smtp_discard_ehlo_keyword_address_maps feature to
+discard EHLO keywords selectively.
 .SH smtp_enforce_tls (default: no)
 Enforcement mode: require that remote SMTP servers use TLS
 encryption, and never send mail in the clear.  This also requires
@@ -4154,10 +4160,15 @@ to a remote SMTP client. See smtpd_discard_ehlo_keywords for details.
 .SH smtpd_discard_ehlo_keywords (default: empty)
 A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Specify the pseudo keyword \fBsilent-discard\fR
-to prevent this action from being logged. Use the
-smtpd_discard_ehlo_keyword_address_maps feature to discard EHLO
-keywords selectively.
+to a remote SMTP client.
+.PP
+Notes:
+.IP \(bu
+Specify the \fBsilent-discard\fR pseudo keyword to prevent
+this action from being logged.
+.IP \(bu
+Use the smtpd_discard_ehlo_keyword_address_maps feature
+to discard EHLO keywords selectively.
 .SH smtpd_end_of_data_restrictions (default: empty)
 Optional access restrictions that the Postfix SMTP server
 applies in the context of the SMTP END-OF-DATA command.
@@ -5429,7 +5440,8 @@ This feature is available in Postfix 2.1 and later.
 .SH virtual_alias_maps (default: $virtual_maps)
 Optional lookup tables that alias specific mail addresses or domains
 to other local or remote address.  The table format and lookups
-are documented in \fBvirtual\fR(5).
+are documented in \fBvirtual\fR(5). For an overview of Postfix address
+manipulations see the ADDRESS_REWRITING_README document.
 .PP
 This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix 1.1.
@@ -5567,8 +5579,8 @@ it will open the table directly. Before Postfix version 2.2, the
 Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
-remote domains.  Available before Postfix version 2.0. With Postfix 2.0
-and later, this is replaced by separate controls: virtual_alias_domains
+remote domains.  Available before Postfix version 2.0. With Postfix
+2.0 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps.
 .SH virtual_minimum_uid (default: 100)
 The minimum user ID value that the \fBvirtual\fR(8) delivery agent accepts

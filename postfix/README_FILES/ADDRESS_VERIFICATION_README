@@ -2,7 +2,7 @@ PPoossttffiixx AAddddrreessss VVeerriiffiiccaattiioonn
 
 -------------------------------------------------------------------------------
 
-WWAARRNNIINNGG WWAARRNNIINNGG WWAARRNNIINNGG
+WWAARRNNIINNGG
 
 The sender/recipient address verification feature described in this document is
 suitable only for low-traffic sites. It performs poorly under high load and may
@@ -15,8 +15,8 @@ Address verification is a feature that allows the Postfix SMTP server to block
 a sender (MAIL FROM) or recipient (RCPT TO) address until the address has been
 verified to be deliverable.
 
-The technique has obvious uses in order to reject junk mail with an unreplyable
-sender address.
+The technique has obvious uses to reject junk mail with an unreplyable sender
+address.
 
 The technique may also be useful to block mail for undeliverable recipients,
 for example on a mail relay host that does not have a list of all the valid

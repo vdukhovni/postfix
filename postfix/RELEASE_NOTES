@@ -11,7 +11,7 @@ Major changes with snapshot Postfix-2.2-20050212
 ================================================
 
 When header address rewriting is enabled, Postfix now updates a
-message header only when at least one address address in that header
+message header only when at least one address in that header
 is modified.  Older Postfix versions first parse and then unparse
 a header so that there may be subtle changes in formatting, such
 as the amount of whitespace between tokens, or in capitalization
@@ -29,7 +29,7 @@ Major changes with snapshot Postfix-2.2-20050209
 
 The policy delegation protocol now supplies TLS client certificate
 information after successful verification. The new attribute names
-are ccert_subject, ccert_issuer and cccert_fingerprint.
+are ccert_subject, ccert_issuer and ccert_fingerprint.
 
 Major changes with snapshot Postfix-2.2-20050208
 ================================================

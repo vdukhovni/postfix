@@ -10387,6 +10387,11 @@ Apologies for any names omitted.
 	avoid logging that some EHLO keyword is being suppressed.
 	File: global/ehlo_mask.[hc].
 
+20050217
+
+	Bugfix: typo in tls_server.c, breaking CApath.  Fix by
+	Philipp Morger. File: tls/tls_server.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

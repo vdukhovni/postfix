@@ -674,7 +674,8 @@ addresses, in both envelopes and in headers, as controlled
 with the canonical_classes parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
-are documented in canonical(5).
+are documented in canonical(5). For an overview of Postfix address
+manipulations see the ADDRESS_REWRITING_README document.
 </p>
 
 <p>
@@ -5726,7 +5727,8 @@ This feature is available in Postfix 2.1 and later.
 <p>
 Optional lookup tables that alias specific mail addresses or domains
 to other local or remote address.  The table format and lookups
-are documented in virtual(5).
+are documented in virtual(5). For an overview of Postfix address
+manipulations see the ADDRESS_REWRITING_README document.
 </p>
 
 <p>
@@ -7474,28 +7476,45 @@ parameter in the default main.cf file.  </p>
 <p> Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
 and b) addresses that are aliased to addresses in other local or
-remote domains.  Available before Postfix version 2.0. With Postfix 2.0
-and later, this is replaced by separate controls: virtual_alias_domains
+remote domains.  Available before Postfix version 2.0. With Postfix
+2.0 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps. </p>
 
 %PARAM smtp_discard_ehlo_keywords
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP client will ignore in the EHLO response
-from a remote SMTP server. Specify the pseudo keyword <b>silent-discard</b>
-to prevent this action from being logged. Use the
-smtp_discard_ehlo_keyword_address_maps feature to discard EHLO
-keywords selectively. </p>
+from a remote SMTP server. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
+this action from being logged. </p>
+
+<li> <p> Use the smtp_discard_ehlo_keyword_address_maps feature to
+discard EHLO keywords selectively. </p>
+
+</ul>
 
 %PARAM smtpd_discard_ehlo_keywords
 
 <p> A case insensitive list of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
-to a remote SMTP client. Specify the pseudo keyword <b>silent-discard</b>
-to prevent this action from being logged. Use the
-smtpd_discard_ehlo_keyword_address_maps feature to discard EHLO
-keywords selectively.  </p>
+to a remote SMTP client. </p>
 
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Specify the <b>silent-discard</b> pseudo keyword to prevent
+this action from being logged. </p>
+
+<li> <p> Use the smtpd_discard_ehlo_keyword_address_maps feature
+to discard EHLO keywords selectively.  </p>
+
+</ul>
 %PARAM smtp_discard_ehlo_keyword_address_maps
 
 <p> Lookup tables, indexed by the remote SMTP server address, with
