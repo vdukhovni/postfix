@@ -57,7 +57,6 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdio.h>			/* sscanf() */
 
 /* Utility library. */
 
@@ -113,12 +112,11 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     time_t  arrival_time = 0;
     char   *start;
     long    msg_size = 0;
-    long    msg_offset = 0;
     BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
     char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' :
 		      strcmp(queue, MAIL_QUEUE_HOLD) == 0 ? '!' : ' ');
-    long    offset;
+    int     msg_size_ok = 0;
 
     /*
      * XXX addresses in defer logfiles are in printable quoted form, while
@@ -126,18 +124,26 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
      * may change once we replace the present ad-hoc bounce/defer logfile
      * format by one that is transparent for control etc. characters. See
      * also: bounce/bounce_append_service.c.
+     * 
+     * XXX With Postfix <= 2.0, "postsuper -r" results in obsolete size records
+     * from previous cleanup runs. Skip the obsolete size records.
      */
     while (!vstream_ferror(client) && (rec_type = rec_get(qfile, buf, 0)) > 0) {
 	start = vstring_str(buf);
+	if (msg_verbose)
+	    msg_info("record %c %s", rec_type, printable(start, '?'));
 	switch (rec_type) {
 	case REC_TYPE_TIME:
 	    arrival_time = atol(start);
 	    break;
 	case REC_TYPE_SIZE:
-	    if (sscanf(start, "%ld %ld", &msg_size, &msg_offset) == 2)
-		/* Postfix >= 1.0 (a.k.a. 20010228) style queue file. */
-		if (msg_size <= 0)
+	    if (msg_size == 0) {
+		if ((msg_size_ok = ((msg_size = atol(start)) > 0)) == 0) {
+		    msg_warn("%s: malformed size record: %.100s",
+			     id, printable(start, '?'));
 		    msg_size = size;
+		}
+	    }
 	    break;
 	case REC_TYPE_FROM:
 	    if (*start == 0)
@@ -160,11 +166,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 				"", "", "", STR(printable_quoted_addr));
 	    break;
 	case REC_TYPE_MESG:
-	    if (msg_size > 0 && msg_offset > 0
-		&& vstream_fseek(qfile, msg_size, SEEK_CUR) < 0)
-		msg_fatal("seek file %s: %m", VSTREAM_PATH(qfile));
-	    else if ((offset = atol(start)) > 0
-		     && vstream_fseek(qfile, offset, SEEK_SET) < 0)
+	    if (msg_size_ok && vstream_fseek(qfile, msg_size, SEEK_CUR) < 0)
 		msg_fatal("seek file %s: %m", VSTREAM_PATH(qfile));
 	    break;
 	case REC_TYPE_END:

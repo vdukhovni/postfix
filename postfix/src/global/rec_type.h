@@ -87,19 +87,21 @@
   */
 #define REC_TYPE_POST_ENVELOPE	"MFSRVA"
 #define REC_TYPE_POST_CONTENT	"XLN"
-#define REC_TYPE_POST_EXTRACT	"ERA"
+#define REC_TYPE_POST_EXTRACT	"ER"
 
  /*
-  * The record at the beginning of the envelope segment specifies the message
-  * content size, data offset, recipient count, and processing flags. These
-  * are fixed-width fields so they can be updated in place. Flags are defined
-  * in cleanup_user.h
+  * The record at the start of the queue file specifies the message content
+  * size (number of bytes between the REC_TYPE_MESG and REC_TYPE_XTRA meta
+  * records), data offset (offset of the first REC_TYPE_NORM or REC_TYPE_CONT
+  * text record), recipient count, and queue manager hints. These are all
+  * fixed-width fields so they can be updated in place. Queue manager hints
+  * are defined in qmgr_user.h
   */
 #define REC_TYPE_SIZE_FORMAT	"%15ld %15ld %15ld %15ld"
 #define REC_TYPE_SIZE_CAST1	long
-#define REC_TYPE_SIZE_CAST2	long
-#define REC_TYPE_SIZE_CAST3	long
-#define REC_TYPE_SIZE_CAST4	long
+#define REC_TYPE_SIZE_CAST2	long	/* Postfix 1.0, a.k.a. 20010228 */
+#define REC_TYPE_SIZE_CAST3	long	/* Postfix 1.0, a.k.a. 20010228 */
+#define REC_TYPE_SIZE_CAST4	long	/* Postfix 2.1 */
 
  /*
   * The warn record specifies when the next warning that the message was

@@ -352,11 +352,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * 
      * On the first open, we must examine all non-recipient records.
      * 
-     * XXX We know how to skip over large numbers of recipient records in the
-     * initial envelope segment but we haven't yet implemented code to skip
-     * over large numbers of recipient records in the extracted envelope
-     * segment. This is not a problem as long as extracted segment recipients
-     * are not mixed with non-recipient information (sendmail -t, qmqpd).
+     * Optimization: when we know that recipient records are not mixed with
+     * non-recipient records, as is typical with mailing list mail, then we
+     * can avoid having to examine all the queue file records before we can
+     * start deliveries. This avoids some file system thrashing with huge
+     * mailing lists.
      */
     for (;;) {
 	if ((curr_offset = vstream_ftell(message->fp)) < 0)
@@ -367,16 +367,22 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    curr_offset += message->data_size;
 	}
 	rec_type = rec_get(message->fp, buf, 0);
-	if (rec_type <= 0)
-	    /* Report missing end record later. */
-	    break;
 	start = vstring_str(buf);
 	if (msg_verbose > 1)
 	    msg_info("record %c %s", rec_type, start);
+	if (rec_type <= 0) {
+	    msg_warn("%s: message rejected: missing end record",
+		     message->queue_id);
+	    break;
+	}
 	if (rec_type == REC_TYPE_END) {
 	    message->rflags |= QMGR_READ_FLAG_SEEN_ALL_NON_RCPT;
 	    break;
 	}
+
+	/*
+	 * Process recipient records.
+	 */
 	if (rec_type == REC_TYPE_RCPT) {
 	    /* See also below for code setting orig_rcpt. */
 	    if (message->rcpt_offset == 0) {
@@ -391,14 +397,21 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));
-		    /* We already examined all non-recipient records. */
 		    if (message->rflags & QMGR_READ_FLAG_SEEN_ALL_NON_RCPT)
+			/* We already examined all non-recipient records. */
 			break;
+		    if (message->rflags & QMGR_READ_FLAG_MIXED_RCPT_OTHER)
+			/* Examine all remaining non-recipient records. */
+			continue;
+		    /* Optimizations for "pure recipient" record sections. */
+		    if (curr_offset > message->data_offset) {
+			/* We already examined all non-recipient records. */
+			message->rflags |= QMGR_READ_FLAG_SEEN_ALL_NON_RCPT;
+			break;
+		    }
 		    /* Examine non-recipient records in extracted segment. */
-		    if ((message->rflags & QMGR_READ_FLAG_MIXED_RCPT_OTHER) == 0
-			&& curr_offset < message->data_offset
-			&& vstream_fseek(message->fp, message->data_offset
-					 + message->data_size, SEEK_SET) < 0)
+		    if (vstream_fseek(message->fp, message->data_offset
+				      + message->data_size, SEEK_SET) < 0)
 			msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 		    continue;
 		}
@@ -428,6 +441,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		orig_rcpt = mystrdup(start);
 	    continue;
 	}
+
+	/*
+	 * Process non-recipient records.
+	 */
 	if (message->rflags & QMGR_READ_FLAG_SEEN_ALL_NON_RCPT)
 	    /* We already examined all non-recipient records. */
 	    continue;
@@ -467,15 +484,6 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		message->arrival_time = atol(start);
 	    continue;
 	}
-	if (rec_type == REC_TYPE_FROM) {
-	    if (message->sender == 0) {
-		message->sender = mystrdup(start);
-		opened(message->queue_id, message->sender,
-		       message->data_size, message->rcpt_unread,
-		       "queue %s", message->queue_name);
-	    }
-	    continue;
-	}
 	if (rec_type == REC_TYPE_FILT) {
 	    if (message->filter_xport != 0)
 		myfree(message->filter_xport);
@@ -492,6 +500,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    if (message->redirect_addr != 0)
 		myfree(message->redirect_addr);
 	    message->redirect_addr = mystrdup(start);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_FROM) {
+	    if (message->sender == 0) {
+		message->sender = mystrdup(start);
+		opened(message->queue_id, message->sender,
+		       message->data_size, message->rcpt_unread,
+		       "queue %s", message->queue_name);
+	    }
 	    continue;
 	}
 	if (rec_type == REC_TYPE_ATTR) {
@@ -585,8 +602,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->rcpt_unread = 0;
     }
     if (rec_type <= 0) {
-	msg_warn("%s: message rejected: missing end record",
-		 message->queue_id);
+	/* Already logged warning. */
     } else if (message->arrival_time == 0) {
 	msg_warn("%s: message rejected: missing arrival time record",
 		 message->queue_id);

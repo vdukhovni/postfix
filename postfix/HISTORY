@@ -8104,14 +8104,12 @@ Apologies for any names omitted.
 	descriptor is writable while write() transfers zero bytes.
 	File:  global/pipe_command.c.
 
-2003052[3-9]
-
-	Cleanup: qmgr_fudge_factor is gone.
+20030523-20030605
 
 	Cleanup: rewrote the queue file record processing loops in
-	cleanup and in [n]qmgr. This code had deteriorated a lot
-	as the result of small changes over the years. This change
-	brings the code closer to "obviously correct". Files:
+	pickup, cleanup and in [n]qmgr. This code had deteriorated
+	a lot as the result of small changes over the years. This
+	change brings the code closer to "obviously correct". Files:
 	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c,
 	*qmgr/qmgr_message.c.
 
@@ -8130,9 +8128,10 @@ Apologies for any names omitted.
 
 20030528
 
-	Compatibility: "sendmail -q<time>" without -bd option causes
-	the command to exit instead of waiting for input on the
-	standard input stream. File: sendmail/sendmail.c.
+	Compatibility: "sendmail -q<time>" without -bd option now
+	exits immediately, instead of waiting for input on the
+	standard input stream and screwing up system boot sequences.
+	File: sendmail/sendmail.c.
 
 20030530
 
@@ -8149,9 +8148,9 @@ Apologies for any names omitted.
 
 	Cleanup: input checks moved from the pickup daemon to the
 	postdrop mail submission command; this is to prepare for
-	mail submission from postdrop->cleanup without going through
-	the maildrop directory. Files: pickup/pickup.c,
-	postdrop/postdrop.c.
+	direct mail submission from postdrop->cleanup without going
+	through the maildrop directory and the pickup service.
+	Files: pickup/pickup.c, postdrop/postdrop.c.
 
 	Bugfix: the "dead host" backoff timer in the MySQL client
 	didn't work.  Fix by Leandro Santi. File: util/dict_mysql.c.

@@ -4,52 +4,57 @@
 # too many files. There is no need to copy libc.so and other files
 # that are already linked in before a Postfix daemon chroots itself.
 
+COMMAND_DIRECTORY="/usr/sbin"
+DAEMON_DIRECTORY="/usr/libexec/postfix"
+QUEUE_DIRECTORY="/var/spool/postfix"
+
 ## Copy any shared libraries, device entries, or configuration files
 ## needed by Postfix into the jail.
 binlist="
-/usr/libexec/postfix/virtual
-/usr/libexec/postfix/trivial-rewrite
-/usr/libexec/postfix/spawn
-/usr/libexec/postfix/smtpd
-/usr/libexec/postfix/smtp
-/usr/libexec/postfix/showq
-/usr/libexec/postfix/qmqpd
-/usr/libexec/postfix/qmgr
-/usr/libexec/postfix/proxymap
-/usr/libexec/postfix/pipe
-/usr/libexec/postfix/pickup
-/usr/libexec/postfix/nqmgr
-/usr/libexec/postfix/master
-/usr/libexec/postfix/local
-/usr/libexec/postfix/lmtp
-/usr/libexec/postfix/flush
-/usr/libexec/postfix/error
-/usr/libexec/postfix/cleanup
-/usr/libexec/postfix/bounce
+$DAEMON_DIRECTORY/virtual
+$DAEMON_DIRECTORY/trivial-rewrite
+$DAEMON_DIRECTORY/spawn
+$DAEMON_DIRECTORY/smtpd
+$DAEMON_DIRECTORY/smtp
+$DAEMON_DIRECTORY/showq
+$DAEMON_DIRECTORY/qmqpd
+$DAEMON_DIRECTORY/qmgr
+$DAEMON_DIRECTORY/proxymap
+$DAEMON_DIRECTORY/pipe
+$DAEMON_DIRECTORY/pickup
+$DAEMON_DIRECTORY/nqmgr
+$DAEMON_DIRECTORY/master
+$DAEMON_DIRECTORY/local
+$DAEMON_DIRECTORY/lmtp
+$DAEMON_DIRECTORY/flush
+$DAEMON_DIRECTORY/error
+$DAEMON_DIRECTORY/cleanup
+$DAEMON_DIRECTORY/bounce
 /usr/lib/sendmail
-/usr/sbin/postsuper
-/usr/sbin/postqueue
-/usr/sbin/postmap
-/usr/sbin/postlog
-/usr/sbin/postlock
-/usr/sbin/postkick
-/usr/sbin/postfix
-/usr/sbin/postdrop
-/usr/sbin/postconf
-/usr/sbin/postcat
-/usr/sbin/postalias
+$COMMAND_DIRECTORY/postsuper
+$COMMAND_DIRECTORY/postqueue
+$COMMAND_DIRECTORY/postmap
+$COMMAND_DIRECTORY/postlog
+$COMMAND_DIRECTORY/postlock
+$COMMAND_DIRECTORY/postkick
+$COMMAND_DIRECTORY/postfix
+$COMMAND_DIRECTORY/postdrop
+$COMMAND_DIRECTORY/postconf
+$COMMAND_DIRECTORY/postcat
+$COMMAND_DIRECTORY/postalias
 "
-for i in `xargs ldd $binlist | grep -v '^[^:]*:' | sort | uniq | sed -e 's/^[^ ]* =>//' | awk '{print $1}'`; do
-    mkdir -p /var/spool/postfix`dirname $i`
+ldd $binlist | awk '/[=]>/ { print $3 }' | sort -u | while read i
+do
+    mkdir -p $QUEUE_DIRECTORY`dirname $i`
     ## Sun's version of tar sucks.  We'll have to remove the leading
     ## slashes from file names ourself, otherwise the copy doesn't
     ## work.
-    (cd / && tar cphf - `echo $i | sed -e 's/^\///'`) | (cd /var/spool/postfix && tar xpf -)
+    (cd / && tar cphf - `echo $i | sed -e 's/^\///'`) | (cd $QUEUE_DIRECTORY && tar xpf -)
 done
 
 ## More stuff for the jail, mostly discovered by inspection
 ## (e.g. strings, lsof).
-for i in "
+more="
 /dev/zero
 /dev/null
 /dev/udp6
@@ -89,9 +94,10 @@ for i in "
 /usr/lib/nss_files.so.1
 /usr/share/lib/zoneinfo
 /var/ld/ld.config
-"; do
-    mkdir -p /var/spool/postfix`dirname $i`
-    (cd / && tar cpf - `echo $i | sed -e 's/^\///'`) | (cd /var/spool/postfix && tar xpf -)
+"
+for i in $more; do
+    mkdir -p $QUEUE_DIRECTORY`dirname $i`
+    (cd / && tar cpf - `echo $i | sed -e 's/^\///'`) | (cd $QUEUE_DIRECTORY && tar xpf -)
 done
 
 exit 0

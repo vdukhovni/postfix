@@ -182,6 +182,14 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    continue;
 
 	/*
+	 * XXX Workaround: REC_TYPE_FILT (used in envelopes) == REC_TYPE_CONT
+	 * (used in message content).
+	 */
+	if (type == REC_TYPE_FILT && *expected != REC_TYPE_CONTENT[0])
+	    /* Use our own content filter settings instead. */
+	    continue;
+
+	/*
 	 * XXX Force an empty record when the queue file content begins with
 	 * whitespace, so that it won't be considered as being part of our
 	 * own Received: header. What an ugly Kluge.

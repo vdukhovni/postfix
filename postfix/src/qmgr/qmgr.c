@@ -187,6 +187,17 @@
 /* .fi
 /*	In the text below, \fItransport\fR is the first field in a
 /*	\fBmaster.cf\fR entry.
+/* .IP "\fBqmgr_fudge_factor\fR (valid range: 10..100)"
+/*	The percentage of delivery resources that a busy mail system will
+/*	use up for delivery of a large mailing list message.
+/*	With 100%, delivery of one message does not begin before the previous
+/*	message has been delivered. This results in good performance for large
+/*	mailing lists, but results in poor response time for one-to-one mail.
+/*	With less than 100%, response time for one-to-one mail improves,
+/*	but large mailing list delivery performance suffers. In the worst
+/*	case, recipients near the beginning of a large list receive a burst
+/*	of messages immediately, while recipients near the end of that list
+/*	receive that same burst of messages a whole day later.
 /* .IP \fBinitial_destination_concurrency\fR
 /*	Initial per-destination concurrency level for parallel delivery
 /*	to the same destination.
@@ -266,6 +277,7 @@ int     var_dest_con_limit;
 int     var_dest_rcpt_limit;
 char   *var_defer_xports;
 bool    var_allow_min_user;
+int     var_qmgr_fudge;
 int     var_local_rcpt_lim;		/* XXX */
 int     var_local_con_lim;		/* XXX */
 int     var_proc_limit;
@@ -414,7 +426,7 @@ static int qmgr_loop(char *unused_name, char **unused_argv)
 static void pre_accept(char *unused_name, char **unused_argv)
 {
     const char *table;
- 
+
     if ((table = dict_changed_name()) != 0) {
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);
@@ -479,6 +491,7 @@ int     main(int argc, char **argv)
 	VAR_INIT_DEST_CON, DEF_INIT_DEST_CON, &var_init_dest_concurrency, 1, 0,
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
+	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
 	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
