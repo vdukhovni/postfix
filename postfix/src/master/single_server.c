@@ -221,6 +221,7 @@ static void single_server_timeout(int unused_event, char *unused_context)
 static void single_server_wakeup(int fd)
 {
     VSTREAM *stream;
+    char   *tmp;
 
     /*
      * If the accept() succeeds, be sure to disable non-blocking I/O, because
@@ -233,6 +234,9 @@ static void single_server_wakeup(int fd)
     non_blocking(fd, BLOCKING);
     close_on_exec(fd, CLOSE_ON_EXEC);
     stream = vstream_fdopen(fd, O_RDWR);
+    tmp = concatenate(single_server_name, " socket", (char *) 0);
+    vstream_control(stream, VSTREAM_CTL_PATH, tmp,  VSTREAM_CTL_END);
+    myfree(tmp);
     timed_ipc_setup(stream);
     if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
 	single_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);

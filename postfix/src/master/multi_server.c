@@ -272,13 +272,16 @@ static void multi_server_enable_read(int unused_event, char *context)
 static void multi_server_wakeup(int fd)
 {
     VSTREAM *stream;
-
+    char   *tmp;
     if (msg_verbose)
 	msg_info("connection established fd %d", fd);
     non_blocking(fd, BLOCKING);
     close_on_exec(fd, CLOSE_ON_EXEC);
     client_count++;
     stream = vstream_fdopen(fd, O_RDWR);
+    tmp = concatenate(multi_server_name, " socket", (char *) 0);
+    vstream_control(stream, VSTREAM_CTL_PATH, tmp,  VSTREAM_CTL_END);
+    myfree(tmp);
     timed_ipc_setup(stream);
     if (multi_server_in_flow_delay && mail_flow_get(1) < 0)
 	event_request_timer(multi_server_enable_read, (char *) stream,
