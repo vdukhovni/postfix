@@ -224,6 +224,13 @@ program_directory = /some/where/postfix/bin
 # command to use instead of mailbox delivery. The command is run as
 # the recipient with proper HOME, SHELL and LOGNAME settings.
 # Exception:  delivery for root is done as $default_user.
+#
+# The following expansions are done on mailbox_command: $user (recipient
+# username), $shell (recipient shell), $home (recipient home directory),
+# $recipient (full recipient address), $extension (recipient address
+# extension), $domain (recipient domain), $recipient_delimiter. Specify
+# ${name?value} or ${name:value} to expand value only when $name does
+# (does not) exist.
 # 
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.
@@ -291,12 +298,13 @@ program_directory = /some/where/postfix/bin
 # to distinguish local clients from strangers. See permit_mynetworks
 # and smtpd_recipient_restrictions in the file sample-smtpd.cf file.
 #
-# The default is all networks attached to the machine:  a complete
-# class A network, a complete class B network, and so on. If you want
-# stricter control, specify a list of network/mask patterns, where
-# the mask specifies the number of bits in the network part of a host
-# address. You can also specify the absolute pathname of a pattern
-# file instead of listing the patterns here.
+# The default is a list of all networks attached to the machine:  a
+# complete class A network (X.0.0.0/8), a complete class B network
+# (X.X.0.0/16), and so on. If you want stricter control, specify a
+# list of network/mask patterns, where the mask specifies the number
+# of bits in the network part of a host address. You can also specify
+# the absolute pathname of a pattern file instead of listing the
+# patterns here.
 #
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks

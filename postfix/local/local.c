@@ -27,6 +27,19 @@
 /*	destinations in ~\fIname\fR/.\fBforward\fR, to the mailbox owned
 /*	by the user \fIname\fR, or it is sent back as undeliverable.
 /*
+/*	The system administrator can specify a comma/space separated list
+/*	of ~\fR/.\fBforward\fR like files through the \fBforward_path\fR
+/*	configuration parameter. Upon delivery, the local delivery agent
+/*	tries each pathname in the list until a file is found.
+/*	The \fBforward_path\fR parameter is subject to interpolation of
+/*	\fB$user\fR (recipient username), \fB$home\fR (recipient home
+/*	directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
+/*	(complete recipient address), \fB$extension\fR (recipient address
+/*	extension), \fB$domain\fR (recipient domain) and
+/*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
+/*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
+/*	\fI$name\fR is (is not) defined.
+/*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
 /*	commands, destination file names, \fB:include:\fR directives, or
 /*	mail addresses.
@@ -77,6 +90,15 @@
 /*	executes with the privileges of the recipient user (exception: in
 /*	case of delivery as root, the command executes with the privileges
 /*	of \fBdefault_user\fR).
+/*	The command is subject to interpolation of \fB$user\fR (recipient
+/*	username), \fB$home\fR (recipient home directory), \fB$shell\fR
+/*	(recipient shell), \fB$recipient\fR (complete recipient address),
+/*	\fB$extension\fR (recipient address extension), \fB$domain\fR
+/*	(recipient domain) and \fB$recipient_delimiter.\fR The forms
+/*	\fI${name?value}\fR and \fI${name:value}\fR expand conditionally to
+/*	\fIvalue\fR when \fI$name\fR is (is not) defined. In the result
+/*	of \fIname\fR expansion, characters that have special meaning to
+/*	the shell are censored and replaced by underscores.
 /*
 /*	Mailbox delivery can be delegated to alternative message transports
 /*	specified in the \fBmaster.cf\fR file.
@@ -504,7 +526,7 @@ static void local_mask_init(void)
 
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("table has changed -- exiting");
@@ -514,7 +536,7 @@ static void pre_accept(void)
 
 /* post_init - post-jail initialization */
 
-static void post_init(void)
+static void post_init(char *unused_name, char **unused_argv)
 {
 
     /*
@@ -536,7 +558,6 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_HOME_MAILBOX, DEF_HOME_MAILBOX, &var_home_mailbox, 0, 0,
-	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
 	VAR_ALLOW_COMMANDS, DEF_ALLOW_COMMANDS, &var_allow_commands, 0, 0,
 	VAR_ALLOW_FILES, DEF_ALLOW_FILES, &var_allow_files, 0, 0,
 	VAR_RCPT_FDELIM, DEF_RCPT_FDELIM, &var_rcpt_fdelim, 0, 0,
@@ -555,6 +576,7 @@ int     main(int argc, char **argv)
     /* Suppress $name expansion upon loading. */
     static CONFIG_STR_TABLE raw_table[] = {
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
+	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
 	0,
     };
 

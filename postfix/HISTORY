@@ -2687,3 +2687,26 @@ Apologies for any names omitted.
 	Cleanup: "disable_dns_lookups = yes" now should disable
 	all DNS lookups by the SMTP client.
 
+19990428
+
+	Bugfix: with DBM files, Postfix was watching the "dir" file
+	modification time for changes. It should be watching the
+	"pag" file instead.
+
+19990429
+
+	Cleanup: all callbacks in the master to server API now pass
+	on the service name and the application-specific argument
+	vector. Files: master/*server.c.
+
+19990504
+
+	Feature: conditional macro expansion. ${name?text} expands
+	to text when name is defined, otherwise the result is empty.
+	${name:text} expands to text when name is undefined,
+	otherwise the result is empty. File: util/mac_expand.c.
+
+	Feature: conditional macro expansion in forward_path and
+	mailbox_command of $user, $home, $shell, $recipient,
+	$extension, $domain, and $recipient_delimiter. Files:
+	local/command.c, local/dotforward.c, local/local_expand.c.

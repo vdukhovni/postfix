@@ -1,5 +1,5 @@
-Purpose of this document
-========================
+1 - Purpose of this document
+============================
 
 This document describes how to build, install and configure a
 Postfix system so that it can do one of the following:
@@ -12,8 +12,8 @@ Postfix system so that it can do one of the following:
 
     - Replace sendmail altogether.
 
-Typographical conventions
-=========================
+2 - Typographical conventions
+=============================
 
 In the instructions below, a command written as
 
@@ -27,8 +27,8 @@ A command written as
 
 should be executed as an unprivileged user.
 
-Documentation
-=============
+3 - Documentation
+=================
 
 Documentation is available as HTML web pages (point your browser
 to html/index.html) and as UNIX-style manpages (point your MANPATH
@@ -39,11 +39,10 @@ The sample configuration files in the `conf' directory have extensive
 comments, but they may not describe every nuance of every feature.
 
 Many files have their own built-in manual page.  Tools to extract
-those embedded manual pages are available in the contributed software
-from http://www.postfix.org/
+those embedded manual pages are available in the mantools directory.
 
-Building on a supported system
-==============================
+4 - Building on a supported system
+==================================
 
 If your system is supported, it is one of
 
@@ -75,12 +74,7 @@ If your system is supported, it is one of
     SunOS 5.4..5.7 (Solaris 2.4..7)
 
 or something closely resemblant. Some platforms such as Ultrix 4
-might work, but that has not been verified. It is sufficiently
-similar to SunOS 4 that my guesses should be mostly right.
-
-Download the contributed software from http://www.postfix.org/ if
-you wish to include support for LDAP (light-weight directory access
-protocol) lookups, for NEXTSTEP version 3 or for OPENSTEP version 4.
+need a bit of work because their shell is a bit brain damaged.
 
 If at any time in the build process you get messages like: "make:
 don't know how to ..." you should be able to recover by running
@@ -128,8 +122,8 @@ In any case, if the command
 produces compiler error messages, it may be time to examine the
 FAQ document.
 
-Porting to on an unsupported system
-===================================
+5 - Porting to on an unsupported system
+=======================================
 
 - Choose a SYSTEMTYPE name for the new system. Please use a name
 that includes the major version of the operating system (such as
@@ -153,8 +147,8 @@ increasingly difficult to maintain over time. Moreover, with the
 next port you'd have to place #ifdefs all over the source code
 again.
 
-Installing the software after successful compilation
-====================================================
+6 - Installing the software after successful compilation
+========================================================
 
 There is no automated installation procedure. The Postfix system
 is sufficiently complex, and UNIX systems are sufficiently different,
@@ -167,11 +161,11 @@ Installing Postfix by hand takes only a few steps.
   variable.  This text assumes that you have chosen the default
   location.
 
-  As superuser, execute the commands:
+  As superuser, execute the commands from the Postfix source directory:
 
     # mkdir /etc/postfix
     # chmod 755 /etc/postfix
-    # cp /some/where/postfix/conf/* /etc/postfix
+    # cp conf/* /etc/postfix
     # chmod 644 /etc/postfix/*
     # chmod 755 /etc/postfix/postfix-script*
 
@@ -185,23 +179,33 @@ Installing Postfix by hand takes only a few steps.
     # mkdir /var/spool/postfix
     # chmod 755 /var/spool/postfix
 
-- Program directory. The pathname is configurable in /etc/postfix/main.cf.
-  I recommend that you install the programs in a separate directory,
-  not in a place that contains other software.
+- Command directory. The pathname is configurable in /etc/postfix/main.cf.
+  Usually I install in /usr/sbin or in /usr/etc, depending on the system.
 
-  As superuser, execute the commands:
+  If you are replacing an existing sendmail installation with
+  Postfix, you need to keep the old sendmail program running for
+  some time in order to flush the mail queue.  As superuser, execute
+  the following commands (your sendmail may be in a different place):
 
-    # mkdir /some/where/bin
-    # cp bin/* /some/where/bin
+    # mv /usr/sbin/sendmail /usr/sbin/sendmail.OFF
+    # chmod 755 /usr/sbin/sendmail.OFF
 
-  Alternative 1: leave the programs in the Postfix source tree.
+  As superuser, execute the commands from the Postfix source directory:
 
-  Alternative 2: use separate program and daemon directories (again,
-  configurable in /etc/postfix/main.cf):
+    # mkdir $command_directory
+    # cp bin/* $command_directory
 
-    # mkdir /some/where/sbin /some/where/libexec
-    # cp bin/sendmail bin/post* /some/where/sbin
-    # cp `ls bin/*|egrep -v 'post|fsstone|smtp-|sendmail'` /some/where/libexec
+  Alternative: leave the command executables in the Postfix source tree.
+
+- Daemon directory. The pathname is configurable in /etc/postfix/main.cf.
+  Usually I install in /usr/libexec/postfix or in /usr/lib/postfix.
+
+  As superuser, execute the commands from the Postfix source directory:
+
+    # mkdir $daemon_directory
+    # cp libexec/* $daemon_directory
+
+  Alternative: leave the daemon executables in the Postfix source tree.
 
 - On-line manual pages:
 
@@ -216,53 +220,39 @@ Installing Postfix by hand takes only a few steps.
     # export MANPATH
     # MANPATH=/some/where/man:/usr/share/man:/usr/local/man
 
-- Next, review the "To chroot or not to chroot" section, and proceed
-  to the section on how you wish to run Postfix on your particular
-  machine:
+- Proceed to the section on how you wish to run Postfix on your
+  particular machine:
 
     - Send mail only, without changing an existing sendmail
-      installation.
+      installation (section 7).
 
     - Send and receive mail via a virtual host interface, still
-      without any change to an existing sendmail installation.
+      without any change to an existing sendmail installation
+      (section 8).
 
-    - Replace sendmail altogether.
+    - Replace sendmail altogether (section 9).
 
-To chroot or not to chroot
-==========================
-
-Most Postfix daemons can run in a chroot jail, that is, in a chroot
-environment at fixed low privilege. This provides a significant
-barrier against intrusion. The barrier is not impenetrable, but
-every little bit helps.
-
-The file /etc/postfix/master.cf by default runs no Postfix daemons
-in a chroot jail. However, with the exception of the `local' and
-`pipe' daemons, every Postfix daemon can run chrooted.
-
-- The contributed source code from http://www.postfix.org/ has
-  scripts for setting up chroot environments for Postfix systems.
-
-Configuring Postfix to send mail only
-=====================================
+7 - Configuring Postfix to send mail only
+=========================================
 
 If you are going to use Postfix to send mail only, there is no need
-to change your sendmail setup. Instead, set up your mail user agent
-so that it calls the Postfix sendmail program directly.
+to change your existing sendmail setup. Instead, set up your mail
+user agent so that it calls the Postfix sendmail program directly.
 
 Follow the instructions in the "Mandatory configuration file edits"
-section below.
+in section 10, review the "To chroot or not to chroot" text in
+section 11, and choose a security model according to section 12.
 
-You must comment out the smtp inet service in /etc/postfix/master.cf,
-in order to avoid conflicts with the sendmail daemon.
+You MUST comment out the `smtp inet' entry in /etc/postfix/master.cf,
+in order to avoid conflicts with the real sendmail.
 
 Start the Postfix system:
 
     # postfix start
 
-or, if you feel nostalgic,
+or, if you feel nostalgic, use the Postfix sendmail command:
 
-    # /some/where/bin/sendmail -bd -qwhatever
+    # sendmail -bd -qwhatever
 
 and watch your syslog file for any error messages.
 
@@ -272,21 +262,20 @@ directory.
 
 In order to inspect the mail queue, use
 
-    % /some/where/bin/sendmail -bp
+    % sendmail -bp
 
-See also the "Care and feeding" section below.
+See also the "Care and feeding" section 13 below.
 
-Configuring Postfix to send and receive mail (virtual interface)
-================================================================
+8 - Configuring Postfix to send and receive mail (virtual interface)
+====================================================================
 
 Alternatively, you can use the Postfix system to send AND receive
 mail while leaving your sendmail setup intact, by running Postfix
 on a virtual interface address.  Simply configure your mail user
 agent to directly invoke the Postfix sendmail program.
 
-The contributed source code from http://www.postfix.org/ gives
-examples for setting up virtual interfaces for a variety of UNIX
-versions.
+The examples/virtual-setup directory gives instructions for setting
+up virtual interfaces for a variety of UNIX versions.
 
 In the /etc/postfix/main.cf file, I would specify 
 
@@ -294,14 +283,17 @@ In the /etc/postfix/main.cf file, I would specify
     inet_interfaces = $myhostname
     mydestination = $myhostname
 
-You still have to do the "Mandatory configuration file edits"
-described below. After those edits, start the mail system:
+Follow the instructions in the "Mandatory configuration file edits"
+in section 10, review the "To chroot or not to chroot" text in
+section 11, and choose a security model according to section 12.
 
-    # /some/where/bin/postfix start
+Start the mail system:
 
-or, if you feel nostalgic,
+    # postfix start
 
-    # /some/where/bin/sendmail -bd -qwhatever
+or, if you feel nostalgic, use the Postfix sendmail program:
+
+    # sendmail -bd -qwhatever
 
 and watch your syslog file for any error messages. 
 
@@ -311,36 +303,29 @@ directory.
 
 In order to inspect the mail queue, use
 
-    % /some/where/bin/sendmail -bp
+    % sendmail -bp
 
-See also the "Care and feeding" section below.
+See also the "Care and feeding" section 13 below.
 
-Turning off sendmail forever
-============================
+9 - Turning off sendmail forever
+================================
 
 If you are going to REPLACE sendmail by Postfix, execute the
-following commands.  The text assumes that your sendmail is in
-/usr/sbin, and that mailq and newaliases are in /usr/bin.
+following commands.  The text assumes that on your system, sendmail
+is in /usr/sbin, and that mailq and newaliases are in /usr/bin.
 
-First, move the existing sendmail, mailq and newaliases commands
-out of the way:
-
-    # mv /usr/sbin/sendmail /usr/sbin/sendmail.OFF
     # mv /usr/bin/mailq /usr/bin/mailq.OFF
     # mv /usr/bin/newaliases /usr/bin/newaliases.OFF
-    # chmod 555 /usr/sbin/sendmail.OFF /usr/bin/mailq.OFF \
-	/usr/bin/newaliases.OFF
+    # chmod 755 /usr/bin/newaliases.OFF /usr/bin/mailq.OFF
 
-Then, drop in the new Postfix sendmail and support programs, and
-set up links for the mailq and newaliases commands:
-
-    # ln -s /some/where/bin/sendmail /some/where/bin/post* /usr/sbin
-    # chmod 755 /usr/sbin/sendmail /usr/sbin/post*
     # ln -s /usr/sbin/sendmail /usr/bin/mailq
     # ln -s /usr/sbin/sendmail /usr/bin/newaliases
 
 Be sure to keep the old sendmail running for at least a couple
-days to flush any unsent mail.
+days to flush any unsent mail. To do so, stop the sendmail daemon
+and restart it as:
+
+    # /usr/sbin/sendmail.OFF -q
 
 After you have visited the "Mandatory configuration file edits"
 section below, you can start the Postfix system with
@@ -357,13 +342,14 @@ When it is run for the first time, the Postfix startup shell script
 will create a bunch of subdirectories below the Postfix spool
 directory.
 
-See also the "Care and feeding" section below.
+See also the "Care and feeding" section 13 below.
 
-Mandatory configuration file edits
-==================================
+10 - Mandatory configuration file edits
+=======================================
 
-By default, all Postfix configuration files are in /etc/postfix, and
-must be owned by root. 
+By default, Postfix configuration files are in /etc/postfix, and
+must be owned by root.  Giving someone else write permission to
+main.cf or master.cf means giving root privileges to that person.
 
 Whenever you make a change to a config file, execute the following
 command in order to refresh a running mail system:
@@ -376,7 +362,7 @@ resemble shell variables. You specify a variable as
 
     parameter = value
 
-and you use it by putting a $ in front of it:
+and you use it by putting a $ in front of its name:
 
     other_parameter = $parameter
 
@@ -385,18 +371,21 @@ configuration language uses lazy evaluation, and does not look at
 a parameter value until it is needed at runtime.
 
 First of all you have to specify the userid that owns the Postfix
-queue and processes. The default setting,
+queue and most Postfix processes. The default setting,
 
     mail_owner = postfix
 
 should be appropriate for your system. I would recommend that you
 create a dedicated user account "postfix", that is not in the same
-group as other accounts.  Make sure it is a locked account that
-no-one can log into.  It does not need an executable login shell,
-nor does it need an existing home directory.
+group as other accounts.  Preferably, this is an account that no-one
+can log into.  The account does not need an executable login shell,
+and needs no existing home directory. My password file entry looks
+like this:
 
-Secondly, you should specify what domain name will be appended to
-a local address. The "myorigin" parameter defaults to the local
+    postfix:*:12345:12345:postfix:/no/where:/no/shell
+
+Secondly, you must specify what domain will be appended to a
+local address. The "myorigin" parameter defaults to the local
 hostname, but that is probably OK only for very small sites.
 
 Some examples:
@@ -407,8 +396,8 @@ Some examples:
 In the first case, local mail goes out as user@$myhostname, in
 the second case the sender address is user@$mydomain.
 
-Next you nee to specify what mail addresses are local to the Postfix
-system.
+Next you need to specify what mail addresses are local to the
+Postfix system.
 
 Some examples:
 
@@ -430,20 +419,47 @@ Some examples:
 
     relayhost = $mydomain
     relayhost = mail.$mydomain
+    relayhost = [mail.$mydomain]
+
+The form enclosed with [] eliminates DNS MX lookups.
+
+By default, the SMTP client will do DNS lookups for sender and
+recipient addresses even when you specify a relay host. If your
+machine has no access to a DNS server, turn off SMTP client DNS
+lookups like this:
+
+    disable_dns_lookups = yes
 
 If you haven't used sendmail prior to using Postfix, you will have
 to build the alias database (with: sendmail -bi, or: newaliases).
 
-Finally, specify the program and queue directories.
+Finally, specify the program, daemon and queue directories. For
+example,
 
-    program_directory = /some/where/bin
+    command_directory = /usr/sbin
+    daemon_directory = /usr/libexec/postfix
     queue_directory = /var/spool/postfix
 
 For further configuration information I suggest that you browse
 the configuration documentation in the html subdirectory.
 
-Security: writable versus protected maildrop directory
-======================================================
+11 - To chroot or not to chroot
+==============================
+
+Most Postfix daemons can run in a chroot jail, that is, in a chroot
+environment at fixed low privilege. This provides a significant
+barrier against intrusion. The barrier is not impenetrable, but
+every little bit helps.
+
+The file /etc/postfix/master.cf by default runs no Postfix daemons
+in a chroot jail. However, with the exception of the `local' and
+`pipe' daemons, every Postfix daemon can run chrooted.
+
+The examples/chroot-setup directory has a collection of scripts
+for setting up chroot environments for Postfix systems.
+
+12 - Security: writable versus protected maildrop directory
+===========================================================
 
 Postfix offers a choice of submission mechanims.
 
@@ -491,10 +507,18 @@ Postfix offers a choice of submission mechanims.
 
 	# cp postfix-script-sgid postfix-script
 
-Care and feeding of the Postfix system
-======================================
+13 - Care and feeding of the Postfix system
+===========================================
 
-The Postfix programs log all problems to the syslog daemon.
+The Postfix programs log all problems to the syslog daemon. The
+names of logfiles are specified in /etc/syslog.conf. Note:  the
+syslogd will not create files. You must create them ahead of time
+before (re)starting syslogd. At the very least you need something
+like:
+
+    mail.err					/dev/console
+    mail.debug					/var/log/maillog
+
 Hopefully, the number of problems will be small, but it is a good
 idea to run every night before the syslog files are rotated:
 

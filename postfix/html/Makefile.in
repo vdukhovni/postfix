@@ -1,6 +1,6 @@
 # For now, just hard-coded rules for daemons, commands, config files.
 
-DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html local.8.html \
+DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html error.8.html local.8.html \
 	master.8.html pickup.8.html pipe.8.html qmgr.8.html showq.8.html \
 	smtp.8.html smtpd.8.html trivial-rewrite.8.html
 COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
@@ -29,6 +29,9 @@ bounce.8.html: ../bounce/bounce.c
 defer.8.html: bounce.8.html
 	rm -f $@
 	ln -s $? $@
+
+error.8.html: ../error/error.c
+	srctoman $? | nroff -man | man2html | postlink >$@
 
 cleanup.8.html: ../cleanup/cleanup.c
 	srctoman $? | nroff -man | man2html | postlink >$@

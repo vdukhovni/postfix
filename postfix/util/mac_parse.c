@@ -28,7 +28,7 @@
 /* SEE ALSO
 /*	dict(3) dictionary interface.
 /* DIAGNOSTICS
-/*	Fatal errors: out of memory, malformed macro name.
+/*	Fatal errors: out of memory. malformed macro name.
 /* LICENSE
 /* .ad
 /* .fi
@@ -96,14 +96,16 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 		level = 1;
 		vp += 1;
 		for (ep = vp; level > 0; ep++) {
-		    if (*ep == 0)
-			msg_fatal("incomplete macro: %s", value);
+		    if (*ep == 0) {
+			msg_warn("truncated macro reference: \"%s\"", value);
+			break;
+		    }
 		    if (*ep == *pp)
 			level++;
 		    if (*ep == close_paren[pp - open_paren])
 			level--;
 		}
-		vstring_strncat(buf, vp, ep - vp - 1);
+		vstring_strncat(buf, vp, level > 0 ? ep - vp : ep - vp - 1);
 		vp = ep;
 	    } else {				/* plain $x */
 		SKIP(vp, ep, ISALNUM(*ep) || *ep == '_');
@@ -111,7 +113,7 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 		vp = ep;
 	    }
 	    if (VSTRING_LEN(buf) == 0)
-		msg_fatal("empty macro name: %s", value);
+		msg_warn("empty macro name: \"%s\"", value);
 	    MAC_PARSE_ACTION(MAC_PARSE_VARNAME, buf, context);
 	}
     }

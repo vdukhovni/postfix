@@ -185,7 +185,7 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("table has changed -- exiting");
@@ -195,7 +195,7 @@ static void pre_accept(void)
 
 /* pre_jail_init - initialize before entering chroot jail */
 
-static void pre_jail_init(void)
+static void pre_jail_init(char *unused_name, char **unused_argv)
 {
     command = vstring_alloc(100);
     rewrite_init();

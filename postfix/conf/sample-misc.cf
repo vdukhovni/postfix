@@ -172,12 +172,18 @@ myorigin = $myhostname
 # to distinguish local clients from strangers. See permit_mynetworks
 # in the sample-smtpd.cf file.
 #
-# The default is all networks attached to the machine:  a complete
-# class A network, a complete class B network, and so on. If you want
-# stricter control, specify a list of network/mask patterns, where
-# the mask specifies the number of bits in the network part of a host
-# address. You can also specify the absolute pathname of a pattern
-# file instead of listing the patterns here.
+# The mynetworks parameter specifies the list of networks that are
+# local to this machine.  The list is used by the anti-UCE software
+# to distinguish local clients from strangers. See permit_mynetworks
+# and smtpd_recipient_restrictions in the file sample-smtpd.cf file.
+#
+# The default is a list of all networks attached to the machine:  a
+# complete class A network (X.0.0.0/8), a complete class B network
+# (X.X.0.0/16), and so on. If you want stricter control, specify a
+# list of network/mask patterns, where the mask specifies the number
+# of bits in the network part of a host address. You can also specify
+# the absolute pathname of a pattern file instead of listing the
+# patterns here.
 #
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 

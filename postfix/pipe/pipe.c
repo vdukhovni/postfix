@@ -677,7 +677,7 @@ static void pipe_service(VSTREAM *client_stream, char *service, char **argv)
 
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("table has changed -- exiting");
@@ -687,7 +687,7 @@ static void pre_accept(void)
 
 /* drop_privileges - drop privileges most of the time */
 
-static void drop_privileges(void)
+static void drop_privileges(char *unused_name, char **unused_argv)
 {
     set_eugid(var_owner_uid, var_owner_gid);
 }

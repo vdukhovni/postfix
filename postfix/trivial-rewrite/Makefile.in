@@ -14,7 +14,7 @@ PROG	= trivial-rewrite
 LIBS	= ../lib/libmaster.a ../lib/libglobal.a ../lib/libutil.a
 LIB_DIR	= ../lib
 INC_DIR	= ../include
-BIN_DIR	= ../bin
+BIN_DIR	= ../libexec
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 

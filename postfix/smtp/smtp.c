@@ -324,9 +324,16 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
     }
 }
 
+/* pre_init - pre-jail initialization */
+
+static void pre_init(char *unused_name, char **unused_argv)
+{
+    debug_peer_init();
+}
+
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("table has changed -- exiting");
@@ -369,7 +376,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
-		       MAIL_SERVER_PRE_INIT, debug_peer_init,
+		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

@@ -259,7 +259,7 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 
 /* post_jail_init - initialize after entering chroot jail */
 
-static void post_jail_init(void)
+static void post_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*

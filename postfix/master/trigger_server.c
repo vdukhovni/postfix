@@ -64,25 +64,25 @@
 /*	order as specified, and multiple instances of the same type
 /*	are allowed. Raw parameters are not subjected to $name
 /*	evaluation.
-/* .IP "MAIL_SERVER_PRE_INIT (void *(void))"
+/* .IP "MAIL_SERVER_PRE_INIT (void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has read the global configuration file
 /*	and after it has processed command-line arguments, but before
 /*	the skeleton has optionally relinquished the process privileges.
-/* .IP "MAIL_SERVER_POST_INIT (void *(void))"
+/* .IP "MAIL_SERVER_POST_INIT (void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has optionally relinquished the process
 /*	privileges, but before servicing client connection requests.
-/* .IP "MAIL_SERVER_LOOP (int *(void))"
+/* .IP "MAIL_SERVER_LOOP (int *(char *service_name, char **argv))"
 /*	A pointer to function that is executed from
 /*	within the event loop, whenever an I/O or timer event has happened,
 /*	or whenever nothing has happened for a specified amount of time.
 /*	The result value of the function specifies how long to wait until
 /*	the next event. Specify -1 to wait for "as long as it takes".
-/* .IP "MAIL_SERVER_EXIT (void *(void))"
+/* .IP "MAIL_SERVER_EXIT (void *(char *service_name, char **argv))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
-/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(void))"
+/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(char *service_name, char **argv))"
 /*	Function to be executed prior to accepting a new request.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
@@ -169,8 +169,8 @@ static TRIGGER_SERVER_FN trigger_server_service;
 static char *trigger_server_name;
 static char **trigger_server_argv;
 static void (*trigger_server_accept) (int, char *);
-static void (*trigger_server_onexit) (void);
-static void (*trigger_server_pre_accept) (void);
+static void (*trigger_server_onexit) (char *, char **);
+static void (*trigger_server_pre_accept) (char *, char **);
 static VSTREAM *trigger_server_lock;
 
 /* trigger_server_exit - normal termination */
@@ -178,7 +178,7 @@ static VSTREAM *trigger_server_lock;
 static NORETURN trigger_server_exit(void)
 {
     if (trigger_server_onexit)
-	trigger_server_onexit();
+	trigger_server_onexit(trigger_server_name, trigger_server_argv);
     exit(0);
 }
 
@@ -260,7 +260,7 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
      * non-blocking so we won't get stuck when multiple processes wake up.
      */
     if (trigger_server_pre_accept)
-	trigger_server_pre_accept();
+	trigger_server_pre_accept(trigger_server_name, trigger_server_argv);
     trigger_server_wakeup(listen_fd);
 }
 
@@ -294,7 +294,7 @@ static void trigger_server_accept_local(int unused_event, char *context)
 	time_left = event_cancel_timer(trigger_server_timeout, (char *) 0);
 
     if (trigger_server_pre_accept)
-	trigger_server_pre_accept();
+	trigger_server_pre_accept(trigger_server_name, trigger_server_argv);
     fd = LOCAL_ACCEPT(listen_fd);
     if (trigger_server_lock != 0
 	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
@@ -521,7 +521,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * Run pre-jail initialization.
      */
     if (pre_init)
-	pre_init();
+	pre_init(trigger_server_name, trigger_server_argv);
 
     /*
      * Optionally, restrict the damage that this process can do.
@@ -535,7 +535,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * Run post-jail initialization.
      */
     if (post_init)
-	post_init();
+	post_init(trigger_server_name, trigger_server_argv);
 
     /*
      * Are we running as a one-shot server with the client connection on
@@ -567,7 +567,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     event_enable_read(MASTER_STATUS_FD, trigger_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     while (var_use_limit == 0 || use_count < var_use_limit) {
-	delay = loop ? loop() : -1;
+	delay = loop ? loop(trigger_server_name, trigger_server_argv) : -1;
 	if (trigger_server_lock != 0
 	    && myflock(vstream_fileno(trigger_server_lock), MYFLOCK_EXCLUSIVE) < 0)
 	    msg_fatal("select lock: %m");

@@ -25,9 +25,9 @@ fsstone: fsstone.o $(LIBS)
 
 test:	$(TESTPROG)
 
-update: ../bin/fsstone
+update: ../libexec/fsstone
 
-../bin/fsstone: fsstone
+../libexec/fsstone: fsstone
 	cp $? $@
 
 printfck: $(OBJS) $(PROG)

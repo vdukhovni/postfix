@@ -210,7 +210,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm->dict.lookup = dict_dbm_lookup;
     dict_dbm->dict.update = dict_dbm_update;
     dict_dbm->dict.close = dict_dbm_close;
-    dict_dbm->dict.fd = dbm_dirfno(dbm);
+    dict_dbm->dict.fd = dbm_pagfno(dbm);
     if (fstat(dict_dbm->dict.fd, &st) < 0)
 	msg_fatal("dict_dbm_open: fstat: %m");
     dict_dbm->dict.mtime = st.st_mtime;

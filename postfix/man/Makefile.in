@@ -1,6 +1,6 @@
 # For now, just hard-coded rules for daemons, commands, config files.
 
-DAEMONS	= man8/bounce.8 man8/defer.8 man8/cleanup.8 man8/local.8 \
+DAEMONS	= man8/bounce.8 man8/defer.8 man8/cleanup.8 man8/error.8 man8/local.8 \
 	man8/master.8 man8/pickup.8 man8/pipe.8 man8/qmgr.8 man8/showq.8 \
 	man8/smtp.8 man8/smtpd.8 man8/trivial-rewrite.8
 COMMANDS= man1/postalias.1 man1/postcat.1 man1/postconf.1 man1/postfix.1 \
@@ -30,6 +30,9 @@ man8/defer.8:
 	echo .so man8/bounce.8 >$@
 
 man8/cleanup.8: ../cleanup/cleanup.c
+	srctoman $? >$@
+
+man8/error.8: ../error/error.c
 	srctoman $? >$@
 
 man8/local.8: ../local/local.c

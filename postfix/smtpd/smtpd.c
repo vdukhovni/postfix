@@ -1096,7 +1096,7 @@ static void smtpd_sig(int sig)
 
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("lookup table has changed -- exiting");
@@ -1106,7 +1106,7 @@ static void pre_accept(void)
 
 /* post_jail_init - post-jail initialization */
 
-static void post_jail_init(void)
+static void post_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*
@@ -1120,7 +1120,7 @@ static void post_jail_init(void)
 
 /* pre_jail_init - pre-jail initialization */
 
-static void pre_jail_init(void)
+static void pre_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*

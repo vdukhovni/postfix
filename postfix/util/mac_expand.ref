@@ -1,0 +1,13 @@
+stat=1 result=name 1 defined, |name1-value||
+stat=0 result=
+stat=0 result=
+stat=1 result=name 2 undefined, |name1-value||
+stat=1 result=|name1-value||
+stat=0 result=name1-value
+stat=0 result=
+
+stat=0 result=
+stat=1 result=name 1 undefined, ||name2-value|
+stat=1 result=name 2 defined, ||name2-value|
+stat=0 result=
+stat=1 result=||name2-value|

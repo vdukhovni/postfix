@@ -114,6 +114,7 @@ int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr
     tok822_resolve(addr, &reply);
     state.msg_attr.recipient = STR(reply.recipient);
 
+#if 0
     /*
      * Splice in the optional unmatched address extension.
      */
@@ -130,6 +131,7 @@ int     deliver_resolve_tree(LOCAL_STATE state, USER_ATTR usr_attr, TOK822 *addr
 	    VSTRING_SKIP(reply.recipient);
 	}
     }
+#endif
 
     /*
      * Delivery to a local or non-local address. For a while there was some

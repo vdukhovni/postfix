@@ -62,25 +62,25 @@
 /*	order as specified, and multiple instances of the same type
 /*	are allowed. Raw parameters are not subjected to $name
 /*	evaluation.
-/* .IP "MAIL_SERVER_PRE_INIT (void *(void))"
+/* .IP "MAIL_SERVER_PRE_INIT (void *(char *service_name char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has read the global configuration file
 /*	and after it has processed command-line arguments, but before
 /*	the skeleton has optionally relinquished the process privileges.
-/* .IP "MAIL_SERVER_POST_INIT (void *(void))"
+/* .IP "MAIL_SERVER_POST_INIT (void *(char *service_name char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has optionally relinquished the process
 /*	privileges, but before servicing client connection requests.
-/* .IP "MAIL_SERVER_LOOP (int *(void))"
+/* .IP "MAIL_SERVER_LOOP (int *(char *service_name char **argv))"
 /*	A pointer to function that is executed from
 /*	within the event loop, whenever an I/O or timer event has happened,
 /*	or whenever nothing has happened for a specified amount of time.
 /*	The result value of the function specifies how long to wait until
 /*	the next event. Specify -1 to wait for "as long as it takes".
-/* .IP "MAIL_SERVER_EXIT (void *(void))"
+/* .IP "MAIL_SERVER_EXIT (void *(char *service_name char **argv))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
-/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(void))"
+/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(char *service_name char **argv))"
 /*	Function to be executed prior to accepting a new connection.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
@@ -172,8 +172,8 @@ static void (*multi_server_service) (VSTREAM *, char *, char **);
 static char *multi_server_name;
 static char **multi_server_argv;
 static void (*multi_server_accept) (int, char *);
-static void (*multi_server_onexit) (void);
-static void (*multi_server_pre_accept) (void);
+static void (*multi_server_onexit) (char *, char **);
+static void (*multi_server_pre_accept) (char *, char **);
 static VSTREAM *multi_server_lock;
 
 /* multi_server_exit - normal termination */
@@ -181,7 +181,7 @@ static VSTREAM *multi_server_lock;
 static NORETURN multi_server_exit(void)
 {
     if (multi_server_onexit)
-	multi_server_onexit();
+	multi_server_onexit(multi_server_name, multi_server_argv);
     exit(0);
 }
 
@@ -291,7 +291,7 @@ static void multi_server_accept_local(int unused_event, char *context)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
 
     if (multi_server_pre_accept)
-	multi_server_pre_accept();
+	multi_server_pre_accept(multi_server_name, multi_server_argv);
     fd = LOCAL_ACCEPT(listen_fd);
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
@@ -331,7 +331,7 @@ static void multi_server_accept_inet(int unused_event, char *context)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
 
     if (multi_server_pre_accept)
-	multi_server_pre_accept();
+	multi_server_pre_accept(multi_server_name, multi_server_argv);
     fd = inet_accept(listen_fd);
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
@@ -537,7 +537,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Run pre-jail initialization.
      */
     if (pre_init)
-	pre_init();
+	pre_init(multi_server_name, multi_server_argv);
 
     /*
      * Optionally, restrict the damage that this process can do.
@@ -551,7 +551,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Run post-jail initialization.
      */
     if (post_init)
-	post_init();
+	post_init(multi_server_name, multi_server_argv);
 
     /*
      * Are we running as a one-shot server with the client connection on
@@ -586,7 +586,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     event_enable_read(MASTER_STATUS_FD, multi_server_abort, (char *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     while (var_use_limit == 0 || use_count < var_use_limit || client_count > 0) {
-	delay = loop ? loop() : -1;
+	delay = loop ? loop(multi_server_name, multi_server_argv) : -1;
 	if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_EXCLUSIVE) < 0)
 	    msg_fatal("select lock: %m");

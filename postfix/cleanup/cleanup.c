@@ -374,7 +374,7 @@ static void cleanup_sig(int sig)
 
 /* pre_jail_init - initialize before entering the chroot jail */
 
-static void pre_jail_init(void)
+static void pre_jail_init(char *unused_name, char **unused_argv)
 {
     if (*var_canonical_maps)
 	cleanup_comm_canon_maps =
@@ -399,7 +399,7 @@ static void pre_jail_init(void)
 
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("table has changed -- exiting");
@@ -409,7 +409,7 @@ static void pre_accept(void)
 
 /* post_jail_init - initialize after entering the chroot jail */
 
-static void post_jail_init(void)
+static void post_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*

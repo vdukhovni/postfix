@@ -347,7 +347,7 @@ static void qmgr_trigger_event(char *buf, int len,
 
 /* qmgr_loop - queue manager main loop */
 
-static int qmgr_loop(void)
+static int qmgr_loop(char *unused_name, char **unused_argv)
 {
     char   *in_path = 0;
     char   *df_path = 0;
@@ -390,7 +390,7 @@ static int qmgr_loop(void)
 
 /* pre_accept - see if tables have changed */
 
-static void pre_accept(void)
+static void pre_accept(char *unused_name, char **unused_argv)
 {
     if (dict_changed()) {
 	msg_info("table has changed -- exiting");
@@ -400,7 +400,7 @@ static void pre_accept(void)
 
 /* qmgr_pre_init - pre-jail initialization */
 
-static void qmgr_pre_init(void)
+static void qmgr_pre_init(char *unused_name, char **unused_argv)
 {
     if (*var_relocated_maps)
 	qmgr_relocated = maps_create("relocated", var_relocated_maps,
@@ -412,7 +412,7 @@ static void qmgr_pre_init(void)
 
 /* qmgr_post_init - post-jail initialization */
 
-static void qmgr_post_init(void)
+static void qmgr_post_init(char *unused_name, char **unused_argv)
 {
 
     /*

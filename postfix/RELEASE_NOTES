@@ -1,22 +1,38 @@
-Incompatible changes with snapshot-19990427:
+Incompatible changes with snapshot-19990504:
 ===========================================
 
-- If an address extension (+foo) matches a user's .forward+foo file
-name, the +foo extension is no longer appended to recipient addresses
-listed in the .forward+foo file. This is more consistent with the
-way Postfix expands aliases.
+- File system reorganization: daemon executables are in the libexec
+subdirectory, command executables in the bin subdirectory.  The
+INSTALL instructions now install daemons and commands into separate
+directories.
 
-Major changes with snapshot-19990427:
+- The local delivery agent no longer appends address extensions to
+addresses found in aliases, :include: files or .forward files.
+
+Major changes with snapshot-19990504:
 =====================================
 
 In addition to several little bugfixes, none related to security,
 lots of internal code cleanup, lots of new functionality, and lots
 of Solaris workarounds.
 
+- Specify "forward_path = /var/forward/$user" to avoid looking up
+.forward files in user home directories.  The default value is
+$home/.forward$recipient_delimiter$extension,$home/.forward. Initial
+forward_path code by Philip A.  Prindeville, Mirapoint, Inc., USA.
+
+- Conditional macro expansion in forward_path and mailbox_command.
+$name expands to itself. ${name?value} expands to value when $name
+is defined.  ${name:value} expands to value when $name is not
+defined. With ${name?value} and ${name:value}, the value is subject
+to $name expansion. Available macros are: $user, $shell, $home,
+$recipient, $extension, $domain, and $recipient_delimiter.  
+
 - POSIX regular expression support, enabled by default on 4.4BSD,
-LINUX, and HP-UX. See conf/sample-regexp.cf.  Initial code by Lamont
-Jones, Hewlett-Packard, borrowing heavily from the PCRE implementation
-by Andrew McNamara, connect.com.au Pty. Ltd., Australia.
+LINUX, HP-UX, and Solaris 2.5 and later. See conf/sample-regexp.cf.
+Initial code by Lamont Jones, Hewlett-Packard, borrowing heavily
+from the PCRE implementation by Andrew McNamara, connect.com.au
+Pty. Ltd., Australia.
 
 - Regular expression checks for message headers.  This requires
 support for POSIX or for PCRE regular expressions.  Specify
@@ -36,11 +52,8 @@ eliminates the need to run "postfix reload" after each change to
 the SMTP access table, or to the canonical, virtual, transport or
 aliases tables.
 
-- forward_path configuration parameter for .forward files (default:
-$home/.forward$recipient_delimiter$extension,$home/.forward).
-Macros: $user (login name), $home (home directory), $recipient_delimiter,
-$domain (recipient domain), and $extension (address extension).
-Initial code by Philip A.  Prindeville, Mirapoint, Inc., USA.
+- New error mailer. Specify ".domain.name error:domain is undeliverable"
+in the transport table to bounce entire domains.
 
 - No more Postfix lockups on Solaris (knock on wood). The code no
 longer uses Solaris UNIX-domain sockets, because they are still
@@ -60,8 +73,9 @@ default 450).
 
 - MIME-encapsulated bounce messages, making it easier to recover
 bounced mail. Initial implementation by Philip A.  Prindeville,
-Mirapoint, Inc., USA. Support for RFC 1894 (DSN) will have to wait
-until Postfix internals have been revised to support RFC 1893.
+Mirapoint, Inc., USA. Support for RFC 1892 (multipart/report) and
+RFC 1894 (DSN) will have to wait until Postfix internals have been
+revised to support RFC 1893.
 
 - Separately configurable "postmaster" addresses for single bounces
 (bounce_notice_recipient), double bounces (2bounce_notice_recipient),

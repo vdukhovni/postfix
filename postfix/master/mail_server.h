@@ -27,10 +27,10 @@
 #define MAIL_SERVER_EXIT	13
 #define MAIL_SERVER_PRE_ACCEPT	14
 
-typedef void (*MAIL_SERVER_INIT_FN) (void);
-typedef int (*MAIL_SERVER_LOOP_FN) (void);
-typedef void (*MAIL_SERVER_EXIT_FN) (void);
-typedef void (*MAIL_SERVER_ACCEPT_FN) (void);
+typedef void (*MAIL_SERVER_INIT_FN) (char *, char **);
+typedef int (*MAIL_SERVER_LOOP_FN) (char *, char **);
+typedef void (*MAIL_SERVER_EXIT_FN) (char *, char **);
+typedef void (*MAIL_SERVER_ACCEPT_FN) (char *, char **);
 
  /*
   * single_server.c

@@ -181,6 +181,11 @@ extern int forward_finish(DELIVER_ATTR, int);
   */
 extern int feature_control(const char *);
 
+ /*
+  * local_expand.c
+  */
+int     local_expand(VSTRING *, const char *, LOCAL_STATE, USER_ATTR, const char *);
+
 /* LICENSE
 /* .ad
 /* .fi

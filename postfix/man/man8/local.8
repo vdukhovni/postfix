@@ -35,6 +35,19 @@ Mail for \fIname\fR is delivered to the alias \fIname\fR, to
 destinations in ~\fIname\fR/.\fBforward\fR, to the mailbox owned
 by the user \fIname\fR, or it is sent back as undeliverable.
 
+The system administrator can specify a comma/space separated list
+of ~\fR/.\fBforward\fR like files through the \fBforward_path\fR
+configuration parameter. Upon delivery, the local delivery agent
+tries each pathname in the list until a file is found.
+The \fBforward_path\fR parameter is subject to interpolation of
+\fB$user\fR (recipient username), \fB$home\fR (recipient home
+directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
+(complete recipient address), \fB$extension\fR (recipient address
+extension), \fB$domain\fR (recipient domain) and
+\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
+\fI${name:value}\fR expand conditionally to \fIvalue\fR when
+\fI$name\fR is (is not) defined.
+
 An alias or ~/.\fBforward\fR file may list any combination of external
 commands, destination file names, \fB:include:\fR directives, or
 mail addresses.
@@ -89,6 +102,15 @@ with the \fBmailbox_command\fR configuration parameter. The command
 executes with the privileges of the recipient user (exception: in
 case of delivery as root, the command executes with the privileges
 of \fBdefault_user\fR).
+The command is subject to interpolation of \fB$user\fR (recipient
+username), \fB$home\fR (recipient home directory), \fB$shell\fR
+(recipient shell), \fB$recipient\fR (complete recipient address),
+\fB$extension\fR (recipient address extension), \fB$domain\fR
+(recipient domain) and \fB$recipient_delimiter.\fR The forms
+\fI${name?value}\fR and \fI${name:value}\fR expand conditionally to
+\fIvalue\fR when \fI$name\fR is (is not) defined. In the result
+of \fIname\fR expansion, characters that have special meaning to
+the shell are censored and replaced by underscores.
 
 Mailbox delivery can be delegated to alternative message transports
 specified in the \fBmaster.cf\fR file.

@@ -400,7 +400,7 @@ static void pickup_service(char *unused_buf, int unused_len,
 
 /* drop_privileges - drop privileges most of the time */
 
-static void drop_privileges(void)
+static void drop_privileges(char *unused_name, char **unused_argv)
 {
     set_eugid(var_owner_uid, var_owner_gid);
 }

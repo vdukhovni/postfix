@@ -23,10 +23,10 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-update: ../bin/$(PROG)
+update: ../libexec/$(PROG)
 
-../bin/$(PROG): $(PROG)
-	cp $(PROG) ../bin
+../libexec/$(PROG): $(PROG)
+	cp $(PROG) ../libexec
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

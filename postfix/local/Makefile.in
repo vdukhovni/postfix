@@ -1,10 +1,12 @@
 SHELL	= /bin/sh
 SRCS	= alias.c command.c delivered.c dotforward.c file.c forward.c \
 	include.c indirect.c local.c mailbox.c recipient.c resolve.c token.c \
-	deliver_attr.c feature.c maildir.c biff_notify.c unknown.c
+	deliver_attr.c feature.c maildir.c biff_notify.c unknown.c \
+	local_expand.c
 OBJS	= alias.o command.o delivered.o dotforward.o file.o forward.o \
 	include.o indirect.o local.o mailbox.o recipient.o resolve.o token.o \
-	deliver_attr.o feature.o maildir.o biff_notify.o unknown.o
+	deliver_attr.o feature.o maildir.o biff_notify.o unknown.o \
+	local_expand.o
 HDRS	= local.h
 TESTSRC	=
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -27,10 +29,10 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-update: ../bin/$(PROG)
+update: ../libexec/$(PROG)
 
-../bin/$(PROG): $(PROG)
-	cp $(PROG) ../bin
+../libexec/$(PROG): $(PROG)
+	cp $(PROG) ../libexec
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
@@ -287,6 +289,20 @@ local.o: ../include/mail_server.h
 local.o: local.h
 local.o: ../include/tok822.h
 local.o: ../include/resolve_clnt.h
+local_expand.o: local_expand.c
+local_expand.o: ../include/sys_defs.h
+local_expand.o: ../include/vstring.h
+local_expand.o: ../include/vbuf.h
+local_expand.o: ../include/mac_expand.h
+local_expand.o: ../include/mail_params.h
+local_expand.o: local.h
+local_expand.o: ../include/htable.h
+local_expand.o: ../include/vstream.h
+local_expand.o: ../include/been_here.h
+local_expand.o: ../include/tok822.h
+local_expand.o: ../include/resolve_clnt.h
+local_expand.o: ../include/deliver_request.h
+local_expand.o: ../include/recipient_list.h
 mailbox.o: mailbox.c
 mailbox.o: ../include/sys_defs.h
 mailbox.o: ../include/msg.h
