@@ -7,6 +7,15 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20040829
+=======================================================
+
+When no recipients are specified on the command line or via the -t
+option, the Postfix sendmail command terminates with status EX_USAGE
+and produces an error message instead of accepting the mail first
+and bouncing it later. This gives direct more feedback in case of
+a common client configuration error.
+
 Major changes with snapshot Postfix-2.2-20040827
 ================================================
 

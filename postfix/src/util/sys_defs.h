@@ -311,10 +311,6 @@ extern int opterr;
 #define HAS_VOLATILE_LOCKS
 #define BROKEN_READ_SELECT_ON_TCP_SOCKET
 
-#if SOLARIS >= 20900 || (SOLARIS < 10000 && SOLARIS >= 209)
-#define HAS_CLOSEFROM
-#endif
-
 /*
  * Allow build environment to override paths.
  */

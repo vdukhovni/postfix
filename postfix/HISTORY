@@ -9674,8 +9674,8 @@ Apologies for any names omitted.
 20040826
 
 	Feature: support for systems with closefrom(), and emulation
-	for those without. Victor Duchovni, Morgan Stanley. Files:
-	util/sys_defs.h, util/sys_compat.c.
+	for those without. Andrew Brown. Files:  util/sys_defs.h,
+	util/sys_compat.c.
 
 20040827
 
@@ -9693,7 +9693,22 @@ Apologies for any names omitted.
 	on to the SASL library.  Victor Duchovni, Morgan Stanley.
 	Files: smtp/smtp.c.  smtp/smtp_sasl_glue.c, smtp/smtp_sasl_proto.c.
 
+20040828
+
+	User interface: when no recipients are specified, the
+	Postfix sendmail command now terminates with status EX_USAGE
+	instead of accepting the mail first and bouncing it later.
+	This gives more direct feedback in case of a common client
+	configuration error. File:  sendmail/sendmail.c.
+
+20040829
+
+	Portability: Solaris closefrom() support didn't work for
+	non-SUN compilers. Victor Duchovni, Morgan Stanley.
+
 Open problems:
+
+	Low: scache & anvil should log cache peak sizes.
 
 	Low: update events.c so that 1-second timer requests do
 	not suffer from rounding errors. This is needed for 1-second

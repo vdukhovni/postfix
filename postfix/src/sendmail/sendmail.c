@@ -506,6 +506,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     int     skip_from_;
     TOK822 *tree;
     TOK822 *tp;
+    int     rcpt_count = 0;
     enum {
 	STRIP_CR_DUNNO, STRIP_CR_DO, STRIP_CR_DONT
     }       strip_cr;
@@ -604,6 +605,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 			msg_fatal_status(EX_TEMPFAIL,
 				    "%s(%ld): error writing queue file: %m",
 					 saved_sender, (long) uid);
+		    ++rcpt_count;
 		}
 	    }
 	    tok822_free_tree(tree);
@@ -723,11 +725,18 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 		msg_fatal_status(EX_TEMPFAIL,
 				 "%s(%ld): error writing queue file: %m",
 				 saved_sender, (long) uid);
+	    ++rcpt_count;
 	}
 	argv_free(state.recipients);
 	argv_free(state.resent_recip);
 	vstring_free(state.temp);
     }
+
+    if (rcpt_count == 0)
+	msg_fatal_status(EX_USAGE, (flags & SM_FLAG_XRCPT) ?
+			 "No recipient addresses found in message header" :
+			 "Recipient addresses must be specified on"
+			 " the command line or via the -t option");
 
     /*
      * Identify the end of the queue file.

@@ -124,6 +124,10 @@ case "$SYSTEM.$RELEASE" in
 		    5.[0-4]) CCARGS="$CCARGS -DMISSING_USLEEP";;
 			  *) CCARGS="$CCARGS -DHAS_POSIX_REGEXP";;
 		esac
+		# Solaris 9 added closefrom()
+		case $RELEASE in
+		    5.9*|5.[1-9][0-9]*) CCARGS="$CCARGS -DHAS_CLOSEFROM";;
+		esac
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.
 		CCARGS="$CCARGS -Dstrcasecmp=fix_strcasecmp \
