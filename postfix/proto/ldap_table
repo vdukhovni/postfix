@@ -250,7 +250,7 @@
 # .IP "\fB\fB%[SUD1-9]\fR\fB"
 #	The upper-case and decimal digit expansions interpolate
 #	the parts of the input key rather than the result. Their
-#	behaviour is identical to that described with \fBquery_filter\fR,
+#	behavior is identical to that described with \fBquery_filter\fR,
 #	and in fact because the input key is known in advance, lookups
 #	whose key does not contain all the information specified in
 #	the result template are suppressed and return no results.

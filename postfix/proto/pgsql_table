@@ -55,7 +55,7 @@
 # .ti +4
 #	\fBquery\fR = SELECT \fIselect_function\fR('%s')
 #
-#	or in the absense of \fBselection_function\fR, the lower precedence:
+#	or in the absence of \fBselection_function\fR, the lower precedence:
 #
 # .ti +4
 #	\fBquery\fR = SELECT \fIselect_field\fR
@@ -203,7 +203,7 @@
 # .IP "\fB\fB%[SUD1-9]\fR\fB"
 #	The upper-case and decimal digit expansions interpolate
 #	the parts of the input key rather than the result. Their
-#	behaviour is identical to that described with \fBquery\fR,
+#	behavior is identical to that described with \fBquery\fR,
 #	and in fact because the input key is known in advance, queries
 #	whose key does not contain all the information specified in
 #	the result template are suppressed and return no results.

@@ -27,10 +27,11 @@ form SQL queries, and domain filters to reduce unnecessary lookups.
 up deliveries to high-volume destinations that have some servers
 that respond, and some non-responding mail servers.
 
-- By default, message header address rewriting is now disabled for
-SMTP mail from other systems (including masquerading and canonical
-mapping).  Thus, spam from poorly written software no longer looks
-like it came from a local user.
+- By default, Postfix no longer rewrites message headers in mail
+from remote clients. This includes masquerading, canonical mapping,
+replacing "!" and "%" by "@", and appending the local domain to
+incomplete addresses.  Thus, spam from poorly written software no
+longer looks like it came from a local user.
 
 - When your machine does not have its own domain name, Postfix can
 now replace your "home network" email address by your ISP account
@@ -201,32 +202,32 @@ local machine. The syntax is described in generic(5) and a detailed
 example is in the STANDARD_CONFIGURATION_README document, the section
 titled "Postfix on hosts without a real Internet hostname".
 
-[Feature 20041023] By default, Postfix no longer appends its own
-domain to addresses in message headers from remote clients.  Thus,
-spam from poorly written software no longer looks like it came from
-a local user.
+[Feature 20041023] By default, Postfix no longer rewrites message
+headers in mail from remote clients. This includes masquerading,
+canonical mapping, replacing "!" and "%" by "@", and appending the
+local domain to incomplete addresses.  Thus, spam from poorly written
+software no longer looks like it came from a local user.
 
-Postfix either does not rewrite remote message headers at all, or
-it rewrites headers and appends the domain name that is specified
-with the remote_header_rewrite_domain parameter (like "domain.invalid").
+By default, Postfix rewrites message header addresses only when the
+client IP address matches the local machine's interface addresses,
+or when mail is submitted with the Postfix sendmail(1) command.
 
-To get the behavior of earlier Postfix versions (always append
-Postfix's own domain to incomplete addresses in message headers)
-specify:
+Postfix rewrites message headers in mail from other clients only
+when the remote_header_rewrite_domain parameter specifies a domain
+name (such as "domain.invalid"); this domain is appended to incomplete
+addresses. Rewriting also includes masquerading, canonical mapping,
+and replacing "!" and "%" by "@".
+
+To get the behavior before Postfix 2.2 (always append Postfix's own
+domain to incomplete addresses in message headers, always subject
+message headers to canonical mapping, address masquerading, and
+always replace "!" and "%" by "@") specify:
 
 /etc/postfix/main.cf:
     local_header_rewrite_clients = static:all
 
-Postfix always appends its own domain information to addresses in
-message headers from Postfix sendmail and from local SMTP clients.
-
-By default, Postfix considers an SMTP client local (and thus updates
-message header addresses with the Postfix's own domain) when the
-client IP address matches the local machine's interface addresses,
-or when mail is submitted with the Postfix sendmail(1) command.
-
-If you must rewrite headers from other clients then you can specify,
-for example,
+If you must rewrite headers in mail from specific clients then you
+can specify, for example,
 
 /etc/postfix/main.cf:
     local_header_rewrite_clients = permit_mynetworks,
@@ -249,9 +250,8 @@ header is modified.  Older Postfix versions first parse and then
 un-parse a header so that there may be subtle changes in formatting,
 such as the amount of whitespace between tokens.
 
-[Incompat 20050227] When header address rewriting is enabled, Postfix
-no longer changes header label capitalization, i.e. FROM: or CC:
-are no longer replaced by From: or Cc:.
+[Incompat 20050227] Postfix no longer changes message header labels.
+Thus, FROM: or CC: are no longer replaced by From: or Cc:.
 
 [Feature 20040827] Finer control over canonical mapping with
 canonical_classes, sender_canonical_classes and

@@ -47,6 +47,14 @@ CANONICAL(5)                                                      CANONICAL(5)
        Sendmail rule set <b>S3</b>, if you  like.   This  is  controlled
        with the <b><a href="postconf.5.html#canonical_classes">canonical_classes</a></b> parameter.
 
+       NOTE: Postfix versions 2.2 and later rewrite message head-
+       ers from remote SMTP clients only if  the  client  matches
+       the  <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a>  parameter,  or  if  the
+       <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> configuration parameter spec-
+       ifies  a non-empty value. To get the behavior before Post-
+       fix   2.2,   specify    "<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a>    =
+       static:all".
+
        Typically, one would use the <a href="canonical.5.html"><b>canonical</b>(5)</a> table to replace
        login  names  by  <i>Firstname.Lastname</i>,  or  to   clean   up
        addresses produced by legacy mail systems.
@@ -195,6 +203,15 @@ CANONICAL(5)                                                      CANONICAL(5)
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
+       <b><a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a></b>
+              Rewrite message header addresses in mail from these
+              clients and update incomplete  addresses  with  the
+              domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a>; either don't
+              rewrite message headers from other clients at  all,
+              or  rewrite  message  headers and update incomplete
+              addresses  with  the  domain   specified   in   the
+              <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter.
+
        <b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>
               Other interfaces that this machine receives mail on
               by way of a proxy agent or network address transla-
@@ -224,6 +241,12 @@ CANONICAL(5)                                                      CANONICAL(5)
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
               addresses.
 
+       <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a></b>
+              Don't rewrite message headers from  remote  clients
+              at all when this parameter is empty; otherwise, re-
+              write message  headers  and  append  the  specified
+              domain name to incomplete addresses.
+
 <b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a>, canonicalize and enqueue mail
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
@@ -235,7 +258,7 @@ CANONICAL(5)                                                      CANONICAL(5)
        <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>, address rewriting guide
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

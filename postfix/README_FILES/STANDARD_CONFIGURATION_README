@@ -306,7 +306,7 @@ interface. In such a configuration is it is tempting to configure
 $inet_interfaces in each instance with just the corresponding interface
 address.
 
-In most cases using inet_interaces in this way will not work, because as
+In most cases, using inet_interfaces in this way will not work, because as
 documented in the $inet_interfaces reference manual, the smtp(8) delivery agent
 will also use the specified interface address as the source address for
 outbound connections and will be unable to reach hosts on "the other side" of

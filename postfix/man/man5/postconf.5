@@ -306,7 +306,7 @@ difficult to enforce consistently and globally.
 Enable the rewriting of the form "user%domain" to "user@domain".
 This is enabled by default.
 .PP
-Note: With Postfix version 2.2, message header address rewriting
+Note: with Postfix version 2.2, message header address rewriting
 happens only when one of the following conditions is true:
 .IP \(bu
 The message is received with the Postfix \fBsendmail\fR(1) command,
@@ -352,10 +352,10 @@ and \fBpostdrop\fR(1).
 Optional address that receives a "blind carbon copy" of each message
 that is received by the Postfix mail system.
 .PP
-NOTE: if mail to the BCC address bounces it will be returned to
+Note: if mail to the BCC address bounces it will be returned to
 the sender.
 .PP
-NOTE: automatic BCC recipients are produced only for new mail.
+Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 for mail that Postfix forwards internally, nor for mail that Postfix
 generates itself.
@@ -385,10 +385,10 @@ With locally submitted mail, append the string "@$myorigin" to mail
 addresses without domain information. With remotely submitted mail,
 append the string "@$remote_header_rewrite_domain" instead.
 .PP
-Note 1: This feature is enabled by default and must not be turned off.
+Note 1: this feature is enabled by default and must not be turned off.
 Postfix does not support domain-less addresses.
 .PP
-Note 2: With Postfix version 2.2, message header address rewriting
+Note 2: with Postfix version 2.2, message header address rewriting
 happens only when one of the following conditions is true:
 .IP \(bu
 The message is received with the Postfix \fBsendmail\fR(1) command,
@@ -407,11 +407,11 @@ addresses that have no ".domain" information. With remotely submitted
 mail, append the string ".$remote_header_rewrite_domain"
 instead.
 .PP
-Note 1: This feature is enabled by default. If disabled, users will not be
+Note 1: this feature is enabled by default. If disabled, users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
 .PP
-Note 2: With Postfix version 2.2, message header address rewriting
+Note 2: with Postfix version 2.2, message header address rewriting
 happens only when one of the following conditions is true:
 .IP \(bu
 The message is received with the Postfix \fBsendmail\fR(1) command,
@@ -1172,7 +1172,7 @@ host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
 destinations, Postfix will try them in the specified order.
 .PP
-NOTE: Do not use the fallback_relay feature when relaying mail
+Note: do not use the fallback_relay feature when relaying mail
 for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the fallback_relay host when the final destination
 is unavailable.
@@ -1737,10 +1737,12 @@ Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
 .SH local_header_rewrite_clients (default: permit_inet_interfaces)
-Append the domain name in $myorigin or $mydomain to message
-header addresses from these clients only; either don't rewrite
-message headers from other clients at all, or append the domain
-specified with the remote_header_rewrite_domain parameter.
+Rewrite message header addresses in mail from these clients and
+update incomplete addresses with the domain name in $myorigin or
+$mydomain; either don't rewrite message headers from other clients
+at all, or rewrite message headers and update incomplete addresses
+with the domain specified in the remote_header_rewrite_domain
+parameter.
 .PP
 See the append_at_myorigin and append_dot_mydomain parameters
 for details of how domain names are appended to incomplete addresses.
@@ -1805,7 +1807,7 @@ The intermediate setting: rewrite header addresses and append
 $myorigin or $mydomain information only with mail from Postfix
 sendmail, from local clients, or from authorized SMTP clients.
 .PP
-NOTE: This setting will not prevent remote mail header address
+Note: this setting will not prevent remote mail header address
 rewriting when mail from a remote client is forwarded by a neighboring
 system.
 .PP
@@ -1908,7 +1910,7 @@ Instead of $name you can also specify ${name} or $(name).
 .PP
 Note: luser_relay works only for the Postfix \fBlocal\fR(8) delivery agent.
 .PP
-NOTE: if you use this feature for accounts not in the UNIX password
+Note: if you use this feature for accounts not in the UNIX password
 file, then you must specify "local_recipient_maps =" (i.e. empty)
 in the main.cf file, otherwise the Postfix SMTP server will reject mail
 for non-UNIX accounts with "User unknown in local recipient table".
@@ -2739,10 +2741,10 @@ Look up the "@domain.tld" part.
 Specify the types and names of databases to use.  After change,
 run "\fBpostmap /etc/postfix/recipient_bcc\fR".
 .PP
-NOTE: if mail to the BCC address bounces it will be returned to
+Note: if mail to the BCC address bounces it will be returned to
 the sender.
 .PP
-NOTE: automatic BCC recipients are produced only for new mail.
+Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 for mail that Postfix forwards internally, nor for mail that Postfix
 generates itself.
@@ -2862,7 +2864,7 @@ recipient addresses with $relay_recipient_maps and rejects non-existent
 recipients. See also the relay domains address class in the
 ADDRESS_CLASS_README file.
 .PP
-NOTE: Postfix will not automatically forward mail for domains
+Note: Postfix will not automatically forward mail for domains
 that list this system as their primary or backup MX host. See the
 permit_mx_backup restriction in the \fBpostconf\fR(5) manual page.
 .PP
@@ -2966,8 +2968,8 @@ relocated_maps = hash:/etc/postfix/relocated
 .ft R
 .SH remote_header_rewrite_domain (default: empty)
 Don't rewrite message headers from remote clients at all when
-this parameter is empty; otherwise, rewrite remote message headers
-and append the specified domain name to incomplete addresses.  The
+this parameter is empty; otherwise, rewrite message headers and
+append the specified domain name to incomplete addresses.  The
 local_header_rewrite_clients parameter controls what clients Postfix
 considers local.
 .PP
@@ -3064,10 +3066,10 @@ Look up the "@domain.tld" part.
 Specify the types and names of databases to use.  After change,
 run "\fBpostmap /etc/postfix/sender_bcc\fR".
 .PP
-NOTE: if mail to the BCC address bounces it will be returned to
+Note: if mail to the BCC address bounces it will be returned to
 the sender.
 .PP
-NOTE: automatic BCC recipients are produced only for new mail.
+Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 for mail that Postfix forwards internally, nor for mail that Postfix
 generates itself.
@@ -3785,7 +3787,7 @@ TLS session cache. Specify a database type that supports enumeration,
 such as \fBbtree\fR or \fBsdbm\fR; there is no need to support
 concurrent access.  The file is created if it does not exist.
 .PP
-NOTE: \fBdbm\fR databases are not suitable. TLS
+Note: \fBdbm\fR databases are not suitable. TLS
 session objects are too large.
 .PP
 Example:
@@ -4112,7 +4114,7 @@ and the message has multiple envelope recipients. Although this
 usage is technically allowed, it seems to have no legitimate
 application.
 .br
-NOTE: this restriction can only work reliably
+Note: this restriction can only work reliably
 when used in smtpd_data_restrictions or
 smtpd_end_of_data_restrictions, because the total number of
 recipients is not known at an earlier stage of the SMTP conversation.
@@ -4129,7 +4131,7 @@ ESMTP command pipelining. This stops mail from bulk mail software
 that improperly uses ESMTP command pipelining in order to speed up
 deliveries.
 .br
-NOTE: reject_unauth_pipelining is not useful
+Note: reject_unauth_pipelining is not useful
 outside smtpd_data_restrictions when 1) the client uses ESMTP (EHLO
 instead of HELO) and 2) with "smtpd_delay_reject = yes" (the
 default).  The use of reject_unauth_pipelining in the other
@@ -4548,7 +4550,7 @@ information (example: user@elsewhere@domain).  Use the optional
 permit_mx_backup_networks parameter to require that the primary
 MX hosts match a list of network blocks.
 .br
-NOTE: prior to
+Note: prior to
 Postfix version 2.0, use of permit_mx_backup is not recommended;
 mail may be rejected in case of a temporary DNS lookup problem.
 .IP "\fBreject_non_fqdn_recipient\fR"
@@ -5170,7 +5172,7 @@ TLS session cache. Specify a database type that supports enumeration,
 such as \fBbtree\fR or \fBsdbm\fR; there is no need to support
 concurrent access.  The file is created if it does not exist.
 .PP
-NOTE: \fBdbm\fR databases are not suitable. TLS
+Note: \fBdbm\fR databases are not suitable. TLS
 session objects are too large.
 .PP
 Example:
@@ -5276,7 +5278,7 @@ Enable the rewriting of "site!user" into "user@site".  This is
 necessary if your machine is connected to UUCP networks.  It is
 enabled by default.
 .PP
-Note: With Postfix version 2.2, message header address rewriting
+Note: with Postfix version 2.2, message header address rewriting
 happens only when one of the following conditions is true:
 .IP \(bu
 The message is received with the Postfix \fBsendmail\fR(1) command,
@@ -5629,7 +5631,7 @@ delivery.  For a list of available file locking methods, use the
 This setting is ignored with \fBmaildir\fR style delivery, because
 such deliveries are safe without application-level locks.
 .PP
-Note 1: The \fBdotlock\fR method requires that the recipient UID
+Note 1: the \fBdotlock\fR method requires that the recipient UID
 or GID has write access to the parent directory of the recipient's
 mailbox file.
 .PP

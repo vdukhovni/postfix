@@ -84,17 +84,19 @@ Postfix versions 2.2 give you the option to either not rewrite message headers
 from remote SMTP clients at all, or to label incomplete addresses in such
 message headers as invalid. Here is how it works:
 
-  * Postfix always rewrites message header addresses from local SMTP clients,
-    and from the Postfix sendmail command. The local_header_rewrite_clients
-    parameter controls what SMTP clients Postfix considers local (by default,
-    only local network interface addresses).
+  * Postfix always rewrites message headers from local SMTP clients and from
+    the Postfix sendmail command, and appends its own domain to incomplete
+    addresses. The local_header_rewrite_clients parameter controls what SMTP
+    clients Postfix considers local (by default, only local network interface
+    addresses).
   * Postfix never rewrites message header addresses from remote SMTP clients
     when the remote_header_rewrite_domain parameter value is empty (the default
     setting).
-  * Otherwise, Postfix appends the remote_header_rewrite_domain value to
-    incomplete message header addresses from remote SMTP clients. This feature
-    can be used to append a reserved domain such as "domain.invalid", so that
-    incomplete addresses cannot be mistaken for local addresses.
+  * Otherwise, Postfix rewrites message headers from remote SMTP clients, and
+    appends the remote_header_rewrite_domain value to incomplete addresses.
+    This feature can be used to append a reserved domain such as
+    "domain.invalid", so that incomplete addresses cannot be mistaken for local
+    addresses.
 
 PPoossttffiixx aaddddrreessss rreewwrriittiinngg oovveerrvviieeww
 
@@ -214,12 +216,6 @@ table, it first rewrites the address to the standard
 rewrite(8) daemon. The purpose of rewriting to standard form is to reduce the
 number of entries needed in lookup tables.
 
-NOTE: Postfix versions 2.2 and later rewrite message headers from remote SMTP
-clients only if the client matches the local_header_rewrite_clients parameter,
-or if the remote_header_rewrite_domain configuration parameter specifies a non-
-empty value. To get the behavior before Postfix 2.2, specify
-"local_header_rewrite_clients = static:all".
-
 The Postfix trivial-rewrite(8) daemon implements the following hard-coded
 address manipulations:
 
@@ -230,16 +226,37 @@ address manipulations:
         time. Postfix has no ability to handle route addresses, other than to
         strip off the route part.
 
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
+
     Rewrite "site!user" to "user@site"
         This feature is controlled by the boolean swap_bangpath parameter
         (default: yes). The purpose is to rewrite UUCP-style addresses to
         domain style. This is useful only when you receive mail via UUCP, but
         it probably does not hurt otherwise.
 
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
+
     Rewrite "user%domain" to "user@domain"
         This feature is controlled by the boolean allow_percent_hack parameter
         (default: yes). Typically, this is used in order to deal with
         monstrosities such as "user%domain@otherdomain".
+
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
 
     Rewrite "user" to "user@$myorigin"
         This feature is controlled by the boolean append_at_myorigin parameter
@@ -281,6 +298,13 @@ address manipulations:
     Rewrite "user@site." to "user@site" (without the trailing dot).
         A single trailing dot is silently removed. However, an address that
         ends in multiple dots will be rejected as an invalid address.
+
+        NOTE: Postfix versions 2.2 and later rewrite message headers from
+        remote SMTP clients only if the client matches the
+        local_header_rewrite_clients parameter, or if the
+        remote_header_rewrite_domain configuration parameter specifies a non-
+        empty value. To get the behavior before Postfix 2.2, specify
+        "local_header_rewrite_clients = static:all".
 
 CCaannoonniiccaall aaddddrreessss mmaappppiinngg
 

@@ -430,7 +430,7 @@ listening on the internal interface. In such a configuration is it is
 tempting to configure $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> in each instance with just the
 corresponding interface address. </p>
 
-<p> In most cases using inet_interaces in this way will not work,
+<p> In most cases, using <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> in this way will not work,
 because as documented in the $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> reference manual, the
 <a href="smtp.8.html">smtp(8)</a> delivery agent will also use the specified interface address
 as the source address for outbound connections and will be unable to
