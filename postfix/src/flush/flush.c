@@ -111,9 +111,9 @@
 /*	Remove an empty "fast flush" logfile that was not updated in
 /*	this amount of time (default time unit: days).
 /* .IP \fBparent_domain_matches_subdomains\fR
-/*	List of Postfix features that use \fIdomain.name\fR patterns
-/*	to match \fIsub.domain.name\fR (as opposed to
-/*	requiring \fI.domain.name\fR patterns).
+/*	List of Postfix features that use \fIdomain.tld\fR patterns
+/*	to match \fIsub.domain.tld\fR (as opposed to
+/*	requiring \fI.domain.tld\fR patterns).
 /* SEE ALSO
 /*	smtpd(8) Postfix SMTP server
 /*	qmgr(8) Postfix queue manager

@@ -181,9 +181,9 @@
 /* .ad
 /* .fi
 /* .IP \fBparent_domain_matches_subdomains\fR
-/*	List of Postfix features that use \fIdomain.name\fR patterns
-/*	to match \fIsub.domain.name\fR (as opposed to
-/*	requiring \fI.domain.name\fR patterns).
+/*	List of Postfix features that use \fIdomain.tld\fR patterns
+/*	to match \fIsub.domain.tld\fR (as opposed to
+/*	requiring \fI.domain.tld\fR patterns).
 /* .IP \fBsmtpd_client_restrictions\fR
 /*	Restrict what clients may connect to this mail system.
 /* .IP \fBsmtpd_helo_required\fR
@@ -617,8 +617,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
      */
-    if ((naddr < 1 && !allow_empty_addr)
-	|| naddr > 1
+    if (naddr > 1
 	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
@@ -636,6 +635,16 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     else
 	vstring_strcpy(arg->vstrval, "");
     arg->strval = STR(arg->vstrval);
+
+    /*
+     * Report trouble. Log a warning only if we are going to sleep+reject so
+     * that attackers can't flood our logfiles.
+     */
+    if (arg->strval[0] == 0 && !allow_empty_addr) {
+	msg_warn("Illegal address syntax from %s in %s command: %s",
+		 state->namaddr, state->where, STR(arg->vstrval));
+	err = "501 Bad address syntax";
+    }
 
     /*
      * Cleanup.
@@ -981,7 +990,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (first) {
 	    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0) {
 		rec_fprintf(state->cleanup, curr_rec_type,
-			    "Mailbox-Line: %s", start);
+			    "X-Mailbox-Line: %s", start);
 		continue;
 	    }
 	    first = 0;

@@ -6313,6 +6313,24 @@ Apologies for any names omitted.
 	with "resolve_dequoted_address = no"). Victor Duchovny,
 	Morgan Stanley. File: smtpd/smtpd_check.c.
 
+20020517
+
+	Cleanup: Mailbox-Line: message header labels should be
+	X-Mailbox-Line:  labels. Files: smtpd/smtpd.c, qmqpd/qmqpd.c.
+
+20020526
+
+	Bugfix: the SMTP server now disallows RCPT TO:<"">, just
+	like it disallows RCPT TO:<>.  File: smtpd/smtpd.c.
+
+	Documentation: replace domain.name by domain.tld in the
+	example config files. The domain exists. They were getting
+	mail from poorly configured Postfix boxes.
+
+	Bugfix: The Postfix sendmail command did not export the
+	MAIL_CONFIG environment setting to the postdrop command.
+	File: global/mail_config.h.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.

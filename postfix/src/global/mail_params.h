@@ -1271,7 +1271,7 @@ extern int var_fflush_refresh;
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"
-#define DEF_EXPORT_ENVIRON		"TZ"
+#define DEF_EXPORT_ENVIRON		"TZ MAIL_CONFIG"
 extern char *var_export_environ;
 
  /*

@@ -213,7 +213,7 @@ a dedicated listener on port localhost 10026:
         localhost:10026     inet  n      -      n      -      10      smtpd
 	    -o content_filter= 
 	    -o local_recipient_maps=
-	    -o myhostname=localhost.domain.name
+	    -o myhostname=localhost.domain.tld
 
 This is just another SMTP server. It is configured NOT to request
 content filtering for incoming mail. The server has the same process
