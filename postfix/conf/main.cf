@@ -225,9 +225,10 @@ mail_owner = postfix
 # REJECTING UNKNOWN LOCAL USERS
 #
 # The local_recipient_maps parameter specifies optional lookup tables
-# with all users that are local with respect to $mydestination and
-# $inet_interfaces.  If this parameter is defined, then the SMTP server
-# will reject mail for unknown local users.
+# with all names (not addresses) of users that are local with respect
+# to $mydestination and $inet_interfaces.  If this parameter is
+# defined, then the SMTP server will reject mail for unknown local
+# users.
 #
 # If you use the default Postfix local delivery agent for local
 # delivery, uncomment the definition below.

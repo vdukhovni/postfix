@@ -113,7 +113,7 @@
 /*	The time a message must be queued before the CISCO PIX firewall
 /*	<CR><LF>.<CR><LF> bug workaround is turned on.
 /* .SH "Authentication controls"
-/* .IP \fBsmtp_enable_sasl_auth\fR
+/* .IP \fBsmtp_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	By default, Postfix is built without SASL support.
 /* .IP \fBsmtp_sasl_password_maps\fR

@@ -6095,6 +6095,36 @@ Apologies for any names omitted.
 	Solaris qsort() causes SIGSEGV errors otherwise. Victor
 	Duchovny, Morgan Stanley. File: *qmgr/qmgr_message.c.
 
+20020302
+
+	Bugfix: don't strip source route (@domain...:) when the
+	result would be an empty address. This avoids problems when
+	append_at_myorigin is set to "no" (which is not supported).
+	Problem reported by Charles McColgan, Big Fish Communications.
+	File:  trivial-rewrite/rewrite.c.
+
+20020304
+
+	Cleanup: postqueue should not not complain when output
+	fails with "broken pipe".
+
+20020308
+
+	Bugfix? reply with 550 not 552 when content is rejected.
+	552 is reserved for "too much mail".
+
+	Documentation: add note to sendmail manual page that running
+	"sendmail -bs" as $mail_owner enables SMTP server UCE and
+	access control checks. This is meant for use from inetd etc.
+	Matthias Andree.
+
+20020311
+
+	Bugfix: DBM maps should use different files for locking
+	and for change detection.  Problem reported by Victor
+	Duchovny, Morgan Stanley.  Files: util/dict.h util/dict.c
+	util/dict_db.c util/dict_dbm.c global/mkmap.c local/alias.c.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in

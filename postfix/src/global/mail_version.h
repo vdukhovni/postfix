@@ -22,9 +22,9 @@
   */
 #define VAR_MAIL_VERSION	"mail_version"
 #ifdef SNAPSHOT
-#define DEF_MAIL_VERSION	"1.1.4-$mail_release_date"
+#define DEF_MAIL_VERSION	"1.1.5-$mail_release_date"
 #else
-#define DEF_MAIL_VERSION	"1.1.4"
+#define DEF_MAIL_VERSION	"1.1.5"
 #endif
 extern char *var_mail_version;
 
@@ -32,7 +32,7 @@ extern char *var_mail_version;
   * Release date.
   */
 #define VAR_MAIL_RELEASE	"mail_release_date"
-#define DEF_MAIL_RELEASE	"20020222"
+#define DEF_MAIL_RELEASE	"20020311"
 extern char *var_mail_release;
 
 /* LICENSE
