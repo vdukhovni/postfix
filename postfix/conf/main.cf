@@ -182,6 +182,8 @@ mail_owner = postfix
 # - You use the "luser_relay", "mailbox_transport", or "fallback_transport"
 #   feature of the Postfix local delivery agent (see sample-local.cf).
 #
+# Details are described in the LOCAL_RECIPIENT_README file.
+#
 # Beware: if the Postfix SMTP server runs chrooted, you probably have
 # to access the passwd file via the proxymap service, in order to
 # overcome chroot restrictions. The alternative, having a copy of

@@ -298,6 +298,9 @@ As the example below shows, things quickly become very complex,
 because a lot of main.cf like information gets listed in the
 master.cf file. This makes the system hard to understand.
 
+Even worse, details change as Postfix evolves and different
+configuration parameters are implemented by different programs.
+
 If you need to squeeze out more performance, it is probably simpler
 to run multiple Postfix instances, one before and one after the
 content filter. That way, each instance can have simple main.cf
@@ -308,24 +311,24 @@ As before, we will set up a content filtering program that receives
 SMTP mail via localhost port 10025, and that submits SMTP mail back
 into Postfix via localhost port 10026.
 
-      ...................................
-      :            Postfix              :
-   ----->smtpd \                        :
-      :         -cleanup-\       /local---->
-   ---->pickup /          -queue-       :
-      :          cleanup2/   |   \smtp----->
-      :             ^        v          :
-      :             |        v          :
-      :           smtpd     scan        :
-      :           10026      |          :
-      .......................|...........
-                    ^        |
-                    |        v
-                ....|.............
-                :   |      10025 :
-                :   filter       :
-                :                :
-                ..................
+      .......................................
+      :                Postfix              :
+   ----->smtpd \                            :
+      :         -pre-cleanup-\       /local---->
+   ---->pickup /              -queue-       :
+      :             -cleanup-/   |   \smtp----->
+      :     bounces/    ^        v          :
+      : and locally     |        v          :
+      :   forwarded   smtpd     scan        :
+      :    messages   10026      |          :
+      ...........................|...........
+                        ^        |
+                        |        v
+                    ....|.............
+                    :   |      10025 :
+                    :   filter       :
+                    :                :
+                    ..................
 
 To enable content filtering in this manner, specify in main.cf a
 new parameter:
@@ -335,32 +338,34 @@ new parameter:
 
 /etc/postfix/master.cf:
 #
-# This is the usual input "smtpd" already present in master.cf
+# These are the usual input "smtpd" and local "pickup" servers already
+# present in master.cf. We add an option to select a non-default
+# cleanup service (defined further below).
 #
-smtp                inet  n      -      n      -       -      smtpd
+smtp      inet  n       -       n       -       -       smtpd
+    -o cleanup_service=pre-cleanup
+pickup    fifo  n       -       n       60      1       pickup
+    -o cleanup_service=pre-cleanup
 #
 # ------------------------------------------------------------------
 #
 # This is the cleanup daemon that handles messages in front of
 # the content filter. It does header_checks and body_checks (if
-# any), but does no virtual alias or canonical address mapping.
+# any), but does no virtual alias or canonical address mapping,
+# so that mail passes through your content filter with the original
+# recipient addresses mostly intact.
 #
 # Virtual alias or canonical address mapping happens in the second
 # cleanup phase after the content filter. This gives the content_filter
 # access to *largely* unmodified addresses for maximum flexibility.
 #
-# Turning off append_myorigin/append_dot_mydomain address rewriting
-# before the content filter would require two instances of the
-# trivial-rewrite daemon. If you want to go to this trouble then
-# you're clearly better off with two complete Postfix instances: one
-# in front of and one behind the content filter.
+# Some sites may specifically want to perform canonical or virtual
+# address mapping in front of the content_filter.  In that case you
+# still have to enable address rewriting in the after-filter cleanup
+# instance, in order to correctly process forwarded mail or bounced
+# mail.
 #
-# Note that some sites may specifically want to do the opposite:
-# perform rewrites in front of the content_filter which would
-# then see only cleaned up addresses. In that case the "-o" parameter
-# settings below should be moved to the second "cleanup" instance.
-#
-cleanup             unix  n      -      n      -       0      cleanup
+pre-cleanup         unix  n      -      n      -       0      cleanup
         -o canonical_maps=
         -o sender_canonical_maps=
         -o recipient_canonical_maps=
@@ -386,9 +391,8 @@ scan                unix  -      -      n      -      10      smtp
 # parameter to avoid loops, and use a different hostname to avoid
 # triggering the Postfix SMTP loop detection code.
 #
-# This "smtpd" uses a separate cleanup that does no header or
-# body checks, but does do the various address rewrites disabled
-# in the first cleanup.
+# This "smtpd" uses the normal cleanup service which is also used
+# for bounces and for internally forwarded mail.
 #
 # The parameters from mynetworks onward disable all access
 # control other than insisting on connections from one of the IP
@@ -401,7 +405,6 @@ localhost:10026     inet  n      -      n      -       -      smtpd
     -o myhostname=localhost.domain.tld
     -o local_recipient_maps=
     -o relay_recipient_maps=
-    -o cleanup_service_name=cleanup2 
     -o mynetworks=127.0.0.0/8
     -o mynetworks_style=host
     -o smtpd_restriction_classes=
@@ -416,18 +419,17 @@ localhost:10026     inet  n      -      n      -       -      smtpd
 #
 # ------------------------------------------------------------------
 #
-# This is the second cleanup daemon. No header or body checks,
-# because those have already been taken care of by the cleanup instance
-# before the content filter.  The second cleanup instance does all the
-# virtual alias and canonical address mapping that was disabled in
-# the first cleanup instance.
+# This is the normal cleanup daemon for use after content filtering.
+# No header or body checks, because those have already been taken
+# care of by the pre-cleanup service before the content filter.
+# 
+# The normal cleanup instance does all the virtual alias and canonical
+# address mapping that was disabled in the pre-cleanup instance before
+# the content filter. This rewriting must be done even when you didn't
+# disable address rewriting in the pre-cleanup instance, in order to
+# correctly process bounces and locally forwarded mail.
 #
-# If it is preferable to do the virtual alias and canonical address
-# mapping before the content filter, delete the "-o" lines that
-# disable canonical and virtual mappings in the above cleanup daemon
-# instance and insert them here.
-#
-cleanup2            unix  n      -      n      -       0      cleanup
+cleanup            unix  n      -      n      -       0      cleanup
     -o header_checks=
     -o mime_header_checks=
     -o nested_header_checks=
@@ -477,32 +479,6 @@ SMTP server addresses in master.cf:
     # SMTP service for external users, with content filtering.
     1.2.3.5:smtp        inet  n       -       n       -       -       smtpd
         -o content_filter=foo:bar
-
-Different content filters for different MX domains
-==================================================
-
-This is a variant on the previous example. You configure ONE
-Postfix instance with multiple SMTP server addresses. Each
-SMTP server invokes a different content filter.
-
-/etc/postfix.master.cf:
-    # MX server for destinations that use the foo:bar content filter.
-    1.2.3.5:smtp        inet  n       -       n       -       -       smtpd
-        -o content_filter=foo:bar 
-	-o relay_domains=/etc/postfix/foo-bar-domains
-        -o smtpd_recipient_restrictions=reject_unauth_destination
-
-    # MX server for destinations that use the bar:baz content filter.
-    1.2.3.6:smtp        inet  n       -       n       -       -       smtpd
-        -o content_filter=bar:baz 
-	-o relay_domains=/etc/postfix/bar-baz-domains
-        -o smtpd_recipient_restrictions=reject_unauth_destination
-
-    # SMTP servers for internal users only.
-    1.2.3.4:smtp        inet  n       -       n       -       -       smtpd
-        -o smtpd_recipient_restrictions=permit_mynetworks,reject
-    127.0.0.1:smtp      inet  n       -       n       -       -       smtpd
-        -o smtpd_recipient_restrictions=permit_mynetworks,reject
 
 Getting really nasty
 ====================

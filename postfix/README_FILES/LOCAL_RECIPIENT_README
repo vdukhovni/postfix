@@ -41,7 +41,7 @@ delivery agent for local delivery, where recipients are either UNIX
 accounts or local aliases:
 
     /etc/postfix/main.cf:
-	local_recipient_maps = unix:passwd.byname $alias_maps
+	local_recipient_maps = proxymap:unix:passwd.byname $alias_maps
 
 You need to update the local_recipient_maps setting if one of the
 following is true:

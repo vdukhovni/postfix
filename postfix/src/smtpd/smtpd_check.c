@@ -356,7 +356,6 @@ static MAPS *virt_mailbox_maps;
 static MAPS *relay_rcpt_maps;
 
 #ifdef TEST
-static MAPS *relocated_maps;
 
 static STRING_LIST *virt_alias_doms;
 static STRING_LIST *virt_mailbox_doms;
@@ -655,9 +654,6 @@ void    smtpd_check_init(void)
 				  DICT_FLAG_LOCK);
 
 #ifdef TEST
-    relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
-				 DICT_FLAG_LOCK);
-
     virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
     virt_mailbox_doms = string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
 #endif
@@ -3388,7 +3384,6 @@ char   *var_virt_alias_maps;
 char   *var_virt_alias_doms;
 char   *var_virt_mailbox_maps;
 char   *var_virt_mailbox_doms;
-char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 char   *var_perm_mx_networks;
 char   *var_par_dom_match;
@@ -3426,7 +3421,6 @@ static STRING_TABLE string_table[] = {
     VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms,
     VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps,
     VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms,
-    VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
     VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks,
     VAR_PAR_DOM_MATCH, DEF_PAR_DOM_MATCH, &var_par_dom_match,
