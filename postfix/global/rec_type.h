@@ -29,6 +29,7 @@
 #define REC_TYPE_TIME	'T'		/* time stamp, required */
 #define REC_TYPE_FULL	'F'		/* full name, optional */
 #define REC_TYPE_INSP	'I'		/* inspector transport */
+#define REC_TYPE_FILT	'L'		/* loop filter transport */
 #define REC_TYPE_FROM	'S'		/* sender, required */
 #define REC_TYPE_DONE	'D'		/* delivered recipient, optional */
 #define REC_TYPE_RCPT	'R'		/* todo recipient, optional */
@@ -52,7 +53,7 @@
   * record groups. The first member in each set is the record type that
   * indicates the end of that record group.
   */
-#define REC_TYPE_ENVELOPE	"MCTFISDRW"
+#define REC_TYPE_ENVELOPE	"MCTFILSDRW"
 #define REC_TYPE_CONTENT	"XLN"
 #define REC_TYPE_EXTRACT	"EDRPre"
 #define REC_TYPE_NOEXTRACT	"E"

@@ -1,22 +1,30 @@
+Incompatible changes with snapshot-20000531
+===========================================
+
+All references to "content inspection" have been replaced by "content
+filtering", in anticipation of hooks for true content inspection
+that does not re-inject mail back into Postfix.
+
 Incompatible changes with snapshot-20000529
 ===========================================
 
 This version introduces an incompatible queue file format change
-when content inspection is enabled. Old Postfix queue files will
-work fine, but new queue files will not work with old Postfix
-versions. They log a warning and move incompatible queue files to
-the "corrupt" mail queue subdirectory.
+when content filtering is enabled. Old Postfix queue files will
+work fine, but new queue files with content filtering info will
+not work with old Postfix versions. They log a warning and move
+incompatible queue files to the "corrupt" mail queue subdirectory.
 
 Major changes with snapshot-20000529
 ====================================
 
-This version introduces full content inspection through an external
+This version introduces full content filtering through an external
 process. This involves an incompatible change in queue file format.
-Mail is delivered to content inspection software via an existing
+Mail is delivered to content filtering software via an existing
 mail delivery agent, and is re-injected into Postfix via an existing
-mail submission agent.  Presently, only the Postfix SMTP server is
-suitable for receiving already inspected mail. Details in the
-INSPECTION_README file.
+mail submission agent.  See examples in the FILTER_README file.
+Depending on how the filter is implemented, you can expect to lose
+a factor of 2 to 4 in delivery performance of SMTP transit mail,
+more if the content filtering software needs lots of CPU or memory.
 
 Major changes with snapshot-20000528
 ====================================

@@ -149,6 +149,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->sender = 0;
     message->errors_to = 0;
     message->return_receipt = 0;
+    message->filter_xport = 0;
     message->data_size = 0;
     message->warn_offset = 0;
     message->warn_time = 0;
@@ -358,6 +359,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	} else if (rec_type == REC_TYPE_TIME) {
 	    if (message->arrival_time == 0)
 		message->arrival_time = atol(start);
+	} else if (rec_type == REC_TYPE_FILT) {
+	    if (message->filter_xport == 0)
+		message->filter_xport = mystrdup(start);
 	} else if (rec_type == REC_TYPE_FROM) {
 	    if (message->sender == 0) {
 		message->sender = mystrdup(start);
@@ -541,6 +545,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     char  **cpp;
     char   *domain;
     const char *junk;
+    char   *nexthop;
 
 #define STREQ(x,y)	(strcasecmp(x,y) == 0)
 #define STR		vstring_str
@@ -570,9 +575,16 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * result address may differ from the one specified by the sender.
 	 */
 	resolve_clnt_query(recipient->address, &reply);
-	if (!STREQ(recipient->address, STR(reply.recipient)))
-	    UPDATE(recipient->address, STR(reply.recipient));
-
+	if (message->filter_xport) {
+	    vstring_strcpy(reply.transport, message->filter_xport);
+	    if ((nexthop = split_at(STR(reply.transport), ':')) == 0
+		|| *nexthop == 0)
+		nexthop = var_myhostname;
+	    vstring_strcpy(reply.nexthop, nexthop);
+	} else {
+	    if (!STREQ(recipient->address, STR(reply.recipient)))
+		UPDATE(recipient->address, STR(reply.recipient));
+	}
 
 	/*
 	 * Bounce recipients that have moved. We do it here instead of in the
@@ -815,6 +827,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->errors_to);
     if (message->return_receipt)
 	myfree(message->return_receipt);
+    if (message->filter_xport)
+	myfree(message->filter_xport);
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);

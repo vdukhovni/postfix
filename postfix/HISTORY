@@ -4010,11 +4010,25 @@ Apologies for any names omitted.
 	feature.  File:  cleanup/cleanup_message.c. See also the
 	conf/sample-filter.cf file.
 
-20000529
+20000530
 
-	Feature: full content inspection through external software.
-	This uses existing interfaces for sending and receiving mail
-	from and to the content inspector. Currently, only the SMTP
-	server is suitable for receiving inspected mail. Details
-	in INSPECTION_README. Files: pickup/pickup.c, smtpd/smtpd.c,
-	qmgr/qmgr_message.c.
+	Feature: full content filtering through external software.
+	This uses existing interfaces for sending mail to the
+	external content filter and for injecting it back into
+	Postfix.  Details in FILTER_README.  Files: pickup/pickup.c,
+	smtpd/smtpd.c, qmgr/qmgr_message.c.
+
+20000531
+
+	More SASL feedback by Liviu Daia, regarding the use of
+	authentication realms. File smtpd/smtpd_sasl_glue.c.
+
+	Added a simple shell-script based content filtering example
+	to the FILTER_README file.
+
+	Content filtering support for nqmgr by Patrik Rak.  File:
+	nqmgr/qmgr_message.c.
+
+	Renamed "content inspection" etc. to "content filtering"
+	in anticipation of a new hook for content inspection that
+	only inspects mail without re-injecting it into Postfix.

@@ -193,11 +193,10 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
     /*
      * Set up a new server context for this connection.
      */
-#define DEFAULT_USER_REALM	((char *) 0)
 #define NO_SECURITY_LAYERS	(0)
 #define NO_SESSION_CALLBACKS	((sasl_callback_t *) 0)
 
-    if (sasl_server_new("smtp", var_smtpd_sasl_realm, DEFAULT_USER_REALM,
+    if (sasl_server_new("smtp", var_myhostname, var_smtpd_sasl_realm,
 			NO_SESSION_CALLBACKS, NO_SECURITY_LAYERS,
 			&state->sasl_conn) != SASL_OK)
 	msg_fatal("SASL per-connection server initialization");

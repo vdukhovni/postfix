@@ -41,9 +41,9 @@
 /*	and for default values. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
 /* .SH "Content inspection controls"
-/* .IP \fBcontent_inspector\fR
-/*	The name of a mail delivery transport that inspects mail prior
-/*	to delivery.
+/* .IP \fBcontent_filter\fR
+/*	The name of a mail delivery transport that filters mail and that
+/*	either bounces mail or re-injects the result back into Postfix.
 /*	This parameter uses the same syntax as the right-hand side of
 /*	a Postfix transport table.
 /* .SH Miscellaneous
@@ -112,7 +112,7 @@
 /* Application-specific. */
 
 char   *var_always_bcc;
-char   *var_inspect_xport;
+char   *var_filter_xport;
 
  /*
   * Structure to bundle a bunch of information about a queue file.
@@ -180,7 +180,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		info->rcpt = mystrdup(vstring_str(buf));
 	if (type == REC_TYPE_TIME)
 	    continue;
-	if (type == REC_TYPE_INSP)
+	if (type == REC_TYPE_FILT)
 	    continue;
 	else {
 
@@ -235,8 +235,8 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     /*
      * Add content inspection transport.
      */
-    if (*var_inspect_xport)
-	rec_fprintf(cleanup, REC_TYPE_INSP, "%s", var_inspect_xport);
+    if (*var_filter_xport)
+	rec_fprintf(cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
 
     /*
      * Copy the message envelope segment. Allow only those records that we
@@ -457,7 +457,7 @@ int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
-	VAR_INSPECT_XPORT, DEF_INSPECT_XPORT, &var_inspect_xport, 0, 0,
+	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	0,
     };
 

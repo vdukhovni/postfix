@@ -249,6 +249,7 @@ struct QMGR_MESSAGE {
     char   *sender;			/* complete address */
     char   *errors_to;			/* error report address */
     char   *return_receipt;		/* confirm receipt address */
+    char   *filter_xport;		/* inspection transport */
     long    data_size;			/* message content size */
     long    rcpt_offset;		/* more recipients here */
     long    unread_offset;		/* more unread recipients here */

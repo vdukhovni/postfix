@@ -76,9 +76,9 @@ a configuration change.
 Disallow non-RFC 821 style addresses in envelopes. For example,
 allow RFC822-style address forms with comments, like Sendmail does.
 .SH "Content inspection controls"
-.IP \fBcontent_inspector\fR
-The name of a mail delivery transport that inspects mail prior
-to delivery.
+.IP \fBcontent_filter\fR
+The name of a mail delivery transport that filters mail and that
+either bounces mail or re-injects the result back into Postfix.
 This parameter uses the same syntax as the right-hand side of
 a Postfix transport table.
 .SH "Authenication controls"

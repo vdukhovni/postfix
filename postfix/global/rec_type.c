@@ -44,6 +44,7 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_TIME, "time",
     REC_TYPE_FULL, "fullname",
     REC_TYPE_INSP, "content_inspector",
+    REC_TYPE_FILT, "content_filter",
     REC_TYPE_FROM, "sender",
     REC_TYPE_DONE, "done",
     REC_TYPE_RCPT, "recipient",

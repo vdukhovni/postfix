@@ -1046,12 +1046,11 @@ extern bool var_allow_min_user;
 extern void mail_params_init(void);
 
  /*
-  * Content inspection transport. The things we have to do because some
-  * over-paid peecee programmers could not do a proper job.
+  * Content inspection and filtering.
   */
-#define VAR_INSPECT_XPORT		"content_inspector"
-#define DEF_INSPECT_XPORT		""
-extern char *var_inspect_xport;
+#define VAR_FILTER_XPORT		"content_filter"
+#define DEF_FILTER_XPORT		""
+extern char *var_filter_xport;
 
 /* LICENSE
 /* .ad
