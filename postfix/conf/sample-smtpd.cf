@@ -142,8 +142,12 @@ smtpd_banner = $myhostname ESMTP $mail_name
 #	Permit the ETRN command if the result is OK or all numerical.
 #   reject_rbl_client domain.tld: reject if the reverse client network
 #	address is listed in an A record under domain.tld.
+#	Append e.g., "=127.0.0.2" to the RBL domain name to select a specific
+#	address record when an RBL server provides multi-valued results.
 #   reject_rhsbl_client domain.tld: reject if the client hostname is listed
 #	in an A record under domain.tld.
+#	Append e.g., "=127.0.0.2" to the RBL domain name to select a specific
+#	address record when an RBL server provides multi-valued results.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
 #   warn_if_reject: next restriction logs a warning instead of rejecting.
@@ -316,8 +320,12 @@ mynetworks_style = subnet
 #	Permit the SMTP client if the result is OK or all numerical.
 #   reject_rbl_client domain.tld: reject if the reversed client IP address
 #	is listed in an A record under domain.tld.
+#	Append e.g., "=127.0.0.2" to the RBL domain name to select a specific
+#	address record when an RBL server provides multi-valued results.
 #   reject_rhsbl_client domain.tld: reject if the client hostname is listed
 #	in an A record under domain.tld.
+#	Append e.g., "=127.0.0.2" to the RBL domain name to select a specific
+#	address record when an RBL server provides multi-valued results.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.
 #   warn_if_reject: next restriction logs a warning instead of rejecting.

@@ -2741,8 +2741,10 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
      */
     if (action == 0)
 	action = vstring_alloc(10);
+
     if (attr_clnt_request(policy_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
+			  ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
 			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
 		       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, state->protocol,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,

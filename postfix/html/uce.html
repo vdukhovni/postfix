@@ -388,9 +388,14 @@ href="basic.html#mynetworks"> $mynetworks</a>.
 
 <a name="reject_rbl_client">
 
+<dt> <b>reject_rbl_client</b> <i>domain.tld=127.0.0.2</i>
+
 <dt> <b>reject_rbl_client</b> <i>domain.tld</i> <dd> Reject the
 request when the reversed client network address is listed with an
-A record under <i>domain.tld</i>.  
+A record under <i>domain.tld</i>.   
+
+Append the address to the RBL server's domain name to select a
+specific address from a multi-valued result.
 
 The <b> maps_rbl_reject_code</b> parameter specifies the response
 code for rejected requests (default:  <b>554</b>), the <b><a
@@ -403,10 +408,15 @@ indexed by RBL domain.
 
 <a name="reject_rhsbl_client">
 
+<dt> <b>reject_rhsbl_client</b> <i>domain.tld=127.0.0.2</i>
+
 <dt> <b>reject_rhsbl_client</b> <i>domain.tld</i> <dd> Reject the
 request when the client hostname is listed with an A record under
 <i>domain.tld</i>.  See above for additional RBL related configuration
 parameters.
+
+Append the address to the RBL server's domain name to select a
+specific address from a multi-valued result.
 
 <p>
 

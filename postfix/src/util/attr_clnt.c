@@ -39,9 +39,8 @@
 /*
 /*	attr_clnt_request() sends the specified request attributes and
 /*	receives a reply. The reply argument specifies a name-value table.
-/*	The other arguments are as described in attr_print0(3) and in
-/*	attr_print64(3). The result is the number of attributes received
-/*	or -1 in case of trouble.
+/*	The other arguments are as described in attr_print_plain(3). The
+/*	result is the number of attributes received or -1 in case of trouble.
 /*
 /*	attr_clnt_free() destroys a client handle and closes its connection.
 /* DIAGNOSTICS
@@ -136,8 +135,7 @@ ATTR_CLNT *attr_clnt_create(const char *service, int timeout,
 
     if ((endpoint = split_at(transport, ':')) == 0
 	|| *endpoint == 0 || *transport == 0)
-	msg_fatal("service \"%s\" should be specified as transport:endpoint",
-		  service);
+	msg_fatal("need service transport:endpoint instead of \"%s\"", service);
     if (msg_verbose)
 	msg_info("%s: transport=%s endpoint=%s", myname, transport, endpoint);
 

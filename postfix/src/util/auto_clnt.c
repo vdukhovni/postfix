@@ -21,13 +21,10 @@
 /*	void	auto_clnt_free(auto_clnt)
 /*	AUTO_CLNT *auto_clnt;
 /* DESCRIPTION
-/*	This module maintains local IPC client endpoints that automatically
+/*	This module maintains IPC client endpoints that automatically
 /*	disconnect after a being idle for a configurable amount of time,
 /*	that disconnect after a configurable time to live,
 /*	and that transparently handle most server-initiated disconnects.
-/*	Server disconnect is detected by read-selecting the client endpoint.
-/*	The code assumes that the server has disconnected when the endpoint
-/*	becomes readable.
 /*
 /*	auto_clnt_create() instantiates a client endpoint.
 /*

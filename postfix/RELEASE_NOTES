@@ -22,6 +22,17 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Major changes with Postfix snapshot 2.0.13-20030715
+===================================================
+
+Support for SMTP access policy delegation to an external server.
+Greylisting is used as an example.  See the SMTPD_POLICY_README
+file for further information.
+
+Support for multi-valued RBL lookup results. For example, specify
+"reject_rbl_client foo.bar.tld=127.0.0.3" to reject clients that
+are listed with a "127.0.0.3" address record.
+
 Major changes with Postfix snapshot 2.0.13-20030706
 ===================================================
 

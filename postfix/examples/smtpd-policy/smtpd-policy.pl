@@ -39,6 +39,7 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # Each query is a bunch of attributes. Order does not matter, and
 # the demo script uses only a few of all the attributes shown below:
 #
+#    request=smtpd_access_policy
 #    protocol_state=RCPT
 #    protocol_name=SMTP
 #    helo_name=some.domain.tld
@@ -76,12 +77,11 @@ $syslog_options="pid";
 $syslog_priority="info";
 
 #
-# Demo policy routine. The result is an action just like it would
-# be specified on the right-hand side of a Postfix access table.
-# Request attributes are passed in via the %attr hash.
+# Demo SMTPD access policy routine. The result is an action just like
+# it would be specified on the right-hand side of a Postfix access
+# table.  Request attributes are available via the %attr hash.
 #
-sub policy {
-    local(*attr) = @_;
+sub smtpd_access_policy {
     my($key, $time_stamp, $now);
 
     # Open the database on the fly.
@@ -99,10 +99,10 @@ sub policy {
     }
 
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
-    if ($time_stamp + $greylist_delay < $now) {
+    if ($now - $time_stamp > $greylist_delay) {
 	return "ok";
     } else {
-	return "450 request is greylisted";
+	return "450 Service is unavailable";
     }
 }
 
@@ -118,7 +118,8 @@ sub LOCK_UN { 8 };	# Release lock.
 # Log an error and abort.
 #
 sub fatal_exit {
-    syslog "err", @_;
+    my($first) = shift(@_);
+    syslog "err", "fatal: $first", @_;
     exit 1;
 }
 
@@ -128,6 +129,7 @@ sub fatal_exit {
 sub open_database {
     my($database_fd);
 
+    # Use tied database to make complex manipulations easier to express.
     $database_obj = tie(%db_hash, 'DB_File', $database_name, 
 			    O_CREAT|O_RDWR, 0644) ||
 	fatal_exit "Cannot open database %s: $!", $database_name;
@@ -201,16 +203,21 @@ select((select(STDOUT), $| = 1)[0]);
 #
 while (<STDIN>) {
     if (/([^=]+)=(.*)\n/) {
-	$attr{$1} = $2;
-    } else {
+	$attr{substr($1, 0, 512)} = substr($2, 0, 512);
+    } elsif ($_ eq "\n") {
 	if ($verbose) {
 	    for (keys %attr) {
 		syslog $syslog_priority, "Attribute: %s=%s", $_, $attr{$_};
 	    }
 	}
-	$action = &policy(*attr);
+	fatal_exit "unrecognized request type: '%s'", $attr{request}
+	    unless $attr{"request"} eq "smtpd_access_policy";
+	$action = smtpd_access_policy();
 	syslog $syslog_priority, "Action: %s", $action if $verbose;
 	print STDOUT "action=$action\n\n";
 	%attr = ();
+    } else {
+	chop;
+	syslog $syslog_priority, "warning: ignoring garbage: %.100s", $_;
     }
 }

@@ -1,25 +1,30 @@
-SMTPD POLICY DELEGATION PROTOCOL
-================================
+POLICY DELEGATION PROTOCOL
+==========================
 
 The Postfix SMTP server has a number of built-in mechanisms to
-block or accept mail at the SMTP protocol stage. Optionally, it
-can delegate policy decisions to an external server.
+block or accept mail at specific SMTP protocol stages. Optionally,
+it can be configured to delegate policy decisions to an external
+server that runs outside Postfix. A simple greylist policy can be
+implemented with only a dozen lines of PERL.
 
 This document describes the following:
 
-- The SMTPD policy delegation protocol.
+- The Postfix policy delegation protocol.
 
 - Using the example greylist policy server.
 
 PROTOCOL DESCRIPTION
 ====================
 
-The SMTPD policy delegation protocol is really simple. The client
+The Postfix policy delegation protocol is really simple. The client
 request is a sequence of name=value attributes separated by newline,
-and is terminated by an empty line.  Here is an example of all the
-attributes that the Postfix SMTP server sends in a delegated policy
-request:
+and is terminated by an empty line. The server reply is one name=value
+attribute and it, too, is terminated by an empty line.
 
+Here is an example of all the attributes that the Postfix SMTP
+server sends in a delegated SMTPD access policy request:
+
+    request=smtpd_access_policy
     protocol_state=RCPT
     protocol_name=SMTP
     helo_name=some.domain.tld
@@ -30,25 +35,36 @@ request:
     client_name=another.domain.tld
     [empty line]
 
-The order of the attributes does not matter, and the server ignores
-any attributes that it does not recognize. Protocol names are ESMTP
-or SMTP; protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, or
-DATA. Other attributes speak for themselves. When the same attribute
-name is sent more than once, the server may keep the first or the
-last attribute value. An attribute name does not contain "=", null
-or newline, and an attribute value does not contain null or newline.
+- The "request" attribute is required. In this example the request
+  type is "smtpd_access_policy".
+- The order of the attributes does not matter. The policy server
+  should ignore any attributes that it does not care about.
+- When the same attribute name is sent more than once, the server
+  may keep the first value or the last attribute value.
+- An attribute name must not contain "=", null or newline, and an
+  attribute value must not contain null or newline.
 
-The policy server replies in the same style, with any action that
-is allowed in a Postfix SMTPD access table. Example:
+The following is specific to SMTPD delegated policy requests:
 
-    action=450 You are greylisted
+- Protocol names are ESMTP or SMTP.
+- Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, or DATA;
+  these are all the SMTP protocol states where the Postfix SMTP
+  server makes an OK/REJECT/HOLD/etc. decision.
+
+The policy server replies with any action that is allowed in a
+Postfix SMTPD access table. Example:
+
+    action=450 Service temporarily unavailable
     [empty line]
+
+In case of trouble the server must log a warning and disconnect.
+Postfix will retry the request at some later time.
 
 CLIENT SIDE CONFIGURATION
 =========================
 
-The SMTPD delegated policy client can connect to a TCP socket or
-to a UNIX-domain socket. Examples:
+The delegated policy client can connect to a TCP socket or to a
+UNIX-domain socket. Examples:
 
     inet:localhost:9998
     unix:/some/where/policy
@@ -60,18 +76,42 @@ pathname of a UNIX-domain socket. The third example specifies a
 pathname relative to the Postfix queue directory; use this for
 policy servers that are spawned by the Postfix master daemon.
 
-To use the delegated policy service, specify "check_policy_service"
-anywhere in the list of smtpd_recipient_restrictions:
+To use the delegated policy service for SMTPD access control,
+specify "check_policy_service" anywhere in the list of
+smtpd_recipient_restrictions:
 
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
-	... 
-	reject_unauth_destination 
-	check_policy_service unix:private/policy 
-	...
+        ... 
+        reject_unauth_destination 
+        check_policy_service unix:private/policy 
+        ...
 
 NOTE: specify "check_policy_service" AFTER "reject_unauth_destination"
 or else your system could become an open relay.
+
+NOTE: Solaris UNIX-domain sockets do not work very well. Use TCP
+sockets instead:
+
+/etc/postfix/main.cf:
+    smtpd_recipient_restrictions =
+        ... 
+        reject_unauth_destination 
+        check_policy_service inet:localhost:9998
+        ...
+
+Other client-side configuration parmeters:
+
+- smtpd_policy_service_max_idle (default: 300s): the amount of time
+  before Postfix closes an unused policy connection. The socket is
+  closed while the SMTP server waits for new a SMTP client.
+
+- smtpd_policy_service_max_ttl (default: 1000s): the amount of time
+  before Postfix closes an active policy connection.  The socket
+  is closed while the SMTP server waits for new a SMTP client.
+
+- smtpd_policy_service_timeout (default: 100s): the time limit to
+  connect to, send to or receive from a policy service.
 
 EXAMPLE: GREYLIST POLICY SERVER
 ===============================
@@ -79,35 +119,104 @@ EXAMPLE: GREYLIST POLICY SERVER
 The file examples/smtpd-policy/smtpd-policy.pl in the Postfix source
 tree implements an example greylist policy server. This server
 stores a time stamp for every (client, sender, recipient) triple.
-Mail is not accepted until a triple's time stamp is more than 3600
-seconds old. This stops junk mail with random sender addresses,
-and mail from randomly selected open proxies. It also stops junk
-mail from spammers that change IP address frequently.
+By default, mail is not accepted until a triple's time stamp is
+more than 3600 seconds old. This stops junk mail with randomly
+selected sender addresses, and mail that is sent through randomly
+selected open proxies. It also stops junk mail from spammers that
+change their IP address frequently.
 
-The example greylist policy server is a PERL script that runs under
-control by the Postfix master daemon:
+Copy examples/smtpd-policy/smtpd-policy.pl to /usr/libexec/postfix
+or whatever location is appropriate for your system.
+
+In the smtpd-policy.pl PERL script you need to specify the location
+of the greylist database file. The default location is:
+
+    $database_name="/var/mta/smtpd-policy.db";
+
+The /var/mta directory (or whatever you choose) should be writable
+by "nobody", or by whatever username you configure below in master.cf
+for the policy service.
+
+Example:
+
+    # mkdir /var/mta
+    # chown nobody /var/mta
+
+Note: DO NOT create the greylist database in a world-writable
+directory such as /tmp or /var/tmp, and DO NOT create the greylist
+database in a file system that can run out of space easily. If the
+file becomes corrupted you will not be able to receive mail until
+you delete the file by hand.
+
+The smtpd-policy.pl PERL script can be run under control by the
+Postfix master daemon.  For example, to run the script as user
+"nobody", using a UNIX-domain socket that is accessible by Postfix
+processes only:
 
 /etc/postfix/master.cf:
     policy  unix  -       n       n       -       -       spawn
       user=nobody argv=/usr/bin/perl /usr/libexec/postfix/smtpd-policy.pl
 
+Specify "...postfix/smtpd-policy.pl -v" for verbose logging of each
+request and reply.
+
+Greylisting mail from frequently forged domains
+-----------------------------------------------
+
+It is relatively safe to turn on greylisting for specific domains
+that often appear in forged email.
+
 /etc/postfix/main.cf:
     smtpd_recipient_restrictions =
-        permit_mynetworks
+        ...
         reject_unauth_destination 
-        check_policy_service unix:private/policy unix:private/policy
+        check_sender_access hash:/etc/postfix/sender_access
+        ...
+    restriction_classes = greylist
+    greylist = check_policy_service unix:private/policy
+
+/etc/postfix/sender_access:
+    aol.com     greylist
+    hotmail.com greylist
+    bigfoot.com greylist
+    ... etcetera ...
+
+Be sure to specify check_sender_access AFTER reject_unauth_destination
+or else your system could become an open mail relay.
+
+A list of frequently forged MAIL FROM domains can be found at
+http://www.monkeys.com/anti-spam/filtering/sender-domain-validate.in
+
+Greylisting all your mail
+-------------------------
+
+If you turn on greylisting for all mail you will almost certainly
+want to make exceptions for mailing lists that use one-time sender
+addresses, because such mailing lists can pollute your greylist
+database relatively quickly.
+
+/etc/postfix/main.cf:
+    smtpd_recipient_restrictions =
+        ...
+        reject_unauth_destination 
+        check_sender_access hash:/etc/postfix/sender_access
+        check_policy_service unix:private/policy
         ...
 
-There are other delegated policy client configuration parameters
-that control timeouts etc.  but you should never have to change
-those.
+/etc/postfix/sender_access:
+    securityfocus.com OK
+    ...
 
-In the smtpd-policy.pl PERL script you need to specify the location
-of the greylist database file. DO NOT create the greylist database
-in a world-writable directory such as /tmp or /var/tmp, and DO NOT
-create the greylist database in a file system that can run out of
-space easily. If the file becomes corrupted you will not be able
-to receive mail until you delete the file by hand.
+Be sure to specify check_sender_access and check_policy_service
+AFTER reject_unauth_destination or else your system could become
+an open mail relay.
+
+ROUTINE MAINTENANCE
+===================
+
+The greylist database grows over time, because the greylist server
+never removes database entries. If left unattended, the greylist
+database will eventually run your file system out of space.
 
 When the status file exceeds some reasonable size you can simply
 delete the file without adverse effects. In the worst case, new
@@ -129,20 +238,19 @@ $database_name="/var/mta/smtpd-policy.db";
 $greylist_delay=3600;
 
 #
-# Demo policy routine. The result is an action just like it would
-# be specified on the right-hand side of a Postfix access table.
-# Request attributes are passed in via the %attr hash.
+# Demo SMTPD access policy routine. The result is an action just like
+# it would be specified on the right-hand side of a Postfix access
+# table.  Request attributes are available via the %attr hash.
 #
-sub policy {
-    local(*attr) = @_;
+sub smtpd_access_policy {
     my($key, $time_stamp, $now);
 
     # Open the database on the fly.
     open_database() unless $database_obj;
-    
+
     # Lookup the time stamp for this client/sender/recipient.
     $key = $attr{"client_address"}."/".$attr{"sender"}."/".$attr{"recipient"};
-    $time_stamp = read_database($key); 
+    $time_stamp = read_database($key);
     $now = time();
 
     # If new request, add this client/sender/recipient to the database.
@@ -152,9 +260,9 @@ sub policy {
     }
 
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
-    if ($time_stamp + $greylist_delay < $now) {
+    if ($now - $time_stamp > $greylist_delay) {
         return "ok";
     } else {
-        return "450 request is greylisted";
+        return "450 Service is unavailable";
     }
 }
