@@ -37,11 +37,6 @@
 #	rule set \fBS3\fR, if you like.  This is controlled with
 #	the \fBcanonical_classes\fR parameter.
 #
-#	The \fBcanonical\fR mapping affects both message header addresses
-#	(i.e. addresses that appear inside messages) and message envelope
-#	addresses (for example, the addresses that are used in SMTP protocol
-#	commands). Think Sendmail rule set \fBS3\fR, if you like.
-#
 #	Typically, one would use the \fBcanonical\fR table to replace login
 #	names by \fIFirstname.Lastname\fR, or to clean up addresses produced
 #	by legacy mail systems.

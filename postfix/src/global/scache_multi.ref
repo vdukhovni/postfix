@@ -6,96 +6,47 @@
 >>> # Destination name space collision test
 >>> 
 >>> save_dest 2 a_dest a_prop b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop endp_label=b_endp
 >>> sleep 1
 >>> save_dest 2 a_dest a_prop b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop endp_label=b_endp (refreshed)
 >>> sleep 1
 >>> save_dest 2 a_dest a_prop b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop endp_label=b_endp (refreshed)
 >>> sleep 2
-unknown: scache_multi_drop_dest: dest_prop=a_prop endp_label=b_endp
 >>> 
 >>> # Another destination name space collision test
 >>> 
 >>> save_dest 2 a_dest a_prop b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop endp_label=b_endp
 >>> sleep 1
 >>> save_dest 2 a_dest a_prop2 b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop2 endp_label=b_endp
 >>> sleep 1
-unknown: scache_multi_drop_dest: dest_prop=a_prop endp_label=b_endp
 >>> save_dest 2 a_dest a_prop2 b_endp2
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop2 endp_label=b_endp2
 >>> sleep 2
-unknown: scache_multi_drop_dest: dest_prop=a_prop2 endp_label=b_endp
-unknown: scache_multi_drop_dest: dest_prop=a_prop2 endp_label=b_endp2
 >>> 
 >>> # Endpoint name space collision test
 >>> 
 >>> save_endp 2 b_endp b_prop 12
-unknown: scache_multi_save_endp: endp_label=b_endp -> endp_prop=b_prop fd=12
 >>> save_endp 2 b_endp b_prop 13
-unknown: scache_multi_save_endp: endp_label=b_endp -> endp_prop=b_prop fd=13
 >>> sleep 3
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=12
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=13
 >>> 
 >>> # Combined destiation and endpoint collision test with lookup
 >>> 
 >>> save_dest 2 a_dest a_prop b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop endp_label=b_endp
 >>> save_dest 2 a_dest a_prop2 b_endp
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop2 endp_label=b_endp
 >>> save_dest 2 a_dest a_prop2 b_endp2
-unknown: scache_multi_save_dest: dest_label=a_dest -> dest_prop=a_prop2 endp_label=b_endp2
 >>> save_endp 2 b_endp b_prop 12
-unknown: scache_multi_save_endp: endp_label=b_endp -> endp_prop=b_prop fd=12
 >>> save_endp 2 b_endp b_prop 13
-unknown: scache_multi_save_endp: endp_label=b_endp -> endp_prop=b_prop fd=13
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: found: endp_label=b_endp -> endp_prop=b_prop fd=12
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=-1
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: found: endp_label=b_endp -> endp_prop=b_prop fd=13
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=-1
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp2
-unknown: scache_multi_find_dest: not found: dest_label=a_dest
 >>> 
 >>> # Another combined destiation and endpoint collision test with lookup
 >>> 
 >>> save_endp 2 b_endp2 b_prop 12
-unknown: scache_multi_save_endp: endp_label=b_endp2 -> endp_prop=b_prop fd=12
 >>> save_endp 2 b_endp2 b_prop 13
-unknown: scache_multi_save_endp: endp_label=b_endp2 -> endp_prop=b_prop fd=13
 >>> save_endp 2 b_endp2 b_prop 14
-unknown: scache_multi_save_endp: endp_label=b_endp2 -> endp_prop=b_prop fd=14
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: found: endp_label=b_endp2 -> endp_prop=b_prop fd=12
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=-1
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: found: endp_label=b_endp2 -> endp_prop=b_prop fd=13
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=-1
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: found: endp_label=b_endp2 -> endp_prop=b_prop fd=14
-unknown: scache_multi_drop_endp: endp_prop=b_prop fd=-1
 >>> find_dest a_dest
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp
-unknown: scache_multi_find_endp: no endpoint cache: endp_label=b_endp2
-unknown: scache_multi_find_dest: not found: dest_label=a_dest
 >>> 
 >>> # Let the exit handler clean up the destiation->endpoint bindings.
 >>> 
-unknown: scache_multi_drop_dest: dest_prop=a_prop endp_label=b_endp
-unknown: scache_multi_drop_dest: dest_prop=a_prop2 endp_label=b_endp
-unknown: scache_multi_drop_dest: dest_prop=a_prop2 endp_label=b_endp2

@@ -257,6 +257,17 @@ static int scache_single_find_dest(SCACHE *scache, const char *dest_label,
     return (-1);
 }
 
+/* scache_single_size - size of single-element cache :-) */
+
+static void scache_single_size(SCACHE *scache, SCACHE_SIZE *size)
+{
+    SCACHE_SINGLE *sp = (SCACHE_SINGLE *) scache;
+
+    size->dest_count = (!SCACHE_SINGLE_DEST_BUSY(sp) ? 0 : 1);
+    size->endp_count = (!SCACHE_SINGLE_ENDP_BUSY(sp) ? 0 : 1);
+    size->sess_count = (sp->endp.fd < 0 ? 0 : 1);
+}
+
 /* scache_single_free - destroy single-element cache object */
 
 static void scache_single_free(SCACHE *scache)
@@ -285,6 +296,7 @@ SCACHE *scache_single_create(void)
     sp->scache->find_endp = scache_single_find_endp;
     sp->scache->save_dest = scache_single_save_dest;
     sp->scache->find_dest = scache_single_find_dest;
+    sp->scache->size = scache_single_size;
     sp->scache->free = scache_single_free;
 
     sp->endp.endp_label = vstring_alloc(10);

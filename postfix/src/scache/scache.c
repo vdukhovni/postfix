@@ -186,8 +186,11 @@ static SCACHE *scache;
   */
 static int scache_dest_hits;
 static int scache_dest_miss;
+static int scache_dest_count;
 static int scache_endp_hits;
 static int scache_endp_miss;
+static int scache_endp_count;
+static int scache_sess_count;
 time_t  scache_start_time;
 
  /*
@@ -203,6 +206,7 @@ static void scache_save_endp_service(VSTREAM *client_stream)
     const char *myname = "scache_save_endp_service";
     int     ttl;
     int     fd;
+    SCACHE_SIZE size;
 
     if (attr_scan(client_stream,
 		  ATTR_FLAG_STRICT,
@@ -239,6 +243,11 @@ static void scache_save_endp_service(VSTREAM *client_stream)
 	attr_print(client_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
 		   ATTR_TYPE_END);
+	scache_size(scache, &size);
+	if (size.endp_count > scache_endp_count)
+	    scache_endp_count = size.endp_count;
+	if (size.sess_count > scache_sess_count)
+	    scache_sess_count = size.sess_count;
 	return;
     }
 }
@@ -294,6 +303,7 @@ static void scache_save_dest_service(VSTREAM *client_stream)
 {
     const char *myname = "scache_save_dest_service";
     int     ttl;
+    SCACHE_SIZE size;
 
     if (attr_scan(client_stream,
 		  ATTR_FLAG_STRICT,
@@ -316,6 +326,12 @@ static void scache_save_dest_service(VSTREAM *client_stream)
 	attr_print(client_stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
 		   ATTR_TYPE_END);
+	scache_size(scache, &size);
+	if (size.dest_count > scache_dest_count)
+	    scache_dest_count = size.dest_count;
+	if (size.endp_count > scache_endp_count)
+	    scache_endp_count = size.endp_count;
+	return;
 	return;
     }
 }
@@ -414,7 +430,9 @@ static void scache_service(VSTREAM *client_stream, char *unused_service,
 static void scache_status_dump(char *unused_name, char **unused_argv)
 {
     if (scache_dest_hits || scache_dest_miss
-	|| scache_endp_hits || scache_endp_miss)
+	|| scache_endp_hits || scache_endp_miss
+	|| scache_dest_count || scache_endp_count
+	|| scache_sess_count)
 	msg_info("statistics: start interval %.15s",
 		 ctime(&scache_start_time) + 4);
 
@@ -431,6 +449,13 @@ static void scache_status_dump(char *unused_name, char **unused_argv)
 		 scache_endp_hits * 100
 		 / (scache_endp_hits + scache_endp_miss));
 	scache_endp_hits = scache_endp_miss = 0;
+    }
+    if (scache_dest_count || scache_endp_count || scache_sess_count) {
+	msg_info("statistics: max simultaneous domains=%d addresses=%d sessions=%d",
+		 scache_dest_count, scache_endp_count, scache_sess_count);
+	scache_dest_count = 0;
+	scache_endp_count = 0;
+	scache_sess_count = 0;
     }
     scache_start_time = event_time();
 }

@@ -3142,10 +3142,10 @@ optional address extension.
 address extension.
 
 <li> Look up the "user+extension" address local part when the
-recipient domain equals $myorigin, $mydestination, $inet_interfaces
+sender domain equals $myorigin, $mydestination, $inet_interfaces
 or $proxy_interfaces.
 
-<li> Look up the "user" address local part when the recipient domain
+<li> Look up the "user" address local part when the sender domain
 equals $myorigin, $mydestination, $inet_interfaces or $proxy_interfaces.
 
 <li> Look up the "@domain.tld" part.
@@ -4124,18 +4124,27 @@ a restriction list, to make the default policy explicit.</dd>
 <dd>Reject the request when the envelope sender is the null address,
 and the message has multiple envelope recipients. Although this
 usage is technically allowed, it seems to have no legitimate
-application. <br> The multi_recipient_bounce_reject_code parameter
-specifies the response code for rejected requests (default: 550).
-This feature is available in Postfix 2.1 and later. </dd>
+application. <br> NOTE: this restriction can only work reliably
+when used in smtpd_data_restrictions, because the total number of
+recipients is not known at an earlier stage of the SMTP conversation.
+Use at the RCPT stage will only reject the second etc.  recipient.
+<br>
+The multi_recipient_bounce_reject_code parameter specifies the
+response code for rejected requests (default:  550).  This feature
+is available in Postfix 2.1 and later. </dd>
 
 <dt><b><a name="reject_unauth_pipelining">reject_unauth_pipelining</a></b></dt>
 
 <dd>Reject the request when the client sends SMTP commands ahead
 of time where it is not allowed, or when the client sends SMTP
 commands ahead of time without knowing that Postfix actually supports
-SMTP command pipelining. This stops mail from bulk mail software
-that improperly uses SMTP command pipelining in order to speed up
-deliveries.</dd>
+ESMTP command pipelining. This stops mail from bulk mail software
+that improperly uses ESMTP command pipelining in order to speed up
+deliveries. <br> NOTE: reject_unauth_pipelining is not useful
+outside smtpd_data_restrictions when 1) the client uses ESMTP (EHLO
+instead of HELO) and 2) with "smtpd_delay_reject = yes" (the
+default).  The use of reject_unauth_pipelining in the other
+restriction contexts is therefore not recommended.  </dd>
 
 <dt><b><a name="reject">reject</a></b></dt>
 

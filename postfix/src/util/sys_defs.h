@@ -911,6 +911,8 @@ extern int h_errno;
  */
 #include <cpio.h>
 #define S_ISSOCK(mode)	(((mode) & (S_IFMT)) == (C_ISSOCK))
+#define CANT_USE_SEND_RECV_MSG
+#define DEF_SMTP_CACHE_DEMAND	0
 #endif
 
  /*

@@ -17,6 +17,7 @@
 #include <vstring.h>
 
 typedef struct SCACHE SCACHE;
+typedef struct SCACHE_SIZE SCACHE_SIZE;
 
  /*
   * In order to cache a session, we specify:
@@ -86,6 +87,16 @@ typedef void (*SCACHE_SAVE_DEST_FN) (SCACHE *, int, const char *, const char *, 
 typedef int (*SCACHE_FIND_DEST_FN) (SCACHE *, const char *, VSTRING *, VSTRING *);
 
  /*
+  * Session cache statistics. These are the actual numbers at a specific
+  * point in time.
+  */
+struct SCACHE_SIZE {
+    int     dest_count;			/* Nr of destination names */
+    int     endp_count;			/* Nr of endpoint adresses */
+    int     sess_count;			/* Nr of cached sessions */
+};
+
+ /*
   * Generic session cache object. Actual session cache objects are derived
   * types with some additional, cache dependent, private information.
   */
@@ -94,6 +105,7 @@ struct SCACHE {
     SCACHE_FIND_ENDP_FN find_endp;
     SCACHE_SAVE_DEST_FN save_dest;
     SCACHE_FIND_DEST_FN find_dest;
+    void    (*size) (struct SCACHE *, SCACHE_SIZE *);
     void    (*free) (struct SCACHE *);
 };
 
@@ -109,6 +121,7 @@ extern SCACHE *scache_multi_create(void);
     (scache)->save_dest((scache), (ttl), (dest_label), (dest_prop), (endp_label))
 #define scache_find_dest(scache, dest_label, dest_prop, endp_prop) \
     (scache)->find_dest((scache), (dest_label), (dest_prop), (endp_prop))
+#define scache_size(scache, stats) (scache)->size((scache), (stats))
 #define scache_free(scache) (scache)->free(scache)
 
  /*

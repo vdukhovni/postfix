@@ -4993,10 +4993,10 @@ optional address extension.
 address extension.
 
 <li> Look up the "user+extension" address local part when the
-recipient domain equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+sender domain equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
 or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
-<li> Look up the "user" address local part when the recipient domain
+<li> Look up the "user" address local part when the sender domain
 equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.
 
 <li> Look up the "@domain.tld" part.
@@ -6224,18 +6224,27 @@ a restriction list, to make the default policy explicit.</dd>
 <dd>Reject the request when the envelope sender is the null address,
 and the message has multiple envelope recipients. Although this
 usage is technically allowed, it seems to have no legitimate
-application. <br> The <a href="postconf.5.html#multi_recipient_bounce_reject_code">multi_recipient_bounce_reject_code</a> parameter
-specifies the response code for rejected requests (default: 550).
-This feature is available in Postfix 2.1 and later. </dd>
+application. <br> NOTE: this restriction can only work reliably
+when used in <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a>, because the total number of
+recipients is not known at an earlier stage of the SMTP conversation.
+Use at the RCPT stage will only reject the second etc.  recipient.
+<br>
+The <a href="postconf.5.html#multi_recipient_bounce_reject_code">multi_recipient_bounce_reject_code</a> parameter specifies the
+response code for rejected requests (default:  550).  This feature
+is available in Postfix 2.1 and later. </dd>
 
 <dt><b><a name="reject_unauth_pipelining">reject_unauth_pipelining</a></b></dt>
 
 <dd>Reject the request when the client sends SMTP commands ahead
 of time where it is not allowed, or when the client sends SMTP
 commands ahead of time without knowing that Postfix actually supports
-SMTP command pipelining. This stops mail from bulk mail software
-that improperly uses SMTP command pipelining in order to speed up
-deliveries.</dd>
+ESMTP command pipelining. This stops mail from bulk mail software
+that improperly uses ESMTP command pipelining in order to speed up
+deliveries. <br> NOTE: <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a> is not useful
+outside <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> when 1) the client uses ESMTP (EHLO
+instead of HELO) and 2) with "<a href="postconf.5.html#smtpd_delay_reject">smtpd_delay_reject</a> = yes" (the
+default).  The use of <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a> in the other
+restriction contexts is therefore not recommended.  </dd>
 
 <dt><b><a name="reject">reject</a></b></dt>
 

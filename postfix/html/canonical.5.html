@@ -44,13 +44,7 @@ CANONICAL(5)                                         CANONICAL(5)
        sages) and message envelope addresses  (for  example,  the
        addresses  that are used in SMTP protocol commands). Think
        Sendmail rule set <b>S3</b>, if you  like.   This  is  controlled
-       with the <b>canonical_classes</b> parameter.
-
-       The   <b>canonical</b>   mapping   affects  both  message  header
-       addresses (i.e. addresses that appear inside messages) and
-       message  envelope  addresses  (for  example, the addresses
-       that are used in SMTP protocol commands).  Think  Sendmail
-       rule set <b>S3</b>, if you like.
+       with the <b><a href="postconf.5.html#canonical_classes">canonical_classes</a></b> parameter.
 
        Typically,  one  would  use the <b>canonical</b> table to replace
        login  names  by  <i>Firstname.Lastname</i>,  or  to   clean   up
@@ -160,7 +154,7 @@ CANONICAL(5)                                         CANONICAL(5)
        The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
-       <b>canonical_classes</b>
+       <b><a href="postconf.5.html#canonical_classes">canonical_classes</a></b>
               What  addresses  are  subject  to canonical address
               mapping.
 

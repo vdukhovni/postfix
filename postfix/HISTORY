@@ -9587,9 +9587,9 @@ Apologies for any names omitted.
 
 20040723
 
-	Bug? Safety? spawn(8) did not reject a user with the -1
-	UID value, so the command could run as root.  Files:
-	util/spawn_command.c, src/util/spawn.c.
+	Safety: spawn(8) now rejects a user with the -1 UID or GID
+	value, so that commands will not end up running as root.
+	Files:  util/spawn_command.c, spawn/spawn.c.
 
 	User interface: parameter smtp_connection_cache_domains
 	renamed to smtp_connection_cache_destinations. Destinations
@@ -9706,9 +9706,36 @@ Apologies for any names omitted.
 	Portability: Solaris closefrom() support didn't work for
 	non-SUN compilers. Victor Duchovni, Morgan Stanley.
 
+20040830
+
+	Feature: the scache(8) session cache manager now logs the
+	peak counts of destinations, endpoints and sessions. Files:
+	scache/scache.c, global/scache*c.
+
+20040831
+
+	Portability: disable session caching support on SCO 5
+	because of incompatible sockets API. File: util/sys_defs.h.
+
+20040913
+
+	Bugfix (introduced 20020803): sent the wrong bounce message
+	type when a Delivered-To: loop was detected for a mailing
+	list alias.  Nicolas Riendeau. File: bounce_notify_util.c.
+
 Open problems:
 
-	Low: scache & anvil should log cache peak sizes.
+	Low: should the Delivered-To: test in local(8) be configurable?
+
+	Low: append a different domain (like, address.invalid) for
+	mail from clients not in mynetworks.
+
+	Low: document propagate_unmatched_extensions in aliases(5)
+	etc.
+
+	Low: make mail_addr_find() lookup configurable.
+
+	Low: anvil(8) should log cache peak size, like scache(8).
 
 	Low: update events.c so that 1-second timer requests do
 	not suffer from rounding errors. This is needed for 1-second

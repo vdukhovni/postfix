@@ -6,6 +6,18 @@
 /* SYNOPSIS
 /*	#include <scache.h>
 /* DESCRIPTION
+/*	typedef struct {
+/* .in +4
+/*		int	dest_count;
+/*		int	endp_count;
+/*		int	sess_count;
+/* .in -4
+/*	} SCACHE_SIZE;
+/*
+/*	unsigned scache_size(scache, size)
+/*	SCACHE	*scache;
+/*	SCACHE_SIZE *size;
+/*
 /*	void	scache_free(scache)
 /*	SCACHE	*scache;
 /*
@@ -50,6 +62,9 @@
 /*	physical endpoint may be referenced by multiple logical
 /*	endpoints, and one physical endpoint may have multiple
 /*	sessions.
+/*
+/*	scache_size() returns the number of logical destination
+/*	names, physical endpoint addresses, and cached sessions.
 /*
 /*	scache_free() destroys the specified session cache.
 /*

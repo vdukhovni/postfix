@@ -40,12 +40,6 @@
 #        Sendmail rule set S3, if you  like.   This  is  controlled
 #        with the canonical_classes parameter.
 # 
-#        The   canonical   mapping   affects  both  message  header
-#        addresses (i.e. addresses that appear inside messages) and
-#        message  envelope  addresses  (for  example, the addresses
-#        that are used in SMTP protocol commands).  Think  Sendmail
-#        rule set S3, if you like.
-# 
 #        Typically,  one  would  use the canonical table to replace
 #        login  names  by  Firstname.Lastname,  or  to   clean   up
 #        addresses produced by legacy mail systems.

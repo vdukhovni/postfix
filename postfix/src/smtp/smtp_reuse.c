@@ -151,7 +151,7 @@ void    smtp_save_session(SMTP_STATE *state)
 			 STR(state->dest_prop), STR(state->endp_label));
 
     /*
-     * Save every good sessions under its physical endpoint address.
+     * Save every good session under its physical endpoint address.
      */
     scache_save_endp(smtp_scache, var_smtp_cache_conn, STR(state->endp_label),
 		     STR(state->endp_prop), fd);

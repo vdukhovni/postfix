@@ -306,6 +306,16 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
     return (-1);
 }
 
+/* scache_clnt_size - dummy */
+
+static void scache_clnt_size(SCACHE *scache, SCACHE_SIZE *size)
+{
+    /* XXX Crap in a hurry. */
+    size->dest_count = 0;
+    size->endp_count = 0;
+    size->sess_count = 0;
+}
+
 /* scache_clnt_free - destroy cache */
 
 static void scache_clnt_free(SCACHE *scache)
@@ -329,6 +339,7 @@ SCACHE *scache_clnt_create(const char *server, int idle_limit, int ttl_limit)
     sp->scache->find_endp = scache_clnt_find_endp;
     sp->scache->save_dest = scache_clnt_save_dest;
     sp->scache->find_dest = scache_clnt_find_dest;
+    sp->scache->size = scache_clnt_size;
     sp->scache->free = scache_clnt_free;
 
     sp->clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE, server,
