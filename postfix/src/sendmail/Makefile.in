@@ -59,10 +59,10 @@ sendmail.o: ../../include/msg.h
 sendmail.o: ../../include/mymalloc.h
 sendmail.o: ../../include/vstream.h
 sendmail.o: ../../include/vbuf.h
-sendmail.o: ../../include/vstring.h
 sendmail.o: ../../include/msg_vstream.h
 sendmail.o: ../../include/msg_syslog.h
 sendmail.o: ../../include/vstring_vstream.h
+sendmail.o: ../../include/vstring.h
 sendmail.o: ../../include/username.h
 sendmail.o: ../../include/fullname.h
 sendmail.o: ../../include/argv.h
@@ -70,6 +70,7 @@ sendmail.o: ../../include/safe.h
 sendmail.o: ../../include/iostuff.h
 sendmail.o: ../../include/stringops.h
 sendmail.o: ../../include/set_ugid.h
+sendmail.o: ../../include/connect.h
 sendmail.o: ../../include/mail_queue.h
 sendmail.o: ../../include/mail_proto.h
 sendmail.o: ../../include/mail_params.h
@@ -85,3 +86,4 @@ sendmail.o: ../../include/tok822.h
 sendmail.o: ../../include/resolve_clnt.h
 sendmail.o: ../../include/mail_flush.h
 sendmail.o: ../../include/mail_stream.h
+sendmail.o: ../../include/smtp_stream.h

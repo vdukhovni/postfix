@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-20000928
+Incompatible changes with snapshot-20001003
 ===========================================
 
 If this release does not work for you, you can go back to a previous
@@ -12,13 +12,6 @@ again.
 
 After installing the new Postfix release:
 
-- Check the output from "postconf qmgr_message_active_limit". The
-  recommended value has changed to 10000.
-
-  If your setting is lower, either you need to remove the explicit
-  setting from the main.cf file (so that Postfix uses the recommended
-  default setting), or you need to update it.
-
 - Check the output from "postconf hash_queue_names". The recommended
   setting now includes the names of the "active", "bounce", "defer",
   and "flush" directories.
@@ -28,25 +21,32 @@ After installing the new Postfix release:
   file (so that Postfix uses the recommended default setting), or
   you need to update it.
 
+- Check the output from "postconf qmgr_message_active_limit". The
+  recommended value has changed to 10000.
+
+  If your setting is lower, either you need to remove the explicit
+  setting from the main.cf file (so that Postfix uses the recommended
+  default setting), or you need to update it.
+
 - Add a new entry to the master.cf file for the new flush service:
 
-    flush	  unix	-	-	n	18000?	0	flush
+    flush	  unix	-	-	n	1000?	0	flush
 
-  This entry is not needed if you won't use the fast flush service
-  (this service is used by default; to disable, you need to specify
-  in the main.cf file an empty fast_flush_domains parameter:
+  This entry is not needed if you won't use the fast flush service.
+  This service is used by default; to disable the fast flush service,
+  you need to specify in the main.cf file:
 
-    fast_flush_domains =
+    fast_flush_policy = none
 
-  The 18000? requests that the "fast flush" service does some
-  cleaning up every 5 hours, but only if the fast flush service is
-  being used by some other Postfix service, and the 0 means that
-  Postfix should run as many flush servers as are needed, in order
-  to avoid deadlock conditions.
+  In the new master.cf entry, the 1000? requests that the "fast
+  flush" service does some cleaning up every 15 minutes, but only
+  if the fast flush service is actually being used.  The 0 means
+  that Postfix should run as many flush servers as are needed.
+  Changing this may cause deadlock.
 
 Now you can start Postfix again.
 
-Major changes with snapshot-20000929
+Major changes with snapshot-20001001
 ====================================
 
 In order to improve performance of one-to-one deliveries, Postfix
@@ -55,22 +55,24 @@ by default now looks at up to 10000 messages at a time (was: 1000).
 Until now, Postfix did a rather lame effort at implementing the
 SMTP ETRN command - it attempted to deliver all mail in the queue,
 regardless of its destination.  This is slow if your mail server
-queues mail for lots of different sites.
+queues mail for lots of different destinations.
 
-This release introduces "fast ETRN", which delivers only mail that
-is known to be queued for the specified site. Postfix now maintains
-so-called "fast flush" logfiles with information about what mail
-is queued for specific sites.  A "fast flush" logfile is "flushed"
-after Postfix receives an appropriate ETRN command, or after someone
-executes the command "sendmail -qRsite" for an appropriate site.
+This release introduces fast "ETRN" and "sendmail -qR". Unlike
+their lame predecessor, these deliver only mail that is queued for
+the specified destinations.
 
-A missing "fast flush" logfile is created automatically when an
-SMTP client issues the ETRN command - but only for destinations
-that the local MTA is willing to relay mail to. This policy is
-controlled with the "fast_etrn_domains" configuration parameter
-(default: $relay_domains).  Other destinations remain stuck with
-the old "slow ETRN" service that attempts to deliver all mail in
-the queue.
+Postfix now maintains per-destination logfiles with information
+about what mail is queued for specific destinations.  By default,
+these logfiles are maintained only for destinations that Postfix
+is willing to relay to (as controlled by the relay_domains parameter).
+
+The maintenance policy for deferred mail logfiles is selected with
+the "fast_flush_policy" configuration parameter.  Possible values
+are:  "all" (maintain logs for all destinations), "relay" (maintain
+logs for relay destinations) or "none" (maintain no logs).
+
+Postfix falls back to the old slow ETRN for destinations that are
+not eligible for the fast "ETRN" and "sendmail -qR" service.
 
 See the file ETRN_README for details.
 

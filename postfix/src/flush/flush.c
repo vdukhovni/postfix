@@ -2,37 +2,60 @@
 /* NAME
 /*	flush 8
 /* SUMMARY
-/*	Postfix fast flush daemon
+/*	Postfix fast flush cache manager
 /* SYNOPSIS
 /*	\fBflush\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The flush server maintains so-called "fast flush" logfiles with
-/*	information about what messages are queued for a specific site.
+/*	The flush server maintains a record of deferred mail by destination.
+/*	This information is used to improve the performance of the SMTP
+/*	\fBETRN\fR request, and of its command-line equivalent,
+/*	\fBsendmail -qR\fR.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
+/*	The record is implemented as per-destination logfiles with
+/*	as contents the queue IDs of deferred mail. The files are
+/*	append-only, and are truncated when delivery is requested
+/*	for a specific site.
+/*
+/*	Deferred mail by destination information is recorded only for
+/*	destinations that are eligible according to a configurable policy.
+/*	The policy is specified with the \fBfast_flush_cache_policy\fR
+/*	configuration parameter:
+/* .IP \fBall\fR
+/*	Maintain per-destination deferred mail logfiles for all destinations.
+/* .IP \fBrelay\fR
+/*	Maintain per-destination deferred mail logfiles only for destinations
+/*	that this system is willing to relay mail to ($\fBrelay_domains\fR).
+/* .IP \fBnone\fR
+/*	Do not maintain per-destination deferred mail logfiles.
+/* .PP
 /*	This server implements the following requests:
-/* .IP "\fBFLUSH_REQ_ENABLE\fI sitename\fR"
-/*	Enable fast flush logging for the specified site.
-/* .IP "\fBFLUSH_REQ_APPEND\fI sitename queue_id\fR"
-/*	Append \fIqueue_id\fR to the fast flush log for the
-/*	specified site.
+/* .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
+/*	Inform the cache manager that the specified message is queued for
+/*	the specified site. Depending on caching policy, the cache manager
+/*	stores or ignores the information.
 /* .IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
-/*	Arrange for the delivery of all messages that are listed in the fast
-/*	flush logfile for the specified site.  After the logfile is processed,
-/*	the file is truncated to length zero.
+/*	Request delivery of all messages that are queued for the specified
+/*	site. Depending on cache policy, this triggers delivery of specific
+/*	messages or of all queued mail. The per-destination logfile is
+/*	discarded.
 /* .IP "\fBTRIGGER_REQ_WAKEUP\fR (wakeup signal from master)"
 /* .IP "\fBFLUSH_REQ_PURGE\fR"
-/*	Pretend that \fBFLUSH_REQ_SEND\fR was received for all sites with
-/*	a non-empty "fast flush" logfile, and delete empty "fast flush"
-/*	logfiles that have not been updated in several days.  This operation
-/*	completes in the background because it can take a noticeable
-/*	amount of time.
+/*	Delete empty per-destination logfiles that haven't been updated in
+/*	$\fBfast_flush_purge_delay\fR seconds.
+/* .sp
+/*	Refresh non-empty per-destination logfiles that were not read in
+/*	$\fBfast_flush_refresh_delay\fR seconds. This is done by pretending
+/*	that send requests were received for the corresponding sites.
 /* .sp
 /*	Fast flush logfiles are truncated only after a \fBFLUSH_REQ_SEND\fR
-/*	request, not when mail is actually delivered, and therefore can 
-/*	accumulate redundant or even outdated information. In order to 
-/*	maintain sanity, \fBFLUSH_REQ_PURGE\fR must be requested occasionally.
+/*	request, not when mail is actually delivered, and therefore can
+/*	accumulate outdated or redundant data. In order to maintain sanity,
+/*	\fBFLUSH_REQ_PURGE\fR should be requested at regular imtervals.
+/* .sp
+/*	After an initial sanity check of request parameters, this request
+/*	proceeds in the background.
 /* .PP
 /*	The response to the client is one of:
 /* .IP \fBFLUSH_STAT_OK\fR
@@ -40,8 +63,8 @@
 /* .IP \fBFLUSH_STAT_BAD\fR
 /*	The flush server rejected the request (bad request name, bad
 /*	request parameter value).
-/* .IP \fBFLUSH_STAT_UNKNOWN\fR
-/*	The specified site has no fast flush log.
+/* .IP \fBFLUSH_STAT_FAIL\fR
+/*	The request failed.
 /* SECURITY
 /* .ad
 /* .fi
@@ -51,9 +74,27 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	In reality, this server schedules delivery of messages, regardless
-/*	of their destination. This limitation is due to the fact that
+/*	In reality, this server schedules delivery of all recipients
+/*	of deferred messages.  This limitation is due to the fact that
 /*	one queue runner has to handle mail for multiple destinations.
+/* FILES
+/*	/var/spool/postfix/flush, location of "fast flush" logfiles.
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	See the Postfix \fBmain.cf\fR file for syntax details and for
+/*	default values. Use the \fBpostfix reload\fR command after a
+/*	configuration change.
+/* .IP \fBfast_flush_cache_policy\fR
+/*	What destinations can have a "fast flush" logfile: \fBall\fR,
+/*	\fBrelay\fR (relay destinations) or \fBnone\fR.
+/* .IP \fBfast_flush_refresh_delay\fR
+/*	Refresh a non-empty "fast flush" logfile that was not read in
+/*	this amount of time, by simulating a send request for the
+/*	corresponding destination.
+/* .IP \fBfast_flush_purge_delay\fR
+/*	Remove an empty "fast flush" logfile that was not updated in
+/*	this amount of time.
 /* SEE ALSO
 /*	smtpd(8) Postfix SMTP server
 /*	qmgr(8) Postfix queue manager
@@ -97,9 +138,11 @@
 #include <mail_queue.h>
 #include <mail_proto.h>
 #include <mail_flush.h>
+#include <flush_clnt.h>
 #include <mail_conf.h>
 #include <mail_scan_dir.h>
 #include <maps.h>
+#include <domain_list.h>
 
 /* Single server skeleton. */
 
@@ -107,28 +150,97 @@
 
 /* Application-specific. */
 
-#define STR(x)	vstring_str(x)
+ /*
+  * Tunable parameters.
+  */
+int     var_fflush_refresh;
+int     var_fflush_purge;
+char   *var_relay_domains;
+
+ /*
+  * Flush policy stuff.
+  */
+#define FLUSH_POLICY_UNKNOWN	0
+#define FLUSH_POLICY_ALL	1
+#define FLUSH_POLICY_RELAY	2
+#define FLUSH_POLICY_NONE	3
+
+static DOMAIN_LIST *flush_domains;
+static int flush_policy = FLUSH_POLICY_UNKNOWN;
+
+ /*
+  * Some hard-wired policy: how many queue IDs we remember while we're
+  * flushing a logfile.
+  */
 #define FLUSH_DUP_FILTER_SIZE	10000	/* graceful degradation */
-#define FLUSH_MAX_UNUSED	(7 * 24 * 60 * 60)
 
-/* flush_append - append queue ID to per-site fast flush log */
+ /*
+  * Silly little macros.
+  */
 
-static int flush_append(const char *site, const char *queue_id)
+#define STR(x)			vstring_str(x)
+#define STREQ(x,y)		(strcmp(x,y) == 0)
+
+/* flush_policy_init - initialize fast flush policy stuff */
+
+static int flush_policy_init(void)
 {
-    char   *myname = "flush_append";
+
+    if (STREQ(var_fflush_policy, FFLUSH_POLICY_ALL)) {
+	flush_policy = FLUSH_POLICY_ALL;
+    } else if (STREQ(var_fflush_policy, FFLUSH_POLICY_RELAY)) {
+	flush_domains = domain_list_init(var_relay_domains);
+	flush_policy = FLUSH_POLICY_RELAY;
+    } else if (STREQ(var_fflush_policy, FFLUSH_POLICY_NONE)) {
+	flush_policy = FLUSH_POLICY_NONE;
+    } else {
+	msg_fatal("invalid %s configuration parameter value: %s",
+		  VAR_FFLUSH_POLICY, var_fflush_policy);
+    }
+}
+
+/* flush_policy_ok - check caching policy */
+
+static int flush_policy_ok(const char *site)
+{
+    if (flush_policy == FLUSH_POLICY_UNKNOWN)
+	flush_policy_init();
+
+    switch (flush_policy) {
+    case FLUSH_POLICY_ALL:
+	return (1);
+    case FLUSH_POLICY_RELAY:
+	return (domain_list_match(flush_domains, site));
+    case FLUSH_POLICY_NONE:
+	return (0);
+    default:
+	msg_panic("invalid fast flush policy %d", flush_policy);
+    }
+}
+
+/* flush_add_service - append queue ID to per-site fast flush log */
+
+static int flush_add_service(const char *site, const char *queue_id)
+{
+    char   *myname = "flush_add_service";
     VSTREAM *log;
 
     if (msg_verbose)
 	msg_info("%s: site %s queue_id %s", myname, site, queue_id);
 
     /*
-     * Open the logfile.
+     * If this site is not eligible for caching, just ignore the request.
      */
-    if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_APPEND | O_WRONLY, 0600)) == 0) {
-	if (errno != ENOENT)
-	    msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
-	return (FLUSH_STAT_UNKNOWN);
-    }
+    if (flush_policy_ok(site) == 0)
+	return (FLUSH_STAT_OK);
+
+    /*
+     * Open the logfile or bust.
+     */
+    if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site,
+			       O_CREAT | O_APPEND | O_WRONLY, 0600)) == 0)
+	msg_fatal("%s: open fast flush log for site %s: %m",
+		  myname, site);
 
     /*
      * We must lock the logfile, so that we don't lose information due to
@@ -158,11 +270,11 @@ static int flush_append(const char *site, const char *queue_id)
     return (FLUSH_STAT_OK);
 }
 
-/* flush_site - flush mail queued for site */
+/* flush_send_service - flush mail queued for site */
 
-static int flush_site(const char *site)
+static int flush_send_service(const char *site)
 {
-    char   *myname = "flush_site";
+    char   *myname = "flush_send_service";
     VSTRING *queue_id;
     VSTRING *queue_file;
     VSTREAM *log;
@@ -178,12 +290,19 @@ static int flush_site(const char *site)
 	msg_info("%s: site %s", myname, site);
 
     /*
-     * Open the logfile.
+     * If this site is not eligible for caching, deliver all queued mail.
+     */
+    if (flush_policy_ok(site) == 0)
+	return (mail_flush_deferred());
+
+    /*
+     * Open the logfile. If the file does not exist, then there is no queued
+     * mail for this destination.
      */
     if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_RDWR, 0600)) == 0) {
 	if (errno != ENOENT)
 	    msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
-	return (FLUSH_STAT_UNKNOWN);
+	return (FLUSH_STAT_OK);
     }
 
     /*
@@ -198,11 +317,10 @@ static int flush_site(const char *site)
     /*
      * This is the part that dominates running time: schedule the listed
      * queue files for delivery by updating their file time stamps. This
-     * should take no more than a couple seconds under normal conditions
-     * (sites that receive millions of messages in a day should not use fast
-     * flush service). Filter out duplicate names to avoid hammering the file
-     * system, with some finite limit on the amount of memory that we are
-     * willing to sacrifice. Graceful degradation.
+     * should take no more than a couple seconds under normal conditions.
+     * Filter out duplicate names to avoid hammering the file system, with
+     * some finite limit on the amount of memory that we are willing to
+     * sacrifice. Graceful degradation.
      */
     queue_id = vstring_alloc(10);
     queue_file = vstring_alloc(10);
@@ -228,11 +346,12 @@ static int flush_site(const char *site)
 		    msg_warn("%s: update %s time stamps: %m",
 			     myname, STR(queue_file));
 	    } else if (mail_queue_rename(STR(queue_id), MAIL_QUEUE_DEFERRED,
-					 MAIL_QUEUE_INCOMING) < 0
-		       && errno != ENOENT)
-		msg_warn("%s: rename from %s to %s: %m",
-			 STR(queue_file), MAIL_QUEUE_DEFERRED,
-			 MAIL_QUEUE_INCOMING);
+					 MAIL_QUEUE_INCOMING) < 0) {
+		if (errno != ENOENT)
+		    msg_warn("%s: rename from %s to %s: %m",
+			     STR(queue_file), MAIL_QUEUE_DEFERRED,
+			     MAIL_QUEUE_INCOMING);
+	    }
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: site %s: skip file %s as duplicate",
@@ -247,8 +366,7 @@ static int flush_site(const char *site)
      * Truncate the fast flush log.
      */
     if (count > 0 && ftruncate(vstream_fileno(log), (off_t) 0) < 0)
-	msg_fatal("%s: truncate fast flush log for site %s: %m",
-		  myname, site);
+	msg_fatal("%s: truncate fast flush log for site %s: %m", myname, site);
 
     /*
      * Request delivery and clean up.
@@ -267,34 +385,11 @@ static int flush_site(const char *site)
     return (FLUSH_STAT_OK);
 }
 
-/* flush_enable - enable fast flush logging for site */
+/* flush_purge_service - housekeeping */
 
-static int flush_enable(const char *site)
+static int flush_purge_service(void)
 {
-    char   *myname = "flush_enable";
-    VSTREAM *log;
-
-    if (msg_verbose)
-	msg_info("%s: site %s", myname, site);
-
-    /*
-     * Open or create the logfile. Multiple requests may arrive in parallel,
-     * so allow for the possibility that the file already exists.
-     */
-    if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_CREAT | O_RDWR, 0600)) == 0)
-	msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
-
-    if (vstream_fclose(log) != 0)
-	msg_warn("write fast flush log for site %s: %m", site);
-
-    return (FLUSH_STAT_OK);
-}
-
-/* flush_purge - housekeeping */
-
-static void flush_purge(void)
-{
-    char   *myname = "flush_purge";
+    char   *myname = "flush_purge_service";
     SCAN_DIR *scan;
     char   *site;
     struct stat st;
@@ -302,13 +397,14 @@ static void flush_purge(void)
 
     scan = scan_dir_open(MAIL_QUEUE_FLUSH);
     while ((site = mail_scan_dir_next(scan)) != 0) {
+	mail_queue_path(path, MAIL_QUEUE_FLUSH, site);
 	if (valid_hostname(site) == 0) {
-	    msg_warn("%s: bad fast flush logfile name: %s", myname, STR(path));
+	    msg_warn("%s: bad fast flush logfile name: %s", myname, site);
 	    if (unlink(STR(path)) < 0)
 		msg_warn("remove %s: %m", STR(path));
 	    continue;
 	}
-	if (stat(mail_queue_path(path, MAIL_QUEUE_FLUSH, site), &st) < 0) {
+	if (stat(STR(path), &st) < 0) {
 	    if (errno != ENOENT)
 		msg_warn("%s: stat %s: %m", myname, STR(path));
 	    else if (msg_verbose)
@@ -316,22 +412,28 @@ static void flush_purge(void)
 	    continue;
 	}
 	if (st.st_size == 0) {
-	    if (st.st_mtime + FLUSH_MAX_UNUSED < event_time()) {
+	    if (st.st_mtime + var_fflush_purge < event_time()) {
 		if (unlink(STR(path)) < 0)
 		    msg_warn("remove %s: %m", STR(path));
 		else if (msg_verbose)
-		    msg_info("%s: unlink %s, unused for %d days",
-			     myname, STR(path), FLUSH_MAX_UNUSED / 84600);
+		    msg_info("%s: unlink %s, empty and unchanged for %d days",
+			     myname, STR(path), var_fflush_purge / 86400);
 	    } else if (msg_verbose)
 		msg_info("%s: skip site %s - empty log", myname, site);
-	} else {
+	} else if (st.st_atime + var_fflush_refresh < event_time()) {
 	    if (msg_verbose)
 		msg_info("%s: flush site %s", myname, site);
-	    flush_site(site);
+	    flush_send_service(site);
+	} else {
+	    if (msg_verbose)
+		msg_info("%s: skip site %s, unread for <%d hours(s) ",
+			 myname, site, var_fflush_refresh / 3600);
 	}
     }
     scan_dir_close(scan);
     vstring_free(path);
+
+    return (FLUSH_STAT_OK);
 }
 
 /* flush_service - perform service for client */
@@ -340,13 +442,13 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 			          char **argv)
 {
     VSTRING *request = vstring_alloc(10);
-    VSTRING *site = vstring_alloc(10);
-    VSTRING *queue_id = vstring_alloc(10);
-    int     status = FLUSH_STAT_BAD;
+    VSTRING *site = 0;
+    VSTRING *queue_id = 0;
     static char wakeup[] = {		/* master wakeup request */
 	TRIGGER_REQ_WAKEUP,
 	0,
     };
+    int     status = FLUSH_STAT_OK;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -364,44 +466,51 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * 
      * All connection-management stuff is handled by the common code in
      * single_server.c.
-     * 
-     * Note that the purge operation only acknowledges receipt of the request
-     * and proceeds in the background. All other operations send their result
-     * status after the operation is completed.
      */
-#define STREQ(x,y) (strcmp((x), (y)) == 0)
-
     if (mail_scan(client_stream, "%s", request) == 1) {
-	if (STREQ(STR(request), FLUSH_REQ_APPEND)) {
+	if (STREQ(STR(request), FLUSH_REQ_ADD)) {
+	    site = vstring_alloc(10);
+	    queue_id = vstring_alloc(10);
 	    if (mail_scan(client_stream, "%s %s", site, queue_id) == 2
 		&& valid_hostname(STR(site))
-		&& mail_queue_id_ok(STR(queue_id)))
-		status = flush_append(STR(site), STR(queue_id));
-	    mail_print(client_stream, "%d", status);
+		&& mail_queue_id_ok(STR(queue_id))) {
+		status = flush_add_service(STR(site), STR(queue_id));
+	    }
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
+	    site = vstring_alloc(10);
 	    if (mail_scan(client_stream, "%s", site) == 1
-		&& valid_hostname(STR(site)))
-		status = flush_site(STR(site));
-	    mail_print(client_stream, "%d", status);
-	} else if (STREQ(STR(request), FLUSH_REQ_ENABLE)) {
-	    if (mail_scan(client_stream, "%s", site) == 1
-		&& valid_hostname(STR(site)))
-		status = flush_enable(STR(site));
-	    mail_print(client_stream, "%d", status);
+		&& valid_hostname(STR(site))) {
+		status = flush_send_service(STR(site));
+	    }
 	} else if (STREQ(STR(request), FLUSH_REQ_PURGE)
 		   || STREQ(STR(request), wakeup)) {
-	    mail_print(client_stream, "%d", FLUSH_STAT_OK);
-	    flush_purge();
+	    status = flush_purge_service();
 	}
     }
+    mail_print(client_stream, "%d", status);
     vstring_free(request);
-    vstring_free(site);
-    vstring_free(queue_id);
+    if (site)
+	vstring_free(site);
+    if (queue_id)
+	vstring_free(queue_id);
 }
 
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
 {
-    single_server_main(argc, argv, flush_service, 0);
+    static CONFIG_TIME_TABLE time_table[] = {
+	VAR_FFLUSH_REFRESH, DEF_FFLUSH_REFRESH, &var_fflush_refresh, 1, 0,
+	VAR_FFLUSH_PURGE, DEF_FFLUSH_PURGE, &var_fflush_purge, 1, 0,
+	0,
+    };
+    static CONFIG_STR_TABLE str_table[] = {
+	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
+	0,
+    };
+
+    single_server_main(argc, argv, flush_service,
+		       MAIL_SERVER_TIME_TABLE, time_table,
+		       MAIL_SERVER_STR_TABLE, str_table,
+		       0);
 }

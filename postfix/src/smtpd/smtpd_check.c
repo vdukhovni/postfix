@@ -27,10 +27,6 @@
 /*	char	*smtpd_check_etrn(state, destination)
 /*	SMTPD_STATE *state;
 /*	char	*destination;
-/*
-/*	int	smtpd_check_etrn_cache_policy_ok(state, destination)
-/*	SMTPD_STATE *state;
-/*	char	*destination;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -183,11 +179,6 @@
 /*	Restrictions on the hostname that is sent with the HELO/EHLO
 /*	command.
 /* .PP
-/*	smtpd_check_etrn_cache_policy_ok() returns "true" if it is OK to
-/*	create a fast ETRN cache file for the specified destination.
-/*	The default policy ($smtpd_fast_flush_domains) is that the local MTA
-/*	must be willing to relay mail to that destination.
-/*
 /*	smtpd_check_size() checks if a message with the given size can
 /*	be received (zero means that the message size is unknown).  The
 /*	message is rejected when:
@@ -328,7 +319,6 @@ static MAPS *relocated_maps;
   */
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
-static DOMAIN_LIST *fast_flush_domains;
 
  /*
   * Pre-parsed restriction lists.
@@ -454,7 +444,6 @@ void    smtpd_check_init(void)
      */
     mynetworks = namadr_list_init(var_mynetworks);
     relay_domains = domain_list_init(var_relay_domains);
-    fast_flush_domains = domain_list_init(var_fast_flush_domains);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -916,7 +905,7 @@ static int has_my_addr(char *host)
 	msg_info("%s: host %s", myname, host);
 
     /*
-     * If we can't lookup the host, say we're not listed.
+     * If we can't lookup the host, play safe and assume it is OK.
      */
 #define YUP	1
 #define NOPE	0
@@ -924,12 +913,12 @@ static int has_my_addr(char *host)
     if ((hp = gethostbyname(host)) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: host %s: not found", myname, host);
-	return (NOPE);
+	return (YUP);
     }
     if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
 	msg_warn("address type %d length %d for %s",
 		 hp->h_addrtype, hp->h_length, host);
-	return (NOPE);
+	return (YUP);
     }
     for (cpp = hp->h_addr_list; *cpp; cpp++) {
 	memcpy((char *) &addr, *cpp, sizeof(addr));
@@ -1926,41 +1915,6 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 				SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
 
     SMTPD_CHECK_ETRN_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
-}
-
-/* smtpd_check_etrn_cache_policy_ok - is it OK to create a fast ETRN cache? */
-
-int     smtpd_check_etrn_cache_policy_ok(SMTPD_STATE *unused_state, char *domain)
-{
-
-    /*
-     * Fast ETRN cache files are created on demand. Anything else would make
-     * the feature unusable.  However, it should not be possible that some
-     * network vandal abuses this feature to create lots of bogus fast ETRN
-     * cache files.
-     * 
-     * By default, Postfix accepts ETRN commands from everywhere, but will
-     * create fast ETRN cache files only for destinations that Postfix is
-     * willing to relay mail to.
-     */
-
-    /*
-     * The domain name must exist.
-     */
-    if (dns_lookup_types(domain, 0, (DNS_RR **) 0, (VSTRING *) 0,
-			 (VSTRING *) 0, T_A, T_MX, 0) != DNS_OK)
-	return (0);
-
-    /*
-     * The domain name must be an authorized relay destination.
-     */
-    if (domain_list_match(fast_flush_domains, domain) == 0)
-	return (0);
-
-    /*
-     * Must be OK then.
-     */
-    return (1);
 }
 
 /* smtpd_check_rcptmap - permit if recipient address matches lookup table */

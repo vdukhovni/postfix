@@ -40,8 +40,6 @@
 /*	opens the queue file, and acquires a shared lock.
 /*	A null result means that the client sent bad information or that
 /*	it went away unexpectedly.
-/*	If the fast flush service is enabled, deliver_request_read()
-/*	initializes the client-side fast flush duplicate filter.
 /*
 /*	The \fBflags\fR structure member is the bit-wise OR of zero or more
 /*	of the following:
@@ -101,8 +99,6 @@
 
 #include "mail_queue.h"
 #include "mail_proto.h"
-#include "mail_params.h"
-#include "mail_flush.h"
 #include "mail_open_ok.h"
 #include "recipient_list.h"
 #include "deliver_request.h"
@@ -316,16 +312,8 @@ DELIVER_REQUEST *deliver_request_read(VSTREAM *stream)
     request = deliver_request_alloc();
     if (deliver_request_get(stream, request) < 0) {
 	deliver_request_free(request);
-	return (0);
+	request = 0;
     }
-
-    /*
-     * Make sure the mail flush dupfilter sees no false positive if we're
-     * repeatedly delivering the same message.
-     */
-    if (*var_fast_flush_domains)
-	mail_flush_append_init();
-
     return (request);
 }
 

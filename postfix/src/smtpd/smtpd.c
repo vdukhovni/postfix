@@ -151,18 +151,6 @@
 /*	Limit the number of times a client can issue a junk command
 /*	such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 /*	it is penalized with tarpit delays.
-/* .SH "ETRN controls"
-/* .ad
-/* .fi
-/* .IP \fBsmtpd_etrn_restrictions\fR
-/*	Restrict what domain names can be used in \fBETRN\fR commands,
-/*	and what clients may issue \fBETRN\fR commands.
-/* .IP \fBfast_flush_domains\fR
-/*	The destinations that this system is willing to provide "fast ETRN"
-/*	service for.  By default, "fast ETRN" service is available only
-/*	for destinations that the local system is willing to relay mail to.
-/*	For other destinations, Postfix simply attempts to deliver all mail
-/*	in the queue.
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
@@ -178,6 +166,9 @@
 /*	Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 /* .IP \fBsmtpd_recipient_restrictions\fR
 /*	Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
+/* .IP \fBsmtpd_etrn_restrictions\fR
+/*	Restrict what domain names can be used in \fBETRN\fR commands,
+/*	and what clients may issue \fBETRN\fR commands.
 /* .IP \fBallow_untrusted_routing\fR
 /*	Allow untrusted clients to specify addresses with sender-specified
 /*	routing.  Enabling this opens up nasty relay loopholes involving
@@ -279,7 +270,7 @@
 #include <off_cvt.h>
 #include <debug_peer.h>
 #include <mail_error.h>
-#include <mail_flush.h>
+#include <flush_clnt.h>
 #include <mail_stream.h>
 #include <mail_queue.h>
 #include <tok822.h>
@@ -307,6 +298,7 @@
   */
 int     var_smtpd_rcpt_limit;
 int     var_smtpd_tmout;
+char   *var_relay_domains;
 int     var_smtpd_soft_erlim;
 int     var_smtpd_hard_erlim;
 int     var_queue_minfree;		/* XXX use off_t */
@@ -349,7 +341,6 @@ bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
-char   *var_fast_flush_domains;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1083,10 +1074,6 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Error: invalid parameter syntax");
 	return (-1);
     }
-    if (SMTPD_STAND_ALONE(state)) {
-	smtpd_chat_reply(state, "458 Unable to queue messages");
-	return (-1);
-    }
 
     /*
      * XXX The implementation borrows heavily from the code that implements
@@ -1094,43 +1081,22 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * rejected. RFC 1985 requires that 459 be sent when the server refuses
      * to perform the request.
      */
+    if (SMTPD_STAND_ALONE(state)) {
+	smtpd_chat_reply(state, "458 Unable to queue messages");
+	return (-1);
+    }
     if ((err = smtpd_check_etrn(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (!*var_fast_flush_domains) {
-	mail_flush_deferred();
-	smtpd_chat_reply(state, "250 Queuing started");
-	return (0);
-    }
-
-    /*
-     * Create a fast ETRN cache file on the fly for an eligible site.
-     */
-    switch (mail_flush_site(argv[1].strval)) {
-    case FLUSH_STAT_UNKNOWN:
-	if (smtpd_check_etrn_cache_policy_ok(state, argv[1].strval)) {
-	    if (mail_flush_enable(argv[1].strval) != FLUSH_STAT_OK) {
-		msg_warn("can't create fast ETRN cache for %s", argv[1].strval);
-	    } else {
-		msg_info("created fast ETRN cache for %s (client=%s)",
-			 argv[1].strval, state->namaddr);
-	    }
-	} else {
-	    msg_info("using slow ETRN service for %s (client=%s)",
-		     argv[1].strval, state->namaddr);
-	}
-	/* Fallthrough. */
-    case FLUSH_STAT_FAIL:
-	mail_flush_deferred();
-	/* Fallthrough. */
+    switch (flush_send(argv[1].strval)) {
     case FLUSH_STAT_OK:
 	smtpd_chat_reply(state, "250 Queuing started");
 	return (0);
+    case FLUSH_STAT_BAD:
+	msg_warn("bad ETRN %.100s... from %s", argv[1].strval, state->namaddr);
     default:
 	smtpd_chat_reply(state, "458 Unable to queue messages");
-	msg_warn("bad ETRN destination %.100s... from %s",
-		 argv[1].strval, state->namaddr);
 	return (-1);
     }
 }
@@ -1460,6 +1426,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
+	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
 	VAR_DEBUG_PEER_LIST, DEF_DEBUG_PEER_LIST, &var_debug_peer_list, 0, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,

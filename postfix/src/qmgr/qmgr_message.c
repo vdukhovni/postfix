@@ -580,7 +580,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * Optionally defer deliveries over specific transports, unless the
 	 * restriction is lifted temporarily.
 	 */
-	if (*var_defer_xports && (message->qflags & QMGR_SCAN_ALL) == 0) {
+	if (*var_defer_xports && (message->qflags & QMGR_FLUSH_DEAD) == 0) {
 	    if (defer_xport_argv == 0)
 		defer_xport_argv = argv_split(var_defer_xports, " \t\r\n,");
 	    for (cpp = defer_xport_argv->argv; *cpp; cpp++)

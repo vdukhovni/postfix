@@ -4300,10 +4300,12 @@ Apologies for any names omitted.
 	rid of them. To disallow, specify "strict_rfc821_envelopes
 	= yes".  File: smtpd/smtpd.c.
 
-20000926-8
+20000926-20001003
 
-	First implementation of a logfile-based fast flush server,
-	which is the basis for ETRN and "sendmail -qRsite".
+	Feature: a "flush" server that keeps per-destination records
+	of deferred mail. It is the basis of a faster ETRN and
+	"sendmail -qRsite" implementation. This code was rewritten
+	half a dozen times.
 
 20000928
 
@@ -4319,3 +4321,22 @@ Apologies for any names omitted.
 
 	Robustness? Log errors from SASL library code as warnings
 	not as fatal errors. Files: smtp*/*glue.c.
+
+20001001
+
+	Feature: in master.cf, specify ? after wakeup time to avoid
+	waking up services that aren't being used.
+
+20001003
+
+	Feature: the fast flush refresh and purge time interval
+	parameters can now be specified in seconds or in user-specified
+	units by providing an appropriate suffix:  s (seconds), m
+	(minutes), h (hours), d (days), w (weeks).  unit.  This
+	was needed so that I could test the flush server code in
+	a reasonable way.  Other time parameters will be migrated
+	as time permits.  Files:  global/mail_conf_time.c,
+	postconf/postconf.c.
+
+	Unfeature: qmgr_hog_factor is now disabled by default. It
+	was just too confusing.

@@ -4,7 +4,7 @@
 .SH NAME
 flush
 \-
-Postfix fast flush daemon
+Postfix fast flush cache manager
 .SH SYNOPSIS
 .na
 .nf
@@ -12,33 +12,56 @@ Postfix fast flush daemon
 .SH DESCRIPTION
 .ad
 .fi
-The flush server maintains so-called "fast flush" logfiles with
-information about what messages are queued for a specific site.
+The flush server maintains a record of deferred mail by destination.
+This information is used to improve the performance of the SMTP
+\fBETRN\fR request, and of its command-line equivalent,
+\fBsendmail -qR\fR.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
+The record is implemented as per-destination logfiles with
+as contents the queue IDs of deferred mail. The files are
+append-only, and are truncated when delivery is requested
+for a specific site.
+
+Deferred mail by destination information is recorded only for
+destinations that are eligible according to a configurable policy.
+The policy is specified with the \fBfast_flush_cache_policy\fR
+configuration parameter:
+.IP \fBall\fR
+Maintain per-destination deferred mail logfiles for all destinations.
+.IP \fBrelay\fR
+Maintain per-destination deferred mail logfiles only for destinations
+that this system is willing to relay mail to ($\fBrelay_domains\fR).
+.IP \fBnone\fR
+Do not maintain per-destination deferred mail logfiles.
+.PP
 This server implements the following requests:
-.IP "\fBFLUSH_REQ_ENABLE\fI sitename\fR"
-Enable fast flush logging for the specified site.
-.IP "\fBFLUSH_REQ_APPEND\fI sitename queue_id\fR"
-Append \fIqueue_id\fR to the fast flush log for the
-specified site.
+.IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
+Inform the cache manager that the specified message is queued for
+the specified site. Depending on caching policy, the cache manager
+stores or ignores the information.
 .IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
-Arrange for the delivery of all messages that are listed in the fast
-flush logfile for the specified site.  After the logfile is processed,
-the file is truncated to length zero.
+Request delivery of all messages that are queued for the specified
+site. Depending on cache policy, this triggers delivery of specific
+messages or of all queued mail. The per-destination logfile is
+discarded.
 .IP "\fBTRIGGER_REQ_WAKEUP\fR (wakeup signal from master)"
 .IP "\fBFLUSH_REQ_PURGE\fR"
-Pretend that \fBFLUSH_REQ_SEND\fR was received for all sites with
-a non-empty "fast flush" logfile, and delete empty "fast flush"
-logfiles that have not been updated in several days.  This operation
-completes in the background because it can take a noticeable
-amount of time.
+Delete empty per-destination logfiles that haven't been updated in
+$\fBfast_flush_purge_delay\fR seconds.
+.sp
+Refresh non-empty per-destination logfiles that were not read in
+$\fBfast_flush_refresh_delay\fR seconds. This is done by pretending
+that send requests were received for the corresponding sites.
 .sp
 Fast flush logfiles are truncated only after a \fBFLUSH_REQ_SEND\fR
 request, not when mail is actually delivered, and therefore can
-accumulate redundant or even outdated information. In order to
-maintain sanity, \fBFLUSH_REQ_PURGE\fR must be requested occasionally.
+accumulate outdated or redundant data. In order to maintain sanity,
+\fBFLUSH_REQ_PURGE\fR should be requested at regular imtervals.
+.sp
+After an initial sanity check of request parameters, this request
+proceeds in the background.
 .PP
 The response to the client is one of:
 .IP \fBFLUSH_STAT_OK\fR
@@ -46,8 +69,8 @@ The request completed normally.
 .IP \fBFLUSH_STAT_BAD\fR
 The flush server rejected the request (bad request name, bad
 request parameter value).
-.IP \fBFLUSH_STAT_UNKNOWN\fR
-The specified site has no fast flush log.
+.IP \fBFLUSH_STAT_FAIL\fR
+The request failed.
 .SH SECURITY
 .na
 .nf
@@ -63,9 +86,31 @@ Problems and transactions are logged to \fBsyslogd\fR(8).
 .SH BUGS
 .ad
 .fi
-In reality, this server schedules delivery of messages, regardless
-of their destination. This limitation is due to the fact that
+In reality, this server schedules delivery of all recipients
+of deferred messages.  This limitation is due to the fact that
 one queue runner has to handle mail for multiple destinations.
+.SH FILES
+.na
+.nf
+/var/spool/postfix/flush, location of "fast flush" logfiles.
+.SH CONFIGURATION PARAMETERS
+.na
+.nf
+.ad
+.fi
+See the Postfix \fBmain.cf\fR file for syntax details and for
+default values. Use the \fBpostfix reload\fR command after a
+configuration change.
+.IP \fBfast_flush_cache_policy\fR
+What destinations can have a "fast flush" logfile: \fBall\fR,
+\fBrelay\fR (relay destinations) or \fBnone\fR.
+.IP \fBfast_flush_refresh_delay\fR
+Refresh a non-empty "fast flush" logfile that was not read in
+this amount of time, by simulating a send request for the
+corresponding destination.
+.IP \fBfast_flush_purge_delay\fR
+Remove an empty "fast flush" logfile that was not updated in
+this amount of time.
 .SH SEE ALSO
 .na
 .nf

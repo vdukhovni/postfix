@@ -95,7 +95,6 @@ qmgr_active.o: ../../include/recipient_list.h
 qmgr_active.o: ../../include/bounce.h
 qmgr_active.o: ../../include/defer.h
 qmgr_active.o: ../../include/rec_type.h
-qmgr_active.o: ../../include/mail_flush.h
 qmgr_active.o: qmgr.h
 qmgr_active.o: ../../include/scan_dir.h
 qmgr_active.o: ../../include/maps.h
@@ -264,6 +263,7 @@ qmgr_scan.o: ../../include/msg.h
 qmgr_scan.o: ../../include/mymalloc.h
 qmgr_scan.o: ../../include/scan_dir.h
 qmgr_scan.o: ../../include/mail_scan_dir.h
+qmgr_scan.o: ../../include/flush_clnt.h
 qmgr_scan.o: qmgr.h
 qmgr_scan.o: ../../include/vstream.h
 qmgr_scan.o: ../../include/vbuf.h

@@ -18,6 +18,12 @@
 	print | "sed 's/[ 	][ 	]*/ /g' | sort -u >bool_table.h" 
     }
 }
+/^(static| )*CONFIG_TIME_TABLE .*\{/,/\};/ { 
+    if ($1 ~ /VAR/) {
+	print "int " substr($3,2,length($3)-2) ";" > "time_vars.h"
+	print | "sed 's/[ 	][ 	]*/ /g' | sort -u >time_table.h" 
+    }
+}
 
 # Workaround for broken gawk versions.
 

@@ -120,7 +120,7 @@ smtpd.o: ../../include/off_cvt.h
 smtpd.o: ../../include/debug_peer.h
 smtpd.o: ../../include/mail_error.h
 smtpd.o: ../../include/name_mask.h
-smtpd.o: ../../include/mail_flush.h
+smtpd.o: ../../include/flush_clnt.h
 smtpd.o: ../../include/mail_stream.h
 smtpd.o: ../../include/mail_queue.h
 smtpd.o: ../../include/tok822.h

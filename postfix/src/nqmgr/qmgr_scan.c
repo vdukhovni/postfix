@@ -67,6 +67,7 @@
 /* Global library. */
 
 #include <mail_scan_dir.h>
+#include <flush_clnt.h>
 
 /* Application-specific. */
 
@@ -99,6 +100,14 @@ static void qmgr_scan_start(QMGR_SCAN *scan_info)
      */
     if (scan_info->nflags & QMGR_FLUSH_DEAD)
 	qmgr_enable_all();
+
+    /*
+     * Optionally inform the fast flush cache manager that we're attempting
+     * to deliver all queued mail.
+     */
+    if ((scan_info->nflags & QMGR_FLUSH_DEAD)
+	&& (scan_info->nflags & QMGR_SCAN_ALL))
+	flush_purge();
 
     /*
      * Start or restart the scan.

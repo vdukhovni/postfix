@@ -115,8 +115,7 @@
 
 #include "mail_queue.h"
 #include "mail_proto.h"
-#include "mail_params.h"
-#include "mail_flush.h"
+#include "flush_clnt.h"
 #include "bounce.h"
 #include "defer.h"
 
@@ -155,12 +154,11 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
     vstring_free(why);
 
     /*
-     * Notify the fast flush service.
+     * Notify the fast flush service. XXX Should not this belong in the
+     * bounce/defer daemon? Well, doing it here is more robust.
      */
-    if (*var_fast_flush_domains
-	&& (rcpt_domain = strrchr(recipient, '@')) != 0
-	&& *++rcpt_domain != 0)
-	mail_flush_append(rcpt_domain, id);
+    if ((rcpt_domain = strrchr(recipient, '@')) != 0 && *++rcpt_domain != 0)
+	flush_add(rcpt_domain, id);
 
     return (-1);
 }

@@ -490,7 +490,7 @@ extern int var_min_delivery_slots;
 extern int var_qmgr_fudge;
 
 #define VAR_QMGR_HOG		"qmgr_site_hog_factor"
-#define DEF_QMGR_HOG		90
+#define DEF_QMGR_HOG		100
 extern int var_qmgr_hog;
 
  /*
@@ -1067,9 +1067,21 @@ extern char *var_filter_xport;
  /*
   * Fast flush service support.
   */
-#define VAR_FFLUSH_DOMAINS		"fast_flush_domains"
-#define DEF_FFLUSH_DOMAINS		"$relay_domains"
-extern char *var_fast_flush_domains;
+#define VAR_FFLUSH_POLICY		"fast_flush_policy"
+#define DEF_FFLUSH_POLICY		FFLUSH_POLICY_RELAY
+extern char *var_fflush_policy;
+
+#define FFLUSH_POLICY_ALL		"all"
+#define FFLUSH_POLICY_RELAY		"relay"
+#define FFLUSH_POLICY_NONE		"none"
+
+#define VAR_FFLUSH_PURGE		"fast_flush_purge_delay"
+#define DEF_FFLUSH_PURGE		"7d"
+extern int var_fflush_purge;
+
+#define VAR_FFLUSH_REFRESH		"fast_flush_refresh_delay"
+#define DEF_FFLUSH_REFRESH		"12h"
+extern int var_fflush_refresh;
 
 /* LICENSE
 /* .ad
