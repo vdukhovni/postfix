@@ -218,19 +218,18 @@ In order to install or upgrade Postfix:
   NB: this group was optional with older Postfix releases; it is
   now required.
 
-- Run the INSTALL.sh script as the super-user:
+- Run one of the following commands as the super-user:
 
     # make install       (interactive version, first time install)
     # make upgrade       (non-interactive version, for upgrades)
 
-  The non-interactive version needs the /etc/postfix/install.cf
-  file from a previous installation. If the file does not exist,
-  use interactive installation instead.
+  The non-interactive version needs the /etc/postfix/main.cf file
+  from a previous installation. If the file does not exist, use
+  interactive installation instead.
 
-  The INSTALL.sh script offers suggestions for pathnames that you
-  can override, either by editing INSTALL.sh or by specifying your
-  preferences interactively. INSTALL.sh stores your preferences in
-  /etc/postfix/install.cf in order to ease future installs.
+  The interactive version offers suggestions for pathnames that
+  you can override interactively, and stores your preferences in
+  /etc/postfix/main.cf for convenient future upgrades.
 
 - Proceed to the section on how you wish to run Postfix on your
   particular machine:

@@ -228,8 +228,8 @@ static const char *check_myhostname(void)
     if ((dot = strchr(name, '.')) == 0) {
 	if ((domain = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0)
 	    msg_warn("My hostname %s is not a fully qualified name - set %s or %s in %s/%s",
-		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN, 
-		var_config_dir, MAIN_CONF_FILE);
+		     name, VAR_MYHOSTNAME, VAR_MYDOMAIN,
+		     var_config_dir, MAIN_CONF_FILE);
 	else
 	    name = concatenate(name, ".", domain, (char *) 0);
     }
@@ -258,14 +258,17 @@ static void check_default_privs(void)
     struct passwd *pwd;
 
     if ((pwd = getpwnam(var_default_privs)) == 0)
-	msg_fatal("%s:%s: unknown user name value: %s",
-		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, var_default_privs);
+	msg_fatal("file %s/%s: parameter %s: unknown user name value: %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, var_default_privs);
     if ((var_default_uid = pwd->pw_uid) == 0)
-	msg_fatal("%s:%s: privileged user is not allowed: %s",
-		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, var_default_privs);
+	msg_fatal("file %s/%s: parameter %s: user %s has privileged user ID",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, var_default_privs);
     if ((var_default_gid = pwd->pw_gid) == 0)
-	msg_fatal("%s:%s: privileged group is not allowed: %s",
-		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, var_default_privs);
+	msg_fatal("file %s/%s: parameter %s: user %s has privileged group ID",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, var_default_privs);
 }
 
 /* check_mail_owner - lookup owner user attributes and validate */
@@ -275,14 +278,17 @@ static void check_mail_owner(void)
     struct passwd *pwd;
 
     if ((pwd = getpwnam(var_mail_owner)) == 0)
-	msg_fatal("%s:%s: unknown user name value: %s",
-		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner);
+	msg_fatal("file %s/%s: parameter %s: unknown user name value: %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MAIL_OWNER, var_mail_owner);
     if ((var_owner_uid = pwd->pw_uid) == 0)
-	msg_fatal("%s:%s: privileged user is not allowed: %s",
-		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner);
+	msg_fatal("file %s/%s: parameter %s: user %s has privileged user ID",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MAIL_OWNER, var_mail_owner);
     if ((var_owner_gid = pwd->pw_gid) == 0)
-	msg_fatal("%s:%s: privileged group is not allowed: %s",
-		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner);
+	msg_fatal("file %s/%s: parameter %s: user %s has privileged group ID",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MAIL_OWNER, var_mail_owner);
 
     /*
      * This detects only some forms of sharing. Enumerating the entire
@@ -292,8 +298,9 @@ static void check_mail_owner(void)
      */
     if ((pwd = getpwuid(var_owner_uid)) != 0
 	&& strcmp(pwd->pw_name, var_mail_owner) != 0)
-	msg_fatal("%s:%s: %s is sharing the user ID with %s",
-		  MAIN_CONF_FILE, VAR_MAIL_OWNER, var_mail_owner, pwd->pw_name);
+	msg_fatal("file %s/%s: parameter %s: user %s has same user ID as %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MAIL_OWNER, var_mail_owner, pwd->pw_name);
 }
 
 /* check_sgid_group - lookup setgid group attributes and validate */
@@ -303,11 +310,13 @@ static void check_sgid_group(void)
     struct group *grp;
 
     if ((grp = getgrnam(var_sgid_group)) == 0)
-	msg_fatal("%s:%s: unknown group name: %s",
-		  MAIN_CONF_FILE, VAR_SGID_GROUP, var_sgid_group);
+	msg_fatal("file %s/%s: parameter %s: unknown group name: %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_SGID_GROUP, var_sgid_group);
     if ((var_sgid_gid = grp->gr_gid) == 0)
-	msg_fatal("%s:%s: privileged group is not allowed: %s",
-		  MAIN_CONF_FILE, VAR_SGID_GROUP, var_sgid_group);
+	msg_fatal("file %s/%s: parameter %s: group %s has privileged group ID",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_SGID_GROUP, var_sgid_group);
 
     /*
      * This detects only some forms of sharing. Enumerating the entire group
@@ -316,8 +325,44 @@ static void check_sgid_group(void)
      */
     if ((grp = getgrgid(var_sgid_gid)) != 0
 	&& strcmp(grp->gr_name, var_sgid_group) != 0)
-	msg_fatal("%s:%s: group %s is sharing the group ID with %s",
-		  MAIN_CONF_FILE, VAR_SGID_GROUP, var_sgid_group, grp->gr_name);
+	msg_fatal("file %s/%s: parameter %s: group %s has same group ID as %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_SGID_GROUP, var_sgid_group, grp->gr_name);
+}
+
+/* check_overlap - disallow UID or GID sharing */
+
+static void check_overlap(void)
+{
+    if (strcmp(var_default_privs, var_mail_owner) == 0)
+	msg_fatal("file %s/%s: parameters %s and %s specify the same user %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER,
+		  var_default_privs);
+    if (var_default_uid == var_owner_uid)
+	msg_fatal("file %s/%s: parameters %s and %s: users %s and %s have the same user ID: %ld",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER,
+		  var_default_privs, var_mail_owner,
+		  (long) var_owner_uid);
+    if (var_default_gid == var_owner_gid)
+	msg_fatal("file %s/%s: parameters %s and %s: users %s and %s have the same group ID: %ld",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER,
+		  var_default_privs, var_mail_owner,
+		  (long) var_owner_gid);
+    if (var_default_gid == var_sgid_gid)
+	msg_fatal("file %s/%s: parameters %s and %s: user %s and group %s have the same group ID: %ld",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_DEFAULT_PRIVS, VAR_SGID_GROUP,
+		  var_default_privs, var_sgid_group,
+		  (long) var_sgid_gid);
+    if (var_owner_gid == var_sgid_gid)
+	msg_fatal("file %s/%s: parameters %s and %s: user %s and group %s have the same group ID: %ld",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MAIL_OWNER, VAR_SGID_GROUP,
+		  var_mail_owner, var_sgid_group,
+		  (long) var_sgid_gid);
 }
 
 /* mail_params_init - configure built-in parameters */
@@ -410,7 +455,8 @@ void    mail_params_init()
     get_mail_conf_str_table(first_str_defaults);
 
     if (!msg_syslog_facility(var_syslog_facility))
-	msg_fatal("unknown %s configuration parameter value: %s",
+	msg_fatal("file %s/%s: parameter %s: unrecognized value: %s",
+		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_SYSLOG_FACILITY, var_syslog_facility);
 
     /*
@@ -419,10 +465,14 @@ void    mail_params_init()
      * the domain.
      */
     get_mail_conf_str_fn_table(function_str_defaults);
-    if (!valid_hostname(var_myhostname, DO_GRIPE)
-	|| !valid_hostname(var_mydomain, DO_GRIPE))
-	msg_fatal("main.cf configuration error: bad %s or %s parameter value",
-		  VAR_MYHOSTNAME, VAR_MYDOMAIN);
+    if (!valid_hostname(var_myhostname, DO_GRIPE))
+	msg_fatal("file %s/%s: parameter %s: bad parameter value: %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MYHOSTNAME, var_myhostname);
+    if (!valid_hostname(var_mydomain, DO_GRIPE))
+	msg_fatal("file %s/%s: parameter %s: bad parameter value: %s",
+		  var_config_dir, MAIN_CONF_FILE,
+		  VAR_MYDOMAIN, var_mydomain);
 
     /*
      * Variables that are needed by almost every program.
@@ -434,22 +484,7 @@ void    mail_params_init()
     check_default_privs();
     check_mail_owner();
     check_sgid_group();
-
-    /*
-     * Discourage UID or GID sharing.
-     */
-    if (var_default_uid == var_owner_uid)
-	msg_fatal("%s: %s and %s must not have the same user ID",
-		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER);
-    if (var_default_gid == var_owner_gid)
-	msg_fatal("%s: %s and %s must not have the same group ID",
-		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, VAR_MAIL_OWNER);
-    if (var_default_gid == var_sgid_gid)
-	msg_fatal("%s: %s and %s must not have the same group ID",
-		  MAIN_CONF_FILE, VAR_DEFAULT_PRIVS, VAR_SGID_GROUP);
-    if (var_owner_gid == var_sgid_gid)
-	msg_fatal("%s: %s and %s must not have the same group ID",
-		  MAIN_CONF_FILE, VAR_MAIL_OWNER, VAR_SGID_GROUP);
+    check_overlap();
 
     /*
      * Variables whose defaults are determined at runtime, after other
@@ -488,6 +523,7 @@ void    mail_params_init()
      * One more sanity check.
      */
     if ((cp = verp_delims_verify(var_verp_delims)) != 0)
-	msg_fatal("%s or %s configuration problem: %s",
+	msg_fatal("file %s/%s: parameters %s and %s: %s",
+		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_VERP_DELIMS, VAR_VERP_FILTER, cp);
 }

@@ -1,9 +1,11 @@
 #!/bin/sh
 
-# Sample Postfix installation script. Run this from the top-level
-# Postfix source directory.
+# Postfix installation script. Run from the top-level Postfix source directory.
 #
-# Usage: sh INSTALL.sh [-upgrade] name=value ...
+# Usage: sh INSTALL.sh [-non-interactive] name=value ...
+#
+# Non-interective mode uses settings from /etc/postfix/main.cf (or
+# from /etc/postfix/install.cf when upgrading from a < 2002 release).
 
 PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc:/usr/contrib/bin:/usr/gnu/bin:/usr/ucb:/usr/bsd
 umask 022
@@ -13,20 +15,21 @@ umask 022
 for arg
 do
     case $arg in
-       *=*) IFS= eval $arg;;
-"-upgrade") upgrade=1;;
-         *) echo Error: usage: $0 [-upgrade] name=value ... 1>&2; exit 1;;
+             *=*) IFS= eval $arg;;
+-non-interactive) non_interactive=1;;
+               *) echo Error: usage: $0 [-non-interactive] name=value ... 1>&2
+		  exit 1;;
     esac
 done
 
 # Discourage old habits.
 
-test -z "$upgrade" -a ! -t 0 && {
-    echo Error: for non-interactive installation, run: \"$0 -upgrade\" 1>&2
+test -z "$non_interactive" -a ! -t 0 && {
+    echo Error: for non-interactive installation, run: \"$0 -non-interactive\" 1>&2
     exit 1
 }
 
-test -z "$upgrade" && cat <<EOF
+test -z "$non_interactive" && cat <<EOF
 
 Warning: this script replaces existing sendmail or Postfix programs.
 Make backups if you want to be able to recover.
@@ -153,7 +156,7 @@ pages."
 
 # Find out the location of configuration files.
 
-test -z "$upgrade" && for name in install_root tempdir config_directory
+test -z "$non_interactive" && for name in install_root tempdir config_directory
 do
     while :
     do
@@ -183,9 +186,9 @@ CONFIG_DIRECTORY=$install_root$config_directory
 
 if [ -f $CONFIG_DIRECTORY/main.cf ]
 then
-    conf=$CONFIG_DIRECTORY
+    conf="-c $CONFIG_DIRECTORY"
 else
-    conf=conf
+    conf="-d"
 fi
 
 # Do not destroy parameter settings from environment or command line.
@@ -193,20 +196,20 @@ fi
 for name in daemon_directory command_directory queue_directory mail_owner \
     setgid_group sendmail_path newaliases_path mailq_path manpage_path
 do
-    eval : \${$name=\`bin/postconf -c $conf -h $name\`} || kill $$
+    eval : \${$name=\`bin/postconf $conf -h $name\`} || kill $$
 done
 
 # Grandfathering: if not in main.cf, get defaults from obsolete install.cf file.
 
-grep setgid_group $CONFIG_DIRECTORY/main.cf 2>&1 >/dev/null || {
+grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
     if [ -f $CONFIG_DIRECTORY/install.cf ]
     then
 	. $CONFIG_DIRECTORY/install.cf
 	setgid_group=${setgid-$setgid_group}
 	manpage_path=${manpages-$manpage_path}
-    elif [ ! -t 0 -a -z "$install_root" ]
+    elif [ -n "$non_interactive" ]
     then
-	echo \"make upgrade\" requires the $CONFIG_DIRECTORY/main.cf 1>&2
+	echo Error: \"make upgrade\" requires the $CONFIG_DIRECTORY/main.cf 1>&2
 	echo file from a sufficiently recent Postfix installation. 1>&2
 	echo 1>&2
 	echo Use \"make install\" instead. 1>&2
@@ -216,7 +219,7 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf 2>&1 >/dev/null || {
 
 # Override default settings.
 
-test -z "$upgrade" && for name in daemon_directory command_directory \
+test -z "$non_interactive" && for name in daemon_directory command_directory \
     queue_directory sendmail_path newaliases_path mailq_path mail_owner \
     setgid_group manpage_path
 do
@@ -328,9 +331,10 @@ then
 	compare_or_replace a+r,go-w conf/$file $CONFIG_DIRECTORY/$file || exit 1
     done
 else
-    cp `censored_ls conf/*` $CONFIG_DIRECTORY || exit 1
-    chmod a+r,go-w $CONFIG_DIRECTORY/* || exit 1
-
+    for file in `cd conf; censored_ls * | grep -v postfix-script`
+    do
+	compare_or_replace a+r,go-w conf/$file $CONFIG_DIRECTORY/$file || exit 1
+    done
     test -z "$install_root" && need_config=1
 fi
 

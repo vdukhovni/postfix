@@ -5881,9 +5881,9 @@ Apologies for any names omitted.
 20020101
 
 	Security: new alternate_config_directories parameter that
-	lists directories that a set-gid command will accept as
-	its configuration directory. The list must be specified in
-	the default main.cf file. File: global/mail_conf.c.
+	specifies what directories a set-gid command will accept
+	as its configuration directory. The list must be specified
+	in the default main.cf file. File: global/mail_conf.c.
 
 	Cleanup: "sendmail -qRsite" is no longer implemented by
 	connecting to the SMTP port. It is now implemented by
@@ -5891,13 +5891,13 @@ Apologies for any names omitted.
 
 20020203
 
-	Cleanup: all installation information is maintained by the
-	main.cf file. The install.cf file is used only when upgrading
-	from an older Postfix release.
+	Cleanup: INSTALL.sh now records all installation information
+	in the main.cf file. The now obsolete install.cf file is
+	used only when upgrading from an older Postfix release.
 
-	Cleanup: INSTALL.sh now takes non-default settings on the
-	command line, and has a "-upgrade" command line option to
-	turn on non-interactive installation.
+	Cleanup: INSTALL.sh now takes name=value settings on the
+	command line, and has a new "-upgrade" command line option
+	to turn on non-interactive installation.
 
 	Security: additional run-time checks to discourage sharing
 	of Postfix user/group ID values with other accounts.

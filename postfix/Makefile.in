@@ -29,7 +29,7 @@ install: update
 	sh INSTALL.sh
 
 upgrade: update
-	sh INSTALL.sh -upgrade
+	sh INSTALL.sh -non-interactive
 
 depend clean:
 	set -e; for i in $(DIRS); do \

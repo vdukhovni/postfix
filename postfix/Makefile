@@ -15,7 +15,7 @@ update depend printfck clean tidy depend_update: Makefiles
 	$(MAKE) MAKELEVEL= $@
 
 install:
-	@echo Please review the 0README instructions first.
+	@echo Please review the INSTALL instructions first.
 
 makefiles Makefiles:
 	$(MAKE) -f Makefile.in MAKELEVEL= Makefiles

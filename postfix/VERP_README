@@ -27,13 +27,13 @@ delimiter characters Postfix uses when VERP style delivery is
 requested but no explicit delimiters are specified.
 
 - verp_delimiter_filter (default: -+=) controls what characters
-Postfix accepts as VERP delimiter characters. Many characters can
-not be used as VERP delimiter characters, either because they
-already have a special meaning in email addresses (such as the @
-or the %), because they appear as part of a username or domain name
-(such as alphanumerics), or because they are non-ASCII or control
-characters. And who knows, some characters may tickle bugs in
-vulnerable software.
+Postfix accepts as VERP delimiter characters on the sendmail command
+line and in SMTP commands. Many characters must not be used as VERP
+delimiter characters, either because they already have a special
+meaning in email addresses (such as the @ or the %), because they
+are used as part of a username or domain name (such as alphanumerics),
+or because they are non-ASCII or control characters.  And who knows,
+some characters may tickle bugs in vulnerable software.
 
 Using VERP with majordomo etc. mailing lists
 ============================================
@@ -125,8 +125,7 @@ VERP support in the Postfix QMQP server
 When the Postfix QMQP server receives mail with an envelope sender
 address of the form:
 
-    prefix-@origin-@[]
+    listname-@your.domain-@[]
 
-Postfix generates VERP sender addresses using prefix@domain as the
-original sender address, and using "-=" as the VERP delimiters,
-because qmail/ezmlm expect this.
+Postfix generates sender addresses listname-user=domain@your.domain,
+using "-=" as the VERP delimiters because qmail/ezmlm expect this.
