@@ -218,6 +218,15 @@ check)
 		    $WARN not owned by $mail_owner: $dir)
 	done
 
+	for dir in bin etc lib sbin usr
+	do
+		test -d $dir && find $dir -type f -print | while read path
+		do
+			cmp -s $path /$path || 
+			    $WARN $queue_directory/$path and /$path differ
+		done
+	done
+
 	$command_directory/postsuper || exit 1
 
 	find corrupt -type f -exec $WARN damaged message: {} \;

@@ -3298,7 +3298,7 @@ Apologies for any names omitted.
 
 	Bugfix: the local delivery agent's recipient duplicate
 	filter did not work when configured to use unlimited memory
-	(which is not a recommended setting). Patrik Rak @ein.cz.
+	(which is not a recommended setting). Patrik Rak @raxoft.cz.
 
 19991125
 
@@ -3322,7 +3322,7 @@ Apologies for any names omitted.
 	now frees in-memory recipients as soon as a message is
 	delivered to one destination, rather than waiting until
 	all in-memory destinations of that message have been tried.
-	Patch by Patrik Rak @ ein.cz.  Files: qmgr/qmgr_entry.c,
+	Patch by Patrik Rak @ raxoft.cz.  Files: qmgr/qmgr_entry.c,
 	qmgr/qmgr_message.c.
 
 	Performance: when delivering mail to a huge list of
@@ -3346,7 +3346,7 @@ Apologies for any names omitted.
 	Bugfix: the local delivery agent would deliver to the user
 	instead of the .forward file when the .forward file was
 	already visited via some non-recursive path. Patch by Patrik
-	Rak @ ein.cz. Files: global/been_here.c, local/dotforward.c.
+	Rak @ raxoft.cz. Files: global/been_here.c, local/dotforward.c.
 
 	Robustness: attempt to deliver all addresses in the expansion
 	of an alias or .forward file, even when some addresses must
@@ -3381,8 +3381,8 @@ Apologies for any names omitted.
 19991216
 
 	Feature: allow an empty inet_interfaces parameter, just
-	like an empty mydestination parameter. It's needed for a
-	true null client that delivers no mail locally at all.
+	like an empty mydestination parameter. It's needed for true
+	null clients and for firewalls that deliver no local mail.
 
 	Feature: "disable_vrfy_command = yes" disables some forms
 	of address harvesting used by spammers.
@@ -3409,4 +3409,21 @@ Apologies for any names omitted.
 	Feature: the sendmail -f option now understands '<user>'
 	and even understands address forms with RFC 822-style
 	comments.
-	
+
+19991217
+
+	Cleanup: no more UCE checks for VRFY commands.
+
+19991218
+
+	Cleanup: INSTALL.sh produces relative symlinks, which is
+	necessary when install_root is not /.
+
+19991219
+
+	Documentation: completely reorganized the FAQ and added
+	many new entries.
+
+	Cleanup: INSTALL.sh uses a configurable directory for
+	scratch files, so that it can install from a file system
+	that is not writable by the super-user.

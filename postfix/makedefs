@@ -85,12 +85,7 @@ case "$SYSTEM.$RELEASE" in
 		;;
    BSD/OS.4*)	SYSTYPE=BSDI4
 		;;
-   OSF1.V3.*)	SYSTYPE=OSF1
-		# Use the native compiler by default
-		: ${CC=cc}
-		: ${DEBUG="-g3"}
-		;;
-   OSF1.V4.*)	SYSTYPE=OSF1
+ OSF1.V[3-5].*)	SYSTYPE=OSF1
 		# Use the native compiler by default
 		: ${CC=cc}
 		: ${DEBUG="-g3"}

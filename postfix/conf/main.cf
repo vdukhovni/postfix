@@ -256,6 +256,10 @@ mail_owner = postfix
 # the recipient with proper HOME, SHELL and LOGNAME environment settings.
 # Exception:  delivery for root is done as $default_user.
 #
+# IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE WITH, E.G., PROCMAIL,
+# YOU MUST SET UP AN ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL
+# USER.
+#
 # Other environment variables of interest: USER (recipient username),
 # EXTENSION (address extension), DOMAIN (domain part of address),
 # and LOCAL (the address localpart).

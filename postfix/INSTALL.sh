@@ -20,6 +20,8 @@ Before installing files, this script prompts you for some definitions.
 Most definitions will be remembered, so you have to specify them
 only once. All definitions have a reasonable default value.
 
+    tempdir - where to write scratch files
+
     install_root - prefix for installed file names (for package building)
 
     config_directory - directory with Postfix configuration files.
@@ -39,24 +41,40 @@ only once. All definitions have a reasonable default value.
 EOF
 
 # By now, shells must have functions. Ultrix users must use sh5 or lose.
-
-# Apparently, some broken LINUX file utilities won't move symlinks across
-# file systems. Upgrade to a better system. Don't waste my time.
+# The following shell functions replace files/symlinks while minimizing
+# the time that a file does not exist, and avoid copying over programs
+# in order to not disturb running programs.
 
 compare_or_replace() {
     cmp $2 $3 >/dev/null 2>&1 || {
-	rm -f junk || exit 1
-	cp $2 junk || exit 1
-	mv -f junk $3 || exit 1
+	rm -f $tempdir/junk || exit 1
+	cp $2 $tempdir/junk || exit 1
+	chmod $1 $tempdir/junk || exit 1
+	mv -f $tempdir/junk $3 || exit 1
 	chmod $1 $3 || exit 1
     }
 }
 
 compare_or_symlink() {
     cmp $1 $2 >/dev/null 2>&1 || {
-	rm -f junk || exit 1
-	ln -s $1 junk || exit 1
-	mv -f junk $2 || exit 1
+	rm -f $tempdir/junk || exit 1
+	target=`echo $1 | sed '
+	    s;^'$install_root';;
+	    s;//;/;g
+	    s;/\./;/;g
+	    s;^/*;;
+	    H
+	    s;/[^/]*$;/;
+	    s;[^/]*/;../;g
+	    G
+	    s/\n//
+	'`
+	ln -s $target $tempdir/junk || exit 1
+	mv -f $tempdir/junk $2 || { 
+	    echo Error: your mv command is unable to rename symlinks. 1>&2
+	    echo If you run Linux, upgrade to GNU fileutils-4.0 or better. 1>&2
+	    exit 1
+	}
     }
 }
 
@@ -74,8 +92,9 @@ case `echo -n` in
  *) n=; c='\c';;
 esac
 
-# Default settings. These are clobbered by remembered settings.
+# Default settings. Most are clobbered by remembered settings.
 
+tempdir=`pwd`
 install_root=/
 config_directory=/etc/postfix
 daemon_directory=/usr/libexec/postfix
@@ -90,7 +109,7 @@ manpages=/usr/local/man
 
 # Find out the location of configuration files.
 
-for name in install_root config_directory
+for name in tempdir install_root config_directory
 do
     while :
     do
@@ -105,11 +124,11 @@ done
 
 # Sanity checks
 
-for path in $install_root $config_directory
+for path in $tempdir $install_root $config_directory
 do
    case $path in
    /*) ;;
-    *) echo "$path should be an absolute path name" 1>&2; exit 1;;
+    *) echo Error: $path should be an absolute path name. 1>&2; exit 1;;
    esac
 done
 
@@ -157,29 +176,39 @@ do
    case $path in
    /*) ;;
    no) ;;
-    *) echo "$path should be an absolute path name" 1>&2; exit 1;;
+    *) echo Error: $path should be an absolute path name. 1>&2; exit 1;;
    esac
 done
 
-rm -f junk || exit 1
-touch junk
+test -d $tempdir || mkdir -p $tempdir || exit 1
 
-chown "$mail_owner" junk >/dev/null 2>&1 || {
-    echo "Error: $mail_owner needs an entry in the passwd file" 1>&2
-    echo "Remember, $mail_owner must have a dedicated user id and group id." 1>&2
+( rm -f $tempdir/junk && touch $tempdir/junk ) || {
+    echo Error: you have no write permission to $tempdir. 1>&2
+    echo Specify an alternative directory for scratch files. 1>&2
+    exit 1
+}
+
+chown root $tempdir/junk >/dev/null 2>&1 || {
+    echo Error: you have no permission to change file ownership. 1>&2
+    exit 1
+}
+
+chown "$mail_owner" $tempdir/junk >/dev/null 2>&1 || {
+    echo Error: $mail_owner needs an entry in the passwd file. 1>&2
+    echo Remember, $mail_owner must have a dedicated user id and group id. 1>&2
     exit 1
 }
 
 case $setgid in
 no) ;;
- *) chgrp "$setgid" junk >/dev/null 2>&1 || {
-        echo "Error: $setgid needs an entry in the group file" 1>&2
-        echo "Remember, $setgid must have a dedicated group id." 1>&2
+ *) chgrp "$setgid" $tempdir/junk >/dev/null 2>&1 || {
+        echo Error: $setgid needs an entry in the group file. 1>&2
+        echo Remember, $setgid must have a dedicated group id. 1>&2
         exit 1
     }
 esac
 
-rm -f junk
+rm -f $tempdir/junk
 
 # Avoid clumsiness.
 
@@ -217,8 +246,8 @@ done
 
 test -f bin/sendmail && {
     compare_or_replace a+x,go-w bin/sendmail $SENDMAIL_PATH || exit 1
-    compare_or_symlink $sendmail_path $NEWALIASES_PATH
-    compare_or_symlink $sendmail_path $MAILQ_PATH
+    compare_or_symlink $SENDMAIL_PATH $NEWALIASES_PATH
+    compare_or_symlink $SENDMAIL_PATH $MAILQ_PATH
 }
 
 compare_or_replace a+r,go-w conf/LICENSE $CONFIG_DIRECTORY/LICENSE || exit 1
@@ -250,9 +279,9 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
 for name in sendmail_path newaliases_path mailq_path setgid manpages
 do
     eval echo $name=\$$name
-done) >junk || exit 1
-compare_or_move a+x,go-w junk $CONFIG_DIRECTORY/install.cf || exit 1
-rm -f junk
+done) >$tempdir/junk || exit 1
+compare_or_move a+x,go-w $tempdir/junk $CONFIG_DIRECTORY/install.cf || exit 1
+rm -f $tempdir/junk
 
 # Use set-gid privileges instead of writable maildrop (optional).
 

@@ -962,16 +962,11 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    if (SMTPD_STAND_ALONE(state) == 0
-	&& (err = smtpd_check_rcpt(state, argv[1].strval)) != 0) {
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
-    }
     if ((err = smtpd_check_rcptmap(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
-    smtpd_chat_reply(state, "250 <%s>", argv[1].strval);
+    smtpd_chat_reply(state, "252 <%s>", argv[1].strval);
     return (0);
 }
 

@@ -1,4 +1,4 @@
-Incompatible changes with snapshot 19991216
+Incompatible changes with snapshot 19991219
 ===========================================
 
 - The experimental permit_recipient_map feature is gone. It was
@@ -27,8 +27,13 @@ parent domain of a transport map entry, you must now add a
 corresponding "domain.name local:" entry in your transport_maps.
 See the html/faq.html sections for firewalls and intranets.
 
-Major changes with snapshot 19991216
+Major changes with snapshot 19991219
 ====================================
+
+- Overhauled FAQ (html/faq.html) with many more examples.
+
+- Several little improvements to the installation procedure:
+relative symlinks, configurable directory for scratch files.
 
 - Updated LDAP client code (John Hensley).
 
