@@ -13897,3 +13897,7 @@ Apologies for any names omitted.
 	Bugfix: the proxymap client didn't properly propagate the
 	postmap (postalias) -r and -w options to the proxymap server.
 	File: util/dict.h.
+
+	Workaround: force synchronous updates in the proxymap server
+	so that maps will be in a consistent state between updates.
+	File: proxymap/proxymap.c.

@@ -58,7 +58,8 @@
 /*	as with the \fBopen\fR request.
 /* .sp
 /*	To implement single-updater maps, specify a process limit
-/*	of 1 in the master.cf file entry for the proxywrite service.
+/*	of 1 in the master.cf file entry for the \fBproxywrite\fR
+/*	service.
 /* .sp
 /*	This request is supported in Postfix 2.5 and later.
 /* .PP
@@ -302,8 +303,6 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 			 request_flags);
     if (dict == 0)
 	msg_panic("proxy_map_find: dict_open null result");
-    if (proxy_writer)
-	dict->flags |= DICT_FLAG_SYNC_UPDATE;
     dict_register(STR(map_type_name_flags), dict);
     return (dict);
 }
@@ -361,6 +360,12 @@ static void proxymap_update_service(VSTREAM *client_stream)
 
     /*
      * Process the request.
+     * 
+     * XXX We don't close maps, so we must turn on synchronous update to ensure
+     * that the on-disk data is in a consistent state between updates.
+     * 
+     * XXX We ignore duplicates, because the proxymap server would abort
+     * otherwise.
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
@@ -378,7 +383,8 @@ static void proxymap_update_service(VSTREAM *client_stream)
 	 /* void */ ;
     } else {
 	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
-		       | (request_flags & DICT_FLAG_RQST_MASK));
+		       | (request_flags & DICT_FLAG_RQST_MASK)
+		       | DICT_FLAG_SYNC_UPDATE | DICT_FLAG_DUP_REPLACE);
 	dict_put(dict, STR(request_key), STR(request_value));
 	reply_status = PROXY_STAT_OK;
     }

@@ -532,10 +532,12 @@ ination<br> logs </td> </tr>
 
 </table>
 
-<li> <p> The proxymap(8) servers provide read-only table lookup
+<li> <p> The proxymap(8) servers provide read-only and read-write
+table lookup
 service to Postfix processes. This overcomes chroot restrictions,
-and reduces the number of open lookup tables by sharing one open
-table among multiple processes. </p>
+reduces the number of open lookup tables by sharing one open
+table among multiple processes, and implements single-updater
+tables. </p>
 
 <li> <p> The scache(8) server maintains the connection cache for
 the Postfix smtp(8) client. When connection caching is enabled for
