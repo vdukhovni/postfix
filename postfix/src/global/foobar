@@ -1,0 +1,32 @@
+Delivered-To: wietse@porcupine.watson.ibm.com
+Received: from mailhub.watson.ibm.com (mailhub.watson.ibm.com [9.2.250.97])
+	by porcupine.watson.ibm.com (Postfix) with ESMTP for <wietse@porcupine.watson.ibm.com>
+	id 2F0FC188CE; Tue, 12 Jan 1999 15:08:46 -0500 (EST)
+Received: from wzv.watson.ibm.com (wzv.watson.ibm.com [9.2.84.53]) by mailhub.watson.ibm.com (8.8.7/Feb-20-98) with ESMTP id PAA07748 for <wietse@porcupine.watson.ibm.com>; Tue, 12 Jan 1999 15:08:45 -0500
+Received: by wzv.watson.ibm.com (Postfix, from userid 309)
+	id 9AC44827; Tue, 12 Jan 1999 15:08:45 -0500 (EST)
+Delivered-To: wietse@[9.2.84.53]
+From: wietse
+To: wietse
+Subject: testje
+MIME-Version: 1.0
+Content-Type: "multipart" ; boundary = "abcdef" foobar
+Status: RO
+
+prolog
+
+--abcdef
+
+part01
+
+--abcdef
+
+part02
+
+--abcdef
+
+part03
+
+--abcdef--
+
+epilog

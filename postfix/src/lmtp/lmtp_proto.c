@@ -173,6 +173,15 @@ char   *xfer_states[LMTP_STATE_LAST] = {
     "sending QUIT",
 };
 
+char   *xfer_request[LMTP_STATE_LAST] = {
+    "MAIL FROM command",
+    "RCPT TO command",
+    "DATA command",
+    "end of DATA command",
+    "final RSET command",
+    "QUIT command",
+};
+
 /* lmtp_lhlo - perform initial handshake with LMTP server */
 
 int     lmtp_lhlo(LMTP_STATE *state)
@@ -488,8 +497,10 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		case LMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
 			lmtp_mesg_fail(state, resp->code,
-				       "host %s said: %s", session->namaddr,
-				       translit(resp->str, "\n", " "));
+				       "host %s said: %s (in reply to %s)",
+				       session->namaddr,
+				       translit(resp->str, "\n", " "),
+				       xfer_request[LMTP_STATE_MAIL]);
 			mail_from_rejected = 1;
 		    }
 		    recv_state = LMTP_STATE_RCPT;
@@ -522,8 +533,10 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			    survivors[nrcpt++] = recv_rcpt;
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-				       "host %s said: %s", session->namaddr,
-					   translit(resp->str, "\n", " "));
+					"host %s said: %s (in reply to %s)",
+					   session->namaddr,
+					   translit(resp->str, "\n", " "),
+					   xfer_request[LMTP_STATE_RCPT]);
 			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }
@@ -540,8 +553,10 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
 			    lmtp_mesg_fail(state, resp->code,
-				       "host %s said: %s", session->namaddr,
-					   translit(resp->str, "\n", " "));
+					"host %s said: %s (in reply to %s)",
+					   session->namaddr,
+					   translit(resp->str, "\n", " "),
+					   xfer_request[LMTP_STATE_DATA]);
 			nrcpt = -1;
 		    }
 		    recv_state = LMTP_STATE_DOT;
@@ -570,8 +585,10 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			    }
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-				       "host %s said: %s", session->namaddr,
-					   translit(resp->str, "\n", " "));
+				       "host %s said: %s (in reply to %s)",
+					   session->namaddr,
+					   translit(resp->str, "\n", " "),
+					   xfer_request[LMTP_STATE_DOT]);
 			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }

@@ -152,6 +152,7 @@ smtp_proto.o: ../../include/vstring_vstream.h
 smtp_proto.o: ../../include/stringops.h
 smtp_proto.o: ../../include/mymalloc.h
 smtp_proto.o: ../../include/iostuff.h
+smtp_proto.o: ../../include/split_at.h
 smtp_proto.o: ../../include/mail_params.h
 smtp_proto.o: ../../include/smtp_stream.h
 smtp_proto.o: ../../include/mail_queue.h
@@ -169,6 +170,8 @@ smtp_proto.o: ../../include/quote_821_local.h
 smtp_proto.o: ../../include/quote_flags.h
 smtp_proto.o: ../../include/mail_proto.h
 smtp_proto.o: ../../include/attr.h
+smtp_proto.o: ../../include/mime_state.h
+smtp_proto.o: ../../include/header_opts.h
 smtp_proto.o: smtp.h
 smtp_proto.o: ../../include/argv.h
 smtp_proto.o: smtp_sasl.h
@@ -224,6 +227,8 @@ smtp_state.o: ../../include/vstring.h
 smtp_state.o: ../../include/vbuf.h
 smtp_state.o: ../../include/vstream.h
 smtp_state.o: ../../include/mail_conf.h
+smtp_state.o: ../../include/mime_state.h
+smtp_state.o: ../../include/header_opts.h
 smtp_state.o: smtp.h
 smtp_state.o: ../../include/argv.h
 smtp_state.o: ../../include/deliver_request.h

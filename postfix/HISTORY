@@ -6447,7 +6447,58 @@ Apologies for any names omitted.
 	with "resolve_dequoted_address = no"). Victor Duchovny,
 	Morgan Stanley. File: smtpd/smtpd_check.c.
 
+20020515
+
+	Workaround: flush the SMTP client output buffer when no
+	output has happened for 10+ seconds. This prevents the
+	socket from timing out, in case DNS CNAME expansion is
+	slow.  Problem experienced by Alex Erdelyi, peregrine.com.
+	File:  smtp/smtp_chat.c. We did the same thing for the SMTP
+	server years ago, and one wonders why the coin didn't drop
+	at the time that the SMTP client could suffer from a similar
+	problem.
+
+20020517
+
+	Cleanup: Mailbox-Line: message header labels should be
+	X-Mailbox-Line:  labels. Files: smtpd/smtpd.c, qmqpd/qmqpd.c.
+
+20020515-21
+
+	Feature: new MIME parser, written from scratch, that recognizes
+	the structure of MIME encapsulated mail. MIME header scanning
+	now happens in header_checks, and are is faster than
+	body_checks could ever be. Thus also eliminates the problem
+	with multi-line MIME headers being matched one line at a
+	time. Files: global/mime_state.[hc], cleanup/cleanup_message.c.
+
+20020521-22
+
+	Feature: 8-bit to quoted-printable conversion. First use in
+	the Postfix SMTP client. File: smtp/smtp_proto.c.
+
+	Logging: the Postfix SMTP and LMTP clients now report the
+	stage of the protocol when it reports a server reply.
+	File:  smtp/smtp_proto.c, lmtp/lmtp_proto.c.
+
+	Bugfix: the SMTP server complained about ignored client
+	attributes in mail submitted with "sendmail -bs".
+	File: smtpd/smtpd.c.
+
+20020525
+
+	Cleanup: broke out the header value parser from the MIME
+	processor so it can be used elsewhere. File:
+	global/header_token.c.
+
+	Cleanup needs an option to revert to old non-MIME
+	aware behavior - this must override the MIME header
+	match override.
+
 Open problems:
+
+	Medium: old maildrop files are no longer readable by the
+	pickup service. Log a message that suggests a fix.
 
 	Low: all table lookups should consistently use internalized
 	(unquoted) or externalized (quoted) forms as lookup keys.

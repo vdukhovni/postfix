@@ -10,8 +10,8 @@
 /*	const char *string;
 /* DESCRIPTION
 /*	is_header() examines the given string and returns non-zero (true)
-/*	when it begins with a mail header name + optional space + colon.
-/*	The result is the length of the mail header name.
+/*	when it begins with a mail header name + colon. This routine
+/*	permits 8-bit data in header labels.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* LICENSE
@@ -38,42 +38,36 @@
 
 int     is_header(const char *str)
 {
-    const unsigned char *cp;
+    const char *cp;
     int     state;
     int     c;
-    int     len;
 
-#define INIT		0
+#define INITIAL		0
 #define IN_CHAR		1
 #define IN_CHAR_SPACE	2
-#define CU_CHAR_PTR(x)	((const unsigned char *) (x))
 
     /*
      * XXX RFC 2822 Section 4.5, Obsolete header fields: whitespace may
      * appear between header label and ":" (see: RFC 822, Section 3.4.2.).
+     * 
+     * The code below allows no such whitespace. This has never been a problem,
+     * and therefore we're not inclined to add code for it.
+     * 
+     * XXX It may, however, present another ambiguity with respect to finding
+     * attachment message headers. Sendmail rewrites obsolete forms.
      */
-    for (len = 0, state = INIT, cp = CU_CHAR_PTR(str); (c = *cp) != 0; cp++) {
-	switch (c) {
-	default:
-	    if (!ISASCII(c) || ISCNTRL(c))
-		return (0);
-	    if (state == INIT)
-		state = IN_CHAR;
-	    if (state == IN_CHAR) {
-		len++;
-		continue;
-	    }
-	    return (0);
-	case ' ':
-	case '\t':
+    for (state = INITIAL, cp = str; (c = *(unsigned char *) cp) != 0; cp++) {
+	if (c == ':')
+	    return (state == IN_CHAR || state == IN_CHAR_SPACE);
+	if (c == ' ') {
 	    if (state == IN_CHAR)
 		state = IN_CHAR_SPACE;
-	    if (state == IN_CHAR_SPACE)
-		continue;
-	    return (0);
-	case ':':
-	    return ((state == IN_CHAR || state == IN_CHAR_SPACE) ? len : 0);
+	    if (state != IN_CHAR_SPACE)
+		break;
 	}
+	if (!ISASCII(c) || ISCNTRL(c))
+	    break;
+	if (state == INITIAL) state = IN_CHAR
     }
     return (0);
 }

@@ -305,9 +305,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 			 message->queue_id, error_text, start);
 		break;
 	    }
-	    if (strcmp(name, MAIL_ATTR_ENCODING) == 0)
-		if (message->encoding == 0)
-		    message->encoding = mystrdup(value);
+	    /* Allow extra segment to override envelope segment info. */
+	    if (strcmp(name, MAIL_ATTR_ENCODING) == 0) {
+		if (message->encoding != 0)
+		    myfree(message->encoding);
+		message->encoding = mystrdup(value);
+	    }
 	} else if (rec_type == REC_TYPE_ERTO) {
 	    if (message->errors_to == 0)
 		message->errors_to = mystrdup(start);

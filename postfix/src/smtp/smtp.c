@@ -37,9 +37,12 @@
 /*	run chrooted at fixed low privilege.
 /* STANDARDS
 /*	RFC 821 (SMTP protocol)
+/*	RFC 822 (ARPA Internet Text Messages)
 /*	RFC 1651 (SMTP service extensions)
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
+/*	RFC 2045 (MIME: Format of Internet Message Bodies)
+/*	RFC 2046 (MIME: Media Types)
 /*	RFC 2197 (Pipelining)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
@@ -328,6 +331,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 	    && (state->error_mask & name_mask(VAR_NOTIFY_CLASSES,
 				     mail_error_masks, var_notify_classes)))
 	    smtp_chat_notify(state);
+	/* XXX smtp_xfer() may abort in the middle of DATA. */
 	smtp_session_free(state->session);
 	debug_peer_restore();
     }

@@ -1,0 +1,51 @@
+MAIN	subject: primary subject
+mime_state: header_token: multipart / mumble
+mime_state: header_token: boundary = abcd ef
+mime_state: PUSH boundary abcd ef
+MAIN	content-type: multipart/(co\m\)ment)mumble mumble; boundary = "ab\cd 
+ ef" mumble
+HEADER END
+BODY	
+BODY	abcdef prolog
+BODY	
+BODY	--abcd ef
+mime_state: header_token: message / rfc822
+MULT	content-type: message/rfc822; mumble
+BODY	
+NEST	subject: nested subject
+mime_state: header_token: multipart / mumble
+mime_state: header_token: boundary = pqrs
+mime_state: PUSH boundary pqrs
+NEST	content-type: multipart/mumble; boundary(comment)="pqrs"
+mime_state: header_token: base64  
+NEST	content-transfer-encoding: base64
+BODY	
+BODY	pqrs prolog
+BODY	
+BODY	--pqrs
+MULT	header: pqrs part 01
+BODY	
+BODY	body pqrs part 01
+BODY	
+BODY	--pqrs
+MULT	header: pqrs part 02
+BODY	
+BODY	body pqrs part 02
+BODY	
+BODY	--bogus-boundary
+BODY	header: wietse
+BODY	
+BODY	body asdasads
+BODY	
+mime_state: POP boundary pqrs
+BODY	--abcd ef
+MULT	header: abcdef part 02
+BODY	
+BODY	body abcdef part 02
+BODY	
+mime_state: POP boundary abcd ef
+BODY	--abcd ef--
+BODY	
+BODY	epilog
+BODY END
+mime_state: warning: improper message/* or multipart/* encoding domain

@@ -48,6 +48,8 @@
 /*	in case of trouble.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
+/*	RFC 2045 (MIME: Format of Internet Message Bodies)
+/*	RFC 2046 (MIME: Media Types)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
@@ -66,7 +68,12 @@
 /*	These filters see physical lines one at a time, in chunks of
 /*	at most line_length_limit bytes.
 /* .IP \fBheader_checks\fR
-/*	Lookup tables with content filters for message header lines.
+/* .IP "\fBmime_header_checks\fR (default: \fB$header_checks\fR)"
+/* .IP "\fBnested_header_checks\fR (default: \fB$header_checks\fR)"
+/*	Lookup tables with content filters for message header lines:
+/*	respectively, these are applied to the primary message headers 
+/*	(not including MIME headers), to the MIME headers anywhere in 
+/*	the message, and to the initial headers of attached messages.
 /*	These filters see logical headers one at a time, including headers
 /*	that span multiple lines.
 /* .SH Miscellaneous
@@ -217,6 +224,16 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
 	CLEANUP_RECORD(state, type, vstring_str(buf), VSTRING_LEN(buf));
 	if (type == REC_TYPE_END)
 	    break;
+    }
+
+    /*
+     * Can't do header checks if the MIME structure is nested too deeply.
+     */
+    if ((state->mime_errs & MIME_ERR_NESTING)
+	&& (*var_header_checks || *var_mimehdr_checks || *var_nesthdr_checks)
+	&& state->reason == 0) {
+	state->errs |= CLEANUP_STAT_CONT;
+	state->reason = mystrdup("too much MIME nesting");
     }
 
     /*

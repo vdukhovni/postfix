@@ -44,6 +44,7 @@
 
 #include <been_here.h>
 #include <mail_params.h>
+#include <mime_state.h>
 
 /* Application-specific. */
 
@@ -71,9 +72,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->flags = 0;
     state->errs = 0;
     state->err_mask = 0;
-    state->header_buf = vstring_alloc(100);
     state->headers_seen = 0;
-    state->prev_header_type = 0;
     state->hop_count = 0;
     state->recipients = argv_alloc(2);
     state->resent_recip = argv_alloc(2);
@@ -88,6 +87,8 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->rcpt_count = 0;
     state->reason = 0;
     state->attr = nvtable_create(10);
+    state->mime_state = 0;
+    state->mime_errs = 0;
     return (state);
 }
 
@@ -111,7 +112,6 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->return_receipt);
     if (state->errors_to)
 	myfree(state->errors_to);
-    vstring_free(state->header_buf);
     argv_free(state->recipients);
     argv_free(state->resent_recip);
     if (state->queue_id)
@@ -120,5 +120,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
     if (state->reason)
 	myfree(state->reason);
     nvtable_free(state->attr);
+    if (state->mime_state)
+	mime_state_free(state->mime_state);
     myfree((char *) state);
 }

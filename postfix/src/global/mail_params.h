@@ -984,6 +984,14 @@ extern int var_queue_minfree;
 #define DEF_HEADER_CHECKS	""
 extern char *var_header_checks;
 
+#define VAR_MIMEHDR_CHECKS	"mime_header_checks"
+#define DEF_MIMEHDR_CHECKS	"$header_checks"
+extern char *var_mimehdr_checks;
+
+#define VAR_NESTHDR_CHECKS	"nested_header_checks"
+#define DEF_NESTHDR_CHECKS	"$header_checks"
+extern char *var_nesthdr_checks;
+
 #define VAR_BODY_CHECKS		"body_checks"
 #define DEF_BODY_CHECKS		""
 extern char *var_body_checks;
@@ -1503,6 +1511,17 @@ extern int var_db_read_buf;
 #define VAR_QATTR_COUNT_LIMIT		"queue_file_attribute_count_limit"
 #define DEF_QATTR_COUNT_LIMIT		100
 extern int var_qattr_count_limit;
+
+ /*
+  * MIME support.
+  */
+#define VAR_MIME_MAXDEPTH		"mime_nesting_limit"
+#define DEF_MIME_MAXDEPTH		100
+extern int var_mime_maxdepth;
+
+#define VAR_MIME_BOUND_LEN		"mime_boundary_length_limit"
+#define DEF_MIME_BOUND_LEN		100
+extern int var_mime_bound_len;
 
 /* LICENSE
 /* .ad

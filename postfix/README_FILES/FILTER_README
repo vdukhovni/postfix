@@ -128,10 +128,11 @@ The second example is considerably more complex, but can give much
 better performance, and is less likely to bounce mail when the
 machine runs into a resource problem.  This approach uses content
 filtering software that can receive and deliver mail via SMTP.
+
 You can expect to lose about a factor of two in Postfix performance
-for transit mail that arrives and leaves via SMTP, provided that
-you create no temporary files. Each temporary file adds another
-factor to the performance loss.
+for transit mail (not delivered on the same machine) that arrives
+and leaves via SMTP; and each temporary file created by the content
+filter adds another factor to the performance loss.
 
 We will set up a content filtering program that receives SMTP mail
 via localhost port 10025, and that submits SMTP mail back into
@@ -158,17 +159,32 @@ To enable content filtering in this manner, specify in main.cf a
 new parameter:
 
     /etc/postfix/main.cf:
-	content_filter = smtp:localhost:10025
+	content_filter = scan:localhost:10025
 
 This causes Postfix to add one extra content filtering record to
-each incoming mail message, with content smtp:localhost:10025.
-You can use the same syntax as in the right-hand side of a Postfix
-transport table.  The content filtering records are added by the
-smtpd and pickup servers.
+each incoming mail message, with content scan:localhost:10025.
+The content filtering records are added by the smtpd and pickup
+servers.
 
 When a queue file has content filtering information, the queue
 manager will deliver the mail to the specified content filter
 regardless of its final destination.
+
+In this example, "scan" is an instance of the Postfix SMTP client
+with slightly different configuration parameters. This is how
+one would set up the service in the Postfix master.cf file:
+
+    /etc/postfix/master.cf:
+        scan      unix  -       -       n       -       10       smtp
+	    -o disable_dns_lookups=yes
+
+Turning off DNS lookups at this point can make a great difference
+in content filtering performance. It also isolates the content
+filtering process from temporary outages in DNS service.
+
+Instead of 10, use whatever limit is feasible for your machine.
+Content inspection software can gobble up a lot of system resources,
+so you don't want to have too much of it running at the same time.
 
 The content filter can be set up with the Postfix spawn service,
 which is the Postfix equivalent of inetd. For example, to instantiate
@@ -263,7 +279,7 @@ into Postfix via localhost port 10026.
       :          cleanup2/   |   \smtp----->
       :             ^        v          :
       :             |        v          :
-      :           smtpd     smtp        :
+      :           smtpd     scan        :
       :           10026      |          :
       .......................|...........
                     ^        |

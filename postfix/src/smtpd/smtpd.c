@@ -617,6 +617,8 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     /*
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
+     * 
+     * XXX !allow_empty_addr should also reject <"">.
      */
     if ((naddr < 1 && !allow_empty_addr)
 	|| naddr > 1
@@ -776,15 +778,17 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (encoding != 0)
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_ENCODING, encoding);
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_CLIENT_NAME, state->name);
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_CLIENT_ADDR, state->addr);
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_ORIGIN, state->namaddr);
-    if (state->helo_name != 0)
+    if (SMTPD_STAND_ALONE(state) == 0) {
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_HELO_NAME, state->helo_name);
+		    MAIL_ATTR_CLIENT_NAME, state->name);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_CLIENT_ADDR, state->addr);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_ORIGIN, state->namaddr);
+	if (state->helo_name != 0)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_HELO_NAME, state->helo_name);
+    }
     if (verp_delims)
 	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
     state->sender = mystrdup(argv[2].strval);
@@ -956,7 +960,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    state->protocol, state->queue_id);
 	quote_822_local(state->buffer, state->recipient);
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
-		"\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
+	      "\tfor <%s>; %s", STR(state->buffer), mail_date(state->time));
     } else {
 	rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		    "\tby %s (%s) with %s",
@@ -996,7 +1000,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (first) {
 	    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0) {
 		rec_fprintf(state->cleanup, curr_rec_type,
-			    "Mailbox-Line: %s", start);
+			    "X-Mailbox-Line: %s", start);
 		continue;
 	    }
 	    first = 0;

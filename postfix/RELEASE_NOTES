@@ -12,6 +12,13 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.10-200205XX
+==========================================================
+
+Message headers in MIME attachments etc. are now matched by
+header_checks instead of body_checks. Multi-line headers in MIME
+attachments are now properly recognized.
+
 Incompatible changes with Postfix snapshot 1.1.10-20020514
 ==========================================================
 

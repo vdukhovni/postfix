@@ -91,14 +91,15 @@ char   *cleanup_path;			/* queue file name */
   * Tunable parameters.
   */
 int     var_hopcount_limit;		/* max mailer hop count */
-int     var_header_limit;		/* max header length */
 char   *var_canonical_maps;		/* common canonical maps */
 char   *var_send_canon_maps;		/* sender canonical maps */
 char   *var_rcpt_canon_maps;		/* recipient canonical maps */
 char   *var_virtual_maps;		/* virtual maps */
 char   *var_masq_domains;		/* masquerade domains */
 char   *var_masq_exceptions;		/* users not masqueraded */
-char   *var_header_checks;		/* any header checks */
+char   *var_header_checks;		/* primary header checks */
+char   *var_mimehdr_checks;		/* mime header checks */
+char   *var_nesthdr_checks;		/* nested header checks */
 char   *var_body_checks;		/* any body checks */
 int     var_dup_filter_limit;		/* recipient dup filter */
 char   *var_empty_addr;			/* destination of bounced bounces */
@@ -112,7 +113,6 @@ int     var_qattr_count_limit;		/* named attribute limit */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
-    VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
     VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
     VAR_EXTRA_RCPT_LIMIT, DEF_EXTRA_RCPT_LIMIT, &var_extra_rcpt_limit, 0, 0,
     VAR_QATTR_COUNT_LIMIT, DEF_QATTR_COUNT_LIMIT, &var_qattr_count_limit, 1, 0,
@@ -133,6 +133,8 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
     VAR_MASQ_EXCEPTIONS, DEF_MASQ_EXCEPTIONS, &var_masq_exceptions, 0, 0,
     VAR_HEADER_CHECKS, DEF_HEADER_CHECKS, &var_header_checks, 0, 0,
+    VAR_MIMEHDR_CHECKS, DEF_MIMEHDR_CHECKS, &var_mimehdr_checks, 0, 0,
+    VAR_NESTHDR_CHECKS, DEF_NESTHDR_CHECKS, &var_nesthdr_checks, 0, 0,
     VAR_BODY_CHECKS, DEF_BODY_CHECKS, &var_body_checks, 0, 0,
     VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
     VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
@@ -148,6 +150,8 @@ MAPS   *cleanup_comm_canon_maps;
 MAPS   *cleanup_send_canon_maps;
 MAPS   *cleanup_rcpt_canon_maps;
 MAPS   *cleanup_header_checks;
+MAPS   *cleanup_mimehdr_checks;
+MAPS   *cleanup_nesthdr_checks;
 MAPS   *cleanup_body_checks;
 MAPS   *cleanup_virtual_maps;
 ARGV   *cleanup_masq_domains;
@@ -197,6 +201,12 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
     if (*var_header_checks)
 	cleanup_header_checks =
 	    maps_create(VAR_HEADER_CHECKS, var_header_checks, DICT_FLAG_LOCK);
+    if (*var_mimehdr_checks)
+	cleanup_mimehdr_checks =
+	    maps_create(VAR_MIMEHDR_CHECKS, var_mimehdr_checks, DICT_FLAG_LOCK);
+    if (*var_nesthdr_checks)
+	cleanup_nesthdr_checks =
+	    maps_create(VAR_NESTHDR_CHECKS, var_nesthdr_checks, DICT_FLAG_LOCK);
     if (*var_body_checks)
 	cleanup_body_checks =
 	    maps_create(VAR_BODY_CHECKS, var_body_checks, DICT_FLAG_LOCK);

@@ -24,6 +24,7 @@
 #include <been_here.h>
 #include <mail_stream.h>
 #include <mail_conf.h>
+#include <mime_state.h>
 
  /*
   * These state variables are accessed by many functions, and there is only
@@ -46,9 +47,7 @@ typedef struct CLEANUP_STATE {
     int     flags;			/* processing options */
     int     errs;			/* any badness experienced */
     int     err_mask;			/* allowed badness */
-    VSTRING *header_buf;		/* multi-record header */
     int     headers_seen;		/* which headers were seen */
-    int     prev_header_type;		/* multi-record physical header line */
     int     hop_count;			/* count of received: headers */
     ARGV   *recipients;			/* recipients from regular headers */
     ARGV   *resent_recip;		/* recipients from resent headers */
@@ -63,7 +62,11 @@ typedef struct CLEANUP_STATE {
     int     rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
     NVTABLE *attr;			/* queue file attribute list */
+    MIME_STATE *mime_state;		/* MIME state engine */
+    int     mime_errs;			/* MIME error flags */
 } CLEANUP_STATE;
+
+#define CLEANUP_CURR_HEADERS	(1<<0)	/* in main headers section */
 
  /*
   * Mappings.
@@ -72,6 +75,8 @@ extern MAPS *cleanup_comm_canon_maps;
 extern MAPS *cleanup_send_canon_maps;
 extern MAPS *cleanup_rcpt_canon_maps;
 extern MAPS *cleanup_header_checks;
+extern MAPS *cleanup_mimehdr_checks;
+extern MAPS *cleanup_nesthdr_checks;
 extern MAPS *cleanup_body_checks;
 extern MAPS *cleanup_virtual_maps;
 extern ARGV *cleanup_masq_domains;
@@ -121,9 +126,9 @@ extern CONFIG_TIME_TABLE cleanup_time_table[];
  /*
   * cleanup_out.c
   */
-extern void cleanup_out(CLEANUP_STATE *, int, char *, int);
-extern void cleanup_out_string(CLEANUP_STATE *, int, char *);
-extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, char *,...);
+extern void cleanup_out(CLEANUP_STATE *, int, const char *, int);
+extern void cleanup_out_string(CLEANUP_STATE *, int, const char *);
+extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, const char *,...);
 
 #define CLEANUP_OUT_BUF(s, t, b) \
 	cleanup_out((s), (t), vstring_str((b)), VSTRING_LEN((b)))

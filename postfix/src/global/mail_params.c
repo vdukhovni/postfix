@@ -87,6 +87,9 @@
 /*	char   *var_flush_service;
 /*	int	var_db_create_buf;
 /*	int	var_db_read_buf;
+/*	int	var_mime_maxdepth;
+/*	int	var_mime_bound_len;
+/*	int	var_header_limit;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -230,6 +233,9 @@ char   *var_error_service;
 char   *var_flush_service;
 int     var_db_create_buf;
 int     var_db_read_buf;
+int     var_mime_maxdepth;
+int     var_mime_bound_len;
+int     var_header_limit;
 
 #define MAIN_CONF_FILE	"main.cf"
 
@@ -465,6 +471,9 @@ void    mail_params_init()
 	VAR_FAULT_INJ_CODE, DEF_FAULT_INJ_CODE, &var_fault_inj_code, 0, 0,
 	VAR_DB_CREATE_BUF, DEF_DB_CREATE_BUF, &var_db_create_buf, 1, 0,
 	VAR_DB_READ_BUF, DEF_DB_READ_BUF, &var_db_read_buf, 1, 0,
+	VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
+	VAR_MIME_MAXDEPTH, DEF_MIME_MAXDEPTH, &var_mime_maxdepth, 1, 0,
+	VAR_MIME_BOUND_LEN, DEF_MIME_BOUND_LEN, &var_mime_bound_len, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {
