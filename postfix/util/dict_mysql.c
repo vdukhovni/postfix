@@ -144,6 +144,7 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     static VSTRING *result;
     static VSTRING *query = 0;
     int     i,
+            j,
             numrows;
     char   *name_escaped = 0;
 
@@ -189,11 +190,15 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     vstring_strcpy(result, "");
     for (i = 0; i < numrows; i++) {
 	row = mysql_fetch_row(query_res);
-	if (msg_verbose > 1)
-	    msg_info("dict_mysql_lookup: retrieved row: %d: %s", i, row[0]);
 	if (i > 0)
 	    vstring_strcat(result, ",");
-	vstring_strcat(result, row[0]);
+	for (j = 0; j < mysql_num_fields(query_res); j++) {
+	    if (j > 0)
+		vstring_strcat(result, ",");
+	    vstring_strcat(result, row[j]);
+	    if (msg_verbose > 1)
+		msg_info("dict_mysql_lookup: retrieved field: %d: %s", j, row[j]);
+	}
     }
     mysql_free_result(query_res);
     return vstring_str(result);

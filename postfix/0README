@@ -3,14 +3,14 @@ Purpose of this document
 
 This document provides a road map of the Postfix mail system source
 code distribution.  I suggest that you take a few minutes to read
-it, and then proceed with the installation instructions.
+this file, and then proceed with the INSTALL instructions.
 
 Introduction
 ============
 
-This is the first public release of the Postfix mail system. Thank
-you for your interest in this project. Send me a postcard if you
-like it. My postal address is below.
+This is the public release of the Postfix mail system. Thank you
+for your interest in this project. Send me a postcard if you like
+it. My postal address is below.
 
 You must read the LICENSE file, if you didn't do so already. A copy
 of the LICENSE must be distributed with every original, modified,
@@ -40,9 +40,9 @@ On-line resources devoted to the Postfix mail system
 Web sites:
 
     http://www.postfix.org/		current release information
-    http://www.ibm.com/alphaworks/	the original distribution site
+    http://www.ibm.com/alphaworks/	original distribution site (obsolete)
 
-Mail addresses (please do NOT send mail to my address at work):
+Mail addresses (PLEASE send questions to the mailing list)
 
     postfix-XXX@postfix.org		Postfix mailing lists
     wietse@porcupine.org		the original author
@@ -127,6 +127,7 @@ Command-line utilities:
     postlock/		Postfix locking for shell scripts
     postlog/		Postfix logging for shell scripts
     postmap/		Postfix lookup table management
+    postsuper/		Postfix house keeping program
     sendmail/		Sendmail compatibility interface
 
 Postfix daemons:
@@ -140,6 +141,7 @@ Postfix daemons:
     pipe/		Pipe delivery
     qmgr/		Queue manager
     showq/		List Postfix queue status
+    lmtp/		LMTP client
     smtp/		SMTP client
     smtpd/		SMTP server
     trivial-rewrite/	Address rewriting and resolving
@@ -157,3 +159,5 @@ Miscellaneous:
     include/		Installed include files
     lib/		Installed object libraries
     libexec/		Postfix daemon executables
+    mantools/		Manual page utilities
+    proto/		Manual pages for sample configuration files

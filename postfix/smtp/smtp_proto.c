@@ -68,6 +68,7 @@
 #include <unistd.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
+#include <time.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -420,9 +421,15 @@ int     smtp_xfer(SMTP_STATE *state)
 	/*
 	 * Process responses until the receiver has caught up. Vstreams
 	 * automatically flush buffered output when reading new data.
+	 * 
+	 * Flush unsent output if command pipelining is off or if no I/O
+	 * happened for a while. This limits the accumulation of client-side
+	 * delays in pipelined sessions.
 	 */
 	if (SENDER_IN_WAIT_STATE
-	|| (SENDER_IS_AHEAD && VSTRING_LEN(next_command) + 2 > sndbuffree)) {
+	    || (SENDER_IS_AHEAD
+		&& (VSTRING_LEN(next_command) + 2 > sndbuffree
+	    || time((time_t *) 0) - vstream_ftime(session->stream) > 10))) {
 	    while (SENDER_IS_AHEAD) {
 
 		/*

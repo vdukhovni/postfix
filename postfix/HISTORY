@@ -3951,14 +3951,27 @@ Apologies for any names omitted.
 	time, which is needed to prevent timeouts with pipelined
 	SMTP sessions as detailed in the next item.
 
-	Bugfix: automatic SMTP command/reply flushing to prevent
-	delays from accumulating within pipelined SMTP sessions.
-	For example, client-side delays happen when a client does
-	DNS lookups to replace hostname aliases in a MAIL FROM or
-	RCPT TO commands; server-side delays happen when an UCE
-	restriction involves a time-consuming DNS lookup, or when
-	a server generates a tarpit delay.  Files:  */*chat.c.
+	Bugfix: delayed SMTP command/reply flushing to prevent
+	sender delays from accumulating too much and causing timeouts
+	with pipelined sessions.  For example, client-side delays
+	happen when a client does DNS lookups to replace hostname
+	aliases in MAIL FROM or RCPT TO commands; server-side delays
+	happen when an UCE restriction involves a time-consuming
+	DNS lookup, or when a server generates tarpit delays.
+	Files:  lmtp/lmtp_proto.c, smtp/smtp_proto.c, smtpd/smtpd_chat.c.
 
 	Portability: define ANAL_CAST for compilation environments
-	that complain about explicit casts between pointers and
-	integral types. File: util/sys_defs.h, master/*server.c.
+	that reject explicit casts between pointers and integral
+	types. File: util/sys_defs.h, master/*server.c.  Upon closer
+	investigation, this turned out to be the result of someone's
+	compiler configuration preferences.  Therefore the change
+	is likely to go away after a code cleanup.
+
+20000514
+
+	Feature: mysql client support for multi-valued queries
+	(select email, email2 from aliastbl where username='$local')
+	By Loic Le Loarer @ m4x.org. File: util/dict_mysql.c.
+
+	Finalized the delayed SMTP command/reply flushing code in
+	the SMTP and LMTP clients after lots of testing and review.
