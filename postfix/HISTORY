@@ -6189,6 +6189,30 @@ Apologies for any names omitted.
 	of a line.  Victor Duchovni, Morgan Stanley. File:
 	sendmail/sendmail.c.
 
+20020328
+
+	Portability fix for OPENSTEP and NEXTSTEP by Gerben Wierda.
+	File: util/sys_defs.h.
+
+20020329
+
+	Bugfix: defer_transports broke because the flush server
+	triggered mail delivery (as if ETRN was sent) while doing
+	some internal housekeeping of per-destination logfiles.
+	Problem experienced by LaMont Jones, HP. File: flush/flush.c.
+
+	Bugfix: virtual mapping broke for addresses with embedded
+	whitespace. Fix by Victor Duchovni, Morgan Stanley. File:
+	cleanup/cleanup_map1n.c.
+
+20020330
+
+	Bugfix: postqueue did not pass on non-default configuration
+	directory settings when running showq while the mail system
+	is down.  The super-user is now exempted from environment
+	stripping in postqueue/postqueue.c. Problem reported by
+	Victor Duchovni, Morgan Stanley.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.
