@@ -67,7 +67,7 @@ path.
     % export MANPATH; MANPATH="`pwd`/man:$MANPATH"
     % setenv MANPATH "`pwd`/man:$MANPATH"
 
-Of particular interest is the postconf(5) manual page that lists all the 300+
+Of particular interest is the postconf(5) manual page that lists all the 400+
 configuration parameters. The HTML version of this text makes it easy to
 navigate around.
 
@@ -299,15 +299,6 @@ a group:
 
         /etc/group:
             postfix:*:12345:
-
-    Note: there should be no whitespace before "postfix:".
-
-  * Make sure there is a "postfix" alias in /etc/aliases, or whatever the
-    pathname of your aliases file is; the command "postconf alias_maps" will
-    tell you.
-
-        /etc/aliases:
-            postfix: root
 
     Note: there should be no whitespace before "postfix:".
 
@@ -609,15 +600,28 @@ and/or dial-up networks.
 
 1100..88 -- CCrreeaattee tthhee aalliiaasseess ddaattaabbaassee
 
-Finally, if you haven't used Sendmail prior to using Postfix, you will have to
-build the alias database with one of the following commands:
+Postfix uses a Sendmail-compatible aliases(5) table to redirect mail for local
+(8) recipients. Typically, this information is kept in two files: in a text
+file /etc/aliases and in an indexed file /etc/aliases.db. The command "postconf
+alias_maps" will tell you the exact location of the text file.
+
+First, be sure to update the text file with aliases for root, postmaster and
+"postfix" that forward mail to a real person. Postfix has a sample aliases file
+/etc/postfix/aliases that you can adapt to local conditions.
+
+    /etc/aliases:
+        root: you
+        postmaster: root
+        postfix: root
+        bin: root
+        etcetera...
+
+Note: there should be no whitespace before the ":".
+
+Finally, build the indexed aliases file with one of the following commands:
 
     # newaliases
     # sendmail -bi
-
-Be sure to set up aliases for root and postmaster that forward mail to a real
-person. Postfix has a sample aliases file /etc/postfix/aliases that you can
-adapt to local conditions.
 
 1111 -- TToo cchhrroooott oorr nnoott ttoo cchhrroooott
 

@@ -582,7 +582,7 @@ static void postalias_seq(const char *map_type, const char *map_name)
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-Nfinorvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-Nfinoprsvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
 	      myname);
 }
 

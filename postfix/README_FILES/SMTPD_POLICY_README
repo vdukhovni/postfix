@@ -86,8 +86,11 @@ Notes:
     Postfix 2.2 and later, it specifies the actual message size when the client
     sends the END-OF-DATA command.
 
-  * The "sasl_*" attributes specify information about how the client was
-    authenticated via SASL.
+  * The "sasl_*" attributes (Postfix 2.2 and later) specify information about
+    how the client was authenticated via SASL.
+
+  * The "ccert_*" attributes (Postfix 2.2 and later) specify information about
+    how the client was authenticated via TLS.
 
 The following is specific to SMTPD delegated policy requests:
 
@@ -96,10 +99,6 @@ The following is specific to SMTPD delegated policy requests:
   * Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA, END-OF-DATA,
     VRFY or ETRN; these are the SMTP protocol states where the Postfix SMTP
     server makes an OK/REJECT/HOLD/etc. decision.
-
-  * The "ccert_*" attributes specify information from the client TLS
-    certificate. This information is presented only if the client certificate
-    was successfully verified.
 
 The policy server replies with any action that is allowed in a Postfix SMTPD
 access(5) table. Example:

@@ -126,7 +126,7 @@ be sure to use an absolute path.  </p>
 </blockquote>
 
 <p> Of particular interest is the <a href="postconf.5.html">postconf(5)</a> manual page that
-lists all the 300+ configuration parameters. The HTML version of
+lists all the 400+ configuration parameters. The HTML version of
 this text makes it easy to navigate around.  </p>
 
 <p> All Postfix source files have their own built-in manual page.
@@ -442,19 +442,6 @@ My password and group file entries look like this: </p>
 
 /etc/group:
     postfix:*:12345:
-</pre>
-</blockquote>
-
-<p> Note: there should be no whitespace before "postfix:". </p>
-
-<li> <p> Make sure there is a "postfix" alias in /etc/aliases,
-or whatever the pathname of your aliases file is; the
-command "postconf <a href="postconf.5.html#alias_maps">alias_maps</a>" will tell you. </p>
-
-<blockquote>
-<pre>
-/etc/aliases:
-    postfix: root
 </pre>
 </blockquote>
 
@@ -905,9 +892,32 @@ firewalled and/or dial-up networks. </p>
 
 <h3>10.8 - Create the aliases database</h3>
 
-<p> Finally, if you haven't used Sendmail prior to using Postfix, you
-will have to build the alias database with one of the following
-commands: </p>
+<p> Postfix uses a Sendmail-compatible <a href="aliases.5.html">aliases(5)</a> table to redirect
+mail for <a href="local.8.html">local(8)</a> recipients.  Typically, this information is kept
+in two files: in a text file /etc/aliases and in an indexed file
+/etc/aliases.db.  The command "postconf <a href="postconf.5.html#alias_maps">alias_maps</a>" will tell you
+the exact location of the text file.  </p>
+
+<p> First, be sure to update the text file with aliases for root,
+postmaster and "postfix" that forward mail to a real person.  Postfix
+has a sample aliases file /etc/postfix/aliases that you can adapt
+to local conditions.  </p>
+
+<blockquote>
+<pre>
+/etc/aliases:
+    root: you
+    postmaster: root
+    postfix: root
+    bin: root
+    <i>etcetera...</i>
+</pre>
+</blockquote>
+
+<p> Note: there should be no whitespace before the ":". </p>
+
+<p> Finally, build the indexed aliases file with one of the
+following commands: </p>
 
 <blockquote>
 <pre>
@@ -915,10 +925,6 @@ commands: </p>
 # sendmail -bi
 </pre>
 </blockquote>
-
-<p> Be sure to set up aliases for root and postmaster that forward
-mail to a real person. Postfix has a sample aliases file
-/etc/postfix/aliases that you can adapt to local conditions. </p>
 
 <h2><a name="hamlet">11 - To chroot or not to chroot</a></h2>
 

@@ -10457,3 +10457,31 @@ Apologies for any names omitted.
 	is treated as its own MX host; there is no meaningful
 	equivalent for NS access control. File: smtpd/smtpd_check.c.
 
+20050310
+
+	Bugfix: the AIX and SUN compilers rightfully complained
+	about non-portable code in the "new" LDAP/SQL client. File:
+	global/db_common.c.
+
+	Workaround: some systems no longer recognize "tail +2" as
+	valid command syntax. Instead they require "improved" syntax
+	that is not valid on several other systems that Postfix
+	builds on.  So we have to stop using the tail command.
+	Files: Makefile.in, src/*/Makefile.in.
+
+20050312
+
+	Bugfix: the TLS session cache cleaning code didn't always
+	delete the right entry. Problem found by Victor Duchovni,
+	more problems found by Wietse. File: tls/tls_scache.c.
+
+20050314
+
+	Portability: Berkeley DB changed API from version 2.5 to
+	2.6. Rob Foehl. File: util/dict_db.c.
+
+20050315
+
+	Bugfix: when <unistd.h> is included, read is a reserved
+	identifier. File: smtpstone/smtp-source.c.
+

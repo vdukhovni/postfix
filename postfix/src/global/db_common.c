@@ -300,8 +300,12 @@ int db_common_expand(void *ctxArg, const char *format, const char *value,
     if (VSTRING_LEN(result) > 0)
     	VSTRING_ADDCH(result, ',');
 
-#define QUOTE_VAL(d, q, v, buf) \
-    (q ? q(d, v, buf) : vstring_strcat(buf, v))
+#define QUOTE_VAL(d, q, v, buf) do { \
+	if (q) \
+	    q(d, v, buf); \
+	else \
+	    vstring_strcat(buf, v); \
+    } while (0)
 
     /*
      * Replace all instances of %s with the address to look up. Replace
