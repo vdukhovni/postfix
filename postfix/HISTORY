@@ -6340,6 +6340,14 @@ Apologies for any names omitted.
 	send data into unauthorized ports.  Files:  *qmgr/qmgr_message.c,
 	trivial-rewrite/resolve.c.
 
+20030728
+
+	Bugfix: an invalid address resolved to an invalid result,
+	and caused the address resolver client to keep trying
+	forever, resulting in a local or remote DOS condition of
+	smtpd, qmgr, and other programs.  Reported by Michal
+	Zalewski.  File:  trivial-rewrite/resolve.c.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.
