@@ -46,6 +46,18 @@
 
 int     unix_send_fd(int fd, int sendfd)
 {
+
+    /*
+     * This code does not work with version <2.2 Linux kernels, and it does
+     * not compile with version <2 Linux libraries.
+     */
+#ifdef CANT_USE_SEND_RECV_MSG
+    char   *myname = "unix_send_fd";
+
+    msg_warn("%s: your system has no support for file descriptor passing",
+	     myname);
+    return (-1);
+#else
     struct msghdr msg;
     struct iovec iov[1];
 
@@ -87,6 +99,7 @@ int     unix_send_fd(int fd, int sendfd)
     msg.msg_iovlen = 1;
 
     return (sendmsg(fd, &msg, 0));
+#endif
 }
 
 #ifdef TEST

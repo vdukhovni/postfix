@@ -341,6 +341,7 @@ extern int opterr;
 #define STATVFS_IN_SYS_STATVFS_H
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define STRCASECMP_IN_STRINGS_H
+#define SET_H_ERRNO(err) (set_h_errno(err))
 #endif
 
 #ifdef UW21				/* UnixWare 2.1.x */
@@ -560,7 +561,14 @@ extern int initgroups(const char *, int);
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
 #endif
-#define CANT_WRITE_BEFORE_SENDING_FD
+#include <linux/version.h>
+#if !defined(KERNEL_VERSION) || (LINUX_VERSION_CODE < KERNEL_VERSION(2,2,0)) \
+	|| (__GLIBC__ < 2)
+# define CANT_USE_SEND_RECV_MSG
+# define DEF_SMTP_CACHE_DEMAND	0
+#else
+# define CANT_WRITE_BEFORE_SENDING_FD
+#endif
 #endif
 
 #ifdef LINUX1
@@ -589,6 +597,8 @@ extern int initgroups(const char *, int);
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+#define CANT_USE_SEND_RECV_MSG
+#define DEF_SMTP_CACHE_DEMAND	0
 #endif
 
  /*

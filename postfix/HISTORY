@@ -9617,6 +9617,21 @@ Apologies for any names omitted.
 	queue manager is unable to schedule back-to-back deliveries.
 	File: *qmgr/qmgr_entry.c.
 
+20040730
+
+	Hysteresis: turn on "opportunistic session caching" when
+	back-to-back deliveries happen, but don't turn if off
+	until both concurrent and back-to-back delivery ends.
+
+20040801
+
+	Workaround: disable session caching for Linux < 2.2 (does
+	not work) or Glibc < 2 (does not compile).  Files:
+	util/sys_defs.h, util/unix_{recv,send}_fd.c.
+
+	Portability: h_errno is not an lvalue in the UnixWare 7.1
+	multi-threaded environment. Olivier PRENANT.
+
 Open problems:
 
 	Low: update events.c so that 1-second timer requests do

@@ -44,6 +44,16 @@
 int     unix_recv_fd(int fd)
 {
     char   *myname = "unix_recv_fd";
+
+    /*
+     * This code does not work with version <2.2 Linux kernels, and it does
+     * not compile with version <2 Linux libraries.
+     */
+#ifdef CANT_USE_SEND_RECV_MSG
+    msg_warn("%s: your system has no support for file descriptor passing",
+	     myname);
+    return (-1);
+#else
     struct msghdr msg;
     int     newfd;
     struct iovec iov[1];
@@ -102,6 +112,7 @@ int     unix_recv_fd(int fd)
 	return (newfd);
     else
 	return (-1);
+#endif
 #endif
 }
 
