@@ -76,6 +76,23 @@ smtp_never_send_ehlo = no
 # 
 smtp_defer_if_no_mx_address_found = no
 
+# The smtp_mx_address_limit parameter limits the number of MX (mail
+# exchanger) IP addresses that can result from DNS or host lookups.
+#
+# Specify zero to disable the limit. This is also the default.
+#
+smtp_mx_address_limit = 0
+
+# The smtp_mx_session_limit parameter limits the number of SMTP
+# sessions that the client will engage in, skipping over MX IP
+# addresses that fail to complete the SMTP initial handshake.
+# 
+# By default, Postfix SMTP client gives up after two SMTP sessions.
+#
+# Specify zero to disable the limit.
+#
+smtp_mx_session_limit = 2
+
 # The smtp_send_xforward_command parameter controls whether the Postfix
 # SMTP client will send an XFORWARD command to the SMTP server, when
 # the ESMTP HELO response of the remote host indicates XFORWARD support.

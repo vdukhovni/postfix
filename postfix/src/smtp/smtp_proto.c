@@ -434,10 +434,10 @@ int     smtp_xfer(SMTP_STATE *state)
     /*
      * Sanity check. Recipients should be unmarked at this point.
      */
-    if (request->rcpt_list.len <= 0)
+    if (SMTP_RCPT_LEFT(state) <= 0)
 	msg_panic("smtp_xfer: bad recipient count: %d",
-		  request->rcpt_list.len);
-    if (SMTP_RCPT_MARK_ISSET(request->rcpt_list.info))
+		  SMTP_RCPT_LEFT(state));
+    if (SMTP_RCPT_ISMARKED(request->rcpt_list.info))
 	msg_panic("smtp_xfer: bad recipient status: %d",
 		  request->rcpt_list.info->status);
 
@@ -616,7 +616,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	    QUOTE_ADDRESS(state->scratch, rcpt->address);
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(state->scratch));
-	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
+	    if ((next_rcpt = send_rcpt + 1) == SMTP_RCPT_LEFT(state))
 		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
 		    SMTP_STATE_ABORT : SMTP_STATE_DATA;
 	    break;
@@ -779,7 +779,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			}
 		    }
 		    /* If trace-only, send RSET instead of DATA. */
-		    if (++recv_rcpt == request->rcpt_list.len)
+		    if (++recv_rcpt == SMTP_RCPT_LEFT(state))
 			recv_state = DEL_REQ_TRACE_ONLY(request->flags) ?
 			    SMTP_STATE_ABORT : SMTP_STATE_DATA;
 		    break;
@@ -822,7 +822,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			} else {
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
-				if (!SMTP_RCPT_MARK_ISSET(rcpt))
+				if (!SMTP_RCPT_ISMARKED(rcpt))
 				    smtp_rcpt_done(state, resp->str, rcpt);
 			    }
 			}

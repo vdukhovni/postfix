@@ -34,7 +34,7 @@
 /*	of all messages to the same domain is deferred, or one or more
 /*	recipients are given up as non-deliverable and a bounce log is
 /*	updated. In any case, the recipient is marked as either KEEP
-/*	(try again with a backup host) or DROP (delete recipient from 
+/*	(try again with a backup host) or DROP (delete recipient from
 /*	delivery request).
 /*
 /*	In addition, when an unexpected response code is seen such
@@ -47,7 +47,7 @@
 /*
 /*	In case of a soft error, action depends on whether the error
 /*	qualifies for trying the request with other mail servers (log
-/*	an informational record only and try the a backup server) or
+/*	an informational record only and try a backup server) or
 /*	whether this is the final server (log recipient delivery status
 /*	records and delete the recipient from the request).
 /*
@@ -59,7 +59,7 @@
 /*	The policy is: soft error, non-final server: log an informational
 /*	record why the host is being skipped; soft error, final server:
 /*	defer delivery of all remaining recipients and mark the destination
-/*	a problematic; hard error: bounce all remaining recipients.
+/*	as problematic; hard error: bounce all remaining recipients.
 /*	The result is non-zero.
 /*
 /*	smtp_mesg_fail() handles the case where the smtp server
@@ -180,14 +180,13 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
      * delivery to a backup server. Just log something informative to show
      * why we're skipping this host.
      */
-    if (soft_error && state->final_server == 0
-	&& (smtp_backup_mask & SMTP_BACKUP_SESSION_FAILURE)) {
+    if (soft_error && state->final_server == 0) {
 	msg_info("%s: %s", request->queue_id, vstring_str(why));
-	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
-	    SMTP_RCPT_MARK_KEEP(state, rcpt);
+	    SMTP_RCPT_KEEP(state, rcpt);
 	}
     }
 
@@ -197,9 +196,9 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
      * the recipient for delivery to a backup server.
      */
     else {
-	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
 	    status = (soft_error ? defer_append : bounce_append)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
@@ -208,7 +207,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 		 request->arrival_time, "%s", vstring_str(why));
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
-	    SMTP_RCPT_MARK_DROP(state, rcpt);
+	    SMTP_RCPT_DROP(state, rcpt);
 	    state->status |= status;
 	}
 	/* XXX This assumes no fall-back relay. */
@@ -249,14 +248,13 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
      * delivery to a backup server. Just log something informative to show
      * why we're skipping this host.
      */
-    if (soft_error && state->final_server == 0
-	&& (smtp_backup_mask & SMTP_BACKUP_MESSAGE_FAILURE)) {
+    if (soft_error && state->final_server == 0) {
 	msg_info("%s: %s", request->queue_id, vstring_str(why));
-	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
-	    SMTP_RCPT_MARK_KEEP(state, rcpt);
+	    SMTP_RCPT_KEEP(state, rcpt);
 	}
     }
 
@@ -266,9 +264,9 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
      * the recipient for delivery to a backup server.
      */
     else {
-	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
 	    status = (soft_error ? defer_append : bounce_append)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
@@ -277,7 +275,7 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
 		 "%s", vstring_str(why));
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
-	    SMTP_RCPT_MARK_DROP(state, rcpt);
+	    SMTP_RCPT_DROP(state, rcpt);
 	    state->status |= status;
 	}
     }
@@ -304,7 +302,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
     /*
      * Sanity check.
      */
-    if (SMTP_RCPT_MARK_ISSET(rcpt))
+    if (SMTP_RCPT_ISMARKED(rcpt))
 	msg_panic("smtp_rcpt_fail: recipient <%s> is marked", rcpt->address);
 
     /*
@@ -312,15 +310,14 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
      * for trying other mail servers. Just log something informative to show
      * why we're skipping this recipient now.
      */
-    if (soft_error && state->final_server == 0
-	&& (smtp_backup_mask & SMTP_BACKUP_RECIPIENT_FAILURE)) {
+    if (soft_error && state->final_server == 0) {
 	VSTRING *buf = vstring_alloc(100);
 
 	va_start(ap, format);
 	vstring_vsprintf(buf, format, ap);
 	va_end(ap);
 	msg_info("%s: %s", request->queue_id, vstring_str(buf));
-	SMTP_RCPT_MARK_KEEP(state, rcpt);
+	SMTP_RCPT_KEEP(state, rcpt);
 	vstring_free(buf);
     }
 
@@ -341,7 +338,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
 	va_end(ap);
 	if (status == 0)
 	    deliver_completed(state->src, rcpt->offset);
-	SMTP_RCPT_MARK_DROP(state, rcpt);
+	SMTP_RCPT_DROP(state, rcpt);
 	state->status |= status;
     }
     smtp_check_code(state, code);
@@ -378,14 +375,13 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
      * delivery to a backup server. Just log something informative to show
      * why we're skipping this host.
      */
-    if (state->final_server == 0
-	&& (smtp_backup_mask & SMTP_BACKUP_SESSION_FAILURE)) {
+    if (state->final_server == 0) {
 	msg_info("%s: %s", request->queue_id, vstring_str(why));
-	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
-	    SMTP_RCPT_MARK_KEEP(state, rcpt);
+	    SMTP_RCPT_KEEP(state, rcpt);
 	}
     }
 
@@ -394,9 +390,9 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
      * request.
      */
     else {
-	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
+	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	    if (SMTP_RCPT_ISMARKED(rcpt))
 		continue;
 	    state->status |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 					  request->queue_id,
@@ -404,7 +400,7 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 					  rcpt->offset, session->namaddr,
 					  request->arrival_time,
 					  "%s", vstring_str(why));
-	    SMTP_RCPT_MARK_DROP(state, rcpt);
+	    SMTP_RCPT_DROP(state, rcpt);
 	}
     }
 

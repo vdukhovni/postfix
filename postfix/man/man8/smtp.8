@@ -205,24 +205,18 @@ The default limit is taken from the
 \fBdefault_destination_recipient_limit\fR parameter.
 .IP \fBsmtp_mx_address_limit\fR
 An upper bound on the number of MX (mail exchanger) IP addresses
-that the SMTP client will try to connect to, before giving up or
-sending the mail to a fall-back relay host.
+that that can result from DNS or host lookups.
 .sp
 Specify zero to disable the limit.
+.sp
+Note: by default, equal preference MX addresses are sorted into
+random order.
 .IP \fBsmtp_mx_session_limit\fR
-An upper bound on the number of SMTP sessions that the SMTP client
-will engage in before giving up or sending the mail to a fall-back
-relay host.
+An upper bound on the number of SMTP sessions that the SMTP
+client will engage in per message delivery (ignoring MX IP
+addresses that fail to complete the SMTP initial handshake).
 .sp
 Specify zero to disable the limit.
-.IP \fBsmtp_backup_on_soft_error\fR
-The types of recoverable error that qualify for sending a
-recipient to a backup mail server or to a fall-back relay host.
-Specify zero or more of \fBsession\fR (SMTP handshake failure,
-connection loss), \fBmessage\fR (failure of MAIL FROM, DATA or
-"."), or \fBrecipient\fR (failure of RCPT TO).
-.sp
-Recipients that do not qualify are deferred.
 .SH "Timeout controls"
 .ad
 .fi

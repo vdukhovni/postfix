@@ -1,9 +1,9 @@
 SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
-	smtp_addr.c smtp_trouble.c smtp_state.c smtp_misc.c \
+	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c \
 	smtp_sasl_proto.c smtp_sasl_glue.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
-	smtp_addr.o smtp_trouble.o smtp_state.o smtp_misc.o \
+	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o
 HDRS	= smtp.h smtp_sasl.h
 TESTSRC	= 
@@ -144,18 +144,6 @@ smtp_connect.o: ../../include/dns.h
 smtp_connect.o: smtp.h
 smtp_connect.o: ../../include/argv.h
 smtp_connect.o: smtp_addr.h
-smtp_misc.o: smtp_misc.c
-smtp_misc.o: ../../include/sys_defs.h
-smtp_misc.o: ../../include/msg.h
-smtp_misc.o: ../../include/deliver_request.h
-smtp_misc.o: ../../include/vstring.h
-smtp_misc.o: ../../include/vbuf.h
-smtp_misc.o: ../../include/vstream.h
-smtp_misc.o: ../../include/recipient_list.h
-smtp_misc.o: ../../include/deliver_completed.h
-smtp_misc.o: ../../include/sent.h
-smtp_misc.o: smtp.h
-smtp_misc.o: ../../include/argv.h
 smtp_proto.o: smtp_proto.c
 smtp_proto.o: ../../include/sys_defs.h
 smtp_proto.o: ../../include/msg.h
@@ -188,6 +176,18 @@ smtp_proto.o: ../../include/header_opts.h
 smtp_proto.o: smtp.h
 smtp_proto.o: ../../include/argv.h
 smtp_proto.o: smtp_sasl.h
+smtp_rcpt.o: smtp_rcpt.c
+smtp_rcpt.o: ../../include/sys_defs.h
+smtp_rcpt.o: ../../include/msg.h
+smtp_rcpt.o: ../../include/deliver_request.h
+smtp_rcpt.o: ../../include/vstring.h
+smtp_rcpt.o: ../../include/vbuf.h
+smtp_rcpt.o: ../../include/vstream.h
+smtp_rcpt.o: ../../include/recipient_list.h
+smtp_rcpt.o: ../../include/deliver_completed.h
+smtp_rcpt.o: ../../include/sent.h
+smtp_rcpt.o: smtp.h
+smtp_rcpt.o: ../../include/argv.h
 smtp_sasl_glue.o: smtp_sasl_glue.c
 smtp_sasl_glue.o: ../../include/sys_defs.h
 smtp_sasl_glue.o: ../../include/msg.h

@@ -189,24 +189,18 @@
 /*	\fBdefault_destination_recipient_limit\fR parameter.
 /* .IP \fBsmtp_mx_address_limit\fR
 /*	An upper bound on the number of MX (mail exchanger) IP addresses
-/*	that the SMTP client will try to connect to, before giving up or
-/*	sending the mail to a fall-back relay host. 
+/*	that that can result from DNS or host lookups.
 /* .sp
 /*	Specify zero to disable the limit.
+/* .sp
+/*	Note: by default, equal preference MX addresses are sorted into 
+/*	random order.
 /* .IP \fBsmtp_mx_session_limit\fR
-/*	An upper bound on the number of SMTP sessions that the SMTP client
-/*	will engage in before giving up or sending the mail to a fall-back 
-/*	relay host.
+/*      An upper bound on the number of SMTP sessions that the SMTP
+/*      client will engage in per message delivery (ignoring MX IP 
+/*	addresses that fail to complete the SMTP initial handshake).
 /* .sp
 /*	Specify zero to disable the limit.
-/* .IP \fBsmtp_backup_on_soft_error\fR
-/*	The types of recoverable error that qualify for sending a 
-/*	recipient to a backup mail server or to a fall-back relay host.
-/*	Specify zero or more of \fBsession\fR (SMTP handshake failure, 
-/*	connection loss), \fBmessage\fR (failure of MAIL FROM, DATA or 
-/*	"."), or \fBrecipient\fR (failure of RCPT TO).
-/* .sp
-/*	Recipients that do not qualify are deferred.
 /* .SH "Timeout controls"
 /* .ad
 /* .fi
@@ -332,7 +326,6 @@ int     var_smtp_pix_delay;
 int     var_smtp_line_limit;
 char   *var_smtp_helo_name;
 char   *var_smtp_host_lookup;
-char   *var_smtp_backup_mask;
 bool    var_smtp_quote_821_env;
 bool    var_smtp_defer_mxaddr;
 bool    var_smtp_send_xforward;
@@ -345,7 +338,6 @@ int     var_smtp_mxsess_limit;
   */
 int     smtp_errno;
 int     smtp_host_lookup_mask;
-int     smtp_backup_mask;
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -375,6 +367,7 @@ static int deliver_message(DELIVER_REQUEST *request)
     state = smtp_state_alloc();
     state->request = request;
     state->src = request->fp;
+    SMTP_RCPT_INIT(state);
 
     /*
      * Establish an SMTP session and deliver this message to all requested
@@ -420,19 +413,13 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
     }
 }
 
-/* post_init - post-jail initialization */
+/* pre_init - pre-jail initialization */
 
-static void post_init(char *unused_name, char **unused_argv)
+static void pre_init(char *unused_name, char **unused_argv)
 {
     static NAME_MASK lookup_masks[] = {
 	SMTP_HOST_LOOKUP_DNS, SMTP_MASK_DNS,
 	SMTP_HOST_LOOKUP_NATIVE, SMTP_MASK_NATIVE,
-	0,
-    };
-    static NAME_MASK backup_masks[] = {
-	SMTP_BACKUP_SESSION, SMTP_BACKUP_SESSION_FAILURE,
-	SMTP_BACKUP_MESSAGE, SMTP_BACKUP_MESSAGE_FAILURE,
-	SMTP_BACKUP_RECIPIENT, SMTP_BACKUP_RECIPIENT_FAILURE,
 	0,
     };
 
@@ -453,23 +440,6 @@ static void post_init(char *unused_name, char **unused_argv)
 	msg_info("host name lookup methods: %s",
 		 str_name_mask(VAR_SMTP_HOST_LOOKUP, lookup_masks,
 			       smtp_host_lookup_mask));
-
-    /*
-     * When to choose a backup host after a temporary failure.
-     */
-    smtp_backup_mask = name_mask(VAR_SMTP_BACKUP_MASK, backup_masks,
-				 var_smtp_backup_mask);
-    if (msg_verbose)
-	msg_info("when to try backup host: %s",
-		 str_name_mask(VAR_SMTP_BACKUP_MASK, backup_masks,
-			       smtp_backup_mask));
-
-}
-
-/* pre_init - pre-jail initialization */
-
-static void pre_init(char *unused_name, char **unused_argv)
-{
 
     /*
      * SASL initialization.
@@ -519,7 +489,6 @@ int     main(int argc, char **argv)
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
 	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
-	VAR_SMTP_BACKUP_MASK, DEF_SMTP_BACKUP_MASK, &var_smtp_backup_mask, 0, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -564,7 +533,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
-		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_EXIT, pre_exit,
 		       0);

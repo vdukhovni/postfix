@@ -146,6 +146,7 @@ lmtp_proto.o: ../../include/vstream.h
 lmtp_proto.o: ../../include/vstring_vstream.h
 lmtp_proto.o: ../../include/stringops.h
 lmtp_proto.o: ../../include/mymalloc.h
+lmtp_proto.o: ../../include/name_code.h
 lmtp_proto.o: ../../include/mail_params.h
 lmtp_proto.o: ../../include/smtp_stream.h
 lmtp_proto.o: ../../include/mail_queue.h

@@ -8871,13 +8871,18 @@ Apologies for any names omitted.
 	between short queue ID and message status).  File:
 	showq/showq.c.
 
-20031216-7
+20031216-20
 
 	Cleanup: the SMTP client now moves on to the next MX host
 	or fallback relay when delivery fails in the middle of an
-	SMTP session. This includes not only broken connections
-	(easy) but also includes 4xx SMTP server replies (not easy).
-	Files:  smtp/smtp.c, smtp/smtp_connect.c, smtp_trouble.c.
+	SMTP session. This includes both broken connections and
+	4xx SMTP server replies.  Files:  smtp/smtp.c, smtp_rcpt.c,
+	smtp/smtp_connect.c, smtp_trouble.c.
+
+	Configuration parameters: smtp_mx_address_limit (limit the
+	list of IP addresses from MX lookup), and smtp_mx_session_limit
+	(limit the number of actual SMTP sessions per delivery
+	attempt, ignoring unusable MX IP addresses).
 
 20031217
 
@@ -8949,7 +8954,7 @@ Open problems:
 
 	Low: postconf -e edits parameters that postconf won't list.
 
-	Low: while convering 8bit text to quoted-printable, perhaps
+	Low: while converting 8bit text to quoted-printable, perhaps
 	use =46rom instead of >From.
 
 	virtual_mailbox_path expression like forward_path, so that

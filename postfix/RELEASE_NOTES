@@ -22,12 +22,13 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Major changes with Postfix snapshot 2.0.16-20031217
+Major changes with Postfix snapshot 2.0.16-20031221
 ===================================================
 
 The SMTP client now moves on to the next MX host (or fallback relay)
 when delivery fails in the middle of a session. This includes both
-broken connections as well as 4XX replies to SMTP commands.
+broken connections as well as 4XX replies to SMTP commands.  Finally,
+fallback_relay works as expected.
 
 Incompatible changes with Postfix snapshot 2.0.16-20031215
 ==========================================================

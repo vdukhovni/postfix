@@ -32,7 +32,6 @@ typedef struct RECIPIENT_LIST {
 
 extern void recipient_list_init(RECIPIENT_LIST *);
 extern void recipient_list_add(RECIPIENT_LIST *, long, const char *, const char *);
-extern void recipient_list_truncate(RECIPIENT_LIST *, int);
 extern void recipient_list_free(RECIPIENT_LIST *);
 
 /* LICENSE

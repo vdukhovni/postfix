@@ -316,7 +316,7 @@ int     smtp_connect(SMTP_STATE *state)
      * then is to build this into the pre-existing SMTP client without
      * getting lost in the complexity.
      */
-    for (cpp = sites->argv; (dest = *cpp) != 0; cpp++) {
+    for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
 	state->final_server = (cpp[1] == 0);
 	smtp_errno = SMTP_NONE;
 
@@ -359,14 +359,14 @@ int     smtp_connect(SMTP_STATE *state)
 	 * list. Unmark any left-over recipients and try to deliver them to a
 	 * backup mail server.
 	 */
-	for (sess_count = addr_count = 0, addr = addr_list; addr; addr = next) {
+	sess_count = addr_count = 0;
+	for (addr = addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
 	    next = addr->next;
 	    if (++addr_count == var_smtp_mxaddr_limit)
 		next = 0;
 	    if ((state->session = smtp_connect_addr(addr, port, why)) != 0) {
 		if (++sess_count == var_smtp_mxsess_limit)
 		    next = 0;
-		SMTP_RCPT_MARK_INIT(state);
 		state->final_server = (cpp[1] == 0 && next == 0);
 		state->session->best = (addr->pref == addr_list->pref);
 		debug_peer_check(state->session->host, state->session->addr);
@@ -379,8 +379,7 @@ int     smtp_connect(SMTP_STATE *state)
 		/* XXX smtp_xfer() may abort in the middle of DATA. */
 		smtp_session_free(state->session);
 		debug_peer_restore();
-		if (smtp_rcpt_mark_finish(state) == 0)
-		    break;
+		smtp_rcpt_cleanup(state);
 	    } else {
 		msg_info("%s (port %d)", vstring_str(why), ntohs(port));
 	    }
@@ -395,7 +394,7 @@ int     smtp_connect(SMTP_STATE *state)
      * Pay attention to what could be configuration problems, and pretend that
      * these are recoverable rather than bouncing the mail.
      */
-    if (request->rcpt_list.len > 0) {
+    if (SMTP_RCPT_LEFT(state) > 0) {
 	switch (smtp_errno) {
 
 	default:
@@ -430,6 +429,7 @@ int     smtp_connect(SMTP_STATE *state)
 		state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
 						 var_bestmx_transp,
 						 request);
+		SMTP_RCPT_LEFT(state) = 0;	/* XXX */
 		break;
 	    }
 	    /* FALLTHROUGH */
@@ -440,9 +440,16 @@ int     smtp_connect(SMTP_STATE *state)
 	     * We still need to bounce or defer some left-over recipients:
 	     * either mail loops or some backup mail server was unavailable.
 	     */
+	    state->final_server = 1;
 	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
 			   "%s", vstring_str(why));
-	    break;
+
+	    /*
+	     * Sanity check. Don't silently lose recipients.
+	     */
+	    smtp_rcpt_cleanup(state);
+	    if (SMTP_RCPT_LEFT(state) > 0)
+		msg_panic("smtp_connect: left-over recipients");
 	}
     }
 
