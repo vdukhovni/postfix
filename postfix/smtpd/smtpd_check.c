@@ -803,12 +803,12 @@ static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr,
 	domain = "";
 
     /*
-     * Skip forms that we can't handle yet. Permit user@[ip_address].
+     * Skip forms that we can't handle yet.
      */
     if (domain[0] == '#')
 	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')
-	return (SMTPD_CHECK_OK);
+	return (SMTPD_CHECK_DUNNO);
 
     /*
      * Truncate names ending in dot but not dot-dot.

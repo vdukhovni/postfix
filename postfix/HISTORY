@@ -2789,3 +2789,9 @@ Apologies for any names omitted.
 	Feature: added a "undeliverable postmaster notification
 	discarded" warning when mail is dropped on the floor.
 	Requested by Michael Hasenstein, SuSE, Germany.
+
+19990517
+
+	Bugfix: reject_non_fqdn_sender/recipient would pass
+	user@[ip_address] regardless of destination. Eric Cholet
+	had the honor of suffering from this one.
