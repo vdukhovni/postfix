@@ -36,6 +36,7 @@
 /*	RFC 1651 (SMTP service extensions)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2197 (Pipelining)
+/*	RFC 2554 (AUTH command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can
@@ -93,6 +94,12 @@
 /*	Skip servers that greet us with a 5xx status code.
 /* .IP \fBsmtp_skip_quit_response\fR
 /*	Do not wait for the server response after sending QUIT.
+/* .SH "Authentication controls"
+/* .IP \fBsmtp_enable_sasl_auth\fR
+/*	Enable per-session authentication as per RFC 2554 (SASL).
+/* .IP \fBsmtp_sasl_password_maps\fR
+/*	Lookup tables with per-host \fIname\fR:\fIpassword\fR entries.
+/*	No entry for a host means no attempt to authenticate.
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -343,6 +350,16 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
+/* pre_exit - pre-exit cleanup */
+
+static void pre_exit(void)
+{
+#ifdef USE_SASL_AUTH
+    if (var_smtp_sasl_enable)
+	sasl_done();
+#endif
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -388,5 +405,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
+		       MAIL_SERVER_EXIT, pre_exit,
 		       0);
 }

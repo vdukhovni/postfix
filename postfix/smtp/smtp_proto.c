@@ -222,7 +222,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    else if (strcasecmp(word, "SIZE") == 0)
 		state->features |= SMTP_FEATURE_SIZE;
 #ifdef USE_SASL_AUTH
-	    else if (strcasecmp(word, "AUTH") == 0)
+	    else if (var_smtp_sasl_enable && strcasecmp(word, "AUTH") == 0)
 		smtp_sasl_helo_auth(state, words);
 #endif
 	    else if (strcasecmp(word, var_myhostname) == 0) {
@@ -238,7 +238,7 @@ int     smtp_helo(SMTP_STATE *state)
 	msg_info("server features: 0x%x", state->features);
 
 #ifdef USE_SASL_AUTH
-    if (state->features & SMTP_FEATURE_AUTH)
+    if (var_smtp_sasl_enable && (state->features & SMTP_FEATURE_AUTH))
 	return (smtp_sasl_helo_login(state));
 #endif
 

@@ -46,7 +46,7 @@ EOF
 # in order to not disturb running programs.
 
 compare_or_replace() {
-    cmp $2 $3 >/dev/null 2>&1 || {
+    (cmp $2 $3 >/dev/null 2>&1 && echo Skipping $3...) || {
 	echo Updating $3...
 	rm -f $tempdir/junk || exit 1
 	cp $2 $tempdir/junk || exit 1
@@ -57,7 +57,7 @@ compare_or_replace() {
 }
 
 compare_or_symlink() {
-    cmp $1 $2 >/dev/null 2>&1 || {
+    (cmp $1 $2 >/dev/null 2>&1 && echo Skipping $2...) || {
 	echo Updating $2...
 	rm -f $tempdir/junk || exit 1
 	dest=`echo $1 | sed '
@@ -86,7 +86,7 @@ compare_or_symlink() {
 }
 
 compare_or_move() {
-    cmp $2 $3 >/dev/null 2>&1 || {
+    (cmp $2 $3 >/dev/null 2>&1 && echo Skipping $3...) || {
 	echo Updating $3...
 	mv -f $2 $3 || exit 1
 	chmod $1 $3 || exit 1
@@ -334,7 +334,8 @@ no) ;;
      done
      for file in man?/*
      do
-	 (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file) || {
+	 (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file &&
+	  echo Skipping $MANPAGES/$file...) || {
 	     echo Updating $MANPAGES/$file...
 	     rm -f $MANPAGES/$file
 	     cp $file $MANPAGES/$file || exit 1

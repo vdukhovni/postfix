@@ -3815,3 +3815,8 @@ Apologies for any names omitted.
 20000416
 
 	Workaround: allow <(comment)> as SMTP MAIL FROM address.
+
+20000417
+
+	The SASL authentication in the SMTP server and client works,
+	but only on Linux and Solaris.

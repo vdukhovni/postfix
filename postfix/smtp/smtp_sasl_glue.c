@@ -14,6 +14,9 @@
 /*	void	smtp_sasl_start(state)
 /*	SMTP_STATE *state;
 /*
+/*	int     smtp_sasl_passwd_lookup(state)
+/*	SMTP_STATE *state;
+/*
 /*	int	smtp_sasl_authenticate(state, why)
 /*	SMTP_STATE *state;
 /*	VSTRING *why;
@@ -32,10 +35,16 @@
 /*	routine must be called once per session before doing any SASL
 /*	authentication.
 /*
+/*	smtp_sasl_passwd_lookup() looks up the username/password
+/*	for the current SMTP server. The result is zero in case
+/*	of failure.
+/*
 /*	smtp_sasl_authenticate() implements the SASL authentication
 /*	dialog. The result is < 0 in case of protocol failure, zero in
 /*	case of unsuccessful authentication, > 0 in case of success.
 /*	The why argument is updated with a reason for failure.
+/*	This routine must be called only when smtp_sasl_passwd_lookup()
+/*	suceeds.
 /*
 /*	smtp_sasl_cleanup() cleans up. It must be called at the
 /*	end of every SMTP session that uses SASL authentication.
@@ -175,7 +184,7 @@ static int smtp_sasl_get_passwd(sasl_conn_t *conn, void *context,
 
 /* smtp_sasl_passwd_lookup - password lookup routine */
 
-static void smtp_sasl_passwd_lookup(SMTP_STATE *state)
+int     smtp_sasl_passwd_lookup(SMTP_STATE *state)
 {
     char   *myname = "smtp_sasl_passwd_lookup";
     const char *value;
@@ -190,19 +199,21 @@ static void smtp_sasl_passwd_lookup(SMTP_STATE *state)
     /*
      * Look up the per-server password information.
      */
-
     if ((value = maps_find(smtp_sasl_passwd_map, state->session->host, 0)) != 0) {
 	state->sasl_username = mystrdup(value);
 	passwd = split_at(state->sasl_username, ':');
 	state->sasl_passwd = mystrdup(passwd ? passwd : "");
+	if (msg_verbose)
+	    msg_info("%s: host `%s' user `%s' pass `%s'",
+		     myname, state->session->host,
+		     state->sasl_username, state->sasl_passwd);
+	return(1);
     } else {
-	state->sasl_username = mystrdup(var_myhostname);
-	state->sasl_passwd = mystrdup("");
+	if (msg_verbose)
+	    msg_info("%s: host `%s' no auth info found",
+		     myname, state->session->host);
+	return(0);
     }
-    if (msg_verbose)
-	msg_info("%s: host `%s' user `%s' pass `%s'",
-		 myname, state->session->host,
-		 state->sasl_username, state->sasl_passwd);
 }
 
 /* smtp_sasl_initialize - per-process initialization (pre jail) */
@@ -276,7 +287,8 @@ void    smtp_sasl_start(SMTP_STATE *state)
     memcpy((char *) state->sasl_callbacks, callbacks, sizeof(callbacks));
     for (cp = state->sasl_callbacks; cp->id != SASL_CB_LIST_END; cp++)
 	cp->context = (void *) state;
-    if (sasl_client_new("smtp", state->session->host, callbacks, NULL_SECFLAGS,
+    if (sasl_client_new("smtp", state->session->host,
+			state->sasl_callbacks, NULL_SECFLAGS,
 			(sasl_conn_t **) &state->sasl_conn) != SASL_OK)
 	msg_fatal("per-session SASL client initialization");
     smtp_sasl_passwd_lookup(state);
@@ -323,6 +335,8 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
 
 #define NO_SASL_SECRET		0
 #define NO_SASL_INTERACTION	0
+#define NO_SASL_LANGLIST	((const char *) 0)
+#define NO_SASL_OUTLANG		((const char **) 0)
 
     if (msg_verbose)
 	msg_info("%s: %s: SASL mechanisms %s",
@@ -335,9 +349,13 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
 			       state->sasl_mechanism_list,
 			       NO_SASL_SECRET, NO_SASL_INTERACTION,
 			       &clientout, &clientoutlen, &mechanism);
-    if (result != SASL_OK && result != SASL_CONTINUE)
-	msg_fatal("%s: %s: client-side SASL authentication startup",
-		  myname, state->session->namaddr);
+    if (result != SASL_OK && result != SASL_CONTINUE) {
+	vstring_sprintf(why, "cannot SASL authenticate to server %s: %s",
+			state->session->namaddr,
+			sasl_errstring(result, NO_SASL_LANGLIST, 
+				       NO_SASL_OUTLANG));
+	return (-1);
+    }
 
     /*
      * Send the AUTH command and the optional initial client response.

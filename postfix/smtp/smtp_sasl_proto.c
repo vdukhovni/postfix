@@ -10,7 +10,7 @@
 /*	SMTP_STATE *state;
 /*	const char *words;
 /*
-/*	void	smtp_sasl_helo_login(state)
+/*	int	smtp_sasl_helo_login(state)
 /*	SMTP_STATE *state;
 /* DESCRIPTION
 /*	This module contains random chunks of code that implement
@@ -22,7 +22,8 @@
 /*
 /*	smtp_sasl_helo_login() authenticates the SMTP client to the
 /*	SMTP server, using the authentication mechanism information
-/*	given by the server.
+/*	given by the server. The result is a Postfix delivery status
+/*	code in case of trouble.
 /*
 /*	Arguments:
 /* .IP state
@@ -77,18 +78,16 @@ void smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
      * XXX If the server offers a null list of authentication mechanisms,
      * then pretend that the server doesn't support SASL authentication.
      */
-    if (var_smtp_sasl_enable) {
-	if (state->sasl_mechanism_list) {
-	    myfree(state->sasl_mechanism_list);
-	    msg_warn("%s offered AUTH option multiple times",
-		     state->session->namaddr);
-	    state->sasl_mechanism_list = 0;
-	    state->features &= ~SMTP_FEATURE_AUTH;
-	}
-	if (strlen(words) > 0) {
-	    state->sasl_mechanism_list = mystrdup(words);
-	    state->features |= SMTP_FEATURE_AUTH;
-	}
+    if (state->sasl_mechanism_list) {
+	myfree(state->sasl_mechanism_list);
+	msg_warn("%s offered AUTH option multiple times",
+		 state->session->namaddr);
+	state->sasl_mechanism_list = 0;
+	state->features &= ~SMTP_FEATURE_AUTH;
+    }
+    if (strlen(words) > 0) {
+	state->sasl_mechanism_list = mystrdup(words);
+	state->features |= SMTP_FEATURE_AUTH;
     }
 }
 
@@ -97,15 +96,19 @@ void smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
 int smtp_sasl_helo_login(SMTP_STATE *state)
 {
     VSTRING *why = vstring_alloc(10);
-    int     ret;
+    int     ret = 0;
 
     /*
-     * XXX If authentication fails, should we try anonymous authentication?
+     * Skip authentication when we have no authentication info for this
+     * server. In that case it should simply treat us like any stranger.
+     * Otherwise, if authentication fails assume the error is recoverable.
      */
-    smtp_sasl_start(state);
-    if (smtp_sasl_authenticate(state, why) <= 0)
-	ret = smtp_site_fail(state, 450, "Authentication failed: %s",
-			     vstring_str(why));
+    if (smtp_sasl_passwd_lookup(state) != 0) {
+	smtp_sasl_start(state);
+	if (smtp_sasl_authenticate(state, why) <= 0)
+	    ret = smtp_site_fail(state, 450, "Authentication failed: %s",
+				 vstring_str(why));
+    }
     vstring_free(why);
     return (ret);
 }
