@@ -72,6 +72,7 @@ while(<>) {
     $block =~ s/&amp;/\&/g;
     $block =~ s/\s+\n/\n/g;
     $block =~ s/^\n//g;
+    $block =~ s/([a-z][_a-zA-Z0-9-]*)(\([0-9]\))/\\fB\1\\fR\2/g;
     print $block;
     $wantpp = !($block =~ /^\.(SH|IP)/);
 }

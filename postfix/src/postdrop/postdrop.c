@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBpostdrop\fR [\fB-rv\fR] [\fB-c \fIconfig_dir\fR]
 /* DESCRIPTION
-/*	The \fBpostdrop\fR command creates a file in the \fBmaildrop\fR
+/*	The \fBpostdrop\fR(1) command creates a file in the \fBmaildrop\fR
 /*	directory and copies its standard input to the file.
 /*
 /*	Options:
@@ -52,7 +52,7 @@
 /*	The following \fBmain.cf\fR parameters are especially relevant to
 /*	this program.
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
 /*	be specified with "-c config_directory" on the command line, or
@@ -72,12 +72,12 @@
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .IP "\fBtrigger_timeout (10s)\fR"
 /*	The time limit for sending a trigger to a Postfix daemon (for
-/*	example, the pickup(8) or qmgr(8) daemon).
+/*	example, the \fBpickup\fR(8) or \fBqmgr\fR(8) daemon).
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBauthorized_submit_users (static:anyone)\fR"
-/*	List of users who are authorized to submit mail with the sendmail(1)
-/*	command (and with the privileged postdrop(1) helper command).
+/*	List of users who are authorized to submit mail with the \fBsendmail\fR(1)
+/*	command (and with the privileged \fBpostdrop\fR(1) helper command).
 /* FILES
 /*	/var/spool/postfix/maildrop, maildrop queue
 /* SEE ALSO

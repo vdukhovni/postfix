@@ -9,7 +9,7 @@
 /*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
-/*	The \fBpostmap\fR command creates or queries one or more Postfix
+/*	The \fBpostmap\fR(1) command creates or queries one or more Postfix
 /*	lookup tables, or updates an existing one. The input and output
 /*	file formats are expected to be compatible with:
 /*
@@ -62,19 +62,21 @@
 /*	a map.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
-/*	truncate an existing database. By default, \fBpostmap\fR creates
+/*	truncate an existing database. By default, \fBpostmap\fR(1) creates
 /*	a new database from the entries in \fBfile_name\fR.
 /* .IP \fB-N\fR
 /*	Include the terminating null character that terminates lookup keys
-/*	and values. By default, Postfix does whatever is the default for
+/*	and values. By default, \fBpostmap\fR(1) does whatever is
+/*	the default for
 /*	the host operating system.
 /* .IP \fB-n\fR
 /*	Don't include the terminating null character that terminates lookup
-/*	keys and values. By default, Postfix does whatever is the default for
+/*	keys and values. By default, \fBpostmap\fR(1) does whatever
+/*	is the default for
 /*	the host operating system.
 /* .IP \fB-o\fR
 /*	Do not release root privileges when processing a non-root
-/*	input file. By default, \fBpostmap\fR drops root privileges
+/*	input file. By default, \fBpostmap\fR(1) drops root privileges
 /*	and runs as the source file owner instead.
 /* .IP \fB-p\fR
 /*	Do not inherit the file access permissions from the input file
@@ -111,7 +113,7 @@
 /*	The database type. To find out what types are supported, use
 /*	the "\fBpostconf -m\fR" command.
 /*
-/*	The \fBpostmap\fR command can query any supported file type,
+/*	The \fBpostmap\fR(1) command can query any supported file type,
 /*	but it can create only the following file types:
 /* .RS
 /* .IP \fBbtree\fR
@@ -144,8 +146,8 @@
 /*	No output means that no problems were detected. Duplicate entries are
 /*	skipped and are flagged with a warning.
 /*
-/*	\fBpostmap\fR terminates with zero exit status in case of success
-/*	(including successful \fBpostmap -q\fR lookup) and terminates
+/*	\fBpostmap\fR(1) terminates with zero exit status in case of success
+/*	(including successful "\fBpostmap -q\fR" lookup) and terminates
 /*	with non-zero exit status in case of failure.
 /* ENVIRONMENT
 /* .ad
@@ -160,7 +162,7 @@
 /*	The following \fBmain.cf\fR parameters are especially relevant to
 /*	this program.
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBberkeley_db_create_buffer_size (16777216)\fR"
 /*	The per-table I/O buffer size for programs that create Berkeley DB
 /*	hash or btree tables.
@@ -171,8 +173,8 @@
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
-/*	The default database type for use in newaliases(1), postalias(1)
-/*	and postmap(1) commands.
+/*	The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
+/*	and \fBpostmap\fR(1) commands.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (postfix)\fR"

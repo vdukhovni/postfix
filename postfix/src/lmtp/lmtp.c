@@ -64,12 +64,12 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as lmtp(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically, as \fBlmtp\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi

@@ -1,7 +1,7 @@
 # VIRTUAL(5)                                             VIRTUAL(5)
 # 
 # NAME
-#        virtual - format of Postfix virtual alias table
+#        virtual - Postfix virtual alias table format
 # 
 # SYNOPSIS
 #        postmap /etc/postfix/virtual
@@ -11,10 +11,10 @@
 #        postmap -q - /etc/postfix/virtual <inputfile
 # 
 # DESCRIPTION
-#        The  optional virtual alias table specifies address alias-
-#        ing for arbitrary local or non-local recipient  addresses.
-#        Virtual  aliasing is recursive, and is done by the Postfix
-#        cleanup(8) daemon.
+#        The  optional  virtual(5)  alias  table  specifies address
+#        aliasing  for  arbitrary  local  or  non-local   recipient
+#        addresses.  Virtual  aliasing is recursive, and is done by
+#        the Postfix cleanup(8) daemon.
 # 
 #        The main applications of virtual aliasing are:
 # 
@@ -36,11 +36,11 @@
 #        Sendmail  rule  set S0, if you like. Use canonical(5) map-
 #        ping to rewrite header and envelope addresses in  general.
 # 
-#        Normally,  the  virtual alias table is specified as a text
-#        file that serves as input to the postmap(1) command.   The
-#        result,  an  indexed file in dbm or db format, is used for
-#        fast searching by the mail  system.  Execute  the  command
-#        postmap  /etc/postfix/virtual  in  order  to  rebuild  the
+#        Normally,  the  virtual(5)  alias  table is specified as a
+#        text file that serves as input to the postmap(1)  command.
+#        The  result,  an indexed file in dbm or db format, is used
+#        for fast searching by the mail system. Execute the command
+#        "postmap  /etc/postfix/virtual"  in  order  to rebuild the
 #        indexed file after changing the text file.
 # 
 #        When the table is provided via other means  such  as  NIS,
@@ -87,7 +87,7 @@
 # 
 #               This  functionality  overlaps with functionality of
 #               the local aliases(5) database.  The  difference  is
-#               that  virtual  mapping  can be applied to non-local
+#               that virtual(5) mapping can be applied to non-local
 #               addresses.
 # 
 #        @domain address, address, ...
@@ -131,8 +131,8 @@
 #            virtual_alias_maps = hash:/etc/postfix/virtual
 # 
 #            Note:  some systems use dbm databases instead of hash.
-#            See the output from postconf -m for available database
-#            types.
+#            See  the  output  from  "postconf  -m"  for  available
+#            database types.
 # 
 #        /etc/postfix/virtual:
 #            virtual-alias.domain anything (right-hand content does not matter)
@@ -183,8 +183,8 @@
 #        This  section  describes how the table lookups change when
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion   of  the  TCP  client/server  lookup  protocol,  see
-#        tcp_table(5).  This feature is not  available  in  Postfix
-#        version 2.1.
+#        tcp_table(5).  This feature is not  available  up  to  and
+#        including Postfix version 2.2.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
 #        user@domain mail addresses are not broken  up  into  their
@@ -199,7 +199,7 @@
 # CONFIGURATION PARAMETERS
 #        The  following  main.cf parameters are especially relevant
 #        to this topic. See the Postfix  main.cf  file  for  syntax
-#        details  and  for  default  values. Use the postfix reload
+#        details  and  for default values. Use the "postfix reload"
 #        command after a configuration change.
 # 
 #        virtual_alias_maps

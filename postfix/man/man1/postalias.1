@@ -15,7 +15,7 @@ Postfix alias database maintenance
 .SH DESCRIPTION
 .ad
 .fi
-The \fBpostalias\fR command creates or queries one or more Postfix
+The \fBpostalias\fR(1) command creates or queries one or more Postfix
 alias databases, or updates an existing one. The input and output
 file formats are expected to be compatible with Sendmail version 8,
 and are expected to be suitable for the use as NIS alias maps.
@@ -47,19 +47,21 @@ Do not fold the lookup key to lower case while creating or querying
 a map.
 .IP \fB-i\fR
 Incremental mode. Read entries from standard input and do not
-truncate an existing database. By default, \fBpostalias\fR creates
+truncate an existing database. By default, \fBpostalias\fR(1) creates
 a new database from the entries in \fIfile_name\fR.
 .IP \fB-N\fR
 Include the terminating null character that terminates lookup keys
-and values. By default, Postfix does whatever is the default for
+and values. By default, \fBpostalias\fR(1) does whatever
+is the default for
 the host operating system.
 .IP \fB-n\fR
 Don't include the terminating null character that terminates lookup
-keys and values. By default, Postfix does whatever is the default for
+keys and values. By default, \fBpostalias\fR(1) does whatever
+is the default for
 the host operating system.
 .IP \fB-o\fR
 Do not release root privileges when processing a non-root
-input file. By default, \fBpostalias\fR drops root privileges
+input file. By default, \fBpostalias\fR(1) drops root privileges
 and runs as the source file owner instead.
 .IP \fB-p\fR
 Do not inherit the file access permissions from the input file
@@ -96,7 +98,7 @@ Arguments:
 The database type. To find out what types are supported, use
 the "\fBpostconf -m\fR" command.
 
-The \fBpostalias\fR command can query any supported file type,
+The \fBpostalias\fR(1) command can query any supported file type,
 but it can create only the following file types:
 .RS
 .IP \fBbtree\fR
@@ -132,8 +134,8 @@ Problems are logged to the standard error stream and to
 no problems were detected. Duplicate entries are skipped and are
 flagged with a warning.
 
-\fBpostalias\fR terminates with zero exit status in case of success
-(including successful \fBpostalias -q\fR lookup) and terminates
+\fBpostalias\fR(1) terminates with zero exit status in case of success
+(including successful "\fBpostalias -q\fR" lookup) and terminates
 with non-zero exit status in case of failure.
 .SH "ENVIRONMENT"
 .na
@@ -153,9 +155,9 @@ The following \fBmain.cf\fR parameters are especially relevant to
 this program.
 
 The text below provides only a parameter summary. See
-postconf(5) for more details including examples.
+\fBpostconf\fR(5) for more details including examples.
 .IP "\fBalias_database (see 'postconf -d' output)\fR"
-The alias databases for local(8) delivery that are updated with
+The alias databases for \fBlocal\fR(8) delivery that are updated with
 "\fBnewaliases\fR" or with "\fBsendmail -bi\fR".
 .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 The default location of the Postfix main.cf and master.cf
@@ -167,8 +169,8 @@ hash or btree tables.
 The per-table I/O buffer size for programs that read Berkeley DB
 hash or btree tables.
 .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
-The default database type for use in newaliases(1), postalias(1)
-and postmap(1) commands.
+The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
+and \fBpostmap\fR(1) commands.
 .IP "\fBsyslog_facility (mail)\fR"
 The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (postfix)\fR"

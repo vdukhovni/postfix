@@ -7,7 +7,7 @@
 TRANSPORT(5)                                         TRANSPORT(5)
 
 <b>NAME</b>
-       transport - format of Postfix transport table
+       transport - Postfix transport table format
 
 <b>SYNOPSIS</b>
        <b>postmap /etc/postfix/transport</b>
@@ -17,7 +17,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
        <b>postmap -q - /etc/postfix/transport</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       The  optional  <b>transport</b>  table  specifies  a mapping from
+       The  optional  <a href="transport.5.html"><b>transport</b>(5)</a> table specifies a mapping from
        email addresses  to  message  delivery  transports  and/or
        relay hosts. The mapping is used by the <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a>
        daemon.
@@ -42,11 +42,11 @@ TRANSPORT(5)                                         TRANSPORT(5)
               Mail for any other destination is by default deliv-
               ered via <b>$<a href="postconf.5.html#default_transport">default_transport</a></b>.
 
-       Normally, the <b>transport</b> table is specified as a text  file
-       that  serves  as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
+       Normally, the <a href="transport.5.html"><b>transport</b>(5)</a> table is specified  as  a  text
+       file  that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
        result, an indexed file in <b>dbm</b> or <b>db</b> format, is  used  for
        fast  searching  by  the  mail system. Execute the command
-       <b>postmap /etc/postfix/transport</b> in  order  to  rebuild  the
+       "<b>postmap /etc/postfix/transport</b>" in order to  rebuild  the
        indexed file after changing the transport table.
 
        When  the  table  is provided via other means such as NIS,
@@ -227,8 +227,8 @@ TRANSPORT(5)                                         TRANSPORT(5)
        This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
        tion   of  the  TCP  client/server  lookup  protocol,  see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  in  Postfix
-       version 2.1.
+       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  up  to  and
+       including Postfix version 2.2.
 
        Each  lookup  operation  uses the entire recipient address
        once.  Thus, <i>some.domain.hierarchy</i> is not  looked  up  via
@@ -240,7 +240,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
 <b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are especially  relevant.
        The  text  below  provides  only  a parameter summary. See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#empty_address_recipient">empty_address_recipient</a></b>
               The address that is looked up instead of  the  null

@@ -14,8 +14,8 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
        <b>trivial-rewrite</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The <b>trivial-rewrite</b> daemon processes three types of client
-       service requests:
+       The <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a> daemon  processes  three  types  of
+       client service requests:
 
        <b>rewrite</b> <i>context address</i>
               Rewrite  an  address to standard form, according to
@@ -62,22 +62,22 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
               poses.
 
 <b>SERVER PROCESS MANAGEMENT</b>
-       The trivial-rewrite servers run under control by the Post-
-       fix master server.  Each server can handle multiple simul-
-       taneous  connections.   When  all servers are busy while a
-       client connects, the master creates a new server  process,
-       provided  that the trivial-rewrite server process limit is
-       not  exceeded.   Each  trivial-rewrite  server  terminates
-       after serving at least <b>$<a href="postconf.5.html#max_use">max_use</a></b> clients of after <b>$<a href="postconf.5.html#max_idle">max_idle</a></b>
-       seconds of idle time.
+       The  <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a>  servers  run under control by the
+       Postfix master server.  Each server  can  handle  multiple
+       simultaneous connections.  When all servers are busy while
+       a client connects, the master creates a  new  server  pro-
+       cess,  provided  that  the  trivial-rewrite server process
+       limit is not exceeded.  Each trivial-rewrite server termi-
+       nates  after  serving  at  least <b>$<a href="postconf.5.html#max_use">max_use</a></b> clients of after
+       <b>$<a href="postconf.5.html#max_idle">max_idle</a></b> seconds of idle time.
 
 <b>STANDARDS</b>
        None. The command  does  not  interact  with  the  outside
        world.
 
 <b>SECURITY</b>
-       The  <b>trivial-rewrite</b> daemon is not security sensitive.  By
-       default, this daemon does not  talk  to  remote  or  local
+       The  <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a>  daemon is not security sensitive.
+       By default, this daemon does not talk to remote  or  local
        users.   It can run at a fixed low privilege in a chrooted
        environment.
 
@@ -86,11 +86,11 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
 <b>CONFIGURATION PARAMETERS</b>
        On busy mail systems a long time may pass before a <b>main.cf</b>
-       change  affecting trivial_rewrite(8) is picked up. Use the
+       change  affecting <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a> is picked up. Use the
        command "<b>postfix reload</b>" to speed up a change.
 
        The text below provides  only  a  parameter  summary.  See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
 <b>COMPATIBILITY CONTROLS</b>
        <b><a href="postconf.5.html#resolve_dequoted_address">resolve_dequoted_address</a> (yes)</b>
@@ -173,7 +173,7 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
        <b><a href="postconf.5.html#relayhost">relayhost</a> (empty)</b>
               The default host to send non-local mail to when  no
-              entry  is  matched  in  the  optional  <a href="transport.5.html">transport(5)</a>
+              entry  is  matched  in  the  optional  <a href="transport.5.html"><b>transport</b>(5)</a>
               table.
 
        <b><a href="postconf.5.html#transport_maps">transport_maps</a> (empty)</b>

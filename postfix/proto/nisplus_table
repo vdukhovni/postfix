@@ -16,7 +16,7 @@
 #	To find out what types of lookup tables your Postfix system
 #	supports use the "\fBpostconf -m\fR" command.
 #
-#	To test Postfix NIS+ lookup tables, use the \fBpostmap\fR
+#	To test Postfix NIS+ lookup tables, use the "\fBpostmap -q\fR"
 #	command as described in the SYNOPSIS above.
 # QUERY SYNTAX
 # .ad

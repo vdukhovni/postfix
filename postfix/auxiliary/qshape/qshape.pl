@@ -81,7 +81,7 @@
 #	absolute path for each queue subdirectory even if you want the
 #	default incoming and active queue distribution.
 # SEE ALSO
-#	mailq(1) List all messages in the queue.
+#	mailq(1), List all messages in the queue.
 #	QSHAPE_README Examples and background material.
 # FILES
 #	$config_directory/main.cf, Postfix installation parameters.

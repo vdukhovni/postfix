@@ -77,7 +77,7 @@
 /*	Listen on the UNIX-domain socket at \fIpathname\fR.
 /* .IP \fIbacklog\fR
 /*	The maximum length the queue of pending connections,
-/*	as defined by the listen(2) call.
+/*	as defined by the \fBlisten\fR(2) system call.
 /* SEE ALSO
 /*	smtp-source(1), SMTP/LMTP message generator
 /* LICENSE

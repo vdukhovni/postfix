@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBpostcat\fR [\fB-oqv\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
 /* DESCRIPTION
-/*	The \fBpostcat\fR command prints the contents of the named
+/*	The \fBpostcat\fR(1) command prints the contents of the named
 /*	\fIfiles\fR in human-readable form. The files are expected
 /*	to be in Postfix queue file format. If no
 /*	\fIfiles\fR are specified on the command line, the program
@@ -40,7 +40,7 @@
 /*	this program.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.

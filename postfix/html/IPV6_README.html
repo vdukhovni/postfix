@@ -21,13 +21,21 @@ IPv6 Support</h1>
 <h2>Introduction</h2>
 
 <p> Postfix 2.2 introduces support for the IPv6 (IP version 6)
-protocol, whose main feature of interest is that it uses 128-bit
-IP addresses instead of the 32-bit addresses used by IPv4.  </p>
+protocol. IPv6 support older Postfix versions was available as an
+add-on patch. The section "<a href="#compat">Compatibility with
+Postfix &lt;2.2 IPv6 support</a>" below discusses the differences
+between these implementations. </p>
 
-<p> With this, Postfix can use the same SMTP protocol over IPv6 as
-it already uses over the older IPv4 network, and Postfix can do
-AAAA record lookups in the DNS in addition to the older A records.
-Information about IPv6 can be found at <a href="http://www.ipv6.org/">http://www.ipv6.org/</a>. </p>
+<p> The main feature of interest is that IPv6 uses 128-bit IP
+addresses instead of the 32-bit addresses used by IPv4. It can
+therefore accomodate a much larger number of hosts and networks
+without ugly kluges such as NAT. A side benefit of the much larger
+address space is that it makes network scanning unpractical.  </p>
+
+<p> Postfix uses the same SMTP protocol over IPv6 as it already
+uses over the older IPv4 network, and does AAAA record lookups in
+the DNS in addition to the older A records.  Information about IPv6
+can be found at <a href="http://www.ipv6.org/">http://www.ipv6.org/</a>. </p>
 
 <p> This document provides information on the following topics:
 </p>
@@ -76,21 +84,22 @@ IPv6 support to other environments.  </p>
 
 <p> Postfix IPv6 support introduces two new main.cf configuration
 parameters, and introduces an important change in address syntax
-notation in match lists such as <tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt> or
-<tt><a href="postconf.5.html#debug_peer_list">debug_peer_list</a></tt>. </p>
+notation in match lists such as <a href="postconf.5.html#mynetworks">mynetworks</a> or
+<a href="postconf.5.html#debug_peer_list">debug_peer_list</a>. </p>
 
 <p> Postfix IPv6 address syntax is a little tricky, because there
-are a few places where you must enclose IPv6 address inside
-<tt>[]</tt> characters, and a few places where you must not. It is
-a good idea to use <tt>[]</tt> only in the few places where you
+are a few places where you must enclose an IPv6 address inside
+"<tt>[]</tt>" characters, and a few places where you must not. It is
+a good idea to use "<tt>[]</tt>" only in the few places where you
 have to. Check out the <a href="postconf.5.html">postconf(5)</a> manual whenever you do IPv6
 related configuration work with Postfix.  </p>
 
 <ul>
 
-<li> <p> The new <tt><a href="postconf.5.html#inet_protocols">inet_protocols</a></tt> parameter specifies what
-IP protocols Postfix will use.  This parameter also controls what
-DNS lookups Postfix will do. </p>
+<li> <p> The first new parameter is called <a href="postconf.5.html#inet_protocols">inet_protocols</a>.  This
+specifies what protocols Postfix will use when it makes or accepts
+network connections, and also controls what DNS lookups Postfix
+will use when it makes network connections.  </p>
 
 <blockquote>
 <pre>
@@ -118,7 +127,7 @@ default. Any attempt to use it would fail immediately. </p>
 </ul>
 
 <p> Note 1: you must stop and start Postfix after changing the
-<tt><a href="postconf.5.html#inet_protocols">inet_protocols</a></tt> configuration parameter. </p>
+<a href="postconf.5.html#inet_protocols">inet_protocols</a> configuration parameter. </p>
 
 <p> Note 2: if you see error messages like the following, then
 you're running Linux and need to turn on IPv6 in the kernel: see
@@ -134,15 +143,15 @@ postconf: warning: <a href="postconf.5.html#inet_protocols">inet_protocols</a>: 
 </blockquote>
 
 <p> Note 3: on older Linux and Solaris systems, the setting
-"<tt><a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv6</tt>" will not prevent Postfix from
+"<a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv6" will not prevent Postfix from
 accepting IPv4 connections.  Postfix will present the client IP
 addresses in IPv6 format, though. In all other cases, Postfix always
 presents IPv4 client IP addresses in the traditional dotted quad
 IPv4 format.  </p>
 
-<li> <p> The other new parameter is <tt><a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a></tt>.
+<li> <p> The other new parameter is <a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a>.
 This sets the local interface address for outgoing IPv6 SMTP
-connections, just like the <tt><a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a></tt> parameter
+connections, just like the <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> parameter
 does for IPv4: </p>
 
 <blockquote>
@@ -152,8 +161,8 @@ does for IPv4: </p>
 </pre>
 </blockquote>
 
-<li> <p> If you left the value of the <tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt> parameter at its
-default (i.e. no <tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt> setting in main.cf) Postfix will figure
+<li> <p> If you left the value of the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter at its
+default (i.e. no <a href="postconf.5.html#mynetworks">mynetworks</a> setting in main.cf) Postfix will figure
 out by itself what its network addresses are. This is what a typical
 setting looks like: </p>
 
@@ -164,10 +173,10 @@ setting looks like: </p>
 </pre>
 </blockquote>
 
-<p> If you did specify the <tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt> parameter value in
-main.cf, you need update the <tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt> value to include
+<p> If you did specify the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter value in
+main.cf, you need update the <a href="postconf.5.html#mynetworks">mynetworks</a> value to include
 the IPv6 networks the system is in. Be sure to specify IPv6 address
-information inside <tt>[]</tt>, like this: </p>
+information inside "<tt>[]</tt>", like this: </p>
 
 <blockquote>
 <pre>
@@ -179,8 +188,8 @@ information inside <tt>[]</tt>, like this: </p>
 </ul>
 
 <p> <b> NOTE: when configuring Postfix match lists such as
-<tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt> or <tt><a href="postconf.5.html#debug_peer_list">debug_peer_list</a></tt>, you must specify
-IPv6 address information inside <tt>[]</tt> in the main.cf parameter
+<a href="postconf.5.html#mynetworks">mynetworks</a> or <a href="postconf.5.html#debug_peer_list">debug_peer_list</a>, you must specify
+IPv6 address information inside "<tt>[]</tt>" in the main.cf parameter
 value and in files specified with a "<i>/file/name</i>" pattern.
 IPv6 addresses contain the ":" character, and would otherwise be
 confused with a "<i>type:table</i>" pattern. </b>  </p>
@@ -197,13 +206,14 @@ blackhole list) lookups for IPv6 client IP addresses; currently
 there are no blacklists that cover the IPv6 address space. </p>
 
 <li> <p> IPv6 does not have class A, B, C, etc. networks. With IPv6
-networks, the setting "<tt><a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = class</tt>" has the
-same effect as the setting "<tt><a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = subnet</tt>".
+networks, the setting "<a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = class" has the
+same effect as the setting "<a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = subnet".
 </p>
 
-<li> <p> On Tru64Unix, Postfix can't figure out the local subnet mask
+<li> <p> On Tru64Unix and AIX, Postfix can't figure out the local
+subnet mask
 and always assumes a /128 network. This is a problem only with
-"<tt><a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = subnet</tt>" and no explicit <tt><a href="postconf.5.html#mynetworks">mynetworks</a></tt>
+"<a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = subnet" and no explicit <a href="postconf.5.html#mynetworks">mynetworks</a>
 setting in main.cf. </p>
 
 </ul>
@@ -216,28 +226,28 @@ by Dean Strik and others, but differs in a few minor ways. </p>
 
 <ul>
 
-<li> <p> main.cf: The <tt><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></tt> parameter does not support
-the notation  "<tt>ipv6:all</tt>" or "<tt>ipv4:all</tt>". Use the
-<tt><a href="postconf.5.html#inet_protocols">inet_protocols</a></tt> parameter instead. </p>
+<li> <p> main.cf: The <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> parameter does not support
+the notation  "ipv6:all" or "ipv4:all". Use the
+<a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter instead. </p>
 
-<li> <p> main.cf: Specify "<tt><a href="postconf.5.html#inet_protocols">inet_protocols</a> = all</tt>" or
-"<tt><a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv4, ipv6</tt>" in order to enable both IPv4
+<li> <p> main.cf: Specify "<a href="postconf.5.html#inet_protocols">inet_protocols</a> = all" or
+"<a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv4, ipv6" in order to enable both IPv4
 and IPv6 support. </p>
 
-<li> <p> main.cf: The <tt><a href="postconf.5.html#inet_protocols">inet_protocols</a></tt> parameter also controls
+<li> <p> main.cf: The <a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter also controls
 what DNS lookups Postfix will attempt to make when delivering or
 receiving mail. </p>
 
-<li> <p> main.cf: Specify "<tt><a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only</tt>"
+<li> <p> main.cf: Specify "<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only"
 to listen on loopback network interfaces only. </p>
 
-<li> <p> The <tt>lmtp_bind_address</tt> and <tt>lmtp_bind_address6</tt>
+<li> <p> The lmtp_bind_address and lmtp_bind_address6
 features were omitted. The Postfix LMTP client will be absorbed
 into the SMTP client, so there is no reason to keep adding features
 to the LMTP client. </p>
 
 <li> <p> The SMTP server now requires that IPv6 addresses in SMTP
-commands are specified as <tt>[ipv6:<i>ipv6address</i>]</tt>, as
+commands are specified as [ipv6:<i>ipv6address</i>], as
 described in <a href="http://www.faqs.org/rfcs/rfc2821.html">RFC 2821</a>. </p>
 
 <li> <p> The IPv6 network address matching code was rewritten from
@@ -258,9 +268,9 @@ following steps: </p>
 Postfix needs this information to avoid mailer loops and to find out
 if mail for <i>user@[ipaddress]</i> is a local or remote destination. </p>
 
-<p> If your system has the <tt>getifaddrs()</tt> routine then add
+<p> If your system has the getifaddrs() routine then add
 the following to your platform-specific section in
-<tt>src/util/sys_defs.h</tt>:  </p>
+src/util/sys_defs.h:  </p>
 
 <blockquote>
 <pre>
@@ -271,9 +281,9 @@ the following to your platform-specific section in
 </pre>
 </blockquote>
 
-<p> Otherwise, if your system has the SIOCGLIF <tt>ioctl()</tt>
-command in <tt>/usr/include/*/*.h</tt>, add the following to your
-platform-specific section in <tt>src/util/sys_defs.h</tt>: </p>
+<p> Otherwise, if your system has the SIOCGLIF ioctl()
+command in /usr/include/*/*.h, add the following to your
+platform-specific section in src/util/sys_defs.h: </p>
 
 <blockquote>
 <pre>
@@ -286,9 +296,9 @@ platform-specific section in <tt>src/util/sys_defs.h</tt>: </p>
 
 <p> Otherwise, Postfix will have to use the old SIOCGIF commands
 and get along with reduced IPv6 functionality (it won't be able to
-figure out your IPv6 netmasks, which are needed for "<tt><a href="postconf.5.html#mynetworks_style">mynetworks_style</a>
-= subnet</tt>". Add this to your platform-specific section in
-<tt>src/util/sys_defs.h</tt>: </p>
+figure out your IPv6 netmasks, which are needed for "<a href="postconf.5.html#mynetworks_style">mynetworks_style</a>
+= subnet". Add this to your platform-specific section in
+src/util/sys_defs.h: </p>
 
 <blockquote>
 <pre>
@@ -301,7 +311,7 @@ figure out your IPv6 netmasks, which are needed for "<tt><a href="postconf.5.htm
 <li> <p> Test if Postfix can figure out its interface information. </p>
 
 <p> After compiling Postfix in the usual manner, step into the
-<tt>src/util</tt> directory and type "<tt>make inet_addr_local</tt>".
+src/util directory and type "<b>make inet_addr_local</b>".
 Running this file by hand should produce all the interface addresses
 and network masks, for example: </p>
 

@@ -1,21 +1,21 @@
 # RELOCATED(5)                                         RELOCATED(5)
 # 
 # NAME
-#        relocated - format of Postfix relocated table
+#        relocated - Postfix relocated table format
 # 
 # SYNOPSIS
 #        postmap /etc/postfix/relocated
 # 
 # DESCRIPTION
-#        The optional relocated table provides the information that
-#        is used in "user has moved to  new_location"  bounce  mes-
-#        sages.
+#        The  optional  relocated(5) table provides the information
+#        that is used in "user has moved  to  new_location"  bounce
+#        messages.
 # 
-#        Normally,  the relocated table is specified as a text file
-#        that serves as  input  to  the  postmap(1)  command.   The
+#        Normally,  the  relocated(5)  table is specified as a text
+#        file that serves as input to the postmap(1) command.   The
 #        result,  an  indexed file in dbm or db format, is used for
 #        fast searching by the mail  system.  Execute  the  command
-#        postmap  /etc/postfix/relocated  in  order  to rebuild the
+#        "postmap  /etc/postfix/relocated"  in order to rebuild the
 #        indexed file after changing the relocated table.
 # 
 #        When the table is provided via other means  such  as  NIS,
@@ -96,8 +96,8 @@
 #        This  section  describes how the table lookups change when
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion   of  the  TCP  client/server  lookup  protocol,  see
-#        tcp_table(5).  This feature is not  available  in  Postfix
-#        version 2.1.
+#        tcp_table(5).  This feature is not  available  up  to  and
+#        including Postfix version 2.2.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
 #        user@domain mail addresses are not broken  up  into  their

@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBproxymap\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBproxymap\fR server provides read-only table
+/*	The \fBproxymap\fR(8) server provides read-only table
 /*	lookup service to Postfix processes. The purpose
 /*	of the service is:
 /* .IP \(bu
@@ -32,7 +32,7 @@
 /*	The total number of connections is limited by the number of
 /*	proxymap server processes.
 /* .PP
-/*	The proxymap server implements the following requests:
+/*	The \fBproxymap\fR(8) server implements the following requests:
 /* .IP "\fBopen\fR \fImaptype:mapname flags\fR"
 /*	Open the table with type \fImaptype\fR and name \fImapname\fR,
 /*	as controlled by \fIflags\fR. The reply includes the \fImaptype\fR
@@ -51,23 +51,24 @@
 /* SERVER PROCESS MANAGEMENT
 /* .ad
 /* .fi
-/*	\fBproxymap\fR servers run under control by the Postfix \fBmaster\fR
+/*	\fBproxymap\fR(8) servers run under control by the Postfix
+/*	\fBmaster\fR(8)
 /*	server.  Each server can handle multiple simultaneous connections.
-/*	When all servers are busy while a client connects, the \fBmaster\fR
-/*	creates a new \fBproxymap\fR server process, provided that the
+/*	When all servers are busy while a client connects, the \fBmaster\fR(8)
+/*	creates a new \fBproxymap\fR(8) server process, provided that the
 /*	process limit is not exceeded.
 /*	Each server terminates after serving at least \fB$max_use\fR clients
 /*	or after \fB$max_idle\fR seconds of idle time.
 /* SECURITY
 /* .ad
 /* .fi
-/*	The proxymap server opens only tables that are approved via the
+/*	The \fBproxymap\fR(8) server opens only tables that are approved via the
 /*	\fBproxy_read_maps\fR configuration parameter, does not talk to
 /*	users, and can run at fixed low privilege, chrooted or not.
 /*	However, running the proxymap server chrooted severely limits
 /*	usability, because it can open only chrooted tables.
 /*
-/*	The proxymap server is not a trusted daemon process, and must
+/*	The \fBproxymap\fR(8) server is not a trusted daemon process, and must
 /*	not be used to look up sensitive information such as user or
 /*	group IDs, mailbox file/directory names or external commands.
 /*
@@ -78,18 +79,19 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	The proxymap server provides service to multiple clients,
+/*	The \fBproxymap\fR(8) server provides service to multiple clients,
 /*	and must therefore not be used for tables that have high-latency
 /*	lookups.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	On busy mail systems a long time may pass before proxymap(8) relevant
+/*	On busy mail systems a long time may pass before
+/*	\fBproxymap\fR(8) relevant
 /*	changes to \fBmain.cf\fR are picked up. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
@@ -110,7 +112,7 @@
 /* .IP "\fBprocess_name (read-only)\fR"
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBproxy_read_maps (see 'postconf -d' output)\fR"
-/*	The lookup tables that the proxymap(8) server is allowed to access.
+/*	The lookup tables that the \fBproxymap\fR(8) server is allowed to access.
 /* SEE ALSO
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options

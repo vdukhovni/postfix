@@ -8,13 +8,13 @@
 /*	\fBpostfix\fR [\fB-Dv\fR] [\fB-c \fIconfig_dir\fR] \fIcommand\fR
 /* DESCRIPTION
 /*	This command is reserved for the superuser. To submit mail,
-/*	use the Postfix \fBsendmail\fR command.
+/*	use the Postfix \fBsendmail\fR(1) command.
 /*
-/*	The \fBpostfix\fR command controls the operation of the Postfix
-/*	mail system: start or stop the \fBmaster\fR daemon, do a health
+/*	The \fBpostfix\fR(1) command controls the operation of the Postfix
+/*	mail system: start or stop the \fBmaster\fR(8) daemon, do a health
 /*	check, and other maintenance.
 /*
-/*	The \fBpostfix\fR command sets up a standardized environment and
+/*	The \fBpostfix\fR(1) command sets up a standardized environment and
 /*	runs the \fBpostfix-script\fR shell script to do the actual work.
 /*
 /*	The following commands are implemented:
@@ -80,7 +80,7 @@
 /* ENVIRONMENT
 /* .ad
 /* .fi
-/*	The \fBpostfix\fR command exports the following environment
+/*	The \fBpostfix\fR(1) command exports the following environment
 /*	variables before executing the \fBpostfix-script\fR file:
 /* .IP \fBMAIL_CONFIG\fR
 /*	This is set when the -c command-line option is present.
@@ -110,13 +110,13 @@
 /*	Postfix directories.
 /* .IP "\fBsendmail_path (see 'postconf -d' output)\fR"
 /*	A Sendmail compatibility feature that specifies the location of
-/*	the Postfix sendmail(1) command.
+/*	the Postfix \fBsendmail\fR(1) command.
 /* .IP "\fBnewaliases_path (see 'postconf -d' output)\fR"
 /*	Sendmail compatibility feature that specifies the location of the
-/*	newaliases(1) command.
+/*	\fBnewaliases\fR(1) command.
 /* .IP "\fBmailq_path (see 'postconf -d' output)\fR"
 /*	Sendmail compatibility feature that specifies where the Postfix
-/*	mailq(1) command is installed.
+/*	\fBmailq\fR(1) command is installed.
 /* .IP "\fBhtml_directory (see 'postconf -d' output)\fR"
 /*	The location of Postfix HTML files that describe how to build,
 /*	configure or operate a specific Postfix subsystem or feature.
@@ -148,6 +148,7 @@
 /*	Commands:
 /*	postalias(1), create/update/query alias database
 /*	postcat(1), examine Postfix queue file
+/*	postconf(1), Postfix configuration utility
 /*	postkick(1), trigger Postfix daemon
 /*	postlock(1), Postfix-compatible locking
 /*	postlog(1), Postfix-compatible logging

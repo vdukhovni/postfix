@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBtrivial-rewrite\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBtrivial-rewrite\fR daemon processes three types of client
+/*	The \fBtrivial-rewrite\fR(8) daemon processes three types of client
 /*	service requests:
 /* .IP "\fBrewrite \fIcontext address\fR"
 /*	Rewrite an address to standard form, according to the
@@ -47,7 +47,8 @@
 /* SERVER PROCESS MANAGEMENT
 /* .ad
 /* .fi
-/*	The trivial-rewrite servers run under control by the Postfix master
+/*	The \fBtrivial-rewrite\fR(8) servers run under control by
+/*	the Postfix master
 /*	server.  Each server can handle multiple simultaneous connections.
 /*	When all servers are busy while a client connects, the master
 /*	creates a new server process, provided that the trivial-rewrite
@@ -62,7 +63,7 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	The \fBtrivial-rewrite\fR daemon is not security sensitive.
+/*	The \fBtrivial-rewrite\fR(8) daemon is not security sensitive.
 /*	By default, this daemon does not talk to remote or local users.
 /*	It can run at a fixed low privilege in a chrooted environment.
 /* DIAGNOSTICS
@@ -71,11 +72,11 @@
 /* .ad
 /* .fi
 /*	On busy mail systems a long time may pass before a \fBmain.cf\fR
-/*	change affecting trivial_rewrite(8) is picked up. Use the command
+/*	change affecting \fBtrivial-rewrite\fR(8) is picked up. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
@@ -135,7 +136,7 @@
 /*	instead of requiring an explicit ".domain.tld" pattern.
 /* .IP "\fBrelayhost (empty)\fR"
 /*	The default host to send non-local mail to when no entry is matched
-/*	in the optional transport(5) table.
+/*	in the optional \fBtransport\fR(5) table.
 /* .IP "\fBtransport_maps (empty)\fR"
 /*	Optional lookup tables with mappings from recipient address to
 /*	(message delivery transport, next-hop destination).

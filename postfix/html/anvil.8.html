@@ -13,30 +13,30 @@ ANVIL(8)                                                 ANVIL(8)
        <b>anvil</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The  Postfix  <b>anvil</b> server maintains short-term statistics
-       to defend against clients that hammer a server with either
-       too  many  simultaneous sessions, or with too many succes-
-       sive requests within a configurable time  interval.   This
-       server  is  designed  to  run under control by the Postfix
-       master server.
+       The  Postfix  <a href="anvil.8.html"><b>anvil</b>(8)</a> server maintains short-term statis-
+       tics to defend against clients that hammer a  server  with
+       either  too  many  simultaneous sessions, or with too many
+       successive requests within a configurable  time  interval.
+       This  server is designed to run under control by the Post-
+       fix <a href="master.8.html"><b>master</b>(8)</a> server.
 
-       The <b>anvil</b> server maintains no persistent  database.  Stan-
-       dard library utilities do not meet Postfix performance and
-       robustness requirements.
+       The <a href="anvil.8.html"><b>anvil</b>(8)</a>  server  maintains  no  persistent  database.
+       Standard library utilities do not meet Postfix performance
+       and robustness requirements.
 
 <b>CONNECTION COUNT/RATE LIMITING</b>
        When a remote client  connects,  a  connection  count  (or
        rate)  limited server should send the following request to
-       the <b>anvil</b> server:
+       the <a href="anvil.8.html"><b>anvil</b>(8)</a> server:
 
            <b>request=connect</b>
            <b>ident=</b><i>string</i>
 
        This registers a new connection for the (service,  client)
-       combination specified with <b>ident</b>. The <b>anvil</b> server answers
-       with the number of simultaneous connections and the number
-       of  connections  per  unit time for that (service, client)
-       combination:
+       combination  specified  with  <b>ident</b>.  The  <a href="anvil.8.html"><b>anvil</b>(8)</a> server
+       answers with the number of  simultaneous  connections  and
+       the number of connections per unit time for that (service,
+       client) combination:
 
            <b>status=0</b>
            <b>count=</b><i>number</i>
@@ -49,119 +49,115 @@ ANVIL(8)                                                 ANVIL(8)
 
        When  a  remote client disconnects, a connection count (or
        rate) limited server should send the following request  to
-       the <b>anvil</b> server:
+       the <a href="anvil.8.html"><b>anvil</b>(8)</a> server:
 
            <b>request=disconnect</b>
            <b>ident=</b><i>string</i>
 
        This  registers  a  disconnect  event  for  the  (service,
-       client) combination specified with <b>ident</b>. The <b>anvil</b> server
-       replies with:
+       client) combination specified  with  <b>ident</b>.  The  <a href="anvil.8.html"><b>anvil</b>(8)</a>
+       server replies with:
 
            <b>status=0</b>
 
 <b>MESSAGE RATE LIMITING</b>
        When  a  remote client sends a message delivery request, a
        message rate limited  server  should  send  the  following
-       request to the <b>anvil</b> server:
+       request to the <a href="anvil.8.html"><b>anvil</b>(8)</a> server:
 
            <b>request=message</b>
            <b>ident=</b><i>string</i>
 
        This  registers  a  message delivery request for the (ser-
-       vice, client) combination specified with <b>ident</b>. The  <b>anvil</b>
-       server   answers  with  the  number  of  message  delivery
-       requests per unit time for that (service, client) combina-
-       tion:
+       vice,  client)  combination  specified  with  <b>ident</b>.   The
+       <a href="anvil.8.html"><b>anvil</b>(8)</a>  server answers with the number of message deliv-
+       ery requests per unit time for that (service, client) com-
+       bination:
 
            <b>status=0</b>
            <b>rate=</b><i>number</i>
 
-       In  order  prevent the anvil server from discarding client
-       request rates too early or too late, a message  rate  lim-
-       ited   service  should  also  register  connect/disconnect
+       In  order  to  prevent the <a href="anvil.8.html"><b>anvil</b>(8)</a> server from discarding
+       client request rates too early or too late, a message rate
+       limited  service  should  also register connect/disconnect
        events.
-
-       This feature is available in Postfix 2.2 and later.
 
 <b>RECIPIENT RATE LIMITING</b>
        When a remote client sends a recipient address, a  recipi-
        ent  rate limited server should send the following request
-       to the <b>anvil</b> server:
+       to the <a href="anvil.8.html"><b>anvil</b>(8)</a> server:
 
            <b>request=recipient</b>
            <b>ident=</b><i>string</i>
 
-       This registers  a  recipient  address  for  the  (service,
-       client) combination specified with <b>ident</b>. The <b>anvil</b> server
-       answers with the number of recipient  addresses  per  unit
-       time for that (service, client) combination:
+       This registers  a  recipient  request  for  the  (service,
+       client)  combination  specified  with  <b>ident</b>. The <a href="anvil.8.html"><b>anvil</b>(8)</a>
+       server answers with the number of recipient addresses  per
+       unit time for that (service, client) combination:
 
            <b>status=0</b>
            <b>rate=</b><i>number</i>
 
-       In  order  prevent the anvil server from discarding client
-       request rates too early or too late, a recipient rate lim-
-       ited   service  should  also  register  connect/disconnect
-       events.
-
-       This feature is available in Postfix 2.2 and later.
+       In  order  to  prevent the <a href="anvil.8.html"><b>anvil</b>(8)</a> server from discarding
+       client request rates too early or too  late,  a  recipient
+       rate  limited service should also register connect/discon-
+       nect events.
 
 <b>SECURITY</b>
-       The <b>anvil</b> server does not talk to the network or to  local
-       users, and can run chrooted at fixed low privilege.
+       The <a href="anvil.8.html"><b>anvil</b>(8)</a> server does not talk to  the  network  or  to
+       local  users, and can run chrooted at fixed low privilege.
 
-       The  <b>anvil</b> server maintains an in-memory table with infor-
-       mation about recent clients  of  a  connection  count  (or
-       rate)  limited  service.  Although state is kept only tem-
+       The <a href="anvil.8.html"><b>anvil</b>(8)</a> server  maintains  an  in-memory  table  with
+       information about recent clients of a connection count (or
+       rate) limited service.  Although state is kept  only  tem-
        porarily, this may require a lot of memory on systems that
-       handle  connections  from  many remote clients.  To reduce
-       memory usage, reduce the time unit  over  which  state  is
+       handle connections from many remote  clients.   To  reduce
+       memory  usage,  reduce  the  time unit over which state is
        kept.
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
        Upon exit, and every <b><a href="postconf.5.html#anvil_status_update_time">anvil_status_update_time</a></b> seconds, the
-       server logs the maximal count and  rate  values  measured,
-       together  with  (service, client) information and the time
-       of day associated with those events.  In  order  to  avoid
-       unnecessary  overhead, no measurements are done for activ-
+       server  logs  the  maximal count and rate values measured,
+       together with (service, client) information and  the  time
+       of  day  associated  with those events.  In order to avoid
+       unnecessary overhead, no measurements are done for  activ-
        ity that isn't concurrency limited or rate limited.
 
 <b>BUGS</b>
-       Systems behind  network  address  translating  routers  or
+       Systems  behind  network  address  translating  routers or
        proxies appear to have the same client address and can run
        into connection count and/or rate limits falsely.
 
        In this preliminary implementation, a count (or rate) lim-
-       ited  server can have only one remote client at a time. If
-       a server reports multiple simultaneous  clients,  all  but
+       ited server can have only one remote client at a time.  If
+       a  server  reports  multiple simultaneous clients, all but
        the last reported client are ignored.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes to <b>main.cf</b> are picked up automatically as <a href="anvil.8.html">anvil(8)</a>
-       processes run for only a limited amount of time.  Use  the
+       Changes to <b>main.cf</b> are picked up automatically as <a href="anvil.8.html"><b>anvil</b>(8)</a>
+       processes  run  for only a limited amount of time. Use the
        command "<b>postfix reload</b>" to speed up a change.
 
-       The  text  below  provides  only  a parameter summary. See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       The text below provides  only  a  parameter  summary.  See
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> (60s)</b>
-              The time unit over which  client  connection  rates
+              The  time  unit  over which client connection rates
               and other rates are calculated.
 
        <b><a href="postconf.5.html#anvil_status_update_time">anvil_status_update_time</a> (600s)</b>
-              How  frequently  the  <a href="anvil.8.html">anvil(8)</a>  connection and rate
+              How frequently the  <a href="anvil.8.html"><b>anvil</b>(8)</a>  connection  and  rate
               limiting server logs peak usage information.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  main.cf  and
+              The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much time a Postfix daemon process may take to
-              handle a request  before  it  is  terminated  by  a
+              How much time a Postfix daemon process may take  to
+              handle  a  request  before  it  is  terminated by a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -169,27 +165,27 @@ ANVIL(8)                                                 ANVIL(8)
               over an internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time  that  an  idle  Postfix
-              daemon  process  waits for the next service request
+              The  maximum  amount  of  time that an idle Postfix
+              daemon process waits for the next  service  request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The maximal number of connection requests before  a
+              The  maximal number of connection requests before a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The  process ID of a Postfix command or daemon pro-
+              The process ID of a Postfix command or daemon  pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The process name of a  Postfix  command  or  daemon
+              The  process  name  of  a Postfix command or daemon
               process.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The  mail system name that is prepended to the pro-
+              The mail system name that is prepended to the  pro-
               cess  name  in  syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
@@ -202,11 +198,11 @@ ANVIL(8)                                                 ANVIL(8)
        <a href="TUNING_README.html">TUNING_README</a>, performance tuning
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>HISTORY</b>
-       The anvil service was introduced with Postfix 2.1.
+       The anvil service is available in Postfix 2.2 and later.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

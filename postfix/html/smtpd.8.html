@@ -57,11 +57,11 @@ SMTPD(8)                                                 SMTPD(8)
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes   to  <b>main.cf</b>  are  picked  up  automatically,  as
-       <a href="smtpd.8.html">smtpd(8)</a> processes run for only a limited amount of  time.
+       <a href="smtpd.8.html"><b>smtpd</b>(8)</a> processes run for only a limited amount of  time.
        Use the command "<b>postfix reload</b>" to speed up a change.
 
        The  text  below  provides  only  a parameter summary. See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
 <b>COMPATIBILITY CONTROLS</b>
        The following parameters work around implementation errors
@@ -328,8 +328,8 @@ SMTPD(8)                                                 SMTPD(8)
               mand.
 
        <b><a href="postconf.5.html#tls_daemon_random_bytes">tls_daemon_random_bytes</a> (32)</b>
-              The number of pseudo-random bytes that  an  <a href="smtp.8.html">smtp(8)</a>
-              or  <a href="smtpd.8.html">smtpd(8)</a>  process  requests  from the <a href="tlsmgr.8.html">tlsmgr(8)</a>
+              The number of pseudo-random bytes that  an  <a href="smtp.8.html"><b>smtp</b>(8)</a>
+              or  <a href="smtpd.8.html"><b>smtpd</b>(8)</a>  process  requests  from the <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a>
               server in order to seed its internal pseudo  random
               number generator (PRNG).
 
@@ -348,7 +348,7 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b><a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> (-=+)</b>
               The  characters  Postfix  accepts as VERP delimiter
-              characters on the Postfix <a href="sendmail.1.html">sendmail(1)</a> command  line
+              characters on the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command  line
               and in SMTP commands.
 
        Available in Postfix version 1.1 and 2.0:
@@ -538,7 +538,7 @@ SMTPD(8)                                                 SMTPD(8)
               receipt of EHLO, RSET, or end of DATA.
 
        The per SMTP client connection count and request rate lim-
-       its are implemented in co-operation with the <a href="anvil.8.html">anvil(8)</a> ser-
+       its are implemented in co-operation with the <a href="anvil.8.html"><b>anvil</b>(8)</a> ser-
        vice,  and are available in Postfix version 2.2 and later.
 
        <b><a href="postconf.5.html#smtpd_client_connection_count_limit">smtpd_client_connection_count_limit</a> (50)</b>
@@ -679,7 +679,7 @@ SMTPD(8)                                                 SMTPD(8)
               tions.
 
        <b><a href="postconf.5.html#smtpd_null_access_lookup_key">smtpd_null_access_lookup_key</a> (</b>&lt;&gt;<b>)</b>
-              The  lookup key to be used in SMTP <a href="access.5.html">access(5)</a> tables
+              The  lookup key to be used in SMTP <a href="access.5.html"><b>access</b>(5)</a> tables
               instead of the null sender address.
 
        <b><a href="postconf.5.html#permit_mx_backup_networks">permit_mx_backup_networks</a> (empty)</b>
@@ -726,13 +726,13 @@ SMTPD(8)                                                 SMTPD(8)
        ered.  This feature is requested  via  the  <a href="postconf.5.html#reject_unverified_sender">reject_unveri</a>-
        <a href="postconf.5.html#reject_unverified_sender">fied_sender</a>    and    <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>   access
        restrictions.  The status of verification probes is  main-
-       tained by the <a href="verify.8.html">verify(8)</a> server.  See the file ADDRESS_VER-
+       tained by the <a href="verify.8.html"><b>verify</b>(8)</a> server.  See the file ADDRESS_VER-
        <a href="IFICATION_README.html">IFICATION_README</a> for information about  how  to  configure
        and operate the Postfix sender/recipient address verifica-
        tion service.
 
        <b><a href="postconf.5.html#address_verify_poll_count">address_verify_poll_count</a> (3)</b>
-              How many times to query the <a href="verify.8.html">verify(8)</a>  service  for
+              How many times to query the <a href="verify.8.html"><b>verify</b>(8)</a>  service  for
               the  completion  of an address verification request
               in progress.
 
@@ -760,7 +760,7 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b><a href="postconf.5.html#access_map_reject_code">access_map_reject_code</a> (554)</b>
               The  numerical  Postfix  SMTP  server response code
-              when a client  is  rejected  by  an  <a href="access.5.html">access(5)</a>  map
+              when a client  is  rejected  by  an  <a href="access.5.html"><b>access</b>(5)</a>  map
               restriction.
 
        <b><a href="postconf.5.html#defer_code">defer_code</a> (450)</b>
@@ -790,7 +790,7 @@ SMTPD(8)                                                 SMTPD(8)
        <b><a href="postconf.5.html#reject_code">reject_code</a> (554)</b>
               The  numerical  Postfix  SMTP  server response code
               when a remote SMTP client request  is  rejected  by
-              the "<b>reject</b>" restriction.
+              the "reject" restriction.
 
        <b><a href="postconf.5.html#relay_domains_reject_code">relay_domains_reject_code</a> (554)</b>
               The  numerical  Postfix  SMTP  server response code

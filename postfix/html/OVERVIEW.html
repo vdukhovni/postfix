@@ -449,7 +449,7 @@ postfix-script(1) </td> </tr>
 request rate
 limiting for all <a href="smtpd.8.html">smtpd(8)</a> servers.  The <a href="TUNING_README.html">TUNING_README</a> document
 provides guidance for dealing with mis-behaving SMTP clients. The
-<a href="anvil.8.html">anvil(8)</a> service is not included with Postfix version 2.1 or earlier.
+<a href="anvil.8.html">anvil(8)</a> service is available in Postfix version 2.2 and later.
 </p>
 
 <table>
@@ -592,7 +592,7 @@ client or <a href="smtpd.8.html">smtpd(8)</a> server. This process has two dutie
 
 <li> <p> Maintain the pseudo-random number generator (PRNG) that
 is used to seed the TLS engines in Postfix <a href="smtp.8.html">smtp(8)</a> client or <a href="smtpd.8.html">smtpd(8)</a>
-server processes.  The state of this PRNG is saved periodically to
+server processes.  The state of this PRNG is periodically saved to
 a file, and is read when <a href="tlsmgr.8.html">tlsmgr(8)</a> starts up. </p>
 
 <li> <p> Maintain the optional Postfix <a href="smtp.8.html">smtp(8)</a> client or <a href="smtpd.8.html">smtpd(8)</a>

@@ -6,36 +6,37 @@
 /* SYNOPSIS
 /*	\fBtlsmgr\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The tlsmgr(8) manages the TLS session caches for Postfix
-/*	SMTP client and server processes.  It stores and retrieves
-/*	cache entries on request by smtpd(8) and smtp(8) processes,
-/*	and periodically removes entries that have expired.
+/*	The \fBtlsmgr\fR(8) manages the Postfix TLS session caches.
+/*	It stores and retrieves cache entries on request by
+/*	\fBsmtpd\fR(8) and \fBsmtp\fR(8) processes, and periodically
+/*	removes entries that have expired.
 /*
-/*	The tlsmgr(8) also manages the PRNG (pseudo random number
-/*	generator) pool. It answers queries by the smtpd(8) and smtp(8)
+/*	The \fBtlsmgr\fR(8) also manages the PRNG (pseudo random number
+/*	generator) pool. It answers queries by the \fBsmtpd\fR(8)
+/*	and \fBsmtp\fR(8)
 /*	processes to seed their internal PRNG pools.
 /*
-/*	The tlsmgr(8)'s PRNG pool is initially seeded from
+/*	The \fBtlsmgr\fR(8)'s PRNG pool is initially seeded from
 /*	an external source (EGD, /dev/urandom, or regular file).
 /*	It is updated at configurable pseudo-random intervals with
 /*	data from the external source. It is updated periodically
 /*	with data from TLS session cache entries and with the time
 /*	of day, and is updated with the time of day whenever a
-/*	process requests tlsmgr(8) service.
+/*	process requests \fBtlsmgr\fR(8) service.
 /*
-/*	The tlsmgr(8) saves the PRNG state to an exchange file
+/*	The \fBtlsmgr\fR(8) saves the PRNG state to an exchange file
 /*	periodically and when the process terminates, and reads
 /*	the exchange file when initializing its PRNG.
 /* SECURITY
 /* .ad
 /* .fi
-/*	tlsmgr(8) is not security-sensitive. The code that maintains
+/*	The \fBtlsmgr\fR(8) is not security-sensitive. The code that maintains
 /*	the external and internal PRNG pools does not "trust" the
 /*	data that it manipulates, and the code that maintains the
 /*	TLS session cache does not touch the contents of the cached
 /*	entries, except for seeding its internal PRNG pool.
 /*
-/*	The tlsmgr(8) can be run chrooted and with reduced privileges.
+/*	The \fBtlsmgr\fR(8) can be run chrooted and with reduced privileges.
 /*	At process startup it connects to the entropy source and
 /*	exchange file, and creates or truncates the optional TLS
 /*	session cache files.
@@ -48,11 +49,11 @@
 /* .ad
 /* .fi
 /*	Changes to \fBmain.cf\fR are not picked up automatically,
-/*	because tlsmgr(8) is a persistent processes.  Use the
+/*	because \fBtlsmgr\fR(8) is a persistent processes.  Use the
 /*	command "\fBpostfix reload\fR" after a configuration change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* TLS SESSION CACHE
 /* .ad
 /* .fi
@@ -72,21 +73,21 @@
 /* .ad
 /* .fi
 /* .IP "\fBtls_random_source (see 'postconf -d' output)\fR"
-/*	The external entropy source for the in-memory tlsmgr(8) pseudo
+/*	The external entropy source for the in-memory \fBtlsmgr\fR(8) pseudo
 /*	random number generator (PRNG) pool.
 /* .IP "\fBtls_random_bytes (32)\fR"
-/*	The number of bytes that tlsmgr(8) reads from $tls_random_source
+/*	The number of bytes that \fBtlsmgr\fR(8) reads from $tls_random_source
 /*	when (re)seeding the in-memory pseudo random number generator (PRNG)
 /*	pool.
 /* .IP "\fBtls_random_exchange_name (${config_directory}/prng_exch)\fR"
 /*	Name of the pseudo random number generator (PRNG) state file
-/*	that is maintained by tlsmgr(8).
+/*	that is maintained by \fBtlsmgr\fR(8).
 /* .IP "\fBtls_random_prng_update_period (3600s)\fR"
-/*	The time between attempts by tlsmgr(8) to save the state of
+/*	The time between attempts by \fBtlsmgr\fR(8) to save the state of
 /*	the pseudo random number generator (PRNG) to the file specified
 /*	with $tls_random_exchange_name.
 /* .IP "\fBtls_random_reseed_period (3600s)\fR"
-/*	The maximal time between attempts by tlsmgr(8) to re-seed the
+/*	The maximal time between attempts by \fBtlsmgr\fR(8) to re-seed the
 /*	in-memory pseudo random number generator (PRNG) pool from external
 /*	sources.
 /* MISCELLANEOUS CONTROLS
@@ -108,8 +109,8 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	smtp(8) Postfix SMTP client
-/*	smtpd(8) Postfix SMTP server
+/*	smtp(8), Postfix SMTP client
+/*	smtpd(8), Postfix SMTP server
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager

@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBbounce\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBbounce\fR daemon maintains per-message log files with
+/*	The \fBbounce\fR(8) daemon maintains per-message log files with
 /*	non-delivery status information. Each log file is named after the
 /*	queue file that it corresponds to, and is kept in a queue subdirectory
 /*	named after the service name in the \fBmaster.cf\fR file (either
@@ -14,7 +14,7 @@
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	The \fBbounce\fR daemon processes two types of service requests:
+/*	The \fBbounce\fR(8) daemon processes two types of service requests:
 /* .IP \(bu
 /*	Append a recipient (non-)delivery status record to a per-message
 /*	log file.
@@ -40,18 +40,18 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as bounce(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically, as \fBbounce\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fB2bounce_notice_recipient (postmaster)\fR"
 /*	The recipient of undeliverable mail that cannot be returned to
 /*	the sender.
 /* .IP "\fBbackwards_bounce_logfile_compatibility (yes)\fR"
-/*	Produce additional bounce(8) logfile records that can be read by
-/*	older Postfix versions.
+/*	Produce additional \fBbounce\fR(8) logfile records that can be read by
+/*	Postfix versions before 2.0.
 /* .IP "\fBbounce_notice_recipient (postmaster)\fR"
 /*	The recipient of postmaster notifications with the message headers
 /*	of mail that Postfix did not deliver and of SMTP conversation
@@ -71,10 +71,10 @@
 /*	units.
 /* .IP "\fBdeliver_lock_attempts (20)\fR"
 /*	The maximal number of attempts to acquire an exclusive lock on a
-/*	mailbox file or bounce(8) logfile.
+/*	mailbox file or \fBbounce\fR(8) logfile.
 /* .IP "\fBdeliver_lock_delay (1s)\fR"
 /*	The time between attempts to acquire an exclusive lock on a mailbox
-/*	file or bounce(8) logfile.
+/*	file or \fBbounce\fR(8) logfile.
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.

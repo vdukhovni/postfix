@@ -27,67 +27,24 @@ code.  Assuming that OpenSSL is written as carefully as Wietse's
 own code, every 1000 lines introduce one additional bug into
 Postfix.  </p>
 
-<h2> Introduction </h2>
+<h2> What Postfix TLS support does for you </h2>
 
-<p> This document requires Postfix version 2.2 or later. </p>
-
-<p> Postfix may be built with Transport Layer Security (TLS, formerly
-called SSL) protocol support as described in RFC 3207. This provides
-certificate-based authentication, and encrypted sessions.  An
+<p> Transport Layer Security (TLS, formerly called SSL) provides
+certificate-based authentication and encrypted sessions.  An
 encrypted session protects the information that is transmitted with
-SMTP mail or with SASL authentication.  The main elements of the
-Postfix TLS architecture are:  </p>
+SMTP mail or with SASL authentication.
 
-<ul>
-
-<li> <p> The smtpd(8) server implements the SMTP over TLS server
-side. </p>
-
-<li> <p> The smtp(8) client implements the SMTP over TLS client
-side. </p>
-
-<li> <p> The tlsmgr(8) server maintains the pseudo-random number
-generator (PRNG) that seeds the TLS engines in the smtpd(8) server
-and smtp(8) client processes, and maintains the TLS session cache
-files with TLS session keys. </p>
-
-</ul>
-
-<p> The following diagram shows the relationship between these
-architecture elements. </p>
-
-<table>
-
-<tr> <td>Network<tt>-&gt; </tt> </td> <td align="center"
-bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a> <br> &nbsp; </td> <td colspan="2">
-
-<tt> &lt;---seed---<br><br>&lt;-session-&gt; </tt> </td> <td
-align="center" bgcolor="#f0f0ff"> <br> <a href="tlsmgr.8.html">tlsmgr(8)</a> <br> &nbsp; </td>
-<td colspan="3"> <tt> ---seed---&gt;<br> <br>&lt;-session-&gt;
-
-</tt> </td> <td align="center" bgcolor="#f0f0ff"> <br> <a href="smtp.8.html">smtp(8)</a> <br>
-&nbsp; </td> <td> <tt> -&gt;</tt>Network </td> </tr>
-
-<tr> <td colspan="3"> </td> <td align="right"> <table> <tr> <td>
-
-</td> <td> / </td> </tr> <tr> <td> / </td> <td> </td> </tr> </table>
-</td> <td align="center"> |<br> |</td> <td align="left"> <table>
-
-<tr> <td> \ </td> <td> </td> </tr> <tr> <td> </td> <td> \ </td>
-</tr> </table> </td> <td colspan="3"> </td> </tr>
-
-<tr> <td colspan="2"> </td> <td align="center" bgcolor="#f0f0ff">
-smtpd<br> session<br> cache </td> <td> </td> <td align="center"
-bgcolor="#f0f0ff"> PRNG<br> state <br>file </td> <td> </td> <td
-align="center" bgcolor="#f0f0ff"> smtp<br> session<br> cache </td>
-
-<td colspan="2"> </td> </tr>
-
-</table>
+<p> Postfix version 2.2 introduces support for TLS as described in
+RFC 3207.  TLS Support for older Postfix versions was available as
+an add-on patch.  The section "<a href="#compat">Compatibility with
+Postfix < 2.2 TLS support</a>" below discusses the differences
+between these implementations.  </p>
 
 <p> Topics covered in this document: </p>
 
 <ul>
+
+<li><a href="#how">How Postfix TLS support works</a>
 
 <li><a href="#build_tls">Building Postfix with TLS support</a>
 
@@ -112,6 +69,58 @@ align="center" bgcolor="#f0f0ff"> smtp<br> session<br> cache </td>
 <li><a href="#quick-start">Getting started, quick and dirty</a>
 
 </ul>
+
+<h2><a name="how">How Postfix TLS support works</a></h2>
+
+<p> The diagram below shows the main elements of the Postfix TLS
+architecture and their relationships.  Colored boxes with numbered
+names represent Postfix daemon programs. Other colored boxes
+represent storage elements. </p>
+
+<ul>
+
+<li> <p> The smtpd(8) server implements the SMTP over TLS server
+side. </p>
+
+<li> <p> The smtp(8) client implements the SMTP over TLS client
+side. </p>
+
+<li> <p> The tlsmgr(8) server maintains the pseudo-random number
+generator (PRNG) that seeds the TLS engines in the smtpd(8) server
+and smtp(8) client processes, and maintains the TLS session key
+cache files. </p>
+
+</ul>
+
+<table>
+
+<tr> <td>Network<tt>-&gt; </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a> <br> &nbsp; </td> <td colspan="2">
+
+<tt> &lt;---seed---<br><br>&lt;-session-&gt; </tt> </td> <td
+align="center" bgcolor="#f0f0ff"> <br> <a href="tlsmgr.8.html">tlsmgr(8)</a> <br> &nbsp; </td>
+<td colspan="3"> <tt> ---seed---&gt;<br> <br>&lt;-session-&gt;
+
+</tt> </td> <td align="center" bgcolor="#f0f0ff"> <br> <a href="smtp.8.html">smtp(8)</a> <br>
+&nbsp; </td> <td> <tt> -&gt;</tt>Network </td> </tr>
+
+<tr> <td colspan="3"> </td> <td align="right"> <table> <tr> <td>
+
+</td> <td> / </td> </tr> <tr> <td> / </td> <td> </td> </tr> </table>
+</td> <td align="center"> |<br> |</td> <td align="left"> <table>
+
+<tr> <td> \ </td> <td> </td> </tr> <tr> <td> </td> <td> \ </td>
+</tr> </table> </td> <td colspan="3"> </td> </tr>
+
+<tr> <td colspan="2"> </td> <td align="center" bgcolor="#f0f0ff">
+smtpd<br> session<br> key cache </td> <td> </td> <td align="center"
+bgcolor="#f0f0ff"> PRNG<br> state <br>file </td> <td> </td> <td
+align="center" bgcolor="#f0f0ff"> smtp<br> session<br> key cache
+</td>
+
+<td colspan="2"> </td> </tr>
+
+</table>
 
 <h2><a name="build_tls">Building Postfix with TLS support</a></h2>
 
@@ -1407,22 +1416,22 @@ patch by Lutz J&auml;nicke, but differs in a few minor ways. </p>
 
 <ul>
 
-<li> <p> main.cf: Use <b>btree</b> instead of <b>sdbm</b> for TLS
+<li> <p> main.cf: Specify "btree" instead of "sdbm" for TLS
 session cache databases. </p>
 
 <p> TLS session cache databases are now accessed only by the
 tlsmgr(8) process, so there are no more concurrency issues. Although
-Postfix has an <b>sdbm</b> client, the <b>sdbm</b> library (1000
+Postfix has an sdbm client, the sdbm library (1000
 lines of code) is not included with Postfix. </p>
 
 <p> TLS session caches can use any database that can store objects
 of several kbytes or more, and that implements the sequence operation.
-In most cases, <b>btree</b> databases should be adequate.  </p>
+In most cases, btree databases should be adequate.  </p>
 
-<p> NOTE:  You cannot use <b>dbm</b> databases. TLS session objects
+<p> NOTE:  You cannot use dbm databases. TLS session objects
 are too large. </p>
 
-<li> <p> master.cf: Specify <b>unix</b> instead of <b>fifo</b> as
+<li> <p> master.cf: Specify "unix" instead of "fifo" as
 the tlsmgr service type. </p>
 
 <p> The smtp(8) and smtpd(8) processes now use a client-server

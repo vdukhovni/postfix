@@ -67,7 +67,7 @@
 #        lookup tables. Usually the best  performance  is  obtained
 #        with pcre (Perl Compatible Regular Expression) tables, but
 #        the slower regexp (POSIX regular expressions)  support  is
-#        more  widely  available.   Use  the command postconf -m to
+#        more  widely  available.  Use the command "postconf -m" to
 #        find out what lookup table types your Postfix system  sup-
 #        ports.
 # 
@@ -196,12 +196,18 @@
 #               Prepend  one  line  with  the  specified  text  and
 #               inspect the next input line.
 # 
-#               Note: the  prepended  text  is  output  immediately
-#               before the input that triggered the PREPEND action.
-#               A body action cannot prepend a message header.
+#               Notes:
 # 
-#               Note: this action cannot be used to prepend  multi-
-#               line text.
+#               o      The prepended text is output on  a  separate
+#                      line,  immediately  before  the  input  that
+#                      triggered the PREPEND action.
+# 
+#               o      When prepending text before a message header
+#                      line,  the  prepended text must begin with a
+#                      valid message header label.
+# 
+#               o      This action cannot be used to prepend multi-
+#                      line text.
 # 
 #               This feature is available in Postfix 2.1 and later.
 # 
@@ -217,6 +223,16 @@
 #               cuted.
 # 
 #               This feature is available in Postfix 2.1 and later.
+# 
+#        REPLACE text...
+#               Replace  the  current  line with the specified text
+#               and inspect the next input line.
+# 
+#               Note: when replacing a  message  header  line,  the
+#               replacement  text  must  begin  with a valid header
+#               label.
+# 
+#               This feature is available in Postfix 2.2 and later.
 # 
 #        REJECT optional text...
 #               Reject  the  entire  message.  Reply  with optional

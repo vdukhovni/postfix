@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBscache\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBscache\fR server maintains a shared multi-connection
+/*	The \fBscache\fR(8) server maintains a shared multi-connection
 /*	cache. This information can be used by, for example, Postfix
 /*	SMTP clients or other Postfix delivery agents.
 /*
@@ -24,11 +24,11 @@
 /*	one endpoint may refer to zero or more connections.
 /*
 /*	The exact syntax of a logical destination or endpoint name
-/*	is application dependent; the \fBscache\fR service does
+/*	is application dependent; the \fBscache\fR(8) server does
 /*	not care.  A connection is stored as a file descriptor together
 /*	with application-dependent information that is needed to
-/*	re-activate a connection object. Again, the \fBscache\fR
-/*	service is completely unaware about the details of that
+/*	re-activate a connection object. Again, the \fBscache\fR(8)
+/*	server is completely unaware of the details of that
 /*	information.
 /*
 /*	All information is stored with a finite time to live (ttl).
@@ -56,28 +56,28 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	The connection cache server is not security-sensitive. It does not
+/*	The \fBscache\fR(8) server is not security-sensitive. It does not
 /*	talk to the network, and it does not talk to local users.
-/*	The scache server can run chrooted at fixed low privilege.
+/*	The \fBscache\fR(8) server can run chrooted at fixed low privilege.
 /*
-/*	The connection cache server is not a trusted process. It must
+/*	The \fBscache\fR(8) server is not a trusted process. It must
 /*	not be used to store information that is security sensitive.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	Sessions cannot be cached across multiple machines.
+/*	The session cache cannot be shared among multiple machines.
 /*
-/*	When a connection expires from the cache it is closed without
-/*	protocol specific handshake.
+/*	When a connection expires from the cache, it is closed without
+/*	the appropriate protocol specific handshake.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically as scache(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically as \fBscache\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* RESOURCE CONTROLS
 /* .ad
 /* .fi
@@ -85,7 +85,7 @@
 /*	The maximal time-to-live value that the connection cache server
 /*	allows.
 /* .IP "\fBconnection_cache_status_update_time (600s)\fR"
-/*	How frequently the scache(8) server logs usage statistics with
+/*	How frequently the \fBscache\fR(8) server logs usage statistics with
 /*	connection cache hit and miss rates for logical destinations and for
 /*	physical endpoints.
 /* MISCELLANEOUS CONTROLS

@@ -73,7 +73,7 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
        lookup tables. Usually the best  performance  is  obtained
        with <b>pcre</b> (Perl Compatible Regular Expression) tables, but
        the slower <b>regexp</b> (POSIX regular expressions)  support  is
-       more  widely  available.   Use  the command <b>postconf -m</b> to
+       more  widely  available.  Use the command "<b>postconf -m</b>" to
        find out what lookup table types your Postfix system  sup-
        ports.
 
@@ -126,8 +126,8 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
 <b>TEXT SUBSTITUTION</b>
        Substitution of substrings  from  the  matched  expression
        into  the <i>action</i> string is possible using the conventional
-       Perl syntax ($1, $2, etc.).   The  macros  in  the  result
-       string  may  need  to  be  written as ${n} or $(n) if they
+       Perl syntax (<b>$1</b>, <b>$2</b>, etc.).   The  macros  in  the  result
+       string  may  need  to  be  written as <b>${n}</b> or <b>$(n)</b> if they
        aren't followed by whitespace.
 
        Note: since negated patterns (those preceded by <b>!</b>)  return
@@ -202,12 +202,18 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               Prepend  one  line  with  the  specified  text  and
               inspect the next input line.
 
-              Note: the  prepended  text  is  output  immediately
-              before the input that triggered the <b>PREPEND</b> action.
-              A body action cannot prepend a message header.
+              Notes:
 
-              Note: this action cannot be used to prepend  multi-
-              line text.
+              <b>o</b>      The prepended text is output on  a  separate
+                     line,  immediately  before  the  input  that
+                     triggered the <b>PREPEND</b> action.
+
+              <b>o</b>      When prepending text before a message header
+                     line,  the  prepended text must begin with a
+                     valid message header label.
+
+              <b>o</b>      This action cannot be used to prepend multi-
+                     line text.
 
               This feature is available in Postfix 2.1 and later.
 
@@ -223,6 +229,16 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               cuted.
 
               This feature is available in Postfix 2.1 and later.
+
+       <b>REPLACE</b> <i>text...</i>
+              Replace  the  current  line with the specified text
+              and inspect the next input line.
+
+              Note: when replacing a  message  header  line,  the
+              replacement  text  must  begin  with a valid header
+              label.
+
+              This feature is available in Postfix 2.2 and later.
 
        <b>REJECT</b> <i>optional text...</i>
               Reject  the  entire  message.  Reply  with <i>optional</i>

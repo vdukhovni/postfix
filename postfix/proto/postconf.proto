@@ -614,7 +614,7 @@ notification with the UNIX command "biff y".
 <p>
 For compatibility reasons this feature is on by default.  On systems
 with lots of interactive users, the biff service can be a performance
-drain.  Specify "biff = no" to disable.
+drain.  Specify "biff = no" in main.cf to disable.
 </p>
 
 %PARAM body_checks 
@@ -941,7 +941,7 @@ The template is subject to exactly one level of $name substitution:
 
 <dt><b>$client_name</b></dt>
 
-<dd>The client hostname or "<b>unknown</b>". </dd>
+<dd>The client hostname or "unknown". </dd>
 
 <dt><b>$helo_name</b></dt>
 
@@ -1187,12 +1187,12 @@ is unavailable. </p>
 
 <ul>
 
-<li> In main.cf specify "<tt>relay_transport = relay</tt>",
+<li> In main.cf specify "relay_transport = relay",
 
-<li> In master.cf specify "<tt>-o fallback_relay =</tt>" at the
-end of the <tt>relay</tt> entry.
+<li> In master.cf specify "-o fallback_relay =" (i.e., empty) at
+the end of the <tt>relay</tt> entry.
 
-<li> In transport maps, specify "<tt>relay:<i>nexthop...</i></tt>"
+<li> In transport maps, specify "relay:<i>nexthop...</i>"
 as the right-hand side for backup or primary MX domain entries.
 
 </ul>
@@ -1222,7 +1222,8 @@ lookup table is matched when the domain or its parent domain appears
 as lookup key.  </p>
 
 <p>
-Specify "fast_flush_domains =" to disable the feature altogether.
+Specify "fast_flush_domains =" (i.e., empty) to disable the feature
+altogether.
 </p>
 
 %PARAM fast_flush_purge_time 7d
@@ -1520,7 +1521,7 @@ the Postfix SMTP client defers delivery and tries again after some
 delay.  This behavior is required by the SMTP standard.  </p>
 
 <p>
-Specify "<b>ignore_mx_lookup_error = yes</b>" to force a DNS A record
+Specify "ignore_mx_lookup_error = yes" to force a DNS A record
 lookup instead. This violates the SMTP standard and can result in
 mis-delivery of mail.
 </p>
@@ -1565,8 +1566,8 @@ turned on by default (it's disabled on SCO UNIX due to an SCO bug).
 </p>
 
 <p>
-With the default 100 SMTP server process limit, "<b>in_flow_delay
-= 1s</b>" limits the mail inflow to 100 messages per second above the
+With the default 100 SMTP server process limit, "in_flow_delay
+= 1s" limits the mail inflow to 100 messages per second above the
 number of messages delivered per second.
 </p>
 
@@ -1577,10 +1578,11 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 %PARAM inet_interfaces all
 
 <p> The network interface addresses that this mail system receives
-mail on.  By default, the software claims all active interfaces on
-the machine; with Postfix 2.2 and later, specify "<b>loopback-only</b>"
-to select only local interfaces.  The parameter also controls
-delivery of mail to user@[ip.address].  </p>
+mail on. Specify "all" to receive mail on all network
+interfaces (default), and "loopback-only" to receive mail
+on loopback network interfaces only (Postfix 2.2 and later).  The
+parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
+</p>
 
 <p>
 Note: you need to stop and start Postfix when this parameter changes.
@@ -1601,8 +1603,8 @@ for IPv6. </p>
 
 <p>
 A better solution for multi-homed firewalls is to leave inet_interfaces
-at the default value
-and instead use explicit IP addresses in master.cf. This preserves SMTP
+at the default value and instead use explicit IP addresses in
+the master.cf SMTP server definitions.  This preserves the SMTP client's
 loop detection, by ensuring that each side of the firewall knows that the
 other IP address is still the same host. Setting $inet_interfaces to a
 single IPv4 and/or IPV6 address is primarily useful with virtual
@@ -1621,17 +1623,18 @@ Examples:
 
 <pre>
 inet_interfaces = all (DEFAULT)
-inet_interfaces = loopback-only
+inet_interfaces = loopback-only (Postfix 2.2 and later)
 inet_interfaces = 127.0.0.1
+inet_interfaces = 127.0.0.1, [::1] (Postfix 2.2 and later)
 inet_interfaces = 192.168.1.2, 127.0.0.1
 </pre>
 
 %PARAM inet_protocols ipv4
 
 <p> The Internet protocols Postfix will attempt to use when making
-or accepting connections. Specify one or more of "ipv4" or "ipv6",
-separated by whitespace or commas. The form "all" is equivalent to
-"ipv4, ipv6". </p>
+or accepting connections. Specify one or more of "ipv4"
+or "ipv6", separated by whitespace or commas. The form
+"all" is equivalent to "ipv4, ipv6". </p>
 
 <p> This feature is available in Postfix version 2.2 and later. </p>
 
@@ -1986,7 +1989,7 @@ local_recipient_maps setting if:
 
 <li>You redefine the local delivery agent in master.cf.
 
-<li> You redefine the "local_transport" setting in main.cf.
+<li>You redefine the "local_transport" setting in main.cf.
 
 <li>You use the "luser_relay", "mailbox_transport", or "fallback_transport"
 feature of the Postfix local(8) delivery agent.
@@ -2103,7 +2106,7 @@ Note: luser_relay works only for the Postfix local(8) delivery agent.
 
 <p>
 NOTE: if you use this feature for accounts not in the UNIX password
-file, then you must specify "<b>local_recipient_maps =</b>" (i.e. empty)
+file, then you must specify "local_recipient_maps =" (i.e. empty)
 in the main.cf file, otherwise the Postfix SMTP server will reject mail
 for non-UNIX accounts with "User unknown in local recipient table".
 </p>
@@ -3083,7 +3086,7 @@ recipient_delimiter = +
 
 <p>
 The numerical Postfix SMTP server response code when a remote SMTP
-client request is rejected by the "<b>reject</b>" restriction.
+client request is rejected by the "reject" restriction.
 </p>
 
 <p>
@@ -3237,7 +3240,8 @@ address localpart as per RFC 822, so that additional @ or % or !
 operators remain visible. This behavior is safe but it is also
 technically incorrect.  </p>
 
-<p> If you specify "resolve_dequoted_address = no", then the Postfix
+<p> If you specify "resolve_dequoted_address = no", then
+the Postfix
 resolver will not know about additional @ etc. operators in the
 address localpart. This opens opportunities for obscure mail relay
 attacks with user@domain@domain addresses when Postfix provides
@@ -4456,16 +4460,15 @@ rejected requests (default: 554).</dd>
 
 <dd>Pause for the specified number of seconds and proceed with
 the next restriction in the list, if any. This may stop zombie
-mail when used as:  </dd>
+mail when used as:
 
-<blockquote>
 <pre>
 /etc/postfix/main.cf:
     smtpd_client_restrictions = 
         sleep 1, reject_unauth_pipelining
     smtpd_delay_reject = no
 </pre>
-</blockquote>
+This feature is available in Postfix 2.3. </dd>
 
 <dt><b><a name="warn_if_reject">warn_if_reject</a></b></dt>
 
@@ -5935,7 +5938,7 @@ This feature is available in Postfix 2.2 and later.
 
 <p>
 Produce additional bounce(8) logfile records that can be read by
-older Postfix versions. The current and more extensible "name =
+Postfix versions before 2.0. The current and more extensible "name =
 value" format is needed in order to implement more sophisticated
 functionality.
 </p>
@@ -5973,7 +5976,7 @@ version 5.0.
 </p>
 
 <p>
-Specify "<b>broken_sasl_auth_clients = yes</b>" to have Postfix advertise
+Specify "broken_sasl_auth_clients = yes" to have Postfix advertise
 AUTH support in a non-standard way.
 </p>
 
@@ -5997,8 +6000,7 @@ logs peak usage information.
 </p>
 
 <p>
-This feature is implemented by the anvil(8) service which is not
-part of the stable Postfix 2.1 release.
+This feature is available in Postfix 2.2 and later.
 </p>
 
 <p>
@@ -6010,15 +6012,15 @@ The default time unit is s (seconds).
 
 <p> Report mail delivery errors to the address specified with the
 non-standard Errors-To: message header, instead of the envelope
-sender address.  This support is disabled by default with Postfix
-2.1 and later, and is always turned on with older Postfix versions.
-</p>
+sender address (this feature is removed with Postfix 2.2, is
+turned off by default with Postfix 2.1, and is always turned on
+with older Postfix versions).  </p>
 
 %PARAM extract_recipient_limit 10240
 
 <p>
 The maximal number of recipient addresses that Postfix will extract
-from message headers when mail is submitted with "sendmail -t".
+from message headers when mail is submitted with "<b>sendmail -t</b>".
 </p>
 
 <p>
@@ -6820,7 +6822,8 @@ The default time unit is s (seconds).
 <p>
 The group ownership of set-gid Postfix commands and of group-writable
 Postfix directories. When this parameter value is changed you need
-to re-run "<b>post-install set-permissions</b>".
+to re-run "<b>postfix set-permissions</b>" (with Postfix 2.0 and
+earlier: "<b>/etc/postfix/post-install set-permissions</b>".
 </p>
 
 %PARAM show_user_unknown_table_name yes
@@ -7161,7 +7164,7 @@ This feature is available in Postfix 2.0 and later.
 
 <p>
 Obsolete SUN mailtool compatibility feature. Instead, use
-"<b>mailbox_delivery_lock = dotlock</b>".
+"mailbox_delivery_lock = dotlock".
 </p>
 
 %PARAM trace_service_name trace
@@ -7373,7 +7376,7 @@ virtual(8) delivery agent will terminate with a fatal error.
 
 <p>
 The minimum user ID value that the virtual(8) delivery agent accepts
-as a result from <b>$virtual_uid_maps</b> table lookup.  Returned
+as a result from $virtual_uid_maps table lookup.  Returned
 values less than this will be rejected, and the message will be
 deferred.
 </p>
@@ -7487,12 +7490,12 @@ case insensitive lists of EHLO keywords (pipelining, starttls,
 auth, etc.) that the SMTP server will not send in the EHLO response
 to a remote SMTP client. </p>
 
-%PARAM session_cache_service scache
+%PARAM connection_cache_service scache
 
 <p> The name of the scache(8) connection cache service.  This service
 maintains a limited pool of cached sessions.  </p>
 
-%PARAM session_cache_ttl_limit 2s
+%PARAM connection_cache_ttl_limit 2s
 
 <p> The maximal time-to-live value that the connection cache server
 allows. Requests that specify a larger TTL will be stored with the
@@ -7500,7 +7503,7 @@ maximum allowed TTL. The purpose of this additional control is to
 protect the infrastructure against careless people. The cache TTL
 is already bounded by $max_idle.  </p>
 
-%PARAM session_cache_status_update_time 600s
+%PARAM connection_cache_status_update_time 600s
 
 <p> How frequently the scache(8) server logs usage statistics with
 connection cache hit and miss rates for logical destinations and for
@@ -7558,7 +7561,7 @@ default. </dd>
 client IP address matches any network or network address listed in
 $mynetworks. This setting will not prevent remote mail header
 address rewriting when mail from a remote client is forwarded by
-a neighboring system.  </p>
+a neighboring system.  </dd>
 
 <dt><b> permit_sasl_authenticated </b></dt>
 
@@ -7763,7 +7766,7 @@ that was recorded by the final destination can be trusted. </p>
 <p> Opportunistic mode: announce STARTTLS support to SMTP clients,
 but do not require that clients use TLS encryption. </p>
 
-<p> Note: when invoked via "sendmail -bs", Postfix will never offer
+<p> Note: when invoked via "<b>sendmail -bs</b>", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior. </p>
 
@@ -7777,7 +7780,7 @@ dedicated servers. </p>
 
 <p> Note 1: this mode implies "smtpd_tls_auth_only = yes". </p>
 
-<p> Note 2: when invoked via "sendmail -bs", Postfix will never offer
+<p> Note 2: when invoked via "<b>sendmail -bs</b>", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private  
 key. This is intended behavior. </p>
 

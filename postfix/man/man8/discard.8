@@ -12,14 +12,15 @@ Postfix discard mail delivery agent
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix discard delivery agent processes delivery requests from
+The Postfix \fBdiscard\fR(8) delivery agent processes
+delivery requests from
 the queue manager. Each request specifies a queue file, a sender
 address, a domain or host name that is treated as the reason for
 discarding the mail, and recipient information.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
-The discard delivery agent pretends to deliver all recipients
+The \fBdiscard\fR(8) delivery agent pretends to deliver all recipients
 in the delivery request, logs the "next-hop" domain or host
 information as the reason for discarding the mail, updates the
 queue file and marks recipients as finished or informs the
@@ -32,7 +33,7 @@ daemon as appropriate.
 .nf
 .ad
 .fi
-The discard mailer is not security-sensitive. It does not talk
+The \fBdiscard\fR(8) mailer is not security-sensitive. It does not talk
 to the network, and can be run chrooted at fixed low privilege.
 .SH "STANDARDS"
 .na
@@ -50,12 +51,12 @@ the postmaster is notified of bounces and of other trouble.
 .nf
 .ad
 .fi
-Changes to \fBmain.cf\fR are picked up automatically as discard(8)
+Changes to \fBmain.cf\fR are picked up automatically as \fBdiscard\fR(8)
 processes run for only a limited amount of time. Use the command
 "\fBpostfix reload\fR" to speed up a change.
 
 The text below provides only a parameter summary. See
-postconf(5) for more details including examples.
+\fBpostconf\fR(5) for more details including examples.
 .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 The default location of the Postfix main.cf and master.cf
 configuration files.

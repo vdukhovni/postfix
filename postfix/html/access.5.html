@@ -7,7 +7,7 @@
 ACCESS(5)                                               ACCESS(5)
 
 <b>NAME</b>
-       access - format of Postfix access table
+       access - Postfix access table format
 
 <b>SYNOPSIS</b>
        <b>postmap /etc/postfix/access</b>
@@ -17,15 +17,15 @@ ACCESS(5)                                               ACCESS(5)
        <b>postmap -q - /etc/postfix/access</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       The  optional <b>access</b> table directs the Postfix SMTP server
-       to selectively  reject  or  accept  mail.  Access  can  be
+       The  optional  <a href="access.5.html"><b>access</b>(5)</a>  table  directs  the Postfix SMTP
+       server to selectively reject or accept mail. Access can be
        allowed  or  denied for specific host names, domain names,
        networks, host addresses or mail addresses.
 
        For an example, see the EXAMPLE section at the end of this
        manual page.
 
-       Normally,  the  <b>access</b>  table  is specified as a text file
+       Normally,  the <a href="access.5.html"><b>access</b>(5)</a> table is specified as a text file
        that serves as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.   The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
        fast searching by the mail  system.  Execute  the  command
@@ -131,7 +131,7 @@ ACCESS(5)                                               ACCESS(5)
               enclosed with "[]" characters.
 
               NOTE  2:  use the <b>cidr</b> lookup table type to specify
-              network/netmask  patterns.  See  <a href="cidr_table.5.html">cidr_table(5)</a>  for
+              network/netmask  patterns.  See  <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a>  for
               details.
 
        <i>net:work:addr:ess</i>
@@ -159,7 +159,7 @@ ACCESS(5)                                               ACCESS(5)
               enclosed with "[]" characters.
 
               NOTE  3:  use the <b>cidr</b> lookup table type to specify
-              network/netmask  patterns.  See  <a href="cidr_table.5.html">cidr_table(5)</a>  for
+              network/netmask  patterns.  See  <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a>  for
               details.
 
               IPv6 support is available in Postfix 2.2 and later.
@@ -230,7 +230,7 @@ ACCESS(5)                                               ACCESS(5)
               After the message is queued, send the  entire  mes-
               sage through the specified external content filter.
               The <i>transport:destination</i> syntax  is  described  in
-              the  <a href="transport.5.html">transport(5)</a>  manual  page.   More information
+              the  <a href="transport.5.html"><b>transport</b>(5)</a>  manual  page.   More information
               about external content filters is  in  the  Postfix
               <a href="FILTER_README.html">FILTER_README</a> file.
 
@@ -315,8 +315,8 @@ ACCESS(5)                                               ACCESS(5)
        This section describes how the table lookups  change  when
        lookups are directed to a TCP-based server. For a descrip-
        tion  of  the  TCP  client/server  lookup  protocol,   see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.   This  feature  is not available in Postfix
-       version 2.1.
+       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.   This  feature  is  not available up to and
+       including Postfix version 2.2.
 
        Each lookup operation uses the entire query  string  once.
        Depending  on  the  application,  that string is an entire

@@ -14,14 +14,14 @@ POSTFIX(1)                                             POSTFIX(1)
 
 <b>DESCRIPTION</b>
        This  command  is  reserved  for  the superuser. To submit
-       mail, use the Postfix <b>sendmail</b> command.
+       mail, use the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command.
 
-       The <b>postfix</b> command controls the operation of the  Postfix
-       mail  system: start or stop the <b>master</b> daemon, do a health
-       check, and other maintenance.
+       The <a href="postfix.1.html"><b>postfix</b>(1)</a> command controls the operation of the Post-
+       fix  mail system: start or stop the <a href="master.8.html"><b>master</b>(8)</a> daemon, do a
+       health check, and other maintenance.
 
-       The <b>postfix</b> command sets up a standardized environment and
-       runs  the  <b>postfix-script</b>  shell  script  to do the actual
+       The <a href="postfix.1.html"><b>postfix</b>(1)</a> command sets up a standardized  environment
+       and  runs the <b>postfix-script</b> shell script to do the actual
        work.
 
        The following commands are implemented:
@@ -99,7 +99,7 @@ POSTFIX(1)                                             POSTFIX(1)
               verbose.
 
 <b>ENVIRONMENT</b>
-       The <b>postfix</b>  command  exports  the  following  environment
+       The <a href="postfix.1.html"><b>postfix</b>(1)</a> command exports the  following  environment
        variables before executing the <b>postfix-script</b> file:
 
        <b>MAIL_CONFIG</b>
@@ -144,15 +144,15 @@ POSTFIX(1)                                             POSTFIX(1)
 
        <b><a href="postconf.5.html#sendmail_path">sendmail_path</a> (see 'postconf -d' output)</b>
               A Sendmail compatibility feature that specifies the
-              location of the Postfix <a href="sendmail.1.html">sendmail(1)</a> command.
+              location of the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command.
 
        <b><a href="postconf.5.html#newaliases_path">newaliases_path</a> (see 'postconf -d' output)</b>
               Sendmail compatibility feature that  specifies  the
-              location of the <a href="newaliases.1.html">newaliases(1)</a> command.
+              location of the <a href="newaliases.1.html"><b>newaliases</b>(1)</a> command.
 
        <b><a href="postconf.5.html#mailq_path">mailq_path</a> (see 'postconf -d' output)</b>
               Sendmail compatibility feature that specifies where
-              the Postfix <a href="mailq.1.html">mailq(1)</a> command is installed.
+              the Postfix <a href="mailq.1.html"><b>mailq</b>(1)</a> command is installed.
 
        <b><a href="postconf.5.html#html_directory">html_directory</a> (see 'postconf -d' output)</b>
               The location of Postfix HTML  files  that  describe
@@ -197,6 +197,7 @@ POSTFIX(1)                                             POSTFIX(1)
        Commands:
        <a href="postalias.1.html">postalias(1)</a>, create/update/query alias database
        <a href="postcat.1.html">postcat(1)</a>, examine Postfix queue file
+       <a href="postconf.1.html">postconf(1)</a>, Postfix configuration utility
        <a href="postkick.1.html">postkick(1)</a>, trigger Postfix daemon
        <a href="postlock.1.html">postlock(1)</a>, Postfix-compatible locking
        <a href="postlog.1.html">postlog(1)</a>, Postfix-compatible logging

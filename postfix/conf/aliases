@@ -39,17 +39,17 @@ decode:		root
 # ALIASES(5)                                             ALIASES(5)
 # 
 # NAME
-#        aliases - format of the Postfix alias database
+#        aliases - Postfix local alias database format
 # 
 # SYNOPSIS
 #        newaliases
 # 
 # DESCRIPTION
-#        The  aliases  table  provides  a  system-wide mechanism to
+#        The  aliases(5)  table provides a system-wide mechanism to
 #        redirect mail for local recipients. The  redirections  are
 #        processed by the Postfix local(8) delivery agent.
 # 
-#        Normally,  the  aliases  table is specified as a text file
+#        Normally, the aliases(5) table is specified as a text file
 #        that serves as input  to  the  postalias(1)  command.  The
 #        result,  an  indexed file in dbm or db format, is used for
 #        fast lookup  by  the  mail  system.  Execute  the  command
@@ -63,7 +63,7 @@ decode:		root
 #        Users can control delivery of their own mail by setting up
 #        .forward files in their home directory.  Lines in per-user
 #        .forward files have the same syntax as the right-hand side
-#        of aliases entries.
+#        of aliases(5) entries.
 # 
 #        The format of the alias database input file is as follows:
 # 

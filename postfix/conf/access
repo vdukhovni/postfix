@@ -1,7 +1,7 @@
 # ACCESS(5)                                               ACCESS(5)
 # 
 # NAME
-#        access - format of Postfix access table
+#        access - Postfix access table format
 # 
 # SYNOPSIS
 #        postmap /etc/postfix/access
@@ -11,15 +11,15 @@
 #        postmap -q - /etc/postfix/access <inputfile
 # 
 # DESCRIPTION
-#        The  optional access table directs the Postfix SMTP server
-#        to selectively  reject  or  accept  mail.  Access  can  be
+#        The  optional  access(5)  table  directs  the Postfix SMTP
+#        server to selectively reject or accept mail. Access can be
 #        allowed  or  denied for specific host names, domain names,
 #        networks, host addresses or mail addresses.
 # 
 #        For an example, see the EXAMPLE section at the end of this
 #        manual page.
 # 
-#        Normally,  the  access  table  is specified as a text file
+#        Normally,  the access(5) table is specified as a text file
 #        that serves as  input  to  the  postmap(1)  command.   The
 #        result,  an  indexed file in dbm or db format, is used for
 #        fast searching by the mail  system.  Execute  the  command
@@ -309,8 +309,8 @@
 #        This section describes how the table lookups  change  when
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion  of  the  TCP  client/server  lookup  protocol,   see
-#        tcp_table(5).   This  feature  is not available in Postfix
-#        version 2.1.
+#        tcp_table(5).   This  feature  is  not available up to and
+#        including Postfix version 2.2.
 # 
 #        Each lookup operation uses the entire query  string  once.
 #        Depending  on  the  application,  that string is an entire

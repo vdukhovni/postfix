@@ -104,7 +104,7 @@
 #	configuration variable in the main.cf file).
 # .sp
 #	Chroot should not be used with the \fBlocal\fR(8),
-#	\fBpipe\fR(8), \fBspawn\fR(8), and virtual(8) daemons.
+#	\fBpipe\fR(8), \fBspawn\fR(8), and \fBvirtual\fR(8) daemons.
 #	Although the
 #	\fBproxymap\fR(8) server can run chrooted, doing so defeats
 #	most of the purpose of having that service in the first

@@ -2,16 +2,16 @@
 # NAME
 #	aliases 5
 # SUMMARY
-#	format of the Postfix alias database
+#	Postfix local alias database format
 # SYNOPSIS
 # .fi
 #	\fBnewaliases\fR
 # DESCRIPTION
-#	The \fBaliases\fR table provides a system-wide mechanism to
+#	The \fBaliases\fR(5) table provides a system-wide mechanism to
 #	redirect mail for local recipients. The redirections are
 #	processed by the Postfix \fBlocal\fR(8) delivery agent.
 #
-#	Normally, the \fBaliases\fR table is specified as a text file
+#	Normally, the \fBaliases\fR(5) table is specified as a text file
 #	that serves as input to the \fBpostalias\fR(1) command. The
 #	result, an indexed file in \fBdbm\fR or \fBdb\fR format, is
 #	used for fast lookup by the mail system. Execute the command
@@ -25,7 +25,7 @@
 #	Users can control delivery of their own mail by setting
 #	up \fB.forward\fR files in their home directory.
 #	Lines in per-user \fB.forward\fR files have the same syntax
-#	as the right-hand side of \fBaliases\fR entries.
+#	as the right-hand side of \fBaliases\fR(5) entries.
 #
 #	The format of the alias database input file is as follows:
 # .IP \(bu
@@ -107,7 +107,7 @@
 # .fi
 #	The following \fBmain.cf\fR parameters are especially relevant.
 #	The text below provides only a parameter summary. See
-#	postconf(5) for more details including examples.
+#	\fBpostconf\fR(5) for more details including examples.
 # .IP \fBalias_database\fR
 #	List of alias databases that are updated by the
 #	\fBnewaliases\fR(1) command.

@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBpickup\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBpickup\fR daemon waits for hints that new mail has been
+/*	The \fBpickup\fR(8) daemon waits for hints that new mail has been
 /*	dropped into the \fBmaildrop\fR directory, and feeds it into the
 /*	\fBcleanup\fR(8) daemon.
 /*	Ill-formatted files are deleted without notifying the originator.
@@ -15,32 +15,33 @@
 /* STANDARDS
 /* .ad
 /* .fi
-/*	None. The \fBpickup\fR daemon does not interact with the outside world.
+/*	None. The \fBpickup\fR(8) daemon does not interact with
+/*	the outside world.
 /* SECURITY
 /* .ad
 /* .fi
-/*	The \fBpickup\fR daemon is moderately security sensitive. It runs
+/*	The \fBpickup\fR(8) daemon is moderately security sensitive. It runs
 /*	with fixed low privilege and can run in a chrooted environment.
 /*	However, the program reads files from potentially hostile users.
-/*	The \fBpickup\fR daemon opens no files for writing, is careful about
+/*	The \fBpickup\fR(8) daemon opens no files for writing, is careful about
 /*	what files it opens for reading, and does not actually touch any data
 /*	that is sent to its public service endpoint.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	The \fBpickup\fR daemon copies mail from file to the \fBcleanup\fR(8)
+/*	The \fBpickup\fR(8) daemon copies mail from file to the \fBcleanup\fR(8)
 /*	daemon.  It could avoid message copying overhead by sending a file
 /*	descriptor instead of file data, but then the already complex
 /*	\fBcleanup\fR(8) daemon would have to deal with unfiltered user data.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	As the pickup(8) daemon is a relatively long-running process, up
+/*	As the \fBpickup\fR(8) daemon is a relatively long-running process, up
 /*	to an hour may pass before a \fBmain.cf\fR change takes effect.
 /*	Use the command "\fBpostfix reload\fR" command to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi

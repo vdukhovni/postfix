@@ -7,7 +7,7 @@
 VIRTUAL(5)                                             VIRTUAL(5)
 
 <b>NAME</b>
-       virtual - format of Postfix virtual alias table
+       virtual - Postfix virtual alias table format
 
 <b>SYNOPSIS</b>
        <b>postmap /etc/postfix/virtual</b>
@@ -17,10 +17,10 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>postmap -q - /etc/postfix/virtual</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       The  optional <b>virtual</b> alias table specifies address alias-
-       ing for arbitrary local or non-local recipient  addresses.
-       Virtual  aliasing is recursive, and is done by the Postfix
-       <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.
+       The  optional  <a href="virtual.5.html"><b>virtual</b>(5)</a>  alias  table  specifies address
+       aliasing  for  arbitrary  local  or  non-local   recipient
+       addresses.  Virtual  aliasing is recursive, and is done by
+       the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.
 
        The main applications of virtual aliasing are:
 
@@ -42,11 +42,11 @@ VIRTUAL(5)                                             VIRTUAL(5)
        Sendmail  rule  set <b>S0</b>, if you like. Use <a href="canonical.5.html"><b>canonical</b>(5)</a> map-
        ping to rewrite header and envelope addresses in  general.
 
-       Normally,  the  <b>virtual</b> alias table is specified as a text
-       file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.   The
-       result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
-       fast searching by the mail  system.  Execute  the  command
-       <b>postmap  /etc/postfix/virtual</b>  in  order  to  rebuild  the
+       Normally,  the  <a href="virtual.5.html"><b>virtual</b>(5)</a>  alias  table is specified as a
+       text file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.
+       The  result,  an indexed file in <b>dbm</b> or <b>db</b> format, is used
+       for fast searching by the mail system. Execute the command
+       "<b>postmap  /etc/postfix/virtual</b>"  in  order  to rebuild the
        indexed file after changing the text file.
 
        When the table is provided via other means  such  as  NIS,
@@ -93,7 +93,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
 
               This  functionality  overlaps with functionality of
               the local <i>aliases</i>(5) database.  The  difference  is
-              that  <b>virtual</b>  mapping  can be applied to non-local
+              that <a href="virtual.5.html"><b>virtual</b>(5)</a> mapping can be applied to non-local
               addresses.
 
        @<i>domain address, address, ...</i>
@@ -137,8 +137,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
 
            Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
-           See the output from <b>postconf -m</b> for available database
-           types.
+           See  the  output  from  "<b>postconf  -m</b>"  for  available
+           database types.
 
        /etc/postfix/virtual:
            <i>virtual-alias.domain anything</i> (right-hand content does not matter)
@@ -189,8 +189,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
        tion   of  the  TCP  client/server  lookup  protocol,  see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  in  Postfix
-       version 2.1.
+       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  up  to  and
+       including Postfix version 2.2.
 
        Each lookup operation uses the entire address once.  Thus,
        <i>user@domain</i> mail addresses are not broken  up  into  their
@@ -205,7 +205,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
 <b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix reload</b>
+       details  and  for default values. Use the "<b>postfix reload</b>"
        command after a configuration change.
 
        <b><a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a></b>

@@ -11,7 +11,7 @@
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
 /* DESCRIPTION
-/*	The \fBpostconf\fR command prints the actual value of
+/*	The \fBpostconf\fR(1) command prints the actual value of
 /*	\fIparameter\fR (all known parameters by default) one
 /*	parameter per line, changes its value, or prints other
 /*	information about the Postfix mail system.
@@ -103,7 +103,7 @@
 /*	result.
 /* .IP "\fBtcp\fR (read-only)"
 /*	Perform lookups using a simple request-reply protocol that is
-/*	described in tcp_table(5).
+/*	described in \fBtcp_table\fR(5).
 /*	This feature is not included with Postfix 2.1.
 /* .IP "\fBunix\fR (read-only)"
 /*	A limited way to query the UNIX authentication database. The
@@ -111,10 +111,10 @@
 /* .RS
 /*. IP \fBunix:passwd.byname\fR
 /*	The table is the UNIX password database. The key is a login name.
-/*	The result is a password file entry in passwd(5) format.
+/*	The result is a password file entry in \fBpasswd\fR(5) format.
 /* .IP \fBunix:group.byname\fR
 /*	The table is the UNIX group database. The key is a group name.
-/*	The result is a group file entry in group(5) format.
+/*	The result is a group file entry in \fBgroup\fR(5) format.
 /* .RE
 /* .RE
 /* .sp
@@ -139,7 +139,7 @@
 /*	this program.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.

@@ -2,11 +2,11 @@
 /* NAME
 /*	smtp 8
 /* SUMMARY
-/*	Postfix remote delivery via SMTP
+/*	Postfix SMTP client
 /* SYNOPSIS
 /*	\fBsmtp\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The SMTP client processes message delivery requests from
+/*	The Postfix SMTP client processes message delivery requests from
 /*	the queue manager. Each request specifies a queue file, a sender
 /*	address, a domain or host to deliver to, and recipient information.
 /*	This program expects to be run from the \fBmaster\fR(8) process
@@ -27,7 +27,7 @@
 /*	deliver the mail to an alternate host.
 /*
 /*	After a successful mail transaction, a connection may be saved
-/*	to the \fBscache(8)\fR connection cache server, so that it
+/*	to the \fBscache\fR(8) connection cache server, so that it
 /*	may be used by any SMTP client for a subsequent transaction.
 /*
 /*	By default, connection caching is enabled temporarily for
@@ -70,12 +70,12 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as smtp(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtp\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
@@ -210,8 +210,8 @@
 /*	The expiration time of Postfix SMTP client TLS session cache
 /*	information.
 /* .IP "\fBtls_daemon_random_bytes (32)\fR"
-/*	The number of pseudo-random bytes that an smtp(8) or smtpd(8)
-/*	process requests from the tlsmgr(8) server in order to seed its
+/*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
+/*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
 /* RESOURCE AND RATE CONTROLS
 /* .ad

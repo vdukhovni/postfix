@@ -10253,9 +10253,20 @@ Apologies for any names omitted.
 	Cleanup: sendmail no longer ignores null command-line
 	recipients.  File: sendmail/sendmail.c.
 
-	Cleanup: "postfix start" background checks moved back
-	to the foreground so they can be stopped more easily.
-	File: conf/postfix-script.
+	Cleanup: "postfix start" background checks moved back to
+	the foreground so they can be stopped more easily.  File:
+	conf/postfix-script.
+
+20050204
+
+	Feature: REPLACE command in header/body_checks (implemented
+	as a combination of PREPEND and IGNORE) by Bastiaan Bakker.
+	File: cleanup/cleanup_message.c.
+
+	Cleanup: linted the manual pages for consistency in the
+	way manuals are referenced, and in the presentation of
+	command examples. Files: mantools/manlint, mantools/fixman,
+	mantools/postconf2man.
 
 Open problems:
 

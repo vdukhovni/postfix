@@ -338,6 +338,20 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	}
 	return (CLEANUP_ACT_KEEP);
     }
+    if (STREQUAL(value, "REPLACE", command_len)) {
+	if (*optional_text == 0) {
+	    msg_warn("REPLACE action without text in %s map", map_class);
+	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0
+		   && !is_header(optional_text)) {
+	    msg_warn("bad REPLACE header text \"%s\" in %s map, "
+		     "need \"headername: headervalue\"",
+		     optional_text, map_class);
+	} else {
+	    cleanup_act_log(state, "replace", context, buf, optional_text);
+	    cleanup_out_string(state, REC_TYPE_NORM, optional_text);
+	}
+	return (CLEANUP_ACT_DROP);
+    }
     if (STREQUAL(value, "REDIRECT", command_len)) {
 	if (strchr(optional_text, '@') == 0) {
 	    msg_warn("bad REDIRECT target \"%s\" in %s map, need user@domain",

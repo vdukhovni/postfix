@@ -15,10 +15,10 @@ POSTCONF(1)                                           POSTCONF(1)
        <b>postconf</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>parameter=value ...</i>]
 
 <b>DESCRIPTION</b>
-       The  <b>postconf</b> command prints the actual value of <i>parameter</i>
-       (all known parameters by default) one parameter per  line,
-       changes  its  value, or prints other information about the
-       Postfix mail system.
+       The <a href="postconf.1.html"><b>postconf</b>(1)</a> command prints the actual value of <i>parame-</i>
+       <i>ter</i> (all known parameters by default)  one  parameter  per
+       line, changes its value, or prints other information about
+       the Postfix mail system.
 
        Options:
 
@@ -130,7 +130,7 @@ POSTCONF(1)                                           POSTCONF(1)
 
               <b>tcp</b> (read-only)
                      Perform lookups using a simple request-reply
-                     protocol that is described in  <a href="tcp_table.5.html">tcp_table(5)</a>.
+                     protocol that is described in  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
                      This  feature  is  not included with Postfix
                      2.1.
 
@@ -143,13 +143,13 @@ POSTCONF(1)                                           POSTCONF(1)
                              The  table  is  the  UNIX   password
                              database.  The  key is a login name.
                              The result is a password file  entry
-                             in passwd(5) format.
+                             in <b>passwd</b>(5) format.
 
                      <b>unix:group.byname</b>
                              The   table   is   the   UNIX  group
                              database. The key is a  group  name.
                              The  result is a group file entry in
-                             group(5) format.
+                             <b>group</b>(5) format.
 
        Other table types may exist depending on how  Postfix  was
        built.
@@ -174,7 +174,7 @@ POSTCONF(1)                                           POSTCONF(1)
        to this program.
 
        The text below provides  only  a  parameter  summary.  See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The  default  location  of  the Postfix main.cf and

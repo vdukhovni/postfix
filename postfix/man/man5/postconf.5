@@ -50,7 +50,7 @@ Otherwise, the order of main.cf parameter definitions does not matter.
 The remainder of this document is a description of all Postfix
 configuration parameters. Default values are shown after the 
 parameter name in parentheses, and can be looked up with the
-\fBpostconf -d\fR command. 
+"\fBpostconf -d\fR" command. 
 .PP
 Note: this is not an invitation to make changes to Postfix
 configuration parameters. Unnecessary changes can impair the
@@ -61,7 +61,7 @@ the sender.  This feature is enabled with the notify_classes
 parameter.
 .SH access_map_reject_code (default: 554)
 The numerical Postfix SMTP server response code when a client
-is rejected by an access(5) map restriction.
+is rejected by an \fBaccess\fR(5) map restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH address_verify_default_transport (default: $default_transport)
@@ -76,7 +76,7 @@ verification probes.
 This feature is available in Postfix 2.1 and later.
 .SH address_verify_map (default: empty)
 Optional lookup table for persistent address verification status
-storage.  The table is maintained by the verify(8) service, and
+storage.  The table is maintained by the \fBverify\fR(8) service, and
 is opened before the process releases privileges.
 .PP
 By default, the information is kept in volatile memory, and is lost
@@ -120,7 +120,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH address_verify_poll_count (default: 3)
-How many times to query the verify(8) service for the completion
+How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
 .PP
 The default poll count is 3.
@@ -196,7 +196,7 @@ address_verify_sender = postmaster@my.domain
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH address_verify_service_name (default: verify)
-The name of the verify(8) address verification service. This service
+The name of the \fBverify\fR(8) address verification service. This service
 maintains the status of sender and/or recipient address verification
 probes, and generates probes on request by other Postfix processes.
 .SH address_verify_transport_maps (default: $transport_maps)
@@ -210,7 +210,7 @@ verification probes.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH alias_database (default: see "postconf -d" output)
-The alias databases for local(8) delivery that are updated with
+The alias databases for \fBlocal\fR(8) delivery that are updated with
 "\fBnewaliases\fR" or with "\fBsendmail -bi\fR".
 .PP
 This is a separate configuration parameter because not all the
@@ -227,8 +227,8 @@ alias_database = hash:/etc/mail/aliases
 .ad
 .ft R
 .SH alias_maps (default: see "postconf -d" output)
-The alias databases that are used for local(8) delivery. See
-aliases(5) for syntax details.
+The alias databases that are used for \fBlocal\fR(8) delivery. See
+\fBaliases\fR(5) for syntax details.
 .PP
 The default list is system dependent.  On systems with NIS, the
 default is to search the local alias database, then the NIS alias
@@ -238,12 +238,12 @@ If you change the alias database, run "\fBpostalias /etc/aliases\fR"
 (or wherever your system stores the mail alias file), or simply
 run "\fBnewaliases\fR" to build the necessary DBM or DB file.
 .PP
-The local(8) delivery agent disallows regular expression substitution
+The \fBlocal\fR(8) delivery agent disallows regular expression substitution
 of $1 etc. in alias_maps, because that would open a security hole.
 .PP
-The local(8) delivery agent will silently ignore requests to use
-the proxymap(8) server within alias_maps. Instead it will open the
-table directly. Before Postfix version 2.2, the local(8) delivery
+The \fBlocal\fR(8) delivery agent will silently ignore requests to use
+the \fBproxymap\fR(8) server within alias_maps. Instead it will open the
+table directly. Before Postfix version 2.2, the \fBlocal\fR(8) delivery
 agent will terminate with a fatal error.
 .PP
 Examples:
@@ -257,12 +257,12 @@ alias_maps = hash:/etc/aliases
 .ad
 .ft R
 .SH allow_mail_to_commands (default: alias, forward)
-Restrict local(8) mail delivery to external commands.  The default
+Restrict \fBlocal\fR(8) mail delivery to external commands.  The default
 is to disallow delivery to "|command" in :include:  files (see
-aliases(5) for the text that defines this terminology).
+\fBaliases\fR(5) for the text that defines this terminology).
 .PP
 Specify zero or more of: \fBalias\fR, \fBforward\fR or \fBinclude\fR,
-in order to allow commands in aliases(5), .forward files or in
+in order to allow commands in \fBaliases\fR(5), .forward files or in
 :include:  files, respectively.
 .PP
 Example:
@@ -275,12 +275,12 @@ allow_mail_to_commands = alias,forward,include
 .ad
 .ft R
 .SH allow_mail_to_files (default: alias, forward)
-Restrict local(8) mail delivery to external files. The default is
+Restrict \fBlocal\fR(8) mail delivery to external files. The default is
 to disallow "/file/name" destinations in :include:  files (see
-aliases(5) for the text that defines this terminology).
+\fBaliases\fR(5) for the text that defines this terminology).
 .PP
 Specify zero or more of: \fBalias\fR, \fBforward\fR or \fBinclude\fR,
-in order to allow "/file/name" destinations in aliases(5), .forward
+in order to allow "/file/name" destinations in \fBaliases\fR(5), .forward
 files and in :include:  files, respectively.
 .PP
 Example:
@@ -330,8 +330,8 @@ be specified with "-c config_directory" on the command line, or
 via the MAIL_CONFIG environment parameter.
 .PP
 This list must be specified in the default Postfix configuration
-directory, and is used by set-gid Postfix commands such as postqueue(1)
-and postdrop(1).
+directory, and is used by set-gid Postfix commands such as \fBpostqueue\fR(1)
+and \fBpostdrop\fR(1).
 .SH always_bcc (default: empty)
 Optional address that receives a "blind carbon copy" of each message
 that is received by the Postfix mail system.
@@ -347,21 +347,20 @@ generates itself.
 The time unit over which client connection rates and other rates
 are calculated.
 .PP
-This feature is implemented by the anvil(8) service which is not
+This feature is implemented by the \fBanvil\fR(8) service which is not
 part of the stable Postfix 2.1 release.
 .PP
 The default interval is relatively short. Because of the high
-frequency of updates, the anvil(8) server uses volatile memory
+frequency of updates, the \fBanvil\fR(8) server uses volatile memory
 only. Thus, information is lost whenever the process terminates.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH anvil_status_update_time (default: 600s)
-How frequently the anvil(8) connection and rate limiting server
+How frequently the \fBanvil\fR(8) connection and rate limiting server
 logs peak usage information.
 .PP
-This feature is implemented by the anvil(8) service which is not
-part of the stable Postfix 2.1 release.
+This feature is available in Postfix 2.2 and later.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -382,7 +381,7 @@ This feature is enabled by default. If disabled, users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
 .SH application_event_drain_time (default: 100s)
-How long the postkick(1) command waits for a request to enter the
+How long the \fBpostkick\fR(1) command waits for a request to enter the
 server's input buffer before giving up.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
@@ -430,8 +429,8 @@ lines by starting the next line with whitespace.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH authorized_submit_users (default: static:anyone)
-List of users who are authorized to submit mail with the sendmail(1)
-command (and with the privileged postdrop(1) helper command).
+List of users who are authorized to submit mail with the \fBsendmail\fR(1)
+command (and with the privileged \fBpostdrop\fR(1) helper command).
 .PP
 By default, all users are allowed to submit mail.  Otherwise, the
 real UID of the process is looked up in the system password file,
@@ -476,8 +475,8 @@ specified with "/file/name".  IP version 6 addresses contain the
 ":" character, and would otherwise be confused with a "type:table"
 pattern.
 .SH backwards_bounce_logfile_compatibility (default: yes)
-Produce additional bounce(8) logfile records that can be read by
-older Postfix versions. The current and more extensible "name =
+Produce additional \fBbounce\fR(8) logfile records that can be read by
+Postfix versions before 2.0. The current and more extensible "name =
 value" format is needed in order to implement more sophisticated
 functionality.
 .PP
@@ -501,13 +500,13 @@ $virtual_alias_domains, or $virtual_mailbox_domains.  By default,
 the Postfix SMTP client returns such mail as undeliverable.
 .PP
 Specify, for example, "best_mx_transport = local" to pass the mail
-from the SMTP client to the local(8) delivery agent. You can specify
+from the SMTP client to the \fBlocal\fR(8) delivery agent. You can specify
 any message delivery "transport" or "transport:nexthop" that is
-defined in the master.cf file. See the transport(5) manual page
+defined in the master.cf file. See the \fBtransport\fR(5) manual page
 for the syntax and meaning of "transport" or "transport:nexthop".
 .PP
 However, this feature is expensive because it ties up a Postfix
-SMTP client process while the local(8) delivery agent is doing its
+SMTP client process while the \fBlocal\fR(8) delivery agent is doing its
 work. It is more efficient (for Postfix) to list all hosted domains
 in a table or database.
 .SH biff (default: yes)
@@ -517,10 +516,10 @@ notification with the UNIX command "biff y".
 .PP
 For compatibility reasons this feature is on by default.  On systems
 with lots of interactive users, the biff service can be a performance
-drain.  Specify "biff = no" to disable.
+drain.  Specify "biff = no" in main.cf to disable.
 .SH body_checks (default: empty)
 Optional lookup tables for content inspection as specified in
-the body_checks(5) manual page.
+the \fBbody_checks\fR(5) manual page.
 .PP
 Note: with Postfix versions before 2.0, these rules inspect
 all content after the primary message headers.
@@ -547,7 +546,7 @@ Specify 0 when mail delivery should be tried only once.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH bounce_service_name (default: bounce)
-The name of the bounce(8) service. This service maintains a record
+The name of the \fBbounce\fR(8) service. This service maintains a record
 of failed delivery attempts and generates non-delivery notifications.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -562,7 +561,7 @@ version of the AUTH command (RFC 2554). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
 .PP
-Specify "\fBbroken_sasl_auth_clients = yes\fR" to have Postfix advertise
+Specify "broken_sasl_auth_clients = yes" to have Postfix advertise
 AUTH support in a non-standard way.
 .SH canonical_classes (default: envelope_sender, envelope_recipient, header_sender, header_recipient)
 What addresses are subject to canonical_maps address mapping.
@@ -581,7 +580,7 @@ addresses, in both envelopes and in headers, as controlled
 with the canonical_classes parameter. This is typically used
 to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
-are documented in canonical(5).
+are documented in \fBcanonical\fR(5).
 .PP
 If you use this feature, run "\fBpostmap /etc/postfix/canonical\fR" to
 build the necessary DBM or DB file after every change. The changes
@@ -599,15 +598,15 @@ canonical_maps = hash:/etc/postfix/canonical
 .ad
 .ft R
 .SH cleanup_service_name (default: cleanup)
-The name of the cleanup(8) service. This service rewrites addresses
-into the standard form, and performs canonical(5) address mapping
-and virtual(5) aliasing.
+The name of the \fBcleanup\fR(8) service. This service rewrites addresses
+into the standard form, and performs \fBcanonical\fR(5) address mapping
+and \fBvirtual\fR(5) aliasing.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH command_directory (default: see "postconf -d" output)
 The location of all postfix administrative commands.
 .SH command_execution_directory (default: empty)
-The local(8) delivery agent working directory for delivery to
+The \fBlocal\fR(8) delivery agent working directory for delivery to
 external command.  Failure to change directory causes the delivery
 to be deferred.
 .PP
@@ -641,13 +640,13 @@ Instead of $name you can also specify ${name} or $(name).
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH command_expansion_filter (default: see "postconf -d" output)
-Restrict the characters that the local(8) delivery agent allows in
+Restrict the characters that the \fBlocal\fR(8) delivery agent allows in
 $name expansions of $mailbox_command.  Characters outside the
 allowed set are replaced by underscores.
 .SH command_time_limit (default: 1000s)
 Time limit for delivery to external commands. This limit is used
-by the local(8) delivery agent, and is the default time limit for
-delivery by the pipe(8) delivery agent.
+by the \fBlocal\fR(8) delivery agent, and is the default time limit for
+delivery by the \fBpipe\fR(8) delivery agent.
 .PP
 Note: if you set this time limit to a large value you must update the
 global ipc_timeout parameter as well.
@@ -665,14 +664,27 @@ With Postfix command that run with set-gid privileges, a
 config_directory override requires either root privileges, or it
 requires that the directory is listed with the alternate_config_directories
 parameter in the default main.cf file.
+.SH connection_cache_service (default: scache)
+The name of the \fBscache\fR(8) connection cache service.  This service
+maintains a limited pool of cached sessions.
+.SH connection_cache_status_update_time (default: 600s)
+How frequently the \fBscache\fR(8) server logs usage statistics with
+connection cache hit and miss rates for logical destinations and for
+physical endpoints.
+.SH connection_cache_ttl_limit (default: 2s)
+The maximal time-to-live value that the connection cache server
+allows. Requests that specify a larger TTL will be stored with the
+maximum allowed TTL. The purpose of this additional control is to
+protect the infrastructure against careless people. The cache TTL
+is already bounded by $max_idle.
 .SH content_filter (default: empty)
 The name of a mail delivery transport that filters mail after
 it is queued.
 .PP
 This parameter uses the same syntax as the right-hand side of a
-Postfix transport(5) table. This setting has a lower precedence
-than a content filter that is specified with an access(5) table or
-in a header_checks(5) or body_checks(5) table.
+Postfix \fBtransport\fR(5) table. This setting has a lower precedence
+than a content filter that is specified with an \fBaccess\fR(5) table or
+in a \fBheader_checks\fR(5) or \fBbody_checks\fR(5) table.
 .SH daemon_directory (default: see "postconf -d" output)
 The directory with Postfix support programs and daemon programs.
 These should not be invoked directly by humans. The directory must
@@ -728,8 +740,8 @@ debugger_command =
 .ad
 .ft R
 .SH default_database_type (default: see "postconf -d" output)
-The default database type for use in newaliases(1), postalias(1)
-and postmap(1) commands. On many UNIX systems the default type is
+The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
+and \fBpostmap\fR(1) commands. On many UNIX systems the default type is
 either \fBdbm\fR or \fBhash\fR. The default setting is frozen
 when the Postfix system is built.
 .PP
@@ -804,12 +816,12 @@ Note that the full amount will still have to be accumulated before
 another preemption can take place later.
 .SH default_destination_concurrency_limit (default: 20)
 The default maximal number of parallel deliveries to the same
-destination.  This is the default limit for delivery via the lmtp(8),
-pipe(8), smtp(8) and virtual(8) delivery agents.
+destination.  This is the default limit for delivery via the \fBlmtp\fR(8),
+\fBpipe\fR(8), \fBsmtp\fR(8) and \fBvirtual\fR(8) delivery agents.
 .SH default_destination_recipient_limit (default: 50)
 The default maximal number of recipients per message delivery.
-This is the default limit for delivery via the lmtp(8), pipe(8),
-smtp(8) and virtual(8) delivery agents.
+This is the default limit for delivery via the \fBlmtp\fR(8), \fBpipe\fR(8),
+\fBsmtp\fR(8) and \fBvirtual\fR(8) delivery agents.
 .PP
 Setting this parameter to a value of 1 changes the meaning of
 the corresponding per-destination concurrency limit from concurrency
@@ -827,9 +839,9 @@ Postfix queue manager's scheduling algorithm at all.  Messages
 which would never accumulate at least this many delivery slots
 (subject to slot cost parameter as well) are never preempted.
 .SH default_privs (default: nobody)
-The default rights used by the local(8) delivery agent for delivery
+The default rights used by the \fBlocal\fR(8) delivery agent for delivery
 to external file or command.  These rights are used when delivery
-is requested from an aliases(5) file that is owned by \fBroot\fR, or
+is requested from an \fBaliases\fR(5) file that is owned by \fBroot\fR, or
 when delivery is done on behalf of \fBroot\fR. \fBDO NOT SPECIFY A
 PRIVILEGED USER OR THE POSTFIX OWNER\fR.
 .SH default_process_limit (default: 100)
@@ -849,7 +861,7 @@ The client hostname and IP address, formatted as name[address].
 .IP "\fB$client_address\fR"
 The client IP address.
 .IP "\fB$client_name\fR"
-The client hostname or "\fBunknown\fR".
+The client hostname or "unknown".
 .IP "\fB$helo_name\fR"
 The hostname given in HELO or EHLO command or empty string.
 .IP "\fB$rbl_class\fR"
@@ -893,12 +905,12 @@ and qmgr_message_recipient_minimum.
 The default mail delivery transport for domains that do not match
 $mydestination, $inet_interfaces, $proxy_interfaces,
 $virtual_alias_domains, $virtual_mailbox_domains, or $relay_domains.
-This information can be overruled with the transport(5) table.
+This information can be overruled with the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
 The \fI:nexthop\fR part is optional.  For more details see the
-transport(5) manual page.
+\fBtransport\fR(5) manual page.
 .PP
 Example:
 .PP
@@ -922,7 +934,7 @@ client request is rejected by the "defer" restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH defer_service_name (default: defer)
-The name of the defer(8) service. This service maintains a record
+The name of the \fBdefer\fR(8) service. This service maintains a record
 of failed delivery attempts and generates non-delivery notifications.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -957,10 +969,10 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).
 .SH deliver_lock_attempts (default: 20)
 The maximal number of attempts to acquire an exclusive lock on a
-mailbox file or bounce(8) logfile.
+mailbox file or \fBbounce\fR(8) logfile.
 .SH deliver_lock_delay (default: 1s)
 The time between attempts to acquire an exclusive lock on a mailbox
-file or bounce(8) logfile.
+file or \fBbounce\fR(8) logfile.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -1008,15 +1020,15 @@ disable_vrfy_command = no
 .SH dont_remove (default: 0)
 Don't remove queue files and save them to the "saved" mail queue.
 This is a debugging aid.  To inspect the envelope information and
-content of a Postfix queue file, use the postcat(1) command.
+content of a Postfix queue file, use the \fBpostcat\fR(1) command.
 .SH double_bounce_sender (default: double-bounce)
 The sender address of postmaster notifications that are generated
 by the mail system. All mail to this address is silently discarded,
 in order to terminate mail bounce loops.
 .SH duplicate_filter_limit (default: 1000)
 The maximal number of addresses remembered by the address
-duplicate filter for aliases(5) or virtual(5) alias expansion, or
-for showq(8) queue displays.
+duplicate filter for \fBaliases\fR(5) or \fBvirtual\fR(5) alias expansion, or
+for \fBshowq\fR(8) queue displays.
 .SH empty_address_recipient (default: MAILER-DAEMON)
 The recipient of mail addressed to the null address.  Postfix does
 not accept such addresses in SMTP commands, but they may still be
@@ -1024,18 +1036,19 @@ created locally as the result of configuration or software error.
 .SH enable_errors_to (default: no)
 Report mail delivery errors to the address specified with the
 non-standard Errors-To: message header, instead of the envelope
-sender address.  This support is disabled by default with Postfix
-2.1 and later, and is always turned on with older Postfix versions.
+sender address (this feature is removed with Postfix 2.2, is
+turned off by default with Postfix 2.1, and is always turned on
+with older Postfix versions).
 .SH enable_original_recipient (default: yes)
 Enable support for the X-Original-To message header. This header
 is needed for multi-recipient mailboxes.
 .PP
-When this parameter is set to yes, the cleanup(8) daemon performs
+When this parameter is set to yes, the \fBcleanup\fR(8) daemon performs
 duplicate elimination on distinct pairs of (original recipient,
 rewritten recipient), and generates non-empty original recipient
 queue file records.
 .PP
-When this parameter is set to no, the cleanup(8) daemon performs
+When this parameter is set to no, the \fBcleanup\fR(8) daemon performs
 duplicate elimination on the rewritten recipient address only, and
 generates empty original recipient queue file records.
 .PP
@@ -1049,12 +1062,12 @@ problems that are caused by policy, resource, software or protocol
 errors.  These notifications are enabled with the notify_classes
 parameter.
 .SH error_service_name (default: error)
-The name of the error(8) pseudo delivery agent. This service always
+The name of the \fBerror\fR(8) pseudo delivery agent. This service always
 returns mail as undeliverable.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH execution_directory_expansion_filter (default: see "postconf -d" output)
-Restrict the characters that the local(8) delivery agent allows
+Restrict the characters that the \fBlocal\fR(8) delivery agent allows
 in $name expansions of $command_execution_directory.  Characters
 outside the allowed set are replaced by underscores.
 .PP
@@ -1084,7 +1097,7 @@ export_environment = TZ PATH=/bin:/usr/bin
 .ft R
 .SH extract_recipient_limit (default: 10240)
 The maximal number of recipient addresses that Postfix will extract
-from message headers when mail is submitted with "sendmail -t".
+from message headers when mail is submitted with "\fBsendmail -t\fR".
 .PP
 This feature was removed in Postfix 2.1.
 .SH fallback_relay (default: empty)
@@ -1104,18 +1117,18 @@ for a backup or primary MX domain. Mail would loop between the
 Postfix MX host and the fallback_relay host when the final destination
 is unavailable.
 .IP \(bu
-In main.cf specify "<tt>relay_transport = relay</tt>",
+In main.cf specify "relay_transport = relay",
 .IP \(bu
-In master.cf specify "<tt>-o fallback_relay =</tt>" at the
-end of the <tt>relay</tt> entry.
+In master.cf specify "-o fallback_relay =" (i.e., empty) at
+the end of the <tt>relay</tt> entry.
 .IP \(bu
-In transport maps, specify "<tt>relay:\fInexthop...\fR</tt>"
+In transport maps, specify "relay:\fInexthop...\fR"
 as the right-hand side for backup or primary MX domain entries.
 .PP
 These are default settings in Postfix version 2.2 and later.
 .SH fallback_transport (default: empty)
-Optional message delivery transport that the local(8) delivery
-agent should use for names that are not found in the aliases(5)
+Optional message delivery transport that the \fBlocal\fR(8) delivery
+agent should use for names that are not found in the \fBaliases\fR(5)
 database or in the UNIX passwd database.
 .SH fast_flush_domains (default: $relay_domains)
 Optional list of destinations that are eligible for per-destination
@@ -1124,7 +1137,7 @@ logfiles with mail that is queued to those destinations.
 By default, Postfix maintains "fast flush" logfiles only for
 destinations that the Postfix SMTP server is willing to relay to
 (i.e. the default is: "fast_flush_domains = $relay_domains"; see
-the relay_domains parameter in the postconf(5) manual).
+the relay_domains parameter in the \fBpostconf\fR(5) manual).
 .PP
 Specify a list of hosts or domains, "/file/name" patterns or
 "type:table" lookup tables, separated by commas and/or whitespace.
@@ -1133,7 +1146,8 @@ Continue long lines by starting the next line with whitespace. A
 lookup table is matched when the domain or its parent domain appears
 as lookup key.
 .PP
-Specify "fast_flush_domains =" to disable the feature altogether.
+Specify "fast_flush_domains =" (i.e., empty) to disable the feature
+altogether.
 .SH fast_flush_purge_time (default: 7d)
 The time after which an empty per-destination "fast flush" logfile
 is deleted.
@@ -1154,7 +1168,7 @@ d=days, w=weeks.  The default time unit is hours.
 Force specific internal tests to fail, to test the handling of
 errors that are difficult to reproduce otherwise.
 .SH flush_service_name (default: flush)
-The name of the flush(8) service. This service maintains per-destination
+The name of the \fBflush\fR(8) service. This service maintains per-destination
 logfiles with the queue file names of mail that is queued for those
 destinations.
 .PP
@@ -1167,11 +1181,11 @@ The delay between attempts to fork() a child process.
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  The default time unit is s (seconds).
 .SH forward_expansion_filter (default: see "postconf -d" output)
-Restrict the characters that the local(8) delivery agent allows in
+Restrict the characters that the \fBlocal\fR(8) delivery agent allows in
 $name expansions of $forward_path.  Characters outside the
 allowed set are replaced by underscores.
 .SH forward_path (default: see "postconf -d" output)
-The local(8) delivery agent search list for finding a .forward
+The \fBlocal\fR(8) delivery agent search list for finding a .forward
 file with user-specified delivery methods. The first file that is
 found is used.
 .PP
@@ -1235,26 +1249,26 @@ execute the command "\fBpostfix reload\fR".
 .SH header_address_token_limit (default: 10240)
 The maximal number of address tokens are allowed in an address
 message header. Information that exceeds the limit is discarded.
-The limit is enforced by the cleanup(8) server.
+The limit is enforced by the \fBcleanup\fR(8) server.
 .SH header_checks (default: empty)
 Optional lookup tables for content inspection of primary non-MIME
-message headers, as specified in the header_checks(5) manual page.
+message headers, as specified in the \fBheader_checks\fR(5) manual page.
 .SH header_size_limit (default: 102400)
 The maximal amount of memory in bytes for storing a message header.
 If a header is larger, the excess is discarded.  The limit is
-enforced by the cleanup(8) server.
+enforced by the \fBcleanup\fR(8) server.
 .SH helpful_warnings (default: yes)
 Log warnings about problematic configuration settings, and provide
 helpful suggestions.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH home_mailbox (default: empty)
-Optional pathname of a mailbox file relative to a local(8) user's
+Optional pathname of a mailbox file relative to a \fBlocal\fR(8) user's
 home directory.
 .PP
 Specify a pathname ending "/" for qmail-style delivery.
 .PP
-The precedence of local(8) delivery features from high to low is:
+The precedence of \fBlocal\fR(8) delivery features from high to low is:
 aliases, .forward files, mailbox_transport, mailbox_command_maps,
 mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
 and luser_relay.
@@ -1281,7 +1295,7 @@ Ignore DNS MX lookups that produce no response.  By default,
 the Postfix SMTP client defers delivery and tries again after some
 delay.  This behavior is required by the SMTP standard.
 .PP
-Specify "\fBignore_mx_lookup_error = yes\fR" to force a DNS A record
+Specify "ignore_mx_lookup_error = yes" to force a DNS A record
 lookup instead. This violates the SMTP standard and can result in
 mis-delivery of mail.
 .SH import_environment (default: see "postconf -d" output)
@@ -1305,17 +1319,17 @@ Time to pause before accepting a new message, when the message
 arrival rate exceeds the message delivery rate. This feature is
 turned on by default (it's disabled on SCO UNIX due to an SCO bug).
 .PP
-With the default 100 SMTP server process limit, "\fBin_flow_delay
-= 1s\fR" limits the mail inflow to 100 messages per second above the
+With the default 100 SMTP server process limit, "in_flow_delay
+= 1s" limits the mail inflow to 100 messages per second above the
 number of messages delivered per second.
 .PP
 Specify 0 to disable the feature. Valid delays are 0..10.
 .SH inet_interfaces (default: all)
 The network interface addresses that this mail system receives
-mail on.  By default, the software claims all active interfaces on
-the machine; with Postfix 2.2 and later, specify "\fBloopback-only\fR"
-to select only local interfaces.  The parameter also controls
-delivery of mail to user@[ip.address].
+mail on. Specify "all" to receive mail on all network
+interfaces (default), and "loopback-only" to receive mail
+on loopback network interfaces only (Postfix 2.2 and later).  The
+parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
 .PP
 Note: you need to stop and start Postfix when this parameter changes.
 .PP
@@ -1332,8 +1346,8 @@ IPv4, and setting smtp_bind_address6 to :: solves the problem
 for IPv6.
 .PP
 A better solution for multi-homed firewalls is to leave inet_interfaces
-at the default value
-and instead use explicit IP addresses in master.cf. This preserves SMTP
+at the default value and instead use explicit IP addresses in
+the master.cf SMTP server definitions.  This preserves the SMTP client's
 loop detection, by ensuring that each side of the firewall knows that the
 other IP address is still the same host. Setting $inet_interfaces to a
 single IPv4 and/or IPV6 address is primarily useful with virtual
@@ -1350,17 +1364,18 @@ Examples:
 .na
 .ft C
 inet_interfaces = all (DEFAULT)
-inet_interfaces = loopback-only
+inet_interfaces = loopback-only (Postfix 2.2 and later)
 inet_interfaces = 127.0.0.1
+inet_interfaces = 127.0.0.1, [::1] (Postfix 2.2 and later)
 inet_interfaces = 192.168.1.2, 127.0.0.1
 .fi
 .ad
 .ft R
 .SH inet_protocols (default: ipv4)
 The Internet protocols Postfix will attempt to use when making
-or accepting connections. Specify one or more of "ipv4" or "ipv6",
-separated by whitespace or commas. The form "all" is equivalent to
-"ipv4, ipv6".
+or accepting connections. Specify one or more of "ipv4"
+or "ipv6", separated by whitespace or commas. The form
+"all" is equivalent to "ipv4, ipv6".
 .PP
 This feature is available in Postfix version 2.2 and later.
 .PP
@@ -1401,8 +1416,8 @@ inet_protocols = ipv4, ipv6
 .ft R
 .SH initial_destination_concurrency (default: 5)
 The initial per-destination concurrency level for parallel delivery
-to the same destination. This limit applies to delivery via smtp(8),
-and via the pipe(8) and virtual(8) delivery agents.
+to the same destination. This limit applies to delivery via \fBsmtp\fR(8),
+and via the \fBpipe\fR(8) and \fBvirtual\fR(8) delivery agents.
 .PP
 Warning: with concurrency of 1, one bad message can be enough to
 block all mail to a site.
@@ -1589,7 +1604,7 @@ lmtp_sasl_security_options = noplaintext
 .ft R
 .SH lmtp_send_xforward_command (default: no)
 Send an XFORWARD command to the LMTP server when the LMTP LHLO
-server response announces XFORWARD support.  This allows an lmtp(8)
+server response announces XFORWARD support.  This allows an \fBlmtp\fR(8)
 delivery agent, used for content filter message injection, to
 forward the name, address, protocol and HELO name of the original
 client to the content filter and downstream queuing LMTP server.
@@ -1613,7 +1628,7 @@ The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH local_command_shell (default: empty)
-Optional shell program for local(8) delivery to non-Postfix command.
+Optional shell program for \fBlocal\fR(8) delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
 are given to given to /bin/sh only when they contain shell meta
 characters or shell built-in commands.
@@ -1764,12 +1779,12 @@ You redefine the local delivery agent in master.cf.
 You redefine the "local_transport" setting in main.cf.
 .IP \(bu
 You use the "luser_relay", "mailbox_transport", or "fallback_transport"
-feature of the Postfix local(8) delivery agent.
+feature of the Postfix \fBlocal\fR(8) delivery agent.
 .PP
 Details are described in the LOCAL_RECIPIENT_README file.
 .PP
 Beware: if the Postfix SMTP server runs chrooted, you need to access
-the passwd file via the proxymap(8) service, in order to overcome
+the passwd file via the \fBproxymap\fR(8) service, in order to overcome
 chroot access restrictions. The alternative, maintaining a copy of
 the system password file in the chroot jail is not practical.
 .PP
@@ -1785,7 +1800,7 @@ local_recipient_maps =
 .SH local_transport (default: local:$myhostname)
 The default mail delivery transport for domains that match
 $mydestination, $inet_interfaces or $proxy_interfaces.  This
-information can be overruled with the transport(5) table.
+information can be overruled with the \fBtransport\fR(5) table.
 .PP
 By default, local mail is delivered to the transport called "local",
 which is just the name of a service that is defined the master.cf file.
@@ -1793,13 +1808,13 @@ which is just the name of a service that is defined the master.cf file.
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
 The \fI:nexthop\fR part is optional.  For more details see the
-transport(5) manual page.
+\fBtransport\fR(5) manual page.
 .PP
 Beware: if you override the default local delivery agent then you
 need to review the LOCAL_RECIPIENT_README document, otherwise the
 SMTP server may reject mail for local recipients.
 .SH luser_relay (default: empty)
-Optional catch-all destination for unknown local(8) recipients.
+Optional catch-all destination for unknown \fBlocal\fR(8) recipients.
 By default, mail for unknown recipients in domains that match
 $mydestination, $inet_interfaces or $proxy_interfaces is returned
 as undeliverable.
@@ -1828,10 +1843,10 @@ Expands to \fIvalue\fR when \fI$name\fR has an empty value.
 .PP
 Instead of $name you can also specify ${name} or $(name).
 .PP
-Note: luser_relay works only for the Postfix local(8) delivery agent.
+Note: luser_relay works only for the Postfix \fBlocal\fR(8) delivery agent.
 .PP
 NOTE: if you use this feature for accounts not in the UNIX password
-file, then you must specify "\fBlocal_recipient_maps =\fR" (i.e. empty)
+file, then you must specify "local_recipient_maps =" (i.e. empty)
 in the main.cf file, otherwise the Postfix SMTP server will reject mail
 for non-UNIX accounts with "User unknown in local recipient table".
 .PP
@@ -1858,7 +1873,7 @@ or daemon.  PLEASE USE A DEDICATED USER ID AND GROUP ID.
 .SH mail_release_date (default: see "postconf -d" output)
 The Postfix release date, in "YYYYMMDD" format.
 .SH mail_spool_directory (default: see "postconf -d" output)
-The directory where local(8) UNIX-style mailboxes are kept. The
+The directory where \fBlocal\fR(8) UNIX-style mailboxes are kept. The
 default setting depends on the system type. Specify a name ending
 in / for maildir-style delivery.
 .PP
@@ -1883,7 +1898,7 @@ The version of the mail system. Stable releases are named
 also include the release date. The version string can be used in,
 for example, the SMTP greeting banner.
 .SH mailbox_command (default: empty)
-Optional external command that the local(8) delivery agent should
+Optional external command that the \fBlocal\fR(8) delivery agent should
 use for mailbox delivery.  The command is run with the user ID and
 the primary group ID privileges of the recipient.  Exception:
 command delivery for root executes with $default_privs privileges.
@@ -1942,7 +1957,7 @@ Note: if you use the mailbox_command feature to deliver mail
 system-wide, you must set up an alias that forwards mail for root
 to a real user.
 .PP
-The precedence of local(8) delivery features from high to low is:
+The precedence of \fBlocal\fR(8) delivery features from high to low is:
 aliases, .forward files, mailbox_transport, mailbox_command_maps,
 mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
 and luser_relay.
@@ -1961,14 +1976,14 @@ mailbox_command = /some/where/maildrop -d "$USER"
 .ft R
 .SH mailbox_command_maps (default: empty)
 Optional lookup tables with per-recipient external commands to use
-for local(8) mailbox delivery.  Behavior is as with mailbox_command.
+for \fBlocal\fR(8) mailbox delivery.  Behavior is as with mailbox_command.
 .PP
-The precedence of local(8) delivery features from high to low is:
+The precedence of \fBlocal\fR(8) delivery features from high to low is:
 aliases, .forward files, mailbox_transport, mailbox_command_maps,
 mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
 and luser_relay.
 .SH mailbox_delivery_lock (default: see "postconf -d" output)
-How to lock a UNIX-style local(8) mailbox before attempting delivery.
+How to lock a UNIX-style \fBlocal\fR(8) mailbox before attempting delivery.
 For a list of available file locking methods, use the "\fBpostconf
 -l\fR" command.
 .PP
@@ -1980,25 +1995,25 @@ GID has write access to the parent directory of the mailbox file.
 .PP
 Note: the default setting of this parameter is system dependent.
 .SH mailbox_size_limit (default: 51200000)
-The maximal size of any local(8) individual mailbox or maildir
+The maximal size of any \fBlocal\fR(8) individual mailbox or maildir
 file, or zero (no limit).  In fact, this limits the size of any
 file that is written to upon local delivery, including files written
-by external commands that are executed by the local(8) delivery
+by external commands that are executed by the \fBlocal\fR(8) delivery
 agent.
 .PP
 This limit must not be smaller than the message size limit.
 .SH mailbox_transport (default: empty)
-Optional message delivery transport that the local(8) delivery
+Optional message delivery transport that the \fBlocal\fR(8) delivery
 agent should use for mailbox delivery to all local recipients,
 whether or not they are found in the UNIX passwd database.
 .PP
-The precedence of local(8) delivery features from high to low is:
+The precedence of \fBlocal\fR(8) delivery features from high to low is:
 aliases, .forward files, mailbox_transport, mailbox_command_maps,
 mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
 and luser_relay.
 .SH mailq_path (default: see "postconf -d" output)
 Sendmail compatibility feature that specifies where the Postfix
-mailq(1) command is installed. This command can be used to
+\fBmailq\fR(1) command is installed. This command can be used to
 list the Postfix mail queue.
 .SH manpage_directory (default: see "postconf -d" output)
 Where the Postfix manual pages are installed.
@@ -2119,7 +2134,7 @@ do not differ in the first $mime_boundary_length_limit characters.
 This feature is available in Postfix 2.0 and later.
 .SH mime_header_checks (default: $header_checks)
 Optional lookup tables for content inspection of MIME related
-message headers, as described in the header_checks(5) manual page.
+message headers, as described in the \fBheader_checks\fR(5) manual page.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH mime_nesting_limit (default: 100)
@@ -2144,7 +2159,7 @@ Do not change this unless you have a complete understanding of RFC 821.
 This feature is available in Postfix 2.1 and later.
 .SH mydestination (default: $myhostname, localhost.$mydomain, localhost)
 The list of domains that are delivered via the $local_transport
-mail delivery transport. By default this is the Postfix local(8)
+mail delivery transport. By default this is the Postfix \fBlocal\fR(8)
 delivery agent which looks up all recipients in /etc/passwd and
 /etc/aliases. The SMTP server validates recipient addresses with
 $local_recipient_maps and rejects non-existent recipients. See also
@@ -2170,7 +2185,7 @@ set up backup MX hosts.
 .IP \(bu
 By default, the Postfix SMTP server rejects mail for recipients
 not listed with the local_recipient_maps parameter.  See the
-postconf(5) manual for a description of the local_recipient_maps
+\fBpostconf\fR(5) manual for a description of the local_recipient_maps
 and unknown_local_recipient_reject_code parameters.
 .PP
 Specify a list of host or domain names, "/file/name" or "type:table"
@@ -2224,7 +2239,7 @@ The list of "trusted" SMTP clients that have more privileges than
 .PP
 In particular, "trusted" SMTP clients are allowed to relay mail
 through Postfix.  See the smtpd_recipient_restrictions parameter
-description in the postconf(5) manual.
+description in the \fBpostconf\fR(5) manual.
 .PP
 You can specify the list of "trusted" network addresses by hand
 or you can let Postfix do it for you (which is the default).
@@ -2303,14 +2318,14 @@ myorigin = $mydomain
 .ft R
 .SH nested_header_checks (default: $header_checks)
 Optional lookup tables for content inspection of non-MIME message
-headers in attached messages, as described in the header_checks(5)
+headers in attached messages, as described in the \fBheader_checks\fR(5)
 manual page.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH newaliases_path (default: see "postconf -d" output)
 Sendmail compatibility feature that specifies the location of the
-newaliases(1) command. This command can be used to rebuild the
-local(8) aliases(5) database.
+\fBnewaliases\fR(1) command. This command can be used to rebuild the
+\fBlocal\fR(8) \fBaliases\fR(5) database.
 .SH non_fqdn_reject_code (default: 504)
 The numerical Postfix SMTP server reply code when a client request
 is rejected by the reject_non_fqdn_hostname, reject_non_fqdn_sender
@@ -2381,12 +2396,12 @@ you really want to match subdomains.
 Restrict the use of the permit_mx_backup SMTP access feature to
 only domains whose primary MX hosts match the listed networks.
 .SH pickup_service_name (default: pickup)
-The name of the pickup(8) service. This service picks up local mail
+The name of the \fBpickup\fR(8) service. This service picks up local mail
 submissions from the Postfix maildrop queue.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH prepend_delivered_header (default: command, file, forward)
-The message delivery contexts where the Postfix local(8) delivery
+The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered-To:  message header.
 .PP
 By default, the Postfix local delivery agent prepends a Delivered-To:
@@ -2416,14 +2431,14 @@ The process name of a Postfix command or daemon process.
 What address lookup tables copy an address extension from the lookup
 key to the lookup result.
 .PP
-For example, with a virtual(5) mapping of "\fIjoe@domain ->
+For example, with a \fBvirtual\fR(5) mapping of "\fIjoe@domain ->
 joe.user\fR", the address "\fIjoe+foo@domain\fR" would rewrite
 to "\fIjoe.user+foo\fR".
 .PP
 Specify zero or more of \fBcanonical\fR, \fBvirtual\fR, \fBalias\fR,
 \fBforward\fR or \fBinclude\fR. These cause address extension
-propagation with canonical(5), virtual(5), and aliases(5) maps,
-and with local(8) .forward and :include: file lookups, respectively.
+propagation with \fBcanonical\fR(5), \fBvirtual\fR(5), and \fBaliases\fR(5) maps,
+and with \fBlocal\fR(8) .forward and :include: file lookups, respectively.
 .PP
 Note: enabling this feature for types other than \fBcanonical\fR
 and \fBvirtual\fR is likely to cause problems when mail is forwarded
@@ -2461,9 +2476,9 @@ proxy_interfaces = 1.2.3.4
 .ad
 .ft R
 .SH proxy_read_maps (default: see "postconf -d" output)
-The lookup tables that the proxymap(8) server is allowed to access.
+The lookup tables that the \fBproxymap\fR(8) server is allowed to access.
 Table references that don't begin with proxy: are ignored.  The
-proxymap(8) table accesses are read-only.
+\fBproxymap\fR(8) table accesses are read-only.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH qmgr_clog_warn_time (default: 300s)
@@ -2478,7 +2493,7 @@ Obsolete feature: the percentage of delivery resources that a busy
 mail system will use up for delivery of a large mailing  list
 message.
 .PP
-This feature exists only in the oqmgr(8) old queue manager. The
+This feature exists only in the \fBoqmgr\fR(8) old queue manager. The
 current queue manager solves the problem in a better way.
 .SH qmgr_message_active_limit (default: 20000)
 The maximal number of messages in the active queue.
@@ -2537,7 +2552,7 @@ The location of the Postfix top-level queue directory. This is the
 root directory of Postfix daemon processes that run chrooted.
 .SH queue_file_attribute_count_limit (default: 100)
 The maximal number of (name=value) attributes that may be stored
-in a Postfix queue file. The limit is enforced by the cleanup(8)
+in a Postfix queue file. The limit is enforced by the \fBcleanup\fR(8)
 server.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -2559,7 +2574,7 @@ The time between deferred queue scans by the queue manager.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH queue_service_name (default: qmgr)
-The name of the qmgr(8) service. This service manages the Postfix
+The name of the \fBqmgr\fR(8) service. This service manages the Postfix
 queue and schedules delivery requests.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -2577,12 +2592,12 @@ configure or operate a specific Postfix subsystem or feature.
 .SH receive_override_options (default: empty)
 Enable or disable recipient validation, built-in content
 filtering, or address mapping. Typically, these are specified in
-master.cf as command-line arguments for the smtpd(8), qmqpd(8) or
-pickup(8) daemons.
+master.cf as command-line arguments for the \fBsmtpd\fR(8), \fBqmqpd\fR(8) or
+\fBpickup\fR(8) daemons.
 .PP
 Specify zero or more of the following options.  The options
-override main.cf settings and are either implemented by smtpd(8),
-qmqpd(8), or pickup(8) themselves, or they are forwarded to the
+override main.cf settings and are either implemented by \fBsmtpd\fR(8),
+\fBqmqpd\fR(8), or \fBpickup\fR(8) themselves, or they are forwarded to the
 cleanup server.
 .IP "\fBno_unknown_recipient_checks\fR"
 Do not try to reject unknown recipients (SMTP server only).
@@ -2670,7 +2685,7 @@ This feature is available in Postfix 2.2 and later.
 .SH recipient_canonical_maps (default: empty)
 Optional address mapping lookup tables for envelope and header
 recipient addresses.
-The table format and lookups are documented in canonical(5).
+The table format and lookups are documented in \fBcanonical\fR(5).
 .PP
 Note: $recipient_canonical_maps is processed before $canonical_maps.
 .PP
@@ -2685,7 +2700,7 @@ recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
 .ft R
 .SH recipient_delimiter (default: empty)
 The separator between user names and address extensions (user+foo).
-See canonical(5), local(8), relocated(5) and virtual(5) for the
+See \fBcanonical\fR(5), \fBlocal\fR(8), \fBrelocated\fR(5) and \fBvirtual\fR(5) for the
 effects this has on aliases, canonical, virtual, relocated and
 on .forward file lookups.  Basically, the software tries user+foo
 and .forward+foo before trying user and .forward.
@@ -2701,7 +2716,7 @@ recipient_delimiter = +
 .ft R
 .SH reject_code (default: 554)
 The numerical Postfix SMTP server response code when a remote SMTP
-client request is rejected by the "\fBreject\fR" restriction.
+client request is rejected by the "reject" restriction.
 .PP
 Do not change this unless you have a complete understanding of RFC 821.
 .SH relay_clientcerts (default: empty)
@@ -2760,7 +2775,7 @@ ADDRESS_CLASS_README file.
 .PP
 NOTE: Postfix will not automatically forward mail for domains
 that list this system as their primary or backup MX host. See the
-permit_mx_backup restriction in the postconf(5) manual page.
+permit_mx_backup restriction in the \fBpostconf\fR(5) manual page.
 .PP
 Specify a list of host or domain names, "/file/name" patterns
 or "type:table" lookup tables, separated by commas and/or whitespace.
@@ -2802,12 +2817,12 @@ This feature is available in Postfix 2.0 and later.
 .SH relay_transport (default: relay)
 The default mail delivery transport and next-hop information for
 domains that match the $relay_domains parameter value. This
-information can be overruled with the transport(5) table.
+information can be overruled with the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
 The \fI:nexthop\fR part is optional.  For more details see the
-transport(5) manual page.
+\fBtransport\fR(5) manual page.
 .PP
 See also the relay domains address class in the ADDRESS_CLASS_README
 file.
@@ -2815,7 +2830,7 @@ file.
 This feature is available in Postfix 2.0 and later.
 .SH relayhost (default: empty)
 The default host to send non-local mail to when no entry is matched
-in the optional transport(5) table. When no relayhost is given,
+in the optional \fBtransport\fR(5) table. When no relayhost is given,
 mail is routed directly to the destination.
 .PP
 On an intranet, specify the organizational domain name. If your
@@ -2844,7 +2859,7 @@ relayhost = [an.ip.add.ress]
 .SH relocated_maps (default: empty)
 Optional lookup tables with new contact information for users or
 domains that no longer exist.  The table format and lookups are
-documented in relocated(5).
+documented in \fBrelocated\fR(5).
 .PP
 If you use this feature, run "\fBpostmap /etc/postfix/relocated\fR" to
 build the necessary DBM or DB file after change, then "\fBpostfix
@@ -2892,7 +2907,7 @@ clients at all.
 .ad
 .ft R
 .SH require_home_directory (default: no)
-Whether or not a local(8) recipient's home directory must exist
+Whether or not a \fBlocal\fR(8) recipient's home directory must exist
 before mail delivery is attempted. By default this test is disabled.
 It can be useful for environments that import home directories to
 the mail server (NOT RECOMMENDED).
@@ -2905,7 +2920,8 @@ address localpart as per RFC 822, so that additional @ or % or !
 operators remain visible. This behavior is safe but it is also
 technically incorrect.
 .PP
-If you specify "resolve_dequoted_address = no", then the Postfix
+If you specify "resolve_dequoted_address = no", then
+the Postfix
 resolver will not know about additional @ etc. operators in the
 address localpart. This opens opportunities for obscure mail relay
 attacks with user@domain@domain addresses when Postfix provides
@@ -2987,7 +3003,7 @@ This feature is available in Postfix 2.2 and later.
 .SH sender_canonical_maps (default: empty)
 Optional address mapping lookup tables for envelope and header
 sender addresses.
-The table format and lookups are documented in canonical(5).
+The table format and lookups are documented in \fBcanonical\fR(5).
 .PP
 Example: you want to rewrite the SENDER address "user@ugly.domain"
 to "user@pretty.domain", while still being able to send mail to
@@ -3006,31 +3022,19 @@ sender_canonical_maps = hash:/etc/postfix/sender_canonical
 .ft R
 .SH sendmail_path (default: see "postconf -d" output)
 A Sendmail compatibility feature that specifies the location of
-the Postfix sendmail(1) command. This command can be used to
+the Postfix \fBsendmail\fR(1) command. This command can be used to
 submit mail into the Postfix queue.
 .SH service_throttle_time (default: 60s)
-How long the Postfix master(8) waits before forking a server that
+How long the Postfix \fBmaster\fR(8) waits before forking a server that
 appears to be malfunctioning.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
-.SH session_cache_service (default: scache)
-The name of the scache(8) connection cache service.  This service
-maintains a limited pool of cached sessions.
-.SH session_cache_status_update_time (default: 600s)
-How frequently the scache(8) server logs usage statistics with
-connection cache hit and miss rates for logical destinations and for
-physical endpoints.
-.SH session_cache_ttl_limit (default: 2s)
-The maximal time-to-live value that the connection cache server
-allows. Requests that specify a larger TTL will be stored with the
-maximum allowed TTL. The purpose of this additional control is to
-protect the infrastructure against careless people. The cache TTL
-is already bounded by $max_idle.
 .SH setgid_group (default: postdrop)
 The group ownership of set-gid Postfix commands and of group-writable
 Postfix directories. When this parameter value is changed you need
-to re-run "\fBpost-install set-permissions\fR".
+to re-run "\fBpostfix set-permissions\fR" (with Postfix 2.0 and
+earlier: "\fB/etc/postfix/post-install set-permissions\fR".
 .SH show_user_unknown_table_name (default: yes)
 Display the name of the recipient table in the "User unknown"
 responses.  The extra detail makes trouble shooting easier but also
@@ -3038,7 +3042,7 @@ reveals information that is nobody elses business.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH showq_service_name (default: showq)
-The name of the showq(8) service. This service produces mail queue
+The name of the \fBshowq\fR(8) service. This service produces mail queue
 status reports.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -3344,7 +3348,7 @@ a broken SMTP server, configure a special SMTP client in master.cf:
 .ft R
 .PP
 and route mail for the destination in question to the "broken-smtp"
-message delivery with a transport(5) table.
+message delivery with a \fBtransport\fR(5) table.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtp_randomize_addresses (default: yes)
@@ -3653,7 +3657,7 @@ server certificate was issued by a trusted CA.
 .PP
 Special hint for enforcement mode:  since no secure DNS lookup
 mechanism is available, the recommended setup is:  specify local
-transport(5) table entries for sensitive domains with explicit
+\fBtransport\fR(5) table entries for sensitive domains with explicit
 smtp:[mailhost] destinations (since you can assure security of this
 table unlike DNS), then specify MUST for these mail hosts in the
 smtp_tls_per_site table.
@@ -3909,7 +3913,7 @@ client network address information.
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
-least significant octets. See the access(5) manual page for details.
+least significant octets. See the \fBaccess\fR(5) manual page for details.
 .IP "\fBpermit_inet_interfaces\fR"
 Permit the request when the client IP address matches
 $inet_interfaces.
@@ -4023,9 +4027,7 @@ rejected requests (default: 554).
 Pause for the specified number of seconds and proceed with
 the next restriction in the list, if any. This may stop zombie
 mail when used as:
-.na
-.nf
-.in +4
+.PP
 .nf
 .na
 .ft C
@@ -4036,9 +4038,7 @@ mail when used as:
 .fi
 .ad
 .ft R
-.in -4
-.fi
-.ad
+This feature is available in Postfix 2.3.
 .IP "\fBwarn_if_reject\fR"
 Change the meaning of the next restriction, so that it logs
 a warning instead of rejecting a request (look for logfile records
@@ -4135,7 +4135,7 @@ dedicated servers.
 .PP
 Note 1: this mode implies "smtpd_tls_auth_only = yes".
 .PP
-Note 2: when invoked via "sendmail -bs", Postfix will never offer
+Note 2: when invoked via "\fBsendmail -bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .SH smtpd_error_sleep_time (default: 1s)
@@ -4164,7 +4164,7 @@ The following restrictions are specific to the domain name information
 received with the ETRN command.
 .IP "\fBcheck_etrn_access \fItype:table\fR\fR"
 Search the specified access database for the ETRN domain name
-or its parent domains. See the access(5) manual page for details.
+or its parent domains. See the \fBaccess\fR(5) manual page for details.
 .PP
 Other restrictions that are valid in this context:
 .IP \(bu
@@ -4230,16 +4230,16 @@ restriction that matches wins.
 The following restrictions are specific to the hostname information
 received with the HELO or EHLO command.
 .IP "\fBcheck_helo_access \fItype:table\fR\fR"
-Search the specified access(5) database for the HELO or EHLO
+Search the specified \fBaccess\fR(5) database for the HELO or EHLO
 hostname or parent domains, and execute the corresponding action.
 .IP "\fBcheck_helo_mx_access \fItype:table\fR\fR"
-Search the specified access(5) database for the MX hosts for
+Search the specified \fBaccess\fR(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_helo_ns_access \fItype:table\fR\fR"
-Search the specified access(5) database for the DNS servers
+Search the specified \fBaccess\fR(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
@@ -4304,7 +4304,7 @@ List of commands that the Postfix SMTP server replies to with "250
 Ok", without doing any syntax checks and without changing state.
 This list overrides any commands built into the Postfix SMTP server.
 .SH smtpd_null_access_lookup_key (default: <>)
-The lookup key to be used in SMTP access(5) tables instead of the
+The lookup key to be used in SMTP \fBaccess\fR(5) tables instead of the
 null sender address.
 .SH smtpd_policy_service_max_idle (default: 300s)
 The time after which an idle SMTPD policy service connection is
@@ -4390,17 +4390,17 @@ restriction that matches wins.
 The following restrictions are specific to the recipient address
 that is received with the RCPT TO command.
 .IP "\fBcheck_recipient_access \fItype:table\fR\fR"
-Search the specified access(5) database for the resolved RCPT
+Search the specified \fBaccess\fR(5) database for the resolved RCPT
 TO address, domain, parent domains, or localpart@, and execute the
 corresponding action.
 .IP "\fBcheck_recipient_mx_access \fItype:table\fR\fR"
-Search the specified access(5) database for the MX hosts for
+Search the specified \fBaccess\fR(5) database for the MX hosts for
 the RCPT TO address, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_recipient_ns_access \fItype:table\fR\fR"
-Search the specified access(5) database for the DNS servers
+Search the specified \fBaccess\fR(5) database for the DNS servers
 for the RCPT TO address, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
@@ -4477,7 +4477,7 @@ This feature is available in Postfix 2.1 and later.
 .IP "\fBreject_unverified_recipient\fR"
 Reject the request when mail to the RCPT TO address is known
 to bounce, or when the recipient address destination is not reachable.
-Address verification information is managed by the verify(8) server;
+Address verification information is managed by the \fBverify\fR(8) server;
 see the ADDRESS_VERIFICATION_README file for details.
 .br
 The
@@ -4552,7 +4552,7 @@ This feature is available in Postfix 2.1 and later.
 .SH smtpd_restriction_classes (default: empty)
 User-defined aliases for groups of access restrictions. The aliases
 can be specified in smtpd_recipient_restrictions etc., and on the
-right-hand side of a Postfix access(5) table.
+right-hand side of a Postfix \fBaccess\fR(5) table.
 .PP
 One major application is for implementing per-recipient UCE control.
 See the RESTRICTION_CLASS_README document for other examples.
@@ -4712,17 +4712,17 @@ restriction that matches wins.
 The following restrictions are specific to the sender address
 received with the MAIL FROM command.
 .IP "\fBcheck_sender_access \fItype:table\fR\fR"
-Search the specified access(5) database for the MAIL FROM
+Search the specified \fBaccess\fR(5) database for the MAIL FROM
 address, domain, parent domains, or localpart@, and execute the
 corresponding action.
 .IP "\fBcheck_sender_mx_access \fItype:table\fR\fR"
-Search the specified access(5) database for the MX hosts for
+Search the specified \fBaccess\fR(5) database for the MX hosts for
 the MAIL FROM address, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_sender_ns_access \fItype:table\fR\fR"
-Search the specified access(5) database for the DNS servers
+Search the specified \fBaccess\fR(5) database for the DNS servers
 for the MAIL FROM address, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
@@ -4777,7 +4777,7 @@ This feature is available in Postfix 2.1 and later.
 .IP "\fBreject_unverified_sender\fR"
 Reject the request when mail to the MAIL FROM address is known to
 bounce, or when the sender address destination is not reachable.
-Address verification information is managed by the verify(8) server;
+Address verification information is managed by the \fBverify\fR(8) server;
 see the ADDRESS_VERIFICATION_README file for details.
 .br
 The
@@ -5075,7 +5075,7 @@ purpose.
 Opportunistic mode: announce STARTTLS support to SMTP clients,
 but do not require that clients use TLS encryption.
 .PP
-Note: when invoked via "sendmail -bs", Postfix will never offer
+Note: when invoked via "\fBsendmail -bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .SH soft_bounce (default: no)
@@ -5147,7 +5147,7 @@ By default, the Postfix SMTP server accepts RFC 822 syntax in MAIL
 FROM and RCPT TO addresses.
 .SH sun_mailtool_compatibility (default: no)
 Obsolete SUN mailtool compatibility feature. Instead, use
-"\fBmailbox_delivery_lock = dotlock\fR".
+"mailbox_delivery_lock = dotlock".
 .SH swap_bangpath (default: yes)
 Enable the rewriting of "site!user" into "user@site".  This is
 necessary if your machine is connected to UUCP networks.  It is
@@ -5164,7 +5164,7 @@ swap_bangpath = no
 .ft R
 .SH syslog_facility (default: mail)
 The syslog facility of Postfix logging. Specify a facility as
-defined in syslog.conf(5). The default facility is "mail".
+defined in syslog.\fBconf\fR(5). The default facility is "mail".
 .PP
 Warning: a non-default syslog_facility setting takes effect only
 after a Postfix process has completed initialization.  Errors during
@@ -5181,36 +5181,36 @@ process initialization will be logged with the default name. Examples
 are errors while parsing the command line arguments, and errors
 while accessing the Postfix main.cf configuration file.
 .SH tls_daemon_random_bytes (default: 32)
-The number of pseudo-random bytes that an smtp(8) or smtpd(8)
-process requests from the tlsmgr(8) server in order to seed its
+The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
+process requests from the \fBtlsmgr\fR(8) server in order to seed its
 internal pseudo random number generator (PRNG).  The default of 32
 bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 (or 168bit) session key.
 .SH tls_random_bytes (default: 32)
-The number of bytes that tlsmgr(8) reads from $tls_random_source
+The number of bytes that \fBtlsmgr\fR(8) reads from $tls_random_source
 when (re)seeding the in-memory pseudo random number generator (PRNG)
 pool. The default of 32 bytes (256 bits) is good enough for 128bit
 symmetric keys.  If using EGD or a device file, a maximum of 255
 bytes is read.
 .SH tls_random_exchange_name (default: ${config_directory}/prng_exch)
 Name of the pseudo random number generator (PRNG) state file
-that is maintained by tlsmgr(8). The file is created when it does
+that is maintained by \fBtlsmgr\fR(8). The file is created when it does
 not exist, and its length is fixed at 1024 bytes.
 .PP
 Since this file is modified by Postfix, it should probably be
 kept in the /var file system, instead of under $config_directory.
 The location should not be inside the chroot jail.
 .SH tls_random_prng_update_period (default: 3600s)
-The time between attempts by tlsmgr(8) to save the state of
+The time between attempts by \fBtlsmgr\fR(8) to save the state of
 the pseudo random number generator (PRNG) to the file specified
 with $tls_random_exchange_name.
 .SH tls_random_reseed_period (default: 3600s)
-The maximal time between attempts by tlsmgr(8) to re-seed the
+The maximal time between attempts by \fBtlsmgr\fR(8) to re-seed the
 in-memory pseudo random number generator (PRNG) pool from external
 sources.  The actual time between re-seeding attempts is calculated
 using the PRNG, and is between 0 and the time specified.
 .SH tls_random_source (default: see "postconf -d" output)
-The external entropy source for the in-memory tlsmgr(8) pseudo
+The external entropy source for the in-memory \fBtlsmgr\fR(8) pseudo
 random number generator (PRNG) pool. Be sure to specify a non-blocking
 source.  If this source is not a regular file, the entropy source
 type must be prepended:  egd:/path/to/egd_socket for a source with
@@ -5220,14 +5220,14 @@ device file.
 Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
 gives timeout errors.
 .SH trace_service_name (default: trace)
-The name of the trace(8) service. This service maintains a record
+The name of the \fBtrace\fR(8) service. This service maintains a record
 of mail deliveries and produces a mail delivery report when verbose
 delivery is requested with "\fBsendmail -v\fR".
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH transport_maps (default: empty)
 Optional lookup tables with mappings from recipient address to
-(message delivery transport, next-hop destination).  See transport(5)
+(message delivery transport, next-hop destination).  See \fBtransport\fR(5)
 for details.
 .PP
 Specify zero or more "type:table" lookup tables.  If you use this
@@ -5252,14 +5252,14 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH trigger_timeout (default: 10s)
 The time limit for sending a trigger to a Postfix daemon (for
-example, the pickup(8) or qmgr(8) daemon). This time limit prevents
+example, the \fBpickup\fR(8) or \fBqmgr\fR(8) daemon). This time limit prevents
 programs from getting stuck when the mail system is under heavy
 load.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH undisclosed_recipients_header (default: To: undisclosed-recipients:;)
-Message header that the Postfix cleanup(8) server inserts when a
+Message header that the Postfix \fBcleanup\fR(8) server inserts when a
 message contains no To: or Cc: message header.
 .SH unknown_address_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a sender or
@@ -5342,7 +5342,7 @@ Do not change this unless you have a complete understanding of RFC 821.
 This feature is available in Postfix 2.1 and later.
 .SH verp_delimiter_filter (default: -=+)
 The characters Postfix accepts as VERP delimiter characters on the
-Postfix sendmail(1) command line and in SMTP commands.
+Postfix \fBsendmail\fR(1) command line and in SMTP commands.
 .PP
 This feature is available in Postfix 1.1 and later.
 .SH virtual_alias_domains (default: $virtual_alias_maps)
@@ -5390,7 +5390,7 @@ This feature is available in Postfix 2.1 and later.
 .SH virtual_alias_maps (default: $virtual_maps)
 Optional lookup tables that alias specific mail addresses or domains
 to other local or remote address.  The table format and lookups
-are documented in virtual(5).
+are documented in \fBvirtual\fR(5).
 .PP
 This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix 1.1.
@@ -5431,7 +5431,7 @@ Setting this parameter to a value of 1 changes the meaning of
 virtual_destination_concurrency_limit from concurrency per domain
 into concurrency per recipient.
 .SH virtual_gid_maps (default: empty)
-Lookup tables with the per-recipient group ID for virtual(8) mailbox
+Lookup tables with the per-recipient group ID for \fBvirtual\fR(8) mailbox
 delivery.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld" to
@@ -5439,20 +5439,20 @@ match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
 .PP
 When a recipient address has an optional address extension
-(user+foo@domain.tld), the virtual(8) delivery agent looks up
+(user+foo@domain.tld), the \fBvirtual\fR(8) delivery agent looks up
 the full address first, and when the lookup fails, it looks up the
 unextended address (user@domain.tld).
 .PP
-Note 1: for security reasons, the virtual(8) delivery agent disallows
+Note 1: for security reasons, the \fBvirtual\fR(8) delivery agent disallows
 regular expression substitution of $1 etc. in regular expression
 lookup tables, because that would open a security hole.
 .PP
-Note 2: for security reasons, the virtual(8) delivery agent will
-silently ignore requests to use the proxymap(8) server. Instead
+Note 2: for security reasons, the \fBvirtual\fR(8) delivery agent will
+silently ignore requests to use the \fBproxymap\fR(8) server. Instead
 it will open the table directly. Before Postfix version 2.2, the
-virtual(8) delivery agent will terminate with a fatal error.
+\fBvirtual\fR(8) delivery agent will terminate with a fatal error.
 .SH virtual_mailbox_base (default: empty)
-A prefix that the virtual(8) delivery agent prepends to all pathname
+A prefix that the \fBvirtual\fR(8) delivery agent prepends to all pathname
 results from $virtual_mailbox_maps table lookups.  This is a safety
 measure to ensure that an out of control map doesn't litter the
 file system with mailboxes.  While virtual_mailbox_base could be
@@ -5470,7 +5470,7 @@ virtual_mailbox_base = /var/mail
 .SH virtual_mailbox_domains (default: $virtual_mailbox_maps)
 Postfix is final destination for the specified list of domains;
 mail is delivered via the $virtual_transport mail delivery transport.
-By default this is the Postfix virtual(8) delivery agent.  The SMTP
+By default this is the Postfix \fBvirtual\fR(8) delivery agent.  The SMTP
 server validates recipient addresses with $virtual_mailbox_maps
 and rejects mail for non-existent recipients.  See also the virtual
 mailbox domain class in the ADDRESS_CLASS_README file.
@@ -5484,7 +5484,7 @@ value is backwards compatible with Postfix 1.1.
 The maximal size in bytes of an individual mailbox or maildir file,
 or zero (no limit).
 .SH virtual_mailbox_lock (default: see "postconf -d" output)
-How to lock a UNIX-style virtual(8) mailbox before attempting
+How to lock a UNIX-style \fBvirtual\fR(8) mailbox before attempting
 delivery.  For a list of available file locking methods, use the
 "\fBpostconf -l\fR" command.
 .PP
@@ -5504,7 +5504,7 @@ In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
 .PP
-The virtual(8) delivery agent uses this table to look up the
+The \fBvirtual\fR(8) delivery agent uses this table to look up the
 per-recipient mailbox or maildir pathname.  If the lookup result
 ends in a slash ("/"), maildir-style delivery is carried out,
 otherwise the path is assumed to specify a UNIX-style mailbox file.
@@ -5512,18 +5512,18 @@ Note that $virtual_mailbox_base is unconditionally prepended to
 this path.
 .PP
 When a recipient address has an optional address extension
-(user+foo@domain.tld), the virtual(8) delivery agent looks up
+(user+foo@domain.tld), the \fBvirtual\fR(8) delivery agent looks up
 the full address first, and when the lookup fails, it looks up the
 unextended address (user@domain.tld).
 .PP
-Note 1: for security reasons, the virtual(8) delivery agent disallows
+Note 1: for security reasons, the \fBvirtual\fR(8) delivery agent disallows
 regular expression substitution of $1 etc. in regular expression
 lookup tables, because that would open a security hole.
 .PP
-Note 2: for security reasons, the virtual(8) delivery agent will
-silently ignore requests to use the proxymap(8) server. Instead
+Note 2: for security reasons, the \fBvirtual\fR(8) delivery agent will
+silently ignore requests to use the \fBproxymap\fR(8) server. Instead
 it will open the table directly. Before Postfix version 2.2, the
-virtual(8) delivery agent will terminate with a fatal error.
+\fBvirtual\fR(8) delivery agent will terminate with a fatal error.
 .SH virtual_maps (default: empty)
 Optional lookup tables with a) names of domains for which all
 addresses are aliased to addresses in other local or remote domains,
@@ -5532,23 +5532,23 @@ remote domains.  Available before Postfix version 2.0. With Postfix 2.0
 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps.
 .SH virtual_minimum_uid (default: 100)
-The minimum user ID value that the virtual(8) delivery agent accepts
-as a result from \fB$virtual_uid_maps\fR table lookup.  Returned
+The minimum user ID value that the \fBvirtual\fR(8) delivery agent accepts
+as a result from $virtual_uid_maps table lookup.  Returned
 values less than this will be rejected, and the message will be
 deferred.
 .SH virtual_transport (default: virtual)
 The default mail delivery transport for domains that match the
 $virtual_mailbox_domains parameter value. This information can
-be overruled with the transport(5) table.
+be overruled with the \fBtransport\fR(5) table.
 .PP
 Specify a string of the form \fItransport:nexthop\fR, where \fItransport\fR
 is the name of a mail delivery transport defined in master.cf.
 The \fI:nexthop\fR part is optional.  For more details see the
-transport(5) manual page.
+\fBtransport\fR(5) manual page.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH virtual_uid_maps (default: empty)
-Lookup tables with the per-recipient user ID that the virtual(8)
+Lookup tables with the per-recipient user ID that the \fBvirtual\fR(8)
 delivery agent uses while writing to the recipient's mailbox.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld"
@@ -5556,23 +5556,23 @@ to match any user in the specified domain that does not have a
 specific "user@domain.tld" entry.
 .PP
 When a recipient address has an optional address extension
-(user+foo@domain.tld), the virtual(8) delivery agent looks up
+(user+foo@domain.tld), the \fBvirtual\fR(8) delivery agent looks up
 the full address first, and when the lookup fails, it looks up the
 unextended address (user@domain.tld).
 .PP
-Note 1: for security reasons, the virtual(8) delivery agent disallows
+Note 1: for security reasons, the \fBvirtual\fR(8) delivery agent disallows
 regular expression substitution of $1 etc. in regular expression
 lookup tables, because that would open a security hole.
 .PP
-Note 2: for security reasons, the virtual(8) delivery agent will
-silently ignore requests to use the proxymap(8) server. Instead
+Note 2: for security reasons, the \fBvirtual\fR(8) delivery agent will
+silently ignore requests to use the \fBproxymap\fR(8) server. Instead
 it will open the table directly. Before Postfix version 2.2, the
-virtual(8) delivery agent will terminate with a fatal error.
+\fBvirtual\fR(8) delivery agent will terminate with a fatal error.
 .SH SEE ALSO
 .na
 .nf
-postconf(1) Postfix configuration parameter maintenance
-master(5) Postfix daemon configuration maintenance
+postconf(1), Postfix configuration parameter maintenance
+master(5), Postfix daemon configuration maintenance
 .SH LICENSE
 .ad
 .fi

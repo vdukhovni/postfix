@@ -13,27 +13,27 @@ DISCARD(8)                                             DISCARD(8)
        <b>discard</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The  Postfix  discard  delivery  agent  processes delivery
+       The  Postfix  <a href="discard.8.html"><b>discard</b>(8)</a> delivery agent processes delivery
        requests from the queue manager. Each request specifies  a
        queue  file,  a sender address, a domain or host name that
        is treated as the reason  for  discarding  the  mail,  and
        recipient  information.   This  program  expects to be run
        from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
-       The discard delivery agent pretends to deliver all recipi-
-       ents  in  the delivery request, logs the "next-hop" domain
-       or host information as the reason for discarding the mail,
-       updates the queue file and marks recipients as finished or
-       informs the queue manager that delivery  should  be  tried
-       again at a later time.
+       The <a href="discard.8.html"><b>discard</b>(8)</a> delivery  agent  pretends  to  deliver  all
+       recipients  in  the  delivery request, logs the "next-hop"
+       domain or host information as the  reason  for  discarding
+       the  mail,  updates the queue file and marks recipients as
+       finished or informs the queue manager that delivery should
+       be tried again at a later time.
 
        Delivery status reports are sent to the <a href="trace.8.html"><b>trace</b>(8)</a> daemon as
        appropriate.
 
 <b>SECURITY</b>
-       The discard mailer is not security-sensitive. It does  not
-       talk  to the network, and can be run chrooted at fixed low
-       privilege.
+       The <a href="discard.8.html"><b>discard</b>(8)</a> mailer is not security-sensitive.  It  does
+       not  talk to the network, and can be run chrooted at fixed
+       low privilege.
 
 <b>STANDARDS</b>
        None.
@@ -46,12 +46,12 @@ DISCARD(8)                                             DISCARD(8)
        ble.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes to <b>main.cf</b> are picked  up  automatically  as  dis-
-       card(8)  processes  run for only a limited amount of time.
+       Changes to <b>main.cf</b> are picked  up  automatically  as  <a href="discard.8.html"><b>dis-</b></a>
+       <a href="discard.8.html"><b>card</b>(8)</a>  processes  run for only a limited amount of time.
        Use the command "<b>postfix reload</b>" to speed up a change.
 
        The text below provides  only  a  parameter  summary.  See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The  default  location  of  the Postfix main.cf and

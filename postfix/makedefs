@@ -25,19 +25,14 @@
 #	\fIinclude\fR directory.
 #	The following directives are special:
 # .RS
-# .IP \fB-DUSE_TLS\f
-#	Build with TLS (transport level security) support. This
-#	requires that OpenSSL is installed.
-# .IP \fB-DNO_TLS\fR
-#	Do not build with TLS support.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
-# .IP \fB-DHAS_PCRE\fR
-#	Build with PCRE (Perl-compatible regular expression) support.
-#	By default, PCRE support is enabled when the \fBpcre-config\fR
-#	utility is installed.
+#	By default, IPv6 support is compiled in on platforms that
+#	are known to have IPv6 support.
 # .IP \fB-DNO_PCRE\fR
 #	Do not build with PCRE support.
+#	By default, PCRE support is compiled in when the \fBpcre-config\fR
+#	utility is installed.
 # .RE
 # .IP \fBDEBUG=\fIdebug_level\fR
 #	Specifies a non-default debugging level. The default is \fB-g\fR.

@@ -64,7 +64,7 @@ not matter. </p>
 <p> The remainder of this document is a description of all Postfix
 configuration parameters. Default values are shown after the
 parameter name in parentheses, and can be looked up with the
-<b>postconf -d</b> command. </p>
+"<b>postconf -d</b>" command. </p>
 
 <p> Note: this is not an invitation to make changes to Postfix
 configuration parameters. Unnecessary changes are likely to impair

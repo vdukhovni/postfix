@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBverify\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The Postfix address verification server maintains a record
+/*	The \fBverify\fR(8) address verification server maintains a record
 /*	of what recipient addresses are known to be deliverable or
 /*	undeliverable.
 /*
@@ -19,13 +19,14 @@
 /*	MTA for the specified address, and will therefore not detect
 /*	all undeliverable addresses.
 /*
-/*	This server is designed to run under control by the Postfix
+/*	The \fBverify\fR(8) server is designed to run under control
+/*	by the Postfix
 /*	master server. It maintains an optional persistent database.
 /*	To avoid being interrupted by "postfix stop" in the middle
 /*	of a database update, the process runs in a separate process
 /*	group.
 /*
-/*	This server implements the following requests:
+/*	The \fBverify\fR(8) server implements the following requests:
 /* .IP "\fBupdate\fI address status text\fR"
 /*	Update the status and text of the specified address.
 /* .IP "\fBquery\fI address\fR"
@@ -58,12 +59,13 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are not picked up automatically, as verify(8)
+/*	Changes to \fBmain.cf\fR are not picked up automatically,
+/*	as \fBverify\fR(8)
 /*	processes are persistent. Use the command "\fBpostfix reload\fR" after
 /*	a configuration change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* CACHE CONTROLS
 /* .ad
 /* .fi

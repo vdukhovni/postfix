@@ -70,7 +70,7 @@ in the form of Postfix regular expression lookup tables. Usually the
 best performance is obtained with \fBpcre\fR (Perl Compatible Regular
 Expression) tables, but the slower \fBregexp\fR (POSIX regular
 expressions) support is more widely available.
-Use the command \fBpostconf -m\fR to find out what lookup table
+Use the command "\fBpostconf -m\fR" to find out what lookup table
 types your Postfix system supports.
 
 The general format of Postfix regular expression tables is
@@ -119,9 +119,10 @@ next input line is inspected.
 .fi
 Substitution of substrings from the matched expression into the
 \fIaction\fR
-string is possible using the conventional Perl syntax ($1, $2, etc.).
-The macros in the result string may need to be written as ${n}
-or $(n) if they aren't followed by whitespace.
+string is possible using the conventional Perl syntax
+(\fB$1\fR, \fB$2\fR, etc.).
+The macros in the result string may need to be written as \fB${n}\fR
+or \fB$(n)\fR if they aren't followed by whitespace.
 
 Note: since negated patterns (those preceded by \fB!\fR) return a
 result when the expression does not match, substitutions are not
@@ -187,12 +188,18 @@ the next input line.
 Prepend one line with the specified text and inspect the next
 input line.
 .sp
-Note: the prepended text is output immediately before the
-input that triggered the \fBPREPEND\fR action. A body action
-cannot prepend a message header.
-.sp
-Note: this action cannot be used to prepend multi-line text.
-.sp
+Notes:
+.RS
+.IP \(bu
+The prepended text is output on a separate line, immediately
+before the input that triggered the \fBPREPEND\fR action.
+.IP \(bu
+When prepending text before a message header line, the prepended
+text must begin with a valid message header label.
+.IP \(bu
+This action cannot be used to prepend multi-line text.
+.RE
+.IP
 This feature is available in Postfix 2.1 and later.
 .IP "\fBREDIRECT \fIuser@domain\fR"
 Write a message redirection request to the queue file and
@@ -205,6 +212,14 @@ all recipients of the message. If multiple \fBREDIRECT\fR actions
 fire, only the last one is executed.
 .sp
 This feature is available in Postfix 2.1 and later.
+.IP "\fBREPLACE \fItext...\fR"
+Replace the current line with the specified text and inspect the next
+input line.
+.sp
+Note: when replacing a message header line, the replacement text
+must begin with a valid header label.
+.sp
+This feature is available in Postfix 2.2 and later.
 .IP "\fBREJECT \fIoptional text...\fR
 Reject the entire message. Reply with \fIoptional text...\fR when
 the optional text is specified, otherwise reply with a generic error

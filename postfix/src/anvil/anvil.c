@@ -6,21 +6,21 @@
 /* SYNOPSIS
 /*	\fBanvil\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The Postfix \fBanvil\fR server maintains short-term statistics
+/*	The Postfix \fBanvil\fR(8) server maintains short-term statistics
 /*	to defend against clients that hammer a server with either too
 /*	many simultaneous sessions, or with too many successive requests
 /*	within a configurable time interval.
 /*	This server is designed to run under control by the Postfix
-/*	master server.
+/*	\fBmaster\fR(8) server.
 /*
-/*	The \fBanvil\fR server maintains no persistent database. Standard
+/*	The \fBanvil\fR(8) server maintains no persistent database. Standard
 /*	library utilities do not meet Postfix performance and robustness
 /*	requirements.
 /* CONNECTION COUNT/RATE LIMITING
 /* .ad
 /* .fi
 /*	When a remote client connects, a connection count (or rate) limited
-/*	server should send the following request to the \fBanvil\fR server:
+/*	server should send the following request to the \fBanvil\fR(8) server:
 /* .PP
 /* .in +4
 /*	\fBrequest=connect\fR
@@ -29,7 +29,7 @@
 /* .in
 /* .PP
 /*	This registers a new connection for the (service, client)
-/*	combination specified with \fBident\fR. The \fBanvil\fR server
+/*	combination specified with \fBident\fR. The \fBanvil\fR(8) server
 /*	answers with the number of simultaneous connections and the
 /*	number of connections per unit time for that (service, client)
 /*	combination:
@@ -48,7 +48,7 @@
 /*	exceeds the connection count (or rate) limit.
 /* .PP
 /*	When a remote client disconnects, a connection count (or rate) limited
-/*	server should send the following request to the \fBanvil\fR server:
+/*	server should send the following request to the \fBanvil\fR(8) server:
 /* .PP
 /* .in +4
 /*	\fBrequest=disconnect\fR
@@ -57,7 +57,7 @@
 /* .in
 /* .PP
 /*	This registers a disconnect event for the (service, client)
-/*	combination specified with \fBident\fR. The \fBanvil\fR
+/*	combination specified with \fBident\fR. The \fBanvil\fR(8)
 /*	server replies with:
 /* .PP
 /* .ti +4
@@ -67,7 +67,7 @@
 /* .fi
 /*	When a remote client sends a message delivery request, a
 /*	message rate limited server should send the following
-/*	request to the \fBanvil\fR server:
+/*	request to the \fBanvil\fR(8) server:
 /* .PP
 /* .in +4
 /*	\fBrequest=message\fR
@@ -76,7 +76,7 @@
 /* .in
 /* .PP
 /*	This registers a message delivery request for the (service, client)
-/*	combination specified with \fBident\fR. The \fBanvil\fR server
+/*	combination specified with \fBident\fR. The \fBanvil\fR(8) server
 /*	answers with the number of message delivery requests per unit time
 /*	for that (service, client) combination:
 /* .PP
@@ -86,17 +86,15 @@
 /*	\fBrate=\fInumber\fR
 /* .in
 /* .PP
-/*	In order prevent the anvil server from discarding client
+/*	In order to prevent the \fBanvil\fR(8) server from discarding client
 /*	request rates too early or too late, a message rate limited
 /*	service should also register connect/disconnect events.
-/* .PP
-/*	This feature is available in Postfix 2.2 and later.
 /* RECIPIENT RATE LIMITING
 /* .ad
 /* .fi
 /*	When a remote client sends a recipient address, a recipient
 /*	rate limited server should send the following request to
-/*	the \fBanvil\fR server:
+/*	the \fBanvil\fR(8) server:
 /* .PP
 /* .in +4
 /*	\fBrequest=recipient\fR
@@ -104,8 +102,8 @@
 /*	\fBident=\fIstring\fR
 /* .in
 /* .PP
-/*	This registers a recipient address for the (service, client)
-/*	combination specified with \fBident\fR. The \fBanvil\fR server
+/*	This registers a recipient request for the (service, client)
+/*	combination specified with \fBident\fR. The \fBanvil\fR(8) server
 /*	answers with the number of recipient addresses per unit time
 /*	for that (service, client) combination:
 /* .PP
@@ -115,18 +113,16 @@
 /*	\fBrate=\fInumber\fR
 /* .in
 /* .PP
-/*	In order prevent the anvil server from discarding client
+/*	In order to prevent the \fBanvil\fR(8) server from discarding client
 /*	request rates too early or too late, a recipient rate limited
 /*	service should also register connect/disconnect events.
-/* .PP
-/*	This feature is available in Postfix 2.2 and later.
 /* SECURITY
 /* .ad
 /* .fi
-/*	The \fBanvil\fR server does not talk to the network or to local
+/*	The \fBanvil\fR(8) server does not talk to the network or to local
 /*	users, and can run chrooted at fixed low privilege.
 /*
-/*	The \fBanvil\fR server maintains an in-memory table with information
+/*	The \fBanvil\fR(8) server maintains an in-memory table with information
 /*	about recent clients of a connection count (or rate) limited service.
 /*	Although state is kept only temporarily, this may require a lot of
 /*	memory on systems that handle connections from many remote clients.
@@ -154,17 +150,17 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically as anvil(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically as \fBanvil\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBanvil_rate_time_unit (60s)\fR"
 /*	The time unit over which client connection rates and other rates
 /*	are calculated.
 /* .IP "\fBanvil_status_update_time (600s)\fR"
-/*	How frequently the anvil(8) connection and rate limiting server
+/*	How frequently the \fBanvil\fR(8) connection and rate limiting server
 /*	logs peak usage information.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
@@ -209,7 +205,7 @@
 /* HISTORY
 /* .ad
 /* .fi
-/*	The anvil service was introduced with Postfix 2.1.
+/*	The anvil service is available in Postfix 2.2 and later.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

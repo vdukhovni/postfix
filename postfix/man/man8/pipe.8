@@ -12,7 +12,7 @@ Postfix delivery to external command
 .SH DESCRIPTION
 .ad
 .fi
-The \fBpipe\fR daemon processes requests from the Postfix queue
+The \fBpipe\fR(8) daemon processes requests from the Postfix queue
 manager to deliver messages to external commands.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
@@ -21,7 +21,7 @@ Message attributes such as sender address, recipient address and
 next-hop host name can be specified as command-line macros that are
 expanded before the external command is executed.
 
-The \fBpipe\fR daemon updates queue files and marks recipients
+The \fBpipe\fR(8) daemon updates queue files and marks recipients
 as finished, or it informs the queue manager that delivery should
 be tried again at a later time. Delivery status reports are sent
 to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
@@ -100,7 +100,7 @@ transparent version of RFC 822.
 This is recommended for delivery via \fBUUCP\fR or \fBBSMTP\fR.
 .sp
 The result is compatible with the address parsing of command-line
-recipients by the Postfix \fBsendmail\fR mail submission command.
+recipients by the Postfix \fBsendmail\fR(1) mail submission command.
 .sp
 The \fBq\fR flag affects only entire addresses, not the partial
 address information from the \fB$user\fR, \fB$extension\fR or
@@ -243,12 +243,12 @@ commands as the specified user. It is therefore security sensitive.
 .nf
 .ad
 .fi
-Changes to \fBmain.cf\fR are picked up automatically as pipe(8)
+Changes to \fBmain.cf\fR are picked up automatically as \fBpipe\fR(8)
 processes run for only a limited amount of time. Use the command
 "\fBpostfix reload\fR" to speed up a change.
 
 The text below provides only a parameter summary. See
-postconf(5) for more details including examples.
+\fBpostconf\fR(5) for more details including examples.
 .SH "RESOURCE AND RATE CONTROLS"
 .na
 .nf

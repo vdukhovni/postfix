@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBmaster\fR [\fB-Dtv\fR] [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
 /* DESCRIPTION
-/*	The \fBmaster\fR daemon is the resident process that runs Postfix
+/*	The \fBmaster\fR(8) daemon is the resident process that runs Postfix
 /*	daemons on demand: daemons to send or receive messages via the
 /*	network, daemons to deliver mail locally, etc.  These daemons are
 /*	created on demand up to a configurable maximum number per service.
@@ -14,10 +14,11 @@
 /*	Postfix daemons terminate voluntarily, either after being idle for
 /*	a configurable amount of time, or after having serviced a
 /*	configurable number of requests. Exceptions to this rule are the
-/*	resident queue manager and the resident address verification server.
+/*	resident queue manager, address verification server, and the TLS
+/*	session cache and pseudo-random number server.
 /*
-/*	The behavior of the \fBmaster\fR daemon is controlled by the
-/*	\fBmaster.cf\fR configuration file, as described in master(5).
+/*	The behavior of the \fBmaster\fR(8) daemon is controlled by the
+/*	\fBmaster.cf\fR configuration file, as described in \fBmaster\fR(5).
 /*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
@@ -35,7 +36,7 @@
 /* .IP \fB-t\fR
 /*	Test mode. Return a zero exit status when the \fBmaster.pid\fR lock
 /*	file does not exist or when that file is not locked.  This is evidence
-/*	that the \fBmaster\fR daemon is not running.
+/*	that the \fBmaster\fR(8) daemon is not running.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. This option
 /*	is passed on to child processes. Multiple \fB-v\fR options
@@ -43,7 +44,7 @@
 /* .PP
 /*	Signals:
 /* .IP \fBSIGHUP\fR
-/*	Upon receipt of a \fBHUP\fR signal (e.g., after \fBpostfix reload\fR),
+/*	Upon receipt of a \fBHUP\fR signal (e.g., after "\fBpostfix reload\fR"),
 /*	the master process re-reads its configuration files. If a service has
 /*	been removed from the \fBmaster.cf\fR file, its running processes
 /*	are terminated immediately.
@@ -51,11 +52,11 @@
 /*	as is convenient, so that changes in configuration settings
 /*	affect only new service requests.
 /* .IP \fBSIGTERM\fR
-/*	Upon receipt of a \fBTERM\fR signal (e.g., after \fBpostfix abort\fR),
+/*	Upon receipt of a \fBTERM\fR signal (e.g., after "\fBpostfix abort\fR"),
 /*	the master process passes the signal on to its child processes and
 /*	terminates.
 /*	This is useful for an emergency shutdown. Normally one would
-/*	terminate only the master (\fBpostfix stop\fR) and allow running
+/*	terminate only the master ("\fBpostfix stop\fR") and allow running
 /*	processes to finish what they are doing.
 /* DIAGNOSTICS
 /*	Problems are reported to \fBsyslogd\fR(8).
@@ -71,10 +72,10 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Unlike most Postfix daemon processes, the master(8) server does
+/*	Unlike most Postfix daemon processes, the \fBmaster\fR(8) server does
 /*	not automatically pick up changes to \fBmain.cf\fR. Changes
 /*	to \fBmaster.cf\fR are never picked up automatically.
-/*	Use the \fBpostfix reload\fR command after a configuration change.
+/*	Use the "\fBpostfix reload\fR" command after a configuration change.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -88,7 +89,7 @@
 /*	The maximal number of connection requests before a Postfix daemon
 /*	process terminates.
 /* .IP "\fBservice_throttle_time (60s)\fR"
-/*	How long the Postfix master(8) waits before forking a server that
+/*	How long the Postfix \fBmaster\fR(8) waits before forking a server that
 /*	appears to be malfunctioning.
 /* MISCELLANEOUS CONTROLS
 /* .ad

@@ -7,6 +7,12 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20050205
+================================================
+
+REPLACE action in header_checks and body_checks. See header_checks(5)
+for details.
+
 Incompatible changes with snapshot Postfix-2.2-20050203
 =======================================================
 

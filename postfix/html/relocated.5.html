@@ -7,21 +7,21 @@
 RELOCATED(5)                                         RELOCATED(5)
 
 <b>NAME</b>
-       relocated - format of Postfix relocated table
+       relocated - Postfix relocated table format
 
 <b>SYNOPSIS</b>
        <b>postmap /etc/postfix/relocated</b>
 
 <b>DESCRIPTION</b>
-       The optional <b>relocated</b> table provides the information that
-       is used in "user has moved to  <i>new</i><b>_</b><i>location</i>"  bounce  mes-
-       sages.
+       The  optional  <a href="relocated.5.html"><b>relocated</b>(5)</a> table provides the information
+       that is used in "user has moved  to  <i>new</i><b>_</b><i>location</i>"  bounce
+       messages.
 
-       Normally,  the <b>relocated</b> table is specified as a text file
-       that serves as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.   The
+       Normally,  the  <a href="relocated.5.html"><b>relocated</b>(5)</a>  table is specified as a text
+       file that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.   The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
        fast searching by the mail  system.  Execute  the  command
-       <b>postmap  /etc/postfix/relocated</b>  in  order  to rebuild the
+       "<b>postmap  /etc/postfix/relocated</b>"  in order to rebuild the
        indexed file after changing the relocated table.
 
        When the table is provided via other means  such  as  NIS,
@@ -102,8 +102,8 @@ RELOCATED(5)                                         RELOCATED(5)
        This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
        tion   of  the  TCP  client/server  lookup  protocol,  see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  in  Postfix
-       version 2.1.
+       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This feature is not  available  up  to  and
+       including Postfix version 2.2.
 
        Each lookup operation uses the entire address once.  Thus,
        <i>user@domain</i> mail addresses are not broken  up  into  their
@@ -118,7 +118,7 @@ RELOCATED(5)                                         RELOCATED(5)
 <b>CONFIGURATION PARAMETERS</b>
        The  following <b>main.cf</b> parameters are especially relevant.
        The text below provides  only  a  parameter  summary.  See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#relocated_maps">relocated_maps</a></b>
               List of lookup tables for relocated users or sites.

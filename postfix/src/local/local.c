@@ -6,14 +6,14 @@
 /* SYNOPSIS
 /*	\fBlocal\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBlocal\fR daemon processes delivery requests from the
+/*	The \fBlocal\fR(8) daemon processes delivery requests from the
 /*	Postfix queue manager to deliver mail to local recipients.
 /*	Each delivery request specifies a queue file, a sender address,
 /*	a domain or host to deliver to, and one or more recipients.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	The \fBlocal\fR daemon updates queue files and marks recipients
+/*	The \fBlocal\fR(8) daemon updates queue files and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
 /*	be tried again at a later time. Delivery status reports are sent
 /*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
@@ -115,7 +115,7 @@
 /*	for recipients that are not found in the UNIX passwd database.
 /*
 /*	In the case of UNIX-style mailbox delivery,
-/*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	the \fBlocal\fR(8) daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix, prepends an
@@ -224,7 +224,7 @@
 /*
 /*	The current working directory is the mail queue directory.
 /*
-/*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	The \fBlocal\fR(8) daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix, prepends an
@@ -244,7 +244,7 @@
 /*	forward\fR) forbids file destinations in \fB:include:\fR files.
 /*
 /*	In the case of UNIX-style mailbox delivery,
-/*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	the \fBlocal\fR(8) daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
 /*	\fBX-Original-To:\fR header with the recipient address as given to
 /*	Postfix, prepends an
@@ -280,7 +280,7 @@
 /*	to the mailbox owned by the user \fIname\fR, or it is sent back as
 /*	undeliverable.
 /*
-/*	In all cases the \fBlocal\fR daemon prepends an optional
+/*	In all cases the \fBlocal\fR(8) daemon prepends an optional
 /*	`\fBDelivered-To:\fR header line with the final recipient
 /*	address.
 /* DELIVERY RIGHTS
@@ -288,7 +288,7 @@
 /* .fi
 /*	Deliveries to external files and external commands are made with
 /*	the rights of the receiving user on whose behalf the delivery is made.
-/*	In the absence of a user context, the \fBlocal\fR daemon uses the
+/*	In the absence of a user context, the \fBlocal\fR(8) daemon uses the
 /*	owner rights of the \fB:include:\fR file or alias database.
 /*	When those files are owned by the superuser, delivery is made with
 /*	the rights specified with the \fBdefault_privs\fR configuration
@@ -336,7 +336,7 @@
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
@@ -360,49 +360,49 @@
 /*	mailbox_command, home_mailbox, mail_spool_directory, fallback_transport
 /*	and luser_relay.
 /* .IP "\fBalias_maps (see 'postconf -d' output)\fR"
-/*	The alias databases that are used for local(8) delivery.
+/*	The alias databases that are used for \fBlocal\fR(8) delivery.
 /* .IP "\fBforward_path (see 'postconf -d' output)\fR"
-/*	The local(8) delivery agent search list for finding a .forward
+/*	The \fBlocal\fR(8) delivery agent search list for finding a .forward
 /*	file with user-specified delivery methods.
 /* .IP "\fBmailbox_transport (empty)\fR"
-/*	Optional message delivery transport that the local(8) delivery
+/*	Optional message delivery transport that the \fBlocal\fR(8) delivery
 /*	agent should use for mailbox delivery to all local recipients,
 /*	whether or not they are found in the UNIX passwd database.
 /* .IP "\fBmailbox_command_maps (empty)\fR"
 /*	Optional lookup tables with per-recipient external commands to use
-/*	for local(8) mailbox delivery.
+/*	for \fBlocal\fR(8) mailbox delivery.
 /* .IP "\fBmailbox_command (empty)\fR"
-/*	Optional external command that the local(8) delivery agent should
+/*	Optional external command that the \fBlocal\fR(8) delivery agent should
 /*	use for mailbox delivery.
 /* .IP "\fBhome_mailbox (empty)\fR"
-/*	Optional pathname of a mailbox file relative to a local(8) user's
+/*	Optional pathname of a mailbox file relative to a \fBlocal\fR(8) user's
 /*	home directory.
 /* .IP "\fBmail_spool_directory (see 'postconf -d' output)\fR"
-/*	The directory where local(8) UNIX-style mailboxes are kept.
+/*	The directory where \fBlocal\fR(8) UNIX-style mailboxes are kept.
 /* .IP "\fBfallback_transport (empty)\fR"
-/*	Optional message delivery transport that the local(8) delivery
-/*	agent should use for names that are not found in the aliases(5)
+/*	Optional message delivery transport that the \fBlocal\fR(8) delivery
+/*	agent should use for names that are not found in the \fBaliases\fR(5)
 /*	database or in the UNIX passwd database.
 /* .IP "\fBluser_relay (empty)\fR"
-/*	Optional catch-all destination for unknown local(8) recipients.
+/*	Optional catch-all destination for unknown \fBlocal\fR(8) recipients.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBcommand_execution_directory (empty)\fR"
-/*	The local(8) delivery agent working directory for delivery to
+/*	The \fBlocal\fR(8) delivery agent working directory for delivery to
 /*	external command.
 /* MAILBOX LOCKING CONTROLS
 /* .ad
 /* .fi
 /* .IP "\fBdeliver_lock_attempts (20)\fR"
 /*	The maximal number of attempts to acquire an exclusive lock on a
-/*	mailbox file or bounce(8) logfile.
+/*	mailbox file or \fBbounce\fR(8) logfile.
 /* .IP "\fBdeliver_lock_delay (1s)\fR"
 /*	The time between attempts to acquire an exclusive lock on a mailbox
-/*	file or bounce(8) logfile.
+/*	file or \fBbounce\fR(8) logfile.
 /* .IP "\fBstale_lock_time (500s)\fR"
 /*	The time after which a stale exclusive mailbox lockfile is removed.
 /* .IP "\fBmailbox_delivery_lock (see 'postconf -d' output)\fR"
-/*	How to lock a UNIX-style local(8) mailbox before attempting delivery.
+/*	How to lock a UNIX-style \fBlocal\fR(8) mailbox before attempting delivery.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -410,8 +410,8 @@
 /*	Time limit for delivery to external commands.
 /* .IP "\fBduplicate_filter_limit (1000)\fR"
 /*	The maximal number of addresses remembered by the address
-/*	duplicate filter for aliases(5) or virtual(5) alias expansion, or
-/*	for showq(8) queue displays.
+/*	duplicate filter for \fBaliases\fR(5) or \fBvirtual\fR(5) alias expansion, or
+/*	for \fBshowq\fR(8) queue displays.
 /* .IP "\fBlocal_destination_concurrency_limit (2)\fR"
 /*	The maximal number of parallel deliveries via the local mail
 /*	delivery transport to the same recipient (when
@@ -422,28 +422,28 @@
 /*	The maximal number of recipients per message delivery via the
 /*	local mail delivery transport.
 /* .IP "\fBmailbox_size_limit (51200000)\fR"
-/*	The maximal size of any local(8) individual mailbox or maildir
+/*	The maximal size of any \fBlocal\fR(8) individual mailbox or maildir
 /*	file, or zero (no limit).
 /* SECURITY CONTROLS
 /* .ad
 /* .fi
 /* .IP "\fBallow_mail_to_commands (alias, forward)\fR"
-/*	Restrict local(8) mail delivery to external commands.
+/*	Restrict \fBlocal\fR(8) mail delivery to external commands.
 /* .IP "\fBallow_mail_to_files (alias, forward)\fR"
-/*	Restrict local(8) mail delivery to external files.
+/*	Restrict \fBlocal\fR(8) mail delivery to external files.
 /* .IP "\fBcommand_expansion_filter (see 'postconf -d' output)\fR"
-/*	Restrict the characters that the local(8) delivery agent allows in
+/*	Restrict the characters that the \fBlocal\fR(8) delivery agent allows in
 /*	$name expansions of $mailbox_command.
 /* .IP "\fBdefault_privs (nobody)\fR"
-/*	The default rights used by the local(8) delivery agent for delivery
+/*	The default rights used by the \fBlocal\fR(8) delivery agent for delivery
 /*	to external file or command.
 /* .IP "\fBforward_expansion_filter (see 'postconf -d' output)\fR"
-/*	Restrict the characters that the local(8) delivery agent allows in
+/*	Restrict the characters that the \fBlocal\fR(8) delivery agent allows in
 /*	$name expansions of $forward_path.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBexecution_directory_expansion_filter (see 'postconf -d' output)\fR"
-/*	Restrict the characters that the local(8) delivery agent allows
+/*	Restrict the characters that the \fBlocal\fR(8) delivery agent allows
 /*	in $name expansions of $command_execution_directory.
 /* MISCELLANEOUS CONTROLS
 /* .ad
@@ -461,7 +461,7 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBlocal_command_shell (empty)\fR"
-/*	Optional shell program for local(8) delivery to non-Postfix command.
+/*	Optional shell program for \fBlocal\fR(8) delivery to non-Postfix command.
 /* .IP "\fBmax_idle (100s)\fR"
 /*	The maximum amount of time that an idle Postfix daemon process
 /*	waits for the next service request before exiting.
@@ -469,7 +469,7 @@
 /*	The maximal number of connection requests before a Postfix daemon
 /*	process terminates.
 /* .IP "\fBprepend_delivered_header (command, file, forward)\fR"
-/*	The message delivery contexts where the Postfix local(8) delivery
+/*	The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 /*	agent prepends a Delivered-To:  message header.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
@@ -483,7 +483,7 @@
 /* .IP "\fBrecipient_delimiter (empty)\fR"
 /*	The separator between user names and address extensions (user+foo).
 /* .IP "\fBrequire_home_directory (no)\fR"
-/*	Whether or not a local(8) recipient's home directory must exist
+/*	Whether or not a \fBlocal\fR(8) recipient's home directory must exist
 /*	before mail delivery is attempted.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.

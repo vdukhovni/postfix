@@ -35,12 +35,12 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as qmqpd(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically, as \fBqmqpd\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -115,7 +115,7 @@
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .IP "\fBverp_delimiter_filter (-=+)\fR"
 /*	The characters Postfix accepts as VERP delimiter characters on the
-/*	Postfix sendmail(1) command line and in SMTP commands.
+/*	Postfix \fBsendmail\fR(1) command line and in SMTP commands.
 /* SEE ALSO
 /*	http://cr.yp.to/proto/qmqp.html, QMQP protocol
 /*	cleanup(8), message canonicalization

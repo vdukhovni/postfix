@@ -10,41 +10,20 @@ thousands of lines of OpenSSL library code. Assuming that OpenSSL is written as
 carefully as Wietse's own code, every 1000 lines introduce one additional bug
 into Postfix.
 
-IInnttrroodduuccttiioonn
+WWhhaatt PPoossttffiixx TTLLSS ssuuppppoorrtt ddooeess ffoorr yyoouu
 
-This document requires Postfix version 2.2 or later.
+Transport Layer Security (TLS, formerly called SSL) provides certificate-based
+authentication and encrypted sessions. An encrypted session protects the
+information that is transmitted with SMTP mail or with SASL authentication.
 
-Postfix may be built with Transport Layer Security (TLS, formerly called SSL)
-protocol support as described in RFC 3207. This provides certificate-based
-authentication, and encrypted sessions. An encrypted session protects the
-information that is transmitted with SMTP mail or with SASL authentication. The
-main elements of the Postfix TLS architecture are:
-
-  * The smtpd(8) server implements the SMTP over TLS server side.
-
-  * The smtp(8) client implements the SMTP over TLS client side.
-
-  * The tlsmgr(8) server maintains the pseudo-random number generator (PRNG)
-    that seeds the TLS engines in the smtpd(8) server and smtp(8) client
-    processes, and maintains the TLS session cache files with TLS session keys.
-
-The following diagram shows the relationship between these architecture
-elements.
-
-                    <---seed---            ---seed--->
-Network-> smtpd(8)              tlsmgr(8)               smtp(8)  ->Network
-                    <-session->            <-session->      
-
-                              /       |    \
-                                      |
-                            /                \
-
-                     smtpd          PRNG        smtp
-                    session        state       session
-                     cache          file        cache
+Postfix version 2.2 introduces support for TLS as described in RFC 3207. TLS
+Support for older Postfix versions was available as an add-on patch. The
+section "Compatibility with Postfix < 2.2 TLS support" below discusses the
+differences between these implementations.
 
 Topics covered in this document:
 
+  * How Postfix TLS support works
   * Building Postfix with TLS support
   * SMTP Server specific settings
   * SMTP Client specific settings
@@ -56,6 +35,32 @@ Topics covered in this document:
 And last but not least, for the impatient:
 
   * Getting started, quick and dirty
+
+HHooww PPoossttffiixx TTLLSS ssuuppppoorrtt wwoorrkkss
+
+The diagram below shows the main elements of the Postfix TLS architecture and
+their relationships. Colored boxes with numbered names represent Postfix daemon
+programs. Other colored boxes represent storage elements.
+
+  * The smtpd(8) server implements the SMTP over TLS server side.
+
+  * The smtp(8) client implements the SMTP over TLS client side.
+
+  * The tlsmgr(8) server maintains the pseudo-random number generator (PRNG)
+    that seeds the TLS engines in the smtpd(8) server and smtp(8) client
+    processes, and maintains the TLS session key cache files.
+
+                    <---seed---              ---seed--->
+Network-> smtpd(8)                tlsmgr(8)                 smtp(8)  ->Network
+                    <-session->              <-session->        
+
+                                /       |    \
+                                        |
+                              /                \
+
+                      smtpd           PRNG         smtp
+                     session         state        session
+                    key cache         file       key cache
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh TTLLSS ssuuppppoorrtt
 
@@ -984,19 +989,19 @@ CCoommppaattiibbiilliittyy wwiitthh PPoossttffiixx <<2
 Postfix version 2.2 TLS support is based on the Postfix/TLS patch by Lutz
 Jänicke, but differs in a few minor ways.
 
-  * main.cf: Use bbttrreeee instead of ssddbbmm for TLS session cache databases.
+  * main.cf: Specify "btree" instead of "sdbm" for TLS session cache databases.
 
     TLS session cache databases are now accessed only by the tlsmgr(8) process,
-    so there are no more concurrency issues. Although Postfix has an ssddbbmm
-    client, the ssddbbmm library (1000 lines of code) is not included with Postfix.
+    so there are no more concurrency issues. Although Postfix has an sdbm
+    client, the sdbm library (1000 lines of code) is not included with Postfix.
 
     TLS session caches can use any database that can store objects of several
     kbytes or more, and that implements the sequence operation. In most cases,
-    bbttrreeee databases should be adequate.
+    btree databases should be adequate.
 
-    NOTE: You cannot use ddbbmm databases. TLS session objects are too large.
+    NOTE: You cannot use dbm databases. TLS session objects are too large.
 
-  * master.cf: Specify uunniixx instead of ffiiffoo as the tlsmgr service type.
+  * master.cf: Specify "unix" instead of "fifo" as the tlsmgr service type.
 
     The smtp(8) and smtpd(8) processes now use a client-server protocol in
     order to access the tlsmgr(8) pseudo-random number generation (PRNG) pool,

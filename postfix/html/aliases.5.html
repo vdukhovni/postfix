@@ -7,17 +7,17 @@
 ALIASES(5)                                             ALIASES(5)
 
 <b>NAME</b>
-       aliases - format of the Postfix alias database
+       aliases - Postfix local alias database format
 
 <b>SYNOPSIS</b>
        <b>newaliases</b>
 
 <b>DESCRIPTION</b>
-       The  <b>aliases</b>  table  provides  a  system-wide mechanism to
+       The  <a href="aliases.5.html"><b>aliases</b>(5)</a>  table provides a system-wide mechanism to
        redirect mail for local recipients. The  redirections  are
        processed by the Postfix <a href="local.8.html"><b>local</b>(8)</a> delivery agent.
 
-       Normally,  the  <b>aliases</b>  table is specified as a text file
+       Normally, the <a href="aliases.5.html"><b>aliases</b>(5)</a> table is specified as a text file
        that serves as input  to  the  <a href="postalias.1.html"><b>postalias</b>(1)</a>  command.  The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
        fast lookup  by  the  mail  system.  Execute  the  command
@@ -31,7 +31,7 @@ ALIASES(5)                                             ALIASES(5)
        Users can control delivery of their own mail by setting up
        <b>.forward</b> files in their home directory.  Lines in per-user
        <b>.forward</b> files have the same syntax as the right-hand side
-       of <b>aliases</b> entries.
+       of <a href="aliases.5.html"><b>aliases</b>(5)</a> entries.
 
        The format of the alias database input file is as follows:
 
@@ -120,7 +120,7 @@ ALIASES(5)                                             ALIASES(5)
 <b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are especially  relevant.
        The  text  below  provides  only  a parameter summary. See
-       <a href="postconf.5.html">postconf(5)</a> for more details including examples.
+       <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#alias_database">alias_database</a></b>
               List of alias databases that  are  updated  by  the

@@ -101,6 +101,9 @@ sub emit_text()
 	$block =~ s/^(\.(PP|sp)\n)+//;
 	#$wantpp = !($block =~ /^\.(SH|IP)/);
 
+	# Boldify man page references.
+	$block =~ s/([_a-zA-Z0-9-]+)(\([0-9]\))/\\fB\1\\fR\2/g;
+
 	# Encapsulate as C code comment.
 	$block =~ s/^([^.])/\/\*\t\1/;
 	$block =~ s/^\./\/\* ./;

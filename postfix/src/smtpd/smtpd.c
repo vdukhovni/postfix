@@ -49,12 +49,12 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as smtpd(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtpd\fR(8)
 /*	processes run for only a limited amount of time. Use the command
 /*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
-/*	postconf(5) for more details including examples.
+/*	\fBpostconf\fR(5) for more details including examples.
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
@@ -250,8 +250,8 @@
 /*	Run the Postfix SMTP server in the non-standard "wrapper" mode,
 /*	instead of using the STARTTLS command.
 /* .IP "\fBtls_daemon_random_bytes (32)\fR"
-/*	The number of pseudo-random bytes that an smtp(8) or smtpd(8)
-/*	process requests from the tlsmgr(8) server in order to seed its
+/*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
+/*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
 /* VERP SUPPORT CONTROLS
 /* .ad
@@ -268,7 +268,7 @@
 /*	The two default VERP delimiter characters.
 /* .IP "\fBverp_delimiter_filter (-=+)\fR"
 /*	The characters Postfix accepts as VERP delimiter characters on the
-/*	Postfix sendmail(1) command line and in SMTP commands.
+/*	Postfix \fBsendmail\fR(1) command line and in SMTP commands.
 /* .PP
 /*	Available in Postfix version 1.1 and 2.0:
 /* .IP "\fBauthorized_verp_clients ($mynetworks)\fR"
@@ -406,7 +406,7 @@
 /*	before it is flushed upon receipt of EHLO, RSET, or end of DATA.
 /* .PP
 /*	The per SMTP client connection count and request rate limits are
-/*	implemented in co-operation with the anvil(8) service, and
+/*	implemented in co-operation with the \fBanvil\fR(8) service, and
 /*	are available in Postfix version 2.2 and later.
 /* .IP "\fBsmtpd_client_connection_count_limit (50)\fR"
 /*	How many simultaneous connections any client is allowed to
@@ -507,7 +507,7 @@
 /* .IP "\fBsmtpd_restriction_classes (empty)\fR"
 /*	User-defined aliases for groups of access restrictions.
 /* .IP "\fBsmtpd_null_access_lookup_key (<>)\fR"
-/*	The lookup key to be used in SMTP access(5) tables instead of the
+/*	The lookup key to be used in SMTP \fBaccess\fR(5) tables instead of the
 /*	null sender address.
 /* .IP "\fBpermit_mx_backup_networks (empty)\fR"
 /*	Restrict the use of the permit_mx_backup SMTP access feature to
@@ -543,12 +543,12 @@
 /*	are not actually delivered.
 /*	This feature is requested via the reject_unverified_sender and
 /*	reject_unverified_recipient access restrictions.  The status of
-/*	verification probes is maintained by the verify(8) server.
+/*	verification probes is maintained by the \fBverify\fR(8) server.
 /*	See the file ADDRESS_VERIFICATION_README for information
 /*	about how to configure and operate the Postfix sender/recipient
 /*	address verification service.
 /* .IP "\fBaddress_verify_poll_count (3)\fR"
-/*	How many times to query the verify(8) service for the completion
+/*	How many times to query the \fBverify\fR(8) service for the completion
 /*	of an address verification request in progress.
 /* .IP "\fBaddress_verify_poll_delay (3s)\fR"
 /*	The delay between queries for the completion of an address
@@ -568,7 +568,7 @@
 /*	and/or text responses.
 /* .IP "\fBaccess_map_reject_code (554)\fR"
 /*	The numerical Postfix SMTP server response code when a client
-/*	is rejected by an access(5) map restriction.
+/*	is rejected by an \fBaccess\fR(5) map restriction.
 /* .IP "\fBdefer_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
 /*	client request is rejected by the "defer" restriction.
@@ -586,7 +586,7 @@
 /*	or reject_non_fqdn_recipient restriction.
 /* .IP "\fBreject_code (554)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
-/*	client request is rejected by the "\fBreject\fR" restriction.
+/*	client request is rejected by the "reject" restriction.
 /* .IP "\fBrelay_domains_reject_code (554)\fR"
 /*	The numerical Postfix SMTP server response code when a client
 /*	request is rejected by the reject_unauth_destination recipient
@@ -781,9 +781,7 @@
 #include <namadr_list.h>
 #include <input_transp.h>
 #include <is_header.h>
-#ifdef SNAPSHOT
 #include <anvil_clnt.h>
-#endif
 #include <flush_clnt.h>
 #include <ehlo_mask.h>			/* ehlo filter */
 #include <maps.h>			/* ehlo filter */
@@ -892,16 +890,11 @@ char   *var_xforward_hosts;
 bool    var_smtpd_rej_unl_from;
 bool    var_smtpd_rej_unl_rcpt;
 char   *var_smtpd_forbid_cmds;
-
-#ifdef SNAPSHOT
 int     var_smtpd_crate_limit;
 int     var_smtpd_cconn_limit;
 int     var_smtpd_cmail_limit;
 int     var_smtpd_crcpt_limit;
 char   *var_smtpd_hoggers;
-
-#endif
-
 char   *var_local_rwr_clients;
 char   *var_smtpd_ehlo_dis_words;
 char   *var_smtpd_ehlo_dis_maps;
@@ -957,11 +950,8 @@ static int xforward_allowed;		/* XXX should be SMTPD_STATE member */
  /*
   * Client connection and rate limiting.
   */
-#ifdef SNAPSHOT
 ANVIL_CLNT *anvil_clnt;
 static NAMADR_LIST *hogger_list;
-
-#endif
 
  /*
   * Other application-specific globals.
@@ -1493,7 +1483,6 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * of client address information in connect and disconnect events. For
      * now we exclude xclient authorized hosts from event count/rate control.
      */
-#ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
@@ -1508,7 +1497,6 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		 rate, state->namaddr, state->service);
 	return (-1);
     }
-#endif
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Bad sender address syntax");
@@ -1704,7 +1692,6 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * of client address information in connect and disconnect events. For
      * now we exclude xclient authorized hosts from event count/rate control.
      */
-#ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
@@ -1719,7 +1706,6 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		 rate, state->namaddr, state->service);
 	return (-1);
     }
-#endif
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Bad recipient address syntax");
@@ -2984,7 +2970,6 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 * will discard client message or recipient rate information too
 	 * early or too late.
 	 */
-#ifdef SNAPSHOT
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && !xclient_allowed
 	    && anvil_clnt
@@ -3006,7 +2991,6 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		break;
 	    }
 	}
-#endif
 	/* XXX We use the real client for connect access control. */
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && var_smtpd_delay_reject == 0
@@ -3097,13 +3081,11 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
      * will discard client message or recipient rate information too early or
      * too late.
      */
-#ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
 	anvil_clnt_disconnect(anvil_clnt, service, state->addr);
-#endif
 
     /*
      * Log abnormal session termination, in case postmaster notification has
@@ -3237,9 +3219,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
-#ifdef SNAPSHOT
     hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
-#endif
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
     debug_peer_init();
@@ -3315,11 +3295,9 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     /*
      * Connection rate management.
      */
-#ifdef SNAPSHOT
     if (var_smtpd_crate_limit || var_smtpd_cconn_limit
 	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit)
 	anvil_clnt = anvil_clnt_create();
-#endif
 }
 
 /* main - the main program */
@@ -3352,12 +3330,10 @@ int     main(int argc, char **argv)
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
 	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
-#ifdef SNAPSHOT
 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,
 	VAR_SMTPD_CRCPT_LIMIT, DEF_SMTPD_CRCPT_LIMIT, &var_smtpd_crcpt_limit, 0, 0,
-#endif
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 #endif
@@ -3436,9 +3412,7 @@ int     main(int argc, char **argv)
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	VAR_XCLIENT_HOSTS, DEF_XCLIENT_HOSTS, &var_xclient_hosts, 0, 0,
 	VAR_XFORWARD_HOSTS, DEF_XFORWARD_HOSTS, &var_xforward_hosts, 0, 0,
-#ifdef SNAPSHOT
 	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
-#endif
 	VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients, 0, 0,
 	VAR_SMTPD_EHLO_DIS_WORDS, DEF_SMTPD_EHLO_DIS_WORDS, &var_smtpd_ehlo_dis_words, 0, 0,
 	VAR_SMTPD_EHLO_DIS_MAPS, DEF_SMTPD_EHLO_DIS_MAPS, &var_smtpd_ehlo_dis_maps, 0, 0,
