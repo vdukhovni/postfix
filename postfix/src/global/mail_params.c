@@ -14,6 +14,7 @@
 /*	char	*var_transit_origin;
 /*	char	*var_transit_dest;
 /*	char	*var_mail_name;
+/*	char	*var_syslog_name;
 /*	char	*var_mail_owner;
 /*	uid_t	var_owner_uid;
 /*	gid_t	var_owner_gid;
@@ -92,6 +93,7 @@
 
 #include <sys_defs.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
 #include <time.h>
@@ -107,6 +109,7 @@
 #include <get_hostname.h>
 #include <valid_hostname.h>
 #include <stringops.h>
+#include <safe.h>
 
 /* Global library. */
 
@@ -127,6 +130,7 @@ char   *var_relayhost;
 char   *var_transit_origin;
 char   *var_transit_dest;
 char   *var_mail_name;
+char   *var_syslog_name;
 char   *var_mail_owner;
 uid_t   var_owner_uid;
 gid_t   var_owner_gid;
@@ -270,6 +274,7 @@ void    mail_params_init()
     };
     static CONFIG_STR_TABLE other_str_defaults[] = {
 	VAR_MAIL_NAME, DEF_MAIL_NAME, &var_mail_name, 1, 0,
+	VAR_SYSLOG_NAME, DEF_SYSLOG_NAME, &var_syslog_name, 1, 0,
 	VAR_MAIL_OWNER, DEF_MAIL_OWNER, &var_mail_owner, 1, 0,
 	VAR_MYDEST, DEF_MYDEST, &var_mydest, 0, 0,
 	VAR_MYORIGIN, DEF_MYORIGIN, &var_myorigin, 1, 0,
@@ -326,6 +331,7 @@ void    mail_params_init()
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
 	0,
     };
+const char *cp;
 
     /*
      * Extract syslog_facility early, so that from here on all errors are
@@ -375,6 +381,15 @@ void    mail_params_init()
      * Neither can the start time variable. It isn't even visible.
      */
     time(&var_starttime);
+
+    /*
+     * Export the syslog name so children can inherit and use it before they
+     * have initialized.
+     */
+    if ((cp = safe_getenv(CONF_ENV_LOGTAG)) == 0
+	|| strcmp(cp, var_syslog_name) != 0)
+	if (setenv(CONF_ENV_LOGTAG, var_syslog_name, 1) < 0)
+	    msg_fatal("setenv %s %s: %m", CONF_ENV_LOGTAG, var_syslog_name);
 
     /*
      * I have seen this happen just too often.

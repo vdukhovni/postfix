@@ -16,6 +16,10 @@
 /*	a brief connection to it and by writing the contents of the
 /*	named buffer.
 /*
+/*      The connection is closed by a background thread. Some kernels
+/*      cannot handle client-side disconnect before the server has
+/*      received the message.
+/*
 /*	Arguments:
 /* .IP service
 /*	Name of the communication endpoint.
@@ -45,6 +49,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -53,13 +58,40 @@
 #include <msg.h>
 #include <connect.h>
 #include <iostuff.h>
+#include <mymalloc.h>
+#include <events.h>
 #include <trigger.h>
+
+struct inet_trigger {
+    int     fd;
+    char   *service;
+};
+
+/* inet_trigger_event - disconnect from peer */
+
+static void inet_trigger_event(int event, char *context)
+{
+    struct inet_trigger *ip = (struct inet_trigger *) context;
+    static char *myname = "inet_trigger_event";
+
+    /*
+     * Disconnect.
+     */
+    if (event == EVENT_TIME)
+	msg_warn("%s: read timeout for service %s", myname, ip->service);
+    if (close(ip->fd) < 0)
+	msg_warn("%s: close %s: %m", myname, ip->service);
+    myfree(ip->service);
+    myfree((char *) ip);
+}
+
 
 /* inet_trigger - wakeup INET-domain server */
 
 int     inet_trigger(const char *service, const char *buf, int len, int timeout)
 {
     char   *myname = "inet_trigger";
+    struct inet_trigger *ip;
     int     fd;
 
     if (msg_verbose > 1)
@@ -73,6 +105,9 @@ int     inet_trigger(const char *service, const char *buf, int len, int timeout)
 	    msg_warn("%s: connect to %s: %m", myname, service);
 	return (-1);
     }
+    ip = (struct inet_trigger *) mymalloc(sizeof(*ip));
+    ip->fd = fd;
+    ip->service = mystrdup(service);
 
     /*
      * Write the request...
@@ -82,10 +117,10 @@ int     inet_trigger(const char *service, const char *buf, int len, int timeout)
 	    msg_warn("%s: write to %s: %m", myname, service);
 
     /*
-     * Disconnect.
+     * Wakeup when the peer disconnects, or when we lose patience.
      */
-    if (close(fd) < 0)
-	if (msg_verbose)
-	    msg_warn("%s: close %s: %m", myname, service);
+    if (timeout > 0)
+	event_request_timer(inet_trigger_event, (char *) ip, timeout);
+    event_enable_read(fd, inet_trigger_event, (char *) ip);
     return (0);
 }

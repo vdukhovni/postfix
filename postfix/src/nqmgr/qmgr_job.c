@@ -770,8 +770,18 @@ static QMGR_PEER *qmgr_job_peer_select(QMGR_JOB *job)
      * Try reading in more recipients. Note that we do not try to read them
      * as soon as possible as that would decrease the chance of per-site
      * recipient grouping. We waited until reading more is really necessary.
+     * 
+     * XXX Workaround for logic mismatch. The message->refcount test needs
+     * explanation. If the refcount is zero, it means that qmgr_active_done()
+     * is beeing completed asynchronously.  In such case, we can't read in
+     * more recipients as bad things would happen after qmgr_active_done()
+     * continues processing. Note that this results in the given job beeing
+     * stalled for some time, but fortunately this particular situation is so
+     * rare that it is not critical. Still we seek for better solution.
      */
-    if (message->rcpt_offset != 0 && message->rcpt_limit > message->rcpt_count) {
+    if (message->rcpt_offset != 0
+	&& message->rcpt_limit > message->rcpt_count
+	&& message->refcount > 0) {
 	qmgr_message_realloc(message);
 	if (HAS_ENTRIES(job))
 	    return (qmgr_peer_select(job));

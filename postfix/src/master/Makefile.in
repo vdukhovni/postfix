@@ -138,6 +138,7 @@ master_listen.o: ../../include/vstring.h
 master_listen.o: ../../include/vbuf.h
 master_listen.o: ../../include/inet_addr_list.h
 master_listen.o: ../../include/set_eugid.h
+master_listen.o: ../../include/set_ugid.h
 master_listen.o: ../../include/mail_params.h
 master_listen.o: master.h
 master_proto.o: master_proto.c

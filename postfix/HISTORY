@@ -4960,3 +4960,31 @@ Apologies for any names omitted.
 	Code cleanup: some queue/transport operations need to be
 	moved, after the code cleanup of the recipient/concurrency
 	limit handling. Patrik Rak.  Files: *qmgr/qmgr_message.c.
+
+20010301
+
+	Feature: configurable name in syslog output (default:
+	"syslog_name = postfix") so that different Postfix instances
+	can be recognized by their logging. File: global/mail_task.c.
+
+20010313
+
+	Workaround for logic mismatch in nqmgr that was exposed
+	with the introduction of the asynchronous bounce client.
+	Patrik Rak.
+
+20010321
+
+	Workaround: LMTP connection caching never worked for
+	destinations starting with unix: or inet:. File:
+	lmtp/lmtp_connect.c.
+
+20010322
+
+	Portability: Solaris <2.6 does not have srandom() and
+	random() in libc. File: util/rand_sleep.c. It does not
+	have to be cryptographically strong.
+
+	Bugfix: the fast ETRN flush server could not handle [ipaddr]
+	or domain names with one-character hostname part. It should
+	be OK now. File: flush/flush.c.

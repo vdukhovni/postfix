@@ -35,7 +35,7 @@ case $daemon_directory in
     exit 1
 esac
 
-LOGGER="$command_directory/postlog -t postfix-script"
+LOGGER="$command_directory/postlog -t $MAIL_LOGTAG/postfix-script"
 INFO="$LOGGER -p info"
 WARN="$LOGGER -p warn"
 ERROR="$LOGGER -p error"

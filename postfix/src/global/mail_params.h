@@ -1192,7 +1192,7 @@ extern int var_fflush_refresh;
   * and what Postfix exports to the external world.
   */
 #define VAR_IMPORT_ENVIRON		"import_environment"
-#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG TZ XAUTHORITY DISPLAY"
+#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY"
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"
@@ -1229,6 +1229,13 @@ extern int var_virt_mailbox_limit;
 #define VAR_VIRT_MAILBOX_LOCK		"virtual_mailbox_lock"
 #define DEF_VIRT_MAILBOX_LOCK		"fcntl"
 extern char *var_virt_mailbox_lock;
+
+ /*
+  * Distinct logging tag for multiple Postfix instances.
+  */
+#define VAR_SYSLOG_NAME			"syslog_name"
+#define DEF_SYSLOG_NAME			"postfix"
+extern char *var_syslog_name;
 
 /* LICENSE
 /* .ad

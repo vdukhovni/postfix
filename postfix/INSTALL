@@ -249,6 +249,8 @@ or, if you feel nostalgic, use the Postfix sendmail command:
 
 and watch your syslog file for any error messages.
 
+    % egrep '(reject|warning|error|fatal|panic):' /some/log/file
+
 When it is run for the first time, the Postfix startup shell script
 will create a bunch of subdirectories below the Postfix spool
 directory.
@@ -290,6 +292,8 @@ or, if you feel nostalgic, use the Postfix sendmail program:
 
 and watch your syslog file for any error messages. 
 
+    % egrep '(reject|warning|error|fatal|panic):' /some/log/file
+
 When it is run for the first time, the Postfix startup shell script
 will create a bunch of subdirectories below the Postfix spool
 directory.
@@ -322,6 +326,8 @@ But the good old sendmail way works just as well:
     # sendmail -bd -qwhatever
 
 and watch the syslog file for any complaints from the mail system.
+
+    % egrep '(reject|warning|error|fatal|panic):' /some/log/file
 
 When it is run for the first time, the Postfix startup shell script
 will create a bunch of subdirectories below the Postfix spool

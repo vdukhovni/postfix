@@ -601,6 +601,7 @@ mail_params.o: ../../include/valid_hostname.h
 mail_params.o: ../../include/stringops.h
 mail_params.o: ../../include/vstring.h
 mail_params.o: ../../include/vbuf.h
+mail_params.o: ../../include/safe.h
 mail_params.o: mynetworks.h
 mail_params.o: mail_conf.h
 mail_params.o: mail_version.h
@@ -683,7 +684,9 @@ mail_task.o: mail_task.c
 mail_task.o: ../../include/sys_defs.h
 mail_task.o: ../../include/vstring.h
 mail_task.o: ../../include/vbuf.h
+mail_task.o: ../../include/safe.h
 mail_task.o: mail_params.h
+mail_task.o: mail_conf.h
 mail_task.o: mail_task.h
 mail_trigger.o: mail_trigger.c
 mail_trigger.o: ../../include/sys_defs.h
