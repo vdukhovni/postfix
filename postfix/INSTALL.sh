@@ -58,18 +58,22 @@ compare_or_replace() {
 compare_or_symlink() {
     cmp $1 $2 >/dev/null 2>&1 || {
 	rm -f $tempdir/junk || exit 1
-	target=`echo $1 | sed '
+	dest=`echo $1 | sed '
 	    s;^'$install_root';;
 	    s;/\./;/;g
 	    s;//*;/;g
 	    s;^/;;
-	    H
+	'`
+	link=`echo $2 | sed '
+	    s;^'$install_root';;
+	    s;/\./;/;g
+	    s;//*;/;g
+	    s;^/;;
 	    s;/[^/]*$;/;
 	    s;[^/]*/;../;g
-	    G
-	    s/\n//
+	    s;$;'$dest';
 	'`
-	ln -s $target $tempdir/junk || exit 1
+	ln -s $link $tempdir/junk || exit 1
 	mv -f $tempdir/junk $2 || { 
 	    echo Error: your mv command is unable to rename symlinks. 1>&2
 	    echo If you run Linux, upgrade to GNU fileutils-4.0 or better, 1>&2

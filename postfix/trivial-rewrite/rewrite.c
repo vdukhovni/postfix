@@ -122,26 +122,38 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
 	tok822_free_tree(tok822_sub_keep_after(tree, colon));
 
     /*
-     * Swap domain!user to user@domain.
+     * Optionally, transform address forms without @.
      */
-    if (var_swap_bangpath != 0
-	&& (domain = tok822_rfind_type(tree->tail, '@')) == 0
-	&& (bang = tok822_find_type(tree->head, '!')) != 0) {
-	tok822_sub_keep_before(tree, bang);
-	local = tok822_cut_after(bang);
-	tok822_free(bang);
-	tok822_sub_prepend(tree, tok822_alloc('@', (char *) 0));
-	if (local)
-	    tok822_sub_prepend(tree, local);
-    }
+    if ((domain = tok822_rfind_type(tree->tail, '@')) == 0) {
 
-    /*
-     * Append missing @origin
-     */
-    if (var_append_at_myorigin != 0
-	&& (domain = tok822_rfind_type(tree->tail, '@')) == 0) {
-	domain = tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
-	tok822_sub_append(tree, tok822_scan(var_myorigin, (TOK822 **) 0));
+	/*
+	 * Swap domain!user to user@domain.
+	 */
+	if (var_swap_bangpath != 0
+	    && (bang = tok822_find_type(tree->head, '!')) != 0) {
+	    tok822_sub_keep_before(tree, bang);
+	    local = tok822_cut_after(bang);
+	    tok822_free(bang);
+	    tok822_sub_prepend(tree, tok822_alloc('@', (char *) 0));
+	    if (local)
+		tok822_sub_prepend(tree, local);
+	}
+
+	/*
+	 * Promote user%domain to user@domain.
+	 */
+	else if (var_percent_hack != 0
+		 && (domain = tok822_rfind_type(tree->tail, '%')) != 0) {
+	    domain->type = '@';
+	}
+
+	/*
+	 * Append missing @origin.
+	 */
+	else if (var_append_at_myorigin != 0) {
+	    domain = tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
+	    tok822_sub_append(tree, tok822_scan(var_myorigin, (TOK822 **) 0));
+	}
     }
 
     /*

@@ -721,18 +721,37 @@ users</a>.
 
 <p>
 
-However, there will be a problem when you are backup MX host for
-a domain that runs Sendmail, because many Sendmail configurations
-will forward the above mail to <i>test@some.other.site</i>.  The
-bad news is that your machine will be put on the black list because
-it accepted the mail, even though the problem is with the configuration
-of a Sendmail machine that is not under your control.
+However, problems lurk when you are responsible for a backup MX
+host, either for your own domain or for the domain of some other
+organization.  Especially troublesome address forms are:
 
 <p>
 
-So, if you're MX relay for other sites it is prudent to block
-addresses with multiple address operators at the SMTP port, even
-though you would also block legitimate addresses.
+<pre>
+    user@else.where@some.domain
+    user%else.where@some.domain
+    elsewhere!user@some.domain
+</pre>
+
+<p>
+
+The problem is that the primary MX host may forward such mail to
+user@else.where, either because the primary MX host somehow "trusts"
+yor backup MX host, or because the primary MX host is badly
+configured.
+
+<p>
+
+The bad news is that your backup MX machine can end up on a black
+list because it accepted the mail, even though the problem could
+be with the configuration of a primary MX machine that is not even
+under your control.
+
+<p>
+
+So, if you're backup MX relay it is prudent to block addresses with
+multiple address operators at the SMTP port, even though you would
+also block legitimate addresses.
 
 <p>
 
@@ -1060,7 +1079,7 @@ parameter:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>
+    <b>/etc/postfix/main.cf</b>:
 	local_recipient_maps = $alias_maps, unix:passwd.byname
 </pre>
 
@@ -1447,8 +1466,8 @@ sense to make it moderated.
 
 Delivering mail to a command is a security-sensitive operation,
 because the command must be executed with the right privileges.
-Only <b>root</b>-privileged software such as the Postfix delivery
-agent can set the privileges for a command.
+Only <b>root</b>-privileged software such as the Postfix local
+delivery agent can set the privileges for a command.
 
 <p>
 
@@ -1559,13 +1578,6 @@ domain name:
     <b>/etc/postfix/virtual</b>:
         virtual.domain      whatever
 </pre>
-
-<p>
-
-<li>Verify that the <a
-href="uce.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
-parameter contains a restriction that depends on <a
-href="uce.html#relay_domains">relay_domains</a>. This is the default setting.
 
 </ul>
 

@@ -741,6 +741,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 {
     char   *myname = "check_relay_domains";
     char   *domain;
+    static int permit_auth_destination(char *recipient);
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
@@ -752,27 +753,9 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 	return (SMTPD_CHECK_OK);
 
     /*
-     * Resolve the address.
+     * Permit authorized destinations.
      */
-    canon_addr_internal(query, recipient);
-    resolve_clnt_query(STR(query), &reply);
-
-    /*
-     * Permit if destination is local. That is, the destination matches
-     * mydestination or virtual_maps, or it resolves to any transport that
-     * delivers locally.
-     */
-    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
-	return (SMTPD_CHECK_OK);
-    domain += 1;
-    if (resolve_local(domain)
-	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
-	return (SMTPD_CHECK_OK);
-
-    /*
-     * Permit if the destination matches the relay_domains list.
-     */
-    if (domain_list_match(relay_domains, domain))
+    if (permit_auth_destination(recipient) == SMTPD_CHECK_OK)
 	return (SMTPD_CHECK_OK);
 
     /*
@@ -800,25 +783,28 @@ static int permit_auth_destination(char *recipient)
     resolve_clnt_query(STR(query), &reply);
 
     /*
-     * Permit if destination is local. That is, the destination matches
-     * mydestination or virtual_maps, or it resolves to any transport that
-     * delivers locally.
+     * Handle special case that is not supposed to happen.
      */
-    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
+    if ((domain = split_at_right(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
-    domain += 1;
+
+    /*
+     * Permit final delivery: the destination matches mydestination or
+     * virtual_maps.
+     */
     if (resolve_local(domain)
 	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
 	return (SMTPD_CHECK_OK);
 
     /*
-     * Permit if the destination matches the relay_domains list.
+     * Permit non-routed mail to a destination on the relay_domains list.
      */
-    if (domain_list_match(relay_domains, domain))
+    if ((reply.flags & RESOLVE_FLAG_ROUTED) == 0
+	&& domain_list_match(relay_domains, domain))
 	return (SMTPD_CHECK_OK);
 
     /*
-     * Skip when not matched
+     * Something else.
      */
     return (SMTPD_CHECK_DUNNO);
 }
@@ -834,31 +820,13 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 	msg_info("%s: %s", myname, recipient);
 
     /*
-     * Resolve the address.
+     * Permit authorized destination.
      */
-    canon_addr_internal(query, recipient);
-    resolve_clnt_query(STR(query), &reply);
-
-    /*
-     * Permit if destination is local. That is, the destination matches
-     * mydestination or virtual_maps, or it resolves to any transport that
-     * delivers locally.
-     */
-    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
-	return (SMTPD_CHECK_DUNNO);
-    domain += 1;
-    if (resolve_local(domain)
-	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
+    if (permit_auth_destination(recipient) == SMTPD_CHECK_OK)
 	return (SMTPD_CHECK_DUNNO);
 
     /*
-     * Pass if the destination matches the relay_domains list.
-     */
-    if (domain_list_match(relay_domains, domain))
-	return (SMTPD_CHECK_DUNNO);
-
-    /*
-     * Reject relaying to sites that are not listed in relay_domains.
+     * Reject unauthorized destination.
      */
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			       "%d <%s>: Relay access denied",

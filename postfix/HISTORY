@@ -3471,3 +3471,8 @@ Apologies for any names omitted.
 	to change Postfix into an open relay.  File:  smtpd/smtpd_check.c.
 
 	Retraction: null-length inet_interfaces is too confusing.
+
+19991224
+
+	Bugfix: the relative symlink code in INSTALL.sh computed
+	the ../ segments from the wrong pathname.

@@ -21,10 +21,14 @@
   */
 #define RESOLVE_ADDR	"resolve"
 
+#define RESOLVE_FLAG_FINAL	(1<<0)	/* final delivery */
+#define RESOLVE_FLAG_ROUTED	(1<<1)	/* routed destination */
+
 typedef struct RESOLVE_REPLY {
     VSTRING *transport;
     VSTRING *nexthop;
     VSTRING *recipient;
+    int     flags;
 } RESOLVE_REPLY;
 
 extern void resolve_clnt_init(RESOLVE_REPLY *);

@@ -83,12 +83,14 @@
 /* resolve_addr - resolve address according to rule set */
 
 void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
-		             VSTRING *nextrcpt)
+		             VSTRING *nextrcpt, int *flags)
 {
     VSTRING *addr_buf = vstring_alloc(100);
     TOK822 *tree;
     TOK822 *saved_domain = 0;
     TOK822 *domain = 0;
+
+    *flags = 0;
 
     /*
      * The address is in internalized (unquoted) form, so we must externalize
@@ -135,20 +137,34 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	}
 
 	/*
-	 * Replace foo%bar by foo@bar, site!user by user@site, rewrite to
-	 * canonical form, and retry.
+	 * After stripping the local domain, replace foo%bar by foo@bar,
+	 * site!user by user@site, rewrite to canonical form, and retry.
+	 * Otherwise we're done.
 	 */
-	if (var_swap_bangpath && tok822_rfind_type(tree->tail, '!') != 0) {
-	    rewrite_tree(REWRITE_CANON, tree);
-	} else if (var_percent_hack
-		   && (domain = tok822_rfind_type(tree->tail, '%')) != 0) {
-	    domain->type = '@';
-	    rewrite_tree(REWRITE_CANON, tree);
-	} else {
-	    domain = 0;
-	    break;
+	if ((domain = tok822_rfind_type(tree->tail, '@')) == 0) {
+	    if (var_swap_bangpath && tok822_rfind_type(tree->tail, '!') != 0) {
+		rewrite_tree(REWRITE_CANON, tree);
+	    } else if (var_percent_hack
+		    && (domain = tok822_rfind_type(tree->tail, '%')) != 0) {
+		domain->type = '@';
+		rewrite_tree(REWRITE_CANON, tree);
+	    } else {
+		break;
+	    }
 	}
     }
+
+    /*
+     * If the destination is non-local, recognize routing operators in the
+     * address localpart. This is needed to protect backup hosts against
+     * relaying by primary hosts, because the backup host would end up on
+     * black lists.
+     */
+    if (domain && domain->prev)
+	if (tok822_rfind_type(domain->prev, '@') != 0
+	    || tok822_rfind_type(domain->prev, '!') != 0
+	    || tok822_rfind_type(domain->prev, '%') != 0)
+	    *flags |= RESOLVE_FLAG_ROUTED;
 
     /*
      * Make sure the resolved envelope recipient has the user@domain form. If
@@ -220,16 +236,19 @@ static VSTRING *query;
 
 int     resolve_proto(VSTREAM *stream)
 {
+    int     flags;
+
     if (mail_scan(stream, "%s", query) != 1)
 	return (-1);
 
-    resolve_addr(STR(query), channel, nexthop, nextrcpt);
+    resolve_addr(STR(query), channel, nexthop, nextrcpt, &flags);
 
     if (msg_verbose)
-	msg_info("%s -> (`%s' `%s' `%s')", STR(query), STR(channel),
-		 STR(nexthop), STR(nextrcpt));
+	msg_info("%s -> (`%s' `%s' `%s' `%d')", STR(query), STR(channel),
+		 STR(nexthop), STR(nextrcpt), flags);
 
-    mail_print(stream, "%s %s %s", STR(channel), STR(nexthop), STR(nextrcpt));
+    mail_print(stream, "%s %s %s %d",
+	       STR(channel), STR(nexthop), STR(nextrcpt), flags);
 
     if (vstream_fflush(stream) != 0) {
 	msg_warn("write resolver reply: %m");

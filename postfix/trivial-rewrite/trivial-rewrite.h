@@ -32,7 +32,7 @@ extern void rewrite_tree(char *, TOK822 *);
   */
 extern void resolve_init(void);
 extern int resolve_proto(VSTREAM *);
-extern void resolve_addr(char *, VSTRING *, VSTRING *, VSTRING *);
+extern void resolve_addr(char *, VSTRING *, VSTRING *, VSTRING *, int *);
 
 /* LICENSE
 /* .ad

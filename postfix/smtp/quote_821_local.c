@@ -81,7 +81,7 @@ static int is_821_dot_string(char *local_part, char *end)
 	    || ch == '[' || ch == ']'
 	    || ch == '\\' || ch == ','
 	    || ch == ';' || ch == ':'
-	    || ch == '@' || ch == '"')
+	    /* || ch == '@' */ || ch == '"')
 	    return (NO);
     }
     if (cp[-1] == '.')

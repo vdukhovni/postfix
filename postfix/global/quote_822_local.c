@@ -93,7 +93,7 @@ static int is_822_dot_string(const char *local_part, const char *end)
 	    return (NO);
 	if (ch == '(' || ch == ')'
 	    || ch == '<' || ch == '>'
-	    || ch == '@' || ch == ','
+	    /* || ch == '@' */ || ch == ','
 	    || ch == ';' || ch == ':'
 	    || ch == '\\' || ch == '"'
 	    || ch == '[' || ch == ']')
