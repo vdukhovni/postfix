@@ -811,7 +811,7 @@ extern bool var_smtpd_sasl_enable;
 extern char *var_smtpd_sasl_opts;
 
 #define VAR_SMTPD_SASL_REALM	"smtpd_sasl_local_domain"
-#define DEF_SMTPD_SASL_REALM	"$myhostname"
+#define DEF_SMTPD_SASL_REALM	""
 extern char *var_smtpd_sasl_realm;
 
 #define VAR_SMTPD_SND_AUTH_MAPS	"smtpd_sender_login_maps"

@@ -125,6 +125,7 @@ cleanup_api.o: ../../include/attr.h
 cleanup_api.o: ../../include/bounce.h
 cleanup_api.o: ../../include/mail_params.h
 cleanup_api.o: ../../include/mail_stream.h
+cleanup_api.o: ../../include/hold_message.h
 cleanup_api.o: cleanup.h
 cleanup_api.o: ../../include/argv.h
 cleanup_api.o: ../../include/nvtable.h
@@ -321,7 +322,6 @@ cleanup_message.o: ../../include/iostuff.h
 cleanup_message.o: ../../include/attr.h
 cleanup_message.o: ../../include/mime_state.h
 cleanup_message.o: ../../include/lex_822.h
-cleanup_message.o: ../../include/hold_message.h
 cleanup_message.o: cleanup.h
 cleanup_message.o: ../../include/maps.h
 cleanup_message.o: ../../include/dict.h

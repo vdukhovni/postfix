@@ -127,21 +127,38 @@ matches a table, the action depends on the lookup result:
 
 <dl>
 
-<dt>REJECT <dd> Reject the message, and log the header.
+<dt>REJECT <dd>
 
-<dt>REJECT text... <dd> As above, and also send the text to
-the originator.
+<dt>REJECT text... <dd>
+
+Reject the message, log the header and the optional text,
+and send the optional text to the originator.
 
 <dt>IGNORE <dd> Delete the header from the message.
 
-<dt>HOLD <dd> Place the message on the <b>hold</b> queue. Mail on
-hold can be inspected with the <a href="postcat.1.html">postcat</a>
-command, and can be destroyed or taken off hold with the <a
-href="postsuper.1.html">postsuper</a> command.
+<dt>WARN <dd>
 
-<dt>WARN <dd> Log (but do not reject) the header with a warning.
+<dt>WARN text... <dd> 
 
-<dt>WARN text... <dd> As above, and also log the text.
+Log (but do not reject) the header with a warning, and log the
+optional text.
+
+<dt>HOLD <dd>
+
+<dt>HOLD text... <dd>
+
+Place the message on the <b>hold</b> queue. Mail on hold can be
+inspected with the <a href="postcat.1.html">postcat</a> command,
+and can be destroyed or taken off hold with the <a
+href="postsuper.1.html">postsuper</a> command.  
+The optional text is logged together with the matched text.
+
+<dt>DISCARD <dd> 
+
+<dt>DISCARD text... <dd>
+
+Claim successful delivery and silently discard the message.
+The optional text is logged together with the matched text.
 
 <dt>FILTER <i>transport</i>:<i>nexthop</i> <dd>
 After the message is queued, send the entire message through
@@ -209,21 +226,38 @@ line matches a table, the action depends on the lookup result:
 
 <dl>
 
-<dt>REJECT <dd> Reject the message, and log the matched line.
+<dt>REJECT <dd>
 
-<dt>REJECT text... <dd> As above, and also send the text to
-the originator.
+<dt>REJECT text... <dd>
+
+Reject the message, log the body line and the optional text,
+and send the optional text to the originator.
+
+<dt>WARN <dd>
+
+<dt>WARN text... <dd> 
+
+Log (but do not reject) the body line with a warning, and log the
+optional text.
 
 <dt>IGNORE <dd> Delete the matched line from the message.
 
-<dt>HOLD <dd> Place the message on the <b>hold</b> queue. Mail on
-hold can be inspected with the <a href="postcat.1.html">postcat</a>
-command, and can be destroyed or taken off hold with the <a
+<dt>HOLD <dd> 
+
+<dt>HOLD text... <dd>
+
+Place the message on the <b>hold</b> queue. Mail on hold can be
+inspected with the <a href="postcat.1.html">postcat</a> command,
+and can be destroyed or taken off hold with the <a
 href="postsuper.1.html">postsuper</a> command.
+The optional text is logged together with the matched text.
 
-<dt>WARN <dd> Log (but do not reject) the matched line with a warning.
+<dt>DISCARD <dd> 
 
-<dt>WARN text... <dd> As above, and also log the text.
+<dt>DISCARD text... <dd> 
+
+Claim successful delivery and silently discard the message.
+The optional text is logged together with the matched text.
 
 <dt>FILTER <i>transport</i>:<i>nexthop</i> <dd>
 After the message is queued, send the entire message through
@@ -331,12 +365,46 @@ href="basic.html#mynetworks"> $mynetworks</a>.
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the client hostname, parent
 domains, client IP address, or networks obtained by stripping least
-significant octets.  Reject the request if the result is <b>REJECT</b>
-or "[<b>45</b>]<i>XX text</i>". Permit the request if the result
-is <b>OK</b> or <b>RELAY</b> or all-numerical. Otherwise, treat the
-result as another list of UCE restrictions.  The
-<b>access_map_reject_code</b> parameter specifies the response code for
-<b>REJECT</b> results (default:  <b>554</b>).
+significant octets.  
+
+<p>
+
+<dl compact>
+
+<dt>REJECT
+<dd>Reject the request. The <b>access_map_reject_code</b> parameter
+specifies the response code (default:  <b>554</b>).
+
+<p>
+
+<dt>[<b>45</b>]<i>XX text</i>
+<dd>Reject the request. Send the numerical code and text to the SMTP client.
+
+<p>
+
+<dt>OK
+<dt>RELAY
+<dt>all-numerical
+<dd>Permit the request.
+
+<p>
+
+<dt>HOLD
+<dd> Place the message on the <b>hold</b> queue. Mail on hold can
+be inspected with the <a href="postcat.1.html">postcat</a> command,
+and can be destroyed or taken off hold with the <a
+href="postsuper.1.html">postsuper</a> command.
+
+<p>
+
+<dt>DISCARD
+<dd> Claim successful delivery and silently discard the message.
+
+<p>
+
+<dt>Other<dd> Treat the result as another list of UCE restrictions.  
+
+</dl>
 
 <p>
 

@@ -6829,10 +6829,36 @@ Apologies for any names omitted.
 	mail to be placed on the "hold" queue for manual inspection.
 	Files: global/hold_message.[hc], cleanup/cleanup_message.c.
 
+20020820
+
+	Bugfix: yesterday's HOLD pattern code did not update the
+	cleanup server's idea of the queue file name for error
+	recovery and for error reporting purposes, so that incomplete
+	or content rejected mail would not be deleted from the
+	queue, and so that the bouncer would not find the queue
+	file.
+
+	Feature: new header/body_checks DISCARD pattern that causes
+	mail to be silently discarded. Files: global/cleanup_user.h,
+	cleanup/cleanup_message.c.
+
+	Bugfix: the local delivery agent's mailbox duplicate delivery
+	eliminator was not updated when address extensions were
+	added to Postfix. The other local duplicate eliminators
+	may need revision as well. File: local/mailbox.c.
+
+20020821
+
+	Feature: HOLD and DISCARD actions in SMTPD access tables.
+	These requests are propagated to the cleanup daemon,
+	which required a bit of redesign of internal protocols.
+	Files: cleanup/cleanup.c pickup/pickup.c smtpd/smtpd.c
+	global/post_mail.c qmqpd/qmqpd.c local/forward.c.
+
 Open problems:
 
-	Medium: should permit_mx_backup defer delivery if DNS
-	has some error of some kind?
+	Medium: should permit_mx_backup defer delivery if DNS has
+	some error of some kind?
 
 	Low: all table lookups should consistently use internalized
 	(unquoted) or externalized (quoted) forms as lookup keys.

@@ -15,9 +15,16 @@ BUILDING WITH LDAP SUPPORT
 
 Note: Postfix no longer supports the LDAP version 1 interface.
 
-You need to have LDAP libraries and include files installed somewhere on
-your system, and you need to configure the Postfix Makefiles
-accordingly.
+You need to have LDAP libraries and include files installed somewhere
+on your system, and you need to configure the Postfix Makefiles
+accordingly. 
+
+For example, to build the OpenLDAP libraries for use with Postfix
+(i.e.  LDAP client code only), you could use the following command:
+
+    % ./configure  --without-kerberos --without-cyrus-sasl --without-tls \
+	--without-threads --disable-slapd --disable-slurpd \
+	--disable-debug --disable-shared
 
 If you're using the libraries from the UM distribution
 (http://www.umich.edu/~dirsvcs/ldap/ldap.html) or OpenLDAP

@@ -35,8 +35,9 @@
 /*	queue_id result structure member.
 /*
 /*	cleanup_control() processes per-message flags specified by the caller.
-/*	These flags control the handling of data errors, and must be set
-/*	before processing the first message record.
+/*	These flags control the storage of mail and the handling of errors.
+/*	It is an error to any change error handling flags in the middle of
+/*	a message.
 /* .IP CLEANUP_FLAG_BOUNCE
 /*	The cleanup server is responsible for returning undeliverable
 /*	mail (too many hops, message too large) to the sender.
@@ -98,6 +99,7 @@
 #include <bounce.h>
 #include <mail_params.h>
 #include <mail_stream.h>
+#include <hold_message.h>
 
 /* Application-specific. */
 
@@ -168,6 +170,8 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * definition.
      */
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
+	if (state->err_mask && state->err_mask != CLEANUP_STAT_MASK_INCOMPLETE)
+	    msg_fatal("can't set CLEANUP_FLAG_BOUNCE after initializations");
 	state->err_mask = CLEANUP_STAT_MASK_INCOMPLETE;
     } else {
 	state->err_mask = ~CLEANUP_STAT_MASK_EXTRACT_RCPT;
@@ -203,11 +207,28 @@ int     cleanup_flush(CLEANUP_STATE *state)
      * If there are no errors, be very picky about queue file write errors
      * because we are about to tell the sender that it can throw away its
      * copy of the message.
+     * 
+     * Optionally, place the message on hold, but only if the message was
+     * received successfully. This involves renaming the queue file before
+     * "finishing" it (or else the queue manager would open it for delivery)
+     * and updating our own idea of the queue file name for error recovery
+     * and for error reporting purposes.
      */
-    if (state->errs == 0) {
+    if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
+	if ((state->flags & CLEANUP_FLAG_HOLD) != 0) {
+	    hold_message(state->temp1, state->queue_name, state->queue_id);
+	    junk = cleanup_path;
+	    cleanup_path = mystrdup(vstring_str(state->temp1));
+	    myfree(junk);
+	    vstream_control(state->handle->stream,
+			    VSTREAM_CTL_PATH, cleanup_path,
+			    VSTREAM_CTL_END);
+	}
 	state->errs = mail_stream_finish(state->handle, (VSTRING *) 0);
     } else {
 	mail_stream_cleanup(state->handle);
+	if ((state->flags & CLEANUP_FLAG_DISCARD) != 0)
+	    state->errs = 0;
     }
     state->handle = 0;
     state->dst = 0;
@@ -254,8 +275,10 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	}
 	if (REMOVE(cleanup_path))
 	    msg_warn("remove %s: %m", cleanup_path);
+    } else if ((state->flags & CLEANUP_FLAG_DISCARD) != 0) {
+	if (REMOVE(cleanup_path))
+	    msg_warn("remove %s: %m", cleanup_path);
     }
-
     /*
      * Make sure that our queue file will not be deleted by the error handler
      * AFTER we have taken responsibility for delivery. Better to deliver

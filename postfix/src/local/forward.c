@@ -139,14 +139,12 @@ static FORWARD_INFO *forward_open(char *sender)
     info->cleanup = cleanup;
     info->queue_id = mystrdup(vstring_str(buffer));
     info->posting_time = time((time_t *) 0);
-    attr_print(cleanup, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_BOUNCE,
-	       ATTR_TYPE_END);
 
     /*
      * Send initial message envelope information. For bounces, set the
      * designated sender: mailing list owner, posting user, whatever.
      */
+    rec_fprintf(cleanup, REC_TYPE_FLGS, "%d", CLEANUP_FLAG_BOUNCE);
     rec_fprintf(cleanup, REC_TYPE_TIME, "%ld", (long) info->posting_time);
     rec_fputs(cleanup, REC_TYPE_FROM, sender);
 

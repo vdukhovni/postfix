@@ -226,20 +226,11 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
     state = cleanup_open();
 
     /*
-     * Send the queue id to the client. Read client processing options. If we
-     * can't read the client processing options we can pretty much forget
-     * about the whole operation.
+     * Send the queue id to the client.
      */
     attr_print(src, ATTR_FLAG_NONE,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, state->queue_id,
 	       ATTR_TYPE_END);
-    if (attr_scan(src, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
-		  ATTR_TYPE_END) != 1) {
-	state->errs |= CLEANUP_STAT_BAD;
-	flags = 0;
-    }
-    cleanup_control(state, flags);
 
     /*
      * XXX Rely on the front-end programs to enforce record size limits.
@@ -263,7 +254,8 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      * our status report.
      */
     if (CLEANUP_OUT_OK(state) == 0 && type > 0) {
-	if ((state->errs & CLEANUP_STAT_CONT) == 0)
+	if ((state->errs & CLEANUP_STAT_CONT) == 0
+	    && (state->flags & CLEANUP_FLAG_DISCARD) == 0)
 	    msg_warn("%s: skipping further client input", state->queue_id);
 	while (type != REC_TYPE_END
 	       && (type = rec_get(src, buf, 0)) > 0)

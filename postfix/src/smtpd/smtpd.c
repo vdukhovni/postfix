@@ -103,8 +103,7 @@
 /* .IP \fBalways_bcc\fR
 /*	Address to send a copy of each message that enters the system.
 /* .IP \fBcommand_directory\fR
-/*	Location of Postfix support commands (default:
-/*	\fB$program_directory\fR).
+/*	Location of Postfix support commands.
 /* .IP \fBdebug_peer_level\fR
 /*	Increment in verbose logging level when a remote host matches a
 /*	pattern in the \fBdebug_peer_list\fR parameter.
@@ -539,12 +538,11 @@ static void mail_open_stream(SMTPD_STATE *state)
     if (SMTPD_STAND_ALONE(state) == 0) {
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
-	if (state->dest == 0
-	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
-			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
-			  ATTR_TYPE_END) != 0)
+	if (state->dest == 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PUBLIC, var_cleanup_service);
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_FILTER);
     }
 
     /*

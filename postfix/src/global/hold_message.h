@@ -14,7 +14,7 @@
  /*
   * External interface.
   */
-extern void hold_message(const char *, const char *);
+extern void hold_message(VSTRING *, const char *, const char *);
 
 /* LICENSE
 /* .ad

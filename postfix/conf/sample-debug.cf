@@ -29,4 +29,4 @@ debug_peer_list =
 #
 debugger_command =
          PATH=/usr/bin:/usr/X11R6/bin
-         xxgdb $program_directory/$process_name $process_id & sleep 5
+         xxgdb $daemon_directory/$process_name $process_id & sleep 5

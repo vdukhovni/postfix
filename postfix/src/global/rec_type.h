@@ -36,6 +36,7 @@
 #define REC_TYPE_ORCP	'O'		/* original recipient, optional */
 #define REC_TYPE_WARN	'W'		/* warning message time */
 #define REC_TYPE_ATTR	'A'		/* named attribute for extensions */
+#define REC_TYPE_FLGS	'f'		/* set processing flags */
 
 #define REC_TYPE_MESG	'M'		/* start message records */
 
@@ -62,7 +63,7 @@
   * allow for the presence of A records in the extracted segment, because it
   * can be requested to re-process already queued mail with `postsuper -r'.
   */
-#define REC_TYPE_ENVELOPE	"MCTFILSDROWVA"
+#define REC_TYPE_ENVELOPE	"MCTFILSDROWVAf"
 #define REC_TYPE_CONTENT	"XLN"
 #define REC_TYPE_EXTRACT	"EDROPreAFI"
 

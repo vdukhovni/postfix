@@ -42,7 +42,7 @@
 #
 # Command + args: the command to be executed. The command name is
 # relative to the Postfix program directory (pathname is controlled by
-# the program_directory configuration variable). Adding one or more
+# the daemon_directory configuration variable). Adding one or more
 # -v options turns on verbose logging for that service; adding a -D
 # option enables symbolic debugging (see the debugger_command variable
 # in the main.cf configuration file). See individual command man pages

@@ -317,10 +317,10 @@ parent_domain_matches_subdomains = debug_peer_list,fast_flush_domains,
 #
 process_id_directory = pid
 
-# The program_directory parameter specifies the location of Postfix
+# The daemon_directory parameter specifies the location of Postfix
 # support programs and daemons. This directory must be owned by root.
 #
-program_directory = /usr/libexec/postfix
+daemon_directory = /usr/libexec/postfix
 
 # The queue_directory specifies the location of the Postfix queue.
 # This is also the root directory of Postfix daemons that run chrooted.

@@ -80,7 +80,9 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_NREQ		"nrequest"
 #define MAIL_ATTR_STATUS	"status"
 
-#define MAIL_ATTR_FLAGS		"flags"
+#define MAIL_ATTR_BFLAGS	"bounce_flags"
+#define MAIL_ATTR_DFLAGS	"delivery_flags"
+#define MAIL_ATTR_RFLAGS	"resolve_flags"
 #define MAIL_ATTR_QUEUE		"queue_name"
 #define MAIL_ATTR_QUEUEID	"queue_id"
 #define MAIL_ATTR_SENDER	"sender"

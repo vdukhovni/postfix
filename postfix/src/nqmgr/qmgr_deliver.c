@@ -160,7 +160,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     nexthop = (cp = strrchr(entry->queue->name, '@')) != 0 && cp[1] ?
 	cp + 1 : entry->queue->name;
     attr_print(stream, ATTR_FLAG_MORE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+	       ATTR_TYPE_NUM, MAIL_ATTR_DFLAGS, flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, message->queue_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, message->queue_id,
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, message->data_offset,

@@ -80,7 +80,6 @@
 #include <mail_proto.h>
 #include <mime_state.h>
 #include <lex_822.h>
-#include <hold_message.h>
 
 /* Application-specific. */
 
@@ -291,10 +290,11 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "WARN", command_len)) {
-	msg_info("%s: warning: %s %.200s; from=<%s> to=<%s>: %s",
+	msg_info("%s: warning: %s %.200s; from=<%s> to=<%s>%s%s",
 		 state->queue_id, context, buf, state->sender,
 		 state->recip ? state->recip : "unknown",
-		 *optional_text ? optional_text : "content matched");
+		 *optional_text ? ": " : "",
+		 *optional_text ? optional_text : "");
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "FILTER", command_len)) {
@@ -307,6 +307,24 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	}
 	return (CLEANUP_ACT_KEEP);
     }
+    if (STREQUAL(value, "DISCARD", command_len)) {
+	msg_info("%s: discard: %s %.200s; from=<%s> to=<%s>%s%s",
+		 state->queue_id, context, buf, state->sender,
+		 state->recip ? state->recip : "unknown",
+		 *optional_text ? ": " : "",
+		 *optional_text ? optional_text : "");
+	state->flags |= CLEANUP_FLAG_DISCARD;
+	return (CLEANUP_ACT_KEEP);
+    }
+    if (STREQUAL(value, "HOLD", command_len)) {
+	msg_info("%s: hold: %s %.200s; from=<%s> to=<%s>%s%s",
+		 state->queue_id, context, buf, state->sender,
+		 state->recip ? state->recip : "unknown",
+		 *optional_text ? ": " : "",
+		 *optional_text ? optional_text : "");
+	state->flags |= CLEANUP_FLAG_HOLD;
+	return (CLEANUP_ACT_KEEP);
+    }
     if (*optional_text)
 	msg_warn("unexpected text after command in %s map: %s",
 		 map_class, value);
@@ -314,10 +332,6 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
     if (STREQUAL(value, "IGNORE", command_len))
 	return (CLEANUP_ACT_DROP);
 
-    if (STREQUAL(value, "HOLD", command_len)) {
-	hold_message(state->queue_name, state->queue_id);
-	return (CLEANUP_ACT_KEEP);
-    }
     if (STREQUAL(value, "OK", command_len))
 	return (CLEANUP_ACT_KEEP);
 

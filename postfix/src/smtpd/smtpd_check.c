@@ -293,6 +293,9 @@
 #include <match_parent_style.h>
 #include <strip_addr.h>
 #include <virtual8.h>
+#include <cleanup_user.h>
+#include <record.h>
+#include <rec_type.h>
 
 /* Application-specific. */
 
@@ -614,6 +617,29 @@ void    smtpd_check_init(void)
 #endif
 }
 
+/* log_whatsup - log as much context as we have */
+
+static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
+			        const char *text)
+{
+    if (state->recipient && state->sender) {
+	msg_info("%s: %s from %s: %s; from=<%s> to=<%s>",
+		 whatsup, state->where, state->namaddr, text,
+		 state->sender, state->recipient);
+    } else if (state->recipient) {
+	msg_info("%s: %s from %s: %s; to=<%s>",
+		 whatsup, state->where, state->namaddr, text,
+		 state->recipient);
+    } else if (state->sender) {
+	msg_info("%s: %s from %s: %s; from=<%s>",
+		 whatsup, state->where, state->namaddr, text,
+		 state->sender);
+    } else {
+	msg_info("%s: %s from %s: %s",
+		 whatsup, state->where, state->namaddr, text);
+    }
+}
+
 /* smtpd_check_reject - do the boring things that must be done */
 
 static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
@@ -682,22 +708,8 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * postmaster notices, this may be the only trace left that service was
      * rejected. Print the request, client name/address, and response.
      */
-    if (state->recipient && state->sender) {
-	msg_info("%s: %s from %s: %s; from=<%s> to=<%s>",
-		 whatsup, state->where, state->namaddr, STR(error_text),
-		 state->sender, state->recipient);
-    } else if (state->recipient) {
-	msg_info("%s: %s from %s: %s; to=<%s>",
-		 whatsup, state->where, state->namaddr, STR(error_text),
-		 state->recipient);
-    } else if (state->sender) {
-	msg_info("%s: %s from %s: %s; from=<%s>",
-		 whatsup, state->where, state->namaddr, STR(error_text),
-		 state->sender);
-    } else {
-	msg_info("%s: %s from %s: %s",
-		 whatsup, state->where, state->namaddr, STR(error_text));
-    }
+    log_whatsup(state, whatsup, STR(error_text));
+
     return (warn_if_reject ? 0 : SMTPD_CHECK_REJECT);
 }
 
@@ -1495,6 +1507,28 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: Access denied",
 			     var_access_map_code, reply_name, reply_class));
+
+    /*
+     * HOLD means deliver later.
+     */
+    if (strcasecmp(value, "HOLD") == 0) {
+	vstring_sprintf(error_text, "<%s>: %s triggers HOLD action",
+			reply_name, reply_class);
+	log_whatsup(state, "hold", STR(error_text));
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_HOLD);
+    }
+
+    /*
+     * DISCARD means silently discard and claim successful delivery.
+     */
+    if (strcasecmp(value, "DISCARD") == 0) {
+	vstring_sprintf(error_text, "<%s>: %s triggers DISCARD action",
+			reply_name, reply_class);
+	log_whatsup(state, "discard", STR(error_text));
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_DISCARD);
+    }
 
     /*
      * All-numeric result probably means OK - some out-of-band authentication

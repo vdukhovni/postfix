@@ -29,14 +29,13 @@
 queue_directory = /var/spool/postfix
 
 # The command_directory parameter specifies the location of all
-# postXXX commands.  The default value is $program_directory.
+# postXXX commands.
 #
 command_directory = /usr/sbin
 
 # The daemon_directory parameter specifies the location of all Postfix
-# daemon programs (i.e. programs listed in the master.cf file). The
-# default value is $program_directory. This directory must be owned
-# by root.
+# daemon programs (i.e. programs listed in the master.cf file). This
+# directory must be owned by root.
 #
 daemon_directory = /usr/libexec/postfix
 
@@ -417,11 +416,22 @@ mail_owner = postfix
 # When a pattern matches, what happens next depends on the associated
 # action that is specified in the right-hand side of the table:
 #
-# REJECT the entire message is rejected.
-# REJECT text.... The text is sent to the originator.
-# IGNORE the header line is silently discarded.
-# WARN   the header is logged (not rejected) with a warning message.
-# WARN text... as above, and the text is logged, too.
+# REJECT [optional text...]
+#       Reject the entire message. The optional text is sent to the
+#       originator and is logged to the maillog file.
+# IGNORE Silently discard the header line.
+# WARN [optional text...]
+#       Log the message header and the optional text. This is useful
+#       for testing. When the pattern is OK, change the WARN into a
+#       REJECT or into a DISCARD.
+# HOLD [optional text...]
+#       Place the message on the hold queue. Mail on hold can be
+#       inspected with the postcat command, and can be destroyed or
+#       taken off hold (i.e. delivered) with the postsuper command.
+#	The matched header is logged with the optional text.
+# DISCARD [optional text...]
+#       Claim successful delivery and silently discard the message.
+#	The matched header is logged with the optional text.
 # FILTER transport:nexthop
 #	after the message is queued, send the entire message through
 #	a content filter. This requires different cleanup servers

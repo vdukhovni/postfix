@@ -94,7 +94,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
     int     stat;
 
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, request->flags,
+	       ATTR_TYPE_NUM, MAIL_ATTR_DFLAGS, request->flags,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUE, request->queue_name,
 	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, request->queue_id,
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, request->data_offset,

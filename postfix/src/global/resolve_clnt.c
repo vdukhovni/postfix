@@ -168,7 +168,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 			   ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, reply->nexthop,
 
 			   ATTR_TYPE_STR, MAIL_ATTR_RECIP, reply->recipient,
-			     ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &reply->flags,
+			     ATTR_TYPE_NUM, MAIL_ATTR_RFLAGS, &reply->flags,
 			     ATTR_TYPE_END) != 4) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: bad read: %m", myname);

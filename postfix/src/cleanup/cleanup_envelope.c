@@ -217,6 +217,13 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    return;
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
+    } else if (type == REC_TYPE_FLGS) {
+
+	/*
+	 * For safety's sake, allow setting flags only. Even this sucks when
+	 * people set the CLEANUP_FLAG_BOUNCE flag too late in the game.
+	 */
+	cleanup_control(state, state->flags | atol(buf));
     } else {
 	cleanup_out(state, type, buf, len);
     }

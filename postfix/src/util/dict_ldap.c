@@ -94,13 +94,6 @@
 
 #ifdef HAS_LDAP
 
- /*
-  * Older APIs have weird memory freeing behavior.
-  */
-#if !defined(LDAP_API_VERSION) || (LDAP_API_VERSION < 2000)
-#error "Your LDAP version is too old"
-#endif
-
 #include <sys/time.h>
 #include <stdio.h>
 #include <signal.h>
@@ -109,6 +102,13 @@
 #include <lber.h>
 #include <ldap.h>
 #include <string.h>
+
+ /*
+  * Older APIs have weird memory freeing behavior.
+  */
+#if !defined(LDAP_API_VERSION) || (LDAP_API_VERSION < 2000)
+#error "Your LDAP version is too old"
+#endif
 
 /* Handle differences between LDAP SDK's constant definitions */
 #ifndef LDAP_CONST
@@ -187,22 +187,14 @@ static int dict_ldap_get_errno(LDAP * ld)
 {
     int     rc;
 
-#if (LDAP_API_VERSION >= 2000)
     if (ldap_get_option(ld, LDAP_OPT_ERROR_NUMBER, &rc) != LDAP_OPT_SUCCESS)
 	rc = LDAP_OTHER;
-#else
-    rc = dict_ldap->ld->ld_errno;
-#endif
     return rc;
 }
 
 static int dict_ldap_set_errno(LDAP * ld, int rc)
 {
-#if (LDAP_API_VERSION >= 2000)
     (void) ldap_set_option(ld, LDAP_OPT_ERROR_NUMBER, &rc);
-#else
-    ld->ld_errno = rc;
-#endif
     return rc;
 }
 
@@ -320,13 +312,9 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
      * Configure alias dereferencing for this connection. Thanks to Mike
      * Mattice for this, and to Hery Rakotoarisoa for the v3 update.
      */
-#if (LDAP_API_VERSION >= 2000)
     if (ldap_set_option(dict_ldap->ld, LDAP_OPT_DEREF,
 			&(dict_ldap->dereference)) != LDAP_OPT_SUCCESS)
 	msg_warn("%s: Unable to set dereference option.", myname);
-#else
-    dict_ldap->ld->ld_deref = dict_ldap->dereference;
-#endif
 
 #if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
     if (dict_ldap->debuglevel > 0 &&

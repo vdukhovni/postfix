@@ -252,7 +252,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * 
      * Don't come here more than once, whether or not the recipient exists.
      */
-    if (been_here(state.dup_filter, "mailbox %s", state.msg_attr.user))
+    if (been_here(state.dup_filter, "mailbox %s", state.msg_attr.local))
 	return (YES);
 
     /*

@@ -145,7 +145,7 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
      * Read the and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+			    ATTR_TYPE_NUM, MAIL_ATTR_BFLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
@@ -185,7 +185,7 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+			    ATTR_TYPE_NUM, MAIL_ATTR_BFLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
@@ -233,7 +233,7 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+			    ATTR_TYPE_NUM, MAIL_ATTR_BFLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
@@ -293,7 +293,7 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &unused_flags,
+			    ATTR_TYPE_NUM, MAIL_ATTR_BFLAGS, &unused_flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
