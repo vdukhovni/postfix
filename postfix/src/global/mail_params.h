@@ -1283,7 +1283,7 @@ extern int var_fflush_refresh;
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"
-#define DEF_EXPORT_ENVIRON		"TZ"
+#define DEF_EXPORT_ENVIRON		"TZ MAIL_CONFIG"
 extern char *var_export_environ;
 
  /*
@@ -1534,6 +1534,14 @@ extern bool var_disable_mime_oconv;
 #define VAR_STRICT_8BITMIME		"strict_8bitmime"
 #define DEF_STRICT_8BITMIME		0
 extern bool var_strict_8bitmime;
+
+#define VAR_STRICT_7BIT_HDRS		"strict_7bit_headers"
+#define DEF_STRICT_7BIT_HDRS		0
+extern bool var_strict_7bit_hdrs;
+
+#define VAR_STRICT_8BIT_BODY		"strict_8bitmime_body"
+#define DEF_STRICT_8BIT_BODY		0
+extern bool var_strict_8bit_body;
 
 #define VAR_STRICT_ENCODING		"strict_mime_encoding_domain"
 #define DEF_STRICT_ENCODING		0

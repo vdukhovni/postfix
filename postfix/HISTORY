@@ -6547,6 +6547,31 @@ Apologies for any names omitted.
 	before and after the filter, with header/body checks turned
 	off in the second cleanup server.
 
+20020528
+
+	Feature: strict_7bit_headers and strict_8bitmime_body are
+	now separately available. To to turn on both, use
+	strict_8bitmime.
+
+	Cleanup: abandon the use of isspace(3) in the parsing of
+	RFC822 message headers. Files: global/lex_822.h and lots
+	of little places.
+
+	Documentation: replace domain.name by domain.tld in the
+	example config files. The domain exists. They were getting
+	mail from poorly configured Postfix boxes.
+
+	Bugfix: The Postfix sendmail command did not export the
+	MAIL_CONFIG environment setting to the postdrop command.
+	File: global/mail_config.h.
+
+	Incompatibility: by default, turn on the PCRE_DOTALL flag,
+	so that PCRE patterns will match multi-line message headers
+	without causing pain. Suggested by Michael Tokarev. Also
+	documented all those darned undocumented PCRE flags in the
+	pcre_table(5) manual page. Files:  util/dict_pcre.c,
+	proto/pcre_table.
+
 Open problems:
 
 	Medium: old maildrop files are no longer readable by the

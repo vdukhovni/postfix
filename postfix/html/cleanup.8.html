@@ -110,13 +110,24 @@ CLEANUP(8)                                             CLEANUP(8)
               nested deeper.
 
        <b>strict</b><i>_</i><b>8bitmime</b>
-              Reject mail with 8-bit text in message headers, and
-              with 8-bit text in content that claims to be 7-bit,
-              or  that  has no explicit content encoding informa-
-              tion. This blocks mail  mail  poorly  written  mail
-              software. Unfortunately, this also breaks majordomo
-              approval requests when the  included  request  con-
-              tains valid 8-bit MIME mail.
+              Turn  on  both <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b> and <b>strict</b><i>_</i><b>8bit-</b>
+              <b>mime</b><i>_</i><b>body</b>.
+
+       <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b>
+              Reject mail with 8-bit  text  in  message  headers.
+              This  blocks mail from poorly written applications.
+
+       <b>strict</b><i>_</i><b>8bitmime</b><i>_</i><b>body</b>
+              Reject mail with 8-bit text in content that  claims
+              to  be  7-bit,  or  in content that has no explicit
+              content encoding  information.   This  blocks  mail
+              mail  poorly  written mail software. Unfortunately,
+              this also breaks majordomo approval  requests  when
+              the  included  request  contains  valid  8-bit MIME
+              mail, and it breaks bounces from  mailers  that  do
+              not  properly  encapsulate 8-bit content (for exam-
+              ple, bounces from qmail or  from  old  versions  of
+              Postfix).
 
        <b>strict</b><i>_</i><b>mime</b><i>_</i><b>domain</b><i>_</i><b>encoding</b>
               Reject mail with invalid <b>Content-Transfer-Encoding:</b>

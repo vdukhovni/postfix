@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <mime_state.h>
 /*
-/*	MIME_STATE *mime_state_alloc(flags, head_out, body_out, context)
+/*	MIME_STATE *mime_state_alloc(flags, head_out, head_end,
+/*				     body_out, body_end, context)
 /*	int	flags;
 /*	void	(*head_out)(void *ptr, int header_class,
 /*				HEADER_OPTS *header_info, VSTRING *buf);
@@ -159,7 +160,7 @@
 /*	span multiple input records.
 /*
 /*	This module will not glue together RFC 2231 formatted (boundary)
-/*	parameter values. RFC 2231 says claims compatibility with existing
+/*	parameter values. RFC 2231 claims compatibility with existing
 /*	MIME processors. Splitting boundary strings is not backwards
 /*	compatible.
 /*
@@ -226,6 +227,7 @@
 #include <header_opts.h>
 #include <mail_params.h>
 #include <header_token.h>
+#include <lex_822.h>
 #include <mime_state.h>
 
 /* Application-specific. */
@@ -269,7 +271,7 @@ struct MIME_STATE {
      */
     int     static_flags;		/* static processing options */
     MIME_STATE_HEAD_OUT head_out;	/* header output routine */
-    MIME_STATE_ANY_END head_end;	/* end of prinary header routine */
+    MIME_STATE_ANY_END head_end;	/* end of primary header routine */
     MIME_STATE_BODY_OUT body_out;	/* body output routine */
     MIME_STATE_ANY_END body_end;	/* end of body output routine */
     void   *app_context;		/* application context */
@@ -590,10 +592,10 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 
     /*
      * Insert a soft line break when the output reaches a critical length
-     * before we reach the end of the input line.
+     * before we reach a hard line break.
      */
     for (cp = CU_CHAR_PTR(text); cp < CU_CHAR_PTR(text + len); cp++) {
-	/* Critical length before the end of the input line. */
+	/* Critical length before hard line break. */
 	if (LEN(state->output_buffer) > 72) {
 	    VSTRING_ADDCH(state->output_buffer, '=');
 	    state->body_out(state->app_context, REC_TYPE_NORM,
@@ -616,6 +618,8 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
      * the output length will grow from 73 characters to 75 characters.
      */
     if (rec_type == REC_TYPE_NORM) {
+	if (ch == 0 && LEN(state->output_buffer) > 0)
+	    ch = END(state->output_buffer)[-1];
 	if (ch == ' ' || ch == '\t') {
 	    vstring_truncate(state->output_buffer,
 			     LEN(state->output_buffer) - 1);
@@ -681,7 +685,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 		    }
 		    SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);
 		}
-		if (ISSPACE(*text)) {
+		if (IS_SPACE_TAB(*text)) {
 		    if (LEN(state->output_buffer) < var_header_limit) {
 			vstring_strcat(state->output_buffer, "\n");
 			vstring_strcat(state->output_buffer, text);
@@ -747,7 +751,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	     */
 	    if ((header_len = is_header(text)) > 0) {
 		vstring_strncpy(state->output_buffer, text, header_len);
-		for (text += header_len; ISSPACE(*text); text++)
+		for (text += header_len; IS_SPACE_TAB(*text); text++)
 		     /* void */ ;
 		vstring_strcat(state->output_buffer, text);
 		SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);

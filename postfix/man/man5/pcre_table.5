@@ -36,12 +36,58 @@ delimiter can be any character, except whitespace or characters
 that have special meaning (traditionally the forward slash is used).
 The regular expression can contain whitespace.
 
-By default, matching is case-insensitive, although following
-the second slash with an `i' flag will reverse this. Other flags
-are supported, but the only other useful one is `U', which makes
-matching ungreedy (see PCRE documentation and source for more
-info).
-
+By default, matching is case-insensitive, and newlines are not
+treated as special characters. The behavior is controlled by flags,
+which are toggled by appending one or more of the following
+characters after the pattern:
+.IP "\fBi\fR (default: on)"
+Toggles the case sensitivity flag. By default, matching is case
+insensitive.
+.IP "\fBm\fR (default: off)"
+Toggles the PCRE_MULTILINE flag. When the flag is on, the \fB^\fR
+and \fb$\fR metacharacters match immediately after and immediately
+before a newline character, respectively, in addition to
+matching at the start and end of the subject string.
+.IP "\fBs\fR (default: on)"
+Toggle the PCRE_DOTALL flag. When the flag is on, the \fB.\fR
+metacharacter matches the newline character. With
+Postfix versions prior to 20020528, The flag is off by
+default, which is inconvenient for multi-line message header
+matching.
+.IP "\fBx\fR (default: off)"
+Toggles the pcre extended flag. When the flag is on, whitespace
+in the pattern (other than in a character class) and
+characters between a \fB#\fR outside a character class and
+the next newline character are ignored. An escaping backslash
+can be used to include a whitespace or \fB#\fR character
+as part of the pattern.
+.IP "\fBA\fR (default: off)"
+Toggles the PCRE_ANCHORED flag.  When this flag is set,
+the pattern is forced to be "anchored", that is, it is
+constrained to match only at the start of the string which
+is being searched (the "subject string"). This effect can
+also be achieved by appropriate constructs in the pattern
+itself.
+.IP "\fBE\fR (default: off)"
+Toggles the PCRE_DOLLAR_ENDONLY flag. When this flag is set,
+a \fB$\fR metacharacter in the pattern matches only at the
+end of the subject string. Without this flag, a dollar also
+matches immediately before the final character if it is a
+newline character (but not before any other newline
+characters). This flag is ignored if PCRE_MULTILINE
+flag is set.
+.IP "\fBU\fR (default: off)"
+Toggles the ungreedy matching flag.  When this flag is set,
+the pattern matching engine inverts the "greediness" of
+the quantifiers so that they are not greedy by default,
+but become greedy if followed by "?".  This flag can also
+set by a (?U) modifier within the pattern.
+.IP "\fBX\fR (default: off)"
+Toggles the PCRE_EXTRA flag.
+When this flag is set, any backslash in a pattern that is
+followed by a letter that has no special meaning causes an
+error, thus reserving these combinations for future expansion.
+.PP
 Each pattern is applied to the entire lookup key string.
 Depending on the application, that string is an entire client
 hostname, an entire client IP address, or an entire mail address.

@@ -155,6 +155,7 @@
 #include <bounce_log.h>
 #include <mail_date.h>
 #include <mail_proto.h>
+#include <lex_822.h>
 
 /* Application-specific. */
 
@@ -558,7 +559,7 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      * raw record output here so that we don't throw away binary transparency
      * yet.
      */
-#define IS_HEADER(s) (ISSPACE(*(s)) || is_header(s))
+#define IS_HEADER(s) (IS_SPACE_TAB(*(s)) || is_header(s))
 
     bounce_length = 0;
     while (status == 0 && (rec_type = rec_get(bounce_info->orig_fp, bounce_info->buf, 0)) > 0) {

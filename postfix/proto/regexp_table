@@ -36,7 +36,7 @@
 #	By default, matching is case-insensitive, although following
 #	the second slash with an `i' flag will reverse this. Other flags
 #	are `x' (disable extended expression syntax), and `m' (enable
-#	multi-line mode).
+#	multi-line mode, that is, treat newline characters as special).
 #
 #	Each pattern is applied to the entire lookup key string.
 #	Depending on the application, that string is an entire client

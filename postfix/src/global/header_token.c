@@ -90,15 +90,10 @@
 
 /* Global library. */
 
+#include <lex_822.h>
 #include <header_token.h>
 
 /* Application-specific. */
-
- /*
-  * Special characters and linear white space, as per RFC 822.
-  */
-#define RFC822_SPECIALS	"()<>@,;:\\\".[]"
-#define RFC822_LWSP(ch) (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
 
  /*
   * Silly little macros.
@@ -127,7 +122,7 @@ int     header_token(HEADER_TOKEN *token, int token_len,
     cp = CU_CHAR_PTR(*ptr);
     tok_count = 0;
     if (user_specials == 0)
-	user_specials = RFC822_SPECIALS;
+	user_specials = LEX_822_SPECIALS;
 
     /*
      * Main parsing loop.
@@ -138,7 +133,7 @@ int     header_token(HEADER_TOKEN *token, int token_len,
 	/*
 	 * Skip RFC 822 linear white space.
 	 */
-	if (RFC822_LWSP(ch))
+	if (IS_SPACE_TAB_CR_LF(ch))
 	    continue;
 
 	/*
@@ -182,7 +177,7 @@ int     header_token(HEADER_TOKEN *token, int token_len,
 		    break;
 		if (ch == '\n') {		/* unfold */
 		    len = LEN(token_buffer);
-		    while (len > 0 && RFC822_LWSP(STR(token_buffer)[len - 1]))
+		    while (len > 0 && IS_SPACE_TAB_CR_LF(STR(token_buffer)[len - 1]))
 			len--;
 		    if (len < LEN(token_buffer))
 			vstring_truncate(token_buffer, len);
@@ -226,7 +221,7 @@ int     header_token(HEADER_TOKEN *token, int token_len,
 		token[tok_count].type = HEADER_TOK_TOKEN;
 		VSTRING_ADDCH(token_buffer, ch);
 	    }
-	    while ((ch = *cp) != 0 && !RFC822_LWSP(ch)
+	    while ((ch = *cp) != 0 && !IS_SPACE_TAB_CR_LF(ch)
 		   && !ISCNTRL(ch) && !strchr(user_specials, ch)) {
 		cp++;
 		if (tok_count < token_len)

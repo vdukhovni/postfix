@@ -135,10 +135,20 @@ and so on. In some cases, optimization is turned off automatically.
 In order to build with non-default settings, for example, with a
 configuration directory other than /etc/postfix, use:
 
-    % make makefiles CCARGS=-DDEF_CONFIG_DIR=\\\\\\\"/some/where\\\\\\\"
+    % make makefiles CCARGS='-DDEF_CONFIG_DIR=\"/some/where\"'
     % make
 
-That's seven backslashes :-) But at least this works with sh and csh.
+Be sure to get the quotes right. These details matter a lot.
+
+Other parameters whose defaults can be specified in this way are:
+
+    Macro name          default value for
+    -------------------------------------
+    DEF_COMMAND_DIR     command_directory
+    DEF_DAEMON_DIR      daemon_directory
+    DEF_SENDMAIL_PATH   sendmail_path
+    DEF_MAILQ_PATH      mailq_path
+    DEF_NEWALIAS_PATH   newaliases_path
 
 In order to build Postfix for very large applications, where you
 expect to run more than 1000 delivery processes, you may need to
@@ -209,15 +219,21 @@ In order to install or upgrade Postfix:
 
     postfix:*:12345:12345:postfix:/no/where:/no/shell
 
+  Note: there should be no whitespace before "postfix:".
+
 - Make sure there is a corresponding alias in /etc/aliases:
 
     postfix: root
+
+  Note: there should be no whitespace before "postfix:".
 
 - Create a group "postdrop" with a group id that is not used by
   any other user account. Not even by the postfix user account.
   My group file entry looks like:
 
     postdrop:*:54321:
+
+  Note: there should be no whitespace before "postdrop:".
 
   NB: this group was optional with older Postfix releases; it is
   now required.
@@ -285,7 +301,7 @@ In order to inspect the mail queue, use
 
     % sendmail -bp
 
-See also the "Care and feeding" section 13 below.
+See also the "Care and feeding" section 12 below.
 
 8 - Configuring Postfix to send and receive mail (virtual interface)
 ====================================================================
@@ -300,7 +316,7 @@ up virtual interfaces for a variety of UNIX versions.
 
 In the /etc/postfix/main.cf file, I would specify 
 
-    myhostname = virtual.host.name
+    myhostname = virtual.host.tld
     inet_interfaces = $myhostname
     mydestination = $myhostname
 
@@ -327,7 +343,7 @@ In order to inspect the mail queue, use
 
     % sendmail -bp
 
-See also the "Care and feeding" section 13 below.
+See also the "Care and feeding" section 12 below.
 
 9 - Turning off sendmail forever
 ================================
@@ -357,7 +373,7 @@ and watch the syslog file for any complaints from the mail system.
 Typical logfile names are: /var/log/maillog or /var/log/syslog.
 See /etc/syslog.conf for actual logfile names.
 
-See also the "Care and feeding" section 13 below.
+See also the "Care and feeding" section 12 below.
 
 10 - Mandatory configuration file edits
 =======================================
@@ -386,7 +402,7 @@ configuration language uses lazy evaluation, and does not look at
 a parameter value until it is needed at runtime.
 
 First of all, you must specify what domain will be appended to an
-unqualified address (i.e. an address without @domain.name). The
+unqualified address (i.e. an address without @domain.tld). The
 "myorigin" parameter defaults to the local hostname, but that is
 probably OK only for very small sites.
 

@@ -106,6 +106,7 @@
 #include <mail_conf.h>
 #include <record.h>
 #include <rec_type.h>
+#include <lex_822.h>
 
 /* Single-threaded server skeleton. */
 
@@ -223,7 +224,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	     */
 	    if (check_first) {
 		check_first = 0;
-		if (VSTRING_LEN(buf) > 0 && ISSPACE(vstring_str(buf)[0]))
+		if (VSTRING_LEN(buf) > 0 && IS_SPACE_TAB(vstring_str(buf)[0]))
 		    rec_put(cleanup, REC_TYPE_NORM, "", 0);
 	    }
 	    if ((REC_PUT_BUF(cleanup, type, buf)) < 0)

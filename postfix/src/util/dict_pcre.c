@@ -283,7 +283,7 @@ DICT   *dict_pcre_open(const char *map, int unused_flags, int dict_flags)
 	*p++ = '\0';				/* Null term the regexp */
 
 	/* Now parse any regexp options */
-	re_options = PCRE_CASELESS;
+	re_options = PCRE_CASELESS | PCRE_DOTALL;
 	while (*p && !ISSPACE(*p)) {
 	    switch (*p) {
 	    case 'i':

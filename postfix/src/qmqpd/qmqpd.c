@@ -136,6 +136,7 @@
 #include <namadr_list.h>
 #include <quote_822_local.h>
 #include <match_parent_style.h>
+#include <lex_822.h>
 
 /* Single-threaded server skeleton. */
 
@@ -380,7 +381,7 @@ static void qmqpd_write_content(QMQPD_STATE *state)
 		continue;
 	    }
 	    first = 0;
-	    if (len > 0 && ISSPACE(start[0]))
+	    if (len > 0 && IS_SPACE_TAB(start[0]))
 		rec_put(state->cleanup, REC_TYPE_NORM, "", 0);
 	}
 	if (rec_put(state->cleanup, rec_type, start, len) < 0) {

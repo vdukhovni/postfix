@@ -107,6 +107,7 @@
 
 /* Global library. */
 
+#include "lex_822.h"
 #include "quote_822_local.h"
 #include "tok822.h"
 
@@ -121,7 +122,7 @@
 	    } else if (!(cond)) { \
 		break; \
 	    } \
-	    VSTRING_ADDCH(t->vstr, ISSPACE(c) ? ' ' : c); \
+	    VSTRING_ADDCH(t->vstr, IS_SPACE_TAB_CR_LF(c) ? ' ' : c); \
 	    s++; \
 	} \
 	VSTRING_TERMINATE(t->vstr); \
@@ -155,10 +156,9 @@
  /*
   * Single-character operators. We include the % and ! operators because not
   * all the world is RFC822. XXX Make this operator list configurable when we
-  * have a real rewriting language.
+  * have a real rewriting language. Include | for aliases file parsing.
   */
-static char tok822_opchar[] = "|\"(),.:;<>@[]%!";
-
+static char tok822_opchar[] = "|%!" LEX_822_SPECIALS;
 static void tok822_quote_atom(TOK822 *);
 static const char *tok822_comment(TOK822 *, const char *);
 static TOK822 *tok822_group(int, TOK822 *, TOK822 *, int);
@@ -331,7 +331,7 @@ TOK822 *tok822_scan(const char *str, TOK822 **tailp)
      * white space as part of the token stream. Thanks a lot, people.
      */
     while ((ch = *(unsigned char *) str++) != 0) {
-	if (ISSPACE(ch))
+	if (IS_SPACE_TAB_CR_LF(ch))
 	    continue;
 	if (ch == '(') {
 	    tp = tok822_alloc(TOK822_COMMENT, (char *) 0);
@@ -347,7 +347,7 @@ TOK822 *tok822_scan(const char *str, TOK822 **tailp)
 	} else {
 	    tp = tok822_alloc(TOK822_ATOM, (char *) 0);
 	    str -= 1;				/* \ may be first */
-	    COLLECT(tp, str, ch, !ISSPACE(ch) && !strchr(tok822_opchar, ch));
+	    COLLECT(tp, str, ch, !IS_SPACE_TAB_CR_LF(ch) && !strchr(tok822_opchar, ch));
 	    tok822_quote_atom(tp);
 	}
 	if (head == 0) {
@@ -463,7 +463,7 @@ static void tok822_quote_atom(TOK822 *tp)
      * (and still passing it on as 8-bit data) we leave 8-bit data alone.
      */
     for (cp = vstring_str(tp->vstr); (ch = *(unsigned char *) cp) != 0; cp++) {
-	if ( /* !ISASCII(ch) || */ ISSPACE(ch)
+	if ( /* !ISASCII(ch) || */ ch == ' '
 	    || ISCNTRL(ch) || strchr(tok822_opchar, ch)) {
 	    tp->type = TOK822_QSTRING;
 	    break;

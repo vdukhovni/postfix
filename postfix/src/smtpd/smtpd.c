@@ -181,9 +181,9 @@
 /* .ad
 /* .fi
 /* .IP \fBparent_domain_matches_subdomains\fR
-/*	List of Postfix features that use \fIdomain.name\fR patterns
-/*	to match \fIsub.domain.name\fR (as opposed to
-/*	requiring \fI.domain.name\fR patterns).
+/*	List of Postfix features that use \fIdomain.tld\fR patterns
+/*	to match \fIsub.domain.tld\fR (as opposed to
+/*	requiring \fI.domain.tld\fR patterns).
 /* .IP \fBsmtpd_client_restrictions\fR
 /*	Restrict what clients may connect to this mail system.
 /* .IP \fBsmtpd_helo_required\fR
@@ -313,6 +313,7 @@
 #include <verp_sender.h>
 #include <string_list.h>
 #include <quote_822_local.h>
+#include <lex_822.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1011,7 +1012,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		continue;
 	    }
 	    first = 0;
-	    if (len > 0 && ISSPACE(start[0]))
+	    if (len > 0 && IS_SPACE_TAB(start[0]))
 		rec_put(state->cleanup, REC_TYPE_NORM, "", 0);
 	}
 	if (prev_rec_type != REC_TYPE_CONT

@@ -34,16 +34,28 @@ mime_boundary_length_limit = 2048
 # 
 mime_nesting_limit = 20
 
-# Specify "yes" to reject mail with 8-bit text in message headers,
-# and with 8-bit text in message bodies that either claim to be 7-bit
-# format or that default to 7-bit format. This optional restriction
+# Specify "yes" to reject mail with 8-bit text in message headers.
+# This optional restriction is enforced while receiving mail.
+# 
+# This blocks mail from poorly written mail software.
+# 
+strict_7bit_headers = no
+
+# Specify "yes" to reject mail with 8-bit text in message bodies that
+# are not sent as valid 8-bit MIME mail.  This optional restriction
 # is enforced while receiving mail.
 # 
 # This blocks mail from poorly written mail software. Unfortunately,
-# this also blocks approval requests from Majordomo when the included
-# request contains valid 8-bit MIME mail, and it may block 8-bit mail
+# this also blocks (bounces from qmail, bounces from older Postfix
+# versions, and approval requests from Majordomo) when the included
+# message contains valid 8-bit MIME mail, and it may block 8-bit mail
 # that is piped into /bin/mail or other MIME challenged software.
 # 
+strict_8bitmime_body = no
+
+# Specify "yes" to turn on both strict_7bit_headers and
+# strict_8bitmime_body.
+#
 strict_8bitmime = no
 
 # Specify "yes" to reject mail with invalid Content-Transfer-Encoding:

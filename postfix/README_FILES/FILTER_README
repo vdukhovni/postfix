@@ -230,7 +230,7 @@ a dedicated listener on port localhost 10026:
         localhost:10026     inet  n      -      n      -      10      smtpd
 	    -o content_filter= 
 	    -o local_recipient_maps=
-	    -o myhostname=localhost.domain.name
+	    -o myhostname=localhost.domain.tld
 	    -o smtpd_helo_restrictions=
 	    -o smtpd_client_restrictions=
 	    -o smtpd_sender_restrictions=
@@ -245,7 +245,7 @@ The "-o local_recipient_maps=" is a safety in case you have specified
 local_recipient_maps in the main.cf file. That could interfere with
 content filtering. 
 
-The "-o myhostname=localhost.domain.name" avoids a possible problem
+The "-o myhostname=localhost.domain.tld" avoids a possible problem
 if the content filter is picky about the hostname that Postfix
 sends in SMTP server replies.
 
@@ -343,7 +343,7 @@ cleanup             unix  n      -      n      -       0      cleanup
 # ensures that the original envelope recipient is seen by the
 # content filter.
 #
-scan                unix  n      -      n      -      10      smtp
+scan                unix  -      -      n      -      10      smtp
     -o disable_dns_lookups=yes
 #
 # This is the SMTP listener that receives filtered messages from
@@ -368,7 +368,7 @@ scan                unix  n      -      n      -      10      smtp
 #
 localhost:10026     inet  n      -      n      -       -      smtpd
     -o content_filter= 
-    -o myhostname=localhost.domain.name
+    -o myhostname=localhost.domain.tld
     -o local_recipient_maps=
     -o virtual_maps=
     -o virtual_mailbox_maps=
@@ -395,7 +395,7 @@ cleanup2            unix  n      -      n      -       0      cleanup
 # Definitely do not set "disable_dns_lookups = yes" here if you
 # send mail to the Internet.
 #
-smtp                unix  n      -      n      -      -       smtp
+smtp                unix  -      -      n      -      -       smtp
 
 This causes Postfix to add one extra content filtering record to
 each incoming mail message, with content scan:localhost:10025.

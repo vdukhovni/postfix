@@ -12,6 +12,36 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20020528
+==========================================================
+
+With PCRE pattern matching, the `.' metacharacter now matches all
+characters including newline characters. This makes PCRE pattern
+matching more convenient to use with multi-line message headers,
+and also makes PCRE more compatible with regexp pattern matching.
+The pcre_table(5) manual page has been greatly revised.
+
+Major changes with Postfix snapshot 1.1.11-20020528
+===================================================
+
+Postfix can enforce specific aspects of the MIME standards while
+receiving mail.
+
+* Specify "strict_7bit_headers = yes" to disallow 8-bit characters
+  in message headers.  These are always illegal.
+
+* Specify "strict_8bitmime_body = yes" to block mail with 8-bit
+  content that is not properly labeled as 8-bit MIME. This blocks
+  mail from poorly written mail software, including (bounces from
+  qmail, bounces from Postfix before snapshot 20020514, and Majordomo
+  approval requests) that contain valid 8BITMIME mail.
+
+* Specify "strict_8bitmime = yes" to turn on both strict_7bit_headers
+  and strict_8bitmime_body.
+
+* Specify "strict_mime_encoding_domain = yes" to block mail from
+  poorly written mail software. More details in conf/sample-mime.cf.
+
 Incompatible changes with Postfix snapshot 1.1.11-20020527
 ==========================================================
 
@@ -70,13 +100,6 @@ The Postfix SMTP client will now convert 8BITMIME mail to 7BIT when
 delivering to an SMTP server that does not announce 8BITMIME support.
 To disable, specify "disable_mime_output_conversion = yes". However,
 this conversion is required by RFC standards.
-
-Postfix can enforce some aspects of the MIME standards while
-receiving mail. Specify "strict_8bitmime = yes" to disallow 8-bit
-characters except where allowed by the MIME standard, and specify
-"strict_mime_encoding_domain = yes" to block mail from poorly
-written mail software, including majordomo approval requests that
-contain valid 8BITMIME mail. More details in conf/sample-mime.cf.
 
 Incompatible changes with Postfix snapshot 1.1.10-20020514
 ==========================================================

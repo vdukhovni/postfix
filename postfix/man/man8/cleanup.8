@@ -106,12 +106,18 @@ between boundary strings that do not differ in the first
 The maximal nesting level of multipart mail that the MIME
 processor can handle. Refuse mail that is nested deeper.
 .IP \fBstrict_8bitmime\fR
-Reject mail with 8-bit text in message headers, and with
-8-bit text in content that claims to be 7-bit, or that has
-no explicit content encoding information. This blocks mail
-mail poorly written mail software. Unfortunately, this also
-breaks majordomo approval requests when the included request
-contains valid 8-bit MIME mail.
+Turn on both \fBstrict_7bit_headers\fR and \fBstrict_8bitmime_body\fR.
+.IP \fBstrict_7bit_headers\fR
+Reject mail with 8-bit text in message headers. This blocks
+mail from poorly written applications.
+.IP \fBstrict_8bitmime_body\fR
+Reject mail with 8-bit text in content that claims to be 7-bit,
+or in content that has no explicit content encoding information.
+This blocks mail mail poorly written mail software. Unfortunately,
+this also breaks majordomo approval requests when the included
+request contains valid 8-bit MIME mail, and it breaks bounces from
+mailers that do not properly encapsulate 8-bit content (for example,
+bounces from qmail or from old versions of Postfix).
 .IP \fBstrict_mime_domain_encoding\fR
 Reject mail with invalid \fBContent-Transfer-Encoding:\fR
 information for message/* or multipart/*. This blocks mail

@@ -79,6 +79,7 @@
 #include <ext_prop.h>
 #include <mail_proto.h>
 #include <mime_state.h>
+#include <lex_822.h>
 
 /* Application-specific. */
 
@@ -101,7 +102,7 @@ static void cleanup_out_header(CLEANUP_STATE *state, VSTRING *header_buf)
      */
     for (line = start; line; line = next_line) {
 	next_line = split_at(line, '\n');
-	if (line == start || ISSPACE(*line)) {
+	if (line == start || IS_SPACE_TAB(*line)) {
 	    cleanup_out_string(state, REC_TYPE_NORM, line);
 	} else {
 	    cleanup_out_format(state, REC_TYPE_NORM, "\t%s", line);
@@ -654,9 +655,10 @@ void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
     } else {
 	/* Turn off strict MIME checks if bouncing or forwarding mail. */
 	if (state->flags & CLEANUP_FLAG_FILTER) {
-	    if (var_strict_8bitmime)
-		mime_options |= (MIME_OPT_REPORT_8BIT_IN_HEADER
-				 | MIME_OPT_REPORT_8BIT_IN_7BIT_BODY);
+	    if (var_strict_8bitmime || var_strict_7bit_hdrs)
+		mime_options |= MIME_OPT_REPORT_8BIT_IN_HEADER;
+	    if (var_strict_8bitmime || var_strict_8bit_body)
+		mime_options |= MIME_OPT_REPORT_8BIT_IN_7BIT_BODY;
 	    if (var_strict_encoding)
 		mime_options |= MIME_OPT_REPORT_ENCODING_DOMAIN;
 	}
