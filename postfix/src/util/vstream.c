@@ -18,6 +18,9 @@
 /*	int	vstream_fclose(stream)
 /*	VSTREAM	*stream;
 /*
+/*	int	vstream_fdclose(stream)
+/*	VSTREAM	*stream;
+/*
 /*	VSTREAM	*vstream_printf(format, ...)
 /*	char	*format;
 /*
@@ -151,6 +154,9 @@
 /*
 /*	vstream_fclose() closes the named buffered stream. The result
 /*	is 0 in case of success, VSTREAM_EOF in case of problems.
+/*
+/*	vstream_fdclose() leaves the file(s) open but is otherwise
+/*	identical to vstream_fclose().
 /*
 /*	vstream_fprintf() formats its arguments according to the
 /*	\fIformat\fR argument and writes the result to the named stream.
@@ -642,7 +648,7 @@ static int vstream_buf_get_ready(VBUF *bp)
      */
     if (bp->data == 0) {
 	vstream_buf_alloc(bp, VSTREAM_BUFSIZE);
-	if (bp->flags & VSTREAM_FLAG_DOUBLE) 
+	if (bp->flags & VSTREAM_FLAG_DOUBLE)
 	    VSTREAM_SAVE_STATE(stream, read_buf, read_fd);
     }
 
@@ -727,7 +733,7 @@ static int vstream_buf_put_ready(VBUF *bp)
      */
     if (bp->data == 0) {
 	vstream_buf_alloc(bp, VSTREAM_BUFSIZE);
-	if (bp->flags & VSTREAM_FLAG_DOUBLE) 
+	if (bp->flags & VSTREAM_FLAG_DOUBLE)
 	    VSTREAM_SAVE_STATE(stream, write_buf, write_fd);
     } else if (bp->cnt <= 0) {
 	if (VSTREAM_FFLUSH_SOME(stream))
@@ -970,20 +976,29 @@ int     vstream_fclose(VSTREAM *stream)
 {
     int     err;
 
+    /*
+     * NOTE: Negative file descriptors are not part of the external
+     * interface. They are for internal use only, in order to support
+     * vstream_fdclose() without a lot of code duplication. Applications that
+     * rely on negative VSTREAM file descriptors will break without warning.
+     */
     if (stream->pid != 0)
 	msg_panic("vstream_fclose: stream has process");
     if ((stream->buf.flags & VSTREAM_FLAG_WRITE_DOUBLE) != 0)
 	vstream_fflush(stream);
     err = vstream_ferror(stream);
     if (stream->buf.flags & VSTREAM_FLAG_DOUBLE) {
-	err |= close(stream->read_fd);
+	if (stream->read_fd >= 0)
+	    err |= close(stream->read_fd);
 	if (stream->write_fd != stream->read_fd)
-	    err |= close(stream->write_fd);
+	    if (stream->write_fd >= 0)
+		err |= close(stream->write_fd);
 	vstream_buf_wipe(&stream->read_buf);
 	vstream_buf_wipe(&stream->write_buf);
 	stream->buf = stream->read_buf;
     } else {
-	err |= close(stream->fd);
+	if (stream->fd >= 0)
+	    err |= close(stream->fd);
 	vstream_buf_wipe(&stream->buf);
     }
     if (stream->path)
@@ -993,6 +1008,18 @@ int     vstream_fclose(VSTREAM *stream)
     if (!VSTREAM_STATIC(stream))
 	myfree((char *) stream);
     return (err ? VSTREAM_EOF : 0);
+}
+
+/* vstream_fdclose - close stream, leave file(s) open */
+
+int     vstream_fdclose(VSTREAM *stream)
+{
+    if (stream->buf.flags & VSTREAM_FLAG_DOUBLE) {
+	stream->read_fd = stream->write_fd = -1;
+    } else {
+	stream->fd = -1;
+    }
+    return (vstream_fclose(stream));
 }
 
 /* vstream_printf - formatted print to stdout */

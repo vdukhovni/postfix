@@ -38,12 +38,10 @@
 
 #include <mymalloc.h>
 #include <vstring.h>
-#include <vstream.h>
 
 /* Global library. */
 
-#include <mail_conf.h>
-#include <mime_state.h>
+#include <mail_params.h>
 
 /* Application-specific. */
 
@@ -57,10 +55,25 @@ SMTP_STATE *smtp_state_alloc(void)
     SMTP_STATE *state = (SMTP_STATE *) mymalloc(sizeof(*state));
 
     state->src = 0;
+    state->service = 0;
     state->request = 0;
     state->session = 0;
     state->status = 0;
     state->space_left = 0;
+    state->nexthop_domain = 0;
+    if (var_smtp_cache_conn) {
+	state->dest_label = vstring_alloc(10);
+	state->dest_prop = vstring_alloc(10);
+	state->endp_label = vstring_alloc(10);
+	state->endp_prop = vstring_alloc(10);
+	state->cache_used = htable_create(1);
+    } else {
+	state->dest_label = 0;
+	state->dest_prop = 0;
+	state->endp_label = 0;
+	state->endp_prop = 0;
+	state->cache_used = 0;
+    }
     return (state);
 }
 
@@ -68,5 +81,15 @@ SMTP_STATE *smtp_state_alloc(void)
 
 void    smtp_state_free(SMTP_STATE *state)
 {
+    if (state->dest_label)
+	vstring_free(state->dest_label);
+    if (state->dest_prop)
+	vstring_free(state->dest_prop);
+    if (state->endp_label)
+	vstring_free(state->endp_label);
+    if (state->endp_prop)
+	vstring_free(state->endp_prop);
+    if (state->cache_used)
+	htable_free(state->cache_used, (void (*) (char *)) 0);
     myfree((char *) state);
 }

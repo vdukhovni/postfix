@@ -19,6 +19,9 @@
 /*	that fail to complete the SMTP handshake and tries to find
 /*	an alternate server when an SMTP session fails to deliver.
 /*
+/*	This layer also controls what sessions are retrieved from
+/*	the session cache, and what sessions are saved to the cache.
+/*
 /*	The destination is either a host (or domain) name or a numeric
 /*	address. Symbolic or numeric service port information may be
 /*	appended, separated by a colon (":").
@@ -41,6 +44,10 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Connection caching in cooperation with:
+/*	Victor Duchovni
+/*	Morgan Stanley
 /*--*/
 
 /* System library. */
@@ -65,6 +72,10 @@
 #define INADDR_NONE 0xffffffff
 #endif
 
+#ifndef IPPORT_SMTP
+#define IPPORT_SMTP 25
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -83,7 +94,6 @@
 
 #include <mail_params.h>
 #include <own_inet_addr.h>
-#include <debug_peer.h>
 #include <deliver_pass.h>
 #include <mail_error.h>
 
@@ -93,13 +103,17 @@
 
 /* Application-specific. */
 
-#include "smtp.h"
-#include "smtp_addr.h"
+#include <smtp.h>
+#include <smtp_addr.h>
+#include <smtp_reuse.h>
+
+#define STR(x) vstring_str(x)
 
 /* smtp_connect_addr - connect to explicit address */
 
-static SMTP_SESSION *smtp_connect_addr(char *dest, DNS_RR *addr, unsigned port,
-				               VSTRING *why)
+static SMTP_SESSION *smtp_connect_addr(const char *dest, DNS_RR *addr,
+				               unsigned port, VSTRING *why,
+				               int sess_flags)
 {
     char   *myname = "smtp_connect_addr";
     struct sockaddr_in sin;
@@ -213,7 +227,7 @@ static SMTP_SESSION *smtp_connect_addr(char *dest, DNS_RR *addr, unsigned port,
     }
     vstream_ungetc(stream, ch);
     return (smtp_session_alloc(stream, dest, addr->name,
-			       inet_ntoa(sin.sin_addr)));
+			       inet_ntoa(sin.sin_addr), port, sess_flags));
 }
 
 /* smtp_parse_destination - parse destination */
@@ -251,6 +265,168 @@ static char *smtp_parse_destination(char *destination, char *def_service,
     return (buf);
 }
 
+/* smtp_cleanup_session - clean up after using a session */
+
+static void smtp_cleanup_session(SMTP_STATE *state)
+{
+    SMTP_SESSION *session = state->session;
+
+    /*
+     * Inform the postmaster of trouble.
+     */
+    if (session->history != 0
+	&& (session->error_mask & name_mask(VAR_NOTIFY_CLASSES,
+					    mail_error_masks,
+					    var_notify_classes)) != 0)
+	smtp_chat_notify(session);
+
+    /*
+     * When session caching is enabled, cache the first good session for this
+     * delivery request under the next-hop destination, and cache all good
+     * sessions under their server network address (destroying the session in
+     * the process).
+     * 
+     * Caching under the next-hop destination name (rather than the fall-back
+     * destination) allows us to skip over non-responding primary or backup
+     * hosts. In fact, this is the only benefit of caching logical to
+     * physical bindings; caching a session under its own hostname provides
+     * no performance benefit, given the way smtp_connect() works.
+     * 
+     * XXX Should not cache TLS sessions unless we are using a single-session,
+     * in-process, cache. And if we did, we should passivate VSTREAM objects
+     * in addition to passivating SMTP_SESSION objects.
+     */
+    if (session->reuse_count > 0) {
+	smtp_save_session(state);
+	if (HAVE_NEXTHOP_STATE(state))
+	    FREE_NEXTHOP_STATE(state);
+    } else {
+	smtp_session_free(session);
+    }
+    state->session = 0;
+
+    /*
+     * Clean up the lists with todo and dropped recipients.
+     */
+    smtp_rcpt_cleanup(state);
+}
+
+/* smtp_scrub_address_list - delete all cached addresses from list */
+
+static void smtp_scrub_addr_list(HTABLE *cached_addr, DNS_RR **addr_list)
+{
+    DNS_RR *addr;
+    DNS_RR *next;
+
+#define INADDRP(x) ((struct in_addr *) (x))
+
+    for (addr = *addr_list; addr; addr = next) {
+	next = addr->next;
+	if (addr->type == T_A) {
+	    if (addr->data_len > sizeof(struct in_addr))
+		continue;
+	    if (htable_locate(cached_addr, inet_ntoa(*INADDRP(addr->data))))
+		*addr_list = dns_rr_remove(*addr_list, addr);
+	}
+    }
+}
+
+/* smtp_update_addr_list - common address list update */
+
+static void smtp_update_addr_list(DNS_RR **addr_list, const char *server_addr,
+				          int session_count)
+{
+    struct in_addr server_in_addr;
+    DNS_RR *addr;
+    DNS_RR *next;
+
+    if (*addr_list == 0)
+	return;
+
+    /*
+     * Truncate the address list if we are not going to use it anyway.
+     */
+    if (session_count == var_smtp_mxsess_limit
+	|| session_count == var_smtp_mxaddr_limit) {
+	dns_rr_free(*addr_list);
+	*addr_list = 0;
+	return;
+    }
+
+    /*
+     * Convert server address to internal form, and look it up in the address
+     * list.
+     * 
+     * XXX smtp_reuse_session() breaks if we remove two or more adjacent list
+     * elements but do not truncate the list to zero length.
+     */
+    server_in_addr.s_addr = inet_addr(server_addr);
+    for (addr = *addr_list; addr; addr = next) {
+	next = addr->next;
+	if (addr->type == T_A) {		/* NOT: switch */
+	    if (addr->data_len > sizeof(server_in_addr))
+		continue;
+	    if (INADDRP(addr->data)->s_addr == server_in_addr.s_addr) {
+		*addr_list = dns_rr_remove(*addr_list, addr);
+		break;
+	    }
+	}
+    }
+}
+
+/* smtp_reuse_session - try to use existing connection, return session count */
+
+static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
+			              const char *domain, unsigned port,
+			           DNS_RR **addr_list, int domain_best_pref)
+{
+    int     session_count = 0;
+    DNS_RR *addr;
+    DNS_RR *next;
+    int     saved_final_server = state->final_server;
+    SMTP_SESSION *session;
+
+    /*
+     * First, search the cache by logical destination. We truncate the server
+     * address list when all the sessions for this destination are used up,
+     * to reduce the number of variables that need to be checked later.
+     * 
+     * Note: lookup by logical destination restores the "best MX" bit.
+     */
+    if (*addr_list && SMTP_RCPT_LEFT(state) > 0
+    && (session = smtp_reuse_domain(state, lookup_mx, domain, port)) != 0) {
+	session_count = 1;
+	smtp_update_addr_list(addr_list, session->addr, session_count);
+	state->final_server = (saved_final_server && *addr_list == 0);
+	smtp_xfer(state);
+	smtp_cleanup_session(state);
+    }
+
+    /*
+     * Second, search the cache by primary MX address. Again, we use address
+     * list truncation so that we have to check fewer variables later.
+     * 
+     * XXX This loop is safe because smtp_update_addr_list() either truncates
+     * the list to zero length, or removes at most one list element.
+     */
+    for (addr = *addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
+	if (addr->pref != domain_best_pref)
+	    break;
+	next = addr->next;
+	if ((session = smtp_reuse_addr(state, addr, port)) != 0) {
+	    session->features |= SMTP_FEATURE_BEST_MX;
+	    session_count += 1;
+	    smtp_update_addr_list(addr_list, session->addr, session_count);
+	    if (*addr_list == 0)
+		next = 0;
+	    state->final_server = (saved_final_server && next == 0);
+	    smtp_xfer(state);
+	    smtp_cleanup_session(state);
+	}
+    }
+    return (session_count);
+}
+
 /* smtp_connect - establish SMTP connection */
 
 int     smtp_connect(SMTP_STATE *state)
@@ -258,9 +434,9 @@ int     smtp_connect(SMTP_STATE *state)
     DELIVER_REQUEST *request = state->request;
     VSTRING *why = vstring_alloc(10);
     char   *dest_buf;
-    char   *host;
+    char   *domain;
     unsigned port;
-    char   *def_service = "smtp";	/* XXX configurable? */
+    char   *def_service = "smtp";	/* XXX ##IPPORT_SMTP? */
     ARGV   *sites;
     char   *dest;
     char  **cpp;
@@ -271,6 +447,9 @@ int     smtp_connect(SMTP_STATE *state)
     int     sess_count;
     int     misc_flags = SMTP_MISC_FLAG_DEFAULT;
     SMTP_SESSION *session;
+    int     lookup_mx;
+    unsigned domain_best_pref;
+    int     sess_flags;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -284,6 +463,16 @@ int     smtp_connect(SMTP_STATE *state)
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", request->nexthop);
     argv_split_append(sites, var_fallback_relay, ", \t\r\n");
+
+    /*
+     * Enable session caching by next-hop destination.
+     */
+    if (sites->argv[0]
+	&& smtp_cache_dest
+	&& string_list_match(smtp_cache_dest, sites->argv[0]))
+	sess_flags = SMTP_SESS_FLAG_CACHE;
+    else
+	sess_flags = SMTP_SESS_FLAG_NONE;
 
     /*
      * Don't give up after a hard host lookup error until we have tried the
@@ -309,31 +498,71 @@ int     smtp_connect(SMTP_STATE *state)
 	 * the address instead of the mail exchanger when a quoted host is
 	 * specified, or when DNS lookups are disabled.
 	 */
-	dest_buf = smtp_parse_destination(dest, def_service, &host, &port);
+	dest_buf = smtp_parse_destination(dest, def_service, &domain, &port);
 
 	/*
 	 * Resolve an SMTP server. Skip mail exchanger lookups when a quoted
 	 * host is specified, or when DNS lookups are disabled.
 	 */
 	if (msg_verbose)
-	    msg_info("connecting to %s port %d", host, ntohs(port));
-	if (ntohs(port) != 25)
+	    msg_info("connecting to %s port %d", domain, ntohs(port));
+	if (ntohs(port) != IPPORT_SMTP)
 	    misc_flags &= ~SMTP_MISC_FLAG_LOOP_DETECT;
 	else
 	    misc_flags |= SMTP_MISC_FLAG_LOOP_DETECT;
-	if (var_disable_dns || *dest == '[') {
-	    addr_list = smtp_host_addr(host, misc_flags, why);
+	lookup_mx = (var_disable_dns == 0 && *dest != '[');
+	if (!lookup_mx) {
+	    addr_list = smtp_host_addr(domain, misc_flags, why);
 	} else {
-	    addr_list = smtp_domain_addr(host, misc_flags, why);
+	    addr_list = smtp_domain_addr(domain, misc_flags, why);
 	}
-	myfree(dest_buf);
+
+	/*
+	 * When session caching is enabled, store the first good session for
+	 * this delivery request under the next-hop destination name. All
+	 * good sessions will be stored under their specific server IP
+	 * address.
+	 * 
+	 * XXX Replace sites->argv by (lookup_mx, domain, port) triples so we
+	 * don't have to make clumsy ad-hoc copies and keep track of who
+	 * free()s the memory.
+	 */
+	if (cpp == sites->argv && (sess_flags & SMTP_SESS_FLAG_CACHE) != 0)
+	    SET_NEXTHOP_STATE(state, lookup_mx, domain, port);
 
 	/*
 	 * Don't try any backup host if mail loops to myself. That would just
 	 * make the problem worse.
 	 */
-	if (addr_list == 0 && smtp_errno == SMTP_ERR_LOOP)
+	if (addr_list == 0 && smtp_errno == SMTP_ERR_LOOP) {
+	    myfree(dest_buf);
 	    break;
+	}
+
+	/*
+	 * No early loop exit or we have a memory leak with dest_buf.
+	 */
+	if (addr_list)
+	    domain_best_pref = addr_list->pref;
+
+	/*
+	 * Delete visited cached hosts from the address list.
+	 * 
+	 * Optionally search the connection cache by domain name or by primary
+	 * MX address.
+	 * 
+	 * Enforce the MX session and MX address counts per next-hop or
+	 * fall-back destination. smtp_reuse_session() will truncate the
+	 * address list when either limit is reached.
+	 */
+	if (addr_list && (sess_flags & SMTP_SESS_FLAG_CACHE) != 0) {
+	    if (state->cache_used->used > 0)
+		smtp_scrub_addr_list(state->cache_used, &addr_list);
+	    sess_count = addr_count =
+		smtp_reuse_session(state, lookup_mx, domain, port,
+				   &addr_list, domain_best_pref);
+	} else
+	    sess_count = addr_count = 0;
 
 	/*
 	 * Connect to an SMTP server.
@@ -344,36 +573,33 @@ int     smtp_connect(SMTP_STATE *state)
 	 * the end of an SMTP session, weed out the recipient list. Unmark
 	 * any left-over recipients and try to deliver them to a backup mail
 	 * server.
+	 * 
+	 * Cache the first good session under the next-hop destination name.
+	 * Cache all good sessions under their physical endpoint.
 	 */
-	sess_count = addr_count = 0;
 	for (addr = addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
 	    next = addr->next;
 	    if (++addr_count == var_smtp_mxaddr_limit)
 		next = 0;
-	    session = state->session = smtp_connect_addr(dest, addr, port, why);
-	    if (session != 0) {
+	    if ((sess_flags & SMTP_SESS_FLAG_CACHE) == 0
+		|| (session = smtp_reuse_addr(state, addr, port)) == 0)
+		session = smtp_connect_addr(dest, addr, port, why, sess_flags);
+	    if ((state->session = session) != 0) {
 		if (++sess_count == var_smtp_mxsess_limit)
 		    next = 0;
 		state->final_server = (cpp[1] == 0 && next == 0);
-		session->best = (addr->pref == addr_list->pref);
-		debug_peer_check(session->host, session->addr);
-		if (smtp_helo(state, misc_flags) == 0)
+		if (addr->pref == domain_best_pref)
+		    session->features |= SMTP_FEATURE_BEST_MX;
+		if ((session->features & SMTP_FEATURE_FROM_CACHE) != 0
+		    || smtp_helo(state, misc_flags) == 0)
 		    smtp_xfer(state);
-		if (session->history != 0) {
-		    if (session->error_mask & name_mask(VAR_NOTIFY_CLASSES,
-				      mail_error_masks, var_notify_classes))
-			smtp_chat_notify(session);
-		}
-		/* XXX smtp_xfer() may abort in the middle of DATA. */
-		smtp_session_free(session);
-		state->session = 0;
-		debug_peer_restore();
-		smtp_rcpt_cleanup(state);
+		smtp_cleanup_session(state);
 	    } else {
 		msg_info("%s (port %d)", vstring_str(why), ntohs(port));
 	    }
 	}
 	dns_rr_free(addr_list);
+	myfree(dest_buf);
     }
 
     /*
@@ -445,6 +671,8 @@ int     smtp_connect(SMTP_STATE *state)
     /*
      * Cleanup.
      */
+    if (HAVE_NEXTHOP_STATE(state))
+	FREE_NEXTHOP_STATE(state);
     argv_free(sites);
     vstring_free(why);
     return (state->status);

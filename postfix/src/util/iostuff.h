@@ -29,6 +29,10 @@ extern int timed_write(int, void *, unsigned, int, void *);
 extern void doze(unsigned);
 extern void rand_sleep(unsigned, unsigned);
 extern int duplex_pipe(int *);
+extern int stream_recv_fd(int);
+extern int stream_send_fd(int, int);
+extern int unix_recv_fd(int);
+extern int unix_send_fd(int, int);
 
 #define BLOCKING	0
 #define NON_BLOCKING	1

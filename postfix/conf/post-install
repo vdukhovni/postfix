@@ -620,6 +620,15 @@ anvil	  unix	-	-	n	-	1	anvil
 EOF
     }
 
+    # Add missing scache service to master.cf.
+
+    grep '^scache.*scache' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for scache service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+scache	  unix	-	-	n	-	1	scache
+EOF
+    }
+
     # Report (but do not remove) obsolete files.
 
     test -n "$obsolete" && {

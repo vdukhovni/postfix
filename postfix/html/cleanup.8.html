@@ -131,8 +131,8 @@ CLEANUP(8)                                             CLEANUP(8)
               strings.
 
        <b><a href="postconf.5.html#mime_nesting_limit">mime_nesting_limit</a> (100)</b>
-              The maximal nesting level of  multipart  mail  that
-              the MIME processor will handle.
+              The maximal recursion level that the MIME processor
+              will handle.
 
        <b><a href="postconf.5.html#strict_8bitmime">strict_8bitmime</a> (no)</b>
               Enable  both  <a href="postconf.5.html#strict_7bit_headers">strict_7bit_headers</a>  and strict_8bit-
@@ -258,8 +258,8 @@ CLEANUP(8)                                             CLEANUP(8)
               strings.
 
        <b><a href="postconf.5.html#mime_nesting_limit">mime_nesting_limit</a> (100)</b>
-              The  maximal  nesting  level of multipart mail that
-              the MIME processor will handle.
+              The maximal recursion level that the MIME processor
+              will handle.
 
        <b><a href="postconf.5.html#queue_file_attribute_count_limit">queue_file_attribute_count_limit</a> (100)</b>
               The maximal number of (name=value) attributes  that

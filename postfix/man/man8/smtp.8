@@ -31,6 +31,11 @@ to each listed address until it finds a server that responds.
 When a server is not reachable, or when mail delivery fails due
 to a recoverable error condition, the SMTP client will try to
 deliver the mail to an alternate host.
+
+After a successful mail transaction, a session may be saved
+to the \fBscache(8)\fR session cache server, so that it
+may be used by any SMTP client for a subsequent transaction.
+Session caching is disabled by default.
 .SH "SECURITY"
 .na
 .nf
@@ -62,6 +67,15 @@ move them to the \fBcorrupt\fR queue for further inspection.
 Depending on the setting of the \fBnotify_classes\fR parameter,
 the postmaster is notified of bounces, protocol problems, and of
 other trouble.
+.SH BUGS
+.ad
+.fi
+SMTP session caching does not work with TLS. The necessary
+support for object passivation and re-activation does not
+exist.
+
+SMTP session caching assumes that SASL credentials are valid for
+all destinations that map onto the same IP address and TCP port.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -121,8 +135,7 @@ Disable the conversion of 8BITMIME format to 7BIT format.
 .IP "\fBmime_boundary_length_limit (2048)\fR"
 The maximal length of MIME multipart boundary strings.
 .IP "\fBmime_nesting_limit (100)\fR"
-The maximal nesting level of multipart mail that the MIME processor
-will handle.
+The maximal recursion level that the MIME processor will handle.
 .SH "EXTERNAL CONTENT INSPECTION CONTROLS"
 .na
 .nf
@@ -191,9 +204,20 @@ result from mail exchanger lookups, or zero (no limit).
 The maximal number of SMTP sessions per delivery request before
 giving up or delivering to a fall-back relay host, or zero (no
 limit).
-.IP "\fBsmtp_rset_timeout (120s)\fR"
+.IP "\fBsmtp_rset_timeout (20s)\fR"
 The SMTP client time limit for sending the RSET command, and
 for receiving the server response.
+.PP
+Available in Postfix version 2.2 and later:
+.IP "\fBsmtp_connection_cache_domains (empty)\fR"
+The SMTP destinations for which SMTP connection caching is
+enabled.
+.IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"
+When SMTP session caching is enabled, the number of times that
+an SMTP session is reused before it is closed.
+.IP "\fBsmtp_connection_cache_time_limit (2s)\fR"
+When SMTP session caching is enabled, the amount of time that
+an unused SMTP client socket is kept open before it is closed.
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf
@@ -270,6 +294,7 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .nf
 qmgr(8), queue manager
 bounce(8), delivery status reports
+scache(8), session cache server
 postconf(5), configuration parameters
 master(8), process manager
 syslogd(8), system logging
@@ -296,3 +321,15 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
+
+Command pipelining in cooperation with:
+Jon Ribbens
+Oaktree Internet Solutions Ltd.,
+Internet House,
+Canal Basin,
+Coventry,
+CV1 4LY, United Kingdom.
+
+Connection caching in cooperation with:
+Victor Duchovni
+Morgan Stanley

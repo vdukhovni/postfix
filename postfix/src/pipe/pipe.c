@@ -41,11 +41,16 @@
 /* .fi
 /*	The external command attributes are given in the \fBmaster.cf\fR
 /*	file at the end of a service definition.  The syntax is as follows:
+/* .IP "\fBdirectory=\fIpathname\fR (optional, default: \fB$queue_directory\fR)"
+/*	Change to the named directory before executing the external command.
+/*	Delivery is deferred in case of failure.
+/* .sp
+/*	This feature is available as of Postfix 2.2.
 /* .IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
 /*	The output record delimiter. Typically one would use either
 /*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 /*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev
-/*	\e\fIoctal\fR and \fB\e\e\fR.
+/*	\e\fIddd\fR (up to three octal digits) and \fB\e\e\fR.
 /* .IP "\fBflags=BDFORhqu.>\fR (optional)"
 /*	Optional message processing flags. By default, a message is
 /*	copied unchanged.
@@ -95,10 +100,10 @@
 /*	the left of the right-most \fB@\fR character) to lower case.
 /*	This is recommended for delivery via \fBUUCP\fR.
 /* .IP \fB.\fR
-/*	Prepend \fB.\fR to lines starting with "\fB.\fR". This is needed
+/*	Prepend "\fB.\fR" to lines starting with "\fB.\fR". This is needed
 /*	by, for example, \fBBSMTP\fR software.
 /* .IP \fB>\fR
-/*	Prepend \fB>\fR to lines starting with "\fBFrom \fR". This is expected
+/*	Prepend "\fB>\fR" to lines starting with "\fBFrom \fR". This is expected
 /*	by, for example, \fBUUCP\fR software.
 /* .RE
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
@@ -173,11 +178,6 @@
 /*	In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
 /*	$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
 /*	\fB$\fR is wanted.
-/* .PP
-/*	Available in Postfix 2.2 and later:
-/* .IP "\fBdirectory=\fIpathname\fR (optional)"
-/*	Change to the specified directory before executing the command.
-/*	Failure causes mail delivery to be deferred.
 /* DIAGNOSTICS
 /*	Command exit status codes are expected to
 /*	follow the conventions defined in <\fBsysexits.h\fR>.

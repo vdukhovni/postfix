@@ -8189,8 +8189,8 @@ Apologies for any names omitted.
 	of mail probes, so it will no longer block for in_flow_delay
 	seconds when mail arrives faster than it is delivered.
 	Still need to make mail_stream_finish() asynchronous in
-	order to avoid blocking for trigger_timeout seconds when the
-	queue manager is overwhelmed.  Files:  global/post_mail.c,
+	order to avoid blocking for trigger_timeout seconds when
+	the queue manager is overwhelmed.  Files:  global/post_mail.c,
 	verify/verify.c.
 
 	Bugfix: removed extraneous sleep() after the last attempt
@@ -8365,13 +8365,13 @@ Apologies for any names omitted.
 	Support for multiple A and TXT results in RBL lookups.
 	Victor Duchovni, Morgan Stanley.  File: smtpd/smtpd_check.c.
 
-	Support for attribute-based query-reply protocols.
-	Files: util/attr_clnt.[hc], util/auto_clnt.[hc].
+	Support for attribute-based query-reply protocols.  Files:
+	util/attr_clnt.[hc], util/auto_clnt.[hc].
 
 20030711
 
-	Support for plain "name=value\n" attribute protocol.
-	Files: util/attr_{scan,print}_plain.c.
+	Support for plain "name=value\n" attribute protocol.  Files:
+	util/attr_{scan,print}_plain.c.
 
 	Bugfix: the LMTP session caching code did not reset the
 	EHLO server feature list when it needed to reconnect.
@@ -8399,7 +8399,7 @@ Apologies for any names omitted.
 
 20030717
 
-	Documentation: added description of policy_time_limit to 
+	Documentation: added description of policy_time_limit to
 	the SMTPD_POLICY_README document.
 
 	Documentation: corrected the command time limit parameter
@@ -8703,8 +8703,8 @@ Apologies for any names omitted.
 
 20031024
 
-	Portability: added localhost to mydestination for sites that
-	turn off append_dot_mydomain. File: global/mail_params.h.
+	Portability: added localhost to mydestination for sites
+	that turn off append_dot_mydomain. File: global/mail_params.h.
 
 20031027
 
@@ -8958,7 +8958,7 @@ Apologies for any names omitted.
 	Feature: the reject_unlisted_sender(recipient) SMTPD access
 	restriction rejects an address that matches a local, virtual
 	or relay domain, while the address is not listed in the
-	corresponding local, virtual or relay recipient table. 
+	corresponding local, virtual or relay recipient table.
 
 	Compatibility: the check_recipient_maps restriction works
 	like reject_unlisted_recipient, but will eventually be
@@ -9037,8 +9037,8 @@ Apologies for any names omitted.
 	Files:  *qmgr/qmgr_deliver.c.
 
 	Cleanup: in postfix-files, symbolic links and hard links
-	are now first-class citizens with explicit mention of
-	source and destination pathnames. Files: postfix-install,
+	are now first-class citizens with explicit mention of source
+	and destination pathnames. Files: postfix-install,
 	conf/postfix-files, conf/post-install.
 
 20040116
@@ -9071,8 +9071,8 @@ Apologies for any names omitted.
 	longer needed and have been removed, as are the default
 	*_table configuration files.
 
-	Cleanup: support for the non-standard Errors-To: header
-	is removed. File: cleanup/cleanup_message.c.
+	Cleanup: support for the non-standard Errors-To: header is
+	removed. File: cleanup/cleanup_message.c.
 
 20040121
 
@@ -9101,11 +9101,11 @@ Apologies for any names omitted.
 
 20040123
 
-	Feature: set smtpd_reject_unlisted_{sender,recipient}=no to
-	turn off automatic rejection of non-existent local, virtual
-	or relay addresses. This way it can be made conditional
-	for local clients, always on for remote clients. Files:
-	global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c.
+	Feature: set smtpd_reject_unlisted_{sender,recipient}=no
+	to turn off automatic rejection of non-existent local,
+	virtual or relay addresses. This way it can be made
+	conditional for local clients, always on for remote clients.
+	Files:  global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c.
 
 20040124
 
@@ -9114,8 +9114,8 @@ Apologies for any names omitted.
 
 20040126
 
-	Safety: handle the case that main.cf is updated while it is
-	being read. File: util/dict.c.
+	Safety: handle the case that main.cf is updated while it
+	is being read. File: util/dict.c.
 
 	Feature: "instance" attribute that links policy etc. queries
 	to the same message instance.
@@ -9186,8 +9186,8 @@ Apologies for any names omitted.
 
 20040324
 
-	Portability: ekkoBSD support by Philip Reynolds.
-	Files: makedefs, util/sys_defs.h.
+	Portability: ekkoBSD support by Philip Reynolds.  Files:
+	makedefs, util/sys_defs.h.
 
 20040325
 
@@ -9461,7 +9461,124 @@ Apologies for any names omitted.
 	Workaround for fragile clients: add microsecond time to
 	maildir filename.  Files: virtual/maildir.c, local/maildir.c.
 
+20040628-20040701
+
+	SMTP connection caching work with Victor Duchovni.
+
+	New module (later renamed to global/scache_single.c) for
+	protocol-independent session caching.  The initial
+	implementation supports in-process, single-session caching
+	only.  A later version will support a central session cache
+	daemon.  Some more work is needed for passivation/activation
+	of session attributes.
+
+	New function vstream_fdclose() to destroy a VSTREAM while
+	leaving the underlying file(s) open. Files: util/vstream.[hc].
+
+	New function dns_rr_remove() to remove one record from a
+	resource record list. Some more work is needed to turn the
+	list into a doubly-linked one. Files: dns/dns.h, dns/dns_rr.c.
+
+	Restructuring of the SMTP protocol engine for session
+	caching. File: smtp/smtp_proto.c.
+
+	Restructuring of the connection management module, and
+	first implementation of SMTP connection caching.  To enable,
+	specify an smtp_connection_cache_time value greater than
+	zero. The time unit is seconds. File: smtp/smtp_connect.c.
+
+	New code to passivate and re-activate SMTP_SESSION objects,
+	and isolation of session save/lookup in its own module.
+	Files: smtp/smtp_session.c, smtp/smtp_reuse.c.
+
+	Refinement: smtp_cache_reuse_limit parameter to bound the
+	number of times a session may be reused.  
+
+	Refinements: when a session comes from the cache, give it
+	back to the cache anyway (even when it will not be listed
+	under the next-hop destination name).
+
+	Future refinements should also include a bound on the number
+	of consecutive and total non-delivering uses and other
+	statistics.
+
+20040714
+
+	Bugfix: the code to eliminate the local MTA from the MX
+	address list did not handle the case that inet_interfaces
+	produced a less preferred match than proxy_interfaces.
+	Victor Duchovni, Morgan Stanley. File: smtp/smtp_addr.c.
+
+20040715
+
+	Resume work on SMTP session caching.  All good sessions
+	are now cached under their IP address. As before, only the
+	first good session per delivery request is cached under
+	the original next-hop destination.
+
+	At this point, SMTP session caching works, with a session
+	cache client module that uses in-process session caching.
+	This is sufficient to demonstrate that the SMTP client is
+	ready for session caching.
+
+20040716
+
+	New modules to send file descriptors from one process into
+	another one. This will be needed for implementing a central
+	connection cache manager daemon. Most systems use UNIX-domain
+	sockets as the transport for this. On Solaris we use streams
+	instead.  Applications are supposed to invoke LOCAL_SEND_FD()
+	and LOCAL_RECV_FD().  Files: {unix,streams}_{send,recv}_fd.c.
+
+20040717
+
+	First implementation of a session caching client API that
+	actually sends to/receives from a caching server process.
+	The old in-process, single-session caching functionality
+	is preserved as global/scache_single.c, so that we can use
+	it for bootstrapping the session cache server. File:
+	global/scache_clnt.c.
+
+	First implementation of the scache session cache server,
+	using the same in-process session caching code that was
+	used to bootstrap the SMTP client.  File: scache/scache.c.
+
+20040718
+
+	Performance: the default RSET timeouts are reduced from
+	120s to 20s.  Perhaps there should be different RSET timeout
+	for address probes and for session cache checks. File:
+	global/mail_params.h.
+
+20040719
+
+	Multi-session connection cache module. Implementing this
+	was actually the easiest part of the entire connection
+	caching project. File: global/scache_multi.c.
+
+20040720
+
+	Bugfix: event_drain() falsely reported a single-entry timer
+	queue as empty.  File: util/events.c.
+
+	Completed the multi-session cache support for SMTP. The
+	code can be stress tested with a driver program that reads
+	commands from a script. It is not practical to manually
+	test the effects of collisions in the time or in name space
+	domains. File:  global/scache.c.
+
 Open problems:
+
+	Low: update events.c so that 1-second timer requests do
+	not suffer from rounding errors. This is needed for 1-second
+	SMTP session caching time limits.
+
+	Low: trivial-rewrite should examine the map change status
+	every N seconds.
+
+	Low: per-sender resolver personalities?
+
+	Low: configurable internal/system locking method.
 
 	Low: make sure CCARGS -I options come at the end.
 

@@ -23,6 +23,14 @@
 /*
 /*	void	smtp_sasl_cleanup(session)
 /*	SMTP_SESSION *session;
+/*
+/*	void	smtp_sasl_passivate(session, buf)
+/*	SMTP_SESSION *session;
+/*	VSTRING	*buf;
+/*
+/*	int	smtp_sasl_activate(session, buf)
+/*	SMTP_SESSION *session;
+/*	char	*buf;
 /* DESCRIPTION
 /*	smtp_sasl_initialize() initializes the SASL library. This
 /*	routine must be called once at process startup, before any
@@ -51,6 +59,13 @@
 /*	smtp_sasl_cleanup() cleans up. It must be called at the
 /*	end of every SMTP session that uses SASL authentication.
 /*	This routine is a noop for non-SASL sessions.
+/*
+/*	smtp_sasl_passivate() appends flattened SASL attributes to the
+/*	specified buffer. The SASL attributes are not destroyed.
+/*
+/*	smtp_sasl_activate() restores SASL attributes from the
+/*	specified buffer. The buffer is modified. A result < 0
+/*	means there was an error.
 /*
 /*	Arguments:
 /* .IP session
@@ -272,9 +287,15 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
      * 
      * XXX Instead of using nexthop (the intended destination) we use dest
      * (either the intended destination, or a fall-back destination).
+     * 
+     * XXX SASL authentication currently depends on the host/domain but not on
+     * the TCP port. If the port is not :25, we should append it to the table
+     * lookup key. Code for this was briefly introduced into 2.2 snapshots,
+     * but didn't canonicalize the TCP port, and did not append the port to
+     * the MX hostname.
      */
     if ((value = maps_find(smtp_sasl_passwd_map, session->host, 0)) != 0
-      || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
+    || (value = maps_find(smtp_sasl_passwd_map, session->dest, 0)) != 0) {
 	session->sasl_username = mystrdup(value);
 	passwd = split_at(session->sasl_username, ':');
 	session->sasl_passwd = mystrdup(passwd ? passwd : "");
@@ -573,6 +594,19 @@ void    smtp_sasl_cleanup(SMTP_SESSION *session)
 	vstring_free(session->sasl_decoded);
 	session->sasl_decoded = 0;
     }
+}
+
+/* smtp_sasl_passivate - append serialized SASL attributes */
+
+void    smtp_sasl_passivate(SMTP_SESSION *session, VSTRING *buf)
+{
+}
+
+/* smtp_sasl_activate - de-serialize SASL attributes */
+
+int     smtp_sasl_activate(SMTP_SESSION *session, char *buf)
+{
+    return (0);
 }
 
 #endif

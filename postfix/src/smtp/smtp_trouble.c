@@ -223,7 +223,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
      * Don't cache this session. We can't talk to this server.
      */
     if (session)
-	session->features &= ~SMTP_FEATURE_CACHE_SESSION;
+	session->reuse_count = 0;
 
     /*
      * Cleanup.
@@ -425,7 +425,7 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
     /*
      * Don't attempt to cache this session.
      */
-    session->features &= ~SMTP_FEATURE_CACHE_SESSION;
+    session->reuse_count = 0;
 
     /*
      * Cleanup.

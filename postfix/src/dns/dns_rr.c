@@ -29,6 +29,10 @@
 /*
 /*	DNS_RR	*dns_rr_shuffle(list)
 /*	DNS_RR	*list;
+/*
+/*	DNS_RR	*dns_rr_remove(list, record)
+/*	DNS_RR	*list;
+/*	DNS_RR	*record;
 /* DESCRIPTION
 /*	The routines in this module maintain memory for DNS resource record
 /*	information, and maintain lists of DNS resource records.
@@ -54,6 +58,9 @@
 /*	sorted list.
 /*
 /*	dns_rr_shuffle() randomly permutes a list of resource records.
+/*
+/*	dns_rr_remove() removes the specified record from the specified list.
+/*	The updated list is the result value.
 /* LICENSE
 /* .ad
 /* .fi
@@ -241,5 +248,22 @@ DNS_RR *dns_rr_shuffle(DNS_RR *list)
      * Cleanup.
      */
     myfree((char *) rr_array);
+    return (list);
+}
+
+/* dns_rr_remove - remove record from list, return new list */
+
+DNS_RR *dns_rr_remove(DNS_RR *list, DNS_RR *record)
+{
+    if (list == 0) 
+	msg_panic("dns_rr_remove: record not found");
+
+    if (list == record) {
+	list = record->next;
+	record->next = 0;
+	dns_rr_free(record);
+    } else {
+	list->next = dns_rr_remove(list->next, record);
+    }
     return (list);
 }

@@ -29,6 +29,9 @@ extern void ring_detach(RING *);
 #define ring_succ(c) ((c)->succ)
 #define ring_pred(c) ((c)->pred)
 
+#define RING_FOREACH(entry, head) \
+    for (entry = ring_succ(head); entry != (head); entry = ring_succ(entry))
+
  /*
   * Typically, an application will embed a RING structure into a larger
   * structure that also contains application-specific members. This approach

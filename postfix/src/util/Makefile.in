@@ -28,7 +28,7 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
 	write_buf.c write_wait.c auto_clnt.c attr_clnt.c attr_scan_plain.c \
 	attr_print_plain.c sane_connect.c neuter.c name_code.c \
-	uppercase.c
+	uppercase.c unix_recv_fd.c stream_recv_fd.c unix_send_fd.c stream_send_fd.c
 OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
@@ -58,7 +58,7 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
 	write_buf.o write_wait.o auto_clnt.o attr_clnt.o attr_scan_plain.o \
 	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o name_code.o \
-	uppercase.o
+	uppercase.o unix_recv_fd.o stream_recv_fd.o unix_send_fd.o stream_send_fd.o
 HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
 	dict_cidr.h dict_ht.h dict_ni.h dict_nis.h \
@@ -92,7 +92,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
 	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable \
 	inet_addr_list attr_print64 attr_scan64 base64_code attr_print0 \
-	attr_scan0 host_port attr_scan_plain attr_print_plain htable
+	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
+	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -341,10 +342,30 @@ htable: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+unix_recv_fd:  $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+unix_send_fd:  $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+stream_recv_fd:  $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+stream_send_fd:  $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
 	set -e; for i in [a-z][a-z0-9]*.c; do \
-	    $(CC) -E $(DEFS) $(INCL) $$i | sed -n -e '/^# *1 *"\([^"]*\)".*/{' \
+	    $(CC) -E $(DEFS) $(INCL) $$i | grep -v '[<>]' | sed -n -e '/^# *1 *"\([^"]*\)".*/{' \
 	    -e 's//'`echo $$i|sed 's/c$$/o/'`': \1/' -e 'p' -e '}'; \
 	done) | grep -v '[.][o][:][ ][/]' >$$$$ && mv $$$$ Makefile.in
 	@$(EXPORT) make -f Makefile.in Makefile 1>&2
@@ -1211,6 +1232,14 @@ stream_listen.o: sys_defs.h
 stream_listen.o: msg.h
 stream_listen.o: listen.h
 stream_listen.o: iostuff.h
+stream_recv_fd.o: stream_recv_fd.c
+stream_recv_fd.o: sys_defs.h
+stream_recv_fd.o: msg.h
+stream_recv_fd.o: iostuff.h
+stream_send_fd.o: stream_send_fd.c
+stream_send_fd.o: sys_defs.h
+stream_send_fd.o: msg.h
+stream_send_fd.o: iostuff.h
 stream_test.o: stream_test.c
 stream_test.o: sys_defs.h
 stream_test.o: stream_test.c
@@ -1278,6 +1307,14 @@ unix_listen.o: msg.h
 unix_listen.o: iostuff.h
 unix_listen.o: listen.h
 unix_listen.o: sane_accept.h
+unix_recv_fd.o: unix_recv_fd.c
+unix_recv_fd.o: sys_defs.h
+unix_recv_fd.o: msg.h
+unix_recv_fd.o: iostuff.h
+unix_send_fd.o: unix_send_fd.c
+unix_send_fd.o: sys_defs.h
+unix_send_fd.o: msg.h
+unix_send_fd.o: iostuff.h
 unix_trigger.o: unix_trigger.c
 unix_trigger.o: sys_defs.h
 unix_trigger.o: msg.h

@@ -21,6 +21,9 @@ extern void smtp_sasl_cleanup(SMTP_SESSION *);
 extern void smtp_sasl_helo_auth(SMTP_SESSION *, const char *);
 extern int smtp_sasl_helo_login(SMTP_STATE *);
 
+extern void smtp_sasl_passivate(SMTP_SESSION *, VSTRING *);
+extern int smtp_sasl_activate(SMTP_SESSION *, char *);
+
 /* LICENSE
 /* .ad
 /* .fi

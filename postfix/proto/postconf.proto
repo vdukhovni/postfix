@@ -645,10 +645,10 @@ This feature is available in Postfix 2.1 and later.
 
 %PARAM bounce_size_limit 50000
 
-<p>
-The maximal amount of original message text that is sent in a
-non-delivery notification. Specify a byte count.
-</p>
+<p> The maximal amount of original message text that is sent in a
+non-delivery notification. Specify a byte count. If you increase
+this limit, then you should increase the mime_nesting_limit value
+proportionally.  </p>
 
 %PARAM canonical_maps 
 
@@ -726,8 +726,8 @@ address patterns that cause the verbose logging level to increase
 by the amount specified in $debug_peer_level.  </p>
 
 <p> Specify domain names, network/netmask patterns, "/file/name"
-patterns or "type:table" lookup tables. The result from lookup
-tables is ignored.  </p>
+patterns or "type:table" lookup tables. The right-hand side result
+from "type:table" lookups is ignored.  </p>
 
 <p> Pattern matching of domain names is controlled by the
 parent_domain_matches_subdomains parameter.  </p>
@@ -1698,13 +1698,12 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 </p>
 
-%PARAM lmtp_rset_timeout 120s
+%PARAM lmtp_rset_timeout 20s
 
-<p>
-The LMTP client time limit for sending the RSET command, and for
-receiving the server response. The LMTP client sends RSET in order
-to find out if a cached connection is still alive.
-</p>
+<p> The LMTP client time limit for sending the RSET command, and
+for receiving the server response. The LMTP client sends RSET in
+order to finish a recipient address probe, or to verify that a
+cached connection is still alive.  </p>
 
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
@@ -3172,6 +3171,50 @@ for example:
   /etc/postfix/master.cf:
         smtp ... smtp -o smtp_bind_address=11.22.33.44
 </pre>
+
+%PARAM smtp_connection_cache_time_limit 2s
+
+<p> When SMTP session caching is enabled, the amount of time that
+an unused SMTP client socket is kept open before it is closed.  Do
+not specify larger values without permission from the remote sites.
+</p>
+
+%PARAM smtp_connection_cache_reuse_limit 10
+
+<p> When SMTP session caching is enabled, the number of times that
+an SMTP session is reused before it is closed. 
+</p>
+
+%PARAM smtp_connection_cache_domains
+
+<p> The SMTP destinations for which SMTP connection caching is
+enabled.  With SMTP connection caching, a connection is not closed
+immediately after completion of a mail transaction.  Instead, the
+connection is kept open for up to $smtp_connection_cache_time_limit
+seconds.  This allows connections to be reused for other deliveries,
+and can improve mail delivery performance. </p>
+
+<p> Specify a comma or white space separated list of destinations
+or pseudo-destinations:
+</p>
+
+<ul>
+
+<li> a domain name (the right-hand side of an email address),
+
+<li> a relay host (including optional [] and/or non-default TCP
+port), using the exact same spelling as in main.cf or in the
+transport map,
+
+<li> a /file/name with domains and/or relay hosts,
+
+<li> a "type:table" with domains and/or relay hosts on the left-hand
+side.  The right-hand side result from "type:table" lookups is
+ignored.
+
+</ul>
+
+<p></p>
 
 %PARAM smtp_connect_timeout 30s
 
@@ -5953,8 +5996,8 @@ This feature is available in Postfix 2.0 and later.
 %PARAM mime_nesting_limit 100
 
 <p>
-The maximal nesting level of multipart mail that the MIME processor
-will handle. Postfix refuses mail that is nested deeper.
+The maximal recursion level that the MIME processor will handle.
+Postfix refuses mail that is nested deeper than the specified limit.
 </p>
 
 <p>
@@ -6290,10 +6333,12 @@ Randomize the order of equal-preference MX host addresses.  This
 is a performance feature of the Postfix SMTP client.
 </p>
 
-%PARAM smtp_rset_timeout 120s
+%PARAM smtp_rset_timeout 20s
 
 <p> The SMTP client time limit for sending the RSET command, and
-for receiving the server response.  </p>
+for receiving the server response. The SMTP client sends RSET in
+order to finish a recipient address probe, or to verify that a
+cached session is still usable.  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
 
@@ -6870,3 +6915,16 @@ and b) addresses that are aliased to addresses in other local or
 remote domains.  Available before Postfix version 2.0. With Postfix 2.1
 and later, this is replaced by separate controls: virtual_alias_domains
 and virtual_alias_maps. </p>
+
+%PARAM session_cache_service scache
+
+<p> The name of the scache(8) session cache service.  This service
+maintains a limited pool of cached sessions.  </p>
+
+%PARAM session_cache_ttl_limit 2s
+
+<p> The maximal time-to-live value that the session cache server
+allows. Requests that specify a larger TTL will be stored with the
+maximum allowed TTL. The purpose of this additional control is to
+protect the infrastructure against careless people. The cache TTL
+is already bounded by $max_idle.  </p>

@@ -293,11 +293,20 @@ while (<>) {
     s;\bsendmail_path\b;<a href="postconf.5.html#sendmail_path">$&</a>;g;
     s;\bservice_throttle_time\b;<a href="postconf.5.html#service_throttle_time">$&</a>;g;
     s;\bsetgid_group\b;<a href="postconf.5.html#setgid_group">$&</a>;g;
+
+    s;\bsession_cache_service\b;<a href="postconf.5.html#session_cache_service">$&</a>;g;
+    s;\bsession_cache_ttl_limit\b;<a href="postconf.5.html#session_cache_ttl_limit">$&</a>;g;
+
     s;\bshow_user_unknown_table_name\b;<a href="postconf.5.html#show_user_unknown_table_name">$&</a>;g;
     s;\bshowq_service_name\b;<a href="postconf.5.html#showq_service_name">$&</a>;g;
     s;\bsmtp_always_send_ehlo\b;<a href="postconf.5.html#smtp_always_send_ehlo">$&</a>;g;
     s;\bsmtp_bind_address\b;<a href="postconf.5.html#smtp_bind_address">$&</a>;g;
     s;\bsmtp_connect_timeout\b;<a href="postconf.5.html#smtp_connect_timeout">$&</a>;g;
+
+    s;\bsmtp_connection_cache_reuse_limit\b;<a href="postconf.5.html#smtp_connection_cache_reuse_limit">$&</a>;g;
+    s;\bsmtp_connection_cache_time_limit\b;<a href="postconf.5.html#smtp_connection_cache_time_limit">$&</a>;g;
+    s;\bsmtp_connection_cache_domains\b;<a href="postconf.5.html#smtp_connection_cache_domains">$&</a>;g;
+
     s;\bsmtp_data_done_timeout\b;<a href="postconf.5.html#smtp_data_done_timeout">$&</a>;g;
     s;\bsmtp_data_init_timeout\b;<a href="postconf.5.html#smtp_data_init_timeout">$&</a>;g;
     s;\bsmtp_data_xfer_timeout\b;<a href="postconf.5.html#smtp_data_xfer_timeout">$&</a>;g;
@@ -478,6 +487,7 @@ while (<>) {
     s/[<bB>]*proxymap[<\/bB>]*\(8\)/<a href="proxymap.8.html">$&<\/a>/g;
     s/[<bB>]*reg[-<\/bB>]*\n*[ <bB>]*exp[<\/bBiI>]*_[<\/iIbB>]*table[<\/bB>]*\(5\)/<a href="regexp_table.5.html">$&<\/a>/g;
     s/[<bB>]*relocated[<\/bB>]*\(5\)/<a href="relocated.5.html">$&<\/a>/g;
+    s/[<bB>]*scache[<\/bB>]*\(8\)/<a href="scache.8.html">$&<\/a>/g;
     s/[<bB>]*trans[-<\/bB>]*\n*[ <bB>]*port[<\/bB>]*\(5\)/<a href="transport.5.html">$&<\/a>/g;
     s/[<bB>]*verify[<\/bB>]*\(8\)/<a href="verify.8.html">$&<\/a>/g;
     s/[<bB>]*virtual[<\/bB>]*\(5\)/<a href="virtual.5.html">$&<\/a>/g;

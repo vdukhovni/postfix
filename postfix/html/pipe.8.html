@@ -48,11 +48,18 @@ PIPE(8)                                                   PIPE(8)
        file at the end of a service definition.  The syntax is as
        follows:
 
+       <b>directory=</b><i>pathname</i> (optional, default: <b>$<a href="postconf.5.html#queue_directory">queue_directory</a></b>)
+              Change to the named directory before executing  the
+              external  command.  Delivery is deferred in case of
+              failure.
+
+              This feature is available as of Postfix 2.2.
+
        <b>eol=string</b> (optional, default: <b>\n</b>)
               The output record delimiter.  Typically  one  would
               use  either <b>\r\n</b> or <b>\n</b>. The usual C-style backslash
               escape sequences are recognized: <b>\a \b \f \n \r  \t</b>
-              <b>\v \</b><i>octal</i> and <b>\\</b>.
+              <b>\v \</b><i>ddd</i> (up to three octal digits) and <b>\\</b>.
 
        <b>flags=BDFORhqu.</b>&gt; (optional)
               Optional  message  processing  flags. By default, a
@@ -111,10 +118,10 @@ PIPE(8)                                                   PIPE(8)
                      most <b>@</b> character) to lower  case.   This  is
                      recommended for delivery via <b>UUCP</b>.
 
-              <b>.</b>      Prepend  <b>.</b>  to lines starting with "<b>.</b>". This
+              <b>.</b>      Prepend "<b>.</b>" to lines starting with "<b>.</b>". This
                      is needed by, for example, <b>BSMTP</b> software.
 
-              &gt;      Prepend &gt; to lines starting  with  "<b>From</b>  ".
+              &gt;      Prepend "&gt;" to lines starting with "<b>From</b>  ".
                      This is expected by, for example, <b>UUCP</b> soft-
                      ware.
 
@@ -215,13 +222,6 @@ PIPE(8)                                                   PIPE(8)
        In  addition  to  the  form  ${<i>name</i>},  the forms $<i>name</i> and
        $(<i>name</i>) are also recognized.  Specify <b>$$</b> where a single  <b>$</b>
        is wanted.
-
-       Available in Postfix 2.2 and later:
-
-       <b>directory=</b><i>pathname</i> (optional)
-              Change  to the specified directory before executing
-              the command.  Failure causes mail  delivery  to  be
-              deferred.
 
 <b>DIAGNOSTICS</b>
        Command  exit status codes are expected to follow the con-

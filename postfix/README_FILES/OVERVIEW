@@ -265,6 +265,18 @@ queues.
     processes. This overcomes chroot restrictions, and reduces the number of
     open lookup tables by sharing one open table among multiple processes.
 
+  * The scache(8) server maintains the session cache for the Postfix smtp(8)
+    client. When session caching is enabled for selected destinations, the smtp
+    (8) client does not disconnect immediately after a mail transaction, but
+    gives the connection to the session cache server. The smtp(8) client
+    continues with some other mail delivery request. Meanwhile, the session
+    cache server keeps the connection open for a limited amount of time. During
+    that time, any smtp(8) process can ask the scache(8) server for that cached
+    session and use it for mail delivery.
+
+     smtp(8)  ->  scache(8)  ->  smtp(8)
+                                     
+
   * The showq(8) servers list the Postfix queue status. This is the queue
     listing service that does the work for the mailq(1) and postqueue(1)
     commands.

@@ -11,6 +11,12 @@
 /*
 /*	int	smtp_xfer(state)
 /*	SMTP_STATE *state;
+/*
+/*	int	smtp_rset(state)
+/*	SMTP_STATE *state;
+/*
+/*	int	smtp_quit(state)
+/*	SMTP_STATE *state;
 /* DESCRIPTION
 /*	This module implements the client side of the SMTP protocol.
 /*
@@ -22,10 +28,20 @@
 /*	Recipients are marked as "done" in the mail queue file when
 /*	bounced or delivered. The message delivery status is updated
 /*	accordingly.
+/*
+/*	smtp_rset() sends a single RSET command and waits for the
+/*	response. In case of no response, or negative response, it
+/*	turns off caching for the current session.
+/*
+/*	smtp_quit() sends a single QUIT command and waits for the
+/*	response if configured to do so. It always turns off caching
+/*	for the current session.
 /* DIAGNOSTICS
-/*	smtp_helo() and smtp_xfer() return 0 in case of success, -1 in case
-/*	of failure. For smtp_xfer(), success means the ability to perform
-/*	an SMTP conversation, not necessarily the ability to deliver mail.
+/*	smtp_helo(), smtp_xfer(), smtp_rset() and smtp_quit() return
+/*	0 in case of success, -1 in case of failure. For smtp_xfer(),
+/*	smtp_rset() and smtp_quit(), success means the ability to
+/*	perform an SMTP conversation, not necessarily the ability
+/*	to deliver mail, or the achievement of server happiness.
 /*
 /*	Warnings: corrupt message file. A corrupt message is marked
 /*	as "corrupt" by changing its queue file permissions.
@@ -57,6 +73,9 @@
 /*	Coventry,
 /*	CV1 4LY, United Kingdom.
 /*
+/*	Connection caching in cooperation with:
+/*	Victor Duchovni
+/*	Morgan Stanley
 /*--*/
 
 /* System library. */
@@ -114,6 +133,23 @@
   * Normal sessions go from MAIL->RCPT->DATA->DOT->QUIT->LAST. The states
   * MAIL, RCPT, and DATA may also be followed by ABORT->QUIT->LAST.
   * 
+  * When connection caching is enabled, the QUIT state is suppressed. Normal
+  * sessions proceed as MAIL->RCPT->DATA->DOT->LAST, while aborted sessions
+  * end with ABORT->LAST. The connection is left open for a limited time. An
+  * RSET probe should be sent before attempting to reuse an open connection
+  * for a new transaction.
+  * 
+  * The code to send an RSET probe is a special case with its own initial state
+  * and with its own dedicated state transitions. The session proceeds as
+  * RSET->LAST. This code is kept inside the main protocol engine for
+  * consistent error handling and error reporting. It is not to be confused
+  * with the code that sends RSET to abort a mail transaction in progress.
+  * 
+  * The code to send QUIT without message delivery transaction jumps into the
+  * main state machine. If this introduces complications, then we should
+  * introduce a second QUIT state with its own dedicated state transitions,
+  * just like we did for RSET probes.
+  * 
   * By default, the receiver skips the QUIT response. Some SMTP servers
   * disconnect after responding to ".", and some SMTP servers wait before
   * responding to QUIT.
@@ -129,8 +165,9 @@
 #define SMTP_STATE_DATA		4
 #define SMTP_STATE_DOT		5
 #define SMTP_STATE_ABORT	6
-#define SMTP_STATE_QUIT		7
-#define SMTP_STATE_LAST		8
+#define SMTP_STATE_RSET		7
+#define SMTP_STATE_QUIT		8
+#define SMTP_STATE_LAST		9
 
 int    *xfer_timeouts[SMTP_STATE_LAST] = {
     &var_smtp_xfwd_tmout,		/* name/addr */
@@ -139,6 +176,7 @@ int    *xfer_timeouts[SMTP_STATE_LAST] = {
     &var_smtp_rcpt_tmout,
     &var_smtp_data0_tmout,
     &var_smtp_data2_tmout,
+    &var_smtp_rset_tmout,
     &var_smtp_rset_tmout,
     &var_smtp_quit_tmout,
 };
@@ -151,6 +189,7 @@ char   *xfer_states[SMTP_STATE_LAST] = {
     "sending DATA command",
     "sending end of data -- message may be sent more than once",
     "sending final RSET",
+    "sending RSET probe",
     "sending QUIT",
 };
 
@@ -162,6 +201,7 @@ char   *xfer_request[SMTP_STATE_LAST] = {
     "DATA command",
     "end of DATA command",
     "final RSET command",
+    "RSET probe",
     "QUIT command",
 };
 
@@ -169,6 +209,7 @@ char   *xfer_request[SMTP_STATE_LAST] = {
 
 int     smtp_helo(SMTP_STATE *state, int misc_flags)
 {
+    char   *myname = "smtp_helo";
     SMTP_SESSION *session = state->session;
     DELIVER_REQUEST *request = state->request;
     SMTP_RESP *resp;
@@ -184,6 +225,7 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 	XFORWARD_HELO, SMTP_FEATURE_XFORWARD_HELO,
 	0, 0,
     };
+    SOCKOPT_SIZE optlen;
 
     /*
      * Prepare for disaster.
@@ -234,10 +276,10 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 	    session->features |= SMTP_FEATURE_ESMTP;
     }
     if (var_smtp_always_ehlo
-        && (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
+	&& (session->features & SMTP_FEATURE_MAYBEPIX) == 0)
 	session->features |= SMTP_FEATURE_ESMTP;
     if (var_smtp_never_ehlo
-    	|| (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
+	|| (session->features & SMTP_FEATURE_MAYBEPIX) != 0)
 	session->features &= ~SMTP_FEATURE_ESMTP;
 
     /*
@@ -279,7 +321,7 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 	    else if (strcasecmp(word, "XFORWARD") == 0)
 		while ((word = mystrtok(&words, " \t")) != 0)
 		    session->features |= name_code(xforward_features,
-						   NAME_CODE_FLAG_NONE, word);
+						 NAME_CODE_FLAG_NONE, word);
 	    else if (strcasecmp(word, "SIZE") == 0) {
 		session->features |= SMTP_FEATURE_SIZE;
 		if ((word = mystrtok(&words, " \t")) != 0) {
@@ -298,7 +340,8 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
 		if (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT) {
 		    msg_warn("host %s replied to HELO/EHLO with my own hostname %s",
 			     session->namaddr, var_myhostname);
-		    return (smtp_site_fail(state, session->best ? 550 : 450,
+		    return (smtp_site_fail(state,
+		     (session->features & SMTP_FEATURE_BEST_MX) ? 550 : 450,
 					 "mail for %s loops back to myself",
 					   request->nexthop));
 		}
@@ -308,6 +351,39 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
     if (msg_verbose)
 	msg_info("server features: 0x%x size %.0f",
 		 session->features, (double) session->size_limit);
+
+    /*
+     * We use SMTP command pipelining if the server said it supported it.
+     * Since we use blocking I/O, RFC 2197 says that we should inspect the
+     * TCP window size and not send more than this amount of information.
+     * Unfortunately this information is not available using the sockets
+     * interface. However, we *can* get the TCP send buffer size on the local
+     * TCP/IP stack. We should be able to fill this buffer without being
+     * blocked, and then the kernel will effectively do non-blocking I/O for
+     * us by automatically writing out the contents of its send buffer while
+     * we are reading in the responses. In addition to TCP buffering we have
+     * to be aware of application-level buffering by the vstream module,
+     * which is limited to a couple kbytes.
+     */
+    if (session->features & SMTP_FEATURE_PIPELINING) {
+	optlen = sizeof(session->sndbufsize);
+	if (getsockopt(vstream_fileno(session->stream), SOL_SOCKET,
+		     SO_SNDBUF, (char *) &session->sndbufsize, &optlen) < 0)
+	    msg_fatal("%s: getsockopt: %m", myname);
+	if (session->sndbufsize > VSTREAM_BUFSIZE)
+	    session->sndbufsize = VSTREAM_BUFSIZE;
+	if (session->sndbufsize == 0) {
+	    session->sndbufsize = VSTREAM_BUFSIZE;
+	    if (setsockopt(vstream_fileno(session->stream), SOL_SOCKET,
+		      SO_SNDBUF, (char *) &session->sndbufsize, optlen) < 0)
+		msg_fatal("%s: setsockopt: %m", myname);
+	}
+	if (msg_verbose)
+	    msg_info("Using ESMTP PIPELINING, TCP send buffer size is %d",
+		     session->sndbufsize);
+    } else {
+	session->sndbufsize = 0;
+    }
 
 #ifdef USE_SASL_AUTH
     if (var_smtp_sasl_enable && (session->features & SMTP_FEATURE_AUTH))
@@ -380,11 +456,12 @@ static void smtp_header_out(void *context, int unused_header_class,
     }
 }
 
-/* smtp_xfer - send a batch of envelope information and the message data */
+/* smtp_loop - exercise the SMTP protocol engine */
 
-int     smtp_xfer(SMTP_STATE *state)
+static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
+		             NOCLOBBER int recv_state)
 {
-    char   *myname = "smtp_xfer";
+    char   *myname = "smtp_loop";
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
     SMTP_RESP *resp;
@@ -392,22 +469,16 @@ int     smtp_xfer(SMTP_STATE *state)
     VSTRING *next_command = vstring_alloc(100);
     NOCLOBBER int next_state;
     NOCLOBBER int next_rcpt;
-    NOCLOBBER int send_state;
-    NOCLOBBER int recv_state;
     NOCLOBBER int send_rcpt;
     NOCLOBBER int recv_rcpt;
     NOCLOBBER int nrcpt;
     int     except;
     int     rec_type;
     NOCLOBBER int prev_type = 0;
-    int     sndbufsize = 0;
     NOCLOBBER int sndbuffree;
-    SOCKOPT_SIZE optlen = sizeof(sndbufsize);
     NOCLOBBER int mail_from_rejected;
     NOCLOBBER int downgrading;
     int     mime_errs;
-    int     send_name_addr;
-    NOCLOBBER int send_proto_helo;
 
     /*
      * Macros for readability.
@@ -445,61 +516,20 @@ int     smtp_xfer(SMTP_STATE *state)
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)
 
-    /*
-     * Sanity check. Recipients should be unmarked at this point.
-     */
-    if (SMTP_RCPT_LEFT(state) <= 0)
-	msg_panic("smtp_xfer: bad recipient count: %d",
-		  SMTP_RCPT_LEFT(state));
-    if (SMTP_RCPT_ISMARKED(request->rcpt_list.info))
-	msg_panic("smtp_xfer: bad recipient status: %d",
-		  request->rcpt_list.info->status);
+#define THIS_SESSION_IS_CACHED \
+	(session->reuse_count > 0)
+
+#define DONT_CACHE_THIS_SESSION \
+	(session->reuse_count = 0)
+
+#define CANT_RSET_THIS_SESSION \
+	(session->features |= SMTP_FEATURE_RSET_REJECTED)
 
     /*
-     * See if we should even try to send this message at all. This code sits
-     * here rather than in the EHLO processing code, because of future SMTP
-     * connection caching.
+     * Miscellaneous initialization. Some of this might be done in
+     * smtp_xfer() but that just complicates interfaces and data structures.
      */
-    if (session->size_limit > 0 && session->size_limit < request->data_size) {
-	smtp_mesg_fail(state, 552,
-		    "message size %lu exceeds size limit %.0f of server %s",
-		       request->data_size, (double) session->size_limit,
-		       session->namaddr);
-	RETURN(0);
-    }
-
-    /*
-     * We use SMTP command pipelining if the server said it supported it.
-     * Since we use blocking I/O, RFC 2197 says that we should inspect the
-     * TCP window size and not send more than this amount of information.
-     * Unfortunately this information is not available using the sockets
-     * interface. However, we *can* get the TCP send buffer size on the local
-     * TCP/IP stack. We should be able to fill this buffer without being
-     * blocked, and then the kernel will effectively do non-blocking I/O for
-     * us by automatically writing out the contents of its send buffer while
-     * we are reading in the responses. In addition to TCP buffering we have
-     * to be aware of application-level buffering by the vstream module,
-     * which is limited to a couple kbytes.
-     */
-    if (session->features & SMTP_FEATURE_PIPELINING) {
-	if (getsockopt(vstream_fileno(session->stream), SOL_SOCKET,
-		       SO_SNDBUF, (char *) &sndbufsize, &optlen) < 0)
-	    msg_fatal("%s: getsockopt: %m", myname);
-	if (sndbufsize > VSTREAM_BUFSIZE)
-	    sndbufsize = VSTREAM_BUFSIZE;
-	if (sndbufsize == 0) {
-	    sndbufsize = VSTREAM_BUFSIZE;
-	    if (setsockopt(vstream_fileno(session->stream), SOL_SOCKET,
-			   SO_SNDBUF, (char *) &sndbufsize, optlen) < 0)
-		msg_fatal("%s: setsockopt: %m", myname);
-	}
-	if (msg_verbose)
-	    msg_info("Using ESMTP PIPELINING, TCP send buffer size is %d",
-		     sndbufsize);
-    } else {
-	sndbufsize = 0;
-    }
-    sndbuffree = sndbufsize;
+    sndbuffree = session->sndbufsize;
 
     /*
      * Pipelining support requires two loops: one loop for sending and one
@@ -516,33 +546,12 @@ int     smtp_xfer(SMTP_STATE *state)
      * receiver detects a serious problem (MAIL FROM rejected, all RCPT TO
      * commands rejected, DATA rejected) it forces the sender to abort the
      * SMTP dialog with RSET and QUIT.
-     * 
-     * Use the XFORWARD command to forward client attributes only when a minimal
-     * amount of information is available.
      */
     nrcpt = 0;
-    send_name_addr =
-	var_smtp_send_xforward
-	&& (((session->features & SMTP_FEATURE_XFORWARD_NAME)
-	     && DEL_REQ_ATTR_AVAIL(request->client_name))
-	    || ((session->features & SMTP_FEATURE_XFORWARD_ADDR)
-		&& DEL_REQ_ATTR_AVAIL(request->client_addr)));
-    send_proto_helo =
-	var_smtp_send_xforward
-	&& (((session->features & SMTP_FEATURE_XFORWARD_PROTO)
-	     && DEL_REQ_ATTR_AVAIL(request->client_proto))
-	    || ((session->features & SMTP_FEATURE_XFORWARD_HELO)
-		&& DEL_REQ_ATTR_AVAIL(request->client_helo)));
-    if (send_name_addr)
-	recv_state = send_state = SMTP_STATE_XFORWARD_NAME_ADDR;
-    else if (send_proto_helo)
-	recv_state = send_state = SMTP_STATE_XFORWARD_PROTO_HELO;
-    else
-	recv_state = send_state = SMTP_STATE_MAIL;
     next_rcpt = send_rcpt = recv_rcpt = 0;
     mail_from_rejected = 0;
 
-    while (recv_state != SMTP_STATE_LAST) {
+    do {
 
 	/*
 	 * Build the next command.
@@ -570,7 +579,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		vstring_sprintf_append(next_command, " %s=%s",
 		   XFORWARD_ADDR, DEL_REQ_ATTR_AVAIL(request->client_addr) ?
 			       request->client_addr : XFORWARD_UNAVAILABLE);
-	    if (send_proto_helo)
+	    if (session->send_proto_helo)
 		next_state = SMTP_STATE_XFORWARD_PROTO_HELO;
 	    else
 		next_state = SMTP_STATE_MAIL;
@@ -648,27 +657,42 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	case SMTP_STATE_DOT:
 	    vstring_strcpy(next_command, ".");
-	    next_state = SMTP_STATE_QUIT;
+	    next_state = THIS_SESSION_IS_CACHED ?
+		SMTP_STATE_LAST : SMTP_STATE_QUIT;
 	    break;
 
 	    /*
-	     * The SMTP_STATE_ABORT sender state is entered by sender when it
-	     * has verified all recipients; or it is entered the receiver
-	     * when all recipients are rejected and is then left before the
-	     * bottom of the main loop.
+	     * The SMTP_STATE_ABORT sender state is entered by the sender
+	     * when it has verified all recipients; or it is entered by the
+	     * receiver when all recipients are verified or rejected, and is
+	     * then left before the bottom of the main loop.
 	     */
 	case SMTP_STATE_ABORT:
 	    vstring_strcpy(next_command, "RSET");
-	    next_state = SMTP_STATE_QUIT;
+	    next_state = THIS_SESSION_IS_CACHED ?
+		SMTP_STATE_LAST : SMTP_STATE_QUIT;
+	    break;
+
+	    /*
+	     * Build the RSET command. This is entered as initial state from
+	     * smtp_rset() and has its own dedicated state transitions. It is
+	     * used to find out the status of a cached session before
+	     * attempting mail delivery.
+	     */
+	case SMTP_STATE_RSET:
+	    vstring_strcpy(next_command, "RSET");
+	    next_state = SMTP_STATE_LAST;
 	    break;
 
 	    /*
 	     * Build the QUIT command before we have seen the "." or RSET
-	     * response.
+	     * response. This is entered as initial state from smtp_quit(),
+	     * or is reached near the end of any non-cached session.
 	     */
 	case SMTP_STATE_QUIT:
 	    vstring_strcpy(next_command, "QUIT");
 	    next_state = SMTP_STATE_LAST;
+	    DONT_CACHE_THIS_SESSION;
 	    break;
 
 	    /*
@@ -727,7 +751,7 @@ int     smtp_xfer(SMTP_STATE *state)
 				 session->namaddr,
 				 translit(resp->str, "\n", " "),
 			       xfer_request[SMTP_STATE_XFORWARD_NAME_ADDR]);
-		    if (send_proto_helo)
+		    if (session->send_proto_helo)
 			recv_state = SMTP_STATE_XFORWARD_PROTO_HELO;
 		    else
 			recv_state = SMTP_STATE_MAIL;
@@ -795,6 +819,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		    if (++recv_rcpt == SMTP_RCPT_LEFT(state))
 			recv_state = DEL_REQ_TRACE_ONLY(request->flags) ?
 			    SMTP_STATE_ABORT : SMTP_STATE_DATA;
+		    /* XXX Also: record if non-delivering session. */
 		    break;
 
 		    /*
@@ -819,8 +844,8 @@ int     smtp_xfer(SMTP_STATE *state)
 		     * Process the end of message response. Ignore the
 		     * response when no recipient was accepted: all
 		     * recipients are dead already, and the next receiver
-		     * state is SMTP_STATE_QUIT regardless. Otherwise, if the
-		     * message transfer fails, bounce all remaining
+		     * state is SMTP_STATE_LAST/QUIT regardless. Otherwise,
+		     * if the message transfer fails, bounce all remaining
 		     * recipients, else cross off the recipients that were
 		     * delivered.
 		     */
@@ -840,20 +865,34 @@ int     smtp_xfer(SMTP_STATE *state)
 			    }
 			}
 		    }
-		    recv_state = (var_skip_quit_resp ?
+		    recv_state = (var_skip_quit_resp || THIS_SESSION_IS_CACHED ?
 				  SMTP_STATE_LAST : SMTP_STATE_QUIT);
 		    break;
 
 		    /*
-		     * Ignore the RSET response.
+		     * Receive the RSET response, and disable session caching
+		     * in case of failure.
 		     */
 		case SMTP_STATE_ABORT:
-		    recv_state = (var_skip_quit_resp ?
+		    if (resp->code / 100 != 2)
+			DONT_CACHE_THIS_SESSION;
+		    recv_state = (var_skip_quit_resp || THIS_SESSION_IS_CACHED ?
 				  SMTP_STATE_LAST : SMTP_STATE_QUIT);
 		    break;
 
 		    /*
-		     * Ignore the QUIT response.
+		     * This is the initial receiver state from smtp_rset().
+		     * It is used to find out the status of a cached session
+		     * before attempting mail delivery.
+		     */
+		case SMTP_STATE_RSET:
+		    if (resp->code / 100 != 2)
+			CANT_RSET_THIS_SESSION;
+		    recv_state = SMTP_STATE_LAST;
+		    break;
+
+		    /*
+		     * Receive, but otherwise ignore, the QUIT response.
 		     */
 		case SMTP_STATE_QUIT:
 		    recv_state = SMTP_STATE_LAST;
@@ -865,7 +904,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	     * At this point, the sender and receiver are fully synchronized,
 	     * so that the entire TCP send buffer becomes available again.
 	     */
-	    sndbuffree = sndbufsize;
+	    sndbuffree = session->sndbufsize;
 
 	    /*
 	     * We know the server response to every command that was sent.
@@ -880,7 +919,9 @@ int     smtp_xfer(SMTP_STATE *state)
 		send_state = recv_state = SMTP_STATE_ABORT;
 		send_rcpt = recv_rcpt = 0;
 		vstring_strcpy(next_command, "RSET");
-		next_state = SMTP_STATE_QUIT;
+		next_state = THIS_SESSION_IS_CACHED ?
+		    SMTP_STATE_LAST : SMTP_STATE_QUIT;
+		/* XXX Also: record if non-delivering session. */
 		next_rcpt = 0;
 	    }
 	}
@@ -908,12 +949,12 @@ int     smtp_xfer(SMTP_STATE *state)
 	    if (downgrading)
 		session->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
 						  | MIME_OPT_REPORT_NESTING,
-						     smtp_header_out,
+						       smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
-						     smtp_text_out,
+						       smtp_text_out,
 						     (MIME_STATE_ANY_END) 0,
 						   (MIME_STATE_ERR_PRINT) 0,
-						     (void *) state);
+						       (void *) state);
 	    state->space_left = var_smtp_line_limit;
 	    smtp_timeout_setup(session->stream,
 			       var_smtp_data1_tmout);
@@ -989,6 +1030,90 @@ int     smtp_xfer(SMTP_STATE *state)
 	smtp_chat_cmd(session, "%s", vstring_str(next_command));
 	send_state = next_state;
 	send_rcpt = next_rcpt;
-    }
+    } while (recv_state != SMTP_STATE_LAST);
     RETURN(0);
+}
+
+/* smtp_xfer - send a batch of envelope information and the message data */
+
+int     smtp_xfer(SMTP_STATE *state)
+{
+    DELIVER_REQUEST *request = state->request;
+    SMTP_SESSION *session = state->session;
+    int     send_state;
+    int     recv_state;
+    int     send_name_addr;
+
+    /*
+     * Sanity check. Recipients should be unmarked at this point.
+     */
+    if (SMTP_RCPT_LEFT(state) <= 0)
+	msg_panic("smtp_xfer: bad recipient count: %d",
+		  SMTP_RCPT_LEFT(state));
+    if (SMTP_RCPT_ISMARKED(request->rcpt_list.info))
+	msg_panic("smtp_xfer: bad recipient status: %d",
+		  request->rcpt_list.info->status);
+
+    /*
+     * See if we should even try to send this message at all. This code sits
+     * here rather than in the EHLO processing code, because of SMTP
+     * connection caching.
+     */
+    if (session->size_limit > 0 && session->size_limit < request->data_size) {
+	smtp_mesg_fail(state, 552,
+		    "message size %lu exceeds size limit %.0f of server %s",
+		       request->data_size, (double) session->size_limit,
+		       session->namaddr);
+	return (0);
+    }
+
+    /*
+     * Use the XFORWARD command to forward client attributes only when a
+     * minimal amount of information is available.
+     */
+    send_name_addr =
+	var_smtp_send_xforward
+	&& (((session->features & SMTP_FEATURE_XFORWARD_NAME)
+	     && DEL_REQ_ATTR_AVAIL(request->client_name))
+	    || ((session->features & SMTP_FEATURE_XFORWARD_ADDR)
+		&& DEL_REQ_ATTR_AVAIL(request->client_addr)));
+    session->send_proto_helo =
+	var_smtp_send_xforward
+	&& (((session->features & SMTP_FEATURE_XFORWARD_PROTO)
+	     && DEL_REQ_ATTR_AVAIL(request->client_proto))
+	    || ((session->features & SMTP_FEATURE_XFORWARD_HELO)
+		&& DEL_REQ_ATTR_AVAIL(request->client_helo)));
+    if (send_name_addr)
+	recv_state = send_state = SMTP_STATE_XFORWARD_NAME_ADDR;
+    else if (session->send_proto_helo)
+	recv_state = send_state = SMTP_STATE_XFORWARD_PROTO_HELO;
+    else
+	recv_state = send_state = SMTP_STATE_MAIL;
+
+    return (smtp_loop(state, send_state, recv_state));
+}
+
+/* smtp_rset - send a lone RSET command */
+
+int     smtp_rset(SMTP_STATE *state)
+{
+
+    /*
+     * This works because SMTP_STATE_RSET is a dedicated sender/recipient
+     * entry state, with SMTP_STATE_LAST as next sender/recipient state.
+     */
+    return (smtp_loop(state, SMTP_STATE_RSET, SMTP_STATE_RSET));
+}
+
+/* smtp_quit - send a lone QUIT command */
+
+int     smtp_quit(SMTP_STATE *state)
+{
+
+    /*
+     * This works because SMTP_STATE_QUIT is the last state with a sender
+     * action, with SMTP_STATE_LAST as the next sender/recipient state.
+     */
+    return (smtp_loop(state, SMTP_STATE_QUIT, var_skip_quit_resp ?
+		      SMTP_STATE_LAST : SMTP_STATE_QUIT));
 }

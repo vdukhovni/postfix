@@ -150,13 +150,13 @@ metacharacters.
 .IP "\fB\fB%u\fR\fR"
 When the input key is an address of the form user@domain,
 \fB%u\fR is replaced by the (RFC 2254) quoted local part of the
-address. If no domain is specified, \fB%u\fR is replaced by the
-entire search string.
+address. Otherwise, \fB%u\fR is replaced by the entire
+search string.
 .IP "\fB\fB%d\fR\fR"
 When the input key is an address of the form user@domain,
 \fB%d\fR is replaced by the (RFC 2254) quoted domain part of the
-address. When the input key has no domain qualifier, \fB%d\fR is
-replaced by the entire search string.
+address. Otherwise, \fB%d\fR is replaced by the entire
+search string.
 .RE
 .IP
 The "domain" parameter described below limits the input
@@ -175,15 +175,15 @@ following '%' expansions:
 .IP "\fB\fB%s\fR\fR"
 This is replaced by the value of the result attribute.
 .IP "\fB%u\fR
-When the result attribute is an address of the form
-user@domain, \fB%u\fR is replaced local part of the address, if
-the result attribute is unqualified, \fB%u\fR is replaced by the
-entire attribute value.
+When the result attribute value is an address of the form
+user@domain, \fB%u\fR is replaced by the local part of the
+address.  Otherwise, \fB%u\fR is replaced by the entire
+attribute value.
 .IP "\fB\fB%d\fR\fR"
-When a result attribute is an address of the form user@domain,
-\fB%d\fR is replaced by the domain part of the attribute value.
-If an attribute value is unqualified \fB%d\fR is replaced by the
-entire attribute value.
+When a result attribute value is an address of the form
+user@domain, \fB%d\fR is replaced by the domain part of
+the attribute value.  Otherwise, \fB%d\fR is replaced by
+the entire attribute value.
 .RE
 .IP
 For example, using "result_filter = smtp:[%s]" allows one

@@ -7,7 +7,7 @@ DIRS	= src/util src/global src/dns src/master src/postfix src/smtpstone \
 	src/pipe src/showq src/postalias src/postcat src/postconf src/postdrop \
 	src/postkick src/postlock src/postlog src/postmap src/postqueue \
 	src/postsuper src/qmqpd src/spawn src/flush src/verify \
-	src/virtual src/proxymap src/anvil
+	src/virtual src/proxymap src/anvil src/scache
 MANDIRS	= proto man html
 
 default: update

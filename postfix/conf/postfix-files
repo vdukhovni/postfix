@@ -75,6 +75,7 @@ $daemon_directory/pipe:f:root:-:755
 $daemon_directory/proxymap:f:root:-:755
 $daemon_directory/qmgr:f:root:-:755
 $daemon_directory/qmqpd:f:root:-:755
+$daemon_directory/scache:f:root:-:755
 $daemon_directory/showq:f:root:-:755
 $daemon_directory/smtp:f:root:-:755
 $daemon_directory/smtpd:f:root:-:755
@@ -165,6 +166,7 @@ $manpage_directory/man8/pipe.8:f:root:-:644
 $manpage_directory/man8/proxymap.8:f:root:-:644
 $manpage_directory/man8/qmgr.8:f:root:-:644
 $manpage_directory/man8/qmqpd.8:f:root:-:644
+$manpage_directory/man8/scache.8:f:root:-:644
 $manpage_directory/man8/showq.8:f:root:-:644
 $manpage_directory/man8/smtp.8:f:root:-:644
 $manpage_directory/man8/smtpd.8:f:root:-:644

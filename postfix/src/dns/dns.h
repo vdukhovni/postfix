@@ -106,6 +106,7 @@ extern DNS_RR *dns_rr_copy(DNS_RR *);
 extern DNS_RR *dns_rr_append(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_sort(DNS_RR *, int (*) (DNS_RR *, DNS_RR *));
 extern DNS_RR *dns_rr_shuffle(DNS_RR *);
+extern DNS_RR *dns_rr_remove(DNS_RR *, DNS_RR *);
 
  /*
   * dns_lookup.c

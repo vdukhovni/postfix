@@ -104,8 +104,7 @@
 /* .IP "\fBmime_boundary_length_limit (2048)\fR"
 /*	The maximal length of MIME multipart boundary strings.
 /* .IP "\fBmime_nesting_limit (100)\fR"
-/*	The maximal nesting level of multipart mail that the MIME processor
-/*	will handle.
+/*	The maximal recursion level that the MIME processor will handle.
 /* .IP "\fBstrict_8bitmime (no)\fR"
 /*	Enable both strict_7bit_headers and strict_8bitmime_body.
 /* .IP "\fBstrict_7bit_headers (no)\fR"
@@ -196,8 +195,7 @@
 /* .IP "\fBmime_boundary_length_limit (2048)\fR"
 /*	The maximal length of MIME multipart boundary strings.
 /* .IP "\fBmime_nesting_limit (100)\fR"
-/*	The maximal nesting level of multipart mail that the MIME processor
-/*	will handle.
+/*	The maximal recursion level that the MIME processor will handle.
 /* .IP "\fBqueue_file_attribute_count_limit (100)\fR"
 /*	The maximal number of (name=value) attributes that may be stored
 /*	in a Postfix queue file.

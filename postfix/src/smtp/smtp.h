@@ -22,11 +22,14 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <argv.h>
+#include <htable.h>
 
  /*
   * Global library.
   */
 #include <deliver_request.h>
+#include <scache.h>
+#include <string_list.h>
 
  /*
   * State information associated with each SMTP delivery. We're bundling the
@@ -34,10 +37,30 @@
   */
 typedef struct SMTP_STATE {
     VSTREAM *src;			/* queue file stream */
+    const char *service;		/* transport name */
     DELIVER_REQUEST *request;		/* envelope info, offsets */
     struct SMTP_SESSION *session;	/* network connection */
     int     status;			/* delivery status */
     int     space_left;			/* output length control */
+
+    /*
+     * Session cache support. The (nexthop_lookup_mx, nexthop_domain,
+     * nexthop_port) triple is a parsed next-hop specification, and should be
+     * a data type by itself. The (service, nexthop_mumble) members specify
+     * the name under which the first good session should be cached. The
+     * nexthop_mumble members are initialized by the connection management
+     * module. nexthop_domain is reset to null after one session is saved
+     * under the (service, nexthop_mumble) label, or upon exit from the
+     * connection management module.
+     */
+    HTABLE *cache_used;			/* cached addresses that were used */
+    VSTRING *dest_label;		/* cached logical/physical binding */
+    VSTRING *dest_prop;			/* binding properties, passivated */
+    VSTRING *endp_label;		/* cached session physical endpoint */
+    VSTRING *endp_prop;			/* endpoint properties, passivated */
+    int     nexthop_lookup_mx;		/* do/don't MX expand nexthop_domain */
+    char   *nexthop_domain;		/* next-hop name or bare address */
+    unsigned nexthop_port;		/* next-hop TCP port, network order */
 
     /*
      * Flags and counters to control the handling of mail delivery errors.
@@ -49,6 +72,20 @@ typedef struct SMTP_STATE {
     int     rcpt_drop;			/* recipients marked as drop */
     int     rcpt_keep;			/* recipients marked as keep */
 } SMTP_STATE;
+
+#define SET_NEXTHOP_STATE(state, lookup_mx, domain, port) { \
+	(state)->nexthop_lookup_mx = lookup_mx; \
+	(state)->nexthop_domain = mystrdup(domain); \
+	(state)->nexthop_port = port; \
+    }
+
+#define FREE_NEXTHOP_STATE(state) { \
+	myfree((state)->nexthop_domain); \
+	(state)->nexthop_domain = 0; \
+    }
+
+#define HAVE_NEXTHOP_STATE(state) ((state)->nexthop_domain != 0)
+
 
  /*
   * Server features.
@@ -64,7 +101,22 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_ADDR	(1<<8)
 #define SMTP_FEATURE_XFORWARD_PROTO	(1<<9)
 #define SMTP_FEATURE_XFORWARD_HELO	(1<<10)
-#define SMTP_FEATURE_CACHE_SESSION	(1<<11)
+
+#define SMTP_FEATURE_BEST_MX		(1<<12)	/* for next-hop or fall-back */
+#define SMTP_FEATURE_RSET_REJECTED	(1<<13)	/* RSET probe rejected */
+#define SMTP_FEATURE_FROM_CACHE		(1<<14)	/* cached session */
+
+ /*
+  * Features that passivate under the endpoint.
+  */
+#define SMTP_FEATURE_ENDPOINT_MASK \
+	(~(SMTP_FEATURE_BEST_MX | SMTP_FEATURE_RSET_REJECTED \
+	| SMTP_FEATURE_FROM_CACHE))
+
+ /*
+  * Features that passivate under the logical destination.
+  */
+#define SMTP_FEATURE_DESTINATION_MASK (SMTP_FEATURE_BEST_MX)
 
  /*
   * Misc flags.
@@ -88,16 +140,19 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 #define SMTP_HOST_FLAG_DNS	(1<<0)
 #define SMTP_HOST_FLAG_NATIVE	(1<<1)
 
+extern SCACHE *smtp_scache;		/* cache instance */
+extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
+
  /*
   * smtp_session.c
   */
 typedef struct SMTP_SESSION {
     VSTREAM *stream;			/* network connection */
-    char   *dest;			/* nexthop[:port] or fallback relay */
+    char   *dest;			/* nexthop or fallback */
     char   *host;			/* mail exchanger */
     char   *addr;			/* mail exchanger */
     char   *namaddr;			/* mail exchanger */
-    int     best;			/* most preferred host */
+    unsigned port;			/* network byte order */
 
     VSTRING *buffer;			/* I/O buffer */
     VSTRING *scratch;			/* scratch buffer */
@@ -109,6 +164,11 @@ typedef struct SMTP_SESSION {
     ARGV   *history;			/* transaction log */
     int     error_mask;			/* error classes */
     struct MIME_STATE *mime_state;	/* mime state machine */
+
+    int     sndbufsize;			/* PIPELINING buffer size */
+    int     send_proto_helo;		/* XFORWARD support */
+
+    int     reuse_count;		/* how many uses left */
 
 #ifdef USE_SASL_AUTH
     char   *sasl_mechanism_list;	/* server mechanism list */
@@ -122,9 +182,14 @@ typedef struct SMTP_SESSION {
 
 } SMTP_SESSION;
 
-extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, char *, char *, char *);
-extern void smtp_session_reuse(SMTP_SESSION *);
+extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *,
+			              const char *, const char *, unsigned, int);
 extern void smtp_session_free(SMTP_SESSION *);
+extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
+extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
+
+#define SMTP_SESS_FLAG_NONE	0	/* no options */
+#define SMTP_SESS_FLAG_CACHE	(1<<0)	/* enable session caching */
 
  /*
   * smtp_connect.c
@@ -136,6 +201,8 @@ extern int smtp_connect(SMTP_STATE *);
   */
 extern int smtp_helo(SMTP_STATE *, int);
 extern int smtp_xfer(SMTP_STATE *);
+extern int smtp_rset(SMTP_STATE *);
+extern int smtp_quit(SMTP_STATE *);
 
  /*
   * smtp_chat.c

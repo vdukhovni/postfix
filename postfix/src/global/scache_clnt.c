@@ -1,0 +1,312 @@
+/*++
+/* NAME
+/*	scache_clnt 3
+/* SUMMARY
+/*	session cache manager client
+/* SYNOPSIS
+/*	#include <scache.h>
+/* DESCRIPTION
+/*	SCACHE *scache_clnt_create(server, idle_limit, ttl_limit)
+/*	const char *server;
+/*	int	idle_limit;
+/*	int	ttl_limit;
+/* DESCRIPTION
+/*	This module implements the client-side protocol of the
+/*	session cache service.
+/*
+/*	scache_clnt_create() creates a session cache service client.
+/*
+/*	Arguments:
+/* .IP server
+/*	The session cache service name.
+/* .IP idle_limit
+/*	Idle time after which the client disconnects.
+/* .IP ttl_limit
+/*	Upper bound on the time that a connection is allowed to persist.
+/* .IP endp_ttl
+/*	How long the session should be cached.  When information
+/*	expires it is purged automatically.
+/* DIAGNOSTICS
+/*	Fatal error: memory allocation problem;
+/*	panic: internal consistency failure.
+/* SEE ALSO
+/*	scache(3), generic session cache API
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
+/* System library. */
+
+#include <sys_defs.h>
+#include <errno.h>
+
+/* Utility library. */
+
+#include <msg.h>
+#include <mymalloc.h>
+
+/*#define msg_verbose 1*/
+
+/* Global library. */
+
+#include <mail_proto.h>
+#include <mail_params.h>
+#include <clnt_stream.h>
+#include <scache.h>
+
+/* Application-specific. */
+
+ /*
+  * SCACHE_CLNT is a derived type from the SCACHE super-class.
+  */
+typedef struct {
+    SCACHE  scache[1];			/* super-class */
+    CLNT_STREAM *clnt_stream;		/* client endpoint */
+} SCACHE_CLNT;
+
+#define STR(x) vstring_str(x)
+
+/* scache_clnt_save_endp - save endpoint */
+
+static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
+				          const char *endp_label,
+				          const char *endp_prop, int fd)
+{
+    SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
+    const char *myname = "scache_clnt_save_endp";
+    VSTREAM *stream;
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s: endp=%s prop=%s fd=%d",
+		 myname, endp_label, endp_prop, fd);
+
+    /*
+     * Sanity check.
+     */
+    if (endp_ttl <= 0)
+	msg_panic("%s: bad endp_ttl: %d", myname, endp_ttl);
+
+    /*
+     * Keep trying until we get a complete response. The session cache
+     * service is CPU bound and making the client asynchronous would just
+     * complicate the code.
+     */
+    for (;;) {
+	stream = clnt_stream_access(sp->clnt_stream);
+	errno = 0;
+	if (attr_print(stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_SAVE_ENDP,
+		       ATTR_TYPE_NUM, MAIL_ATTR_TTL, endp_ttl,
+		       ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
+		       ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
+		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
+	    || LOCAL_SEND_FD(vstream_fileno(stream), fd) < 0
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_END) != 1) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 VSTREAM_PATH(stream));
+	} else {
+	    if (close(fd) < 0)
+		msg_warn("%s: close(%d): %m", myname, fd);
+	    break;
+	}
+	sleep(1);				/* XXX make configurable */
+	clnt_stream_recover(sp->clnt_stream);
+    }
+}
+
+/* scache_clnt_find_endp - look up cached session */
+
+static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
+				         VSTRING *endp_prop)
+{
+    SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
+    const char *myname = "scache_clnt_find_endp";
+    VSTREAM *stream;
+    int     status;
+    int     fd;
+
+    /*
+     * Keep trying until we get a complete response. The session cache
+     * service is CPU bound and making the client asynchronous would just
+     * complicate the code.
+     */
+    for (;;) {
+	stream = clnt_stream_access(sp->clnt_stream);
+	errno = 0;
+	if (attr_print(stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_FIND_ENDP,
+		       ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
+		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
+			 ATTR_TYPE_END) != 2
+	    || (status == 0
+		&& (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0)) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 VSTREAM_PATH(stream));
+	} else {
+	    break;
+	}
+	sleep(1);				/* XXX make configurable */
+	clnt_stream_recover(sp->clnt_stream);
+    }
+
+    if (status == 0) {
+	if (msg_verbose)
+	    msg_info("%s: endp=%s prop=%s fd=%d",
+		     myname, endp_label, STR(endp_prop), fd);
+	return (fd);
+    }
+    if (msg_verbose)
+	msg_info("%s: not found: %s", myname, endp_label);
+    return (-1);
+}
+
+/* scache_clnt_save_dest - create destination/endpoint association */
+
+static void scache_clnt_save_dest(SCACHE *scache, int dest_ttl,
+				          const char *dest_label,
+				          const char *dest_prop,
+				          const char *endp_label)
+{
+    SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
+    const char *myname = "scache_clnt_save_dest";
+    VSTREAM *stream;
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s: dest_label=%s dest_prop=%s endp_label=%s",
+		 myname, dest_label, dest_prop, endp_label);
+
+    /*
+     * Sanity check.
+     */
+    if (dest_ttl <= 0)
+	msg_panic("%s: bad dest_ttl: %d", myname, dest_ttl);
+
+    /*
+     * Keep trying until we get a complete response. The session cache
+     * service is CPU bound and making the client asynchronous would just
+     * complicate the code.
+     */
+    for (;;) {
+	stream = clnt_stream_access(sp->clnt_stream);
+	errno = 0;
+	if (attr_print(stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_SAVE_DEST,
+		       ATTR_TYPE_NUM, MAIL_ATTR_TTL, dest_ttl,
+		       ATTR_TYPE_STR, MAIL_ATTR_LABEL, dest_label,
+		       ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
+		       ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
+		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_END) != 1) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 VSTREAM_PATH(stream));
+	} else {
+	    break;
+	}
+	sleep(1);				/* XXX make configurable */
+	clnt_stream_recover(sp->clnt_stream);
+    }
+}
+
+/* scache_clnt_find_dest - look up cached session */
+
+static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
+				         VSTRING *dest_prop,
+				         VSTRING *endp_prop)
+{
+    SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
+    const char *myname = "scache_clnt_find_dest";
+    VSTREAM *stream;
+    int     status;
+    int     fd;
+
+    /*
+     * Keep trying until we get a complete response. The session cache
+     * service is CPU bound and making the client asynchronous would just
+     * complicate the code.
+     */
+    for (;;) {
+	stream = clnt_stream_access(sp->clnt_stream);
+	errno = 0;
+	if (attr_print(stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_FIND_DEST,
+		       ATTR_TYPE_STR, MAIL_ATTR_LABEL, dest_label,
+		       ATTR_TYPE_END) != 0
+	    || vstream_fflush(stream)
+	    || attr_scan(stream, ATTR_FLAG_STRICT,
+			 ATTR_TYPE_NUM, MAIL_ATTR_STATUS, &status,
+			 ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
+			 ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
+			 ATTR_TYPE_END) != 3
+	    || (status == 0
+		&& (fd = LOCAL_RECV_FD(vstream_fileno(stream))) < 0)) {
+	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
+		msg_warn("problem talking to service %s: %m",
+			 VSTREAM_PATH(stream));
+	} else {
+	    break;
+	}
+	sleep(1);				/* XXX make configurable */
+	clnt_stream_recover(sp->clnt_stream);
+    }
+
+    if (status == 0) {
+	if (msg_verbose)
+	    msg_info("%s: dest=%s dest_prop=%s endp_prop=%s fd=%d",
+		     myname, dest_label, STR(dest_prop), STR(endp_prop), fd);
+	return (fd);
+    }
+    if (msg_verbose)
+	msg_info("%s: not found: %s", myname, dest_label);
+
+    return (-1);
+}
+
+/* scache_clnt_free - destroy cache */
+
+static void scache_clnt_free(SCACHE *scache)
+{
+    SCACHE_CLNT *sp = (SCACHE_CLNT *) scache;
+
+    clnt_stream_free(sp->clnt_stream);
+    myfree((char *) sp);
+}
+
+/* scache_clnt_create - initialize */
+
+SCACHE *scache_clnt_create(const char *server, int idle_limit, int ttl_limit)
+{
+    SCACHE_CLNT *sp = (SCACHE_CLNT *) mymalloc(sizeof(*sp));
+
+    sp->scache->save_endp = scache_clnt_save_endp;
+    sp->scache->find_endp = scache_clnt_find_endp;
+    sp->scache->save_dest = scache_clnt_save_dest;
+    sp->scache->find_dest = scache_clnt_find_dest;
+    sp->scache->free = scache_clnt_free;
+
+    sp->clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE, server,
+					 idle_limit, ttl_limit);
+
+    return (sp->scache);
+}

@@ -25,6 +25,11 @@
 /*	When a server is not reachable, or when mail delivery fails due
 /*	to a recoverable error condition, the SMTP client will try to
 /*	deliver the mail to an alternate host.
+/*
+/*	After a successful mail transaction, a session may be saved
+/*	to the \fBscache(8)\fR session cache server, so that it
+/*	may be used by any SMTP client for a subsequent transaction.
+/*	Session caching is disabled by default.
 /* SECURITY
 /* .ad
 /* .fi
@@ -50,6 +55,13 @@
 /*	Depending on the setting of the \fBnotify_classes\fR parameter,
 /*	the postmaster is notified of bounces, protocol problems, and of
 /*	other trouble.
+/* BUGS
+/*      SMTP session caching does not work with TLS. The necessary
+/*      support for object passivation and re-activation does not
+/*	exist.
+/*
+/*	SMTP session caching assumes that SASL credentials are valid for
+/*	all destinations that map onto the same IP address and TCP port.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -103,8 +115,7 @@
 /* .IP "\fBmime_boundary_length_limit (2048)\fR"
 /*	The maximal length of MIME multipart boundary strings.
 /* .IP "\fBmime_nesting_limit (100)\fR"
-/*	The maximal nesting level of multipart mail that the MIME processor
-/*	will handle.
+/*	The maximal recursion level that the MIME processor will handle.
 /* EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -167,9 +178,20 @@
 /*	The maximal number of SMTP sessions per delivery request before
 /*	giving up or delivering to a fall-back relay host, or zero (no
 /*	limit).
-/* .IP "\fBsmtp_rset_timeout (120s)\fR"
+/* .IP "\fBsmtp_rset_timeout (20s)\fR"
 /*	The SMTP client time limit for sending the RSET command, and
 /*	for receiving the server response.
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBsmtp_connection_cache_domains (empty)\fR"
+/*	The SMTP destinations for which SMTP connection caching is
+/*	enabled.
+/* .IP "\fBsmtp_connection_cache_reuse_limit (10)\fR"
+/*	When SMTP session caching is enabled, the number of times that
+/*	an SMTP session is reused before it is closed.
+/* .IP "\fBsmtp_connection_cache_time_limit (2s)\fR"
+/*	When SMTP session caching is enabled, the amount of time that
+/*	an unused SMTP client socket is kept open before it is closed.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -240,6 +262,7 @@
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
+/*	scache(8), session cache server
 /*	postconf(5), configuration parameters
 /*	master(8), process manager
 /*	syslogd(8), system logging
@@ -260,6 +283,18 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Command pipelining in cooperation with:
+/*	Jon Ribbens
+/*	Oaktree Internet Solutions Ltd.,
+/*	Internet House,
+/*	Canal Basin,
+/*	Coventry,
+/*	CV1 4LY, United Kingdom.
+/*
+/*	Connection caching in cooperation with:
+/*	Victor Duchovni
+/*	Morgan Stanley
 /*--*/
 
 /* System library. */
@@ -284,6 +319,8 @@
 #include <mail_conf.h>
 #include <debug_peer.h>
 #include <flush_clnt.h>
+#include <scache.h>
+#include <string_list.h>
 
 /* Single server skeleton. */
 
@@ -333,6 +370,10 @@ bool    var_smtp_defer_mxaddr;
 bool    var_smtp_send_xforward;
 int     var_smtp_mxaddr_limit;
 int     var_smtp_mxsess_limit;
+int     var_smtp_cache_conn;
+int     var_smtp_reuse_limit;
+char   *var_smtp_cache_dest;
+char   *var_scache_service;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -340,10 +381,12 @@ int     var_smtp_mxsess_limit;
   */
 int     smtp_errno;
 int     smtp_host_lookup_mask;
+STRING_LIST *smtp_cache_dest;
+SCACHE *smtp_scache;
 
 /* deliver_message - deliver message with extreme prejudice */
 
-static int deliver_message(DELIVER_REQUEST *request)
+static int deliver_message(const char *service, DELIVER_REQUEST *request)
 {
     SMTP_STATE *state;
     int     result;
@@ -369,6 +412,7 @@ static int deliver_message(DELIVER_REQUEST *request)
     state = smtp_state_alloc();
     state->request = request;
     state->src = request->fp;
+    state->service = service;
     SMTP_RCPT_INIT(state);
 
     /*
@@ -389,7 +433,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 
 /* smtp_service - perform service for client */
 
-static void smtp_service(VSTREAM *client_stream, char *unused_service, char **argv)
+static void smtp_service(VSTREAM *client_stream, char *service, char **argv)
 {
     DELIVER_REQUEST *request;
     int     status;
@@ -409,14 +453,14 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
      * the common code in single_server.c.
      */
     if ((request = deliver_request_read(client_stream)) != 0) {
-	status = deliver_message(request);
+	status = deliver_message(service, request);
 	deliver_request_done(client_stream, request, status);
     }
 }
 
-/* pre_init - pre-jail initialization */
+/* post_init - post-jail initialization */
 
-static void pre_init(char *unused_name, char **unused_argv)
+static void post_init(char *unused_name, char **unused_argv)
 {
     static NAME_MASK lookup_masks[] = {
 	SMTP_HOST_LOOKUP_DNS, SMTP_HOST_FLAG_DNS,
@@ -443,6 +487,24 @@ static void pre_init(char *unused_name, char **unused_argv)
 			       smtp_host_lookup_mask));
 
     /*
+     * Session cache instance.
+     */
+    if (*var_smtp_cache_dest)
+#if 0
+	smtp_scache = scache_multi_create();
+#else
+	smtp_scache = scache_clnt_create(var_scache_service,
+					 var_ipc_idle_limit,
+					 var_ipc_ttl_limit);
+#endif
+}
+
+/* pre_init - pre-jail initialization */
+
+static void pre_init(char *unused_name, char **unused_argv)
+{
+
+    /*
      * SASL initialization.
      */
     if (var_smtp_sasl_enable)
@@ -457,6 +519,12 @@ static void pre_init(char *unused_name, char **unused_argv)
      * Flush client.
      */
     flush_init();
+
+    /*
+     * Session cache domain list.
+     */
+    if (*var_smtp_cache_dest)
+	smtp_cache_dest = string_list_init(MATCH_FLAG_NONE, var_smtp_cache_dest);
 }
 
 /* pre_accept - see if tables have changed */
@@ -495,6 +563,8 @@ int     main(int argc, char **argv)
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
 	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
+	VAR_SMTP_CACHE_DEST, DEF_SMTP_CACHE_DEST, &var_smtp_cache_dest, 0, 0,
+	VAR_SCACHE_SERVICE, DEF_SCACHE_SERVICE, &var_scache_service, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -510,12 +580,14 @@ int     main(int argc, char **argv)
 	VAR_SMTP_QUIT_TMOUT, DEF_SMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
 	VAR_SMTP_PIX_THRESH, DEF_SMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
 	VAR_SMTP_PIX_DELAY, DEF_SMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,
+	VAR_SMTP_CACHE_CONN, DEF_SMTP_CACHE_CONN, &var_smtp_cache_conn, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_SMTP_LINE_LIMIT, DEF_SMTP_LINE_LIMIT, &var_smtp_line_limit, 0, 0,
 	VAR_SMTP_MXADDR_LIMIT, DEF_SMTP_MXADDR_LIMIT, &var_smtp_mxaddr_limit, 0, 0,
 	VAR_SMTP_MXSESS_LIMIT, DEF_SMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
+	VAR_SMTP_REUSE_LIMIT, DEF_SMTP_REUSE_LIMIT, &var_smtp_reuse_limit, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
@@ -538,6 +610,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
+		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_EXIT, pre_exit,
 		       0);

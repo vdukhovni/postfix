@@ -7,6 +7,74 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20040720
+=======================================================
+
+The default SMTP/LMTP timeouts for sending RSET are reduced to 20s.
+
+Major changes with snapshot Postfix-2.2-20040720
+================================================
+
+Selective SMTP session caching. Instead of disconnecting immediately
+after a mail transaction, the SMTP client can save the open session
+to a session cache daemon, so that any SMTP client process can use
+the same session for another mail transaction.
+
+This feature introduces the scache (session cache) server, which
+is added to your master.cf file when you upgrade Postfix.
+
+*** You need to execute "postfix reload" when upgrading from Postfix
+*** version 2.1 or later.
+
+*** You need to execute "postfix stop" when upgrading from Postfix
+*** version 2.0 or earlier. Execute "postfix start" when done.
+
+Session caching is enabled with the new smtp_connection_cache_domains
+parameter. Specify a list of destinations or lookup tables:
+
+- a domain name (the right-hand side of an email address),
+
+- a relay host (including optional [] and/or non-default TCP port),
+using the exact same spelling as in main.cf or in the transport map,
+
+- a /file/name with domains and/or relay hosts,
+
+- a type:table with domains and/or relay hosts on the left-hand
+side; the right-hand side result from type:table lookups is ignored.
+
+The following optimizes deliveries to hosts that your machine relays
+mail to:
+
+    smtp_connection_cache_domains = $relay_domains $relayhost
+
+A setting that tries to optimize deliveries to problem sites:
+
+    smtp_connection_cache_domains = hotmail.com...
+
+Cached SMTP sessions are allowed to remain unused for only a limited
+amount of time (smtp_connection_cache_time_limit, default:  2
+seconds). This limits the impact on remote server resources.
+Specify larger values only with permission from the remote sites.
+
+To avoid triggering remote problems, the same SMTP session is used
+only a limited number of times (smtp_connection_cache_reuse_limit,
+default:  10).
+
+Robustness note: to prevent mail from being delivered to the wrong
+server, the session caching feature explicitly labels each cached
+session with destination domain and IP address information. A
+session cache lookup succeeds only when the correct information is
+specified.
+
+Limitations:
+
+- SMTP session caching does not work with TLS (the necessary support
+for object passivation and re-activation does not exist).
+
+- SMTP session caching assumes that SASL credentials are valid for
+all hostnames or domain names that map onto the same IP address
+and TCP port.
+
 Major changes with snapshot Postfix-2.2-20040621
 ================================================
 
@@ -14,5 +82,5 @@ Control over the working directory when executing an external
 command.  With the pipe(8) mailer, specify directory=pathname, and
 with local(8) specify "command_execution_directory = expression"
 where "expression" is subject to $home etc. macro expansion. The
-result of macro expansion is restricted by the set of charaacters
+result of macro expansion is restricted by the set of characters
 specified with execution_directory_expansion_filter.

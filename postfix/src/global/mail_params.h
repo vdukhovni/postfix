@@ -769,6 +769,18 @@ extern int var_hash_queue_depth;
 #define DEF_BESTMX_TRANSP	""
 extern char *var_bestmx_transp;
 
+#define VAR_SMTP_CACHE_CONN	"smtp_connection_cache_time_limit"
+#define DEF_SMTP_CACHE_CONN	"2s"
+extern int var_smtp_cache_conn;
+
+#define VAR_SMTP_REUSE_LIMIT	"smtp_connection_cache_reuse_limit"
+#define DEF_SMTP_REUSE_LIMIT	10
+extern int var_smtp_reuse_limit;
+
+#define VAR_SMTP_CACHE_DEST	"smtp_connection_cache_domains"
+#define DEF_SMTP_CACHE_DEST	""
+extern char *var_smtp_cache_dest;
+
 #define VAR_SMTP_CONN_TMOUT	"smtp_connect_timeout"
 #define DEF_SMTP_CONN_TMOUT	"30s"
 extern int var_smtp_conn_tmout;
@@ -802,7 +814,7 @@ extern int var_smtp_data1_tmout;
 extern int var_smtp_data2_tmout;
 
 #define VAR_SMTP_RSET_TMOUT	"smtp_rset_timeout"
-#define DEF_SMTP_RSET_TMOUT	"120s"
+#define DEF_SMTP_RSET_TMOUT	"20s"
 extern int var_smtp_rset_tmout;
 
 #define VAR_SMTP_QUIT_TMOUT	"smtp_quit_timeout"
@@ -933,6 +945,10 @@ extern char *var_smtpd_sasl_appname;
 #define DEF_SMTPD_SASL_REALM	""
 extern char *var_smtpd_sasl_realm;
 
+#define VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS	"smtpd_sasl_exceptions_networks"
+#define DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS	""
+extern char *var_smtpd_sasl_exceptions_networks;
+
 #define VAR_SMTPD_SND_AUTH_MAPS	"smtpd_sender_login_maps"
 #define DEF_SMTPD_SND_AUTH_MAPS	""
 extern char *var_smtpd_snd_auth_maps;
@@ -990,10 +1006,6 @@ extern int var_lmtpd_err_sleep;
 #define VAR_LMTPD_JUNK_CMD	"lmtpd_junk_command_limit"
 #define DEF_LMTPD_JUNK_CMD	1000
 extern int var_lmtpd_junk_cmd_limit;
-
-#define VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS	"smtpd_sasl_exceptions_networks"
-#define DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS	""
-extern char *var_smtpd_sasl_exceptions_networks;
 
  /*
   * SASL authentication support, LMTP server side.
@@ -1053,7 +1065,7 @@ extern bool var_lmtp_skip_quit_resp;
 extern int var_lmtp_conn_tmout;
 
 #define VAR_LMTP_RSET_TMOUT	"lmtp_rset_timeout"
-#define DEF_LMTP_RSET_TMOUT	"120s"
+#define DEF_LMTP_RSET_TMOUT	"20s"
 extern int var_lmtp_rset_tmout;
 
 #define VAR_LMTP_LHLO_TMOUT	"lmtp_lhlo_timeout"
@@ -1775,6 +1787,17 @@ extern char *var_error_service;
 #define VAR_FLUSH_SERVICE		"flush_service_name"
 #define DEF_FLUSH_SERVICE		MAIL_SERVICE_FLUSH
 extern char *var_flush_service;
+
+ /*
+  * Session cache service.
+  */
+#define VAR_SCACHE_SERVICE		"session_cache_service"
+#define DEF_SCACHE_SERVICE		"scache"
+extern char *var_scache_service;
+
+#define VAR_SCACHE_TTL_LIM		"session_cache_ttl_limit"
+#define DEF_SCACHE_TTL_LIM		"2s"
+extern int var_scache_ttl_lim;
 
  /*
   * Address verification service.

@@ -472,7 +472,9 @@ of failed delivery attempts and generates non-delivery notifications.
 This feature is available in Postfix 2.0 and later.
 .SH bounce_size_limit (default: 50000)
 The maximal amount of original message text that is sent in a
-non-delivery notification. Specify a byte count.
+non-delivery notification. Specify a byte count. If you increase
+this limit, then you should increase the mime_nesting_limit value
+proportionally.
 .SH broken_sasl_auth_clients (default: no)
 Enable inter-operability with SMTP clients that implement an obsolete
 version of the AUTH command (RFC 2554). Examples of such clients
@@ -598,8 +600,8 @@ address patterns that cause the verbose logging level to increase
 by the amount specified in $debug_peer_level.
 .PP
 Specify domain names, network/netmask patterns, "/file/name"
-patterns or "type:table" lookup tables. The result from lookup
-tables is ignored.
+patterns or "type:table" lookup tables. The right-hand side result
+from "type:table" lookups is ignored.
 .PP
 Pattern matching of domain names is controlled by the
 parent_domain_matches_subdomains parameter.
@@ -1353,10 +1355,11 @@ for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
-.SH lmtp_rset_timeout (default: 120s)
-The LMTP client time limit for sending the RSET command, and for
-receiving the server response. The LMTP client sends RSET in order
-to find out if a cached connection is still alive.
+.SH lmtp_rset_timeout (default: 20s)
+The LMTP client time limit for sending the RSET command, and
+for receiving the server response. The LMTP client sends RSET in
+order to finish a recipient address probe, or to verify that a
+cached connection is still alive.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -1825,8 +1828,8 @@ message headers, as described in the header_checks(5) manual page.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH mime_nesting_limit (default: 100)
-The maximal nesting level of multipart mail that the MIME processor
-will handle. Postfix refuses mail that is nested deeper.
+The maximal recursion level that the MIME processor will handle.
+Postfix refuses mail that is nested deeper than the specified limit.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH minimal_backoff_time (default: 1000s)
@@ -2633,6 +2636,15 @@ appears to be malfunctioning.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH session_cache_service (default: scache)
+The name of the scache(8) session cache service.  This service
+maintains a limited pool of cached sessions.
+.SH session_cache_ttl_limit (default: 2s)
+The maximal time-to-live value that the session cache server
+allows. Requests that specify a larger TTL will be stored with the
+maximum allowed TTL. The purpose of this additional control is to
+protect the infrastructure against careless people. The cache TTL
+is already bounded by $max_idle.
 .SH setgid_group (default: postdrop)
 The group ownership of set-gid Postfix commands and of group-writable
 Postfix directories. When this parameter value is changed you need
@@ -2681,6 +2693,36 @@ the operating system).
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH smtp_connection_cache_domains (default: empty)
+The SMTP destinations for which SMTP connection caching is
+enabled.  With SMTP connection caching, a connection is not closed
+immediately after completion of a mail transaction.  Instead, the
+connection is kept open for up to $smtp_connection_cache_time_limit
+seconds.  This allows connections to be reused for other deliveries,
+and can improve mail delivery performance.
+.PP
+Specify a comma or white space separated list of destinations
+or pseudo-destinations:
+.IP \(bu
+a domain name (the right-hand side of an email address),
+.IP \(bu
+a relay host (including optional [] and/or non-default TCP
+port), using the exact same spelling as in main.cf or in the
+transport map,
+.IP \(bu
+a /file/name with domains and/or relay hosts,
+.IP \(bu
+a "type:table" with domains and/or relay hosts on the left-hand
+side.  The right-hand side result from "type:table" lookups is
+ignored.
+.PP
+.SH smtp_connection_cache_reuse_limit (default: 10)
+When SMTP session caching is enabled, the number of times that
+an SMTP session is reused before it is closed.
+.SH smtp_connection_cache_time_limit (default: 2s)
+When SMTP session caching is enabled, the amount of time that
+an unused SMTP client socket is kept open before it is closed.  Do
+not specify larger values without permission from the remote sites.
 .SH smtp_data_done_timeout (default: 600s)
 The SMTP client time limit for sending the SMTP ".", and for receiving
 the server response.
@@ -2852,9 +2894,11 @@ for receiving the server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
-.SH smtp_rset_timeout (default: 120s)
+.SH smtp_rset_timeout (default: 20s)
 The SMTP client time limit for sending the RSET command, and
-for receiving the server response.
+for receiving the server response. The SMTP client sends RSET in
+order to finish a recipient address probe, or to verify that a
+cached session is still usable.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtp_sasl_auth_enable (default: no)

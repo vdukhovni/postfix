@@ -1,0 +1,407 @@
+/*++
+/* NAME
+/*	scache 8
+/* SUMMARY
+/*	Postfix session cache server
+/* SYNOPSIS
+/*	\fBscache\fR [generic Postfix daemon options]
+/* DESCRIPTION
+/*	The scache server maintains the Postfix session cache. This
+/*	information can be used by, for example, the Postfix SMTP client.
+/*
+/*	The session cache is organized into logical destination
+/*	names, physical endpoint names, and sessions.
+/*
+/*	As a specific example, logical SMTP destinations specify
+/*	(transport, domain, port), and physical SMTP endpoints
+/*	specify (transport, IP address, port).  An SMTP session
+/*	may be saved after a successful mail transaction.
+/*
+/*	In the general case, one logical destination may refer to
+/*	zero or more physical endpoints, one physical endpoint may
+/*	be referenced by zero or more logical destinations, and
+/*	one endpoint may refer to zero or more sessions.
+/*
+/*	The exact syntax of a logical destination or endpoint name
+/*	is application dependent; the \fBscache\fR service does
+/*	not care.  A session is stored as a file descriptor together
+/*	with application-dependent information that is needed to
+/*	re-activate a session object. Again, the \fBscache\fR
+/*	service is completely unaware about the details of that
+/*	information.
+/*
+/*	All information is stored with a finite time to live (ttl).
+/*	The session cache daemon terminates when no client is
+/*	connected for \fBmax_idle\fR time units.
+/*
+/*	This server implements the following requests:
+/* .IP "\fBsave_endp\fI ttl endpoint endpoint_properties file_descriptor\fR"
+/*	Save the specified file descriptor and session property data
+/*	under the specified endpoint name. The endpoint properties
+/*	are used by the client to re-activate a passivated session
+/*	object.
+/*	queue ID is queued for the specified destination.
+/* .IP "\fBfind_endp\fI endpoint\fR"
+/*	Look up cached properties and a cached file descriptor for the
+/*	specified endpoint.
+/* .IP "\fBsave_dest\fI ttl destination destination_properties endpoint\fR"
+/*	Save the binding between a logical destination and an
+/*	endpoint under the destination name, together with destination
+/*	specific session properties. The destination properties
+/*	are used by the client to re-activate a passivated session
+/*	object.
+/* .IP "\fBfind_dest\fI destination\fR"
+/*	Look up cached destination properties, cached endpoint properties,
+/*	and a cached file descriptor for the specified logical destination.
+/* SECURITY
+/* .ad
+/* .fi
+/*	The session cache server is not security-sensitive. It does not
+/*	talk to the network, and it does not talk to local users.
+/*	The scache server can run chrooted at fixed low privilege.
+/*
+/*	The session cache server is not a trusted process. It must
+/*	not be used to store information that is security sensitive.
+/* DIAGNOSTICS
+/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/* BUGS
+/*	Sessions cannot be cached across multiple machines.
+/*
+/*      When a session expires from the cache it is closed without
+/*	protocol specific handshake.
+/* CONFIGURATION PARAMETERS
+/* .ad
+/* .fi
+/*	Changes to \fBmain.cf\fR are picked up automatically as scache(8)
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* RESOURCE CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBsession_cache_ttl_limit (2s)\fR"
+/*	The maximal time-to-live value that the session cache server
+/*	allows.
+/* MISCELLANEOUS CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* SEE ALSO
+/*	smtp(8), SMTP client
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/*	This service was introduced with Postfix version 2.2.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
+/* System library. */
+
+#include <sys_defs.h>
+
+/* Utility library. */
+
+#include <msg.h>
+#include <iostuff.h>
+#include <htable.h>
+#include <ring.h>
+
+/* Global library. */
+
+#include <mail_params.h>
+#include <mail_proto.h>
+#include <scache.h>
+
+/* Single server skeleton. */
+
+#include <mail_server.h>
+#include <mail_conf.h>
+
+/* Application-specific. */
+
+ /*
+  * Tunable parameters.
+  */
+int     var_scache_ttl_lim;
+
+ /*
+  * Request parameters.
+  */
+static VSTRING *scache_request;
+static VSTRING *scache_dest_label;
+static VSTRING *scache_dest_prop;
+static VSTRING *scache_endp_label;
+static VSTRING *scache_endp_prop;
+
+ /*
+  * Session cache instance.
+  */
+static SCACHE *scache;
+
+ /*
+  * Silly little macros.
+  */
+#define STR(x)			vstring_str(x)
+#define VSTREQ(x,y)		(strcmp(STR(x),y) == 0)
+
+/* scache_save_endp_service - protocol to save endpoint->stream binding */
+
+static void scache_save_endp_service(VSTREAM *client_stream)
+{
+    const char *myname = "scache_save_endp_service";
+    int     ttl;
+    int     fd;
+
+    if (attr_scan(client_stream,
+		  ATTR_FLAG_STRICT,
+		  ATTR_TYPE_NUM, MAIL_ATTR_TTL, &ttl,
+		  ATTR_TYPE_STR, MAIL_ATTR_LABEL, scache_endp_label,
+		  ATTR_TYPE_STR, MAIL_ATTR_PROP, scache_endp_prop,
+		  ATTR_TYPE_END) != 3
+	|| ttl <= 0) {
+	msg_warn("%s: bad or missing request parameter", myname);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_BAD,
+		   ATTR_TYPE_END);
+	return;
+    } else if ((fd = LOCAL_RECV_FD(vstream_fileno(client_stream))) < 0) {
+	msg_warn("%s: unable to receive file descriptor", myname);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
+		   ATTR_TYPE_END);
+	return;
+    } else {
+	scache_save_endp(scache,
+			 ttl > var_scache_ttl_lim ? var_scache_ttl_lim : ttl,
+			 STR(scache_endp_label), STR(scache_endp_prop), fd);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
+		   ATTR_TYPE_END);
+	return;
+    }
+}
+
+/* scache_find_endp_service - protocol to find session for endpoint */
+
+static void scache_find_endp_service(VSTREAM *client_stream)
+{
+    const char *myname = "scache_find_endp_service";
+    int     fd;
+
+    if (attr_scan(client_stream,
+		  ATTR_FLAG_STRICT,
+		  ATTR_TYPE_STR, MAIL_ATTR_LABEL, scache_endp_label,
+		  ATTR_TYPE_END) != 1) {
+	msg_warn("%s: bad or missing request parameter", myname);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_BAD,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
+		   ATTR_TYPE_END);
+	return;
+    } else if ((fd = scache_find_endp(scache, STR(scache_endp_label),
+				      scache_endp_prop)) < 0) {
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
+		   ATTR_TYPE_END);
+	return;
+    } else {
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, STR(scache_endp_prop),
+		   ATTR_TYPE_END);
+	if (vstream_fflush(client_stream) != 0
+	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0)
+	    msg_warn("%s: cannot send file descriptor: %m", myname);
+	if (close(fd) < 0)
+	    msg_warn("close(%d): %m", fd);
+	return;
+    }
+}
+
+/* scache_save_dest_service - protocol to save destiation->endpoint binding */
+
+static void scache_save_dest_service(VSTREAM *client_stream)
+{
+    const char *myname = "scache_save_dest_service";
+    int     ttl;
+
+    if (attr_scan(client_stream,
+		  ATTR_FLAG_STRICT,
+		  ATTR_TYPE_NUM, MAIL_ATTR_TTL, &ttl,
+		  ATTR_TYPE_STR, MAIL_ATTR_LABEL, scache_dest_label,
+		  ATTR_TYPE_STR, MAIL_ATTR_PROP, scache_dest_prop,
+		  ATTR_TYPE_STR, MAIL_ATTR_LABEL, scache_endp_label,
+		  ATTR_TYPE_END) != 4
+	|| ttl <= 0) {
+	msg_warn("%s: bad or missing request parameter", myname);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_BAD,
+		   ATTR_TYPE_END);
+	return;
+    } else {
+	scache_save_dest(scache,
+			 ttl > var_scache_ttl_lim ? var_scache_ttl_lim : ttl,
+			 STR(scache_dest_label), STR(scache_dest_prop),
+			 STR(scache_endp_label));
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
+		   ATTR_TYPE_END);
+	return;
+    }
+}
+
+/* scache_find_dest_service - protocol to find session for destination */
+
+static void scache_find_dest_service(VSTREAM *client_stream)
+{
+    const char *myname = "scache_find_dest_service";
+    int     fd;
+
+    if (attr_scan(client_stream,
+		  ATTR_FLAG_STRICT,
+		  ATTR_TYPE_STR, MAIL_ATTR_LABEL, scache_dest_label,
+		  ATTR_TYPE_END) != 1) {
+	msg_warn("%s: bad or missing request parameter", myname);
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_BAD,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
+		   ATTR_TYPE_END);
+	return;
+    } else if ((fd = scache_find_dest(scache, STR(scache_dest_label),
+				      scache_dest_prop,
+				      scache_endp_prop)) < 0) {
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
+		   ATTR_TYPE_END);
+	return;
+    } else {
+	attr_print(client_stream, ATTR_FLAG_NONE,
+		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_OK,
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, STR(scache_dest_prop),
+		   ATTR_TYPE_STR, MAIL_ATTR_PROP, STR(scache_endp_prop),
+		   ATTR_TYPE_END);
+	if (vstream_fflush(client_stream) != 0
+	    || LOCAL_SEND_FD(vstream_fileno(client_stream), fd) < 0)
+	    msg_warn("%s: cannot send file descriptor: %m", myname);
+	if (close(fd) < 0)
+	    msg_warn("close(%d): %m", fd);
+	return;
+    }
+}
+
+/* scache_service - perform service for client */
+
+static void scache_service(VSTREAM *client_stream, char *unused_service,
+			           char **argv)
+{
+
+    /*
+     * Sanity check. This service takes no command-line arguments.
+     */
+    if (argv[0])
+	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
+     * This routine runs whenever a client connects to the UNIX-domain socket
+     * dedicated to the scache service. All connection-management stuff is
+     * handled by the common code in multi_server.c.
+     */
+    if (attr_scan(client_stream,
+		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+		  ATTR_TYPE_STR, MAIL_ATTR_REQ, scache_request,
+		  ATTR_TYPE_END) == 1) {
+	if (VSTREQ(scache_request, SCACHE_REQ_SAVE_DEST)) {
+	    scache_save_dest_service(client_stream);
+	} else if (VSTREQ(scache_request, SCACHE_REQ_FIND_DEST)) {
+	    scache_find_dest_service(client_stream);
+	} else if (VSTREQ(scache_request, SCACHE_REQ_SAVE_ENDP)) {
+	    scache_save_endp_service(client_stream);
+	} else if (VSTREQ(scache_request, SCACHE_REQ_FIND_ENDP)) {
+	    scache_find_endp_service(client_stream);
+	} else {
+	    msg_warn("unrecognized request: \"%s\", ignored",
+		     STR(scache_request));
+	    attr_print(client_stream, ATTR_FLAG_NONE,
+		       ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_BAD,
+		       ATTR_TYPE_END);
+	}
+    }
+    vstream_fflush(client_stream);
+}
+
+/* post_jail_init - initialization after privilege drop */
+
+static void post_jail_init(char *unused_name, char **unused_argv)
+{
+
+    /*
+     * Pre-allocate the cache instance.
+     */
+    scache = scache_multi_create();
+
+    /*
+     * Pre-allocate buffers.
+     */
+    scache_request = vstring_alloc(10);
+    scache_dest_label = vstring_alloc(10);
+    scache_dest_prop = vstring_alloc(10);
+    scache_endp_label = vstring_alloc(10);
+    scache_endp_prop = vstring_alloc(10);
+
+    /*
+     * Disable the max_use limit. We still terminate when no client is
+     * connected for $idle_limit time units.
+     */
+    var_use_limit = 0;
+}
+
+/* main - pass control to the multi-threaded skeleton */
+
+int     main(int argc, char **argv)
+{
+    static CONFIG_TIME_TABLE time_table[] = {
+	VAR_SCACHE_TTL_LIM, DEF_SCACHE_TTL_LIM, &var_scache_ttl_lim, 1, 0,
+	0,
+    };
+
+    multi_server_main(argc, argv, scache_service,
+		      MAIL_SERVER_TIME_TABLE, time_table,
+		      MAIL_SERVER_POST_INIT, post_jail_init,
+		      MAIL_SERVER_SOLITARY,
+		      0);
+}

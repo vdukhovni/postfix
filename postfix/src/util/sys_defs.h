@@ -298,6 +298,8 @@ extern int opterr;
 #define LOCAL_ACCEPT	stream_accept
 #define LOCAL_CONNECT	stream_connect
 #define LOCAL_TRIGGER	stream_trigger
+#define LOCAL_SEND_FD	stream_send_fd
+#define LOCAL_RECV_FD	stream_recv_fd
 #define HAS_VOLATILE_LOCKS
 #define BROKEN_READ_SELECT_ON_TCP_SOCKET
 
@@ -993,6 +995,8 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 #define LOCAL_ACCEPT	unix_accept
 #define LOCAL_CONNECT	unix_connect
 #define LOCAL_TRIGGER	unix_trigger
+#define LOCAL_SEND_FD	unix_send_fd
+#define LOCAL_RECV_FD	unix_recv_fd
 #endif
 
 #if !defined (HAVE_SYS_NDIR_H) && !defined (HAVE_SYS_DIR_H) \
