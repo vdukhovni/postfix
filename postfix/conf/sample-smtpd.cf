@@ -203,7 +203,7 @@ smtpd_sender_restrictions =
 #   reject_non_fqdn_hostname: reject HELO hostname that is not in FQDN form
 #   reject_non_fqdn_sender: reject sender address that is not in FQDN form
 #   reject_non_fqdn_recipient: reject recipient address that is not in FQDN form
-#   permit_address_map maptype:mapname: permit if the recipient address matches
+#   permit_recipient_map maptype:mapname: permit if the recipient matches
 #		    the table. Matching is as with virtual/canonical tables.
 #   reject: reject the request. Place this at the end of a restriction.
 #   permit: permit the request. Place this at the end of a restriction.

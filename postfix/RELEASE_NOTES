@@ -1,17 +1,19 @@
-Incompatible changes with snapshot 19990909
+Incompatible changes with snapshot 19990910
 ===========================================
 
 - You can not longer use virtual, canonical or aliases tables as
-SMTPD access control tables. Use the permit_address_map feature
+SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for.
 
-Major changes with snapshot 19990909
+Major changes with snapshot 19990910
 ====================================
 
 - Per-client/helo/sender/recipient UCE restrictions: you can now
 specify arbitrary restrictions on the right-hand side of SMTPD
-access tables.  The only anomaly in this scheme is that header
-checks are the same for every message.
+access tables.  The only anomalies in this scheme are (1) header
+checks are the same for every message, and (2) you must use a
+restriction class (see below) in order to specify a lookup table
+on the right-hand side of an access table.
 
 - Restriction classes allow you to conveniently group restrictions
 under one name. This is great for per-client/helo/sender/recipient
@@ -26,25 +28,30 @@ your per-client/helo/sender/recipient SMTPD access tables.
 
 - Reject mail for non-existent local accounts. You can now use
 passwd/canonical/virtual/aliases tables for SMTPD access control.
-For example, specify in main.cf:
 
-    relay_domains = $mydestination other domains...
+For example, a non-relaying site would specify in main.cf:
+
     smtpd_recipient_restrictions =
-	reject_unauth_destination
-	permit_address_map unix:passwd.byname
-	permit_address_map hash:/etc/canonical
-	permit_address_map hash:/etc/postfix/virtual
-	permit_address_map hash:/etc/aliases
+	permit_recipient_map unix:passwd.byname
+	permit_recipient_map hash:/etc/canonical
+	permit_recipient_map hash:/etc/postfix/virtual
+	permit_recipient_map hash:/etc/aliases
 	reject
 
 That should stop a lot of the mail to non-existent recipients.  It
 won't stop mail to broken aliases or to users with broken .forward
 files, though.
 
-Unfortunately, permit_address_map does not combine well with
-check_relay_domains, because that restriction ALWAYS permits mail
-for local destinations. Instead of check_relay_domains, use some
-combination of permit_mynetworks and reject_unauth_destination.
+All this is great for non-relaying sites. A good example with
+permit_recipient_map for relaying sites still needs to be found.
+
+Unfortunately, permit_recipient_map does not combine well with
+permit_mynetworks, because permit_mynetworks accepts mail for ALL
+destinations, including ALL LOCAL destinations.
+
+Unfortunately, permit_recipient_map does not combine well with
+check_relay_domains, because check_relay_domains permits mail for
+ALL LOCAL destinations.
 
 Incompatible changes with postfix-19990906
 ==========================================

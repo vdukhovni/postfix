@@ -3060,19 +3060,32 @@ Apologies for any names omitted.
 	Performance: added one-entry cache to the address rewriting
 	client and to the address resolving client. This is because
 	UCE restrictions tend to produce the same query repeatedly.
+	Files: global/rewrite_clnt.c, global/resolve_clnt.c.
 
 	Feature: the UCE restrictions are now fully recursive so
 	you can have per-client/helo/sender/recipient restrictions.
 	Instead of OK, REJECT or [45]xx, you can specify a sequence
 	of restrictions on the right-hand side of an SMTPD access
 	table. This means you can no longer use canonical/virtual/alias
-	maps as SMTPD access tables. But the loss is compensated for.
+	maps as SMTPD access tables. But the loss is compensated
+	for.  File: smtpd/smtpd_access.c.
 
 	Feature: restriction classes, essentially a short-hand for
 	restriction lists.  These short hands are useful mostly on
-	the right-hand side of SMTPD access tables.
+	the right-hand side of SMTPD access tables. You must use
+	restriction classes in order to have lookup tables on the
+	right-hand side of an SMTPD access table.  File:
+	smtpd/smtpd_access.c.
 
-	Feature: "permit_address_map maptype:mapname" permits a
+	Feature: "permit_recipient_map maptype:mapname" permits a
 	recipient address when it matches the specified table.
 	Lookups are done just as with canonical/virtual maps.  With
 	this, you can also use passwd/aliases as SMTPD access maps.
+	File: smtpd/smtpd_access.c.
+
+19990910
+
+	Changed "permit_address_map" into "permit_recipient_map"
+	and added a test for the case that they specify a lookup
+	table on the right-hand side of an SMTPD access map.
+	File: smtpd/smtpd_access.c.

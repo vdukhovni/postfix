@@ -11,6 +11,11 @@
 /*	const char *map_names;
 /*	int	flags;
 /*
+/*	MAPS	*maps_append(maps, map_name, dict_handle)
+/*	MAPS	*maps;
+/*	const char *map_name;
+/*	DICT	*dict_handle;
+/*
 /*	const char *maps_find(maps, key, flags)
 /*	MAPS	*maps;
 /*	const char *key;
@@ -29,6 +34,10 @@
 /*	The result is a handle that must be specified along with all
 /*	other maps_xxx() operations.
 /*	See dict_open(3) for a description of flags.
+/*
+/*	maps_append() appends a dictionary to an existing handle
+/*	under the given name. If dict_handle is a null pointer, 
+/*	the named dictionary is opened on the fly.
 /*
 /*	maps_find() searches the specified list of dictionaries
 /*	in the specified order for the named key. The result is in
@@ -104,12 +113,10 @@
 
 MAPS   *maps_create(const char *title, const char *map_names, int flags)
 {
-    char   *myname = "maps_create";
-    char   *temp = mystrdup(map_names);
-    char   *bufp = temp;
+    char   *temp;
+    char   *bufp;
     static char sep[] = " \t,\r\n";
     MAPS   *maps;
-    DICT   *dict;
     char   *map_type_name;
 
     /*
@@ -118,23 +125,36 @@ MAPS   *maps_create(const char *title, const char *map_names, int flags)
     maps = (MAPS *) mymalloc(sizeof(*maps));
     maps->title = mystrdup(title);
     maps->argv = argv_alloc(2);
+    maps->flags = flags;
 
     /*
      * For each specified type:name pair, either register a new dictionary,
      * or increment the reference count of an existing one.
      */
-    while ((map_type_name = mystrtok(&bufp, sep)) != 0) {
-	if (msg_verbose)
-	    msg_info("%s: %s", myname, map_type_name);
-	if ((dict = dict_handle(map_type_name)) == 0)
-	    dict = dict_open(map_type_name, O_RDONLY, flags);
-	else if ((dict->flags & flags) != flags)
-	    msg_warn("%s: map %s has flags 0%o, want flags 0%o",
-		     myname, map_type_name, dict->flags, flags);
-	dict_register(map_type_name, dict);
-	argv_add(maps->argv, map_type_name, ARGV_END);
+    if (*map_names) {
+	bufp = temp = mystrdup(map_names);
+	while ((map_type_name = mystrtok(&bufp, sep)) != 0)
+	    maps_append(maps, map_type_name, dict_handle(map_type_name));
+	myfree(temp);
     }
-    myfree(temp);
+    return (maps);
+}
+
+/* maps_append - append dictionary */
+
+MAPS   *maps_append(MAPS *maps, const char *map_type_name, DICT *dict)
+{
+    char   *myname = "maps_append";
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, map_type_name);
+    if (dict == 0)
+	dict = dict_open(map_type_name, O_RDONLY, maps->flags);
+    if ((dict->flags & maps->flags) != maps->flags)
+	msg_warn("%s: map %s has flags 0%o, want flags 0%o",
+		 myname, map_type_name, dict->flags, maps->flags);
+    dict_register(map_type_name, dict);
+    argv_add(maps->argv, map_type_name, ARGV_END);
     argv_terminate(maps->argv);
     return (maps);
 }

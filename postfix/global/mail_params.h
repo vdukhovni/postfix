@@ -799,7 +799,7 @@ extern int var_smtpd_delay_reject;
 
 #define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
 
-#define PERMIT_ADDR_MAP		"permit_address_map"
+#define PERMIT_RCPT_MAP		"permit_recipient_map"
 
  /*
   * Other.
