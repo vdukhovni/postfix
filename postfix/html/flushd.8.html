@@ -20,8 +20,8 @@ FLUSHD(8)                                               FLUSHD(8)
        This server implements the following requests:
 
        <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>ADD</b> <i>sitename</i> <i>queue_id</i>
-              Append <i>queue_id</i> to the fast flush logfile  for  the
-              specified site.
+              Append <i>queue_id</i> to the fast flush log for the spec-
+              ified site.
 
        <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b> <i>sitename</i>
               Arrange  for  the delivery of all messages that are
@@ -39,22 +39,22 @@ FLUSHD(8)                                               FLUSHD(8)
               name, bad request parameter value).
 
        <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>UNKNOWN</b>
-              The specified site has no fast flush logfile and is
-              not configured to have one.
+              The specified site has no fast flush log.
 
-       Fast flush logfiles  are  truncated  only  after  a  flush
-       request.  In  order  to  prevent  fast flush logfiles from
-       growing without bounds, and to prevent them  from  accumu-
-       lating  too  much  outdated information, the flush service
-       generates a pro-active flush request once every every 1000
-       append requests. This should not impact operation.
+       Fast  flush  logfiles  are  truncated  only  after a flush
+       request. In order to prevent fast flush logs from  growing
+       too  large, and to prevent them from accumulating too much
+       outdated information, the flush service generates  a  pro-
+       active   flush   request  once  every  every  1000  append
+       requests. This should not impact operation.
 
 <b>SECURITY</b>
        The fast flush server is moderately security-sensitive. It
-       does not talk to the network, but it does  talk  to  local
+       does  not  talk  to the network, but it does talk to local
        unprivileged users, in order to emulate "sendmail -qRsite"
-       behavior.  For this reason all strings in  a  request  are
-       truncated at <i>line_length_limit</i>.
+       behavior.   For  this  reason all strings in a request are
+       truncated at <i>line_length_limit</i>, before they are  subjected
+       to further validation.
 
        The fast flush server can run chrooted at fixed low privi-
        lege.
@@ -86,21 +86,8 @@ FLUSHD(8)                                               FLUSHD(8)
        details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
        command after a configuration change.
 
-       <b>etrn</b><i>_</i><b>maps</b>
-              Tables that specify what domains have <b>ETRN</b> service.
-              For  each table entry, the left-hand side specifies
-              a destination domain name that can be specified  in
-              an  <b>ETRN</b> request, and the right-hand side specifies
-              a list of access restrictions for SMTP clients that
-              issue <b>ETRN</b> for the domain.
-
-       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>maps</b>
-              The  table with names of destinations that this MTA
-              provides the fast flush service  for.  By  default,
-              this is set to $<b>etrn</b><i>_</i><b>maps</b>.
-
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
-              Maximal  length  of  strings in a fast flush client
+              Maximal length of strings in a  fast  flush  client
               request.
 
 <b>SEE</b> <b>ALSO</b>
@@ -109,7 +96,7 @@ FLUSHD(8)                                               FLUSHD(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -117,6 +104,19 @@ FLUSHD(8)                                               FLUSHD(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

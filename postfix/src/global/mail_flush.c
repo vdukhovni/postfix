@@ -15,17 +15,20 @@
 /*	const char *site;
 /*	const char *queue_id;
 /* DESCRIPTION
-/*	This module deals with delivery of backed up mail.
+/*	This module deals with delivery of delayed mail.
 /*
 /*	mail_flush_deferred() triggers delivery of all deferred
 /*	or incoming mail.
 /*
-/*	mail_flush_site() uses the "fash flush" service to trigger
-/*	delivery of messages queued for the specified site.
-/*	This service is available only for sites that are configured
-/*	to have a deferred mail logfile.
+/*	The following services are available only for sites have a
+/*	"fast flush" logfile. These files list all mail that is queued
+/*	for a given site, and are created on demand when, for example,
+/*	an eligible SMTP client issues the ETRN command.
 /*
-/*	mail_flush_append() appends a record to the "fash flush"
+/*	mail_flush_site() uses the "fast flush" service to trigger
+/*	delivery of messages queued for the specified site.
+/*
+/*	mail_flush_append() appends a record to the "fast flush"
 /*	logfile of the specified site, with the queue ID of mail
 /*	that should still be delivered.
 /* DIAGNOSTICS
@@ -34,10 +37,11 @@
 /*	The request completed normally.
 /* .IP MAIL_FLUSH_FAIL
 /*	The request failed.
-/* .IP "MAIL_FLUSH_UNKNOWN (mail_flush_site() only)"
-/*	The specified site is not configured for the fast flush service.
-/* .IP "MAIL_FLUSH_BAD (mail_flush_site() only)"
-/*	The fast flush server rejected the request.
+/* .IP MAIL_FLUSH_UNKNOWN
+/*	The specified site has no "fast flush" logfile.
+/* .IP MAIL_FLUSH_BAD
+/*	The "fast flush" server rejected the request (invalid request
+/*	parameter).
 /* LICENSE
 /* .ad
 /* .fi
@@ -86,7 +90,7 @@ int     mail_flush_deferred(void)
 
 /* mail_flush_clnt - generic fast flush service client */
 
-static int mail_flush_clnt(const char *format, ...)
+static int mail_flush_clnt(const char *format,...)
 {
     VSTREAM *flush;
     int     status;

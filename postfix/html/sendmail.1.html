@@ -188,9 +188,9 @@ SENDMAIL(1)                                           SENDMAIL(1)
        <b>-qR</b><i>site</i>
               Schedule immediate delivery of  all  mail  that  is
               queued  for  the named <i>site</i>.  This functionality is
-              available only for sites that  are  configured  for
-              the  <b>fast</b>  <b>flush</b>  service  support  as described in
-              <b>flushd</b>(8).   For  other  sites,  use   the   slower
+              available only for sites that have a so-called <b>fast</b>
+              <b>flush</b> logfile as described in <a href="flushd.8.html"><b>flushd</b>(8)</a>.  For other
+              sites, use the slower <b>sendmail</b> <b>-q</b> command  instead.
 
 
 
@@ -202,8 +202,6 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
 SENDMAIL(1)                                           SENDMAIL(1)
 
-
-              <b>sendmail</b> <b>-q</b> command instead.
 
        <b>-qS</b><i>site</i>
               This  command  is  not  implemented. Use the slower
@@ -257,6 +255,8 @@ SENDMAIL(1)                                           SENDMAIL(1)
               The amount of original message context that is sent
               along with a non-delivery notification.
 
+       <b>database</b><i>_</i><b>type</b>
+              Default  alias  etc.  database  type.  On many UNIX
 
 
 
@@ -269,9 +269,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
-       <b>database</b><i>_</i><b>type</b>
-              Default alias etc. database type. On many UNIX sys-
-              tems the default type is either <b>dbm</b> or <b>hash</b>.
+              systems the default type is either <b>dbm</b> or <b>hash</b>.
 
        <b>debugger</b><i>_</i><b>command</b>
               Command that is executed after a Postfix daemon has
@@ -288,41 +286,43 @@ SENDMAIL(1)                                           SENDMAIL(1)
               ging   level   by   the  amount  specified  in  the
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
 
-       <b>etrn</b><i>_</i><b>maps</b>
-              Tables that specify what domains have <b>ETRN</b> service.
-              For  each table entry, the left-hand side specifies
-              a destination domain name that can be specified  in
-              an  <b>ETRN</b> request, and the right-hand side specifies
-              a list of access restrictions for SMTP clients that
-              issue <b>ETRN</b> for the domain.
-
-       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>maps</b>
-              The  table with names of destinations that this MTA
-              provides the fast flush service  for.  By  default,
-              this is set to $<b>etrn</b><i>_</i><b>maps</b>.
-
        <b>fork</b><i>_</i><b>attempts</b>
-              Number  of attempts to <b>fork</b>() a process before giv-
+              Number of attempts to <b>fork</b>() a process before  giv-
               ing up.
 
        <b>fork</b><i>_</i><b>delay</b>
-              Delay  in   seconds   between   successive   <b>fork</b>()
+              Delay   in   seconds   between   successive  <b>fork</b>()
               attempts.
 
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
        <b>mail</b><i>_</i><b>owner</b>
-              The  owner  of  the  mail queue and of most Postfix
+              The owner of the mail queue  and  of  most  Postfix
               processes.
 
        <b>command</b><i>_</i><b>directory</b>
-              Directory with Postfix support  commands  (default:
+              Directory  with  Postfix support commands (default:
               <b>$program</b><i>_</i><b>directory</b>).
 
        <b>daemon</b><i>_</i><b>directory</b>
-              Directory  with  Postfix  daemon programs (default:
+              Directory with Postfix  daemon  programs  (default:
               <b>$program</b><i>_</i><b>directory</b>).
+
+       <b>queue</b><i>_</i><b>directory</b>
+              Top-level  directory  of the Postfix queue. This is
+              also the root directory of Postfix daemons that run
+              chrooted.
+
+       <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
+              The  time  between successive scans of the deferred
+              queue.
+
+<b>SEE</b> <b>ALSO</b>
+       <a href="pickup.8.html">pickup(8)</a> mail pickup daemon
+       <a href="postalias.1.html">postalias(1)</a> maintain alias database
+       <a href="postdrop.1.html">postdrop(1)</a> privileged posting agent
+       <a href="postfix.1.html">postfix(1)</a> mail system control
 
 
 
@@ -335,29 +335,15 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
-       <b>queue</b><i>_</i><b>directory</b>
-              Top-level directory of the Postfix queue.  This  is
-              also the root directory of Postfix daemons that run
-              chrooted.
-
-       <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
-              The time between successive scans of  the  deferred
-              queue.
-
-<b>SEE</b> <b>ALSO</b>
-       <a href="pickup.8.html">pickup(8)</a> mail pickup daemon
-       <a href="postalias.1.html">postalias(1)</a> maintain alias database
-       <a href="postdrop.1.html">postdrop(1)</a> privileged posting agent
-       <a href="postfix.1.html">postfix(1)</a> mail system control
        <a href="postkick.1.html">postkick(1)</a> kick a Postfix daemon
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
        <a href="showq.8.html">showq(8)</a> list mail queue
        <a href="smtpd.8.html">smtpd(8)</a> SMTP server
-       flushd(8) fast flush service
+       <a href="flushd.8.html">flushd(8)</a> fast flush service
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -365,6 +351,20 @@ SENDMAIL(1)                                           SENDMAIL(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -26,7 +26,7 @@ mode, the SMTP server can accept mail even while the mail
 system is not running.
 
 The SMTP server implements a variety of policies for connection
-requests, and for parameters given to \fBHELO, ETRN, MAIL FROM, VRFY\fR,
+requests, and for parameters given to \fBHELO, ETRN, MAIL FROM, VRFY\fR
 and \fBRCPT TO\fR commands. They are detailed below and in the
 \fBmain.cf\fR configuration file.
 .SH SECURITY
@@ -111,14 +111,17 @@ pattern in the \fBdebug_peer_list\fR parameter.
 List of domain or network patterns. When a remote host matches
 a pattern, increase the verbose logging level by the amount
 specified in the \fBdebug_peer_level\fR parameter.
+.IP \fBenable_fast_flush\fR
+Enable the "fast flush" cache for improved ETRN performance.
+By default, Postfix attempts to deliver all messages in the queue
+after receiving an ETRN command.
+The "fast flush" cache keeps a record of what mail is queued up for
+specific destinations.
+Currently, "fast flush" support is available only for destinations
+that the local MTA is willing to relay mail to (i.e. the policy
+is hard coded).
 .IP \fBerror_notice_recipient\fR
 Recipient of protocol/policy/resource/software error notices.
-.IP \fBetrn_maps\fR
-Tables that specify what domains have \fBETRN\fR service. For
-each table entry, the left-hand side specifies a destination
-domain name that can be specified in an \fBETRN\fR request, and
-the right-hand side specifies a list of access restrictions for
-clients that issue \fBETRN\fR for the domain.
 .IP \fBhopcount_limit\fR
 Limit the number of \fBReceived:\fR message headers.
 .IP \fBlocal_recipient_maps\fR
@@ -171,6 +174,14 @@ Disconnect after a client has made this number of errors.
 Limit the number of times a client can issue a junk command
 such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 it is penalized with tarpit delays.
+.SH "ETRN service"
+.ad
+.fi
+.IP \fBsmtpd_etrn_restrictions\fR
+Restrict what domain names can be used in \fBETRN\fR commands,
+and what clients may issue \fBETRN\fR commands. The restrictions
+are like the UCE restrictions below. Fast \fBETRN\fR service is
+limited to destinations that list this MTA as mail exchanger.
 .SH "UCE control restrictions"
 .ad
 .fi

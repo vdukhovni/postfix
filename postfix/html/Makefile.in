@@ -11,8 +11,7 @@ COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
 	postlog.1.html postdrop.1.html postmap.1.html sendmail.1.html \
 	postsuper.1.html
 CONFIG	= access.5.html aliases.5.html canonical.5.html relocated.5.html \
-	transport.5.html virtual.5.html pcre_table.5.html regexp_table.5.html \
-	etrn.5.html
+	transport.5.html virtual.5.html pcre_table.5.html regexp_table.5.html
 
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG)
 
@@ -130,9 +129,6 @@ aliases.5.html: ../proto/aliases
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
 canonical.5.html: ../proto/canonical
-	srctoman - $? | nroff -man | man2html | postlink >$@
-
-etrn.5.html: ../proto/etrn
 	srctoman - $? | nroff -man | man2html | postlink >$@
 
 pcre_table.5.html: ../proto/pcre_table

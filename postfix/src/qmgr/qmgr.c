@@ -292,14 +292,12 @@ bool    var_allow_min_user;
 int     var_qmgr_fudge;
 int     var_qmgr_hog;
 int     var_local_rcpt_lim;		/* XXX */
-char   *var_fflush_maps;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
 
 MAPS   *qmgr_relocated;
 MAPS   *qmgr_virtual;
-MAPS   *qmgr_fflush;
 
 /* qmgr_deferred_run_event - queue manager heartbeat */
 
@@ -436,9 +434,6 @@ static void qmgr_pre_init(char *unused_name, char **unused_argv)
     if (*var_virtual_maps)
 	qmgr_virtual = maps_create("virtual", var_virtual_maps,
 				   DICT_FLAG_LOCK);
-    if (*var_fflush_maps)
-	qmgr_fflush = maps_create(VAR_FFLUSH_MAPS, var_fflush_maps,
-				  DICT_FLAG_LOCK);
 }
 
 /* qmgr_post_init - post-jail initialization */
@@ -476,7 +471,6 @@ int     main(int argc, char **argv)
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
 	VAR_DEFER_XPORTS, DEF_DEFER_XPORTS, &var_defer_xports, 0, 0,
-	VAR_FFLUSH_MAPS, DEF_FFLUSH_MAPS, &var_fflush_maps, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

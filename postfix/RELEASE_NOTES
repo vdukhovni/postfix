@@ -1,16 +1,50 @@
-Incompatible changes with snapshot-20000924
+Incompatible changes with snapshot-20000928
 ===========================================
 
-After building and installing, you need to "postfix check"
-and "postfix reload".
+You must execute "postfix stop" before installing this release,
+and "postfix start" after updating the software. Some default
+parameter settings have changed, as detailed below.
 
-The ETRN service is no longer enabled by default. You need to
-configure what domains and what clients can use ETRN.  See the
-ETRN_README file for more information.
+If this release does not work for you, you can go back to a previous
+Postfix version without losing your mail, subject to the "incompatible
+changes" listed for previous Postfix releases below.
 
-The smtpd_etrn_restrictions are gone.
+In order to improve performance of one-to-one deliveries, Postfix
+by default now looks at up to 10000 messages at a time (was: 1000).
+This change affects the following main.cf configuration parameters:
 
-The "flush" queue should be listed in "hash_queue_names".
+    qmgr_message_active_limit: default setting increased to 10000
+    hash_queue_names: default setting now includes the active queue
+
+With this change, the active queue must no longer be a flat directory.
+
+If your main.cf file has an explicit hash_queue_names setting, and
+the active queue is not listed there, Postfix will perform very
+poorly when delivering lots of mail.
+
+Major changes with snapshot-20000929
+====================================
+
+Until now, Postfix does a rather lame effort at implementing the
+SMTP ETRN command - it attempts to deliver all mail in the queue,
+regardless of its destination.  This is slow if your mail server
+queues mail for lots of different sites.
+
+This release introduces "fast ETRN", which delivers only mail that
+is known to be queued for a site. The per-destination queue info
+is kept in so-called "fast flush" logfiles.  A "fast flush" logfile
+is "flushed" after Postfix receives an appropriate ETRN command,
+or after someone executes the command "sendmail -qRsite" for an
+appropriate site.
+
+A missing "fast flush" logfile is created automatically when an
+SMTP client issues the ETRN command - but only for destinations
+that the local MTA is willing to relay mail to. This policy is
+currently hard coded.  Other destinations remain stuck with the
+old "slow" ETRN service that attempts to deliver all mail in the
+queue.
+
+See the file ETRN_README for how to turn on the "fast ETRN" service.
 
 Incompatible changes with snapshot-20000924
 ===========================================

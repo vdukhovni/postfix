@@ -132,10 +132,9 @@
 /* .IP \fB-qR\fIsite\fR
 /*	Schedule immediate delivery of all mail that is queued for the named
 /*	\fIsite\fR.
-/*	This functionality is available only for sites that are configured
-/*	for the \fBfast flush\fR service support as described in
-/*	\fBflushd\fR(8).  For other sites, use the slower \fBsendmail -q\fR
-/*	command instead.
+/*	This functionality is available only for sites that have a so-called
+/*	\fBfast flush\fR logfile as described in \fBflushd\fR(8).  For other 
+/*	sites, use the slower \fBsendmail -q\fR command instead.
 /* .IP \fB-qS\fIsite\fR
 /*	This command is not implemented. Use the slower \fBsendmail -q\fR
 /*	command instead.
@@ -192,15 +191,6 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
-/* .IP \fBetrn_maps\fR
-/*	Tables that specify what domains have \fBETRN\fR service.  For each
-/*	table entry, the left-hand side specifies a destination domain name
-/*	that can be specified in an \fBETRN\fR request, and the right-hand
-/*	side specifies a list of access restrictions for SMTP clients that
-/*	issue \fBETRN\fR for the domain.
-/* .IP \fBfast_flush_maps\fR
-/*	The table with names of destinations that this MTA provides the
-/*	fast flush service for. By default, this is set to $\fBetrn_maps\fR.
 /* .IP \fBfork_attempts\fR
 /*	Number of attempts to \fBfork\fR() a process before giving up.
 /* .IP \fBfork_delay\fR
@@ -290,7 +280,6 @@
 #include <tok822.h>
 #include <mail_flush.h>
 #include <mail_stream.h>
-#include <sys_exits.h>
 
 /* Application-specific. */
 
@@ -580,7 +569,7 @@ static void flush_site(const char *site)
     case FLUSH_STAT_OK:
 	break;
     case FLUSH_STAT_UNKNOWN:
-	msg_fatal("No \"sendmail -qR\" support is configured for %s", site);
+	msg_fatal("No \"sendmail -qR\" support available for %s - use \"sendmail -q\" instead", site);
 	break;
     case FLUSH_STAT_BAD:
 	msg_fatal("invalid request: %s", site);

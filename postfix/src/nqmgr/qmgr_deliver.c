@@ -212,12 +212,6 @@ static void qmgr_deliver_update(int unused_event, char *context)
 	    if (queue->window == 0)
 		qmgr_defer_todo(queue, queue->reason);
 	}
-
-	/*
-	 * Optionally add this message to the fast flush log for this site.
-	 */
-	if (qmgr_fflush && maps_find(qmgr_fflush, queue->name, 0))
-	    mail_flush_append(queue->name, message->queue_id);
     }
 
     /*

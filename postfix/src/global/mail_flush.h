@@ -34,6 +34,7 @@ extern int mail_flush_append(const char *, const char *);
 
 
 /* LICENSE
+/* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
@@ -42,6 +43,5 @@ extern int mail_flush_append(const char *, const char *);
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
-/**INDENT** Error@33: Unmatched #endif */
 
 #endif

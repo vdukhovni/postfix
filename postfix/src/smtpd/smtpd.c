@@ -20,7 +20,7 @@
 /*	system is not running.
 /*
 /*	The SMTP server implements a variety of policies for connection
-/*	requests, and for parameters given to \fBHELO, ETRN, MAIL FROM, VRFY\fR,
+/*	requests, and for parameters given to \fBHELO, ETRN, MAIL FROM, VRFY\fR
 /*	and \fBRCPT TO\fR commands. They are detailed below and in the
 /*	\fBmain.cf\fR configuration file.
 /* SECURITY
@@ -97,14 +97,17 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBenable_fast_flush\fR
+/*	Enable the "fast flush" cache for improved ETRN performance.
+/*	By default, Postfix attempts to deliver all messages in the queue
+/*	after receiving an ETRN command.
+/*	The "fast flush" cache keeps a record of what mail is queued up for
+/*	specific destinations.
+/*	Currently, "fast flush" support is available only for destinations
+/*      that the local MTA is willing to relay mail to (i.e. the policy
+/*	is hard coded).
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
-/* .IP \fBetrn_maps\fR
-/*	Tables that specify what domains have \fBETRN\fR service. For
-/*	each table entry, the left-hand side specifies a destination
-/*	domain name that can be specified in an \fBETRN\fR request, and
-/*	the right-hand side specifies a list of access restrictions for
-/*	clients that issue \fBETRN\fR for the domain.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .IP \fBlocal_recipient_maps\fR
@@ -157,6 +160,14 @@
 /*	Limit the number of times a client can issue a junk command
 /*	such as NOOP, VRFY, ETRN or RSET in one SMTP session before
 /*	it is penalized with tarpit delays.
+/* .SH "ETRN service"
+/* .ad
+/* .fi
+/* .IP \fBsmtpd_etrn_restrictions\fR
+/*	Restrict what domain names can be used in \fBETRN\fR commands,
+/*	and what clients may issue \fBETRN\fR commands. The restrictions
+/*	are like the UCE restrictions below. Fast \fBETRN\fR service is
+/*	limited to destinations that list this MTA as mail exchanger.
 /* .SH "UCE control restrictions"
 /* .ad
 /* .fi
@@ -344,7 +355,6 @@ bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
-char   *var_fflush_maps;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -529,21 +539,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      */
     if (msg_verbose)
 	msg_info("%s: input: %s", myname, STR(arg->vstrval));
-
-    /*
-     * Workaround: Sendmail allows arbitrary nesting of <>, so that overpaid
-     * peecee programmers can get away with monstrosities such as <the dude
-     * <dude@site>>. By peeling off the outermost <> we can deal with the
-     * most common problem instance. Don't destroy the input so that we can
-     * provide accurate diagnostics.
-     */
-    if (arg->strval[0] == '<' && vstring_end(arg->vstrval)[-1] == '>') {
-	vstring_end(arg->vstrval)[-1] = 0;
-	tree = tok822_parse(STR(arg->vstrval) + 1);
-	vstring_end(arg->vstrval)[-1] = '>';
-    } else {
-	tree = tok822_parse(STR(arg->vstrval));
-    }
+    tree = tok822_parse(STR(arg->vstrval));
 
     /*
      * Find trouble.
@@ -1065,6 +1061,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
+    VSTREAM *fp;
     char   *err;
 
     /*
@@ -1092,6 +1089,10 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Error: invalid parameter syntax");
 	return (-1);
     }
+    if (SMTPD_STAND_ALONE(state)) {
+	smtpd_chat_reply(state, "458 Unable to queue messages");
+	return (-1);
+    }
 
     /*
      * XXX The implementation borrows heavily from the code that implements
@@ -1099,20 +1100,47 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * rejected. RFC 1985 requires that 459 be sent when the server refuses
      * to perform the request.
      */
-    if (SMTPD_STAND_ALONE(state) == 0
-	&& (err = smtpd_check_etrn(state, argv[1].strval)) != 0) {
+    if ((err = smtpd_check_etrn(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
+    if (!var_enable_fflush) {
+	mail_flush_deferred();
+	smtpd_chat_reply(state, "250 Queuing started");
+	return (0);
+    }
 
     /*
-     * XXX The preliminary implementation causes a full deferred queue scan.
+     * Create a fast ETRN cache file on the fly for an eligible site.
      */
-    if (mail_flush_site(argv[1].strval) != 0)
-	smtpd_chat_reply(state, "458 Unable to queue messages");
-    else
+    switch (mail_flush_site(argv[1].strval)) {
+    case FLUSH_STAT_UNKNOWN:
+	if (smtpd_check_etrn_cache_policy_ok(state, argv[1].strval)) {
+	    if ((fp = mail_queue_open(MAIL_QUEUE_FLUSH, argv[1].strval,
+			       O_CREAT | O_APPEND | O_WRONLY, 0600)) == 0) {
+		msg_warn("create fast ETRN cache for %s: %m", argv[1].strval);
+	    } else {
+		vstream_fclose(fp);
+		msg_info("created fast ETRN cache for %s (client=%s)",
+			 argv[1].strval, state->namaddr);
+	    }
+	} else {
+	    msg_info("refused fast ETRN service for %s (client=%s)",
+		     argv[1].strval, state->namaddr);
+	}
+	/* Fallthrough. */
+    case FLUSH_STAT_FAIL:
+	mail_flush_deferred();
+	/* Fallthrough. */
+    case FLUSH_STAT_OK:
 	smtpd_chat_reply(state, "250 Queuing started");
-    return (0);
+	return (0);
+    default:
+	smtpd_chat_reply(state, "458 Unable to queue messages");
+	msg_warn("bad ETRN destination %.100s... from %s",
+		 argv[1].strval, state->namaddr);
+	return (-1);
+    }
 }
 
 /* quit_cmd - process QUIT command */
@@ -1462,7 +1490,6 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
-	VAR_FFLUSH_MAPS, DEF_FFLUSH_MAPS, &var_fflush_maps, 0, 0,
 	0,
     };
 

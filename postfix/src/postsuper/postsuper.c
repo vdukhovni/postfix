@@ -143,6 +143,9 @@ static void super(char **queues, int action)
      */
     while ((queue_name = *queues++) != 0) {
 
+	if (msg_verbose)
+	    msg_info("queue: %s", queue_name);
+
 	/*
 	 * Look up queue-specific properties: desired hashing depth, what
 	 * file permissions to look for, and whether or not it is desirable
@@ -294,6 +297,7 @@ main(int argc, char **argv)
 	MAIL_QUEUE_DEFERRED,
 	MAIL_QUEUE_DEFER,
 	MAIL_QUEUE_BOUNCE,
+	MAIL_QUEUE_FLUSH,
 	0,
     };
 

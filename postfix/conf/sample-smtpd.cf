@@ -14,27 +14,6 @@
 #
 #disable_vrfy_command = no
 
-# The etrn_maps parameter specifies what domains have ETRN service.
-# For each table entry, the left-hand side specifies a destination
-# domain name, and the right-hand side specifies a list of access
-# restrictions for clients that issue ETRN for the domain.
-# 
-# The default is to disallow ETRN commands.  The following restrictions
-# are available:
-#
-#   reject_unknown_client: reject the request if the client hostname is unknown.
-#   permit_mynetworks: permit if the client address matches $mynetworks.
-#   reject_maps_rbl: reject if the reverse client network address
-#	is listed under $maps_rbl_domains.
-#   reject: reject the request. Place this at the end of a restriction.
-#   permit: permit the request. Place this at the end of a restriction.
-#
-# etrn_maps is also the default value for the fast_flush_maps parameter
-# which controls the fast flush service which is used for ETRN and for
-# "sendmail -qRdomain.name"
-#
-etrn_maps = 
-
 # The smtpd_banner parameter specifies the text that follows the 220
 # status code in the SMTP greeting banner. Some people like to see
 # the mail version advertised. By default, Postfix shows no version.
@@ -46,6 +25,27 @@ etrn_maps =
 #
 # smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
 smtpd_banner = $myhostname ESMTP $mail_name
+
+# The smtpd_etrn_restrictions parameter restricts what clients are
+# allowed to issue the ETRN command. The present Postfix ETRN differs
+# from other ETRN implementations in that it flushes mail for all
+# destinations. This will change in the future.
+#
+# The default is to allow ETRN from any host.  The following restrictions
+# are available:
+#
+#   reject_unknown_client: reject the request if the client hostname is unknown.
+#   permit_mynetworks: permit if the client address matches $mynetworks.
+#   check_client_access maptype:mapname
+#   maptype:mapname: look up client name, parent domains, client address,
+#	or networks obtained by stripping octets.
+#	Reject if result is REJECT or "[45]xx text"
+#	Permit otherwise.
+#   reject_maps_rbl: reject if the reverse client network address
+#	is listed under $maps_rbl_domains.
+#   reject: reject the request. Place this at the end of a restriction.
+#   permit: permit the request. Place this at the end of a restriction.
+smtpd_etrn_restrictions =
 
 # The smtpd_recipient_limit parameter restricts the number of recipients
 # that the SMTP server accepts per message delivery.
@@ -313,7 +313,7 @@ maps_rbl_domains = rbl.maps.vix.com
 # permit_mx_backup restriction, in the description of the
 # smtpd_recipient_restrictions parameter.
 #
-relay_domains = $mydestination $fast_flush_maps
+relay_domains = $mydestination
 
 #
 # RESPONSE CODES

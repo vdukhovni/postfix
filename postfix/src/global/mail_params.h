@@ -441,7 +441,7 @@ extern int var_delay_warn_time;
   * Queue manager: various in-core message and recipient limits.
   */
 #define VAR_QMGR_ACT_LIMIT	"qmgr_message_active_limit"
-#define DEF_QMGR_ACT_LIMIT	1000
+#define DEF_QMGR_ACT_LIMIT	10000
 extern int var_qmgr_active_limit;
 
 #define VAR_QMGR_RCPT_LIMIT	"qmgr_message_recipient_limit"
@@ -592,7 +592,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"defer,flush"
+#define DEF_HASH_QUEUE_NAMES	"active,bounce,defer,flush"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
@@ -896,7 +896,7 @@ extern int var_trigger_timeout;
 extern char *var_mynetworks;
 
 #define VAR_RELAY_DOMAINS	"relay_domains"
-#define DEF_RELAY_DOMAINS	"$mydestination $fast_flush_maps"
+#define DEF_RELAY_DOMAINS	"$mydestination"
 extern char *var_relay_domains;
 
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"
@@ -1065,15 +1065,10 @@ extern void mail_params_init(void);
 extern char *var_filter_xport;
 
  /*
-  * ETRN and fast flush support.
-  */
-#define VAR_ETRN_MAPS			"etrn_maps"
-#define DEF_ETRN_MAPS			""
-extern char *var_etrn_maps;
-
-#define VAR_FFLUSH_MAPS			"fast_flush_maps"
-#define DEF_FFLUSH_MAPS			"$etrn_maps"
-extern char *var_fflush_maps;
+Fast flush service support. */
+#define VAR_ENABLE_FFLUSH		"enable_fast_flush"
+#define DEF_ENABLE_FFLUSH		0
+extern bool var_enable_fflush;
 
 /* LICENSE
 /* .ad

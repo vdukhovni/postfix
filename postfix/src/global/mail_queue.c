@@ -273,6 +273,8 @@ int     mail_queue_name_ok(const char *queue_name)
     for (cp = queue_name; *cp; cp++)
 	if (!ISALNUM(*cp))
 	    return (0);
+    if (strlen(queue_name) > 100)
+	return (0);
     return (1);
 }
 
@@ -281,6 +283,9 @@ int     mail_queue_name_ok(const char *queue_name)
 int     mail_queue_id_ok(const char *queue_id)
 {
     const char *cp;
+
+    if (strlen(queue_id) > 100)
+	return (0);
 
     /*
      * Must be in valid hostname form.

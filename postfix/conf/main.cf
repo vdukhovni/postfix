@@ -341,6 +341,20 @@ mail_owner = postfix
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks
 
+# FAST ETRN SERVICE
+#
+# By default, Postfix does a rather lame effort at implementing the
+# SMTP ETRN command - it attempts to deliver all queued mail regardless
+# of its destination. This does not work well if your mail server
+# queues mail for lots of sites.  In order to enable a faster ETRN
+# that only delivers mail that is known to be queued for a site,
+# enable the fast flush cache.  Currently, "fast ETRN" is available
+# only for destinations that the local system is willing to relay
+# mail to (as specified in the relay_domains parameter).
+# 
+#enable_fast_flush = yes
+#enable_fast_flush = no
+
 # SHOW SOFTWARE VERSION OR NOT
 #
 # The smtpd_banner parameter specifies the text that follows the 220

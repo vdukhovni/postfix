@@ -13,7 +13,7 @@
 /*
 /*	This server implements the following requests:
 /* .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
-/*	Append \fIqueue_id\fR to the fast flush logfile for the
+/*	Append \fIqueue_id\fR to the fast flush log for the
 /*	specified site.
 /* .IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
 /*	Arrange for the delivery of all messages that are listed in the fast
@@ -27,13 +27,12 @@
 /*	The flush server rejected the request (bad request name, bad
 /*	request parameter value).
 /* .IP \fBFLUSH_STAT_UNKNOWN\fR
-/*	The specified site has no fast flush logfile and is not configured
-/*	to have one.
+/*	The specified site has no fast flush log.
 /* .PP
 /*	Fast flush logfiles are truncated only after a flush request. In
-/*	order to prevent fast flush logfiles from growing without bounds,
-/*	and to prevent them from accumulating too much outdated information,
-/*	the flush service generates a pro-active flush request once every
+/*	order to prevent fast flush logs from growing too large, and to
+/*	prevent them from accumulating too much outdated information, the
+/*	flush service generates a pro-active flush request once every
 /*	every 1000 append requests. This should not impact operation.
 /* SECURITY
 /* .ad
@@ -41,7 +40,8 @@
 /*	The fast flush server is moderately security-sensitive. It does not
 /*	talk to the network, but it does talk to local unprivileged users, in
 /*	order to emulate "sendmail -qRsite" behavior.  For this reason all
-/*	strings in a request are truncated at \fIline_length_limit\fR.
+/*	strings in a request are truncated at \fIline_length_limit\fR,
+/*	before they are subjected to further validation.
 /*
 /*	The fast flush server can run chrooted at fixed low privilege.
 /* DIAGNOSTICS
@@ -57,15 +57,6 @@
 /*	this program. See the Postfix \fBmain.cf\fR file for syntax details
 /*	and for default values. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
-/* .IP \fBetrn_maps\fR
-/*	Tables that specify what domains have \fBETRN\fR service.  For each
-/*	table entry, the left-hand side specifies a destination domain name
-/*	that can be specified in an \fBETRN\fR request, and the right-hand
-/*	side specifies a list of access restrictions for SMTP clients that
-/*	issue \fBETRN\fR for the domain.
-/* .IP \fBfast_flush_maps\fR
-/*	The table with names of destinations that this MTA provides the
-/*	fast flush service for. By default, this is set to $\fBetrn_maps\fR.
 /* .IP \fBline_length_limit\fR
 /*	Maximal length of strings in a fast flush client request.
 /* SEE ALSO
@@ -116,20 +107,14 @@
 
 #include <mail_server.h>
 
- /*
-  * Tunable parameters.
-  */
-char   *var_etrn_maps;
-char   *var_fflush_maps;
-
 /* Application-specific. */
 
 #define STR(x)	vstring_str(x)
-#define MAX_DUP_FILTER	10000
+#define FLUSHD_DUP_FILTER_SIZE	10000	/* graceful degradation */
+#define FLUSHD_COMMAND_TIMEOUT	60	/* don't get stuck */
+#define FLUSHD_CHECK_RATE	1000	/* don't accumulate cruft */
 
-static MAPS *fflush_maps;
-
-/* flush_append - append queue ID to per-site fast flush logfile */
+/* flush_append - append queue ID to per-site fast flush log */
 
 static int flush_append(const char *site, const char *queue_id)
 {
@@ -140,19 +125,12 @@ static int flush_append(const char *site, const char *queue_id)
 	msg_info("%s: site %s queue_id %s", myname, site, queue_id);
 
     /*
-     * Open or create the logfile. We allow for the fact that a logfile
-     * exists for a site that is no longer listed in the fast flush maps.
+     * Open the logfile.
      */
     if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_APPEND | O_WRONLY, 0600)) == 0) {
 	if (errno != ENOENT)
 	    msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
-	if (maps_find(fflush_maps, site, 0) == 0) {
-	    msg_warn("no fast flush support configured for site %s", site);
-	    return (FLUSH_STAT_UNKNOWN);
-	}
-	log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_CREAT | O_APPEND | O_WRONLY, 0600);
-	if (log == 0)
-	    msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
+	return (FLUSH_STAT_UNKNOWN);
     }
 
     /*
@@ -175,10 +153,10 @@ static int flush_append(const char *site, const char *queue_id)
      * Clean up.
      */
     if (myflock(vstream_fileno(log), MYFLOCK_NONE) < 0)
-	msg_fatal("%s: unlock fast flush logfile for site %s: %m",
+	msg_fatal("%s: unlock fast flush log for site %s: %m",
 		  myname, site);
     if (vstream_fclose(log) != 0)
-	msg_warn("write fast flush logfile for site %s: %m", site);
+	msg_warn("write fast flush log for site %s: %m", site);
 
     return (FLUSH_STAT_OK);
 }
@@ -207,13 +185,7 @@ static int flush_site(const char *site)
     if ((log = mail_queue_open(MAIL_QUEUE_FLUSH, site, O_RDWR, 0600)) == 0) {
 	if (errno != ENOENT)
 	    msg_fatal("%s: open fast flush log for site %s: %m", myname, site);
-	if (maps_find(fflush_maps, site, 0)) {
-	    msg_warn("no fast flush log for site %s", site);
-	    return (FLUSH_STAT_OK);
-	} else {
-	    msg_warn("no fast flush support configured for site %s", site);
-	    return (FLUSH_STAT_UNKNOWN);
-	}
+	return (FLUSH_STAT_UNKNOWN);
     }
 
     /*
@@ -239,12 +211,17 @@ static int flush_site(const char *site)
     dup_filter = htable_create(10);
     tbuf.actime = tbuf.modtime = event_time();
     while (vstring_get_nonl(queue_id, log) != VSTREAM_EOF) {
-	if (dup_filter->used >= MAX_DUP_FILTER
+	if (!mail_queue_id_ok(STR(queue_id))) {
+	    msg_warn("bad queue id %.30s... in fast flush log for site %s",
+		     STR(queue_id), site);
+	    continue;
+	}
+	if (dup_filter->used >= FLUSHD_DUP_FILTER_SIZE
 	    || htable_find(dup_filter, STR(queue_id)) == 0) {
 	    if (msg_verbose)
 		msg_info("%s: site %s: update %s time stamps",
 			 myname, site, STR(queue_file));
-	    if (dup_filter->used <= MAX_DUP_FILTER)
+	    if (dup_filter->used <= FLUSHD_DUP_FILTER_SIZE)
 		htable_enter(dup_filter, STR(queue_id), 0);
 
 	    mail_queue_path(queue_file, MAIL_QUEUE_DEFERRED, STR(queue_id));
@@ -271,20 +248,20 @@ static int flush_site(const char *site)
     vstring_free(queue_id);
 
     /*
-     * Truncate the fast flush logfile.
+     * Truncate the fast flush log.
      */
     if (ftruncate(vstream_fileno(log), (off_t) 0) < 0)
-	msg_fatal("%s: truncate fast flush logfile for site %s: %m",
+	msg_fatal("%s: truncate fast flush log for site %s: %m",
 		  myname, site);
 
     /*
      * Request delivery and clean up.
      */
     if (myflock(vstream_fileno(log), MYFLOCK_NONE) < 0)
-	msg_fatal("%s: unlock fast flush logfile for site %s: %m",
+	msg_fatal("%s: unlock fast flush log for site %s: %m",
 		  myname, site);
     if (vstream_fclose(log) != 0)
-	msg_warn("read fast flush logfile for site %s: %m", site);
+	msg_warn("read fast flush log for site %s: %m", site);
     if (msg_verbose)
 	msg_info("%s: requesting delivery for site %s", myname, site);
     mail_trigger(MAIL_CLASS_PUBLIC, MAIL_SERVICE_QUEUE,
@@ -312,11 +289,12 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 
     /*
      * Vandalism control. Read no unlimited amounts of garbage from a public
-     * socket.
+     * socket. Of course we also have to make sure the content is sane.
      */
     vstring_ctl(request, VSTRING_CTL_MAXLEN, var_line_limit, VSTRING_CTL_END);
     vstring_ctl(site, VSTRING_CTL_MAXLEN, var_line_limit, VSTRING_CTL_END);
-
+    vstream_control(client_stream, VSTREAM_CTL_TIMEOUT, FLUSHD_COMMAND_TIMEOUT, 
+	VSTREAM_CTL_END);
     /*
      * This routine runs whenever a client connects to the UNIX-domain socket
      * dedicated to the fast flush service. What we see below is a little
@@ -336,7 +314,8 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	    queue_id = vstring_alloc(10);
 	    vstring_ctl(queue_id, VSTRING_CTL_MAXLEN, var_line_limit,
 			VSTRING_CTL_END);
-	    if (mail_scan(client_stream, "%s", queue_id) == 1)
+	    if (mail_scan(client_stream, "%s", queue_id) == 1
+		&& mail_queue_id_ok(STR(queue_id)))
 		status = flush_append(STR(site), STR(queue_id));
 	    vstring_free(queue_id);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND)) {
@@ -352,7 +331,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * so that it does not have to wait while the pro-active flush happens.
      */
     if (status == FLUSH_STAT_OK && STREQ(STR(request), FLUSH_REQ_ADD)
-	&& (++counter + event_time() + getpid()) % 1000 == 0) {
+	&& (++counter + event_time() + getpid()) % FLUSHD_CHECK_RATE == 0) {
 	vstream_fflush(client_stream);
 	if (msg_verbose)
 	    msg_info("site %s: time for a pro-active flush", STR(site));
@@ -362,40 +341,9 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
     vstring_free(request);
 }
 
-/* pre_accept - see if tables have changed */
-
-static void pre_accept(char *unused_name, char **unused_argv)
-{
-    if (dict_changed()) {
-	msg_info("table has changed -- exiting");
-	exit(0);
-    }
-}
-
-/* pre_jail_init - pre-chroot initialization */
-
-static void pre_jail_init(char *unused_service, char **unused_argv)
-{
-    fflush_maps = maps_create(VAR_FFLUSH_MAPS, var_fflush_maps,
-			      DICT_FLAG_LOCK);
-}
-
-/* pre_accept_init - check map status */
-
-
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
 {
-    static CONFIG_STR_TABLE str_table[] = {
-	VAR_ETRN_MAPS, DEF_ETRN_MAPS, &var_etrn_maps, 0, 0,
-	VAR_FFLUSH_MAPS, DEF_FFLUSH_MAPS, &var_fflush_maps, 0, 0,
-	0,
-    };
-
-    single_server_main(argc, argv, flush_service,
-		       MAIL_SERVER_PRE_INIT, pre_jail_init,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       0);
+    single_server_main(argc, argv, flush_service, 0);
 }

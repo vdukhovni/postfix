@@ -19,7 +19,7 @@ manager.
 
 This server implements the following requests:
 .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
-Append \fIqueue_id\fR to the fast flush logfile for the
+Append \fIqueue_id\fR to the fast flush log for the
 specified site.
 .IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
 Arrange for the delivery of all messages that are listed in the fast
@@ -33,13 +33,12 @@ The request completed normally.
 The flush server rejected the request (bad request name, bad
 request parameter value).
 .IP \fBFLUSH_STAT_UNKNOWN\fR
-The specified site has no fast flush logfile and is not configured
-to have one.
+The specified site has no fast flush log.
 .PP
 Fast flush logfiles are truncated only after a flush request. In
-order to prevent fast flush logfiles from growing without bounds,
-and to prevent them from accumulating too much outdated information,
-the flush service generates a pro-active flush request once every
+order to prevent fast flush logs from growing too large, and to
+prevent them from accumulating too much outdated information, the
+flush service generates a pro-active flush request once every
 every 1000 append requests. This should not impact operation.
 .SH SECURITY
 .na
@@ -49,7 +48,8 @@ every 1000 append requests. This should not impact operation.
 The fast flush server is moderately security-sensitive. It does not
 talk to the network, but it does talk to local unprivileged users, in
 order to emulate "sendmail -qRsite" behavior.  For this reason all
-strings in a request are truncated at \fIline_length_limit\fR.
+strings in a request are truncated at \fIline_length_limit\fR,
+before they are subjected to further validation.
 
 The fast flush server can run chrooted at fixed low privilege.
 .SH DIAGNOSTICS
@@ -71,15 +71,6 @@ The following \fBmain.cf\fR parameters are especially relevant to
 this program. See the Postfix \fBmain.cf\fR file for syntax details
 and for default values. Use the \fBpostfix reload\fR command after
 a configuration change.
-.IP \fBetrn_maps\fR
-Tables that specify what domains have \fBETRN\fR service.  For each
-table entry, the left-hand side specifies a destination domain name
-that can be specified in an \fBETRN\fR request, and the right-hand
-side specifies a list of access restrictions for SMTP clients that
-issue \fBETRN\fR for the domain.
-.IP \fBfast_flush_maps\fR
-The table with names of destinations that this MTA provides the
-fast flush service for. By default, this is set to $\fBetrn_maps\fR.
 .IP \fBline_length_limit\fR
 Maximal length of strings in a fast flush client request.
 .SH SEE ALSO

@@ -38,16 +38,6 @@ default_transport = smtp
 #
 double_bounce_sender = double-bounce
 
-# The fast_flush_maps parameter specifies what destination domain
-# names can be used in SMTP ETRN requests and in "sendmail -qRdomain.name"
-# commands.  By default, the value is $etrn_maps, the set of domain names
-# that can be used in SMTP ETRN requests (see sample-smtpd.cf).
-#
-# The fast_flush_maps parameter is also used in the default settings
-# of the relay_domains configuration parameter.
-#
-fast_flush_maps = 
-
 # The hash_queue_depth parameter specifies the number of subdirectory
 # levels below the queue directories listed in the hash_queue_names
 # parameter.

@@ -74,6 +74,8 @@
 /* Global library. */
 
 #include <defer.h>
+#include <mail_params.h>
+#include <mail_flush.h>
 
 /* Application-specific. */
 
@@ -133,6 +135,8 @@ void    qmgr_defer_todo(QMGR_QUEUE *queue, const char *reason)
 	    recipient = entry->rcpt_list.info + nrcpt;
 	    qmgr_defer_recipient(message, recipient->address, reason);
 	}
+	if (var_enable_fflush)
+	    mail_flush_append(queue->name, message->queue_id);
 	qmgr_entry_done(entry, QMGR_QUEUE_TODO);
     }
 }

@@ -58,6 +58,7 @@
 /*	int	var_ownreq_special;
 /*	int	var_daemon_timeout;
 /*	char	*var_syslog_facility;
+/*	int	var_enable_fflush;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -164,6 +165,7 @@ time_t  var_starttime;
 int     var_ownreq_special;
 int     var_daemon_timeout;
 char   *var_syslog_facility;
+int	var_enable_fflush;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -303,6 +305,7 @@ void    mail_params_init()
 	VAR_SOFT_BOUNCE, DEF_SOFT_BOUNCE, &var_soft_bounce,
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
 	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
+	VAR_ENABLE_FFLUSH, DEF_ENABLE_FFLUSH, &var_enable_fflush,
 	0,
     };
 

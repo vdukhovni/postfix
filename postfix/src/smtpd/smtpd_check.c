@@ -24,9 +24,13 @@
 /*	SMTPD_STATE *state;
 /*	char	*recipient;
 /*
-/*	char	*smtpd_check_etrn(state, recipient)
+/*	char	*smtpd_check_etrn(state, destination)
 /*	SMTPD_STATE *state;
-/*	char	*recipient;
+/*	char	*destination;
+/*
+/*	int	smtpd_check_etrn_cache_policy_ok(state, destination)
+/*	SMTPD_STATE *state;
+/*	char	*destination;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -81,9 +85,6 @@
 /* .IP "check_recipient_access maptype:mapname"
 /*	Look up the resolved recipient address in the named access table,
 /*	any parent domains of the recipient domain, and the localpart@.
-/* .IP "check_etrn_access maptype:mapname"
-/*	Look up the client hostname or IP address in the named access table.
-/*	This table is used for ETRN command access control only.
 /* .IP reject_maps_rbl
 /*	Look up the reversed client network address in the real-time blackhole
 /*	DNS zones below the domains listed in the "maps_rbl_domains"
@@ -178,7 +179,15 @@
 /*	smtpd_check_etrn() validates the domain name provided with the
 /*	ETRN command, and other client-provided information. Relevant
 /*	configuration parameters:
+/* .IP smtpd_etrn_restrictions
+/*	Restrictions on the hostname that is sent with the HELO/EHLO
+/*	command.
 /* .PP
+/*	smtpd_check_etrn_cache_policy_ok() returns "true" if it is OK to
+/*	create a fast ETRN cache file for the specified destination.
+/*	Currently, the hard-coded policy is that the local MTA must be
+/*	is willing to relay mail to that destination.
+/*
 /*	smtpd_check_size() checks if a message with the given size can
 /*	be received (zero means that the message size is unknown).  The
 /*	message is rejected when:
@@ -313,7 +322,6 @@ static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virtual_maps;
 static MAPS *relocated_maps;
-static MAPS *fflush_maps;
 
  /*
   * Pre-opened access control lists.
@@ -328,6 +336,7 @@ static ARGV *client_restrctions;
 static ARGV *helo_restrctions;
 static ARGV *mail_restrctions;
 static ARGV *rcpt_restrctions;
+static ARGV *etrn_restrctions;
 
 static HTABLE *smtpd_rest_classes;
 
@@ -458,8 +467,6 @@ void    smtpd_check_init(void)
 			       DICT_FLAG_LOCK);
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
-    fflush_maps = maps_create(VAR_FFLUSH_MAPS, var_fflush_maps,
-			      DICT_FLAG_LOCK);
 
     /*
      * Reply is used as a cache for resolved addresses, and error_text is
@@ -477,6 +484,7 @@ void    smtpd_check_init(void)
     helo_restrctions = smtpd_check_parse(var_helo_checks);
     mail_restrctions = smtpd_check_parse(var_mail_checks);
     rcpt_restrctions = smtpd_check_parse(var_rcpt_checks);
+    etrn_restrctions = smtpd_check_parse(var_etrn_checks);
 
     /*
      * Parse the pre-defined restriction classes.
@@ -906,7 +914,7 @@ static int has_my_addr(char *host)
 	msg_info("%s: host %s", myname, host);
 
     /*
-     * If we can't lookup the host, play safe and assume it is OK.
+     * If we can't lookup the host, say we're not listed.
      */
 #define YUP	1
 #define NOPE	0
@@ -914,12 +922,12 @@ static int has_my_addr(char *host)
     if ((hp = gethostbyname(host)) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: host %s: not found", myname, host);
-	return (YUP);
+	return (NOPE);
     }
     if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
 	msg_warn("address type %d length %d for %s",
 		 hp->h_addrtype, hp->h_length, host);
-	return (YUP);
+	return (NOPE);
     }
     for (cpp = hp->h_addr_list; *cpp; cpp++) {
 	memcpy((char *) &addr, *cpp, sizeof(addr));
@@ -1880,8 +1888,6 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     int     status;
     char   *saved_etrn_name;
     char   *err;
-    const char *pattern;
-    ARGV   *restrictions;
 
     /*
      * Initialize.
@@ -1909,30 +1915,39 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 	    SMTPD_CHECK_ETRN_RETURN(err);
 
     /*
-     * Apply restrictions in the order as specified. If the domain is not
-     * configured for ETRN, reject the request.
+     * Apply restrictions in the order as specified.
      */
-    if (*var_fflush_maps == 0
-	|| (pattern = maps_find(fflush_maps, domain, 0)) == 0) {
-	status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				    "458 Unable to start queueing for %s",
-				    domain);
-    } else if (strchr(pattern, ':') != 0) {
-	msg_warn("A fast flush map has an entry with lookup table: %s",
-		 pattern);
-	msg_warn("do not specify lookup tables inside fast flush maps");
-	msg_warn("define a restriction class and specify its name instead");
-	status = SMTPD_CHECK_DUNNO;
-    } else {
-	restrictions = argv_split(pattern, " \t\r\n");
-	state->recursion = 0;
-	status = setjmp(smtpd_check_buf);
-	if (status == 0)
-	    status = generic_checks(state, restrictions, domain,
-				    SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
-	argv_free(restrictions);
-    }
+    state->recursion = 0;
+    status = setjmp(smtpd_check_buf);
+    if (status == 0 && etrn_restrctions->argc)
+	status = generic_checks(state, etrn_restrctions, domain,
+				SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
+
     SMTPD_CHECK_ETRN_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+}
+
+/* smtpd_check_etrn_cache_policy_ok - is it OK to create a fast ETRN cache? */
+
+int     smtpd_check_etrn_cache_policy_ok(SMTPD_STATE *unused_state, char *domain)
+{
+
+    /*
+     * The domain name must be an authorized relay destination.
+     */
+    if (domain_list_match(relay_domains, domain) == 0)
+	return (0);
+
+    /*
+     * The domain name must exist.
+     */
+    if (dns_lookup_types(domain, 0, (DNS_RR **) 0, (VSTRING *) 0,
+			 (VSTRING *) 0, T_A, T_MX, 0) != DNS_OK)
+	return (0);
+
+    /*
+     * Must be OK then.
+     */
+    return (1);
 }
 
 /* smtpd_check_rcptmap - permit if recipient address matches lookup table */
@@ -2226,6 +2241,7 @@ static REST_TABLE rest_table[] = {
     "helo_restrictions", &helo_restrctions,
     "sender_restrictions", &mail_restrctions,
     "recipient_restrictions", &rcpt_restrctions,
+    "etrn_restrictions", &etrn_restrctions,
     0,
 };
 

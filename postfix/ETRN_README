@@ -1,33 +1,59 @@
 Enabling the Postfix fast ETRN service
 ======================================
 
-Add an entry to the master.cf file for the new flush daemon:
+Postfix "fast ETRN" speeds up deliveries by looking only at mail
+that is queued for a given destination site. Postfix ordinary ETRN
+attempts to deliver all queued mail. Postfix fast ETRN service is
+available only for destinations that the local MTA is willing to
+relay mail to.
 
-    /etc/postfix/master.cf:
+But first you need to configure Postfix to provide fast ETRN service.
+
+- Execute "postfix stop"
+
+- Execute "make install" if you are running an older Postfix version
+  that does not have "fast flush" logfile support,
+
+- Add a "flush" service entry to /etc/postfix/master.cf if you were
+  running an older Postfix version:
+
 	flush	  unix	n	-	n	-	0	flushd
 
-Configure a list of domains that have fast ETRN service and
-what clients can use the service:
+- Execute "postconf hash_queue_names" and verify that the output
+  includes at the very least the "active", "bounce", "defer", and
+  "flush" queue names.  If any queue name is missing, edit the
+  main.cf file and either delete the explicit hash_queue_names
+  entry, or add the missing queue names.
 
-    /etc/postfix/etrn:
-	domain.name	permit_mynetworks
+- Execute "postconf hash_queue_names" again, just to be sure.
 
-Run the postmap command:
+- Edit the main.cf file and specify
 
-    # postmap /etc/postfix/etrn
+    enable_fast_flush = yes
 
-Create any missing directories that are needed for fast ETRN service:
+- Execute "postconf enable_fast_flush", to verify that the fast
+  flush feature is indeed enabled.
 
-    # postfix check
+- Execute "postfix start"
 
-Configure Postfix to use the fast ETRN service:
+- From a client that is allowed to execute ETRN commands, connect
+  to the Postfix SMTP server and type:
 
-    /etc/postfix/main.cf:
-	etrn_maps = hash:/etc/postfix/etrn
+	helo my.client.name
+	etrn some.customer.domain
 
-(specify dbm instead of hash if your machine uses DBM databases
-rather than DB).
+  where "some.customer.domain" is the name of a domain that your
+  mail server is willing to relay mail to.
 
-Refresh Postfix:
+  In the maillog file, you should see something logged like:
 
-    # postfix reload
+	created fast ETRN cache for some.customer.domain
+
+  If Postfix logs that it cannot create a fast ETRN cache then
+  execute the command "postfix check". You probably skipped some
+  of the above instructions so that the necessary directories were
+  not created.
+
+  If Postfix logs that it refuses fast ETRN service, then either
+  "some.customer.domain" does not exist, or it is not listed as a
+  valid relay destination. Check your relay_domains setting.

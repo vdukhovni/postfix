@@ -63,6 +63,9 @@
 /*	closes the queue file,
 /*	and destroys the DELIVER_REQUEST structure. The result is
 /*	non-zero when the status could not be reported to the client.
+/*
+/*	When the fast flush cache is enabled, the fast flush server is
+/*	notified of deferred mail.
 /* DIAGNOSTICS
 /*	Warnings: bad data sent by the client. Fatal errors: out of
 /*	memory, queue file open errors.
@@ -102,6 +105,8 @@
 #include "mail_open_ok.h"
 #include "recipient_list.h"
 #include "deliver_request.h"
+#include "mail_flush.h"
+#include "mail_params.h"
 
 /* deliver_request_initial - send initial status code */
 
@@ -323,7 +328,12 @@ int     deliver_request_done(VSTREAM *stream, DELIVER_REQUEST *request, int stat
 {
     int     err;
 
+    /*
+     * Optionally add this message to the fast flush log for this site.
+     */
     err = deliver_request_final(stream, request->hop_status, status);
+    if (var_enable_fflush)
+	mail_flush_append(request->nexthop, request->queue_id);
     deliver_request_free(request);
     return (err);
 }
