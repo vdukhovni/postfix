@@ -129,7 +129,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	mailbox = concatenate(usr_attr.home, "/", var_home_mailbox, (char *) 0);
     } else {
 	spool_dir = var_mail_spool_dir;
-	mailbox = concatenate(spool_dir, "/", state.msg_attr.local, (char *) 0);
+	mailbox = concatenate(spool_dir, "/", state.msg_attr.user, (char *) 0);
     }
 
     /*
@@ -241,7 +241,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * 
      * Don't come here more than once, whether or not the recipient exists.
      */
-    if (been_here(state.dup_filter, "mailbox %s", state.msg_attr.local))
+    if (been_here(state.dup_filter, "mailbox %s", state.msg_attr.user))
 	return (YES);
 
     /*
@@ -256,7 +256,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Skip delivery when this recipient does not exist.
      */
-    if ((mbox_pwd = mypwnam(state.msg_attr.local)) == 0)
+    if ((mbox_pwd = mypwnam(state.msg_attr.user)) == 0)
 	return (NO);
 
     /*

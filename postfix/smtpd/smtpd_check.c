@@ -368,7 +368,6 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     va_start(ap, format);
     vstring_vsprintf(error_text, format, ap);
     va_end(ap);
-    printable(STR(error_text), ' ');
 
     /*
      * Validate the response, that is, the response must begin with a
@@ -383,12 +382,23 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     }
 
     /*
+     * Give everyone involved a clue.
+     */
+    if (state->sender) {
+	vstring_sprintf_append(error_text, " (from=<%s>", state->sender);
+	if (state->recipient)
+	    vstring_sprintf_append(error_text, " to=<%s>", state->recipient);
+	VSTRING_ADDCH(error_text, ')');
+    }
+    printable(STR(error_text), ' ');
+
+    /*
      * Log what is happening. When the sysadmin discards policy violation
      * postmaster notices, this may be the only trace left that service was
      * rejected. Print the request, client name/address, and response.
      */
-    msg_info("reject: %s from %s[%s]: %s", state->where, state->name,
-	     state->addr, STR(error_text));
+    msg_info("%s: reject: %s from %s[%s]: %s", state->queue_id, state->where,
+	     state->name, state->addr, STR(error_text));
 
     return (SMTPD_CHECK_REJECT);
 }
@@ -1356,6 +1366,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     char  **cpp;
     char   *name;
     int     status;
+    char   *saved_recipient = state->recipient;
 
     /*
      * Initialize.
@@ -1365,8 +1376,10 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	return (0);
 
     /*
-     * Apply restrictions in the order as specified.
+     * Apply restrictions in the order as specified. Minor kluge so that we
+     * can delegate work to the generic routine.
      */
+    state->recipient = mystrdup(recipient);
     for (cpp = rcpt_restrctions->argv; (name = *cpp) != 0; cpp++) {
 	if (strchr(name, ':') != 0) {
 	    status = check_mail_access(state, name, recipient);
@@ -1387,6 +1400,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	if (status != 0)
 	    break;
     }
+    myfree(state->recipient);
+    state->recipient = saved_recipient;
     return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 

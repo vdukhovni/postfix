@@ -41,10 +41,10 @@ LOCAL(8)                                                 LOCAL(8)
        interpolation of <b>$user</b> (recipient username), <b>$home</b> (recip-
        ient home directory), <b>$shell</b> (recipient shell), <b>$recipient</b>
        (complete  recipient   address),   <b>$extension</b>   (recipient
-       address extension), <b>$domain</b> (recipient domain) and <b>$recip-</b>
-       <b>ient</b><i>_</i><b>delimiter.</b> The forms <i>${name?value}</i> and  <i>${name:value}</i>
-       expand  conditionally  to  <i>value</i>  when  <i>$name</i>  is (is not)
-       defined.
+       address  extension),  <b>$domain</b>  (recipient domain), <b>mailbox</b>
+       (entire recipient address localpart) and <b>$recipient</b><i>_</i><b>delim-</b>
+       <b>iter.</b>  The  forms  <i>${name?value}</i>  and <i>${name:value}</i> expand
+       conditionally to <i>value</i> when <i>$name</i> is (is not) defined.
 
        An alias or ~/.<b>forward</b> file may list  any  combination  of
        external   commands,  destination  file  names,  <b>:include:</b>
@@ -111,20 +111,20 @@ LOCAL(8)                                                 LOCAL(8)
        ent  username),  <b>$home</b>  (recipient home directory), <b>$shell</b>
        (recipient   shell),   <b>$recipient</b>   (complete    recipient
        address),   <b>$extension</b>   (recipient   address  extension),
-       <b>$domain</b> (recipient domain) and  <b>$recipient</b><i>_</i><b>delimiter.</b>  The
-       forms <i>${name?value}</i> and <i>${name:value}</i> expand conditionally
-       to <i>value</i> when <i>$name</i> is (is not) defined. In the result  of
-       <i>name</i>  expansion,  characters  that have special meaning to
+       <b>$domain</b>  (recipient  domain),  <b>mailbox</b>  (entire  recipient
+       address  localpart)  and  <b>$recipient</b><i>_</i><b>delimiter.</b>  The forms
+       <i>${name?value}</i> and <i>${name:value}</i>  expand  conditionally  to
+       <i>value</i>  when  <i>$name</i>  is  (is not) defined. In the result of
+       <i>name</i> expansion, characters that have  special  meaning  to
        the shell are censored and replaced by underscores.
 
-       Mailbox delivery can be delegated to  alternative  message
-       transports  specified  in  the  <b>master.cf</b> file.  The <b>mail-</b>
-       <b>box</b><i>_</i><b>transport</b> configuration parameter specifies a  message
-       transport  that  is  to  be used for all local recipients,
-       regardless of whether they are found in  the  UNIX  passwd
-       database.   The  <b>fallback</b><i>_</i><b>transport</b>  parameter specifies a
+       Mailbox  delivery  can be delegated to alternative message
+       transports specified in the  <b>master.cf</b>  file.   The  <b>mail-</b>
+       <b>box</b><i>_</i><b>transport</b>  configuration parameter specifies a message
+       transport that is to be used  for  all  local  recipients,
+       regardless  of  whether  they are found in the UNIX passwd
+       database.  The <b>fallback</b><i>_</i><b>transport</b>  parameter  specifies  a
        message transport for recipients that are not found in the
-       UNIX passwd database.
 
 
 
@@ -137,37 +137,39 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       UNIX passwd database.
+
        In the case of UNIX-style mailbox delivery, the <b>local</b> dae-
        mon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope header to
-       each  message,  prepends  a  <b>Delivered-To:</b> header with the
+       each message, prepends a  <b>Delivered-To:</b>  header  with  the
        envelope recipient address, prepends a <b>Return-Path:</b> header
-       with  the  envelope sender address, prepends a &gt; character
-       to lines beginning with "<b>From</b>  ",  and  appends  an  empty
-       line.   The  mailbox  is locked for exclusive access while
-       delivery is in progress. In case of problems,  an  attempt
+       with the envelope sender address, prepends a  &gt;  character
+       to  lines  beginning  with  "<b>From</b>  ", and appends an empty
+       line.  The mailbox is locked for  exclusive  access  while
+       delivery  is  in progress. In case of problems, an attempt
        is made to truncate the mailbox to its original length.
 
        In the case of <b>maildir</b> delivery, the local daemon prepends
        a <b>Delivered-To:</b> header with the envelope recipient address
-       and  prepends  a  <b>Return-Path:</b>  header  with  the envelope
+       and prepends  a  <b>Return-Path:</b>  header  with  the  envelope
        sender address.
 
 <b>EXTERNAL</b> <b>COMMAND</b> <b>DELIVERY</b>
-       The   <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>    configuration    parameter
-       restricts  delivery to external commands. The default set-
-       ting (<b>alias,</b>  <b>forward</b>)  forbids  command  destinations  in
+       The    <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>    configuration   parameter
+       restricts delivery to external commands. The default  set-
+       ting  (<b>alias,</b>  <b>forward</b>)  forbids  command  destinations in
        <b>:include:</b> files.
 
-       The  command  is  executed directly where possible. Assis-
-       tance by the shell (<b>/bin/sh</b> on UNIX systems) is used  only
-       when  the command contains shell magic characters, or when
+       The command is executed directly  where  possible.  Assis-
+       tance  by the shell (<b>/bin/sh</b> on UNIX systems) is used only
+       when the command contains shell magic characters, or  when
        the command invokes a shell built-in command.
 
-       A limited amount of command output  (standard  output  and
-       standard  error) is captured for inclusion with non-deliv-
-       ery status reports.  A command is forcibly  terminated  if
-       it  does  not  complete within <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b> seconds.
-       Command exit status codes are expected to follow the  con-
+       A  limited  amount  of command output (standard output and
+       standard error) is captured for inclusion with  non-deliv-
+       ery  status  reports.  A command is forcibly terminated if
+       it does not complete  within  <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>  seconds.
+       Command  exit status codes are expected to follow the con-
        ventions defined in &lt;<b>sysexits.h</b>&gt;.
 
        When mail is delivered on behalf of a user, the <b>HOME</b>, <b>LOG-</b>
@@ -179,18 +181,16 @@ LOCAL(8)                                                 LOCAL(8)
        The current working directory is the mail queue directory.
 
        The <b>local</b> daemon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" enve-
-       lope  header  to  each  message,  prepends a <b>Delivered-To:</b>
-       header with the recipient  envelope  address,  prepends  a
-       <b>Return-Path:</b>  header with the sender envelope address, and
+       lope header to  each  message,  prepends  a  <b>Delivered-To:</b>
+       header  with  the  recipient  envelope address, prepends a
+       <b>Return-Path:</b> header with the sender envelope address,  and
        appends an empty line.
 
 <b>EXTERNAL</b> <b>FILE</b> <b>DELIVERY</b>
-       The <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b> configuration parameter  restricts
-       delivery  to  external  files. The default setting (<b>alias,</b>
-       <b>forward</b>) forbids file  destinations  in  <b>:include:</b>  files.
+       The  <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b> configuration parameter restricts
+       delivery to external files. The  default  setting  (<b>alias,</b>
+       <b>forward</b>)  forbids  file  destinations  in <b>:include:</b> files.
        Specify  a  pathname  ending  in  <b>/</b>  for  <b>qmail</b>-compatible
-       <b>maildir</b> delivery.
-
 
 
 
@@ -203,40 +203,42 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       <b>maildir</b> delivery.
+
        The <b>local</b> daemon prepends a "<b>From</b> <i>sender</i> <i>time_stamp</i>" enve-
-       lope  header  to  each  message,  prepends a <b>Delivered-To:</b>
-       header with the recipient envelope address, prepends  a  &gt;
-       character  to lines beginning with "<b>From</b> ", and appends an
-       empty line.  The envelope sender address is  available  in
-       the  <b>Return-Path:</b> header.  When the destination is a regu-
+       lope header to  each  message,  prepends  a  <b>Delivered-To:</b>
+       header  with  the recipient envelope address, prepends a &gt;
+       character to lines beginning with "<b>From</b> ", and appends  an
+       empty  line.   The envelope sender address is available in
+       the <b>Return-Path:</b> header.  When the destination is a  regu-
        lar file, it is locked for exclusive access while delivery
        is in progress. In case of problems, an attempt is made to
        truncate a regular file to its original length.
 
        In the case of <b>maildir</b> delivery, the local daemon prepends
-       a   <b>Delivered-To:</b>   header  with  the  envelope  recipient
-       address.  The envelope sender address is available in  the
+       a  <b>Delivered-To:</b>  header  with  the   envelope   recipient
+       address.   The envelope sender address is available in the
        <b>Return-Path:</b> header.
 
 <b>ADDRESS</b> <b>EXTENSION</b>
-       The  optional  <b>recipient</b><i>_</i><b>delimiter</b> configuration parameter
-       specifies how to separate address  extensions  from  local
+       The optional <b>recipient</b><i>_</i><b>delimiter</b>  configuration  parameter
+       specifies  how  to  separate address extensions from local
        recipient names.
 
-       For  example,  with  "<b>recipient</b><i>_</i><b>delimiter</b>  <b>=</b>  <b>+</b>", mail for
-       <i>name</i>+<i>foo</i> is delivered to the  alias  <i>name</i>+<i>foo</i>  or  to  the
-       alias  <i>name</i>,  to  the  destinations  listed in ~<i>name</i>/.<b>for-</b>
+       For example, with  "<b>recipient</b><i>_</i><b>delimiter</b>  <b>=</b>  <b>+</b>",  mail  for
+       <i>name</i>+<i>foo</i>  is  delivered  to  the  alias <i>name</i>+<i>foo</i> or to the
+       alias <i>name</i>, to  the  destinations  listed  in  ~<i>name</i>/.<b>for-</b>
        <b>ward</b>+<i>foo</i> or in ~<i>name</i>/.<b>forward</b>, to the mailbox owned by the
        user <i>name</i>, or it is sent back as undeliverable.
 
-       In  all  cases  the <b>local</b> daemon prepends a `<b>Delivered-To:</b>
+       In all cases the <b>local</b> daemon  prepends  a  `<b>Delivered-To:</b>
        <i>name</i>+<i>foo</i>' header line.
 
 <b>DELIVERY</b> <b>RIGHTS</b>
-       Deliveries to external files  and  external  commands  are
+       Deliveries  to  external  files  and external commands are
        made with the rights of the receiving user on whose behalf
-       the delivery is made.  In the absence of a  user  context,
-       the  <b>local</b>  daemon  uses the owner rights of the <b>:include:</b>
+       the  delivery  is made.  In the absence of a user context,
+       the <b>local</b> daemon uses the owner rights  of  the  <b>:include:</b>
        file or alias database.  When those files are owned by the
        superuser, delivery is made with the rights specified with
        the <b>default</b><i>_</i><b>privs</b> configuration parameter.
@@ -245,18 +247,16 @@ LOCAL(8)                                                 LOCAL(8)
        RFC 822 (ARPA Internet Text Messages)
 
 <b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).   Cor-
-       rupted  message files are marked so that the queue manager
+       Problems  and transactions are logged to <b>syslogd</b>(8).  Cor-
+       rupted message files are marked so that the queue  manager
        can move them to the <b>corrupt</b> queue afterwards.
 
-       Depending on the setting of the <b>notify</b><i>_</i><b>classes</b>  parameter,
-       the  postmaster  is notified of bounces and of other trou-
+       Depending  on the setting of the <b>notify</b><i>_</i><b>classes</b> parameter,
+       the postmaster is notified of bounces and of  other  trou-
        ble.
 
 <b>BUGS</b>
-       For security  reasons,  the  message  delivery  status  of
-       external  commands  or  of  external files is never check-
-       pointed to file. As a result, the program may occasionally
+       For  security  reasons,  the  message  delivery  status of
 
 
 
@@ -269,17 +269,19 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       external commands or of external  files  is  never  check-
+       pointed to file. As a result, the program may occasionally
        deliver more than once to a command or external file. Bet-
        ter safe than sorry.
 
-       Mutually-recursive aliases or  ~/.<b>forward</b>  files  are  not
-       detected  early.   The  resulting  mail forwarding loop is
+       Mutually-recursive  aliases  or  ~/.<b>forward</b>  files are not
+       detected early.  The resulting  mail  forwarding  loop  is
        broken by the use of the <b>Delivered-To:</b> message header.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. See the Postfix <b>main.cf</b> file  for  syntax
+       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
@@ -287,10 +289,8 @@ LOCAL(8)                                                 LOCAL(8)
               List of alias databases.
 
        <b>forward</b><i>_</i><b>path</b>
-              Search  list  for  .forward  files.   The following
-              macros  are  recognized:  <b>$home</b>  (home  directory),
-              <b>$user</b> (login name), <b>$extension</b> (address extension),
-              <b>$recipient</b><i>_</i><b>delimiter</b> (address extension delimiter).
+              Search list for .forward files.  The names are sub-
+              ject to <i>$name</i> expansion.
 
        <b>local</b><i>_</i><b>command</b><i>_</i><b>shell</b>
               Shell  to  use  for external command execution (for
@@ -319,8 +319,8 @@ LOCAL(8)                                                 LOCAL(8)
 
        <b>luser</b><i>_</i><b>relay</b>
               Destination (<i>@domain</i> or <i>address</i>)  for  non-existent
-              users.   The <i>address</i> can be any destination that is
-              valid in an alias file.
+              users.   The  <i>address</i>  is subjected to <i>$name</i> expan-
+              sion.
 
 
 

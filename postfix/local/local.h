@@ -68,8 +68,11 @@ typedef struct DELIVER_ATTR {
     long    offset;			/* data offset */
     char   *sender;			/* taken from envelope */
     char   *recipient;			/* taken from resolver */
-    char   *local;			/* recipient localpart, base name */
+    char   *domain;			/* recipient domain */
+    char   *local;			/* recipient full localpart */
+    char   *user;			/* recipient localpart, base name */
     char   *extension;			/* recipient localpart, extension */
+    char   *unmatched;			/* unmatched extension */
     char   *owner;			/* null or list owner */
     char   *delivered;			/* for loop detection */
     char   *relay;			/* relay host */
@@ -136,7 +139,7 @@ typedef struct LOCAL_STATE {
   * "inner" nodes of the delivery graph.
   */
 extern int deliver_recipient(LOCAL_STATE, USER_ATTR);
-extern int deliver_alias(LOCAL_STATE, USER_ATTR, int *);
+extern int deliver_alias(LOCAL_STATE, USER_ATTR, char *, int *);
 extern int deliver_dotforward(LOCAL_STATE, USER_ATTR, int *);
 extern int deliver_include(LOCAL_STATE, USER_ATTR, char *);
 extern int deliver_token(LOCAL_STATE, USER_ATTR, TOK822 *);
@@ -184,7 +187,7 @@ extern int feature_control(const char *);
  /*
   * local_expand.c
   */
-int     local_expand(VSTRING *, const char *, LOCAL_STATE, USER_ATTR, const char *);
+HTABLE *local_expand(LOCAL_STATE, USER_ATTR);
 
 /* LICENSE
 /* .ad

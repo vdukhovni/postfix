@@ -67,7 +67,7 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <mymalloc.h>
-#include <mac_parse.h>
+#include <mac_expand.h>
 
 /* Global library. */
 
@@ -102,6 +102,9 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     char   *lhs;
     char   *next;
     const char *forward_path;
+    HTABLE *expand_attr;
+    HTABLE *record_attr;
+    HTABLE_INFO *extension_record;
 
     /*
      * Make verbose logging easier to understand.
@@ -112,8 +115,8 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 
     /*
      * Skip this module if per-user forwarding is disabled. XXX We need to
-     * extend the mail_conf_XXX() interface to request no expansion of $names in
-     * the given value or in the default value.
+     * extend the mail_conf_XXX() interface to request no expansion of $names
+     * in the given value or in the default value.
      */
     if ((forward_path = mail_conf_lookup(VAR_FORWARD_PATH)) == 0)
 	forward_path = DEF_FORWARD_PATH;
@@ -134,7 +137,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Skip non-existing users. The mailbox delivery routine will catch the
      * error.
      */
-    if ((mypwd = mypwnam(state.msg_attr.local)) == 0)
+    if ((mypwd = mypwnam(state.msg_attr.user)) == 0)
 	return (NO);
 
     /*
@@ -197,18 +200,32 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     next = saved_forward_path;
     lookup_status = -1;
 
+    expand_attr = local_expand(state, usr_attr);
+    record_attr = htable_create(0);
+    extension_record = htable_enter(record_attr, "extension", (char *) 0);
+
     while ((lhs = mystrtok(&next, ", \t\r\n")) != 0) {
 	VSTRING_RESET(path);
-	if (local_expand(path, lhs, state, usr_attr, (char *) 0) == 0) {
+	extension_record->value = 0;
+	if (mac_expand(path, lhs, MAC_EXP_FLAG_NONE,
+		       MAC_EXP_ARG_TABLE, expand_attr,
+		       MAC_EXP_ARG_RECORD, record_attr,
+		       0) == 0) {
 	    lookup_status =
 		lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);
 	    if (msg_verbose)
 		msg_info("%s: path %s status %d", myname,
 			 STR(path), lookup_status);
-	    if (lookup_status >= 0) 
+	    if (lookup_status >= 0) {
+		if (extension_record->value != 0)
+		    state.msg_attr.unmatched = 0;
 		break;
+	    }
 	}
     }
+
+    htable_free(expand_attr, (void (*) (char *)) 0);
+    htable_free(record_attr, (void (*) (char *)) 0);
 
     if (lookup_status >= 0) {
 	if (S_ISREG(st.st_mode) == 0) {

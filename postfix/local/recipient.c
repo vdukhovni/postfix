@@ -105,35 +105,23 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * \user is special: it means don't do any alias or forward expansion.
      */
     if (state.msg_attr.recipient[0] == '\\') {
-	state.msg_attr.recipient++, state.msg_attr.local++;
-	if (*var_rcpt_delim)
-	    state.msg_attr.extension =
-		split_addr(state.msg_attr.local, *var_rcpt_delim);
+	state.msg_attr.recipient++, state.msg_attr.local++, state.msg_attr.user++;
 	if (deliver_mailbox(state, usr_attr, &status) == 0)
 	    status = deliver_unknown(state, usr_attr);
 	return (status);
     }
 
     /*
-     * Otherwise, alias expansion has highest precedence.
+     * Otherwise, alias expansion has highest precedence. First look up the
+     * full localpart, then the bare user.
      */
-    if (deliver_alias(state, usr_attr, &status))
+    state.msg_attr.unmatched = 0;
+    if (deliver_alias(state, usr_attr, state.msg_attr.local, &status))
 	return (status);
-
-    /*
-     * Don't apply the recipient delimiter to reserved addresses. After
-     * stripping the recipient extension, try aliases again.
-     */
-    if (*var_rcpt_delim)
-	state.msg_attr.extension =
-	    split_addr(state.msg_attr.local, *var_rcpt_delim);
-    if (state.msg_attr.extension && strchr(state.msg_attr.extension, '/')) {
-	msg_warn("%s: address with illegal extension: %s",
-		 state.msg_attr.queue_id, state.msg_attr.recipient);
-	state.msg_attr.extension = 0;
-    }
-    if (state.msg_attr.extension && deliver_alias(state, usr_attr, &status))
-	return (status);
+    state.msg_attr.unmatched = state.msg_attr.extension;
+    if (state.msg_attr.extension != 0)
+	if (deliver_alias(state, usr_attr, state.msg_attr.user, &status))
+	    return (status);
 
     /*
      * Special case for mail locally forwarded or aliased to a different
@@ -202,11 +190,26 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     if (state.msg_attr.delivered == 0)
 	state.msg_attr.delivered = state.msg_attr.recipient;
     state.msg_attr.local = mystrdup(state.msg_attr.recipient);
-    if (split_at_right(state.msg_attr.local, '@') == 0)
-	msg_warn("no @ in recipient address: %s", state.msg_attr.local);
     lowercase(state.msg_attr.local);
+    if ((state.msg_attr.domain = split_at_right(state.msg_attr.local, '@')) == 0)
+	msg_warn("no @ in recipient address: %s", state.msg_attr.local);
     state.msg_attr.features = feature_control(state.msg_attr.local);
-    state.msg_attr.extension = 0;
+
+    /*
+     * Address extension management.
+     */
+    state.msg_attr.user = mystrdup(state.msg_attr.local);
+    if (*var_rcpt_delim) {
+	state.msg_attr.extension =
+	    split_addr(state.msg_attr.local, *var_rcpt_delim);
+	if (strchr(state.msg_attr.extension, '/')) {
+	    msg_warn("%s: address with illegal extension: %s",
+		     state.msg_attr.queue_id, state.msg_attr.local);
+	    state.msg_attr.extension = 0;
+	}
+    } else
+	state.msg_attr.extension = 0;
+    state.msg_attr.unmatched = state.msg_attr.extension;
 
     /*
      * Run the recipient through the delivery switch.

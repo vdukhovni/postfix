@@ -35,7 +35,8 @@
 /*	\fB$user\fR (recipient username), \fB$home\fR (recipient home
 /*	directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
 /*	(complete recipient address), \fB$extension\fR (recipient address
-/*	extension), \fB$domain\fR (recipient domain) and
+/*	extension), \fB$domain\fR (recipient domain), \fBmailbox\fR
+/*	(entire recipient address localpart) and
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
 /*	\fI$name\fR is (is not) defined.
@@ -94,7 +95,8 @@
 /*	username), \fB$home\fR (recipient home directory), \fB$shell\fR
 /*	(recipient shell), \fB$recipient\fR (complete recipient address),
 /*	\fB$extension\fR (recipient address extension), \fB$domain\fR
-/*	(recipient domain) and \fB$recipient_delimiter.\fR The forms
+/*	(recipient domain), \fBmailbox\fR (entire recipient address 
+/*	localpart) and \fB$recipient_delimiter.\fR The forms
 /*	\fI${name?value}\fR and \fI${name:value}\fR expand conditionally to
 /*	\fIvalue\fR when \fI$name\fR is (is not) defined. In the result
 /*	of \fIname\fR expansion, characters that have special meaning to
@@ -235,10 +237,8 @@
 /* .IP \fBalias_maps\fR
 /*	List of alias databases.
 /* .IP \fBforward_path\fR
-/*	Search list for .forward files.  The following macros are recognized:
-/*	\fB$home\fR (home directory), \fB$user\fR (login name),
-/*	\fB$extension\fR (address extension), \fB$recipient_delimiter\fR
-/*	(address extension delimiter).
+/*	Search list for .forward files.  The names are subject to \fI$name\fR
+/*	expansion.
 /* .IP \fBlocal_command_shell\fR
 /*	Shell to use for external command execution (for example,
 /*	/some/where/smrsh -c).
@@ -261,8 +261,7 @@
 /*	Specify a path ending in \fB/\fR for maildir-style delivery.
 /* .IP \fBluser_relay\fR
 /*	Destination (\fI@domain\fR or \fIaddress\fR) for non-existent users.
-/*	The \fIaddress\fR can be any destination that is valid in an alias
-/*	file.
+/*	The \fIaddress\fR is subjected to \fI$name\fR expansion.
 /* .IP \fBmail_spool_directory\fR
 /*	Directory with UNIX-style mailboxes. The default pathname is system
 /*	dependent.
@@ -577,6 +576,7 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE raw_table[] = {
 	VAR_FORWARD_PATH, DEF_FORWARD_PATH, &var_forward_path, 0, 0,
 	VAR_MAILBOX_COMMAND, DEF_MAILBOX_COMMAND, &var_mailbox_command, 0, 0,
+	VAR_LUSER_RELAY, DEF_LUSER_RELAY, &var_luser_relay, 0, 0,
 	0,
     };
 

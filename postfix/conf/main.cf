@@ -228,9 +228,9 @@ program_directory = /some/where/postfix/bin
 # The following expansions are done on mailbox_command: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),
 # $recipient (full recipient address), $extension (recipient address
-# extension), $domain (recipient domain), $recipient_delimiter. Specify
-# ${name?value} or ${name:value} to expand value only when $name does
-# (does not) exist.
+# extension), $domain (recipient domain), $mailbox (entire recipient
+# localpart), $recipient_delimiter. Specify ${name?value} or
+# ${name:value} to expand value only when $name does (does not) exist.
 # 
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.
@@ -250,16 +250,20 @@ program_directory = /some/where/postfix/bin
 #
 #fallback_transport =
 
-# The luser_relay parameter specifies an optional destination 
-# (@domain, address, "|command", /file/name) for unknown recipients.
-# By default, mail for unknown local recipients is bounced.
+# The luser_relay parameter specifies an optional destination (@domain,
+# address) for unknown recipients.  By default, mail for unknown
+# local recipients is bounced.
 #
 # Specify @domain in order to keep the original recipient name.
-# If an address is specified, and if a recipient delimiter is 
-# specified, the original recipient name is appended to the addres
-# localpart.
+# The following expansions are done on luser_relay: $user (recipient
+# username), $shell (recipient shell), $home (recipient home directory),
+# $recipient (full recipient address), $extension (recipient address
+# extension), $domain (recipient domain), $mailbox (entire recipient
+# localpart), $recipient_delimiter. Specify ${name?value} or
+# ${name:value} to expand value only when $name does (does not) exist.
 #
-# luser_relay =
+# luser_relay = @other.host
+# luser_relay = admin+$mailbox
   
 # JUNK MAIL CONTROLS
 # 

@@ -30,9 +30,9 @@
 # The following expansions are done on forward_path: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),
 # $recipient (full recipient address), $extension (recipient address
-# extension), $domain (recipient domain), $recipient_delimiter. Specify
-# ${name?value} or ${name:value} to expand value only when $name does
-# (does not) exist.
+# extension), $domain (recipient domain), $mailbox (entire recipient
+# localpart), $recipient_delimiter. Specify ${name?value} or
+# ${name:value} to expand value only when $name does (does not) exist.
 #
 #forward_path = /var/forward/$user
 forward_path = $home/.forward$recipient_delimiter$extension,$home/.forward
@@ -76,11 +76,15 @@ home_mailbox =
 # By default, mail for unknown local recipients is bounced.
 #
 # Specify @domain in order to keep the original recipient name.
-# If an address is specified, and if a recipient delimiter is
-# specified, the original recipient name is appended to the addres
-# localpart.
+# The following expansions are done on luser_relay: $user (recipient
+# username), $shell (recipient shell), $home (recipient home directory),
+# $recipient (full recipient address), $extension (recipient address
+# extension), $domain (recipient domain), $mailbox (entire recipient
+# localpart), $recipient_delimiter. Specify ${name?value} or
+# ${name:value} to expand value only when $name does (does not) exist.
 #
-# luser_relay =
+# luser_relay = @other.host
+# luser_relay = admin+$mailbox
 
 # The mail_spool_directory parameter specifies the directory where
 # UNIX-style mailboxes are kept. The default setting depends on the
@@ -97,9 +101,9 @@ home_mailbox =
 # The following expansions are done on mailbox_command: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),
 # $recipient (full recipient address), $extension (recipient address
-# extension), $domain (recipient domain), $recipient_delimiter. Specify
-# ${name?value} or ${name:value} to expand value only when $name does
-# (does not) exist.
+# extension), $domain (recipient domain), $mailbox (entire recipient
+# localpart), $recipient_delimiter. Specify ${name?value} or
+# ${name:value} to expand value only when $name does (does not) exist.
 #
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.

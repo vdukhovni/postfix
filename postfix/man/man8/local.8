@@ -43,7 +43,8 @@ The \fBforward_path\fR parameter is subject to interpolation of
 \fB$user\fR (recipient username), \fB$home\fR (recipient home
 directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
 (complete recipient address), \fB$extension\fR (recipient address
-extension), \fB$domain\fR (recipient domain) and
+extension), \fB$domain\fR (recipient domain), \fBmailbox\fR
+(entire recipient address localpart) and
 \fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 \fI${name:value}\fR expand conditionally to \fIvalue\fR when
 \fI$name\fR is (is not) defined.
@@ -106,7 +107,8 @@ The command is subject to interpolation of \fB$user\fR (recipient
 username), \fB$home\fR (recipient home directory), \fB$shell\fR
 (recipient shell), \fB$recipient\fR (complete recipient address),
 \fB$extension\fR (recipient address extension), \fB$domain\fR
-(recipient domain) and \fB$recipient_delimiter.\fR The forms
+(recipient domain), \fBmailbox\fR (entire recipient address
+localpart) and \fB$recipient_delimiter.\fR The forms
 \fI${name?value}\fR and \fI${name:value}\fR expand conditionally to
 \fIvalue\fR when \fI$name\fR is (is not) defined. In the result
 of \fIname\fR expansion, characters that have special meaning to
@@ -263,10 +265,8 @@ a configuration change.
 .IP \fBalias_maps\fR
 List of alias databases.
 .IP \fBforward_path\fR
-Search list for .forward files.  The following macros are recognized:
-\fB$home\fR (home directory), \fB$user\fR (login name),
-\fB$extension\fR (address extension), \fB$recipient_delimiter\fR
-(address extension delimiter).
+Search list for .forward files.  The names are subject to \fI$name\fR
+expansion.
 .IP \fBlocal_command_shell\fR
 Shell to use for external command execution (for example,
 /some/where/smrsh -c).
@@ -289,8 +289,7 @@ Pathname of a mailbox relative to a user's home directory.
 Specify a path ending in \fB/\fR for maildir-style delivery.
 .IP \fBluser_relay\fR
 Destination (\fI@domain\fR or \fIaddress\fR) for non-existent users.
-The \fIaddress\fR can be any destination that is valid in an alias
-file.
+The \fIaddress\fR is subjected to \fI$name\fR expansion.
 .IP \fBmail_spool_directory\fR
 Directory with UNIX-style mailboxes. The default pathname is system
 dependent.

@@ -97,6 +97,7 @@ command.o: ../include/vstring.h
 command.o: ../include/vbuf.h
 command.o: ../include/vstream.h
 command.o: ../include/argv.h
+command.o: ../include/mac_expand.h
 command.o: ../include/defer.h
 command.o: ../include/bounce.h
 command.o: ../include/sent.h
@@ -154,7 +155,7 @@ dotforward.o: ../include/lstat_as.h
 dotforward.o: ../include/iostuff.h
 dotforward.o: ../include/stringops.h
 dotforward.o: ../include/mymalloc.h
-dotforward.o: ../include/mac_parse.h
+dotforward.o: ../include/mac_expand.h
 dotforward.o: ../include/mypwd.h
 dotforward.o: ../include/bounce.h
 dotforward.o: ../include/been_here.h
@@ -291,13 +292,11 @@ local.o: ../include/tok822.h
 local.o: ../include/resolve_clnt.h
 local_expand.o: local_expand.c
 local_expand.o: ../include/sys_defs.h
-local_expand.o: ../include/vstring.h
-local_expand.o: ../include/vbuf.h
-local_expand.o: ../include/mac_expand.h
-local_expand.o: ../include/mail_params.h
-local_expand.o: local.h
 local_expand.o: ../include/htable.h
+local_expand.o: local.h
 local_expand.o: ../include/vstream.h
+local_expand.o: ../include/vbuf.h
+local_expand.o: ../include/vstring.h
 local_expand.o: ../include/been_here.h
 local_expand.o: ../include/tok822.h
 local_expand.o: ../include/resolve_clnt.h

@@ -22,6 +22,7 @@ $(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 ../conf/main.cf.default: $(PROG) Makefile
+	rm -f $@
 	./$(PROG) -d |egrep -v '^(myhostname|mydomain|mynetworks) ' >$@
 
 Makefile: Makefile.in

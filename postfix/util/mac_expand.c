@@ -6,54 +6,37 @@
 /* SYNOPSIS
 /*	#include <mac_expand.h>
 /*
-/*	MAC_EXP *mac_exp_update(handle, key, ...)
-/*	MAC_EXP	*handle;
-/*	int	key;
-/*
-/*	int	mac_expand_use(handle, result, pattern, flags)
-/*	MAC_EXP	*handle;
-/*	VSTRING *result;
-/*	const char *pattern;
-/*	int	flags;
-/*
-/*	void	mac_expand_free(handle)
-/*	MAC_EXP	*handle;
-/*
 /*	int	mac_expand(result, pattern, flags, key, ...)
 /*	VSTRING *result;
 /*	const char *pattern;
 /*	int	flags;
 /*	int	key;
 /* DESCRIPTION
-/*	This module maintains a private attribute-value list and implements
-/*	the following expansions:
+/*	This module implements parameter-less macro expansions, both
+/*	conditional and unconditional, and both recursive and non-recursive.
+/*	The algorithm can search multiple user-specified symbol tables.
+/*	In the text below, an attribute is "defined" when its value is a
+/*	string of non-zero length. In all other cases the attribute is
+/*	considered "undefined".
+/*
+/*	The following expansions are implemented:
 /* .IP "$name, ${name}, $(name)"
-/*	The result is the value of the named attribute. Optionally, the
-/*	result is subjected to further expansions.
+/*	Unconditional expansion. If the named attribute is defined, the
+/*	expansion is the value of the named attribute,  optionally subjected
+/*	to further $name expansions.  Otherwise, the expansion is empty.
 /* .IP "${name?text}, $(name?text)"
-/*	If the named attribute is defined, the result is the given text,
-/*	after another iteration of $name expansion. Otherwise, the result is
-/*	empty.
+/*	Conditional expansion. If the named attribute is defined, the
+/*	expansion is the given text, subjected to another iteration of
+/*	$name expansion.  Otherwise, the expansion is empty.
 /* .IP "${name:text}, $(name:text)"
-/*	If the named attribute is undefined, the result is the given text,
-/*	after another iteration of $name expansion. Otherwise, the result is
-/*	empty.
+/*	Conditional expansion. If the named attribute is undefined, the
+/*	the expansion is the given text, after another iteration of $name
+/*	expansion.  Otherwise, the expansion is empty.
 /* .PP
-/*	max_expand_update() updates an existing macro expansion context
-/*	or instantiates a new one when given a null handle.  The result
-/*	is a handle that can be used by other mac_expand_xxx() routines.
-/*
-/*	mac_expand_use() uses a macro expansion context to replace $name etc.
-/*	instances in \fBpattern\fR and stores the result into \fBresult\fR.
-/*
-/*	mac_expand_free() destroys a macro expansion context.
-/*
-/*	mac_expand() is a convenience routine that combines all of the
-/*	above in one function call.
+/*	mac_expand() replaces $name etc. instances in \fBpattern\fR
+/*	and stores the result into \fBresult\fR.
 /*
 /*	Arguments:
-/* .IP mc
-/*	Macro expansion context created or update with mac_expand_update().
 /* .IP result
 /*	Storage for the result of expansion. The result is truncated
 /*	upon entry.
@@ -68,28 +51,24 @@
 /*	The constant MAC_EXP_FLAG_NONE specifies a manifest null value.
 /* .IP key
 /*	The attribute information is specified as a null-terminated list.
-/*	Attributes are defined left to right; only the last definition
-/*	of an attribute is remembered.
+/*	Attributes may appear multiple times; the right-most definition
+/*	of an attribute determines the result of attribute lookup.
+/* .sp
 /*	The following keys are understood (types of arguments indicated
 /*	in parentheses):
 /* .RS
 /* .IP "MAC_EXP_ARG_ATTR (char *, char *)"
 /*	The next two arguments specify an attribute name and its attribute
-/*	string value.  Specify a null string value for an attribute that is
-/*	known but unset. Attribute string values are not copied.
+/*	string value.  Specify a null pointer or empty string for an
+/*	attribute value that is unset. Attribute keys and string values
+/*	are copied.
 /* .IP "MAC_EXP_ARG_TABLE (HTABLE *)"
 /*	The next argument is a hash table with attribute names and values.
-/*	Specify a null string value for an attribute that is known but unset. 
-/*	Attribute string values are not copied.
-/* .IP "MAC_EXP_ARG_FILTER (char *)"
-/*	The next argument specifies a null-terminated list of characters
-/*	that are allowed to appear in $name expansions. By default, illegal
-/*	characters are replaced by underscore. Only the last specified
-/*	filter takes effect. Specify a null pointer to disable filtering.
-/* .IP "MAC_EXP_ARG_CLOBBER (int)"
-/*	Character value to be used when the result of expansion is not
-/*	allowed according to the MAC_EXP_ARG_FILTER argument. Only the
-/*	last specified replacement value takes effect.
+/*	Specify a null pointer or empty string for an attribute value that
+/*	is unset. Hash tables are not copied.
+/* .IP "MAC_EXP_ARG_RECORD (HTABLE *)"
+/*	Record in the specified table how many times an attribute was
+/*	referenced.
 /* .RE
 /* .IP MAC_EXP_ARG_END
 /*	A manifest constant that indicates the end of the argument list.
@@ -98,10 +77,11 @@
 /*	macro nesting.
 /*
 /*	The result value is the binary OR of zero or more of the following:
+/* .IP MAC_EXP_FLAG_ERROR
+/*	A syntax error was foud in the \fBpattern\fR, or some macro had
+/*	an unreasonable nesting depth.
 /* .IP MAC_EXP_FLAG_UNDEF
-/*	The pattern contains a reference to an unknown parameter or to
-/*	a parameter whose value is not defined.
-/*	A zero-length string was used as replacement.
+/*	The pattern contains a reference to an undefined attribute.
 /* SEE ALSO
 /*	mac_parse(3) locate macro references in string.
 /* LICENSE
@@ -118,7 +98,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <setjmp.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -132,16 +111,32 @@
 #include <mac_expand.h>
 
  /*
-  * Little helper structure.
+  * Little helper structure. Name-value pairs given as explicit arguments are
+  * stored into private hash tables. Hash tables provided by the caller are
+  * simply referenced. For now we do only hash tables. The structure can be
+  * generalized when needed.
   */
+struct table_info {
+    int     status;			/* who owns this table */
+    HTABLE *table;			/* table reference */
+};
+
+#define MAC_EXP_STAT_UNUSED	0	/* this slot is unused */
+#define MAC_EXP_STAT_PRIVATE	1	/* we own this table */
+#define MAC_EXP_STAT_EXTERN	2	/* caller owns this table */
+
+#define MAC_EXP_MIN_LEN		2	/* min number of table slots */
+
 struct MAC_EXP {
-    HTABLE *table;			/* private symbol table */
     VSTRING *result;			/* result buffer */
     const char *filter;			/* safe character list */
     int     clobber;			/* safe replacement */
     int     flags;			/* findings, features */
     int     level;			/* nesting level */
-    jmp_buf jbuf;			/* escape */
+    HTABLE *record;			/* record of substitutions */
+    int     len;			/* table list length */
+    int     last;			/* last element used */
+    struct table_info table_info[MAC_EXP_MIN_LEN];
 };
 
 /* mac_expand_callback - callback for mac_parse */
@@ -154,10 +149,15 @@ static void mac_expand_callback(int type, VSTRING *buf, char *ptr)
     char   *text;
     char   *cp;
     int     ch;
+    int     n;
 
+    /*
+     * Sanity check.
+     */
     if (mc->level++ > 100) {
 	msg_warn("unreasonable macro call nesting: \"%s\"", vstring_str(buf));
-	longjmp(mc->jbuf, 1);
+	mc->flags |= MAC_EXP_FLAG_ERROR;
+	return;
     }
 
     /*
@@ -177,15 +177,21 @@ static void mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    }
 	    if (!ISALNUM(ch) && ch != '_') {
 		msg_warn("macro name syntax error: \"%s\"", vstring_str(buf));
-		longjmp(mc->jbuf, 1);
+		mc->flags |= MAC_EXP_FLAG_ERROR;
+		return;
 	    }
 	}
 
 	/*
 	 * Look up the named parameter.
 	 */
-	text = (ht = htable_locate(mc->table, vstring_str(buf))) == 0 ?
-	    0 : ht->value;
+	for (text = 0, n = mc->last; n >= 0; n--) {
+	    ht = htable_locate(mc->table_info[n].table, vstring_str(buf));
+	    if (ht != 0) {
+		text = ht->value;
+		break;
+	    }
+	}
 
 	/*
 	 * Perform the requested substitution.
@@ -207,7 +213,7 @@ static void mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    if (mc->filter) {
 		vstring_strcpy(buf, text);
 		text = vstring_str(buf);
-		for (cp = text; (cp += strspn(cp, mc->filter))[0];)
+		for (cp = text; (cp += strspn(cp, mc->filter))[0]; /* void */ )
 		    *cp++ = mc->clobber;
 	    }
 	    if (mc->flags & MAC_EXP_FLAG_RECURSE)
@@ -215,6 +221,15 @@ static void mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    else
 		vstring_strcat(mc->result, text);
 	    break;
+	}
+
+	/*
+	 * Record keeping...
+	 */
+	if (mc->record) {
+	    if ((ht = htable_locate(mc->record, vstring_str(buf))) == 0)
+		ht = htable_enter(mc->record, vstring_str(buf), (char *) 0);
+	    ht->value++;
 	}
     }
 
@@ -236,53 +251,68 @@ static void mac_expand_callback(int type, VSTRING *buf, char *ptr)
     mc->level--;
 }
 
-/* mac_expand_update_va - update engine */
+/* mac_expand_addtable - add table to expansion context */
 
-static MAC_EXP *mac_expand_update_va(MAC_EXP *mc, int key, va_list ap)
+static MAC_EXP *mac_expand_addtable(MAC_EXP *mc, HTABLE *table, int status)
 {
-    HTABLE_INFO **ht_info;
-    HTABLE_INFO **ht;
-    HTABLE *table;
+    mc->last += 1;
+    if (mc->last >= mc->len) {
+	mc->len *= 2;
+	mc = (MAC_EXP *) myrealloc((char *) mc, sizeof(*mc) + sizeof(mc->table_info[0]) * (mc->len - MAC_EXP_MIN_LEN));
+    }
+    mc->table_info[mc->last].table = table;
+    mc->table_info[mc->last].status = status;
+    return (mc);
+}
+
+/* mac_expand - expand $name instances */
+
+int     mac_expand(VSTRING *result, const char *pattern, int flags, int key,...)
+{
+    MAC_EXP *mc;
+    va_list ap;
     char   *name;
     char   *value;
-
-#define HTABLE_CLOBBER(t, n, v) do { \
-	HTABLE_INFO *_ht; \
-	if ((_ht = htable_locate(t, n)) != 0) \
-	    _ht->value = v; \
-	else \
-	    htable_enter(t, n, v); \
-    } while(0);
+    HTABLE *table;
+    HTABLE_INFO *ht;
+    int     status;
 
     /*
-     * Optionally create expansion context.
+     * Initialize.
      */
-    if (mc == 0) {
-	mc = (MAC_EXP *) mymalloc(sizeof(*mc));
-	mc->table = htable_create(0);
-	mc->result = 0;
-	mc->flags = 0;
-	mc->filter = 0;
-	mc->clobber = '_';
-	mc->level = 0;
-    }
+    mc = (MAC_EXP *) mymalloc(sizeof(*mc));
+    mc->result = result;
+    mc->flags = (flags & MAC_EXP_FLAG_INMASK);
+    mc->filter = 0;
+    mc->clobber = '_';
+    mc->record = 0;
+    mc->level = 0;
+    mc->len = MAC_EXP_MIN_LEN;
+    mc->last = -1;
 
     /*
      * Stash away the attributes.
      */
-    for ( /* void */ ; key != 0; key = va_arg(ap, int)) {
+    for (va_start(ap, key); key != 0; key = va_arg(ap, int)) {
 	switch (key) {
 	case MAC_EXP_ARG_ATTR:
 	    name = va_arg(ap, char *);
 	    value = va_arg(ap, char *);
-	    HTABLE_CLOBBER(mc->table, name, value);
+	    if (mc->last < 0
+		|| mc->table_info[mc->last].status != MAC_EXP_STAT_PRIVATE) {
+		table = htable_create(0);
+		mc = mac_expand_addtable(mc, table, MAC_EXP_STAT_PRIVATE);
+	    } else
+		table = mc->table_info[mc->last].table;
+	    if ((ht = htable_locate(table, name)) == 0)
+		ht = htable_enter(table, name, (char *) 0);
+	    if (ht->value != 0)
+		myfree(ht->value);
+	    ht->value = (value ? mystrdup(value) : 0);
 	    break;
 	case MAC_EXP_ARG_TABLE:
 	    table = va_arg(ap, HTABLE *);
-	    ht_info = htable_list(table);
-	    for (ht = ht_info; *ht; ht++)
-		HTABLE_CLOBBER(mc->table, ht[0]->key, ht[0]->value);
-	    myfree((char *) ht_info);
+	    mc = mac_expand_addtable(mc, table, MAC_EXP_STAT_EXTERN);
 	    break;
 	case MAC_EXP_ARG_FILTER:
 	    mc->filter = va_arg(ap, char *);
@@ -290,69 +320,31 @@ static MAC_EXP *mac_expand_update_va(MAC_EXP *mc, int key, va_list ap)
 	case MAC_EXP_ARG_CLOBBER:
 	    mc->clobber = va_arg(ap, int);
 	    break;
+	case MAC_EXP_ARG_RECORD:
+	    mc->record = va_arg(ap, HTABLE *);
+	    break;
 	}
     }
-    return (mc);
-}
-
-/* mac_expand_update - update or create macro expansion context */
-
-MAC_EXP *mac_expand_update(MAC_EXP *mc, int key,...)
-{
-    va_list ap;
-
-    va_start(ap, key);
-    mc = mac_expand_update(mc, key, ap);
-    va_end(ap);
-    return (mc);
-}
-
-/* mac_expand_use - string expansion */
-
-int     mac_expand_use(MAC_EXP *mc, VSTRING *result, const char *pattern, int flags)
-{
-    VSTRING_RESET(result);
-    mc->result = result;
-    mc->level = 0;
-    mc->flags = flags;
-    if (setjmp(mc->jbuf) == 0)
-	mac_parse(pattern, mac_expand_callback, (char *) mc);
-    VSTRING_TERMINATE(result);
-    return (mc->flags & MAC_EXP_FLAG_UNDEF);
-}
-
-/* mac_expand_free - destroy macro expansion context */
-
-void    mac_expand_free(MAC_EXP *mc)
-{
-    htable_free(mc->table, (void (*) (char *)) 0);
-    myfree((char *) mc);
-}
-
-/* mac_expand - expand $name instances */
-
-int     mac_expand(VSTRING *result, const char *pattern, int flags, int key,...)
-{
-    MAC_EXP *mc = 0;
-    va_list ap;
-    int     status;
-
-    /*
-     * Stash away the attributes.
-     */
-    va_start(ap, key);
-    mc = mac_expand_update_va(mc, key, ap);
     va_end(ap);
 
     /*
      * Do the substitutions.
      */
-    status = mac_expand_use(mc, result, pattern, flags);
+    VSTRING_RESET(result);
+    mac_parse(pattern, mac_expand_callback, (char *) mc);
+    VSTRING_TERMINATE(result);
+    status = (mc->flags & MAC_EXP_FLAG_OUTMASK);
 
     /*
      * Clean up.
      */
-    mac_expand_free(mc);
+    while (mc->last >= 0) {
+	if (mc->table_info[mc->last].status == MAC_EXP_STAT_PRIVATE)
+	    htable_free(mc->table_info[mc->last].table, myfree);
+	mc->last--;
+    }
+    myfree((char *) mc);
+
     return (status);
 }
 
@@ -364,12 +356,6 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags, int key,...)
 #include <stringops.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
-
-static void nfree(char *ptr)
-{
-    if (ptr)
-	myfree(ptr);
-}
 
 int     main(int unused_argc, char **unused_argv)
 {
@@ -411,7 +397,7 @@ int     main(int unused_argc, char **unused_argv)
 	    vstream_printf("stat=%d result=%s\n", stat, vstring_str(result));
 	    vstream_fflush(VSTREAM_OUT);
 	}
-	htable_free(table, nfree);
+	htable_free(table, myfree);
 	vstream_printf("\n");
     }
 

@@ -24,12 +24,17 @@ typedef struct MAC_EXP MAC_EXP;
 #define MAC_EXP_FLAG_NONE	(0)
 #define MAC_EXP_FLAG_UNDEF	(1<<0)
 #define MAC_EXP_FLAG_RECURSE	(1<<1)
+#define MAC_EXP_FLAG_ERROR	(1<<2)
+
+#define MAC_EXP_FLAG_INMASK	MAC_EXP_FLAG_RECURSE
+#define MAC_EXP_FLAG_OUTMASK	(MAC_EXP_FLAG_UNDEF | MAC_EXP_FLAG_ERROR)
 
 #define MAC_EXP_ARG_END		0
 #define MAC_EXP_ARG_ATTR	1
 #define MAC_EXP_ARG_TABLE	2
 #define MAC_EXP_ARG_FILTER	3
 #define MAC_EXP_ARG_CLOBBER	4
+#define MAC_EXP_ARG_RECORD	5
 
 extern MAC_EXP *mac_expand_update(MAC_EXP *, int,...);
 extern int mac_expand_use(MAC_EXP *, VSTRING *, const char *, int);

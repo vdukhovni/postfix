@@ -70,12 +70,12 @@
 /*
 /*	htable_delete() removes one entry that was stored under the given key.
 /*	If the free_fn argument is not a null pointer, the corresponding
-/*	function is called with as argument the value that was stored under
+/*	function is called with as argument the non-zero value stored under
 /*	the key.
 /*
 /*	htable_free() destroys a hash table, including contents. If the free_fn
 /*	argument is not a null pointer, the corresponding function is called
-/*	for each table entry, with as argument the value that was stored
+/*	for each table entry, with as argument the non-zero value stored
 /*	with the entry.
 /*
 /*	htable_walk() invokes the action function for each table entry, with
@@ -261,7 +261,7 @@ void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (char *))
 		    *h = ht->next;
 		table->used--;
 		myfree(ht->key);
-		if (free_fn)
+		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
 		myfree((char *) ht);
 		return;
@@ -285,7 +285,7 @@ void    htable_free(HTABLE *table, void (*free_fn) (char *))
 	    for (ht = *h++; ht; ht = next) {
 		next = ht->next;
 		myfree(ht->key);
-		if (free_fn)
+		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
 		myfree((char *) ht);
 	    }

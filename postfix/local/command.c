@@ -57,6 +57,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <argv.h>
+#include <mac_expand.h>
 
 /* Global library. */
 
@@ -86,6 +87,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
 abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     VSTRING *expanded_cmd;
+    HTABLE  *expand_attr;
 
     /*
      * Make verbose logging easier to understand.
@@ -151,9 +153,14 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     argv_terminate(env);
 
     expanded_cmd = vstring_alloc(10);
-    if (command == var_mailbox_command)
-	local_expand(expanded_cmd, command, state, usr_attr, ok_chars);
-    else
+    if (command == var_mailbox_command) {
+	expand_attr = local_expand(state, usr_attr);
+	mac_expand(expanded_cmd, command, MAC_EXP_FLAG_NONE,
+		   MAC_EXP_ARG_FILTER, ok_chars,
+		   MAC_EXP_ARG_TABLE, expand_attr,
+		   0);
+	htable_free(expand_attr, (void (*) (char *)) 0);
+    } else
 	vstring_strcpy(expanded_cmd, command);
 
     cmd_status = pipe_command(state.msg_attr.fp, why,

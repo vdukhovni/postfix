@@ -156,6 +156,8 @@ HP-UX.A.09.*)	SYSTYPE=HPUX9
 		fi
 		;;
 HP-UX.B.10.*)	SYSTYPE=HPUX10
+		CCARGS="$CCARGS `nm /usr/lib/libc.a 2>/dev/null |
+		    (grep usleep >/dev/null || echo '-Dusleep=doze')`"
 		if [ -f /usr/lib/libdb.a ]; then
 		    CCARGS="$CCARGS -DHAS_DB"
 		    SYSLIBS=-ldb
