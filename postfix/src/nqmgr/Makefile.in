@@ -96,7 +96,9 @@ qmgr_active.o: ../../include/mail_queue.h
 qmgr_active.o: ../../include/vstring.h
 qmgr_active.o: ../../include/recipient_list.h
 qmgr_active.o: ../../include/bounce.h
+qmgr_active.o: ../../include/deliver_request.h
 qmgr_active.o: ../../include/defer.h
+qmgr_active.o: ../../include/trace.h
 qmgr_active.o: ../../include/abounce.h
 qmgr_active.o: ../../include/rec_type.h
 qmgr_active.o: qmgr.h
@@ -104,9 +106,12 @@ qmgr_active.o: ../../include/scan_dir.h
 qmgr_bounce.o: qmgr_bounce.c
 qmgr_bounce.o: ../../include/sys_defs.h
 qmgr_bounce.o: ../../include/bounce.h
-qmgr_bounce.o: ../../include/deliver_completed.h
-qmgr_bounce.o: ../../include/vstream.h
+qmgr_bounce.o: ../../include/deliver_request.h
+qmgr_bounce.o: ../../include/vstring.h
 qmgr_bounce.o: ../../include/vbuf.h
+qmgr_bounce.o: ../../include/vstream.h
+qmgr_bounce.o: ../../include/recipient_list.h
+qmgr_bounce.o: ../../include/deliver_completed.h
 qmgr_bounce.o: qmgr.h
 qmgr_bounce.o: ../../include/scan_dir.h
 qmgr_defer.o: qmgr_defer.c
@@ -116,6 +121,9 @@ qmgr_defer.o: ../../include/vstream.h
 qmgr_defer.o: ../../include/vbuf.h
 qmgr_defer.o: ../../include/defer.h
 qmgr_defer.o: ../../include/bounce.h
+qmgr_defer.o: ../../include/deliver_request.h
+qmgr_defer.o: ../../include/vstring.h
+qmgr_defer.o: ../../include/recipient_list.h
 qmgr_defer.o: qmgr.h
 qmgr_defer.o: ../../include/scan_dir.h
 qmgr_deliver.o: qmgr_deliver.c
@@ -183,6 +191,8 @@ qmgr_message.o: ../../include/canon_addr.h
 qmgr_message.o: ../../include/record.h
 qmgr_message.o: ../../include/rec_type.h
 qmgr_message.o: ../../include/sent.h
+qmgr_message.o: ../../include/deliver_request.h
+qmgr_message.o: ../../include/recipient_list.h
 qmgr_message.o: ../../include/deliver_completed.h
 qmgr_message.o: ../../include/opened.h
 qmgr_message.o: ../../include/verp_sender.h

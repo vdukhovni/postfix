@@ -114,6 +114,10 @@
 /* .sp
 /*	This mode of operation is implemented by running the
 /*	\fBsmtpd\fR(8) daemon.
+/* .IP \fB-bv\fR
+/*	Send an email report after verifying each recipient address.
+/*	Verification always happens in the background. This is useful
+/*	for testing address rewriting and routing configurations.
 /* .IP "\fB-f \fIsender\fR"
 /*	Set the envelope sender address. This is the address where
 /*	delivery problems are sent to, unless the message contains an
@@ -168,10 +172,9 @@
 /*	Extract recipients from message headers. This requires that no
 /*	recipients be specified on the command line.
 /* .IP \fB-v\fR
-/*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
-/*	options make the software increasingly verbose. For compatibility
-/*	with mailx and other mail submission software, a single \fB-v\fR
-/*	option produces no output.
+/*	Send an email report of all delivery attempts (mail delivery
+/*	always happens in the background). When multiple \fB-v\fR
+/*	options are given, enable verbose logging for debugging purposes.
 /* SECURITY
 /* .ad
 /* .fi
@@ -319,6 +322,7 @@
 #include <mail_flush.h>
 #include <mail_stream.h>
 #include <verp_sender.h>
+#include <deliver_request.h>
 
 /* Application-specific. */
 
@@ -333,7 +337,7 @@
 #define SM_MODE_FLUSHQ		6	/* user (stand-alone) mode */
 
  /*
-  * Flag parade.
+  * Flag parade. Flags 8-15 are reserved for delivery request trace flags.
   */
 #define SM_FLAG_AEOF	(1<<0)		/* archaic EOF */
 
@@ -437,6 +441,9 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 			 "-V option requires non-null sender address");
     if (encoding)
 	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s", MAIL_ATTR_ENCODING, encoding);
+    if (DEL_REQ_TRACE_FLAGS(flags))
+	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d", MAIL_ATTR_TRACE_FLAGS,
+		    DEL_REQ_TRACE_FLAGS(flags));
     if (verp_delims)
 	rec_fputs(dst, REC_TYPE_VERP, verp_delims);
     if (recipients) {
@@ -465,34 +472,45 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      * of UUCP environments, also get rid of leading >>>From_ lines.
      */
     rec_fprintf(dst, REC_TYPE_MESG, REC_TYPE_MESG_FORMAT, 0L);
-    skip_from_ = 1;
-    strip_cr = STRIP_CR_DUNNO;
-    for (prev_type = 0; (type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
-	 != REC_TYPE_EOF; prev_type = type) {
-	if (strip_cr == STRIP_CR_DUNNO && type == REC_TYPE_NORM) {
-	    if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
-		strip_cr = STRIP_CR_DO;
-	    else
-		strip_cr = STRIP_CR_DONT;
-	}
-	if (skip_from_) {
-	    if (type == REC_TYPE_NORM) {
-		start = vstring_str(buf);
-		if (strncmp(start + strspn(start, ">"), "From ", 5) == 0)
-		    continue;
+    if (DEL_REQ_TRACE_ONLY(flags) != 0) {
+	rec_fprintf(dst, REC_TYPE_NORM, "Subject: probe");
+	if (recipients) {
+	    rec_fprintf(dst, REC_TYPE_NORM, "To:");
+	    for (cpp = recipients; *cpp != 0; cpp++) {
+		rec_fprintf(dst, REC_TYPE_NORM, "	%s%s",
+			    *cpp, cpp[1] ? "," : "");
 	    }
-	    skip_from_ = 0;
 	}
-	if (strip_cr == STRIP_CR_DO && type == REC_TYPE_NORM)
-	    if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
-		vstring_truncate(buf, VSTRING_LEN(buf) - 1);
-	if ((flags & SM_FLAG_AEOF) && prev_type != REC_TYPE_CONT
-	    && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
-	    break;
-	if (REC_PUT_BUF(dst, type, buf) < 0)
-	    msg_fatal_status(EX_TEMPFAIL,
-			     "%s(%ld): error writing queue file: %m",
-			     saved_sender, (long) uid);
+    } else {
+	skip_from_ = 1;
+	strip_cr = STRIP_CR_DUNNO;
+	for (prev_type = 0; (type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
+	     != REC_TYPE_EOF; prev_type = type) {
+	    if (strip_cr == STRIP_CR_DUNNO && type == REC_TYPE_NORM) {
+		if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
+		    strip_cr = STRIP_CR_DO;
+		else
+		    strip_cr = STRIP_CR_DONT;
+	    }
+	    if (skip_from_) {
+		if (type == REC_TYPE_NORM) {
+		    start = vstring_str(buf);
+		    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0)
+			continue;
+		}
+		skip_from_ = 0;
+	    }
+	    if (strip_cr == STRIP_CR_DO && type == REC_TYPE_NORM)
+		if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
+		    vstring_truncate(buf, VSTRING_LEN(buf) - 1);
+	    if ((flags & SM_FLAG_AEOF) && prev_type != REC_TYPE_CONT
+		&& VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
+		break;
+	    if (REC_PUT_BUF(dst, type, buf) < 0)
+		msg_fatal_status(EX_TEMPFAIL,
+				 "%s(%ld): error writing queue file: %m",
+				 saved_sender, (long) uid);
+	}
     }
 
     /*
@@ -520,6 +538,15 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 			 (status & CLEANUP_STAT_WRITE) ? EX_TEMPFAIL :
 			 EX_UNAVAILABLE, "%s(%ld): %s", saved_sender,
 			 (long) uid, cleanup_strerror(status));
+
+    /*
+     * Don't leave them in the dark.
+     */
+    if (DEL_REQ_TRACE_FLAGS(flags)) {
+	vstream_printf("Mail Delivery Status Report will be mailed to <%s>.\n",
+		       saved_sender);
+	vstream_fflush(VSTREAM_OUT);
+    }
 
     /*
      * Cleanup. Not really necessary as we're about to exit, but good for
@@ -609,6 +636,7 @@ int     main(int argc, char **argv)
      * Further initialization...
      */
     mail_conf_read();
+
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
 
@@ -715,6 +743,9 @@ int     main(int argc, char **argv)
 	    case 's':				/* stand-alone mode */
 		mode = SM_MODE_USER;
 		break;
+	    case 'v':				/* expand recipients */
+		flags |= DEL_REQ_FLAG_EXPAND;
+		break;
 	    }
 	    break;
 	case 'f':
@@ -777,13 +808,6 @@ int     main(int argc, char **argv)
     }
 
     /*
-     * Workaround: produce no output when verbose delivery is requested in
-     * mail.rc.
-     */
-    if (msg_verbose > 0)
-	msg_verbose--;
-
-    /*
      * Look for conflicting options and arguments.
      */
     if (extract_recipients && mode != SM_MODE_ENQUEUE)
@@ -795,6 +819,15 @@ int     main(int argc, char **argv)
     if (extract_recipients && argv[OPTIND])
 	msg_fatal_status(EX_USAGE,
 			 "cannot handle command-line recipients with -t");
+
+    /*
+     * The -v option plays double duty. One requests verbose delivery, more
+     * than one requests verbose logging.
+     */
+    if (msg_verbose == 1 && mode == SM_MODE_ENQUEUE) {
+	msg_verbose = 0;
+	flags |= DEL_REQ_FLAG_RECORD;
+    }
 
     /*
      * Start processing. Everything is delegated to external commands.

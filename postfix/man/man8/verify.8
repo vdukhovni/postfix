@@ -1,0 +1,139 @@
+.TH VERIFY 8 
+.ad
+.fi
+.SH NAME
+verify
+\-
+Postfix address verification server
+.SH SYNOPSIS
+.na
+.nf
+\fBverify\fR [generic Postfix daemon options]
+.SH DESCRIPTION
+.ad
+.fi
+The Postfix address verification server maintains a record
+of what recipient addresses are known to be deliverable or
+undeliverable.
+
+Addresses are verified by submitting probe messages to the
+Postfix queue. Probe messages are run through all the routing
+and rewriting machinery except for final delivery, and are
+discarded rather than being deferred or bounced.
+
+Address verification relies on the answer from the nearest
+MTA for the specified address, and will therefore not detect
+all undeliverable addresses.
+
+This server is designed to run under control by the Postfix
+master server. It maintains an optional persistent database.
+To avoid being interrupted by "postfix stop" in the middle
+of a database update, the process runs in a separate process
+group.
+
+This server implements the following requests:
+.IP "\fBVRFY_ADDR_UPDATE\fI address status text\fR"
+Update the status of the specified address.
+.IP "\fBVRFY_ADDR_QUERY\fI address\fR"
+Look up the \fIstatus\fR and \fItext\fR of the specified address.
+If the status is unknown, a probe is sent and a default status is
+returned.
+.PP
+The server reply status is one of:
+.IP \fBVRFYSTAT_OK\fR
+The request completed normally.
+.IP \fBVRFYSTAT_BAD\fR
+The server rejected the request (bad request name, bad
+request parameter value).
+.IP \fBVRFYSTAT_FAIL\fR
+The request failed.
+.PP
+The recipient status is one of:
+.IP \fBDEL_RCPT_STAT_OK\fR
+The address is deliverable.
+.IP \fBDEL_RCPT_STAT_DEFER\fR
+The address is undeliverable due to a temporary problem.
+.IP \fBDEL_RCPT_STAT_BOUNCE\fR
+The address is undeliverable due to a permanent problem.
+.IP \fBDEL_RCPT_STAT_TODO\fR
+The address status is being determined.
+.SH SECURITY
+.na
+.nf
+.ad
+.fi
+The address verification server is not security-sensitive. It does
+not talk to the network, and it does not talk to local users.
+The verify server can run chrooted at fixed low privilege.
+
+The address verification server can be coerced to store
+unlimited amounts of garbage. Limiting the cache size
+trades one problem (disk space exhaustion) for another
+one (poor response time to client requests).
+.SH DIAGNOSTICS
+.ad
+.fi
+Problems and transactions are logged to \fBsyslogd\fR(8).
+.SH BUGS
+.ad
+.fi
+This prototype server uses synchronous submission for sending
+a probe message, which can be slow on a busy machine.
+
+If the persistent database ever gets corrupted then the world
+comes to an end and human intervention is needed. This violates
+a basic Postfix principle.
+.SH CONFIGURATION PARAMETERS
+.na
+.nf
+.ad
+.fi
+See the Postfix \fBmain.cf\fR file for syntax details and for
+default values. Use the \fBpostfix reload\fR command after a
+configuration change.
+.IP \fBaddress_verify_map\fR
+Optional table for persistent recipient status storage. The file
+is opened before the process enters a chroot jail and before
+it drops root privileges.
+By default, the information is kept in volatile memory,
+and is lost after \fBpostfix reload\fR or \fBpostfix stop\fR.
+.sp
+To recover from a corrupted address verification database,
+delete the file and do \fBpostfix reload\fR.
+.IP \fBaddress_verify_sender\fR
+The sender address to use for probe messages. Specify an empty
+value (\fBaddress_verify_sender =\fR) or \fB<>\fR if you want
+to use the null sender address.
+.IP \fBaddress_verify_positive_expire_time\fR
+The amount of time after which a known to be good address expires.
+.IP \fBaddress_verify_positive_refresh_time\fR
+The minimal amount of time after which a proactive probe is sent to
+verify that a known to be good address is still good. The address
+status is not updated when the probe fails (optimistic caching).
+.IP \fBaddress_verify_negative_cache\fR
+A boolean parameter that controls whether negative probe results
+are stored in the address verification cache. When enabled, the
+cache may pollute quickly with garbage. When disabled, Postfix
+will generate an address probe for every lookup.
+.IP \fBaddress_verify_negative_expire_time\fR
+The amount of time after which a rejected address expires.
+.IP \fBaddress_verify_negative_refresh_time\fR
+The minimal amount of time after which a proactive probe is sent to
+verify that a known to be bad address is still bad.
+.SH SEE ALSO
+.na
+.nf
+verify_clnt(3) address verification client
+.SH LICENSE
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH AUTHOR(S)
+.na
+.nf
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

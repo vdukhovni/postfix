@@ -7226,14 +7226,80 @@ Apologies for any names omitted.
 	code had grown into a monster and needed to be replaced.
 	trivial-rewrite/transport.c.
 
+20021115
+
+	Start implementing recipient verification. For now this is
+	done by adding trace flags to queue files. In case of a
+	verification request, a delivery agent does not deliver,
+	deliver, it just records what would happen.
+
+	This required instrumenting the bounce/defer/sent logging
+	routines to send their data to the right place depending
+	on the type of delivery request.
+
+20021116
+
+	New trace service. This is used for reporting if a recipient
+	is deliverable (sendmail -bv) and for producing a record
+	of delivery attempts (sendmail -v). The report is sent via
+	email, using the bounce daemon. Files: global/trace.[hc].
+
+	This required replacing the bounce/defer logfile format by
+	an extensible name=value format. Files: global/bounce_log.c,
+	bounce/bounce_append_service.c.
+
+20021117
+
+	New address verification service with simple expiration
+	and refresh policy. Storage can be in-core or in permanent
+	table. The daemon is appropriately called "verify". Files:
+	global/verify_clnt.[hc], verify/verify.c.
+
+20021118
+
+	Cleaning up the code for tracing and verification. Files:
+	global/{log_adhoc,bounce,defer,trace,verify}.[hc].
+
+20021119
+
+	New address_verification_negative_cache = yes/no parameter
+	controls whether Postfix stores the result of negatieve
+	address verification probes. This reduces cache pollution
+	but causes Postfix to send a probe for each address
+	verification service query. File: verify/verify.c.
+
+	Added optimistic caching to the verify daemon, so that one
+	failed probe will not clobber a known to be good address.
+	As long as some probes succeeed, a good address will stay
+	cached as OK.
+
+	Cleaning up of the bounce daemon's code for bounce, delayed
+	mail warning and trace notification.  Files: bounce/*.[hc],
+	global/bounce_log.c.
+
+20021120
+
+	Changed the probe's sender address to "postmaster" so that
+	we get better information about the address we're testing.
+	File: verify/verify.c.
+
+	Added some paranoia to the routine that reads data from
+	the address verification cache. Ignore data that is obviously
+	bogus. File: verify/verify.c.
+
 20021121
 
 	Bugfix: garbage in "user@garbage"@domain address forms may
 	cause the SMTP or LMTP client to terminate with a fatal
 	error exit because garbage/tcp is not an existing service.
 	This cannot be abused to cause the SMTP or LMTP client to
-	send data into unauthorized ports.  Files:  *qmgr/qmgr_message.c,
+	send data into unauthorized ports.  Files: *qmgr/qmgr_message.c,
 	trivial-rewrite/resolve.c.
+
+20021124
+
+	Bugfix: don't use same VSTRING buffer for reading and writing.
+	File: verify/verify.c.
 
 20021128
 
@@ -7250,6 +7316,15 @@ Apologies for any names omitted.
 	more consistently than the existing code in the LMTP and
 	SMTP clients. Files: smtp/smtp_connect.c, lmtp/lmtp_connect.c,
 	util/host_port.[hc].
+
+20021130
+
+	Cleanup: defer mail when recipient verification takes too
+	long. File: smtpd/smtpd_proto.c.
+
+	Feature: new reject_multi_recipient_bounce restriction, to
+	reject "MAIL FROM: <>" with multiple recipients.  File:
+	smtpd/smtpd_check.c.
 
 20021201
 
@@ -7275,6 +7350,12 @@ Apologies for any names omitted.
 	Cleanup: the local(8) and virtual(8) delivery agents did
 	not prepend X-Original-To: addresses to maildir files.
 	Omission spotted by Matthias Andree.
+
+	Specify "address_verify_sender=" or "address_verify_sender=<>"
+	to use a null sender address while doing address verification
+	probes.  Beware, doing so may trigger false negatives
+	because some sites reject mail from the null sender, even
+	though this is required by RFC standards.
 
 	Bugfix: too many levels of dereferencing while testing for
 	missing reject_rbl_mumble domain names. Patrik Rak.  File:
@@ -7382,11 +7463,22 @@ Apologies for any names omitted.
 	suddenly lose all their mail because local_recipient_maps
 	is now turned on by default.
 
+20021210
+
+	Feature: recipient address verification, using the code
+	that already implements sender address verification.  Based
+	on suggestion by Matthias Andree.  Files: src/smtpd/smtpd.c,
+	src/smtpd/smtpd_check.c.
+
 20021211
 
 	Performance: doubled the default process limit (50->100)
 	and default queue manager active queue message/recipient
-	limits (10k->20k).  File: global/mail_params.h.
+	limits  (10k->20k).  File:  global/mail_params.h.
+
+	Bugfix: the change that begot us multiple trivial-rewrite
+	processes (good) also gave us multiple verify daemons (bad).
+	File: conf/post-install.
 
 20021212
 
@@ -7394,6 +7486,9 @@ Apologies for any names omitted.
 	mailer results (to avoid breaking existing installations),
 	and do transport map lookups before relocated map lookups.
 	Files:  trivial-rewrite/resolve.c, trivial-rewrite/transport.c.
+
+	Shortened the verify server's negative cache refresh time
+	from 12 hours to 2 hours. File:  global/mail_params.h.
 
 	Admin friendliness: the SMTP server now reports "User
 	unknown in {local recipient | virtual alias | virtual
@@ -7424,6 +7519,10 @@ Apologies for any names omitted.
 	lookup table entries that either override or specify an
 	error transport without updating the nexthop information.
 	File:  trivial-rewrite/resolve.c.
+
+	Robustness: don't probe the sender address when probed for
+	our own address verification probe sender address. File:
+	smtpd/smtpd_check.c.
 
 	Performance: don't do UCE checks (which may result in 4xx
 	SMTP reply codes, and thus, repeated delivery attempts)
@@ -7479,6 +7578,12 @@ Apologies for any names omitted.
 	site already ran Postfix with local_recipient_maps enabled.
 	Files:  smtpd/smtpd.c, smtpd/smtpd_check.c, conf/post-install.
 
+20021218
+
+	Feature: specify unverified_recipient_reject_code=250 or
+	unverified_sender_reject_code=250 to accept mail for an
+	address that is known to bounce. File: smtpd/smtpd_check.c.
+
 20021219
 
 	Bugfix: longjmp() while sending "go away" without setjmp()
@@ -7510,6 +7615,12 @@ Apologies for any names omitted.
 	"User unknown" responses. The extra detail makes trouble
 	shooting easier but also reveals information that is nobody
 	elses business.
+
+20021221
+
+	Workaround: don't allow the transport map to override the
+	virtual alias class (error:User unknown) result.  File:
+	trivial-rewrite/transport.c.
 
 Open problems:
 

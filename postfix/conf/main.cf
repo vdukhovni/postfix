@@ -172,7 +172,7 @@ mail_owner = postfix
 #
 # - You define $mydestination domain recipients in files other than
 #   /etc/passwd, /etc/aliases, or the $virtual_alias_maps files.
-#   For example, you define $mydestination domain recipients in
+#   For example, you define $mydestination domain recipients in    
 #   the $virtual_mailbox_maps files.
 #
 # - You redefined the local delivery agent in master.cf.

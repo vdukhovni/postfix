@@ -203,10 +203,11 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    }
 #define STREQ(x,y) (strcmp(x,y) == 0)
 
-	    if (STREQ(attr_name, MAIL_ATTR_ENCODING)
-		&& (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
-		    || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
-		    || STREQ(attr_value, MAIL_ATTR_ENC_NONE))) {
+	    if ((STREQ(attr_name, MAIL_ATTR_ENCODING)
+		 && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
+		     || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
+		     || STREQ(attr_value, MAIL_ATTR_ENC_NONE)))
+		|| STREQ(attr_name, MAIL_ATTR_TRACE_FLAGS)) {	/* XXX */
 		rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
 			    attr_name, attr_value);
 	    } else if (info->st.st_uid != var_owner_uid) {

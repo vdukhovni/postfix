@@ -706,16 +706,19 @@ static int eval_command_status(int command_status, char *service,
     case PIPE_STAT_OK:
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
-	    sent(request->queue_id, rcpt->orig_addr, rcpt->address, service,
-		 request->arrival_time, "%s", request->nexthop);
-	    if (request->flags & DEL_REQ_FLAG_SUCCESS)
+	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
+			  request->queue_id, rcpt->orig_addr,
+			  rcpt->address, service,
+			  request->arrival_time, "%s", request->nexthop);
+	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
+	    result |= status;
 	}
 	break;
     case PIPE_STAT_BOUNCE:
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
-	    status = bounce_append(BOUNCE_FLAG_KEEP,
+	    status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				   request->queue_id, rcpt->orig_addr,
 				   rcpt->address, service,
 				   request->arrival_time, "%s", why);
@@ -727,7 +730,7 @@ static int eval_command_status(int command_status, char *service,
     case PIPE_STAT_DEFER:
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;
-	    result |= defer_append(BOUNCE_FLAG_KEEP,
+	    result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				   request->queue_id, rcpt->orig_addr,
 				   rcpt->address, service,
 				   request->arrival_time, "%s", why);
@@ -833,6 +836,30 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 
 	deliver_status = eval_command_status(PIPE_STAT_BOUNCE, service,
 				 request, request->fp, "message too large");
+	DELIVER_MSG_CLEANUP();
+	return (deliver_status);
+    }
+
+    /*
+     * Don't deliver a trace-only request.
+     */
+    if (DEL_REQ_TRACE_ONLY(request->flags)) {
+	RECIPIENT *rcpt;
+	int     status;
+	int     n;
+
+	deliver_status = 0;
+	for (n = 0; n < request->rcpt_list.len; n++) {
+	    rcpt = request->rcpt_list.info + n;
+	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
+			  request->queue_id, rcpt->orig_addr,
+			  rcpt->address, service,
+			  request->arrival_time,
+			  "delivers to command: %s", attr.command[0]);
+	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
+		deliver_completed(request->fp, rcpt->offset);
+	    deliver_status |= status;
+	}
 	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
     }

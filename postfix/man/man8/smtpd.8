@@ -279,6 +279,8 @@ Response code when a client violates the \fBreject_invalid_hostname\fR
 restriction.
 .IP \fBmaps_rbl_reject_code\fR
 Response code when a request is RBL blacklisted.
+.IP \fBmulti_recipient_bounce_reject_code\fR
+Response code when a multi-recipient bounce is blocked.
 .IP \fBrbl_reply_maps\fR
 Table with template responses for RBL blacklisted requests, indexed by
 RBL domain name. These templates are used by the \fBreject_rbl_*\fR
@@ -298,6 +300,10 @@ violates the \fBreject_unknown_client\fR restriction.
 .IP \fBunknown_hostname_reject_code\fR
 Response code when a client violates the \fBreject_unknown_hostname\fR
 restriction.
+.IP \fBunverified_sender_reject_code\fR
+Response code when a sender address is known to be undeliverable.
+.IP \fBunverified_recipient_reject_code\fR
+Response code when a recipient address is known to be undeliverable.
 .SH SEE ALSO
 .na
 .nf

@@ -121,6 +121,8 @@ typedef struct LOCAL_STATE {
  /*
   * Bundle up some often-user attributes.
   */
+#define BOUNCE_FLAGS(request)	DEL_REQ_TRACE_FLAGS((request)->flags)
+
 #define BOUNCE_ATTR(attr)	attr.queue_id, attr.orig_rcpt, attr.recipient, \
 					attr.relay, attr.arrival_time
 #define BOUNCE_ONE_ATTR(attr)	attr.queue_name, attr.queue_id, attr.encoding, \
@@ -204,7 +206,7 @@ extern int delivered_find(HTABLE *, char *);
   */
 extern int forward_init(void);
 extern int forward_append(DELIVER_ATTR);
-extern int forward_finish(DELIVER_ATTR, int);
+extern int forward_finish(DELIVER_REQUEST *, DELIVER_ATTR, int);
 
  /*
   * feature.c

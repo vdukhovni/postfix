@@ -21,11 +21,14 @@
 /*	int	flush;
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id,
-/*					encoding, orig_recipient, why)
+/*					encoding, orig_recipient,
+/*					recipient, status, why)
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
 /*	const char *orig_recipient;
+/*	const char *recipient;
+/*	const char *status;
 /*	const char *why;
 /*
 /*	void	bounce_mail_free(bounce_info)
@@ -177,11 +180,11 @@
 /* bounce_mail_alloc - initialize */
 
 static BOUNCE_INFO *bounce_mail_alloc(const char *service,
-					             const char *queue_name,
-					             const char *queue_id,
-					             const char *encoding,
-					             int flush,
-					             BOUNCE_LOG *log_handle)
+				              const char *queue_name,
+				              const char *queue_id,
+				              const char *encoding,
+				              int flush,
+				              BOUNCE_LOG *log_handle)
 {
     BOUNCE_INFO *bounce_info;
     int     rec_type;
@@ -285,6 +288,9 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
 				          const char *queue_id,
 				          const char *encoding,
 				          const char *orig_recipient,
+				          const char *recipient,
+				          const char *dsn_status,
+				          const char *dsn_action,
 				          const char *why)
 {
     BOUNCE_INFO *bounce_info;
@@ -296,7 +302,8 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
      */
 #define REALLY_BOUNCE	1
 
-    log_handle = bounce_log_forge(orig_recipient, "5.0.0", why);
+    log_handle = bounce_log_forge(orig_recipient, recipient, dsn_status,
+				  dsn_action, why);
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id,
 				    encoding, REALLY_BOUNCE, log_handle);
     return (bounce_info);
@@ -336,7 +343,7 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     /*
      * Non-delivery subject line.
      */
-    if (bounce_info->flush) {
+    if (bounce_info->flush == BOUNCE_MSG_FAIL) {
 	post_mail_fputs(bounce, dest == var_bounce_rcpt
 		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
 			"Subject: Postmaster Copy: Undelivered Mail" :
@@ -346,12 +353,20 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     /*
      * Delayed mail subject line.
      */
-    else {
+    else if (bounce_info->flush == BOUNCE_MSG_WARN) {
 	post_mail_fputs(bounce, dest == var_bounce_rcpt
 		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
 			"Subject: Postmaster Warning: Delayed Mail" :
 			"Subject: Delayed Mail (still being retried)");
     }
+
+    /*
+     * Address verification or delivery report.
+     */
+    else {
+	post_mail_fputs(bounce, "Subject: Mail Delivery Status Report");
+    }
+
     post_mail_fprintf(bounce, "To: %s",
 		      STR(quote_822_local(bounce_info->buf, dest)));
 
@@ -392,15 +407,18 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      * word wrapping to make the text look nicer. No matter how hard we would
      * try, receiving bounced mail will always suck.
      */
+#define UNDELIVERED(flush) \
+	((flush) == BOUNCE_MSG_FAIL || (flush) == BOUNCE_MSG_WARN)
+
     post_mail_fprintf(bounce, "This is the %s program at host %s.",
 		      var_mail_name, var_myhostname);
     post_mail_fputs(bounce, "");
-    if (bounce_info->flush) {
+    if (bounce_info->flush == BOUNCE_MSG_FAIL) {
 	post_mail_fputs(bounce,
 	       "I'm sorry to have to inform you that the message returned");
 	post_mail_fputs(bounce,
 	       "below could not be delivered to one or more destinations.");
-    } else {
+    } else if (bounce_info->flush == BOUNCE_MSG_WARN) {
 	post_mail_fputs(bounce,
 			"####################################################################");
 	post_mail_fputs(bounce,
@@ -414,13 +432,15 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 	post_mail_fprintf(bounce,
 			  "It will be retried until it is %.1f days old.",
 			  var_max_queue_time / 86400.0);
+    } else {
+	post_mail_fputs(bounce,
+		"Enclosed is the mail delivery report that you requested.");
     }
-
-    post_mail_fputs(bounce, "");
-    post_mail_fprintf(bounce,
-		      "For further assistance, please send mail to <%s>",
-		      MAIL_ADDR_POSTMASTER);
-    if (bounce_info->flush) {
+    if (UNDELIVERED(bounce_info->flush)) {
+	post_mail_fputs(bounce, "");
+	post_mail_fprintf(bounce,
+			  "For further assistance, please send mail to <%s>",
+			  MAIL_ADDR_POSTMASTER);
 	post_mail_fputs(bounce, "");
 	post_mail_fprintf(bounce,
 	       "If you do so, please include this problem report. You can");
@@ -507,7 +527,7 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
     post_mail_fprintf(bounce, "Content-Description: %s",
-		      "Delivery error report");
+		      "Delivery report");
     post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status");
 
     /*
@@ -532,21 +552,23 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 {
     post_mail_fputs(bounce, "");
-#if 0
-    post_mail_fprintf(bounce, "Original-Recipient: rfc822; %s", "whatever");
-#endif
     post_mail_fprintf(bounce, "Final-Recipient: rfc822; %s",
 		      bounce_info->log_handle->recipient);
-    post_mail_fprintf(bounce, "Action: %s", bounce_info->flush ?
-		      "failed" : "delayed");
-    post_mail_fprintf(bounce, "Status: %s", bounce_info->log_handle->status);
+    if (bounce_info->log_handle->orig_rcpt)
+	post_mail_fprintf(bounce, "Original-Recipient: rfc822; %s",
+			  bounce_info->log_handle->orig_rcpt);
+    post_mail_fprintf(bounce, "Action: %s",
+		      bounce_info->flush == BOUNCE_MSG_FAIL ?
+		      "failed" : bounce_info->log_handle->dsn_action);
+    post_mail_fprintf(bounce, "Status: %s",
+		      bounce_info->log_handle->dsn_status);
     bounce_print_wrap(bounce, bounce_info, "Diagnostic-Code: X-Postfix; %s",
 		      bounce_info->log_handle->text);
 #if 0
     post_mail_fprintf(bounce, "Last-Attempt-Date: %s",
 		      bounce_info->log_handle->log_time);
 #endif
-    if (bounce_info->flush == 0)
+    if (bounce_info->flush == BOUNCE_MSG_WARN)
 	post_mail_fprintf(bounce, "Will-Retry-Until: %s",
 		 mail_date(bounce_info->arrival_time + var_max_queue_time));
     return (vstream_ferror(bounce));
@@ -585,8 +607,9 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      */
     post_mail_fputs(bounce, "");
     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
-    post_mail_fprintf(bounce, "Content-Description: %s", headers_only ?
-		      "Undelivered Message Headers" : "Undelivered Message");
+    post_mail_fprintf(bounce, "Content-Description: %s%s",
+		      UNDELIVERED(bounce_info->flush) ? "Undelivered " : "",
+		      headers_only ? "Message Headers" : "Message");
     post_mail_fprintf(bounce, "Content-Type: %s", headers_only ?
 		      "text/rfc822-headers" : "message/rfc822");
     if (bounce_info->mime_encoding)

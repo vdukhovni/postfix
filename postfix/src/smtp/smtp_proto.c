@@ -136,7 +136,7 @@ int    *xfer_timeouts[SMTP_STATE_LAST] = {
     &var_smtp_rcpt_tmout,
     &var_smtp_data0_tmout,
     &var_smtp_data2_tmout,
-    &var_smtp_quit_tmout,
+    &var_smtp_rset_tmout,
     &var_smtp_quit_tmout,
 };
 
@@ -517,7 +517,8 @@ int     smtp_xfer(SMTP_STATE *state)
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(state->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
-		next_state = SMTP_STATE_DATA;
+		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
+		    SMTP_STATE_ABORT : SMTP_STATE_DATA;
 	    break;
 
 	    /*
@@ -538,11 +539,15 @@ int     smtp_xfer(SMTP_STATE *state)
 	    break;
 
 	    /*
-	     * Can't happen. The SMTP_STATE_ABORT sender state is entered by
-	     * the receiver and is left before the bottom of the main loop.
+	     * The SMTP_STATE_ABORT sender state is entered by sender when it
+	     * has verified all recipients; or it is entered the receiver
+	     * when all recipients are rejected and is then left before the
+	     * bottom of the main loop.
 	     */
 	case SMTP_STATE_ABORT:
-	    msg_panic("%s: sender abort state", myname);
+	    vstring_strcpy(next_command, "RSET");
+	    next_state = SMTP_STATE_QUIT;
+	    break;
 
 	    /*
 	     * Build the QUIT command before we have seen the "." or RSET
@@ -637,6 +642,17 @@ int     smtp_xfer(SMTP_STATE *state)
 #endif
 			if (resp->code / 100 == 2) {
 			    ++nrcpt;
+			    /* If trace-only, mark the recipient done. */
+			    if (DEL_REQ_TRACE_ONLY(request->flags)
+				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
+					request->queue_id, rcpt->orig_addr,
+					rcpt->address, session->namaddr,
+					request->arrival_time, "%s",
+					translit(resp->str, "\n", " ")) == 0) {
+				if (request->flags & DEL_REQ_FLAG_SUCCESS)
+				    deliver_completed(state->src, rcpt->offset);
+				rcpt->offset = 0;	/* in case deferred */
+			    }
 			} else {
 			    rcpt = request->rcpt_list.info + recv_rcpt;
 			    smtp_rcpt_fail(state, resp->code, rcpt,
@@ -647,8 +663,10 @@ int     smtp_xfer(SMTP_STATE *state)
 			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }
+		    /* If trace-only, send RSET instead of DATA. */
 		    if (++recv_rcpt == request->rcpt_list.len)
-			recv_state = SMTP_STATE_DATA;
+			recv_state = DEL_REQ_TRACE_ONLY(request->flags) ?
+			    SMTP_STATE_ABORT : SMTP_STATE_DATA;
 		    break;
 
 		    /*
@@ -690,14 +708,16 @@ int     smtp_xfer(SMTP_STATE *state)
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
 				if (rcpt->offset) {
-				    sent(request->queue_id, rcpt->orig_addr,
-					 rcpt->address,
-					 session->namaddr,
-					 request->arrival_time, "%s",
-					 resp->str);
-				    if (request->flags & DEL_REQ_FLAG_SUCCESS)
-					deliver_completed(state->src, rcpt->offset);
-				    rcpt->offset = 0;
+				    if (sent(DEL_REQ_TRACE_FLAGS(request->flags),
+					 request->queue_id, rcpt->orig_addr,
+					     rcpt->address,
+					     session->namaddr,
+					     request->arrival_time,
+					     "%s", resp->str) == 0) {
+					if (request->flags & DEL_REQ_FLAG_SUCCESS)
+					    deliver_completed(state->src, rcpt->offset);
+					rcpt->offset = 0;
+				    }
 				}
 			    }
 			}

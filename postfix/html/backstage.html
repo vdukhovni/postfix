@@ -40,9 +40,9 @@ limits as specified in the <b>master.cf</b> configuration file.
 
 <p>
 
-<li>The <a href="bounce.8.html">bounce or defer</a> daemon is called
-upon left and right by other daemon processes, in order to maintain
-per-message log files with non-delivery status information.
+<li>The <a href="bounce.8.html">bounce, defer, or trace</a> daemon
+is called upon left and right by other daemon processes, in order
+to maintain per-message log files with delivery status information.
 
 <p>
 
@@ -63,6 +63,13 @@ href="mailq.1.html">mailq</a> command.
 performance of the SMTP <b>ETRN</b> request, and of its command-line
 equivalent, <b>sendmail -qR</b><i>destination</i>, for selected
 destinations.
+
+<p>
+
+<li>The <a href="verify.8.html">verify</a> daemon maintains the
+address verification cache that is used by the
+\fBreject_unverified_sender\fR and \fBreject_unverified_recipient\fR
+UCE restrictions.
 
 <p>
 

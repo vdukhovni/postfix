@@ -16,7 +16,7 @@ The \fBbounce\fR daemon maintains per-message log files with
 non-delivery status information. Each log file is named after the
 queue file that it corresponds to, and is kept in a queue subdirectory
 named after the service name in the \fBmaster.cf\fR file (either
-\fBbounce\fR or \fBdefer\fR).
+\fBbounce\fR, \fBdefer\fR or \fBtrace\fR).
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
@@ -70,6 +70,9 @@ The recipient of "delayed mail" postmaster notices.
 .IP \fBbounce_size_limit\fR
 Limit the amount of original message context that is sent in
 a non-delivery notification.
+.IP \fBbackwards_bounce_logfile_compatibility\fR
+Controls whether the logfile will be readable by old Postfix versions
+that used the ad-hoc logfile format of \fI<address>: text\fR.
 .IP \fBmail_name\fR
 Use this mail system name in the introductory text at the
 start of a bounce message.

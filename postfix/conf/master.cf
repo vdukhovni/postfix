@@ -78,6 +78,8 @@ qmgr	  fifo	n	-	n	300	1	qmgr
 rewrite	  unix	-	-	n	-	-	trivial-rewrite
 bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
+trace	  unix	-	-	n	-	0	bounce
+verify	  unix  -       -       n       -       1       verify
 flush	  unix	n	-	n	1000?	0	flush
 smtp	  unix	-	-	n	-	-	smtp
 relay	  unix	-	-	n	-	-	smtp

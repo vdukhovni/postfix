@@ -17,7 +17,7 @@
 /*	\fB-s\fR and \fB-p\fR command-line options on all Postfix queue
 /*	directories - this includes the \fBincoming\fR, \fBactive\fR and
 /*	\fBdeferred\fR directories with mail files and the \fBbounce\fR,
-/*	\fBdefer\fR and \fBflush\fR directories with log files.
+/*	\fBdefer\fR, \fBtrace\fR and \fBflush\fR directories with log files.
 /*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
@@ -261,6 +261,7 @@ static struct queue_info queue_info[] = {
     MAIL_QUEUE_ACTIVE, MAIL_QUEUE_STAT_READY, RECURSE,
     MAIL_QUEUE_DEFERRED, MAIL_QUEUE_STAT_READY, RECURSE,
     MAIL_QUEUE_HOLD, MAIL_QUEUE_STAT_READY, RECURSE,
+    MAIL_QUEUE_TRACE, 0600, RECURSE,
     MAIL_QUEUE_DEFER, 0600, RECURSE,
     MAIL_QUEUE_BOUNCE, 0600, RECURSE,
     MAIL_QUEUE_FLUSH, 0600, RECURSE,
@@ -273,6 +274,7 @@ static struct queue_info queue_info[] = {
 const char *log_queue_names[] = {
     MAIL_QUEUE_BOUNCE,
     MAIL_QUEUE_DEFER,
+    MAIL_QUEUE_TRACE,
     0,
 };
 
@@ -389,7 +391,7 @@ static int delete_one(const char **queue_names, const char *queue_id)
     log_path_buf = vstring_alloc(100);
 
     /*
-     * Skip meta file directories. Delete defer or bounce logfiles before
+     * Skip meta file directories. Delete trace/defer/bounce logfiles before
      * deleting the corresponding message file, and only if the message file
      * exists. This minimizes but does not eliminate a race condition with
      * queue ID reuse which results in deleting the wrong files.

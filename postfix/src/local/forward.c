@@ -11,7 +11,8 @@
 /*	int	forward_append(attr)
 /*	DELIVER_ATTR attr;
 /*
-/*	int	forward_finish(attr, cancel)
+/*	int	forward_finish(request, attr, cancel)
+/*	DELIVER_REQUEST *request;
 /*	DELIVER_ATTR attr;
 /*	int	cancel;
 /* DESCRIPTION
@@ -195,7 +196,8 @@ int     forward_append(DELIVER_ATTR attr)
 
 /* forward_send - send forwarded message */
 
-static int forward_send(FORWARD_INFO *info, DELIVER_ATTR attr, char *delivered)
+static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
+			        DELIVER_ATTR attr, char *delivered)
 {
     char   *myname = "forward_send";
     VSTRING *buffer = vstring_alloc(100);
@@ -251,7 +253,8 @@ static int forward_send(FORWARD_INFO *info, DELIVER_ATTR attr, char *delivered)
      * Log successful forwarding.
      */
     if (status == 0)
-	sent(SENT_ATTR(attr), "forwarded as %s", info->queue_id);
+	status = sent(BOUNCE_FLAGS(request), SENT_ATTR(attr),
+		      "forwarded as %s", info->queue_id);
 
     /*
      * Cleanup.
@@ -262,7 +265,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_ATTR attr, char *delivered)
 
 /* forward_finish - complete message forwarding requests and clean up */
 
-int     forward_finish(DELIVER_ATTR attr, int cancel)
+int     forward_finish(DELIVER_REQUEST *request, DELIVER_ATTR attr, int cancel)
 {
     HTABLE_INFO **dt_list;
     HTABLE_INFO **dt;
@@ -291,7 +294,7 @@ int     forward_finish(DELIVER_ATTR attr, int cancel)
 	    sender = sn[0]->key;
 	    info = (FORWARD_INFO *) sn[0]->value;
 	    if (status == 0)
-		status |= forward_send(info, attr, delivered);
+		status |= forward_send(info, request, attr, delivered);
 	    if (msg_verbose)
 		msg_info("forward_finish: delivered %s sender %s status %d",
 			 delivered, sender, status);

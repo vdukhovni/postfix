@@ -120,6 +120,10 @@ run the process as the \fBmail_owner\fR user.
 .sp
 This mode of operation is implemented by running the
 \fBsmtpd\fR(8) daemon.
+.IP \fB-bv\fR
+Send an email report after verifying each recipient address.
+Verification always happens in the background. This is useful
+for testing address rewriting and routing configurations.
 .IP "\fB-f \fIsender\fR"
 Set the envelope sender address. This is the address where
 delivery problems are sent to, unless the message contains an
@@ -174,10 +178,9 @@ command instead.
 Extract recipients from message headers. This requires that no
 recipients be specified on the command line.
 .IP \fB-v\fR
-Enable verbose logging for debugging purposes. Multiple \fB-v\fR
-options make the software increasingly verbose. For compatibility
-with mailx and other mail submission software, a single \fB-v\fR
-option produces no output.
+Send an email report of all delivery attempts (mail delivery
+always happens in the background). When multiple \fB-v\fR
+options are given, enable verbose logging for debugging purposes.
 .SH SECURITY
 .na
 .nf

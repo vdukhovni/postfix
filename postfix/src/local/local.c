@@ -568,7 +568,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
 	state.msg_attr.orig_rcpt = rcpt->orig_addr;
 	state.msg_attr.recipient = rcpt->address;
 	rcpt_stat = deliver_recipient(state, usr_attr);
-	rcpt_stat |= forward_finish(state.msg_attr, rcpt_stat);
+	rcpt_stat |= forward_finish(rqst, state.msg_attr, rcpt_stat);
 	if (rcpt_stat == 0 && (rqst->flags & DEL_REQ_FLAG_SUCCESS))
 	    deliver_completed(state.msg_attr.fp, rcpt->offset);
 	been_here_free(state.dup_filter);

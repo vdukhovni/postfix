@@ -86,6 +86,8 @@
 /*	char   *var_showq_service;
 /*	char   *var_error_service;
 /*	char   *var_flush_service;
+/*	char   *var_verify_service;
+/*	char   *var_trace_service;
 /*	int	var_db_create_buf;
 /*	int	var_db_read_buf;
 /*	int	var_mime_maxdepth;
@@ -98,6 +100,8 @@
 /*	int     var_strict_7bit_hdrs;
 /*	int     var_strict_8bit_body;
 /*	int     var_strict_encoding;
+/*	int     var_verify_neg_cache;
+/*	int	var_oldlog_compat;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -240,6 +244,8 @@ char   *var_rewrite_service;
 char   *var_showq_service;
 char   *var_error_service;
 char   *var_flush_service;
+char   *var_verify_service;
+char   *var_trace_service;
 int     var_db_create_buf;
 int     var_db_read_buf;
 int     var_mime_maxdepth;
@@ -252,6 +258,8 @@ int     var_strict_8bitmime;
 int     var_strict_7bit_hdrs;
 int     var_strict_8bit_body;
 int     var_strict_encoding;
+int     var_verify_neg_cache;
+int     var_oldlog_compat;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -467,6 +475,8 @@ void    mail_params_init()
 	VAR_SHOWQ_SERVICE, DEF_SHOWQ_SERVICE, &var_showq_service, 1, 0,
 	VAR_ERROR_SERVICE, DEF_ERROR_SERVICE, &var_error_service, 1, 0,
 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
+	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
+	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -513,6 +523,8 @@ void    mail_params_init()
 	VAR_STRICT_ENCODING, DEF_STRICT_ENCODING, &var_strict_encoding,
 	VAR_DISABLE_MIME_INPUT, DEF_DISABLE_MIME_INPUT, &var_disable_mime_input,
 	VAR_DISABLE_MIME_OCONV, DEF_DISABLE_MIME_OCONV, &var_disable_mime_oconv,
+	VAR_VERIFY_NEG_CACHE, DEF_VERIFY_NEG_CACHE, &var_verify_neg_cache,
+	VAR_OLDLOG_COMPAT, DEF_OLDLOG_COMPAT, &var_oldlog_compat,
 	VAR_HELPFUL_WARNINGS, DEF_HELPFUL_WARNINGS, &var_helpful_warnings,
 	0,
     };

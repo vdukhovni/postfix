@@ -21,22 +21,32 @@
  /*
   * bounce_append_service.c
   */
-extern int bounce_append_service(char *, char *, char *, char *);
+extern int bounce_append_service(char *, char *, char *, char *, char *, char *, char *);
 
  /*
   * bounce_notify_service.c
   */
-extern int bounce_notify_service(char *, char *, char *, char *, char *, int);
+extern int bounce_notify_service(char *, char *, char *, char *, char *);
+
+ /*
+  * bounce_warn_service.c
+  */
+extern int bounce_warn_service(char *, char *, char *, char *, char *);
+
+ /*
+  * bounce_trace_service.c
+  */
+extern int bounce_trace_service(char *, char *, char *, char *, char *);
 
  /*
   * bounce_notify_verp.c
   */
-extern int bounce_notify_verp(char *, char *, char *, char *, char *, char *, int);
+extern int bounce_notify_verp(char *, char *, char *, char *, char *, char *);
 
  /*
   * bounce_one_service.c
   */
-extern int bounce_one_service(char *, char *, char *, char *, char *, char *);
+extern int bounce_one_service(char *, char *, char *, char *, char *, char *, char *, char *, char *);
 
  /*
   * bounce_cleanup.c
@@ -66,7 +76,7 @@ typedef struct {
 } BOUNCE_INFO;
 
 extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, int);
-extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, const char *);
+extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, const char *, const char *, const char *, const char *);
 extern void bounce_mail_free(BOUNCE_INFO *);
 extern int bounce_header(VSTREAM *, BOUNCE_INFO *, const char *);
 extern int bounce_boilerplate(VSTREAM *, BOUNCE_INFO *);
@@ -76,6 +86,10 @@ extern int bounce_header_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_recipient_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_diagnostic_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_original(VSTREAM *, BOUNCE_INFO *, int);
+
+#define BOUNCE_MSG_FAIL		0
+#define BOUNCE_MSG_WARN		1
+#define BOUNCE_MSG_STATUS	2
 
 /* LICENSE
 /* .ad

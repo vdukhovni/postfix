@@ -102,6 +102,7 @@
 #include <recipient_list.h>
 #include <bounce.h>
 #include <defer.h>
+#include <trace.h>
 #include <abounce.h>
 #include <rec_type.h>
 
@@ -356,6 +357,18 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 	}
 	return;
     }
+
+    /*
+     * As a temporary implementation, synchronously inform the sender of
+     * trace information. This will block for 10 seconds when the qmgr FIFO
+     * is full.
+     */
+    if (message->tflags & (DEL_REQ_FLAG_EXPAND | DEL_REQ_FLAG_RECORD))
+	message->flags |= trace_flush(message->tflags,
+				      message->queue_name,
+				      message->queue_id,
+				      message->encoding,
+				      message->sender);
 
     /*
      * If we get to this point we have tried all recipients for this message.

@@ -125,10 +125,12 @@ static int deliver_message(DELIVER_REQUEST *request)
     /*
      * Bounce all recipients.
      */
+#define BOUNCE_FLAGS(request) DEL_REQ_TRACE_FLAGS(request->flags)
+
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
-	    status = bounce_append(BOUNCE_FLAG_KEEP, request->queue_id,
+	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
 				   rcpt->orig_addr, rcpt->address, "none",
 				   request->arrival_time,
 				   "%s", request->nexthop);

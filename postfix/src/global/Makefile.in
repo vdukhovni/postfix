@@ -20,7 +20,8 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
 	verp_sender.c match_parent_style.c mime_state.c header_token.c \
-	strip_addr.c virtual8_maps.c hold_message.c
+	strip_addr.c virtual8_maps.c hold_message.c verify_clnt.c \
+	trace.c log_adhoc.c verify.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -42,7 +43,8 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
 	verp_sender.o match_parent_style.o mime_state.o header_token.o \
-	strip_addr.o virtual8_maps.o hold_message.o
+	strip_addr.o virtual8_maps.o hold_message.o verify_clnt.o \
+	trace.o log_adhoc.o verify.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -60,7 +62,8 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
 	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
 	match_parent_style.h quote_flags.h mime_state.h header_token.h \
-	lex_822.h strip_addr.h virtual8_maps.h hold_message.h
+	lex_822.h strip_addr.h virtual8_maps.h hold_message.h verify_clnt.h \
+	trace.h log_adhoc.h verify.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -74,7 +77,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time mime_state strip_addr \
-	virtual8_maps
+	virtual8_maps verify_clnt
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -232,6 +235,11 @@ virtual8_maps: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
+verify_clnt: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
 	mime_cvt mime_cvt2 mime_cvt3 strip_addr_test tok822_limit_test \
 	virtual8_test
@@ -357,6 +365,9 @@ abounce.o: ../../include/iostuff.h
 abounce.o: ../../include/attr.h
 abounce.o: abounce.h
 abounce.o: bounce.h
+abounce.o: deliver_request.h
+abounce.o: ../../include/vstring.h
+abounce.o: recipient_list.h
 been_here.o: been_here.c
 been_here.o: ../../include/sys_defs.h
 been_here.o: ../../include/msg.h
@@ -376,8 +387,13 @@ bounce.o: mail_proto.h
 bounce.o: ../../include/vstream.h
 bounce.o: ../../include/iostuff.h
 bounce.o: ../../include/attr.h
+bounce.o: log_adhoc.h
+bounce.o: verify.h
+bounce.o: deliver_request.h
+bounce.o: recipient_list.h
 bounce.o: defer.h
 bounce.o: bounce.h
+bounce.o: trace.h
 bounce_log.o: bounce_log.c
 bounce_log.o: ../../include/sys_defs.h
 bounce_log.o: ../../include/msg.h
@@ -387,6 +403,10 @@ bounce_log.o: ../../include/vbuf.h
 bounce_log.o: ../../include/vstring.h
 bounce_log.o: ../../include/vstring_vstream.h
 bounce_log.o: ../../include/stringops.h
+bounce_log.o: mail_params.h
+bounce_log.o: mail_proto.h
+bounce_log.o: ../../include/iostuff.h
+bounce_log.o: ../../include/attr.h
 bounce_log.o: mail_queue.h
 bounce_log.o: bounce_log.h
 canon_addr.o: canon_addr.c
@@ -440,6 +460,11 @@ defer.o: mail_proto.h
 defer.o: ../../include/iostuff.h
 defer.o: ../../include/attr.h
 defer.o: flush_clnt.h
+defer.o: verify.h
+defer.o: deliver_request.h
+defer.o: recipient_list.h
+defer.o: log_adhoc.h
+defer.o: trace.h
 defer.o: bounce.h
 defer.o: defer.h
 deliver_completed.o: deliver_completed.c
@@ -562,6 +587,12 @@ hold_message.o: hold_message.h
 is_header.o: is_header.c
 is_header.o: ../../include/sys_defs.h
 is_header.o: is_header.h
+log_adhoc.o: log_adhoc.c
+log_adhoc.o: ../../include/sys_defs.h
+log_adhoc.o: ../../include/msg.h
+log_adhoc.o: ../../include/vstring.h
+log_adhoc.o: ../../include/vbuf.h
+log_adhoc.o: log_adhoc.h
 mail_addr.o: mail_addr.c
 mail_addr.o: ../../include/sys_defs.h
 mail_addr.o: ../../include/stringops.h
@@ -1009,6 +1040,8 @@ post_mail.o: ../../include/msg.h
 post_mail.o: ../../include/vstream.h
 post_mail.o: ../../include/vbuf.h
 post_mail.o: ../../include/vstring.h
+post_mail.o: ../../include/mymalloc.h
+post_mail.o: ../../include/events.h
 post_mail.o: mail_params.h
 post_mail.o: record.h
 post_mail.o: rec_type.h
@@ -1120,6 +1153,15 @@ sent.o: ../../include/sys_defs.h
 sent.o: ../../include/msg.h
 sent.o: ../../include/vstring.h
 sent.o: ../../include/vbuf.h
+sent.o: mail_params.h
+sent.o: verify.h
+sent.o: deliver_request.h
+sent.o: ../../include/vstream.h
+sent.o: recipient_list.h
+sent.o: log_adhoc.h
+sent.o: trace.h
+sent.o: defer.h
+sent.o: bounce.h
 sent.o: sent.h
 smtp_stream.o: smtp_stream.c
 smtp_stream.o: ../../include/sys_defs.h
@@ -1210,6 +1252,51 @@ tok822_tree.o: ../../include/vstring.h
 tok822_tree.o: ../../include/vbuf.h
 tok822_tree.o: tok822.h
 tok822_tree.o: resolve_clnt.h
+trace.o: trace.c
+trace.o: ../../include/sys_defs.h
+trace.o: ../../include/msg.h
+trace.o: ../../include/vstring.h
+trace.o: ../../include/vbuf.h
+trace.o: mail_params.h
+trace.o: mail_proto.h
+trace.o: ../../include/vstream.h
+trace.o: ../../include/iostuff.h
+trace.o: ../../include/attr.h
+trace.o: verify_clnt.h
+trace.o: deliver_request.h
+trace.o: recipient_list.h
+trace.o: log_adhoc.h
+trace.o: bounce.h
+trace.o: trace.h
+verify.o: verify.c
+verify.o: ../../include/sys_defs.h
+verify.o: ../../include/msg.h
+verify.o: ../../include/vstring.h
+verify.o: ../../include/vbuf.h
+verify.o: mail_params.h
+verify.o: mail_proto.h
+verify.o: ../../include/vstream.h
+verify.o: ../../include/iostuff.h
+verify.o: ../../include/attr.h
+verify.o: verify_clnt.h
+verify.o: deliver_request.h
+verify.o: recipient_list.h
+verify.o: log_adhoc.h
+verify.o: verify.h
+verify_clnt.o: verify_clnt.c
+verify_clnt.o: ../../include/sys_defs.h
+verify_clnt.o: ../../include/msg.h
+verify_clnt.o: ../../include/vstream.h
+verify_clnt.o: ../../include/vbuf.h
+verify_clnt.o: ../../include/vstring.h
+verify_clnt.o: ../../include/attr.h
+verify_clnt.o: mail_params.h
+verify_clnt.o: mail_proto.h
+verify_clnt.o: ../../include/iostuff.h
+verify_clnt.o: clnt_stream.h
+verify_clnt.o: verify_clnt.h
+verify_clnt.o: deliver_request.h
+verify_clnt.o: recipient_list.h
 verp_sender.o: verp_sender.c
 verp_sender.o: ../../include/sys_defs.h
 verp_sender.o: ../../include/vstring.h

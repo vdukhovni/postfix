@@ -337,6 +337,9 @@ smtpd_sender_restrictions =
 #
 #  *permit_mynetworks: permit if the client address matches $mynetworks.
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
+#   reject_unverified_sender: reject undeliverable sender address.
+#   reject_unverified_recipient: reject undeliverable recipient address.
+#   reject_multi_recipient_bounce: reject mail from <> with multiple recipients.
 #   reject_rhsbl_recipient domain.tld: reject recipient domain name if it is
 #	listed in an A record under domain.tld.
 #   permit_auth_destination: permit mail
@@ -514,6 +517,14 @@ invalid_hostname_reject_code = 501
 #
 maps_rbl_reject_code = 550
 
+# The multi_recipient_bounce_reject_code parameter specifies the SMTP
+# server response when an SMTP client request is blocked by the
+# reject_multi_recipient_bounce restriction.
+#
+# Do not change this unless you have a complete understanding of RFC 821.
+#
+multi_recipient_bounce_reject_code = 550
+
 # The rbl_reply_maps parameter specifies tables with RBL response
 # templates, indexed by RBL domain name. By default, Postfix uses
 # the default template as specified with the default_rbl_reply
@@ -552,6 +563,28 @@ smtpd_expansion_filter = \t\40!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQR
 # Do not change this unless you have a complete understanding of RFC 821.
 #
 unknown_address_reject_code = 450
+
+# The unverified_sender_reject_code parameter specifies the SMTP
+# server response when a client violates the reject_unverified_sender
+# restriction.
+#
+# Unlike elsewhere in Postfix, you can specify 250 in order to
+# accept the address anyway.
+# 
+# Do not change this unless you have a complete understanding of RFC 821.
+# 
+unverified_sender_reject_code = 450
+
+# The unverified_recipient_reject_code parameter specifies the SMTP
+# server response when a client violates the reject_unverified_recipient
+# restriction.
+#
+# Unlike elsewhere in Postfix, you can specify 250 in order to
+# accept the address anyway.
+# 
+# Do not change this unless you have a complete understanding of RFC 821.
+# 
+unverified_recipient_reject_code = 450
 
 # The unknown_client_reject_code parameter specifies the SMTP server
 # response when a client without address to name mapping violates

@@ -18,11 +18,18 @@
 #include <stdarg.h>
 
  /*
+  * Global library.
+  */
+#include <deliver_request.h>
+
+ /*
   * External interface.
   */
-extern int PRINTFLIKE(6, 7) sent(const char *, const char *, const char *,
+#define SENT_FLAG_NONE	(0)
+
+extern int PRINTFLIKE(7, 8) sent(int, const char *, const char *, const char *,
 			            const char *, time_t, const char *,...);
-extern int vsent(const char *, const char *, const char *, const char *,
+extern int vsent(int, const char *, const char *, const char *, const char *,
 		         time_t, const char *, va_list);
 
 /* LICENSE

@@ -93,6 +93,8 @@
 /* .IP "check_recipient_maps"
 /*	Reject recipients not listed as valid local, virtual or relay
 /*	recipients.
+/* .IP reject_multi_recipient_bounce
+/*	Reject mail from <> with multiple envelope recipients.
 /* .IP reject_rbl_client rbl.domain.tld
 /*	Look up the reversed client network address in the specified
 /*	real-time blackhole DNS zone.  The \fIrbl_reply_maps\fR configuration
@@ -137,6 +139,14 @@
 /*	DNS A or MX record.
 /*	The \fIunknown_address_reject_code\fR configuration parameter
 /*	specifies the reject status code (default: 450).
+/* .IP reject_unverified_sender
+/*	Reject the request when mail to the sender address is known to
+/*	bounce, or when the sender's address destination is not reachable.
+/*	Address verification information is managed by the verify(8) daemon.
+/* .IP reject_unverified_recipient
+/*	Reject the request when mail to the recipient address is known to
+/*	bounce, or when the recipient's address destination is not reachable.
+/*	Address verification information is managed by the verify(8) daemon.
 /* .IP reject_unknown_recipient_domain
 /*	Reject the request when the resolved recipient address has no
 /*	DNS A or MX record.
@@ -315,6 +325,7 @@
 #include <record.h>
 #include <rec_type.h>
 #include <mail_proto.h>
+#include <verify_clnt.h>
 
 /* Application-specific. */
 
@@ -462,6 +473,12 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
 	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2)); \
     else \
 	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2)); \
+    } while (0)
+#define DEFER_IF_PERMIT3(state, class, fmt, a1, a2, a3) do { \
+    if ((state)->warn_if_reject == 0) \
+	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3)); \
+    else \
+	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3)); \
     } while (0)
 
  /*
@@ -1625,6 +1642,67 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
     return (reject_unknown_mailhost(state, domain, reply_name, reply_class));
 }
 
+/* reject_unverified_address - fail if address bounces */
+
+static int reject_unverified_address(SMTPD_STATE *state, const char *addr,
+		            const char *reply_name, const char *reply_class,
+				             int unv_addr_code)
+{
+    char   *myname = "reject_unverified_address";
+    VSTRING *why = vstring_alloc(10);
+    int     rqst_status;
+    int     rcpt_status;
+    int     verify_status;
+    int     count;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, addr);
+
+    /*
+     * Verify the address. Don't waste too much of their or our time.
+     */
+    for (count = 0; count < 3; count++) {
+	verify_status = verify_clnt_query(addr, &rcpt_status, why);
+	if (verify_status != VRFY_STAT_OK || rcpt_status != DEL_RCPT_STAT_TODO)
+	    break;
+	sleep(3);
+    }
+    if (verify_status != VRFY_STAT_OK) {
+	msg_warn("%s service failure", var_verify_service);
+	DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
+		      "450 <%s>: %s rejected: address verification problem",
+			 reply_name, reply_class);
+	rqst_status = SMTPD_CHECK_DUNNO;
+    } else {
+	switch (rcpt_status) {
+	default:
+	    msg_warn("unknown address verification status %d", rcpt_status);
+	    rqst_status = SMTPD_CHECK_DUNNO;
+	    break;
+	case DEL_RCPT_STAT_TODO:
+	case DEL_RCPT_STAT_DEFER:
+	    DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
+			     "450 <%s>: %s rejected: unverified address: %s",
+			     reply_name, reply_class, STR(why));
+	    rqst_status = SMTPD_CHECK_DUNNO;
+	    break;
+	case DEL_RCPT_STAT_OK:
+	    rqst_status = SMTPD_CHECK_DUNNO;
+	    break;
+	case DEL_RCPT_STAT_BOUNCE:
+	    if (unv_addr_code / 100 == 2)
+		rqst_status = SMTPD_CHECK_DUNNO;
+	    else
+		rqst_status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+			  "%d <%s>: %s rejected: undeliverable address: %s",
+			  unv_addr_code, reply_name, reply_class, STR(why));
+	    break;
+	}
+    }
+    vstring_free(why);
+    return (rqst_status);
+}
+
 /* check_table_result - translate table lookup result into pass/reject */
 
 static int check_table_result(SMTPD_STATE *state, const char *table,
@@ -2709,6 +2787,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->sender && *state->sender)
 		status = reject_unknown_address(state, state->sender,
 					  state->sender, SMTPD_NAME_SENDER);
+	} else if (strcasecmp(name, REJECT_UNVERIFIED_SENDER) == 0) {
+	    if (state->sender && *state->sender)
+		status = reject_unverified_address(state, state->sender,
+					   state->sender, SMTPD_NAME_SENDER,
+						   var_unv_from_code);
 	} else if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
 	    if (state->sender && *state->sender)
 		status = reject_non_fqdn_address(state, state->sender,
@@ -2780,6 +2863,17 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, CHECK_RCPT_MAPS) == 0) {
 	    if (state->recipient && *state->recipient)
 		status = check_rcpt_maps(state, state->recipient);
+	} else if (strcasecmp(name, REJECT_MUL_RCPT_BOUNCE) == 0) {
+	    if (state->sender && *state->sender == 0 && state->rcpt_count
+		> (strcmp(state->where, "DATA") ? 0 : 1))
+		status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+			     "%d <%s>: %s rejected: Multi-recipient bounce",
+				var_mul_rcpt_code, reply_name, reply_class);
+	} else if (strcasecmp(name, REJECT_UNVERIFIED_RECIP) == 0) {
+	    if (state->recipient && *state->recipient)
+		status = reject_unverified_address(state, state->recipient,
+				     state->recipient, SMTPD_NAME_RECIPIENT,
+						   var_unv_rcpt_code);
 	}
 
 	/*
@@ -2970,6 +3064,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     int     status;
     char   *saved_recipient;
     char   *err;
+    static VSTRING *canon_verify_sender;
 
     /*
      * Initialize.
@@ -2983,6 +3078,22 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      */
     if (strcasecmp(recipient, "postmaster") == 0)
 	return (0);
+
+    /*
+     * XXX Always say OK when we're probed with our own address verification
+     * sender address. Otherwise, some timeout or some UCE block may result
+     * in mutual negative caching, making it painful to get the mail through.
+     */
+#ifndef TEST
+    if (*recipient) {
+	if (canon_verify_sender == 0) {
+	    canon_verify_sender = vstring_alloc(10);
+	    canon_addr_internal(canon_verify_sender, var_verify_sender);
+	}
+	if (strcasecmp(STR(canon_verify_sender), recipient) == 0)
+	    return (0);
+    }
+#endif
 
     /*
      * Minor kluge so that we can delegate work to the generic routine and so
@@ -3026,7 +3137,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && rcpt_restrctions->argc)
-	    status = generic_checks(state, rcpt_restrctions,
+	status = generic_checks(state, rcpt_restrctions,
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
 
     /*
@@ -3382,6 +3493,7 @@ char   *var_rbl_reply_maps;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
 char   *var_relay_rcpt_maps;
+char   *var_verify_sender;
 
 typedef struct {
     char   *name;
@@ -3389,11 +3501,11 @@ typedef struct {
     char  **target;
 } STRING_TABLE;
 
-#undef DEF_LOCAL_RCPT_MAPS
-#define DEF_LOCAL_RCPT_MAPS		""
-
 #undef DEF_VIRT_ALIAS_MAPS
 #define DEF_VIRT_ALIAS_MAPS	""
+
+#undef DEF_LOCAL_RCPT_MAPS
+#define DEF_LOCAL_RCPT_MAPS	""
 
 static STRING_TABLE string_table[] = {
     VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains,
@@ -3420,6 +3532,7 @@ static STRING_TABLE string_table[] = {
     VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter,
     VAR_DEF_RBL_REPLY, DEF_DEF_RBL_REPLY, &var_def_rbl_reply,
     VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps,
+    VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender,
     0,
 };
 
@@ -3471,6 +3584,9 @@ int     var_defer_code;
 int     var_non_fqdn_code;
 int     var_smtpd_delay_reject;
 int     var_allow_untrust_route;
+int     var_mul_rcpt_code;
+int     var_unv_from_code;
+int     var_unv_rcpt_code;
 int     var_local_rcpt_code;
 int     var_relay_rcpt_code;
 int     var_virt_mailbox_code;
@@ -3490,6 +3606,9 @@ static INT_TABLE int_table[] = {
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
     VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
     VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
+    VAR_MUL_RCPT_CODE, DEF_MUL_RCPT_CODE, &var_mul_rcpt_code,
+    VAR_UNV_FROM_CODE, DEF_UNV_FROM_CODE, &var_unv_from_code,
+    VAR_UNV_RCPT_CODE, DEF_UNV_RCPT_CODE, &var_unv_rcpt_code,
     VAR_LOCAL_RCPT_CODE, DEF_LOCAL_RCPT_CODE, &var_local_rcpt_code,
     VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code,
     VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code,

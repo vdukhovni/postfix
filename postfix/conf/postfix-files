@@ -53,6 +53,7 @@ $queue_directory/private:d:$mail_owner:-:700:uc
 $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:uc
 $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
+$queue_directory/trace:d:$mail_owner:-:700:ucr
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
 $daemon_directory/error:f:root:-:755
@@ -70,6 +71,7 @@ $daemon_directory/smtp:f:root:-:755
 $daemon_directory/smtpd:f:root:-:755
 $daemon_directory/spawn:f:root:-:755
 $daemon_directory/trivial-rewrite:f:root:-:755
+$daemon_directory/verify:f:root:-:755
 $daemon_directory/virtual:f:root:-:755
 $command_directory/postalias:f:root:-:755
 $command_directory/postcat:f:root:-:755
@@ -139,7 +141,9 @@ $manpage_directory/man8/showq.8:f:root:-:644
 $manpage_directory/man8/smtp.8:f:root:-:644
 $manpage_directory/man8/smtpd.8:f:root:-:644
 $manpage_directory/man8/spawn.8:f:root:-:644
+$manpage_directory/man8/trace.8:f:root:-:644
 $manpage_directory/man8/trivial-rewrite.8:f:root:-:644
+$manpage_directory/man8/verify.8:f:root:-:644
 $manpage_directory/man8/virtual.8:f:root:-:644
 $sample_directory/sample-aliases.cf:f:root:-:644
 $sample_directory/sample-auth.cf:f:root:-:644
@@ -167,6 +171,7 @@ $sample_directory/sample-rewrite.cf:f:root:-:644
 $sample_directory/sample-smtp.cf:f:root:-:644
 $sample_directory/sample-smtpd.cf:f:root:-:644
 $sample_directory/sample-transport.cf:f:root:-:644
+$sample_directory/sample-verify.cf:f:root:-:644
 $sample_directory/sample-virtual.cf:f:root:-:644
 $readme_directory/ADDRESS_CLASS_README:f:root:-:644
 $readme_directory/DB_README:f:root:-:644

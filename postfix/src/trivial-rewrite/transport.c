@@ -76,6 +76,7 @@ static MAPS *transport_path;
 static int transport_match_parent_style;
 static VSTRING *wildcard_channel;
 static VSTRING *wildcard_nexthop;
+static int transport_errno;
 
 #define STR(x)	vstring_str(x)
 
@@ -195,8 +196,7 @@ void    transport_wildcard_init(void)
 	    msg_info("wildcard_{chan:hop}={%s:%s}",
 	      vstring_str(wildcard_channel), vstring_str(wildcard_nexthop));
     } else {
-	if (dict_errno != 0)
-	    msg_fatal("transport table initialization problem.");
+	transport_errno = dict_errno;
 	vstring_free(channel);
 	vstring_free(nexthop);
     }
@@ -294,7 +294,10 @@ int     transport_lookup(const char *addr, const char *rcpt_domain,
     /*
      * Fall back to the wild-card entry.
      */
-    if (wildcard_channel) {
+    if (transport_errno) {
+	dict_errno = transport_errno;
+	RETURN_FREE(NOTFOUND);
+    } else if (wildcard_channel) {
 	update_entry(STR(wildcard_channel), STR(wildcard_nexthop),
 		     rcpt_domain, channel, nexthop);
 	RETURN_FREE(FOUND);

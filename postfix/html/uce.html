@@ -686,6 +686,20 @@ is always <b>450</b> in case of a temporary DNS error.
 
 <p>
 
+<a name="reject_unverified_sender">
+
+<dt> <b>reject_unverified_sender</b> <dd> Reject the request when
+mail to the sender address is known to bounce, or when the sender
+address destination is not reachable.  Address verification
+information is managed by the <a href="verify.8.html"> verify</a>(8)
+server.  The <b>unverified_sender_reject_code </b> parameter
+specifies the response when an address is known to bounce (default:
+450, change into 550 when you are confident that it is safe to do
+so). Postfix replies with 450 when an address probe failed due to
+a temporary problem.
+
+<p>
+
 <a name="reject_rhsbl_sender">
 
 <dt> <b>reject_rhsbl_sender</b> <i>domain.tld</i> <dd> Reject the
@@ -956,6 +970,16 @@ restriction at the end of all recipient restrictions.
 
 <p>
 
+<a name="reject_multi_recipient_bounce">
+
+<dt> <b>reject_multi_recipient_bounce</b> <dd> Reject the request
+when the envelope sender is the null address, and the message has
+multiple envelope recipients. The <b>multi_recipient_bounce_reject_code
+</b> parameter specifies the response code for rejected requests
+(default:  <b>550</b>).
+
+<p>
+
 <a name="reject_unknown_recipient_domain">
 
 <dt> <b>reject_unknown_recipient_domain</b> <dd> Reject the request
@@ -963,6 +987,20 @@ when the recipient mail address has no DNS A or MX record. The
 <b>unknown_address_reject_code </b> parameter specifies the response
 code for rejected requests (default:  <b>450</b>).  The response
 is always <b>450</b> in case of a temporary DNS error.
+
+<p>
+
+<a name="reject_unverified_recipient">
+
+<dt> <b>reject_unverified_recipient</b> <dd> Reject the request when
+mail to the recipient address is known to bounce, or when the recipient
+address destination is not reachable.  Address verification
+information is managed by the <a href="verify.8.html"> verify</a>(8)
+server.  The <b>unverified_recipient_reject_code </b> parameter
+specifies the response when an address is known to bounce (default:
+450, change into 550 when you are confident that it is safe to do
+so). Postfix replies with 450 when an address probe failed due to
+a temporary problem.
 
 <p>
 

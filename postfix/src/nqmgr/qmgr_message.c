@@ -144,6 +144,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     qmgr_message_count++;
     message->flags = 0;
     message->qflags = qflags;
+    message->tflags = 0;
     message->fp = 0;
     message->refcount = 0;
     message->single_rcpt = 0;
@@ -427,6 +428,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    myfree(message->encoding);
 		message->encoding = mystrdup(value);
 	    }
+	    /* Optional tracing flags. */
+	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
+		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
+	    }
 	} else if (rec_type == REC_TYPE_ERTO) {
 	    if (message->errors_to == 0) {
 		message->errors_to = mystrdup(start);
@@ -628,6 +633,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     char  **cpp;
     char   *nexthop;
     int     len;
+    int     status;
 
 #define STREQ(x,y)	(strcmp(x,y) == 0)
 #define STR		vstring_str
@@ -775,12 +781,15 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {
-		sent(message->queue_id, recipient->orig_rcpt,
-		     recipient->address, "none", message->arrival_time,
-		     "discarded");
-		deliver_completed(message->fp, recipient->offset);
-		msg_warn("%s: undeliverable postmaster notification discarded",
-			 message->queue_id);
+		status = sent(message->tflags, message->queue_id, recipient->orig_rcpt,
+			  recipient->address, "none", message->arrival_time,
+			 "undeliverable postmaster notification discarded");
+		if (status == 0) {
+		    deliver_completed(message->fp, recipient->offset);
+		    msg_warn("%s: undeliverable postmaster notification discarded",
+			     message->queue_id);
+		} else
+		    message->flags |= status;
 		continue;
 	    }
 	}

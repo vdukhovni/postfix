@@ -1,0 +1,109 @@
+Sender address verification
+===========================
+
+Sender address verification blocks mail from an unknown sender
+address until after the address is verified.  An address is verified
+by probing the nearest MTA for that address, without actually
+delivering mail to it (SMTP interruptus). Probe messages are like
+normail mail, but are discarded instead of being deferred or bounced.
+
+Normal mail will suffer only a short one-time delay of up to 9
+seconds while address verification happens for the first time.
+When verification takes longer than 9 seconds, the Postfix SMTP
+server defers the message with a 450 reply. Normal mail clients
+will connect again after some delay.  Once an address status is
+known, the status is cached and Postfix replies immediately.
+
+Address verification is turned on with the "reject_unverified_sender"
+sender restriction.  To find out how this would affect your mail,
+specify "warn_if_reject reject_unverified_sender" so that you can
+see what mail would be blocked:
+
+    smtpd_sender_restrictions = 
+	... 
+	check_sender_access hash:/etc/postfix/sender_access
+	reject_unknown_sender_domain
+	warn_if_reject reject_unverified_sender 
+	...
+
+This is also a good way to populate your cache with address
+verification results before you start to actually reject mail.
+
+The sender_access restriction is needed to whitelist domains that
+are known to be OK. See the section titled "Limitations" at the
+end of this document.
+
+The "reject_unknown_sender_domain" restriction blocks mail from
+non-existent domains. Putting this before "reject_unverified_sender"
+avoids the overhead of generating unnecessary probe messages.
+
+The unverified_sender_reject_code parameter (default 450) specifies
+how Postfix replies when a sender address is known to bounce.
+Change this setting into 550 when you trust Postfix's judgments.
+
+Caching
+=======
+
+NOTE: By default, address verification information is not stored
+in a persistent file. You have to specify one in main.cf (see
+below). Persistent storage is off by default because it may need
+more disk space than is available in your root file system.
+
+Address verification information is cached by the Postfix verify
+daemon.  Postfix has a bunch of parameters that control the caching
+of positive and negative results. Refer to the verify(8) manual
+page or the sample-verify.cf file for details.
+
+The address_verify_map (NOTE: singular) configuration parameter
+specifies an optional persistent database for sender address
+verification results.  If you don't specify a file, all address
+verification information is lost after "postfix reload" or "postfix
+stop".
+
+If your root file system has sufficient space, try:
+
+    address_verify_map = btree:/etc/postfix/verify
+
+NOTE: Do not put this file in a file system that fills up. When
+the address verification table gets corrupted the world comes to
+an end and YOU will have to MANUALLY fix things as described in
+the next section. Meanwhile you will not receive mail via SMTP.
+
+The verify daemon process will create a new database when none
+exists, and will open/create the file before it enters the chroot
+jail or before it drops root privileges.
+
+Managing the address verification database
+==========================================
+
+Right now, no tools are provided to manage the address verification
+database. If the file gets too big, or if it gets corrupted, you
+can manually delete the file and run "postfix reload".  The new
+verify daemon process will then create a new, empty, database.
+
+Limitations
+===========
+
+Postfix probes the nearest MTA for the sender domain without actually
+sending mail. If that MTA accepts the recipient, then Postfix
+assumes that the address is deliverable, even when the address will
+bounce AFTER that MTA accepts it.
+
+You will probably want to put a whitelist before the address
+verification restriction, so that you can exclude known to be OK
+domains or addresses from verification. Although Postfix will not
+mark a known-to-be-good address as bad after a probe fails, it is
+better to be safe than sorry.
+
+    smtpd_sender_restrictions =
+	...
+	check_sender_access hash:/etc/postfix/sender_access
+	reject_unknown_sender_domain
+	reject_unverified_sender
+	...
+
+NOTE: You will have to whitelist sites such as securityfocus.com
+and other sites that operate mailing lists that use a different
+sender address for each posting (VERP).  Such addresses pollute
+the address verification cache quickly, and generate unnecessary
+sender verification probes.

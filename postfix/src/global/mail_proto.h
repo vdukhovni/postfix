@@ -49,6 +49,8 @@
 #define MAIL_SERVICE_SHOWQ	"showq"
 #define MAIL_SERVICE_ERROR	"error"
 #define MAIL_SERVICE_FLUSH	"flush"
+#define MAIL_SERVICE_VERIFY	"verify"
+#define MAIL_SERVICE_TRACE	"trace"
 #define MAIL_SERVICE_RELAY	"relay"
 
  /*
@@ -106,6 +108,9 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ADDR		"address"
 #define MAIL_ATTR_TRANSPORT	"transport"
 #define MAIL_ATTR_NEXTHOP	"nexthop"
+#define MAIL_ATTR_TRACE_FLAGS	"trace_flags"
+#define MAIL_ATTR_ADDR_STATUS	"recipient_status"
+#define MAIL_ATTR_ACTION	"action"
 
  /*
   * Suffixes for sender_name, sender_domain etc.

@@ -467,6 +467,38 @@ flush     unix  -       -       n       1000?   0       flush
 EOF
     }
 
+    # Add missing trace service to master.cf.
+
+    grep 'trace.*bounce' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for trace service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+trace	  unix	-	-	n	-	0	bounce
+EOF
+    }
+
+    # Add missing verify service to master.cf.
+
+    grep '^verify.*verify' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for verify service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+verify	  unix	-	-	n	-	1	verify
+EOF
+    }
+
+    # Fix verify service process limit.
+
+    grep '^verify.*[ 	]0[ 	]*verify' \
+	$config_directory/master.cf >/dev/null && {
+	    echo Editing $config_directory/master.cf, setting verify process limit to 1
+	    ed $config_directory/master.cf <<EOF || exit 1
+/^verify.*[ 	]0[ 	]*verify/
+s/\([ 	]\)0\([ 	]\)/\11\2/
+p
+w
+q
+EOF
+    }
+
     # Change privileged pickup service into unprivileged.
 
     grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
@@ -531,7 +563,7 @@ EOF
     if [ -z "$has_lrm" -a -z "$has_lrjc" ]
     then
 	echo SAFETY: editing main.cf, setting $unknown_local=450.
-	echo See the RELEASE_NOTES and $config_directory/main.cf for details.
+	echo See the RELEASE_NOTES and LOCAL_RECIPIENT_README files for details.
 	$POSTCONF -e "$unknown_local = 450" || exit 1
     fi
 

@@ -205,6 +205,8 @@
 /*	Timeout for sending the "\fB.\fR" command, and for
 /*	receiving the server response. When no response is received, a
 /*	warning is logged that the mail may be delivered multiple times.
+/* .IP \fBsmtp_rset_timeout\fR
+/*	Timeout for sending the \fBRSET\fR command.
 /* .IP \fBsmtp_quit_timeout\fR
 /*	Timeout for sending the \fBQUIT\fR command, and for
 /*	receiving the server response.
@@ -268,6 +270,7 @@ int     var_smtp_rcpt_tmout;
 int     var_smtp_data0_tmout;
 int     var_smtp_data1_tmout;
 int     var_smtp_data2_tmout;
+int     var_smtp_rset_tmout;
 int     var_smtp_quit_tmout;
 char   *var_inet_interfaces;
 char   *var_notify_classes;
@@ -452,6 +455,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_DATA0_TMOUT, DEF_SMTP_DATA0_TMOUT, &var_smtp_data0_tmout, 1, 0,
 	VAR_SMTP_DATA1_TMOUT, DEF_SMTP_DATA1_TMOUT, &var_smtp_data1_tmout, 1, 0,
 	VAR_SMTP_DATA2_TMOUT, DEF_SMTP_DATA2_TMOUT, &var_smtp_data2_tmout, 1, 0,
+	VAR_SMTP_RSET_TMOUT, DEF_SMTP_RSET_TMOUT, &var_smtp_rset_tmout, 1, 0,
 	VAR_SMTP_QUIT_TMOUT, DEF_SMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
 	VAR_SMTP_PIX_THRESH, DEF_SMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
 	VAR_SMTP_PIX_DELAY, DEF_SMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,

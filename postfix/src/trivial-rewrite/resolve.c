@@ -537,8 +537,10 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * Subtle note: reset nexthop even when the transport table does not change
      * the transport. Otherwise it is hard to get rid of main.cf specified
      * nexthop information.
+     * 
+     * XXX Don't override the virtual alias class (error:User unknown) result.
      */
-    if (*var_transport_maps) {
+    if (*var_transport_maps && !(*flags & RESOLVE_CLASS_ALIAS)) {
 	if (transport_lookup(STR(nextrcpt), rcpt_domain, channel, nexthop) == 0
 	    && dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);

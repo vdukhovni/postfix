@@ -683,7 +683,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush,hold"
+#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush,hold,trace"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
@@ -730,6 +730,10 @@ extern int var_smtp_data1_tmout;
 #define VAR_SMTP_DATA2_TMOUT	"smtp_data_done_timeout"
 #define DEF_SMTP_DATA2_TMOUT	"600s"
 extern int var_smtp_data2_tmout;
+
+#define VAR_SMTP_RSET_TMOUT	"smtp_rset_timeout"
+#define DEF_SMTP_RSET_TMOUT	"120s"
+extern int var_smtp_rset_tmout;
 
 #define VAR_SMTP_QUIT_TMOUT	"smtp_quit_timeout"
 #define DEF_SMTP_QUIT_TMOUT	"300s"
@@ -955,7 +959,7 @@ extern bool var_lmtp_skip_quit_resp;
 extern int var_lmtp_conn_tmout;
 
 #define VAR_LMTP_RSET_TMOUT	"lmtp_rset_timeout"
-#define DEF_LMTP_RSET_TMOUT	"300s"
+#define DEF_LMTP_RSET_TMOUT	"120s"
 extern int var_lmtp_rset_tmout;
 
 #define VAR_LMTP_LHLO_TMOUT	"lmtp_lhlo_timeout"
@@ -1225,6 +1229,21 @@ extern int var_non_fqdn_code;
 #define VAR_UNK_ADDR_CODE	"unknown_address_reject_code"
 #define DEF_UNK_ADDR_CODE	450
 extern int var_unk_addr_code;
+
+#define REJECT_UNVERIFIED_RECIP "reject_unverified_recipient"
+#define VAR_UNV_RCPT_CODE	"unverified_recipient_reject_code"
+#define DEF_UNV_RCPT_CODE	450
+extern int var_unv_rcpt_code;
+
+#define REJECT_UNVERIFIED_SENDER "reject_unverified_sender"
+#define VAR_UNV_FROM_CODE	"unverified_sender_reject_code"
+#define DEF_UNV_FROM_CODE	450
+extern int var_unv_from_code;
+
+#define REJECT_MUL_RCPT_BOUNCE	"reject_multi_recipient_bounce"
+#define VAR_MUL_RCPT_CODE	"multi_recipient_bounce_reject_code"
+#define DEF_MUL_RCPT_CODE	550
+extern int var_mul_rcpt_code;
 
 #define PERMIT_AUTH_DEST	"permit_auth_destination"
 #define REJECT_UNAUTH_DEST	"reject_unauth_destination"
@@ -1590,6 +1609,48 @@ extern char *var_error_service;
 extern char *var_flush_service;
 
  /*
+  * Address verification service.
+  */
+#define VAR_VERIFY_SERVICE		"address_verify_service_name"
+#define DEF_VERIFY_SERVICE		MAIL_SERVICE_VERIFY
+extern char *var_verify_service;
+
+#define VAR_VERIFY_MAP			"address_verify_map"
+#define DEF_VERIFY_MAP			""
+extern char *var_verify_map;
+
+#define VAR_VERIFY_POS_EXP		"address_verify_positive_expire_time"
+#define DEF_VERIFY_POS_EXP		"31d"
+extern int var_verify_pos_exp;
+
+#define VAR_VERIFY_POS_TRY		"address_verify_positive_refresh_time"
+#define DEF_VERIFY_POS_TRY		"7d"
+extern int var_verify_pos_try;
+
+#define VAR_VERIFY_NEG_EXP		"address_verify_negative_expire_time"
+#define DEF_VERIFY_NEG_EXP		"3d"
+extern int var_verify_neg_exp;
+
+#define VAR_VERIFY_NEG_TRY		"address_verify_negative_refresh_time"
+#define DEF_VERIFY_NEG_TRY		"2h"
+extern int var_verify_neg_try;
+
+#define VAR_VERIFY_NEG_CACHE		"address_verify_negative_cache"
+#define DEF_VERIFY_NEG_CACHE		1
+extern bool var_verify_neg_cache;
+
+#define VAR_VERIFY_SENDER		"address_verify_sender"
+#define DEF_VERIFY_SENDER		"postmaster"
+extern char *var_verify_sender;
+
+ /*
+  * Message delivery trace service.
+  */
+#define VAR_TRACE_SERVICE		"trace_service_name"
+#define DEF_TRACE_SERVICE		MAIL_SERVICE_TRACE
+extern char *var_trace_service;
+
+ /*
   * Mailbox/maildir delivery errors that cause delivery to be tried again.
   */
 #define VAR_MBX_DEFER_ERRS		"mailbox_defer_errors"
@@ -1663,6 +1724,13 @@ extern bool var_sender_routing;
 #define VAR_XPORT_NULL_KEY	"transport_null_address_lookup_key"
 #define DEF_XPORT_NULL_KEY	"<>"
 extern char *var_xport_null_key;
+
+ /*
+  * Bounce service controls.
+  */
+#define VAR_OLDLOG_COMPAT		"backwards_bounce_logfile_compatibility"
+#define DEF_OLDLOG_COMPAT		1
+extern bool var_oldlog_compat;
 
 /* LICENSE
 /* .ad

@@ -178,7 +178,8 @@ char   *xfer_request[LMTP_STATE_LAST] = {
     "RCPT TO command",
     "DATA command",
     "end of DATA command",
-    "final RSET command",
+    "RSET command",
+    "RSET command",
     "QUIT command",
 };
 
@@ -394,7 +395,8 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(state->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
-		next_state = LMTP_STATE_DATA;
+		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
+		    LMTP_STATE_ABORT : LMTP_STATE_DATA;
 	    break;
 
 	    /*
@@ -423,10 +425,8 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 	    msg_panic("%s: sender abort state", myname);
 
 	    /*
-	     * Build the RSET command.  This command does not really belong
-	     * here because it is always sent without pipelining, but having
-	     * it here means that we can reuse a lot of error handling code
-	     * that already exists.
+	     * Build the RSET command.  This is used between pipelined
+	     * deliveries, and to abort a trace-only delivery request.
 	     */
 	case LMTP_STATE_RSET:
 	    vstring_strcpy(next_command, "RSET");
@@ -530,6 +530,17 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 				    mymalloc(request->rcpt_list.len
 					     * sizeof(int));
 			    survivors[nrcpt++] = recv_rcpt;
+			    /* If trace-only, mark the recipient done. */
+			    if (DEL_REQ_TRACE_ONLY(request->flags)
+				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
+					request->queue_id, rcpt->orig_addr,
+					rcpt->address, session->namaddr,
+					request->arrival_time, "%s", 
+					translit(resp->str, "\n", " ")) == 0) {
+				if (request->flags & DEL_REQ_FLAG_SUCCESS)
+				    deliver_completed(state->src, rcpt->offset);
+				rcpt->offset = 0;	/* in case deferred */
+			    }
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
@@ -539,8 +550,10 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }
+		    /* If trace-only, send RSET instead of DATA. */
 		    if (++recv_rcpt == request->rcpt_list.len)
-			recv_state = LMTP_STATE_DATA;
+			recv_state = DEL_REQ_TRACE_ONLY(request->flags) ?
+			    LMTP_STATE_ABORT : LMTP_STATE_DATA;
 		    break;
 
 		    /*
@@ -575,12 +588,15 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			rcpt = request->rcpt_list.info + survivors[recv_dot];
 			if (resp->code / 100 == 2) {
 			    if (rcpt->offset) {
-				sent(request->queue_id, rcpt->orig_addr,
-				     rcpt->address, session->namaddr,
-				     request->arrival_time, "%s", resp->str);
-				if (request->flags & DEL_REQ_FLAG_SUCCESS)
-				    deliver_completed(state->src, rcpt->offset);
-				rcpt->offset = 0;
+				if (sent(DEL_REQ_TRACE_FLAGS(request->flags),
+					 request->queue_id, rcpt->orig_addr,
+					 rcpt->address, session->namaddr,
+					 request->arrival_time,
+					 "%s", resp->str) == 0) {
+				    if (request->flags & DEL_REQ_FLAG_SUCCESS)
+					deliver_completed(state->src, rcpt->offset);
+				    rcpt->offset = 0;
+				}
 			    }
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,

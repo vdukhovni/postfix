@@ -10,7 +10,7 @@
 /*	non-delivery status information. Each log file is named after the
 /*	queue file that it corresponds to, and is kept in a queue subdirectory
 /*	named after the service name in the \fBmaster.cf\fR file (either
-/*	\fBbounce\fR or \fBdefer\fR).
+/*	\fBbounce\fR, \fBdefer\fR or \fBtrace\fR).
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
@@ -56,6 +56,9 @@
 /* .IP \fBbounce_size_limit\fR
 /*	Limit the amount of original message context that is sent in
 /*	a non-delivery notification.
+/* .IP \fBbackwards_bounce_logfile_compatibility\fR
+/*	Controls whether the logfile will be readable by old Postfix versions
+/*	that used the ad-hoc logfile format of \fI<address>: text\fR.
 /* .IP \fBmail_name\fR
 /*	Use this mail system name in the introductory text at the
 /*	start of a bounce message.
@@ -132,6 +135,8 @@ static VSTRING *recipient;
 static VSTRING *encoding;
 static VSTRING *sender;
 static VSTRING *verp_delims;
+static VSTRING *dsn_status;
+static VSTRING *dsn_action;
 static VSTRING *why;
 
 #define STR vstring_str
@@ -150,8 +155,10 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_status,
+			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 5) {
+			    ATTR_TYPE_END) != 7) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -160,8 +167,10 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_append_proto: service=%s id=%s to=%s why=%s",
-		 service_name, STR(queue_id), STR(recipient), STR(why));
+	msg_info("bounce_append_proto: service=%s id=%s org_to=%s to=%s stat=%s act=%s why=%s",
+		 service_name, STR(queue_id), STR(orig_rcpt),
+		 STR(recipient), STR(dsn_status),
+		 STR(dsn_action), STR(why));
 
     /*
      * On request by the client, set up a trap to delete the log file in case
@@ -174,12 +183,15 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
      * Execute the request.
      */
     return (bounce_append_service(service_name, STR(queue_id),
-				  STR(recipient), STR(why)));
+				  STR(orig_rcpt), STR(recipient),
+				  STR(dsn_status), STR(dsn_action),
+				  STR(why)));
 }
 
 /* bounce_notify_proto - bounce_notify server protocol */
 
-static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
+static int bounce_notify_proto(char *service_name, VSTREAM *client,
+	              int (*service) (char *, char *, char *, char *, char *))
 {
     int     flags;
 
@@ -219,14 +231,14 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
     /*
      * Execute the request.
      */
-    return (bounce_notify_service(service_name, STR(queue_name),
-				  STR(queue_id), STR(encoding),
-				  STR(sender), flush));
+    return (service(service_name, STR(queue_name),
+		    STR(queue_id), STR(encoding),
+		    STR(sender)));
 }
 
 /* bounce_verp_proto - bounce_notify server protocol, VERP style */
 
-static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
+static int bounce_verp_proto(char *service_name, VSTREAM *client)
 {
     char   *myname = "bounce_verp_proto";
     int     flags;
@@ -278,11 +290,11 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
 	msg_warn("request to send VERP-style notification of bounced mail");
 	return (bounce_notify_service(service_name, STR(queue_name),
 				      STR(queue_id), STR(encoding),
-				      STR(sender), flush));
+				      STR(sender)));
     } else
 	return (bounce_notify_verp(service_name, STR(queue_name),
 				   STR(queue_id), STR(encoding),
-				   STR(sender), STR(verp_delims), flush));
+				   STR(sender), STR(verp_delims)));
 }
 
 /* bounce_one_proto - bounce_one server protocol */
@@ -302,8 +314,10 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_status,
+			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_status,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 8) {
+			    ATTR_TYPE_END) != 9) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -321,15 +335,17 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_one_proto: queue=%s id=%s encoding=%s sender=%s recipient=%s why=%s",
+	msg_info("bounce_one_proto: queue=%s id=%s encoding=%s sender=%s orig_to=%s to=%s stat=%s act=%s why=%s",
 		 STR(queue_name), STR(queue_id), STR(encoding),
-		 STR(sender), STR(recipient), STR(why));
+		 STR(sender), STR(orig_rcpt), STR(recipient),
+		 STR(dsn_status), STR(dsn_action), STR(why));
 
     /*
      * Execute the request.
      */
     return (bounce_one_service(STR(queue_name), STR(queue_id), STR(encoding),
-			       STR(sender), STR(recipient), STR(why)));
+			       STR(sender), STR(orig_rcpt), STR(recipient),
+			       STR(dsn_status), STR(dsn_action), STR(why)));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -360,11 +376,16 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 	msg_warn("malformed request");
 	status = -1;
     } else if (command == BOUNCE_CMD_VERP) {
-	status = bounce_verp_proto(service_name, client, REALLY_BOUNCE);
+	status = bounce_verp_proto(service_name, client);
     } else if (command == BOUNCE_CMD_FLUSH) {
-	status = bounce_notify_proto(service_name, client, REALLY_BOUNCE);
+	status = bounce_notify_proto(service_name, client,
+				     bounce_notify_service);
     } else if (command == BOUNCE_CMD_WARN) {
-	status = bounce_notify_proto(service_name, client, JUST_WARN);
+	status = bounce_notify_proto(service_name, client,
+				     bounce_warn_service);
+    } else if (command == BOUNCE_CMD_TRACE) {
+	status = bounce_notify_proto(service_name, client,
+				     bounce_trace_service);
     } else if (command == BOUNCE_CMD_APPEND) {
 	status = bounce_append_proto(service_name, client);
     } else if (command == BOUNCE_CMD_ONE) {
@@ -411,6 +432,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     encoding = vstring_alloc(10);
     sender = vstring_alloc(10);
     verp_delims = vstring_alloc(10);
+    dsn_status = vstring_alloc(10);
+    dsn_action = vstring_alloc(10);
     why = vstring_alloc(10);
 }
 

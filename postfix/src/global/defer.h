@@ -21,6 +21,7 @@
   * Global library.
   */
 #include <bounce.h>
+#include <deliver_request.h>
 
  /*
   * External interface.

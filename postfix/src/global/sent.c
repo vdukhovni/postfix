@@ -6,7 +6,9 @@
 /* SYNOPSIS
 /*	#include <sent.h>
 /*
-/*	int	sent(queue_id, orig_rcpt, recipient, relay, entry, format, ...)
+/*	int	sent(flags, queue_id, orig_rcpt, recipient, relay,
+/*			entry, format, ...)
+/*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
@@ -14,7 +16,9 @@
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vsent(queue_id, orig_rcpt, recipient, relay, entry, format, ap)
+/*	int	vsent(flags, queue_id, orig_rcpt, recipient, relay,
+/*			entry, format, ap)
+/*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
@@ -23,11 +27,29 @@
 /*	const char *format;
 /*	va_list ap;
 /* DESCRIPTION
-/*	sent() logs that a message was successfully delivered.
+/*	sent() logs that a message was successfully delivered,
+/*	updates the address verification service, or updates a
+/*	message delivery record on request by the sender. The
+/*	flags argument determines the action.
 /*
 /*	vsent() implements an alternative interface.
 /*
 /*	Arguments:
+/* .IP flags
+/*	Zero or more of the following:
+/* .RS
+/* .IP SENT_FLAG_NONE
+/*	The message is a normal delivery request.
+/* .IP DEL_REQ_FLAG_VERIFY
+/*	The message is an address verification probe. Update the
+/*	address verification database.
+/* .IP DEL_REQ_FLAG_EXPAND
+/*	The message is an address expansion probe. Update the
+/*	message delivery record.
+/* .IP DEL_REQ_FLAG_RECORD
+/*	This is a normal message with logged delivery. Update the
+/*	the message delivery record.
+/* .RE
 /* .IP queue_id
 /*	The message queue id.
 /* .IP orig_rcpt
@@ -41,9 +63,9 @@
 /*	Message arrival time.
 /* .IP format
 /*	Optional additional information.
-/* .PP
-/*	For convenience, sent() always returns a zero result.
 /* DIAGNOSTICS
+/*	A non-zero result means the operation failed.
+/*
 /*	Fatal: out of memory.
 /* BUGS
 /*	Should be replaced by routines with an attribute-value based
@@ -78,41 +100,73 @@
 
 /* Global library. */
 
-#include "sent.h"
+#include <mail_params.h>
+#include <verify.h>
+#include <log_adhoc.h>
+#include <trace.h>
+#include <defer.h>
+#include <sent.h>
+
+/* Application-specific. */
 
 /* sent - log that a message was sent */
 
-int     sent(const char *queue_id, const char *orig_rcpt,
+int     sent(int flags, const char *id, const char *orig_rcpt,
 	             const char *recipient, const char *relay,
 	             time_t entry, const char *fmt,...)
 {
     va_list ap;
+    int     status;
 
     va_start(ap, fmt);
-    vsent(queue_id, orig_rcpt, recipient, relay, entry, fmt, ap);
+    status = vsent(flags, id, orig_rcpt, recipient, relay, entry, fmt, ap);
     va_end(ap);
-    return (0);
+    return (status);
 }
 
 /* vsent - log that a message was sent */
 
-int     vsent(const char *queue_id, const char *orig_rcpt,
+int     vsent(int flags, const char *id, const char *orig_rcpt,
 	              const char *recipient, const char *relay,
 	              time_t entry, const char *fmt, va_list ap)
 {
-#define TEXT (vstring_str(text))
-    VSTRING *text = vstring_alloc(100);
-    int     delay = time((time_t *) 0) - entry;
+    int     status;
 
-    vstring_vsprintf(text, fmt, ap);
-    if (orig_rcpt && *orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
-	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, status=sent%s%s%s",
-		 queue_id, recipient, orig_rcpt, relay, delay,
-		 *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
-    else
-	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=sent%s%s%s",
-		 queue_id, recipient, relay, delay,
-		 *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
-    vstring_free(text);
-    return (0);
+    /*
+     * MTA-requested address verification information is stored in the verify
+     * service database.
+     */
+    if (flags & DEL_REQ_FLAG_VERIFY) {
+	status = vverify_append(id, orig_rcpt, recipient, relay, entry,
+				"deliverable", DEL_RCPT_STAT_OK, fmt, ap);
+	return (status);
+    }
+
+    /*
+     * User-requested address verification information is logged and mailed
+     * to the requesting user.
+     */
+    if (flags & DEL_REQ_FLAG_EXPAND) {
+	status = vtrace_append(flags, id, orig_rcpt, recipient, relay,
+			       entry, "2.0.0", "deliverable", fmt, ap);
+	return (status);
+    }
+
+    /*
+     * Normal mail delivery. May also send a delivery record to the user.
+     */
+    else {
+	if ((flags & DEL_REQ_FLAG_RECORD) == 0
+	    || vtrace_append(flags, id, orig_rcpt, recipient, relay,
+			     entry, "2.0.0", "delivered", fmt, ap) == 0) {
+	    vlog_adhoc(id, orig_rcpt, recipient, relay,
+		       entry, "sent", fmt, ap);
+	    status = 0;
+	} else {
+	    status = defer_append(flags, id, orig_rcpt, recipient,
+				  relay, entry, "%s: %s service failed",
+				  id, var_trace_service);
+	}
+	return (status);
+    }
 }

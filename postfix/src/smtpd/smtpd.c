@@ -265,6 +265,8 @@
 /*	restriction.
 /* .IP \fBmaps_rbl_reject_code\fR
 /*	Response code when a request is RBL blacklisted.
+/* .IP \fBmulti_recipient_bounce_reject_code\fR
+/*	Response code when a multi-recipient bounce is blocked.
 /* .IP \fBrbl_reply_maps\fR
 /*	Table with template responses for RBL blacklisted requests, indexed by
 /*	RBL domain name. These templates are used by the \fBreject_rbl_*\fR
@@ -284,6 +286,10 @@
 /* .IP \fBunknown_hostname_reject_code\fR
 /*	Response code when a client violates the \fBreject_unknown_hostname\fR
 /*	restriction.
+/* .IP \fBunverified_sender_reject_code\fR
+/*	Response code when a sender address is known to be undeliverable.
+/* .IP \fBunverified_recipient_reject_code\fR
+/*	Response code when a recipient address is known to be undeliverable.
 /* SEE ALSO
 /*	trivial-rewrite(8) address resolver
 /*	cleanup(8) message canonicalization
@@ -431,7 +437,11 @@ char   *var_smtpd_null_key;
 int     var_smtpd_hist_thrsh;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
+int     var_unv_from_code;
+int     var_unv_rcpt_code;
+int     var_mul_rcpt_code;
 char   *var_relay_rcpt_maps;
+char   *var_verify_sender;
 int     var_local_rcpt_code;
 int     var_virt_alias_code;
 int     var_virt_mailbox_code;
@@ -1644,6 +1654,9 @@ int     main(int argc, char **argv)
 	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
 	VAR_SMTPD_HIST_THRSH, DEF_SMTPD_HIST_THRSH, &var_smtpd_hist_thrsh, 1, 0,
+	VAR_UNV_FROM_CODE, DEF_UNV_FROM_CODE, &var_unv_from_code, 0, 0,
+	VAR_UNV_RCPT_CODE, DEF_UNV_RCPT_CODE, &var_unv_rcpt_code, 0, 0,
+	VAR_MUL_RCPT_CODE, DEF_MUL_RCPT_CODE, &var_mul_rcpt_code, 0, 0,
 	VAR_LOCAL_RCPT_CODE, DEF_LOCAL_RCPT_CODE, &var_local_rcpt_code, 0, 0,
 	VAR_VIRT_ALIAS_CODE, DEF_VIRT_ALIAS_CODE, &var_virt_alias_code, 0, 0,
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
@@ -1694,6 +1707,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
 	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
+	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,
 	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
 	0,
     };

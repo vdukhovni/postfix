@@ -214,6 +214,7 @@ extern QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *, QMGR_MESSAGE *);
 struct QMGR_MESSAGE {
     int     flags;			/* delivery problems */
     int     qflags;			/* queuing flags */
+    int     tflags;			/* tracing flags */
     VSTREAM *fp;			/* open queue file or null */
     int     refcount;			/* queue entries */
     int     single_rcpt;		/* send one rcpt at a time */

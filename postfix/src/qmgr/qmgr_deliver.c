@@ -150,8 +150,8 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
      * concurrency limits. However, the delivery agent protocol expects
      * nexthop only, so we must strip off the recipient local part.
      */
-    flags = message->inspect_xport ?
-	DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT;
+    flags = message->tflags
+	| (message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT);
     nexthop = (cp = strrchr(entry->queue->name, '@')) != 0 && cp[1] ?
 	cp + 1 : entry->queue->name;
     attr_print(stream, ATTR_FLAG_MORE,

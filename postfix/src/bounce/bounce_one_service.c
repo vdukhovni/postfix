@@ -7,12 +7,14 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_one_service(queue_name, queue_id, encoding,
-/*					orig_sender, orig_recipient, why)
+/*					orig_sender, orig_recipient,
+/*					status, why)
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
 /*	char	*orig_sender;
 /*	char	*orig_recipient;
+/*	char	*status;
 /*	char	*why;
 /* DESCRIPTION
 /*	This module implements the server side of the bounce_one()
@@ -80,7 +82,8 @@
 
 int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 			           char *orig_sender, char *orig_recipient,
-			           char *why)
+			           char *recipient, char *dsn_status,
+				   char *dsn_action, char *why)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -93,10 +96,13 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id,
-				       encoding, orig_recipient, why);
+				       encoding, orig_recipient,
+				       recipient, dsn_status,
+				       dsn_action, why);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_CLEANUP_FLAGS	0
+#define NULL_TRACE_FLAGS	0
 #define BOUNCE_HEADERS		1
 #define BOUNCE_ALL		0
 
@@ -139,7 +145,8 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 	} else {
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_2bounce_rcpt,
-						 NULL_CLEANUP_FLAGS)) != 0) {
+						 NULL_CLEANUP_FLAGS,
+						 NULL_TRACE_FLAGS)) != 0) {
 
 		/*
 		 * Double bounce to Postmaster. This is the last opportunity
@@ -162,7 +169,8 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
      */
     else {
 	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
-					     NULL_CLEANUP_FLAGS)) != 0) {
+					     NULL_CLEANUP_FLAGS,
+					     NULL_TRACE_FLAGS)) != 0) {
 
 	    /*
 	     * Send the bounce message header, some boilerplate text that
@@ -198,7 +206,8 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 	     */
 	    if ((bounce = post_mail_fopen_nowait(mail_addr_double_bounce(),
 						 var_bounce_rcpt,
-						 NULL_CLEANUP_FLAGS)) != 0) {
+						 NULL_CLEANUP_FLAGS,
+						 NULL_TRACE_FLAGS)) != 0) {
 		if (bounce_header(bounce, bounce_info, var_bounce_rcpt) == 0
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0

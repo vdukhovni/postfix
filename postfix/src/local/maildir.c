@@ -93,6 +93,13 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	MSG_LOG_STATE(myname, state);
 
     /*
+     * Don't deliver trace-only requests.
+     */
+    if (DEL_REQ_TRACE_ONLY(state.request->flags))
+	return (sent(BOUNCE_FLAGS(state.request), SENT_ATTR(state.msg_attr),
+		     "delivers to maildir"));
+
+    /*
      * Initialize. Assume the operation will fail. Set the delivered
      * attribute to reflect the final recipient.
      */
@@ -161,10 +168,12 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     } else if (mail_copy_status != 0) {
 	deliver_status = (errno == ENOSPC || errno == ESTALE ?
 			  defer_append : bounce_append)
-	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+	    (BOUNCE_FLAGS(state.request), BOUNCE_ATTR(state.msg_attr),
 	     "maildir delivery failed: %s", vstring_str(why));
     } else {
-	deliver_status = sent(SENT_ATTR(state.msg_attr), "maildir");
+	deliver_status = sent(BOUNCE_FLAGS(state.request),
+			      SENT_ATTR(state.msg_attr),
+			      "delivered to maildir");
     }
     vstring_free(buf);
     vstring_free(why);
