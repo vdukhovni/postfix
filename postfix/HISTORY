@@ -9993,6 +9993,13 @@ Apologies for any names omitted.
 
 	Bugfix: further postcat corner cases.
 
+20041228
+
+	Bugfix: SMTPD_PROXY_README incorrectly claimed that ":port"
+	in master.cf causes a server to listen only on "localhost"
+	without exposing the service to the network.  Instead,
+	":port" causes a client to connect to "localhost".
+
 Open problems:
 
 	Med: implement ${name[?:]value} in main.cf or update the
