@@ -248,7 +248,8 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
     int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
 
     if (trigger_server_lock != 0
-	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
+	&& myflock(vstream_fileno(trigger_server_lock), INTERNAL_LOCK,
+		   MYFLOCK_OP_NONE) < 0)
 	msg_fatal("select unlock: %m");
 
     if (msg_verbose)
@@ -289,7 +290,8 @@ static void trigger_server_accept_local(int unused_event, char *context)
 	trigger_server_pre_accept(trigger_server_name, trigger_server_argv);
     fd = LOCAL_ACCEPT(listen_fd);
     if (trigger_server_lock != 0
-	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
+	&& myflock(vstream_fileno(trigger_server_lock), INTERNAL_LOCK,
+		   MYFLOCK_OP_NONE) < 0)
 	msg_fatal("select unlock: %m");
     if (fd < 0) {
 	if (errno != EAGAIN)
@@ -531,7 +533,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 				".", service_name, (char *) 0);
 	why = vstring_alloc(1);
 	if ((trigger_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
-					     -1, -1, why)) == 0)
+					     (struct stat *) 0, -1, -1, why)) == 0)
 	    msg_fatal("%s", vstring_str(why));
 	close_on_exec(vstream_fileno(trigger_server_lock), CLOSE_ON_EXEC);
 	myfree(lock_path);
@@ -599,7 +601,8 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     while (var_use_limit == 0 || use_count < var_use_limit) {
 	if (trigger_server_lock != 0) {
 	    watchdog_stop(watchdog);
-	    if (myflock(vstream_fileno(trigger_server_lock), MYFLOCK_EXCLUSIVE) < 0)
+	    if (myflock(vstream_fileno(trigger_server_lock), INTERNAL_LOCK,
+			MYFLOCK_OP_EXCLUSIVE) < 0)
 		msg_fatal("select lock: %m");
 	}
 	watchdog_start(watchdog);

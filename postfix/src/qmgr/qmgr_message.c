@@ -748,13 +748,13 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
      * Extract message envelope information: time of arrival, sender address,
      * recipient addresses. Skip files with malformed envelope information.
      */
-#define QMGR_LOCK_MODE (MYFLOCK_EXCLUSIVE | MYFLOCK_NOWAIT)
+#define QMGR_LOCK_MODE (MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT)
 
     if (qmgr_message_open(message) < 0) {
 	qmgr_message_free(message);
 	return (0);
     }
-    if (myflock(vstream_fileno(message->fp), QMGR_LOCK_MODE) < 0) {
+    if (myflock(vstream_fileno(message->fp), INTERNAL_LOCK, QMGR_LOCK_MODE) < 0) {
 	msg_info("%s: skipped, still being delivered", queue_id);
 	qmgr_message_close(message);
 	qmgr_message_free(message);

@@ -4522,3 +4522,19 @@ Apologies for any names omitted.
 	Compatibility: Postfix now retries delivery when an external
 	command is killed by a signal, because people expect such
 	behavior from Sendmail. File: global/pipe_command.c.
+
+20001123-6
+
+	Feature: mailbox locking is now configurable. The configuration
+	parameter name is "mailbox_delivery_lock". Depending on
+	the operating system one can specify one or more of "flock",
+	"fcntl" and "dotlock". The default setting is system
+	dependent.  All mailbox file opens are now done by the
+	mbox_open() routine. This affects the operation of the
+	postlock command, and of local delivery to mailbox or
+	/file/name.  Files: util/safe_open.c, util/myflock.c,
+	global/deliver_flock.c, global/mbox_conf.c, global/mbox_open.c.
+	local/mailbox.c, local/file.c, postlock/postlock.c.  The
+	old sun_mailtool_compatibility parameter is being phased
+	out (it just turns off flock/fcntl locks). It still works,
+	but a warning is logged as a reminder that it goes away.

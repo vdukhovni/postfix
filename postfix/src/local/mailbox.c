@@ -67,15 +67,14 @@
 #include <mail_copy.h>
 #include <safe_open.h>
 #include <deliver_flock.h>
-#ifdef USE_DOT_LOCK
 #include <dot_lockfile.h>
-#endif
 #include <defer.h>
 #include <sent.h>
 #include <mypwd.h>
 #include <been_here.h>
 #include <mail_params.h>
 #include <deliver_pass.h>
+#include <mbox_open.h>
 
 #ifndef EDQUOT
 #define EDQUOT EFBIG
@@ -181,41 +180,41 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
     set_eugid(spool_uid, spool_gid);
-#ifdef USE_DOT_LOCK
-    if (dot_lockfile(mailbox, why) >= 0) {
-#endif
-	dst = safe_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
-			S_IRUSR | S_IWUSR, chown_uid, chown_gid, why);
-	set_eugid(usr_attr.uid, usr_attr.gid);
-	if (dst != 0) {
+    dst = mbox_open(mailbox, O_APPEND | O_WRONLY | O_CREAT,
+		    S_IRUSR | S_IWUSR, &st, chown_uid, chown_gid,
+		    local_mbox_lock_mask, why);
+    if (dst != 0) {
+	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
+	    set_eugid(usr_attr.uid, usr_attr.gid);
+	if (S_ISREG(st.st_mode) == 0) {
+	    vstring_sprintf(why, "file %s should be a regular file", mailbox);
+	    errno = 0;
+	} else {
 	    end = vstream_fseek(dst, (off_t) 0, SEEK_END);
-	    if (deliver_flock(vstream_fileno(dst), why) < 0)
-		vstream_fclose(dst);
-	    else if (mail_copy(COPY_ATTR(state.msg_attr), dst,
-			       copy_flags, "\n", why) == 0) {
-		status = 0;
-		if (var_biff) {
-		    biff = vstring_alloc(100);
-		    vstring_sprintf(biff, "%s@%ld", usr_attr.logname,
-				    (long) end);
-		    biff_notify(vstring_str(biff), VSTRING_LEN(biff) + 1);
-		    vstring_free(biff);
-		}
-	    }
+	    status = mail_copy(COPY_ATTR(state.msg_attr), dst,
+			       copy_flags, "\n", why);
 	}
-#ifdef USE_DOT_LOCK
-	set_eugid(spool_uid, spool_gid);
-	dot_unlockfile(mailbox);
+	if (spool_uid != usr_attr.uid || spool_gid != usr_attr.gid)
+	    set_eugid(spool_uid, spool_gid);
+	mbox_release(mailbox, local_mbox_lock_mask);
     }
-#endif
     set_eugid(var_owner_uid, var_owner_gid);
 
-    if (status)
-	status = (errno == EDQUOT ? bounce_append : defer_append)
+    if (status != 0) {
+	status = (errno == EAGAIN || errno == ENOSPC ?
+		  defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-	     "cannot append to file %s: %s", mailbox, vstring_str(why));
-    else
+	     "cannot access mailbox for user %s. %s",
+	     state.msg_attr.user, vstring_str(why));
+    } else {
 	sent(SENT_ATTR(state.msg_attr), "mailbox");
+	if (var_biff) {
+	    biff = vstring_alloc(100);
+	    vstring_sprintf(biff, "%s@%ld", usr_attr.logname, (long) end);
+	    biff_notify(vstring_str(biff), VSTRING_LEN(biff) + 1);
+	    vstring_free(biff);
+	}
+    }
     myfree(mailbox);
     vstring_free(why);
     return (status);

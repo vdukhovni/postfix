@@ -85,6 +85,7 @@ alias.o: ../../include/tok822.h
 alias.o: ../../include/resolve_clnt.h
 alias.o: ../../include/deliver_request.h
 alias.o: ../../include/recipient_list.h
+alias.o: ../../include/mbox_conf.h
 biff_notify.o: biff_notify.c
 biff_notify.o: ../../include/sys_defs.h
 biff_notify.o: ../../include/msg.h
@@ -109,6 +110,7 @@ command.o: ../../include/tok822.h
 command.o: ../../include/resolve_clnt.h
 command.o: ../../include/deliver_request.h
 command.o: ../../include/recipient_list.h
+command.o: ../../include/mbox_conf.h
 deliver_attr.o: deliver_attr.c
 deliver_attr.o: ../../include/sys_defs.h
 deliver_attr.o: ../../include/msg.h
@@ -122,6 +124,8 @@ deliver_attr.o: ../../include/tok822.h
 deliver_attr.o: ../../include/resolve_clnt.h
 deliver_attr.o: ../../include/deliver_request.h
 deliver_attr.o: ../../include/recipient_list.h
+deliver_attr.o: ../../include/mbox_conf.h
+deliver_attr.o: ../../include/argv.h
 delivered.o: delivered.c
 delivered.o: ../../include/sys_defs.h
 delivered.o: ../../include/msg.h
@@ -142,6 +146,8 @@ delivered.o: ../../include/tok822.h
 delivered.o: ../../include/resolve_clnt.h
 delivered.o: ../../include/deliver_request.h
 delivered.o: ../../include/recipient_list.h
+delivered.o: ../../include/mbox_conf.h
+delivered.o: ../../include/argv.h
 dotforward.o: dotforward.c
 dotforward.o: ../../include/sys_defs.h
 dotforward.o: ../../include/msg.h
@@ -167,6 +173,8 @@ dotforward.o: ../../include/tok822.h
 dotforward.o: ../../include/resolve_clnt.h
 dotforward.o: ../../include/deliver_request.h
 dotforward.o: ../../include/recipient_list.h
+dotforward.o: ../../include/mbox_conf.h
+dotforward.o: ../../include/argv.h
 file.o: file.c
 file.o: ../../include/sys_defs.h
 file.o: ../../include/msg.h
@@ -175,14 +183,18 @@ file.o: ../../include/vstring.h
 file.o: ../../include/vbuf.h
 file.o: ../../include/vstream.h
 file.o: ../../include/deliver_flock.h
-file.o: ../../include/open_as.h
+file.o: ../../include/myflock.h
+file.o: ../../include/set_eugid.h
 file.o: ../../include/mail_copy.h
 file.o: ../../include/bounce.h
 file.o: ../../include/defer.h
 file.o: ../../include/sent.h
 file.o: ../../include/been_here.h
 file.o: ../../include/mail_params.h
-file.o: ../../include/dot_lockfile_as.h
+file.o: ../../include/mbox_conf.h
+file.o: ../../include/argv.h
+file.o: ../../include/mbox_open.h
+file.o: ../../include/safe_open.h
 file.o: local.h
 file.o: ../../include/tok822.h
 file.o: ../../include/resolve_clnt.h
@@ -214,6 +226,7 @@ forward.o: ../../include/tok822.h
 forward.o: ../../include/resolve_clnt.h
 forward.o: ../../include/deliver_request.h
 forward.o: ../../include/recipient_list.h
+forward.o: ../../include/mbox_conf.h
 include.o: include.c
 include.o: ../../include/sys_defs.h
 include.o: ../../include/msg.h
@@ -236,6 +249,8 @@ include.o: ../../include/tok822.h
 include.o: ../../include/resolve_clnt.h
 include.o: ../../include/deliver_request.h
 include.o: ../../include/recipient_list.h
+include.o: ../../include/mbox_conf.h
+include.o: ../../include/argv.h
 indirect.o: indirect.c
 indirect.o: ../../include/sys_defs.h
 indirect.o: ../../include/msg.h
@@ -252,6 +267,8 @@ indirect.o: ../../include/tok822.h
 indirect.o: ../../include/resolve_clnt.h
 indirect.o: ../../include/deliver_request.h
 indirect.o: ../../include/recipient_list.h
+indirect.o: ../../include/mbox_conf.h
+indirect.o: ../../include/argv.h
 local.o: local.c
 local.o: ../../include/sys_defs.h
 local.o: ../../include/msg.h
@@ -277,6 +294,7 @@ local.o: ../../include/mail_server.h
 local.o: local.h
 local.o: ../../include/tok822.h
 local.o: ../../include/resolve_clnt.h
+local.o: ../../include/mbox_conf.h
 local_expand.o: local_expand.c
 local_expand.o: ../../include/sys_defs.h
 local_expand.o: ../../include/vstring.h
@@ -292,6 +310,8 @@ local_expand.o: ../../include/tok822.h
 local_expand.o: ../../include/resolve_clnt.h
 local_expand.o: ../../include/deliver_request.h
 local_expand.o: ../../include/recipient_list.h
+local_expand.o: ../../include/mbox_conf.h
+local_expand.o: ../../include/argv.h
 mailbox.o: mailbox.c
 mailbox.o: ../../include/sys_defs.h
 mailbox.o: ../../include/msg.h
@@ -305,6 +325,8 @@ mailbox.o: ../../include/set_eugid.h
 mailbox.o: ../../include/mail_copy.h
 mailbox.o: ../../include/safe_open.h
 mailbox.o: ../../include/deliver_flock.h
+mailbox.o: ../../include/myflock.h
+mailbox.o: ../../include/dot_lockfile.h
 mailbox.o: ../../include/defer.h
 mailbox.o: ../../include/bounce.h
 mailbox.o: ../../include/sent.h
@@ -316,9 +338,12 @@ mailbox.o: ../../include/deliver_request.h
 mailbox.o: ../../include/recipient_list.h
 mailbox.o: ../../include/mail_proto.h
 mailbox.o: ../../include/iostuff.h
+mailbox.o: ../../include/mbox_open.h
 mailbox.o: local.h
 mailbox.o: ../../include/tok822.h
 mailbox.o: ../../include/resolve_clnt.h
+mailbox.o: ../../include/mbox_conf.h
+mailbox.o: ../../include/argv.h
 mailbox.o: biff_notify.h
 maildir.o: maildir.c
 maildir.o: ../../include/sys_defs.h
@@ -343,6 +368,8 @@ maildir.o: ../../include/tok822.h
 maildir.o: ../../include/resolve_clnt.h
 maildir.o: ../../include/deliver_request.h
 maildir.o: ../../include/recipient_list.h
+maildir.o: ../../include/mbox_conf.h
+maildir.o: ../../include/argv.h
 recipient.o: recipient.c
 recipient.o: ../../include/sys_defs.h
 recipient.o: ../../include/msg.h
@@ -368,6 +395,7 @@ recipient.o: ../../include/tok822.h
 recipient.o: ../../include/resolve_clnt.h
 recipient.o: ../../include/deliver_request.h
 recipient.o: ../../include/recipient_list.h
+recipient.o: ../../include/mbox_conf.h
 resolve.o: resolve.c
 resolve.o: ../../include/sys_defs.h
 resolve.o: ../../include/msg.h
@@ -385,6 +413,8 @@ resolve.o: local.h
 resolve.o: ../../include/been_here.h
 resolve.o: ../../include/deliver_request.h
 resolve.o: ../../include/recipient_list.h
+resolve.o: ../../include/mbox_conf.h
+resolve.o: ../../include/argv.h
 token.o: token.c
 token.o: ../../include/sys_defs.h
 token.o: ../../include/msg.h
@@ -404,6 +434,8 @@ token.o: local.h
 token.o: ../../include/been_here.h
 token.o: ../../include/deliver_request.h
 token.o: ../../include/recipient_list.h
+token.o: ../../include/mbox_conf.h
+token.o: ../../include/argv.h
 unknown.o: unknown.c
 unknown.o: ../../include/sys_defs.h
 unknown.o: ../../include/msg.h
@@ -423,3 +455,5 @@ unknown.o: ../../include/tok822.h
 unknown.o: ../../include/resolve_clnt.h
 unknown.o: ../../include/deliver_request.h
 unknown.o: ../../include/recipient_list.h
+unknown.o: ../../include/mbox_conf.h
+unknown.o: ../../include/argv.h

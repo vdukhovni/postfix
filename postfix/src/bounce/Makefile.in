@@ -82,6 +82,7 @@ bounce_append_service.o: ../../include/stringops.h
 bounce_append_service.o: ../../include/mail_queue.h
 bounce_append_service.o: ../../include/quote_822_local.h
 bounce_append_service.o: ../../include/deliver_flock.h
+bounce_append_service.o: ../../include/myflock.h
 bounce_append_service.o: bounce_service.h
 bounce_append_service.o: ../../include/bounce_log.h
 bounce_cleanup.o: bounce_cleanup.c

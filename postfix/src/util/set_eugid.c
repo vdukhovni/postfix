@@ -33,6 +33,7 @@
 #include <sys_defs.h>
 #include <unistd.h>
 #include <grp.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -43,6 +44,8 @@
 
 void    set_eugid(uid_t euid, gid_t egid)
 {
+    int     saved_errno = errno;
+
     if (geteuid() != 0)
 	if (seteuid(0))
 	    msg_fatal("set_eugid: seteuid(0): %m");
@@ -54,4 +57,5 @@ void    set_eugid(uid_t euid, gid_t egid)
 	msg_fatal("set_eugid: seteuid(%ld): %m", (long) euid);
     if (msg_verbose)
 	msg_info("set_eugid: euid %ld egid %ld", (long) euid, (long) egid);
+    errno = saved_errno;
 }

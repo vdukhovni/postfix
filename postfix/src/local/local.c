@@ -282,7 +282,7 @@
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
 /* .IP \fBtest_home_directory\fR
-/*	Require that a recipient's home directory is accessible by the 
+/*	Require that a recipient's home directory is accessible by the
 /*	recipient before attempting delivery.
 /* .SH Mailbox delivery
 /* .ad
@@ -320,6 +320,11 @@
 /*	an exclusive lock.
 /* .IP \fBstale_lock_time\fR
 /*	Limit the time after which a stale lock is removed.
+/* .IP \fBmailbox__delivery_lock\fR
+/*	What file locking method(s) to use when delivering to a UNIX-style
+/*	mailbox.
+/*	The default setting is system dependent.  For a list of available
+/*	file locking methods, use the \fBpostconf -l\fR command.
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -446,11 +451,14 @@ char   *var_prop_extension;
 int     var_exp_own_alias;
 char   *var_deliver_hdr;
 int     var_stat_home_dir;
+int     var_mailtool_compat;
+char   *var_mailbox_lock;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
 int     local_ext_prop_mask;
 int     local_deliver_hdr_mask;
+int     local_mbox_lock_mask;
 
 /* local_deliver - deliver message with extreme prejudice */
 
@@ -570,10 +578,21 @@ static void local_mask_init(void)
 	0,
     };
 
-    local_file_deliver_mask = name_mask(file_mask, var_allow_files);
-    local_cmd_deliver_mask = name_mask(command_mask, var_allow_commands);
+    local_file_deliver_mask = name_mask(VAR_ALLOW_FILES, file_mask,
+					var_allow_files);
+    local_cmd_deliver_mask = name_mask(VAR_ALLOW_COMMANDS, command_mask,
+				       var_allow_commands);
     local_ext_prop_mask = ext_prop_mask(var_prop_extension);
-    local_deliver_hdr_mask = name_mask(deliver_mask, var_deliver_hdr);
+    local_deliver_hdr_mask = name_mask(VAR_DELIVER_HDR, deliver_mask,
+				       var_deliver_hdr);
+    local_mbox_lock_mask = mbox_lock_mask(var_mailbox_lock);
+    if (var_mailtool_compat) {
+	msg_warn("%s: deprecated parameter, use \"%s = dotlock\" instead",
+		 VAR_MAILTOOL_COMPAT, VAR_MAILBOX_LOCK);
+	local_mbox_lock_mask &= MBOX_DOT_LOCK;
+    }
+    if (local_mbox_lock_mask == 0)
+	msg_fatal("no applicable mailbox locking method");
 }
 
 /* pre_accept - see if tables have changed */
@@ -620,12 +639,14 @@ int     main(int argc, char **argv)
 	VAR_FWD_EXP_FILTER, DEF_FWD_EXP_FILTER, &var_fwd_exp_filter, 1, 0,
 	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
+	VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, &var_mailbox_lock, 1, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_BIFF, DEF_BIFF, &var_biff,
 	VAR_EXP_OWN_ALIAS, DEF_EXP_OWN_ALIAS, &var_exp_own_alias,
 	VAR_STAT_HOME_DIR, DEF_STAT_HOME_DIR, &var_stat_home_dir,
+	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
 	0,
     };
 

@@ -53,6 +53,7 @@
 
 /* Global library. */
 
+#include <mail_params.h>
 #include <ext_prop.h>
 
 /* ext_prop_mask - compute extension propagation mask */
@@ -68,5 +69,5 @@ int     ext_prop_mask(const char *pattern)
 	0,
     };
 
-    return (name_mask(table, pattern));
+    return (name_mask(VAR_PROP_EXTENSION, table, pattern));
 }

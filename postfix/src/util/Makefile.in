@@ -22,7 +22,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
-	hex_quote.c
+	hex_quote.c 
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -46,7 +46,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
-	hex_quote.o
+	hex_quote.o 
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -77,7 +77,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
-	watchdog unescape hex_quote
+	watchdog unescape hex_quote name_mask
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -252,6 +252,11 @@ unescape: $(LIB)
 	mv junk $@.o
 
 hex_quote: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+name_mask: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -710,6 +715,8 @@ mvect.o: mvect.h
 myflock.o: myflock.c
 myflock.o: sys_defs.h
 myflock.o: msg.h
+myflock.o: vstring.h
+myflock.o: vbuf.h
 myflock.o: myflock.h
 mymalloc.o: mymalloc.c
 mymalloc.o: sys_defs.h

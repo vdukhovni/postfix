@@ -274,7 +274,8 @@ void    smtp_sasl_initialize(void)
     /*
      * Configuration parameters.
      */
-    smtp_sasl_sec_opts = name_mask(smtp_sasl_sec_mask, var_smtp_sasl_opts);
+    smtp_sasl_sec_opts = name_mask(VAR_SMTP_SASL_OPTS, smtp_sasl_sec_mask,
+				   var_smtp_sasl_opts);
 }
 
 /* smtp_sasl_connect - per-session client initialization */

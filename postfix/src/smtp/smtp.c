@@ -302,21 +302,22 @@ static int deliver_message(DELIVER_REQUEST *request)
 	if (smtp_helo(state) == 0)
 	    smtp_xfer(state);
 	if (state->history != 0
-	    && (state->error_mask & name_mask(mail_error_masks, var_notify_classes)))
+	    && (state->error_mask & name_mask(VAR_NOTIFY_CLASSES,
+				     mail_error_masks, var_notify_classes)))
 	    smtp_chat_notify(state);
 	smtp_session_free(state->session);
 	debug_peer_restore();
-    }
+}
 
-    /*
-     * Clean up.
-     */
-    vstring_free(why);
-    smtp_chat_reset(state);
-    result = state->status;
-    smtp_state_free(state);
+ /*
+  * Clean up.
+  */
+vstring_free(why);
+smtp_chat_reset(state);
+result = state->status;
+smtp_state_free(state);
 
-    return (result);
+return (result);
 }
 
 /* smtp_service - perform service for client */

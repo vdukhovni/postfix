@@ -82,7 +82,7 @@ int     bounce_append_service(char *service, char *queue_id,
      * Lock out other processes to avoid truncating someone else's data in
      * case of trouble.
      */
-    if (deliver_flock(vstream_fileno(log), (VSTRING *) 0) < 0)
+    if (deliver_flock(vstream_fileno(log), INTERNAL_LOCK, (VSTRING *) 0) < 0)
 	msg_fatal("lock file  %s %s: %m", service, queue_id);
 
     /*

@@ -84,7 +84,8 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_SHARED) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
 
     /*
@@ -121,7 +122,8 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
 
     return (result);
@@ -165,7 +167,8 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
 
     /*
@@ -186,7 +189,8 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
 }
 
@@ -202,7 +206,8 @@ static int dict_dbm_delete(DICT *dict, const char *name)
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
 
     /*
@@ -242,7 +247,8 @@ static int dict_dbm_delete(DICT *dict, const char *name)
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
 
     return (status);
@@ -264,7 +270,8 @@ static int dict_dbm_sequence(DICT *dict, const int function,
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
 
     /*
@@ -284,7 +291,8 @@ static int dict_dbm_sequence(DICT *dict, const int function,
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
 
     if (dbm_key.dptr != 0 && dbm_key.dsize > 0) {
@@ -369,7 +377,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 	dbm_path = concatenate(path, ".pag", (char *) 0);
 	if ((lock_fd = open(dbm_path, open_flags, 0644)) < 0)
 	    msg_fatal("open database %s: %m", dbm_path);
-	if (myflock(lock_fd, MYFLOCK_SHARED) < 0)
+	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 	    msg_fatal("shared-lock database %s for open: %m", dbm_path);
     }
 
@@ -380,7 +388,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 	msg_fatal("open database %s.{dir,pag}: %m", path);
 
     if (dict_flags & DICT_FLAG_LOCK) {
-	if (myflock(lock_fd, MYFLOCK_NONE) < 0)
+	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	    msg_fatal("unlock database %s for open: %m", dbm_path);
 	if (close(lock_fd) < 0)
 	    msg_fatal("close database %s: %m", dbm_path);

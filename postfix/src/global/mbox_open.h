@@ -1,32 +1,28 @@
-#ifndef _SAFE_OPEN_H_INCLUDED_
-#define _SAFE_OPEN_H_INCLUDED_
+#ifndef _MBOX_OPEN_H_INCLUDED_
+#define _MBOX_OPEN_H_INCLUDED_
 
 /*++
 /* NAME
-/*	safe_open 3h
+/*	mbox_open 3h
 /* SUMMARY
-/*	safely open or create regular file
+/*	mailbox access
 /* SYNOPSIS
-/*	#include <safe_open.h>
+/*	#include <mbox_open.h>
 /* DESCRIPTION
 /* .nf
-
- /*
-  * System library.
-  */
-#include <sys/stat.h>
-#include <fcntl.h>
 
  /*
   * Utility library.
   */
 #include <vstream.h>
 #include <vstring.h>
+#include <safe_open.h>
 
  /*
   * External interface.
   */
-extern VSTREAM *safe_open(const char *, int, int, struct stat *, uid_t, gid_t, VSTRING *);
+extern VSTREAM *mbox_open(const char *, int, int, struct stat *, uid_t, gid_t, int, VSTRING *);
+extern void mbox_release(const char *, int);
 
 /* LICENSE
 /* .ad

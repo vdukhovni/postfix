@@ -154,12 +154,18 @@ decode:		root
 #               Restrict the usage of  mail  delivery  to  external
 #               file.
 # 
+#        expand_owner_alias
+#               When delivering to an alias that has an owner- com-
+#               panion alias, set the envelope  sender  address  to
+#               the  right-hand  side  of  the owner alias, instead
+#               using of the left-hand side address.
+# 
 #        owner_request_special
 #               Give special treatment to owner-xxx and xxx-request
 #               addresses.
 # 
 #        recipient_delimiter
-#               Delimiter that separates  recipients  from  address
+#               Delimiter  that  separates  recipients from address
 #               extensions.
 # 
 # STANDARDS
@@ -170,7 +176,7 @@ decode:		root
 #        postalias(1) alias database management
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)

@@ -365,6 +365,15 @@ extern char *var_fallback_transport;
 #define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension},$home/.forward"
 extern char *var_forward_path;
 
+ /*
+  * Mailbox locking. DEF_MAILBOX_LOCK is defined in sys_defs.h.
+  */
+#define VAR_MAILBOX_LOCK	"mailbox_delivery_lock"
+extern char *var_mailbox_lock;
+
+ /*
+  * Miscellaneous.
+  */
 #define VAR_PROP_EXTENSION	"propagate_unmatched_extensions"
 #define DEF_PROP_EXTENSION	"canonical, virtual"
 extern char *var_prop_extension;

@@ -19,6 +19,10 @@
   * directory. Adding support for a new system type means updating the
   * makedefs script, and adding a section below for the new system.
   */
+
+ /*
+  * 4.4BSD and close derivatives.
+  */
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(FREEBSD5) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
@@ -27,7 +31,9 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #define USE_PATHS_H
-#define USE_FLOCK_LOCK
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
 #define HAS_SUN_LEN
 #define HAS_FSYNC
 #define HAS_DB
@@ -56,14 +62,24 @@
 #endif
 
 #if defined(NETBSD1)
-#define USE_DOT_LOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #endif
 
+#ifndef DEF_MAILBOX_LOCK
+#define DEF_MAILBOX_LOCK "flock"
+#endif
+
+ /*
+  * UNIX on MAC.
+  */
 #if defined(RHAPSODY5) || defined(MACOSX)
 #define SUPPORTED
 #include <sys/types.h>
 #define USE_PATHS_H
-#define USE_FLOCK_LOCK
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock"
 #define HAS_SUN_LEN
 #define HAS_FSYNC
 #define HAS_DB
@@ -81,6 +97,10 @@
 #define HAS_NETINFO
 #endif
 
+ /*
+  * Ultrix 4.x, a sort of 4.[1-2] BSD system with System V.2 compatibility
+  * and POSIX.
+  */
 #ifdef ULTRIX4
 #define SUPPORTED
 /* Ultrix by default has only 64 descriptors per process */
@@ -92,8 +112,10 @@
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/bin:/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/bin:/usr/bin:/usr/etc:/usr/ucb"
-#define USE_FLOCK_LOCK
-#define USE_DOT_LOCK
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_FSYNC
 /* might be set by makedef */
 #ifdef HAS_DB
@@ -123,14 +145,19 @@ extern int h_errno;
 #define NO_HERRNO
 #endif
 
+ /*
+  * OSF, then Digital UNIX, then Compaq. A BSD-flavored hybrid.
+  */
 #ifdef OSF1
 #define SUPPORTED
 #include <sys/types.h>
 #define MISSING_SETENV
 #define USE_PATHS_H
 #define _PATH_DEFPATH "/usr/bin:/usr/ucb"
-#define USE_FLOCK_LOCK
-#define USE_DOT_LOCK
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_FSYNC
 #define HAVE_BASENAME
 #define HAS_DBM
@@ -148,6 +175,10 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define HAS_POSIX_REGEXP
 #endif
 
+ /*
+  * SunOS 4.x, a mostly 4.[2-3] BSD system with System V.2 compatibility and
+  * POSIX support.
+  */
 #ifdef SUNOS4
 #define SUPPORTED
 #include <sys/types.h>
@@ -159,8 +190,10 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/usr/bin:/usr/etc:/usr/ucb"
-#define USE_FLOCK_LOCK
-#define USE_DOT_LOCK
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
@@ -178,6 +211,9 @@ extern int opterr;
 #define NO_HERRNO
 #endif
 
+ /*
+  * SunOS 5.x, mostly System V Release 4.
+  */
 #ifdef SUNOS5
 #define SUPPORTED
 #define _SVID_GETTOD			/* Solaris 2.5, XSH4.2 versus SVID */
@@ -187,8 +223,9 @@ extern int opterr;
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
@@ -208,6 +245,9 @@ extern int opterr;
 #define HAS_VOLATILE_LOCKS
 #endif
 
+ /*
+  * UnixWare, System Release 4.
+  */
 #ifdef UW7				/* UnixWare 7 */
 #define SUPPORTED
 #include <sys/types.h>
@@ -216,8 +256,9 @@ extern int opterr;
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
 #define MISSING_SETENV
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
@@ -241,8 +282,9 @@ extern int opterr;
 #define _PATH_DEFPATH   "/usr/bin:/usr/ucb"
 #define _PATH_STDPATH   "/usr/bin:/usr/sbin:/usr/ucb"
 #define MISSING_SETENV
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
 #define DEF_DB_TYPE     "dbm"
@@ -259,6 +301,10 @@ extern int opterr;
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #endif
 
+ /*
+  * AIX: a SYSV-flavored hybrid. NB: fcntl() and flock() access the same
+  * underlying locking primitives.
+  */
 #ifdef AIX4
 #define SUPPORTED
 #include <sys/types.h>
@@ -267,8 +313,9 @@ extern int opterr;
 #define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define USE_SYS_SELECT_H
 #define HAS_FSYNC
 #define HAS_DBM
@@ -299,8 +346,9 @@ extern int initgroups(const char *, int);
 #define _PATH_MAILDIR   "/var/spool/mail"	/* paths.h lies */
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define USE_SYS_SELECT_H
 #define HAS_FSYNC
 #define HAS_DBM
@@ -323,6 +371,9 @@ extern int initgroups(const char *, int);
 
 #endif
 
+ /*
+  * IRIX, a mix of System V Releases.
+  */
 #if defined(IRIX5) || defined(IRIX6)
 #define SUPPORTED
 #include <sys/types.h>
@@ -331,8 +382,9 @@ extern int initgroups(const char *, int);
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/usr/bin:/usr/bsd"
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/bsd"
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
@@ -351,12 +403,17 @@ extern int initgroups(const char *, int);
 #define MISSING_USLEEP
 #endif
 
+ /*
+  * LINUX.
+  */
 #ifdef LINUX2
 #define SUPPORTED
 #include <sys/types.h>
 #define USE_PATHS_H
-#define USE_FLOCK_LOCK
-#define USE_DOT_LOCK
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_FSYNC
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"
@@ -380,7 +437,9 @@ extern int initgroups(const char *, int);
 #define USE_SIG_RETURN
 #include <sys/types.h>
 #define HAS_DBM
-#define USE_FCNTL_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
@@ -408,7 +467,9 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define USE_SIG_RETURN
 #include <sys/types.h>
 #define HAS_DBM
-#define USE_FCNTL_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
@@ -436,7 +497,9 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define USE_SIG_RETURN
 #include <sys/types.h>
 #define HAS_DBM
-#define USE_FCNTL_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_NIS
 #define MISSING_SETENV
@@ -468,7 +531,9 @@ extern int h_errno;
 #define SUPPORTED
 #include <sys/types.h>
 #define HAS_DBM
-#define USE_FLOCK_LOCK
+#define HAS_FLOCK_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define USE_STATFS
 #define HAVE_SYS_DIR_H
 #define STATFS_IN_SYS_VFS_H
@@ -516,7 +581,9 @@ extern int opterr;
 #define SUPPORTED
 #include <sys/types.h>
 #define HAS_DBM
-#define USE_FLOCK_LOCK
+#define HAS_FLOCK_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"
 #define USE_STATFS
 #define HAVE_SYS_DIR_H
 #define STATFS_IN_SYS_VFS_H
@@ -567,8 +634,9 @@ extern int opterr;
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_MAILDIR	"/var/spool/mail"
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define FIONREAD_IN_SYS_FILIO_H
 #define USE_SYS_SOCKIO_H
@@ -595,8 +663,9 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
 #define MISSING_SETENV
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define DEF_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
@@ -625,8 +694,9 @@ extern int h_errno;
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_DEFPATH	"/bin:/usr/bin"
 #define USE_PATHS_H
-#define USE_FCNTL_LOCK
-#define USE_DOT_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
+#define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
@@ -672,12 +742,16 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 #endif
 #define OPTIND  (optind > 0 ? optind : 1)
 
-#if defined(USE_FCNTL_LOCK) && defined(USE_FLOCK_LOCK)
-#error "define USE_FCNTL_LOCK or USE_FLOCK_LOCK, not both"
+#if !defined(HAS_FCNTL_LOCK) && !defined(HAS_FLOCK_LOCK)
+#error "define HAS_FCNTL_LOCK and/or HAS_FLOCK_LOCK"
 #endif
 
-#if !defined(USE_FCNTL_LOCK) && !defined(USE_FLOCK_LOCK)
-#error "define USE_FCNTL_LOCK or USE_FLOCK_LOCK"
+#if !defined(DEF_MAILBOX_LOCK)
+#error "define DEF_MAILBOX_LOCK"
+#endif
+
+#if !defined(INTERNAL_LOCK)
+#error "define INTERNAL_LOCK"
 #endif
 
 #if defined(USE_STATFS) && defined(USE_STATVFS)

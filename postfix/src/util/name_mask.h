@@ -19,7 +19,8 @@ typedef struct {
     int     mask;
 } NAME_MASK;
 
-extern int name_mask(NAME_MASK *, const char *);
+extern int name_mask(const char *, NAME_MASK *, const char *);
+extern const char *str_name_mask(const char *, NAME_MASK *, int);
 
 /* LICENSE
 /* .ad

@@ -14,15 +14,24 @@
  /*
   * External interface.
   */
-extern int myflock(int, int);
+extern int myflock(int, int, int);
 extern int myflock_locked(int);
 
-#define MYFLOCK_NONE		0
-#define MYFLOCK_SHARED		1
-#define MYFLOCK_EXCLUSIVE	2
-#define MYFLOCK_LOCK_MASK	(MYFLOCK_SHARED | MYFLOCK_EXCLUSIVE)
-#define MYFLOCK_NOWAIT		4
-#define MYFLOCK_BITS		(MYFLOCK_LOCK_MASK | MYFLOCK_NOWAIT)
+ /*
+  * Lock styles.
+  */
+#define MYFLOCK_STYLE_FLOCK	1
+#define MYFLOCK_STYLE_FCNTL	2
+
+ /*
+  * Lock request types.
+  */
+#define MYFLOCK_OP_NONE	0
+#define MYFLOCK_OP_SHARED	1
+#define MYFLOCK_OP_EXCLUSIVE	2
+#define MYFLOCK_OP_NOWAIT	4
+#define MYFLOCK_OP_BITS \
+	(MYFLOCK_OP_SHARED | MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT)
 
 /* LICENSE
 /* .ad

@@ -6,10 +6,11 @@
 /* SYNOPSIS
 /*	#include <safe_open.h>
 /*
-/*	VSTREAM	*safe_open(path, flags, mode, user, group, why)
+/*	VSTREAM	*safe_open(path, flags, mode, st, user, group, why)
 /*	const char *path;
 /*	int	flags;
 /*	int	mode;
+/*	struct stat *st;
 /*	uid_t	user;
 /*	gid_t	group;
 /*	VSTRING	*why;
@@ -17,8 +18,8 @@
 /*	safe_open() carefully opens or creates a file in a directory
 /*	that may be writable by untrusted users. If a file is created
 /*	it is given the specified ownership and permission attributes.
-/*	If an existing file is opened it must be a regular file with
-/*	only one hard link.
+/*	If an existing file is opened it must not be a symbolic link,
+/*	it must not be a directory, and it must have only one hard link.
 /*
 /*	Arguments:
 /* .IP "path, flags, mode"
@@ -26,6 +27,9 @@
 /*	must appear either in combination with O_CREAT, or not at all.
 /* .sp
 /*	No change is made to the permissions of an existing file.
+/* .IP st
+/*	Null pointer, or pointer to storage for the attributes of the
+/*	opened file.
 /* .IP "user, group"
 /*	File ownership for a file created by safe_open(). Specify -1
 /*	in order to disable user and/or group ownership change.
@@ -82,9 +86,10 @@
 
 /* safe_open_exist - open existing file */
 
-static VSTREAM *safe_open_exist(const char *path, int flags, VSTRING *why)
+static VSTREAM *safe_open_exist(const char *path, int flags,
+				        struct stat * fstat_st, VSTRING *why)
 {
-    struct stat fstat_st;
+    struct stat local_statbuf;
     struct stat lstat_st;
     VSTREAM *fp;
 
@@ -99,14 +104,16 @@ static VSTREAM *safe_open_exist(const char *path, int flags, VSTRING *why)
     /*
      * Examine the modes from the open file: it must have exactly one hard
      * link (so that someone can't lure us into clobbering a sensitive file
-     * by making a hard link to it), and it must be a regular file.
+     * by making a hard link to it), and it must be a non-symlink file.
      */
-    if (fstat(vstream_fileno(fp), &fstat_st) < 0) {
-	vstring_sprintf(why, "file %s: bad status: %m", path);
-    } else if (S_ISREG(fstat_st.st_mode) == 0) {
-	vstring_sprintf(why, "file %s: must be a regular file", path);
-    } else if (fstat_st.st_nlink != 1) {
-	vstring_sprintf(why, "file %s: must have one hard link", path);
+    if (fstat_st == 0)
+	fstat_st = &local_statbuf;
+    if (fstat(vstream_fileno(fp), fstat_st) < 0) {
+	msg_fatal("file %s: bad status after open: %m", path);
+    } else if (fstat_st->st_nlink != 1) {
+	vstring_sprintf(why, "file %s: should not have multiple links", path);
+    } else if (S_ISDIR(fstat_st->st_mode)) {
+	vstring_sprintf(why, "file %s: should not be a directory", path);
     }
 
     /*
@@ -121,14 +128,15 @@ static VSTREAM *safe_open_exist(const char *path, int flags, VSTRING *why)
      * on systems that have one.
      */
     else if (lstat(path, &lstat_st) < 0
-	     || fstat_st.st_dev != lstat_st.st_dev
-	     || fstat_st.st_ino != lstat_st.st_ino
+	     || fstat_st->st_dev != lstat_st.st_dev
+	     || fstat_st->st_ino != lstat_st.st_ino
 #ifdef HAS_ST_GEN
-	     || fstat_st.st_gen != lstat_st.st_gen
+	     || fstat_st->st_gen != lstat_st.st_gen
 #endif
-	     || fstat_st.st_nlink != lstat_st.st_nlink
-	     || fstat_st.st_mode != lstat_st.st_mode) {
-	vstring_sprintf(why, "file %s: status has changed", path);
+	     || fstat_st->st_nlink != lstat_st.st_nlink
+	     || fstat_st->st_mode != lstat_st.st_mode) {
+	vstring_sprintf(why, "file %s: %s", path, S_ISLNK(lstat_st.st_mode) ?
+	  "should not be a symbolic link" : "status changed after opening");
     }
 
     /*
@@ -150,7 +158,7 @@ static VSTREAM *safe_open_exist(const char *path, int flags, VSTRING *why)
 /* safe_open_create - create new file */
 
 static VSTREAM *safe_open_create(const char *path, int flags, int mode,
-			              uid_t user, uid_t group, VSTRING *why)
+	            struct stat * st, uid_t user, uid_t group, VSTRING *why)
 {
     VSTREAM *fp;
 
@@ -159,7 +167,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
      * follow symbolic links.
      */
     if ((fp = vstream_fopen(path, flags | (O_CREAT | O_EXCL), mode)) == 0) {
-	vstring_sprintf(why, "error opening file %s: %m", path);
+	vstring_sprintf(why, "file %s: cannot open: %m", path);
 	return (0);
     }
 
@@ -172,8 +180,14 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
 
     if (CHANGE_OWNER(user, group)
 	&& fchown(vstream_fileno(fp), user, group) < 0) {
-	vstring_sprintf(why, "error changing ownership of %s: %m", path);
+	vstring_sprintf(why, "file %s: cannot change ownership: %m", path);
     }
+
+    /*
+     * Optionally look up the file attributes.
+     */
+    if (st != 0 && fstat(vstream_fileno(fp), st) < 0)
+	msg_fatal("file %s: cannot get status after open: %m", path);
 
     /*
      * We are almost there...
@@ -192,7 +206,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
 /* safe_open - safely open or create file */
 
 VSTREAM *safe_open(const char *path, int flags, int mode,
-		           uid_t user, gid_t group, VSTRING *why)
+	            struct stat * st, uid_t user, gid_t group, VSTRING *why)
 {
     VSTREAM *fp;
 
@@ -202,13 +216,13 @@ VSTREAM *safe_open(const char *path, int flags, int mode,
 	 * Open an existing file, carefully.
 	 */
     case 0:
-	return (safe_open_exist(path, flags, why));
+	return (safe_open_exist(path, flags, st, why));
 
 	/*
 	 * Create a new file, carefully.
 	 */
     case O_CREAT | O_EXCL:
-	return (safe_open_create(path, flags, mode, user, group, why));
+	return (safe_open_create(path, flags, mode, st, user, group, why));
 
 	/*
 	 * Open an existing file or create a new one, carefully. When opening
@@ -216,9 +230,9 @@ VSTREAM *safe_open(const char *path, int flags, int mode,
 	 * only. Any other error means we better give up trying.
 	 */
     case O_CREAT:
-	if ((fp = safe_open_exist(path, flags, why)) == 0)
+	if ((fp = safe_open_exist(path, flags, st, why)) == 0)
 	    if (errno == ENOENT)
-		fp = safe_open_create(path, flags, mode, user, group, why);
+		fp = safe_open_create(path, flags, mode, st, user, group, why);
 	return (fp);
 
 	/*

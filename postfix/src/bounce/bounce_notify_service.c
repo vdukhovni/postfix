@@ -84,7 +84,8 @@ int     bounce_notify_service(char *service, char *queue_name,
     int     bounce_status = 1;
     int     postmaster_status = 1;
     VSTREAM *bounce;
-    int     notify_mask = name_mask(mail_error_masks, var_notify_classes);
+    int     notify_mask = name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
+				    var_notify_classes);
     char   *postmaster;
 
     /*
@@ -162,8 +163,8 @@ int     bounce_notify_service(char *service, char *queue_name,
      */
     else {
 	if ((bounce = post_mail_fopen_nowait(NULL_SENDER, recipient,
-						NULL_CLEANUP_FLAGS,
-						"BOUNCE")) != 0) {
+					     NULL_CLEANUP_FLAGS,
+					     "BOUNCE")) != 0) {
 
 	    /*
 	     * Send the bounce message header, some boilerplate text that

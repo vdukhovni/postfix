@@ -64,9 +64,10 @@ VSTREAM *open_lock(const char *path, int flags, int mode, VSTRING *why)
      * don't have the O_LOCK open() flag, or the flag does not do what we
      * want, so we roll our own lock.
      */
-    if ((fp = safe_open(path, flags, mode, -1, -1, why)) == 0)
+    if ((fp = safe_open(path, flags, mode, (struct stat *) 0, -1, -1, why)) == 0)
 	return (0);
-    if (myflock(vstream_fileno(fp), MYFLOCK_EXCLUSIVE | MYFLOCK_NOWAIT) < 0) {
+    if (myflock(vstream_fileno(fp), INTERNAL_LOCK,
+		MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT) < 0) {
 	vstring_sprintf(why, "file %s: unable to lock: %m", path);
 	vstream_fclose(fp);
 	return (0);

@@ -97,6 +97,10 @@
 #	Restrict the usage of mail delivery to external command.
 # .IP \fBallow_mail_to_files\fR
 #	Restrict the usage of mail delivery to external file.
+# .IP \fBexpand_owner_alias\fR
+#	When delivering to an alias that has an \fBowner-\fR companion alias,
+#	set the envelope sender address to the right-hand side of the
+#	owner alias, instead using of the left-hand side address.
 # .IP \fBowner_request_special\fR
 #	Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
 #	addresses.

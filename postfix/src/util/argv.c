@@ -19,7 +19,7 @@
 /*	void	argv_terminate(argvp);
 /*	ARGV	*argvp;
 /* DESCRIPTION
-/*	The functions in this module functions manipulate arrays of string
+/*	The functions in this module manipulate arrays of string
 /*	pointers. An ARGV structure contains the following members:
 /* .IP len
 /*	The length of the \fIargv\fR array member.

@@ -368,7 +368,8 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
      * session or with delivering mail.
      */
     if (state->history != 0
-    && (state->error_mask & name_mask(mail_error_masks, var_notify_classes)))
+     && (state->error_mask & name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
+				       var_notify_classes)))
 	lmtp_chat_notify(state);
 
     /*
@@ -390,7 +391,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 
 /* lmtp_service - perform service for client */
 
-static void lmtp_service(VSTREAM *client_stream, char *unused_service, char **argv)
+static void lmtp_service(VSTREAM * client_stream, char *unused_service, char **argv)
 {
     DELIVER_REQUEST *request;
     int     status;

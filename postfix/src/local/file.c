@@ -59,7 +59,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <deliver_flock.h>
-#include <open_as.h>
+#include <set_eugid.h>
 
 /* Global library. */
 
@@ -69,7 +69,8 @@
 #include <sent.h>
 #include <been_here.h>
 #include <mail_params.h>
-#include <dot_lockfile_as.h>
+#include <mbox_conf.h>
+#include <mbox_open.h>
 
 /* Application-specific. */
 
@@ -83,16 +84,10 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 {
     char   *myname = "deliver_file";
     struct stat st;
-    int     fd;
     VSTREAM *dst;
     VSTRING *why;
     int     status;
     int     copy_flags;
-
-#ifdef USE_DOT_LOCK
-    int     lock = -1;
-
-#endif
 
     /*
      * Make verbose logging easier to understand.
@@ -145,43 +140,25 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     why = vstring_alloc(100);
 
     /*
-     * Open or create the file, lock it, and append the message. Open the
-     * file as the specified user. XXX Since we cannot set a lockfile before
-     * creating the destination, there is a small chance that we truncate an
-     * existing file.
+     * As the specified user, open or create the file, lock it, and append
+     * the message. XXX We may attempt to create a lockfile for /dev/null.
      */
     copy_flags = MAIL_COPY_MBOX;
     if ((local_deliver_hdr_mask & DELIVER_HDR_FILE) == 0)
 	copy_flags &= ~MAIL_COPY_DELIVERED;
 
-#define FOPEN_AS(p,u,g) ( \
-    (fd = open_as(p,O_APPEND|O_CREAT|O_WRONLY,0600,u,g)) >= 0 ? \
-	vstream_fdopen(fd, O_WRONLY) : 0)
-
-    if ((dst = FOPEN_AS(path, usr_attr.uid, usr_attr.gid)) == 0) {
-	status = bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			       "cannot open destination file %s: %m", path);
-    } else if (fstat(vstream_fileno(dst), &st) < 0) {
-	vstream_fclose(dst);
-	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			      "cannot fstat file %s: %m", path);
-    } else if (S_ISREG(st.st_mode) && deliver_flock(vstream_fileno(dst), why) < 0) {
-	vstream_fclose(dst);
-	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			      "cannot lock destination file %s: %s",
-			      path, STR(why));
+    set_eugid(usr_attr.uid, usr_attr.gid);
+    dst = mbox_open(path, O_APPEND | O_CREAT | O_WRONLY,
+		    S_IRUSR | S_IWUSR, &st, -1, -1,
+		    local_mbox_lock_mask | MBOX_DOT_LOCK_MAY_FAIL, why);
+    if (dst == 0) {
+	status = (errno == EAGAIN ? defer_append : bounce_append)
+	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+	     "cannot access destination file %s: %s", path, STR(why));
     } else if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
 	vstream_fclose(dst);
 	status = bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			       "executable destination file %s", path);
-#ifdef USE_DOT_LOCK
-    } else if ((lock = dot_lockfile_as(path, why, usr_attr.uid, usr_attr.gid)) < 0
-	       && errno == EEXIST) {
-	vstream_fclose(dst);
-	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-			      "cannot append destination file %s: %s",
-			      path, STR(why));
-#endif
     } else if (mail_copy(COPY_ATTR(state.msg_attr), dst, S_ISREG(st.st_mode) ?
 		copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), "\n", why)) {
 	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
@@ -190,14 +167,12 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     } else {
 	status = sent(SENT_ATTR(state.msg_attr), "%s", path);
     }
+    mbox_release(path, local_mbox_lock_mask);
+    set_eugid(var_owner_uid, var_owner_gid);
 
     /*
      * Clean up.
      */
-#ifdef USE_DOT_LOCK
-    if (lock == 0)
-	dot_unlockfile_as(path, usr_attr.uid, usr_attr.gid);
-#endif
     vstring_free(why);
     return (status);
 }

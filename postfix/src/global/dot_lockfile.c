@@ -19,7 +19,8 @@
 /*	means no lock file could be created.
 /*
 /*	dot_unlockfile() attempts to remove the lock file created by
-/*	dot_lockfile().
+/*	dot_lockfile(). The operation always succeeds, and therefore
+/*	it preserves the errno value.
 /*
 /*	Arguments:
 /* .IP path
@@ -27,6 +28,11 @@
 /* .IP why
 /*	A null pointer, or storage for the reason why a lock file could
 /*	not be created.
+/* DIAGNOSTICS
+/*	dot_lockfile() returns 0 upon success. In case of failure, the
+/*	result is -1, and the errno variable is set appropriately:
+/*	EEXIST when a "fresh" lock file already exists; other values as 
+/*	appropriate.
 /* CONFIGURATION PARAMETERS
 /*	deliver_lock_attempts, how many times to try to create a lock
 /*	deliver_lock_delay, how long to wait between attempts
@@ -75,11 +81,7 @@ int     dot_lockfile(const char *path, VSTRING *why)
 
     lock_file = concatenate(path, ".lock", (char *) 0);
 
-    for (count = 0; /* void */ ; count++) {
-	if (count >= var_flock_tries)
-	    break;
-	if (count > 0)
-	    sleep(var_flock_delay);
+    for (count = 1; /* void */ ; count++) {
 
 	/*
 	 * Attempt to create the lock. This code relies on O_EXCL | O_CREAT
@@ -90,6 +92,8 @@ int     dot_lockfile(const char *path, VSTRING *why)
 	    status = 0;
 	    break;
 	}
+	if (count >= var_flock_tries)
+	    break;
 
 	/*
 	 * We can deal only with "file exists" errors. Any other error means
@@ -107,7 +111,8 @@ int     dot_lockfile(const char *path, VSTRING *why)
 		if (unlink(lock_file) < 0)
 		    if (errno != ENOENT)
 			break;
-	errno = EEXIST;
+
+	sleep(var_flock_delay);
     }
     if (status && why)
 	vstring_sprintf(why, "unable to create lock file %s: %m", lock_file);
@@ -121,10 +126,12 @@ int     dot_lockfile(const char *path, VSTRING *why)
 void    dot_unlockfile(const char *path)
 {
     char   *lock_file;
+    int     saved_errno = errno;
 
     lock_file = concatenate(path, ".lock", (char *) 0);
     (void) unlink(lock_file);
     myfree(lock_file);
+    errno = saved_errno;
 }
 
 #ifdef TEST

@@ -1,3 +1,21 @@
+Incompatible changes with snapshot-2000XXXX
+===========================================
+
+The "sun_mailtool_compatibility" is going away (a compatibility mode
+that turns of kernel locks on mailbox files). It still works, but
+a warning is logged. Instead, specify the mailbox locking strategy
+via the new "mailbox_delivery_lock" parameter.
+
+Major changes with snapshot-2000XXXX
+====================================
+
+The locking style for delivery to mailbox is now fully configurable
+at runtime. The new configuration parameter is "mailbox_delivery_lock".
+Depending on the operating system type, mailboxes can be locked
+with one or more of "flock", "fcntl" or "dotlock". The default
+setting of "mailbox_delivery_lock" is therefore system dependent.
+The command "postconf -l" shows the available locking styles.
+
 Incompatible changes with snapshot-20001121
 ===========================================
 

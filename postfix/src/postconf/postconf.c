@@ -5,7 +5,7 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-dhmnv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dhmlnv\fR] [\fB-c \fIconfig_dir\fR]
 /*		[\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -32,6 +32,8 @@
 /*	that normally precedes the value.
 /* .IP \fB-m\fR
 /*	List the names of all supported lookup table types.
+/* .IP \fB-l\fR
+/*	List the names of all supported mailbox locking methods.
 /* .IP \fB-n\fR
 /*	Print non-default parameter settings only.
 /* .IP \fB-v\fR
@@ -93,6 +95,7 @@
 #include <mail_version.h>
 #include <mail_params.h>
 #include <mail_addr.h>
+#include <mbox_conf.h>
 
  /*
   * What we're supposed to be doing.
@@ -102,6 +105,7 @@
 #define SHOW_NAME	(1<<2)		/* show parameter name */
 #define SHOW_MAPS	(1<<3)		/* show map types */
 #define EDIT_MAIN	(1<<4)		/* edit main.cf */
+#define SHOW_LOCKS	(1<<5)		/* show mailbox lock methods */
 
  /*
   * Lookup table for in-core parameter info.
@@ -310,7 +314,7 @@ static void edit_parameters(int argc, char **argv)
     temp = concatenate(path, ".tmp", (char *) 0);
     if ((dst = vstream_fopen(temp, O_CREAT | O_WRONLY, 0644)) == 0)
 	msg_fatal("open %s: %m", temp);
-    if (myflock(vstream_fileno(dst), MYFLOCK_EXCLUSIVE) < 0)
+    if (myflock(vstream_fileno(dst), INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("lock %s: %m", temp);
     if (ftruncate(vstream_fileno(dst), 0) < 0)
 	msg_fatal("truncate %s: %m", temp);
@@ -631,6 +635,19 @@ static void show_maps(void)
     argv_free(maps_argv);
 }
 
+/* show_locks - show available mailbox locking methods */
+
+static void show_locks(void)
+{
+    ARGV   *maps_argv;
+    int     i;
+
+    maps_argv = mbox_lock_names();
+    for (i = 0; i < maps_argv->argc; i++)
+	vstream_printf("%s\n", maps_argv->argv[i]);
+    argv_free(maps_argv);
+}
+
 /* show_parameters - show parameter info */
 
 static void show_parameters(int mode, char **names)
@@ -696,7 +713,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:dehnmv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:dehmlnv")) > 0) {
 	switch (ch) {
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -711,6 +728,9 @@ int     main(int argc, char **argv)
 	case 'h':
 	    mode &= ~SHOW_NAME;
 	    break;
+	case 'l':
+	    mode |= SHOW_LOCKS;
+	    break;
 	case 'm':
 	    mode |= SHOW_MAPS;
 	    break;
@@ -721,23 +741,30 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-m (map types) [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-c config_dir] [-d (defaults)] [-e (edit)] [-h (no names)] [-l (lock types)] [-m (map types) [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
     }
 
     /*
      * Sanity check.
      */
-    junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | EDIT_MAIN));
+    junk = (mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN));
     if (junk != 0 && junk != SHOW_DEFS && junk != SHOW_NONDEF
-	&& junk != SHOW_MAPS && junk != EDIT_MAIN)
-	msg_fatal("specify one of -d, -e, -n and -m");
+	&& junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN)
+	msg_fatal("specify one of -d, -e, -m, -l and -n");
 
     /*
      * If showing map types, show them and exit
      */
     if (mode & SHOW_MAPS) {
 	show_maps();
+    }
+
+    /*
+     * If showing locking methods, show them and exit
+     */
+    if (mode & SHOW_LOCKS) {
+	show_locks();
     }
 
     /*

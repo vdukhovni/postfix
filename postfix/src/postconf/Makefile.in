@@ -88,6 +88,7 @@ postconf.o: ../../include/iostuff.h
 postconf.o: ../../include/mail_version.h
 postconf.o: ../../include/mail_params.h
 postconf.o: ../../include/mail_addr.h
+postconf.o: ../../include/mbox_conf.h
 postconf.o: time_vars.h
 postconf.o: bool_vars.h
 postconf.o: int_vars.h

@@ -335,7 +335,8 @@ int     main(int argc, char **argv)
     watchdog = watchdog_create(1000, (WATCHDOG_FN) 0, (char *) 0);
     for (;;) {
 #ifdef HAS_VOLATILE_LOCKS
-	if (myflock(vstream_fileno(lock_fp), MYFLOCK_EXCLUSIVE) < 0)
+	if (myflock(vstream_fileno(lock_fp), INTERNAL_LOCK,
+		    MYFLOCK_OP_EXCLUSIVE) < 0)
 	    msg_fatal("refresh exclusive lock: %m");
 #endif
 	watchdog_start(watchdog);		/* same as trigger servers */

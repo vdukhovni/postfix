@@ -348,6 +348,11 @@ Time in seconds between successive attempts to acquire
 an exclusive lock.
 .IP \fBstale_lock_time\fR
 Limit the time after which a stale lock is removed.
+.IP \fBmailbox__delivery_lock\fR
+What file locking method(s) to use when delivering to a UNIX-style
+mailbox.
+The default setting is system dependent.  For a list of available
+file locking methods, use the \fBpostconf -l\fR command.
 .SH "Resource controls"
 .ad
 .fi

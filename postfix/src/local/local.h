@@ -21,6 +21,7 @@
 #include <been_here.h>
 #include <tok822.h>
 #include <deliver_request.h>
+#include <mbox_conf.h>
 
  /*
   * User attributes: these control the privileges for delivery to external
@@ -167,6 +168,11 @@ extern int local_cmd_deliver_mask;
   * Restrictions on extension propagation.
   */
 extern int local_ext_prop_mask;
+
+ /*
+  * Mailbox lock protocol.
+  */
+extern int local_mbox_lock_mask;
 
  /*
   * When to prepend a Delivered-To: header upon external delivery.

@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include <deliver_flock.h>
 /*
-/*	int	deliver_flock(fd, why)
+/*	int	deliver_flock(fd, lock_style, why)
 /*	int	fd;
+/*	int	lock_style;
 /*	VSTRING	*why;
 /* DESCRIPTION
 /*	deliver_flock() sets one exclusive kernel lock on an open file
@@ -17,6 +18,8 @@
 /*	Arguments:
 /* .IP fd
 /*	A file descriptor that is associated with an open file.
+/* .IP lock_style
+/*	A locking style defined in myflock(3).
 /* .IP why
 /*	A null pointer, or storage for diagnostics.
 /* DIAGNOSTICS
@@ -55,22 +58,19 @@
 
 /* deliver_flock - lock open file for mail delivery*/
 
-int     deliver_flock(int fd, VSTRING *why)
+int     deliver_flock(int fd, int lock_style, VSTRING *why)
 {
     int     i;
-
-    if (var_mailtool_compat)
-	return (0);
 
     for (i = 0; /* void */ ; i++) {
 	if (i >= var_flock_tries)
 	    break;
 	if (i > 0)
 	    sleep(var_flock_delay);
-	if (myflock(fd, MYFLOCK_EXCLUSIVE | MYFLOCK_NOWAIT) == 0)
+	if (myflock(fd, lock_style, MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT) == 0)
 	    return (0);
     }
     if (why)
-	vstring_sprintf(why, "unable to lock exclusively: %m");
+	vstring_sprintf(why, "unable to lock for exclusive access: %m");
     return (-1);
 }

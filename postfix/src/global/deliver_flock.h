@@ -14,12 +14,13 @@
  /*
   * Utility library.
   */
+#include <myflock.h>
 #include <vstring.h>
 
  /*
   * External interface.
   */
-extern int deliver_flock(int, VSTRING *);
+extern int deliver_flock(int, int, VSTRING *);
 
 /* LICENSE
 /* .ad

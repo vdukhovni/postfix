@@ -222,7 +222,7 @@ static int flush_add_service(const char *site, const char *queue_id)
      * concurrent access. If the lock takes too long, the Postfix watchdog
      * will eventually take care of the problem, but it will take a while.
      */
-    if (myflock(vstream_fileno(log), MYFLOCK_EXCLUSIVE) < 0)
+    if (myflock(vstream_fileno(log), INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock fast flush log for site %s: %m", myname, site);
 
     /*
@@ -236,7 +236,7 @@ static int flush_add_service(const char *site, const char *queue_id)
     /*
      * Clean up.
      */
-    if (myflock(vstream_fileno(log), MYFLOCK_NONE) < 0)
+    if (myflock(vstream_fileno(log), INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock fast flush log for site %s: %m",
 		  myname, site);
     if (vstream_fclose(log) != 0)
@@ -286,7 +286,7 @@ static int flush_send_service(const char *site)
      * significant amount of time. If things really get stuck the Postfix
      * watchdog will take care of it.
      */
-    if (myflock(vstream_fileno(log), MYFLOCK_EXCLUSIVE) < 0)
+    if (myflock(vstream_fileno(log), INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock fast flush log for site %s: %m", myname, site);
 
     /*
@@ -361,7 +361,7 @@ static int flush_send_service(const char *site)
     /*
      * Request delivery and clean up.
      */
-    if (myflock(vstream_fileno(log), MYFLOCK_NONE) < 0)
+    if (myflock(vstream_fileno(log), INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock fast flush log for site %s: %m",
 		  myname, site);
     if (vstream_fclose(log) != 0)

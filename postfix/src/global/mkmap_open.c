@@ -148,7 +148,7 @@ MKMAP  *mkmap_open(const char *type, const char *path,
      * Get an exclusive lock - we're going to change the database so we can't
      * have any spectators.
      */
-    if (myflock(mkmap->lock_fd, MYFLOCK_EXCLUSIVE) < 0)
+    if (myflock(mkmap->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("lock %s: %m", mkmap->lock_file);
 
     /*

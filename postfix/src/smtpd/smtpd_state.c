@@ -73,7 +73,8 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->buffer = vstring_alloc(100);
     state->error_count = 0;
     state->error_mask = 0;
-    state->notify_mask = name_mask(mail_error_masks, var_notify_classes);
+    state->notify_mask = name_mask(VAR_NOTIFY_CLASSES, mail_error_masks,
+				   var_notify_classes);
     state->helo_name = 0;
     state->queue_id = 0;
     state->cleanup = 0;

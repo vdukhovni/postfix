@@ -226,7 +226,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * raising a fatal error which forces the mail system to back off, and
      * retry later.
      */
-#define DELIVER_LOCK_MODE (MYFLOCK_SHARED | MYFLOCK_NOWAIT)
+#define DELIVER_LOCK_MODE (MYFLOCK_OP_SHARED | MYFLOCK_OP_NOWAIT)
 
     request->fp =
 	mail_queue_open(request->queue_name, request->queue_id, O_RDWR, 0);
@@ -234,7 +234,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	msg_fatal("open %s %s: %m", request->queue_name, request->queue_id);
     if (msg_verbose)
 	msg_info("%s: file %s", myname, VSTREAM_PATH(request->fp));
-    if (myflock(vstream_fileno(request->fp), DELIVER_LOCK_MODE) < 0)
+    if (myflock(vstream_fileno(request->fp), INTERNAL_LOCK, DELIVER_LOCK_MODE) < 0)
 	msg_fatal("shared lock %s: %m", VSTREAM_PATH(request->fp));
     close_on_exec(vstream_fileno(request->fp), CLOSE_ON_EXEC);
 

@@ -158,7 +158,8 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     /*
      * Acquire a shared lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_SHARED) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     /*
@@ -197,7 +198,8 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     /*
      * Release the shared lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 
     return (result);
@@ -244,7 +246,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     /*
@@ -268,7 +271,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 }
 
@@ -285,7 +289,8 @@ static int dict_db_delete(DICT *dict, const char *name)
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     /*
@@ -320,7 +325,8 @@ static int dict_db_delete(DICT *dict, const char *name)
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 
     return status;
@@ -361,7 +367,8 @@ static int dict_db_sequence(DICT *dict, const int function,
     /*
      * Acquire an exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
 	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     if ((status = db->seq(db, &db_key, &db_value, db_function)) < 0)
@@ -370,7 +377,8 @@ static int dict_db_sequence(DICT *dict, const int function,
     /*
      * Release the exclusive lock.
      */
-    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK)
+	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 
     if (status == 0) {
@@ -436,7 +444,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
     if (dict_flags & DICT_FLAG_LOCK) {
 	if ((lock_fd = open(db_path, open_flags, 0644)) < 0)
 	    msg_fatal("open database %s: %m", db_path);
-	if (myflock(lock_fd, MYFLOCK_SHARED) < 0)
+	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 	    msg_fatal("shared-lock database %s for open: %m", db_path);
     }
 
@@ -496,12 +504,11 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 	msg_fatal("get database file descriptor: %m");
 #endif
     if (dict_flags & DICT_FLAG_LOCK) {
-	if (myflock(lock_fd, MYFLOCK_NONE) < 0)
+	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	    msg_fatal("unlock database %s for open: %m", db_path);
 	if (close(lock_fd) < 0)
 	    msg_fatal("close database %s: %m", db_path);
     }
-
     dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;
     dict_db->dict.update = dict_db_update;

@@ -417,43 +417,43 @@ LOCAL(8)                                                 LOCAL(8)
        <b>stale</b><i>_</i><b>lock</b><i>_</i><b>time</b>
               Limit the time after which a stale lock is removed.
 
+       <b>mailbox</b><i>__</i><b>delivery</b><i>_</i><b>lock</b>
+              What  file locking method(s) to use when delivering
+              to a UNIX-style mailbox.  The  default  setting  is
+              system  dependent.   For  a  list of available file
+              locking methods, use the <b>postconf</b> <b>-l</b> command.
+
 <b>Resource</b> <b>controls</b>
        <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>
-              Limit  the  amount of time for delivery to external
+              Limit the amount of time for delivery  to  external
               command.
 
        <b>duplicate</b><i>_</i><b>filter</b><i>_</i><b>limit</b>
-              Limit the size of the duplicate filter for  results
+              Limit  the size of the duplicate filter for results
               from alias etc. expansion.
 
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
-              Limit  the  amount  of memory used for processing a
+              Limit the amount of memory used  for  processing  a
               partial input line.
 
        <b>local</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
               Limit the number of parallel deliveries to the same
-              user.    The   default  limit  is  taken  from  the
+              user.   The  default  limit  is  taken   from   the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
 
        <b>local</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit the number of recipients per  message  deliv-
-              ery.    The   default   limit  is  taken  from  the
+              Limit  the  number of recipients per message deliv-
+              ery.   The  default  limit  is   taken   from   the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
 
 <b>Security</b> <b>controls</b>
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
-              Restrict the usage of  mail  delivery  to  external
+              Restrict  the  usage  of  mail delivery to external
               command.
 
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b>
-              Restrict  the  usage  of  mail delivery to external
+              Restrict the usage of  mail  delivery  to  external
               file.
-
-       <b>command</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
-              What characters are  allowed  to  appear  in  $name
-              expansions  of  mailbox_command. Illegal characters
-              are replaced by underscores.
-
 
 
 
@@ -467,20 +467,25 @@ LOCAL(8)                                                 LOCAL(8)
 LOCAL(8)                                                 LOCAL(8)
 
 
+       <b>command</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
+              What  characters  are  allowed  to  appear in $name
+              expansions of mailbox_command.  Illegal  characters
+              are replaced by underscores.
+
        <b>default</b><i>_</i><b>privs</b>
-              Default rights for delivery  to  external  file  or
+              Default  rights  for  delivery  to external file or
               command.
 
        <b>forward</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
-              What  characters  are  allowed  to  appear in $name
-              expansions of forward_path. Illegal characters  are
+              What characters are  allowed  to  appear  in  $name
+              expansions  of forward_path. Illegal characters are
               replaced by underscores.
 
 <b>HISTORY</b>
-       The  <b>Delivered-To:</b>  header  appears in the <b>qmail</b> system by
+       The <b>Delivered-To:</b> header appears in the  <b>qmail</b>  system  by
        Daniel Bernstein.
 
-       The <i>maildir</i> structure  appears  in  the  <b>qmail</b>  system  by
+       The  <i>maildir</i>  structure  appears  in  the  <b>qmail</b> system by
        Daniel Bernstein.
 
 <b>SEE</b> <b>ALSO</b>
@@ -491,7 +496,7 @@ LOCAL(8)                                                 LOCAL(8)
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -499,11 +504,6 @@ LOCAL(8)                                                 LOCAL(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
 
 
 
