@@ -31,6 +31,9 @@
 /*	char	*smtpd_check_etrn(state, destination)
 /*	SMTPD_STATE *state;
 /*	char	*destination;
+/*
+/*	char	*smtpd_check_data(state)
+/*	SMTPD_STATE *state;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -145,6 +148,8 @@
 /* .IP reject_unauth_pipelining
 /*	Reject the request when the client has already sent the next request
 /*	without being told that the server implements SMTP command pipelining.
+/*	Reject the DATA command when the client sends message content before
+/*	Postfix has sent the DATA command reply.
 /* .IP permit_mx_backup
 /*	Allow the request when all primary MX hosts for the recipient
 /*	are in the networks specified with the $permit_mx_backup_networks
@@ -359,6 +364,7 @@ static ARGV *helo_restrctions;
 static ARGV *mail_restrctions;
 static ARGV *rcpt_restrctions;
 static ARGV *etrn_restrctions;
+static ARGV *data_restrctions;
 
 static HTABLE *smtpd_rest_classes;
 
@@ -375,6 +381,7 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
 #define SMTPD_NAME_SENDER	"Sender address"
 #define SMTPD_NAME_RECIPIENT	"Recipient address"
 #define SMTPD_NAME_ETRN		"Etrn command"
+#define SMTPD_NAME_DATA		"Data command"
 
  /*
   * YASLM.
@@ -384,11 +391,28 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
 
  /*
   * If some decision can't be made due to a temporary error, then change
-  * other decisions in to deferrals.
+  * other decisions into deferrals.
+  * 
+  * XXX Deferrals can be postponed only with restrictions that are based on
+  * client-specified information: this restricts their use to parameters
+  * given in HELO, MAIL FROM, RCPT TO commands.
+  * 
+  * XXX Deferrals must not be postponed after client hostname lookup failure.
+  * The reason is that the effect of access tables may depend on whether a
+  * client hostname is available or not. Thus, the reject_unknown_client
+  * restriction must defer immediately when lookup fails, otherwise incorrect
+  * results happen with:
+  * 
+  * reject_unknown_client, hostname-based white-list, reject
   */
-static void PRINTFLIKE(3, 4) defer_if_reject(SMTPD_STATE *, int, const char *, ...);
-static void PRINTFLIKE(3, 4) defer_if_permit(SMTPD_STATE *, int, const char *, ...);
+static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
 
+#define DEFER_IF_REJECT2(state, class, fmt, a1, a2) \
+    defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2))
+#define DEFER_IF_REJECT3(state, class, fmt, a1, a2, a3) \
+    defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3))
+#define DEFER_IF_PERMIT2(state, class, fmt, a1, a2) \
+    defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2))
 /* resolve_pagein - page in an address resolver result */
 
 static void *resolve_pagein(const char *addr, void *unused_context)
@@ -584,6 +608,7 @@ void    smtpd_check_init(void)
     mail_restrctions = smtpd_check_parse(var_mail_checks);
     rcpt_restrctions = smtpd_check_parse(var_rcpt_checks);
     etrn_restrctions = smtpd_check_parse(var_etrn_checks);
+    data_restrctions = smtpd_check_parse(var_data_checks);
 
     /*
      * Parse the pre-defined restriction classes.
@@ -657,6 +682,21 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     const char *whatsup;
 
     /*
+     * defer_if_whatever has precedence over warn_if_reject, so as to
+     * minimize confusion. Bummer. There goes transparency.
+     */
+    if (state->warn_if_reject && state->defer_if_reject.active) {
+	state->warn_if_reject = state->defer_if_reject.active = 0;
+	return (smtpd_check_reject(state, state->defer_if_reject.class,
+				 "%s", STR(state->defer_if_reject.reason)));
+    }
+    if (state->warn_if_reject && state->defer_if_permit.active) {
+	state->warn_if_reject = state->defer_if_permit.active = 0;
+	return (smtpd_check_reject(state, state->defer_if_permit.class,
+				 "%s", STR(state->defer_if_permit.reason)));
+    }
+
+    /*
      * Do not reject mail if we were asked to warn only. However,
      * configuration errors cannot be converted into warnings.
      */
@@ -691,7 +731,20 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     printable(STR(error_text), ' ');
 
     /*
-     * XXX The code below also appears in the SMTP server reply output
+     * Force this rejection into deferral because of some earlier temporary
+     * error that may have prevented us from accepting mail, and report the
+     * earlier problem instead.
+     */
+    if (!warn_if_reject && state->defer_if_reject.active && STR(error_text)[0] == '5') {
+	state->warn_if_reject = state->defer_if_reject.active = 0;
+	return (smtpd_check_reject(state, state->defer_if_reject.class,
+				 "%s", STR(state->defer_if_reject.reason)));
+    }
+
+    /*
+     * Soft bounce safety net.
+     * 
+     * XXX The code below also appears in the Postfix SMTP server reply output
      * routine. It is duplicated here in order to avoid discrepancies between
      * the reply codes that are shown in "reject" logging and the reply codes
      * that are actually sent to the SMTP client.
@@ -707,15 +760,8 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
      * the UCE restrictions only. This would be at odds with documentation
      * which says soft_bounce changes all 5xx replies into 4xx ones.
      */
-    if (STR(error_text)[0] == '5') {
-	if (state->defer_if_reject) {
-	    state->defer_if_reject = 0;
-	    return (smtpd_check_reject(state, state->defer_class,
-				       "%s", STR(state->defer_reason)));
-	}
-	if (var_soft_bounce)
-	    STR(error_text)[0] = '4';
-    }
+    if (var_soft_bounce && STR(error_text)[0] == '5')
+	STR(error_text)[0] = '4';
 
     /*
      * Log what is happening. When the sysadmin discards policy violation
@@ -727,36 +773,25 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     return (warn_if_reject ? 0 : SMTPD_CHECK_REJECT);
 }
 
-/* defer_if_reject - prepare to change our mind */
+/* defer_if - prepare to change our mind */
 
-static void defer_if_reject(SMTPD_STATE *state, int error_class,
-			            const char *fmt,...)
+static void defer_if(SMTPD_DEFER *defer, int error_class, const char *fmt,...)
 {
     va_list ap;
 
-    if (state->defer_reason == 0)
-	state->defer_reason = vstring_alloc(10);
-    state->defer_class = error_class;
-    va_start(ap, fmt);
-    vstring_vsprintf(state->defer_reason, fmt, ap);
-    va_end(ap);
-    state->defer_if_reject = 1;
-}
-
-/* defer_if_permit - prepare to change our mind */
-
-static void defer_if_permit(SMTPD_STATE *state, int error_class,
-			            const char *fmt,...)
-{
-    va_list ap;
-
-    if (state->defer_reason == 0)
-	state->defer_reason = vstring_alloc(10);
-    state->defer_class = error_class;
-    va_start(ap, fmt);
-    vstring_vsprintf(state->defer_reason, fmt, ap);
-    va_end(ap);
-    state->defer_if_permit = 1;
+    /*
+     * Keep the first reason for this type of deferral, to minimize
+     * confusion.
+     */
+    if (defer->active == 0) {
+	defer->active = 1;
+	defer->class = error_class;
+	if (defer->reason == 0)
+	    defer->reason = vstring_alloc(10);
+	va_start(ap, fmt);
+	vstring_vsprintf(defer->reason, fmt, ap);
+	va_end(ap);
+    }
 }
 
 /* reject_dict_retry - reject with temporary failure if dict lookup fails */
@@ -1032,9 +1067,9 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 				   var_unk_name_code,
 				   reply_name, reply_class));
     else if (dns_status != DNS_OK)
-	defer_if_permit(state, MAIL_ERROR_POLICY,
-			"450 <%s>: %s rejected: Host not found",
-			reply_name, reply_class);
+	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: Host not found",
+			 reply_name, reply_class);
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1057,9 +1092,9 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 				   var_unk_addr_code,
 				   reply_name, reply_class));
     else if (dns_status != DNS_OK)
-	defer_if_permit(state, MAIL_ERROR_POLICY,
-			"450 <%s>: %s rejected: Domain not found",
-			reply_name, reply_class);
+	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: Domain not found",
+			 reply_name, reply_class);
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1169,7 +1204,8 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 
 /* reject_unauth_pipelining - reject improper use of SMTP command pipelining */
 
-static int reject_unauth_pipelining(SMTPD_STATE *state)
+static int reject_unauth_pipelining(SMTPD_STATE *state,
+		            const char *reply_name, const char *reply_class)
 {
     char   *myname = "reject_unauth_pipelining";
 
@@ -1179,16 +1215,19 @@ static int reject_unauth_pipelining(SMTPD_STATE *state)
     if (state->client != 0
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& vstream_peek(state->client) > 0
-	&& strcasecmp(state->protocol, "ESMTP") != 0) {
+	&& (strcasecmp(state->protocol, "ESMTP") != 0
+	    || strcasecmp(state->where, "DATA") == 0)) {
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
-			    "503 Improper use of SMTP command pipelining"));
+	   "503 <%s>: %s rejected: Improper use of SMTP command pipelining",
+				   reply_name, reply_class));
     }
     return (SMTPD_CHECK_DUNNO);
 }
 
 /* all_auth_mx_addr - match host addresses against permit_mx_backup_networks */
 
-static int all_auth_mx_addr(SMTPD_STATE *state, char *host)
+static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
+		            const char *reply_name, const char *reply_class)
 {
     char   *myname = "all_auth_mx_addr";
     struct in_addr addr;
@@ -1210,9 +1249,9 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host)
      */
     dns_status = dns_lookup(host, T_A, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status != DNS_OK) {
-	defer_if_reject(state, MAIL_ERROR_POLICY,
-		      "450 Unable to look up host %s as mail exchanger: %s",
-			host, dns_strerror(h_errno));
+	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+	"450 <%s>: %s rejected: Unable to look up host %s as mail exchanger",
+			 reply_name, reply_class, host);
 	return (NOPE);
     }
     for (rr = addr_list; rr != 0; rr = rr->next) {
@@ -1244,7 +1283,8 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host)
 
 /* has_my_addr - see if this host name lists one of my network addresses */
 
-static int has_my_addr(SMTPD_STATE *state, const char *host)
+static int has_my_addr(SMTPD_STATE *state, const char *host,
+		            const char *reply_name, const char *reply_class)
 {
     char   *myname = "has_my_addr";
     struct in_addr addr;
@@ -1261,9 +1301,9 @@ static int has_my_addr(SMTPD_STATE *state, const char *host)
 #define NOPE	0
 
     if ((hp = gethostbyname(host)) == 0) {
-	defer_if_reject(state, MAIL_ERROR_POLICY,
-		      "450 Unable to look up host %s as mail exchanger: %s",
-			host, dns_strerror(h_errno));
+	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+	  "450 <%s>: %s rejected: Unable to look up mail exchanger host %s",
+			 reply_name, reply_class, host);
 	return (NOPE);
     }
     if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
@@ -1286,7 +1326,8 @@ static int has_my_addr(SMTPD_STATE *state, const char *host)
 
 /* i_am_mx - is this machine listed as MX relay */
 
-static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list)
+static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list,
+		           const char *reply_name, const char *reply_class)
 {
     const char *myname = "permit_mx_backup";
     DNS_RR *mx;
@@ -1308,7 +1349,7 @@ static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list)
     for (mx = mx_list; mx != 0; mx = mx->next) {
 	if (msg_verbose)
 	    msg_info("%s: address lookup: %s", myname, (char *) mx->data);
-	if (has_my_addr(state, (char *) mx->data))
+	if (has_my_addr(state, (char *) mx->data, reply_name, reply_class))
 	    return (YUP);
     }
 
@@ -1322,7 +1363,8 @@ static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list)
 
 /* permit_mx_primary - authorize primary MX relays */
 
-static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list)
+static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list,
+		            const char *reply_name, const char *reply_class)
 {
     DNS_RR *mx;
     unsigned int best_pref;
@@ -1341,7 +1383,7 @@ static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list)
     for (mx = mx_list; mx != 0; mx = mx->next) {
 	if (mx->pref != best_pref)
 	    continue;
-	if (!all_auth_mx_addr(state, (char *) mx->data))
+	if (!all_auth_mx_addr(state, (char *) mx->data, reply_name, reply_class))
 	    return (NOPE);
     }
 
@@ -1349,12 +1391,13 @@ static int permit_mx_primary(SMTPD_STATE *state, DNS_RR *mx_list)
      * All IP addresses of the best MX hosts are within
      * permit_mx_backup_networks.
      */
-    return (mx_list ? YUP : NOPE);
+    return (YUP);
 }
 
 /* permit_mx_backup - permit use of me as MX backup for recipient domain */
 
-static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
+static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
+		            const char *reply_name, const char *reply_class)
 {
     char   *myname = "permit_mx_backup";
     const RESOLVE_REPLY *reply;
@@ -1411,18 +1454,19 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
     dns_status = dns_lookup(domain, T_MX, 0, &mx_list,
 			    (VSTRING *) 0, (VSTRING *) 0);
     if (dns_status == DNS_NOTFOUND)
-	return (has_my_addr(state, domain) ? SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
+	return (has_my_addr(state, domain, reply_name, reply_class) ?
+		SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
     if (dns_status != DNS_OK) {
-	defer_if_reject(state, MAIL_ERROR_POLICY,
-		     "450 Unable to look up mail exchanger information: %s",
-			dns_strerror(h_errno));
+	DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: Unable to look up mail exchanger information",
+			 reply_name, reply_class);
 	return (SMTPD_CHECK_DUNNO);
     }
 
     /*
      * First, see if we match any of the MX host names listed.
      */
-    if (!i_am_mx(state, mx_list)) {
+    if (!i_am_mx(state, mx_list, reply_name, reply_class)) {
 	dns_rr_free(mx_list);
 	return (SMTPD_CHECK_DUNNO);
     }
@@ -1431,7 +1475,8 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
      * Optionally, see if the primary MX hosts are in a restricted list of
      * networks.
      */
-    if (*var_perm_mx_networks && !permit_mx_primary(state, mx_list)) {
+    if (*var_perm_mx_networks
+	&& !permit_mx_primary(state, mx_list, reply_name, reply_class)) {
 	dns_rr_free(mx_list);
 	return (SMTPD_CHECK_DUNNO);
     }
@@ -1569,18 +1614,24 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
 #define FILTER_LEN	(sizeof("FILTER") - 1)
 
-    if (strncasecmp(value, "FILTER", FILTER_LEN) == 0
-	&& (value[FILTER_LEN] == 0 || ISSPACE(value[FILTER_LEN]))) {
-	value += FILTER_LEN;
-	while (ISSPACE(*value))
-	    value++;
-	vstring_sprintf(error_text, "<%s>: %s triggers FILTER %s",
-			reply_name, reply_class, value);
-	log_whatsup(state, "hold", STR(error_text));
+    if (strncasecmp(value, "FILTER", FILTER_LEN) == 0) {
+	if (value[FILTER_LEN] == 0) {
+	    msg_warn("access map %s entry %s has FILTER entry without value",
+		     table, datum);
+	    return (SMTPD_CHECK_DUNNO);
+	}
+	if (ISSPACE(value[FILTER_LEN])) {
+	    value += FILTER_LEN;
+	    while (ISSPACE(*value))
+		value++;
+	    vstring_sprintf(error_text, "<%s>: %s triggers FILTER %s",
+			    reply_name, reply_class, value);
+	    log_whatsup(state, "filter", STR(error_text));
 #ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", value);
+	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", value);
 #endif
-	return (SMTPD_CHECK_DUNNO);
+	    return (SMTPD_CHECK_DUNNO);
+	}
     }
 
     /*
@@ -2164,7 +2215,16 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	 * Spoof the is_map_command() routine, so that we do not have to make
 	 * special cases for the implicit short-hand access map notation.
 	 */
+#define NO_DEF_ACL	0
+
 	if (strchr(name, ':') != 0) {
+	    if (def_acl == NO_DEF_ACL) {
+		msg_warn("specify one of (%s, %s, %s, %s, %s) before restriction \"%s\"",
+			 CHECK_CLIENT_ACL, CHECK_HELO_ACL, CHECK_SENDER_ACL,
+			 CHECK_RECIP_ACL, CHECK_ETRN_ACL, name);
+		longjmp(smtpd_check_buf, smtpd_check_reject(state,
+		    MAIL_ERROR_SOFTWARE, "451 Server configuration error"));
+	    }
 	    name = def_acl;
 	    cpp -= 1;
 	}
@@ -2192,7 +2252,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], REJECT_ALL);
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
-	    status = reject_unauth_pipelining(state);
+	    status = reject_unauth_pipelining(state, reply_name, reply_class);
 	}
 
 	/*
@@ -2295,7 +2355,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					   SMTPD_NAME_RECIPIENT, def_acl);
 	} else if (strcasecmp(name, PERMIT_MX_BACKUP) == 0) {
 	    if (state->recipient)
-		status = permit_mx_backup(state, state->recipient);
+		status = permit_mx_backup(state, state->recipient,
+				    state->recipient, SMTPD_NAME_RECIPIENT);
 	} else if (strcasecmp(name, PERMIT_AUTH_DEST) == 0) {
 	    if (state->recipient)
 		status = permit_auth_destination(state, state->recipient);
@@ -2361,16 +2422,25 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 	if (status != 0)
 	    break;
+
+	if (state->defer_if_permit.active && state->defer_if_reject.active)
+	    break;
     }
     if (msg_verbose && name == 0)
 	msg_info("%s: END", myname);
 
     state->recursion = saved_recursion;
 
-    if (status == SMTPD_CHECK_OK || status == SMTPD_CHECK_DUNNO)
-	if (state->defer_if_permit)
-	    status = smtpd_check_reject(state, state->defer_class,
-					"%s", STR(state->defer_reason));
+    /*
+     * Force this permission into deferral because of some earlier temporary
+     * error that may have prevented us from rejecting mail, and report the
+     * earlier problem instead.
+     */
+    if (status == SMTPD_CHECK_OK || status == SMTPD_CHECK_DUNNO) {
+	if (state->defer_if_permit.active)
+	    status = smtpd_check_reject(state, state->defer_if_permit.class,
+				  "%s", STR(state->defer_if_permit.reason));
+    }
     return (status);
 }
 
@@ -2386,13 +2456,17 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     if (state->name == 0 || state->addr == 0)
 	return (0);
 
+#define SMTPD_CHECK_RESET() { \
+	state->recursion = 1; \
+	state->warn_if_reject = 0; \
+	state->defer_if_reject.active = 0; \
+	state->defer_if_permit.active = 0; \
+    }
+
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 1;
-    state->warn_if_reject = 0;
-    state->defer_if_reject = 0;
-    state->defer_if_permit = 0;
+    SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && client_restrctions->argc)
 	status = generic_checks(state, client_restrctions, state->namaddr,
@@ -2420,11 +2494,11 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
      */
 #define SMTPD_CHECK_PUSH(backup, current, new) { \
 	backup = current; \
-	current = mystrdup(new); \
+	current = (new ? mystrdup(new) : new); \
     }
 
 #define SMTPD_CHECK_POP(current, backup) { \
-	myfree(current); \
+	if (current) myfree(current); \
 	current = backup; \
     }
 
@@ -2438,10 +2512,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 1;
-    state->warn_if_reject = 0;
-    state->defer_if_reject = 0;
-    state->defer_if_permit = 0;
+    SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && helo_restrctions->argc)
 	status = generic_checks(state, helo_restrctions, state->helo_name,
@@ -2477,10 +2548,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 1;
-    state->warn_if_reject = 0;
-    state->defer_if_reject = 0;
-    state->defer_if_permit = 0;
+    SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && mail_restrctions->argc)
 	status = generic_checks(state, mail_restrctions, sender,
@@ -2534,10 +2602,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 1;
-    state->warn_if_reject = 0;
-    state->defer_if_reject = 0;
-    state->defer_if_permit = 0;
+    SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && rcpt_restrctions->argc)
 	status = generic_checks(state, rcpt_restrctions,
@@ -2582,10 +2647,7 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     /*
      * Apply restrictions in the order as specified.
      */
-    state->recursion = 1;
-    state->warn_if_reject = 0;
-    state->defer_if_reject = 0;
-    state->defer_if_permit = 0;
+    SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
     if (status == 0 && etrn_restrctions->argc)
 	status = generic_checks(state, etrn_restrctions, domain,
@@ -2747,6 +2809,34 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
     return (0);
 }
 
+/* smtpd_check_data - check DATA command */
+
+char   *smtpd_check_data(SMTPD_STATE *state)
+{
+    int     status;
+    char   *saved_recipient;
+
+    /*
+     * Minor kluge so that we can delegate work to the generic routine. We
+     * provide no recipient information, because this restriction applies to
+     * all recipients alike. Picking a specific recipient would be wrong.
+     */
+    SMTPD_CHECK_PUSH(saved_recipient, state->recipient, 0);
+
+    /*
+     * Apply restrictions in the order as specified.
+     * 
+     * XXX We cannot specify a default target for a bare access map.
+     */
+    SMTPD_CHECK_RESET();
+    status = setjmp(smtpd_check_buf);
+    if (status == 0 && data_restrctions->argc)
+	status = generic_checks(state, data_restrctions,
+				"DATA", SMTPD_NAME_DATA, NO_DEF_ACL);
+
+    SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+}
+
 #ifdef TEST
 
  /*
@@ -2772,6 +2862,7 @@ char   *var_helo_checks = "";
 char   *var_mail_checks = "";
 char   *var_rcpt_checks = "";
 char   *var_etrn_checks = "";
+char   *var_data_checks = "";
 char   *var_relay_domains = "";
 char   *var_mynetworks = "";
 char   *var_notify_classes = "";

@@ -39,6 +39,12 @@
   * some of this has to be global anyway, so that the run-time error handler
   * can clean up in case of a fatal error deep down in some library routine.
   */
+typedef struct SMTPD_DEFER {
+    int     active;			/* is this active */
+    VSTRING *reason;			/* reason for deferral */
+    int     class;			/* error notification class */
+} SMTPD_DEFER;
+
 typedef struct SMTPD_STATE {
     int     err;
     VSTREAM *client;
@@ -80,11 +86,9 @@ typedef struct SMTPD_STATE {
     VSTRING *sasl_encoded;
     VSTRING *sasl_decoded;
 #endif
-    int     warn_if_reject;
-    int     defer_if_reject;		/* force reject into deferral */
-    int     defer_if_permit;		/* force permit into deferral */
-    VSTRING *defer_reason;		/* reason why we force deferral */
-    int     defer_class;		/* forced deferral error class */
+    int     warn_if_reject;		/* force reject into warning */
+    SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
+    SMTPD_DEFER defer_if_permit;	/* force permit into deferral */
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

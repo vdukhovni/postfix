@@ -365,7 +365,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * daemon waits for the qmgr to accept the "new mail" trigger.
      */
     if (message->flags) {
-	if (event_time() > message->arrival_time + var_max_queue_time) {
+	if (event_time() >= message->arrival_time + var_max_queue_time) {
 	    msg_info("%s: from=<%s>, status=expired, returned to sender",
 		     message->queue_id, message->sender);
 	    if (message->verp_delims == 0 || var_verp_bounce_off)

@@ -217,23 +217,27 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
     char   *end_prefix;
     char   *end_origin;
     int     verp_requested;
+    static char verp_chars[] = "-=";
 
     /*
-     * If the sender address looks like prefix-@origin-@[], then request
+     * If the sender address looks like prefix@origin-@[], then request
      * variable envelope return path delivery, with an envelope sender
-     * address of prefix@origin, and with VERP delimiters of - and =. This
+     * address of prefi@origin, and with VERP delimiters of x and =. This
      * way, the recipients will see envelope sender addresses that look like:
-     * prefix-user=domain@origin.
+     * prefixuser=domain@origin.
      */
     state->where = "receiving sender address";
     netstring_get(state->client, state->buf, var_line_limit);
     VSTRING_TERMINATE(state->buf);
-    verp_requested = ((end_prefix = strstr(STR(state->buf), "-@")) != 0
-		      && (end_origin = strstr(end_prefix + 2, "-@")) != 0
-		      && strncmp(end_origin + 2, "[]", 2) == 0
-		      && vstring_end(state->buf) == end_origin + 4);
+    verp_requested =
+	((end_origin = vstring_end(state->buf) - 4) > STR(state->buf)
+	 && strcmp(end_origin, "-@[]") == 0
+	 && (end_prefix = strchr(STR(state->buf), '@')) != 0	/* XXX */
+	 && --end_prefix < end_origin - 2	/* non-null origin */
+	 && end_prefix > STR(state->buf));	/* non-null prefix */
     if (verp_requested) {
-	memcpy(end_prefix, end_prefix + 1, end_origin - end_prefix - 1);
+	verp_chars[0] = end_prefix[0];
+	memmove(end_prefix, end_prefix + 1, end_origin - end_prefix - 1);
 	vstring_truncate(state->buf, end_origin - STR(state->buf) - 1);
     }
     if (state->err == CLEANUP_STAT_OK
@@ -241,7 +245,7 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
 	state->err = CLEANUP_STAT_WRITE;
     if (verp_requested)
 	if (state->err == CLEANUP_STAT_OK
-	    && rec_put(state->cleanup, REC_TYPE_VERP, "-=", 2) < 0)
+	    && rec_put(state->cleanup, REC_TYPE_VERP, verp_chars, 2) < 0)
 	    state->err = CLEANUP_STAT_WRITE;
     state->sender = mystrndup(STR(state->buf), LEN(state->buf));
 }

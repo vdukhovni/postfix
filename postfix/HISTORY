@@ -6888,13 +6888,39 @@ Apologies for any names omitted.
 	Feature: "FILTER transport:nexthop" is now also available
 	in SMTPD access tables.
 
+20020901
+
+	Cleanup: postfix-install no longer installs all the manual
+	pages under $POSTFIXSOURCE/man, so we can generate manual
+	pages for smtp-sink etc.  File: man/Makefile.in.
+
+20020903
+
+	Bugfix: the rmail script should have been updated when
+	Postfix sendmail was changed to recognize `.' as the end
+	of input.  Problem fix by Christian Kratzer, cksoft.de.
+	File:  auxiliary/rmail/rmail.
+
+20020904
+
+	Bugfix: qmail compatibility: qmqpd should support any
+	character at the end of the VERP prefix in prefix@host-@[].
+	Based on a patch by LaMont Jones, HP.
+
+20020905
+
+	Feature: "smtpd_data_restrictions = reject_unauth_pipelining"
+	blocks mail from SMTP clients that send message content
+	before Postfix has replied to the DATA command.  File:
+	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+	Bugfix: the LDAP client dumped core in verbose mode.
+	Reported by Will Day and others.  File: util/dict_ldap.c.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard
 	actions.
-
-	Medium: should permit_mx_backup defer delivery if DNS has
-	some error of some kind?
 
 	Low: revise other local delivery agent duplicate filters.
 

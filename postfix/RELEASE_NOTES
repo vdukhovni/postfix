@@ -12,20 +12,28 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Major changes with Postfix snapshot 1.1.11-20020823
+Major changes with Postfix snapshot 1.1.11-20020XXX
 ===================================================
 
 More sophisticated handling of UCE-related DNS lookup errors.
 These cause Postfix to not give up so easily, so that some deliveries
 will not have to be deferred after all.  This affects the following
-restrictions:  permit_mx_backup (defer the request if any subsequent
-restriction would cause the request to be rejected, accept the
-request if any subsequent restriction would cause the request to
-be accepted); reject_unknown_hostname, reject_unknown_sender_domain
-and reject_unknown_recipient_domain (defer the request if any
-subsequent restriction would cause the request to be accepted,
-reject the request if any subsequent restriction would cause the
-request to be rejected).
+restrictions:
+
+- permit_mx_backup (defer the request if a subsequent restriction
+would cause the request to be rejected, accept the request if a
+subsequent restriction would cause the request to be accepted
+anyway);
+
+- reject_unknown_hostname, reject_unknown_sender_domain and
+reject_unknown_recipient_domain (defer the request if a subsequent
+restriction would cause the request to be accepted, reject the
+request if a subsequent restriction would cause the request to be
+rejected anyway).
+
+Specify "smtpd_data_restrictions = reject_unauth_pipelining" to
+block mail from SMTP clients that send message content before
+Postfix has replied to the DATA command.
 
 Incompatible changes with Postfix snapshot 1.1.11-20020819
 ==========================================================

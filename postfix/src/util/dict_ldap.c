@@ -302,10 +302,15 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 			&dict_ldap->version) != LDAP_OPT_SUCCESS)
 	msg_warn("%s: Unable to set LDAP protocol version", myname);
 
-    if (msg_verbose)
-	msg_warn("%s: Actual Protocol version used was %d.",
-		 myname, ldap_get_option(dict_ldap->ld,
-		    LDAP_OPT_PROTOCOL_VERSION, (int *) dict_ldap->version));
+    if (msg_verbose) {
+	if (ldap_get_option(dict_ldap->ld,
+			    LDAP_OPT_PROTOCOL_VERSION,
+			    &dict_ldap->version) != LDAP_OPT_SUCCESS)
+	    msg_warn("%s: Unable to get LDAP protocol version", myname);
+	else
+	    msg_warn("%s: Actual Protocol version used was %d.",
+		     myname, dict_ldap->version);
+    }
 #endif
 
     /*

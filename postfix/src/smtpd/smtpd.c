@@ -198,6 +198,9 @@
 /* .IP \fBsmtpd_etrn_restrictions\fR
 /*	Restrict what domain names can be used in \fBETRN\fR commands,
 /*	and what clients may issue \fBETRN\fR commands.
+/* .IP \fBsmtpd_data_restrictions\fR
+/*	Restrictions on the \fBDATA\fR command. Currently, the only restriction
+/*	that makes sense here is \fBreject_unauth_pipelining\fR.
 /* .IP \fBallow_untrusted_routing\fR
 /*	Allow untrusted clients to specify addresses with sender-specified
 /*	routing.  Enabling this opens up nasty relay loopholes involving
@@ -350,6 +353,7 @@ char   *var_helo_checks;
 char   *var_mail_checks;
 char   *var_rcpt_checks;
 char   *var_etrn_checks;
+char   *var_data_checks;
 int     var_unk_client_code;
 int     var_bad_name_code;
 int     var_unk_name_code;
@@ -925,6 +929,7 @@ static void rcpt_reset(SMTPD_STATE *state)
 
 static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
+    char   *err;
     char   *start;
     int     len;
     int     curr_rec_type;
@@ -949,6 +954,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     if (argc != 1) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: DATA");
+	return (-1);
+    }
+    if (SMTPD_STAND_ALONE(state) == 0 && (err = smtpd_check_data(state)) != 0) {
+	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
 
@@ -1609,6 +1618,7 @@ int     main(int argc, char **argv)
 	VAR_MAIL_CHECKS, DEF_MAIL_CHECKS, &var_mail_checks, 0, 0,
 	VAR_RCPT_CHECKS, DEF_RCPT_CHECKS, &var_rcpt_checks, 0, 0,
 	VAR_ETRN_CHECKS, DEF_ETRN_CHECKS, &var_etrn_checks, 0, 0,
+	VAR_DATA_CHECKS, DEF_DATA_CHECKS, &var_data_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
