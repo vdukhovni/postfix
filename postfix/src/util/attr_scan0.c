@@ -160,8 +160,6 @@
 
 static int attr_scan0_string(VSTREAM *fp, VSTRING *plain_buf, const char *context)
 {
-    extern int var_line_limit;		/* XXX */
-    int     limit = var_line_limit * 4;
     int     ch;
 
     if ((ch = vstring_get_null(plain_buf, fp)) == VSTREAM_EOF) {
@@ -171,8 +169,8 @@ static int attr_scan0_string(VSTREAM *fp, VSTRING *plain_buf, const char *contex
 	return (-1);
     }
     if (ch != 0) {
-	msg_warn("string length > %d characters from %s while reading %s",
-		 limit, VSTREAM_PATH(fp), context);
+	msg_warn("unexpected end-of-input from %s while reading %s",
+		 VSTREAM_PATH(fp), context);
 	return (-1);
     }
     if (msg_verbose)

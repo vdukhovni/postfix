@@ -58,8 +58,10 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
        find  out what lookup table types your Postfix system sup-
        ports.
 
-       The general format of a Postfix regular  expression  table
-       is:
+       The general format of Postfix regular expression tables is
+       given  below.   For  a  discussion  of specific pattern or
+       flags  syntax,  see  <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>   or   <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a>,
+       respectively.
 
        <b>/</b><i>pattern</i><b>/</b><i>flags action</i>
               When  <i>pattern</i> matches the input string, execute the
@@ -94,10 +96,6 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               A  pattern/action  line  starts with non-whitespace
               text. A line that starts with whitespace  continues
               a logical line.
-
-       For  a  discussion  of  specific  pattern  or flags syntax
-       details, see  <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>  or  <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a>,  respec-
-       tively.
 
 <b>TABLE SEARCH ORDER</b>
        For  each  line of message input, the patterns are applied
@@ -139,12 +137,12 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               as <b>DUNNO</b>.
 
        <b>FILTER</b> <i>transport:destination</i>
-              Write a content filter request record to the  queue
-              file  and  inspect  the next input line.  After the
-              complete  message  is  received  it  will  be  sent
-              through  the  specified  external  content  filter.
-              More information about external content filters  is
-              in the Postfix FILTER_README file.
+              Write a content filter request to  the  queue  file
+              and  inspect  the  next input line.  After the com-
+              plete message is received it will be  sent  through
+              the specified external content filter.  More infor-
+              mation about external content  filters  is  in  the
+              Postfix FILTER_README file.
 
               Note:   this  action  overrides  the  <b>main.cf  con-</b>
               <b>tent_filter</b> setting, and affects all recipients  of
@@ -167,6 +165,15 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
 
        <b>IGNORE</b> Delete the current line from the input and  inspect
               the next input line.
+
+       <b>PREPEND</b> <i>text...</i>
+              Prepend  one  line  with  the  specified  text  and
+              inspect the next input line. The prepended line  of
+              text is output before the input line that triggered
+              the <b>PREPEND</b> pattern.
+
+              Note: this action cannot be used to prepend  multi-
+              line text.
 
        <b>REDIRECT</b> <i>user@domain</i>
               Write  a  message  redirection request to the queue
@@ -245,6 +252,19 @@ HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
               Note: when used in this  manner,  <b>body_checks</b>  will
               process  a  multi-line message header one line at a
               time.
+
+<b>EXAMPLES</b>
+       Header pattern to block attachments  with  bad  file  name
+       extensions.
+
+       /^content-(type|disposition):.*name[[:space:]]*=.*\.(exe|vbs)/
+           REJECT Bad attachment file name extension: $1
+
+       Body pattern to stop a specific HTML browser vulnerability
+       exploit.
+
+       /^&lt;iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0&gt;$/
+           REJECT IFRAME vulnerability exploit
 
 <b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue Postfix message

@@ -264,6 +264,8 @@ static void flush_site(const char *site)
 {
     int     status;
 
+    flush_init();
+
     switch (status = flush_send(site)) {
     case FLUSH_STAT_OK:
 	exit(0);

@@ -619,7 +619,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * IPC channel, sending an empty string is more convenient than sending a
      * null pointer.
      */
-    if (message->errors_to == 0)
+    if (message->errors_to == 0 && message->sender)
 	message->errors_to = mystrdup(message->sender);
     if (message->return_receipt == 0)
 	message->return_receipt = mystrdup("");

@@ -516,7 +516,7 @@ unknown_local_recipient_reject_code = 450
 # headers of attached messages. With older Postfix versions, MIME and
 # attached message headers were treated as body text.
 #
-# For details, see the sample-filter.cf file.
+# For details, see "man header_checks".
 #
 #header_checks = regexp:/etc/postfix/header_checks
 

@@ -1,13 +1,13 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 POSTQUEUE(1)                                         POSTQUEUE(1)
 
 <b>NAME</b>
        postqueue - Postfix queue control
 
 <b>SYNOPSIS</b>
-       <b>postqueue</b> [<b>-c</b> <i>config_dir</i>] <b>-f</b>
-       <b>postqueue</b> [<b>-c</b> <i>config_dir</i>] <b>-p</b>
-       <b>postqueue</b> [<b>-c</b> <i>config_dir</i>] <b>-s</b> <i>site</i>
+       <b>postqueue</b> [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-f</b>
+       <b>postqueue</b> [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-p</b>
+       <b>postqueue</b> [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-s</b> <i>site</i>
 
 <b>DESCRIPTION</b>
        The  <b>postqueue</b>  program implements the Postfix user inter-
@@ -19,7 +19,7 @@ POSTQUEUE(1)                                         POSTQUEUE(1)
 
        The following options are recognized:
 
-       <b>-c</b> <i>config_dir</i>
+       <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               The <b>main.cf</b> configuration  file  is  in  the  named
               directory  instead  of  the  default  configuration
               directory. See  also  the  MAIL_CONFIG  environment
@@ -28,7 +28,7 @@ POSTQUEUE(1)                                         POSTQUEUE(1)
        <b>-f</b>     Flush  the  queue:  attempt  to  deliver all queued
               mail.
 
-              This option implements the traditional <b>sendmail</b>  <b>-q</b>
+              This option implements the traditional <b>sendmail  -q</b>
               command,  by contacting the Postfix <a href="qmgr.8.html"><b>qmgr</b>(8)</a> daemon.
 
        <b>-p</b>     Produce a traditional sendmail-style queue listing.
@@ -83,7 +83,7 @@ POSTQUEUE(1)                                         POSTQUEUE(1)
 
               A non-standard directory is  allowed  only  if  the
               name is listed in the standard <b>main.cf</b> file, in the
-              <b>alternate</b><i>_</i><b>config</b><i>_</i><b>directories</b> configuration  parame-
+              <b>alternate_config_directories</b> configuration  parame-
               ter value.
 
               Only  the superuser is allowed to specify arbitrary
@@ -93,24 +93,24 @@ POSTQUEUE(1)                                         POSTQUEUE(1)
        /var/spool/postfix, mail queue
        /etc/postfix, configuration files
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
-       <b>import</b><i>_</i><b>environment</b>
+<b>CONFIGURATION PARAMETERS</b>
+       <b>import_environment</b>
               List of names of environment parameters that can be
               imported from non-Postfix processes.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Top-level  directory  of the Postfix queue. This is
               also the root directory of Postfix daemons that run
               chrooted.
 
-       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>domains</b>
+       <b>fast_flush_domains</b>
               List of domains that will receive "fast flush" ser-
               vice (default: all  domains  that  this  system  is
               willing  to relay mail to). This list specifies the
               domains that  Postfix  accepts  in  the  SMTP  <b>ETRN</b>
-              request and in the <b>sendmail</b> <b>-qR</b> command.
+              request and in the <b>sendmail -qR</b> command.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="sendmail.1.html">sendmail(1)</a> sendmail-compatible user interface
        <a href="postsuper.1.html">postsuper(1)</a> privileged queue operations
        <a href="qmgr.8.html">qmgr(8)</a> queue manager

@@ -57,8 +57,10 @@
 #        find  out what lookup table types your Postfix system sup-
 #        ports.
 # 
-#        The general format of a Postfix regular  expression  table
-#        is:
+#        The general format of Postfix regular expression tables is
+#        given  below.   For  a  discussion  of specific pattern or
+#        flags  syntax,  see  pcre_table(5)   or   regexp_table(5),
+#        respectively.
 # 
 #        /pattern/flags action
 #               When  pattern matches the input string, execute the
@@ -93,10 +95,6 @@
 #               A  pattern/action  line  starts with non-whitespace
 #               text. A line that starts with whitespace  continues
 #               a logical line.
-# 
-#        For  a  discussion  of  specific  pattern  or flags syntax
-#        details, see  pcre_table(5)  or  regexp_table(5),  respec-
-#        tively.
 # 
 # TABLE SEARCH ORDER
 #        For  each  line of message input, the patterns are applied
@@ -138,12 +136,12 @@
 #               as DUNNO.
 # 
 #        FILTER transport:destination
-#               Write a content filter request record to the  queue
-#               file  and  inspect  the next input line.  After the
-#               complete  message  is  received  it  will  be  sent
-#               through  the  specified  external  content  filter.
-#               More information about external content filters  is
-#               in the Postfix FILTER_README file.
+#               Write a content filter request to  the  queue  file
+#               and  inspect  the  next input line.  After the com-
+#               plete message is received it will be  sent  through
+#               the specified external content filter.  More infor-
+#               mation about external content  filters  is  in  the
+#               Postfix FILTER_README file.
 # 
 #               Note:   this  action  overrides  the  main.cf  con-
 #               tent_filter setting, and affects all recipients  of
@@ -166,6 +164,15 @@
 # 
 #        IGNORE Delete the current line from the input and  inspect
 #               the next input line.
+# 
+#        PREPEND text...
+#               Prepend  one  line  with  the  specified  text  and
+#               inspect the next input line. The prepended line  of
+#               text is output before the input line that triggered
+#               the PREPEND pattern.
+# 
+#               Note: this action cannot be used to prepend  multi-
+#               line text.
 # 
 #        REDIRECT user@domain
 #               Write  a  message  redirection request to the queue
@@ -244,6 +251,19 @@
 #               Note: when used in this  manner,  body_checks  will
 #               process  a  multi-line message header one line at a
 #               time.
+# 
+# EXAMPLES
+#        Header pattern to block attachments  with  bad  file  name
+#        extensions.
+# 
+#        /^content-(type|disposition):.*name[[:space:]]*=.*\.(exe|vbs)/
+#            REJECT Bad attachment file name extension: $1
+# 
+#        Body pattern to stop a specific HTML browser vulnerability
+#        exploit.
+# 
+#        /^<iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0>$/
+#            REJECT IFRAME vulnerability exploit
 # 
 # SEE ALSO
 #        cleanup(8) canonicalize and enqueue Postfix message

@@ -9092,6 +9092,31 @@ Apologies for any names omitted.
 
 	Misc. documentation fixes by Victor Duchovni.
 
+20040126
+
+	Safety: handle the case that main.cf is updated while it
+	is being read. File: util/dict.c.
+
+20040127
+
+	Bugfix: missing flush_init() call. Introduced 20040105.
+	File: postqueue/postqueue.c.
+
+20040202
+
+	Bugfix: changed mis-leading warning about text>4096 characters
+	into "unexpected end-of-input". File: util/attr_scan0.c.
+
+20040204
+
+	Bugfix: don't panic on a corrupt queue file.  File:
+	*qmgr/qmgr_message.c.
+
+20040205
+
+	Cleanup: sample-filter.cf is gone. Better documentation is
+	available with "man header_checks".
+
 Open problems:
 
 	Low: log xdelay (esp. for SMTP and delivery to command).

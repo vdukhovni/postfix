@@ -53,7 +53,10 @@
 #	Use the command \fBpostconf -m\fR to find out what lookup table
 #	types your Postfix system supports.
 #
-#	The general format of a Postfix regular expression table is:
+#	The general format of Postfix regular expression tables is
+#	given below.
+#	For a discussion of specific pattern or flags syntax,
+#	see \fBpcre_table\fR(5) or \fBregexp_table\fR(5), respectively.
 # .IP "\fB/\fIpattern\fB/\fIflags action\fR"
 #	When \fIpattern\fR matches the input string, execute
 #	the corresponding \fIaction\fR. See below for a list
@@ -80,9 +83,6 @@
 # .IP "multi-line text"
 #	A pattern/action line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
-# .PP
-#	For a discussion of specific pattern or flags syntax details,
-#	see \fBpcre_table\fR(5) or \fBregexp_table\fR(5), respectively.
 # TABLE SEARCH ORDER
 # .ad
 # .fi
@@ -121,7 +121,7 @@
 #	For backwards compatibility reasons, Postfix also accepts
 #	\fBOK\fR but it is (and always has been) treated as \fBDUNNO\fR.
 # .IP "\fBFILTER \fItransport:destination\fR"
-#	Write a content filter request record to the queue file and
+#	Write a content filter request to the queue file and
 #	inspect the next input line.
 #	After the complete message is received it will be sent through
 #	the specified external content filter.  More information about
@@ -145,6 +145,12 @@
 # .IP \fBIGNORE\fR
 #	Delete the current line from the input and inspect
 #	the next input line.
+# .IP "\fBPREPEND \fItext...\fR"
+#	Prepend one line with the specified text and inspect the next
+#	input line. The prepended line of text is output before the
+#	input line that triggered the \fBPREPEND\fR pattern.
+# .sp
+#	Note: this action cannot be used to prepend multi-line text.
 # .IP "\fBREDIRECT \fIuser@domain\fR"
 #	Write a message redirection request to the queue file and
 #	inspect the next input line. After the message is queued,
@@ -206,6 +212,26 @@
 # .sp
 #	Note: when used in this manner, \fBbody_checks\fR will process
 #	a multi-line message header one line at a time.
+# EXAMPLES
+# .ad
+# .fi
+#	Header pattern to block attachments with bad file name extensions.
+#
+# .na
+# .nf
+#	/^content-(type|disposition):.*name[[:space:]]*=.*\\.(exe|vbs)/
+# .ti +4
+#	REJECT Bad attachment file name extension: $1
+#
+# .ad
+# .fi
+#	Body pattern to stop a specific HTML browser vulnerability exploit.
+#
+# .na
+# .nf
+#	/^<iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0>$/
+# .ti +4
+#	REJECT IFRAME vulnerability exploit
 # SEE ALSO
 #	cleanup(8) canonicalize and enqueue Postfix message
 #	pcre_table(5) format of PCRE tables

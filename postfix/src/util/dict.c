@@ -173,6 +173,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
 
 /* Utility library. */
 
@@ -184,6 +185,7 @@
 #include "readlline.h"
 #include "mac_parse.h"
 #include "stringops.h"
+#include "iostuff.h"
 #include "dict.h"
 #include "dict_ht.h"
 
@@ -361,12 +363,29 @@ int     dict_sequence(const char *dict_name, const int func,
 void    dict_load_file(const char *dict_name, const char *path)
 {
     VSTREAM *fp;
+    struct stat st;
+    time_t  before;
+    time_t  after;
 
-    if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0)
-	msg_fatal("open %s: %m", path);
-    dict_load_fp(dict_name, fp);
-    if (vstream_ferror(fp) || vstream_fclose(fp))
-	msg_fatal("read %s: %m", path);
+    /*
+     * Read the file again if it is hot. This may result in reading a partial
+     * parameter name when a file changes in the middle of a read.
+     */
+    for (before = time((time_t *) 0); /* see below */ ; before = after) {
+	if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0)
+	    msg_fatal("open %s: %m", path);
+	dict_load_fp(dict_name, fp);
+	if (fstat(vstream_fileno(fp), &st) < 0)
+	    msg_fatal("fstat %s: %m", path);
+	if (vstream_ferror(fp) || vstream_fclose(fp))
+	    msg_fatal("read %s: %m", path);
+	after = time((time_t *) 0);
+	if (st.st_mtime < before - 1 || st.st_mtime > after)
+	    break;
+	if (msg_verbose)
+	    msg_info("pausing to let %s cool down", path);
+	doze(300000);
+    }
 }
 
 /* dict_load_fp - read entries from open stream */

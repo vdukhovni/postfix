@@ -172,7 +172,7 @@ $sample_directory/sample-auth.cf:f:root:-:644
 $sample_directory/sample-canonical.cf:f:root:-:644:o
 $sample_directory/sample-compatibility.cf:f:root:-:644
 $sample_directory/sample-debug.cf:f:root:-:644
-$sample_directory/sample-filter.cf:f:root:-:644
+$sample_directory/sample-filter.cf:f:root:-:644:o
 $sample_directory/sample-flush.cf:f:root:-:644
 $sample_directory/sample-ldap.cf:f:root:-:644
 $sample_directory/sample-lmtp.cf:f:root:-:644
