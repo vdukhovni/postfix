@@ -5153,3 +5153,8 @@ Apologies for any names omitted.
 	exist.  The behavior is now consistent: treat non-existant
 	DN's in a special result attribute expansion the same as
 	DN's with no attribute.  LaMont Jones, HP.
+
+20011114
+
+	Bugfix: reset the smtpd command transaction log between
+	deliveries. File: smtpd/smtpd.c.
