@@ -9322,7 +9322,27 @@ Apologies for any names omitted.
 	the DICT sequence method prototype and possible implementations.
 	Files: util/dict_db.c, util/dict_dbm.c.
 
+20040419
+
+	Bugfix: the code that rejects client/helo RESTRICTIONS with
+	smtpd_delay_reject=no looked at the wrong evidence and
+	rejected client/helo ACCESS MAP lookups instead. Files:
+	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+	Bugfix: missing # in optional submission service.
+
+20040420
+
+	Bugfix: smtpd logged the client too often. Michael Tokarev.
+	File: smtpd/smtpd.c.
+
+	Cleanup: client_event_status_update_time renamed to
+	anvil_status_update_time. Files: mantools/postlink,
+	proto/postconf.proto, anvil/anvil.c.
+
 Open problems:
+
+	Low: disallow smtpd_recipient_limit < 100 (the RFC minimum).
 
 	Low: noise filter: allow smtp(8) to retry immediately if
 	all MXes return a quick ECONNRESET or 4xx reply during the

@@ -175,8 +175,9 @@ prevents Postfix from trying substrings of the lookup key
 This feature is available in Postfix 2.0 and later.
 .IP "\fBFILTER \fItransport:destination\fR"
 After the message is queued, send the entire message through
-the specified external content filter.  More information about
-external content filters is in the Postfix FILTER_README file.
+the specified external content filter. The \fItransport:destination\fR
+syntax is described in the transport(5) manual page.  More information
+about external content filters is in the Postfix FILTER_README file.
 .sp
 Note: this action overrides the \fBmain.cf content_filter\fR setting,
 and currently affects all recipients of the message.
@@ -268,6 +269,7 @@ The table format does not understand quoting conventions.
 postmap(1), Postfix lookup table manager
 smtpd(8), SMTP server
 postconf(5), configuration parameters
+transport(5), transport:nexthop syntax
 .SH "README FILES"
 .na
 .nf

@@ -180,8 +180,10 @@
 #        FILTER transport:destination
 #               After the message is queued, send the  entire  mes-
 #               sage through the specified external content filter.
-#               More information about external content filters  is
-#               in the Postfix FILTER_README file.
+#               The transport:destination syntax  is  described  in
+#               the  transport(5)  manual  page.   More information
+#               about external content filters is  in  the  Postfix
+#               FILTER_README file.
 # 
 #               Note:   this  action  overrides  the  main.cf  con-
 #               tent_filter  setting,  and  currently  affects  all
@@ -278,6 +280,7 @@
 #        postmap(1), Postfix lookup table manager
 #        smtpd(8), SMTP server
 #        postconf(5), configuration parameters
+#        transport(5), transport:nexthop syntax
 # 
 # README FILES
 #        Use  "postconf  readme_directory" or "postconf html_direc-

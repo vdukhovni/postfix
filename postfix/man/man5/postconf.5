@@ -339,6 +339,15 @@ only. Thus, information is lost whenever the process terminates.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
+.SH anvil_status_update_time (default: 600s)
+How frequently the anvil(8) connection and rate limiting server
+logs peak usage information.
+.PP
+This feature is implemented by the anvil(8) service which is not
+part of the stable Postfix 2.1 release.
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).
 .SH append_at_myorigin (default: yes)
 Append the string "@$myorigin" to mail addresses without domain
 information.
@@ -495,15 +504,6 @@ into the standard form, and performs canonical(5) address mapping
 and virtual(5) aliasing.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH client_event_status_update_time (default: 600s)
-How frequently the anvil(8) connection and rate limiting server
-logs peak usage information.
-.PP
-This feature is implemented by the anvil(8) service which is not
-part of the stable Postfix 2.1 release.
-.PP
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
 .SH command_directory (default: see "postconf -d" output)
 The location of all postfix administrative commands.
 .SH command_expansion_filter (default: see "postconf -d" output)
@@ -2219,12 +2219,14 @@ The location of Postfix README files that describe how to build,
 configure or operate a specific Postfix subsystem or feature.
 .SH receive_override_options (default: empty)
 Enable or disable recipient validation, built-in content
-filtering, or address rewriting.
+filtering, or address rewriting. Typically, these are specified in
+master.cf as command-line arguments for the smtpd(8), qmqpd(8) or
+pickup(8) daemons.
 .PP
 Specify zero or more of the following options.  The options
-override main.cf settings and are either implemented by the Postfix
-SMTP server, by the QMQP server, or by the pickup server, or they
-are passed on to the cleanup server.
+override main.cf settings and are either implemented by smtpd(8),
+qmqpd(8), or pickup(8) themselves, or they are forwarded to the
+cleanup server.
 .IP "\fBno_unknown_recipient_checks\fR"
 Do not try to reject unknown recipients (SMTP server only).
 This is typically specified AFTER an external content filter.
@@ -3271,12 +3273,14 @@ hostname or parent domains, and execute the corresponding action.
 .IP "\fBcheck_helo_mx_access \fItype:table\fR\fR"
 Search the specified access(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_helo_ns_access \fItype:table\fR\fR"
 Search the specified access(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBreject_invalid_hostname\fR"
 Reject the request when the HELO or EHLO hostname syntax is
@@ -3423,14 +3427,16 @@ Search the specified access(5) database for the resolved RCPT
 TO address, domain, parent domains, or localpart@, and execute the
 corresponding action.
 .IP "\fBcheck_recipient_mx_access \fItype:table\fR\fR"
-Search the specified access(5) database for the MX hosts for the
-RCPT TO address, and execute the corresponding action.  Note: a
-result of "OK" is not allowed for safety reasons.  This feature is
-available in Postfix 2.1 and later.
+Search the specified access(5) database for the MX hosts for
+the RCPT TO address, and execute the corresponding action.  Note:
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_recipient_ns_access \fItype:table\fR\fR"
 Search the specified access(5) database for the DNS servers
 for the RCPT TO address, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBpermit_auth_destination\fR"
 Permit the request when one of the following is true:
@@ -3738,12 +3744,14 @@ corresponding action.
 .IP "\fBcheck_sender_mx_access \fItype:table\fR\fR"
 Search the specified access(5) database for the MX hosts for
 the MAIL FROM address, and execute the corresponding action.  Note:
-a result of "OK" is not allowed for safety reasons.  This feature
-is available in Postfix 2.1 and later.
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.1 and later.
 .IP "\fBcheck_sender_ns_access \fItype:table\fR\fR"
 Search the specified access(5) database for the DNS servers
 for the MAIL FROM address, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .IP "\fBreject_authenticated_sender_login_mismatch\fR"
 Enforces the reject_sender_login_mismatch restriction for

@@ -398,8 +398,10 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     MAIL_SERVER_LOOP_FN loop = 0;
     int     key;
     char   *transport = 0;
+#if 0
     char   *lock_path;
     VSTRING *why;
+#endif
     int     alone = 0;
     int     zerolimit = 0;
     WATCHDOG *watchdog;

@@ -78,7 +78,7 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
-/*	Upon exit, and every \fBclient_connection_status_update_time\fR
+/*	Upon exit, and every \fBanvil_status_update_time\fR
 /*	seconds, the server logs the maximal count and rate values measured,
 /*	together with (service, client) information and the time of day
 /*	associated with those events.
@@ -103,15 +103,15 @@
 /* .IP "\fBanvil_rate_time_unit (60s)\fR"
 /*	The time unit over which client connection rates and other rates
 /*	are calculated.
+/* .IP "\fBanvil_status_update_time (600s)\fR"
+/*	How frequently the anvil(8) connection and rate limiting server
+/*	logs peak usage information.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBdaemon_timeout (18000s)\fR"
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
-/* .IP "\fBclient_event_status_update_time (600s)\fR"
-/*	How frequently the anvil(8) connection and rate limiting server
-/*	logs peak usage information.
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
@@ -585,9 +585,10 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 
 /* post_jail_init - post-jail initialization */
 
+static void anvil_status_update(int, char *);
+
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
-    static void anvil_status_update(int, char *);
 
     /*
      * Dump and reset extreme usage every so often.

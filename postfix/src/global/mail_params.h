@@ -1975,7 +1975,7 @@ extern char *var_smtpd_hoggers;
 #define DEF_ANVIL_TIME_UNIT		"60s"
 extern int var_anvil_time_unit;
 
-#define VAR_ANVIL_STAT_TIME		"client_event_status_update_time"
+#define VAR_ANVIL_STAT_TIME		"anvil_status_update_time"
 #define DEF_ANVIL_STAT_TIME		"600s"
 extern int var_anvil_stat_time;
 

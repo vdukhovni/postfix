@@ -186,8 +186,10 @@ ACCESS(5)                                               ACCESS(5)
        <b>FILTER</b> <i>transport:destination</i>
               After the message is queued, send the  entire  mes-
               sage through the specified external content filter.
-              More information about external content filters  is
-              in the Postfix <a href="FILTER_README.html">FILTER_README</a> file.
+              The <i>transport:destination</i> syntax  is  described  in
+              the  <a href="transport.5.html">transport(5)</a>  manual  page.   More information
+              about external content filters is  in  the  Postfix
+              <a href="FILTER_README.html">FILTER_README</a> file.
 
               Note:   this  action  overrides  the  <b>main.cf  <a href="postconf.5.html#content_filter">con</a>-</b>
               <b><a href="postconf.5.html#content_filter">tent_filter</a></b>  setting,  and  currently  affects  all
@@ -284,6 +286,7 @@ ACCESS(5)                                               ACCESS(5)
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
        <a href="smtpd.8.html">smtpd(8)</a>, SMTP server
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="transport.5.html">transport(5)</a>, transport:nexthop syntax
 
 <b>README FILES</b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview

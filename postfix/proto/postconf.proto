@@ -2662,12 +2662,14 @@ This feature is available in Postfix 2.0 and later.
 %PARAM receive_override_options 
 
 <p> Enable or disable recipient validation, built-in content
-filtering, or address rewriting. </p>
+filtering, or address rewriting. Typically, these are specified in
+master.cf as command-line arguments for the smtpd(8), qmqpd(8) or
+pickup(8) daemons. </p>
 
 <p> Specify zero or more of the following options.  The options
-override main.cf settings and are either implemented by the Postfix
-SMTP server, by the QMQP server, or by the pickup server, or they
-are passed on to the cleanup server.  </p>
+override main.cf settings and are either implemented by smtpd(8),
+qmqpd(8), or pickup(8) themselves, or they are forwarded to the
+cleanup server.  </p>
 
 <dl>
 
@@ -4151,14 +4153,16 @@ hostname or parent domains, and execute the corresponding action.
 
 <dd>Search the specified access(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="check_helo_ns_access">check_helo_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,        
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="reject_invalid_hostname">reject_invalid_hostname</a></b></dt>
@@ -4348,16 +4352,18 @@ corresponding action.  </dd>
 
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
-<dd>Search the specified access(5) database for the MX hosts for the
-RCPT TO address, and execute the corresponding action.  Note: a
-result of "OK" is not allowed for safety reasons.  This feature is
-available in Postfix 2.1 and later. </dd>
+<dd>Search the specified access(5) database for the MX hosts for
+the RCPT TO address, and execute the corresponding action.  Note:
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.1 and later. </dd>
 
 <dt><b><a name="check_recipient_ns_access">check_recipient_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the RCPT TO address, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="permit_auth_destination">permit_auth_destination</a></b></dt>
@@ -4700,14 +4706,16 @@ corresponding action. </dd>
 
 <dd>Search the specified access(5) database for the MX hosts for
 the MAIL FROM address, and execute the corresponding action.  Note:
-a result of "OK" is not allowed for safety reasons.  This feature
-is available in Postfix 2.1 and later. </dd>
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.1 and later. </dd>
 
 <dt><b><a name="check_sender_ns_access">check_sender_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the DNS servers
 for the MAIL FROM address, and execute the corresponding action.
-Note: a result of "OK" is not allowed for safety reasons.  This
+Note: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a></b></dt>
@@ -5322,7 +5330,7 @@ and virtual(5) aliasing.
 This feature is available in Postfix 2.0 and later.
 </p>
 
-%PARAM client_event_status_update_time 600s
+%PARAM anvil_status_update_time 600s
 
 <p>
 How frequently the anvil(8) connection and rate limiting server

@@ -1272,6 +1272,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& var_smtpd_delay_reject == 0
 	&& (err = smtpd_check_mail(state, argv[2].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
+	/* XXX Reset access map side effects. */
+	mail_reset(state);
 	return (-1);
     }
 
@@ -1426,27 +1428,29 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Don't access the proxy, queue file, or queue file writer process until
      * we have a valid recipient address.
      */
-    if (state->proxy == 0 && state->proxy_mail) {
-	if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
-			     var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
-			     state->proxy_mail) != 0) {
-	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
-	    return (-1);
+    if (state->proxy == 0 && state->cleanup == 0) {
+	if (state->proxy_mail) {
+	    if (smtpd_proxy_open(state, var_smtpd_proxy_filt,
+				 var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
+				 state->proxy_mail) != 0) {
+		smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+		return (-1);
+	    }
+	} else {
+	    mail_open_stream(state);
 	}
-    } else if (state->cleanup == 0) {
-	mail_open_stream(state);
-    }
 
-    /*
-     * Log the queue ID with the message origin.
-     */
+	/*
+	 * Log the queue ID with the message origin.
+	 */
 #ifdef USE_SASL_AUTH
-    if (var_smtpd_sasl_enable)
-	smtpd_sasl_mail_log(state);
-    else
+	if (var_smtpd_sasl_enable)
+	    smtpd_sasl_mail_log(state);
+	else
 #endif
-	msg_info("%s: client=%s", state->queue_id ?
-		 state->queue_id : "NOQUEUE", FORWARD_NAMADDR(state));
+	    msg_info("%s: client=%s", state->queue_id ?
+		     state->queue_id : "NOQUEUE", FORWARD_NAMADDR(state));
+    }
 
     /*
      * Proxy the recipient. OK, so we lied. If the real-time proxy rejects

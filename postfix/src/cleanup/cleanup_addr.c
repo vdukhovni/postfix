@@ -22,7 +22,7 @@
 /*	to the queue file. Processing includes address rewriting and
 /*	sender/recipient auto bcc address generation.
 /*
-/*	cleanup_addr_sender() process sender envelope information and updates
+/*	cleanup_addr_sender() processes sender envelope information and updates
 /*	state->sender.
 /*
 /*	cleanup_addr_recipient() processes recipient envelope information

@@ -298,9 +298,9 @@ PPoossttffiixx ssuuppppoorrtt ccoommmmaannddss
 
 The Postfix architecture overview ends with a summary of command-line utilities
 for day-to-day use of the Postfix mail system. Besides the Sendmail-compatible
-sendmail(1), mailq(1), and newaliases(1) commands that were already introduced
-above, the Postfix system comes with it own collection of command-line
-utilities. For consistency, these are all named postsomething.
+sendmail(1), mailq(1), and newaliases(1) commands, the Postfix system comes
+with it own collection of command-line utilities. For consistency, these are
+all named postsomething.
 
   * The postfix(1) command controls the operation of the mail system. It is the
     interface for starting, stopping, and restarting the mail system, as well

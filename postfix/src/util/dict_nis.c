@@ -196,8 +196,6 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
 
 static void dict_nis_close(DICT *dict)
 {
-    DICT_NIS *dict_nis = (DICT_NIS *) dict;
-
     dict_free(dict);
 }
 

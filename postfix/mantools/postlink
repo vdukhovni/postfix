@@ -94,7 +94,7 @@ exec sed '
 	s;[[:<:]]broken_sasl_auth_clients[[:>:]];<a href="postconf.5.html#broken_sasl_auth_clients">&</a>;g
 	s;[[:<:]]canonical_maps[[:>:]];<a href="postconf.5.html#canonical_maps">&</a>;g
 	s;[[:<:]]cleanup_service_name[[:>:]];<a href="postconf.5.html#cleanup_service_name">&</a>;g
-	s;[[:<:]]client_event_status_update_time[[:>:]];<a href="postconf.5.html#client_event_status_update_time">&</a>;g
+	s;[[:<:]]anvil_status_update_time[[:>:]];<a href="postconf.5.html#anvil_status_update_time">&</a>;g
 	s;[[:<:]]command_directory[[:>:]];<a href="postconf.5.html#command_directory">&</a>;g
 	s;[[:<:]]command_expan[-</bB>]*\n* *[<bB>]*sion_filter[[:>:]];<a href="postconf.5.html#command_expansion_filter">&</a>;g
 	s;[[:<:]]command_time_limit[[:>:]];<a href="postconf.5.html#command_time_limit">&</a>;g
@@ -430,6 +430,7 @@ exec sed '
 	s/[<bB>]*smtpd[</bB>]*(8)/<a href="smtpd.8.html">&<\/a>/g
 	s/[<bB>]*spawn[</bB>]*(8)/<a href="spawn.8.html">&<\/a>/g
 	s/[<bB>]*trace[</bB>]*(8)/<a href="trace.8.html">&<\/a>/g
+	s/[<bB>]*trivial- *<br> *rewrite[</bB>]*(8)/<a href="trivial-rewrite.8.html">&<\/a>/g
 	s/[<bB>]*triv[-</bB>]*\n* *[<bB>]*ial-[</bB>]*\n* *[<bB>]*rewrite[</bB>]*(8)/<a href="trivial-rewrite.8.html">&<\/a>/g
 	s/[<bB>]*mailq[</bB>]*(1)/<a href="mailq.1.html">&<\/a>/g
 	s/[<bB>]*newaliases[</bB>]*(1)/<a href="newaliases.1.html">&<\/a>/g

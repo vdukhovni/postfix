@@ -35,18 +35,24 @@ document gives an introduction to Postfix lookup tables.
 
 Topics covered in this document:
 
-  * Postfix address rewriting purpose
   * Postfix address rewriting overview
-  * Rewrite addresses to standard form
-  * Canonical address mapping
-  * Address masquerading
-  * Virtual aliasing
-  * Resolve address to destination
-  * Mail transport switch
-  * Relocated users table
-  * Local alias database
-  * Local per-user .forward files
-  * Local catch-all address
+  * Address rewriting when mail is received
+
+      o Rewrite addresses to standard form
+      o Canonical address mapping
+      o Address masquerading
+      o Automatic BCC recipients
+      o Virtual aliasing
+
+  * Address rewriting when mail is delivered
+
+      o Resolve address to destination
+      o Mail transport switch
+      o Relocated users table
+      o Local alias database
+      o Local per-user .forward files
+      o Local catch-all address
+
   * Debugging your address manipulations
 
 PPoossttffiixx aaddddrreessss rreewwrriittiinngg oovveerrvviieeww
@@ -77,6 +83,58 @@ of mail messages.
                  forwarding                deferred
                   notices
 
+The table below summarizes all Postfix address manipulations. If you're reading
+this document for the first time, skip forward to "Address rewriting when mail
+is received". Once you've finished reading the remainder of this document, the
+table will help you to find quickly what you need.
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |AAddddrreessss     |SSccooppee|DDaaeemmoonn  |GGlloobbaall ttuurrnn--oonn      |SSeelleeccttiivvee ttuurrnn--ooffff      |
+    |mmaanniippuullaattiioonn|     |        |ccoonnttrrooll             |ccoonnttrrooll                 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Rewrite     |     |trivial-|append_at_myorigin, |                        |
+    |addresses to|all  |rewrite |append_dot_mydomain,|none                    |
+    |standard    |mail |(8)     |swap_bangpath,      |                        |
+    |form        |     |        |allow_percent_hack  |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Canonical   |all  |cleanup |                    |                        |
+    |address     |mail |(8)     |canonical_maps      |receive_override_options|
+    |mapping     |     |        |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Address     |all  |cleanup |masquerade_domains  |receive_override_options|
+    |masquerading|mail |(8)     |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Automatic   |new  |cleanup |always_bcc,         |                        |
+    |BCC         |mail |(8)     |sender_bcc_maps,    |receive_override_options|
+    |recipients  |     |        |recipient_bcc_maps  |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Virtual     |all  |cleanup |virtual_alias_maps  |receive_override_options|
+    |aliasing    |mail |(8)     |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Resolve     |all  |trivial-|                    |                        |
+    |address to  |mail |rewrite |none                |none                    |
+    |destination |     |(8)     |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Mail        |all  |trivial-|                    |                        |
+    |transport   |mail |rewrite |transport_maps      |none                    |
+    |switch      |     |(8)     |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Relocated   |all  |trivial-|                    |                        |
+    |users table |mail |rewrite |relocated_maps      |none                    |
+    |            |     |(8)     |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Local alias |all  |local(8)|alias_maps          |none                    |
+    |database    |mail |        |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Local per-  |     |        |                    |                        |
+    |user        |all  |local(8)|forward_path        |none                    |
+    |.forward    |mail |        |                    |                        |
+    |files       |     |        |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Local catch-|all  |local(8)|luser_relay         |none                    |
+    |all address |mail |        |                    |                        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _|_ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+
 AAddddrreessss rreewwrriittiinngg wwhheenn mmaaiill iiss rreecceeiivveedd
 
 The cleanup(8) server receives mail from outside of Postfix as well as mail
@@ -97,35 +155,8 @@ Address manipulations at this stage are:
   * Rewrite addresses to standard form
   * Canonical address mapping
   * Address masquerading
+  * Automatic BCC recipients
   * Virtual aliasing
-
-AAddddrreessss rreewwrriittiinngg wwhheenn mmaaiill iiss ddeelliivveerreedd
-
-The Postfix queue manager sorts mail according to its destination and gives it
-to Postfix delivery agents such as local(8), smtp(8), or lmtp(8). Just like the
-cleanup(8) server, the Postfix queue manager delegates the more complex address
-manipulations to the trivial-rewrite(8) server.
-
-Address manipulations at this stage are:
-
-  * Resolve address to destination
-  * Mail transport switch
-  * Relocated users table
-
-Each Postfix delivery agent tries to deliver the mail to its destination, while
-encapsulating the sender, recipients, and message content according to the
-rules of the SMTP, LMTP, etc. protocol. When mail cannot be delivered, it is
-either returned to the sender or moved to the deferred queue and tried again
-later.
-
-Address manipulations when mail is delivered via the local(8) delivery agent:
-
-  * Local alias database
-  * Local per-user .forward files
-  * Local catch-all address
-
-The remainder of this document presents each address manipulation step in more
-detail, with specific examples or with pointers to documentation with examples.
 
 RReewwrriittee aaddddrreesssseess ttoo ssttaannddaarrdd ffoorrmm
 
@@ -223,6 +254,18 @@ Sender-specific rewriting is useful when you want to rewrite ugly sender
 addresses to pretty ones, and still want to be able to send mail to the those
 ugly address without creating a mailer loop.
 
+Canonical mapping can be turned off selectively for mail received by smtpd(8),
+qmqpd(8), or pickup(8), by overriding main.cf settings in the master.cf file.
+This feature is available in Postfix version 2.1 and later.
+
+Example:
+
+    /etc/postfix/master.cf:
+        :10026      inet  n       -       n       -       -       smtpd
+            -o receive_override_options=no_address_mapping
+
+Note: do not specify whitespace around the "=" here.
+
 AAddddrreessss mmaassqquueerraaddiinngg
 
 Address masquerading is a method to hide hosts inside a domain behind their
@@ -273,23 +316,66 @@ In order to subject envelope recipient addresses to masquerading, too, specify
 
     /etc/postfix/main.cf:
         masquerade_classes = envelope_sender, envelope_recipient,
-    	header_sender, header_recipient
+            header_sender, header_recipient
 
 If you rewrite the envelope recipient like this, Postfix will no longer be able
 to send mail to individual machines.
 
+Address masquerading can be turned off selectively for mail received by smtpd
+(8), qmqpd(8), or pickup(8), by overriding main.cf settings in the master.cf
+file. This feature is available in Postfix version 2.1 and later.
+
+Example:
+
+    /etc/postfix/master.cf:
+        :10026      inet  n       -       n       -       -       smtpd
+            -o receive_override_options=no_address_mapping
+
+Note: do not specify whitespace around the "=" here.
+
+AAuuttoommaattiicc BBCCCC rreecciippiieennttss
+
+After applying the canonical and masquerade mappings, the cleanup(8) daemon can
+generate optional BCC (blind carbon-copy) recipients. Postfix provides three
+mechanisms:
+
+    always_bcc = address
+        Deliver a copy of all mail to the specified address.
+    sender_bcc_maps = type:table
+        Search the specified "type:table" lookup table with the envelope sender
+        address for an automatic BCC address.
+    recipient_bcc_maps = type:table
+        Search the specified "type:table" lookup table with the envelope
+        recipient address for an automatic BCC address.
+
+Note: automatic BCC recipients are produced only for new mail. To avoid mailer
+loops, automatic BCC recipients are not generated for mail that Postfix
+forwards internally, nor for mail that Postfix generates itself.
+
+Automatic BCC recipients (including always_bcc) can be turned off selectively
+for mail received by smtpd(8), qmqpd(8), or pickup(8), by overriding main.cf
+settings in the master.cf file. This feature is available in Postfix version
+2.1 and later.
+
+Example:
+
+    /etc/postfix/master.cf:
+        :10026      inet  n       -       n       -       -       smtpd
+            -o receive_override_options=no_address_mapping
+
+Note: do not specify whitespace around the "=" here.
+
 VViirrttuuaall aalliiaassiinngg
 
-After applying the canonical and masquerade mappings, the cleanup(8) daemon
-uses the optional virtual(5) alias tables to redirect mail for recipients. The
-mapping affects only envelope recipient addresses; it has no effect on message
-headers or envelope sender addresses. Virtual alias lookups are useful to
-redirect mail for virtual alias domains to real user mailboxes, and to redirect
-mail for domains that no longer exist. Virtual alias lookups can also be used
-to transform " Firstname.Lastname " back into UNIX login names, although it
-seems that local aliases may be a more appropriate vehicle. See the
-VIRTUAL_README document for an overview of methods to host virtual domains with
-Postfix.
+Before writing the recipients to the queue file, the cleanup(8) daemon uses the
+optional virtual(5) alias tables to redirect mail for recipients. The mapping
+affects only envelope recipient addresses; it has no effect on message headers
+or envelope sender addresses. Virtual alias lookups are useful to redirect mail
+for virtual alias domains to real user mailboxes, and to redirect mail for
+domains that no longer exist. Virtual alias lookups can also be used to
+transform " Firstname.Lastname " back into UNIX login names, although it seems
+that local aliases may be a more appropriate vehicle. See the VIRTUAL_README
+document for an overview of methods to host virtual domains with Postfix.
 
 Virtual aliasing is disabled by default. To enable, edit the virtual_alias_maps
 parameter in the main.cf file and specify one or more lookup tables, separated
@@ -312,8 +398,52 @@ or pgsql: are sufficient. For dynamic mappings you can use regular expression
 tables. This requires that you become intimately familiar with the ideas
 expressed in regexp_table(5), pcre_table(5) and virtual(5).
 
+Note: automatic BCC recipients are produced only for new mail. To avoid mailer
+loops, automatic BCC recipients are not generated for mail that is forwarded
+internally, and not for mail that is generated by Postfix itself.
+
+Virtual aliasing can be turned off selectively for mail received by smtpd(8),
+qmqpd(8), or pickup(8), by overriding main.cf settings in the master.cf file.
+This feature is available in Postfix version 2.1 and later.
+
+Example:
+
+    /etc/postfix/master.cf:
+        :10026      inet  n       -       n       -       -       smtpd
+            -o receive_override_options=no_address_mapping
+
+Note: do not specify whitespace around the "=" here.
+
 At this point the message is ready to be stored into the Postfix incoming
 queue.
+
+AAddddrreessss rreewwrriittiinngg wwhheenn mmaaiill iiss ddeelliivveerreedd
+
+The Postfix queue manager sorts mail according to its destination and gives it
+to Postfix delivery agents such as local(8), smtp(8), or lmtp(8). Just like the
+cleanup(8) server, the Postfix queue manager delegates the more complex address
+manipulations to the trivial-rewrite(8) server.
+
+Address manipulations at this stage are:
+
+  * Resolve address to destination
+  * Mail transport switch
+  * Relocated users table
+
+Each Postfix delivery agent tries to deliver the mail to its destination, while
+encapsulating the sender, recipients, and message content according to the
+rules of the SMTP, LMTP, etc. protocol. When mail cannot be delivered, it is
+either returned to the sender or moved to the deferred queue and tried again
+later.
+
+Address manipulations when mail is delivered via the local(8) delivery agent:
+
+  * Local alias database
+  * Local per-user .forward files
+  * Local catch-all address
+
+The remainder of this document presents each address manipulation step in more
+detail, with specific examples or with pointers to documentation with examples.
 
 RReessoollvvee aaddddrreessss ttoo ddeessttiinnaattiioonn
 
@@ -480,7 +610,7 @@ With Postfix version 2.1 and later you can ask Postfix to produce mail delivery
 reports for debugging purposes. These reports not only show sender/recipient
 addresses after address rewriting and alias expansion or forwarding, they also
 show information about delivery to mailbox, delivery to non-Postfix command,
-and so on.
+responses from remote SMTP servers, and so on.
 
 Postfix can produce two types of mail delivery reports for debugging:
 
@@ -515,7 +645,7 @@ mailbox, or delivery to non-Postfix command.
 
     Enclosed is the mail delivery report that you requested.
 
-    			The Postfix program
+                            The Postfix program
 
     <postfix-users@postfix.org>: delivery via mail.cloud9.net[168.100.1.4]: 250
     Ok
@@ -555,7 +685,7 @@ no body content so none is shown in the example below.
     Content-Type: message/rfc822
 
     Received: by spike.porcupine.org (Postfix, from userid 1001)
-    	id 84863BC0E5; Tue, 13 Apr 2004 19:27:43 -0400 (EDT)
+            id 84863BC0E5; Tue, 13 Apr 2004 19:27:43 -0400 (EDT)
     Subject: probe
     To: postfix-users@postfix.org
     Message-Id: <20040413232743.84863BC0E5@spike.porcupine.org>

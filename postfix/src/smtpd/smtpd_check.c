@@ -1645,14 +1645,16 @@ static int not_in_client_helo(SMTPD_STATE *state, const char *table,
      * example, rejecting HELO does not affect subsequent mail deliveries.
      * Thus, if delay_reject=no, client and helo actions such as FILTER or
      * HOLD also should not affect subsequent mail deliveries. Hmm...
+     * 
+     * XXX If the MAIL FROM command is rejected then we have to reset access
+     * map side effects such as FILTER.
      */
-    if (var_smtpd_delay_reject == 0
-	&& (strcmp(reply_class, SMTPD_NAME_CLIENT) == 0
-	    || strcmp(reply_class, SMTPD_NAME_HELO) == 0)) {
+    if (state->sender == 0) {
 	msg_warn("access table %s: with %s=%s, "
-		 "action %s is always skipped in %s restrictions",
+		 "action %s is always skipped in %s or %s restrictions",
 		 table, VAR_SMTPD_DELAY_REJECT, CONFIG_BOOL_NO,
-		 action, reply_class);
+		 action, SMTPD_NAME_CLIENT, SMTPD_NAME_HELO);
+	/* XXX What about ETRN? */
 	return (0);
     }
     return (1);

@@ -252,10 +252,10 @@ deliver mail to a small number of high volume domains.
 A common situation where high concurrency is called for is on gateways relaying
 a high volume of mail from between the Internet and an intranet mail
 environment. Approximately half the mail (assuming equal volumes inbound and
-outbound) will be destined to for the internal mail hubs. Since the internal
-mail hubs will be receiving all external mail exclusively from the gateway, it
-is reasonable to configure the gateway to make greater demands on the capacity
-of the internal SMTP servers.
+outbound) will be destined for the internal mail hubs. Since the internal mail
+hubs will be receiving all external mail exclusively from the gateway, it is
+reasonable to configure the gateway to make greater demands on the capacity of
+the internal SMTP servers.
 
 The tuning of the inbound concurrency limits need not be trial and error. A
 high volume capable mailhub should be able to easily handle 50 or 100 (rather

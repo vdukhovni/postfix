@@ -53,6 +53,8 @@
 /*	main.cf configuration parameters. Use this, for example, to
 /*	change the \fBmail_owner\fR or \fBsetgid_group\fR setting for an
 /*	already installed Postfix system.
+/* .sp
+/*	This feature is available in Postfix 2.1 and later.
 /* .IP "\fBupgrade-configuration\fR \fB[\fIname\fR=\fIvalue ...\fB]\fR
 /*	Update the \fBmain.cf\fR and \fBmaster.cf\fR files with information
 /*	that Postfix needs in order to run: add or update services, and add
@@ -60,6 +62,8 @@
 /* .sp
 /*	Specify \fIname\fR=\fIvalue\fR to override and update specific
 /*	main.cf configuration parameters.
+/* .sp
+/*	This feature is available in Postfix 2.1 and later.
 /* .PP
 /*	The following options are implemented:
 /* .IP "\fB-c \fIconfig_dir\fR"
