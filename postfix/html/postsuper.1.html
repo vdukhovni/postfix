@@ -48,7 +48,7 @@ POSTSUPER(1)                                         POSTSUPER(1)
               mailq | tail +2 | awk  'BEGIN { RS = "" }
                   # $7=sender, $8=recipient1, $9=recipient2
                   { if ($8 == "user@example.com" &amp;&amp; $9 == "")
-                    print $1 }
+                        print $1 }
               ' | tr -d '*!' | postsuper -d -
 
               Specify <b>-d ALL</b> to remove all messages; for example,

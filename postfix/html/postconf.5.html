@@ -2601,8 +2601,11 @@ parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
 </p>
 
 <p>
-Note: you need to stop and start Postfix when this parameter changes.
+Note 1: you need to stop and start Postfix when this parameter changes.
 </p>
+
+<p> Note 2: address information may be enclosed inside <tt>[]</tt>,
+but this form is not recommended here. </p>
 
 <p> When <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -5626,7 +5629,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> documentation for more detail. </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended. </p>
+but this form is not recommended here. </p>
 
 
 </DD>
@@ -5659,7 +5662,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> documentation for more detail. </p>
 
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended. </p>
+but this form is not recommended here. </p>
 
 
 </DD>

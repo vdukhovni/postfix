@@ -32,11 +32,11 @@
 /*
 /*	smtp_rset() sends a single RSET command and waits for the
 /*	response. In case of no response, or negative response, it
-/*	turns off caching for the current session.
+/*	turns off connection caching.
 /*
 /*	smtp_quit() sends a single QUIT command and waits for the
-/*	response if configured to do so. It always turns off caching
-/*	for the current session.
+/*	response if configured to do so. It always turns off connection
+/*	caching.
 /* DIAGNOSTICS
 /*	smtp_helo(), smtp_xfer(), smtp_rset() and smtp_quit() return
 /*	0 in case of success, -1 in case of failure. For smtp_xfer(),
@@ -757,7 +757,7 @@ static void smtp_header_rewrite(void *context, int header_class,
 	addr_list = tok822_grep(tree, TOK822_ADDR);
 	for (tpp = addr_list; *tpp; tpp++)
 	    did_rewrite |= smtp_map11_tree(tpp[0], smtp_generic_maps,
-				    smtp_ext_prop_mask & EXT_PROP_GENERIC);
+				     smtp_ext_prop_mask & EXT_PROP_GENERIC);
 	if (did_rewrite) {
 	    vstring_sprintf(buf, "%s: ", header_info->name);
 	    tok822_externalize(buf, tree, TOK822_STR_HEAD);
@@ -780,6 +780,8 @@ static void smtp_header_rewrite(void *context, int header_class,
      * possible (without rearranging the order of addresses). Prepending
      * white space to the beginning of lines is delegated to the output
      * routine.
+     * 
+     * Code derived from cleanup_fold_header().
      */
     for (line = start = vstring_str(buf); line != 0; line = next_line) {
 	end_line = line + strcspn(line, "\n");
@@ -798,6 +800,8 @@ static void smtp_header_rewrite(void *context, int header_class,
      * rewriting machinery. Just like smtp_header_out(), this code destroys
      * the header. We could try to avoid clobbering it, but we're not going
      * to use the data any further.
+     * 
+     * Code derived from cleanup_out_header().
      */
     for (line = start = vstring_str(buf); line != 0; line = next_line) {
 	next_line = split_at(line, '\n');

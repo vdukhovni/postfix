@@ -69,8 +69,11 @@ the host and port on which new connections should be
 accepted. The host part (and colon) may be omitted.  Either
 host or port may be given in symbolic form (host or service
 name) or in numeric form (IP address or port number).
+Host information may be enclosed inside "[]", but this form
+is not necessary.
 .sp
-Examples: a service named \fB127.0.0.1:smtp\fR receives
+Examples: a service named \fB127.0.0.1:smtp\fR or \fB::1:smtp\fR
+receives
 mail via the loopback interface only; and a service named
 \fB10025\fR accepts connections on TCP port 10025 via
 all interfaces configured with the \fBinet_interfaces\fR

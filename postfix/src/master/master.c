@@ -289,7 +289,7 @@ int     main(int argc, char **argv)
      * all MTA processes cleanly. Give up if we can't separate from our
      * parent process. We're not supposed to blow away the parent.
      */
-    if (setsid() == -1)
+    if (debug_me == 0 && setsid() == -1)
 	msg_fatal("unable to set session and process group ID: %m");
 
     /*

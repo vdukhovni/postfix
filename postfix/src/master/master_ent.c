@@ -225,8 +225,8 @@ MASTER_SERV *get_master_ent()
     MASTER_SERV *serv;
     char   *cp;
     char   *name;
-    char   *host;
-    char   *port;
+    char   *host = 0;
+    char   *port = 0;
     char   *transport;
     int     private;
     int     unprivileged;		/* passed on to child */
@@ -323,7 +323,6 @@ MASTER_SERV *get_master_ent()
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	}
 	MASTER_INET_PORT(serv) = mystrdup(port);
-	myfree(atmp);
     } else if (STR_SAME(transport, MASTER_XPORT_NAME_UNIX)) {
 	serv->type = MASTER_SERV_TYPE_UNIX;
 	serv->listen_fd_count = 1;
@@ -349,9 +348,39 @@ MASTER_SERV *get_master_ent()
      * attributes such as privacy.
      */
     if (serv->type == MASTER_SERV_TYPE_INET) {
+	MAI_HOSTADDR_STR host_addr;
+	MAI_SERVPORT_STR serv_port;
+	struct addrinfo *res0;
+
 	if (private)
 	    fatal_with_context("inet service cannot be private");
-	serv->name = mystrdup(name);
+#ifdef SNAPSHOT
+	if (*host == 0)
+	    host = 0;
+	/* Canonicalize numeric host and numeric or symbolic service. */
+	if (hostaddr_to_sockaddr(host, port, 0, &res0) == 0) {
+	    SOCKADDR_TO_HOSTADDR(res0->ai_addr, res0->ai_addrlen,
+				 host ? &host_addr : (MAI_HOSTADDR_STR *) 0,
+				 &serv_port, 0);
+	    serv->name = (host ? concatenate("[", host_addr.buf, "]:",
+					     serv_port.buf, (char *) 0) :
+			  mystrdup(serv_port.buf));
+	    freeaddrinfo(res0);
+	} 
+	/* Canonicalize numeric or symbolic service. */
+	else if (hostaddr_to_sockaddr((char *) 0, port, 0, &res0) == 0) {
+	    SOCKADDR_TO_HOSTADDR(res0->ai_addr, res0->ai_addrlen,
+				 (MAI_HOSTADDR_STR *) 0, &serv_port, 0);
+	    serv->name = (host ? concatenate("[", host, "]:",
+					     serv_port.buf, (char *) 0) :
+			  mystrdup(serv_port.buf));
+	    freeaddrinfo(res0);
+	} 
+	/* Bad service name? */
+	else
+#endif
+	    serv->name = mystrdup(name);
+	myfree(atmp);
     } else if (serv->type == MASTER_SERV_TYPE_UNIX) {
 	serv->name = mail_pathname(private ? MAIL_CLASS_PRIVATE :
 				   MAIL_CLASS_PUBLIC, name);

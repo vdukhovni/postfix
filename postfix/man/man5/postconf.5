@@ -1333,7 +1333,10 @@ interfaces (default), and "loopback-only" to receive mail
 on loopback network interfaces only (Postfix 2.2 and later).  The
 parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
 .PP
-Note: you need to stop and start Postfix when this parameter changes.
+Note 1: you need to stop and start Postfix when this parameter changes.
+.PP
+Note 2: address information may be enclosed inside <tt>[]</tt>,
+but this form is not recommended here.
 .PP
 When inet_interfaces specifies just one IPv4 and/or IPv6 address
 that is not a loopback address, the Postfix SMTP client will use
@@ -3086,7 +3089,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended.
+but this form is not recommended here.
 .SH smtp_bind_address6 (default: empty)
 An optional numerical network address that the SMTP client should
 bind to when making an IPv6 connection.
@@ -3113,7 +3116,7 @@ IP hosting, but can be a problem on multi-homed firewalls. See the
 inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside <tt>[]</tt>,
-but this form is not recommended.
+but this form is not recommended here.
 .SH smtp_connect_timeout (default: 30s)
 The SMTP client time limit for completing a TCP connection, or
 zero (use the operating system built-in time limit).

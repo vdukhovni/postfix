@@ -41,7 +41,7 @@
 /*	# $7=sender, $8=recipient1, $9=recipient2
 /* .ti +4
 /*	{ if ($8 == "user@example.com" && $9 == "")
-/* .ti +6
+/* .ti +10
 /*	print $1 }
 /* .br
 /*	\' | tr -d '*!' | postsuper -d -
