@@ -4988,3 +4988,8 @@ Apologies for any names omitted.
 	Bugfix: the fast ETRN flush server could not handle [ipaddr]
 	or domain names with one-character hostname part. It should
 	be OK now. File: flush/flush.c.
+
+20010327
+
+	Speed up mailq (sendmail -bp) display by flushing output
+	after each file.  File: showq/showq.c.

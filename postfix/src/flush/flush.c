@@ -130,6 +130,7 @@
 #include <utime.h>
 #include <errno.h>
 #include <ctype.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -139,7 +140,6 @@
 #include <vstring.h>
 #include <vstring_vstream.h>
 #include <myflock.h>
-#include <valid_hostname.h>
 #include <htable.h>
 #include <dict.h>
 #include <scan_dir.h>
@@ -164,7 +164,9 @@
 /* Application-specific. */
 
  /*
-  * Tunable parameters.
+  * Tunable parameters. The fast_flush_domains parameter is not defined here,
+  * because it is also used by the global library, and therefore is owned by
+  * the library.
   */
 int     var_fflush_refresh;
 int     var_fflush_purge;
@@ -176,7 +178,8 @@ static DOMAIN_LIST *flush_domains;
 
  /*
   * Some hard-wired policy: how many queue IDs we remember while we're
-  * flushing a logfile.
+  * flushing a logfile (duplicate elimination). Sites with 1000+ emails
+  * queued should arrange for permanent connectivity.
   */
 #define FLUSH_DUP_FILTER_SIZE	10000	/* graceful degradation */
 
@@ -187,8 +190,8 @@ static DOMAIN_LIST *flush_domains;
 #define STREQ(x,y)		(strcmp(x,y) == 0)
 
  /*
-  * Forward declarations for where we broke routines along their name space
-  * domain boundaries (actually, hostnames versus safe-to-use pathnames).
+  * Forward declarations resulting from breaking up routines according to
+  * name space: domain names versus safe-to-use pathnames.
   */
 static int flush_add_path(const char *, const char *);
 static int flush_send_path(const char *);
@@ -206,7 +209,7 @@ static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
 	path = vstring_alloc(10);
 
     /*
-     * Convert character values to hexadecimal.
+     * Mask characters that could upset the name-to-queue-file mapping code.
      */
     while ((ch = *(unsigned const char *) site++) != 0)
 	if (ISALNUM(ch))
@@ -249,8 +252,7 @@ static int flush_add_service(const char *site, const char *queue_id)
      * Map site to path and update log.
      */
     site_path = flush_site_to_path((VSTRING *) 0, site);
-    status = valid_hostname(STR(site_path), DONT_GRIPE) ?
-	flush_add_path(STR(site_path), queue_id) : FLUSH_STAT_BAD;
+    status = flush_add_path(STR(site_path), queue_id);
     vstring_free(site_path);
 
     return (status);
@@ -262,6 +264,12 @@ static int flush_add_path(const char *path, const char *queue_id)
 {
     char   *myname = "flush_add_path";
     VSTREAM *log;
+
+    /*
+     * Sanity check.
+     */
+    if (!mail_queue_id_ok(path))
+	return (FLUSH_STAT_BAD);
 
     /*
      * Open the logfile or bust.
@@ -279,12 +287,14 @@ static int flush_add_path(const char *path, const char *queue_id)
 	msg_fatal("%s: lock fast flush logfile %s: %m", myname, path);
 
     /*
-     * Append the queue ID. With 15 bits if microsecond time, a queue ID is
+     * Append the queue ID. With 15 bits of microsecond time, a queue ID is
      * not recycled often enough for false hits to be a problem. If it does,
      * then we could add other signature information, such as the file size
      * in bytes.
      */
     vstream_fprintf(log, "%s\n", queue_id);
+    if (vstream_fflush(log))
+	msg_warn("write fast flush logfile %s: %m", path);
 
     /*
      * Clean up.
@@ -318,8 +328,7 @@ static int flush_send_service(const char *site)
      * Map site name to path name and flush the log.
      */
     site_path = flush_site_to_path((VSTRING *) 0, site);
-    status = valid_hostname(STR(site_path), DONT_GRIPE) ?
-	flush_send_path(STR(site_path)) : FLUSH_STAT_BAD;
+    status = flush_send_path(STR(site_path));
     vstring_free(site_path);
 
     return (status);
@@ -340,6 +349,12 @@ static int flush_send_path(const char *path)
     };
     HTABLE *dup_filter;
     int     count;
+
+    /*
+     * Sanity check.
+     */
+    if (!mail_queue_id_ok(path))
+	return (FLUSH_STAT_BAD);
 
     /*
      * Open the logfile. If the file does not exist, then there is no queued
@@ -470,7 +485,7 @@ static int flush_refresh_service(int max_age)
 	if (st.st_size == 0) {
 	    if (st.st_mtime + var_fflush_purge < event_time()) {
 		if (unlink(STR(path)) < 0)
-		    msg_warn("remove %s: %m", STR(path));
+		    msg_warn("remove logfile %s: %m", STR(path));
 		else if (msg_verbose)
 		    msg_info("%s: unlink %s, empty and unchanged for %d days",
 			     myname, STR(path), var_fflush_purge / 86400);
@@ -516,9 +531,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * This routine runs whenever a client connects to the UNIX-domain socket
      * dedicated to the fast flush service. What we see below is a little
      * protocol to (1) read a request from the client (the name of the site)
-     * and (2) acknowledge that we have received the request. Since the site
-     * name maps onto the file system, make sure the site name is a valid
-     * SMTP hostname.
+     * and (2) acknowledge that we have received the request.
      * 
      * All connection-management stuff is handled by the common code in
      * single_server.c.

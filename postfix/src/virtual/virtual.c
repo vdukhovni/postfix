@@ -205,6 +205,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <stdlib.h>
 
 /* Utility library. */
 
