@@ -19,9 +19,9 @@ from or to the loopback interface:
 3 - Making daemon programs more verbose
 =======================================
 
-Append one or more -v options to commands in /etc/postfix/master.cf
-and type "postfix reload". This will cause a lot of activity to be
-logged to the syslog daemon.
+Append one or more -v options to selected daemon definitions in
+/etc/postfix/master.cf and type "postfix reload". This will cause
+a lot of activity to be logged to the syslog daemon.
 
 4 - Tracing a Postfix daemon process
 ====================================
@@ -34,9 +34,12 @@ call tracer. For example:
 	# truss -p process-id
 	# ktrace -p process-id
 
-This can give valuable information about what a process is attempting
-to do. This is as much information as you can get without running
-a debugger program, as described in the next section.
+See your system documentation for details.
+
+Tracing a running process can give valuable information about what
+a process is attempting to do. This is as much information as you
+can get without running an interactive debugger program, as described
+in the next section.
 
 5 - Running daemon programs under an interactive debugger
 =========================================================
@@ -52,6 +55,8 @@ that it invokes the debugger of your choice, for example:
     debugger_command =
          PATH=/usr/bin:/usr/X11R6/bin
          xxgdb $daemon_directory/$process_name $process_id & sleep 5
+
+If you use xxgdb, be sure that gdb is in the command search path.
 
 Export XAUTHORITY so that X access control works, for example:
 

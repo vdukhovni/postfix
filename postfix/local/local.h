@@ -165,6 +165,11 @@ extern int local_file_deliver_mask;
 extern int local_cmd_deliver_mask;
 
  /*
+  * Restrictions on extension propagation.
+  */
+extern int local_ext_prop_mask;
+
+ /*
   * delivered.c
   */
 extern HTABLE *delivered_init(DELIVER_ATTR);
@@ -187,7 +192,9 @@ extern int feature_control(const char *);
  /*
   * local_expand.c
   */
-HTABLE *local_expand(LOCAL_STATE, USER_ATTR);
+int     local_expand(VSTRING *, const char *, LOCAL_STATE *, USER_ATTR *, const char *);
+
+#define LOCAL_EXP_EXTENSION_MATCHED	(1<<MAC_PARSE_USER)
 
 /* LICENSE
 /* .ad

@@ -15,32 +15,23 @@
   * Utility library.
   */
 #include <vstring.h>
+#include <mac_parse.h>
 
  /*
-  * External interface.
+  * Features.
   */
-typedef struct MAC_EXP MAC_EXP;
-
 #define MAC_EXP_FLAG_NONE	(0)
-#define MAC_EXP_FLAG_UNDEF	(1<<0)
-#define MAC_EXP_FLAG_RECURSE	(1<<1)
-#define MAC_EXP_FLAG_ERROR	(1<<2)
+#define MAC_EXP_FLAG_RECURSE	(1<<0)
 
-#define MAC_EXP_FLAG_INMASK	MAC_EXP_FLAG_RECURSE
-#define MAC_EXP_FLAG_OUTMASK	(MAC_EXP_FLAG_UNDEF | MAC_EXP_FLAG_ERROR)
+ /*
+  * Real lookup or just a test?
+  */
+#define MAC_EXP_MODE_TEST	(0)
+#define MAC_EXP_MODE_USE	(1)
 
-#define MAC_EXP_ARG_END		0
-#define MAC_EXP_ARG_ATTR	1
-#define MAC_EXP_ARG_TABLE	2
-#define MAC_EXP_ARG_FILTER	3
-#define MAC_EXP_ARG_CLOBBER	4
-#define MAC_EXP_ARG_RECORD	5
+typedef const char *(*MAC_EXP_LOOKUP_FN)(const char *, int, char *);
 
-extern MAC_EXP *mac_expand_update(MAC_EXP *, int,...);
-extern int mac_expand_use(MAC_EXP *, VSTRING *, const char *, int);
-extern void mac_expand_free(MAC_EXP *);
-
-extern int mac_expand(VSTRING *, const char *, int, int,...);
+extern int mac_expand(VSTRING *, const char *, int, const char *, MAC_EXP_LOOKUP_FN, char *);
 
 /* LICENSE
 /* .ad

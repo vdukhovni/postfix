@@ -256,7 +256,7 @@ valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	rm -f valid_hostname.tmp
 
 mac_expand_test: mac_expand mac_expand.in mac_expand.ref
-	./mac_expand <mac_expand.in >mac_expand.tmp
+	./mac_expand <mac_expand.in >mac_expand.tmp 2>&1
 	diff mac_expand.ref mac_expand.tmp
 	rm -f mac_expand.tmp
 
@@ -476,6 +476,7 @@ get_hostname.o: mymalloc.h
 get_hostname.o: msg.h
 get_hostname.o: valid_hostname.h
 get_hostname.o: get_hostname.h
+hattr.o: hattr.c
 htable.o: htable.c
 htable.o: sys_defs.h
 htable.o: mymalloc.h
@@ -544,7 +545,6 @@ mac_expand.o: msg.h
 mac_expand.o: vstring.h
 mac_expand.o: vbuf.h
 mac_expand.o: mymalloc.h
-mac_expand.o: htable.h
 mac_expand.o: mac_parse.h
 mac_expand.o: mac_expand.h
 mac_parse.o: mac_parse.c

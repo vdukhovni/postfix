@@ -251,7 +251,7 @@ typedef struct {
 
 /* parse_callback - callback for mac_parse() */
 
-static void parse_callback(int type, VSTRING *buf, char *context)
+static int parse_callback(int type, VSTRING *buf, char *context)
 {
     int    *expand_flag = (int *) context;
 
@@ -268,6 +268,7 @@ static void parse_callback(int type, VSTRING *buf, char *context)
 	else if (strcmp(vstring_str(buf), PIPE_DICT_MAILBOX) == 0)
 	    *expand_flag |= PIPE_FLAG_MAILBOX;
     }
+    return (0);
 }
 
 /* expand_argv - expand macros in the argument vector */

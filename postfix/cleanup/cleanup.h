@@ -66,18 +66,15 @@ extern MAPS *cleanup_virtual_maps;
 extern ARGV *cleanup_masq_domains;
 
  /*
+  * Restrictions on extension propagation.
+  */
+extern int cleanup_ext_prop_mask;
+
+ /*
   * Saved queue file name, so the file can be removed in case of a fatal
   * run-time error.
   */
 extern char *cleanup_path;
-
- /*
-  * Tunable parameters.
-  */
-extern int var_bounce_limit;		/* max bounce message size */
-extern int var_message_limit;		/* max message size */
-extern int var_hopcount_limit;		/* max mailer hop count */
-extern int var_header_limit;		/* max header length */
 
  /*
   * cleanup_state.c
@@ -128,14 +125,14 @@ extern void cleanup_rewrite_tree(TOK822 *);
  /*
   * cleanup_map11.c
   */
-extern void cleanup_map11_external(VSTRING *, MAPS *);
-extern void cleanup_map11_internal(VSTRING *, MAPS *);
-extern void cleanup_map11_tree(TOK822 *, MAPS *);
+extern void cleanup_map11_external(VSTRING *, MAPS *, int);
+extern void cleanup_map11_internal(VSTRING *, MAPS *, int);
+extern void cleanup_map11_tree(TOK822 *, MAPS *, int);
 
  /*
   * cleanup_map1n.c
   */
-ARGV   *cleanup_map1n_internal(char *, MAPS *);
+ARGV   *cleanup_map1n_internal(char *, MAPS *, int);
 
  /*
   * cleanup_masquerade.c

@@ -67,6 +67,7 @@
 #include <defer.h>
 #include <been_here.h>
 #include <mail_params.h>
+#include <ext_prop.h>
 
 /* Application-specific. */
 
@@ -169,6 +170,8 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * The command and file delivery routines are responsible for setting the
      * proper delivery rights. These are the rights of the default user, in
      * case the :include: is in a root-owned alias.
+     * 
+     * Don't propagate unmatched extensions unless permitted to do so.
      */
 #define FOPEN_AS(p,u,g) ((fd = open_as(p,O_RDONLY,0,u,g)) >= 0 ? \
 				vstream_fdopen(fd,O_RDONLY) : 0)
@@ -177,6 +180,8 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	status = bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			       "cannot open include file %s: %m", path);
     } else {
+	if ((local_ext_prop_mask & EXT_PROP_INCLUDE) == 0)
+	    state.msg_attr.unmatched = 0;
 	close_on_exec(vstream_fileno(fp), CLOSE_ON_EXEC);
 	status = deliver_token_stream(state, usr_attr, fp, (int *) 0);
 	if (vstream_fclose(fp))

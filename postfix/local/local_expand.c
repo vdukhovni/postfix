@@ -6,13 +6,21 @@
 /* SYNOPSIS
 /*	#include "local.h"
 /*
-/*	HTABLE *local_expand(state, usr_attr)
+/*	int	local_expand(result, pattern, state, usr_attr, filter)
+/*	VSTRING	*result;
+/*	const	char *pattern;
 /*	LOCAL_STATE state;
 /*	USER_ATTR usr_attr;
+/*	const char *filter;
 /* DESCRIPTION
-/*	local_expand() instantiates an attribute table for $name
-/* 	expansion.
-/*
+/*	local_expand() performs conditional and unconditional $name
+/*	expansion based on message delivery attributes.
+/*	The result is the bitwise OR or zero or more of the following:
+/* .IP LOCAL_EXP_EXTENSION_MATCHED
+/*	The result of expansion contains the $extension attribute.
+/* .IP MAC_PARSE_XXX
+/*	See mac_parse(3).
+/* .PP
 /*	Attributes:
 /* .IP domain
 /*	The recipient address domain.
@@ -32,6 +40,11 @@
 /*	The recipient user name.
 /* .PP
 /*	Arguments:
+/* .IP result
+/*	Storage for the result of expansion. The buffer is truncated
+/*	upon entry.
+/* .IP pattern
+/*	The string with unconditional and conditional macro expansions.
 /* .IP state
 /*	Message delivery attributes (sender, recipient etc.).
 /*	Attributes describing alias, include or forward expansion.
@@ -39,6 +52,9 @@
 /*	A table with delivered-to: addresses taken from the message.
 /* .IP usr_attr
 /*	Attributes describing user rights and environment.
+/* .IP filter
+/*	A null pointer, or a string of allowed characters in $name
+/*	expansions. Illegal characters are replaced by underscores.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory.
 /* SEE ALSO
@@ -61,7 +77,8 @@
 
 /* Utility library. */
 
-#include <htable.h>
+#include <vstring.h>
+#include <mac_expand.h>
 
 /* Global library */
 
@@ -71,25 +88,55 @@
 
 #include "local.h"
 
-/* local_expand - set up macro expansion attributes */
+typedef struct {
+    LOCAL_STATE *state;
+    USER_ATTR *usr_attr;
+    int     status;
+} LOCAL_EXP;
 
-HTABLE *local_expand(LOCAL_STATE state, USER_ATTR usr_attr)
+/* local_expand_lookup - mac_expand() lookup routine */
+
+static const char *local_expand_lookup(const char *name, int mode, char *ptr)
 {
-    HTABLE *expand_attr;
+    LOCAL_EXP *local = (LOCAL_EXP *) ptr;
 
-    /*
-     * Impedance matching between the local delivery agent data structures
-     * and the mac_expand() interface. The CPU cycles wasted will be
-     * negligible.
-     */
-    expand_attr = htable_create(0);
-    htable_enter(expand_attr, "user", usr_attr.logname);
-    htable_enter(expand_attr, "home", usr_attr.home);
-    htable_enter(expand_attr, "shell", usr_attr.shell);
-    htable_enter(expand_attr, "domain", state.msg_attr.domain);
-    htable_enter(expand_attr, "mailbox", state.msg_attr.local);
-    htable_enter(expand_attr, "recipient", state.msg_attr.recipient);
-    htable_enter(expand_attr, "extension", state.msg_attr.extension);
-    htable_enter(expand_attr, "recipient_delimiter", var_rcpt_delim);
-    return (expand_attr);
+#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
+
+    if (STREQ(name, "user")) {
+	return (local->usr_attr->logname);
+    } else if (STREQ(name, "home")) {
+	return (local->usr_attr->home);
+    } else if (STREQ(name, "shell")) {
+	return (local->usr_attr->shell);
+    } else if (STREQ(name, "domain")) {
+	return (local->state->msg_attr.domain);
+    } else if (STREQ(name, "mailbox")) {
+	return (local->state->msg_attr.local);
+    } else if (STREQ(name, "recipient")) {
+	return (local->state->msg_attr.recipient);
+    } else if (STREQ(name, "extension")) {
+	if (mode == MAC_EXP_MODE_USE)
+	    local->status |= LOCAL_EXP_EXTENSION_MATCHED;
+	return (local->state->msg_attr.extension);
+    } else if (STREQ(name, "recipient_delimiter")) {
+	return (*var_rcpt_delim ? var_rcpt_delim : 0);
+    } else {
+	return (0);
+    }
+}
+
+/* local_expand - expand message delivery attributes */
+
+int     local_expand(VSTRING *result, const char *pattern,
+	        LOCAL_STATE *state, USER_ATTR *usr_attr, const char *filter)
+{
+    LOCAL_EXP local;
+    int     expand_status;
+
+    local.state = state;
+    local.usr_attr = usr_attr;
+    local.status = 0;
+    expand_status = mac_expand(result, pattern, MAC_EXP_FLAG_NONE,
+			       filter, local_expand_lookup, (char *) &local);
+    return (local.status | expand_status);
 }

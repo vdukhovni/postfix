@@ -1,13 +1,22 @@
 Incompatible changes with snapshot-19990504:
 ===========================================
 
+- The Postfix local delivery agent no longer automatically propagates
+the address extension to aliases/include/forward addresses.  Specify
+"propagate_unmatched_extensions = canonical, virtual, alias, forward,
+include" to restore the old behavior.
+
+- The luser_relay syntax has changed. You can specify one address,
+and it is subjected to $user, etc. expansions. See conf/main.cf.
+
+- The mailbox_command parameter is now subjected to $name expansion
+(see below). This means that you can no longer use shell variables
+in mailbox_command, or that you have to use $$ instead of $.
+
 - File system reorganization: daemon executables are in the libexec
 subdirectory, command executables in the bin subdirectory.  The
-INSTALL instructions now install daemons and commands into separate
-directories.
-
-- The local delivery agent no longer appends address extensions to
-addresses found in aliases, :include: files or .forward files.
+INSTALL instructions now recommend installing daemons and commands
+into separate directories.
 
 Major changes with snapshot-19990504:
 =====================================
@@ -18,15 +27,18 @@ of Solaris workarounds.
 
 - Specify "forward_path = /var/forward/$user" to avoid looking up
 .forward files in user home directories.  The default value is
-$home/.forward$recipient_delimiter$extension,$home/.forward. Initial
-forward_path code by Philip A.  Prindeville, Mirapoint, Inc., USA.
+$home/.forward$recipient_delimiter$extension, $home/.forward.
+Initial code by Philip A.  Prindeville, Mirapoint, Inc., USA.
 
-- Conditional macro expansion in forward_path and mailbox_command.
-$name expands to itself. ${name?value} expands to value when $name
-is defined.  ${name:value} expands to value when $name is not
-defined. With ${name?value} and ${name:value}, the value is subject
-to $name expansion. Available macros are: $user, $shell, $home,
-$recipient, $extension, $domain, and $recipient_delimiter.  
+- Conditional $name expansion in forward_path, mailbox_command,
+and luser_relay.  Available names are: $user (bare user name) $shell
+(user login shell), $home (user home directory), $recipient
+(everything to the left of @), $extension (optional address
+extension), $domain (everything to the right of @), and
+$recipient_delimiter.  A simple $name expands as usual.  ${name?value}
+expands to value when $name is defined.  ${name:value} expands to
+value when $name is not defined. With ${name?value} and ${name:value},
+the value is subject to another iteration of $name expansion.
 
 - POSIX regular expression support, enabled by default on 4.4BSD,
 LINUX, HP-UX, and Solaris 2.5 and later. See conf/sample-regexp.cf.
@@ -45,7 +57,8 @@ will be delegated to an external command.
 - Regular expression support for all lookup tables, including access
 control (full mail addresses only), address rewriting (canonical/virtual,
 full mail addresses only) and transport tables (full domain names
-only).  However, regular expressions are not allowed for aliases.
+only).  However, regular expressions are not allowed for aliases,
+because that would open up security exposures.
 
 - Automatic detection of changes to DB or DBM lookup tables.  This
 eliminates the need to run "postfix reload" after each change to
@@ -53,7 +66,7 @@ the SMTP access table, or to the canonical, virtual, transport or
 aliases tables.
 
 - New error mailer. Specify ".domain.name error:domain is undeliverable"
-in the transport table to bounce entire domains.
+in the transport table to bounce mail for entire domains.
 
 - No more Postfix lockups on Solaris (knock on wood). The code no
 longer uses Solaris UNIX-domain sockets, because they are still

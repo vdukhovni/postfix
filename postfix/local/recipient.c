@@ -81,6 +81,7 @@
 #include <bounce.h>
 #include <mail_params.h>
 #include <split_addr.h>
+#include <ext_prop.h>
 
 /* Application-specific. */
 
@@ -113,15 +114,19 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 
     /*
      * Otherwise, alias expansion has highest precedence. First look up the
-     * full localpart, then the bare user.
+     * full localpart, then the bare user. Obey the address extension
+     * propagation policy.
      */
     state.msg_attr.unmatched = 0;
     if (deliver_alias(state, usr_attr, state.msg_attr.local, &status))
 	return (status);
-    state.msg_attr.unmatched = state.msg_attr.extension;
-    if (state.msg_attr.extension != 0)
+    if (state.msg_attr.extension != 0) {
+	if (local_ext_prop_mask & EXT_PROP_ALIAS)
+	    state.msg_attr.unmatched = state.msg_attr.extension;
 	if (deliver_alias(state, usr_attr, state.msg_attr.user, &status))
 	    return (status);
+	state.msg_attr.unmatched = state.msg_attr.extension;
+    }
 
     /*
      * Special case for mail locally forwarded or aliased to a different
@@ -202,7 +207,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     if (*var_rcpt_delim) {
 	state.msg_attr.extension =
 	    split_addr(state.msg_attr.local, *var_rcpt_delim);
-	if (strchr(state.msg_attr.extension, '/')) {
+	if (state.msg_attr.extension && strchr(state.msg_attr.extension, '/')) {
 	    msg_warn("%s: address with illegal extension: %s",
 		     state.msg_attr.queue_id, state.msg_attr.local);
 	    state.msg_attr.extension = 0;
@@ -222,6 +227,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
      * Clean up.
      */
     myfree(state.msg_attr.local);
+    myfree(state.msg_attr.user);
 
     return (rcpt_stat);
 }

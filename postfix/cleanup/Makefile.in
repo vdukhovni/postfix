@@ -78,6 +78,7 @@ cleanup.o: ../include/bounce.h
 cleanup.o: ../include/mail_params.h
 cleanup.o: ../include/mail_stream.h
 cleanup.o: ../include/mail_addr.h
+cleanup.o: ../include/ext_prop.h
 cleanup.o: ../include/mail_server.h
 cleanup.o: cleanup.h
 cleanup.o: ../include/argv.h
@@ -98,6 +99,7 @@ cleanup_envelope.o: ../include/cleanup_user.h
 cleanup_envelope.o: ../include/tok822.h
 cleanup_envelope.o: ../include/resolve_clnt.h
 cleanup_envelope.o: ../include/mail_params.h
+cleanup_envelope.o: ../include/ext_prop.h
 cleanup_envelope.o: cleanup.h
 cleanup_envelope.o: ../include/argv.h
 cleanup_envelope.o: ../include/maps.h
@@ -197,6 +199,7 @@ cleanup_message.o: ../include/mail_params.h
 cleanup_message.o: ../include/mail_date.h
 cleanup_message.o: ../include/mail_addr.h
 cleanup_message.o: ../include/is_header.h
+cleanup_message.o: ../include/ext_prop.h
 cleanup_message.o: cleanup.h
 cleanup_message.o: ../include/maps.h
 cleanup_message.o: ../include/dict.h
@@ -225,6 +228,7 @@ cleanup_out_recipient.o: ../include/argv.h
 cleanup_out_recipient.o: ../include/been_here.h
 cleanup_out_recipient.o: ../include/mail_params.h
 cleanup_out_recipient.o: ../include/rec_type.h
+cleanup_out_recipient.o: ../include/ext_prop.h
 cleanup_out_recipient.o: cleanup.h
 cleanup_out_recipient.o: ../include/vstring.h
 cleanup_out_recipient.o: ../include/vbuf.h

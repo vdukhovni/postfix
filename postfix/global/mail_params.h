@@ -328,9 +328,25 @@ extern char *var_fallback_transport;
 #define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension},$home/.forward"
 extern char *var_forward_path;
 
+#define VAR_PROP_EXTENSION	"propagate_unmatched_extension"
+#define DEF_PROP_EXTENSION	"canonical, virtual"
+extern char *var_prop_extension;
+
 #define VAR_RCPT_DELIM		"recipient_delimiter"
 #define DEF_RCPT_DELIM		""
 extern char *var_rcpt_delim;
+
+#define VAR_CMD_EXP_FILTER	"command_expansion_filter"
+#define DEF_CMD_EXP_FILTER	"1234567890!@%-_=+:,./\
+abcdefghijklmnopqrstuvwxyz\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+extern char *var_cmd_exp_filter;;
+
+#define VAR_FWD_EXP_FILTER	"forward_expansion_filter"
+#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,./\
+abcdefghijklmnopqrstuvwxyz\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+extern char *var_fwd_exp_filter;;
 
 #define VAR_RCPT_FDELIM		"recipient_feature_delimiter"
 #define DEF_RCPT_FDELIM		""

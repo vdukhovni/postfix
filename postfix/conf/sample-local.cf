@@ -71,11 +71,10 @@ default_privs = nobody
 # home_mailbox = Maildir/
 home_mailbox = 
 
-# The luser_relay parameter specifies an optional destination
-# (@domain, address, "|command", /file/name) for unknown recipients.
-# By default, mail for unknown local recipients is bounced.
+# The luser_relay parameter specifies an optional destination address
+# for unknown recipients.  By default, mail for unknown local recipients
+# is bounced.
 #
-# Specify @domain in order to keep the original recipient name.
 # The following expansions are done on luser_relay: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),
 # $recipient (full recipient address), $extension (recipient address
@@ -83,7 +82,8 @@ home_mailbox =
 # localpart), $recipient_delimiter. Specify ${name?value} or
 # ${name:value} to expand value only when $name does (does not) exist.
 #
-# luser_relay = @other.host
+# luser_relay = $user@other.host
+# luser_relay = $mailbox@other.host
 # luser_relay = admin+$mailbox
 
 # The mail_spool_directory parameter specifies the directory where

@@ -40,6 +40,10 @@
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
 /*	\fI$name\fR is (is not) defined.
+/*	In the result of \fIname\fR expansion, characters that have special 
+/*	meaning to the shell are replaced by underscores. The list of legal 
+/*	characters is specified with the \fBforward_expansion_filter\fR 
+/*	configuration parameter.
 /*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
 /*	commands, destination file names, \fB:include:\fR directives, or
@@ -90,7 +94,7 @@
 /*	with the \fBmailbox_command\fR configuration parameter. The command
 /*	executes with the privileges of the recipient user (exception: in
 /*	case of delivery as root, the command executes with the privileges
-/*	of \fBdefault_user\fR).
+/*	of \fBdefault_privs\fR).
 /*	The command is subject to interpolation of \fB$user\fR (recipient
 /*	username), \fB$home\fR (recipient home directory), \fB$shell\fR
 /*	(recipient shell), \fB$recipient\fR (complete recipient address),
@@ -98,9 +102,11 @@
 /*	(recipient domain), \fBmailbox\fR (entire recipient address 
 /*	localpart) and \fB$recipient_delimiter.\fR The forms
 /*	\fI${name?value}\fR and \fI${name:value}\fR expand conditionally to
-/*	\fIvalue\fR when \fI$name\fR is (is not) defined. In the result
-/*	of \fIname\fR expansion, characters that have special meaning to
-/*	the shell are censored and replaced by underscores.
+/*	\fIvalue\fR when \fI$name\fR is (is not) defined. 
+/*	In the result of \fIname\fR expansion, characters that have special 
+/*	meaning to the shell are replaced by underscores. The list of legal 
+/*	characters is specified with the \fBcommand_expansion_filter\fR 
+/*	configuration parameter.
 /*
 /*	Mailbox delivery can be delegated to alternative message transports
 /*	specified in the \fBmaster.cf\fR file.
@@ -267,7 +273,8 @@
 /*	dependent.
 /* .IP \fBmailbox_command\fR
 /*	External command to use for mailbox delivery. The command executes
-/*	with the recipient privileges (exception: root).
+/*	with the recipient privileges (exception: root). The string is subject
+/*	to $name expansions.
 /* .IP \fBmailbox_transport\fR
 /*	Message transport to use for mailbox delivery to all local
 /*	recipients, whether or not they are found in the UNIX passwd database.
@@ -310,8 +317,14 @@
 /*	Restrict the usage of mail delivery to external command.
 /* .IP \fBallow_mail_to_files\fR
 /*	Restrict the usage of mail delivery to external file.
+/* .IP \fBcommand_expansion_filter\fR
+/*	What characters are allowed to appear in $name expansions of
+/*	mailbox_command. Illegal characters are replaced by underscores.
 /* .IP \fBdefault_privs\fR
 /*	Default rights for delivery to external file or command.
+/* .IP \fBforward_expansion_filter\fR
+/*	What characters are allowed to appear in $name expansions of
+/*	forward_path. Illegal characters are replaced by underscores.
 /* HISTORY
 /* .ad
 /* .fi
@@ -371,6 +384,7 @@
 #include <mail_conf.h>
 #include <been_here.h>
 #include <mail_params.h>
+#include <ext_prop.h>
 
 /* Single server skeleton. */
 
@@ -398,9 +412,13 @@ char   *var_mail_spool_dir;
 char   *var_mailbox_transport;
 char   *var_fallback_transport;
 char   *var_forward_path;
+char   *var_cmd_exp_filter;
+char   *var_fwd_exp_filter;
+char   *var_prop_extension;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
+int     local_ext_prop_mask;
 
 /* local_deliver - deliver message with extreme prejudice */
 
@@ -521,6 +539,7 @@ static void local_mask_init(void)
 
     local_file_deliver_mask = name_mask(file_mask, var_allow_files);
     local_cmd_deliver_mask = name_mask(command_mask, var_allow_commands);
+    local_ext_prop_mask = ext_prop_mask(var_prop_extension);
 }
 
 /* pre_accept - see if tables have changed */
@@ -565,6 +584,9 @@ int     main(int argc, char **argv)
 	VAR_MAIL_SPOOL_DIR, DEF_MAIL_SPOOL_DIR, &var_mail_spool_dir, 0, 0,
 	VAR_MAILBOX_TRANSP, DEF_MAILBOX_TRANSP, &var_mailbox_transport, 0, 0,
 	VAR_FALLBACK_TRANSP, DEF_FALLBACK_TRANSP, &var_fallback_transport, 0, 0,
+	VAR_CMD_EXP_FILTER, DEF_CMD_EXP_FILTER, &var_cmd_exp_filter, 1, 0,
+	VAR_FWD_EXP_FILTER, DEF_FWD_EXP_FILTER, &var_fwd_exp_filter, 1, 0,
+	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

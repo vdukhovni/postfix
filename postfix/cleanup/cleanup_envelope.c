@@ -44,6 +44,7 @@
 #include <cleanup_user.h>
 #include <tok822.h>
 #include <mail_params.h>
+#include <ext_prop.h>
 
 /* Application-specific. */
 
@@ -104,9 +105,11 @@ void    cleanup_envelope(void)
 	} else if (type == REC_TYPE_FROM) {
 	    cleanup_rewrite_internal(clean_addr, STR(cleanup_inbuf));
 	    if (cleanup_send_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_send_canon_maps);
+		cleanup_map11_internal(clean_addr, cleanup_send_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_comm_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps);
+		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_masq_domains)
 		cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
 	    CLEANUP_OUT_BUF(type, clean_addr);
@@ -121,9 +124,11 @@ void    cleanup_envelope(void)
 	    cleanup_rewrite_internal(clean_addr, *STR(cleanup_inbuf) ?
 				     STR(cleanup_inbuf) : var_empty_addr);
 	    if (cleanup_rcpt_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_rcpt_canon_maps);
+		cleanup_map11_internal(clean_addr, cleanup_rcpt_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    if (cleanup_comm_canon_maps)
-		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps);
+		cleanup_map11_internal(clean_addr, cleanup_comm_canon_maps,
+				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 	    cleanup_out_recipient(STR(clean_addr));
 	    if (cleanup_recip == 0)
 		cleanup_recip = mystrdup(STR(clean_addr));

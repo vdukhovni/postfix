@@ -100,7 +100,7 @@ static void dict_regexp_update(DICT *dict, const char *unused_name,
  * Macro expansion callback - replace $0-${99} with strings cut from
  * matched string.
  */
-static void dict_regexp_action(int type, VSTRING *buf, char *ptr)
+static int dict_regexp_action(int type, VSTRING *buf, char *ptr)
 {
     struct dict_regexp_context *ctxt = (struct dict_regexp_context *) ptr;
     DICT_REGEXP_RULE *rule = ctxt->rule;
@@ -109,14 +109,12 @@ static void dict_regexp_action(int type, VSTRING *buf, char *ptr)
 
     if (type == MAC_PARSE_VARNAME) {
 	n = atoi(vstring_str(buf));
-	if (n >= dict->nmatch) {
-	    msg_warn("regexp %s, line %d: replace index out of range",
-		     dict->map, rule->lineno);
-	    return;
-	}
+	if (n >= dict->nmatch)
+	    msg_fatal("regexp %s, line %d: replacement index out of range",
+		      dict->map, rule->lineno);
 	if (dict->pmatch[n].rm_so < 0 ||
 	    dict->pmatch[n].rm_so == dict->pmatch[n].rm_eo) {
-	    return;				/* empty string or not
+	    return (MAC_PARSE_UNDEF);		/* empty string or not
 						 * matched */
 	}
 	vstring_strncat(ctxt->buf, ctxt->subject + dict->pmatch[n].rm_so,
@@ -124,6 +122,7 @@ static void dict_regexp_action(int type, VSTRING *buf, char *ptr)
     } else
 	/* Straight text - duplicate with no substitution */
 	vstring_strcat(ctxt->buf, vstring_str(buf));
+    return (0);
 }
 
 /*
@@ -175,7 +174,9 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
 	    ctxt.rule = rule;
 	    ctxt.dict = dict_regexp;
 
-	    mac_parse(rule->replace, dict_regexp_action, (char *) &ctxt);
+	    if (mac_parse(rule->replace, dict_regexp_action, (char *) &ctxt) & MAC_PARSE_ERROR)
+		msg_fatal("regexp map %s, line %d: bad replacement syntax.",
+			  dict_regexp->map, rule->lineno);
 
 	    VSTRING_TERMINATE(buf);
 	    return (vstring_str(buf));

@@ -16,27 +16,15 @@
 /*	fallback_transport parameter, delivery is delegated to the
 /*	named transport.
 /* .IP \(bu
-/*	If an alternative address is specified via the luser_relay 
+/*	If an alternative address is specified via the luser_relay
 /*	configuration parameter, mail is forwarded to that address.
 /* .IP \(bu
 /*	Otherwise the recipient is bounced.
 /* .PP
-/*	If the luser_relay parameter specifies a @domain, the entire
-/*	original recipient localpart is prepended. For example: with
-/*	"luser_relay = @some.where", unknown+foo becomes
-/*	unknown+foo@some.where.
-/*
-/*	Otherwise, the luser_relay parameter can specify any number of
-/*	destinations that are valid in an alias file or in a .forward file.
-/*	For example, a destination could be an address, a "|command" or
-/*	a /file/name. The luser_relay feature is treated as an alias, and
-/*	the usual restrictions for command and file destinations apply.
-/*
-/*	If the luser_relay destination is a mail address, and the
-/*	recipient delimiter has been defined, the entire original recipient
-/*	localpart is appended as an address extension. For example: with
-/*	"luser_relay = someone@some.where", unknown+foo becomes
-/*	someone+unknown+foo@some.where.
+/*	The luser_relay parameter is subjected to $name expansion of
+/*	the standard message attributes: $user, $home, $shell, $domain,
+/*	$recipient, $mailbox, $extension, $recipient_delimiter, not
+/*	all of which actually make sense.
 /*
 /*	Arguments:
 /* .IP state
@@ -68,6 +56,7 @@
 #include <msg.h>
 #include <stringops.h>
 #include <mymalloc.h>
+#include <vstring.h>
 
 /* Global library. */
 
@@ -86,8 +75,7 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 {
     char   *myname = "deliver_unknown";
     int     status;
-    char   *dest;
-    char   *saved_extension;
+    VSTRING *expand_luser;
 
     /*
      * Make verbose logging easier to understand.
@@ -120,60 +108,16 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 			      "unknown user: \"%s\"", state.msg_attr.local));
 
     /*
-     * EXTERNAL LOOP CONTROL
-     * 
-     * Set the delivered message attribute to the recipient, so that this
-     * message will list the correct forwarding address.
+     * Subject the luser_relay address to $name expansion, disable
+     * propagation of unmatched address extension, and re-inject the address
+     * into the delivery machinery. Donot give special treatment to "|stuff"
+     * or /stuff.
      */
-    state.msg_attr.delivered = state.msg_attr.recipient;
-
-    /*
-     * DELIVERY POLICY
-     * 
-     * The luser relay is just another alias. Update the expansion type
-     * attribute, so we can decide if deliveries to |command and /file/name
-     * are allowed at all.
-     */
-    state.msg_attr.exp_type = EXPAND_TYPE_ALIAS;
-
-    /*
-     * DELIVERY RIGHTS
-     * 
-     * What rights to use for |command and /file/name deliveries? The luser
-     * relay is a root-owned alias, so we use default rights.
-     */
-    RESET_USER_ATTR(usr_attr, state.level);
-
-    /*
-     * If the luser destination is specified as @domain, prepend the
-     * localpart. The local resolver will append the optional address
-     * extension, so we don't do that here.
-     */
-    if (*var_luser_relay == '@') {		/* @domain */
-	dest = concatenate(state.msg_attr.local, var_luser_relay, (char *) 0);
-	status = deliver_token_string(state, usr_attr, dest, (int *) 0);
-	myfree(dest);
-    }
-
-    /*
-     * Otherwise, optionally arrange for the local resolver to append the
-     * entire localpart, including the optional address extension, to the
-     * destination localpart.
-     */
-    else {					/* other */
-	if ((saved_extension = state.msg_attr.extension) != 0)
-	    state.msg_attr.extension = concatenate(state.msg_attr.local,
-						   var_rcpt_delim,
-						   state.msg_attr.extension,
-						   (char *) 0);
-	else if (*var_rcpt_delim)
-	    state.msg_attr.extension = state.msg_attr.local;
-	status = deliver_token_string(state, usr_attr, var_luser_relay,
-				      (int *) 0);
-	if (saved_extension != 0)
-	    myfree(state.msg_attr.extension);
-	state.msg_attr.extension = saved_extension;
-    }
+    state.msg_attr.unmatched = 0;
+    expand_luser = vstring_alloc(100);
+    local_expand(expand_luser, var_luser_relay, &state, &usr_attr, (char *) 0);
+    status = deliver_resolve_addr(state, usr_attr, vstring_str(expand_luser));
+    vstring_free(expand_luser);
 
     /*
      * Done.

@@ -107,7 +107,7 @@ struct dict_pcre_context {
  * Macro expansion callback - replace $0-${99} with strings cut from
  * matched string.
  */
-static void dict_pcre_action(int type, VSTRING *buf, char *ptr)
+static int dict_pcre_action(int type, VSTRING *buf, char *ptr)
 {
     struct dict_pcre_context *ctxt = (struct dict_pcre_context *) ptr;
     const char *pp;
@@ -120,17 +120,20 @@ static void dict_pcre_action(int type, VSTRING *buf, char *ptr)
 				 n, &pp);
 	if (ret < 0) {
 	    if (ret == PCRE_ERROR_NOSUBSTRING)
-		msg_warn("regexp %s, line %d: replace index out of range",
+		msg_fatal("regexp %s, line %d: replace index out of range",
 			 ctxt->dict_name, ctxt->lineno);
 	    else
-		msg_warn("regexp %s, line %d: pcre_get_substring error: %d",
+		msg_fatal("regexp %s, line %d: pcre_get_substring error: %d",
 			 ctxt->dict_name, ctxt->lineno, ret);
-	    return;
 	}
+	if (*pp == 0)
+	    return (MAC_PARSE_UNDEF);
 	vstring_strcat(ctxt->buf, pp);
     } else
 	/* Straight text - duplicate with no substitution */
 	vstring_strcat(ctxt->buf, vstring_str(buf));
+
+    return (0);
 }
 
 /*
@@ -198,7 +201,9 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
 	ctxt.dict_name = dict_pcre->map;
 	ctxt.lineno = pcre_list->lineno;
 
-	mac_parse(pcre_list->replace, dict_pcre_action, (char *) &ctxt);
+	if (mac_parse(pcre_list->replace, dict_pcre_action, (char *) &ctxt) & MAC_PARSE_ERROR)
+	    msg_fatal("regexp map %s, line %d: bad replacement syntax",
+		      dict_pcre->map, pcre_list->lineno);
 
 	VSTRING_TERMINATE(buf);
 	return (vstring_str(buf));

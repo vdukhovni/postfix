@@ -62,4 +62,6 @@ error.o: ../include/deliver_request.h
 error.o: ../include/vstring.h
 error.o: ../include/recipient_list.h
 error.o: ../include/mail_queue.h
+error.o: ../include/bounce.h
+error.o: ../include/deliver_completed.h
 error.o: ../include/mail_server.h

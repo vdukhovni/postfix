@@ -359,7 +359,7 @@ struct dict_eval_context {
 
 /* dict_eval_action - macro parser call-back routine */
 
-static void dict_eval_action(int type, VSTRING *buf, char *ptr)
+static int dict_eval_action(int type, VSTRING *buf, char *ptr)
 {
     struct dict_eval_context *ctxt = (struct dict_eval_context *) ptr;
     char   *myname = "dict_eval_action";
@@ -389,6 +389,7 @@ static void dict_eval_action(int type, VSTRING *buf, char *ptr)
     } else {
 	vstring_strcat(ctxt->buf, STR(buf));
     }
+    return(0);
 }
 
 /* dict_eval - expand embedded dictionary references */

@@ -6,17 +6,20 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_map11_external(addr, maps)
+/*	void	cleanup_map11_external(addr, maps, propagate)
 /*	VSTRING	*addr;
 /*	MAPS	*maps;
+/*	int	propagate;
 /*
-/*	void	cleanup_map11_internal(addr, maps)
+/*	void	cleanup_map11_internal(addr, maps, propagate)
 /*	VSTRING	*addr;
 /*	MAPS	*maps;
+/*	int	propagate;
 /*
-/*	void	cleanup_map11_tree(tree, maps)
+/*	void	cleanup_map11_tree(tree, maps, propagate)
 /*	TOK822	*tree;
 /*	MAPS	*maps;
+/*	int	propagate;
 /* DESCRIPTION
 /*	This module performs one-to-one map lookups.
 /*
@@ -24,6 +27,8 @@
 /*	subjected to another iteration of rewriting and mapping.
 /*	Recursion continues until an address maps onto itself,
 /*	or until an unreasonable recursion level is reached.
+/*	An unmatched address extension is propagated when 
+/*	\fIpropagate\fR is non-zero.
 /*
 /*	cleanup_map11_external() looks up the external (quoted) string
 /*	form of an address in the maps specified via the \fImaps\fR argument.
@@ -82,7 +87,7 @@
 
 /* cleanup_map11_external - one-to-one table lookups */
 
-void    cleanup_map11_external(VSTRING *addr, MAPS *maps)
+void    cleanup_map11_external(VSTRING *addr, MAPS *maps, int propagate)
 {
     int     count;
     int     expand_to_self;
@@ -96,7 +101,7 @@ void    cleanup_map11_external(VSTRING *addr, MAPS *maps)
      * the place.
      */
     for (count = 0; count < MAX_RECURSION; count++) {
-	if ((new_addr = mail_addr_map(maps, STR(addr))) != 0) {
+	if ((new_addr = mail_addr_map(maps, STR(addr), propagate)) != 0) {
 	    if (new_addr->argc > 1)
 		msg_warn("multi-valued %s entry for %s",
 			 maps->title, STR(addr));
@@ -122,7 +127,7 @@ void    cleanup_map11_external(VSTRING *addr, MAPS *maps)
 
 /* cleanup_map11_tree - rewrite address node */
 
-void    cleanup_map11_tree(TOK822 *tree, MAPS *maps)
+void    cleanup_map11_tree(TOK822 *tree, MAPS *maps, int propagate)
 {
     VSTRING *temp = vstring_alloc(100);
 
@@ -133,7 +138,7 @@ void    cleanup_map11_tree(TOK822 *tree, MAPS *maps)
      * the place.
      */
     tok822_externalize(temp, tree->head, TOK822_STR_DEFL);
-    cleanup_map11_external(temp, maps);
+    cleanup_map11_external(temp, maps, propagate);
     tok822_free_tree(tree->head);
     tree->head = tok822_scan(STR(temp), &tree->tail);
     vstring_free(temp);
@@ -141,7 +146,7 @@ void    cleanup_map11_tree(TOK822 *tree, MAPS *maps)
 
 /* cleanup_map11_internal - rewrite address internal form */
 
-void    cleanup_map11_internal(VSTRING *addr, MAPS *maps)
+void    cleanup_map11_internal(VSTRING *addr, MAPS *maps, int propagate)
 {
     VSTRING *temp = vstring_alloc(100);
 
@@ -152,7 +157,7 @@ void    cleanup_map11_internal(VSTRING *addr, MAPS *maps)
      * the place.
      */
     quote_822_local(temp, STR(addr));
-    cleanup_map11_external(temp, maps);
+    cleanup_map11_external(temp, maps, propagate);
     unquote_822_local(addr, STR(temp));
     vstring_free(temp);
 }

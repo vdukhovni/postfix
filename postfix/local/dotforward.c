@@ -76,6 +76,7 @@
 #include <been_here.h>
 #include <mail_params.h>
 #include <mail_conf.h>
+#include <ext_prop.h>
 
 /* Application-specific. */
 
@@ -102,9 +103,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     char   *lhs;
     char   *next;
     const char *forward_path;
-    HTABLE *expand_attr;
-    HTABLE *record_attr;
-    HTABLE_INFO *extension_record;
+    int     expand_status;
 
     /*
      * Make verbose logging easier to understand.
@@ -184,13 +183,11 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     state.msg_attr.owner = state.msg_attr.recipient;
 
     /*
-     * Assume that usernames do not have file system meta characters. Open
-     * the .forward file as the user. Ignore files that aren't regular files,
-     * files that are owned by the wrong user, or files that have world write
-     * permission enabled.
+     * Search the forward_path for an existing forward file.
      * 
-     * If a forward file name includes the address extension, don't propagate
-     * the extension to the recipient addresses.
+     * If unmatched extensions should never be propagated, or if a forward file
+     * name includes the address extension, don't propagate the extension to
+     * the recipient addresses.
      */
 #define STR(x)	vstring_str(x)
 
@@ -200,33 +197,32 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     next = saved_forward_path;
     lookup_status = -1;
 
-    expand_attr = local_expand(state, usr_attr);
-    record_attr = htable_create(0);
-    extension_record = htable_enter(record_attr, "extension", (char *) 0);
-
     while ((lhs = mystrtok(&next, ", \t\r\n")) != 0) {
-	VSTRING_RESET(path);
-	extension_record->value = 0;
-	if (mac_expand(path, lhs, MAC_EXP_FLAG_NONE,
-		       MAC_EXP_ARG_TABLE, expand_attr,
-		       MAC_EXP_ARG_RECORD, record_attr,
-		       0) == 0) {
+	expand_status = local_expand(path, lhs, &state,
+				     &usr_attr, var_fwd_exp_filter);
+	if ((expand_status & (MAC_PARSE_ERROR | MAC_PARSE_UNDEF)) == 0) {
 	    lookup_status =
 		lstat_as(STR(path), &st, usr_attr.uid, usr_attr.gid);
 	    if (msg_verbose)
-		msg_info("%s: path %s status %d", myname,
-			 STR(path), lookup_status);
+		msg_info("%s: path %s expand_status %d look_status %d", myname,
+			 STR(path), expand_status, lookup_status);
 	    if (lookup_status >= 0) {
-		if (extension_record->value != 0)
+		if ((expand_status & LOCAL_EXP_EXTENSION_MATCHED) != 0
+		    || (local_ext_prop_mask & EXT_PROP_FORWARD) == 0)
 		    state.msg_attr.unmatched = 0;
 		break;
 	    }
 	}
     }
 
-    htable_free(expand_attr, (void (*) (char *)) 0);
-    htable_free(record_attr, (void (*) (char *)) 0);
-
+    /*
+     * Process the forward file.
+     * 
+     * Assume that usernames do not have file system meta characters. Open the
+     * .forward file as the user. Ignore files that aren't regular files,
+     * files that are owned by the wrong user, or files that have world write
+     * permission enabled.
+     */
     if (lookup_status >= 0) {
 	if (S_ISREG(st.st_mode) == 0) {
 	    msg_warn("file %s is not a regular file", STR(path));

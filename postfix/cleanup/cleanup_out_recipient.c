@@ -47,6 +47,7 @@
 #include <been_here.h>
 #include <mail_params.h>
 #include <rec_type.h>
+#include <ext_prop.h>
 
 /* Application-specific. */
 
@@ -63,7 +64,8 @@ void    cleanup_out_recipient(char *recip)
 	if (been_here_fixed(cleanup_dups, recip) == 0)
 	    cleanup_out_string(REC_TYPE_RCPT, recip);
     } else {
-	argv = cleanup_map1n_internal(recip, cleanup_virtual_maps);
+	argv = cleanup_map1n_internal(recip, cleanup_virtual_maps,
+				  cleanup_ext_prop_mask & EXT_PROP_VIRTUAL);
 	for (cpp = argv->argv; *cpp; cpp++)
 	    if (been_here_fixed(cleanup_dups, *cpp) == 0)
 		cleanup_out_string(REC_TYPE_RCPT, *cpp);

@@ -22,9 +22,13 @@
 #define MAC_PARSE_LITERAL	1
 #define MAC_PARSE_VARNAME	2
 
-typedef void (*MAC_PARSE_FN)(int, VSTRING *, char *);
+#define MAC_PARSE_ERROR		(1<<0)
+#define MAC_PARSE_UNDEF		(1<<1)
+#define MAC_PARSE_USER		2	/* start user definitions */
 
-extern void mac_parse(const char *, MAC_PARSE_FN, char *);
+typedef int (*MAC_PARSE_FN)(int, VSTRING *, char *);
+
+extern int mac_parse(const char *, MAC_PARSE_FN, char *);
 
 /* LICENSE
 /* .ad

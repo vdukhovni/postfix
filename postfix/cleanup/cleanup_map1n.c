@@ -61,7 +61,7 @@
 
 /* cleanup_map1n_internal - one-to-many table lookups */
 
-ARGV   *cleanup_map1n_internal(char *addr, MAPS *maps)
+ARGV   *cleanup_map1n_internal(char *addr, MAPS *maps, int propagate)
 {
     ARGV   *argv;
     ARGV   *lookup;
@@ -102,7 +102,7 @@ ARGV   *cleanup_map1n_internal(char *addr, MAPS *maps)
 			 cleanup_queue_id, maps->title, addr);
 		break;
 	    }
-	    if ((lookup = mail_addr_map(maps, argv->argv[arg])) != 0) {
+	    if ((lookup = mail_addr_map(maps, argv->argv[arg], propagate)) != 0) {
 		saved_lhs = mystrdup(argv->argv[arg]);
 		for (i = 0; i < lookup->argc; i++) {
 		    unquote_822_local(cleanup_temp1, lookup->argv[i]);

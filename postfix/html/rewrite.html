@@ -425,37 +425,41 @@ see the <a href="local.8.html"> local</a> delivery agent.
 
 <p>
 
-<b>luser_relay</b> can specify any number of destinations that are
-valid in an alias file.  In fact, the same restrictions for command
-and file destinations apply as for true aliases.
-
-<p>
-
-In addition, some <b>luser_relay</b> destinations can receive
-special treatment:
+<b>luser_relay</b> can specify one address. It is subjected to
+<i>$name</i> expansions. The most useful examples are:
 
 <p>
 
 <dl>
 
-<dt><b>luser_relay = </b><i>@some.where.else</i>
+<dt><b>$user@other.host</b>
 
-<dd>The entire original recipient localpart is prepended. For
-example, mail for <i>unknown+foo</i> is sent to
-<i>unknown+foo@some.where.else</i>.
+<dd>The bare username, without address extension, is prepended to
+<i>@other.host</i>. For example, mail for <i>username+foo</i> is
+sent to <i>username@other.host</i>.
 
 <p>
 
-<dt><b>luser_relay = </b><i>someone@some.where.else</i>
-<dt><b>luser_relay = </b><i>someone</i>
+<dt><b>$mailbox@other.host</b>
 
-<dd>If no <b>recipient_delimiter</b> has been specified, mail is
-sent to the <b>luser_relay</b> address. If the <b>recipient_delimiter</b>
-has been specified, the entire original recipient localpart is
-appended as an address extension to the <b>luser_relay</b> address.
-For example, with <b>recipient_delimiter = +</b>, mail for
-<i>unknown+foo</i> is sent to <i>someone+unknown+foo@some.where.else</i>
-and <i>someone+unknown+foo</i>, respectively.
+<dd>The entire original recipient localpart, including address
+extension, is prepended to <i>@other.host</i>. For example, mail
+for <i>username+foo</i> is sent to <i>username+foo@other.host</i>.
+
+<p>
+
+<dt><b>sysadmin+$user</b>
+
+<dd>The bare username, without address extension, is appended to
+<i>sysadmin</i>. For example, mail for <i>username+foo</i> is sent
+to <i>sysadmin+username</i>.
+
+<dt><b>sysadmin+$mailbox</b>
+
+<dd>The entire original recipient localpart, including address
+extension, is appended to <i>sysadmin</i>. For example, mail for
+<i>username+foo</i> is sent to <i>sysadmin+username+foo</i>.
+
 
 </dl>
 

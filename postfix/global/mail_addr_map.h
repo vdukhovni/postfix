@@ -24,7 +24,7 @@
  /*
   * External interface.
   */
-extern ARGV *mail_addr_map(MAPS *, const char *);
+extern ARGV *mail_addr_map(MAPS *, const char *, int);
 
 /* LICENSE
 /* .ad

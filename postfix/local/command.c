@@ -24,9 +24,9 @@
 /* .IP usr_attr
 /*	Attributes describing user rights and environment.
 /* .IP command
-/*	The shell command to be executed, after $name expansion of recipient
-/*	attributes. If possible, the command is executed without actually
-/*	invoking a shell.
+/*	The shell command to be executed. If possible, the command is
+/*	executed without actually invoking a shell. if the command is
+/*	the mailbox_command, it is subjected to $name expansion.
 /* DIAGNOSTICS
 /*	deliver_command() returns non-zero when delivery should be
 /*	tried again,
@@ -83,11 +83,8 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     int     deliver_status;
     ARGV   *env;
     int     copy_flags;
-    static char *ok_chars = "1234567890!@%-_=+:,./\
-abcdefghijklmnopqrstuvwxyz\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    VSTRING *expanded_cmd;
-    HTABLE  *expand_attr;
+    VSTRING *expanded_cmd = 0;
+    char   *xcommand ;
 
     /*
      * Make verbose logging easier to understand.
@@ -152,21 +149,18 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	argv_add(env, "SHELL", usr_attr.shell, ARGV_END);
     argv_terminate(env);
 
-    expanded_cmd = vstring_alloc(10);
     if (command == var_mailbox_command) {
-	expand_attr = local_expand(state, usr_attr);
-	mac_expand(expanded_cmd, command, MAC_EXP_FLAG_NONE,
-		   MAC_EXP_ARG_FILTER, ok_chars,
-		   MAC_EXP_ARG_TABLE, expand_attr,
-		   0);
-	htable_free(expand_attr, (void (*) (char *)) 0);
-    } else
-	vstring_strcpy(expanded_cmd, command);
-
+	expanded_cmd = vstring_alloc(100);
+	local_expand(expanded_cmd, command, &state,
+		     &usr_attr, var_cmd_exp_filter);
+	xcommand = vstring_str(expanded_cmd);
+    } else {
+	xcommand = command;
+    }
     cmd_status = pipe_command(state.msg_attr.fp, why,
 			      PIPE_CMD_UID, usr_attr.uid,
 			      PIPE_CMD_GID, usr_attr.gid,
-			      PIPE_CMD_COMMAND, vstring_str(expanded_cmd),
+			      PIPE_CMD_COMMAND, xcommand,
 			      PIPE_CMD_COPY_FLAGS, copy_flags,
 			      PIPE_CMD_SENDER, state.msg_attr.sender,
 			      PIPE_CMD_DELIVERED, state.msg_attr.delivered,
@@ -176,7 +170,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 			      PIPE_CMD_END);
 
     argv_free(env);
-    vstring_free(expanded_cmd);
+    if (expanded_cmd)
+	vstring_free(expanded_cmd);
 
     /*
      * Depending on the result, bounce or defer the message.

@@ -2706,13 +2706,45 @@ Apologies for any names omitted.
 	${name:text} expands to text when name is undefined,
 	otherwise the result is empty. File: util/mac_expand.c.
 
-	Feature: conditional macro expansion in forward_path and
-	mailbox_command of $user, $home, $shell, $recipient,
-	$extension, $domain, and $recipient_delimiter. Files:
-	local/command.c, local/dotforward.c, local/local_expand.c.
+	Feature: conditional macro expansion of the forward_path and
+	mailbox_command configuration parameters of $user, $home,
+	$shell, $recipient, $extension, $domain, $mailbox and
+	$recipient_delimiter.  Files:  local/command.c,
+	local/dotforward.c, local/local_expand.c.
 
 19990506
 
 	Cleanup: eliminated misleading warnings about unknown HELO
 	etc. SMTPD restrictions when the HELO etc. information is
 	not available. File: smtpd/smtpd_check.c.
+
+19990507
+
+	Feature: all smtpd reject messages now contain the MAIL
+	FROM and RCPT TO addresses, if available.
+
+19990508
+
+	Feature: conditional macro expansion of the luser_relay
+	configuration parameter. It is no longer possible to specify
+	/file/name or "|command" destinations. File: local/unknown.c.
+
+	Cleanup: changed the mac_parse interface so that the
+	application callback routine can return status information.
+	Updated the dict_regexp and dict_pcre modules accordingly.
+
+	Cleanup: changed the mac_expand interface so that the caller
+	provides an attribute lookup routine, instead of having to
+	provide a copy of all attributes upfront. Files:
+	util/mac_expand.c, local/local_expand.c.
+
+	Feature: control over how address extensions are propagated
+	to other addresses. By default, propagation of unmatched
+	address extensions is now restricted to canonical and
+	virtual mappings. Specify "propagate_unmatched_extension
+	= canonical, virtual, alias, forward, include" to restore
+	previous behavior.
+
+	Feature: command_expansion_filter and forward_expansion_filter
+	configuration parameters that control what characters may
+	appear in $name expansions of mailbox_command and forward_path.

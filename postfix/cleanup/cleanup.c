@@ -142,6 +142,7 @@
 #include <mail_params.h>
 #include <mail_stream.h>
 #include <mail_addr.h>
+#include <ext_prop.h>
 
 /* Single-threaded server skeleton. */
 
@@ -172,6 +173,7 @@ char   *var_header_checks;		/* any header checks */
 int     var_dup_filter_limit;		/* recipient dup filter */
 char   *var_empty_addr;			/* destination of bounced bounces */
 int     var_delay_warn_time;		/* delay that triggers warning */
+char   *var_prop_extension;		/* propagate unmatched extension */
 
  /*
   * Mappings.
@@ -182,6 +184,11 @@ MAPS   *cleanup_rcpt_canon_maps;
 MAPS   *cleanup_header_checks;
 MAPS   *cleanup_virtual_maps;
 ARGV   *cleanup_masq_domains;
+
+ /*
+  * Address extension propagation restrictions.
+  */
+int     cleanup_ext_prop_mask;
 
 /* cleanup_service - process one request to inject a message into the queue */
 
@@ -421,6 +428,11 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      */
     if (var_message_limit > 0)
 	set_file_limit((off_t) var_message_limit);
+
+    /*
+     * Control how unmatched extensions are propagated.
+     */
+    cleanup_ext_prop_mask = ext_prop_mask(var_prop_extension);
 }
 
 /* main - the main program */
@@ -443,6 +455,7 @@ int     main(int argc, char **argv)
 	VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
 	VAR_MASQ_EXCEPTIONS, DEF_MASQ_EXCEPTIONS, &var_masq_exceptions, 0, 0,
 	VAR_HEADER_CHECKS, DEF_HEADER_CHECKS, &var_header_checks, 0, 0,
+	VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
 	0,
     };
 

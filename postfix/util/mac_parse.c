@@ -6,14 +6,15 @@
 /* SYNOPSIS
 /*	#include <mac_parse.h>
 /*
-/*	void	mac_parse(string, action, context)
+/*	int	mac_parse(string, action, context)
 /*	const char *string;
-/*	void	(*action)(int type, VSTRING *buf, char *context);
+/*	int	(*action)(int type, VSTRING *buf, char *context);
 /* DESCRIPTION
-/*	This module recognizes macro references in null-terminated
-/*	strings.  Macro references have the form $name, $(name) or
-/*	${name}. A macro name consists of alphanumerics and/or
-/*	underscore. Other text is treated as literal text.
+/*	This module recognizes macro expressions in null-terminated
+/*	strings.  Macro expressions have the form $name, $(text) or
+/*	${text}. A macro name consists of alphanumerics and/or
+/*	underscore. Text other than macro expressions is treated
+/*	as literal text.
 /*
 /*	mac_parse() breaks up its string argument into macro references
 /*	and other text, and invokes the \fIaction\fR routine for each item
@@ -24,11 +25,25 @@
 /* .IP MAC_PARSE_LITERAL
 /*	The text in \fIbuf\fR is literal text.
 /* .IP MAC_PARSE_VARNAME
-/*	The text in \fIbuf\fR is a macro name.
+/*	The text in \fIbuf\fR is a macro expression.
+/* .PP
+/*	The action routine result value is the bit-wise OR of zero or more
+/*	of the following:
+/* .IP	MAC_PARSE_ERROR
+/*	A parsing error was detected.
+/* .IP	MAC_PARSE_UNDEF
+/*	A macro was expanded but not defined.
 /* SEE ALSO
 /*	dict(3) dictionary interface.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory. malformed macro name.
+/*
+/*	The result value is the bit-wise OR of zero or more of the
+/*	following:
+/* .IP	MAC_PARSE_ERROR
+/*	A parsing error was detected.
+/* .IP	MAC_PARSE_UNDEF
+/*	A macro was expanded but not defined.
 /* LICENSE
 /* .ad
 /* .fi
@@ -54,16 +69,16 @@
   * Helper macro for consistency. Null-terminate the temporary buffer,
   * execute the action, and reset the temporary buffer for re-use.
   */
-#define MAC_PARSE_ACTION(type, buf, context) \
+#define MAC_PARSE_ACTION(status, type, buf, context) \
 	{ \
 	    VSTRING_TERMINATE(buf); \
-	    action(type, buf, context); \
+	    status |= action(type, buf, context); \
 	    VSTRING_RESET(buf); \
 	}
 
 /* mac_parse - split string into literal text and macro references */
 
-void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
+int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 {
     char   *myname = "mac_parse";
     VSTRING *buf = vstring_alloc(1);	/* result buffer */
@@ -73,6 +88,7 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
     static char open_paren[] = "({";
     static char close_paren[] = ")}";
     int     level;
+    int     status = 0;
 
 #define SKIP(start, var, cond) \
         for (var = start; *var && (cond); var++);
@@ -89,7 +105,7 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 	    vp += 2;
 	} else {				/* found bare $ */
 	    if (VSTRING_LEN(buf) > 0)
-		MAC_PARSE_ACTION(MAC_PARSE_LITERAL, buf, context);
+		MAC_PARSE_ACTION(status, MAC_PARSE_LITERAL, buf, context);
 	    vp += 1;
 	    pp = open_paren;
 	    if (*vp == *pp || *vp == *++pp) {	/* ${x} or $(x) */
@@ -98,6 +114,7 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 		for (ep = vp; level > 0; ep++) {
 		    if (*ep == 0) {
 			msg_warn("truncated macro reference: \"%s\"", value);
+			status |= MAC_PARSE_ERROR;
 			break;
 		    }
 		    if (*ep == *pp)
@@ -112,18 +129,23 @@ void    mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 		vstring_strncat(buf, vp, ep - vp);
 		vp = ep;
 	    }
-	    if (VSTRING_LEN(buf) == 0)
+	    if (VSTRING_LEN(buf) == 0) {
+		status |= MAC_PARSE_ERROR;
 		msg_warn("empty macro name: \"%s\"", value);
-	    MAC_PARSE_ACTION(MAC_PARSE_VARNAME, buf, context);
+		break;
+	    }
+	    MAC_PARSE_ACTION(status, MAC_PARSE_VARNAME, buf, context);
 	}
     }
-    if (VSTRING_LEN(buf) > 0)
-	MAC_PARSE_ACTION(MAC_PARSE_LITERAL, buf, context);
+    if (VSTRING_LEN(buf) > 0 && (status & MAC_PARSE_ERROR) == 0)
+	MAC_PARSE_ACTION(status, MAC_PARSE_LITERAL, buf, context);
 
     /*
      * Cleanup.
      */
     vstring_free(buf);
+
+    return (status);
 }
 
 #ifdef TEST
