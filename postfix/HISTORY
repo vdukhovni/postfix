@@ -7620,6 +7620,42 @@ Apologies for any names omitted.
 	manager, since a better test was implemented recently in
 	the trivial-rewrite server. Files: *qmgr/qmgr_message.c.
 
+20030126
+
+	Update: maildir filename algorithm updated according to
+	today's version of http://cr.yp.to/proto/maildir.html.
+
+20030127
+
+	Cleanup: use separate error messages for separate problems
+	with computing the list of SASL authentication mechanisms.
+	File: smtpd/smtpd_sasl_glue.c.
+
+20030130
+
+	Bugfix: allow $name in default time values. File:
+	global/mail_conf_time.c.
+
+20030219
+
+	Bugfix: the local pickup daemon skipped unterminated records,
+	since they happened to have the same record type code as
+	content filtering instructions. Victor Duchovni.  Files:
+	global/rec_type.h, pickup/pickup.c.
+
+	Portability: Postfix could block, and thus not enforce
+	command execution time limits, while delivering mail to
+	command.  File: global/pipe_command.c.
+
+	Bugfix: command execution time limits were not enforced
+	because the child process killing code in pipe_command()
+	was running with the wrong privileges. Problem reported by
+	Ben Rosengart, Panix. File: global/pipe_command.c.
+
+	Bugfix: duplicate recipient filtering in the cleanup server
+	did not eliminate virtual expansion duplicates with the
+	same original recipient. File: cleanup/cleanup_out_recipient.c.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

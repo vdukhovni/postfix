@@ -1674,11 +1674,11 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
     if (STREQUAL(value, "FILTER", cmd_len)) {
 	if (*cmd_text == 0) {
-	    msg_warn("access map %s entry %s has FILTER entry without value",
+	    msg_warn("access map %s entry \"%s\" has FILTER entry without value",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else if (strchr(cmd_text, ':') == 0) {
-	    msg_warn("access map %s entry %s requires transport:destination",
+	    msg_warn("access map %s entry \"%s\" requires transport:destination",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
 	} else {

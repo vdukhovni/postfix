@@ -24,6 +24,10 @@ The local_recipient_maps parameter specifies lookup tables with
 all names or addresses of local recipients. A recipient address is
 local when the address domain matches $mydestination or $inet_interfaces.
 
+The right-hand side of the lookup tables is conveniently ignored.
+In the left-hand side, specify a bare username, an @domain.tld
+wild-card, or specify a user@domain.tld address.
+
 If the local_recipient_maps parameter value is non-empty, then the
 SMTP server will reject for an unknown local recipient mail with
 "User unknown in local recipient table".

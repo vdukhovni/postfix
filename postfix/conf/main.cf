@@ -188,6 +188,10 @@ mail_owner = postfix
 # to access the passwd file via the proxymap service, in order to
 # overcome chroot restrictions. The alternative, having a copy of
 # the system passwd file in the chroot jail is just not practical.
+#
+# The right-hand side of the lookup tables is conveniently ignored.
+# In the left-hand side, specify a bare username, an @domain.tld
+# wild-card, or specify a user@domain.tld address.
 # 
 #local_recipient_maps = unix:passwd.byname $alias_maps
 #local_recipient_maps = proxy:unix:passwd.byname $alias_maps
@@ -307,6 +311,10 @@ unknown_local_recipient_reject_code = 450
 #
 # If this parameter is defined, then the SMTP server will reject
 # mail for unknown relay users. This feature is off by default.
+#
+# The right-hand side of the lookup tables is conveniently ignored.
+# In the left-hand side, specify an @domain.tld wild-card, or specify
+# a user@domain.tld address.
 # 
 #relay_recipient_maps = hash:/etc/postfix/relay_recipients
 

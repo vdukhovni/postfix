@@ -131,11 +131,41 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr)
      * the file to new/ we use the device number and inode number. I do not
      * care if this breaks on a remote AFS file system, because people should
      * know better.
+     * 
+     * On January 26, 2003, http://cr.yp.to/proto/maildir.html said:
+     * 
+     * A unique name has three pieces, separated by dots. On the left is the
+     * result of time() or the second counter from gettimeofday(). On the
+     * right is the result of gethostname(). (To deal with invalid host
+     * names, replace / with \057 and : with \072.) In the middle is a
+     * delivery identifier, discussed below.
+     * 
+     * [...]
+     * 
+     * Modern delivery identifiers are created by concatenating enough of the
+     * following strings to guarantee uniqueness:
+     * 
+     * [...]
+     * 
+     * In, where n is (in hexadecimal) the UNIX inode number of this file.
+     * Unfortunately, inode numbers aren't always available through NFS.
+     * 
+     * Vn, where n is (in hexadecimal) the UNIX device number of this file.
+     * Unfortunately, device numbers aren't always available through NFS.
+     * (Device numbers are also not helpful with the standard UNIX
+     * filesystem: a maildir has to be within a single UNIX device for link()
+     * and rename() to work.)
+     * 
+     * [...]
+     * 
+     * Pn, where n is (in decimal) the process ID.
+     * 
+     * [...]
      */
 #define STR vstring_str
 
     set_eugid(usr_attr.uid, usr_attr.gid);
-    vstring_sprintf(buf, "%lu.%d.%s",
+    vstring_sprintf(buf, "%lu.P%d.%s",
 		    (unsigned long) starttime, var_pid, get_hostname());
     tmpfile = concatenate(tmpdir, STR(buf), (char *) 0);
     newfile = 0;
@@ -147,7 +177,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr)
     } else if (fstat(vstream_fileno(dst), &st) < 0) {
 	vstring_sprintf(why, "create %s: %m", tmpfile);
     } else {
-	vstring_sprintf(buf, "%lu.%lu_%lu.%s",
+	vstring_sprintf(buf, "%lu.V%lxI%lx.%s",
 			(unsigned long) starttime, (unsigned long) st.st_dev,
 			(unsigned long) st.st_ino, get_hostname());
 	newfile = concatenate(newdir, STR(buf), (char *) 0);
