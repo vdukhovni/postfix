@@ -4719,6 +4719,11 @@ specify "smtpd_delay_reject = yes" (which is the default) and use:
 .ft R
 .PP
 See the SASL_README file for SASL configuration and operation details.
+.SH smtpd_sasl_authenticated_header (default: no)
+Report the SASL authenticated user name in the \fBsmtpd\fR(8) Received
+message header.
+.PP
+This feature is available in Postfix 2.3 and later.
 .SH smtpd_sasl_exceptions_networks (default: empty)
 What SMTP clients Postfix will not offer AUTH support to.
 .PP

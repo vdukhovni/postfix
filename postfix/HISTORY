@@ -10606,6 +10606,22 @@ Apologies for any names omitted.
 	specific to 8bit->7bit conversion; they can also happen
 	with generic address mapping. File: smtp/smtp_proto.c.
 
+	Safety: SASL 2.1.19 has a version lookup routine that we
+	can use to detect compile time / run time version mis-matches
+	(also known as DLL hell).  Files: src/smtpd/smtpd_sasl_glue.c,
+	src/smtp/smtp_sasl_glue.c, src/lmtp/lmtp_sasl_glue.c.
+
+20050404
+
+	Typo: missing comma after dsn=x.yy.zz logging. File:
+	global/log_adhoc.c.
+
+	Feature: specify "smtpd_sasl_authenticated_header = yes"
+	to report the SASL login name in the Received: message
+	header, so that the login name is shared with the whole
+	world. Based on code by Branko F. Gracnar. Files:
+	smtpd/smtpd.c, and documentation.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

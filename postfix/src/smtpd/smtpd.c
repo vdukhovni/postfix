@@ -187,6 +187,11 @@
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
 /*	What SMTP clients Postfix will not offer AUTH support to.
+/* .PP
+/*	Available in Postfix version 2.3 and later:
+/* .IP "\fBsmtpd_sasl_authenticated_header (no)\fR"
+/*	Report the SASL authenticated user name in the \fBsmtpd\fR(8) Received
+/*	message header.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -856,6 +861,7 @@ bool    var_allow_untrust_route;
 int     var_smtpd_junk_cmd_limit;
 int     var_smtpd_rcpt_overlim;
 bool    var_smtpd_sasl_enable;
+bool   var_smtpd_sasl_auth_hdr;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_appname;
 char   *var_smtpd_sasl_realm;
@@ -1824,11 +1830,9 @@ static void rcpt_reset(SMTPD_STATE *state)
     state->rcpt_overshoot = 0;
 }
 
-#ifdef USE_TLS
+/* comment_sanitize - clesn up comment string */
 
-/* CN_sanitize - make sure, the CN-string is well behaved */
-
-static void CN_sanitize(VSTRING *CNstring)
+static void comment_sanitize(VSTRING *comment_string)
 {
     unsigned char *cp;
     int     ch;
@@ -1836,12 +1840,13 @@ static void CN_sanitize(VSTRING *CNstring)
 
     /*
      * Postfix Received: headers can be configured to include a comment with
-     * the CN (CommonName) of the peer and its issuer. To avoid problems with
-     * RFC 822 etc. syntax, we limit the CN information to printable ASCII
-     * text, and neutralize characters that affect comment parsing: the
-     * backslash and unbalanced parentheses.
+     * the CN (CommonName) of the peer and its issuer, or the login name of a
+     * SASL authenticated user. To avoid problems with RFC 822 etc. syntax,
+     * we limit this information to printable ASCII text, and neutralize
+     * characters that affect comment parsing: the backslash and unbalanced
+     * parentheses.
      */
-    for (pc = 0, cp = (unsigned char *) STR(CNstring); (ch = *cp) != 0; cp++) {
+    for (pc = 0, cp = (unsigned char *) STR(comment_string); (ch = *cp) != 0; cp++) {
 	if (!ISASCII(ch) || !ISPRINT(ch) || ch == '\\') {
 	    *cp = '?';
 	} else if (ch == '(') {
@@ -1854,10 +1859,8 @@ static void CN_sanitize(VSTRING *CNstring)
 	}
     }
     while (pc-- > 0)
-	VSTRING_ADDCH(CNstring, ')');
+	VSTRING_ADDCH(comment_string, ')');
 }
-
-#endif
 
 /* data_cmd - process DATA command */
 
@@ -1881,6 +1884,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 #ifdef USE_TLS
     VSTRING *peer_CN;
     VSTRING *issuer_CN;
+
+#endif
+#ifdef USE_SASL_AUTH
+    VSTRING *username;
 
 #endif
 
@@ -1965,6 +1972,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "Received: from %s (%s [%s])",
 		    state->helo_name ? state->helo_name : state->name,
 		    state->name, state->rfc_addr);
+
+#define VSTRING_STRDUP(s) vstring_strcpy(vstring_alloc(strlen(s) + 1), (s))
+
 #ifdef USE_TLS
 	if (var_smtpd_tls_received_header && state->tls_context) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
@@ -1972,14 +1982,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		      state->tls_info.protocol, state->tls_info.cipher_name,
 			state->tls_info.cipher_usebits,
 			state->tls_info.cipher_algbits);
-
-#define VSTRING_STRDUP(s) vstring_strcpy(vstring_alloc(strlen(s) + 1), (s))
-
 	    if (state->tls_info.peer_CN) {
 		peer_CN = VSTRING_STRDUP(state->tls_info.peer_CN);
-		CN_sanitize(peer_CN);
+		comment_sanitize(peer_CN);
 		issuer_CN = VSTRING_STRDUP(state->tls_info.issuer_CN);
-		CN_sanitize(issuer_CN);
+		comment_sanitize(issuer_CN);
 		if (state->tls_info.peer_verified)
 		    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\t(Client CN \"%s\", Issuer \"%s\" (verified OK))",
@@ -1996,6 +2003,15 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    else
 		out_fprintf(out_stream, REC_TYPE_NORM,
 			    "\t(No client certificate requested)");
+	}
+#endif
+#ifdef USE_SASL_AUTH
+	if (var_smtpd_sasl_auth_hdr && state->sasl_username) {
+	    username = VSTRING_STRDUP(state->sasl_username);
+	    comment_sanitize(username);
+	    out_fprintf(out_stream, REC_TYPE_NORM,
+			"\t(Authenticated sender: %s)", STR(username));
+	    vstring_free(username);
 	}
 #endif
 	if (state->rcpt_count == 1 && state->recipient) {
@@ -3399,6 +3415,7 @@ int     main(int argc, char **argv)
 	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
 	VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
 	VAR_SMTPD_SASL_ENABLE, DEF_SMTPD_SASL_ENABLE, &var_smtpd_sasl_enable,
+	VAR_SMTPD_SASL_AUTH_HDR, DEF_SMTPD_SASL_AUTH_HDR, &var_smtpd_sasl_auth_hdr,
 	VAR_BROKEN_AUTH_CLNTS, DEF_BROKEN_AUTH_CLNTS, &var_broken_auth_clients,
 	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
 	VAR_SMTPD_REJ_UNL_FROM, DEF_SMTPD_REJ_UNL_FROM, &var_smtpd_rej_unl_from,

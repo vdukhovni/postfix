@@ -292,6 +292,27 @@ int     lmtp_sasl_passwd_lookup(LMTP_STATE *state)
 
 void    lmtp_sasl_initialize(void)
 {
+#if SASL_VERSION_MAJOR >= 2 && (SASL_VERSION_MINOR >= 2 \
+    || (SASL_VERSION_MINOR == 1 && SASL_VERSION_STEP >= 19))
+    int     sasl_major;
+    int     sasl_minor;
+    int     sasl_step;
+
+    /*
+     * DLL hell guard.
+     */
+    sasl_version_info((const char **) 0, (const char **) 0,
+		      &sasl_major, &sasl_minor,
+		      &sasl_step, (int *) 0);
+    if (sasl_major != SASL_VERSION_MAJOR
+	|| sasl_minor != SASL_VERSION_MINOR
+	|| sasl_step != SASL_VERSION_STEP)
+	msg_fatal("incorrect SASL library version. "
+		  "Postfix was built for version %d.%d.%d, "
+		  "but the run-time library version is %d.%d.%d",
+		  SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
+		  sasl_major, sasl_minor, sasl_step);
+#endif
 
     /*
      * Global callbacks. These have no per-session context.

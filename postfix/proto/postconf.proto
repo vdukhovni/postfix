@@ -5168,6 +5168,13 @@ specify "smtpd_delay_reject = yes" (which is the default) and use:
 See the SASL_README file for SASL configuration and operation details.
 </p>
 
+%PARAM smtpd_sasl_authenticated_header no
+
+<p> Report the SASL authenticated user name in the smtpd(8) Received
+message header.  </p>
+
+<p> This feature is available in Postfix 2.3 and later.  </p>
+
 %PARAM smtpd_sasl_exceptions_networks 
 
 <p>

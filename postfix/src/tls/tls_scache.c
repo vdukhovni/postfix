@@ -144,9 +144,6 @@
 
  /*
   * Session cache entry format.
-  * 
-  * XXX The session cache version number is not needed because we truncate the
-  * database when it is opened.
   */
 typedef struct {
     time_t  timestamp;			/* time when saved */
@@ -221,8 +218,7 @@ static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
     }
 
     /*
-     * Disassemble the TLS session cache entry and enforce version number
-     * restrictions.
+     * Disassemble the TLS session cache entry.
      * 
      * No early returns or we have a memory leak.
      */
@@ -289,7 +285,7 @@ int     tls_scache_lookup(TLS_SCACHE *cp, const char *cache_id,
 	return (0);
 
     /*
-     * Decode entry and verify version information.
+     * Decode entry and delete if expired or malformed.
      */
     if (tls_scache_decode(cp, cache_id, hex_data, strlen(hex_data),
 			  session) == 0) {

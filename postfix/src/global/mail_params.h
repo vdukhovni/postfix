@@ -1177,6 +1177,10 @@ extern int var_smtp_tls_scache_timeout;
 #define DEF_SMTPD_SASL_ENABLE	0
 extern bool var_smtpd_sasl_enable;
 
+#define VAR_SMTPD_SASL_AUTH_HDR	"smtpd_sasl_authenticated_header"
+#define DEF_SMTPD_SASL_AUTH_HDR	0
+extern bool var_smtpd_sasl_auth_hdr;
+
 #define VAR_SMTPD_SASL_OPTS	"smtpd_sasl_security_options"
 #define DEF_SMTPD_SASL_OPTS	"noanonymous"
 extern char *var_smtpd_sasl_opts;

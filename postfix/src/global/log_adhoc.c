@@ -120,10 +120,10 @@ void    vlog_adhoc(const char *id, const char *orig_rcpt,
 
     vstring_vsprintf(why, fmt, ap);
     if (orig_rcpt && *orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
-	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, dsn=%s status=%s (%s)",
+	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, dsn=%s, status=%s (%s)",
 	  id, recipient, orig_rcpt, relay, delay, detail, status, vstring_str(why));
     else
-	msg_info("%s: to=<%s>, relay=%s, delay=%d, dsn=%s status=%s (%s)",
+	msg_info("%s: to=<%s>, relay=%s, delay=%d, dsn=%s, status=%s (%s)",
 		 id, recipient, relay, delay, detail, status, vstring_str(why));
     vstring_free(why);
 }

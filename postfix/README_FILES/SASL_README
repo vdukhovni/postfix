@@ -20,14 +20,6 @@ When receiving mail, Postfix logs the client-provided username, authentication
 method, and sender address to the maillog file, and optionally grants mail
 access via the permit_sasl_authenticated UCE restriction.
 
-Postfix does not record the client's SASL authentication information in message
-headers, and does not pass it on via SMTP commands when forwarding mail,
-because it is no-one else's business to know the client username and
-authentication method. People who need to know can find the information in the
-local Postfix maillog file. Some day, Postfix message headers will be
-configurable and then one can record the SASL username without having to edit C
-code.
-
 This document covers the following topics:
 
   * What SASL versions are supported
@@ -122,6 +114,14 @@ In order to allow mail relaying by authenticated clients:
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             permit_mynetworks permit_sasl_authenticated ...
+
+To report SASL login names in Received: message headers (Postfix version 2.3
+and later):
+
+    /etc/postfix/main.cf:
+        smtpd_sasl_authenticated_header = yes
+
+Note: the SASL login names will be shared with the entire world.
 
 In /usr/local/lib/sasl/smtpd.conf (SASL version 1.5.5) or /usr/local/lib/sasl2/
 smtpd.conf (SASL version 2.1.1) you need to specify how the server should

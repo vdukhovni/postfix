@@ -215,6 +215,11 @@ Optional lookup table with the SASL login names that own sender
 Available in Postfix version 2.1 and later:
 .IP "\fBsmtpd_sasl_exceptions_networks (empty)\fR"
 What SMTP clients Postfix will not offer AUTH support to.
+.PP
+Available in Postfix version 2.3 and later:
+.IP "\fBsmtpd_sasl_authenticated_header (no)\fR"
+Report the SASL authenticated user name in the \fBsmtpd\fR(8) Received
+message header.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf
