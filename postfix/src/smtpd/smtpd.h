@@ -142,9 +142,7 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define SMTPD_PEER_CODE_PERM	5
 
  /*
-  * XCLIENT support to override logging and/or access control attributes. It
-  * makes no sense to maintain separate attribute sets for XCLIENT LOG or
-  * XCLIENT ACL, so we set a flag to distinguish purpose.
+  * Choose between normal or forwarded attributes.
   */
 #define SMTPD_FEATURE_XCLIENT (1<<0)	/* XCLIENT supported */
 
@@ -159,6 +157,7 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
 #define FORWARD_HELO(s)		MAYBE_FORWARD((s), helo_name)
 
 extern void smtpd_xclient_init(SMTPD_STATE *state);
+extern void smtpd_xclient_preset(SMTPD_STATE *state);
 extern void smtpd_xclient_reset(SMTPD_STATE *state);
 
  /*

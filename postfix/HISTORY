@@ -8778,13 +8778,13 @@ Apologies for any names omitted.
 	logs more specific information. File:  master/master_ent.c.
 	Reported by several people.
 
-20031125-8
+20031125-20031201
 
 	Feature: XCLIENT support to override the SMTP server's
 	client information for logging and/or access control. This
 	replaces the short-lived XADDR and XLOGINFO extensions.
-	Based on code by Victor Duchovni, with major simplifications.
-	Files: smtpd/{smtpd,smtpd_check,smtpd_proxy,smtpd_xclient}.c
+	Remotely based on code by Victor Duchovni.  Files:
+	smtpd/{smtpd,smtpd_check,smtpd_proxy,smtpd_xclient}.c
 	smtp/smtp_smtp_proto.c, *qmgr/qmgr_message.c,
 	global/deliver_request.c.
 

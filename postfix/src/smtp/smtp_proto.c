@@ -484,11 +484,14 @@ int     smtp_xfer(SMTP_STATE *state)
      * commands rejected, DATA rejected) it forces the sender to abort the
      * SMTP dialog with RSET and QUIT.
      * 
-     * Update the server's remote client information to avoid leakage of past
-     * client attributes into an unrelated mail delivery.
+     * Use the XCLIENT command to forward client attributes only when a minimal
+     * amount of information is available.
      */
     nrcpt = 0;
-    if (var_smtp_send_xclient && (state->features & SMTP_FEATURE_XCLIENT))
+    if (var_smtp_send_xclient
+	&& (state->features & SMTP_FEATURE_XCLIENT)
+	&& !DEL_REQ_ATTR_UNAVAIL(request->client_name)
+	&& !DEL_REQ_ATTR_UNAVAIL(request->client_addr))
 	recv_state = send_state = SMTP_STATE_XCLIENT_ADDR;
     else
 	recv_state = send_state = SMTP_STATE_MAIL;
@@ -516,10 +519,10 @@ int     smtp_xfer(SMTP_STATE *state)
 	case SMTP_STATE_XCLIENT_ADDR:
 	    vstring_strcpy(next_command,
 		      XCLIENT_CMD " " XCLIENT_FORWARD " " XCLIENT_NAME "=");
-	    if (!IS_UNK_CLNT_NAME(request->client_name))
+	    if (!DEL_REQ_ATTR_UNAVAIL(request->client_name))
 		xtext_quote_append(next_command, request->client_name, "");
 	    vstring_strcat(next_command, " " XCLIENT_ADDR "=");
-	    if (!IS_UNK_CLNT_ADDR(request->client_addr))
+	    if (!DEL_REQ_ATTR_UNAVAIL(request->client_addr))
 		xtext_quote_append(next_command, request->client_addr, "");
 	    next_state = SMTP_STATE_XCLIENT_HELO;
 	    break;
@@ -527,10 +530,10 @@ int     smtp_xfer(SMTP_STATE *state)
 	case SMTP_STATE_XCLIENT_HELO:
 	    vstring_strcpy(next_command,
 		      XCLIENT_CMD " " XCLIENT_FORWARD " " XCLIENT_HELO "=");
-	    if (!IS_UNK_HELO_NAME(request->client_helo))
+	    if (!DEL_REQ_ATTR_UNAVAIL(request->client_helo))
 		xtext_quote_append(next_command, request->client_helo, "");
 	    vstring_strcat(next_command, " " XCLIENT_PROTO "=");
-	    if (!IS_UNK_PROTOCOL(request->client_proto))
+	    if (!DEL_REQ_ATTR_UNAVAIL(request->client_proto))
 		xtext_quote_append(next_command, request->client_proto, "");
 	    next_state = SMTP_STATE_MAIL;
 	    break;

@@ -159,27 +159,33 @@ extern char *mail_pathname(const char *, const char *);
 #define XCLIENT_FORWARD		"FORWARD"	/* forward function */
 #define XCLIENT_NAME		"CLIENT_NAME"	/* client name */
 #define XCLIENT_ADDR		"CLIENT_ADDR"	/* client address */
-#define XCLIENT_PROTO		"PROTOCOL"	/* client protocol */
+#define XCLIENT_PROTO		"CLIENT_PROTO"	/* client protocol */
 #define XCLIENT_CODE		"CLIENT_CODE"	/* client name status */
-#define XCLIENT_HELO		"HELO_NAME"	/* client helo */
+#define XCLIENT_HELO		"CLIENT_HELO"	/* client helo */
 
  /*
-  * Internal forms for unknown XCLIENT information.
+  * This is how Postfix represents unknown client information within smtpd or
+  * qmqpd processes.
+  * 
+  * This is not the representation that Postfix uses in queue files, in queue
+  * manager delivery requests, nor is it the representation of information in
+  * XCLIENT commands!
   */
-#define CLIENT_NAME_UNKNOWN	"unknown"
-#define CLIENT_ADDR_UNKNOWN	"unknown"
-#define CLIENT_NAMADDR_UNKNOWN	CLIENT_NAME_UNKNOWN "[" CLIENT_ADDR_UNKNOWN "]"
-#define HELO_NAME_UNKNOWN	""	/* or NULL */
-#define PROTOCOL_UNKNOWN	"unknown"
+#define CLIENT_ATTR_UNKNOWN	"unknown"
 
- /*
-  * Internal forms: recognizing unknown XCLIENT information.
-  */
-#define IS_UNK_CLNT_NAME(v)	(!(v) || !strcmp((v), CLIENT_NAME_UNKNOWN))
-#define IS_UNK_CLNT_ADDR(v)	(!(v) || !strcmp((v), CLIENT_ADDR_UNKNOWN))
-#define IS_UNK_CLNT_NAMADDR(v)	(!(v) || !strcmp((v), CLIENT_NAMADDR_UNKNOWN))
-#define IS_UNK_HELO_NAME(v)	(!(v) || !*(v))
-#define IS_UNK_PROTOCOL(v)	(!(v) || !strcmp((v), PROTOCOL_UNKNOWN))
+#define CLIENT_NAME_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_ADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_NAMADDR_UNKNOWN	CLIENT_ATTR_UNKNOWN
+#define CLIENT_HELO_UNKNOWN	0
+#define CLIENT_PROTO_UNKNOWN	CLIENT_ATTR_UNKNOWN
+
+#define IS_UNK_CLIENT_ATTR(v)	(!(v) || !strcmp((v), CLIENT_ATTR_UNKNOWN))
+
+#define IS_UNK_CLIENT_NAME(v)	IS_UNK_CLIENT_ATTR(v)
+#define IS_UNK_CLIENT_ADDR(v)	IS_UNK_CLIENT_ATTR(v)
+#define IS_UNK_CLIENT_NAMADDR(v) IS_UNK_CLIENT_ATTR(v)
+#define IS_UNK_CLIENT_HELO(v)	(!(v))
+#define IS_UNK_CLIENT_PROTO(v)	IS_UNK_CLIENT_ATTR(v)
 
 /* LICENSE
 /* .ad

@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 QMQPD(8)                                                 QMQPD(8)
 
 <b>NAME</b>
@@ -44,72 +44,72 @@ QMQPD(8)                                                 QMQPD(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
+       <b>debug_peer_level</b>
               Increment in verbose logging level  when  a  remote
-              host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+              host  matches  a  pattern  in  the  <b>debug_peer_list</b>
               parameter.
 
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+       <b>debug_peer_list</b>
               List of domain or network patterns. When  a  remote
               host  matches  a pattern, increase the verbose log-
               ging  level  by  the  amount   specified   in   the
-              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
+              <b>debug_peer_level</b> parameter.
 
-       <b>hopcount</b><i>_</i><b>limit</b>
+       <b>hopcount_limit</b>
               Limit the number of <b>Received:</b> message headers.
 
-       <b>qmqpd</b><i>_</i><b>authorized</b><i>_</i><b>clients</b>
+       <b>qmqpd_authorized_clients</b>
               A list of domain or network patterns that specifies
               what clients are allowed to use the service.
 
-       <b>qmqpd</b><i>_</i><b>timeout</b>
+       <b>qmqpd_timeout</b>
               Limit the time to send a  server  response  and  to
               receive a client request.
 
-       <b>soft</b><i>_</i><b>bounce</b>
+       <b>soft_bounce</b>
               Change  hard  (D)  reject  responses  into soft (Z)
               reject responses.  This can be useful  for  testing
               purposes.
 
 <b>Content inspection controls</b>
-       <b>content</b><i>_</i><b>filter</b>
+       <b>content_filter</b>
               The  name of a mail delivery transport that filters
               mail and that either bounces mail or re-injects the
               result  back into Postfix.  This parameter uses the
               same syntax as the right-hand  side  of  a  Postfix
               transport table.
 
-       <b>receive</b><i>_</i><b>override</b><i>_</i><b>options</b>
+       <b>receive_override_options</b>
               The  following  options  override <b>main.cf</b> settings.
               The options are passed on to the downstream cleanup
               server.
 
-              <b>no</b><i>_</i><b>address</b><i>_</i><b>mappings</b>
+              <b>no_address_mappings</b>
                      Disable  canonical  address mapping, virtual
                      alias map expansion,  address  masquerading,
                      and  automatic  BCC recipients. Specify this
                      if address mapping etc. are to be done <b>after</b>
                      an external content filter.
 
-              <b>no</b><i>_</i><b>header</b><i>_</i><b>body</b><i>_</i><b>checks</b>
+              <b>no_header_body_checks</b>
                      Disable  header/body_checks. Specify this if
                      header/body_checks are to be done  <b>after</b>  an
                      external content filter.
 
 <b>Resource controls</b>
-       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+       <b>line_length_limit</b>
               Limit  the  amount  of memory in bytes used for the
               handling of partial input lines, and the length  of
               sender  and  recipient  addresses that are received
               from client.
 
-       <b>message</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+       <b>message_size_limit</b>
               Limit the total size in bytes of a message, includ-
               ing   on-disk  storage  for  sender  and  recipient
               address information.
 
 <b>Tarpitting</b>
-       <b>qmqpd</b><i>_</i><b>error</b><i>_</i><b>delay</b>
+       <b>qmqpd_error_delay</b>
               Time to wait in seconds before informing the client
               of a problem. This slows down run-away errors.
 

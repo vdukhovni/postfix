@@ -46,6 +46,15 @@ typedef struct DELIVER_REQUEST {
     char   *client_helo;		/* helo parameter */
 } DELIVER_REQUEST;
 
+ /*
+  * Since we can't send null pointers, null strings represent unavailable
+  * attributes instead. They're less likely to explode in our face, too.
+  */
+#define DEL_REQ_ATTR_UNAVAIL(a)	(*(a))
+
+ /*
+  * How to deliver, really?
+  */
 #define DEL_REQ_FLAG_DEFLT	(DEL_REQ_FLAG_SUCCESS | DEL_REQ_FLAG_BOUNCE)
 #define DEL_REQ_FLAG_SUCCESS	(1<<0)	/* delete successful recipients */
 #define DEL_REQ_FLAG_BOUNCE	(1<<1)	/* unimplemented */

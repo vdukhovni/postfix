@@ -970,7 +970,7 @@ static int reject_unknown_client(SMTPD_STATE *state)
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
-    if (IS_UNK_CLNT_NAME(state->name))
+    if (strcasecmp(state->name, "unknown") == 0)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 		 "%d Client host rejected: cannot find your hostname, [%s]",
 				   state->peer_code == SMTPD_PEER_CODE_PERM ?
@@ -2524,7 +2524,7 @@ static const char *smtpd_expand_lookup(const char *name, int unused_mode,
     } else if (STREQ(name, MAIL_ATTR_CLIENT_NAME)) {
 	return (state->name);
     } else if (STREQ(name, MAIL_ATTR_HELO_NAME)) {
-	return (state->helo_name ?  state->helo_name : "");
+	return (state->helo_name ? state->helo_name : "");
     } else if (STREQN(name, MAIL_ATTR_SENDER, CONST_LEN(MAIL_ATTR_SENDER))) {
 	return (smtpd_expand_addr(state->expand_buf, state->sender,
 				  name, CONST_LEN(MAIL_ATTR_SENDER)));
@@ -2910,7 +2910,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_NAME, state->name,
 			  ATTR_TYPE_STR, MAIL_ATTR_HELO_NAME,
-			  state->helo_name ?  state->helo_name : "",
+			  state->helo_name ? state->helo_name : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SENDER,
 			  state->sender ? state->sender : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_RECIP,
@@ -3093,7 +3093,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 name);
 	    else {
 		cpp += 1;
-		if (!IS_UNK_CLNT_NAME(state->name))
+		if (strcasecmp(state->name, "unknown") != 0)
 		    status = reject_rbl_domain(state, *cpp, state->name,
 					       SMTPD_NAME_CLIENT);
 	    }

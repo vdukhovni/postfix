@@ -577,13 +577,13 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     if (message->encoding == 0)
 	message->encoding = mystrdup(MAIL_ATTR_ENC_NONE);
     if (message->client_name == 0)
-	message->client_name = mystrdup(CLIENT_NAME_UNKNOWN);
+	message->client_name = mystrdup("");
     if (message->client_addr == 0)
-	message->client_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+	message->client_addr = mystrdup("");
     if (message->client_proto == 0)
-	message->client_proto = mystrdup(PROTOCOL_UNKNOWN);
+	message->client_proto = mystrdup("");
     if (message->client_helo == 0)
-	message->client_helo = mystrdup(HELO_NAME_UNKNOWN);
+	message->client_helo = mystrdup("");
 
     /*
      * Clean up.
@@ -1024,6 +1024,14 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->inspect_xport);
     if (message->redirect_addr)
 	myfree(message->redirect_addr);
+    if (message->client_name)
+	myfree(message->client_name);
+    if (message->client_addr)
+	myfree(message->client_addr);
+    if (message->client_proto)
+	myfree(message->client_proto);
+    if (message->client_helo)
+	myfree(message->client_helo);
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);

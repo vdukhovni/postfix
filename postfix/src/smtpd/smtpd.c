@@ -667,9 +667,12 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
     neuter(state->helo_name, "<>()\\\";:@", '?');
-    /* Changing the protocol name breaks the unauthorized pipelining check. */
-    if (strcmp(state->protocol, MAIL_PROTO_ESMTP) != 0)
-	state->protocol = MAIL_PROTO_SMTP;
+    /* Downgrading the protocol name breaks the unauthorized pipelining test. */
+    if (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
+	&& strcasecmp(state->protocol, MAIL_PROTO_SMTP) != 0) {
+	myfree(state->protocol);
+	state->protocol = mystrdup(MAIL_PROTO_SMTP);
+    }
     smtpd_chat_reply(state, "250 %s", var_myhostname);
     return (0);
 }
@@ -705,7 +708,10 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
     neuter(state->helo_name, "<>()\\\";:@", '?');
-    state->protocol = MAIL_PROTO_ESMTP;
+    if (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0) {
+	myfree(state->protocol);
+	state->protocol = mystrdup(MAIL_PROTO_ESMTP);
+    }
     smtpd_chat_reply(state, "250-%s", var_myhostname);
     smtpd_chat_reply(state, "250-PIPELINING");
     if (var_message_limit)
@@ -743,7 +749,7 @@ static void helo_reset(SMTPD_STATE *state)
 
 /* mail_open_stream - open mail queue file or IPC stream */
 
-static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv)
+static void mail_open_stream(SMTPD_STATE *state)
 {
     char   *postdrop_command;
     int     cleanup_flags;
@@ -815,7 +821,7 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv)
 	if (*var_filter_xport)
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
     }
-    rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
+    rec_fputs(state->cleanup, REC_TYPE_FROM, state->sender);
     if (state->encoding != 0)
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_ENCODING, state->encoding);
@@ -824,18 +830,21 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv)
      * Store the client attributes for logging purposes.
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_NAME, FORWARD_NAME(state));
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_CLIENT_ADDR, FORWARD_ADDR(state));
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_ORIGIN, FORWARD_NAMADDR(state));
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_HELO_NAME,
-		    IS_UNK_HELO_NAME(FORWARD_HELO(state)) ?
-		    HELO_NAME_UNKNOWN : FORWARD_HELO(state));
-	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		    MAIL_ATTR_PROTO_NAME, FORWARD_PROTO(state));
+	if (!IS_UNK_CLIENT_NAME(FORWARD_NAME(state)))
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_CLIENT_NAME, FORWARD_NAME(state));
+	if (!IS_UNK_CLIENT_ADDR(FORWARD_ADDR(state)))
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_CLIENT_ADDR, FORWARD_ADDR(state));
+	if (!IS_UNK_CLIENT_NAMADDR(FORWARD_NAMADDR(state)))
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_ORIGIN, FORWARD_NAMADDR(state));
+	if (!IS_UNK_CLIENT_HELO(FORWARD_HELO(state)))
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_HELO_NAME, FORWARD_HELO(state));
+	if (!IS_UNK_CLIENT_PROTO(FORWARD_PROTO(state)))
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_PROTO_NAME, FORWARD_PROTO(state));
     }
     if (state->verp_delims)
 	rec_fputs(state->cleanup, REC_TYPE_VERP, state->verp_delims);
@@ -1129,6 +1138,8 @@ static void mail_reset(SMTPD_STATE *state)
 	myfree(state->proxy_mail);
 	state->proxy_mail = 0;
     }
+    if (state->xclient.used)
+	smtpd_xclient_reset(state);
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1201,7 +1212,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     } else if (state->cleanup == 0) {
-	mail_open_stream(state, argv);
+	mail_open_stream(state);
     }
     if (state->proxy && smtpd_proxy_cmd(state, SMTPD_PROX_WANT_OK,
 					"%s", STR(state->buffer)) != 0) {
@@ -1702,13 +1713,19 @@ static const struct attr_offset attr_offset = {
 #define STR_ATTR(state, func, attr) *((char **) PTR_ATTR(state, func, attr))
 #define INT_ATTR(state, func, attr) *((int *) PTR_ATTR(state, func, attr))
 
-#define UPDATE_STR(state, func, attr, value) { \
+#define RST_STR_ATTR(state, func, attr) { \
+	if (STR_ATTR(state, func, attr)) \
+	    myfree(STR_ATTR(state, func, attr)); \
+	STR_ATTR(state, func, attr) = 0; \
+    }
+
+#define UPD_STR_ATTR(state, func, attr, value) { \
 	if (STR_ATTR(state, func, attr)) \
 	    myfree(STR_ATTR(state, func, attr)); \
 	STR_ATTR(state, func, attr) = mystrdup(value); \
     }
 
-#define UPDATE_INT(state, func, attr, value) { \
+#define UPD_INT_ATTR(state, func, attr, value) { \
 	INT_ATTR(state, func, attr) = (value); \
     }
 
@@ -1755,7 +1772,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	function = FUNC_OVERRIDE;
     } else if (STREQ(arg_val, XCLIENT_FORWARD)) {
 	function = FUNC_FORWARD;
-	state->xclient.used = 1;
+	if (state->xclient.used == 0)
+	    smtpd_xclient_preset(state);
     } else {					/* error */
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Bad %s function: %s",
@@ -1764,7 +1782,9 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 
     /*
-     * Iterate over all NAME=VALUE attributes.
+     * Iterate over all NAME=VALUE attributes. An empty value means the
+     * information was not provided by the client and that we must not fall
+     * back to the non-XCLIENT value.
      */
     for (arg_no = 2; arg_no < argc; arg_no++) {
 	arg_val = argv[arg_no].strval;
@@ -1810,11 +1830,11 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 				     cooked_value);
 		    return (-1);
 		}
-		UPDATE_STR(state, function, name, cooked_value);
-		UPDATE_INT(state, function, peer_code, SMTPD_PEER_CODE_OK);
+		UPD_STR_ATTR(state, function, name, cooked_value);
+		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_OK);
 	    } else {
-		UPDATE_STR(state, function, name, CLIENT_NAME_UNKNOWN);
-		UPDATE_INT(state, function, peer_code, SMTPD_PEER_CODE_PERM);
+		UPD_STR_ATTR(state, function, name, CLIENT_NAME_UNKNOWN);
+		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_PERM);
 	    }
 	    update_namaddr = 1;
 	}
@@ -1822,7 +1842,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	/*
 	 * CLIENT_ADDR=client network address.
 	 */
-	else if (STREQ(arg_val, "CLIENT_ADDR")) {
+	else if (STREQ(arg_val, XCLIENT_ADDR)) {
 	    if (*raw_value) {
 		if (!valid_hostaddr(cooked_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1830,9 +1850,9 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 				     cooked_value);
 		    return (-1);
 		}
-		UPDATE_STR(state, function, addr, cooked_value);
+		UPD_STR_ATTR(state, function, addr, cooked_value);
 	    } else {
-		UPDATE_STR(state, function, name, CLIENT_ADDR_UNKNOWN);
+		UPD_STR_ATTR(state, function, addr, CLIENT_ADDR_UNKNOWN);
 	    }
 	    update_namaddr = 1;
 	}
@@ -1841,16 +1861,16 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 * CLIENT_CODE=status. Reset the client hostname if the hostname
 	 * lookup status is not OK.
 	 */
-	else if (STREQ(arg_val, "CLIENT_CODE")) {
+	else if (STREQ(arg_val, XCLIENT_CODE)) {
 	    if (STREQ(cooked_value, "OK")) {
-		UPDATE_INT(state, function, peer_code, SMTPD_PEER_CODE_OK);
+		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_OK);
 	    } else if (STREQ(cooked_value, "TEMP")) {
-		UPDATE_INT(state, function, peer_code, SMTPD_PEER_CODE_TEMP);
-		UPDATE_STR(state, function, name, CLIENT_NAME_UNKNOWN);
+		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_TEMP);
+		UPD_STR_ATTR(state, function, name, CLIENT_NAME_UNKNOWN);
 		update_namaddr = 1;
 	    } else if (STREQ(cooked_value, "PERM")) {
-		UPDATE_INT(state, function, peer_code, SMTPD_PEER_CODE_PERM);
-		UPDATE_STR(state, function, name, CLIENT_NAME_UNKNOWN);
+		UPD_INT_ATTR(state, function, peer_code, SMTPD_PEER_CODE_PERM);
+		UPD_STR_ATTR(state, function, name, CLIENT_NAME_UNKNOWN);
 		update_namaddr = 1;
 	    } else {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1861,12 +1881,10 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
 
 	/*
-	 * HELO_NAME=hostname. An empty value means the information was not
-	 * provided by the client and that we must not fall back to the
-	 * non-XCLIENT value. Disallow characters that could mess up our own
-	 * Received: message headers but allow [].
+	 * CLIENT_HELO=hostname. Disallow characters that could mess up our
+	 * own Received: message headers but allow [].
 	 */
-	else if (STREQ(arg_val, "HELO_NAME")) {
+	else if (STREQ(arg_val, XCLIENT_HELO)) {
 	    if (*raw_value) {
 		if (strlen(cooked_value) > VALID_HOSTNAME_LEN) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1875,17 +1893,17 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		    return (-1);
 		}
 		neuter(cooked_value, "<>()\\\";:@", '?');
-		UPDATE_STR(state, function, helo_name, cooked_value);
+		UPD_STR_ATTR(state, function, helo_name, cooked_value);
 	    } else {
-		UPDATE_STR(state, function, helo_name, HELO_NAME_UNKNOWN);
+		RST_STR_ATTR(state, function, helo_name);
 	    }
 	}
 
 	/*
-	 * PROTOCOL=protocol name. Disallow characters that could mess up our
-	 * own Received: message headers.
+	 * CLIENT_PROTO=protocol name. Disallow characters that could mess up
+	 * our own Received: message headers.
 	 */
-	else if (STREQ(arg_val, "PROTOCOL")) {
+	else if (STREQ(arg_val, XCLIENT_PROTO)) {
 	    if (*raw_value) {
 		if (*cooked_value == 0 || strlen(cooked_value) > 64) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1894,9 +1912,9 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		    return (-1);
 		}
 		neuter(cooked_value, "[]<>()\\\";:@", '?');
-		UPDATE_STR(state, function, protocol, cooked_value);
+		UPD_STR_ATTR(state, function, protocol, cooked_value);
 	    } else {
-		UPDATE_STR(state, function, protocol, PROTOCOL_UNKNOWN);
+		UPD_STR_ATTR(state, function, protocol, CLIENT_PROTO_UNKNOWN);
 	    }
 	}
 
@@ -2039,11 +2057,13 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
     case 0:
 
 	/*
-	 * XXX The client connection count/rate control uses the real client
-	 * name/address to maintain consistency between connect and
-	 * disconnect events.
+	 * XXX The client connection count/rate control must be consistent in
+	 * its use of client address information in connect and disconnect
+	 * events. For now we exclude xclient authorized hosts from
+	 * connection count/rate control.
 	 */
 	if (SMTPD_STAND_ALONE(state) == 0
+	    && !xclient_allowed
 	    && anvil_clnt
 	    && !namadr_list_match(hogger_list, state->name, state->addr)
 	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
@@ -2129,11 +2149,13 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
     }
 
     /*
-     * XXX The client connection count/rate control uses the real client
-     * name/address to maintain consistency between connect and disconnect
-     * events.
+     * XXX The client connection count/rate control must be consistent in its
+     * use of client address information in connect and disconnect events.
+     * For now we exclude xclient authorized hosts from connection count/rate
+     * control.
      */
     if (SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
 	anvil_clnt_disconnect(anvil_clnt, service, state->addr);

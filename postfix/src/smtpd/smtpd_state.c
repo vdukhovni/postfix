@@ -88,7 +88,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->verp_delims = 0;
     state->recipient = 0;
     state->etrn_name = 0;
-    state->protocol = MAIL_PROTO_SMTP;
+    state->protocol = mystrdup(MAIL_PROTO_SMTP);
     state->where = SMTPD_AFTER_CONNECT;
     state->recursion = 0;
     state->msg_size = 0;
@@ -140,6 +140,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
      */
     if (state->buffer)
 	vstring_free(state->buffer);
+    if (state->protocol)
+	myfree(state->protocol);
     smtpd_peer_reset(state);
     smtpd_xclient_reset(state);
     if (state->defer_if_permit.reason)

@@ -285,10 +285,12 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
 
 static void qmqpd_write_attributes(QMQPD_STATE *state)
 {
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_CLIENT_NAME, state->name);
-    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-		MAIL_ATTR_CLIENT_ADDR, state->addr);
+    if (!IS_UNK_CLIENT_NAME(state->name))
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_CLIENT_NAME, state->name);
+    if (!IS_UNK_CLIENT_ADDR(state->addr))
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_CLIENT_ADDR, state->addr);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ORIGIN, state->namaddr);
     rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
