@@ -450,7 +450,9 @@ void    smtpd_check_init(void)
      * People screw up the relay restrictions too often. Require that they
      * list at least one restriction that rejects mail by default.
      */
+#ifndef TEST
     check_required(VAR_RCPT_CHECKS, rcpt_restrctions, rcpt_required);
+#endif
 
     /*
      * Parse the pre-defined restriction classes.
@@ -740,7 +742,6 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 			               char *reply_name, char *reply_class)
 {
     char   *myname = "check_relay_domains";
-    char   *domain;
     static int permit_auth_destination(char *recipient);
 
     if (msg_verbose)
@@ -785,8 +786,9 @@ static int permit_auth_destination(char *recipient)
     /*
      * Handle special case that is not supposed to happen.
      */
-    if ((domain = split_at_right(STR(reply.recipient), '@')) == 0)
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
+    domain += 1;
 
     /*
      * Permit final delivery: the destination matches mydestination or
@@ -797,14 +799,13 @@ static int permit_auth_destination(char *recipient)
 	return (SMTPD_CHECK_OK);
 
     /*
-     * Permit non-routed mail to a destination on the relay_domains list.
+     * Permit if the destination matches the relay_domains list.
      */
-    if ((reply.flags & RESOLVE_FLAG_ROUTED) == 0
-	&& domain_list_match(relay_domains, domain))
+    if (domain_list_match(relay_domains, domain))
 	return (SMTPD_CHECK_OK);
 
     /*
-     * Something else.
+     * Skip when not matched
      */
     return (SMTPD_CHECK_DUNNO);
 }
@@ -814,7 +815,6 @@ static int permit_auth_destination(char *recipient)
 static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 {
     char   *myname = "reject_unauth_destination";
-    char   *domain;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
@@ -826,7 +826,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
 	return (SMTPD_CHECK_DUNNO);
 
     /*
-     * Reject unauthorized destination.
+     * Reject relaying to sites that are not listed in relay_domains.
      */
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			       "%d <%s>: Relay access denied",
@@ -849,6 +849,52 @@ static int reject_unauth_pipelining(SMTPD_STATE *state)
 	return (smtpd_check_reject(state, MAIL_ERROR_PROTOCOL,
 			    "503 Improper use of SMTP command pipelining"));
     }
+    return (SMTPD_CHECK_DUNNO);
+}
+
+/* reject_routed_relay - FAIL for relaying via sender-specified route */
+
+static int reject_routed_relay(SMTPD_STATE *state, char *recipient,
+			               char *reply_name, char *reply_class)
+{
+    char   *myname = "reject_routed_relay";
+    char   *domain;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, recipient);
+
+    /*
+     * Resolve the address.
+     */
+    canon_addr_internal(query, recipient);
+    resolve_clnt_query(STR(query), &reply);
+
+    /*
+     * Handle special case that is not supposed to happen.
+     */
+    if ((domain = strrchr(STR(reply.recipient), '@')) == 0)
+	return (SMTPD_CHECK_DUNNO);
+    domain += 1;
+
+    /*
+     * Permit final delivery: the destination matches mydestination or
+     * virtual_maps.
+     */
+    if (resolve_local(domain)
+	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * Reject source-routed mail to a non-local destination.
+     */
+    if ((reply.flags & RESOLVE_FLAG_ROUTED) != 0)
+	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+		  "%d <%s>: %s rejected: Source-routed relay access denied",
+				   var_relay_code, reply_name, reply_class));
+
+    /*
+     * Something else.
+     */
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1801,10 +1847,13 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      */
     state->recursion = 0;
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && rcpt_restrctions->argc)
+    if (status == 0 && rcpt_restrctions->argc) {
 	status = generic_checks(state, rcpt_restrctions,
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
-
+	if (var_allow_routed_relay == 0 && status != SMTPD_CHECK_REJECT)
+	    status = reject_routed_relay(state, recipient,
+					 recipient, SMTPD_NAME_RECIPIENT);
+    }
     SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
@@ -1994,7 +2043,11 @@ char   *var_maps_rbl_domains;
 char   *var_mydest;
 char   *var_inet_interfaces;
 char   *var_rest_classes;
-char   *var_local_transports;
+char   *var_alias_maps;
+char   *var_rcpt_canon_maps;
+char   *var_canonical_maps;
+char   *var_virtual_maps;
+char   *var_local_rcpt_maps;
 
 typedef struct {
     char   *name;
@@ -2007,7 +2060,11 @@ static STRING_TABLE string_table[] = {
     VAR_MYDEST, DEF_MYDEST, &var_mydest,
     VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces,
     VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes,
-    VAR_LOCAL_TRANSP, DEF_LOCAL_TRANSP, &var_local_transports,
+    VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps,
+    VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps,
+    VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps,
+    VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps,
+    VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
     0,
 };
 
@@ -2057,6 +2114,7 @@ int     var_access_map_code;
 int     var_reject_code;
 int     var_non_fqdn_code;
 int     var_smtpd_delay_reject;
+int     var_allow_routed_relay;
 
 static INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -2070,6 +2128,7 @@ static INT_TABLE int_table[] = {
     VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code,
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
     VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
+    VAR_ALLOW_ROUTED_RELAY, DEF_ALLOW_ROUTED_RELAY, &var_allow_routed_relay,
     0,
 };
 
@@ -2106,7 +2165,7 @@ static int int_update(char **argv)
 typedef struct {
     char   *name;
     ARGV  **target;
-}       REST_TABLE;
+} REST_TABLE;
 
 static REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,

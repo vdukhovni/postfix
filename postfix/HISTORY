@@ -3475,4 +3475,24 @@ Apologies for any names omitted.
 19991224
 
 	Bugfix: the relative symlink code in INSTALL.sh computed
-	the ../ segments from the wrong pathname.
+	the ../ prefix from the wrong pathname.
+
+1999122[56]
+
+	Feature: "allow_routed_relaying = no" (default) disallows
+	forwarding of mail with sender-specified routing (example:
+	user%domain2@domain1, user@domain2@domain1, etc.). This
+	plugs an "open relay" loophole where a backup MX host would
+	forward junk mail to a primary MX host which would forward
+	it to the Internet.  Files:  global/quote_822_local.c,
+	smtp/quote_821_local.c, trivial-rewrite/rewrite.c,
+	trivial-rewrite/resolve.c, smtp/smtpd_check.c.
+
+	In order to make this possible, the resolver now passes a
+	status back to the client that says if the result is a
+	routed address.
+
+	Side effect from the above change: from now on, an address
+	with @ in the recipient localpart no longer bounces with
+	"user unknown" but instead is rejected with "relay access
+	denied" or "source-routed relay access denied".

@@ -254,6 +254,16 @@ smtpd_recipient_restrictions = permit_mynetworks,check_relay_domains
 # ADDITIONAL UCE CONTROLS
 #
 
+# The allow_routed_relaying parameter controls whether the host will
+# forward addresses with sender-specified routing. This is disabled
+# by default, in order to close a nasty open relay loophole where a
+# backup MX host can be tricked into forwarding mail to a primary MX
+# host which then spams it out to the world. Don't change this if
+# this system is backup MX host for any domain, or if this system
+# receives mail from any backup MX host.
+#
+allow_routed_relaying = no
+
 # The maps_rbl_domains parameter specifies an optional list of DNS
 # domains that publish the network addresses of blacklisted hosts.
 #

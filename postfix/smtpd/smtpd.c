@@ -141,6 +141,10 @@
 /* .IP \fBsmtpd_etrn_restrictions\fR
 /*	Restrict what domain names can be used in \fBETRN\fR commands,
 /*	and what clients may issue \fBETRN\fR commands.
+/* .IP \fBallow_routed_relaying\fR
+/*	Allow the relaying of addresses with sender-specified routing.
+/*	Enabling this opens up nasty relay loopholes if your domain has
+/*	primary and backup MX hosts.
 /* .IP \fBrestriction_classes\fR
 /*	Declares the name of zero or more parameters that contain a
 /*	list of UCE restrictions. The names of these parameters can
@@ -300,6 +304,7 @@ char   *var_rcpt_canon_maps;
 char   *var_virtual_maps;
 char   *var_alias_maps;
 char   *var_local_rcpt_maps;
+bool    var_allow_routed_relay;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1322,6 +1327,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
 	VAR_STRICT_RFC821_ENV, DEF_STRICT_RFC821_ENV, &var_strict_rfc821_env,
 	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
+	VAR_ALLOW_ROUTED_RELAY, DEF_ALLOW_ROUTED_RELAY, &var_allow_routed_relay,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

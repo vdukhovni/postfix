@@ -748,6 +748,10 @@ extern char *var_etrn_checks;
 #define DEF_REST_CLASSES	""
 extern char *var_rest_classes;
 
+#define VAR_ALLOW_ROUTED_RELAY	"allow_routed_relaying"
+#define DEF_ALLOW_ROUTED_RELAY	0
+extern bool var_allow_routed_relay;
+
  /*
   * Names of specific restrictions, and the corresponding configuration
   * parameters that control the status codes sent in response to rejected

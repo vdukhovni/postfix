@@ -697,7 +697,7 @@ mail for arbitrary non-local destinations:
 <pre>
     &gt;&gt;&gt; MAIL FROM:&lt;someone@some.where&gt;
     &lt;&lt;&lt; 250 Ok
-    &gt;&gt;&gt; RCPT TO:&lt;test@some.other.site@your.site&gt;
+    &gt;&gt;&gt; RCPT TO:&lt;test@some.other.site@some.site&gt;
     &lt;&lt;&lt; 250 Ok
     &gt;&gt;&gt; DATA
     &lt;&lt;&lt; 354 End data with &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;
@@ -708,62 +708,15 @@ mail for arbitrary non-local destinations:
 
 <p>
 
-Don't Panic!
+Don't Panic!  Upgrade to a Postfix version of 19991226 or later.
 
 <p>
 
-If the mail for domain <i>your.site</i> is handled by a Postfix
-machine, the mail bounces because <i>test@some.other.site</i> is
-not a known user in domain <i>your.site</i>.  In fact, the above
-mail is rejected immediately when the Postfix SMTP server is
-configured to <a href="#bogus">reject mail for unknown local
-users</a>.
-
-<p>
-
-However, problems lurk when you are responsible for a backup MX
-host, either for your own domain or for the domain of some other
-organization.  Especially troublesome address forms are:
-
-<p>
-
-<pre>
-    user@else.where@some.domain
-    user%else.where@some.domain
-    elsewhere!user@some.domain
-</pre>
-
-<p>
-
-The problem is that the primary MX host may forward such mail to
-user@else.where, either because the primary MX host somehow "trusts"
-yor backup MX host, or because the primary MX host is badly
-configured.
-
-<p>
-
-The bad news is that your backup MX machine can end up on a black
-list because it accepted the mail, even though the problem could
-be with the configuration of a primary MX machine that is not even
-under your control.
-
-<p>
-
-So, if you're backup MX relay it is prudent to block addresses with
-multiple address operators at the SMTP port, even though you would
-also block legitimate addresses.
-
-<p>
-
-<pre>
-    <b>/etc/postfix/main.cf:</b> 
-        smtpd_recipient_restrictions = 
-                regexp:/etc/postfix/regexp_access
-                ...other UCE restrictions...
-
-    <b>/etc/postfix/regexp_access</b>:
-        /[%!@].*[%!@]/ 550 Sender specified routing is not supported here.
-</pre>
+Older Postfix versions would either bounce the mail because
+"test@some.other.site" is not a known local username (which is
+good), or they would forward the mail to a primary MX host for
+"some.site" which would then spam it into the Internet (which is
+bad).
 
 <hr>
 

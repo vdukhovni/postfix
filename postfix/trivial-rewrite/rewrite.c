@@ -148,7 +148,7 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
 	}
 
 	/*
-	 * Append missing @origin.
+	 * Append missing @origin
 	 */
 	else if (var_append_at_myorigin != 0) {
 	    domain = tok822_sub_append(tree, tok822_alloc('@', (char *) 0));

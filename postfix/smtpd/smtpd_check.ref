@@ -12,7 +12,7 @@ OK
 >>> #
 >>> # Test the client restrictions.
 >>> #
->>> client_restrictions permit_mynetworks,reject_unknown_client,dbm:./smtpd_check_access
+>>> client_restrictions permit_mynetworks,reject_unknown_client,hash:./smtpd_check_access
 OK
 >>> client unknown 131.155.210.17
 ./smtpd_check: reject: CONNECT from unknown[131.155.210.17]: 450 Client host rejected: cannot find your hostname, [131.155.210.17]
@@ -37,7 +37,7 @@ OK
 >>> #
 >>> # Test the helo restrictions
 >>> #
->>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,reject_unknown_hostname,dbm:./smtpd_check_access
+>>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,reject_unknown_hostname,hash:./smtpd_check_access
 OK
 >>> client unknown 131.155.210.17
 OK
@@ -54,7 +54,7 @@ OK
 450 <foo>: Helo command rejected: Host not found
 >>> helo spike.porcupine.org
 OK
->>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,dbm:./smtpd_check_access
+>>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,hash:./smtpd_check_access
 OK
 >>> helo random.bad.domain
 ./smtpd_check: reject: HELO from foo[123.123.123.123]: 554 <random.bad.domain>: Helo command rejected: match bad.domain
@@ -96,7 +96,7 @@ OK
 >>> mail foo@bad.domain
 ./smtpd_check: reject: MAIL from foo[123.123.123.123]: 450 <foo@bad.domain>: Sender address rejected: Domain not found; from=<foo@bad.domain>
 450 <foo@bad.domain>: Sender address rejected: Domain not found
->>> sender_restrictions dbm:./smtpd_check_access
+>>> sender_restrictions hash:./smtpd_check_access
 OK
 >>> mail bad-sender@any.domain
 ./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 <bad-sender@any.domain>: Sender address rejected: match bad-sender@; from=<bad-sender@any.domain>
@@ -156,7 +156,7 @@ OK
 554 <foo@watson.ibm.com>: Recipient address rejected: Relay access denied
 >>> rcpt foo@porcupine.org
 OK
->>> recipient_restrictions dbm:./smtpd_check_access
+>>> recipient_restrictions hash:./smtpd_check_access
 OK
 >>> mail bad-sender@any.domain
 ./smtpd_check: reject: MAIL from foo[123.123.123.123]: 554 <bad-sender@any.domain>: Sender address rejected: match bad-sender@; from=<bad-sender@any.domain>
@@ -182,8 +182,8 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com, reason: EBlackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<foo@friend.bad.domain>
-554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com, reason: EBlackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com, reason: Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<foo@friend.bad.domain>
+554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com, reason: Blackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
 >>> #
 >>> # Hybrids
 >>> #
@@ -194,15 +194,15 @@ OK
 >>> rcpt foo@watson.ibm.com
 ./smtpd_check: reject: RCPT from foo[131.155.210.17]: 554 <foo@watson.ibm.com>: Recipient address rejected: Relay access denied; from=<foo@friend.bad.domain> to=<foo@watson.ibm.com>
 554 <foo@watson.ibm.com>: Recipient address rejected: Relay access denied
->>> recipient_restrictions check_client_access,dbm:./smtpd_check_access,check_relay_domains
+>>> recipient_restrictions check_client_access,hash:./smtpd_check_access,check_relay_domains
 OK
 >>> client foo 131.155.210.17
 OK
 >>> rcpt foo@porcupine.org
 OK
->>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,dbm:./smtpd_check_access
+>>> helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,hash:./smtpd_check_access
 OK
->>> recipient_restrictions check_helo_access,dbm:./smtpd_check_access,check_relay_domains
+>>> recipient_restrictions check_helo_access,hash:./smtpd_check_access,check_relay_domains
 OK
 >>> helo bad.domain
 ./smtpd_check: reject: HELO from foo[131.155.210.17]: 554 <bad.domain>: Helo command rejected: match bad.domain; from=<foo@friend.bad.domain>
@@ -215,7 +215,7 @@ OK
 OK
 >>> rcpt foo@porcupine.org
 OK
->>> recipient_restrictions check_sender_access,dbm:./smtpd_check_access,check_relay_domains
+>>> recipient_restrictions check_sender_access,hash:./smtpd_check_access,check_relay_domains
 OK
 >>> mail foo@bad.domain
 ./smtpd_check: reject: MAIL from foo[131.155.210.17]: 554 <foo@bad.domain>: Sender address rejected: match bad.domain; from=<foo@bad.domain>
@@ -252,7 +252,7 @@ OK
 OK
 >>> sender_restrictions permit
 OK
->>> recipient_restrictions check_helo_access,dbm:./smtpd_check_access,check_sender_access,dbm:./smtpd_check_access
+>>> recipient_restrictions check_helo_access,hash:./smtpd_check_access,check_sender_access,hash:./smtpd_check_access
 OK
 >>> helo bad.domain
 OK

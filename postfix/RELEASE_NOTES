@@ -1,5 +1,19 @@
-Incompatible changes with snapshot 19991223
+Incompatible changes with snapshot 19991226
 ===========================================
+
+- The SMTP server by default no longer forwards mail to non-local
+destinations with sender-specified routing (stuff[@%!]stuff[@%!]stuff).
+This closes an open relay loophole with primary and secondary MX
+hosts.  To get old behavior, specify "allow_routed_relaying = yes".
+
+- In order to support the above, the data structure and protocol
+of the trivial-rewrite service was changed. This means you must
+re-compile and re-link existing software that uses the Postfix
+resolve_clnt interface.
+
+- As a side effect of the above, an address with @ in the localpart
+(user@there@here) no longer bounces with "user unknown" but instead
+is rejected with "relay access denied".
 
 - The experimental permit_recipient_map and local_transports features
 are gone. They were never part of an official release.  Both are
@@ -26,7 +40,7 @@ transport maps, it is better to always have explicit entries for
 all domain names you have in $mydestination.  See the html/faq.html
 sections for firewalls and intranets.
 
-Major changes with snapshot 19991223
+Major changes with snapshot 19991226
 ====================================
 
 - It is now much more difficult to configure Postfix as an open
@@ -34,6 +48,13 @@ relay. The SMTP server requires that "smtpd_recipient_restrictions"
 contains at least one restriction that by default refuses mail (as
 is the default).  There were too many accidents with changes to
 the UCE restrictions.
+
+- An "open relay" loophole is now plugged where a backup MX host
+would forward stuff[@%!]stuff[@%!]stuff to a primary MX host which
+would then spam it out to the world.  To get the old behavior,
+specify "allow_routed_relaying = yes".  The old behavior is safe
+only for non-MX hosts, and for primary MX hosts of domains that
+have no backup MX hosts.
 
 - The relay_domains parameter no longer needs to contain $virtual_maps.
 

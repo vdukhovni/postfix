@@ -122,6 +122,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    && VSTRING_LEN(tree->head->vstr) == 0) {
 	    tok822_free(tree->head);
 	    tree->head = tok822_scan(MAIL_ADDR_POSTMASTER, &tree->tail);
+	    rewrite_tree(REWRITE_CANON, tree);
 	}
 
 	/*
@@ -137,28 +138,33 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	}
 
 	/*
-	 * After stripping the local domain, replace foo%bar by foo@bar,
-	 * site!user by user@site, rewrite to canonical form, and retry.
+	 * After stripping the local domain, if any, replace foo%bar by
+	 * foo@bar, site!user by user@site, rewrite to canonical form, and
+	 * retry. Recognize routing operators in the address localpart. This
+	 * is needed to prevent primary MX hosts from relaying third-party
+	 * destinations from backup MX hosts, otherwise the primary could end
+	 * up on black lists.
+	 * 
 	 * Otherwise we're done.
 	 */
-	if ((domain = tok822_rfind_type(tree->tail, '@')) == 0) {
-	    if (var_swap_bangpath && tok822_rfind_type(tree->tail, '!') != 0) {
-		rewrite_tree(REWRITE_CANON, tree);
-	    } else if (var_percent_hack
-		    && (domain = tok822_rfind_type(tree->tail, '%')) != 0) {
-		domain->type = '@';
-		rewrite_tree(REWRITE_CANON, tree);
-	    } else {
-		break;
-	    }
+	if (tok822_rfind_type(tree->tail, '@')
+	    || (var_swap_bangpath && tok822_rfind_type(tree->tail, '!'))
+	    || (var_percent_hack && tok822_rfind_type(tree->tail, '%'))) {
+	    *flags |= RESOLVE_FLAG_ROUTED;
+	    rewrite_tree(REWRITE_CANON, tree);
+	} else {
+	    domain = 0;
+	    break;
 	}
     }
 
     /*
      * If the destination is non-local, recognize routing operators in the
-     * address localpart. This is needed to protect backup hosts against
-     * relaying by primary hosts, because the backup host would end up on
-     * black lists.
+     * address localpart. This is needed to prevent backup MX hosts from
+     * relaying third-party destinations through primary MX hosts, otherwise
+     * the backup host could end up on black lists. Ignore local
+     * swap_bangpath and percent_hack settings because we can't know how the
+     * primary MX host is set up.
      */
     if (domain && domain->prev)
 	if (tok822_rfind_type(domain->prev, '@') != 0
