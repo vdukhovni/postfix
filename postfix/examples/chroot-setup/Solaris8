@@ -1,0 +1,97 @@
+#!/bin/sh
+
+# Solaris 8 version by Matthew X. Economou. Caution: this copies
+# too many files. There is no need to copy libc.so and other files
+# that are already linked in before a Postfix daemon chroots itself.
+
+## Copy any shared libraries, device entries, or configuration files
+## needed by Postfix into the jail.
+binlist="
+/usr/libexec/postfix/virtual
+/usr/libexec/postfix/trivial-rewrite
+/usr/libexec/postfix/spawn
+/usr/libexec/postfix/smtpd
+/usr/libexec/postfix/smtp
+/usr/libexec/postfix/showq
+/usr/libexec/postfix/qmqpd
+/usr/libexec/postfix/qmgr
+/usr/libexec/postfix/proxymap
+/usr/libexec/postfix/pipe
+/usr/libexec/postfix/pickup
+/usr/libexec/postfix/nqmgr
+/usr/libexec/postfix/master
+/usr/libexec/postfix/local
+/usr/libexec/postfix/lmtp
+/usr/libexec/postfix/flush
+/usr/libexec/postfix/error
+/usr/libexec/postfix/cleanup
+/usr/libexec/postfix/bounce
+/usr/lib/sendmail
+/usr/sbin/postsuper
+/usr/sbin/postqueue
+/usr/sbin/postmap
+/usr/sbin/postlog
+/usr/sbin/postlock
+/usr/sbin/postkick
+/usr/sbin/postfix
+/usr/sbin/postdrop
+/usr/sbin/postconf
+/usr/sbin/postcat
+/usr/sbin/postalias
+"
+for i in `xargs ldd $binlist | grep -v '^[^:]*:' | sort | uniq | sed -e 's/^[^ ]* =>//' | awk '{print $1}'`; do
+    mkdir -p /var/spool/postfix`dirname $i`
+    ## Sun's version of tar sucks.  We'll have to remove the leading
+    ## slashes from file names ourself, otherwise the copy doesn't
+    ## work.
+    (cd / && tar cphf - `echo $i | sed -e 's/^\///'`) | (cd /var/spool/postfix && tar xpf -)
+done
+
+## More stuff for the jail, mostly discovered by inspection
+## (e.g. strings, lsof).
+for i in "
+/dev/zero
+/dev/null
+/dev/udp6
+/dev/tcp6
+/dev/udp
+/dev/tcp
+/dev/rawip
+/dev/ticlts
+/dev/ticotsord
+/dev/ticots
+/devices/pseudo/mm@0:zero
+/devices/pseudo/mm@0:null
+/devices/pseudo/udp6@0:udp6
+/devices/pseudo/tcp6@0:tcp6
+/devices/pseudo/udp@0:udp
+/devices/pseudo/tcp@0:tcp
+/devices/pseudo/icmp@0:icmp
+/devices/pseudo/tl@0:ticlts
+/devices/pseudo/tl@0:ticotsord
+/devices/pseudo/tl@0:ticots
+/etc/nsswitch.conf
+/etc/netconfig
+/etc/default/init
+/etc/inet/services
+/etc/services
+/usr/lib/ld.so
+/usr/lib/ld.so.1
+/usr/lib/sparcv9/straddr.so
+/usr/lib/straddr.so
+/usr/lib/libintl.so
+/usr/lib/libintl.so.1
+/usr/lib/libw.so
+/usr/lib/libw.so.1
+/usr/lib/nss_nis.so.1
+/usr/lib/nss_nisplus.so.1
+/usr/lib/nss_dns.so.1
+/usr/lib/nss_files.so.1
+/usr/share/lib/zoneinfo
+/var/ld/ld.config
+"; do
+    mkdir -p /var/spool/postfix`dirname $i`
+    (cd / && tar cpf - `echo $i | sed -e 's/^\///'`) | (cd /var/spool/postfix && tar xpf -)
+done
+
+exit 0

@@ -44,19 +44,19 @@ those embedded manual pages are available in the mantools directory.
 4 - Building on a supported system
 ==================================
 
-If your system is supported, it is one of
+At some point in time, a version of Postfix was supported on:
 
-    AIX 3.2.5 (long ago)
-    AIX 4.1.x (long ago)
-    AIX 4.2.0 (long ago)
-    AIX 4.3.x (long ago)
+    AIX 3.2.5
+    AIX 4.1.x
+    AIX 4.2.0
+    AIX 4.3.x
     AIX 5.2
-    BSD/OS 2.x (long ago)
-    BSD/OS 3.x (long ago)
-    BSD/OS 4.x (long ago)
-    Darwin 1.x (long ago)
-    FreeBSD 2.x (long ago)
-    FreeBSD 3.x (long ago)
+    BSD/OS 2.x
+    BSD/OS 3.x
+    BSD/OS 4.x
+    Darwin 1.x
+    FreeBSD 2.x
+    FreeBSD 3.x
     FreeBSD 4.x
     FreeBSD 5.x
     HP-UX  9.x
@@ -72,14 +72,14 @@ If your system is supported, it is one of
     Linux RedHat 5.x
     Linux RedHat 6.x
     Linux RedHat 7.x
-    Linux Slackware 3.x (long ago)
+    Linux Slackware 3.x
     Linux Slackware 4.x
     Linux Slackware 7.x
     Linux SuSE 5.x
     Linux SuSE 6.x
     Linux SuSE 7.x
     Mac OS X
-    NEXTSTEP 3.x (long ago)
+    NEXTSTEP 3.x
     NetBSD 1.x
     OPENSTEP 4.x
     OSF1.V3 (Digital UNIX)

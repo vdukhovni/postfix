@@ -54,10 +54,10 @@ typedef struct CLEANUP_STATE {
     int     hop_count;			/* count of received: headers */
     char   *resent;			/* any resent- header seen */
     BH_TABLE *dups;			/* recipient dup filter */
-    long    warn_time;			/* cleanup_envelope.c */
     void    (*action) (struct CLEANUP_STATE *, int, const char *, int);
     off_t   data_offset;		/* start of message content */
     off_t   xtra_offset;		/* start of extracted content */
+    int     warn_seen;			/* REC_TYPE_WARN seen */
     int     verp_seen;			/* REC_TYPE_VERP seen */
     int     end_seen;			/* REC_TYPE_END seen */
     int     rcpt_count;			/* recipient count */

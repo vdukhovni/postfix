@@ -263,7 +263,6 @@ struct QMGR_MESSAGE {
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
-    long    extra_offset;		/* extracted data seek offset */
     char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file */
     char   *encoding;			/* content encoding */

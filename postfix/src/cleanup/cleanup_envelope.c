@@ -126,14 +126,22 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (strchr(REC_TYPE_ENVELOPE, type) == 0) {
-	msg_warn("%s: unexpected record type %d in envelope: message rejected",
+	msg_warn("%s: message rejected: unexpected record type %d in envelope",
 		 state->queue_id, type);
 	state->errs |= CLEANUP_STAT_BAD;
 	return;
     }
+
+    /*
+     * The code for processing recipient records is first, because there can
+     * be lots of them. However, recipient records appear at the end of the
+     * initial or extracted envelope, so that the queue manager does not have
+     * to read the whole envelope before it can start deliveries.
+     */
     if (type == REC_TYPE_RCPT) {
+	state->flags |= CLEANUP_FLAG_INRCPT;
 	if (state->sender == 0) {		/* protect showq */
-	    msg_warn("%s: envelope recipient precedes sender: message rejected",
+	    msg_warn("%s: message rejected: envelope recipient precedes sender",
 		     state->queue_id);
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
@@ -146,6 +154,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_DONE) {
+	state->flags |= CLEANUP_FLAG_INRCPT;
 	if (state->orig_rcpt != 0) {
 	    myfree(state->orig_rcpt);
 	    state->orig_rcpt = 0;
@@ -154,17 +163,64 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     }
     if (state->orig_rcpt != 0) {
 	/* REC_TYPE_ORCP must be followed by REC_TYPE_RCPT or REC_TYPE DONE. */
-	msg_warn("%s: out-of-order original recipient record <%.200s>",
+	msg_warn("%s: ignoring out-of-order original recipient record <%.200s>",
 		 state->queue_id, state->orig_rcpt);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
     }
     if (type == REC_TYPE_ORCP) {
+	state->flags |= CLEANUP_FLAG_INRCPT;
 	state->orig_rcpt = mystrdup(buf);
 	return;
     }
+
+    /*
+     * These non-recipient records may appear before or after recipient
+     * records. In order to keep recipient records pure, We take away these
+     * non-recipient records from the input, and output them at the start of
+     * the extracted envelope segment.
+     */
+    if (type == REC_TYPE_FILT) {
+	/* Last instance wins. */
+	if (strchr(buf, ':') == 0) {
+	    msg_warn("%s: ignoring invalid content filter: %.100s",
+		     state->queue_id, buf);
+	    return;
+	}
+	if (state->filter)
+	    myfree(state->filter);
+	state->filter = mystrdup(buf);
+	return;
+    }
+    if (type == REC_TYPE_RDR) {
+	/* Last instance wins. */
+	if (strchr(buf, '@') == 0) {
+	    msg_warn("%s: ignoring invalid redirect address: %.100s",
+		     state->queue_id, buf);
+	    return;
+	}
+	if (state->redirect)
+	    myfree(state->redirect);
+	state->redirect = mystrdup(buf);
+	return;
+    }
+
+    /*
+     * The following records must not appear after recipient records. We
+     * force the warning record before the sender record so we know when
+     * (not) to emit a warning record. A warning or size record may already
+     * be present when mail is requeued with "postsuper -r".
+     */
+    if (type != REC_TYPE_MESG && (state->flags & CLEANUP_FLAG_INRCPT) != 0) {
+	msg_warn("%s: ignoring %s record after initial envelope recipients",
+		 state->queue_id, rec_type_name(type));
+	return;
+    }
+    if (type == REC_TYPE_SIZE)
+	/* Use our own SIZE record instead. */
+	return;
     if (type == REC_TYPE_TIME) {
-	/* First definition wins. */
+	/* First instance wins. */
 	if (state->time == 0) {
 	    state->time = atol(buf);
 	    cleanup_out(state, type, buf, len);
@@ -172,7 +228,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_FULL) {
-	/* First definition wins. */
+	/* First instance wins. */
 	if (state->fullname == 0) {
 	    state->fullname = mystrdup(buf);
 	    cleanup_out(state, type, buf, len);
@@ -182,30 +238,39 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     if (type == REC_TYPE_FROM) {
 	/* Allow only one instance. */
 	if (state->sender != 0) {
-	    msg_warn("%s: too many envelope sender records: message rejected",
+	    msg_warn("%s: message rejected: multiple envelope sender records",
 		     state->queue_id);
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
+	}
+	/* Kluge to force REC_TYPE_WARN before recipients. */
+	if (state->warn_seen == 0 && var_delay_warn_time > 0) {
+	    cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
+			       (long) var_delay_warn_time);
+	    state->warn_seen = 1;
 	}
 	cleanup_addr_sender(state, buf);
 	return;
     }
     if (type == REC_TYPE_WARN) {
-	/* First definition wins. */
-	if (state->warn_time == 0) {
-	    if ((state->warn_time = atol(buf)) < 0) {
-		msg_warn("%s: bad arrival time record: %s: message rejected",
+	/* First instance wins. */
+	if (state->warn_seen == 0) {
+	    if (atoi(buf) < 0) {
+		msg_warn("%s: message rejected: bad warning time: %.100s",
 			 state->queue_id, buf);
 		state->errs |= CLEANUP_STAT_BAD;
+		return;
 	    }
+	    state->warn_seen = 1;
+	    cleanup_out(state, type, buf, len);
 	}
 	return;
     }
     if (type == REC_TYPE_VERP) {
-	/* First definition wins. */
+	/* First instance wins. */
 	if (state->verp_seen == 0) {
 	    if ((error_text = verp_delims_verify(buf)) != 0) {
-		msg_warn("%s: %s: \"%s\": message rejected",
+		msg_warn("%s: message rejected: %s: %.100s",
 			 state->queue_id, error_text, buf);
 		state->errs |= CLEANUP_STAT_BAD;
 		return;
@@ -216,19 +281,18 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_ATTR) {
-	/* Pass through. Last definition wins. */
+	/* Pass through. Last instance wins. */
 	char   *sbuf;
 
 	if (state->attr->used >= var_qattr_count_limit) {
-	    msg_warn("%s: queue file attribute count exceeds safety limit %d"
-		     ": message rejected",
+	    msg_warn("%s: message rejected: attribute count exceeds limit %d",
 		     state->queue_id, var_qattr_count_limit);
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
 	sbuf = mystrdup(buf);
 	if ((error_text = split_nameval(sbuf, &attr_name, &attr_value)) != 0) {
-	    msg_warn("%s: malformed attribute: %s: %.100s: message rejected",
+	    msg_warn("%s: message rejected: malformed attribute: %s: %.100s",
 		     state->queue_id, error_text, buf);
 	    state->errs |= CLEANUP_STAT_BAD;
 	    myfree(sbuf);
@@ -239,44 +303,32 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	cleanup_out(state, type, buf, len);
 	return;
     }
-    if (type == REC_TYPE_SIZE)
-	/* Use our own SIZE record instead. */
-	return;
     if (type != REC_TYPE_MESG) {
-	/* Anything else. Pass through. */
+	/* Any other allowed record type. Pass through. */
 	cleanup_out(state, type, buf, len);
 	return;
     }
 
     /*
-     * On the transition from envelope segment to content segment, do some
-     * sanity checks.
+     * On the transition from initial envelope segment to content segment, do
+     * some sanity checks.
      * 
-     * If senders can be specified in the extracted envelope segment, then we
-     * need to move the VERP test there, too.
+     * XXX If senders can be specified in the extracted envelope segment (this
+     * could reduce qmqpd's memory requirements), then we need to move the
+     * VERP test there, too.
      */
     if (state->sender == 0 || state->time == 0) {
-	msg_warn("%s: missing sender or time envelope record: message rejected",
+	msg_warn("%s: message rejected: missing sender or time envelope record",
 		 state->queue_id);
 	state->errs |= CLEANUP_STAT_BAD;
 	return;
     }
     if (state->verp_seen && (state->sender == 0 || *state->sender == 0)) {
-	msg_warn("%s: VERP request with no or null sender: message rejected",
+	msg_warn("%s: message rejected: VERP request with no or null sender",
 		 state->queue_id);
 	state->errs |= CLEANUP_STAT_BAD;
 	return;
     }
-
-    /*
-     * Emit records for information that we collected from the envelope
-     * segment.
-     */
-    if (state->warn_time == 0 && var_delay_warn_time > 0)
-	state->warn_time = state->time + var_delay_warn_time;
-    if (state->warn_time)
-	cleanup_out_format(state, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-			   state->warn_time);
-
+    state->flags &= ~CLEANUP_FLAG_INRCPT;
     state->action = cleanup_message;
 }

@@ -57,13 +57,6 @@
 /*	Reject, defer or permit the request unconditionally. This is to be used
 /*	at the end of a restriction list in order to make the default
 /*	action explicit.
-/* .IP require_date_header
-/* .IP require_from_header
-/* .IP require_message_id_header
-/* .IP require_received_header
-/*	Reject the message when it does not contain a Date: etc. 
-/*	message header. Only the Date: header is required by mail
-/*	standards. The other headers are usually added by MTAs.
 /* .IP reject_unknown_client
 /*	Reject the request when the client hostname could not be found.
 /*	The \fIunknown_client_reject_code\fR configuration parameter
@@ -436,6 +429,19 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient);
   */
 #define STR	vstring_str
 #define CONST_STR(x)	((const char *) vstring_str(x))
+#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
+
+ /*
+  * Safety.
+  */
+#define SAFE_STRDUP(dst, src) { \
+	if (src) { \
+	    if (dst) { \
+		myfree(dst); \
+	    } \
+	    dst = mystrdup(src); \
+	} \
+    }
 
  /*
   * If some decision can't be made due to a temporary error, then change
@@ -1793,9 +1799,14 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    vstring_sprintf(error_text, "<%s>: %s triggers FILTER %s",
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "filter", STR(error_text));
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
-#endif
+	    /* This action must execute with every MAIL FROM command. */
+	    if (var_smtpd_delay_reject == 0
+		&& (STREQ(reply_class, SMTPD_NAME_CLIENT)
+		    || STREQ(reply_class, SMTPD_NAME_HELO))) {
+		SAFE_STRDUP(state->session_filter, cmd_text);
+	    } else {
+		SAFE_STRDUP(state->filter, cmd_text);
+	    }
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -1814,10 +1825,17 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers HOLD action");
 	log_whatsup(state, "hold", STR(error_text));
+	/* This action must execute with every MAIL FROM command. */
+	if (var_smtpd_delay_reject == 0
+	    && (STREQ(reply_class, SMTPD_NAME_CLIENT)
+		|| STREQ(reply_class, SMTPD_NAME_HELO))) {
+	    state->session_hold = 1;
+	} else {
 #ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_HOLD);
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_HOLD);
 #endif
+	}
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -1834,11 +1852,18 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
 			*cmd_text ? cmd_text : "triggers DISCARD action");
 	log_whatsup(state, "discard", STR(error_text));
+	/* This action must execute with every MAIL FROM command. */
+	if (var_smtpd_delay_reject == 0
+	    && (STREQ(reply_class, SMTPD_NAME_CLIENT)
+		|| STREQ(reply_class, SMTPD_NAME_HELO))) {
+	    state->session_discard = 1;
+	} else {
 #ifndef TEST
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_DISCARD);
-	state->discard = 1;
+	    state->discard = 1;
+	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+			CLEANUP_FLAG_DISCARD);
 #endif
+	}
 	return (SMTPD_CHECK_OK);
     }
 
@@ -1861,9 +1886,14 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	    vstring_sprintf(error_text, "<%s>: %s triggers REDIRECT %s",
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "redirect", STR(error_text));
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s", cmd_text);
-#endif
+	    /* This action must execute with every MAIL FROM command. */
+	    if (var_smtpd_delay_reject == 0
+		&& (STREQ(reply_class, SMTPD_NAME_CLIENT)
+		    || STREQ(reply_class, SMTPD_NAME_HELO))) {
+		SAFE_STRDUP(state->session_redirect, cmd_text);
+	    } else {
+		SAFE_STRDUP(state->redirect, cmd_text);
+	    }
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -2273,8 +2303,6 @@ static const char *smtpd_expand_addr(VSTRING *buf, const char *addr,
     /*
      * "sender_name" or "recipient_name".
      */
-#define STREQ(x,y) (*(x) == *(y) && strcmp((x), (y)) == 0)
-
     else if (STREQ(suffix, MAIL_ATTR_S_NAME)) {
 	if (*addr) {
 	    if ((p = strrchr(addr, '@')) != 0) {
@@ -2757,26 +2785,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
 			 "450 <%s>: %s rejected: defer_if_reject requested",
 			     reply_name, reply_class);
-	} else if (strcasecmp(name, REQUIRE_DATE_HDR) == 0) {
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_NEED_DATE);
-#endif
-	} else if (strcasecmp(name, REQUIRE_FROM_HDR) == 0) {
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_NEED_FROM);
-#endif
-	} else if (strcasecmp(name, REQUIRE_MSGID_HDR) == 0) {
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_NEED_MSGID);
-#endif
-	} else if (strcasecmp(name, REQUIRE_RCVD_HDR) == 0) {
-#ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-			CLEANUP_FLAG_NEED_RCVD);
-#endif
 	}
 
 	/*
@@ -3114,6 +3122,24 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
      */
     if (sender == 0)
 	return (0);
+
+    /*
+     * Actions that were triggered during connect or HELO need to be repeated
+     * with each MAIL FROM command.
+     * 
+     * XXX Left-hand side should always be zero. But this may not be the case
+     * during stand-alone testing when commands can execute out of protocol.
+     */
+    if (var_smtpd_delay_reject == 0) {
+	if( state->session_hold)
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_HOLD);
+	if( state->session_discard)
+	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
+		    CLEANUP_FLAG_DISCARD);
+	SAFE_STRDUP(state->filter, state->session_filter);
+	SAFE_STRDUP(state->redirect, state->session_redirect);
+    }
 
     /*
      * Minor kluge so that we can delegate work to the generic routine and so
@@ -3522,6 +3548,19 @@ char   *smtpd_check_data(SMTPD_STATE *state)
 	state->recipient = saved_recipient;
 
     return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
+}
+
+/* smtpd_check_dot - do stuff after message transfer */
+
+char   *smtpd_check_dot(SMTPD_STATE *state)
+{
+    if (state->redirect)
+	rec_fprintf(state->dest->stream, REC_TYPE_RDR, "%s",
+		    state->redirect);
+    if (state->filter)
+	rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s",
+		    state->filter);
+    return (0);
 }
 
 #ifdef TEST

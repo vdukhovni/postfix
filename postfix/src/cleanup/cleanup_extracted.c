@@ -13,9 +13,10 @@
 /*	int	len;
 /* DESCRIPTION
 /*	This module processes message records with information extracted
-/*	from message content, or with recipients that are stored after the
-/*	message content. It updates recipient records, and writes extracted
-/*	information records to the output.
+/*	from the initial message envelope or from the message content, or
+/*	with recipients that are stored after the message content. It
+/*	updates recipient records, and writes extracted information records
+/*	to the output.
 /*
 /*	Arguments:
 /* .IP state
@@ -69,31 +70,14 @@
 
 #define STR(x)	vstring_str(x)
 
-static void cleanup_extracted_process(CLEANUP_STATE *, int, const char *, int);
-
- /*
-  * The following queue file records are generated from message header or
-  * message body content. We may encounter them in extracted envelope
-  * segments after mail is re-injected with "postsuper -r" and we should
-  * ignore them. It might be infinitesimally faster to move this test to the
-  * pickup daemon, but that would make program maintenance more difficult.
-  */
-static char cleanup_extracted_generated[] = {
-    REC_TYPE_RRTO,			/* return-receipt-to */
-    REC_TYPE_ERTO,			/* errors-to */
-    REC_TYPE_FILT,			/* content filter */
-    REC_TYPE_INSP,			/* content inspector */
-    REC_TYPE_RDR,			/* redirect address */
-    REC_TYPE_ATTR,			/* some header attribute */
-    0,
-};
+static void cleanup_extracted_non_rcpt(CLEANUP_STATE *, int, const char *, int);
+static void cleanup_extracted_rcpt(CLEANUP_STATE *, int, const char *, int);
 
 /* cleanup_extracted - initialize extracted segment */
 
 void    cleanup_extracted(CLEANUP_STATE *state, int type,
 			          const char *buf, int len)
 {
-    const char *encoding;
 
     /*
      * Start the extracted segment.
@@ -101,105 +85,120 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type,
     cleanup_out_string(state, REC_TYPE_XTRA, "");
 
     /*
-     * Postfix keeps all information related to an email message is in a
-     * write-once file, including the envelope sender and recipients, and the
-     * message content. This design maximizes robustness: one file is easier
-     * to keep track of than multiple files, and write-once means that no
-     * operation ever needs to be undone. This design also minimizes file
-     * system overhead, because creating and removing files is relatively
-     * expensive compared to writing files. Separate files are used for
-     * logging the causes of deferral or failed delivery.
-     * 
-     * A Postfix queue file consists of three segments.
-     * 
-     * 1) The initial envelope segment with the arrival time, sender address,
-     * recipients, and some other stuff that can be recorded before the
-     * message content is received, including non-recipient information that
-     * results from actions in Postfix SMTP server access tables. In this
-     * segment, recipient records may be preceded or followed by
-     * non-recipient records.
-     * 
-     * 2) The message content segment with the message headers and body. The
-     * message body includes all the MIME segments, if there are any.
-     * 
-     * 3) The extracted envelope segment with information that was extracted
-     * from message headers or from the message body, including recipient
-     * addresses that were extracted from message headers, and non-recipient
-     * information that results from actions in header/body_checks patterns.
-     * In this segment, all non-recipient records precede the recipient
-     * records.
-     * 
-     * There are two queue file layouts.
-     * 
-     * A) All recipient records are in the initial envelope segment, except for
-     * the optional always_bcc recipient which is always stored in the
-     * extracted envelope segment. The queue manager reads as many recipients
-     * as it can from the initial envelope segment, and then examines all
-     * remaining initial envelope records and all extracted envelope records,
-     * picking up non-recipient information. This organization favors
-     * messages with fewer than $qmgr_active_recipient_limit recipients.
-     * 
-     * B) All recipient records are stored in the extracted envelope segment,
-     * after all non-recipient records. The queue manager is guaranteed to
-     * have read all the non-recipient records before it sees the first
-     * recipient record. This organization can handle messages with very
-     * large numbers of recipients.
-     * 
-     * All this is the result of an evolutionary process, where compatibility
-     * between Postfix versions was a major goal as new features were added.
-     * Therefore the file organization is not optimal from a performance
-     * point of view. In hindsight, the non-recipient information that
-     * follows recipients in the initial envelope segment could be moved to
-     * the extracted envelope segment. This would improve file organization
-     * A)'s performance with very large numbers of recipients, by eliminating
-     * the need to examine all initial envelope records before starting
-     * deliveries.
+     * Pass control to the actual envelope processing routine.
      */
-    if (state->filter != 0)
-	cleanup_out_string(state, REC_TYPE_FILT, state->filter);
-
-    /*
-     * The optional redirect target address from header/body_checks actions.
-     */
-    if (state->redirect != 0)
-	cleanup_out_string(state, REC_TYPE_RDR, state->redirect);
-
-    /*
-     * Older Postfix versions didn't MIME emit encoding information, so this
-     * record can only be optional.
-     */
-    if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
-	cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
-			   MAIL_ATTR_ENCODING, encoding);
-
-    /*
-     * Return-Receipt-To and Errors-To records are now optional.
-     */
-    if (state->return_receipt)
-	cleanup_out_string(state, REC_TYPE_RRTO, state->return_receipt);
-    if (state->errors_to)
-	cleanup_out_string(state, REC_TYPE_ERTO, state->errors_to);
-
-    /*
-     * Pass control to the routine that processes the extracted segment.
-     */
-    state->action = cleanup_extracted_process;
-    cleanup_extracted_process(state, type, buf, len);
+    state->action = cleanup_extracted_non_rcpt;
+    cleanup_extracted_non_rcpt(state, type, buf, len);
 }
 
-/* cleanup_extracted_process - process extracted segment */
+/* cleanup_extracted_non_rcpt - process non-recipient records */
 
-static void cleanup_extracted_process(CLEANUP_STATE *state, int type,
-				              const char *buf, int len)
+void    cleanup_extracted_non_rcpt(CLEANUP_STATE *state, int type,
+				           const char *buf, int len)
 {
-    char   *myname = "cleanup_extracted_process";
+    const char *encoding;
 
     if (msg_verbose)
 	msg_info("extracted envelope %c %.*s", type, len, buf);
 
     if (strchr(REC_TYPE_EXTRACT, type) == 0) {
-	msg_warn("%s: unexpected record type %d in extracted envelope"
-		 ": message rejected", state->queue_id, type);
+	msg_warn("%s: message rejected: "
+		 "unexpected record type %d in extracted envelope",
+		 state->queue_id, type);
+	state->errs |= CLEANUP_STAT_BAD;
+	return;
+    }
+
+    /*
+     * The following records are taken away from the initial envelope segment
+     * and may be overruled by information from header/body_checks; then they
+     * are emitted at the start of the extracted envelope segment.
+     * 
+     * If we encounter these records here, then the message was subjected to
+     * "postsuper -r" and we can ignore these records if we already have
+     * information from header/body_checks.
+     */
+    if (type == REC_TYPE_FILT) {
+	/* Our own header/body_checks information wins. */
+	if (state->filter == 0)
+	    state->filter = mystrdup(buf);
+	return;
+    }
+    if (type == REC_TYPE_RDR) {
+	/* Our own header/body_checks information wins. */
+	if (state->redirect == 0)
+	    state->redirect = mystrdup(buf);
+	return;
+    }
+
+    /*
+     * Ignore records that the cleanup server extracts from message headers.
+     * These records may appear in "postsuper -r" email.
+     */
+    if (type == REC_TYPE_RRTO)
+	/* Use our own headers extracted return address. */
+	return;
+    if (type == REC_TYPE_ERTO)
+	/* Use our own headers extracted error address. */
+	return;
+    if (type == REC_TYPE_ATTR)
+	/* Use our own headers extracted content encoding. */
+	return;
+
+    if (type != REC_TYPE_END && type != REC_TYPE_FROM
+	&& type != REC_TYPE_DONE && type != REC_TYPE_ORCP) {
+	/* Any other allowed non-recipient record. Pass through. */
+	cleanup_out(state, type, buf, len);
+	return;
+    }
+
+    /*
+     * At the end of the non-recipient record section, emit optional
+     * information from header/body_checks actions, from the start of the
+     * extracted envelope, or from the initial envelope.
+     */
+    if (state->filter != 0)
+	cleanup_out_string(state, REC_TYPE_FILT, state->filter);
+
+    if (state->redirect != 0)
+	cleanup_out_string(state, REC_TYPE_RDR, state->redirect);
+
+    if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
+	cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
+			   MAIL_ATTR_ENCODING, encoding);
+
+    /*
+     * Terminate the non-recipient records with the Return-Receipt-To and
+     * Errors-To records. The queue manager relies on this information.
+     */
+    cleanup_out_string(state, REC_TYPE_RRTO, state->return_receipt ?
+		       state->return_receipt : "");
+
+    cleanup_out_string(state, REC_TYPE_ERTO, state->errors_to ?
+		       state->errors_to : state->sender);
+
+    /*
+     * Pass control to the routine that processes the recipient portion of
+     * the extracted segment.
+     */
+    state->action = cleanup_extracted_rcpt;
+    cleanup_extracted_rcpt(state, type, buf, len);
+}
+
+/* cleanup_extracted_rcpt - process recipients in extracted segment */
+
+static void cleanup_extracted_rcpt(CLEANUP_STATE *state, int type,
+				           const char *buf, int len)
+{
+    char   *myname = "cleanup_extracted_rcpt";
+
+    if (msg_verbose)
+	msg_info("extracted envelope %c %.*s", type, len, buf);
+
+    if (strchr(REC_TYPE_EXTRACT, type) == 0) {
+	msg_warn("%s: message rejected: "
+		 "unexpected record type %d in extracted envelope",
+		 state->queue_id, type);
 	state->errs |= CLEANUP_STAT_BAD;
 	return;
     }
@@ -229,12 +228,9 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	state->orig_rcpt = mystrdup(buf);
 	return;
     }
-    if (strchr(cleanup_extracted_generated, type) != 0)
-	/* Use our own message header extracted information instead. */
-	return;
     if (type != REC_TYPE_END) {
-	msg_warn("unexpected non-recipient record: %s", rec_type_name(type));
-	cleanup_out(state, type, buf, len);
+	msg_warn("%s: ignoring %s record after extracted envelope recipients",
+		 state->queue_id, rec_type_name(type));
 	return;
     }
 

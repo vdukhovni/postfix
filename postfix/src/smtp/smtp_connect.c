@@ -234,7 +234,7 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial greeting",
+	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
 			addr->name, inet_ntoa(sin.sin_addr));
 	smtp_errno = SMTP_RETRY;
 	vstream_fclose(stream);

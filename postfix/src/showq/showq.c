@@ -134,11 +134,10 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    arrival_time = atol(start);
 	    break;
 	case REC_TYPE_SIZE:
-	    if (sscanf(start, "%ld %ld", &msg_size, &msg_offset) == 2) {
+	    if (sscanf(start, "%ld %ld", &msg_size, &msg_offset) == 2)
 		/* Postfix >= 1.0 (a.k.a. 20010228) style queue file. */
 		if (msg_size <= 0)
 		    msg_size = size;
-	    }
 	    break;
 	case REC_TYPE_FROM:
 	    if (*start == 0)

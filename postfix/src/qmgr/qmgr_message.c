@@ -350,9 +350,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));
-		    /* Must have examined all non-recipient records. */
-		    if (curr_offset > message->data_offset)
+		    /* We already examined all non-recipient records. */
+		    if (message->errors_to)
 			break;
+		    /* Examine non-recipient records in extracted segment. */
+		    if (curr_offset < message->data_offset
+			&& vstream_fseek(message->fp, message->data_offset
+					 + message->data_size, SEEK_SET) < 0)
+			msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+		    continue;
 		}
 	    }
 	    continue;
@@ -377,6 +383,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		orig_rcpt = mystrdup(start);
 	    continue;
 	}
+	if (message->errors_to)
+	    /* We already examined all non-recipient records. */
+	    continue;
 	if (rec_type == REC_TYPE_SIZE) {
 	    if (message->data_offset == 0) {
 		if ((count = sscanf(start, "%ld %ld %d", &message->data_size,
@@ -454,6 +463,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (rec_type == REC_TYPE_ERTO) {
 	    if (message->errors_to == 0)
 		message->errors_to = mystrdup(start);
+	    /* We already examined all non-recipient records. */
+	    if (message->rcpt_offset)
+		break;
 	    continue;
 	}
 	if (rec_type == REC_TYPE_RRTO) {
@@ -496,12 +508,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * Avoid clumsiness elsewhere in the program. When sending data across an
      * IPC channel, sending an empty string is more convenient than sending a
      * null pointer.
-     * 
-     * Allow for Postfix versions that do not store return_receipt or errors_to
-     * records.
      */
     if (message->errors_to == 0)
-	message->errors_to = mystrdup("");
+	message->errors_to = mystrdup(message->sender);
     if (message->return_receipt == 0)
 	message->return_receipt = mystrdup("");
     if (message->encoding == 0)

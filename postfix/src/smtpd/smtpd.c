@@ -904,6 +904,14 @@ static void mail_reset(SMTPD_STATE *state)
 	smtpd_sasl_mail_reset(state);
 #endif
     state->discard = 0;
+    if (state->filter) {
+	myfree(state->filter);
+	state->filter = 0;
+    }
+    if (state->redirect) {
+	myfree(state->redirect);
+	state->redirect = 0;
+    }
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -1096,23 +1104,31 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * Send the end-of-segment markers.
+     * Send the end-of-content marker, then do some post-message checks
+and send the end-of-file marker.
      */
-    if (state->err == CLEANUP_STAT_OK)
-	if (rec_fputs(state->cleanup, REC_TYPE_XTRA, "") < 0
-	    || rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
+    if (state->err == CLEANUP_STAT_OK) {
+	rec_fputs(state->cleanup, REC_TYPE_XTRA, "");
+	err = smtpd_check_dot(state);
+	if (rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
 	    || vstream_fflush(state->cleanup))
 	    state->err = CLEANUP_STAT_WRITE;
+    }
 
     /*
      * Finish the queue file or finish the cleanup conversation.
      */
-    if (state->err == 0)
+    if (state->err == 0 && err == 0)
 	state->err = mail_stream_finish(state->dest, why = vstring_alloc(10));
     else
 	mail_stream_cleanup(state->dest);
     state->dest = 0;
     state->cleanup = 0;
+
+    if (err != 0) {
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
 
     /*
      * Handle any errors. One message may suffer from multiple errors, so
@@ -1142,9 +1158,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");
-    } else if ((state->err & CLEANUP_STAT_MISS_HDR) != 0) {
-	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "550 Error: missing message header");
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);

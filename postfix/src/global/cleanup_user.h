@@ -20,19 +20,18 @@
 #define CLEANUP_FLAG_HOLD	(1<<2)	/* Place message on hold */
 #define CLEANUP_FLAG_DISCARD	(1<<3)	/* Discard message silently */
 #define CLEANUP_FLAG_BCC_OK	(1<<4)	/* Ok to add auto-BCC addresses */
-#define CLEANUP_FLAG_NEED_DATE	(1<<5)	/* Require (Resent:-)Date: */
-#define CLEANUP_FLAG_NEED_FROM	(1<<6)	/* Require (Resent:-)From: */
-#define CLEANUP_FLAG_NEED_MSGID	(1<<7)	/* Require (Resent:-)Message-Id: */
-#define CLEANUP_FLAG_NEED_RCVD	(1<<8)	/* Require two Received: headers */
+
+ /*
+  * Status.
+  */
+#define CLEANUP_FLAG_INRCPT	(1<<16)	/* Expecting recipient records only */
 
  /*
   * These are set on the fly while processing SMTP envelopes or message
   * content.
   */
 #define CLEANUP_FLAG_MASK_EXTRA \
-	(CLEANUP_FLAG_HOLD | CLEANUP_FLAG_DISCARD | CLEANUP_FLAG_NEED_DATE | \
-	    CLEANUP_FLAG_NEED_FROM | CLEANUP_FLAG_NEED_MSGID | \
-	    CLEANUP_FLAG_NEED_RCVD)
+	(CLEANUP_FLAG_HOLD | CLEANUP_FLAG_DISCARD)
 
  /*
   * Diagnostics.
@@ -45,7 +44,6 @@
 #define CLEANUP_STAT_SIZE	(1<<2)	/* Message file too big */
 #define CLEANUP_STAT_CONT	(1<<3)	/* Message content rejected */
 #define CLEANUP_STAT_HOPS	(1<<4)	/* Too many hops */
-#define CLEANUP_STAT_MISS_HDR	(1<<5)	/* Some missing header */
 #define CLEANUP_STAT_RCPT	(1<<6)	/* No recipients found */
 
  /*

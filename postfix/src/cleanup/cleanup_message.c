@@ -493,29 +493,6 @@ static void cleanup_header_callback(void *context, int header_class,
     }
 }
 
-/* cleanup_missing - handle missing message header */
-
-static void cleanup_missing(CLEANUP_STATE *state, const char *resent,
-			            const char *header)
-{
-    const char *attr;
-
-    if ((attr = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
-	attr = "unknown";
-    vstring_sprintf(state->temp1, "%s: reject: missing %s%s header from %s;",
-		    state->queue_id, resent, header, attr);
-    if (state->sender)
-	vstring_sprintf_append(state->temp1, " from=<%s>", state->sender);
-    if (state->recip)
-	vstring_sprintf_append(state->temp1, " to=<%s>", state->recip);
-    if ((attr = nvtable_find(state->attr, MAIL_ATTR_PROTO_NAME)) != 0)
-	vstring_sprintf_append(state->temp1, " proto=%s", attr);
-    if ((attr = nvtable_find(state->attr, MAIL_ATTR_HELO_NAME)) != 0)
-	vstring_sprintf_append(state->temp1, " helo=<%s>", attr);
-    msg_info("%s", vstring_str(state->temp1));
-    state->errs |= CLEANUP_STAT_MISS_HDR;
-}
-
 /* cleanup_header_done_callback - insert missing message headers */
 
 static void cleanup_header_done_callback(void *context)
@@ -524,15 +501,6 @@ static void cleanup_header_done_callback(void *context)
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
     TOK822 *token;
-
-    /*
-     * Postfix prepends a Received: message header, so we should see two when
-     * one is required.
-     */
-    if ((state->flags & CLEANUP_FLAG_NEED_RCVD) && state->hop_count < 2) {
-	cleanup_missing(state, "", "Received");
-	return;
-    }
 
     /*
      * Add a missing (Resent-)Message-Id: header. The message ID gives the
@@ -545,10 +513,6 @@ static void cleanup_header_done_callback(void *context)
      */
     if ((state->headers_seen & (1 << (state->resent[0] ?
 			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {
-	if (state->flags & CLEANUP_FLAG_NEED_MSGID) {
-	    cleanup_missing(state, state->resent, "Message-Id");
-	    return;
-	}
 	tp = gmtime(&state->time);
 	strftime(time_stamp, sizeof(time_stamp), "%Y%m%d%H%M%S", tp);
 	cleanup_out_format(state, REC_TYPE_NORM, "%sMessage-Id: <%s.%s@%s>",
@@ -564,10 +528,6 @@ static void cleanup_header_done_callback(void *context)
      */
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_DATE : HDR_DATE))) == 0) {
-	if (state->flags & CLEANUP_FLAG_NEED_DATE) {
-	    cleanup_missing(state, state->resent, "Date");
-	    return;
-	}
 	cleanup_out_format(state, REC_TYPE_NORM, "%sDate: %s",
 			   state->resent, mail_date(state->time));
     }
@@ -577,10 +537,6 @@ static void cleanup_header_done_callback(void *context)
      */
     if ((state->headers_seen & (1 << (state->resent[0] ?
 				      HDR_RESENT_FROM : HDR_FROM))) == 0) {
-	if (state->flags & CLEANUP_FLAG_NEED_FROM) {
-	    cleanup_missing(state, state->resent, "From");
-	    return;
-	}
 	quote_822_local(state->temp1, *state->sender ?
 			state->sender : MAIL_ADDR_MAIL_DAEMON);
 	vstring_sprintf(state->temp2, "%sFrom: %s",

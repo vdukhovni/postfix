@@ -28,6 +28,12 @@ nearest MTA accepts the recipient, then Postfix assumes that the
 address is deliverable, even when the address will bounce AFTER
 that MTA accepts it.
 
+Postfix assumes that an address is undeliverable when the nearest
+MTA for the address rejects the probe, regardless of the reason
+for rejection (client rejected, HELO rejected, MAIL FROM rejected,
+etc.).  Thus, Postfix rejects mail when the sender's MTA rejects
+mail from your machine.  This is a good thing.
+
 Unfortunately, some major sites such as YAHOO do not reject unknown
 addresses in reply to the RCPT TO command, but report a delivery
 failure in response to "end of data" after a message is transferred.
