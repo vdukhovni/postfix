@@ -6088,12 +6088,12 @@ Apologies for any names omitted.
 	with addresses of exactly 100 bytes long, resulting in
 	SIGSEGV on systems with an "exact fit" malloc routine.
 	Experienced by Ralf Hildebrandt; diagnosed by Victor
-	Duchovny. Files:  *qmgr/qmgr_message.c.  This is not a
+	Duchovni. Files:  *qmgr/qmgr_message.c.  This is not a
 	security problem.
 
 	Bugfix: make all recipient comparisons transitive, because
 	Solaris qsort() causes SIGSEGV errors otherwise. Victor
-	Duchovny, Morgan Stanley. File: *qmgr/qmgr_message.c.
+	Duchovni, Morgan Stanley. File: *qmgr/qmgr_message.c.
 
 20020302
 
@@ -6122,13 +6122,13 @@ Apologies for any names omitted.
 
 	Bugfix: DBM maps should use different files for locking
 	and for change detection.  Problem reported by Victor
-	Duchovny, Morgan Stanley.  Files: util/dict.h util/dict.c
+	Duchovni, Morgan Stanley.  Files: util/dict.h util/dict.c
 	util/dict_db.c util/dict_dbm.c global/mkmap.c local/alias.c.
 
 20020313
 
 	Bugfix: mailq could show addresses with unusual characters
-	twice.  Problem reported by Victor Duchovny, Morgan Stanley.
+	twice.  Problem reported by Victor Duchovni, Morgan Stanley.
 	File: showq/showq.c.
 
 	Bugfix: null recipients weren't properly recorded in
@@ -6356,10 +6356,10 @@ Apologies for any names omitted.
 	Bugfix: close user@domain@postfix-style.virtual.domain
 	source routing relaying loophole involving postfix-style
 	virtual domains with @virtual.domain catch-all patterns.
-	Problem reported by Victor Duchovny. File:  smtpd/smtpd_check.c.
+	Problem reported by Victor Duchovni. File:  smtpd/smtpd_check.c.
 
 	Bugfix: mail_addr_map() used the "wrong" @ character in
-	addresses with multiple @. Victor Duchovny. File:
+	addresses with multiple @. Victor Duchovni. File:
 	global/mail_addr_map.c.
 
 	Bugfix: for address localpart quoting, now quote @ as a
@@ -6372,7 +6372,7 @@ Apologies for any names omitted.
 
 	Safety: don't allow an OK access rule lookup result for
 	user@domain@postfix-style.virtual.domain. Suggested by
-	Victor Duchovny, Morgan Stanley. File: smtpd/smtpd_check.c.
+	Victor Duchovni, Morgan Stanley. File: smtpd/smtpd_check.c.
 
 	Bugfix: quote unquoted address localparts that need quoting.
 	Files: global/tok822_parse.c, global/quote_82[12]_local.c.
@@ -6380,7 +6380,7 @@ Apologies for any names omitted.
 	Documentation: simplified the advanced content filtering
 	example, and included a more advanced example for those
 	who want to squeeze out more performance without running
-	multiple Postfix instances.  Text by Victor Duchovny, Morgan
+	multiple Postfix instances.  Text by Victor Duchovni, Morgan
 	Stanley. File:  README_FILES/FILTER_README.
 
 20020510
@@ -6444,7 +6444,7 @@ Apologies for any names omitted.
 
 	Safety: user@domain@domain is no longer accepted by the
 	permit_mx_backup uce restriction (unless Postfix is configured
-	with "resolve_dequoted_address = no"). Victor Duchovny,
+	with "resolve_dequoted_address = no"). Victor Duchovni,
 	Morgan Stanley. File: smtpd/smtpd_check.c.
 
 20020515
@@ -6472,7 +6472,7 @@ Apologies for any names omitted.
 
 	Feature: new MIME parser, written from scratch, that
 	recognizes the structure of MIME encapsulated mail. Influenced
-	by comments from Victor Duchovny. This code can detect but
+	by comments from Victor Duchovni. This code can detect but
 	will not decode obscure MIME formats or obscure character
 	string encoding that Liviu Daia expresses concern about.
 
@@ -6577,6 +6577,13 @@ Apologies for any names omitted.
 	Bugfix: mail rejected due to MIME errors was rejected
 	without proper logging. Files: global/mime_state.c,
 	cleanup/cleanup_message.c.
+
+20020531
+
+	Bugfix: the SMTP client code that prepends '.' to lines
+	starting with '.' had to be moved from its old place to
+	after the MIME output conversion. Problem found by Mark
+	Martinec.  File: smtp/smtp_proto.c.
 
 Open problems:
 

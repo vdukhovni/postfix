@@ -201,7 +201,7 @@
 /* .fi
 /*	This code was implemented from scratch after reading the RFC
 /*	documents. This was a relatively straightforward effort with
-/*	few if any surprises. Victor Duchovny of Morgan Stanley shared
+/*	few if any surprises. Victor Duchovni of Morgan Stanley shared
 /*	his experiences with ambiguities in real-life MIME implementations.
 /*	Liviu Daia of the Romanian Academy shared his insights in some
 /*	of the darker corners.
@@ -1052,9 +1052,9 @@ static void err_print(void *context, int err_flag, const char *text)
     msg_warn("%s: %.100s", mime_state_error(err_flag), text);
 }
 
-int     var_header_limit = 200;
+int     var_header_limit = 2000;
 int     var_mime_maxdepth = 20;
-int     var_mime_bound_len = 200;
+int     var_mime_bound_len = 2000;
 
 int     main(int unused_argc, char **argv)
 {

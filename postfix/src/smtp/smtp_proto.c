@@ -304,6 +304,8 @@ static void smtp_text_out(void *context, int rec_type,
     data_left = len;
     data_start = text;
     do {
+	if (state->space_left == var_smtp_line_limit && *data_start == '.')
+	    smtp_fputc('.', session->stream);
 	if (var_smtp_line_limit > 0 && data_left >= state->space_left) {
 	    smtp_fputs(data_start, state->space_left, session->stream);
 	    data_start += state->space_left;
@@ -792,9 +794,6 @@ int     smtp_xfer(SMTP_STATE *state)
 	    while ((rec_type = rec_get(state->src, state->scratch, 0)) > 0) {
 		if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT)
 		    break;
-		if (prev_type != REC_TYPE_CONT)
-		    if (vstring_str(state->scratch)[0] == '.')
-			smtp_fputc('.', session->stream);
 		if (downgrading == 0) {
 		    smtp_text_out((void *) state, rec_type,
 				  vstring_str(state->scratch),

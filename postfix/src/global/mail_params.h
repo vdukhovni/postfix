@@ -962,7 +962,7 @@ extern int var_lmtp_quit_tmout;
 extern int var_hopcount_limit;
 
 #define VAR_HEADER_LIMIT	"header_size_limit"
-#define DEF_HEADER_LIMIT	102400
+#define DEF_HEADER_LIMIT	10240
 extern int var_header_limit;
 
 #define VAR_EXTRA_RCPT_LIMIT	"extract_recipient_limit"
