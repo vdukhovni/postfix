@@ -174,11 +174,13 @@ static int attr_scan_plain_string(VSTREAM *fp, VSTRING *plain_buf,
 	    return (-1);
 	}
 	VSTRING_ADDCH(plain_buf, ch);
+#if 0
 	if (LEN(plain_buf) > limit) {
 	    msg_warn("string length > %d characters from %s while reading %s",
 		     limit, VSTREAM_PATH(fp), context);
 	    return (-1);
 	}
+#endif
     }
     VSTRING_TERMINATE(plain_buf);
 

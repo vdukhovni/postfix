@@ -179,11 +179,13 @@ static int attr_scan64_string(VSTREAM *fp, VSTRING *plain_buf, const char *conte
 	    return (-1);
 	}
 	VSTRING_ADDCH(base64_buf, ch);
+#if 0
 	if (LEN(base64_buf) > limit) {
 	    msg_warn("string length > %d characters from %s while reading %s",
 		     limit, VSTREAM_PATH(fp), context);
 	    return (-1);
 	}
+#endif
     }
     VSTRING_TERMINATE(base64_buf);
     if (base64_decode(plain_buf, STR(base64_buf), LEN(base64_buf)) == 0) {

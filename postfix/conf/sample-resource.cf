@@ -143,6 +143,12 @@ qmgr_message_recipient_minimum = 10
 # space in bytes in the queue file system. This is currently used by
 # the SMTP server to decide if it will accept any mail at all.
 #
+# By default, the SMTP server rejects MAIL FROM commands when the
+# amount of free space is less than 2*$message_size_limit.
+# 
+# To specify a higher minimum free space limit, specify a value that
+# is at least 2*$message_size_limit.
+#
 queue_minfree = 0
 
 # The stale_lock_time parameter limits the time after which a stale

@@ -233,12 +233,12 @@
 /*	\fImessage_size_limit\fR configuration parameter. This is a
 /*	permanent error.
 /* .IP \(bu
-/*	The message would cause the available queue file system space
-/*	to drop below the bound specified with the \fImin_queue_free\fR
-/*	configuration parameter. This is a temporary error.
+/*	The available queue file system space is less than the amount
+/*	specified with the \fImin_queue_free\fR configuration parameter.
+/*	This is a temporary error.
 /* .IP \(bu
-/*	The message would use up more than half the available queue file
-/*	system space. This is a temporary error.
+/*	The available queue file system space is less than twice the
+/*	message size limit. This is a temporary error.
 /* .PP
 /*	smtpd_check_data() enforces generic restrictions after the
 /*	client has sent the DATA command.
@@ -2060,6 +2060,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
     char   *next;
     const char *value;
     DICT   *dict;
+    int     maybe_numerical = 1;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, domain);
@@ -2084,6 +2085,10 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 	    if (dict_errno != 0)
 		msg_fatal("%s: table lookup problem", table);
 	}
+	/* Don't apply subdomain magic to numerical hostnames. */
+	if (maybe_numerical
+	    && (maybe_numerical = valid_hostaddr(domain, DONT_GRIPE)) != 0)
+	    break;
 	if ((next = strchr(name + 1, '.')) == 0)
 	    break;
 	if (access_parent_style == MATCH_FLAG_PARENT)
@@ -2252,6 +2257,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * Check the hostnames first, then the addresses.
      */
     for (server = server_list; server != 0; server = server->next) {
+	h_errno = 0;				/* XXX */
 	if ((hp = gethostbyname((char *) server->data)) == 0) {
 	    msg_warn("Unable to look up %s host %s for %s %s: %s",
 		     dns_strtype(type), (char *) server->data,
@@ -3793,17 +3799,17 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 				  "552 Message size exceeds fixed limit");
 	return (STR(error_text));
     }
+
     fsspace(".", &fsbuf);
     if (msg_verbose)
-	msg_info("%s: blocks %lu avail %lu min_free %lu size %lu",
+	msg_info("%s: blocks %lu avail %lu min_free %lu msg_size_limit %lu",
 		 myname,
 		 (unsigned long) fsbuf.block_size,
 		 (unsigned long) fsbuf.block_free,
 		 (unsigned long) var_queue_minfree,
-		 (unsigned long) size);
+		 (unsigned long) var_message_limit);
     if (BLOCKS(var_queue_minfree) >= fsbuf.block_free
-	|| BLOCKS(size) >= fsbuf.block_free - BLOCKS(var_queue_minfree)
-	|| BLOCKS(size) >= fsbuf.block_free / 2) {
+	|| BLOCKS(var_message_limit) >= fsbuf.block_free / 2) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_RESOURCE,
 				  "452 Insufficient system storage");
 	return (STR(error_text));

@@ -323,8 +323,8 @@ int     main(int argc, char **argv)
     clean_env(import_env->argv);
     argv_free(import_env);
 
-    if ((inherited_limit = get_file_limit()) < (off_t) INT_MAX)
-	set_file_limit(INT_MAX);
+    if ((inherited_limit = get_file_limit()) < 0)
+	set_file_limit(OFF_T_MAX);
 
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);

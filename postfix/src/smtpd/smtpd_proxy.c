@@ -15,7 +15,7 @@
 /*		/* other fields... */
 /* .in -4
 /*	} SMTPD_STATE;
-/* 
+/*
 /*	int	smtpd_proxy_open(state, service, timeout, ehlo_name, mail_from)
 /*	SMTPD_STATE *state;
 /*	const char *service;
@@ -175,6 +175,8 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 			         const char *mail_from)
 {
     int     fd;
+    char   *lines;
+    char   *line;
 
     /*
      * This buffer persists beyond the end of a proxy session so we can
@@ -224,6 +226,18 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
 	smtpd_proxy_close(state);
 	return (-1);
     }
+
+    /*
+     * Parse the EHLO reply and see if we can forward the client hostname and
+     * address info for logging purposes. If the command fails, then proceed.
+     * It is not the end of the world.
+     */
+    lines = STR(state->proxy_buffer);
+    while ((line = mystrtok(&lines, "\n")) != 0)
+	if ((line[3] == ' ' || line[3] == '-')
+	    && strcmp(line + 4, XLOGINFO_CMD) == 0)
+	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s %s %s",
+				   XLOGINFO_CMD, state->addr, state->name);
 
     /*
      * Pass-through the client's MAIL FROM command. If this fails, then we
@@ -282,6 +296,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
     char   *cp;
     int     last_char;
     int     err = 0;
+    static VSTRING *buffer = 0;
 
     /*
      * Errors first. Be prepared for delayed errors from the DATA phase.
@@ -336,19 +351,32 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 	return (0);
 
     /*
-     * Censor out non-printable characters in server responses and keep the
-     * last line of multi-line responses.
+     * Censor out non-printable characters in server responses and save
+     * complete multi-line responses if possible.
      */
+    VSTRING_RESET(state->proxy_buffer);
+    if (buffer == 0)
+	buffer = vstring_alloc(10);
     for (;;) {
-	last_char = smtp_get(state->proxy_buffer, state->proxy, var_line_limit);
-	printable(STR(state->proxy_buffer), '?');
+	last_char = smtp_get(buffer, state->proxy, var_line_limit);
+	printable(STR(buffer), '?');
 	if (last_char != '\n')
 	    msg_warn("%s: response longer than %d: %.30s...",
 		     VSTREAM_PATH(state->proxy), var_line_limit,
-		     STR(state->proxy_buffer));
+		     STR(buffer));
 	if (msg_verbose)
 	    msg_info("< %s: %.100s", VSTREAM_PATH(state->proxy),
-		     STR(state->proxy_buffer));
+		     STR(buffer));
+
+	/*
+	 * Defend against a denial of service attack by limiting the amount
+	 * of multi-line text that we are willing to store.
+	 */
+	if (LEN(state->proxy_buffer) < var_line_limit) {
+	    if (VSTRING_LEN(state->proxy_buffer))
+		VSTRING_ADDCH(state->proxy_buffer, '\n');
+	    vstring_strcat(state->proxy_buffer, STR(buffer));
+	}
 
 	/*
 	 * Parse the response into code and text. Ignore unrecognized
@@ -356,16 +384,16 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 	 * line) will have the same effect as the '-' line continuation
 	 * character.
 	 */
-	for (cp = STR(state->proxy_buffer); *cp && ISDIGIT(*cp); cp++)
+	for (cp = STR(buffer); *cp && ISDIGIT(*cp); cp++)
 	     /* void */ ;
-	if (cp - STR(state->proxy_buffer) == 3) {
+	if (cp - STR(buffer) == 3) {
 	    if (*cp == '-')
 		continue;
 	    if (*cp == ' ' || *cp == 0)
 		break;
 	}
 	msg_warn("received garbage from proxy %s: %.100s",
-		 VSTREAM_PATH(state->proxy), STR(state->proxy_buffer));
+		 VSTREAM_PATH(state->proxy), STR(buffer));
     }
 
     /*

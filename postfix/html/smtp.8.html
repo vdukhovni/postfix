@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 SMTP(8)                                                   SMTP(8)
 
 <b>NAME</b>
@@ -52,7 +52,7 @@ SMTP(8)                                                   SMTP(8)
        rupted message files are marked so that the queue  manager
        can move them to the <b>corrupt</b> queue for further inspection.
 
-       Depending on the setting of the <b>notify</b><i>_</i><b>classes</b>  parameter,
+       Depending on the setting of the <b>notify_classes</b>  parameter,
        the  postmaster is notified of bounces, protocol problems,
        and of other trouble.
 
@@ -64,140 +64,140 @@ SMTP(8)                                                   SMTP(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>best</b><i>_</i><b>mx</b><i>_</i><b>transport</b>
+       <b>best_mx_transport</b>
               Name  of  the  delivery  transport  to use when the
               local machine is the most-preferred mail  exchanger
               (by  default,  a  mailer  loop is reported, and the
               message is bounced).
 
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
+       <b>debug_peer_level</b>
               Verbose logging  level  increment  for  hosts  that
-              match a pattern in the <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b> parameter.
+              match a pattern in the <b>debug_peer_list</b> parameter.
 
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+       <b>debug_peer_list</b>
               List  of  domain or network patterns. When a remote
               host matches a pattern, increase the  verbose  log-
               ging   level   by   the  amount  specified  in  the
-              <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
+              <b>debug_peer_level</b> parameter.
 
-       <b>disable</b><i>_</i><b>dns</b><i>_</i><b>lookups</b>
+       <b>disable_dns_lookups</b>
               Disable DNS lookups. This means that mail  must  be
               forwarded via a smart relay host.
 
-       <b>smtp</b><i>_</i><b>host</b><i>_</i><b>lookup</b>
+       <b>smtp_host_lookup</b>
               What  host  lookup mechanism the SMTP client should
               use.  Specify <b>dns</b> (use DNS  lookup)  and/or  <b>native</b>
               (use  the  native  naming  service  which also uses
               /etc/hosts).  This  setting  is  ignored  when  DNS
               lookups are disabled.
 
-       <b>error</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+       <b>error_notice_recipient</b>
               Recipient    of   protocol/policy/resource/software
               error notices.
 
-       <b>fallback</b><i>_</i><b>relay</b>
+       <b>fallback_relay</b>
               Hosts to hand off mail to if a message  destination
               is not found or if a destination is unreachable.
 
-       <b>ignore</b><i>_</i><b>mx</b><i>_</i><b>lookup</b><i>_</i><b>error</b>
+       <b>ignore_mx_lookup_error</b>
               When a name server fails to respond to an MX query,
               search for an A record, instead of  deferring  mail
               delivery.
 
-       <b>inet</b><i>_</i><b>interfaces</b>
+       <b>inet_interfaces</b>
               The network interface addresses that this mail sys-
               tem receives mail on. When any of  those  addresses
               appears in the list of mail exchangers for a remote
               destination, the list is truncated  to  avoid  mail
-              delivery  loops.   See  also  the  <b>proxy</b><i>_</i><b>interfaces</b>
+              delivery  loops.   See  also  the  <b>proxy_interfaces</b>
               parameter.
 
-       <b>notify</b><i>_</i><b>classes</b>
+       <b>notify_classes</b>
               When this parameter includes  the  <b>protocol</b>  class,
               send  mail  to  the  postmaster with transcripts of
               SMTP sessions with protocol errors.
 
-       <b>proxy</b><i>_</i><b>interfaces</b>
+       <b>proxy_interfaces</b>
               Network interfaces that this mail  system  receives
               mail on by way of a proxy or network address trans-
               lator. When any of those addresses appears  in  the
               list  of  mail exchangers for a remote destination,
               the list is truncated to avoid mail delivery loops.
-              See also the <b>inet</b><i>_</i><b>interfaces</b> parameter.
+              See also the <b>inet_interfaces</b> parameter.
 
-       <b>smtp</b><i>_</i><b>always</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
+       <b>smtp_always_send_ehlo</b>
               Always send EHLO at the start of a connection.
 
-       <b>smtp</b><i>_</i><b>never</b><i>_</i><b>send</b><i>_</i><b>ehlo</b>
+       <b>smtp_never_send_ehlo</b>
               Never send EHLO at the start of a connection.
 
-       <b>smtp</b><i>_</i><b>bind</b><i>_</i><b>address</b>
+       <b>smtp_bind_address</b>
               Numerical  source  network  address to bind to when
               making a connection.
 
-       <b>smtp</b><i>_</i><b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+       <b>smtp_line_length_limit</b>
               Length limit for SMTP message content  lines.  Zero
               means  no  limit.   Some  SMTP servers misbehave on
               long lines.
 
-       <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>name</b>
+       <b>smtp_helo_name</b>
               The hostname to be used in HELO and EHLO  commands.
 
-       <b>smtp</b><i>_</i><b>quote</b><i>_</i><b>rfc821</b><i>_</i><b>envelope</b>
+       <b>smtp_quote_rfc821_envelope</b>
               Whether  or  not  to  quote  MAIL  FROM and RCPT TO
               addresses as per the rules laid out in <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a>.
 
-       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>4xx</b><i>_</i><b>greeting</b>
+       <b>smtp_skip_4xx_greeting</b>
               Skip servers that greet us with a 4xx status  code.
 
-       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>5xx</b><i>_</i><b>greeting</b>
+       <b>smtp_skip_5xx_greeting</b>
               Skip  servers that greet us with a 5xx status code.
 
-       <b>smtp</b><i>_</i><b>skip</b><i>_</i><b>quit</b><i>_</i><b>response</b>
+       <b>smtp_skip_quit_response</b>
               Do not wait for the server response  after  sending
               QUIT.
 
-       <b>smtp</b><i>_</i><b>pix</b><i>_</i><b>workaround</b><i>_</i><b>delay</b><i>_</i><b>time</b>
+       <b>smtp_pix_workaround_delay_time</b>
               The  time  to pause before sending .&lt;CR&gt;&lt;LF&gt;, while
               working   around    the    CISCO    PIX    firewall
               &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; bug.
 
-       <b>smtp</b><i>_</i><b>pix</b><i>_</i><b>workaround</b><i>_</i><b>threshold</b><i>_</i><b>time</b>
+       <b>smtp_pix_workaround_threshold_time</b>
               The  time a message must be queued before the CISCO
               PIX firewall &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;  bug  workaround  is
               turned on.
 
 <b>MIME Conversion</b>
-       <b>disable</b><i>_</i><b>mime</b><i>_</i><b>output</b><i>_</i><b>conversion</b>
+       <b>disable_mime_output_conversion</b>
               Disable  the  conversion of 8BITMIME format to 7BIT
               format when the remote system  does  not  advertise
               8BITMIME support.
 
-       <b>mime</b><i>_</i><b>boundary</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+       <b>mime_boundary_length_limit</b>
               The amount of space that will be allocated for MIME
               multipart boundary strings. The MIME  processor  is
               unable to distinguish between boundary strings that
-              do   not   differ   in   the   first   <b>$mime</b><i>_</i><b>bound-</b>
-              <b>ary</b><i>_</i><b>length</b><i>_</i><b>limit</b> characters.
+              do   not   differ   in   the   first   <b>$mime_bound-</b>
+              <b>ary_length_limit</b> characters.
 
-       <b>mime</b><i>_</i><b>nesting</b><i>_</i><b>limit</b>
+       <b>mime_nesting_limit</b>
               The  maximal  nesting  level of multipart mail that
               the MIME processor can handle. Refuse mail that  is
               nested deeper, when converting from 8BITMIME format
               to 7BIT format.
 
 <b>Authentication controls</b>
-       <b>smtp</b><i>_</i><b>sasl</b><i>_</i><b>auth</b><i>_</i><b>enable</b>
+       <b>smtp_sasl_auth_enable</b>
               Enable per-session authentication as per  <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC  2554</a>
               (SASL).   By default, Postfix is built without SASL
               support.
 
-       <b>smtp</b><i>_</i><b>sasl</b><i>_</i><b>password</b><i>_</i><b>maps</b>
+       <b>smtp_sasl_password_maps</b>
               Lookup tables with per-host or domain <i>name</i>:<i>password</i>
               entries.   No  entry for a host means no attempt to
               authenticate.
 
-       <b>smtp</b><i>_</i><b>sasl</b><i>_</i><b>security</b><i>_</i><b>options</b>
+       <b>smtp_sasl_security_options</b>
               Zero or more of the following.
 
               <b>noplaintext</b>
@@ -216,15 +216,15 @@ SMTP(8)                                                   SMTP(8)
                      Disallow anonymous logins.
 
 <b>Resource controls</b>
-       <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
+       <b>smtp_destination_concurrency_limit</b>
               Limit the number of parallel deliveries to the same
               destination.   The  default limit is taken from the
-              <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
+              <b>default_destination_concurrency_limit</b> parameter.
 
-       <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+       <b>smtp_destination_recipient_limit</b>
               Limit the number of recipients per  message  deliv-
               ery.    The   default   limit  is  taken  from  the
-              <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
+              <b>default_destination_recipient_limit</b> parameter.
 
 <b>Timeout controls</b>
        The default time unit is seconds; an  explicit  time  unit
@@ -232,48 +232,55 @@ SMTP(8)                                                   SMTP(8)
        value: s (seconds), m (minutes), h (hours), d (days) or  w
        (weeks).
 
-       <b>smtp</b><i>_</i><b>connect</b><i>_</i><b>timeout</b>
+       <b>smtp_connect_timeout</b>
               Timeout  for  completing  a TCP connection. When no
               connection can be made  within  the  deadline,  the
               SMTP  client  tries  the  next  address on the mail
               exchanger list.
 
-       <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>timeout</b>
+       <b>smtp_helo_timeout</b>
               Timeout for receiving  the  SMTP  greeting  banner.
               When  the server drops the connection without send-
               ing a greeting banner, or when it sends no greeting
               banner  within  the deadline, the SMTP client tries
               the next address on the mail exchanger list.
 
-       <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>timeout</b>
+       <b>smtp_helo_timeout</b>
               Timeout for  sending  the  <b>HELO</b>  command,  and  for
               receiving the server response.
 
-       <b>smtp</b><i>_</i><b>mail</b><i>_</i><b>timeout</b>
+       <b>smtp_mail_timeout</b>
               Timeout  for sending the <b>MAIL FROM</b> command, and for
               receiving the server response.
 
-       <b>smtp</b><i>_</i><b>rcpt</b><i>_</i><b>timeout</b>
+       <b>smtp_rcpt_timeout</b>
               Timeout for sending the <b>RCPT TO</b>  command,  and  for
               receiving the server response.
 
-       <b>smtp</b><i>_</i><b>data</b><i>_</i><b>init</b><i>_</i><b>timeout</b>
+       <b>smtp_data_init_timeout</b>
               Timeout  for  sending  the  <b>DATA</b>  command,  and for
               receiving the server response.
 
-       <b>smtp</b><i>_</i><b>data</b><i>_</i><b>xfer</b><i>_</i><b>timeout</b>
+       <b>smtp_data_xfer_timeout</b>
               Timeout for sending the message content.
 
-       <b>smtp</b><i>_</i><b>data</b><i>_</i><b>done</b><i>_</i><b>timeout</b>
+       <b>smtp_data_done_timeout</b>
               Timeout  for  sending  the  "<b>.</b>"  command,  and  for
               receiving  the server response. When no response is
               received, a warning is logged that the mail may  be
               delivered multiple times.
 
-       <b>smtp</b><i>_</i><b>rset</b><i>_</i><b>timeout</b>
+       <b>smtp_defer_if_no_mx_address_found</b>
+              If  no,  bounce mail when no MX host resolves to an
+              address (Postfix always ignores MX hosts with equal
+              or  worse  preference than the local MTA).  If yes,
+              keep trying until a suitable MX  host  resolves  or
+              until the mail is too old.
+
+       <b>smtp_rset_timeout</b>
               Timeout for sending the <b>RSET</b> command.
 
-       <b>smtp</b><i>_</i><b>quit</b><i>_</i><b>timeout</b>
+       <b>smtp_quit_timeout</b>
               Timeout  for  sending  the  <b>QUIT</b>  command,  and for
               receiving the server response.
 

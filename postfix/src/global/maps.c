@@ -56,7 +56,7 @@
 /*	sensitive.
 /* DIAGNOSTICS
 /*	Panic: inappropriate use; fatal errors: out of memory, unable
-/*	to open database.
+/*	to open database. Warnings: null string lookup result.
 /*
 /*	maps_find() returns a null pointer when the requested
 /*	information was not found. The global \fIdict_errno\fR
@@ -171,6 +171,14 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
 	if (flags != 0 && (dict->flags & flags) == 0)
 	    continue;
 	if ((expansion = dict_get(dict, name)) != 0) {
+	    if (*expansion == 0) {
+		msg_warn("%s lookup of %s returns an empty string result",
+			 maps->title, name);
+		msg_warn("%s should return NO RESULT in case of NOT FOUND",
+			 maps->title);
+		dict_errno = DICT_ERR_RETRY;
+		return (0);
+	    }
 	    if (msg_verbose)
 		msg_info("%s: %s: %s: %s = %s", myname, maps->title,
 			 *map_name, name, expansion);

@@ -35,8 +35,8 @@ are used as part of a username or domain name (such as alphanumerics),
 or because they are non-ASCII or control characters.  And who knows,
 some characters may tickle bugs in vulnerable software.
 
-- authorized_verp_clients (default value: $mynetworks) controls
-what network clients are allowed to request VERP style delivery.
+- smtpd_authorized_verp_clients (default value: none) controls
+what SMTP clients are allowed to request VERP style delivery.
 Exceptions:  the Postfix QMQP server uses its own access control
 mechanism, and local submission (via /usr/sbin/sendmail etc.) is
 always authorized. To authorize a host, list its name, IP address,

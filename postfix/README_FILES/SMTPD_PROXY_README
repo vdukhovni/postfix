@@ -1,15 +1,10 @@
 Purpose of the before-queue content filter feature
 ==================================================
 
-Normally, Postfix receives mail, stores it in the mail queue and
-then delivers it.  The Postfix SMTP server can be configured to
-forward all incoming mail to a content filter (for example, a
-real-time SPAM filter) that inspects all mail BEFORE it is stored
-in the Postfix mail queue.
-
-[This is not to be confused with the approach described in the
-FILTER_README document, where all mail is inspected AFTER it is
-stored in the Postfix mail queue]
+The Postfix SMTP server can be configured to forward all incoming
+mail to a content filter (for example, a real-time SPAM filter)
+that inspects all mail BEFORE it is stored in the Postfix mail
+queue.
 
 The before-queue content filter is meant to be used as follows:
 
@@ -17,25 +12,32 @@ The before-queue content filter is meant to be used as follows:
     Internet -> smtpd -> queue -> smtpd -> cleanup -> queue -> local
                Postfix  filter   Postfix                     \ virtual etc.
 
-For reference, this is the normal path through Postfix:
+Normally, Postfix receives mail, stores it in the mail queue and
+then delivers it.  The next diagram shows the normal path through
+Postfix for mail that arrives via the network:
 
                                            / smtp
     Internet -> smtpd -> cleanup -> queue -> local
                 Postfix                    \ virtual etc.
 
-For comparison, this is the FILTER_README approach with an SMTP-based
-after-queue content filter:
-                                           / smtp
-    Internet -> smtpd -> cleanup -> queue -> local
-               Postfix      ^         v    \ virtual etc.
-                          smtpd      smtp
-                         Postfix   Postfix
-                            \ after   /
-                              queue <-
-			      filter
+The before-queue content filter is not to be confused with the
+approach described in the FILTER_README document, where mail is
+filtered AFTER it is stored in the Postfix mail queue. For example,
+below is the FILTER_README approach with an SMTP-based after-queue
+content filter:
 
-The before-queue content filter receives unfiltered SMTP mail from
-Postfix and does one of the following:
+					   / smtp
+    Internet -> smtpd -> cleanup -> queue -> local
+	       Postfix      ^         v    \ virtual etc.
+			  smtpd      smtp
+                          Postfix   Postfix
+			    \ after   /
+			      queue <-
+                              filter
+
+The before-queue content filter functions just like the after-queue
+content filter. It receives unfiltered SMTP mail from Postfix and
+does one of the following:
 
 1 - Re-inject the mail back into Postfix via SMTP, perhaps after
     changing content.
@@ -44,7 +46,7 @@ Postfix and does one of the following:
     to Postfix. Postfix passes the status back to the remote SMTP
     client. This way, Postfix does not have to send a bounce message.
 
-3 - Send the mail somewhere else.
+3 - Send the mail somewhere else, or discard the mail.
 
 Limitations
 ===========
@@ -63,24 +65,27 @@ accepting mail or you have to stop filtering the mail.
 How Postfix talks to the before-queue content filter
 ==================================================
 
-Postfix makes one connection per email message.  Postfix speaks
-ESMTP, but uses no command pipelining. Postfix generates its own
-EHLO, DATA and QUIT commands, and forwards unmodified copies of
-all the MAIL FROM and RCPT TO commands that the Postfix SMTP server
-didn't reject itself. The SMTP proxy server should accept the same
+The before-filter Postfix SMTP server connects to the content
+filter, delivers one message, and disconnects.  While sending mail
+into the content filter, Postfix speaks ESMTP but uses no command
+pipelining.  Postfix generates its own EHLO, XLOGINFO (for logging
+the remote client IP address instead of localhost[127.0.0.1]), DATA
+and QUIT commands, and forwards unmodified copies of all the MAIL
+FROM and RCPT TO commands that the before-filter Postfix SMTP server
+didn't reject itself.  The SMTP proxy server should accept the same
 MAIL FROM and RCPT TO command syntax as the Postfix SMTP server.
 Postfix sends no other SMTP commands.
 
 The content filter is expected to pass on unmodified SMTP commands
 from a before-filter Postfix SMTP server to an after-filter Postfix
-SMTP server that listens on a non-standard port.  When the filter
-rejects content, it should send a negative SMTP response back to
-the before-filter Postfix SMTP server, and it should abort any
-connection with the after-filter Postfix SMTP server without
+SMTP server that usually listens on a non-standard port.  When the
+filter rejects content, it should send a negative SMTP response
+back to the before-filter Postfix SMTP server, and it should abort
+the connection with the after-filter Postfix SMTP server without
 completing the SMTP conversation with the after-filter Postfix SMTP
 server.
 
-Configuration parameters 
+Configuration parameters
 ========================
 
 Parameters that control proxying:
@@ -111,20 +116,30 @@ server process without intervening content filter. This useful only
 for testing, of course.
 
 /etc/postfix/master.cf
-    smtp      inet  n       -       n       -       -       smtpd 
+    smtp      inet  n       -       n       -       -       smtpd
         -o smtpd_proxy_filter=26
     :26       inet  n       -       n       -       -       smtpd
+	-o smtpd_authorized_xloginfo_clients=127.0.0.0/8
 	-o smtpd_client_restrictions=
 	-o smtpd_helo_restrictions=
 	-o smtpd_sender_restrictions=
 	-o smtpd_recipient_restrictions=permit_mynetworks,reject
 	-o mynetworks=127.0.0.0/8
-        -o receive_override_options=no_unknown_recipient_checks
+	-o receive_override_options=no_unknown_recipient_checks
 
 Note: do not specify spaces around the "=" or "," characters.
 
 The ":26" causes Postfix to listen on the localhost address only.
 DO NOT expose the secondary SMTP server to the Internet :-)
+
+The smtpd_authorized_xloginfo_clients parameter allows the before
+filter SMTP server to pass the remote SMTP client name and address
+to the after-filter SMTP server, so that the after-filter Postfix
+daemons log the remote client name and address instead of logging
+localhost[127.0.0.1].
+
+The other parameter settings avoid duplication of effort that is
+done in the "before filter" SMTP server.
 
 The result is as follows:
 

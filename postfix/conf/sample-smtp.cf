@@ -65,6 +65,17 @@ smtp_never_send_ehlo = no
 # 
 #smtp_bind_address=111.222.333.444
 
+# The smtp_defer_if_no_mx_address_found parameter controls what
+# Postfix will do when no MX record resolves to an IP address (Postfix
+# always ignores MX records with equal or worse preference than the
+# local MTA).
+# 
+# The default (no) is to return the mail as undeliverable. With older
+# Postfix versions the default was to keep trying to deliver the mail
+# until someone fixed the MX record or until the mail was too old.
+# 
+smtp_defer_if_no_mx_address_found = no
+
 # The smtp_line_length_limit parameter controls the length of
 # message header and body lines that Postfix will send via SMTP.
 # Lines that are longer are broken by inserting <CR> <LF> <SPACE>.

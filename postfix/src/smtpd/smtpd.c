@@ -140,9 +140,23 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
-/* .IP \fBauthorized_verp_clients\fR
+/* .IP \fBsmtpd_authorized_verp_clients\fR
 /*	Hostnames, domain names and/or addresses of clients that are
 /*	authorized to use the XVERP extension.
+/* .IP \fBsmtpd_authorized_xaddr_clients\fR
+/*	Hostnames, domain names and/or addresses of clients that are
+/*	authorized to use the "XADDR client-address client-name" command.
+/*	This changes Postfix's
+/*	idea of the SMTP client IP address and hostname for access
+/*	control and for logging purposes.
+/* .IP \fBsmtpd_authorized_xloginfo_clients\fR
+/*	Hostnames, domain names and/or addresses of clients that are
+/*	authorized to use the "XLOGINFO client-address client-name" command.
+/*	This changes the client
+/*	name and address that are used for logging, without affecting the
+/*	client IP address and hostname that are used for access control.
+/*	XLOGINFO is typically used to propagate remote client information
+/*	through an SMTP-based content filter to the after-filter SMTP server.
 /* .IP \fBdebug_peer_level\fR
 /*	Increment in verbose logging level when a remote host matches a
 /*	pattern in the \fBdebug_peer_list\fR parameter.
@@ -219,7 +233,8 @@
 /*	storage for envelope information.
 /* .IP \fBqueue_minfree\fR
 /*	Minimal amount of free space in bytes in the queue file system
-/*	for the SMTP server to accept any mail at all.
+/*	for the SMTP server to accept any mail at all (default: twice
+/*	the \fBmessage_size_limit\fR value).
 /* .IP \fBsmtpd_history_flush_threshold\fR
 /*	Flush the command history to postmaster after receipt of RSET etc.
 /*	only if the number of history lines exceeds the given threshold.
@@ -527,6 +542,8 @@ char   *var_input_transp;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
+char   *var_xaddr_clients;
+char   *var_xloginfo_clients;
 
  /*
   * Silly little macros.
@@ -541,6 +558,18 @@ int     var_smtpd_policy_ttl;
 #define VERP_CMD_LEN	5
 
 static NAMADR_LIST *verp_clients;
+
+ /*
+  * XADDR command.
+  */
+#define XADDR_CMD		"XADDR"
+
+static NAMADR_LIST *xaddr_clients;
+
+ /*
+  * XLOGINFO command.
+  */
+static NAMADR_LIST *xloginfo_clients;
 
  /*
   * Other application-specific globals.
@@ -682,6 +711,10 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 #endif
     if (namadr_list_match(verp_clients, state->name, state->addr))
 	smtpd_chat_reply(state, "250-%s", VERP_CMD);
+    if (namadr_list_match(xaddr_clients, state->name, state->addr))
+	smtpd_chat_reply(state, "250-%s", XADDR_CMD);
+    if (namadr_list_match(xloginfo_clients, state->name, state->addr))
+	smtpd_chat_reply(state, "250-%s", XLOGINFO_CMD);
     smtpd_chat_reply(state, "250 8BITMIME");
     return (0);
 }
@@ -759,7 +792,7 @@ static void mail_open_stream(SMTPD_STATE *state, SMTPD_TOKEN *argv,
 	smtpd_sasl_mail_log(state);
     else
 #endif
-	msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
+	msg_info("%s: client=%s", state->queue_id, state->namaddr);
 
     /*
      * Record the time of arrival, the sender envelope address, some session
@@ -1586,6 +1619,80 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
     return (0);
 }
 
+/* xaddr_cmd - process XADDR */
+
+static int xaddr_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
+{
+
+    /*
+     * Sanity checks.
+     */
+    if (namadr_list_match(xaddr_clients, state->name, state->addr) == 0) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "554 Error: insufficient authorization");
+	return (-1);
+    }
+    /* Todo: "XADDR address" to let Postfix look up the client name. */
+    if (argc != 3
+	|| !valid_hostaddr(argv[1].strval, DONT_GRIPE)
+	|| !valid_hostname(argv[2].strval, DONT_GRIPE)) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "501 Syntax: %s address hostname", XADDR_CMD);
+	return (-1);
+    }
+
+    /*
+     * Change peer information for logging and for access control. Change a
+     * numerical hostname into "unknown", to make it easy to extract client
+     * information from Received: headers.
+     */
+#define FIX_NUMERICAL_NAME(s) \
+	(valid_hostaddr((s), DONT_GRIPE) ?  "unknown" : (s))
+
+    smtpd_peer_reset(state);
+    state->name = mystrdup(FIX_NUMERICAL_NAME(argv[2].strval));
+    state->addr = mystrdup(argv[1].strval);
+    state->namaddr =
+	concatenate(state->name, "[", state->addr, "]", (char *) 0);
+    state->peer_code = strcmp(state->name, "unknown") ? 2 : 5;
+    smtpd_chat_reply(state, "250 Ok");
+    return (0);
+}
+
+/* xloginfo_cmd - process XLOGINFO */
+
+static int xloginfo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
+{
+    char   *cp;
+
+    /*
+     * Sanity checks.
+     */
+    if (namadr_list_match(xloginfo_clients, state->name, state->addr) == 0) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "554 Error: insufficient authorization");
+	return (-1);
+    }
+    if (argc != 3
+	|| !valid_hostaddr(argv[1].strval, DONT_GRIPE)
+	|| !valid_hostname(argv[2].strval, DONT_GRIPE)) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "501 Syntax: %s address hostname", XLOGINFO_CMD);
+	return (-1);
+    }
+
+    /*
+     * Change peer information for logging but not for access control. Change
+     * a numerical hostname into "unknown", for consistency with XADDR.
+     */
+    myfree(state->namaddr);
+    state->namaddr =
+	concatenate(FIX_NUMERICAL_NAME(argv[2].strval),
+		    "[", argv[1].strval, "]", (char *) 0);
+    smtpd_chat_reply(state, "250 Ok");
+    return (0);
+}
+
 /* chat_reset - notify postmaster and reset conversation log */
 
 static void chat_reset(SMTPD_STATE *state, int threshold)
@@ -1637,6 +1744,8 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "VRFY", vrfy_cmd, SMTPD_CMD_FLAG_LIMIT,
     "ETRN", etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
     "QUIT", quit_cmd, 0,
+    "XADDR", xaddr_cmd, SMTPD_CMD_FLAG_LIMIT,
+    "XLOGINFO", xloginfo_cmd, SMTPD_CMD_FLAG_LIMIT,
     "Received:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
     "Reply-To:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
     "Message-ID:", 0, SMTPD_CMD_FLAG_FORBIDDEN,
@@ -1849,6 +1958,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      */
     smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
+    xaddr_clients = namadr_list_init(MATCH_FLAG_NONE, var_xaddr_clients);
+    xloginfo_clients = namadr_list_init(MATCH_FLAG_NONE, var_xloginfo_clients);
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
     debug_peer_init();
@@ -1877,7 +1988,19 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+
+    /*
+     * Sanity checks. The queue_minfree value should be at least as large as
+     * (process_limit * message_size_limit) but that is unpractical, so we
+     * arbitrarily pick a number and require twice the message size limit.
+     */
+    if (var_queue_minfree > 0
+	&& var_message_limit > 0
+	&& var_queue_minfree / 2 < var_message_limit)
+	msg_warn("%s(%lu) should be at least 2*%s(%lu)",
+		  VAR_QUEUE_MINFREE, (unsigned long) var_queue_minfree,
+		  VAR_MESSAGE_LIMIT, (unsigned long) var_message_limit);
 }
 
 /* main - the main program */
@@ -1965,6 +2088,8 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_PROXY_FILT, DEF_SMTPD_PROXY_FILT, &var_smtpd_proxy_filt, 0, 0,
 	VAR_SMTPD_PROXY_EHLO, DEF_SMTPD_PROXY_EHLO, &var_smtpd_proxy_ehlo, 0, 0,
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
+	VAR_XADDR_CLIENTS, DEF_XADDR_CLIENTS, &var_xaddr_clients, 0, 0,
+	VAR_XLOGINFO_CLIENTS, DEF_XLOGINFO_CLIENTS, &var_xloginfo_clients, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

@@ -22,6 +22,55 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 2.0.16-20031022
+==========================================================
+
+Postfix no longer retries delivery when no MX host has a valid A
+record, for compatibility with most other MTAs. This change is made
+in anticipation of a possible Verisign "wild-card MX record without
+A record" for unregistered domains. To get the old behavior, specify
+"smtp_defer_if_no_mx_address_found = yes".
+
+The Postfix SMTP client no longer looks in /etc/hosts by default.
+To get the old behavior, specify "smtp_host_lookup = dns, native".
+
+The authorized_verp_clients configuration parameter has been renamed
+to smtpd_authorized_verp_clients. This is for consistency with the
+new smtpd_authorized_xaddr_clients and smtpd_authorized_xloginfo_clients
+configuration parameters that control the use of the new XADDR and
+XLOGINFO commands.
+
+The smtpd_authorized_verp_clients parameter now defaults to nothing
+(no XVERP command is accepted).
+
+The Postfix SMTP server no longer allows queue_minfree values that
+are less than twice the message_size_limit value.
+
+The Postfix SMTP server no longer accepts mail when the amount of
+free queue space is less than twice the message_size_limit value.
+
+Major changes with Postfix snapshot 2.0.16-20031022
+===================================================
+
+Easier debugging of SMTPD access restrictions. The SMTP command
+"XADDR client-address client-hostname" changes Postfix's idea of
+the remote client name and address, so that you can pretend to
+connect from anywhere on the Internet.  Use of this command is
+restricted to clients that match the list of names or addresses
+specified with the smtpd_authorized_xaddr_clients parameter. By
+default, XADDR is not accepted from anywhere.
+
+More useful logging by Postfix daemons behind a real-time SMTP
+proxy filter (the logging now shows the remote client name and
+address, instead of localhost[127.0.0.1]).  This uses the new SMTP
+command "XLOGINFO client-address client-hostname", which specifies
+the client name and address for logging purposes without changing
+the name/address that are used for SMTPD access control.  Use of
+this command is restricted to clients that match the list of names
+or addresses specified with the smtpd_authorized_xloginfo_clients
+parameter. By default, XLOGINFO is not accepted from anywhere.
+For an example, see the updated SMTPD_PROXY_README file.
+
 Major changes with Postfix snapshot 2.0.16-20030917
 ===================================================
 

@@ -225,6 +225,12 @@ Timeout for sending the message content.
 Timeout for sending the "\fB.\fR" command, and for
 receiving the server response. When no response is received, a
 warning is logged that the mail may be delivered multiple times.
+.IP \fBsmtp_defer_if_no_mx_address_found\fR
+If no, bounce mail when no MX host resolves to an address
+(Postfix always ignores MX hosts with equal or worse preference
+than the local MTA).
+If yes, keep trying until a suitable MX host resolves or until
+the mail is too old.
 .IP \fBsmtp_rset_timeout\fR
 Timeout for sending the \fBRSET\fR command.
 .IP \fBsmtp_quit_timeout\fR

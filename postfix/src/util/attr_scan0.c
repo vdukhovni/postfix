@@ -164,7 +164,7 @@ static int attr_scan0_string(VSTREAM *fp, VSTRING *plain_buf, const char *contex
     int     limit = var_line_limit * 4;
     int     ch;
 
-    if ((ch = vstring_get_null_bound(plain_buf, fp, limit)) == VSTREAM_EOF) {
+    if ((ch = vstring_get_null(plain_buf, fp)) == VSTREAM_EOF) {
 	msg_warn("%s on %s while reading %s",
 		 vstream_ftimeout(fp) ? "timeout" : "premature end-of-input",
 		 VSTREAM_PATH(fp), context);

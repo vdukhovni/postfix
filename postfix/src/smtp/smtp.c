@@ -76,7 +76,7 @@
 /*	Disable DNS lookups. This means that mail must be forwarded
 /*	via a smart relay host.
 /* .IP \fBsmtp_host_lookup\fR
-/*	What host lookup mechanism the SMTP client should use. 
+/*	What host lookup mechanism the SMTP client should use.
 /*	Specify \fBdns\fR (use DNS lookup) and/or \fBnative\fR
 /*	(use the native naming service which also uses /etc/hosts).
 /*	This setting is ignored when DNS lookups are disabled.
@@ -209,6 +209,12 @@
 /*	Timeout for sending the "\fB.\fR" command, and for
 /*	receiving the server response. When no response is received, a
 /*	warning is logged that the mail may be delivered multiple times.
+/* .IP \fBsmtp_defer_if_no_mx_address_found\fR
+/*	If no, bounce mail when no MX host resolves to an address
+/*	(Postfix always ignores MX hosts with equal or worse preference
+/*	than the local MTA).
+/*	If yes, keep trying until a suitable MX host resolves or until
+/*	the mail is too old.
 /* .IP \fBsmtp_rset_timeout\fR
 /*	Timeout for sending the \fBRSET\fR command.
 /* .IP \fBsmtp_quit_timeout\fR
@@ -297,7 +303,8 @@ int     var_smtp_pix_delay;
 int     var_smtp_line_limit;
 char   *var_smtp_helo_name;
 char   *var_smtp_host_lookup;
-int     var_smtp_quote_821_env;
+bool    var_smtp_quote_821_env;
+bool    var_smtp_defer_mxaddr;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -510,6 +517,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
 	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
 	VAR_SMTP_QUOTE_821_ENV, DEF_SMTP_QUOTE_821_ENV, &var_smtp_quote_821_env,
+	VAR_SMTP_DEFER_MXADDR, DEF_SMTP_DEFER_MXADDR, &var_smtp_defer_mxaddr,
 	0,
     };
 

@@ -368,7 +368,7 @@ int     smtp_xfer(SMTP_STATE *state)
     int     except;
     int     rec_type;
     int     prev_type = 0;
-    int     sndbufsize;
+    int     sndbufsize = 0;
     int     sndbuffree;
     SOCKOPT_SIZE optlen = sizeof(sndbufsize);
     int     mail_from_rejected;
@@ -443,6 +443,12 @@ int     smtp_xfer(SMTP_STATE *state)
 	    msg_fatal("%s: getsockopt: %m", myname);
 	if (sndbufsize > VSTREAM_BUFSIZE)
 	    sndbufsize = VSTREAM_BUFSIZE;
+	if (sndbufsize == 0) {
+	    sndbufsize = VSTREAM_BUFSIZE;
+	    if (setsockopt(vstream_fileno(state->session->stream), SOL_SOCKET,
+			   SO_SNDBUF, (char *) &sndbufsize, optlen) < 0)
+		msg_fatal("%s: setsockopt: %m", myname);
+	}
 	if (msg_verbose)
 	    msg_info("Using ESMTP PIPELINING, TCP send buffer size is %d",
 		     sndbufsize);
@@ -658,7 +664,7 @@ int     smtp_xfer(SMTP_STATE *state)
 				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
 					request->queue_id, rcpt->orig_addr,
 					rcpt->address, rcpt->offset,
-					session->namaddr, request->arrival_time,
+				    session->namaddr, request->arrival_time,
 					"%s",
 				     translit(resp->str, "\n", " ")) == 0) {
 				if (request->flags & DEL_REQ_FLAG_SUCCESS)

@@ -114,26 +114,23 @@ OK
 >>> #
 >>> helo_restrictions check_helo_mx_access,hash:smtpd_check_access
 OK
->>> helo verisign-wildcard.com
-./smtpd_check: <queue id>: reject: HELO from spike.porcupine.org[168.100.189.2]: 554 <verisign-wildcard.com>: Helo command rejected: Verisign wild-card; from=<sname@sdomain> proto=SMTP helo=<verisign-wildcard.com>
-554 <verisign-wildcard.com>: Helo command rejected: Verisign wild-card
+>>> #helo verisign-wildcard.com
 >>> helo verisign.com
 OK
 >>> helo example.tld
-./smtpd_check: warning: Unable to look up MX host for example.tld
+./smtpd_check: warning: Unable to look up MX host for example.tld: Host not found
 OK
 >>> sender_restrictions check_sender_mx_access,hash:smtpd_check_access
 OK
->>> mail foo@verisign-wildcard.com
-./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 554 <foo@verisign-wildcard.com>: Sender address rejected: Verisign wild-card; from=<foo@verisign-wildcard.com> proto=SMTP helo=<example.tld>
-554 <foo@verisign-wildcard.com>: Sender address rejected: Verisign wild-card
+>>> mail foo@pls.net.au
+./smtpd_check: warning: numeric domain name in resource data of MX record for pls.net.au: 203.3.110.241
+OK
+>>> #mail foo@verisign-wildcard.com
 >>> mail foo@verisign.com
 OK
 >>> recipient_restrictions check_recipient_mx_access,hash:smtpd_check_access
 OK
->>> rcpt foo@verisign-wildcard.com
-./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@verisign-wildcard.com>: Recipient address rejected: Verisign wild-card; from=<foo@verisign.com> to=<foo@verisign-wildcard.com> proto=SMTP helo=<example.tld>
-554 <foo@verisign-wildcard.com>: Recipient address rejected: Verisign wild-card
+>>> #rcpt foo@verisign-wildcard.com
 >>> rcpt foo@verisign.com
 OK
 >>> rcpt foo@1.2.3.porcupine.org
@@ -150,10 +147,9 @@ OK
 >>> helo ns1.topica.com
 ./smtpd_check: <queue id>: reject: HELO from spike.porcupine.org[168.100.189.2]: 554 <ns1.topica.com>: Helo command rejected: Access denied; from=<foo@verisign.com> proto=SMTP helo=<ns1.topica.com>
 554 <ns1.topica.com>: Helo command rejected: Access denied
->>> helo verisign-wildcard.com
-OK
+>>> #helo verisign-wildcard.com
 >>> helo example.tld
-./smtpd_check: warning: Unable to look up NS host for example.tld
+./smtpd_check: warning: Unable to look up NS host for example.tld: Host not found
 OK
 >>> sender_restrictions check_sender_ns_access,hash:smtpd_check_access
 OK
@@ -163,18 +159,16 @@ OK
 >>> mail foo@ns1.topica.com
 ./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 554 <foo@ns1.topica.com>: Sender address rejected: Access denied; from=<foo@ns1.topica.com> proto=SMTP helo=<example.tld>
 554 <foo@ns1.topica.com>: Sender address rejected: Access denied
->>> mail foo@verisign-wildcard.com
-OK
+>>> #mail foo@verisign-wildcard.com
 >>> recipient_restrictions check_recipient_ns_access,hash:smtpd_check_access
 OK
 >>> rcpt foo@email-publisher.com
-./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@email-publisher.com>: Recipient address rejected: Access denied; from=<foo@verisign-wildcard.com> to=<foo@email-publisher.com> proto=SMTP helo=<example.tld>
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@email-publisher.com>: Recipient address rejected: Access denied; from=<foo@ns1.topica.com> to=<foo@email-publisher.com> proto=SMTP helo=<example.tld>
 554 <foo@email-publisher.com>: Recipient address rejected: Access denied
 >>> rcpt foo@ns1.topica.com
-./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@ns1.topica.com>: Recipient address rejected: Access denied; from=<foo@verisign-wildcard.com> to=<foo@ns1.topica.com> proto=SMTP helo=<example.tld>
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@ns1.topica.com>: Recipient address rejected: Access denied; from=<foo@ns1.topica.com> to=<foo@ns1.topica.com> proto=SMTP helo=<example.tld>
 554 <foo@ns1.topica.com>: Recipient address rejected: Access denied
->>> rcpt foo@verisign-wildcard.com
-OK
+>>> #rcpt foo@verisign-wildcard.com
 >>> rcpt foo@1.2.3.porcupine.org
-./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org; from=<foo@verisign-wildcard.com> to=<foo@1.2.3.porcupine.org> proto=SMTP helo=<example.tld>
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org; from=<foo@ns1.topica.com> to=<foo@1.2.3.porcupine.org> proto=SMTP helo=<example.tld>
 554 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org

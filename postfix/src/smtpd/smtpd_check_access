@@ -60,3 +60,4 @@ dunnotext@dunno.domain	dunno text
 topica.com		reject
 10.10.10.10		reject mail server 10.10.10.10
 spike.porcupine.org	reject name server spike.porcupine.org
+241			reject class E subnet

@@ -40,7 +40,7 @@
 /*	name->address mapping, client address not listed for hostname).
 /* .RE
 /* .PP
-/*	smtpd_peer_reset() releases memory allocate by smtpd_peer_init().
+/*	smtpd_peer_reset() releases memory allocated by smtpd_peer_init().
 /* LICENSE
 /* .ad
 /* .fi

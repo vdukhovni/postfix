@@ -1,11 +1,11 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 MASTER(8)                                               MASTER(8)
 
 <b>NAME</b>
        master - Postfix master process
 
 <b>SYNOPSIS</b>
-       <b>master</b> [<b>-Dtv</b>] [<b>-c</b> <i>config_dir</i>] [<b>-e</b> <i>exit_time</i>]
+       <b>master</b> [<b>-Dtv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-e</b> <i>exit</i><b>_</b><i>time</i>]
 
 <b>DESCRIPTION</b>
        The  <b>master</b> daemon is the resident process that runs Post-
@@ -28,19 +28,19 @@ MASTER(8)                                               MASTER(8)
 
        Options:
 
-       <b>-c</b> <i>config_dir</i>
+       <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               Read  the <b>main.cf</b> and <b>master.cf</b> configuration files
               in the named directory instead of the default  con-
               figuration directory.
 
-       <b>-e</b> <i>exit_time</i>
-              Terminate  the  master process after <i>exit_time</i> sec-
+       <b>-e</b> <i>exit</i><b>_</b><i>time</i>
+              Terminate  the  master process after <i>exit</i><b>_</b><i>time</i> sec-
               onds. Child processes  terminate  at  their  conve-
               nience.
 
        <b>-D</b>     After  initialization, run a debugger on the master
               process. The debugging command  is  specified  with
-              the <b>debugger</b><i>_</i><b>command</b> in the <b>main.cf</b> global configu-
+              the <b>debugger_command</b> in the <b>main.cf</b> global configu-
               ration file.
 
        <b>-t</b>     Test mode. Return a zero exit status when the  <b>mas-</b>
@@ -68,7 +68,7 @@ MASTER(8)                                               MASTER(8)
               <b>abort</b>),  the master process passes the signal on to
               its child processes and terminates.  This is useful
               for  an emergency shutdown. Normally one would ter-
-              minate only the master  (<b>postfix</b>  <b>stop</b>)  and  allow
+              minate only the master  (<b>postfix  stop</b>)  and  allow
               running processes to finish what they are doing.
 
 <b>DIAGNOSTICS</b>
@@ -76,62 +76,62 @@ MASTER(8)                                               MASTER(8)
 
 <b>BUGS</b>
 <b>ENVIRONMENT</b>
-       <b>MAIL</b><i>_</i><b>DEBUG</b>
+       <b>MAIL_DEBUG</b>
               After initialization, start a debugger as specified
-              with the <b>debugger</b><i>_</i><b>command</b>  configuration  parameter
+              with the <b>debugger_command</b>  configuration  parameter
               in the <b>main.cf</b> configuration file.
 
-       <b>MAIL</b><i>_</i><b>CONFIG</b>
+       <b>MAIL_CONFIG</b>
               Directory with Postfix configuration files.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>import</b><i>_</i><b>environment</b>
+       <b>import_environment</b>
 
-       <b>export</b><i>_</i><b>environment</b>
+       <b>export_environment</b>
               Lists of names of environment parameters  that  can
               be  imported  from  (exported  to) non-Postfix pro-
               cesses.
 
-       <b>mail</b><i>_</i><b>owner</b>
+       <b>mail_owner</b>
               The owner of the mail queue  and  of  most  Postfix
               processes.
 
-       <b>command</b><i>_</i><b>directory</b>
+       <b>command_directory</b>
               Directory with Postfix support programs.
 
-       <b>daemon</b><i>_</i><b>directory</b>
+       <b>daemon_directory</b>
               Directory with Postfix daemon programs.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Top-level  directory  of the Postfix queue. This is
               also the root directory of Postfix daemons that run
               chrooted.
 
-       <b>inet</b><i>_</i><b>interfaces</b>
+       <b>inet_interfaces</b>
               The  network  interface  addresses that this system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
-<b>Resource</b> <b>controls</b>
-       <b>default</b><i>_</i><b>process</b><i>_</i><b>limit</b>
+<b>Resource controls</b>
+       <b>default_process_limit</b>
               Default  limit for the number of simultaneous child
               processes that provide a given service.
 
-       <b>max</b><i>_</i><b>idle</b>
+       <b>max_idle</b>
               Limit the time in  seconds  that  a  child  process
               waits between service requests.
 
-       <b>max</b><i>_</i><b>use</b>
+       <b>max_use</b>
               Limit  the  number of service requests handled by a
               child process.
 
-       <b>service</b><i>_</i><b>throttle</b><i>_</i><b>time</b>
+       <b>service_throttle_time</b>
               Time to avoid forking a server that appears  to  be
               broken.
 
@@ -140,7 +140,7 @@ MASTER(8)                                               MASTER(8)
        /etc/postfix/master.cf: master process configuration file.
        /var/spool/postfix/pid/master.pid: master lock file.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
        <a href="pickup.8.html">pickup(8)</a> local mail pickup
        syslogd(8) system logging

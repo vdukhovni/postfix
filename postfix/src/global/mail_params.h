@@ -177,7 +177,7 @@ extern bool var_disable_dns;
 #define SMTP_HOST_LOOKUP_NATIVE	"native"
 
 #define VAR_SMTP_HOST_LOOKUP	"smtp_host_lookup"
-#define DEF_SMTP_HOST_LOOKUP	SMTP_HOST_LOOKUP_DNS "," SMTP_HOST_LOOKUP_NATIVE
+#define DEF_SMTP_HOST_LOOKUP	SMTP_HOST_LOOKUP_DNS
 extern int var_smtp_dns_lookup;
 
  /*
@@ -836,6 +836,10 @@ extern int var_smtp_pix_thresh;
 #define VAR_SMTP_PIX_DELAY	"smtp_pix_workaround_delay_time"
 #define DEF_SMTP_PIX_DELAY	"10s"
 extern int var_smtp_pix_delay;
+
+#define VAR_SMTP_DEFER_MXADDR	"smtp_defer_if_no_mx_address_found"
+#define DEF_SMTP_DEFER_MXADDR	0
+extern bool var_smtp_defer_mxaddr;
 
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
@@ -1558,9 +1562,20 @@ extern char *var_verp_filter;
 #define DEF_VERP_BOUNCE_OFF		0
 extern bool var_verp_bounce_off;
 
-#define VAR_VERP_CLIENTS		"authorized_verp_clients"
-#define DEF_VERP_CLIENTS		"$mynetworks"
+#define VAR_VERP_CLIENTS		"smtpd_authorized_verp_clients"
+#define DEF_VERP_CLIENTS		"$authorized_verp_clients"
 extern char *var_verp_clients;
+
+ /*
+  * XADDR.
+  */
+#define VAR_XADDR_CLIENTS		"smtpd_authorized_xaddr_clients"
+#define DEF_XADDR_CLIENTS		""
+extern char *var_xaddr_clients;
+
+#define VAR_XLOGINFO_CLIENTS		"smtpd_authorized_xloginfo_clients"
+#define DEF_XLOGINFO_CLIENTS		""
+extern char *var_xloginfo_clients;
 
  /*
   * Inbound mail flow control. This allows for a stiffer coupling between

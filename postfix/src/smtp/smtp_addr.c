@@ -408,7 +408,8 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
-	    smtp_errno = SMTP_RETRY;
+	    if (var_smtp_defer_mxaddr)
+		smtp_errno = SMTP_RETRY;
 	    msg_warn("no MX host for %s has a valid A record", name);
 	    break;
 	}

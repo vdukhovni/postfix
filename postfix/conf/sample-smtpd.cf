@@ -47,10 +47,10 @@
 #local_recipient_maps = unix:passwd.byname $alias_maps
 local_recipient_maps = proxy:unix:passwd.byname $alias_maps
 
-# The unknown_local_recipient_reject_code specifies the SMTP server
-# response code when a recipient domain matches $mydestination or
-# $inet_interfaces, while $local_recipient_maps is non-empty and the
-# recipient address or address local-part is not found.
+# The unknown_local_recipient_reject_code parameter specifies the
+# SMTP server response code when a recipient domain matches $mydestination
+# or $inet_interfaces, while $local_recipient_maps is non-empty and
+# the recipient address or address local-part is not found.
 #
 # The default setting is 550 (reject mail) but it is safer to start
 # with 450 (try again later) until you are certain that your
@@ -113,6 +113,59 @@ unknown_local_recipient_reject_code = 550
 #
 #disable_vrfy_command = no
 
+# The smtpd_authorized_xaddr_clients parameter specifies what clients
+# are allowed to specify the SMTP "XADDR client-address client-name"
+# command. This command changes Postfix's idea of the client hostname
+# and IP address for logging and for access control. Typical use is
+# for SMTPD access testing.
+#
+# By default, no clients are allowed to specify XADDR.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here. Specify type:table for table-based lookups
+# (the value on the table right-hand side is not used).
+#
+smtpd_authorized_xaddr_clients =
+
+# The smtpd_authorized_xloginfo_clients parameter specifies what
+# clients are allowed to specify the SMTP "XLOGINFO client-address
+# client-name" command. This command changes Postfix's idea of the
+# client hostname and IP address for logging but not for access
+# control. Typical use is for SMTP-based content filters.
+#
+# By default, no clients are allowed to specify XLOGINFO.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here. Specify type:table for table-based lookups
+# (the value on the table right-hand side is not used).
+#
+smtpd_authorized_xloginfo_clients =
+
+# The smtpd_authorized_xverp_clients parameter specifies what clients
+# are allowed to specify the SMTP XVERP command. This command requests
+# that mail be delivered one recipient at a time with a per recipient
+# return address.
+#
+# By default, no clients are allowed to specify XVERP.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here. Specify type:table for table-based lookups
+# (the value on the table right-hand side is not used).
+#
+smtpd_authorized_xverp_clients =
+
 # The smtpd_banner parameter specifies the text that follows the 220
 # status code in the SMTP greeting banner. Some people like to see
 # the mail version advertised. By default, Postfix shows no version.
@@ -156,9 +209,10 @@ smtpd_banner = $myhostname ESMTP $mail_name
 #
 smtpd_etrn_restrictions =
 
-# The smtpd_history_flush_threshold specifies how many lines the SMTP
-# server command history is allowed to contain before it is flushed
-# to postmaster upon receipt of EHLO, RSET, or end of DATA.
+# The smtpd_history_flush_threshold parameter specifies how many
+# lines the SMTP server command history is allowed to contain before
+# it is flushed to postmaster upon receipt of EHLO, RSET, or end of
+# DATA.
 #
 smtpd_history_flush_threshold = 100
 

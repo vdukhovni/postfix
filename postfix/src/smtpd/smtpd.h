@@ -128,6 +128,11 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
   */
 extern int smtpd_input_transp_mask;
 
+ /*
+  * XLOGINFO command.
+  */
+#define XLOGINFO_CMD		"XLOGINFO"
+
 /* LICENSE
 /* .ad
 /* .fi

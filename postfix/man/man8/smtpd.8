@@ -154,9 +154,23 @@ anti-spoofing restriction.
 .SH Miscellaneous
 .ad
 .fi
-.IP \fBauthorized_verp_clients\fR
+.IP \fBsmtpd_authorized_verp_clients\fR
 Hostnames, domain names and/or addresses of clients that are
 authorized to use the XVERP extension.
+.IP \fBsmtpd_authorized_xaddr_clients\fR
+Hostnames, domain names and/or addresses of clients that are
+authorized to use the "XADDR client-address client-name" command.
+This changes Postfix's
+idea of the SMTP client IP address and hostname for access
+control and for logging purposes.
+.IP \fBsmtpd_authorized_xloginfo_clients\fR
+Hostnames, domain names and/or addresses of clients that are
+authorized to use the "XLOGINFO client-address client-name" command.
+This changes the client
+name and address that are used for logging, without affecting the
+client IP address and hostname that are used for access control.
+XLOGINFO is typically used to propagate remote client information
+through an SMTP-based content filter to the after-filter SMTP server.
 .IP \fBdebug_peer_level\fR
 Increment in verbose logging level when a remote host matches a
 pattern in the \fBdebug_peer_list\fR parameter.
@@ -233,7 +247,8 @@ Limit the total size in bytes of a message, including on-disk
 storage for envelope information.
 .IP \fBqueue_minfree\fR
 Minimal amount of free space in bytes in the queue file system
-for the SMTP server to accept any mail at all.
+for the SMTP server to accept any mail at all (default: twice
+the \fBmessage_size_limit\fR value).
 .IP \fBsmtpd_history_flush_threshold\fR
 Flush the command history to postmaster after receipt of RSET etc.
 only if the number of history lines exceeds the given threshold.

@@ -199,11 +199,14 @@ $readme_directory/MYSQL_README:f:root:-:644
 $readme_directory/NFS_README:f:root:-:644
 $readme_directory/PACKAGE_README:f:root:-:644
 $readme_directory/PCRE_README:f:root:-:644
+$readme_directory/PGSQL_README:f:root:-:644
 $readme_directory/QMQP_README:f:root:-:644
 $readme_directory/RELEASE_NOTES:f:root:-:644
 $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
 $readme_directory/SASL_README:f:root:-:644
 $readme_directory/SCHEDULER_README:f:root:-:644
+$readme_directory/SMTPD_POLICY_README:f:root:-:644
+$readme_directory/SMTPD_PROXY_README:f:root:-:644
 $readme_directory/ULTRIX_README:f:root:-:644
 $readme_directory/UUCP_README:f:root:-:644
 $readme_directory/VERP_README:f:root:-:644

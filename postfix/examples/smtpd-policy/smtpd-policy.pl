@@ -69,7 +69,7 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # $database_name.time(), so that the mail system does not get stuck.
 #
 $database_name="/var/mta/smtpd-policy.db";
-$greylist_delay=3600;
+$greylist_delay=60;
 
 #
 # Syslogging options for verbose mode and for fatal errors.
@@ -140,7 +140,7 @@ sub open_database {
 
     # Use tied database to make complex manipulations easier to express.
     $database_obj = tie(%db_hash, 'DB_File', $database_name,
-			    O_CREAT|O_RDWR, 0644) ||
+			    O_CREAT|O_RDWR, 0644, $DB_BTREE) ||
 	fatal_exit "Cannot open database %s: $!", $database_name;
     $database_fd = $database_obj->fd;
     open DATABASE_HANDLE, "+<&=$database_fd" ||
@@ -193,7 +193,7 @@ sub update_database {
 # out of the way, and start with a new database.
 #
 sub sigsegv_handler {
-    my $backup = $database_name . time();
+    my $backup = $database_name . "." . time();
 
     rename $database_name, $backup || 
 	fatal_exit "Can't save %s as %s: $!", $database_name, $backup;

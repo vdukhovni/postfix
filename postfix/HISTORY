@@ -8625,6 +8625,73 @@ Apologies for any names omitted.
 	everything that invokes these routines including queue
 	manager and delivery agents.
 
+20030922
+
+	Feature: "XADDR address hostname" SMTP command, for SMTPD
+	restriction debugging, and for sites with fetchmail-like
+	software that extracts client information from the first
+	Received:  header. The smtpd_authorized_xaddr_clients
+	parameter specifies what clients are allowed to use XADDR
+	(default: none).  Files:  smtpd/smtpd.c.
+
+20031015
+
+	Workaround: smtpd access maps should not apply subdomain
+	name magic to numerical hostnames. File: smtpd/smtpd_check.c.
+
+	Safety: the local delivery agent now defers delivery when
+	alias lookup produces an empty result. File: local/alias.c.
+
+20031019
+
+	Workaround: disable request/reply size limit in attr_scan*.c
+	to prevent mail from getting stuck when rewriting a malformed
+	message header.  This limit was turned on with snapshot
+	20030715 to harden the protocol that is used by SMTPD policy
+	delegation. A "no code change" workaround is to specify
+	"header_size_limit = $line_length_limit".  The proper fix
+	is to enforce request/reply size limits only for data from
+	outside of Postfix. Problem reported by Brandon Mullenberg,
+	Dialup USA. Files:  util/attr_scan*.c.
+
+	Feature: "XLOGINFO address hostname" SMTP command, so that
+	Postfix daemons behind SMTPD pass-through proxies log useful
+	client name/address information instead of localhost[127.0.0.1].
+	The smtpd_authorized_xloginfo_clients parameter specifies
+	what clients are allowed to use XLOGINFO (default: none).
+	Files:  smtpd/smtpd.c.
+
+	Cleanup: renamed the authorized_verp_clients parameter to
+	smtpd_authorized_verp_clients for consistency.
+
+20031021
+
+	Workaround: the demo greylist script now uses BTREE instead
+	of HASH files for hopefully better stability. The real fix
+	is to use a single updater process that serves multiple
+	clients. That approach seems to work well with the verify
+	daemon. File: examples/smtpd-policy/smtpd-policy.pl.
+
+20031022
+
+	Safety: the SMTP server now warns when the queue_minfree
+	value is less than twice the message size limit. File:
+	smtpd/smtpd.c.
+
+	Safety:  the SMTP server no longer accepts mail when the
+	amount of free space is less than twice the message size
+	limit.  File: smtpd/smtpd_check.c.
+
+	Safety: log a warning and defer mail when canonical or
+	virtual lookups return a non-address result (like a string
+	that contains no address). File: global/mail_addr_map.c.
+
+	Safety: log a warning and defer mail when any map lookup
+	returns an empty string result, and explain that "no result"
+	is expected in case of a "not found" condition. This happens
+	with incorrectly implemented SQL or LDAP tables. File:
+	global/maps_find.c.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content
@@ -8662,9 +8729,6 @@ Open problems:
 	keys.  cleanup uses quoted forms.
 
 	Low: sendmail does not store null command-line recipients.
-
-	Low: sendmail, not cleanup, should extract recipients from
-	message headers.
 
 	Low: have a configurable list of errno values for mailbox
 	or maildir delivery that result in deferral rather than

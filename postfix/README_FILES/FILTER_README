@@ -155,6 +155,13 @@ queue, mail will bounce.  The same lack of robustness can happen
 when the content filtering software itself runs into a resource
 problem.
 
+The simple content filter method is not suitable for content filter
+actions that are invoked via header_checks or body_checks patterns.
+These patterns will be applied again after mail is re-injected with
+the Postfix sendmail command, resulting in a mail filtering loop.
+Instead, use the advanced content filtering method (see below) and
+turn off header_checks or body_checks patterns for filtered mail.
+
 Advanced content filtering example
 ===================================
 
