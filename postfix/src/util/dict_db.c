@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <dict_db.h>
 /*
+/*	int	dict_db_mpool_size;
+/*
 /*	DICT	*dict_hash_open(path, open_flags, dict_flags)
 /*	const char *path;
 /*	int	open_flags;
@@ -19,6 +21,11 @@
 /*	dict_XXX_open() opens the specified DB database.  The result is
 /*	a pointer to a structure that can be used to access the dictionary
 /*	using the generic methods documented in dict_open(3).
+/*
+/*	The dict_db_mpool_size variable specifies a non-default I/O buffer
+/*	size.  The default buffer size is adequate for reading. For better
+/*	performance while creating a large table, specify a large buffer size
+/*	before opening the file.
 /*
 /*	Arguments:
 /* .IP path
@@ -105,16 +112,16 @@ typedef struct {
 } DICT_DB;
 
  /*
-  * db_mpool_size is initialized when the first database is opened. The
-  * parameter can be preempted by setting db_mpool_size != 0 before calling
-  * dict_hash_open() or dict_btree_open(). This is done in mkmap_db_open()
-  * via "db_mkmap_mpool_size" to set a larger memory pool for database
-  * rebuilds.
+  * You can override the default dict_db_mpool_size setting before calling
+  * dict_hash_open() or dict_btree_open(). This is done in mkmap_db_open() to
+  * set a larger memory pool for database (re)builds.
+  * 
+  * XXX This should be specified via the DICT interface so that it becomes an
+  * object property, instead of being specified by poking a global variable
+  * so that it becomes a class property.
   */
-#define VAR_MPOOL_SIZE		"db_mpool_size"
-#define DEF_MPOOL_SIZE		262144	/* 256K default memory pool */
 #define DICT_DB_NELM		4096
-int     db_mpool_size;
+int     dict_db_mpool_size = (256 * 1024);	/* 256K default memory pool */
 
 #if DB_VERSION_MAJOR > 1
 
@@ -152,6 +159,8 @@ static int sanitize(int status)
 static DB_ENV *dict_db_env;
 static int dict_db_refcount;
 
+/* dict_db_env_alloc - allocate shared environment */
+
 static int dict_db_env_alloc(DB_ENV ** env)
 {
     int     err;
@@ -164,19 +173,19 @@ static int dict_db_env_alloc(DB_ENV ** env)
     if (dict_db_env != 0) {
 	++dict_db_refcount;
 	*env = dict_db_env;
-	return 0;
+	return (0);
     }
 #if DB_VERSION_MAJOR == 2
 #define DICT_DB_ENV_FLAGS	(DB_CREATE|DB_INIT_MPOOL|DB_MPOOL_PRIVATE)
 
     dict_db_env = (DB_ENV *) mymalloc(sizeof(DB_ENV));
     memset((char *) dict_db_env, 0, sizeof(DB_ENV));
-    dict_db_env->mp_size = db_mpool_size;
+    dict_db_env->mp_size = dict_db_mpool_size;
 
     if ((err = db_appinit(0, 0, dict_db_env, DICT_DB_ENV_FLAGS)) != 0) {
 	myfree((char *) dict_db_env);
 	dict_db_env = 0;
-	return err;
+	return (err);
     }
 #endif						/* DB_VERSION_MAJOR == 2 */
 
@@ -185,7 +194,7 @@ static int dict_db_env_alloc(DB_ENV ** env)
 
     err = db_env_create(&dict_db_env, 0);
     if (err == 0)
-	err = dict_db_env->set_cachesize(dict_db_env, 0, db_mpool_size, 1);
+	err = dict_db_env->set_cachesize(dict_db_env, 0, dict_db_mpool_size, 1);
     if (err == 0)
 	err = dict_db_env->open(dict_db_env, 0, DICT_DB_ENV_FLAGS, 0644);
 
@@ -193,13 +202,13 @@ static int dict_db_env_alloc(DB_ENV ** env)
 	if (dict_db_env)
 	    dict_db_env->close(dict_db_env, 0);
 	dict_db_env = 0;
-	return err;
+	return (err);
     }
 #endif						/* DB_VERSION_MAJOR > 2 */
 
     ++dict_db_refcount;
     *env = dict_db_env;
-    return 0;
+    return (0);
 }
 
 static void dict_db_env_free(void)
@@ -213,6 +222,7 @@ static void dict_db_env_free(void)
 #if DB_VERSION_MAJOR == 2
     if (dict_db_env && dict_db_refcount > 0 && --dict_db_refcount == 0) {
 	db_appexit(dict_db_env);
+	myfree((char *) dict_db_env);
 	dict_db_env = 0;
     }
 #endif
@@ -667,31 +677,21 @@ DICT   *dict_hash_open(const char *path, int open_flags, int dict_flags)
 #if DB_VERSION_MAJOR < 2
     HASHINFO tweak;
 
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.nelem = DICT_DB_NELM;
+    tweak.cachesize = dict_db_mpool_size;
 #endif
 #if DB_VERSION_MAJOR == 2
     DB_INFO tweak;
 
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.h_nelem = DICT_DB_NELM;
 #endif
 #if DB_VERSION_MAJOR > 2
     void   *tweak;
 
+    tweak = 0;
 #endif
-
-    /* Set the mpool size if not already set in mkmap_db_open() */
-    if (db_mpool_size == 0)
-	db_mpool_size = get_mail_conf_int(VAR_MPOOL_SIZE, DEF_MPOOL_SIZE, 0, 0);
-
-    memset((char *) &tweak, 0, sizeof(tweak));
-
-#if DB_VERSION_MAJOR < 2
-    tweak.nelem = DICT_DB_NELM;
-    tweak.cachesize = db_mpool_size;
-#endif
-#if DB_VERSION_MAJOR == 2
-    tweak.h_nelem = DICT_DB_NELM;
-    tweak.db_cachesize = 0;
-#endif
-
     return (dict_db_open(DICT_TYPE_HASH, path, open_flags, DB_HASH,
 			 (void *) &tweak, dict_flags));
 }
@@ -703,24 +703,18 @@ DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
 #if DB_VERSION_MAJOR < 2
     BTREEINFO tweak;
 
+    memset((char *) &tweak, 0, sizeof(tweak));
+    tweak.cachesize = dict_db_mpool_size;
 #endif
 #if DB_VERSION_MAJOR == 2
     DB_INFO tweak;
 
+    memset((char *) &tweak, 0, sizeof(tweak));
 #endif
 #if DB_VERSION_MAJOR > 2
     void   *tweak;
 
-#endif
-
-    /* Set the mpool size if not already set in mkmap_db_open() */
-    if (db_mpool_size == 0)
-	db_mpool_size = get_mail_conf_int(VAR_MPOOL_SIZE, DEF_MPOOL_SIZE, 0, 0);
-
-    memset((char *) &tweak, 0, sizeof(tweak));
-
-#if DB_VERSION_MAJOR < 2
-    tweak.cachesize = db_mpool_size;
+    tweak = 0;
 #endif
 
     return (dict_db_open(DICT_TYPE_BTREE, path, open_flags, DB_BTREE,

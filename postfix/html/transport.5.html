@@ -1,5 +1,4 @@
 <html> <head> </head> <body> <pre>
-
 TRANSPORT(5)                                         TRANSPORT(5)
 
 <b>NAME</b>
@@ -47,6 +46,22 @@ TRANSPORT(5)                                         TRANSPORT(5)
               line that starts with whitespace continues a  logi-
               cal line.
 
+       In an indexed file, a pattern of `<b>*</b>' matches everything.
+
+       The  <i>result</i>  is of the form <i>transport</i><b>:</b><i>nexthop</i>.  The <i>trans-</i>
+       <i>port</i> field specifies a mail  delivery  transport  such  as
+       <b>smtp</b>  or  <b>local</b>. The <i>nexthop</i> field specifies where and how
+       to deliver mail. A null <i>transport</i> or <i>nexthop</i>  field  means
+       "do  not  change":  use the delivery transport and nexthop
+       information that would be used if no match were found.
+
+       The interpretation  of  the  <i>nexthop</i>  field  is  transport
+       dependent. In the case of SMTP, specify <i>host</i>:<i>service</i> for a
+       non-default server port, and use [<i>host</i>] or [<i>host</i>]:<i>port</i>  in
+       order  to  disable MX (mail exchanger) DNS lookups. The []
+       form can also be used with IP addresses instead  of  host-
+       names.
+
        With lookups from indexed files such as DB or DBM, or from
        networked tables such as NIS, LDAP or  SQL,  patterns  are
        tried in the order as listed below:
@@ -63,42 +78,39 @@ TRANSPORT(5)                                         TRANSPORT(5)
               ting.  Otherwise, a domain name matches itself  and
               its subdomains.
 
-       Note:  transport  map entries take precedence over domains
-       specified in the <b>mydestination</b> parameter. If you  use  the
-       optional  transport  map,  it  may  be  safer  to  specify
-       explicit entries for all domains specified  in  <b>mydestina-</b>
-       <b>tion</b>, for example:
-
-            <b>hostname.my.domain</b>   <b>local:</b>
-            <b>localhost.my.domain</b>      <b>local:</b>
-
-       The  interpretation  of  the  <i>nexthop</i>  field  is transport
-       dependent. In the case of SMTP, specify <i>host</i>:<i>service</i> for a
-       non-default  server port, and use [<i>host</i>] or [<i>host</i>]:<i>port</i> in
-       order to disable MX (mail exchanger) DNS lookups.  The  []
-       form  can  also be used with IP addresses instead of host-
-       names.
-
 <b>EXAMPLES</b>
-       In order to send mail for <b>foo.org</b> and its  subdomains  via
+       In  order to deliver internal mail directly, while using a
+       mail relay for all other mail, specify a  null  entry  for
+       internal  destinations  (do not change the delivery trans-
+       port or the nexthop information) and  specify  a  wildcard
+       for  all  other  destinations. Note that for this trick to
+       work you should not specify a  <b>relayhost</b>  in  the  <b>main.cf</b>
+       file.
+
+            <b>my.domain</b>    <b>:</b>
+            <b>.my.domain</b>   <b>:</b>
+            <b>*</b>            <b>smtp:outbound-relay.my.domain</b>
+
+       In  order  to send mail for <b>foo.org</b> and its subdomains via
        the <b>uucp</b> transport to the UUCP host named <b>foo</b>:
 
             <b>foo.org</b>      <b>uucp:foo</b>
             <b>.foo.org</b>     <b>uucp:foo</b>
 
-       When  no  <i>nexthop</i>  host name is specified, the destination
-       domain name is used instead. For  example,  the  following
-       directs  mail for <i>user</i>@<b>foo.org</b> via the <b>slow</b> transport to a
-       mail exchanger for <b>foo.org</b>.  The <b>slow</b> transport  could  be
-       something  that  runs  at  most  one delivery process at a
+       When no <i>nexthop</i> host name is  specified,  the  destination
+       domain  name  is  used instead. For example, the following
+       directs mail for <i>user</i>@<b>foo.org</b> via the <b>slow</b> transport to  a
+       mail  exchanger  for <b>foo.org</b>.  The <b>slow</b> transport could be
+       something that runs at most  one  delivery  process  at  a
        time:
 
             <b>foo.org</b>      <b>slow:</b>
 
-       When no <i>transport</i> is specified, the default  transport  is
-       used, as specified via the <b>default</b><i>_</i><b>transport</b> configuration
-       parameter. The following sends all mail  for  <b>foo.org</b>  and
-       its subdomains to host <b>gateway.foo.org</b>:
+       When  no  <i>transport</i>  is  specified,  Postfix  uses  either
+       <b>$local</b><i>_</i><b>transport</b>  or  <b>$default</b><i>_</i><b>transport</b>,   depending   on
+       whether  the destination matches <b>$mydestination</b>.  The fol-
+       lowing sends all mail for <b>foo.org</b> and  its  subdomains  to
+       host <b>gateway.foo.org</b>:
 
             <b>foo.org</b>      <b>:[gateway.foo.org]</b>
             <b>.foo.org</b>     <b>:[gateway.foo.org]</b>
@@ -159,13 +171,23 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        Other parameters of interest:
 
+       <b>local</b><i>_</i><b>transport</b>
+              The  mail  delivery transport to use when no trans-
+              port is explicitly specified, and  the  destination
+              matches <b>$mydestination</b>.
+
        <b>default</b><i>_</i><b>transport</b>
-              The  transport  to use when no transport is explic-
-              itly specified.
+              The  mail  delivery transport to use when no trans-
+              port is explicitly specified, and  the  destination
+              does not match <b>$mydestination</b>.
+
+       <b>mydestination</b>
+              The destinations that are given to <b>$local</b><i>_</i><b>transport</b>
+              by default.
 
        <b>relayhost</b>
-              The default host to send to when no transport table
-              entry matches.
+              The default host for destinations that do not match
+              <b>$mydestination</b>.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="postmap.1.html">postmap(1)</a> create mapping table
@@ -183,6 +205,5 @@ TRANSPORT(5)                                         TRANSPORT(5)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                                1
-
+                                                     TRANSPORT(5)
 </pre> </body> </html>

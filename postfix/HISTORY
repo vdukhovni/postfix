@@ -6294,8 +6294,10 @@ Apologies for any names omitted.
 	developed with Lamont Jones, HP.
 
 	Feature: more efficient use of cache memory when a process
-	opens multiple Berkeley DB tables. Files: util/dict_db.c,
-	global/mkmap_db.c. Victor Duchovni, Morgan Stanley.
+	opens multiple Berkeley DB tables; and faster performance
+	creating large tables by using more buffer memory. Files:
+	util/dict_db.[hc], global/mkmap_db.c. Victor Duchovni,
+	Morgan Stanley.
 
 20020503
 
@@ -6320,8 +6322,27 @@ Apologies for any names omitted.
 	permissions from the source file when it creates a new
 	table for the first time. File: postalias/postalias.c.
 
+20020504
+
 	Portability: run-time test to avoid GDBM trouble.  File:
 	util/dict_dbm.c.
+
+20020505
+
+	Cleanup: revised and simplified the transport map semantics.
+	Null transport or nexhop fields now mean: "do not change":
+	use what would be used if the transport map did not exist.
+	This change eliminated a lot of code. The incompatibility
+	is that a null transport field no longer defaults to
+	$default_transport, but to $local_transport or $default_transport
+	depending on the destination, and that a transport map only
+	overrides relayhost when the table specifies explicit
+	nexthop information.  Files:  trivial-rewrite/transport.c,
+	trivial-rewrite/resolve.c.
+
+	Cleanup: revised the user interface for controlling the
+	Berkeley DB create and read buffer size controls. Files:
+	util/dict_db.[hc], global/mail_params.[hc], global/mkmap_db.c.
 
 Open problems:
 

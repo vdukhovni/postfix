@@ -189,23 +189,11 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
 
     /*
-     * The transport map overrides any transport and next-hop host info that
-     * is set up below. For a long time, it was not possible to override
-     * routing of mail that resolves locally, because Postfix used a
-     * zero-length next-hop hostname result to indicate local delivery, and
-     * transport maps cannot return zero-length hostnames.
-     */
-    if (*var_transport_maps
-    && transport_lookup(strrchr(STR(nextrcpt), '@') + 1, channel, nexthop)) {
-	 /* void */ ;
-    }
-
-    /*
      * Non-local delivery, presumably. Set up the default remote transport
      * specified with var_def_transport. Use the destination's mail exchanger
      * unless a default mail relay is specified with var_relayhost.
      */
-    else if (domain != 0) {
+    if (domain != 0) {
 	vstring_strcpy(channel, var_def_transport);
 	if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
 	    vstring_strcpy(nexthop, destination);
@@ -234,6 +222,16 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     }
     if (*STR(nexthop) == 0)
 	msg_panic("%s: null nexthop", myname);
+
+    /*
+     * The transport map overrides any transport and next-hop host info that
+     * is set up above. For a long time, it was not possible to override
+     * routing of mail that resolves locally, because Postfix used a
+     * zero-length next-hop hostname result to indicate local delivery, and
+     * transport maps cannot return zero-length hostnames.
+     */
+    if (*var_transport_maps)
+	transport_lookup(strrchr(STR(nextrcpt), '@') + 1, channel, nexthop);
 
     /*
      * Clean up.

@@ -1,4 +1,3 @@
-# 
 # TRANSPORT(5)                                         TRANSPORT(5)
 # 
 # NAME
@@ -34,8 +33,7 @@
 # 
 #        pattern result
 #               When pattern matches the  domain,  use  the  corre-
-#               sponding result.  A pattern of `*' matches all
-#               entries.
+#               sponding result.
 # 
 #        blank lines and comments
 #               Empty  lines and whitespace-only lines are ignored,
@@ -46,6 +44,22 @@
 #               A  logical  line starts with non-whitespace text. A
 #               line that starts with whitespace continues a  logi-
 #               cal line.
+# 
+#        In an indexed file, a pattern of `*' matches everything.
+# 
+#        The  result  is of the form transport:nexthop.  The trans-
+#        port field specifies a mail  delivery  transport  such  as
+#        smtp  or  local. The nexthop field specifies where and how
+#        to deliver mail. A null transport or nexthop  field  means
+#        "do  not  change":  use the delivery transport and nexthop
+#        information that would be used if no match were found.
+# 
+#        The interpretation  of  the  nexthop  field  is  transport
+#        dependent. In the case of SMTP, specify host:service for a
+#        non-default server port, and use [host] or [host]:port  in
+#        order  to  disable MX (mail exchanger) DNS lookups. The []
+#        form can also be used with IP addresses instead  of  host-
+#        names.
 # 
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked tables such as NIS, LDAP or  SQL,  patterns  are
@@ -62,53 +76,40 @@
 #               parent_domain_matches_subdomains configuration set-
 #               ting.  Otherwise, a domain name matches itself  and
 #               its subdomains.
-#
-#        An empty result (`:' - default transport, default nexthop)
-#        behaves as  though the transport  map did not exist.  When
-#        combined with a wildcard (`*') entry,  this can be used to
-#        route internal mail directly, while  using a relay for all
-#        outbound  traffic.    (Note  that  you  should  _NOT_  set
-#        relayhost in this case.)
-#
-#             *                  smtp:outbound-relay.my.domain
-#             .my.domain         :
-# 
-#        Note:  transport  map entries take precedence over domains
-#        specified in the mydestination parameter. If you  use  the
-#        optional  transport  map,  it  may  be  safer  to  specify
-#        explicit entries for all domains specified  in  mydestina-
-#        tion, for example:
-# 
-#             hostname.my.domain   local:
-#             localhost.my.domain      local:
-# 
-#        The  interpretation  of  the  nexthop  field  is transport
-#        dependent. In the case of SMTP, specify host:service for a
-#        non-default  server port, and use [host] or [host]:port in
-#        order to disable MX (mail exchanger) DNS lookups.  The  []
-#        form  can  also be used with IP addresses instead of host-
-#        names.
 # 
 # EXAMPLES
-#        In order to send mail for foo.org and its  subdomains  via
+#        In  order to deliver internal mail directly, while using a
+#        mail relay for all other mail, specify a  null  entry  for
+#        internal  destinations  (do not change the delivery trans-
+#        port or the nexthop information) and  specify  a  wildcard
+#        for  all  other  destinations. Note that for this trick to
+#        work you should not specify a  relayhost  in  the  main.cf
+#        file.
+# 
+#             my.domain    :
+#             .my.domain   :
+#             *            smtp:outbound-relay.my.domain
+# 
+#        In  order  to send mail for foo.org and its subdomains via
 #        the uucp transport to the UUCP host named foo:
 # 
 #             foo.org      uucp:foo
 #             .foo.org     uucp:foo
 # 
-#        When  no  nexthop  host name is specified, the destination
-#        domain name is used instead. For  example,  the  following
-#        directs  mail for user@foo.org via the slow transport to a
-#        mail exchanger for foo.org.  The slow transport  could  be
-#        something  that  runs  at  most  one delivery process at a
+#        When no nexthop host name is  specified,  the  destination
+#        domain  name  is  used instead. For example, the following
+#        directs mail for user@foo.org via the slow transport to  a
+#        mail  exchanger  for foo.org.  The slow transport could be
+#        something that runs at most  one  delivery  process  at  a
 #        time:
 # 
 #             foo.org      slow:
 # 
-#        When no transport is specified, the default  transport  is
-#        used, as specified via the default_transport configuration
-#        parameter. The following sends all mail  for  foo.org  and
-#        its subdomains to host gateway.foo.org:
+#        When  no  transport  is  specified,  Postfix  uses  either
+#        $local_transport  or  $default_transport,   depending   on
+#        whether  the destination matches $mydestination.  The fol-
+#        lowing sends all mail for foo.org and  its  subdomains  to
+#        host gateway.foo.org:
 # 
 #             foo.org      :[gateway.foo.org]
 #             .foo.org     :[gateway.foo.org]
@@ -169,13 +170,23 @@
 # 
 #        Other parameters of interest:
 # 
+#        local_transport
+#               The  mail  delivery transport to use when no trans-
+#               port is explicitly specified, and  the  destination
+#               matches $mydestination.
+# 
 #        default_transport
-#               The  transport  to use when no transport is explic-
-#               itly specified.
+#               The  mail  delivery transport to use when no trans-
+#               port is explicitly specified, and  the  destination
+#               does not match $mydestination.
+# 
+#        mydestination
+#               The destinations that are given to $local_transport
+#               by default.
 # 
 #        relayhost
-#               The default host to send to when no transport table
-#               entry matches.
+#               The default host for destinations that do not match
+#               $mydestination.
 # 
 # SEE ALSO
 #        postmap(1) create mapping table
@@ -193,5 +204,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                                 1
-# 
+#                                                      TRANSPORT(5)

@@ -116,6 +116,12 @@
 /* .IP \fBdatabase_type\fR
 /*	Default alias database type. On many UNIX systems, the default type
 /*	is either \fBdbm\fR or \fBhash\fR.
+/* .IP \fBberkeley_db_create_buffer_size\fR
+/*	Amount of buffer memory to be used when creating a Berkeley DB
+/*	\fBhash\fR or \fBbtree\fR lookup table.
+/* .IP \fBberkeley_db_read_buffer_size\fR
+/*	Amount of buffer memory to be used when reading a Berkeley DB
+/*	\fBhash\fR or \fBbtree\fR lookup table.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* SEE ALSO

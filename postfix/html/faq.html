@@ -584,24 +584,23 @@ DNS lookups as well:
 
 <p>
 
-<li>In addition to the above you can configure Postfix to deliver
+<li>Instead of the above you can configure Postfix to deliver
 intranet mail directly instead of sending it via the intranet
-mail gateway.
+mail gateway. In this case, do not specify a relayhost!!
 
 <p>
 
-Specify routing information for the internal domain in the <a
-href="transport.5.html">transport</a> table, and enable <a
+Specify default routing information for the internal domain in the
+<a href="transport.5.html">transport</a> table, and enable <a
 href="transport.5.html">transport</a> table lookups.
 
 <p>
 
 <pre>
     /etc/postfix/transport:
-        my.domain               smtp:
-        .my.domain              smtp:
-        thishost.my.domain      local:        !!!important!!!
-        localhost.my.domain     local:        !!!important!!!
+        my.domain               :
+        .my.domain              :
+	*			smtp:gateway.my.domain
 
     /etc/postfix/main.cf:
         transport_maps = hash:/etc/postfix/transport
@@ -609,8 +608,8 @@ href="transport.5.html">transport</a> table lookups.
 
 <p>
 
-Important: do not omit the entries that deliver mail locally, or
-else mail will bounce with a "mail loops to myself" condition.
+Important: do not specify a relayhost entry, or else mail for 
+internal destinations will still be given to the relayhost.
 
 <p>
 

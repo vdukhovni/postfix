@@ -1475,6 +1475,17 @@ extern char *var_mbx_defer_errs;
 #define DEF_MDR_DEFER_ERRS		"enospc, estale"
 extern char *var_mdr_defer_errs;
 
+ /*
+  * Berkeley DB memory pool sizes.
+  */
+#define	VAR_DB_CREATE_BUF		"berkeley_db_create_buffer_size"
+#define DEF_DB_CREATE_BUF		(16 * 1024 *1024)
+extern int var_db_create_buf;
+
+#define	VAR_DB_READ_BUF			"berkeley_db_read_buffer_size"
+#define DEF_DB_READ_BUF			(256 *1024)
+extern int var_db_read_buf;
+
 /* LICENSE
 /* .ad
 /* .fi

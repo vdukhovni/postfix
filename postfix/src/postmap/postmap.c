@@ -134,6 +134,12 @@
 /*	Default output database type.
 /*	On many UNIX systems, the default database type is either \fBhash\fR
 /*	or \fBdbm\fR.
+/* .IP \fBberkeley_db_create_buffer_size\fR
+/*	Amount of buffer memory to be used when creating a Berkeley DB
+/*	\fBhash\fR or \fBbtree\fR lookup table.
+/* .IP \fBberkeley_db_read_buffer_size\fR
+/*	Amount of buffer memory to be used when reading a Berkeley DB
+/*	\fBhash\fR or \fBbtree\fR lookup table.
 /* LICENSE
 /* .ad
 /* .fi

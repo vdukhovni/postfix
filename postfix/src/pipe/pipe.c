@@ -572,20 +572,20 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 		case 'B':
 		    attr->flags |= MAIL_COPY_BLANK;
 		    break;
+		case 'D':
+		    attr->flags |= MAIL_COPY_DELIVERED;
+		    break;
 		case 'F':
 		    attr->flags |= MAIL_COPY_FROM;
+		    break;
+		case 'R':
+		    attr->flags |= MAIL_COPY_RETURN_PATH;
 		    break;
 		case '.':
 		    attr->flags |= MAIL_COPY_DOT;
 		    break;
 		case '>':
 		    attr->flags |= MAIL_COPY_QUOTE;
-		    break;
-		case 'R':
-		    attr->flags |= MAIL_COPY_RETURN_PATH;
-		    break;
-		case 'D':
-		    attr->flags |= MAIL_COPY_DELIVERED;
 		    break;
 		case 'h':
 		    attr->flags |= PIPE_OPT_FOLD_HOST;

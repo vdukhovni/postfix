@@ -85,6 +85,8 @@
 /*	char   *var_showq_service;
 /*	char   *var_error_service;
 /*	char   *var_flush_service;
+/*	int	var_db_create_buf;
+/*	int	var_db_read_buf;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -131,6 +133,9 @@
 #include <valid_hostname.h>
 #include <stringops.h>
 #include <safe.h>
+#ifdef HAS_DB
+#include <dict_db.h>
+#endif
 
 /* Global library. */
 
@@ -223,6 +228,8 @@ char   *var_rewrite_service;
 char   *var_showq_service;
 char   *var_error_service;
 char   *var_flush_service;
+int     var_db_create_buf;
+int     var_db_read_buf;
 
 #define MAIN_CONF_FILE	"main.cf"
 
@@ -456,6 +463,8 @@ void    mail_params_init()
 	VAR_FLOCK_TRIES, DEF_FLOCK_TRIES, &var_flock_tries, 1, 0,
 	VAR_DEBUG_PEER_LEVEL, DEF_DEBUG_PEER_LEVEL, &var_debug_peer_level, 1, 0,
 	VAR_FAULT_INJ_CODE, DEF_FAULT_INJ_CODE, &var_fault_inj_code, 0, 0,
+	VAR_DB_CREATE_BUF, DEF_DB_CREATE_BUF, &var_db_create_buf, 1, 0,
+	VAR_DB_READ_BUF, DEF_DB_READ_BUF, &var_db_read_buf, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {
@@ -515,6 +524,9 @@ void    mail_params_init()
     check_mail_owner();
     check_sgid_group();
     check_overlap();
+#ifdef HAS_DB
+    dict_db_mpool_size = var_db_read_buf;
+#endif
 
     /*
      * Variables whose defaults are determined at runtime, after other

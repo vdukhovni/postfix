@@ -12,6 +12,60 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.8-20020505
+=========================================================
+
+In the Postfix transport table, the meaning of null delivery
+transport and nexhop information fields has changed. As of now, a
+null delivery transport or nexthop information field means "do not
+modify": use the delivery transport or nexthop information that
+would be used if no transport table did not exist.  This change
+results in the following incompatible changes in behavior:
+
+- A null delivery transport field no longer defaults to
+$default_transport.  It now defaults to $local_transport or
+$default_transport depending on the destination.
+
+- A null nexthop information field no longer overrides the main.cf
+relayhost setting. To override the relayhost, specify explicit
+nexthop information in the Postfix transport table.
+
+The postalias command now copies the source file read permissions
+to the result file when creating a table for the first time. Until
+now, the result file was created with default read permissions.
+This change makes postalias more similar to postmap.
+
+The postalias and postmap commands now drop super-user privileges
+when processing a non-root source file. The file is now processed
+as the source file owner, and the owner must therefore have permission
+to update the result file. Specify the "-o" flag to get the old
+behavior (process non-root files with root privileges).
+
+The read buffer size for Berkeley DB lookup tables was decreased
+from 1MByte to 256kByte. Specify "berkeley_db_read_buffer_size =
+1048576" to get the old read buffer size.
+
+Major changes with Postfix snapshot 1.1.8-20020505
+==================================================
+
+Friendlier behavior of Postfix transport tables. There is a new
+"*" wildcard pattern that matches any domain. The meaning of a null
+delivery transport or nexhop information field has changed to "do
+not modify": use the information that would be used if the transport
+table did not exist. This change makes it easier to route internal
+mail (everything under my.domain) directly: you no longer need to
+specify explicit "local" transport table entries for the local
+machine.  For more information, including examples, see the updated
+transport(5) manual page.
+
+Finer control over Berkeley DB memory usage, and more efficient
+usage of memory in applications that open lots of tables. The
+parameter "berkeley_db_create_buffer_size" (default: 16 MBytes)
+specifies the buffer size for the postmap and postalias commands.
+The parameter "berkeley_db_read_buffer_size" (default: 256 kBytes)
+speficies the buffer size for all other applications. For more
+information, see the last paragraphs of the DB_README file.
+
 Major changes with Postfix snapshot 1.1.7-20020331
 ==================================================
 

@@ -188,7 +188,7 @@ static void show_queue(void)
      * Don't assume that the mail system is down when the user has
      * insufficient permission to access the showq socket.
      */
-    else if (errno != ECONNREFUSED && errno != ENOENT) {
+    else if (errno == EACCES) {
 	msg_fatal_status(EX_SOFTWARE,
 			 "Connect to the %s %s service: %m",
 			 var_mail_name, var_showq_service);

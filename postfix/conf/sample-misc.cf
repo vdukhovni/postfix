@@ -267,7 +267,7 @@ myorigin = $myhostname
 # policy: Send the postmaster a transcript of the entire SMTP session
 #	when a client request was rejected because of (UCE) policy.
 # protocol: Send the postmaster a transcript of the entire SMTP
-#       session in case of client or server protocol errors.
+#	session in case of client or server protocol errors.
 # resource: Inform the postmaster of mail not delivered due to
 #	resource problems.
 # software: Inform the postmaster of mail not delivered due to

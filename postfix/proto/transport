@@ -29,13 +29,29 @@
 #	The format of the transport table is as follows:
 # .IP "\fIpattern result\fR"
 #	When \fIpattern\fR matches the domain, use the corresponding
-#	\fIresult\fR.
+#       \fIresult\fR.
 # .IP "blank lines and comments"
 #	Empty lines and whitespace-only lines are ignored, as
 #	are lines whose first non-whitespace character is a `#'.
 # .IP "multi-line text"
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
+# .PP
+#	In an indexed file, a pattern of `\fB*\fR' matches everything.
+# .PP
+#	The \fIresult\fR is of the form \fItransport\fB:\fInexthop\fR.
+#	The \fItransport\fR field specifies a mail delivery transport
+#	such as \fBsmtp\fR or \fBlocal\fR. The \fInexthop\fR field
+#	specifies where and how to deliver mail. A null \fItransport\fR
+#	or \fInexthop\fR field means "do not change": use the delivery
+#	transport and nexthop information that would be used if no
+#	match were found.
+# .PP
+#	The interpretation of the \fInexthop\fR field is transport
+#	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
+#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
+#	in order to disable MX (mail exchanger) DNS lookups. The [] form
+#	can also be used with IP addresses instead of hostnames.
 # .PP
 #	With lookups from indexed files such as DB or DBM, or from networked
 #	tables such as NIS, LDAP or SQL, patterns are tried in the order as
@@ -49,26 +65,23 @@
 #	string \fBtransport_maps\fR is not listed in the
 #	\fBparent_domain_matches_subdomains\fR configuration setting.
 #	Otherwise, a domain name matches itself and its subdomains.
-# .PP
-#	Note: transport map entries take precedence over domains
-#	specified in the \fBmydestination\fR parameter. If you use
-#	the optional transport map, it may be safer to specify explicit
-#	entries for all domains specified in \fBmydestination\fR,
-#	for example:
-#
-# .ti +5
-#	\fBhostname.my.domain	local:\fR
-# .ti +5
-#	\fBlocalhost.my.domain      local:\fR
-#
-#	The interpretation of the \fInexthop\fR field is transport
-#	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
-#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
-#	in order to disable MX (mail exchanger) DNS lookups. The [] form
-#	can also be used with IP addresses instead of hostnames.
 # EXAMPLES
 # .ad
 # .fi
+#	In order to deliver internal mail directly, while using a
+#	mail relay for all other mail, specify a null entry for
+#	internal destinations (do not change the delivery transport or
+#	the nexthop information) and specify a wildcard for all other
+#	destinations. Note that for this trick to work you should
+#	not specify a \fBrelayhost\fR in the \fBmain.cf\fR file.
+#
+# .ti +5
+#	\fB\&my.domain    :\fR
+# .ti +5
+#	\fB\&.my.domain   :\fR
+# .ti +5
+#	\fB*            smtp:outbound-relay.my.domain\fR
+#
 #	In order to send mail for \fBfoo.org\fR and its subdomains
 #	via the \fBuucp\fR transport to the UUCP host named \fBfoo\fR:
 #
@@ -86,9 +99,10 @@
 # .ti +5
 #	\fBfoo.org      slow:\fR
 #
-#	When no \fItransport\fR is specified, the default transport is
-#	used, as specified via the \fBdefault_transport\fR configuration
-#	parameter. The following sends all mail for \fBfoo.org\fR and its
+#	When no \fItransport\fR is specified, Postfix uses either
+#	\fB$local_transport\fR or \fB$default_transport\fR, depending
+#	on whether the destination matches \fB$mydestination\fR.
+#	The following sends all mail for \fBfoo.org\fR and its
 #	subdomains to host \fBgateway.foo.org\fR:
 #
 # .ti +5
@@ -149,10 +163,18 @@
 #	List of transport lookup tables.
 # .PP
 #	Other parameters of interest:
+# .IP \fBlocal_transport\fR
+#	The mail delivery transport to use when no transport is explicitly
+#	specified, and the destination matches \fB$mydestination\fR.
 # .IP \fBdefault_transport\fR
-#	The transport to use when no transport is explicitly specified.
+#	The mail delivery transport to use when no transport is explicitly
+#	specified, and the destination does not match \fB$mydestination\fR.
+# .IP \fBmydestination\fR
+#	The destinations that are given to \fB$local_transport\fR
+#	by default.
 # .IP \fBrelayhost\fR
-#	The default host to send to when no transport table entry matches.
+#	The default host for destinations that do not match
+#	\fB$mydestination\fR.
 # SEE ALSO
 #	postmap(1) create mapping table
 #	trivial-rewrite(8) rewrite and resolve addresses

@@ -85,17 +85,22 @@ void    transport_init(void)
 
 }
 
+/* transport_wildcard_init - post-jail initialization */
+
 void    transport_wildcard_init(void)
 {
     wildcard_channel = vstring_alloc(10);
     wildcard_nexthop = vstring_alloc(10);
-    if (!transport_lookup("*", wildcard_channel, wildcard_nexthop)) {
-	vstring_free(wildcard_channel);
-	vstring_free(wildcard_nexthop);
-    }
-    if (msg_verbose) {
-	msg_info("wildcard_{chan,hop}={%s %s}",
+
+    if (transport_lookup("*", wildcard_channel, wildcard_nexthop)) {
+	if (msg_verbose)
+	    msg_info("wildcard_{chan:hop}={%s:%s}",
 	      vstring_str(wildcard_channel), vstring_str(wildcard_nexthop));
+    } else {
+	vstring_free(wildcard_channel);
+	wildcard_channel = 0;
+	vstring_free(wildcard_nexthop);
+	wildcard_nexthop = 0;
     }
 }
 
@@ -111,7 +116,6 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
     char   *saved_value;
     char   *transport;
     int     found = 0;
-    int     null_found = 0;
 
 #define FULL	0
 #define PARTIAL		DICT_FLAG_FIXED
@@ -123,9 +127,12 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
 
     /*
      * Keep stripping domain components until nothing is left or until a
-     * matching entry is found.  If a NULL entry (either no RHS, or ':'),
-     * then pretend we got no match, and return.  If we really got no match,
-     * then return the wildcard transport, if any.
+     * matching entry is found.
+     * 
+     * If the entry specifies no nexthop host and/or delivery channel, do not
+     * change caller-provided information.
+     * 
+     * If we find no match, then return the wildcard entry, if any.
      * 
      * After checking the full name, check for .upper.domain, to distinguish
      * between the upper domain and it's decendants, ala sendmail and tcp
@@ -140,22 +147,10 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
     for (name = low_domain; /* void */ ; name = next) {
 	if ((value = maps_find(transport_path, name, maps_flag)) != 0) {
 	    saved_value = mystrdup(value);
-	    if ((host = split_at(saved_value, ':')) == 0 || *host == 0) {
-		if (*saved_value == 0) {
-		    myfree(saved_value);
-		    null_found = 1;
-		    break;
-		}
-		host = domain;
-	    }
-	    if (*(transport = saved_value) == 0)
-		transport = var_def_transport;
-	    vstring_strcpy(channel, transport);
-	    (void) split_at(vstring_str(channel), ':');
-	    if (*vstring_str(channel) == 0)
-		msg_fatal("null transport is not allowed: %s = %s",
-			  VAR_DEF_TRANSPORT, var_def_transport);
-	    vstring_strcpy(nexthop, host);
+	    if ((host = split_at(saved_value, ':')) != 0 && *host != 0)
+		vstring_strcpy(nexthop, host);
+	    if (*(transport = saved_value) != 0)
+		vstring_strcpy(channel, transport);
 	    myfree(saved_value);
 	    found = 1;
 	    break;
@@ -170,12 +165,14 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
     }
     myfree(low_domain);
 
-    if (wildcard_channel && !null_found) {
-	vstring_strcpy(channel, vstring_str(wildcard_channel));
-	if (vstring_str(wildcard_nexthop))
+    /*
+     * Fall back to the wild-card entry.
+     */
+    if (found == 0 && wildcard_channel) {
+	if (*vstring_str(wildcard_channel))
+	    vstring_strcpy(channel, vstring_str(wildcard_channel));
+	if (*vstring_str(wildcard_nexthop))
 	    vstring_strcpy(nexthop, vstring_str(wildcard_nexthop));
-	else
-	    vstring_strcpy(nexthop, domain);
 	found = 1;
     }
     return (found);
