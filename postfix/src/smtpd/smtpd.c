@@ -893,6 +893,7 @@ static void mail_reset(SMTPD_STATE *state)
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_mail_reset(state);
 #endif
+    state->discard = 0;
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -948,10 +949,6 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
 	if ((err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
-	    smtpd_chat_reply(state, "%s", err);
-	    return (-1);
-	}
-	if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
@@ -1259,7 +1256,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0
-	&& (err = smtpd_check_rcptmap(state, argv[1].strval)) != 0) {
+	&& (err = smtpd_check_rcpt(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }

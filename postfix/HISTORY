@@ -7682,6 +7682,24 @@ Apologies for any names omitted.
 	systems against exploitation of the remote buffer overflow
 	vulnerability described in CERT advisory CA-2003-07.
 
+20030311-19
+
+	Bugfix: the access map actions HOLD, DISCARD and FILTER
+	were broken with smtpd_delay_reject=no and with ETRN. Fixing
+	this required re-architecting of the actions code. Files:
+	smtpd/smtpd.[hc], smtpd/smtpd_check.c, smtpd/smtpd_state.c.
+
+20030315
+
+	Bugfix: the postsuper manual page documented support for
+	the -c command line option, but it was not implemented.
+	File: postsuper/postsuper.c.
+
+	Bugfix: the Postfix 2.0 recipient map checking code broke
+	the VRFY command, causing it to reply with status code 252
+	for non-existent addresses. This required re-architecting
+	the recipient table lookup code. File:  smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,
