@@ -29,9 +29,6 @@ extern int timed_write(int, void *, unsigned, int, void *);
 extern void doze(unsigned);
 extern void rand_sleep(unsigned, unsigned);
 extern int duplex_pipe(int *);
-extern int sock_empty_wait(int, int);
-extern int sock_maximize_send_lowat(int);
-extern void sock_set_send_lowat(int, int);
 
 #define BLOCKING	0
 #define NON_BLOCKING	1

@@ -12,19 +12,13 @@
 /* .nf
 
  /*
-  * Utility library.
-  */
-#include <match_list.h>
-#include <match_ops.h>
-
- /*
   * External interface.
   */
-#define STRING_LIST	MATCH_LIST
+typedef struct MATCH_LIST STRING_LIST;
 
-#define string_list_init(f, p)	match_list_init((f), (p), 1, match_string)
-#define string_list_match	match_list_match
-#define string_list_free	match_list_free
+extern STRING_LIST *string_list_init(const char *);
+extern int string_list_match(STRING_LIST *, const char *);
+extern void string_list_free(STRING_LIST *);
 
 /* LICENSE
 /* .ad

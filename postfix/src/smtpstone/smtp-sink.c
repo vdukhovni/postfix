@@ -28,9 +28,6 @@
 /*	Terminate after \fIcount\fR sessions. This is for testing purposes.
 /* .IP \fB-p\fR
 /*	Disable ESMTP command pipelining.
-/* .IP \fB-P\fR
-/*	Change the server greeting so that it appears to come through
-/*	a CISCO PIX system.
 /* .IP \fB-v\fR
 /*	Show the SMTP conversations.
 /* .IP "\fB-w \fIdelay\fR"
@@ -117,7 +114,6 @@ static int max_count;
 static int disable_pipelining;
 static int fixed_delay;
 static int enable_lmtp;
-static int pretend_pix;
 
 /* ehlo_response - respond to EHLO command */
 
@@ -447,9 +443,6 @@ static void connect_event(int unused_event, char *context)
 	state->read = command_read;
 	state->data_state = ST_ANY;
 	smtp_timeout_setup(state->stream, var_tmout);
-if (pretend_pix)
-	smtp_printf(state->stream, "220 ********");
-else
 	smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
 	event_enable_read(fd, read_event, (char *) state);
     }
@@ -459,7 +452,7 @@ else
 
 static void usage(char *myname)
 {
-    msg_fatal("usage: %s [-cLpPv] [-n count] [-w delay] [host]:port backlog", myname);
+    msg_fatal("usage: %s [-cLpv] [-n count] [-w delay] [host]:port backlog", myname);
 }
 
 int     main(int argc, char **argv)
@@ -476,7 +469,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "cLn:pPvw:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "cLn:pvw:")) > 0) {
 	switch (ch) {
 	case 'c':
 	    count++;
@@ -489,9 +482,6 @@ int     main(int argc, char **argv)
 	    break;
 	case 'p':
 	    disable_pipelining = 1;
-	    break;
-	case 'P':
-	    pretend_pix=1;
 	    break;
 	case 'v':
 	    msg_verbose++;

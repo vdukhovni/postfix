@@ -160,7 +160,6 @@
 #include <mail_scan_dir.h>
 #include <maps.h>
 #include <domain_list.h>
-#include <match_parent_style.h>
 
 /* Single server skeleton. */
 
@@ -637,8 +636,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
-    flush_domains = domain_list_init(match_parent_style(VAR_FFLUSH_DOMAINS),
-				     var_fflush_domains);
+    flush_domains = domain_list_init(var_fflush_domains);
 }
 
 /* main - pass control to the single-threaded skeleton */

@@ -6,18 +6,15 @@
 /* SYNOPSIS
 /*	#include <match_ops.h>
 /*
-/*	int	match_string(flags, string, pattern)
-/*	int	flags;
+/*	int	match_string(string, pattern)
 /*	const char *string;
 /*	const char *pattern;
 /*
-/*	int	match_hostname(flags, name, pattern)
-/*	int	flags;
+/*	int	match_hostname(name, pattern)
 /*	const char *name;
 /*	const char *pattern;
 /*
-/*	int	match_hostaddr(flags, addr, pattern)
-/*	int	flags;
+/*	int	match_hostaddr(addr, pattern)
 /*	const char *addr;
 /*	const char *pattern;
 /* DESCRIPTION
@@ -27,24 +24,16 @@
 /*	or address comparison.
 /*
 /*	match_string() matches the string against the pattern, requiring
-/*	an exact (case-insensitive) match. The flags argument is not used.
+/*	an exact (case-insensitive) match.
 /*
 /*	match_hostname() matches the host name when the hostname matches
 /*	the pattern exactly, or when the pattern matches a parent domain
-/*	of the named host. The flags argument specifies the bit-wise OR
-/*	of zero or more of the following:
-/* .IP MATCH_FLAG_PARENT
-/*	The hostname pattern foo.com matches itself and any name below
-/*	the domain foo.com. If this flag is cleared, foo.com matches itself
-/*	only, and .foo.com matches any name below the domain foo.com.
-/* .RE
-/*	Specify MATCH_FLAG_NONE to request none of the above.
+/*	of the named host.
 /*
 /*	match_hostaddr() matches a host address when the pattern is
 /*	identical to the host address, or when the pattern is a net/mask
 /*	that contains the address. The mask specifies the number of
-/*	bits in the network part of the pattern. The flags argument is
-/*	not used.
+/*	bits in the network part of the pattern.
 /* LICENSE
 /* .ad
 /* .fi
@@ -83,7 +72,7 @@
 
 /* match_string - match a string literal */
 
-int     match_string(int unused_flags, const char *string, const char *pattern)
+int     match_string(const char *string, const char *pattern)
 {
     char   *myname = "match_string";
     int     match;
@@ -121,7 +110,7 @@ int     match_string(int unused_flags, const char *string, const char *pattern)
 
 /* match_hostname - match a host by name */
 
-int     match_hostname(int flags, const char *name, const char *pattern)
+int     match_hostname(const char *name, const char *pattern)
 {
     char   *myname = "match_hostname";
     const char *pd;
@@ -139,15 +128,13 @@ int     match_hostname(int flags, const char *name, const char *pattern)
     if (strchr(pattern, ':') != 0) {
 	temp = lowercase(mystrdup(name));
 	match = 0;
-	for (entry = temp; /* void */ ; entry = next) {
+	for (entry = temp; /* void */ ; entry = next + 1) {
 	    if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
 		break;
 	    if (dict_errno != 0)
 		msg_fatal("%s: table lookup problem", pattern);
-	    if ((next = strchr(entry + 1, '.')) == 0)
+	    if ((next = strchr(entry, '.')) == 0)
 		break;
-	    if (flags & MATCH_FLAG_PARENT)
-		next += 1;
 	}
 	myfree(temp);
 	return (match);
@@ -164,15 +151,9 @@ int     match_hostname(int flags, const char *name, const char *pattern)
      * See if the pattern is a parent domain of the hostname.
      */
     else {
-	if (flags & MATCH_FLAG_PARENT) {
-	    pd = name + strlen(name) - strlen(pattern);
-	    if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
-		return (1);
-	} else if (pattern[0] == '.') {
-	    pd = name + strlen(name) - strlen(pattern);
-	    if (pd > name && strcasecmp(pd, pattern) == 0)
-		return (1);
-	}
+	pd = name + strlen(name) - strlen(pattern);
+	if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
+	    return (1);
     }
     return (0);
 }
@@ -200,7 +181,7 @@ static int match_parse_mask(const char *pattern, unsigned long *net_bits,
 
 /* match_hostaddr - match host by address */
 
-int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
+int     match_hostaddr(const char *addr, const char *pattern)
 {
     char   *myname = "match_hostaddr";
     int     mask_shift;

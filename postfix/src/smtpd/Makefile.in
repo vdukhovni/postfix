@@ -176,8 +176,6 @@ smtpd_check.o: ../../include/htable.h
 smtpd_check.o: ../../include/ctable.h
 smtpd_check.o: ../../include/dns.h
 smtpd_check.o: ../../include/namadr_list.h
-smtpd_check.o: ../../include/match_list.h
-smtpd_check.o: ../../include/match_ops.h
 smtpd_check.o: ../../include/domain_list.h
 smtpd_check.o: ../../include/mail_params.h
 smtpd_check.o: ../../include/canon_addr.h
@@ -189,7 +187,6 @@ smtpd_check.o: ../../include/own_inet_addr.h
 smtpd_check.o: ../../include/mail_conf.h
 smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/mail_addr_find.h
-smtpd_check.o: ../../include/match_parent_style.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../../include/mail_stream.h
 smtpd_check.o: smtpd_sasl_glue.h
@@ -211,8 +208,6 @@ smtpd_sasl_glue.o: ../../include/sys_defs.h
 smtpd_sasl_glue.o: ../../include/msg.h
 smtpd_sasl_glue.o: ../../include/mymalloc.h
 smtpd_sasl_glue.o: ../../include/namadr_list.h
-smtpd_sasl_glue.o: ../../include/match_list.h
-smtpd_sasl_glue.o: ../../include/match_ops.h
 smtpd_sasl_glue.o: ../../include/name_mask.h
 smtpd_sasl_glue.o: ../../include/mail_params.h
 smtpd_sasl_glue.o: ../../include/smtp_stream.h

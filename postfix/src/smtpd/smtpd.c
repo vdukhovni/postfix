@@ -1281,7 +1281,7 @@ static void chat_reset(SMTPD_STATE *state)
      * report problems when running in stand-alone mode: postmaster notices
      * require availability of the cleanup service.
      */
-    if (state->history != 0 && SMTPD_STAND_ALONE(state) == 0
+    if (state->history != 0 && state->client != VSTREAM_IN
 	&& (state->error_mask & state->notify_mask))
 	smtpd_chat_notify(state);
     smtpd_chat_reset(state);

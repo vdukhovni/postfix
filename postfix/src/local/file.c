@@ -170,7 +170,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * As the mail system, bounce, defer delivery, or report success.
      */
     if (status != 0) {
-	status = (errno == EAGAIN || errno == ENOSPC || errno == ESTALE ?
+	status = (errno == EAGAIN || errno == ENOSPC ?
 		  defer_append : bounce_append)
 	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 	     "cannot append message to destination file %s: %s",

@@ -103,7 +103,6 @@ int     stream_trigger(const char *service, const char *buf, int len, int timeou
 	    msg_warn("%s: connect to %s: %m", myname, service);
 	return (-1);
     }
-    close_on_exec(fd, CLOSE_ON_EXEC);
 
     /*
      * Stash away context.
