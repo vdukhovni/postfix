@@ -49,6 +49,7 @@
 
 #include <msg.h>
 #include <iostuff.h>
+#include <safe_open.h>
 #include <trigger.h>
 
 /* fifo_trigger - wakeup fifo server */
@@ -56,18 +57,23 @@
 int     fifo_trigger(const char *service, const char *buf, int len, int timeout)
 {
     char   *myname = "fifo_trigger";
+    VSTREAM *fp;
     int     fd;
 
     /*
      * Write the request to the service fifo. According to POSIX, the open
      * shall always return immediately, and shall return an error when no
      * process is reading from the FIFO.
+     * 
+     * Use safe_open() so that we don't follow arbitrary symlinks.
      */
-    if ((fd = open(service, O_WRONLY | O_NONBLOCK, 0)) < 0) {
+    if ((fp = safe_open(service, O_WRONLY | O_NONBLOCK, 0,
+			(struct stat *) 0, -1, -1, (VSTRING *) 0)) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: open %s: %m", myname, service);
 	return (-1);
     }
+    fd = vstream_fileno(fp);
 
     /*
      * Write the request...
@@ -80,7 +86,7 @@ int     fifo_trigger(const char *service, const char *buf, int len, int timeout)
     /*
      * Disconnect.
      */
-    if (close(fd))
+    if (vstream_fclose(fp))
 	if (msg_verbose)
 	    msg_warn("%s: close %s: %m", myname, service);
     return (0);

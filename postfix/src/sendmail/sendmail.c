@@ -65,6 +65,9 @@
 /* .IP \fB-I\fR
 /*	Initialize alias database. See the \fBnewaliases\fR
 /*	command above.
+/* .IP "\fB-L \fIlabel\fR (ignored)"
+/*	The logging label. Use the \fBsyslog_name\fR configuration
+/*	parameter instead.
 /* .IP "\fB-N \fIdsn\fR (ignored)"
 /*	Delivery status notification control. Currently, Postfix does
 /*	not implement \fBDSN\fR.
@@ -860,7 +863,7 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if ((c = GETOPT(argc, argv, "B:C:F:GIN:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
+	if ((c = GETOPT(argc, argv, "B:C:F:GIL:N:R:UV:X:b:ce:f:h:imno:p:r:q:tvx")) <= 0)
 	    break;
 	switch (c) {
 	default:
@@ -869,19 +872,11 @@ int     main(int argc, char **argv)
 	    break;
 	case 'n':
 	    fatal_error(EX_USAGE, "-%c option not supported", c);
-	case 'B':				/* body type */
-	    break;
 	case 'F':				/* full name */
 	    full_name = optarg;
 	    break;
-	case 'G':				/* gateway submission */
-	    break;
 	case 'I':				/* newaliases */
 	    mode = SM_MODE_NEWALIAS;
-	    break;
-	case 'N':				/* DSN */
-	    break;
-	case 'R':				/* DSN */
 	    break;
 	case 'V':				/* VERP */
 	    if (verp_delims_verify(optarg) != 0)

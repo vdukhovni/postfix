@@ -5795,7 +5795,21 @@ Apologies for any names omitted.
 	when the next line starts with whitespace; a comment that
 	is preceded by whitespace does not break multi-line input.
 
+20011217
+
+	Compatibility: Sendmail now has a -L option to set the
+	syslogging label. Postfix sendmail uses syslog_name instead,
+	and ignores the -L option.
+
+	Security: subtle hardening of the Postfix chroot jail,
+	Postfix queue file permissions and access methods, in case
+	someone compromises the postfix account.  Michael Tokarev
+	claims he got the insights from Solar Designer.  Files:
+	master/master_wakeup.c, util/fifo_trigger.c, postfix-script.
+
 Open problems:
+
+	Low: warn about undomained hostnames instead of aborting.
 
 	Low: after reorganizing configuration parameters, add flags
 	to all parameters whose value can be read from file.

@@ -1,16 +1,18 @@
-Incompatible changes with snapshot-20011216
+Incompatible changes with snapshot-20011217
 ===========================================
 
-Postfix configuration file comments no longer span multiple lines
-when the next line starts with whitespace. This may cause unexpected
-behavior with existing, improperly formatted, configuration files.
+Postfix configuration file comments no longer continue on the next
+line when that next line starts with whitespace. This change avoids
+surprises, but it may cause unexpected behavior with existing,
+poorly formatted, configuration files. Caveat user.
 
-Major changes with snapshot-20011216
+Major changes with snapshot-20011217
 ====================================
 
 Postfix configuration files now support whitespace before comments.
 This allows you to comment out just one line in the middle of a
-block of multi-line input.
+block of multi-line input. A comment that starts at the beginning
+of a line always terminates previous data.
 
 Incompatible changes with snapshot-20011210
 ===========================================

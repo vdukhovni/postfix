@@ -690,6 +690,10 @@ fifo_trigger.o: fifo_trigger.c
 fifo_trigger.o: sys_defs.h
 fifo_trigger.o: msg.h
 fifo_trigger.o: iostuff.h
+fifo_trigger.o: safe_open.h
+fifo_trigger.o: vstream.h
+fifo_trigger.o: vbuf.h
+fifo_trigger.o: vstring.h
 fifo_trigger.o: trigger.h
 file_limit.o: file_limit.c
 file_limit.o: sys_defs.h

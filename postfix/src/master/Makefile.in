@@ -203,11 +203,14 @@ master_wakeup.o: ../../include/sys_defs.h
 master_wakeup.o: ../../include/msg.h
 master_wakeup.o: ../../include/trigger.h
 master_wakeup.o: ../../include/events.h
+master_wakeup.o: ../../include/set_eugid.h
+master_wakeup.o: ../../include/set_ugid.h
 master_wakeup.o: ../../include/mail_proto.h
 master_wakeup.o: ../../include/vstream.h
 master_wakeup.o: ../../include/vbuf.h
 master_wakeup.o: ../../include/iostuff.h
 master_wakeup.o: ../../include/attr.h
+master_wakeup.o: ../../include/mail_params.h
 master_wakeup.o: mail_server.h
 master_wakeup.o: master.h
 multi_server.o: multi_server.c

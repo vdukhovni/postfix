@@ -185,7 +185,6 @@ check)
 		$WARN creating missing Postfix pid directory
 		mkdir pid || exit 1
 		chmod 755 pid
-		chown $mail_owner pid
 	}
 	for dir in incoming active bounce defer deferred flush saved corrupt; do
 		test -d $dir || {
