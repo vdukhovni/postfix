@@ -7675,6 +7675,13 @@ Apologies for any names omitted.
 	parameter settings that are pre-authorized to use proxied
 	table lookups.  File: global/mail_params.h.
 
+20030305
+
+	Workaround: Postfix removes too long non-address text from
+	message headers in order to protect vulnerable Sendmail
+	systems against exploitation of the remote buffer overflow
+	vulnerability described in CERT advisory CA-2003-07.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

@@ -24,6 +24,14 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix version 2.0.6 (released 20030305)
+===================================================================
+
+Postfix truncates non-address information in message address headers
+(comments, etc.) to 250 characters per address, in order to protect
+vulnerable Sendmail systems against exploitation of a remote buffer
+overflow problem (CERT advisory CA-2003-07).
+
 Incompatible changes with Postfix version 2.0.5 (released 20030301)
 ===================================================================
 

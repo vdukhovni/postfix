@@ -238,7 +238,7 @@ tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
 	virtual8_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
-	./tok822_parse <tok822_parse.in >tok822_parse.tmp
+	./tok822_parse <tok822_parse.in >tok822_parse.tmp 2>&1
 	diff tok822_parse.ref tok822_parse.tmp
 	rm -f tok822_parse.tmp
 
