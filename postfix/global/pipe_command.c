@@ -51,6 +51,8 @@
 /* .IP "PIPE_CMD_DELIVERED (char *)"
 /*	The recipient envelope address, which is passed on to the
 /*	\fImail_copy\fR() routine.
+/* .IP "PIPE_CMD_EOL (char *)"
+/*	End-of-line delimiter. The default is to use the newline character.
 /* .IP "PIPE_CMD_UID (int)"
 /*	The user ID to execute the command as. The default is
 /*	the user ID corresponding to the \fIdefault_privs\fR
@@ -138,6 +140,7 @@ struct pipe_args {
     int     flags;			/* see mail_copy.h */
     char   *sender;			/* envelope sender */
     char   *delivered;			/* envelope recipient */
+    char   *eol;			/* carriagecontrol */
     char  **argv;			/* either an array */
     char   *command;			/* or a plain string */
     uid_t   uid;			/* privileges */
@@ -162,6 +165,7 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
     args->flags = 0;
     args->sender = 0;
     args->delivered = 0;
+    args->eol = "\n";
     args->argv = 0;
     args->command = 0;
     args->uid = var_default_uid;
@@ -184,6 +188,9 @@ static void get_pipe_args(struct pipe_args * args, va_list ap)
 	    break;
 	case PIPE_CMD_DELIVERED:
 	    args->delivered = va_arg(ap, char *);
+	    break;
+	case PIPE_CMD_EOL:
+	    args->eol = va_arg(ap, char *);
 	    break;
 	case PIPE_CMD_ARGV:
 	    if (args->command)
@@ -434,7 +441,8 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
 #define DONT_CARE_WHY	((VSTRING *) 0)
 
 	write_status = mail_copy(args.sender, args.delivered, src,
-				 cmd_in_stream, args.flags, DONT_CARE_WHY);
+				 cmd_in_stream, args.flags,
+				 args.eol, DONT_CARE_WHY);
 
 	/*
 	 * Capture a limited amount of command output, for inclusion in a

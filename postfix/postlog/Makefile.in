@@ -63,6 +63,7 @@ postlog.o: ../include/msg.h
 postlog.o: ../include/vstring.h
 postlog.o: ../include/vbuf.h
 postlog.o: ../include/vstream.h
+postlog.o: ../include/binattr.h
 postlog.o: ../include/vstring_vstream.h
 postlog.o: ../include/msg_output.h
 postlog.o: ../include/msg_vstream.h

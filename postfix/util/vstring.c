@@ -1,3 +1,4 @@
+/*++
 /* NAME
 /*	vstring 3
 /* SUMMARY
@@ -6,6 +7,11 @@
 /*	#include <vstring.h>
 /*
 /*	VSTRING	*vstring_alloc(len)
+/*	int	len;
+/*
+/*	VSTRING	*vstring_init(vp, buf, len)
+/*	VSTRING	*vp;
+/*	char	*buf;
 /*	int	len;
 /*
 /*	vstring_ctl(vp, type, value, ..., VSTRING_CTL_END)
@@ -99,6 +105,10 @@
 /*	vstring_alloc() allocates storage for a variable-length string
 /*	of at least "len" bytes. The minimal length is 1. The result
 /*	is a null-terminated string of length zero.
+/*
+/*	vstring_init() initializes a fixed-size buffer. Attempts to
+/*	allocate space beyond the buffer end cause the process to
+/*	terminate with a fatal run-time error.
 /*
 /*	vstring_ctl() gives control over memory management policy.
 /*	The function takes a VSTRING pointer and a list of zero
@@ -217,7 +227,7 @@
 
 #include <sys_defs.h>
 #include <stddef.h>
-#include <stdlib.h>		/* 44BSD stdarg.h uses abort() */
+#include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 #include <string.h>
 
@@ -292,6 +302,49 @@ VSTRING *vstring_alloc(int len)
     vp->vbuf.get_ready = vstring_buf_get_ready;
     vp->vbuf.put_ready = vstring_buf_put_ready;
     vp->vbuf.space = vstring_buf_space;
+    vp->maxlen = 0;
+    return (vp);
+}
+
+/* vstring_fixed_get_ready - vbuf callback for read buffer empty condition */
+
+static int vstring_fixed_get_ready(VBUF *unused_buf)
+{
+    msg_panic("vstring_fixed_get: write-only buffer");
+}
+
+/* vstring_fixed_put_ready - vbuf callback for write buffer full condition */
+
+static int vstring_fixed_put_ready(VBUF *unused_bp)
+{
+    msg_fatal("fixed-size string buffer full");
+}
+
+/* vstring_fixed_space - vbuf callback to reserve space */
+
+static int vstring_fixed_space(VBUF *bp, int len)
+{
+    if (len < 0)
+	msg_panic("vstring_fixed_space: bad length %d", len);
+    if (len - bp->cnt > 0)
+	msg_fatal("fixed-size string buffer full");
+    return (0);
+}
+
+/* vstring_init - initialize fixed-length buffer */
+
+VSTRING *vstring_init(VSTRING *vp, char *buf, int len)
+{
+    if (len < 1)
+	msg_panic("vstring_init: bad length %d", len);
+    vp->vbuf.flags = 0;
+    vp->vbuf.data = (unsigned char *) buf;
+    vp->vbuf.len = len;
+    VSTRING_RESET(vp);
+    vp->vbuf.data[0] = 0;
+    vp->vbuf.get_ready = vstring_fixed_get_ready;
+    vp->vbuf.put_ready = vstring_fixed_put_ready;
+    vp->vbuf.space = vstring_fixed_space;
     vp->maxlen = 0;
     return (vp);
 }

@@ -30,9 +30,8 @@ typedef struct VSTRING {
     int     maxlen;
 } VSTRING;
 
-extern void vstring_init(VSTRING *, int);
-extern void vstring_wipe(VSTRING *);
 extern VSTRING *vstring_alloc(int);
+extern VSTRING *vstring_init(VSTRING *, char *, int);
 extern void vstring_ctl(VSTRING *,...);
 extern VSTRING *vstring_truncate(VSTRING *, int);
 extern VSTRING *vstring_free(VSTRING *);

@@ -136,7 +136,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	    || (dst = vstream_fopen(tmpfile, O_WRONLY | O_CREAT | O_EXCL, 0600)) == 0)) {
 	vstring_sprintf(why, "create %s: %m", tmpfile);
     } else {
-	if (mail_copy(COPY_ATTR(state.msg_attr), dst, copy_flags, why) == 0) {
+	if (mail_copy(COPY_ATTR(state.msg_attr), dst, copy_flags, "\n", why) == 0) {
 	    if (sane_link(tmpfile, newfile) < 0
 		&& (errno != ENOENT
 		    || (make_dirs(curdir, 0700), make_dirs(newdir, 0700)) < 0

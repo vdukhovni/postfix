@@ -11,8 +11,14 @@
 /* DESCRIPTION
 /* .nf
 
- /* External interface. */
+ /*
+  * Utility library.
+  */
+#include <vstring.h>
 
+ /*
+  * External interface.
+  */
 extern char *printable(char *, int);
 extern char *lowercase(char *);
 extern char *skipblanks(const char *);
@@ -23,6 +29,7 @@ extern char *translit(char *, const char *, const char *);
 #ifndef HAVE_BASENAME
 extern char *basename(const char *);
 #endif
+extern VSTRING *unescape(VSTRING *, const char *);
 
 /* LICENSE
 /* .ad

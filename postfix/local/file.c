@@ -181,7 +181,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 			      path, STR(why));
 #endif
     } else if (mail_copy(COPY_ATTR(state.msg_attr), dst, S_ISREG(st.st_mode) ?
-		      copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), why)) {
+		      copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), "\n", why)) {
 	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			      "cannot append destination file %s: %s",
 			      path, STR(why));

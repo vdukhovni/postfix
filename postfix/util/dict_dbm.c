@@ -37,7 +37,11 @@
 /* System library. */
 
 #include <sys/stat.h>
+#ifdef PATH_NDBM_H
+#include PATH_NDBM_H
+#else
 #include <ndbm.h>
+#endif
 #include <string.h>
 #include <unistd.h>
 

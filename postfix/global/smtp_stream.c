@@ -6,7 +6,9 @@
 /* SYNOPSIS
 /*	#include <smtp_stream.h>
 /*
-/*	jmp_buf	smtp_timeout_buf;
+/*	void	smtp_jump_setup(stream, jbuf)
+/*	VSTREAM *stream;
+/*	jmp_buf	*jbuf;
 /*
 /*	void	smtp_timeout_setup(stream, timeout)
 /*	VSTREAM *stream;
@@ -43,6 +45,11 @@
 /*	This module reads and writes text records delimited by CR LF,
 /*	with error detection: timeouts or unexpected end-of-file.
 /*	A trailing CR LF is added upon writing and removed upon reading.
+/*
+/*	smtp_jump_setup() registers a caller context that will be
+/*	jumped to (with longjmp()) when any routine in this module
+/*	experiences an error condition (timeout, I/O error, or
+/*	unexpected EOF).
 /*
 /*	smtp_timeout_setup() arranges for a time limit on the smtp read
 /*	and write operations described below.
@@ -83,18 +90,18 @@
 /* .fi
 /* .ad
 /*	In case of error, a longjmp() is performed to the context
-/*	saved in the global \fIsmtp_timeout_buf\fR.
+/*	specified with the smtp_jump_setup() call.
 /*	Error codes passed along with longjmp() are:
 /* .IP SMTP_ERR_EOF
-/*	The peer has disconnected unexpectedly.
+/*	An I/O error happened, or the peer has disconnected unexpectedly.
 /* .IP SMTP_ERR_TIME
 /*	The time limit specified to smtp_timeout_setup() was exceeded.
 /* BUGS
-/*	The timeout etc. context is static, so this module can handle
-/*	only one SMTP session at a time.
+/*	The timeout deadline affects all I/O on the named stream, not
+/*	just the I/O done on behalf of this module.
 /*
-/*	The timeout protection, including longjmp(), affects all I/O
-/*	on the named stream, not just the I/O done by this module.
+/*	The timeout deadline and exception handling context overwrite
+/*	any previously set up state on the named stream.
 /* LICENSE
 /* .ad
 /* .fi
@@ -130,72 +137,45 @@
 
 #include "smtp_stream.h"
 
-jmp_buf smtp_timeout_buf;
-
  /*
-  * Timeout handling. When a timeout happens, we shut down the connection in
-  * the appropriate direction, to force the I/O operation to fail.
+  * Our private VSTREAM attribute name for keeping track of the
+  * caller-supplied context for exception handling.
   */
-static int smtp_timeout_done;
-static int smtp_maxtime;
+#define SMTP_ATTR_JBUF	"smtp_timeout_buf"
 
-#define SMTP_DIR_READ	0		/* read direction */
-#define SMTP_DIR_WRITE	1		/* write direction */
+/* smtp_timeout_jump - release timeout trap */
 
-/* smtp_timeout_event - timeout handler */
-
-static void smtp_timeout_event(int fd, int direction)
+static void smtp_timeout_jump(VSTREAM *stream, int what)
 {
+    char   *myname = "smtp_timeout_jump";
+    jmp_buf *jbuf;
 
-    /*
-     * Yes, this is gross, but we cannot longjump() away. Although timeouts
-     * are restricted to read() and write() operations, we could still leave
-     * things in an inconsistent state. Instead, we set a flag and force an
-     * I/O error on the smtp stream.
-     */
-    if (shutdown(fd, direction) < 0)
-	if (errno != ENOTCONN)
-	    msg_warn("smtp_timeout_event: shutdown: %m");
-    smtp_timeout_done = 1;
+    if ((jbuf = (jmp_buf *) vstream_attr_get(stream, SMTP_ATTR_JBUF)) == 0)
+	msg_panic("%s: no jump buffer", myname);
+    longjmp(jbuf[0], what);
 }
 
-/* smtp_read - read with timeout */
+/* smtp_jump_setup - configure exception handling context */
 
-static int smtp_read(int fd, void *buf, unsigned len)
+void    smtp_jump_setup(VSTREAM *stream, jmp_buf * jbuf)
 {
-    if (read_wait(fd, smtp_maxtime) < 0) {
-	smtp_timeout_event(fd, SMTP_DIR_READ);
-	return (-1);
-    } else {
-	return (read(fd, buf, len));
-    }
+    vstream_attr_set(stream, SMTP_ATTR_JBUF,
+		     (char *) jbuf, (VSTREAM_ATTR_FREE_FN) 0);
 }
 
-/* smtp_write - write with timeout */
+/* smtp_timeout_protect - reset per-stream timeout flag */
 
-static int smtp_write(int fd, void *buf, unsigned len)
+static void smtp_timeout_protect(VSTREAM *stream)
 {
-    if (write_wait(fd, smtp_maxtime) < 0) {
-	smtp_timeout_event(fd, SMTP_DIR_WRITE);
-	return (-1);
-    } else {
-	return (write(fd, buf, len));
-    }
+    vstream_clearerr(stream);
 }
 
-/* smtp_timeout_protect - setup timeout trap for specified stream. */
+/* smtp_timeout_detect - test the per-stream timeout flag */
 
-static void smtp_timeout_protect(void)
+static void smtp_timeout_detect(VSTREAM *stream)
 {
-    smtp_timeout_done = 0;
-}
-
-/* smtp_timeout_unprotect - finish timeout trap */
-
-static void smtp_timeout_unprotect(void)
-{
-    if (smtp_timeout_done)
-	longjmp(smtp_timeout_buf, SMTP_ERR_TIME);
+    if (vstream_ftimeout(stream))
+	smtp_timeout_jump(stream, SMTP_ERR_TIME);
 }
 
 /* smtp_timeout_setup - configure timeout trap */
@@ -204,21 +184,15 @@ void    smtp_timeout_setup(VSTREAM *stream, int maxtime)
 {
 
     /*
-     * XXX The timeout etc. state is static, so a process can have at most
-     * one SMTP session at a time. We could use the VSTREAM file descriptor
-     * number as key into a BINHASH table with per-stream contexts. This
-     * would allow us to talk to multiple SMTP streams at the same time.
-     * Another possibility is to use the file descriptor as an index into a
-     * linear table of structure pointers. In either case we would need to
-     * provide an smtp_timeout_cleanup() routine to dispose of memory that is
-     * no longer needed.
+     * Stick your TLS/whatever read-write routines here. Notice that the
+     * read/write interface now includes a timeout parameter, and that a
+     * read/write routine is supposed to set errno to ETIMEDOUT when the
+     * alarm clock goes off.
      */
     vstream_control(stream,
-		    VSTREAM_CTL_READ_FN, smtp_read,
-		    VSTREAM_CTL_WRITE_FN, smtp_write,
+		    VSTREAM_CTL_TIMEOUT, maxtime,
 		    VSTREAM_CTL_DOUBLE,
 		    VSTREAM_CTL_END);
-    smtp_maxtime = maxtime;
 }
 
 /* smtp_vprintf - write one line to SMTP peer */
@@ -230,11 +204,11 @@ void    smtp_vprintf(VSTREAM *stream, const char *fmt, va_list ap)
     /*
      * Do the I/O, protected against timeout.
      */
-    smtp_timeout_protect();
+    smtp_timeout_protect(stream);
     vstream_vfprintf(stream, fmt, ap);
     vstream_fputs("\r\n", stream);
     err = vstream_fflush(stream);
-    smtp_timeout_unprotect();
+    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
@@ -242,7 +216,7 @@ void    smtp_vprintf(VSTREAM *stream, const char *fmt, va_list ap)
     if (err != 0) {
 	if (msg_verbose)
 	    msg_info("smtp_vprintf: EOF");
-	longjmp(smtp_timeout_buf, SMTP_ERR_EOF);
+	smtp_timeout_jump(stream, SMTP_ERR_EOF);
     }
 }
 
@@ -270,7 +244,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
      * allow for lines ending in bare LF. The idea is to be liberal in what
      * we accept, strict in what we send.
      */
-    smtp_timeout_protect();
+    smtp_timeout_protect(stream);
     last_char = (bound == 0 ? vstring_get(vp, stream) :
 		 vstring_get_bound(vp, stream, bound));
 
@@ -308,7 +282,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
     default:
 	break;
     }
-    smtp_timeout_unprotect();
+    smtp_timeout_detect(stream);
 
     /*
      * EOF is bad, whether or not it happens in the middle of a record. Don't
@@ -317,7 +291,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, int bound)
     if (vstream_feof(stream) || vstream_ferror(stream)) {
 	if (msg_verbose)
 	    msg_info("smtp_get: EOF");
-	longjmp(smtp_timeout_buf, SMTP_ERR_EOF);
+	smtp_timeout_jump(stream, SMTP_ERR_EOF);
     }
     return (last_char);
 }
@@ -334,10 +308,10 @@ void    smtp_fputs(const char *cp, int todo, VSTREAM *stream)
     /*
      * Do the I/O, protected against timeout.
      */
-    smtp_timeout_protect();
+    smtp_timeout_protect(stream);
     err = (vstream_fwrite(stream, cp, todo) != todo
 	   || vstream_fputs("\r\n", stream) == VSTREAM_EOF);
-    smtp_timeout_unprotect();
+    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
@@ -345,7 +319,7 @@ void    smtp_fputs(const char *cp, int todo, VSTREAM *stream)
     if (err != 0) {
 	if (msg_verbose)
 	    msg_info("smtp_fputs: EOF");
-	longjmp(smtp_timeout_buf, SMTP_ERR_EOF);
+	smtp_timeout_jump(stream, SMTP_ERR_EOF);
     }
 }
 
@@ -361,9 +335,9 @@ void    smtp_fwrite(const char *cp, int todo, VSTREAM *stream)
     /*
      * Do the I/O, protected against timeout.
      */
-    smtp_timeout_protect();
+    smtp_timeout_protect(stream);
     err = (vstream_fwrite(stream, cp, todo) != todo);
-    smtp_timeout_unprotect();
+    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
@@ -371,7 +345,7 @@ void    smtp_fwrite(const char *cp, int todo, VSTREAM *stream)
     if (err != 0) {
 	if (msg_verbose)
 	    msg_info("smtp_fwrite: EOF");
-	longjmp(smtp_timeout_buf, SMTP_ERR_EOF);
+	smtp_timeout_jump(stream, SMTP_ERR_EOF);
     }
 }
 
@@ -384,9 +358,9 @@ void    smtp_fputc(int ch, VSTREAM *stream)
     /*
      * Do the I/O, protected against timeout.
      */
-    smtp_timeout_protect();
+    smtp_timeout_protect(stream);
     stat = VSTREAM_PUTC(ch, stream);
-    smtp_timeout_unprotect();
+    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
@@ -394,6 +368,6 @@ void    smtp_fputc(int ch, VSTREAM *stream)
     if (stat == VSTREAM_EOF) {
 	if (msg_verbose)
 	    msg_info("smtp_fputc: EOF");
-	longjmp(smtp_timeout_buf, SMTP_ERR_EOF);
+	smtp_timeout_jump(stream, SMTP_ERR_EOF);
     }
 }

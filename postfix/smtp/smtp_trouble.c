@@ -91,7 +91,6 @@
 
 #include <sys_defs.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
-#include <setjmp.h>
 #include <stdarg.h>
 
 /* Utility library. */

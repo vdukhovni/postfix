@@ -198,6 +198,7 @@
 #include <debug_peer.h>
 #include <mail_error.h>
 #include <deliver_pass.h>
+#include <smtp_stream.h>
 
 /* Single server skeleton. */
 
@@ -291,6 +292,7 @@ static int deliver_message(DELIVER_REQUEST *request)
 			   "%s", vstring_str(why));
     } else {
 	debug_peer_check(state->session->host, state->session->addr);
+	smtp_jump_setup(state->session->stream, state->jbuf);
 	if (smtp_helo(state) == 0)
 	    smtp_xfer(state);
 	if (state->history != 0

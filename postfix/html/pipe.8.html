@@ -71,6 +71,11 @@ PIPE(8)                                                   PIPE(8)
 PIPE(8)                                                   PIPE(8)
 
 
+       <b>eol=string</b> (default: <b>\n</b>)
+              The output record delimiter.  Typically  one  would
+              use either <b>\r\n</b> or <b>\n</b>. You can specify the usual C-
+              style backslash escape sequences.
+
        <b>argv</b>=<i>command</i>... (required)
               The command to be executed. This must be  specified
               as the last command attribute.  The command is exe-
@@ -121,11 +126,6 @@ PIPE(8)                                                   PIPE(8)
                      <b>${user</b>} expands into  as  many  command-line
                      arguments as there are recipients.
 
-       In  addition  to  the  form  ${<i>name</i>},  the forms $<i>name</i> and
-       $(<i>name</i>) are also recognized.  Specify <b>$$</b> where a single  <b>$</b>
-       is wanted.
-
-
 
 
                                                                 2
@@ -136,6 +136,10 @@ PIPE(8)                                                   PIPE(8)
 
 PIPE(8)                                                   PIPE(8)
 
+
+       In  addition  to  the  form  ${<i>name</i>},  the forms $<i>name</i> and
+       $(<i>name</i>) are also recognized.  Specify <b>$$</b> where a single  <b>$</b>
+       is wanted.
 
 <b>DIAGNOSTICS</b>
        Command  exit status codes are expected to follow the con-
@@ -187,10 +191,6 @@ PIPE(8)                                                   PIPE(8)
               ter.  The limit is enforced by  the  Postfix  queue
               manager.
 
-<b>SEE</b> <b>ALSO</b>
-       <a href="bounce.8.html">bounce(8)</a> non-delivery status reports
-       <a href="master.8.html">master(8)</a> process manager
-       <a href="qmgr.8.html">qmgr(8)</a> queue manager
 
 
 
@@ -203,6 +203,10 @@ PIPE(8)                                                   PIPE(8)
 PIPE(8)                                                   PIPE(8)
 
 
+<b>SEE</b> <b>ALSO</b>
+       <a href="bounce.8.html">bounce(8)</a> non-delivery status reports
+       <a href="master.8.html">master(8)</a> process manager
+       <a href="qmgr.8.html">qmgr(8)</a> queue manager
        syslogd(8) system logging
 
 <b>LICENSE</b>
@@ -214,10 +218,6 @@ PIPE(8)                                                   PIPE(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
 
 
 

@@ -60,6 +60,7 @@ postsuper.o: ../include/msg.h
 postsuper.o: ../include/msg_syslog.h
 postsuper.o: ../include/vstream.h
 postsuper.o: ../include/vbuf.h
+postsuper.o: ../include/binattr.h
 postsuper.o: ../include/msg_vstream.h
 postsuper.o: ../include/scan_dir.h
 postsuper.o: ../include/vstring.h

@@ -6,12 +6,13 @@
 /* SYNOPSIS
 /*	#include <mail_copy.h>
 /*
-/*	int	mail_copy(sender, delivered, src, dst, flags, why)
+/*	int	mail_copy(sender, delivered, src, dst, flags, eol, why)
 /*	const char *sender;
 /*	const char *delivered;
 /*	VSTREAM	*src;
 /*	VSTREAM	*dst;
 /*	int	flags;
+/*	const char *eol;
 /*	VSTRING	*why;
 /* DESCRIPTION
 /*	mail_copy() copies a mail message from record stream to stream-lf
@@ -53,6 +54,8 @@
 /*	The manifest constant MAIL_COPY_MBOX is a convenient shorthand for
 /*	all MAIL_COPY_XXX options that are appropriate for mailbox delivery.
 /*	Use MAIL_COPY_NONE to copy a message without any options enabled.
+/* .IP eol
+/*	Record delimiter, for example, LF or CF LF.
 /* .IP why
 /*	A null pointer, or storage for the reason of failure.
 /* DIAGNOSTICS
@@ -101,7 +104,7 @@
 
 int     mail_copy(const char *sender, const char *delivered,
 		          VSTREAM *src, VSTREAM *dst,
-		          int flags, VSTRING *why)
+		          int flags, const char *eol, VSTRING *why)
 {
     char   *myname = "mail_copy";
     VSTRING *buf;
@@ -139,15 +142,16 @@ int     mail_copy(const char *sender, const char *delivered,
 			    asctime(localtime(&now)));
 	}
 	if (flags & MAIL_COPY_RETURN_PATH) {
-	    vstream_fprintf(dst, "Return-Path: <%s>\n",
-			    *sender ? vstring_str(buf) : "");
+	    vstream_fprintf(dst, "Return-Path: <%s>%s",
+			    *sender ? vstring_str(buf) : "", eol);
 	}
     }
     if (flags & MAIL_COPY_DELIVERED) {
 	if (delivered == 0)
 	    msg_panic("%s: null delivered", myname);
 	quote_822_local(buf, delivered);
-	vstream_fprintf(dst, "Delivered-To: %s\n", lowercase(vstring_str(buf)));
+	vstream_fprintf(dst, "Delivered-To: %s%s",
+			lowercase(vstring_str(buf)), eol);
     }
 
     /*
@@ -166,13 +170,15 @@ int     mail_copy(const char *sender, const char *delivered,
 	if (type != REC_TYPE_NORM && type != REC_TYPE_CONT)
 	    break;
 	bp = vstring_str(buf);
-	if ((flags & MAIL_COPY_QUOTE) && *bp == 'F' && !strncmp(bp, "From ", 5))
-	    VSTREAM_PUTC('>', dst);
-	if ((flags & MAIL_COPY_DOT) && *bp == '.')
-	    VSTREAM_PUTC('.', dst);
+	if (prev_type == REC_TYPE_NORM) {
+	    if ((flags & MAIL_COPY_QUOTE) && *bp == 'F' && !strncmp(bp, "From ", 5))
+		VSTREAM_PUTC('>', dst);
+	    if ((flags & MAIL_COPY_DOT) && *bp == '.')
+		VSTREAM_PUTC('.', dst);
+	}
 	if (VSTRING_LEN(buf) && VSTREAM_FWRITE_BUF(dst, buf) != VSTRING_LEN(buf))
 	    break;
-	if (type == REC_TYPE_NORM && VSTREAM_PUTC('\n', dst) == VSTREAM_EOF)
+	if (type == REC_TYPE_NORM && vstream_fputs(eol, dst) == VSTREAM_EOF)
 	    break;
 	prev_type = type;
     }
@@ -180,9 +186,9 @@ int     mail_copy(const char *sender, const char *delivered,
 	if (type != REC_TYPE_XTRA)
 	    corrupt_error = mark_corrupt(src);
 	if (prev_type != REC_TYPE_NORM)
-	    VSTREAM_PUTC('\n', dst);
+	    vstream_fputs(eol, dst);
 	if (flags & MAIL_COPY_FROM)
-	    VSTREAM_PUTC('\n', dst);
+	    vstream_fputs(eol, dst);
     }
     vstring_free(buf);
 

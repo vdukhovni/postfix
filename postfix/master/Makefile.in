@@ -88,6 +88,7 @@ master.o: ../include/vbuf.h
 master.o: ../include/mymalloc.h
 master.o: ../include/iostuff.h
 master.o: ../include/vstream.h
+master.o: ../include/binattr.h
 master.o: ../include/stringops.h
 master.o: ../include/myflock.h
 master.o: ../include/watchdog.h
@@ -115,6 +116,7 @@ master_ent.o: ../include/mymalloc.h
 master_ent.o: ../include/vstring.h
 master_ent.o: ../include/vbuf.h
 master_ent.o: ../include/vstream.h
+master_ent.o: ../include/binattr.h
 master_ent.o: ../include/argv.h
 master_ent.o: ../include/stringops.h
 master_ent.o: ../include/readlline.h
@@ -132,6 +134,8 @@ master_listen.o: ../include/listen.h
 master_listen.o: ../include/iostuff.h
 master_listen.o: ../include/mymalloc.h
 master_listen.o: ../include/stringops.h
+master_listen.o: ../include/vstring.h
+master_listen.o: ../include/vbuf.h
 master_listen.o: ../include/inet_addr_list.h
 master_listen.o: ../include/set_eugid.h
 master_listen.o: ../include/mail_params.h
@@ -171,6 +175,8 @@ master_vars.o: master_vars.c
 master_vars.o: ../include/sys_defs.h
 master_vars.o: ../include/msg.h
 master_vars.o: ../include/stringops.h
+master_vars.o: ../include/vstring.h
+master_vars.o: ../include/vbuf.h
 master_vars.o: ../include/mymalloc.h
 master_vars.o: ../include/mail_conf.h
 master_vars.o: ../include/mail_params.h
@@ -183,6 +189,7 @@ master_wakeup.o: ../include/events.h
 master_wakeup.o: ../include/mail_proto.h
 master_wakeup.o: ../include/vstream.h
 master_wakeup.o: ../include/vbuf.h
+master_wakeup.o: ../include/binattr.h
 master_wakeup.o: ../include/iostuff.h
 master_wakeup.o: mail_server.h
 master_wakeup.o: master.h
@@ -197,6 +204,7 @@ multi_server.o: ../include/events.h
 multi_server.o: ../include/vstring.h
 multi_server.o: ../include/vbuf.h
 multi_server.o: ../include/vstream.h
+multi_server.o: ../include/binattr.h
 multi_server.o: ../include/msg_vstream.h
 multi_server.o: ../include/mymalloc.h
 multi_server.o: ../include/stringops.h
@@ -204,6 +212,7 @@ multi_server.o: ../include/sane_accept.h
 multi_server.o: ../include/myflock.h
 multi_server.o: ../include/safe_open.h
 multi_server.o: ../include/watchdog.h
+multi_server.o: ../include/split_at.h
 multi_server.o: ../include/mail_task.h
 multi_server.o: ../include/debug_process.h
 multi_server.o: ../include/mail_params.h
@@ -220,6 +229,7 @@ single_server.o: ../include/chroot_uid.h
 single_server.o: ../include/vstring.h
 single_server.o: ../include/vbuf.h
 single_server.o: ../include/vstream.h
+single_server.o: ../include/binattr.h
 single_server.o: ../include/msg_vstream.h
 single_server.o: ../include/mymalloc.h
 single_server.o: ../include/events.h
@@ -230,6 +240,7 @@ single_server.o: ../include/myflock.h
 single_server.o: ../include/safe_open.h
 single_server.o: ../include/listen.h
 single_server.o: ../include/watchdog.h
+single_server.o: ../include/split_at.h
 single_server.o: ../include/mail_params.h
 single_server.o: ../include/mail_task.h
 single_server.o: ../include/debug_process.h
@@ -246,6 +257,7 @@ trigger_server.o: ../include/chroot_uid.h
 trigger_server.o: ../include/vstring.h
 trigger_server.o: ../include/vbuf.h
 trigger_server.o: ../include/vstream.h
+trigger_server.o: ../include/binattr.h
 trigger_server.o: ../include/msg_vstream.h
 trigger_server.o: ../include/mymalloc.h
 trigger_server.o: ../include/events.h
@@ -256,6 +268,7 @@ trigger_server.o: ../include/myflock.h
 trigger_server.o: ../include/safe_open.h
 trigger_server.o: ../include/listen.h
 trigger_server.o: ../include/watchdog.h
+trigger_server.o: ../include/split_at.h
 trigger_server.o: ../include/mail_params.h
 trigger_server.o: ../include/mail_task.h
 trigger_server.o: ../include/debug_process.h

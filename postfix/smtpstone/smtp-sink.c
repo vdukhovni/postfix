@@ -74,6 +74,7 @@ typedef struct SINK_STATE {
     int     data_state;
     int     (*read) (struct SINK_STATE *);
     int     rcpts;
+    jmp_buf jbuf[1];
 } SINK_STATE;
 
 #define ST_ANY			0
@@ -284,7 +285,7 @@ static void read_event(int unused_event, char *context)
     SINK_STATE *state = (SINK_STATE *) context;
 
     do {
-	switch (setjmp(smtp_timeout_buf)) {
+	switch (setjmp(state->jbuf[0])) {
 
 	default:
 	    msg_panic("unknown error reading input");
@@ -334,6 +335,7 @@ static void connect_event(int unused_event, char *context)
 	state->stream = vstream_fdopen(fd, O_RDWR);
 	state->read = command_read;
 	state->data_state = 0;
+	smtp_jump_setup(state->stream, state->jbuf);
 	smtp_timeout_setup(state->stream, var_tmout);
 	smtp_printf(state->stream, "220 %s ESMTP", var_myhostname);
 	event_enable_read(fd, read_event, (char *) state);

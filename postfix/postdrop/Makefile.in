@@ -59,6 +59,7 @@ postdrop.o: ../include/msg.h
 postdrop.o: ../include/mymalloc.h
 postdrop.o: ../include/vstream.h
 postdrop.o: ../include/vbuf.h
+postdrop.o: ../include/binattr.h
 postdrop.o: ../include/vstring.h
 postdrop.o: ../include/msg_vstream.h
 postdrop.o: ../include/msg_syslog.h

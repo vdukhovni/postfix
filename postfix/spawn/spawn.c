@@ -68,7 +68,7 @@
 /* .IP \fIservice\fB_command_time_limit\fR
 /*	The amount of time the command is allowed to run before it is
 /*	killed with force. The \fIservice\fR name is the name of the entry
-/*	in the \fBmastr.cf\fR file. The default time limit is given by the
+/*	in the \fBmaster.cf\fR file. The default time limit is given by the
 /*	global \fBcommand_time_limit\fR configuration parameter.
 /* SEE ALSO
 /*	master(8) process manager

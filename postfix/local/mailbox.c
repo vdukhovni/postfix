@@ -191,7 +191,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    if (deliver_flock(vstream_fileno(dst), why) < 0)
 		vstream_fclose(dst);
 	    else if (mail_copy(COPY_ATTR(state.msg_attr), dst,
-			       copy_flags, why) == 0) {
+			       copy_flags, "\n", why) == 0) {
 		status = 0;
 		if (var_biff) {
 		    biff = vstring_alloc(100);

@@ -158,7 +158,7 @@ int     smtp_helo(SMTP_STATE *state)
      * Prepare for disaster.
      */
     smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
-    if ((except = setjmp(smtp_timeout_buf)) != 0)
+    if ((except = setjmp(state->jbuf[0])) != 0)
 	return (smtp_stream_except(state, except, "sending HELO"));
 
     /*
@@ -439,7 +439,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		 */
 		smtp_timeout_setup(state->session->stream,
 				   *xfer_timeouts[recv_state]);
-		if ((except = setjmp(smtp_timeout_buf)) != 0)
+		if ((except = setjmp(state->jbuf[0])) != 0)
 		    RETURN(smtp_stream_except(state, except,
 					      xfer_states[recv_state]));
 		resp = smtp_chat_resp(state);
@@ -591,7 +591,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	if (send_state == SMTP_STATE_DOT && nrcpt > 0) {
 	    smtp_timeout_setup(state->session->stream,
 			       var_smtp_data1_tmout);
-	    if ((except = setjmp(smtp_timeout_buf)) != 0)
+	    if ((except = setjmp(state->jbuf[0])) != 0)
 		RETURN(smtp_stream_except(state, except,
 					  "sending message body"));
 

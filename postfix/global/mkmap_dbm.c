@@ -47,7 +47,11 @@
 #include "mkmap.h"
 
 #ifdef HAS_DBM
+#ifdef PATH_NDBM_H
+#include PATH_NDBM_H
+#else
 #include <ndbm.h>
+#endif
 
 /* mkmap_dbm_open - create or open database */
 

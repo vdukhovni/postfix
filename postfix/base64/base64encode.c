@@ -36,7 +36,6 @@ static VSTRING *unescape(VSTRING *unescaped, VSTRING *input)
     while ((ch = *UCHAR(cp++)) != 0) {
 	switch (ch) {
 	case '\\':
-	    oval = 0;
 	    for (oval = 0, i = 0; i < 3 && (ch = *UCHAR(cp)) != 0; i++) {
 		if (!ISDIGIT(ch) || ch == '8' || ch == '9')
 		    break;

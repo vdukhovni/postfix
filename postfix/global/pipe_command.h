@@ -36,6 +36,7 @@
 #define PIPE_CMD_TIME_LIMIT	8	/* time limit */
 #define PIPE_CMD_ENV		9	/* extra environment */
 #define PIPE_CMD_SHELL		10	/* alternative shell */
+#define PIPE_CMD_EOL		11	/* record delimiter */
 
  /*
   * Command completion status.

@@ -379,7 +379,8 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
     /*
      * Add a missing destination header.
      */
-#define VISIBLE_RCPT	(HDR_TO | HDR_RESENT_TO | HDR_CC | HDR_RESENT_CC)
+#define VISIBLE_RCPT	((1 << HDR_TO) | (1 << HDR_RESENT_TO) \
+			| (1 << HDR_CC) | (1 << HDR_RESENT_CC))
 
     if ((state->headers_seen & VISIBLE_RCPT) == 0)
 	cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);

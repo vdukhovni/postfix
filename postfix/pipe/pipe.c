@@ -49,6 +49,10 @@
 /*	mail system owner. If \fIgroupname\fR is specified, the
 /*	corresponding group ID is used instead of the group ID of
 /*	\fIusername\fR.
+/* .IP "\fBeol=string\fR (default: \fB\en\fR)"
+/*	The output record delimiter. Typically one would use either
+/*	\fB\er\en\fR or \fB\en\fR. You can specify the usual C-style
+/*	backslash escape sequences.
 /* .IP "\fBargv\fR=\fIcommand\fR... (required)"
 /*	The command to be executed. This must be specified as the
 /*	last command attribute.
@@ -249,6 +253,7 @@ typedef struct {
     uid_t   uid;			/* command privileges */
     gid_t   gid;			/* command privileges */
     int     flags;			/* mail_copy() flags */
+    VSTRING *eol;			/* output record delimiter */
 } PIPE_ATTR;
 
 /* parse_callback - callback for mac_parse() */
@@ -418,6 +423,7 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
     group = 0;
     attr->command = 0;
     attr->flags = 0;
+    attr->eol = vstring_strcpy(vstring_alloc(1), "\n");
 
     /*
      * Iterate over the command-line attribute list.
@@ -467,6 +473,13 @@ static void get_service_attr(PIPE_ATTR *attr, char **argv)
 	    } else {
 		attr->gid = pwd->pw_gid;
 	    }
+	}
+
+	/*
+	 * eol=string
+	 */
+	else if (strncasecmp("eol=", *argv, sizeof("eol=") - 1) == 0) {
+	    unescape(attr->eol, *argv + sizeof("eol=") -1);
 	}
 
 	/*
@@ -627,6 +640,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 				  PIPE_CMD_COPY_FLAGS, attr.flags,
 				  PIPE_CMD_ARGV, expanded_argv->argv,
 				  PIPE_CMD_TIME_LIMIT, conf.time_limit,
+				  PIPE_CMD_EOL, STR(attr.eol),
 				  PIPE_CMD_END);
 
     deliver_status = eval_command_status(command_status, service, request,

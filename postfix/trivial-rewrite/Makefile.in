@@ -65,6 +65,7 @@ resolve.o: ../include/msg.h
 resolve.o: ../include/vstring.h
 resolve.o: ../include/vbuf.h
 resolve.o: ../include/vstream.h
+resolve.o: ../include/binattr.h
 resolve.o: ../include/vstring_vstream.h
 resolve.o: ../include/split_at.h
 resolve.o: ../include/mail_params.h
@@ -85,6 +86,7 @@ rewrite.o: ../include/msg.h
 rewrite.o: ../include/vstring.h
 rewrite.o: ../include/vbuf.h
 rewrite.o: ../include/vstream.h
+rewrite.o: ../include/binattr.h
 rewrite.o: ../include/vstring_vstream.h
 rewrite.o: ../include/split_at.h
 rewrite.o: ../include/mail_params.h
@@ -99,12 +101,13 @@ transport.o: transport.c
 transport.o: ../include/sys_defs.h
 transport.o: ../include/msg.h
 transport.o: ../include/stringops.h
-transport.o: ../include/mymalloc.h
 transport.o: ../include/vstring.h
 transport.o: ../include/vbuf.h
+transport.o: ../include/mymalloc.h
 transport.o: ../include/split_at.h
 transport.o: ../include/dict.h
 transport.o: ../include/vstream.h
+transport.o: ../include/binattr.h
 transport.o: ../include/argv.h
 transport.o: ../include/mail_params.h
 transport.o: ../include/maps.h
@@ -115,6 +118,7 @@ trivial-rewrite.o: ../include/msg.h
 trivial-rewrite.o: ../include/vstring.h
 trivial-rewrite.o: ../include/vbuf.h
 trivial-rewrite.o: ../include/vstream.h
+trivial-rewrite.o: ../include/binattr.h
 trivial-rewrite.o: ../include/vstring_vstream.h
 trivial-rewrite.o: ../include/split_at.h
 trivial-rewrite.o: ../include/stringops.h

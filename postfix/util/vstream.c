@@ -75,6 +75,9 @@
 /*	int	vstream_ferror(stream)
 /*	VSTREAM	*stream;
 /*
+/*	int	vstream_ftimeout(stream)
+/*	VSTREAM	*stream;
+/*
 /*	int	vstream_feof(stream)
 /*	VSTREAM	*stream;
 /*
@@ -199,11 +202,11 @@
 /*	The following lists the names and the types of the corresponding
 /*	value arguments.
 /* .IP "VSTREAM_CTL_READ_FN (int (*)(int, void *, unsigned))"
-/*	The argument specifies an alternative for the read(2) function,
-/*	for example, a read function that enforces a time limit.
+/*	The argument specifies an alternative for the timed_read(3) function,
+/*	for example, a read function that performs encryption.
 /* .IP "VSTREAM_CTL_WRITE_FN (int (*)(int, void *, unsigned))"
-/*	The argument specifies an alternative for the write(2) function,
-/*	for example, a write function that enforces a time limit.
+/*	The argument specifies an alternative for the timed_write(3) function,
+/*	for example, a write function that performs encryption.
 /* .IP "VSTREAM_CTL_PATH (char *)"
 /*	Updates the stored pathname of the specified stream. The pathname
 /*	is copied.
@@ -221,6 +224,10 @@
 /* .IP "VSTREAM_CTL_WAITPID_FN (int (*)(pid_t, WAIT_STATUS_T *, int))"
 /*	A pointer to function that behaves like waitpid(). This information
 /*	is used by the vstream_pclose() routine.
+/* .IP "VSTREAM_CTL_TIMEOUT (int)
+/*	The deadline for a descriptor to become readable in case of a read
+/*	request, or writable in case of a write request. Specify a value
+/*	<= 0 to disable deadlines.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -230,12 +237,17 @@
 /*	with vstream_fopen() or with vstream_control(). The macro is
 /*	unsafe because it evaluates some arguments more than once.
 /*
-/*	vstream_ferror() (vstream_feof()) returns non-zero when a previous
-/*	operation on the specified stream caused an error (end-of-file)
-/*	condition.
+/*	vstream_feof() returns non-zero when a previous operation on the
+/*	specified stream caused an end-of-file condition.
 /*
-/*	vstream_clearerr() resets the error and end-of-file indication of
-/*	specified stream, and returns no useful result.
+/*	vstream_ferror() returns non-zero when a previous operation on the
+/*	specified stream caused a non-EOF error condition, including timeout.
+/*
+/*	vstream_ftimeout() returns non-zero when a previous operation on the
+/*	specified stream caused a timeout error condition.
+/*
+/*	vstream_clearerr() resets the timeout, error and end-of-file indication
+/*	of the specified stream, and returns no useful result.
 /*
 /*	vstream_vfprintf() provides an alternate interface
 /*	for formatting an argument list according to a format string.
@@ -245,6 +257,8 @@
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
+/*	timed_read(3) default read routine
+/*	timed_write(3) default write routine
 /*	vbuf_print(3) formatting engine
 /* BUGS
 /*	Should use mmap() on reasonable systems.
@@ -275,7 +289,9 @@
 #include "mymalloc.h"
 #include "msg.h"
 #include "vbuf_print.h"
+#include "iostuff.h"
 #include "vstring.h"
+#include "binattr.h"
 #include "vstream.h"
 
 /* Application-specific. */
@@ -299,17 +315,17 @@ VSTREAM vstream_fstd[] = {
 	    0,				/* flags */
 	    0, 0, 0, 0,			/* buffer */
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
-    }, STDIN_FILENO, (VSTREAM_FN) read, (VSTREAM_FN) write,},
+    }, STDIN_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,},
     {{
 	    0,				/* flags */
 	    0, 0, 0, 0,			/* buffer */
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
-    }, STDOUT_FILENO, (VSTREAM_FN) read, (VSTREAM_FN) write,},
+    }, STDOUT_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,},
     {{
 	    VBUF_FLAG_FIXED | VSTREAM_FLAG_WRITE,
 	    vstream_fstd_buf, VSTREAM_BUFSIZE, VSTREAM_BUFSIZE, vstream_fstd_buf,
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
-    }, STDERR_FILENO, (VSTREAM_FN) read, (VSTREAM_FN) write,},
+    }, STDERR_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,},
 };
 
 #define VSTREAM_STATIC(v) ((v) >= VSTREAM_IN && (v) <= VSTREAM_ERR)
@@ -483,8 +499,10 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
      * any.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
-	if ((n = stream->write_fn(stream->fd, data, len)) <= 0) {
+	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout)) <= 0) {
 	    bp->flags |= VSTREAM_FLAG_ERR;
+	    if (errno == ETIMEDOUT)
+		bp->flags |= VSTREAM_FLAG_TIMEOUT;
 	    return (VSTREAM_EOF);
 	}
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
@@ -607,9 +625,11 @@ static int vstream_buf_get_ready(VBUF *bp)
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
      */
-    switch (n = stream->read_fn(stream->fd, bp->data, bp->len)) {
+    switch (n = stream->read_fn(stream->fd, bp->data, bp->len, stream->timeout)) {
     case -1:
 	bp->flags |= VSTREAM_FLAG_ERR;
+	if (errno == ETIMEDOUT)
+	    bp->flags |= VSTREAM_FLAG_TIMEOUT;
 	return (VSTREAM_EOF);
     case 0:
 	bp->flags |= VSTREAM_FLAG_EOF;
@@ -846,13 +866,15 @@ VSTREAM *vstream_fdopen(int fd, int flags)
      */
     stream = (VSTREAM *) mymalloc(sizeof(*stream));
     stream->fd = fd;
-    stream->read_fn = VSTREAM_CAN_READ(flags) ? (VSTREAM_FN) read : 0;
-    stream->write_fn = VSTREAM_CAN_WRITE(flags) ? (VSTREAM_FN) write : 0;
+    stream->read_fn = VSTREAM_CAN_READ(flags) ? (VSTREAM_FN) timed_read : 0;
+    stream->write_fn = VSTREAM_CAN_WRITE(flags) ? (VSTREAM_FN) timed_write : 0;
     vstream_buf_init(&stream->buf, flags);
     stream->offset = 0;
     stream->path = 0;
     stream->pid = 0;
     stream->waitpid_fn = 0;
+    stream->timeout = 0;
+    stream->attr = 0;
     return (stream);
 }
 
@@ -907,6 +929,8 @@ int     vstream_fclose(VSTREAM *stream)
     }
     if (stream->path)
 	myfree(stream->path);
+    if (stream->attr)
+	binattr_free(stream->attr);
     if (!VSTREAM_STATIC(stream))
 	myfree((char *) stream);
     return (err ? VSTREAM_EOF : 0);
@@ -995,6 +1019,9 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    break;
 	case VSTREAM_CTL_WAITPID_FN:
 	    stream->waitpid_fn = va_arg(ap, VSTREAM_WAITPID_FN);
+	    break;
+	case VSTREAM_CTL_TIMEOUT:
+	    stream->timeout = va_arg(ap, int);
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

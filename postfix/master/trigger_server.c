@@ -137,6 +137,7 @@
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
 #endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -154,6 +155,7 @@
 #include <safe_open.h>
 #include <listen.h>
 #include <watchdog.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -326,6 +328,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     VSTRING *why;
     int     alone = 0;
     WATCHDOG *watchdog;
+    char   *oval;
 
     /*
      * Process environment options as early as we can.
@@ -340,7 +343,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      */
     signal(SIGPIPE, SIG_IGN);
 
-    /*  
+    /*
      * Don't die for frivolous reasons.
      */
 #ifdef SIGXFSZ
@@ -407,7 +410,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cDi:lm:n:s:St:uv")) > 0) {
+    while ((c = GETOPT(argc, argv, "cDi:lm:n:o:s:St:uv")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = var_queue_dir;
@@ -428,6 +431,11 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    break;
 	case 'n':
 	    service_name = optarg;
+	    break;
+	case 'o':
+	    mail_conf_update(optarg,
+			     (oval = split_at(optarg, '=')) ? oval : "");
+	    mail_params_init();			/* XXX */
 	    break;
 	case 's':
 	    if ((socket_count = atoi(optarg)) <= 0)

@@ -1145,9 +1145,10 @@ static void smtpd_proto(SMTPD_STATE *state)
      * cleans up, but no attempt is made to inform the client of the nature
      * of the problem.
      */
+    smtp_jump_setup(state->client, state->jbuf);
     smtp_timeout_setup(state->client, var_smtpd_tmout);
 
-    switch (setjmp(smtp_timeout_buf)) {
+    switch (setjmp(state->jbuf[0])) {
 
     default:
 	msg_panic("smtpd_proto: unknown error reading from %s[%s]",

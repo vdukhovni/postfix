@@ -58,6 +58,7 @@ postcat.o: ../include/sys_defs.h
 postcat.o: ../include/msg.h
 postcat.o: ../include/vstream.h
 postcat.o: ../include/vbuf.h
+postcat.o: ../include/binattr.h
 postcat.o: ../include/vstring.h
 postcat.o: ../include/msg_vstream.h
 postcat.o: ../include/vstring_vstream.h

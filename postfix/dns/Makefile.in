@@ -101,4 +101,5 @@ test_dns_lookup.o: ../include/vbuf.h
 test_dns_lookup.o: ../include/msg.h
 test_dns_lookup.o: ../include/msg_vstream.h
 test_dns_lookup.o: ../include/vstream.h
+test_dns_lookup.o: ../include/binattr.h
 test_dns_lookup.o: dns.h

@@ -60,6 +60,7 @@ postmap.o: ../include/mymalloc.h
 postmap.o: ../include/vstring.h
 postmap.o: ../include/vbuf.h
 postmap.o: ../include/vstream.h
+postmap.o: ../include/binattr.h
 postmap.o: ../include/msg_vstream.h
 postmap.o: ../include/readlline.h
 postmap.o: ../include/stringops.h

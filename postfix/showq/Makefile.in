@@ -60,6 +60,7 @@ showq.o: ../include/scan_dir.h
 showq.o: ../include/vstring.h
 showq.o: ../include/vbuf.h
 showq.o: ../include/vstream.h
+showq.o: ../include/binattr.h
 showq.o: ../include/vstring_vstream.h
 showq.o: ../include/stringops.h
 showq.o: ../include/mymalloc.h

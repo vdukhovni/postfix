@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <setjmp.h>
+
+ /*
   * SASL library.
   */
 #ifdef USE_SASL_AUTH
@@ -52,6 +57,7 @@ typedef struct SMTP_STATE {
     VSTRING *sasl_decoded;		/* decoding buffer */
     sasl_callback_t *sasl_callbacks;	/* stateful callbacks */
 #endif
+    jmp_buf jbuf[1];			/* exception context */
 } SMTP_STATE;
 
 #define SMTP_FEATURE_ESMTP	(1<<0)

@@ -21,12 +21,13 @@
   * Utility library.
   */
 #include <vbuf.h>
+#include <binattr.h>
 
  /*
   * Simple buffered stream. The members of this structure are not part of the
   * official interface and can change without prior notice.
   */
-typedef int (*VSTREAM_FN) (int, void *, unsigned);
+typedef int (*VSTREAM_FN) (int, void *, unsigned, int);
 typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 
 typedef struct VSTREAM {
@@ -40,8 +41,10 @@ typedef struct VSTREAM {
     int     write_fd;			/* write channel (double-buffered) */
     VBUF    read_buf;			/* read buffer (double-buffered) */
     VBUF    write_buf;			/* write buffer (double-buffered) */
+    int     timeout;			/* read/write timout */
     pid_t   pid;			/* vstream_popen/close() */
     VSTREAM_WAITPID_FN waitpid_fn;	/* vstream_popen/close() */
+    BINATTR *attr;			/* optional binary attribute list */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -52,6 +55,7 @@ extern VSTREAM vstream_fstd[];		/* pre-defined streams */
 
 #define	VSTREAM_FLAG_ERR	VBUF_FLAG_ERR	/* some I/O error */
 #define VSTREAM_FLAG_EOF	VBUF_FLAG_EOF	/* end of file */
+#define VSTREAM_FLAG_TIMEOUT	VBUF_FLAG_TIMEOUT	/* timeout error */
 #define VSTREAM_FLAG_FIXED	VBUF_FLAG_FIXED	/* fixed-size buffer */
 #define VSTREAM_FLAG_BAD	VBUF_FLAG_BAD
 
@@ -85,6 +89,7 @@ extern VSTREAM *vstream_fdopen(int, int);
 #define vstream_fileno(vp)	((vp)->fd)
 #define vstream_ferror(vp)	vbuf_error(&(vp)->buf)
 #define vstream_feof(vp)	vbuf_eof(&(vp)->buf)
+#define vstream_ftimeout(vp)	vbuf_timeout(&(vp)->buf)
 #define vstream_clearerr(vp)	vbuf_clearerr(&(vp)->buf)
 #define VSTREAM_PATH(vp)	((vp)->path ? (vp)->path : "unknown_stream")
 
@@ -98,6 +103,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_READ_FD	5
 #define VSTREAM_CTL_WRITE_FD	6
 #define VSTREAM_CTL_WAITPID_FN	7
+#define VSTREAM_CTL_TIMEOUT	8
 
 extern VSTREAM *vstream_printf(const char *,...);
 extern VSTREAM *vstream_fprintf(VSTREAM *, const char *,...);
@@ -120,6 +126,16 @@ extern int vstream_pclose(VSTREAM *);
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 
 extern int vstream_peek(VSTREAM *);
+
+ /*
+  * Attribute management, a way of tacking on arbitrary information onto a
+  * VSTREAM without destroying the VSTREAM abstraction itself.
+  */
+#define VSTREAM_ATTR_FREE_FN BINATTR_FREE_FN
+
+extern void vstream_attr_set(VSTREAM *, const char *, char *, VSTREAM_ATTR_FREE_FN);
+extern char *vstream_attr_get(VSTREAM *, const char *);
+extern void vstream_attr_unset(VSTREAM *, const char *);
 
 /* LICENSE
 /* .ad

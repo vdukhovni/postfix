@@ -3833,3 +3833,49 @@ Apologies for any names omitted.
 	Bugfix: removed the () from the tokenized representation
 	of RFC 822 comments, so that comments with \( or \) can be
 	unparsed correctly.  Problem reported by Bodo Moeller.
+
+20000423
+
+	Bugfix: mail_copy() could prepend > or . in the middle of
+	long lines. Found by code inspection.
+
+20000427
+
+	New code: unescape module that translates C escape sequences
+	into their equivalent character values.  File: util/unescape.c.
+
+	Feature: the pipe mailer now has a way to specify the output
+	record delimiter (for example, eol=\r\n). This is necessary
+	for transports that require CRLF instead of UNIX-style LF.
+
+20000428
+
+	New code: added support to the vstring module for fixed-size
+	buffers. This may help to avoid clumsy code that would have
+	to prevent memory leaks.  The buffers cause a fatal error
+	when they turn out too small.  File: util/vstring.[hc].
+
+20000502
+
+	In order to support timeouts with SSL more conveniently,
+	VSTREAMs now have built into them the concept of timeout.
+	Instead of calling read() and write(), the low-level VSTREAM
+	interface now uses timed_read() and timed_write() which
+	have an additional timeout parameter; vstream_ctl(stream,
+	VSTREAM_CTL_TIMEOUT) sets the timeout deadline on a stream,
+	and vstream_ftimeout(stream) queries a stream for timeout
+	errors.  This change simplified timeout handling considerably.
+	Files: util/vbuf.h, util/vstrean.[hc], global/smtp_stream.c,
+	global/timed_ipc.c.
+
+20000504
+
+	In order to support application-specific state, VSTREAMs
+	now provide an optional open attribute list. An example is
+	the per-stream jump buffer that was needed in order to
+	clean up the smtp_stream module. Files:  util/vstream.[hc],
+	util/binattr.[hc].
+
+	Cleaned up the smtp_stream module further and got rid of
+	the global state that limited the use of this module to
+	one stream per process. Files: global/smtp_stream.[hc].

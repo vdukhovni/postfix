@@ -206,7 +206,7 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * network clients that mount the maildrop remotely - especially clients
      * that can't get their daylight savings offsets right.
      */
-#define DAY_SECONDS 864000
+#define DAY_SECONDS 86400
 #define HOUR_SECONDS 3600
 
     if (info->st.st_mtime > now + 2 * HOUR_SECONDS) {

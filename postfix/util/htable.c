@@ -44,7 +44,7 @@
 /*	void	(*action)(HTABLE_INFO *, char *ptr);
 /*	char	*ptr;
 /*
-/*	HTABLE_INFO *htable_list(table)
+/*	HTABLE_INFO **htable_list(table)
 /*	HTABLE	*table;
 /* DESCRIPTION
 /*	This module maintains one or more hash tables. Each table entry
