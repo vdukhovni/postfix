@@ -484,6 +484,7 @@ extern int opterr;
 #else
 #define GETOPT(argc, argv, str) getopt((argc), (argv), (str))
 #endif
+#define OPTIND  (optind > 0 ? optind : 1)
 
 #if defined(USE_FCNTL_LOCK) && defined(USE_FLOCK_LOCK)
 #error "define USE_FCNTL_LOCK or USE_FLOCK_LOCK, not both"

@@ -28,6 +28,10 @@
 /*
 /*	void	dict_close(dict)
 /*	DICT	*dict;
+/*
+/*	dict_open_register(type, open)
+/*	char	*type;
+/*	DICT	*(*open) (const char *, int, int);
 /* DESCRIPTION
 /*	This module implements a low-level interface to multiple
 /*	physical dictionary types.
@@ -44,6 +48,23 @@
 /*	Ignore duplicate keys if the underlying database does not
 /*	support duplicate keys. The default is to terminate with a fatal
 /*	error.
+/* .IP DICT_FLAG_TRY0NULL
+/*      With maps where this is appropriate, append no null byte to
+/*	keys and values.
+/*	When neither DICT_FLAG_TRY0NULL nor DICT_FLAG_TRY1NULL are
+/*	specified, the software guesses what format to use for reading;
+/*	and in the absence of definite information, a system-dependent
+/*	default is chosen for writing.
+/* .IP DICT_FLAG_TRY1NULL
+/*      With maps where this is appropriate, append one null byte to
+/*	keys and values.
+/*	When neither DICT_FLAG_TRY0NULL nor DICT_FLAG_TRY1NULL are
+/*	specified, the software guesses what format to use for reading;
+/*	and in the absence of definite information, a system-dependent
+/*	default is chosen for writing.
+/* .IP DICT_FLAG_LOCK
+/*	With maps where this is appropriate, acquire an exclusive lock
+/*	before writing, and acquire a shared lock before reading.
 /* .PP
 /*	The dictionary types are as follows:
 /* .IP environ
@@ -72,13 +93,14 @@
 /*
 /*	dict_get() retrieves the value stored in the named dictionary
 /*	under the given key. A null pointer means the value was not found.
-/*	This routine does not manipulate any locks.
 /*
 /*	dict_put() stores the specified key and value into the named
-/*	dictionary. This routine does not manipulate any locks.
+/*	dictionary.
 /*
 /*	dict_close() closes the specified dictionary and cleans up the
 /*	associated data structures.
+/*
+/*	dict_open_register() adds support for a new dictionary type.
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
 /*	update non-writable dictionary.
@@ -120,6 +142,7 @@
 #include <dict_regexp.h>
 #include <stringops.h>
 #include <split_at.h>
+#include <htable.h>
 
  /*
   * lookup table for available map types.
@@ -160,6 +183,23 @@ static DICT_OPEN_INFO dict_open_info[] = {
     0,
 };
 
+static HTABLE *dict_open_hash;
+
+/* dict_open_init - one-off initialization */
+
+static void dict_open_init(void)
+{
+    char   *myname = "dict_open_init";
+    DICT_OPEN_INFO *dp;
+
+    if (dict_open_hash != 0)
+	msg_panic("%s: multiple initialization", myname);
+    dict_open_hash = htable_create(10);
+
+    for (dp = dict_open_info; dp->type; dp++)
+	htable_enter(dict_open_hash, dp->type, (char *) dp);
+}
+
 /* dict_open - open dictionary */
 
 DICT   *dict_open(const char *dict_spec, int open_flags, int dict_flags)
@@ -184,20 +224,35 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 {
     char   *myname = "dict_open";
     DICT_OPEN_INFO *dp;
-    DICT   *dict = 0;
+    DICT   *dict;
 
-    for (dp = dict_open_info; dp->type; dp++) {
-	if (strcasecmp(dp->type, dict_type) == 0) {
-	    if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
-		msg_fatal("opening %s:%s %m", dict_type, dict_name);
-	    if (msg_verbose)
-		msg_info("%s: %s:%s", myname, dict_type, dict_name);
-	    break;
-	}
-    }
-    if (dp->type == 0)
+    if (dict_open_hash == 0)
+	dict_open_init();
+    if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0)
 	msg_fatal("unsupported dictionary type: %s", dict_type);
+    if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
+	msg_fatal("opening %s:%s %m", dict_type, dict_name);
+    if (msg_verbose)
+	msg_info("%s: %s:%s", myname, dict_type, dict_name);
     return (dict);
+}
+
+/* dict_open_register - register dictionary type */
+
+void    dict_open_register(const char *type,
+			           DICT *(*open) (const char *, int, int))
+{
+    char   *myname = "dict_open_register";
+    DICT_OPEN_INFO *dp;
+
+    if (dict_open_hash == 0)
+	dict_open_init();
+    if (htable_find(dict_open_hash, type))
+	msg_panic("%s: dictionary type exists: %s", myname, type);
+    dp = (DICT_OPEN_INFO *) mymalloc(sizeof(*dp));
+    dp->type = mystrdup(type);
+    dp->open = open;
+    htable_enter(dict_open_hash, dp->type, (char *) dp);
 }
 
 #ifdef TEST
@@ -221,6 +276,11 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 #include "msg_vstream.h"
 #include "vstring_vstream.h"
 
+static NORETURN usage(char *myname)
+{
+    msg_fatal("usage: %s type:file read|write|create", myname);
+}
+
 main(int argc, char **argv)
 {
     VSTRING *keybuf = vstring_alloc(1);
@@ -229,19 +289,30 @@ main(int argc, char **argv)
     int     open_flags;
     char   *key;
     const char *value;
+    int     ch;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    if (argc != 3)
-	msg_fatal("usage: %s type:file read|write|create", argv[0]);
-    if (strcasecmp(argv[2], "create") == 0)
+    while ((ch = GETOPT(argc, argv, "v")) > 0) {
+	switch (ch) {
+	default:
+	    usage(argv[0]);
+	case 'v':
+	    msg_verbose++;
+	    break;
+	}
+    }
+    optind = OPTIND;
+    if (argc - optind != 2)
+	usage(argv[0]);
+    if (strcasecmp(argv[optind + 1], "create") == 0)
 	open_flags = O_CREAT | O_RDWR | O_TRUNC;
-    else if (strcasecmp(argv[2], "write") == 0)
+    else if (strcasecmp(argv[optind + 1], "write") == 0)
 	open_flags = O_RDWR;
-    else if (strcasecmp(argv[2], "read") == 0)
+    else if (strcasecmp(argv[optind + 1], "read") == 0)
 	open_flags = O_RDONLY;
     else
 	msg_fatal("unknown access mode: %s", argv[2]);
-    dict_name = argv[1];
+    dict_name = argv[optind];
     dict = dict_open(dict_name, open_flags, 0);
     while (vstring_fgets_nonl(keybuf, VSTREAM_IN)) {
 	if ((key = strtok(vstring_str(keybuf), " =")) == 0)

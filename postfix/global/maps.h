@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <dict.h>
+
+ /*
   * Dictionary name storage. We're borrowing from the argv(3) module.
   */
 typedef struct MAPS {
@@ -19,8 +24,8 @@ typedef struct MAPS {
     struct ARGV *argv;
 } MAPS;
 
-extern MAPS *maps_create(const char *, const char *);
-extern const char *maps_find(MAPS *, const char *);
+extern MAPS *maps_create(const char *, const char *, int);
+extern const char *maps_find(MAPS *, const char *, int);
 extern MAPS *maps_free(MAPS *);
 
 /* LICENSE

@@ -139,16 +139,10 @@ static const char *dict_regexp_lookup(DICT *dict, const char *name)
     char   *at;
     int     error;
 
-    /* msg_info("dict_regexp_lookup: %s: %s", dict_regexp->map, name ); */
+    dict_errno = 0;
 
-    /*
-     * XXX Require user@domain, to defeat partial address matching for smtp
-     * access control, canonical and virtual mappings, and to prevent regexps
-     * from being used as alias databases because one might inadvertently
-     * copy "|command" or /file/name or :include: to the result.
-     */
-    if (name[0] == '@' || (at = strrchr(name, '@')) == 0 || at[1] == 0)
-	return (0);
+    if (msg_verbose)
+	msg_info("dict_regexp_lookup: %s: %s", dict_regexp->map, name);
 
     /* Search for a matching expression */
     for (rule = dict_regexp->head; rule; rule = rule->next) {

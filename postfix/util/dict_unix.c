@@ -110,6 +110,8 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
     };
     struct dict_unix_lookup *lp;
 
+    dict_errno = 0;
+
     dict_unix = (DICT_UNIX *) mymalloc(sizeof(*dict_unix));
     for (lp = dict_unix_lookup; /* void */ ; lp++) {
 	if (lp->name == 0)

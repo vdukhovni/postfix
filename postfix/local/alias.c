@@ -142,7 +142,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Do this only once.
      */
     if (maps == 0)
-	maps = maps_create("aliases", var_alias_maps);
+	maps = maps_create("aliases", var_alias_maps, DICT_FLAG_LOCK);
 
     /*
      * DUPLICATE/LOOP ELIMINATION
@@ -235,7 +235,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	    concatenate("owner-", state.msg_attr.local, (char *) 0)))
 
 	    expansion = mystrdup(alias_result);
-	    if (OWNER_ASSIGN(owner) != 0 && maps_find(maps, owner)) {
+	    if (OWNER_ASSIGN(owner) != 0 && maps_find(maps, owner, 0)) {
 		canon_owner = canon_addr_internal(vstring_alloc(10), owner);
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);
 	    } else {

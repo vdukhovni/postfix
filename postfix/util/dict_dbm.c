@@ -46,6 +46,7 @@
 #include "htable.h"
 #include "iostuff.h"
 #include "vstring.h"
+#include "myflock.h"
 #include "dict.h"
 #include "dict_dbm.h"
 
@@ -53,7 +54,6 @@
 
 typedef struct {
     DICT    dict;			/* generic members */
-    int     flags;			/* see below */
     DBM    *dbm;			/* open database */
     char   *path;			/* pathname */
 } DICT_DBM;
@@ -66,18 +66,27 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
     datum   dbm_key;
     datum   dbm_value;
     static VSTRING *buf;
+    const char *result = 0;
+
+    dict_errno = 0;
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_SHARED) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
 
     /*
      * See if this DBM file was written with one null byte appended to key
      * and value.
      */
-    if (dict_dbm->flags & DICT_FLAG_TRY1NULL) {
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
 	dbm_key.dptr = (void *) name;
 	dbm_key.dsize = strlen(name) + 1;
 	dbm_value = dbm_fetch(dict_dbm->dbm, dbm_key);
 	if (dbm_value.dptr != 0) {
-	    dict_dbm->flags &= ~DICT_FLAG_TRY0NULL;
-	    return (dbm_value.dptr);
+	    dict->flags &= ~DICT_FLAG_TRY0NULL;
+	    result = dbm_value.dptr;
 	}
     }
 
@@ -85,7 +94,7 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
      * See if this DBM file was written with no null byte appended to key and
      * value.
      */
-    if (dict_dbm->flags & DICT_FLAG_TRY0NULL) {
+    if (result == 0 && (dict->flags & DICT_FLAG_TRY0NULL)) {
 	dbm_key.dptr = (void *) name;
 	dbm_key.dsize = strlen(name);
 	dbm_value = dbm_fetch(dict_dbm->dbm, dbm_key);
@@ -93,11 +102,18 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
 	    if (buf == 0)
 		buf = vstring_alloc(10);
 	    vstring_strncpy(buf, dbm_value.dptr, dbm_value.dsize);
-	    dict_dbm->flags &= ~DICT_FLAG_TRY1NULL;
-	    return (vstring_str(buf));
+	    dict->flags &= ~DICT_FLAG_TRY1NULL;
+	    result = vstring_str(buf);
 	}
     }
-    return (0);
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+
+    return (result);
 }
 
 /* dict_dbm_update - add or update database entry */
@@ -118,22 +134,30 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
      * If undecided about appending a null byte to key and value, choose a
      * default depending on the platform.
      */
-    if ((dict_dbm->flags & DICT_FLAG_TRY1NULL)
-	&& (dict_dbm->flags & DICT_FLAG_TRY0NULL)) {
+    if ((dict->flags & DICT_FLAG_TRY1NULL)
+	&& (dict->flags & DICT_FLAG_TRY0NULL)) {
 #ifdef DBM_NO_TRAILING_NULL
-	dict_dbm->flags = DICT_FLAG_TRY0NULL;
+	dict->flags &= ~DICT_FLAG_TRY1NULL;
+	dict->flags |= DICT_FLAG_TRY0NULL;
 #else
-	dict_dbm->flags = DICT_FLAG_TRY1NULL;
+	dict->flags &= ~DICT_FLAG_TRY0NULL;
+	dict->flags |= DICT_FLAG_TRY1NULL;
 #endif
     }
 
     /*
      * Optionally append a null byte to key and value.
      */
-    if (dict_dbm->flags & DICT_FLAG_TRY1NULL) {
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
 	dbm_key.dsize++;
 	dbm_value.dsize++;
     }
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
 
     /*
      * Do the update.
@@ -148,6 +172,12 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
 	else
 	    msg_fatal("%s: duplicate entry: \"%s\"", dict_dbm->path, name);
     }
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
 }
 
 /* dict_dbm_close - disassociate from data base */

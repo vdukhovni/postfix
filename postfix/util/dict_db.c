@@ -63,6 +63,7 @@
 #include "vstring.h"
 #include "stringops.h"
 #include "iostuff.h"
+#include "myflock.h"
 #include "dict.h"
 #include "dict_db.h"
 
@@ -70,7 +71,6 @@
 
 typedef struct {
     DICT    dict;			/* generic members */
-    int     flags;			/* see below */
     DB     *db;				/* open db file */
     char   *path;			/* pathname */
 } DICT_DB;
@@ -88,19 +88,28 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     DBT     db_value;
     int     status;
     static VSTRING *buf;
+    const char *result = 0;
+
+    dict_errno = 0;
+
+    /*
+     * Acquire a shared lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_SHARED) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     /*
      * See if this DB file was written with one null byte appended to key and
      * value.
      */
-    if (dict_db->flags & DICT_FLAG_TRY1NULL) {
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name) + 1;
 	if ((status = db->get(db, &db_key, &db_value, 0)) < 0)
 	    msg_fatal("error reading %s: %m", dict_db->path);
 	if (status == 0) {
-	    dict_db->flags &= ~DICT_FLAG_TRY0NULL;
-	    return (db_value.data);
+	    dict->flags &= ~DICT_FLAG_TRY0NULL;
+	    result = db_value.data;
 	}
     }
 
@@ -108,7 +117,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
      * See if this DB file was written with no null byte appended to key and
      * value.
      */
-    if (dict_db->flags & DICT_FLAG_TRY0NULL) {
+    if (result == 0 && (dict->flags & DICT_FLAG_TRY0NULL)) {
 	db_key.data = (void *) name;
 	db_key.size = strlen(name);
 	if ((status = db->get(db, &db_key, &db_value, 0)) < 0)
@@ -117,11 +126,18 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 	    if (buf == 0)
 		buf = vstring_alloc(10);
 	    vstring_strncpy(buf, db_value.data, db_value.size);
-	    dict_db->flags &= ~DICT_FLAG_TRY1NULL;
-	    return (vstring_str(buf));
+	    dict->flags &= ~DICT_FLAG_TRY1NULL;
+	    result = vstring_str(buf);
 	}
     }
-    return (0);
+
+    /*
+     * Release the shared lock.
+     */
+    if ((dict->fd & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+
+    return (result);
 }
 
 /* dict_db_update - add or update database entry */
@@ -143,22 +159,30 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
      * If undecided about appending a null byte to key and value, choose a
      * default depending on the platform.
      */
-    if ((dict_db->flags & DICT_FLAG_TRY1NULL)
-	&& (dict_db->flags & DICT_FLAG_TRY0NULL)) {
+    if ((dict->flags & DICT_FLAG_TRY1NULL)
+	&& (dict->flags & DICT_FLAG_TRY0NULL)) {
 #ifdef DB_NO_TRAILING_NULL
-	dict_db->flags = DICT_FLAG_TRY0NULL;
+	dict->flags &= ~DICT_FLAG_TRY1NULL;
+	dict->flags |= DICT_FLAG_TRY0NULL;
 #else
-	dict_db->flags = DICT_FLAG_TRY1NULL;
+	dict->flags &= ~DICT_FLAG_TRY0NULL;
+	dict->flags |= DICT_FLAG_TRY1NULL;
 #endif
     }
 
     /*
      * Optionally append a null byte to key and value.
      */
-    if (dict_db->flags & DICT_FLAG_TRY1NULL) {
+    if (dict->flags & DICT_FLAG_TRY1NULL) {
 	db_key.size++;
 	db_value.size++;
     }
+
+    /*
+     * Acquire an exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
+	msg_fatal("%s: lock dictionary: %m", dict_db->path);
 
     /*
      * Do the update.
@@ -173,6 +197,12 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
 	else
 	    msg_fatal("%s: duplicate entry: \"%s\"", dict_db->path, name);
     }
+
+    /*
+     * Release the exclusive lock.
+     */
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 }
 
 /* dict_db_close - close data base */
@@ -237,5 +267,6 @@ DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
 
     return (dict_db_open(path, open_flags, DB_BTREE, (void *) &tweak, dict_flags));
 }
+/**INDENT** Error@188: Unmatched #endif */
 
 #endif

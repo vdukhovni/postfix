@@ -127,9 +127,15 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
 
     /*
      * Try user+foo@domain and user@domain.
+     * 
+     * Specify what keys are partial or full, to avoid matching partial
+     * addresses with regular expressions.
      */
-    if ((result = maps_find(path, full_key)) == 0 && dict_errno == 0
-	&& bare_key != 0 && (result = maps_find(path, bare_key)) != 0
+#define FULL	0
+#define PARTIAL	DICT_FLAG_FIXED
+
+    if ((result = maps_find(path, full_key, FULL)) == 0 && dict_errno == 0
+      && bare_key != 0 && (result = maps_find(path, bare_key, PARTIAL)) != 0
 	&& extp != 0) {
 	*extp = saved_ext;
 	saved_ext = 0;
@@ -144,12 +150,12 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
 	&& (strcasecmp(ratsign + 1, var_myorigin) == 0
 	    || resolve_local(ratsign + 1))) {
 	*ratsign = 0;
-	result = maps_find(path, full_key);
+	result = maps_find(path, full_key, PARTIAL);
 	if (result == 0 && dict_errno == 0 && bare_key != 0) {
 	    if ((ratsign = strrchr(bare_key, '@')) == 0)
 		msg_panic("%s: bare key botch", myname);
 	    *ratsign = 0;
-	    if ((result = maps_find(path, bare_key)) != 0 && extp != 0) {
+	    if ((result = maps_find(path, bare_key, PARTIAL)) != 0 && extp != 0) {
 		*extp = saved_ext;
 		saved_ext = 0;
 	    }
@@ -161,7 +167,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
      * Try @domain.
      */
     if (result == 0 && dict_errno == 0 && ratsign)
-	result = maps_find(path, ratsign);
+	result = maps_find(path, ratsign, PARTIAL);
 
     /*
      * Clean up.
@@ -202,18 +208,19 @@ int     main(int argc, char **argv)
      */
     if (argc != 2)
 	msg_fatal("usage: %s database", argv[0]);
+    msg_verbose = 1;
 
     /*
      * Initialize.
      */
     read_config();
-    path = maps_create(argv[0], argv[1]);
+    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	extent = 0;
 	result = mail_addr_find(path, STR(buffer), &extent);
 	vstream_printf("%s -> %s (%s)\n", STR(buffer), result ? result :
 		       dict_errno ? "(try again)" :
-		       "(not found)", extent ? extent : "null");
+		       "(not found)", extent ? extent : "null extension");
 	vstream_fflush(VSTREAM_OUT);
 	if (extent)
 	    myfree(extent);

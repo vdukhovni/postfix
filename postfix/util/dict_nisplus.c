@@ -51,6 +51,7 @@ typedef struct {
 
 static const char *dict_nisplus_lookup(DICT *unused_dict, const char *unused_name)
 {
+    dict_errno = 0;
     msg_warn("dict_nisplus_lookup: NISPLUS lookup not implemented");
     return (0);
 }

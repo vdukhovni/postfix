@@ -54,6 +54,8 @@ static const char *dict_ht_lookup(DICT *dict, const char *name)
 {
     DICT_HT *dict_ht = (DICT_HT *) dict;
 
+    dict_errno = 0;
+
     return (htable_find(dict_ht->table, name));
 }
 

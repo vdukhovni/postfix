@@ -75,7 +75,8 @@ void    transport_init(void)
 {
     if (transport_path)
 	msg_panic("transport_init: repeated call");
-    transport_path = maps_create("transport", var_transport_maps);
+    transport_path = maps_create("transport", var_transport_maps,
+				 DICT_FLAG_LOCK);
 }
 
 /* transport_lookup - map a transport domain */
@@ -90,6 +91,11 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
     char   *transport;
     int     found = 0;
 
+#define FULL	0
+#define PARTIAL		DICT_FLAG_FIXED
+
+    int     maps_flag = FULL;
+
     if (transport_path == 0)
 	msg_panic("transport_lookup: missing initialization");
 
@@ -103,9 +109,12 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
      * 
      * Before changing the DB lookup result, make a copy first, in order to
      * avoid DB cache corruption.
+     * 
+     * Specify if a key is partial or full, to avoid matching partial keys with
+     * regular expressions.
      */
     for (name = low_domain; name != 0; name = strchr(name + 1, '.')) {
-	if ((value = maps_find(transport_path, name)) != 0) {
+	if ((value = maps_find(transport_path, name, maps_flag)) != 0) {
 	    saved_value = mystrdup(value);
 	    if ((host = split_at(saved_value, ':')) == 0 || *host == 0)
 		host = domain;
@@ -119,6 +128,7 @@ int     transport_lookup(const char *domain, VSTRING *channel, VSTRING *nexthop)
 	} else if (dict_errno != 0) {
 	    msg_fatal("transport table lookup problem");
 	}
+	maps_flag = PARTIAL;
     }
     myfree(low_domain);
     return (found);

@@ -375,15 +375,18 @@ static void pre_jail_init(void)
 {
     if (*var_canonical_maps)
 	cleanup_comm_canon_maps =
-	maps_create(VAR_CANONICAL_MAPS, var_canonical_maps);
+	maps_create(VAR_CANONICAL_MAPS, var_canonical_maps, DICT_FLAG_LOCK);
     if (*var_send_canon_maps)
 	cleanup_send_canon_maps =
-	    maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps);
+	    maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps,
+			DICT_FLAG_LOCK);
     if (*var_rcpt_canon_maps)
 	cleanup_rcpt_canon_maps =
-	    maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps);
+	    maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
+			DICT_FLAG_LOCK);
     if (*var_virtual_maps)
-	cleanup_virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps);
+	cleanup_virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps,
+					   DICT_FLAG_LOCK);
     if (*var_masq_domains)
 	cleanup_masq_domains = argv_split(var_masq_domains, " ,\t\r\n");
 }

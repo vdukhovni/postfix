@@ -79,6 +79,8 @@ static const char *dict_ni_do_lookup(char *path, char *key_prop,
     ni_status r;
     ni_id   dir;
 
+    dict_errno = 0;
+
     if (msg_verbose)
 	msg_info("ni_lookup %s %s=%s", path, key_prop, key_value);
 

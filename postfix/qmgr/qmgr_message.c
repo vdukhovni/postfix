@@ -478,7 +478,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    && qmgr_virtual != 0
 	    && (at = strrchr(recipient->address, '@')) != 0) {
 	    domain = lowercase(mystrdup(at + 1));
-	    junk = maps_find(qmgr_virtual, domain);
+	    junk = maps_find(qmgr_virtual, domain, 0);
 	    myfree(domain);
 	    if (junk) {
 		qmgr_bounce_recipient(message, recipient,

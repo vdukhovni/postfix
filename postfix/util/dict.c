@@ -78,20 +78,11 @@
 /*
 /*	dict_update() updates the value of the named dictionary member.
 /*	The dictionary member and the named dictionary are instantiated
-/*	on the fly.  During the update, a file-based dictionary is locked
-/*	for exclusive access. With file-based dictionaries, duplicate
-/*	of duplicate entries depends on dictionary flag settings:
-/* .IP DICT_FLAG_DUP_WARN
-/*	Log a warning and ignore the duplicate.
-/* .IP DICT_FLAG_DUP_IGNORE
-/*	Silently ignore the duplicate.
-/* .PP
-/*	The default is to terminate the program with a fatal error.
+/*	on the fly.
 /*
 /*	dict_lookup() returns the value of the named member (i.e. without
 /*	expanding macros in the member value).  The \fIdict_name\fR argument
-/*	specifies the dictionary to search. The dictionary is locked for
-/*	shared access, when it is file based.  The result is a null pointer
+/*	specifies the dictionary to search. The result is a null pointer
 /*	when no value is found, otherwise the result is owned by the
 /*	underlying dictionary method. Make a copy if the result is to be
 /*	modified, or if the result is to survive multiple dict_lookup() calls.
@@ -149,7 +140,6 @@
 #include "vstream.h"
 #include "vstring.h"
 #include "readline.h"
-#include "myflock.h"
 #include "mac_parse.h"
 #include "dict.h"
 #include "dict_ht.h"
@@ -252,11 +242,7 @@ void    dict_update(const char *dict_name, const char *member, const char *value
 	dict = node->dict;
     if (msg_verbose > 1)
 	msg_info("%s: %s = %s", myname, member, value);
-    if (dict->fd >= 0 && myflock(dict->fd, MYFLOCK_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary %s: %m", myname, dict_name);
     dict->update(dict, member, value);
-    if (dict->fd >= 0 && myflock(dict->fd, MYFLOCK_NONE) < 0)
-	msg_fatal("%s: unlock dictionary %s: %m", myname, dict_name);
 }
 
 /* dict_lookup - look up dictionary entry */
@@ -268,18 +254,12 @@ const char *dict_lookup(const char *dict_name, const char *member)
     DICT   *dict;
     const char *ret = 0;
 
-    dict_errno = 0;
-
     if ((node = dict_node(dict_name)) == 0) {
 	if (dict_unknown_allowed == 0)
 	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
     } else {
 	dict = node->dict;
-	if (dict->fd >= 0 && myflock(dict->fd, MYFLOCK_SHARED) < 0)
-	    msg_fatal("%s: lock dictionary %s: %m", myname, dict_name);
 	ret = dict->lookup(dict, member);
-	if (dict->fd >= 0 && myflock(dict->fd, MYFLOCK_NONE) < 0)
-	    msg_fatal("%s: unlock dictionary %s: %m", myname, dict_name);
 	if (ret == 0 && dict_unknown_allowed == 0)
 	    msg_fatal("dictionary %s: unknown member: %s", dict_name, member);
     }

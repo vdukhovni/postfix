@@ -143,6 +143,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     int rc = 0;
     void    (*saved_alarm) (int);
 
+    dict_errno = 0;
+
     /*
      * Initialize.
      */

@@ -2458,10 +2458,40 @@ Apologies for any names omitted.
 
 	Cleanup: the dictionary routines now take an extra flag
 	argument to control such things as warning about duplicates,
-	and appending null bytes to key/value. This was needed for
-	a clean implementation of NIS master alias maps support.
+	and appending null bytes to key/value. The latter was needed
+	for a clean implementation of NIS master alias maps support.
 
 	Feature: POSIX regular expressions by Lamont Jones.
+
+19990328
+
+	Code cleanup: dictionaries now have flags that say whether
+	lookup keys are fixed strings or whether keys are subjected
+	to pattern matching. This is needed to avoid passing partial
+	addresses to regexp-based lookup tables (user, @domain,
+	user@, domain). Files: util/dict*.c.
+
+	Bugfix: fixed memory leaks and core dumps in the regexp
+	and pcre routines (neither handled an empty pattern file).
+
+19990329
+
+	Code cleanup: the dictionary I/O routines now do their own
+	locking depending on dictionary flag settings. This means
+	that the low-level dict_get() interface can now be used
+	for safe dictionary lookups. This is needed for 19990328's
+	partial lookup key support. Files: util/dict*.c. global/maps.c.
+
+	Feature: regular expression matches are no longer limited
+	to user@domain address forms in access/canonical/virtual
+	maps, but can also be used for domains in transport maps.
+	This needed the partial lookup key support to avoid passing
+	partial addresses to regexp-based lookup tables (user,
+	@domain, user@, domain). Files: global/maps.c
+	globl/mail_addr_find.c.
+
+	Feature: new dictionary types can be registered with
+	dict_open_register(). File: util/dict_open.c.
 
 Future:
 

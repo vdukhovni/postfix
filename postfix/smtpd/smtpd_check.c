@@ -312,7 +312,7 @@ static ARGV *smtpd_check_parse(char *checks)
     while ((name = mystrtok(&bp, " \t\r\n,")) != 0) {
 	argv_add(argv, name, (char *) 0);
 	if (strchr(name, ':') && dict_handle(name) == 0)
-	    dict_register(name, dict_open(name, 0, 0));
+	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK));
     }
     argv_terminate(argv);
 
@@ -877,33 +877,42 @@ static int check_table_result(SMTPD_STATE *state, char *table,
 
 /* check_access - table lookup without substring magic */
 
-static int check_access(SMTPD_STATE *state, char *table, char *name)
+static int check_access(SMTPD_STATE *state, char *table, char *name, int flags)
 {
     char   *myname = "check_access";
     char   *low_name = lowercase(mystrdup(name));
     const char *value;
+    DICT   *dict;
 
 #define CHK_ACCESS_RETURN(x) { myfree(low_name); return(x); }
+#define FULL	0
+#define PARTIAL	DICT_FLAG_FIXED
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
-    if ((value = dict_lookup(table, low_name)) != 0)
-	CHK_ACCESS_RETURN(check_table_result(state, table, value, name));
-    if (dict_errno != 0)
-	msg_fatal("%s: table lookup problem", table);
+    if ((dict = dict_handle(table)) == 0)
+	msg_panic("%s: dictionary not found: %s", myname, table);
+    if (flags == 0 || (flags & dict->flags) != 0) {
+	if ((value = dict_get(dict, low_name)) != 0)
+	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name));
+	if (dict_errno != 0)
+	    msg_fatal("%s: table lookup problem", table);
+    }
     CHK_ACCESS_RETURN(SMTPD_CHECK_DUNNO);
 }
 
 /* check_domain_access - domainname-based table lookup */
 
-static int check_domain_access(SMTPD_STATE *state, char *table, char *domain)
+static int check_domain_access(SMTPD_STATE *state, char *table,
+			               char *domain, int flags)
 {
     char   *myname = "check_domain_access";
     char   *low_domain = lowercase(mystrdup(domain));
     char   *name;
     char   *next;
     const char *value;
+    DICT   *dict;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, domain);
@@ -914,21 +923,28 @@ static int check_domain_access(SMTPD_STATE *state, char *table, char *domain)
 #define CHK_DOMAIN_RETURN(x) { myfree(low_domain); return(x); }
 
     for (name = low_domain; (next = strchr(name, '.')) != 0; name = next + 1) {
-	if ((value = dict_lookup(table, name)) != 0)
+	if ((dict = dict_handle(table)) == 0)
+	    msg_panic("%s: dictionary not found: %s", myname, table);
+	if (flags != 0 && (flags & dict->flags) == 0)
+	    continue;
+	if ((value = dict_get(dict, name)) != 0)
 	    CHK_DOMAIN_RETURN(check_table_result(state, table, value, domain));
 	if (dict_errno != 0)
 	    msg_fatal("%s: table lookup problem", table);
+	flags = PARTIAL;
     }
     CHK_DOMAIN_RETURN(SMTPD_CHECK_DUNNO);
 }
 
 /* check_addr_access - address-based table lookup */
 
-static int check_addr_access(SMTPD_STATE *state, char *table, char *address)
+static int check_addr_access(SMTPD_STATE *state, char *table, char *address,
+			             int flags)
 {
     char   *myname = "check_addr_access";
     char   *addr;
     const char *value;
+    DICT   *dict;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, address);
@@ -939,10 +955,15 @@ static int check_addr_access(SMTPD_STATE *state, char *table, char *address)
     addr = STR(vstring_strcpy(error_text, address));
 
     do {
-	if ((value = dict_lookup(table, addr)) != 0)
+	if ((dict = dict_handle(table)) == 0)
+	    msg_panic("%s: dictionary not found: %s", myname, table);
+	if (flags != 0 && (flags & dict->flags) == 0)
+	    continue;
+	if ((value = dict_get(dict, addr)) != 0)
 	    return (check_table_result(state, table, value, address));
 	if (dict_errno != 0)
 	    msg_fatal("%s: table lookup problem", table);
+	flags = PARTIAL;
     } while (split_at_right(addr, '.'));
 
     return (SMTPD_CHECK_DUNNO);
@@ -951,7 +972,7 @@ static int check_addr_access(SMTPD_STATE *state, char *table, char *address)
 /* check_namadr_access - OK/FAIL based on host name/address lookup */
 
 static int check_namadr_access(SMTPD_STATE *state, char *table,
-			               char *name, char *addr)
+			               char *name, char *addr, int flags)
 {
     char   *myname = "check_namadr_access";
     int     status;
@@ -963,13 +984,13 @@ static int check_namadr_access(SMTPD_STATE *state, char *table,
      * Look up the host name, or parent domains thereof. XXX A domain
      * wildcard may pre-empt a more specific address table entry.
      */
-    if ((status = check_domain_access(state, table, name)) != 0)
+    if ((status = check_domain_access(state, table, name, flags)) != 0)
 	return (status);
 
     /*
      * Look up the network address, or parent networks thereof.
      */
-    if ((status = check_addr_access(state, table, addr)) != 0)
+    if ((status = check_addr_access(state, table, addr, flags)) != 0)
 	return (status);
 
     /*
@@ -1008,13 +1029,13 @@ static int check_mail_access(SMTPD_STATE *state, char *table, char *addr)
     /*
      * Look up the full address.
      */
-    if ((status = check_access(state, table, STR(reply.recipient))) != 0)
+    if ((status = check_access(state, table, STR(reply.recipient), FULL)) != 0)
 	return (status);
 
     /*
      * Look up the domain name, or parent domains thereof.
      */
-    if ((status = check_domain_access(state, table, ratsign + 1)) != 0)
+    if ((status = check_domain_access(state, table, ratsign + 1, PARTIAL)) != 0)
 	return (status);
 
     /*
@@ -1022,7 +1043,7 @@ static int check_mail_access(SMTPD_STATE *state, char *table, char *addr)
      */
     local_at = mystrndup(STR(reply.recipient),
 			 ratsign - STR(reply.recipient) + 1);
-    status = check_access(state, table, local_at);
+    status = check_access(state, table, local_at, PARTIAL);
     myfree(local_at);
     if (status != 0)
 	return (status);
@@ -1147,7 +1168,7 @@ static int generic_checks(SMTPD_STATE *state, char *name,
 	return (1);
     }
     if (is_map_command(name, CHECK_CLIENT_ACL, cpp)) {
-	*status = check_namadr_access(state, **cpp, state->name, state->addr);
+	*status = check_namadr_access(state, **cpp, state->name, state->addr, FULL);
 	return (1);
     }
     if (strcasecmp(name, REJECT_MAPS_RBL) == 0) {
@@ -1160,7 +1181,7 @@ static int generic_checks(SMTPD_STATE *state, char *name,
      */
     if (state->helo_name) {
 	if (is_map_command(name, CHECK_HELO_ACL, cpp) && state->helo_name) {
-	    *status = check_domain_access(state, **cpp, state->helo_name);
+	    *status = check_domain_access(state, **cpp, state->helo_name, FULL);
 	    return (1);
 	}
 	if (strcasecmp(name, REJECT_INVALID_HOSTNAME) == 0) {
@@ -1237,7 +1258,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
      */
     for (cpp = client_restrctions->argv; (name = *cpp) != 0; cpp++) {
 	if (strchr(name, ':') != 0) {
-	    status = check_namadr_access(state, name, state->name, state->addr);
+	    status = check_namadr_access(state, name, state->name, state->addr, FULL);
 	} else if (generic_checks(state, name, &cpp, &status, state->addr) == 0) {
 	    msg_warn("unknown %s check: \"%s\"", VAR_CLIENT_CHECKS, name);
 	    break;
@@ -1271,7 +1292,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     state->helo_name = mystrdup(helohost);
     for (cpp = helo_restrctions->argv; (name = *cpp) != 0; cpp++) {
 	if (strchr(name, ':') != 0) {
-	    status = check_domain_access(state, name, helohost);
+	    status = check_domain_access(state, name, helohost, FULL);
 	} else if (generic_checks(state, name, &cpp, &status, helohost) == 0) {
 	    msg_warn("unknown %s check: \"%s\"", VAR_HELO_CHECKS, name);
 	    break;
@@ -1381,9 +1402,9 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
      */
     for (cpp = etrn_restrctions->argv; (name = *cpp) != 0; cpp++) {
 	if (strchr(name, ':') != 0) {
-	    status = check_domain_access(state, name, domain);
+	    status = check_domain_access(state, name, domain, FULL);
 	} else if (is_map_command(name, CHECK_ETRN_ACL, &cpp)) {
-	    status = check_domain_access(state, *cpp, domain);
+	    status = check_domain_access(state, *cpp, domain, FULL);
 	} else if (generic_checks(state, name, &cpp, &status, domain) == 0) {
 	    msg_warn("unknown %s check: \"%s\"", VAR_RCPT_CHECKS, name);
 	    break;

@@ -392,9 +392,11 @@ static int qmgr_loop(void)
 static void qmgr_pre_init(void)
 {
     if (*var_relocated_maps)
-	qmgr_relocated = maps_create("relocated", var_relocated_maps);
+	qmgr_relocated = maps_create("relocated", var_relocated_maps,
+				     DICT_FLAG_LOCK);
     if (*var_virtual_maps)
-	qmgr_virtual = maps_create("virtual", var_virtual_maps);
+	qmgr_virtual = maps_create("virtual", var_virtual_maps,
+				   DICT_FLAG_LOCK);
 }
 
 /* qmgr_post_init - post-jail initialization */

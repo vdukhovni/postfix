@@ -81,6 +81,7 @@ cleanup.o: ../include/mail_server.h
 cleanup.o: cleanup.h
 cleanup.o: ../include/argv.h
 cleanup.o: ../include/maps.h
+cleanup.o: ../include/dict.h
 cleanup.o: ../include/tok822.h
 cleanup.o: ../include/resolve_clnt.h
 cleanup.o: ../include/been_here.h
@@ -100,6 +101,7 @@ cleanup_envelope.o: ../include/mail_params.h
 cleanup_envelope.o: cleanup.h
 cleanup_envelope.o: ../include/argv.h
 cleanup_envelope.o: ../include/maps.h
+cleanup_envelope.o: ../include/dict.h
 cleanup_envelope.o: ../include/been_here.h
 cleanup_envelope.o: ../include/mail_stream.h
 cleanup_extracted.o: cleanup_extracted.c
@@ -115,6 +117,7 @@ cleanup_extracted.o: ../include/record.h
 cleanup_extracted.o: ../include/rec_type.h
 cleanup_extracted.o: cleanup.h
 cleanup_extracted.o: ../include/maps.h
+cleanup_extracted.o: ../include/dict.h
 cleanup_extracted.o: ../include/tok822.h
 cleanup_extracted.o: ../include/resolve_clnt.h
 cleanup_extracted.o: ../include/been_here.h
@@ -171,6 +174,7 @@ cleanup_masquerade.o: ../include/quote_822_local.h
 cleanup_masquerade.o: cleanup.h
 cleanup_masquerade.o: ../include/vstream.h
 cleanup_masquerade.o: ../include/maps.h
+cleanup_masquerade.o: ../include/dict.h
 cleanup_masquerade.o: ../include/been_here.h
 cleanup_masquerade.o: ../include/mail_stream.h
 cleanup_message.o: cleanup_message.c
@@ -195,6 +199,7 @@ cleanup_message.o: ../include/mail_addr.h
 cleanup_message.o: ../include/is_header.h
 cleanup_message.o: cleanup.h
 cleanup_message.o: ../include/maps.h
+cleanup_message.o: ../include/dict.h
 cleanup_message.o: ../include/been_here.h
 cleanup_message.o: ../include/mail_stream.h
 cleanup_out.o: cleanup_out.c
@@ -209,6 +214,7 @@ cleanup_out.o: ../include/cleanup_user.h
 cleanup_out.o: cleanup.h
 cleanup_out.o: ../include/argv.h
 cleanup_out.o: ../include/maps.h
+cleanup_out.o: ../include/dict.h
 cleanup_out.o: ../include/tok822.h
 cleanup_out.o: ../include/resolve_clnt.h
 cleanup_out.o: ../include/been_here.h
@@ -224,6 +230,7 @@ cleanup_out_recipient.o: ../include/vstring.h
 cleanup_out_recipient.o: ../include/vbuf.h
 cleanup_out_recipient.o: ../include/vstream.h
 cleanup_out_recipient.o: ../include/maps.h
+cleanup_out_recipient.o: ../include/dict.h
 cleanup_out_recipient.o: ../include/tok822.h
 cleanup_out_recipient.o: ../include/resolve_clnt.h
 cleanup_out_recipient.o: ../include/mail_stream.h
@@ -240,6 +247,7 @@ cleanup_rewrite.o: cleanup.h
 cleanup_rewrite.o: ../include/vstream.h
 cleanup_rewrite.o: ../include/argv.h
 cleanup_rewrite.o: ../include/maps.h
+cleanup_rewrite.o: ../include/dict.h
 cleanup_rewrite.o: ../include/been_here.h
 cleanup_rewrite.o: ../include/mail_stream.h
 cleanup_skip.o: cleanup_skip.c
@@ -253,6 +261,7 @@ cleanup_skip.o: ../include/rec_type.h
 cleanup_skip.o: cleanup.h
 cleanup_skip.o: ../include/argv.h
 cleanup_skip.o: ../include/maps.h
+cleanup_skip.o: ../include/dict.h
 cleanup_skip.o: ../include/tok822.h
 cleanup_skip.o: ../include/resolve_clnt.h
 cleanup_skip.o: ../include/been_here.h
@@ -268,6 +277,7 @@ cleanup_state.o: ../include/mail_params.h
 cleanup_state.o: cleanup.h
 cleanup_state.o: ../include/argv.h
 cleanup_state.o: ../include/maps.h
+cleanup_state.o: ../include/dict.h
 cleanup_state.o: ../include/tok822.h
 cleanup_state.o: ../include/resolve_clnt.h
 cleanup_state.o: ../include/mail_stream.h

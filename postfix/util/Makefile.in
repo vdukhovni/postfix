@@ -291,7 +291,6 @@ dict.o: vstream.h
 dict.o: vbuf.h
 dict.o: vstring.h
 dict.o: readline.h
-dict.o: myflock.h
 dict.o: mac_parse.h
 dict.o: dict.h
 dict.o: dict_ht.h
@@ -303,6 +302,7 @@ dict_db.o: vstring.h
 dict_db.o: vbuf.h
 dict_db.o: stringops.h
 dict_db.o: iostuff.h
+dict_db.o: myflock.h
 dict_db.o: dict.h
 dict_db.o: vstream.h
 dict_db.o: dict_db.h

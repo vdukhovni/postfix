@@ -39,6 +39,7 @@ typedef struct DICT {
 #define DICT_FLAG_TRY1NULL	(1<<3)	/* append 0 to key/value */
 #define DICT_FLAG_FIXED		(1<<4)	/* fixed key map */
 #define DICT_FLAG_PATTERN	(1<<5)	/* keys are patterns */
+#define DICT_FLAG_LOCK		(1<<6)	/* lock before access */
 
 extern int dict_unknown_allowed;
 extern int dict_errno;
@@ -64,7 +65,7 @@ extern const char *dict_eval(const char *, const char *, int);
   */
 extern DICT *dict_open(const char *, int, int);
 extern DICT *dict_open3(const char *, const char *, int, int);
-
+extern void dict_open_register(const char *, DICT *(*)(const char *, int, int));
 #define dict_get(dp, key)	(dp)->lookup((dp), (key))
 #define dict_put(dp, key, val)	(dp)->update((dp), (key), (val))
 #define dict_close(dp)		(dp)->close(dp)

@@ -146,16 +146,10 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
     static VSTRING *buf;
     char   *at;
 
-/*    msg_info("dict_pcre_lookup: %s: %s", dict_pcre->map, name );*/
+    dict_errno = 0;
 
-    /*
-     * XXX Require user@domain, to defeat partial address matching for smtp
-     * access control, canonical and virtual mappings, and to prevent regexps
-     * from being used as alias databases because one might inadvertantly
-     * copy "|command" or /file/name or :include: to the result.
-     */
-    if (name[0] == '@' || (at = strrchr(name, '@')) == 0 || at[1] == 0)
-	return (0);
+    if (msg_verbose)
+	msg_info("dict_pcre_lookup: %s: %s", dict_pcre->map, name);
 
     /* Search for a matching expression */
     ctxt.matches = 0;

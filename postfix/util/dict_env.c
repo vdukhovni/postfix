@@ -57,6 +57,8 @@ static void dict_env_update(DICT *unused_dict, const char *name, const char *val
 
 static const char *dict_env_lookup(DICT *unused_dict, const char *name)
 {
+    dict_errno = 0;
+
     return (safe_getenv(name));
 }
 
