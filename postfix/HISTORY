@@ -6136,10 +6136,6 @@ Apologies for any names omitted.
 	accepted in SMTP mail, but they could appear within locally
 	submitted mail.  File: bounce/bounce_append_service.c.
 
-	Workaround: exempt processes running with the real userid
-	of root from safe_getenv() restrictions. The super-user
-	is supposed to know what she is doing.
-
 20020318
 
 	Workaround: Berkeley DB can't handle null key lookups,
@@ -6215,10 +6211,19 @@ Apologies for any names omitted.
 	whitespace. Fix by Victor Duchovni, Morgan Stanley. File:
 	cleanup/cleanup_map1n.c.
 
-	Feature: configurable service name for the cleanup service.
-	Files: global/mail_params.[hc].
+	Feature: configurable service name for the internal services:
+	bounce, cleanup, defer, error, flush, pickup, queue, rewrite,
+	showq.  Files: global/mail_params.[hc].
 
 	Feature: SASL version 2 support by Jason Hoos.
+
+20020330
+
+	Bugfix: postqueue did not pass on configuration directory
+	settings when running showq while the mail system is down.
+	The super-user is now exempted from environment stripping
+	in postqueue/postqueue.c. Problem reported by Victor
+	Duchovni, Morgan Stanley.
 
 Open problems:
 

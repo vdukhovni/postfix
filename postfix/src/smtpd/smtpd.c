@@ -1399,7 +1399,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    if (cmdp->flags & SMTPD_CMD_FLAG_HEADER) {
 		msg_warn("%s sent %s header instead of SMTP command: %.100s",
-		    cmdp->name, state->namaddr, vstring_str(state->buffer));
+		    state->namaddr, cmdp->name, vstring_str(state->buffer));
 		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
 		break;
 	    }

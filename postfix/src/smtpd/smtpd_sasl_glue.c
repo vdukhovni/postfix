@@ -225,7 +225,13 @@ void    smtpd_sasl_initialize(void)
 
 void    smtpd_sasl_connect(SMTPD_STATE *state)
 {
+#if SASL_VERSION_MAJOR < 2
     unsigned sasl_mechanism_count;
+
+#else
+    int     sasl_mechanism_count;
+
+#endif
     sasl_security_properties_t sec_props;
     char   *server_address;
     char   *client_address;

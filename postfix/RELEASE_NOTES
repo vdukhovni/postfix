@@ -37,6 +37,11 @@ exceeded $line_length_limit characters (default: 2048).  Both
 behaviors broke MIME encapsulation, causing MIME attachments to
 "disappear" with all previous Postfix versions.
 
+Major changes with Postfix version x.x.x
+========================================
+
+Support for the Cyrus SASL version 2 library.
+
 Incompatible changes with Postfix version 1.1.3 (released 20020201)
 ===================================================================
 

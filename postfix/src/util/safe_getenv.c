@@ -10,8 +10,7 @@
 /*	char	*name;
 /* DESCRIPTION
 /*	The \fBsafe_getenv\fR() routine reads the named variable from the
-/*	environment, provided that either the process runs with the real
-/*	and effective user ID of root, or that the unsafe() routine agrees.
+/*	environment, provided that the unsafe() routine agrees.
 /* SEE ALSO
 /*	unsafe(3), detect non-user privileges
 /* LICENSE
@@ -38,6 +37,5 @@
 
 char   *safe_getenv(const char *name)
 {
-    return ((getuid() == 0 && geteuid() == 0) || unsafe() == 0 ?
-	    getenv(name) : 0);
+    return (unsafe() == 0 ? getenv(name) : 0);
 }

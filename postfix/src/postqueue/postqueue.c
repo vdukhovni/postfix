@@ -340,12 +340,17 @@ int     main(int argc, char **argv)
     mail_conf_read();
 
     /*
-     * Strip the environment so we don't have to trust the C library.
+     * This program is designed to be set-gid, which makes it a potential
+     * target for attack. If not running as root, strip the environment so we
+     * don't have to trust the C library. If running as root, don't strip the
+     * environment so that showq can receive non-default configuration
+     * directory info when the mail system is down.
      */
-    import_env = argv_split(var_import_environ, ", \t\r\n");
-    clean_env(import_env->argv);
-    argv_free(import_env);
-
+    if (geteuid() != 0) {
+	import_env = argv_split(var_import_environ, ", \t\r\n");
+	clean_env(import_env->argv);
+	argv_free(import_env);
+    }
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
 
