@@ -196,7 +196,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
      * the conversation when they send bad information.
      */
     if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_NUM, MAIL_ATTR_DFLAGS, &request->flags,
+		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &request->flags,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 		  ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &request->data_offset,

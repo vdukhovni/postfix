@@ -108,6 +108,11 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     int     i;
 
     /*
+     * Avoid suprious complaints from Purify on Solaris.
+     */
+    memset((char *) &sin, 0, len);
+
+    /*
      * Look up the peer address information.
      */
     if (getpeername(vstream_fileno(state->client),

@@ -109,6 +109,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
     char   *attr_name;
     char   *attr_value;
     const char *error_text;
+    int     extra_flags;
 
     if (type == REC_TYPE_MESG) {
 	if (state->sender == 0 || state->time == 0) {
@@ -123,6 +124,14 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 				   state->warn_time);
 	    state->action = cleanup_message;
 	}
+	return;
+    }
+    if (type == REC_TYPE_FLGS) {
+	extra_flags = atol(buf);
+	if (extra_flags & ~CLEANUP_FLAG_MASK_EXTRA)
+	    msg_warn("%s: bad extra flags: 0x%x", state->queue_id, extra_flags);
+	else
+	    state->flags |= extra_flags;
 	return;
     }
     if (strchr(REC_TYPE_ENVELOPE, type) == 0) {
@@ -217,13 +226,6 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    return;
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
-    } else if (type == REC_TYPE_FLGS) {
-
-	/*
-	 * For safety's sake, allow setting flags only. Even this sucks when
-	 * people set the CLEANUP_FLAG_BOUNCE flag too late in the game.
-	 */
-	cleanup_control(state, state->flags | atol(buf));
     } else {
 	cleanup_out(state, type, buf, len);
     }

@@ -490,6 +490,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
     char   *attr;
     char   *myname = "dict_ldap_get_values";
     struct timeval tv;
+    LDAPURLDesc *url;
 
     tv.tv_sec = dict_ldap->timeout;
     tv.tv_usec = 0;
@@ -541,8 +542,14 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 			if (msg_verbose)
 			    msg_info("%s: looking up URL %s", myname,
 				     vals[i]);
-			rc = ldap_url_search_st(dict_ldap->ld, vals[i],
-						0, &tv, &resloop);
+			rc = ldap_url_parse(vals[i], &url);
+			if (rc == 0) {
+			    rc = ldap_search_st(dict_ldap->ld, url->lud_dn,
+					    url->lud_scope, url->lud_filter,
+						url->lud_attrs, 0, &tv,
+						&resloop);
+			    ldap_free_urldesc(url);
+			}
 		    } else {
 			if (msg_verbose)
 			    msg_info("%s: looking up DN %s", myname, vals[i]);

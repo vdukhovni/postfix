@@ -538,11 +538,12 @@ static void mail_open_stream(SMTPD_STATE *state)
     if (SMTPD_STAND_ALONE(state) == 0) {
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
-	if (state->dest == 0)
+	if (state->dest == 0
+	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
+			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
+			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PUBLIC, var_cleanup_service);
-	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
-		    CLEANUP_FLAG_FILTER);
     }
 
     /*

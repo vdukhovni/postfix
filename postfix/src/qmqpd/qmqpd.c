@@ -182,7 +182,10 @@ static void qmqpd_open_file(QMQPD_STATE *state)
      * Connect to the cleanup server. Log client name/address with queue ID.
      */
     state->dest = mail_stream_service(MAIL_CLASS_PUBLIC, var_cleanup_service);
-    if (state->dest == 0)
+    if (state->dest == 0
+	|| attr_print(state->dest->stream, ATTR_FLAG_NONE,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
+		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to connect to the %s %s service",
 		  MAIL_CLASS_PUBLIC, var_cleanup_service);
     state->cleanup = state->dest->stream;
@@ -194,7 +197,6 @@ static void qmqpd_open_file(QMQPD_STATE *state)
      * bloody likely, but present for the sake of consistency with all other
      * Postfix points of entrance).
      */
-    rec_fprintf(state->cleanup, REC_TYPE_FLGS, "%d", CLEANUP_FLAG_FILTER);
     rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld", (long) state->time);
     if (*var_filter_xport)
 	rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);

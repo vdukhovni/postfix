@@ -141,14 +141,16 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
      */
     if (attr_scan(stream, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
-		  ATTR_TYPE_END) != 1)
+		  ATTR_TYPE_END) != 1
+	|| attr_print(stream, ATTR_FLAG_NONE,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to contact the %s service", var_cleanup_service);
 
     /*
      * Generate a minimal envelope section. The cleanup service will add a
      * size record.
      */
-    rec_fprintf(stream, REC_TYPE_FLGS, "%d", flags);
     rec_fprintf(stream, REC_TYPE_TIME, "%ld", (long) now);
     rec_fprintf(stream, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);

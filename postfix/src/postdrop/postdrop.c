@@ -297,9 +297,6 @@ int     main(int argc, char **argv)
      * 
      * If something goes wrong, slurp up the input before responding to the
      * client, otherwise the client will give up after detecting SIGPIPE.
-     * 
-     * XXX Need to add REC_TYPE_ATTR filtering code before we can talk directly
-     * to the cleanup daemon.
      */
     vstream_control(VSTREAM_IN, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
     buf = vstring_alloc(100);
@@ -318,17 +315,13 @@ int     main(int argc, char **argv)
 	}
 	if (rec_type == REC_TYPE_ERROR)
 	    msg_fatal("uid=%ld: malformed input", (long) uid);
+	if (rec_type == REC_TYPE_TIME)
+	    rec_fprintf(dst->stream, REC_TYPE_TIME, "%ld",
+			(long) time((time_t *) 0));
 	if (strchr(*expected, rec_type) == 0)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)
 	    expected++;
-	if (rec_type == REC_TYPE_TIME) {
-	    rec_fprintf(dst->stream, REC_TYPE_TIME, "%ld",
-			(long) time((time_t *) 0));
-	    continue;
-	}
-	if (rec_type == REC_TYPE_FLGS)
-	    continue;
 	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0) {
 	    while ((rec_type = rec_get(VSTREAM_IN, buf, var_line_limit)) > 0
 		   && rec_type != REC_TYPE_END)

@@ -159,6 +159,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <mail_version.h>
 #include <debug_process.h>
 #include <mail_task.h>
 #include <mail_conf.h>
@@ -364,7 +365,7 @@ int     main(int argc, char **argv)
     master_config();
     master_sigsetup();
     master_flow_init();
-    msg_info("daemon started");
+    msg_info("daemon started -- version %s", var_mail_version);
 
     /*
      * Process events. The event handler will execute the read/write/timer

@@ -35,9 +35,8 @@
 /*	queue_id result structure member.
 /*
 /*	cleanup_control() processes per-message flags specified by the caller.
-/*	These flags control the storage of mail and the handling of errors.
-/*	It is an error to any change error handling flags in the middle of
-/*	a message.
+/*	These flags control the handling of data errors, and must be set
+/*	before processing the first message record.
 /* .IP CLEANUP_FLAG_BOUNCE
 /*	The cleanup server is responsible for returning undeliverable
 /*	mail (too many hops, message too large) to the sender.
@@ -170,8 +169,6 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * definition.
      */
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
-	if (state->err_mask && state->err_mask != CLEANUP_STAT_MASK_INCOMPLETE)
-	    msg_fatal("can't set CLEANUP_FLAG_BOUNCE after initializations");
 	state->err_mask = CLEANUP_STAT_MASK_INCOMPLETE;
     } else {
 	state->err_mask = ~CLEANUP_STAT_MASK_EXTRACT_RCPT;
@@ -279,6 +276,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	if (REMOVE(cleanup_path))
 	    msg_warn("remove %s: %m", cleanup_path);
     }
+
     /*
      * Make sure that our queue file will not be deleted by the error handler
      * AFTER we have taken responsibility for delivery. Better to deliver

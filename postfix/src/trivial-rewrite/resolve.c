@@ -291,7 +291,7 @@ int     resolve_proto(VSTREAM *stream)
 	       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, STR(channel),
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, STR(nexthop),
 	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, STR(nextrcpt),
-	       ATTR_TYPE_NUM, MAIL_ATTR_RFLAGS, flags,
+	       ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_END);
 
     if (vstream_fflush(stream) != 0) {

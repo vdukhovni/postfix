@@ -281,6 +281,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	    state->reason = mystrdup(*optional_text ? optional_text :
 				     cleanup_strerror(CLEANUP_STAT_CONT));
 	state->errs |= CLEANUP_STAT_CONT;
+	state->flags &= ~CLEANUP_FLAG_FILTER;
 	if ((origin = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
 	    origin = MAIL_ATTR_ORG_NONE;
 	msg_info("%s: reject: %s %.200s from %s; from=<%s> to=<%s>: %s",
@@ -314,6 +315,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 		 *optional_text ? ": " : "",
 		 *optional_text ? optional_text : "");
 	state->flags |= CLEANUP_FLAG_DISCARD;
+	state->flags &= ~CLEANUP_FLAG_FILTER;
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "HOLD", command_len)) {

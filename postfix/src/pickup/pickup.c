@@ -191,8 +191,6 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		info->rcpt = mystrdup(vstring_str(buf));
 	if (type == REC_TYPE_TIME)
 	    continue;
-	if (type == REC_TYPE_FLGS)
-	    continue;
 	if (type == REC_TYPE_ATTR) {
 	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,
 					    &attr_value)) != 0) {
@@ -268,15 +266,6 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
 	msg_warn("%s: message has been queued for %d days",
 		 info->id, (int) (now - info->st.st_mtime) / DAY_SECONDS);
     }
-
-    /*
-     * Send our processing options. In case of trouble, request that the
-     * cleanup service bounces its copy of the message. because the original
-     * input file is not readable by the bounce service.
-     */
-#define PICKUP_CLEANUP_FLAGS	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_FILTER)
-
-    rec_fprintf(cleanup, REC_TYPE_FLGS, "%d", PICKUP_CLEANUP_FLAGS);
 
     /*
      * Make sure the message has a posting-time record.
@@ -400,17 +389,23 @@ static int pickup_file(PICKUP_INFO *info)
 
     /*
      * Contact the cleanup service and read the queue ID that it has
-     * allocated. 
+     * allocated. In case of trouble, request that the cleanup service
+     * bounces its copy of the message. because the original input file is
+     * not readable by the bounce service.
      * 
      * The actual message copying code is in a separate routine, so that it is
      * easier to implement the many possible error exits without forgetting
      * to close files, or to release memory.
      */
+#define PICKUP_CLEANUP_FLAGS	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_FILTER)
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buf,
-		  ATTR_TYPE_END) != 1) {
+		  ATTR_TYPE_END) != 1
+	|| attr_print(cleanup, ATTR_FLAG_NONE,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, PICKUP_CLEANUP_FLAGS,
+		      ATTR_TYPE_END) != 0) {
 	status = KEEP_MESSAGE_FILE;
     } else {
 	info->id = mystrdup(vstring_str(buf));

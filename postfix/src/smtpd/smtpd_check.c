@@ -1509,25 +1509,35 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			     var_access_map_code, reply_name, reply_class));
 
     /*
-     * HOLD means deliver later.
+     * HOLD means deliver later. But we may still change our mind, and
+     * reject/discard the message for other reasons.
      */
     if (strcasecmp(value, "HOLD") == 0) {
 	vstring_sprintf(error_text, "<%s>: %s triggers HOLD action",
 			reply_name, reply_class);
 	log_whatsup(state, "hold", STR(error_text));
+#ifndef TEST
 	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
 		    CLEANUP_FLAG_HOLD);
+#endif
+	return (SMTPD_CHECK_DUNNO);
     }
 
     /*
      * DISCARD means silently discard and claim successful delivery.
+     * 
+     * XXX Set some global flag that disables all further restrictions.
+     * Triggering a "reject" or "hold" action after "discard" is silly.
      */
     if (strcasecmp(value, "DISCARD") == 0) {
 	vstring_sprintf(error_text, "<%s>: %s triggers DISCARD action",
 			reply_name, reply_class);
 	log_whatsup(state, "discard", STR(error_text));
+#ifndef TEST
 	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
 		    CLEANUP_FLAG_DISCARD);
+#endif
+	return (SMTPD_CHECK_OK);
     }
 
     /*

@@ -254,9 +254,18 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
 	    else if (queue->peers.next != queue->peers.prev)
 		msg_warn("you may need a separate master.cf transport for %s",
 			 queue->name);
-	    else if (transport->dest_concurrency_limit / 2 > queue->busy_refcount)
+	    else {
+		msg_warn("you may need to reduce %s connect and helo timeouts",
+			 transport->name);
+		msg_warn("so that Postfix quickly skips unavailable hosts");
+		msg_warn("you may need to increase the main.cf %s and %s",
+			 VAR_MIN_BACKOFF_TIME, VAR_MAX_BACKOFF_TIME);
+		msg_warn("so that Postfix wastes less time on undeliverable mail");
 		msg_warn("you may need to increase the master.cf %s process limit",
 			 transport->name);
+	    }
+	    msg_warn("please avoid flushing the whole queue when you have");
+	    msg_warn("lots of deferred mail, that is bad for performance");
 	    msg_warn("to turn off these warnings specify: %s = 0",
 		     VAR_QMGR_CLOG_WARN_TIME);
 	    queue->clog_time_to_warn = now + var_qmgr_clog_warn_time;
