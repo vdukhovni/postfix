@@ -1,5 +1,15 @@
-Incompatible changes with postfix-alpha-19990317:
-=================================================
+Major changes with snapshot-19990322:
+=====================================
+
+- The UNIX-domain socket workaround for Solaris was fixed
+after one day of review. More testing is welcome.
+
+- reject_unknown_{sender,recipient}_domain restrictions that
+distinguish between hard (always 450) and soft (configurable,
+default 450) lookup errors.
+
+Incompatible changes with postfix-19990317:
+===========================================
 
 - You MUST install the new version of /etc/postfix/postfix-script.
 
@@ -7,8 +17,8 @@ Incompatible changes with postfix-alpha-19990317:
 MUST specify the R flag in order to generate a Return-Path:  message
 header (as needed by, for example, cyrus).
 
-Major changes since postfix-beta-19990122-pl01:
-===============================================
+Major changes with postfix-19990317:
+====================================
 
 A detailed record of changes is given in the HISTORY file.
 

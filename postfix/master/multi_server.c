@@ -133,10 +133,8 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <sane_accept.h>
-#ifndef NO_SELECT_COLLISION
 #include <myflock.h>
 #include <safe_open.h>
-#endif
 #include <listen.h>
 
 /* Global library. */
@@ -167,11 +165,7 @@ static char *multi_server_name;
 static char **multi_server_argv;
 static void (*multi_server_accept) (int, char *);
 static void (*multi_server_onexit) (void);
-
-#ifndef NO_SELECT_COLLISION
 static VSTREAM *multi_server_lock;
-
-#endif
 
 /* multi_server_exit - normal termination */
 
@@ -231,11 +225,9 @@ static void multi_server_execute(int unused_event, char *context)
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-#ifndef NO_SELECT_COLLISION
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
 	msg_fatal("select unlock: %m");
-#endif
 
     /*
      * Do not bother the application when the client disconnected.
@@ -290,11 +282,9 @@ static void multi_server_accept_local(int unused_event, char *context)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
 
     fd = LOCAL_ACCEPT(listen_fd);
-#ifndef NO_SELECT_COLLISION
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
 	msg_fatal("select unlock: %m");
-#endif
     if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_fatal("accept connection: %m");
@@ -331,11 +321,9 @@ static void multi_server_accept_inet(int unused_event, char *context)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
 
     fd = inet_accept(listen_fd);
-#ifndef NO_SELECT_COLLISION
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
 	msg_fatal("select unlock: %m");
-#endif
     if (fd < 0) {
 	if (errno != EAGAIN)
 	    msg_fatal("accept connection: %m");
@@ -366,12 +354,8 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     MAIL_SERVER_LOOP_FN loop = 0;
     int     key;
     char   *transport = 0;
-
-#ifndef NO_SELECT_COLLISION
     char   *lock_path;
     VSTRING *why;
-
-#endif
     int     alone = 0;
 
     /*
@@ -519,7 +503,6 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Illustrated volume 2 page 532. We avoid select() collisions with an
      * external lock file.
      */
-#ifndef NO_SELECT_COLLISION
     if (stream == 0 && !alone) {
 	lock_path = concatenate(DEF_PID_DIR, "/", transport,
 				".", service_name, (char *) 0);
@@ -531,7 +514,6 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	myfree(lock_path);
 	vstring_free(why);
     }
-#endif
 
     /*
      * Run pre-jail initialization.
@@ -587,11 +569,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     while (var_use_limit == 0 || use_count < var_use_limit || client_count > 0) {
 	delay = loop ? loop() : -1;
-#ifndef NO_SELECT_COLLISION
 	if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_EXCLUSIVE) < 0)
 	    msg_fatal("select lock: %m");
-#endif
 	event_loop(delay);
     }
     multi_server_exit();

@@ -55,7 +55,8 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h
-TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c
+TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
+	stream_test.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused 
@@ -68,7 +69,7 @@ TESTPROG= dict_open events exec_command fifo_open fifo_rdonly_bug \
 	fifo_rdwr_bug fifo_trigger fsspace fullname inet_addr_host \
 	inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok peer_name sigdelay translit valid_hostname vstream_popen \
-	vstring vstring_vstream doze select_bug
+	vstring vstring_vstream doze select_bug stream_test
 
 LIB_DIR	= ../lib
 INC_DIR	= ../include
@@ -236,6 +237,9 @@ depend: $(MAKES)
 	    -e 's//'`echo $$i|sed 's/c$$/o/'`': \1/' -e 'p' -e '}'; \
 	done) | grep -v '[.][o][:][ ][/]' >$$$$ && mv $$$$ Makefile.in
 	@make Makefile
+
+stream_test: stream_test.c $(LIB)
+	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
 tests: valid_hostname_test
 
@@ -664,15 +668,6 @@ select_bug.o: msg.h
 select_bug.o: vstream.h
 select_bug.o: vbuf.h
 select_bug.o: msg_vstream.h
-sendfd_test.o: sendfd_test.c
-sendfd_test.o: sys_defs.h
-sendfd_test.o: sendfd_test.c
-sendfd_test.o: iostuff.h
-sendfd_test.o: msg.h
-sendfd_test.o: msg_vstream.h
-sendfd_test.o: vstream.h
-sendfd_test.o: vbuf.h
-sendfd_test.o: listen.h
 set_eugid.o: set_eugid.c
 set_eugid.o: sys_defs.h
 set_eugid.o: msg.h
@@ -707,6 +702,16 @@ stream_listen.o: sys_defs.h
 stream_listen.o: msg.h
 stream_listen.o: listen.h
 stream_listen.o: iostuff.h
+stream_test.o: stream_test.c
+stream_test.o: sys_defs.h
+stream_test.o: stream_test.c
+stream_test.o: iostuff.h
+stream_test.o: msg.h
+stream_test.o: msg_vstream.h
+stream_test.o: vstream.h
+stream_test.o: vbuf.h
+stream_test.o: listen.h
+stream_test.o: connect.h
 stream_trigger.o: stream_trigger.c
 stream_trigger.o: sys_defs.h
 stream_trigger.o: msg.h

@@ -108,8 +108,13 @@
 /*	Reject the request when the HELO/EHLO hostname has no A or MX record.
 /*	The \fIunknown_hostname_reject_code\fR configuration
 /*	parameter specifies the reject status code (default: 450).
-/* .IP reject_unknown_address
+/* .IP reject_unknown_sender_domain
 /*	Reject the request when the resolved sender address has no
+/*	DNS A or MX record.
+/*	The \fIunknown_address_reject_code\fR configuration parameter
+/*	specifies the reject status code (default: 450).
+/* .IP reject_unknown_recipient_domain
+/*	Reject the request when the resolved recipient address has no
 /*	DNS A or MX record.
 /*	The \fIunknown_address_reject_code\fR configuration parameter
 /*	specifies the reject status code (default: 450).
@@ -577,7 +582,8 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, char *name)
     if (dns_status != DNS_OK)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: Domain not found",
-				   var_unk_addr_code, name));
+				   dns_status == DNS_NOTFOUND ?
+				   var_unk_addr_code : 450, name));
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1197,6 +1203,10 @@ static int generic_checks(SMTPD_STATE *state, char *name,
 	    *status = reject_unknown_address(state, state->sender);
 	    return (1);
 	}
+	if (strcasecmp(name, REJECT_UNKNOWN_SENDDOM) == 0) {
+	    *status = reject_unknown_address(state, state->sender);
+	    return (1);
+	}
 	if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
 	    if (*state->sender)
 		*status = reject_non_fqdn_address(state, state->sender);
@@ -1336,6 +1346,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	    status = permit_mx_backup(state, recipient);
 	} else if (strcasecmp(name, CHECK_RELAY_DOMAINS) == 0) {
 	    status = check_relay_domains(state, recipient);
+	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
+	    status = reject_unknown_address(state, recipient);
 	} else if (strcasecmp(name, REJECT_NON_FQDN_RCPT) == 0) {
 	    status = reject_non_fqdn_address(state, recipient);
 	} else if (generic_checks(state, name, &cpp, &status, recipient) == 0) {

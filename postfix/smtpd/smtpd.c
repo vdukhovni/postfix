@@ -280,13 +280,26 @@ char   *var_always_bcc;
   */
 char   *smtpd_path;
 
+/* collapse_args - put arguments together again */
+
+static void collapse_args(int argc, SMTPD_TOKEN *argv)
+{
+    int     i;
+
+    for (i = 2; i < argc; i++) {
+	vstring_strcat(argv[1].vstrval, " ");
+	vstring_strcat(argv[1].vstrval, argv[i].strval);
+    }
+    argv[1].strval = vstring_str(argv[1].vstrval);
+}
+
 /* helo_cmd - process HELO command */
 
 static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *err;
 
-    if (argc != 2) {
+    if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: HELO hostname");
 	return (-1);
@@ -296,6 +309,7 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Duplicate HELO/EHLO");
 	return (-1);
     }
+    collapse_args(argc, argv);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_helo(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
@@ -313,7 +327,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     char   *err;
 
-    if (argc != 2) {
+    if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: EHLO hostname");
 	return (-1);
@@ -323,6 +337,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: duplicate HELO/EHLO");
 	return (-1);
     }
+    collapse_args(argc, argv);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_helo(state, argv[1].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
@@ -758,9 +773,7 @@ static int noop_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 
 static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
-    VSTRING *buf;
     char   *err = 0;
-    int     i;
 
     /*
      * The SMTP standard (RFC 821) disallows unquoted special characters in
@@ -772,18 +785,9 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: VRFY address");
 	return (-1);
     }
-
-    /*
-     * Yuck. All input is tokenized. Now put it back together again.
-     */
-    buf = vstring_alloc(100);
-    for (i = 1; i < argc; i++) {
-	vstring_strcat(buf, " ");
-	vstring_strcat(buf, argv[i].strval);
-    }
+    collapse_args(argc, argv);
     if (SMTPD_STAND_ALONE(state) == 0)
-	err = smtpd_check_rcpt(state, vstring_str(buf));
-    vstring_free(buf);
+	err = smtpd_check_rcpt(state, argv[1].strval);
 
     /*
      * End untokenize.

@@ -353,7 +353,7 @@ network address.
 
 <dt> Example:
 
-<dd> <b>smtpd_sender_restrictions = reject_unknown_address</b>
+<dd> <b>smtpd_sender_restrictions = reject_unknown_sender_domain</b>
 
 <p>
 
@@ -361,12 +361,13 @@ network address.
 
 <dl compact>
 
-<a name="reject_unknown_address">
+<a name="reject_unknown_sender_domain">
 
-<dt> <b>reject_unknown_address</b> <dd> Reject the request when
-the sender mail address has no DNS A or MX record. The
+<dt> <b>reject_unknown_sender_domain</b> <dd> Reject the request
+when the sender mail address has no DNS A or MX record. The
 <b>unknown_address_reject_code </b> parameter specifies the response
-code for rejected requests (default:  <b>450</b>).
+code for rejected requests (default:  <b>450</b>).  The response
+is always <b>450</b> in case of a temporary DNS error.
 
 <p>
 
@@ -506,6 +507,16 @@ for rejected requests (default: <b>550</b>).
 
 <p>
 
+<a name="reject_unknown_recipient_domain">
+
+<dt> <b>reject_unknown_recipient_domain</b> <dd> Reject the request
+when the recipient mail address has no DNS A or MX record. The
+<b>unknown_address_reject_code </b> parameter specifies the response
+code for rejected requests (default:  <b>450</b>).  The response
+is always <b>450</b> in case of a temporary DNS error.
+
+<p>
+
 <a name="reject_non_fqdn_recipient">
 
 <dt> <b>reject_non_fqdn_recipient</b> <dd> Reject the request when
@@ -515,7 +526,7 @@ response code to rejected requests (default:  <b>504</b>).
 
 <p>
 
-<dt> <b><a href="#reject_unknown_address">reject_unknown_address</a></b>
+<dt> <b><a href="#reject_unknown_sender_domain">reject_unknown_sender_domain</a></b>
 
 <dt> <b><a href="#reject_non_fqdn_sender">reject_non_fqdn_sender</a></b>
 

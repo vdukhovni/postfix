@@ -9,6 +9,7 @@
 #include "msg.h"
 #include "msg_vstream.h"
 #include "listen.h"
+#include "connect.h"
 
 #define FIFO	"/tmp/test-fifo"
 
@@ -33,9 +34,9 @@ static NORETURN usage(void)
 
 main(int argc, char **argv)
 {
-    struct strrecvfd fdinfo;
     int     server_fd;
     int     client_fd;
+    int     fd;
     int     print_fstats = 0;
     int     count = 1;
     int     ch;
@@ -63,43 +64,39 @@ main(int argc, char **argv)
 	    break;
 	}
     }
-    server_fd = fifo_listen(FIFO, 0600, NON_BLOCKING);
+    server_fd = stream_listen(FIFO, 0, 0);
     if (readable(server_fd))
 	msg_fatal("server fd is readable after create");
 
     /*
      * Connect in client.
      */
-    if ((client_fd = open(FIFO, O_RDWR, NON_BLOCKING)) < 0)
-	msg_fatal("open %s as client: %m", FIFO);
-    if (readable(server_fd))
-	msg_warn("server fd is readable after client open");
-    if (print_fstats)
-	print_fstat(0);
-	if (ioctl(client_fd, I_RECVFD, &fdinfo) < 0)
-	    msg_fatal("receive fd: %m");
     for (i = 0; i < count; i++) {
-	msg_info("send attempt %d", i);
-	while (!writable(client_fd))
-	    msg_info("wait for client fd to become writable");
-	if (ioctl(client_fd, I_SENDFD, 0) < 0)
-	    msg_fatal("send fd to server: %m");
+	msg_info("connect attempt %d", i);
+	if ((client_fd = stream_connect(FIFO, 0, 0)) < 0)
+	    msg_fatal("open %s as client: %m", FIFO);
+	if (readable(server_fd))
+	    msg_info("server fd is readable after client open");
+	if (close(client_fd) < 0)
+	    msg_fatal("close client fd: %m");
     }
-    if (close(client_fd) < 0)
-	msg_fatal("close client fd: %m");
 
     /*
      * Accept in server.
      */
     for (i = 0; i < count; i++) {
 	msg_info("receive attempt %d", i);
-	while (!readable(server_fd))
-	    msg_info("wait for server fd to become writable");
-	if (ioctl(server_fd, I_RECVFD, &fdinfo) < 0)
+	if (!readable(server_fd)) {
+	    msg_info("wait for server fd to become readable");
+	    read_wait(server_fd, -1);
+	}
+	if ((fd = stream_accept(server_fd)) < 0)
 	    msg_fatal("receive fd: %m");
 	if (print_fstats)
-	    print_fstat(fdinfo.fd);
-	if (close(fdinfo.fd) < 0)
+	    print_fstat(fd);
+	if (close(fd) < 0)
 	    msg_fatal("close received fd: %m");
     }
+    if (close(server_fd) < 0)
+	msg_fatal("close server fd");
 }

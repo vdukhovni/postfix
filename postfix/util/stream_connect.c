@@ -41,10 +41,16 @@
 /* System library. */
 
 #include <sys_defs.h>
+
+#ifdef STREAM_CONNECTIONS
+
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stropts.h>
+
+#endif
 
 /* Utility library. */
 
@@ -57,46 +63,41 @@ int     stream_connect(const char *path, int block_mode, int unused_timeout)
 {
 #ifdef STREAM_CONNECTIONS
     char   *myname = "stream_connect";
-    struct stat st;
-    int     fd;
-    int     flags;
+    int     pair[2];
+    int     fifo;
 
     /*
      * The requested file system object must exist, otherwise we can't reach
      * the server.
      */
-    if (block_mode == NON_BLOCKING)
-	flags = O_RDWR | O_NONBLOCK;
-    else
-	flags = O_RDWR;
-    if ((fd = open(path, flags, 0)) < 0)
+    if ((fifo = open(path, O_WRONLY | O_NONBLOCK, 0)) < 0)
 	return (-1);
 
     /*
-     * XXX Horror. If the open() result is a regular file, no server was
-     * listening. In this case we simulate what would have happened with
-     * UNIX-domain sockets.
+     * Create a pipe, and send one pipe end to the server.
      */
-    if (fstat(fd, &st) < 0)
-	msg_fatal("%s: fstat: %m", myname);
-    if (S_ISREG(st.st_mode)) {
-	close(fd);
-	errno = ECONNREFUSED;
-	return (-1);
-    }
+    if (pipe(pair) < 0)
+	msg_fatal("%s: pipe: %m", myname);
+    if (ioctl(fifo, I_SENDFD, pair[1]) < 0)
+	msg_fatal("%s: send file descriptor: %m", myname);
+    close(pair[1]);
 
     /*
      * This is for {unix,inet}_connect() compatibility.
      */
     if (block_mode == NON_BLOCKING)
-	non_blocking(fd, NON_BLOCKING);
+	non_blocking(pair[0], NON_BLOCKING);
 
     /*
-     * No trouble detected, so far.
+     * Cleanup.
      */
-    return (fd);
+    close(fifo);
+
+    /*
+     * Keep the other end of the pipe.
+     */
+    return (pair[0]);
 #else
     msg_fatal("stream connections are not implemented");
 #endif
 }
-

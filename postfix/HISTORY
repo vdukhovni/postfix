@@ -2371,6 +2371,40 @@ Apologies for any names omitted.
 	Bugfix: \username was broken. Frank Dziuba was the first
 	to notice.
 
+19990321
+
+	Workaround: from now on, Postfix on Solaris uses stream
+	pipes instead of UNIX-domain sockets. Despite workarounds,
+	the latter were causing more trouble than anything else on
+	all systems combined.
+
+19990322
+
+	Portability: the makedefs would mis-identify IRIX 6.5.x as
+	IRIX 5.x. Fix by Brian Truelsen of Maersk Mc-Kinney Moller
+	Institute for Production Technology, Denmark.
+
+	Feature: reject_unknown_recipient_domain restriction for
+	recipient addresses. For the sake of symmetry, we now also
+	have reject_unknown_sender_domain. This means the old
+	reject_unknown_address restriction is being phased out.
+	Suggested by Rask Ingemann Lambertsen [XXX affiliation to
+	be determined].
+
+	Feature: unknown sender/recipient domain restrictions now
+	distinguish between soft errors (always: 450) and hard
+	errors (configurable with the unknown_address_reject_code
+	parameter, default: 450; use 550 at your own risk).
+
+	Feature: no HELO junk mail restrictions means that no syntax
+	check will be done on HELO/EHLO hostname arguments.
+
+	Bugfix: the initial Solaris workaround for UNIX-domain
+	sockets could cause the queue manager to block if Postfix
+	ran into a delivery agent process limit. After another code
+	rewrite that problem is eliminated.  Thanks to Chris
+	Cappuccio, Empire Net, for assistance with testing.
+
 Future:
 
 	Planned: must be able to list the same hash table in

@@ -83,3 +83,13 @@ mail foo@friend.bad.domain
 client_restrictions reject_maps_rbl
 client spike.porcupine.org 168.100.189.2
 client foo 127.0.0.2
+#
+# unknown sender/recipient domain
+#
+unknown_address_reject_code 550
+recipient_restrictions reject_unknown_recipient_domain,reject_unknown_sender_domain
+mail wietse@porcupine.org
+rcpt wietse@porcupine.org
+rcpt wietse@no.recipient.domain
+mail wietse@no.sender.domain
+rcpt wietse@porcupine.org

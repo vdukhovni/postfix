@@ -29,16 +29,13 @@
 /* .IP backlog
 /*	This argument exists for compatibility and is ignored.
 /* .IP block_mode
-/*	This argument exists for compatibility and is ignored.
-/*	blocking mode.
+/*	Either NON_BLOCKING or BLOCKING. This does not affect the
+/*	mode of accepted connections.
 /* .IP fd
 /*	File descriptor returned by stream_listen().
 /* DIAGNOSTICS
 /*	Fatal errors: stream_listen() aborts upon any system call failure.
 /*	stream_accept() leaves all error handling up to the caller.
-/* BUGS
-/*	This implementation leaks one file descriptor. This is fixed when
-/*	endpoints become objects rather than file descriptors.
 /* LICENSE
 /* .ad
 /* .fi
@@ -71,46 +68,15 @@
 
 /* stream_listen - create stream listener */
 
-int     stream_listen(const char *path, int unused_backlog, 
-int unused_block_mode)
+int     stream_listen(const char *path, int unused_backlog, int block_mode)
 {
 #ifdef STREAM_CONNECTIONS
-    char   *myname = "stream_listen";
-    static int pair[2];
-    int     fd;
 
     /*
-     * Initialize: create the specified endpoint with the right permissions.
+     * We can't specify a listen backlog, however, sending file descriptors
+     * across a FIFO gives us a backlog buffer of 460 on Solaris 2.4/SPARC.
      */
-#define PERMS 0666
-    if (unlink(path) && errno != ENOENT)
-	msg_fatal("%s: remove %s: %m", myname, path);
-    if ((fd = open(path, PERMS, O_CREAT | O_TRUNC | O_WRONLY)) < 0)
-	msg_fatal("%s: create file %s: %m", myname, path);
-    if (fchmod(fd, PERMS) < 0)
-	msg_fatal("%s: chmod 0%o: %m", myname, PERMS);
-    if (close(fd) < 0)
-	msg_fatal("%s: close file %s:  %m", myname, path);
-
-    /*
-     * Associate one pipe end with the file just created. See: Richard
-     * Stevens, Advanced Programming in the UNIX Environment Ch. 15.5.1
-     * 
-     * On Solaris 2.4/SPARC, this gives us a "listen queue" of some 460
-     * connections.
-     */
-    if (pipe(pair) < 0)
-	msg_fatal("%s: create pipe: %m", myname);
-    if (ioctl(pair[1], I_PUSH, "connld") < 0)
-	msg_fatal("%s: push connld module: %m", myname);
-    if (fattach(pair[1], path) < 0)
-	msg_fatal("%s: fattach %s: %m", myname, path);
-
-    /*
-     * Return one end, and leak the other. This will be fixed when all
-     * endpoints are objects instead of bare file descriptors.
-     */
-    return (pair[0]);
+    return (fifo_listen(path, 0666, block_mode));
 #else
     msg_fatal("stream connections are not implemented");
 #endif
@@ -131,6 +97,6 @@ int     stream_accept(int fd)
 	return (-1);
     return (fdinfo.fd);
 #else
-	      msg_fatal("stream connections are not implemented");
+    msg_fatal("stream connections are not implemented");
 #endif
 }

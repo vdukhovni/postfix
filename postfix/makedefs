@@ -137,12 +137,12 @@ case "$SYSTEM.$RELEASE" in
 		    CCARGS="$CCARGS -DPATH_DB_H='<db/db.h>'"
 		fi
 		;;
-     IRIX*.5*)	SYSTYPE=IRIX5
+     IRIX*.5.*)	SYSTYPE=IRIX5
 		# Use the native compiler by default
 		: ${CC=cc}
 		RANLIB=echo
 		;;
-     IRIX*.6*)	SYSTYPE=IRIX6
+     IRIX*.6.*)	SYSTYPE=IRIX6
 		# Use the native compiler by default, and allow nested comments.
 		: ${CC="cc -woff 1009,1116,1412"}
 		RANLIB=echo
