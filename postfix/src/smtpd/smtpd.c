@@ -1541,7 +1541,9 @@ static void smtpd_proto(SMTPD_STATE *state)
      * things went wrong. Don't complain about clients that go away without
      * sending QUIT.
      */
-    if (state->reason && state->where && strcmp(state->where, SMTPD_AFTER_DOT))
+    if (state->reason && state->where
+	&& (strcmp(state->where, SMTPD_AFTER_DOT)
+	    || strcmp(state->reason, "lost connection")))
 	msg_info("%s after %s from %s[%s]",
 		 state->reason, state->where, state->name, state->addr);
 
