@@ -1,5 +1,5 @@
 This code was created by Andrew McNamara <andrew@connect.com.au>
-and adapted to snapshot 20001121 by Xavier Beaudouin. It was merged
+and adapted to snapshot 50001121 by Xavier Beaudouin. It was merged
 with mainstream Postfix for 20010128 by Wietse.
 
 Purpose of this software
@@ -84,6 +84,12 @@ virtual_uid_maps
     For security reasons, regexp maps are not allowed here, because
     their $1 etc. substitutions would open a security hole.
 
+    Specify a static map if all mailboxes should be owned by the same
+    UID. For example, to specify that all mailboxes are owned by the
+    UID 5000, specify:
+
+	virtual_uid_maps = static:5000
+
 virtual_gid_maps
 
     Recipients are looked up in this map to determine the GID (group
@@ -91,6 +97,12 @@ virtual_gid_maps
 
     For security reasons, regexp maps are not allowed here, because
     their $1 etc. substitutions would open a security hole.
+
+    Specify a static map if all mailboxes should be owned by the same
+    GID. For example, to specify that all mailboxes are owned by the
+    GID 5000, specify:
+
+	virtual_gid_maps = static:5000
 
 virtual_mailbox_lock
 
@@ -174,7 +186,8 @@ Example 2: co-existing with the default local delivery agent
 
 In this example, the default Postfix local delivery agent handles
 the mail for non-virtual recipients; the virtual delivery agent
-handles virtual recipients.
+handles virtual recipients, and all virtual mailboxes are owned
+by user ID 5000, group ID 5000.
 
 Instead of "hash" specify "dbm" or "btree", depending on your system
 type.  The command "postconf -m" displays possible lookup table
@@ -184,8 +197,8 @@ types.
 	virtual_mailbox_base = /var/mail/vhosts
 	virtual_mailbox_maps = hash:/etc/postfix/vmailbox
 	virtual_minimum_uid = 100
-	virtual_uid_maps = hash:/etc/postfix/vuid
-	virtual_gid_maps = hash:/etc/postfix/vgid
+	virtual_uid_maps = static:5000
+	virtual_gid_maps = static:5000
 	transport_maps = hash:/etc/postfix/transport
 
 	# All domains that have final delivery on this machine
@@ -216,23 +229,15 @@ types.
 	test1@virtual1.domain test1
 	test2@virtual2.domain test2/
 
-    /etc/postfix/vuid:
-	test1@virtual1.domain 5001
-	test2@virtual2.domain 5002
-
-    /etc/postfix/vgid:
-	test1@virtual1.domain 5001
-	test2@virtual2.domain 5002
-
 Execute something like the following commands for each mailbox recipient:
 
     # touch /var/mail/vhosts/test1
-    # chown 5001:5001 /var/mail/vhosts/test1
+    # chown 5000:5000 /var/mail/vhosts/test1
 
 Execute something like the following commands for each maildir recipient:
 
     # mkdir /var/mail/vhosts/test2
-    # chown 5002:5002 /var/mail/vhosts/test2
+    # chown 5000:5000 /var/mail/vhosts/test2
 
 Remember that each domain is required to have a postmaster contact
 address.

@@ -1713,7 +1713,11 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 	msg_warn("%s: no @domain in address: %s", myname, CONST_STR(reply->recipient));
 	return (0);
     }
-    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
+
+    /*
+     * Avoid surprise matches with source-routed, non-local addresses.
+     */
+    if (!resolve_local(ratsign + 1) && (reply->flags & RESOLVE_FLAG_ROUTED))
 	return (SMTPD_CHECK_DUNNO);
 
     /*

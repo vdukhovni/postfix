@@ -254,6 +254,7 @@ bool    var_smtp_sasl_enable;
 char   *var_smtp_bind_addr;
 bool    var_smtp_rand_addr;
 bool    var_smtp_break_lines;
+int     var_min_backoff_time;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -416,6 +417,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_DATA1_TMOUT, DEF_SMTP_DATA1_TMOUT, &var_smtp_data1_tmout, 1, 0,
 	VAR_SMTP_DATA2_TMOUT, DEF_SMTP_DATA2_TMOUT, &var_smtp_data2_tmout, 1, 0,
 	VAR_SMTP_QUIT_TMOUT, DEF_SMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
+	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

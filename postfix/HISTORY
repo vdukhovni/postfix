@@ -5752,17 +5752,24 @@ Apologies for any names omitted.
 	Bugfix? Avoid surprises with source routed destinations
 	and OK entries in SMTPD access maps. File: smtpd/smtpd_access.c.
 
-	Security: "postfix check" now looks for common stupidity
-	such as "chown -R postfix /var/spool/postfix" which makes
-	chrooted Postfix less secure than non-chrooted. These extra
-	tests are bound to raise a stink with third-party patches
-	such as TLS that introduce their own files into the jail.
+	Security: "postfix check" looks for damage by well-intended
+	but misguided use of "chown -R postfix /var/spool/postfix".
+	That would make chrooted Postfix less secure than non-chrooted
+	Postfix.  These extra tests may cause complaints with
+	third-party patches such as TLS that introduce their own
+	files into the jail.
+
+	Feature: disable the PIX workaround for mail that is queued
+	for less than $minimal_backoff_time seconds.
+
+	Feature: static map type that always returns the map name
+	as lookup value, regardless of lookup key value. Contributed
+	Jeff Miller (jeffm at ghostgun.com)
 
 Open problems:
 
-	Low: log queue ID when enabling PIX workaround.
-
-	Low: disable PIX workaround for mail < configurable age.
+	Low: after reorganizing configuration parameters, add flags
+	to all parameters whose value can be read from file.
 
 	Low: replace null sender address internal representation
 	by <> so that it can be looked up reliably in maps.  Must

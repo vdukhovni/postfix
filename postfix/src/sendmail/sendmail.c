@@ -397,7 +397,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	    msg_warn("-f option specified malformed sender: %s", sender);
     } else {
 	if ((sender = username()) == 0)
-	    msg_fatal("unable to find out your login name");
+	    fatal_error(EX_OSERR, "unable to find out your login name");
 	saved_sender = mystrdup(sender);
     }
 
@@ -409,7 +409,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
      * queue file.
      */
     if (stat(MAIL_QUEUE_MAILDROP, &st) < 0)
-	msg_fatal("No maildrop directory %s: %m", MAIL_QUEUE_MAILDROP);
+	fatal_error(EX_UNAVAILABLE, "No maildrop directory %s: %m",
+		    MAIL_QUEUE_MAILDROP);
     if (st.st_mode & S_IWOTH) {
 	handle = mail_stream_file(MAIL_QUEUE_MAILDROP,
 				  MAIL_CLASS_PUBLIC, MAIL_SERVICE_PICKUP);
@@ -418,8 +419,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	postdrop_command = concatenate(var_command_dir, "/postdrop",
 			      msg_verbose ? " -v" : (char *) 0, (char *) 0);
 	if ((handle = mail_stream_command(postdrop_command)) == 0)
-	    msg_fatal("%s(%ld): unable to execute %s: %m",
-		      saved_sender, (long) uid, postdrop_command);
+	    fatal_error(EX_UNAVAILABLE, "%s(%ld): unable to execute %s: %m",
+			saved_sender, (long) uid, postdrop_command);
 	myfree(postdrop_command);
     }
     dst = handle->stream;
@@ -452,8 +453,9 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 		if (tp->type == TOK822_ADDR) {
 		    tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
 		    if (REC_PUT_BUF(dst, REC_TYPE_RCPT, buf) < 0)
-			msg_fatal("%s(%ld): error writing queue file: %m",
-				  saved_sender, (long) uid);
+			fatal_error(EX_TEMPFAIL,
+				    "%s(%ld): error writing queue file: %m",
+				    saved_sender, (long) uid);
 		}
 	    }
 	    tok822_free_tree(tree);
@@ -494,7 +496,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	if ((flags & SM_FLAG_AEOF) && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
 	    break;
 	if (REC_PUT_BUF(dst, type, buf) < 0)
-	    fatal_error(EX_CANTCREAT, "%s(%ld): error writing queue file: %m",
+	    fatal_error(EX_TEMPFAIL, "%s(%ld): error writing queue file: %m",
 			saved_sender, (long) uid);
     }
 
@@ -519,7 +521,9 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	fatal_error(EX_DATAERR, "%s(%ld): error reading input: %m",
 		    saved_sender, (long) uid);
     if ((status = mail_stream_finish(handle, (VSTRING *) 0)) != 0)
-	fatal_error(EX_CANTCREAT, "%s(%ld): %s", saved_sender,
+	fatal_error((status & CLEANUP_STAT_BAD) ? EX_SOFTWARE :
+		    (status & CLEANUP_STAT_WRITE) ? EX_TEMPFAIL :
+		    EX_UNAVAILABLE, "%s(%ld): %s", saved_sender,
 		    (long) uid, cleanup_strerror(status));
     if (sendmail_path) {
 	myfree(sendmail_path);

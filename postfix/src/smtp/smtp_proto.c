@@ -179,11 +179,8 @@ int     smtp_helo(SMTP_STATE *state)
      * does not span a packet boundary. This hurts performance so it is not
      * on by default.
      */
-    if (resp->str[strspn(resp->str, "20 *\t\n")] == 0) {
-	msg_info("enabling PIX <CRLF>.<CRLF> workaround for %s",
-		 session->namaddr);
+    if (resp->str[strspn(resp->str, "20 *\t\n")] == 0)
 	state->features |= SMTP_FEATURE_MAYBEPIX;
-    }
 
     /*
      * See if we are talking to ourself. This should not be possible with the
@@ -661,7 +658,11 @@ int     smtp_xfer(SMTP_STATE *state)
 
 	    if (prev_type == REC_TYPE_CONT)	/* missing newline at end */
 		smtp_fputs("", 0, session->stream);
-	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0) {
+	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0
+		&& request->arrival_time < vstream_ftime(session->stream)
+		- var_min_backoff_time) {
+		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
+			 request->queue_id, session->namaddr);
 		vstream_fflush(session->stream);/* hurts performance */
 		sleep(10);			/* not to mention this */
 	    }

@@ -168,6 +168,7 @@
 #include <dict_mysql.h>
 #include <dict_pcre.h>
 #include <dict_regexp.h>
+#include <dict_static.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -214,6 +215,7 @@ static DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_POSIX_REGEXP
     DICT_TYPE_REGEXP, dict_regexp_open,
 #endif
+    DICT_TYPE_STATIC, dict_static_open,
     0,
 };
 

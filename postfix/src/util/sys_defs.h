@@ -909,7 +909,11 @@ typedef int pid_t;
   * doubles.
   */
 #ifndef ALIGN_TYPE
-#define ALIGN_TYPE	double
+# ifdef __ia64__
+# define ALIGN_TYPE	long double
+# else
+# define ALIGN_TYPE	double
+# endif
 #endif
 
  /*

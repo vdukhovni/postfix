@@ -211,10 +211,12 @@ check)
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
 
-	find `ls -d $queue_directory/* | \
-	    egrep -v '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private|flush|pid|maildrop)$'` \
-	    ! -user root \
-		-exec $WARN not owned by root: {} \;
+	for name in `ls -d $queue_directory/* | \
+	    egrep '/(bin|etc|lib|usr)$'` ; \
+	do \
+	    find $name ! -user root \
+		-exec $WARN not owned by root: {} \; ; \
+	done
 
 	for dir in $queue_directory/maildrop
 	do
