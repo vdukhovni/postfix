@@ -134,6 +134,11 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	if (hp == 0) {
 	    state->name = mystrdup("unknown");
 	    state->peer_code = (h_errno == TRY_AGAIN ? 4 : 5);
+	} else if (valid_hostaddr(hp->h_name, DONT_GRIPE)) {
+	    msg_warn("numeric result %s in address->name lookup for %s",
+		     hp->h_name, state->addr);
+	    state->name = mystrdup("unknown");
+	    state->peer_code = 5;
 	} else if (!valid_hostname(hp->h_name, DONT_GRIPE)) {
 	    state->name = mystrdup("unknown");
 	    state->peer_code = 5;

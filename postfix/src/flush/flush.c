@@ -217,6 +217,7 @@ static int flush_send_path(const char *, int);
 
 static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
 {
+    const char *ptr;
     int     ch;
 
     /*
@@ -228,7 +229,7 @@ static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
     /*
      * Mask characters that could upset the name-to-queue-file mapping code.
      */
-    while ((ch = *(unsigned const char *) site++) != 0)
+    for (ptr = site; (ch = *(unsigned const char *) ptr) != 0; ptr++)
 	if (ISALNUM(ch))
 	    VSTRING_ADDCH(path, ch);
 	else

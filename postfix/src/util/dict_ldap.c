@@ -506,15 +506,10 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
     for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL;
 	 entry = ldap_next_entry(dict_ldap->ld, entry)) {
 	ber = NULL;
-	attr = ldap_first_attribute(dict_ldap->ld, entry, &ber);
-	if (attr == NULL) {
-	    if (msg_verbose)
-		msg_info("%s: no attributes found", myname);
-	    continue;
-	}
-	for (; attr != NULL;
-	     attr = ldap_next_attribute(dict_ldap->ld, entry, ber)) {
-
+	for (attr = ldap_first_attribute(dict_ldap->ld, entry, &ber);
+	     attr != NULL;
+	     ldap_memfree(attr), attr = ldap_next_attribute(dict_ldap->ld,
+							    entry, ber)) {
 	    vals = ldap_get_values(dict_ldap->ld, entry, attr);
 	    if (vals == NULL) {
 		if (msg_verbose)
@@ -587,6 +582,8 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	    }
 	    ldap_value_free(vals);
 	}
+	if (ber != NULL)
+	    ber_free(ber, 0);
     }
     if (msg_verbose)
 	msg_info("%s: Leaving %s", myname, myname);

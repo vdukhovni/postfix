@@ -6707,6 +6707,22 @@ Apologies for any names omitted.
 	did not work, nor did my own, but the present version should
 	be OK. File: global/virtual8_maps_find.c.
 
+20020719
+
+	Workaround: log a warning when an SMTP client name->address
+	lookup results in a numeric IP address, and set the client
+	hostname to "unknown". Some gethostbyname() implementations
+	will actually accept such garbage and thereby allow sites
+	to defeat the "reject_unknown_client" restriction. Problem
+	reported by Wolfgang Rupprecht, fix based on analysis (but
+	not code) by Victor Duchovni.
+
+	Bugfix: memory leaks in the LDAP client by Victor Duchovni.
+	File: util/dict_ldap.c.
+
+	Bugfix: garbage in verbose "flush" server logging. Victor
+	Duchovni.  File: flush/flush.c.
+
 Open problems:
 
 	Medium: should permit_mx_backup defer delivery if DNS
