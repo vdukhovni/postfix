@@ -62,11 +62,9 @@
 #	The \fIpattern\fR specifies an email address, a domain name, or
 #	a domain name hierarchy, as described in section "TABLE LOOKUP".
 #
-#	The \fIresult\fR is of the form \fItransport\fB:\fInexthop\fR.
-#	The \fItransport\fR field specifies a mail delivery transport
-#	such as \fBsmtp\fR or \fBlocal\fR. The \fInexthop\fR field
-#	specifies where and how to deliver mail. More details are given
-#	in section "RESULT FORMAT".
+#	The \fIresult\fR is of the form \fItransport:nexthop\fR and
+#	specifies how or where to deliver mail. This is described in
+#	section "RESULT FORMAT".
 # TABLE LOOKUP
 # .ad
 # .fi
@@ -99,14 +97,19 @@
 # RESULT FORMAT
 # .ad
 # .fi
+#	The lookup result is of the form \fItransport\fB:\fInexthop\fR.
+#	The \fItransport\fR field specifies a mail delivery transport
+#	such as \fBsmtp\fR or \fBlocal\fR. The \fInexthop\fR field
+#	specifies where and how to deliver mail.
+#
 #	The transport field specifies the name of a mail delivery transport
 #	(the first name of a mail delivery service entry in the Postfix
 #	\fBmaster.cf\fR file).
 #
 #	The interpretation of the nexthop field is transport
-#	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
-#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
-#	in order to disable MX (mail exchanger) DNS lookups. The [] form
+#	dependent. In the case of SMTP, specify a service on a non-default
+#	port as \fIhost\fR:\fIservice\fR, and disable MX (mail exchanger)
+#	DNS lookups with [\fIhost\fR] or [\fIhost\fR]:\fIport\fR. The [] form
 #	is required when you specify an IP address instead of a hostname.
 #
 #	A null \fItransport\fR and null \fInexthop\fR result means "do
@@ -134,52 +137,53 @@
 # .ti +5
 #	\fB*	     smtp:outbound-relay.my.domain\fR
 #
-#	In order to send mail for \fBfoo.org\fR and its subdomains
-#	via the \fBuucp\fR transport to the UUCP host named \fBfoo\fR:
+#	In order to send mail for \fBexample.com\fR and its subdomains
+#	via the \fBuucp\fR transport to the UUCP host named \fBexample\fR:
 #
 # .ti +5
-#	\fBfoo.org      uucp:foo\fR
+#	\fBexample.com      uucp:example\fR
 # .ti +5
-#	\fB\&.foo.org     uucp:foo\fR
+#	\fB\&.example.com     uucp:example\fR
 #
 #	When no nexthop host name is specified, the destination domain
 #	name is used instead. For example, the following directs mail for
-#	\fIuser\fR@\fBfoo.org\fR via the \fBslow\fR transport to a mail
-#	exchanger for \fBfoo.org\fR.  The \fBslow\fR transport could be
-#	something that runs at most one delivery process at a time:
+#	\fIuser\fR@\fBexample.com\fR via the \fBslow\fR transport to a mail
+#	exchanger for \fBexample.com\fR.  The \fBslow\fR transport could be
+#	configured to run at most one delivery process at a time:
 #
 # .ti +5
-#	\fBfoo.org      slow:\fR
+#	\fBexample.com      slow:\fR
 #
 #	When no transport is specified, Postfix uses the transport that
-#	matches the address domain class (see TRANSPORT FIELD discussion
-#	above).  The following sends all mail for \fBfoo.org\fR and its
-#	subdomains to host \fBgateway.foo.org\fR:
+#	matches the address domain class (see DESCRIPTION
+#	above).  The following sends all mail for \fBexample.com\fR and its
+#	subdomains to host \fBgateway.example.com\fR:
 #
 # .ti +5
-#	\fBfoo.org      :[gateway.foo.org]\fR
+#	\fBexample.com      :[gateway.example.com]\fR
 # .ti +5
-#	\fB\&.foo.org     :[gateway.foo.org]\fR
+#	\fB\&.example.com     :[gateway.example.com]\fR
 #
-#	In the above example, the [] are used to suppress MX lookups.
-#	The result would likely point to your local machine.
+#	In the above example, the [] suppress MX lookups.
+#	This prevents mail routing loops when your machine is primary MX
+#	host for \fBexample.com\fR.
 #
 #	In the case of delivery via SMTP, one may specify
 #	\fIhostname\fR:\fIservice\fR instead of just a host:
 #
 # .ti +5
-#	\fBfoo.org      smtp:bar.org:2025\fR
+#	\fBexample.com      smtp:bar.example:2025\fR
 #
-#	This directs mail for \fIuser\fR@\fBfoo.org\fR to host \fBbar.org\fR
+#	This directs mail for \fIuser\fR@\fBexample.com\fR to host \fBbar.example\fR
 #	port \fB2025\fR. Instead of a numerical port a symbolic name may be
-#	used. Specify [] around the hostname in order to disable MX lookups.
+#	used. Specify [] around the hostname if MX lookups must be disabled.
 #
 #	The error mailer can be used to bounce mail:
 #
 # .ti +5
-#	\fB\&.foo.org      error:mail for *.foo.org is not deliverable\fR
+#	\fB\&.example.com     error:mail for *.example.com is not deliverable\fR
 #
-#	This causes all mail for \fIuser\fR@\fIanything\fB.foo.org\fR
+#	This causes all mail for \fIuser\fR@\fIanything\fB.example.com\fR
 #	to be bounced.
 # REGULAR EXPRESSION TABLES
 # .ad
@@ -206,6 +210,7 @@
 #	This section describes how the table lookups change when lookups
 #	are directed to a TCP-based server. For a description of the TCP
 #	client/server lookup protocol, see \fBtcp_table\fR(5).
+#	This feature is not available in Postfix version 2.1.
 #
 #	Each lookup operation uses the entire recipient address once.  Thus,
 #	\fIsome.domain.hierarchy\fR is not looked up via its parent domains,
@@ -215,7 +220,7 @@
 # CONFIGURATION PARAMETERS
 # .ad
 # .fi
-#       The following \fBmain.cf\fR parameters are especially relevant.  
+#       The following \fBmain.cf\fR parameters are especially relevant.
 #       The text below provides only a parameter summary. See
 #       postconf(5) for more details including examples.
 # .IP \fBempty_address_recipient\fR

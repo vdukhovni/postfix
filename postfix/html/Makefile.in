@@ -6,14 +6,16 @@ DAEMONS	=  bounce.8.html cleanup.8.html defer.8.html error.8.html local.8.html \
 	lmtp.8.html master.8.html pickup.8.html pipe.8.html qmgr.8.html \
 	showq.8.html smtp.8.html smtpd.8.html trivial-rewrite.8.html \
 	oqmgr.8.html spawn.8.html flush.8.html virtual.8.html qmqpd.8.html \
-	trace.8.html verify.8.html proxymap.8.html anvil.8.html
+	trace.8.html verify.8.html proxymap.8.html
 COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
 	postconf.1.html postfix.1.html postkick.1.html postlock.1.html \
 	postlog.1.html postdrop.1.html postmap.1.html sendmail.1.html \
-	postqueue.1.html postsuper.1.html
+	postqueue.1.html postsuper.1.html smtp-source.1.html \
+	smtp-sink.1.html qmqp-source.1.html qmqp-sink.1.html \
+	qshape.1.html
 CONFIG	= access.5.html aliases.5.html canonical.5.html relocated.5.html \
 	transport.5.html virtual.5.html pcre_table.5.html regexp_table.5.html \
-	cidr_table.5.html tcp_table.5.html header_checks.5.html \
+	cidr_table.5.html header_checks.5.html \
 	ldap_table.5.html mysql_table.5.html pgsql_table.5.html
 AWK	= awk '{ print; if (NR == 1) print ".pl 9999" }'
 MAN2HTML = man2html -t "Postfix manual - `IFS=.; set \`echo $@\`; echo \"$$1($$2)\"`"
@@ -183,6 +185,26 @@ newaliases.1.html: sendmail.1.html
 	PATH=../mantools:$$PATH; \
 	rm -f $@
 	ln -s $? $@
+
+smtp-source.1.html: ../src/smtpstone/smtp-source.c
+	PATH=../mantools:$$PATH; \
+	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+
+smtp-sink.1.html: ../src/smtpstone/smtp-sink.c
+	PATH=../mantools:$$PATH; \
+	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+
+qmqp-source.1.html: ../src/smtpstone/qmqp-source.c
+	PATH=../mantools:$$PATH; \
+	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+
+qmqp-sink.1.html: ../src/smtpstone/qmqp-sink.c
+	PATH=../mantools:$$PATH; \
+	srctoman $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
+
+qshape.1.html: ../auxiliary/qshape/qshape.pl
+	PATH=../mantools:$$PATH; \
+	srctoman - $? | $(AWK) | nroff -man | uniq | $(MAN2HTML) | postlink >$@
 
 access.5.html: ../proto/access
 	PATH=../mantools:$$PATH; \

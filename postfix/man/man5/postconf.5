@@ -1116,8 +1116,8 @@ The location of Postfix HTML files that describe how to build,
 configure or operate a specific Postfix subsystem or feature.
 .SH ignore_mx_lookup_error (default: no)
 Ignore DNS MX lookups that produce no response.  By default,
-Postfix defers delivery and tries again after some delay.  This
-behavior is required by the SMTP standard.
+the Postfix SMTP client defers delivery and tries again after some
+delay.  This behavior is required by the SMTP standard.
 .PP
 Specify "\fBignore_mx_lookup_error = yes\fR" to force a DNS A record
 lookup instead. This violates the SMTP standard and can result in
@@ -2882,10 +2882,10 @@ Later Postfix versions always skip SMTP servers that greet with a
 Skip SMTP servers that greet with a 5XX status code (go away, do
 not try again later).
 .PP
-By default, Postfix moves on the next mail exchanger. Specify
-"smtp_skip_5xx_greeting = no" if Postfix should bounce the mail
-immediately. The default setting is incorrect, but it is what a
-lot of people expect to happen.
+By default, the Postfix SMTP client moves on the next mail
+exchanger. Specify "smtp_skip_5xx_greeting = no" if Postfix should
+bounce the mail immediately. The default setting is incorrect, but
+it is what a lot of people expect to happen.
 .SH smtp_skip_quit_response (default: yes)
 Do not wait for the response to the SMTP QUIT command.
 .SH smtp_xforward_timeout (default: 300s)
@@ -3387,6 +3387,11 @@ This feature is available in Postfix 2.1 and later.
 .SH smtpd_recipient_limit (default: 1000)
 The maximal number of recipients that the Postfix SMTP server
 accepts per message delivery request.
+.SH smtpd_recipient_overshoot_limit (default: 1000)
+The number of recipients that a remote SMTP client can send in
+excess of the limit specified with $smtpd_recipient_limit, before
+the Postfix SMTP server increments the per-session error count
+for each excess recipient.
 .SH smtpd_recipient_restrictions (default: permit_mynetworks, reject_unauth_destination)
 The access restrictions that the Postfix SMTP server applies in
 the context of the RCPT TO command.
@@ -3496,7 +3501,8 @@ no sender-specified routing (user@elsewhere@domain).
 code for rejected requests (default: 554).
 .IP "\fBreject_unknown_recipient_domain\fR"
 Reject the request when the RCPT TO address has no DNS A or MX
-record.
+record and Postfix is not final destination for the recipient
+address.
 .br
 The unknown_address_reject_code parameter specifies
 the response code for rejected requests (default: 450).  The response
@@ -3788,12 +3794,13 @@ Enforces the reject_sender_login_mismatch restriction for
 unauthenticated clients only. This feature is available in
 Postfix version 2.1 and later.
 .IP "\fBreject_unknown_sender_domain\fR"
-Reject the request when the MAIL FROM address has no DNS A
-or MX record.
+Reject the request when the MAIL FROM address has no DNS A or
+MX record and Postfix is not final destination for the sender
+address.
 .br
-The unknown_address_reject_code parameter
-specifies the response code for rejected requests (default: 450).
-The response is always 450 in case of a temporary DNS error.
+The unknown_address_reject_code parameter specifies
+the response code for rejected requests (default: 450).  The response
+is always 450 in case of a temporary DNS error.
 .IP "\fBreject_unlisted_sender\fR"
 Reject the request when the MAIL FROM address is not listed in
 the list of valid recipients for its domain class. See the

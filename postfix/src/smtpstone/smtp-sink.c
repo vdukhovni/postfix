@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	smtp-sink 8
+/*	smtp-sink 1
 /* SUMMARY
 /*	multi-threaded SMTP/LMTP test server
 /* SYNOPSIS
@@ -10,14 +10,14 @@
 /*
 /*	\fBsmtp-sink\fR [\fIoptions\fR] \fBunix:\fR\fIpathname\fR \fIbacklog\fR
 /* DESCRIPTION
-/*	\fIsmtp-sink\fR listens on the named host (or address) and port.
+/*	\fBsmtp-sink\fR listens on the named host (or address) and port.
 /*	It takes SMTP messages from the network and throws them away.
 /*	The purpose is to measure client performance, not protocol
 /*	compliance.
 /*
 /*	Connections can be accepted on IPV4 endpoints or UNIX-domain sockets.
 /*	IPV4 is the default.
-/*	This program is the complement of the \fIsmtp-source\fR program.
+/*	This program is the complement of the \fBsmtp-source\fR(1) program.
 /*
 /*	Arguments:
 /* .IP \fB-a\fR
@@ -29,7 +29,7 @@
 /*	Disable XCLIENT support.
 /* .IP \fB-e\fR
 /*	Do not announce ESMTP support.
-/* .IP "\fB-f  \fIcommand,command,...\fR"
+/* .IP "\fB-f \fIcommand,command,...\fR"
 /*	Reject the specified commands with a hard (5xx) error code.
 /* .IP \fB-F\fR
 /*	Disable XFORWARD support.
@@ -45,10 +45,10 @@
 /* .IP \fB-P\fR
 /*	Change the server greeting so that it appears to come through
 /*	a CISCO PIX system. Implies \fB-e\fR.
-/* .IP "\fB-q  \fIcommand,command,...\fR"
+/* .IP "\fB-q \fIcommand,command,...\fR"
 /*	Disconnect (without replying) after receiving one of the
 /*	specified commands.
-/* .IP "\fB-r  \fIcommand,command,...\fR"
+/* .IP "\fB-r \fIcommand,command,...\fR"
 /*	Reject the specified commands with a soft (4xx) error code.
 /* .IP "\fB-s \fIcommand,command,...\fR"
 /*	Log the named commands to syslogd.
@@ -72,7 +72,7 @@
 /*	The maximum length the queue of pending connections,
 /*	as defined by the listen(2) call.
 /* SEE ALSO
-/*	smtp-source, SMTP/LMTP test message generator
+/*	smtp-source(1), SMTP/LMTP message generator
 /* LICENSE
 /* .ad
 /* .fi

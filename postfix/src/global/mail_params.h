@@ -889,6 +889,10 @@ extern int var_smtpd_err_sleep;
 #define DEF_SMTPD_JUNK_CMD	100
 extern int var_smtpd_junk_cmd_limit;
 
+#define VAR_SMTPD_RCPT_OVERLIM	"smtpd_recipient_overshoot_limit"
+#define DEF_SMTPD_RCPT_OVERLIM	1000
+extern int var_smtpd_rcpt_overlim;
+
 #define VAR_SMTPD_HIST_THRSH	"smtpd_history_flush_threshold"
 #define DEF_SMTPD_HIST_THRSH	100
 extern int var_smtpd_hist_thrsh;

@@ -28,6 +28,9 @@ at a time. Each input is compared against a list of patterns, and
 when a match is found the corresponding action is executed.
 This feature is implemented by the Postfix \fBcleanup\fR(8) server.
 
+For examples, see the EXAMPLES section at the end of this
+manual page.
+
 Postfix header or body_checks are designed to stop a flood of mail
 from worms or viruses; they do not decode attachments, and they do
 not unzip archives. See the documents referenced below in the README
@@ -271,8 +274,14 @@ Header pattern to block attachments with bad file name extensions.
 
 .na
 .nf
-/^content-(type|disposition):.*name[[:space:]]*=.*\\.(exe|vbs)/
+/etc/postfix/main.cf:
 .ti +4
+header_checks = regexp:/etc/postfix/header_checks
+
+/etc/postfix/header_checks:
+.ti +4
+/^content-(type|disposition):.*name[[:space:]]*=.*\\.(exe|vbs)/
+.ti +8
 REJECT Bad attachment file name extension: $1
 
 .ad
@@ -281,8 +290,14 @@ Body pattern to stop a specific HTML browser vulnerability exploit.
 
 .na
 .nf
-/^<iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0>$/
+/etc/postfix/main.cf:
 .ti +4
+header_checks = regexp:/etc/postfix/header_checks
+
+/etc/postfix/header_checks:
+.ti +4
+/^<iframe src=(3D)?cid:.* height=(3D)?0 width=(3D)?0>$/
+.ti +8
 REJECT IFRAME vulnerability exploit
 .SH "SEE ALSO"
 .na

@@ -189,51 +189,52 @@ VIRTUAL(5)                                             VIRTUAL(5)
        This  section  describes how the table lookups change when
        lookups are directed to a TCP-based server. For a descrip-
        tion   of  the  TCP  client/server  lookup  protocol,  see
-       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
+       <b>tcp_table</b>(5).  This feature is not  available  in  Postfix
+       version 2.1.
 
        Each lookup operation uses the entire address once.  Thus,
-       <i>user@domain</i>  mail  addresses  are not broken up into their
+       <i>user@domain</i> mail addresses are not broken  up  into  their
        <i>user</i> and <i>@domain</i> constituent parts, nor is <i>user+foo</i> broken
        up into <i>user</i> and <i>foo</i>.
 
        Results are the same as with indexed file lookups.
 
 <b>BUGS</b>
-       The  table format does not understand quoting conventions.
+       The table format does not understand quoting  conventions.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix  reload</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
        <b><a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a></b>
               List of virtual aliasing tables.
 
        <b><a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a></b>
-              List  of  <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>. This uses the same
+              List of <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>. This uses  the  same
               syntax as the <b><a href="postconf.5.html#mydestination">mydestination</a></b> parameter.
 
        <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a></b>
-              A list of address rewriting  or  forwarding  mecha-
-              nisms  that propagate an address extension from the
-              original address to the result.   Specify  zero  or
-              more  of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>, or
+              A  list  of  address rewriting or forwarding mecha-
+              nisms that propagate an address extension from  the
+              original  address  to  the result.  Specify zero or
+              more of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,  or
               <b>include</b>.
 
        Other parameters of interest:
 
        <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>
-              The network interface addresses  that  this  system
+              The  network  interface  addresses that this system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
        <b><a href="postconf.5.html#mydestination">mydestination</a></b>
-              List of domains that  this  mail  system  considers
+              List  of  domains  that  this mail system considers
               local.
 
        <b><a href="postconf.5.html#myorigin">myorigin</a></b>
-              The  domain  that  is  appended to any address that
+              The domain that is appended  to  any  address  that
               does not have a domain.
 
        <b><a href="postconf.5.html#owner_request_special">owner_request_special</a></b>
@@ -257,7 +258,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <a href="VIRTUAL_README.html">VIRTUAL_README</a>, domain hosting guide
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

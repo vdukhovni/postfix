@@ -118,24 +118,30 @@ POSTCONF(1)                                           POSTCONF(1)
                      always  returns  the string <b>foobar</b> as lookup
                      result.
 
+              <b>tcp</b> (read-only)
+                     Perform lookups using a simple request-reply
+                     protocol  that is described in tcp_table(5).
+                     This feature is not  included  with  Postfix
+                     2.1.
+
               <b>unix</b> (read-only)
-                     A limited way to query the UNIX  authentica-
+                     A  limited way to query the UNIX authentica-
                      tion  database.  The  following  tables  are
                      implemented:
 
                      <b>unix:passwd.byname</b>
-                             The  table  is  the  UNIX   password
-                             database.  The  key is a login name.
-                             The result is a password file  entry
+                             The   table  is  the  UNIX  password
+                             database. The key is a  login  name.
+                             The  result is a password file entry
                              in passwd(5) format.
 
                      <b>unix:group.byname</b>
-                             The   table   is   the   UNIX  group
-                             database. The key is a  group  name.
-                             The  result is a group file entry in
+                             The  table   is   the   UNIX   group
+                             database.  The  key is a group name.
+                             The result is a group file entry  in
                              group(5) format.
 
-       Other table types may exist depending on how  Postfix  was
+       Other  table  types may exist depending on how Postfix was
        built.
 
        <b>-n</b>     Print parameter settings that are not left at their
@@ -143,7 +149,7 @@ POSTCONF(1)                                           POSTCONF(1)
               specified in main.cf.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>DIAGNOSTICS</b>
@@ -154,14 +160,14 @@ POSTCONF(1)                                           POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
+       The following <b>main.cf</b> parameters are  especially  relevant
        to this program.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
 <b>FILES</b>
@@ -174,7 +180,7 @@ POSTCONF(1)                                           POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

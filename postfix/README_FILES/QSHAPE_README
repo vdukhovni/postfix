@@ -4,13 +4,15 @@ PPoossttffiixx BBoottttlleenneecckk AAnnaallyyssiiss
 
 PPuurrppoossee ooff tthhiiss ddooccuummeenntt
 
-This document describes the "qshape" program which helps the administrator
+This document describes the qshape(1) program which helps the administrator
 understand the Postfix queue message distribution sorted by time and by sender
-or recipient domain. qshape is bundled with the Postfix 2.1 source under the
-"auxiliary" directory. In order to understand the output of qshape, it useful
-to understand the various Postfix queues. To this end the role of each Postfix
-queue directory is described briefly in the "Background info: Postfix queue
-directories" section near the end of this document.
+or recipient domain. qshape(1) is bundled with the Postfix 2.1 source under the
+"auxiliary" directory.
+
+In order to understand the output of qshape(1), it useful to understand the
+various Postfix queues. To this end the role of each Postfix queue directory is
+described briefly in the "Background info: Postfix queue directories" section
+near the end of this document.
 
 This document covers the following topics:
 
@@ -32,8 +34,8 @@ This document covers the following topics:
 
 IInnttrroodduucciinngg tthhee qqsshhaappee ttooooll
 
-When mail is draining slowly or the queue is unexpectedly large, run "qshape"
-as the super-user (root) to help zero in on the problem. The "qshape" program
+When mail is draining slowly or the queue is unexpectedly large, run qshape(1)
+as the super-user (root) to help zero in on the problem. The qshape(1) program
 displays a tabular view of the Postfix queue contents.
 
   * On the horizontal axis, it displays the queue age with fine granularity for
@@ -133,7 +135,7 @@ suggest strategies to reduce congestion.
     $ egrep 'qmgr.*(panic|fatal|error|warning):' /var/log/maillog
 
 When all else fails try the Postfix mailing list for help, but please don't
-forget to include the top 10 or 20 lines of "qshape" output.
+forget to include the top 10 or 20 lines of qshape(1) output.
 
 EExxaammppllee 11:: HHeeaalltthhyy qquueeuuee
 
@@ -188,7 +190,7 @@ The domains shown are mostly bulk-mailers and all the volume is the tail end of
 the time distribution, showing that short term arrival rates are moderate.
 Larger numbers and lower message ages are more indicative of current trouble.
 Old mail still going nowhere is largely harmless so long as the active and
-incoming queues are short. We can also see that the groups.msg.com
+incoming queues are short. We can also see that the groups.msn.com
 undeliverables are low rate steady stream rather than a concentrated dictionary
 attack that is now over.
 
@@ -214,7 +216,7 @@ Congestion was reported with the active and incoming queues large and not
 shrinking despite very large delivery agent process limits. The thread is
 archived at: http://groups.google.com/groups?th=636626c645f5bbde
 
-Using an older version of "qshape" it was quickly determined that all the
+Using an older version of qshape(1) it was quickly determined that all the
 messages were for just a few destinations:
 
     $ qshape        (show incoming and active queue status)
@@ -274,9 +276,9 @@ scanners in front of the Exchange server propagate the refused connection to
 the client as a "421" error.
 
 Note that it is now possible to configure Postfix to exhibit similarly erratic
-behavior by misconfiguring the "anvil" server (experimental release only). Do
-not use "anvil" for steady-state rate limiting, its purpose is DoS prevention
-and the rate limits set should be very generous!
+behavior by misconfiguring the anvil(8) server (not included in Postfix 2.1.).
+Do not use anvil(8) for steady-state rate limiting, its purpose is DoS
+prevention and the rate limits set should be very generous!
 
 In the long run it is hoped that the Postfix dead host detection and
 concurrency control mechanism will be tuned to be more "noise" tolerant. If one
@@ -597,6 +599,6 @@ strategies) to reduce the chances of repeated complete deferred queue flushes.
 
 CCrreeddiittss
 
-The "qshape" program was developed by Victor Duchovni of Morgan Stanley, who
+The qshape(1) program was developed by Victor Duchovni of Morgan Stanley, who
 also wrote the initial version of this document.
 

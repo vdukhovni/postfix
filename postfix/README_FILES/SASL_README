@@ -22,7 +22,7 @@ access via the permit_sasl_authenticated UCE restriction.
 
 Postfix does not record the client's SASL authentication information in message
 headers, and does not pass it on via SMTP commands when forwarding mail,
-because it is no-one elses business to know the client username and
+because it is no-one else's business to know the client username and
 authentication method. People who need to know can find the information in the
 local Postfix maillog file. Some day, Postfix message headers will be
 configurable and then one can record the SASL username without having to edit C
@@ -111,8 +111,6 @@ will not find the SASL shared library:
         AUXLIBS="-L/usr/local/lib -R/usr/local/lib -lsasl2"
 
 EEnnaabblliinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP sseerrvveerr
-
-You can find several SASL configuration examples conf/sample-auth.cf.
 
 In order to enable SASL support in the SMTP server:
 

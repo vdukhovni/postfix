@@ -9326,10 +9326,11 @@ Apologies for any names omitted.
 
 	Bugfix: the code that rejects client/helo RESTRICTIONS with
 	smtpd_delay_reject=no looked at the wrong evidence and
-	rejected client/helo ACCESS MAP lookups instead. Files:
-	smtpd/smtpd.c, smtpd/smtpd_check.c.
+	rejected client/helo ACCESS MAP lookups instead. Michael
+	Tokarev. Files:  smtpd/smtpd.c, smtpd/smtpd_check.c.
 
-	Bugfix: missing # in optional submission service.
+	Bugfix: missing # in master.cf in optional submission
+	service.
 
 20040420
 
@@ -9340,94 +9341,13 @@ Apologies for any names omitted.
 	anvil_status_update_time. Files: mantools/postlink,
 	proto/postconf.proto, anvil/anvil.c.
 
-Open problems:
+20040421
 
-	Low: disallow smtpd_recipient_limit < 100 (the RFC minimum).
-
-	Low: noise filter: allow smtp(8) to retry immediately if
-	all MXes return a quick ECONNRESET or 4xx reply during the
-	initial handshake.
-
-	Low: add msg_panic() guard to ensure that at least one of
-	DICT_FLAG_TRY1NULL or DICT_FLAG_TRY1NULL is set upon lookup.
-
-	Low: make post-install a "postfix-only script" so it can
-	take data from the environment instead of main.cf.
-
-	Low: qmgr should truncate trace logfile before attempting
-	delivery.
-
-	Low: randomize deferred mail backoff.
-
-	Med: separate ulimit for delivery to command?
-
-	Med: option to open queue file early, after MAIL FROM.
-
-	Low: log xdelay (esp. for SMTP and delivery to command).
-
-	Med: silly queue file bit so that the queue manager doesn't
-	skip files when fast flush is requested while a queue scan
-	is in progress.
-
-	Med: postsuper -r should do something with recipients in
-	bounce logfiles.
-
-	Low: qmgr_move should not reset time stamps on queue files
-	without shared lock (i.e. not open by a delivery agent).
-
-	Low: postsuper re-run after renaming files, but only a
-	limited number of times.
-
-	Low: smtp-source may block when sending large test messages.
-
-	Med: make qmgr recipient bounce/defer activity asynchronous
-	or add a multi-recipient operation that reduces overhead.
-
-	Low: postmap/postalias should not try to open a bogus file
-	when given an unsupported dictionary type.
-
-	Med: find a way to log the sender address when MAIL FROM
-	is rejected due to lack of disk space.
-
-	Low: revise other local delivery agent duplicate filters.
-
-	Low: all table lookups should consistently use internalized
-	(unquoted) or externalized (quoted) forms as lookup keys.
-	smtpd, qmgr, local, etc. use unquoted address forms as
-	keys.  cleanup uses quoted forms.
-
-	Low: sendmail does not store null command-line recipients.
-
-	Low: have a configurable list of errno values for mailbox
-	or maildir delivery that result in deferral rather than
-	bouncing mail.
-
-	Low: after reorganizing configuration parameters, add flags
-	to all parameters whose value can be read from file.
-
-	Medium: need in-process caching for map lookups. LDAP
-	servers seem to need this in particular. Need a way to
-	expire cached results that are too old.
-
-	Medium: make address rewriting on/off configurable for
-	envelopes and/or headers.
-
-	Low: generic showq protocol, to allow for more intelligent
-	processing than just mailq. Maybe marry this with postsuper.
-
-	Low: default domain for appending to unqualified recipients,
-	so that unqualified names can be delivered locally.
-
-	Low: The $process_id_directory setting is not used anywhere
-	in Postfix. Problem reported by Michael Smith, texas.net.
-	This should be documented, or better, the code should warn
-	about attempts to set read-only parameters.
-
-	Low: postconf -e edits parameters that postconf won't list.
-
-	Low: while converting 8bit text to quoted-printable, perhaps
-	use =46rom to avoid having to produce >From when delivering
-	to mailbox.
-
-	virtual_mailbox_path expression like forward_path, so that
-	people can specify prefix and suffix.
+	Workaround: allow pipelined SMTP clients to overshoot the
+	SMTP server recipient limit without triggering the server
+	hard error limit.  The SMTP server does not count "too many
+	recipients" towards the hard error limit, as long as the
+	number of excess recipients stays within a configurable
+	overshoot limit (default: smtpd_recipient_overshoot_limit
+	= 1000).  Solution in cooperation with Victor Duchovni.
+	Files:  smtpd/smtpd.c, smtpd/smtpd_state.c, smtpd/smtpd.h.

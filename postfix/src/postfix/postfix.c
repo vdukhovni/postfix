@@ -213,7 +213,7 @@
 /*	BASIC_CONFIGURATION_README, Postfix basic configuration
 /*	ADDRESS_REWRITING_README, Postfix address rewriting
 /*	SMTPD_ACCESS_README, SMTP relay/access control
-/*	CONTENT_FILTER_README, Postfix content inspection
+/*	CONTENT_INSPECTION_README, Postfix content inspection
 /*	QSHAPE_README, Postfix queue analysis
 /* LICENSE
 /* .ad

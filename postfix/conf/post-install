@@ -613,12 +613,12 @@ EOF
 
     # Add missing anvil service to master.cf.
 
-    grep '^anvil.*anvil' $config_directory/master.cf >/dev/null || {
-	echo Editing $config_directory/master.cf, adding missing entry for anvil service
-	cat >>$config_directory/master.cf <<EOF || exit 1
-anvil	  unix	-	-	n	-	1	anvil
-EOF
-    }
+#    grep '^anvil.*anvil' $config_directory/master.cf >/dev/null || {
+#	echo Editing $config_directory/master.cf, adding missing entry for anvil service
+#	cat >>$config_directory/master.cf <<EOF || exit 1
+#anvil	  unix	-	-	n	-	1	anvil
+#EOF
+#    }
 
     # Report (but do not remove) obsolete files.
 

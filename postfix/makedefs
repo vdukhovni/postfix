@@ -334,9 +334,6 @@ ${WARN='-W -Wformat -Wimplicit -Wmissing-prototypes \
 
 export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 
-# Snapshot only.
-CCARGS="$CCARGS -DSNAPSHOT"
-
 sed 's/  / /g' <<EOF
 SYSTYPE	= $SYSTYPE
 AR	= $AR

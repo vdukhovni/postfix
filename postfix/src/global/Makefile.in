@@ -1,5 +1,5 @@
 SHELL	= /bin/sh
-SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
+SRCS	= abounce.c been_here.c bounce.c bounce_log.c \
 	canon_addr.c cfg_parser.c cleanup_strerror.c cleanup_strflags.c \
 	clnt_stream.c debug_peer.c debug_process.c defer.c \
 	deliver_completed.c deliver_flock.c deliver_pass.c deliver_request.c \
@@ -23,7 +23,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	sys_exits.c timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c trace.c verify.c \
 	verify_clnt.c verp_sender.c virtual8_maps.c xtext.c
-OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
+OBJS	= abounce.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o debug_peer.o debug_process.o defer.o \
 	deliver_completed.o deliver_flock.o deliver_pass.o deliver_request.o \
@@ -47,7 +47,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	sys_exits.o timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o trace.o verify.o \
 	verify_clnt.o verp_sender.o virtual8_maps.o xtext.o
-HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
+HDRS	= abounce.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h dict_ldap.h \
@@ -384,20 +384,6 @@ abounce.o: bounce.h
 abounce.o: deliver_request.h
 abounce.o: ../../include/vstring.h
 abounce.o: recipient_list.h
-anvil_clnt.o: anvil_clnt.c
-anvil_clnt.o: ../../include/sys_defs.h
-anvil_clnt.o: ../../include/mymalloc.h
-anvil_clnt.o: ../../include/msg.h
-anvil_clnt.o: ../../include/attr_clnt.h
-anvil_clnt.o: ../../include/attr.h
-anvil_clnt.o: ../../include/vstream.h
-anvil_clnt.o: ../../include/vbuf.h
-anvil_clnt.o: ../../include/stringops.h
-anvil_clnt.o: ../../include/vstring.h
-anvil_clnt.o: mail_proto.h
-anvil_clnt.o: ../../include/iostuff.h
-anvil_clnt.o: mail_params.h
-anvil_clnt.o: anvil_clnt.h
 been_here.o: been_here.c
 been_here.o: ../../include/sys_defs.h
 been_here.o: ../../include/msg.h

@@ -105,7 +105,8 @@ to IP spoofing. </p>
         <i>...the usual stuff...</i>
 
 /etc/postfix/access:
-    all     permit_mynetworks,reject
+    all@my.domain   permit_mynetworks,reject
+    all@my.hostname permit_mynetworks,reject
 </pre>
 </blockquote>
 

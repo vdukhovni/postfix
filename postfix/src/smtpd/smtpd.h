@@ -85,6 +85,7 @@ typedef struct SMTPD_STATE {
     int     recursion;			/* Kellerspeicherpegelanzeiger */
     off_t   msg_size;			/* MAIL FROM message size */
     int     junk_cmds;			/* counter */
+    int     rcpt_overshoot;		/* counter */
 
     /*
      * SASL specific.

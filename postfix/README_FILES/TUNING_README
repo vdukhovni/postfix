@@ -37,6 +37,14 @@ Other Postfix performance tuning topics:
   * Tuning the number of Postfix processes
   * Tuning the number of open files or sockets
 
+The following tools can be used to measure mail system performance under
+artificial loads. They are normally not installed with Postfix.
+
+  * smtp-source, SMTP/LMTP message generator
+  * smtp-sink, SMTP/LMTP message dump
+  * qmqp-source, QMQP message generator
+  * qmqp-sink, QMQP message dump
+
 GGeenneerraall mmaaiill rreecceeiivviinngg ppeerrffoorrmmaannccee ttiippss
 
   * Read and understand the maildrop queue, incoming queue, and active queue

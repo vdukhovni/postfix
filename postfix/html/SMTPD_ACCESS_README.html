@@ -56,7 +56,7 @@ Mail servers happily forwarded mail on behalf of anyone towards
 any destination.  On today's Internet, spammers abuse servers that
 forward mail from arbitrary systems, and abused systems end up on
 anti-spammer blacklists.  See, for example, the information on
-<a href="http://www.mail-abuse.org">http://www.mail-abuse.org</a> and other websites.  </p>
+<a href="http://www.mail-abuse.org/">http://www.mail-abuse.org/</a> and other websites.  </p>
 
 <p> By default, Postfix has a moderately restrictive approach to
 mail relaying. Postfix forwards mail only from clients in trusted
@@ -99,7 +99,7 @@ Sender/recipient address verification is the subject of the
 falsely rejecting legitimate mail.  This can be a problem for sites
 with many different types of users.  For some users it is unacceptable
 when any junk email slips through, while for other users the world
-comes to and end when a single legitimate email message is blocked.
+comes to an end when a single legitimate email message is blocked.
 Because there is no single policy that is "right" for all users,
 Postfix supports different SMTP access restrictions for different
 users.  This is described in the <a href="RESTRICTION_CLASS_README.html">RESTRICTION_CLASS_README</a> document.
@@ -122,13 +122,13 @@ the <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>.  </p>
 in the <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a> document.  This happens while Postfix
 receives mail, before it is stored in the <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>.  </p>
 
-<li> <p> Require that the client sends the HELO or EHLO command
+<li> <p> Requiring that the client sends the HELO or EHLO command
 before sending the MAIL FROM or ETRN command. This may cause problems
 with home-grown applications that send mail.  For this reason, the
 requirement is disabled by default ("<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = no").
 </p>
 
-<li> <p> Disallow illegal syntax in MAIL FROM or RCPT TO commands.
+<li> <p> Disallowing illegal syntax in MAIL FROM or RCPT TO commands.
 This may cause problems with home-grown applications that send
 mail, and with ancient PC mail clients.  For this reason, the
 requirement is disabled by default ("<a href="postconf.5.html#strict_rfc821_envelopes">strict_rfc821_envelopes</a> =
@@ -136,21 +136,21 @@ no").  </p>
 
 <ul>
 
-<li> <p> Disallow <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> address syntax (example: "MAIL FROM: the
+<li> <p> Disallowing <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> address syntax (example: "MAIL FROM: the
 dude &lt;dude@example.com&gt;"). </p>
 
-<li> <p> Disallow addresses that are not enclosed with &lt;&gt;
+<li> <p> Disallowing addresses that are not enclosed with &lt;&gt;
 (example: "MAIL FROM: dude@example.com"). </p>
 
 </ul>
 
-<li> <p> Reject mail from a non-existent sender address.  This form
+<li> <p> Rejecting mail from a non-existent sender address.  This form
 of egress filtering helps to slow down worms and other malware, but
 may cause problems with home-grown software that sends out mail
 software with an unreplyable address. For this reason the requirement
 is disabled by default ("<a href="postconf.5.html#smtpd_reject_unlisted_sender">smtpd_reject_unlisted_sender</a> = no").  </p>
 
-<li> <p> Reject mail for a non-existent recipient address.  This
+<li> <p> Rejecting mail for a non-existent recipient address.  This
 form of ingress filtering helps to keep the mail queue free of
 undeliverable MAILER-DAEMON messages. This requirement is enabled
 by default ("<a href="postconf.5.html#smtpd_reject_unlisted_recipient">smtpd_reject_unlisted_recipient</a> = yes"). </p>
@@ -239,8 +239,9 @@ helo and sender restriction lists until the RCPT TO or ETRN command.
 This behavior is controlled by the <a href="postconf.5.html#smtpd_delay_reject">smtpd_delay_reject</a> parameter.
 Restriction lists are still evaluated in the proper order of (client,
 helo, etrn) or (client, helo, sender, recipient, data) restrictions.
-When a restriction list evaluates to REJECT or DEFER the remainder
-of the lists is skipped.  </p>
+When a restriction list (example: client) evaluates to REJECT or
+DEFER the other restriction lists (example: helo, sender, etc.)
+are skipped.  </p>
 
 <p> Around the time that <a href="postconf.5.html#smtpd_delay_reject">smtpd_delay_reject</a> was introduced, Postfix
 was also changed to support mixed restriction lists that combine

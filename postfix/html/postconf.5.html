@@ -619,13 +619,13 @@ are calculated.
 </p>
 
 <p>
-This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is not
+This feature is implemented by the anvil(8) service which is not
 part of the stable Postfix 2.1 release.
 </p>
 
 <p>
 The default interval is relatively short. Because of the high
-frequency of updates, the <a href="anvil.8.html">anvil(8)</a> server uses volatile memory
+frequency of updates, the anvil(8) server uses volatile memory
 only. Thus, information is lost whenever the process terminates.
 </p>
 
@@ -641,12 +641,12 @@ The default time unit is s (seconds).
 (default: 600s)</b></DT><DD>
 
 <p>
-How frequently the <a href="anvil.8.html">anvil(8)</a> connection and rate limiting server
+How frequently the anvil(8) connection and rate limiting server
 logs peak usage information.
 </p>
 
 <p>
-This feature is implemented by the <a href="anvil.8.html">anvil(8)</a> service which is not
+This feature is implemented by the anvil(8) service which is not
 part of the stable Postfix 2.1 release.
 </p>
 
@@ -2245,11 +2245,9 @@ configure or operate a specific Postfix subsystem or feature.
 <DT><b><a name="ignore_mx_lookup_error">ignore_mx_lookup_error</a>
 (default: no)</b></DT><DD>
 
-<p>
-Ignore DNS MX lookups that produce no response.  By default,
-Postfix defers delivery and tries again after some delay.  This
-behavior is required by the SMTP standard.
-</p>
+<p> Ignore DNS MX lookups that produce no response.  By default,
+the Postfix SMTP client defers delivery and tries again after some
+delay.  This behavior is required by the SMTP standard.  </p>
 
 <p>
 Specify "<b><a href="postconf.5.html#ignore_mx_lookup_error">ignore_mx_lookup_error</a> = yes</b>" to force a DNS A record
@@ -5578,12 +5576,10 @@ Skip SMTP servers that greet with a 5XX status code (go away, do
 not try again later).
 </p>
 
-<p>
-By default, Postfix moves on the next mail exchanger. Specify
-"<a href="postconf.5.html#smtp_skip_5xx_greeting">smtp_skip_5xx_greeting</a> = no" if Postfix should bounce the mail
-immediately. The default setting is incorrect, but it is what a
-lot of people expect to happen.
-</p>
+<p> By default, the Postfix SMTP client moves on the next mail
+exchanger. Specify "<a href="postconf.5.html#smtp_skip_5xx_greeting">smtp_skip_5xx_greeting</a> = no" if Postfix should
+bounce the mail immediately. The default setting is incorrect, but
+it is what a lot of people expect to happen.  </p>
 
 
 </DD>
@@ -6452,6 +6448,17 @@ accepts per message delivery request.
 
 </DD>
 
+<DT><b><a name="smtpd_recipient_overshoot_limit">smtpd_recipient_overshoot_limit</a>
+(default: 1000)</b></DT><DD>
+
+<p> The number of recipients that a remote SMTP client can send in
+excess of the limit specified with $<a href="postconf.5.html#smtpd_recipient_limit">smtpd_recipient_limit</a>, before
+the Postfix SMTP server increments the per-session error count
+for each excess recipient.  </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
 (default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b></DT><DD>
 
@@ -6594,7 +6601,8 @@ code for rejected requests (default: 554). </dd>
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when the RCPT TO address has no DNS A or MX
-record. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies
+record and Postfix is not final destination for the recipient
+address. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies
 the response code for rejected requests (default: 450).  The response
 is always 450 in case of a temporary DNS error.</dd>
 
@@ -7039,10 +7047,11 @@ Postfix version 2.1 and later. </dd>
 
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
-<dd>Reject the request when the MAIL FROM address has no DNS A
-or MX record. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter
-specifies the response code for rejected requests (default: 450).
-The response is always 450 in case of a temporary DNS error. </dd>
+<dd>Reject the request when the MAIL FROM address has no DNS A or
+MX record and Postfix is not final destination for the sender
+address. <br> The <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies
+the response code for rejected requests (default: 450).  The response
+is always 450 in case of a temporary DNS error. </dd>
 
 <dt><b><a name="reject_unlisted_sender">reject_unlisted_sender</a></b></dt>
 

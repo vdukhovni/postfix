@@ -21,6 +21,9 @@ to selectively reject or accept mail. Access can be allowed or
 denied for specific host names, domain names, networks, host
 network addresses or mail addresses.
 
+For an example, see the EXAMPLE section at the end of this
+manual page.
+
 Normally, the \fBaccess\fR table is specified as a text file
 that serves as input to the \fBpostmap\fR(1) command.
 The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
@@ -249,6 +252,7 @@ pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
 This section describes how the table lookups change when lookups
 are directed to a TCP-based server. For a description of the TCP
 client/server lookup protocol, see \fBtcp_table\fR(5).
+This feature is not available in Postfix version 2.1.
 
 Each lookup operation uses the entire query string once.
 Depending on the application, that string is an entire client
@@ -259,6 +263,36 @@ their \fIuser@\fR and \fIdomain\fR constituent parts, nor is
 \fIuser+foo\fR broken up into \fIuser\fR and \fIfoo\fR.
 
 Actions are the same as with indexed file lookups.
+.SH "EXAMPLE"
+.na
+.nf
+.ad
+.fi
+The following example uses an indexed file, so that the
+order of table entries does not matter. The example permits
+access by the client at address 1.2.3.4 but rejects all
+other clients in 1.2.3.0/24. Instead of "\fBhash\fR" lookup
+tables, some systems use "\fBdbm\fR".  Use the command
+"\fBpostconf -m\fR" to find out what lookup tables Postfix
+supports on your system.
+
+.na
+.nf
+/etc/postfix/main.cf:
+.in +4
+smtpd_client_restrictions =
+.in +4
+check_client_access hash:/etc/postfix/access
+
+.in -8
+/etc/postfix/access:
+.in +4
+1.2.3   REJECT
+1.2.3.4 OK
+.in -4
+
+Execute the command "\fBpostmap /etc/postfix/access\fR" after
+editing the file.
 .SH BUGS
 .ad
 .fi
@@ -279,9 +313,8 @@ Use "\fBpostconf readme_directory\fR" or
 "\fBpostconf html_directory\fR" to locate this information.
 .na
 .nf
-DATABASE_README, Postfix lookup table overview
 SMTPD_ACCESS_README, built-in SMTP server access control
-SMTPD_POLICY_README, external policy server
+DATABASE_README, Postfix lookup table overview
 .SH "LICENSE"
 .na
 .nf
