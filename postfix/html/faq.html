@@ -209,7 +209,7 @@ domains with "relay access denied"</a>
 
 <li><a href="#relay_restrict">Restricting what users can send mail to off-site destinations</a>
 
-<li><a href="#backup">Configuring Postfix as backup MX host</a>
+<li><a href="#backup">Configuring Postfix as MX host for a remote site</a>
 
 </ul>
 
@@ -1685,7 +1685,7 @@ host.
 
 <hr>
 
-<a name="backup"><h3>Configuring Postfix as backup MX host</h3></a>
+<a name="backup"><h3>Configuring Postfix as MX host for a remote site</h3></a>
 
 When you are <b>secondary mx</b> for a <b>remote site</b> this is
 all you need:
@@ -1703,6 +1703,10 @@ all you need:
 
 <p>
 
+<blink><b>DO NOT LIST the.backed-up.domain.tld in MYDESTINATION</b></blink>
+
+<p>
+
 When you are <b>primary mx</b> for a <b>remote site</b> you also
 need:
 
@@ -1713,7 +1717,7 @@ need:
         transport_maps = hash:/etc/postfix/transport
 
     /etc/postfix/transport:
-        the.backed-up.domain.tld       smtp:[their.mail.host.tld]
+        the.backed-up.domain.tld       relay:[their.mail.host.tld]
 </pre>
 
 <p>

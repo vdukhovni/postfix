@@ -926,20 +926,6 @@ static void reject_dict_retry(SMTPD_STATE *state, const char *reply_name)
 						451, reply_name));
 }
 
-/* checkv8_maps_find - reject with temporary failure if dict lookup fails */
-
-static const char *checkv8_maps_find(SMTPD_STATE *state, const char *reply_name,
-				             MAPS *maps, const char *key)
-{
-    const char *result;
-
-    dict_errno = 0;
-    if ((result = virtual8_maps_find(maps, key)) == 0
-	&& dict_errno == DICT_ERR_RETRY)
-	reject_dict_retry(state, reply_name);
-    return (result);
-}
-
 /* check_mail_addr_find - reject with temporary failure if dict lookup fails */
 
 static const char *check_mail_addr_find(SMTPD_STATE *state,
@@ -1902,8 +1888,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
-     * DEFER_IF_PERMIT means NO, eventually. Use optional text or generate a
-     * generic error response.
+     * DEFER_IF_PERMIT changes "permit" into "maybe". Use optional text or
+     * generate a generic error response.
      */
     if (STREQUAL(value, DEFER_IF_PERMIT, cmd_len)) {
 	DEFER_IF_PERMIT3(state, MAIL_ERROR_POLICY,
@@ -1914,8 +1900,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
-     * DEFER_IF_REJECT means NO, eventually. Use optional text or generate a
-     * generic error response.
+     * DEFER_IF_REJECT changes "reject" into "maybe". Use optional text or
+     * generate a generic error response.
      */
     if (STREQUAL(value, DEFER_IF_REJECT, cmd_len)) {
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
@@ -2776,7 +2762,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 
     if (attr_clnt_request(policy_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
+			ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
 			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
 		       ATTR_TYPE_STR, MAIL_ATTR_PROTO_NAME, state->protocol,
 			  ATTR_TYPE_STR, MAIL_ATTR_CLIENT_ADDR, state->addr,
@@ -3488,9 +3474,6 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
 
 #define NOMATCH(map, rcpt) (MATCH(map, rcpt) == 0)
 
-#define NOMATCHV8(map, rcpt) \
-    (checkv8_maps_find(state, recipient, map, rcpt) == 0)
-
     /*
      * XXX We assume the recipient address is OK if it matches a canonical
      * map or virtual alias map. Eventually, the address resolver should give
@@ -3556,7 +3539,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient)
      */
     if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
 	&& *var_virt_mailbox_maps
-	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient)))
+	&& NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient)))
 	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown%s",
 				   var_virt_mailbox_code, recipient,

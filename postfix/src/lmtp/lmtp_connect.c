@@ -320,7 +320,7 @@ static char *lmtp_parse_destination(const char *destination, char *def_service,
      * aren't going to have lmtp defined as a service, use a default value
      * instead of just blowing up.
      */
-    if ((port = atoi(service)) != 0)
+    if (alldig(service) && (port = atoi(service)) != 0)
 	*portp = htons(port);
     else if ((sp = getservbyname(service, protocol)) != 0)
 	*portp = sp->s_port;

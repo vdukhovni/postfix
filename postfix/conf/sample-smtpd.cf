@@ -137,9 +137,7 @@ smtpd_banner = $myhostname ESMTP $mail_name
 #   check_client_access maptype:mapname
 #	look up client name, parent domains, client address,
 #	or networks obtained by stripping octets.
-#	Skip this lookup table if the result is DUNNO.
-#	Reject the ETRN command if the result is REJECT text... or "[45]xx text"
-#	Permit the ETRN command if the result is OK or all numerical.
+#	see access(5) for possible lookup results.
 #   reject_rbl_client domain.tld: reject if the reverse client network
 #	address is listed in an A record under domain.tld.
 #	Append e.g., "=127.0.0.2" to the RBL domain name to select a specific

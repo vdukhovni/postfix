@@ -24,7 +24,7 @@ PIPE(8)                                                   PIPE(8)
        reports are sent to the <a href="bounce.8.html"><b>bounce</b>(8)</a> or  <a href="defer.8.html"><b>defer</b>(8)</a>  daemon  as
        appropriate.
 
-<b>SINGLE-RECIPIENT</b> <b>DELIVERY</b>
+<b>SINGLE-RECIPIENT DELIVERY</b>
        Some external commands cannot handle more than one recipi-
        ent per delivery request. Examples of such transports  are
        pagers, fax machines, and so on.
@@ -32,13 +32,13 @@ PIPE(8)                                                   PIPE(8)
        To  prevent  Postfix  from sending multiple recipients per
        delivery request, specify
 
-           <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> <b>=</b> <b>1</b>
+           <i>transport</i><b>_destination_recipient_limit = 1</b>
 
        in the Postfix <b>main.cf</b> file, where <i>transport</i> is  the  name
        in the first column of the Postfix <b>master.cf</b> entry for the
        pipe-based delivery transport.
 
-<b>COMMAND</b> <b>ATTRIBUTE</b> <b>SYNTAX</b>
+<b>COMMAND ATTRIBUTE SYNTAX</b>
        The external command attributes are given in the <b>master.cf</b>
        file at the end of a service definition.  The syntax is as
        follows:
@@ -54,17 +54,17 @@ PIPE(8)                                                   PIPE(8)
 
               <b>D</b>      Prepend a "<b>Delivered-To:</b> <i>recipient</i>"  message
                      header  with the envelope recipient address.
-                     Note: for this to work, the <i>transport_</i><b>desti-</b>
-                     <b>nation</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> must be 1.
+                     Note: for this to work, the <i>transport</i><b>_desti-</b>
+                     <b>nation_recipient_limit</b> must be 1.
 
-              <b>F</b>      Prepend  a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope
+              <b>F</b>      Prepend  a "<b>From</b> <i>sender time</i><b>_</b><i>stamp</i>" envelope
                      header to  the  message  content.   This  is
                      expected by, for example, <b>UUCP</b> software.
 
               <b>O</b>      Prepend  an  "<b>X-Original-To:</b> <i>recipient</i>" mes-
                      sage header with the  recipient  address  as
                      given  to  Postfix.  Note: for this to work,
-                     the    <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+                     the    <i>transport</i><b>_destination_recipient_limit</b>
                      must be 1.
 
               <b>R</b>      Prepend  a  <b>Return-Path:</b> message header with
@@ -116,10 +116,10 @@ PIPE(8)                                                   PIPE(8)
        <b>eol=string</b> (optional, default: <b>\n</b>)
               The output record delimiter.  Typically  one  would
               use  either <b>\r\n</b> or <b>\n</b>. The usual C-style backslash
-              escape sequences are recognized: <b>\a</b> <b>\b</b> <b>\f</b> <b>\n</b> <b>\r</b>  <b>\t</b>
-              <b>\v</b> <b>\</b><i>octal</i> and <b>\\</b>.
+              escape sequences are recognized: <b>\a \b \f \n \r  \t</b>
+              <b>\v \</b><i>octal</i> and <b>\\</b>.
 
-       <b>size</b>=<i>size_limit</i> (optional)
+       <b>size</b>=<i>size</i><b>_</b><i>limit</i> (optional)
               Messages greater in size than this limit (in bytes)
               will be bounced back to the sender.
 
@@ -221,47 +221,47 @@ PIPE(8)                                                   PIPE(8)
        cute external commands as the specified user. It is there-
        fore security sensitive.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
        to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       details and for default values.  Use  the  <b>postfix  reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>export</b><i>_</i><b>environment</b>
+       <b>export_environment</b>
               List of names of environment parameters that can be
               exported to non-Postfix processes.
 
-       <b>mail</b><i>_</i><b>owner</b>
+       <b>mail_owner</b>
               The process privileges used while  not  running  an
               external command.
 
-<b>Resource</b> <b>controls</b>
+<b>Resource controls</b>
        In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
        <b>ter.cf</b> entry.
 
-       <i>transport_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
+       <i>transport</i><b>_destination_concurrency_limit</b>
               Limit the number of parallel deliveries to the same
               destination,  for delivery via the named <i>transport</i>.
-              The default limit is taken from the  <b>default</b><i>_</i><b>desti-</b>
-              <b>nation</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>  parameter.   The limit is
+              The default limit is taken from the  <b>default_desti-</b>
+              <b>nation_concurrency_limit</b>  parameter.   The limit is
               enforced by the Postfix queue manager.
 
-       <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+       <i>transport</i><b>_destination_recipient_limit</b>
               Limit the number of recipients per  message  deliv-
               ery,  for  delivery  via  the  named <i>transport</i>. The
-              default limit is taken  from  the  <b>default</b><i>_</i><b>destina-</b>
-              <b>tion</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>   parameter.    The  limit  is
+              default limit is taken  from  the  <b>default_destina-</b>
+              <b>tion_recipient_limit</b>   parameter.    The  limit  is
               enforced by the Postfix queue manager.
 
-       <i>transport_</i><b>time</b><i>_</i><b>limit</b>
+       <i>transport</i><b>_time_limit</b>
               Limit the time for delivery  to  external  command,
               for  delivery  via the named <b>transport</b>. The default
-              limit is taken from the <b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>  parame-
+              limit is taken from the <b>command_time_limit</b>  parame-
               ter.   The  limit  is enforced by the pipe delivery
               agent.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="bounce.8.html">bounce(8)</a> non-delivery status reports
        <a href="master.8.html">master(8)</a> process manager
        <a href="qmgr.8.html">qmgr(8)</a> queue manager

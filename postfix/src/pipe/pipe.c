@@ -289,6 +289,9 @@
  /*
   * The mini symbol table name and keys used for expanding macros in
   * command-line arguments.
+  * 
+  * XXX Update  the parse_callback() routine when something gets added here,
+  * even when the macro is not recipient dependent.
   */
 #define PIPE_DICT_TABLE		"pipe_command"	/* table name */
 #define PIPE_DICT_NEXTHOP	"nexthop"	/* key */
@@ -307,7 +310,6 @@
 #define PIPE_FLAG_USER		(1<<1)
 #define PIPE_FLAG_EXTENSION	(1<<2)
 #define PIPE_FLAG_MAILBOX	(1<<3)
-#define PIPE_FLAG_SIZE		(1<<4)
 
  /*
   * Additional flags. These are colocated with mail_copy() flags. Allow some
@@ -350,6 +352,14 @@ typedef struct {
 } PIPE_ATTR;
 
  /*
+  * Structure for command-line parameter macro expansion.
+  */
+typedef struct {
+    const char *service;		/* for warnings */
+    int     expand_flag;		/* callback result */
+} PIPE_STATE;
+
+ /*
   * Silly little macros.
   */
 #define STR	vstring_str
@@ -358,20 +368,38 @@ typedef struct {
 
 static int parse_callback(int type, VSTRING *buf, char *context)
 {
-    int    *expand_flag = (int *) context;
+    PIPE_STATE *state = (PIPE_STATE *) context;
+    struct cmd_flags {
+	const char *name;
+	int     flags;
+    };
+    static struct cmd_flags cmd_flags[] = {
+	PIPE_DICT_NEXTHOP, 0,
+	PIPE_DICT_RCPT, PIPE_FLAG_RCPT,
+	PIPE_DICT_SENDER, 0,
+	PIPE_DICT_USER, PIPE_FLAG_USER,
+	PIPE_DICT_EXTENSION, PIPE_FLAG_EXTENSION,
+	PIPE_DICT_MAILBOX, PIPE_FLAG_MAILBOX,
+	PIPE_DICT_SIZE, 0,
+	0, 0,
+    };
+    struct cmd_flags *p;
 
     /*
      * See if this command-line argument references a special macro.
      */
     if (type == MAC_PARSE_VARNAME) {
-	if (strcmp(vstring_str(buf), PIPE_DICT_RCPT) == 0)
-	    *expand_flag |= PIPE_FLAG_RCPT;
-	else if (strcmp(vstring_str(buf), PIPE_DICT_USER) == 0)
-	    *expand_flag |= PIPE_FLAG_USER;
-	else if (strcmp(vstring_str(buf), PIPE_DICT_EXTENSION) == 0)
-	    *expand_flag |= PIPE_FLAG_EXTENSION;
-	else if (strcmp(vstring_str(buf), PIPE_DICT_MAILBOX) == 0)
-	    *expand_flag |= PIPE_FLAG_MAILBOX;
+	for (p = cmd_flags; /* see below */ ; p++) {
+	    if (p->name == 0) {
+		msg_warn("file %s/%s: service %s: unknown macro name: \"%s\"",
+			 var_config_dir, MASTER_CONF_FILE,
+			 state->service, vstring_str(buf));
+		return (MAC_PARSE_ERROR);
+	    } else if (strcmp(vstring_str(buf), p->name) == 0) {
+		state->expand_flag |= p->flags;
+		return (0);
+	    }
+	}
     }
     return (0);
 }
@@ -413,12 +441,13 @@ static void morph_recipient(VSTRING *buf, const char *address, int flags)
 
 /* expand_argv - expand macros in the argument vector */
 
-static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, int flags)
+static ARGV *expand_argv(const char *service, char **argv,
+			         RECIPIENT_LIST *rcpt_list, int flags)
 {
     VSTRING *buf = vstring_alloc(100);
     ARGV   *result;
     char  **cpp;
-    int     expand_flag;
+    PIPE_STATE state;
     int     i;
     char   *ext;
 
@@ -436,12 +465,15 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, int flags)
      * would screw up mail addresses that contain $ characters.
      */
 #define NO	0
+#define EARLY_RETURN(x) { argv_free(result); vstring_free(buf); return (x); }
 
     result = argv_alloc(1);
     for (cpp = argv; *cpp; cpp++) {
-	expand_flag = 0;
-	mac_parse(*cpp, parse_callback, (char *) &expand_flag);
-	if (expand_flag == 0) {			/* no $recipient etc. */
+	state.service = service;
+	state.expand_flag = 0;
+	if (mac_parse(*cpp, parse_callback, (char *) &state) & MAC_PARSE_ERROR)
+	    EARLY_RETURN(0);
+	if (state.expand_flag == 0) {		/* no $recipient etc. */
 	    argv_add(result, dict_eval(PIPE_DICT_TABLE, *cpp, NO), ARGV_END);
 	} else {				/* contains $recipient etc. */
 	    for (i = 0; i < rcpt_list->len; i++) {
@@ -449,7 +481,7 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, int flags)
 		/*
 		 * This argument contains $recipient.
 		 */
-		if (expand_flag & PIPE_FLAG_RCPT) {
+		if (state.expand_flag & PIPE_FLAG_RCPT) {
 		    morph_recipient(buf, rcpt_list->info[i].address, flags);
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_RCPT, STR(buf));
 		}
@@ -466,7 +498,7 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, int flags)
 		 * skipping empty user parts will also prevent other
 		 * expansions of this specific command-line argument.
 		 */
-		if (expand_flag & PIPE_FLAG_USER) {
+		if (state.expand_flag & PIPE_FLAG_USER) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
 				    flags & PIPE_OPT_FOLD_FLAGS);
 		    if (split_at_right(STR(buf), '@') == 0)
@@ -484,7 +516,7 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, int flags)
 		 * extension: anything between the leftmost extension
 		 * delimiter and the rightmost @. The extension may be blank.
 		 */
-		if (expand_flag & PIPE_FLAG_EXTENSION) {
+		if (state.expand_flag & PIPE_FLAG_EXTENSION) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
 				    flags & PIPE_OPT_FOLD_FLAGS);
 		    if (split_at_right(STR(buf), '@') == 0)
@@ -500,7 +532,7 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, int flags)
 		 * This argument contains $mailbox. Extract the mailbox name:
 		 * anything to the left of the rightmost @.
 		 */
-		if (expand_flag & PIPE_FLAG_MAILBOX) {
+		if (state.expand_flag & PIPE_FLAG_MAILBOX) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
 				    flags & PIPE_OPT_FOLD_FLAGS);
 		    if (split_at_right(STR(buf), '@') == 0)
@@ -888,7 +920,15 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     vstring_sprintf(buf, "%ld", (long) request->data_size);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SIZE, STR(buf));
     vstring_free(buf);
-    expanded_argv = expand_argv(attr.command, rcpt_list, attr.flags);
+
+    if ((expanded_argv = expand_argv(service, attr.command,
+				     rcpt_list, attr.flags)) == 0) {
+	deliver_status = eval_command_status(PIPE_STAT_DEFER, service,
+					     request, request->fp,
+					     "mailer configuration error");
+	DELIVER_MSG_CLEANUP();
+	return (deliver_status);
+    }
     export_env = argv_split(var_export_environ, ", \t\r\n");
 
     command_status = pipe_command(request->fp, why,

@@ -56,8 +56,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        and "TCP-BASED TABLES".
 
 <b>TABLE FORMAT</b>
-       The  format  of  the virtual table is as follows, mappings
-       being tried in the order as listed in this manual page:
+       The input format for the <a href="postmap.1.html"><b>postmap</b>(1)</a> command is as follows:
 
        <i>pattern result</i>
               When <i>pattern</i> matches a mail address, replace it  by
@@ -85,7 +84,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
               Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
               <i>site</i>  is equal to $<b>myorigin</b>, when <i>site</i> is listed in
               $mydestination,   or   when   it   is   listed   in
-              $<i>inet_interfaces</i>.
+              $<i>inet</i><b>_</b><i>interfaces</i>.
 
               This  functionality  overlaps with functionality of
               the local <i>aliases</i>(5) database.  The  difference  is
@@ -145,7 +144,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>back to myself".</b>
 
        Do  not  specify virtual alias domain names in the <b>main.cf</b>
-       <b>mydestination</b> or <b>relay</b><i>_</i><b>domains</b> configuration parameters.
+       <b>mydestination</b> or <b>relay_domains</b> configuration parameters.
 
        With a virtual  alias  domain,  the  Postfix  SMTP  server
        accepts   mail  for  <i>known-user@virtual-alias.domain</i>,  and
@@ -153,8 +152,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        undeliverable.
 
        Instead  of  specifying  the virtual alias domain name via
-       the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it  via
-       the <b>main.cf virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> configuration parameter.
+       the <b>virtual_alias_maps</b> table, you may also specify it  via
+       the <b>main.cf virtual_alias_domains</b> configuration parameter.
        This latter parameter uses the same syntax as the  <b>main.cf</b>
        <b>mydestination</b> configuration parameter.
 
@@ -162,7 +161,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        This  section  describes how the table lookups change when
        the table is given in the form of regular expressions. For
        a  description  of regular expression lookup table syntax,
-       see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
+       see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
 
        Each pattern is a regular expression that  is  applied  to
        the entire address being looked up. Thus, <i>user@domain</i> mail
@@ -182,7 +181,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        This section describes how the table lookups  change  when
        lookups are directed to a TCP-based server. For a descrip-
        tion  of  the  TCP  client/server  lookup  protocol,   see
-       <b>tcp</b><i>_</i><b>table</b>(5).
+       <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
 
        Each lookup operation uses the entire address once.  Thus,
        <i>user@domain</i> mail addresses are not broken  up  into  their
@@ -200,16 +199,16 @@ VIRTUAL(5)                                             VIRTUAL(5)
        details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
-       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b>
+       <b>virtual_alias_maps</b>
               List of virtual aliasing tables.
 
-       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b>
+       <b>virtual_alias_domains</b>
               List of virtual alias domains. This uses  the  same
               syntax as the <b>mydestination</b> parameter.
 
        Other parameters of interest:
 
-       <b>inet</b><i>_</i><b>interfaces</b>
+       <b>inet_interfaces</b>
               The  network  interface  addresses that this system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
@@ -222,7 +221,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
               The domain that is appended  to  any  address  that
               does not have a domain.
 
-       <b>owner</b><i>_</i><b>request</b><i>_</i><b>special</b>
+       <b>owner_request_special</b>
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
               addresses.
 

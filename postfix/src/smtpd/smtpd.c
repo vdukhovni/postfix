@@ -108,7 +108,7 @@
 /*	The hostname to use when sending an EHLO command to the
 /*	SMTP proxy server.
 /* .SH "Authentication controls"
-/* .IP \fBenable_sasl_authentication\fR
+/* .IP \fBsmtpd_sasl_auth_enable\fR
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	This functionality is available only when explicitly selected
 /*	at program build time and explicitly enabled at runtime.

@@ -100,7 +100,7 @@ message_size_limit = 10240000
 # The qmgr_message_active_limit parameter limits the number of
 # messages in the active queue.
 #
-qmgr_message_active_limit = 10000
+qmgr_message_active_limit = 20000
 
 # The qmgr_message_recipient_limit parameter limits the number of
 # in-memory recipients. This limit is used before any of the message
@@ -110,7 +110,7 @@ qmgr_message_active_limit = 10000
 # This parameter also limits the size of the short-term, in-memory
 # destination status cache.
 #
-qmgr_message_recipient_limit = 10000
+qmgr_message_recipient_limit = 20000
 
 # (nqmgr only)
 # The default_recipient_limit parameter is the default value for

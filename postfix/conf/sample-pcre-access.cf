@@ -9,6 +9,9 @@
 #	the forward slash is used). The regular expression can contain
 #	whitespace.
 #
+#	When the regular expression is prefixed by `!', the pattern
+#	succeeds when it does not match.
+#
 #	By default, matching is case-INsensitive, although following
 #	the second slash with an 'i' will reverse this. Other flags are
 #	supported, but the only other useful one is 'U', which makes
@@ -18,7 +21,7 @@
 #       A block of table entries may be "enclosed" by a line with    
 #       `if /pattern/flags' and a line with `endif'.  This causes
 #       the block of table entries to be examined only when the
-#       pattern produces a successful match. The `if..endif' may
+#       search string matches the pattern. The `if..endif' may
 #       be nested. There currently is no `else' operator.
 #
 #	The second field is the "replacement" string - the text

@@ -8419,13 +8419,34 @@ Apologies for any names omitted.
 	and dict_mysql modules. These maps must be opened in
 	read-only mode.
 
+20030731
+
+	Bugfix: virtual(8) was changed to use mail_addr_find()
+	instead of virtual8_maps_find(), but the SMTP server's
+	virtual mailbox recipient validation was not updated.
+
 20030804
 
 	Bugfix: the 20030712 safety against invalid DNS results
 	was broken. Reported by Ralf Hildebrandt. File:
 	dns/dns_lookup.c.
 
+20030805-12
+
+	Safety: the pipe daemon now defers delivery with a warning
+	when it is given a non-existent command-line macro name.
+	File:  pipe/pipe.c.
+
+20030811
+
+	Cleanup: produce a warning when host:port specifies a badly
+	formatted numerical port.  Files:  util/find_inet.c,
+	smtp/smtp_connect.c, lmtp/lmtp_connect.c.
+
 Open problems:
+
+	Doc: mention the proxy_interfaces parameter everywhere the
+	inet_interfaces and mydestination parameters are mentioned.
 
 	Low: smtp-source may block when sending large test messages.
 

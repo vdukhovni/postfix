@@ -345,7 +345,7 @@ static char *smtp_parse_destination(char *destination, char *def_service,
     /*
      * Convert service to port number, network byte order.
      */
-    if ((port = atoi(service)) != 0) {
+    if (alldig(service) && (port = atoi(service)) != 0) {
 	*portp = htons(port);
     } else {
 	if ((sp = getservbyname(service, protocol)) == 0)

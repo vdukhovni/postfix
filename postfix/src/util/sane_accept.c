@@ -76,8 +76,7 @@ int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
      * client has disconnected in the mean time. The data that was sent with
      * connect() write() close() is lost, even though the write() and close()
      * reported successful completion. This was fixed shortly before FreeBSD
-     * 4.3. However, other systems may make that same mistake again, so we're
-     * adding a special warning.
+     * 4.3.
      * 
      * XXX HP-UX 11 returns ENOBUFS when the client has disconnected in the mean
      * time.

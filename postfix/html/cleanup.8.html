@@ -38,8 +38,8 @@ CLEANUP(8)                                             CLEANUP(8)
        <b>o</b>      Optionally, masquerade  envelope  sender  addresses
               and  message  header  addresses (i.e. strip host or
               domain information below all domains listed in  the
-              <b>masquerade</b><i>_</i><b>domains</b> parameter, except for user names
-              listed  in  <b>masquerade</b><i>_</i><b>exceptions</b>).   By   default,
+              <b>masquerade_domains</b> parameter, except for user names
+              listed  in  <b>masquerade_exceptions</b>).   By   default,
               address   masquerading  does  not  affect  envelope
               recipients.
 
@@ -72,20 +72,20 @@ CLEANUP(8)                                             CLEANUP(8)
        command after a configuration change.
 
 <b>Content filtering</b>
-       <b>body</b><i>_</i><b>checks</b>
+       <b>body_checks</b>
               Lookup tables with content filters for message body
               lines.  These filters see physical lines one  at  a
               time, in chunks of at most line_length_limit bytes.
 
-       <b>body</b><i>_</i><b>checks</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+       <b>body_checks_size_limit</b>
               The amount of content per message body segment that
-              is subjected to <b>$body</b><i>_</i><b>checks</b> filtering.
+              is subjected to <b>$body_checks</b> filtering.
 
-       <b>header</b><i>_</i><b>checks</b>
+       <b>header_checks</b>
 
-       <b>mime</b><i>_</i><b>header</b><i>_</i><b>checks</b> (default: <b>$header</b><i>_</i><b>checks</b>)
+       <b>mime_header_checks</b> (default: <b>$header_checks</b>)
 
-       <b>nested</b><i>_</i><b>header</b><i>_</i><b>checks</b> (default: <b>$header</b><i>_</i><b>checks</b>)
+       <b>nested_header_checks</b> (default: <b>$header_checks</b>)
               Lookup  tables  with  content  filters  for message
               header lines: respectively, these  are  applied  to
               the  primary  message  headers  (not including MIME
@@ -95,33 +95,33 @@ CLEANUP(8)                                             CLEANUP(8)
               time, including headers that span multiple lines.
 
 <b>MIME Processing</b>
-       <b>disable</b><i>_</i><b>mime</b><i>_</i><b>input</b><i>_</i><b>processing</b>
+       <b>disable_mime_input_processing</b>
               While  receiving, give no special treatment to <b>Con-</b>
               <b>tent-Type:</b> message headers; all text after the ini-
               tial  message  headers  is considered to be part of
               the message body.
 
-       <b>mime</b><i>_</i><b>boundary</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+       <b>mime_boundary_length_limit</b>
               The amount of space that will be allocated for MIME
               multipart  boundary  strings. The MIME processor is
               unable to distinguish between boundary strings that
-              do   not   differ   in   the   first   <b>$mime</b><i>_</i><b>bound-</b>
-              <b>ary</b><i>_</i><b>length</b><i>_</i><b>limit</b> characters.
+              do   not   differ   in   the   first   <b>$mime_bound-</b>
+              <b>ary_length_limit</b> characters.
 
-       <b>mime</b><i>_</i><b>nesting</b><i>_</i><b>limit</b>
+       <b>mime_nesting_limit</b>
               The maximal nesting level of  multipart  mail  that
               the  MIME processor can handle. Refuse mail that is
               nested deeper.
 
-       <b>strict</b><i>_</i><b>8bitmime</b>
-              Turn on both <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b>  and  <b>strict</b><i>_</i><b>8bit-</b>
-              <b>mime</b><i>_</i><b>body</b>.
+       <b>strict_8bitmime</b>
+              Turn on both <b>strict_7bit_headers</b>  and  <b>strict_8bit-</b>
+              <b>mime_body</b>.
 
-       <b>strict</b><i>_</i><b>7bit</b><i>_</i><b>headers</b>
+       <b>strict_7bit_headers</b>
               Reject  mail  with  8-bit  text in message headers.
               This blocks mail from poorly written  applications.
 
-       <b>strict</b><i>_</i><b>8bitmime</b><i>_</i><b>body</b>
+       <b>strict_8bitmime_body</b>
               Reject  mail with 8-bit text in content that claims
               to be 7-bit, or in content  that  has  no  explicit
               content  encoding  information.   This  blocks mail
@@ -133,27 +133,27 @@ CLEANUP(8)                                             CLEANUP(8)
               ple,  bounces  from  qmail  or from old versions of
               Postfix).
 
-       <b>strict</b><i>_</i><b>mime</b><i>_</i><b>domain</b><i>_</i><b>encoding</b>
+       <b>strict_mime_domain_encoding</b>
               Reject mail with invalid <b>Content-Transfer-Encoding:</b>
               information  for  message/*  or  multipart/*.  This
               blocks mail from poorly written software.
 
 <b>Miscellaneous</b>
-       <b>always</b><i>_</i><b>bcc</b>
+       <b>always_bcc</b>
               Address to send a copy of each message that  enters
               the system.
 
-       <b>sender</b><i>_</i><b>bcc</b><i>_</i><b>maps</b>
+       <b>sender_bcc_maps</b>
               Automatic  BCC  recipient  lookup table, indexed by
               sender address.  The BCC address is added when  the
               message enters the system.
 
-       <b>recipient</b><i>_</i><b>bcc</b><i>_</i><b>maps</b>
+       <b>recipient_bcc_maps</b>
               Automatic  BCC  recipient  lookup table, indexed by
               recipient address.  The BCC address is  added  when
               the message enters the system.
 
-       <b>enable</b><i>_</i><b>original</b><i>_</i><b>recipient</b>
+       <b>enable_original_recipient</b>
               Enable   support  for  the  <b>X-Original-To:</b>  message
               header, which is needed for  multi-recipient  mail-
               boxes.  When  this  is  enabled,  Postfix  performs
@@ -161,73 +161,73 @@ CLEANUP(8)                                             CLEANUP(8)
               rewritten  recipient)  pairs, instead of looking at
               the rewritten recipient only.
 
-       <b>hopcount</b><i>_</i><b>limit</b>
+       <b>hopcount_limit</b>
               Limit the number of <b>Received:</b> message headers.
 
-       <b>undisclosed</b><i>_</i><b>recipients</b><i>_</i><b>header</b>
+       <b>undisclosed_recipients_header</b>
               The header line that is inserted when no recipients
               were specified in (Resent-)To: or (Resent-)Cc: mes-
               sage headers.
 
 <b>Address transformations</b>
-       <b>empty</b><i>_</i><b>address</b><i>_</i><b>recipient</b>
+       <b>empty_address_recipient</b>
               The destination for  undeliverable  mail  from  &lt;&gt;.
               This  substitution is done before all other address
               rewriting.
 
-       <b>canonical</b><i>_</i><b>maps</b>
+       <b>canonical_maps</b>
               Address mapping lookup table for sender and recipi-
               ent addresses in envelopes and headers.
 
-       <b>recipient</b><i>_</i><b>canonical</b><i>_</i><b>maps</b>
+       <b>recipient_canonical_maps</b>
               Address  mapping  lookup  table  for  envelope  and
               header recipient addresses.
 
-       <b>sender</b><i>_</i><b>canonical</b><i>_</i><b>maps</b>
+       <b>sender_canonical_maps</b>
               Address  mapping  lookup  table  for  envelope  and
               header sender addresses.
 
-       <b>masquerade</b><i>_</i><b>classes</b>
+       <b>masquerade_classes</b>
               List  of  address  classes subject to masquerading:
-              zero or more of  <b>envelope</b><i>_</i><b>sender</b>,  <b>envelope</b><i>_</i><b>recipi-</b>
-              <b>ent</b>, <b>header</b><i>_</i><b>sender</b>, <b>header</b><i>_</i><b>recipient</b>.
+              zero or more of  <b>envelope_sender</b>,  <b>envelope_recipi-</b>
+              <b>ent</b>, <b>header_sender</b>, <b>header_recipient</b>.
 
-       <b>masquerade</b><i>_</i><b>domains</b>
+       <b>masquerade_domains</b>
               List  of  domains  that hide their subdomain struc-
               ture.
 
-       <b>masquerade</b><i>_</i><b>exceptions</b>
+       <b>masquerade_exceptions</b>
               List of user names that are not subject to  address
               masquerading.
 
-       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b>
+       <b>virtual_alias_maps</b>
               Address mapping lookup table for envelope recipient
               addresses.
 
 <b>Resource controls</b>
-       <b>duplicate</b><i>_</i><b>filter</b><i>_</i><b>limit</b>
+       <b>duplicate_filter_limit</b>
               Limits the number of envelope recipients  that  are
               remembered.
 
-       <b>header</b><i>_</i><b>address</b><i>_</i><b>token</b><i>_</i><b>limit</b>
+       <b>header_address_token_limit</b>
               Limits the number of address tokens used to process
               a message header.
 
-       <b>header</b><i>_</i><b>size</b><i>_</i><b>limit</b>
-              Limits the amount of memory in bytes used  to  pro-
-              cess a message header.
+       <b>header_size_limit</b>
+              Limits the amount of memory in bytes used to  store
+              a message header.
 
-       <b>in</b><i>_</i><b>flow</b><i>_</i><b>delay</b>
+       <b>in_flow_delay</b>
               Amount of time to pause before accepting a message,
               when the message arrival rate exceeds  the  message
               delivery rate.
 
-       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>expansion</b><i>_</i><b>limit</b>
+       <b>virtual_alias_expansion_limit</b>
               Limit  the  number of actual recipients produced by
               virtual alias expansion from each original  recipi-
               ent.
 
-       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>recursion</b><i>_</i><b>limit</b>
+       <b>virtual_alias_recursion_limit</b>
               Limit  the  recursion depth of virtual alias expan-
               sion.
 
