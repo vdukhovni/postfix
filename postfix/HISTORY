@@ -7165,6 +7165,30 @@ Apologies for any names omitted.
 	indices in replacement text, and silently treated $text as
 	$0. Found by Michael Tokarev. File: dict_pcre.c.
 
+20021107
+
+	The behavior of the SMTP server's defer_if_permit flag has
+	changed.  The flag is still set when an UCE reject restriction
+	fails due to a temporary (DNS) problem, to prevent unwanted
+	mail from slipping through. However, the flag is no longer
+	tested at the end of client, helo or sender restrictions.
+	Instead, the flag is now tested at the end of the ETRN and
+	recipient restrictions only.
+
+	The behavior of the warn_if_reject restriction has changed.
+	It no longer activates any already made defer_if_permit or
+	defer_if_reject decisions (the defer_if_reject flag is set
+	when some UCE permit restriction fails due to a temporary
+	(DNS) problem, to avoid loss of legitimate mail).
+
+	Instead of setting the defer_if_permit flag, a failing
+	reject restriction after warn_if_reject now merely logs
+	that it would have caused mail to be deferred. 
+
+	A failing permit restriction after warn_if_reject still
+	raises the defer_if_reject flag, to avoid loss of legitimate
+	mail.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.

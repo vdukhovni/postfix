@@ -92,7 +92,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->recursion = 0;
     state->msg_size = 0;
     state->junk_cmds = 0;
+    state->defer_if_reject.active = 0;
     state->defer_if_reject.reason = 0;
+    state->defer_if_permit.active = 0;
     state->defer_if_permit.reason = 0;
     state->expand_buf = 0;
 

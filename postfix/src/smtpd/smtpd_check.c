@@ -435,6 +435,14 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
   * results happen with:
   * 
   * reject_unknown_client, hostname-based white-list, reject
+  * 
+  * XXX Don't raise the defer_if_permit flag with a failing reject-style
+  * restriction that follows warn_if_reject. Instead, log the warning for the
+  * resulting defer message.
+  * 
+  * XXX Do raise the defer_if_reject flag with a failing permit-style
+  * restriction that follows warn_if_reject. Otherwise, we could reject
+  * legitimate mail.
   */
 static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
 
@@ -442,8 +450,12 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
     defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2))
 #define DEFER_IF_REJECT3(state, class, fmt, a1, a2, a3) \
     defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3))
-#define DEFER_IF_PERMIT2(state, class, fmt, a1, a2) \
-    defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2))
+#define DEFER_IF_PERMIT2(state, class, fmt, a1, a2) do { \
+    if ((state)->warn_if_reject == 0) \
+	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2)); \
+    else \
+	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2)); \
+    } while (0)
 
  /*
   * Cached RBL lookup state.
@@ -746,21 +758,6 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     va_list ap;
     int     warn_if_reject;
     const char *whatsup;
-
-    /*
-     * defer_if_whatever has precedence over warn_if_reject, so as to
-     * minimize confusion. Bummer. There goes transparency.
-     */
-    if (state->warn_if_reject && state->defer_if_reject.active) {
-	state->warn_if_reject = state->defer_if_reject.active = 0;
-	return (smtpd_check_reject(state, state->defer_if_reject.class,
-				 "%s", STR(state->defer_if_reject.reason)));
-    }
-    if (state->warn_if_reject && state->defer_if_permit.active) {
-	state->warn_if_reject = state->defer_if_permit.active = 0;
-	return (smtpd_check_reject(state, state->defer_if_permit.class,
-				 "%s", STR(state->defer_if_permit.reason)));
-    }
 
     /*
      * Do not reject mail if we were asked to warn only. However,
@@ -1687,7 +1684,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     if (STREQUAL(value, "REJECT", cmd_len)) {
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: %s",
-				   var_access_map_code, reply_name, reply_class,
+			       var_access_map_code, reply_name, reply_class,
 				   *cmd_text ? cmd_text : "Access denied"));
     }
 
@@ -1788,7 +1785,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     /*
      * Don't get carried away with recursion.
      */
-    if (state->recursion++ > 100) {
+    if (state->recursion > 100) {
 	msg_warn("SMTPD access map %s entry %s causes unreasonable recursion",
 		 table, value);
 	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
@@ -2550,7 +2547,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
     int     status = 0;
     ARGV   *list;
     int     found;
-    int     saved_recursion = state->recursion;
+    int     saved_recursion = state->recursion++;
 
     if (msg_verbose)
 	msg_info("%s: START", myname);
@@ -2824,16 +2821,6 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
     state->recursion = saved_recursion;
 
-    /*
-     * Force this permission into deferral because of some earlier temporary
-     * error that may have prevented us from rejecting mail, and report the
-     * earlier problem instead.
-     */
-    if (status == SMTPD_CHECK_OK || status == SMTPD_CHECK_DUNNO) {
-	if (state->defer_if_permit.active)
-	    status = smtpd_check_reject(state, state->defer_if_permit.class,
-				  "%s", STR(state->defer_if_permit.reason));
-    }
     return (status);
 }
 
@@ -2850,11 +2837,16 @@ char   *smtpd_check_client(SMTPD_STATE *state)
 	return (0);
 
 #define SMTPD_CHECK_RESET() { \
-	state->recursion = 1; \
+	state->recursion = 0; \
 	state->warn_if_reject = 0; \
 	state->defer_if_reject.active = 0; \
-	state->defer_if_permit.active = 0; \
     }
+
+    /*
+     * This is cleared before client restrictions, and is tested after
+     * recipient and etrn restrictions.
+     */
+    state->defer_if_permit.active = 0;
 
     /*
      * Apply restrictions in the order as specified.
@@ -3000,6 +2992,14 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	status = generic_checks(state, rcpt_restrctions,
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
 
+    /*
+     * Force permission into deferral when some earlier temporary error may
+     * have prevented us from rejecting mail, and report the earlier problem.
+     */
+    if (status != SMTPD_CHECK_REJECT && state->defer_if_permit.active)
+	status = smtpd_check_reject(state, state->defer_if_permit.class,
+				  "%s", STR(state->defer_if_permit.reason));
+
     SMTPD_CHECK_RCPT_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
@@ -3044,6 +3044,14 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     if (status == 0 && etrn_restrctions->argc)
 	status = generic_checks(state, etrn_restrctions, domain,
 				SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
+
+    /*
+     * Force permission into deferral when some earlier temporary error may
+     * have prevented us from rejecting mail, and report the earlier problem.
+     */
+    if (status != SMTPD_CHECK_REJECT && state->defer_if_permit.active)
+	status = smtpd_check_reject(state, state->defer_if_permit.class,
+				  "%s", STR(state->defer_if_permit.reason));
 
     SMTPD_CHECK_ETRN_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
