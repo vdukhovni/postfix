@@ -121,8 +121,8 @@ static void master_wakeup_timer_event(int unused_event, char *context)
 	     * applications (says the INSTALL documentation).
 	     * 
 	     * Result of a discussion with Michael Tokarev, who received his
-	     * insights from Solar Designer, who tested Postfix with his
-	     * "openwatch" kernel module.
+	     * insights from Solar Designer, who tested Postfix with a kernel
+	     * module that is paranoid about open() calls.
 	     */
 	case MASTER_SERV_TYPE_FIFO:
 	    set_eugid(var_owner_uid, var_owner_gid);

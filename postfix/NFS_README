@@ -11,14 +11,17 @@ is why Wietse makes no promises about Postfix reliability on NFS.
 For queue locking, NFS is not an issue because you cannot share
 Postfix queues between Postfix instances anyawy.
 
-For mailbox locking, some systems such as FreeBSD use flock() by
-default (use: ``postconf mailbox_delivery_lock'' to find out about
-your system). flock() does not work over NFS. This causes loss of
-mail when multiple hosts access the same mailboxes.
+For mailbox locking, some systems use flock() by default (use:
+``postconf mailbox_delivery_lock'' and ``postconf virtual_mailbox_lock''
+to find out about your system). flock() does not work over NFS.
+This causes loss of mail when multiple hosts access the same
+mailboxes.
 
 In order to have mailbox locking over NFS you have to configure
 everything to use fcntl() locks for mailbox access (or switch to
-maildir style).  With Postfix you'd specify:
+maildir style, which needs no application-level lock controls).
+
+To turn on fcntl locks with Postfix you specify:
 
     virtual_mailbox_lock = fcntl
     mailbox_delivery_lock = fcntl
@@ -26,9 +29,9 @@ maildir style).  With Postfix you'd specify:
 This is useful only if all mailbox access software uses fcntl()
 locks. I have no information on how well fcntl() locks work on NFS.
 
-You can also "play safe" and try to throw in username.lock files:
+You can also "play safe" and throw in username.lock files:
 
     virtual_mailbox_lock = fcntl, dotlock
     mailbox_delivery_lock = fcntl, dotlock
 
-this is the mix that many packages end up using.
+this is the mix that many applications end up using.

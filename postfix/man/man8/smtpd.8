@@ -173,6 +173,9 @@ storage for envelope information.
 .IP \fBqueue_minfree\fR
 Minimal amount of free space in bytes in the queue file system
 for the SMTP server to accept any mail at all.
+.IP \fBsmtpd_history_flush_threshold\fR
+Flush the command history to postmaster after receipt of RSET etc.
+only if the number of history lines exceeds the given threshold.
 .SH Tarpitting
 .ad
 .fi

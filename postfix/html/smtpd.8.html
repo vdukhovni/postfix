@@ -201,6 +201,11 @@ SMTPD(8)                                                 SMTPD(8)
               file system for the SMTP server to accept any  mail
               at all.
 
+       <b>smtpd</b><i>_</i><b>history</b><i>_</i><b>flush</b><i>_</i><b>threshold</b>
+              Flush  the  command  history  to  postmaster  after
+              receipt of RSET etc.  only if the number of history
+              lines exceeds the given threshold.
+
 <b>Tarpitting</b>
        <b>smtpd</b><i>_</i><b>error</b><i>_</i><b>sleep</b><i>_</i><b>time</b>
               Time to wait in seconds before sending a 4xx or 5xx

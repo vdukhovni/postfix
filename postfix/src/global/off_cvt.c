@@ -66,20 +66,29 @@ off_t   off_cvt_string(const char *str)
 {
     int     ch;
     off_t   result;
-    off_t   last;
+    off_t   res2;
+    off_t   res4;
+    off_t   res8;
+    off_t   res10;
 
     /*
-     * We're not doing this often, so simplicity has precedence over
-     * performance. 
+     * Multiplication by numbers > 2 can overflow without producing a smaller
+     * result mod 2^N (where N is the number of bits in the result type).
+     * (Victor Duchovny, Morgan Stanley).
      */
-    for (last = result = 0; (ch = *(unsigned char *) str) != 0; str++) {
+    for (result = 0; (ch = *(unsigned char *) str) != 0; str++) {
 	if (!ISDIGIT(ch))
 	    return (-1);
-	result *= 10;
-	if (result < last)
+	if ((res2 = result + result) < result)
 	    return (-1);
-	result += ch - '0';
-	last = result;
+	if ((res4 = res2 + res2) < res2)
+	    return (-1);
+	if ((res8 = res4 + res4) < res4)
+	    return (-1);
+	if ((res10 = res8 + res2) < res8)
+	    return (-1);
+	if ((result = res10 + ch - '0') < res10)
+	    return (-1);
     }
     return (result);
 }

@@ -771,8 +771,12 @@ extern int var_smtpd_hard_erlim;
 extern int var_smtpd_err_sleep;
 
 #define VAR_SMTPD_JUNK_CMD	"smtpd_junk_command_limit"
-#define DEF_SMTPD_JUNK_CMD	1000
+#define DEF_SMTPD_JUNK_CMD	100
 extern int var_smtpd_junk_cmd_limit;
+
+#define VAR_SMTPD_HIST_THRSH	"smtpd_history_flush_threshold"
+#define DEF_SMTPD_HIST_THRSH	100
+extern int var_smtpd_hist_thrsh;
 
 #define VAR_SMTPD_NOOP_CMDS	"smtpd_noop_commands"
 #define DEF_SMTPD_NOOP_CMDS	""

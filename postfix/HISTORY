@@ -5799,8 +5799,9 @@ Apologies for any names omitted.
 	Postfix queue file permissions and access methods, in case
 	someone compromises the postfix account.  Michael Tokarev,
 	who received the insights from Solar Designer, who tested
-	Postfix with his "openwatch" kernel module.  Files:
-	master/master_wakeup.c, util/fifo_trigger.c, postfix-script.
+	Postfix with a kernel module that is paranoid about open()
+	calls.  Files:  master/master_wakeup.c, util/fifo_trigger.c,
+	postfix-script.
 
 	Convenience: issue a warning instead of aborting when the
 	local machine name is not in fully-qualified domain form.
@@ -5824,11 +5825,13 @@ Apologies for any names omitted.
 	Safety: configuration file comments no longer span multiple
 	lines when the next line begins with whitespace; multi-line
 	input is no longer terminated by a comment line, by an all
-	white space line, or by an empty line. Files:  util/readlline.c,
-	postconf/postconf.c.
+	white space line, or by an empty line. Michael Tokarev made
+	the crucial suggestion to simplify the readline routine.
+	Files:  util/readlline.c, postconf/postconf.c.
 
 	Cleanup: proper detection of big number overflow in EHLO
-	and MAIL FROM size announcements. Files: global/off_cvt.c,
+	and MAIL FROM size announcements, with input from Victor
+	Duchovny, Morgan Stanley. Files: global/off_cvt.c,
 	smtpd/smtpd.c, smtp/smtp_proto.c, util/alldig.c.
 
 	Forward compatibility: added queue file record types for
@@ -5836,6 +5839,16 @@ Apologies for any names omitted.
 
 	Cleanup: safe_open() now returns sensible errno values so
 	that the fifo_trigger() external interface is restored.
+
+20011225
+
+	Upgrade: PCRE_README now describes PCRE version 3.x.
+
+	Cleanup: flush SMTPD command history upon receipt of EHLO,
+	RSET, and upon DATA completion, only if it exceeds
+	$smtpd_history_flush_threshold lines (default: 100).
+	Distant derivative of code by Michael Tokarev.  File:
+	smtpd/smtpd.c.
 
 Open problems:
 

@@ -77,6 +77,12 @@ smtpd_banner = $myhostname ESMTP $mail_name
 #   warn_if_reject: next restriction logs a warning instead of rejecting.
 smtpd_etrn_restrictions =
 
+# The smtpd_history_flush_threshold specifies how many lines the SMTP
+# server command history is allowed to contain before it is flushed
+# to postmaster upon receipt of EHLO, RSET, or end of DATA.
+# 
+smtpd_history_flush_threshold = 100
+
 # The smtpd_noop_commands parameter specifies a list of commands that
 # the Postfix SMTP server replies to with "250 Ok", without doing any
 # syntax checks and without changing state.  This list overrides any

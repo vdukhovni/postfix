@@ -239,7 +239,7 @@ int     smtp_helo(SMTP_STATE *state)
 		state->features |= SMTP_FEATURE_PIPELINING;
 	    else if (strcasecmp(word, "SIZE") == 0) {
 		state->features |= SMTP_FEATURE_SIZE;
-		if ((word = mystrtok(&words, " \t=")) != 0) {
+		if ((word = mystrtok(&words, " \t")) != 0) {
 		    if (!alldig(word))
 			msg_warn("bad size limit \"%s\" in EHLO reply from %s",
 				 word, session->namaddr);
@@ -261,7 +261,8 @@ int     smtp_helo(SMTP_STATE *state)
 	}
     }
     if (msg_verbose)
-	msg_info("server features: 0x%x", state->features);
+	msg_info("server features: 0x%x size %.0f",
+		 state->features, (double) state->size_limit);
 
 #ifdef USE_SASL_AUTH
     if (var_smtp_sasl_enable && (state->features & SMTP_FEATURE_AUTH))
@@ -325,11 +326,11 @@ int     smtp_xfer(SMTP_STATE *state)
      * connection caching.
      */
     if (state->size_limit > 0 && state->size_limit < request->data_size) {
-	smtp_mesg_fail(state, resp->code,
+	smtp_mesg_fail(state, 552,
 		    "message size %lu exceeds size limit %.0f of server %s",
 		       request->data_size, (double) state->size_limit,
 		       session->namaddr);
-	return (0);
+	RETURN(0);
     }
 
     /*

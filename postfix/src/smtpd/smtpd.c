@@ -159,6 +159,9 @@
 /* .IP \fBqueue_minfree\fR
 /*	Minimal amount of free space in bytes in the queue file system
 /*	for the SMTP server to accept any mail at all.
+/* .IP \fBsmtpd_history_flush_threshold\fR
+/*	Flush the command history to postmaster after receipt of RSET etc. 
+/*	only if the number of history lines exceeds the given threshold.
 /* .SH Tarpitting
 /* .ad
 /* .fi
@@ -379,6 +382,7 @@ char   *var_perm_mx_networks;
 char   *var_smtpd_snd_auth_maps;
 char   *var_smtpd_noop_cmds;
 char   *var_smtpd_null_key;
+int     var_smtpd_hist_thrsh;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -404,7 +408,7 @@ char   *smtpd_path;
 static void helo_reset(SMTPD_STATE *);
 static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
-static void chat_reset(SMTPD_STATE *);
+static void chat_reset(SMTPD_STATE *, int);
 
 /* collapse_args - put arguments together again */
 
@@ -465,7 +469,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (state->helo_name != 0)
 	helo_reset(state);
 #ifndef RFC821_SYNTAX
-    chat_reset(state);
+    chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
 #endif
@@ -1092,7 +1096,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     /*
      * Cleanup. The client may send another MAIL command.
      */
-    chat_reset(state);
+    chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
     if (why)
@@ -1117,7 +1121,7 @@ static int rset_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     /*
      * Restore state to right after HELO/EHLO command.
      */
-    chat_reset(state);
+    chat_reset(state, var_smtpd_hist_thrsh);
     mail_reset(state);
     rcpt_reset(state);
     smtpd_chat_reply(state, "250 Ok");
@@ -1299,7 +1303,7 @@ static int quit_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_arg
 
 /* chat_reset - notify postmaster and reset conversation log */
 
-static void chat_reset(SMTPD_STATE *state)
+static void chat_reset(SMTPD_STATE *state, int threshold)
 {
 
     /*
@@ -1309,11 +1313,13 @@ static void chat_reset(SMTPD_STATE *state)
      * report problems when running in stand-alone mode: postmaster notices
      * require availability of the cleanup service.
      */
-    if (state->history != 0 && SMTPD_STAND_ALONE(state) == 0
-	&& (state->error_mask & state->notify_mask))
-	smtpd_chat_notify(state);
-    state->error_mask = 0;
-    smtpd_chat_reset(state);
+    if (state->history != 0 && state->history->argc > threshold) {
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && (state->error_mask & state->notify_mask))
+	    smtpd_chat_notify(state);
+	state->error_mask = 0;
+	smtpd_chat_reset(state);
+    }
 }
 
  /*
@@ -1464,7 +1470,7 @@ static void smtpd_proto(SMTPD_STATE *state)
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_auth_reset(state);
 #endif
-    chat_reset(state);
+    chat_reset(state, 0);
     mail_reset(state);
     rcpt_reset(state);
 }
@@ -1616,6 +1622,7 @@ int     main(int argc, char **argv)
 	VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code, 0, 0,
 	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
+	VAR_SMTPD_HIST_THRSH, DEF_SMTPD_HIST_THRSH, &var_smtpd_hist_thrsh, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {

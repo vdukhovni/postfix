@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-200112XX
+Incompatible changes with snapshot-20011226
 ===========================================
 
 Postfix configuration file comments no longer continue on the next
@@ -6,7 +6,7 @@ line when that next line starts with whitespace. This change avoids
 surprises, but it may cause unexpected behavior with existing,
 improperly formatted, configuration files. Caveat user.
 
-Major changes with snapshot-200112XX
+Major changes with snapshot-20011226
 ====================================
 
 In Postfix configuration files, comment lines are allowed to begin
