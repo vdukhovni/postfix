@@ -336,7 +336,7 @@ static NORETURN usage(char *myname)
     msg_fatal("usage: %s type:file read|write|create", myname);
 }
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     VSTRING *keybuf = vstring_alloc(1);
     DICT   *dict;

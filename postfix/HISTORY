@@ -4418,3 +4418,9 @@ Apologies for any names omitted.
 	Feature: added UNIX-domain support to the smtpstone test
 	programs in order to test the LMTP client UNIX-domain
 	support.
+
+20001039
+
+	Bugfix: further testing in preparation for 19991231-pl10
+	revealed that the DB map code was now broken for every
+	platform.

@@ -122,9 +122,9 @@ static int sanitize(int status)
      */
     switch (status) {
 
-    case DB_NOTFOUND:				/* get, del */
-    case DB_KEYEXIST:				/* put */
-	return (1);				/* non-fatal */
+	case DB_NOTFOUND:		/* get, del */
+	case DB_KEYEXIST:		/* put */
+	return (1);			/* non-fatal */
 
     case 0:
 	return (0);				/* success */
@@ -313,6 +313,9 @@ static int dict_db_delete(DICT *dict, const char *name)
 	if (status == 0)
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;
     }
+    if (dict->flags & DICT_FLAG_SYNC_UPDATE)
+	if (DICT_DB_SYNC(db, 0) < 0)
+	    msg_fatal("%s: flush dictionary: %m", dict_db->path);
 
     /*
      * Release the exclusive lock.
@@ -421,6 +424,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
     DB     *db;
     char   *db_path;
     int     lock_fd = -1;
+    int     dbfd;
 
 #if DB_VERSION_MAJOR > 1
     int     db_flags;
@@ -428,6 +432,13 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 #endif
 
     db_path = concatenate(path, ".db", (char *) 0);
+
+    if (dict_flags & DICT_FLAG_LOCK) {
+	if ((lock_fd = open(db_path, open_flags, 0644)) < 0)
+	    msg_fatal("open database %s: %m", db_path);
+	if (myflock(lock_fd, MYFLOCK_SHARED) < 0)
+	    msg_fatal("shared-lock database %s for open: %m", db_path);
+    }
 
     /*
      * Use the DB 1.x programming interface. This is the default interface
@@ -438,7 +449,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 #if DB_VERSION_MAJOR < 2
     if ((db = dbopen(db_path, open_flags, 0644, type, tweak)) == 0)
 	msg_fatal("open database %s: %m", db_path);
-    lock_fd = db->fd(db);
+    dbfd = db->fd(db);
 #endif
 
     /*
@@ -456,7 +467,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 	msg_fatal("open database %s: %m", db_path);
     if (db == 0)
 	msg_panic("db_open null result");
-    if ((errno = db->fd(db, &lock_fd)) != 0)
+    if ((errno = db->fd(db, &dbfd)) != 0)
 	msg_fatal("get database file descriptor: %m");
 #endif
 
@@ -481,9 +492,15 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
     if ((errno = db->open(db, db_path, 0, type, db_flags, 0644)) != 0)
 	msg_fatal("open database %s: %m", db_path);
-    if ((errno = db->fd(db, &lock_fd)) != 0)
+    if ((errno = db->fd(db, &dbfd)) != 0)
 	msg_fatal("get database file descriptor: %m");
 #endif
+    if (dict_flags & DICT_FLAG_LOCK) {
+	if (myflock(lock_fd, MYFLOCK_NONE) < 0)
+	    msg_fatal("unlock database %s for open: %m", db_path);
+	if (close(lock_fd) < 0)
+	    msg_fatal("close database %s: %m", db_path);
+    }
 
     dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;
@@ -491,7 +508,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
     dict_db->dict.delete = dict_db_delete;
     dict_db->dict.sequence = dict_db_sequence;
     dict_db->dict.close = dict_db_close;
-    dict_db->dict.fd = lock_fd;
+    dict_db->dict.fd = dbfd;
     if (fstat(dict_db->dict.fd, &st) < 0)
 	msg_fatal("dict_db_open: fstat: %m");
     dict_db->dict.mtime = st.st_mtime;
