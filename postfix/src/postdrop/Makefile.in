@@ -66,6 +66,7 @@ postdrop.o: ../../include/msg_vstream.h
 postdrop.o: ../../include/msg_syslog.h
 postdrop.o: ../../include/argv.h
 postdrop.o: ../../include/iostuff.h
+postdrop.o: ../../include/stringops.h
 postdrop.o: ../../include/mail_proto.h
 postdrop.o: ../../include/attr.h
 postdrop.o: ../../include/mail_queue.h

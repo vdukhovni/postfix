@@ -155,3 +155,4 @@ trivial-rewrite.o: ../../include/mail_addr.h
 trivial-rewrite.o: ../../include/mail_server.h
 trivial-rewrite.o: trivial-rewrite.h
 trivial-rewrite.o: transport.h
+trivial-rewrite.o: ../../include/maps.h

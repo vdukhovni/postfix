@@ -19,7 +19,8 @@
  /*
   * External interface.
   */
-#define RESOLVE_ADDR	"resolve"
+#define RESOLVE_REGULAR	"resolve"
+#define RESOLVE_VERIFY	"verify"
 
 #define RESOLVE_FLAG_FINAL	(1<<0)	/* final delivery */
 #define RESOLVE_FLAG_ROUTED	(1<<1)	/* routed destination */
@@ -40,11 +41,14 @@ typedef struct RESOLVE_REPLY {
     VSTRING *nexthop;
     VSTRING *recipient;
     int     flags;
-} RESOLVE_REPLY;
+}       RESOLVE_REPLY;
 
 extern void resolve_clnt_init(RESOLVE_REPLY *);
-extern void resolve_clnt_query(const char *, RESOLVE_REPLY *);
+extern void resolve_clnt(const char *, const char *, RESOLVE_REPLY *);
 extern void resolve_clnt_free(RESOLVE_REPLY *);
+
+#define resolve_clnt_query(a, r) resolve_clnt(RESOLVE_REGULAR, (a), (r))
+#define resolve_clnt_verify(a, r) resolve_clnt(RESOLVE_VERIFY, (a), (r))
 
 #define RESOLVE_CLNT_ASSIGN(reply, transport, nexthop, recipient) { \
 	(reply).transport = (transport); \

@@ -19,7 +19,11 @@
 /*	RESOLVE_REPLY *reply;
 /*
 /*	void	resolve_clnt_query(address, reply)
-/*	const char *address
+/*	const char *address;
+/*	RESOLVE_REPLY *reply;
+/*
+/*	void	resolve_clnt_verify(address, reply)
+/*	const char *address;
 /*	RESOLVE_REPLY *reply;
 /*
 /*	void	resolve_clnt_free(reply)
@@ -36,6 +40,9 @@
 /*	transport name, next_hop host name, and internal-form recipient
 /*	address. In case of communication failure the program keeps trying
 /*	until the mail system goes down.
+/*
+/*	resolve_clnt_verify() implements an alternative version that can
+/*	be used for address verification.
 /*
 /*	In the resolver reply, the flags member is the bit-wise OR of
 /*	zero or more of the following:
@@ -132,11 +139,11 @@ void    resolve_clnt_init(RESOLVE_REPLY *reply)
     reply->flags = 0;
 }
 
-/* resolve_clnt_query - resolve address to (transport, next hop, recipient) */
+/* resolve_clnt - resolve address to (transport, next hop, recipient) */
 
-void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
+void    resolve_clnt(const char *class, const char *addr, RESOLVE_REPLY *reply)
 {
-    char   *myname = "resolve_clnt_query";
+    char   *myname = "resolve_clnt";
     VSTREAM *stream;
 
     /*
@@ -186,7 +193,7 @@ void    resolve_clnt_query(const char *addr, RESOLVE_REPLY *reply)
 	stream = clnt_stream_access(rewrite_clnt_stream);
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_STR, MAIL_ATTR_REQ, RESOLVE_ADDR,
+		       ATTR_TYPE_STR, MAIL_ATTR_REQ, class,
 		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)

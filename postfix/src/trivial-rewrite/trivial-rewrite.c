@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	\fBtrivial-rewrite\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBtrivial-rewrite\fR daemon processes two types of client
+/*	The \fBtrivial-rewrite\fR daemon processes three types of client
 /*	service requests:
 /* .IP \fBrewrite\fR
 /*	Rewrite an address to standard form. The \fBtrivial-rewrite\fR
@@ -26,6 +26,8 @@
 /* .IP \fIrecipient\fR
 /*	The envelope recipient address that is passed on to \fInexthop\fR.
 /* .RE
+/* .IP \fBverify\fR
+/*	Resolve an address for address verification purposes.
 /* DEFAULT DELIVERY METHODS
 /* .ad
 /* .fi
@@ -101,7 +103,7 @@
 /* .IP \fBmydestination\fR
 /*	List of domains that are given to the \fB$local_transport\fR.
 /* .IP \fBvirtual_alias_domains\fR
-/*	List of simulated virtual domains (domains with all recipients
+/*	List of virtual alias domains (domains with all recipients
 /*	aliased to some other local or remote domain).
 /* .IP \fBvirtual_mailbox_domains\fR
 /*	List of domains that are given to the \fB$virtual_transport\fR.
@@ -172,6 +174,19 @@
 /* .IP \fBtransport_maps\fR
 /*	List of tables with \fIrecipient\fR or \fIdomain\fR to
 /*	(\fItransport, nexthop\fR) mappings.
+/* .SH Address verification
+/* .ad
+/* .fi
+/*	By default, address verification probes use the same route 
+/*	as regular mail. To override specific aspects of message
+/*	routing for address verification probes, specify one or more 
+/*	of the following:
+/*	\fBaddress_verify_local_transport\fR,
+/*	\fBaddress_verify_virtual_transport\fR,
+/*	\fBaddress_verify_relay_transport\fR,
+/*	\fBaddress_verify_default_transport\fR,
+/*	\fBaddress_verify_relayhost\fR,
+/*	\fBaddress_verify_transport_maps\fR.
 /* SEE ALSO
 /*	master(8) process manager
 /*	syslogd(8) system logging
@@ -248,6 +263,37 @@ char   *var_def_transport;
 char   *var_empty_addr;
 int     var_show_unk_rcpt_table;
 
+ /*
+  * Shadow personality for address verification.
+  */
+char   *var_vrfy_xport_maps;
+char   *var_vrfy_local_xport;
+char   *var_vrfy_virt_xport;
+char   *var_vrfy_relay_xport;
+char   *var_vrfy_def_xport;
+char   *var_vrfy_relayhost;
+
+ /*
+  * Different resolver personalities depending on the kind of request.
+  */
+RES_CONTEXT resolve_regular = {
+    VAR_LOCAL_TRANSPORT, &var_local_transport,
+    VAR_VIRT_TRANSPORT, &var_virt_transport,
+    VAR_RELAY_TRANSPORT, &var_relay_transport,
+    VAR_DEF_TRANSPORT, &var_def_transport,
+    VAR_RELAYHOST, &var_relayhost,
+    VAR_TRANSPORT_MAPS, &var_transport_maps, 0
+};
+
+RES_CONTEXT resolve_verify = {
+    VAR_VRFY_LOCAL_XPORT, &var_vrfy_local_xport,
+    VAR_VRFY_VIRT_XPORT, &var_vrfy_virt_xport,
+    VAR_VRFY_RELAY_XPORT, &var_vrfy_relay_xport,
+    VAR_VRFY_DEF_XPORT, &var_vrfy_def_xport,
+    VAR_VRFY_RELAYHOST, &var_vrfy_relayhost,
+    VAR_VRFY_XPORT_MAPS, &var_vrfy_xport_maps, 0
+};
+
 /* rewrite_service - read request and send reply */
 
 static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
@@ -270,8 +316,10 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 		  ATTR_TYPE_END) == 1) {
 	if (strcmp(vstring_str(command), REWRITE_ADDR) == 0) {
 	    status = rewrite_proto(stream);
-	} else if (strcmp(vstring_str(command), RESOLVE_ADDR) == 0) {
-	    status = resolve_proto(stream);
+	} else if (strcmp(vstring_str(command), RESOLVE_REGULAR) == 0) {
+	    status = resolve_proto(&resolve_regular, stream);
+	} else if (strcmp(vstring_str(command), RESOLVE_VERIFY) == 0) {
+	    status = resolve_proto(&resolve_verify, stream);
 	} else {
 	    msg_warn("bad command %.30s", printable(vstring_str(command), '?'));
 	}
@@ -285,7 +333,7 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 static void pre_accept(char *unused_name, char **unused_argv)
 {
     const char *table;
- 
+
     if ((table = dict_changed_name()) != 0) {
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);
@@ -299,12 +347,24 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     command = vstring_alloc(100);
     rewrite_init();
     resolve_init();
-    transport_init();
+    if (*RES_PARAM_VALUE(resolve_regular.transport_maps))
+	resolve_regular.transport_info =
+	    transport_pre_init(resolve_regular.transport_maps_name,
+			       RES_PARAM_VALUE(resolve_regular.transport_maps));
+    if (*RES_PARAM_VALUE(resolve_verify.transport_maps))
+	resolve_verify.transport_info =
+	    transport_pre_init(resolve_verify.transport_maps_name,
+			       RES_PARAM_VALUE(resolve_verify.transport_maps));
 }
+
+/* post_jail_init - initialize after entering chroot jail */
 
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
-    transport_wildcard_init();
+    if (resolve_regular.transport_info)
+	transport_post_init(resolve_regular.transport_info);
+    if (resolve_verify.transport_info)
+	transport_post_init(resolve_verify.transport_info);
 }
 
 /* main - pass control to the multi-threaded skeleton code */
@@ -316,15 +376,19 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 1, 0,
 	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
 	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
+	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 1, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
 	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
 	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms, 0, 0,
-	VAR_DEF_TRANSPORT, DEF_DEF_TRANSPORT, &var_def_transport, 1, 0,
-	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
-	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
+	VAR_VRFY_XPORT_MAPS, DEF_VRFY_XPORT_MAPS, &var_vrfy_xport_maps, 0, 0,
+	VAR_VRFY_LOCAL_XPORT, DEF_VRFY_LOCAL_XPORT, &var_vrfy_local_xport, 1, 0,
+	VAR_VRFY_VIRT_XPORT, DEF_VRFY_VIRT_XPORT, &var_vrfy_virt_xport, 1, 0,
+	VAR_VRFY_RELAY_XPORT, DEF_VRFY_RELAY_XPORT, &var_vrfy_relay_xport, 1, 0,
+	VAR_VRFY_DEF_XPORT, DEF_VRFY_DEF_XPORT, &var_vrfy_def_xport, 1, 0,
+	VAR_VRFY_RELAYHOST, DEF_VRFY_RELAYHOST, &var_vrfy_relayhost, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

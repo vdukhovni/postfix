@@ -38,6 +38,7 @@ newaliases	yes (main alias database only)
 nis tables	yes
 nis+ tables	not yet
 no <> in smtp	yes (most common address forms)
+pgsql tables	yes (contributed)
 pipeline option	yes (server and client)
 pop/imap	yes (with third-party daemons that use /var[/spool]/mail)
 qmqp server	yes (with verp support)
@@ -49,7 +50,7 @@ sendmail -q	yes
 sendmail -qRxxx	yes (for domains specified in fast_flush_domains)
 sendmail -qSxxx	no
 sendmail -qtime	ignored
-sendmail -v	yes (but does not show delivery)
+sendmail -v	yes (sends delivery report via email)
 sendmail.cf	no (uses table-driven address rewriting)
 size option	yes, server and client
 smarthost	yes (specify relayhost in main.cf)

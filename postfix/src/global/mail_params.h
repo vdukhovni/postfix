@@ -1691,6 +1691,30 @@ extern bool var_verify_neg_cache;
 #define DEF_VERIFY_SENDER		"postmaster"
 extern char *var_verify_sender;
 
+#define VAR_VRFY_LOCAL_XPORT		"address_verify_local_transport"
+#define DEF_VRFY_LOCAL_XPORT		"$" VAR_LOCAL_TRANSPORT
+extern char *var_vrfy_local_xport;
+
+#define VAR_VRFY_VIRT_XPORT		"address_verify_virtual_transport"
+#define DEF_VRFY_VIRT_XPORT		"$" VAR_VIRT_TRANSPORT
+extern char *var_vrfy_virt_xport;
+
+#define VAR_VRFY_RELAY_XPORT		"address_verify_relay_transport"
+#define DEF_VRFY_RELAY_XPORT		"$" VAR_RELAY_TRANSPORT
+extern char *var_vrfy_relay_xport;
+
+#define VAR_VRFY_DEF_XPORT		"address_verify_default_transport"
+#define DEF_VRFY_DEF_XPORT		"$" VAR_DEF_TRANSPORT
+extern char *var_vrfy_def_xport;
+
+#define VAR_VRFY_RELAYHOST		"address_verify_relayhost"
+#define DEF_VRFY_RELAYHOST		"$" VAR_RELAYHOST
+extern char *var_vrfy_relayhost;
+
+#define VAR_VRFY_XPORT_MAPS		"address_verify_transport_maps"
+#define DEF_VRFY_XPORT_MAPS		"$" VAR_TRANSPORT_MAPS
+extern char *var_vrfy_xport_maps;
+
  /*
   * Message delivery trace service.
   */

@@ -22,6 +22,19 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Major changes with Postfix snapshot 2.0.11-20030609
+===================================================
+
+Address verification probes can now follow a different route than
+ordinary mail.  To make this possible, the address resolver supports
+multiple personalities.  The regular personality is used for regular
+mail, and the alternate personality is used for address verification
+probes. The alternate personality is controlled by parameters named
+address_verify_X with X = relayhost, transport_maps, local_transport,
+virtual_transport, relay_transport, and default_transport. These
+alternate parameters have by default the same values as the regular
+parameters. For more detail see the ADDRESS_VERIFICATION_README file.
+
 Major changes with Postfix snapshot 2.0.11-20030606
 ===================================================
 
@@ -29,7 +42,8 @@ Complete rewrite of the queue file record reading loops in the
 pickup, cleanup and in the queue manager daemons. This code had
 deteriorated over time.  The new code eliminates an old problem
 where the queue manager had to read most queue file records twice
-in the case of very large alias/include file expansions.
+in the case of an alias/include file expansion with more than
+qmgr_message_recipient_limit recipients.
 
 Incompatible changes with Postfix snapshot 2.0.8-20030417
 =========================================================

@@ -17,6 +17,8 @@
 #define QMGR_READ_FLAG_NONE		0	/* No special features */
 #define QMGR_READ_FLAG_MIXED_RCPT_OTHER	(1<<0)	/* Mixed recipient/other */
 
+#define QMGR_READ_FLAG_USER	(QMGR_READ_FLAG_MIXED_RCPT_OTHER)
+
  /*
   * Backwards compatibility.
   */

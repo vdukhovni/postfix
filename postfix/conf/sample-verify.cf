@@ -79,3 +79,51 @@ address_verify_negative_expire_time = 3d
 # Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 # 
 address_verify_negative_refresh_time = 2h
+
+#
+# ADDRESS PROBE DELIVERY
+#
+# Normally, address verification probe messages are sent along the
+# same path as regular mail. This usually produces the most accurate
+# result. However, some sites have a more complex infrastructure. 
+#
+# The parameters below allow you to override specific aspects of
+# Postfix mail delivery routing.  Typically, one would override
+# relayhost, default_transport and/or transport_maps and leave
+# everything else alone.
+#
+
+# The address_verify_transport_maps configuration parameter overrides
+# the transport_maps parameter setting for address verification
+# probes.
+#
+address_verify_transport_maps = $transport_maps
+
+# The address_verify_relayhost configuration parameter overrides the
+# relayhost parameter setting for address verification probes.
+#
+address_verify_relayhost = $relayhost
+
+# The address_verify_default_transport configuration parameter
+# overrides the default_transport parameter setting for address
+# verification probes.
+#
+address_verify_default_transport = $default_transport
+
+# The address_verify_relay_transport configuration parameter
+# overrides the relay_transport parameter setting for address
+# verification probes.
+#
+address_verify_relay_transport = $relay_transport
+
+# The address_verify_virtual_transport configuration parameter
+# overrides the virtual_transport parameter setting for address
+# verification probes.
+#
+address_verify_virtual_transport = $virtual_transport
+
+# The address_verify_local_transport configuration parameter
+# overrides the local_transport parameter setting for address
+# verification probes.
+#
+address_verify_local_transport = $local_transport

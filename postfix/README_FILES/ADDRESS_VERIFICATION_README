@@ -28,6 +28,13 @@ nearest MTA accepts the recipient, then Postfix assumes that the
 address is deliverable, even when the address will bounce AFTER
 that MTA accepts it.
 
+Normally, address verification probe messages follow the same path
+as regular mail.  However, some sites send mail to the Internet
+via an intermediate relayhost; this breaks address verification.
+See below, section "Controlling the routing of address verification
+probes", for how to override mail routing and for possible limitations
+when you have to do this.
+
 Postfix assumes that an address is undeliverable when the nearest
 MTA for the address rejects the probe, regardless of the reason
 for rejection (client rejected, HELO rejected, MAIL FROM rejected,
@@ -188,3 +195,73 @@ Right now, no tools are provided to manage the address verification
 database. If the file gets too big, or if it gets corrupted, you
 can manually delete the file and run "postfix reload".  The new
 verify daemon process will then create a new, empty, database.
+
+Controlling the routing of address verification probes
+======================================================
+
+By default, Postfix sends address verification probe messages via
+the same route as regular mail, because that normally produces the
+most accurate result. It's no good to verify a local address by
+connecting to your own SMTP port; that just triggers all kinds of
+mailer loop alarms. The same is true for any destination that your
+machine is best MX host for:  hidden domains, virtual domains, etc.
+
+However, some sites have a complex infrastructure where mail is
+not sent directly to the Internet, but is instead given to an
+intermediate relayhost. This is a problem for address verification,
+because remote Internet destinations can be verified only when
+Postfix can access those destinations directly.
+
+For this reason, Postfix allows you to override the routing parameters
+when it delivers an address verification probe message.
+
+First, the address_verify_relayhost parameter allows you to override
+the relayhost setting, and the address_verify_transport_maps
+parameter allows you to override the transport_maps setting.
+
+Second, each address class is given its own address verification
+version of the message delivery transport (address classes are
+defined in the ADDRESS_CLASS_README file) as shown in the table:
+
+Destination type        Regular transport    Verify transport
+                        parameter name       parameter name
+=====================================================================
+mydestination           local_transport      address_verify_local_transport
+virtual_alias_domains   (not applicable)     (not applicable)
+virtual_mailbox_domains virtual_transport    address_verify_virtual_transport
+relay_domains           relay_transport      address_verify_relay_transport
+other                   default_transport    address_verify_default_transport
+
+By default, the parameters that control delivery of address probes
+have the same value as the parameters that control normal mail
+delivery.
+
+Examples
+--------
+
+In a typical scenario one would override the relayhost setting 
+for address verification probes and leave everything else alone:
+
+/etc/postfix/main.cf:
+    relayhost = $mydomain
+    address_verify_relayhost =
+
+Sites behind an address translation relay might have to use a
+different SMTP client that sends the correct hostname information:
+
+/etc/postfix/main.cf:
+    relayhost = $mydomain
+    address_verify_relayhost =
+    address_verify_default_transport = direct_smtp
+
+/etc/postfix/master.cf:
+    direct_smtp .. .. .. ..  .. .. .. .. .. smtp -o smtp_helo_name=nat.box.tld
+
+Limitations
+-----------
+
+Inconsistencies can happen when probe messages don't follow the
+same path as regular mail.  For example, a message can be accepted
+when it follows the regular route while an otherwise identical
+probe message is rejected when it follows the forced route. The
+opposite can happen, too, but is less likely.

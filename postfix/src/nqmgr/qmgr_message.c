@@ -293,6 +293,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     int     rec_type;
     long    curr_offset;
     long    save_offset = message->rcpt_offset;	/* save a flag */
+    int     save_unread = message->rcpt_unread;	/* save a count */
     char   *start;
     int     recipient_limit;
     const char *error_text;
@@ -460,7 +461,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 			rec_type = REC_TYPE_ERROR;
 			break;
 		    }
-		    if (message->rflags & (~0 << 16)) {
+		    if (message->rflags & ~QMGR_READ_FLAG_USER) {
 			msg_warn("%s: invalid flags in size record: %.100s",
 				 message->queue_id, start);
 			rec_type = REC_TYPE_ERROR;
@@ -616,7 +617,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	return (0);
     }
     message->rcpt_offset = save_offset;		/* restore flag */
-    message->rcpt_unread += message->rcpt_list.len;
+    message->rcpt_unread = save_unread;		/* restore count */
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_rcpt_list_init(&message->rcpt_list);
     return (-1);
@@ -720,7 +721,10 @@ static void qmgr_message_sort(QMGR_MESSAGE *message)
 static int qmgr_resolve_one(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
 			            const char *addr, RESOLVE_REPLY *reply)
 {
-    resolve_clnt_query(addr, reply);
+    if ((message->tflags & DEL_REQ_FLAG_VERIFY) == 0)
+	resolve_clnt_query(addr, reply);
+    else
+	resolve_clnt_verify(addr, reply);
     if (reply->flags & RESOLVE_FLAG_FAIL) {
 	qmgr_defer_recipient(message, recipient, "address resolver failure");
 	return (-1);

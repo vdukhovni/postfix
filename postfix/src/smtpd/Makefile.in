@@ -121,11 +121,11 @@ smtpd.o: ../../include/valid_hostname.h
 smtpd.o: ../../include/dict.h
 smtpd.o: ../../include/argv.h
 smtpd.o: ../../include/watchdog.h
+smtpd.o: ../../include/iostuff.h
 smtpd.o: ../../include/mail_params.h
 smtpd.o: ../../include/record.h
 smtpd.o: ../../include/rec_type.h
 smtpd.o: ../../include/mail_proto.h
-smtpd.o: ../../include/iostuff.h
 smtpd.o: ../../include/attr.h
 smtpd.o: ../../include/cleanup_user.h
 smtpd.o: ../../include/mail_date.h

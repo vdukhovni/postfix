@@ -1264,12 +1264,12 @@ Apologies for any names omitted.
 	reorganization of the way queue scans were done. The queue
 	manager socket now has become public.
 
-10091002
+19981002
 
 	SMTPD now logs "lost connection after end-of-message"
 	instead of "lost connection after DATA".
 
-10091005
+19981005
 
 	More bullet proofing: timeouts on all triggers.
 
@@ -8164,6 +8164,23 @@ Apologies for any names omitted.
 
 	Cleanup: added support for vstream_fseek(.., .., SEEK_END).
 	File: util/vstream.c.
+
+20030608
+
+	Feature: separate address resolver controls for address
+	verification probe messages:  address_verify_{local,virtual,
+	relay,default}_transport, address_verify_relayhost, and
+	address_verify_transport_maps. The default values are the
+	regular versions of the same controls. Files: trivial-rewrite/*,
+	global/resolve_clnt.[hc], *qmgr/qmgr_message.c.
+
+20030609
+
+	Bugfix: the "unread recipient" counter needs to be restored
+	after the queue manager has a problem reading a queue file.
+	This fix is for purists only, because after such a failure
+	Postfix closes the queue file and parks it in the corrupt
+	queue.  Fix by Patrik Rak. File: nqmgr/qmgr_message.c.
 
 Open problems:
 

@@ -91,6 +91,9 @@ a basic Postfix principle.
 See the Postfix \fBmain.cf\fR file for syntax details and for
 default values. Use the \fBpostfix reload\fR command after a
 configuration change.
+.SH Cache control
+.ad
+.fi
 .IP \fBaddress_verify_map\fR
 Optional table for persistent recipient status storage. The file
 is opened before the process enters a chroot jail and before
@@ -120,10 +123,28 @@ The amount of time after which a rejected address expires.
 .IP \fBaddress_verify_negative_refresh_time\fR
 The minimal amount of time after which a proactive probe is sent to
 verify that a known to be bad address is still bad.
+.SH Probe message routing
+.ad
+.fi
+By default, probe messages are delivered via the same route
+as regular messages.  The following parameters can be used to
+override specific message routing mechanisms.
+.IP \fBaddress_verify_relayhost\fR
+Overrides the \fBrelayhost\fR setting.
+.IP \fBaddress_verify_transport_maps\fR
+Overrides the \fBtransport_maps\fR setting.
+.IP \fBaddress_verify_local_transport\fR
+Overrides the \fBlocal_transport\fR setting.
+.IP \fBaddress_verify_virtual_transport\fR
+Overrides the \fBvirtual_transport\fR setting.
+.IP \fBaddress_verify_relay_transport\fR
+Overrides the \fBrelay_transport\fR setting.
+.IP \fBaddress_verify_default_transport\fR
+Overrides the \fBdefault_transport\fR setting.
 .SH SEE ALSO
 .na
 .nf
-verify_clnt(3) address verification client
+trivial-rewrite(8) address rewriting and resolving
 .SH LICENSE
 .na
 .nf

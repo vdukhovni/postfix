@@ -93,6 +93,7 @@ VERIFY(8)                                               VERIFY(8)
        default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
        configuration change.
 
+<b>Cache</b> <b>control</b>
        <b>address</b><i>_</i><b>verify</b><i>_</i><b>map</b>
               Optional  table  for  persistent  recipient  status
               storage. The file  is  opened  before  the  process
@@ -135,8 +136,31 @@ VERIFY(8)                                               VERIFY(8)
               probe is sent to verify that  a  known  to  be  bad
               address is still bad.
 
+<b>Probe</b> <b>message</b> <b>routing</b>
+       By  default,  probe  messages  are  delivered via the same
+       route as regular messages.  The following  parameters  can
+       be used to override specific message routing mechanisms.
+
+       <b>address</b><i>_</i><b>verify</b><i>_</i><b>relayhost</b>
+              Overrides the <b>relayhost</b> setting.
+
+       <b>address</b><i>_</i><b>verify</b><i>_</i><b>transport</b><i>_</i><b>maps</b>
+              Overrides the <b>transport</b><i>_</i><b>maps</b> setting.
+
+       <b>address</b><i>_</i><b>verify</b><i>_</i><b>local</b><i>_</i><b>transport</b>
+              Overrides the <b>local</b><i>_</i><b>transport</b> setting.
+
+       <b>address</b><i>_</i><b>verify</b><i>_</i><b>virtual</b><i>_</i><b>transport</b>
+              Overrides the <b>virtual</b><i>_</i><b>transport</b> setting.
+
+       <b>address</b><i>_</i><b>verify</b><i>_</i><b>relay</b><i>_</i><b>transport</b>
+              Overrides the <b>relay</b><i>_</i><b>transport</b> setting.
+
+       <b>address</b><i>_</i><b>verify</b><i>_</i><b>default</b><i>_</i><b>transport</b>
+              Overrides the <b>default</b><i>_</i><b>transport</b> setting.
+
 <b>SEE</b> <b>ALSO</b>
-       verify_clnt(3) address verification client
+       <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> address rewriting and resolving
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this

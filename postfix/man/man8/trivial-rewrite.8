@@ -12,7 +12,7 @@ Postfix address rewriting and resolving daemon
 .SH DESCRIPTION
 .ad
 .fi
-The \fBtrivial-rewrite\fR daemon processes two types of client
+The \fBtrivial-rewrite\fR daemon processes three types of client
 service requests:
 .IP \fBrewrite\fR
 Rewrite an address to standard form. The \fBtrivial-rewrite\fR
@@ -32,6 +32,8 @@ The host to send to and optional delivery method information.
 .IP \fIrecipient\fR
 The envelope recipient address that is passed on to \fInexthop\fR.
 .RE
+.IP \fBverify\fR
+Resolve an address for address verification purposes.
 .SH DEFAULT DELIVERY METHODS
 .na
 .nf
@@ -121,7 +123,7 @@ Mail for local users is given to the \fB$local_transport\fR.
 .IP \fBmydestination\fR
 List of domains that are given to the \fB$local_transport\fR.
 .IP \fBvirtual_alias_domains\fR
-List of simulated virtual domains (domains with all recipients
+List of virtual alias domains (domains with all recipients
 aliased to some other local or remote domain).
 .IP \fBvirtual_mailbox_domains\fR
 List of domains that are given to the \fB$virtual_transport\fR.
@@ -192,6 +194,19 @@ and when the recipient address does not match the optional the
 .IP \fBtransport_maps\fR
 List of tables with \fIrecipient\fR or \fIdomain\fR to
 (\fItransport, nexthop\fR) mappings.
+.SH Address verification
+.ad
+.fi
+By default, address verification probes use the same route
+as regular mail. To override specific aspects of message
+routing for address verification probes, specify one or more
+of the following:
+\fBaddress_verify_local_transport\fR,
+\fBaddress_verify_virtual_transport\fR,
+\fBaddress_verify_relay_transport\fR,
+\fBaddress_verify_default_transport\fR,
+\fBaddress_verify_relayhost\fR,
+\fBaddress_verify_transport_maps\fR.
 .SH SEE ALSO
 .na
 .nf

@@ -468,6 +468,7 @@ token.o: ../../include/mail_params.h
 token.o: ../../include/bounce.h
 token.o: ../../include/deliver_request.h
 token.o: ../../include/recipient_list.h
+token.o: ../../include/defer.h
 token.o: local.h
 token.o: ../../include/been_here.h
 token.o: ../../include/mbox_conf.h
