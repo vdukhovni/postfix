@@ -222,6 +222,17 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * may appear before or after the message content, so we keep reading
      * from the queue file until we have enough recipients (rcpt_offset != 0)
      * and until we know where the message content starts (data_offset != 0).
+     * 
+     * When reading recipients from queue file, stop reading when we reach a
+     * per-message in-core recipient limit rather than a global in-core
+     * recipient limit. Use the global recipient limit only in order to stop
+     * opening queue files. The purpose is to achieve equal delay for
+     * messages with recipient counts up to var_qmgr_rcpt_limit recipients.
+     * 
+     * If we would read recipients up to a global recipient limit, the average
+     * number of in-core recipients per message would asymptotically approach
+     * (global recipient limit)/(active queue size limit), which gives equal
+     * delay per recipient rather than equal delay per message.
      */
     do {
 	if ((curr_offset = vstream_ftell(message->fp)) < 0)
@@ -241,10 +252,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		       message->data_size, "queue %s", message->queue_name);
 	    }
 	} else if (rec_type == REC_TYPE_RCPT) {
-#define TOTAL_RECIPIENT_COUNT (qmgr_recipient_count + message->rcpt_list.len)
-	    if (TOTAL_RECIPIENT_COUNT < var_qmgr_rcpt_limit) {
+	    if (message->rcpt_list.len < var_qmgr_rcpt_limit) {
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset, start);
-		if (TOTAL_RECIPIENT_COUNT >= var_qmgr_rcpt_limit) {
+		if (message->rcpt_list.len >= var_qmgr_rcpt_limit) {
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));

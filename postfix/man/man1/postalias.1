@@ -9,8 +9,8 @@ Postfix alias database maintenance
 .na
 .nf
 .fi
-\fBpostalias\fR [\fB-ivw\fR] [\fB-c \fIconfig_dir\fR] [\fB-q \fIkey\fR]
-[\fIfile_type\fR:]\fIfile_name\fR ...
+\fBpostalias\fR [\fB-Ninvw\fR] [\fB-c \fIconfig_dir\fR]
+[\fB-q \fIkey\fR] [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
 .ad
 .fi
@@ -25,12 +25,20 @@ entire database, in order to avoid surprises in spectator
 programs.
 
 Options:
+.IP \fB-N\fR
+Include the terminating null character that terminates lookup keys
+and values. By default, Postfix does whatever is the default for
+the host operating system.
 .IP "\fB-c \fIconfig_dir\fR"
 Read the \fBmain.cf\fR configuration file in the named directory.
 .IP \fB-i\fR
 Incremental mode. Read entries from standard input and do not
 truncate an existing database. By default, \fBpostalias\fR creates
 a new database from the entries in \fBfile_name\fR.
+.IP \fB-n\fR
+Don't include the terminating null character that terminates lookup
+keys and values. By default, Postfix does whatever is the default for
+the host operating system.
 .IP "\fB-q \fIkey\fR"
 Search the specified maps for \fIkey\fR and print the first value
 found on the standard output stream. The exit status is non-zero

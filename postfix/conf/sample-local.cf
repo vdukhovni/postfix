@@ -66,9 +66,9 @@ default_privs = nobody
 #
 
 # The home_mailbox parameter specifies the optional pathname of a
-# mailbox relative to a user's home directory. The default is to
-# deliver to the UNIX-style /var/spool/mail/user or /var/mail/user.
-# Specify "Maildir/" for qmail-style delivery (the / is required).
+# mailbox file relative to a user's home directory. The default
+# mailbox file is /var/spool/mail/user or /var/mail/user.  Specify
+# "Maildir/" for qmail-style delivery (the / is required).
 #
 # home_mailbox = Mailbox
 # home_mailbox = Maildir/

@@ -17,6 +17,14 @@
 /*	BH_TABLE *dup_filter;
 /*	char	*format;
 /*
+/*	int	been_here_check_fixed(dup_filter, string)
+/*	BH_TABLE *dup_filter;
+/*	char	*string;
+/*
+/*	int	been_here_check(dup_filter, format, ...)
+/*	BH_TABLE *dup_filter;
+/*	char	*format;
+/*
 /*	void	been_here_free(dup_filter)
 /*	BH_TABLE *dup_filter;
 /* DESCRIPTION
@@ -33,6 +41,9 @@
 /*	given table, and makes an entry in the table if the string was
 /*	not found. The result is non-zero (true) if the formatted result was
 /*	found, zero (false) otherwise.
+/*
+/*	been_here_check_fixed() and been_here_check() are similar
+/*	but do not update the duplicate filter.
 /*
 /*	been_here_free() releases storage for a duplicate filter.
 /*
@@ -164,6 +175,68 @@ int     been_here_fixed(BH_TABLE *dup_filter, const char *string)
     }
     if (msg_verbose)
 	msg_info("been_here: %s: %d", string, status);
+
+    /*
+     * Cleanup.
+     */
+    if (folded_string)
+	myfree(folded_string);
+
+    return (status);
+}
+
+/* been_here_check - query duplicate detector with finer control */
+
+int     been_here_check(BH_TABLE *dup_filter, const char *fmt,...)
+{
+    VSTRING *buf = vstring_alloc(100);
+    int     status;
+    va_list ap;
+
+    /*
+     * Construct the string to be checked.
+     */
+    va_start(ap, fmt);
+    vstring_vsprintf(buf, fmt, ap);
+    va_end(ap);
+
+    /*
+     * Do the duplicate check.
+     */
+    status = been_here_check_fixed(dup_filter, vstring_str(buf));
+
+    /*
+     * Cleanup.
+     */
+    vstring_free(buf);
+    return (status);
+}
+
+/* been_here_check_fixed - query duplicate detector */
+
+int     been_here_check_fixed(BH_TABLE *dup_filter, const char *string)
+{
+    char   *folded_string;
+    const char *lookup_key;
+    int     status;
+
+    /*
+     * Special processing: case insensitive lookup.
+     */
+    if (dup_filter->flags & BH_FLAG_FOLD) {
+	folded_string = mystrdup(string);
+	lookup_key = lowercase(folded_string);
+    } else {
+	folded_string = 0;
+	lookup_key = string;
+    }
+
+    /*
+     * Do the duplicate check.
+     */
+    status = (htable_locate(dup_filter->table, lookup_key) != 0);
+    if (msg_verbose)
+	msg_info("been_here_check: %s: %d", string, status);
 
     /*
      * Cleanup.

@@ -224,20 +224,39 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     escaped_name = vstring_alloc(20);
     filter_buf = vstring_alloc(30);
 
-    /* Any wildcards and escapes in the supplied address should be escaped. */
-    if (strchr(name, '*') || strchr(name, '\\')) {
+    /*
+     * If any characters in the supplied address should be escaped per RFC
+     * 2254, do so.
+     */
+
+    end = (char *) name + strlen((char *) name);
+    sub = (char *) strpbrk((char *) name, "*()\\\0");
+    if (sub && sub != end) {
 	if (msg_verbose)
-	    msg_info("%s: found wildcard in %s", myname, name);
-	for (sub = (char *) name; *sub != '\0'; sub++) {
-	    if (*sub == '*' || *sub == '\\') {
-		vstring_strncat(escaped_name, "\\", 1);
-		vstring_strncat(escaped_name, sub, 1);
-	    } else {
+	    msg_info("%s: found character(s) in %s that must be escaped", myname, name);
+	for (sub = (char *) name; sub != end; sub++) {
+	    switch (*sub) {
+	    case '*':
+		vstring_strcat(escaped_name, "\\2a");
+		break;
+	    case '(':
+		vstring_strcat(escaped_name, "\\28");
+		break;
+	    case ')':
+		vstring_strcat(escaped_name, "\\29");
+		break;
+	    case '\\':
+		vstring_strcat(escaped_name, "\\5c");
+		break;
+	    case '\0':
+		vstring_strcat(escaped_name, "\\00");
+		break;
+	    default:
 		vstring_strncat(escaped_name, sub, 1);
 	    }
 	}
 	if (msg_verbose)
-	    msg_info("%s: with wildcards escaped, it's %s", myname, vstring_str(escaped_name));
+	    msg_info("%s: after escaping, it's %s", myname, vstring_str(escaped_name));
     } else
 	vstring_strcpy(escaped_name, (char *) name);
 

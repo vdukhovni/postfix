@@ -9,7 +9,7 @@ POSTALIAS(1)                                         POSTALIAS(1)
        postalias - Postfix alias database maintenance
 
 <b>SYNOPSIS</b>
-       <b>postalias</b> [<b>-ivw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-q</b> <i>key</i>]
+       <b>postalias</b> [<b>-Ninvw</b>] [<b>-c</b> <i>config_dir</i>] [<b>-q</b> <i>key</i>]
        [<i>file_type</i>:]<i>file_name</i> ...
 
 <b>DESCRIPTION</b>
@@ -26,14 +26,24 @@ POSTALIAS(1)                                         POSTALIAS(1)
 
        Options:
 
+       <b>-N</b>     Include  the terminating null character that termi-
+              nates lookup keys and values. By  default,  Postfix
+              does whatever is the default for the host operating
+              system.
+
        <b>-c</b> <i>config_dir</i>
-              Read  the  <b>main.cf</b>  configuration file in the named
+              Read the <b>main.cf</b> configuration file  in  the  named
               directory.
 
-       <b>-i</b>     Incremental mode. Read entries from standard  input
+       <b>-i</b>     Incremental  mode. Read entries from standard input
               and  do  not  truncate  an  existing  database.  By
-              default, <b>postalias</b> creates a new database from  the
+              default,  <b>postalias</b> creates a new database from the
               entries in <b>file</b><i>_</i><b>name</b>.
+
+       <b>-n</b>     Don't include the terminating null  character  that
+              terminates  lookup  keys  and  values.  By default,
+              Postfix does whatever is the default for  the  host
+              operating system.
 
        <b>-q</b> <i>key</i> Search  the  specified  maps  for <i>key</i> and print the
               first value found on the  standard  output  stream.
@@ -49,16 +59,6 @@ POSTALIAS(1)                                         POSTALIAS(1)
 
        Arguments:
 
-       <i>file_type</i>
-              The type of database to be produced.
-
-              <b>btree</b>  The   output   is   a   btree   file,  named
-                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
-                     systems with support for <b>db</b> databases.
-
-              <b>dbm</b>    The  output  consists  of  two  files, named
-                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
-                     available  only  on systems with support for
 
 
 
@@ -71,6 +71,16 @@ POSTALIAS(1)                                         POSTALIAS(1)
 POSTALIAS(1)                                         POSTALIAS(1)
 
 
+       <i>file_type</i>
+              The type of database to be produced.
+
+              <b>btree</b>  The   output   is   a   btree   file,  named
+                     <i>file_name</i><b>.db</b>.  This  is  available  only  on
+                     systems with support for <b>db</b> databases.
+
+              <b>dbm</b>    The  output  consists  of  two  files, named
+                     <i>file_name</i><b>.pag</b> and  <i>file_name</i><b>.dir</b>.   This  is
+                     available  only  on systems with support for
                      <b>dbm</b> databases.
 
               <b>hash</b>   The  output  is   a   hashed   file,   named
@@ -114,6 +124,19 @@ POSTALIAS(1)                                         POSTALIAS(1)
        <a href="aliases.5.html">aliases(5)</a> format of alias database input file.
        <a href="sendmail.1.html">sendmail(1)</a> mail posting and compatibility interface.
 
+
+
+
+
+                                                                2
+
+
+
+
+
+POSTALIAS(1)                                         POSTALIAS(1)
+
+
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
        software.
@@ -128,7 +151,50 @@ POSTALIAS(1)                                         POSTALIAS(1)
 
 
 
-                                                                2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                3
 
 
 </pre> </body> </html>

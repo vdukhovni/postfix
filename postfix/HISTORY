@@ -3317,15 +3317,43 @@ Apologies for any names omitted.
 
 19991207
 
-	Performance: the queue manager now frees in-memory recipients
-	as soon as a message is delivered to one destination, rather
-	than waiting until all in-memory recipients of that message
-	have been tried. This means that one message with many
-	recipients no longer stops other mail from being delivered.
+	Performance: one message with many recipients no longer
+	stops other mail from being delivered. The queue manager
+	now frees in-memory recipients as soon as a message is
+	delivered to one destination, rather than waiting until
+	all in-memory destinations of that message have been tried.
 	Patch by Patrik Rak @ ein.cz. Files: qmgr/qmgr_entry.c,
 	qmgr/qmgr_message.c.
 
-	Performance: when delivering a huge list of recipients,
-	the queue manager now reads new recipients from queue file
-	before delivery concurrency starts dropping.  Files:
-	qmgr/qmgr_entry.c, qmgr/qmgr_message.c.
+	Performance: when delivering mail to a huge list of
+	recipients, the queue manager now reads more recipients
+	from the queue file before delivery concurrency starts
+	to drop.  Files:  qmgr/qmgr_entry.c, qmgr/qmgr_message.c.
+
+19991208
+
+	Performance: improved worst-case behavior. A fully loaded
+	Postfix inflicts the same delay to messages with any number
+	of recipients (up to qmgr_message_recipient_limit.) Inspired
+	by discussions with Patrik Rak (although he disagrees with
+	the strategy).  File: qmgr/qmgr_message.c.
+
+	Updated LDAP client code by John Hensley with escape
+	sequences as per RFC 2254. File: util/dict_ldap.c.
+
+	Updated MYSQL client code by Scott Cotton. File: dict_mysql.c.
+
+	Feature: added -N/-n options to include/exclude terminating
+	nulls in keys and values in postmap/postalias DB or DBM
+	files. Normally, Postfix uses whatever is appropriate for
+	the host system.  A non-default setting can be necessary
+	for inter-operability with third-party software.
+
+	Bugfix: the local delivery agent would deliver to the user
+	instead of the .forward file when the .forward file was
+	already visited via some non-recursive path. Patch by Patrik
+	Rak @ ein.cz. Files: global/been_here.c, local/dotforward.c.
+
+	Robustness: attempt to deliver all addresses in the expansion
+	of an alias or .forward file, even when some addresses must
+	be deferred.  File: local/token.c.

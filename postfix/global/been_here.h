@@ -32,6 +32,8 @@ extern BH_TABLE *been_here_init(int, int);
 extern void been_here_free(BH_TABLE *);
 extern int been_here_fixed(BH_TABLE *, const char *);
 extern int been_here(BH_TABLE *, const char *,...);
+extern int been_here_check_fixed(BH_TABLE *, const char *);
+extern int been_here_check(BH_TABLE *, const char *,...);
 
 /* LICENSE
 /* .ad

@@ -137,7 +137,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     }
 
     /*
-     * Free the recipient list and decrease in-core recipient count
+     * Free the recipient list and decrease the in-core recipient count
      * accordingly.
      */
     qmgr_recipient_count -= entry->rcpt_list.len;
@@ -160,10 +160,11 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 
     /*
      * Update the in-core message reference count. When the in-core message
-     * structure has no more references, dispose of the message. When the
-     * in-core recipient count falls below some threshold and this message
-     * has more recipients, read them from disk before concurrency starts to
-     * drop.
+     * structure has no more references, dispose of the message.
+     * 
+     * When the in-core recipient count falls below some threshold and this
+     * message has more recipients, read more recipients before concurrency
+     * starts to drop.
      */
     message->refcount--;
     if (message->refcount == 0)

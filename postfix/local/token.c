@@ -177,9 +177,7 @@ int     deliver_token_string(LOCAL_STATE state, USER_ATTR usr_attr,
 	if (addr->type == TOK822_ADDR) {
 	    if (addr_count)
 		(*addr_count)++;
-	    status = deliver_token(state, usr_attr, addr);
-	    if (status != 0)
-		break;
+	    status |= deliver_token(state, usr_attr, addr);
 	}
     }
     tok822_free_tree(tree);

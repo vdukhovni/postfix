@@ -638,6 +638,9 @@ int     main(int argc, char **argv)
     struct stat st;
     int     junk;
 
+    /*
+     * Be consistent with file permissions.
+     */
     umask(022);
 
     /*

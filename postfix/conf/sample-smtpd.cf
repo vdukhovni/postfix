@@ -181,7 +181,7 @@ smtpd_sender_restrictions =
 # 
 # The default is to permit any destination from clients that match
 # $mynetworks, and to otherwise permit only mail from clients or to
-# domains that match $relay_domains or a subdomain thereof.
+# destinations that match $relay_domains or a subdomain thereof.
 #
 # The following restrictions are available:
 #
@@ -191,8 +191,8 @@ smtpd_sender_restrictions =
 #   reject_invalid_hostname: reject HELO hostname with bad syntax.
 #   reject_unknown_hostname: reject HELO hostname without DNS A or MX record.
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
-#   check_relay_domains: permit only mail from/to domains in $relay_domains
-	or to the local machine.
+#   check_relay_domains: permit only mail from clients/to domains matching 
+#	$relay_domains, or to the local machine.
 #   permit_auth_destination: permit mail to self or to $relay_domains.
 #   reject_unauth_destination: reject mail not to self or to $relay_domains.
 #   reject_unauth_pipelining: reject mail from improperly pipelining spamware
@@ -238,11 +238,13 @@ smtpd_recipient_restrictions = permit_mynetworks,check_relay_domains
 #
 maps_rbl_domains = rbl.maps.vix.com
 
-# The relay_domains parameter restricts what domains (and subdomains
-# thereof) this mail system will relay mail from or to.
+# The relay_domains parameter restricts what client hostname domains
+# (and subdomains thereof) this mail system will relay mail from,
+# and restricts what destination domains (and subdomains thereof)
+# this system will relay mail to.
 # 
-# By default, Postfix relays mail only from or to sites in or below
-# $mydestination, or in the optional virtual domain list.
+# By default, Postfix relays mail only from clients or to destinations
+# in or below $mydestination, or in the optional virtual domain list.
 # 
 # Specify a list of hosts or domains, /file/name patterns or type:name
 # lookup tables, separated by commas and/or whitespace.  Continue

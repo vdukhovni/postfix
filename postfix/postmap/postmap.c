@@ -5,7 +5,7 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-ivw\fR] [\fB-c \fIconfig_dir\fR] [\fB-q \fIkey\fR]
+/*	\fBpostmap\fR [\fB-Ninvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
 /*	The \fBpostmap\fR command creates or queries one or more Postfix
@@ -38,12 +38,20 @@
 /*	to lowercase to make mapping lookups case insensitive.
 /*
 /*	Options:
+/* .IP \fB-N\fR
+/*	Include the terminating null character that terminates lookup keys
+/*	and values. By default, Postfix does whatever is the default for
+/*	the host operating system.
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	Read the \fBmain.cf\fR configuration file in the named directory.
 /* .IP \fB-i\fR
 /*	Incremental mode. Read entries from standard input and do not
 /*	truncate an existing database. By default, \fBpostmap\fR creates
 /*	a new database from the entries in \fBfile_name\fR.
+/* .IP \fB-n\fR
+/*	Don't include the terminating null character that terminates lookup
+/*	keys and values. By default, Postfix does whatever is the default for
+/*	the host operating system.
 /* .IP "\fB-q \fIkey\fR"
 /*	Search the specified maps for \fIkey\fR and print the first value
 /*	found on the standard output stream. The exit status is non-zero
@@ -251,7 +259,7 @@ static int postmap_query(const char *map_type, const char *map_name,
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-ivw] [-c config_dir] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-Ninvw] [-c config_dir] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -300,10 +308,14 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:iq:vw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:inq:vw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
+	    break;
+	case 'N':
+	    dict_flags |= DICT_FLAG_TRY1NULL;
+	    dict_flags &= ~DICT_FLAG_TRY0NULL;
 	    break;
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -311,6 +323,10 @@ int     main(int argc, char **argv)
 	    break;
 	case 'i':
 	    open_flags &= ~O_TRUNC;
+	    break;
+	case 'n':
+	    dict_flags |= DICT_FLAG_TRY0NULL;
+	    dict_flags &= ~DICT_FLAG_TRY1NULL;
 	    break;
 	case 'q':
 	    query = optarg;

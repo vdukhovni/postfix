@@ -222,9 +222,9 @@ mail_owner = postfix
 # DELIVERY TO MAILBOX
 #
 # The home_mailbox parameter specifies the optional pathname of a
-# mailbox relative to a user's home directory. The default is to
-# deliver to the UNIX-style /var/spool/mail/user or /var/mail/user.
-# Specify "Maildir/" for qmail-style delivery (the / is required).
+# mailbox file relative to a user's home directory. The default
+# mailbox file is /var/spool/mail/user or /var/mail/user.  Specify
+# "Maildir/" for qmail-style delivery (the / is required).
 #
 #home_mailbox = Mailbox
 #home_mailbox = Maildir/
@@ -298,12 +298,14 @@ mail_owner = postfix
 #header_checks = regexp:/etc/postfix/filename
 #header_checks = pcre:/etc/postfix/filename
 
-# The relay_domains parameter restricts what domains (and subdomains
-# thereof) this mail system will relay mail from or to.  See the
-# smtpd_recipient_restrictions restriction in the file sample-smtpd.cf.
+# The relay_domains parameter restricts what client hostname domains
+# (and subdomains thereof) this mail system will relay mail from,
+# and restricts what destination domains (and subdomains thereof)
+# this system will relay mail to.  See the smtpd_recipient_restrictions
+# restriction in the file sample-smtpd.cf.
 #
-# By default, Postfix relays mail only from or to sites in or below
-# $mydestination, or in the optional virtual domain list.
+# By default, Postfix relays mail only from clients or to destinations
+# in or below $mydestination, or in the optional virtual domain list.
 # 
 # Specify a list of hosts or domains, /file/name patterns or type:name
 # lookup tables, separated by commas and/or whitespace.  Continue

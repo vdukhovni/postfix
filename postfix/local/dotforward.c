@@ -213,27 +213,31 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * If this user includes (an alias of) herself in her own .forward file,
      * deliver to the user instead.
      */
-    if (lookup_status >= 0
-	&& been_here(state.dup_filter, "forward %s", STR(path)) == 0) {
-	state.msg_attr.exp_from = state.msg_attr.local;
-	if (S_ISREG(st.st_mode) == 0) {
-	    msg_warn("file %s is not a regular file", STR(path));
-	} else if (st.st_uid != 0 && st.st_uid != usr_attr.uid) {
-	    msg_warn("file %s has bad owner uid %d", STR(path), st.st_uid);
-	} else if (st.st_mode & 002) {
-	    msg_warn("file %s is world writable", STR(path));
-	} else if ((fd = open_as(STR(path), O_RDONLY, 0, usr_attr.uid, usr_attr.gid)) < 0) {
-	    msg_warn("cannot open file %s: %m", STR(path));
-	} else {
-	    close_on_exec(fd, CLOSE_ON_EXEC);
-	    addr_count = 0;
-	    fp = vstream_fdopen(fd, O_RDONLY);
-	    status = deliver_token_stream(state, usr_attr, fp, &addr_count);
-	    if (vstream_fclose(fp))
-		msg_warn("close file %s: %m", STR(path));
-	    if (addr_count > 0)
-		forward_found = YES;
-	}
+    if (lookup_status >= 0) {
+	if (been_here(state.dup_filter, "forward %s", STR(path)) == 0) {
+	    state.msg_attr.exp_from = state.msg_attr.local;
+	    if (S_ISREG(st.st_mode) == 0) {
+		msg_warn("file %s is not a regular file", STR(path));
+	    } else if (st.st_uid != 0 && st.st_uid != usr_attr.uid) {
+		msg_warn("file %s has bad owner uid %d", STR(path), st.st_uid);
+	    } else if (st.st_mode & 002) {
+		msg_warn("file %s is world writable", STR(path));
+	    } else if ((fd = open_as(STR(path), O_RDONLY, 0, usr_attr.uid, usr_attr.gid)) < 0) {
+		msg_warn("cannot open file %s: %m", STR(path));
+	    } else {
+		close_on_exec(fd, CLOSE_ON_EXEC);
+		addr_count = 0;
+		fp = vstream_fdopen(fd, O_RDONLY);
+		status = deliver_token_stream(state, usr_attr, fp, &addr_count);
+		if (vstream_fclose(fp))
+		    msg_warn("close file %s: %m", STR(path));
+		if (addr_count > 0) {
+		    forward_found = YES;
+		    been_here(state.dup_filter, "forward-done %s", STR(path));
+		}
+	    }
+	} else if (been_here_check(state.dup_filter, "forward-done %s", STR(path)) != 0)
+	    forward_found = YES;		/* else we're recursive */
     }
 
     /*

@@ -1,4 +1,4 @@
-Incompatible changes with snapshot 19991127
+Incompatible changes with snapshot 19991209
 ===========================================
 
 - In an SMTPD access map, an all-numeric right-hand side now means
@@ -18,7 +18,7 @@ $mydestination domains matches a transport specification, you also
 need to add a "domain.name local:" entry in your transport_maps.
 See the html/faq.html sections for firewalls and intranets.
 
-Major changes with snapshot 19991127
+Major changes with snapshot 19991209
 ====================================
 
 - It is now relatively safe to configure 550 status codes for the
