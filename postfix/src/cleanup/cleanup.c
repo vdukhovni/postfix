@@ -76,6 +76,32 @@
 /*	the message, and to the initial headers of attached messages.
 /*	These filters see logical headers one at a time, including headers
 /*	that span multiple lines.
+/* .SH MIME Processing
+/* .ad
+/* .fi
+/* .IP \fBdisable_mime_input_processing\fR
+/*	While receiving, give no special treatment to \fBContent-Type:\fR 
+/*	message headers; all text after the initial message headers is 
+/*	considered to be part of the message body.
+/* .IP \fBmime_boundary_length_limit\fR
+/*	The amount of space that will be allocated for MIME multipart
+/*	boundary strings. The MIME processor is unable to distinguish
+/*	between boundary strings that do not differ in the first 
+/*	\fB$mime_boundary_length_limit\fR characters.
+/* .IP \fBmime_nesting_limit\fR
+/*	The maximal nesting level of multipart mail that the MIME
+/*	processor can handle. Refuse mail that is nested deeper.
+/* .IP \fBstrict_8bitmime\fR
+/*	Reject mail with 8-bit text in message headers, and with
+/*	8-bit text in content that claims to be 7-bit, or that has
+/*	no explicit content encoding information. This blocks mail
+/*	mail poorly written mail software. Unfortunately, this also 
+/*	breaks majordomo approval requests when the included request 
+/*	contains valid 8-bit MIME mail.
+/* .IP \fBstrict_mime_domain_encoding\fR
+/*	Reject mail with invalid \fBContent-Transfer-Encoding:\fR
+/*	information for message/* or multipart/*. This blocks mail
+/*	from poorly written software.
 /* .SH Miscellaneous
 /* .ad
 /* .fi

@@ -17,9 +17,49 @@
 # WARN   the header is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
 #
-# These patterns do not apply to MIME headers in the message body.
+# By default, these patterns apply the primary message headers, to
+# MIME headers, and to the headers of attached messages. With older
+# Postfix versions, MIME and attached message headers were treated
+# as body text.
 #
 header_checks = regexp:/etc/postfix/header_checks
+
+# The mime_header_checks specifies an optional table with patterns
+# that each MIME header is matched against. This applies to MIME
+# related headers in message headers, and to the headers that follow
+# multipart boundary strings. Headers may span multiple physical lines.
+# Patterns are matched in the specified order, and the search stops
+# upon the first match.  When a pattern matches, what happens next
+# depends on the associated action that is specified in the right-hand
+# side of the table:
+#
+# REJECT the entire message is rejected.
+# REJECT text.... The text is sent to the originator.
+# IGNORE the header line is silently discarded.
+# WARN   the header is logged (not rejected) with a warning message.
+# WARN text... as above, and the text is logged, too.
+#
+# By default, the same patterns are applied as for header_checks.
+#
+mime_header_checks = $header_checks
+
+# The nested_header_checks specifies an optional table with patterns
+# that each attached message header is matched against (except for
+# MIME related headers). Headers may span multiple physical lines.
+# Patterns are matched in the specified order, and the search stops
+# upon the first match.  When a pattern matches, what happens next
+# depends on the associated action that is specified in the right-hand
+# side of the table:
+#
+# REJECT the entire message is rejected.
+# REJECT text.... The text is sent to the originator.
+# IGNORE the header line is silently discarded.
+# WARN   the header is logged (not rejected) with a warning message.
+# WARN text... as above, and the text is logged, too.
+#
+# By default, the same patterns are applied as for header_checks.
+#
+nested_header_checks = $header_checks
 
 # The body_checks parameter specifies an optional table with patterns
 # that each physical line in the message body is matched against

@@ -780,7 +780,7 @@ extern int var_smtpd_soft_erlim;
 extern int var_smtpd_hard_erlim;
 
 #define VAR_SMTPD_ERR_SLEEP	"smtpd_error_sleep_time"
-#define DEF_SMTPD_ERR_SLEEP	"5s"
+#define DEF_SMTPD_ERR_SLEEP	"1s"
 extern int var_smtpd_err_sleep;
 
 #define VAR_SMTPD_JUNK_CMD	"smtpd_junk_command_limit"
@@ -1516,12 +1516,28 @@ extern int var_qattr_count_limit;
   * MIME support.
   */
 #define VAR_MIME_MAXDEPTH		"mime_nesting_limit"
-#define DEF_MIME_MAXDEPTH		100
+#define DEF_MIME_MAXDEPTH		20
 extern int var_mime_maxdepth;
 
 #define VAR_MIME_BOUND_LEN		"mime_boundary_length_limit"
-#define DEF_MIME_BOUND_LEN		100
+#define DEF_MIME_BOUND_LEN		2048
 extern int var_mime_bound_len;
+
+#define VAR_DISABLE_MIME_INPUT		"disable_mime_input_processing"
+#define DEF_DISABLE_MIME_INPUT		0
+extern bool var_disable_mime_input;
+
+#define VAR_DISABLE_MIME_OCONV		"disable_mime_output_conversion"
+#define DEF_DISABLE_MIME_OCONV		0
+extern bool var_disable_mime_oconv;
+
+#define VAR_STRICT_8BITMIME		"strict_8bitmime"
+#define DEF_STRICT_8BITMIME		0
+extern bool var_strict_8bitmime;
+
+#define VAR_STRICT_ENCODING		"strict_mime_encoding_domain"
+#define DEF_STRICT_ENCODING		0
+extern bool var_strict_encoding;
 
 /* LICENSE
 /* .ad

@@ -152,15 +152,34 @@ SMTP(8)                                                   SMTP(8)
               PIX firewall &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;  bug  workaround  is
               turned on.
 
+<b>MIME</b> <b>Conversion</b>
+       <b>disable</b><i>_</i><b>mime</b><i>_</i><b>output</b><i>_</i><b>conversion</b>
+              Disable  the  conversion of 8BITMIME format to 7BIT
+              format when the remote system  does  not  advertise
+              8BITMIME support.
+
+       <b>mime</b><i>_</i><b>boundary</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+              The amount of space that will be allocated for MIME
+              multipart boundary strings. The MIME  processor  is
+              unable to distinguish between boundary strings that
+              do   not   differ   in   the   first   <b>$mime</b><i>_</i><b>bound-</b>
+              <b>ary</b><i>_</i><b>length</b><i>_</i><b>limit</b> characters.
+
+       <b>mime</b><i>_</i><b>nesting</b><i>_</i><b>limit</b>
+              The  maximal  nesting  level of multipart mail that
+              the MIME processor can handle. Refuse mail that  is
+              nested deeper, when converting from 8BITMIME format
+              to 7BIT format.
+
 <b>Authentication</b> <b>controls</b>
        <b>smtp</b><i>_</i><b>sasl</b><i>_</i><b>auth</b><i>_</i><b>enable</b>
-              Enable  per-session  authentication as per <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a>
-              (SASL).  By default, Postfix is built without  SASL
+              Enable per-session authentication as per  <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC  2554</a>
+              (SASL).   By default, Postfix is built without SASL
               support.
 
        <b>smtp</b><i>_</i><b>sasl</b><i>_</i><b>password</b><i>_</i><b>maps</b>
               Lookup tables with per-host or domain <i>name</i>:<i>password</i>
-              entries.  No entry for a host means no  attempt  to
+              entries.   No  entry for a host means no attempt to
               authenticate.
 
        <b>smtp</b><i>_</i><b>sasl</b><i>_</i><b>security</b><i>_</i><b>options</b>
@@ -184,47 +203,47 @@ SMTP(8)                                                   SMTP(8)
 <b>Resource</b> <b>controls</b>
        <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b>
               Limit the number of parallel deliveries to the same
-              destination.  The default limit is taken  from  the
+              destination.   The  default limit is taken from the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b><i>_</i><b>limit</b> parameter.
 
        <b>smtp</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit  the  number of recipients per message deliv-
-              ery.   The  default  limit  is   taken   from   the
+              Limit the number of recipients per  message  deliv-
+              ery.    The   default   limit  is  taken  from  the
               <b>default</b><i>_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b> parameter.
 
 <b>Timeout</b> <b>controls</b>
-       The  default  time  unit is seconds; an explicit time unit
-       can be specified by appending a one-letter suffix  to  the
-       value:  s (seconds), m (minutes), h (hours), d (days) or w
+       The default time unit is seconds; an  explicit  time  unit
+       can  be  specified by appending a one-letter suffix to the
+       value: s (seconds), m (minutes), h (hours), d (days) or  w
        (weeks).
 
        <b>smtp</b><i>_</i><b>connect</b><i>_</i><b>timeout</b>
-              Timeout for completing a TCP  connection.  When  no
-              connection  can  be  made  within the deadline, the
-              SMTP client tries the  next  address  on  the  mail
+              Timeout  for  completing  a TCP connection. When no
+              connection can be made  within  the  deadline,  the
+              SMTP  client  tries  the  next  address on the mail
               exchanger list.
 
        <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>timeout</b>
-              Timeout  for  receiving  the  SMTP greeting banner.
-              When the server drops the connection without  send-
+              Timeout for receiving  the  SMTP  greeting  banner.
+              When  the server drops the connection without send-
               ing a greeting banner, or when it sends no greeting
-              banner within the deadline, the SMTP  client  tries
+              banner  within  the deadline, the SMTP client tries
               the next address on the mail exchanger list.
 
        <b>smtp</b><i>_</i><b>helo</b><i>_</i><b>timeout</b>
-              Timeout  for  sending  the  <b>HELO</b>  command,  and for
+              Timeout for  sending  the  <b>HELO</b>  command,  and  for
               receiving the server response.
 
        <b>smtp</b><i>_</i><b>mail</b><i>_</i><b>timeout</b>
-              Timeout for sending the <b>MAIL</b> <b>FROM</b> command, and  for
+              Timeout  for sending the <b>MAIL</b> <b>FROM</b> command, and for
               receiving the server response.
 
        <b>smtp</b><i>_</i><b>rcpt</b><i>_</i><b>timeout</b>
-              Timeout  for  sending  the <b>RCPT</b> <b>TO</b> command, and for
+              Timeout for sending the <b>RCPT</b> <b>TO</b>  command,  and  for
               receiving the server response.
 
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>init</b><i>_</i><b>timeout</b>
-              Timeout for  sending  the  <b>DATA</b>  command,  and  for
+              Timeout  for  sending  the  <b>DATA</b>  command,  and for
               receiving the server response.
 
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>xfer</b><i>_</i><b>timeout</b>
@@ -232,12 +251,12 @@ SMTP(8)                                                   SMTP(8)
 
        <b>smtp</b><i>_</i><b>data</b><i>_</i><b>done</b><i>_</i><b>timeout</b>
               Timeout  for  sending  the  "<b>.</b>"  command,  and  for
-              receiving the server response. When no response  is
-              received,  a warning is logged that the mail may be
+              receiving  the server response. When no response is
+              received, a warning is logged that the mail may  be
               delivered multiple times.
 
        <b>smtp</b><i>_</i><b>quit</b><i>_</i><b>timeout</b>
-              Timeout for  sending  the  <b>QUIT</b>  command,  and  for
+              Timeout  for  sending  the  <b>QUIT</b>  command,  and for
               receiving the server response.
 
 <b>SEE</b> <b>ALSO</b>
@@ -247,7 +266,7 @@ SMTP(8)                                                   SMTP(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

@@ -90,6 +90,10 @@
 /*	int	var_mime_maxdepth;
 /*	int	var_mime_bound_len;
 /*	int	var_header_limit;
+/*	int	var_disable_mime_input;
+/*	int	var_disable_mime_oconv;
+/*	int     var_strict_8bitmime;
+/*	int     var_strict_encoding;
 /*
 /*	void	mail_params_init()
 /* DESCRIPTION
@@ -236,6 +240,10 @@ int     var_db_read_buf;
 int     var_mime_maxdepth;
 int     var_mime_bound_len;
 int     var_header_limit;
+int     var_disable_mime_input;
+int     var_disable_mime_oconv;
+int     var_strict_8bitmime;
+int     var_strict_encoding;
 
 #define MAIN_CONF_FILE	"main.cf"
 
@@ -492,6 +500,10 @@ void    mail_params_init()
 	VAR_DISABLE_DNS, DEF_DISABLE_DNS, &var_disable_dns,
 	VAR_SOFT_BOUNCE, DEF_SOFT_BOUNCE, &var_soft_bounce,
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
+	VAR_STRICT_8BITMIME, DEF_STRICT_8BITMIME, &var_strict_8bitmime,
+	VAR_STRICT_ENCODING, DEF_STRICT_ENCODING, &var_strict_encoding,
+	VAR_DISABLE_MIME_INPUT, DEF_DISABLE_MIME_INPUT, &var_disable_mime_input,
+	VAR_DISABLE_MIME_OCONV, DEF_DISABLE_MIME_OCONV, &var_disable_mime_oconv,
 	0,
     };
     const char *cp;

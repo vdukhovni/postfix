@@ -66,8 +66,6 @@ typedef struct CLEANUP_STATE {
     int     mime_errs;			/* MIME error flags */
 } CLEANUP_STATE;
 
-#define CLEANUP_CURR_HEADERS	(1<<0)	/* in main headers section */
-
  /*
   * Mappings.
   */

@@ -419,7 +419,9 @@ mail_owner = postfix
 # WARN   the header is logged (not rejected) with a warning message.
 # WARN text... as above, and the text is logged, too.
 #
-# These patterns do not apply to MIME headers in the message body.
+# By default, these patterns also apply to MIME headers and to the
+# headers of attached messages. With older Postfix versions, MIME and
+# attached message headers were treated as body text.
 #
 # See also the body_checks example in the sample-filter.cf file.
 #

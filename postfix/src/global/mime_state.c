@@ -33,7 +33,7 @@
 /*
 /*	In order to fend off denial of service attacks, message headers
 /*	are truncated at or above var_header_limit bytes, message boundary
-/*	strings are truncated at var_boundary_len bytes, and the message
+/*	strings are truncated at var_boundary_len bytes, and the multipart
 /*	nesting level is limited to var_mime_maxdepth levels.
 /*
 /*	mime_state_alloc() creates a MIME state machine. The machine
@@ -52,7 +52,7 @@
 /* .IP MIME_ERR_8BIT_IN_7BIT_BODY
 /*	A MIME header specifies (or defaults to) 7-bit content, but the
 /*	correspnding message body or body parts contain 8-bit content.
-/* .IP MIME_ERR_DOMAIN_ENCODING
+/* .IP MIME_ERR_ENCODING_DOMAIN
 /*	An entity of type "message" or "multipart" specifies the wrong
 /*	content transfer encoding domain, or specifies a transformation
 /*	(quoted-printable, base64) instead of a domain (7bit, 8bit,
@@ -80,8 +80,8 @@
 /* .IP enc_type
 /*	The content encoding: MIME_ENC_7BIT or MIME_ENC_8BIT.
 /* .IP flags
-/*	Processing options. Specify the bit-wise OR of zero or more
-/*	of the following:
+/*	Special processing options. Specify the bit-wise OR of zero or
+/*	more of the following:
 /* .RS
 /* .IP MIME_OPT_DISABLE_MIME
 /*	Pay no attention to Content-* message headers, and switch to
@@ -98,8 +98,8 @@
 /*	forwarded for approval, because Majordomo does not propagate
 /*	MIME type information from the enclosed message to the message
 /*	headers of the request for approval.
-/* .IP MIME_OPT_REPORT_DOMAIN_ENCODING
-/*	Report errors that set the MIME_ERR_DOMAIN_ENCODING error
+/* .IP MIME_OPT_REPORT_ENCODING_DOMAIN
+/*	Report errors that set the MIME_ERR_ENCODING_DOMAIN error
 /*	flag (see above).
 /* .IP MIME_OPT_RECURSE_ALL_MESSAGE
 /*	Recurse into message/anything types other than message/rfc822.
@@ -160,13 +160,20 @@
 /*
 /*	This module will not glue together RFC 2231 formatted (boundary)
 /*	parameter values. RFC 2231 says claims compatibility with existing
-/*	MIME processors.
+/*	MIME processors. Splitting boundary strings is not backwards
+/*	compatible.
 /*
 /*	The "8-bit data inside 7-bit body" test is myopic. It is not aware
-/*	of the enclosing message or multipart encoding information.
+/*	of any enclosing (message or multipart) encoding information.
 /*
 /*	If the input ends in data other than a hard line break, this module
-/*	will add a hard line break. No line break is added to empty input.
+/*	will add a hard line break of its own. No line break is added to
+/*	empty input.
+/*
+/*	This code recognizes the obsolete form "headername :" but will
+/*	normalize it to the canonical form "headername:". Leaving the
+/*	obsolete form alone would cause too much trouble with existing code
+/*	that expects only the normalized form.
 /* SEE ALSO
 /*	msg(3) diagnostics interface
 /*	header_opts(3) header information lookup
@@ -438,16 +445,13 @@ static void mime_state_content_type(MIME_STATE *state,
 #define TOKEN_MATCH(tok, text) \
     ((tok).type == HEADER_TOK_TOKEN && strcasecmp((tok).u.value, (text)) == 0)
 
-#define SKIP_HEADER_THRASH(cp) { while (ISSPACE(*cp)) cp++; cp++; }
-
 #define RFC2045_TSPECIALS	"()<>@,;:\\\"/[]?="
 
 #define PARSE_CONTENT_TYPE_HEADER(state, ptr) \
     header_token(state->token, MIME_MAX_TOKEN, \
 	state->token_buffer, ptr, RFC2045_TSPECIALS, ';')
 
-    cp = STR(state->output_buffer) + strlen(header_info->name);
-    SKIP_HEADER_THRASH(cp);
+    cp = STR(state->output_buffer) + strlen(header_info->name) + 1;
     if ((tok_count = PARSE_CONTENT_TYPE_HEADER(state, &cp)) > 0) {
 
 	/*
@@ -556,8 +560,7 @@ static void mime_state_content_encoding(MIME_STATE *state,
      * something other than 7bit, 8bit or binary, even if we don't recognize
      * the input.
      */
-    cp = STR(state->output_buffer) + strlen(header_info->name);
-    SKIP_HEADER_THRASH(cp);
+    cp = STR(state->output_buffer) + strlen(header_info->name) + 1;
     if (PARSE_CONTENT_ENCODING_HEADER(state, &cp) > 0
 	&& state->token[0].type == HEADER_TOK_TOKEN) {
 	for (cmp = code_map; cmp->name != 0; cmp++) {
@@ -651,7 +654,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
     /*
      * This message state machine is kept simple for the sake of robustness.
      * Standards evolve over time, and we want to be able to correctly
-     * processes messages that are not yet defined. This state machine knows
+     * process messages that are not yet defined. This state machine knows
      * about headers and bodies, understands that multipart/whatever has
      * multiple body parts with a header and body, and that message/whatever
      * has message headers at the start of a body part.
@@ -735,15 +738,16 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * clean slate.
 	 */
 	if (input_is_text) {
+	    int     header_len;
 
 	    /*
 	     * See if this input is (the beginning of) a message header.
 	     * Normalize obsolete "name space colon" syntax to "name colon".
 	     * Things would be too confusing otherwise.
 	     */
-	    if ((len = is_header(text)) > 0) {
-		vstring_strncpy(state->output_buffer, text, len);
-		for (text += len; ISSPACE(*text); text++)
+	    if ((header_len = is_header(text)) > 0) {
+		vstring_strncpy(state->output_buffer, text, header_len);
+		for (text += header_len; ISSPACE(*text); text++)
 		     /* void */ ;
 		vstring_strcat(state->output_buffer, text);
 		SAVE_PREV_REC_TYPE_AND_RETURN_ERR_FLAGS(state, rec_type);

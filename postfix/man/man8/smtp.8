@@ -134,6 +134,19 @@ around the CISCO PIX firewall <CR><LF>.<CR><LF> bug.
 .IP \fBsmtp_pix_workaround_threshold_time\fR
 The time a message must be queued before the CISCO PIX firewall
 <CR><LF>.<CR><LF> bug workaround is turned on.
+.SH "MIME Conversion"
+.IP \fBdisable_mime_output_conversion\fR
+Disable the conversion of 8BITMIME format to 7BIT format when
+the remote system does not advertise 8BITMIME support.
+.IP \fBmime_boundary_length_limit\fR
+The amount of space that will be allocated for MIME multipart
+boundary strings. The MIME processor is unable to distinguish
+between boundary strings that do not differ in the first
+\fB$mime_boundary_length_limit\fR characters.
+.IP \fBmime_nesting_limit\fR
+The maximal nesting level of multipart mail that the MIME
+processor can handle. Refuse mail that is nested deeper,
+when converting from 8BITMIME format to 7BIT format.
 .SH "Authentication controls"
 .IP \fBsmtp_sasl_auth_enable\fR
 Enable per-session authentication as per RFC 2554 (SASL).

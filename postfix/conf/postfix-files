@@ -151,6 +151,7 @@ $sample_directory/sample-flush.cf:f:root:-:644
 $sample_directory/sample-ldap.cf:f:root:-:644
 $sample_directory/sample-lmtp.cf:f:root:-:644
 $sample_directory/sample-local.cf:f:root:-:644
+$sample_directory/sample-mime.cf:f:root:-:644
 $sample_directory/sample-misc.cf:f:root:-:644
 $sample_directory/sample-pcre-access.cf:f:root:-:644
 $sample_directory/sample-pcre-body.cf:f:root:-:644

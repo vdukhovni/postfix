@@ -160,7 +160,6 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     TOK822 *tree;
     TOK822 **addr_list;
     TOK822 **tpp;
-    char   *addr;
 
     if (msg_verbose)
 	msg_info("rewrite_sender: %s", hdr_opts->name);
@@ -170,11 +169,8 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
      * sender addresses, and regenerate the header line. Finally, pipe the
      * result through the header line folding routine.
      */
-#define SKIP_HEADER_THRASH(cp) { while (ISSPACE(*cp)) cp++; cp++; }
-
-    addr = vstring_str(header_buf) + strlen(hdr_opts->name);
-    SKIP_HEADER_THRASH(addr);
-    tree = tok822_parse(addr);
+    tree = tok822_parse(vstring_str(header_buf)
+			+ strlen(hdr_opts->name) + 1);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
 	cleanup_rewrite_tree(*tpp);
@@ -216,7 +212,6 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     TOK822 **addr_list;
     TOK822 **tpp;
     ARGV   *rcpt;
-    char   *addr;
 
     if (msg_verbose)
 	msg_info("rewrite_recip: %s", hdr_opts->name);
@@ -226,9 +221,8 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
      * recipient addresses, and regenerate the header line. Finally, pipe the
      * result through the header line folding routine.
      */
-    addr = vstring_str(header_buf) + strlen(hdr_opts->name);
-    SKIP_HEADER_THRASH(addr);
-    tree = tok822_parse(addr);
+    tree = tok822_parse(vstring_str(header_buf)
+			+ strlen(hdr_opts->name) + 1);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {
 	cleanup_rewrite_tree(*tpp);
@@ -352,7 +346,7 @@ static void cleanup_header_callback(void *context, int header_class,
 	header_class = MIME_HDR_MULTIPART;
 
     if ((state->flags & CLEANUP_FLAG_FILTER)
-     && (CHECK(MIME_HDR_PRIMARY, cleanup_header_checks, VAR_HEADER_CHECKS)
+	&& (CHECK(MIME_HDR_PRIMARY, cleanup_header_checks, VAR_HEADER_CHECKS)
     || CHECK(MIME_HDR_MULTIPART, cleanup_mimehdr_checks, VAR_MIMEHDR_CHECKS)
     || CHECK(MIME_HDR_NESTED, cleanup_nesthdr_checks, VAR_NESTHDR_CHECKS))) {
 	char   *header = vstring_str(header_buf);
@@ -379,14 +373,14 @@ static void cleanup_header_callback(void *context, int header_class,
      * Allow 8-bit type info to override 7-bit type info. XXX Should reuse
      * the effort that went into MIME header parsing.
      */
-    hdrval = vstring_str(header_buf) + strlen(hdr_opts->name);
-    SKIP_HEADER_THRASH(hdrval);
+    hdrval = vstring_str(header_buf) + strlen(hdr_opts->name) + 1;
+    while (ISSPACE(*hdrval))
+	hdrval++;
     /* trimblanks(hdrval, 0)[0] = 0; */
     if (hdr_opts->type == HDR_CONTENT_TRANSFER_ENCODING) {
 	for (cmp = code_map; cmp->name != 0; cmp++) {
 	    if (strcasecmp(hdrval, cmp->name) == 0) {
-		if (nvtable_find(state->attr, MAIL_ATTR_ENCODING) == 0
-		    || strcmp(cmp->encoding, MAIL_ATTR_ENC_8BIT) == 0)
+		if (strcmp(cmp->encoding, MAIL_ATTR_ENC_8BIT) == 0)
 		    nvtable_update(state->attr, MAIL_ATTR_ENCODING,
 				   cmp->encoding);
 		break;
@@ -591,13 +585,21 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
     }
 
     /*
-     * To avoid complications elsewhere, text must not end in REC_TYPE_CONT.
-     * 
      * If we have reached the end of the message content segment, record the
      * current file position so we can compute the message size lateron.
      */
     else if (type == REC_TYPE_XTRA) {
 	state->mime_errs = mime_state_update(state->mime_state, type, buf, len);
+	/* Ignore header truncation after primary message headers. */
+	state->mime_errs &= ~MIME_ERR_TRUNC_HEADER;
+	/* Ignore MIME nesting error if bouncing or forwarding mail. */
+	/* XXX Also: ignore if not header checking. */
+	if ((state->flags & CLEANUP_FLAG_FILTER) == 0)
+	    state->mime_errs &= ~MIME_ERR_NESTING;
+	if (state->mime_errs && state->reason == 0) {
+	    state->errs |= CLEANUP_STAT_CONT;
+	    state->reason = mystrdup(mime_state_error(state->mime_errs));
+	}
 	state->mime_state = mime_state_free(state->mime_state);
 	if ((state->xtra_offset = vstream_ftell(state->dst)) < 0)
 	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
@@ -618,6 +620,7 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
 {
     char   *myname = "cleanup_message";
+    int     mime_options;
 
     /*
      * Write a dummy start-of-content segment marker. We'll update it with
@@ -631,14 +634,33 @@ void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
 	msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
 
     /*
-     * Pass control to the header processing routine.
+     * Set up MIME processing options, if any. MIME_OPT_DISABLE_MIME disables
+     * special processing of Content-Type: headers, and thus, causes all text
+     * after the primary headers to be treated as the message body.
      */
-    state->mime_state = mime_state_alloc(MIME_OPT_REPORT_TRUNC_HEADER,
+    mime_options = MIME_OPT_REPORT_TRUNC_HEADER;
+    if (var_disable_mime_input) {
+	mime_options |= MIME_OPT_DISABLE_MIME;
+    } else {
+	/* Turn off strict MIME checks if bouncing or forwarding mail. */
+	if (state->flags & CLEANUP_FLAG_FILTER) {
+	    if (var_strict_8bitmime)
+		mime_options |= (MIME_OPT_REPORT_8BIT_IN_HEADER
+				 | MIME_OPT_REPORT_8BIT_IN_7BIT_BODY);
+	    if (var_strict_encoding)
+		mime_options |= MIME_OPT_REPORT_ENCODING_DOMAIN;
+	}
+    }
+    state->mime_state = mime_state_alloc(mime_options,
 					 cleanup_header_callback,
 					 cleanup_header_done_callback,
 					 cleanup_body_callback,
 					 (MIME_STATE_ANY_END) 0,
 					 (void *) state);
+
+    /*
+     * Pass control to the header processing routine.
+     */
     state->action = cleanup_message_headerbody;
     cleanup_message_headerbody(state, type, buf, len);
 }

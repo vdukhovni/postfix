@@ -389,7 +389,12 @@ int     smtp_xfer(SMTP_STATE *state)
 	} \
     } while (0)
 
-#define RETURN(x) do { vstring_free(next_command); return (x); } while (0)
+#define RETURN(x) do { \
+	vstring_free(next_command); \
+	if (state->mime_state) \
+	    state->mime_state = mime_state_free(state->mime_state); \
+	return (x); \
+    } while (0)
 
 #define SENDER_IS_AHEAD \
 	(recv_state < send_state || recv_rcpt != send_rcpt)
@@ -761,12 +766,12 @@ int     smtp_xfer(SMTP_STATE *state)
 	 * transaction in progress.
 	 */
 	if (send_state == SMTP_STATE_DOT && nrcpt > 0) {
-	    downgrading = ((state->features & SMTP_FEATURE_8BITMIME) == 0
-		     && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0);
+	    downgrading =
+		(var_disable_mime_oconv == 0
+		 && (state->features & SMTP_FEATURE_8BITMIME) == 0
+		 && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0);
 	    if (downgrading)
-		state->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE
-					 | MIME_OPT_REPORT_8BIT_IN_7BIT_BODY
-					   | MIME_OPT_REPORT_8BIT_IN_HEADER,
+		state->mime_state = mime_state_alloc(MIME_OPT_DOWNGRADE,
 						     smtp_header_out,
 						     (MIME_STATE_ANY_END) 0,
 						     smtp_text_out,

@@ -6458,6 +6458,11 @@ Apologies for any names omitted.
 	at the time that the SMTP client could suffer from a similar
 	problem.
 
+20020516
+
+	Updated the FILTER_README file to turn off DNS lookups in
+	the SMTP client that feeds mail into a content filter.
+
 20020517
 
 	Cleanup: Mailbox-Line: message header labels should be
@@ -6465,12 +6470,15 @@ Apologies for any names omitted.
 
 20020515-21
 
-	Feature: new MIME parser, written from scratch, that recognizes
-	the structure of MIME encapsulated mail. MIME header scanning
-	now happens in header_checks, and are is faster than
-	body_checks could ever be. Thus also eliminates the problem
-	with multi-line MIME headers being matched one line at a
-	time. Files: global/mime_state.[hc], cleanup/cleanup_message.c.
+	Feature: new MIME parser, written from scratch, that
+	recognizes the structure of MIME encapsulated mail. Influenced
+	by comments from Victor Duchovny. This code can detect but
+	will not fix illegal MIME encapsulations that Liviu Daia
+	expresses concern about.  MIME header scanning now happens
+	in header_checks, and is faster than body_checks could ever
+	be. Thus also eliminates the problem with multi-line MIME
+	headers being matched one line at a time.  Files:
+	global/mime_state.[hc], cleanup/cleanup_message.c.
 
 20020521-22
 
@@ -6478,22 +6486,54 @@ Apologies for any names omitted.
 	the Postfix SMTP client. File: smtp/smtp_proto.c.
 
 	Logging: the Postfix SMTP and LMTP clients now report the
-	stage of the protocol when it reports a server reply.
+	stage of the protocol when they report a server reply.
 	File:  smtp/smtp_proto.c, lmtp/lmtp_proto.c.
 
-	Bugfix: the SMTP server complained about ignored client
-	attributes in mail submitted with "sendmail -bs".
-	File: smtpd/smtpd.c.
+	Bugfix: the SMTP server warned about ignored client
+	attributes (introduced in 20020510) in mail submitted with
+	"sendmail -bs".  File: smtpd/smtpd.c.
 
 20020525
 
+	Feature: separation of header checks into header_checks
+	(all primary headers except MIME related headers),
+	mime_header_checks (all MIME headers including MIME headers
+	at the start of messages) and nested_header_checks (headers
+	of attached messages, except MIME related headers).
+
 	Cleanup: broke out the header value parser from the MIME
-	processor so it can be used elsewhere. File:
+	processor so that the code can be reused elsewhere. File:
 	global/header_token.c.
 
-	Cleanup needs an option to revert to old non-MIME
-	aware behavior - this must override the MIME header
-	match override.
+	Compatibility: Postfix now recognizes "name :" as a valid
+	message header, but normalizes it to "name:" form or else
+	lots of things would break all over the place.  Files:
+	global/is_header.c, global/mime_state.c.
+
+20020526
+
+	Bugfix: the SMTP server now disallows RCPT TO:<"">, just
+	like it disallows RCPT TO:<>.  File: smtpd/smtpd.c.
+
+	Feature: disable_mime_input_processing=yes/no controls
+	whether Postfix recognizes (and optionally enforces) MIME
+	formats while receiving mail. Default is NO.
+
+	Feature: disable_mime_output_conversion=yes/no controls
+	whether Postfix will convert 8BITMIME to 7BIT mail when
+	delivering to an SMTP server that does not announce 8BITMIME.
+	Default is NO.
+
+	Feature: strict_8bitmime=yes/no controls whether Postfix
+	rejects 8-bit characters in headers and 7-bit body parts.
+	This blocks mail from poorly written software, as well as
+	mail that is piped into ancient /bin/mail implementations
+	that do not MIME format 8-bit content. Default is NO.
+
+	Feature: strict_mime_encoding_domain=yes/no controls whether
+	Postfix rejects illegal content transfer encodings for
+	multipart/* and message/*. This blocks mail from poorly
+	written software. Default is NO.
 
 Open problems:
 

@@ -617,11 +617,8 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     /*
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
-     * 
-     * XXX !allow_empty_addr should also reject <"">.
      */
-    if ((naddr < 1 && !allow_empty_addr)
-	|| naddr > 1
+    if (naddr > 1
 	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
@@ -639,6 +636,16 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     else
 	vstring_strcpy(arg->vstrval, "");
     arg->strval = STR(arg->vstrval);
+
+    /*
+     * Report trouble. Log a warning only if we are going to sleep+reject so
+     * that attackers can't flood our logfiles.
+     */
+    if (arg->strval[0] == 0 && !allow_empty_addr) {
+	msg_warn("Illegal address syntax from %s in %s command: %s",
+		 state->namaddr, state->where, STR(arg->vstrval));
+	err = "501 Bad address syntax";
+    }
 
     /*
      * Cleanup.

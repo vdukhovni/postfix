@@ -99,7 +99,14 @@ restrictions</a>
 
 The <b>header_checks</b> parameter restricts what is allowed in
 message headers. Patterns are applied to entire logical message
-headers, even when a header spans multiple lines of text.
+headers, even when a header spans multiple lines of text. 
+
+<p>
+
+By default, the same <b>header_checks</b> patterns are used for
+primary message headers, for MIME headers (including headers at
+the start of multipart body parts), and for the headers at the
+beginning of attached email messages.
 
 <p>
 
@@ -163,8 +170,7 @@ mail still to be rejected.</i>
 <h2> Body filtering</h2>
 
 The <b>body_checks</b> parameter restricts what text is
-is allowed in message body lines (including MIME headers
-within the message body).
+is allowed in message body lines.
 
 <p>
 

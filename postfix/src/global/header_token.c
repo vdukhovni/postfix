@@ -28,7 +28,7 @@
 /*	quoted-string, comment, control characters, and a set of
 /*	user-specified special characters.
 /*
-/*	A token type is one of the following:
+/*	A result token type is one of the following:
 /* .IP HEADER_TOK_QSTRING
 /*	Quoted string as per RFC 822.
 /* .IP HEADER_TOK_TOKEN
@@ -46,11 +46,12 @@
 /*
 /*	Arguments:
 /* .IP token
-/*	Result array of HEADER_TOKEN structures.
+/*	Result array of HEADER_TOKEN structures. Token string values
+/*	are pointers to null-terminated substrings in the token_buffer.
 /* .IP token_len
 /*	Length of the array of HEADER_TOKEN structures.
 /* .IP token_buffer
-/*	Storage for result token values.
+/*	Storage for result token string values.
 /* .IP ptr
 /*	Input/output read position. The input is a null-terminated string.
 /* .IP specials

@@ -130,9 +130,10 @@ machine runs into a resource problem.  This approach uses content
 filtering software that can receive and deliver mail via SMTP.
 
 You can expect to lose about a factor of two in Postfix performance
-for transit mail (not delivered on the same machine) that arrives
-and leaves via SMTP; and each temporary file created by the content
-filter adds another factor to the performance loss.
+for transit mail that arrives and leaves via SMTP, provided that
+the content filter creates no temporary files. Each temporary file
+created by the content filter adds another factor to the performance
+loss.
 
 We will set up a content filtering program that receives SMTP mail
 via localhost port 10025, and that submits SMTP mail back into
@@ -386,6 +387,8 @@ localhost:10026     inet  n      -      n      -       -      smtpd
 #
 cleanup2            unix  n      -      n      -       0      cleanup
     -o header_checks=
+    -o mime_header_checks=
+    -o nested_header_checks=
     -o body_checks=
 #
 # The normal "smtp" delivery agent for contrast with "scan".
