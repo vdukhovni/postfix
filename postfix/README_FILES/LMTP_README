@@ -1,3 +1,7 @@
+This document describes mail delivery via LMTP including Cyrus.
+For an overview of all methods to host domains with Postfix, see
+the HOSTING_README file.
+
 1 - Postfix LMTP support
 ========================
 

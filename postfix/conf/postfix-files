@@ -223,7 +223,6 @@ $readme_directory/SMTPD_PROXY_README:f:root:-:644
 $readme_directory/ULTRIX_README:f:root:-:644
 $readme_directory/UUCP_README:f:root:-:644
 $readme_directory/VERP_README:f:root:-:644
-$readme_directory/VIRTUAL_MAILBOX_README:f:root:-:644
-$readme_directory/VIRTUAL_README:f:root:-:644:o
+$readme_directory/VIRTUAL_README:f:root:-:644
 $readme_directory/XCLIENT_README:f:root:-:644
 $readme_directory/XFORWARD_README:f:root:-:644

@@ -93,7 +93,7 @@
 /*	The following \fBmain.cf\fR parameters are especially relevant to
 /*	this program. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
-/* .IP \fBrate_limiter_time_unit\fR
+/* .IP \fBclient_rate_time_unit\fR
 /*	The unit of time over which connection rates are calculated.
 /* .IP \fBclient_connection_status_update_time\fR
 /*	Time interval for logging the maximal connection count
@@ -251,6 +251,11 @@ typedef struct {
 	    ANVIL_REMOTE_DROP_ONE((local)->anvil_remote); \
 	(local)->anvil_remote = (remote); \
     } while(0)
+
+/* Test if this remote site is listed for this local client. */
+
+#define ANVIL_LOCAL_REMOTE_LINKED(local, remote) \
+    ((local)->anvil_remote == (remote))
 
 /* Drop connection from local server. */
 
@@ -433,17 +438,16 @@ static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
 		 (unsigned long) client_stream, ident);
 
     /*
-     * Look up the remote client.
+     * Update local and remote info if this remote site is listed for this
+     * local client.
      */
-    if ((anvil_remote =
-	 (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) != 0)
+    if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) != 0
+	&& (anvil_remote =
+	    (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) != 0
+	&& ANVIL_LOCAL_REMOTE_LINKED(anvil_local, anvil_remote)) {
 	ANVIL_REMOTE_DROP_ONE(anvil_remote);
-
-    /*
-     * Update the local client information.
-     */
-    if ((anvil_local = (ANVIL_LOCAL *) vstream_context(client_stream)) != 0)
 	ANVIL_LOCAL_DROP_ONE(anvil_local, anvil_remote);
+    }
     if (msg_verbose)
 	msg_info("%s: anvil_local 0x%lx",
 		 myname, (unsigned long) anvil_local);

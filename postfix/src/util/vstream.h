@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <setjmp.h>
+#include <unistd.h>
 
  /*
   * Utility library.

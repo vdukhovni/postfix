@@ -8863,7 +8863,8 @@ Apologies for any names omitted.
 
 	Robustness: save and restore the resolver _res.options
 	settings before and after DNS lookup, to avoid surprises
-	in third-party code. File: dns/dns_lookup.c.
+	in third-party code. This may eliminate some "localhost
+	not found" problems. File: dns/dns_lookup.c.
 
 20031216
 
@@ -9017,7 +9018,11 @@ Apologies for any names omitted.
 	Bickers.
 
 	Change: queue minfree limit is now 1.5 * message size limit.
-	Files: smtpd/smtpd_check.c.
+	File: smtpd/smtpd_check.c.
+
+	Bugfix: apply hostname restriction even when host address
+	lookup fails in check_{sender,recipient}_{ns,mx}_access.
+	File: smtpd/smtpd_check.c.
 
 20040115
 
@@ -9026,9 +9031,6 @@ Apologies for any names omitted.
 	report really serious trouble with the destination.  Files:
 	*qmgr/qmgr_deliver.c.
 
-	Bugfix: report lost connection and timeout as a serious
-	destination problem. Files: [sl]mtp/[sl]mtp_trouble.c.
-
 	Cleanup: in postfix-files, symbolic links and hard links
 	are now first-class entries with explicit mention of
 	source and destination pathnames. Files: postfix-install,
@@ -9036,16 +9038,20 @@ Apologies for any names omitted.
 
 20040116
 
-	Cleanup: sendmail -v caused one mail delivery reports upon
+	Cleanup: sendmail -v caused one mail delivery report upon
 	every delivery attempt, not just the first one. The fix is
 	to "kill" a queue file record after the first delivery
-	attempt. Files:  *qmgr/qmgr_active.c, *qmgr/qmgr_message.c,
-	global/rec_type.c.
+	attempt. This means a new record type. Files:  *qmgr/qmgr_active.c,
+	*qmgr/qmgr_message.c, global/rec_type.c.
+
+	Cleanup: in anticipation of other built-in rate limiters,
+	the client_connection_rate_time_unit parameter is renamed
+	to client_rate_time_unit.
+
+	Documentation: finished the HOSTING_README file with an
+	overview of methods to host domains with Postfix.
 
 Open problems:
-
-	Low: in the SMTP client, pass the session, request and
-	state structures as separate arguments.
 
 	High: when virtual aliasing is turned off after content
 	filtering, local submissions may escape virtual aliasing.
