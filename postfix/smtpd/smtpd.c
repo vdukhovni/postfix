@@ -97,12 +97,12 @@
 /*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
-/* .IP \fBnotify_classes\fR
-/*	List of error classes. Of special interest are:
 /* .IP \fBlocal_recipient_maps\fR
 /*	List of maps with user names that are local to \fB$myorigin\fR
 /*	or \fB$inet_interfaces\fR. If this parameter is defined,
 /*	then the SMTP server rejects mail for unknown local users.
+/* .IP \fBnotify_classes\fR
+/*	List of error classes. Of special interest are:
 /* .RS
 /* .IP \fBpolicy\fR
 /*	When a client violates any policy, mail a transcript of the
@@ -334,6 +334,7 @@ bool    var_allow_untrust_route;
 int     var_smtpd_junk_cmd_limit;
 bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
+char   *var_smtpd_sasl_realm;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1423,6 +1424,7 @@ int     main(int argc, char **argv)
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
+	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
 	0,
     };
 

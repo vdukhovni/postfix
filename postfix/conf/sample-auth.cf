@@ -64,6 +64,15 @@ smtpd_sasl_auth_enable = no
 #smtpd_sasl_security_options = noanonymous, noplaintext
 smtpd_sasl_security_options = noanonymous
 
+# The smtpd_sasl_local_domain parameter specifies the name of the
+# local authentication realm.
+# 
+# By default, the local authentication realm name is the name of the
+# machine.
+# 
+# smtpd_sasl_local_domain = $mydomain
+smtpd_sasl_local_domain = $myhostname
+
 # SMTP CLIENT CONTROLS
 
 # The smtp_sasl_auth_enable parameter controls whether authentication
@@ -74,14 +83,15 @@ smtpd_sasl_security_options = noanonymous
 smtp_sasl_auth_enable = no
 
 # The smtp_sasl_password_maps parameter specifies the names of lookup
-# tables with one username:password entry per remote hostname.  If a
-# remote host has no username:password entry, then the Postfix SMTP
-# client will not attempt to authenticate to the remote host.
+# tables with one username:password entry per remote hostname or
+# domain.  If a remote host or domain has no username:password entry,
+# then the Postfix SMTP client will not attempt to authenticate to
+# the remote host.
 #
 # The Postfix SMTP client opens the lookup table before going to
 # chroot jail, so you can leave the password file in /etc/postfix.
 #
-smtp_auth_passwd_map = hash:/etc/postfix/saslpass
+smtp_sasl_password_maps = hash:/etc/postfix/saslpass
 
 # The smtp_sasl_security_options parameter controls what authentication
 # mechanisms the local Postfix SMTP client is allowed to use. The
@@ -96,5 +106,5 @@ smtp_auth_passwd_map = hash:/etc/postfix/saslpass
 # 
 # By default, the Postfix SMTP client will not use plaintext passwords.
 #
-#smtpd_sasl_security_options = 
-smtpd_sasl_security_options = noplaintext
+#smtp_sasl_security_options = 
+smtp_sasl_security_options = noplaintext

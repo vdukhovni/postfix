@@ -768,13 +768,14 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, char *name,
     return (SMTPD_CHECK_DUNNO);
 }
 
+static int permit_auth_destination(char *recipient);
+
 /* check_relay_domains - OK/FAIL for message relaying */
 
 static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 			               char *reply_name, char *reply_class)
 {
     char   *myname = "check_relay_domains";
-    static int permit_auth_destination(char *recipient);
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);

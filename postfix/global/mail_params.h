@@ -425,6 +425,9 @@ extern int var_max_queue_time;
 #define DEF_DELAY_WARN_TIME	0
 extern int var_delay_warn_time;
 
+ /*
+  * Queue manager: various in-core message and recipient limits.
+  */
 #define VAR_QMGR_ACT_LIMIT	"qmgr_message_active_limit"
 #define DEF_QMGR_ACT_LIMIT	1000
 extern int var_qmgr_active_limit;
@@ -432,6 +435,43 @@ extern int var_qmgr_active_limit;
 #define VAR_QMGR_RCPT_LIMIT	"qmgr_message_recipient_limit"
 #define DEF_QMGR_RCPT_LIMIT	10000
 extern int var_qmgr_rcpt_limit;
+
+#define VAR_QMGR_MSG_RCPT_LIMIT	"qmgr_message_recipient_minimum"
+#define DEF_QMGR_MSG_RCPT_LIMIT	10
+extern int var_qmgr_msg_rcpt_limit;
+
+#define VAR_XPORT_RCPT_LIMIT	"default_recipient_limit"
+#define _XPORT_RCPT_LIMIT	"_recipient_limit"
+#define DEF_XPORT_RCPT_LIMIT	10000
+extern int var_xport_rcpt_limit;
+
+#define VAR_STACK_RCPT_LIMIT	"default_extra_recipient_limit"
+#define _STACK_RCPT_LIMIT	"_extra_recipient_limit"
+#define DEF_STACK_RCPT_LIMIT	1000
+extern int var_stack_rcpt_limit;
+
+ /*
+  * Queue manager: default job scheduler parameters.
+  */
+#define VAR_DELIVERY_SLOT_COST	"default_delivery_slot_cost"
+#define _DELIVERY_SLOT_COST	"_delivery_slot_cost"
+#define DEF_DELIVERY_SLOT_COST	10
+extern int var_delivery_slot_cost;
+
+#define VAR_DELIVERY_SLOT_LOAN	"default_delivery_slot_loan"
+#define _DELIVERY_SLOT_LOAN	"_delivery_slot_loan"
+#define DEF_DELIVERY_SLOT_LOAN	5
+extern int var_delivery_slot_loan;
+
+#define VAR_DELIVERY_SLOT_DISCOUNT	"default_delivery_slot_discount"
+#define _DELIVERY_SLOT_DISCOUNT	"_delivery_slot_discount"
+#define DEF_DELIVERY_SLOT_DISCOUNT	50
+extern int var_delivery_slot_discount;
+
+#define VAR_MIN_DELIVERY_SLOTS	"default_minimum_delivery_slots"
+#define _MIN_DELIVERY_SLOTS	"_minimum_delivery_slots"
+#define DEF_MIN_DELIVERY_SLOTS	3
+extern int var_min_delivery_slots;
 
 #define VAR_QMGR_FUDGE		"qmgr_fudge_factor"
 #define DEF_QMGR_FUDGE		100
@@ -657,6 +697,10 @@ extern bool var_smtpd_sasl_enable;
 #define DEF_SMTPD_SASL_OPTS	"noanonymous"
 extern char *var_smtpd_sasl_opts;
 
+#define VAR_SMTPD_SASL_REALM	"smtpd_sasl_local_domain"
+#define DEF_SMTPD_SASL_REALM	"$myhostname"
+extern char *var_smtpd_sasl_realm;
+
  /*
   * SASL authentication support, client side.
   */
@@ -758,6 +802,10 @@ extern int var_queue_minfree;
 #define VAR_HEADER_CHECKS	"header_checks"
 #define DEF_HEADER_CHECKS	""
 extern char *var_header_checks;
+
+#define VAR_BODY_CHECKS		"body_checks"
+#define DEF_BODY_CHECKS		""
+extern char *var_body_checks;
 
  /*
   * Bounce service: truncate bounce message that exceed $bounce_size_limit.

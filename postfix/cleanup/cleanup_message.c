@@ -263,7 +263,7 @@ static void cleanup_header(CLEANUP_STATE *state)
 
 	if ((value = maps_find(cleanup_header_checks, header, 0)) != 0) {
 	    if (strcasecmp(value, "REJECT") == 0) {
-		msg_info("%s: reject: header %.100s; from=<%s> to=<%s>",
+		msg_info("%s: reject: header %.200s; from=<%s> to=<%s>",
 			 state->queue_id, header, state->sender,
 			 state->recip ? state->recip : "unknown");
 		state->errs |= CLEANUP_STAT_CONT;
@@ -490,6 +490,26 @@ static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int 
      * Copy body record to the output.
      */
     if (type == REC_TYPE_NORM || type == REC_TYPE_CONT) {
+
+	/*
+	 * Crude message body content filter for emergencies. This code has
+	 * several problems: it sees one line at a time, and therefore does
+	 * not recognize multi-line MIME headers in the body; it looks at
+	 * long lines only in chunks of line_length_limit (2048) characters;
+	 * it is easily bypassed with encodings and with multi-line tricks.
+	 */
+	if ((state->flags & CLEANUP_FLAG_FILTER) && cleanup_body_checks) {
+	    const char *value;
+
+	    if ((value = maps_find(cleanup_body_checks, buf, 0)) != 0) {
+		if (strcasecmp(value, "REJECT") == 0) {
+		    msg_info("%s: reject: body %.200s; from=<%s> to=<%s>",
+			     state->queue_id, buf, state->sender,
+			     state->recip ? state->recip : "unknown");
+		    state->errs |= CLEANUP_STAT_CONT;
+		}
+	    }
+	}
 	cleanup_out(state, type, buf, len);
     }
 

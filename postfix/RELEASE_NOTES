@@ -1,3 +1,16 @@
+Major changes with snapshot-20000526
+====================================
+
+Specify "body_checks = regexp:/etc/postfix/body_checks" for a quick
+and dirty emergency content filter that looks at non-header lines
+one line at a time (including MIME headers inside the message body).
+Details in conf/sample-filter.cf.
+
+This version introduces a new queue manager with a clever scheduler
+by Patrik Rak that allow mailing list deliveries be pre-empted by
+non-list mail, while preserving correct average delivery delays.
+The queue manager is build as nqmgr. It needs further testing.
+
 Major changes with snapshot-20000514
 ====================================
 

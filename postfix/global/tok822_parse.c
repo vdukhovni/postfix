@@ -464,7 +464,7 @@ static void tok822_quote_atom(TOK822 *tp)
 
 /* tok822_comment - tokenize comment */
 
-const char *tok822_comment(TOK822 *tp, const char *str)
+static const char *tok822_comment(TOK822 *tp, const char *str)
 {
     TOK822 *tc = 0;
     int     ch;
@@ -501,7 +501,7 @@ const char *tok822_comment(TOK822 *tp, const char *str)
 
 /* tok822_group - cluster a group of tokens */
 
-TOK822 *tok822_group(int group_type, TOK822 *left, TOK822 *right, int sync_type)
+static TOK822 *tok822_group(int group_type, TOK822 *left, TOK822 *right, int sync_type)
 {
     TOK822 *group;
     TOK822 *sync;

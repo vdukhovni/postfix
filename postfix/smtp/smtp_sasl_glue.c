@@ -221,9 +221,11 @@ int     smtp_sasl_passwd_lookup(SMTP_STATE *state)
 	msg_panic("%s: passwd map not initialized", myname);
 
     /*
-     * Look up the per-server password information.
+     * Look up the per-server password information. Try the hostname first,
+     * then try the destination.
      */
-    if ((value = maps_find(smtp_sasl_passwd_map, state->session->host, 0)) != 0) {
+    if ((value = maps_find(smtp_sasl_passwd_map, state->session->host, 0)) != 0
+	|| (value = maps_find(smtp_sasl_passwd_map, state->request->nexthop, 0)) != 0) {
 	state->sasl_username = mystrdup(value);
 	passwd = split_at(state->sasl_username, ':');
 	state->sasl_passwd = mystrdup(passwd ? passwd : "");

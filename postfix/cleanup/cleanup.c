@@ -60,6 +60,15 @@
 /*	this program. See the Postfix \fBmain.cf\fR file for syntax details
 /*	and for default values. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
+/* .SH Content filtering
+/* .IP \fBbody_checks\fR
+/*	Lookup tables with content filters for message body lines.
+/*	These filters see physical lines one at a time, in chunks of
+/*	at most line_length_limit bytes.
+/* .IP \fBheader_checks\fR
+/*	Lookup tables with content filters for message header lines.
+/*	These filters see logical headers one at a time, including headers
+/*	that span multiple lines.
 /* .SH Miscellaneous
 /* .ad
 /* .fi

@@ -144,14 +144,14 @@ SMTPD(8)                                                 SMTPD(8)
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
-       <b>notify</b><i>_</i><b>classes</b>
-              List of error classes. Of special interest are:
-
        <b>local</b><i>_</i><b>recipient</b><i>_</i><b>maps</b>
               List of maps with user  names  that  are  local  to
               <b>$myorigin</b> or <b>$inet</b><i>_</i><b>interfaces</b>. If this parameter is
               defined, then the  SMTP  server  rejects  mail  for
               unknown local users.
+
+       <b>notify</b><i>_</i><b>classes</b>
+              List of error classes. Of special interest are:
 
               <b>policy</b> When  a  client  violates any policy, mail a
                      transcript of the entire SMTP session to the
