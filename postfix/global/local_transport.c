@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <local_transport.h>
 /*
-/*	const char *def_local_transport()
+/*	const char *get_def_local_transport()
 /*
 /*	int	match_def_local_transport(transport)
 /*	const char *transport;
@@ -19,7 +19,7 @@
 /*	local transport, followed by the names of zero or more other
 /*	transports that deliver locally.
 /*
-/*	def_local_transport() returns the name of the default local
+/*	get_def_local_transport() returns the name of the default local
 /*	transport, that is, the first transport name specified with
 /*	the "local_transports" configuration parameter.
 /*
@@ -29,7 +29,7 @@
 /*	match_any_local_transport() determines if the named transport is
 /*	listed in the "local_transports" configuration parameter.
 /* SEE ALSO
-/*	resolve_local(3), see if address resolves locally.
+/*	resolve_local(3), see if address resolves locally
 /* LICENSE
 /* .ad
 /* .fi
@@ -84,13 +84,14 @@ static void local_transport_init(void)
     /*
      * Sanity check.
      */
-    if (!match_any_local_transport(local_transport_name))
+    if (!match_any_local_transport(local_transport_name)
+	|| !match_def_local_transport(local_transport_name))
 	msg_panic("%s: unable to intialize", myname);
 }
 
-/* def_local_transport - determine default local transport */
+/* get_def_local_transport - determine default local transport */
 
-const char *def_local_transport(void)
+const char *get_def_local_transport(void)
 {
 
     /*

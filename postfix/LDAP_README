@@ -67,13 +67,6 @@ Defaults are given in parentheses:
 	substitute for the address Postfix is trying to resolve, e.g.
 		ldapsource_query_filter = (&(mail=%s)(paid_up=true))
 
-    lookup_wildcards (no)
-	Whether to search for addresses containing '*'. This has huge
-	potential for spammers, so by default, any address containing
-	'*' will cause the lookup to return nothing. Unless another
-	dictionary returns a valid lookup for it, the mail will bounce
-	with an 'unknown user' message.
-
     result_attribute (maildrop)
 	The attribute Postfix will read from any directory entries
 	returned by the lookup, to be resolved to an email address.

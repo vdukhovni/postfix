@@ -36,10 +36,8 @@
 /* .IP \fIldapsource_\fRquery_filter
 /*	The filter used to search for directory entries, for example
 /*	\fI(mailacceptinggeneralid=%s)\fR.
-/* .IP \fIldapsource_\fRlookup_wildcards
-/*	Whether to allow '*' in addresses to be looked up.
 /* .IP \fIldapsource_\fRresult_attribute
-/*	The attribute returned by the search, in which we expect to find
+/*	The attribute returned by the search, in which to find
 /*	RFC822 addresses, for example \fImaildrop\fR.
 /* .IP \fIldapsource_\fRbind
 /*	Whether or not to bind to the server -- LDAP v3 implementations don't
@@ -49,7 +47,7 @@
 /* .IP \fIldapsource_\fRbind_pw
 /*	\&... and this password.
 /* BUGS
-/*	Of course not! :)
+/*	Thrice a year, needed or not.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* DIAGNOSTICS
@@ -65,8 +63,7 @@
 /*	Yorktown Heights, NY 10532, USA
 /*
 /*	John Hensley
-/*	Merit Network, Inc.
-/*	hensley@merit.edu
+/*	stormroll@yahoo.com
 /*
 /*--*/
 
@@ -78,6 +75,8 @@
 
 #include <sys/time.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 #include <signal.h>
 #include <setjmp.h>
 #include <stdlib.h>
@@ -92,12 +91,9 @@
 #include "dict.h"
 #include "dict_ldap.h"
 
- /*
-  * Grr.. this module should sit in the global library, because it interacts
-  * with application-specific configuration parameters. I will have to
-  * generalize the manner in which new dictionary types can register
-  * themselves, including their configuration file parameters.
-  */
+/* Global library. */
+
+#include "../global/mail_conf.h"	/* XXX Fixme. */
 
 /*
  * structure containing all the configuration parameters for a given
@@ -110,7 +106,6 @@ typedef struct {
     int     server_port;
     char   *search_base;
     char   *query_filter;
-    int     lookup_wildcards;
     char   *result_attribute;
     int     bind;
     char   *bind_dn;
@@ -139,7 +134,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     LDAPMessage *res = 0;
     LDAPMessage *entry = 0;
     struct timeval tv;
-    VSTRING *filter_buf = 0;
+    VSTRING *escaped_name = 0,
+           *filter_buf = 0;
     char  **attr_values;
     long    i = 0;
     int     rc = 0;
@@ -148,17 +144,6 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
            *end;
 
     dict_errno = 0;
-
-    /*
-     * Unless configured to allow them, refuse to search for a name
-     * containing wildcards.
-     */
-    if (!dict_ldap->lookup_wildcards) {
-	if (strstr(name, "*") != NULL) {
-	    msg_warn("%s: Address (%s) contains a wildcard; refusing to search. See the lookup_wildcards attribute in LDAP_README for more information.", myname, name);
-	    return (0);
-	}
-    }
 
     /*
      * Initialize.
@@ -171,15 +156,19 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     if (msg_verbose)
 	msg_info("%s: In dict_ldap_lookup", myname);
 
-    if (dict_ldap->ld == 0) {
-	msg_warn("%s: no existing connection for ldapsource %s, reopening",
-		 myname, dict_ldap->ldapsource);
+    if (dict_ldap->ld == NULL) {
+	if (msg_verbose)
+	    msg_info("%s: no existing connection for ldapsource %s, reopening",
+		     myname, dict_ldap->ldapsource);
+
+	if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
+	    msg_warn("%s: error setting signal handler for open timeout: %m", myname);
+	    dict_errno = DICT_ERR_RETRY;
+	    return (0);
+	}
 	if (msg_verbose)
 	    msg_info("%s: connecting to server %s", myname,
 		     dict_ldap->server_host);
-
-	if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR)
-	    msg_fatal("%s: signal: %m", myname);
 
 	alarm(dict_ldap->timeout);
 	if (setjmp(env) == 0)
@@ -187,19 +176,23 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 				      (int) dict_ldap->server_port);
 	alarm(0);
 
-	if (signal(SIGALRM, saved_alarm) == SIG_ERR)
-	    msg_fatal("%s: signal: %m", myname);
-
+	if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
+	    msg_warn("%s: error resetting signal handler after open: %m", myname);
+	    dict_errno = DICT_ERR_RETRY;
+	    return (0);
+	}
 	if (msg_verbose)
 	    msg_info("%s: after ldap_open", myname);
 
-	if (dict_ldap->ld == 0) {
-	    msg_fatal("%s: Unable to contact LDAP server %s",
-		      myname, dict_ldap->server_host);
+	if (dict_ldap->ld == NULL) {
+	    msg_warn("%s: Unable to contact LDAP server %s",
+		     myname, dict_ldap->server_host);
+	    dict_errno = DICT_ERR_RETRY;
+	    return (0);
 	} else {
 
 	    /*
-	     * If this server requires us to bind, do so.
+	     * If this server requires a bind, do so.
 	     */
 	    if (dict_ldap->bind) {
 		if (msg_verbose)
@@ -209,7 +202,9 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 		rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
 				 dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
 		if (rc != LDAP_SUCCESS) {
-		    msg_fatal("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
+		    msg_warn("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
+		    dict_errno = DICT_ERR_RETRY;
+		    return (0);
 		} else {
 		    if (msg_verbose)
 			msg_info("%s: Successful bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
@@ -220,37 +215,52 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 			 myname, dict_ldap->ldapsource);
 	}
     }
-
     /*
-     * Look for entries matching query_filter.
+     * Prepare the query.
      */
     tv.tv_sec = dict_ldap->timeout;
     tv.tv_usec = 0;
+    escaped_name = vstring_alloc(20);
     filter_buf = vstring_alloc(30);
+
+    /* Any wildcards and escapes in the supplied address should be escaped. */
+    if (strchr(name, '*') || strchr(name, '\\')) {
+	if (msg_verbose)
+	    msg_info("%s: found wildcard in %s", myname, name);
+	for (sub = (char *) name; *sub != '\0'; sub++) {
+	    if (*sub == '*' || *sub == '\\') {
+		vstring_strncat(escaped_name, "\\", 1);
+		vstring_strncat(escaped_name, sub, 1);
+	    } else {
+		vstring_strncat(escaped_name, sub, 1);
+	    }
+	}
+	if (msg_verbose)
+	    msg_info("%s: with wildcards escaped, it's %s", myname, vstring_str(escaped_name));
+    } else
+	vstring_strcpy(escaped_name, (char *) name);
 
     /* Does the supplied query_filter even include a substitution? */
     if (strstr(dict_ldap->query_filter, "%s") == NULL) {
+	/* No, log the fact and continue. */
 	msg_warn("%s: fixed query_filter %s is probably useless", myname,
 		 dict_ldap->query_filter);
 	vstring_strcpy(filter_buf, dict_ldap->query_filter);
     } else {
 
-	/*
-	 * OK, let's replace all the instances of %s with the address to look
-	 * up.
-	 */
+	/* Yes, replace all instances of %s with the address to look up. */
 	sub = dict_ldap->query_filter;
 	end = sub + strlen(dict_ldap->query_filter);
 	while (sub < end) {
 
 	    /*
 	     * Make sure it's %s and not something else, though it wouldn't
-	     * really matter; we could skip any single character.
+	     * really matter; the token could be any single character.
 	     */
 	    if (*(sub) == '%') {
 		if ((sub + 1) != end && *(sub + 1) != 's')
-		    msg_fatal("%s: invalid lookup substitution format '%%%c'!", myname, *(sub + 1));
-		vstring_strcat(filter_buf, name);
+		    msg_warn("%s: invalid lookup substitution format '%%%c'!", myname, *(sub + 1));
+		vstring_strcat(filter_buf, vstring_str(escaped_name));
 		sub++;
 	    } else
 		vstring_strncat(filter_buf, sub, 1);
@@ -258,6 +268,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	}
     }
 
+    /* On to the search. */
     if (msg_verbose)
 	msg_info("%s: searching with filter %s", myname,
 		 vstring_str(filter_buf));
@@ -265,33 +276,24 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     if ((rc = ldap_search_st(dict_ldap->ld, dict_ldap->search_base,
 			     LDAP_SCOPE_SUBTREE,
 			     vstring_str(filter_buf),
-			     0, 0, &tv, &res)) != LDAP_SUCCESS) {
-
-	ldap_unbind(dict_ldap->ld);
-	dict_ldap->ld = 0;
-	if (msg_verbose)
-	    msg_info("%s: freed connection handle for LDAP source %s", myname, dict_ldap->ldapsource);
-	msg_fatal("%s: Unable to search base %s at server %s (%d -- %s): ",
-		  myname, dict_ldap->search_base, dict_ldap->server_host, rc,
-		  ldap_err2string(rc));
-
-    } else {
-
+			     0, 0, &tv, &res)) == LDAP_SUCCESS) {
 	/*
-	 * Extract the requested result_attribute.
+	 * Search worked; extract the requested result_attribute.
 	 */
 	if (msg_verbose)
-	    msg_info("%s: search found %d", myname,
+	    msg_info("%s: search found %d matches", myname,
 		     ldap_count_entries(dict_ldap->ld, res));
 
+	/* There could have been lots of hits. */
 	for (entry = ldap_first_entry(dict_ldap->ld, res); entry != NULL; entry = ldap_next_entry(dict_ldap->ld, entry)) {
+
+	    /* And each entry could have multiple attributes. */
 	    attr_values = ldap_get_values(dict_ldap->ld, entry,
 					  dict_ldap->result_attribute);
 	    if (attr_values == NULL) {
 		msg_warn("%s: entry doesn't have any values for %s", myname, dict_ldap->result_attribute);
 		continue;
 	    }
-
 	    /*
 	     * Append each returned address to the result list.
 	     */
@@ -304,18 +306,28 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 	}
 	if (msg_verbose)
 	    msg_info("%s: search returned: %s", myname, vstring_str(result));
+    } else {
+	/* Rats. That didn't work. */
+	msg_warn("%s: search error %d: %s ", myname, rc,
+		 ldap_err2string(rc));
+
+	/*
+	 * Tear down the connection so it gets set up from scratch on the
+	 * next lookup.
+	 */
+	ldap_unbind(dict_ldap->ld);
+	dict_ldap->ld = NULL;
+
+	/* And tell the caller to try again later. */
+	dict_errno = DICT_ERR_RETRY;
     }
 
-    /*
-     * Cleanup. Always return with dict_errno set when we were unable to
-     * perform the query.
-     */
+    /* Cleanup. */
     if (res != 0)
 	ldap_msgfree(res);
-    else
-	dict_errno = 1;
     if (filter_buf != 0)
 	vstring_free(filter_buf);
+
     return (VSTRING_LEN(result) > 0 ? vstring_str(result) : 0);
 }
 
@@ -412,17 +424,6 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: %s is %s", myname, vstring_str(config_param),
 		 dict_ldap->query_filter);
 
-    /*
-     * get configured value of "ldapsource_lookup_wildcards"; default to
-     * false
-     */
-    vstring_sprintf(config_param, "%s_lookup_wildcards", ldapsource);
-    dict_ldap->lookup_wildcards =
-	get_mail_conf_bool(vstring_str(config_param), 0);
-    if (msg_verbose)
-	msg_info("%s: %s is %d", myname, vstring_str(config_param),
-		 dict_ldap->lookup_wildcards);
-
     vstring_sprintf(config_param, "%s_result_attribute", ldapsource);
     dict_ldap->result_attribute =
 	mystrdup((char *) get_mail_conf_str(vstring_str(config_param),
@@ -462,28 +463,33 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	msg_info("%s: connecting to server %s", myname,
 		 dict_ldap->server_host);
 
-    if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR)
-	msg_fatal("%s: signal: %m", myname);
-
+    if ((saved_alarm = signal(SIGALRM, dict_ldap_timeout)) == SIG_ERR) {
+	msg_warn("%s: error setting signal handler for open timeout: %m", myname);
+	dict_errno = DICT_ERR_RETRY;
+	return (0);
+    }
     alarm(dict_ldap->timeout);
     if (setjmp(env) == 0)
 	dict_ldap->ld = ldap_open(dict_ldap->server_host,
 				  (int) dict_ldap->server_port);
     alarm(0);
 
-    if (signal(SIGALRM, saved_alarm) == SIG_ERR)
-	msg_fatal("%s: signal: %m", myname);
-
-    if (msg_verbose)
-	msg_info("%s: after ldap_open", myname);
-
-    if (dict_ldap->ld == 0) {
-	msg_fatal("%s: Unable to contact LDAP server %s",
-		  myname, dict_ldap->server_host);
+    if (signal(SIGALRM, saved_alarm) == SIG_ERR) {
+	msg_warn("%s: error resetting signal handler after open: %m", myname);
+	dict_errno = DICT_ERR_RETRY;
+	return (0);
+    }
+    if (dict_ldap->ld == NULL) {
+	msg_warn("%s: Unable to contact LDAP server %s",
+		 myname, dict_ldap->server_host);
+	dict_errno = DICT_ERR_RETRY;
+	return (0);
     } else {
 
+	if (msg_verbose)
+	    msg_info("%s: after ldap_open", myname);
 	/*
-	 * If this server requires us to bind, do so.
+	 * If this server requires a bind, do so.
 	 */
 	if (dict_ldap->bind) {
 	    if (msg_verbose)
@@ -493,7 +499,9 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	    rc = ldap_bind_s(dict_ldap->ld, dict_ldap->bind_dn,
 			     dict_ldap->bind_pw, LDAP_AUTH_SIMPLE);
 	    if (rc != LDAP_SUCCESS) {
-		msg_fatal("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
+		msg_warn("%s: Unable to bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));
+		dict_errno = DICT_ERR_RETRY;
+		return (0);
 	    } else {
 		if (msg_verbose)
 		    msg_info("%s: Successful bind to server %s as %s (%d -- %s): ", myname, dict_ldap->server_host, dict_ldap->bind_dn, rc, ldap_err2string(rc));

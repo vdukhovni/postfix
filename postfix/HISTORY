@@ -3280,3 +3280,10 @@ Apologies for any names omitted.
 	Robustness: INSTALL.sh no longer uses postmap for sanity checks.
 
 	Feature: INSTALL.sh now has an install_root option.
+
+	Bugfix: INSTALL.sh now installs manual pages with proper
+	permissions and ownership.
+
+	Bugfix: the LDAP client did not properly escape special
+	characters in lookup keys (patch by John Hensley).
+	File: util/dict_ldap.c.

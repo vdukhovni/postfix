@@ -16,3 +16,11 @@
 # transport_maps = hash:/etc/postfix/transport, nis:transport
 # transport_maps = hash:/etc/postfix/transport, netinfo:/transport
 transport_maps = 
+
+# The local_transports parameter defines the name of the default
+# transport for local mail delivery, plus zero or more names of
+# additional transports that are known to deliver locally. The SMTP
+# server's UCE restrictions use this list to decide if an address
+# would be forwarded or not.
+#
+local_transports = local

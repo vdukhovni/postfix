@@ -14,7 +14,7 @@
  /*
   * External interface.
   */
-extern const char *def_local_transport(void);
+extern const char *get_def_local_transport(void);
 extern int match_def_local_transport(const char *);
 extern int match_any_local_transport(const char *);
 

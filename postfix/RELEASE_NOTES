@@ -1,4 +1,4 @@
-Incompatible changes with snapshot 19991120
+Incompatible changes with snapshot 19991122
 ===========================================
 
 - In an SMTPD access map, an all-numeric right-hand side now means
@@ -13,43 +13,51 @@ main.cf.
 SMTPD access control tables. Use the permit_recipient_map feature
 instead. The loss is compensated for (see below).
 
-Major changes with snapshot 19991120
+Major changes with snapshot 19991122
 ====================================
 
+- It is now relatively safe to configure 550 status codes for the
+main.cf unknown_address_reject_code or unknown_client_reject_code
+parameters.  The SMTP server now always sends a 450 (try again)
+reply code when an UCE restriction fails due to a soft DNS error,
+regardless of what main.cf specifies.
+
+- The RBL checks now show the content of TXT records (Simon J Mudd).
+
 - The Postfix SMTP server now understands a wider range of illegal
-address formats in MAIL FROM and RCPT TO commands. In order to
-disable those forms, specify "strict_rfc821_envelopes = yes".
+address forms in MAIL FROM and RCPT TO commands. In order to disable
+those forms, specify "strict_rfc821_envelopes = yes".
 
 - Per-client/helo/sender/recipient UCE restrictions (fully-recursive
 UCE restriction parser). See the RESTRICTION_CLASS file for details.
 
-- Block mail for non-existent users at the SMTP port. On a non-relay
-host, use the following to reject mail for non-existent users and
-for non-local destinations.
+- Block mail for most non-existent users at the SMTP port. Example:
+a non-relaying host could use the following to reject mail for
+non-existent local users and for all non-local destinations.
 
     smtpd_recipient_restrictions =
-	permit_recipient_map unix:passwd .byname
+	reject_unknown_sender
+	permit_recipient_map unix:passwd.byname
 	permit_recipient_map hash:/etc/postfix/canonical
 	permit_recipient_map hash:/etc/postfix/virtual
 	permit_recipient_map hash:/etc/aliases
 	reject
 
-- "postconf -e name=value..." edits the main.cf file.  This is
+I haven't figured out yet how to use this easily on hosts that must
+relay mail for other systems.
+
+- Use "postmap -q key" or "postalias -q key" for testing Postfix
+lookup tables or alias files.
+
+- Use "postconf -e name=value..." edits the main.cf file.  This is
 easier and safer than editing the main.cf file by hand. The edits
 are done on a temporary copy that is renamed into place.
 
-- "postconf -m" displays all supported lookup table types (Scott
-Cotton).
-
-- It is now relatively safe to configure 550 status codes for the
-main.cf unknown_address_reject_code or unknown_client_reject_code
-parameters.  The SMTP server now always sends a 450 (try again)
-reply code when an UCE restriction fails due to a soft DNS error.
-
-- The RBL checks now show the content of TXT records (Simon J Mudd).
+- Use "postconf -m" to display all supported lookup table types
+(Scott Cotton).
 
 - New "permit_auth_destination" UCE restriction for finer-grained
-control (Jesper Skriver).
+access control (Jesper Skriver).
 
 Incompatible changes with postfix-19990906
 ==========================================

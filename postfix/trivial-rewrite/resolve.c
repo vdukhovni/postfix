@@ -197,7 +197,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * next-hop hostname (myself).
      */
     else {
-	vstring_strcpy(channel, def_local_transport());
+	vstring_strcpy(channel, get_def_local_transport());
 	vstring_strcpy(nexthop, var_myhostname);
     }
 

@@ -2,7 +2,7 @@ LINUX SYSLOGD PERFORMANCE
 =========================
 
 LINUX syslogd uses synchronous writes by default, which is very
-expensive. For services such a mail it is recommended that you
+expensive. For services such as mail it is recommended that you
 disable synchronous logfile writes by prepending a - to the logfile
 name:
 
