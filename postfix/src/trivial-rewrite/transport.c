@@ -87,34 +87,77 @@ void    transport_init(void)
 
 }
 
+/* find_transport_entry - look up and parse transport table entry */
+
+static int find_transport_entry(const char *key, int flags,
+				        VSTRING *channel, VSTRING *nexthop)
+{
+    char   *saved_value;
+    const char *host;
+    const char *value;
+
+#define FOUND		1
+#define NOTFOUND	0
+
+    if (transport_path == 0)
+	msg_panic("find_transport_entry: missing initialization");
+
+    /*
+     * Look up an entry with extreme prejedice.
+     */
+    if ((value = maps_find(transport_path, key, flags)) == 0) {
+	if (dict_errno != 0)
+	    msg_fatal("transport table lookup problem.");
+	return (NOTFOUND);
+    }
+
+    /*
+     * Can't do transport:user@domain until we have a way to pass the
+     * recipient back to the application, and until we have verified that
+     * this does not open security holes via, for example, regexp maps.
+     * Nothing is supposed to trust a transport name, envelope recipient
+     * address or next-hop hostname, but to be on the safe side we probably
+     * should add some syntax sanity checks.
+     */
+    else {
+	saved_value = mystrdup(value);
+	if ((host = split_at(saved_value, ':')) != 0 && *host != 0) {
+#if 0
+	    if ((ratsign = strrchr(host, '@'))) {
+		vstring_strcpy(recipient, host);
+		vstring_strcpy(nexthop, ratsign + 1);
+	    } else
+#endif
+		vstring_strcpy(nexthop, host);
+	}
+	if (*saved_value != 0)
+	    vstring_strcpy(channel, saved_value);
+	myfree(saved_value);
+	return (FOUND);
+    }
+}
+
 /* transport_wildcard_init - post-jail initialization */
 
 void    transport_wildcard_init(void)
 {
-    wildcard_channel = vstring_alloc(10);
-    wildcard_nexthop = vstring_alloc(10);
+    VSTRING *channel = vstring_alloc(10);
+    VSTRING *nexthop = vstring_alloc(10);
 
-    if (transport_lookup("*", wildcard_channel, wildcard_nexthop)) {
+#define WILDCARD	"*"
+#define FULL		0
+#define PARTIAL		DICT_FLAG_FIXED
+
+    if (find_transport_entry(WILDCARD, FULL, channel, nexthop)) {
+	wildcard_channel = channel;
+	wildcard_nexthop = nexthop;
 	if (msg_verbose)
 	    msg_info("wildcard_{chan:hop}={%s:%s}",
 	      vstring_str(wildcard_channel), vstring_str(wildcard_nexthop));
     } else {
-	vstring_free(wildcard_channel);
-	wildcard_channel = 0;
-	vstring_free(wildcard_nexthop);
-	wildcard_nexthop = 0;
+	vstring_free(channel);
+	vstring_free(nexthop);
     }
-}
-
-/* check_maps_find - map lookup with extreme prejudice */
-
-static const char *check_maps_find(MAPS *maps, const char *key, int flags)
-{
-    const char *value;
-
-    if ((value = maps_find(maps, key, flags)) == 0 && dict_errno != 0)
-	msg_fatal("transport table lookup problem.");
-    return (value);
 }
 
 /* transport_lookup - map a transport domain */
@@ -122,54 +165,57 @@ static const char *check_maps_find(MAPS *maps, const char *key, int flags)
 int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
 {
     char   *full_addr = lowercase(mystrdup(*addr ? addr : var_xport_null_key));
-    char   *stripped_addr = 0;
+    char   *stripped_addr;
     char   *ratsign = 0;
     const char *name;
     const char *next;
-    const char *value;
-    const char *host;
-    char   *saved_value;
-    char   *transport;
-    int     found = 0;
+    int     found;
 
-#define FULL	0
-#define PARTIAL		DICT_FLAG_FIXED
-#define STRNE		strcmp
+#define STREQ(x,y)	(strcmp((x), (y)) == 0)
 #define DISCARD_EXTENSION ((char **) 0)
 
-    if (transport_path == 0)
-	msg_panic("transport_lookup: missing initialization");
+    /*
+     * The optimizer will replace multiple instances of this macro expansion
+     * by gotos to a single instance that does the same thing.
+     */
+#define RETURN_FREE(x) { \
+	myfree(full_addr); \
+	return (x); \
+    }
 
-    if (STRNE(full_addr, var_xport_null_key) && STRNE(full_addr, "*"))
-	if ((ratsign = strrchr(full_addr, '@')) == 0)
-	    msg_panic("transport_lookup: bad address: \"%s\"", full_addr);
+    /*
+     * If this is a special address such as <> do only one lookup of the full
+     * string. Specify the FULL flag to include regexp maps in the query.
+     */
+    if (STREQ(full_addr, var_xport_null_key)) {
+	if (find_transport_entry(full_addr, FULL, channel, nexthop))
+	    RETURN_FREE(FOUND);
+	RETURN_FREE(NOTFOUND);
+    }
 
     /*
      * Look up the full address with the FULL flag to include regexp maps in
      * the query.
      */
-    if ((value = check_maps_find(transport_path, full_addr, FULL)) != 0) {
-	found = 1;
-    }
+    if ((ratsign = strrchr(full_addr, '@')) == 0)
+	msg_panic("transport_lookup: bad address: \"%s\"", full_addr);
 
-    /*
-     * If this is a special address such as <> or *, not user@domain, then we
-     * are done now.
-     */
-    else if (ratsign == 0) {
-	found = 0;
-    }
+    if (find_transport_entry(full_addr, FULL, channel, nexthop))
+	RETURN_FREE(FOUND);
 
     /*
      * If the full address did not match, and there is an address extension,
      * look up the stripped address with the PARTIAL flag to avoid matching
      * partial lookup keys with regular expressions.
      */
-    else if ((stripped_addr = strip_addr(full_addr, DISCARD_EXTENSION,
-					 *var_rcpt_delim)) != 0
-	     && (value = check_maps_find(transport_path, stripped_addr,
-					 PARTIAL)) != 0) {
-	found = 1;
+    if ((stripped_addr = strip_addr(full_addr, DISCARD_EXTENSION,
+				    *var_rcpt_delim)) != 0) {
+	if (find_transport_entry(stripped_addr, PARTIAL, channel, nexthop)) {
+	    myfree(stripped_addr);
+	    RETURN_FREE(FOUND);
+	} else {
+	    myfree(stripped_addr);
+	}
     }
 
     /*
@@ -188,58 +234,28 @@ int     transport_lookup(const char *addr, VSTRING *channel, VSTRING *nexthop)
      * Specify that the lookup key is partial, to avoid matching partial keys
      * with regular expressions.
      */
-    else if (found == 0) {
-	for (name = ratsign + 1; /* void */ ; name = next) {
-	    if ((value = maps_find(transport_path, name, PARTIAL)) != 0) {
-		found = 1;
-		break;
-	    }
-	    if ((next = strchr(name + 1, '.')) == 0)
-		break;
-	    if (transport_match_parent_style == MATCH_FLAG_PARENT)
-		next++;
-	}
+    for (found = 0, name = ratsign + 1; /* void */ ; name = next) {
+	if (find_transport_entry(name, PARTIAL, channel, nexthop))
+	    RETURN_FREE(FOUND);
+	if ((next = strchr(name + 1, '.')) == 0)
+	    break;
+	if (transport_match_parent_style == MATCH_FLAG_PARENT)
+	    next++;
     }
-
-    /*
-     * XXX user+ext@ and user@ lookups for domains that resolve locally?
-     */
-
-    /*
-     * We found an answer in the transport table.  Use the results to
-     * override transport and/or next-hop information.
-     */
-    if (found == 1) {
-	saved_value = mystrdup(value);
-	if ((host = split_at(saved_value, ':')) != 0 && *host != 0) {
-#if 0
-	    if (strchr(host, '@'))
-		vstring_strcpy(recipient, host);
-	    else
-#endif
-		vstring_strcpy(nexthop, host);
-	}
-	if (*(transport = saved_value) != 0)
-	    vstring_strcpy(channel, transport);
-	myfree(saved_value);
-    }
-
-    /*
-     * Clean up.
-     */
-    myfree(full_addr);
-    if (stripped_addr)
-	myfree(stripped_addr);
 
     /*
      * Fall back to the wild-card entry.
      */
-    if (found == 0 && wildcard_channel) {
+    if (wildcard_channel) {
 	if (*vstring_str(wildcard_channel))
 	    vstring_strcpy(channel, vstring_str(wildcard_channel));
 	if (*vstring_str(wildcard_nexthop))
 	    vstring_strcpy(nexthop, vstring_str(wildcard_nexthop));
-	found = 1;
+	RETURN_FREE(FOUND);
     }
-    return (found);
+
+    /*
+     * We really did not find it.
+     */
+    RETURN_FREE(NOTFOUND);
 }

@@ -7219,6 +7219,13 @@ Apologies for any names omitted.
 	when the SMTP server is unable to send a reply to the remote
 	client. File: smtpd/smtpd_chat.c.
 
+20021115
+
+	Bugfix: initialization error with "*" transport table
+	lookup, reported by LaMont Jones. The transport map lookup
+	code had grown into a monster and needed to be replaced.
+	trivial-rewrite/transport.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
