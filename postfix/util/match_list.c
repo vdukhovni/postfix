@@ -103,7 +103,8 @@ static ARGV *match_list_parse(ARGV *list, char *string)
 	    if ((fp = vstream_fopen(pattern, O_RDONLY, 0)) == 0)
 		msg_fatal("%s: open file %s: %m", myname, pattern);
 	    while (vstring_fgets(buf, fp))
-		list = match_list_parse(list, vstring_str(buf));
+		if (vstring_str(buf)[0] != '#')
+		    list = match_list_parse(list, vstring_str(buf));
 	    if (vstream_fclose(fp))
 		msg_fatal("%s: read file %s: %m", myname, pattern);
 	} else if (strchr(pattern, ':') != 0) {	/* type:table */

@@ -146,11 +146,34 @@ static CONFIG_STR_FN_TABLE str_fn_table_2[] = {
     0,
 };
 
+ /*
+  * XXX Global so that call-backs can see it.
+  */
+static int mode = SHOW_NAME;
+
 /* check_myhostname - lookup hostname and validate */
 
 static const char *check_myhostname(void)
 {
-    return (get_hostname());
+    const char *name;
+    const char *dot;
+    const char *domain;
+
+    /*
+     * If the local machine name is not in FQDN form, try to append the
+     * contents of $mydomain.
+     * 
+     * XXX Do not complain when running as "postconf -d".
+     */
+    name = get_hostname();
+    if ((mode & SHOW_DEFS) == 0 && (dot = strchr(name, '.')) == 0) {
+	if ((domain = config_lookup_eval(VAR_MYDOMAIN)) == 0)
+	    msg_fatal("My hostname %s is not a fully qualified name - "
+		      "set %s or %s in %s/main.cf",
+		      name, VAR_MYHOSTNAME, VAR_MYDOMAIN, var_config_dir);
+	name = concatenate(name, ".", domain, (char *) 0);
+    }
+    return (name);
 }
 
 /* get_myhostname - look up and store my hostname */
@@ -444,7 +467,6 @@ static void show_parameters(int mode, char **names)
 int     main(int argc, char **argv)
 {
     int     ch;
-    int     mode = SHOW_NAME;
     int     fd;
     struct stat st;
 

@@ -2601,6 +2601,23 @@ Apologies for any names omitted.
 	Bugfix: auto-detection of changes to DB or DBM lookup
 	tables wan't done for TCP connections.
 
+19990410
+
+	Feature: $recipient expansion in forward_path.  Philip A.
+	Prindeville, Mirapoint, Inc., USA.  File: local/dotforward.c
+
+	Feature: the smtp client consistently treats a numerical
+	hostname as an address. File: smtp/smtp_addr.c.
+
+19990414
+
+	Compatibility: support comment lines starting with # in
+	$mydestination include files. This makes Postfix more
+	compatible with sendmail.cw files. File: util/match_list.c.
+
+	Feature: specify "mydomain = domain.name" to have the local
+	domain name automagically appended to $myhostname. Files:
+	global/mail_params.c, postconf/postconf.c.
 
 Future:
 

@@ -92,6 +92,7 @@ typedef struct {
     struct mypasswd *pwd;		/* recipient */
     char   *extension;			/* address extension */
     char   *domain;			/* recipient's domain */
+    char   *recipient;			/* recipient */
     VSTRING *path;			/* result */
 } FW_CONTEXT;
 
@@ -101,7 +102,8 @@ typedef struct {
 #define FW_FLAG_EXTENSION	(1<<3)	/* expanded $extension */
 #define FW_FLAG_DELIMITER	(1<<4)	/* expanded $recipient_delimiter */
 #define FW_FLAG_DOMAIN		(1<<5)	/* expanded $domain */
-#define FW_FLAG_OTHER		(1<<5)	/* expanded text */
+#define FW_FLAG_RECIPIENT	(1<<6)	/* expanded $recipient */
+#define FW_FLAG_OTHER		(1<<7)	/* expanded text */
 
 /* dotforward_parse_callback - callback for mac_parse */
 
@@ -134,6 +136,9 @@ static void dotforward_parse_callback(int type, VSTRING *buf, char *context)
 	} else if (strcmp(vstring_str(buf), "domain") == 0) {
 	    flg = FW_FLAG_DOMAIN;
 	    ptr = fw_context->domain;
+	} else if (strcmp(vstring_str(buf), "recipient") == 0) {
+	    flg = FW_FLAG_RECIPIENT;
+	    ptr = fw_context->recipient;
 	} else
 	    msg_fatal("unknown macro $%s in %s", vstring_str(buf),
 		      VAR_FORWARD_PATH);
@@ -277,6 +282,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     fw_context.extension = state.msg_attr.extension;
     fw_context.path = path;
     fw_context.domain = domain;
+    fw_context.recipient = state.msg_attr.recipient;
 
     lookup_status = -1;
 

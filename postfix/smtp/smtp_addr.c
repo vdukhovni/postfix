@@ -120,11 +120,18 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRING *why)
 {
     char   *myname = "smtp_addr_one";
+    struct in_addr inaddr;
+    DNS_FIXED fixed;
     DNS_RR *addr = 0;
     DNS_RR *rr;
 
     if (msg_verbose)
 	msg_info("%s: host %s", myname, host);
+
+    if (ISDIGIT(host[0]) && (inaddr.s_addr = inet_addr(host)) != INADDR_NONE) {
+	memset((char *) &fixed, 0, sizeof(fixed));
+	return (dns_rr_create(host, &fixed, pref, (char *) &inaddr, sizeof(inaddr)));
+    }
 
     /*
      * Append the addresses for this host to the address list.
@@ -366,24 +373,16 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 
 DNS_RR *smtp_host_addr(char *host, VSTRING *why)
 {
-    DNS_FIXED fixed;
     DNS_RR *addr_list;
-    struct in_addr addr;
 
     /*
      * If the host is specified by numerical address, just convert the
      * address to internal form. Otherwise, the host is specified by name.
      */
 #define PREF0	0
-    if (ISDIGIT(host[0]) && (addr.s_addr = inet_addr(host)) != INADDR_NONE) {
-	fixed.type = fixed.class = fixed.ttl = fixed.length = 0;
-	addr_list = dns_rr_create(host, &fixed, PREF0,
-				  (char *) &addr, sizeof(addr));
-    } else {
-	addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
-	if (*var_fallback_relay)
-	    addr_list = smtp_addr_fallback(addr_list);
-    }
+    addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
+    if (*var_fallback_relay)
+	addr_list = smtp_addr_fallback(addr_list);
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);
     return (addr_list);
