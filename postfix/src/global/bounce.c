@@ -6,17 +6,21 @@
 /* SYNOPSIS
 /*	#include <bounce.h>
 /*
-/*	int	bounce_append(flags, id, recipient, relay, entry, format, ...)
+/*	int	bounce_append(flags, id, orig_rcpt, recipient, relay,
+/*				entry, format, ...)
 /*	int	flags;
 /*	const char *id;
+/*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vbounce_append(flags, id, recipient, relay, entry, format, ap)
+/*	int	vbounce_append(flags, id, orig_rcpt, recipient, relay,
+/*				entry, format, ap)
 /*	int	flags;
 /*	const char *id;
+/*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
 /*	time_t	entry;
@@ -42,13 +46,14 @@
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vbounce_one(flags, queue, id, encoding, sender,
+/*	int	vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
 /*				recipient, relay, entry, format, ap)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
 /*	const char *encoding;
 /*	const char *sender;
+/*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
 /*	time_t	entry;
@@ -68,10 +73,10 @@
 /*	the specified sender, including the bounce log that was
 /*	built with bounce_append().
 /*
-/*	bounce_one() bounces one recipient and immediately sends a 
-/*	notification to the sender. This procedure does not append 
-/*	the recipient and reason to the per-message bounce log, and 
-/*	should be used when a delivery agent changes the error 
+/*	bounce_one() bounces one recipient and immediately sends a
+/*	notification to the sender. This procedure does not append
+/*	the recipient and reason to the per-message bounce log, and
+/*	should be used when a delivery agent changes the error
 /*	return address in a manner that depends on the recipient
 /*	address.
 /*
@@ -100,6 +105,8 @@
 /*	This information is used for syslogging only.
 /* .IP entry
 /*	Message arrival time.
+/* .IP orig_rcpt
+/*	The original envelope recipient address.
 /* .IP recipient
 /*	Recipient address that the message could not be delivered to.
 /*	This information is used for syslogging only.
@@ -147,22 +154,25 @@
 
 /* bounce_append - append reason to per-message bounce log */
 
-int     bounce_append(int flags, const char *id, const char *recipient,
-	               const char *relay, time_t entry, const char *fmt,...)
+int     bounce_append(int flags, const char *id, const char *orig_rcpt,
+		              const char *recipient, const char *relay,
+		              time_t entry, const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
-    status = vbounce_append(flags, id, recipient, relay, entry, fmt, ap);
+    status = vbounce_append(flags, id, orig_rcpt, recipient,
+			    relay, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
 
 /* vbounce_append - append bounce reason to per-message log */
 
-int     vbounce_append(int flags, const char *id, const char *recipient,
-               const char *relay, time_t entry, const char *fmt, va_list ap)
+int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
+		               const char *recipient, const char *relay,
+		               time_t entry, const char *fmt, va_list ap)
 {
     VSTRING *why;
     int     status;
@@ -184,16 +194,18 @@ int     vbounce_append(int flags, const char *id, const char *recipient,
 			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 			    ATTR_TYPE_END) == 0) {
-	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=%s (%s%s)",
-		 id, recipient, relay, delay, var_soft_bounce ? "deferred" :
-		 "bounced", var_soft_bounce ? "SOFT BOUNCE - " : "",
+	msg_info("%s: orig_to=<%s>, to=<%s>, relay=%s, delay=%d, status=%s (%s%s)",
+		 id, orig_rcpt, recipient, relay, delay,
+		 var_soft_bounce ? "deferred" : "bounced",
+		 var_soft_bounce ? "SOFT BOUNCE - " : "",
 		 vstring_str(why));
 	status = (var_soft_bounce ? -1 : 0);
     } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
-	status = defer_append(flags, id, recipient, "bounce", entry,
+	status = defer_append(flags, id, orig_rcpt, recipient, "bounce", entry,
 			      "bounce failed");
     } else {
 	status = -1;
@@ -235,14 +247,15 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 
 int     bounce_one(int flags, const char *queue, const char *id,
 		           const char *encoding, const char *sender,
-		           const char *recipient, const char *relay,
-		           time_t entry, const char *fmt,...)
+		           const char *orig_rcpt, const char *recipient,
+		           const char *relay, time_t entry,
+		           const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
-    status = vbounce_one(flags, queue, id, encoding, sender,
+    status = vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
 			 recipient, relay, entry, fmt, ap);
     va_end(ap);
     return (status);
@@ -252,8 +265,9 @@ int     bounce_one(int flags, const char *queue, const char *id,
 
 int     vbounce_one(int flags, const char *queue, const char *id,
 		            const char *encoding, const char *sender,
-		            const char *recipient, const char *relay,
-		            time_t entry, const char *fmt, va_list ap)
+		            const char *orig_rcpt, const char *recipient,
+		            const char *relay, time_t entry,
+		            const char *fmt, va_list ap)
 {
     VSTRING *why;
     int     status;
@@ -264,7 +278,8 @@ int     vbounce_one(int flags, const char *queue, const char *id,
      * procedure.
      */
     if (var_soft_bounce)
-	return (vbounce_append(flags, id, recipient, relay, entry, fmt, ap));
+	return (vbounce_append(flags, id, orig_rcpt, recipient,
+			       relay, entry, fmt, ap));
 
     why = vstring_alloc(100);
     delay = time((time_t *) 0) - entry;
@@ -276,6 +291,7 @@ int     vbounce_one(int flags, const char *queue, const char *id,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 			    ATTR_TYPE_END) == 0) {
@@ -283,7 +299,7 @@ int     vbounce_one(int flags, const char *queue, const char *id,
 		 id, recipient, relay, delay, vstring_str(why));
 	status = 0;
     } else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
-	status = defer_append(flags, id, recipient, "bounce", entry,
+	status = defer_append(flags, id, orig_rcpt, recipient, "bounce", entry,
 			      "bounce failed");
     } else {
 	status = -1;

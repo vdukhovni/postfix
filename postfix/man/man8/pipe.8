@@ -50,7 +50,7 @@ entry for the pipe-based delivery transport.
 .fi
 The external command attributes are given in the \fBmaster.cf\fR
 file at the end of a service definition.  The syntax is as follows:
-.IP "\fBflags=BDFRhqu.>\fR (optional)"
+.IP "\fBflags=BDFORhqu.>\fR (optional)"
 Optional message processing flags. By default, a message is
 copied unchanged.
 .RS
@@ -66,6 +66,10 @@ envelope recipient address. Note: for this to work, the
 Prepend a "\fBFrom \fIsender time_stamp\fR" envelope header to
 the message content.
 This is expected by, for example, \fBUUCP\fR software.
+.IP \fBO\fR
+Prepend an "\fBX-Original-To: \fIrecipient\fR" message header
+with the original envelope recipient address. Note: for this to work,
+the \fItransport\fB_destination_recipient_limit\fR must be 1.
 .IP \fBR\fR
 Prepend a \fBReturn-Path:\fR message header with the envelope sender
 address.

@@ -208,6 +208,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     const char *error_text;
     char   *name;
     char   *value;
+    char   *orig_rcpt = 0;
 
     /*
      * Initialize. No early returns or we have a memory leak.
@@ -276,7 +277,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	} else if (rec_type == REC_TYPE_RCPT) {
 #define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))
 	    if (message->rcpt_list.len < FUDGE(var_qmgr_rcpt_limit)) {
-		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset, start);
+		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset,
+				   orig_rcpt, start);
+		if (orig_rcpt) {
+		    myfree(orig_rcpt);
+		    orig_rcpt = 0;
+		}
 		if (message->rcpt_list.len >= FUDGE(var_qmgr_rcpt_limit)) {
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
@@ -335,7 +341,24 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		}
 	    }
 	}
+	if (orig_rcpt != 0) {
+	    msg_warn("%s: out-of-order original recipient <%.200s>",
+		     message->queue_id, start);
+	    myfree(orig_rcpt);
+	    orig_rcpt = 0;
+	}
+	if (rec_type == REC_TYPE_ORCP)
+	    orig_rcpt = mystrdup(start);
     } while (rec_type > 0 && rec_type != REC_TYPE_END);
+
+    /*
+     * Grr.
+     */
+    if (orig_rcpt != 0) {
+	msg_warn("%s: out-of-order original recipient <%.200s>",
+		 message->queue_id, start);
+	myfree(orig_rcpt);
+    }
 
     /*
      * If there is no size record, use the queue file size instead.
@@ -565,7 +588,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 				      "user has moved to %s", newloc);
 		continue;
 	    } else if (dict_errno != 0) {
-		qmgr_defer_recipient(message, recipient->address,
+		qmgr_defer_recipient(message, recipient->orig_rcpt,
+				     recipient->address,
 				     "relocated map lookup failure");
 		continue;
 	    }
@@ -651,8 +675,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {
-		sent(message->queue_id, recipient->address,
-		     "none", message->arrival_time, "discarded");
+		sent(message->queue_id, recipient->orig_rcpt,
+		     recipient->address, "none", message->arrival_time,
+		     "discarded");
 		deliver_completed(message->fp, recipient->offset);
 		msg_warn("%s: undeliverable postmaster notification discarded",
 			 message->queue_id);
@@ -671,7 +696,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		if (strcasecmp(*cpp, STR(reply.transport)) == 0)
 		    break;
 	    if (*cpp) {
-		qmgr_defer_recipient(message, recipient->address,
+		qmgr_defer_recipient(message, recipient->orig_rcpt,
+				     recipient->address,
 				     "deferred transport");
 		continue;
 	    }
@@ -701,7 +727,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * This transport is dead. Defer delivery to this recipient.
 	 */
 	if ((transport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0) {
-	    qmgr_defer_recipient(message, recipient->address, transport->reason);
+	    qmgr_defer_recipient(message, recipient->orig_rcpt,
+				 recipient->address, transport->reason);
 	    continue;
 	}
 
@@ -718,7 +745,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * This queue is dead. Defer delivery to this recipient.
 	 */
 	if (queue->window == 0) {
-	    qmgr_defer_recipient(message, recipient->address, queue->reason);
+	    qmgr_defer_recipient(message, recipient->orig_rcpt,
+				 recipient->address, queue->reason);
 	    continue;
 	}
 
@@ -757,7 +785,8 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 			     entry->rcpt_list.len)) {
 		entry = qmgr_entry_create(queue, message);
 	    }
-	    qmgr_rcpt_list_add(&entry->rcpt_list, recipient->offset, recipient->address);
+	    qmgr_rcpt_list_add(&entry->rcpt_list, recipient->offset,
+			       recipient->orig_rcpt, recipient->address);
 	    qmgr_recipient_count++;
 	}
     }

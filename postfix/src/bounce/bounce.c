@@ -127,6 +127,7 @@ char   *var_delay_rcpt;
   */
 static VSTRING *queue_id;
 static VSTRING *queue_name;
+static VSTRING *orig_rcpt;
 static VSTRING *recipient;
 static VSTRING *encoding;
 static VSTRING *sender;
@@ -147,9 +148,10 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
     if (mail_command_server(client,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 4) {
+			    ATTR_TYPE_END) != 5) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -298,9 +300,10 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 7) {
+			    ATTR_TYPE_END) != 8) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -403,6 +406,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      */
     queue_id = vstring_alloc(10);
     queue_name = vstring_alloc(10);
+    orig_rcpt = vstring_alloc(10);
     recipient = vstring_alloc(10);
     encoding = vstring_alloc(10);
     sender = vstring_alloc(10);

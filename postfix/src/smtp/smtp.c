@@ -43,9 +43,9 @@
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2045 (MIME: Format of Internet Message Bodies)
 /*	RFC 2046 (MIME: Media Types)
-/*	RFC 2197 (Pipelining)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
+/*	RFC 2920 (SMTP Pipelining)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can

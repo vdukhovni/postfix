@@ -7075,6 +7075,14 @@ Apologies for any names omitted.
 	Files: global/mail_params.[hc] global/own_inet_addr.[hc]
 	global/resolve_local.c smtp/smtp_addr.c smtpd/smtpd_check.c.
 
+	Paranoia: defend against a very unlikely false alarm in
+	safe_open().
+
+20020125
+
+	Feature: X-Original-To: message headers with the raw original
+	envelope recipient.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

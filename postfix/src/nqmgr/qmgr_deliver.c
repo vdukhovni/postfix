@@ -177,6 +177,8 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
 	attr_print(stream, ATTR_FLAG_MORE,
 		   ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, recipient->offset,
+		   ATTR_TYPE_STR, MAIL_ATTR_ORCPT,
+		   recipient->orig_rcpt ? recipient->orig_rcpt : "",
 		   ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient->address,
 		   ATTR_TYPE_END);
     attr_print(stream, ATTR_FLAG_NONE,

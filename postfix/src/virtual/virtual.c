@@ -118,7 +118,7 @@
 /*	While searching a lookup table, an address extension
 /*	(\fIuser+foo@domain.tld\fR) is ignored.
 /*
-/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR 
+/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR
 /*	to match any user in the specified domain that does not have a
 /*	specific \fIuser@domain.tld\fR entry.
 /*
@@ -136,7 +136,7 @@
 /*	While searching a lookup table, an address extension
 /*	(\fIuser+foo@domain.tld\fR) is ignored.
 /*
-/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR 
+/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR
 /*	to match any user in the specified domain that does not have a
 /*	specific \fIuser@domain.tld\fR entry.
 /* .IP "\fBvirtual_gid_maps\fR (regexp maps disallowed)"
@@ -146,7 +146,7 @@
 /*	While searching a lookup table, an address extension
 /*	(\fIuser+foo@domain.tld\fR) is ignored.
 /*
-/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR 
+/*	In a lookup table, specify a left-hand side of \fI@domain.tld\fR
 /*	to match any user in the specified domain that does not have a
 /*	specific \fIuser@domain.tld\fR entry.
 /* .SH "Locking controls"
@@ -317,6 +317,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
      * recipient. Update the per-message delivery status.
      */
     for (msg_stat = 0, rcpt = rqst->rcpt_list.info; rcpt < rcpt_end; rcpt++) {
+	state.msg_attr.orig_rcpt = rcpt->orig_addr;
 	state.msg_attr.recipient = rcpt->address;
 	rcpt_stat = deliver_recipient(state, usr_attr);
 	if (rcpt_stat == 0)

@@ -254,6 +254,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	if (CAN_BOUNCE()) {
 	    if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 			      state->recip ? state->recip : "unknown",
+			      state->recip ? state->recip : "unknown",
 			      "cleanup", state->time,
 			      "%s", state->reason ? state->reason :
 			      cleanup_strerror(state->errs)) == 0

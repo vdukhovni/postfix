@@ -105,7 +105,8 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     if (*var_fallback_transport)
 	return (deliver_pass(MAIL_CLASS_PRIVATE, var_fallback_transport,
-			     state.request, state.msg_attr.recipient, -1L));
+			     state.request, state.msg_attr.orig_rcpt,
+			     state.msg_attr.recipient, -1L));
 
     /*
      * Subject the luser_relay address to $name expansion, disable

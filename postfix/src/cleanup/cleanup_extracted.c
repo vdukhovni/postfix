@@ -129,6 +129,8 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 
     if (type == REC_TYPE_RCPT) {
 	clean_addr = vstring_alloc(100);
+	if (state->orig_rcpt == 0)
+	    state->orig_rcpt = mystrdup(buf);
 	cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
 	if (cleanup_rcpt_canon_maps)
 	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
@@ -139,11 +141,22 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 	if (cleanup_masq_domains
 	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
 	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-	cleanup_out_recipient(state, STR(clean_addr));
+	cleanup_out_recipient(state, state->orig_rcpt, STR(clean_addr));
 	if (state->recip == 0)
 	    state->recip = mystrdup(STR(clean_addr));
 	vstring_free(clean_addr);
+	myfree(state->orig_rcpt);
+	state->orig_rcpt = 0;
 	return;
+    } else {
+	if (state->orig_rcpt != 0) {
+	    msg_warn("%s: out-of-order original recipient <%.200s>",
+		     state->queue_id, buf);
+	    myfree(state->orig_rcpt);
+	    state->orig_rcpt = 0;
+	}
+	if (type == REC_TYPE_ORCP)
+	    state->orig_rcpt = mystrdup(buf);
     }
     if (type != REC_TYPE_END) {
 	cleanup_out(state, type, buf, len);
@@ -187,9 +200,10 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 		    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT)) {
 		    vstring_strcpy(clean_addr, *cpp);
 		    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-		    cleanup_out_recipient(state, STR(clean_addr));
+		    cleanup_out_recipient(state, STR(clean_addr),
+					  STR(clean_addr));	/* XXX */
 		} else
-		    cleanup_out_recipient(state, *cpp);
+		    cleanup_out_recipient(state, *cpp, *cpp);	/* XXX */
 	    }
 	    if (rcpt->argv[0])
 		state->recip = mystrdup(rcpt->argv[0]);

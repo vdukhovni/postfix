@@ -700,7 +700,8 @@ int     smtp_xfer(SMTP_STATE *state)
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
 				if (rcpt->offset) {
-				    sent(request->queue_id, rcpt->address,
+				    sent(request->queue_id, rcpt->orig_addr,
+					 rcpt->address,
 					 session->namaddr,
 					 request->arrival_time, "%s",
 					 resp->str);

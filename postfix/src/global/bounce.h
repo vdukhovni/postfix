@@ -20,19 +20,21 @@
  /*
   * Client interface.
   */
-extern int PRINTFLIKE(6, 7) bounce_append(int, const char *, const char *,
+extern int PRINTFLIKE(7, 8) bounce_append(int, const char *,
+					          const char *, const char *,
 					          const char *, time_t,
 					          const char *,...);
 extern int vbounce_append(int, const char *, const char *, const char *,
-			          time_t, const char *, va_list);
+		               const char *, time_t, const char *, va_list);
 extern int bounce_flush(int, const char *, const char *, const char *, const char *);
-extern int PRINTFLIKE(9, 10) bounce_one(int, const char *, const char *,
+extern int PRINTFLIKE(10, 11) bounce_one(int, const char *, const char *,
 					        const char *, const char *,
 					        const char *, const char *,
-					        time_t, const char *,...);
+						const char *, time_t,
+					        const char *,...);
 extern int vbounce_one(int, const char *, const char *, const char *,
 		               const char *, const char *, const char *,
-		               time_t, const char *, va_list);
+		               const char *, time_t, const char *, va_list);
 
  /*
   * Bounce/defer protocol commands.

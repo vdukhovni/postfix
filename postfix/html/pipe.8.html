@@ -43,7 +43,7 @@ PIPE(8)                                                   PIPE(8)
        file at the end of a service definition.  The syntax is as
        follows:
 
-       <b>flags=BDFRhqu.</b>&gt; (optional)
+       <b>flags=BDFORhqu.</b>&gt; (optional)
               Optional message processing flags.  By  default,  a
               message is copied unchanged.
 
@@ -60,6 +60,12 @@ PIPE(8)                                                   PIPE(8)
               <b>F</b>      Prepend  a "<b>From</b> <i>sender</i> <i>time_stamp</i>" envelope
                      header to  the  message  content.   This  is
                      expected by, for example, <b>UUCP</b> software.
+
+              <b>O</b>      Prepend  an  "<b>X-Original-To:</b> <i>recipient</i>" mes-
+                     sage  header  with  the  original   envelope
+                     recipient  address.  Note: for this to work,
+                     the    <i>transport_</i><b>destination</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
+                     must be 1.
 
               <b>R</b>      Prepend  a  <b>Return-Path:</b> message header with
                      the envelope sender address.

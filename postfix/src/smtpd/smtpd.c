@@ -34,11 +34,11 @@
 /*	RFC 1123 (Host requirements)
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1869 (SMTP service extensions)
-/*	RFC 1854 (SMTP Pipelining)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 1985 (ETRN command)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
+/*	RFC 2920 (SMTP Pipelining)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
@@ -233,7 +233,7 @@
 /* .IP \fBdefault_rbl_reply\fR
 /*	Default template reply when a request is RBL blacklisted.
 /*	This template is used by the \fBreject_rbl_*\fR and
-/*	\fBreject_rhsbl_*\fR restrictions. See also: 
+/*	\fBreject_rhsbl_*\fR restrictions. See also:
 /*	\fBrbl_reply_maps\fR and \fBsmtpd_expansion_filter\fR.
 /* .IP \fBdefer_code\fR
 /*	Response code when a client request is rejected by the \fBdefer\fR
@@ -244,9 +244,9 @@
 /* .IP \fBmaps_rbl_reject_code\fR
 /*	Response code when a request is RBL blacklisted.
 /* .IP \fBrbl_reply_maps\fR
-/*	Table with template responses for RBL blacklisted requests, indexed by 
-/*	RBL domain name. These templates are used by the \fBreject_rbl_*\fR 
-/*	and \fBreject_rhsbl_*\fR restrictions. See also: 
+/*	Table with template responses for RBL blacklisted requests, indexed by
+/*	RBL domain name. These templates are used by the \fBreject_rbl_*\fR
+/*	and \fBreject_rhsbl_*\fR restrictions. See also:
 /*	\fBdefault_rbl_reply\fR and \fBsmtpd_expansion_filter\fR.
 /* .IP \fBreject_code\fR
 /*	Response code when the client matches a \fBreject\fR restriction.

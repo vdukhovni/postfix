@@ -178,6 +178,7 @@ extern QMGR_QUEUE *qmgr_queue_find(QMGR_TRANSPORT *, const char *);
   */
 struct QMGR_RCPT {
     long    offset;			/* REC_TYPE_RCPT byte */
+    char   *orig_rcpt;			/* null or original recipient */
     char   *address;			/* complete address */
     QMGR_QUEUE *queue;			/* resolved queue */
 };
@@ -189,7 +190,7 @@ struct QMGR_RCPT_LIST {
 };
 
 extern void qmgr_rcpt_list_init(QMGR_RCPT_LIST *);
-extern void qmgr_rcpt_list_add(QMGR_RCPT_LIST *, long, const char *);
+extern void qmgr_rcpt_list_add(QMGR_RCPT_LIST *, long, const char *, const char *);
 extern void qmgr_rcpt_list_free(QMGR_RCPT_LIST *);
 
  /*
@@ -256,7 +257,7 @@ extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
   */
 extern void qmgr_defer_transport(QMGR_TRANSPORT *, const char *);
 extern void qmgr_defer_todo(QMGR_QUEUE *, const char *);
-extern void qmgr_defer_recipient(QMGR_MESSAGE *, const char *, const char *);
+extern void qmgr_defer_recipient(QMGR_MESSAGE *, const char *, const char *, const char *);
 
  /*
   * qmgr_bounce.c

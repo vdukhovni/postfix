@@ -6,17 +6,21 @@
 /* SYNOPSIS
 /*	#include <defer.h>
 /*
-/*	int	defer_append(flags, id, recipient, relay, entry, format, ...)
+/*	int	defer_append(flags, id, orig_rcpt, recipient, relay,
+/*				entry, format, ...)
 /*	int	flags;
 /*	const char *id;
+/*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vdefer_append(flags, id, recipient, relay, entry, format, ap)
+/*	int	vdefer_append(flags, id, orig_rcpt, recipient, relay,
+/*				entry, format, ap)
 /*	int	flags;
 /*	const char *id;
+/*	const char *orig_rcpt;
 /*	const char *recipient;
 /*	const char *relay;
 /*	time_t	entry;
@@ -68,6 +72,8 @@
 /*	The message queue name of the original message file.
 /* .IP id
 /*	The queue id of the original message file.
+/* .IP orig_rcpt
+/*	The original envelope recipient address.
 /* .IP recipient
 /*	A recipient address that is being deferred. The domain part
 /*	of the address is marked dead (for a limited amount of time).
@@ -127,22 +133,25 @@
 
 /* defer_append - defer message delivery */
 
-int     defer_append(int flags, const char *id, const char *recipient,
-	               const char *relay, time_t entry, const char *fmt,...)
+int     defer_append(int flags, const char *id, const char *orig_rcpt,
+		             const char *recipient, const char *relay,
+		             time_t entry, const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
-    status = vdefer_append(flags, id, recipient, relay, entry, fmt, ap);
+    status = vdefer_append(flags, id, orig_rcpt, recipient,
+			   relay, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
 
 /* vdefer_append - defer delivery of queue file */
 
-int     vdefer_append(int flags, const char *id, const char *recipient,
-               const char *relay, time_t entry, const char *fmt, va_list ap)
+int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
+		              const char *recipient, const char *relay,
+		              time_t entry, const char *fmt, va_list ap)
 {
     VSTRING *why = vstring_alloc(100);
     int     delay = time((time_t *) 0) - entry;
@@ -153,12 +162,13 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
 			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
 			    ATTR_TYPE_END) != 0)
 	msg_warn("%s: defer service failure", id);
-    msg_info("%s: to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
-	     id, recipient, relay, delay, vstring_str(why));
+    msg_info("%s: orig_to=<%s>, to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
+	     id, orig_rcpt, recipient, relay, delay, vstring_str(why));
     vstring_free(why);
 
     /*

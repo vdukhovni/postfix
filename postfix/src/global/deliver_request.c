@@ -171,6 +171,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *queue_id;
     static VSTRING *nexthop;
     static VSTRING *encoding;
+    static VSTRING *orig_addr;
     static VSTRING *address;
     static VSTRING *errors_to;
     static VSTRING *return_receipt;
@@ -186,6 +187,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 	queue_id = vstring_alloc(10);
 	nexthop = vstring_alloc(10);
 	encoding = vstring_alloc(10);
+	orig_addr = vstring_alloc(10);
 	address = vstring_alloc(10);
 	errors_to = vstring_alloc(10);
 	return_receipt = vstring_alloc(10);
@@ -207,8 +209,10 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_ERRTO, errors_to,
 		  ATTR_TYPE_STR, MAIL_ATTR_RRCPT, return_receipt,
 		  ATTR_TYPE_LONG, MAIL_ATTR_TIME, &request->arrival_time,
-		  ATTR_TYPE_END) != 11)
+		  ATTR_TYPE_END) != 11) {
+	msg_warn("%s: error receiving common attributes", myname);
 	return (-1);
+    }
     if (mail_open_ok(vstring_str(queue_name),
 		     vstring_str(queue_id), &st, &path) == 0)
 	return (-1);
@@ -228,15 +232,22 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     for (;;) {
 	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		      ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &offset,
-		      ATTR_TYPE_END) != 1)
+		      ATTR_TYPE_END) != 1) {
+	    msg_warn("%s: error receiving offset attribute", myname);
 	    return (-1);
+	}
 	if (offset == 0)
 	    break;
 	if (attr_scan(stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+		      ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_addr,
 		      ATTR_TYPE_STR, MAIL_ATTR_RECIP, address,
-		      ATTR_TYPE_END) != 1)
+		      ATTR_TYPE_END) != 2) {
+	    msg_warn("%s: error receiving recipient attributes", myname);
 	    return (-1);
-	recipient_list_add(&request->rcpt_list, offset, vstring_str(address));
+	}
+	recipient_list_add(&request->rcpt_list, offset,
+		       *vstring_str(orig_addr) ? vstring_str(orig_addr) : 0,
+			   vstring_str(address));
     }
 
     /*

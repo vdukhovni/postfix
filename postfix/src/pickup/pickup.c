@@ -186,6 +186,12 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	if (type == REC_TYPE_FROM)
 	    if (info->sender == 0)
 		info->sender = mystrdup(vstring_str(buf));
+	if (type == REC_TYPE_ORCP)
+	    if (info->st.st_uid != var_owner_uid) {
+		msg_warn("uid=%ld: ignoring original recipient record: %.200s",
+			 (long) info->st.st_uid, vstring_str(buf));
+		continue;
+	    }
 	if (type == REC_TYPE_RCPT)
 	    if (info->rcpt == 0)
 		info->rcpt = mystrdup(vstring_str(buf));

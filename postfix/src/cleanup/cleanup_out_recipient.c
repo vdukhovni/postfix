@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include "cleanup.h"
 /*
-/*	void	cleanup_out_recipient(state, recipient)
+/*	void	cleanup_out_recipient(state, orig_recipient, recipient)
 /*	CLEANUP_STATE *state;
-/*	char	*recipient;
+/*	const char *orig_recipient;
+/*	const char *recipient;
 /* DESCRIPTION
 /*	This module implements an envelope recipient output filter.
 /*
@@ -38,6 +39,11 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <string.h>
+
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
 
 /* Utility library. */
 
@@ -56,20 +62,29 @@
 
 /* cleanup_out_recipient - envelope recipient output filter */
 
-void    cleanup_out_recipient(CLEANUP_STATE *state, char *recip)
+void    cleanup_out_recipient(CLEANUP_STATE *state, const char *orcpt,
+			              const char *recip)
 {
     ARGV   *argv;
     char  **cpp;
 
     if (cleanup_virtual_maps == 0) {
-	if (been_here_fixed(state->dups, recip) == 0)
-	    cleanup_out_string(state, REC_TYPE_RCPT, recip), state->rcpt_count++;
+	if (been_here_fixed(state->dups, orcpt) == 0) {
+	    if (strcasecmp(orcpt, recip) != 0)
+		cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
+	    cleanup_out_string(state, REC_TYPE_RCPT, recip);
+	    state->rcpt_count++;
+	}
     } else {
 	argv = cleanup_map1n_internal(state, recip, cleanup_virtual_maps,
 				  cleanup_ext_prop_mask & EXT_PROP_VIRTUAL);
-	for (cpp = argv->argv; *cpp; cpp++)
-	    if (been_here_fixed(state->dups, *cpp) == 0)
-		cleanup_out_string(state, REC_TYPE_RCPT, *cpp), state->rcpt_count++;
+	if (been_here_fixed(state->dups, orcpt) == 0) {
+	    for (cpp = argv->argv; *cpp; cpp++) {
+		cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
+		cleanup_out_string(state, REC_TYPE_RCPT, *cpp);
+		state->rcpt_count++;
+	    }
+	}
 	argv_free(argv);
     }
 }

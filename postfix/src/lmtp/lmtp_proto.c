@@ -575,16 +575,16 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 			rcpt = request->rcpt_list.info + survivors[recv_dot];
 			if (resp->code / 100 == 2) {
 			    if (rcpt->offset) {
-				sent(request->queue_id, rcpt->address,
-				     session->namaddr, request->arrival_time,
-				     "%s", resp->str);
+				sent(request->queue_id, rcpt->orig_addr,
+				     rcpt->address, session->namaddr,
+				     request->arrival_time, "%s", resp->str);
 				if (request->flags & DEL_REQ_FLAG_SUCCESS)
 				    deliver_completed(state->src, rcpt->offset);
 				rcpt->offset = 0;
 			    }
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-				       "host %s said: %s (in reply to %s)",
+					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
 					   xfer_request[LMTP_STATE_DOT]);

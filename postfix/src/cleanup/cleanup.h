@@ -43,6 +43,7 @@ typedef struct CLEANUP_STATE {
     char   *from;			/* From: address */
     char   *resent_from;		/* Resent-From: address */
     char   *recip;			/* envelope recipient address */
+    char   *orig_rcpt;			/* original recipient address */
     char   *return_receipt;		/* return-receipt address */
     char   *errors_to;			/* errors-to address */
     int     flags;			/* processing options */
@@ -168,7 +169,7 @@ extern void cleanup_map11_tree(CLEANUP_STATE *, TOK822 *, MAPS *, int);
  /*
   * cleanup_map1n.c
   */
-ARGV   *cleanup_map1n_internal(CLEANUP_STATE *, char *, MAPS *, int);
+ARGV   *cleanup_map1n_internal(CLEANUP_STATE *, const char *, MAPS *, int);
 
  /*
   * cleanup_masquerade.c
@@ -180,7 +181,7 @@ extern void cleanup_masquerade_tree(TOK822 *, ARGV *);
  /*
   * Cleanup_recipient.c
   */
-extern void cleanup_out_recipient(CLEANUP_STATE *, char *);
+extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, const char *);
 
 /* LICENSE
 /* .ad

@@ -534,6 +534,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     for (msg_stat = 0, rcpt = rqst->rcpt_list.info; rcpt < rcpt_end; rcpt++) {
 	state.dup_filter = been_here_init(var_dup_filter_limit, BH_FLAG_FOLD);
 	forward_init();
+	state.msg_attr.orig_rcpt = rcpt->orig_addr;
 	state.msg_attr.recipient = rcpt->address;
 	rcpt_stat = deliver_recipient(state, usr_attr);
 	rcpt_stat |= forward_finish(state.msg_attr, rcpt_stat);

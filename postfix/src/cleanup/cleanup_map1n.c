@@ -6,8 +6,11 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	ARGV	*cleanup_map1n_internal(addr)
-/*	char	*addr;
+/*	ARGV	*cleanup_map1n_internal(state, addr, maps, propagate)
+/*	CLEANUP_STATE *state;
+/*	const char *addr;
+/*	MAPS	*maps;
+/*	int	propagate;
 /* DESCRIPTION
 /*	This module implements one-to-many table mapping via table lookup.
 /*	Table lookups are done with quoted (externalized) address forms.
@@ -63,7 +66,7 @@
 
 /* cleanup_map1n_internal - one-to-many table lookups */
 
-ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, char *addr,
+ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, const char *addr,
 			               MAPS *maps, int propagate)
 {
     ARGV   *argv;

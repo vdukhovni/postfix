@@ -6,10 +6,11 @@
 /* SYNOPSIS
 /*	#include <deliver_request.h>
 /*
-/*	int	deliver_pass(class, service, request, address, offset)
+/*	int	deliver_pass(class, service, request, orig_addr, address, offset)
 /*	const char *class;
 /*	const char *service;
 /*	DELIVER_REQUEST *request;
+/*	const char *orig_addr;
 /*	const char *address;
 /*	long	offset;
 /*
@@ -89,7 +90,8 @@ static int deliver_pass_initial_reply(VSTREAM *stream)
 /* deliver_pass_send_request - send delivery request to delivery process */
 
 static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
-		           const char *nexthop, const char *addr, long offs)
+			             const char *nexthop, const char *orcpt,
+				             const char *addr, long offs)
 {
     int     stat;
 
@@ -106,6 +108,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, request->return_receipt,
 	       ATTR_TYPE_LONG, MAIL_ATTR_TIME, request->arrival_time,
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offs,
+	       ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orcpt ? orcpt : "",
 	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, addr,
 	       ATTR_TYPE_NUM, MAIL_ATTR_OFFSET, 0,
 	       ATTR_TYPE_END);
@@ -138,7 +141,8 @@ static int deliver_pass_final_reply(VSTREAM *stream, VSTRING *reason)
 /* deliver_pass - deliver one per-site queue entry */
 
 int     deliver_pass(const char *class, const char *service,
-	              DELIVER_REQUEST *request, const char *addr, long offs)
+		             DELIVER_REQUEST *request, const char *orig_addr,
+		             const char *addr, long offs)
 {
     VSTREAM *stream;
     VSTRING *reason;
@@ -175,7 +179,7 @@ int     deliver_pass(const char *class, const char *service,
      */
     if ((status = deliver_pass_initial_reply(stream)) == 0
 	&& (status = deliver_pass_send_request(stream, request, nexthop,
-					       addr, offs)) == 0)
+					       orig_addr, addr, offs)) == 0)
 	status = deliver_pass_final_reply(stream, reason);
 
     /*
@@ -200,6 +204,7 @@ int     deliver_pass_all(const char *class, const char *service,
     list = &request->rcpt_list;
     for (rcpt = list->info; rcpt < list->info + list->len; rcpt++)
 	status |= deliver_pass(class, service, request,
-			       rcpt->address, rcpt->offset);
+			       rcpt->orig_addr, rcpt->address,
+			       rcpt->offset);
     return (status);
 }

@@ -68,6 +68,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->from = 0;
     state->resent_from = 0;
     state->recip = 0;
+    state->orig_rcpt = 0;
     state->return_receipt = 0;
     state->errors_to = 0;
     state->flags = 0;
@@ -110,6 +111,8 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->resent_from);
     if (state->recip)
 	myfree(state->recip);
+    if (state->orig_rcpt)
+	myfree(state->orig_rcpt);
     if (state->return_receipt)
 	myfree(state->return_receipt);
     if (state->errors_to)
