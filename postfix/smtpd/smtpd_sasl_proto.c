@@ -24,6 +24,11 @@
 /*
 /*	void	smtpd_sasl_mail_reset(state)
 /*	SMTPD_STATE *state;
+/*
+/*	static int permit_sasl_auth(state, authenticated, unauthenticated)
+/*	SMTPD_STATE *state;
+/*	int	authenticated;
+/*	int	unauthenticated;
 /* DESCRIPTION
 /*	This module contains random chunks of code that implement
 /*	the SMTP protocol interface for SASL negotiation. The goal
@@ -43,6 +48,9 @@
 /*	smtpd_sasl_mail_reset() performs cleanup for the SASL-specific
 /*	AUTH=sender option to the MAIL FROM command.
 /*
+/*	permit_sasl_auth() permits access from an authenticated client.
+/*	This test fails for clients that use anonymous authentication.
+/*
 /*	Arguments:
 /* .IP state
 /*	SMTP session context.
@@ -53,6 +61,10 @@
 /* .IP sender
 /*	Sender address from the AUTH=sender option in the MAIL FROM
 /*	command.
+/* .IP authenticated
+/*	Result for authenticated client.
+/* .IP unauthenticated
+/*	Result for unauthenticated client.
 /* DIAGNOSTICS
 /*	All errors are fatal.
 /* LICENSE
@@ -199,6 +211,15 @@ void    smtpd_sasl_mail_reset(SMTPD_STATE *state)
 	myfree(state->sasl_sender);
 	state->sasl_sender = 0;
     }
+}
+
+/* permit_sasl_auth - OK for authenticated connection */
+
+int     permit_sasl_auth(SMTPD_STATE *state, int ifyes, int ifnot)
+{
+    if (state->sasl_method && strcasecmp(state->sasl_method, "anonymous"))
+	return (ifyes);
+    return (ifnot);
 }
 
 #endif

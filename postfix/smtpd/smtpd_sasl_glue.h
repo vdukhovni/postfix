@@ -16,6 +16,7 @@ extern void smtpd_sasl_connect(SMTPD_STATE *);
 extern void smtpd_sasl_disconnect(SMTPD_STATE *);
 extern char *smtpd_sasl_authenticate(SMTPD_STATE *, const char *, const char *);
 extern void smtpd_sasl_logout(SMTPD_STATE *);
+extern int permit_sasl_auth(SMTPD_STATE *, int, int);
 
 /* LICENSE
 /* .ad

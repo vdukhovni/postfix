@@ -100,6 +100,20 @@
 /* .IP \fBsmtp_sasl_password_maps\fR
 /*	Lookup tables with per-host \fIname\fR:\fIpassword\fR entries.
 /*	No entry for a host means no attempt to authenticate.
+/* .IP \fBsmtp_sasl_security_options\fR
+/*	Zero or more of the following.
+/* .RS
+/* .IP \fBnoplaintext\fR
+/*	Disallow authentication methods that use plaintext passwords.
+/* .IP \fBnoactive\fR
+/*	Disallow authentication methods that are vulnerable to non-dictionary
+/*	active attacks.
+/* .IP \fBnodictionary\fR
+/*	Disallow authentication methods that are vulnerable to passive
+/*	dictionary attack.
+/* .IP \fBnoanonymous\fR
+/*	Disallow anonymous logins.
+/* .RE
 /* .SH "Resource controls"
 /* .ad
 /* .fi
@@ -218,13 +232,9 @@ char   *var_fallback_relay;
 char   *var_bestmx_transp;
 char   *var_error_rcpt;
 int     var_smtp_always_ehlo;
-
-#ifdef USE_SASL_AUTH
-
-char   *var_smtp_sasl_pwd_maps;
+char   *var_smtp_sasl_opts;
+char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
-
-#endif
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -370,9 +380,8 @@ int     main(int argc, char **argv)
 	VAR_FALLBACK_RELAY, DEF_FALLBACK_RELAY, &var_fallback_relay, 0, 0,
 	VAR_BESTMX_TRANSP, DEF_BESTMX_TRANSP, &var_bestmx_transp, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
-#ifdef USE_SASL_AUTH
-	VAR_SMTP_SASL_PWD_MAPS, DEF_SMTP_SASL_PWD_MAPS, &var_smtp_sasl_pwd_maps, 0, 0,
-#endif
+	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
+	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
@@ -393,9 +402,7 @@ int     main(int argc, char **argv)
 	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
 	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
 	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
-#ifdef USE_SASL_AUTH
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
-#endif
 	0,
     };
 

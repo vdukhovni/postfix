@@ -643,19 +643,30 @@ extern int var_smtpd_err_sleep;
 extern int var_smtpd_junk_cmd_limit;
 
  /*
-  * SASL authentication support.
+  * SASL authentication support, server side.
   */
 #define VAR_SMTPD_SASL_ENABLE	"smtpd_sasl_auth_enable"
 #define DEF_SMTPD_SASL_ENABLE	0
 extern bool var_smtpd_sasl_enable;
 
+#define VAR_SMTPD_SASL_OPTS	"smtpd_sasl_security_options"
+#define DEF_SMTPD_SASL_OPTS	"noanonymous"
+extern char *var_smtpd_sasl_opts;
+
+ /*
+  * SASL authentication support, client side.
+  */
 #define VAR_SMTP_SASL_ENABLE	"smtp_sasl_auth_enable"
 #define DEF_SMTP_SASL_ENABLE	0
 extern bool var_smtp_sasl_enable;
 
-#define VAR_SMTP_SASL_PWD_MAPS	"smtp_sasl_password_maps"
-#define DEF_SMTP_SASL_PWD_MAPS	""
-extern char *var_smtp_sasl_pwd_maps;
+#define VAR_SMTP_SASL_PASSWD	"smtp_sasl_password_maps"
+#define DEF_SMTP_SASL_PASSWD	""
+extern char *var_smtp_sasl_passwd;
+
+#define VAR_SMTP_SASL_OPTS	"smtp_sasl_security_options"
+#define DEF_SMTP_SASL_OPTS	"noplaintext, noanonymous"
+extern char *var_smtp_sasl_opts;
 
 #define PERMIT_SASL_AUTH	"permit_sasl_authenticated"
 

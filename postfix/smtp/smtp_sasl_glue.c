@@ -91,6 +91,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <split_at.h>
+#include <name_mask.h>
 
  /*
   * Global library
@@ -106,6 +107,19 @@
 #include "smtp_sasl.h"
 
 #ifdef USE_SASL_AUTH
+
+ /*
+  * Authentication security options.
+  */
+static NAME_MASK smtp_sasl_sec_mask[] = {
+    "noplaintext", SASL_SEC_NOPLAINTEXT,
+    "noactive", SASL_SEC_NOACTIVE,
+    "nodictionary", SASL_SEC_NODICTIONARY,
+    "noanonymous", SASL_SEC_NOANONYMOUS,
+    0,
+};
+
+static int smtp_sasl_sec_opts;
 
  /*
   * Silly little macros.
@@ -142,10 +156,17 @@ static int smtp_sasl_log(void *unused_context, int priority,
 static int smtp_sasl_get_user(void *context, int unused_id, const char **result,
 			              unsigned *len)
 {
+    char   *myname = "smtp_sasl_get_user";
     SMTP_STATE *state = (SMTP_STATE *) context;
 
     if (msg_verbose)
-	msg_info("smtp_sasl_get_user: %s", state->sasl_username);
+	msg_info("%s: %s", myname, state->sasl_username);
+
+    /*
+     * Sanity check.
+     */
+    if (state->sasl_passwd == 0)
+	msg_panic("%s: no username looked up", myname);
 
     *result = state->sasl_username;
     if (len)
@@ -158,17 +179,20 @@ static int smtp_sasl_get_user(void *context, int unused_id, const char **result,
 static int smtp_sasl_get_passwd(sasl_conn_t *conn, void *context,
 				        int id, sasl_secret_t **psecret)
 {
+    char   *myname = "smtp_sasl_get_passwd";
     SMTP_STATE *state = (SMTP_STATE *) context;
     int     len;
 
     if (msg_verbose)
-	msg_info("smtp_sasl_get_passwd: %s", state->sasl_passwd);
+	msg_info("%s: %s", myname, state->sasl_passwd);
 
     /*
      * Sanity check.
      */
     if (!conn || !psecret || id != SASL_CB_PASS)
 	return (SASL_BADPARAM);
+    if (state->sasl_passwd == 0)
+	msg_panic("%s: no password looked up", myname);
 
     /*
      * Convert the password into a counted string.
@@ -207,12 +231,12 @@ int     smtp_sasl_passwd_lookup(SMTP_STATE *state)
 	    msg_info("%s: host `%s' user `%s' pass `%s'",
 		     myname, state->session->host,
 		     state->sasl_username, state->sasl_passwd);
-	return(1);
+	return (1);
     } else {
 	if (msg_verbose)
 	    msg_info("%s: host `%s' no auth info found",
 		     myname, state->session->host);
-	return(0);
+	return (0);
     }
 }
 
@@ -234,18 +258,23 @@ void    smtp_sasl_initialize(void)
      */
     if (smtp_sasl_passwd_map)
 	msg_panic("smtp_sasl_initialize: repeated call");
-    if (*var_smtp_sasl_pwd_maps == 0)
-	msg_fatal("specify password table via the `%s' configuration parameter",
-		  VAR_SMTP_SASL_PWD_MAPS);
+    if (*var_smtp_sasl_passwd == 0)
+	msg_fatal("specify a password table via the `%s' configuration parameter",
+		  VAR_SMTP_SASL_PASSWD);
 
     /*
      * Open the per-host password table and initialize the SASL library. Use
      * shared locks for reading, just in case someone updates the table.
      */
     smtp_sasl_passwd_map = maps_create("smtp_sasl_passwd",
-				    var_smtp_sasl_pwd_maps, DICT_FLAG_LOCK);
+				       var_smtp_sasl_passwd, DICT_FLAG_LOCK);
     if (sasl_client_init(callbacks) != SASL_OK)
 	msg_fatal("SASL library initialization");
+
+    /*
+     * Configuration parameters.
+     */
+    smtp_sasl_sec_opts = name_mask(smtp_sasl_sec_mask, var_smtp_sasl_opts);
 }
 
 /* smtp_sasl_connect - per-session client initialization */
@@ -291,7 +320,6 @@ void    smtp_sasl_start(SMTP_STATE *state)
 			state->sasl_callbacks, NULL_SECFLAGS,
 			(sasl_conn_t **) &state->sasl_conn) != SASL_OK)
 	msg_fatal("per-session SASL client initialization");
-    smtp_sasl_passwd_lookup(state);
 
     /*
      * Per-session security properties. XXX This routine is not sufficiently
@@ -301,7 +329,7 @@ void    smtp_sasl_start(SMTP_STATE *state)
     sec_props.min_ssf = 0;
     sec_props.max_ssf = 1;			/* don't allow real SASL
 						 * security layer */
-    sec_props.security_flags = 0;
+    sec_props.security_flags = smtp_sasl_sec_opts;
     sec_props.maxbufsize = 0;
     sec_props.property_names = 0;
     sec_props.property_values = 0;
@@ -352,7 +380,7 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
     if (result != SASL_OK && result != SASL_CONTINUE) {
 	vstring_sprintf(why, "cannot SASL authenticate to server %s: %s",
 			state->session->namaddr,
-			sasl_errstring(result, NO_SASL_LANGLIST, 
+			sasl_errstring(result, NO_SASL_LANGLIST,
 				       NO_SASL_OUTLANG));
 	return (-1);
     }
@@ -384,7 +412,7 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
      * Step through the authentication protocol until the server tells us
      * that we are done.
      */
-    while ((resp = smtp_chat_resp(state))->code % 100 == 3) {
+    while ((resp = smtp_chat_resp(state))->code / 100 == 3) {
 
 	/*
 	 * Process a server challenge.
@@ -395,7 +423,7 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
 	VSTRING_SPACE(state->sasl_decoded, serverinlen);
 	if (sasl_decode64(line, serverinlen,
 			STR(state->sasl_decoded), &enc_length) != SASL_OK) {
-	    vstring_sprintf(why, "unable to decode SASL challenge from %s",
+	    vstring_sprintf(why, "malformed SASL challenge from server %s",
 			    state->session->namaddr);
 	    return (-1);
 	}
@@ -407,8 +435,10 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
 				  STR(state->sasl_decoded), enc_length,
 			    NO_SASL_INTERACTION, &clientout, &clientoutlen);
 	if (result != SASL_OK && result != SASL_CONTINUE)
-	    msg_warn("%s: smtp SASL authentication step failed",
-		     state->session->namaddr);
+	    msg_warn("SASL authentication failed to server %s: %s",
+		     state->session->namaddr,
+			sasl_errstring(result, NO_SASL_LANGLIST,
+				       NO_SASL_OUTLANG));
 
 	/*
 	 * Send a client response.
@@ -434,8 +464,8 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
      * We completed the authentication protocol.
      */
     if (resp->code / 100 != 2) {
-	vstring_sprintf(why, "unable to SASL authenticate with %s",
-			state->session->namaddr);
+	vstring_sprintf(why, "SASL authentication failed; server %s said: %s",
+			state->session->namaddr, resp->str);
 	return (0);
     }
     return (1);

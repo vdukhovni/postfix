@@ -56,10 +56,13 @@ TOK822 *tok822_alloc(int type, const char *strval)
 {
     TOK822 *tp;
 
+#define CONTAINER_TOKEN(x) \
+	((x) == TOK822_ADDR || (x) == TOK822_COMMENT || (x) == TOK822_STARTGRP)
+
     tp = (TOK822 *) mymalloc(sizeof(*tp));
     tp->type = type;
     tp->next = tp->prev = tp->head = tp->tail = tp->owner = 0;
-    tp->vstr = (type < TOK822_MINTOK ? 0 :
+    tp->vstr = (type < TOK822_MINTOK || CONTAINER_TOKEN(type) ? 0 :
 		strval == 0 ? vstring_alloc(10) :
 		vstring_strcpy(vstring_alloc(strlen(strval) + 1), strval));
     return (tp);

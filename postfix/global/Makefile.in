@@ -63,8 +63,7 @@ LIB	= libglobal.a
 TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
-	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
-	local_transport
+	resolve_local rewrite_clnt stream2rec string_list tok822_parse
 
 LIBS	= ../lib/libutil.a
 LIB_DIR	= ../lib
@@ -193,6 +192,13 @@ local_transport: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
+
+tests: tok822_test
+
+tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
+	./tok822_parse <tok822_parse.in >tok822_parse.tmp
+	diff tok822_parse.ref tok822_parse.tmp
+	rm -f tok822_parse.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
@@ -559,6 +565,7 @@ mail_queue.o: ../include/argv.h
 mail_queue.o: ../include/dir_forest.h
 mail_queue.o: ../include/make_dirs.h
 mail_queue.o: ../include/split_at.h
+mail_queue.o: ../include/sane_fsops.h
 mail_queue.o: file_id.h
 mail_queue.o: mail_params.h
 mail_queue.o: mail_queue.h

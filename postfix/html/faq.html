@@ -119,6 +119,8 @@ domains with "relay access denied"</a>
 
 <li><a href="#relay_restrict">Restricting what users can send mail to off-site destinations</a>
 
+<li><a href="#backup">Configuring Postfix as backup MX host</a>
+
 </ul>
 
 <a name="remote_delivery"><h3>Remote delivery</h3>
@@ -1151,6 +1153,42 @@ send mail to off-site destinations.
 host.
 
 </ul>
+
+<hr>
+
+<a name="backup"><h3>Configuring Postfix as backup MX host</h3></a>
+
+When you are SECONDARY MX for some other domain this is all you need:
+
+<p>
+
+<pre>
+    DNS:
+        the.backed-up.domain.name        IN      MX 100 your.machine.name
+
+    /etc/postfix/main.cf:
+        relay_domains = the.backed-up.domain.name
+</pre>
+
+<p>
+
+When you are PRIMARY MX for some other domain you also need:
+
+<p>
+
+<pre>
+    /etc/postfix/main.cf:
+        transport_maps = hash:/etc/postfix/transport
+
+    /etc/postfix/transport:
+        the.backed-up.domain.name       smtp:[their.mail.host.name]
+</pre>
+
+<p>
+
+Specify <B>dbm</b> instead of <b>hash</b> if your system uses
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <hr>
 

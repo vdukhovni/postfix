@@ -64,6 +64,20 @@
 /*	Enable per-session authentication as per RFC 2554 (SASL).
 /*	This functionality is available only when explicitly selected
 /*	at program build time and explicitly enabled at runtime.
+/* .IP \fBsmtpd_sasl_security_options\fR
+/*	Zero or more of the following.
+/* .RS
+/* .IP \fBnoplaintext\fR
+/*	Disallow authentication methods that use plaintext passwords.
+/* .IP \fBnoactive\fR
+/*	Disallow authentication methods that are vulnerable to non-dictionary
+/*	active attacks.
+/* .IP \fBnodictionary\fR
+/*	Disallow authentication methods that are vulnerable to passive
+/*	dictionary attack.
+/* .IP \fBnoanonymous\fR
+/*	Disallow anonymous logins.
+/* .RE
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -320,6 +334,7 @@ char   *var_local_rcpt_maps;
 bool    var_allow_untrust_route;
 int     var_smtpd_junk_cmd_limit;
 bool    var_smtpd_sasl_enable;
+char   *var_smtpd_sasl_opts;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -1403,6 +1418,7 @@ int     main(int argc, char **argv)
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
+	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	0,
     };
 

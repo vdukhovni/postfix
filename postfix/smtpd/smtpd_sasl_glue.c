@@ -90,6 +90,7 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <namadr_list.h>
+#include <name_mask.h>
 
 /* Global library. */
 
@@ -140,6 +141,17 @@ static sasl_callback_t callbacks[] = {
     {SASL_CB_LIST_END, 0, 0}
 };
 
+static NAME_MASK smtpd_sasl_mask[] = {
+    "noplaintext", SASL_SEC_NOPLAINTEXT,
+    "noactive", SASL_SEC_NOACTIVE,
+    "nodictionary", SASL_SEC_NODICTIONARY,
+    "noanonymous", SASL_SEC_NOANONYMOUS,
+    0,
+};
+
+static int smtpd_sasl_opts;
+
+
 /* smtpd_sasl_initialize - per-process initialization */
 
 void    smtpd_sasl_initialize(void)
@@ -150,6 +162,11 @@ void    smtpd_sasl_initialize(void)
      */
     if (sasl_server_init(callbacks, "smtpd") != SASL_OK)
 	msg_fatal("SASL per-process initialization failed");
+
+    /*
+     * Configuration parameters.
+     */
+    smtpd_sasl_opts = name_mask(smtpd_sasl_mask, var_smtpd_sasl_opts);
 }
 
 /* smtpd_sasl_connect - per-connection initialization */
@@ -195,7 +212,7 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
     sec_props.min_ssf = 0;
     sec_props.max_ssf = 1;			/* don't allow real SASL
 						 * security layer */
-    sec_props.security_flags = SASL_SEC_NOANONYMOUS;
+    sec_props.security_flags = smtpd_sasl_opts;
     sec_props.maxbufsize = 0;
     sec_props.property_names = 0;
     sec_props.property_values = 0;

@@ -45,7 +45,8 @@ typedef struct TOK822 {
 #define	TOK822_DOMLIT	259		/* stuff between [] not nesting */
 #define	TOK822_ADDR	260		/* actually a token group */
 #define TOK822_STARTGRP	261		/* start of named group */
-#define TOK822_MAXTOK	261
+#define	TOK822_COMMTEXT 262		/* comment text */
+#define TOK822_MAXTOK	262
 
  /*
   * tok822_node.c

@@ -191,8 +191,13 @@ VSTRING *tok822_internalize(VSTRING *vp, TOK822 *tree, int flags)
 	case TOK822_ADDR:
 	    tok822_internalize(vp, tp->head, TOK822_STR_NONE);
 	    break;
-	case TOK822_ATOM:
 	case TOK822_COMMENT:
+	    VSTRING_ADDCH(vp, '(');
+	    tok822_internalize(vp, tp->head, TOK822_STR_NONE);
+	    VSTRING_ADDCH(vp, ')');
+	    break;
+	case TOK822_ATOM:
+	case TOK822_COMMTEXT:
 	case TOK822_QSTRING:
 	    vstring_strcat(vp, vstring_str(tp->vstr));
 	    break;
@@ -242,7 +247,12 @@ VSTRING *tok822_externalize(VSTRING *vp, TOK822 *tree, int flags)
 	    vstring_strcat(vp, vstring_str(tp->vstr));
 	    break;
 	case TOK822_COMMENT:
-	    tok822_copy_quoted(vp, vstring_str(tp->vstr), "\\\r\n");
+	    VSTRING_ADDCH(vp, '(');
+	    tok822_externalize(vp, tp->head, TOK822_STR_NONE);
+	    VSTRING_ADDCH(vp, ')');
+	    break;
+	case TOK822_COMMTEXT:
+	    tok822_copy_quoted(vp, vstring_str(tp->vstr), "()\\\r\n");
 	    break;
 	case TOK822_QSTRING:
 	    VSTRING_ADDCH(vp, '"');
@@ -251,7 +261,7 @@ VSTRING *tok822_externalize(VSTRING *vp, TOK822 *tree, int flags)
 	    break;
 	case TOK822_DOMLIT:
 	    VSTRING_ADDCH(vp, '[');
-	    tok822_copy_quoted(vp, vstring_str(tp->vstr), "\"\\\r\n");
+	    tok822_copy_quoted(vp, vstring_str(tp->vstr), "\\\r\n");
 	    VSTRING_ADDCH(vp, ']');
 	    break;
 	case TOK822_STARTGRP:
@@ -316,7 +326,6 @@ TOK822 *tok822_scan(const char *str, TOK822 **tailp)
 	    continue;
 	if (ch == '(') {
 	    tp = tok822_alloc(TOK822_COMMENT, (char *) 0);
-	    VSTRING_ADDCH(tp->vstr, ch);
 	    str = tok822_comment(tp, str);
 	} else if (ch == '[') {
 	    tp = tok822_alloc(TOK822_DOMLIT, (char *) 0);
@@ -332,7 +341,13 @@ TOK822 *tok822_scan(const char *str, TOK822 **tailp)
 	    COLLECT(tp, str, ch, !ISSPACE(ch) && !strchr(tok822_opchar, ch));
 	    tok822_quote_atom(tp);
 	}
-	tail = (head == 0 ? head = tp : tok822_append(tail, tp));
+	if (head == 0) {
+	    head = tail = tp;
+	    while (tail->next)
+		tail = tail->next;
+	} else {
+	    tail = tok822_append(tail, tp);
+	}
     }
     if (tailp)
 	*tailp = tail;
@@ -451,24 +466,36 @@ static void tok822_quote_atom(TOK822 *tp)
 
 const char *tok822_comment(TOK822 *tp, const char *str)
 {
+    TOK822 *tc = 0;
     int     ch;
 
+#define COMMENT_TEXT_TOKEN(t) ((t) && (t)->type == TOK822_COMMTEXT)
+
+#define APPEND_NEW_TOKEN(tp, type, strval) \
+	tok822_sub_append(tp, tok822_alloc(type, strval))
+
     while ((ch = *(unsigned char *) str) != 0) {
-	VSTRING_ADDCH(tp->vstr, ISSPACE(ch) ? ' ' : ch);
 	str++;
 	if (ch == '(') {			/* comments can nest! */
-	    str = tok822_comment(tp, str);
+	    if (COMMENT_TEXT_TOKEN(tc))
+		VSTRING_TERMINATE(tc->vstr);
+	    tc = APPEND_NEW_TOKEN(tp, TOK822_COMMENT, (char *) 0);
+	    str = tok822_comment(tc, str);
 	} else if (ch == ')') {
 	    break;
-	} else if (ch == '\\') {
-	    vstring_truncate(tp->vstr, VSTRING_LEN(tp->vstr) - 1);
-	    if ((ch = *(unsigned char *) str) == 0)
-		break;
-	    VSTRING_ADDCH(tp->vstr, ch);
-	    str++;
+	} else {
+	    if (ch == '\\') {
+		if ((ch = *(unsigned char *) str) == 0)
+		    break;
+		str++;
+	    }
+	    if (!COMMENT_TEXT_TOKEN(tc))
+		tc = APPEND_NEW_TOKEN(tp, TOK822_COMMTEXT, (char *) 0);
+	    VSTRING_ADDCH(tc->vstr, ch);
 	}
     }
-    VSTRING_TERMINATE(tp->vstr);
+    if (COMMENT_TEXT_TOKEN(tc))
+	VSTRING_TERMINATE(tc->vstr);
     return (str);
 }
 
@@ -511,25 +538,36 @@ TOK822 *tok822_scan_addr(const char *addr)
 
 #ifdef TEST
 
+#include <unistd.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
 
 /* tok822_print - display token */
 
-static void tok822_print(TOK822 *tp, int indent)
+static void tok822_print(TOK822 *list, int indent)
 {
-    if (tp->type < TOK822_MINTOK) {
-	vstream_printf("%*s %s \"%c\"\n", indent, "", "OP", tp->type);
-    } else if (tp->type == TOK822_ADDR) {
-	vstream_printf("%*s %s\n", indent, "", "address");
-    } else {
-	vstream_printf("%*s %s \"%s\"\n", indent, "",
-		       tp->type == TOK822_COMMENT ? "comment" :
-		       tp->type == TOK822_ATOM ? "atom" :
-		       tp->type == TOK822_QSTRING ? "quoted string" :
-		       tp->type == TOK822_DOMLIT ? "domain literal" :
-		       tp->type == TOK822_ADDR ? "address" :
-		       "unknown\n", vstring_str(tp->vstr));
+    TOK822 *tp;
+
+    for (tp = list; tp; tp = tp->next) {
+	if (tp->type < TOK822_MINTOK) {
+	    vstream_printf("%*s %s \"%c\"\n", indent, "", "OP", tp->type);
+	} else if (tp->type == TOK822_ADDR) {
+	    vstream_printf("%*s %s\n", indent, "", "address");
+	    tok822_print(tp->head, indent + 2);
+	} else if (tp->type == TOK822_COMMENT) {
+	    vstream_printf("%*s %s\n", indent, "", "comment");
+	    tok822_print(tp->head, indent + 2);
+	} else if (tp->type == TOK822_STARTGRP) {
+	    vstream_printf("%*s %s\n", indent, "", "group \":\"");
+	} else {
+	    vstream_printf("%*s %s \"%s\"\n", indent, "",
+			   tp->type == TOK822_COMMTEXT ? "text" :
+			   tp->type == TOK822_ATOM ? "atom" :
+			   tp->type == TOK822_QSTRING ? "quoted string" :
+			   tp->type == TOK822_DOMLIT ? "domain literal" :
+			   tp->type == TOK822_ADDR ? "address" :
+			   "unknown\n", vstring_str(tp->vstr));
+	}
     }
 }
 
@@ -537,22 +575,14 @@ int     main(int unused_argc, char **unused_argv)
 {
     VSTRING *vp = vstring_alloc(100);
     TOK822 *list;
-    TOK822 *tp;
-    TOK822 *ap;
-    int     indent = 0;
     VSTRING *buf = vstring_alloc(100);
 
-    while (vstring_fgets(buf, VSTREAM_IN)) {
+    while (vstring_fgets_nonl(buf, VSTREAM_IN)) {
+	if (!isatty(vstream_fileno(VSTREAM_IN)))
+	    vstream_printf(">>>%s<<<\n\n", vstring_str(buf));
 	list = tok822_parse(vstring_str(buf));
-	for (tp = list; tp; tp = tp->next) {
-	    tok822_print(tp, indent);
-	    if (tp->type == TOK822_ADDR) {
-		indent += 2;
-		for (ap = tp->head; ap; ap = ap->next)
-		    tok822_print(ap, indent);
-		indent -= 2;
-	    }
-	}
+	vstream_printf("Parse tree:\n");
+	tok822_print(list, 0);
 	vstream_printf("\n");
 
 	vstream_printf("Internalized:\n%s\n\n",

@@ -768,19 +768,6 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, char *name,
     return (SMTPD_CHECK_DUNNO);
 }
 
-#ifdef USE_SASL_AUTH
-
-/* permit_sasl_auth - OK for authenticated connection */
-
-static int permit_sasl_auth(SMTPD_STATE *state)
-{
-    if (state->sasl_username)
-	return (SMTPD_CHECK_OK);
-    return (SMTPD_CHECK_DUNNO);
-}
-
-#endif
-
 /* check_relay_domains - OK/FAIL for message relaying */
 
 static int check_relay_domains(SMTPD_STATE *state, char *recipient,
@@ -1680,7 +1667,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 cpp[1], CHECK_RELAY_DOMAINS);
 #ifdef USE_SASL_AUTH
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
-	    status = permit_sasl_auth(state);
+	    status = permit_sasl_auth(state, SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
 #endif
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)
