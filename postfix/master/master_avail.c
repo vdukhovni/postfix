@@ -102,8 +102,10 @@ void    master_avail_listen(MASTER_SERV *serv)
      * request.
      */
     if (msg_verbose)
-	msg_info("%s: avail %d total %d max %d", myname,
-		 serv->avail_proc, serv->total_proc, serv->max_proc);
+	msg_info("%s: avail %d total/avg %d/%.1f max/pk/avg %d/%d/%d", myname,
+		 serv->avail_proc, serv->total_proc, serv->total_proc_avg,
+		 serv->max_proc, serv->max_proc, serv->max_proc_pk,
+		 serv->max_proc_avg);
     if (serv->avail_proc < 1
 	&& MASTER_LIMIT_OK(serv->max_proc, serv->total_proc)
 	&& !MASTER_THROTTLED(serv)) {

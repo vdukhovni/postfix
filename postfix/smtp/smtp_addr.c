@@ -143,9 +143,11 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
      */
     if (ISDIGIT(host[0]) && (inaddr.s_addr = inet_addr(host)) != INADDR_NONE) {
 	memset((char *) &fixed, 0, sizeof(fixed));
-	return (dns_rr_append(addr_list,
-			      dns_rr_create(host, &fixed, pref,
-					(char *) &inaddr, sizeof(inaddr))));
+	rr = dns_rr_create(host, &fixed, pref,
+			   (char *) &inaddr, sizeof(inaddr));
+	if (msg_verbose)
+	    smtp_print_addr(host, rr);
+	return (dns_rr_append(addr_list, rr));
     }
 
     /*
@@ -163,10 +165,12 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
 	    smtp_errno = SMTP_FAIL;
 	} else {
 	    while (hp->h_addr_list[0]) {
-		addr_list = dns_rr_append(addr_list,
-					  dns_rr_create(host, &fixed, pref,
-							hp->h_addr_list[0],
-							sizeof(inaddr)));
+		rr = dns_rr_create(host, &fixed, pref,
+				   hp->h_addr_list[0],
+				   sizeof(inaddr));
+		if (msg_verbose)
+		    smtp_print_addr(host, rr);
+		addr_list = dns_rr_append(addr_list, rr);
 		hp->h_addr_list++;
 	    }
 	}
@@ -180,6 +184,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     case DNS_OK:
 	for (rr = addr; rr; rr = rr->next)
 	    rr->pref = pref;
+	if (msg_verbose)
+	    smtp_print_addr(host, addr_list);
 	addr_list = dns_rr_append(addr_list, addr);
 	break;
     default:

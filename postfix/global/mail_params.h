@@ -328,7 +328,7 @@ extern char *var_fallback_transport;
 #define DEF_FORWARD_PATH	"$home/.forward${recipient_delimiter}${extension},$home/.forward"
 extern char *var_forward_path;
 
-#define VAR_PROP_EXTENSION	"propagate_unmatched_extension"
+#define VAR_PROP_EXTENSION	"propagate_unmatched_extensions"
 #define DEF_PROP_EXTENSION	"canonical, virtual"
 extern char *var_prop_extension;
 

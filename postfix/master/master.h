@@ -27,10 +27,13 @@ typedef struct MASTER_SERV {
 	struct INET_ADDR_LIST *inet;
     } addr_list;
     int     max_proc;			/* upper bound on # processes */
+    int     max_proc_pk;		/* peak upper bound */
+    int     max_proc_avg;		/* average upper bound */
     char   *path;			/* command pathname */
     struct ARGV *args;			/* argument vector */
     int     avail_proc;			/* idle processes */
     int     total_proc;			/* number of processes */
+    float   total_proc_avg;		/* average number of processes */
     int     throttle_delay;		/* failure recovery parameter */
     int     status_fd[2];		/* child status reports */
     struct BINHASH *children;		/* linkage */
@@ -154,6 +157,12 @@ extern struct BINHASH *master_child_table;
 extern void master_spawn(MASTER_SERV *);
 extern void master_reap_child(void);
 extern void master_delete_children(MASTER_SERV *);
+
+ /*
+  * master_sample.c
+  */
+extern void master_sample_start(void);
+extern void master_sample_stop(void);
 
 /* DIAGNOSTICS
 /* BUGS

@@ -40,6 +40,7 @@
 
 #include <mymalloc.h>
 #include <vstream.h>
+#include <stringops.h>
 
 /* Application-specific. */
 
@@ -55,6 +56,7 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, char *host, char *addr)
     session->stream = stream;
     session->host = mystrdup(host);
     session->addr = mystrdup(addr);
+    session->namaddr = concatenate(host, "[", addr, "]", (char *) 0);
     session->best = 1;
     return (session);
 }
@@ -66,6 +68,7 @@ void    smtp_session_free(SMTP_SESSION *session)
     vstream_fclose(session->stream);
     myfree(session->host);
     myfree(session->addr);
+    myfree(session->namaddr);
     myfree((char *) session);
 }
 

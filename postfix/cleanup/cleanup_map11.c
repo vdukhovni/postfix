@@ -103,8 +103,8 @@ void    cleanup_map11_external(VSTRING *addr, MAPS *maps, int propagate)
     for (count = 0; count < MAX_RECURSION; count++) {
 	if ((new_addr = mail_addr_map(maps, STR(addr), propagate)) != 0) {
 	    if (new_addr->argc > 1)
-		msg_warn("multi-valued %s entry for %s",
-			 maps->title, STR(addr));
+		msg_warn("%s: multi-valued %s entry for %s",
+			 cleanup_queue_id, maps->title, STR(addr));
 	    saved_addr = mystrdup(STR(addr));
 	    vstring_strcpy(addr, new_addr->argv[0]);
 	    expand_to_self = !strcasecmp(saved_addr, STR(addr));

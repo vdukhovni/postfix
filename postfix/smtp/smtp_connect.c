@@ -256,6 +256,7 @@ SMTP_SESSION *smtp_connect_host(char *host, unsigned port, VSTRING *why)
 
 SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why)
 {
+    struct in_addr inaddr;
     SMTP_SESSION *session = 0;
     DNS_RR *addr_list;
     DNS_RR *addr;
@@ -273,6 +274,11 @@ SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why)
 	if ((session = smtp_connect_addr(addr, port, why)) != 0) {
 	    session->best = (addr->pref == addr_list->pref);
 	    break;
+	}
+	if (addr->next) {
+	    memcpy((char *) &inaddr, addr->data, sizeof(inaddr));
+	    msg_info("%s: connect to %s port %d: %s",
+		     name, inet_ntoa(inaddr), port, vstring_str(why));
 	}
     }
     dns_rr_free(addr_list);

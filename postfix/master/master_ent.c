@@ -84,6 +84,7 @@
 #include <stringops.h>
 #include <readlline.h>
 #include <inet_addr_list.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -183,13 +184,10 @@ static char *get_str_ent(char **bufp, char *name, char *def_val)
     }
 }
 
-/* get_bool_ent - extract boolean field */
+/* cvt_bool_ent - convert boolean field */
 
-static int get_bool_ent(char **bufp, char *name, char *def_val)
+static int cvt_bool_ent(char *name, char *value)
 {
-    char   *value;
-
-    value = get_str_ent(bufp, name, def_val);
     if (strcmp("y", value) == 0) {
 	return (1);
     } else if (strcmp("n", value) == 0) {
@@ -200,17 +198,35 @@ static int get_bool_ent(char **bufp, char *name, char *def_val)
     /* NOTREACHED */
 }
 
+/* get_bool_ent - extract boolean field */
+
+static int get_bool_ent(char **bufp, char *name, char *def_val)
+{
+    char   *value;
+
+    value = get_str_ent(bufp, name, def_val);
+    return (cvt_bool_ent(name, value));
+}
+
+/* cvt_int_ent - convert integer field */
+
+static int cvt_int_ent(char *name, char *value, int min_val)
+{
+    int     n;
+
+    if (!ISDIGIT(*value) || (n = atoi(value)) < min_val)
+	fatal_invalid_field(name, value);
+    return (n);
+}
+
 /* get_int_ent - extract integer field */
 
 static int get_int_ent(char **bufp, char *name, char *def_val, int min_val)
 {
     char   *value;
-    int     n;
 
     value = get_str_ent(bufp, name, def_val);
-    if (!ISDIGIT(*value) || (n = atoi(value)) < min_val)
-	fatal_invalid_field(name, value);
-    return (n);
+    return (cvt_int_ent(name, value, min_val));
 }
 
 /* get_master_ent - read entry from configuration file */
@@ -229,6 +245,7 @@ MASTER_SERV *get_master_ent()
     char   *command;
     int     n;
     char   *bufp;
+    char   *cp2;
 
     if (master_fp == 0)
 	msg_panic("get_master_ent: config file not open");
@@ -343,7 +360,23 @@ MASTER_SERV *get_master_ent()
      * Concurrency limit. Zero means no limit.
      */
     vstring_sprintf(junk, "%d", var_proc_limit);
-    serv->max_proc = get_int_ent(&bufp, "max_proc", vstring_str(junk), 0);
+    cp = get_str_ent(&bufp, "max_proc", vstring_str(junk));
+    if ((cp2 = split_at(cp, '/')) != 0) {
+	serv->max_proc_pk = cvt_int_ent("max_proc", strcmp(cp, "-") != 0 ?
+					cp : vstring_str(junk), 0);
+	serv->max_proc_avg = cvt_int_ent("max_proc", strcmp(cp2, "-") != 0 ?
+					 cp2 : vstring_str(junk), 0);
+	if (serv->max_proc_pk == 0 && serv->max_proc_avg != 0)
+	    fatal_with_context("specify a non-zero peak process limit");
+	if (serv->max_proc_pk != 0 && serv->max_proc_avg == 0)
+	    fatal_with_context("specify a non-zero average process limit");
+	if (serv->max_proc_pk < serv->max_proc_avg)
+	    fatal_with_context("peak < average process limit");
+    } else {
+	serv->max_proc_pk = cvt_int_ent("max_proc", cp, 0);
+	serv->max_proc_avg = serv->max_proc;
+    }
+    serv->max_proc = serv->max_proc_pk;
 
     /*
      * Path to command,
@@ -356,6 +389,7 @@ MASTER_SERV *get_master_ent()
      */
     serv->avail_proc = 0;
     serv->total_proc = 0;
+    serv->total_proc_avg = 0;
 
     /*
      * Backoff time in case a service is broken.
@@ -378,7 +412,7 @@ MASTER_SERV *get_master_ent()
      */
     serv->args = argv_alloc(0);
     argv_add(serv->args, command, (char *) 0);
-    if (serv->max_proc == 1)
+    if (serv->max_proc_pk == 1)
 	argv_add(serv->args, "-l", (char *) 0);
     if (strcmp(basename(command), name) != 0)
 	argv_add(serv->args, "-n", name, (char *) 0);
@@ -422,11 +456,14 @@ void    print_master_ent(MASTER_SERV *serv)
     msg_info("listen_fd_count: %d", serv->listen_fd_count);
     msg_info("wakeup: %d", serv->wakeup_time);
     msg_info("max_proc: %d", serv->max_proc);
+    msg_info("max_proc_pk: %d", serv->max_proc_pk);
+    msg_info("max_proc_avg: %d", serv->max_proc_avg);
     msg_info("path: %s", serv->path);
     for (cpp = serv->args->argv; *cpp; cpp++)
 	msg_info("arg[%d]: %s", (int) (cpp - serv->args->argv), *cpp);
     msg_info("avail_proc: %d", serv->avail_proc);
     msg_info("total_proc: %d", serv->total_proc);
+    msg_info("total_proc_avg: %f", serv->total_proc_avg);
     msg_info("throttle_delay: %d", serv->throttle_delay);
     msg_info("status_fd %d %d", serv->status_fd[0], serv->status_fd[1]);
     msg_info("children: 0x%lx", (long) serv->children);

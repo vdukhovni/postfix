@@ -195,7 +195,8 @@ case "$CC" in
 */gcc|gcc) case `$CC -v` in
 	   "gcc version 2.8"*) : ${OPT=};;
 	   esac;;
-       *) : ${OPT='-O'};;
+      *CC) echo "Don't use CC. That's the C++ compiler" 1>&2; exit 1;;
+        *) : ${OPT='-O'};;
 esac
 
 : ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'}

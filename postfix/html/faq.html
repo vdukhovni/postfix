@@ -24,6 +24,10 @@
 
 <li><a href="#firewall">Running Postfix on a firewall</a>
 
+<li><a href="#dialup">Running Postfix on a dialup machine</a>
+
+<p>
+
 <li><a href="#local">Delivering some users locally while sending mail as user@domain</a>
 
 <li><a href="#maildir">Support for maildir-style mailboxes</a>
@@ -36,11 +40,15 @@
 
 <li><a href="#approve">Postfix breaks the majordomo "approve" command</a>
 
+<p>
+
 <li><a href="#uucp">Setting up an Internet to UUCP gateway</a>
 
 <li><a href="#uucp-only">Using UUCP as the default transport</a>
 
 <li><a href="#fax">Sending mail to a FAX machine</a>
+
+<p>
 
 <li><a href="#timeouts">Mail fails with timeout or lost connection</a>
 
@@ -241,6 +249,105 @@ Unfortunately, the solution cannot use the transport table, because
 that table is ignored for destinations that match <b>$mydestination</b>.
 That's an implementation error, and it will be removed.
 
+<hr>
+
+<a name="dialup"><h2>Running Postfix on a dialup machine</h2></a>
+
+<ul>
+
+<li> Route all outgoing mail to your provider.
+
+<p>
+
+If your machine is disconnected most of the time, there isn't
+a lot of opportunity for Postfix to deliver mail to hard-to-reach
+corners of the Internet. It's better to drop the mail to a machine
+that is connected all the time.
+
+<p>
+
+<dl>
+
+<dt><b>/etc/postfix/main.cf:</b>
+
+<dd><b>relayhost = smtprelay.someprovider.com</b>
+
+</dl>
+
+<p>
+
+<li> <a name="spontaneous_smtp">Disable spontaneous SMTP mail
+delivery.</a>
+
+<p>
+
+Normally, Postfix attempts to deliver outbound mail at its convenience.
+If your machine uses on-demand dialup IP, this causes your system
+to place a telephone call whenever you submit mail, and whenever
+Postfix retries to deliver delayed mail. To prevent such telephone
+calls from being placed, disable spontaneous SMTP mail deliveries.
+
+<p>
+
+<dl>
+
+<dt><b>/etc/postfix/main.cf:</b>
+
+<dd><b>defer_transports = smtp</b> (Only for systems that use
+on-demand dialup IP)
+
+</dl>
+
+<p>
+
+<li> Disable SMTP client DNS lookups.
+
+<p>
+
+Some people use Postfix to deliver mail across a LAN that is
+disconnected most of the time.  Under such conditions, mail delivery
+can suffer from delays while the Postfix SMTP client performs sender
+and recipient domain DNS lookups in order to be standards-compliant.
+To prevent these delays, disable all SMTP client DNS lookups.
+
+<p>
+
+<dl>
+
+<dt><b>/etc/postfix/main.cf:</b>
+
+<dd><b>disable_dns_lookups = yes</b> (Only for delivery across LANs
+that are disconnected most of the time)
+
+</dl>
+
+<p>
+
+<li> Flush the mail queue whenever the Internet link is established.
+
+<p>
+
+Put the following command into your PPP or SLIP dialup scripts:
+
+<p>
+
+<dl>
+
+<dd><b>/usr/sbin/sendmail -q</b> (whenever the Internet link is up)
+
+</dl>
+
+<p>
+
+The exact location of the <b>sendmail</b> command is system-specific.
+With some UNIX versions, usr <b>/usr/lib/sendmail</b>.
+
+If you have disabled <a href="#spontaneous_smtp">spontaneous SMTP
+mail delivery</a> you need to run this command occasionally while
+the dialup link is up, so that newly-posted mail is flushed from
+the queue.
+
+</ul>
 
 <hr>
 
@@ -249,14 +356,14 @@ That's an implementation error, and it will be removed.
 <ul>
 
 <li>In order to send mail as <i>user@domain</i>, edit
-<b>/etc/postfix/main.cf</b> and specify that the local domain
+<b>/etc/postfix/main.cf</b> and specify what domain
 is to be appended to addresses that do not have a domain:
 
 <p>
 
 <dl>
 
-<dd><b>myorigin = </b><i>$mydomain</i>
+<dd><b>myorigin = </b><i>domain</i>
 
 </dl>
 
@@ -287,9 +394,9 @@ is to be appended to addresses that do not have a domain:
 
 <dl>
 
-<dd><b>root &nbsp; root@</b><i>my.host.name</i>
+<dd><b>root &nbsp; root@localhost</b>
 
-<dd><b>postmaster &nbsp; postmaster@</b><i>my.host.name</i>
+<dd><b>postmaster &nbsp; postmaster@localhost</b>
 
 </dl>
 
@@ -337,13 +444,18 @@ command for mailbox delivery:
 
 <dd><b>mailbox_command = </b><i>/path/to/procmail</i>
 
+<p>
+
+<dd><b>mailbox_command = </b><i>/path/to/procmail</i><b> &nbsp; -a
+&nbsp; "$EXTENSION"</b>
+
 </dl>
 
 <p>
 
-Do not use any shell meta characters or built-ins
-such as <b>IFS</b> or <b>&amp;&amp;</b>, because they force Postfix
-to run an expensive shell process.
+If you can, avoid using any shell meta characters or built-ins
+such as <b>$</b> or <b>"</b> or <b>IFS</b> or <b>&amp;&amp;</b>,
+because they force Postfix to run an expensive shell process.
 
 <p>
 
@@ -351,6 +463,39 @@ to run an expensive shell process.
 effective.
 
 </ul>
+
+Postfix exports information via environment variables. The contents
+are censored. Any characters that may have special meaning to the
+shell are replaced by underscores.
+
+<p>
+
+<dl>
+
+<dl>
+
+<dt><b>DOMAIN</b> <dd> The text to the right-hand side of the
+<b>@</b> in the recipient address.
+
+<dt><b>EXTENSION</b> <dd> Optional address extension part.
+
+<dt><b>HOME</b> <dd> The recpient's home directory.
+
+<dt><b>LOCAL</b> <dd> The text to the left-hand side of the <b>@</b>
+in the recipient address, for example, <b>$USER+$EXTENSION</b>.
+
+<dt><b>LOGNAME</b> <dd> The recipient username.
+
+<dt><b>RECIPIENT</b> <dd> The entire recipient address,
+<b>$LOCAL@$DOMAIN</b>.
+
+<dt><b>SHELL</b> <dd> The recipient's login shell.
+
+<dt><b>USER</b> <dd> The recipient username.
+
+</dl>
+
+</dl>
 
 <hr>
 

@@ -2,10 +2,10 @@ SHELL	= /bin/sh
 SRCS	= master.c master_conf.c master_ent.c master_sig.c master_avail.c \
 	master_spawn.c master_service.c master_status.o master_listen.c \
 	master_proto.c single_server.c multi_server.c master_vars.c \
-	master_wakeup.c
+	master_wakeup.c master_sample.c
 OBJS	= master.o master_conf.o master_ent.o master_sig.o master_avail.o \
 	master_spawn.o master_service.o master_status.o master_listen.o \
-	master_vars.o master_wakeup.o
+	master_vars.o master_wakeup.o master_sample.o
 LIB_OBJ	= single_server.o multi_server.o trigger_server.o master_proto.o
 HDRS	= mail_server.h master_proto.h
 INT_HDR	= master.h
@@ -118,6 +118,7 @@ master_ent.o: ../include/argv.h
 master_ent.o: ../include/stringops.h
 master_ent.o: ../include/readlline.h
 master_ent.o: ../include/inet_addr_list.h
+master_ent.o: ../include/split_at.h
 master_ent.o: ../include/mail_proto.h
 master_ent.o: ../include/iostuff.h
 master_ent.o: ../include/mail_params.h
@@ -139,6 +140,11 @@ master_proto.o: master_proto.c
 master_proto.o: ../include/sys_defs.h
 master_proto.o: ../include/msg.h
 master_proto.o: master_proto.h
+master_sample.o: master_sample.c
+master_sample.o: ../include/sys_defs.h
+master_sample.o: ../include/events.h
+master_sample.o: ../include/msg.h
+master_sample.o: master.h
 master_service.o: master_service.c
 master_service.o: ../include/sys_defs.h
 master_service.o: ../include/msg.h

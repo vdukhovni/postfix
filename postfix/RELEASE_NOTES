@@ -27,12 +27,12 @@ commands into separate directories.
 Major changes with snapshot-19990513:
 =====================================
 
-- New USER, EXTENSION, LOCAL and DOMAIN environment variables for
-delivery to command (including mailbox_command) by the local delivery
-agent. As you might expect, the information is censored. The list
-of acceptable characters is specified with the command_expansion_filter
-configuration parameter.  Unacceptable characters are replaced by
-underscores.
+- New USER, EXTENSION, LOCAL, DOMAIN. and RECIPIENT environment
+variables for delivery to command (including mailbox_command) by
+the local delivery agent. As you might expect, the information is
+censored. The list of acceptable characters is specified with the
+command_expansion_filter configuration parameter.  Unacceptable
+characters are replaced by underscores. See html/local.8.html.
 
 - Specify "forward_path = /var/forward/$user" to avoid looking up
 .forward files in user home directories.  The default value is

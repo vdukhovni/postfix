@@ -166,7 +166,7 @@ int     smtp_helo(SMTP_STATE *state)
     if (((resp = smtp_chat_resp(state))->code / 100) != 2)
 	return (smtp_site_fail(state, resp->code,
 			       "host %s refused to talk to me: %s",
-			    session->host, translit(resp->str, "\n", " ")));
+			 session->namaddr, translit(resp->str, "\n", " ")));
 
     /*
      * See if we are talking to ourself. This should not be possible with the
@@ -179,7 +179,7 @@ int     smtp_helo(SMTP_STATE *state)
     for (n = 0; (word = mystrtok(&words, " \t\n")) != 0; n++) {
 	if (n == 0 && strcasecmp(word, var_myhostname) == 0) {
 	    msg_warn("host %s greeted me with my own hostname %s",
-		     session->host, var_myhostname);
+		     session->namaddr, var_myhostname);
 	    return (smtp_site_fail(state, session->best ? 550 : 450,
 				   "mail for %s loops back to myself",
 				   request->nexthop));
@@ -201,7 +201,7 @@ int     smtp_helo(SMTP_STATE *state)
 	if ((resp = smtp_chat_resp(state))->code / 100 != 2)
 	    return (smtp_site_fail(state, resp->code,
 				   "host %s refused to talk to me: %s",
-				   session->host,
+				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
     }
 
@@ -441,7 +441,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		case SMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
 			smtp_mesg_fail(state, resp->code,
-				       "host %s said: %s", session->host,
+				       "host %s said: %s", session->namaddr,
 				       translit(resp->str, "\n", " "));
 			mail_from_rejected = 1;
 		    }
@@ -461,7 +461,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			} else {
 			    rcpt = request->rcpt_list.info + recv_rcpt;
 			    smtp_rcpt_fail(state, resp->code, rcpt,
-					   "host %s said: %s", session->host,
+				       "host %s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			    rcpt->offset = 0;	/* in case deferred */
 			}
@@ -479,7 +479,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
 			    smtp_mesg_fail(state, resp->code,
-					   "host %s said: %s", session->host,
+				       "host %s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			nrcpt = -1;
 		    }
@@ -500,14 +500,15 @@ int     smtp_xfer(SMTP_STATE *state)
 			if (resp->code / 100 != 2) {
 			    smtp_mesg_fail(state, resp->code,
 					   "host %s said: %s",
-					   session->host,
+					   session->namaddr,
 					   translit(resp->str, "\n", " "));
 			} else {
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
 				if (rcpt->offset) {
 				    sent(request->queue_id, rcpt->address,
-					 session->host, request->arrival_time, "%s",
+					 session->namaddr,
+					 request->arrival_time, "%s",
 					 resp->str);
 				    deliver_completed(state->src, rcpt->offset);
 				    rcpt->offset = 0;
@@ -604,6 +605,9 @@ int     smtp_xfer(SMTP_STATE *state)
 		msg_fatal("queue file read error");
 	    if (rec_type != REC_TYPE_XTRA)
 		RETURN(mark_corrupt(state->src));
+#if 0
+	    vstream_fflush(session->stream);
+#endif
 	}
 
 	/*
