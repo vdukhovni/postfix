@@ -335,7 +335,7 @@ static void dict_pcre_close(DICT *dict)
 	case DICT_PCRE_OP_ENDIF:
 	    break;
 	default:
-	    msg_panic("dict_regexp_close: unknown operation %d", rule->op);
+	    msg_panic("dict_pcre_close: unknown operation %d", rule->op);
 	}
 	myfree((char *) rule);
     }
@@ -644,6 +644,10 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
 	    last_rule->next = rule;
 	last_rule = rule;
     }
+
+    if (nesting)
+        msg_warn("pcre map %s, line %d: more IFs than ENDIFs",
+                 mapname, lineno);
 
     vstring_free(line_buffer);
     vstream_fclose(map_fp);

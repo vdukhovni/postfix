@@ -8,11 +8,15 @@
 # that each logical message header is matched against, including
 # headers that span multiple physical lines.  Patterns are matched
 # in the specified order, and the search stops upon the first match.
+#
+# For examples of pattern syntax see the sample-regexp-header.cf and
+# sample-pcre-header.cf files.
+#
 # When a pattern matches, what happens next depends on the associated
 # action that is specified in the right-hand side of the table:
 #
 # REJECT [optional text...]
-#	Reject the entire message. The optional text is sent to the 
+#	Reject the entire message. The optional text is sent to the
 #	originator and is logged to the maillog file.
 # IGNORE Silently discard the header line.
 # WARN [optional text...]
@@ -47,17 +51,21 @@ header_checks = regexp:/etc/postfix/header_checks
 # related headers in message headers, and to the headers that follow
 # multipart boundary strings. Headers may span multiple physical lines.
 # Patterns are matched in the specified order, and the search stops
-# upon the first match.  When a pattern matches, what happens next
-# depends on the associated action that is specified in the right-hand
-# side of the table:
+# upon the first match.
+#
+# For examples of pattern syntax see the sample-regexp-header.cf and
+# sample-pcre-header files.
+#
+# When a pattern matches, what happens next depends on the associated
+# action that is specified in the right-hand side of the table:
 #
 # REJECT [optional text...]
-#       Reject the entire message. The optional text is sent to the 
+#       Reject the entire message. The optional text is sent to the
 #       originator and is logged to the maillog file.
 # IGNORE Silently discard the body line
-# WARN [optional text...] 
+# WARN [optional text...]
 #       Log the body line and the optional text. This is useful
-#       for testing. When the pattern is OK, change the WARN into a 
+#       for testing. When the pattern is OK, change the WARN into a
 #       REJECT or into a DISCARD.
 # HOLD [optional text...]
 #       Place the message on the hold queue. Mail on hold can be
@@ -83,9 +91,13 @@ mime_header_checks = $header_checks
 # that each attached message header is matched against (except for
 # MIME related headers). Headers may span multiple physical lines.
 # Patterns are matched in the specified order, and the search stops
-# upon the first match.  When a pattern matches, what happens next
-# depends on the associated action that is specified in the right-hand
-# side of the table:
+# upon the first match.
+#
+# For examples of pattern syntax see the sample-regexp-header.cf and
+# sample-pcre-header.cf files.
+#
+# When a pattern matches, what happens next depends on the associated
+# action that is specified in the right-hand side of the table:
 #
 # REJECT the entire message is rejected.
 # REJECT text.... The text is sent to the originator.
@@ -107,10 +119,14 @@ nested_header_checks = $header_checks
 # The body_checks parameter specifies an optional table with patterns
 # that each physical line in the message body is matched against
 # (including MIME headers inside the message body - Postfix does not
-# recognize multi-line MIME headers in the message body).  
+# recognize multi-line MIME headers in the message body).
 # Lines are matched one at a time.  Long lines are matched in chunks
 # of at most $line_length_limit characters. Patterns are matched in
 # the specified order, and the search stops upon the first match.
+#
+# For examples of pattern syntax see the sample-regexp-body.cf and
+# sample-pcre-body.cf files.
+#
 # When a pattern matches, what happens next depends on the associated
 # action that is specified in the right-hand side of the table:
 #

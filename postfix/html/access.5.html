@@ -7,6 +7,10 @@ ACCESS(5)                                               ACCESS(5)
 <b>SYNOPSIS</b>
        <b>postmap</b> <b>/etc/postfix/access</b>
 
+       <b>postmap</b> <b>-q</b> <b>"</b><i>string</i><b>"</b> <b>/etc/postfix/access</b>
+
+       <b>postmap</b> <b>-q</b> <b>-</b> <b>/etc/postfix/access</b> &lt;<i>inputfile</i>
+
 <b>DESCRIPTION</b>
        The  optional <b>access</b> table directs the Postfix SMTP server
        to selectively  reject  or  accept  mail.  Access  can  be

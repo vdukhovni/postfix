@@ -5,6 +5,10 @@
 #	format of Postfix transport table
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/transport\fR
+#
+#       \fBpostmap -q "\fIstring\fB" /etc/postfix/transport\fR
+#
+#       \fBpostmap -q - /etc/postfix/transport <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBtransport\fR table specifies a mapping from email
 #	addresses to message delivery transports and/or relay hosts. The

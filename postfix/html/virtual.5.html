@@ -7,6 +7,10 @@ VIRTUAL(5)                                             VIRTUAL(5)
 <b>SYNOPSIS</b>
        <b>postmap</b> <b>/etc/postfix/virtual</b>
 
+       <b>postmap</b> <b>-q</b> <b>"</b><i>string</i><b>"</b> <b>/etc/postfix/virtual</b>
+
+       <b>postmap</b> <b>-q</b> <b>-</b> <b>/etc/postfix/virtual</b> &lt;<i>inputfile</i>
+
 <b>DESCRIPTION</b>
        The  optional <b>virtual</b> table specifies address redirections
        for local and non-local recipients or domains.  The  redi-

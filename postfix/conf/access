@@ -6,6 +6,10 @@
 # SYNOPSIS
 #        postmap /etc/postfix/access
 # 
+#        postmap -q "string" /etc/postfix/access
+# 
+#        postmap -q - /etc/postfix/access <inputfile
+# 
 # DESCRIPTION
 #        The  optional access table directs the Postfix SMTP server
 #        to selectively  reject  or  accept  mail.  Access  can  be

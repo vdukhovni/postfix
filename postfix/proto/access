@@ -5,6 +5,10 @@
 #	format of Postfix access table
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/access\fR
+#
+#       \fBpostmap -q "\fIstring\fB" /etc/postfix/access\fR
+#
+#       \fBpostmap -q - /etc/postfix/access <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBaccess\fR table directs the Postfix SMTP server
 #	to selectively reject or accept mail. Access can be allowed or

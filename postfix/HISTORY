@@ -6963,6 +6963,12 @@ Apologies for any names omitted.
 	This involved a rewrite of the pcre map code similar to
 	the regexp map code.  File:  util/dict_pcre.c.
 
+20020917
+
+	Feature: on Linux, support for PCRE lookup tables is now
+	compiled in if the PCRE library code is found under
+	/usr/include and /usr/lib.  File: makedefs.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

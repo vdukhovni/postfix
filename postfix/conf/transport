@@ -6,6 +6,10 @@
 # SYNOPSIS
 #        postmap /etc/postfix/transport
 # 
+#        postmap -q "string" /etc/postfix/transport
+# 
+#        postmap -q - /etc/postfix/transport <inputfile
+# 
 # DESCRIPTION
 #        The  optional  transport  table  specifies  a mapping from
 #        email addresses  to  message  delivery  transports  and/or

@@ -6,6 +6,10 @@
 # SYNOPSIS
 #        regexp:/etc/postfix/filename
 # 
+#        postmap -q "string" regexp:/etc/postfix/filename
+# 
+#        postmap -q - regexp:/etc/postfix/filename <inputfile
+# 
 # DESCRIPTION
 #        The Postfix mail system uses optional tables  for  address
 #        rewriting or mail routing. These tables are usually in dbm
@@ -15,24 +19,35 @@
 #        To  find out what types of lookup tables your Postfix sys-
 #        tem supports use the postconf -m command.
 # 
+#        To  test  lookup  tables,  use  the  postmap  command   as
+#        described in the SYNOPSIS above.
+# 
 #        The general form of a Postfix regular expression table is:
 # 
-#        pattern result
-#               When  pattern matches a search string, use the cor-
-#               responding result.
+#        /pattern/flags result
+# 
+#        !/pattern/flags result
+#               When pattern matches  (does  not  match)  a  search
+#               string, use the corresponding result value.
 # 
 #        blank lines and comments
-#               Empty lines and whitespace-only lines are  ignored,
-#               as  are  lines whose first non-whitespace character
+#               Empty  lines and whitespace-only lines are ignored,
+#               as are lines whose first  non-whitespace  character
 #               is a `#'.
 # 
 #        multi-line text
-#               A logical line starts with non-whitespace  text.  A
-#               line  that starts with whitespace continues a logi-
+#               A  logical  line starts with non-whitespace text. A
+#               line that starts with whitespace continues a  logi-
 #               cal line.
 # 
-#        pattern1!pattern2 result
-#               Matches pattern1 but not pattern2.
+#        if /pattern/flags
+# 
+#        if !/pattern/flags
+# 
+#        endif  Examine the lines between if..endif only if pattern
+#               matches (does not match). The if..endif  can  nest.
+#               Do   not  prepend  whitespace  to  patterns  inside
+#               if..endif.
 # 
 #        Each pattern is a regular expression enclosed by a pair of
 #        delimiters.  The regular expression syntax is described in

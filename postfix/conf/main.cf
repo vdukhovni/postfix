@@ -411,38 +411,13 @@ mail_owner = postfix
 
 # The header_checks parameter specifies an optional table with patterns
 # that each logical message header is matched against, including
-# headers that span multiple physical lines.  Patterns are matched
-# in the specified order, and the search stops upon the first match.
-# When a pattern matches, what happens next depends on the associated
-# action that is specified in the right-hand side of the table:
-#
-# REJECT [optional text...]
-#       Reject the entire message. The optional text is sent to the
-#       originator and is logged to the maillog file.
-# IGNORE Silently discard the header line.
-# WARN [optional text...]
-#       Log the message header and the optional text. This is useful
-#       for testing. When the pattern is OK, change the WARN into a
-#       REJECT or into a DISCARD.
-# HOLD [optional text...]
-#       Place the message on the hold queue. Mail on hold can be
-#       inspected with the postcat command, and can be destroyed or
-#       taken off hold (i.e. delivered) with the postsuper command.
-#	The matched header is logged with the optional text.
-# DISCARD [optional text...]
-#       Claim successful delivery and silently discard the message.
-#	The matched header is logged with the optional text.
-# FILTER transport:nexthop
-#	after the message is queued, send the entire message through
-#	a content filter. This requires different cleanup servers
-#	before and after the filter, with header/body checks turned
-#	off in the second cleanup server.
+# headers that span multiple physical lines.
 #
 # By default, these patterns also apply to MIME headers and to the
 # headers of attached messages. With older Postfix versions, MIME and
 # attached message headers were treated as body text.
 #
-# See also the body_checks example in the sample-filter.cf file.
+# For details, see the sample-filter.cf file.
 #
 #header_checks = regexp:/etc/postfix/header_checks
 

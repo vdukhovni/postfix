@@ -6,6 +6,10 @@
 # SYNOPSIS
 #        postmap /etc/postfix/virtual
 # 
+#        postmap -q "string" /etc/postfix/virtual
+# 
+#        postmap -q - /etc/postfix/virtual <inputfile
+# 
 # DESCRIPTION
 #        The  optional virtual table specifies address redirections
 #        for local and non-local recipients or domains.  The  redi-

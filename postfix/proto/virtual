@@ -5,6 +5,10 @@
 #	format of Postfix virtual table
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/virtual\fR
+#
+#	\fBpostmap -q "\fIstring\fB" /etc/postfix/virtual\fR
+#
+#	\fBpostmap -q - /etc/postfix/virtual <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBvirtual\fR table specifies address redirections for
 #	local and non-local recipients or domains. The redirections are used

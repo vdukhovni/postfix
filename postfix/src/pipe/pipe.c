@@ -95,7 +95,7 @@
 /*	mail system owner. If \fIgroupname\fR is specified, the
 /*	corresponding group ID is used instead of the group ID of
 /*	\fIusername\fR.
-/* .IP "\fBeol=string\fR (default: \fB\en\fR)"
+/* .IP "\fBeol=string\fR (optional, default: \fB\en\fR)"
 /*	The output record delimiter. Typically one would use either
 /*	\fB\er\en\fR or \fB\en\fR. The usual C-style backslash escape
 /*	sequences are recognized: \fB\ea \eb \ef \en \er \et \ev

@@ -7,6 +7,10 @@ TRANSPORT(5)                                         TRANSPORT(5)
 <b>SYNOPSIS</b>
        <b>postmap</b> <b>/etc/postfix/transport</b>
 
+       <b>postmap</b> <b>-q</b> <b>"</b><i>string</i><b>"</b> <b>/etc/postfix/transport</b>
+
+       <b>postmap</b> <b>-q</b> <b>-</b> <b>/etc/postfix/transport</b> &lt;<i>inputfile</i>
+
 <b>DESCRIPTION</b>
        The  optional  <b>transport</b>  table  specifies  a mapping from
        email addresses  to  message  delivery  transports  and/or

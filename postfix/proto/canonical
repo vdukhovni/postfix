@@ -5,6 +5,10 @@
 #	format of Postfix canonical table
 # SYNOPSIS
 #	\fBpostmap /etc/postfix/canonical\fR
+#
+#	\fBpostmap -q "\fIstring\fB" /etc/postfix/canonical\fR
+#
+#	\fBpostmap -q - /etc/postfix/canonical <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBcanonical\fR table specifies an address mapping for
 #	local and non-local addresses. The mapping is used by the

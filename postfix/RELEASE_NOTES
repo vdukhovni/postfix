@@ -12,30 +12,35 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-20020916
+Incompatible changes with Postfix snapshot 1.1.11-20020917
 ==========================================================
 
 The relayhost setting now behaves as documented, i.e. you can no
 longer specify multiple destinations.
 
-Major changes with Postfix snapshot 1.1.11-20020916
+In regexp lookup tables, the form /pattern1/!/pattern2/ is going
+away. Use the cleaner and more flexible "if !/pattern2/..endif"
+form.  The old form still exists but is no longer documented.
+
+Major changes with Postfix snapshot 1.1.11-20020917
 ===================================================
 
-Speedups of regexp table lookups by optimizing the compilation and
-execution settings for the actual number of $number substitutions
-in the right-hand side.  Based on a suggestion by Liviu Daia.
+Speedups of regexp table lookups by optimizing for the $number
+substitutions that are actually present in the right-hand side.
+Based on a suggestion by Liviu Daia.
 
-Speedups of regexp and pcre tables, using IF..ENDIF support based
-on an idea by Bert Driehuis. To protect a block of patterns, use:
+Speedups of regexp and pcre tables, using IF..ENDIF support. Based
+on an idea by Bert Driehuis.  To protect a block of patterns, use:
 
-    if /pattern/
-    /pattern2/	replacement text1
-    /pattern2/	replacement text2
+    if /pattern1/
+    /pattern2/	result2
+    /pattern3/	result3
     endif
 
 IF..ENDIF can nest. Don't specify blanks at the beginning of lines
-inside IF..ENDIF. Lines beginning with whitespace are appended to
-the previous line.
+inside IF..ENDIF, because lines beginning with whitespace are
+appended to the previous line. More details about the syntax are
+given in the pcre_table(5) and regexp_table(5) manual pages.
 
 Incompatible changes with Postfix snapshot 1.1.11-20020906
 ==========================================================

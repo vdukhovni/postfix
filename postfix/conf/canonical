@@ -1,4 +1,3 @@
-# 
 # CANONICAL(5)                                         CANONICAL(5)
 # 
 # NAME
@@ -6,6 +5,10 @@
 # 
 # SYNOPSIS
 #        postmap /etc/postfix/canonical
+# 
+#        postmap -q "string" /etc/postfix/canonical
+# 
+#        postmap -q - /etc/postfix/canonical <inputfile
 # 
 # DESCRIPTION
 #        The  optional canonical table specifies an address mapping
@@ -183,5 +186,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                                 1
-# 
+#                                                      CANONICAL(5)

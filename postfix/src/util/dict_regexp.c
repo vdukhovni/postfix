@@ -574,11 +574,16 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 #define FREE_EXPR_AND_RETURN(expr, rval) \
 	{ regfree(expr); myfree((char *) (expr)); return (rval); }
 
-	if (prescan_context.max_sub == 0)
+	if (prescan_context.max_sub == 0 || first_pat.match == 0)
 	    first_pat.options |= REG_NOSUB;
 	if ((first_exp = dict_regexp_compile_pat(mapname, lineno,
 						 &first_pat)) == 0)
 	    return (0);
+	if (prescan_context.max_sub > 0 && first_pat.match == 0) {
+	    msg_warn("regexp map %s, line %d: $number found in negative match replacement text: "
+		     "skipping this rule", mapname, lineno);
+	    FREE_EXPR_AND_RETURN(first_exp, 0);
+	}
 	if (prescan_context.max_sub > first_exp->re_nsub) {
 	    msg_warn("regexp map %s, line %d: out of range replacement index \"%d\": "
 		     "skipping this rule", mapname, lineno,
