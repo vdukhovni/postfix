@@ -22,7 +22,7 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Major changes with Postfix snapshot 2.0.13-20030705
+Major changes with Postfix snapshot 2.0.13-20030706
 ===================================================
 
 New receive_override_options parameter that eliminates the need
@@ -58,9 +58,10 @@ Credits to Victor Duchovni and Lamont Jones.
 New CIDR-based lookup table, remotely based on code by Jozsef
 Kadlecsik.  For details and examples, see "man cidr_table".
 
-The TCP-based client-server table lookup protocol is finished.
-For details and examples, see "man tcp_table". This will allow you
-to implement your own greylisting.
+The TCP-based table lookup protocol is finished.  For details and
+examples, see "man tcp_table". This will allow you to implement
+your own greylisting, or to do your own open proxy tests before
+accepting mail.
 
 Support for !/pattern/ (negative matches) in PCRE lookup tables by
 Victor Duchovni. See "man pcre_table" for more.
@@ -71,11 +72,11 @@ If this is turned off Postfix produces no X-Original-To: headers
 and ignores the original recipient when eliminating duplicates
 after virtual alias expansion. Code by Victor Duchovni.
 
-Finer control over how long the SMTP server waits for address
-verification probes to complete. address_verify_poll_{count,delay}
-control how often to query the verify server and how long to wait
-between queries. Specify address_verify_poll_count=1 to implement
-a crude form of greylisting.
+Finer control over how long Postfix SMTPD waits for completion of
+address verification probes: the address_verify_poll_{count,delay}
+parameters control how often to query the verify server and how
+long to wait between queries. Specify address_verify_poll_count=1
+to implement a crude form of greylisting.
 
 Major changes with Postfix snapshot 2.0.11-20030611
 ===================================================

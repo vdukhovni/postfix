@@ -21,7 +21,8 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
 	verp_sender.c match_parent_style.c mime_state.c header_token.c \
 	strip_addr.c virtual8_maps.c hold_message.c verify_clnt.c \
-	trace.c log_adhoc.c verify.c dict_proxy.c mail_dict.c input_transp.c
+	trace.c log_adhoc.c verify.c dict_proxy.c mail_dict.c input_transp.c \
+	cleanup_strflags.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -44,7 +45,8 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
 	verp_sender.o match_parent_style.o mime_state.o header_token.o \
 	strip_addr.o virtual8_maps.o hold_message.o verify_clnt.o \
-	trace.o log_adhoc.o verify.o dict_proxy.o mail_dict.o input_transp.o
+	trace.o log_adhoc.o verify.o dict_proxy.o mail_dict.o input_transp.o \
+	cleanup_strflags.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -433,6 +435,12 @@ cleanup_strerror.o: ../../include/sys_defs.h
 cleanup_strerror.o: ../../include/vstring.h
 cleanup_strerror.o: ../../include/vbuf.h
 cleanup_strerror.o: cleanup_user.h
+cleanup_strflags.o: cleanup_strflags.c
+cleanup_strflags.o: ../../include/sys_defs.h
+cleanup_strflags.o: ../../include/msg.h
+cleanup_strflags.o: ../../include/vstring.h
+cleanup_strflags.o: ../../include/vbuf.h
+cleanup_strflags.o: cleanup_user.h
 clnt_stream.o: clnt_stream.c
 clnt_stream.o: ../../include/sys_defs.h
 clnt_stream.o: ../../include/msg.h

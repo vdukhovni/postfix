@@ -62,6 +62,8 @@
 #	The server may omit the encoding as long as the reply
 #	is guaranteed to not contain the % or NEWLINE character.
 # SECURITY
+# .ad 
+# .fi
 #	Do not use TCP lookup tables for security critical purposes.
 #	The client-server connection is not protected and the server
 #	is not authenticated.

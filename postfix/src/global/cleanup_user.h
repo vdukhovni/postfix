@@ -66,6 +66,7 @@
 	(CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE | CLEANUP_STAT_SIZE)
 
 extern const char *cleanup_strerror(unsigned);
+extern const char *cleanup_strflags(unsigned);
 
 /* LICENSE
 /* .ad

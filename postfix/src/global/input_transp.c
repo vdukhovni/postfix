@@ -13,7 +13,8 @@
 /*	This module controls how much processing happens before mail is
 /*	written to the Postfix queue. Each transparency option is either
 /*	implemented by a client of the cleanup service, or is passed
-/*	along in a client request to the cleanup service.
+/*	along in a client request to the cleanup service. This eliminates
+/*	the need to configure multiple cleanup service instances.
 /*
 /*	input_transp_mask() takes a comma-separated list of names and
 /*	computes the corresponding mask. The following names are

@@ -8336,9 +8336,8 @@ Apologies for any names omitted.
 	what happens before or after an external content filter:
 	rejecting unknown recipients, canonical and virtual address
 	mapping, address masquerading, automatic BCC recipients
-	and header/body checks. This is more convenient than having
-	to specify two different cleanup services in the master.cf
-	file.
+	and header/body checks. This eliminates the need to configure
+	multiple cleanup services in the master.cf file.
 
 Open problems:
 

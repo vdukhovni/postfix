@@ -382,7 +382,7 @@ static void cleanup_header_callback(void *context, int header_class,
     const char *map_class;
 
     if (msg_verbose)
-	msg_info("%s: '%s'", myname, vstring_str(header_buf));
+	msg_info("%s: '%.200s'", myname, vstring_str(header_buf));
 
     /*
      * Crude header filtering. This stops malware that isn't sophisticated

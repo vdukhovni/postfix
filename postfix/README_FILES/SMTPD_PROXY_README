@@ -11,6 +11,27 @@ in the Postfix mail queue.
 FILTER_README document, where all mail is inspected AFTER it is
 stored in the Postfix mail queue]
 
+This feature is meant to be used as follows:
+                                                             / smtp
+    Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue -> local
+               Postfix           Postfix                     \ virtual etc.
+
+For reference, this is the normal path through Postfix:
+
+                                           / smtp
+    Internet -> smtpd -> cleanup -> queue -> local
+                Postfix                    \ virtual etc.
+
+For comparison, this is the FILTER_README approach with an SMTP-based
+content filter:
+                                           / smtp
+    Internet -> smtpd -> cleanup -> queue -> local
+               Postfix      ^         v    \ virtual etc.
+                          smtpd      smtp
+                         Postfix   Postfix
+                            \         /
+                             filter <-
+
 The SMTP proxy server receives unfiltered mail from Postfix and
 does one of the following:
 
@@ -18,7 +39,8 @@ does one of the following:
     content.
 
 2 - Reject the mail (by sending a suitable status code back to
-    Postfix) so that it is returned to sender.
+    Postfix). Postfix passes the status back to the remote SMTP
+    client. This way, Postfix does not have to send a bounce message.
 
 3 - Send the mail somewhere else.
 
@@ -57,26 +79,6 @@ has approved.  All commands are sent without using ESMTP command
 pipelining. The SMTP proxy server must accept the same MAIL FROM
 and RCPT TO command syntax as the Postfix SMTP server.
 
-This feature is meant to be used as follows:
-                                                             / smtp
-    Internet -> smtpd -> proxy -> smtpd -> cleanup -> queue -> local
-               Postfix           Postfix                     \ virtual etc.
-
-For reference, this is the normal path through Postfix:
-
-                                           / smtp
-    Internet -> smtpd -> cleanup -> queue -> local
-                Postfix                    \ virtual etc.
-
-For comparison, this is the FILTER_README approach with an SMTP-based
-content filter:
-                                           / smtp
-    Internet -> smtpd -> cleanup -> queue -> local
-               Postfix      ^         v    \ virtual etc.
-                          smtpd      smtp
-                         Postfix   Postfix
-                            \         /
-                             filter <-
 Configuration parameters 
 ========================
 

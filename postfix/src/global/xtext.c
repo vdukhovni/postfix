@@ -16,11 +16,11 @@
 /*	const char *quoted;
 /* DESCRIPTION
 /*	xtext_quote() takes a null-terminated string and replaces characters
-/*	<33(10) and >126(10), as well as characters specified with "special"
+/*	+, <33(10) and >126(10), as well as characters specified with "special"
 /*	by +XX, XX being the two-digit uppercase hexadecimal equivalent.
 /*
 /*	xtext_unquote() performs the opposite transformation. This function
-/*	understands lowercase, uppercase, and mixed case %XX sequences. The
+/*	understands lowercase, uppercase, and mixed case +XX sequences. The
 /*	result value is the unquoted argument in case of success, a null pointer
 /*	otherwise.
 /* BUGS

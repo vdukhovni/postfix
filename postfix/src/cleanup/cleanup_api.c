@@ -175,6 +175,8 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * discard input after any lethal error. See the CLEANUP_OUT_OK() macro
      * definition.
      */
+    if (msg_verbose)
+	msg_info("cleanup flags = %s", cleanup_strflags(flags));
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
 	state->err_mask = CLEANUP_STAT_MASK_INCOMPLETE;
     } else {

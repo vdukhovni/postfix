@@ -102,6 +102,8 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 
     /*
      * Peek at the cache.
+     * 
+     * XXX Must be made "rule" specific.
      */
     if (strcmp(addr, STR(last_addr)) == 0) {
 	vstring_strcpy(result, STR(last_result));

@@ -70,9 +70,9 @@
 #        to not contain the % or NEWLINE character.
 # 
 # SECURITY
-#        Do not use TCP lookup tables for security critical purposes.
-#        The client-server connection is not protected and the server
-#        is not authenticated.
+#        Do  not  use  TCP lookup tables for security critical pur-
+#        poses.  The client-server connection is not protected  and
+#        the server is not authenticated.
 # 
 # SEE ALSO
 #        regexp_table(5) format of regular expression tables
