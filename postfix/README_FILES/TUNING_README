@@ -191,8 +191,8 @@ GGeenneerraall mmaaiill ddeelliivveerryy ppeerrffoorrm
     network link.
 
   * Reduce the smtp_connect_timeout and smtp_helo_timeout values so that
-    Postfix does not waste lots of time connecting to non-responding smtpd(8)
-    servers.
+    Postfix does not waste lots of time connecting to non-responding remote
+    SMTP servers.
 
   * Use a dedicated mail delivery transport for problematic destinations, with
     reduced timeouts and with adjusted concurrency. See "Tuning the number of

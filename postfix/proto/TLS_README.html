@@ -27,13 +27,63 @@ code.  Assuming that OpenSSL is written as carefully as Wietse's
 own code, every 1000 lines introduce one additional bug into
 Postfix.  </p>
 
-<h2> Purpose of this document </h2>
+<h2> Introduction </h2>
 
-<p> This document describes how to build Postfix with Transport
-Layer Security (TLS) support in the Postfix SMTP client and Postfix
-SMTP server, and how to configure the TLS manager daemon that
-maintains the Pseudo Random Number Generator (PRNG) pool and the
-TLS session cache information. </p>
+<p> This document requires Postfix version 2.2 or later. </p>
+
+<p> Postfix may be built with Transport Layer Security (TLS, formerly
+called SSL) protocol support as described in RFC 3207. This provides
+certificate-based authentication, and encrypted sessions.  An
+encrypted session protects the information that is transmitted with
+SMTP mail or with SASL authentication.  The main elements of the
+Postfix TLS architecture are:  </p>
+
+<ul>
+
+<li> <p> The smtpd(8) server implements the SMTP over TLS server
+side. </p>
+
+<li> <p> The smtp(8) client implements the SMTP over TLS client
+side. </p>
+
+<li> <p> The tlsmgr(8) server maintains the pseudo-random number
+generator (PRNG) that seeds the TLS engines in the smtpd(8) server
+and smtp(8) client processes, and maintains the TLS session cache
+files with TLS session keys. </p>
+
+</ul>
+
+<p> The following diagram shows the relationship between these
+architecture elements. </p>
+
+<table>
+
+<tr> <td>Network<tt>-&gt; </tt> </td> <td align="center"
+bgcolor="#f0f0ff"> <br> <a href="smtpd.8.html">smtpd(8)</a> <br> &nbsp; </td> <td colspan="2">
+
+<tt> &lt;---seed---<br><br>&lt;-session-&gt; </tt> </td> <td
+align="center" bgcolor="#f0f0ff"> <br> <a href="tlsmgr.8.html">tlsmgr(8)</a> <br> &nbsp; </td>
+<td colspan="3"> <tt> ---seed---&gt;<br> <br>&lt;-session-&gt;
+
+</tt> </td> <td align="center" bgcolor="#f0f0ff"> <br> <a href="smtp.8.html">smtp(8)</a> <br>
+&nbsp; </td> <td> <tt> -&gt;</tt>Network </td> </tr>
+
+<tr> <td colspan="3"> </td> <td align="right"> <table> <tr> <td>
+
+</td> <td> / </td> </tr> <tr> <td> / </td> <td> </td> </tr> </table>
+</td> <td align="center"> |<br> |</td> <td align="left"> <table>
+
+<tr> <td> \ </td> <td> </td> </tr> <tr> <td> </td> <td> \ </td>
+</tr> </table> </td> <td colspan="3"> </td> </tr>
+
+<tr> <td colspan="2"> </td> <td align="center" bgcolor="#f0f0ff">
+smtpd<br> session<br> cache </td> <td> </td> <td align="center"
+bgcolor="#f0f0ff"> PRNG<br> state <br>file </td> <td> </td> <td
+align="center" bgcolor="#f0f0ff"> smtp<br> session<br> cache </td>
+
+<td colspan="2"> </td> </tr>
+
+</table>
 
 <p> Topics covered in this document: </p>
 
@@ -67,7 +117,7 @@ TLS session cache information. </p>
 
 <p> To build Postfix with TLS support, first we need to generate
 the <tt>make(1)</tt> files with the necessary definitions. This is
-done by invoking the command "<tt>make makefiles</tt> in the Postfix
+done by invoking the command "<tt>make makefiles</tt>" in the Postfix
 top-level directory and with arguments as shown next. </p>
 
 <ul>
@@ -94,6 +144,16 @@ are in directory <tt>/usr/local/lib</tt>:  </p>
 % <b>make tidy</b> # if you have left-over files from a previous build
 % <b>make makefiles CCARGS="-DUSE_TLS -I/usr/local/include" \
     AUXLIBS="-L/usr/local/lib -lssl -lcrypto" </b>
+</pre>
+</blockquote>
+
+<p> On Solaris, specify the <tt>-R</tt> option as shown below:
+
+<blockquote>
+<pre>
+% <b>make tidy</b> # if you have left-over files from a previous build
+% <b>make makefiles CCARGS="-DUSE_TLS -I/usr/local/include" \
+    AUXLIBS="-R/usr/local/lib -L/usr/local/lib -lssl -lcrypto" </b>
 </pre>
 </blockquote>
 
@@ -973,9 +1033,7 @@ specify one of the following keywords:  </p>
 <dt> NONE </dt> <dd> Don't use TLS at all. </dd>
 
 <dt> MAY </dt> <dd> Try to use STARTTLS if offered, otherwise use
-the unencrypted connection. NOTE: STARTTLS can be used only if TLS
-is already enabled via main.cf, so that the client TLS engine is
-properly initialized at program startup. </dd>
+the unencrypted connection. </dd>
 
 <dt> MUST </dt> <dd> Require usage of STARTTLS, require that the
 remote SMTP server hostname matches the information in the remote
@@ -1124,7 +1182,9 @@ session key.  </p>
 <p> In order to feed its in-memory PRNG pool, the tlsmgr(8) reads
 entropy from an external source, both at startup and during run-time.
 Specify a good entropy source, like EGD or /dev/urandom; be sure
-to only use non-blocking sources.  If the entropy source is not a
+to only use non-blocking sources (on OpenBSD, use /dev/arandom
+when tlsmgr(8) complains about /dev/urandom timeout errors).
+If the entropy source is not a
 regular file, you must prepend the source type to the source name:
 "dev:" for a device special file, or "egd:" for a source with EGD
 compatible socket interface.  </p>

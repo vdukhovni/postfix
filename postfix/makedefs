@@ -25,11 +25,13 @@
 #	\fIinclude\fR directory.
 #	The following directives are special:
 # .RS
-# .IP "\fB-DUSE_TLS\fR (default)"
+# .IP \fB-DUSE_TLS\f
 #	Build with TLS (transport level security) support. This
 #	requires that OpenSSL is installed.
 # .IP \fB-DNO_TLS\fR
 #	Do not build with TLS support.
+# .IP \fB-DNO_IPV6\fR
+#	Do not build with IPv6 support.
 # .IP \fB-DHAS_PCRE\fR
 #	Build with PCRE (Perl-compatible regular expression) support.
 #	By default, PCRE support is enabled when the \fBpcre-config\fR
@@ -155,11 +157,11 @@ case "$SYSTEM.$RELEASE" in
 		esac
 		# Solaris 8 added IPv6
 		case $RELEASE in
-		    5.[0-7]) CCARGS="$CCARGS -DNO_IPV6";;
+		    5.[0-7]|5.[0-7].*) CCARGS="$CCARGS -DNO_IPV6";;
 		esac
 		# Solaris 9 added closefrom() and /dev/*random
 		case $RELEASE in
-		    5.[0-8]) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM";;
+		    5.[0-8]|5.[0-8].*) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM";;
 		esac
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.

@@ -344,5 +344,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_POST_INIT, drop_privileges,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
+		       MAIL_SERVER_PRIVILEGED,
 		       0);
 }

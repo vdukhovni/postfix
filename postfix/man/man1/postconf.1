@@ -42,7 +42,7 @@ Postfix supports the following methods:
 .RS
 .IP \fBflock\fR
 A kernel-based advisory locking method for local files only.
-This locking method is available only on systems with a BSD
+This locking method is available on systems with a BSD
 compatible library.
 .IP \fBfcntl\fR
 A kernel-based advisory locking method for local and remote files.
@@ -53,28 +53,33 @@ The application is expected to remove its own lock file, as well as
 stale lock files that were left behind after abnormal termination.
 .RE
 .IP \fB-m\fR
-List the names of all supported lookup table types. Postfix
+List the names of all supported lookup table types. In Postfix
+configuration files,
 lookup tables are specified as \fItype\fB:\fIname\fR, where
 \fItype\fR is one of the types listed below. The table \fIname\fR
-syntax depends on the lookup table type.
+syntax depends on the lookup table type as described in the
+DATABASE_README document.
 .RS
 .IP \fBbtree\fR
 A sorted, balanced tree structure.
-This is available only on systems with support for Berkeley DB
+This is available on systems with support for Berkeley DB
 databases.
+.IP \fBcdb\fR
+A read-optimized structure with no support for incremental updates.
+This is available on systems with support for CDB databases.
 .IP \fBcidr\fR
 A table that associates values with Classless Inter-Domain Routing
 (CIDR) patterns. This is described in \fBcidr_table\fR(5).
 .IP \fBdbm\fR
 An indexed file type based on hashing.
-This is available only on systems with support for DBM databases.
+This is available on systems with support for DBM databases.
 .IP \fBenviron\fR
 The UNIX process environment array. The lookup key is the variable
 name. Originally implemented for testing, someone may find this
 useful someday.
 .IP \fBhash\fR
 An indexed file type based on hashing.
-This is available only on systems with support for Berkeley DB
+This is available on systems with support for Berkeley DB
 databases.
 .IP "\fBldap\fR (read-only)"
 Perform lookups using the LDAP protocol. This is described
@@ -97,7 +102,7 @@ A lookup table based on regular expressions. The file format is
 described in \fBregexp_table\fR(5).
 .IP \fBsdbm\fR
 An indexed file type based on hashing.
-This is available only on systems with support for SDBM databases.
+This is available on systems with support for SDBM databases.
 .IP "\fBstatic\fR (read-only)"
 A table that always returns its name as lookup result. For example,
 \fBstatic:foobar\fR always returns the string \fBfoobar\fR as lookup

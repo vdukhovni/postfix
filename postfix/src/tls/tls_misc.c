@@ -127,7 +127,7 @@ void    tls_info_callback(const SSL *s, int where, int ret)
 	str = "unknown";
 
     if (where & SSL_CB_LOOP) {
-	msg_info("%s:%s", str, SSL_state_string_long(s));
+	msg_info("%s:%s", str, SSL_state_string_long((SSL *) s));
     } else if (where & SSL_CB_ALERT) {
 	str = (where & SSL_CB_READ) ? "read" : "write";
 	if ((ret & 0xff) != SSL3_AD_CLOSE_NOTIFY)
@@ -137,10 +137,10 @@ void    tls_info_callback(const SSL *s, int where, int ret)
     } else if (where & SSL_CB_EXIT) {
 	if (ret == 0)
 	    msg_info("%s:failed in %s",
-		     str, SSL_state_string_long(s));
+		     str, SSL_state_string_long((SSL *) s));
 	else if (ret < 0) {
 	    msg_info("%s:error in %s",
-		     str, SSL_state_string_long(s));
+		     str, SSL_state_string_long((SSL *) s));
 	}
     }
 }

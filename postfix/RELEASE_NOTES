@@ -7,6 +7,13 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20050131
+=======================================================
+
+Postfix rewrites message header addresses only in mail that originates
+from the local machine. Specify "local_header_rewrite_clients =
+static:all" to get the old behavior of Postfix 2.1 and earlier.
+
 Incompatible changes with snapshot Postfix-2.2-20050117
 =======================================================
 

@@ -487,6 +487,8 @@ int     smtp_connect(SMTP_STATE *state)
     int     lookup_mx;
     unsigned domain_best_pref;
     int     sess_flags = SMTP_SESS_FLAG_NONE;
+    int     i_am_mx = 0;
+    int     non_fallback_sites;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
@@ -499,6 +501,7 @@ int     smtp_connect(SMTP_STATE *state)
     argv_add(sites, request->nexthop, (char *) 0);
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", request->nexthop);
+    non_fallback_sites = sites->argc;
     argv_split_append(sites, var_fallback_relay, ", \t\r\n");
 
     /*
@@ -517,7 +520,12 @@ int     smtp_connect(SMTP_STATE *state)
      * then is to build this into the pre-existing SMTP client without
      * getting lost in the complexity.
      */
+#define IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites) \
+	    ((cpp) >= (sites)->argv + (non_fallback_sites))
+
     for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
+	if (i_am_mx && IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites))
+	    break;
 	state->final_server = (cpp[1] == 0);
 
 	/*
@@ -540,8 +548,9 @@ int     smtp_connect(SMTP_STATE *state)
 	lookup_mx = (var_disable_dns == 0 && *dest != '[');
 	if (!lookup_mx) {
 	    addr_list = smtp_host_addr(domain, misc_flags, why);
+	    /* XXX We could be an MX host for this destination... */
 	} else {
-	    addr_list = smtp_domain_addr(domain, misc_flags, why);
+	    addr_list = smtp_domain_addr(domain, misc_flags, why, &i_am_mx);
 	}
 
 	/*
@@ -667,7 +676,7 @@ int     smtp_connect(SMTP_STATE *state)
 	     * The fall-back destination did not resolve as expected, or it
 	     * is refusing to talk to us, or mail for it loops back to us.
 	     */
-	    if (sites->argc > 1 && cpp > sites->argv) {
+	    if (IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites)) {
 		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
 		smtp_errno = SMTP_ERR_RETRY;
 	    }

@@ -107,6 +107,8 @@
 /*	This service must be configured with process limit of 1.
 /* .IP MAIL_SERVER_UNLIMITED
 /*	This service must be configured with process limit of 0.
+/* .IP MAIL_SERVER_PRIVILEGED
+/*	This service must be configured as privileged.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
 /*	when a client disconnects.
@@ -565,6 +567,11 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	case MAIL_SERVER_UNLIMITED:
 	    if (!zerolimit)
 		msg_fatal("service %s requires a process limit of 0",
+			  service_name);
+	    break;
+	case MAIL_SERVER_PRIVILEGED:
+	    if (user_name)
+		msg_fatal("service %s requires privileged operation",
 			  service_name);
 	    break;
 	default:

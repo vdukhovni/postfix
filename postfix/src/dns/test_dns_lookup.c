@@ -33,6 +33,8 @@
 #include <vstring.h>
 #include <msg.h>
 #include <msg_vstream.h>
+#include <mymalloc.h>
+#include <argv.h>
 
 /* Application-specific. */
 
@@ -77,26 +79,35 @@ static void print_rr(DNS_RR *rr)
 
 int     main(int argc, char **argv)
 {
-    int     type;
+    ARGV   *types_argv;
+    int    *types;
     char   *name;
     VSTRING *fqdn = vstring_alloc(100);
     VSTRING *why = vstring_alloc(100);
     DNS_RR *rr;
+    int     i;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     if (argc != 3)
-	msg_fatal("usage: %s type name", argv[0]);
-    if ((type = dns_type(argv[1])) == 0)
-	msg_fatal("invalid query type: %s", argv[1]);
+	msg_fatal("usage: %s types name", argv[0]);
+    types_argv = argv_split(argv[1], ", \t\r\n");
+    types = (int *) mymalloc(sizeof(*types) * (types_argv->argc + 1));
+    for (i = 0; i < types_argv->argc; i++)
+	if ((types[i] = dns_type(types_argv->argv[i])) == 0)
+	    msg_fatal("invalid query type: %s", types_argv->argv[i]);
+    types[i] = 0;
+    argv_free(types_argv);
     name = argv[2];
     msg_verbose = 1;
-    switch (dns_lookup_l(name, RES_DEFNAMES | RES_DEBUG, &rr, fqdn, why,
-			 DNS_REQ_FLAG_ALL, type, 0)) {
+    switch (dns_lookup_v(name, RES_DEFNAMES | RES_DEBUG, &rr, fqdn, why,
+			 DNS_REQ_FLAG_ALL, types)) {
     default:
 	msg_fatal("%s", vstring_str(why));
     case DNS_OK:
 	printf("%s: fqdn: %s\n", name, vstring_str(fqdn));
 	print_rr(rr);
+	dns_rr_free(rr);
     }
+    myfree((char *) types);
     exit(0);
 }

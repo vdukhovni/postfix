@@ -95,18 +95,21 @@
 /* .RS
 /* .IP \fBbtree\fR
 /*	The output is a btree file, named \fIfile_name\fB.db\fR.
-/*	This is available only on systems with support for \fBdb\fR databases.
+/*	This is available on systems with support for \fBdb\fR databases.
+/* .IP \fBcdb\fR
+/*	The output is one file named \fIfile_name\fB.cdb\fR.
+/*	This is available on systems with support for \fBcdb\fR databases.
 /* .IP \fBdbm\fR
 /*	The output consists of two files, named \fIfile_name\fB.pag\fR and
 /*	\fIfile_name\fB.dir\fR.
-/*	This is available only on systems with support for \fBdbm\fR databases.
+/*	This is available on systems with support for \fBdbm\fR databases.
 /* .IP \fBhash\fR
 /*	The output is a hashed file, named \fIfile_name\fB.db\fR.
-/*	This is available only on systems with support for \fBdb\fR databases.
+/*	This is available on systems with support for \fBdb\fR databases.
 /* .IP \fBsdbm\fR
 /*	The output consists of two files, named \fIfile_name\fB.pag\fR and
 /*	\fIfile_name\fB.dir\fR.
-/*	This is available only on systems with support for \fBsdbm\fR databases.
+/*	This is available on systems with support for \fBsdbm\fR databases.
 /* .PP
 /*	When no \fIfile_type\fR is specified, the software uses the database
 /*	type specified via the \fBdefault_database_type\fR configuration

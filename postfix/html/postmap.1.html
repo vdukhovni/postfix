@@ -135,22 +135,26 @@ POSTMAP(1)                                             POSTMAP(1)
               types:
 
               <b>btree</b>  The output  file  is  a  btree  file,  named
-                     <i>file</i><b>_</b><i>name</i><b>.db</b>.   This  is  available  only on
-                     systems with support for <b>db</b> databases.
+                     <i>file</i><b>_</b><i>name</i><b>.db</b>.   This is available on systems
+                     with support for <b>db</b> databases.
+
+              <b>cdb</b>    The  output  consists  of  one  file,  named
+                     <i>file</i><b>_</b><i>name</i><b>.cdb</b>.  This is available on systems
+                     with support for <b>cdb</b> databases.
 
               <b>dbm</b>    The output  consists  of  two  files,  named
                      <i>file</i><b>_</b><i>name</i><b>.pag</b>  and  <i>file</i><b>_</b><i>name</i><b>.dir</b>.   This is
-                     available only on systems with  support  for
-                     <b>dbm</b> databases.
+                     available on systems with  support  for  <b>dbm</b>
+                     databases.
 
               <b>hash</b>   The  output  file  is  a  hashed file, named
-                     <i>file</i><b>_</b><i>name</i><b>.db</b>.  This  is  available  only  on
-                     systems with support for <b>db</b> databases.
+                     <i>file</i><b>_</b><i>name</i><b>.db</b>.  This is available on  systems
+                     with support for <b>db</b> databases.
 
               <b>sdbm</b>   The  output  consists  of  two  files, named
                      <i>file</i><b>_</b><i>name</i><b>.pag</b> and  <i>file</i><b>_</b><i>name</i><b>.dir</b>.   This  is
-                     available  only  on systems with support for
-                     <b>sdbm</b> databases.
+                     available  on  systems with support for <b>sdbm</b>
+                     databases.
 
               When no <i>file</i><b>_</b><i>type</i> is specified, the  software  uses
               the     database    type    specified    via    the

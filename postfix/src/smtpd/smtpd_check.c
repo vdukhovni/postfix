@@ -909,6 +909,20 @@ static int reject_unknown_client(SMTPD_STATE *state)
     return (SMTPD_CHECK_DUNNO);
 }
 
+/* permit_inet_interfaces - succeed if client my own address */
+
+static int permit_inet_interfaces(SMTPD_STATE *state)
+{
+    char   *myname = "permit_inet_interfaces";
+
+    if (msg_verbose)
+	msg_info("%s: %s %s", myname, state->name, state->addr);
+
+    if (own_inet_addr((struct sockaddr *) & (state->sockaddr)))
+	return (SMTPD_CHECK_OK);
+    return (SMTPD_CHECK_DUNNO);
+}
+
 /* permit_mynetworks - succeed if client is in a trusted network */
 
 static int permit_mynetworks(SMTPD_STATE *state)
@@ -3153,6 +3167,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	 */
 	else if (strcasecmp(name, REJECT_UNKNOWN_CLIENT) == 0) {
 	    status = reject_unknown_client(state);
+	} else if (strcasecmp(name, PERMIT_INET_INTERFACES) == 0) {
+	    status = permit_inet_interfaces(state);
 	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
 	} else if (is_map_command(state, name, CHECK_CLIENT_ACL, &cpp)) {
@@ -3502,7 +3518,9 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	    name = CHECK_ADDR_MAP;
 	    cpp -= 1;
 	}
-	if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
+	if (strcasecmp(name, PERMIT_INET_INTERFACES) == 0) {
+	    status = permit_inet_interfaces(state);
+	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
 	} else if (is_map_command(state, name, CHECK_ADDR_MAP, &cpp)) {
 	    if ((dict = dict_handle(*cpp)) == 0)

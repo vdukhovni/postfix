@@ -27,6 +27,7 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <argv.h>
+#include <myaddrinfo.h>
 
  /*
   * Global library.
@@ -74,6 +75,7 @@ typedef struct SMTPD_STATE {
     char   *addr;			/* client host address string */
     char   *namaddr;			/* combined name and address */
     char   *rfc_addr;			/* address for RFC 2821 */
+    struct sockaddr_storage sockaddr;	/* binary client endpoint */
     int     peer_code;			/* 2=ok, 4=soft, 5=hard */
     int     error_count;		/* reset after DOT */
     int     error_mask;			/* client errors */

@@ -479,6 +479,7 @@ static void output_header(void *context, int header_class,
     char   *start;
     char   *line;
     char   *next_line;
+    int     len;
 
     /*
      * Parse the header line, and save copies of recipient addresses in the
@@ -507,12 +508,23 @@ static void output_header(void *context, int header_class,
 
     /*
      * Pipe the unmodified message header through the header line folding
-     * routine.
+     * routine, and ensure that long lines are chopped appropriately.
      */
     for (line = start = STR(buf); line; line = next_line) {
 	next_line = split_at(line, '\n');
-	output_text(context, REC_TYPE_NORM, line, next_line ?
-		    next_line - line - 1 : strlen(line), offset);
+	len = next_line ? next_line - line - 1 : strlen(line);
+	do {
+	    if (len > var_line_limit) {
+		output_text(context, REC_TYPE_CONT, line, var_line_limit, offset);
+		line += var_line_limit;
+		len -= var_line_limit;
+		offset += var_line_limit;
+	    } else {
+		output_text(context, REC_TYPE_NORM, line, len, offset);
+		break;
+	    }
+	} while (len > 0);
+	offset += 1;
     }
 }
 

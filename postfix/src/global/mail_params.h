@@ -1579,6 +1579,8 @@ extern int var_defer_code;
 #define DEF_UNK_CLIENT_CODE	450
 extern int var_unk_client_code;
 
+#define PERMIT_INET_INTERFACES	"permit_inet_interfaces"
+
 #define PERMIT_MYNETWORKS	"permit_mynetworks"
 
 #define PERMIT_NAKED_IP_ADDR	"permit_naked_ip_address"
@@ -2315,12 +2317,7 @@ extern char *var_remote_rwr_domain;
 #define CHECK_ADDR_MAP			"check_address_map"
 
 #define VAR_LOC_RWR_CLIENTS		"local_header_rewrite_clients"
-#ifdef USE_TLS
-#define DEF_LOC_RWR_CLIENTS		PERMIT_MYNETWORKS " " PERMIT_SASL_AUTH \
-					" " PERMIT_TLS_CLIENTCERTS
-#else
-#define DEF_LOC_RWR_CLIENTS		PERMIT_MYNETWORKS " " PERMIT_SASL_AUTH
-#endif
+#define DEF_LOC_RWR_CLIENTS		PERMIT_INET_INTERFACES
 extern char *var_local_rwr_clients;
 
  /*

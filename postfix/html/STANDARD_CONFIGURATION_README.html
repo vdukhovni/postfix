@@ -577,8 +577,28 @@ table. </p>
 <b>dbm</b> files instead of <b>db</b> files. To find out what lookup
 tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 
-<p> Execute the command "<b>postmap /etc/postfix/transport</b>" whenever
-you change the transport table. </p>
+<p> Execute the command "<b>postmap /etc/postfix/transport</b>"
+whenever you change the transport table. </p>
+
+<p> NOTE: Do not use the <a href="postconf.5.html#fallback_relay">fallback_relay</a> feature when relaying mail 
+for a backup or primary MX domain. Mail would loop between the
+Postfix MX host and the <a href="postconf.5.html#fallback_relay">fallback_relay</a> host when the final destination
+is unavailable. </p>
+ 
+<ul>
+
+<li> In main.cf specify "<tt><a href="postconf.5.html#relay_transport">relay_transport</a> = relay</tt>",
+
+<li> In master.cf specify "<tt>-o <a href="postconf.5.html#fallback_relay">fallback_relay</a> =</tt>" at the    
+end of the <tt>relay</tt> entry.
+
+<li> In transport maps, specify "<tt>relay:<i>nexthop...</i></tt>"
+as the right-hand side for backup or primary MX domain entries.
+
+</ul>
+
+<p> These are default settings in Postfix version 2.2 and later.
+</p>
 
 <h2><a name="dialup">Postfix on a dialup machine</a></h2>
 

@@ -284,7 +284,7 @@ across the upstream network link. </p>
 
 <li> <p> Reduce the smtp_connect_timeout and smtp_helo_timeout
 values so that Postfix does not waste lots of time connecting
-to non-responding smtpd(8) servers. </p>
+to non-responding remote SMTP servers. </p>
 
 <li> <p> Use a dedicated mail delivery transport for problematic
 destinations, with reduced timeouts and with adjusted concurrency.

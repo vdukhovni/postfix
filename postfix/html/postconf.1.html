@@ -44,8 +44,8 @@ POSTCONF(1)                                           POSTCONF(1)
 
               <b>flock</b>  A  kernel-based  advisory locking method for
                      local files only.  This  locking  method  is
-                     available only on systems with a BSD compat-
-                     ible library.
+                     available  on  systems with a BSD compatible
+                     library.
 
               <b>fcntl</b>  A kernel-based advisory locking  method  for
                      local and remote files.
@@ -59,93 +59,99 @@ POSTCONF(1)                                           POSTCONF(1)
                      were left behind after abnormal termination.
 
        <b>-m</b>     List the names of all supported lookup table types.
-              Postfix lookup tables are specified  as  <i>type</i><b>:</b><i>name</i>,
-              where  <i>type</i>  is  one of the types listed below. The
-              table <i>name</i> syntax depends on the lookup table type.
+              In Postfix configuration files, lookup  tables  are
+              specified  as  <i>type</i><b>:</b><i>name</i>,  where <i>type</i> is one of the
+              types listed below. The table <i>name</i>  syntax  depends
+              on  the  lookup  table  type  as  described  in the
+              <a href="DATABASE_README.html">DATABASE_README</a> document.
 
-              <b>btree</b>  A  sorted, balanced tree structure.  This is
-                     available only on systems with  support  for
-                     Berkeley DB databases.
+              <b>btree</b>  A sorted, balanced tree structure.  This  is
+                     available on systems with support for Berke-
+                     ley DB databases.
 
-              <b>cidr</b>   A  table  that associates values with Class-
-                     less Inter-Domain Routing  (CIDR)  patterns.
+              <b>cdb</b>    A read-optimized structure with  no  support
+                     for  incremental updates.  This is available
+                     on systems with support for CDB databases.
+
+              <b>cidr</b>   A table that associates values  with  Class-
+                     less  Inter-Domain  Routing (CIDR) patterns.
                      This is described in <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a>.
 
               <b>dbm</b>    An indexed file type based on hashing.  This
-                     is available only on  systems  with  support
-                     for DBM databases.
+                     is available on systems with support for DBM
+                     databases.
 
               <b>environ</b>
                      The  UNIX  process  environment  array.  The
-                     lookup key is the variable name.  Originally
-                     implemented  for  testing,  someone may find
+                     lookup  key is the variable name. Originally
+                     implemented for testing,  someone  may  find
                      this useful someday.
 
               <b>hash</b>   An indexed file type based on hashing.  This
-                     is  available  only  on systems with support
-                     for Berkeley DB databases.
+                     is available on  systems  with  support  for
+                     Berkeley DB databases.
 
               <b>ldap</b> (read-only)
-                     Perform lookups  using  the  LDAP  protocol.
+                     Perform  lookups  using  the  LDAP protocol.
                      This is described in <a href="ldap_table.5.html"><b>ldap_table</b>(5)</a>.
 
               <b>mysql</b> (read-only)
-                     Perform  lookups  using  the MYSQL protocol.
+                     Perform lookups using  the  MYSQL  protocol.
                      This is described in <a href="mysql_table.5.html"><b>mysql_table</b>(5)</a>.
 
               <b>pcre</b> (read-only)
                      A lookup table based on Perl Compatible Reg-
-                     ular   Expressions.   The   file  format  is
+                     ular  Expressions.  The   file   format   is
                      described in <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
 
               <b>pgsql</b> (read-only)
-                     Perform lookups using the PostgreSQL  proto-
+                     Perform  lookups using the PostgreSQL proto-
                      col. This is described in <a href="pgsql_table.5.html"><b>pgsql_table</b>(5)</a>.
 
               <b>proxy</b> (read-only)
-                     A  lookup  table that is implemented via the
-                     Postfix <a href="proxymap.8.html"><b>proxymap</b>(8)</a> service. The table  name
+                     A lookup table that is implemented  via  the
+                     Postfix  <a href="proxymap.8.html"><b>proxymap</b>(8)</a> service. The table name
                      syntax is <i>type</i><b>:</b><i>name</i>.
 
               <b>regexp</b> (read-only)
                      A lookup table based on regular expressions.
-                     The  file  format  is  described   in   <a href="regexp_table.5.html"><b>reg-</b></a>
+                     The   file   format  is  described  in  <a href="regexp_table.5.html"><b>reg-</b></a>
                      <a href="regexp_table.5.html"><b>exp_table</b>(5)</a>.
 
               <b>sdbm</b>   An indexed file type based on hashing.  This
-                     is available only on  systems  with  support
-                     for SDBM databases.
+                     is  available  on  systems  with support for
+                     SDBM databases.
 
               <b>static</b> (read-only)
-                     A  table  that  always  returns  its name as
-                     lookup result.  For  example,  <b>static:foobar</b>
-                     always  returns  the string <b>foobar</b> as lookup
+                     A table that  always  returns  its  name  as
+                     lookup  result.  For  example, <b>static:foobar</b>
+                     always returns the string <b>foobar</b>  as  lookup
                      result.
 
               <b>tcp</b> (read-only)
                      Perform lookups using a simple request-reply
-                     protocol  that is described in <a href="tcp_table.5.html">tcp_table(5)</a>.
-                     This feature is not  included  with  Postfix
+                     protocol that is described in  <a href="tcp_table.5.html">tcp_table(5)</a>.
+                     This  feature  is  not included with Postfix
                      2.1.
 
               <b>unix</b> (read-only)
-                     A  limited way to query the UNIX authentica-
+                     A limited way to query the UNIX  authentica-
                      tion  database.  The  following  tables  are
                      implemented:
 
                      <b>unix:passwd.byname</b>
-                             The   table  is  the  UNIX  password
-                             database. The key is a  login  name.
-                             The  result is a password file entry
+                             The  table  is  the  UNIX   password
+                             database.  The  key is a login name.
+                             The result is a password file  entry
                              in passwd(5) format.
 
                      <b>unix:group.byname</b>
-                             The  table   is   the   UNIX   group
-                             database.  The  key is a group name.
-                             The result is a group file entry  in
+                             The   table   is   the   UNIX  group
+                             database. The key is a  group  name.
+                             The  result is a group file entry in
                              group(5) format.
 
-       Other  table  types may exist depending on how Postfix was
+       Other table types may exist depending on how  Postfix  was
        built.
 
        <b>-n</b>     Print parameter settings that are not left at their
@@ -153,7 +159,7 @@ POSTCONF(1)                                           POSTCONF(1)
               specified in main.cf.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple  <b>-v</b>  options  make  the software increasingly
+              tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
 
 <b>DIAGNOSTICS</b>
@@ -164,14 +170,14 @@ POSTCONF(1)                                           POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
+       The  following  <b>main.cf</b> parameters are especially relevant
        to this program.
 
-       The  text  below  provides  only  a parameter summary. See
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  main.cf  and
+              The  default  location  of  the Postfix main.cf and
               master.cf configuration files.
 
 <b>FILES</b>
@@ -184,7 +190,7 @@ POSTCONF(1)                                           POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -106,7 +106,8 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
      * 
      * Skip this command if it was already delivered to as this user.
      */
-    if (been_here(state.dup_filter, "command %ld %s", (long) usr_attr.uid, command))
+    if (been_here(state.dup_filter, "command %s:%ld %s",
+		  state.msg_attr.user, (long) usr_attr.uid, command))
 	return (0);
 
     /*

@@ -86,13 +86,12 @@
 void    smtpd_peer_init(SMTPD_STATE *state)
 {
     char   *myname = "smtpd_peer_init";
-    struct sockaddr_storage ss;
     SOCKADDR_SIZE sa_len;
     struct sockaddr *sa;
     INET_PROTO_INFO *proto_info = inet_proto_info();
 
-    sa = (struct sockaddr *) & ss;
-    sa_len = sizeof(ss);
+    sa = (struct sockaddr *) & (state->sockaddr);
+    sa_len = sizeof(state->sockaddr);
 
     /*
      * Look up the peer address information.

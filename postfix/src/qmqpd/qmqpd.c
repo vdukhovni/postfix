@@ -234,12 +234,8 @@ static void qmqpd_open_file(QMQPD_STATE *state)
     /*
      * Connect to the cleanup server. Log client name/address with queue ID.
      */
-    cleanup_flags = CLEANUP_FLAG_MASK_EXTERNAL;
-    if (qmqpd_input_transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
-	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
-    if (qmqpd_input_transp_mask & INPUT_TRANSP_HEADER_BODY)
-	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
-
+    cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
+					 qmqpd_input_transp_mask);
     state->dest = mail_stream_service(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (state->dest == 0
 	|| attr_print(state->dest->stream, ATTR_FLAG_NONE,

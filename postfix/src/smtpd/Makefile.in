@@ -159,6 +159,7 @@ smtpd.o: ../../include/valid_mailhost_addr.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
+smtpd.o: ../../include/myaddrinfo.h
 smtpd.o: ../../include/tls.h
 smtpd.o: smtpd_check.h
 smtpd.o: smtpd_chat.h
@@ -188,6 +189,7 @@ smtpd_chat.o: ../../include/cleanup_user.h
 smtpd_chat.o: ../../include/mail_error.h
 smtpd_chat.o: ../../include/name_mask.h
 smtpd_chat.o: smtpd.h
+smtpd_chat.o: ../../include/myaddrinfo.h
 smtpd_chat.o: ../../include/mail_stream.h
 smtpd_chat.o: ../../include/tls.h
 smtpd_chat.o: smtpd_chat.h
@@ -290,6 +292,7 @@ smtpd_proxy.o: ../../include/mail_proto.h
 smtpd_proxy.o: ../../include/attr.h
 smtpd_proxy.o: smtpd.h
 smtpd_proxy.o: ../../include/argv.h
+smtpd_proxy.o: ../../include/myaddrinfo.h
 smtpd_proxy.o: ../../include/mail_stream.h
 smtpd_proxy.o: ../../include/tls.h
 smtpd_proxy.o: smtpd_proxy.h
@@ -308,6 +311,7 @@ smtpd_sasl_glue.o: ../../include/vbuf.h
 smtpd_sasl_glue.o: ../../include/vstream.h
 smtpd_sasl_glue.o: smtpd.h
 smtpd_sasl_glue.o: ../../include/argv.h
+smtpd_sasl_glue.o: ../../include/myaddrinfo.h
 smtpd_sasl_glue.o: ../../include/mail_stream.h
 smtpd_sasl_glue.o: ../../include/tls.h
 smtpd_sasl_glue.o: smtpd_sasl_glue.h
@@ -328,6 +332,7 @@ smtpd_sasl_proto.o: ../../include/mail_error.h
 smtpd_sasl_proto.o: ../../include/name_mask.h
 smtpd_sasl_proto.o: smtpd.h
 smtpd_sasl_proto.o: ../../include/argv.h
+smtpd_sasl_proto.o: ../../include/myaddrinfo.h
 smtpd_sasl_proto.o: ../../include/mail_stream.h
 smtpd_sasl_proto.o: ../../include/tls.h
 smtpd_sasl_proto.o: smtpd_token.h
@@ -351,6 +356,7 @@ smtpd_state.o: ../../include/attr.h
 smtpd_state.o: smtpd.h
 smtpd_state.o: ../../include/vstring.h
 smtpd_state.o: ../../include/argv.h
+smtpd_state.o: ../../include/myaddrinfo.h
 smtpd_state.o: ../../include/mail_stream.h
 smtpd_state.o: ../../include/tls.h
 smtpd_state.o: smtpd_chat.h
@@ -374,5 +380,6 @@ smtpd_xforward.o: ../../include/attr.h
 smtpd_xforward.o: smtpd.h
 smtpd_xforward.o: ../../include/vstring.h
 smtpd_xforward.o: ../../include/argv.h
+smtpd_xforward.o: ../../include/myaddrinfo.h
 smtpd_xforward.o: ../../include/mail_stream.h
 smtpd_xforward.o: ../../include/tls.h

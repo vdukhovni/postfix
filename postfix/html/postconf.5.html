@@ -2093,11 +2093,29 @@ By default, mail is returned to the sender when a destination is
 not found, and delivery is deferred if a destination is unreachable.
 </p>
 
-<p>
-The fallback relays must be SMTP destinations. Specify a domain,
+<p> The fallback relays must be SMTP destinations. Specify a domain,
 host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
-destinations, Postfix will try them in the specified order.
+destinations, Postfix will try them in the specified order.  </p>
+
+<p> NOTE: Do not use the <a href="postconf.5.html#fallback_relay">fallback_relay</a> feature when relaying mail
+for a backup or primary MX domain. Mail would loop between the
+Postfix MX host and the <a href="postconf.5.html#fallback_relay">fallback_relay</a> host when the final destination
+is unavailable. </p>
+
+<ul>
+
+<li> In main.cf specify "<tt><a href="postconf.5.html#relay_transport">relay_transport</a> = relay</tt>",
+
+<li> In master.cf specify "<tt>-o <a href="postconf.5.html#fallback_relay">fallback_relay</a> =</tt>" at the
+end of the <tt>relay</tt> entry.
+
+<li> In transport maps, specify "<tt>relay:<i>nexthop...</i></tt>"
+as the right-hand side for backup or primary MX domain entries.
+
+</ul>
+
+<p> These are default settings in Postfix version 2.2 and later.
 </p>
 
 
@@ -3146,35 +3164,46 @@ into concurrency per domain.  </p>
 </DD>
 
 <DT><b><a name="local_header_rewrite_clients">local_header_rewrite_clients</a>
-(default: see "postconf -d" output)</b></DT><DD>
+(default: <a href="postconf.5.html#permit_inet_interfaces">permit_inet_interfaces</a>)</b></DT><DD>
 
 <p> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> to message
 header addresses from these clients only; either don't rewrite
 message headers from other clients at all, or append the domain
 specified with the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter.  </p>
 
+<p> See the <a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a> and <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a> parameters
+for details of how domain names are appended to incomplete addresses.
+</p>
+
 <p> Specify a list of zero or more of the following:  </p>
 
 <dl>
+
+<dt> <b> <a href="postconf.5.html#permit_inet_interfaces">permit_inet_interfaces</a> </b></dt>
+
+<dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
+client IP address matches $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>. This is enabled by
+default. </dd>
 
 <dt> <b> <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client IP address matches any network or network address listed in
-$<a href="postconf.5.html#mynetworks">mynetworks</a>. This is enabled by default. </dd>
+$<a href="postconf.5.html#mynetworks">mynetworks</a>. This setting will not prevent remote mail header
+address rewriting when mail from a remote client is forwarded by
+a neighboring system.  </p>
 
 <dt><b> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client is successfully authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH)
-protocol. This is enabled by default. </dd>
+protocol. </dd>
 
 <dt><b> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
 client TLS certificate is successfully verified, and the client
-certificate fingerprint is listed in $relay_clientcerts. This is
-enabled by default. </dd>
+certificate fingerprint is listed in $relay_clientcerts.  </dd>
 
 <dt><b> <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </b></dt>
 
@@ -3183,45 +3212,42 @@ client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority. </dd>
 
-<dt><b> <a name="check_address_map">check_address_map</a> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
+<dt><b> <a name="check_address_map">check_address_map</a> <i><a
+href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dt><b> <i><a href="DATABASE_README.html">type:table</a></i> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
-client IP address matches the specified lookup table. The lookup
-result is ignored, and no subnet lookup is done. This is suitable
-for pop-before-smtp lookup tables. </dd>
+client IP address matches the specified lookup table.
+The lookup result is ignored, and no subnet lookup is done. This
+is suitable for, e.g., pop-before-smtp lookup tables. </dd>
 
 </dl>
 
 <p> Examples:  </p>
 
-<p> The backwards compatible setting: always rewrite message headers,
-and always append my own domain to incomplete header addresses.  </p>
+<p> The Postfix < 2.2 backwards compatible setting: always rewrite
+message headers, and always append my own domain to incomplete
+header addresses.  </p>
 
 <pre>
     <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all
 </pre>
 
-<p> The purist setting: rewrite headers only in mail from Postfix
-sendmail and in SMTP mail from this machine. </p>
+<p> The purist (and default) setting: rewrite headers only in mail
+from Postfix sendmail and in SMTP mail from this machine. </p>
 
 <pre>
-    <a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = host
-    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
+    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_inet_interfaces">permit_inet_interfaces</a>
 </pre>
 
-<p> The default setting: rewrite headers and append my own domain
-only with mail from Postfix sendmail and from local or authorized
-SMTP clients. </p>
+<p> The intermediate setting: rewrite header addresses and append
+$<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> information only with mail from Postfix
+sendmail, from local clients, or from authorized SMTP clients. </p>
 
-<pre>
-    <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
-        <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
-</pre>
-
-<p> The ISP setting: include clients that are pop-before-smtp
-authenticated. </p>
+<p> NOTE: This setting will not prevent remote mail header address
+rewriting when mail from a remote client is forwarded by a neighboring
+system.  </p>
 
 <pre>
     <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
@@ -6562,9 +6588,7 @@ side specify one of the following keywords:  </p>
 <dt> NONE </dt> <dd>Don't use TLS at all. </dd>
 
 <dt> MAY </dt> <dd>Try to use STARTTLS if offered, otherwise use
-the unencrypted connection. NOTE: STARTTLS can be used only if
-TLS is already enabled via main.cf, so that the client TLS engine
-is properly initialized at program startup. </dd>
+the unencrypted connection. </dd>
 
 <dt> MUST </dt> <dd>Require usage of STARTTLS, require that the
 remote SMTP server hostname matches the information in the remote
@@ -6995,6 +7019,11 @@ client network address information.
 <dd>Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the <a href="access.5.html">access(5)</a> manual page for details. </dd>
+
+<dt><b><a name="permit_inet_interfaces">permit_inet_interfaces</a></b></dt>
+
+<dd>Permit the request when the client IP address matches
+$<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>. </dd>
 
 <dt><b><a name="permit_mynetworks">permit_mynetworks</a></b></dt>
 
@@ -9033,6 +9062,9 @@ source.  If this source is not a regular file, the entropy source
 type must be prepended:  egd:/path/to/egd_socket for a source with
 EGD compatible socket interface, or dev:/path/to/device for a
 device file.  </p>
+
+<p> Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
+gives timeout errors.  </p>
 
 
 </DD>

@@ -1090,6 +1090,21 @@ The fallback relays must be SMTP destinations. Specify a domain,
 host, host:port, [host]:port, [address] or [address]:port; the form
 [host] turns off MX lookups.  If you specify multiple SMTP
 destinations, Postfix will try them in the specified order.
+.PP
+NOTE: Do not use the fallback_relay feature when relaying mail
+for a backup or primary MX domain. Mail would loop between the
+Postfix MX host and the fallback_relay host when the final destination
+is unavailable.
+.IP \(bu
+In main.cf specify "<tt>relay_transport = relay</tt>",
+.IP \(bu
+In master.cf specify "<tt>-o fallback_relay =</tt>" at the
+end of the <tt>relay</tt> entry.
+.IP \(bu
+In transport maps, specify "<tt>relay:\fInexthop...\fR</tt>"
+as the right-hand side for backup or primary MX domain entries.
+.PP
+These are default settings in Postfix version 2.2 and later.
 .SH fallback_transport (default: empty)
 Optional message delivery transport that the local(8) delivery
 agent should use for names that are not found in the aliases(5)
@@ -1634,42 +1649,52 @@ the entry in the master.cf file.
 Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
-.SH local_header_rewrite_clients (default: see "postconf -d" output)
+.SH local_header_rewrite_clients (default: permit_inet_interfaces)
 Append the domain name in $myorigin or $mydomain to message
 header addresses from these clients only; either don't rewrite
 message headers from other clients at all, or append the domain
 specified with the remote_header_rewrite_domain parameter.
 .PP
+See the append_at_myorigin and append_dot_mydomain parameters
+for details of how domain names are appended to incomplete addresses.
+.PP
 Specify a list of zero or more of the following:
+.IP "\fB permit_inet_interfaces \fR"
+Append the domain name in $myorigin or $mydomain when the
+client IP address matches $inet_interfaces. This is enabled by
+default.
 .IP "\fB permit_mynetworks \fR"
 Append the domain name in $myorigin or $mydomain when the
 client IP address matches any network or network address listed in
-$mynetworks. This is enabled by default.
+$mynetworks. This setting will not prevent remote mail header
+address rewriting when mail from a remote client is forwarded by
+a neighboring system.
 .IP "\fB permit_sasl_authenticated \fR"
 Append the domain name in $myorigin or $mydomain when the
 client is successfully authenticated via the RFC 2554 (AUTH)
-protocol. This is enabled by default.
+protocol.
 .IP "\fB permit_tls_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, and the client
-certificate fingerprint is listed in $relay_clientcerts. This is
-enabled by default.
+certificate fingerprint is listed in $relay_clientcerts.
 .IP "\fB permit_tls_all_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
 client TLS certificate is successfully verified, regardless of
 whether it is listed on the server, and regardless of the certifying
 authority.
-.IP "\fB check_address_map \fItype:table\fR \fR"
+.IP "\fB check_address_map \fI<a
+href="DATABASE_README.html">type:table\fR \fR"
 .IP "\fB \fItype:table\fR \fR"
 Append the domain name in $myorigin or $mydomain when the
-client IP address matches the specified lookup table. The lookup
-result is ignored, and no subnet lookup is done. This is suitable
-for pop-before-smtp lookup tables.
+client IP address matches the specified lookup table.
+The lookup result is ignored, and no subnet lookup is done. This
+is suitable for, e.g., pop-before-smtp lookup tables.
 .PP
 Examples:
 .PP
-The backwards compatible setting: always rewrite message headers,
-and always append my own domain to incomplete header addresses.
+The Postfix < 2.2 backwards compatible setting: always rewrite
+message headers, and always append my own domain to incomplete
+header addresses.
 .PP
 .nf
 .na
@@ -1679,33 +1704,24 @@ and always append my own domain to incomplete header addresses.
 .ad
 .ft R
 .PP
-The purist setting: rewrite headers only in mail from Postfix
-sendmail and in SMTP mail from this machine.
+The purist (and default) setting: rewrite headers only in mail
+from Postfix sendmail and in SMTP mail from this machine.
 .PP
 .nf
 .na
 .ft C
-    mynetworks_style = host
-    local_header_rewrite_clients = permit_mynetworks
+    local_header_rewrite_clients = permit_inet_interfaces
 .fi
 .ad
 .ft R
 .PP
-The default setting: rewrite headers and append my own domain
-only with mail from Postfix sendmail and from local or authorized
-SMTP clients.
+The intermediate setting: rewrite header addresses and append
+$myorigin or $mydomain information only with mail from Postfix
+sendmail, from local clients, or from authorized SMTP clients.
 .PP
-.nf
-.na
-.ft C
-    local_header_rewrite_clients = permit_mynetworks,
-        permit_sasl_authenticated permit_tls_clientcerts
-.fi
-.ad
-.ft R
-.PP
-The ISP setting: include clients that are pop-before-smtp
-authenticated.
+NOTE: This setting will not prevent remote mail header address
+rewriting when mail from a remote client is forwarded by a neighboring
+system.
 .PP
 .nf
 .na
@@ -3615,9 +3631,7 @@ side specify one of the following keywords:
 Don't use TLS at all.
 .IP "MAY"
 Try to use STARTTLS if offered, otherwise use
-the unencrypted connection. NOTE: STARTTLS can be used only if
-TLS is already enabled via main.cf, so that the client TLS engine
-is properly initialized at program startup.
+the unencrypted connection.
 .IP "MUST"
 Require usage of STARTTLS, require that the
 remote SMTP server hostname matches the information in the remote
@@ -3888,6 +3902,9 @@ client network address information.
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the access(5) manual page for details.
+.IP "\fBpermit_inet_interfaces\fR"
+Permit the request when the client IP address matches
+$inet_interfaces.
 .IP "\fBpermit_mynetworks\fR"
 Permit the request when the client IP address matches any
 network or network address listed in  $mynetworks.
@@ -5171,6 +5188,9 @@ source.  If this source is not a regular file, the entropy source
 type must be prepended:  egd:/path/to/egd_socket for a source with
 EGD compatible socket interface, or dev:/path/to/device for a
 device file.
+.PP
+Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
+gives timeout errors.
 .SH trace_service_name (default: trace)
 The name of the trace(8) service. This service maintains a record
 of mail deliveries and produces a mail delivery report when verbose

@@ -9,6 +9,10 @@
 /*	int	input_transp_mask(param_name, pattern)
 /*	const char *param_name;
 /*	const char *pattern;
+/*
+/*	int	input_transp_cleanup(cleanup_flags, transp_mask)
+/*	int	cleanup_flags; 
+/*	int	transp_mask;
 /* DESCRIPTION
 /*	This module controls how much processing happens before mail is
 /*	written to the Postfix queue. Each transparency option is either
@@ -27,6 +31,10 @@
 /*	address masquerading, and automatic BCC recipients.
 /* .IP "no_header_body_checkss (INPUT_TRANSP_HEADER_BODY)
 /*	Disable header/body_checks.
+/*
+/*	input_transp_cleanup() takes a bunch of cleanup processing
+/*	flags and updates them according to the settings in the
+/*	specified input transparency mask.
 /* DIAGNOSTICS
 /*	Panic: inappropriate use.
 /* LICENSE
@@ -51,6 +59,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <cleanup_user.h>
 #include <input_transp.h>
 
 /* input_transp_mask - compute mail receive transparency mask */
@@ -60,9 +69,20 @@ int     input_transp_mask(const char *param_name, const char *pattern)
     static NAME_MASK table[] = {
 	"no_unknown_recipient_checks", INPUT_TRANSP_UNKNOWN_RCPT,
 	"no_address_mappings", INPUT_TRANSP_ADDRESS_MAPPING,
- 	"no_header_body_checks", INPUT_TRANSP_HEADER_BODY,
+	"no_header_body_checks", INPUT_TRANSP_HEADER_BODY,
 	0,
     };
 
     return (name_mask(param_name, table, pattern));
+}
+
+/* input_transp_cleanup - adjust cleanup options */
+
+int     input_transp_cleanup(int cleanup_flags, int transp_mask)
+{
+    if (transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
+	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
+    if (transp_mask & INPUT_TRANSP_HEADER_BODY)
+	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
+    return (cleanup_flags);
 }

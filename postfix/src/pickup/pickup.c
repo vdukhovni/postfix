@@ -406,11 +406,9 @@ static int pickup_file(PICKUP_INFO *info)
      * easier to implement the many possible error exits without forgetting
      * to close files, or to release memory.
      */
-    cleanup_flags = (CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_EXTERNAL);
-    if (pickup_input_transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
-	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
-    if (pickup_input_transp_mask & INPUT_TRANSP_HEADER_BODY)
-	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
+    cleanup_flags =
+	input_transp_cleanup(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_EXTERNAL,
+			     pickup_input_transp_mask);
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,

@@ -10193,7 +10193,50 @@ Apologies for any names omitted.
 
 	Milestone: first non-non-production snapshot with TLS.
 
+20040524
+
+	Workaround: don't send mail to $fallback_relay if Postfix
+	is MX host for the next-hop destination. This is, however,
+	a partial solution. The documentation has been updated to
+	cover all the cases where a fallback_relay could interfere
+	with the operation of a backup or primary MX host. Files:
+	smtp/smtp_addr.c, smtp/smtp_connect.c.
+
+20050127
+
+	Configuration: Postfix daemons that need privileged operation
+	(such as local, pipe, or spawn) now log a fatal error when
+	they are configured in master.cf as unprivileged.
+
+20050130
+
+	Cleanup: simplified the handling of receive_override_options
+	settings. Files: pickup/pickup.c, smtpd/smtpd.c, qmqpd/qmqpd.c,
+	global/input_transp.c.
+
+	Feature: permit_inet_interfaces allows a request when the
+	client matches $inet_interfaces. This is used for generic
+	access restrictions and for header address rewriting control.
+	Files: global/mail_params.h, smtpd/smtpd_check.c.
+
+	Cleanup: by default, message header address rewriting is
+	now enabled only for mail that originates from the machine
+	itself. Files: global/mail_params.h, smtpd/smtpd_check.c.
+
+20050131
+
+	Bugfix: when extracting recipients from message headers,
+	the Postfix sendmail command produced output records longer
+	than $line_length_limit, causing postdrop to reject the
+	mail. Diagnosis by Victor Duchovni. File:  sendmail/sendmail.c.
+
 Open problems:
+
+	Low: document regexp usage in aliases and other sensitive
+	maps.
+
+	Low: pointers to postfinger and saslfinger. postfinger
+	is now bundled.
 
 	Med: transform IPv4-in-IPv6 address literals to IPv4 form
 	when comparing against local IP addresses?

@@ -6,10 +6,11 @@
 /* SYNOPSIS
 /*	#include "smtp_addr.h"
 /*
-/*	DNS_RR *smtp_domain_addr(name, misc_flags, why)
+/*	DNS_RR *smtp_domain_addr(name, misc_flags, why, found_myself)
 /*	char	*name;
 /*	int	misc_flags;
 /*	VSTRING	*why;
+/*	int	*found_myself;
 /*
 /*	DNS_RR *smtp_host_addr(name, misc_flags, why)
 /*	char	*name;
@@ -26,7 +27,9 @@
 /*	exchanger hosts listed for the named domain. Addresses are
 /*	returned in most-preferred first order. The result is truncated
 /*	so that it contains only hosts that are more preferred than the
-/*	local mail server itself.
+/*	local mail server itself. The found_myself result parameter
+/*	is updated when the local MTA is MX host for the specified
+/*	destination.
 /*
 /*	When no mail exchanger is listed in the DNS for \fIname\fR, the
 /*	request is passed to smtp_host_addr().
@@ -330,7 +333,8 @@ static int smtp_compare_pref(DNS_RR *a, DNS_RR *b)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why)
+DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why,
+			         int *found_myself)
 {
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
@@ -446,6 +450,7 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, VSTRING *why)
     /*
      * Clean up.
      */
+    *found_myself |= (self != 0);
     return (addr_list);
 }
 

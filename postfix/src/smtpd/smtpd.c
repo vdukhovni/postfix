@@ -108,7 +108,7 @@
 /*	filtering, or address mapping.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBlocal_header_rewrite_clients (see 'postconf -d' output)\fR"
+/* .IP "\fBlocal_header_rewrite_clients (permit_inet_interfaces)\fR"
 /*	Append the domain name in $myorigin or $mydomain to message
 /*	header addresses from these clients only; either don't rewrite
 /*	message headers from other clients at all, or append the domain
@@ -1253,11 +1253,8 @@ static void mail_open_stream(SMTPD_STATE *state)
      * If running from the master or from inetd, connect to the cleanup
      * service.
      */
-    cleanup_flags = CLEANUP_FLAG_MASK_EXTERNAL;
-    if (smtpd_input_transp_mask & INPUT_TRANSP_ADDRESS_MAPPING)
-	cleanup_flags &= ~(CLEANUP_FLAG_BCC_OK | CLEANUP_FLAG_MAP_OK);
-    if (smtpd_input_transp_mask & INPUT_TRANSP_HEADER_BODY)
-	cleanup_flags &= ~CLEANUP_FLAG_FILTER;
+    cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
+					 smtpd_input_transp_mask);
 
     if (SMTPD_STAND_ALONE(state) == 0) {
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,

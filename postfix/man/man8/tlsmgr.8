@@ -12,16 +12,16 @@ Postfix TLS session cache and PRNG manager
 .SH DESCRIPTION
 .ad
 .fi
-The tlsmgr(8) maintains the TLS session caches for Postfix
-SMTP client and server processes.  It periodically removes
-entries that have expired, and entries that are no longer
-compatible with the currently running Postfix version.
+The tlsmgr(8) manages the TLS session caches for Postfix
+SMTP client and server processes.  It stores and retrieves
+cache entries on request by smtpd(8) and smtp(8) processes,
+and periodically removes entries that have expired.
 
-The tlsmgr(8) also maintains the PRNG (pseudo random number
-generator) pool. This is queried by the smtpd(8) and smtp(8)
+The tlsmgr(8) also manages the PRNG (pseudo random number
+generator) pool. It answers queries by the smtpd(8) and smtp(8)
 processes to seed their internal PRNG pools.
 
-The tlsmgr(8)'s internal PRNG pool is initially seeded from
+The tlsmgr(8)'s PRNG pool is initially seeded from
 an external source (EGD, /dev/urandom, or regular file).
 It is updated at configurable pseudo-random intervals with
 data from the external source. It is updated periodically

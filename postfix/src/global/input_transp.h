@@ -19,6 +19,7 @@
 #define INPUT_TRANSP_HEADER_BODY	(1<<2)
 
 extern int input_transp_mask(const char *, const char *);
+extern int input_transp_cleanup(int, int);
 
 /* LICENSE
 /* .ad

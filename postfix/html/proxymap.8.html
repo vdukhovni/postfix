@@ -79,6 +79,12 @@ PROXYMAP(8)                                           PROXYMAP(8)
        user or group IDs, mailbox file/directory names or  exter-
        nal commands.
 
+       In Postfix version 2.2 and later, the proxymap client rec-
+       ognizes requests to access a table for  security-sensitive
+       purposes,  and  opens  the table directly. This allows the
+       same main.cf setting to be used by sensitive and  non-sen-
+       sitive processes.
+
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 

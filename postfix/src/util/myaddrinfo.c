@@ -201,11 +201,6 @@ struct ipv4addrinfo {
 };
 
  /*
-  * Make nulls more descriptive.
-  */
-#define NO_SERVICE	((char *) 0)
-
- /*
   * When we're not interested in service ports, we must pick a socket type
   * otherwise getaddrinfo() will give us duplicate results: one set for TCP,
   * and another set for UDP. For consistency, we'll use the same default

@@ -35,6 +35,16 @@ CIDR_TABLE(5)                                       CIDR_TABLE(5)
               0.0.0.0/0 to match every IPv4 address, and ::/0  to
               match every IPv6 address.
 
+              An IPv4 network address is a sequence of four deci-
+              mal octets separated by ".", and  an  IPv6  network
+              address is a sequence of three to eight hexadecimal
+              octet pairs separated by ":".
+
+              Before comparisons are made, lookup keys and  table
+              entries are converted from string to binary. There-
+              fore table entries will be  matched  regardless  of
+              redundant zero characters.
+
               Note:  address  information  may be enclosed inside
               "[]" but this form is not recommended.
 

@@ -126,7 +126,7 @@ Enable or disable recipient validation, built-in content
 filtering, or address mapping.
 .PP
 Available in Postfix version 2.2 and later:
-.IP "\fBlocal_header_rewrite_clients (see 'postconf -d' output)\fR"
+.IP "\fBlocal_header_rewrite_clients (permit_inet_interfaces)\fR"
 Append the domain name in $myorigin or $mydomain to message
 header addresses from these clients only; either don't rewrite
 message headers from other clients at all, or append the domain

@@ -35,7 +35,7 @@ document gives an introduction to Postfix lookup tables.
 
 Topics covered in this document:
 
-  * To rewrite or not to rewrite, or to label as invalid
+  * To rewrite message headers or not, or to label as invalid
   * Postfix address rewriting overview
   * Address rewriting when mail is received
 
@@ -56,32 +56,34 @@ Topics covered in this document:
 
   * Debugging your address manipulations
 
-TToo rreewwrriittee oorr nnoott ttoo rreewwrriittee,, oorr ttoo llaabbeell aass iinnvvaalliidd
+TToo rreewwrriittee mmeessssaaggee hheeaaddeerrss oorr nnoott,, oorr ttoo llaabbeell aass iinnvvaalliidd
 
 Postfix versions 2.1 and earlier always rewrite message header addresses, and
-append Postfix's own domain information to incomplete addresses. While
-rewriting message headers is OK for mail with a local origin, it is undesirable
-for remote mail:
+append Postfix's own domain information to addresses that Postfix considers
+incomplete. While rewriting message header addresses is OK for mail with a
+local origin, it is undesirable for remote mail:
 
-  * Header mangling is frowned upon by mail standards,
-  * Appending Postfix's own domain information produces incorrect results with
-    remote incomplete addresses,
-  * Appending Postfix's own domain information sometimes creates the appearance
-    that spam is sent by local users.
+  * Message header address rewriting is frowned upon by mail standards,
+  * Appending Postfix's own domain produces incorrect results with some
+    incomplete addresses,
+  * Appending Postfix's own domain sometimes creates the appearance that spam
+    is sent by local users.
 
 Postfix versions 2.2 give you the option to either not rewrite message headers
 from remote SMTP clients at all, or to label incomplete addresses in such
 message headers as invalid. Here is how it works:
 
-  * Postfix does not rewrite message headers from remote SMTP clients at all
-    when the remote_header_rewrite_domain parameter value is empty.
-  * Otherwise, Postfix appends the specified domain name to incomplete
-    addresses in message headers from remote SMTP clients. This feature can be
-    used to append a reserved domain such as "domain.invalid", so that
+  * Postfix always rewrites message header addresses from local SMTP clients,
+    and from the Postfix sendmail command. The local_header_rewrite_clients
+    parameter controls what SMTP clients Postfix considers local (by default,
+    only local network interface addresses).
+  * Postfix never rewrites message header addresses from remote SMTP clients
+    when the remote_header_rewrite_domain parameter value is empty (the default
+    setting).
+  * Otherwise, Postfix appends the remote_header_rewrite_domain value to
+    incomplete message header addresses from remote SMTP clients. This feature
+    can be used to append a reserved domain such as "domain.invalid", so that
     incomplete addresses cannot be mistaken for local addresses.
-
-The local_header_rewrite_clients parameter controls what SMTP clients Postfix
-considers local instead of remote.
 
 PPoossttffiixx aaddddrreessss rreewwrriittiinngg oovveerrvviieeww
 

@@ -70,6 +70,11 @@
 /*	The proxymap server is not a trusted daemon process, and must
 /*	not be used to look up sensitive information such as user or
 /*	group IDs, mailbox file/directory names or external commands.
+/*
+/*	In Postfix version 2.2 and later, the proxymap client recognizes
+/*	requests to access a table for security-sensitive purposes,
+/*	and opens the table directly. This allows the same main.cf
+/*	setting to be used by sensitive and non-sensitive processes.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
