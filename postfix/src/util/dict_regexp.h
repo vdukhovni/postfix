@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_REGEXP	"regexp"
+
 extern DICT *dict_regexp_open(const char *, int, int);
 
 /* AUTHOR(S)

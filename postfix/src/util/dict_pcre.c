@@ -70,24 +70,10 @@ struct dict_pcre_list {
 
 typedef struct {
     DICT    dict;			/* generic members */
-    char   *map;			/* map name */
-    int     flags;			/* unused at the moment */
     struct dict_pcre_list *head;
 } DICT_PCRE;
 
 static  dict_pcre_init = 0;		/* flag need to init pcre library */
-
-/*
- *  dict_pcre_update - not supported
- */
-static void dict_pcre_update(DICT *dict, const char *unused_name,
-			             const char *unused_value)
-{
-    DICT_PCRE *dict_pcre = (DICT_PCRE *) dict;
-
-    msg_fatal("dict_pcre_update: attempt to update regexp map %s",
-	      dict_pcre->map);
-}
 
 /*
  * Context for macro expansion callback.
@@ -153,7 +139,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
     dict_errno = 0;
 
     if (msg_verbose)
-	msg_info("dict_pcre_lookup: %s: %s", dict_pcre->map, name);
+	msg_info("dict_pcre_lookup: %s: %s", dict_pcre->dict.name, name);
 
     /* Search for a matching expression */
     ctxt.matches = 0;
@@ -168,22 +154,22 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
 		    /* An error */
 		    switch (ctxt.matches) {
 		    case 0:
-			msg_warn("regexp map %s, line %d: too many (...)",
-				 dict_pcre->map, pcre_list->lineno);
+			msg_warn("pcre map %s, line %d: too many (...)",
+				 dict_pcre->dict.name, pcre_list->lineno);
 			break;
 		    case PCRE_ERROR_NULL:
 		    case PCRE_ERROR_BADOPTION:
-			msg_fatal("regexp map %s, line %d: bad args to re_exec",
-				  dict_pcre->map, pcre_list->lineno);
+			msg_fatal("pcre map %s, line %d: bad args to re_exec",
+				  dict_pcre->dict.name, pcre_list->lineno);
 			break;
 		    case PCRE_ERROR_BADMAGIC:
 		    case PCRE_ERROR_UNKNOWN_NODE:
-			msg_fatal("regexp map %s, line %d: corrupt compiled regexp",
-				  dict_pcre->map, pcre_list->lineno);
+			msg_fatal("pcre map %s, line %d: corrupt compiled regexp",
+				  dict_pcre->dict.name, pcre_list->lineno);
 			break;
 		    default:
-			msg_fatal("regexp map %s, line %d: unknown re_exec error: %d",
-			   dict_pcre->map, pcre_list->lineno, ctxt.matches);
+			msg_fatal("pcre map %s, line %d: unknown re_exec error: %d",
+				  dict_pcre->dict.name, pcre_list->lineno, ctxt.matches);
 			break;
 		    }
 		    return ((char *) 0);
@@ -200,12 +186,12 @@ static const char *dict_pcre_lookup(DICT *dict, const char *name)
 	VSTRING_RESET(buf);
 	ctxt.buf = buf;
 	ctxt.subject = name;
-	ctxt.dict_name = dict_pcre->map;
+	ctxt.dict_name = dict_pcre->dict.name;
 	ctxt.lineno = pcre_list->lineno;
 
 	if (mac_parse(pcre_list->replace, dict_pcre_action, (char *) &ctxt) & MAC_PARSE_ERROR)
-	    msg_fatal("regexp map %s, line %d: bad replacement syntax",
-		      dict_pcre->map, pcre_list->lineno);
+	    msg_fatal("pcre map %s, line %d: bad replacement syntax",
+		      dict_pcre->dict.name, pcre_list->lineno);
 
 	VSTRING_TERMINATE(buf);
 	return (vstring_str(buf));
@@ -219,17 +205,19 @@ static void dict_pcre_close(DICT *dict)
 {
     DICT_PCRE *dict_pcre = (DICT_PCRE *) dict;
     struct dict_pcre_list *pcre_list;
+    struct dict_pcre_list *next;
 
-    for (pcre_list = dict_pcre->head; pcre_list; pcre_list = pcre_list->next) {
+    for (pcre_list = dict_pcre->head; pcre_list; pcre_list = next) {
+	next = pcre_list->next;
 	if (pcre_list->pattern)
 	    myfree((char *) pcre_list->pattern);
 	if (pcre_list->hints)
 	    myfree((char *) pcre_list->hints);
 	if (pcre_list->replace)
 	    myfree((char *) pcre_list->replace);
+	myfree((char *) pcre_list);
     }
-    myfree(dict_pcre->map);
-    myfree((char *) dict_pcre);
+    dict_free(dict);
 }
 
 /*
@@ -254,12 +242,10 @@ DICT   *dict_pcre_open(const char *map, int unused_flags, int dict_flags)
 
     line_buffer = vstring_alloc(100);
 
-    dict_pcre = (DICT_PCRE *) mymalloc(sizeof(*dict_pcre));
+    dict_pcre = (DICT_PCRE *) dict_alloc(DICT_TYPE_PCRE, map,
+					 sizeof(*dict_pcre));
     dict_pcre->dict.lookup = dict_pcre_lookup;
-    dict_pcre->dict.update = dict_pcre_update;
     dict_pcre->dict.close = dict_pcre_close;
-    dict_pcre->dict.fd = -1;
-    dict_pcre->map = mystrdup(map);
     dict_pcre->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dict_pcre->head = NULL;
 

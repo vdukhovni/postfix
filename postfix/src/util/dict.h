@@ -27,6 +27,8 @@
   * structure with private members to maintain internal state.
   */
 typedef struct DICT {
+    char   *type;			/* for diagnostics */
+    char   *name;			/* for diagnostics */
     int     flags;			/* see below */
     const char *(*lookup) (struct DICT *, const char *);
     void    (*update) (struct DICT *, const char *, const char *);
@@ -36,6 +38,9 @@ typedef struct DICT {
     int     fd;				/* for dict_update() lock */
     time_t  mtime;			/* mod time at open */
 } DICT;
+
+extern DICT *dict_alloc(const char *, const char *, int);
+extern void dict_free(DICT *);
 
 #define DICT_FLAG_DUP_WARN	(1<<0)	/* if file, warn about dups */
 #define DICT_FLAG_DUP_IGNORE	(1<<1)	/* if file, ignore dups */

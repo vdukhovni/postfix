@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_NISPLUS	"nisplus"
+
 extern DICT *dict_nisplus_open(const char *, int, int);
 
 /* LICENSE

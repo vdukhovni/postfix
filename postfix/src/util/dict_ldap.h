@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_LDAP	"ldap"
+
 extern DICT *dict_ldap_open(const char *, int, int);
 
 /* AUTHOR(S)

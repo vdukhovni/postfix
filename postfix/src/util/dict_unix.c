@@ -57,7 +57,6 @@
 
 typedef struct {
     DICT    dict;			/* generic members */
-    char   *map;			/* UNIX map name */
 } DICT_UNIX;
 
 /* dict_unix_getpwnam - find password table entry */
@@ -109,23 +108,13 @@ static const char *dict_unix_getgrnam(DICT *unused_dict, const char *key)
     }
 }
 
-/* dict_unix_update - add or update table entry */
-
-static void dict_unix_update(DICT *dict, const char *unused_name, const char *unused_value)
-{
-    DICT_UNIX *dict_unix = (DICT_UNIX *) dict;
-
-    msg_fatal("dict_unix_update: attempt to update map %s", dict_unix->map);
-}
-
 /* dict_unix_close - close UNIX map */
 
 static void dict_unix_close(DICT *dict)
 {
     DICT_UNIX *dict_unix = (DICT_UNIX *) dict;
 
-    myfree(dict_unix->map);
-    myfree((char *) dict_unix);
+    dict_free(dict);
 }
 
 /* dict_unix_open - open UNIX map */
@@ -146,7 +135,8 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
 
     dict_errno = 0;
 
-    dict_unix = (DICT_UNIX *) mymalloc(sizeof(*dict_unix));
+    dict_unix = (DICT_UNIX *) dict_alloc(DICT_TYPE_UNIX, map,
+					 sizeof(*dict_unix));
     for (lp = dict_unix_lookup; /* void */ ; lp++) {
 	if (lp->name == 0)
 	    msg_fatal("dict_unix_open: unknown map name: %s", map);
@@ -154,10 +144,7 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
 	    break;
     }
     dict_unix->dict.lookup = lp->lookup;
-    dict_unix->dict.update = dict_unix_update;
     dict_unix->dict.close = dict_unix_close;
-    dict_unix->dict.fd = -1;
-    dict_unix->map = mystrdup(map);
     dict_unix->dict.flags = dict_flags | DICT_FLAG_FIXED;
     return (&dict_unix->dict);
 }

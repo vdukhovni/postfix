@@ -60,6 +60,8 @@
 
 #include <msg.h>
 #include <dict.h>
+#include <dict_db.h>
+#include <dict_dbm.h>
 #include <sigdelay.h>
 #include <mymalloc.h>
 #include <myflock.h>
@@ -79,11 +81,11 @@ typedef struct {
 
 MKMAP_OPEN_INFO mkmap_types[] = {
 #ifdef HAS_DBM
-    "dbm", mkmap_dbm_open,
+    DICT_TYPE_DBM, mkmap_dbm_open,
 #endif
 #ifdef HAS_DB
-    "hash", mkmap_hash_open,
-    "btree", mkmap_btree_open,
+    DICT_TYPE_HASH, mkmap_hash_open,
+    DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
     0,
 };

@@ -151,19 +151,8 @@ static const char *dict_ni_lookup(DICT *dict, const char *key)
 {
     DICT_NI *d = (DICT_NI *) dict;
 
-    return dict_ni_do_lookup(d->path, NETINFO_PROP_KEY,
+    return dict_ni_do_lookup(d->dict.name, NETINFO_PROP_KEY,
 			     key, NETINFO_PROP_VALUE);
-}
-
-/* dict_ni_update - add or update table entry (not!) */
-
-static void dict_ni_update(DICT *dict, const char *unused_name,
-			           const char *unused_value)
-{
-    DICT_NI *d = (DICT_NI *) dict;
-
-    msg_fatal("dict_ni_update: unimplemented: update NetInfo directory %s",
-	      d->path);
 }
 
 /* dict_ni_close - disassociate from NetInfo map */
@@ -172,22 +161,18 @@ static void dict_ni_close(DICT *dict)
 {
     DICT_NI *d = (DICT_NI *) dict;
 
-    myfree(d->path);
-    myfree((char *) d);
+    dict_free(dict);
 }
 
 /* dict_ni_open - create association with NetInfo map */
 
 DICT   *dict_ni_open(const char *path, int unused_flags, int dict_flags)
 {
-    DICT_NI *d = (void *) mymalloc(sizeof(*d));
+    DICT_NI *d = (void *) dict_alloc(DICT_TYPE_NETINFO, path, sizeof(*d));
 
     d->dict.lookup = dict_ni_lookup;
-    d->dict.update = dict_ni_update;
     d->dict.close = dict_ni_close;
-    d->dict.fd = -1;
     d->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    d->path = mystrdup(path);
 
     return &d->dict;
 }

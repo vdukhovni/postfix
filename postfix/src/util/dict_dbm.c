@@ -66,7 +66,6 @@
 typedef struct {
     DICT    dict;			/* generic members */
     DBM    *dbm;			/* open database */
-    char   *path;			/* pathname */
 } DICT_DBM;
 
 /* dict_dbm_lookup - find database entry */
@@ -86,7 +85,7 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->dict.name);
 
     /*
      * See if this DBM file was written with one null byte appended to key
@@ -124,7 +123,7 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
 
     return (result);
 }
@@ -169,21 +168,21 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->dict.name);
 
     /*
      * Do the update.
      */
     if ((status = dbm_store(dict_dbm->dbm, dbm_key, dbm_value,
      (dict->flags & DICT_FLAG_DUP_REPLACE) ? DBM_REPLACE : DBM_INSERT)) < 0)
-	msg_fatal("error writing DBM database %s: %m", dict_dbm->path);
+	msg_fatal("error writing DBM database %s: %m", dict_dbm->dict.name);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
 	     /* void */ ;
 	else if (dict->flags & DICT_FLAG_DUP_WARN)
-	    msg_warn("%s: duplicate entry: \"%s\"", dict_dbm->path, name);
+	    msg_warn("%s: duplicate entry: \"%s\"", dict_dbm->dict.name, name);
 	else
-	    msg_fatal("%s: duplicate entry: \"%s\"", dict_dbm->path, name);
+	    msg_fatal("%s: duplicate entry: \"%s\"", dict_dbm->dict.name, name);
     }
 
     /*
@@ -191,7 +190,7 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
 }
 
 /* dict_dbm_delete - delete one entry from the dictionary */
@@ -208,7 +207,7 @@ static int dict_dbm_delete(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->dict.name);
 
     /*
      * See if this DBM file was written with one null byte appended to key
@@ -220,7 +219,7 @@ static int dict_dbm_delete(DICT *dict, const char *name)
 	dbm_clearerr(dict_dbm->dbm);
 	if ((status = dbm_delete(dict_dbm->dbm, dbm_key)) < 0) {
 	    if (dbm_error(dict_dbm->dbm) != 0)	/* fatal error */
-		msg_fatal("error deleting from %s: %m", dict_dbm->path);
+		msg_fatal("error deleting from %s: %m", dict_dbm->dict.name);
 	    status = 1;				/* not found */
 	} else {
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;	/* found */
@@ -237,7 +236,7 @@ static int dict_dbm_delete(DICT *dict, const char *name)
 	dbm_clearerr(dict_dbm->dbm);
 	if ((status = dbm_delete(dict_dbm->dbm, dbm_key)) < 0) {
 	    if (dbm_error(dict_dbm->dbm) != 0)	/* fatal error */
-		msg_fatal("error deleting from %s: %m", dict_dbm->path);
+		msg_fatal("error deleting from %s: %m", dict_dbm->dict.name);
 	    status = 1;				/* not found */
 	} else {
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;	/* found */
@@ -249,7 +248,7 @@ static int dict_dbm_delete(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
 
     return (status);
 }
@@ -272,7 +271,7 @@ static int dict_dbm_sequence(DICT *dict, const int function,
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: lock dictionary: %m", dict_dbm->dict.name);
 
     /*
      * Determine and execute the seek function. It returns the key.
@@ -293,7 +292,7 @@ static int dict_dbm_sequence(DICT *dict, const int function,
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_dbm->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
 
     if (dbm_key.dptr != 0 && dbm_key.dsize > 0) {
 
@@ -336,7 +335,7 @@ static int dict_dbm_sequence(DICT *dict, const int function,
 	     * condition.
 	     */
 	    if (dbm_error(dict_dbm->dbm))
-		msg_fatal("error seeking %s: %m", dict_dbm->path);
+		msg_fatal("error seeking %s: %m", dict_dbm->dict.name);
 	    return (1);				/* no error: eof/not found
 						 * (should not happen!) */
 	}
@@ -346,7 +345,7 @@ static int dict_dbm_sequence(DICT *dict, const int function,
 	 * Determine if we have hit the last record or an error condition.
 	 */
 	if (dbm_error(dict_dbm->dbm))
-	    msg_fatal("error seeking %s: %m", dict_dbm->path);
+	    msg_fatal("error seeking %s: %m", dict_dbm->dict.name);
 	return (1);				/* no error: eof/not found */
     }
     return (0);
@@ -359,8 +358,7 @@ static void dict_dbm_close(DICT *dict)
     DICT_DBM *dict_dbm = (DICT_DBM *) dict;
 
     dbm_close(dict_dbm->dbm);
-    myfree(dict_dbm->path);
-    myfree((char *) dict_dbm);
+    dict_free(dict);
 }
 
 /* dict_dbm_open - open DBM data base */
@@ -394,7 +392,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 	    msg_fatal("close database %s: %m", dbm_path);
 	myfree(dbm_path);
     }
-    dict_dbm = (DICT_DBM *) mymalloc(sizeof(*dict_dbm));
+    dict_dbm = (DICT_DBM *) dict_alloc(DICT_TYPE_DBM, path, sizeof(*dict_dbm));
     dict_dbm->dict.lookup = dict_dbm_lookup;
     dict_dbm->dict.update = dict_dbm_update;
     dict_dbm->dict.delete = dict_dbm_delete;
@@ -410,7 +408,6 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_dbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);
     dict_dbm->dbm = dbm;
-    dict_dbm->path = mystrdup(path);
 
     return (&dict_dbm->dict);
 }

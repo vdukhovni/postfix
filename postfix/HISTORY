@@ -4747,3 +4747,15 @@ Apologies for any names omitted.
 
 	Workaround: Lotus Domino 5.0.4 violates RFC 2554 and replies
 	to EHLO with AUTH=LOGIN. File: smtp/smtp_proto.c.
+
+20010125
+
+	Code cleanup: wrote creator/destructor for dictionary
+	objects that provides default methods that trap all attempts
+	to perform an unimplemented operation. Based on an ansatz
+	by Laurent Wacrenier (teaser.fr).  Files: util/dict*.[hc].
+
+	Code cleanup: INSTALL.sh does not ask questions when stdin
+	is not connected to a tty. To automate a customized install,
+	the script imports environment variables for install_root
+	etc.

@@ -64,7 +64,6 @@
 
 typedef struct {
     DICT    dict;			/* generic members */
-    char   *map;			/* NIS map name */
 } DICT_NIS;
 
  /*
@@ -154,7 +153,7 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      * value.
      */
     if (dict->flags & DICT_FLAG_TRY1NULL) {
-	err = yp_match(dict_nis_domain, dict_nis->map,
+	err = yp_match(dict_nis_domain, dict_nis->dict.name,
 		       (void *) key, strlen(key) + 1,
 		       &result, &result_len);
 	if (err == 0) {
@@ -168,7 +167,7 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      * value. This should never be the case, but better play safe.
      */
     if (dict->flags & DICT_FLAG_TRY0NULL) {
-	err = yp_match(dict_nis_domain, dict_nis->map,
+	err = yp_match(dict_nis_domain, dict_nis->dict.name,
 		       (void *) key, strlen(key),
 		       &result, &result_len);
 	if (err == 0) {
@@ -187,20 +186,11 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
      */
     if (err != YPERR_KEY) {
 	msg_warn("lookup %s, NIS domain %s, map %s: %s",
-		 key, dict_nis_domain, dict_nis->map,
+		 key, dict_nis_domain, dict_nis->dict.name,
 		 dict_nis_strerror(err));
 	dict_errno = DICT_ERR_RETRY;
     }
     return (0);
-}
-
-/* dict_nis_update - add or update table entry */
-
-static void dict_nis_update(DICT *dict, const char *unused_name, const char *unused_value)
-{
-    DICT_NIS *dict_nis = (DICT_NIS *) dict;
-
-    msg_fatal("dict_nis_update: attempt to update NIS map %s", dict_nis->map);
 }
 
 /* dict_nis_close - close NIS map */
@@ -209,8 +199,7 @@ static void dict_nis_close(DICT *dict)
 {
     DICT_NIS *dict_nis = (DICT_NIS *) dict;
 
-    myfree(dict_nis->map);
-    myfree((char *) dict_nis);
+    dict_free(dict);
 }
 
 /* dict_nis_open - open NIS map */
@@ -219,12 +208,9 @@ DICT   *dict_nis_open(const char *map, int unused_flags, int dict_flags)
 {
     DICT_NIS *dict_nis;
 
-    dict_nis = (DICT_NIS *) mymalloc(sizeof(*dict_nis));
+    dict_nis = (DICT_NIS *) dict_alloc(DICT_TYPE_NIS, map, sizeof(*dict_nis));
     dict_nis->dict.lookup = dict_nis_lookup;
-    dict_nis->dict.update = dict_nis_update;
     dict_nis->dict.close = dict_nis_close;
-    dict_nis->dict.fd = -1;
-    dict_nis->map = mystrdup(map);
     dict_nis->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_nis->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);

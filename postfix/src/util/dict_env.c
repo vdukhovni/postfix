@@ -66,20 +66,19 @@ static const char *dict_env_lookup(DICT *unused_dict, const char *name)
 
 static void dict_env_close(DICT *dict)
 {
-    myfree((char *) dict);
+    dict_free(dict);
 }
 
 /* dict_env_open - make association with environment array */
 
-DICT   *dict_env_open(const char *unused_name, int unused_flags, int dict_flags)
+DICT   *dict_env_open(const char *name, int unused_flags, int dict_flags)
 {
     DICT   *dict;
 
-    dict = (DICT *) mymalloc(sizeof(*dict));
+    dict = dict_alloc(DICT_TYPE_ENVIRON, name, sizeof(*dict));
     dict->lookup = dict_env_lookup;
     dict->update = dict_env_update;
     dict->close = dict_env_close;
     dict->flags = dict_flags | DICT_FLAG_FIXED;
-    dict->fd = -1;
     return (dict);
 }

@@ -19,6 +19,9 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_HASH	"hash"
+#define DICT_TYPE_BTREE	"btree"
+
 extern DICT *dict_hash_open(const char *, int, int);
 extern DICT *dict_btree_open(const char *, int, int);
 

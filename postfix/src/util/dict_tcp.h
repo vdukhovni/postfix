@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_TCP	"tcp"
+
 extern DICT *dict_tcp_open(const char *, int, int);
 
 /* LICENSE

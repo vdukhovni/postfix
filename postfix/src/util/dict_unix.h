@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_UNIX	"unix"
+
 extern DICT *dict_unix_open(const char *, int, int);
 
 /* LICENSE

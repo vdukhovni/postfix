@@ -73,6 +73,7 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <time.h>
+#include <mysql.h>
 
 /* Utility library. */
 #include "dict.h"
@@ -83,9 +84,6 @@
 #include "vstring.h"
 #include "split_at.h"
 #include "find_inet.h"
-
-/* external declarations */
-extern int dict_errno;
 
 /* need some structs to help organize things */
 typedef struct {
@@ -120,6 +118,11 @@ typedef struct {
     MYSQL_NAME *name;
 } DICT_MYSQL;
 
+#define STATACTIVE 0
+#define STATFAIL 1
+#define STATUNTRIED 2
+#define RETRY_CONN_INTV 60		/* 1 minute */
+
 /* internal function declarations */
 static PLMYSQL *plmysql_init(char *hostnames[], int);
 static MYSQL_RES *plmysql_query(PLMYSQL *, const char *, char *, char *, char *);
@@ -127,9 +130,6 @@ static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_down_host(HOST *);
 static void plmysql_connect_single(HOST *, char *, char *, char *);
 static int plmysql_ready_reconn(HOST *);
-static void dict_mysql_update(DICT *, const char *, const char *);
-static void dict_mysql_delete(DICT *, const char *);
-static void dict_mysql_sequence(DICT *, const int, const char **, const char **);
 static const char *dict_mysql_lookup(DICT *, const char *);
 DICT   *dict_mysql_open(const char *, int, int);
 static void dict_mysql_close(DICT *);
@@ -349,14 +349,10 @@ DICT   *dict_mysql_open(const char *name, int unused_flags, int unused_dict_flag
     DICT_MYSQL *dict_mysql;
     int     connections;
 
-    dict_mysql = (DICT_MYSQL *) mymalloc(sizeof(DICT_MYSQL));
+    dict_mysql = (DICT_MYSQL *) dict_alloc(DICT_TYPE_MYSQL, name,
+					   sizeof(DICT_MYSQL));
     dict_mysql->dict.lookup = dict_mysql_lookup;
-    dict_mysql->dict.update = dict_mysql_update;
-    dict_mysql->dict.delete = dict_mysql_delete;
-    dict_mysql->dict.sequence = dict_mysql_sequence;
     dict_mysql->dict.close = dict_mysql_close;
-    dict_mysql->dict.fd = -1;			/* there's no file descriptor
-						 * for locking */
     dict_mysql->name = mysqlname_parse(name);
     dict_mysql->pldb = plmysql_init(dict_mysql->name->hostnames,
 				    dict_mysql->name->len_hosts);
@@ -530,6 +526,7 @@ static void dict_mysql_close(DICT *dict)
     }
     myfree((char *) dict_mysql->name->hostnames);
     myfree((char *) dict_mysql->name);
+    dict_free(dict);
 }
 
 /* plmysql_dealloc - free memory associated with PLMYSQL close databases */
@@ -544,29 +541,6 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
     }
     myfree((char *) PLDB->db_hosts);
     myfree((char *) (PLDB));
-}
-
-
-/**********************************************************************
- * public interface dict_mysql_update - add or update table entry
- *
- *********************************************************************/
-static void dict_mysql_update(DICT *dict, const char *unused_name, const char *unused_value)
-{
-    DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
-
-    msg_fatal("dict_mysql_update: attempt to update mysql database");
-}
-
-static void dict_mysql_delete(DICT *unused_dict, const char *unused_name)
-{
-    msg_fatal("dict_mysql_delete: attempt to delete mysql database entry");
-}
-
-static void dict_mysql_sequence(DICT *unused_dict, const int unused_function,
-		         const char **unused_key, const char **unused_value)
-{
-    msg_fatal("dict_mysql_sequence: attempt to iterate over mysql database");
 }
 
 #endif

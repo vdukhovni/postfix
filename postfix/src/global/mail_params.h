@@ -1130,33 +1130,6 @@ extern char *var_import_environ;
 #define DEF_EXPORT_ENVIRON		"TZ"
 extern char *var_export_environ;
 
- /*
-  * Tunables for the "virtual" local delivery agent
-  */
-#define VAR_VIRT_MAILBOX_MAPS	"virtual_mailbox_maps"
-#define DEF_VIRT_MAILBOX_MAPS	""
-extern char *var_mailbox_maps;
-
-#define VAR_VIRT_UID_MAPS	"virtual_uid_maps"
-#define DEF_VIRT_UID_MAPS	""
-extern char *var_uid_maps;
-
-#define VAR_VIRT_GID_MAPS	"virtual_gid_maps"
-#define DEF_VIRT_GID_MAPS	""
-extern char *var_gid_maps;
-
-#define VAR_VIRT_USEDOTLOCK	"virtual_usedotlock"
-#define DEF_VIRT_USEDOTLOCK	0
-extern bool var_virt_usedotlock;
-
-#define VAR_VIRT_MINUID		"virtual_minimum_uid"
-#define DEF_VIRT_MINUID		100
-extern int var_virt_minimum_uid;
-
-#define VAR_VIRT_MAILBOX_BASE	"virtual_mailbox_base"
-#define DEF_VIRT_MAILBOX_BASE	""
-extern char *var_virt_mailbox_base;
-
 /* LICENSE
 /* .ad
 /* .fi

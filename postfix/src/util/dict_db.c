@@ -102,7 +102,6 @@
 typedef struct {
     DICT    dict;			/* generic members */
     DB     *db;				/* open db file */
-    char   *path;			/* pathname */
 } DICT_DB;
 
 #define DICT_DB_CACHE_SIZE	(1024 * 1024)
@@ -160,7 +159,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_db->path);
+	msg_fatal("%s: lock dictionary: %m", dict_db->dict.name);
 
     /*
      * See if this DB file was written with one null byte appended to key and
@@ -170,7 +169,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 	db_key.data = (void *) name;
 	db_key.size = strlen(name) + 1;
 	if ((status = DICT_DB_GET(db, &db_key, &db_value, 0)) < 0)
-	    msg_fatal("error reading %s: %m", dict_db->path);
+	    msg_fatal("error reading %s: %m", dict_db->dict.name);
 	if (status == 0) {
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;
 	    result = db_value.data;
@@ -185,7 +184,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 	db_key.data = (void *) name;
 	db_key.size = strlen(name);
 	if ((status = DICT_DB_GET(db, &db_key, &db_value, 0)) < 0)
-	    msg_fatal("error reading %s: %m", dict_db->path);
+	    msg_fatal("error reading %s: %m", dict_db->dict.name);
 	if (status == 0) {
 	    if (buf == 0)
 		buf = vstring_alloc(10);
@@ -200,7 +199,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_db->dict.name);
 
     return (result);
 }
@@ -248,32 +247,32 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_db->path);
+	msg_fatal("%s: lock dictionary: %m", dict_db->dict.name);
 
     /*
      * Do the update.
      */
     if ((status = DICT_DB_PUT(db, &db_key, &db_value,
 	     (dict->flags & DICT_FLAG_DUP_REPLACE) ? 0 : DONT_CLOBBER)) < 0)
-	msg_fatal("error writing %s: %m", dict_db->path);
+	msg_fatal("error writing %s: %m", dict_db->dict.name);
     if (status) {
 	if (dict->flags & DICT_FLAG_DUP_IGNORE)
 	     /* void */ ;
 	else if (dict->flags & DICT_FLAG_DUP_WARN)
-	    msg_warn("%s: duplicate entry: \"%s\"", dict_db->path, name);
+	    msg_warn("%s: duplicate entry: \"%s\"", dict_db->dict.name, name);
 	else
-	    msg_fatal("%s: duplicate entry: \"%s\"", dict_db->path, name);
+	    msg_fatal("%s: duplicate entry: \"%s\"", dict_db->dict.name, name);
     }
     if (dict->flags & DICT_FLAG_SYNC_UPDATE)
 	if (DICT_DB_SYNC(db, 0) < 0)
-	    msg_fatal("%s: flush dictionary: %m", dict_db->path);
+	    msg_fatal("%s: flush dictionary: %m", dict_db->dict.name);
 
     /*
      * Release the exclusive lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_db->dict.name);
 }
 
 /* delete one entry from the dictionary */
@@ -291,7 +290,7 @@ static int dict_db_delete(DICT *dict, const char *name)
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_db->path);
+	msg_fatal("%s: lock dictionary: %m", dict_db->dict.name);
 
     /*
      * See if this DB file was written with one null byte appended to key and
@@ -301,7 +300,7 @@ static int dict_db_delete(DICT *dict, const char *name)
 	db_key.data = (void *) name;
 	db_key.size = strlen(name) + 1;
 	if ((status = DICT_DB_DEL(db, &db_key, flags)) < 0)
-	    msg_fatal("error deleting from %s: %m", dict_db->path);
+	    msg_fatal("error deleting from %s: %m", dict_db->dict.name);
 	if (status == 0)
 	    dict->flags &= ~DICT_FLAG_TRY0NULL;
     }
@@ -314,20 +313,20 @@ static int dict_db_delete(DICT *dict, const char *name)
 	db_key.data = (void *) name;
 	db_key.size = strlen(name);
 	if ((status = DICT_DB_DEL(db, &db_key, flags)) < 0)
-	    msg_fatal("error deleting from %s: %m", dict_db->path);
+	    msg_fatal("error deleting from %s: %m", dict_db->dict.name);
 	if (status == 0)
 	    dict->flags &= ~DICT_FLAG_TRY1NULL;
     }
     if (dict->flags & DICT_FLAG_SYNC_UPDATE)
 	if (DICT_DB_SYNC(db, 0) < 0)
-	    msg_fatal("%s: flush dictionary: %m", dict_db->path);
+	    msg_fatal("%s: flush dictionary: %m", dict_db->dict.name);
 
     /*
      * Release the exclusive lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_db->dict.name);
 
     return status;
 }
@@ -369,17 +368,17 @@ static int dict_db_sequence(DICT *dict, const int function,
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
-	msg_fatal("%s: lock dictionary: %m", dict_db->path);
+	msg_fatal("%s: lock dictionary: %m", dict_db->dict.name);
 
     if ((status = db->seq(db, &db_key, &db_value, db_function)) < 0)
-	msg_fatal("error seeking %s: %m", dict_db->path);
+	msg_fatal("error seeking %s: %m", dict_db->dict.name);
 
     /*
      * Release the exclusive lock.
      */
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
-	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
+	msg_fatal("%s: unlock dictionary: %m", dict_db->dict.name);
 
     if (status == 0) {
 
@@ -415,17 +414,16 @@ static void dict_db_close(DICT *dict)
     DICT_DB *dict_db = (DICT_DB *) dict;
 
     if (DICT_DB_SYNC(dict_db->db, 0) < 0)
-	msg_fatal("flush database %s: %m", dict_db->path);
+	msg_fatal("flush database %s: %m", dict_db->dict.name);
     if (DICT_DB_CLOSE(dict_db->db) < 0)
-	msg_fatal("close database %s: %m", dict_db->path);
-    myfree(dict_db->path);
-    myfree((char *) dict_db);
+	msg_fatal("close database %s: %m", dict_db->dict.name);
+    dict_free(dict);
 }
 
 /* dict_db_open - open data base */
 
-static DICT *dict_db_open(const char *path, int open_flags, int type,
-			          void *tweak, int dict_flags)
+static DICT *dict_db_open(const char *class, const char *path, int open_flags,
+			          int type, void *tweak, int dict_flags)
 {
     DICT_DB *dict_db;
     struct stat st;
@@ -509,7 +507,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
 	if (close(lock_fd) < 0)
 	    msg_fatal("close database %s: %m", db_path);
     }
-    dict_db = (DICT_DB *) mymalloc(sizeof(*dict_db));
+    dict_db = (DICT_DB *) dict_alloc(class, db_path, sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;
     dict_db->dict.update = dict_db_update;
     dict_db->dict.delete = dict_db_delete;
@@ -524,7 +522,7 @@ static DICT *dict_db_open(const char *path, int open_flags, int type,
     if ((dict_flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	dict_db->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     dict_db->db = db;
-    dict_db->path = db_path;
+    myfree(db_path);
     return (&dict_db->dict);
 }
 
@@ -551,7 +549,8 @@ DICT   *dict_hash_open(const char *path, int open_flags, int dict_flags)
 
     tweak = 0;
 #endif
-    return (dict_db_open(path, open_flags, DB_HASH, (void *) &tweak, dict_flags));
+    return (dict_db_open(DICT_TYPE_HASH, path, open_flags, DB_HASH,
+			 (void *) &tweak, dict_flags));
 }
 
 /* dict_btree_open - create association with data base */
@@ -576,7 +575,8 @@ DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
     tweak = 0;
 #endif
 
-    return (dict_db_open(path, open_flags, DB_BTREE, (void *) &tweak, dict_flags));
+    return (dict_db_open(DICT_TYPE_BTREE, path, open_flags, DB_BTREE,
+			 (void *) &tweak, dict_flags));
 }
 
 #endif

@@ -19,6 +19,8 @@
  /*
   * External interface.
   */
+#define DICT_TYPE_PCRE	"pcre"
+
 extern DICT *dict_pcre_open(const char *, int, int);
 
 /* LICENSE

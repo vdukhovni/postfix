@@ -582,14 +582,6 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     return (VSTRING_LEN(result) > 0 && !dict_errno ? vstring_str(result) : 0);
 }
 
-/* dict_ldap_update - add or update database entry */
-
-static void dict_ldap_update(DICT *dict, const char *unused_name,
-			             const char *unused_value)
-{
-    msg_fatal("dict_ldap_update: Operation not implemented");
-}
-
 /* dict_ldap_close - disassociate from data base */
 
 static void dict_ldap_close(DICT *dict)
@@ -608,7 +600,7 @@ static void dict_ldap_close(DICT *dict)
     argv_free(dict_ldap->result_attributes);
     myfree(dict_ldap->bind_dn);
     myfree(dict_ldap->bind_pw);
-    myfree((char *) dict_ldap);
+    dict_free(dict);
 }
 
 /* dict_ldap_open - create association with data base */
@@ -622,11 +614,10 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     char   *scope;
     char   *attr;
 
-    dict_ldap = (DICT_LDAP *) mymalloc(sizeof(*dict_ldap));
+    dict_ldap = (DICT_LDAP *) dict_alloc(DICT_TYPE_LDAP, ldapsource,
+					 sizeof(*dict_ldap));
     dict_ldap->dict.lookup = dict_ldap_lookup;
-    dict_ldap->dict.update = dict_ldap_update;
     dict_ldap->dict.close = dict_ldap_close;
-    dict_ldap->dict.fd = -1;
     dict_ldap->dict.flags = dict_flags | DICT_FLAG_FIXED;
 
     if (msg_verbose)
