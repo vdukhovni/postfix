@@ -74,12 +74,13 @@
 /*	tls_scache_update() updates the specified TLS session cache
 /*	with the specified session information.
 /*
-/*	tls_scache_sequence() iterates over the specified TLS
-/*	session cache and either returns the first or next entry
-/*	that matches the session timeout, OpenSSL version and flags
-/*	restrictions, or returns no data.  Entries that don't
-/*	satisfy the requirements
-/*	are silently deleted.  Specify TLS_SCACHE_SEQUENCE_NOTHING
+/*	tls_scache_sequence() iterates over the specified TLS session
+/*	cache and looks up the first or next entry. If that entry
+/*	matches the session timeout, OpenSSL version and flags
+/*	restrictions, tls_scache_sequence() saves the entry by
+/*	updating the result parameters; otherwise it deletes the
+/*	entry and does not update the result parameters.  Specify
+/*	TLS_SCACHE_SEQUENCE_NOTHING
 /*	as the third and last argument to disable OpenSSL version
 /*	and flags restrictions, and to disable saving of cache
 /*	entry content or cache entry ID information.  This is useful
@@ -450,7 +451,9 @@ int     tls_scache_sequence(TLS_SCACHE *cp, int first_next,
     const char *member;
     const char *value;
     char   *saved_cursor;
-    int     seq_status;
+    int     found_entry;
+    int     keep_entry;
+    char   *saved_member;
 
     /*
      * XXX Deleting entries while enumerating a map can he tricky. Some map
@@ -464,52 +467,63 @@ int     tls_scache_sequence(TLS_SCACHE *cp, int first_next,
      */
 
     /*
-     * Find the first or next database entry.
+     * Find the first or next database entry. Activate the passivated entry
+     * and check the version, time stamp and flags information. Schedule the
+     * entry for deletion if it is bad or too old.
+     * 
+     * Save the member (cache id) so that it will not be clobbered by the
+     * tls_scache_lookup() call below.
      */
-    seq_status = dict_seq(cp->db, first_next, &member, &value);
+    found_entry = (dict_seq(cp->db, first_next, &member, &value) == 0);
+    if (found_entry) {
+	keep_entry = tls_scache_decode(cp, member, value, strlen(value),
+				       openssl_version, flags,
+				       out_openssl_version,
+				       out_flags, out_session);
+	if (keep_entry && out_cache_id)
+	    *out_cache_id = mystrdup(member);
+	saved_member = mystrdup(member);
+    }
 
     /*
      * Delete behind. This is a no-op if an expired cache entry was updated
-     * in the mean time.
+     * in the mean time. Use the saved lookup criteria so that the "delete
+     * behind" operation works as promised.
      */
-    if (cp->flags & TLS_SCACHE_FLAG_DEL_CURSOR) {
-	cp->flags &= ~TLS_SCACHE_FLAG_DEL_CURSOR;
+    if (cp->flags & TLS_SCACHE_FLAG_DEL_SAVED_CURSOR) {
+	cp->flags &= ~TLS_SCACHE_FLAG_DEL_SAVED_CURSOR;
 	saved_cursor = cp->saved_cursor;
 	cp->saved_cursor = 0;
-	tls_scache_lookup(cp, saved_cursor, TLS_SCACHE_ANY_OPENSSL_VSN,
-			  TLS_SCACHE_ANY_FLAGS, (long *) 0, (int *) 0,
+	tls_scache_lookup(cp, saved_cursor, cp->saved_openssl_version,
+			  cp->saved_flags, (long *) 0, (int *) 0,
 			  (VSTRING *) 0);
 	myfree(saved_cursor);
-    } else {
+    }
+
+    /*
+     * Otherwise, clean up if this is not the first iteration.
+     */
+    else {
 	if (cp->saved_cursor)
 	    myfree(cp->saved_cursor);
 	cp->saved_cursor = 0;
     }
 
     /*
-     * Did we find a first or next database entry?
+     * Protect the current first/next entry against explicit or implied
+     * client delete requests, and schedule a bad or expired entry for
+     * deletion. Save the lookup criteria so that the "delete behind"
+     * operation will work as promised.
      */
-    if (seq_status != 0)
-	return (0);				/* End of list reached */
-
-    /*
-     * Safety against client requests to delete the current first/next entry.
-     */
-    cp->saved_cursor = mystrdup(member);
-
-    /*
-     * Activate the passivated cache entry and check the version and time
-     * stamp information. Schedule it for deletion if it is bad or too old.
-     */
-    if (tls_scache_decode(cp, member, value, strlen(value), openssl_version,
-			  flags, out_openssl_version, out_flags,
-			  out_session) == 0) {
-	cp->flags |= TLS_SCACHE_FLAG_DEL_CURSOR;
-    } else {
-	if (out_cache_id)
-	    *out_cache_id = mystrdup(member);
+    if (found_entry) {
+	cp->saved_cursor = saved_member;
+	if (keep_entry == 0) {
+	    cp->flags |= TLS_SCACHE_FLAG_DEL_SAVED_CURSOR;
+	    cp->saved_openssl_version = openssl_version;
+	    cp->saved_flags = flags;
+	}
     }
-    return (1);
+    return (found_entry);
 }
 
 /* tls_scache_delete - delete session from cache */

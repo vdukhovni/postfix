@@ -67,7 +67,7 @@ path.
     % export MANPATH; MANPATH="`pwd`/man:$MANPATH"
     % setenv MANPATH "`pwd`/man:$MANPATH"
 
-Of particular interest is the postconf(5) manual page that lists all the 300+
+Of particular interest is the postconf(5) manual page that lists all the 400+
 configuration parameters. The HTML version of this text makes it easy to
 navigate around.
 

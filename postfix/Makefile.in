@@ -20,7 +20,7 @@ makefiles Makefiles:
 	 (set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
 	 $(MAKE) -f Makefile.in Makefile MAKELEVEL=) || exit 1; \
 	done;
-	rm -f Makefile; (tail +2 conf/makedefs.out; cat Makefile.in) >Makefile
+	rm -f Makefile; (cat conf/makedefs.out Makefile.in) >Makefile
 
 update printfck tests:
 	set -e; for i in $(DIRS); do \
