@@ -111,7 +111,7 @@ will use when it makes network connections.  </p>
 /etc/postfix/main.cf:
     # You must stop/start Postfix after changing this parameter.
     inet_protocols = ipv4       (DEFAULT: enable IPv4 only)
-    inet_protocols = all        (enable both IPv4 and IPv6)
+    inet_protocols = all        (enable IPv4, and IPv6 if supported)
     inet_protocols = ipv4, ipv6 (enable both IPv4 and IPv6)
     inet_protocols = ipv6       (enable IPv6 only)
 </pre>

@@ -10480,6 +10480,11 @@ Apologies for any names omitted.
 	Portability: Berkeley DB changed API from version 2.5 to
 	2.6. Rob Foehl. File: util/dict_db.c.
 
+20050315
+
+	Bugfix: when <unistd.h> is included, read is a reserved
+	identifier. File: smtpstone/smtp-source.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

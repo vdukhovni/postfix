@@ -92,7 +92,7 @@
 #if (DB_VERSION_MAJOR == 2 && DB_VERSION_MINOR < 6)
 #define DICT_DB_CURSOR(db, curs)	(db)->cursor((db), NULL, (curs))
 #else
-#define DICT_DB_CURSOR(db, curs)	(db)->cursor((db), NULL, (curs), 0);
+#define DICT_DB_CURSOR(db, curs)	(db)->cursor((db), NULL, (curs), 0)
 #endif
 
 #ifndef DB_FCNTL_LOCKING

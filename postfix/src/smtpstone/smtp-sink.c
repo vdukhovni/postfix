@@ -132,7 +132,7 @@ typedef struct SINK_STATE {
     VSTREAM *stream;
     VSTRING *buffer;
     int     data_state;
-    int     (*read) (struct SINK_STATE *);
+    int     (*read_fn) (struct SINK_STATE *);
     int     rcpts;
 } SINK_STATE;
 
@@ -220,7 +220,7 @@ static void data_response(SINK_STATE *state)
     state->data_state = ST_CR_LF;
     smtp_printf(state->stream, "354 End data with <CR><LF>.<CR><LF>");
     smtp_flush(state->stream);
-    state->read = data_read;
+    state->read_fn = data_read;
 }
 
 /* data_event - delayed response to DATA command */
@@ -302,7 +302,7 @@ static int data_read(SINK_STATE *state)
 	    if (msg_verbose)
 		msg_info(".");
 	    dot_response(state);
-	    state->read = command_read;
+	    state->read_fn = command_read;
 	    state->data_state = ST_ANY;
 	    break;
 	}
@@ -535,7 +535,7 @@ static void read_event(int unused_event, char *context)
 	    return;
 
 	case 0:
-	    if (state->read(state) < 0) {
+	    if (state->read_fn(state) < 0) {
 		if (msg_verbose)
 		    msg_info("disconnect");
 		disconnect(state);
@@ -584,7 +584,7 @@ static void connect_event(int unused_event, char *context)
 	state = (SINK_STATE *) mymalloc(sizeof(*state));
 	state->stream = vstream_fdopen(fd, O_RDWR);
 	state->buffer = vstring_alloc(1024);
-	state->read = command_read;
+	state->read_fn = command_read;
 	state->data_state = ST_ANY;
 	smtp_timeout_setup(state->stream, var_tmout);
 	if (pretend_pix)
