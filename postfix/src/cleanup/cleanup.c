@@ -160,6 +160,11 @@
 /*	message arrival rate exceeds the message delivery rate.
 /* .IP \fBextract_recipient_limit\fR
 /*	Limit the amount of recipients extracted from message headers.
+/* .IP \fBvirtual_alias_expansion_limit\fR
+/*	Limit the number of actual recipients produced by virtual alias
+/*	expansion from each original recipient.
+/* .IP \fBvirtual_alias_recursion_limit\fR
+/*	Limit the recursion depth of virtual alias expansion.
 /* SEE ALSO
 /*	canonical(5) canonical address lookup table format
 /*	qmgr(8) queue manager daemon

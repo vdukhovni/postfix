@@ -1019,6 +1019,14 @@ extern int var_token_limit;
 #define DEF_EXTRA_RCPT_LIMIT	10240
 extern int var_extra_rcpt_limit;
 
+#define VAR_VIRT_RECUR_LIMIT	"virtual_alias_recursion_limit"
+#define DEF_VIRT_RECUR_LIMIT	1000
+extern int var_virt_recur_limit;
+
+#define VAR_VIRT_EXPAN_LIMIT	"virtual_alias_expansion_limit"
+#define DEF_VIRT_EXPAN_LIMIT	1000
+extern int var_virt_expan_limit;
+
  /*
   * Message/queue size limits.
   */

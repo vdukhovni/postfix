@@ -18,6 +18,9 @@ makefiles Makefiles:
 	 $(MAKE) -f Makefile.in Makefile MAKELEVEL=) || exit 1; \
 	done;
 	rm -f Makefile; (set -e; $(SHELL) makedefs && cat Makefile.in) >Makefile
+	(echo "# Do not edit -- this file documents how Postfix was built for your machine."; $(SHELL) makedefs) >makedefs.tmp
+	set +e; if cmp makedefs.tmp conf/makedefs.out; then rm makedefs.tmp; \
+	else mv makedefs.tmp conf/makedefs.out; fi >/dev/null 2>/dev/null
 
 update printfck tests:
 	set -e; for i in $(DIRS); do \

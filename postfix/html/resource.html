@@ -164,6 +164,21 @@ delivery</a> agent and <a href="cleanup.8.html">address cleanup</a>
 daemon remember when delivering a message. A recipient address is
 ignored when it is found in the remembered list.
 
+<dt> <b>virtual_alias_expansion_limit</b> (default: 1000)
+
+<dd> This limits the number of addresses that result from each original
+recipient by virtual alias expansion in the <a href="cleanup.8.html">
+address cleanup</a> daemon. By default each original recipient is rewritten
+via <b>$virtual_alias_maps</b> to at most 1000 actual recipients.
+
+<dt> <b>virtual_alias_recursion_limit</b> (default: 1000)
+
+<dd> This limits the recursive nesting of virtual alias expansion performed
+by the <a href="cleanup.8.html">address cleanup</a> daemon. Virtual
+alias expansion is recursive, and stops only when an address is not
+found in the table, when an address maps to itself, or when the
+recursion limit is reached.
+
 </dl>
 
 <a name="time"><h2> Time limits</h2> </a>

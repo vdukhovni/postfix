@@ -47,6 +47,19 @@ deliver_lock_delay = 1s
 #
 duplicate_filter_limit = 1000
 
+# The virtual_alias_expansion_limit parameter limits the number of
+# addresses that virtual expansion produces from each original recipient.
+#
+virtual_alias_expansion_limit = 1000
+
+# The virtual_alias_recursion_limit parameter limits the nesting depth of
+# virtual expansion. Currently the recursion limit is applied only to the
+# left branch of the expansion graph, so the depth of the tree can in the
+# worst case reach the sum of the expansion and recursion limits.
+# This may change in the future.
+#
+virtual_alias_recursion_limit = 1000
+
 # The fork_attempts parameter limits the number of attempts to
 # fork() a process.
 #

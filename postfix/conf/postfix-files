@@ -94,6 +94,7 @@ $config_directory/aliases:f:root:-:644:p
 $config_directory/canonical:f:root:-:644:p
 $config_directory/main.cf:f:root:-:644:p
 $config_directory/main.cf.default:f:root:-:644
+$config_directory/makedefs.out:f:root:-:644
 $config_directory/master.cf:f:root:-:644:p
 $config_directory/pcre_table:f:root:-:644:p
 $config_directory/postfix-files:f:root:-:644

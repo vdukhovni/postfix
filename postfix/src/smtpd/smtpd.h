@@ -45,43 +45,6 @@ typedef struct SMTPD_DEFER {
     int     class;			/* error notification class */
 } SMTPD_DEFER;
 
- /*
-  * Actions that affect all recipients of a given message. That is, we don't
-  * "undo" results from one recipient when evaluating the next recipient.
-  */
-typedef struct SMTPD_MSG_ACTION {
-    int     flags;			/* see below */
-    char   *filter;			/* filter destination */
-    char   *redirect;			/* redirect destination */
-} SMTPD_MSG_ACTION;
-
-#define SMTPD_MSG_ACT_HOLD	(1<<0)	/* place message on hold */
-#define SMTPD_MSG_ACT_DISCARD	(1<<1)	/* discard message */
-#define SMTPD_MSG_ACT_FILTER	(1<<2)	/* filter message */
-#define SMTPD_MSG_ACT_REDIRECT	(1<<3)	/* redirect message */
-
- /*
-  * Short-hand for when to stop searching restriction lists.
-  */
-#define SMTPD_MSG_ACT_FINAL		(SMTPD_MSG_ACT_DISCARD)
-
-#define SMTPD_MSG_ACT_ZERO(a) do { \
-	(a).flags = 0; \
-	(a).filter = 0; \
-	(a).redirect = 0; \
-    } while (0)
-
-#define SMTPD_MSG_ACT_FREE(a) do { \
-	if ((a).filter) myfree((a).filter); \
-	if ((a).redirect) myfree((a).redirect); \
-    } while (0)
-
-#define SMTPD_MSG_ACT_COPY(d, s) do { \
-	SMTPD_MSG_ACT_FREE(d); \
-	(d).filter = ((s).filter ? mystrdup((s).filter) : 0); \
-	(d).redirect = ((s).redirect ? mystrdup((s).redirect) : 0); \
-    } while (0)
-
 typedef struct SMTPD_STATE {
     int     err;
     VSTREAM *client;
@@ -123,10 +86,6 @@ typedef struct SMTPD_STATE {
     VSTRING *sasl_encoded;
     VSTRING *sasl_decoded;
 #endif
-    SMTPD_MSG_ACTION *action;		/* action from access map */
-    SMTPD_MSG_ACTION action_client;	/* action after connect */
-    SMTPD_MSG_ACTION action_helo;	/* action after helo/ehlo */
-    SMTPD_MSG_ACTION action_mailrcpt;	/* action after mail from/rcpt to */
     int     rcptmap_checked;
     int     warn_if_reject;		/* force reject into warning */
     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
@@ -134,17 +93,9 @@ typedef struct SMTPD_STATE {
     int     defer_if_permit_client;	/* force permit into warning */
     int     defer_if_permit_helo;	/* force permit into warning */
     int     defer_if_permit_sender;	/* force permit into warning */
+    int     discard;			/* discard message */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
 } SMTPD_STATE;
-
-#define SMTPD_MSG_ACT_FLAGS(s) \
-    ((s)->action_client.flags | (s)->action_helo.flags \
-	| (s)->action_mailrcpt.flags)
-
-#define SMTPD_MSG_ACT_VALUE(s,m) \
-    ((s)->action_mailrcpt.m ? (s)->action_mailrcpt.m : \
-	(s)->action_helo.m ? (s)->action_helo.m : \
-	    (s)->action_client.m)
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);
 extern void smtpd_state_reset(SMTPD_STATE *);

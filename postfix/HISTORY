@@ -7895,12 +7895,12 @@ Apologies for any names omitted.
 	systems against exploitation of the remote buffer overflow
 	vulnerability described in CERT advisory CA-2003-07.
 
-20030311-17
+20030311-19
 
 	Bugfix: the access map actions HOLD, DISCARD, FILTER and
-	REDIRECT were broken with smtpd_delay_reject=no.  This
-	required re-architecting of the actions code. Files:
-	smtpd/smtpd.[hc], smtpd/smtpd_check.c, smtpd/smtpd_state.c.
+	REDIRECT were broken with smtpd_delay_reject=no and with
+	ETRN.  This required re-architecting of the actions code.
+	Files:  smtpd/smtpd.[hc], smtpd/smtpd_check.c, smtpd/smtpd_state.c.
 
 20030315
 
@@ -7912,6 +7912,19 @@ Apologies for any names omitted.
 	the VRFY command, causing it to reply with status code 252
 	for non-existent addresses. This required re-architecting
 	the recipient table lookup code. File:  smtpd/smtpd_check.c.
+
+20030319
+
+	Feature: configurable limit on virtual alias expansion size
+	and nesting depth, via the virtual_alias_expansion_limit
+	and virtual_alias_recursion_limit parameters. The default
+	limits are compatible with past Postfix versions.  Victor
+	Duchovni, Morgan Stanley. Files: /sample-resource.cf,
+	html/resource.html, cleanup/cleanup.c, cleanup/cleanup_init.c,
+	cleanup/cleanup_map1n.c.
+
+	Feature: the installation procedure records build information
+	(by default:  in /etc/postfix/makedefs.out).
 
 Open problems:
 
