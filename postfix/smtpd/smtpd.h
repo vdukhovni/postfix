@@ -33,6 +33,7 @@ typedef struct SMTPD_STATE {
     time_t  time;
     char   *name;
     char   *addr;
+    char   *namaddr;
     int     error_count;
     int     error_mask;
     int     notify_mask;

@@ -53,6 +53,7 @@
 #include <mymalloc.h>
 #include <vstream.h>
 #include <name_mask.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -80,6 +81,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->buffer = vstring_alloc(100);
     state->name = mystrdup(name);
     state->addr = mystrdup(addr);
+    state->namaddr = concatenate(name, "[", addr, "]", (char *) 0);
     state->error_count = 0;
     state->error_mask = 0;
     state->notify_mask = name_mask(mail_error_masks, var_notify_classes);
@@ -118,4 +120,6 @@ void    smtpd_state_reset(SMTPD_STATE *state)
 	myfree(state->name);
     if (state->addr)
 	myfree(state->addr);
+    if (state->namaddr)
+	myfree(state->namaddr);
 }

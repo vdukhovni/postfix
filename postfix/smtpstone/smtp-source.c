@@ -41,7 +41,6 @@
 /* .IP "-R interval"
 /*	Wait for a random period of time 0 <= n <= interval between messages.
 /*	Suspending one thread does not affect other delivery threads.
-/*	threads keep running.
 /* .IP "-w interval"
 /*	Wait a fixed time between messages.
 /*	Suspending one thread does not affect other delivery threads.

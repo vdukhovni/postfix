@@ -340,13 +340,13 @@ extern char *var_rcpt_delim;
 #define DEF_CMD_EXP_FILTER	"1234567890!@%-_=+:,./\
 abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-extern char *var_cmd_exp_filter;;
+extern char *var_cmd_exp_filter;
 
 #define VAR_FWD_EXP_FILTER	"forward_expansion_filter"
 #define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,./\
 abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-extern char *var_fwd_exp_filter;;
+extern char *var_fwd_exp_filter;
 
 #define VAR_RCPT_FDELIM		"recipient_feature_delimiter"
 #define DEF_RCPT_FDELIM		""

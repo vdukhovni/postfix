@@ -15,6 +15,9 @@
 /*	input.  A limited amount of standard output and standard error
 /*	output is captured for diagnostics purposes.
 /*	Duplicate commands for the same recipient are suppressed.
+/*	A limited amount of information is exported via the environment:
+/*	HOME, SHELL, LOGNAME, USER, EXTENSION, and DOMAIN. The exported
+/*	information is censored with var_cmd_filter.
 /*
 /*	Arguments:
 /* .IP state
@@ -49,6 +52,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -57,7 +61,6 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <argv.h>
-#include <mac_expand.h>
 
 /* Global library. */
 
@@ -83,8 +86,8 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     int     deliver_status;
     ARGV   *env;
     int     copy_flags;
-    VSTRING *expanded_cmd = 0;
-    char   *xcommand ;
+    char  **cpp;
+    char   *cp;
 
     /*
      * Make verbose logging easier to understand.
@@ -143,24 +146,27 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
     env = argv_alloc(1);
     if (usr_attr.home)
 	argv_add(env, "HOME", usr_attr.home, ARGV_END);
-    if (usr_attr.logname)
-	argv_add(env, "LOGNAME", usr_attr.logname, ARGV_END);
+    argv_add(env, "LOGNAME", state.msg_attr.user, ARGV_END);
+    argv_add(env, "USER", state.msg_attr.user, ARGV_END);
     if (usr_attr.shell)
 	argv_add(env, "SHELL", usr_attr.shell, ARGV_END);
+    if (state.msg_attr.domain)
+	argv_add(env, "DOMAIN", state.msg_attr.domain, ARGV_END);
+    if (state.msg_attr.extension)
+	argv_add(env, "EXTENSION", state.msg_attr.extension, ARGV_END);
     argv_terminate(env);
 
-    if (command == var_mailbox_command) {
-	expanded_cmd = vstring_alloc(100);
-	local_expand(expanded_cmd, command, &state,
-		     &usr_attr, var_cmd_exp_filter);
-	xcommand = vstring_str(expanded_cmd);
-    } else {
-	xcommand = command;
-    }
+    /*
+     * Censor out undesirable characters from exported data.
+     */
+    for (cpp = env->argv; *cpp; cpp += 2)
+	for (cp = cpp[1]; *(cp += strspn(cp, var_cmd_exp_filter)) != 0;)
+	    *cp++ = '_';
+
     cmd_status = pipe_command(state.msg_attr.fp, why,
 			      PIPE_CMD_UID, usr_attr.uid,
 			      PIPE_CMD_GID, usr_attr.gid,
-			      PIPE_CMD_COMMAND, xcommand,
+			      PIPE_CMD_COMMAND, command,
 			      PIPE_CMD_COPY_FLAGS, copy_flags,
 			      PIPE_CMD_SENDER, state.msg_attr.sender,
 			      PIPE_CMD_DELIVERED, state.msg_attr.delivered,
@@ -170,8 +176,6 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, char *command)
 			      PIPE_CMD_END);
 
     argv_free(env);
-    if (expanded_cmd)
-	vstring_free(expanded_cmd);
 
     /*
      * Depending on the result, bounce or defer the message.

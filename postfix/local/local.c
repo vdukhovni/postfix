@@ -40,9 +40,9 @@
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
 /*	\fI$name\fR is (is not) defined.
-/*	In the result of \fIname\fR expansion, characters that have special 
-/*	meaning to the shell are replaced by underscores. The list of legal 
-/*	characters is specified with the \fBforward_expansion_filter\fR 
+/*	In the result of \fIname\fR expansion, characters that have special
+/*	meaning to the shell are replaced by underscores. The list of legal
+/*	characters is specified with the \fBforward_expansion_filter\fR
 /*	configuration parameter.
 /*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
@@ -95,18 +95,6 @@
 /*	executes with the privileges of the recipient user (exception: in
 /*	case of delivery as root, the command executes with the privileges
 /*	of \fBdefault_privs\fR).
-/*	The command is subject to interpolation of \fB$user\fR (recipient
-/*	username), \fB$home\fR (recipient home directory), \fB$shell\fR
-/*	(recipient shell), \fB$recipient\fR (complete recipient address),
-/*	\fB$extension\fR (recipient address extension), \fB$domain\fR
-/*	(recipient domain), \fBmailbox\fR (entire recipient address 
-/*	localpart) and \fB$recipient_delimiter.\fR The forms
-/*	\fI${name?value}\fR and \fI${name:value}\fR expand conditionally to
-/*	\fIvalue\fR when \fI$name\fR is (is not) defined. 
-/*	In the result of \fIname\fR expansion, characters that have special 
-/*	meaning to the shell are replaced by underscores. The list of legal 
-/*	characters is specified with the \fBcommand_expansion_filter\fR 
-/*	configuration parameter.
 /*
 /*	Mailbox delivery can be delegated to alternative message transports
 /*	specified in the \fBmaster.cf\fR file.
@@ -148,9 +136,24 @@
 /*	\fBcommand_time_limit\fR seconds.  Command exit status codes are
 /*	expected to follow the conventions defined in <\fBsysexits.h\fR>.
 /*
-/*	When mail is delivered on behalf of a user, the \fBHOME\fR,
-/*	\fBLOGNAME\fR, and \fBSHELL\fR environment variables are set
-/*	accordingly.
+/*	A limited amount of message context is exported via environment
+/*	variables. Characters that may have special meaning to the shell
+/*	are replaced by underscores.  The list of acceptable characters
+/*	is specified with the \fBcommand_expansion_filter\fR configuration
+/*	parameter.
+/* .IP \fBSHELL\fR
+/*	The recipient user's login shell.
+/* .IP \fBHOME\fR
+/*	The recipient user's home directory.
+/* .IP \fBUSER\fR
+/*	The bare recipient name.
+/* .IP \fBEXTENSION\fR
+/*	The optional recipient address extension.
+/* .IP \fBDOMAIN\fR
+/*	The recipient address domain part.
+/* .IP \fBLOGNAME\fR
+/*	The bare recipient name.
+/* .PP
 /*	The \fBPATH\fR environment variable is always reset to a
 /*	system-dependent default path, and the \fBTZ\fR (time zone)
 /*	environment variable is always passed on without change.

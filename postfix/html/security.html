@@ -116,11 +116,11 @@ decisions on the basis of first-hand information.
 <p>
 
 Of course, Postfix programs do not trust data received from the
-network, either.  In particular, no Postfix program places
-sender-provided data into shell command lines or into environment
-variables. If there is one lesson that people have learned from
-Web site security disasters it is this one:  <i> don't let any data
-from the network near a shell</i>.
+network, either.  In particular, Postfix filters sender-provided
+data before exporting it via environment variables. If there is one
+lesson that people have learned from Web site security disasters
+it is this one:  <i> don't let any data from the network near a
+shell</i>. Filtering is the best we can do.
 
 <h2>Large inputs</h2>
 

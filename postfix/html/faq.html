@@ -395,9 +395,41 @@ and <b>/usr/lib/Mail.rc</b>).
 
 With mailing lists, <b>Delivered-To:</b> can get in the way when
 the list exploder uses a "secret" alias that should not be shown
-in outbound mail. In order to tackle this, look up the <b>FEATURE
-CONTROL</b> section in the documentation of the <a
-href="local.8.html">local</a> delivery agent.
+in outbound mail. The recommended solution is to use a regular
+expression-based filter at the SMTP port:
+
+<p>
+
+<dl>
+
+<dt><b>/etc/postfix/main.cf:</b>
+
+<dl>
+
+<dt><tt>smtpd_recipients = ... regexp:/etc/postfix/access_regexp ...</tt>
+
+<dt><tt>smtpd_recipients = ... pcre:/etc/postfix/access_regexp ...</tt>
+
+</dl>
+
+<p>
+
+<dt><b>/etc/postfix/access_regexp:</b>
+
+<dl>
+   
+<dt><tt>/^(.*)-outgoing@(.*)/	554 Use $1@$2 instead</tt>
+
+</dl>
+
+</dl>
+
+<p>
+
+POSIX regular expression support (regexp) is enabled by default on
+modern UNIX systems. Perl-compatible regular expression support
+(pcre) is optional; see the PCRE_README file in the top-level
+Postfix source directory.
 
 <p>
 

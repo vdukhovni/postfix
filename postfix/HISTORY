@@ -2745,6 +2745,16 @@ Apologies for any names omitted.
 	= canonical, virtual, alias, forward, include" to restore
 	previous behavior.
 
-	Feature: command_expansion_filter and forward_expansion_filter
-	configuration parameters that control what characters may
-	appear in $name expansions of mailbox_command and forward_path.
+	Feature: forward_expansion_filter configuration parameter
+	that controls what characters may appear in $name expansions
+	of forward_path.
+
+19990509
+
+	Feature: command_expansion_filter to control what characters
+	may appearin message attributes that are exported via
+	environment variables.
+
+	Cleanup: SMTPD reject messages are more informative, and
+	more complete sender/recipient information is logged for
+	the local sysadmin.

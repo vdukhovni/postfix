@@ -76,8 +76,9 @@ is no direct path from the network to the security-sensitive local
 delivery programs - an intruder has to break through several other
 programs first. Postfix does not even trust the contents of its
 own queue files, or the contents of its own IPC messages. Postfix
-avoids placing sender-provided information into shell environment
-variables.  Last but not least, no Postfix program is <i>set-uid</i>.
+filters sender-provided information before exporting it via
+environment variables.  Last but not least, no Postfix program is
+<i>set-uid</i>.
 
 </ul>
 
