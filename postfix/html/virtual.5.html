@@ -17,10 +17,12 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        <b>postmap -q - /etc/postfix/virtual</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       The  optional  <a href="virtual.5.html"><b>virtual</b>(5)</a>  alias  table  specifies address
-       aliasing  for  arbitrary  local  or  non-local   recipient
-       addresses.  Virtual  aliasing is recursive, and is done by
-       the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.
+       The  optional  <a href="virtual.5.html"><b>virtual</b>(5)</a>  alias  table rewrites recipient
+       addresses for all local, virtual and remote mail  destina-
+       tions.   This is unlike the <a href="aliases.5.html"><b>aliases</b>(5)</a> table which is used
+       only for <a href="local.8.html"><b>local</b>(8)</a> delivery.  Virtual  aliasing  is  recur-
+       sive,  and is implemented by the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon
+       before mail is queued.
 
        The main applications of virtual aliasing are:
 

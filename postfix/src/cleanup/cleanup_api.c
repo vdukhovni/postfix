@@ -193,7 +193,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
     int     status;
     char   *encoding;
     CLEANUP_STAT_DETAIL *detail = 0;
-DSN_SPLIT dp;
+    DSN_SPLIT dp;
 
     /*
      * Raise these errors only if we examined all queue file records.

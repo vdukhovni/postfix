@@ -10567,6 +10567,13 @@ Apologies for any names omitted.
 	tls/tls_mgr.h, tls/tls_mgr.c, tls/tls_client.c, tls/tls.h,
 	smtp/smtp_proto.c.
 
+20050330
+
+	Bugfix: in some compilation environments the SMTP and LMTP
+	clients could ignore enhanced status codes in server replies.
+	Bug introduced 20050329 while polishing working code.  Files:
+	smtp/smtp_chat.c, lmtp/lmtp_chat.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?

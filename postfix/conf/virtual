@@ -1,4 +1,4 @@
-# VIRTUAL(5)                                             VIRTUAL(5)
+# VIRTUAL(5)                                                          VIRTUAL(5)
 # 
 # NAME
 #        virtual - Postfix virtual alias table format
@@ -11,10 +11,12 @@
 #        postmap -q - /etc/postfix/virtual <inputfile
 # 
 # DESCRIPTION
-#        The  optional  virtual(5)  alias  table  specifies address
-#        aliasing  for  arbitrary  local  or  non-local   recipient
-#        addresses.  Virtual  aliasing is recursive, and is done by
-#        the Postfix cleanup(8) daemon.
+#        The  optional  virtual(5)  alias  table rewrites recipient
+#        addresses for all local, virtual and remote mail  destina-
+#        tions.   This is unlike the aliases(5) table which is used
+#        only for local(8) delivery.  Virtual  aliasing  is  recur-
+#        sive,  and is implemented by the Postfix cleanup(8) daemon
+#        before mail is queued.
 # 
 #        The main applications of virtual aliasing are:
 # 
@@ -142,8 +144,8 @@
 #            virtual_alias_maps = hash:/etc/postfix/virtual
 # 
 #            Note: some systems use dbm databases instead of  hash.
-#            See  the  output  from  "postconf  -m"  for  available
-#            database types.
+#            See  the output from "postconf -m" for available data-
+#            base types.
 # 
 #        /etc/postfix/virtual:
 #            virtual-alias.domain anything (right-hand content does not matter)
@@ -182,8 +184,8 @@
 #        constituent parts, nor is user+foo broken up into user and
 #        foo.
 # 
-#        Patterns are applied in the  order  as  specified  in  the
-#        table,  until  a  pattern is found that matches the search
+#        Patterns are applied in the order as specified in the  ta-
+#        ble,  until  a  pattern  is  found that matches the search
 #        string.
 # 
 #        Results are the same as with indexed  file  lookups,  with
@@ -193,9 +195,9 @@
 # TCP-BASED TABLES
 #        This section describes how the table lookups  change  when
 #        lookups are directed to a TCP-based server. For a descrip-
-#        tion  of  the  TCP  client/server  lookup  protocol,   see
-#        tcp_table(5).   This  feature  is  not available up to and
-#        including Postfix version 2.2.
+#        tion of the TCP client/server lookup protocol, see tcp_ta-
+#        ble(5).  This feature is not available up to and including
+#        Postfix version 2.2.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
 #        user@domain  mail  addresses  are not broken up into their
@@ -274,4 +276,4 @@
 #        P.O. Box 704
 #        Yorktown Heights, NY 10598, USA
 # 
-#                                                        VIRTUAL(5)
+#                                                                     VIRTUAL(5)

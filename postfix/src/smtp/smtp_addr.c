@@ -224,7 +224,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    freeaddrinfo(res0);
 	    if (found == 0) {
 		dsn_vstring_update(why, "5.4.4", "%s: host not found", host);
-		smtp_errno = SMTP_ERR_FAIL;
+		if (smtp_errno != SMTP_ERR_RETRY)
+		    smtp_errno = SMTP_ERR_FAIL;
 	    }
 	    return (addr_list);
 	}

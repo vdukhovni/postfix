@@ -238,7 +238,7 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
 	rdata.code = atoi(STR(state->buffer));
 	for (cp = STR(state->buffer) + 4; *cp == ' '; cp++)
 	     /* void */ ;
-	if ((len = dsn_valid(cp)) > 0 && len < sizeof(DSN_SIZE)) {
+	if ((len = dsn_valid(cp)) > 0) {
 	    DSN_UPDATE(rdata.dsn, cp, len);
 	} else if (strchr("245", STR(state->buffer)[0]) != 0) {
 	    DSN_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);

@@ -261,7 +261,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	rdata.code = atoi(STR(session->buffer));
 	for (cp = STR(session->buffer) + 4; *cp == ' '; cp++)
 	     /* void */ ;
-	if ((len = dsn_valid(cp)) > 0 && len < sizeof(DSN_SIZE)) {
+	if ((len = dsn_valid(cp)) > 0) {
 	    DSN_UPDATE(rdata.dsn, cp, len);
 	} else if (strchr("245", STR(session->buffer)[0]) != 0) {
 	    DSN_UPDATE(rdata.dsn, "0.0.0", sizeof("0.0.0") - 1);
