@@ -139,7 +139,7 @@ int     match_hostname(int flags, const char *name, const char *pattern)
     if (strchr(pattern, ':') != 0) {
 	temp = lowercase(mystrdup(name));
 	match = 0;
-	for (entry = temp; /* void */ ; entry = next) {
+	for (entry = temp; *entry != 0; entry = next) {
 	    if ((match = (dict_lookup(pattern, entry) != 0)) != 0)
 		break;
 	    if (dict_errno != 0)

@@ -89,6 +89,7 @@
 #include <vstream.h>
 #include <set_ugid.h>
 #include <safe_open.h>
+#include <watchdog.h>
 #include <stringops.h>
 
 /* Global library. */
@@ -476,6 +477,10 @@ static void pickup_service(char *unused_buf, int unused_len,
      * still being written, or garbage. Leave it up to the sysadmin to remove
      * garbage. Keep scanning the queue directory until we stop removing
      * files from it.
+     * 
+     * When we find a file, stroke the watchdog so that it will not bark while
+     * some application is keeping us busy by injecting lots of mail into the
+     * maildrop directory.
      */
     queue_name = MAIL_QUEUE_MAILDROP;		/* XXX should be a list */
     do {
@@ -485,6 +490,7 @@ static void pickup_service(char *unused_buf, int unused_len,
 	    if (mail_open_ok(queue_name, id, &info.st, &path) == MAIL_OPEN_YES) {
 		pickup_init(&info);
 		info.path = mystrdup(path);
+		watchdog_pat();
 		if (pickup_file(&info) == REMOVE_MESSAGE_FILE) {
 		    if (REMOVE(info.path))
 			msg_warn("remove %s: %m", info.path);

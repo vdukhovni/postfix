@@ -7965,6 +7965,18 @@ Apologies for any names omitted.
 
 	Portability: test -e is not portable. File: conf/postfix-script.
 
+20040302
+
+	Bugfix: the pickup daemon now strokes the watchdog frequently
+	to prevent the watchdog from barking when mail arrives
+	faster than it can be picked up. File: pickup/pickup.c.
+
+20040311
+
+	Bugfix: bad address syntax caused map lookup with zero-length
+	keys.  Problem reported by Andrei Koulik. Files:
+	util/match_ops.c, src/trivial-rewrite/transport.c.
+
 Open problems:
 
 	Doc: mention the proxy_interfaces parameter everywhere the
