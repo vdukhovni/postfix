@@ -43,7 +43,7 @@
 /*	\fB$user\fR (recipient username), \fB$home\fR (recipient home
 /*	directory), \fB$shell\fR (recipient shell), \fB$recipient\fR
 /*	(complete recipient address), \fB$extension\fR (recipient address
-/*	extension), \fB$domain\fR (recipient domain), \fBlocal\fR
+/*	extension), \fB$domain\fR (recipient domain), \fB$local\fR
 /*	(entire recipient address localpart) and
 /*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR and
 /*	\fI${name:value}\fR expand conditionally to \fIvalue\fR when
@@ -151,7 +151,7 @@
 /*	\fB$home\fR (recipient home directory), \fB$shell\fR
 /*	(recipient shell), \fB$recipient\fR (complete recipient
 /*	address), \fB$extension\fR (recipient address extension),
-/*	\fB$domain\fR (recipient domain), \fBlocal\fR (entire
+/*	\fB$domain\fR (recipient domain), \fB$local\fR (entire
 /*	recipient address localpart) and \fB$recipient_delimiter.\fR
 /*	The forms \fI${name?value}\fR and \fI${name:value}\fR expand
 /*	conditionally to \fIvalue\fR when \fI$name\fR is (is not)

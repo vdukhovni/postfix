@@ -535,6 +535,11 @@ NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
 </p>
 
+<p> NOTE: automatic BCC recipients are produced only for new mail.
+To avoid mailer loops, automatic BCC recipients are not generated
+for mail that Postfix forwards internally, nor for mail that Postfix
+generates itself. </p>
+
 %PARAM berkeley_db_create_buffer_size 16777216
 
 <p>
@@ -2827,6 +2832,11 @@ NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
 </p>
 
+<p> NOTE: automatic BCC recipients are produced only for new mail.
+To avoid mailer loops, automatic BCC recipients are not generated
+for mail that Postfix forwards internally, nor for mail that Postfix
+generates itself. </p>
+
 <p>
 Example:
 </p>
@@ -3093,6 +3103,11 @@ run "<b>postmap /etc/postfix/sender_bcc</b>".
 NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
 </p>
+
+<p> NOTE: automatic BCC recipients are produced only for new mail.
+To avoid mailer loops, automatic BCC recipients are not generated
+for mail that Postfix forwards internally, nor for mail that Postfix
+generates itself. </p>
 
 <p>
 Example:

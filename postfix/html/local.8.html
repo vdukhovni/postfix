@@ -49,8 +49,8 @@ LOCAL(8)                                                 LOCAL(8)
        <b>$user</b>  (recipient  username), <b>$home</b> (recipient home direc-
        tory),  <b>$shell</b>  (recipient  shell),  <b>$recipient</b>  (complete
        recipient  address),  <b>$extension</b> (recipient address exten-
-       sion), <b>$domain</b> (recipient domain), <b>local</b> (entire recipient
-       address  localpart)  and  <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>.</b>  The forms
+       sion), <b>$domain</b> (recipient domain), <b>$local</b> (entire  recipi-
+       ent address localpart) and <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>.</b> The forms
        <i>${name?value}</i> and <i>${name:value}</i>  expand  conditionally  to
        <i>value</i> when <i>$name</i> is (is not) defined.  Characters that may
        have special meaning to  the  shell  or  file  system  are
@@ -154,7 +154,7 @@ LOCAL(8)                                                 LOCAL(8)
        (recipient  home  directory),  <b>$shell</b>  (recipient  shell),
        <b>$recipient</b>  (complete   recipient   address),   <b>$extension</b>
        (recipient address extension), <b>$domain</b> (recipient domain),
-       <b>local</b> (entire recipient address  localpart)  and  <b>$recipi-</b>
+       <b>$local</b> (entire recipient address localpart)  and  <b>$recipi-</b>
        <b>ent_delimiter.</b>   The forms <i>${name?value}</i> and <i>${name:value}</i>
        expand conditionally to  <i>value</i>  when  <i>$name</i>  is  (is  not)
        defined.   Characters that may have special meaning to the

@@ -9422,14 +9422,14 @@ Apologies for any names omitted.
 	explicit "multiple sessions per delivery request" model.
 	This uncovered ESMTP and SASL missing re-initialization
 	problems that were fixed in past week.  Design by Victor
-	and Wietse, initial implementation by Victor Duchovny.
+	and Wietse, initial implementation by Victor Duchovni.
 
 20040620
 
 	Future proofing: after the reorganization of SMTP request
 	state and session state, added code to the smtp client
 	error handling routines to more consistently deal with the
-	possibility that session information is not be available.
+	possibility that session information is not available.
 
 20040621
 
@@ -9447,6 +9447,19 @@ Apologies for any names omitted.
 
 	Support for external command execution directory. Files:
 	global/pipe_command.[hc].
+
+20040622
+
+	Safety: when mail is delivered to a transport with per-delivery
+	recipient limit of 1, split the recipient address on the
+	recipient delimiter if one is defined, so that extended
+	addresses don't get extra delivery concurrency slots.
+	Files: *qmgr/qmgr_message.c.
+
+20040623
+
+	Workaround for fragile clients: add microsecond time to
+	maildir filename.  Files: virtual/maildir.c, local/maildir.c.
 
 Open problems:
 

@@ -326,6 +326,11 @@ that is received by the Postfix mail system.
 .PP
 NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
+.PP
+NOTE: automatic BCC recipients are produced only for new mail.
+To avoid mailer loops, automatic BCC recipients are not generated
+for mail that Postfix forwards internally, nor for mail that Postfix
+generates itself.
 .SH anvil_rate_time_unit (default: 60s)
 The time unit over which client connection rates and other rates
 are calculated.
@@ -2328,6 +2333,11 @@ run "\fBpostmap /etc/postfix/recipient_bcc\fR".
 NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
 .PP
+NOTE: automatic BCC recipients are produced only for new mail.
+To avoid mailer loops, automatic BCC recipients are not generated
+for mail that Postfix forwards internally, nor for mail that Postfix
+generates itself.
+.PP
 Example:
 .PP
 .nf
@@ -2578,6 +2588,11 @@ run "\fBpostmap /etc/postfix/sender_bcc\fR".
 .PP
 NOTE: if mail to the BCC address bounces it will be returned to
 the sender.
+.PP
+NOTE: automatic BCC recipients are produced only for new mail.
+To avoid mailer loops, automatic BCC recipients are not generated
+for mail that Postfix forwards internally, nor for mail that Postfix
+generates itself.
 .PP
 Example:
 .PP

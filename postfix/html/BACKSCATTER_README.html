@@ -104,8 +104,9 @@ Received: from porcupine.org ...
 </pre>
 </blockquote>
 
-<p> Then I know that this is almost certainly forged mail.  Mail
-that is really sent by my systems looks like this:  </p>
+<p> Then I know that this is almost certainly forged mail (almost;
+see next section for the fly in the ointment). Mail that is really
+sent by my systems looks like this: </p>
 
 <blockquote>
 <pre>
@@ -125,6 +126,18 @@ Received: from host.example.com (EHLO porcupine.org) ...
 </pre>
 </blockquote>
 
+<p> Another frequent sign of forgery is the Message-ID: header. My
+systems produce a Message-ID: of
+&lt;<i>stuff</i>@<i>hostname</i>.porcupine.org&gt;.  The following
+are forgeries, especially the first one:
+
+<blockquote>
+<pre>
+Message-ID: &lt;1cb479435d8eb9.2beb1.qmail@porcupine.org&gt;
+Message-ID: &lt;yulszqocfzsficvzzju@porcupine.org&gt;
+</pre>
+</blockquote>
+
 <p> To block such backscatter I use <a href="postconf.5.html#header_checks">header_checks</a> and <a href="postconf.5.html#body_checks">body_checks</a>
 patterns like this: </p>
 
@@ -139,12 +152,16 @@ patterns like this: </p>
         reject forged client name in Received: header: $1
     /^Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
+    /^Message-ID:.*@(porcupine\.org)/
+	reject forged domain name in Message-ID: header: $1
 
 /etc/postfix/body_checks:
     /^[&gt; ]*Received: +from +(porcupine\.org) /
         reject forged client name in Received: header: $1
     /^[&gt; ]*Received: +from +[^ ]+ +\(([^ ]+ +[he]+lo=|[he]+lo +)(porcupine\.org)\)/
         reject forged client name in Received: header: $2
+    /^[&gt; ]*Message-ID:.*@(porcupine\.org)/
+	reject forged domain name in Message-ID: header: $1
 </pre>
 </blockquote>
 
@@ -213,11 +230,11 @@ and is very easy to stop.
 
 /etc/postfix/header_checks:
     /^(From|Return-Path):.*[[:&lt;:]](user@domain\.tld)[[:&gt;:]]/ 
-        reject forged sender address in $1: message header: $2
+        reject forged sender address in $1: header: $2
 
 /etc/postfix/body_checks:
     /^[&gt; ]*(From|Return-Path):.*[[:&lt;:]](user@domain\.tld)[[:&gt;:]]/ 
-        reject forged sender address in $1: message header: $2
+        reject forged sender address in $1: header: $2
 </pre>
 </blockquote>
 
