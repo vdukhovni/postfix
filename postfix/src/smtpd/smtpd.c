@@ -1082,6 +1082,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * to perform the request.
      */
     if (SMTPD_STAND_ALONE(state)) {
+	msg_warn("do not use ETRN in \"sendmail -bs\" mode");
 	smtpd_chat_reply(state, "458 Unable to queue messages");
 	return (-1);
     }

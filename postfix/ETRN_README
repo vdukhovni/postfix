@@ -17,17 +17,18 @@ The SMTP ETRN command was designed for sites that have intermittent
 Internet connectivity. With ETRN, a site can tell the mail server
 of its provider to "Please deliver all my mail now".
 
-Postfix versions before 20001003 implemented the ETRN command in
-a lame manner: they would attempt to deliver all queued mail.  This
-is slow on mail servers that queue mail for many customers.
+Postfix versions before 20001005 implemented the ETRN command in
+a lame manner: they simply attempted to deliver all queued mail.
+This is slow on mail servers that queue mail for many customers.
 
-As of version 20001003, Postfix has a faster ETRN implementation.
-At the same time, the command "sendmail -qR" is now implemented by
-sending an ETRN command to the local SMTP server.
+As of version 20001005, Postfix has a fast ETRN implementation that
+does not require Postfix to examine every queue file.  The command
+"sendmail -qR" is now implemented by sending an ETRN command to
+the local SMTP server.
 
-Postfix "fast ETRN/sendmail -qR" speeds up deliveries by looking
-only at mail that is queued for a given destination site. Postfix
-"slow ETRN" is still used as a fall-back method.
+Postfix "fast ETRN/sendmail -qR" speeds up deliveries by attempting
+to deliver only mail that is queued for a given destination site.
+The old Postfix "slow ETRN" is still used as a fall-back method.
 
 How Postfix fast ETRN works
 ===========================
@@ -46,10 +47,12 @@ only for destinations that Postfix is willing to relay mail to:
 
     fast_flush_policy = relay
 
-The relay_domains parameter specifies what destinations Postfix
-will relay to.  For destinations without "fast ETRN/sendmail -qR"
-service, Postfix falls back to the old "slow ETRN" which delivers
-all queued mail.
+The "relay_domains" parameter specifies what destinations Postfix
+will relay to.  
+
+For destinations that are not eligible for the new "fast ETRN/sendmail
+-qR" service, Postfix falls back to the old "slow ETRN" method
+which attempts to deliver all queued mail.
 
 To enable "fast ETRN/sendmail -qR" for all destinations, specify:
 
@@ -69,16 +72,16 @@ mail logfiles.  If you omit this step, the logfiles will eventually
 become populated as Postfix routinely attempts to deliver delayed
 mail, but that will take a couple hours.
 
-To test the "fast ETRN" service, telnet to the Postfix SMTP server
-from a client that is allowed to execute ETRN commands (by default,
-that's every client), and type:
+After the "sendmail -q" has completed all delivery attempts (that
+can take a while), you're ready to test the "fast ETRN" service.
+Telnet to the Postfix SMTP server from a client that is allowed to
+execute ETRN commands (by default, that's every client), and type:
 
     helo my.client.name
     etrn some.customer.domain
 
-where "some.customer.domain" is the name of a domain that your mail
-server is willing to relay mail to, and that your server has some
-mail queued for.
+where "some.customer.domain" is the name of a domain that has a
+non-empty logfile somewhere under /var/spool/postfix/flush.
 
 In the maillog file, you should immediately see a couple of logfile
 records, as evidence that the queue manager has opened queue files:
@@ -89,15 +92,19 @@ records, as evidence that the queue manager has opened queue files:
 	from=<whatever>, size=4711, nrcpt=1 (queue active)
 
 What happens next depends on whether the destination is reachable.
+If it's not reachable, the mail queue IDs will be added back to
+the some.customer.domain logfile under /var/spool/postfix/flush.
 
 Repeat the exercise with another domain that your server is willing
-to relay to, but that has no mail queued.
+to relay to (domain listed in "relay_domains"), but that has no mail
+queued.
 
     helo my.client.name
     etrn some.other.customer.domain
 
-This time, the "etrn" command should not trigger any mail deliveries
-at all.
+This time, the "etrn" command should trigger NO mail deliveries at
+all. If this triggers delivery of all mail, then you used the wrong
+domain name, or "fast ETRN" service is turned off.
 
 Finally, repeat the exercise with a destination that your mail
 server is not willing to relay to.  It does not matter if your

@@ -2,7 +2,7 @@
 /* NAME
 /*	flush 8
 /* SUMMARY
-/*	Postfix fast flush cache manager
+/*	Postfix fast flush server
 /* SYNOPSIS
 /*	\fBflush\fR [generic Postfix daemon options]
 /* DESCRIPTION
@@ -22,7 +22,7 @@
 /*
 /*	Per-destination logfiles of deferred mail are maintained only for
 /*	eligible destinations. The policy is specified with the
-/*	\fBfast_flush_cache_policy\fR configuration parameter:
+/*	\fBfast_flush_policy\fR configuration parameter:
 /* .IP \fBall\fR
 /*	Maintain per-destination logfiles for all destinations.
 /* .IP "\fBrelay\fR (default policy)"
@@ -34,16 +34,15 @@
 /* .PP
 /*	This server implements the following requests:
 /* .IP "\fBFLUSH_REQ_ADD\fI sitename queue_id\fR"
-/*	Inform the cache manager that the specified message is queued for
-/*	\fIsitename\fR. Depending on caching policy, the cache manager
+/*	Inform the fast flush server that the specified message is queued for
+/*	\fIsitename\fR. Depending on logging policy, the fast flush server
 /*	stores or ignores the information.
 /* .IP "\fBFLUSH_REQ_SEND\fI sitename\fR"
 /*	Request delivery of mail that is queued for \fIsitename\fR.
 /*	If the destination is eligible for a fast flush logfile,
-/*	this request triggers delivery of specific messages;  the
-/*	per-destination logfile is truncated to zero length; if mail
-/*	is undeliverable, it will be logged to the per-destination
-/*	logfile.
+/*	this request triggers delivery of messages listed in that
+/*	destination's logfile, and the logfile is truncated to zero length;
+/*	if mail is undeliverable it will be added back to the logfile.
 /* .sp
 /*	If the destination is not eligible for a fast flush logfile,
 /*	this request triggers delivery of all queued mail.
@@ -52,25 +51,20 @@
 /*	request \fBFLUSH_REQ_REFRESH\fR.
 /* .IP "\fBFLUSH_REQ_REFRESH\fR (completes in the background)"
 /*	Refresh non-empty per-destination logfiles that were not read in
-/*	$\fBfast_flush_refresh_delay\fR hours, by simulating
+/*	$\fBfast_flush_refresh_time\fR hours, by simulating
 /*	send requests (see above) for the corresponding destinations.
 /* .sp
 /*	Delete empty per-destination logfiles that were not updated in
-/*	\fBfast_flush_purge_delay\fR days.
+/*	\fBfast_flush_purge_time\fR days.
 /* .IP "\fBFLUSH_REQ_PURGE\fR (completes in the background)"
 /*	Refresh all non-empty per-destination logfiles, by simulating
 /*	send requests (see above) for the corresponding destinations.
-/*	This can be incredibly expensive when caching is enabled for
+/*	This can be incredibly expensive when logging is enabled for
 /*	all deferred mail, and is not recommended.
 /* .sp
 /*	Delete empty per-destination logfiles that were not updated in
-/*	\fBfast_flush_purge_delay\fR days.
+/*	\fBfast_flush_purge_time\fR days.
 /* .PP
-/*	Fast flush logfiles are truncated only after a \fBFLUSH_REQ_SEND\fR
-/*	request, not when mail is actually delivered, and therefore can
-/*	accumulate outdated or redundant data. In order to maintain sanity,
-/*	\fBFLUSH_REQ_REFRESH\fR must be executed periodically.
-/*
 /*	The server response is one of:
 /* .IP \fBFLUSH_STAT_OK\fR
 /*	The request completed normally.
@@ -88,9 +82,19 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	In reality, this server schedules delivery of all recipients
-/*	of a deferred message.  This limitation is due to the fact that
-/*	one queue runner has to handle mail for multiple destinations.
+/*	Fast flush logfiles are truncated only after a \fBFLUSH_REQ_SEND\fR
+/*	request, not when mail is actually delivered, and therefore can
+/*	accumulate outdated or redundant data. In order to maintain sanity,
+/*	\fBFLUSH_REQ_REFRESH\fR must be executed periodically. This can
+/*	be automated with a suitable wakeup timer setting in the
+/*	\fBmaster.cf\fR configuration file.
+/*
+/*	Upon receipt of a request to deliver all mail for an eligible
+/*	destination, this server requests delivery of all messages that
+/*	are listed in that destination's logfile, regardless of the
+/*	recipients of those messages. This is not an issue for mail
+/*	that is sent to a \fBrelay_domains\fR destination because
+/*	such mail typically only has recipients in one domain.
 /* FILES
 /*	/var/spool/postfix/flush, location of "fast flush" logfiles.
 /* CONFIGURATION PARAMETERS
@@ -99,14 +103,14 @@
 /*	See the Postfix \fBmain.cf\fR file for syntax details and for
 /*	default values. Use the \fBpostfix reload\fR command after a
 /*	configuration change.
-/* .IP \fBfast_flush_cache_policy\fR
+/* .IP \fBfast_flush_policy\fR
 /*	What destinations can have a "fast flush" logfile: \fBall\fR,
 /*	\fBrelay\fR (relay destinations) or \fBnone\fR.
-/* .IP \fBfast_flush_refresh_delay\fR
+/* .IP \fBfast_flush_refresh_time\fR
 /*	Refresh a non-empty "fast flush" logfile that was not read in
 /*	this amount of time (default time unit: hours), by simulating
 /*	a send request for the corresponding destination.
-/* .IP \fBfast_flush_purge_delay\fR
+/* .IP \fBfast_flush_purge_time\fR
 /*	Remove an empty "fast flush" logfile that was not updated in
 /*	this amount of time (default time unit: days).
 /* SEE ALSO
@@ -213,7 +217,7 @@ static int flush_policy_init(void)
     }
 }
 
-/* flush_policy_ok - check caching policy */
+/* flush_policy_ok - check logging policy */
 
 static int flush_policy_ok(const char *site)
 {
@@ -243,7 +247,7 @@ static int flush_add_service(const char *site, const char *queue_id)
 	msg_info("%s: site %s queue_id %s", myname, site, queue_id);
 
     /*
-     * If this site is not eligible for caching, just ignore the request.
+     * If this site is not eligible for logging, just ignore the request.
      */
     if (flush_policy_ok(site) == 0)
 	return (FLUSH_STAT_OK);
@@ -304,7 +308,7 @@ static int flush_send_service(const char *site)
 	msg_info("%s: site %s", myname, site);
 
     /*
-     * If this site is not eligible for caching, deliver all queued mail.
+     * If this site is not eligible for logging, deliver all queued mail.
      */
     if (flush_policy_ok(site) == 0)
 	return (mail_flush_deferred());
@@ -368,6 +372,12 @@ static int flush_send_service(const char *site)
 		if (errno != ENOENT)
 		    msg_warn("%s: update %s time stamps: %m",
 			     myname, STR(queue_file));
+		/* XXX Wart... */
+		mail_queue_path(queue_file, MAIL_QUEUE_INCOMING, STR(queue_id));
+		if (utime(STR(queue_file), &tbuf) < 0)
+		    if (errno != ENOENT)
+			msg_warn("%s: update %s time stamps: %m",
+				 myname, STR(queue_file));
 	    } else if (mail_queue_rename(STR(queue_id), MAIL_QUEUE_DEFERRED,
 					 MAIL_QUEUE_INCOMING) < 0) {
 		if (errno != ENOENT)

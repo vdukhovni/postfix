@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-20001003
+Incompatible changes with snapshot-20001005
 ===========================================
 
 If this release does not work for you, you can go back to a previous
@@ -10,43 +10,33 @@ Some recommended parameter settings have changed, and a new entry
 must be added to the master.cf file before you can start Postfix
 again.
 
-After installing the new Postfix release:
+1 - The recommended Postfix configuration no longer uses flat
+    directories for the "active", "bounce", and "defer" queue
+    directories.  The "flush" directory for the new "flush" service
+    directory should not be flat either.
 
-- Check the output from "postconf hash_queue_names". The recommended
-  setting now includes the names of the "active", "bounce", "defer",
-  and "flush" directories.
+    Upon start-up, Postfix checks if the hash_queue_names configuration
+    parameter is properly set up, and will add any queue directory
+    names that are missing.
 
-  If your setting does not contain at least these directory names,
-  either you need to remove the explicit setting from the main.cf
-  file (so that Postfix uses the recommended default setting), or
-  you need to update it.
+2 - In order to improve performance of one-to-one mail deliveries
+    the queue manager will now look at up to 10000 queue files
+    (was: 1000).  The default qmgr_message_active_limit setting
+    was changed accordingly.
 
-- Check the output from "postconf qmgr_message_active_limit". The
-  recommended value has changed to 10000.
+    If you have a non-default qmgr_message_active_limit in main.cf,
+    you may want adjust it.
 
-  If your setting is lower, either you need to remove the explicit
-  setting from the main.cf file (so that Postfix uses the recommended
-  default setting), or you need to update it.
+3 - The new "flush" service needs to be configured in master.cf.
 
-- Add a new entry to the master.cf file for the new flush service:
+    Upon start-up, Postfix checks if the new "flush" service is
+    configured in the master.cf file, and will add an entry if it
+    is missing.
 
-    flush	  unix	-	-	n	1000?	0	flush
+Should you wish to back out to a previous Postfix release there is
+no need to undo the above changes.
 
-  This entry is not needed if you won't use the fast flush service.
-  This service is used by default; to disable the fast flush service,
-  you need to specify in the main.cf file:
-
-    fast_flush_policy = none
-
-  In the new master.cf entry, the 1000? requests that the "fast
-  flush" service does some cleaning up every 15 minutes, but only
-  if the fast flush service is actually being used.  The 0 means
-  that Postfix should run as many flush servers as are needed.
-  Changing this may cause deadlock.
-
-Now you can start Postfix again.
-
-Major changes with snapshot-20001001
+Major changes with snapshot-20001005
 ====================================
 
 In order to improve performance of one-to-one deliveries, Postfix
@@ -57,9 +47,9 @@ SMTP ETRN command - it attempted to deliver all mail in the queue,
 regardless of its destination.  This is slow if your mail server
 queues mail for lots of different destinations.
 
-This release introduces fast "ETRN" and "sendmail -qR". Unlike
-their lame predecessor, these deliver only mail that is queued for
-the specified destinations.
+This release introduces fast "ETRN" and "sendmail -qR". These
+deliver only mail that is queued for the specified destination,
+without requiring Postfix to open every file in the mail queue.
 
 Postfix now maintains per-destination logfiles with information
 about what mail is queued for specific destinations.  By default,

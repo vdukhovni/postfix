@@ -4330,13 +4330,26 @@ Apologies for any names omitted.
 20001003
 
 	Feature: the fast flush refresh and purge time interval
-	parameters can now be specified in seconds or in user-specified
-	units by providing an appropriate suffix:  s (seconds), m
-	(minutes), h (hours), d (days), w (weeks).  unit.  This
-	was needed so that I could test the flush server code in
-	a reasonable way.  Other time parameters will be migrated
-	as time permits.  Files:  global/mail_conf_time.c,
+	parameters can now be specified in user-specified units by
+	providing an appropriate suffix:  s (seconds), m (minutes),
+	h (hours), d (days), w (weeks).  unit.  This was needed so
+	that I could test the flush server code in a reasonable
+	way (its timeouts are normally specified in days or hours,
+	and I don't have that much time for testing).  Other Postfix
+	time interval parameters will be migrated as time permits.
+	Files:  conf/sample-flush.cf, global/mail_conf_time.c,
 	postconf/postconf.c.
 
 	Unfeature: qmgr_hog_factor is now disabled by default. It
-	was just too confusing.
+	was just too confusing. If you don't know what this means,
+	do not worry.
+
+20001005
+
+	Cleanup: after "postfix reload" do not penalize mail that
+	was in the active queue, but make it ready for immediate
+	delivery so that ETRN etc. works as intended. Files:
+	*qmgr/qmgr.c, *qmgr/qmgr_active.c.
+
+	Portability: Redhat 7 library interfaces have changed
+	incompatibly, which breaks existing software. File makedefs.

@@ -455,8 +455,7 @@ static void qmgr_post_init(char *unused_name, char **unused_argv)
      */
     var_use_limit = 0;
     var_idle_limit = 0;
-    qmgr_move(MAIL_QUEUE_ACTIVE, MAIL_QUEUE_INCOMING,
-	      event_time() + var_min_backoff_time);
+    qmgr_move(MAIL_QUEUE_ACTIVE, MAIL_QUEUE_INCOMING, event_time());
     qmgr_incoming = qmgr_scan_create(MAIL_QUEUE_INCOMING);
     qmgr_deferred = qmgr_scan_create(MAIL_QUEUE_DEFERRED);
     qmgr_scan_request(qmgr_incoming, QMGR_SCAN_START);

@@ -2,43 +2,47 @@
 # HERE JUST SERVES AS AN EXAMPLE.
 #
 # This file contains example settings of Postfix parameters that
-# control the fast flush service, which is the engine that implements
-# ETRN and "sendmail -qR".
+# control the fast flush service, which is the code that implements
+# fast ETRN and fast "sendmail -qR".
 
 # The fast_flush_policy parameter specifies what destinations are
 # eligible for per-destination logfiles with mail that is queued to
 # those destinations.
 # 
-# When a destination is eligible, ETRN and "sendmail -qR" are
-# implemented by delivering only messages that are queued for that
-# destination (Postfix will deliver to all recipients of those
-# messages, regardless of their destination).
+# When a destination is eligible for "fast flush" logfiles, ETRN and
+# "sendmail -qR" are implemented by delivering only messages that
+# are listed in the logfile for that destination (in fact, Postfix
+# will deliver to all recipients of those messages, regardless of
+# their destination, but that is not an issue when you relay mail
+# for an eligible site).
 # 
-# When a destination is not eligible, ETRN and "sendmail -qR" are
-# implemented simply by attempting to deliver all queued mail.
+# When a destination is not eligible for "fast flush" logfiles, ETRN
+# and "sendmail -qR" are implemented simply by attempting to deliver
+# all queued mail. That's the slow service that Postfix used to
+# implement before 20001005.
 # 
-# By default, Postfix maintains per-destination deferred mail logfiles
-# only for destinations that the Postfix SMTP server is willing to
-# relay to (see the relay_domains parameter in sample-smtpd.cf).
+# By default, Postfix maintains "fast flush" logfiles only for
+# destinations that the Postfix SMTP server is willing to relay to
+# (see the relay_domains parameter in sample-smtpd.cf).
 #
-# Specify "all" to enable per-destination deferred mail logfiles
-# for all destinations, "none" to disable the logfiles altogether.
+# Specify "all" to enable "fast flush" logfiles for all destinations,
+# "none" to disable the logfiles altogether.
 #
 #fast_flush_policy = all
 fast_flush_policy = relay
 #fast_flush_policy = none
 
-# The fast_flush_purge_delay parameter controls how long an empty
-# per-destination deferred mail logfile is allowed to live. 
+# The fast_flush_purge_time parameter controls how long an empty
+# per-destination "fast flush" logfile is allowed to live. 
 #
 # You can specify the time as a number, or as a number followed by
 # a letter that indicates the time unit: s=seconds, m=minutes, h=hours,
 # d=days, w=weeks.  The default time unit is days.
 #
-fast_flush_purge_delay = 7d
+fast_flush_purge_time = 7d
 
-# The fast_flush_refresh_delay parameter controls how long a non-empty
-# per-destination deferred mail logfile is allowed to remain unread
+# The fast_flush_refresh_time parameter controls how long a non-empty
+# per-destination "fast flush" logfile is allowed to remain unread
 # before its contents need to be refreshed. The contents of a logfile
 # are refreshed by requesting delivery of messages listed in the
 # logfile.
@@ -47,4 +51,4 @@ fast_flush_purge_delay = 7d
 # a letter that indicates the time unit: s=seconds, m=minutes, h=hours,
 # d=days, w=weeks.  The default time unit is hours.
 #
-fast_flush_refresh_delay = 12h
+fast_flush_refresh_time = 12h

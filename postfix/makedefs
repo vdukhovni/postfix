@@ -159,15 +159,24 @@ case "$SYSTEM.$RELEASE" in
 		*)	echo "Unknown AIX version: `uname -v`." 1>&2; exit 1;;
 		esac;;
     Linux.2*)	SYSTYPE=LINUX2
-		for name in db nsl resolv
+		if [ -f /usr/lib/lib/db-3.1.a -a -f /usr/include/db3/db_185.h ]
+		then
+		    CCARGS="$CCARGS -DPATH_DB_H='<db3/db_185.h>'"
+		    SYSLIBS="$SYSLIBS -ldb-3.1"
+		else
+		    if [ -f /usr/include/db_185.h ]
+		    then
+			CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
+		    elif [ -f /usr/include/db/db.h ]
+		    then
+			CCARGS="$CCARGS -DPATH_DB_H='<db/db.h>'"
+		    fi
+		    test -f /usr/lib/libdb.a && SYSLIBS="$SYSLIBS -ldb"
+		fi
+		for name in nsl resolv
 		do
 		    test -f /usr/lib/lib$name.a && SYSLIBS="$SYSLIBS -l$name"
 		done
-		if [ -f /usr/include/db_185.h ]; then
-		    CCARGS="$CCARGS -DPATH_DB_H='<db_185.h>'"
-		elif [ -f /usr/include/db/db.h ]; then
-		    CCARGS="$CCARGS -DPATH_DB_H='<db/db.h>'"
-		fi
 		;;
      IRIX*.5.*)	SYSTYPE=IRIX5
 		# Use the native compiler by default

@@ -356,8 +356,8 @@ mail_owner = postfix
 # 
 # The fast_flush_policy controls what destinations are eligible for
 # this "fast ETRN/sendmail -qR" service. Specify "all" to make all
-# destinations eligible, "relay" for relay destinations only, and
-# "none" to turn this feature off.
+# destinations eligible, "relay" for relay destinations only (the
+# default), and "none" to turn this feature off.
 # 
 #fast_flush_policy = all
 #fast_flush_policy = relay

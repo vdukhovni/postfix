@@ -1075,11 +1075,11 @@ extern char *var_fflush_policy;
 #define FFLUSH_POLICY_RELAY		"relay"
 #define FFLUSH_POLICY_NONE		"none"
 
-#define VAR_FFLUSH_PURGE		"fast_flush_purge_delay"
+#define VAR_FFLUSH_PURGE		"fast_flush_purge_time"
 #define DEF_FFLUSH_PURGE		"7d"
 extern int var_fflush_purge;
 
-#define VAR_FFLUSH_REFRESH		"fast_flush_refresh_delay"
+#define VAR_FFLUSH_REFRESH		"fast_flush_refresh_time"
 #define DEF_FFLUSH_REFRESH		"12h"
 extern int var_fflush_refresh;
 
