@@ -18,10 +18,6 @@ NQMGR(8)                                                 NQMGR(8)
        silently discarded.  This stops potential loops caused  by
        undeliverable bounce notifications.
 
-       Mail  addressed to a user listed in the optional <b>relocated</b>
-       database is bounced with a "user has  moved  to  <i>new_loca-</i>
-       <i>tion</i>" message. See <a href="relocated.5.html"><b>relocated</b>(5)</a> for a precise description.
-
 <b>MAIL</b> <b>QUEUES</b>
        The <b>nqmgr</b> daemon maintains the following queues:
 
@@ -29,54 +25,54 @@ NQMGR(8)                                                 NQMGR(8)
               Inbound mail from the network, or mail picked up by
               the local <b>pickup</b> agent from the <b>maildrop</b> directory.
 
-       <b>active</b> Messages that the  queue  manager  has  opened  for
-              delivery.  Only  a  limited  number  of messages is
-              allowed to enter the  <b>active</b>  queue  (leaky  bucket
+       <b>active</b> Messages  that  the  queue  manager  has opened for
+              delivery. Only a  limited  number  of  messages  is
+              allowed  to  enter  the  <b>active</b> queue (leaky bucket
               strategy, for a fixed delivery rate).
 
        <b>deferred</b>
-              Mail  that  could  not  be delivered upon the first
-              attempt. The queue manager  implements  exponential
+              Mail that could not be  delivered  upon  the  first
+              attempt.  The  queue manager implements exponential
               backoff  by  doubling  the  time  between  delivery
               attempts.
 
        <b>corrupt</b>
-              Unreadable or damaged queue files  are  moved  here
+              Unreadable  or  damaged  queue files are moved here
               for inspection.
 
-       <b>hold</b>   Messages  that  are  kept  "on  hold" are kept here
+       <b>hold</b>   Messages that are kept  "on  hold"  are  kept  here
               until someone sets them free.
 
 <b>DELIVERY</b> <b>STATUS</b> <b>REPORTS</b>
        The <b>nqmgr</b> daemon keeps an eye on per-message delivery sta-
-       tus  reports  in  the  following  directories. Each status
+       tus reports in  the  following  directories.  Each  status
        report file has the same name as the corresponding message
        file:
 
-       <b>bounce</b> Per-recipient  status information about why mail is
-              bounced.   These  files  are  maintained   by   the
+       <b>bounce</b> Per-recipient status information about why mail  is
+              bounced.    These   files  are  maintained  by  the
               <a href="bounce.8.html"><b>bounce</b>(8)</a> daemon.
 
-       <b>defer</b>  Per-recipient  status information about why mail is
-              delayed.   These  files  are  maintained   by   the
+       <b>defer</b>  Per-recipient status information about why mail  is
+              delayed.    These   files  are  maintained  by  the
               <a href="defer.8.html"><b>defer</b>(8)</a> daemon.
 
-       The  <b>nqmgr</b>  daemon is responsible for asking the <a href="bounce.8.html"><b>bounce</b>(8)</a>
+       The <b>nqmgr</b> daemon is responsible for asking  the  <a href="bounce.8.html"><b>bounce</b>(8)</a>
        or <a href="defer.8.html"><b>defer</b>(8)</a> daemons to send non-delivery reports.
 
 <b>STRATEGIES</b>
-       The queue manager implements a variety of  strategies  for
+       The  queue  manager implements a variety of strategies for
        either opening queue files (input) or for message delivery
        (output).
 
        <b>leaky</b> <b>bucket</b>
-              This strategy limits the number of messages in  the
-              <b>active</b>  queue  and  prevents the queue manager from
+              This  strategy limits the number of messages in the
+              <b>active</b> queue and prevents the  queue  manager  from
               running out of memory under heavy load.
 
        <b>fairness</b>
-              When the <b>active</b> queue has room, the  queue  manager
-              takes  one  message from the <b>incoming</b> queue and one
+              When  the  <b>active</b> queue has room, the queue manager
+              takes one message from the <b>incoming</b> queue  and  one
               from the <b>deferred</b> queue. This prevents a large mail
               backlog from blocking the delivery of new mail.
 
@@ -87,42 +83,42 @@ NQMGR(8)                                                 NQMGR(8)
 
        <b>round</b> <b>robin</b>
               The queue manager sorts delivery requests by desti-
-              nation.  Round-robin selection prevents one  desti-
+              nation.   Round-robin selection prevents one desti-
               nation from dominating deliveries to other destina-
               tions.
 
        <b>exponential</b> <b>backoff</b>
               Mail  that  cannot  be  delivered  upon  the  first
-              attempt  is  deferred.   The  time interval between
+              attempt is deferred.   The  time  interval  between
               delivery attempts is doubled after each attempt.
 
        <b>destination</b> <b>status</b> <b>cache</b>
-              The  queue  manager  avoids  unnecessary   delivery
-              attempts  by  maintaining  a  short-term, in-memory
+              The   queue  manager  avoids  unnecessary  delivery
+              attempts by  maintaining  a  short-term,  in-memory
               list of unreachable destinations.
 
        <b>preemptive</b> <b>message</b> <b>scheduling</b>
-              The queue manager attempts to minimize the  average
+              The  queue manager attempts to minimize the average
               per-recipient delay while still preserving the cor-
               rect per-message delays, using a sophisticated pre-
               emptive message scheduling.
 
 <b>TRIGGERS</b>
        On an idle system, the queue manager waits for the arrival
-       of trigger events, or it waits for a timer to  go  off.  A
-       trigger  is  a one-byte message.  Depending on the message
-       received, the queue manager performs one of the  following
-       actions  (the message is followed by the symbolic constant
+       of  trigger  events,  or it waits for a timer to go off. A
+       trigger is a one-byte message.  Depending on  the  message
+       received,  the queue manager performs one of the following
+       actions (the message is followed by the symbolic  constant
        used internally by the software):
 
        <b>D</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>DEFERRED)</b>
-              Start a deferred queue scan.  If a  deferred  queue
-              scan  is  already  in  progress,  that scan will be
+              Start  a  deferred queue scan.  If a deferred queue
+              scan is already in  progress,  that  scan  will  be
               restarted as soon as it finishes.
 
        <b>I</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>INCOMING)</b>
-              Start an incoming queue scan. If an incoming  queue
-              scan  is  already  in  progress,  that scan will be
+              Start  an incoming queue scan. If an incoming queue
+              scan is already in  progress,  that  scan  will  be
               restarted as soon as it finishes.
 
        <b>A</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>SCAN</b><i>_</i><b>ALL)</b>
@@ -130,32 +126,32 @@ NQMGR(8)                                                 NQMGR(8)
               affects the next deferred queue scan.
 
        <b>F</b> <b>(QMGR</b><i>_</i><b>REQ</b><i>_</i><b>FLUSH</b><i>_</i><b>DEAD)</b>
-              Purge  all  information  about  dead transports and
+              Purge all information  about  dead  transports  and
               destinations.
 
        <b>W</b> <b>(TRIGGER</b><i>_</i><b>REQ</b><i>_</i><b>WAKEUP)</b>
-              Wakeup call, This is used by the master  server  to
-              instantiate  servers  that  should not go away for-
-              ever. The action is  to  start  an  incoming  queue
+              Wakeup  call,  This is used by the master server to
+              instantiate servers that should not  go  away  for-
+              ever.  The  action  is  to  start an incoming queue
               scan.
 
        The <b>nqmgr</b> daemon reads an entire buffer worth of triggers.
-       Multiple identical trigger  requests  are  collapsed  into
-       one,  and trigger requests are sorted so that <b>A</b> and <b>F</b> pre-
-       cede <b>D</b> and <b>I</b>. Thus, in order to  force  a  deferred  queue
+       Multiple  identical  trigger  requests  are collapsed into
+       one, and trigger requests are sorted so that <b>A</b> and <b>F</b>  pre-
+       cede  <b>D</b>  and  <b>I</b>.  Thus, in order to force a deferred queue
        run, one would request <b>A</b> <b>F</b> <b>D</b>; in order to notify the queue
        manager of the arrival of new mail one would request <b>I</b>.
 
 <b>STANDARDS</b>
-       None. The <b>nqmgr</b> daemon does not interact with the  outside
+       None.  The <b>nqmgr</b> daemon does not interact with the outside
        world.
 
 <b>SECURITY</b>
-       The  <b>nqmgr</b> daemon is not security sensitive. It reads sin-
-       gle-character messages from  untrusted  local  users,  and
-       thus  may be susceptible to denial of service attacks. The
-       <b>nqmgr</b> daemon does not talk to the outside  world,  and  it
-       can  be  run at fixed low privilege in a chrooted environ-
+       The <b>nqmgr</b> daemon is not security sensitive. It reads  sin-
+       gle-character  messages  from  untrusted  local users, and
+       thus may be susceptible to denial of service attacks.  The
+       <b>nqmgr</b>  daemon  does  not talk to the outside world, and it
+       can be run at fixed low privilege in a  chrooted  environ-
        ment.
 
 <b>DIAGNOSTICS</b>
@@ -163,30 +159,26 @@ NQMGR(8)                                                 NQMGR(8)
        Corrupted message files are saved to the <b>corrupt</b> queue for
        further inspection.
 
-       Depending on the setting of the <b>notify</b><i>_</i><b>classes</b>  parameter,
-       the  postmaster  is notified of bounces and of other trou-
+       Depending  on the setting of the <b>notify</b><i>_</i><b>classes</b> parameter,
+       the postmaster is notified of bounces and of  other  trou-
        ble.
 
 <b>BUGS</b>
-       A single queue manager process has  to  compete  for  disk
-       access  with multiple front-end processes such as <b>smtpd</b>. A
-       sudden burst of inbound mail can  negatively  impact  out-
+       A  single  queue  manager  process has to compete for disk
+       access with multiple front-end processes such as <b>smtpd</b>.  A
+       sudden  burst  of  inbound mail can negatively impact out-
        bound delivery rates.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program. See the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
 <b>Miscellaneous</b>
        <b>allow</b><i>_</i><b>min</b><i>_</i><b>user</b>
-              Do not bounce recipient addresses that  begin  with
+              Do  not  bounce recipient addresses that begin with
               '-'.
-
-       <b>relocated</b><i>_</i><b>maps</b>
-              Tables with contact information for users, hosts or
-              domains that no longer exist. See <a href="relocated.5.html"><b>relocated</b>(5)</a>.
 
        <b>queue</b><i>_</i><b>directory</b>
               Top-level directory of the Postfix queue.
@@ -326,7 +318,6 @@ NQMGR(8)                                                 NQMGR(8)
 
 <b>SEE</b> <b>ALSO</b>
        <a href="master.8.html">master(8)</a>, process manager
-       <a href="relocated.5.html">relocated(5)</a>, format of the "user has moved" table
        syslogd(8) system logging
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address routing
 

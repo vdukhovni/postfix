@@ -400,6 +400,7 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
     DNS_RR *rr;
     int     resource_found = 0;
     int     cname_found = 0;
+    int     default_status = DNS_NOTFOUND;
 
     /*
      * Initialize. Skip over the name server query if we haven't yet.
@@ -460,12 +461,14 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	if (pos + fixed.length > reply->end)
 	    CORRUPT;
 	if (type == fixed.type || type == T_ANY) {	/* requested type */
-	    resource_found++;
 	    if (rrlist) {
-		if ((rr = dns_get_rr(reply, pos, rr_name, &fixed)) == 0)
-		    CORRUPT;
-		*rrlist = dns_rr_append(*rrlist, rr);
-	    }
+		if ((rr = dns_get_rr(reply, pos, rr_name, &fixed)) != 0) {
+		    resource_found++;
+		    *rrlist = dns_rr_append(*rrlist, rr);
+		} else
+		    default_status = DNS_RETRY;
+	    } else
+		resource_found++;
 	} else if (fixed.type == T_CNAME) {	/* cname resource */
 	    cname_found++;
 	    if (cname && c_len > 0)
@@ -484,7 +487,7 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	return (DNS_OK);
     if (cname_found)
 	return (DNS_RECURSE);
-    return (DNS_NOTFOUND);
+    return (default_status);
 }
 
 /* dns_lookup - DNS lookup user interface */

@@ -249,11 +249,15 @@ static void multi_server_execute(int unused_event, char *context)
     /*
      * Do not bother the application when the client disconnected.
      */
+    if (master_notify(var_pid, MASTER_STAT_TAKEN) < 0)
+        multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (peekfd(vstream_fileno(stream)) > 0) {
 	multi_server_service(stream, multi_server_name, multi_server_argv);
     } else {
 	multi_server_disconnect(stream);
     }
+    if (master_notify(var_pid, MASTER_STAT_AVAIL) < 0)
+        multi_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (client_count == 0 && var_idle_limit > 0)
 	event_request_timer(multi_server_timeout, (char *) 0, var_idle_limit);
 }

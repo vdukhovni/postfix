@@ -303,38 +303,38 @@ header_sender, header_recipient</b>
 If you do this, Postfix will no longer be able to send mail to
 individual machines.
 
-<a name="virtual"> <h2> Virtual address mapping</h2>
+<a name="virtual"> <h2> Virtual address aliasing</h2>
 
 After applying the canonical and masquerade mappings, the <a
 href="cleanup.8.html">cleanup</a> daemon uses the <a
 href="virtual.5.html">virtual</a> table to redirect mail for all
 recipients, local or remote.  The mapping affects only envelope
 recipients; it has no effect on message headers or envelope senders.
-Virtual lookups are useful to redirect mail for virtual domains to
-real user mailboxes, and to redirect mail for domains that no longer
-exist.  Virtual lookups can also be used to transform <i>
-Firstname.Lastname </i> back into UNIX login names, although it
-seems that local <a href="#aliases">aliases</a> are a more appropriate
-vehicle.
+Virtual alias lookups are useful to redirect mail for simulated
+virtual domains to real user mailboxes, and to redirect mail for
+domains that no longer exist.  Virtual alias lookups can also be
+used to transform <i> Firstname.Lastname </i> back into UNIX login
+names, although it seems that local <a href="#aliases">aliases</a>
+are a more appropriate vehicle.
 
 <p>
 
-Virtual mapping is disabled by default. To enable, edit the <b>
-virtual_maps</b> parameter in the <b>main.cf</b> file and
+Virtual aliasing is disabled by default. To enable, edit the <b>
+virtual_alias_maps</b> parameter in the <b>main.cf</b> file and
 specify one or more lookup tables, separated by whitespace or
 commas. For example:
 
 <dl>
 
-<dd><b>virtual_maps = hash:/etc/postfix/virtual</b>
+<dd><b>virtual_alias_maps = hash:/etc/postfix/virtual</b>
 
 </dl>
 
 <p>
 
-Addresses found in virtual maps are subjected to another iteration
-of virtual mapping, but are not subjected to canonical mapping, in
-order to avoid loops.
+Addresses found in virtual alias maps are subjected to another
+iteration of virtual aliasing, but are not subjected to canonical
+mapping, in order to avoid loops.
 
 <a name="relocated"> <h2> Relocated users table</h2>
 

@@ -241,7 +241,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 #define FIND_OWNER(lhs, rhs, addr) { \
 	lhs = concatenate("owner-", addr, (char *) 0); \
 	(void) split_at_right(lhs, '@'); \
-	rhs = maps_find(alias_maps, lhs, ALIAS_DICT_FLAGS); \
+	rhs = maps_find(alias_maps, lhs, DICT_FLAG_NONE); \
     }
 
 	    FIND_OWNER(owner_alias, owner_expansion, state.msg_attr.recipient);

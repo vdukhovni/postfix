@@ -21,7 +21,7 @@
 /*	const char *key;
 /*	int	flags;
 /*
-/*	void	maps_free(maps)
+/*	MAPS	*maps_free(maps)
 /*	MAPS	*maps;
 /* DESCRIPTION
 /*	This module implements multi-dictionary searches. it goes

@@ -50,6 +50,8 @@
 /*	the final destination.
 /* .IP RESOLVE_FLAG_ERROR
 /*	The address resolved to something that has invalid syntax.
+/* .IP RESOLVE_FLAG_FAIL
+/*	The request could not be completed.
 /* DIAGNOSTICS
 /*	Warnings: communication failure. Fatal error: mail system is down.
 /* SEE ALSO
@@ -224,12 +226,16 @@ static NORETURN usage(char *myname)
 static void resolve(char *addr, RESOLVE_REPLY *reply)
 {
     resolve_clnt_query(addr, reply);
-    vstream_printf("%-10s %s\n", "address", addr);
-    vstream_printf("%-10s %s\n", "transport", STR(reply->transport));
-    vstream_printf("%-10s %s\n", "nexthop", *STR(reply->nexthop) ?
-		   STR(reply->nexthop) : "[none]");
-    vstream_printf("%-10s %s\n", "recipient", STR(reply->recipient));
-    vstream_fflush(VSTREAM_OUT);
+    if (reply->flags & RESOLVE_FLAG_FAIL) {
+	vstream_printf("request failed\n");
+    } else {
+	vstream_printf("%-10s %s\n", "address", addr);
+	vstream_printf("%-10s %s\n", "transport", STR(reply->transport));
+	vstream_printf("%-10s %s\n", "nexthop", *STR(reply->nexthop) ?
+		       STR(reply->nexthop) : "[none]");
+	vstream_printf("%-10s %s\n", "recipient", STR(reply->recipient));
+	vstream_fflush(VSTREAM_OUT);
+    }
 }
 
 int     main(int argc, char **argv)

@@ -16,10 +16,6 @@
 /*	Mail addressed to the local \fBdouble-bounce\fR address is silently
 /*	discarded.  This stops potential loops caused by undeliverable
 /*	bounce notifications.
-/*
-/*	Mail addressed to a user listed in the optional \fBrelocated\fR
-/*	database is bounced with a "user has moved to \fInew_location\fR"
-/*	message. See \fBrelocated\fR(5) for a precise description.
 /* MAIL QUEUES
 /* .ad
 /* .fi
@@ -154,9 +150,6 @@
 /* .fi
 /* .IP \fBallow_min_user\fR
 /*	Do not bounce recipient addresses that begin with '-'.
-/* .IP \fBrelocated_maps\fR
-/*	Tables with contact information for users, hosts or domains
-/*	that no longer exist. See \fBrelocated\fR(5).
 /* .IP \fBqueue_directory\fR
 /*	Top-level directory of the Postfix queue.
 /* .SH "Active queue controls"
@@ -264,7 +257,6 @@
 /*	Default values for the transport specific parameters described above.
 /* SEE ALSO
 /*	master(8), process manager
-/*	relocated(5), format of the "user has moved" table
 /*	syslogd(8) system logging
 /*	trivial-rewrite(8), address routing
 /* LICENSE
@@ -335,8 +327,6 @@ int     var_init_dest_concurrency;
 int     var_transport_retry_time;
 int     var_dest_con_limit;
 int     var_dest_rcpt_limit;
-char   *var_relocated_maps;
-char   *var_virtual_maps;
 char   *var_defer_xports;
 bool    var_allow_min_user;
 int     var_local_con_lim;
@@ -348,9 +338,6 @@ int     var_qmgr_clog_warn_time;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
-
-MAPS   *qmgr_relocated;
-MAPS   *qmgr_virtual;
 
 /* qmgr_deferred_run_event - queue manager heartbeat */
 
@@ -492,18 +479,6 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-/* qmgr_pre_init - pre-jail initialization */
-
-static void qmgr_pre_init(char *unused_name, char **unused_argv)
-{
-    if (*var_relocated_maps)
-	qmgr_relocated = maps_create("relocated", var_relocated_maps,
-				     DICT_FLAG_LOCK);
-    if (*var_virtual_maps)
-	qmgr_virtual = maps_create("virtual", var_virtual_maps,
-				   DICT_FLAG_LOCK);
-}
-
 /* qmgr_post_init - post-jail initialization */
 
 static void qmgr_post_init(char *unused_name, char **unused_argv)
@@ -544,8 +519,6 @@ static void qmgr_post_init(char *unused_name, char **unused_argv)
 int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
-	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
-	VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
 	VAR_DEFER_XPORTS, DEF_DEFER_XPORTS, &var_defer_xports, 0, 0,
 	0,
     };
@@ -593,7 +566,6 @@ int     main(int argc, char **argv)
 			MAIL_SERVER_STR_TABLE, str_table,
 			MAIL_SERVER_BOOL_TABLE, bool_table,
 			MAIL_SERVER_TIME_TABLE, time_table,
-			MAIL_SERVER_PRE_INIT, qmgr_pre_init,
 			MAIL_SERVER_POST_INIT, qmgr_post_init,
 			MAIL_SERVER_LOOP, qmgr_loop,
 			MAIL_SERVER_PRE_ACCEPT, pre_accept,

@@ -148,13 +148,13 @@
 /*	Permit the request when the resolved recipient domain matches the
 /*	\fIrelay_domains\fR configuration parameter or a subdomain thereof,
 /*	or when the destination somehow resolves locally ($inet_interfaces,
-/*	$mydestination or $virtual_maps).
+/*	$mydestination, $virtual_alias_domains, or $virtual_mailbox_domains).
 /* .IP reject_unauth_destination
 /*	Reject the request when the resolved recipient domain does not match
 /*	the \fIrelay_domains\fR configuration parameter or a subdomain
 /*	thereof, and when the destination does not somehow resolve locally
-/*	($inet_interfaces, $mydestination, $virtual_maps, or
-/*	$virtual_mailbox_maps).
+/*	($inet_interfaces, $mydestination, $virtual_alias_domains, or
+/*	$virtual_mailbox_domains).
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
 /* .IP reject_unauth_pipelining
@@ -297,6 +297,7 @@
 
 /* Global library. */
 
+#include <string_list.h>
 #include <namadr_list.h>
 #include <domain_list.h>
 #include <mail_params.h>
@@ -350,9 +351,12 @@ static CTABLE *smtpd_rbl_cache;
 static MAPS *local_rcpt_maps;
 static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
-static MAPS *virtual_maps;
+static MAPS *virt_alias_maps;
 static MAPS *virt_mailbox_maps;
 static MAPS *relocated_maps;
+
+static STRING_LIST *virt_alias_doms;
+static STRING_LIST *virt_mailbox_doms;
 
  /*
   * Response templates for various rbl domains.
@@ -632,12 +636,16 @@ void    smtpd_check_init(void)
 				  DICT_FLAG_LOCK);
     canonical_maps = maps_create(VAR_CANONICAL_MAPS, var_canonical_maps,
 				 DICT_FLAG_LOCK);
-    virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps,
-			       DICT_FLAG_LOCK);
-    virt_mailbox_maps = maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
-				    DICT_FLAG_LOCK);
+    virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS, var_virt_alias_maps,
+				  DICT_FLAG_LOCK);
+    virt_mailbox_maps = virtual8_maps_create(VAR_VIRT_MAILBOX_MAPS,
+					     var_virt_mailbox_maps,
+					     DICT_FLAG_LOCK);
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
+
+    virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
+    virt_mailbox_doms = string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
 
     access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
 
@@ -861,15 +869,15 @@ static void reject_dict_retry(SMTPD_STATE *state, const char *reply_name)
 						451, reply_name));
 }
 
-/* check_maps_find - reject with temporary failure if dict lookup fails */
+/* check_str_match - reject with temporary failure if dict lookup fails */
 
-static const char *check_maps_find(SMTPD_STATE *state, const char *reply_name,
-			             MAPS *maps, const char *key, int flags)
+static int check_str_match(SMTPD_STATE *state, const char *reply_name,
+			           STRING_LIST *list, const char *key)
 {
-    const char *result;
+    int     result;
 
     dict_errno = 0;
-    if ((result = maps_find(maps, key, flags)) == 0
+    if ((result = string_list_match(list, key)) == 0
 	&& dict_errno == DICT_ERR_RETRY)
 	reject_dict_retry(state, reply_name);
     return (result);
@@ -913,24 +921,24 @@ static int resolve_final(SMTPD_STATE *state, const char *reply_name,
 
     /* If matches $mydestination or $inet_interfaces. */
     if (resolve_local(domain)) {
-	if (*var_virtual_maps
-	    && check_maps_find(state, reply_name, virtual_maps, domain, 0))
+	if (*var_virt_alias_doms
+	    && check_str_match(state, reply_name, virt_alias_doms, domain))
 	    msg_warn("list domain %s in only one of $%s and $%s",
-		     domain, VAR_MYDEST, VAR_VIRTUAL_MAPS);
-	if (*var_virt_mailbox_maps
-	 && checkv8_maps_find(state, reply_name, virt_mailbox_maps, domain))
+		     domain, VAR_MYDEST, VAR_VIRT_ALIAS_DOMS);
+	if (*var_virt_mailbox_doms
+	    && check_str_match(state, reply_name, virt_mailbox_doms, domain))
 	    msg_warn("list domain %s in only one of $%s and $%s",
-		     domain, VAR_MYDEST, VAR_VIRT_MAILBOX_MAPS);
+		     domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
 	return (1);
     }
     /* If Postfix-style virtual domain. */
-    if (*var_virtual_maps
-	&& check_maps_find(state, reply_name, virtual_maps, domain, 0))
+    if (*var_virt_alias_doms
+	&& check_str_match(state, reply_name, virt_alias_doms, domain))
 	return (1);
 
     /* If virtual mailbox domain. */
-    if (*var_virt_mailbox_maps
-	&& checkv8_maps_find(state, reply_name, virt_mailbox_maps, domain))
+    if (*var_virt_mailbox_doms
+	&& check_str_match(state, reply_name, virt_mailbox_doms, domain))
 	return (1);
 
     return (0);
@@ -1230,7 +1238,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 
     /*
      * Permit final delivery: the destination matches mydestination,
-     * virtual_maps, or virtual_mailbox_maps.
+     * virtual_alias_domains, or virtual_mailbox_domains.
      */
     if (resolve_final(state, recipient, domain))
 	return (SMTPD_CHECK_OK);
@@ -1707,7 +1715,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "filter", STR(error_text));
 #ifndef TEST
-	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", value);
+	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", cmd_text);
 #endif
 	    return (SMTPD_CHECK_DUNNO);
 	}
@@ -3157,13 +3165,13 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
     /*
      * Reject mail to unknown addresses in Postfix-style virtual domains.
      */
-    if (*var_virtual_maps
-	&& (check_maps_find(state, recipient, virtual_maps, domain, 0))) {
+    if (*var_virt_alias_doms
+	&& (check_str_match(state, recipient, virt_alias_doms, domain))) {
 	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
 	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
+	    && NOMATCH(virt_alias_maps, CONST_STR(reply->recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown", 550, recipient);
 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
@@ -3173,13 +3181,13 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
     /*
      * Reject mail to unknown addresses in Postfix-style virtual domains.
      */
-    if (*var_virt_mailbox_maps
-     && (check_maps_find(state, recipient, virt_mailbox_maps, domain, 0))) {
+    if (*var_virt_mailbox_doms
+	&& (check_str_match(state, recipient, virt_mailbox_doms, domain))) {
 	if (NOMATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
 	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
+	    && NOMATCH(virt_alias_maps, CONST_STR(reply->recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown", 550, recipient);
 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
@@ -3196,7 +3204,7 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 	    && NOMATCH(canonical_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(relocated_maps, CONST_STR(reply->recipient))
 	    && NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))
-	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))
+	    && NOMATCH(virt_alias_maps, CONST_STR(reply->recipient))
 	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				   "%d <%s>: User unknown", 550, recipient);
@@ -3346,8 +3354,10 @@ char   *var_rest_classes;
 char   *var_alias_maps;
 char   *var_rcpt_canon_maps;
 char   *var_canonical_maps;
-char   *var_virtual_maps;
+char   *var_virt_alias_maps;
+char   *var_virt_alias_doms;
 char   *var_virt_mailbox_maps;
+char   *var_virt_mailbox_doms;
 char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
 char   *var_perm_mx_networks;
@@ -3375,8 +3385,10 @@ static STRING_TABLE string_table[] = {
     VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps,
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps,
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps,
-    VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps,
+    VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps,
+    VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms,
     VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps,
+    VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms,
     VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
     VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks,
@@ -3397,7 +3409,7 @@ static void string_init(void)
     STRING_TABLE *sp;
 
     for (sp = string_table; sp->name; sp++)
-	sp->target[0] = mystrdup(sp->defval);
+	sp->target[0] = mystrdup(sp->defval[0] == '$' ? "" : sp->defval);
 }
 
 /* string_update - update string parameter */
@@ -3696,11 +3708,21 @@ int     main(int argc, char **argv)
 #define UPDATE_MAPS(ptr, var, val, lock) \
 	{ if (ptr) maps_free(ptr); ptr = maps_create(var, val, lock); }
 
+#define UPDATE_LIST(ptr, val) \
+	{ if (ptr) string_list_free(ptr); \
+	  ptr = string_list_init(MATCH_FLAG_NONE, val); }
+
 	case 2:
-	    if (strcasecmp(args->argv[0], "virtual_maps") == 0) {
-		UPDATE_STRING(var_virtual_maps, args->argv[1]);
-		UPDATE_MAPS(virtual_maps, VAR_VIRTUAL_MAPS,
-			    var_virtual_maps, DICT_FLAG_LOCK);
+	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_MAPS) == 0) {
+		UPDATE_STRING(var_virt_alias_maps, args->argv[1]);
+		UPDATE_MAPS(virt_alias_maps, VAR_VIRT_ALIAS_MAPS,
+			    var_virt_alias_maps, DICT_FLAG_LOCK);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_DOMS) == 0) {
+		UPDATE_STRING(var_virt_alias_doms, args->argv[1]);
+		UPDATE_LIST(virt_alias_doms, var_virt_alias_doms);
 		resp = 0;
 		break;
 	    }
@@ -3708,6 +3730,12 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_virt_mailbox_maps, args->argv[1]);
 		UPDATE_MAPS(virt_mailbox_maps, VAR_VIRT_MAILBOX_MAPS,
 			    var_virt_mailbox_maps, DICT_FLAG_LOCK);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_VIRT_MAILBOX_DOMS) == 0) {
+		UPDATE_STRING(var_virt_mailbox_doms, args->argv[1]);
+		UPDATE_LIST(virt_mailbox_doms, var_virt_mailbox_doms);
 		resp = 0;
 		break;
 	    }

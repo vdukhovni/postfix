@@ -329,8 +329,8 @@ smtpd_sender_restrictions =
 # that Postfix is final destination for:
 # - destinations that match $inet_interfaces,
 # - destinations that match $mydestination
-# - destinations that match $virtual_maps,
-# - destinations that match $virtual_mailbox_maps.
+# - destinations that match $virtual_alias_domains,
+# - destinations that match $virtual_mailbox_domains.
 # These destinations do not need to be listed in $relay_domains.
 #
 # The following restrictions are available (* is part of default setting):
@@ -341,12 +341,12 @@ smtpd_sender_restrictions =
 #	listed in an A record under domain.tld.
 #   permit_auth_destination: permit mail
 #	- to destinations matching $inet_interfaces, $mydestination,
-#	  or $virtual_maps.
+#	  $virtual_alias_domains, or $virtual_mailbox_domains.
 #	- to destinations matching $relay_domains or subdomain thereof,
 #	  except for addresses with sender-specified routing.
 #   reject_unauth_destination: reject mail unless it is sent
 #	- to destinations matching $inet_interfaces, $mydestination,
-#	  $virtual_maps, or $virtual_mailbox_maps.
+#	  $virtual_alias_domains, or $virtual_mailbox_domains.
 #	- to destinations matching $relay_domains or subdomain thereof,
 #	  except for addresses with sender-specified routing.
 #   reject_unauth_pipelining: reject mail from improperly pipelining spamware
@@ -416,8 +416,8 @@ allow_untrusted_routing = no
 # that Postfix is final destination for:
 # - destinations that match $inet_interfaces,
 # - destinations that match $mydestination
-# - destinations that match $virtual_maps,
-# - destinations that match $virtual_mailbox_maps.
+# - destinations that match $virtual_alias_domains,
+# - destinations that match $virtual_mailbox_domains.
 # These destinations do not need to be listed in $relay_domains.
 #
 # Specify a list of hosts or domains, /file/name patterns or type:name

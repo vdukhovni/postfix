@@ -94,7 +94,7 @@ int     var_hopcount_limit;		/* max mailer hop count */
 char   *var_canonical_maps;		/* common canonical maps */
 char   *var_send_canon_maps;		/* sender canonical maps */
 char   *var_rcpt_canon_maps;		/* recipient canonical maps */
-char   *var_virtual_maps;		/* virtual maps */
+char   *var_virt_alias_maps;		/* virtual alias maps */
 char   *var_masq_domains;		/* masquerade domains */
 char   *var_masq_exceptions;		/* users not masqueraded */
 char   *var_header_checks;		/* primary header checks */
@@ -130,7 +130,7 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
     VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
-    VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
+    VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
     VAR_MASQ_DOMAINS, DEF_MASQ_DOMAINS, &var_masq_domains, 0, 0,
     VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
     VAR_MASQ_EXCEPTIONS, DEF_MASQ_EXCEPTIONS, &var_masq_exceptions, 0, 0,
@@ -155,7 +155,7 @@ MAPS   *cleanup_header_checks;
 MAPS   *cleanup_mimehdr_checks;
 MAPS   *cleanup_nesthdr_checks;
 MAPS   *cleanup_body_checks;
-MAPS   *cleanup_virtual_maps;
+MAPS   *cleanup_virt_alias_maps;
 ARGV   *cleanup_masq_domains;
 int     cleanup_masq_flags;
 
@@ -195,9 +195,10 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	cleanup_rcpt_canon_maps =
 	    maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
 			DICT_FLAG_LOCK);
-    if (*var_virtual_maps)
-	cleanup_virtual_maps = maps_create(VAR_VIRTUAL_MAPS, var_virtual_maps,
-					   DICT_FLAG_LOCK);
+    if (*var_virt_alias_maps)
+	cleanup_virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS,
+					      var_virt_alias_maps,
+					      DICT_FLAG_LOCK);
     if (*var_masq_domains)
 	cleanup_masq_domains = argv_split(var_masq_domains, " ,\t\r\n");
     if (*var_header_checks)

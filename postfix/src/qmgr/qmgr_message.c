@@ -109,7 +109,6 @@
 #include <rec_type.h>
 #include <sent.h>
 #include <deliver_completed.h>
-#include <mail_addr_find.h>
 #include <opened.h>
 #include <resolve_local.h>
 #include <verp_sender.h>
@@ -506,11 +505,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     QMGR_TRANSPORT *transport = 0;
     QMGR_QUEUE *queue = 0;
     RESOLVE_REPLY reply;
-    const char *newloc;
     char   *at;
     char  **cpp;
-    char   *domain;
-    const char *junk;
     char   *nexthop;
     int     len;
 
@@ -544,6 +540,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if (var_sender_routing == 0) {
 	    resolve_clnt_query(recipient->address, &reply);
+	    if (reply.flags & RESOLVE_FLAG_FAIL) {
+		qmgr_defer_recipient(message, recipient,
+				     "address resolver failure");
+		continue;
+	    }
 	    if (reply.flags & RESOLVE_FLAG_ERROR) {
 		qmgr_bounce_recipient(message, recipient,
 				      "bad address syntax: \"%s\"",
@@ -552,6 +553,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    }
 	} else {
 	    resolve_clnt_query(message->sender, &reply);
+	    if (reply.flags & RESOLVE_FLAG_FAIL) {
+		qmgr_defer_recipient(message, recipient,
+				     "address resolver failure");
+		continue;
+	    }
 	    if (reply.flags & RESOLVE_FLAG_ERROR) {
 		qmgr_bounce_recipient(message, recipient,
 				      "bad address syntax: \"%s\"",
@@ -582,47 +588,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * don't have multiple queues for the same site.
 	 */
 	lowercase(STR(reply.nexthop));
-
-	/*
-	 * Bounce recipients that have moved. We do it here instead of in the
-	 * local delivery agent. The benefit is that we can bounce mail for
-	 * virtual addresses, not just local addresses only, and that there
-	 * is no need to run a local delivery agent just for the sake of
-	 * relocation notices. The downside is that this table has no effect
-	 * on local alias expansion results, so that mail will have to make
-	 * almost an entire iteration through the mail system.
-	 */
-#define IGNORE_ADDR_EXTENSION	((char **) 0)
-
-	if (qmgr_relocated != 0) {
-	    if ((newloc = mail_addr_find(qmgr_relocated, recipient->address,
-					 IGNORE_ADDR_EXTENSION)) != 0) {
-		qmgr_bounce_recipient(message, recipient,
-				      "user has moved to %s", newloc);
-		continue;
-	    } else if (dict_errno != 0) {
-		qmgr_defer_recipient(message, recipient->orig_rcpt,
-				     recipient->address,
-				     "relocated map lookup failure");
-		continue;
-	    }
-	}
-
-	/*
-	 * Bounce mail to non-existent users in virtual domains.
-	 */
-	if (qmgr_virtual != 0
-	    && (at = strrchr(recipient->address, '@')) != 0
-	    && !resolve_local(at + 1)) {
-	    domain = lowercase(mystrdup(at + 1));
-	    junk = maps_find(qmgr_virtual, domain, 0);
-	    myfree(domain);
-	    if (junk) {
-		qmgr_bounce_recipient(message, recipient,
-				"unknown user: \"%s\"", recipient->address);
-		continue;
-	    }
-	}
 
 	/*
 	 * Bounce recipient addresses that start with `-'. External commands
@@ -709,9 +674,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		if (strcasecmp(*cpp, STR(reply.transport)) == 0)
 		    break;
 	    if (*cpp) {
-		qmgr_defer_recipient(message, recipient->orig_rcpt,
-				     recipient->address,
-				     "deferred transport");
+		qmgr_defer_recipient(message, recipient, "deferred transport");
 		continue;
 	    }
 	}
@@ -740,8 +703,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * This transport is dead. Defer delivery to this recipient.
 	 */
 	if ((transport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0) {
-	    qmgr_defer_recipient(message, recipient->orig_rcpt,
-				 recipient->address, transport->reason);
+	    qmgr_defer_recipient(message, recipient, transport->reason);
 	    continue;
 	}
 
@@ -758,8 +720,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * This queue is dead. Defer delivery to this recipient.
 	 */
 	if (queue->window == 0) {
-	    qmgr_defer_recipient(message, recipient->orig_rcpt,
-				 recipient->address, queue->reason);
+	    qmgr_defer_recipient(message, recipient, queue->reason);
 	    continue;
 	}
 

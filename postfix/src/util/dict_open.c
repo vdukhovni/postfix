@@ -81,9 +81,12 @@
 /* .IP DICT_FLAG_SYNC_UPDATE
 /*	With file-based maps, flush I/O buffers to file after each update.
 /*	Thus feature is not supported with some file-based dictionaries.
-/* .IP DICT_FLAG_FOLD_KEY
-/*	Fold the lookup key to lower case.
+/* .IP DICT_FLAG_NO_REGSUB
+/*      Disallow regular expression substitution from left-hand side data 
+/*	into the right-hand side.
 /* .PP
+/*	Specify DICT_FLAG_NONE for no special processing.
+/*
 /*	The dictionary types are as follows:
 /* .IP environ
 /*	The process environment array. The \fIdict_name\fR argument is ignored.

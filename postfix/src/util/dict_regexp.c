@@ -518,7 +518,8 @@ static DICT_REGEXP_RULE *dict_regexp_rule_alloc(int op, int nesting,
 /* dict_regexp_parseline - parse one rule */
 
 static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
-					            char *line, int nesting)
+					            char *line, int nesting,
+					               int dict_flags)
 {
     char   *p;
 
@@ -579,8 +580,14 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 #define FREE_EXPR_AND_RETURN(expr, rval) \
 	{ regfree(expr); myfree((char *) (expr)); return (rval); }
 
-	if (prescan_context.max_sub == 0 || first_pat.match == 0)
+	if (prescan_context.max_sub == 0 || first_pat.match == 0) {
 	    first_pat.options |= REG_NOSUB;
+	} else if (dict_flags & DICT_FLAG_NO_REGSUB) {
+	    msg_warn("regexp map %s, line %d: "
+		      "regular expression substitution is not allowed: "
+		      "skipping this rule", mapname, lineno);
+	    return(0);
+	}
 	if ((first_exp = dict_regexp_compile_pat(mapname, lineno,
 						 &first_pat)) == 0)
 	    return (0);
@@ -707,7 +714,7 @@ DICT   *dict_regexp_open(const char *mapname, int unused_flags, int dict_flags)
 	trimblanks(p, 0)[0] = 0;
 	if (*p == 0)
 	    continue;
-	rule = dict_regexp_parseline(mapname, lineno, p, nesting);
+	rule = dict_regexp_parseline(mapname, lineno, p, nesting, dict_flags);
 	if (rule == 0)
 	    continue;
 	if (rule->op == DICT_REGEXP_OP_MATCH) {

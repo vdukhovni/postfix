@@ -2223,7 +2223,7 @@ destinations:
 
 <pre>
 /etc/postfix/main.cf:
-    virtual_maps = hash:/etc/postfix/virtual
+    virtual_alias_maps = hash:/etc/postfix/virtual
 
 /etc/postfix/virtual:
     root        root@localhost
@@ -2681,7 +2681,7 @@ headers is sufficient to reliably implement a domain in a mailbox.
 <pre>
     /etc/postfix/main.cf:
         recipient_delimiter = +
-        virtual_maps = 
+        virtual_alias_maps = 
             ...non-regexp virtual maps...
             regexp:/etc/postfix/virtual_regexp
 
@@ -2734,7 +2734,7 @@ can be expensive if you have many virtual domains.
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    virtual_maps = regexp:/etc/postfix/virtual_regexp
+    virtual_alias_maps = regexp:/etc/postfix/virtual_regexp
     recipient_delimiter = +
 
 /etc/postfix/virtual_regexp:

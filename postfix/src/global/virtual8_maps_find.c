@@ -6,27 +6,59 @@
 /* SYNOPSIS
 /*	#include <virtual8.h>
 /*
+/*	MAPS	*virtual8_maps_create(title, map_names, flags)
+/*	const char *title;
+/*	const char *map_names;
+/*	int	flags;
+/*
 /*	const char *virtual8_maps_find(maps, recipient)
 /*	MAPS	*maps;
 /*	const char *recipient;
+/*
+/*	MAPS	*virtual8_maps_free(maps)
+/*	MAPS	*maps;
 /* DESCRIPTION
-/*	virtual8_maps_find() does user lookups for the virtual delivery
-/*	agent. The code is made available as a library routine so that
+/*	This module does user lookups for the virtual delivery
+/*	agent. The code is made available as a library module so that
 /*	other programs can perform compatible queries.
 /*
-/*	A zero result means that the named user was not found.
+/*	virtual8_maps_create() takes list of type:name pairs and opens the
+/*	named dictionaries.
+/*	The result is a handle that must be specified along with all
+/*	other virtual8_maps_xxx() operations.
+/*	See dict_open(3) for a description of flags. virtual8_maps_create()
+/*	implicitly sets the DICT_FLAG_NO_REGSUB flag in order to disable
+/*	regular expression substitution into the lookup result.
+/*
+/*	virtual8_maps_find() searches the specified list of dictionaries
+/*	in the specified order for the named key. The result is in
+/*	memory that is overwritten upon each call.
+/*
+/*	virtual8_maps_free() releases storage claimed by virtual8_maps_create()
+/*	and conveniently returns a null pointer.
 /*
 /*	Arguments:
+/* .IP title
+/*	String used for diagnostics. Typically one specifies the
+/*	type of information stored in the lookup tables.
+/* .IP map_names
+/*	Null-terminated string with type:name dictionary specifications,
+/*	separated by whitespace or commas.
 /* .IP maps
-/*	List of pre-opened lookup tables.
-/* .IP recipient
-/*	Recipient address. An optional address extension is ignored.
+/*	A result from maps_create().
+/* .IP key
+/*	Null-terminated string with a lookup key. Table lookup is case
+/*	sensitive.
 /* DIAGNOSTICS
 /*	The dict_errno variable is non-zero in case of problems.
 /* BUGS
 /*	This code is a temporary solution that implements a hard-coded
 /*	lookup strategy. In a future version of Postfix, the lookup
 /*	strategy should become configurable.
+/* SEE ALSO
+/*	virtual(8) virtual mailbox delivery agent
+/*	maps(3) multi-dictionary search
+/*	dict_open(3) low-level dictionary interface
 /* LICENSE
 /* .ad
 /* .fi
@@ -82,7 +114,7 @@ const char *virtual8_maps_find(MAPS *maps, const char *recipient)
      * Look up the full address.
      */
     if (bare == 0) {
-	result = maps_find(maps, recipient, DICT_FLAG_FIXED);
+	result = maps_find(maps, recipient, DICT_FLAG_NONE);
 	if (result != 0 || dict_errno != 0)
 	    return (result);
     }

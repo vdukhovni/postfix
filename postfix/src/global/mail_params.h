@@ -215,6 +215,9 @@ extern char *var_config_dir;
 #define DEF_CONFIG_DIRS		""
 extern char *var_config_dirs;
 
+#define MAIN_CONF_FILE		"main.cf"
+#define MASTER_CONF_FILE	"master.cf"
+
  /*
   * Preferred type of indexed files. The DEF_DB_TYPE macro value is system
   * dependent. It is defined in <sys_defs.h>.
@@ -283,9 +286,17 @@ extern bool var_disable_vrfy_cmd;
  /*
   * trivial rewrite/resolve service: mapping tables.
   */
-#define VAR_VIRTUAL_MAPS	"virtual_maps"
-#define DEF_VIRTUAL_MAPS	""
-extern char *var_virtual_maps;
+#define VAR_ERROR_TRANSPORT		"error_transport"
+#define DEF_ERROR_TRANSPORT		MAIL_SERVICE_ERROR
+extern char *var_error_transport;
+
+#define VAR_VIRT_ALIAS_MAPS	"virtual_alias_maps"
+#define DEF_VIRT_ALIAS_MAPS	"$virtual_maps"	/* Compatibility! */
+extern char *var_virt_alias_maps;
+
+#define VAR_VIRT_ALIAS_DOMS	"virtual_alias_domains"
+#define DEF_VIRT_ALIAS_DOMS	"$virtual_alias_maps"
+extern char *var_virt_alias_doms;
 
 #define VAR_CANONICAL_MAPS	"canonical_maps"
 #define DEF_CANONICAL_MAPS	""
@@ -1100,6 +1111,10 @@ extern char *var_mynetworks_style;
 #define DEF_RELAY_DOMAINS	"$mydestination"
 extern char *var_relay_domains;
 
+#define VAR_RELAY_TRANSPORT	"relay_transport"
+#define DEF_RELAY_TRANSPORT	MAIL_SERVICE_RELAY
+extern char *var_relay_transport;
+
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"
 #define DEF_CLIENT_CHECKS	""
 extern char *var_client_checks;
@@ -1337,9 +1352,17 @@ extern char *var_export_environ;
  /*
   * Tunables for the "virtual" local delivery agent
   */
+#define VAR_VIRT_TRANSPORT		"virtual_transport"
+#define DEF_VIRT_TRANSPORT		MAIL_SERVICE_VIRTUAL
+extern char *var_virt_transport;
+
 #define VAR_VIRT_MAILBOX_MAPS		"virtual_mailbox_maps"
 #define DEF_VIRT_MAILBOX_MAPS		""
 extern char *var_virt_mailbox_maps;
+
+#define VAR_VIRT_MAILBOX_DOMS		"virtual_mailbox_domains"
+#define DEF_VIRT_MAILBOX_DOMS		"$virtual_mailbox_maps"
+extern char *var_virt_mailbox_doms;
 
 #define VAR_VIRT_UID_MAPS		"virtual_uid_maps"
 #define DEF_VIRT_UID_MAPS		""

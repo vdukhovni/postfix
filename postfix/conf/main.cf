@@ -138,8 +138,8 @@ mail_owner = postfix
 # Specify a list of host or domain names, /file/name or type:table
 # patterns, separated by commas and/or whitespace. A /file/name
 # pattern is replaced by its contents; a type:table is matched when
-# a name matches a lookup key.  Continue long lines by starting the
-# next line with whitespace.
+# a name matches a lookup key (the right-hand side is ignored).
+# Continue long lines by starting the next line with whitespace.
 #
 #mydestination = $myhostname, localhost.$mydomain
 #mydestination = $myhostname, localhost.$mydomain $mydomain
@@ -206,8 +206,8 @@ mail_owner = postfix
 # that Postfix is final destination for:
 # - destinations that match $inet_interfaces,
 # - destinations that match $mydestination
-# - destinations that match $virtual_maps,
-# - destinations that match $virtual_mailbox_maps.
+# - destinations that match $virtual_alias_domains,
+# - destinations that match $virtual_mailbox_domains.
 # These destinations do not need to be listed in $relay_domains.
 # 
 # Specify a list of hosts or domains, /file/name patterns or type:name

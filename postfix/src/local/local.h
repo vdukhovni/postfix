@@ -222,7 +222,6 @@ int     local_expand(VSTRING *, const char *, LOCAL_STATE *, USER_ATTR *, const 
   * alias.c
   */
 extern MAPS *alias_maps;
-#define ALIAS_DICT_FLAGS	DICT_FLAG_FIXED
 
 /* LICENSE
 /* .ad

@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include "qmgr.h"
 /*
-/*	void	qmgr_defer_recipient(message, address, reason)
+/*	void	qmgr_defer_recipient(message, recipient, reason)
 /*	QMGR_MESSAGE *message;
-/*	const char *address;
+/*	QMGR_RCPT *recipient;
 /*	const char *reason;
 /*
 /*	void	qmgr_defer_todo(queue, reason)
@@ -131,8 +131,7 @@ void    qmgr_defer_todo(QMGR_QUEUE *queue, const char *reason)
 	message = entry->message;
 	for (nrcpt = 0; nrcpt < entry->rcpt_list.len; nrcpt++) {
 	    recipient = entry->rcpt_list.info + nrcpt;
-	    qmgr_defer_recipient(message, recipient->orig_rcpt,
-				 recipient->address, reason);
+	    qmgr_defer_recipient(message, recipient, reason);
 	}
 	qmgr_entry_done(entry, QMGR_QUEUE_TODO);
     }
@@ -140,8 +139,8 @@ void    qmgr_defer_todo(QMGR_QUEUE *queue, const char *reason)
 
 /* qmgr_defer_recipient - defer delivery of specific recipient */
 
-void    qmgr_defer_recipient(QMGR_MESSAGE *message, const char *orig_addr,
-			             const char *address, const char *reason)
+void    qmgr_defer_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
+			             const char *reason)
 {
     char   *myname = "qmgr_defer_recipient";
 
@@ -155,6 +154,6 @@ void    qmgr_defer_recipient(QMGR_MESSAGE *message, const char *orig_addr,
      * Update the message structure and log the message disposition.
      */
     message->flags |= defer_append(BOUNCE_FLAG_KEEP, message->queue_id,
-				   orig_addr, address, "none",
-				   message->arrival_time, "%s", reason);
+				   recipient->orig_rcpt, recipient->address,
+			       "none", message->arrival_time, "%s", reason);
 }

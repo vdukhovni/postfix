@@ -150,6 +150,10 @@ specific \fIuser@domain.tld\fR entry.
 
 Note that \fBvirtual_mailbox_base\fR is unconditionally prepended
 to this path.
+.IP \fBvirtual_mailbox_domains\fR
+The list of domains that should be delivered via the Postfix virtual
+delivery agent. This uses the same syntax as the \fBmydestination\fR
+configuration parameter.
 .IP \fBvirtual_minimum_uid\fR
 Specifies a minimum uid that will be accepted as a return from
 a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup.

@@ -49,6 +49,7 @@
 #define MAIL_SERVICE_SHOWQ	"showq"
 #define MAIL_SERVICE_ERROR	"error"
 #define MAIL_SERVICE_FLUSH	"flush"
+#define MAIL_SERVICE_RELAY	"relay"
 
  /*
   * Well-known socket or FIFO directories. The main difference is in file

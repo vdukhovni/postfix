@@ -79,7 +79,7 @@ extern MAPS *cleanup_header_checks;
 extern MAPS *cleanup_mimehdr_checks;
 extern MAPS *cleanup_nesthdr_checks;
 extern MAPS *cleanup_body_checks;
-extern MAPS *cleanup_virtual_maps;
+extern MAPS *cleanup_virt_alias_maps;
 extern ARGV *cleanup_masq_domains;
 extern int cleanup_masq_flags;
 

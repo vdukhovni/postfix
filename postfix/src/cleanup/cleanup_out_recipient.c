@@ -23,7 +23,7 @@
 /*	Upper bound to the size of the recipient duplicate filter.
 /*	Zero means no limit; this may cause the mail system to
 /*	become stuck.
-/* .IP virtual_maps
+/* .IP virtual_alias_maps
 /*	list of virtual address lookup tables.
 /* LICENSE
 /* .ad
@@ -77,12 +77,12 @@ void    cleanup_out_recipient(CLEANUP_STATE *state, const char *orcpt,
     if (been_here_fixed(state->dups, recip) != 0)
 	return;
 
-    if (cleanup_virtual_maps == 0) {
+    if (cleanup_virt_alias_maps == 0) {
 	cleanup_out_string(state, REC_TYPE_ORCP, orcpt);
 	cleanup_out_string(state, REC_TYPE_RCPT, recip);
 	state->rcpt_count++;
     } else {
-	argv = cleanup_map1n_internal(state, recip, cleanup_virtual_maps,
+	argv = cleanup_map1n_internal(state, recip, cleanup_virt_alias_maps,
 				  cleanup_ext_prop_mask & EXT_PROP_VIRTUAL);
 	for (cpp = argv->argv; *cpp; cpp++) {
 	    cleanup_out_string(state, REC_TYPE_ORCP, orcpt);

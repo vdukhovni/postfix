@@ -126,6 +126,10 @@
 /*
 /*	Note that \fBvirtual_mailbox_base\fR is unconditionally prepended
 /*	to this path.
+/* .IP \fBvirtual_mailbox_domains\fR
+/*	The list of domains that should be delivered via the Postfix virtual
+/*	delivery agent. This uses the same syntax as the \fBmydestination\fR
+/*	configuration parameter.
 /* .IP \fBvirtual_minimum_uid\fR
 /*	Specifies a minimum uid that will be accepted as a return from
 /*	a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup.
@@ -231,6 +235,9 @@
 
 #include <sys_defs.h>
 #include <stdlib.h>
+#ifdef USE_PATHS_H
+#include <paths.h>			/* XXX mail_spool_dir dependency */
+#endif
 
 /* Utility library. */
 
@@ -250,6 +257,7 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <virtual8.h>
 
 /* Single server skeleton. */
 
@@ -269,6 +277,7 @@ int     var_virt_minimum_uid;
 char   *var_virt_mailbox_base;
 char   *var_virt_mailbox_lock;
 int     var_virt_mailbox_limit;
+char   *var_mail_spool_dir;		/* XXX dependency fix */
 
  /*
   * Mappings.
@@ -377,14 +386,16 @@ static void post_init(char *unused_name, char **unused_argv)
     set_eugid(var_owner_uid, var_owner_gid);
 
     virtual_mailbox_maps =
-	maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
-		    DICT_FLAG_LOCK);
+	virtual8_maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
+			     DICT_FLAG_LOCK);
 
     virtual_uid_maps =
-	maps_create(VAR_VIRT_UID_MAPS, var_virt_uid_maps, DICT_FLAG_LOCK);
+	virtual8_maps_create(VAR_VIRT_UID_MAPS, var_virt_uid_maps,
+			     DICT_FLAG_LOCK);
 
     virtual_gid_maps =
-	maps_create(VAR_VIRT_GID_MAPS, var_virt_gid_maps, DICT_FLAG_LOCK);
+	virtual8_maps_create(VAR_VIRT_GID_MAPS, var_virt_gid_maps,
+			     DICT_FLAG_LOCK);
 
     virtual_mbox_lock_mask = mbox_lock_mask(var_virt_mailbox_lock);
 }
@@ -420,6 +431,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
+	VAR_MAIL_SPOOL_DIR, DEF_MAIL_SPOOL_DIR, &var_mail_spool_dir, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
 	VAR_VIRT_UID_MAPS, DEF_VIRT_UID_MAPS, &var_virt_uid_maps, 0, 0,
 	VAR_VIRT_GID_MAPS, DEF_VIRT_GID_MAPS, &var_virt_gid_maps, 0, 0,

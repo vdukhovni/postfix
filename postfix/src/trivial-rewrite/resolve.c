@@ -62,6 +62,7 @@
 #include <vstring_vstream.h>
 #include <split_at.h>
 #include <valid_hostname.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -73,6 +74,11 @@
 #include <mail_conf.h>
 #include <quote_822_local.h>
 #include <tok822.h>
+#include <domain_list.h>
+#include <string_list.h>
+#include <match_parent_style.h>
+#include <maps.h>
+#include <mail_addr_find.h>
 
 /* Application-specific. */
 
@@ -80,6 +86,11 @@
 #include "transport.h"
 
 #define STR	vstring_str
+
+static DOMAIN_LIST *relay_domains;
+static STRING_LIST *virt_alias_doms;
+static STRING_LIST *virt_mailbox_doms;
+static MAPS *relocated_maps;
 
 /* resolve_addr - resolve address according to rule set */
 
@@ -92,6 +103,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     TOK822 *saved_domain = 0;
     TOK822 *domain = 0;
     char   *destination;
+    const char *blame;
 
     *flags = 0;
 
@@ -211,25 +223,55 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
 
     /*
-     * Non-local delivery, presumably. Set up the default remote transport
-     * specified with var_def_transport. Use the destination's mail exchanger
-     * unless a default mail relay is specified with var_relayhost.
+     * With relay or other non-local destinations, the relayhost setting
+     * overrides the destination domain name.
+     * 
+     * With virtual, relay, or other non-local destinations, give the highest
+     * precedence to delivery transport associated next-hop information.
      */
+    dict_errno = 0;
     if (domain != 0) {
-	vstring_strcpy(channel, var_def_transport);
+	tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
+	lowercase(STR(nexthop));
+	if (STR(nexthop)[strspn(STR(nexthop), "[]0123456789.")] != 0
+	    && valid_hostname(STR(nexthop), DONT_GRIPE) == 0)
+	    *flags |= RESOLVE_FLAG_ERROR;
+	if (virt_alias_doms
+	    && string_list_match(virt_alias_doms, STR(nexthop))) {
+	    vstring_strcpy(channel, var_error_transport);
+	    vstring_strcpy(nexthop, "unknown user");
+	    blame = VAR_ERROR_TRANSPORT;
+	    *flags |= RESOLVE_CLASS_ERROR;
+	} else if (dict_errno != 0) {
+	    msg_warn("%s lookup failure", VAR_VIRT_ALIAS_DOMS);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	} else if (virt_mailbox_doms
+		   && string_list_match(virt_mailbox_doms, STR(nexthop))) {
+	    vstring_strcpy(channel, var_virt_transport);
+	    blame = VAR_VIRT_TRANSPORT;
+	    *flags |= RESOLVE_CLASS_VIRTUAL;
+	} else if (dict_errno != 0) {
+	    msg_warn("%s lookup failure", VAR_VIRT_MAILBOX_DOMS);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	} else {
+	    if (relay_domains
+		&& domain_list_match(relay_domains, STR(nexthop))) {
+		vstring_strcpy(channel, var_relay_transport);
+		blame = VAR_RELAY_TRANSPORT;
+		*flags |= RESOLVE_CLASS_RELAY;
+	    } else if (dict_errno != 0) {
+		msg_warn("%s lookup failure", VAR_RELAY_DOMAINS);
+		*flags |= RESOLVE_FLAG_FAIL;
+	    } else {
+		vstring_strcpy(channel, var_def_transport);
+		blame = VAR_DEF_TRANSPORT;
+		*flags |= RESOLVE_CLASS_DEFAULT;
+	    }
+	    if (*var_relayhost)
+		vstring_strcpy(nexthop, var_relayhost);
+	}
 	if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
 	    vstring_strcpy(nexthop, destination);
-	else if (*var_relayhost)
-	    vstring_strcpy(nexthop, var_relayhost);
-	else {
-	    tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
-	    if (STR(nexthop)[strspn(STR(nexthop), "[]0123456789.")] != 0
-		&& valid_hostname(STR(nexthop), DONT_GRIPE) == 0)
-		*flags |= RESOLVE_FLAG_ERROR;
-	}
-	if (*STR(channel) == 0)
-	    msg_fatal("null transport is not allowed: %s = %s",
-		      VAR_DEF_TRANSPORT, var_def_transport);
     }
 
     /*
@@ -238,26 +280,63 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      */
     else {
 	vstring_strcpy(channel, var_local_transport);
+	blame = VAR_LOCAL_TRANSPORT;
 	if ((destination = split_at(STR(channel), ':')) == 0
 	    || *destination == 0)
 	    destination = var_myhostname;
 	vstring_strcpy(nexthop, destination);
-	if (*STR(channel) == 0)
-	    msg_fatal("null transport is not allowed: %s = %s",
-		      VAR_LOCAL_TRANSPORT, var_local_transport);
+	*flags |= RESOLVE_CLASS_LOCAL;
     }
+
+    /*
+     * Sanity checks.
+     */
+    if (*STR(channel) == 0)
+	msg_fatal("file %s/%s: parameter %s: null transport is not allowed",
+		  var_config_dir, MAIN_CONF_FILE, blame);
     if (*STR(nexthop) == 0)
 	msg_panic("%s: null nexthop", myname);
 
     /*
-     * The transport map overrides any transport and next-hop host info that
-     * is set up above. For a long time, it was not possible to override
-     * routing of mail that resolves locally, because Postfix used a
-     * zero-length next-hop hostname result to indicate local delivery, and
-     * transport maps cannot return zero-length hostnames.
+     * Bounce recipients that have moved. We do it here instead of in the
+     * local delivery agent. The benefit is that we can bounce mail for
+     * virtual addresses, not just local addresses only, and that there is no
+     * need to run a local delivery agent just for the sake of relocation
+     * notices. The downside is that this table has no effect on local alias
+     * expansion results, so that mail will have to make almost an entire
+     * iteration through the mail system.
      */
-    if (*var_transport_maps)
-	transport_lookup(STR(nextrcpt), channel, nexthop);
+#define IGNORE_ADDR_EXTENSION   ((char **) 0)
+
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0 && relocated_maps != 0) {
+	const char *newloc;
+
+	if ((newloc = mail_addr_find(relocated_maps, STR(nextrcpt),
+				     IGNORE_ADDR_EXTENSION)) != 0) {
+	    vstring_strcpy(channel, var_error_transport);
+	    vstring_sprintf(nexthop, "user has moved to %s", newloc);
+	    *flags |= RESOLVE_CLASS_ERROR;
+	} else if (dict_errno != 0) {
+	    msg_warn("%s lookup failure", VAR_RELOCATED_MAPS);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	}
+    }
+
+    /*
+     * The transport map overrides any transport and next-hop host info that
+     * is set up above.
+     * 
+     * XXX Don't override the error transport :-(
+     */
+    if ((*flags & RESOLVE_FLAG_FAIL) == 0 
+	&& (*flags & RESOLVE_CLASS_ERROR) != 0
+	&& *var_transport_maps) {
+	if (transport_lookup(STR(nextrcpt), channel, nexthop) == 0
+	    && dict_errno != 0) {
+	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	}
+    }
 
     /*
      * Clean up.
@@ -314,4 +393,22 @@ void    resolve_init(void)
     channel = vstring_alloc(100);
     nexthop = vstring_alloc(100);
     nextrcpt = vstring_alloc(100);
+
+    if (*var_virt_alias_doms)
+	virt_alias_doms =
+	    string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
+
+    if (*var_virt_mailbox_doms)
+	virt_mailbox_doms =
+	    string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
+
+    if (*var_relay_domains)
+	relay_domains =
+	    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+			     var_relay_domains);
+
+    if (*var_relocated_maps)
+	relocated_maps =
+	    maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
+			DICT_FLAG_LOCK);
 }

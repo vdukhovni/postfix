@@ -489,12 +489,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	     * Build the MAIL FROM command.
 	     */
 	case SMTP_STATE_MAIL:
-	    if (var_disable_dns == 0) {
-		REWRITE_ADDRESS(state->scratch, state->scratch2,
-				request->sender);
-	    } else {
-		QUOTE_ADDRESS(state->scratch, request->sender);
-	    }
+	    QUOTE_ADDRESS(state->scratch, request->sender);
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
 			    vstring_str(state->scratch));
 	    if (state->features & SMTP_FEATURE_SIZE)	/* RFC 1870 */
@@ -518,12 +513,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	case SMTP_STATE_RCPT:
 	    rcpt = request->rcpt_list.info + send_rcpt;
-	    if (var_disable_dns == 0) {
-		REWRITE_ADDRESS(state->scratch, state->scratch2,
-				rcpt->address);
-	    } else {
-		QUOTE_ADDRESS(state->scratch, rcpt->address);
-	    }
+	    QUOTE_ADDRESS(state->scratch, rcpt->address);
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(state->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)

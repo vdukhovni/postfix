@@ -131,6 +131,7 @@ typedef struct {
 typedef struct {
     const char *mapname;		/* name of regexp map */
     int     lineno;			/* where in file */
+    int     flags;			/* dict_flags */
 } DICT_PCRE_PRESCAN_CONTEXT;
 
  /*
@@ -430,6 +431,13 @@ static int dict_pcre_prescan(int type, VSTRING *buf, char *context)
     size_t  n;
 
     if (type == MAC_PARSE_VARNAME) {
+	if (ctxt->flags & DICT_FLAG_NO_REGSUB) {
+	    msg_warn("pcre map %s, line %d: "
+		      "regular expression substitution is not allowed"
+		      ctxt->mapname, ctxt->lineno);
+	    return (MAC_PARSE_ERROR);
+	}
+
 	if (!alldig(vstring_str(buf))) {
 	    msg_warn("pcre map %s, line %d: non-numeric replacement index \"%s\"",
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
@@ -491,7 +499,8 @@ static DICT_PCRE_RULE *dict_pcre_rule_alloc(int op, int nesting,
 /* dict_pcre_parse_rule - parse and compile one rule */
 
 static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
-					            char *line, int nesting)
+					            char *line, int nesting,
+					            int dict_flags)
 {
     char   *p;
 
@@ -526,6 +535,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	 */
 	prescan_context.mapname = mapname;
 	prescan_context.lineno = lineno;
+	prescan_context.flags = dict_flags;
 
 	if (mac_parse(p, dict_pcre_prescan, (char *) &prescan_context)
 	    & MAC_PARSE_ERROR) {
@@ -675,7 +685,7 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
 	trimblanks(p, 0)[0] = 0;		/* Trim space at end */
 	if (*p == 0)
 	    continue;
-	rule = dict_pcre_parse_rule(mapname, lineno, p, nesting);
+	rule = dict_pcre_parse_rule(mapname, lineno, p, nesting, dict_flags);
 	if (rule == 0)
 	    continue;
 	if (rule->op == DICT_PCRE_OP_IF) {

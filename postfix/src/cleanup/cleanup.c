@@ -144,7 +144,7 @@
 /*	List of domains that hide their subdomain structure.
 /* .IP \fBmasquerade_exceptions\fR
 /*	List of user names that are not subject to address masquerading.
-/* .IP \fBvirtual_maps\fR
+/* .IP \fBvirtual_alias_maps\fR
 /*	Address mapping lookup table for envelope recipient addresses.
 /* .SH "Resource controls"
 /* .ad

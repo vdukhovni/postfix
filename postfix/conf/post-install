@@ -460,9 +460,18 @@ test -n "$create" && {
 
 test -n "$upgrade_conf" && {
 
+    # Add missing relay service to master.cf.
+
+    grep '^relay' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for relay service
+	cat >>$config_directory/master.cf <<EOF || exit 1
+relay	  unix	-	-	n	-	-	smtp
+EOF
+    }
+
     # Add missing flush service to master.cf.
 
-    grep 'flush.*flush' $config_directory/master.cf >/dev/null || {
+    grep '^flush.*flush' $config_directory/master.cf >/dev/null || {
 	echo Editing $config_directory/master.cf, adding missing entry for flush service
 	cat >>$config_directory/master.cf <<EOF || exit 1
 flush     unix  -       -       n       1000?   0       flush

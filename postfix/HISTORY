@@ -7280,6 +7280,61 @@ Apologies for any names omitted.
 	missing reject_rbl_mumble domain names. Patrik Rak.  File:
 	smtpd/smtpd_check.c.
 
+20021203
+
+	Bugfix: the FILTER access table action included the FILTER
+	command in the filter request, where only the transport+destination
+	were expected. Noel Jones. File smtpd/smtpd_check.c.
+
+	Cleanup: virtual_maps is now called virtual_alias_maps, in
+	order to better distinguish it from virtual_mailbox_maps.
+	The default value is $virtual_maps for backwards compatibility.
+
+	New parameters virtual_alias_domains and virtual_mailbox_domains
+	for the "domain.tld whatever" lookups.  These use the same
+	syntax as the mydestination parameter.  Default settings
+	are backwards compatible with Postfix 1.1.
+
+	Cleanup: just like $mydestination+$inet_interfaces control
+	what routes to $local_transport, $virtual_mailbox_domains
+	now controls what routes to $virtual_transport (default
+	transport:  virtual), and $relay_domains now controls what
+	routes to $relay_transport (default transport: relay, a
+	clone of the smtp transport).  Everything else routes to
+	$default_transport as before.  This eliminates the need
+	for transport maps for virtual(8) domains, and avoids
+	performance problems with inbound relay mail. This was
+	improvement was suggested by Victor Duchovni. File:
+	trivial-rewrite/resolve.c.
+
+20021206
+
+	Cleanup: do allow regexps in aliases, virtual mailbox maps
+	but do not allow regular expression substitutions. Files:
+	util/dict.h, util/dict_regexp.c, util/dict_pcre.c.
+
+20021207
+
+	Performance: apparently, RFC 2821 blesses the use of CNAME
+	domain names in SMTP commands. This speeds things up a bit.
+	File:  smtp/smtp_proto.c.
+
+	Workaround: exclude error mailer destinations from transport
+	table lookups. File: trivial-rewrite/resolve.c.
+
+	Cleanup: relocated_maps lookups moved to the trivial-rewrite
+	server. The queue manager no longer does any map lookups,
+	so it won't restart when maps change. This required that
+	resolver clients be prepared for the case that the resolver
+	reports it is unable to access a lookup table.  This also
+	required that trivial-rewrite be running as multiple
+	processes to reduce the impact of table lookup latencies.
+	Files: *qmgr/qmgr_message.c, trivial-rewrite/resolve.c,
+	local/resolve.c, smtpd/smtpd_check.c, master/multi-server.c.
+
+	Workaround: don't discard all DNS lookup results when one
+	has a malformed name or address. File: dns/dns_lookups.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
@@ -7324,7 +7379,8 @@ Open problems:
 
 	Low: postconf -e edits parameters that postconf won't list.
 
-	Low: with quoted-printable, perhaps use =46rom instead of >From.
+	Low: with quoted-printable, perhaps use =46rom instead of
+	>From.
 
 	Low: make it easier to have local_recipient_maps turned on
 	by default. This requires documentation of its existence

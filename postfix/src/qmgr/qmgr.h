@@ -15,11 +15,6 @@
 #include <scan_dir.h>
 
  /*
-  * Global library.
-  */
-#include <maps.h>
-
- /*
   * The queue manager is built around lots of mutually-referring structures.
   * These typedefs save some typing.
   */
@@ -244,8 +239,6 @@ struct QMGR_MESSAGE {
 
 extern int qmgr_message_count;
 extern int qmgr_recipient_count;
-extern MAPS *qmgr_relocated;
-extern MAPS *qmgr_virtual;
 
 extern void qmgr_message_free(QMGR_MESSAGE *);
 extern void qmgr_message_update_warn(QMGR_MESSAGE *);
@@ -257,7 +250,7 @@ extern QMGR_MESSAGE *qmgr_message_realloc(QMGR_MESSAGE *);
   */
 extern void qmgr_defer_transport(QMGR_TRANSPORT *, const char *);
 extern void qmgr_defer_todo(QMGR_QUEUE *, const char *);
-extern void qmgr_defer_recipient(QMGR_MESSAGE *, const char *, const char *, const char *);
+extern void qmgr_defer_recipient(QMGR_MESSAGE *, QMGR_RCPT *, const char *);
 
  /*
   * qmgr_bounce.c

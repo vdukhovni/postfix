@@ -61,39 +61,72 @@
 /*	This information is used to determine if
 /*	\fIuser\fR@[\fInet.work.addr.ess\fR] is local or remote.
 /* .IP \fBmydestination\fR
-/*	List of domains that this machine considers local.
-/* .IP \fBmyorigin\fR
-/*	The domain that locally-posted mail appears to come from.
+/*	List of domains that are given to the \fB$local_transport\fR.
+/* .IP \fBvirtual_alias_domains\fT
+/*	List of simulated virtual domains (domains with all recipients
+/*	aliased to some other local or remote domain).
+/* .IP \fBvirtual_mailbox_domains\fT
+/*	List of domains that are given to the \fB$virtual_transport\fR.
+/* .IP \fBrelay_domains\fT
+/*	List of domains that are given to the \fB$relay_transport\fR.
 /* .IP \fBresolve_unquoted_address\fR
 /*	When resolving an address, do not quote the address localpart as
 /*	per RFC 822, so that additional \fB@\fR, \fB%\fR or \fB!\fR
 /*	characters remain visible. This is technically incorrect, but
 /*	allows us to stop relay attacks when forwarding mail to a Sendmail
 /*	primary MX host.
+/* .IP \fBrelocated_maps\fR
+/*      Tables with contact information for users, hosts or domains
+/*      that no longer exist. See \fBrelocated\fR(5).
 /* .SH Rewriting
 /* .ad
 /* .fi
+/* .IP \fBmyorigin\fR
+/*	The domain that locally-posted mail appears to come from.
 /* .IP \fBallow_percent_hack\fR
 /*	Rewrite \fIuser\fR%\fIdomain\fR to \fIuser\fR@\fIdomain\fR.
 /* .IP \fBappend_at_myorigin\fR
-/*	Rewrite \fIuser\fR to \fIuser\fR@$\fBmyorigin\fR.
+/*	Rewrite \fIuser\fR to \fIuser\fR@\fB$myorigin\fR.
 /* .IP \fBappend_dot_mydomain\fR
-/*	Rewrite \fIuser\fR@\fIhost\fR to \fIuser\fR@\fIhost\fR.$\fBmydomain\fR.
+/*	Rewrite \fIuser\fR@\fIhost\fR to \fIuser\fR@\fIhost\fR.\fB$mydomain\fR.
 /* .IP \fBswap_bangpath\fR
 /*	Rewrite \fIsite\fR!\fIuser\fR to \fIuser\fR@\fIsite\fR.
 /* .SH Routing
 /* .ad
 /* .fi
 /* .IP \fBlocal_transport\fR
-/*	Where to deliver mail for destinations that match $\fBmydestination\fR
-/*	or $\fBinet_interfaces\fR.
+/*	Where to deliver mail for destinations that match \fB$mydestination\fR
+/*	or \fB$inet_interfaces\fR.
 /*	The default transport is \fBlocal\fR.
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
 /*	for details. The :\fInexthop\fR part is optional.
+/* .IP \fBerror_transport\fR
+/*	Where to deliver mail for non-existent recipients in domains
+/*	that match \fBvirtual_alias_domains\fR (all recipients
+/*	in simulated virtual domains must be aliased to some other 
+/*	local or remote domain), or for recipients that have moved.
+/*	The default transport is \fBerror\fR.
+/* .sp
+/*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
+/*	for details. The :\fInexthop\fR part is optional.
+/* .IP \fBvirtual_transport\fR
+/*	Where to deliver mail for non-local domains that match
+/*	\fB$virtual_mailbox_domains\fR.
+/*	The default transport is \fBvirtual\fR.
+/* .sp
+/*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
+/*	for details. The :\fInexthop\fR part is optional.
+/* .IP \fBrelay_transport\fR
+/*	Where to deliver mail for non-local domains that match
+/*	\fB$relay_domains\fR.
+/*	The default transport is \fBrelay\fR (which normally is a clone
+/*	of the \fBsmtp\fR transport).
+/* .sp
+/*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
+/*	for details. The :\fInexthop\fR part is optional.
 /* .IP \fBdefault_transport\fR
-/*	Where to deliver non-local mail when no information is explicitly
-/*	given in the \fBtransport\fR(5) table.
+/*	Where to deliver all other non-local mail.
 /*	The default transport is \fBsmtp\fR.
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
@@ -175,8 +208,16 @@ bool    var_append_dot_mydomain;
 bool    var_append_at_myorigin;
 bool    var_percent_hack;
 char   *var_local_transport;
+char   *var_error_transport;
+char   *var_virt_transport;
+char   *var_relay_transport;
 int     var_resolve_dequoted;
 char   *var_xport_null_key;
+char   *var_virt_alias_maps;		/* XXX virtual_alias_domains */
+char   *var_virt_mailbox_maps;		/* XXX virtual_mailbox_domains */
+char   *var_virt_alias_doms;
+char   *var_virt_mailbox_doms;
+char   *var_relocated_maps;
 
 /* rewrite_service - read request and send reply */
 
@@ -242,7 +283,17 @@ int     main(int argc, char **argv)
     static CONFIG_STR_TABLE str_table[] = {
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
 	VAR_LOCAL_TRANSPORT, DEF_LOCAL_TRANSPORT, &var_local_transport, 0, 0,
+	VAR_ERROR_TRANSPORT, DEF_ERROR_TRANSPORT, &var_error_transport, 0, 0,
+	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 0, 0,
+	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 0, 0,
 	VAR_XPORT_NULL_KEY, DEF_XPORT_NULL_KEY, &var_xport_null_key, 1, 0,
+	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
+	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
+	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
+	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms, 0, 0,
+	VAR_VIRT_TRANSPORT, DEF_VIRT_TRANSPORT, &var_virt_transport, 1, 0,
+	VAR_RELAY_TRANSPORT, DEF_RELAY_TRANSPORT, &var_relay_transport, 1, 0,
+	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

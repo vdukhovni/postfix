@@ -258,7 +258,7 @@
 /*	restriction.
 /* .IP \fBunknown_client_reject_code\fR
 /*	Response code when a client without address to name mapping
-/*	violates the \fBreject_unknown_clients\fR restriction.
+/*	violates the \fBreject_unknown_client\fR restriction.
 /* .IP \fBunknown_hostname_reject_code\fR
 /*	Response code when a client violates the \fBreject_unknown_hostname\fR
 /*	restriction.
@@ -389,8 +389,10 @@ int     var_strict_rfc821_env;
 bool    var_disable_vrfy_cmd;
 char   *var_canonical_maps;
 char   *var_rcpt_canon_maps;
-char   *var_virtual_maps;
+char   *var_virt_alias_maps;
+char   *var_virt_alias_doms;
 char   *var_virt_mailbox_maps;
+char   *var_virt_mailbox_doms;
 char   *var_relocated_maps;
 char   *var_alias_maps;
 char   *var_local_rcpt_maps;
@@ -1641,8 +1643,10 @@ int     main(int argc, char **argv)
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
-	VAR_VIRTUAL_MAPS, DEF_VIRTUAL_MAPS, &var_virtual_maps, 0, 0,
+	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
+	VAR_VIRT_ALIAS_DOMS, DEF_VIRT_ALIAS_DOMS, &var_virt_alias_doms, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
+	VAR_VIRT_MAILBOX_DOMS, DEF_VIRT_MAILBOX_DOMS, &var_virt_mailbox_doms, 0, 0,
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,

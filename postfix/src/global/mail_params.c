@@ -253,8 +253,6 @@ int     var_strict_7bit_hdrs;
 int     var_strict_8bit_body;
 int     var_strict_encoding;
 
-#define MAIN_CONF_FILE	"main.cf"
-
 /* check_myhostname - lookup hostname and validate */
 
 static const char *check_myhostname(void)

@@ -80,6 +80,8 @@ bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
 flush	  unix	n	-	n	1000?	0	flush
 smtp	  unix	-	-	n	-	-	smtp
+relay	  unix	-	-	n	-	-	smtp
+#	-o smtp_helo_timeout=5 -o smtp_connect_timeout=5
 showq     unix	n	-	n	-	-	showq
 error     unix	-	-	n	-	-	error
 local	  unix	-	n	n	-	-	local
@@ -88,6 +90,12 @@ lmtp	  unix	-	-	n	-	-	lmtp
 #
 # Interfaces to non-Postfix software. Be sure to examine the manual
 # pages of the non-Postfix software to find out what options it wants.
+#
+# maildrop. See the Postfix MAILDROP_README file for details.
+#
+maildrop  unix  -       n       n       -       -       pipe
+  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
+#
 # The Cyrus deliver program has changed incompatibly, multiple times.
 #
 old-cyrus unix	-	n	n	-	-	pipe

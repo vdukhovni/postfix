@@ -2,7 +2,7 @@
 VIRTUAL(5)                                             VIRTUAL(5)
 
 <b>NAME</b>
-       virtual - format of Postfix virtual table
+       virtual - format of Postfix virtual alias table
 
 <b>SYNOPSIS</b>
        <b>postmap</b> <b>/etc/postfix/virtual</b>
@@ -12,19 +12,18 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>postmap</b> <b>-q</b> <b>-</b> <b>/etc/postfix/virtual</b> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       The  optional <b>virtual</b> table specifies address redirections
-       for local and non-local recipients or domains.  The  redi-
-       rections  are  used by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon. The redirec-
-       tions are recursive.
+       The  optional <b>virtual</b> alias table specifies address alias-
+       ing for local and non-local recipients.  Virtual  aliasing
+       is  used  by  the  <a href="cleanup.8.html"><b>cleanup</b>(8)</a>  daemon. Virtual aliasing is
+       recursive.
 
-       The <b>virtual</b> redirection is applied only to recipient enve-
-       lope  addresses,  and  does  not  affect  message headers.
-       Think Sendmail rule set <b>S0</b>, if you like. Use  <a href="canonical.5.html"><b>canonical</b>(5)</a>
-       mapping  to  rewrite header and envelope addresses in gen-
-       eral.
+       Virtual aliasing is applied  only  to  recipient  envelope
+       addresses,  and  does  not  affect message headers.  Think
+       Sendmail rule set <b>S0</b>, if you like. Use  <a href="canonical.5.html"><b>canonical</b>(5)</a>  map-
+       ping  to rewrite header and envelope addresses in general.
 
-       Normally, the <b>virtual</b> table is specified as  a  text  file
-       that  serves  as  input  to  the  <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
+       Normally, the <b>virtual</b> alias table is specified as  a  text
+       file  that serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The
        result, an indexed file in <b>dbm</b> or <b>db</b> format, is  used  for
        fast  searching  by  the  mail system. Execute the command
        <b>postmap</b>  <b>/etc/postfix/virtual</b>  in  order  to  rebuild  the
@@ -39,18 +38,32 @@ VIRTUAL(5)                                             VIRTUAL(5)
        sions.  In  that  case, the lookups are done in a slightly
        different way as described below.
 
-<b>POSTFIX-STYLE</b> <b>VIRTUAL</b> <b>DOMAINS</b>
-       With a Postfix-style virtual domain,  the  virtual  domain
-       has  its  own  user  name  space. Local (i.e. non-virtual)
-       usernames are  not  visible  in  a  Postfix-style  virtual
-       domain.  In particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and mailing lists
-       are not visible as <i>localname@virtual.domain</i>.
+<b>SIMULATED</b> <b>VIRTUAL</b> <b>DOMAINS</b>
+       Besides virtual aliases, the virtual alias table can  also
+       be used to simulate virtual domains. With a simulated vir-
+       tual domain, all recipient addresses are aliased  to  non-
+       virtual  addresses.   These  non-virtual  addresses may be
+       either local or remote.
 
-       Use a Sendmail-style virtual domain (see below)  if  local
-       usernames,  <a href="aliases.5.html"><b>aliases</b>(5)</a>  or mailing lists should be visible
-       as <i>localname@virtual.domain</i>.
+       Simulated virtual domains are not to be confused with  the
+       true virtual domains that are implemented with the Postfix
+       <a href="virtual.8.html"><b>virtual</b>(8)</a> mail delivery agent. With true virtual domains,
+       each recipient address can have its own mailbox.
 
-       Support for a Postfix-style virtual domain looks like:
+       With  a  simulated  virtual domain, the virtual domain has
+       its own user name space. Local  (i.e.  non-virtual)  user-
+       names  are  not  visible in a simulated virtual domain. In
+       particular, local <a href="aliases.5.html"><b>aliases</b>(5)</a> and  mailing  lists  are  not
+       visible as <i>localname@virtual.domain</i>.
+
+       Support for a simulated virtual domain looks like:
+
+       /etc/postfix/main.cf:
+           virtual_alias_maps = hash:/etc/postfix/virtual
+
+           Note:  some systems use <b>dbm</b> databases instead of <b>hash</b>.
+           See the output from <b>postconf</b> <b>-m</b> for available database
+           types.
 
        /etc/postfix/virtual:
            <i>virtual.domain</i>       <i>anything</i> (right-hand content does not matter)
@@ -58,50 +71,22 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <i>user1@virtual.domain</i> <i>address1</i>
            <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
 
-       The <i>virtual.domain</i> <i>anything</i> entry is required for a  Post-
-       fix-style virtual domain.
+       The  <i>virtual.domain</i> <i>anything</i> entry is required for a simu-
+       lated virtual domain. Without this  entry,  mail  will  be
+       rejected with a "relay access denied" error condition.
 
-       Do  not list a Postfix-style virtual domain in the <b>main.cf</b>
-       <b>mydestination</b> configuration parameter.  Such an  entry  is
-       required only for a Sendmail-style virtual domain.
+       Do not list a simulated virtual domain name in the <b>main.cf</b>
+       <b>mydestination</b> configuration parameter.
 
-       With  a  Postfix-style  virtual  domain,  the Postfix SMTP
-       server  accepts  mail  for  <i>known-user@virtual.domain</i>  and
-       rejects mail for <i>unknown-user</i>@<i>virtual.domain</i> as undeliver-
-       able.
+       With a simulated virtual domain, the Postfix  SMTP  server
+       accepts  mail  for  <i>known-user@virtual.domain</i>, and rejects
+       mail for <i>unknown-user</i>@<i>virtual.domain</i> as undeliverable.
 
-<b>SENDMAIL-STYLE</b> <b>VIRTUAL</b> <b>DOMAINS</b>
-       With a Sendmail-style virtual domain,  every  local  (i.e.
-       non-virtual) username is visible in the virtual domain. In
-       particular, every local alias and mailing list is  visible
-       as <i>localname@virtual.domain</i>.
-
-       Use  a  Postfix-style  virtual domain (see above) if local
-       usernames, <a href="aliases.5.html"><b>aliases</b>(5)</a> or mailing lists should not be visi-
-       ble as <i>localname@virtual.domain</i>.
-
-       Support for a Sendmail-style virtual domain looks like:
-
-       /etc/postfix/main.cf:
-           mydestination = $myhostname localhost.$mydomain $mydomain
-               <i>virtual.domain</i>
-
-       /etc/postfix/virtual:
-           <i>user1@virtual.domain</i> <i>address1</i>
-           <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
-
-       The  <b>main.cf</b>  <b>mydestination</b>  entry is required for a Send-
-       mail-style virtual domain.
-
-       Do not specify a <i>virtual.domain</i> <i>anything</i> virtual map entry
-       for  a  Sendmail-style  virtual  domain.  Such an entry is
-       required only with a Postfix-style virtual domain.
-
-       With a Sendmail-style virtual domain,  the  Postfix  local
-       delivery  agent  delivers  mail  for  an unknown <i>user</i>@<i>vir-</i>
-       <i>tual.domain</i> to a local (i.e.  non-virtual) user  that  has
-       the  same  name;  if no such recipient exists, the Postfix
-       local delivery agent bounces the mail to the sender.
+       Instead of specifying the simulated  virtual  domain  name
+       via  the <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b> table, you may also specify it
+       via the <b>main.cf</b> <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b> configuration param-
+       eter.   This  latter parameter uses the same syntax as the
+       <b>main.cf</b> <b>mydestination</b> configuration parameter.
 
 <b>TABLE</b> <b>FORMAT</b>
        The format of the virtual table is  as  follows,  mappings
@@ -184,18 +169,22 @@ VIRTUAL(5)                                             VIRTUAL(5)
        details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
-       <b>virtual</b><i>_</i><b>maps</b>
-              List of virtual mapping tables.
+       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>maps</b>
+              List of virtual aliasing tables.
+
+       <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>domains</b>
+              List  of  simulated  virtual domains. This uses the
+              same syntax as the <b>mydestination</b> parameter.
 
        Other parameters of interest:
 
        <b>inet</b><i>_</i><b>interfaces</b>
-              The  network  interface  addresses that this system
+              The network interface addresses  that  this  system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
        <b>mydestination</b>
-              List  of  domains  that  this mail system considers
+              List of domains that  this  mail  system  considers
               local.
 
        <b>myorigin</b>
@@ -212,7 +201,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
