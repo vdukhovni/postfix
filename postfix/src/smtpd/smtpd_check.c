@@ -3423,8 +3423,8 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
 	} else if (is_map_command(state, name, CHECK_ADDR_MAP, &cpp)) {
-	    if ((dict = dict_handle(name)) == 0)
-		msg_panic("%s: dictionary not found: %s", myname, name);
+	    if ((dict = dict_handle(*cpp)) == 0)
+		msg_panic("%s: dictionary not found: %s", myname, *cpp);
 	    if (dict_get(dict, state->addr) != 0)
 		status = SMTPD_CHECK_OK;
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
