@@ -246,7 +246,7 @@ static LMTP_SESSION *lmtp_connect_sock(int sock, struct sockaddr * sa, int len,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	vstring_sprintf(why, "connect to %s[%s]: server dropped connection",
+	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial greeting",
 			name, addr);
 	lmtp_errno = LMTP_RETRY;
 	vstream_fclose(stream);

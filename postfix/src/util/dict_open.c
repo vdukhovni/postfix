@@ -245,7 +245,8 @@ DICT   *dict_open(const char *dict_spec, int open_flags, int dict_flags)
     DICT   *dict;
 
     if ((dict_name = split_at(saved_dict_spec, ':')) == 0)
-	msg_fatal("open dictionary: need \"type:name\" form: %s", dict_spec);
+	msg_fatal("open dictionary: need \"type:name\" form instead of: \"%s\"",
+		  dict_spec);
 
     dict = dict_open3(saved_dict_spec, dict_name, open_flags, dict_flags);
     myfree(saved_dict_spec);
