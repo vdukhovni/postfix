@@ -4058,7 +4058,7 @@ Apologies for any names omitted.
 20000621
 
 	AIX 4.x had POSIX regular expression support all the time
-	I was working on Postfix. Beter find out late than never.
+	I was working on Postfix. Better find out late than never.
 
 20000623
 
@@ -4243,3 +4243,18 @@ Apologies for any names omitted.
 
 	FAQ: added notes about how to delete, copy or restore queue
 	files in a safe manner.
+
+20000921
+
+	File reorganization. No code change except Makefiles. All
+	sources are pushed down by one directory level to keep file
+	listings usable. Released as 20000922, so that I have a
+	reference to run "diff -cr against.
+
+	Bugfix: the spawn service was installed without man pages.
+
+	Portability: MacOSX hints and tips by Joe Block, University
+	of Central Florida School of Optics/CREOL
+
+	The MacOSX gcc compiler does not understand the new
+	printf_like/scanf_like attributes. File: util/sys_defs.h.

@@ -5,7 +5,7 @@ SHELL	= /bin/sh
 DAEMONS	= man8/bounce.8 man8/defer.8 man8/cleanup.8 man8/error.8 man8/local.8 \
 	man8/lmtp.8 man8/master.8 man8/pickup.8 man8/pipe.8 man8/qmgr.8 \
 	man8/showq.8 man8/smtp.8 man8/smtpd.8 man8/trivial-rewrite.8 \
-	man8/nqmgr.8
+	man8/nqmgr.8 man8/spawn.8
 COMMANDS= man1/postalias.1 man1/postcat.1 man1/postconf.1 man1/postfix.1 \
 	man1/postkick.1 man1/postlock.1 man1/postlog.1 man1/postdrop.1 \
 	man1/postmap.1 man1/sendmail.1 man1/mailq.1 man1/newaliases.1 \
@@ -16,7 +16,7 @@ CONFIG	= man5/access.5 man5/aliases.5 man5/canonical.5 man5/relocated.5 \
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
+	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../src/makedefs; cat $?) >$@
 
 clean:
 	rm -f cat?/*
@@ -26,83 +26,86 @@ tidy:	clean
 clobber:
 	rm -f $(DAEMONS) $(COMMANDS) $(CONFIG)
 
-man8/bounce.8: ../bounce/bounce.c
+man8/bounce.8: ../src/bounce/bounce.c
 	../mantools/srctoman $? >$@
 
 man8/defer.8:
 	echo .so man8/bounce.8 >$@
 
-man8/cleanup.8: ../cleanup/cleanup.c
+man8/cleanup.8: ../src/cleanup/cleanup.c
 	../mantools/srctoman $? >$@
 
-man8/error.8: ../error/error.c
+man8/error.8: ../src/error/error.c
 	../mantools/srctoman $? >$@
 
-man8/local.8: ../local/local.c
+man8/local.8: ../src/local/local.c
 	../mantools/srctoman $? >$@
 
-man8/lmtp.8: ../lmtp/lmtp.c
+man8/lmtp.8: ../src/lmtp/lmtp.c
 	../mantools/srctoman $? >$@
 
-man8/master.8: ../master/master.c
+man8/master.8: ../src/master/master.c
 	../mantools/srctoman $? >$@
 
-man8/nqmgr.8: ../nqmgr/qmgr.c
+man8/nqmgr.8: ../src/nqmgr/qmgr.c
 	../mantools/srctoman $? | \
 		sed -e 's/qmgr[^_]/n&/' -e 's/QMGR[^_]/N&/' >$@
 
-man8/pickup.8: ../pickup/pickup.c
+man8/pickup.8: ../src/pickup/pickup.c
 	../mantools/srctoman $? >$@
 
-man8/pipe.8: ../pipe/pipe.c
+man8/pipe.8: ../src/pipe/pipe.c
 	../mantools/srctoman $? >$@
 
-man8/qmgr.8: ../qmgr/qmgr.c
+man8/qmgr.8: ../src/qmgr/qmgr.c
 	../mantools/srctoman $? >$@
 
-man8/showq.8: ../showq/showq.c
+man8/showq.8: ../src/showq/showq.c
 	../mantools/srctoman $? >$@
 
-man8/smtp.8: ../smtp/smtp.c
+man8/spawn.8: ../src/spawn/spawn.c
 	../mantools/srctoman $? >$@
 
-man8/smtpd.8: ../smtpd/smtpd.c
+man8/smtp.8: ../src/smtp/smtp.c
 	../mantools/srctoman $? >$@
 
-man8/trivial-rewrite.8: ../trivial-rewrite/trivial-rewrite.c
+man8/smtpd.8: ../src/smtpd/smtpd.c
 	../mantools/srctoman $? >$@
 
-man1/postalias.1: ../postalias/postalias.c
+man8/trivial-rewrite.8: ../src/trivial-rewrite/trivial-rewrite.c
 	../mantools/srctoman $? >$@
 
-man1/postcat.1: ../postcat/postcat.c
+man1/postalias.1: ../src/postalias/postalias.c
 	../mantools/srctoman $? >$@
 
-man1/postconf.1: ../postconf/postconf.c
+man1/postcat.1: ../src/postcat/postcat.c
 	../mantools/srctoman $? >$@
 
-man1/postdrop.1: ../postdrop/postdrop.c
+man1/postconf.1: ../src/postconf/postconf.c
 	../mantools/srctoman $? >$@
 
-man1/postfix.1: ../postfix/postfix.c
+man1/postdrop.1: ../src/postdrop/postdrop.c
 	../mantools/srctoman $? >$@
 
-man1/postkick.1: ../postkick/postkick.c
+man1/postfix.1: ../src/postfix/postfix.c
 	../mantools/srctoman $? >$@
 
-man1/postlock.1: ../postlock/postlock.c
+man1/postkick.1: ../src/postkick/postkick.c
 	../mantools/srctoman $? >$@
 
-man1/postlog.1: ../postlog/postlog.c
+man1/postlock.1: ../src/postlock/postlock.c
 	../mantools/srctoman $? >$@
 
-man1/postmap.1: ../postmap/postmap.c
+man1/postlog.1: ../src/postlog/postlog.c
 	../mantools/srctoman $? >$@
 
-man1/postsuper.1: ../postsuper/postsuper.c
+man1/postmap.1: ../src/postmap/postmap.c
 	../mantools/srctoman $? >$@
 
-man1/sendmail.1: ../sendmail/sendmail.c
+man1/postsuper.1: ../src/postsuper/postsuper.c
+	../mantools/srctoman $? >$@
+
+man1/sendmail.1: ../src/sendmail/sendmail.c
 	../mantools/srctoman $? >$@
 
 man1/mailq.1:

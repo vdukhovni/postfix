@@ -113,43 +113,44 @@ Example files:
 
 Library routines:
 
-    dns/		DNS client library
-    global/		Postfix-specific support routines
-    util/		General-purpose support routines
+    src/dns/		DNS client library
+    src/global/		Postfix-specific support routines
+    src/util/		General-purpose support routines
 
 Command-line utilities:
 
-    postalias/		Alias database management
-    postcat/		List Postfix queue file
-    postconf/		Configuration utility
-    postfix/		Postfix administrative interface
-    postkick/		Postfix IPC for shell scripts
-    postlock/		Postfix locking for shell scripts
-    postlog/		Postfix logging for shell scripts
-    postmap/		Postfix lookup table management
-    postsuper/		Postfix house keeping program
-    sendmail/		Sendmail compatibility interface
+    src/postalias/	Alias database management
+    src/postcat/	List Postfix queue file
+    src/postconf/	Configuration utility
+    src/postfix/	Postfix administrative interface
+    src/postkick/	Postfix IPC for shell scripts
+    src/postlock/	Postfix locking for shell scripts
+    src/postlog/	Postfix logging for shell scripts
+    src/postmap/	Postfix lookup table management
+    src/postsuper/	Postfix house keeping program
+    src/sendmail/	Sendmail compatibility interface
 
 Postfix daemons:
 
-    bounce/		Bounce or defer mail
-    cleanup/		Canonicalize and enqueue mail
-    error/		Trivial error mailer
-    local/		Local delivery
-    master/		Postfix resident superserver
-    pickup/		Local pickup
-    pipe/		Pipe delivery
-    qmgr/		Queue manager
-    showq/		List Postfix queue status
-    lmtp/		LMTP client
-    smtp/		SMTP client
-    smtpd/		SMTP server
-    trivial-rewrite/	Address rewriting and resolving
+    src/bounce/		Bounce or defer mail
+    src/cleanup/	Canonicalize and enqueue mail
+    src/error/		Trivial error mailer
+    src/local/		Local delivery
+    src/master/		Postfix resident superserver
+    src/pickup/		Local pickup
+    src/pipe/		Pipe delivery
+    src/qmgr/		Queue manager
+    src/showq/		List Postfix queue status
+    src/spawn/		Run any command from a network socket
+    src/lmtp/		LMTP client
+    src/smtp/		SMTP client
+    src/smtpd/		SMTP server
+    src/trivial-rewrite/ Address rewriting and resolving
 
 Test programs:
 
-    fsstone/		Measure file system overhead
-    smtpstone/		SMTP server torture test
+    src/fsstone/	Measure file system overhead
+    src/smtpstone/	SMTP server torture test
 
 Miscellaneous:
 

@@ -77,6 +77,8 @@
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
 #define NORETURN	void
+#define PRINTFLIKE(x,y)
+#define SCANFLIKE(x,y)
 #define HAS_NETINFO
 #endif
 
@@ -555,6 +557,8 @@ extern int opterr;
 #define WEXITSTATUS(x)	((x).w_retcode)
 #define WTERMSIG(x)	((x).w_termsig)
 #define NORETURN			/* the native compiler */
+#define PRINTFLIKE(x,y)
+#define SCANFLIKE(x,y)
 #endif
 
 #ifdef ReliantUnix543

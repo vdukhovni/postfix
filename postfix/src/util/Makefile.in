@@ -79,15 +79,15 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
 	watchdog unescape hex_quote
 
-LIB_DIR	= ../lib
-INC_DIR	= ../include
+LIB_DIR	= ../../lib
+INC_DIR	= ../../include
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
 all: $(LIB)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
+	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../../makedefs; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -112,7 +112,7 @@ printfck: $(OBJS) $(PROG)
 	cp *.h printfck
 	sed '1,/^# do not edit/!d' Makefile >printfck/Makefile
 	set -e; for i in *.c; do printfck -f .printfck $$i >printfck/$$i; done
-	cd printfck; make "INC_DIR=../../include" `cd ..; ls *.o`
+	cd printfck; make "INC_DIR=../../../include" `cd ..; ls *.o`
 
 shar:
 	@shar $(FILES)
