@@ -1549,7 +1549,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     status = check_access(state, table, local_at, PARTIAL, found,
 			  reply_name, reply_class, def_acl);
     myfree(local_at);
-    if (status != 0)
+    if (status != 0 || *found)
 	return (status);
 
     /*
