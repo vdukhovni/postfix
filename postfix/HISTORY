@@ -3612,6 +3612,15 @@ Apologies for any names omitted.
 	excess mail so that one site with a large backlog does not
 	block other deliveries.
 
+20000128
+
+	Cleanup: the queue manager no longer replaces the nexthop
+	field by the recipient localpart when a destination matches
+	$mydestination/$inet_interfaces. The price is the introduction
+	of a new parameter local_destination_recipient_limit which
+	defaults to 1 i order to maintain backwards compatibility.
+	Files: qmgr/qmgr.c, qmgr/qmgr_message.c.
+
 20000129
 
 	Bugfix: extracted recipients were misfiled when a message

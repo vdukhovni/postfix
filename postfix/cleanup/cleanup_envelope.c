@@ -16,7 +16,8 @@
 /*	This module processes envelope records and writes the result
 /*	to the queue file.  It validates the message structure, rewrites
 /*	sender/recipient addresses to canonical form, and expands recipients
-/*	according to entries in the virtual table.
+/*	according to entries in the virtual table. This routine absorbs but 
+/*	does not emit the envelope to content boundary record.
 /*
 /*	Arguments:
 /* .IP state
@@ -69,7 +70,7 @@
 
 static void cleanup_envelope_process(CLEANUP_STATE *, int, char *, int);
 
-/* cleanup_envelope - process message envelope */
+/* cleanup_envelope - initialize message envelope */
 
 void    cleanup_envelope(CLEANUP_STATE *state, int type, char *str, int len)
 {

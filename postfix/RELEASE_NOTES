@@ -1,13 +1,13 @@
-Incompatible changes with snapshot-20000104
+Incompatible changes with snapshot-20000203
 ===========================================
 
 None sofar.
 
-Major changes with snapshot-20000104
+Major changes with snapshot-20000203
 ====================================
 
 Questionable feature: with "smtp_skip_5xx_greeting = yes", Postfix
-emulates brain damage found in some other MTAs.
+emulates behavior found in some other MTAs.
 
 Incompatible changes with postfix-19991231:
 ===========================================

@@ -14,9 +14,8 @@
 /* .in -4
 /*	} MAIL_STREAM;
 /*
-/*	MAIL_STREAM *mail_stream_file(queue, mode, class, service)
+/*	MAIL_STREAM *mail_stream_file(queue, class, service)
 /*	const char *queue;
-/*	int	mode;
 /*	const char *class;
 /*	const char *service;
 /*

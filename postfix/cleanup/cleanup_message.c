@@ -17,6 +17,8 @@
 /*	sender/recipient addresses to canonical form, inserts missing
 /*	message headers, and extracts information from message headers
 /*	to be used later when generating the extracted output segment.
+/*	This routine absorbs but does not emit the content to extracted
+/*	boundary record.
 /*
 /*	Arguments:
 /* .IP state
@@ -427,6 +429,8 @@ static void cleanup_message_header(CLEANUP_STATE *state, int type, char *buf, in
 	    VSTRING_ADDCH(state->header_buf, '\n');
 	    vstring_strcat(state->header_buf, buf);
 	    return;
+	} else {
+	     /* Body record or end of message segment. */ ;
 	}
 
 	/*
@@ -468,16 +472,6 @@ static void cleanup_message_body(CLEANUP_STATE *state, int type, char *buf, int 
 {
     char   *myname = "cleanup_message_body";
     long    xtra_offset;
-
-    /*
-     * Sanity check.
-     */
-    if (strchr(REC_TYPE_CONTENT, type) == 0) {
-	msg_warn("%s: %s: unexpected record type %d",
-		 state->queue_id, myname, type);
-	state->errs |= CLEANUP_STAT_BAD;
-	return;
-    }
 
     /*
      * Copy body record to the output.

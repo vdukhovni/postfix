@@ -214,7 +214,7 @@
 /*	to the mailbox owned by the user \fIname\fR, or it is sent back as
 /*	undeliverable.
 /*
-/*	In all cases the \fBlocal\fR daemon prepends an opional
+/*	In all cases the \fBlocal\fR daemon prepends an optional
 /*	`\fBDelivered-To:\fR \fIname\fR+\fIfoo\fR' header line.
 /* DELIVERY RIGHTS
 /* .ad
