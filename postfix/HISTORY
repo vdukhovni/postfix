@@ -4079,7 +4079,7 @@ Apologies for any names omitted.
 	sender, so that address masquerading works as expected.
 	Files: global/header_opts.c.
 
-	Feature: specify "test_home_directory = yes" to prevent
+	Feature: specify "require_home_directory = yes" to prevent
 	mail from being delivered to a user whose home directory
 	is not mounted. File: local/dotforward.c.
 
@@ -4101,8 +4101,8 @@ Apologies for any names omitted.
 	checking by gcc, in addition to the checking that was
 	already implemented with printfck.  File: util/sys_defs.h,
 	the macros for PRINTFLIKE and SCANFLIKE. Problem - unlike
-	the printfck tool, this gcc finds mismatches only in code
-	that isn't #ifdef-ed out.
+	the printfck tool, gcc finds format argument type mismatches
+	only in code that isn't #ifdef-ed out.
 
 20000718
 
@@ -4159,7 +4159,7 @@ Apologies for any names omitted.
 	client or sender until we have completed some investigation,
 	after which we will either reject or accept.
 
-	However, the code is turned off because it is not finished.
+	However, this code is turned off until it is finished.
 
 20000905
 
@@ -4212,16 +4212,17 @@ Apologies for any names omitted.
 
 20000918
 
-	Gross hack: prevent looping a bad recipient by always
-	forwarding recipients in :include: files, even when
-	owner-listname is not set. File: local/recipient.c.
+	Gross hack: prevent looping on a bad recipient by always
+	forwarding recipients in :include: files to a new mail
+	delivery request, even when owner-listname is not set.
+	File: local/recipient.c.
 
 20000919
 
 	Convenience: INSTALL.sh now imports default settings from
 	the process environment, in order to make scripting easier.
 
-	Portability: INSTALL.sh now systematically skips over CVS,
+	Robustness: INSTALL.sh now systematically skips over CVS,
 	RCS and SCCS cruft.
 
 	Portability: another fix for NEXTSTEP (Masaki MURASE).
@@ -4232,9 +4233,9 @@ Apologies for any names omitted.
 	Cleanup: in a transport table entry, do not ignore port
 	numbers specified as [host]:port. In fact, this is now
 	becoming the preferred form, in order to avoid parsing
-	problems with IPV6 addresses. Postfix supports both forms
-	for a while but prints a warning for the old form. Problem
-	reported by Claus Fischer @ werhats.at
+	problems with IPV6 addresses. Postfix supports both forms,
+	but future versions will print a warning for the old form.
+	Problem reported by Claus Fischer @ werhats.at
 
 	Bugfix: missing initialization for state->sasl_method can
 	cause permit_sasl_authenticated to always succeed.  Report

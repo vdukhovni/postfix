@@ -41,7 +41,8 @@
 # the program_directory configuration variable). Adding one or more
 # -v options turns on verbose logging for that service; adding a -D
 # option enables symbolic debugging (see the debugger_command variable
-# in the main.cf configuration file).
+# in the main.cf configuration file). See individual command man pages
+# for specific command-line options, if any.
 #
 # In order to use the "uucp" message tranport below, set up entries
 # in the transport table.
@@ -54,6 +55,11 @@
 #
 # DO NOT CHANGE THE ZERO PROCESS LIMIT FOR CLEANUP/BOUNCE/DEFER OR
 # POSTFIX WILL BECOME STUCK UP UNDER HEAVY LOAD
+#
+# DO NOT CHANGE THE ONE PROCESS LIMIT FOR PICKUP/QMGR OR POSTFIX WILL
+# DELIVER MAIL MULTIPLE TIMES.
+#
+# DO NOT SHARE THE POSTFIX QUEUE BETWEEN MULTIPLE POSTFIX INSTANCES.
 #
 # ==========================================================================
 # service type	private	unpriv	chroot	wakeup	maxproc	command + args

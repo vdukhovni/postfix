@@ -393,7 +393,7 @@ extern char *var_deliver_hdr;
 #define DEF_EXP_OWN_ALIAS	0
 extern bool var_exp_own_alias;
 
-#define VAR_STAT_HOME_DIR	"test_home_directory"
+#define VAR_STAT_HOME_DIR	"require_home_directory"
 #define DEF_STAT_HOME_DIR	0
 extern bool var_stat_home_dir;
 

@@ -1,17 +1,17 @@
-Incompatible changes with snapshot-20000919
+Incompatible changes with snapshot-20000921
 ===========================================
+
+After "make install" you need to execute "postfix reload".  The
+protocol between queue manager and delivery agent protocol has
+changed. This does not affect the format of existing queue files.
+You just cannot mix this Postfix version's queue managers or delivery
+agents with older Postfix versions.
 
 The notation of [host:port] in transport tables etc. is going away
 but it is still supported. The preferred form is now [host]:port.
 This change is necessary to support IPV6 address forms which use
-":" as part of the numeric IP address. In a future release, Postfix
-will log a warning message when it encounters the [host:port] form.
-
-After "make install" you need to "postfix reload".  The protocol
-between queue manager and delivery agent protocol has changed. This
-does not affect the format of existing queue files, you just cannot
-mix this Postfix version with queue managers or delivery agents
-from prior Postfix versions.
+":" as part of a numeric IP address. In a future release, Postfix
+will log a warning when it encounters the [host:port] form.
 
 In mail headers, Errors-To:, Reply-To: and Return-Receipt:  addresses
 are now rewritten as a sender address (was: recipient).
@@ -19,33 +19,28 @@ are now rewritten as a sender address (was: recipient).
 Postfix no longer inserts Sender: message headers.
 
 The queue manager now logs the original number of recipients when
-opening queue file.
-
-The local delivery agent no longer appends a blank line when
-delivering to command.
-
-Major changes with snapshot-20000919
-====================================
-
-Postfix now strips out the Content-Length: header to avoid confusion
-with mail user agents.
-
-The header_checks and body_checks features can now be used to strip
-out unwanted data. Specify IGNORE and the data will disappear.
-
-Specify "test_home_directory = yes" to prevent mail from being
-delivered to a user whose home directory is not mounted.
-
-The pipe mailer has a size limit (size=nnn) command-line argument.
-
-Incompatible changes with snapshot-20000625 (never released)
-===========================================
+opening a queue file (example: from=<>, size=3502, nrcpt=1).
 
 The local delivery agent no longer appends a blank line to mail
 that is delivered to external command.
 
 The pipe delivery agent no longer appends a blank line when the F
-flag is specified. Specify the B flag if you need that blank line.
+flag is specified (in the master.cf file). Specify the B flag if
+you need that blank line.
+
+Major changes with snapshot-20000921
+====================================
+
+Postfix now strips out Content-Length: headers in incoming mail to
+avoid confusion in mail user agents.
+
+The header_checks and body_checks features can now be used to strip
+out unwanted data. Specify IGNORE and the data will disappear.
+
+Specify "require_home_directory = yes" to prevent mail from being
+delivered to a user whose home directory is not mounted.
+
+The pipe mailer has a size limit (size=nnn) command-line argument.
 
 Incompatible changes with snapshot-20000531
 ===========================================
@@ -604,7 +599,7 @@ and sender address.
 Major changes with postfix-beta-19990122:
 =========================================
 
-- Junk mail restrictions can now be postoned to the RCPT TO command.
+- Junk mail restrictions can now be postponed to the RCPT TO command.
 Specify: "smtpd_recipient_restrictions = reject_maps_rbl...".
 
 - More flexible interface for delivery to e.g., cyrus IMAP without
