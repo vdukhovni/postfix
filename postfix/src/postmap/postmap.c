@@ -90,14 +90,14 @@
 /*	\fIkey value\fR output for each key that was found. The exit
 /*	status is zero when at least one of the requested keys was found.
 /* .IP \fB-r\fR
-/*	When updating a table, do not warn about duplicate entries; silently
-/*	replace them.
+/*	When updating a table, do not complain about attempts to update
+/*	existing entries, and make those updates anyway.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* .IP \fB-w\fR
-/*	When updating a table, do not warn about duplicate entries; silently
-/*	ignore them.
+/*	When updating a table, do not complain about attempts to update
+/*	existing entries, and ignore those attempts.
 /* .PP
 /*	Arguments:
 /* .IP \fIfile_type\fR

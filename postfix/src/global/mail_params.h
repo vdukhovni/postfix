@@ -967,6 +967,10 @@ extern int var_smtpd_hist_thrsh;
 #define DEF_SMTPD_NOOP_CMDS	""
 extern char *var_smtpd_noop_cmds;
 
+#define VAR_SMTPD_FORBID_CMDS	"smtpd_forbidden_commands"
+#define DEF_SMTPD_FORBID_CMDS	"CONNECT GET POST"
+extern char *var_smtpd_forbid_cmds;
+
  /*
   * SASL authentication support, SMTP server side.
   */

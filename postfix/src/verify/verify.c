@@ -223,11 +223,11 @@ static DICT *verify_map;
   * In the case of TODO, we have no information about the address, and the
   * address is being probed.
   * 
-  * probed: if non-zero, the time of the last outstanding address probe. If
-  * zero, there is no outstanding address probe.
+  * probed: if non-zero, the time the currently outstanding address probe was
+  * sent. If zero, there is no outstanding address probe.
   * 
-  * updated: if non-zero, the time of the last processed address probe. If zero,
-  * we have no information about the address, and the address is being
+  * updated: if non-zero, the time the address probe result was received. If
+  * zero, we have no information about the address, and the address is being
   * probed.
   * 
   * text: descriptive text from delivery agents etc.
@@ -256,7 +256,10 @@ static int verify_parse_entry(char *buf, int *status, long *probed,
 
     if ((probed_text = split_at(buf, ':')) != 0
 	&& (updated_text = split_at(probed_text, ':')) != 0
-	&& (*text = split_at(updated_text, ':')) != 0) {
+	&& (*text = split_at(updated_text, ':')) != 0
+	&& alldig(buf)
+	&& alldig(probed_text)
+	&& alldig(updated_text)) {
 	*probed = atol(probed_text);
 	*updated = atol(updated_text);
 	*status = atoi(buf);

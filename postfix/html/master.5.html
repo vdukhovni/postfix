@@ -65,7 +65,7 @@ MASTER(5)                                               MASTER(5)
               Specify one of the following service types:
 
               <b>inet</b>   The service listens on a TCP/IP  socket  and
-                     is therefore accessible via the network.
+                     is accessible via the network.
 
                      The  service name is specified as <i>host:port</i>,
                      denoting the host and port on which new con-
@@ -75,10 +75,10 @@ MASTER(5)                                               MASTER(5)
                      service name) or in numeric form (IP address
                      or port number).
 
-                     Examples:  a service name of  <b>127.0.0.1:smtp</b>
+                     Examples:  a  service  named  <b>127.0.0.1:smtp</b>
                      receives mail  via  the  loopback  interface
-                     only;  and  a  service name of <b>10025</b> accepts
-                     connections on TCP port 10025 via all inter-
+                     only; and a service named <b>10025</b> accepts con-
+                     nections on TCP port 10025  via  all  inter-
                      faces  configured  with  the <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>
                      parameter.
 
@@ -133,11 +133,11 @@ MASTER(5)                                               MASTER(5)
               machine,  and  <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a> discusses
               issues related to running daemons chrooted.
 
-       <b>Wakeup time (default: 0)</b>
+       <b>Wake up time (default: 0)</b>
               Automatically wake up the named service  after  the
               specified  number of seconds. The wake up is imple-
               mented by connecting to the service and  sending  a
-              wake  up  request.   A  ? at the end of the wake up
+              wake  up  request.   A  ? at the end of the wake-up
               time field requests that wake  up  events  be  sent
               only  to  services  that  are  actually being used.
               Specify 0 for no automatic wake up.

@@ -91,7 +91,7 @@
 /*	(either the communication with the server is broken or the
 /*	server experienced a problem).
 /* SEE ALSO
-/*	anvil(8) Postfix client rate control service
+/*	anvil(8), connection/rate limiting
 /* LICENSE
 /* .ad
 /* .fi

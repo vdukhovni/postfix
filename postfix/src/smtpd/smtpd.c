@@ -89,7 +89,7 @@
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
-/*      See the ADDRESS_REWRITING_README document for a detailed
+/*	See the ADDRESS_REWRITING_README document for a detailed
 /*	discussion of Postfix address rewriting.
 /* .IP "\fBreceive_override_options (empty)\fR"
 /*	Enable or disable recipient validation, built-in content
@@ -582,8 +582,13 @@
 /* .IP "\fBsyslog_name (postfix)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBsmtpd_forbidden_commands (CONNECT, GET, POST)\fR"
+/*	List of commands that causes the Postfix SMTP server to immediately
+/*	terminate the session with a 221 code.
 /* SEE ALSO
-/*	anvil(8), client count and request rate management
+/*	anvil(8), connection/rate limiting
 /*	cleanup(8), message canonicalization
 /*	trivial-rewrite(8), address resolver
 /*	verify(8), address verification service
@@ -681,6 +686,7 @@
 #include <lex_822.h>
 #include <namadr_list.h>
 #include <input_transp.h>
+#include <is_header.h>
 #ifdef SNAPSHOT
 #include <anvil_clnt.h>
 #endif
@@ -788,6 +794,7 @@ char   *var_xclient_hosts;
 char   *var_xforward_hosts;
 bool    var_smtpd_rej_unl_from;
 bool    var_smtpd_rej_unl_rcpt;
+char   *var_smtpd_forbid_cmds;
 
 #ifdef SNAPSHOT
 int     var_smtpd_crate_limit;
@@ -2461,7 +2468,6 @@ typedef struct SMTPD_CMD {
 } SMTPD_CMD;
 
 #define SMTPD_CMD_FLAG_LIMIT    (1<<0)	/* limit usage */
-#define SMTPD_CMD_FLAG_FORBID	(1<<1)	/* RFC 2822 mail header */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
     "HELO", helo_cmd, SMTPD_CMD_FLAG_LIMIT,
@@ -2481,17 +2487,11 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     "QUIT", quit_cmd, 0,
     "XCLIENT", xclient_cmd, SMTPD_CMD_FLAG_LIMIT,
     "XFORWARD", xforward_cmd, SMTPD_CMD_FLAG_LIMIT,
-    "Received:", 0, SMTPD_CMD_FLAG_FORBID,
-    "Reply-To:", 0, SMTPD_CMD_FLAG_FORBID,
-    "Message-ID:", 0, SMTPD_CMD_FLAG_FORBID,
-    "Subject:", 0, SMTPD_CMD_FLAG_FORBID,
-    "From:", 0, SMTPD_CMD_FLAG_FORBID,
-    "CONNECT", 0, SMTPD_CMD_FLAG_FORBID,
-    "User-Agent:", 0, SMTPD_CMD_FLAG_FORBID,
     0,
 };
 
 static STRING_LIST *smtpd_noop_cmds;
+static STRING_LIST *smtpd_forbid_cmds;
 
 /* smtpd_proto - talk the SMTP protocol */
 
@@ -2614,16 +2614,18 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		if (strcasecmp(argv[0].strval, cmdp->name) == 0)
 		    break;
 	    if (cmdp->name == 0) {
+		if (is_header(argv[0].strval)
+		    || (*var_smtpd_forbid_cmds
+		 && string_list_match(smtpd_forbid_cmds, argv[0].strval))) {
+		    msg_warn("%s sent non-SMTP command: %.100s",
+			     state->namaddr, vstring_str(state->buffer));
+		    smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
+		    break;
+		}
 		smtpd_chat_reply(state, "502 Error: command not implemented");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		state->error_count++;
 		continue;
-	    }
-	    if (cmdp->flags & SMTPD_CMD_FLAG_FORBID) {
-		msg_warn("%s sent non-SMTP command: %.100s",
-			 state->namaddr, vstring_str(state->buffer));
-		smtpd_chat_reply(state, "221 Error: I can break rules, too. Goodbye.");
-		break;
 	    }
 	    /* XXX We use the real client for connect access control. */
 	    if (state->access_denied && cmdp->action != quit_cmd) {
@@ -2766,6 +2768,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * case they specify a filename pattern.
      */
     smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
+    smtpd_forbid_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_forbid_cmds);
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
@@ -2918,6 +2921,7 @@ int     main(int argc, char **argv)
 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
+	VAR_SMTPD_FORBID_CMDS, DEF_SMTPD_FORBID_CMDS, &var_smtpd_forbid_cmds, 0, 0,
 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
 	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
 	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,

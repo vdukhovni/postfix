@@ -1064,13 +1064,16 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		- var_smtp_pix_thresh) {
 		msg_info("%s: enabling PIX <CRLF>.<CRLF> workaround for %s",
 			 request->queue_id, session->namaddr);
-		vstream_fflush(session->stream);/* hurts performance */
+		smtp_flush(session->stream);	/* hurts performance */
 		sleep(var_smtp_pix_delay);	/* not to mention this */
 	    }
 	    if (vstream_ferror(state->src))
 		msg_fatal("queue file read error");
-	    if (rec_type != REC_TYPE_XTRA)
+	    if (rec_type != REC_TYPE_XTRA) {
+		msg_warn("%s: bad record type: %d in message content",
+			 request->queue_id, rec_type);
 		RETURN(mark_corrupt(state->src));
+	    }
 	}
 
 	/*

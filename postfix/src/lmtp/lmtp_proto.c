@@ -813,8 +813,11 @@ static int lmtp_loop(LMTP_STATE *state, NOCLOBBER int send_state,
 		smtp_fputs("", 0, session->stream);
 	    if (vstream_ferror(state->src))
 		msg_fatal("queue file read error");
-	    if (rec_type != REC_TYPE_XTRA)
+	    if (rec_type != REC_TYPE_XTRA) {
+		msg_warn("%s: bad record type: %d in message content",
+			 request->queue_id, rec_type);
 		RETURN(mark_corrupt(state->src));
+	    }
 	}
 
 	/*

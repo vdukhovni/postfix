@@ -9880,7 +9880,19 @@ Apologies for any names omitted.
 	Victor Duchovni for Solaris 2.5.1, but we play safe and
 	enable it unconditionally.
 
+20041124
+
+	Feature: configurable list of forbidden SMTP commands
+	(default: smtpd_forbidden_commands = CONNECT, GET, POST)
+	after which the Postfix SMTP server disconnects immediately.
+	The SMTP server always disconnects immediately when the
+	client sends a message header instead of an SMTP command.
+	Magnus Baeck.  File: smtpd/smtpd.c.
+
 Open problems:
+
+	Med: implement ${name[?:]value} in main.cf or update the
+	postconf(5) manual.
 
 	Low: reject HELO with any domain name or IP address that
 	this MTA is the final destination for.

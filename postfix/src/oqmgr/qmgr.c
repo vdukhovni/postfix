@@ -142,7 +142,7 @@
 /* .ad
 /* .fi
 /*	Changes to \fBmain.cf\fR are not picked up automatically, as qmgr(8)
-/*	processes are persistent. Use the command "\fBpostfix reload\fR" after
+/*	is a persistent process. Use the command "\fBpostfix reload\fR" after
 /*	a configuration change.
 /*
 /*	The text below provides only a parameter summary. See

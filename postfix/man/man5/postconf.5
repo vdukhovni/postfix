@@ -455,7 +455,7 @@ and changed the default to none.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -3285,7 +3285,7 @@ is backwards compatible with Postfix 2.0.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -3305,7 +3305,7 @@ By default, no clients are allowed to specify XCLIENT.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -3324,7 +3324,7 @@ By default, no clients are allowed to specify XFORWARD.
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
 network part of a host address. You can also specify hostnames or
-.domain names (the initial dot causes the domain to match any name
+\&.domain names (the initial dot causes the domain to match any name
 below it),  "/file/name" or "type:table" patterns.  A "/file/name"
 pattern is replaced by its contents; a "type:table" lookup table
 is matched when a table entry matches a lookup string (the lookup
@@ -3684,6 +3684,14 @@ Use C like escapes to specify special characters such as whitespace.
 This parameter is not subjected to $parameter expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH smtpd_forbidden_commands (default: CONNECT, GET, POST)
+List of commands that causes the Postfix SMTP server to immediately
+terminate the session with a 221 code. This can be used to disconnect
+clients that obviously attempt to abuse the system. In addition to the
+commands listed in this parameter, commands that follow the "Label:"
+format of message headers will also cause a disconnect.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH smtpd_hard_error_limit (default: 20)
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail. The Postfix SMTP server disconnects

@@ -630,10 +630,15 @@ The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (postfix)\fR"
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.PP
+Available in Postfix version 2.2 and later:
+.IP "\fBsmtpd_forbidden_commands (CONNECT, GET, POST)\fR"
+List of commands that causes the Postfix SMTP server to immediately
+terminate the session with a 221 code.
 .SH "SEE ALSO"
 .na
 .nf
-anvil(8), client count and request rate management
+anvil(8), connection/rate limiting
 cleanup(8), message canonicalization
 trivial-rewrite(8), address resolver
 verify(8), address verification service

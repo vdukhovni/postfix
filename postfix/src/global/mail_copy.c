@@ -213,8 +213,11 @@ int     mail_copy(const char *sender,
     if (vstream_ferror(dst) == 0) {
 	if (var_fault_inj_code == 1)
 	    type = 0;
-	if (type != REC_TYPE_XTRA)
+	if (type != REC_TYPE_XTRA) {
+	    /* XXX Where is the queue ID? */
+	    msg_warn("bad record type: %d in message content", type);
 	    corrupt_error = mark_corrupt(src);
+	}
 	if (prev_type != REC_TYPE_NORM)
 	    vstream_fputs(eol, dst);
 	if (flags & MAIL_COPY_BLANK)

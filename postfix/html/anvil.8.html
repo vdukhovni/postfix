@@ -7,7 +7,7 @@
 ANVIL(8)                                                 ANVIL(8)
 
 <b>NAME</b>
-       anvil - Postfix per-client count and rate control
+       anvil - Postfix session count and request rate control
 
 <b>SYNOPSIS</b>
        <b>anvil</b> [generic Postfix daemon options]
@@ -15,10 +15,10 @@ ANVIL(8)                                                 ANVIL(8)
 <b>DESCRIPTION</b>
        The  Postfix  <b>anvil</b> server maintains short-term statistics
        to defend against clients that hammer a server with either
-       too  many parallel connections or with too many successive
-       requests within a configurable time interval.  This server
-       is  designed  to  run  under control by the Postfix master
-       server.
+       too  many  simultaneous sessions, or with too many succes-
+       sive requests within a configurable time  interval.   This
+       server  is  designed  to  run under control by the Postfix
+       master server.
 
        The <b>anvil</b> server maintains no persistent  database.  Stan-
        dard library utilities do not meet Postfix performance and

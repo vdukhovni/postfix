@@ -251,8 +251,11 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
 	    break;
 	status = (REC_PUT_BUF(info->cleanup, rec_type, buffer) != rec_type);
     }
-    if (status == 0 && rec_type != REC_TYPE_XTRA)
+    if (status == 0 && rec_type != REC_TYPE_XTRA) {
+	msg_warn("%s: bad record type: %d in message content",
+		 info->queue_id, rec_type);
 	status |= mark_corrupt(attr.fp);
+    }
 
     /*
      * Send the end-of-data marker only when there were no errors.

@@ -26,7 +26,7 @@
 /*	DICT	*dict;
 /*	const char *key;
 /*
-/*	char	*dict_del(dict, key)
+/*	int	dict_del(dict, key)
 /*	DICT	*dict;
 /*	const char *key;
 /*
@@ -124,7 +124,7 @@
 /*	dictionary.
 /*
 /*	dict_del() removes a dictionary entry, and returns non-zero
-/*	in case of problems.
+/*	in case of success.
 /*
 /*	dict_seq() iterates over all members in the named dictionary.
 /*	func is define DICT_SEQ_FUN_FIRST (select first member) or

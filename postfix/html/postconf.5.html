@@ -6778,6 +6778,24 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_forbidden_commands">smtpd_forbidden_commands</a>
+(default: CONNECT, GET, POST)</b></DT><DD>
+
+<p>
+List of commands that causes the Postfix SMTP server to immediately
+terminate the session with a 221 code. This can be used to disconnect
+clients that obviously attempt to abuse the system. In addition to the
+commands listed in this parameter, commands that follow the "Label:"
+format of message headers will also cause a disconnect.
+</p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_hard_error_limit">smtpd_hard_error_limit</a>
 (default: 20)</b></DT><DD>
 

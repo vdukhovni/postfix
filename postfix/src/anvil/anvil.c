@@ -2,13 +2,13 @@
 /* NAME
 /*	anvil 8
 /* SUMMARY
-/*	Postfix per-client count and rate control
+/*	Postfix session count and request rate control
 /* SYNOPSIS
 /*	\fBanvil\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The Postfix \fBanvil\fR server maintains short-term statistics
 /*	to defend against clients that hammer a server with either too
-/*	many parallel connections or with too many successive requests
+/*	many simultaneous sessions, or with too many successive requests
 /*	within a configurable time interval.
 /*	This server is designed to run under control by the Postfix
 /*	master server.

@@ -55,8 +55,8 @@
 #	Specify one of the following service types:
 # .RS
 # .IP \fBinet\fR
-#	The service listens on a TCP/IP socket and is therefore
-#	accessible via the network.
+#	The service listens on a TCP/IP socket and is accessible
+#	via the network.
 #
 #	The service name is specified as \fIhost:port\fR, denoting
 #	the host and port on which new connections should be
@@ -64,9 +64,9 @@
 #	host or port may be given in symbolic form (host or service
 #	name) or in numeric form (IP address or port number).
 # .sp
-#	Examples: a service name of  \fB127.0.0.1:smtp\fR receives
-#	mail via the loopback interface only; and a service name
-#	of \fB10025\fR accepts connections on TCP port 10025 via
+#	Examples: a service named \fB127.0.0.1:smtp\fR receives
+#	mail via the loopback interface only; and a service named
+#	\fB10025\fR accepts connections on TCP port 10025 via
 #	all interfaces configured with the \fBinet_interfaces\fR
 #	parameter.
 # .IP \fBunix\fR
@@ -114,11 +114,11 @@
 #	chroot environment for your type of machine, and
 #	BASIC_CONFIGURATION_README discusses issues related to
 #	running daemons chrooted.
-# .IP "\fBWakeup time (default: 0)\fR"
+# .IP "\fBWake up time (default: 0)\fR"
 #	Automatically wake up the named service after the specified
 #	number of seconds. The wake up is implemented by connecting
 #	to the service and sending a wake up request.  A ? at the
-#	end of the wake up time field requests that wake up events
+#	end of the wake-up time field requests that wake up events
 #	be sent only to services that are actually being used.
 #	Specify 0 for no automatic wake up.
 # .sp
