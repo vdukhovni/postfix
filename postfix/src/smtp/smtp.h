@@ -55,7 +55,15 @@ typedef struct SMTP_STATE {
     off_t   size_limit;			/* server limit or unknown */
     int     space_left;			/* output length control */
     struct MIME_STATE *mime_state;	/* mime state machine */
+
+    /*
+     * Flags and counters to control the handling of mail delivery errors.
+     * There is some redundancy for sanity checking. At the end of an SMTP
+     * session all recipients should be marked one way or the other.
+     */
     int     final_server;		/* final mail server */
+    int     drop_count;			/* recipients marked as drop */
+    int     keep_count;			/* recipients marked as keep */
 } SMTP_STATE;
 
  /*
@@ -74,10 +82,40 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_HELO	(1<<10)
 
  /*
-  * Application-specific per-recipient status.
+  * Application-specific per-recipient status. At the end of each delivery
+  * attempt each recipient is marked as DROP (remove from recipient list) or
+  * KEEP (deliver to backup mail server). The ones marked DROP are deleted
+  * before trying to deliver the remainder to a backup server. There's a bit
+  * of redundcancy to ensure that all recipients are marked.
+  * 
+  * The single recipient list abstraction dates from the time that the SMTP
+  * client would give up after one SMTP session, so that each recipient was
+  * either bounced, delivered or deferred. Implicitly, all recipients were
+  * marked as DROP.
+  * 
+  * This abstraction is less convenient when an SMTP client must be able to
+  * deliver left-over recipients to a backup host. It might be more natural
+  * to have an input list with recipients to deliver, and an output list with
+  * the left-over recipients.
   */
 #define SMTP_RCPT_KEEP	1		/* send to backup host */
-#define SMTP_RCPT_DROP	2		/* remove from list */
+#define SMTP_RCPT_DROP	2		/* remove from request */
+
+#define SMTP_RCPT_MARK_INIT(state) do { \
+	    (state)->drop_count = (state)->keep_count = 0; \
+	} while (0)
+
+#define SMTP_RCPT_MARK_DROP(state, rcpt) do { \
+	    (rcpt)->status = SMTP_RCPT_DROP; (state)->drop_count++; \
+	} while (0)
+
+#define SMTP_RCPT_MARK_KEEP(state, rcpt) do { \
+	    (rcpt)->status = SMTP_RCPT_KEEP; (state)->keep_count++; \
+	} while (0)
+
+#define SMTP_RCPT_MARK_ISSET(rcpt) ((rcpt)->status != 0)
+
+extern int smtp_rcpt_mark_finish(SMTP_STATE *);
 
  /*
   * smtp.c
@@ -147,7 +185,6 @@ extern void smtp_chat_notify(SMTP_STATE *);
   * smtp_misc.c.
   */
 extern void smtp_rcpt_done(SMTP_STATE *, const char *, RECIPIENT *);
-extern int smtp_weed_request(RECIPIENT_LIST *);
 
  /*
   * smtp_trouble.c

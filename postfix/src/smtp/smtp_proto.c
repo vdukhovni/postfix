@@ -437,7 +437,7 @@ int     smtp_xfer(SMTP_STATE *state)
     if (request->rcpt_list.len <= 0)
 	msg_panic("smtp_xfer: bad recipient count: %d",
 		  request->rcpt_list.len);
-    if (request->rcpt_list.info->status != 0)
+    if (SMTP_RCPT_MARK_ISSET(request->rcpt_list.info))
 	msg_panic("smtp_xfer: bad recipient status: %d",
 		  request->rcpt_list.info->status);
 
@@ -822,7 +822,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			} else {
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
-				if (rcpt->status == 0)
+				if (!SMTP_RCPT_MARK_ISSET(rcpt))
 				    smtp_rcpt_done(state, resp->str, rcpt);
 			    }
 			}

@@ -189,6 +189,14 @@ extern int var_smtp_dns_lookup;
 				" " SMTP_BACKUP_MESSAGE \
 				" " SMTP_BACKUP_RECIPIENT
 
+#define VAR_SMTP_MXADDR_LIMIT	"smtp_mx_address_limit"
+#define DEF_SMTP_MXADDR_LIMIT	0
+extern int var_smtp_mxaddr_limit;
+
+#define VAR_SMTP_MXSESS_LIMIT	"smtp_mx_session_limit"
+#define DEF_SMTP_MXSESS_LIMIT	2
+extern int var_smtp_mxsess_limit;
+
  /*
   * Location of the mail queue directory tree.
   */

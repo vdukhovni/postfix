@@ -141,6 +141,7 @@ void    recipient_list_truncate(RECIPIENT_LIST *list, int new_len)
 
 void    recipient_list_free(RECIPIENT_LIST *list)
 {
-    recipient_list_truncate(list, 0);
+    if (list->len > 0)
+	recipient_list_truncate(list, 0);
     myfree((char *) list->info);
 }

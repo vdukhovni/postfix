@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	smtp_state 8
+/*	smtp_state 3
 /* SUMMARY
 /*	initialize/cleanup shared state
 /* SYNOPSIS
@@ -72,7 +72,6 @@ SMTP_STATE *smtp_state_alloc(void)
     state->size_limit = 0;
     state->space_left = 0;
     state->mime_state = 0;
-    state->final_server = 0;
     return (state);
 }
 

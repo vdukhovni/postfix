@@ -181,10 +181,32 @@
 /*	Limit the number of parallel deliveries to the same destination.
 /*	The default limit is taken from the
 /*	\fBdefault_destination_concurrency_limit\fR parameter.
+/* .sp
+/*	NB: This limit is enforced by the queue manager.
 /* .IP \fBsmtp_destination_recipient_limit\fR
 /*	Limit the number of recipients per message delivery.
 /*	The default limit is taken from the
 /*	\fBdefault_destination_recipient_limit\fR parameter.
+/* .IP \fBsmtp_mx_address_limit\fR
+/*	An upper bound on the number of MX (mail exchanger) IP addresses
+/*	that the SMTP client will try to connect to, before giving up or
+/*	sending the mail to a fall-back relay host. 
+/* .sp
+/*	Specify zero to disable the limit.
+/* .IP \fBsmtp_mx_session_limit\fR
+/*	An upper bound on the number of SMTP sessions that the SMTP client
+/*	will engage in before giving up or sending the mail to a fall-back 
+/*	relay host.
+/* .sp
+/*	Specify zero to disable the limit.
+/* .IP \fBsmtp_backup_on_soft_error\fR
+/*	The types of recoverable error that qualify for sending a 
+/*	recipient to a backup mail server or to a fall-back relay host.
+/*	Specify zero or more of \fBsession\fR (SMTP handshake failure, 
+/*	connection loss), \fBmessage\fR (failure of MAIL FROM, DATA or 
+/*	"."), or \fBrecipient\fR (failure of RCPT TO).
+/* .sp
+/*	Recipients that do not qualify are deferred.
 /* .SH "Timeout controls"
 /* .ad
 /* .fi
@@ -314,6 +336,8 @@ char   *var_smtp_backup_mask;
 bool    var_smtp_quote_821_env;
 bool    var_smtp_defer_mxaddr;
 bool    var_smtp_send_xforward;
+int     var_smtp_mxaddr_limit;
+int     var_smtp_mxsess_limit;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -515,6 +539,8 @@ int     main(int argc, char **argv)
     };
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_SMTP_LINE_LIMIT, DEF_SMTP_LINE_LIMIT, &var_smtp_line_limit, 0, 0,
+	VAR_SMTP_MXADDR_LIMIT, DEF_SMTP_MXADDR_LIMIT, &var_smtp_mxaddr_limit, 0, 0,
+	VAR_SMTP_MXSESS_LIMIT, DEF_SMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

@@ -1,7 +1,47 @@
+/*++
+/* NAME
+/*	smtp_misc 3
+/* SUMMARY
+/*	assorted routines
+/* SYNOPSIS
+/*	#include <smtp.h>
+/*
+/*	void	smtp_rcpt_done(state, reply, rcpt)
+/*	SMTP_STATE *state;
+/*	const char *reply;
+/*	RECIPIENT *rcpt;
+/*
+/*	int	smtp_rcpt_mark_finish(SMTP_STATE *state)
+/*	SMTP_STATE *state;
+/* DESCRIPTION
+/*	smtp_rcpt_done() logs that a recipient is completed and upon
+/*	success it marks the recipient as done in the queue file.
+/*	Finally, it marks the in-memory recipient as DROP.
+/*
+/*	smtp_rcpt_mark_finish() cleans up the in-memory recipient list.
+/*	It deletes recipients marked DROP, and unmarks recipients marked KEEP.
+/*	It enforces the requirement that all recipients are marked one way
+/*	or the other. The result value is the number of left-over recipients.
+/* DIAGNOSTICS
+/*	Panic: interface violation.
+/*
+/*	When a recipient can't be logged as completed, the recipient is
+/*	logged as deferred instead.
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
 /* System  library. */
 
 #include <sys_defs.h>
-#include <stdlib.h>			/* smtp_weed_request  */
+#include <stdlib.h>			/* smtp_rcpt_mark_finish  */
 
 /* Utility  library. */
 
@@ -38,44 +78,47 @@ void    smtp_rcpt_done(SMTP_STATE *state, const char *reply, RECIPIENT *rcpt)
     if (status == 0)
 	if (request->flags & DEL_REQ_FLAG_SUCCESS)
 	    deliver_completed(state->src, rcpt->offset);
-    rcpt->status = SMTP_RCPT_DROP;
+    SMTP_RCPT_MARK_DROP(state, rcpt);
     state->status |= status;
 }
 
-/* smtp_weed_request_callback - qsort callback */
+/* smtp_rcpt_mark_finish_callback - qsort callback */
 
-static int smtp_weed_request_callback(const void *a, const void *b)
+static int smtp_rcpt_mark_finish_callback(const void *a, const void *b)
 {
     return (((RECIPIENT *) a)->status - ((RECIPIENT *) b)->status);
 }
 
-/* smtp_weed_request - purge completed recipients from request */
+/* smtp_rcpt_mark_finish - purge completed recipients from request */
 
-int     smtp_weed_request(RECIPIENT_LIST *rcpt_list)
+int     smtp_rcpt_mark_finish(SMTP_STATE *state)
 {
+    RECIPIENT_LIST *rcpt_list = &state->request->rcpt_list;
     RECIPIENT *rcpt;
-    int     nrcpt;
 
     /*
-     * Status codes one can expect to find: SMTP_RCPT_KEEP (try recipient
-     * another time), SMTP_RCPT_DROP (remove recipient from request) and zero
-     * (error: after delivery attempt, recipient status should be either KEEP
-     * or DROP).
+     * Sanity checks.
      */
-    if (rcpt_list->len > 1)
-	qsort((void *) rcpt_list->info, rcpt_list->len,
-	      sizeof(rcpt_list->info), smtp_weed_request_callback);
+    if (state->drop_count + state->keep_count != rcpt_list->len)
+	msg_panic("smtp_rcpt_mark_finish: recipient count mismatch: %d+%d!=%d",
+		  state->drop_count, state->keep_count, rcpt_list->len);
 
-    for (nrcpt = 0; nrcpt < rcpt_list->len; nrcpt++) {
-	rcpt = rcpt_list->info + nrcpt;
-	if (rcpt->status == SMTP_RCPT_KEEP)
-	    rcpt->status = 0;
-	if (rcpt->status == SMTP_RCPT_DROP)
-	    break;
-	else
-	    msg_panic("smtp_weed_request: bad status: %d for <%s>",
-		      rcpt->status, rcpt->address);
-    }
-    recipient_list_truncate(rcpt_list, nrcpt);
-    return (nrcpt);
+    /*
+     * Recipients marked KEEP sort before recipients marked DROP. Skip the
+     * sorting in the common case that all recipients are marked the same.
+     */
+    if (state->drop_count > 0 && state->keep_count > 0)
+	qsort((void *) rcpt_list->info, rcpt_list->len,
+	      sizeof(rcpt_list->info), smtp_rcpt_mark_finish_callback);
+
+    /*
+     * Truncate the recipient list and unmark the left-over recipients so
+     * that the result looks like a brand-new recipient list.
+     */
+    if (state->keep_count < rcpt_list->len)
+	recipient_list_truncate(rcpt_list, state->keep_count);
+    for (rcpt = rcpt_list->info; rcpt < rcpt_list->info + rcpt_list->len; rcpt++)
+	rcpt->status = 0;
+
+    return (rcpt_list->len);
 }

@@ -33,9 +33,9 @@
 /*	the problem, delivery of a single message is deferred, delivery
 /*	of all messages to the same domain is deferred, or one or more
 /*	recipients are given up as non-deliverable and a bounce log is
-/*	updated. In any case, the recipient status is updated to either
-/*	SMTP_RCPT_KEEP (try again with a backup host) or SMTP_RCPT_DROP
-/*	(delete recipient from delivery request).
+/*	updated. In any case, the recipient is marked as either KEEP
+/*	(try again with a backup host) or DROP (delete recipient from 
+/*	delivery request).
 /*
 /*	In addition, when an unexpected response code is seen such
 /*	as 3xx where only 4xx or 5xx are expected, or any error code
@@ -185,9 +185,9 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 	msg_info("%s: %s", request->queue_id, vstring_str(why));
 	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (rcpt->status != 0)
+	    if (SMTP_RCPT_MARK_ISSET(rcpt))
 		continue;
-	    rcpt->status = SMTP_RCPT_KEEP;
+	    SMTP_RCPT_MARK_KEEP(state, rcpt);
 	}
     }
 
@@ -199,7 +199,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
     else {
 	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (rcpt->status != 0)
+	    if (SMTP_RCPT_MARK_ISSET(rcpt))
 		continue;
 	    status = (soft_error ? defer_append : bounce_append)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
@@ -208,7 +208,7 @@ int     smtp_site_fail(SMTP_STATE *state, int code, char *format,...)
 		 request->arrival_time, "%s", vstring_str(why));
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
-	    rcpt->status = SMTP_RCPT_DROP;
+	    SMTP_RCPT_MARK_DROP(state, rcpt);
 	    state->status |= status;
 	}
 	/* XXX This assumes no fall-back relay. */
@@ -254,9 +254,9 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
 	msg_info("%s: %s", request->queue_id, vstring_str(why));
 	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (rcpt->status != 0)
+	    if (SMTP_RCPT_MARK_ISSET(rcpt))
 		continue;
-	    rcpt->status = SMTP_RCPT_KEEP;
+	    SMTP_RCPT_MARK_KEEP(state, rcpt);
 	}
     }
 
@@ -268,7 +268,7 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
     else {
 	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (rcpt->status != 0)
+	    if (SMTP_RCPT_MARK_ISSET(rcpt))
 		continue;
 	    status = (soft_error ? defer_append : bounce_append)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
@@ -277,7 +277,7 @@ int     smtp_mesg_fail(SMTP_STATE *state, int code, char *format,...)
 		 "%s", vstring_str(why));
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
-	    rcpt->status = SMTP_RCPT_DROP;
+	    SMTP_RCPT_MARK_DROP(state, rcpt);
 	    state->status |= status;
 	}
     }
@@ -302,6 +302,12 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
     va_list ap;
 
     /*
+     * Sanity check.
+     */
+    if (SMTP_RCPT_MARK_ISSET(rcpt))
+	msg_panic("smtp_rcpt_fail: recipient <%s> is marked", rcpt->address);
+
+    /*
      * Don't defer this recipient record just yet when this error qualifies
      * for trying other mail servers. Just log something informative to show
      * why we're skipping this recipient now.
@@ -314,7 +320,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
 	vstring_vsprintf(buf, format, ap);
 	va_end(ap);
 	msg_info("%s: %s", request->queue_id, vstring_str(buf));
-	rcpt->status = SMTP_RCPT_KEEP;
+	SMTP_RCPT_MARK_KEEP(state, rcpt);
 	vstring_free(buf);
     }
 
@@ -335,7 +341,7 @@ void    smtp_rcpt_fail(SMTP_STATE *state, int code, RECIPIENT *rcpt,
 	va_end(ap);
 	if (status == 0)
 	    deliver_completed(state->src, rcpt->offset);
-	rcpt->status = SMTP_RCPT_DROP;
+	SMTP_RCPT_MARK_DROP(state, rcpt);
 	state->status |= status;
     }
     smtp_check_code(state, code);
@@ -377,9 +383,9 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 	msg_info("%s: %s", request->queue_id, vstring_str(why));
 	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (rcpt->status != 0)
+	    if (SMTP_RCPT_MARK_ISSET(rcpt))
 		continue;
-	    rcpt->status = SMTP_RCPT_KEEP;
+	    SMTP_RCPT_MARK_KEEP(state, rcpt);
 	}
     }
 
@@ -390,7 +396,7 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
     else {
 	for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
-	    if (rcpt->status != 0)
+	    if (SMTP_RCPT_MARK_ISSET(rcpt))
 		continue;
 	    state->status |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 					  request->queue_id,
@@ -398,7 +404,7 @@ int     smtp_stream_except(SMTP_STATE *state, int code, char *description)
 					  rcpt->offset, session->namaddr,
 					  request->arrival_time,
 					  "%s", vstring_str(why));
-	    rcpt->status = SMTP_RCPT_DROP;
+	    SMTP_RCPT_MARK_DROP(state, rcpt);
 	}
     }
 

@@ -283,38 +283,42 @@ int     smtp_connect(SMTP_STATE *state)
     char  **cpp;
     DNS_RR *addr_list;
     DNS_RR *addr;
+    DNS_RR *next;
+    int     addr_count;
+    int     sess_count;
 
     /*
      * First try to deliver to the indicated destination, then try to deliver
      * to the optional fall-back relays.
      * 
      * Future proofing: do a null destination sanity check in case we allow the
-     * primary destination to be a list, as it could be just a bunch of
-     * separators.
+     * primary destination to be a list (it could be just separators).
      */
     sites = argv_alloc(1);
     argv_add(sites, request->nexthop, (char *) 0);
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", request->nexthop);
-    if (*var_fallback_relay)
-	argv_split_append(sites, var_fallback_relay, ", \t\r\n");
+    argv_split_append(sites, var_fallback_relay, ", \t\r\n");
 
     /*
-     * Don't give up after a qualifying soft error until we have tried all
-     * qualifying mail servers.
-     * 
      * Don't give up after a hard host lookup error until we have tried the
      * fallback relay servers.
      * 
      * Don't bounce mail after a host lookup problem with a relayhost or with a
      * fallback relay.
      * 
+     * Don't give up after a qualifying soft error until we have tried all
+     * qualifying backup mail servers.
+     * 
      * All this means that error handling and error reporting depends on whether
-     * the error qualifies for trying more mail servers, or whether we're
-     * looking up a relayhost or fallback relay.
+     * the error qualifies for trying to deliver to a backup mail server, or
+     * whether we're looking up a relayhost or fallback relay. The challenge
+     * then is to build this into the pre-existing SMTP client without
+     * getting lost in the complexity.
      */
     for (cpp = sites->argv; (dest = *cpp) != 0; cpp++) {
 	state->final_server = (cpp[1] == 0);
+	smtp_errno = SMTP_NONE;
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port. Look up
@@ -337,7 +341,8 @@ int     smtp_connect(SMTP_STATE *state)
 	myfree(dest_buf);
 
 	/*
-	 * Don't try the fall-back relay if mail loops to myself.
+	 * Don't try any backup host if mail loops to myself. That would just
+	 * make the problem worse.
 	 */
 	if (addr_list == 0 && smtp_errno == SMTP_LOOP)
 	    break;
@@ -346,12 +351,23 @@ int     smtp_connect(SMTP_STATE *state)
 	 * Connect to an SMTP server. XXX Limit the number of addresses that
 	 * we're willing to try for a non-fallback destination.
 	 * 
-	 * After a soft error, weed out the recipient list and if there are any
-	 * left, try again.
+	 * At the start of an SMTP session, all recipients are unmarked. In the
+	 * course of an SMTP session, recipients are marked as KEEP (deliver
+	 * to backup mail server) or DROP (remove from recipient list). The
+	 * marking policy is configurable with the smtp_backup_on_soft_error
+	 * parameter. At the end of an SMTP session, weed out the recipient
+	 * list. Unmark any left-over recipients and try to deliver them to a
+	 * backup mail server.
 	 */
-	for (addr = addr_list; addr; addr = addr->next) {
+	for (sess_count = addr_count = 0, addr = addr_list; addr; addr = next) {
+	    next = addr->next;
+	    if (++addr_count == var_smtp_mxaddr_limit)
+		next = 0;
 	    if ((state->session = smtp_connect_addr(addr, port, why)) != 0) {
-		state->final_server = (cpp[1] == 0 && addr->next == 0);
+		if (++sess_count == var_smtp_mxsess_limit)
+		    next = 0;
+		SMTP_RCPT_MARK_INIT(state);
+		state->final_server = (cpp[1] == 0 && next == 0);
 		state->session->best = (addr->pref == addr_list->pref);
 		debug_peer_check(state->session->host, state->session->addr);
 		if (smtp_helo(state) == 0)
@@ -363,7 +379,7 @@ int     smtp_connect(SMTP_STATE *state)
 		/* XXX smtp_xfer() may abort in the middle of DATA. */
 		smtp_session_free(state->session);
 		debug_peer_restore();
-		if (smtp_weed_request(&request->rcpt_list) == 0)
+		if (smtp_rcpt_mark_finish(state) == 0)
 		    break;
 	    } else {
 		msg_info("%s (port %d)", vstring_str(why), ntohs(port));
@@ -373,17 +389,24 @@ int     smtp_connect(SMTP_STATE *state)
     }
 
     /*
-     * We still need to deliver, bounce or defer some recipients.
+     * We still need to deliver, bounce or defer some left-over recipients:
+     * either mail loops or some backup mail server was unavailable.
      * 
      * Pay attention to what could be configuration problems, and pretend that
      * these are recoverable rather than bouncing the mail.
      */
     if (request->rcpt_list.len > 0) {
-	if (smtp_errno != SMTP_RETRY) {
+	switch (smtp_errno) {
+
+	default:
+	    msg_panic("smtp_connect: bad error indication %d", smtp_errno);
+
+	case SMTP_LOOP:
+	case SMTP_FAIL:
 
 	    /*
 	     * The fall-back destination did not resolve as expected, or it
-	     * is refusing to talk to us.
+	     * is refusing to talk to us, or mail for it loops back to us.
 	     */
 	    if (sites->argc > 1 && cpp > sites->argv) {
 		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
@@ -392,7 +415,7 @@ int     smtp_connect(SMTP_STATE *state)
 
 	    /*
 	     * The next-hop relayhost did not resolve as expected, or it is
-	     * refusing to talk to us.
+	     * refusing to talk to us, or mail for it loops back to us.
 	     */
 	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
@@ -400,27 +423,26 @@ int     smtp_connect(SMTP_STATE *state)
 	    }
 
 	    /*
-	     * Mail for the next-hop destination loops back to myself.
+	     * Mail for the next-hop destination loops back to myself. Pass
+	     * the mail to the best_mx_transport or bounce it.
 	     */
 	    else if (smtp_errno == SMTP_LOOP && *var_bestmx_transp) {
 		state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
 						 var_bestmx_transp,
 						 request);
-		smtp_errno = SMTP_NONE;
+		break;
 	    }
-	}
+	    /* FALLTHROUGH */
 
-	/*
-	 * We still need to bounce or defer some recipients. Do it now or
-	 * else they would silently disappear due to lack of error
-	 * indication.
-	 */
-	if (smtp_errno != SMTP_NONE) {
-	    if (!state->final_server)
-		msg_panic("smtp_connect: we have left-over recipients but "
-			  "we did not try to connect to the final server");
+	case SMTP_RETRY:
+
+	    /*
+	     * We still need to bounce or defer some left-over recipients:
+	     * either mail loops or some backup mail server was unavailable.
+	     */
 	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
 			   "%s", vstring_str(why));
+	    break;
 	}
     }
 

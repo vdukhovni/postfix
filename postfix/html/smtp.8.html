@@ -235,10 +235,37 @@ SMTP(8)                                                   SMTP(8)
               destination.   The  default limit is taken from the
               <b>default_destination_concurrency_limit</b> parameter.
 
+              NB: This limit is enforced by the queue manager.
+
        <b>smtp_destination_recipient_limit</b>
               Limit the number of recipients per  message  deliv-
               ery.    The   default   limit  is  taken  from  the
               <b>default_destination_recipient_limit</b> parameter.
+
+       <b>smtp_mx_address_limit</b>
+              An upper bound on the number of MX (mail exchanger)
+              IP  addresses that the SMTP client will try to con-
+              nect to, before giving up or sending the mail to  a
+              fall-back relay host.
+
+              Specify zero to disable the limit.
+
+       <b>smtp_mx_session_limit</b>
+              An  upper bound on the number of SMTP sessions that
+              the SMTP client will engage in before giving up  or
+              sending the mail to a fall-back relay host.
+
+              Specify zero to disable the limit.
+
+       <b>smtp_backup_on_soft_error</b>
+              The  types  of  recoverable  error that qualify for
+              sending a recipient to a backup mail server or to a
+              fall-back relay host.  Specify zero or more of <b>ses-</b>
+              <b>sion</b> (SMTP  handshake  failure,  connection  loss),
+              <b>message</b>  (failure  of  MAIL  FROM, DATA or "."), or
+              <b>recipient</b> (failure of RCPT TO).
+
+              Recipients that do not qualify are deferred.
 
 <b>Timeout controls</b>
        The default time unit is seconds; an  explicit  time  unit
