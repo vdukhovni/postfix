@@ -238,7 +238,7 @@ QMGR_TRANSPORT *qmgr_transport_select(void)
     /*
      * If we find a suitable transport, rotate the list of transports to
      * effectuate round-robin selection. See similar selection code in
-     * qmgr_queue_select().
+     * qmgr_peer_select().
      */
 #define STAY_AWAY (QMGR_TRANSPORT_STAT_BUSY | QMGR_TRANSPORT_STAT_DEAD)
 

@@ -56,9 +56,9 @@
 #	The \fIvirtual.domain anything\fR entry is required for a
 #	Postfix-style virtual domain.
 #
-#	Do not list the virtual domain in the \fBmain.cf mydestination\fR
-#	configuration parameter. Such an entry is required only for a
-#	Sendmail-style virtual domain.
+#	Do not list a Postfix-style virtual domain in the \fBmain.cf
+#	mydestination\fR configuration parameter.
+#	Such an entry is required only for a Sendmail-style virtual domain.
 #
 #	With a Postfix-style virtual domain, the Postfix SMTP server
 #	accepts mail for \fIknown-user@virtual.domain\fR and rejects
@@ -97,9 +97,9 @@
 #	The \fBmain.cf mydestination\fR entry is required for a Sendmail-style
 #	virtual domain.
 #
-#	Do not specify a \fIvirtual.domain whatever\fR entry in the
-#	virtual table. Such an entry is required only with a
-#	Postfix-style virtual domain.
+#	Do not specify a \fIvirtual.domain whatever\fR virtual map entry
+#	for a Sendmail-style virtual domain.
+#	Such an entry is required only with a Postfix-style virtual domain.
 #
 #	With a Sendmail-style virtual domain, the Postfix local delivery
 #	agent delivers mail for an unknown \fIuser\fR@\fIvirtual.domain\fR

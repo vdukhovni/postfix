@@ -62,9 +62,9 @@
 # 
 #        Postfix-style virtual domain.
 # 
-#        Do  not  list the virtual domain in the main.cf mydestina-
-#        tion configuration parameter. Such an  entry  is  required
-#        only for a Sendmail-style virtual domain.
+#        Do  not list a Postfix-style virtual domain in the main.cf
+#        mydestination configuration parameter.  Such an  entry  is
+#        required only for a Sendmail-style virtual domain.
 # 
 #        With  a  Postfix-style  virtual  domain,  the Postfix SMTP
 #        server  accepts  mail  for  known-user@virtual.domain  and
@@ -94,9 +94,9 @@
 #        The  main.cf  mydestination  entry is required for a Send-
 #        mail-style virtual domain.
 # 
-#        Do not specify a virtual.domain whatever entry in the vir-
-#        tual table. Such an entry is required only with a Postfix-
-#        style virtual domain.
+#        Do not specify a virtual.domain whatever virtual map entry
+#        for  a  Sendmail-style  virtual  domain.  Such an entry is
+#        required only with a Postfix-style virtual domain.
 # 
 #        With a Sendmail-style virtual domain,  the  Postfix  local
 #        delivery  agent  delivers  mail  for  an unknown user@vir-

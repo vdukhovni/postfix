@@ -482,6 +482,13 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
+	 * XXX The nexthop destination is also used as lookup key for the
+	 * per-destination queue. Fold the nexthop to lower case so that we
+	 * don't have multiple queues for the same site.
+	 */
+	lowercase(STR(reply.nexthop));
+
+	/*
 	 * Bounce recipients that have moved. We do it here instead of in the
 	 * local delivery agent. The benefit is that we can bounce mail for
 	 * virtual addresses, not just local addresses only, and that there

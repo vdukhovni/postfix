@@ -60,7 +60,7 @@
 /*	limit specified for the transport. This routine implements
 /*	"slow open" mode, and eliminates the "thundering herd" problem.
 /* DIAGNOSTICS
-/*	None
+/*	Panic: consistency check failure.
 /* LICENSE
 /* .ad
 /* .fi

@@ -42,7 +42,7 @@
 /*	has messages pending delivery.  This routine implements
 /*	round-robin search among job's peers.
 /* DIAGNOSTICS
-/*	None
+/*	Panic: consistency check failure.
 /* LICENSE
 /* .ad
 /* .fi
@@ -86,10 +86,20 @@ QMGR_PEER *qmgr_peer_create(QMGR_JOB *job, QMGR_QUEUE *queue)
 
 void    qmgr_peer_free(QMGR_PEER *peer)
 {
+    char *myname = "qmgr_peer_free";
     QMGR_JOB *job = peer->job;
+    QMGR_QUEUE *queue = peer->queue;
+
+    /*
+     * Sanity checks. It is an error to delete a referenced peer structure.
+     */
+    if (peer->refcount != 0)
+	msg_panic("%s: refcount: %d", myname, peer->refcount);
+    if (peer->entry_list.next != 0)
+	msg_panic("%s: entry list not empty: %s", myname, queue->name);
 
     QMGR_LIST_UNLINK(job->peer_list, QMGR_PEER *, peer, peers);
-    htable_delete(job->peer_byname, peer->queue->name, (void (*) (char *)) 0);
+    htable_delete(job->peer_byname, queue->name, (void (*) (char *)) 0);
     myfree((char *) peer);
 }
 

@@ -275,14 +275,7 @@ else
     cp `censored_ls conf/*` $CONFIG_DIRECTORY || exit 1
     chmod a+r,go-w $CONFIG_DIRECTORY/* || exit 1
 
-    test -z "$install_root" && {
-	echo "Warning: you still need to edit myorigin/mydestination in" 1>&2
-	echo "$CONFIG_DIRECTORY/main.cf. See also html/faq.html for dialup" 1>&2
-	echo "sites or for sites inside a firewalled network." 1>&2
-	echo "" 1>&2
-	echo "BTW: Edit your alias database and be sure to set up aliases" 1>&2
-	echo "for root and postmaster, then run $NEWALIASES_PATH." 1>&2
-    }
+    test -z "$install_root" && need_config=1
 fi
 
 # Save settings.
@@ -348,3 +341,16 @@ no) ;;
      done
     )
 esac
+
+test "$need_config" = 1 && cat <<EOF 1>&2
+    
+    Warning: you still need to edit myorigin/mydestination in
+    $CONFIG_DIRECTORY/main.cf. See also html/faq.html for dialup
+    sites or for sites inside a firewalled network.
+    
+    BTW: Edit your alias database and be sure to set up aliases
+    for root and postmaster, then run $NEWALIASES_PATH.
+
+EOF
+
+exit 0
