@@ -53,3 +53,10 @@ client spike.porcupine.org 168.100.189.2
 mail sname@sdomain
 rcpt rname@rdomain
 rcpt rname@example.tld
+#
+# RHSBL helo domain name
+#
+recipient_restrictions reject_rhsbl_helo,abuse.rfc-ignorant.org
+helo example.tld
+mail sname@sdomain
+rcpt rname@rdomain

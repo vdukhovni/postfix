@@ -1,11 +1,11 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 POSTCAT(1)                                             POSTCAT(1)
 
 <b>NAME</b>
        postcat - show Postfix queue file contents
 
 <b>SYNOPSIS</b>
-       <b>postcat</b> [<b>-vq</b>] [<b>-c</b> <i>config_dir</i>] [<i>files</i>...]
+       <b>postcat</b> [<b>-vq</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>files</i>...]
 
 <b>DESCRIPTION</b>
        The <b>postcat</b> command prints the contents of the named <i>files</i>
@@ -15,7 +15,7 @@ POSTCAT(1)                                             POSTCAT(1)
 
        Options:
 
-       <b>-c</b> <i>config_dir</i>
+       <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               The <b>main.cf</b> configuration  file  is  in  the  named
               directory  instead  of  the  default  configuration
               directory.
@@ -31,7 +31,7 @@ POSTCAT(1)                                             POSTCAT(1)
        Problems are reported to the standard error stream.
 
 <b>ENVIRONMENT</b>
-       <b>MAIL</b><i>_</i><b>CONFIG</b>
+       <b>MAIL_CONFIG</b>
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
@@ -39,7 +39,7 @@ POSTCAT(1)                                             POSTCAT(1)
        default values. Use the <b>postfix  reload</b>  command  after  a
        configuration change.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Top-level  directory  of the Postfix queue. This is
               also the root directory of Postfix daemons that run
               chrooted.

@@ -294,9 +294,22 @@ static void post_mail_open_event(int event, char *context)
 	    event_disable_readwrite(vstream_fileno(state->stream));
 	    vstream_fclose(state->stream);
 	} else {
-    case EVENT_XCPT:
 	    msg_warn("connect to service: %s: %m", var_cleanup_service);
 	}
+	myfree(state->sender);
+	myfree(state->recipient);
+	state->notify((VSTREAM *) 0, state->context);
+	myfree((char *) state);
+	return;
+
+	/*
+	 * Some exception.
+	 */
+    case EVENT_XCPT:
+	msg_warn("error connecting to service: %s", var_cleanup_service);
+	event_cancel_timer(post_mail_open_event, context);
+	event_disable_readwrite(vstream_fileno(state->stream));
+	vstream_fclose(state->stream);
 	myfree(state->sender);
 	myfree(state->recipient);
 	state->notify((VSTREAM *) 0, state->context);

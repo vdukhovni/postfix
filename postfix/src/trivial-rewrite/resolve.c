@@ -410,8 +410,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 			     rcpt_domain, VAR_VIRT_ALIAS_DOMS,
 			     VAR_RELAY_DOMAINS);
 		if (strcasecmp(rcpt_domain, var_myorigin) == 0)
-		    msg_warn("do not list $%s in %s",
-			     VAR_MYORIGIN, VAR_VIRT_ALIAS_DOMS);
+		    msg_warn("do not list $%s (%s) in %s",
+			     VAR_MYORIGIN, var_myorigin, VAR_VIRT_ALIAS_DOMS);
 	    }
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
 	    vstring_sprintf(nexthop, "User unknown%s",

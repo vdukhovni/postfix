@@ -8467,6 +8467,13 @@ Apologies for any names omitted.
 	networks. Based on code by Ben Rosengart, Panix. Files:
 	conf/sample-auth.cf, smtpd/smtpd.c.
 
+20030902
+
+	Portability: the Postfix master resets the file size to
+	the largest possible off_t value when the actual limit
+	appears to overflow the off_t range. Files: util/sys_defs.h,
+	util/file_limit.c. A fine sample of bit banging.
+
 20030905
 
 	Workaround: Solaris 8 select() claims that a non-blocking
@@ -8494,9 +8501,9 @@ Apologies for any names omitted.
 
 20030908
 
-	The 20030905 workaround triggers too many warnings. TCP
-	sockets are back to blocking, and keepalives are turned on
-	to kill off dead sockets, as suggested by Leandro Santi.
+	The 20030905 Solaris workaround triggers too many warnings.
+	TCP sockets are back to blocking, and keepalives are turned
+	on to kill off dead sockets, as suggested by Leandro Santi.
 	Files: master/{single,multi}_server.c, smtpd/smtpd.c,
 	util/sys_defs.h.
 
@@ -8506,6 +8513,14 @@ Apologies for any names omitted.
 	SASL authentication after the first connection, and pipelining
 	was working poorly.  Fix by Victor Duchovni, Morgan Stanley.
 	Files: lmtp/lmtp.c, lmtp/lmtp_proto.c.
+
+20030912
+
+	Workaround: besides SMTP server sockets, SMTP client sockets
+	can also hang on Solaris, as reported by Leandro Santi. In
+	order to deal with this at the root, all connection management
+	is now done by sane_accept() and sane_connect().  Both turn
+	on keepalives on Solaris.
 
 20030913
 
@@ -8520,7 +8535,8 @@ Apologies for any names omitted.
 	Dean Gibson.
 
 	In header/body_checks, DUNNO is now the preferred action
-	instead of the now deprecated OK.
+	instead of the now deprecated OK. This may confuse fewer
+	people.
 
 	In header/body_checks, allow text after IGNORE and DUNNO,
 	suggested by Victor Duchovni, Morgan Stanley.  File:
@@ -8528,14 +8544,21 @@ Apologies for any names omitted.
 
 	Feature: reject_rhsbl_helo. File: smtpd/smtpd_check.c.
 
-	Cleanup: the LMTP and SMTP clients now send "MAIL FROM:<sender>
+	Bugfix? The LMTP and SMTP clients now send "MAIL FROM:<sender>
 	AUTH=<>" when SASL authenticated. Suggested by by Victor
 	Duchovni, Morgan Stanley. Files: smtp/smtp_proto.c,
 	lmtp/lmtp_proto.c.
 
-Open problems:
+20030915
 
-	Med: do not list myorigin in virtual_alias_maps.
+	Bugfix: mail rejected by the before-queue content filter
+	was mis-labeled as a software error; it should be labeled
+	as a policy error instead. File: smtpd/smtpd.c.
+
+	Cleanup: postcat is now null-byte transparent. File:
+	postcat/postcat.c.
+
+Open problems:
 
 	High: when virtual aliasing is turned off after content
 	filtering, local submissions may escape virtual aliasing.
@@ -8543,8 +8566,6 @@ Open problems:
 	Med: qmgr should not exit while an asynchronous bounce
 	request is in progress; this can result in multiple
 	non-delivery notifications.
-
-	Low: postcat should be null byte transparent.
 
 	Low: qmgr_move should not reset time stamps on queue files
 	without shared lock (i.e. not open by a delivery agent).

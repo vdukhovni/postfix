@@ -506,7 +506,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	    }
 
 	    /*
-	     * We authenticate the client, not the sender.
+	     * We authenticate the local MTA only, but not the sender.
 	     */
 #ifdef USE_SASL_AUTH
 	    if (var_smtp_sasl_enable

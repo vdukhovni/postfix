@@ -385,7 +385,7 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 	    }
 
 	    /*
-	     * We authenticate the client, not the sender.
+	     * We authenticate the local MTA only, but not the sender.
 	     */
 #ifdef USE_SASL_AUTH
 	    if (var_lmtp_sasl_enable

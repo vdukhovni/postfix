@@ -80,6 +80,7 @@
 #define PC_FLAG_QUEUE	(1<<0)		/* search queue */
 
 #define STR	vstring_str
+#define LEN	VSTRING_LEN
 
 /* postcat - visualize Postfix queue file contents */
 
@@ -129,17 +130,16 @@ static void postcat(VSTREAM *fp, VSTRING *buffer)
 	    break;
 	case REC_TYPE_CONT:
 	    if (msg_verbose)
-		vstream_printf("%s: %s\n", rec_type_name(rec_type),
-			       STR(buffer));
-	    else
-		vstream_printf("%s", STR(buffer));
+		vstream_printf("%s: ", rec_type_name(rec_type));
+	    vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
+	    if (msg_verbose)
+		VSTREAM_PUTCHAR('\n');
 	    break;
 	case REC_TYPE_NORM:
 	    if (msg_verbose)
-		vstream_printf("%s: %s\n", rec_type_name(rec_type),
-			       STR(buffer));
-	    else
-		vstream_printf("%s\n", STR(buffer));
+		vstream_printf("%s: ", rec_type_name(rec_type));
+	    vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
+	    VSTREAM_PUTCHAR('\n');
 	    break;
 	case REC_TYPE_MESG:
 	    vstream_printf("*** MESSAGE CONTENTS %s ***\n", VSTREAM_PATH(fp));

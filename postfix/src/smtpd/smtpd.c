@@ -555,6 +555,8 @@ static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
 static void chat_reset(SMTPD_STATE *, int);
 
+#ifdef USE_SASL_AUTH
+
  /*
   * SASL exceptions.
   */
@@ -583,6 +585,8 @@ static int sasl_client_exception(SMTPD_STATE *state)
 
     return (match);
 }
+
+#endif
 
 /* collapse_args - put arguments together again */
 
@@ -1299,8 +1303,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     if (state->proxy) {
 	if (state->err == CLEANUP_STAT_OK) {
 	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, ".");
-	    if (*STR(state->proxy_buffer) != '2')
-		state->err = CLEANUP_STAT_PROXY;
+	    if (state->err == CLEANUP_STAT_OK &&
+		*STR(state->proxy_buffer) != '2')
+		state->err = CLEANUP_STAT_CONT;
 	}
 	smtpd_proxy_close(state);
     }
@@ -1350,8 +1355,11 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	smtpd_chat_reply(state, "554 Error: too many hops");
     } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
 	state->error_mask |= MAIL_ERROR_POLICY;
-	smtpd_chat_reply(state, "550 Error: %s", LEN(why) ?
-			 STR(why) : "content rejected");
+	if (state->proxy_buffer)
+	    smtpd_chat_reply(state, "%s", STR(state->proxy_buffer));
+	else
+	    smtpd_chat_reply(state, "550 Error: %s", LEN(why) ?
+			     STR(why) : "content rejected");
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");

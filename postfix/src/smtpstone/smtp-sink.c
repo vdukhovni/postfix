@@ -434,13 +434,13 @@ static int command_read(SINK_STATE *state)
      * Got a complete command line. Parse it.
      */
     ptr = vstring_str(state->buffer);
+    if (msg_verbose)
+	msg_info("%s", ptr);
     if ((command = mystrtok(&ptr, " \t")) == 0) {
 	smtp_printf(state->stream, "500 Error: unknown command");
 	smtp_flush(state->stream);
 	return (0);
     }
-    if (msg_verbose)
-	msg_info("%s", command);
     for (cmdp = command_table; cmdp->name != 0; cmdp++)
 	if (strcasecmp(command, cmdp->name) == 0)
 	    break;
