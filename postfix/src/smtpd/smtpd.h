@@ -88,8 +88,6 @@ typedef struct SMTPD_STATE {
     int     junk_cmds;			/* counter */
     int     rcpt_overshoot;		/* counter */
     char   *rewrite_context_name;	/* address rewriting context */
-    int     xclient_allowed;		/* permission to use XCLIENT */
-    int     xforward_allowed;		/* permission to use XFORWARD */
 
     /*
      * SASL specific.

@@ -94,18 +94,14 @@
 /*	filtering, or address mapping.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBlocal_header_rewrite_context_clients ($mynetworks)\fR"
-/*	Append the domain names in $myorigin and $mydomain to incomplete
-/*	message header addresses from these clients.
-/* .IP "\fBremote_header_rewrite_context_name (local)\fR"
-/*	The address rewriting context that should be used for incomplete
-/*	mail header addresses from remote clients.
-/* .PP
-/*	Implemented by the trivial-rewrite(8) server:
-/* .IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
-/*	Append this domain to incomplete message header addresses from
-/*	remote clients, when $remote_header_rewrite_context_name is set to
-/*	"invalid".
+/* .IP "\fBlocal_header_rewrite_clients (see 'postconf -d' output)\fR"
+/*	Append the domain name in $myorigin or $mydomain to incomplete
+/*	message header addresses from these clients; append
+/*	$remote_header_rewrite_domain for all other clients.
+/* .IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
+/*	Append this domain name to incomplete message header addresses
+/*	from remote clients; when this domain name is empty, don't rewrite
+/*	remote message headers at all.
 /* AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -683,6 +679,7 @@
 #include <anvil_clnt.h>
 #endif
 #include <flush_clnt.h>
+#include <rewrite_clnt.h>
 
 /* Single-threaded server skeleton. */
 
@@ -795,7 +792,7 @@ char   *var_smtpd_hoggers;
 
 #endif
 
-char   *var_remote_rwr_name;
+char   *var_remote_rwr_domain;
 char   *var_local_rwr_clients;
 
  /*
@@ -817,11 +814,13 @@ static NAMADR_LIST *verp_clients;
   * its own access control.
   */
 static NAMADR_LIST *xclient_hosts;
+static int xclient_allowed;		/* XXX should be SMTPD_STATE member */
 
  /*
   * XFORWARD command. Access control is cached.
   */
 static NAMADR_LIST *xforward_hosts;
+static int xforward_allowed;		/* XXX should be SMTPD_STATE member */
 
  /*
   * Client connection and rate limiting.
@@ -987,11 +986,11 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (namadr_list_match(verp_clients, state->name, state->addr))
 	smtpd_chat_reply(state, "250-%s", VERP_CMD);
     /* XCLIENT must not override its own access control. */
-    if (state->xclient_allowed)
+    if (xclient_allowed)
 	smtpd_chat_reply(state, "250-" XCLIENT_CMD
 			 " " XCLIENT_NAME " " XCLIENT_ADDR
 			 " " XCLIENT_PROTO " " XCLIENT_HELO);
-    if (state->xforward_allowed)
+    if (xforward_allowed)
 	smtpd_chat_reply(state, "250-" XFORWARD_CMD
 			 " " XFORWARD_NAME " " XFORWARD_ADDR
 			 " " XFORWARD_PROTO " " XFORWARD_HELO
@@ -1277,7 +1276,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
 #ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
-	&& !state->xclient_allowed
+	&& !xclient_allowed
 	&& anvil_clnt
 	&& var_smtpd_cmail_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
@@ -1487,7 +1486,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
 #ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
-	&& !state->xclient_allowed
+	&& !xclient_allowed
 	&& anvil_clnt
 	&& var_smtpd_crcpt_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
@@ -2105,7 +2104,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 XCLIENT_CMD);
 	return (-1);
     }
-    if (!state->xclient_allowed) {
+    if (!xclient_allowed) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "554 Error: insufficient authorization");
 	return (-1);
@@ -2271,7 +2270,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 XFORWARD_CMD);
 	return (-1);
     }
-    if (!state->xforward_allowed) {
+    if (!xforward_allowed) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "554 Error: insufficient authorization");
 	return (-1);
@@ -2374,7 +2373,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	case SMTPD_STATE_XFORWARD_DOMAIN:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE))
 		attr_value = XFORWARD_DOM_LOCAL;
-	    context_name[1] = var_remote_rwr_name;
+	    context_name[1] = *var_remote_rwr_domain ? 
+		REWRITE_REMOTE : REWRITE_NONE;
 	    if ((context_code = name_code(xforward_to_context,
 					  NAME_CODE_FLAG_NONE,
 					  attr_value)) < 0) {
@@ -2550,7 +2550,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 */
 #ifdef SNAPSHOT
 	if (SMTPD_STAND_ALONE(state) == 0
-	    && !state->xclient_allowed
+	    && !xclient_allowed
 	    && anvil_clnt
 	    && !namadr_list_match(hogger_list, state->name, state->addr)
 	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
@@ -2651,7 +2651,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
      */
 #ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
-	&& !state->xclient_allowed
+	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
 	anvil_clnt_disconnect(anvil_clnt, service, state->addr);
@@ -2710,13 +2710,13 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
     /*
      * XCLIENT must not override its own access control.
      */
-    state.xclient_allowed =
+    xclient_allowed =
 	namadr_list_match(xclient_hosts, state.name, state.addr);
 
     /*
      * Overriding XFORWARD access control makes no sense, either.
      */
-    state.xforward_allowed =
+    xforward_allowed =
 	namadr_list_match(xforward_hosts, state.name, state.addr);
 
     /*
@@ -2793,12 +2793,6 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
-    NAME_CODE rewrite_context_names[] = {
-	REWRITE_LOCAL, 1,
-	REWRITE_INVALID, 1,
-	REWRITE_NONE, 1,
-	0, 0,
-    };
 
     /*
      * Initialize the receive transparency options: do we want unknown
@@ -2827,14 +2821,6 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit)
 	anvil_clnt = anvil_clnt_create();
 #endif
-
-    /*
-     * Sanity check.
-     */
-    if (name_code(rewrite_context_names, NAME_CODE_FLAG_STRICT_CASE,
-		  var_remote_rwr_name) == 0)
-	msg_fatal("parameter %s: invalid value: %s",
-		  VAR_REM_RWR_NAME, var_remote_rwr_name);
 }
 
 /* main - the main program */
@@ -2937,8 +2923,8 @@ int     main(int argc, char **argv)
 #ifdef SNAPSHOT
 	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
 #endif
-	VAR_REM_RWR_NAME, DEF_REM_RWR_NAME, &var_remote_rwr_name, 1, 0,
-	VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients, 1, 0,
+	VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
+	VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

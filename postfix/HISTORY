@@ -9774,33 +9774,28 @@ Apologies for any names omitted.
 
 	Portability: AIX 5.1/GCC.
 
-20041014-19
+20041014-21
 
-	Message header address rewriting contexts, so that spam
-	from badly written software won't look like it came from
-	a local user.
+	By default, Postfix no longer appends the local domain to
+	incomplete message header addresses from remote clients.
+	Thus, spam from badly written software no longer looks like
+	it came from a local user.
 
-	The default "local" rewriting context appends "@$myorigin"
-	or ".$mydomain" to incomplete message header addresses,
-	just like Postfix has always done.
+	Instead, Postfix either does not rewrite headers from remote
+	clients at all, or it appends the domain name that is
+	specified with the new invalid_rewrite_context_domain
+	parameter.
 
-	The new "invalid" address context appends "domain.invalid"
-	instead (or whatever domain name is specified with the
-	invalid_rewrite_context_domain parameter).
-
-	The new "none" address rewriting context does not modify
-	message header addresses at all.
-
-	Postfix uses the "local" rewriting context for mail posted
-	with Postfix sendmail, from clients listed with the
-	local_rewrite_context_clients parameter (default:  $mynetworks)
-	and from SASL authenticated clients.
+	Postfix still appends $@myorigin or .$mydomain to headers
+	in mail from Postfix sendmail, from clients listed with
+	the local_rewrite_context_clients parameter (default:
+	permit_mynetworks, permit_sasl_authenticated).
 
 	The context specified with remote_rewrite_context_name is
 	used for all other clients. The default setting is backwards
 	compatible to avoid surprises.
 
-	Postfix always uses the "local" rewriting context to update
+	Postfix still appends $@myorigin or .$mydomain when rewriting
 	incomplete envelope addresses.
 
 20041018
@@ -9813,6 +9808,11 @@ Apologies for any names omitted.
 	Support for Errors-To: is permanently removed.
 
 Open problems:
+
+	High: document master(5) for generic daemon options.
+
+	Low: reject HELO with any domain name that this MTA is
+	final destination for.
 
 	Low: should the Delivered-To: test in local(8) be configurable?
 

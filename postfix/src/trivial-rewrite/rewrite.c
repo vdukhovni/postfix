@@ -21,7 +21,7 @@
 /*	TOK822	*tree;
 /*
 /*	RWR_CONTEXT local_context;
-/*	RWR_CONTEXT inval_context;
+/*	RWR_CONTEXT remote_context;
 /* DESCRIPTION
 /*	This module implements the trivial address rewriting engine.
 /*
@@ -39,7 +39,7 @@
 /*	rewrite_tree() rewrites a parse tree with a single address to
 /*	another tree.  A tree is a dummy node on top of a token list.
 /*
-/*	local_context and inval_context provide domain names for
+/*	local_context and remote_context provide domain names for
 /*	completing incomplete address forms.
 /* STANDARDS
 /* DIAGNOSTICS
@@ -78,6 +78,7 @@
 #include <resolve_local.h>
 #include <tok822.h>
 #include <mail_conf.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -88,9 +89,9 @@ RWR_CONTEXT local_context = {
     VAR_MYDOMAIN, &var_mydomain,
 };
 
-RWR_CONTEXT inval_context = {
-    VAR_INV_RWR_DOMAIN, &var_inv_rwr_domain,
-    VAR_INV_RWR_DOMAIN, &var_inv_rwr_domain,
+RWR_CONTEXT remote_context = {
+    VAR_REM_RWR_DOMAIN, &var_remote_rwr_domain,
+    VAR_REM_RWR_DOMAIN, &var_remote_rwr_domain,
 };
 
 static VSTRING *ruleset;
@@ -244,19 +245,10 @@ int     rewrite_proto(VSTREAM *stream)
 		  ATTR_TYPE_END) != 2)
 	return (-1);
 
-    /*
-     * Note: an unqualified username is for all practical purposes equivalent
-     * to a fully qualified local address, if only because a reply to an
-     * unqualified address will be sent to a local recipient. Having to
-     * support both forms is error prone, therefore an unqualified address is
-     * rewritten in the local domain context when no address rewriting
-     * context is given.
-     */
-    if (strcmp(vstring_str(ruleset), REWRITE_LOCAL) == 0
-	|| strcmp(vstring_str(ruleset), REWRITE_NONE) == 0)
+    if (strcmp(vstring_str(ruleset), REWRITE_LOCAL) == 0)
 	context = &local_context;
-    else if (strcmp(vstring_str(ruleset), REWRITE_INVALID) == 0)
-	context = &inval_context;
+    else if (strcmp(vstring_str(ruleset), REWRITE_REMOTE) == 0)
+	context = &remote_context;
     else {
 	msg_warn("unknown context: %s", vstring_str(ruleset));
 	return (-1);

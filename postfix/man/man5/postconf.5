@@ -360,14 +360,15 @@ The default time unit is s (seconds).
 .SH append_at_myorigin (default: yes)
 With locally submitted mail, append the string "@$myorigin" to mail
 addresses without domain information. With remotely submitted mail,
-append the string "@$invalid_domain" instead.
+append the string "@$remote_header_rewrite_domain" instead.
 .PP
 This feature is enabled by default and must not be turned off.
 Postfix does not support domain-less addresses.
 .SH append_dot_mydomain (default: yes)
 With locally submitted mail, append the string ".$mydomain" to
 addresses that have no ".domain" information. With remotely submitted
-mail, append the string ".$invalid_domain" instead.
+mail, append the string ".$remote_header_rewrite_domain"
+instead.
 .PP
 This feature is enabled by default. If disabled, users will not be
 able to send mail to "user@partialdomainname" but will have to
@@ -1308,11 +1309,6 @@ and via the pipe(8) and virtual(8) delivery agents.
 .PP
 Warning: with concurrency of 1, one bad message can be enough to
 block all mail to a site.
-.SH invalid_header_rewrite_context_domain (default: domain.invalid)
-Append this domain to incomplete message header addresses from
-remote clients, when $remote_header_rewrite_context_name is set to
-"invalid".  This is one way to avoid appending your own domain to
-addresses in spam from poorly written software.
 .SH invalid_hostname_reject_code (default: 501)
 The numerical Postfix SMTP server response code when the client
 HELO or EHLO command parameter is rejected by the reject_invalid_hostname
@@ -1564,32 +1560,46 @@ the entry in the master.cf file.
 Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
-.SH local_header_rewrite_context_clients (default: $mynetworks)
-Append the domain names in $myorigin and $mydomain to incomplete
-message header addresses from these clients.
+.SH local_header_rewrite_clients (default: see "postconf -d" output)
+Append the domain name in $myorigin or $mydomain to incomplete
+message header addresses from these clients; append
+$remote_header_rewrite_domain for all other clients.
 .PP
-Specify a list of network addresses or network/netmask patterns,
-separated by comma or whitespace. Continue long lines by starting
-the next line with whitespace.
-.PP
-A network mask specifies the number of bits in the network part
-of a host address.  You can also specify "/file/name" or "type:table"
-patterns.  A "/file/name" pattern is replaced by its contents; a
-"type:table" lookup table is matched when a client name or address
-matches a lookup key (the lookup result is ignored).
-.PP
-The list is matched left to right, and the search stops on the
-first match.  Specify "!pattern" to exclude an address or network
-block from the list.
+Specify a list of zero or more of the following:
+.IP "\fB permit_mynetworks \fR"
+Append the domain name in $myorigin or $mydomain when the
+client IP address matches any network or network address listed in
+$mynetworks. This is enabled by default.
+.IP "\fB permit_sasl_authenticated \fR"
+Append the domain name in $myorigin or $mydomain when the
+client is successfully authenticated via the RFC 2554 (AUTH)
+protocol. This is enabled by default.
+.IP "\fB permit_tls_clientcerts \fR"
+Append the domain name in $myorigin or $mydomain when the
+client TLS certificate is successfully verified, and the client
+certificate fingerprint is listed on the server. This is enabled
+by default.
+.IP "\fB permit_tls_all_clientcerts \fR"
+Append the domain name in $myorigin or $mydomain when the
+client TLS certificate is successfully verified, regardless of
+whether it is listed on the server, and regardless of the certifying
+authority.
+.IP "\fB check_address_map \fI<a
+href="DATABASE_README.html">type:table\fR \fR"
+.IP "\fB \fItype:table\fR
+\fR"
+Append the domain name in $myorigin or $mydomain when the
+client IP address matches the specified lookup table. The lookup
+result is ignored, and no subnet lookup is done. This is suitable
+for pop-before-smtp lookup tables.
 .PP
 Examples:
 .PP
 .nf
 .na
 .ft C
-local_header_rewrite_context_clients = $mynetworks
-local_header_rewrite_context_clients = !192.168.0.1 $mynetworks
-local_header_rewrite_context_clients = static:all
+local_header_rewrite_clients = static:all
+local_header_rewrite_clients = permit_mynetworks, permit_sasl_authenticated
 .fi
 .ad
 .ft R
@@ -2666,29 +2676,11 @@ relocated_maps = hash:/etc/postfix/relocated
 .fi
 .ad
 .ft R
-.SH remote_header_rewrite_context_name (default: local)
-The address rewriting context that should be used for incomplete
-mail header addresses from remote clients.
-.IP \(bu
-\fBlocal\fR Append the domains specified with $myorigin
-or $mydomain to incomplete message header addresses from remote
-clients.
-.IP \(bu
-\fBinvalid\fR Append the domain specified with
-$invalid_header_rewrite_context_domain to incomplete message header
-addresses from remote clients. This is one way to avoid appending
+.SH remote_header_rewrite_domain (default: domain.invalid)
+Append this domain name to incomplete message header addresses
+from remote clients; when this domain name is empty, don't rewrite
+remote message headers at all.  Both stop Postfix from appending
 your own domain to addresses in spam from poorly written software.
-This is a safe choice for gateways that have no control over
-address rewriting by down-stream systems.
-.IP \(bu
-\fBnone\fR Don't modify message headers from remote
-clients at all. This is another way to avoid appending your own
-domain to addresses in spam from poorly written software. This
-is the preferred choice for purists.
-.PP
-Note: Postfix always appends the domains specified with $myorigin
-or $mydomain to incomplete envelope addresses, because those
-addresses are effectively equivalent to local addresses.
 .SH require_home_directory (default: no)
 Whether or not a local(8) recipient's home directory must exist
 before mail delivery is attempted. By default this test is disabled.
@@ -3403,7 +3395,10 @@ parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the access(5) manual page for details.
 .IP "\fBpermit_mynetworks\fR"
 Permit the request when the client IP address matches any
-network listed in  $mynetworks.
+network or network address listed in  $mynetworks.
+.IP "\fBpermit_sasl_authenticated\fR"
+Permit the request when the client is successfully
+authenticated via the RFC 2554 (AUTH) protocol.
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR

@@ -21,7 +21,7 @@
 /*	to \fIuser@domain\fR form.
 /* .IP \fBinvalid\fR
 /*	Append the domain name specified with
-/*	\fB$invalid_header_rewrite_context_domain\fR to incomplete
+/*	\fB$remote_header_rewrite_domain\fR to incomplete
 /*	addresses. Otherwise the result is identical to that of
 /*	the \fBlocal\fR address rewriting context. This prevents
 /*      Postfix from appending the local domain to spam from poorly
@@ -107,15 +107,10 @@
 /*	Enable the rewriting of "site!user" into "user@site".
 /* .PP
 /*	Available in Postfix 2.2 and later:
-/* .IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
+/* .IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
 /*	Append this domain to incomplete message header addresses from
-/*	remote clients, when $remote_header_rewrite_context_name is set to
-/*	"invalid".
-/* .PP
-/*	Implemented by the smtpd(8) server:
-/* .IP "\fBremote_header_rewrite_context_name (local)\fR"
-/*	The address rewriting context that should be used for incomplete
-/*	mail header addresses from remote clients.
+/*	remote clients; when the domain is empty, don't rewrite remote message
+/*	headers at all.
 /* ROUTING CONTROLS
 /* .ad
 /* .fi
@@ -301,7 +296,7 @@ char   *var_def_transport;
 char   *var_empty_addr;
 int     var_show_unk_rcpt_table;
 int     var_resolve_nulldom;
-char   *var_inv_rwr_domain;
+char   *var_remote_rwr_domain;
 
  /*
   * Shadow personality for address verification.
@@ -429,7 +424,7 @@ int     main(int argc, char **argv)
 	VAR_VRFY_RELAY_XPORT, DEF_VRFY_RELAY_XPORT, &var_vrfy_relay_xport, 1, 0,
 	VAR_VRFY_DEF_XPORT, DEF_VRFY_DEF_XPORT, &var_vrfy_def_xport, 1, 0,
 	VAR_VRFY_RELAYHOST, DEF_VRFY_RELAYHOST, &var_vrfy_relayhost, 0, 0,
-	VAR_INV_RWR_DOMAIN, DEF_INV_RWR_DOMAIN, &var_inv_rwr_domain, 1, 0,
+	VAR_REM_RWR_DOMAIN, DEF_REM_RWR_DOMAIN, &var_remote_rwr_domain, 0, 0,
 	0,
     };
     static CONFIG_BOOL_TABLE bool_table[] = {

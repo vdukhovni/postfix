@@ -4120,7 +4120,13 @@ least significant octets. See the access(5) manual page for details. </dd>
 <dt><b><a name="permit_mynetworks">permit_mynetworks</a></b></dt>
 
 <dd>Permit the request when the client IP address matches any
-network listed in  $mynetworks. </dd>
+network or network address listed in  $mynetworks. </dd>
+
+<dt><b><a name="permit_sasl_authenticated">permit_sasl_authenticated</a></b></dt>
+
+<dd> Permit the request when the client is successfully
+authenticated via the RFC 2554 (AUTH) protocol. </dd>
+
 
 <dt><b><a name="reject_rbl_client">reject_rbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
@@ -5551,7 +5557,7 @@ and postdrop(1).
 <p>
 With locally submitted mail, append the string "@$myorigin" to mail
 addresses without domain information. With remotely submitted mail,
-append the string "@$invalid_domain" instead.
+append the string "@$remote_header_rewrite_domain" instead.
 </p>
 
 <p>
@@ -5564,7 +5570,8 @@ Postfix does not support domain-less addresses.
 <p>
 With locally submitted mail, append the string ".$mydomain" to
 addresses that have no ".domain" information. With remotely submitted
-mail, append the string ".$invalid_domain" instead.
+mail, append the string ".$remote_header_rewrite_domain"
+instead.
 </p>
 
 <p>
@@ -7211,69 +7218,66 @@ is already bounded by $max_idle.  </p>
 session cache hit and miss rates for logical destinations and for
 physical endpoints. </p>
 
-%PARAM invalid_header_rewrite_context_domain domain.invalid
+%PARAM remote_header_rewrite_domain domain.invalid
 
-<p> Append this domain to incomplete message header addresses from
-remote clients, when $remote_header_rewrite_context_name is set to
-"invalid".  This is one way to avoid appending your own domain to
-addresses in spam from poorly written software. </p>
-
-%PARAM local_header_rewrite_context_clients $mynetworks
-
-<p> Append the domain names in $myorigin and $mydomain to incomplete
-message header addresses from these clients.  </p>
-
-<p> Specify a list of network addresses or network/netmask patterns,
-separated by comma or whitespace. Continue long lines by starting
-the next line with whitespace. </p>
-
-<p> A network mask specifies the number of bits in the network part
-of a host address.  You can also specify "/file/name" or "type:table"
-patterns.  A "/file/name" pattern is replaced by its contents; a
-"type:table" lookup table is matched when a client name or address
-matches a lookup key (the lookup result is ignored). </p>
-
-<p> The list is matched left to right, and the search stops on the
-first match.  Specify "!pattern" to exclude an address or network
-block from the list.  </p>
-
-
-<p>
-Examples:
-</p>
-
-<pre>
-local_header_rewrite_context_clients = $mynetworks
-local_header_rewrite_context_clients = !192.168.0.1 $mynetworks
-local_header_rewrite_context_clients = static:all
-</pre>
-
-%PARAM remote_header_rewrite_context_name local
-
-<p> The address rewriting context that should be used for incomplete
-mail header addresses from remote clients. </p>
-
-<ul>
-
-<li> <p> <b>local</b> Append the domains specified with $myorigin
-or $mydomain to incomplete message header addresses from remote
-clients.  </p>
-
-<li> <p> <b>invalid</b> Append the domain specified with
-$invalid_header_rewrite_context_domain to incomplete message header
-addresses from remote clients. This is one way to avoid appending
+<p> Append this domain name to incomplete message header addresses
+from remote clients; when this domain name is empty, don't rewrite
+remote message headers at all.  Both stop Postfix from appending
 your own domain to addresses in spam from poorly written software.
-This is a safe choice for gateways that have no control over
-address rewriting by down-stream systems.
 </p>
 
-<li> <p> <b>none</b> Don't modify message headers from remote
-clients at all. This is another way to avoid appending your own
-domain to addresses in spam from poorly written software. This
-is the preferred choice for purists. </p>
+%PARAM local_header_rewrite_clients see "postconf -d" output
 
-</ul>
+<p> Append the domain name in $myorigin or $mydomain to incomplete
+message header addresses from these clients; append
+$remote_header_rewrite_domain for all other clients.  </p>
 
-<p> Note: Postfix always appends the domains specified with $myorigin
-or $mydomain to incomplete envelope addresses, because those
-addresses are effectively equivalent to local addresses. </p>
+<p> Specify a list of zero or more of the following:  </p>
+
+<dl>
+
+<dt> <b> permit_mynetworks </b></dt>
+
+<dd> Append the domain name in $myorigin or $mydomain when the
+client IP address matches any network or network address listed in
+$mynetworks. This is enabled by default. </dd>
+
+<dt><b> permit_sasl_authenticated </b></dt>
+
+<dd> Append the domain name in $myorigin or $mydomain when the
+client is successfully authenticated via the RFC 2554 (AUTH)
+protocol. This is enabled by default. </dd>
+
+<dt><b> permit_tls_clientcerts </b></dt>
+
+<dd> Append the domain name in $myorigin or $mydomain when the
+client TLS certificate is successfully verified, and the client
+certificate fingerprint is listed on the server. This is enabled
+by default. </dd>
+
+<dt><b> permit_tls_all_clientcerts </b></dt>
+
+<dd> Append the domain name in $myorigin or $mydomain when the
+client TLS certificate is successfully verified, regardless of
+whether it is listed on the server, and regardless of the certifying
+authority. </dd>
+
+<dt><b> <a name="check_address_map">check_address_map</a> <i><a
+href="DATABASE_README.html">type:table</a></i> </b></dt>
+
+<dt><b> <i><a href="DATABASE_README.html">type:table</a></i>
+</b></dt>
+
+<dd> Append the domain name in $myorigin or $mydomain when the
+client IP address matches the specified lookup table. The lookup
+result is ignored, and no subnet lookup is done. This is suitable
+for pop-before-smtp lookup tables. </dd>
+
+</dl>
+
+<p> Examples:  </p>
+
+<pre> 
+local_header_rewrite_clients = static:all
+local_header_rewrite_clients = permit_mynetworks, permit_sasl_authenticated 
+</pre>

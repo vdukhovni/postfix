@@ -1119,6 +1119,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->sasl_username);
     if (message->sasl_sender)
 	myfree(message->sasl_sender);
+    if (message->rewrite_context)
+	myfree(message->rewrite_context);
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);

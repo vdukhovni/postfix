@@ -345,6 +345,7 @@ static DELIVER_REQUEST *deliver_request_alloc(void)
     request->sasl_method = 0;
     request->sasl_username = 0;
     request->sasl_sender = 0;
+    request->rewrite_context = 0;
     return (request);
 }
 
@@ -385,6 +386,8 @@ static void deliver_request_free(DELIVER_REQUEST *request)
 	myfree(request->sasl_username);
     if (request->sasl_sender)
 	myfree(request->sasl_sender);
+    if (request->rewrite_context)
+	myfree(request->rewrite_context);
     myfree((char *) request);
 }
 

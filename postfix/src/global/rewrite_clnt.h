@@ -15,13 +15,20 @@
   * Utility library.
   */
 #include <vstring.h>
-#include <mail_params.h>
 
  /*
   * External interface.
   */
 #define REWRITE_ADDR	"rewrite"
 #define REWRITE_CANON	REWRITE_LOCAL	/* backwards compatibility */
+
+ /*
+  * XXX These should be moved to mail_proto.h because they appear as
+  * attribute values in queue file records and delivery requests.
+  */
+#define REWRITE_LOCAL	"local"
+#define REWRITE_REMOTE	"remote"
+#define REWRITE_NONE	"none"
 
 extern VSTRING *rewrite_clnt(const char *, const char *, VSTRING *);
 extern VSTRING *rewrite_clnt_internal(const char *, const char *, VSTRING *);

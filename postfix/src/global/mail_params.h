@@ -2091,20 +2091,19 @@ extern char *var_anvil_service;
  /*
   * What domain names to assume when no valid domain context exists.
   */
-#define VAR_INV_RWR_DOMAIN		"invalid_header_rewrite_context_domain"
-#define DEF_INV_RWR_DOMAIN		"domain.invalid"
-extern char *var_inv_rwr_domain;
+#define VAR_REM_RWR_DOMAIN		"remote_header_rewrite_domain"
+#define DEF_REM_RWR_DOMAIN		"domain.invalid"
+extern char *var_remote_rwr_domain;
 
-#define VAR_REM_RWR_NAME		"remote_header_rewrite_context_name"
-#define DEF_REM_RWR_NAME		REWRITE_LOCAL
-extern char *var_remote_rwr_name;
+#define CHECK_ADDR_MAP			"check_address_map"
 
-#define REWRITE_LOCAL	"local"
-#define REWRITE_INVALID	"invalid"
-#define REWRITE_NONE	"none"
-
-#define VAR_LOC_RWR_CLIENTS		"local_header_rewrite_context_clients"
-#define DEF_LOC_RWR_CLIENTS		"$" VAR_MYNETWORKS
+#define VAR_LOC_RWR_CLIENTS		"local_header_rewrite_clients"
+#ifdef USE_TLS
+#define DEF_LOC_RWR_CLIENTS		PERMIT_MYNETWORKS " " PERMIT_SASL_AUTH \
+					" " PERMIT_TLS_CLIENT
+#else
+#define DEF_LOC_RWR_CLIENTS		PERMIT_MYNETWORKS " " PERMIT_SASL_AUTH
+#endif
 extern char *var_local_rwr_clients;
 
 /* LICENSE

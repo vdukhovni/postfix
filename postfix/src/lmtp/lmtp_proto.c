@@ -119,6 +119,7 @@
 #include <mark_corrupt.h>
 #include <quote_821_local.h>
 #include <mail_proto.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 

@@ -115,8 +115,6 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->instance = vstring_alloc(10);
     state->seqno = 0;
     state->rewrite_context_name = 0;
-    state->xclient_allowed = 0;
-    state->xforward_allowed = 0;
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))

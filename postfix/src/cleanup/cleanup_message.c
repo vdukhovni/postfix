@@ -80,6 +80,7 @@
 #include <mail_proto.h>
 #include <mime_state.h>
 #include <lex_822.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 

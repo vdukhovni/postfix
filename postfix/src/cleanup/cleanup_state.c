@@ -44,6 +44,7 @@
 #include <been_here.h>
 #include <mail_params.h>
 #include <mime_state.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 

@@ -68,6 +68,7 @@
 #include <mail_params.h>
 #include <verp_sender.h>
 #include <mail_proto.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 
@@ -113,7 +114,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     int     extra_opts;
     NAME_CODE rewrite_context_names[] = {
 	REWRITE_LOCAL, 1,
-	REWRITE_INVALID, 1,
+	REWRITE_REMOTE, 1,
 	REWRITE_NONE, 1,
 	0, 0,
     };

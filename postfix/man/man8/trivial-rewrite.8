@@ -27,7 +27,7 @@ strip source routed addresses (\fI@site,@site:user@domain\fR)
 to \fIuser@domain\fR form.
 .IP \fBinvalid\fR
 Append the domain name specified with
-\fB$invalid_header_rewrite_context_domain\fR to incomplete
+\fB$remote_header_rewrite_domain\fR to incomplete
 addresses. Otherwise the result is identical to that of
 the \fBlocal\fR address rewriting context. This prevents
 Postfix from appending the local domain to spam from poorly
@@ -127,15 +127,10 @@ The separator between user names and address extensions (user+foo).
 Enable the rewriting of "site!user" into "user@site".
 .PP
 Available in Postfix 2.2 and later:
-.IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
+.IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
 Append this domain to incomplete message header addresses from
-remote clients, when $remote_header_rewrite_context_name is set to
-"invalid".
-.PP
-Implemented by the smtpd(8) server:
-.IP "\fBremote_header_rewrite_context_name (local)\fR"
-The address rewriting context that should be used for incomplete
-mail header addresses from remote clients.
+remote clients; when the domain is empty, don't rewrite remote message
+headers at all.
 .SH "ROUTING CONTROLS"
 .na
 .nf

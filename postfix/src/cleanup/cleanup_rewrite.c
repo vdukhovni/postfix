@@ -69,8 +69,8 @@
 /* Global library. */
 
 #include <tok822.h>
-#include <quote_822_local.h>
 #include <rewrite_clnt.h>
+#include <quote_822_local.h>
 
 /* Application-specific. */
 

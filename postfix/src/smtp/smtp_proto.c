@@ -121,6 +121,7 @@
 #include <quote_821_local.h>
 #include <mail_proto.h>
 #include <mime_state.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 

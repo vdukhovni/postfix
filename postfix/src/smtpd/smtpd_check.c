@@ -48,7 +48,7 @@
 /*	smtpd_check_addr() sanity checks an email address and returns
 /*	non-zero in case of badness.
 /*
-/*	smtpd_check_rewrite() shuod be called before opening a queue
+/*	smtpd_check_rewrite() should be called before opening a queue
 /*	file or proxy connection, in order to establish the proper
 /*	header address rewriting context.
 /*
@@ -276,7 +276,6 @@ static MAPS *smtpd_sender_login_maps;
 static DOMAIN_LIST *relay_domains;
 static NAMADR_LIST *mynetworks;
 static NAMADR_LIST *perm_mx_networks;
-static NAMADR_LIST *local_rewrite_clients;
 
  /*
   * How to do parent domain wildcard matching, if any.
@@ -295,6 +294,8 @@ static ARGV *data_restrctions;
 
 static HTABLE *smtpd_rest_classes;
 static HTABLE *policy_clnt_table;
+
+static ARGV *local_rewrite_clients;
 
  /*
   * Pre-parsed expansion filter.
@@ -322,6 +323,7 @@ static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
 #define SMTPD_NAME_RECIPIENT	"Recipient address"
 #define SMTPD_NAME_ETRN		"Etrn command"
 #define SMTPD_NAME_DATA		"Data command"
+#define SMTPD_NAME_REWRITE	"Local address rewriting"
 
  /*
   * YASLM.
@@ -460,7 +462,7 @@ static void policy_client_register(const char *name)
 
 /* smtpd_check_parse - pre-parse restrictions */
 
-static ARGV *smtpd_check_parse(const char *checks)
+static ARGV *smtpd_check_parse(int flags, const char *checks)
 {
     char   *saved_checks = mystrdup(checks);
     ARGV   *argv = argv_alloc(1);
@@ -473,11 +475,17 @@ static ARGV *smtpd_check_parse(const char *checks)
      * encounter. Dictionaries must be opened before entering the chroot
      * jail.
      */
+#define SMTPD_CHECK_PARSE_POLICY	(1<<0)
+#define SMTPD_CHECK_PARSE_MAPS		(1<<1)
+#define SMTPD_CHECK_PARSE_ALL		(~0)
+
     while ((name = mystrtok(&bp, RESTRICTION_SEPARATORS)) != 0) {
 	argv_add(argv, name, (char *) 0);
-	if (last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
+	if ((flags & SMTPD_CHECK_PARSE_POLICY)
+	    && last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
 	    policy_client_register(name);
-	else if (strchr(name, ':') && dict_handle(name) == 0) {
+	else if ((flags & SMTPD_CHECK_PARSE_MAPS)
+		 && strchr(name, ':') && dict_handle(name) == 0) {
 	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK));
 	}
 	last = name;
@@ -571,8 +579,6 @@ void    smtpd_check_init(void)
     perm_mx_networks =
 	namadr_list_init(match_parent_style(VAR_PERM_MX_NETWORKS),
 			 var_perm_mx_networks);
-    local_rewrite_clients =
-	namadr_list_init(MATCH_FLAG_NONE, var_local_rwr_clients);
 
     /*
      * Pre-parse and pre-open the recipient maps.
@@ -633,12 +639,18 @@ void    smtpd_check_init(void)
      * Pre-parse the restriction lists. At the same time, pre-open tables
      * before going to jail.
      */
-    client_restrctions = smtpd_check_parse(var_client_checks);
-    helo_restrctions = smtpd_check_parse(var_helo_checks);
-    mail_restrctions = smtpd_check_parse(var_mail_checks);
-    rcpt_restrctions = smtpd_check_parse(var_rcpt_checks);
-    etrn_restrctions = smtpd_check_parse(var_etrn_checks);
-    data_restrctions = smtpd_check_parse(var_data_checks);
+    client_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					   var_client_checks);
+    helo_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 var_helo_checks);
+    mail_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 var_mail_checks);
+    rcpt_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 var_rcpt_checks);
+    etrn_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 var_etrn_checks);
+    data_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 var_data_checks);
 
     /*
      * Parse the pre-defined restriction classes.
@@ -650,7 +662,8 @@ void    smtpd_check_init(void)
 	    if ((value = mail_conf_lookup_eval(name)) == 0 || *value == 0)
 		msg_fatal("restriction class `%s' needs a definition", name);
 	    htable_enter(smtpd_rest_classes, name,
-			 (char *) smtpd_check_parse(value));
+			 (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+						    value));
 	}
 	myfree(saved_classes);
     }
@@ -661,10 +674,12 @@ void    smtpd_check_init(void)
      */
 #if 0
     htable_enter(smtpd_rest_classes, "check_relay_domains",
-	    smtpd_check_parse("permit_mydomain reject_unauth_destination"));
+		 smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+			      "permit_mydomain reject_unauth_destination"));
 #endif
     htable_enter(smtpd_rest_classes, REJECT_SENDER_LOGIN_MISMATCH,
-		 (char *) smtpd_check_parse(REJECT_AUTH_SENDER_LOGIN_MISMATCH
+		 (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					    REJECT_AUTH_SENDER_LOGIN_MISMATCH
 				  " " REJECT_UNAUTH_SENDER_LOGIN_MISMATCH));
 
     /*
@@ -681,6 +696,12 @@ void    smtpd_check_init(void)
      */
     expand_filter = vstring_alloc(10);
     unescape(expand_filter, var_smtpd_exp_filter);
+
+    /*
+     * Local rewrite policy.
+     */
+    local_rewrite_clients = smtpd_check_parse(SMTPD_CHECK_PARSE_MAPS,
+					      var_local_rwr_clients);
 }
 
 /* log_whatsup - log as much context as we have */
@@ -3370,26 +3391,51 @@ int     smtpd_check_addr(const char *addr)
 
 void    smtpd_check_rewrite(SMTPD_STATE *state)
 {
+    const char *myname = "smtpd_check_rewrite";
+    int     status;
+    char  **cpp;
+    DICT   *dict;
 
     /*
-     * This should be made more configurable.
+     * We don't use generic_checks() because it produces results that
+     * aren't applicable such as DEFER or REJECT.
      */
-#define SASL_AUTHENTICATED	1
-#define NOT_SASL_AUTHENTICATED	0
-
-    /*
-     * XXX We accept same syntax as mynetwork.
-     */
-    if (SMTPD_STAND_ALONE(state)
-	|| namadr_list_match(local_rewrite_clients, state->name, state->addr)
+    for (cpp = local_rewrite_clients->argv; *cpp != 0; cpp++) {
+	if (msg_verbose)
+	    msg_info("%s: trying: %s", myname, *cpp);
+	status = SMTPD_CHECK_DUNNO;
+	if (strcasecmp(*cpp, PERMIT_MYNETWORKS) == 0) {
+	    status = permit_mynetworks(state);
+	} else if (is_map_command(state, *cpp, CHECK_ADDR_MAP, &cpp)) {
+	    if ((dict = dict_handle(*cpp)) == 0)
+		msg_panic("%s: dictionary not found: %s", myname, *cpp);
+	    if (dict_get(dict, state->addr) != 0)
+		status = SMTPD_CHECK_OK;
+	} else if (strcasecmp(*cpp, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	|| permit_sasl_auth(state, SASL_AUTHENTICATED,
-			    NOT_SASL_AUTHENTICATED)
+	    status = permit_sasl_auth(state, SMTPD_CHECK_OK,
+				      SMTPD_CHECK_DUNNO);
+#else
+	    status = SMTPD_CHECK_DUNNO;
 #endif
-	)
-	state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
-    else
-	state->rewrite_context_name = mystrdup(var_remote_rwr_name);
+#ifdef USE_SSL
+	} else if (strcasecmp(*cpp, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
+	    status = permit_tls_clientcerts(state, 1);
+	} else if (strcasecmp(*cpp, PERMIT_TLS_CLIENTCERTS) == 0) {
+	    status = permit_tls_clientcerts(state, 0);
+#endif
+	} else {
+	    msg_warn("parameter %s: invalid request: %s",
+		     VAR_LOC_RWR_CLIENTS, *cpp);
+	    continue;
+	}
+	if (status == SMTPD_CHECK_OK) {
+	    state->rewrite_context_name = mystrdup(REWRITE_LOCAL);
+	    return;
+	}
+    }
+    state->rewrite_context_name = mystrdup(*var_remote_rwr_domain ?
+					   REWRITE_REMOTE : REWRITE_NONE);
 }
 
 /* smtpd_check_client - validate client name or address */
@@ -4205,7 +4251,7 @@ static int rest_update(char **argv)
     for (rp = rest_table; rp->name; rp++) {
 	if (strcasecmp(rp->name, argv[0]) == 0) {
 	    argv_free(rp->target[0]);
-	    rp->target[0] = smtpd_check_parse(argv[1]);
+	    rp->target[0] = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL, argv[1]);
 	    return (1);
 	}
     }
@@ -4229,7 +4275,7 @@ static void rest_class(char *class)
 	argv_free((ARGV *) entry->value);
     else
 	entry = htable_enter(smtpd_rest_classes, name, (char *) 0);
-    entry->value = (char *) smtpd_check_parse(cp);
+    entry->value = (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL, cp);
 }
 
 /* resolve_clnt_init - initialize reply */

@@ -32,12 +32,12 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
               <b>invalid</b>
                      Append   the   domain  name  specified  with
-                     <b>$<a href="postconf.5.html#invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a></b>    to
-                     incomplete  addresses.  Otherwise the result
-                     is identical to that of  the  <b>local</b>  address
-                     rewriting  context.  This  prevents  Postfix
-                     from appending the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> to spam from
-                     poorly written remote clients.
+                     <b>$<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a></b> to  incomplete
+                     addresses. Otherwise the result is identical
+                     to that of the <b>local</b> address rewriting  con-
+                     text.  This  prevents Postfix from appending
+                     the <a href="ADDRESS_CLASS_README.html#local_domain_class">local domain</a> to spam from poorly written
+                     remote clients.
 
        <b>resolve</b> <i>address</i>
               Resolve an address to a (<i>transport</i>, <i>nexthop</i>, <i>recip-</i>
@@ -135,18 +135,10 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
        Available in Postfix 2.2 and later:
 
-       <b><a href="postconf.5.html#invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a> (domain.invalid)</b>
+       <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (domain.invalid)</b>
               Append  this  domain  to  incomplete message header
-              addresses     from     remote     clients,     when
-              $<a href="postconf.5.html#remote_header_rewrite_context_name">remote_header_rewrite_context_name</a>   is   set   to
-              "invalid".
-
-       Implemented by the <a href="smtpd.8.html">smtpd(8)</a> server:
-
-       <b><a href="postconf.5.html#remote_header_rewrite_context_name">remote_header_rewrite_context_name</a> (local)</b>
-              The address rewriting context that should  be  used
-              for  incomplete  mail  header addresses from remote
-              clients.
+              addresses from remote clients; when the  domain  is
+              empty, don't rewrite remote message headers at all.
 
 <b>ROUTING CONTROLS</b>
        The following is applicable to  Postfix  version  2.0  and

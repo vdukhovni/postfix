@@ -50,55 +50,55 @@ rule       local
 address    a@b.
 result     a@b
 
-rule       invalid
+rule       remote
 address    !
 result     ""@
 
-rule       invalid
+rule       remote
 address    a!
 result     ""@a.domain.invalid
 
-rule       invalid
+rule       remote
 address    !b
 result     b@
 
-rule       invalid
+rule       remote
 address    a!b
 result     b@a.domain.invalid
 
-rule       invalid
+rule       remote
 address    %
 result     ""@
 
-rule       invalid
+rule       remote
 address    a%
 result     a@
 
-rule       invalid
+rule       remote
 address    %b
 result     ""@b.domain.invalid
 
-rule       invalid
+rule       remote
 address    a%b
 result     a@b.domain.invalid
 
-rule       invalid
+rule       remote
 address    @
 result     ""
 
-rule       invalid
+rule       remote
 address    a@
 result     a@
 
-rule       invalid
+rule       remote
 address    a@.
 result     a@.
 
-rule       invalid
+rule       remote
 address    a@b
 result     a@b.domain.invalid
 
-rule       invalid
+rule       remote
 address    a@b.
 result     a@b
 

@@ -157,6 +157,7 @@
 #include <mail_params.h>
 #include <rec_type.h>
 #include <mail_proto.h>
+#include <rewrite_clnt.h>
 
 /* Application-specific. */
 

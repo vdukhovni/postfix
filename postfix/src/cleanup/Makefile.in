@@ -130,6 +130,7 @@ cleanup_addr.o: ../../include/mail_addr_find.h
 cleanup_addr.o: ../../include/maps.h
 cleanup_addr.o: ../../include/dict.h
 cleanup_addr.o: ../../include/argv.h
+cleanup_addr.o: ../../include/rewrite_clnt.h
 cleanup_addr.o: cleanup.h
 cleanup_addr.o: ../../include/nvtable.h
 cleanup_addr.o: ../../include/htable.h
@@ -196,6 +197,7 @@ cleanup_envelope.o: ../../include/verp_sender.h
 cleanup_envelope.o: ../../include/mail_proto.h
 cleanup_envelope.o: ../../include/iostuff.h
 cleanup_envelope.o: ../../include/attr.h
+cleanup_envelope.o: ../../include/rewrite_clnt.h
 cleanup_envelope.o: cleanup.h
 cleanup_envelope.o: ../../include/argv.h
 cleanup_envelope.o: ../../include/maps.h
@@ -382,6 +384,7 @@ cleanup_message.o: ../../include/iostuff.h
 cleanup_message.o: ../../include/attr.h
 cleanup_message.o: ../../include/mime_state.h
 cleanup_message.o: ../../include/lex_822.h
+cleanup_message.o: ../../include/rewrite_clnt.h
 cleanup_message.o: cleanup.h
 cleanup_message.o: ../../include/maps.h
 cleanup_message.o: ../../include/dict.h
@@ -451,10 +454,9 @@ cleanup_rewrite.o: ../../include/vstring.h
 cleanup_rewrite.o: ../../include/vbuf.h
 cleanup_rewrite.o: ../../include/tok822.h
 cleanup_rewrite.o: ../../include/resolve_clnt.h
+cleanup_rewrite.o: ../../include/rewrite_clnt.h
 cleanup_rewrite.o: ../../include/quote_822_local.h
 cleanup_rewrite.o: ../../include/quote_flags.h
-cleanup_rewrite.o: ../../include/rewrite_clnt.h
-cleanup_rewrite.o: ../../include/mail_params.h
 cleanup_rewrite.o: cleanup.h
 cleanup_rewrite.o: ../../include/vstream.h
 cleanup_rewrite.o: ../../include/argv.h
@@ -481,6 +483,7 @@ cleanup_state.o: ../../include/been_here.h
 cleanup_state.o: ../../include/mail_params.h
 cleanup_state.o: ../../include/mime_state.h
 cleanup_state.o: ../../include/header_opts.h
+cleanup_state.o: ../../include/rewrite_clnt.h
 cleanup_state.o: cleanup.h
 cleanup_state.o: ../../include/vstream.h
 cleanup_state.o: ../../include/argv.h

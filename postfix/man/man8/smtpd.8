@@ -112,18 +112,14 @@ Enable or disable recipient validation, built-in content
 filtering, or address mapping.
 .PP
 Available in Postfix version 2.2 and later:
-.IP "\fBlocal_header_rewrite_context_clients ($mynetworks)\fR"
-Append the domain names in $myorigin and $mydomain to incomplete
-message header addresses from these clients.
-.IP "\fBremote_header_rewrite_context_name (local)\fR"
-The address rewriting context that should be used for incomplete
-mail header addresses from remote clients.
-.PP
-Implemented by the trivial-rewrite(8) server:
-.IP "\fBinvalid_header_rewrite_context_domain (domain.invalid)\fR"
-Append this domain to incomplete message header addresses from
-remote clients, when $remote_header_rewrite_context_name is set to
-"invalid".
+.IP "\fBlocal_header_rewrite_clients (see 'postconf -d' output)\fR"
+Append the domain name in $myorigin or $mydomain to incomplete
+message header addresses from these clients; append
+$remote_header_rewrite_domain for all other clients.
+.IP "\fBremote_header_rewrite_domain (domain.invalid)\fR"
+Append this domain name to incomplete message header addresses
+from remote clients; when this domain name is empty, don't rewrite
+remote message headers at all.
 .SH "AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS"
 .na
 .nf

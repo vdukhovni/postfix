@@ -672,7 +672,7 @@ The default time unit is s (seconds).
 <p>
 With locally submitted mail, append the string "@$<a href="postconf.5.html#myorigin">myorigin</a>" to mail
 addresses without domain information. With remotely submitted mail,
-append the string "@$invalid_domain" instead.
+append the string "@$<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>" instead.
 </p>
 
 <p>
@@ -689,7 +689,8 @@ Postfix does not support domain-less addresses.
 <p>
 With locally submitted mail, append the string ".$<a href="postconf.5.html#mydomain">mydomain</a>" to
 addresses that have no ".domain" information. With remotely submitted
-mail, append the string ".$invalid_domain" instead.
+mail, append the string ".$<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>"
+instead.
 </p>
 
 <p>
@@ -2573,17 +2574,6 @@ block all mail to a site.
 
 </DD>
 
-<DT><b><a name="invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a>
-(default: domain.invalid)</b></DT><DD>
-
-<p> Append this domain to incomplete message header addresses from
-remote clients, when $<a href="postconf.5.html#remote_header_rewrite_context_name">remote_header_rewrite_context_name</a> is set to
-"invalid".  This is one way to avoid appending your own domain to
-addresses in spam from poorly written software. </p>
-
-
-</DD>
-
 <DT><b><a name="invalid_hostname_reject_code">invalid_hostname_reject_code</a>
 (default: 501)</b></DT><DD>
 
@@ -3082,34 +3072,61 @@ into concurrency per domain.  </p>
 
 </DD>
 
-<DT><b><a name="local_header_rewrite_context_clients">local_header_rewrite_context_clients</a>
-(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
+<DT><b><a name="local_header_rewrite_clients">local_header_rewrite_clients</a>
+(default: see "postconf -d" output)</b></DT><DD>
 
-<p> Append the domain names in $<a href="postconf.5.html#myorigin">myorigin</a> and $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete
-message header addresses from these clients.  </p>
+<p> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete
+message header addresses from these clients; append
+$<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> for all other clients.  </p>
 
-<p> Specify a list of network addresses or network/netmask patterns,
-separated by comma or whitespace. Continue long lines by starting
-the next line with whitespace. </p>
+<p> Specify a list of zero or more of the following:  </p>
 
-<p> A network mask specifies the number of bits in the network part
-of a host address.  You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>"
-patterns.  A "/file/name" pattern is replaced by its contents; a
-"<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a client name or address
-matches a lookup key (the lookup result is ignored). </p>
+<dl>
 
-<p> The list is matched left to right, and the search stops on the
-first match.  Specify "!pattern" to exclude an address or network
-block from the list.  </p>
+<dt> <b> <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> </b></dt>
 
-<p>
-Examples:
-</p>
+<dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
+client IP address matches any network or network address listed in
+$<a href="postconf.5.html#mynetworks">mynetworks</a>. This is enabled by default. </dd>
+
+<dt><b> <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
+
+<dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
+client is successfully authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH)
+protocol. This is enabled by default. </dd>
+
+<dt><b> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
+
+<dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
+client TLS certificate is successfully verified, and the client
+certificate fingerprint is listed on the server. This is enabled
+by default. </dd>
+
+<dt><b> <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </b></dt>
+
+<dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
+client TLS certificate is successfully verified, regardless of
+whether it is listed on the server, and regardless of the certifying
+authority. </dd>
+
+<dt><b> <a name="check_address_map">check_address_map</a> <i><a
+href="DATABASE_README.html">type:table</a></i> </b></dt>
+
+<dt><b> <i><a href="DATABASE_README.html">type:table</a></i>
+</b></dt>
+
+<dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
+client IP address matches the specified lookup table. The lookup
+result is ignored, and no subnet lookup is done. This is suitable
+for pop-before-smtp lookup tables. </dd>
+
+</dl>
+
+<p> Examples:  </p>
 
 <pre>
-<a href="postconf.5.html#local_header_rewrite_context_clients">local_header_rewrite_context_clients</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
-<a href="postconf.5.html#local_header_rewrite_context_clients">local_header_rewrite_context_clients</a> = !192.168.0.1 $<a href="postconf.5.html#mynetworks">mynetworks</a>
-<a href="postconf.5.html#local_header_rewrite_context_clients">local_header_rewrite_context_clients</a> = static:all
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = static:all
+<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
 </pre>
 
 
@@ -5028,36 +5045,14 @@ Examples:
 
 </DD>
 
-<DT><b><a name="remote_header_rewrite_context_name">remote_header_rewrite_context_name</a>
-(default: local)</b></DT><DD>
+<DT><b><a name="remote_header_rewrite_domain">remote_header_rewrite_domain</a>
+(default: domain.invalid)</b></DT><DD>
 
-<p> The address rewriting context that should be used for incomplete
-mail header addresses from remote clients. </p>
-
-<ul>
-
-<li> <p> <b>local</b> Append the domains specified with $<a href="postconf.5.html#myorigin">myorigin</a>
-or $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete message header addresses from remote
-clients.  </p>
-
-<li> <p> <b>invalid</b> Append the domain specified with
-$<a href="postconf.5.html#invalid_header_rewrite_context_domain">invalid_header_rewrite_context_domain</a> to incomplete message header
-addresses from remote clients. This is one way to avoid appending
+<p> Append this domain name to incomplete message header addresses
+from remote clients; when this domain name is empty, don't rewrite
+remote message headers at all.  Both stop Postfix from appending
 your own domain to addresses in spam from poorly written software.
-This is a safe choice for gateways that have no control over
-address rewriting by down-stream systems.
 </p>
-
-<li> <p> <b>none</b> Don't modify message headers from remote
-clients at all. This is another way to avoid appending your own
-domain to addresses in spam from poorly written software. This
-is the preferred choice for purists. </p>
-
-</ul>
-
-<p> Note: Postfix always appends the domains specified with $<a href="postconf.5.html#myorigin">myorigin</a>
-or $<a href="postconf.5.html#mydomain">mydomain</a> to incomplete envelope addresses, because those
-addresses are effectively equivalent to local addresses. </p>
 
 
 </DD>
@@ -6404,7 +6399,12 @@ least significant octets. See the <a href="access.5.html">access(5)</a> manual p
 <dt><b><a name="permit_mynetworks">permit_mynetworks</a></b></dt>
 
 <dd>Permit the request when the client IP address matches any
-network listed in  $<a href="postconf.5.html#mynetworks">mynetworks</a>. </dd>
+network or network address listed in  $<a href="postconf.5.html#mynetworks">mynetworks</a>. </dd>
+
+<dt><b><a name="permit_sasl_authenticated">permit_sasl_authenticated</a></b></dt>
+
+<dd> Permit the request when the client is successfully
+authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</a> (AUTH) protocol. </dd>
 
 <dt><b><a name="reject_rbl_client">reject_rbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
@@ -7330,13 +7330,13 @@ the Postfix SMTP server does not use authentication.
 </p>
 
 <p>
-If a remote SMTP client is authenticated, the permit_sasl_authenticated
+If a remote SMTP client is authenticated, the <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
 access restriction can be used to permit relay access, like this:
 </p>
 
 <pre>
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
-        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, permit_sasl_authenticated, ...
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>, ...
 </pre>
 
 <p> To reject all SMTP connections from unauthenticated clients,
@@ -7344,7 +7344,7 @@ specify "<a href="postconf.5.html#smtpd_delay_reject">smtpd_delay_reject</a> = y
 </p>
 
 <pre>
-    <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> = permit_sasl_authenticated, reject
+    <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> = <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>, reject
 </pre>
 
 <p>
