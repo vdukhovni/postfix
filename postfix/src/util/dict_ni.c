@@ -174,7 +174,7 @@ DICT   *dict_ni_open(const char *path, int unused_flags, int dict_flags)
     d->dict.close = dict_ni_close;
     d->dict.flags = dict_flags | DICT_FLAG_FIXED;
 
-    return &d->dict;
+    return (DICT_DEBUG(&d->dict));
 }
 
 #endif

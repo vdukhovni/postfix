@@ -4831,13 +4831,6 @@ Apologies for any names omitted.
 	bug that causes mail delivery problems when "." and "CRLF"
 	arrive in separate packets. File:  html/faq.html.
 
-20010131
-
-	The code that reports a DNS lookup error now includes the
-	record type that was being looked up, so that people will
-	not misinterpret an MX lookup problem as an A record lookup
-	problem.  File:  dns/dns_lookup.c.
-
 20010201
 
 	Bugfix: another missing initialization in the mysql client.
@@ -4860,3 +4853,19 @@ Apologies for any names omitted.
 	Feature: disable mailbox size limits for the local and
 	virtual delivery agents by setting mailbox_size_limit or
 	virtual_mailbox_limit to zero.
+
+20010203
+
+	Update: null candidate patch from Patrick Rak. Files:
+	nqmgr/qmgr_entry.c nqmgr/qmgr_job.c nqmgr/qmgr_message.c.
+
+	Cleanup: added one gruesome command to the postlink script
+	for hyperlinking nroff manual page output. Word abbreviation
+	broke some <a href...> </a> instances across line boundaries.
+	sed(1) is an amazing tool.  File: mantools/postlink.
+
+20010204
+
+	Laid the ground work for logging of table accesses. This
+	will give more insight into how Postfix uses its lookup
+	tables. User interface comes later.  File:  util/dict_debug.c.

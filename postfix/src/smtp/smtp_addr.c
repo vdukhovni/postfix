@@ -338,7 +338,7 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
 	    smtp_errno = SMTP_RETRY;
-	    msg_warn("MX hosts for %s have no valid A record", name);
+	    msg_warn("no MX host for %s has a valid A record", name);
 	    break;
 	}
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);

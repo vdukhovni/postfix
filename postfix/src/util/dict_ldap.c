@@ -842,7 +842,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     /*
      * Otherwise, we're all set. Return the new dict_ldap structure.
      */
-    return (&dict_ldap->dict);
+    return (DICT_DEBUG(&dict_ldap->dict));
 }
 
 #endif

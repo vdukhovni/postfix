@@ -409,7 +409,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 	dict_dbm->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);
     dict_dbm->dbm = dbm;
 
-    return (&dict_dbm->dict);
+    return (DICT_DEBUG(&dict_dbm->dict));
 }
 
 #endif

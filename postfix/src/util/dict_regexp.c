@@ -345,8 +345,8 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
 
     line_buffer = vstring_alloc(100);
 
-    dict_regexp = (DICT_REGEXP *) dict_alloc(DICT_TYPE_REGEXP, map, 
-	sizeof(*dict_regexp));
+    dict_regexp = (DICT_REGEXP *) dict_alloc(DICT_TYPE_REGEXP, map,
+					     sizeof(*dict_regexp));
     dict_regexp->dict.lookup = dict_regexp_lookup;
     dict_regexp->dict.close = dict_regexp_close;
     dict_regexp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
@@ -386,7 +386,7 @@ DICT   *dict_regexp_open(const char *map, int unused_flags, int dict_flags)
     vstring_free(line_buffer);
     vstream_fclose(map_fp);
 
-    return (&dict_regexp->dict);
+    return (DICT_DEBUG(&dict_regexp->dict));
 }
 
 #endif

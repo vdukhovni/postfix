@@ -146,5 +146,5 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
     dict_unix->dict.lookup = lp->lookup;
     dict_unix->dict.close = dict_unix_close;
     dict_unix->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    return (&dict_unix->dict);
+    return (DICT_DEBUG(&dict_unix->dict));
 }

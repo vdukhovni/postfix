@@ -42,6 +42,9 @@ typedef struct DICT {
 extern DICT *dict_alloc(const char *, const char *, int);
 extern void dict_free(DICT *);
 
+extern DICT *dict_debug(DICT *);
+#define DICT_DEBUG(d) ((d)->flags & DICT_FLAG_DEBUG ? dict_debug(d) : (d))
+
 #define DICT_FLAG_DUP_WARN	(1<<0)	/* if file, warn about dups */
 #define DICT_FLAG_DUP_IGNORE	(1<<1)	/* if file, ignore dups */
 #define DICT_FLAG_TRY0NULL	(1<<2)	/* do not append 0 to key/value */
@@ -51,6 +54,7 @@ extern void dict_free(DICT *);
 #define DICT_FLAG_LOCK		(1<<6)	/* lock before access */
 #define DICT_FLAG_DUP_REPLACE	(1<<7)	/* if file, replace dups */
 #define DICT_FLAG_SYNC_UPDATE	(1<<8)	/* if file, sync updates */
+#define DICT_FLAG_DEBUG		(1<<9)	/* log access */
 
 extern int dict_unknown_allowed;
 extern int dict_errno;

@@ -216,7 +216,7 @@ DICT   *dict_nis_open(const char *map, int unused_flags, int dict_flags)
 	dict_nis->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     if (dict_nis_domain == 0)
 	dict_nis_init();
-    return (&dict_nis->dict);
+    return (DICT_DEBUG(&dict_nis->dict));
 }
 
 #endif

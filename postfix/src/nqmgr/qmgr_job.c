@@ -489,11 +489,17 @@ static QMGR_JOB *qmgr_job_candidate(QMGR_JOB *current)
      * Fetch the result directly from the cache if the cache is still valid.
      * 
      * Note that we cache negative results too, so the cache must be invalidated
-     * by resetting the cache time or current job pointer, not the candidate
-     * pointer itself.
+     * by resetting the cached current job pointer, not the candidate pointer
+     * itself.
+     * 
+     * In case the cache is valid and contains no candidate, we can ignore the
+     * time change, as it affects only which candidate is the best, not if
+     * one exists. However, this feature requires that we no longer relax the
+     * cache resetting rules, depending on the automatic cache timeout.
      */
     if (transport->candidate_cache_current == current
-	&& transport->candidate_cache_time == now)
+	&& (transport->candidate_cache_time == now
+	    || transport->candidate_cache == 0))
 	return (transport->candidate_cache);
 
     /*
@@ -727,18 +733,24 @@ static void qmgr_job_pop(QMGR_JOB *job)
     job->stack_level = 0;
 
     /*
+     * Explicitely reset the candidate cache. It's not worth trying to skip
+     * this under some complicated conditions - in most cases the popped job
+     * is the current job so we would have to reset it anyway.
+     */
+    RESET_CANDIDATE_CACHE(transport);
+
+    /*
      * Here we leave the remaining work involving the proper placement on the
      * job list to the caller. The most important reason for this is that it
      * allows us not to look up where exactly to place the job.
      * 
-     * The caller is also made responsible for invalidating the candidate and
-     * current job caches if necessary.
+     * The caller is also made responsible for invalidating the current job
+     * cache if necessary.
      */
 #if 0
     QMGR_LIST_UNLINK(transport->job_list, QMGR_JOB *, job, transport_peers);
     QMGR_LIST_LINK(transport->job_list, some_prev, job, some_next, transport_peers);
 
-    RESET_CANDIDATE_CACHE(transport);
     if (transport->job_current == job)
 	transport->job_current = job->transport_peers.next;
 #endif

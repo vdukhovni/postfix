@@ -65,5 +65,5 @@ DICT   *dict_nisplus_open(const char *map, int unused_flags, int dict_flags)
 					       sizeof(*dict_nisplus));
     dict_nisplus->dict.close = dict_nisplus_close;
     dict_nisplus->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    return (&dict_nisplus->dict);
+    return (DICT_DEBUG(&dict_nisplus->dict));
 }

@@ -11,7 +11,7 @@
 /*	unsigned variation;
 /* DESCRIPTION
 /*	rand_sleep() blocks the current process for an amount of time
-/*	pseudo-randomly chosen from the interval (delay += variation/2).
+/*	pseudo-randomly chosen from the interval (delay +- variation/2).
 /*
 /*	Arguments:
 /* .IP delay

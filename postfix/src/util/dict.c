@@ -109,7 +109,7 @@
 /*	dict_sequence() steps throuh the named dictionary and returns
 /*	keys and values in some implementation-defined order. The func
 /*	argument is DICT_SEQ_FUN_FIRST to set the cursor to the first
-/*	entry or DICT_SEQ_FUN_NEXT so select the next entry. The result
+/*	entry or DICT_SEQ_FUN_NEXT to select the next entry. The result
 /*	is owned by the underlying dictionary method. Make a copy if the
 /*	result is to be modified, or if the result is to survive multiple
 /*	dict_sequence() calls.

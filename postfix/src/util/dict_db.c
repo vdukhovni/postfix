@@ -523,7 +523,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	dict_db->dict.flags |= (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL);
     dict_db->db = db;
     myfree(db_path);
-    return (&dict_db->dict);
+    return (DICT_DEBUG(&dict_db->dict));
 }
 
 /* dict_hash_open - create association with data base */

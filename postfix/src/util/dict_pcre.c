@@ -364,7 +364,7 @@ DICT   *dict_pcre_open(const char *map, int unused_flags, int dict_flags)
     vstring_free(line_buffer);
     vstream_fclose(map_fp);
 
-    return (&dict_pcre->dict);
+    return (DICT_DEBUG(&dict_pcre->dict));
 }
 
 #endif					/* HAS_PCRE */

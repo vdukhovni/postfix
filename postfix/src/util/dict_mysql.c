@@ -360,7 +360,7 @@ DICT   *dict_mysql_open(const char *name, int unused_open_flags, int dict_flags)
     if (dict_mysql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
     dict_register(name, (DICT *) dict_mysql);
-    return &dict_mysql->dict;
+    return (DICT_DEBUG(&dict_mysql->dict));
 }
 
 /* mysqlname_parse - parse mysql configuration file */

@@ -80,5 +80,5 @@ DICT   *dict_env_open(const char *name, int unused_flags, int dict_flags)
     dict->update = dict_env_update;
     dict->close = dict_env_close;
     dict->flags = dict_flags | DICT_FLAG_FIXED;
-    return (dict);
+    return (DICT_DEBUG(dict));
 }

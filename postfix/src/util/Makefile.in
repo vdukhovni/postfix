@@ -22,7 +22,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
-	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c
+	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -46,7 +46,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
-	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o
+	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -402,6 +402,14 @@ dict_db.o: argv.h
 dict_db.o: dict_db.h
 dict_dbm.o: dict_dbm.c
 dict_dbm.o: sys_defs.h
+dict_debug.o: dict_debug.c
+dict_debug.o: sys_defs.h
+dict_debug.o: msg.h
+dict_debug.o: mymalloc.h
+dict_debug.o: dict.h
+dict_debug.o: vstream.h
+dict_debug.o: vbuf.h
+dict_debug.o: argv.h
 dict_env.o: dict_env.c
 dict_env.o: sys_defs.h
 dict_env.o: mymalloc.h

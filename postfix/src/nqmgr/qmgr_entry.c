@@ -193,6 +193,10 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
      * the queue is not marked as a blocker anymore, with extra handling of
      * queues which were declared dead.
      * 
+     * Note that changing the blocker status also affects the candidate cache.
+     * Most of the cases would be automatically recognized by the current job
+     * change, but we play safe and reset the cache explicitly below.
+     * 
      * Keeping the transport blocker tag odd is an easy way to make sure the tag
      * never matches jobs that are not explicitly marked as blockers.
      */
@@ -200,6 +204,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 	if (queue->window > queue->busy_refcount && queue->todo.next != 0) {
 	    transport->blocker_tag += 2;
 	    transport->job_current = transport->job_list.next;
+	    transport->candidate_cache_current = 0;
 	}
 	if (queue->window > queue->busy_refcount || queue->window == 0)
 	    queue->blocker_tag = 0;

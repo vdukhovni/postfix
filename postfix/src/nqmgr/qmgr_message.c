@@ -848,11 +848,10 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
     /*
      * Note that even if qmgr_job_obtain() reset the job candidate cache of
      * all transports to which we assigned new recipients, this message may
-     * have other jobs which we didn't touch at all this time. But as the
-     * number of unread recipients affecting the candidate selection might
-     * have changed considerably, let's invalidate the caches if it seems it
-     * might be of some use. It's not critical though because the cache will
-     * expire within one second anyway.
+     * have other jobs which we didn't touch at all this time. But the number
+     * of unread recipients affecting the candidate selection might have
+     * changed considerably, so we must invalidate the caches if it might be
+     * of some use.
      */
     for (job = message->job_list.next; job; job = job->message_peers.next)
 	if (job->selected_entries < job->read_entries

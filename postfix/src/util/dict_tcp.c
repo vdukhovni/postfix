@@ -268,5 +268,5 @@ DICT   *dict_tcp_open(const char *map, int unused_flags, int dict_flags)
     dict_tcp->dict.lookup = dict_tcp_lookup;
     dict_tcp->dict.close = dict_tcp_close;
     dict_tcp->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    return (&dict_tcp->dict);
+    return (DICT_DEBUG(&dict_tcp->dict));
 }
