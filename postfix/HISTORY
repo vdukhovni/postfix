@@ -8397,6 +8397,14 @@ Apologies for any names omitted.
 	Safety: always truncate SMTP server error replies to 512
 	bytes.  File: smtpd/smtpd_check.c.
 
+20030717
+
+	Documentation: added description of policy_time_limit to 
+	the SMTPD_POLICY_README document.
+
+	Documentation: corrected the command time limit parameter
+	syntax in the spawn(8) manual page.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

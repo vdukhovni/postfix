@@ -67,21 +67,21 @@ SPAWN(8)                                                 SPAWN(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>export</b><i>_</i><b>environment</b>
+       <b>export_environment</b>
               List of names of environment parameters that can be
               exported to non-Postfix processes.
 
-       <b>mail</b><i>_</i><b>owner</b>
+       <b>mail_owner</b>
               The  process  privileges  used while not running an
               external command.
 
 <b>Resource control</b>
-       <i>service_</i><b>command</b><i>_</i><b>time</b><i>_</i><b>limit</b>
+       <i>service</i><b>_time_limit</b>
               The amount of time the command is  allowed  to  run
-              before it is killed with force. The <i>service</i> name is
-              the name of the entry in the  <b>master.cf</b>  file.  The
+              before  it  is  killed  with  force. <i>service</i> is the
+              first field of the entry in the <b>master.cf</b> file. The
               default  time  limit  is  given  by the global <b>com-</b>
-              <b>mand</b><i>_</i><b>time</b><i>_</i><b>limit</b> configuration parameter.
+              <b>mand_time_limit</b> configuration parameter.
 
 <b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a> process manager

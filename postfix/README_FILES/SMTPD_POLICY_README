@@ -86,9 +86,14 @@ smtpd_recipient_restrictions:
         reject_unauth_destination 
         check_policy_service unix:private/policy 
         ...
+    policy_time_limit = 3600
 
 NOTE: specify "check_policy_service" AFTER "reject_unauth_destination"
 or else your system could become an open relay.
+
+NOTE: Postfix by default kills a command after 1000 seconds. This
+is too short for a policy daemon that may run for as long as an
+SMTP client is connected to an SMTP server process.
 
 NOTE: Solaris UNIX-domain sockets do not work very well. Use TCP
 sockets instead:
@@ -99,6 +104,7 @@ sockets instead:
         reject_unauth_destination 
         check_policy_service inet:localhost:9998
         ...
+    localhost:9998_time_limit = 3600
 
 Other client-side configuration parmeters:
 
@@ -174,6 +180,7 @@ that often appear in forged email.
         ...
     restriction_classes = greylist
     greylist = check_policy_service unix:private/policy
+    policy_time_limit = 3600
 
 /etc/postfix/sender_access:
     aol.com     greylist
@@ -202,6 +209,7 @@ database relatively quickly.
         check_sender_access hash:/etc/postfix/sender_access
         check_policy_service unix:private/policy
         ...
+    policy_time_limit = 3600
 
 /etc/postfix/sender_access:
     securityfocus.com OK
