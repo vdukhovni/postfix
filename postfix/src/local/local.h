@@ -68,6 +68,7 @@ typedef struct DELIVER_ATTR {
     char   *queue_name;			/* mail queue id */
     char   *queue_id;			/* mail queue id */
     long    offset;			/* data offset */
+    char   *encoding;			/* MIME encoding */
     char   *sender;			/* taken from envelope */
     char   *recipient;			/* taken from resolver */
     char   *domain;			/* recipient domain */
@@ -121,6 +122,9 @@ typedef struct LOCAL_STATE {
   */
 #define BOUNCE_ATTR(attr)	attr.queue_id, attr.recipient, attr.relay, \
 					attr.arrival_time
+#define BOUNCE_ONE_ATTR(attr)	attr.queue_name, attr.queue_id, attr.encoding, \
+					attr.sender, attr.recipient, \
+					attr.relay, attr.arrival_time
 #define SENT_ATTR(attr)		attr.queue_id, attr.recipient, attr.relay, \
 					attr.arrival_time
 #define OPENED_ATTR(attr)	attr.queue_id, attr.sender

@@ -31,7 +31,7 @@
 /* .ti +4
 /*	/ user@example\e.com$/ { print $1 } \e
 /* .br
-/*	\' | postsuper -d -
+/*	\' | tr -d '*!' | postsuper -d -
 /* .sp
 /*	Specify \fB-d ALL\fR to remove all messages; for example, specify
 /*	\fB-d ALL deferred\fR to delete mail in the \fBdeferred\fR queue.
@@ -74,7 +74,9 @@
 /*	As a safety measure, the word \fBALL\fR must be specified in upper
 /*	case.
 /* .sp
-/*	Note: mail that is put "on hold" will not expire.
+/*	Note: mail that is put "on hold" will not expire when its
+/*	time in the queue exceeds the \fBmaximal_queue_lifetime\fR
+/*	setting.
 /* .IP "\fB-H \fIqueue_id\fR"
 /*	Release mail that was put "on hold".
 /*	Move one message with the named queue ID from the named

@@ -1535,7 +1535,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	msg_warn("SMTPD access map %s has entry with lookup table: %s",
 		 table, value);
 	msg_warn("do not specify lookup tables inside SMTPD access maps");
-	msg_warn("define a restriction class and specify its name instead");
+	msg_warn("define a restriction class and specify its name instead.");
 	longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
 					 "451 Server configuration error"));
     }
@@ -2733,6 +2733,7 @@ int     var_relay_code;
 int     var_maps_rbl_code;
 int     var_access_map_code;
 int     var_reject_code;
+int     var_defer_code;
 int     var_non_fqdn_code;
 int     var_smtpd_delay_reject;
 int     var_allow_untrust_route;
@@ -2747,6 +2748,7 @@ static INT_TABLE int_table[] = {
     VAR_MAPS_RBL_CODE, DEF_MAPS_RBL_CODE, &var_maps_rbl_code,
     VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code,
     VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code,
+    VAR_DEFER_CODE, DEF_DEFER_CODE, &var_defer_code,
     VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code,
     VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
     VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,

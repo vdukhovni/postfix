@@ -413,8 +413,10 @@ recipient.o: ../../include/bounce.h
 recipient.o: ../../include/defer.h
 recipient.o: ../../include/mail_params.h
 recipient.o: ../../include/split_addr.h
+recipient.o: ../../include/strip_addr.h
 recipient.o: ../../include/ext_prop.h
 recipient.o: ../../include/mypwd.h
+recipient.o: ../../include/canon_addr.h
 recipient.o: local.h
 recipient.o: ../../include/been_here.h
 recipient.o: ../../include/tok822.h

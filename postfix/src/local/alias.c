@@ -191,7 +191,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
     for (cpp = alias_maps->argv->argv; *cpp; cpp++) {
 	if ((dict = dict_handle(*cpp)) == 0)
 	    msg_panic("%s: dictionary not found: %s", myname, *cpp);
-	if ((dict->flags & DICT_FLAG_FIXED) == 0) {
+	if ((dict->flags & ALIAS_DICT_FLAGS) != ALIAS_DICT_FLAGS) {
 	    msg_warn("invalid alias map type: %s", *cpp);
 	    continue;
 	}
@@ -245,7 +245,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 
 	    expansion = mystrdup(alias_result);
 	    if (OWNER_ASSIGN(owner) != 0
-	    && (owner_rhs = maps_find(alias_maps, owner, DICT_FLAG_FIXED)) != 0) {
+	    && (owner_rhs = maps_find(alias_maps, owner, ALIAS_DICT_FLAGS)) != 0) {
 		canon_owner = canon_addr_internal(vstring_alloc(10),
 				     var_exp_own_alias ? owner_rhs : owner);
 		SET_OWNER_ATTR(state.msg_attr, STR(canon_owner), state.level);

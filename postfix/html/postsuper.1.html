@@ -30,7 +30,7 @@ POSTSUPER(1)                                         POSTSUPER(1)
 
               mailq | awk  'BEGIN { RS = "" } \
                   / user@example\.com$/ { print $1 } \
-              ' | postsuper -d -
+              ' | tr -d '*!' | postsuper -d -
 
               Specify <b>-d</b> <b>ALL</b> to remove all messages; for example,
               specify <b>-d</b> <b>ALL</b>  <b>deferred</b>  to  delete  mail  in  the
@@ -74,7 +74,9 @@ POSTSUPER(1)                                         POSTSUPER(1)
               <b>deferred</b>  queue.  As a safety measure, the word <b>ALL</b>
               must be specified in upper case.
 
-              Note: mail that is put "on hold" will not expire.
+              Note: mail that is put "on hold"  will  not  expire
+              when  its  time  in  the  queue  exceeds  the <b>maxi-</b>
+              <b>mal</b><i>_</i><b>queue</b><i>_</i><b>lifetime</b> setting.
 
        <b>-H</b> <i>queue_id</i>
               Release mail that was put "on hold".  Move one mes-

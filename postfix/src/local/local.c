@@ -516,6 +516,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.queue_id = rqst->queue_id;
     state.msg_attr.fp = rqst->fp;
     state.msg_attr.offset = rqst->data_offset;
+    state.msg_attr.encoding = rqst->encoding;
     state.msg_attr.sender = rqst->sender;
     state.msg_attr.relay = service;
     state.msg_attr.arrival_time = rqst->arrival_time;

@@ -6723,6 +6723,8 @@ Apologies for any names omitted.
 	Bugfix: garbage in verbose "flush" server logging. Victor
 	Duchovni.  File: flush/flush.c.
 
+20020723
+
 	Incompatibility: smtpd_sasl_local_domain now defaults to
 	the null string. File: smtpd/smtpd.c, smtpd/smtpd_sasl_glue.c.
 
@@ -6744,8 +6746,9 @@ Apologies for any names omitted.
 
 20020731
 
-	Cleanup: permit_naked_ip_address is unsafe and will go
-	away.  Postfix logs a warning. File: smtpd/smtpd_check.c.
+	Cleanup: permit_naked_ip_address is unsafe (especially when
+	used with smtpd_recipient_restrictions) and will go away.
+	Postfix now logs a warning. File: smtpd/smtpd_check.c.
 
 20020801
 
@@ -6762,6 +6765,16 @@ Apologies for any names omitted.
 	-H" to release mail that was placed "on hold". This involves
 	a new queue, which is appropriately named "hold".  Files:
 	postsuper/postsuper.c, showq/showq.c.
+
+20020803
+
+	Feature: when a Delivered-To: mail delivery loop is detected,
+	send the bounce to the mailing list owner. This required
+	changes to the local delivery agent, a new bounce client
+	stub, and a new bounce server stub and support routines
+	for one recipient bouncing. Files: local/recipient.c,
+	global/bounce_log.c, global/bounce.c, bounce/bounce.c,
+	bounce/bounce_notify_util.c, bounce/bounce_one_service.c.
 
 Open problems:
 

@@ -209,112 +209,112 @@ fifo_rdonly_bug: fifo_rdonly_bug.c $(LIB)
 select_bug: select_bug.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
-translit: $(LIB) $@.o
+translit: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-fsspace: $(LIB) $@.o
+fsspace: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-exec_command: $(LIB) $@.o
+exec_command: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-make_dirs: $(LIB) $@.o
+make_dirs: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-mac_parse: $(LIB) $@.o
+mac_parse: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-vstream_popen: $(LIB) $@.o
+vstream_popen: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-fifo_trigger: $(LIB) $@.o
+fifo_trigger: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-doze: $(LIB) $@.o
+doze: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-mac_expand: $(LIB) $@.o
+mac_expand: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-watchdog: $(LIB) $@.o
+watchdog: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-unescape: $(LIB) $@.o
+unescape: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-hex_quote: $(LIB) $@.o
+hex_quote: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-name_mask: $(LIB) $@.o
+name_mask: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-rand_sleep: $(LIB) $@.o
+rand_sleep: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-sane_time: $(LIB) $@.o
+sane_time: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-ctable: $(LIB) $@.o
+ctable: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-inet_addr_list: $(LIB) $@.o
+inet_addr_list: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-attr_print64: $(LIB) $@.o
+attr_print64: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-attr_scan64: $(LIB) $@.o
+attr_scan64: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-base64_code: $(LIB) $@.o
+base64_code: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-attr_print0: $(LIB) $@.o
+attr_print0: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-attr_scan0: $(LIB) $@.o
+attr_scan0: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -378,15 +378,13 @@ attr_scan0_test: attr_print0 attr_scan0 attr_scan0.ref
 	diff attr_scan0.ref attr_scan0.tmp
 	rm -f attr_scan0.tmp
 
-DB_TYPE	= `../postconf/postconf -h default_database_type`
-
 dict_test: dict_open testdb dict_test.in dict_test.ref
 	rm -f testdb.db testdb.dir testdb.pag
-	../postmap/postmap -N testdb
-	./dict_open $(DB_TYPE):testdb write < dict_test.in > dict_test.tmp 2>&1
+	../postmap/postmap -N hash:testdb
+	./dict_open hash:testdb write < dict_test.in > dict_test.tmp 2>&1
 	diff dict_test.ref dict_test.tmp
-	../postmap/postmap -n testdb
-	./dict_open $(DB_TYPE):testdb write < dict_test.in > dict_test.tmp 2>&1
+	../postmap/postmap -n hash:testdb
+	./dict_open hash:testdb write < dict_test.in > dict_test.tmp 2>&1
 	diff dict_test.ref dict_test.tmp
 	rm -f testdb.db testdb.dir testdb.pag dict_test.tmp
 

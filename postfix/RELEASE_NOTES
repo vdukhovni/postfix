@@ -12,11 +12,40 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-200208XX
+Incompatible changes with Postfix snapshot 1.1.11-20020804
 ==========================================================
 
+LDAP API version 1 is no longer supported. The memory allocation
+and deallocation strategy has changed too much to maintain both
+version 1 and 2 at the same time.
+
 In mailq output, the queue ID is followed by the ! character when
-the message is in the "hold" queue.
+the message is in the "hold" queue. This may break programs that
+process mailq output.
+
+The "permit_naked_ip_address" restriction on HELO command syntax
+is unsafe when used with smtpd_recipient_restrictions, and will go
+away. The user is requested to use "permit_mynetworks" instead.
+
+The smtpd_sasl_local_domain setting now defaults to the null string,
+rather than $myhostname. This seems to work better with Cyrus SASL
+version 2. This change may cause incompatibility with the saslpasswd2
+command.
+
+Major changes with Postfix snapshot 1.1.11-20020804
+===================================================
+
+New "hold" queue for mail that should not be delivered.  "postqueue
+-h" puts mail on hold, and "postqueue -H" releases mail, moving
+mail that was "on hold" to the deferred queue.
+
+Mail is now sent to the mailing list owner when Postfix detects a
+Delivered-To: mail delivery loop. Delivery loops happen when idiots
+forward mail that was already stored in a mailbox, setting the
+envelope recipient address to the To: address (so that mail would
+loop back to the mailing list), and setting the envelope sender
+address to the From:  address (so that the error report would be
+sent to the poster).
 
 Incompatible changes with Postfix snapshot 1.1.11-20020717
 ==========================================================
