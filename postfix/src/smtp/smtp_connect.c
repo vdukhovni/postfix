@@ -582,6 +582,7 @@ int     smtp_connect(SMTP_STATE *state)
 	    if (++addr_count == var_smtp_mxaddr_limit)
 		next = 0;
 	    if ((sess_flags & SMTP_SESS_FLAG_CACHE) == 0
+		|| addr->pref == domain_best_pref
 		|| (session = smtp_reuse_addr(state, addr, port)) == 0)
 		session = smtp_connect_addr(dest, addr, port, why, sess_flags);
 	    if ((state->session = session) != 0) {

@@ -59,8 +59,8 @@
   * destination hash table entry.
   * 
   * Likewise, each endpoint has an entry in the endpoint hash table, and each
-  * endpoint->session binding is kept in a circular list under its hash table
-  * entry.
+  * endpoint->session binding is kept in a circular list under its endpoint
+  * hash table entry.
   * 
   * We do not attempt to limit the number of destination or endpoint entries,
   * nor do we attempt to limit the number of sessions. Doing so would require

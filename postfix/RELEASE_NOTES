@@ -7,6 +7,14 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20040721
+================================================
+
+The session cache manager now logs cache hit and miss statistics
+every $session_cache_status_update_time seconds (default: 600s).
+It reports the hit and miss rates for lookups by domain, as well
+as for lookups by network address.
+
 Incompatible changes with snapshot Postfix-2.2-20040720
 =======================================================
 
@@ -18,7 +26,7 @@ Major changes with snapshot Postfix-2.2-20040720
 Selective SMTP session caching. Instead of disconnecting immediately
 after a mail transaction, the SMTP client can save the open session
 to a session cache daemon, so that any SMTP client process can use
-the same session for another mail transaction.
+that session for another mail transaction.
 
 This feature introduces the scache (session cache) server, which
 is added to your master.cf file when you upgrade Postfix.
@@ -69,7 +77,8 @@ specified.
 Limitations:
 
 - SMTP session caching does not work with TLS (the necessary support
-for object passivation and re-activation does not exist).
+for object passivation and re-activation does not exist without
+closing the connection).
 
 - SMTP session caching assumes that SASL credentials are valid for
 all hostnames or domain names that map onto the same IP address

@@ -9567,6 +9567,13 @@ Apologies for any names omitted.
 	test the effects of collisions in the time or in name space
 	domains. File:  global/scache.c.
 
+20040721
+
+	Feature: the session cache server now logs cache hit and
+	miss statistics every $session_cache_status_update_time
+	seconds (default: 600s), as well as upon process exit.
+	File:  scache/scache.c.
+
 Open problems:
 
 	Low: update events.c so that 1-second timer requests do

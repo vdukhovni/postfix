@@ -100,6 +100,10 @@ postconf(5) for more details including examples.
 .IP "\fBsession_cache_ttl_limit (2s)\fR"
 The maximal time-to-live value that the session cache server
 allows.
+.IP "\fBsession_cache_status_update_time (600s)\fR"
+How frequently the scache(8) server logs usage statistics with
+session cache hit and miss rates for logical destinations and for
+physical endpoints.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

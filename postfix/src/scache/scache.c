@@ -84,6 +84,10 @@
 /* .IP "\fBsession_cache_ttl_limit (2s)\fR"
 /*	The maximal time-to-live value that the session cache server
 /*	allows.
+/* .IP "\fBsession_cache_status_update_time (600s)\fR"
+/*	How frequently the scache(8) server logs usage statistics with
+/*	session cache hit and miss rates for logical destinations and for
+/*	physical endpoints.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -129,6 +133,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <time.h>
 
 /* Utility library. */
 
@@ -136,6 +141,7 @@
 #include <iostuff.h>
 #include <htable.h>
 #include <ring.h>
+#include <events.h>
 
 /* Global library. */
 
@@ -154,6 +160,7 @@
   * Tunable parameters.
   */
 int     var_scache_ttl_lim;
+int     var_scache_stat_time;
 
  /*
   * Request parameters.
@@ -168,6 +175,15 @@ static VSTRING *scache_endp_prop;
   * Session cache instance.
   */
 static SCACHE *scache;
+
+ /*
+  * Statistics.
+  */
+static int scache_dest_hits;
+static int scache_dest_miss;
+static int scache_endp_hits;
+static int scache_endp_miss;
+time_t  scache_start_time;
 
  /*
   * Silly little macros.
@@ -235,6 +251,7 @@ static void scache_find_endp_service(VSTREAM *client_stream)
 		   ATTR_TYPE_NUM, MAIL_ATTR_STATUS, SCACHE_STAT_FAIL,
 		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
 		   ATTR_TYPE_END);
+	scache_endp_miss++;
 	return;
     } else {
 	attr_print(client_stream, ATTR_FLAG_NONE,
@@ -246,11 +263,12 @@ static void scache_find_endp_service(VSTREAM *client_stream)
 	    msg_warn("%s: cannot send file descriptor: %m", myname);
 	if (close(fd) < 0)
 	    msg_warn("close(%d): %m", fd);
+	scache_endp_hits++;
 	return;
     }
 }
 
-/* scache_save_dest_service - protocol to save destiation->endpoint binding */
+/* scache_save_dest_service - protocol to save destination->endpoint binding */
 
 static void scache_save_dest_service(VSTREAM *client_stream)
 {
@@ -308,6 +326,7 @@ static void scache_find_dest_service(VSTREAM *client_stream)
 		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
 		   ATTR_TYPE_STR, MAIL_ATTR_PROP, "",
 		   ATTR_TYPE_END);
+	scache_dest_miss++;
 	return;
     } else {
 	attr_print(client_stream, ATTR_FLAG_NONE,
@@ -320,6 +339,7 @@ static void scache_find_dest_service(VSTREAM *client_stream)
 	    msg_warn("%s: cannot send file descriptor: %m", myname);
 	if (close(fd) < 0)
 	    msg_warn("close(%d): %m", fd);
+	scache_dest_hits++;
 	return;
     }
 }
@@ -364,6 +384,40 @@ static void scache_service(VSTREAM *client_stream, char *unused_service,
     vstream_fflush(client_stream);
 }
 
+/* scache_status_dump - log and reset cache statistics */
+
+static void scache_status_dump(char *unused_name, char **unused_argv)
+{
+    if (scache_dest_hits || scache_dest_miss
+	|| scache_endp_hits || scache_endp_miss)
+	msg_info("statistics: start interval %.15s",
+		 ctime(&scache_start_time) + 4);
+
+    if (scache_dest_hits || scache_dest_miss) {
+	msg_info("statistics: domain lookup hits=%d miss=%d success=%d%%",
+		 scache_dest_hits, scache_dest_miss,
+		 scache_dest_hits * 100
+		 / (scache_dest_hits + scache_dest_miss));
+	scache_dest_hits = scache_dest_miss = 0;
+    }
+    if (scache_endp_hits || scache_endp_miss) {
+	msg_info("statistics: address lookup hits=%d miss=%d success=%d%%",
+		 scache_endp_hits, scache_endp_miss,
+		 scache_endp_hits * 100
+		 / (scache_endp_hits + scache_endp_miss));
+	scache_endp_hits = scache_endp_miss = 0;
+    }
+    scache_start_time = event_time();
+}
+
+/* scache_status_update - log and reset cache statistics periodically */
+
+static void scache_status_update(int unused_event, char *context)
+{
+    scache_status_dump((char *) 0, (char **) 0);
+    event_request_timer(scache_status_update, context, var_scache_stat_time);
+}
+
 /* post_jail_init - initialization after privilege drop */
 
 static void post_jail_init(char *unused_name, char **unused_argv)
@@ -388,6 +442,12 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * connected for $idle_limit time units.
      */
     var_use_limit = 0;
+
+    /*
+     * Dump and reset cache statistics every so often.
+     */
+    event_request_timer(scache_status_update, (char *) 0, var_scache_stat_time);
+    scache_start_time = event_time();
 }
 
 /* main - pass control to the multi-threaded skeleton */
@@ -396,12 +456,14 @@ int     main(int argc, char **argv)
 {
     static CONFIG_TIME_TABLE time_table[] = {
 	VAR_SCACHE_TTL_LIM, DEF_SCACHE_TTL_LIM, &var_scache_ttl_lim, 1, 0,
+	VAR_SCACHE_STAT_TIME, DEF_SCACHE_STAT_TIME, &var_scache_stat_time, 1, 0,
 	0,
     };
 
     multi_server_main(argc, argv, scache_service,
 		      MAIL_SERVER_TIME_TABLE, time_table,
 		      MAIL_SERVER_POST_INIT, post_jail_init,
+		      MAIL_SERVER_EXIT, scache_status_dump,
 		      MAIL_SERVER_SOLITARY,
 		      0);
 }

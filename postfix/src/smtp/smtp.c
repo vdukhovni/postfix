@@ -56,9 +56,9 @@
 /*	the postmaster is notified of bounces, protocol problems, and of
 /*	other trouble.
 /* BUGS
-/*      SMTP session caching does not work with TLS. The necessary
-/*      support for object passivation and re-activation does not
-/*	exist.
+/*	SMTP session caching does not work with TLS. The necessary
+/*	support for TLS object passivation and re-activation does not
+/*	exist without closing the session, which defeats the purpose.
 /*
 /*	SMTP session caching assumes that SASL credentials are valid for
 /*	all destinations that map onto the same IP address and TCP port.

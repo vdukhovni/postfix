@@ -43,7 +43,7 @@
 /*	The code maintains two types of association: a) physical
 /*	endpoint to file descriptor, and b) logical endpoint
 /*	to physical endpoint. Physical endpoints are stored and
-/*	look up under their low-level session details such as
+/*	looked up under their low-level session details such as
 /*	numerical addresses, while logical endpoints are stored
 /*	and looked up by the domain name that humans use. One logical
 /*	endpoint can refer to multiple physical endpoints, one
@@ -153,8 +153,8 @@
   * Driver program for cache regression tests. Although all variants are
   * relatively simple to verify by hand for single session storage, more
   * sophisticated instrumentation is needed to demonstrate that the
-  * multi-sessin cache manager properly handles collisions in the time domain
-  * and in the various name space domains.
+  * multi-session cache manager properly handles collisions in the time
+  * domain and in all the name space domains.
   */
 static SCACHE *scache;
 static VSTRING *endp_prop;

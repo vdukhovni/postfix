@@ -23,9 +23,6 @@
 /*	Idle time after which the client disconnects.
 /* .IP ttl_limit
 /*	Upper bound on the time that a connection is allowed to persist.
-/* .IP endp_ttl
-/*	How long the session should be cached.  When information
-/*	expires it is purged automatically.
 /* DIAGNOSTICS
 /*	Fatal error: memory allocation problem;
 /*	panic: internal consistency failure.
