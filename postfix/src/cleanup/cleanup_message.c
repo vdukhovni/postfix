@@ -293,8 +293,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	msg_info("%s: warning: %s %.200s; from=<%s> to=<%s>: %s",
 		 state->queue_id, context, buf, state->sender,
 		 state->recip ? state->recip : "unknown",
-		 *optional_text ? optional_text :
-		 cleanup_strerror(CLEANUP_STAT_CONT));
+		 *optional_text ? optional_text : "content matched");
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "FILTER", command_len)) {

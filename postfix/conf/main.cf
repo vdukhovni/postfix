@@ -509,8 +509,14 @@ debug_peer_level = 2
 # set up your XAUTHORITY environment variable before starting Postfix.
 #
 debugger_command =
-	 PATH=/usr/bin:/usr/X11R6/bin
+	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
 	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
+
+# If you don't have X installed on the Postfix machine, try:
+# debugger_command =
+#	PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont;
+#	echo where) | gdb $daemon_directory/$process_name $process_id 2>&1
+#	>$config_directory/$process_name.$process_id.log & sleep 5
 
 # INSTALL-TIME CONFIGURATION INFORMATION
 #

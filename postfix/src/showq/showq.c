@@ -114,7 +114,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     long    msg_size = 0;
     BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
-    char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' : ' ');
+    char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' :
+		      strcmp(queue, MAIL_QUEUE_HOLD) == 0 ? '!' : ' ');
     long    offset;
 
     /*
@@ -246,6 +247,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	MAIL_QUEUE_INCOMING, mail_scan_dir_next,
 	MAIL_QUEUE_ACTIVE, mail_scan_dir_next,
 	MAIL_QUEUE_DEFERRED, mail_scan_dir_next,
+	MAIL_QUEUE_HOLD, mail_scan_dir_next,
 	0,
     };
 

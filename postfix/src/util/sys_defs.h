@@ -504,6 +504,34 @@ extern int initgroups(const char *, int);
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #endif
 
+#ifdef LINUX1
+#define SUPPORTED
+#include <sys/types.h>
+#define USE_PATHS_H
+#define HAS_FLOCK_LOCK
+#define HAS_FCNTL_LOCK
+#define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
+#define DEF_MAILBOX_LOCK "flock, dotlock"	/* unverified */
+#define HAS_FSYNC
+#define HAS_DB
+#define DEF_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define HAS_NIS
+#define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+#define FIONREAD_IN_TERMIOS_H		/* maybe unnecessary */
+#define USE_STATFS
+#define STATFS_IN_SYS_VFS_H
+#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* unverified */
+#define PREPEND_PLUS_TO_OPTSTRING
+#define HAS_POSIX_REGEXP
+#define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+#define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+#define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+#define NATIVE_COMMAND_DIR "/usr/sbin"
+#define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+#endif
+
  /*
   * HPUX11 was copied from HPUX10, but can perhaps be trimmed down a bit.
   */

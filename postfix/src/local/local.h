@@ -22,6 +22,7 @@
 #include <tok822.h>
 #include <deliver_request.h>
 #include <mbox_conf.h>
+#include <maps.h>
 
  /*
   * User attributes: these control the privileges for delivery to external
@@ -209,6 +210,12 @@ extern int feature_control(const char *);
 int     local_expand(VSTRING *, const char *, LOCAL_STATE *, USER_ATTR *, const char *);
 
 #define LOCAL_EXP_EXTENSION_MATCHED	(1<<MAC_PARSE_USER)
+
+ /*
+  * alias.c
+  */
+extern MAPS *alias_maps;
+#define ALIAS_DICT_FLAGS	DICT_FLAG_FIXED
 
 /* LICENSE
 /* .ad

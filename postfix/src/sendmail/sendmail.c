@@ -30,7 +30,16 @@
 /*	size, arrival time, sender, and the recipients that still need to
 /*	be delivered.  If mail could not be delivered upon the last attempt,
 /*	the reason for failure is shown. This mode of operation is implemented
-/*	by executing the \fBpostqueue\fR(1) command.
+/*	by executing the \fBpostqueue\fR(1) command. The queue ID string
+/*	is followed by an optional status character:
+/* .RS
+/* .IP \fB*\fR
+/*	The message is in the \fBactive\fR queue, i.e. the message is 
+/*	selected for delivery.
+/* .IP \fB!\fR
+/*	The message is in the \fBhold\fR queue, i.e. no further delivery
+/*	attempt will be made until the mail is taken off hold.
+/* .RE
 /* .IP \fBnewaliases\fR
 /*	Initialize the alias database.  If no input file is specified (with
 /*	the \fB-oA\fR option, see below), the program processes the file(s)
@@ -244,6 +253,7 @@
 /*	The characters that Postfix accepts as VERP delimiter characters.
 /* SEE ALSO
 /*	pickup(8) mail pickup daemon
+/*	postsuper(1) queue maintenance
 /*	postalias(1) maintain alias database
 /*	postdrop(1) mail posting utility
 /*	postfix(1) mail system control

@@ -224,6 +224,9 @@
 /* .fi
 /* .IP \fBaccess_map_reject_code\fR
 /*	Server response when a client violates an access database restriction.
+/* .IP \fBdefer_code\fR
+/*	Server response when a client request is rejected by the \fBdefer\fR
+/*	restriction.
 /* .IP \fBinvalid_hostname_reject_code\fR
 /*	Server response when a client violates the \fBreject_invalid_hostname\fR
 /*	restriction.
@@ -358,6 +361,7 @@ int     var_access_map_code;
 char   *var_maps_rbl_domains;
 int     var_helo_required;
 int     var_reject_code;
+int     var_defer_code;
 int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
 char   *var_always_bcc;
@@ -1577,6 +1581,7 @@ int     main(int argc, char **argv)
 	VAR_MAPS_RBL_CODE, DEF_MAPS_RBL_CODE, &var_maps_rbl_code, 0, 0,
 	VAR_ACCESS_MAP_CODE, DEF_ACCESS_MAP_CODE, &var_access_map_code, 0, 0,
 	VAR_REJECT_CODE, DEF_REJECT_CODE, &var_reject_code, 0, 0,
+	VAR_DEFER_CODE, DEF_DEFER_CODE, &var_defer_code, 0, 0,
 	VAR_NON_FQDN_CODE, DEF_NON_FQDN_CODE, &var_non_fqdn_code, 0, 0,
 	VAR_SMTPD_JUNK_CMD, DEF_SMTPD_JUNK_CMD, &var_smtpd_junk_cmd_limit, 1, 0,
 	VAR_SMTPD_HIST_THRSH, DEF_SMTPD_HIST_THRSH, &var_smtpd_hist_thrsh, 1, 0,
@@ -1617,7 +1622,7 @@ int     main(int argc, char **argv)
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
-	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
+	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,

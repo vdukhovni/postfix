@@ -283,6 +283,52 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
 				   STR(sender), STR(verp_delims), flush));
 }
 
+/* bounce_one_proto - bounce_one server protocol */
+
+static int bounce_one_proto(char *service_name, VSTREAM *client)
+{
+    int     unused_flags;
+
+    /*
+     * Read and validate the client request.
+     */
+    if (mail_command_server(client,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &unused_flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+			    ATTR_TYPE_END) != 7) {
+	msg_warn("malformed request");
+	return (-1);
+    }
+    if (strcmp(service_name, MAIL_SERVICE_BOUNCE) != 0) {
+	msg_warn("wrong service name \"%s\" for one-recipient bouncing",
+		 service_name);
+	return (-1);
+    }
+    if (mail_queue_name_ok(STR(queue_name)) == 0) {
+	msg_warn("malformed queue name: %s", printable(STR(queue_name), '?'));
+	return (-1);
+    }
+    if (mail_queue_id_ok(STR(queue_id)) == 0) {
+	msg_warn("malformed queue id: %s", printable(STR(queue_id), '?'));
+	return (-1);
+    }
+    if (msg_verbose)
+	msg_info("bounce_one_proto: queue=%s id=%s encoding=%s sender=%s recipient=%s why=%s",
+		 STR(queue_name), STR(queue_id), STR(encoding),
+		 STR(sender), STR(recipient), STR(why));
+
+    /*
+     * Execute the request.
+     */
+    return (bounce_one_service(STR(queue_name), STR(queue_id), STR(encoding),
+			       STR(sender), STR(recipient), STR(why)));
+}
+
 /* bounce_service - parse bounce command type and delegate */
 
 static void bounce_service(VSTREAM *client, char *service_name, char **argv)
@@ -318,6 +364,8 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 	status = bounce_notify_proto(service_name, client, JUST_WARN);
     } else if (command == BOUNCE_CMD_APPEND) {
 	status = bounce_append_proto(service_name, client);
+    } else if (command == BOUNCE_CMD_ONE) {
+	status = bounce_one_proto(service_name, client);
     } else {
 	msg_warn("unknown command: %d", command);
 	status = -1;

@@ -342,6 +342,8 @@ rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#permit">permit</a></b>
 
+<dt> <b><a href="#defer">defer</a></b>
+
 <dt> <b><a href="#reject">reject</a></b>
 
 <dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
@@ -512,6 +514,8 @@ the response code for <b>REJECT</b> results (default:  <b>554</b>).
 <p>
 
 <dt> <b><a href="#permit">permit</a></b>
+
+<dt> <b><a href="#defer">defer</a></b>
 
 <dt> <b><a href="#reject">reject</a></b>
 
@@ -691,6 +695,8 @@ client login name doesn't own the MAIL FROM address according to
 <p>
 
 <dt> <b><a href="#permit">permit</a></b>
+
+<dt> <b><a href="#defer">defer</a></b>
 
 <dt> <b><a href="#reject">reject</a></b>
 
@@ -966,6 +972,8 @@ response code to rejected requests (default:  <b>504</b>).
 
 <dt> <b><a href="#permit">permit</a></b>
 
+<dt> <b><a href="#defer">defer</a></b>
+
 <dt> <b><a href="#reject">reject</a></b>
 
 <dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
@@ -1066,6 +1074,8 @@ the result code for rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#permit">permit</a></b>
 
+<dt> <b><a href="#defer">defer</a></b>
+
 <dt> <b><a href="#reject">reject</a></b>
 
 <dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
@@ -1099,6 +1109,14 @@ Restrictions:
 <dt> <b>permit</b> <dd> Permit the request. This restriction
 is useful at the end of a restriction list, to make the default
 policy explicit. 
+
+<p>
+
+<a name="defer">
+
+<dt> <b>defer</b> <dd> Defer the request. The client is told to
+try again later. This restriction is useful at the end of a
+restriction list, to make the default policy explicit.
 
 <p>
 

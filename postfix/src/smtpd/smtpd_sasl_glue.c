@@ -255,6 +255,7 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
      */
 #define NO_SECURITY_LAYERS	(0)
 #define NO_SESSION_CALLBACKS	((sasl_callback_t *) 0)
+#define NO_AUTH_REALM		((char *) 0)
 
 #if SASL_VERSION_MAJOR >= 2 && defined(USE_SASL_IP_AUTH)
 
@@ -273,7 +274,8 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
     client_address = 0;
 #endif
 
-    if (SASL_SERVER_NEW("smtp", var_myhostname, var_smtpd_sasl_realm,
+    if (SASL_SERVER_NEW("smtp", var_myhostname, *var_smtpd_sasl_realm ?
+			var_smtpd_sasl_realm : NO_AUTH_REALM,
 			server_address, client_address,
 			NO_SESSION_CALLBACKS, NO_SECURITY_LAYERS,
 			&state->sasl_conn) != SASL_OK)

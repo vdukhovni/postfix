@@ -113,6 +113,8 @@ command.o: ../../include/resolve_clnt.h
 command.o: ../../include/deliver_request.h
 command.o: ../../include/recipient_list.h
 command.o: ../../include/mbox_conf.h
+command.o: ../../include/maps.h
+command.o: ../../include/dict.h
 deliver_attr.o: deliver_attr.c
 deliver_attr.o: ../../include/sys_defs.h
 deliver_attr.o: ../../include/msg.h
@@ -128,6 +130,8 @@ deliver_attr.o: ../../include/deliver_request.h
 deliver_attr.o: ../../include/recipient_list.h
 deliver_attr.o: ../../include/mbox_conf.h
 deliver_attr.o: ../../include/argv.h
+deliver_attr.o: ../../include/maps.h
+deliver_attr.o: ../../include/dict.h
 delivered.o: delivered.c
 delivered.o: ../../include/sys_defs.h
 delivered.o: ../../include/msg.h
@@ -151,6 +155,8 @@ delivered.o: ../../include/deliver_request.h
 delivered.o: ../../include/recipient_list.h
 delivered.o: ../../include/mbox_conf.h
 delivered.o: ../../include/argv.h
+delivered.o: ../../include/maps.h
+delivered.o: ../../include/dict.h
 dotforward.o: dotforward.c
 dotforward.o: ../../include/sys_defs.h
 dotforward.o: ../../include/msg.h
@@ -178,6 +184,8 @@ dotforward.o: ../../include/deliver_request.h
 dotforward.o: ../../include/recipient_list.h
 dotforward.o: ../../include/mbox_conf.h
 dotforward.o: ../../include/argv.h
+dotforward.o: ../../include/maps.h
+dotforward.o: ../../include/dict.h
 file.o: file.c
 file.o: ../../include/sys_defs.h
 file.o: ../../include/msg.h
@@ -203,6 +211,8 @@ file.o: ../../include/tok822.h
 file.o: ../../include/resolve_clnt.h
 file.o: ../../include/deliver_request.h
 file.o: ../../include/recipient_list.h
+file.o: ../../include/maps.h
+file.o: ../../include/dict.h
 forward.o: forward.c
 forward.o: ../../include/sys_defs.h
 forward.o: ../../include/msg.h
@@ -231,6 +241,8 @@ forward.o: ../../include/resolve_clnt.h
 forward.o: ../../include/deliver_request.h
 forward.o: ../../include/recipient_list.h
 forward.o: ../../include/mbox_conf.h
+forward.o: ../../include/maps.h
+forward.o: ../../include/dict.h
 include.o: include.c
 include.o: ../../include/sys_defs.h
 include.o: ../../include/msg.h
@@ -255,6 +267,8 @@ include.o: ../../include/deliver_request.h
 include.o: ../../include/recipient_list.h
 include.o: ../../include/mbox_conf.h
 include.o: ../../include/argv.h
+include.o: ../../include/maps.h
+include.o: ../../include/dict.h
 indirect.o: indirect.c
 indirect.o: ../../include/sys_defs.h
 indirect.o: ../../include/msg.h
@@ -273,6 +287,8 @@ indirect.o: ../../include/deliver_request.h
 indirect.o: ../../include/recipient_list.h
 indirect.o: ../../include/mbox_conf.h
 indirect.o: ../../include/argv.h
+indirect.o: ../../include/maps.h
+indirect.o: ../../include/dict.h
 local.o: local.c
 local.o: ../../include/sys_defs.h
 local.o: ../../include/msg.h
@@ -294,6 +310,7 @@ local.o: ../../include/mail_addr.h
 local.o: ../../include/mail_conf.h
 local.o: ../../include/been_here.h
 local.o: ../../include/ext_prop.h
+local.o: ../../include/maps.h
 local.o: ../../include/mail_server.h
 local.o: local.h
 local.o: ../../include/tok822.h
@@ -316,6 +333,8 @@ local_expand.o: ../../include/deliver_request.h
 local_expand.o: ../../include/recipient_list.h
 local_expand.o: ../../include/mbox_conf.h
 local_expand.o: ../../include/argv.h
+local_expand.o: ../../include/maps.h
+local_expand.o: ../../include/dict.h
 mailbox.o: mailbox.c
 mailbox.o: ../../include/sys_defs.h
 mailbox.o: ../../include/msg.h
@@ -375,6 +394,8 @@ maildir.o: ../../include/deliver_request.h
 maildir.o: ../../include/recipient_list.h
 maildir.o: ../../include/mbox_conf.h
 maildir.o: ../../include/argv.h
+maildir.o: ../../include/maps.h
+maildir.o: ../../include/dict.h
 recipient.o: recipient.c
 recipient.o: ../../include/sys_defs.h
 recipient.o: ../../include/msg.h
@@ -401,6 +422,7 @@ recipient.o: ../../include/resolve_clnt.h
 recipient.o: ../../include/deliver_request.h
 recipient.o: ../../include/recipient_list.h
 recipient.o: ../../include/mbox_conf.h
+recipient.o: ../../include/maps.h
 resolve.o: resolve.c
 resolve.o: ../../include/sys_defs.h
 resolve.o: ../../include/msg.h
@@ -421,6 +443,8 @@ resolve.o: ../../include/deliver_request.h
 resolve.o: ../../include/recipient_list.h
 resolve.o: ../../include/mbox_conf.h
 resolve.o: ../../include/argv.h
+resolve.o: ../../include/maps.h
+resolve.o: ../../include/dict.h
 token.o: token.c
 token.o: ../../include/sys_defs.h
 token.o: ../../include/msg.h
@@ -442,6 +466,8 @@ token.o: ../../include/deliver_request.h
 token.o: ../../include/recipient_list.h
 token.o: ../../include/mbox_conf.h
 token.o: ../../include/argv.h
+token.o: ../../include/maps.h
+token.o: ../../include/dict.h
 unknown.o: unknown.c
 unknown.o: ../../include/sys_defs.h
 unknown.o: ../../include/msg.h
@@ -464,3 +490,5 @@ unknown.o: ../../include/deliver_request.h
 unknown.o: ../../include/recipient_list.h
 unknown.o: ../../include/mbox_conf.h
 unknown.o: ../../include/argv.h
+unknown.o: ../../include/maps.h
+unknown.o: ../../include/dict.h

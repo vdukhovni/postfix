@@ -1131,6 +1131,11 @@ extern bool var_allow_untrust_route;
 #define DEF_REJECT_CODE		554
 extern int var_reject_code;
 
+#define DEFER_ALL		"defer"
+#define VAR_DEFER_CODE		"defer_code"
+#define DEF_DEFER_CODE		450
+extern int var_defer_code;
+
 #define REJECT_UNKNOWN_CLIENT	"reject_unknown_client"
 #define VAR_UNK_CLIENT_CODE	"unknown_client_reject_code"
 #define DEF_UNK_CLIENT_CODE	450

@@ -5,8 +5,8 @@ POSTSUPER(1)                                         POSTSUPER(1)
        postsuper - Postfix superintendent
 
 <b>SYNOPSIS</b>
-       <b>postsuper</b> [<b>-psv</b>] [<b>-d</b> <i>queue_id</i>] [<b>-r</b> <i>queue_id</i>] [<i>directory</i>
-       <i>...</i>]
+       <b>postsuper</b> [<b>-psv</b>] [<b>-d</b> <i>queue_id</i>] [<b>-h</b> <i>queue_id</i>] [<b>-H</b> <i>queue_id</i>]
+       [<b>-r</b> <i>queue_id</i>] [<i>directory</i> <i>...</i>]
 
 <b>DESCRIPTION</b>
        The <b>postsuper</b> command does maintenance jobs on the Postfix
@@ -22,9 +22,15 @@ POSTSUPER(1)                                         POSTSUPER(1)
 
        <b>-d</b> <i>queue_id</i>
               Delete one message with the named queue ID from the
-              named  mail queue(s) (default: <b>incoming</b>, <b>active</b> and
-              <b>deferred</b>).  If a <i>queue_id</i> of <b>-</b>  is  specified,  the
-              program reads queue IDs from standard input.
+              named   mail  queue(s)  (default:  <b>hold</b>,  <b>incoming</b>,
+              <b>active</b> and <b>deferred</b>).  If a <i>queue_id</i> of <b>-</b> is speci-
+              fied,  the  program  reads  queue IDs from standard
+              input. For example, to delete all mail from  or  to
+              <b>user@example.com</b>:
+
+              mailq | awk  'BEGIN { RS = "" } \
+                  / user@example\.com$/ { print $1 } \
+              ' | postsuper -d -
 
               Specify <b>-d</b> <b>ALL</b> to remove all messages; for example,
               specify <b>-d</b> <b>ALL</b>  <b>deferred</b>  to  delete  mail  in  the
@@ -55,16 +61,42 @@ POSTSUPER(1)                                         POSTSUPER(1)
                      of  the  old  message  that  it  should have
                      deleted.
 
+       <b>-h</b> <i>queue_id</i>
+              Put mail "on hold" so that no attempt  is  made  to
+              deliver  it.  Move one message with the named queue
+              ID from the named mail queue(s) (default: <b>incoming</b>,
+              <b>active</b>  and  <b>deferred</b>)  to  the  <b>hold</b>  queue.  If a
+              <i>queue_id</i> of <b>-</b> is specified, the program reads queue
+              IDs from standard input.
+
+              Specify  <b>-h</b>  <b>ALL</b> to hold all messages; for example,
+              specify  <b>-h</b>  <b>ALL</b>  <b>deferred</b>  to  hold  mail  in  the
+              <b>deferred</b>  queue.  As a safety measure, the word <b>ALL</b>
+              must be specified in upper case.
+
+              Note: mail that is put "on hold" will not expire.
+
+       <b>-H</b> <i>queue_id</i>
+              Release mail that was put "on hold".  Move one mes-
+              sage  with  the  named queue ID from the named mail
+              queue(s) (default: <b>hold</b>) to the <b>deferred</b> queue.  If
+              a  <i>queue_id</i>  of  <b>-</b>  is specified, the program reads
+              queue IDs from standard input.
+
+              Specify <b>-H</b> <b>ALL</b> to release  all  mail  that  is  "on
+              hold".   As  a safety measure, the word <b>ALL</b> must be
+              specified in upper case.
+
        <b>-p</b>     Purge old temporary files that are left over  after
               system or software crashes.
 
        <b>-r</b> <i>queue_id</i>
               Requeue  the  message  with the named queue ID from
-              the named mail queue(s) (default: <b>incoming</b>,  <b>active</b>
-              and <b>deferred</b>).  To requeue multiple messages, spec-
-              ify multiple  <b>-r</b>  command-line  options.   Alterna-
-              tively,  if  a <i>queue_id</i> of <b>-</b> is specified, the pro-
-              gram reads queue IDs from standard input.
+              the named mail queue(s) (default:  <b>hold</b>,  <b>incoming</b>,
+              <b>active</b>  and  <b>deferred</b>).   To  requeue multiple mes-
+              sages, specify multiple  <b>-r</b>  command-line  options.
+              Alternatively, if a <i>queue_id</i> of <b>-</b> is specified, the
+              program reads queue IDs from standard input.
 
               Specify <b>-r</b> <b>ALL</b> to requeue all messages. As a safety
               measure,  the  word  <b>ALL</b> must be specified in upper
@@ -113,19 +145,23 @@ POSTSUPER(1)                                         POSTSUPER(1)
        report is written to the standard error stream and to <b>sys-</b>
        <b>logd</b>.
 
+<b>BUGS</b>
+       Mail  that  is  not sanitized by Postfix (i.e. mail in the
+       <b>maildrop</b> queue) cannot be placed "on hold".
+
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       See  the  Postfix  <b>main.cf</b> file for syntax details and for
+       See the Postfix <b>main.cf</b> file for syntax  details  and  for
        default values.
 
        <b>hash</b><i>_</i><b>queue</b><i>_</i><b>depth</b>
               Number of subdirectory levels for hashed queues.
 
        <b>hash</b><i>_</i><b>queue</b><i>_</i><b>names</b>
-              The names of queues that are organized into  multi-
+              The  names of queues that are organized into multi-
               ple levels of subdirectories.
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

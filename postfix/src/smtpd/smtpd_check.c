@@ -53,8 +53,9 @@
 /*	Restrictions that can appear in some or all restriction
 /*	lists:
 /* .IP reject
+/* .IP defer
 /* .IP permit
-/*	Reject or permit the request unconditionally. This is to be used
+/*	Reject, defer or permit the request unconditionally. This is to be used
 /*	at the end of a restriction list in order to make the default
 /*	action explicit.
 /* .IP reject_unknown_client
@@ -516,6 +517,7 @@ void    smtpd_check_init(void)
 	CHECK_RELAY_DOMAINS,
 	REJECT_UNAUTH_DEST,
 	REJECT_ALL,
+	DEFER_ALL,
 	0,
     };
 
@@ -2057,6 +2059,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], PERMIT_ALL);
+	} else if (strcasecmp(name, DEFER_ALL) == 0) {
+	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				      "%d <%s>: %s rejected: Try again later",
+				  var_defer_code, reply_name, reply_class);
+	    if (cpp[1] != 0 && state->warn_if_reject == 0)
+		msg_warn("restriction `%s' after `%s' is ignored",
+			 cpp[1], DEFER_ALL);
 	} else if (strcasecmp(name, REJECT_ALL) == 0) {
 	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				      "%d <%s>: %s rejected: Access denied",
@@ -2110,6 +2119,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					 state->helo_name, SMTPD_NAME_HELO);
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
+	    msg_warn("restriction %s is deprecated. Use %s instead",
+			PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS);
 	    if (state->helo_name) {
 		if (state->helo_name[strspn(state->helo_name, "0123456789.")] == 0
 		&& (status = reject_invalid_hostaddr(state, state->helo_name,

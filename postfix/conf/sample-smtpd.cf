@@ -444,6 +444,13 @@ relay_domains = $mydestination
 #
 access_map_reject_code = 550
 
+# The defer_code parameter specifies the SMTP server response code
+# when an SMTP client request is rejected by the "defer" restriction.
+#
+# Do not change this unless you have a complete understanding of RFC 821.
+#
+defer_code = 450
+
 # The invalid_hostname_reject_code parameter specifies the SMTP server
 # response when a client violates the reject_invalid_hostname anti-UCE
 # restriction.

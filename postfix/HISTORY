@@ -6723,6 +6723,46 @@ Apologies for any names omitted.
 	Bugfix: garbage in verbose "flush" server logging. Victor
 	Duchovni.  File: flush/flush.c.
 
+	Incompatibility: smtpd_sasl_local_domain now defaults to
+	the null string. File: smtpd/smtpd.c, smtpd/smtpd_sasl_glue.c.
+
+20020726
+
+	Documentation: added GDB debugging instructions for sites
+	that do not have X installed on the Postfix machine. Henrik
+	Larsson, spambox.dk.
+
+20020729
+
+	Weird: installed RedHat 3.03 inside VMware, and no change
+	was needed to build Postfix, except to recognize the Linux
+	version.
+
+	Bugfix: some mailers will announce ESMTP features in their
+	HELO (not EHLO) response. Postfix did not ignore them.
+	File: smtp/smtp_proto.c.
+
+20020731
+
+	Cleanup: permit_naked_ip_address is unsafe and will go
+	away.  Postfix logs a warning. File: smtpd/smtpd_check.c.
+
+20020801
+
+	Cleanup: the warning message for matched header/body
+	content was misleading. File: cleanup/cleanup_message.c.
+
+	Safety: moved the "postsuper -r ALL" operation after the
+	"postsuper -s" check that makes queue file names match
+	inode numbers. This avoids loss of mail in the unlikely
+	case that someone runs "postsuper -sr ALL" on a queue that
+	was copied from another place.
+
+	Feature: "postsuper -h" to put mail "on hold" and "postsuper
+	-H" to release mail that was placed "on hold". This involves
+	a new queue, which is appropriately named "hold".  Files:
+	postsuper/postsuper.c, showq/showq.c.
+
 Open problems:
 
 	Medium: should permit_mx_backup defer delivery if DNS

@@ -26,14 +26,13 @@ extern int PRINTFLIKE(6, 7) bounce_append(int, const char *, const char *,
 extern int vbounce_append(int, const char *, const char *, const char *,
 			          time_t, const char *, va_list);
 extern int bounce_flush(int, const char *, const char *, const char *, const char *);
-
-extern int PRINTFLIKE(8, 9) bounce_recip(int, const char *, const char *,
-					         const char *, const char *,
-					         const char *, time_t,
-					         const char *,...);
-extern int vbounce_recip(int, const char *, const char *, const char *,
-			         const char *, const char *, time_t,
-			         const char *, va_list);
+extern int PRINTFLIKE(9, 10) bounce_one(int, const char *, const char *,
+					        const char *, const char *,
+					        const char *, const char *,
+					        time_t, const char *,...);
+extern int vbounce_one(int, const char *, const char *, const char *,
+		               const char *, const char *, const char *,
+		               time_t, const char *, va_list);
 
  /*
   * Bounce/defer protocol commands.
@@ -42,6 +41,7 @@ extern int vbounce_recip(int, const char *, const char *, const char *,
 #define BOUNCE_CMD_FLUSH	1	/* send log */
 #define BOUNCE_CMD_WARN		2	/* send warning, don't delete log */
 #define BOUNCE_CMD_VERP		3	/* send log, verp style */
+#define BOUNCE_CMD_ONE		4	/* send one recipient notice */
 
  /*
   * Flags.

@@ -94,6 +94,13 @@
 
 #ifdef HAS_LDAP
 
+ /*
+  * Older APIs have weird memory freeing behavior.
+  */
+#if !defined(LDAP_API_VERSION) || (LDAP_API_VERSION < 2000)
+#error "Your LDAP version is too old"
+#endif
+
 #include <sys/time.h>
 #include <stdio.h>
 #include <signal.h>

@@ -230,6 +230,7 @@ int     smtp_helo(SMTP_STATE *state)
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
+	return (0);
     }
 
     /*

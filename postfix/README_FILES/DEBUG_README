@@ -97,16 +97,24 @@ that it invokes the debugger of your choice, for example:
          PATH=/usr/bin:/usr/X11R6/bin
          xxgdb $daemon_directory/$process_name $process_id & sleep 5
 
-If you use xxgdb, be sure that gdb is in the command search path.
+If you do not have X on the Postfix machine, then xxgdb isn't going
+to work. Instead, you can try to run gdb in non-interactive mode:
 
-Export XAUTHORITY so that X access control works, for example:
+    debugger_command =
+	PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont;
+	echo where) | gdb $daemon_directory/$process_name $process_id 2>&1
+	>$config_directory/$process_name.$process_id.log & sleep 5
+
+If you use xxgdb, be sure that gdb is in the command search path,
+and export XAUTHORITY so that X access control works, for example:
 
     % setenv XAUTHORITY ~/.Xauthority
 
 Stop and start the Postfix system. 
 
 Whenever the suspect daemon process is started, a debugger window
-pops up and you can watch in detail what happens.
+pops up and you can watch in detail what happens (when using xxgdb)
+or a file is created (if using gdb in non-interactive mode).
 
 7 - Unreasonable behavior
 =========================

@@ -34,6 +34,11 @@ extern int bounce_notify_service(char *, char *, char *, char *, char *, int);
 extern int bounce_notify_verp(char *, char *, char *, char *, char *, char *, int);
 
  /*
+  * bounce_one_service.c
+  */
+extern int bounce_one_service(char *, char *, char *, char *, char *, char *);
+
+ /*
   * bounce_cleanup.c
   */
 extern VSTRING *bounce_cleanup_path;
@@ -61,6 +66,7 @@ typedef struct {
 } BOUNCE_INFO;
 
 extern BOUNCE_INFO *bounce_mail_init(const char *, const char *, const char *, const char *, int);
+extern BOUNCE_INFO *bounce_mail_one_init(const char *, const char *, const char *, const char *, const char *);
 extern void bounce_mail_free(BOUNCE_INFO *);
 extern int bounce_header(VSTREAM *, BOUNCE_INFO *, const char *);
 extern int bounce_boilerplate(VSTREAM *, BOUNCE_INFO *);

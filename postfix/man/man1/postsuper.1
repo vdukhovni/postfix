@@ -10,6 +10,7 @@ Postfix superintendent
 .nf
 .fi
 \fBpostsuper\fR [\fB-psv\fR] [\fB-d \fIqueue_id\fR]
+[\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
 [\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
 .SH DESCRIPTION
 .ad
@@ -26,10 +27,17 @@ directories - this includes the \fBincoming\fR, \fBactive\fR and
 Options:
 .IP "\fB-d \fIqueue_id\fR"
 Delete one message with the named queue ID from the named
-mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
+mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
 \fBdeferred\fR).
 If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
-queue IDs from standard input.
+queue IDs from standard input. For example, to delete all mail
+from or to \fBuser@example.com\fR:
+.sp
+mailq | awk  \'BEGIN { RS = "" } \e
+.ti +4
+/ user@example\e.com$/ { print $1 } \e
+.br
+\' | postsuper -d -
 .sp
 Specify \fB-d ALL\fR to remove all messages; for example, specify
 \fB-d ALL deferred\fR to delete mail in the \fBdeferred\fR queue.
@@ -59,12 +67,36 @@ can distinguish within a second).
 \fBpostsuper\fR deletes the new message, instead of the old
 message that it should have deleted.
 .RE
+.IP "\fB-h \fIqueue_id\fR"
+Put mail "on hold" so that no attempt is made to deliver it.
+Move one message with the named queue ID from the named
+mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
+\fBdeferred\fR) to the \fBhold\fR queue.
+If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
+queue IDs from standard input.
+.sp
+Specify \fB-h ALL\fR to hold all messages; for example, specify
+\fB-h ALL deferred\fR to hold mail in the \fBdeferred\fR queue.
+As a safety measure, the word \fBALL\fR must be specified in upper
+case.
+.sp
+Note: mail that is put "on hold" will not expire.
+.IP "\fB-H \fIqueue_id\fR"
+Release mail that was put "on hold".
+Move one message with the named queue ID from the named
+mail queue(s) (default: \fBhold\fR) to the \fBdeferred\fR queue.
+If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
+queue IDs from standard input.
+.sp
+Specify \fB-H ALL\fR to release all mail that is "on hold".
+As a safety measure, the word \fBALL\fR must be specified in upper
+case.
 .IP \fB-p\fR
 Purge old temporary files that are left over after system or
 software crashes.
 .IP "\fB-r \fIqueue_id\fR"
 Requeue the message with the named queue ID from the named
-mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
+mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
 \fBdeferred\fR).
 To requeue multiple messages, specify multiple \fB-r\fR
 command-line options.
@@ -113,6 +145,11 @@ Problems are reported to the standard error stream and to
 the number of messages requeued with \fB-r\fR, and the number of
 messages whose queue file name was fixed with \fB-s\fR. The report
 is written to the standard error stream and to \fBsyslogd\fR.
+.SH BUGS
+.ad
+.fi
+Mail that is not sanitized by Postfix (i.e. mail in the \fBmaildrop\fR
+queue) cannot be placed "on hold".
 .SH CONFIGURATION PARAMETERS
 .na
 .nf

@@ -47,9 +47,9 @@ $queue_directory/corrupt:d:$mail_owner:-:700:ucr
 $queue_directory/defer:d:$mail_owner:-:700:ucr
 $queue_directory/deferred:d:$mail_owner:-:700:ucr
 $queue_directory/flush:d:$mail_owner:-:700:ucr
+$queue_directory/hold:d:$mail_owner:-:700:ucr
 $queue_directory/incoming:d:$mail_owner:-:700:ucr
 $queue_directory/private:d:$mail_owner:-:700:uc
-$queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:uc
 $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
