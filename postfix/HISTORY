@@ -7479,6 +7479,18 @@ Apologies for any names omitted.
 	site already ran Postfix with local_recipient_maps enabled.
 	Files:  smtpd/smtpd.c, smtpd/smtpd_check.c, conf/post-install.
 
+20021219
+
+	Bugfix: longjmp() while sending "go away" without setjmp()
+	in the QMQP server. Patrik Rak. File: qmqpd/qmqpd.c.
+
+	Safety: the XVERP extension is restricted to clients listed
+	in the authorized_verp_clients list (default: $mynetworks).
+	File: smtpd/smtpd.c.
+
+	Workaround: preliminary IPV6 support in valid_hostliteral().
+	File: util/valid_hostname.c.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

@@ -113,32 +113,6 @@ resets the nexthop information to the recipient domain.
 
 A null \fItransport\fR field with non-null \fInexthop\fR field
 does not modify the transport information.
-.SH DEFAULT DELIVERY METHOD
-.na
-.nf
-.ad
-.fi
-When the recipient address or domain does not match a transport
-table entry, Postfix uses one of the following delivery methods,
-with the recipient domain as the default nexthop.
-.IP \(bu
-The recipient domain matches \fB$mydestination\fR or
-\fB$inet_interfaces\fR. The transport and optional nexthop
-are specified with \fB$local_transport\fR.
-.IP \(bu
-The recipient domain matches \fB$virtual_mailbox_domains\fR.
-The transport and optional nexthop are specified with
-\fB$virtual_transport\fR.
-.IP \(bu
-The recipient domain matches \fB$relay_domains\fR. The
-transport and optional nexthop are specified with
-\fB$relay_transport\fR. This overrides the nexthop information
-that is specified with \fB$relayhost\fR.
-.IP \(bu
-All other destinations. the transport and optional nexthop are
-specified with \fB$relay_transport\fR.
-This overrides the nexthop information that is specified with
-\fB$relayhost\fR.
 .SH EXAMPLES
 .na
 .nf
@@ -241,27 +215,6 @@ to match \fIsub.domain.tld\fR (as opposed to
 requiring \fI.domain.tld\fR patterns).
 .IP \fBtransport_maps\fR
 List of transport lookup tables.
-.PP
-Other parameters of interest:
-.IP \fBlocal_transport\fR
-The default mail delivery transport when the destination matches
-\fB$mydestination\fR or \fB$inet_interfaces\fR.
-.IP \fBvirtual_transport\fR
-The default mail delivery transport when the destination matches
-\fB$virtual_mailbox_domains\fR.
-.IP \fBrelay_transport\fR
-The default mail delivery transport when the destination matches
-\fB$relay_domains\fR.
-.IP \fBdefault_transport\fR
-The default mail delivery transport when the destination does not
-match a local, virtual or relay destination.
-.IP \fBmydestination\fR
-The destinations that are given to \fB$local_transport\fR
-by default.
-.IP \fBrelayhost\fR
-The default host for destinations that do not match
-\fB$mydestination\fR, \fB$inet_interfaces\fR,
-\fB$virtual_alias_domains\fR or \fB$virtual_mailbox_domains\fR.
 .SH SEE ALSO
 .na
 .nf

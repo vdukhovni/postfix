@@ -47,7 +47,7 @@
 /*	Postmaster for bounce error notices.
 /* .IP \fBnotify_classes\fR
 /*	When this parameter includes the \fBbounce\fR class, send mail to the
-/*	postmaster with with the headers of the bounced mail.
+/*	postmaster with the headers of the bounced mail.
 /* SEE ALSO
 /*	bounce(8) non-delivery status reports
 /*	master(8) process manager

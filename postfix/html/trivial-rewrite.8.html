@@ -37,13 +37,32 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
                      The  envelope  recipient  address  that   is
                      passed on to <i>nexthop</i>.
 
-              The  <b>trivial-rewrite</b> daemon by default only distin-
-              guishes between local and non-local mail. For finer
-              control  over mail routing, use the optional <a href="transport.5.html"><b>trans-</b></a>
-              <a href="transport.5.html"><b>port</b>(5)</a> lookup table.
+<b>DEFAULT</b> <b>DELIVERY</b> <b>METHODS</b>
+       By  default,  Postfix  uses  one of the following delivery
+       methods.  This may be overruled with the  optional  <a href="transport.5.html">trans-</a>
+       <a href="transport.5.html">port(5)</a> table.
 
-       This program expects to be run from the <a href="master.8.html"><b>master</b>(8)</a>  process
-       manager.
+       <b>o</b>      The  recipient  domain  matches  <b>$mydestination</b>  or
+              <b>$inet</b><i>_</i><b>interfaces</b>. The transport and  optional  nex-
+              thop  are  specified  with  <b>$local</b><i>_</i><b>transport</b>.   The
+              default nexthop is the recipient domain.
+
+       <b>o</b>      The   recipient   domain   matches   <b>$virtual</b><i>_</i><b>mail-</b>
+              <b>box</b><i>_</i><b>domains</b>.   The  transport  and optional nexthop
+              are specified with <b>$virtual</b><i>_</i><b>transport</b>.  The default
+              nexthop is the recipient domain.
+
+       <b>o</b>      The  recipient  domain  matches <b>$relay</b><i>_</i><b>domains</b>. The
+              transport and optional nexthop are  specified  with
+              <b>$relay</b><i>_</i><b>transport</b>.  This overrides the optional nex-
+              thop information that is specified with <b>$relayhost</b>.
+              The default nexthop is the recipient domain.
+
+       <b>o</b>      All  other destinations. the transport and optional
+              nexthop are specified with <b>$relay</b><i>_</i><b>transport</b>.   This
+              overrides  the optional nexthop information that is
+              specified with <b>$relayhost</b>.  The default nexthop  is
+              the recipient domain.
 
 <b>STANDARDS</b>
        None.  The  command  does  not  interact  with the outside
@@ -127,7 +146,7 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
        <b>local</b><i>_</i><b>transport</b>
               Where  to  deliver mail for destinations that match
               <b>$mydestination</b> or  <b>$inet</b><i>_</i><b>interfaces</b>.   The  default
-              transport is <b>local</b>.
+              transport is <b>local:$myhostname</b>.
 
               Syntax  is  <i>transport</i>:<i>nexthop</i>; see <a href="transport.5.html"><b>transport</b>(5)</a> for
               details. The :<i>nexthop</i> part is optional.
@@ -163,14 +182,13 @@ TRIVIAL-REWRITE(8)                             TRIVIAL-REWRITE(8)
 
        <b>relayhost</b>
               The  default host to send non-local mail to when no
-              entry is matched in the <a href="transport.5.html"><b>transport</b>(5)</a> table.
-
-              When no <b>relayhost</b>  is  specified,  mail  is  routed
-              directly to the destination's mail exchanger.
+              host  is   specified   with   <b>$relay</b><i>_</i><b>transport</b>   or
+              <b>$default</b><i>_</i><b>transport</b>,  and when the recipient address
+              does not match the optional the <a href="transport.5.html"><b>transport</b>(5)</a> table.
 
        <b>transport</b><i>_</i><b>maps</b>
-              List  of tables with <i>domain</i> to (<i>transport,</i> <i>nexthop</i>)
-              mappings.
+              List  of tables with <i>recipient</i> or <i>domain</i> to (<i>trans-</i>
+              <i>port,</i> <i>nexthop</i>) mappings.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="master.8.html">master(8)</a> process manager

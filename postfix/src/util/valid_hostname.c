@@ -154,6 +154,19 @@ int     valid_hostaddr(const char *addr, int gripe)
     }
 
     /*
+     * Preliminary IPV6 support.
+     */
+    if (strchr(addr, ':')) {
+	if (*(cp = addr + strspn(addr, ":./0123456789abcdefABCDEF")) != 0) {
+	    if (gripe)
+		msg_warn("%s: invalid character %d(decimal): %.100s",
+			 myname, *cp, addr);
+	    return (0);
+	}
+	return (1);
+    }
+
+    /*
      * Scary code to avoid sscanf() overflow nasties.
      */
     for (cp = addr; (ch = *(unsigned const char *) cp) != 0; cp++) {

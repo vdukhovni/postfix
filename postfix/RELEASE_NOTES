@@ -12,6 +12,14 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.12-20021219
+==========================================================
+
+The use of the XVERP extension in the SMTP MAIL FROM command is
+now limited to SMTP clients that match the hostnames, domains or
+networks listed with the authorized_verp_clients parameter (default:
+$mynetworks).
+
 Incompatible changes with Postfix snapshot 1.1.12-20021209
 ==========================================================
 
@@ -20,9 +28,14 @@ file.  If your Postfix is unable to connect to the "relay" service
 then you have not properly followed the installation procedure.
 
 The Postfix SMTP server now rejects mail for $mydestination domain
-recipients that it does not know about.  For this to work correctly,
-you need to review the section titled "REJECTING UNKNOWN LOCAL
-USERS" in conf/main.cf if one of the following is true:
+recipients that it does not know about. This keeps undeliverable
+mail out of your queue. For safety's sake, the default is to reply
+with a 450 (try again later) status code so that you don't suddenly
+lose mail.
+
+For this to work correctly, you need to review the section titled
+"REJECTING UNKNOWN LOCAL USERS" in conf/main.cf if one of the
+following is true:
 
 - You define $mydestination domain recipients in files other than
   /etc/passwd, /etc/aliases, or the $virtual_alias_maps files.
@@ -37,7 +50,7 @@ USERS" in conf/main.cf if one of the following is true:
 
 Specify "local_recipient_maps =" (i.e. empty) to make the SMTP
 server accept mail for all known and unknown local recipients.
-That was the default setting prior to Postfix version 1.2.
+That was the default setting prior to Postfix version 2.0.
 
 Postfix no longer defaults to the "smtp" transport for all non-local
 destinations. This may affect your defer_transports settings. In

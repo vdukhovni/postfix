@@ -102,8 +102,9 @@
 /* .fi
 /* .IP \fBalways_bcc\fR
 /*	Address to send a copy of each message that enters the system.
-/* .IP \fBcommand_directory\fR
-/*	Location of Postfix support commands.
+/* .IP \fBauthorized_verp_clients\fR
+/*	Hostnames, domain names and/or addresses of clients that are
+/*	authorized to use the XVERP extension.
 /* .IP \fBdebug_peer_level\fR
 /*	Increment in verbose logging level when a remote host matches a
 /*	pattern in the \fBdebug_peer_list\fR parameter.
@@ -350,6 +351,7 @@
 #include <string_list.h>
 #include <quote_822_local.h>
 #include <lex_822.h>
+#include <namadr_list.h>
 
 /* Single-threaded server skeleton. */
 
@@ -430,6 +432,7 @@ int     var_local_rcpt_code;
 int     var_virt_alias_code;
 int     var_virt_mailbox_code;
 int     var_relay_rcpt_code;
+char   *var_verp_clients;
 
  /*
   * Silly little macros.
@@ -442,6 +445,8 @@ int     var_relay_rcpt_code;
   */
 #define VERP_CMD	"XVERP"
 #define VERP_CMD_LEN	5
+
+static NAMADR_LIST *verp_clients;
 
  /*
   * Forward declarations.
@@ -543,7 +548,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "250-AUTH=%s", state->sasl_mechanism_list);
     }
 #endif
-    smtpd_chat_reply(state, "250-%s", VERP_CMD);
+    if (namadr_list_match(verp_clients, state->name, state->addr))
+	smtpd_chat_reply(state, "250-%s", VERP_CMD);
     smtpd_chat_reply(state, "250 8BITMIME");
     return (0);
 }
@@ -777,16 +783,18 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 #endif
-	} else if (strcasecmp(arg, VERP_CMD) == 0) {
-	    verp_delims = var_verp_delims;
-	} else if (strncasecmp(arg, VERP_CMD, VERP_CMD_LEN) == 0
-		   && arg[VERP_CMD_LEN] == '=') {
-	    verp_delims = arg + VERP_CMD_LEN + 1;
-	    if (verp_delims_verify(verp_delims) != 0) {
-		state->error_mask |= MAIL_ERROR_PROTOCOL;
-		smtpd_chat_reply(state, "501 %s needs two characters from %s",
-				 VERP_CMD, var_verp_filter);
-		return (-1);
+	} else if (namadr_list_match(verp_clients, state->name, state->addr)) {
+	    if (strcasecmp(arg, VERP_CMD) == 0) {
+		verp_delims = var_verp_delims;
+	    } else if (strncasecmp(arg, VERP_CMD, VERP_CMD_LEN) == 0
+		       && arg[VERP_CMD_LEN] == '=') {
+		verp_delims = arg + VERP_CMD_LEN + 1;
+		if (verp_delims_verify(verp_delims) != 0) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 %s needs two characters from %s",
+				     VERP_CMD, var_verp_filter);
+		    return (-1);
+		}
 	    }
 	} else {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -1597,6 +1605,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * case they specify a filename pattern.
      */
     smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
+    verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
     smtpd_check_init();
     debug_peer_init();
 
@@ -1679,6 +1688,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
 	VAR_RELAY_RCPT_MAPS, DEF_RELAY_RCPT_MAPS, &var_relay_rcpt_maps, 0, 0,
+	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

@@ -25,14 +25,34 @@
 /*	The host to send to and optional delivery method information.
 /* .IP \fIrecipient\fR
 /*	The envelope recipient address that is passed on to \fInexthop\fR.
-/* .PP
-/*	The \fBtrivial-rewrite\fR daemon by default only distinguishes
-/*	between local and non-local mail. For finer control over mail
-/*	routing, use the optional \fBtransport\fR(5) lookup table.
 /* .RE
-/* .PP
-/*	This program expects to be run from the \fBmaster\fR(8) process
-/*	manager.
+/* DEFAULT DELIVERY METHODS
+/* .ad
+/* .fi
+/*	By default, Postfix uses one of the following delivery methods.
+/*	This may be overruled with the optional transport(5) table.
+/* .IP \(bu
+/*	The recipient domain matches \fB$mydestination\fR or
+/*	\fB$inet_interfaces\fR. The transport and optional nexthop
+/*	are specified with \fB$local_transport\fR.
+/*	The default nexthop is the recipient domain.
+/* .IP \(bu
+/*	The recipient domain matches \fB$virtual_mailbox_domains\fR.
+/*	The transport and optional nexthop are specified with
+/*	\fB$virtual_transport\fR.
+/*	The default nexthop is the recipient domain.
+/* .IP \(bu
+/*	The recipient domain matches \fB$relay_domains\fR. The
+/*	transport and optional nexthop are specified with
+/*	\fB$relay_transport\fR. This overrides the optional nexthop
+/*	information that is specified with \fB$relayhost\fR.
+/*	The default nexthop is the recipient domain.
+/* .IP \(bu
+/*	All other destinations. the transport and optional nexthop are
+/*	specified with \fB$relay_transport\fR.
+/*	This overrides the optional nexthop information that is specified
+/*	with \fB$relayhost\fR.
+/*	The default nexthop is the recipient domain.
 /* STANDARDS
 /* .ad
 /* .fi
@@ -100,7 +120,7 @@
 /* .IP \fBlocal_transport\fR
 /*	Where to deliver mail for destinations that match \fB$mydestination\fR
 /*	or \fB$inet_interfaces\fR.
-/*	The default transport is \fBlocal\fR.
+/*	The default transport is \fBlocal:$myhostname\fR.
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
 /*	for details. The :\fInexthop\fR part is optional.
@@ -130,14 +150,13 @@
 /*	to match \fIsub.domain.tld\fR (as opposed to
 /*	requiring \fI.domain.tld\fR patterns).
 /* .IP \fBrelayhost\fR
-/*	The default host to send non-local mail to when no entry is matched
-/*	in the \fBtransport\fR(5) table.
-/* .sp
-/*	When no \fBrelayhost\fR is specified, mail is routed directly
-/*	to the destination's mail exchanger.
+/*	The default host to send non-local mail to when no host is
+/*	specified with \fB$relay_transport\fR or \fB$default_transport\fR,
+/*	and when the recipient address does not match the optional the
+/*	\fBtransport\fR(5) table.
 /* .IP \fBtransport_maps\fR
-/*	List of tables with \fIdomain\fR to (\fItransport, nexthop\fR)
-/*	mappings.
+/*	List of tables with \fIrecipient\fR or \fIdomain\fR to
+/*	(\fItransport, nexthop\fR) mappings.
 /* SEE ALSO
 /*	master(8) process manager
 /*	syslogd(8) system logging

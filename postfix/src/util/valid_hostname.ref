@@ -156,3 +156,10 @@
 ./valid_hostname: warning: valid_hostname: invalid character 91(decimal): [xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ./valid_hostname: warning: valid_hostaddr: invalid character 91(decimal): [xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ./valid_hostname: warning: valid_hostliteral: too much text: [xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+./valid_hostname: testing: "[a:a:a:a:a:a:a:a]"
+./valid_hostname: warning: valid_hostname: invalid character 91(decimal): [a:a:a:a:a:a:a:a]
+./valid_hostname: warning: valid_hostaddr: invalid character 91(decimal): [a:a:a:a:a:a:a:a]
+./valid_hostname: testing: "[g:a:a:a:a:a:a:a]"
+./valid_hostname: warning: valid_hostname: invalid character 91(decimal): [g:a:a:a:a:a:a:a]
+./valid_hostname: warning: valid_hostaddr: invalid character 91(decimal): [g:a:a:a:a:a:a:a]
+./valid_hostname: warning: valid_hostaddr: invalid character 103(decimal): g:a:a:a:a:a:a:a

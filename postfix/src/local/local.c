@@ -20,7 +20,7 @@
 /* SYSTEM-WIDE AND USER-LEVEL ALIASING
 /* .ad
 /* .fi
-/*	The system adminstrator can set up one or more system-wide
+/*	The system administrator can set up one or more system-wide
 /*	\fBsendmail\fR-style alias databases.
 /*	Users can have \fBsendmail\fR-style ~/.\fBforward\fR files.
 /*	Mail for \fIname\fR is delivered to the alias \fIname\fR, to
@@ -173,7 +173,7 @@
 /*	The \fBPATH\fR environment variable is always reset to a
 /*	system-dependent default path, and environment variables
 /*	whose names are blessed by the \fBexport_environment\fR
-/*	configureation parameter are exported unchanged.
+/*	configuration parameter are exported unchanged.
 /*
 /*	The current working directory is the mail queue directory.
 /*

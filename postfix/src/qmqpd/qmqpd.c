@@ -597,7 +597,16 @@ static void qmqpd_proto(QMQPD_STATE *state)
 	break;
 
     case 0:
-	qmqpd_receive(state);
+
+	/*
+	 * See if we want to talk to this client at all.
+	 */
+	if (namadr_list_match(qmqpd_clients, state->name, state->addr) == 0) {
+	    qmqpd_reply(state, DONT_LOG, QMQPD_STAT_HARD,
+			"Error: %s is not authorized to use this service",
+			state->namaddr);
+	} else
+	    qmqpd_receive(state);
 	break;
     }
 
@@ -635,24 +644,11 @@ static void qmqpd_service(VSTREAM *stream, char *unused_service, char **argv)
     debug_peer_check(state->name, state->addr);
 
     /*
-     * See if we want to talk to this client at all. In all cases, log the
-     * connection event.
-     */
-    if (namadr_list_match(qmqpd_clients, state->name, state->addr) == 0) {
-	msg_info("refused connect from %s", state->namaddr);
-	qmqpd_reply(state, DONT_LOG, QMQPD_STAT_HARD,
-		    "Error: %s is not authorized to use this service",
-		    state->namaddr);
-    }
-
-    /*
      * Provide the QMQP service.
      */
-    else {
-	msg_info("connect from %s", state->namaddr);
-	qmqpd_proto(state);
-	msg_info("disconnect from %s", state->namaddr);
-    }
+    msg_info("connect from %s", state->namaddr);
+    qmqpd_proto(state);
+    msg_info("disconnect from %s", state->namaddr);
 
     /*
      * After the client has gone away, clean up whatever we have set up at

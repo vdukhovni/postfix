@@ -75,7 +75,7 @@ static const char *dict_unix_getpwnam(DICT *unused_dict, const char *key)
 	    sanity_checked = 1;
 	    errno = 0;
 	    if (getpwuid(0) == 0) {
-		msg_warn("cannot access UNIX passwd file info: %m");
+		msg_warn("cannot access UNIX password database: %m");
 		dict_errno = DICT_ERR_RETRY;
 	    }
 	}
@@ -108,7 +108,7 @@ static const char *dict_unix_getgrnam(DICT *unused_dict, const char *key)
 	    sanity_checked = 1;
 	    errno = 0;
 	    if (getgrgid(0) == 0) {
-		msg_warn("cannot access UNIX group file info: %m");
+		msg_warn("cannot access UNIX group database: %m");
 		dict_errno = DICT_ERR_RETRY;
 	    }
 	}

@@ -1430,7 +1430,7 @@ extern char *var_qmqpd_clients;
 extern int var_qmqpd_timeout;
 
 #define VAR_QMTPD_ERR_SLEEP		"qmqpd_error_delay"
-#define DEF_QMTPD_ERR_SLEEP		"5s"
+#define DEF_QMTPD_ERR_SLEEP		"1s"
 extern int var_qmqpd_err_sleep;
 
  /*
@@ -1448,6 +1448,10 @@ extern char *var_verp_filter;
 #define VAR_VERP_BOUNCE_OFF		"disable_verp_bounces"
 #define DEF_VERP_BOUNCE_OFF		0
 extern bool var_verp_bounce_off;
+
+#define VAR_VERP_CLIENTS		"authorized_verp_clients"
+#define DEF_VERP_CLIENTS		"$mynetworks"
+extern char *var_verp_clients;
 
  /*
   * Inbound mail flow control. This allows for a stiffer coupling between

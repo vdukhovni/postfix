@@ -239,9 +239,6 @@ In order to install or upgrade Postfix:
 
   Note: there should be no whitespace before "postdrop:".
 
-  NB: this group was optional with older Postfix releases; it is
-  now required.
-
 - Optional: If you want to install symbol-stripped (non-debug) versions
   of the Postfix programs and daemons, do:
 
@@ -495,6 +492,24 @@ of a chroot jail,  most UNIX systems require you to bring in some
 files or device nodes.  The examples/chroot-setup directory has a
 collection of scripts that help you set up chroot environments for
 Postfix systems.
+
+IMPORTANT: if you enable chrooted operation of the SMTP server you
+must copy the passwd file into the chroot jail, otherwise the SMTP
+server will reject mail for local addresses.
+
+44BSD systems:
+
+    # mkdir /var/spool/postfix/etc
+    # cp /etc/pwd.db /var/spool/postfix/etc
+
+Other systems:
+
+    # mkdir /var/spool/postfix/etc
+    # cp /etc/passwd /var/spool/postfix/etc
+
+You may also have to copy /etc/nsswitch.conf and the files referenced
+by /etc/nsswitch.conf. See the system dependent scripts in
+examples/chroot-setup for suggestions.
 
 12 - Care and feeding of the Postfix system
 ===========================================
