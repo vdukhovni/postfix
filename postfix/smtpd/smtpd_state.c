@@ -78,7 +78,6 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->err = CLEANUP_STAT_OK;
     state->client = stream;
     state->buffer = vstring_alloc(100);
-    state->time = event_time();
     state->name = mystrdup(name);
     state->addr = mystrdup(addr);
     state->error_count = 0;

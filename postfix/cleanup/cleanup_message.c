@@ -223,8 +223,23 @@ static void cleanup_rewrite_recip(HEADER_OPTS *hdr_opts)
 
 static void cleanup_header(void)
 {
+    char   *myname = "cleanup_header";
     HEADER_OPTS *hdr_opts;
 
+    if (msg_verbose)
+	msg_info("%s: '%s'", myname, vstring_str(cleanup_header_buf));
+
+    if (cleanup_header_checks) {
+	char   *header = vstring_str(cleanup_header_buf);
+	const char *value;
+
+	if ((value = maps_find(cleanup_header_checks, header, 0)) != 0) {
+	    if (strcasecmp(value, "REJECT") == 0) {
+		msg_warn("%s: reject: header %.100s", cleanup_queue_id, header);
+		cleanup_errs |= CLEANUP_STAT_CONT;
+	    }
+	}
+    }
 
     /*
      * If this is an "unknown" header, just copy it to the output without

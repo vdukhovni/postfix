@@ -80,6 +80,8 @@
 /* .IP "MAIL_SERVER_EXIT (void *(void))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
+/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(void))"
+/*	Function to be executed prior to accepting a new connection.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
 /*	when a client disconnects.
@@ -171,6 +173,7 @@ static char *multi_server_name;
 static char **multi_server_argv;
 static void (*multi_server_accept) (int, char *);
 static void (*multi_server_onexit) (void);
+static void (*multi_server_pre_accept) (void);
 static VSTREAM *multi_server_lock;
 
 /* multi_server_exit - normal termination */
@@ -287,6 +290,8 @@ static void multi_server_accept_local(int unused_event, char *context)
     if (client_count == 0 && var_idle_limit > 0)
 	time_left = event_cancel_timer(multi_server_timeout, (char *) 0);
 
+    if (multi_server_pre_accept)
+	multi_server_pre_accept();
     fd = LOCAL_ACCEPT(listen_fd);
     if (multi_server_lock != 0
 	&& myflock(vstream_fileno(multi_server_lock), MYFLOCK_NONE) < 0)
@@ -421,6 +426,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    break;
 	case MAIL_SERVER_EXIT:
 	    multi_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
+	    break;
+	case MAIL_SERVER_PRE_ACCEPT:
+	    multi_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

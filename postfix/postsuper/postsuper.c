@@ -234,6 +234,12 @@ static void super(char **queues, int action)
 	    }
 
 	    /*
+	     * Skip temporary files that aren't old enough.
+	     */
+	    if (mail_queue_id_ok(path) == 0)
+		continue;
+
+	    /*
 	     * See if this file sits in the right place in the file system
 	     * hierarchy. Its place may be wrong after a change to the
 	     * hash_queue_{names,depth} parameter settings. The implied

@@ -337,6 +337,7 @@
 #include <iostuff.h>
 #include <name_mask.h>
 #include <set_eugid.h>
+#include <dict.h>
 
 /* Global library. */
 
@@ -501,6 +502,16 @@ static void local_mask_init(void)
     local_cmd_deliver_mask = name_mask(command_mask, var_allow_commands);
 }
 
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("table has changed -- exiting");
+	exit(0);
+    }
+}
+
 /* post_init - post-jail initialization */
 
 static void post_init(void)
@@ -553,5 +564,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_POST_INIT, post_init,
+		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

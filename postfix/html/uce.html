@@ -44,6 +44,10 @@ command.
 
 <ul>
 
+<li> <a href="#header_checks">Header filtering</a>
+
+<p>
+
 <li> <a href="#smtpd_client_restrictions">Client name/address
 restrictions</a>
 
@@ -79,6 +83,41 @@ restrictions</a>
 <li> <a href="#additional">Additional UCE control parameters</a>
 
 </ul>
+
+<a name="header_checks">
+
+<h2> Header filtering</h2>
+
+The <b>header_checks</b> parameter restricts what
+is allowed in message headers.
+
+<p>
+
+<dl>
+
+<dt>Default:
+
+<dd>Allow anything in message headers.
+
+<p>
+
+<dt>Syntax:
+
+<dd>Specify a list of zero or more lookup tables. Whenever a
+header matches a table, a REJECT result means reject the
+message; an OK result means pass.
+
+</dl>
+
+<p>
+
+<dt>Examples:
+
+<dd> <b>header_checks = regexp:/etc/postfix/header_checks</b>
+
+<dd> <b>header_checks = pcre:/etc/postfix/header_checks</b>
+
+<p>
 
 <a name="smtpd_client_restrictions">
 

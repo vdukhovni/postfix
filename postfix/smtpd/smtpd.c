@@ -210,6 +210,7 @@
 #include <events.h>
 #include <smtp_stream.h>
 #include <valid_hostname.h>
+#include <dict.h>
 
 /* Global library. */
 
@@ -459,6 +460,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     }
+    state->time = time((time_t *) 0);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_mail(state, argv[3].strval)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
@@ -712,6 +714,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     } else if ((state->err & CLEANUP_STAT_HOPS) != 0) {
 	state->error_mask |= MAIL_ERROR_BOUNCE;
 	smtpd_chat_reply(state, "554 Error: too many hops");
+    } else if ((state->err & CLEANUP_STAT_CONT) != 0) {
+	state->error_mask |= MAIL_ERROR_BOUNCE;
+	smtpd_chat_reply(state, "552 Error: content rejected");
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");
@@ -1089,6 +1094,16 @@ static void smtpd_sig(int sig)
     exit(sig);
 }
 
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("lookup table has changed -- exiting");
+	exit(0);
+    }
+}
+
 /* post_jail_init - post-jail initialization */
 
 static void post_jail_init(void)
@@ -1169,5 +1184,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       MAIL_SERVER_POST_INIT, post_jail_init,
+		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

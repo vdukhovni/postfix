@@ -75,6 +75,8 @@
 /* .IP "MAIL_SERVER_EXIT (void *(void))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
+/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(void))"
+/*	Function to be executed prior to accepting a new connection.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -161,6 +163,7 @@ static char *single_server_name;
 static char **single_server_argv;
 static void (*single_server_accept) (int, char *);
 static void (*single_server_onexit) (void);
+static void (*single_server_pre_accept) (void);
 static VSTREAM *single_server_lock;
 
 /* single_server_exit - normal termination */
@@ -257,6 +260,8 @@ static void single_server_accept_local(int unused_event, char *context)
     if (var_idle_limit > 0)
 	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
 
+    if (single_server_pre_accept)
+	single_server_pre_accept();
     fd = LOCAL_ACCEPT(listen_fd);
     if (single_server_lock != 0
 	&& myflock(vstream_fileno(single_server_lock), MYFLOCK_NONE) < 0)
@@ -390,6 +395,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    break;
 	case MAIL_SERVER_EXIT:
 	    single_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
+	    break;
+	case MAIL_SERVER_PRE_ACCEPT:
+	    single_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

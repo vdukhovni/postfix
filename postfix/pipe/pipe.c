@@ -675,6 +675,16 @@ static void pipe_service(VSTREAM *client_stream, char *service, char **argv)
     }
 }
 
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("table has changed -- exiting");
+	exit(0);
+    }
+}
+
 /* drop_privileges - drop privileges most of the time */
 
 static void drop_privileges(void)
@@ -694,5 +704,6 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, pipe_service,
 		       MAIL_SERVER_INT_TABLE, int_table,
 		       MAIL_SERVER_POST_INIT, drop_privileges,
+		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

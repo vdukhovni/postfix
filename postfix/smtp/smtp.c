@@ -154,6 +154,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <dict.h>
 
 /* Utility library. */
 
@@ -320,6 +321,16 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
     }
 }
 
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("table has changed -- exiting");
+	exit(0);
+    }
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -356,5 +367,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, debug_peer_init,
+		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

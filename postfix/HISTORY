@@ -2568,11 +2568,33 @@ Apologies for any names omitted.
 	Portability: on LINUX systems, if <db_185.h> exists, don't
 	look for <db/db.h>.
 
-	Workaround: on Solaris 2.x, don't put an flock()/fcntl() lock
-	on mailboxes, to avoid clashes with the mailtool application.
+	Workaround: specify "sun_mailtool_compatibility = yes" to
+	avoid clashes with the mailtool application. This disables
+	kernel locks on mailbox files. Use only where needed.
 
 	Portability: renamed readline to readlline, to avoid clashes
 	with mysql.
+
+19990409
+
+	Bugfix: ignore temp queue files that aren't old enough.
+	Problem reported by Vivek Khera, Khera Communications, Inc.
+
+	Bugfix: fixed typo in dict_db.c that caused processes to
+	not release DB shared locks.
+
+	Feature: auto-detection of changes to DB or DBM lookup
+	tables.  This avoids the need to run "postfix reload" after
+	change to the smtp access table and other tables.
+
+	Feature: regular expression checks for message headers.
+	This requires support for POSIX or for PCRE regular
+	expressions.  Specify "header_checks = regexp:/file/name"
+	or "header_checks = pcre:/file/name", and specify
+	"/^header-name:  badstuff/ REJECT" in the pattern file
+	(patterns are case-insensitive by default).  Code by Lamont
+	Jones, Hewlett-Packard.  It is to be expected that full
+	content filtering will be delegated to an external command.
 
 Future:
 

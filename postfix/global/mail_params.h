@@ -590,6 +590,10 @@ extern int var_message_limit;
 #define DEF_QUEUE_MINFREE	0
 extern int var_queue_minfree;
 
+#define VAR_HEADER_CHECKS	"header_checks"
+#define DEF_HEADER_CHECKS	""
+extern char *var_header_checks;
+
  /*
   * Bounce service: truncate bounce message that exceed $bounce_size_limit.
   */
@@ -631,9 +635,9 @@ extern int var_flock_delay;
 #define DEF_FLOCK_STALE		500
 extern int var_flock_stale;
 
-#define VAR_FLOCK_DISABLE	"deliver_lock_disable"
-#define DEF_FLOCK_DISABLE	0
-extern int var_flock_disable;
+#define VAR_MAILTOOL_COMPAT	"sun_mailtool_compatibility"
+#define DEF_MAILTOOL_COMPAT	0
+extern int var_mailtool_compat;
 
  /*
   * How long a daemon command may take to receive or deliver a message etc.

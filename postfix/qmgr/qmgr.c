@@ -231,6 +231,7 @@
 #include <msg.h>
 #include <events.h>
 #include <vstream.h>
+#include <dict.h>
 
 /* Global library. */
 
@@ -387,6 +388,16 @@ static int qmgr_loop(void)
     return (WAIT_FOR_EVENT);
 }
 
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("table has changed -- exiting");
+	exit(0);
+    }
+}
+
 /* qmgr_pre_init - pre-jail initialization */
 
 static void qmgr_pre_init(void)
@@ -461,5 +472,6 @@ int     main(int argc, char **argv)
 			MAIL_SERVER_PRE_INIT, qmgr_pre_init,
 			MAIL_SERVER_POST_INIT, qmgr_post_init,
 			MAIL_SERVER_LOOP, qmgr_loop,
+			MAIL_SERVER_PRE_ACCEPT, pre_accept,
 			0);
 }

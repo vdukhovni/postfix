@@ -48,6 +48,7 @@
 
 /* System library. */
 
+#include <sys/stat.h>
 #include <limits.h>
 #ifdef PATH_DB_H
 #include PATH_DB_H
@@ -134,7 +135,7 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     /*
      * Release the shared lock.
      */
-    if ((dict->fd & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
+    if ((dict->flags & DICT_FLAG_LOCK) && myflock(dict->fd, MYFLOCK_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->path);
 
     return (result);
@@ -223,6 +224,7 @@ static DICT *dict_db_open(const char *path, int flags, int type,
 			          void *tweak, int dict_flags)
 {
     DICT_DB *dict_db;
+    struct stat st;
     DB     *db;
     char   *db_path;
 
@@ -235,6 +237,9 @@ static DICT *dict_db_open(const char *path, int flags, int type,
     dict_db->dict.update = dict_db_update;
     dict_db->dict.close = dict_db_close;
     dict_db->dict.fd = db->fd(db);
+    if (fstat(dict_db->dict.fd, &st) < 0)
+	msg_fatal("dict_db_open: fstat: %m");
+    dict_db->dict.mtime = st.st_mtime;
     close_on_exec(dict_db->dict.fd, CLOSE_ON_EXEC);
     dict_db->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)

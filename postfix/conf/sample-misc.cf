@@ -28,15 +28,6 @@ daemon_timeout = 18000
 # default_transport = uucp
 default_transport = smtp
 
-# The deliver_lock_disable parameter disables fcntl/flock file locking
-# on mailboxes. This is needed on SUN workstations because the mailtool
-# program keeps an exclusive fcntl/flock lock while its window is open.
-# SUN software uses user.lock files only. Unless you remove all SUN
-# mail software, fcntl/flock just gives a false sense of security.
-#
-#deliver_lock_disable = yes
-deliver_lock_disable = no
-
 # The double_bounce_sender parameter specifies the sender address
 # for mail that must be discarded when it cannot be delivered. This
 # must be a unique name. All mail to this name is silently discarded,
@@ -265,6 +256,15 @@ relayhost =
 #
 # relocated_maps = hash:/etc/postfix/relocated
 relocated_maps =
+
+# The sun_mailtool_compatibility parameter disables kernel file locks
+# on mailboxes. This is needed on SUN workstations because the mailtool
+# program keeps an exclusive kernel lock while its window is open.
+# SUN software uses user.lock files only. Unless you remove all SUN
+# mail software, kernel locks just give a false sense of security.
+#
+#sun_mailtool_compatibility = yes
+sun_mailtool_compatibility = no
 
 # The trigger_timeout parameter limits the time to send a trigger to
 # a Postfix daemon. This prevents programs from getting stuck when the

@@ -10,7 +10,7 @@
 /*	int	fd;
 /*	VSTRING	*why;
 /* DESCRIPTION
-/*	deliver_flock() sets one exclusive lock on an open file
+/*	deliver_flock() sets one exclusive kernel lock on an open file
 /*	for the purpose of mail delivery. It attempts to acquire
 /*	the exclusive lock several times before giving up.
 /*
@@ -26,7 +26,7 @@
 /* CONFIGURATION PARAMETERS
 /*	deliver_lock_attempts, number of locking attempts
 /*	deliver_lock_delay, time in seconds between attempts
-/*	deliver_lock_disable, disable exclusive locking
+/*	sun_mailtool_compatibility, disable kernel locking
 /* LICENSE
 /* .ad
 /* .fi
@@ -59,7 +59,7 @@ int     deliver_flock(int fd, VSTRING *why)
 {
     int     i;
 
-    if (var_flock_disable)
+    if (var_mailtool_compat)
 	return (0);
 
     for (i = 0; /* void */ ; i++) {

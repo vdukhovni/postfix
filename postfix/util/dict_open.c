@@ -314,8 +314,13 @@ main(int argc, char **argv)
     else
 	msg_fatal("unknown access mode: %s", argv[2]);
     dict_name = argv[optind];
-    dict = dict_open(dict_name, open_flags, 0);
+    dict = dict_open(dict_name, open_flags, DICT_FLAG_LOCK);
+    dict_register(dict_name, dict);
     while (vstring_fgets_nonl(keybuf, VSTREAM_IN)) {
+	if (dict_changed()) {
+	    msg_warn("dictionary has changed -- exiting");
+	    exit(0);
+	}
 	if ((key = strtok(vstring_str(keybuf), " =")) == 0)
 	    continue;
 	if ((value = strtok((char *) 0, " =")) == 0) {

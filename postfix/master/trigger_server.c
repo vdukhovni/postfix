@@ -82,6 +82,8 @@
 /* .IP "MAIL_SERVER_EXIT (void *(void))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
+/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(void))"
+/*	Function to be executed prior to accepting a new request.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -168,6 +170,7 @@ static char *trigger_server_name;
 static char **trigger_server_argv;
 static void (*trigger_server_accept) (int, char *);
 static void (*trigger_server_onexit) (void);
+static void (*trigger_server_pre_accept) (void);
 static VSTREAM *trigger_server_lock;
 
 /* trigger_server_exit - normal termination */
@@ -256,6 +259,8 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
      * Read whatever the other side wrote into the FIFO. The FIFO read end is
      * non-blocking so we won't get stuck when multiple processes wake up.
      */
+    if (trigger_server_pre_accept)
+	trigger_server_pre_accept();
     trigger_server_wakeup(listen_fd);
 }
 
@@ -288,6 +293,8 @@ static void trigger_server_accept_local(int unused_event, char *context)
     if (var_idle_limit > 0)
 	time_left = event_cancel_timer(trigger_server_timeout, (char *) 0);
 
+    if (trigger_server_pre_accept)
+	trigger_server_pre_accept();
     fd = LOCAL_ACCEPT(listen_fd);
     if (trigger_server_lock != 0
 	&& myflock(vstream_fileno(trigger_server_lock), MYFLOCK_NONE) < 0)
@@ -391,6 +398,9 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    break;
 	case MAIL_SERVER_EXIT:
 	    trigger_server_onexit = va_arg(ap, MAIL_SERVER_EXIT_FN);
+	    break;
+	case MAIL_SERVER_PRE_ACCEPT:
+	    trigger_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

@@ -129,6 +129,7 @@
 #include <vstream.h>
 #include <mymalloc.h>
 #include <iostuff.h>
+#include <dict.h>
 
 /* Global library. */
 
@@ -167,6 +168,7 @@ char   *var_rcpt_canon_maps;		/* recipient canonical maps */
 char   *var_virtual_maps;		/* virtual maps */
 char   *var_masq_domains;		/* masquerade domains */
 char   *var_masq_exceptions;		/* users not masqueraded */
+char   *var_header_checks;		/* any header checks */
 int     var_dup_filter_limit;		/* recipient dup filter */
 char   *var_empty_addr;			/* destination of bounced bounces */
 int     var_delay_warn_time;		/* delay that triggers warning */
@@ -177,6 +179,7 @@ int     var_delay_warn_time;		/* delay that triggers warning */
 MAPS   *cleanup_comm_canon_maps;
 MAPS   *cleanup_send_canon_maps;
 MAPS   *cleanup_rcpt_canon_maps;
+MAPS   *cleanup_header_checks;
 MAPS   *cleanup_virtual_maps;
 ARGV   *cleanup_masq_domains;
 
@@ -389,6 +392,19 @@ static void pre_jail_init(void)
 					   DICT_FLAG_LOCK);
     if (*var_masq_domains)
 	cleanup_masq_domains = argv_split(var_masq_domains, " ,\t\r\n");
+    if (*var_header_checks)
+	cleanup_header_checks = 
+	    maps_create(VAR_HEADER_CHECKS, var_header_checks, DICT_FLAG_LOCK);
+}
+
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("table has changed -- exiting");
+	exit(0);
+    }
 }
 
 /* post_jail_init - initialize after entering the chroot jail */
@@ -426,6 +442,7 @@ int     main(int argc, char **argv)
 	VAR_MASQ_DOMAINS, DEF_MASQ_DOMAINS, &var_masq_domains, 0, 0,
 	VAR_EMPTY_ADDR, DEF_EMPTY_ADDR, &var_empty_addr, 1, 0,
 	VAR_MASQ_EXCEPTIONS, DEF_MASQ_EXCEPTIONS, &var_masq_exceptions, 0, 0,
+	VAR_HEADER_CHECKS, DEF_HEADER_CHECKS, &var_header_checks, 0, 0,
 	0,
     };
 
@@ -444,5 +461,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       MAIL_SERVER_POST_INIT, post_jail_init,
+		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);
 }

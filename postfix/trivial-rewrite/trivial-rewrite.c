@@ -120,6 +120,7 @@
 #include <vstring_vstream.h>
 #include <split_at.h>
 #include <stringops.h>
+#include <dict.h>
 
 /* Global library. */
 
@@ -182,6 +183,16 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 	multi_server_disconnect(stream);
 }
 
+/* pre_accept - see if tables have changed */
+
+static void pre_accept(void)
+{
+    if (dict_changed()) {
+	msg_info("table has changed -- exiting");
+	exit(0);
+    }
+}
+
 /* pre_jail_init - initialize before entering chroot jail */
 
 static void pre_jail_init(void)
@@ -213,5 +224,6 @@ int     main(int argc, char **argv)
 		      MAIL_SERVER_STR_TABLE, str_table,
 		      MAIL_SERVER_BOOL_TABLE, bool_table,
 		      MAIL_SERVER_PRE_INIT, pre_jail_init,
+		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		      0);
 }

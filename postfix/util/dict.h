@@ -31,6 +31,7 @@ typedef struct DICT {
     void    (*update) (struct DICT *, const char *, const char *);
     void    (*close) (struct DICT *);
     int     fd;				/* for dict_update() lock */
+    time_t  mtime;			/* mod time at open */
 } DICT;
 
 #define DICT_FLAG_DUP_WARN	(1<<0)	/* if file, warn about dups */
@@ -65,10 +66,13 @@ extern const char *dict_eval(const char *, const char *, int);
   */
 extern DICT *dict_open(const char *, int, int);
 extern DICT *dict_open3(const char *, const char *, int, int);
-extern void dict_open_register(const char *, DICT *(*)(const char *, int, int));
+extern void dict_open_register(const char *, DICT *(*) (const char *, int, int));
 #define dict_get(dp, key)	(dp)->lookup((dp), (key))
 #define dict_put(dp, key, val)	(dp)->update((dp), (key), (val))
 #define dict_close(dp)		(dp)->close(dp)
+typedef void (*DICT_WALK_ACTION) (const char *, DICT *, char *);
+extern void dict_walk(DICT_WALK_ACTION, char *);
+extern int dict_changed(void);
 
 /* LICENSE
 /* .ad

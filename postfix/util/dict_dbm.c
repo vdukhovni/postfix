@@ -36,6 +36,7 @@
 
 /* System library. */
 
+#include <sys/stat.h>
 #include <ndbm.h>
 #include <string.h>
 
@@ -196,6 +197,7 @@ static void dict_dbm_close(DICT *dict)
 DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 {
     DICT_DBM *dict_dbm;
+    struct stat st;
     DBM    *dbm;
 
     /*
@@ -209,6 +211,9 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm->dict.update = dict_dbm_update;
     dict_dbm->dict.close = dict_dbm_close;
     dict_dbm->dict.fd = dbm_dirfno(dbm);
+    if (fstat(dict_dbm->dict.fd, &st) < 0)
+	msg_fatal("dict_dbm_open: fstat: %m");
+    dict_dbm->dict.mtime = st.st_mtime;
     close_on_exec(dict_dbm->dict.fd, CLOSE_ON_EXEC);
     dict_dbm->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)

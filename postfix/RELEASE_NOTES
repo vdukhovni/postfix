@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-19990408:
+Incompatible changes with snapshot-19990409:
 ===========================================
 
 - If an address extension (+foo) matches a user's .forward+foo file
@@ -6,22 +6,35 @@ name, the +foo extension is no longer appended to recipient addresses
 listed in the .forward+foo file. This is more consistent with the
 way Postfix expands aliases.
 
-Major changes with snapshot-19990408:
+Major changes with snapshot-19990409:
 =====================================
 
 In addition to several little bugfixes, none related to security,
 lots of internal code cleanup, lots of new functionality, and lots
 of Solaris workarounds.
 
+- POSIX regular expression support, enabled by default on 4.4BSD,
+LINUX, and HP-UX. See conf/sample-regexp.cf.  Initial code by Lamont
+Jones, Hewlett-Packard, borrowing heavily from the PCRE implementation
+by Andrew McNamara, connect.com.au Pty. Ltd., Australia.
+
+- Regular expression checks for message headers.  This requires
+support for POSIX or for PCRE regular expressions.  Specify
+"header_checks = regexp:/file/name" or "header_checks = pcre:/file/name",
+and specify "/^header-name:  badstuff/ REJECT" in the pattern file
+(patterns are case-insensitive by default).  Code by Lamont Jones,
+Hewlett-Packard.  It is to be expected that full content filtering
+will be delegated to an external command.
+
 - Regular expression support for all lookup tables, including access
 control (full mail addresses only), address rewriting (canonical/virtual,
 full mail addresses only) and transport tables (full domain names
 only).  However, regular expressions are not allowed for aliases.
 
-- POSIX regular expression support, enabled by default on 4.4BSD,
-LINUX, and HP-UX. See conf/sample-regexp.cf.  Initial code by Lamont
-Jones, Hewlett-Packard, borrowing heavily from the PCRE implementation
-by Andrew McNamara, connect.com.au Pty. Ltd., Australia.
+- Automatic detection of changes to DB or DBM lookup tables.  This
+eliminates the need to run "postfix reload" after each change to
+the SMTP access table, or to the canonical, virtual, transport or
+aliases tables.
 
 - forward_path configuration parameter for .forward files (default:
 $home/.forward$recipient_delimiter$extension,$home/.forward).
@@ -34,8 +47,8 @@ Solaris UNIX-domain sockets, because they are still broken,
 even with Solaris 7.
 
 - Workaround for the Solaris mailtool, which keeps an exclusive
-fcntl/flock lock on the mailbox while its window is not iconified
-(specify "deliver_lock_disable = yes" in main.cf).
+kernel lock on the mailbox while its window is not iconified (specify
+"sun_mailtool_compatibility = yes" in main.cf).
 
 - Questionable workaround for Solaris, which reportedly loses
 long-lived exclusive locks that are held by the master daemon.

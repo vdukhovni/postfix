@@ -51,7 +51,7 @@
 /*	int	var_flock_tries;
 /*	int	var_flock_delay;
 /*	int	var_flock_stale;
-/*	int	var_flock_disable;
+/*	int	var_mailtool_compat;
 /*	int	var_disable_dns;
 /*	int	var_soft_bounce;
 /*	time_t	var_starttime;
@@ -154,7 +154,7 @@ int     var_fork_delay;
 int     var_flock_tries;
 int     var_flock_delay;
 int     var_flock_stale;
-int     var_flock_disable;
+int     var_mailtool_compat;
 int     var_disable_dns;
 int     var_soft_bounce;
 time_t  var_starttime;
@@ -280,7 +280,7 @@ void    mail_params_init()
 	VAR_DISABLE_DNS, DEF_DISABLE_DNS, &var_disable_dns,
 	VAR_SOFT_BOUNCE, DEF_SOFT_BOUNCE, &var_soft_bounce,
 	VAR_OWNREQ_SPECIAL, DEF_OWNREQ_SPECIAL, &var_ownreq_special,
-	VAR_FLOCK_DISABLE, DEF_FLOCK_DISABLE, &var_flock_disable,
+	VAR_MAILTOOL_COMPAT, DEF_MAILTOOL_COMPAT, &var_mailtool_compat,
 	0,
     };
 

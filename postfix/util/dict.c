@@ -10,35 +10,41 @@
 /*	extern int dict_errno;
 /*
 /*	void	dict_register(dict_name, dict_info)
-/*	const const char *dict_name;
+/*	const char *dict_name;
 /*	DICT	*dict_info;
 /*
 /*	DICT	*dict_handle(dict_name)
-/*	const const char *dict_name;
+/*	const char *dict_name;
 /*
 /*	void	dict_unregister(dict_name)
-/*	const const char *dict_name;
+/*	const char *dict_name;
 /*
 /*	void	dict_update(dict_name, member, value)
-/*	const const char *dict_name;
-/*	const const char *member;
+/*	const char *dict_name;
+/*	const char *member;
 /*	const char *value;
 /*
 /*	const char *dict_lookup(dict_name, member)
-/*	const const char *dict_name;
-/*	const const char *member;
+/*	const char *dict_name;
+/*	const char *member;
 /*
 /*	const char *dict_eval(dict_name, string, int recursive)
-/*	const const char *dict_name;
+/*	const char *dict_name;
 /*	const char *string;
 /*	int	recursive;
+/*
+/*	int	dict_walk(action, context)
+/*	void	(*action)(dict_name, dict_handle, context)
+/*	char	*context;
+/*
+/*	int	dict_changed()
 /* AUXILIARY FUNCTIONS
 /*	void	dict_load_file(dict_name, path)
-/*	const const char *dict_name;
-/*	const const char *path;
+/*	const char *dict_name;
+/*	const char *path;
 /*
 /*	void	dict_load_fp(dict_name, fp)
-/*	const const char *dict_name;
+/*	const char *dict_name;
 /*	FILE	*fp;
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
@@ -93,6 +99,19 @@
 /*	\fIrecursive\fR argument is non-zero, macros references are
 /*	expanded recursively.
 /*
+/*	dict_walk() iterates over all registered dictionaries in some
+/*	arbitrary order, and invokes the specified action routine with
+/*	as arguments:
+/* .IP "const char *dict_name"
+/*	Dictionary name.
+/* .IP "DICT *dict_handle"
+/*	Generic dictionary handle.
+/* .IP "char *context"
+/*	Application context from the caller.
+/* .PP
+/*	dict_changed() returns non-zero when any dictionary needs to
+/*	be re-opened because it has changed.
+/*
 /*	dict_load_file() reads name-value entries from the named file.
 /*	Lines that begin with whitespace are concatenated to the preceding
 /*	line (the newline is deleted).
@@ -128,6 +147,7 @@
 /* System libraries. */
 
 #include "sys_defs.h"
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <string.h>
@@ -414,4 +434,45 @@ const char *dict_eval(const char *dict_name, const char *value, int recursive)
     VSTRING_TERMINATE(buf);
 
     return (STR(buf));
+}
+
+/* dict_walk - iterate over all dictionaries in arbitrary order */
+
+void    dict_walk(DICT_WALK_ACTION action, char *ptr)
+{
+    HTABLE_INFO **ht_info_list;
+    HTABLE_INFO **ht;
+    HTABLE_INFO *h;
+
+    ht_info_list = htable_list(dict_table);
+    for (ht = ht_info_list; (h = *ht) != 0; ht++)
+	action(h->key, (DICT *) h->value, ptr);
+    myfree((char *) ht_info_list);
+}
+
+/* dict_changed - see if any dictionary has changed */
+
+int     dict_changed(void)
+{
+    char   *myname = "dict_changed";
+    struct stat st;
+    HTABLE_INFO **ht_info_list;
+    HTABLE_INFO **ht;
+    HTABLE_INFO *h;
+    int     status;
+    DICT   *dict;
+
+    ht_info_list = htable_list(dict_table);
+    for (status = 0, ht = ht_info_list; status == 0 && (h = *ht) != 0; ht++) {
+	dict = ((DICT_NODE *) h->value)->dict;
+	if (dict->fd < 0)			/* not file-based */
+	    continue;
+	if (dict->mtime == 0)			/* not bloody likely */
+	    msg_warn("%s: table %s: null time stamp", myname, h->key);
+	if (fstat(dict->fd, &st) < 0)
+	    msg_fatal("%s: fstat: %m", myname);
+	status = (st.st_mtime != dict->mtime);
+    }
+    myfree((char *) ht_info_list);
+    return (status);
 }
