@@ -57,6 +57,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>			/* sscanf() */
 
 /* Utility library. */
 
@@ -112,6 +113,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     time_t  arrival_time = 0;
     char   *start;
     long    msg_size = 0;
+    long    msg_offset = 0;
     BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
     char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' :
@@ -132,8 +134,11 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    arrival_time = atol(start);
 	    break;
 	case REC_TYPE_SIZE:
-	    if ((msg_size = atol(start)) <= 0)
-		msg_size = size;
+	    if (sscanf(start, "%ld %ld", &msg_size, &msg_offset) == 2) {
+		/* Postfix >= 1.0 (a.k.a. 20010228) style queue file. */
+		if (msg_size <= 0)
+		    msg_size = size;
+	    }
 	    break;
 	case REC_TYPE_FROM:
 	    if (*start == 0)
@@ -156,8 +161,11 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 				"", "", "", STR(printable_quoted_addr));
 	    break;
 	case REC_TYPE_MESG:
-	    if ((offset = atol(start)) > 0
-		&& vstream_fseek(qfile, offset, SEEK_SET) < 0)
+	    if (msg_size > 0 && msg_offset > 0
+		&& vstream_fseek(qfile, msg_size, SEEK_CUR) < 0)
+		msg_fatal("seek file %s: %m", VSTREAM_PATH(qfile));
+	    else if ((offset = atol(start)) > 0
+		     && vstream_fseek(qfile, offset, SEEK_SET) < 0)
 		msg_fatal("seek file %s: %m", VSTREAM_PATH(qfile));
 	    break;
 	case REC_TYPE_END:

@@ -263,6 +263,7 @@ struct QMGR_MESSAGE {
     long    warn_offset;		/* warning bounce flag offset */
     time_t  warn_time;			/* time next warning to be sent */
     long    data_offset;		/* data seek offset */
+    long    extra_offset;		/* extracted data seek offset */
     char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file */
     char   *encoding;			/* content encoding */
@@ -275,7 +276,6 @@ struct QMGR_MESSAGE {
     char   *redirect_addr;		/* info@spammer.tld */
     long    data_size;			/* message content size */
     long    rcpt_offset;		/* more recipients here */
-    long    unread_offset;		/* more unread recipients here */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
     int     rcpt_count;			/* used recipient slots */
     int     rcpt_limit;			/* maximum read in-core */

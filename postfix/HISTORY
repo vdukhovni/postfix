@@ -8074,6 +8074,17 @@ Apologies for any names omitted.
 	descriptor is writable while write() transfers zero bytes.
 	File:  util/vstream.c.
 
+20030519
+
+	Feature: new require_{date,from,message_id,received}_header
+	restriction to reject SMTP mail when some message header
+	is missing.  Only the From: and Date: headers are actually
+	required by Internet mail standards; the Received:  and
+	Message-ID: headers are optional, but these are often
+	missing from SPAM email.  Files: global/cleanup_user.h,
+	global/cleanup_strerror.c, smtpd/smtpd_check.c,
+	cleanup/cleanup_message.c.
+
 20030520
 
 	Cleanup: future time stamps in Received: headers and negative
@@ -8088,6 +8099,19 @@ Apologies for any names omitted.
 	count the "already done" recipients. Problem reported by
 	Richard Stockton, Gramma Software. Files:
 	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c.
+
+2003052[34]
+
+	Cleanup: rewrote the queue file record processing loops in
+	cleanup and in [n]qmgr. This code had deteriorated a lot
+	as the result of small changes over the years. This change
+	brings the code closer to "obviously correct". Files:
+	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c,
+	*qmgr/qmgr_message.c.
+
+	Cleanup: Postfix no longer produces queue files with
+	backwards compatibility for Postfix versions < 1.0 (a.k.a.
+	20010228). File: cleanup/cleanup_extracted.c.
 
 Open problems:
 

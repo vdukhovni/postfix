@@ -338,6 +338,7 @@
 #include <valid_hostname.h>
 #include <dict.h>
 #include <watchdog.h>
+#include <iostuff.h>
 
 /* Global library. */
 
@@ -1141,6 +1142,9 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     } else if ((state->err & CLEANUP_STAT_WRITE) != 0) {
 	state->error_mask |= MAIL_ERROR_RESOURCE;
 	smtpd_chat_reply(state, "451 Error: queue file write error");
+    } else if ((state->err & CLEANUP_STAT_MISS_HDR) != 0) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	smtpd_chat_reply(state, "550 Error: missing message header");
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	smtpd_chat_reply(state, "451 Error: internal error %d", state->err);
@@ -1578,6 +1582,13 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
      */
     smtpd_state_init(&state, stream);
     msg_info("connect from %s[%s]", state.name, state.addr);
+
+    /*
+     * XXX non_blocking() aborts upon error.
+     */
+#ifdef BROKEN_READ_SELECT_ON_BLOCKING_SOCKET
+    non_blocking(vstream_fileno(stream), NON_BLOCKING);
+#endif
 
     /*
      * See if we need to turn on verbose logging for this client.

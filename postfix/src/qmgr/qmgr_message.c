@@ -194,22 +194,94 @@ static int qmgr_message_open(QMGR_MESSAGE *message)
     return (0);
 }
 
+/* qmgr_message_oldstyle_scan - support for Postfix < 1.0 queue files */
+
+static void qmgr_message_oldstyle_scan(QMGR_MESSAGE *message)
+{
+    VSTRING *buf;
+    long    orig_offset,
+            curr_offset,
+            extra_offset;
+    int     rec_type;
+    char   *start;
+
+    /*
+     * Initialize. No early returns or we have a memory leak.
+     */
+    buf = vstring_alloc(100);
+    if ((orig_offset = vstream_ftell(message->fp)) < 0)
+	msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
+
+    /*
+     * Rewind to the very beginning to make sure we see all records.
+     */
+    if (vstream_fseek(message->fp, 0, SEEK_SET) < 0)
+	msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+
+    /*
+     * Scan through the old style queue file. Count the total number of
+     * recipients and find the data/extra sections offsets. Note that the new
+     * queue files require that data_size equals extra_offset - data_offset,
+     * so we set data_size to this as well and ignore the size record itself
+     * completely.
+     */
+    for (;;) {
+	if ((curr_offset = vstream_ftell(message->fp)) < 0)
+	    msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
+	rec_type = rec_get(message->fp, buf, 0);
+	if (rec_type <= 0)
+	    /* Report missing end record later. */
+	    break;
+	start = vstring_str(buf);
+	if (msg_verbose > 1)
+	    msg_info("old-style scan record %c %s", rec_type, start);
+	if (rec_type == REC_TYPE_END)
+	    break;
+	if (rec_type == REC_TYPE_MESG) {
+	    if (message->data_offset == 0) {
+		if ((message->data_offset = vstream_ftell(message->fp)) < 0)
+		    msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
+		if ((extra_offset = atol(start)) <= message->data_offset)
+		    msg_fatal("bad extra offset %s file %s",
+			      start, VSTREAM_PATH(message->fp));
+		if (vstream_fseek(message->fp, extra_offset, SEEK_SET) < 0)
+		    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+		message->data_size = extra_offset - message->data_offset;
+	    }
+	    continue;
+	}
+    }
+
+    /*
+     * Clean up.
+     */
+    if (vstream_fseek(message->fp, orig_offset, SEEK_SET) < 0)
+	msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+    vstring_free(buf);
+
+    /*
+     * Sanity checks. Verify that all required information was found,
+     * including the queue file end marker.
+     */
+    if (message->data_offset == 0 || rec_type != REC_TYPE_END)
+	msg_fatal("%s: envelope records out of order", message->queue_id);
+}
+
 /* qmgr_message_read - read envelope records */
 
 static int qmgr_message_read(QMGR_MESSAGE *message)
 {
     VSTRING *buf;
-    long    extra_offset;
     int     rec_type;
     long    curr_offset;
     long    save_offset = message->rcpt_offset;	/* save a flag */
     char   *start;
-    struct stat st;
     int     nrcpt = 0;
     const char *error_text;
     char   *name;
     char   *value;
     char   *orig_rcpt = 0;
+    int     count;
 
     /*
      * Initialize. No early returns or we have a memory leak.
@@ -218,7 +290,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 
     /*
      * If we re-open this file, skip over on-file recipient records that we
-     * already looked at, and reset the in-core recipient address list.
+     * already looked at, and refill the in-core recipient address list.
      */
     if (message->rcpt_offset) {
 	if (message->rcpt_list.len)
@@ -235,7 +307,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * queue file, to protect against memory exhaustion. Recipient records
      * may appear before or after the message content, so we keep reading
      * from the queue file until we have enough recipients (rcpt_offset != 0)
-     * and until we know where the message content starts (data_offset != 0).
+     * and until we know all the non-recipient extracted segment information.
      * 
      * When reading recipients from queue file, stop reading when we reach a
      * per-message in-core recipient limit rather than a global in-core
@@ -248,75 +320,123 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * (global recipient limit)/(active queue size limit), which gives equal
      * delay per recipient rather than equal delay per message.
      */
-    do {
+    for (;;) {
 	if ((curr_offset = vstream_ftell(message->fp)) < 0)
 	    msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
+	if (curr_offset == message->data_offset && curr_offset > 0) {
+	    if (vstream_fseek(message->fp, message->data_size, SEEK_CUR) < 0)
+		msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+	    curr_offset += message->data_size;
+	}
 	rec_type = rec_get(message->fp, buf, 0);
+	if (rec_type <= 0)
+	    /* Report missing end record later. */
+	    break;
 	start = vstring_str(buf);
-	if (rec_type == REC_TYPE_SIZE) {
-	    if (message->data_size == 0)
-		sscanf(start, "%ld %ld %d",
-		       &message->data_size, &message->data_offset, &nrcpt);
-	} else if (rec_type == REC_TYPE_TIME) {
-	    if (message->arrival_time == 0)
-		message->arrival_time = atol(start);
-	} else if (rec_type == REC_TYPE_FILT) {
-	    if (message->filter_xport != 0)
-		myfree(message->filter_xport);
-	    message->filter_xport = mystrdup(start);
-	} else if (rec_type == REC_TYPE_INSP) {
-	    if (message->inspect_xport != 0)
-		myfree(message->inspect_xport);
-	    message->inspect_xport = mystrdup(start);
-	} else if (rec_type == REC_TYPE_RDR) {
-	    if (message->redirect_addr != 0)
-		myfree(message->redirect_addr);
-	    message->redirect_addr = mystrdup(start);
-	} else if (rec_type == REC_TYPE_FROM) {
-	    if (message->sender == 0) {
-		message->sender = mystrdup(start);
-		opened(message->queue_id, message->sender,
-		       message->data_size, nrcpt,
-		       "queue %s", message->queue_name);
-	    }
-	} else if (rec_type == REC_TYPE_RCPT) {
+	if (msg_verbose > 1)
+	    msg_info("record %c %s", rec_type, start);
+	if (rec_type == REC_TYPE_END)
+	    break;
+	if (rec_type == REC_TYPE_RCPT) {
 	    /* See also below for code setting orig_rcpt. */
-#define FUDGE(x)	((x) * (var_qmgr_fudge / 100.0))
-	    if (message->rcpt_list.len < FUDGE(var_qmgr_rcpt_limit)) {
+	    if (message->rcpt_offset == 0) {
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset,
 				   orig_rcpt ? orig_rcpt : "unknown", start);
 		if (orig_rcpt) {
 		    myfree(orig_rcpt);
 		    orig_rcpt = 0;
 		}
-		if (message->rcpt_list.len >= FUDGE(var_qmgr_rcpt_limit)) {
+		if (message->rcpt_list.len >= var_qmgr_rcpt_limit) {
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
 				  VSTREAM_PATH(message->fp));
-		    if (message->data_offset != 0
-			&& message->errors_to != 0
-			&& message->return_receipt != 0)
+		    /* Must have examined all non-recipient records. */
+		    if (curr_offset > message->data_offset)
 			break;
 		}
 	    }
-	} else if (rec_type == REC_TYPE_MESG) {
-	    if ((message->data_offset = vstream_ftell(message->fp)) < 0)
-		msg_fatal("vstream_ftell %s: %m", VSTREAM_PATH(message->fp));
-	    if (message->rcpt_offset != 0
-		&& message->errors_to != 0
-		&& message->return_receipt != 0)
-		break;
-	    if ((extra_offset = atol(start)) < curr_offset) {
-		msg_warn("bad extra offset %s file %s",
-			 start, VSTREAM_PATH(message->fp));
-		break;
+	    continue;
+	}
+	if (rec_type == REC_TYPE_DONE) {
+	    if (orig_rcpt) {
+		myfree(orig_rcpt);
+		orig_rcpt = 0;
 	    }
-	    if (vstream_fseek(message->fp, extra_offset, SEEK_SET) < 0)
-		msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
-	} else if (rec_type == REC_TYPE_ATTR) {
+	    continue;
+	}
+	if (orig_rcpt != 0) {
+	    /* REC_TYPE_ORCP must go before REC_TYPE_RCPT or REC_TYPE DONE. */
+	    msg_warn("%s: out-of-order original recipient record <%.200s>",
+		     message->queue_id, orig_rcpt);
+	    myfree(orig_rcpt);
+	    orig_rcpt = 0;
+	}
+	if (rec_type == REC_TYPE_ORCP) {
+	    /* See also above for code clearing orig_rcpt. */
+	    if (message->rcpt_offset == 0)
+		orig_rcpt = mystrdup(start);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_SIZE) {
+	    if (message->data_offset == 0) {
+		if ((count = sscanf(start, "%ld %ld %d", &message->data_size,
+				    &message->data_offset, &nrcpt)) == 3) {
+		    /* Postfix >= 1.0 (a.k.a. 20010228). */
+		    if (message->data_offset <= 0 || message->data_size <= 0) {
+			msg_warn("invalid size record, file %s",
+				 VSTREAM_PATH(message->fp));
+			rec_type = REC_TYPE_ERROR;
+			break;
+		    }
+		} else if (count == 1) {
+		    /* Postfix < 1.0 (a.k.a. 20010228). */
+		    qmgr_message_oldstyle_scan(message);
+		} else {
+		    /* Can't happen. */
+		    msg_warn("%s: weird size record", message->queue_id);
+		    rec_type = REC_TYPE_ERROR;
+		    break;
+		}
+	    }
+	    continue;
+	}
+	if (rec_type == REC_TYPE_TIME) {
+	    if (message->arrival_time == 0)
+		message->arrival_time = atol(start);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_FROM) {
+	    if (message->sender == 0) {
+		message->sender = mystrdup(start);
+		opened(message->queue_id, message->sender,
+		       message->data_size, nrcpt,
+		       "queue %s", message->queue_name);
+	    }
+	    continue;
+	}
+	if (rec_type == REC_TYPE_FILT) {
+	    if (message->filter_xport != 0)
+		myfree(message->filter_xport);
+	    message->filter_xport = mystrdup(start);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_INSP) {
+	    if (message->inspect_xport != 0)
+		myfree(message->inspect_xport);
+	    message->inspect_xport = mystrdup(start);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_RDR) {
+	    if (message->redirect_addr != 0)
+		myfree(message->redirect_addr);
+	    message->redirect_addr = mystrdup(start);
+	    continue;
+	}
+	if (rec_type == REC_TYPE_ATTR) {
 	    if ((error_text = split_nameval(start, &name, &value)) != 0) {
 		msg_warn("%s: bad attribute: %s: %.200s",
 			 message->queue_id, error_text, start);
+		rec_type = REC_TYPE_ERROR;
 		break;
 	    }
 	    /* Allow extra segment to override envelope segment info. */
@@ -329,18 +449,26 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
 		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
 	    }
-	} else if (rec_type == REC_TYPE_ERTO) {
+	    continue;
+	}
+	if (rec_type == REC_TYPE_ERTO) {
 	    if (message->errors_to == 0)
 		message->errors_to = mystrdup(start);
-	} else if (rec_type == REC_TYPE_RRTO) {
+	    continue;
+	}
+	if (rec_type == REC_TYPE_RRTO) {
 	    if (message->return_receipt == 0)
 		message->return_receipt = mystrdup(start);
-	} else if (rec_type == REC_TYPE_WARN) {
+	    continue;
+	}
+	if (rec_type == REC_TYPE_WARN) {
 	    if (message->warn_offset == 0) {
 		message->warn_offset = curr_offset;
 		message->warn_time = atol(start);
 	    }
-	} else if (rec_type == REC_TYPE_VERP) {
+	    continue;
+	}
+	if (rec_type == REC_TYPE_VERP) {
 	    if (message->verp_delims == 0) {
 		if (verp_delims_verify(start) != 0) {
 		    msg_warn("%s: bad VERP record content: \"%s\"",
@@ -350,42 +478,27 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    message->verp_delims = mystrdup(start);
 		}
 	    }
+	    continue;
 	}
-	if (orig_rcpt != 0) {
-	    if (rec_type != REC_TYPE_DONE)
-		msg_warn("%s: out-of-order original recipient record <%.200s>",
-			 message->queue_id, start);
-	    myfree(orig_rcpt);
-	    orig_rcpt = 0;
-	}
-	if (rec_type == REC_TYPE_ORCP)
-	    /* See also above for code clearing orig_rcpt. */
-	    if (message->rcpt_offset == 0)
-		orig_rcpt = mystrdup(start);
-    } while (rec_type > 0 && rec_type != REC_TYPE_END);
+    }
 
     /*
      * Grr.
      */
     if (orig_rcpt != 0) {
-	msg_warn("%s: out-of-order original recipient <%.200s>",
-		 message->queue_id, start);
+	if (rec_type > 0)
+	    msg_warn("%s: out-of-order original recipient <%.200s>",
+		     message->queue_id, orig_rcpt);
 	myfree(orig_rcpt);
-    }
-
-    /*
-     * If there is no size record, use the queue file size instead.
-     */
-    if (message->data_size == 0) {
-	if (fstat(vstream_fileno(message->fp), &st) < 0)
-	    msg_fatal("fstat %s: %m", VSTREAM_PATH(message->fp));
-	message->data_size = st.st_size;
     }
 
     /*
      * Avoid clumsiness elsewhere in the program. When sending data across an
      * IPC channel, sending an empty string is more convenient than sending a
      * null pointer.
+     * 
+     * Allow for Postfix versions that do not store return_receipt or errors_to
+     * records.
      */
     if (message->errors_to == 0)
 	message->errors_to = mystrdup("");
@@ -403,16 +516,19 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * Sanity checks. Verify that all required information was found,
      * including the queue file end marker.
      */
-    if (message->arrival_time == 0
-	|| message->sender == 0
-	|| message->data_offset == 0
-	|| (message->rcpt_offset == 0 && rec_type != REC_TYPE_END)) {
-	msg_warn("%s: envelope records out of order", message->queue_id);
-	message->rcpt_offset = save_offset;	/* restore flag */
-	return (-1);
+    if (rec_type <= 0) {
+	msg_warn("%s: missing end record", message->queue_id);
+    } else if (message->arrival_time == 0) {
+	msg_warn("%s: missing arrival time record", message->queue_id);
+    } else if (message->sender == 0) {
+	msg_warn("%s: missing sender record", message->queue_id);
+    } else if (message->data_offset == 0) {
+	msg_warn("%s: missing size record", message->queue_id);
     } else {
 	return (0);
     }
+    message->rcpt_offset = save_offset;		/* restore flag */
+    return (-1);
 }
 
 /* qmgr_message_update_warn - update the time of next delay warning */
@@ -543,7 +659,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     int     len;
     int     status;
 
-#define STREQ(x,y)	(strcasecmp(x,y) == 0)
+#define STREQ(x,y)	(strcmp(x,y) == 0)
 #define STR		vstring_str
 #define LEN		VSTRING_LEN
 #define UPDATE(ptr,new)	{ myfree(ptr); ptr = mystrdup(new); }

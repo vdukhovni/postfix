@@ -79,9 +79,9 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->dups = been_here_init(var_dup_filter_limit, BH_FLAG_FOLD);
     state->warn_time = 0;
     state->action = cleanup_envelope;
-    state->mesg_offset = -1;
     state->data_offset = -1;
     state->xtra_offset = -1;
+    state->verp_seen = 0;
     state->end_seen = 0;
     state->rcpt_count = 0;
     state->reason = 0;

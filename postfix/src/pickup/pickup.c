@@ -119,7 +119,6 @@ typedef struct {
     struct stat st;			/* queue file status */
     char   *path;			/* name for open/remove */
     char   *sender;			/* sender address */
-    char   *rcpt;			/* recipient address */
 } PICKUP_INFO;
 
  /*
@@ -188,12 +187,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 			 (long) info->st.st_uid, vstring_str(buf));
 		continue;
 	    }
-	if (type == REC_TYPE_RCPT)
-	    if (info->rcpt == 0)
-		info->rcpt = mystrdup(vstring_str(buf));
 	if (type == REC_TYPE_TIME)
-	    continue;
-	if (type == REC_TYPE_SIZE)
+	    /* Use our own arrival time record instead. */
 	    continue;
 	if (type == REC_TYPE_ATTR) {
 	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,
@@ -217,38 +212,19 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    }
 	    continue;
 	}
-	if (type == REC_TYPE_RRTO)
-	    /* Use message header extracted information instead. */
-	    continue;
-	if (type == REC_TYPE_ERTO)
-	    /* Use message header extracted information instead. */
-	    continue;
-	if (type == REC_TYPE_INSP)
-	    /* Use current content inspection settings instead. */
-	    continue;
 
 	/*
-	 * XXX Workaround: REC_TYPE_FILT (used in envelopes) == REC_TYPE_CONT
-	 * (used in message content).
+	 * XXX Force an empty record when the queue file content begins with
+	 * whitespace, so that it won't be considered as being part of our
+	 * own Received: header. What an ugly Kluge.
 	 */
-	if (type == REC_TYPE_FILT && *expected != REC_TYPE_CONTENT[0])
-	    /* Use current content filter settings instead. */
-	    continue;
-	else {
-
-	    /*
-	     * XXX Force an empty record when the queue file content begins
-	     * with whitespace, so that it won't be considered as being part
-	     * of our own Received: header. What an ugly Kluge.
-	     */
-	    if (check_first) {
-		check_first = 0;
-		if (VSTRING_LEN(buf) > 0 && IS_SPACE_TAB(vstring_str(buf)[0]))
-		    rec_put(cleanup, REC_TYPE_NORM, "", 0);
-	    }
-	    if ((REC_PUT_BUF(cleanup, type, buf)) < 0)
-		return (cleanup_service_error(info, CLEANUP_STAT_WRITE));
+	if (check_first && *expected == REC_TYPE_CONTENT[0]) {
+	    check_first = 0;
+	    if (VSTRING_LEN(buf) > 0 && IS_SPACE_TAB(vstring_str(buf)[0]))
+		rec_put(cleanup, REC_TYPE_NORM, "", 0);
 	}
+	if ((REC_PUT_BUF(cleanup, type, buf)) < 0)
+	    return (cleanup_service_error(info, CLEANUP_STAT_WRITE));
     }
     return (0);
 }
@@ -429,7 +405,6 @@ static void pickup_init(PICKUP_INFO *info)
     info->id = 0;
     info->path = 0;
     info->sender = 0;
-    info->rcpt = 0;
 }
 
 /* pickup_free - wipe info structure */
@@ -441,7 +416,6 @@ static void pickup_free(PICKUP_INFO *info)
     SAFE_FREE(info->id);
     SAFE_FREE(info->path);
     SAFE_FREE(info->sender);
-    SAFE_FREE(info->rcpt);
 }
 
 /* pickup_service - service client */

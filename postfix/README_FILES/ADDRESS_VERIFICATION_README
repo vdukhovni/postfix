@@ -5,7 +5,7 @@ Sender address verification blocks mail from an unknown sender
 address until after the address is verified.  An address is verified
 by probing the nearest MTA for that address, without actually
 delivering mail to it (SMTP interruptus). Probe messages are like
-normail mail, but are discarded instead of being deferred or bounced.
+normal mail, but are discarded instead of being deferred or bounced.
 
 The same technique may be useful to block mail for undeliverable
 recipients, for example on mail relay hosts that do not have a copy
@@ -16,31 +16,95 @@ a short delay of up to 9 seconds while an address is verified for
 the first time.  Once an address status is known, the status is
 cached and Postfix replies immediately.  When verification takes
 longer than 9 seconds the Postfix SMTP server defers the sender or
-recipient address message with a 450 reply. Normal mail clients
-will connect again after some delay.
+recipient address with a 450 reply. Normal mail clients will connect
+again after some delay.
 
-Sender and recipient address verification are turned on with the
-"reject_unverified_sender" and "reject_unverified_recipient"
-restrictions, respectively.
+Limitations
+===========
+
+Postfix probes the nearest MTA for the address that is being
+verified, without actually sending mail to that address. If the
+nearest MTA accepts the recipient, then Postfix assumes that the
+address is deliverable, even when the address will bounce AFTER
+that MTA accepts it.
+
+Unfortunately, some major sites such as YAHOO do not reject unknown
+addresses in reply to the RCPT TO command, but report a delivery
+failure in response to "end of data" after a message is transferred.
+Postfix address verification does not work with such sites.
+
+By default, Postfix probe messages have "postmaster@$myorigin" as
+the sender address. You can change this into the null address
+(address_verify_sender =) but that causes address probes to fail
+with mis-configured sites that reject MAIL FROM: <>.
+
+Turning on recipient address verification
+=========================================
+
+Recipient address verification may be useful to block mail for
+undeliverable recipients on mail relay hosts that do not have a
+copy of all the relayed recipient addresses. This prevents the mail
+queue from filling up with undeliverable and bounced SPAM.
 
 Recipient address verification is relatively straightforward and
 there are no surprises. If a recipient probe fails, then Postfix
 rejects mail for the recipient address.  If a recipient probe
 succeeds, then Postfix accepts mail for the recipient address.
 
-Turning on sender address verification
-======================================
+/etc/postfix/main.cf:
+    smtpd_recipient_restrictions = 
+	permit_mynetworks
+	reject_unauth_destination
+	...
+	reject_unknown_recipient_domain
+	reject_unverified_recipient
+	...
+
+The "reject_unknown_recipient_domain" restriction blocks mail for
+non-existent domains. Putting this before "reject_unverified_recipient"
+avoids the overhead of generating unnecessary probe messages.
+
+The unverified_recipient_reject_code parameter (default 450)
+specifies how Postfix replies when a recipient address is known to
+bounce.  Change this setting into 550 when you trust Postfix's
+judgments.
+
+Sender address verification for mail from frequently forged domains
+===================================================================
+
+It is relatively safe to turn on sender address verification for
+specific domains that often appear in forged email.
+
+/etc/postfix/main.cf:
+    smtpd_sender_restrictions = hash:/etc/postfix/sender_access
+    unverified_sender_reject_code = 550
+ 
+/etc/postfix/sender_access:
+    aol.com     reject_unverified_sender
+    hotmail.com reject_unverified_sender
+    bigfoot.com reject_unverified_sender
+    ... etcetera ...
+
+A list of frequently forged MAIL FROM domains can be found at
+http://www.monkeys.com/anti-spam/filtering/sender-domain-validate.in
+
+NOTE: One of the first things you might want to do is to turn on
+sender address verification for all your own domains.
+
+Turning on sender address verification for all email
+====================================================
 
 Unfortunately, sender address verification cannot simply be turned
-on - you are likely to lose legitimate mail from mis-configured
-systems. You will almost certainly have to set up white lists for
-specific addresses or even for entire domains.
+on for all email - you are likely to lose legitimate mail from
+mis-configured systems. You almost certainly will have to set up
+white lists for specific addresses, or even for entire domains.
 
 To find out how sender address verification would affect your mail,
 specify "warn_if_reject reject_unverified_sender" so that you can
 see what mail would be blocked:
 
     smtpd_sender_restrictions = 
+	permit_mynetworks
 	... 
 	check_sender_access hash:/etc/postfix/sender_access
 	reject_unknown_sender_domain
@@ -50,9 +114,20 @@ see what mail would be blocked:
 This is also a good way to populate your cache with address
 verification results before you start to actually reject mail.
 
-The sender_access restriction is needed to whitelist domains that
-are known to be OK. See the section titled "Limitations" at the
-end of this document.
+The sender_access restriction is needed to whitelist domains or
+addresses that are known to be OK.  Although Postfix will not mark
+a known-to-be-good address as bad after a probe fails, it is better
+to be safe than sorry.
+
+NOTE: You will have to whitelist sites such as securityfocus.com
+and other sites that operate mailing lists that use a different
+sender address for each posting (VERP).  Such addresses pollute
+the address verification cache quickly, and generate unnecessary
+sender verification probes.
+
+/etc/postfix/sender_access
+    securityfocus.com
+    ...
 
 The "reject_unknown_sender_domain" restriction blocks mail from
 non-existent domains. Putting this before "reject_unverified_sender"
@@ -92,39 +167,18 @@ the next section. Meanwhile you will not receive mail via SMTP.
 
 The verify daemon process will create a new database when none
 exists, and will open/create the file before it enters the chroot
-jail or before it drops root privileges.
+jail and before it drops root privileges.
 
 Managing the address verification database
 ==========================================
+
+The verify(8) manual page describes parameters that control how
+long information remains cached before it needs to be refreshed,
+and how long information can remain "unrefreshed" before it expires.
+Postfix uses different controls for positive results (address was
+accepted) and for negative results (address was rejected).
 
 Right now, no tools are provided to manage the address verification
 database. If the file gets too big, or if it gets corrupted, you
 can manually delete the file and run "postfix reload".  The new
 verify daemon process will then create a new, empty, database.
-
-Limitations
-===========
-
-Postfix probes the nearest MTA for the sender domain without actually
-sending mail. If that MTA accepts the recipient, then Postfix
-assumes that the address is deliverable, even when the address will
-bounce AFTER that MTA accepts it.
-
-You will probably want to put a whitelist before the address
-verification restriction, so that you can exclude known to be OK
-domains or addresses from verification. Although Postfix will not
-mark a known-to-be-good address as bad after a probe fails, it is
-better to be safe than sorry.
-
-    smtpd_sender_restrictions =
-	...
-	check_sender_access hash:/etc/postfix/sender_access
-	reject_unknown_sender_domain
-	reject_unverified_sender
-	...
-
-NOTE: You will have to whitelist sites such as securityfocus.com
-and other sites that operate mailing lists that use a different
-sender address for each posting (VERP).  Such addresses pollute
-the address verification cache quickly, and generate unnecessary
-sender verification probes.
