@@ -6,6 +6,7 @@ sed '
 	s/<\/td[^>]*>//g
 	s/"\([A-Z_]*\)\.html">/&\1:/
 	s/All main.cf parameters/postconf(5): &/
+	/All Postfix manual pages/d
 ' "$@"
 
 

@@ -9735,9 +9735,42 @@ Apologies for any names omitted.
 	Feature: discard(8) mail delivery agent.  Victor Duchovni,
 	Morgan Stanley. File: discard/discard.c.
 
-Open problems:
+20041002
 
-	Low: master(5) manual page.
+	Long overdue, a master(5) manual page based on an initial
+	version by Magnus Baeck.
+
+	By popular demand, a postfix-manuals.html web page with
+	totally useless links to UNIX-style manual pages (the same
+	information should already be available simply by typing
+	"apropos postfix"). To keep newbies from getting completely
+	lost due to information overload, the document starts with
+	a list of actually useful pointers to Postfix introductions,
+	duplicated from the already existing documents.html.
+
+20041006
+
+	Bugfix: "sendmail -bv" did not reject the -t option.  File:
+	sendmail/sendmail.c.
+
+20041007
+
+	Feature: SASL authentication attributes are now stored in
+	queue files and passed on to delivery agents, by Leandro
+	Santi. Files:  deliver_pass.c, deliver_request.c,
+	qmgr_deliver.c, qmgr_message.c, pipe.c, smtpd.c.
+
+20041010
+
+	Feature: per SMTP client message rate limit and recipient
+	rate limit, by Ragnar Lonn, GHN network technologies.
+	Files: smtpd/smtpd.c, anvil/anvil.c, global/anvil_clnt.[hc].
+
+	Incompatibility: smtpd_client_connection_limit_exceptions
+	renamed to smtpd_client_event_limit_exceptions, because it
+	now also controls message and recipient rate limit control.
+
+Open problems:
 
 	Low: should the Delivered-To: test in local(8) be configurable?
 

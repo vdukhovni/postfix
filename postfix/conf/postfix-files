@@ -142,6 +142,7 @@ $manpage_directory/man5/canonical.5:f:root:-:644
 $manpage_directory/man5/cidr_table.5:f:root:-:644
 $manpage_directory/man5/header_checks.5:f:root:-:644
 $manpage_directory/man5/ldap_table.5:f:root:-:644
+$manpage_directory/man5/master.5:f:root:-:644
 $manpage_directory/man5/mysql_table.5:f:root:-:644
 $manpage_directory/man5/pcre_table.5:f:root:-:644
 $manpage_directory/man5/pgsql_table.5:f:root:-:644
@@ -309,6 +310,7 @@ $html_directory/ldap_table.5.html:f:root:-:644
 $html_directory/lmtp.8.html:f:root:-:644
 $html_directory/local.8.html:f:root:-:644
 $html_directory/mailq.1.html:f:root:-:644
+$html_directory/master.5.html:f:root:-:644
 $html_directory/master.8.html:f:root:-:644
 $html_directory/mysql_table.5.html:f:root:-:644
 $html_directory/newaliases.1.html:f:root:-:644

@@ -283,6 +283,9 @@ struct QMGR_MESSAGE {
     char   *client_addr;		/* client address */
     char   *client_proto;		/* client protocol */
     char   *client_helo;		/* helo parameter */
+    char   *sasl_method;		/* SASL method */
+    char   *sasl_username;		/* SASL user name */
+    char   *sasl_sender;		/* SASL sender */
     QMGR_RCPT_LIST rcpt_list;		/* complete addresses */
     int     rcpt_count;			/* used recipient slots */
     int     rcpt_limit;			/* maximum read in-core */

@@ -99,7 +99,7 @@ strings.
 .IP "\fBserver_host (default: localhost)\fR"
 The name of the host running the LDAP server, e.g.
 .ti +4
-server_host = ldap.your.com
+server_host = ldap.example.com
 
 Depending on the LDAP client library you're using, it should
 be possible to specify multiple servers here, with the library
@@ -107,12 +107,14 @@ trying them in order should the first one fail. It should also
 be possible to give each server in the list a different port
 (overriding \fBserver_port\fR below), by naming them like
 .ti +4
-server_host = ldap.your.com:1444
+server_host = ldap.example.com:1444
 
 With OpenLDAP, a (list of) LDAP URLs can be used to specify both
 the hostname(s) and the port(s):
 .ti +4
-server_host = ldap://ldap.your.com:1444
+server_host = ldap://ldap.example.com:1444
+.ti +8
+        ldap://ldap2.example.com:1444
 
 All LDAP URLs accepted by the OpenLDAP library are supported,
 including connections over UNIX domain sockets, and LDAP SSL
@@ -120,8 +122,8 @@ including connections over UNIX domain sockets, and LDAP SSL
 for SSL):
 .ti +4
 server_host = ldapi://%2Fsome%2Fpath
-.ti +4
-server_host = ldaps://ldap.your.com:636
+.ti +8
+        ldaps://ldap.example.com:636
 .IP "\fBserver_port (default: 389)\fR"
 The port the LDAP server listens on, e.g.
 .ti +4
@@ -334,7 +336,7 @@ issue the STARTTLS command.
 LDAP SSL service can be requested by using a LDAP SSL URL
 in the server_host parameter:
 .ti +4
-server_host = ldaps://ldap.your.com:636
+server_host = ldaps://ldap.example.com:636
 
 STARTTLS can be turned on with the start_tls parameter:
 .ti +4

@@ -240,9 +240,8 @@
 /* .IP "\fBauthorized_mailq_users (static:anyone)\fR"
 /*	List of users who are authorized to view the queue.
 /* .IP "\fBauthorized_submit_users (static:anyone)\fR"
-/*	List of users who are authorized to submit mail with the
-/*	sendmail(1) command (and with the privileged postdrop(1)
-/*	helper command).
+/*	List of users who are authorized to submit mail with the sendmail(1)
+/*	command (and with the privileged postdrop(1) helper command).
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -655,7 +654,10 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      */
     rec_fputs(dst, REC_TYPE_MESG, "");
     if (DEL_REQ_TRACE_ONLY(flags) != 0) {
-	rec_fprintf(dst, REC_TYPE_NORM, "From: %s", saved_sender);
+	if (flags & SM_FLAG_XRCPT)
+	    msg_fatal_status(EX_USAGE, "-t option cannot be used with -bv");
+	if (*saved_sender)
+	    rec_fprintf(dst, REC_TYPE_NORM, "From: %s", saved_sender);
 	rec_fprintf(dst, REC_TYPE_NORM, "Subject: probe");
 	if (recipients) {
 	    rec_fprintf(dst, REC_TYPE_NORM, "To:");

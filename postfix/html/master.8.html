@@ -10,8 +10,7 @@ MASTER(8)                                               MASTER(8)
        master - Postfix master process
 
 <b>SYNOPSIS</b>
-       <b>master</b> [<b>-Dtv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>]
-               [<b>-e</b> <i>exit</i><b>_</b><i>time</i>]
+       <b>master</b> [<b>-Dtv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-e</b> <i>exit</i><b>_</b><i>time</i>]
 
 <b>DESCRIPTION</b>
        The  <b>master</b> daemon is the resident process that runs Post-
@@ -27,18 +26,16 @@ MASTER(8)                                               MASTER(8)
        address verification server.
 
        The  behavior  of  the  <b>master</b> daemon is controlled by the
-       <b>master.cf</b> configuration file. The table specifies zero  or
-       more  servers  in the <b>UNIX</b> or <b>INET</b> domain, or servers that
-       take requests from a FIFO. Precise  configuration  details
-       are  given  in the <b>master.cf</b> file, and in the manual pages
-       of the respective daemons.
+       <b>master.cf</b> configuration file, as described in <a href="master.5.html">master(5)</a>.
 
        Options:
 
        <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               Read the <b>main.cf</b> and <b>master.cf</b> configuration  files
               in  the named directory instead of the default con-
-              figuration directory.
+              figuration directory.  This also overrides the con-
+              figuration  files  for  other  Postfix  daemon pro-
+              cesses.
 
        <b>-e</b> <i>exit</i><b>_</b><i>time</i>
               Terminate the master process after  <i>exit</i><b>_</b><i>time</i>  sec-
@@ -173,7 +170,8 @@ MASTER(8)                                               MASTER(8)
 <b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="verify.8.html">verify(8)</a>, address verification
-       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="master.5.html">master(5)</a>, master.cf configuration file syntax
+       <a href="postconf.5.html">postconf(5)</a>, main.cf configuration parameter syntax
        syslogd(8), system logging
 
 <b>LICENSE</b>

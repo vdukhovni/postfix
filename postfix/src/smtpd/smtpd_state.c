@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include "smtpd.h"
 /*
-/*	void	smtpd_state_init(state, stream)
+/*	void	smtpd_state_init(state, stream, service)
 /*	SMTPD_STATE *state;
 /*	VSTREAM *stream;
+/*	const char *service;
 /*
 /*	void	smtpd_state_reset(state)
 /*	SMTPD_STATE *state;
@@ -62,7 +63,8 @@
 
 /* smtpd_state_init - initialize after connection establishment */
 
-void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
+void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
+			         const char *service)
 {
 
     /*
@@ -71,6 +73,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
      */
     state->err = CLEANUP_STAT_OK;
     state->client = stream;
+    state->service = mystrdup(service);
     state->buffer = vstring_alloc(100);
     state->error_count = 0;
     state->error_mask = 0;
@@ -145,6 +148,8 @@ void    smtpd_state_reset(SMTPD_STATE *state)
      * filled in. The other fields are taken care of by their own
      * "destructor" functions.
      */
+    if (state->service)
+	myfree(state->service);
     if (state->buffer)
 	vstring_free(state->buffer);
     if (state->protocol)

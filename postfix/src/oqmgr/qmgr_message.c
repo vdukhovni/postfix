@@ -172,6 +172,9 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->client_addr = 0;
     message->client_proto = 0;
     message->client_helo = 0;
+    message->sasl_method = 0;
+    message->sasl_username = 0;
+    message->sasl_sender = 0;
     qmgr_rcpt_list_init(&message->rcpt_list);
     return (message);
 }
@@ -525,6 +528,27 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		    myfree(message->client_helo);
 		message->client_helo = mystrdup(value);
 	    }
+	    if (strcmp(name, MAIL_ATTR_SASL_METHOD) == 0) {
+		if (message->sasl_method == 0)
+		    message->sasl_method = mystrdup(value);
+		else
+		    msg_warn("%s: ignoring multiple %s attribute: %s",
+			message->queue_id, MAIL_ATTR_SASL_METHOD, value);
+	    }
+	    if (strcmp(name, MAIL_ATTR_SASL_USERNAME) == 0) {
+		if (message->sasl_username == 0)
+		    message->sasl_username = mystrdup(value);
+		else
+		    msg_warn("%s: ignoring multiple %s attribute: %s",
+			message->queue_id, MAIL_ATTR_SASL_USERNAME, value);
+	    }
+	    if (strcmp(name, MAIL_ATTR_SASL_SENDER) == 0) {
+		if (message->sasl_sender == 0)
+		    message->sasl_sender = mystrdup(value);
+		else
+		    msg_warn("%s: ignoring multiple %s attribute: %s",
+			message->queue_id, MAIL_ATTR_SASL_SENDER, value);
+	    }
 	    /* Optional tracing flags. */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
 		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
@@ -598,6 +622,12 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->client_proto = mystrdup("");
     if (message->client_helo == 0)
 	message->client_helo = mystrdup("");
+    if (message->sasl_method == 0)
+	message->sasl_method = mystrdup("");
+    if (message->sasl_username == 0)
+	message->sasl_username = mystrdup("");
+    if (message->sasl_sender == 0)
+	message->sasl_sender = mystrdup("");
 
     /*
      * Clean up.
@@ -1072,6 +1102,12 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->client_proto);
     if (message->client_helo)
 	myfree(message->client_helo);
+    if (message->sasl_method)
+	myfree(message->sasl_method);
+    if (message->sasl_username)
+	myfree(message->sasl_username);
+    if (message->sasl_sender)
+	myfree(message->sasl_sender);
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);

@@ -59,6 +59,7 @@ typedef struct SMTPD_STATE {
     int     err;			/* cleanup server/queue file errors */
     VSTREAM *client;			/* SMTP client handle */
     VSTRING *buffer;			/* SMTP client buffer */
+    char   *service;			/* for event rate control */
     time_t  time;			/* start of MAIL FROM transaction */
     char   *name;			/* client hostname */
     char   *addr;			/* client host address string */
@@ -149,7 +150,7 @@ typedef struct SMTPD_STATE {
 	(SMTPD_STATE_XFORWARD_NAME | SMTPD_STATE_XFORWARD_ADDR \
 	| SMTPD_STATE_XFORWARD_PROTO | SMTPD_STATE_XFORWARD_HELO)
 
-extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);
+extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *, const char *);
 extern void smtpd_state_reset(SMTPD_STATE *);
 
  /*

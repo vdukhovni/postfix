@@ -149,7 +149,11 @@ PIPE(8)                                                   PIPE(8)
               In  the  command  argument  vector,  the  following
               macros are recognized and replaced with correspond-
               ing information  from  the  Postfix  queue  manager
-              delivery request:
+              delivery request.
+
+              In  addition  to  the form ${<i>name</i>}, the forms $<i>name</i>
+              and $(<i>name</i>) are also recognized.  Specify <b>$$</b>  where
+              a single <b>$</b> is wanted.
 
               <b>${extension</b>}
                      This  macro expands to the extension part of
@@ -194,90 +198,111 @@ PIPE(8)                                                   PIPE(8)
                      This information  is  modified  by  the  <b>hqu</b>
                      flags for quoting and case folding.
 
+              <b>${sasl_method</b>}
+                     This  macro  expands to the SASL authentica-
+                     tion mechanism used during the reception  of
+                     the  message.  An  empty string is passed if
+                     the message has been received  without  SASL
+                     authentication.
+
+                     This  is available in Postfix 2.2 and later.
+
+              <b>${sasl_sender</b>}
+                     This macro expands to the SASL  sender  name
+                     (i.e.  the  original  submitter  as  per RFC
+                     2554) used during the reception of the  mes-
+                     sage.
+
+                     This  is available in Postfix 2.2 and later.
+
+              <b>${sasl_username</b>}
+                     This macro expands to  the  SASL  user  name
+                     used during the reception of the message. An
+                     empty string is passed if  the  message  has
+                     been received without SASL authentication.
+
+                     This  is available in Postfix 2.2 and later.
+
               <b>${sender</b>}
-                     This  macro  expands  to the envelope sender
+                     This macro expands to  the  envelope  sender
                      address.
 
-                     This information is modified by the  <b>q</b>  flag
+                     This  information  is modified by the <b>q</b> flag
                      for quoting.
 
               <b>${size</b>}
-                     This  macro expands to Postfix's idea of the
-                     message size, which is an  approximation  of
+                     This macro expands to Postfix's idea of  the
+                     message  size,  which is an approximation of
                      the size of the message as delivered.
 
               <b>${user</b>}
                      This macro expands to the username part of a
-                     recipient address.   For  example,  with  an
+                     recipient  address.   For  example,  with an
                      address <i>user+foo@domain</i> the username part is
                      <i>user</i>.
 
-                     A  command-line   argument   that   contains
-                     <b>${user</b>}  expands  into  as many command-line
+                     A   command-line   argument   that  contains
+                     <b>${user</b>} expands into  as  many  command-line
                      arguments as there are recipients.
 
-                     This information is modified by the  <b>u</b>  flag
+                     This  information  is modified by the <b>u</b> flag
                      for case folding.
 
-       In  addition  to  the  form  ${<i>name</i>},  the forms $<i>name</i> and
-       $(<i>name</i>) are also recognized.  Specify <b>$$</b> where a single  <b>$</b>
-       is wanted.
-
 <b>DIAGNOSTICS</b>
-       Command  exit status codes are expected to follow the con-
+       Command exit status codes are expected to follow the  con-
        ventions defined in &lt;<b>sysexits.h</b>&gt;.
 
-       Problems and transactions are logged to <b>syslogd</b>(8).   Cor-
-       rupted  message files are marked so that the queue manager
+       Problems  and transactions are logged to <b>syslogd</b>(8).  Cor-
+       rupted message files are marked so that the queue  manager
        can move them to the <b>corrupt</b> queue for further inspection.
 
 <b>SECURITY</b>
-       This  program  needs  a  dual personality 1) to access the
-       private Postfix queue and IPC mechanisms, and 2)  to  exe-
+       This program needs a dual personality  1)  to  access  the
+       private  Postfix  queue and IPC mechanisms, and 2) to exe-
        cute external commands as the specified user. It is there-
        fore security sensitive.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes to <b>main.cf</b> are picked up automatically as  <a href="pipe.8.html">pipe(8)</a>
-       processes  run  for only a limited amount of time. Use the
+       Changes  to <b>main.cf</b> are picked up automatically as <a href="pipe.8.html">pipe(8)</a>
+       processes run for only a limited amount of time.  Use  the
        command "<b>postfix reload</b>" to speed up a change.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html">postconf(5)</a> for more details including examples.
 
 <b>RESOURCE AND RATE CONTROLS</b>
-       In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
+       In the text below, <i>transport</i> is the first field in a  <b>mas-</b>
        <b>ter.cf</b> entry.
 
        <i>transport</i><b>_destination_concurrency_limit ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_concurrency_limit">tion_concurrency_limit</a>)</b>
               Limit the number of parallel deliveries to the same
-              destination,  for delivery via the named <i>transport</i>.
+              destination, for delivery via the named  <i>transport</i>.
               The limit is enforced by the Postfix queue manager.
 
        <i>transport</i><b>_destination_recipient_limit   ($<a href="postconf.5.html#default_destination_recipient_limit">default_destina</a>-</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">tion_recipient_limit</a>)</b>
-              Limit  the  number of recipients per message deliv-
-              ery, for delivery via  the  named  <i>transport</i>.   The
+              Limit the number of recipients per  message  deliv-
+              ery,  for  delivery  via  the named <i>transport</i>.  The
               limit is enforced by the Postfix queue manager.
 
        <i>transport</i><b>_time_limit ($<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b>
-              Limit  the  time  for delivery to external command,
+              Limit the time for delivery  to  external  command,
               for delivery via the named <i>transport</i>.  The limit is
               enforced by the pipe delivery agent.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix main.cf and
+              The default location of  the  Postfix  main.cf  and
               master.cf configuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process may take  to
-              handle  a  request  before  it  is  terminated by a
+              How  much time a Postfix daemon process may take to
+              handle a request  before  it  is  terminated  by  a
               built-in watchdog timer.
 
        <b><a href="postconf.5.html#export_environment">export_environment</a> (see 'postconf -d' output)</b>
-              The list of environment variables  that  a  Postfix
+              The  list  of  environment variables that a Postfix
               process will export to non-Postfix processes.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -289,24 +314,24 @@ PIPE(8)                                                   PIPE(8)
               and most Postfix daemon processes.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount  of  time that an idle Postfix
-              daemon process waits for the next  service  request
+              The maximum amount of time  that  an  idle  Postfix
+              daemon  process  waits for the next service request
               before exiting.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
-              The  maximal number of connection requests before a
+              The maximal number of connection requests before  a
               Postfix daemon process terminates.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
-              The process ID of a Postfix command or daemon  pro-
+              The  process ID of a Postfix command or daemon pro-
               cess.
 
        <b><a href="postconf.5.html#process_name">process_name</a> (read-only)</b>
-              The  process  name  of  a Postfix command or daemon
+              The process name of a  Postfix  command  or  daemon
               process.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
-              The location of the Postfix top-level queue  direc-
+              The  location of the Postfix top-level queue direc-
               tory.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
@@ -317,7 +342,7 @@ PIPE(8)                                                   PIPE(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (postfix)</b>
-              The mail system name that is prepended to the  pro-
+              The  mail system name that is prepended to the pro-
               cess  name  in  syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
@@ -329,7 +354,7 @@ PIPE(8)                                                   PIPE(8)
        syslogd(8), system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

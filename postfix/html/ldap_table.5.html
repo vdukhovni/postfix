@@ -88,7 +88,7 @@ LDAP_TABLE(5)                                       LDAP_TABLE(5)
 
        <b>server_host (default: localhost)</b>
               The name of the host running the LDAP server,  e.g.
-                  server_host = ldap.your.com
+                  server_host = ldap.example.com
 
               Depending  on the LDAP client library you're using,
               it should be possible to specify  multiple  servers
@@ -96,18 +96,19 @@ LDAP_TABLE(5)                                       LDAP_TABLE(5)
               the first one fail. It should also be  possible  to
               give  each  server  in  the  list  a different port
               (overriding <b>server_port</b> below), by naming them like
-                  server_host = ldap.your.com:1444
+                  server_host = ldap.example.com:1444
 
               With OpenLDAP, a (list of) LDAP URLs can be used to
               specify both the hostname(s) and the port(s):
-                  server_host = <a href="ldap_table.5.html">ldap</a>://ldap.your.com:1444
+                  server_host = <a href="ldap_table.5.html">ldap</a>://ldap.example.com:1444
+                              <a href="ldap_table.5.html">ldap</a>://ldap2.example.com:1444
 
               All LDAP URLs accepted by the OpenLDAP library  are
               supported,  including  connections over UNIX domain
               sockets, and LDAP SSL (the last one  provided  that
               OpenLDAP was compiled with support for SSL):
                   server_host = ldapi://%2Fsome%2Fpath
-                  server_host = ldaps://ldap.your.com:636
+                              ldaps://ldap.example.com:636
 
        <b>server_port (default: 389)</b>
               The port the LDAP server listens on, e.g.
@@ -344,7 +345,7 @@ LDAP_TABLE(5)                                       LDAP_TABLE(5)
 
        LDAP SSL service can be requested by using a LDAP SSL  URL
        in the server_host parameter:
-           server_host = ldaps://ldap.your.com:636
+           server_host = ldaps://ldap.example.com:636
 
        STARTTLS can be turned on with the start_tls parameter:
            start_tls = yes

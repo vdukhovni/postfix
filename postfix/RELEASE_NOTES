@@ -7,6 +7,29 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20041009
+=======================================================
+
+You must reload or stop/start Postfix, because the queue manager
+to delivery agent protocol has changed. If you forget this, mail
+will remain queued until the queue manager is restarted.
+
+The smtpd_client_connection_limit_exceptions parameter is renamed
+to smtpd_client_event_limit_exceptions. Besides connections it now
+also applies to per-client message rate and recipient rate limits.
+
+Major changes with snapshot Postfix-2.2-20041009
+================================================
+
+Per SMTP client message rate and recipient rate limits. These limit
+the number of MAIL FROM or RCPT TO requests regardless of whether
+or not Postfix would have accepted them otherwise. The user interface
+(smtpd_client_message_rate_limit and smtpd_client_recipient_rate_limit)
+is similar to that of the existing per SMTP client connection rate
+limit, and the same warnings apply: these features are to be used
+to stop abuse, and must not be used to regulate legitimate mail.
+More details can be found in the postconf(5) manual.
+
 Incompatible changes with snapshot Postfix-2.2-20040919
 =======================================================
 

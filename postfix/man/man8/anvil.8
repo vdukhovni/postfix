@@ -4,7 +4,7 @@
 .SH NAME
 anvil
 \-
-Postfix client count and rate management
+Postfix client count and request rate management
 .SH "SYNOPSIS"
 .na
 .nf
@@ -14,15 +14,15 @@ Postfix client count and rate management
 .fi
 The Postfix \fBanvil\fR server maintains short-term statistics
 to defend against clients that hammer a server with either too
-many parallel connections or with too many successive connection
-attempts within a configurable time interval.
+many parallel connections or with too many successive requests
+within a configurable time interval.
 This server is designed to run under control by the Postfix
 master server.
 
 The \fBanvil\fR server maintains no persistent database. Standard
 library utilities do not meet Postfix performance and robustness
 requirements.
-.SH "PROTOCOL"
+.SH "CONNECTION COUNT/RATE LIMITING"
 .na
 .nf
 .ad
@@ -70,7 +70,68 @@ server replies with:
 .PP
 .ti +4
 \fBstatus=0\fR
+.SH "MESSAGE RATE LIMITING"
+.na
+.nf
+.ad
+.fi
+When a remote client sends a message delivery request, a
+message rate limited server should send the following
+request to the \fBanvil\fR server:
 .PP
+.in +4
+\fBrequest=message\fR
+.br
+\fBident=\fIstring\fR
+.in
+.PP
+This registers a message delivery request for the (service, client)
+combination specified with \fBident\fR. The \fBanvil\fR server
+answers with the number of message delivery requests per unit time
+for that (service, client) combination:
+.PP
+.in +4
+\fBstatus=0\fR
+.br
+\fBrate=\fInumber\fR
+.in
+.PP
+In order prevent the anvil server from discarding client
+request rates too early or too late, a message rate limited
+service should also register connect/disconnect events.
+.PP
+This feature is available in Postfix 2.2 and later.
+.SH "RECIPIENT RATE LIMITING"
+.na
+.nf
+.ad
+.fi
+When a remote client sends a recipient address, a recipient
+rate limited server should send the following request to
+the \fBanvil\fR server:
+.PP
+.in +4
+\fBrequest=recipient\fR
+.br
+\fBident=\fIstring\fR
+.in
+.PP
+This registers a recipient address for the (service, client)
+combination specified with \fBident\fR. The \fBanvil\fR server
+answers with the number of recipient addresses per unit time
+for that (service, client) combination:
+.PP
+.in +4
+\fBstatus=0\fR
+.br
+\fBrate=\fInumber\fR
+.in
+.PP
+In order prevent the anvil server from discarding client
+request rates too early or too late, a recipient rate limited
+service should also register connect/disconnect events.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH "SECURITY"
 .na
 .nf
@@ -94,6 +155,9 @@ Upon exit, and every \fBanvil_status_update_time\fR
 seconds, the server logs the maximal count and rate values measured,
 together with (service, client) information and the time of day
 associated with those events.
+In order to avoid unnecessary overhead, no measurements
+are done for activity that isn't concurrency limited or
+rate limited.
 .SH BUGS
 .ad
 .fi

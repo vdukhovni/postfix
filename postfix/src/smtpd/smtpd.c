@@ -305,16 +305,26 @@
 /*	The maximal number of lines in the Postfix SMTP server command history
 /*	before it is flushed upon receipt of EHLO, RSET, or end of DATA.
 /* .PP
-/*	Not available in Postfix version 2.1:
+/*	The per SMTP client connection count and request rate limits are
+/*	implemented in co-operation with the anvil(8) service, and
+/*	are available in Postfix version 2.2 and later.
 /* .IP "\fBsmtpd_client_connection_count_limit (50)\fR"
-/*	How many simultaneous connections any SMTP client is allowed to
-/*	make to the SMTP service.
+/*	How many simultaneous connections any client is allowed to
+/*	make to this service.
 /* .IP "\fBsmtpd_client_connection_rate_limit (0)\fR"
 /*	The maximal number of connection attempts any client is allowed to
 /*	make to this service per time unit.
-/* .IP "\fBsmtpd_client_connection_limit_exceptions ($mynetworks)\fR"
-/*	Clients that are excluded from connection count or connection rate
-/*	restrictions.
+/* .IP "\fBsmtpd_client_message_rate_limit (0)\fR"
+/*	The maximal number of message delivery requests that any client is
+/*	allowed to make to this service per time unit, regardless of whether
+/*	or not Postfix actually accepts those messages.
+/* .IP "\fBsmtpd_client_recipient_rate_limit (0)\fR"
+/*	The maximal number of recipient addresses that any client is allowed
+/*	to send to this service per time unit, regardless of whether or not
+/*	Postfix actually accepts those recipients.
+/* .IP "\fBsmtpd_client_event_limit_exceptions ($mynetworks)\fR"
+/*	Clients that are excluded from connection count, connection rate,
+/*	message rate or recipient rate restrictions.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -553,6 +563,7 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
+/*	anvil(8), client count and request rate management
 /*	cleanup(8), message canonicalization
 /*	trivial-rewrite(8), address resolver
 /*	verify(8), address verification service
@@ -758,6 +769,8 @@ bool    var_smtpd_rej_unl_rcpt;
 #ifdef SNAPSHOT
 int     var_smtpd_crate_limit;
 int     var_smtpd_cconn_limit;
+int     var_smtpd_cmail_limit;
+int     var_smtpd_crcpt_limit;
 char   *var_smtpd_hoggers;
 
 #endif
@@ -1030,14 +1043,28 @@ static void mail_open_stream(SMTPD_STATE *state)
     state->queue_id = mystrdup(state->dest->id);
 
     /*
-     * Record the time of arrival, the sender envelope address, some session
-     * information, and some additional attributes.
+     * Record the time of arrival, the SASL-related stuff if applicable, the
+     * sender envelope address, some session information, and some additional
+     * attributes.
      */
     if (SMTPD_STAND_ALONE(state) == 0) {
 	rec_fprintf(state->cleanup, REC_TYPE_TIME, "%ld", state->time);
 	if (*var_filter_xport)
 	    rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
     }
+#ifdef USE_SASL_AUTH
+    if (var_smtpd_sasl_enable) {
+	if (state->sasl_method)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_SASL_METHOD, state->sasl_method);
+	if (state->sasl_username)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_SASL_USERNAME, state->sasl_username);
+	if (state->sasl_sender)
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_SASL_SENDER, state->sasl_sender);
+    }
+#endif
     rec_fputs(state->cleanup, REC_TYPE_FROM, state->sender);
     if (state->encoding != 0)
 	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
@@ -1187,6 +1214,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     int     narg;
     char   *arg;
     char   *verp_delims = 0;
+    int     rate;
 
     state->encoding = 0;
 
@@ -1217,6 +1245,28 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: MAIL FROM: <address>");
 	return (-1);
     }
+
+    /*
+     * XXX The client event count/rate control must be consistent in its use
+     * of client address information in connect and disconnect events. For
+     * now we exclude xclient authorized hosts from event count/rate control.
+     */
+#ifdef SNAPSHOT
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& var_smtpd_cmail_limit > 0
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_mail(anvil_clnt, state->service, state->addr,
+			   &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_cmail_limit) {
+	smtpd_chat_reply(state, "421 %s Error: too much mail from %s",
+			 var_myhostname, state->addr);
+	msg_warn("Message delivery request rate limit exceeded: %d from %s for service %s",
+		 rate, state->namaddr, state->service);
+	return (-1);
+    }
+#endif
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Bad sender address syntax");
@@ -1383,6 +1433,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *err;
     int     narg;
     char   *arg;
+    int     rate;
 
     /*
      * Sanity checks.
@@ -1404,6 +1455,28 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: RCPT TO: <address>");
 	return (-1);
     }
+
+    /*
+     * XXX The client event count/rate control must be consistent in its use
+     * of client address information in connect and disconnect events. For
+     * now we exclude xclient authorized hosts from event count/rate control.
+     */
+#ifdef SNAPSHOT
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& var_smtpd_crcpt_limit > 0
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->addr,
+			   &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_crcpt_limit) {
+	smtpd_chat_reply(state, "421 %s Error: too many recipients from %s",
+			 var_myhostname, state->addr);
+	msg_warn("Recipient address rate limit exceeded: %d from %s for service %s",
+		 rate, state->namaddr, state->service);
+	return (-1);
+    }
+#endif
     if (argv[2].tokval == SMTPD_TOK_ERROR) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Bad recipient address syntax");
@@ -2409,6 +2482,11 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 * its use of client address information in connect and disconnect
 	 * events. For now we exclude xclient authorized hosts from
 	 * connection count/rate control.
+	 * 
+	 * XXX Must send connect/disconnect events to the anvil server even when
+	 * this service is not connection count or rate limited, otherwise it
+	 * will discard client message or recipient rate information too
+	 * early or too late.
 	 */
 #ifdef SNAPSHOT
 	if (SMTPD_STAND_ALONE(state) == 0
@@ -2420,14 +2498,14 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
 		smtpd_chat_reply(state, "421 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
-		msg_warn("Too many connections: %d from %s for service %s",
+		msg_warn("Connection concurrency limit exceeded: %d from %s for service %s",
 			 count, state->namaddr, service);
 		break;
 	    }
 	    if (var_smtpd_crate_limit > 0 && crate > var_smtpd_crate_limit) {
 		smtpd_chat_reply(state, "421 %s Error: too many connections from %s",
 				 var_myhostname, state->addr);
-		msg_warn("Too frequent connections: %d from %s for service %s",
+		msg_warn("Connection rate limit exceeded: %d from %s for service %s",
 			 crate, state->namaddr, service);
 		break;
 	    }
@@ -2505,6 +2583,11 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
      * use of client address information in connect and disconnect events.
      * For now we exclude xclient authorized hosts from connection count/rate
      * control.
+     * 
+     * XXX Must send connect/disconnect events to the anvil server even when
+     * this service is not connection count or rate limited, otherwise it
+     * will discard client message or recipient rate information too early or
+     * too late.
      */
 #ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
@@ -2561,7 +2644,7 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      * take a while. This is why I always run a local name server on critical
      * machines.
      */
-    smtpd_state_init(&state, stream);
+    smtpd_state_init(&state, stream, service);
     msg_info("connect from %s[%s]", state.name, state.addr);
 
     /*
@@ -2674,7 +2757,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Connection rate management.
      */
 #ifdef SNAPSHOT
-    if (var_smtpd_crate_limit || var_smtpd_cconn_limit)
+    if (var_smtpd_crate_limit || var_smtpd_cconn_limit
+	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit)
 	anvil_clnt = anvil_clnt_create();
 #endif
 }
@@ -2712,6 +2796,8 @@ int     main(int argc, char **argv)
 #ifdef SNAPSHOT
 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
+	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,
+	VAR_SMTPD_CRCPT_LIMIT, DEF_SMTPD_CRCPT_LIMIT, &var_smtpd_crcpt_limit, 0, 0,
 #endif
 	0,
     };

@@ -240,6 +240,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #ifdef SUNOS4
 #define SUPPORTED
 #include <sys/types.h>
+#include <memory.h>
 #define UNSAFE_CTYPE
 #define fpos_t	long
 #define MISSING_SETENV

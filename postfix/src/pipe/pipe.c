@@ -125,7 +125,11 @@
 /* .sp
 /*	In the command argument vector, the following macros are recognized
 /*	and replaced with corresponding information from the Postfix queue
-/*	manager delivery request:
+/*	manager delivery request.
+/* .sp
+/*	In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
+/*	$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
+/*	\fB$\fR is wanted.
 /* .RS
 /* .IP \fB${\fBextension\fR}\fR
 /*	This macro expands to the extension part of a recipient address.
@@ -157,6 +161,23 @@
 /* .sp
 /*	This information is modified by the \fBhqu\fR flags for quoting
 /*	and case folding.
+/* .IP \fB${\fBsasl_method\fR}\fR
+/*	This macro expands to the SASL authentication mechanism used
+/*	during the reception of the message. An empty string is passed
+/*	if the message has been received without SASL authentication.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
+/* .IP \fB${\fBsasl_sender\fR}\fR
+/*	This macro expands to the SASL sender name (i.e. the original 
+/*	submitter as per RFC 2554) used during the reception of the message.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
+/* .IP \fB${\fBsasl_username\fR}\fR
+/*	This macro expands to the SASL user name used during the reception
+/*	of the message. An empty string is passed if the message has been
+/*	received without SASL authentication.
+/* .sp
+/*	This is available in Postfix 2.2 and later.
 /* .IP \fB${\fBsender\fR}\fR
 /*	This macro expands to the envelope sender address.
 /* .sp
@@ -174,10 +195,6 @@
 /* .sp
 /*	This information is modified by the \fBu\fR flag for case folding.
 /* .RE
-/* .PP
-/*	In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
-/*	$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
-/*	\fB$\fR is wanted.
 /* DIAGNOSTICS
 /*	Command exit status codes are expected to
 /*	follow the conventions defined in <\fBsysexits.h\fR>.
@@ -341,6 +358,9 @@
 #define PIPE_DICT_EXTENSION	"extension"	/* key */
 #define PIPE_DICT_MAILBOX	"mailbox"	/* key */
 #define PIPE_DICT_SIZE		"size"	/* key */
+#define PIPE_DICT_SASL_METHOD	"sasl_method"	/* key */
+#define PIPE_DICT_SASL_USERNAME	"sasl_username"	/* key */
+#define PIPE_DICT_SASL_SENDER	"sasl_sender"	/* key */
 
  /*
   * Flags used to pass back the type of special parameter found by
@@ -422,6 +442,9 @@ static int parse_callback(int type, VSTRING *buf, char *context)
 	PIPE_DICT_EXTENSION, PIPE_FLAG_EXTENSION,
 	PIPE_DICT_MAILBOX, PIPE_FLAG_MAILBOX,
 	PIPE_DICT_SIZE, 0,
+	PIPE_DICT_SASL_METHOD, 0,
+	PIPE_DICT_SASL_USERNAME, 0,
+	PIPE_DICT_SASL_SENDER, 0,
 	0, 0,
     };
     struct cmd_flags *p;
@@ -970,6 +993,12 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);
     vstring_sprintf(buf, "%ld", (long) request->data_size);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SIZE, STR(buf));
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_METHOD,
+		request->sasl_method);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_USERNAME, 
+		request->sasl_username);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SASL_SENDER,
+		request->sasl_sender);
     vstring_free(buf);
 
     if ((expanded_argv = expand_argv(service, attr.command,

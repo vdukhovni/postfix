@@ -181,7 +181,7 @@
 # 
 #               Note:  use  "postsuper -r" to release mail that was
 #               kept on hold for a significant fraction  of  $maxi-
-#               mal_queue_lifetime   or  $bounce_queue_lifetime  or
+#               mal_queue_lifetime  or  $bounce_queue_lifetime,  or
 #               longer.
 # 
 #               Note: this action affects  all  recipients  of  the

@@ -2060,8 +2060,16 @@ extern int var_smtpd_crate_limit;
 #define DEF_SMTPD_CCONN_LIMIT		((DEF_PROC_LIMIT + 1) / 2)
 extern int var_smtpd_cconn_limit;
 
-#define VAR_SMTPD_HOGGERS		"smtpd_client_connection_limit_exceptions"
-#define DEF_SMTPD_HOGGERS		"$" VAR_MYNETWORKS
+#define VAR_SMTPD_CMAIL_LIMIT		"smtpd_client_message_rate_limit"
+#define DEF_SMTPD_CMAIL_LIMIT		0
+extern int var_smtpd_cmail_limit;
+
+#define VAR_SMTPD_CRCPT_LIMIT		"smtpd_client_recipient_rate_limit"
+#define DEF_SMTPD_CRCPT_LIMIT		0
+extern int var_smtpd_crcpt_limit;
+
+#define VAR_SMTPD_HOGGERS		"smtpd_client_event_limit_exceptions"
+#define DEF_SMTPD_HOGGERS		"${smtpd_client_connection_limit_exceptions:$" VAR_MYNETWORKS "}"
 extern char *var_smtpd_hoggers;
 
 #define VAR_ANVIL_TIME_UNIT		"anvil_rate_time_unit"

@@ -4,9 +4,7 @@
 /* SUMMARY
 /*	Postfix master process
 /* SYNOPSIS
-/* .fi
-/*	\fBmaster\fR [\fB-Dtv\fR] [\fB-c \fIconfig_dir\fR]
-/*		[\fB-e \fIexit_time\fR]
+/*	\fBmaster\fR [\fB-Dtv\fR] [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
 /* DESCRIPTION
 /*	The \fBmaster\fR daemon is the resident process that runs Postfix
 /*	daemons on demand: daemons to send or receive messages via the
@@ -19,16 +17,14 @@
 /*	resident queue manager and the resident address verification server.
 /*
 /*	The behavior of the \fBmaster\fR daemon is controlled by the
-/*	\fBmaster.cf\fR configuration file. The table specifies zero or
-/*	more servers in the \fBUNIX\fR or \fBINET\fR domain, or servers
-/*	that take requests from a FIFO. Precise configuration details are
-/*	given in the \fBmaster.cf\fR file, and in the manual pages of the
-/*	respective daemons.
+/*	\fBmaster.cf\fR configuration file, as described in master(5).
 /*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	Read the \fBmain.cf\fR and \fBmaster.cf\fR configuration files in
 /*	the named directory instead of the default configuration directory.
+/*	This also overrides the configuration files for other Postfix
+/*	daemon processes.
 /* .IP "\fB-e \fIexit_time\fR"
 /*	Terminate the master process after \fIexit_time\fR seconds. Child
 /*	processes terminate at their convenience.
@@ -135,7 +131,8 @@
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	verify(8), address verification
-/*	postconf(5), configuration parameters
+/*	master(5), master.cf configuration file syntax
+/*	postconf(5), main.cf configuration parameter syntax
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

@@ -157,7 +157,8 @@
 /*	sendmail(1), Sendmail compatibility interface
 /*
 /*	Postfix configuration:
-/*	postconf(5), Postfix configuration parameters
+/*	master(5), Postfix master.cf file syntax
+/*	postconf(5), Postfix main.cf file syntax
 /*
 /*	Table-driven mechanisms:
 /*	access(5), Postfix SMTP access control table

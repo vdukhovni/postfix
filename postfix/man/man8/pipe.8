@@ -135,7 +135,11 @@ shell meta characters by a shell command interpreter.
 .sp
 In the command argument vector, the following macros are recognized
 and replaced with corresponding information from the Postfix queue
-manager delivery request:
+manager delivery request.
+.sp
+In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
+$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
+\fB$\fR is wanted.
 .RS
 .IP \fB${\fBextension\fR}\fR
 This macro expands to the extension part of a recipient address.
@@ -167,6 +171,23 @@ expands into as many command-line arguments as there are recipients.
 .sp
 This information is modified by the \fBhqu\fR flags for quoting
 and case folding.
+.IP \fB${\fBsasl_method\fR}\fR
+This macro expands to the SASL authentication mechanism used
+during the reception of the message. An empty string is passed
+if the message has been received without SASL authentication.
+.sp
+This is available in Postfix 2.2 and later.
+.IP \fB${\fBsasl_sender\fR}\fR
+This macro expands to the SASL sender name (i.e. the original
+submitter as per RFC 2554) used during the reception of the message.
+.sp
+This is available in Postfix 2.2 and later.
+.IP \fB${\fBsasl_username\fR}\fR
+This macro expands to the SASL user name used during the reception
+of the message. An empty string is passed if the message has been
+received without SASL authentication.
+.sp
+This is available in Postfix 2.2 and later.
 .IP \fB${\fBsender\fR}\fR
 This macro expands to the envelope sender address.
 .sp
@@ -184,10 +205,6 @@ into as many command-line arguments as there are recipients.
 .sp
 This information is modified by the \fBu\fR flag for case folding.
 .RE
-.PP
-In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
-$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
-\fB$\fR is wanted.
 .SH DIAGNOSTICS
 .ad
 .fi

@@ -30,10 +30,14 @@
 #define ANVIL_ATTR_REQ		"request"
 #define ANVIL_REQ_CONN		"connect"
 #define ANVIL_REQ_DISC		"disconnect"
+#define ANVIL_REQ_MAIL		"message"
+#define ANVIL_REQ_RCPT		"recipient"
 #define ANVIL_REQ_LOOKUP	"lookup"
 #define ANVIL_ATTR_IDENT	"ident"
 #define ANVIL_ATTR_COUNT	"count"
 #define ANVIL_ATTR_RATE		"rate"
+#define ANVIL_ATTR_MAIL		"mail"
+#define ANVIL_ATTR_RCPT		"rcpt"
 #define ANVIL_ATTR_STATUS	"status"
 
 #define ANVIL_STAT_OK		0
@@ -46,7 +50,9 @@ typedef struct ANVIL_CLNT ANVIL_CLNT;
 
 extern ANVIL_CLNT *anvil_clnt_create(void);
 extern int anvil_clnt_connect(ANVIL_CLNT *, const char *, const char *, int *, int *);
-extern int anvil_clnt_lookup(ANVIL_CLNT *, const char *, const char *, int *, int *);
+extern int anvil_clnt_mail(ANVIL_CLNT *, const char *, const char *, int *);
+extern int anvil_clnt_rcpt(ANVIL_CLNT *, const char *, const char *, int *);
+extern int anvil_clnt_lookup(ANVIL_CLNT *, const char *, const char *, int *, int *, int *, int *);
 extern int anvil_clnt_disconnect(ANVIL_CLNT *, const char *, const char *);
 extern void anvil_clnt_free(ANVIL_CLNT *);
 

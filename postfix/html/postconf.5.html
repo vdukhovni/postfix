@@ -2042,7 +2042,8 @@ time keeping on System-V-ish systems.
 
 <p>
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma.
+whitespace or comma. The name=value form is supported with
+Postfix 2.1 and later.
 </p>
 
 <p>
@@ -5370,7 +5371,7 @@ ignored.
 
 </ul>
 
-<p></p>
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 
 </DD>
@@ -5398,6 +5399,8 @@ delivery performance. </p>
 an SMTP session is reused before it is closed.
 </p>
 
+<p> This feature is available in Postfix 2.2 and later. </p>
+
 
 </DD>
 
@@ -5408,6 +5411,8 @@ an SMTP session is reused before it is closed.
 an unused SMTP client socket is kept open before it is closed.  Do
 not specify larger values without permission from the remote sites.
 </p>
+
+<p> This feature is available in Postfix 2.2 and later. </p>
 
 
 </DD>
@@ -6123,8 +6128,8 @@ Example:
 (default: 50)</b></DT><DD>
 
 <p>
-How many simultaneous connections any SMTP client is allowed to
-make to the SMTP service.  By default, the limit is set it to half
+How many simultaneous connections any client is allowed to
+make to this service.  By default, the limit is set to half
 the default process limit value.
 </p>
 
@@ -6138,28 +6143,7 @@ not be used to regulate legitimate mail traffic.
 </p>
 
 <p>
-This feature is not part of the stable Postfix 2.1 release.
-</p>
-
-
-</DD>
-
-<DT><b><a name="smtpd_client_connection_limit_exceptions">smtpd_client_connection_limit_exceptions</a>
-(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
-
-<p>
-Clients that are excluded from connection count or connection rate
-restrictions.
-</p>
-
-<p>
-By default, clients in trusted networks are excluded. Specify a
-list of network blocks, hostnames or .domain names (the initial
-dot causes the domain to match any name below it).
-</p>
-
-<p>
-This feature is not part of the stable Postfix 2.1 release.
+This feature is available in Postfix 2.2 and later.
 </p>
 
 
@@ -6171,8 +6155,7 @@ This feature is not part of the stable Postfix 2.1 release.
 <p>
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.  The time unit is specified
-with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> configuration parameter, and defaults
-to one minute.
+with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> configuration parameter.
 </p>
 
 <p>
@@ -6190,7 +6173,7 @@ not be used to regulate legitimate mail traffic.
 </p>
 
 <p>
-This feature is not part of the stable Postfix 2.1 release.
+This feature is available in Postfix 2.2 and later.
 </p>
 
 <p>
@@ -6199,6 +6182,105 @@ Example:
 
 <pre>
 <a href="postconf.5.html#smtpd_client_connection_rate_limit">smtpd_client_connection_rate_limit</a> = 1000
+</pre>
+
+
+</DD>
+
+<DT><b><a name="smtpd_client_event_limit_exceptions">smtpd_client_event_limit_exceptions</a>
+(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
+
+<p>
+Clients that are excluded from connection count, connection rate,
+message rate or recipient rate restrictions.
+</p>
+
+<p>
+By default, clients in trusted networks are excluded. Specify a
+list of network blocks, hostnames or .domain names (the initial
+dot causes the domain to match any name below it).
+</p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_client_message_rate_limit">smtpd_client_message_rate_limit</a>
+(default: 0)</b></DT><DD>
+
+<p>
+The maximal number of message delivery requests that any client is
+allowed to make to this service per time unit, regardless of whether
+or not Postfix actually accepts those messages.  The time unit is
+specified with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> configuration parameter.
+</p>
+
+<p>
+By default, a client can send as many message delivery requests
+requests per time unit as Postfix can accept.
+</p>
+
+<p>
+To disable this feature, specify a limit of 0.
+</p>
+
+<p>
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+</p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+<p>
+Example:
+</p>
+
+<pre>
+<a href="postconf.5.html#smtpd_client_message_rate_limit">smtpd_client_message_rate_limit</a> = 1000
+</pre>
+
+
+</DD>
+
+<DT><b><a name="smtpd_client_recipient_rate_limit">smtpd_client_recipient_rate_limit</a>
+(default: 0)</b></DT><DD>
+
+<p>
+The maximal number of recipient addresses that any client is allowed
+to send to this service per time unit, regardless of whether or not
+Postfix actually accepts those recipients.  The time unit is specified
+with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> configuration parameter.
+</p>
+
+<p>
+By default, a client can make as many recipient addresses per time
+unit as Postfix can accept.
+</p>
+
+<p>
+To disable this feature, specify a limit of 0.
+</p>
+
+<p>
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+</p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+<p>
+Example:
+</p>
+
+<pre>
+<a href="postconf.5.html#smtpd_client_recipient_rate_limit">smtpd_client_recipient_rate_limit</a> = 1000
 </pre>
 
 

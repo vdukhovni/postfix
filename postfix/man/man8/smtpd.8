@@ -339,16 +339,26 @@ receiving a remote SMTP client request.
 The maximal number of lines in the Postfix SMTP server command history
 before it is flushed upon receipt of EHLO, RSET, or end of DATA.
 .PP
-Not available in Postfix version 2.1:
+The per SMTP client connection count and request rate limits are
+implemented in co-operation with the anvil(8) service, and
+are available in Postfix version 2.2 and later.
 .IP "\fBsmtpd_client_connection_count_limit (50)\fR"
-How many simultaneous connections any SMTP client is allowed to
-make to the SMTP service.
+How many simultaneous connections any client is allowed to
+make to this service.
 .IP "\fBsmtpd_client_connection_rate_limit (0)\fR"
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.
-.IP "\fBsmtpd_client_connection_limit_exceptions ($mynetworks)\fR"
-Clients that are excluded from connection count or connection rate
-restrictions.
+.IP "\fBsmtpd_client_message_rate_limit (0)\fR"
+The maximal number of message delivery requests that any client is
+allowed to make to this service per time unit, regardless of whether
+or not Postfix actually accepts those messages.
+.IP "\fBsmtpd_client_recipient_rate_limit (0)\fR"
+The maximal number of recipient addresses that any client is allowed
+to send to this service per time unit, regardless of whether or not
+Postfix actually accepts those recipients.
+.IP "\fBsmtpd_client_event_limit_exceptions ($mynetworks)\fR"
+Clients that are excluded from connection count, connection rate,
+message rate or recipient rate restrictions.
 .SH "TARPIT CONTROLS"
 .na
 .nf
@@ -601,6 +611,7 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .SH "SEE ALSO"
 .na
 .nf
+anvil(8), client count and request rate management
 cleanup(8), message canonicalization
 trivial-rewrite(8), address resolver
 verify(8), address verification service

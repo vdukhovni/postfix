@@ -1053,7 +1053,8 @@ to non-Postfix processes. The TZ variable is needed for sane
 time keeping on System-V-ish systems.
 .PP
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma.
+whitespace or comma. The name=value form is supported with
+Postfix 2.1 and later.
 .PP
 Example:
 .PP
@@ -2836,6 +2837,7 @@ a "type:table" with domains and/or relay hosts on the left-hand
 side.  The right-hand side result from "type:table" lookups is
 ignored.
 .PP
+This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_on_demand (default: yes)
 Temporarily enable SMTP session caching while a destination
 has a high volume of mail in the active queue.  With SMTP connection
@@ -2849,10 +2851,14 @@ This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_reuse_limit (default: 10)
 When SMTP session caching is enabled, the number of times that
 an SMTP session is reused before it is closed.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH smtp_connection_cache_time_limit (default: 2s)
 When SMTP session caching is enabled, the amount of time that
 an unused SMTP client socket is kept open before it is closed.  Do
 not specify larger values without permission from the remote sites.
+.PP
+This feature is available in Postfix 2.2 and later.
 .SH smtp_data_done_timeout (default: 600s)
 The SMTP client time limit for sending the SMTP ".", and for receiving
 the server response.
@@ -3219,8 +3225,8 @@ smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
 .ad
 .ft R
 .SH smtpd_client_connection_count_limit (default: 50)
-How many simultaneous connections any SMTP client is allowed to
-make to the SMTP service.  By default, the limit is set it to half
+How many simultaneous connections any client is allowed to
+make to this service.  By default, the limit is set to half
 the default process limit value.
 .PP
 To disable this feature, specify a limit of 0.
@@ -3228,21 +3234,11 @@ To disable this feature, specify a limit of 0.
 WARNING: The purpose of this feature is to limit abuse. It must
 not be used to regulate legitimate mail traffic.
 .PP
-This feature is not part of the stable Postfix 2.1 release.
-.SH smtpd_client_connection_limit_exceptions (default: $mynetworks)
-Clients that are excluded from connection count or connection rate
-restrictions.
-.PP
-By default, clients in trusted networks are excluded. Specify a
-list of network blocks, hostnames or .domain names (the initial
-dot causes the domain to match any name below it).
-.PP
-This feature is not part of the stable Postfix 2.1 release.
+This feature is available in Postfix 2.2 and later.
 .SH smtpd_client_connection_rate_limit (default: 0)
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.  The time unit is specified
-with the anvil_rate_time_unit configuration parameter, and defaults
-to one minute.
+with the anvil_rate_time_unit configuration parameter.
 .PP
 By default, a client can make as many connections per time unit as
 Postfix can accept.
@@ -3252,7 +3248,7 @@ To disable this feature, specify a limit of 0.
 WARNING: The purpose of this feature is to limit abuse. It must
 not be used to regulate legitimate mail traffic.
 .PP
-This feature is not part of the stable Postfix 2.1 release.
+This feature is available in Postfix 2.2 and later.
 .PP
 Example:
 .PP
@@ -3260,6 +3256,65 @@ Example:
 .na
 .ft C
 smtpd_client_connection_rate_limit = 1000
+.fi
+.ad
+.ft R
+.SH smtpd_client_event_limit_exceptions (default: $mynetworks)
+Clients that are excluded from connection count, connection rate,
+message rate or recipient rate restrictions.
+.PP
+By default, clients in trusted networks are excluded. Specify a
+list of network blocks, hostnames or .domain names (the initial
+dot causes the domain to match any name below it).
+.PP
+This feature is available in Postfix 2.2 and later.
+.SH smtpd_client_message_rate_limit (default: 0)
+The maximal number of message delivery requests that any client is
+allowed to make to this service per time unit, regardless of whether
+or not Postfix actually accepts those messages.  The time unit is
+specified with the anvil_rate_time_unit configuration parameter.
+.PP
+By default, a client can send as many message delivery requests
+requests per time unit as Postfix can accept.
+.PP
+To disable this feature, specify a limit of 0.
+.PP
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+.PP
+This feature is available in Postfix 2.2 and later.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+smtpd_client_message_rate_limit = 1000
+.fi
+.ad
+.ft R
+.SH smtpd_client_recipient_rate_limit (default: 0)
+The maximal number of recipient addresses that any client is allowed
+to send to this service per time unit, regardless of whether or not
+Postfix actually accepts those recipients.  The time unit is specified
+with the anvil_rate_time_unit configuration parameter.
+.PP
+By default, a client can make as many recipient addresses per time
+unit as Postfix can accept.
+.PP
+To disable this feature, specify a limit of 0.
+.PP
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+.PP
+This feature is available in Postfix 2.2 and later.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+smtpd_client_recipient_rate_limit = 1000
 .fi
 .ad
 .ft R
@@ -4572,7 +4627,8 @@ virtual(8) delivery agent will terminate with a fatal error.
 .SH SEE ALSO
 .na
 .nf
-postconf(1) postfix configuration maintenance
+postconf(1) Postfix configuration parameter maintenance
+master(5) Postfix daemon configuration maintenance
 .SH LICENSE
 .ad
 .fi

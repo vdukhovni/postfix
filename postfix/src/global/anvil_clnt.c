@@ -19,24 +19,44 @@
 /*	int	*count;
 /*	int	*rate;
 /*
+/*	int	anvil_clnt_mail(anvil_clnt, service, addr, msgs)
+/*	ANVIL_CLNT *anvil_clnt;
+/*	const char *service;
+/*	const char *addr;
+/*	int	*msgs;
+/*
+/*	int	anvil_clnt_rcpt(anvil_clnt, service, addr, rcpts)
+/*	ANVIL_CLNT *anvil_clnt;
+/*	const char *service;
+/*	const char *addr;
+/*	int	*rcpts;
+/*
 /*	int	anvil_clnt_disconnect(anvil_clnt, service, addr)
 /*	ANVIL_CLNT *anvil_clnt;
 /*	const char *service;
 /*	const char *addr;
 /*
 /*	int	anvil_clnt_lookup(anvil_clnt, service, addr,
-/*					count, rate)
+/*					count, rate, msgs, rcpts)
 /*	ANVIL_CLNT *anvil_clnt;
 /*	const char *service;
 /*	const char *addr;
 /*	int	*count;
 /*	int	*rate;
+/*	int	*msgs;
+/*	int	*rcpts;
 /* DESCRIPTION
 /*	anvil_clnt_create() instantiates an anvil service client endpoint.
 /*
 /*	anvil_clnt_connect() informs the anvil server that a
 /*	client has connected, and returns the current connection
 /*	count and connection rate for that client.
+/*
+/*	anvil_clnt_mail() registers a MAIL FROM event and returns
+/*	the current MAIL FROM rate for the specified client.
+/*
+/*	anvil_clnt_rcpt() registers a RCPT TO event and returns
+/*	the current RCPT TO rate for the specified client.
 /*
 /*	anvil_clnt_disconnect() informs the anvil server that a
 /*	client has disconnected.
@@ -58,6 +78,12 @@
 /*	this remote client.
 /* .IP rate
 /*	Pointer to storage for the current connection rate for this
+/*	remote client.
+/* .IP msgs
+/*	Pointer to storage for the current message rate for this
+/*	remote client.
+/* .IP rcpts
+/*	Pointer to storage for the current recipient rate for this
 /*	remote client.
 /* DIAGNOSTICS
 /*	anvil_clnt_connect() and anvil_clnt_disconnect() return
@@ -120,15 +146,16 @@ ANVIL_CLNT *anvil_clnt_create(void)
 
 /* anvil_clnt_free - destroy connection rate service client */
 
-void    anvil_clnt_free(ANVIL_CLNT * anvil_clnt)
+void    anvil_clnt_free(ANVIL_CLNT *anvil_clnt)
 {
     attr_clnt_free((ATTR_CLNT *) anvil_clnt);
 }
 
 /* anvil_clnt_lookup - status query */
 
-int     anvil_clnt_lookup(ANVIL_CLNT * anvil_clnt, const char *service,
-			          const char *addr, int *count, int *rate)
+int     anvil_clnt_lookup(ANVIL_CLNT *anvil_clnt, const char *service,
+			          const char *addr, int *count, int *rate,
+			          int *msgs, int *rcpts)
 {
     char   *ident = ANVIL_IDENT(service, addr);
     int     status;
@@ -142,7 +169,9 @@ int     anvil_clnt_lookup(ANVIL_CLNT * anvil_clnt, const char *service,
 			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
 			  ATTR_TYPE_NUM, ANVIL_ATTR_COUNT, count,
 			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, rate,
-			  ATTR_TYPE_END) != 3)
+			  ATTR_TYPE_NUM, ANVIL_ATTR_MAIL, msgs,
+			  ATTR_TYPE_NUM, ANVIL_ATTR_RCPT, rcpts,
+			  ATTR_TYPE_END) != 5)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
 	status = ANVIL_STAT_FAIL;
@@ -152,7 +181,7 @@ int     anvil_clnt_lookup(ANVIL_CLNT * anvil_clnt, const char *service,
 
 /* anvil_clnt_connect - heads-up and policy query */
 
-int     anvil_clnt_connect(ANVIL_CLNT * anvil_clnt, const char *service,
+int     anvil_clnt_connect(ANVIL_CLNT *anvil_clnt, const char *service,
 			           const char *addr, int *count, int *rate)
 {
     char   *ident = ANVIL_IDENT(service, addr);
@@ -175,9 +204,57 @@ int     anvil_clnt_connect(ANVIL_CLNT * anvil_clnt, const char *service,
     return (status);
 }
 
+/* anvil_clnt_mail - heads-up and policy query */
+
+int     anvil_clnt_mail(ANVIL_CLNT *anvil_clnt, const char *service,
+			        const char *addr, int *msgs)
+{
+    char   *ident = ANVIL_IDENT(service, addr);
+    int     status;
+
+    if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
+			  ATTR_FLAG_NONE,	/* Query attributes. */
+			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_MAIL,
+			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  ATTR_TYPE_END,
+			  ATTR_FLAG_MISSING,	/* Reply attributes. */
+			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, msgs,
+			  ATTR_TYPE_END) != 2)
+	status = ANVIL_STAT_FAIL;
+    else if (status != ANVIL_STAT_OK)
+	status = ANVIL_STAT_FAIL;
+    myfree(ident);
+    return (status);
+}
+
+/* anvil_clnt_rcpt - heads-up and policy query */
+
+int     anvil_clnt_rcpt(ANVIL_CLNT *anvil_clnt, const char *service,
+			        const char *addr, int *rcpts)
+{
+    char   *ident = ANVIL_IDENT(service, addr);
+    int     status;
+
+    if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
+			  ATTR_FLAG_NONE,	/* Query attributes. */
+			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_RCPT,
+			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  ATTR_TYPE_END,
+			  ATTR_FLAG_MISSING,	/* Reply attributes. */
+			  ATTR_TYPE_NUM, ANVIL_ATTR_STATUS, &status,
+			  ATTR_TYPE_NUM, ANVIL_ATTR_RATE, rcpts,
+			  ATTR_TYPE_END) != 2)
+	status = ANVIL_STAT_FAIL;
+    else if (status != ANVIL_STAT_OK)
+	status = ANVIL_STAT_FAIL;
+    myfree(ident);
+    return (status);
+}
+
 /* anvil_clnt_disconnect - heads-up only */
 
-int     anvil_clnt_disconnect(ANVIL_CLNT * anvil_clnt, const char *service,
+int     anvil_clnt_disconnect(ANVIL_CLNT *anvil_clnt, const char *service,
 			              const char *addr)
 {
     char   *ident = ANVIL_IDENT(service, addr);
@@ -210,15 +287,26 @@ int     anvil_clnt_disconnect(ANVIL_CLNT * anvil_clnt, const char *service,
 #include <mail_params.h>
 #include <vstring_vstream.h>
 
+static void usage(void)
+{
+    vstream_printf("usage: %s service addr | %s service addr |"
+		   " %s service addr | %s service addr\n",
+		   ANVIL_REQ_CONN, ANVIL_REQ_DISC,
+		   ANVIL_REQ_MAIL, ANVIL_REQ_RCPT);
+}
+
 int     main(int unused_argc, char **argv)
 {
     VSTRING *inbuf = vstring_alloc(1);
     char   *bufp;
     char   *cmd;
+    int     cmd_len;
     char   *service;
     char   *addr;
     int     count;
     int     rate;
+    int     msgs;
+    int     rcpts;
     ANVIL_CLNT *anvil;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
@@ -238,27 +326,43 @@ int     main(int unused_argc, char **argv)
 	    || (service = mystrtok(&bufp, " ")) == 0 || *service == 0
 	    || (addr = mystrtok(&bufp, " ")) == 0 || *addr == 0
 	    || mystrtok(&bufp, " ") != 0) {
-	    vstream_printf("usage: connect service addr|disconnect service addr\n");
+	    vstream_printf("bad command syntax\n");
+	    usage();
 	    vstream_fflush(VSTREAM_OUT);
 	    continue;
 	}
-	if (strncmp(cmd, "connect", 1) == 0) {
+	cmd_len = strlen(cmd);
+	if (strncmp(cmd, ANVIL_REQ_CONN, cmd_len) == 0) {
 	    if (anvil_clnt_connect(anvil, service, addr, &count, &rate) != ANVIL_STAT_OK)
 		msg_warn("error!");
 	    else
 		vstream_printf("count=%d, rate=%d\n", count, rate);
-	} else if (strncmp(cmd, "disconnect", 1) == 0) {
+	} else if (strncmp(cmd, ANVIL_REQ_MAIL, cmd_len) == 0) {
+	    if (anvil_clnt_mail(anvil, service, addr, &msgs) != ANVIL_STAT_OK)
+		msg_warn("error!");
+	    else
+		vstream_printf("rate=%d\n", msgs);
+	} else if (strncmp(cmd, ANVIL_REQ_RCPT, cmd_len) == 0) {
+	    if (anvil_clnt_rcpt(anvil, service, addr, &rcpts) != ANVIL_STAT_OK)
+		msg_warn("error!");
+	    else
+		vstream_printf("rate=%d\n", rcpts);
+	} else if (strncmp(cmd, ANVIL_REQ_DISC, cmd_len) == 0) {
 	    if (anvil_clnt_disconnect(anvil, service, addr) != ANVIL_STAT_OK)
 		msg_warn("error!");
 	    else
 		vstream_printf("OK\n");
-	} else if (strncmp(cmd, "lookup", 1) == 0) {
-	    if (anvil_clnt_lookup(anvil, service, addr, &count, &rate) != ANVIL_STAT_OK)
+	} else if (strncmp(cmd, ANVIL_REQ_LOOKUP, cmd_len) == 0) {
+	    if (anvil_clnt_lookup(anvil, service, addr, &count, &rate,
+				  &msgs, &rcpts) != ANVIL_STAT_OK)
 		msg_warn("error!");
 	    else
-		vstream_printf("count=%d, rate=%d\n", count, rate);
-	} else
-	    vstream_printf("usage: connect ident|disconnect ident\n");
+		vstream_printf("count=%d, rate=%d msgs=%d rcpt=%d\n",
+			       count, rate, msgs, rcpts);
+	} else {
+	    vstream_printf("bad command: \"%s\"\n", cmd);
+	    usage();
+	}
 	vstream_fflush(VSTREAM_OUT);
     }
     vstring_free(inbuf);
