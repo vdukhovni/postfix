@@ -98,6 +98,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
 #define USE_STATFS
 #define STATFS_IN_SYS_MOUNT_H
+#define HAS_POSIX_REGEXP
 #endif
 
 #ifdef SUNOS4

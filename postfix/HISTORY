@@ -2681,3 +2681,9 @@ Apologies for any names omitted.
 	"host.domain    error:host.domain is unavailable". Too bad
 	that the transport table triggers on destination domain
 	only; it would be nice to bounce specific users as well.
+
+19990427
+
+	Cleanup: "disable_dns_lookups = yes" now should disable
+	all DNS lookups by the SMTP client.
+

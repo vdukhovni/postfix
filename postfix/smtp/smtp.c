@@ -66,6 +66,9 @@
 /*	List of domain or network patterns. When a remote host matches
 /*	a pattern, increase the verbose logging level by the amount
 /*	specified in the \fBdebug_peer_level\fR parameter.
+/* .IP \fBdisable_dns_lookups\fR
+/*	Disable DNS lookups. This means that mail must be forwarded
+/*	via a smart relay host.
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBfallback_relay\fR

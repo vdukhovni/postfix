@@ -345,11 +345,11 @@ SMTP_SESSION *smtp_connect(char *destination, VSTRING *why)
 
     /*
      * Connect to an SMTP server. Skip mail exchanger lookups when a quoted
-     * host is specified.
+     * host is specified, or when DNS lookups are disabled.
      */
     if (msg_verbose)
 	msg_info("connecting to %s port %d", host, ntohs(port));
-    if (*destination == '[') {
+    if (var_disable_dns || *destination == '[') {
 	session = smtp_connect_host(host, port, why);
     } else {
 	session = smtp_connect_domain(host, port, why);
