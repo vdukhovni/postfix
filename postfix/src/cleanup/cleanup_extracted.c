@@ -127,6 +127,17 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
     ARGV   *rcpt;
     char  **cpp;
 
+    /*
+     * Weird condition for consistency with cleanup_envelope.c
+     */
+    if (type != REC_TYPE_RCPT) {
+	if (state->orig_rcpt != 0) {
+	    msg_warn("%s: out-of-order original recipient record <%.200s>",
+		     state->queue_id, buf);
+	    myfree(state->orig_rcpt);
+	    state->orig_rcpt = 0;
+	}
+    }
     if (type == REC_TYPE_RCPT) {
 	clean_addr = vstring_alloc(100);
 	if (state->orig_rcpt == 0)
@@ -148,15 +159,8 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
 	return;
-    } else {
-	if (state->orig_rcpt != 0) {
-	    msg_warn("%s: out-of-order original recipient <%.200s>",
-		     state->queue_id, buf);
-	    myfree(state->orig_rcpt);
-	    state->orig_rcpt = 0;
-	}
-	if (type == REC_TYPE_ORCP)
-	    state->orig_rcpt = mystrdup(buf);
+    } else if (type == REC_TYPE_ORCP) {
+	state->orig_rcpt = mystrdup(buf);
     }
     if (type != REC_TYPE_END) {
 	cleanup_out(state, type, buf, len);

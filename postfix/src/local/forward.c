@@ -187,6 +187,7 @@ int     forward_append(DELIVER_ATTR attr)
     /*
      * Append the recipient to the message envelope.
      */
+    rec_fputs(info->cleanup, REC_TYPE_ORCP, attr.orig_rcpt);
     rec_fputs(info->cleanup, REC_TYPE_RCPT, attr.recipient);
 
     return (vstream_ferror(info->cleanup));

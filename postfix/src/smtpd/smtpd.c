@@ -818,6 +818,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (state->helo_name != 0)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_HELO_NAME, state->helo_name);
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_PROTO_NAME, state->protocol);
     }
     if (verp_delims)
 	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);

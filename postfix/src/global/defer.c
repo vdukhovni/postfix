@@ -73,7 +73,8 @@
 /* .IP id
 /*	The queue id of the original message file.
 /* .IP orig_rcpt
-/*	The original envelope recipient address.
+/*	The original envelope recipient address. If unavailable,
+/*	specify a null string or null pointer.
 /* .IP recipient
 /*	A recipient address that is being deferred. The domain part
 /*	of the address is marked dead (for a limited amount of time).
@@ -114,6 +115,10 @@
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 #include <string.h>
+
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
 
 /* Utility library. */
 
@@ -158,17 +163,23 @@ int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
     const char *rcpt_domain;
 
     vstring_vsprintf(why, fmt, ap);
+    if (orig_rcpt == 0)
+	orig_rcpt = "";
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
-			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
-			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
-			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
-			    ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
-			    ATTR_TYPE_END) != 0)
-	msg_warn("%s: defer service failure", id);
-    msg_info("%s: orig_to=<%s>, to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
-	     id, orig_rcpt, recipient, relay, delay, vstring_str(why));
+			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND,
+				ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+				ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
+				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
+				ATTR_TYPE_END) != 0)
+	    msg_warn("%s: defer service failure", id);
+    if (*orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
+	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
+		 id, recipient, orig_rcpt, relay, delay, vstring_str(why));
+    else
+	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=deferred (%s)",
+		 id, recipient, relay, delay, vstring_str(why));
     vstring_free(why);
 
     /*

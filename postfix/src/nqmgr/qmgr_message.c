@@ -403,6 +403,10 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		message->rcpt_unread--;
 		qmgr_rcpt_list_add(&message->rcpt_list, curr_offset,
 				   orig_rcpt, start);
+		if (orig_rcpt) {
+		    myfree(orig_rcpt);
+		    orig_rcpt = 0;
+		}
 		if (message->rcpt_list.len >= recipient_limit) {
 		    if ((message->rcpt_offset = vstream_ftell(message->fp)) < 0)
 			msg_fatal("vstream_ftell %s: %m",
@@ -458,7 +462,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    }
 	}
 	if (orig_rcpt != 0) {
-	    msg_warn("%s: out-of-order original recipient <%.200s>",
+	    msg_warn("%s: out-of-order original recipient record <%.200s>",
 		     message->queue_id, start);
 	    myfree(orig_rcpt);
 	    orig_rcpt = 0;

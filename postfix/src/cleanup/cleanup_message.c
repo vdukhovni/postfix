@@ -260,6 +260,31 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	cleanup_fold_header(state, header_buf);
 }
 
+/* cleanup_act_log - log action with context */
+
+static void cleanup_act_log(CLEANUP_STATE *state,
+			            const char *action, const char *class,
+			            const char *content, const char *text)
+{
+    const char *attr;
+
+    if ((attr = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
+	attr="unknown";
+    vstring_sprintf(state->temp1, "%s: %s: %s %.200s from %s;",
+		    state->queue_id, action, class, content, attr);
+    if (state->sender)
+	vstring_sprintf_append(state->temp1, " from=<%s>", state->sender);
+    if (state->recip)
+	vstring_sprintf_append(state->temp1, " to=<%s>", state->recip);
+    if ((attr = nvtable_find(state->attr, MAIL_ATTR_PROTO_NAME)) != 0)
+	vstring_sprintf_append(state->temp1, " proto=%s", attr);
+    if ((attr = nvtable_find(state->attr, MAIL_ATTR_HELO_NAME)) != 0)
+	vstring_sprintf_append(state->temp1, " helo=<%s>", attr);
+    if (text && *text)
+	vstring_sprintf_append(state->temp1, ": %s", text);
+    msg_info("%s", vstring_str(state->temp1));
+}
+
 /* cleanup_act - act upon a header/body match */
 
 static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
@@ -267,7 +292,6 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 {
     const char *optional_text = value + strcspn(value, " \t");
     int     command_len = optional_text - value;
-    const char *origin;
 
     while (*optional_text && ISSPACE(*optional_text))
 	optional_text++;
@@ -275,6 +299,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 #define STREQUAL(x,y,l) (strncasecmp((x), (y), (l)) == 0 && (y)[l] == 0)
 #define CLEANUP_ACT_KEEP 1
 #define CLEANUP_ACT_DROP 0
+#define STR(x)		vstring_str(x)
 
     if (STREQUAL(value, "REJECT", command_len)) {
 	if (state->reason == 0)
@@ -282,20 +307,11 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 				     cleanup_strerror(CLEANUP_STAT_CONT));
 	state->errs |= CLEANUP_STAT_CONT;
 	state->flags &= ~CLEANUP_FLAG_FILTER;
-	if ((origin = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
-	    origin = MAIL_ATTR_ORG_NONE;
-	msg_info("%s: reject: %s %.200s from %s; from=<%s> to=<%s>: %s",
-		 state->queue_id, context, buf, origin, state->sender,
-		 state->recip ? state->recip : "unknown",
-		 state->reason);
+	cleanup_act_log(state, "reject", context, buf, state->reason);
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "WARN", command_len)) {
-	msg_info("%s: warning: %s %.200s; from=<%s> to=<%s>%s%s",
-		 state->queue_id, context, buf, state->sender,
-		 state->recip ? state->recip : "unknown",
-		 *optional_text ? ": " : "",
-		 *optional_text ? optional_text : "");
+	cleanup_act_log(state, "warning", context, buf, optional_text);
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "FILTER", command_len)) {
@@ -304,26 +320,19 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
 	} else {
 	    if (state->filter)
 		myfree(state->filter);
+	    /* XXX should log something? */
 	    state->filter = mystrdup(optional_text);
 	}
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "DISCARD", command_len)) {
-	msg_info("%s: discard: %s %.200s; from=<%s> to=<%s>%s%s",
-		 state->queue_id, context, buf, state->sender,
-		 state->recip ? state->recip : "unknown",
-		 *optional_text ? ": " : "",
-		 *optional_text ? optional_text : "");
+	cleanup_act_log(state, "discard", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_DISCARD;
 	state->flags &= ~CLEANUP_FLAG_FILTER;
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "HOLD", command_len)) {
-	msg_info("%s: hold: %s %.200s; from=<%s> to=<%s>%s%s",
-		 state->queue_id, context, buf, state->sender,
-		 state->recip ? state->recip : "unknown",
-		 *optional_text ? ": " : "",
-		 *optional_text ? optional_text : "");
+	cleanup_act_log(state, "hold", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_HOLD;
 	return (CLEANUP_ACT_KEEP);
     }

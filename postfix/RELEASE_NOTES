@@ -12,6 +12,33 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20021026
+==========================================================
+
+Logging formats have changed. This may affect logfile processing
+software.
+
+- The Postfix SMTP UCE reject etc. logging now includes the queue
+ID, the mail protocol (SMTP or ESMTP), and the hostname that was
+received with the HELO or EHLO command, if available.
+
+- The Postfix header/body_checks logging now includes the the mail
+protocol (SMTP, ESMTP, QMQP) and the hostname that was received
+with the SMTP HELO or EHLO command, if available.
+
+The Postfix status=sent/bounced/deferred logging now shows the
+original recipient address (as received before any address rewriting
+or aliasing).  The original recipient address is logged only when
+it differs from the final recipient address.
+
+Major changes with Postfix snapshot 1.1.11-20021026
+===================================================
+
+The Postfix status=sent/bounced/deferred logging now shows the
+original recipient address (as received before any address rewriting
+or aliasing).  The original recipient address is logged only when
+it differs from the final recipient address.
+
 Major changes with Postfix snapshot 1.1.11-20021024
 ===================================================
 

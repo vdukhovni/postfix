@@ -31,7 +31,7 @@ extern int mail_copy(const char *, const char *, const char *,
 #define MAIL_COPY_RETURN_PATH	(1<<4)	/* prepend Return-Path: */
 #define MAIL_COPY_DOT		(1<<5)	/* escape dots - needed for bsmtp */
 #define MAIL_COPY_BLANK		(1<<6)	/* append blank line */
-#define MAIL_COPY_ORIG_RCPT	(1<<7)	/* prepend Delivered-To: */
+#define MAIL_COPY_ORIG_RCPT	(1<<7)	/* prepend X-Original-To: */
 #define MAIL_COPY_MBOX		(MAIL_COPY_FROM | MAIL_COPY_QUOTE | \
 				    MAIL_COPY_TOFILE | MAIL_COPY_DELIVERED | \
 				    MAIL_COPY_RETURN_PATH | MAIL_COPY_BLANK | \

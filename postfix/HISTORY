@@ -7083,6 +7083,20 @@ Apologies for any names omitted.
 	Feature: X-Original-To: message headers with the raw original
 	envelope recipient.
 
+	Logging: status=sent/deferred/bounced/ logging now includes
+	the original recipient address if it differs from the final
+	address.
+
+20020126
+
+	Logging: SMTP UCE reject/warn/hold/discard logging now
+	includes the protocol name and, if available, the hostname
+	given in the SMTP HELO or EHLO command.
+
+	Logging: header/body_checks reject/warn/hold/discard logging
+	now includes the protocol name and, if available, the
+	hostname given in the SMTP HELO or EHLO command.
+
 Open problems:
 
 	Low: smtpd should log queue ID with reject/warn/hold/discard

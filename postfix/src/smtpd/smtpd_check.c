@@ -720,27 +720,21 @@ void    smtpd_check_init(void)
 static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
 			        const char *text)
 {
+    VSTRING *buf = vstring_alloc(100);
 
-    /*
-     * XXX should include queue ID but that will break all existing logfile
-     * parsers.
-     */
-    if (state->recipient && state->sender) {
-	msg_info("%s: %s from %s: %s; from=<%s> to=<%s>",
-		 whatsup, state->where, state->namaddr, text,
-		 state->sender, state->recipient);
-    } else if (state->recipient) {
-	msg_info("%s: %s from %s: %s; to=<%s>",
-		 whatsup, state->where, state->namaddr, text,
-		 state->recipient);
-    } else if (state->sender) {
-	msg_info("%s: %s from %s: %s; from=<%s>",
-		 whatsup, state->where, state->namaddr, text,
-		 state->sender);
-    } else {
-	msg_info("%s: %s from %s: %s",
-		 whatsup, state->where, state->namaddr, text);
-    }
+    vstring_sprintf(buf, "%s: %s: %s from %s: %s;",
+		    state->queue_id, whatsup, state->where,
+		    state->namaddr, text);
+    if (state->sender)
+	vstring_sprintf_append(buf, " from=<%s>", state->sender);
+    if (state->recipient)
+	vstring_sprintf_append(buf, " to=<%s>", state->recipient);
+    if (state->protocol)
+	vstring_sprintf_append(buf, " proto=%s", state->protocol);
+    if (state->helo_name)
+	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
+    msg_info("%s", STR(buf));
+    vstring_free(buf);
 }
 
 /* smtpd_check_reject - do the boring things that must be done */

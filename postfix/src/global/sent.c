@@ -31,7 +31,8 @@
 /* .IP queue_id
 /*	The message queue id.
 /* .IP orig_rcpt
-/*	The original envelope recipient address
+/*	The original envelope recipient address. If unavailable,
+/*	specify a null string or a null pointer.
 /* .IP recipient
 /*	The recipient address.
 /* .IP relay
@@ -64,6 +65,11 @@
 #include <stdio.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
+#include <string.h>
+
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
 
 /* Utility library. */
 
@@ -99,9 +105,14 @@ int     vsent(const char *queue_id, const char *orig_rcpt,
     int     delay = time((time_t *) 0) - entry;
 
     vstring_vsprintf(text, fmt, ap);
-    msg_info("%s: orig_to=<%s>, to=<%s>, relay=%s, delay=%d, status=sent%s%s%s",
-	     queue_id, orig_rcpt, recipient, relay, delay,
-	     *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
+    if (orig_rcpt && *orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
+	msg_info("%s: to=<%s>, orig_to=<%s>, relay=%s, delay=%d, status=sent%s%s%s",
+		 queue_id, recipient, orig_rcpt, relay, delay,
+		 *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
+    else
+	msg_info("%s: to=<%s>, relay=%s, delay=%d, status=sent%s%s%s",
+		 queue_id, recipient, relay, delay,
+		 *TEXT ? " (" : "", TEXT, *TEXT ? ")" : "");
     vstring_free(text);
     return (0);
 }

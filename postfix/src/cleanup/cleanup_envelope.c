@@ -143,6 +143,14 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
     if (msg_verbose)
 	msg_info("envelope %c %.*s", type, len, buf);
 
+    if (type != REC_TYPE_RCPT) {
+	if (state->orig_rcpt != 0) {
+	    msg_warn("%s: out-of-order original recipient record <%.200s>",
+		     state->queue_id, state->orig_rcpt);
+	    myfree(state->orig_rcpt);
+	    state->orig_rcpt = 0;
+	}
+    }
     if (type == REC_TYPE_TIME) {
 	state->time = atol(buf);
 	cleanup_out(state, type, buf, len);
@@ -230,15 +238,9 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    return;
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
+    } else if (type == REC_TYPE_ORCP) {
+	state->orig_rcpt = mystrdup(buf);
     } else {
-	if (state->orig_rcpt != 0) {
-	    msg_warn("%s: out-of-order original recipient <%.200s>",
-		     state->queue_id, buf);
-	    myfree(state->orig_rcpt);
-	    state->orig_rcpt = 0;
-	}
-	if (type == REC_TYPE_ORCP)
-	    state->orig_rcpt = mystrdup(buf);
 	cleanup_out(state, type, buf, len);
     }
 }
