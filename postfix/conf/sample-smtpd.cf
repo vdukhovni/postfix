@@ -321,7 +321,6 @@ smtpd_sender_restrictions =
 #
 # By default, Postfix relays mail
 # - from trusted clients whose IP address matches $mynetworks,
-# - from trusted clients matching $relay_domains or subdomains thereof,
 # - from untrusted clients to destinations that match $relay_domains
 #   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination.
@@ -330,7 +329,8 @@ smtpd_sender_restrictions =
 # that Postfix is final destination for:
 # - destinations that match $inet_interfaces,
 # - destinations that match $mydestination
-# - destinations that match $virtual_maps.
+# - destinations that match $virtual_maps,
+# - destinations that match $virtual_mailbox_maps.
 # These destinations do not need to be listed in $relay_domains.
 #
 # The following restrictions are available (* is part of default setting):
@@ -339,13 +339,6 @@ smtpd_sender_restrictions =
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
 #   reject_rhsbl_recipient domain.tld: reject recipient domain name if it is
 #	listed in an A record under domain.tld.
-#  *check_relay_domains: permit only mail
-#	- to destinations matching $inet_interfaces, $mydestination,
-#	  or $virtual_maps,
-#	- from trusted clients matching $relay_domains or subdomain thereof,
-#	- from untrusted clients to destinations matching $relay_domains or
-#	  subdomain thereof (except addresses with sender-specified routing),
-#	Reject anything else.
 #   permit_auth_destination: permit mail
 #	- to destinations matching $inet_interfaces, $mydestination,
 #	  or $virtual_maps.
@@ -353,7 +346,7 @@ smtpd_sender_restrictions =
 #	  except for addresses with sender-specified routing.
 #   reject_unauth_destination: reject mail unless it is sent
 #	- to destinations matching $inet_interfaces, $mydestination,
-#	  or $virtual_maps.
+#	  $virtual_maps, or $virtual_mailbox_maps.
 #	- to destinations matching $relay_domains or subdomain thereof,
 #	  except for addresses with sender-specified routing.
 #   reject_unauth_pipelining: reject mail from improperly pipelining spamware
@@ -384,9 +377,9 @@ smtpd_sender_restrictions =
 #
 # NOTE: YOU MUST SPECIFY AT LEAST ONE OF THE FOLLOWING RESTRICTIONS
 # OTHERWISE POSTFIX REFUSES TO RECEIVE MAIL:
-#	reject, check_relay_domains, reject_unauth_destination
+#	reject, defer, defer_if_permit, reject_unauth_destination
 #
-smtpd_recipient_restrictions = permit_mynetworks,check_relay_domains
+smtpd_recipient_restrictions = permit_mynetworks,reject_unauth_destination
 
 #
 # ADDITIONAL UCE CONTROLS
@@ -415,7 +408,6 @@ allow_untrusted_routing = no
 #
 # By default, Postfix relays mail
 # - from trusted clients whose IP address matches $mynetworks,
-# - from trusted clients matching $relay_domains or subdomains thereof,
 # - from untrusted clients to destinations that match $relay_domains
 #   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination. 
@@ -424,7 +416,8 @@ allow_untrusted_routing = no
 # that Postfix is final destination for:
 # - destinations that match $inet_interfaces,
 # - destinations that match $mydestination
-# - destinations that match $virtual_maps.
+# - destinations that match $virtual_maps,
+# - destinations that match $virtual_mailbox_maps.
 # These destinations do not need to be listed in $relay_domains.
 #
 # Specify a list of hosts or domains, /file/name patterns or type:name

@@ -144,14 +144,6 @@
 /*	DNS A or MX record.
 /*	The \fIunknown_address_reject_code\fR configuration parameter
 /*	specifies the reject status code (default: 450).
-/* .IP check_relay_domains
-/*	Allow the request when either the client hostname or the resolved
-/*	recipient domain matches the \fIrelay_domains\fR configuration
-/*	parameter or a subdomain thereof, or when the destination somehow
-/*	resolves locally ($inet_interfaces, $mydestination or $virtual_maps).
-/*	Reject the request otherwise.
-/*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
-/*	the reject status code (default: 554).
 /* .IP permit_auth_destination
 /*	Permit the request when the resolved recipient domain matches the
 /*	\fIrelay_domains\fR configuration parameter or a subdomain thereof,
@@ -161,8 +153,10 @@
 /*	Reject the request when the resolved recipient domain does not match
 /*	the \fIrelay_domains\fR configuration parameter or a subdomain
 /*	thereof, and when the destination does not somehow resolve locally
-/*	($inet_interfaces, $mydestination or $virtual_maps).
-/*	Same error code as check_relay_domains.
+/*	($inet_interfaces, $mydestination, $virtual_maps, or
+/*	$virtual_mailbox_maps).
+/*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
+/*	the reject status code (default: 554).
 /* .IP reject_unauth_pipelining
 /*	Reject the request when the client has already sent the next request
 /*	without being told that the server implements SMTP command pipelining.
@@ -612,6 +606,7 @@ void    smtpd_check_init(void)
 	REJECT_UNAUTH_DEST,
 	REJECT_ALL,
 	DEFER_ALL,
+	DEFER_IF_PERMIT,
 	0,
     };
 
@@ -1169,6 +1164,16 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 			               char *reply_name, char *reply_class)
 {
     char   *myname = "check_relay_domains";
+
+#if 1
+    static int once;
+
+    if (once == 0) {
+	once = 1;
+	msg_warn("the \"%s\" restriction is going away; use \"%s\" instead",
+		 CHECK_RELAY_DOMAINS, REJECT_UNAUTH_DEST);
+    }
+#endif
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
@@ -2633,13 +2638,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    status = reject_maps_rbl(state);
 	} else if (strcasecmp(name, REJECT_RBL_CLIENT) == 0
 		   || strcasecmp(name, REJECT_RBL) == 0) {
-	    if (*(cpp[1]) == 0)
+	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
 	    else
 		status = reject_rbl_addr(state, *(cpp += 1), state->addr,
 					 SMTPD_NAME_CLIENT);
 	} else if (strcasecmp(name, REJECT_RHSBL_CLIENT) == 0) {
-	    if (*(cpp[1]) == 0)
+	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument",
 			 name);
 	    else {

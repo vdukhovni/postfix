@@ -662,7 +662,7 @@ extern int var_debug_peer_level;
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
-#define DEF_HASH_QUEUE_DEPTH	2
+#define DEF_HASH_QUEUE_DEPTH	1
 extern int var_hash_queue_depth;
 
  /*
@@ -1117,7 +1117,7 @@ extern char *var_helo_checks;
 extern char *var_mail_checks;
 
 #define VAR_RCPT_CHECKS		"smtpd_recipient_restrictions"
-#define DEF_RCPT_CHECKS		PERMIT_MYNETWORKS "," CHECK_RELAY_DOMAINS
+#define DEF_RCPT_CHECKS		PERMIT_MYNETWORKS ", " REJECT_UNAUTH_DEST
 extern char *var_rcpt_checks;
 
 #define VAR_ETRN_CHECKS		"smtpd_etrn_restrictions"

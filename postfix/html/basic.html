@@ -181,7 +181,7 @@ hostnames of the machine, including $myhostname, and localhost.$mydomain.
 <a name="relaying"> <h2> What clients to relay mail for </h2> </a>
 
 By default, Postfix will relay mail for clients in authorized
-networks and in authorized domains.
+networks.
 
 <p>
 
@@ -189,13 +189,6 @@ Authorized client networks are defined by the <a
 href="#mynetworks">mynetworks</a> parameter. The default is to
 authorize all clients in the IP subnetworks that the local machine
 is attached to.
-
-<p>
-
-Authorized client domains are by defined by the <a
-href="uce.html#relay_domains"> relay_domains</a> configuration
-parameter. The default setting trusts clients with hostnames below
-the domain(s) listed in <a href="#mydestination">mydestination</a>.
 
 <a name="notify"> <h2> What trouble to report to the postmaster
 </h2> </a>

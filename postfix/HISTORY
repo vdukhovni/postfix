@@ -7261,6 +7261,25 @@ Apologies for any names omitted.
 	people request verbose mail delivery in their mail.rc file.
 	File:  sendmail/sendmail.c.
 
+20021202
+
+	Cleanup: hash_queue_depth now defaults to 1 level of
+	subdirectories. This makes "mailq" faster on most systems,
+	but will result in poorer worst-case performance when lots
+	of mail is queued.
+
+	The check_relay_domains restriction is going away. The SMTP
+	server logs a warning and suggests using reject_unauth_destination
+	instead.
+
+	Cleanup: the local(8) and virtual(8) delivery agents did
+	not prepend X-Original-To: addresses to maildir files.
+	Omission spotted by Matthias Andree.
+
+	Bugfix: too many levels of dereferencing while testing for
+	missing reject_rbl_mumble domain names. Patrik Rak.  File:
+	smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
@@ -7304,3 +7323,9 @@ Open problems:
 	about attempts to set read-only parameters.
 
 	Low: postconf -e edits parameters that postconf won't list.
+
+	Low: with quoted-printable, perhaps use =46rom instead of >From.
+
+	Low: make it easier to have local_recipient_maps turned on
+	by default. This requires documentation of its existence
+	with anything that replaces or extends local delivery.

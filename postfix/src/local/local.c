@@ -121,7 +121,10 @@
 /*
 /*	In the case of \fBmaildir\fR delivery, the local daemon prepends
 /*	an optional
-/*	\fBDelivered-To:\fR header with the envelope recipient address
+/*	\fBDelivered-To:\fR header with the final envelope recipient address,
+/*	prepends an
+/*	\fBX-Original-To:\fR header with the recipient address as given to
+/*	Postfix,
 /*	and prepends a \fBReturn-Path:\fR header with the envelope sender
 /*	address.
 /* EXTERNAL COMMAND DELIVERY

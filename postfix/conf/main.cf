@@ -198,7 +198,6 @@ mail_owner = postfix
 #
 # By default, Postfix relays mail
 # - from "trusted" clients whose IP address matches $mynetworks, 
-# - from "trusted" clients matching $relay_domains or subdomains thereof,
 # - from untrusted clients to destinations that match $relay_domains
 #   or subdomains thereof, except addresses with sender-specified routing.
 # The default relay_domains value is $mydestination.
@@ -207,7 +206,8 @@ mail_owner = postfix
 # that Postfix is final destination for:
 # - destinations that match $inet_interfaces,
 # - destinations that match $mydestination
-# - destinations that match $virtual_maps.
+# - destinations that match $virtual_maps,
+# - destinations that match $virtual_mailbox_maps.
 # These destinations do not need to be listed in $relay_domains.
 # 
 # Specify a list of hosts or domains, /file/name patterns or type:name

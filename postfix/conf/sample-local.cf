@@ -163,6 +163,7 @@ home_mailbox =
 #
 #mailbox_command = /some/where/procmail
 #mailbox_command = /some/where/procmail -a "$EXTENSION"
+#mailbox_command = /some/where/maildrop -d "$USER" -f "$SENDER" "$EXTENSION"
 mailbox_command = 
 
 # The mailbox_command_maps allows you to specify a per-user mailbox

@@ -1501,10 +1501,6 @@ addresses under the following conditions:
 
 <ul>
 
-<li> <a href="uce.html#check_relay_domains">check_relay_domains</a>:
-reject when the destination is not local and when the client hostname
-does not match <a href="uce.html#relay_domains">relay_domains</a>.
-
 <li> <a
 href="uce.html#permit_auth_destination">permit_auth_destination</a>:
 skip when the destination is not local.
@@ -1587,7 +1583,7 @@ In order to make this work you need Postfix version 19991231 or later.
         smtpd_recipient_restrictions =
             permit_mynetworks
             check_client_access hash:/etc/postfix/client_access
-            check_relay_domains
+            reject_unauth_destination
 
     /etc/postfix/client_access:
         4.3.2.1         OK
@@ -1631,7 +1627,7 @@ spammer ever finds out the address of your users.
             permit_mynetworks
             check_client_access hash:/etc/postfix/client_access
             check_sender_access hash:/etc/postfix/sender_access
-            check_relay_domains
+            reject_unauth_destination
 
     /etc/postfix/client_access:
         11.22.33                OK
@@ -1751,7 +1747,7 @@ all you need:
 
     /etc/postfix/main.cf:
         relay_domains = $mydestination the.backed-up.domain.tld
-	smtpd_recipient_restrictions = permit_mynetworks check_relay_domains
+	smtpd_recipient_restrictions = permit_mynetworks reject_unauth_destination
 </pre>
 
 <p>
@@ -2485,7 +2481,7 @@ harmful MAIL FROM or RCPT TO commands.
         smtpd_recipient_restrictions =
             regexp:/etc/postfix/envelope-regexp
             permit_mynetworks
-            check_relay_domains
+            reject_unauth_destination
 
     /etc/postfix/envelope-regexp:
         /[/|]/  REJECT

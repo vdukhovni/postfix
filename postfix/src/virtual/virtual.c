@@ -53,7 +53,9 @@
 /*	in qmail \fBmaildir\fR format. This format stores one message per file.
 /*
 /*	The \fBvirtual\fR delivery agent daemon prepends a \fBDelivered-To:\fR
-/*	message header with the envelope recipient address and prepends a
+/*	message header with the final envelope recipient address,
+/*	prepends an \fBX-Original-To:\fR header with the recipient address as
+/*	given to Postfix, and prepends a
 /*	\fBReturn-Path:\fR message header with the envelope sender address.
 /*
 /*	By definition, \fBmaildir\fR format does not require file locking

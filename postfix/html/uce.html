@@ -766,7 +766,7 @@ recipient addresses this system accepts in RCPT TO commands.
 
 <dt>Default: 
 
-<dd><b>smtpd_recipient_restrictions = permit_mynetworks, check_relay_domains</b>
+<dd><b>smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination</b>
 
 <p>
 
@@ -779,9 +779,6 @@ relays mail:
 
 <li>from trusted clients whose IP address matches <a
 href="basic.html#mynetworks">$mynetworks</a>,
-
-<li>from trusted clients whose hostname matches <a
-href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 
 <li>from untrusted clients to destinations that match <a
 href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
@@ -806,7 +803,10 @@ href="basic.html#inet_interfaces">$inet_interfaces</a>,
 <li>to destinations that match <a
 href="basic.html#mydestination">$mydestination</a>,
 
-<li>to destinations that match <a href="virtual.5.html">$virtual_maps</a>.
+<li>to destinations that match <a href="virtual.5.html">$virtual_maps</a>,
+
+<li>to destinations that match <a
+href="virtual.8.html">$virtual_mailbox_maps</a>.
 
 </ul>
 
@@ -838,43 +838,15 @@ reject_unauth_destination</b>
 <p>
 
 <dd><i>Note: you must specify at least one of the following
-restrictions: </i><b>reject</b>, <b>check_relay_domains</b> <i>or</i>
-<b>reject_unauth_destination</b>. <i>Postfix will refuse to receive
-mail otherwise. </i>
+restrictions: </i><b>reject</b>, <b>defer</b>, <b>defer_if_permit</b>,
+<i>or</i> <b>reject_unauth_destination</b>. <i>Postfix will refuse
+to receive mail otherwise. </i>
 
 <p>
 
 <dt> Restrictions:
 
 <dl>
-
-<a name="check_relay_domains">
-
-<dt> <b>check_relay_domains</b> <dd> Permit the request when 
-one of the following is true:
-
-<ul>
-
-<li>the client hostname matches <a href="#relay_domains">$relay_domains</a>
-or a subdomain thereof,
-
-<li>the resolved destination address matches <a
-href="#relay_domains">$relay_domains</a> or a subdomain thereof,
-and the address contains no sender-specified routing
-(<i>user@elsewhere@domain</i>),
-
-<li>Postfix is the final destination:  any destination that matches
-<a href="basic.html#mydestination">$mydestination</a>, <a
-href="basic.html#inet_interfaces">$inet_interfaces</a> or <a
-href="virtual.5.html">$virtual_maps</a>.
-
-</ul>
-
-Otherwise reject the request.  The <b>relay_domains_reject_code</b>
-parameter specifies the response code for rejected requests (default:
-<b>554</b>).
-
-<p>
 
 <a name="permit_auth_destination">
 
@@ -890,8 +862,9 @@ and the address contains no sender-specified routing
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
-href="basic.html#inet_interfaces">$inet_interfaces</a> or <a
-href="virtual.5.html">$virtual_maps</a>.
+href="basic.html#inet_interfaces">$inet_interfaces</a>, <a
+href="virtual.5.html">$virtual_maps</a>, or
+href="virtual.8.html">$virtual_mailbox_maps</a>.
 
 </ul>
 
@@ -913,8 +886,9 @@ and the address contains no sender-specified routing
 
 <li>Postfix is the final destination:  any destination that matches
 <a href="basic.html#mydestination">$mydestination</a>, <a
-href="basic.html#inet_interfaces">$inet_interfaces</a> or <a
-href="virtual.5.html">$virtual_maps</a>.
+href="basic.html#inet_interfaces">$inet_interfaces</a>, <a
+href="virtual.5.html">$virtual_maps</a>, or <a
+href="virtual.8.html">$virtual_mailbox_maps</a>.
 
 </ul>
 
@@ -1350,7 +1324,6 @@ default_rbl_reply </a> parameter description.
 <dt> <b>relay_domains</b>
 
 <dd> This parameter controls the behavior of the <a
-href="#check_relay_domains"> check_relay_domains</a>, <a
 href="#reject_unauth_destination"> reject_unauth_destination</a>
 and <a href="#permit_auth_destination"> permit_auth_destination</a>
 restrictions that can appear as part of a recipient address
@@ -1376,9 +1349,6 @@ relays mail:
 
 <li>from trusted clients whose IP address matches <a
 href="basic.html#mynetworks">$mynetworks</a>,
-
-<li>from trusted clients whose hostname matches <a
-href="#relay_domains">$relay_domains</a> or a subdomain thereof,
 
 <li>from untrusted clients to destinations that match <a
 href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
