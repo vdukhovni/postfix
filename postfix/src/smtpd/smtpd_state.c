@@ -141,7 +141,7 @@ void    smtpd_state_reset(SMTPD_STATE *state)
     if (state->buffer)
 	vstring_free(state->buffer);
     smtpd_peer_reset(state);
-    smtpd_xclient_reset(state, XCLIENT_OVER_NONE);
+    smtpd_xclient_reset(state);
     if (state->defer_if_permit.reason)
 	vstring_free(state->defer_if_permit.reason);
     if (state->defer_if_reject.reason)

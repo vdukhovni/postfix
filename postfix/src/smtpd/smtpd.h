@@ -46,7 +46,7 @@ typedef struct SMTPD_DEFER {
 } SMTPD_DEFER;
 
 typedef struct SMTPD_XCLIENT_ATTR {
-    int     mode;			/* none, log, acl */
+    int     used;			/* status */
     char   *name;			/* name for access control */
     char   *addr;			/* address for access control */
     char   *namaddr;			/* name[address] */
@@ -146,34 +146,20 @@ extern void smtpd_peer_reset(SMTPD_STATE *state);
   * makes no sense to maintain separate attribute sets for XCLIENT LOG or
   * XCLIENT ACL, so we set a flag to distinguish purpose.
   */
-#define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
-#define XCLIENT_EHLO		"XCLIENT"	/* ESMTP advertisement */
+#define SMTPD_FEATURE_XCLIENT (1<<0)	/* XCLIENT supported */
 
-#define SMTPD_FEATURE_XCLIENT	(1<<0)	/* server supports XCLIENT */
+#define MAYBE_FORWARD(s, a) \
+	((s)->xclient.used ? (s)->xclient.a : (s)->a)
 
-#define XCLIENT_OVER_NONE	(0)	/* override reset */
-#define XCLIENT_OVER_ACL	(1<<0)	/* override access control */
-#define XCLIENT_OVER_LOG	(1<<1)	/* override logging */
-
-#define XCLIENT_OVER(s, m, a) \
-	(((s)->xclient.mode & (m)) && (s)->xclient.a ? (s)->xclient.a : (s)->a)
-
-#define ACL_ADDR(s)		XCLIENT_OVER((s), XCLIENT_OVER_ACL, addr)
-#define ACL_NAME(s)		XCLIENT_OVER((s), XCLIENT_OVER_ACL, name)
-#define ACL_NAMADDR(s)		XCLIENT_OVER((s), XCLIENT_OVER_ACL, namaddr)
-#define ACL_PEER_CODE(s)	XCLIENT_OVER((s), XCLIENT_OVER_ACL, peer_code)
-#define ACL_PROTOCOL(s)		XCLIENT_OVER((s), XCLIENT_OVER_ACL, protocol)
-#define ACL_HELO_NAME(s)	XCLIENT_OVER((s), XCLIENT_OVER_ACL, helo_name)
-
-#define LOG_ADDR(s)		XCLIENT_OVER((s), XCLIENT_OVER_LOG, addr)
-#define LOG_NAME(s)		XCLIENT_OVER((s), XCLIENT_OVER_LOG, name)
-#define LOG_NAMADDR(s)		XCLIENT_OVER((s), XCLIENT_OVER_LOG, namaddr)
-#define LOG_PEER_CODE(s)	XCLIENT_OVER((s), XCLIENT_OVER_LOG, peer_code)
-#define LOG_PROTOCOL(s)		XCLIENT_OVER((s), XCLIENT_OVER_LOG, protocol)
-#define LOG_HELO_NAME(s)	XCLIENT_OVER((s), XCLIENT_OVER_LOG, helo_name)
+#define FORWARD_ADDR(s)		MAYBE_FORWARD((s), addr)
+#define FORWARD_NAME(s)		MAYBE_FORWARD((s), name)
+#define FORWARD_NAMADDR(s)	MAYBE_FORWARD((s), namaddr)
+#define FORWARD_CODE(s)		MAYBE_FORWARD((s), peer_code)
+#define FORWARD_PROTO(s)	MAYBE_FORWARD((s), protocol)
+#define FORWARD_HELO(s)		MAYBE_FORWARD((s), helo_name)
 
 extern void smtpd_xclient_init(SMTPD_STATE *state);
-extern void smtpd_xclient_reset(SMTPD_STATE *state, int);
+extern void smtpd_xclient_reset(SMTPD_STATE *state);
 
  /*
   * Transparency: before mail is queued, do we check for unknown recipients,

@@ -198,7 +198,7 @@ void    smtpd_sasl_mail_log(SMTPD_STATE *state)
 #define IFELSE(e1,e2,e3) ((e1) ? (e2) : (e3))
 
     msg_info("%s: client=%s%s%s%s%s%s%s",
-	     state->queue_id, LOG_NAMADDR(state),
+	     state->queue_id, FORWARD_NAMADDR(state),
 	     IFELSE(state->sasl_method, ", sasl_method=", ""),
 	     IFELSE(state->sasl_method, state->sasl_method, ""),
 	     IFELSE(state->sasl_username, ", sasl_username=", ""),

@@ -385,8 +385,6 @@ int     smtp_xfer(SMTP_STATE *state)
     int     mail_from_rejected;
     int     downgrading;
     int     mime_errs;
-    int     send_xclient_addr = 0;
-    int     send_xclient_helo = 0;
 
     /*
      * Macros for readability.
@@ -486,21 +484,13 @@ int     smtp_xfer(SMTP_STATE *state)
      * commands rejected, DATA rejected) it forces the sender to abort the
      * SMTP dialog with RSET and QUIT.
      * 
-     * Send "XCLIENT LOG" information only if we have a surrogate remote client
-     * name and address, i.e. the mail was actually received from the
-     * network. Since "XCLIENT LOG" overrides all remote client logging
-     * attributes, there is no need to send helo or protocol information that
-     * we do not have.
+     * Update the server's remote client information to avoid leakage of past
+     * client attributes into an unrelated mail delivery.
      */
     nrcpt = 0;
-    send_xclient_addr = (state->features & SMTP_FEATURE_XCLIENT)
-	&& !IS_UNK_CLNT_NAME(request->client_name)
-	&& !IS_UNK_CLNT_ADDR(request->client_addr);
-    if (send_xclient_addr) {
-	send_xclient_helo = !IS_UNK_HELO_NAME(request->client_helo)
-	    || !IS_UNK_PROTOCOL(request->client_proto);
+    if (var_smtp_send_xclient && (state->features & SMTP_FEATURE_XCLIENT))
 	recv_state = send_state = SMTP_STATE_XCLIENT_ADDR;
-    } else
+    else
 	recv_state = send_state = SMTP_STATE_MAIL;
     next_rcpt = send_rcpt = recv_rcpt = 0;
     mail_from_rejected = 0;
@@ -519,37 +509,29 @@ int     smtp_xfer(SMTP_STATE *state)
 	    msg_panic("%s: bad sender state %d", myname, send_state);
 
 	    /*
-	     * Build the XCLIENT command. Send what we know, converting
-	     * internal form to external form. With properly sanitized
-	     * information, this stays within the 512 byte command line
-	     * length limit.
+	     * Build the XCLIENT command. With properly sanitized
+	     * information, the command length stays within the 512 byte
+	     * command line length limit.
 	     */
 	case SMTP_STATE_XCLIENT_ADDR:
-	    vstring_sprintf(next_command, "XCLIENT LOG");
-	    if (!IS_UNK_CLNT_NAME(request->client_name)) {
-		vstring_strcat(next_command, " CLIENT_NAME=");
+	    vstring_strcpy(next_command,
+		      XCLIENT_CMD " " XCLIENT_FORWARD " " XCLIENT_NAME "=");
+	    if (!IS_UNK_CLNT_NAME(request->client_name))
 		xtext_quote_append(next_command, request->client_name, "");
-	    }
-	    if (!IS_UNK_CLNT_ADDR(request->client_addr)) {
-		vstring_strcat(next_command, " CLIENT_ADDR=");
+	    vstring_strcat(next_command, " " XCLIENT_ADDR "=");
+	    if (!IS_UNK_CLNT_ADDR(request->client_addr))
 		xtext_quote_append(next_command, request->client_addr, "");
-	    }
-	    if (send_xclient_helo)
-		next_state = SMTP_STATE_XCLIENT_HELO;
-	    else
-		next_state = SMTP_STATE_MAIL;
+	    next_state = SMTP_STATE_XCLIENT_HELO;
 	    break;
 
 	case SMTP_STATE_XCLIENT_HELO:
-	    vstring_sprintf(next_command, "XCLIENT");
-	    if (!IS_UNK_HELO_NAME(request->client_helo)) {
-		vstring_strcat(next_command, " HELO_NAME=");
+	    vstring_strcpy(next_command,
+		      XCLIENT_CMD " " XCLIENT_FORWARD " " XCLIENT_HELO "=");
+	    if (!IS_UNK_HELO_NAME(request->client_helo))
 		xtext_quote_append(next_command, request->client_helo, "");
-	    }
-	    if (!IS_UNK_PROTOCOL(request->client_proto)) {
-		vstring_strcat(next_command, " PROTOCOL=");
+	    vstring_strcat(next_command, " " XCLIENT_PROTO "=");
+	    if (!IS_UNK_PROTOCOL(request->client_proto))
 		xtext_quote_append(next_command, request->client_proto, "");
-	    }
 	    next_state = SMTP_STATE_MAIL;
 	    break;
 
@@ -684,13 +666,10 @@ int     smtp_xfer(SMTP_STATE *state)
 		switch (recv_state) {
 
 		    /*
-		     * Ignore the XCLIENT response. No Duff device needed.
+		     * Process the XCLIENT response.
 		     */
 		case SMTP_STATE_XCLIENT_ADDR:
-		    if (send_xclient_helo)
-			recv_state = SMTP_STATE_XCLIENT_HELO;
-		    else
-			recv_state = SMTP_STATE_MAIL;
+		    recv_state = SMTP_STATE_XCLIENT_HELO;
 		    break;
 
 		case SMTP_STATE_XCLIENT_HELO:

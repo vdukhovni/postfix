@@ -241,29 +241,31 @@ int     smtpd_proxy_open(SMTPD_STATE *state, const char *service,
     while ((line = mystrtok(&lines, "\n")) != 0)
 	if (ISDIGIT(line[0]) && ISDIGIT(line[1]) && ISDIGIT(line[2])
 	    && (line[3] == ' ' || line[3] == '-')
-	    && strcmp(line + 4, XCLIENT_EHLO) == 0)
+	    && strcmp(line + 4, XCLIENT_CMD) == 0)
 	    state->proxy_features |= SMTPD_FEATURE_XCLIENT;
 
     /*
-     * Send our XCLIENT attributes. Transform internal forms to external
+     * Send all XCLIENT attributes. Transform internal forms to external
      * forms and encode the result as xtext.
      */
     if (state->proxy_features & SMTPD_FEATURE_XCLIENT) {
 	buf = vstring_alloc(100);
-	vstring_sprintf(buf, "%s LOG CLIENT_NAME=", XCLIENT_CMD);
-	if (!IS_UNK_CLNT_NAME(LOG_NAME(state)))
-	    xtext_quote_append(buf, LOG_NAME(state), "");
-	vstring_strcat(buf, " CLIENT_ADDR=");
-	if (!IS_UNK_CLNT_ADDR(LOG_ADDR(state)))
-	    xtext_quote_append(buf, LOG_ADDR(state), "");
+	vstring_strcpy(buf, XCLIENT_CMD " " XCLIENT_FORWARD
+		       " " XCLIENT_NAME "=");
+	if (!IS_UNK_CLNT_NAME(FORWARD_NAME(state)))
+	    xtext_quote_append(buf, FORWARD_NAME(state), "");
+	vstring_strcat(buf, " " XCLIENT_ADDR "=");
+	if (!IS_UNK_CLNT_ADDR(FORWARD_ADDR(state)))
+	    xtext_quote_append(buf, FORWARD_ADDR(state), "");
 	bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
 	if (bad == 0) {
-	    vstring_sprintf(buf, "%s HELO_NAME=", XCLIENT_CMD);
-	    if (!IS_UNK_HELO_NAME(LOG_HELO_NAME(state)))
-		xtext_quote_append(buf, LOG_HELO_NAME(state), "");
-	    vstring_strcat(buf, " PROTOCOL=");
-	    if (!IS_UNK_PROTOCOL(LOG_PROTOCOL(state)))
-		xtext_quote_append(buf, LOG_PROTOCOL(state), "");
+	    vstring_strcpy(buf, XCLIENT_CMD " " XCLIENT_FORWARD
+			   " " XCLIENT_HELO "=");
+	    if (!IS_UNK_HELO_NAME(FORWARD_HELO(state)))
+		xtext_quote_append(buf, FORWARD_HELO(state), "");
+	    vstring_strcat(buf, " " XCLIENT_PROTO "=");
+	    if (!IS_UNK_PROTOCOL(FORWARD_PROTO(state)))
+		xtext_quote_append(buf, FORWARD_PROTO(state), "");
 	    bad = smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, "%s", STR(buf));
 	}
 	vstring_free(buf);

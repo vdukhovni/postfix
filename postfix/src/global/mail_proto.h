@@ -152,6 +152,18 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
 
  /*
+  * XCLIENT in SMTP.
+  */
+#define XCLIENT_CMD		"XCLIENT"	/* XCLIENT command */
+#define XCLIENT_OVERRIDE	"OVERRIDE"	/* override function */
+#define XCLIENT_FORWARD		"FORWARD"	/* forward function */
+#define XCLIENT_NAME		"CLIENT_NAME"	/* client name */
+#define XCLIENT_ADDR		"CLIENT_ADDR"	/* client address */
+#define XCLIENT_PROTO		"PROTOCOL"	/* client protocol */
+#define XCLIENT_CODE		"CLIENT_CODE"	/* client name status */
+#define XCLIENT_HELO		"HELO_NAME"	/* client helo */
+
+ /*
   * Internal forms for unknown XCLIENT information.
   */
 #define CLIENT_NAME_UNKNOWN	"unknown"

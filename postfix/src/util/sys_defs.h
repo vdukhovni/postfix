@@ -1129,7 +1129,7 @@ typedef int pid_t;
   * that works as long as off_t is some two's complement number.
   */
 #include <limits.h>
-#define __MAXINT__(T) ((T) (((T)1 << ((sizeof(T) * CHAR_BIT) - 1) ^ ((T) -1))))
+#define __MAXINT__(T) ((T) (((((T) 1) << ((sizeof(T) * CHAR_BIT) - 1)) ^ ((T) -1))))
 #ifndef OFF_T_MAX
 #define OFF_T_MAX __MAXINT__(off_t)
 #endif
