@@ -74,7 +74,7 @@
 
  /*
   * CLNT_STREAM is an opaque structure. None of the access methods can easily
-  * be implemented as a macro, and access is not performance critica anyway.
+  * be implemented as a macro, and access is not performance critical anyway.
   */
 struct CLNT_STREAM {
     VSTREAM *vstream;			/* buffered I/O */

@@ -343,6 +343,7 @@ bool    var_smtpd_sasl_enable;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_realm;
 char   *var_filter_xport;
+char   *var_fflush_maps;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -527,7 +528,21 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      */
     if (msg_verbose)
 	msg_info("%s: input: %s", myname, STR(arg->vstrval));
-    tree = tok822_parse(STR(arg->vstrval));
+
+    /*
+     * Workaround: Sendmail allows arbitrary nesting of <>, so that overpaid
+     * peecee programmers can get away with monstrosities such as <the dude
+     * <dude@site>>. By peeling off the outermost <> we can deal with the
+     * most common problem instance. Don't destroy the input so that we can
+     * provide accurate diagnostics.
+     */
+    if (arg->strval[0] == '<' && vstring_end(arg->vstrval)[-1] == '>') {
+	vstring_end(arg->vstrval)[-1] = 0;
+	tree = tok822_parse(STR(arg->vstrval) + 1);
+	vstring_end(arg->vstrval)[-1] = '>';
+    } else {
+	tree = tok822_parse(STR(arg->vstrval));
+    }
 
     /*
      * Find trouble.
@@ -1092,7 +1107,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * XXX The preliminary implementation causes a full deferred queue scan.
      */
-    if (mail_flush_site(argv[1].strval) < 0)
+    if (mail_flush_site(argv[1].strval) != 0)
 	smtpd_chat_reply(state, "458 Unable to queue messages");
     else
 	smtpd_chat_reply(state, "250 Queuing started");
@@ -1446,6 +1461,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
+	VAR_FFLUSH_MAPS, DEF_FFLUSH_MAPS, &var_fflush_maps, 0, 0,
 	0,
     };
 

@@ -1,0 +1,94 @@
+.TH FLUSHD 8 
+.ad
+.fi
+.SH NAME
+flushd
+\-
+Postfix fast flush daemon
+.SH SYNOPSIS
+.na
+.nf
+\fBflushd\fR [generic Postfix daemon options]
+.SH DESCRIPTION
+.ad
+.fi
+The flush server maintains so-called "fast flush" logfiles with
+information about what messages are queued for a specific site.
+This program expects to be run from the \fBmaster\fR(8) process
+manager.
+
+This server implements the following requests:
+.IP "FLUSH_REQ_ADD sitename queue_id"
+Append a record to the per-site fast flush logfile for the specified
+queue ID.
+.IP "FLUSH_REQ_SEND sitename"
+Arrange for the delivery of all messages that are listed in the fast
+flush logfile for the specified site.  After the logfile is processed,
+the file is truncated to length zero.
+.PP
+The response to the client is one of:
+.IP FLUSH_STAT_OK
+The request completed normally.
+.IP FLUSH_STAT_BAD
+The flush server rejected the request (bad request name, bad
+request parameter value).
+.IP FLUSH_STAT_UNKNOWN
+The specified site has no fast flush logfile and is not configured
+to have one.
+.SH SECURITY
+.na
+.nf
+.ad
+.fi
+The fast flush server is moderately security-sensitive. It does not
+talk to the network, but it does talk to local unprivileged users, in
+order to emulate "sendmail -qRsite" behavior.  For this reason all
+strings in a request are truncated at \fline_length_limit\fR.
+
+The fast flush server can run chrooted at fixed low privilege.
+.SH DIAGNOSTICS
+.ad
+.fi
+Problems and transactions are logged to \fBsyslogd\fR(8).
+.SH BUGS
+.ad
+.fi
+In reality, this server schedules delivery of messages, regardless
+of their destination. This limitation is due to the fact that
+one queue runner has to handle mail for multiple destinations.
+.SH CONFIGURATION PARAMETERS
+.na
+.nf
+.ad
+.fi
+The following \fBmain.cf\fR parameters are especially relevant to
+this program. See the Postfix \fBmain.cf\fR file for syntax details
+and for default values. Use the \fBpostfix reload\fR command after
+a configuration change.
+.IP \fBfast_flush_maps\fR
+The table with names of destinations that this MTA provides the
+fast flush service for, and with clients that may issue the ETRN
+command for those destinations. Postfix maintains fast flush logfiles
+only for destinations listed in this table.
+.IP \fBline_length_limit\fR
+Maximal length of strings in a fast flush client request.
+.SH SEE ALSO
+.na
+.nf
+smtp(8) Postfix SMTP client
+smtpd) Postfix SMTP server
+qmgr(8) Postfix queue manager
+syslogd(8) system logging
+.SH LICENSE
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH AUTHOR(S)
+.na
+.nf
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

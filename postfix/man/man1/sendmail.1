@@ -135,6 +135,16 @@ Flush the mail queue. This is implemented by kicking the
 .IP "\fB-q\fIinterval\fR (ignored)"
 The interval between queue runs. Use the \fBqueue_run_delay\fR
 configuration parameter instead.
+.IP \fB-qR\fIsite\fR
+Schedule immediate delivery of all mail that is queued for the named
+\fIsite\fR.
+This functionality is available only for sites that are configured
+for the \fBfast flush\fR service support as described in
+\fBflushd\fR(8).  For other sites, this command is equivalent to
+using the slower \fBsendmail -q\fR instead.
+.IP \fB-qS\fIsite\fR
+The site name is ignored. This command is equivalent to using
+the slower \fBsendmail -q\fR instead.
 .IP \fB-t\fR
 Extract recipients from message headers. This requires that no
 recipients be specified on the command line.
@@ -228,6 +238,7 @@ postkick(1) kick a Postfix daemon
 qmgr(8) queue manager
 showq(8) list mail queue
 smtpd(8) SMTP server
+flushd(8) fast flush service
 syslogd(8) system logging
 .SH LICENSE
 .na

@@ -126,6 +126,7 @@
 #include <make_dirs.h>
 #include <split_at.h>
 #include <sane_fsops.h>
+#include <valid_hostname.h>
 
 /* Global library. */
 
@@ -281,6 +282,15 @@ int     mail_queue_id_ok(const char *queue_id)
 {
     const char *cp;
 
+    /*
+     * Must be in valid hostname form.
+     */
+    if (valid_hostname(queue_id))
+	return (1);
+
+    /*
+     * Must be in time+inum form.
+     */
     for (cp = queue_id; *cp; cp++)
 	if (!ISALNUM(*cp))
 	    return (0);

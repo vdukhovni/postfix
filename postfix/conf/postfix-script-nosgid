@@ -187,7 +187,7 @@ check)
 		chmod 755 pid
 		chown $mail_owner pid
 	}
-	for dir in incoming active bounce defer deferred saved corrupt; do
+	for dir in incoming active bounce defer deferred flush saved corrupt; do
 		test -d $dir || {
 			$WARN creating missing Postfix $dir directory
 			mkdir $dir || exit 1

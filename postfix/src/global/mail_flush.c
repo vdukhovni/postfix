@@ -2,7 +2,7 @@
 /* NAME
 /*	mail_flush 3
 /* SUMMARY
-/*	flush backed up mail
+/*	mail flush service client interface
 /* SYNOPSIS
 /*	#include <mail_flush.h>
 /*
@@ -10,17 +10,34 @@
 /*
 /*	int	mail_flush_site(site)
 /*	const char *site;
+/*
+/*	int	mail_flush_append(site, queue_id)
+/*	const char *site;
+/*	const char *queue_id;
 /* DESCRIPTION
-/*	This module triggers delivery of backed up mail.
+/*	This module deals with delivery of backed up mail.
 /*
 /*	mail_flush_deferred() triggers delivery of all deferred
 /*	or incoming mail.
 /*
-/*	mail_flush_site() triggers delivery of all mail queued for
-/*	the named site. This routine may degenerate into a
-/*	mail_flush_deferred() call.
+/*	mail_flush_site() uses the "fash flush" service to trigger
+/*	delivery of messages queued for the specified site.
+/*	This service is available only for sites that are configured
+/*	to have a deferred mail logfile.
+/*
+/*	mail_flush_append() appends a record to the "fash flush"
+/*	logfile of the specified site, with the queue ID of mail
+/*	that should still be delivered.
 /* DIAGNOSTICS
-/*	The result is 0 in case of success, -1 in case of failure.
+/*	The result codes and their meaning are (see mail_flush(5h)):
+/* .IP MAIL_FLUSH_OK
+/*	The request completed normally.
+/* .IP MAIL_FLUSH_FAIL
+/*	The request failed.
+/* .IP "MAIL_FLUSH_UNKNOWN (mail_flush_site() only)"
+/*	The specified site is not configured for the fast flush service.
+/* .IP "MAIL_FLUSH_BAD (mail_flush_site() only)"
+/*	The fast flush server rejected the request.
 /* LICENSE
 /* .ad
 /* .fi
@@ -35,13 +52,19 @@
 /* System library. */
 
 #include "sys_defs.h"
+#include <unistd.h>
+#include <stdarg.h>
 
 /* Utility library. */
+
+#include <msg.h>
+#include <vstream.h>
 
 /* Global library. */
 
 #include <mail_proto.h>
 #include <mail_flush.h>
+#include <mail_params.h>
 
 /* mail_flush_deferred - flush deferred queue */
 
@@ -61,14 +84,74 @@ int     mail_flush_deferred(void)
 			 qmgr_trigger, sizeof(qmgr_trigger)));
 }
 
-/* mail_flush_site - flush deferred mail for site */
+/* mail_flush_clnt - generic fast flush service client */
 
-int     mail_flush_site(const char *unused_site)
+static int mail_flush_clnt(const char *format, ...)
 {
+    VSTREAM *flush;
+    int     status;
+    va_list ap;
 
     /*
-     * Until we have dedicated per-site queues, this call will degenerate
-     * into a mail_flush_deferred() call.
+     * Connect to the fast flush service over local IPC.
      */
-    return (mail_flush_deferred());
+    if ((flush = mail_connect(MAIL_CLASS_PUBLIC, MAIL_SERVICE_FLUSH,
+			      BLOCKING)) == 0)
+	return (FLUSH_STAT_FAIL);
+
+    /*
+     * Do not get stuck forever.
+     */
+    vstream_control(flush,
+		    VSTREAM_CTL_TIMEOUT, var_ipc_timeout,
+		    VSTREAM_CTL_END);
+
+    /*
+     * Send a request with the site name, and receive the request completion
+     * status.
+     */
+    va_start(ap, format);
+    mail_vprint(flush, format, ap);
+    va_end(ap);
+    if (mail_scan(flush, "%d", &status) != 1)
+	status = FLUSH_STAT_FAIL;
+
+    /*
+     * Clean up.
+     */
+    vstream_fclose(flush);
+
+    return (status);
+}
+
+/* mail_flush_site - flush deferred mail for site */
+
+int     mail_flush_site(const char *site)
+{
+    char   *myname = "mail_flush_site";
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s: site %s", myname, site);
+    status = mail_flush_clnt("%s %s", FLUSH_REQ_SEND, site);
+    if (msg_verbose)
+	msg_info("%s: site %s status %d", myname, site, status);
+
+    return (status);
+}
+
+/* mail_flush_append - append record to fast flush log */
+
+int     mail_flush_append(const char *site, const char *queue_id)
+{
+    char   *myname = "mail_flush_append";
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s: site %s id %s", myname, site, queue_id);
+    status = mail_flush_clnt("%s %s %s", FLUSH_REQ_ADD, site, queue_id);
+    if (msg_verbose)
+	msg_info("%s: site %s id %s status %d", myname, site, queue_id, status);
+
+    return (status);
 }

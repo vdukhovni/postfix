@@ -1064,6 +1064,13 @@ extern void mail_params_init(void);
 #define DEF_FILTER_XPORT		""
 extern char *var_filter_xport;
 
+ /*
+  * Fast flush support.
+  */
+#define VAR_FFLUSH_MAPS			"fast_flush_maps"
+#define DEF_FFLUSH_MAPS			""
+extern char *var_fflush_maps;
+
 /* LICENSE
 /* .ad
 /* .fi

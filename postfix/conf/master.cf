@@ -75,6 +75,7 @@ bounce	  unix	-	-	n	-	0	bounce
 defer	  unix	-	-	n	-	0	bounce
 smtp	  unix	-	-	n	-	-	smtp
 showq     unix	n	-	n	-	-	showq
+flush	  unix	n	-	n	-	-	flushd
 error     unix	-	-	n	-	-	error
 local	  unix	-	n	n	-	-	local
 lmtp	  unix	-	-	n	-	-	lmtp

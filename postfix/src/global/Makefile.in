@@ -55,7 +55,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused 
+	-Wunused
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
@@ -221,7 +221,7 @@ lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
 clean:
-	rm -f *.o $(LIB) *core $(TESTPROG) junk 
+	rm -f *.o $(LIB) *core $(TESTPROG) junk
 	rm -rf printfck
 
 tidy:	clean
@@ -257,11 +257,13 @@ bounce.o: defer.h
 bounce.o: bounce.h
 bounce_log.o: bounce_log.c
 bounce_log.o: ../../include/sys_defs.h
+bounce_log.o: ../../include/msg.h
 bounce_log.o: ../../include/mymalloc.h
 bounce_log.o: ../../include/vstream.h
 bounce_log.o: ../../include/vbuf.h
 bounce_log.o: ../../include/vstring.h
 bounce_log.o: ../../include/vstring_vstream.h
+bounce_log.o: ../../include/stringops.h
 bounce_log.o: mail_queue.h
 bounce_log.o: bounce_log.h
 canon_addr.o: canon_addr.c
@@ -537,11 +539,13 @@ mail_error.o: mail_error.h
 mail_error.o: ../../include/name_mask.h
 mail_flush.o: mail_flush.c
 mail_flush.o: ../../include/sys_defs.h
-mail_flush.o: mail_proto.h
+mail_flush.o: ../../include/msg.h
 mail_flush.o: ../../include/vstream.h
 mail_flush.o: ../../include/vbuf.h
+mail_flush.o: mail_proto.h
 mail_flush.o: ../../include/iostuff.h
 mail_flush.o: mail_flush.h
+mail_flush.o: mail_params.h
 mail_open_ok.o: mail_open_ok.c
 mail_open_ok.o: ../../include/sys_defs.h
 mail_open_ok.o: ../../include/msg.h
@@ -591,6 +595,7 @@ mail_queue.o: ../../include/dir_forest.h
 mail_queue.o: ../../include/make_dirs.h
 mail_queue.o: ../../include/split_at.h
 mail_queue.o: ../../include/sane_fsops.h
+mail_queue.o: ../../include/valid_hostname.h
 mail_queue.o: file_id.h
 mail_queue.o: mail_params.h
 mail_queue.o: mail_queue.h
@@ -613,6 +618,7 @@ mail_scan.o: ../../include/vstring_vstream.h
 mail_scan.o: ../../include/mymalloc.h
 mail_scan.o: mail_proto.h
 mail_scan.o: ../../include/iostuff.h
+mail_scan.o: mail_params.h
 mail_scan_dir.o: mail_scan_dir.c
 mail_scan_dir.o: ../../include/sys_defs.h
 mail_scan_dir.o: ../../include/scan_dir.h

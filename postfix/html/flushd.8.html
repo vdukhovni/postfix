@@ -1,0 +1,134 @@
+<html> <head> </head> <body> <pre>
+
+
+
+FLUSHD(8)                                               FLUSHD(8)
+
+
+<b>NAME</b>
+       flushd - Postfix fast flush daemon
+
+<b>SYNOPSIS</b>
+       <b>flushd</b> [generic Postfix daemon options]
+
+<b>DESCRIPTION</b>
+       The flush server maintains so-called "fast flush" logfiles
+       with information about what messages are queued for a spe-
+       cific  site.  This program expects to be run from the <a href="master.8.html"><b>mas-</b>
+       <b>ter</b>(8)</a> process manager.
+
+       This server implements the following requests:
+
+       FLUSH_REQ_ADD sitename queue_id
+              Append a record to the per-site fast flush  logfile
+              for the specified queue ID.
+
+       FLUSH_REQ_SEND sitename
+              Arrange  for  the delivery of all messages that are
+              listed in the fast flush logfile for the  specified
+              site.   After the logfile is processed, the file is
+              truncated to length zero.
+
+       The response to the client is one of:
+
+       FLUSH_STAT_OK
+              The request completed normally.
+
+       FLUSH_STAT_BAD
+              The flush server rejected the request (bad  request
+              name, bad request parameter value).
+
+       FLUSH_STAT_UNKNOWN
+              The specified site has no fast flush logfile and is
+              not configured to have one.
+
+<b>SECURITY</b>
+       The fast flush server is moderately security-sensitive. It
+       does  not  talk  to the network, but it does talk to local
+       unprivileged users, in order to emulate "sendmail -qRsite"
+       behavior.   For  this  reason all strings in a request are
+       truncated at ine_length_limit.
+
+       The fast flush server can run chrooted at fixed low privi-
+       lege.
+
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
+<b>BUGS</b>
+       In  reality,  this  server schedules delivery of messages,
+       regardless of their destination. This limitation is due to
+       the  fact  that  one  queue  runner has to handle mail for
+
+
+
+                                                                1
+
+
+
+
+
+FLUSHD(8)                                               FLUSHD(8)
+
+
+       multiple destinations.
+
+<b>CONFIGURATION</b> <b>PARAMETERS</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  program. See the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       command after a configuration change.
+
+       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>maps</b>
+              The  table with names of destinations that this MTA
+              provides the  fast  flush  service  for,  and  with
+              clients  that  may issue the ETRN command for those
+              destinations. Postfix maintains fast flush logfiles
+              only for destinations listed in this table.
+
+       <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
+              Maximal  length  of  strings in a fast flush client
+              request.
+
+<b>SEE</b> <b>ALSO</b>
+       <a href="smtp.8.html">smtp(8)</a> Postfix SMTP client
+       smtpd) Postfix SMTP server
+       <a href="qmgr.8.html">qmgr(8)</a> Postfix queue manager
+       syslogd(8) system logging
+
+<b>LICENSE</b>
+       The Secure Mailer license must be  distributed  with  this
+       software.
+
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
+       Yorktown Heights, NY 10598, USA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                2
+
+
+</pre> </body> </html>

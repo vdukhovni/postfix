@@ -33,6 +33,8 @@
 /*	White space in the format string is ignored.
 /* .IP %s
 /*	The corresponding argument has type (VSTRING *).
+/*	If the string has a size limit, no more characters will be read
+/*	into the string than is specified via that size limit.
 /* .IP %d
 /*	The corresponding argument has type (int *).
 /* .IP %ld
@@ -98,6 +100,7 @@
 /* Global library. */
 
 #include "mail_proto.h"
+#include "mail_params.h"
 
  /*
   * Provision for the user to register type-specific input conversion
@@ -145,7 +148,8 @@ void    mail_scan_register(int letter, const char *name, MAIL_SCAN_FN scanner)
 
 static int mail_scan_any(VSTREAM *stream, VSTRING *vp, char *what)
 {
-    if (vstring_fgets_null(vp, stream) == 0) {
+    if ((vp->maxlen ? vstring_fgets_null_bound(vp, stream, vp->maxlen)
+	 : vstring_fgets_null(vp, stream)) == 0) {
 	msg_warn("mail_scan_any: got EOF; expected: %s", what);
 	return (-1);
     }
@@ -230,9 +234,10 @@ int     mail_vscan(VSTREAM *stream, const char *fmt, va_list ap)
     static VSTRING *tmp;
     MAIL_SCAN *tp;
 
-    if (tmp == 0)
+    if (tmp == 0) {
 	tmp = vstring_alloc(100);
-
+	tmp->maxlen = var_line_limit;		/* good enough for numbers */
+    }
     for (count = 0, error = 0, cp = fmt; error == 0 && *cp != 0; cp++) {
 	if (ISSPACE(*cp))
 	    continue;

@@ -175,9 +175,6 @@
 /*	smtpd_check_etrn() validates the domain name provided with the
 /*	ETRN command, and other client-provided information. Relevant
 /*	configuration parameters:
-/* .IP smtpd_etrn_restrictions
-/*	Restrictions on the hostname that is sent with the HELO/EHLO
-/*	command.
 /* .PP
 /*	smtpd_check_size() checks if a message with the given size can
 /*	be received (zero means that the message size is unknown).  The
@@ -313,6 +310,7 @@ static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virtual_maps;
 static MAPS *relocated_maps;
+static MAPS *fflush_maps;
 
  /*
   * Pre-opened access control lists.
@@ -327,7 +325,6 @@ static ARGV *client_restrctions;
 static ARGV *helo_restrctions;
 static ARGV *mail_restrctions;
 static ARGV *rcpt_restrctions;
-static ARGV *etrn_restrctions;
 
 static HTABLE *smtpd_rest_classes;
 
@@ -458,6 +455,8 @@ void    smtpd_check_init(void)
 			       DICT_FLAG_LOCK);
     relocated_maps = maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
 				 DICT_FLAG_LOCK);
+    fflush_maps = maps_create(VAR_FFLUSH_MAPS, var_fflush_maps,
+			      DICT_FLAG_LOCK);
 
     /*
      * Reply is used as a cache for resolved addresses, and error_text is
@@ -475,7 +474,6 @@ void    smtpd_check_init(void)
     helo_restrctions = smtpd_check_parse(var_helo_checks);
     mail_restrctions = smtpd_check_parse(var_mail_checks);
     rcpt_restrctions = smtpd_check_parse(var_rcpt_checks);
-    etrn_restrctions = smtpd_check_parse(var_etrn_checks);
 
     /*
      * Parse the pre-defined restriction classes.
@@ -1879,6 +1877,8 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
     int     status;
     char   *saved_etrn_name;
     char   *err;
+    const char *pattern;
+    ARGV   *restrictions;
 
     /*
      * Initialize.
@@ -1906,14 +1906,29 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 	    SMTPD_CHECK_ETRN_RETURN(err);
 
     /*
-     * Apply restrictions in the order as specified.
+     * Apply restrictions in the order as specified. If the domain is not
+     * configured for ETRN, reject the request.
      */
-    state->recursion = 0;
-    status = setjmp(smtpd_check_buf);
-    if (status == 0 && etrn_restrctions->argc)
-	status = generic_checks(state, etrn_restrctions, domain,
-				SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
-
+    if (*var_fflush_maps == 0
+	|| (pattern = maps_find(fflush_maps, domain, 0)) == 0) {
+	status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				    "458 Unable to start queueing for %s",
+				    domain);
+    } else if (strchr(pattern, ':') != 0) {
+	msg_warn("A fast flush map has an entry with lookup table: %s",
+		 pattern);
+	msg_warn("do not specify lookup tables inside fast flush maps");
+	msg_warn("define a restriction class and specify its name instead");
+	status = SMTPD_CHECK_OK;
+    } else {
+	restrictions = argv_split(pattern, " \t\r\n");
+	state->recursion = 0;
+	status = setjmp(smtpd_check_buf);
+	if (status == 0)
+	    status = generic_checks(state, restrictions, domain,
+				    SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
+	argv_free(restrictions);
+    }
     SMTPD_CHECK_ETRN_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
 
@@ -2208,7 +2223,6 @@ static REST_TABLE rest_table[] = {
     "helo_restrictions", &helo_restrctions,
     "sender_restrictions", &mail_restrctions,
     "recipient_restrictions", &rcpt_restrctions,
-    "etrn_restrictions", &etrn_restrctions,
     0,
 };
 

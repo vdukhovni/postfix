@@ -4292,3 +4292,15 @@ Apologies for any names omitted.
 	Cleanup: deleted the per-recipient bounce protocol.  Future
 	bounce logfiles will support per-recipient bounce addresses.
 	Files:  global/bounce.c, bounce/bounce_recip_service.
+
+20000925
+
+	Workaround: sendmail allows MAIL FROM and RCPT TO envelope
+	addresses like <the dude <dude@site>> so we will never get
+	rid of them. To disallow, specify "strict_rfc821_envelopes
+	= yes".  File: smtpd/smtpd.c.
+
+20000926-8
+
+	First implementation of a logfile-based fast flush server,
+	which is the basis for ETRN and "sendmail -qRsite".

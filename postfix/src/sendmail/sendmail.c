@@ -129,6 +129,16 @@
 /* .IP "\fB-q\fIinterval\fR (ignored)"
 /*	The interval between queue runs. Use the \fBqueue_run_delay\fR
 /*	configuration parameter instead.
+/* .IP \fB-qR\fIsite\fR
+/*	Schedule immediate delivery of all mail that is queued for the named
+/*	\fIsite\fR.
+/*	This functionality is available only for sites that are configured
+/*	for the \fBfast flush\fR service support as described in
+/*	\fBflushd\fR(8).  For other sites, this command is equivalent to
+/*	using the slower \fBsendmail -q\fR instead.
+/* .IP \fB-qS\fIsite\fR
+/*	The site name is ignored. This command is equivalent to using
+/*	the slower \fBsendmail -q\fR instead.
 /* .IP \fB-t\fR
 /*	Extract recipients from message headers. This requires that no
 /*	recipients be specified on the command line.
@@ -210,6 +220,7 @@
 /*	qmgr(8) queue manager
 /*	showq(8) list mail queue
 /*	smtpd(8) SMTP server
+/*	flushd(8) fast flush service
 /*	syslogd(8) system logging
 /* LICENSE
 /* .ad
@@ -270,6 +281,7 @@
 #include <tok822.h>
 #include <mail_flush.h>
 #include <mail_stream.h>
+#include <sys_exits.h>
 
 /* Application-specific. */
 
@@ -547,6 +559,30 @@ static void flush_queue(void)
 	msg_warn("Cannot flush mail queue - mail system is down");
 }
 
+/* flush_site - flush mail for site */
+
+static void flush_site(const char *site)
+{
+    int     code;
+
+    switch (code = mail_flush_site(site)) {
+    default:
+	msg_panic("flush_site: unknown result code %d", code);
+    case FLUSH_STAT_OK:
+	break;
+    case FLUSH_STAT_UNKNOWN:
+	msg_warn("No \"sendmail -qR\" support for site %s", site);
+	msg_warn("Using the slower \"sendmail -q\" instead");
+	flush_queue();
+	break;
+    case FLUSH_STAT_BAD:
+	msg_fatal("invalid request: %s", site);
+    case FLUSH_STAT_FAIL:
+	msg_warn("Cannot flush mail queue - mail system is down");
+	break;
+    }
+}
+
 /* sendmail_cleanup - callback for the runtime error handler */
 
 static void sendmail_cleanup(void)
@@ -591,6 +627,7 @@ int     main(int argc, char **argv)
     int     err;
     int     n;
     int     flags = SM_FLAG_DEFAULT;
+    char   *site_to_flush = 0;
 
     /*
      * Be consistent with file permissions.
@@ -777,11 +814,20 @@ int     main(int argc, char **argv)
 	    sender = optarg;
 	    break;
 	case 'q':
-	    if (optarg[0] && !ISDIGIT(optarg[0]))
+	    if (ISDIGIT(optarg[0])) {
+		if (mode == SM_MODE_DAEMON) {
+		    if (msg_verbose)
+			msg_info("-%c%s option ignored", c, optarg);
+
+		}
+	    } else if (optarg[0] == 'R') {
+		site_to_flush = optarg + 1;
+	    } else if (optarg[0] == 'S') {
+		msg_warn(
+		  "-qS is not implemented - using \"sendmail -q\" instead");
+		mode = SM_MODE_FLUSHQ;
+	    } else {
 		msg_fatal("-q%c is not implemented", optarg[0]);
-	    if (mode == SM_MODE_DAEMON) {
-		if (msg_verbose)
-		    msg_info("-%c%s option ignored", c, optarg);
 	    }
 	    break;
 	case 't':
@@ -801,6 +847,9 @@ int     main(int argc, char **argv)
     if (extract_recipients && mode != SM_MODE_ENQUEUE)
 	msg_fatal("-t can be used only in delivery mode");
 
+    if (site_to_flush && mode != SM_MODE_ENQUEUE)
+	msg_fatal("-t can be used only in delivery mode");
+
     if (extract_recipients && argv[OPTIND])
 	msg_fatal("cannot handle command-line recipients with -t");
 
@@ -814,7 +863,10 @@ int     main(int argc, char **argv)
 	msg_panic("unknown operation mode: %d", mode);
 	/* NOTREACHED */
     case SM_MODE_ENQUEUE:
-	enqueue(flags, sender, full_name, argv + OPTIND);
+	if (site_to_flush)
+	    flush_site(site_to_flush);
+	else
+	    enqueue(flags, sender, full_name, argv + OPTIND);
 	exit(0);
 	break;
     case SM_MODE_MAILQ:

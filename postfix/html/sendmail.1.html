@@ -185,12 +185,12 @@ SENDMAIL(1)                                           SENDMAIL(1)
               The   interval   between   queue   runs.   Use  the
               <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b> configuration parameter instead.
 
-       <b>-t</b>     Extract  recipients  from  message  headers.   This
-              requires  that  no  recipients  be specified on the
-              command line.
-
-       <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple  <b>-v</b>  options  make  the software increasingly
+       <b>-qR</b><i>site</i>
+              Schedule immediate delivery of  all  mail  that  is
+              queued  for  the named <i>site</i>.  This functionality is
+              available only for sites that  are  configured  for
+              the  <b>fast</b>  <b>flush</b>  service  support  as described in
+              <b>flushd</b>(8).   For  other  sites,  this  command   is
 
 
 
@@ -203,16 +203,28 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
+              equivalent to using the slower <b>sendmail</b> <b>-q</b> instead.
+
+       <b>-qS</b><i>site</i>
+              The site name is ignored. This command  is  equiva-
+              lent to using the slower <b>sendmail</b> <b>-q</b> instead.
+
+       <b>-t</b>     Extract   recipients  from  message  headers.  This
+              requires that no recipients  be  specified  on  the
+              command line.
+
+       <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
+              tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
 
 <b>SECURITY</b>
-       By design, this program is not  set-user  (or  group)  id.
-       However,  it  must  handle  data  from  untrusted users or
-       untrusted machines.  Thus, the usual precautions  need  to
+       By  design,  this  program  is not set-user (or group) id.
+       However, it must  handle  data  from  untrusted  users  or
+       untrusted  machines.   Thus, the usual precautions need to
        be taken against malicious inputs.
 
 <b>DIAGNOSTICS</b>
-       Problems  are  logged  to  <b>syslogd</b>(8)  and to the standard
+       Problems are logged to  <b>syslogd</b>(8)  and  to  the  standard
        error stream.
 
 <b>ENVIRONMENT</b>
@@ -224,7 +236,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>MAIL</b><i>_</i><b>DEBUG</b>
               Enable debugging with an external command, as spec-
-              ified   with   the  <b>debugger</b><i>_</i><b>command</b>  configuration
+              ified  with  the   <b>debugger</b><i>_</i><b>command</b>   configuration
               parameter.
 
 <b>FILES</b>
@@ -232,31 +244,19 @@ SENDMAIL(1)                                           SENDMAIL(1)
        /etc/postfix, configuration files
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       See the Postfix <b>main.cf</b> file for syntax  details  and  for
-       default  values.  Use  the  <b>postfix</b> <b>reload</b> command after a
+       See  the  Postfix  <b>main.cf</b> file for syntax details and for
+       default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
        configuration change.
 
        <b>alias</b><i>_</i><b>database</b>
-              Default  alias  database(s)  for  <b>newaliases</b>.   The
-              default  value  for  this  parameter is system-spe-
+              Default   alias  database(s)  for  <b>newaliases</b>.  The
+              default value for  this  parameter  is  system-spe-
               cific.
 
        <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
               The amount of original message context that is sent
               along with a non-delivery notification.
 
-       <b>database</b><i>_</i><b>type</b>
-              Default alias etc. database type. On many UNIX sys-
-              tems the default type is either <b>dbm</b> or <b>hash</b>.
-
-       <b>debugger</b><i>_</i><b>command</b>
-              Command that is executed after a Postfix daemon has
-              initialized.
-
-       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
-              Increment  in  verbose  logging level when a remote
-              host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
-              parameter.
 
 
 
@@ -269,60 +269,60 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
+       <b>database</b><i>_</i><b>type</b>
+              Default alias etc. database type. On many UNIX sys-
+              tems the default type is either <b>dbm</b> or <b>hash</b>.
+
+       <b>debugger</b><i>_</i><b>command</b>
+              Command that is executed after a Postfix daemon has
+              initialized.
+
+       <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
+              Increment in verbose logging level  when  a  remote
+              host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
+              parameter.
+
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
-              List  of  domain or network patterns. When a remote
-              host matches a pattern, increase the  verbose  log-
-              ging   level   by   the  amount  specified  in  the
+              List of domain or network patterns. When  a  remote
+              host  matches  a pattern, increase the verbose log-
+              ging  level  by  the  amount   specified   in   the
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
 
        <b>fork</b><i>_</i><b>attempts</b>
-              Number of attempts to <b>fork</b>() a process before  giv-
+              Number  of attempts to <b>fork</b>() a process before giv-
               ing up.
 
        <b>fork</b><i>_</i><b>delay</b>
-              Delay   in   seconds   between   successive  <b>fork</b>()
+              Delay  in   seconds   between   successive   <b>fork</b>()
               attempts.
 
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
        <b>mail</b><i>_</i><b>owner</b>
-              The owner of the mail queue  and  of  most  Postfix
+              The  owner  of  the  mail queue and of most Postfix
               processes.
 
        <b>command</b><i>_</i><b>directory</b>
-              Directory  with  Postfix support commands (default:
+              Directory with Postfix support  commands  (default:
               <b>$program</b><i>_</i><b>directory</b>).
 
        <b>daemon</b><i>_</i><b>directory</b>
-              Directory with Postfix  daemon  programs  (default:
+              Directory  with  Postfix  daemon programs (default:
               <b>$program</b><i>_</i><b>directory</b>).
 
        <b>queue</b><i>_</i><b>directory</b>
-              Top-level  directory  of the Postfix queue. This is
+              Top-level directory of the Postfix queue.  This  is
               also the root directory of Postfix daemons that run
               chrooted.
 
        <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
-              The  time  between successive scans of the deferred
+              The time between successive scans of  the  deferred
               queue.
 
 <b>SEE</b> <b>ALSO</b>
        <a href="pickup.8.html">pickup(8)</a> mail pickup daemon
        <a href="postalias.1.html">postalias(1)</a> maintain alias database
-       <a href="postdrop.1.html">postdrop(1)</a> privileged posting agent
-       <a href="postfix.1.html">postfix(1)</a> mail system control
-       <a href="postkick.1.html">postkick(1)</a> kick a Postfix daemon
-       <a href="qmgr.8.html">qmgr(8)</a> queue manager
-       <a href="showq.8.html">showq(8)</a> list mail queue
-       <a href="smtpd.8.html">smtpd(8)</a> SMTP server
-       syslogd(8) system logging
-
-<b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
-       software.
-
-
 
 
 
@@ -335,24 +335,24 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
+       <a href="postdrop.1.html">postdrop(1)</a> privileged posting agent
+       <a href="postfix.1.html">postfix(1)</a> mail system control
+       <a href="postkick.1.html">postkick(1)</a> kick a Postfix daemon
+       <a href="qmgr.8.html">qmgr(8)</a> queue manager
+       <a href="showq.8.html">showq(8)</a> list mail queue
+       <a href="smtpd.8.html">smtpd(8)</a> SMTP server
+       flushd(8) fast flush service
+       syslogd(8) system logging
+
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
+       software.
+
 <b>AUTHOR(S)</b>
        Wietse Venema
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -124,7 +124,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     QMGR_MESSAGE *message = entry->message;
 
     mail_print(stream, "%d %s %s %ld %ld %s %s %s %s %ld",
-	       message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT,
+	  message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT,
 	       message->queue_name, message->queue_id,
 	       message->data_offset, message->data_size,
 	       entry->queue->name, message->sender,
@@ -212,6 +212,12 @@ static void qmgr_deliver_update(int unused_event, char *context)
 	    if (queue->window == 0)
 		qmgr_defer_todo(queue, queue->reason);
 	}
+
+	/*
+	 * Optionally add this message to the fast flush log for this site.
+	 */
+	if (qmgr_fflush && maps_find(qmgr_fflush, queue->name, 0))
+	    mail_flush_append(queue->name, message->queue_id);
     }
 
     /*

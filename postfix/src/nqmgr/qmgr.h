@@ -275,6 +275,7 @@ extern int qmgr_message_count;
 extern int qmgr_recipient_count;
 extern MAPS *qmgr_relocated;
 extern MAPS *qmgr_virtual;
+extern MAPS *qmgr_fflush;
 
 extern void qmgr_message_free(QMGR_MESSAGE *);
 extern void qmgr_message_update_warn(QMGR_MESSAGE *);
