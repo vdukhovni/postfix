@@ -22,18 +22,24 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.8-2004XXXX
+Incompatible changes with Postfix snapshot 2.0.8-20030417
 =========================================================
 
 "sendmail -t" no longer complains when recipients are given on the
 command line. Instead, it now adds recipients from headers to the
-command-line recipients.
+recipients from the command-line.
 
-Major changes with Postfix snapshot 2.0.8-2004XXXX
+Major changes with Postfix snapshot 2.0.8-20030417
 ==================================================
 
-sender_bcc_maps and recipient_bcc_maps, after a reorganization
-of how auto-bcc recipients are added.
+Automatic BCC recipients depending on sender or recipient address.
+The configuration parameters in question are "sender_bcc_maps" and
+"recipient_bcc_maps". See conf/sample-misc.cf for details.
+
+Support for sending mail to hosts not in the DNS, without having
+to turn off DNS lookups. The "smtp_host_lookup" parameter controls
+how the Postfix SMTP client looks up hosts.  The default is to use
+DNS and then the native mechanism. See conf/sample-smtp.cf.
 
 Incompatible changes with Postfix snapshot 2.0.8-20040415
 =========================================================

@@ -8001,6 +8001,14 @@ Apologies for any names omitted.
 	from outside of Postfix. Files: cleanup/cleanup_addr.c.
 	cleanup/cleanup_envelope.c cleanup/cleanup_extracted.c.
 
+20030417
+
+	Feature: the SMTP client now falls back to native name
+	service lookups (including /etc/hosts) when a host cannot
+	be found in the DNS. This is controlled by a new parameter
+	smtp_host_lookup (default: dns, native). Files: smtp/smtp.c,
+	smtp/smtp_addr.c.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

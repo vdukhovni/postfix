@@ -69,6 +69,10 @@ typedef struct SMTP_STATE {
   * smtp.c
   */
 extern int smtp_errno;			/* XXX can we get rid of this? */
+extern int smtp_host_lookup_mask;	/* host lookup methods to use */
+
+#define SMTP_MASK_DNS		(1<<0)
+#define SMTP_MASK_NATIVE	(1<<1)
 
  /*
   * smtp_session.c

@@ -155,6 +155,20 @@ smtp_destination_concurrency_limit = 20
 #
 smtp_destination_recipient_limit = $default_destination_recipient_limit
 
+# The smtp_host_lookup parameter specifies what mechanism(s) to use
+# when the SMTP client looks up a host.  This parameter is ignored
+# when DNS lookups are disabled.
+# 
+# The default is to use both DNS and the native naming service which
+# (also) uses /etc/hosts.
+# 
+# Specify "dns" if hosts can be found in the DNS (preferred).
+# Specify "dns, native" if some hosts are not in the DNS.
+# Specify "native" to use the native naming service only.
+#
+#smtp_host_lookup = dns
+smtp_host_lookup = dns, native
+
 #
 # TIMEOUT CONTROLS
 #

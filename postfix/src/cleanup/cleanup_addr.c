@@ -75,12 +75,14 @@
 #include <ext_prop.h>
 #include <mail_addr.h>
 #include <canon_addr.h>
+#include <mail_addr_find.h>
 
 /* Application-specific. */
 
 #include "cleanup.h"
 
-#define STR	vstring_str
+#define STR			vstring_str
+#define IGNORE_EXTENSION	(char **) 0
 
 /* cleanup_addr_sender - process envelope sender record */
 
@@ -111,7 +113,8 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_send_bcc_maps
-	&& (bcc = maps_find(cleanup_send_bcc_maps, STR(clean_addr), 0)) != 0)
+	&& (bcc = mail_addr_find(cleanup_send_bcc_maps, STR(clean_addr),
+				 IGNORE_EXTENSION)) != 0)
 	cleanup_addr_bcc(state, bcc);
     vstring_free(clean_addr);
 }
@@ -139,7 +142,8 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_rcpt_bcc_maps
-	&& (bcc = maps_find(cleanup_rcpt_bcc_maps, STR(clean_addr), 0)) != 0)
+	&& (bcc = mail_addr_find(cleanup_rcpt_bcc_maps, STR(clean_addr),
+				 IGNORE_EXTENSION)) != 0)
 	cleanup_addr_bcc(state, bcc);
     vstring_free(clean_addr);
 }

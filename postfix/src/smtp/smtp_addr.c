@@ -175,9 +175,32 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     }
 
     /*
-     * Use gethostbyname() when DNS is disabled.
+     * Use DNS lookup, but keep the option open to use native name service.
      */
-    if (var_disable_dns) {
+    if (smtp_host_lookup_mask & SMTP_MASK_DNS) {
+	switch (dns_lookup(host, T_A, RES_DEFNAMES, &addr, (VSTRING *) 0, why)) {
+	case DNS_OK:
+	    for (rr = addr; rr; rr = rr->next)
+		rr->pref = pref;
+	    addr_list = dns_rr_append(addr_list, addr);
+	    return (addr_list);
+	default:
+	    smtp_errno = SMTP_RETRY;
+	    return (addr_list);
+	case DNS_FAIL:
+	    smtp_errno = SMTP_FAIL;
+	    return (addr_list);
+	case DNS_NOTFOUND:
+	    smtp_errno = SMTP_FAIL;
+	    /* maybe gethostbyname() will succeed */
+	    break;
+	}
+    }
+
+    /*
+     * Use the native name service which also looks in /etc/hosts.
+     */
+    if (smtp_host_lookup_mask & SMTP_MASK_NATIVE) {
 	memset((char *) &fixed, 0, sizeof(fixed));
 	if ((hp = gethostbyname(host)) == 0) {
 	    vstring_sprintf(why, "%s: %s", host, HSTRERROR(h_errno));
@@ -200,22 +223,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     }
 
     /*
-     * Append the addresses for this host to the address list.
+     * No further alternatives for host lookup.
      */
-    switch (dns_lookup(host, T_A, RES_DEFNAMES, &addr, (VSTRING *) 0, why)) {
-    case DNS_OK:
-	for (rr = addr; rr; rr = rr->next)
-	    rr->pref = pref;
-	addr_list = dns_rr_append(addr_list, addr);
-	break;
-    default:
-	smtp_errno = SMTP_RETRY;
-	break;
-    case DNS_NOTFOUND:
-    case DNS_FAIL:
-	smtp_errno = SMTP_FAIL;
-	break;
-    }
     return (addr_list);
 }
 

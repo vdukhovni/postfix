@@ -89,6 +89,13 @@ SMTP(8)                                                   SMTP(8)
               Disable  DNS  lookups. This means that mail must be
               forwarded via a smart relay host.
 
+       <b>smtp</b><i>_</i><b>host</b><i>_</i><b>lookup</b>
+              What host lookup mechanism the SMTP  client  should
+              use.   Specify  <b>dns</b>  (use DNS lookup) and/or <b>native</b>
+              (use the native  naming  service  which  also  uses
+              /etc/hosts).   This  setting  is  ignored  when DNS
+              lookups are disabled.
+
        <b>error</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
               Recipient   of    protocol/policy/resource/software
               error notices.

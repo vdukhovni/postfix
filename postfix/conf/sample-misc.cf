@@ -15,6 +15,9 @@ allow_min_user = no
 # receives a copy of each message that enters the Postfix system,
 # not including bounces that are generated locally.
 #
+# NOTE: if mail to the BCC address bounces it will be returned to
+# the sender.
+#
 always_bcc =
 
 # The daemon_timeout parameter specifies how much time a daemon may
@@ -416,6 +419,9 @@ recipient_delimiter =
 # Specify the types and names of databases to use.  After change,
 # run "postmap /etc/postfix/relocated", then "postfix reload".
 #
+# NOTE: if mail to the BCC address bounces it will be returned to
+# the sender.
+#
 #recipient_bcc_maps = hash:/etc/postfix/recipient_bcc
 recipient_bcc_maps =
 
@@ -475,6 +481,9 @@ resolve_dequoted_address = no
 #
 # Specify the types and names of databases to use.  After change,
 # run "postmap /etc/postfix/relocated", then "postfix reload".
+#
+# NOTE: if mail to the BCC address bounces it will be returned to
+# the sender.
 #
 #sender_bcc_maps = hash:/etc/postfix/sender_bcc
 sender_bcc_maps =

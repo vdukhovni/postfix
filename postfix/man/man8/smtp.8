@@ -95,6 +95,11 @@ specified in the \fBdebug_peer_level\fR parameter.
 .IP \fBdisable_dns_lookups\fR
 Disable DNS lookups. This means that mail must be forwarded
 via a smart relay host.
+.IP \fBsmtp_host_lookup\fR
+What host lookup mechanism the SMTP client should use.
+Specify \fBdns\fR (use DNS lookup) and/or \fBnative\fR
+(use the native naming service which also uses /etc/hosts).
+This setting is ignored when DNS lookups are disabled.
 .IP \fBerror_notice_recipient\fR
 Recipient of protocol/policy/resource/software error notices.
 .IP \fBfallback_relay\fR

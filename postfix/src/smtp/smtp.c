@@ -79,6 +79,11 @@
 /* .IP \fBdisable_dns_lookups\fR
 /*	Disable DNS lookups. This means that mail must be forwarded
 /*	via a smart relay host.
+/* .IP \fBsmtp_host_lookup\fR
+/*	What host lookup mechanism the SMTP client should use. 
+/*	Specify \fBdns\fR (use DNS lookup) and/or \fBnative\fR
+/*	(use the native naming service which also uses /etc/hosts).
+/*	This setting is ignored when DNS lookups are disabled.
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
 /* .IP \fBfallback_relay\fR
@@ -292,12 +297,14 @@ int     var_smtp_pix_thresh;
 int     var_smtp_pix_delay;
 int     var_smtp_line_limit;
 char   *var_smtp_helo_name;
+char   *var_smtp_host_lookup;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
   * the connection management routines.
   */
 int     smtp_errno;
+int     smtp_host_lookup_mask;
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -401,8 +408,33 @@ static void smtp_service(VSTREAM *client_stream, char *unused_service, char **ar
 
 static void pre_init(char *unused_name, char **unused_argv)
 {
+    static NAME_MASK lookup_masks[] = {
+	SMTP_HOST_LOOKUP_DNS, SMTP_MASK_DNS,
+	SMTP_HOST_LOOKUP_NATIVE, SMTP_MASK_NATIVE,
+	0,
+    };
+
+    /*
+     * Turn on per-peer debugging.
+     */
     debug_peer_init();
 
+    /*
+     * Select hostname lookup mechanisms.
+     */
+    if (var_disable_dns)
+	smtp_host_lookup_mask = SMTP_MASK_NATIVE;
+    else
+	smtp_host_lookup_mask = name_mask(VAR_SMTP_HOST_LOOKUP, lookup_masks,
+					  var_smtp_host_lookup);
+    if (msg_verbose)
+	msg_info("host name lookup methods: %s",
+		 str_name_mask(VAR_SMTP_HOST_LOOKUP, lookup_masks,
+			       smtp_host_lookup_mask));
+
+    /*
+     * SASL initialization.
+     */
     if (var_smtp_sasl_enable)
 #ifdef USE_SASL_AUTH
 	smtp_sasl_initialize();
@@ -417,7 +449,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 static void pre_accept(char *unused_name, char **unused_argv)
 {
     const char *table;
- 
+
     if ((table = dict_changed_name()) != 0) {
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);
@@ -447,6 +479,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
+	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {

@@ -115,8 +115,8 @@
 /*	This mode of operation is implemented by running the
 /*	\fBsmtpd\fR(8) daemon.
 /* .IP \fB-bv\fR
-/*	Send an email report after verifying each recipient address.
-/*	Verification always happens in the background. This is useful
+/*	Do not collect or deliver a message. Instead, send an email
+/*	report after verifying each recipient address.  This is useful
 /*	for testing address rewriting and routing configurations.
 /* .IP "\fB-f \fIsender\fR"
 /*	Set the envelope sender address. This is the address where
@@ -353,7 +353,7 @@
 char   *verp_delims;
 
  /*
-  * Context for extracting recipients.
+  * Callback context for extracting recipients.
   */
 typedef struct SM_STATE {
     VSTREAM *dst;			/* output stream */

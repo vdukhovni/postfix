@@ -173,6 +173,13 @@ extern char *var_fallback_relay;
 #define DEF_DISABLE_DNS		0
 extern bool var_disable_dns;
 
+#define SMTP_HOST_LOOKUP_DNS	"dns"
+#define SMTP_HOST_LOOKUP_NATIVE	"native"
+
+#define VAR_SMTP_HOST_LOOKUP	"smtp_host_lookup"
+#define DEF_SMTP_HOST_LOOKUP	SMTP_HOST_LOOKUP_DNS "," SMTP_HOST_LOOKUP_NATIVE
+extern int var_smtp_dns_lookup;
+
  /*
   * Location of the mail queue directory tree.
   */
