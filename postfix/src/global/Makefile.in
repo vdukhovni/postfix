@@ -1052,6 +1052,7 @@ pipe_command.o: ../../include/stringops.h
 pipe_command.o: ../../include/iostuff.h
 pipe_command.o: ../../include/timed_wait.h
 pipe_command.o: ../../include/set_ugid.h
+pipe_command.o: ../../include/set_eugid.h
 pipe_command.o: ../../include/argv.h
 pipe_command.o: mail_params.h
 pipe_command.o: mail_copy.h
@@ -1157,12 +1158,6 @@ resolve_local.o: mail_params.h
 resolve_local.o: own_inet_addr.h
 resolve_local.o: resolve_local.h
 resolve_local.o: match_parent_style.h
-resover.o: resover.c
-resover.o: ../../include/sys_defs.h
-resover.o: ../../include/msg.h
-resover.o: ../../include/vstring.h
-resover.o: ../../include/vbuf.h
-resover.o: ../../include/split_at.h
 rewrite_clnt.o: rewrite_clnt.c
 rewrite_clnt.o: ../../include/sys_defs.h
 rewrite_clnt.o: ../../include/msg.h

@@ -157,6 +157,7 @@ MAPS   *cleanup_nesthdr_checks;
 MAPS   *cleanup_body_checks;
 MAPS   *cleanup_virt_alias_maps;
 ARGV   *cleanup_masq_domains;
+STRING_LIST *cleanup_masq_exceptions;
 int     cleanup_masq_flags;
 
  /*
@@ -213,6 +214,9 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
     if (*var_body_checks)
 	cleanup_body_checks =
 	    maps_create(VAR_BODY_CHECKS, var_body_checks, DICT_FLAG_LOCK);
+    if (*var_masq_exceptions)
+	cleanup_masq_exceptions =
+	    string_list_init(MATCH_FLAG_NONE, var_masq_exceptions);
     if (*var_masq_classes)
 	cleanup_masq_flags = name_mask(VAR_MASQ_CLASSES, masq_class_table,
 				       var_masq_classes);

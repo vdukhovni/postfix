@@ -265,12 +265,20 @@ but strips any.thing.else.example.com to example.com.
 
 The <b>masquerade_exceptions</b> configuration parameter specifies
 what user names should not be subjected to address masquerading.
-Specify one or more user names separated by whitespace or commas.
+Specify a list of user names, /file/name or type:table patterns,
+separated by commas and/or whitespace. The list is matched left to
+right, and the search stops on the first match. Specify !name to
+exclude a name from the list. A /file/name pattern is replaced by
+its contents; a type:table is matched when a name matches a lookup
+key (the right-hand side is ignored).  Continue long lines by
+starting the next line with whitespace.
 For example,
 
 <dl>
 
 <dd><b>masquerade_exceptions = root</b>
+
+<dd><b>masquerade_exceptions = /etc/postfix/masquerade-exceptions</b>
 
 </dl>
 

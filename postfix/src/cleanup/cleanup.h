@@ -25,6 +25,7 @@
 #include <mail_stream.h>
 #include <mail_conf.h>
 #include <mime_state.h>
+#include <string_list.h>
 
  /*
   * These state variables are accessed by many functions, and there is only
@@ -82,6 +83,7 @@ extern MAPS *cleanup_nesthdr_checks;
 extern MAPS *cleanup_body_checks;
 extern MAPS *cleanup_virt_alias_maps;
 extern ARGV *cleanup_masq_domains;
+extern STRING_LIST *cleanup_masq_exceptions;
 extern int cleanup_masq_flags;
 
  /*

@@ -165,7 +165,7 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr)
      * 
      * [...]
      * 
-     * # Pn, where n is (in decimal) the process ID.
+     * Pn, where n is (in decimal) the process ID.
      * 
      * [...]
      */
