@@ -19,7 +19,7 @@
 /*	of messages that the queue manager is actually working on.
 /*	The active queue is limited in size. Messages are drained
 /*	from the active queue by allocating a delivery process and
-/*	by delivering mail via that process.  Message leak into the
+/*	by delivering mail via that process.  Messages leak into the
 /*	active queue only when the active queue is small enough.
 /*	Damaged message files are saved to the "corrupt" directory.
 /*

@@ -186,8 +186,9 @@ href="transport.5.html">transport</a> table lookups.
 
 <p>
 
-Do not omit the entry that routes mail for the local machine to
-the local delivery agent.
+Do not omit the entry that routes mail for <i>thishost.my.domain</i>
+to the local delivery agent, or else mail for the local machine will
+go into a loop.
 
 <p>
 
@@ -256,12 +257,6 @@ files instead of <b>db</b>.
 configuration change.
 
 </ul>
-
-<p>
-
-Unfortunately, the solution cannot use the transport table, because
-that table is ignored for destinations that match <b>$mydestination</b>.
-That's an implementation error, and it will be removed.
 
 <hr>
 

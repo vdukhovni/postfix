@@ -135,6 +135,14 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     } else {
 	msg_panic("qmgr_entry_done: bad queue spec: %d", which);
     }
+
+    /*
+     * Free the recipient list and decrease in-core recipient count
+     * accordingly.
+     */
+    qmgr_recipient_count -= entry->rcpt_list.len;
+    qmgr_rcpt_list_free(&entry->rcpt_list);
+
     myfree((char *) entry);
 
     /*
@@ -152,11 +160,17 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 
     /*
      * Update the in-core message reference count. When the in-core message
-     * structure has no more references, dispose of the message.
+     * structure has no more references, dispose of the message. When the
+     * in-core recipient count falls below some threshold and this message
+     * has more recipients, read them from disk before concurrency starts to
+     * drop.
      */
     message->refcount--;
     if (message->refcount == 0)
 	qmgr_active_done(message);
+    else if (message->rcpt_offset > 0
+	     && qmgr_recipient_count < var_qmgr_rcpt_limit / 2)
+	qmgr_message_realloc(message);
 }
 
 /* qmgr_entry_create - create queue todo entry */
@@ -174,8 +188,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
     entry = (QMGR_ENTRY *) mymalloc(sizeof(QMGR_ENTRY));
     entry->stream = 0;
     entry->message = message;
-    entry->rcpt_list.len = 0;
-    entry->rcpt_list.info = 0;
+    qmgr_rcpt_list_init(&entry->rcpt_list);
     message->refcount++;
     entry->queue = queue;
     QMGR_LIST_APPEND(queue->todo, entry);

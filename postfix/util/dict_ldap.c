@@ -215,6 +215,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 			 myname, dict_ldap->ldapsource);
 	}
     }
+
     /*
      * Prepare the query.
      */
@@ -277,6 +278,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 			     LDAP_SCOPE_SUBTREE,
 			     vstring_str(filter_buf),
 			     0, 0, &tv, &res)) == LDAP_SUCCESS) {
+
 	/*
 	 * Search worked; extract the requested result_attribute.
 	 */
@@ -294,6 +296,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
 		msg_warn("%s: entry doesn't have any values for %s", myname, dict_ldap->result_attribute);
 		continue;
 	    }
+
 	    /*
 	     * Append each returned address to the result list.
 	     */
@@ -488,6 +491,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 
 	if (msg_verbose)
 	    msg_info("%s: after ldap_open", myname);
+
 	/*
 	 * If this server requires a bind, do so.
 	 */

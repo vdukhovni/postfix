@@ -498,16 +498,13 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     }
 
     /*
-     * Report trouble.
+     * Report trouble. Log a warning only if we are going to sleep+reject.
      */
-    if (naddr != 1) {				/* sorry, no can do */
+    if (naddr != 1
+    || (var_strict_rfc821_env && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
 	err = "501 Bad address syntax";
-    } else if (non_addr > 0) {			/* it works with Sendmail... */
-	msg_warn("Illegal address syntax from %s in %s command: %s",
-		 state->namaddr, state->where, STR(arg->vstrval));
-	err = (var_strict_rfc821_env ? "501 Bad address syntax" : 0);
     }
 
     /*

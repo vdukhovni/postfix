@@ -180,8 +180,8 @@ smtpd_sender_restrictions =
 # recipient addresses that SMTP clients can send in RCPT TO commands.
 # 
 # The default is to permit any destination from clients that match
-# $mynetworks, and to otherwise permit only mail from or to domains
-# listed in $relay_domains.
+# $mynetworks, and to otherwise permit only mail from clients or to
+# domains that match $relay_domains or a subdomain thereof.
 #
 # The following restrictions are available:
 #

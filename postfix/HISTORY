@@ -3307,5 +3307,25 @@ Apologies for any names omitted.
 
 19991126
 
-	Bugfix: TXT records now have string lengths before text
+	Bugfix: DNS TXT records now have string lengths before text
 	(Mark Martinec @ nsc.ijs.si).
+
+19991127
+
+	Update: the LDAP client code now supports escapes as per
+	RFC2254 (John Hensley).
+
+19991207
+
+	Performance: the queue manager now frees in-memory recipients
+	as soon as a message is delivered to one destination, rather
+	than waiting until all in-memory recipients of that message
+	have been tried. This means that one message with many
+	recipients no longer stops other mail from being delivered.
+	Patch by Patrik Rak @ ein.cz. Files: qmgr/qmgr_entry.c,
+	qmgr/qmgr_message.c.
+
+	Performance: when delivering a huge list of recipients,
+	the queue manager now reads new recipients from queue file
+	before delivery concurrency starts dropping.  Files:
+	qmgr/qmgr_entry.c, qmgr/qmgr_message.c.

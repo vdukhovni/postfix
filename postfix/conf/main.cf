@@ -108,8 +108,8 @@ mail_owner = postfix
 # a name matches a lookup key.  Continue long lines by starting the
 # next line with whitespace.
 #
-# DO NOT LIST VIRTUAL DOMAINS HERE. INSTEAD LIST $VIRTUAL_MAPS AS AN
-# AUTHORIZED DESTINATION IN RELAY_DOMAINS.
+# DO NOT LIST VIRTUAL DOMAINS HERE. LIST THEM IN THE VIRTUAL FILE
+# INSTEAD. BE SURE TO READ THE ENTIRE VIRTUAL MANUAL PAGE.
 #
 #mydestination = $myhostname, localhost.$mydomain
 #mydestination = $myhostname, localhost.$mydomain $mydomain

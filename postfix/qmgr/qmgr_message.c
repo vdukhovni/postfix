@@ -194,6 +194,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     long    extra_offset;
     int     rec_type;
     long    curr_offset;
+    long    save_offset = message->rcpt_offset;	/* save a flag */
     char   *start;
     struct stat st;
 
@@ -207,12 +208,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * already looked at, and reset the in-core recipient address list.
      */
     if (message->rcpt_offset) {
+	if (message->rcpt_list.len)
+	    msg_panic("%s: recipient list not empty on recipient reload", message->queue_id);
 	if (vstream_fseek(message->fp, message->rcpt_offset, SEEK_SET) < 0)
 	    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	message->rcpt_offset = 0;
-	qmgr_recipient_count -= message->rcpt_list.len;
-	qmgr_rcpt_list_free(&message->rcpt_list);
-	qmgr_rcpt_list_init(&message->rcpt_list);
     }
 
     /*
@@ -282,8 +282,6 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	}
     } while (rec_type > 0 && rec_type != REC_TYPE_END);
 
-    qmgr_recipient_count += message->rcpt_list.len;
-
     /*
      * If there is no size record, use the queue file size instead.
      */
@@ -319,6 +317,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	msg_warn("%s: envelope records out of order", message->queue_id);
 	return (-1);
     } else {
+	message->rcpt_offset = save_offset;	/* restore flag */
 	return (0);
     }
 }
@@ -620,10 +619,11 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
     /*
      * Try to bundle as many recipients in a delivery request as we can. When
      * the recipient resolves to the same site and transport as the previous
-     * recipient, do not create a new queue entry, just bump the count of
-     * recipients for the existing queue entry. All this provided that we do
-     * not exceed the transport-specific limit on the number of recipients
-     * per transaction. Skip recipients with a dead transport or destination.
+     * recipient, do not create a new queue entry, just move that recipient
+     * to the recipient list of the existing queue entry. All this provided
+     * that we do not exceed the transport-specific limit on the number of
+     * recipients per transaction. Skip recipients with a dead transport or
+     * destination.
      */
 #define LIMIT_OK(limit, count) ((limit) == 0 || ((count) < (limit)))
 
@@ -633,13 +633,13 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 		|| !LIMIT_OK(entry->queue->transport->recipient_limit,
 			     entry->rcpt_list.len)) {
 		entry = qmgr_entry_create(queue, message);
-		entry->rcpt_list.info = recipient;
-		entry->rcpt_list.len = 1;
-	    } else {
-		entry->rcpt_list.len++;
 	    }
+	    qmgr_rcpt_list_add(&entry->rcpt_list, recipient->offset, recipient->address);
+	    qmgr_recipient_count++;
 	}
     }
+    qmgr_rcpt_list_free(&message->rcpt_list);
+    qmgr_rcpt_list_init(&message->rcpt_list);
 }
 
 /* qmgr_message_free - release memory for in-core message structure */
@@ -658,7 +658,6 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->errors_to);
     if (message->return_receipt)
 	myfree(message->return_receipt);
-    qmgr_recipient_count -= message->rcpt_list.len;
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_message_count--;
     myfree((char *) message);
