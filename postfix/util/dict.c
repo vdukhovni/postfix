@@ -110,7 +110,7 @@
 /*	Application context from the caller.
 /* .PP
 /*	dict_changed() returns non-zero when any dictionary needs to
-/*	be re-opened because it has changed.
+/*	be re-opened because it has changed or because it was unlinked.
 /*
 /*	dict_load_file() reads name-value entries from the named file.
 /*	Lines that begin with whitespace are concatenated to the preceding
@@ -471,7 +471,7 @@ int     dict_changed(void)
 	    msg_warn("%s: table %s: null time stamp", myname, h->key);
 	if (fstat(dict->fd, &st) < 0)
 	    msg_fatal("%s: fstat: %m", myname);
-	status = (st.st_mtime != dict->mtime);
+	status = (st.st_mtime != dict->mtime || st.st_nlink == 0);
     }
     myfree((char *) ht_info_list);
     return (status);

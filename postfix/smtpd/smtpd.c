@@ -637,7 +637,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * whitespace, so that it won't be considered as being part of our own
      * Received: header. What an ugly Kluge.
      */
-    if (vstream_ferror(state->cleanup))
+    if (vstream_fflush(state->cleanup))
 	state->err = CLEANUP_STAT_WRITE;
 
     for (prev_rec_type = 0; /* void */ ; prev_rec_type = curr_rec_type) {

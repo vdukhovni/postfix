@@ -2615,35 +2615,39 @@ Apologies for any names omitted.
 	$mydestination include files. This makes Postfix more
 	compatible with sendmail.cw files. File: util/match_list.c.
 
-	Feature: specify "mydomain = domain.name" to have the local
-	domain name automagically appended to $myhostname. Files:
-	global/mail_params.c, postconf/postconf.c.
+	Feature: if your machines have short host names, specify
+	"mydomain = domain.name", and you no longer have to specify
+	"myhostname = host.domain.name". Files:  global/mail_params.c,
+	postconf/postconf.c.
 
-Future:
+19990420
 
-	Planned: must be able to list the same hash table in
-	virtual_maps and mydestination.
+	Cleanup: bounce mail when a mailbox goes over file quota,
+	instead of deferring delivery.  File:  local/mailbox.c.
 
-	Planned: delivered-to cache instead of table.
+19990421
 
-	Planned: hide internal loop info so that delivered-to is
-	no longer required.
+	Feature: auto-detection of changes to DB or DBM lookup
+	tables now includes the case where a file is unlinked.
+	Philip A.  Prindeville, Mirapoint, Inc., USA.  File:
+	util/dict.c.
 
-	Planned: DNS lookups for address canonicalization.
+19990422
 
-	Planned: no more slow-down when qmgr reaches the end of
-	the in-memory recipient list while there's still more
-	recipients in the queue file.
+	Robustness: Lotus mail sends MAIL FROM: <@> instead of <>.
+	Problem reported by Erik Toubro Nielsen, IFAD, Denmark.
+	Files:  trivial-rewrite/rewrite.c (@ becomes empty address)
+	and global/rewrite_clnt.c (allow empty response).
 
-	Planned: pop pre-authentication by Joerg Henne.
+	Bugfix: showq could segfault when writing to a broken pipe.
+	Problem reported by Bryan Fullerton, Canadian Broadcasting
+	Corporation. Files: util/vbuf_print.c.
 
-	Planned: ident lookup by Jon Ribbens.
+	Cleanup: got rid of the "fatal: write error: Broken pipe"
+	message when mailq output is piped into a program that
+	terminates early.
 
-	Planned: $logname, $home, $shell, $user, $sender expansions
-	in shell commands, mailbox_command, forward_path.
-
-	Planned: forward_path, for example $home/.forward (default)
-	or /var/forward/$logname (for mail servers).
-
-	Planned: control From_, Return-Path, Delivered-To and other
-	features with local delivery to mailbox or command.
+	Cleanup: bounce messages are multipart/mixed with the error
+	report as part of the first message segment, because users
+	had trouble extracting the delivery error report from the
+	attachment.

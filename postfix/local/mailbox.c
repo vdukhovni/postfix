@@ -50,6 +50,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -75,6 +76,10 @@
 #include <been_here.h>
 #include <mail_params.h>
 #include <deliver_pass.h>
+
+#ifndef EDQUOT
+#define EDQUOT EFBIG
+#endif
 
 /* Application-specific. */
 
@@ -205,8 +210,9 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     set_eugid(var_owner_uid, var_owner_gid);
 
     if (status)
-	defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
-		 "cannot append to file %s: %s", mailbox, vstring_str(why));
+	status = (errno == EDQUOT ? bounce_append : defer_append)
+	    (BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+	     "cannot append to file %s: %s", mailbox, vstring_str(why));
     else
 	sent(SENT_ATTR(state.msg_attr), "mailbox");
     myfree(mailbox);

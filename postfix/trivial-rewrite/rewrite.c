@@ -105,6 +105,16 @@ void    rewrite_tree(char *unused_ruleset, TOK822 *tree)
 	return;
 
     /*
+     * Treat a lone @ as if it were an empty address.
+     */
+    if (tree->head == tree->tail
+	&& tree->tail->type == '@') {
+	tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
+	tok822_sub_append(tree, tok822_alloc(TOK822_QSTRING, ""));
+	return;
+    }
+
+    /*
      * Strip source route.
      */
     if (tree->head->type == '@'

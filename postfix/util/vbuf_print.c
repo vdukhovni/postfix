@@ -189,7 +189,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		s = va_arg(ap, char *);
 		if (prec > 0 || (width > 0 && width > strlen(s))) {
 		    if (VBUF_SPACE(bp, (width > prec ? width : prec) + INT_SPACE))
-			break;
+			return (bp);
 		    sprintf((char *) bp->ptr, vstring_str(fmt), s);
 		    VBUF_SKIP(bp);
 		} else {
@@ -203,7 +203,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 'x':
 	    case 'X':
 		if (VBUF_SPACE(bp, (width > prec ? width : prec) + INT_SPACE))
-		    break;
+		    return (bp);
 		if (long_flag)
 		    sprintf((char *) bp->ptr, vstring_str(fmt), va_arg(ap, long));
 		else
@@ -214,7 +214,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 'f':
 	    case 'g':
 		if (VBUF_SPACE(bp, (width > prec ? width : prec) + DBL_SPACE))
-		    break;
+		    return (bp);
 		sprintf((char *) bp->ptr, vstring_str(fmt), va_arg(ap, double));
 		VBUF_SKIP(bp);
 		break;
@@ -223,7 +223,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		break;
 	    case 'p':
 		if (VBUF_SPACE(bp, (width > prec ? width : prec) + PTR_SPACE))
-		    break;
+		    return (bp);
 		sprintf((char *) bp->ptr, vstring_str(fmt), va_arg(ap, char *));
 		VBUF_SKIP(bp);
 		break;

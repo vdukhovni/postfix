@@ -1,4 +1,4 @@
-Incompatible changes with snapshot-19990409:
+Incompatible changes with snapshot-19990422:
 ===========================================
 
 - If an address extension (+foo) matches a user's .forward+foo file
@@ -6,7 +6,7 @@ name, the +foo extension is no longer appended to recipient addresses
 listed in the .forward+foo file. This is more consistent with the
 way Postfix expands aliases.
 
-Major changes with snapshot-19990409:
+Major changes with snapshot-19990422:
 =====================================
 
 In addition to several little bugfixes, none related to security,
@@ -42,9 +42,9 @@ Macros: $user (login name), $home (home directory), $recipient_delimiter,
 $domain (recipient domain), and $extension (address extension).
 Initial code by Philip A.  Prindeville, Mirapoint, Inc., USA.
 
-- No more Postfix lockups on Solaris. The code no longer uses
-Solaris UNIX-domain sockets, because they are still broken,
-even with Solaris 7.
+- No more Postfix lockups on Solaris (knock on wood). The code no
+longer uses Solaris UNIX-domain sockets, because they are still
+broken, even with Solaris 7.
 
 - Workaround for the Solaris mailtool, which keeps an exclusive
 kernel lock on the mailbox while its window is not iconified (specify
@@ -58,8 +58,10 @@ sender and recipient mail addresses that distinguish between soft
 errors (always 450) and hard errors (unknown_address_reject_code,
 default 450).
 
-- MIME-encapsulated bounce messages as per RFC 1892. Initial
-implementation by Philip A.  Prindeville, Mirapoint, Inc., USA.
+- MIME-encapsulated bounce messages, making it easier to recover
+bounced mail. Initial implementation by Philip A.  Prindeville,
+Mirapoint, Inc., USA. Support for RFC 1894 (DSN) will have to wait
+until Postfix internals have been revised to support RFC 1893.
 
 - Separately configurable "postmaster" addresses for single bounces
 (bounce_notice_recipient), double bounces (2bounce_notice_recipient),

@@ -121,8 +121,12 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
      * MIME header.
      */
     post_mail_fprintf(bounce, "MIME-Version: 1.0");
+#ifdef DSN
     post_mail_fprintf(bounce, "Content-Type: %s; report-type=%s;",
-		      "multipart/report", "plain");
+		      "multipart/report", "delivery-status");
+#else
+    post_mail_fprintf(bounce, "Content-Type: multipart/mixed;");
+#endif
     post_mail_fprintf(bounce, "\tboundary=\"%s\"", boundary);
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
@@ -211,10 +215,12 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
     /*
      * MIME header.
      */
+#ifdef DSN
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Delivery error report");
-    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
+    post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status");
     post_mail_fputs(bounce, "");
+#endif
 
     /*
      * If the bounce log cannot be found, do not raise a fatal run-time

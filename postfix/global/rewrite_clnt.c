@@ -111,9 +111,11 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 	    if (msg_verbose)
 		msg_info("rewrite_clnt: %s: %s -> %s",
 			 rule, addr, vstring_str(result));
+#if 0
 	    if (addr[0] != 0 && STR(result)[0] == 0)
 		msg_warn("%s: null result for: <%s>", myname, addr);
 	    else
+#endif
 		return (result);
 	}
 	sleep(10);				/* XXX make configurable */
