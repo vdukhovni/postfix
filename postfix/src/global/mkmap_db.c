@@ -63,10 +63,29 @@
 #include <db.h>
 #endif
 
+typedef struct MKMAP_DB {
+    MKMAP   mkmap;			/* parent class */
+    char   *lock_file;			/* path name */
+    int     lock_fd;			/* -1 or open locked file */
+} MKMAP_DB;
+
+/* mkmap_db_after_close - clean up after closing database */
+
+static void mkmap_db_after_close(MKMAP *mp)
+{
+    MKMAP_DB *mkmap = (MKMAP_DB *) mp;
+
+    if (mkmap->lock_fd >= 0 && close(mkmap->lock_fd) < 0)
+	msg_warn("close %s: %m", mkmap->lock_file);
+    myfree(mkmap->lock_file);
+}
+
 /* mkmap_db_after_open - lock newly created database */
 
-static void mkmap_db_after_open(MKMAP *mkmap)
+static void mkmap_db_after_open(MKMAP *mp)
 {
+    MKMAP_DB *mkmap = (MKMAP_DB *) mp;
+
     if (mkmap->lock_fd < 0) {
 	if ((mkmap->lock_fd = open(mkmap->lock_file, O_RDWR, 0644)) < 0)
 	    msg_fatal("open lockfile %s: %m", mkmap->lock_file);
@@ -80,7 +99,7 @@ static void mkmap_db_after_open(MKMAP *mkmap)
 static MKMAP *mkmap_db_before_open(const char *path,
 			          DICT *(*db_open) (const char *, int, int))
 {
-    MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
+    MKMAP_DB *mkmap = (MKMAP_DB *) mymalloc(sizeof(*mkmap));
     struct stat st;
 
     /*
@@ -107,8 +126,9 @@ static MKMAP *mkmap_db_before_open(const char *path,
      * Fill in the generic members.
      */
     mkmap->lock_file = concatenate(path, ".db", (char *) 0);
-    mkmap->open = db_open;
-    mkmap->after_open = mkmap_db_after_open;
+    mkmap->mkmap.open = db_open;
+    mkmap->mkmap.after_open = mkmap_db_after_open;
+    mkmap->mkmap.after_close = mkmap_db_after_close;
 
     /*
      * Unfortunately, not all systems that might support db databases do
@@ -150,7 +170,7 @@ static MKMAP *mkmap_db_before_open(const char *path,
 	}
     }
 
-    return (mkmap);
+    return (&mkmap->mkmap);
 }
 
 /* mkmap_hash_open - create or open hashed DB file */

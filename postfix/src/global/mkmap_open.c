@@ -22,6 +22,8 @@
 /*	MKMAP	*mkmap;
 /* DESCRIPTION
 /*	This module implements support for creating Postfix databases.
+/*	It is a dict(3) wrapper that adds global locking to dict-level
+/*	routines where appropriate.
 /*
 /*	mkmap_open() creates or truncates the named database, after
 /*	appending the appropriate suffixes to the specified filename.
@@ -91,6 +93,8 @@ MKMAP_OPEN_INFO mkmap_types[] = {
 
 /* mkmap_append - append entry to map */
 
+#undef mkmap_append
+
 void    mkmap_append(MKMAP *mkmap, const char *key, const char *value)
 {
     dict_put(mkmap->dict, key, value);
@@ -102,11 +106,19 @@ void    mkmap_close(MKMAP *mkmap)
 {
 
     /*
-     * Close the database and the locking file descriptor.
+     * Close the database.
      */
     dict_close(mkmap->dict);
-    if (close(mkmap->lock_fd) < 0)
-	msg_warn("close %s: %m", mkmap->lock_file);
+
+    /*
+     * Do whatever special processing is needed after closing the database,
+     * such as releasing a global exclusive lock on the database file.
+     * Individual Postfix dict modules implement locking only for individual
+     * record operations, because most Postfix applications don't need global
+     * exclusive locks.
+     */
+    if (mkmap->after_close)
+	mkmap->after_close(mkmap);
 
     /*
      * Resume signal delivery.
@@ -116,7 +128,6 @@ void    mkmap_close(MKMAP *mkmap)
     /*
      * Cleanup.
      */
-    myfree(mkmap->lock_file);
     myfree((char *) mkmap);
 }
 
@@ -141,7 +152,10 @@ MKMAP  *mkmap_open(const char *type, const char *path,
 	msg_info("open %s %s", type, path);
 
     /*
-     * Do whatever before-open initialization is needed.
+     * Do whatever before-open initialization is needed, such as acquiring a
+     * global exclusive lock on an existing database file. Individual Postfix
+     * dict modules implement locking only for individual record operations,
+     * because most Postfix applications don't need global exclusive locks.
      */
     mkmap = mp->before_open(path);
 
@@ -161,7 +175,11 @@ MKMAP  *mkmap_open(const char *type, const char *path,
     mkmap->dict->flags |= DICT_FLAG_DUP_WARN;
 
     /*
-     * Do whatever post-open initialization is needed.
+     * Do whatever post-open initialization is needed, such as acquiring a
+     * global exclusive lock on a database file that did not exist.
+     * Individual Postfix dict modules implement locking only for individual
+     * record operations, because most Postfix applications don't need global
+     * exclusive locks.
      */
     if (mkmap->after_open)
 	mkmap->after_open(mkmap);

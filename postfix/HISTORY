@@ -7145,6 +7145,10 @@ Apologies for any names omitted.
 	records for finished recipients. Files:  *qmgr/qmgr_message.c,
 	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c.
 
+	Cleanup: further simplified the mkmap wrapper (used by
+	postmap and postalias only) to remove some hurdles for
+	Michael Tokarev's CDB support. Files: global/mkmap*.[hc].
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.

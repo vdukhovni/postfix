@@ -135,7 +135,7 @@ virtual_mailbox_lock
     requires that the recipient UID or GID has write access to the
     parent directory of the mailbox file.
 
-    Use the "postconf -m" command to find out what locking methods
+    Use the "postconf -l" command to find out what locking methods
     Postfix supports on your system.
 
 virtual_mailbox_limit

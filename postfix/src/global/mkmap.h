@@ -25,14 +25,15 @@
 typedef struct MKMAP {
     struct DICT *(*open) (const char *, int, int);	/* dict_xx_open() */
     struct DICT *dict;			/* dict_xx_open() result */
-    char   *lock_file;			/* lock file name */
-    int     lock_fd;			/* locked open file, or -1 */
     void    (*after_open) (struct MKMAP *);	/* may be null */
+    void    (*after_close) (struct MKMAP *);	/* may be null */
 } MKMAP;
 
 extern MKMAP *mkmap_open(const char *, const char *, int, int);
 extern void mkmap_append(MKMAP *, const char *, const char *);
 extern void mkmap_close(MKMAP *);
+
+#define mkmap_append(map, key, val) dict_put((map)->dict, (key), (val))
 
 extern MKMAP *mkmap_dbm_open(const char *);
 extern MKMAP *mkmap_hash_open(const char *);
