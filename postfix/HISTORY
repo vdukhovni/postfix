@@ -6301,6 +6301,18 @@ Apologies for any names omitted.
 	more correct, but it opens a mail relay loophole with "user
 	@domain"@domain when relaying mail to a Sendmail system.
 
+20020514
+
+	Bugfix: the new code for header address quoting sometimes
+	did not null terminate strings so that arbitrary garbage
+	could appear at the end of message headers.  Reported by
+	Ralf Hildebrandt.  File:  global/tok822_parse.c.
+
+	Safety: user@domain@domain is no longer accepted by the
+	permit_mx_backup uce restriction (unless Postfix is configured
+	with "resolve_dequoted_address = no"). Victor Duchovny,
+	Morgan Stanley. File: smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: sendmail does not store null command-line recipients.

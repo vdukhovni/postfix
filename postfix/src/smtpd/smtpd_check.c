@@ -1281,17 +1281,21 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient)
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
+
+    /*
+     * Skip source-routed non-local or virtual mail (uncertain destination).
+     */
+    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * The destination is local, or it is a local virtual destination.
+     */
     if (resolve_final(state, recipient, domain))
 	return (SMTPD_CHECK_OK);
 
     if (msg_verbose)
 	msg_info("%s: not local: %s", myname, recipient);
-
-    /*
-     * Skip source-routed mail (uncertain destination).
-     */
-    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
-	return (SMTPD_CHECK_DUNNO);
 
     /*
      * Skip numerical forms that didn't match the local system.

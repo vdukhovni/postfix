@@ -12,6 +12,15 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfix as a patch release.
 
+Incompatible changes with Postfix version 1.1.10 (released 20020514)
+====================================================================
+
+For safety reasons, the permit_mx_backup restriction no longer
+accepts mail for user@domain@domain. To recover the old behavior,
+specify "resolve_dequoted_address = no" which opens up a completely
+different can of worms as described a few paragraphs down in this
+document.
+
 Incompatible changes with Postfix version 1.1.9 (released 20020513)
 ===================================================================
 
