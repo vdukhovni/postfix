@@ -107,7 +107,7 @@
 /*	request contains valid 8-bit MIME mail, and it breaks bounces from
 /*	mailers that do not properly encapsulate 8-bit content (for example,
 /*	bounces from qmail or from old versions of Postfix).
-/* .IP \fBstrict_mime_domain_encoding\fR
+/* .IP \fBstrict_mime_encoding_domain\fR
 /*	Reject mail with invalid \fBContent-Transfer-Encoding:\fR
 /*	information for message/* or multipart/*. This blocks mail
 /*	from poorly written software.

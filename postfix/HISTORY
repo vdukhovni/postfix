@@ -7727,9 +7727,48 @@ Apologies for any names omitted.
 	and 2) MIME input processing is turned off, and 3) MIME
 	8bit->7bit conversion is requested upon delivery via SMTP.
 
+20030424
+
+	Cleanup: readlline() did not terminate the result before
+	complaining about lines starting with whitespace.
+
+	Cleanup: eliminated valid_hostname warning for invalid
+	queue file names. File: global/mail_queue.c.
+
+	Bugfix: the Postfix sendmail command applied the message
+	size limit when running as newaliases. The limiting code
+	is now moved to the message enqueuing branch of the code.
+	File: sendmail/sendmail.c.
+
+20030429
+
+	Bugfix: "," was not recognized in proxy_read_maps settings.
+	Fix by Leandro Santi. File: proxymap/proxymap.c.
+
+20030502
+
+	Bugfix: defer delivery after .forward etc. file read error.
+	File: local/token.c. Problem reported by Ben Rosengart,
+	Panix.
+
+20030520
+
+	Cleanup: future time stamps in Received: headers and negative
+	delays in delivery agent logging after "postdrop -r",
+	because deferred queue files had future file modification
+	times.  File:  src/postsuper/postsuper.c.
+
+20030521
+
+	Cleanup: nqmgr warnings about "recipient count mismatch"
+	after "postdrop -r", because the cleanup server did not
+	count the "already done" recipients. Problem reported by
+	Richard Stockton, Gramma Software. Files:
+	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c
+
 Open problems:
 
-        Low: smtp-source may block when sending large test messages.
+	Low: smtp-source may block when sending large test messages.
 
 	Low: after successful delivery, per-queue window += 1/window,
 	after failure, queue window -= 1 (Victor).

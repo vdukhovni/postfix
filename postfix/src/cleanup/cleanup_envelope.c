@@ -207,6 +207,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	vstring_free(clean_addr);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
+    } else if (type == REC_TYPE_DONE) {
+	 /* void */ ;
     } else if (type == REC_TYPE_WARN) {
 	if ((state->warn_time = atol(buf)) < 0) {
 	    state->errs |= CLEANUP_STAT_BAD;

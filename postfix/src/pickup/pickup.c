@@ -178,6 +178,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	if ((type = rec_get(qfile, buf, var_line_limit)) < 0
 	    || strchr(expected, type) == 0)
 	    return (file_read_error(info, type));
+	if (msg_verbose)
+	    msg_info("%s: read %c %s", info->id, type, vstring_str(buf));
 	if (type == *expected)
 	    break;
 	if (type == REC_TYPE_FROM)
@@ -193,6 +195,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	    if (info->rcpt == 0)
 		info->rcpt = mystrdup(vstring_str(buf));
 	if (type == REC_TYPE_TIME)
+	    continue;
+	if (type == REC_TYPE_SIZE)
 	    continue;
 	if (type == REC_TYPE_ATTR) {
 	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,

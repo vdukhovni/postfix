@@ -188,6 +188,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdio.h>			/* remove() */
+#include <utime.h>
 
 /* Utility library. */
 
@@ -428,6 +429,7 @@ static int requeue_one(const char **queue_names, const char *queue_id)
     VSTRING *new_path_buf;
     int     found;
     int     tries;
+    struct utimbuf tbuf;
 
     /*
      * Sanity check. No early returns beyond this point.
@@ -454,6 +456,9 @@ static int requeue_one(const char **queue_names, const char *queue_id)
 		continue;
 	    (void) mail_queue_path(new_path_buf, MAIL_QUEUE_MAILDROP, queue_id);
 	    if (postrename(old_path, STR(new_path_buf)) == 0) {
+		tbuf.actime = tbuf.modtime = time((time_t *) 0);
+		if (utime(STR(new_path_buf), &tbuf) < 0) 
+		    msg_warn("%s: reset time stamps: %m", STR(new_path_buf));
 		msg_info("%s: requeued", queue_id);
 		found = 1;
 		break;

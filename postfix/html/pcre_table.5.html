@@ -136,7 +136,7 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
 <b>EXAMPLE</b> <b>SMTPD</b> <b>ACCESS</b> <b>MAP</b>
        # Protect your outgoing majordomo exploders
-       /^(?!owner-)(.*)-outgoing@/     550 Use ${1}@${2} instead
+       /^(?!owner-)(.*)-outgoing@(.*)/ 550 Use ${1}@${2} instead
 
        # Bounce friend@whatever, except when whatever is our domain (you would
        # be better just bouncing all friend@ mail - this is just an example).
