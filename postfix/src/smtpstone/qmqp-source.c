@@ -391,12 +391,12 @@ static void receive_reply(int unused_event, char *context)
      */
     netstring_get(session->stream, buffer, var_line_limit);
     if (msg_verbose)
-	vstream_printf("<< %.*s\n", LEN(buffer), STR(buffer));
+	vstream_printf("<< %.*s\n", (int) LEN(buffer), STR(buffer));
     if (STR(buffer)[0] != QMQP_STAT_OK)
 	msg_fatal("%s error: %.*s",
 		  STR(buffer)[0] == QMQP_STAT_RETRY ? "recoverable" :
 		  STR(buffer)[0] == QMQP_STAT_HARD ? "unrecoverable" :
-		  "unknown", LEN(buffer) - 1, STR(buffer) + 1);
+		  "unknown", (int) LEN(buffer) - 1, STR(buffer) + 1);
 
     /*
      * Update the optional running counter.

@@ -195,7 +195,7 @@ static int dns_query(const char *name, int type, int flags,
      */
     if (len > sizeof(reply->buf)) {
 	msg_warn("reply length %d > buffer length %d for name=%s type=%s",
-		 len, sizeof(reply->buf), name, dns_strtype(type));
+		 len, (int) sizeof(reply->buf), name, dns_strtype(type));
 	len = sizeof(reply->buf);
     }
 

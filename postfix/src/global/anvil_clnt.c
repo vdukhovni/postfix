@@ -357,7 +357,7 @@ int     main(int unused_argc, char **argv)
 				  &msgs, &rcpts) != ANVIL_STAT_OK)
 		msg_warn("error!");
 	    else
-		vstream_printf("count=%d, rate=%d msgs=%d rcpt=%d\n",
+		vstream_printf("count=%d, rate=%d msgs=%d rcpts=%d\n",
 			       count, rate, msgs, rcpts);
 	} else {
 	    vstream_printf("bad command: \"%s\"\n", cmd);

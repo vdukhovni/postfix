@@ -422,6 +422,19 @@ extern int opterr;
 #define NATIVE_NEWALIAS_PATH "/usr/sbin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+
+ /*
+  * XXX Need CMSG_SPACE() and CMSG_LEN() but don't want to drag in everything
+  * that comes with _LINUX_SOURCE_COMPAT.
+  */
+#include <sys/socket.h>
+#ifndef CMSG_SPACE
+#define CMSG_SPACE(len) (_CMSG_ALIGN(sizeof(struct cmsghdr)) + _CMSG_ALIGN(len))
+#endif
+#ifndef CMSG_LEN
+#define CMSG_LEN(len) (_CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
+#endif
+
 #endif
 
 #ifdef AIX4

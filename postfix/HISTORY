@@ -9760,7 +9760,7 @@ Apologies for any names omitted.
 	Santi. Files:  deliver_pass.c, deliver_request.c,
 	qmgr_deliver.c, qmgr_message.c, pipe.c, smtpd.c.
 
-20041010
+20041009
 
 	Feature: per SMTP client message rate limit and recipient
 	rate limit, by Ragnar Lonn, GHN network technologies.
@@ -9769,6 +9769,10 @@ Apologies for any names omitted.
 	Incompatibility: smtpd_client_connection_limit_exceptions
 	renamed to smtpd_client_event_limit_exceptions, because it
 	now also controls message and recipient rate limit control.
+
+20041013
+
+	Portability: AIX 5.1/GCC.
 
 Open problems:
 

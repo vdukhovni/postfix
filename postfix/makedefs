@@ -171,7 +171,7 @@ case "$SYSTEM.$RELEASE" in
 		done
 		;;
        AIX.*)	case "`uname -v`" in
-		5)	SYSTYPE=AIX4
+		5)	SYSTYPE=AIX5
 			case "$CC" in
 			cc|*/cc|xlc|*/xlc) CCARGS="$CCARGS -w -blibpath:/usr/lib:/lib:/usr/local/lib";;
 			esac
