@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_append_service(queue_id, orig_rcpt, recipient,
+/*	int     bounce_append_service(flags, queue_id, orig_rcpt, recipient,
 /*					status, action, why)
+/*	int	flags;
 /*	char	*queue_id;
 /*	char	*orig_rcpt;
 /*	char	*recipient;
@@ -68,9 +69,9 @@
 
 /* bounce_append_service - append bounce log */
 
-int     bounce_append_service(char *service, char *queue_id,
+int     bounce_append_service(int unused_flags, char *service, char *queue_id,
 			              char *orig_rcpt, char *recipient,
-			              char *status, char *action,
+			              long offset, char *status, char *action,
 			              char *why)
 {
     VSTRING *in_buf = vstring_alloc(100);
@@ -129,6 +130,8 @@ int     bounce_append_service(char *service, char *queue_id,
     if (*orig_rcpt && strcasecmp(recipient, orig_rcpt) != 0)
 	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ORCPT,
 	   printable(vstring_str(quote_822_local(in_buf, orig_rcpt)), '?'));
+    if (offset > 0)
+	vstream_fprintf(log, "%s=%ld\n", MAIL_ATTR_OFFSET, offset);
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_STATUS, printable(status, '?'));
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ACTION, printable(action, '?'));
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_WHY, printable(why, '?'));

@@ -6,22 +6,24 @@
 /* SYNOPSIS
 /*	#include <defer.h>
 /*
-/*	int	defer_append(flags, id, orig_rcpt, recipient, relay,
+/*	int	defer_append(flags, id, orig_rcpt, recipient, offset, relay,
 /*				entry, format, ...)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vdefer_append(flags, id, orig_rcpt, recipient, relay,
+/*	int	vdefer_append(flags, id, orig_rcpt, recipient, offset, relay,
 /*				entry, format, ap)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
@@ -90,6 +92,8 @@
 /* .IP recipient
 /*	A recipient address that is being deferred. The domain part
 /*	of the address is marked dead (for a limited amount of time).
+/* .IP offset
+/*	Queue file offset of recipient record.
 /* .IP encoding
 /*	The body content encoding: MAIL_ATTR_ENC_{7BIT,8BIT,NONE}.
 /* .IP sender
@@ -154,7 +158,7 @@
 /* defer_append - defer message delivery */
 
 int     defer_append(int flags, const char *id, const char *orig_rcpt,
-		             const char *recipient, const char *relay,
+	              const char *recipient, long offset, const char *relay,
 		             time_t entry, const char *fmt,...)
 {
     va_list ap;
@@ -162,7 +166,7 @@ int     defer_append(int flags, const char *id, const char *orig_rcpt,
 
     va_start(ap, fmt);
     status = vdefer_append(flags, id, orig_rcpt, recipient,
-			   relay, entry, fmt, ap);
+			   offset, relay, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -170,7 +174,7 @@ int     defer_append(int flags, const char *id, const char *orig_rcpt,
 /* vdefer_append - defer delivery of queue file */
 
 int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
-		              const char *recipient, const char *relay,
+	              const char *recipient, long offset, const char *relay,
 		              time_t entry, const char *fmt, va_list ap)
 {
     const char *rcpt_domain;
@@ -212,6 +216,7 @@ int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+				ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offset,
 				ATTR_TYPE_STR, MAIL_ATTR_STATUS, "4.0.0",
 				ATTR_TYPE_STR, MAIL_ATTR_ACTION, "delayed",
 			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
@@ -250,6 +255,8 @@ int     vdefer_append(int flags, const char *id, const char *orig_rcpt,
 int     defer_flush(int flags, const char *queue, const char *id,
 		            const char *encoding, const char *sender)
 {
+    flags |= BOUNCE_FLAG_DELRCPT;
+
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
 			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,

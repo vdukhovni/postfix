@@ -131,8 +131,8 @@ static int deliver_message(DELIVER_REQUEST *request)
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
 	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
-				   rcpt->orig_addr, rcpt->address, "none",
-				   request->arrival_time,
+				   rcpt->orig_addr, rcpt->address,
+				rcpt->offset, "none", request->arrival_time,
 				   "%s", request->nexthop);
 	    if (status == 0)
 		deliver_completed(src, rcpt->offset);

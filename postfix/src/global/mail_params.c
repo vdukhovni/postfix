@@ -31,6 +31,7 @@
 /*	char	*var_queue_dir;
 /*	int	var_use_limit;
 /*	int	var_idle_limit;
+/*	int	var_event_drain;
 /*	int	var_bundle_rcpt;
 /*	char	*var_procname;
 /*	int	var_pid;
@@ -189,6 +190,7 @@ char   *var_daemon_dir;
 char   *var_command_dir;
 char   *var_queue_dir;
 int     var_use_limit;
+int     var_event_drain;
 int     var_idle_limit;
 int     var_bundle_rcpt;
 char   *var_procname;
@@ -504,6 +506,7 @@ void    mail_params_init()
 	0,
     };
     static CONFIG_TIME_TABLE time_defaults[] = {
+	VAR_EVENT_DRAIN, DEF_EVENT_DRAIN, &var_event_drain, 1, 0,
 	VAR_MAX_IDLE, DEF_MAX_IDLE, &var_idle_limit, 1, 0,
 	VAR_IPC_TIMEOUT, DEF_IPC_TIMEOUT, &var_ipc_timeout, 1, 0,
 	VAR_IPC_IDLE, DEF_IPC_IDLE, &var_ipc_idle_limit, 1, 0,

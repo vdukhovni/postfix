@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_notify_service(queue_name, queue_id, encoding,
+/*	int     bounce_notify_service(flags, queue_name, queue_id, encoding,
 /*					sender)
+/*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
@@ -70,6 +71,7 @@
 #include <post_mail.h>
 #include <mail_addr.h>
 #include <mail_error.h>
+#include <bounce.h>
 
 /* Application-specific. */
 
@@ -79,7 +81,7 @@
 
 /* bounce_notify_service - send a bounce */
 
-int     bounce_notify_service(char *service, char *queue_name,
+int     bounce_notify_service(int flags, char *service, char *queue_name,
 			              char *queue_id, char *encoding,
 			              char *recipient)
 {
@@ -217,6 +219,12 @@ int     bounce_notify_service(char *service, char *queue_name,
 			 recipient);
 	}
     }
+
+    /*
+     * Optionally, delete the recipients from the queue file.
+     */
+    if (bounce_status == 0 && (flags & BOUNCE_FLAG_DELRCPT))
+	bounce_delrcpt(bounce_info);
 
     /*
      * Examine the completion status. Delete the bounce log file only when

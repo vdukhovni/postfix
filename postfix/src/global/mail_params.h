@@ -677,6 +677,14 @@ extern int var_use_limit;
 extern int var_idle_limit;
 
  /*
+  * Any subsystem: default amount of time a mail subsystem waits for
+  * application events to drain.
+  */
+#define VAR_EVENT_DRAIN		"application_event_drain_time"
+#define DEF_EVENT_DRAIN		"100s"
+extern int var_event_drain;
+
+ /*
   * Any subsystem: default amount of time a mail subsystem keeps an internal
   * IPC connection before closing it because it is idle for too much time.
   */

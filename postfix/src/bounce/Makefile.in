@@ -121,6 +121,9 @@ bounce_notify_service.o: ../../include/post_mail.h
 bounce_notify_service.o: ../../include/cleanup_user.h
 bounce_notify_service.o: ../../include/mail_addr.h
 bounce_notify_service.o: ../../include/mail_error.h
+bounce_notify_service.o: ../../include/bounce.h
+bounce_notify_service.o: ../../include/deliver_request.h
+bounce_notify_service.o: ../../include/recipient_list.h
 bounce_notify_service.o: bounce_service.h
 bounce_notify_service.o: ../../include/bounce_log.h
 bounce_notify_util.o: bounce_notify_util.c
@@ -152,6 +155,7 @@ bounce_notify_util.o: ../../include/mail_proto.h
 bounce_notify_util.o: ../../include/iostuff.h
 bounce_notify_util.o: ../../include/attr.h
 bounce_notify_util.o: ../../include/lex_822.h
+bounce_notify_util.o: ../../include/deliver_completed.h
 bounce_notify_util.o: bounce_service.h
 bounce_notify_verp.o: bounce_notify_verp.c
 bounce_notify_verp.o: ../../include/sys_defs.h
@@ -167,6 +171,9 @@ bounce_notify_verp.o: ../../include/cleanup_user.h
 bounce_notify_verp.o: ../../include/mail_addr.h
 bounce_notify_verp.o: ../../include/mail_error.h
 bounce_notify_verp.o: ../../include/verp_sender.h
+bounce_notify_verp.o: ../../include/bounce.h
+bounce_notify_verp.o: ../../include/deliver_request.h
+bounce_notify_verp.o: ../../include/recipient_list.h
 bounce_notify_verp.o: bounce_service.h
 bounce_notify_verp.o: ../../include/bounce_log.h
 bounce_one_service.o: bounce_one_service.c
@@ -180,8 +187,11 @@ bounce_one_service.o: ../../include/post_mail.h
 bounce_one_service.o: ../../include/cleanup_user.h
 bounce_one_service.o: ../../include/mail_addr.h
 bounce_one_service.o: ../../include/mail_error.h
-bounce_one_service.o: bounce_service.h
+bounce_one_service.o: ../../include/bounce.h
+bounce_one_service.o: ../../include/deliver_request.h
 bounce_one_service.o: ../../include/vstring.h
+bounce_one_service.o: ../../include/recipient_list.h
+bounce_one_service.o: bounce_service.h
 bounce_one_service.o: ../../include/bounce_log.h
 bounce_trace_service.o: bounce_trace_service.c
 bounce_trace_service.o: ../../include/sys_defs.h

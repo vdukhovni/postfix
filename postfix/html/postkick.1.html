@@ -1,12 +1,11 @@
-<html> <head> </head> <body> <pre>
-
+<html> <body> <pre>
 POSTKICK(1)                                           POSTKICK(1)
 
 <b>NAME</b>
        postkick - kick a Postfix service
 
 <b>SYNOPSIS</b>
-       <b>postkick</b> [<b>-c</b> <i>config_dir</i>] [<b>-v</b>] <i>class</i> <i>service</i> <i>request</i>
+       <b>postkick</b> [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-v</b>] <i>class service request</i>
 
 <b>DESCRIPTION</b>
        The  <b>postkick</b>  command sends <i>request</i> to the specified <i>ser-</i>
@@ -16,7 +15,7 @@ POSTKICK(1)                                           POSTKICK(1)
 
        Options:
 
-       <b>-c</b> <i>config_dir</i>
+       <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               Read the <b>main.cf</b> configuration file  in  the  named
               directory  instead  of  the  default  configuration
               directory.
@@ -44,22 +43,22 @@ POSTKICK(1)                                           POSTKICK(1)
        stream.
 
 <b>ENVIRONMENT</b>
-       <b>MAIL</b><i>_</i><b>CONFIG</b>
+       <b>MAIL_CONFIG</b>
               Directory with Postfix configuration files.
 
-       <b>MAIL</b><i>_</i><b>VERBOSE</b>
+       <b>MAIL_VERBOSE</b>
               Enable verbose logging for debugging purposes.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
        details and for default values.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               Location of the Postfix queue, and of the local IPC
               communication endpoints.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a> queue manager trigger protocol
        <a href="pickup.8.html">pickup(8)</a> local pickup daemon
 
@@ -73,6 +72,5 @@ POSTKICK(1)                                           POSTKICK(1)
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
 
-                                                                1
-
+                                                      POSTKICK(1)
 </pre> </body> </html>

@@ -8603,14 +8603,22 @@ Apologies for any names omitted.
 	it appears to be because the restrictions can't be used
 	for whitelisting.  File: smtpd/smtpd_check.c.
 
+20030920
+
+	Bugfix: LDAP client update by by Victor Duchovni, Morgan
+	Stanley.  Files: README_FILES/LDAP_README, util/dict_ldap.c.
+
+	Bugfix: after returning too old mail, the bounce daemon
+	now deletes recipients from the original queue file, to
+	avoid repeated bounce notifications when the queue manager
+	is restarted. Files:  bounce/*.[hc], global/bounce_log.[hc],
+	global/{bounce,defer}.[hc] and everything that invokes
+	these routines including queue manager and delivery agents.
+
 Open problems:
 
 	High: when virtual aliasing is turned off after content
 	filtering, local submissions may escape virtual aliasing.
-
-	Med: qmgr should not exit while an asynchronous bounce
-	request is in progress; this can result in multiple
-	non-delivery notifications.
 
 	Low: qmgr_move should not reset time stamps on queue files
 	without shared lock (i.e. not open by a delivery agent).

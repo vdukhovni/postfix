@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 BOUNCE(8)                                               BOUNCE(8)
 
 <b>NAME</b>
@@ -48,40 +48,40 @@ BOUNCE(8)                                               BOUNCE(8)
        will have to change in order to  easily  support  standard
        delivery status notifications.
 
-<b>CONFIGURATION</b> <b>PARAMETERS</b>
+<b>CONFIGURATION PARAMETERS</b>
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
-       <b>bounce</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+       <b>bounce_notice_recipient</b>
               The recipient of single bounce postmaster  notices.
 
-       <b>2bounce</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+       <b>2bounce_notice_recipient</b>
               The  recipient of double bounce postmaster notices.
 
-       <b>delay</b><i>_</i><b>notice</b><i>_</i><b>recipient</b>
+       <b>delay_notice_recipient</b>
               The recipient of "delayed mail" postmaster notices.
 
-       <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
+       <b>bounce_size_limit</b>
               Limit  the  amount of original message context that
               is sent in a non-delivery notification.
 
-       <b>backwards</b><i>_</i><b>bounce</b><i>_</i><b>logfile</b><i>_</i><b>compatibility</b>
+       <b>backwards_bounce_logfile_compatibility</b>
               Controls whether the logfile will  be  readable  by
               old  Postfix  versions that used the ad-hoc logfile
-              format of <i>&</i>lt;<i>address&</i>gt;<i>:</i> <i>text</i>.
+              format of <i>&</i>lt;<i>address&</i>gt;<i>: text</i>.
 
-       <b>mail</b><i>_</i><b>name</b>
+       <b>mail_name</b>
               Use this mail system name in the introductory  text
               at the start of a bounce message.
 
-       <b>notify</b><i>_</i><b>classes</b>
+       <b>notify_classes</b>
               Notify  the  postmaster  of  bounced mail when this
               parameter includes the <b>bounce</b>  class.  For  privacy
               reasons, the message body is not included.
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a> process manager
        <a href="qmgr.8.html">qmgr(8)</a> queue manager
        syslogd(8) system logging

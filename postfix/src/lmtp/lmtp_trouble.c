@@ -178,7 +178,7 @@ int     lmtp_site_fail(LMTP_STATE *state, int code, char *format,...)
 	    continue;
 	status = (soft_error ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     rcpt->orig_addr, rcpt->address,
+	     rcpt->orig_addr, rcpt->address, rcpt->offset,
 	     session ? session->namaddr : "none",
 	     request->arrival_time, "%s", vstring_str(why));
 	if (status == 0) {
@@ -226,7 +226,7 @@ int     lmtp_mesg_fail(LMTP_STATE *state, int code, char *format,...)
 	    continue;
 	status = (LMTP_SOFT(code) ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	     rcpt->orig_addr, rcpt->address,
+	     rcpt->orig_addr, rcpt->address, rcpt->offset,
 	     session->namaddr, request->arrival_time,
 	     "%s", vstring_str(why));
 	if (status == 0) {
@@ -261,7 +261,7 @@ void    lmtp_rcpt_fail(LMTP_STATE *state, int code, RECIPIENT *rcpt,
     va_start(ap, format);
     status = (LMTP_SOFT(code) ? vdefer_append : vbounce_append)
 	(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
-	 rcpt->orig_addr, rcpt->address,
+	 rcpt->orig_addr, rcpt->address, rcpt->offset,
 	 session->namaddr, request->arrival_time, format, ap);
     va_end(ap);
     if (status == 0) {
@@ -309,7 +309,7 @@ int     lmtp_stream_except(LMTP_STATE *state, int code, char *description)
 	state->status |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				      request->queue_id,
 				      rcpt->orig_addr, rcpt->address,
-				      session->namaddr,
+				      rcpt->offset, session->namaddr,
 				      request->arrival_time,
 				      "%s", vstring_str(why));
     }

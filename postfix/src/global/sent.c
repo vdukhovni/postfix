@@ -6,22 +6,24 @@
 /* SYNOPSIS
 /*	#include <sent.h>
 /*
-/*	int	sent(flags, queue_id, orig_rcpt, recipient, relay,
+/*	int	sent(flags, queue_id, orig_rcpt, recipient, offset, relay,
 /*			entry, format, ...)
 /*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vsent(flags, queue_id, orig_rcpt, recipient, relay,
+/*	int	vsent(flags, queue_id, orig_rcpt, recipient, offset, relay,
 /*			entry, format, ap)
 /*	int	flags;
 /*	const char *queue_id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
@@ -57,6 +59,8 @@
 /*	specify a null string or a null pointer.
 /* .IP recipient
 /*	The recipient address.
+/* .IP offset
+/*	Queue file offset of the recipient record.
 /* .IP relay
 /*	Name of the host we're talking to.
 /* .IP entry
@@ -112,14 +116,15 @@
 /* sent - log that a message was sent */
 
 int     sent(int flags, const char *id, const char *orig_rcpt,
-	             const char *recipient, const char *relay,
+	             const char *recipient, long offset, const char *relay,
 	             time_t entry, const char *fmt,...)
 {
     va_list ap;
     int     status;
 
     va_start(ap, fmt);
-    status = vsent(flags, id, orig_rcpt, recipient, relay, entry, fmt, ap);
+    status = vsent(flags, id, orig_rcpt, recipient,
+		   offset, relay, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -127,7 +132,7 @@ int     sent(int flags, const char *id, const char *orig_rcpt,
 /* vsent - log that a message was sent */
 
 int     vsent(int flags, const char *id, const char *orig_rcpt,
-	              const char *recipient, const char *relay,
+	              const char *recipient, long offset, const char *relay,
 	              time_t entry, const char *fmt, va_list ap)
 {
     int     status;
@@ -163,7 +168,7 @@ int     vsent(int flags, const char *id, const char *orig_rcpt,
 		       entry, "sent", fmt, ap);
 	    status = 0;
 	} else {
-	    status = defer_append(flags, id, orig_rcpt, recipient,
+	    status = defer_append(flags, id, orig_rcpt, recipient, offset,
 				  relay, entry, "%s: %s service failed",
 				  id, var_trace_service);
 	}

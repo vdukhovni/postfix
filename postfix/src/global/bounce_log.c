@@ -11,6 +11,7 @@
 /*	    /* public members... */
 /*	    const char *recipient;
 /*	    const char *orig_rcpt;
+/*	    long 	rcpt_offset;
 /*	    const char *dsn_status;
 /*	    const char *dsn_action;
 /*	    const char *text;
@@ -26,16 +27,14 @@
 /*	BOUNCE_LOG *bounce_log_read(bp)
 /*	BOUNCE_LOG *bp;
 /*
-/*	BOUNCE_LOG *bounce_log_delrcpt(bp)
-/*	BOUNCE_LOG *bp;
-/*
 /*	void	bounce_log_rewind(bp)
 /*	BOUNCE_LOG *bp;
 /*
-/*	BOUNCE_LOG *bounce_log_forge(orig_rcpt, recipient, dsn_status,
-/*					dsn_action, why)
+/*	BOUNCE_LOG *bounce_log_forge(orig_rcpt, recipient, rcpt_offset,
+/*					dsn_status, dsn_action, why)
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	rcpt_offset;
 /*	const char *dsn_status;
 /*	const char *dsn_action;
 /*	const char *why;
@@ -58,9 +57,6 @@
 /*	and the text that explains why the recipient was undeliverable.
 /*	bounce_log_read() returns a null pointer when no recipient was read,
 /*	otherwise it returns its argument.
-/*
-/*	bounce_log_delrcpt() marks the last accessed recipient record as
-/*	"deleted". This requires that the logfile is opened for update.
 /*
 /*	bounce_log_rewind() is a helper that seeks to the first recipient
 /*	in an open bounce or defer logfile (skipping over recipients that
@@ -94,6 +90,8 @@
 /* .IP orig_rcpt
 /*      Null pointer or the original recipient address in RFC 822
 /*	external form.
+/* .IP rcpt_offset
+/*	Queue file offset of recipient record.
 /* .IP text
 /*	The text that explains why the recipient was undeliverable.
 /* .IP dsn_status
@@ -119,6 +117,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 /* Utility library. */
 
@@ -146,12 +145,12 @@ static BOUNCE_LOG *bounce_log_init(VSTREAM *fp,
 				           VSTRING *buf,
 				           VSTRING *orcp_buf,
 				           VSTRING *rcpt_buf,
+				           long rcpt_offset,
 				           VSTRING *status_buf,
 				           const char *compat_status,
 				           VSTRING *action_buf,
 				           const char *compat_action,
-				           VSTRING *text_buf,
-				           long offset)
+				           VSTRING *text_buf)
 {
     BOUNCE_LOG *bp;
 
@@ -165,12 +164,12 @@ static BOUNCE_LOG *bounce_log_init(VSTREAM *fp,
     bp->buf = buf;
     SET_BUFFER(bp, orcp_buf, orig_rcpt);
     SET_BUFFER(bp, rcpt_buf, recipient);
+    bp->rcpt_offset = rcpt_offset;
     SET_BUFFER(bp, status_buf, dsn_status);
     bp->compat_status = compat_status;
     SET_BUFFER(bp, action_buf, dsn_action);
     bp->compat_action = compat_action;
     SET_BUFFER(bp, text_buf, text);
-    bp->offset = offset;
     return (bp);
 }
 
@@ -199,14 +198,14 @@ BOUNCE_LOG *bounce_log_open(const char *queue_name, const char *queue_id,
 				vstring_alloc(100),	/* buffer */
 				vstring_alloc(10),	/* orig_rcpt */
 				vstring_alloc(10),	/* recipient */
+				(long) 0,	/* offset */
 				vstring_alloc(10),	/* dsn_status */
 				STREQ(queue_name, MAIL_QUEUE_DEFER) ?
 				"4.0.0" : "5.0.0",	/* compatibility */
 				vstring_alloc(10),	/* dsn_action */
 				STREQ(queue_name, MAIL_QUEUE_DEFER) ?
 				"delayed" : "failed",	/* compatibility */
-				vstring_alloc(10),	/* text */
-				0));		/* offset */
+				vstring_alloc(10)));	/* text */
     }
 }
 
@@ -218,14 +217,12 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
     char   *text;
     char   *cp;
     int     state;
-    long    offset;
 
     /*
      * Our trivial logfile parser state machine.
      */
 #define START	0				/* still searching */
 #define FOUND	1				/* in logfile entry */
-#define SKIP	2				/* in deleted entry */
 
     /*
      * Initialize.
@@ -233,6 +230,7 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
     state = START;
     bp->recipient = "(unavailable)";
     bp->orig_rcpt = 0;
+    bp->rcpt_offset = 0;
     bp->dsn_status = "(unavailable)";
     bp->dsn_action = "(unavailable)";
     bp->text = "(unavailable)";
@@ -243,8 +241,7 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
      * With backwards compatibility, we even have old format followed by new
      * format within the same logfile entry!
      */
-    while ((offset = vstream_ftell(bp->fp)),
-	   (vstring_get_nonl(bp->buf, bp->fp) != VSTREAM_EOF)) {
+    while ((vstring_get_nonl(bp->buf, bp->fp) != VSTREAM_EOF)) {
 
 	/*
 	 * Logfile entries are separated by blank lines. Even the old ad-hoc
@@ -260,33 +257,13 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 	}
 
 	/*
-	 * Skip over deleted logfile entries.
-	 */
-	if (state == SKIP)
-	    continue;
-
-	/*
 	 * Sanitize. XXX This needs to be done more carefully with new-style
 	 * logfile entries.
 	 */
 	cp = printable(STR(bp->buf), '?');
 
-	/*
-	 * Skip over deleted recipients.
-	 */
-	if (*cp == BOUNCE_LOG_STAT_DELETED) {
-	    state = SKIP;
-	    continue;
-	}
-
-	/*
-	 * Save the first record offset of this logfile entry so that it can
-	 * be marked as deleted.
-	 */
-	if (state == START) {
+	if (state == START)
 	    state = FOUND;
-	    bp->offset = offset;
-	}
 
 	/*
 	 * New style logfile entries are in "name = value" format.
@@ -313,6 +290,8 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
 	    } else if (STREQ(name, MAIL_ATTR_ORCPT)) {
 		bp->orig_rcpt = STR(vstring_strcpy(bp->orcp_buf, *value ?
 						value : "(MAILER-DAEMON)"));
+	    } else if (STREQ(name, MAIL_ATTR_OFFSET)) {
+		bp->rcpt_offset = atol(value);
 	    } else if (STREQ(name, MAIL_ATTR_STATUS)) {
 		bp->dsn_status = STR(vstring_strcpy(bp->status_buf, value));
 	    } else if (STREQ(name, MAIL_ATTR_ACTION)) {
@@ -364,37 +343,22 @@ BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *bp)
     return (0);
 }
 
-/* bounce_log_delrcpt - mark recipient record as deleted */
-
-BOUNCE_LOG *bounce_log_delrcpt(BOUNCE_LOG *bp)
-{
-    long    current_offset;
-
-    current_offset = vstream_ftell(bp->fp);
-    if (vstream_fseek(bp->fp, bp->offset, SEEK_SET) < 0)
-	msg_fatal("bounce logfile %s seek error: %m", VSTREAM_PATH(bp->fp));
-    VSTREAM_PUTC(BOUNCE_LOG_STAT_DELETED, bp->fp);
-    if (vstream_fseek(bp->fp, current_offset, SEEK_SET) < 0)
-	msg_fatal("bounce logfile %s seek error: %m", VSTREAM_PATH(bp->fp));
-    return (bp);
-}
-
 /* bounce_log_forge - forge one recipient status record */
 
 BOUNCE_LOG *bounce_log_forge(const char *orig_rcpt, const char *recipient,
-		             const char *dsn_status, const char *dsn_action,
-			             const char *text)
+			           long rcpt_offset, const char *dsn_status,
+			           const char *dsn_action, const char *text)
 {
     return (bounce_log_init((VSTREAM *) 0,
 			    (VSTRING *) 0,
 			    SAVE_TO_VSTRING(orig_rcpt),
 			    SAVE_TO_VSTRING(recipient),
+			    rcpt_offset,
 			    SAVE_TO_VSTRING(dsn_status),
 			    "(unavailable)",
 			    SAVE_TO_VSTRING(dsn_action),
 			    "(unavailable)",
-			    SAVE_TO_VSTRING(text),
-			    0));
+			    SAVE_TO_VSTRING(text)));
 }
 
 /* bounce_log_close - close bounce reader stream */

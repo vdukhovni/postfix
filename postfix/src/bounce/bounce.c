@@ -145,7 +145,9 @@ static VSTRING *why;
 
 static int bounce_append_proto(char *service_name, VSTREAM *client)
 {
+    char   *myname = "bounce_append_proto";
     int     flags;
+    long    offset;
 
     /*
      * Read the and validate the client request.
@@ -155,10 +157,11 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &offset,
 			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_status,
 			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 7) {
+			    ATTR_TYPE_END) != 8) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -167,9 +170,9 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_append_proto: service=%s id=%s org_to=%s to=%s stat=%s act=%s why=%s",
-		 service_name, STR(queue_id), STR(orig_rcpt),
-		 STR(recipient), STR(dsn_status),
+	msg_info("%s: flags=0x%x service=%s id=%s org_to=%s to=%s off=%ld stat=%s act=%s why=%s",
+		 myname, flags, service_name, STR(queue_id), STR(orig_rcpt),
+		 STR(recipient), offset, STR(dsn_status),
 		 STR(dsn_action), STR(why));
 
     /*
@@ -182,8 +185,8 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
     /*
      * Execute the request.
      */
-    return (bounce_append_service(service_name, STR(queue_id),
-				  STR(orig_rcpt), STR(recipient),
+    return (bounce_append_service(flags, service_name, STR(queue_id),
+				  STR(orig_rcpt), STR(recipient), offset,
 				  STR(dsn_status), STR(dsn_action),
 				  STR(why)));
 }
@@ -191,8 +194,9 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 /* bounce_notify_proto - bounce_notify server protocol */
 
 static int bounce_notify_proto(char *service_name, VSTREAM *client,
-	              int (*service) (char *, char *, char *, char *, char *))
+               int (*service) (int, char *, char *, char *, char *, char *))
 {
+    char   *myname = "bounce_notify_proto";
     int     flags;
 
     /*
@@ -217,8 +221,8 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_notify_proto: service=%s queue=%s id=%s encoding=%s sender=%s",
-		 service_name, STR(queue_name), STR(queue_id),
+	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s sender=%s",
+		 myname, flags, service_name, STR(queue_name), STR(queue_id),
 		 STR(encoding), STR(sender));
 
     /*
@@ -231,7 +235,7 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
     /*
      * Execute the request.
      */
-    return (service(service_name, STR(queue_name),
+    return (service(flags, service_name, STR(queue_name),
 		    STR(queue_id), STR(encoding),
 		    STR(sender)));
 }
@@ -271,8 +275,8 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("%s: service=%s queue=%s id=%s encoding=%s sender=%s delim=%s",
-		 myname, service_name, STR(queue_name), STR(queue_id),
+	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s sender=%s delim=%s",
+		 myname, flags, service_name, STR(queue_name), STR(queue_id),
 		 STR(encoding), STR(sender), STR(verp_delims));
 
     /*
@@ -288,11 +292,11 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
      */
     if (!*STR(sender) || !strcasecmp(STR(sender), mail_addr_double_bounce())) {
 	msg_warn("request to send VERP-style notification of bounced mail");
-	return (bounce_notify_service(service_name, STR(queue_name),
+	return (bounce_notify_service(flags, service_name, STR(queue_name),
 				      STR(queue_id), STR(encoding),
 				      STR(sender)));
     } else
-	return (bounce_notify_verp(service_name, STR(queue_name),
+	return (bounce_notify_verp(flags, service_name, STR(queue_name),
 				   STR(queue_id), STR(encoding),
 				   STR(sender), STR(verp_delims)));
 }
@@ -301,23 +305,26 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 
 static int bounce_one_proto(char *service_name, VSTREAM *client)
 {
-    int     unused_flags;
+    char   *myname = "bounce_one_proto";
+    int     flags;
+    long    offset;
 
     /*
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &unused_flags,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 			    ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+			    ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, &offset,
 			    ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_status,
 			    ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
 			    ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
-			    ATTR_TYPE_END) != 10) {
+			    ATTR_TYPE_END) != 11) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -335,17 +342,18 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_one_proto: queue=%s id=%s encoding=%s sender=%s orig_to=%s to=%s stat=%s act=%s why=%s",
-		 STR(queue_name), STR(queue_id), STR(encoding),
-		 STR(sender), STR(orig_rcpt), STR(recipient),
+	msg_info("%s: flags=0x%x queue=%s id=%s encoding=%s sender=%s orig_to=%s to=%s off=%ld stat=%s act=%s why=%s",
+	       myname, flags, STR(queue_name), STR(queue_id), STR(encoding),
+		 STR(sender), STR(orig_rcpt), STR(recipient), offset,
 		 STR(dsn_status), STR(dsn_action), STR(why));
 
     /*
      * Execute the request.
      */
-    return (bounce_one_service(STR(queue_name), STR(queue_id), STR(encoding),
-			       STR(sender), STR(orig_rcpt), STR(recipient),
-			       STR(dsn_status), STR(dsn_action), STR(why)));
+    return (bounce_one_service(flags, STR(queue_name), STR(queue_id),
+			       STR(encoding), STR(sender), STR(orig_rcpt),
+			       STR(recipient), offset, STR(dsn_status),
+			       STR(dsn_action), STR(why)));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -368,9 +376,6 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
      * Read and validate the first parameter of the client request. Let the
      * request-specific protocol routines take care of the remainder.
      */
-#define REALLY_BOUNCE	1
-#define JUST_WARN	0
-
     if (attr_scan(client, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
 		  ATTR_TYPE_NUM, MAIL_ATTR_NREQ, &command, 0) != 1) {
 	msg_warn("malformed request");

@@ -6,22 +6,24 @@
 /* SYNOPSIS
 /*	#include <bounce.h>
 /*
-/*	int	bounce_append(flags, id, orig_rcpt, recipient, relay,
+/*	int	bounce_append(flags, id, orig_rcpt, recipient, offset, relay,
 /*				entry, format, ...)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
 /*
-/*	int	vbounce_append(flags, id, orig_rcpt, recipient, relay,
+/*	int	vbounce_append(flags, id, orig_rcpt, recipient, offset, relay,
 /*				entry, format, ap)
 /*	int	flags;
 /*	const char *id;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
@@ -35,19 +37,7 @@
 /*	const char *sender;
 /*
 /*	int	bounce_one(flags, queue, id, encoding, sender, orig_rcpt,
-/*				recipient, relay, entry, format, ...)
-/*	int	flags;
-/*	const char *queue;
-/*	const char *id;
-/*	const char *encoding;
-/*	const char *sender;
-/*	const char *recipient;
-/*	const char *relay;
-/*	time_t	entry;
-/*	const char *format;
-/*
-/*	int	vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
-/*				recipient, relay, entry, format, ap)
+/*				recipient, offset, relay, entry, format, ...)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
@@ -55,6 +45,21 @@
 /*	const char *sender;
 /*	const char *orig_rcpt;
 /*	const char *recipient;
+/*	long	offset;
+/*	const char *relay;
+/*	time_t	entry;
+/*	const char *format;
+/*
+/*	int	vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
+/*				recipient, offset, relay, entry, format, ap)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *encoding;
+/*	const char *sender;
+/*	const char *orig_rcpt;
+/*	const char *recipient;
+/*	long	offset;
 /*	const char *relay;
 /*	time_t	entry;
 /*	const char *format;
@@ -123,6 +128,8 @@
 /* .IP recipient
 /*	Recipient address that the message could not be delivered to.
 /*	This information is used for syslogging only.
+/* .IP offset
+/*	Queue file offset of recipient record.
 /* .IP format
 /*	The reason for non-delivery.
 /* .IP ap
@@ -175,7 +182,7 @@
 /* bounce_append - append reason to per-message bounce log */
 
 int     bounce_append(int flags, const char *id, const char *orig_rcpt,
-		              const char *recipient, const char *relay,
+	              const char *recipient, long offset, const char *relay,
 		              time_t entry, const char *fmt,...)
 {
     va_list ap;
@@ -183,7 +190,7 @@ int     bounce_append(int flags, const char *id, const char *orig_rcpt,
 
     va_start(ap, fmt);
     status = vbounce_append(flags, id, orig_rcpt, recipient,
-			    relay, entry, fmt, ap);
+			    offset, relay, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -191,7 +198,7 @@ int     bounce_append(int flags, const char *id, const char *orig_rcpt,
 /* vbounce_append - append bounce reason to per-message log */
 
 int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
-		               const char *recipient, const char *relay,
+	              const char *recipient, long offset, const char *relay,
 		               time_t entry, const char *fmt, va_list ap)
 {
     int     status;
@@ -244,6 +251,7 @@ int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+				ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offset,
 				ATTR_TYPE_STR, MAIL_ATTR_STATUS, dsn_code,
 				ATTR_TYPE_STR, MAIL_ATTR_ACTION, dsn_action,
 			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
@@ -255,8 +263,8 @@ int     vbounce_append(int flags, const char *id, const char *orig_rcpt,
 		       entry, log_status, fmt, ap);
 	    status = (var_soft_bounce ? -1 : 0);
 	} else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
-	    status = defer_append(flags, id, orig_rcpt, recipient, relay,
-				  entry, "%s or %s service failure",
+	    status = defer_append(flags, id, orig_rcpt, recipient, offset,
+				  relay, entry, "%s or %s service failure",
 				  var_bounce_service, var_trace_service);
 	} else {
 	    status = -1;
@@ -300,7 +308,7 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 int     bounce_one(int flags, const char *queue, const char *id,
 		           const char *encoding, const char *sender,
 		           const char *orig_rcpt, const char *recipient,
-		           const char *relay, time_t entry,
+		           long offset, const char *relay, time_t entry,
 		           const char *fmt,...)
 {
     va_list ap;
@@ -308,7 +316,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
 
     va_start(ap, fmt);
     status = vbounce_one(flags, queue, id, encoding, sender, orig_rcpt,
-			 recipient, relay, entry, fmt, ap);
+			 recipient, offset, relay, entry, fmt, ap);
     va_end(ap);
     return (status);
 }
@@ -318,7 +326,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
 int     vbounce_one(int flags, const char *queue, const char *id,
 		            const char *encoding, const char *sender,
 		            const char *orig_rcpt, const char *recipient,
-		            const char *relay, time_t entry,
+		            long offset, const char *relay, time_t entry,
 		            const char *fmt, va_list ap)
 {
     int     status;
@@ -349,7 +357,7 @@ int     vbounce_one(int flags, const char *queue, const char *id,
      */
     else if (var_soft_bounce) {
 	return (vbounce_append(flags, id, orig_rcpt, recipient,
-			       relay, entry, fmt, ap));
+			       offset, relay, entry, fmt, ap));
     }
 
     /*
@@ -370,6 +378,7 @@ int     vbounce_one(int flags, const char *queue, const char *id,
 				ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 				ATTR_TYPE_STR, MAIL_ATTR_ORCPT, orig_rcpt,
 				ATTR_TYPE_STR, MAIL_ATTR_RECIP, recipient,
+				ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, offset,
 				ATTR_TYPE_STR, MAIL_ATTR_STATUS, "5.0.0",
 				ATTR_TYPE_STR, MAIL_ATTR_ACTION, "failed",
 			     ATTR_TYPE_STR, MAIL_ATTR_WHY, vstring_str(why),
@@ -381,8 +390,8 @@ int     vbounce_one(int flags, const char *queue, const char *id,
 		       entry, "bounced", fmt, ap);
 	    status = 0;
 	} else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
-	    status = defer_append(flags, id, orig_rcpt, recipient, relay,
-				  entry, "%s or %s service failure",
+	    status = defer_append(flags, id, orig_rcpt, recipient, offset,
+				  relay, entry, "%s or %s service failure",
 				  var_bounce_service, var_trace_service);
 	} else {
 	    status = -1;

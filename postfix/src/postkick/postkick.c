@@ -165,7 +165,7 @@ int     main(int argc, char **argv)
 		 class, service);
 	exit(1);
     } else {
-	event_drain();
+	event_drain(var_event_drain);
 	exit(0);
     }
 }

@@ -25,20 +25,20 @@
  /*
   * Client interface.
   */
-extern int PRINTFLIKE(7, 8) bounce_append(int, const char *,
+extern int PRINTFLIKE(8, 9) bounce_append(int, const char *,
 					          const char *, const char *,
-					          const char *, time_t,
+					          long, const char *, time_t,
 					          const char *,...);
-extern int vbounce_append(int, const char *, const char *, const char *,
+extern int vbounce_append(int, const char *, const char *, const char *, long,
 		               const char *, time_t, const char *, va_list);
 extern int bounce_flush(int, const char *, const char *, const char *, const char *);
-extern int PRINTFLIKE(10, 11) bounce_one(int, const char *, const char *,
+extern int PRINTFLIKE(11, 12) bounce_one(int, const char *, const char *,
 					         const char *, const char *,
 					         const char *, const char *,
-					         const char *, time_t,
+					         long, const char *, time_t,
 					         const char *,...);
 extern int vbounce_one(int, const char *, const char *, const char *,
-		               const char *, const char *, const char *,
+		               const char *, const char *, const char *, long,
 		               const char *, time_t, const char *, va_list);
 
  /*
@@ -56,6 +56,7 @@ extern int vbounce_one(int, const char *, const char *, const char *,
   */
 #define BOUNCE_FLAG_NONE	0	/* no flags up */
 #define BOUNCE_FLAG_CLEAN	(1<<0)	/* remove log on error */
+#define BOUNCE_FLAG_DELRCPT	(1<<1)	/* delete recipient from queue file */
 
  /*
   * Backwards compatibility.

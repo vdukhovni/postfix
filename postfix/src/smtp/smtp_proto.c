@@ -657,8 +657,9 @@ int     smtp_xfer(SMTP_STATE *state)
 			    if (DEL_REQ_TRACE_ONLY(request->flags)
 				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
 					request->queue_id, rcpt->orig_addr,
-					rcpt->address, session->namaddr,
-					request->arrival_time, "%s",
+					rcpt->address, rcpt->offset,
+					session->namaddr, request->arrival_time,
+					"%s",
 				     translit(resp->str, "\n", " ")) == 0) {
 				if (request->flags & DEL_REQ_FLAG_SUCCESS)
 				    deliver_completed(state->src, rcpt->offset);
@@ -720,7 +721,7 @@ int     smtp_xfer(SMTP_STATE *state)
 				if (rcpt->offset) {
 				    if (sent(DEL_REQ_TRACE_FLAGS(request->flags),
 					 request->queue_id, rcpt->orig_addr,
-					     rcpt->address,
+					     rcpt->address, rcpt->offset,
 					     session->namaddr,
 					     request->arrival_time,
 					     "%s", resp->str) == 0) {

@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_notify_verp(service, queue_name, queue_id, sender,
+/*	int     bounce_notify_verp(flags, service, queue_name, queue_id, sender,
 /*					verp_delims)
+/*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*sender;
@@ -70,6 +71,7 @@
 #include <mail_addr.h>
 #include <mail_error.h>
 #include <verp_sender.h>
+#include <bounce.h>
 
 /* Application-specific. */
 
@@ -79,10 +81,9 @@
 
 /* bounce_notify_verp - send a bounce */
 
-int     bounce_notify_verp(char *service, char *queue_name,
+int     bounce_notify_verp(int flags, char *service, char *queue_name,
 			           char *queue_id, char *encoding,
-			           char *recipient,
-			           char *verp_delims)
+			           char *recipient, char *verp_delims)
 {
     char   *myname = "bounce_notify_verp";
     BOUNCE_INFO *bounce_info;
@@ -152,9 +153,10 @@ int     bounce_notify_verp(char *service, char *queue_name,
 	    break;
 
 	/*
-	 * Mark this recipient as done.
+	 * Optionally, mark this recipient as done.
 	 */
-	bounce_log_delrcpt(bounce_info->log_handle);
+	if (flags & BOUNCE_FLAG_DELRCPT)
+	    bounce_delrcpt_one(bounce_info);
 
 	/*
 	 * Optionally, send a postmaster notice.

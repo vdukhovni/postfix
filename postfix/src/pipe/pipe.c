@@ -740,7 +740,7 @@ static int eval_command_status(int command_status, char *service,
 	    rcpt = request->rcpt_list.info + n;
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 			  request->queue_id, rcpt->orig_addr,
-			  rcpt->address, service,
+			  rcpt->address, rcpt->offset, service,
 			  request->arrival_time, "%s", request->nexthop);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
@@ -752,7 +752,7 @@ static int eval_command_status(int command_status, char *service,
 	    rcpt = request->rcpt_list.info + n;
 	    status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				   request->queue_id, rcpt->orig_addr,
-				   rcpt->address, service,
+				   rcpt->address, rcpt->offset, service,
 				   request->arrival_time, "%s", why);
 	    if (status == 0)
 		deliver_completed(src, rcpt->offset);
@@ -764,7 +764,7 @@ static int eval_command_status(int command_status, char *service,
 	    rcpt = request->rcpt_list.info + n;
 	    result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
 				   request->queue_id, rcpt->orig_addr,
-				   rcpt->address, service,
+				   rcpt->address, rcpt->offset, service,
 				   request->arrival_time, "%s", why);
 	}
 	break;
@@ -885,7 +885,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	    rcpt = request->rcpt_list.info + n;
 	    status = sent(DEL_REQ_TRACE_FLAGS(request->flags),
 			  request->queue_id, rcpt->orig_addr,
-			  rcpt->address, service,
+			  rcpt->address, rcpt->offset, service,
 			  request->arrival_time,
 			  "delivers to command: %s", attr.command[0]);
 	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))

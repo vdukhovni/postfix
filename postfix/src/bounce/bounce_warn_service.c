@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_warn_service(queue_name, queue_id, encoding, sender)
+/*	int     bounce_warn_service(flags, queue_name, queue_id, encoding, sender)
+/*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
@@ -77,7 +78,7 @@
 
 /* bounce_warn_service - send a delayed mail notice */
 
-int     bounce_warn_service(char *service, char *queue_name,
+int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 			            char *queue_id, char *encoding,
 			            char *recipient)
 {

@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_trace_service(queue_name, queue_id, encoding, sender)
+/*	int     bounce_trace_service(flags, queue_name, queue_id, encoding, sender)
+/*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
@@ -73,7 +74,7 @@
 
 /* bounce_trace_service - send a delivery status notice */
 
-int     bounce_trace_service(char *service, char *queue_name,
+int     bounce_trace_service(int unused_flags, char *service, char *queue_name,
 			             char *queue_id, char *encoding,
 			             char *recipient)
 {

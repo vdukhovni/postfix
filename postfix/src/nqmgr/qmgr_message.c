@@ -863,8 +863,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {
-		status = sent(message->tflags, message->queue_id, recipient->orig_rcpt,
-			  recipient->address, "none", message->arrival_time,
+		status = sent(message->tflags, message->queue_id,
+			      recipient->orig_rcpt, recipient->address,
+			   recipient->offset, "none", message->arrival_time,
 			 "undeliverable postmaster notification discarded");
 		if (status == 0) {
 		    deliver_completed(message->fp, recipient->offset);

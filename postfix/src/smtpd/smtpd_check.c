@@ -2239,7 +2239,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     }
     if (dns_status != DNS_OK) {
 	msg_warn("Unable to look up %s host for %s", dns_strtype(type),
-		 domain && domain[1] ? domain : reply_name);
+		 domain && domain[1] ? domain : name);
 	return (SMTPD_CHECK_DUNNO);
     }
 

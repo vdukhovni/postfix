@@ -68,6 +68,12 @@
 /*	VSTREAM *fp;
 /*	BOUNCE_INFO *bounce_info;
 /*	int	headers_only;
+/*
+/*	void	bounce_delrcpt(bounce_info)
+/*	BOUNCE_INFO *bounce_info;
+/*
+/*	void	bounce_delrcpt_one(bounce_info)
+/*	BOUNCE_INFO *bounce_info;
 /* DESCRIPTION
 /*	This module implements the grunt work of sending a non-delivery
 /*	notification. A bounce is sent in a form that satisfies RFC 1894
@@ -116,6 +122,12 @@
 /*	bounce_original() starts a message/rfc822 or headers/rfc822
 /*	message segment and sends the original message, either full or
 /*	message headers only.
+/*
+/*	bounce_delrcpt() deletes recipients in the logfile from the original
+/*	queue file.
+/*
+/*	bounce_delrcpt_one() deletes one recipient from the original
+/*	queue file.
 /* DIAGNOSTICS
 /*	Fatal error: error opening existing file. Warnings: corrupt
 /*	message file. A corrupt message is saved to the "corrupt"
@@ -173,6 +185,7 @@
 #include <mail_date.h>
 #include <mail_proto.h>
 #include <lex_822.h>
+#include <deliver_completed.h>
 
 /* Application-specific. */
 
@@ -267,7 +280,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		/* XXX Future: sender+recipient after message content. */
 		if (VSTRING_LEN(bounce_info->sender) == 0)
 		    msg_warn("%s: no sender before message content record",
-				bounce_info->queue_id);
+			     bounce_info->queue_id);
 		bounce_info->orig_offs = vstream_ftell(bounce_info->orig_fp);
 		break;
 	    }
@@ -310,6 +323,7 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
 				          const char *encoding,
 				          const char *orig_recipient,
 				          const char *recipient,
+				          long offset,
 				          const char *dsn_status,
 				          const char *dsn_action,
 				          const char *why)
@@ -323,7 +337,7 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
      */
 #define REALLY_BOUNCE	1
 
-    log_handle = bounce_log_forge(orig_recipient, recipient, dsn_status,
+    log_handle = bounce_log_forge(orig_recipient, recipient, offset, dsn_status,
 				  dsn_action, why);
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id,
 				    encoding, REALLY_BOUNCE, log_handle);
@@ -688,4 +702,28 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     post_mail_fprintf(bounce, "--%s--", bounce_info->mime_boundary);
 
     return (status);
+}
+
+/* bounce_delrcpt - delete recipients from original queue file */
+
+int     bounce_delrcpt(BOUNCE_INFO *bounce_info)
+{
+    if (bounce_info->orig_fp != 0
+	&& bounce_info->log_handle != 0
+	&& bounce_log_rewind(bounce_info->log_handle) == 0)
+	while (bounce_log_read(bounce_info->log_handle) != 0)
+	    if (bounce_info->log_handle->rcpt_offset > 0)
+		deliver_completed(bounce_info->orig_fp,
+				  bounce_info->log_handle->rcpt_offset);
+}
+
+/* bounce_delrcpt_one - delete one recipient from original queue file */
+
+int     bounce_delrcpt_one(BOUNCE_INFO *bounce_info)
+{
+    if (bounce_info->orig_fp != 0
+	&& bounce_info->log_handle != 0
+	&& bounce_info->log_handle->rcpt_offset > 0)
+	deliver_completed(bounce_info->orig_fp,
+			  bounce_info->log_handle->rcpt_offset);
 }

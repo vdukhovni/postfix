@@ -34,21 +34,19 @@ typedef struct {
     /* Public. */
     const char *recipient;		/* final recipient */
     const char *orig_rcpt;		/* original recipient */
+    long    rcpt_offset;		/* queue file offset */
     const char *dsn_status;		/* dsn code */
     const char *dsn_action;		/* dsn action */
     const char *text;			/* descriptive text */
-    long    offset;			/* start of current record */
 } BOUNCE_LOG;
 
 extern BOUNCE_LOG *bounce_log_open(const char *, const char *, int, int);
 extern BOUNCE_LOG *bounce_log_read(BOUNCE_LOG *);
 extern BOUNCE_LOG *bounce_log_delrcpt(BOUNCE_LOG *);
-extern BOUNCE_LOG *bounce_log_forge(const char *, const char *, const char *, const char *, const char *);
+extern BOUNCE_LOG *bounce_log_forge(const char *, const char *, long, const char *, const char *, const char *);
 extern int bounce_log_close(BOUNCE_LOG *);
 
 #define bounce_log_rewind(bp) vstream_fseek((bp)->fp, 0L, SEEK_SET)
-
-#define BOUNCE_LOG_STAT_DELETED	'D'	/* deleted record */
 
 /* LICENSE
 /* .ad

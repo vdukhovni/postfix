@@ -34,7 +34,7 @@
 /* .PP
 /*	Configuration parameters:
 /* .IP server_host
-/*	Blank-separated list of hosts at which all LDAP queries are directed.
+/*	List of hosts at which all LDAP queries are directed.
 /*	The host names can also be LDAP URLs if the LDAP client library used
 /*	is OpenLDAP.
 /* .IP server_port
@@ -670,7 +670,11 @@ static void dict_ldap_conn_find(DICT_LDAP *dict_ldap)
     VSTRING *keybuf = vstring_alloc(10);
     char   *key;
     int     len;
+
+#ifdef LDAP_API_FEATURE_X_OPENLDAP
     int     sslon = dict_ldap->start_tls || dict_ldap->ldap_ssl;
+
+#endif
     LDAP_CONN *conn;
 
 #define ADDSTR(vp, s) vstring_memcat((vp), (s), strlen((s))+1)
@@ -1252,13 +1256,9 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 {
     char   *myname = "dict_ldap_open";
     DICT_LDAP *dict_ldap;
-
-#if defined(LDAP_API_FEATURE_X_OPENLDAP) && defined(LDAP_OPT_NETWORK_TIMEOUT)
     VSTRING *url_list;
-    char   *s,
-           *h;
-
-#endif
+    char   *s;
+    char   *h;
     char   *server_host;
     CFG_PARSER parser;
     char   *domainlist;
@@ -1326,15 +1326,18 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	dict_ldap->version = LDAP_VERSION2;
     }
 
-#if defined(LDAP_API_FEATURE_X_OPENLDAP) && defined(LDAP_OPT_NETWORK_TIMEOUT)
+#if defined(LDAP_API_FEATURE_X_OPENLDAP)
+    dict_ldap->ldap_ssl = 0;
+#endif
 
-    /*
-     * Convert (host, port) pairs to LDAP URLs
-     */
     url_list = vstring_alloc(32);
     s = server_host;
-    dict_ldap->ldap_ssl = 0;
-    while ((h = mystrtok(&s, " \t")) != NULL) {
+    while ((h = mystrtok(&s, " \t\n\r,")) != NULL) {
+#if defined(LDAP_API_FEATURE_X_OPENLDAP)
+
+	/*
+	 * Convert (host, port) pairs to LDAP URLs
+	 */
 	if (ldap_is_ldap_url(h)) {
 	    LDAPURLDesc *url_desc;
 	    int     rc;
@@ -1361,21 +1364,24 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 		vstring_sprintf_append(url_list, " ldap://%s:%d", h,
 				       dict_ldap->server_port);
 	}
+#else
+	vstring_sprintf_append(url_list, " %s", h);
+#endif
     }
     dict_ldap->server_host = mystrdup(vstring_str(url_list) + 1);
+
+#if defined(LDAP_API_FEATURE_X_OPENLDAP)
 
     /*
      * With URL scheme, clear port to normalize connection cache key
      */
-    dict_ldap->server_port = 0;
+    dict_ldap->server_port = LDAP_PORT;
     if (msg_verbose)
 	msg_info("%s: %s server_host URL is %s", myname, ldapsource,
 		 dict_ldap->server_host);
+#endif
     myfree(server_host);
     vstring_free(url_list);
-#else
-    dict_ldap->server_host = server_host;
-#endif
 
     /*
      * Scope handling thanks to Carsten Hoeger of SuSE.

@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_one_service(queue_name, queue_id, encoding,
+/*	int     bounce_one_service(flags, queue_name, queue_id, encoding,
 /*					orig_sender, orig_recipient,
 /*					status, why)
+/*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
@@ -71,6 +72,7 @@
 #include <post_mail.h>
 #include <mail_addr.h>
 #include <mail_error.h>
+#include <bounce.h>
 
 /* Application-specific. */
 
@@ -80,10 +82,11 @@
 
 /* bounce_one_service - send a bounce for one recipient */
 
-int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
-			           char *orig_sender, char *orig_recipient,
-			           char *recipient, char *dsn_status,
-				   char *dsn_action, char *why)
+int     bounce_one_service(int flags, char *queue_name, char *queue_id,
+			           char *encoding, char *orig_sender,
+			           char *orig_recipient, char *recipient,
+			           long offset, char *dsn_status,
+			           char *dsn_action, char *why)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -97,7 +100,7 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id,
 				       encoding, orig_recipient,
-				       recipient, dsn_status,
+				       recipient, offset, dsn_status,
 				       dsn_action, why);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
@@ -219,6 +222,12 @@ int     bounce_one_service(char *queue_name, char *queue_id, char *encoding,
 			 orig_sender);
 	}
     }
+
+    /*
+     * Optionally, delete the recipient from the queue file.
+     */
+    if (bounce_status == 0 && (flags & BOUNCE_FLAG_DELRCPT))
+	bounce_delrcpt_one(bounce_info);
 
     /*
      * Cleanup.

@@ -77,11 +77,11 @@ parameters. Defaults are given in parentheses:
     server_host (localhost)
     	The name of the host running the LDAP server, e.g.
 		server_host = ldap.your.com
-	It should be possible with all the libraries mentioned above to 
-	specify multiple servers separated by spaces, with the libraries
-	trying them in order should the first one fail. It should also
-	be possible to give each server in the list a different port, by
-	naming them like "ldap.your.com:1444".
+        It should be possible with all the libraries mentioned above
+        to specify multiple servers, with the libraries trying them in
+        order should the first one fail. It should also be possible to
+        give each server in the list a different port, by naming them
+        like "ldap.your.com:1444".
 
         With OpenLDAP, LDAP URLs can be used to request connection
         over UNIX domain sockets (ldapi://%2Fsome%2Fpath) or LDAP SSL
