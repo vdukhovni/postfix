@@ -1,5 +1,44 @@
-REJECT by header/body_checks are now flagged as policy violations
-rather than bounces, for consistency in postmaster notifications.
+Apart from bugfixes this is expected to become the first non-beta
+Postfix release.
+
+Incompatible changes with snapshot-20010128
+===========================================
+
+REJECT in header/body_checks is now flagged as policy violation
+rather than bounce, for consistency in postmaster notifications.
+
+The mailbox size limit for local delivery is no longer controlled
+by the message_size_limit paramater, but by a separate parameter
+called mailbox_size_limit (default: 20MBytes).
+
+The default RBL (real-time blackhole lists) domain examples have
+been updated from *.vix.com to *.mail-abuse.org.
+
+Major changes with snapshot-20010128
+====================================
+
+Updated nqmgr (experimental queue manager with clever queueing
+strategy) by Patrik Rak. This code is still new. Once it stops
+changing (for a long time!) it will become part of the non-beta
+release.
+
+Virtual mailbox delivery agent by Andrew McNamara. This delivery
+agent can deliver mail for any number of domains.  See the file
+VIRTUAL_README for detailed examples. This code is still new. Once
+it stops changing it will become part of the non-beta release.
+
+Many "valid_hostname" warnings were either eliminated, and the rest
+was replaced by something more informative.
+
+SASL support (RFC 2554) for the LMTP delivery agent. This is required
+by recent Cyrus implementations when delivering mail over TCP
+sockets. The LMTP_README file has been updated but still contains
+some obsolete information.
+
+Workarounds for non-standard RFC 2554 (AUTH command) implementations.
+Specify "broken_sasl_auth_clients = yes" to enable SMTP server
+support for old Microsoft client applications. The Postfix SMTP
+client supports non-standard RFC 2554 servers by default.
 
 Major changes with snapshot-20001217
 ====================================

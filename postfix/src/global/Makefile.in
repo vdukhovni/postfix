@@ -346,6 +346,7 @@ deliver_flock.o: ../../include/sys_defs.h
 deliver_flock.o: ../../include/vstring.h
 deliver_flock.o: ../../include/vbuf.h
 deliver_flock.o: ../../include/myflock.h
+deliver_flock.o: ../../include/iostuff.h
 deliver_flock.o: mail_params.h
 deliver_flock.o: deliver_flock.h
 deliver_pass.o: deliver_pass.c
@@ -387,6 +388,7 @@ dot_lockfile.o: ../../include/vstring.h
 dot_lockfile.o: ../../include/vbuf.h
 dot_lockfile.o: ../../include/stringops.h
 dot_lockfile.o: ../../include/mymalloc.h
+dot_lockfile.o: ../../include/iostuff.h
 dot_lockfile.o: mail_params.h
 dot_lockfile.o: dot_lockfile.h
 dot_lockfile_as.o: dot_lockfile_as.c
@@ -767,6 +769,8 @@ mkmap_open.o: ../../include/dict.h
 mkmap_open.o: ../../include/vstream.h
 mkmap_open.o: ../../include/vbuf.h
 mkmap_open.o: ../../include/argv.h
+mkmap_open.o: ../../include/dict_db.h
+mkmap_open.o: ../../include/dict_dbm.h
 mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/mymalloc.h
 mkmap_open.o: ../../include/myflock.h

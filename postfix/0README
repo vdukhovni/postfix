@@ -40,7 +40,6 @@ On-line resources devoted to the Postfix mail system
 Web sites:
 
     http://www.postfix.org/		current release information
-    http://www.ibm.com/alphaworks/	original distribution site (obsolete)
 
 Mail addresses (PLEASE send questions to the mailing list)
 
@@ -146,6 +145,7 @@ Postfix daemons:
     src/smtp/		SMTP client
     src/smtpd/		SMTP server
     src/trivial-rewrite/ Address rewriting and resolving
+    src/virtual/	virtual mailbox-only delivery agent
 
 Test programs:
 

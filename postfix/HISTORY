@@ -4733,7 +4733,6 @@ Apologies for any names omitted.
 
 	Feature: SASL support for the LMTP client. Recent CYRUS
 	software requires this for Postfix over TCP sockets.
-	This was just a cloning operation.
 
 20010120
 
@@ -4744,6 +4743,10 @@ Apologies for any names omitted.
 	smtp/smtp_connect.c, smtp/smtp_addr.c.
 
 20010121
+
+	Workaround: specify "broken_sasl_auth_clients = yes" in
+	order to support old Microsoft clients that implement
+	a non-standard version of RFC 2554 (AUTH command).
 
 	Workaround: Lotus Domino 5.0.4 violates RFC 2554 and replies
 	to EHLO with AUTH=LOGIN. File: smtp/smtp_proto.c.
@@ -4756,13 +4759,33 @@ Apologies for any names omitted.
 	by Laurent Wacrenier (teaser.fr).  Files: util/dict*.[hc].
 
 	Code cleanup: INSTALL.sh does not ask questions when stdin
-	is not connected to a tty. To automate a customized install,
-	the script imports environment variables for install_root
-	etc.
+	is not connected to a tty (as in: make install</dev/null).
+	To automate a customized install, the script imports
+	environment variables for install_root etc.
 
 20010127
 
-	Workaround: randomize the delay between lock attempts, so
-	that multiple defer servers are less likely to retry at
-	the same time.  likely.  File:  util/rand_sleep.c,
-	global/deliver_flock.c, global/dot_lockfile.c.
+	Workaround: randomize the delay between attempts to lock
+	a file, so that multiple bounce or defer servers are less
+	likely to retry all at the same time.  likely.  File:
+	util/rand_sleep.c, global/deliver_flock.c, global/dot_lockfile.c.
+
+20010128
+
+	Code cleanup: complaints about invalid or numeric hostnames
+	either provide specific context or are removed as redundant.
+	Files:  util/valid_hostname.c dns/dns_lookup.c.
+
+	Code cleanup: new mailbox_size_limit parameter (default:
+	20MB).  Until now, the mailbox size limit was the same as
+	the message size limit, due to artefact of implementation.
+	Files: global/mail_params.h, local/local.c.
+
+	Bugfix: fix for the ldap_domains parameter, both semantics
+	and documentation by LaMont Jones. Files:  LDAP_README,
+	conf/sample-ldap.cf, util/dict_ldap.c.
+
+	Update: merged in the virtual delivery agent by Andrew
+	McNamara.  See VIRTUAL_README for detailed examples.
+
+	Update: merged a re-vamped nqmgr by Patrik Rak.

@@ -60,6 +60,15 @@ typedef struct QMGR_SCAN QMGR_SCAN;
     object->peers.next = object->peers.prev = 0; \
 }
 
+#define QMGR_LIST_LINK(head, pred, object, succ, peers) { \
+    object->peers.prev = pred; \
+    object->peers.next = succ; \
+    if (pred) pred->peers.next = object; \
+    else head.next = object; \
+    if (succ) succ->peers.prev = object; \
+    else head.prev = object; \
+}
+
 #define QMGR_LIST_PREPEND(head, object, peers) { \
     object->peers.next = head.next; \
     object->peers.prev = 0; \
@@ -121,8 +130,8 @@ struct QMGR_TRANSPORT {
     int     dest_concurrency_limit;	/* concurrency per domain */
     int     init_dest_concurrency;	/* init. per-domain concurrency */
     int     recipient_limit;		/* recipients per transaction */
-    int     rcpt_per_stack;		/* extra slots reserved for jobs on
-					 * the job stack */
+    int     rcpt_per_stack;		/* extra slots reserved for jobs put
+					 * on the job stack */
     int     rcpt_unused;		/* available in-core recipient slots */
     int     slot_cost;			/* cost of new preemption slot (# of
 					 * selected entries) */
@@ -134,13 +143,16 @@ struct QMGR_TRANSPORT {
     QMGR_QUEUE_LIST queue_list;		/* queues, round robin order */
     struct HTABLE *job_byname;		/* jobs indexed by queue id */
     QMGR_JOB_LIST job_list;		/* list of message jobs (1 per
-					 * message) */
-    QMGR_JOB_LIST job_stack;		/* job stack for tracking preemption */
+					 * message) ordered by scheduler */
+    QMGR_JOB_LIST job_bytime;		/* jobs ordered by time since queued */
+    QMGR_JOB *job_current;		/* keeps track of the current job */
     QMGR_JOB *job_next_unread;		/* next job with unread recipients */
     QMGR_JOB *candidate_cache;		/* cached result from
 					 * qmgr_job_candidate() */
+    QMGR_JOB *candidate_cache_current;	/* current job tied to the candidate */
     time_t  candidate_cache_time;	/* when candidate_cache was last
 					 * updated */
+    int     blocker_tag;		/* for marking blocker jobs */
     QMGR_TRANSPORT_LIST peers;		/* linkage */
     char   *reason;			/* why unavailable */
 };
@@ -178,6 +190,7 @@ struct QMGR_QUEUE {
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
     QMGR_QUEUE_LIST peers;		/* neighbor queues */
     char   *reason;			/* why unavailable */
+    int     blocker_tag;		/* tagged if blocks job list */
 };
 
 #define	QMGR_QUEUE_TODO	1		/* waiting for service */
@@ -298,9 +311,13 @@ struct QMGR_JOB {
     QMGR_TRANSPORT *transport;		/* transport this job belongs to */
     QMGR_JOB_LIST message_peers;	/* per message neighbor linkage */
     QMGR_JOB_LIST transport_peers;	/* per transport neighbor linkage */
-    QMGR_JOB_LIST stack_peers;		/* transport stack linkage */
+    QMGR_JOB_LIST time_peers;		/* by time neighbor linkage */
+    QMGR_JOB *stack_parent;		/* stack parent */
+    QMGR_JOB_LIST stack_children;	/* all stack children */
+    QMGR_JOB_LIST stack_siblings;	/* stack children linkage */
     int     stack_level;		/* job stack nesting level (-1 means
-					 * retired) */
+					 * it's not on the lists at all) */
+    int     blocker_tag;		/* tagged if blocks the job list */
     struct HTABLE *peer_byname;		/* message job peers, indexed by
 					 * domain */
     QMGR_PEER_LIST peer_list;		/* list of message job peers */

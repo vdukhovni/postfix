@@ -92,6 +92,7 @@
 #include <stdlib.h>
 #include <lber.h>
 #include <ldap.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -383,13 +384,16 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
      * load on the LDAP server.
      */
     if (dict_ldap->domain) {
-	if (strrchr(name, '@') != 0) {
-	    if (match_list_match(dict_ldap->domain, (char *) strrchr(name, '@') + 1) == 0) {
-		if (msg_verbose)
-		    msg_info("%s: domain of %s not found in domain list", myname,
-			     name);
-		return (0);
-	    }
+	char *p=strrchr(name,'@');
+	if (p != 0)
+	    p=p+1;
+	else
+	    p=name;
+	if (match_list_match(dict_ldap->domain, p) == 0) {
+	    if (msg_verbose)
+		msg_info("%s: domain of %s not found in domain list", myname,
+			 name);
+	    return (0);
 	}
     }
 

@@ -2,7 +2,7 @@
 /* NAME
 /*	qmgr_deliver 3
 /* SUMMARY
-/*	deliver one pe-site queue entry to that site
+/*	deliver one per-site queue entry to that site
 /* SYNOPSIS
 /*	#include "qmgr.h"
 /*

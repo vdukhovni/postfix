@@ -140,6 +140,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     QMGR_PEER *peer = entry->peer;
     QMGR_JOB *sponsor,
            *job = peer->job;
+    QMGR_TRANSPORT *transport = job->transport;
 
     /*
      * Take this entry off the in-core queue.
@@ -171,7 +172,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     /*
      * Make sure that the transport of any retired or finishing job that
      * donated recipient slots to this message gets them back first. Then, if
-     * possible, pass the remaining unused recipient slots to the next job in
+     * possible, pass the remaining unused recipient slots to the next job on
      * the job list.
      */
     for (sponsor = message->job_list.next; sponsor; sponsor = sponsor->message_peers.next) {
@@ -182,6 +183,26 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     }
     if (message->rcpt_offset == 0) {
 	qmgr_job_move_limits(job);
+    }
+
+    /*
+     * If the queue was blocking some of the jobs on the job list, check if
+     * the concurrency limit has lifted. If there are still some pending
+     * deliveries, give it a try and unmark all transport blockers at once.
+     * The qmgr_job_entry_select() will do the rest. In either case make sure
+     * the queue is not marked as a blocker anymore, with extra handling of
+     * queues which were declared dead.
+     * 
+     * Keeping the transport blocker tag odd is an easy way to make sure the tag
+     * never matches jobs that are not explicitly marked as blockers.
+     */
+    if (queue->blocker_tag == transport->blocker_tag) {
+	if (queue->window > queue->busy_refcount && queue->todo.next != 0) {
+	    transport->blocker_tag += 2;
+	    transport->job_current = transport->job_list.next;
+	}
+	if (queue->window > queue->busy_refcount || queue->window == 0)
+	    queue->blocker_tag = 0;
     }
 
     /*

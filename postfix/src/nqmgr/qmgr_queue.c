@@ -146,7 +146,7 @@ void    qmgr_queue_unthrottle(QMGR_QUEUE *queue)
      */
     if (transport->dest_concurrency_limit == 0
 	|| transport->dest_concurrency_limit > queue->window)
-	if (queue->window <= queue->busy_refcount + transport->init_dest_concurrency)
+	if (queue->window < queue->busy_refcount + transport->init_dest_concurrency)
 	    queue->window++;
 }
 
@@ -237,6 +237,7 @@ QMGR_QUEUE *qmgr_queue_create(QMGR_TRANSPORT *transport, const char *site)
     QMGR_LIST_INIT(queue->todo);
     QMGR_LIST_INIT(queue->busy);
     queue->reason = 0;
+    queue->blocker_tag = 0;
     QMGR_LIST_APPEND(transport->queue_list, queue, peers);
     htable_enter(transport->queue_byname, site, (char *) queue);
     return (queue);

@@ -80,6 +80,7 @@ smtp	  unix	-	-	n	-	-	smtp
 showq     unix	n	-	n	-	-	showq
 error     unix	-	-	n	-	-	error
 local	  unix	-	n	n	-	-	local
+virtual	  unix	-	n	n	-	-	virtual
 lmtp	  unix	-	-	n	-	-	lmtp
 cyrus	  unix	-	n	n	-	-	pipe
     flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}

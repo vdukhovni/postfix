@@ -354,10 +354,13 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
     QMGR_LIST_INIT(transport->queue_list);
     transport->job_byname = htable_create(0);
     QMGR_LIST_INIT(transport->job_list);
-    QMGR_LIST_INIT(transport->job_stack);
+    QMGR_LIST_INIT(transport->job_bytime);
+    transport->job_current = 0;
     transport->job_next_unread = 0;
     transport->candidate_cache = 0;
+    transport->candidate_cache_current = 0;
     transport->candidate_cache_time = (time_t) 0;
+    transport->blocker_tag = 1;
     transport->reason = 0;
     if (qmgr_transport_byname == 0)
 	qmgr_transport_byname = htable_create(10);

@@ -303,8 +303,6 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     if (message->rcpt_offset) {
 	if (message->rcpt_list.len)
 	    msg_panic("%s: recipient list not empty on recipient reload", message->queue_id);
-	if (message->rcpt_limit <= message->rcpt_count)
-	    msg_panic("%s: no recipient slots available", message->queue_id);
 	if (vstream_fseek(message->fp, message->rcpt_offset, SEEK_SET) < 0)
 	    msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 	message->rcpt_offset = 0;
@@ -505,14 +503,14 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
 	/*
 	 * Compare message transport.
 	 */
-	if ((result = strcasecmp(queue1->transport->name,
-				 queue2->transport->name)) != 0)
+	if ((result = strcmp(queue1->transport->name,
+			     queue2->transport->name)) != 0)
 	    return (result);
 
 	/*
-	 * Compare next-hop hostname.
+	 * Compare (already lowercased) next-hop hostname.
 	 */
-	if ((result = strcasecmp(queue1->name, queue2->name)) != 0)
+	if ((result = strcmp(queue1->name, queue2->name)) != 0)
 	    return (result);
     }
 
@@ -527,7 +525,7 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
     /*
      * Compare recipient address.
      */
-    return (strcasecmp(rcpt1->address, rcpt2->address));
+    return (strcmp(rcpt1->address, rcpt2->address));
 }
 
 /* qmgr_message_sort - sort message recipient addresses by domain */
@@ -565,7 +563,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
     char   *nexthop;
     int     len;
 
-#define STREQ(x,y)	(strcasecmp(x,y) == 0)
+#define STREQ(x,y)	(strcmp(x,y) == 0)
 #define STR		vstring_str
 #define LEN		VSTRING_LEN
 #define UPDATE(ptr,new)	{ myfree(ptr); ptr = mystrdup(new); }
@@ -583,7 +581,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if ((at = strrchr(recipient->address, '@')) != 0
 	    && (at + 1)[strspn(at + 1, "[]0123456789.")] != 0
-	    && valid_hostname(at + 1) == 0) {
+	    && valid_hostname(at + 1, DONT_GRIPE) == 0) {
 	    qmgr_bounce_recipient(message, recipient,
 				  "bad host/domain syntax: \"%s\"", at + 1);
 	    continue;
@@ -699,8 +697,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	     * postmaster, though, but that is an RFC requirement anyway.
 	     */
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
-			    at - STR(reply.recipient)) == 0
-		&& !var_double_bounce_sender[at - STR(reply.recipient)]) {
+			    len) == 0
+		&& !var_double_bounce_sender[len]) {
 		sent(message->queue_id, recipient->address,
 		     "none", message->arrival_time, "discarded");
 		deliver_completed(message->fp, recipient->offset);
@@ -718,7 +716,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    if (defer_xport_argv == 0)
 		defer_xport_argv = argv_split(var_defer_xports, " \t\r\n,");
 	    for (cpp = defer_xport_argv->argv; *cpp; cpp++)
-		if (strcasecmp(*cpp, STR(reply.transport)) == 0)
+		if (strcmp(*cpp, STR(reply.transport)) == 0)
 		    break;
 	    if (*cpp) {
 		qmgr_defer_recipient(message, recipient->address,
@@ -805,25 +803,61 @@ static void qmgr_message_assign(QMGR_MESSAGE *message)
 	    if (message->single_rcpt || entry == 0 || entry->queue != queue
 		|| !LIMIT_OK(queue->transport->recipient_limit,
 			     entry->rcpt_list.len)) {
+
+		/*
+		 * Lookup or instantiate the message job if necessary.
+		 */
 		if (job == 0 || queue->transport != job->transport) {
 		    job = qmgr_job_obtain(message, queue->transport);
 		    peer = 0;
 		}
+
+		/*
+		 * Lookup or instantiate job peer if necessary.
+		 */
 		if (peer == 0 || queue != peer->queue) {
 		    if ((peer = qmgr_peer_find(job, queue)) == 0)
 			peer = qmgr_peer_create(job, queue);
 		}
+
+		/*
+		 * Create new peer entry.
+		 */
 		entry = qmgr_entry_create(peer, message);
 		job->read_entries++;
 	    }
+
+	    /*
+	     * Add the recipient to the current entry and increase all those
+	     * recipient counters accordingly.
+	     */
 	    qmgr_rcpt_list_add(&entry->rcpt_list, recipient->offset, recipient->address);
 	    job->rcpt_count++;
 	    message->rcpt_count++;
 	    qmgr_recipient_count++;
 	}
     }
+
+    /*
+     * Release the message recipient list and reinitialize it for the next
+     * time.
+     */
     qmgr_rcpt_list_free(&message->rcpt_list);
     qmgr_rcpt_list_init(&message->rcpt_list);
+
+    /*
+     * Note that even if qmgr_job_obtain() reset the job candidate cache of
+     * all transports to which we assigned new recipients, this message may
+     * have other jobs which we didn't touch at all this time. But as the
+     * number of unread recipients affecting the candidate selection might
+     * have changed considerably, let's invalidate the caches if it seems it
+     * might be of some use. It's not critical though because the cache will
+     * expire within one second anyway.
+     */
+    for (job = message->job_list.next; job; job = job->message_peers.next)
+	if (job->selected_entries < job->read_entries
+	    && job->blocker_tag != job->transport->blocker_tag)
+	    job->transport->candidate_cache_current = 0;
 }
 
 /* qmgr_message_move_limits - recycle unused recipient slots */

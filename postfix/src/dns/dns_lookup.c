@@ -241,6 +241,50 @@ static int dns_get_fixed(unsigned char *pos, DNS_FIXED *fixed)
     return (DNS_OK);
 }
 
+/* valid_rr_name - validate hostname in resource record */
+
+static int valid_rr_name(const char *name, const char *location,
+			         unsigned type, DNS_REPLY *reply)
+{
+    char    temp[DNS_NAME_LEN];
+    char   *query_name;
+    int     len;
+    char   *gripe;
+    int     result;
+
+    /*
+     * People aren't supposed to specify numeric names where domain names are
+     * required, but it "works" with some mailers anyway, so people complain
+     * when software doesn't bend over backwards.
+     */
+#define PASS_NAME	1
+#define REJECT_NAME	0
+
+    if (valid_hostaddr(name, DONT_GRIPE)) {
+	result = PASS_NAME;
+	gripe = "numeric domain name";
+    } else if (!valid_hostname(name, DO_GRIPE)) {
+	result = REJECT_NAME;
+	gripe = "malformed domain name";
+    } else {
+	result = PASS_NAME;
+	gripe = 0;
+    }
+
+    /*
+     * If we have a gripe, show some context, including the name used in the
+     * query and the type of reply that we're looking at.
+     */
+    if (gripe) {
+	len = dn_expand(reply->buf, reply->end, reply->query_start,
+			temp, DNS_NAME_LEN);
+	query_name = (len < 0 ? "*unparsable*" : temp);
+	msg_warn("%s in %s of %s record for %s: %.100s",
+		 gripe, location, dns_strtype(type), query_name, name);
+    }
+    return (result);
+}
+
 /* dns_get_rr - extract resource record from name server reply */
 
 static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
@@ -270,7 +314,7 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
     case T_PTR:
 	if (dn_expand(reply->buf, reply->end, pos, temp, sizeof(temp)) < 0)
 	    return (0);
-	if (!valid_hostname(temp))
+	if (!valid_rr_name(temp, "resource data", fixed->type, reply))
 	    return (0);
 	data_len = strlen(temp) + 1;
 	break;
@@ -278,7 +322,7 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 	GETSHORT(pref, pos);
 	if (dn_expand(reply->buf, reply->end, pos, temp, sizeof(temp)) < 0)
 	    return (0);
-	if (!valid_hostname(temp))
+	if (!valid_rr_name(temp, "resource data", fixed->type, reply))
 	    return (0);
 	data_len = strlen(temp) + 1;
 	break;
@@ -315,7 +359,7 @@ static int dns_get_alias(DNS_REPLY *reply, unsigned char *pos,
 	msg_panic("dns_get_alias: bad type %s", dns_strtype(fixed->type));
     if (dn_expand(reply->buf, reply->end, pos, cname, c_len) < 0)
 	return (DNS_RETRY);
-    if (!valid_hostname(cname))
+    if (!valid_rr_name(cname, "resource data", fixed->type, reply))
 	return (DNS_RETRY);
     return (DNS_OK);
 }
@@ -369,10 +413,6 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	len = dn_expand(reply->buf, reply->end, pos, rr_name, DNS_NAME_LEN);
 	if (len < 0)
 	    CORRUPT;
-	if (!valid_hostname(rr_name))
-	    CORRUPT;
-	if (fqdn)
-	    vstring_strcpy(fqdn, rr_name);
 	pos += len;
 
 	/*
@@ -382,6 +422,10 @@ static int dns_get_answer(DNS_REPLY *reply, int type,
 	    CORRUPT;
 	if (dns_get_fixed(pos, &fixed) != DNS_OK)
 	    CORRUPT;
+	if (!valid_rr_name(rr_name, "resource name", fixed.type, reply))
+	    CORRUPT;
+	if (fqdn)
+	    vstring_strcpy(fqdn, rr_name);
 	if (msg_verbose)
 	    msg_info("dns_get_answer: type %s for %s",
 		     dns_strtype(fixed.type), rr_name);
@@ -434,7 +478,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
     /*
      * The Linux resolver misbehaves when given an invalid domain name.
      */
-    if (!valid_hostname(name)) {
+    if (!valid_hostname(name, DONT_GRIPE)) {
 	if (why)
 	    vstring_sprintf(why, "Name service error for %s: invalid name",
 			    name);

@@ -67,3 +67,8 @@
 # ldap_open(3) man page.
 #
 #ldap_dereference = 0
+
+# The ldap_domain parameter limits the LDAP searches to just things in
+# (exactly) the specified list of domains.
+#
+#ldap_domain =

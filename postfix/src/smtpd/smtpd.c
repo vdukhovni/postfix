@@ -1096,7 +1096,7 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (!ISALNUM(argv[1].strval[0]))
 	argv[1].strval++;
-    if (!valid_hostname(argv[1].strval)) {
+    if (!valid_hostname(argv[1].strval, DONT_GRIPE)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Error: invalid parameter syntax");
 	return (-1);

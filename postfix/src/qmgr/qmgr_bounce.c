@@ -55,7 +55,7 @@
 
 /* qmgr_bounce_recipient - bounce one message recipient */
 
-void    qmgr_bounce_recipient(QMGR_MESSAGE *message, QMGR_RCPT * recipient,
+void    qmgr_bounce_recipient(QMGR_MESSAGE *message, QMGR_RCPT *recipient,
 			              const char *format,...)
 {
     va_list ap;

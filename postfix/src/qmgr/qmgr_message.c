@@ -461,7 +461,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if ((at = strrchr(recipient->address, '@')) != 0
 	    && (at + 1)[strspn(at + 1, "[]0123456789.")] != 0
-	    && valid_hostname(at + 1) == 0) {
+	    && valid_hostname(at + 1, DONT_GRIPE) == 0) {
 	    qmgr_bounce_recipient(message, recipient,
 				  "bad host/domain syntax: \"%s\"", at + 1);
 	    continue;
@@ -577,8 +577,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	     * postmaster, though, but that is an RFC requirement anyway.
 	     */
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
-			    at - STR(reply.recipient)) == 0
-		&& !var_double_bounce_sender[at - STR(reply.recipient)]) {
+			    len) == 0
+		&& !var_double_bounce_sender[len]) {
 		sent(message->queue_id, recipient->address,
 		     "none", message->arrival_time, "discarded");
 		deliver_completed(message->fp, recipient->offset);

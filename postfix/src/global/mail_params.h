@@ -380,6 +380,14 @@ extern char *var_forward_path;
 extern char *var_mailbox_lock;
 
  /*
+  * Mailbox size limit. This used to be enforced as a side effect of the way
+  * the message size limit is implemented, but that is not clean.
+  */
+#define VAR_MAILBOX_LIMIT	"mailbox_size_limit"
+#define DEF_MAILBOX_LIMIT	(DEF_MESSAGE_LIMIT * 2)
+extern int var_mailbox_limit;
+
+ /*
   * Miscellaneous.
   */
 #define VAR_PROP_EXTENSION	"propagate_unmatched_extensions"
@@ -1177,6 +1185,41 @@ extern char *var_import_environ;
 #define VAR_EXPORT_ENVIRON		"export_environment"
 #define DEF_EXPORT_ENVIRON		"TZ"
 extern char *var_export_environ;
+
+ /*
+  * Tunables for the "virtual" local delivery agent
+  */
+#define VAR_VIRT_MAILBOX_MAPS		"virtual_mailbox_maps"
+#define DEF_VIRT_MAILBOX_MAPS		""
+extern char *var_virt_mailbox_maps;
+
+#define VAR_VIRT_UID_MAPS		"virtual_uid_maps"
+#define DEF_VIRT_UID_MAPS		""
+extern char *var_virt_uid_maps;
+
+#define VAR_VIRT_GID_MAPS		"virtual_gid_maps"
+#define DEF_VIRT_GID_MAPS		""
+extern char *var_virt_gid_maps;
+
+#define VAR_VIRT_USEDOTLOCK		"virtual_usedotlock"
+#define DEF_VIRT_USEDOTLOCK		0
+extern bool var_virt_usedotlock;
+
+#define VAR_VIRT_MINUID			"virtual_minimum_uid"
+#define DEF_VIRT_MINUID			100
+extern int var_virt_minimum_uid;
+
+#define VAR_VIRT_MAILBOX_BASE		"virtual_mailbox_base"
+#define DEF_VIRT_MAILBOX_BASE		""
+extern char *var_virt_mailbox_base;
+
+#define VAR_VIRT_MAILBOX_LIMIT		"virtual_mailbox_limit"
+#define DEF_VIRT_MAILBOX_LIMIT		(2 * DEF_MESSAGE_LIMIT)
+extern int var_virt_mailbox_limit;
+
+#define VAR_VIRT_MAILBOX_LOCK		"virtual_mailbox_lock"
+#define DEF_VIRT_MAILBOX_LOCK		"fcntl"
+extern char *var_virt_mailbox_lock;
 
 /* LICENSE
 /* .ad

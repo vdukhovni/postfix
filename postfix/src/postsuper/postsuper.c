@@ -277,7 +277,7 @@ static void super(char **queues, int action)
     argv_free(hash_queue_names);
 }
 
-main(int argc, char **argv)
+int     main(int argc, char **argv)
 {
     int     fd;
     struct stat st;

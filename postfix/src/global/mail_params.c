@@ -340,8 +340,10 @@ void    mail_params_init()
      * the domain.
      */
     get_mail_conf_str_fn_table(function_str_defaults);
-    if (!valid_hostname(var_myhostname) || !valid_hostname(var_mydomain))
-	msg_fatal("host or domain name configuration error");
+    if (!valid_hostname(var_myhostname, DO_GRIPE)
+	|| !valid_hostname(var_mydomain, DO_GRIPE))
+	msg_fatal("main.cf configuration error: bad %s or %s parameter value",
+		  VAR_MYHOSTNAME, VAR_MYDOMAIN);
 
     /*
      * Variables that are needed by almost every program.

@@ -456,6 +456,7 @@ char   *var_deliver_hdr;
 int     var_stat_home_dir;
 int     var_mailtool_compat;
 char   *var_mailbox_lock;
+int     var_mailbox_limit;
 
 int     local_cmd_deliver_mask;
 int     local_file_deliver_mask;
@@ -621,6 +622,26 @@ static void post_init(char *unused_name, char **unused_argv)
     local_mask_init();
 }
 
+/* pre_init - pre-jail initialization */
+
+static void pre_init(char *unused_name, char **unused_argv)
+{
+
+    /*
+     * Reset the file size limit from the message size limit to the mailbox
+     * size limit. XXX This still isn't accurate because the file size limit
+     * also affects delivery to command.
+     * 
+     * We can't have mailbox size limit smaller than the message size limit,
+     * because that prohibits the delivery agent from updating the queue
+     * file.
+     */
+    if (var_mailbox_limit < var_message_limit)
+	msg_fatal("main.cf configuration error: %s is smaller than %s",
+		  VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
+    set_file_limit(var_mailbox_limit);
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -631,6 +652,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_INT_TABLE int_table[] = {
 	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
+	VAR_MAILBOX_LIMIT, DEF_MAILBOX_LIMIT, &var_mailbox_limit, 1, 0,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
@@ -671,6 +693,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
+		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);

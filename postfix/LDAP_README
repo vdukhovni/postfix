@@ -86,11 +86,12 @@ parameter below, "server_host", would be defined in main.cf as
 	substitute for the address Postfix is trying to resolve, e.g.
 		ldapsource_query_filter = (&(mail=%s)(paid_up=true))
 
-    domain (No default; you must configure this.)
+    domain (Default is to ignore this.)
     	This is a list of domain names, paths to files, or dictionaries.
-    	If specified, only lookups ending in a domain on this list will
-	be searched. This can significantly reduce the query load on the 
-	LDAP server.
+	If specified, only lookups for the domains on this list will be
+	performed.  This means that the LDAP map won't get searched for
+	'user', nor will it get searched for any domain not listed.  This
+	can significantly reduce the query load on the LDAP server.
 		ldapsource_domain = postfix.org, hash:/etc/postfix/searchdomains
 
     result_attribute (maildrop)

@@ -311,7 +311,7 @@ int     mail_queue_id_ok(const char *queue_id)
     /*
      * OK if in valid hostname form.
      */
-    return (valid_hostname(queue_id));
+    return (valid_hostname(queue_id, DO_GRIPE));
 }
 
 /* mail_queue_enter - make mail queue entry with locally-unique name */
