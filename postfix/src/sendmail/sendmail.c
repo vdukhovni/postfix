@@ -399,23 +399,13 @@ static void output_header(void *context, int header_class,
     char   *next_line;
 
     /*
-     * Pipe the unmodified message header through the header line folding
-     * routine.
-     */
-    for (line = start = STR(buf); line; line = next_line) {
-	next_line = split_at(line, '\n');
-	output_text(context, REC_TYPE_NORM, line, next_line ?
-		    next_line - line - 1 : strlen(line), offset);
-    }
-
-    /*
      * Parse the header line, and save copies of recipient addresses in the
      * appropriate place.
      */
     if (header_class == MIME_HDR_PRIMARY
 	&& header_info
-	&& header_info->flags & HDR_OPT_RECIP
-	&& header_info->flags & HDR_OPT_EXTRACT
+	&& (header_info->flags & HDR_OPT_RECIP)
+	&& (header_info->flags & HDR_OPT_EXTRACT)
 	&& (state->resent == 0 || (header_info->flags & HDR_OPT_RR))) {
 	if (header_info->flags & HDR_OPT_RR) {
 	    rcpt = state->resent_recip;
@@ -431,6 +421,16 @@ static void output_header(void *context, int header_class,
 	}
 	myfree((char *) addr_list);
 	tok822_free_tree(tree);
+    }
+
+    /*
+     * Pipe the unmodified message header through the header line folding
+     * routine.
+     */
+    for (line = start = STR(buf); line; line = next_line) {
+	next_line = split_at(line, '\n');
+	output_text(context, REC_TYPE_NORM, line, next_line ?
+		    next_line - line - 1 : strlen(line), offset);
     }
 }
 

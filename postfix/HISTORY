@@ -8189,8 +8189,8 @@ Apologies for any names omitted.
 	of mail probes, so it will no longer block for in_flow_delay
 	seconds when mail arrives faster than it is delivered.
 	Still need to make mail_stream_finish() asynchronous in
-	order to avoid blocking for trigger_timeout seconds when the
-	queue manager is overwhelmed.  Files:  global/post_mail.c,
+	order to avoid blocking for trigger_timeout seconds when
+	the queue manager is overwhelmed.  Files:  global/post_mail.c,
 	verify/verify.c.
 
 	Bugfix: removed extraneous sleep() after the last attempt
@@ -8200,6 +8200,22 @@ Apologies for any names omitted.
 
 	Bugfix: the stricter postdrop input filter broke "sendmail
 	-bs". Found by Lutz Jaenicke. File: smtpd/smtpd.c.
+
+20030618
+
+	After "postfix reload", the master daemon now warns when
+	inet_interfaces has changed, and ignores the change, instead
+	of passing incorrect information to the smtp server. File:
+	master/master_ent.c.
+
+20030620
+
+	Bugfix: after the last change to postdrop, postcat no longer
+	recognized maildrop files as valid. File: postcat/postcat.c.
+
+	Bugfix: after moving "sendmail -t" address extraction to
+	sendmail, "-t" broke multi-line recipient headers.  Victor
+	Duchovni, Morgan Stanley. File: sendmail/sendmail.c.
 
 Open problems:
 

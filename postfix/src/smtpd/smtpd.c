@@ -720,7 +720,8 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      * Report trouble. Log a warning only if we are going to sleep+reject so
      * that attackers can't flood our logfiles.
      */
-    if ((arg->strval[0] == 0 && !allow_empty_addr) || arg->strval[0] == '@') {
+    if ((arg->strval[0] == 0 && !allow_empty_addr)
+	|| (strict_rfc821 && arg->strval[0] == '@')) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
 	err = "501 Bad address syntax";
