@@ -78,11 +78,12 @@ int     mail_flow_get(int len)
 	msg_panic("%s: bad length %d", myname, len);
 
     /*
-     * Read and discard N bytes.
+     * Read and discard N bytes. XXX AIX read() returns 0 when the pipe is
+     * empty.
      */
     for (count = len; count > 0; count -= n)
 	if ((n = read(MASTER_FLOW_READ, buf, count > BUFFER_SIZE ?
-		      BUFFER_SIZE : count)) < 0)
+		      BUFFER_SIZE : count)) <= 0)
 	    return (-1);
     if (msg_verbose)
 	msg_info("%s: %d %d", myname, len, len - count);

@@ -5926,6 +5926,24 @@ Apologies for any names omitted.
 	queue directory, did not set group ownership of the public
 	directory.
 
+20020109
+
+	Cleanup: rewrote the Postfix installation procedure again.
+	It is now separated into 1) a primary installation script
+	(postfix-install) that installs files locally or that builds
+	a package for distribution and that stores file owner and
+	permission information in /etc/postfix/post-files, and 2)
+	a post-installation script (/etc/postfix/post-install) that
+	creates missing directories, that sets file/directory
+	ownership and permissions, and that upgrades existing
+	configuration files if necessary.
+
+20020110
+
+	Workaround: AIX null read() return on an empty but open
+	non-blocking pipe. File:  master/master_flow.c.  Report:
+	Hamish Marson.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in

@@ -1,0 +1,276 @@
+#!/bin/sh
+
+# To view the formatted manual page of this file, type: 
+#	POSTFIXSOURCE/mantools/srctoman - post-install | nroff -man
+
+#++
+# NAME
+#	post-install
+# SUMMARY
+#	Postfix post-installation script
+# SYNOPSIS
+#	post-install [options] config_directory
+# DESCRIPTION
+#	The post-install script performs the finishing touch of a Postfix
+#	installation, after the executable programs and configuration
+#	files are installed. Usage is one of the following:
+# .IP o
+#	While installing Postfix from source code on the local machine, the 
+#	script is run by the postfix-install script to update selected file
+#	or directory permissions and to update selected configuration files.
+# .IP o
+#	While installing Postfix from a pre-built package, the script is run 
+#	by the package management procedure to set all file or directory 
+#	permissions and to update existing Postfix configuration files.
+# .IP o
+#	At Postfix start-up time, the script is run from "postfix check" to 
+#	create missing queue directories.
+# .PP
+#	Arguments
+# .IP -create
+#	Create missing queue directories with ownerships and permissions
+#	according to the contents of $config_directory/postfix-files.
+#
+#	This is required at Postfix start-up time.
+# .IP -set-permissions
+#	Set all file/directory ownerships and permissions according to the 
+#	contents of $config_directory/postfix-files. Implies -create.
+#
+#	This is required when installing Postfix from a pre-built package.
+# .IP -upgrade-permissions
+#	Update ownership and permission of selected files/directories as
+#	specified in $config_directory/postfix-files. Implies -create.
+#
+#	This is required when installing Postfix from source code, while
+#	Postfix was already installed on the machine.
+# .IP -upgrade-configuration
+#	Edit the installed main.cf and master.cf files, in order to account 
+#	for missing services and to fix deprecated parameter settings. 
+#
+#	This is required when Postfix was already installed on the machine.
+# .IP -upgrade-source
+#	Short-hand for -upgrade-permissions -upgrade-configuration.
+#
+#	This is recommended when upgrading Postfix from source code.
+# .IP -upgrade-package
+#	Short-hand for -set-permissions -upgrade-configuration.
+#
+#	This is recommended when upgrading Postfix from a pre-built package.
+# .IP -first-install-reminder
+#	Remind the user that they still need to configure main.cf and the
+#	aliases file, and that newaliases needs to be run.
+#
+#	This is recommended when Postfix is installed for the first time.
+# .IP config_directory
+#	Directory with Postfix configuration files. This must be an absolute
+#	pathname.
+# SEE ALSO
+#	postfix-install(1) Postfix primary installation script for installation
+#	from source code, or for building a package for distribution to other
+#	systems.
+# FILES
+#	$config_directory/main.cf, Postfix installation configuration.
+#	$config_directory/postfix-files, permissions and ownerships.
+#	This file is created by postfix-install.
+# LICENSE
+# .ad
+# .fi
+#	The Secure Mailer license must be distributed with this software.
+# AUTHOR(S)
+#	Wietse Venema
+#	IBM T.J. Watson Research
+#	P.O. Box 704
+#	Yorktown Heights, NY 10598, USA
+#--
+
+umask 022
+
+PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc:/usr/contrib/bin:/usr/gnu/bin:/usr/ucb:/usr/bsd
+SHELL=/bin/sh
+
+USAGE="usage: $0 [options] config_directory
+
+    -upgrade-source         Use when upgrading from source.
+
+    -upgrade-package        Use when upgrading from pre-built package.
+
+    -first-install-reminder Remind of mandatory configuration steps.
+
+    config_directory        Must be an absolute path name."
+
+# Process command-line settings
+
+for arg
+do
+    case $arg in
+                -create) create=1;;
+             -set-perm*) create=1; set_perms=1;;
+         -upgrade-perm*) create=1; upgrade_perms=1;;
+         -upgrade-conf*) upgrade_conf=1;;
+        -upgrade-source) create=1; upgrade_conf=1; upgrade_perms=1;;
+       -upgrade-package) create=1; upgrade_conf=1; set_perms=1;;
+        -first-install*) first_install_reminder=1;;
+                     /*) config_dir=$1;;
+                     "") break;;
+                      *) echo "Error: $USAGE" 1>&2; exit 1;;
+    esac
+    shift
+done
+
+# Sanity checks.
+
+test -n "$create$upgrade_conf$first_install_reminder" || {
+    echo "Error: $USAGE" 1>&2
+    exit 1
+}
+
+test -n "$config_dir" || {
+    echo "Error: $USAGE" 1>&2
+    exit 1
+}
+
+test -d "$config_dir" || {
+    echo Error: $config_dir is not a directory. 1>&2
+    exit 1
+}
+
+test -f $config_dir/postfix-files || {
+    Error: $config_dir/postfix-files is not a file. 1>&2
+    exit 1
+}
+
+# 
+# LINUX by default does not synchronously update directories -
+# that's dangerous for mail.
+#
+if [ -f /usr/bin/chattr ]
+then
+    CHATTR="/usr/bin/chattr +S"
+else
+    CHATTR=echo
+fi
+
+# Use file/directory status information in $config_dir/postfix-files.
+
+test -n "$create" && {
+    IFS=:
+    while read path type owner group mode upgrade_flag create_flag junk
+    do
+	set_permission=
+	case $path in
+	/*) # Create missing directories with proper owner/group/mode settings.
+	    if [ -n "$create" -a "$type" = "d" -a -n "$create_flag" -a ! -d "$path" ]
+	    then
+		mkdir $path || exit 1
+		$CHATTR $path >/dev/null 2>/dev/null
+		set_permission=1
+	    # Update all owner/group/mode settings.
+	    elif [ -n "$set_perms" ]
+	    then
+		set_permission=1
+	    # Update obsolete owner/group/mode settings.
+	    elif [ -n "$upgrade_perms" -a -n "$upgrade_flag" ]
+	    then
+		set_permission=1
+	    fi
+	    test -n "$set_permission" && {
+		chown $owner $path || exit 1
+		test -z "$group" || chgrp $group $path || exit 1
+		chmod $mode $path || exit 1
+	    }
+	    ;;
+	esac
+    done <$config_dir/postfix-files
+}
+
+# Upgrade existing Postfix configuration files if necessary.
+
+test -n "$upgrade_conf" && {
+
+    # Add missing flush service to master.cf.
+
+    grep 'flush.*flush' $config_dir/master.cf >/dev/null || {
+	echo Editing $config_dir/master.cf, adding missing entry for flush service
+	cat >>$config_dir/master.cf <<EOF
+flush     unix  -       -       n       1000?   0       flush
+EOF
+    }
+
+    # Change privileged pickup service into unprivileged.
+
+    grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
+	$config_dir/master.cf >/dev/null && {
+	    echo Editing $config_dir/master.cf, making the pickup service unprivileged
+	    ed $config_dir/master.cf <<EOF
+/^pickup[ 	]*fifo[ 	]*n[ 	]*n/
+s/\(n[ 	]*\)n/\1-/
+p
+w
+q
+EOF
+    }
+
+    # Change private cleanup and flush services into public.
+
+    for name in cleanup flush
+    do
+	grep "^$name[ 	]*unix[ 	]*-" \
+	    $config_dir/master.cf >/dev/null && {
+		echo Editing $config_dir/master.cf, making the $name service public
+	    ed $config_dir/master.cf <<EOF
+/^$name[ 	]*unix[ 	]*-/
+s/-/n/
+p
+w
+q
+EOF
+	}
+    done
+
+    # With 10000 active queue files, the active queue directory should
+    # be hashed, and so should the other directories, because they
+    # can contain even more mail.
+    #
+    # Unfortunately, this sucks mailq performance on unloaded systems. 
+    # 
+    # If you don't want slow mailq, be sure to hash defer and deferred,
+    # because those two directories can contain lots of files.
+
+    found=`bin/postconf -c $config_dir -h hash_queue_names`
+    missing=
+    (echo "$found" | grep active >/dev/null) || missing="$missing active"
+    (echo "$found" | grep bounce >/dev/null) || missing="$missing bounce"
+    (echo "$found" | grep defer >/dev/null)  || missing="$missing defer"
+    (echo "$found" | grep flush >/dev/null)  || missing="$missing flush"
+    (echo "$found" | grep incoming>/dev/null)|| missing="$missing incoming"
+    (echo "$found" | grep deferred>/dev/null)|| missing="$missing deferred"
+    test -n "$missing" && {
+	echo fixing main.cf hash_queue_names for missing $missing
+	bin/postconf -c $config_dir -e hash_queue_names="$found$missing"
+    }
+
+}
+
+# A reminder if this is the first time Postfix is being installed.
+
+test -n "$first_install_reminder" && {
+
+    ALIASES=`postconf -h alias_database | sed 's/^[^:]*://'`
+    NEWALIASES_PATH=`postconf -h newaliases_path`
+    cat <<EOF 1>&2
+
+    Warning: you still need to edit myorigin/mydestination/mynetworks
+    parameter settings in $config_dir/main.cf.
+
+    See also http://www.postfix.org/faq.html for information about
+    dialup sites or about sites inside a firewalled network.
+
+    BTW: Check your $ALIASES file and be sure to set up aliases
+    that send mail for root and postmaster to a real person, then
+    run $NEWALIASES_PATH.
+
+EOF
+
+}
+
+exit 0

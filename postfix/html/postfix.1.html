@@ -82,25 +82,25 @@ POSTFIX(1)                                             POSTFIX(1)
               This is set when the -D command-line option is pre-
               sent.
 
-       The following configuration parameters are made  available
-       as process environment variables with the same names:
+       The following <b>main.cf</b> configuration  parameters  are  made
+       available  as  process environment variables with the same
+       names:
 
        <b>command</b><i>_</i><b>directory</b>
-              Directory  with  Postfix support commands (default:
-              <b>$program</b><i>_</i><b>directory</b>).
+              Directory with Postfix administrative commands.
 
        <b>daemon</b><i>_</i><b>directory</b>
-              Directory with Postfix  daemon  programs  (default:
-              <b>$program</b><i>_</i><b>directory</b>).
+              Directory with Postfix daemon programs.
 
        <b>config</b><i>_</i><b>directory</b>
               Directory with Postfix configuration files and with
               administrative shell scripts.
 
        <b>queue</b><i>_</i><b>directory</b>
-              The directory with the Postfix queue directory (and
-              with  some  files  needed for programs running in a
-              chrooted environment).
+              The  directory with Postfix queue files, with local
+              inter-process  communication  endpoints,  and  with
+              files  needed  for  daemon programs that run in the
+              optional chrooted environment.
 
        <b>mail</b><i>_</i><b>owner</b>
               The owner of Postfix queue files and of most  Post-
@@ -112,6 +112,8 @@ POSTFIX(1)                                             POSTFIX(1)
 
 <b>FILES</b>
        $<b>config</b><i>_</i><b>directory/postfix-script</b>, administrative commands
+       $<b>config</b><i>_</i><b>directory/main.cf</b>, configuration parameters
+       $<b>config</b><i>_</i><b>directory/master.cf</b>, Postfix daemon processes
 
 <b>SEE</b> <b>ALSO</b>
        <a href="master.8.html">master(8)</a> Postfix master program

@@ -1,3 +1,15 @@
+Incompatible changes with snapshot-20020110
+===========================================
+
+The INSTALL.sh installation procedure is replaced by a postfix-install
+script that either installs Postfix on the local system (as root)
+or that builds a package (as non-root) for distribution to other
+systems. This script creates a file $config_directory/postfix-files
+with ownership and permissions of Postfix files/directories.  The
+$config_directory/post-install script applies the finishing touch:
+it sets file/directory ownership and permissions, edits existing
+configuration files, and creates missing queue directories.
+
 Incompatible changes with snapshot-20020106
 ===========================================
 
@@ -38,9 +50,10 @@ Simplification of the local Postfix security model.
   the set-gid postdrop command for local mail submissions.  The
   local mail pickup daemon is now an unprivileged process.
 
-- No world-accessible pickup and queue manager server FIFOs. Postfix
-  now uses a new set-gid postqueue command for the queue operations
-  that used to implemented by the Postfix sendmail command.
+- No world-accessible pickup and queue manager server FIFOs. 
+
+- A new set-gid postqueue command for the queue operations that
+  used to implemented by the Postfix sendmail command.
 
 Simplification of Postfix installation.
 

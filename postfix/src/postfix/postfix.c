@@ -13,9 +13,9 @@
 /*
 /*	The \fBpostfix\fR command controls the operation of the Postfix
 /*	mail system: start or stop the \fBmaster\fR daemon, do a health
-/*	check, and other maintenance. 
+/*	check, and other maintenance.
 /*
-/*	The \fBpostfix\fR command sets up a standardized environment and 
+/*	The \fBpostfix\fR command sets up a standardized environment and
 /*	runs the \fBpostfix-script\fR shell script to do the actual work.
 /*
 /*	The following commands are implemented:
@@ -68,26 +68,27 @@
 /* .IP \fBMAIL_DEBUG\fR
 /*	This is set when the -D command-line option is present.
 /* .PP
-/*	The following configuration parameters are made available
-/*	as process environment variables with the same names:
+/*	The following \fBmain.cf\fR configuration parameters are made
+/*	available as process environment variables with the same names:
 /* .IP \fBcommand_directory\fR
-/*	Directory with Postfix support commands (default:
-/*	\fB$program_directory\fR).
+/*	Directory with Postfix administrative commands.
 /* .IP \fBdaemon_directory\fR
-/*	Directory with Postfix daemon programs (default:
-/*	\fB$program_directory\fR).
+/*	Directory with Postfix daemon programs.
 /* .IP \fBconfig_directory\fR
 /*	Directory with Postfix configuration files and with administrative
 /*	shell scripts.
 /* .IP \fBqueue_directory\fR
-/*	The directory with the Postfix queue directory (and with some
-/*	files needed for programs running in a chrooted environment).
+/*	The directory with Postfix queue files, with local inter-process
+/*	communication endpoints, and with files needed for daemon programs
+/*	that run in the optional chrooted environment.
 /* .IP \fBmail_owner\fR
 /*	The owner of Postfix queue files and of most Postfix processes.
 /* .IP \fBsetgid_group\fR
 /*	The group for mail submission and queue management commands.
 /* FILES
 /*	$\fBconfig_directory/postfix-script\fR, administrative commands
+/*	$\fBconfig_directory/main.cf\fR, configuration parameters
+/*	$\fBconfig_directory/master.cf\fR, Postfix daemon processes
 /* SEE ALSO
 /*	master(8) Postfix master program
 /* LICENSE

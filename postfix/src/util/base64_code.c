@@ -40,6 +40,7 @@
 
 #include "sys_defs.h"
 #include <ctype.h>
+#include <string.h>
 
 /* Utility library. */
 

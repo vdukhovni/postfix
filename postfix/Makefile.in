@@ -31,10 +31,10 @@ manpages:
 printfck: update
 
 install: update
-	sh INSTALL.sh
+	$(SHELL) postfix-install
 
 upgrade: update
-	sh INSTALL.sh -non-interactive
+	$(SHELL) postfix-install -non-interactive
 
 depend clean:
 	set -e; for i in $(DIRS); do \

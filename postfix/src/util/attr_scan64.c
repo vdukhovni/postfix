@@ -137,6 +137,7 @@
 
 #include <sys_defs.h>
 #include <stdarg.h>
+#include <string.h>
 #include <stdio.h>
 
 /* Utility library. */
