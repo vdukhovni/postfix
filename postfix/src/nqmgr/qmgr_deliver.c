@@ -166,6 +166,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_LONG, MAIL_ATTR_OFFSET, message->data_offset,
 	       ATTR_TYPE_LONG, MAIL_ATTR_SIZE, message->data_size,
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, nexthop,
+	       ATTR_TYPE_STR, MAIL_ATTR_ENCODING, message->encoding,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_ERRTO, message->errors_to,
 	       ATTR_TYPE_STR, MAIL_ATTR_RRCPT, message->return_receipt,

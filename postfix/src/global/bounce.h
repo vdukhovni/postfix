@@ -25,7 +25,7 @@ extern int PRINTFLIKE(6, 7) bounce_append(int, const char *, const char *,
 					          const char *,...);
 extern int vbounce_append(int, const char *, const char *, const char *,
 			          time_t, const char *, va_list);
-extern int bounce_flush(int, const char *, const char *, const char *);
+extern int bounce_flush(int, const char *, const char *, const char *, const char *);
 
 extern int PRINTFLIKE(8, 9) bounce_recip(int, const char *, const char *,
 					         const char *, const char *,

@@ -266,6 +266,7 @@ struct QMGR_MESSAGE {
     long    data_offset;		/* data seek offset */
     char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file */
+    char   *encoding;			/* content encoding */
     char   *sender;			/* complete address */
     char   *verp_delims;		/* VERP delimiters */
     char   *errors_to;			/* error report address */

@@ -61,6 +61,8 @@
 #include <argv.h>
 #include <split_at.h>
 #include <mymalloc.h>
+#include <stringops.h>
+#include <nvtable.h>
 
 /* Global library. */
 
@@ -75,6 +77,7 @@
 #include <mail_addr.h>
 #include <is_header.h>
 #include <ext_prop.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -263,6 +266,7 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, char *buf,
 {
     const char *optional_text = value + strcspn(value, " \t");
     int     command_len = optional_text - value;
+    const char *origin;
 
     while (*optional_text && ISSPACE(*optional_text))
 	optional_text++;
@@ -276,8 +280,10 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, char *buf,
 	    state->reason = mystrdup(*optional_text ? optional_text :
 				     cleanup_strerror(CLEANUP_STAT_CONT));
 	state->errs |= CLEANUP_STAT_CONT;
-	msg_info("%s: reject: %s %.200s; from=<%s> to=<%s>: %s",
-		 state->queue_id, context, buf, state->sender,
+	if ((origin = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
+	    origin = MAIL_ATTR_ORG_NONE;
+	msg_info("%s: reject: %s %.200s from %s; from=<%s> to=<%s>: %s",
+		 state->queue_id, context, buf, origin, state->sender,
 		 state->recip ? state->recip : "unknown",
 		 state->reason);
 	return (CLEANUP_ACT_KEEP);
@@ -310,6 +316,20 @@ static void cleanup_header(CLEANUP_STATE *state)
 {
     char   *myname = "cleanup_header";
     HEADER_OPTS *hdr_opts;
+    char   *hdrval;
+    struct code_map {
+	const char *name;
+	const char *encoding;
+    };
+    static struct code_map code_map[] = {	/* RFC 2045 */
+	"7bit", MAIL_ATTR_ENC_7BIT,
+	"8bit", MAIL_ATTR_ENC_8BIT,
+	"binary", MAIL_ATTR_ENC_8BIT,	/* XXX Violation */
+	"quoted-printable", MAIL_ATTR_ENC_7BIT,
+	"base64", MAIL_ATTR_ENC_7BIT,
+	0,
+    };
+    struct code_map *cmp;
 
     if (msg_verbose)
 	msg_info("%s: '%s'", myname, vstring_str(state->header_buf));
@@ -365,15 +385,28 @@ static void cleanup_header(CLEANUP_STATE *state)
      */
     else {
 	state->headers_seen |= (1 << hdr_opts->type);
+	hdrval = vstring_str(state->header_buf) + strlen(hdr_opts->name) + 2;
+	while (ISSPACE(*hdrval))
+	    hdrval++;
+	trimblanks(hdrval, 0);
 	if (hdr_opts->type == HDR_MESSAGE_ID)
-	    msg_info("%s: message-id=%s", state->queue_id,
-	       vstring_str(state->header_buf) + strlen(hdr_opts->name) + 2);
+	    msg_info("%s: message-id=%s", state->queue_id, hdrval);
 	if (hdr_opts->type == HDR_RESENT_MESSAGE_ID)
-	    msg_info("%s: resent-message-id=%s", state->queue_id,
-	       vstring_str(state->header_buf) + strlen(hdr_opts->name) + 2);
+	    msg_info("%s: resent-message-id=%s", state->queue_id, hdrval);
 	if (hdr_opts->type == HDR_RECEIVED)
 	    if (++state->hop_count >= var_hopcount_limit)
 		state->errs |= CLEANUP_STAT_HOPS;
+	if (hdr_opts->type == HDR_CONTENT_TRANSFER_ENCODING) {
+	    if (nvtable_find(state->attr, MAIL_ATTR_ENCODING) == 0) {
+		for (cmp = code_map; cmp->name != 0; cmp++) {
+		    if (strcasecmp(hdrval, cmp->name) == 0) {
+			nvtable_update(state->attr, MAIL_ATTR_ENCODING,
+				       cmp->encoding);
+			break;
+		    }
+		}
+	    }
+	}
 	if (CLEANUP_OUT_OK(state)) {
 	    if (hdr_opts->flags & HDR_OPT_RR)
 		state->resent = "Resent-";

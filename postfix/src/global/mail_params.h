@@ -1486,6 +1486,13 @@ extern int var_db_create_buf;
 #define DEF_DB_READ_BUF			(128 *1024)
 extern int var_db_read_buf;
 
+ /*
+  * Named queue file attributes.
+  */
+#define VAR_QATTR_COUNT_LIMIT		"queue_file_attribute_count_limit"
+#define DEF_QATTR_COUNT_LIMIT		100
+extern int var_qattr_count_limit;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -113,6 +113,7 @@
 #include <opened.h>
 #include <resolve_local.h>
 #include <verp_sender.h>
+#include <mail_proto.h>
 
 /* Client stubs. */
 
@@ -143,6 +144,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->data_offset = 0;
     message->queue_id = mystrdup(queue_id);
     message->queue_name = mystrdup(queue_name);
+    message->encoding = 0;
     message->sender = 0;
     message->errors_to = 0;
     message->return_receipt = 0;
@@ -203,6 +205,9 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     char   *start;
     struct stat st;
     int     nrcpt = 0;
+    const char *error_text;
+    char   *name;
+    char   *value;
 
     /*
      * Initialize. No early returns or we have a memory leak.
@@ -294,6 +299,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    }
 	    if (vstream_fseek(message->fp, extra_offset, SEEK_SET) < 0)
 		msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
+	} else if (rec_type == REC_TYPE_ATTR) {
+	    if ((error_text = split_nameval(start, &name, &value)) != 0) {
+		msg_warn("%s: bad attribute: %s: %.200s",
+			 message->queue_id, error_text, start);
+		break;
+	    }
+	    if (strcmp(name, MAIL_ATTR_ENCODING) == 0)
+		if (message->encoding == 0)
+		    message->encoding = mystrdup(value);
 	} else if (rec_type == REC_TYPE_ERTO) {
 	    if (message->errors_to == 0)
 		message->errors_to = mystrdup(start);
@@ -336,6 +350,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	message->errors_to = mystrdup("");
     if (message->return_receipt == 0)
 	message->return_receipt = mystrdup("");
+    if (message->encoding == 0)
+	message->encoding = mystrdup(MAIL_ATTR_ENC_NONE);
 
     /*
      * Clean up.
@@ -761,6 +777,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	msg_panic("qmgr_message_free: queue file is open");
     myfree(message->queue_id);
     myfree(message->queue_name);
+    if (message->encoding)
+	myfree(message->encoding);
     if (message->sender)
 	myfree(message->sender);
     if (message->verp_delims)

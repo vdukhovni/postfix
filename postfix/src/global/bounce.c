@@ -23,10 +23,11 @@
 /*	const char *format;
 /*	va_list ap;
 /*
-/*	int	bounce_flush(flags, queue, id, sender)
+/*	int	bounce_flush(flags, queue, id, encoding, sender)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
+/*	const char *encoding;
 /*	const char *sender;
 /* DESCRIPTION
 /*	This module implements the client interface to the message
@@ -56,6 +57,8 @@
 /* .IP id
 /*	The message queue id if the original message file. The bounce log
 /*	file has the same name as the original message file.
+/* .IP encoding
+/*	The body content encoding: MAIL_ATTR_ENC_{7BIT,8BIT,NONE}.
 /* .IP sender
 /*	The sender envelope address.
 /* .IP relay
@@ -168,7 +171,7 @@ int     vbounce_append(int flags, const char *id, const char *recipient,
 /* bounce_flush - flush the bounce log and deliver to the sender */
 
 int     bounce_flush(int flags, const char *queue, const char *id,
-		             const char *sender)
+		             const char *encoding, const char *sender)
 {
 
     /*
@@ -182,6 +185,7 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_END) == 0) {
 	return (0);

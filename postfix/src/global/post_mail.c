@@ -152,6 +152,8 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
      * size record.
      */
     rec_fprintf(stream, REC_TYPE_TIME, "%ld", (long) now);
+    rec_fprintf(stream, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
     rec_fputs(stream, REC_TYPE_FROM, sender);
     rec_fputs(stream, REC_TYPE_RCPT, recipient);
     rec_fputs(stream, REC_TYPE_MESG, "");

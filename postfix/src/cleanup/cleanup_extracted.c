@@ -51,6 +51,7 @@
 #include <vstream.h>
 #include <argv.h>
 #include <mymalloc.h>
+#include <nvtable.h>
 
 /* Global library. */
 
@@ -59,6 +60,7 @@
 #include <rec_type.h>
 #include <mail_params.h>
 #include <ext_prop.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -72,11 +74,22 @@ static void cleanup_extracted_process(CLEANUP_STATE *, int, char *, int);
 
 void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
 {
+    const char *encoding;
 
     /*
      * Start the extracted segment.
      */
     cleanup_out_string(state, REC_TYPE_XTRA, "");
+
+    /*
+     * Older Postfix versions didn't emit encoding information, so this
+     * record can only be optional. Putting this before the mandatory
+     * Return-Receipt-To and Errors-To ensures that the queue manager will
+     * pick up the content encoding before starting deliveries.
+     */
+    if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
+	cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
+			   MAIL_ATTR_ENCODING, encoding);
 
     /*
      * Always emit Return-Receipt-To and Errors-To records, and always emit

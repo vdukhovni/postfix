@@ -136,6 +136,9 @@ bounce_notify_util.o: ../../include/mail_error.h
 bounce_notify_util.o: ../../include/name_mask.h
 bounce_notify_util.o: ../../include/bounce_log.h
 bounce_notify_util.o: ../../include/mail_date.h
+bounce_notify_util.o: ../../include/mail_proto.h
+bounce_notify_util.o: ../../include/iostuff.h
+bounce_notify_util.o: ../../include/attr.h
 bounce_notify_util.o: bounce_service.h
 bounce_notify_verp.o: bounce_notify_verp.c
 bounce_notify_verp.o: ../../include/sys_defs.h

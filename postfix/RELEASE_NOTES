@@ -12,6 +12,38 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.9-20020512
+=========================================================
+
+The Postfix SMTP client no longer uses the CNAME expanded recipient
+address when logging delivery or when bouncing mail. This makes
+trouble shooting somewhat easier.
+
+Postfix snapshot 1.1.9-20020512 queue files contain records that
+are incompatible with "postqueue -r" on all Postfix versions prior
+to 1.1 and release candidates. This happens whenever the sender
+specifies MIME body type information via the SMTP `MAIL FROM'
+command, via the `sendmail -B' command line option, or via the
+Content-Transfer-Encoding:  message header.
+
+Postfix snapshot 1.1.9-20020512 queue files may contain records
+that are incompatible with "postqueue -r" on previous 1.1 Postfix
+versions and release candidates. This happens whenever the sender
+specifies the MIME body type only via the Content-Transfer-Encoding:
+message header, and not via `MAIL FROM' or `sendmail -B'.
+
+Major changes with Postfix snapshot 1.1.9-20020512
+==================================================
+
+The Postfix SMTP and LMTP clients now properly pass on the MIME
+body type information (7BIT or 8BITMIME), provided that the sender
+properly specifies MIME body type information via the SMTP MAIL
+FROM command, via the sendmail -B command line option, or via MIME
+message headers. This includes mail that is returned as undeliverable.
+Implementing MIME body type propagation was a low priority because
+qmail didn't implement this, either. However, Postfix will not
+convert 8BITMIME content into 7BIT, and probably never will.
+
 Incompatible changes with Postfix snapshot 1.1.9-20020509
 =========================================================
 
@@ -22,11 +54,11 @@ catch-all patterns.
 
 The appearance of user@domain1@domain2 addresses has changed.  In
 mail headers, such addresses are now properly quoted as
-"user@domain1"@domain2. This quoted form is now also expected on
-the left-hand side of virtual and canonical lookup tables, but only
-by some of the Postfix components. For now, it is better not to
-use user@domain1@domain2 address forms on the left-hand side of
-lookup tables.
+"user@domain1"@domain2. As a side effect, this quoted form is now
+also expected on the left-hand side of virtual and canonical lookup
+tables, but only by some of the Postfix components.  For now, it
+is better not to use user@domain1@domain2 address forms on the
+left-hand side of lookup tables.
 
 Incompatible changes with Postfix snapshot 1.1.8-20020508
 =========================================================

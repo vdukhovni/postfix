@@ -100,6 +100,7 @@
 #include <off_cvt.h>
 #include <mark_corrupt.h>
 #include <quote_821_local.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -303,20 +304,20 @@ int     smtp_xfer(SMTP_STATE *state)
     /*
      * Macros for readability.
      */
-#define REWRITE_ADDRESS(addr) do { \
-	if (*(addr)) { \
-	    quote_821_local(state->scratch, addr, QUOTE_FLAG_8BITCLEAN); \
-	    smtp_unalias_addr(state->scratch2, vstring_str(state->scratch)); \
-	    myfree(addr); \
-	    addr = mystrdup(vstring_str(state->scratch2)); \
+#define REWRITE_ADDRESS(dst, mid, src) do { \
+	if (*(src)) { \
+	    quote_821_local(mid, src, QUOTE_FLAG_8BITCLEAN); \
+	    smtp_unalias_addr(dst, vstring_str(mid)); \
+	} else { \
+	    vstring_strcpy(dst, src); \
 	} \
     } while (0)
 
-#define QUOTE_ADDRESS(addr) do { \
-	if (*(addr)) { \
-	    quote_821_local(state->scratch, addr, QUOTE_FLAG_8BITCLEAN); \
-	    myfree(addr); \
-	    addr = mystrdup(vstring_str(state->scratch)); \
+#define QUOTE_ADDRESS(dst, src) do { \
+	if (*(src)) { \
+	    quote_821_local(dst, src, QUOTE_FLAG_8BITCLEAN); \
+	} else { \
+	    vstring_strcpy(dst, src); \
 	} \
     } while (0)
 
@@ -408,14 +409,25 @@ int     smtp_xfer(SMTP_STATE *state)
 	     */
 	case SMTP_STATE_MAIL:
 	    if (var_disable_dns == 0) {
-		REWRITE_ADDRESS(request->sender);
+		REWRITE_ADDRESS(state->scratch, state->scratch2,
+				request->sender);
 	    } else {
-		QUOTE_ADDRESS(request->sender);
+		QUOTE_ADDRESS(state->scratch, request->sender);
 	    }
-	    vstring_sprintf(next_command, "MAIL FROM:<%s>", request->sender);
-	    if (state->features & SMTP_FEATURE_SIZE)
+	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
+			    vstring_str(state->scratch));
+	    if (state->features & SMTP_FEATURE_SIZE)	/* RFC 1652 */
 		vstring_sprintf_append(next_command, " SIZE=%lu",
 				       request->data_size);
+	    if (state->features & SMTP_FEATURE_8BITMIME) {
+		if (strcmp(request->encoding, MAIL_ATTR_ENC_8BIT) == 0)
+		    vstring_strcat(next_command, " BODY=8BITMIME");
+		else if (strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) == 0)
+		    vstring_strcat(next_command, " BODY=7BIT");
+		else if (strcmp(request->encoding, MAIL_ATTR_ENC_NONE) != 0)
+		    msg_warn("%s: unknown content encoding: %s",
+			     request->queue_id, request->encoding);
+	    }
 	    next_state = SMTP_STATE_RCPT;
 	    break;
 
@@ -426,11 +438,13 @@ int     smtp_xfer(SMTP_STATE *state)
 	case SMTP_STATE_RCPT:
 	    rcpt = request->rcpt_list.info + send_rcpt;
 	    if (var_disable_dns == 0) {
-		REWRITE_ADDRESS(rcpt->address);
+		REWRITE_ADDRESS(state->scratch, state->scratch2,
+				rcpt->address);
 	    } else {
-		QUOTE_ADDRESS(rcpt->address);
+		QUOTE_ADDRESS(state->scratch, rcpt->address);
 	    }
-	    vstring_sprintf(next_command, "RCPT TO:<%s>", rcpt->address);
+	    vstring_sprintf(next_command, "RCPT TO:<%s>",
+			    vstring_str(state->scratch));
 	    if ((next_rcpt = send_rcpt + 1) == request->rcpt_list.len)
 		next_state = SMTP_STATE_DATA;
 	    break;

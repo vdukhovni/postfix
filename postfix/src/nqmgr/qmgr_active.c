@@ -283,6 +283,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 		abounce_flush(BOUNCE_FLAG_KEEP,
 			      message->queue_name,
 			      message->queue_id,
+			      message->encoding,
 			      message->errors_to,
 			      qmgr_active_done_2_bounce_flush,
 			      (char *) message);
@@ -290,6 +291,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 		abounce_flush_verp(BOUNCE_FLAG_KEEP,
 				   message->queue_name,
 				   message->queue_id,
+				   message->encoding,
 				   message->errors_to,
 				   message->verp_delims,
 				   qmgr_active_done_2_bounce_flush,
@@ -370,6 +372,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 		adefer_flush(BOUNCE_FLAG_KEEP,
 			     message->queue_name,
 			     message->queue_id,
+			     message->encoding,
 			     message->errors_to,
 			     qmgr_active_done_3_defer_flush,
 			     (char *) message);
@@ -377,6 +380,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 		adefer_flush_verp(BOUNCE_FLAG_KEEP,
 				  message->queue_name,
 				  message->queue_id,
+				  message->encoding,
 				  message->errors_to,
 				  message->verp_delims,
 				  qmgr_active_done_3_defer_flush,
@@ -389,6 +393,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 	    adefer_warn(BOUNCE_FLAG_KEEP,
 			message->queue_name,
 			message->queue_id,
+			message->encoding,
 			message->errors_to,
 			qmgr_active_done_3_defer_warn,
 			(char *) message);

@@ -51,6 +51,7 @@ static HEADER_OPTS header_opts[] = {
     "Apparently-To", HDR_APPARENTLY_TO, HDR_OPT_RECIP,
     "Bcc", HDR_BCC, HDR_OPT_DROP | HDR_OPT_XRECIP,
     "Cc", HDR_CC, HDR_OPT_XRECIP,
+    "Content-Transfer-Encoding", HDR_CONTENT_TRANSFER_ENCODING, 0,
     "Content-Length", HDR_CONTENT_LENGTH, HDR_OPT_DROP,
     "Delivered-To", HDR_DELIVERED_TO, 0,
     "Date", HDR_DATE, 0,

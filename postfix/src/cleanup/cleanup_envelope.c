@@ -56,6 +56,8 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <mymalloc.h>
+#include <stringops.h>
+#include <nvtable.h>
 
 /* Global library. */
 
@@ -104,6 +106,10 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type, char *str, int len)
 
 static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int len)
 {
+    char   *attr_name;
+    char   *attr_value;
+    const char *error_text;
+
     if (type == REC_TYPE_MESG) {
 	if (state->sender == 0 || state->time == 0) {
 	    msg_warn("%s: missing sender or time envelope record",
@@ -196,6 +202,21 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
+    } else if (type == REC_TYPE_ATTR) {
+	if (state->attr->used >= var_qattr_count_limit) {
+	    msg_warn("%s: queue file attribute count exceeds safety limit: %d",
+		     state->queue_id, var_qattr_count_limit);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	cleanup_out(state, type, buf, len);
+	if ((error_text = split_nameval(buf, &attr_name, &attr_value)) != 0) {
+	    msg_warn("%s: malformed attribute: %s: %.100s",
+		     state->queue_id, error_text, buf);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	nvtable_update(state->attr, attr_name, attr_value);
     } else {
 	cleanup_out(state, type, buf, len);
     }

@@ -98,6 +98,21 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_TRANSPORT	"transport"
 #define MAIL_ATTR_NEXTHOP	"nexthop"
 
+ /*
+  * The following attribute names are stored in queue files. Changing this
+  * means lots of work to maintain backwards compatibility with queued mail.
+  */
+#define MAIL_ATTR_ENCODING	"encoding"	/* internal encoding */
+#define MAIL_ATTR_ENC_8BIT	"8bit"	/* 8BITMIME equivalent */
+#define MAIL_ATTR_ENC_7BIT	"7bit"	/* 7BIT equivalent */
+#define MAIL_ATTR_ENC_NONE	""	/* encoding unknown */
+#define MAIL_ATTR_CLIENT_NAME	"client_name"	/* client hostname */
+#define MAIL_ATTR_CLIENT_ADDR	"client_address"	/* client address */
+#define MAIL_ATTR_HELO_NAME	"helo_name"	/* SMTP helo name */
+#define MAIL_ATTR_ORIGIN	"message_origin"	/* hostname[address] */
+#define MAIL_ATTR_ORG_NONE	"unknown"	/* origin unknown */
+#define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
+
 /* LICENSE
 /* .ad
 /* .fi

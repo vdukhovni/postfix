@@ -55,9 +55,8 @@ appropriate combination of command-line options. Some features are
 controlled by parameters in the \fBmain.cf\fR configuration file.
 
 The following options are recognized:
-.IP "\fB-B \fIbody_type\fR (ignored)"
-The message body MIME type. Currently, Postfix implements
-\fBjust-send-eight\fR.
+.IP "\fB-B \fIbody_type\fR"
+The message body MIME type: \fB7BIT\fR or \fB8BITMIME\fR.
 .IP "\fB-C \fIconfig_file\fR (ignored :-)"
 The path name of the \fBsendmail.cf\fR file. Postfix configuration
 files are kept in \fB/etc/postfix\fR.

@@ -655,6 +655,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     int     narg;
     char   *arg;
     char   *verp_delims = 0;
+    char   *encoding = 0;
 
     state->msg_size = 0;
 
@@ -695,10 +696,11 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     for (narg = 3; narg < argc; narg++) {
 	arg = argv[narg].strval;
-	if (strcasecmp(arg, "BODY=8BITMIME") == 0
-	    || strcasecmp(arg, "BODY=7BIT") == 0) {
-	     /* void */ ;
-	} else if (strncasecmp(arg, "SIZE=", 5) == 0) {
+	if (strcasecmp(arg, "BODY=8BITMIME") == 0) {	/* RFC 1652 */
+	    encoding = MAIL_ATTR_ENC_8BIT;
+	} else if (strcasecmp(arg, "BODY=7BIT") == 0) {	/* RFC 1652 */
+	    encoding = MAIL_ATTR_ENC_7BIT;
+	} else if (strncasecmp(arg, "SIZE=", 5) == 0) {	/* RFC 1870 */
 	    /* Reject non-numeric size. */
 	    if (!alldig(arg + 5)) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -771,6 +773,18 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (*var_filter_xport)
 	rec_fprintf(state->cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
     rec_fputs(state->cleanup, REC_TYPE_FROM, argv[2].strval);
+    if (encoding != 0)
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_ENCODING, encoding);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_CLIENT_NAME, state->name);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_CLIENT_ADDR, state->addr);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ORIGIN, state->namaddr);
+    if (state->helo_name != 0)
+	rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_HELO_NAME, state->helo_name);
     if (verp_delims)
 	rec_fputs(state->cleanup, REC_TYPE_VERP, verp_delims);
     state->sender = mystrdup(argv[2].strval);

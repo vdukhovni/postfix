@@ -245,6 +245,18 @@ static void qmqpd_copy_sender(QMQPD_STATE *state)
     state->sender = mystrndup(STR(state->buf), LEN(state->buf));
 }
 
+/* qmqpd_write_attributes - save session attributes */
+
+static void qmqpd_write_attributes(QMQPD_STATE *state)
+{
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_CLIENT_NAME, state->name);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_CLIENT_ADDR, state->addr);
+    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ORIGIN, state->namaddr);
+}
+
 /* qmqpd_copy_recipients - copy message recipients */
 
 static void qmqpd_copy_recipients(QMQPD_STATE *state)
@@ -502,6 +514,11 @@ static void qmqpd_receive(QMQPD_STATE *state)
      * Read and write the envelope sender.
      */
     qmqpd_copy_sender(state);
+
+    /*
+     * Record some session attributes.
+     */
+    qmqpd_write_attributes(state);
 
     /*
      * Read and write the envelope recipients, including the optional big

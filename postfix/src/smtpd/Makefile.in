@@ -130,6 +130,8 @@ smtpd.o: ../../include/verp_sender.h
 smtpd.o: ../../include/string_list.h
 smtpd.o: ../../include/match_list.h
 smtpd.o: ../../include/match_ops.h
+smtpd.o: ../../include/quote_822_local.h
+smtpd.o: ../../include/quote_flags.h
 smtpd.o: ../../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h

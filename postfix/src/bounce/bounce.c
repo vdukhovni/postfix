@@ -33,6 +33,7 @@
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /*	RFC 1894 (Delivery Status Notifications)
+/*	RFC 2045 (Format of Internet Message Bodies)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
@@ -127,6 +128,7 @@ char   *var_delay_rcpt;
 static VSTRING *queue_id;
 static VSTRING *queue_name;
 static VSTRING *recipient;
+static VSTRING *encoding;
 static VSTRING *sender;
 static VSTRING *verp_delims;
 static VSTRING *why;
@@ -186,8 +188,9 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
 			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-			    ATTR_TYPE_END) != 4) {
+			    ATTR_TYPE_END) != 5) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -200,8 +203,9 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("bounce_notify_proto: service=%s queue=%s id=%s sender=%s",
-		 service_name, STR(queue_name), STR(queue_id), STR(sender));
+	msg_info("bounce_notify_proto: service=%s queue=%s id=%s encoding=%s sender=%s",
+		 service_name, STR(queue_name), STR(queue_id),
+		 STR(encoding), STR(sender));
 
     /*
      * On request by the client, set up a trap to delete the log file in case
@@ -214,7 +218,8 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client, int flush)
      * Execute the request.
      */
     return (bounce_notify_service(service_name, STR(queue_name),
-				  STR(queue_id), STR(sender), flush));
+				  STR(queue_id), STR(encoding),
+				  STR(sender), flush));
 }
 
 /* bounce_verp_proto - bounce_notify server protocol, VERP style */
@@ -228,12 +233,13 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-		  ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
-		  ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
-		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-		  ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
-		  ATTR_TYPE_END) != 5) {
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, &flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
+			    ATTR_TYPE_END) != 6) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -251,9 +257,9 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("%s: service=%s queue=%s id=%s sender=%s delim=%s",
+	msg_info("%s: service=%s queue=%s id=%s encoding=%s sender=%s delim=%s",
 		 myname, service_name, STR(queue_name), STR(queue_id),
-		 STR(sender), STR(verp_delims));
+		 STR(encoding), STR(sender), STR(verp_delims));
 
     /*
      * On request by the client, set up a trap to delete the log file in case
@@ -269,11 +275,12 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client, int flush)
     if (!*STR(sender) || !strcasecmp(STR(sender), mail_addr_double_bounce())) {
 	msg_warn("request to send VERP-style notification of bounced mail");
 	return (bounce_notify_service(service_name, STR(queue_name),
-				      STR(queue_id), STR(sender), flush));
+				      STR(queue_id), STR(encoding),
+				      STR(sender), flush));
     } else
 	return (bounce_notify_verp(service_name, STR(queue_name),
-				   STR(queue_id), STR(sender),
-				   STR(verp_delims), flush));
+				   STR(queue_id), STR(encoding),
+				   STR(sender), STR(verp_delims), flush));
 }
 
 /* bounce_service - parse bounce command type and delegate */
@@ -349,6 +356,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     queue_id = vstring_alloc(10);
     queue_name = vstring_alloc(10);
     recipient = vstring_alloc(10);
+    encoding = vstring_alloc(10);
     sender = vstring_alloc(10);
     verp_delims = vstring_alloc(10);
     why = vstring_alloc(10);

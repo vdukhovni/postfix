@@ -12,10 +12,12 @@
 /* .in -4
 /*	} BOUNCE_INFO;
 /*
-/*	BOUNCE_INFO *bounce_mail_init(service, queue_name, queue_id, flush)
+/*	BOUNCE_INFO *bounce_mail_init(service, queue_name, queue_id,
+/*					encoding, flush)
 /*	const char *service;
 /*	const char *queue_name;
 /*	const char *queue_id;
+/*	const char *encoding;
 /*	int	flush;
 /*
 /*	void	bounce_mail_free(bounce_info)
@@ -152,6 +154,7 @@
 #include <mail_error.h>
 #include <bounce_log.h>
 #include <mail_date.h>
+#include <mail_proto.h>
 
 /* Application-specific. */
 
@@ -162,7 +165,8 @@
 /* bounce_mail_init - initialize */
 
 BOUNCE_INFO *bounce_mail_init(const char *service, const char *queue_name,
-			              const char *queue_id, int flush)
+			              const char *queue_id,
+			              const char *encoding, int flush)
 {
     BOUNCE_INFO *bounce_info;
     int     rec_type;
@@ -175,6 +179,16 @@ BOUNCE_INFO *bounce_mail_init(const char *service, const char *queue_name,
     bounce_info->service = service;
     bounce_info->queue_name = queue_name;
     bounce_info->queue_id = queue_id;
+    if (strcmp(encoding, MAIL_ATTR_ENC_8BIT) == 0) {
+	bounce_info->mime_encoding = "8bit";
+    } else if (strcmp(encoding, MAIL_ATTR_ENC_7BIT) == 0) {
+	bounce_info->mime_encoding = "7bit";
+    } else {
+	if (strcmp(encoding, MAIL_ATTR_ENC_NONE) != 0)
+	    msg_warn("%s: unknown encoding: %.200s",
+		     bounce_info->queue_id, encoding);
+	bounce_info->mime_encoding = 0;
+    }
     bounce_info->flush = flush;
     bounce_info->buf = vstring_alloc(100);
     bounce_info->arrival_time = 0;
@@ -298,6 +312,9 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     post_mail_fprintf(bounce, "Content-Type: %s; report-type=%s;",
 		      "multipart/report", "delivery-status");
     post_mail_fprintf(bounce, "\tboundary=\"%s\"", bounce_info->mime_boundary);
+    if (bounce_info->mime_encoding)
+	post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s",
+			  bounce_info->mime_encoding);
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
 
@@ -522,6 +539,9 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 		      "Undelivered Message Headers" : "Undelivered Message");
     post_mail_fprintf(bounce, "Content-Type: %s", headers_only ?
 		      "text/rfc822-headers" : "message/rfc822");
+    if (bounce_info->mime_encoding)
+	post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s",
+			  bounce_info->mime_encoding);
     post_mail_fputs(bounce, "");
 
     /*

@@ -6383,10 +6383,41 @@ Apologies for any names omitted.
 	multiple Postfix instances.  Text by Victor Duchovny, Morgan
 	Stanley. File:  README_FILES/FILTER_README.
 
-Open problems:
+20020510
 
-	Low: smtpd should reply with the original recipient address,
-	or it should at least externalize it.
+	Feature: header/body filters now log the origin of the
+	message that is being rejected. Files: smtpd/smtpd.c,
+	qmqpd/qmqpd.c, pickup/pickup.c, cleanup/cleanup_envelope.c,
+	cleanup/cleanup_message.c.  Requested by Craig Sanders, if
+	I remember correctly.
+
+	Feature: the Postfix SMTP client now passes on MIME body
+	type information (8bit, 7bit) received via SMTP, via MIME
+	headers, or via the sendmail command line. Files:
+	global/deliver_request.c, smtpd/smtpd.c, sendmail/sendmail.c,
+	cleanup/cleanup_envelope.c, cleanup/cleanup_message.c,
+	cleanup/cleanup_extracted.c, *qmgr/qmgr_message.c,
+	*qmgr/qmgr_deliver.c, smtp/smtp_proto.c, lmtp/lmtp_proto.c.
+
+20020511
+
+	Feature: bounces now specify the proper MIME encoding (8bit,
+	7bit), depending on the MIME body type information received
+	via SMTP, via MIME headers, or via the sendmail command
+	line. Files: global/bounce.c, global/defer.c, global/abounce.c,
+	bounce/bounce_service.c, bounce/bounce_notify_util.c.
+
+20020512
+
+	Cleanup: the SMTP client logged and bounced the CNAME
+	expanded recipient address, and thereby complicated trouble
+	shooting.  File:  src/smtp_proto.c.
+
+	Bugfix: the SMTP and LMTP clients bounced the quoted
+	recipient address, resulting in too much quoting in bounce
+	reports.  Files:  src/smtp_proto.c, lmtp/lmtp_proto.c.
+
+Open problems:
 
 	Low: all table lookups should consistently use internalized
 	(unquoted) or externalized (quoted) forms as lookup keys.

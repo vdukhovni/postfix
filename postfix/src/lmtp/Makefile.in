@@ -163,6 +163,9 @@ lmtp_proto.o: ../../include/off_cvt.h
 lmtp_proto.o: ../../include/mark_corrupt.h
 lmtp_proto.o: ../../include/quote_821_local.h
 lmtp_proto.o: ../../include/quote_flags.h
+lmtp_proto.o: ../../include/mail_proto.h
+lmtp_proto.o: ../../include/iostuff.h
+lmtp_proto.o: ../../include/attr.h
 lmtp_proto.o: lmtp.h
 lmtp_proto.o: ../../include/argv.h
 lmtp_proto.o: lmtp_sasl.h

@@ -29,7 +29,7 @@ extern int PRINTFLIKE(6, 7) defer_append(int, const char *, const char *,
 			            const char *, time_t, const char *,...);
 extern int vdefer_append(int, const char *, const char *, const char *,
 			         time_t, const char *, va_list);
-extern int defer_flush(int, const char *, const char *, const char *);
+extern int defer_flush(int, const char *, const char *, const char *, const char *);
 
 extern int defer_warn(int, const char *, const char *, const char *);
 

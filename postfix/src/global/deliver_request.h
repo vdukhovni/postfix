@@ -33,6 +33,7 @@ typedef struct DELIVER_REQUEST {
     long    data_offset;		/* offset to message */
     long    data_size;			/* message size */
     char   *nexthop;			/* next hop name */
+    char   *encoding;			/* content encoding */
     char   *sender;			/* envelope sender */
     char   *errors_to;			/* error report address */
     char   *return_receipt;		/* confirm receipt address */

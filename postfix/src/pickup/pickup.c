@@ -92,6 +92,7 @@
 #include <vstream.h>
 #include <set_ugid.h>
 #include <safe_open.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -159,13 +160,21 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 {
     int     type;
     int     check_first = (*expected == REC_TYPE_CONTENT[0]);
+    const char *error_text;
+    char   *attr_name;
+    char   *attr_value;
 
     /*
      * Limit the input record size. All front-end programs should protect the
      * mail system against unreasonable inputs. This also requires that we
      * limit the size of envelope records written by the local posting agent.
+     * 
      * As time stamp we use the scrutinized queue file modification time, and
      * ignore the time stamp embedded in the queue file.
+     * 
+     * Allow attribute records if the queue file is owned by the mail system
+     * (postsuper -r) or if the attribute specifies the MIME body type
+     * (sendmail -B).
      */
     for (;;) {
 	if ((type = rec_get(qfile, buf, var_line_limit)) < 0
@@ -181,6 +190,28 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		info->rcpt = mystrdup(vstring_str(buf));
 	if (type == REC_TYPE_TIME)
 	    continue;
+	if (type == REC_TYPE_ATTR) {
+	    if ((error_text = split_nameval(vstring_str(buf), &attr_name,
+					    &attr_value)) != 0) {
+		msg_warn("uid=%ld: malformed attribute record: %s: %.200s",
+		      (long) info->st.st_uid, error_text, vstring_str(buf));
+		continue;
+	    }
+#define STREQ(x,y) (strcmp(x,y) == 0)
+
+	    if (info->st.st_uid == var_owner_uid
+		|| (STREQ(attr_name, MAIL_ATTR_ENCODING)
+		    && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
+			|| STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
+			|| STREQ(attr_value, MAIL_ATTR_ENC_NONE)))) {
+		rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+			    attr_name, attr_value);
+		continue;
+	    }
+	    msg_warn("uid=%ld: ignoring attribute record: %.200s=%.200s",
+		     (long) info->st.st_uid, attr_name, attr_value);
+	    continue;
+	}
 	if (type == REC_TYPE_FILT && *expected == REC_TYPE_ENVELOPE[0])
 	    continue;
 	else {
@@ -238,6 +269,12 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      */
     if (*var_filter_xport)
 	rec_fprintf(cleanup, REC_TYPE_FILT, "%s", var_filter_xport);
+
+    /*
+     * Origin is local.
+     */
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%s",
+		MAIL_ATTR_ORIGIN, MAIL_ATTR_ORG_LOCAL);
 
     /*
      * Copy the message envelope segment. Allow only those records that we
@@ -322,7 +359,6 @@ static int pickup_file(PICKUP_INFO *info)
     int     status;
     VSTREAM *qfile;
     VSTREAM *cleanup;
-    int     fd;
 
     /*
      * Open the submitted file. If we cannot open it, and we're not having a
@@ -331,8 +367,8 @@ static int pickup_file(PICKUP_INFO *info)
      * Perhaps we should save "bad" files elsewhere for further inspection.
      * XXX How can we delete a file when open() fails with ENOENT?
      */
-    qfile = safe_open(info->path, O_RDONLY | O_NONBLOCK, 0, 
-		(struct stat *) 0, -1, -1, buf);
+    qfile = safe_open(info->path, O_RDONLY | O_NONBLOCK, 0,
+		      (struct stat *) 0, -1, -1, buf);
     if (qfile == 0) {
 	if (errno != ENOENT)
 	    msg_warn("open input file %s: %s", info->path, vstring_str(buf));

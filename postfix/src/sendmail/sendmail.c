@@ -49,9 +49,8 @@
 /*	controlled by parameters in the \fBmain.cf\fR configuration file.
 /*
 /*	The following options are recognized:
-/* .IP "\fB-B \fIbody_type\fR (ignored)"
-/*	The message body MIME type. Currently, Postfix implements
-/*	\fBjust-send-eight\fR.
+/* .IP "\fB-B \fIbody_type\fR"
+/*	The message body MIME type: \fB7BIT\fR or \fB8BITMIME\fR.
 /* .IP "\fB-C \fIconfig_file\fR (ignored :-)"
 /*	The path name of the \fBsendmail.cf\fR file. Postfix configuration
 /*	files are kept in \fB/etc/postfix\fR.
@@ -347,8 +346,8 @@ char   *verp_delims;
 
 /* enqueue - post one message */
 
-static void enqueue(const int flags, const char *sender, const char *full_name,
-		            char **recipients)
+static void enqueue(const int flags, const char *encoding, const char *sender,
+		            const char *full_name, char **recipients)
 {
     VSTRING *buf;
     VSTREAM *dst;
@@ -428,6 +427,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
     rec_fputs(dst, REC_TYPE_FROM, saved_sender);
     if (verp_delims && *saved_sender == 0)
 	msg_fatal("-V option requires non-null sender address");
+    if (encoding)
+	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s", MAIL_ATTR_ENCODING, encoding);
     if (verp_delims)
 	rec_fputs(dst, REC_TYPE_VERP, verp_delims);
     if (recipients) {
@@ -538,6 +539,7 @@ int     main(int argc, char **argv)
     int     n;
     int     flags = SM_FLAG_DEFAULT;
     char   *site_to_flush = 0;
+    char   *encoding = 0;
 
     /*
      * Be consistent with file permissions.
@@ -664,6 +666,14 @@ int     main(int argc, char **argv)
 	    break;
 	case 'n':
 	    msg_fatal_status(EX_USAGE, "-%c option not supported", c);
+	case 'B':
+	    if (strcmp(optarg, "8BITMIME") == 0)/* RFC 1652 */
+		encoding = MAIL_ATTR_ENC_8BIT;
+	    else if (strcmp(optarg, "7BIT") == 0)	/* RFC 1652 */
+		encoding = MAIL_ATTR_ENC_7BIT;
+	    else
+		msg_fatal_status(EX_USAGE, "-B option needs 8BITMIME or 7BIT");
+	    break;
 	case 'F':				/* full name */
 	    full_name = optarg;
 	    break;
@@ -779,7 +789,7 @@ int     main(int argc, char **argv)
 	/* NOTREACHED */
     case SM_MODE_ENQUEUE:
 	if (site_to_flush == 0) {
-	    enqueue(flags, sender, full_name, argv + OPTIND);
+	    enqueue(flags, encoding, sender, full_name, argv + OPTIND);
 	    exit(0);
 	}
 	if (argv[OPTIND])

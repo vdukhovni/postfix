@@ -23,10 +23,11 @@
 /*	const char *format;
 /*	va_list	ap;
 /*
-/*	int	defer_flush(flags, queue, id, sender)
+/*	int	defer_flush(flags, queue, id, encoding, sender)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
+/*	const char *encoding;
 /*	const char *sender;
 /*
 /*	int	defer_warn(flags, queue, id, sender)
@@ -70,6 +71,8 @@
 /* .IP recipient
 /*	A recipient address that is being deferred. The domain part
 /*	of the address is marked dead (for a limited amount of time).
+/* .IP encoding
+/*	The body content encoding: MAIL_ATTR_ENC_{7BIT,8BIT,NONE}.
 /* .IP sender
 /*	The sender envelope address.
 /* .IP relay
@@ -178,15 +181,16 @@ int     vdefer_append(int flags, const char *id, const char *recipient,
 /* defer_flush - flush the defer log and deliver to the sender */
 
 int     defer_flush(int flags, const char *queue, const char *id,
-		            const char *sender)
+		            const char *encoding, const char *sender)
 {
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
-			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
-			   ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
-			   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
-			   ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
-			   ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-			   ATTR_TYPE_END) == 0) {
+			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_END) == 0) {
 	return (0);
     } else {
 	return (-1);
@@ -200,12 +204,12 @@ int     defer_warn(int flags, const char *queue, const char *id,
 		           const char *sender)
 {
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
-			   ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_WARN,
-			   ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
-			   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
-			   ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
-			   ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-			   ATTR_TYPE_END) == 0) {
+			    ATTR_TYPE_NUM, MAIL_ATTR_NREQ, BOUNCE_CMD_WARN,
+			    ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, flags,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
+			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
+			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
+			    ATTR_TYPE_END) == 0) {
 	return (0);
     } else {
 	return (-1);

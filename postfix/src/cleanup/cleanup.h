@@ -14,6 +14,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <argv.h>
+#include <nvtable.h>
 
  /*
   * Global library.
@@ -61,6 +62,7 @@ typedef struct CLEANUP_STATE {
     int     end_seen;			/* REC_TYPE_END seen */
     int     rcpt_count;			/* recipient count */
     char   *reason;			/* failure reason */
+    NVTABLE *attr;			/* queue file attribute list */
 } CLEANUP_STATE;
 
  /*

@@ -46,6 +46,7 @@
 /* STANDARDS
 /*	RFC 821 (SMTP protocol)
 /*	RFC 1651 (SMTP service extensions)
+/*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1870 (Message Size Declaration)
 /*	RFC 2033 (LMTP protocol)
 /*	RFC 2197 (Pipelining)
