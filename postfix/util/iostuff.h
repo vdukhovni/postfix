@@ -24,8 +24,8 @@ extern int peekfd(int);
 extern int read_wait(int, int);
 extern int write_wait(int, int);
 extern int write_buf(int, const char *, int, int);
-extern int timed_read(int, void *, unsigned, int);
-extern int timed_write(int, void *, unsigned, int);
+extern int timed_read(int, void *, unsigned, int, void *);
+extern int timed_write(int, void *, unsigned, int, void *);
 extern void doze(unsigned);
 extern int duplex_pipe(int *);
 

@@ -1,0 +1,155 @@
+/*++
+/* NAME
+/*	lmtp 3h
+/* SUMMARY
+/*	lmtp client program
+/* SYNOPSIS
+/*	#include "lmtp.h"
+/* DESCRIPTION
+/* .nf
+
+ /*
+  * Utility library.
+  */
+#include <vstream.h>
+#include <vstring.h>
+#include <argv.h>
+
+ /*
+  * Global library.
+  */
+#include <deliver_request.h>
+
+ /*
+  * State information associated with each LMTP delivery. We're bundling the
+  * state so that we can give meaningful diagnostics in case of problems.
+  */
+typedef struct LMTP_STATE {
+    VSTREAM *src;			/* queue file stream */
+    DELIVER_REQUEST *request;		/* envelope info, offsets */
+    struct LMTP_SESSION *session;	/* network connection */
+    VSTRING *buffer;			/* I/O buffer */
+    VSTRING *scratch;			/* scratch buffer */
+    VSTRING *scratch2;			/* scratch buffer */
+    int     status;			/* delivery status */
+    int     features;			/* server features */
+    ARGV   *history;			/* transaction log */
+    int     error_mask;			/* error classes */
+    int     sndbufsize;			/* total window size */
+    int     sndbuffree;			/* remaining window */
+    int     reuse;			/* connection being reused */
+} LMTP_STATE;
+
+#define LMTP_FEATURE_ESMTP	(1<<0)
+#define LMTP_FEATURE_8BITMIME	(1<<1)
+#define LMTP_FEATURE_PIPELINING	(1<<2)
+#define LMTP_FEATURE_SIZE	(1<<3)
+
+ /*
+  * lmtp.c
+  */
+extern int lmtp_errno;			/* XXX can we get rid of this? */
+
+ /*
+  * Structure for connection to LMTP server.
+  */
+typedef struct LMTP_ATTR {
+    int     type;			/* UNIX-domain, INET, etc. */
+    char   *class;			/* class ("public" or "private") */
+    char   *name;			/* service endpoint name */
+} LMTP_ATTR;
+
+ /*
+  * Service types.
+  */
+#define LMTP_SERV_TYPE_UNIX   1		/* AF_UNIX domain socket */
+#define LMTP_SERV_TYPE_INET   2		/* AF_INET domain socket */
+
+ /*
+  * lmtp_session.c
+  */
+typedef struct LMTP_SESSION {
+    VSTREAM *stream;			/* network connection */
+    char   *host;			/* mail exchanger */
+    char   *addr;			/* mail exchanger */
+    char   *destination;		/* domain originally sent to */
+    int     type;			/* type of connection */
+} LMTP_SESSION;
+
+extern LMTP_SESSION *lmtp_session_alloc(VSTREAM *, char *, char *);
+extern void lmtp_session_free(LMTP_SESSION *);
+extern void lmtp_session_reset(LMTP_STATE *);
+
+ /*
+  * lmtp_connect.c
+  */
+extern LMTP_SESSION *lmtp_connect(LMTP_ATTR *, DELIVER_REQUEST *request, VSTRING *);
+extern LMTP_SESSION *lmtp_connect_host(char *, unsigned, VSTRING *);
+extern LMTP_SESSION *lmtp_connect_local(const char *, const char *, VSTRING *);
+
+ /*
+  * lmtp_proto.c
+  */
+extern int lmtp_lhlo(LMTP_STATE *);
+extern int lmtp_xfer(LMTP_STATE *);
+extern int lmtp_quit(LMTP_STATE *);
+extern int lmtp_rset(LMTP_STATE *);
+
+ /*
+  * lmtp_chat.c
+  */
+typedef struct LMTP_RESP {		/* server response */
+    int     code;			/* status */
+    char   *str;			/* text */
+    VSTRING *buf;			/* origin of text */
+} LMTP_RESP;
+
+extern void lmtp_chat_cmd(LMTP_STATE *, char *,...);
+extern LMTP_RESP *lmtp_chat_resp(LMTP_STATE *);
+extern void lmtp_chat_reset(LMTP_STATE *);
+extern void lmtp_chat_notify(LMTP_STATE *);
+
+ /*
+  * lmtp_trouble.c
+  */
+extern int lmtp_conn_fail(LMTP_STATE *, int, char *,...);
+extern int lmtp_site_fail(LMTP_STATE *, int, char *,...);
+extern int lmtp_mesg_fail(LMTP_STATE *, int, char *,...);
+extern void lmtp_rcpt_fail(LMTP_STATE *, int, RECIPIENT *, char *,...);
+extern int lmtp_stream_except(LMTP_STATE *, int, char *);
+
+ /*
+  * lmtp_state.c
+  */
+extern LMTP_STATE *lmtp_state_alloc(void);
+extern void lmtp_state_free(LMTP_STATE *);
+
+ /*
+  * Status codes. Errors must have negative codes so that they do not
+  * interfere with useful counts of work done.
+  */
+#define LMTP_OK			0	/* so far, so good */
+#define LMTP_RETRY		(-1)	/* transient error */
+#define LMTP_FAIL		(-2)	/* hard error */
+
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*
+/*      Alterations for LMTP by:
+/*      Philip A. Prindeville
+/*      Mirapoint, Inc.
+/*      USA.
+/*
+/*      Additional work on LMTP by:
+/*      Amos Gouaux
+/*      University of Texas at Dallas
+/*      P.O. Box 830688, MC34
+/*      Richardson, TX 75083, USA
+/*--*/

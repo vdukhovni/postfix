@@ -93,6 +93,14 @@
 /*
 /*	int	vstream_peek(stream)
 /*	VSTREAM	*stream;
+/*
+/*	int	vstream_setjmp(stream, buffer)
+/*	VSTREAM	*stream;
+/*	jmp_buf	*buffer;
+/*
+/*	void	longjmp(stream, val)
+/*	VSTREAM	*stream;
+/*	int	val;
 /* DESCRIPTION
 /*	The \fIvstream\fR module implements light-weight buffered I/O
 /*	similar to the standard I/O routines.
@@ -201,12 +209,15 @@
 /*	value) pairs, terminated with VSTREAM_CTL_END.
 /*	The following lists the names and the types of the corresponding
 /*	value arguments.
-/* .IP "VSTREAM_CTL_READ_FN (int (*)(int, void *, unsigned))"
+/* .IP "VSTREAM_CTL_READ_FN (int (*)(int, void *, unsigned, int, void *))"
 /*	The argument specifies an alternative for the timed_read(3) function,
 /*	for example, a read function that performs encryption.
-/* .IP "VSTREAM_CTL_WRITE_FN (int (*)(int, void *, unsigned))"
+/* .IP "VSTREAM_CTL_WRITE_FN (int (*)(int, void *, unsigned, int, void *))"
 /*	The argument specifies an alternative for the timed_write(3) function,
 /*	for example, a write function that performs encryption.
+/* .IP "VSTREAM_CTL_CONTEXT (char *)"
+/*	The argument specifies application context that is passed on to
+/*	the application-specified read/write routines. No copy is made.
 /* .IP "VSTREAM_CTL_PATH (char *)"
 /*	Updates the stored pathname of the specified stream. The pathname
 /*	is copied.
@@ -228,6 +239,10 @@
 /*	The deadline for a descriptor to become readable in case of a read
 /*	request, or writable in case of a write request. Specify a value
 /*	<= 0 to disable deadlines.
+/* .IP "VSTREAM_CTL_EXCEPT (no value)"
+/*	Enable exception handling with vstream_setjmp() and vstream_longjmp().
+/*	This involves allocation of additional memory that normally isn't
+/*	used.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -254,12 +269,22 @@
 /*
 /*	vstream_peek() returns the number of characters that can be
 /*	read from the named stream without refilling the read buffer.
+/*
+/*	vstream_setjmp() saves processing context and makes that context
+/*	available for use with vstream_longjmp().  Normally, vstream_setjmp()
+/*	returns zero.  A non-zero result means that vstream_setjmp() returned
+/*	through a vstream_longjmp() call; the result is the \fIval\fR argment
+/*	given to vstream_longjmp().
+/*
+/*	NB: non-local jumps such as vstream_longjmp() are not safe
+/*	for jumping out of any vstream routine.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
 /*	timed_read(3) default read routine
 /*	timed_write(3) default write routine
 /*	vbuf_print(3) formatting engine
+/*	setjmp(3) non-local jumps
 /* BUGS
 /*	Should use mmap() on reasonable systems.
 /* LICENSE
@@ -291,7 +316,6 @@
 #include "vbuf_print.h"
 #include "iostuff.h"
 #include "vstring.h"
-#include "binattr.h"
 #include "vstream.h"
 
 /* Application-specific. */
@@ -499,7 +523,7 @@ static int vstream_fflush_some(VSTREAM *stream, int to_flush)
      * any.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
-	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout)) <= 0) {
+	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout, stream->context)) <= 0) {
 	    bp->flags |= VSTREAM_FLAG_ERR;
 	    if (errno == ETIMEDOUT)
 		bp->flags |= VSTREAM_FLAG_TIMEOUT;
@@ -625,7 +649,7 @@ static int vstream_buf_get_ready(VBUF *bp)
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
      */
-    switch (n = stream->read_fn(stream->fd, bp->data, bp->len, stream->timeout)) {
+    switch (n = stream->read_fn(stream->fd, bp->data, bp->len, stream->timeout, stream->context)) {
     case -1:
 	bp->flags |= VSTREAM_FLAG_ERR;
 	if (errno == ETIMEDOUT)
@@ -874,7 +898,8 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     stream->pid = 0;
     stream->waitpid_fn = 0;
     stream->timeout = 0;
-    stream->attr = 0;
+    stream->context = 0;
+    stream->jbuf = 0;
     return (stream);
 }
 
@@ -929,8 +954,8 @@ int     vstream_fclose(VSTREAM *stream)
     }
     if (stream->path)
 	myfree(stream->path);
-    if (stream->attr)
-	binattr_free(stream->attr);
+    if (stream->jbuf)
+	myfree((char *) stream->jbuf);
     if (!VSTREAM_STATIC(stream))
 	myfree((char *) stream);
     return (err ? VSTREAM_EOF : 0);
@@ -988,6 +1013,9 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	case VSTREAM_CTL_WRITE_FN:
 	    stream->write_fn = va_arg(ap, VSTREAM_FN);
 	    break;
+	case VSTREAM_CTL_CONTEXT:
+	    stream->context = va_arg(ap, char *);
+	    break;
 	case VSTREAM_CTL_PATH:
 	    if (stream->path)
 		myfree(stream->path);
@@ -1022,6 +1050,10 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    break;
 	case VSTREAM_CTL_TIMEOUT:
 	    stream->timeout = va_arg(ap, int);
+	    break;
+	case VSTREAM_CTL_EXCEPT:
+	    if (stream->jbuf == 0)
+		stream->jbuf = (jmp_buf *) mymalloc(sizeof(jmp_buf));
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

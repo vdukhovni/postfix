@@ -9,11 +9,6 @@
 /* .nf
 
  /*
-  * System library
-  */
-#include <setjmp.h>
-
- /*
   * SASL library.
   */
 #ifdef USE_SASL_AUTH
@@ -76,7 +71,6 @@ typedef struct SMTPD_STATE {
     VSTRING *sasl_encoded;
     VSTRING *sasl_decoded;
 #endif
-    jmp_buf jbuf[1];
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

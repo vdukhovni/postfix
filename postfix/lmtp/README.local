@@ -1,0 +1,50 @@
+README.local
+
+This file describes how to use the lmtp service for local delivery.
+You'll need postfix-19991231-pl04 or later for this to work because
+it relies on the "spawn" service.
+
+Configure your Postfix as follows:
+
+/etc/postfix/master.cf:
+
+#local    unix  -       n       n       -       -       local
+local     unix  -       -       n       -       -       lmtp
+    serv=unix:private/lmtpd
+lmtpd     unix  -       n       n       -       -       spawn
+    user=cyrus:cyrus argv=/usr/local/cyrus/bin/deliver -e -l
+
+
+First, we comment out the original "local" service and define
+a new one based on the "lmtp" client.  The "serv=" argument says
+what LMTP server we're to talk to, in this case the "lmtpd"
+service.
+
+The `-l' option to deliver tells it to go into LMTP mode, and the
+`-e' tells it to use the duplicate delivery database, which is
+required in order to use the vacation features of Sieve, the
+filtering language in Cyrus 1.6.X.
+
+A note about spawn, this is a new experimental service.  The
+makefile-patch included with this bundle will add spawn to the
+compile targets.  However, you may need to check that it actually
+gets installed.
+
+A note about local delivery and the number of recipients.  Starting
+with postfix-19991231-pl04, it is now possible to specify the
+maximum number of recipients per message for local delivery.  By 
+default, this is set to 1 as follows:
+
+   local_destination_recipient_limit = 1
+
+You can set it to zero (means no limit) or, safer, set it to some
+reasonable number so that your machine doesn't risk running out of
+resources on a message with an inordinate number of recipients.
+
+Why is this of interest?  Well, if a message contains multiple
+recipients, and all these recipients happen to be on the same Cyrus
+partition, then recent (1.6.X) releases of deliver will hard link
+the message to each recipient instead of each recipient getting a
+copy.  So you'll probably want to set the above mail.cf value to
+something reasonable to take advantage of this feature in Cyrus.
+

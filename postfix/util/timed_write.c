@@ -6,11 +6,12 @@
 /* SYNOPSIS
 /*	#include <iostuff.h>
 /*
-/*	int	timed_write(fd, buf, buf_len, timeout)
+/*	int	timed_write(fd, buf, buf_len, timeout, context)
 /*	int	fd;
 /*	const void *buf;
 /*	unsigned len;
 /*	int	timeout;
+/*	void	*context;
 /* DESCRIPTION
 /*	timed_write() performs a write() operation when the specified
 /*	descriptor becomes writable within a user-specified deadline.
@@ -25,6 +26,9 @@
 /* .IP timeout
 /*	The deadline in seconds. If this is <= 0, the deadline feature
 /*	is disabled.
+/* .IP context
+/*	Application context. This parameter is unused. It exists only
+/*	for the sake of VSTREAM compatibility.
 /* DIAGNOSTICS
 /*	When the operation does not complete within the deadline, the
 /*	result value is -1, and errno is set to ETIMEDOUT.
@@ -51,7 +55,8 @@
 
 /* timed_write - write with deadline */
 
-int     timed_write(int fd, void *buf, unsigned len, int timeout)
+int     timed_write(int fd, void *buf, unsigned len,
+		            int timeout, void *unused_context)
 {
 
     /*

@@ -1,0 +1,19 @@
+*** ../../orig/Makefile.in	Fri Dec 31 09:49:41 1999
+--- Makefile.in	Fri Feb 25 16:27:24 2000
+***************
+*** 4,10 ****
+  DIRS	= util global dns master postfix smtpstone sendmail error \
+  	pickup cleanup smtpd local trivial-rewrite qmgr smtp bounce pipe \
+  	showq postalias postcat postconf postdrop postkick postlock postlog \
+! 	postmap postsuper # spawn man html
+  
+  default: update
+  
+--- 4,10 ----
+  DIRS	= util global dns master postfix smtpstone sendmail error \
+  	pickup cleanup smtpd local trivial-rewrite qmgr smtp bounce pipe \
+  	showq postalias postcat postconf postdrop postkick postlock postlog \
+! 	postmap postsuper lmtp spawn man # html
+  
+  default: update
+  

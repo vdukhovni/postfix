@@ -1,0 +1,5 @@
+sed '
+	s/LMTP/SMTP/g
+	s/lmtp/smtp/g
+	s/host/namaddr/g
+' $*

@@ -1,0 +1,65 @@
+*** ../../orig/global/mail_params.h	Thu Jan 27 20:05:29 2000
+--- global/mail_params.h	Wed Feb 23 01:26:01 2000
+***************
+*** 624,629 ****
+--- 624,683 ----
+  extern int var_smtpd_err_sleep;
+  
+   /*
++   * LMTP client. Timeouts inspired by RFC 1123. The LMTP recipient limit
++   * determines how many recipient addresses the LMTP client sends along with
++   * each message. Unfortunately, some mailers misbehave and disconnect (smap)
++   * when given more recipients than they are willing to handle.
++   */
++ #define VAR_LMTP_TCP_PORT	"lmtp_tcp_port"
++ #define DEF_LMTP_TCP_PORT	24
++ extern int var_lmtp_tcp_port;
++ 
++ #define VAR_LMTP_CACHE_CONN	"lmtp_cache_connection"
++ #define DEF_LMTP_CACHE_CONN	1
++ extern bool var_lmtp_cache_conn;
++ 
++ #define VAR_LMTP_SKIP_QUIT_RESP	"lmtp_skip_quit_response"
++ #define DEF_LMTP_SKIP_QUIT_RESP	0
++ extern bool var_lmtp_skip_quit_resp;
++ 
++ #define VAR_LMTP_CONN_TMOUT	"lmtp_connect_timeout"
++ #define DEF_LMTP_CONN_TMOUT	0
++ extern int var_lmtp_conn_tmout;
++ 
++ #define VAR_LMTP_RSET_TMOUT	"lmtp_rset_timeout"
++ #define DEF_LMTP_RSET_TMOUT	300
++ extern int var_lmtp_rset_tmout;
++ 
++ #define VAR_LMTP_LHLO_TMOUT	"lmtp_lhlo_timeout"
++ #define DEF_LMTP_LHLO_TMOUT	300
++ extern int var_lmtp_lhlo_tmout;
++ 
++ #define VAR_LMTP_MAIL_TMOUT	"lmtp_mail_timeout"
++ #define DEF_LMTP_MAIL_TMOUT	300
++ extern int var_lmtp_mail_tmout;
++ 
++ #define VAR_LMTP_RCPT_TMOUT	"lmtp_rcpt_timeout"
++ #define DEF_LMTP_RCPT_TMOUT	300
++ extern int var_lmtp_rcpt_tmout;
++ 
++ #define VAR_LMTP_DATA0_TMOUT	"lmtp_data_init_timeout"
++ #define DEF_LMTP_DATA0_TMOUT	120
++ extern int var_lmtp_data0_tmout;
++ 
++ #define VAR_LMTP_DATA1_TMOUT	"lmtp_data_xfer_timeout"
++ #define DEF_LMTP_DATA1_TMOUT	180
++ extern int var_lmtp_data1_tmout;
++ 
++ #define VAR_LMTP_DATA2_TMOUT	"lmtp_data_done_timeout"
++ #define DEF_LMTP_DATA2_TMOUT	600
++ extern int var_lmtp_data2_tmout;
++ 
++ #define VAR_LMTP_QUIT_TMOUT	"lmtp_quit_timeout"
++ #define DEF_LMTP_QUIT_TMOUT	300
++ extern int var_lmtp_quit_tmout;
++ 
++  /*
+    * Cleanup service. Header info that exceeds $header_size_limit bytes forces
+    * the start of the message body.
+    */

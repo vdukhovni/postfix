@@ -64,7 +64,6 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <sys/socket.h>			/* shutdown(2) */
-#include <setjmp.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
@@ -158,7 +157,7 @@ int     smtp_helo(SMTP_STATE *state)
      * Prepare for disaster.
      */
     smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
-    if ((except = setjmp(state->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(state->session->stream)) != 0)
 	return (smtp_stream_except(state, except, "sending HELO"));
 
     /*
@@ -413,6 +412,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	     * The final sender state has no action associated with it.
 	     */
 	case SMTP_STATE_LAST:
+	    VSTRING_RESET(next_command);
 	    break;
 	}
 	VSTRING_TERMINATE(next_command);
@@ -439,7 +439,7 @@ int     smtp_xfer(SMTP_STATE *state)
 		 */
 		smtp_timeout_setup(state->session->stream,
 				   *xfer_timeouts[recv_state]);
-		if ((except = setjmp(state->jbuf[0])) != 0)
+		if ((except = vstream_setjmp(state->session->stream)) != 0)
 		    RETURN(smtp_stream_except(state, except,
 					      xfer_states[recv_state]));
 		resp = smtp_chat_resp(state);
@@ -591,7 +591,7 @@ int     smtp_xfer(SMTP_STATE *state)
 	if (send_state == SMTP_STATE_DOT && nrcpt > 0) {
 	    smtp_timeout_setup(state->session->stream,
 			       var_smtp_data1_tmout);
-	    if ((except = setjmp(state->jbuf[0])) != 0)
+	    if ((except = vstream_setjmp(state->session->stream)) != 0)
 		RETURN(smtp_stream_except(state, except,
 					  "sending message body"));
 

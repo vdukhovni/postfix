@@ -1,0 +1,34 @@
+README
+
+The starting point for this work was the original LMTP patch,
+lmtp-19990427.tar.gz, found in the experimental directory on the
+Postfix mirror ftp sites.  Without this original work by Philip A.
+Prindeville, I probably wouldn't have taken the time to dive into
+this issue.  Fortunately, this individual's work gave me a good 
+starting point to learn about LMTP, and Postfix in general.
+
+First, in the Postfix source directory, apply the following patches:
+
+  patch -p0 < lmtp/makefile-patch
+  patch -p0 < lmtp/global-patch
+  patch -p0 < lmtp/man-patch
+
+Then compile and install Postfix as usual.  There really isn't 
+anything OS specific so it should compile without problems.
+
+NOTE: Previously this patch would do a pipe to an external command
+      to perform local delivery.  That is no longer the case!  This
+      version now requires the "spawn" service be defined.  See
+      README.local for details.
+
+The other way to use this lmtp service is to talk to a remote LMTP
+server.  An example of this would be if an MX host is to insert
+incoming mail directly into a message store that supports the LMTP
+protocol.  This is described in README.inet.
+
+The file CHANGES lists some of the changes that have been made
+since lmtp-19990427.tar.gz, and TODO discusses some thoughts
+that are currently floating around.
+
+Amos
+

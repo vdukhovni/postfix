@@ -1,0 +1,146 @@
+2000 Feb 23
+
+* lmtp.c, lmtp_connect.c, global-patch: added the main.cf
+  configuration parameter "lmtp_tcp_port".  If no port is explicitly 
+  specificed for the connection to the inet LMTP server, first
+  lookup "lmtp" with getservbyname.  If that fails, use the value of 
+  this "lmtp_tcp_port" parameter, which as a default value of 24.
+
+
+2000 Feb 21
+
+* Updated lmtp.c to yield a lmtp.8 man page that more accurately
+  reflects the current code.
+
+* Created man-patch so that lmtp.8 man page is created.  Updated
+  README to include applying this patch.
+
+
+2000 Feb 17
+
+* Correctly handle lmtp master.cf arguments of type "inet".
+  Possible uses are:
+
+  _USAGE_                          _MEANING_
+  serv=inet:                       connect over tcp to $nexthop
+  serv=inet:hostname               connect to named host port 24
+                                   (Actually, what "lmtp" is defined to be
+                                   in /etc/services.)
+  serv=inet:hostname:port          connect to named host named port
+  serv=inet:[ip.address]           connect to named host port 24
+  serv=inet:[ip.address]:port      connect to named address named port
+
+
+2000 Feb 15
+
+* Put in comment about local_destination_recipient_limit
+  in README.local.
+
+* In lmtp_chat.c, changed error reporting so that it goes
+  to var_error_rcpt, like the other Postfix services.
+
+
+2000 Jan 31
+
+* lmtp_proto.c:lmtp_lhlo: Don't worry about LMTP_FEATURE_PIPELINING
+  for sessions of type LMTP_SERV_TYPE_UNIX.
+
+
+2000 Jan 30
+
+* BIG changes.  Removed all the pipe stuff from lmtp.c and
+  lmtp_connect.c  Now, lmtp will either do a remote connection much
+  like the smtp client, or it will connect to a UNIX domain socket
+  to an auxiliary service (spawn).  This makes the lmtp patch
+  simpler because it doesn't have to worry at all about exec-ing an
+  external command, and all the resulting security implications.
+  See README.local for details.  
+
+  NOTE: postfix-19991231-pl04 is REQUIRED for this to work!  
+        (Need the "spawn" service.)
+
+* Updated the makefile-patch for postfix-19991231-pl03.
+
+* lmtp.h: changed the LMTP_ATTR structure to contain "type", "class", and
+  "name" fields, reflecting the change from the pipe mechanism to
+  the local sockets connection.  Changed LMTP_SESSION to contain the 
+  "type" field.  The connection type is recorded in this field in
+  case it is needed elsewhere, like in lmtp_proto.
+
+* lmtp.c:get_service_attr altered for new command syntax.  Examples: 
+
+     serv=unix:private/lmtpd
+     serv=inet:public/lmtpd
+
+  After `serv=' is the "type", followed by `:', then the "class",
+  followed by '/', and then finally the "name".
+
+* Added SAME_DESTINATION macro to lmtp.c:deliver_message for
+  readability, and simpler logic.
+
+* lmtp_connect.c: changed lmtp_connect to contain logic to determine 
+  just what kind of connection to make, removing it from lmtp.c;
+  removed lmtp_connect_pipe; and added lmtp_connect_local, which
+  uses mail_connect_wait to connect to the service running the LMTP
+  server (spawn).  In lmtp_connect, the connection type stored in
+  attr.type is saved into session.type, so it can be used later if
+  necessary. 
+
+* lmtp_proto.c:lmtp_lhlo: towards the end of this function we check
+  to see if service->type is LMTP_SERV_TYPE_UNIX so that we don't
+  try to do a getsockopt on a descriptor that doesn't support it.
+  Is this the best way to handle this?  Or maybe we should just try
+  it and if it bombs, check the error code before simply going
+  fatal?
+
+* Snagged the latest quota_821_local.c from the smtp client.
+
+* Updated the README files accordingly.
+
+
+2000 Jan 28
+
+* Well, wondering about using REWRITE_ADDRESS in lmtp_proto.c,
+  putting the lowercase thing in there.  Though, that would also
+  apply to sender address.  Is that okay?
+
+* We shouldn't be doing DNS lookups at this stage, so can get rid
+  of lmtp_unalias.c.  Also cut out the unalias portion in 
+  REWRITE_ADDRESS in lmtp_proto.c
+
+
+2000 Jan 11
+
+* At the suggestion of Rupa Schomaker, added the following to 
+  lmtp_proto.c:
+
+            lowercase(rcpt->address);  /* [AAG] rupa */
+
+
+1999 Dec 1 (or thereabouts)
+
+* Added lmtp_session_reset to make it easier to remember to reset
+  certain things to 0.  Did this to lmtp_chat_reset too.
+
+* Finally, did some work with the connection caching so that an RSET
+  is sent to the LMTP server.  This is done for two reasons: first,
+  to tell the LMTP server to flush out any status information
+  because we're about to feed it another message, and second, to
+  test the link to see if it is still alive.  If the link has died
+  for some reason, it is reestablished.  Changes to lmtp.c and
+  lmtp_proto.c.
+
+* There was also some tidying in lmtp.c so that things were a little
+  clearer as to what was going on.  I added a few more comments as
+  well.
+
+* I tried to make the master.cf argument parsing a little more
+  consistent with the other Postfix services.  Changes to lmtp.c.
+
+* On the postfix-users mailing list, Valery Brasseur pointed out that
+  errors encountered during LMTP delivery were not getting bounced
+  as appropriate.  This lead me to investigate the matter, wanting
+  to put this LMTP capability into service myself.  I then realized
+  that some of the error checking was a tad over zealous, and so
+  simplified things a bit in lmtp_proto.c.
+

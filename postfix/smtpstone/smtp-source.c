@@ -65,7 +65,6 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <stdarg.h>
-#include <setjmp.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -112,7 +111,6 @@ typedef struct SESSION {
     VSTREAM *stream;			/* open connection */
     int     connect_count;		/* # of connect()s to retry */
     struct SESSION *next;		/* connect() queue linkage */
-    jmp_buf jbuf[1];			/* exception handling */
 } SESSION;
 
 static SESSION *last_session;		/* connect() queue tail */
@@ -390,7 +388,6 @@ static void start_connect(SESSION *session)
     (void) non_blocking(fd, NON_BLOCKING);
     session->stream = vstream_fdopen(fd, O_RDWR);
     event_enable_write(fd, connect_done, (char *) session);
-    smtp_jump_setup(session->stream, session->jbuf);
     smtp_timeout_setup(session->stream, var_timeout);
     if (connect(fd, (struct sockaddr *) & sin, sizeof(sin)) < 0
 	&& errno != EINPROGRESS)
@@ -429,7 +426,7 @@ static void read_banner(int unused_event, char *context)
     /*
      * Prepare for disaster.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while reading server greeting", exception_text(except));
 
     /*
@@ -452,12 +449,12 @@ static void read_banner(int unused_event, char *context)
 static void send_helo(SESSION *session)
 {
     int     except;
-    char   *protocol = (talk_lmtp ? "LHLO" : "EHLO");
+    char   *protocol = (talk_lmtp ? "LHLO" : "HELO");
 
     /*
      * Send the standard greeting with our hostname
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending HELO", exception_text(except));
 
     command(session->stream, "%s %s", protocol, var_myhostname);
@@ -480,7 +477,7 @@ static void helo_done(int unused_event, char *context)
     /*
      * Get response to HELO command.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending HELO", exception_text(except));
 
     if ((resp = response(session->stream, buffer))->code / 100 != 2)
@@ -498,7 +495,7 @@ static void send_mail(SESSION *session)
     /*
      * Send the envelope sender address.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending sender", exception_text(except));
 
     command(session->stream, "MAIL FROM:<%s>", sender);
@@ -521,7 +518,7 @@ static void mail_done(int unused, char *context)
     /*
      * Get response to MAIL command.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending sender", exception_text(except));
 
     if ((resp = response(session->stream, buffer))->code / 100 != 2)
@@ -542,7 +539,7 @@ static void send_rcpt(int unused_event, char *context)
     /*
      * Send envelope recipient address.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending recipient", exception_text(except));
 
     if (session->rcpt_count > 1)
@@ -571,7 +568,7 @@ static void rcpt_done(int unused, char *context)
     /*
      * Get response to RCPT command.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending recipient", exception_text(except));
 
     if ((resp = response(session->stream, buffer))->code / 100 != 2)
@@ -596,7 +593,7 @@ static void send_data(int unused_event, char *context)
     /*
      * Request data transmission.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending DATA command", exception_text(except));
     command(session->stream, "DATA");
 
@@ -620,7 +617,7 @@ static void data_done(int unused_event, char *context)
     /*
      * Get response to DATA command.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending DATA command", exception_text(except));
     if ((resp = response(session->stream, buffer))->code != 354)
 	msg_fatal("data %d %s", resp->code, resp->str);
@@ -644,7 +641,7 @@ static void data_done(int unused_event, char *context)
     /*
      * Send some garbage.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending message", exception_text(except));
     if (message_length == 0) {
 	smtp_fputs("La de da de da 1.", 17, session->stream);
@@ -687,7 +684,7 @@ static void dot_done(int unused_event, char *context)
     /*
      * Get response to "." command.
      */
-    if ((except = setjmp(session->jbuf[0])) != 0)
+    if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending message", exception_text(except));
     do {					/* XXX this could block */
 	if ((resp = response(session->stream, buffer))->code / 100 != 2)

@@ -16,6 +16,7 @@
   */
 #include <fcntl.h>
 #include <stdarg.h>
+#include <setjmp.h>
 
  /*
   * Utility library.
@@ -27,7 +28,7 @@
   * Simple buffered stream. The members of this structure are not part of the
   * official interface and can change without prior notice.
   */
-typedef int (*VSTREAM_FN) (int, void *, unsigned, int);
+typedef int (*VSTREAM_FN) (int, void *, unsigned, int, void *);
 typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 
 typedef struct VSTREAM {
@@ -35,16 +36,17 @@ typedef struct VSTREAM {
     int     fd;				/* file handle, no 256 limit */
     VSTREAM_FN read_fn;			/* buffer fill action */
     VSTREAM_FN write_fn;		/* buffer fill action */
+    void   *context;			/* application context */
     long    offset;			/* cached seek info */
     char   *path;			/* give it at least try */
     int     read_fd;			/* read channel (double-buffered) */
     int     write_fd;			/* write channel (double-buffered) */
     VBUF    read_buf;			/* read buffer (double-buffered) */
     VBUF    write_buf;			/* write buffer (double-buffered) */
-    int     timeout;			/* read/write timout */
     pid_t   pid;			/* vstream_popen/close() */
     VSTREAM_WAITPID_FN waitpid_fn;	/* vstream_popen/close() */
-    BINATTR *attr;			/* optional binary attribute list */
+    int     timeout;			/* read/write timout */
+    jmp_buf *jbuf;			/* exception handling */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -104,6 +106,8 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_WRITE_FD	6
 #define VSTREAM_CTL_WAITPID_FN	7
 #define VSTREAM_CTL_TIMEOUT	8
+#define VSTREAM_CTL_EXCEPT	9
+#define VSTREAM_CTL_CONTEXT	10
 
 extern VSTREAM *vstream_printf(const char *,...);
 extern VSTREAM *vstream_fprintf(VSTREAM *, const char *,...);
@@ -128,14 +132,11 @@ extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 extern int vstream_peek(VSTREAM *);
 
  /*
-  * Attribute management, a way of tacking on arbitrary information onto a
-  * VSTREAM without destroying the VSTREAM abstraction itself.
+  * Exception handling. We use pointer to jmp_buf to avoid a lot of unused
+  * baggage for streams that don't need this functionality.
   */
-#define VSTREAM_ATTR_FREE_FN BINATTR_FREE_FN
-
-extern void vstream_attr_set(VSTREAM *, const char *, char *, VSTREAM_ATTR_FREE_FN);
-extern char *vstream_attr_get(VSTREAM *, const char *);
-extern void vstream_attr_unset(VSTREAM *, const char *);
+#define vstream_setjmp(stream)		setjmp((stream)->jbuf[0])
+#define vstream_longjmp(stream, val)	longjmp((stream)->jbuf[0], (val))
 
 /* LICENSE
 /* .ad
