@@ -119,7 +119,8 @@ static int bounce_header(VSTREAM *bounce, VSTRING *buf, const char *dest,
      * MIME header.
      */
     post_mail_fprintf(bounce, "MIME-Version: 1.0");
-    post_mail_fprintf(bounce, "Content-Type: %s/%s;", "multipart", "mixed");
+    post_mail_fprintf(bounce, "Content-Type: %s; report-type=%s;",
+		      "multipart/report", "x-postfix-report");
     post_mail_fprintf(bounce, "\tboundary=\"%s\"", boundary);
     post_mail_fputs(bounce, "");
     post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
@@ -138,7 +139,7 @@ static int bounce_boilerplate(VSTREAM *bounce, VSTRING *buf,
      */
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
-    post_mail_fprintf(bounce, "Content-Type: %s/%s", "text", "plain");
+    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
     post_mail_fputs(bounce, "");
 
     /*
@@ -210,7 +211,7 @@ static int bounce_diagnostics(char *service, VSTREAM *bounce, VSTRING *buf,
      */
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Delivery error report");
-    post_mail_fprintf(bounce, "Content-Type: %s/%s", "text", "plain");
+    post_mail_fprintf(bounce, "Content-Type: %s", "text/x-postfix-report");
     post_mail_fputs(bounce, "");
 
     /*
@@ -267,7 +268,8 @@ static int bounce_original(char *service, VSTREAM *bounce, VSTRING *buf,
      */
     post_mail_fprintf(bounce, "--%s", boundary);
     post_mail_fprintf(bounce, "Content-Description: %s", "Undelivered Message");
-    post_mail_fprintf(bounce, "Content-Type: %s/%s", "message", "rfc822");
+    post_mail_fprintf(bounce, "Content-Type: %s", headers_only ?
+		      "text/rfc822-headers" : "message/rfc822");
     post_mail_fputs(bounce, "");
 
     /*

@@ -10,6 +10,7 @@ msg_info	0	0
 msg_panic	0	0
 msg_warn	0	0
 opened	3	0
+post_mail_fprintf	1	0
 qmgr_message_bounce	2	0
 rec_fprintf	2	0
 sent	4	0

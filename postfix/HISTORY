@@ -2534,6 +2534,11 @@ Apologies for any names omitted.
 	conditional expressions such as ${name?text} where `text'
 	contains other ${name} expressions.
 
+19990406
+
+	Cleanup: changed MIME header information to make bounces
+	RFC 1892 compliant.
+
 Future:
 
 	Planned: must be able to list the same hash table in

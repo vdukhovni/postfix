@@ -157,7 +157,7 @@ check)
 
 	for dir in $daemon_directory $config_directory $queue_directory
 	do
-		ls -lLd $dir | (grep root >/dev/null ||
+		ls -lLd $dir | (grep " root " >/dev/null ||
 		    $WARN not owned by root: $dir)
 	done
 
@@ -207,6 +207,12 @@ check)
 	    egrep '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
+
+	for dir in $queue_directory/maildrop
+	do
+		ls -lLd $dir | (grep " $mail_owner " >/dev/null ||
+		    $WARN not owned by $mail_owner: $dir)
+	done
 
 	$command_directory/postsuper || exit 1
 
