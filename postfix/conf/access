@@ -10,12 +10,21 @@
 #	to selectively reject or accept mail from or to specific hosts,
 #	domains, networks, host addresses or mail addresses.
 #
-#	The table serves as input to the \fBpostmap\fR(1) command. The
-#	result, an indexed file in \fBdbm\fR or \fBdb\fR format,
+#	Normally, the table serves as input to the \fBpostmap\fR(1) command.
+#	The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
 #	is used for fast searching by the mail system. After an update
 #	it may take a minute or so before the change becomes visible.
 #	Issue a \fBpostfix reload\fR command to eliminate the delay.
 #
+#	When the table is provided via other means such as NIS, LDAP
+#	or SQL, the same lookups are done as for ordinary indexed files.
+#
+#	Alternatively, the table can be provided as a regular-expression
+#	map where patterns are given as regular expressions. In that case,
+#	the lookups are done in a slightly different way as described below.
+# TABLE FORMAT
+# .ad
+# .fi
 #	The format of the access table is as follows:
 # .IP "blanks and comments"
 #	Blank lines are ignored, as are lines beginning with `#'.
@@ -23,14 +32,15 @@
 #	When \fIpattern\fR matches a mail address, domain or host address,
 #	perform the corresponding \fIaction\fR.
 # PATTERNS
-#	Patterns are tried in the order as listed below:
 # .ad
 # .fi
+#	With lookups from indexed files, patterns are tried in the order as
+#	listed below:
 # .IP \fIuser\fR@\fIdomain\fR
 #	Matches the specified mail address.
 # .IP \fIdomain.name\fR
-#	Matches the \fIdomain.name\fR itself and any subdomain thereof, 
-#	either in hostnames or in mail addresses. Top-level domains will 
+#	Matches the \fIdomain.name\fR itself and any subdomain thereof,
+#	either in hostnames or in mail addresses. Top-level domains will
 #	never be matched.
 # .IP \fIuser\fR@
 #	Matches all mail addresses with the specified user part.
@@ -52,11 +62,34 @@
 # .IP \fBOK\fR
 # .IP "\fIAny other text\fR"
 #	Accept the address etc. that matches the pattern.
+# REGULAR EXPRESSION TABLES
+# .ad
+# .fi
+#	This section describes how the table lookups change when the table
+#	is given in the form of regular expressions. For a description of
+#	regular expression lookup table syntax, see \fBregexp_table\fR(5)
+#	or \fBpcre_table\fR(5).
+#
+#	Patterns become regular expressions that are applied to the entire
+#	string being looked up. Depending on the application, that string
+#	is an entire client hostname, an entire client IP address, or an
+#	entire mail address.
+#
+#	In contrast to the normal lookups from indexed files, no parent
+#	domain or network search is done, and \fIuser@domain\fR mail
+#	addresses are not broken up into their \fIuser@\fR and \fIdomain\fR
+#	constituent parts.
+#
+#	Actions are the same as with normal indexed file lookups, with
+#	the additional feature that parenthesized substrings from the
+#	pattern can be interpolated as \fB$1\fR, \fB$2\fR and so on.
 # BUGS
 #	The table format does not understand quoting conventions.
 # SEE ALSO
 #	postmap(1) create mapping table
 #	smtpd(8) smtp server
+#	pcre_table(5) format of PCRE tables
+#	regexp_table(5) format of POSIX regexp tables
 # LICENSE
 # .ad
 # .fi

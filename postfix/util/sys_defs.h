@@ -21,7 +21,7 @@
   */
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
-    || defined(OPENBSD2) || defined(NETBSD1) || defined(RHAPSODY5)
+    || defined(OPENBSD2) || defined(NETBSD1)
 #define SUPPORTED
 #include <sys/types.h>
 #define USE_PATHS_H
@@ -37,9 +37,14 @@
 #define USE_STATFS
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
+#define HAS_ST_GEN	/* struct stat contains inode generation number */
 #endif
 
-#if defined(OPENBSD2)
+#if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4)
+#define HAS_DUPLEX_PIPE
+#endif
+
+#if defined(OPENBSD2) || defined(FREEBSD3) || defined(FREEBSD4)
 #define HAS_ISSETUGID
 #endif
 
@@ -48,6 +53,21 @@
 #endif
 
 #if defined(RHAPSODY5)
+#define SUPPORTED
+#include <sys/types.h>
+#define USE_PATHS_H
+#define USE_FLOCK_LOCK
+#define HAS_SUN_LEN
+#define HAS_FSYNC
+#define HAS_DB
+#define HAS_SA_LEN
+#define DEF_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define GETTIMEOFDAY(t) gettimeofday(t,(struct timezone *) 0)
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+#define USE_STATFS
+#define STATFS_IN_SYS_MOUNT_H
+#define HAS_POSIX_REGEXP
 #define NORETURN	void
 #define HAS_NETINFO
 #endif
@@ -62,8 +82,8 @@
 #define UNSAFE_CTYPE			/* XXX verify */
 #define _PATH_MAILDIR	"/var/spool/mail"
 #define _PATH_BSHELL	"/bin/sh"
-#define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
-#define _PATH_STDPATH	"/usr/bin:/usr/etc:/usr/ucb"
+#define _PATH_DEFPATH	"/bin:/usr/bin:/usr/ucb"
+#define _PATH_STDPATH	"/bin:/usr/bin:/usr/etc:/usr/ucb"
 #define USE_FLOCK_LOCK
 #define USE_DOT_LOCK
 #define HAS_FSYNC
@@ -79,6 +99,7 @@
 extern int optind;
 extern char *optarg;
 extern int opterr;
+extern int h_errno;
 
 #define MISSING_STRFTIME_E
 #define HAS_NIS
@@ -556,6 +577,34 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define MISSING_USLEEP
 #endif
 
+#ifdef DCOSX1				/* Siemens Pyramid */
+#define SUPPORTED
+#include <sys/types.h>
+#define _PATH_MAILDIR	"/var/mail"
+#define _PATH_BSHELL	"/bin/sh"
+#define _PATH_DEFPATH	"/usr/bin:/usr/ucb"
+#define _PATH_STDPATH	"/usr/bin:/usr/sbin:/usr/ucb"
+#define MISSING_SETENV
+#define USE_FCNTL_LOCK
+#define USE_DOT_LOCK
+#define HAS_FSYNC
+#define DEF_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	"hash:/etc/aliases"
+/* Uncomment the following line if you have NIS package installed */
+/* #define HAS_NIS */
+#define USE_SYS_SOCKIO_H
+#define GETTIMEOFDAY(t) gettimeofday(t,NULL)
+#define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
+#define FIONREAD_IN_SYS_FILIO_H
+#define DBM_NO_TRAILING_NULL
+#define USE_STATVFS
+#define STATVFS_IN_SYS_STATVFS_H
+#define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
+#ifndef S_ISSOCK
+#define S_ISSOCK(mode)	((mode&0xF000) == 0xC000)
+#endif
+#endif
+
  /*
   * We're not going to try to guess like configure does.
   */
@@ -721,7 +770,7 @@ typedef int pid_t;
 
  /*
   * Making the ctype.h macros not more expensive than necessary. On some
-  * systems, ctype.h misbehaves badly with signed characters.
+  * systems, ctype.h misbehaves with non-ASCII and/or negative characters.
   */
 #define _UCHAR_(c)	((unsigned char)(c))
 #ifdef UNSAFE_CTYPE

@@ -227,6 +227,17 @@ static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
 	vstream_fclose(stream);
 	return (0);
     }
+
+    /*
+     * Skip this host if it sends a 5xx greeting.
+     */
+    if (ch == '5' && var_smtp_skip_5xx_greeting) {
+	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+			addr->name, inet_ntoa(sin.sin_addr));
+	smtp_errno = SMTP_RETRY;
+	vstream_fclose(stream);
+	return (0);
+    }
     vstream_ungetc(stream, ch);
     return (smtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr)));
 }

@@ -1,3 +1,14 @@
+Incompatible changes with snapshot-20000104
+===========================================
+
+None sofar.
+
+Major changes with snapshot-20000104
+====================================
+
+Questionable feature: with "smtp_skip_5xx_greeting = yes", Postfix
+emulates brain damage found in some other MTAs.
+
 Incompatible changes with postfix-19991231:
 ===========================================
 
@@ -76,10 +87,10 @@ installation can be done without write access to the build tree.
 - The SMTP server now rejects mail for unknown users in virtual
 domains that are defined by Postfix virtual maps.
 
-- The SMTP server optionally rejects mail for unknown local users.
-Use "local_recipient_maps = $alias_maps, unix:passwd.byname" if
-your local mail is delivered by a UNIX-style local delivery agent.
-See example in conf/main.cf.
+- The SMTP server can reject mail for unknown local users.  Specify
+"local_recipient_maps = $relocated_maps, $alias_maps, unix:passwd.byname"
+if your local mail is delivered by a UNIX-style local delivery
+agent.  See example in conf/main.cf.
 
 - Use "disable_vrfy_command = yes" to disable the SMTP VRFY command.
 This prevents some forms of address harvesting.

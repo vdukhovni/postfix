@@ -20,7 +20,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	vstream.c vstream_popen.c vstring.c vstring_vstream.c writable.c \
 	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
-	clean_env.c watchdog.c spawn_command.c
+	clean_env.c watchdog.c spawn_command.c duplex_pipe.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -42,7 +42,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	vstream.o vstream_popen.o vstring.o vstring_vstream.o writable.o \
 	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
-	clean_env.o watchdog.o spawn_command.o
+	clean_env.o watchdog.o spawn_command.o duplex_pipe.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -439,6 +439,9 @@ doze.o: doze.c
 doze.o: sys_defs.h
 doze.o: msg.h
 doze.o: iostuff.h
+duplex_pipe.o: duplex_pipe.c
+duplex_pipe.o: sys_defs.h
+duplex_pipe.o: iostuff.h
 environ.o: environ.c
 environ.o: sys_defs.h
 events.o: events.c
@@ -863,6 +866,7 @@ vstream_popen.o: vbuf.h
 vstream_popen.o: argv.h
 vstream_popen.o: set_ugid.h
 vstream_popen.o: clean_env.h
+vstream_popen.o: iostuff.h
 vstring.o: vstring.c
 vstring.o: sys_defs.h
 vstring.o: mymalloc.h

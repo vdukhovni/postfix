@@ -3515,3 +3515,31 @@ Apologies for any names omitted.
 	to enable LMTP delivery over UNIX-domain sockets. The goal
 	is to simplify the experimental LMTP delivery agent by
 	ripping out the privileged code that forks the LMTP server.
+
+20000102
+
+	Clarified documentation after early feedback on the 19991231
+	release by Drew Derbyshire, Ollivier Robert, Khetan Gajjar.
+
+	Sanity check: a common error is to list Postfix virtual
+	domains in the mydestination parameter. This causes the
+	new optional local_recipient_maps feature to reject mail
+	for virtual users.  The SMTP server now explicitly tests
+	for this common error and logs a warning instead of refusing
+	the mail.  File:  smtpd/smtpd_check.c.
+
+20000104
+
+	Bugfix: a case sensitivity bug had slipped through in the
+	anti-relaying code, causing mail for USER@VIRTUAL.DOMAIN
+	to be rejected with "relay access denied". This was found
+	by Jim Maenpaa @ jmm.com.
+
+	Questionable feature: set "smtp_skip_5xx_greeting = yes"
+	to make Postfix more sendmail compatible, even though this
+	is wrong, IMNSHO. File: smtp/smtp_connect.c.
+
+	Portability: Ultrix patch from Simon Burge @ thistledown.com.au.
+
+	Portability: Siemens Pyramid (dcosx) patch by Thomas D.
+	Knox @ vushta.com.

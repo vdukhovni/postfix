@@ -20,7 +20,7 @@
 /*	\fIcommand\fR, which is executed by a child process. The \fIflags\fR
 /*	argument is as with vstream_fopen(). The child's standard input and
 /*	standard output are redirected to the stream, which is based on a
-/*	socketpair.
+/*	socketpair or other suitable local IPC.
 /*
 /*	vstream_popen_vargs() offers the user more control over the
 /*	child process and over how it is managed. The key argument
@@ -90,7 +90,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -108,6 +107,7 @@
 #include <argv.h>
 #include <set_ugid.h>
 #include <clean_env.h>
+#include <iostuff.h>
 
 /* Application-specific. */
 
@@ -207,7 +207,7 @@ VSTREAM *vstream_popen_vargs(int flags,...)
     if (args.command == 0)
 	args.command = args.argv[0];
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) < 0)
+    if (duplex_pipe(sockfd) < 0)
 	return (0);
 
     switch (pid = fork()) {

@@ -41,7 +41,6 @@
 /* System libraries. */
 
 #include <sys_defs.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
 /* Utility library. */
@@ -155,10 +154,10 @@ void    master_status_init(MASTER_SERV *serv)
 
     /*
      * Make the read end of this service's status pipe non-blocking so that
-     * we can detect partial writes on the child side. We use a socket pair,
+     * we can detect partial writes on the child side. We use a duplex pipe
      * so that the child side becomes readable when the master goes away.
      */
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, serv->status_fd) < 0)
+    if (duplex_pipe(serv->status_fd) < 0)
 	msg_fatal("pipe: %m");
     non_blocking(serv->status_fd[0], BLOCKING);
     close_on_exec(serv->status_fd[0], CLOSE_ON_EXEC);

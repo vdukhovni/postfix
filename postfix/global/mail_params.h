@@ -576,6 +576,10 @@ extern int var_smtp_quit_tmout;
 #define DEF_SMTP_SKIP_4XX	0
 extern bool var_smtp_skip_4xx_greeting;
 
+#define VAR_SMTP_SKIP_5XX	"smtp_skip_5xx_greeting"
+#define DEF_SMTP_SKIP_5XX	0
+extern bool var_smtp_skip_5xx_greeting;
+
 #define VAR_IGN_MX_LOOKUP_ERR	"ignore_mx_lookup_error"
 #define DEF_IGN_MX_LOOKUP_ERR	0
 extern bool var_ign_mx_lookup_err;

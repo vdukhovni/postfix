@@ -87,6 +87,8 @@
 /*	postmaster with transcripts of SMTP sessions with protocol errors.
 /* .IP \fBsmtp_skip_4xx_greeting\fR
 /*	Skip servers that greet us with a 4xx status code.
+/* .IP \fBsmtp_skip_5xx_greeting\fR
+/*	Skip servers that greet us with a 5xx status code.
 /* .IP \fBsmtp_skip_quit_response\fR
 /*	Do not wait for the server response after sending QUIT.
 /* .SH "Resource controls"
@@ -199,6 +201,7 @@ char   *var_debug_peer_list;
 int     var_debug_peer_level;
 char   *var_notify_classes;
 int     var_smtp_skip_4xx_greeting;
+int     var_smtp_skip_5xx_greeting;
 int     var_ign_mx_lookup_err;
 int     var_skip_quit_resp;
 char   *var_fallback_relay;
@@ -350,6 +353,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_SMTP_SKIP_4XX, DEF_SMTP_SKIP_4XX, &var_smtp_skip_4xx_greeting,
+	VAR_SMTP_SKIP_5XX, DEF_SMTP_SKIP_5XX, &var_smtp_skip_5xx_greeting,
 	VAR_IGN_MX_LOOKUP_ERR, DEF_IGN_MX_LOOKUP_ERR, &var_ign_mx_lookup_err,
 	VAR_SKIP_QUIT_RESP, DEF_SKIP_QUIT_RESP, &var_skip_quit_resp,
 	0,

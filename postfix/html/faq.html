@@ -28,9 +28,9 @@
 
 <li><a href="#relaying">Mail relaying</a>
 
-<li><a href="#remote_delivery">Delivery to remote systems</a>
+<li><a href="#remote_delivery">Remote delivery</a>
 
-<li><a href="#local_delivery">Delivery to local (non-virtual) addresses</a>
+<li><a href="#local_delivery">Local (non-virtual) delivery</a>
 
 <li><a href="#mailing_lists">Mailing lists</a>
 
@@ -87,6 +87,8 @@ distribution list</a>
 
 <li><a href="#majordomo-approve">Postfix breaks the majordomo "approve" command</a>
 
+<li><a href="#skip_greeting">Postfix does not try all the MX addresses</a>
+
 </ul>
 
 <a name="relaying"><h3>Mail relaying</h3>
@@ -97,22 +99,24 @@ distribution list</a>
 
 <li><a href="#mobile">Relaying mail for mobile users</a>
 
-<li><a href="#relay_virtual">Postfix refuses to receive mail for some
-virtual domains</a>
+<li><a href="#virtual_setup">Postfix refuses mail for virtual
+domains with "relay access denied"</a>
 
 <li><a href="#relay_restrict">Restricting what users can send mail to off-site destinations</a>
 
 </ul>
 
-<a name="remote_delivery"><h3>Delivery to remote systems</h3>
+<a name="remote_delivery"><h3>Remote delivery</h3>
 
 <ul>
 
 <li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
 
+<li><a href="#skip_greeting">Postfix does not try all the MX addresses</a>
+
 </ul>
 
-<a name="local_delivery"><h3>Delivery to local (non-virtual) addresses</h3>
+<a name="local_delivery"><h3>Local (non-virtual) delivery</h3>
 
 <ul>
 
@@ -155,12 +159,24 @@ distribution list</a>
 
 <ul>
 
+<li><a href="#virtual_setup">How to configure a Postfix virtual domain</a>
+
+<li><a href="#virtual_setup">Postfix does not refuse mail for
+unknown virtual users</a>
+
+<li><a href="#virtual_setup">Mail for unknown virtual users fails
+with "mail loops back to myself"</a>
+
+<li><a href="#virtual_setup">Postfix refuses mail for virtual
+domains with "user unknown"</a>
+
+<li><a href="#virtual_setup">Postfix refuses mail for virtual
+domains with "relay access denied"</a>
+
 <li><a href="#command">Commands don't work in Postfix virtual maps</a>
 
-<li><a href="#unknown_virtual">Rejecting mail for unknown virtual users</a>
-
-<li><a href="#relay_virtual">Postfix refuses to receive mail for some
-virtual domains</a>
+<li><a href="#domain_mailbox">Receiving a virtual domain in a
+mailbox</a>
 
 </ul>
 
@@ -200,7 +216,7 @@ virtual domains</a>
 
 <li><a href="#dbm_dirfno">Undefined symbols: dbm_pagfno, dbm_dirfno etc.</a>
 
-<li><a href="#db">Using DB libraries on Solaris etc.</a>
+<li><a href="#db">Using third-party DB libraries</a>
 
 </ul>
 
@@ -234,7 +250,7 @@ needs tweaking only if you have a very slow or a very fast net/machine.
 
 Workstation:
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         myorigin = $mydomain
 </pre>
 
@@ -242,7 +258,7 @@ Workstation:
 
 Server:
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         myorigin = $mydomain
         mydestination = $myhostname, localhost.$mydomain, $mydomain
 </pre>
@@ -259,7 +275,7 @@ workstation:
 
 Server:
 <pre>
-    <b>/etc/aliases</b>:
+    /etc/aliases:
         joe:    joe@joes.workstation
         jane:   jane@janes.workstation
 </pre>
@@ -287,11 +303,11 @@ domain.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         myorigin = $mydomain
         relayhost = $mydomain
 
-    <b>/etc/postfix/master.cf</b>:
+    /etc/postfix/master.cf:
         Comment out the SMTP server entry
         Comment out the local delivery agent entry
 </pre>
@@ -318,7 +334,7 @@ to let that mail gateway take care of forwarding.
 because it allows users to change machines without hassle.
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         myorigin = $mydomain
 </pre>
 
@@ -330,7 +346,7 @@ for mail for the local machine:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         relayhost = $mydomain
 </pre>
 
@@ -347,7 +363,7 @@ specify the intranet mail gateway host itself:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         relayhost = host.my.domain
 </pre>
 
@@ -359,7 +375,7 @@ DNS lookups as well:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         disable_dns_lookups = yes
 </pre>
 
@@ -378,13 +394,13 @@ href="transport.5.html">transport</a> table lookups.
 <p>
 
 <pre>
-    <b>/etc/postfix/transport</b>:
+    /etc/postfix/transport:
         my.domain               smtp:
         .my.domain              smtp:
-        thishost.my.domain      local:        <blink>!important!</blink>
-        localhost.my.domain     local:        <blink>!important!</blink>
+        thishost.my.domain      local:        !!!important!!!
+        localhost.my.domain     local:        !!!important!!!
 
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         transport_maps = hash:/etc/postfix/transport
 </pre>
 
@@ -395,8 +411,9 @@ else mail will bounce with a "mail loops to myself" condition.
 
 <p>
 
-Specify <b>dbm:/etc/postfix/transport</b> if your system
-uses <b>dbm</b> files instead of <b>db</b>.
+Specify <b>dbm:/etc/postfix/transport</b> if your system uses
+<b>dbm</b> files instead of <b>db</b>. To find out what map types
+Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -438,23 +455,24 @@ route mail for <i>my.domain</i> to the inside machine:
 <p>
 
 <pre>
-<b>/etc/postfix/main.cf</b>:
+/etc/postfix/main.cf:
     mydestination = $myhostname, my.domain, localhost.my.domain
     relay_domains =
     transport_maps = hash:/etc/postfix/transport
 
-<b>/etc/postfix/transport</b>:
+/etc/postfix/transport:
     my.domain   smtp:inside-gateway.my.domain   (forwards user@domain)
     .my.domain  smtp:inside-gateway.my.domain   (forwards user@firewall)
 
-<b>/etc/postfix/master.cf</b>:
+/etc/postfix/master.cf:
     Comment out the local delivery agent
 </pre>
 
 <p>
 
-Specify <b>dbm:/etc/postfix/transport</b> if your system uses <b>dbm</b>
-files instead of <b>db</b>.
+Specify <b>dbm:/etc/postfix/transport</b> if your system uses
+<b>dbm</b> files instead of <b>db</b>. To find out what map types
+Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -498,7 +516,7 @@ that is connected all the time.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf:</b>
+    /etc/postfix/main.cf:
         relayhost = smtprelay.someprovider.com
 </pre>
 
@@ -518,7 +536,7 @@ calls from being placed, disable spontaneous SMTP mail deliveries.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf:</b>
+    /etc/postfix/main.cf:
         defer_transports = smtp (Only for systems that use on-demand dialup IP)
 </pre>
 
@@ -537,7 +555,7 @@ To prevent these delays, disable all SMTP client DNS lookups.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         disable_dns_lookups = yes (Only for delivery across LANs that are disconnected most of the time)
 </pre>
 
@@ -644,7 +662,7 @@ four hours, specify:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>
+    /etc/postfix/main.cf:
 	delay_warning_time = 4
 </pre>
 
@@ -731,6 +749,8 @@ mail for arbitrary non-local destinations:
 <p>
 
 Don't Panic!  Upgrade to a Postfix version of 19991227 or later.
+To find out what Postfix version you have, execute the command
+<b>postconf mail_version</b>.
 
 <p>
 
@@ -816,12 +836,12 @@ ahead of the other SMTPD recipient restrictions:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         smtpd_recipient_restrictions = 
 	    regexp:/etc/postfix/regexp_access
-	    <i>...other restrictions...</i>
+	    ...other restrictions...
 
-    <b>/etc/postfix/regexp_access</b>:
+    /etc/postfix/regexp_access:
         /[%!@].*[%!@]/ 550 Sender specified routing is not supported here.
 </pre>
 
@@ -858,13 +878,13 @@ a Postfix-compatible access table with client IP address information:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             permit_mynetworks
             check_client_access hash:/etc/postfix/client_access
             check_relay_domains
 
-    <b>/etc/postfix/client_access</b>:
+    /etc/postfix/client_access:
         4.3.2.1         OK
         5.4.3.2         987654321
 </pre>
@@ -872,7 +892,8 @@ a Postfix-compatible access table with client IP address information:
 <p>
 
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
-<b>dbm</b> files instead of <b>db</b> files.
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -893,18 +914,18 @@ spammer ever finds out the address of your users.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             permit_mynetworks
             check_client_access hash:/etc/postfix/client_access
             check_sender_access hash:/etc/postfix/sender_access
             check_relay_domains
 
-    <b>/etc/postfix/client_access</b>:
+    /etc/postfix/client_access:
         11.22.33                OK
         dialup.isp.com          OK
 
-    <b>/etc/postfix/sender_access</b>:
+    /etc/postfix/sender_access:
         joe@my.domain           OK
         blow@my.domain          OK
 </pre>
@@ -955,7 +976,7 @@ LDAP or SQL.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             hash:/etc/postfix/restricted_senders
             ...other stuff...
@@ -963,11 +984,11 @@ LDAP or SQL.
         restriction_classes = local_only
         local_only = check_recipient_access hash:/etc/postfix/local_domains, reject
 
-    <b>/etc/postfix/restricted_senders</b>:
+    /etc/postfix/restricted_senders:
         foo@domain      local_only
         bar@domain      local_only
 
-    <b>/etc/postfix/local_domains</b>:
+    /etc/postfix/local_domains:
         this.domain     OK      (matches this.domain and subdomains)
         that.domain     OK      (matches that.domain and subdomains)
 </pre>
@@ -975,7 +996,8 @@ LDAP or SQL.
 <p>
 
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
-<b>dbm</b> files instead of <b>db</b> files.
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -1077,6 +1099,66 @@ and convince the person responsible for it to fix the configuration.
 
 <hr>
 
+<a name="skip_greeting"><h3>Postfix does not try all the MX
+addresses</h3>
+
+When delivering mail, Postfix tries all MX addresses in order of
+preference, and stops at the first server that speaks SMTP.
+
+<p>
+
+If the first server that speaks SMTP rejects the connection by
+greeting the client with a 5xx status code, which means "I will
+never accept your mail", Postfix gives up and bounces the message
+to the sender.
+
+<p>
+
+If the first server that speaks SMTP rejects the connection by
+greeting the client with a 4xx status code, which means "come back
+later", Postfix backs off and defers delivery until later.
+
+<p>
+
+Some people will argue that Postfix should contact the other MX
+addresses even when the server greets with 4xx or 5xx, if only
+because that is what Sendmail does, and of course we know that
+everything Sendmail does is right.
+
+<p>
+
+Unfortunately, some people configure their infrastructure badly.
+Their most preferred MX server is visible to the world but it
+rejects connections from outside with a 5xx or 4xx greeting. Just
+because Sendmail goes to the second-best MX server, these people
+assume that every mailer will do so.
+
+<p>
+
+If such configurations are a problem for you, below are some controls
+that work around them.
+
+<p>
+
+<pre>
+    /etc/postfix/main.cf:
+	smtp_skip_4xx_greeting = yes
+	smtp_skip_5xx_greeting = yes
+</pre>
+
+<p>
+
+The <b>smtp_skip_5xx_greeting</b> is present in Postfix releases
+later than 20000104. To find out what Postfix version you have,
+use the command <b>postconf mail_version</b>.
+
+<p>
+
+Execute the command <b>postfix reload</b> to make the change
+effective immediately.
+
+<hr>
+
 <a name="root"> <h3>Root's mail is delivered to nobody</h3>
 
 If you use <a href="#procmail">procmail</a> (or some other command)
@@ -1101,7 +1183,7 @@ real user.
 <p>
 
 <pre>
-<b>/etc/aliases:</b>
+/etc/aliases:
     root:       you
 </pre>
 
@@ -1122,9 +1204,14 @@ To find out the location for your system, execute the command
 
 <a name="bogus"><h3>Postfix accepts mail for non-existing local users</h3>
 
-The information in this section applies to Postfix versions 19991216
-and later. See elsewhere for <a href="#unknown_virtual">unknown
+See elsewhere for how to reject mail for <a href="#virtual_setup">unknown
 virtual</a> users.
+
+<p>
+
+The information in this section applies to Postfix versions 19991216
+and later.  To find out what Postfix version you have, execute the
+command <b>postconf mail_version</b>.
 
 <p>
 
@@ -1139,27 +1226,31 @@ Of course mail for a non-existent local user will eventually bounce
 as undeliverable, but why accept such mail in the first place? You
 can tell the Postfix SMTP server how to find out if a user exists by
 listing all tables with local addresses in the <b>local_recipient_maps</b>
-parameter:
+parameter. 
+
+<p>
+
+For example, if you use the default Postfix local delivery agent
+in <b>/etc/postfix/master.cf</b>, specify:
 
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
-	local_recipient_maps = $alias_maps, unix:passwd.byname
+    /etc/postfix/main.cf:
+	local_recipient_maps = $relocated_maps $alias_maps, unix:passwd.byname
 </pre>
 
 <p>
 
-The above should work on UNIX systems, provided that you use the
-Postfix local delivery agent. However, if you run the Postfix SMTP
-server chrooted, on some systems it will be necessary to have a
-copy of the passwd file inside the chroot jail (typically: in
-<b>/var/spool/postfix/etc</b>).
+However, if you run the Postfix SMTP server chrooted, on some
+systems it will be necessary to have a copy of the passwd file
+inside the chroot jail (typically: in <b>/var/spool/postfix/etc</b>).
+The only way to find out is to try.
 
 <p>
 
 By default, the Postfix SMTP server does know about Postfix <a
-href="virtual.5.html">virtual</a> maps, and will reject mail for
+href="#virtual_setup">virtual</a> maps, and will reject mail for
 <i>unknown@virtual.domain</i> without further configuration.
 
 <hr>
@@ -1175,7 +1266,7 @@ domain is to be appended to addresses that do not have a domain:
 <p>
 
 <pre>
-<b>/etc/postfix/main.cf</b>:
+/etc/postfix/main.cf:
     myorigin = domain.name
 </pre>
 
@@ -1188,10 +1279,10 @@ destinations:
 <p>
 
 <pre>
-<b>/etc/postfix/main.cf</b>:
+/etc/postfix/main.cf:
     virtual_maps = hash:/etc/postfix/virtual
 
-<b>/etc/postfix/virtual</b>:
+/etc/postfix/virtual:
     root        root@localhost
     postmaster  postmaster@localhost
 </pre>
@@ -1199,7 +1290,8 @@ destinations:
 <p>
 
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
-<b>dbm</b> files instead of <b>db</b> files.
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -1225,7 +1317,7 @@ for example:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         home_mailbox = Maildir/
 </pre>
 
@@ -1259,10 +1351,10 @@ For example:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         mailbox_command = /path/to/procmail
 
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         mailbox_command = /path/to/procmail -a $EXTENSION
 </pre>
 
@@ -1351,29 +1443,16 @@ expression-based filter at the SMTP port:
 
 <p>
 
-<dl>
+<pre>
+    /etc/postfix/main.cf:
+	smtpd_recipient_restrictions = 
+	    ... regexp:/etc/postfix/access_regexp ...
+	smtpd_recipient_restrictions = 
+	    ... pcre:/etc/postfix/access_regexp ...
 
-<dt><b>/etc/postfix/main.cf:</b>
-
-<dl>
-
-<dt><tt>smtpd_recipient_restrictions = ... regexp:/etc/postfix/access_regexp ...</tt>
-
-<dt><tt>smtpd_recipient_restrictions = ... pcre:/etc/postfix/access_regexp ...</tt>
-
-</dl>
-
-<p>
-
-<dt><b>/etc/postfix/access_regexp:</b>
-
-<dl>
-
-<dt><tt>/^(.*)-outgoing@(.*)/   554 Use $1@$2 instead</tt>
-
-</dl>
-
-</dl>
+    /etc/postfix/access_regexp:
+	/^(.*)-outgoing@(.*)/   554 Use $1@$2 instead
+</pre>
 
 <p>
 
@@ -1418,11 +1497,10 @@ script to strip any header lines that match:
 
 <p>
 
-<dl>
+<pre>
+    /delivered-to/i
 
-<dd><b>/delivered-to/i</b>
-
-</dl>
+</pre>
 
 <p>
 
@@ -1456,19 +1534,20 @@ to IP spoofing.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             hash:/etc/postfix/access
             ..the usual stuff...
 
-    <b>/etc/postfix/access</b>:
+    /etc/postfix/access:
         all     permit_mynetworks,reject
 </pre>
 
 <p>
 
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
-<b>dbm</b> files instead of <b>db</b> files.
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -1492,7 +1571,7 @@ therefore is subject to SMTP sender spoofing.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
             hash:/etc/postfix/protected_destinations
             ..the usual stuff...
@@ -1500,11 +1579,11 @@ therefore is subject to SMTP sender spoofing.
         smtpd_restriction_classes = insiders_only
         insiders_only = check_sender_access hash:/etc/postfix/insiders, reject
 
-    <b>/etc/postfix/protected_destinations</b>:
+    /etc/postfix/protected_destinations:
         all@my.domain   insiders_only
         all@my.hostname insiders_only
 
-    <b>/etc/postfix/insiders</b>:
+    /etc/postfix/insiders:
         my.domain       OK
         another.domain  OK
 </pre>
@@ -1524,6 +1603,67 @@ to do is to spoof the SMTP sender address.
 
 If the internal list is a low-volume one, perhaps it makes more
 sense to make it moderated.
+
+<hr>
+
+<a name="virtual_setup"><h3>How to configure a Postfix virtual domain</h3>
+
+Problem:
+
+<p> 
+
+<ul>
+
+<li>Postfix does not refuse mail for unknown virtual users.
+
+<li>Mail for unknown virtual users fails with "mail loops back to
+myself".
+
+<li>Postfix refuses mail for virtual domains with "user unknown".
+
+<li>Postfix refuses mail for virtual domains with "relay access
+denied".
+
+</ul>
+
+<p>
+
+Solution:
+
+<p>
+
+<ul>
+
+<li> Add a magical entry to the Postfix virtual maps for
+each Postfix virtual domain:
+
+<p>
+
+<pre>
+    /etc/postfix/virtual:
+        virtual.domain whatever
+</pre>
+
+<p>
+
+<li> Do not list Postfix virtual domains in the <a
+href="basic.html#mydestination">mydestination</a> parameter.
+
+<li> Do not list Postfix virtual maps in the <b>local_recipient_maps</b>
+parameter.
+
+<li>As of Postfix version 19991226 it is no longer necessary to
+specify virtual maps in the <a
+href="uce.html#relay_domains">relay_domains</a> parameter.  To find
+out what Postfix version you have, execute the command <b>postconf
+mail_version</b>.
+
+</ul>
+
+<p>
+
+For more information on how to set up virtual domains, see the <a
+href="virtual.5.html">virtual</a> manual page.
 
 <hr>
 
@@ -1556,7 +1696,7 @@ privileges.
 <p>
 
 <pre>
-    <b>/etc/aliases</b>:
+    /etc/aliases:
         name-virtual.domain     "|/some/where/command..."
 </pre>
 
@@ -1572,7 +1712,7 @@ alias database.
 <p>
 
 <pre>
-    <b>/etc/postfix/virtual</b>:
+    /etc/postfix/virtual:
         virtual.domain          whatever
         name@virtual.domain     name-virtual.domain
 </pre>
@@ -1593,66 +1733,68 @@ To find out the location for your system, execute the command
 
 <hr>
 
-<a name="unknown_virtual"><h3>Rejecting mail for unknown virtual users</h3>
+<a name="domain_mailbox"><h3>Receiving a virtual domain in a mailbox</h3>
 
-Problem: mail for an unknown virtual user is misdelivered to a local
-user with the same name.
-
-<p>
-
-Problem: mail for an unknown virtual user results in an ugly "mail
-loops back to myself" error from Postfix.
+Question: how to receive all mail for a domain in a mailbox without
+losing the original recipient information? The Postfix Delivered-To:
+mail header shows only the mailbox owner, not the virtual address
+that the mail was sent to.
 
 <p>
 
-Solution: add a magical entry to the Postfix virtual database:
+Answer: I hope we all agree that delivering a domain to a mailbox
+is disgusting practice. Forwarding mail via SMTP or UUCP would be
+a much better choice.  Unfortunately, neither SMTP nor UUCP are a
+usable alternative for legions of windows users.
+
+<p>
+
+That said, it is possible to propagate the original virtual recipient
+information to the Delivered-To: header. The trick is to use a
+virtual map that uses regular expressions instead of the more
+traditional indexed files.
+
+<p>
+
+The following delivers <i>username@virtual.domain</i> with a
+Delivered-To: message header that contains <i>joe+username@your.domain</i>.
+Postfix already puts the envelope sender address in the Return-Path:
+header.  The information in the Delivered-To: and Return-Path:
+headers is sufficient to reliably implement a domain in a mailbox.
 
 <p>
 
 <pre>
-    <b>/etc/postfix/virtual</b>:
-        virtual.domain whatever
+    /etc/postfix/main.cf:
+	recipient_delimiter = +
+	virtual_maps = 
+	    ...non-regexp virtual maps...
+	    regexp:/etc/postfix/virtual_regexp
+
+    /etc/postfix/virtual_regexp:
+	/^virtual\.domain$/		whatever
+	/^(.*\)@virtual\.domain$/	joe+$1
 </pre>
 
 <p>
 
-This entry will also fix the problem that the Postfix SMTP server
-refuses to <a href="#relay_virtual">receive</a> mail for the virtual
-domain.
-
-<p>
-
-For more information on how to set up virtual domains, see the <a
-href="virtual.5.html">virtual</a> manual page.
-
-<hr>
-
-<a name="relay_virtual"><h3>Postfix refuses to receive mail for some
-virtual domains </h3>
-
-In order to receive mail for virtual domains, the Postfix SMTP server
-needs to know that the domain is OK.
-
-<p>
+Notes:
 
 <ul>
 
-<li>Create an entry in the virtual map that lists the virtual
-domain name:
+<li> Be sure to specify the <b>^</b> and <b>\</b> and <b>$</b> or
+else you may have false hits.
 
-<p>
+<li> Maps with regular expressions are searched sequentially. This
+can be expensive when you list many domains in regular expression
+maps.
 
-<pre>
-    <b>/etc/postfix/virtual</b>:
-        virtual.domain      whatever
-</pre>
+<li> Postfix has <b>regexp </b> map support only on modern UNIXes.
+Instead of <b>regexp </b> maps your Postfix system may also support
+<b>pcre</b> maps which have a similar syntax. To find out what maps
+your system supports, use the command <b>postconf -m</b>.
 
 </ul>
-
-<p>
-
-For more details, see the <a href="virtual.5.html">virtual</a>
-manual page.
 
 <hr>
 
@@ -1675,7 +1817,7 @@ coming from <i>user@my.domain</i>, specify:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         masquerade_domains = $mydomain
 </pre>
 
@@ -1702,7 +1844,7 @@ such as <b>root</b>, specify:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         masquerade_exceptions = root
 </pre>
 
@@ -1714,7 +1856,7 @@ such as <b>root</b>, specify:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         masquerade_domains = somehost.my.domain otherhost.my.domain $mydomain
 </pre>
 
@@ -1760,7 +1902,7 @@ Examples:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         mailbox_command = /some/program ...
 </pre>
 
@@ -1768,14 +1910,14 @@ Examples:
 
 This example specifies a command that delivers all local mail to
 mailbox.  See the sample <b>main.cf</b> file for examples. In
-<b>/etc/aliases</i>, you must specify an alias for <b>root</b> that
+<b>/etc/aliases</b>, you must specify an alias for <b>root</b> that
 directs mail to a real person, otherwise mail sent to <b>root</b>
 will not work as expected.
 
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         mailbox_transport = foo
 </pre>
 
@@ -1801,7 +1943,7 @@ host.
 
 <li>You need an <b>rmail</b> program that extracts the sender
 address from mail that arrives via UUCP, and that feeds the mail
-into the Postfix <b>sendmail<b> command.  Most UNIX systems come
+into the Postfix <b>sendmail</b> command.  Most UNIX systems come
 with an <b>rmail</b> utility. If you're in a pinch, try the one
 bundled with the Postfix source code in the <b>auxiliary</b>
 directory. Some day Postfix may have its own <b>rmail</b> command.
@@ -1814,7 +1956,7 @@ be delivered via UUCP, for example, to a host named <i>uucp-host</i>:
 <p>
 
 <pre>
-    <b>/etc/postfix/transport</b>:
+    /etc/postfix/transport:
         some.domain     uucp:uucp-host
         .some.domain    uucp:uucp-host
 </pre>
@@ -1836,21 +1978,22 @@ you change the <b>transport</b> file.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         transport_maps = hash:/etc/postfix/transport
 </pre>
 
 <p>
 
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
-<b>dbm</b> files instead of <b>db</b> files.
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
 <li>Define a mail transport for delivery via UUCP:
 
 <pre>
-    <b>/etc/postfix/master.cf</b>:
+    /etc/postfix/master.cf:
         uucp      unix  -       n       n       -       -       pipe
           flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 </pre>
@@ -1870,7 +2013,7 @@ is willing to relay mail for.
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         relay_domains = some.domain $mydestination ...
 </pre>
 
@@ -1908,7 +2051,7 @@ mail transport to your UUCP gateway host, say, <i>uucp-gateway</i>:
 <p>
 
 <pre>
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         relayhost = uucp-gateway
         default_transport = uucp
 </pre>
@@ -1920,7 +2063,7 @@ mail transport to your UUCP gateway host, say, <i>uucp-gateway</i>:
 <p>
 
 <pre>
-    <b>/etc/postfix/master.cf</b>:
+    /etc/postfix/master.cf:
         uucp      unix  -       n       n       -       -       pipe
           flags=F user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
 </pre>
@@ -1953,21 +2096,22 @@ HylaFax. Here's the setup used:
 <p>
 
 <pre>
-    <b>/etc/postfix/master.cf</b>:
+    /etc/postfix/master.cf:
         fax       unix  -       n       n       -       -       pipe
             flags= user=fax argv=/usr/bin/faxmail -d -n ${user}
 
-    <b>/etc/postfix/transport</b>:
+    /etc/postfix/transport:
         fax.your.domain   fax:localhost
 
-    <b>/etc/postfix/main.cf</b>:
+    /etc/postfix/main.cf:
         transport_maps = hash:/etc/postfix/transport
 </pre>
 
 <p>
 
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
-<b>dbm</b> files instead of <b>db</b> files.
+<b>dbm</b> files instead of <b>db</b> files. To find out what map
+types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
@@ -2031,7 +2175,7 @@ Fix: get rid of the third-party ndbm.h include file.
 
 <hr>
 
-<a name="db"><h3>Using DB libraries on Solaris etc.</h3> </a>
+<a name="db"><h3>Using third-party DB libraries</h3> </a>
 
 The old <b>dbm</b> UNIX database has severe limitations when you
 try to store lots of information. It breaks when the number of hash
@@ -2049,9 +2193,10 @@ version</a> which has a db-1.85 compatible interface.
 
 <p>
 
-Use the following commands in the Postfix top-level directory.
-The LD_LIBRARY_PATH unset commands may be required to avoid linking
-in the wrong libraries.
+To build with a third-party DB library, use the following commands
+in the Postfix top-level directory.
+On Solaris, the LD_LIBRARY_PATH unset commands may be required to
+avoid linking in the wrong libraries.
 
 <p>
 

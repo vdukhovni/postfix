@@ -25,6 +25,7 @@ extern int read_wait(int, int);
 extern int write_wait(int, int);
 extern int write_buf(int, const char *, int, int);
 extern void doze(unsigned);
+extern int duplex_pipe(int *);
 
 #define BLOCKING	0
 #define NON_BLOCKING	1

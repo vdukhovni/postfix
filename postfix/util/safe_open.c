@@ -45,6 +45,14 @@
 /*	A safe open routine was discussed by Casper Dik in article
 /*	<2rdb0s$568@mail.fwi.uva.nl>, posted to comp.security.unix
 /*	(May 18, 1994).
+/*
+/*	Olaf Kirch discusses how the lstat()/open()+stat() test can
+/*	be fooled by delaying the open() until the inode found with
+/*	lstat() has been re-used for a sensitive file (article
+/*	<20000103212443.A5807@monad.swb.de> posted to bugtraq on
+/*	Jan 3, 2000).  This can be a concern for set-uid processes
+/*	that run under the control of a user and this can be
+/*	manipulated with start/stop signals.
 /* LICENSE
 /* .ad
 /* .fi
@@ -107,11 +115,17 @@ static VSTREAM *safe_open_exist(const char *path, int flags, VSTRING *why)
      * either we followed a symlink while opening an existing file, someone
      * quickly changed the number of hard links, or someone replaced the file
      * after the open() call. The link and mode tests aren't really necessary
-     * but the additional cost is low.
+     * in daemon processes. Set-uid programs, on the other hand, can be
+     * slowed down by arbitrary amounts, and there it would make sense to
+     * compare even more file attributes, such as the inode generation number
+     * on systems that have one.
      */
     else if (lstat(path, &lstat_st) < 0
 	     || fstat_st.st_dev != lstat_st.st_dev
 	     || fstat_st.st_ino != lstat_st.st_ino
+#ifdef HAS_ST_GEN
+	     || fstat_st.st_gen != lstat_st.st_gen
+#endif
 	     || fstat_st.st_nlink != lstat_st.st_nlink
 	     || fstat_st.st_mode != lstat_st.st_mode) {
 	vstring_sprintf(why, "file %s: status has changed", path);
