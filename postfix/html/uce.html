@@ -395,10 +395,26 @@ be inspected with the <a href="postcat.1.html">postcat</a> command,
 and can be destroyed or taken off hold with the <a
 href="postsuper.1.html">postsuper</a> command.
 
+<b> Note: this action currently affects all recipients of a message.</b>
+
 <p>
 
 <dt>DISCARD
 <dd> Claim successful delivery and silently discard the message.
+
+<b> Note: this action currently affects all recipients of a message.</b>
+
+<p>
+
+<dt>FILTER <i>transport</i>:<i>nexthop</i> <dd>
+After the message is queued, send the entire message through
+a content filter. This requires different cleanup servers
+before and after the filter, with header/body checks turned
+off in the second cleanup server. More details about content
+filtering are in the Postfix FILTER_README file. This feature
+overrides the main.cf <b>content_filter</b> setting.
+
+<b> Note: this action currently affects all recipients of a message.</b>
 
 <p>
 

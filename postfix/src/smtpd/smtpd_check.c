@@ -2367,10 +2367,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
     state->recursion = saved_recursion;
 
-    if (status == SMTPD_CHECK_REJECT || status == SMTPD_CHECK_DUNNO)
+    if (status == SMTPD_CHECK_OK || status == SMTPD_CHECK_DUNNO)
 	if (state->defer_if_permit)
 	    status = smtpd_check_reject(state, state->defer_class,
-					"450 %s", STR(state->defer_reason));
+					"%s", STR(state->defer_reason));
     return (status);
 }
 
