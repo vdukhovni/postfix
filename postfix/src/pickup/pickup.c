@@ -35,7 +35,7 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	As the pickup daemon is a relatively long-running process, up
+/*	As the pickup(8) daemon is a relatively long-running process, up
 /*	to an hour may pass before a \fBmain.cf\fR change takes effect.
 /*	Use the command "\fBpostfix reload\fR" command to speed up a change.
 /*

@@ -50,7 +50,7 @@
 /*	These files are maintained by the \fBdefer\fR(8) daemon.
 /* .IP \fBtrace\fR
 /*	Per-recipient status information as requested with the
-/*	Postfix "\fBsendmail -v\fR" or "\fBsendmail -bv" command\fR.
+/*	Postfix "\fBsendmail -v\fR" or "\fBsendmail -bv\fR" command.
 /*	These files are maintained by the \fBtrace\fR(8) daemon.
 /* .PP
 /*	The \fBqmgr\fR daemon is responsible for asking the
@@ -283,7 +283,7 @@
 /* SEE ALSO
 /*	trivial-rewrite(8), address routing
 /*	bounce(8), delivery status reports
-/*	postconf(5) configuration parameters
+/*	postconf(5), configuration parameters
 /*	master(8), process manager
 /*	syslogd(8) system logging
 /* README FILES

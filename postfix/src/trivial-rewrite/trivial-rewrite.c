@@ -120,7 +120,7 @@
 /* ADDRESS VERIFICATION CONTROLS
 /* .ad
 /* .fi
-/*	Postfix version 2.1 introduces sender and address verification.
+/*	Postfix version 2.1 introduces sender and recipient address verification.
 /*	This feature is implemented by sending probe email messages that
 /*	are not actually delivered.
 /*	By default, address verification probes use the same route
