@@ -284,7 +284,8 @@ allow_untrusted_routing = no
 # network address, and reject service if it is listed below any of
 # the following domains.
 #
-maps_rbl_domains = rbl.maps.vix.com
+#maps_rbl_domains = blackholes.mail-abuse.org dialups.mail-abuse.org
+maps_rbl_domains = blackholes.mail-abuse.org
 
 # The relay_domains parameter restricts what client hostname domains
 # (and subdomains thereof) this mail system will relay mail from,

@@ -62,14 +62,17 @@ The filter program can start out as a simple shell script like this:
     EX_UNAVAILABLE=69
     STATUS=$EX_TEMPFAIL
 
-    cd $INSPECT_DIR || { echo $INSPECT_DIR does not exist; exit $EX_TEMPFAIL; }
-
     # Clean up when done or when aborting.
     trap "rm -f in.$$; exit $STATUS" 0 1 2 3 15
 
-    cat >in.$$ || { echo Cannot save mail to file; exit $EX_TEMPFAIL; }
+    quit() { STATUS=${1-$?}; exit; }
 
-    # filter <in.$$ || { echo Message content rejected; exit $EX_UNAVAILABLE; }
+    # Start processing.
+    cd $INSPECT_DIR || { echo $INSPECT_DIR does not exist; quit $EX_TEMPFAIL; }
+
+    cat >in.$$ || { echo Cannot save mail to file; quit $EX_TEMPFAIL; }
+
+    # filter <in.$$ || { echo Message content rejected; quit $EX_UNAVAILABLE; }
 
     $SENDMAIL "$@" <in.$$
 

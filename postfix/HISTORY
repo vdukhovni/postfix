@@ -4671,3 +4671,40 @@ Apologies for any names omitted.
 	for unimplemented operations, causing "postmap -d" to dump
 	core instead if issuing an error message. This is what I
 	get for accepting code that I cannot test myself.
+
+20001220
+
+	Feature: merged in Andrew McNamara's virtual delivery agent
+	(a table-driven agent that does not require recipients to
+	have UNIX accounts, and that implements a safe subset of
+	the default local delivery agent). Files: virtual/*.
+
+20001221
+
+	Code cleanup: configuration parameters that are $name
+	expanded at run-time now have their own data type hierarchy
+	instead of being piggy-backed on top of strings that are
+	$name expanded at program initialization time.  Files:
+	global/mail_conf.h, global/mail_conf_raw.c, and code that
+	calls it.
+
+20001230
+
+	Update: replaced the default rbl.maps.vix.com setting by
+	the current blackholes.mail-abuse.org.
+
+20010102
+
+	Code cleanup: the queue manager is a bit greedier with
+	allocating a delivery agent. Problem pointed out by Patrik
+	Rak. All bugs in the solution are mine.  Files:
+	*qmgr/qmgr_active.c.
+
+20010105
+
+	Bugfix: the FILTER_README shell script example did not
+	correctly pass exit status to the parent.
+
+	Bugfix: soft errors in client hostname lookups would be
+	treated as hard errors. Fix by Michael Herrmann
+	(informatik.tu-muenchen.de). File: smtpd/smtpd_peer.c.

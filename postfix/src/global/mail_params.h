@@ -1013,7 +1013,7 @@ extern int var_access_map_code;
 extern int var_maps_rbl_code;
 
 #define VAR_MAPS_RBL_DOMAINS	"maps_rbl_domains"
-#define DEF_MAPS_RBL_DOMAINS	"rbl.maps.vix.com"
+#define DEF_MAPS_RBL_DOMAINS	"blackholes.mail-abuse.org"
 extern char *var_maps_rbl_domains;
 
 #define VAR_SMTPD_DELAY_REJECT	"smtpd_delay_reject"

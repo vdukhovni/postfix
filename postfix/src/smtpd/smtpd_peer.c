@@ -148,7 +148,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 #define REJECT_PEER_NAME(state, code) { \
 	myfree(state->name); \
 	state->name = mystrdup("unknown"); \
-	state->peer_code = 5; \
+	state->peer_code = code; \
     }
 
 	    hp = gethostbyname(state->name);	/* clobbers hp->name!! */

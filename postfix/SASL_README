@@ -78,7 +78,7 @@ Enabling SASL authentication in the Postfix SMTP server
 If you installed the Cyrus SASL libraries as per the default, you
 will have to symlink /usr/lib/sasl -> /usr/local/lib/sasl.
 
-See conf/sample-sasl.cf for examples. 
+See conf/sample-auth.cf for examples. 
 
 In order to enable SASL support in the SMTP server:
 

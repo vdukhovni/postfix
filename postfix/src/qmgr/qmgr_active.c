@@ -467,10 +467,10 @@ void    qmgr_active_drain(void)
     QMGR_TRANSPORT *transport;
 
     /*
-     * Use round-robin search to find a transport with pending mail. Allocate
-     * a delivery process. The process allocation completes asynchronously.
+     * Allocate one delivery process for every transport with pending mail.
+     * The process allocation completes asynchronously.
      */
-    if ((transport = qmgr_transport_select()) != 0) {
+    while ((transport = qmgr_transport_select()) != 0) {
 	if (msg_verbose)
 	    msg_info("qmgr_active_drain: allocate %s", transport->name);
 	qmgr_transport_alloc(transport, qmgr_deliver);

@@ -735,7 +735,8 @@ int     main(int argc, char **argv)
      * reset the saved set-userid, which would be a security vulnerability.
      */
     if (geteuid() == 0 && getuid() != 0) {
-	msg_warn("sendmail is set-uid root, or is run from a set-uid root process");
+	msg_warn("sendmail has set-uid root file permissions, or is run from a set-uid root process");
+	msg_warn("the Postfix sendmail command must be installed without set-uid root file permissions");
 	set_ugid(getuid(), getgid());
     }
 
