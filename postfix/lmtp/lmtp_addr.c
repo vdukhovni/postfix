@@ -18,8 +18,8 @@
 /*	host.  The host can be specified as a numerical Internet network
 /*	address, or as a symbolic host name.
 /*
-/*      Fortunately, we don't have to worry about MX records because
-/*      those are for SMTP servers, not LMTP servers.
+/*	Fortunately, we don't have to worry about MX records because
+/*	those are for SMTP servers, not LMTP servers.
 /*
 /*	Results from lmtp_host_addr() are destroyed by dns_rr_free(),
 /*	including null lists.
@@ -43,16 +43,16 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*      Alterations for LMTP by:
-/*      Philip A. Prindeville
-/*      Mirapoint, Inc.
-/*      USA.
+/*	Alterations for LMTP by:
+/*	Philip A. Prindeville
+/*	Mirapoint, Inc.
+/*	USA.
 /*
-/*      Additional work on LMTP by:
-/*      Amos Gouaux
-/*      University of Texas at Dallas
-/*      P.O. Box 830688, MC34
-/*      Richardson, TX 75083, USA
+/*	Additional work on LMTP by:
+/*	Amos Gouaux
+/*	University of Texas at Dallas
+/*	P.O. Box 830688, MC34
+/*	Richardson, TX 75083, USA
 /*--*/
 
 /* System library. */
@@ -199,4 +199,3 @@ DNS_RR *lmtp_host_addr(char *host, VSTRING *why)
 	lmtp_print_addr(host, addr_list);
     return (addr_list);
 }
-

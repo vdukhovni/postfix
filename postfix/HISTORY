@@ -3879,3 +3879,9 @@ Apologies for any names omitted.
 	Cleaned up the smtp_stream module further and got rid of
 	the global state that limited the use of this module to
 	one stream per process. Files: global/smtp_stream.[hc].
+
+20000505
+
+	Bugfix: flush output in-between tarpit delays, in case the
+	client causes many, many, errors. Found by Lamont Jones,
+	HP. File: smtpd/smtpd_chat.c.

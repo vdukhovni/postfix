@@ -520,6 +520,13 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     }
 
     /*
+     * Set up call-back info.
+     */
+    trigger_server_service = service;
+    trigger_server_name = service_name;
+    trigger_server_argv = argv + optind;
+
+    /*
      * Run pre-jail initialization.
      */
     if (pre_init)
@@ -546,7 +553,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     if (stream != 0) {
 	if ((len = read(vstream_fileno(stream), buf, sizeof(buf))) <= 0)
 	    msg_fatal("read: %m");
-	service(buf, len, service_name, argv + optind);
+	service(buf, len, trigger_server_name, trigger_server_argv);
 	vstream_fflush(stream);
 	trigger_server_exit();
     }
@@ -557,9 +564,6 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * no-one has been talking to us for a configurable amount of time, or
      * when the master process terminated abnormally.
      */
-    trigger_server_service = service;
-    trigger_server_name = service_name;
-    trigger_server_argv = argv + optind;
     if (var_idle_limit > 0)
 	event_request_timer(trigger_server_timeout, (char *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {

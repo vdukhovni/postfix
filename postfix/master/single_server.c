@@ -505,6 +505,13 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     }
 
     /*
+     * Set up call-back info.
+     */
+    single_server_service = service;
+    single_server_name = service_name;
+    single_server_argv = argv + optind;
+
+    /*
      * Run pre-jail initialization.
      */
     if (pre_init)
@@ -534,7 +541,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 			VSTREAM_CTL_DOUBLE,
 			VSTREAM_CTL_WRITE_FD, STDOUT_FILENO,
 			VSTREAM_CTL_END);
-	service(stream, service_name, argv + optind);
+	service(stream, single_server_name, single_server_argv);
 	vstream_fflush(stream);
 	single_server_exit();
     }
@@ -545,9 +552,6 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * no-one has been talking to us for a configurable amount of time, or
      * when the master process terminated abnormally.
      */
-    single_server_service = service;
-    single_server_name = service_name;
-    single_server_argv = argv + optind;
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {

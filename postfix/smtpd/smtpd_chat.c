@@ -149,9 +149,9 @@ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
      * errors within a session.
      */
     if (state->error_count > var_smtpd_soft_erlim)
-	sleep(state->error_count);
+	sleep(state->error_count), vstream_fflush(state->client);
     else if (STR(state->buffer)[0] == '4' || STR(state->buffer)[0] == '5')
-	sleep(var_smtpd_err_sleep);
+	sleep(var_smtpd_err_sleep), vstream_fflush(state->client);
 
     smtp_fputs(STR(state->buffer), LEN(state->buffer), state->client);
 }

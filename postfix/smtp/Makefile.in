@@ -89,7 +89,6 @@ smtp.o: ../include/mail_error.h
 smtp.o: ../include/deliver_pass.h
 smtp.o: ../include/mail_proto.h
 smtp.o: ../include/iostuff.h
-smtp.o: ../include/smtp_stream.h
 smtp.o: ../include/mail_server.h
 smtp.o: smtp.h
 smtp.o: smtp_sasl.h

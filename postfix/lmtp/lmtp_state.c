@@ -29,16 +29,16 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*      Alterations for LMTP by:
-/*      Philip A. Prindeville
-/*      Mirapoint, Inc.
-/*      USA.
+/*	Alterations for LMTP by:
+/*	Philip A. Prindeville
+/*	Mirapoint, Inc.
+/*	USA.
 /*
-/*      Additional work on LMTP by:
-/*      Amos Gouaux
-/*      University of Texas at Dallas
-/*      P.O. Box 830688, MC34
-/*      Richardson, TX 75083, USA
+/*	Additional work on LMTP by:
+/*	Amos Gouaux
+/*	University of Texas at Dallas
+/*	P.O. Box 830688, MC34
+/*	Richardson, TX 75083, USA
 /*--*/
 
 /* System library. */
@@ -78,6 +78,7 @@ LMTP_STATE *lmtp_state_alloc(void)
     state->sndbufsize = 0;
     state->sndbuffree = 0;
     state->reuse = 0;
+    state->fixed_dest = 0;
     return (state);
 }
 

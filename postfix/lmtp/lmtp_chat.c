@@ -46,6 +46,8 @@
 /*	lmtp_chat_reset() resets the transaction log. This is
 /*	typically done at the beginning or end of an LMTP session,
 /*	or within a session to discard non-error information.
+/*	In addition, lmtp_chat_reset() resets the per-session error
+/*	status bits and flags.
 /* DIAGNOSTICS
 /*	Fatal errors: memory allocation problem, server response exceeds
 /*	configurable limit.
@@ -63,16 +65,16 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*      Alterations for LMTP by:
-/*      Philip A. Prindeville
-/*      Mirapoint, Inc.
-/*      USA.
+/*	Alterations for LMTP by:
+/*	Philip A. Prindeville
+/*	Mirapoint, Inc.
+/*	USA.
 /*
-/*      Additional work on LMTP by:
-/*      Amos Gouaux
-/*      University of Texas at Dallas
-/*      P.O. Box 830688, MC34
-/*      Richardson, TX 75083, USA
+/*	Additional work on LMTP by:
+/*	Amos Gouaux
+/*	University of Texas at Dallas
+/*	P.O. Box 830688, MC34
+/*	Richardson, TX 75083, USA
 /*--*/
 
 /* System library. */
@@ -118,7 +120,6 @@ void    lmtp_chat_reset(LMTP_STATE *state)
 	argv_free(state->history);
 	state->history = 0;
     }
-
     /* What's status without history? */
     state->status = 0;
     state->error_mask = 0;
@@ -157,7 +158,7 @@ void    lmtp_chat_cmd(LMTP_STATE *state, char *fmt,...)
      * program is trying to do.
      */
     if (msg_verbose)
-	msg_info("> %s: %s", session->host, STR(state->buffer));
+	msg_info("> %s: %s", session->namaddr, STR(state->buffer));
 
     /*
      * Send the command to the LMTP server.
@@ -192,9 +193,9 @@ LMTP_RESP *lmtp_chat_resp(LMTP_STATE *state)
 	cp = printable(STR(state->buffer), '?');
 	if (last_char != '\n')
 	    msg_warn("%s: response longer than %d: %.30s...",
-		     session->host, var_line_limit, cp);
+		     session->namaddr, var_line_limit, cp);
 	if (msg_verbose)
-	    msg_info("< %s: %s", session->host, cp);
+	    msg_info("< %s: %s", session->namaddr, cp);
 	while (ISDIGIT(*cp))
 	    cp++;
 	rdata.code = (cp - STR(state->buffer) == 3 ?
@@ -261,7 +262,7 @@ void    lmtp_chat_notify(LMTP_STATE *state)
 #define INDENT	4
 
     notice = post_mail_fopen_nowait(mail_addr_double_bounce(),
-                                    var_error_rcpt,
+				    var_error_rcpt,
 				    NULL_CLEANUP_FLAGS, "NOTICE");
     if (notice == 0) {
 	msg_warn("postmaster notify: %m");
@@ -271,9 +272,9 @@ void    lmtp_chat_notify(LMTP_STATE *state)
 		      mail_addr_mail_daemon());
     post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
     post_mail_fprintf(notice, "Subject: %s LMTP client: errors from %s",
-		      var_mail_name, session->host);
+		      var_mail_name, session->namaddr);
     post_mail_fputs(notice, "");
-    post_mail_fprintf(notice, "Unexpected response from %s.", session->host);
+    post_mail_fprintf(notice, "Unexpected response from %s.", session->namaddr);
     post_mail_fputs(notice, "");
     post_mail_fputs(notice, "Transcript of session follows.");
     post_mail_fputs(notice, "");

@@ -1,5 +1,4 @@
 sed '
-	s/LMTP/SMTP/g
-	s/lmtp/smtp/g
-	s/host/namaddr/g
+	s/SMTP/LMTP/g
+	s/smtp/lmtp/g
 ' $*

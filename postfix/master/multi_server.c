@@ -533,6 +533,13 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     }
 
     /*
+     * Set up call-back info.
+     */
+    multi_server_service = service;
+    multi_server_name = service_name;
+    multi_server_argv = argv + optind;
+
+    /*
      * Run pre-jail initialization.
      */
     if (pre_init)
@@ -562,7 +569,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 			VSTREAM_CTL_DOUBLE,
 			VSTREAM_CTL_WRITE_FD, STDOUT_FILENO,
 			VSTREAM_CTL_END);
-	service(stream, service_name, argv + optind);
+	service(stream, multi_server_name, multi_server_argv);
 	vstream_fflush(stream);
 	multi_server_exit();
     }
@@ -573,9 +580,6 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * no-one has been talking to us for a configurable amount of time, or
      * when the master process terminated abnormally.
      */
-    multi_server_service = service;
-    multi_server_name = service_name;
-    multi_server_argv = argv + optind;
     if (var_idle_limit > 0)
 	event_request_timer(multi_server_timeout, (char *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {

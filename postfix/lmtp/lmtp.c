@@ -17,61 +17,23 @@
 /*	be tried again at a later time. Delivery problem reports are sent
 /*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
 /*
-/*	There are two basic modes of operation for the LMTP client:
-/* .IP \(bu
-/*	Communication with a local LMTP server via UNIX domain sockets.
-/* .IP \(bu
-/*	Communication with a (possibly remote) LMTP server via
-/*	Internet sockets.
-/* .PP
-/*	If no server attributes are specified, the LMTP client will contact
-/*	the destination host derived from the message delivery request using
+/*	If no server is given on the command line, the LMTP client connects
+/*	to the destination specified in the message delivery request and to
 /*	the TCP port defined as \fBlmtp\fR in \fBservices\fR(4).  If no such
 /*	service is found, the \fBlmtp_tcp_port\fR configuration parameter
-/*	(default value of 24) will be used.
-/*
-/*	In order to use a local LMTP server, this LMTP server will need to
-/*	be specified via the server attributes described in the following
-/*	section.  Typically, the LMTP client would also be configured as the
-/*	\fBlocal\fR delivery agent in the \fBmaster.cf\fR file.
+/*	(default value of 24) will be used. The LMTP client does not perform
+/* 	MX (mail exchanger) lookups since those are defined only for SMTP.
 /* SERVER ATTRIBUTE SYNTAX
 /* .ad
 /* .fi
 /*	The server attributes are given in the \fBmaster.cf\fR file at
 /*	the end of a service definition.  The syntax is as follows:
-/* .IP "\fBserv\fR=\fItype\fR:\fIserver\fR"
-/*	The LMTP server to connect to for final delivery.  The \fItype\fR
-/*	portion can be either \fBunix\fR or \fBinet\fR. The \fIserver\fR
-/*	portion is the path or address of the LMTP server, depending on the
-/*	value of \fItype\fR, as shown below:
-/* .RS
-/* .IP "\fBserv=unix:\fR\fIclass\fR\fB/\fR\fIservname\fR"
-/*	This specifies that the local LMTP server \fIservname\fR should be
-/*	contacted for final delivery.  Both \fIclass\fR (either \fBpublic\fR
-/*	or \fBprivate\fR) and \fIservname\fR correspond to the LMTP server
-/*	entry in the \fBmaster.cf\fR file.  This LMTP server will likely
-/*	be defined as a \fBspawn\fR(8) service.
-/* .IP "\fBserv=inet:"
-/*	If nothing follows the \fBinet:\fR type specifier, a connection will
-/*	be attempted to the destination host indicated in the delivery request.
-/*	This simplest case is identical to defining the LMTP client without
-/*	any server attributes at all.
-/* .IP "\fBserv=inet:\fR\fIaddress\fR"
-/*	In this case, an Internet socket will be made to the server
-/*	specified by \fIaddress\fR.  The connection will use a destination
-/*	port as described in the previous section.
-/* .IP "\fBserv=inet:\fR\fIaddress\fR\fB:\fR\fIport\fR"
-/*	Connect to the LMTP server at \fIaddress\fR, but this time use port
-/*	\fIport\fR instead of the default \fBlmtp\fR port.
-/* .IP "\fBserv=inet:[\fR\fIipaddr\fR\fB]\fR"
-/*     The LMTP server to contact is specified using an Internet address
-/*     in the "dot notation".  That is, the numeric IP address rather
-/*     than the DNS name for the server.  The default \fBlmtp\fR port
-/*     is used.
-/* .IP "\fBserv=inet:[\fR\fIipaddr\fR\fB]:\fR\fIport\fR"
-/*     The LMTP server to contact is specified using the numeric IP address,
-/*     at the port specified.
-/* .RE
+/* .IP "\fBserver=\fR\fIhost\fR"
+/* .IP "\fBserver=\fR\fIhost\fR\fB:\fR\fIport\fR"
+/* .IP "\fBserver=[\fR\fIipaddr\fR\fB]\fR"
+/* .IP "\fBserver=[\fR\fIipaddr\fR\fB]:\fR\fIport\fR"
+/*	Connect to the specified host or IP address and TCP port (default: the
+/*	\fBlmtp\fR port as specified in the \fBservices\fR database).
 /* .PP
 /* SECURITY
 /* .ad
@@ -80,10 +42,10 @@
 /*	servers and to DNS servers on the network. The LMTP client can be
 /*	run chrooted at fixed low privilege.
 /* STANDARDS
-/*	RFC 2033 (LMTP protocol)
 /*	RFC 821 (SMTP protocol)
 /*	RFC 1651 (SMTP service extensions)
 /*	RFC 1870 (Message Size Declaration)
+/*	RFC 2033 (LMTP protocol)
 /*	RFC 2197 (Pipelining)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -131,38 +93,38 @@
 /*	Cached connections are closed under any of the following conditions:
 /* .RS
 /* .IP \(bu
-/*	The idle timeout for the LMTP client is reached. This limit is
-/*	enforced by \fBmaster\fR(8).
+/*	The LMTP client idle time limit is reached. This limit is specified
+/*	with the Postfix \fBmax_idle\fR configuration parameter.
 /* .IP \(bu
-/*	A message request to a different destination than the one currently
-/*	cached.
+/*	A delivery request specifies a different destination than the one
+/*	currently cached.
 /* .IP \(bu
-/*	The maximum number of requests per session is reached. This limit is
-/*	enforced by \fBmaster\fR(8).
+/*	The per-process limit on the number of delivery requests is reached.
+/*	This limit is specified with the Postfix \fBmax_use\fR configuration
+/*	parameter.
 /* .IP \(bu
 /*	Upon the onset of another delivery request, the LMTP server associated
 /*	with the current session does not respond to the \fBRSET\fR command.
 /* .RE
-/* .IP \fBlmtp_destination_concurrency_limit\fR
-/*	Limit the number of parallel deliveries to the same destination.
+/* .IP \fItransport_\fBdestination_concurrency_limit\fR
+/*	Limit the number of parallel deliveries to the same destination
+/*	via this mail delivery transport. \fItransport\fR is the name
+/*	of the service as specified in the \fBmaster.cf\fR file.
 /*	The default limit is taken from the
 /*	\fBdefault_destination_concurrency_limit\fR parameter.
-/* .IP \fBlmtp_destination_recipient_limit\fR
-/*	Limit the number of recipients per message delivery.
-/*	The default limit is taken from the
-/*	\fBdefault_destination_recipient_limit\fR parameter.
-/* .IP \fBlocal_destination_recipient_limit\fR
-/*	Limit the number of recipients per message delivery.
+/* .IP \fItransport_\fBdestination_recipient_limit\fR
+/*	Limit the number of recipients per message delivery via this mail
+/*	delivery transport. \fItransport\fR is the name
+/*	of the service as specified in the \fBmaster.cf\fR file.
 /*	The default limit is taken from the
 /*	\fBdefault_destination_recipient_limit\fR parameter.
 /*
 /*	This parameter becomes significant if the LMTP client is used
-/*	for local delivery.  Some LMTP servers can optimize final delivery
-/*	if multiple recipients are allowed.  Therefore, it may be advantageous
-/*	to set this to some number greater than one, depending on the capabilities
-/*	of the machine.
+/*	for local delivery.  Some LMTP servers can optimize delivery of
+/*	the same message to multiple recipients. The default limit for
+/*	local mail delivery is 1.
 /*
-/*	Setting this parameter to 0 will lead to an unlimited number of
+/*	Setting this parameter to 0 will lead to an unbounded number of
 /*	recipients per delivery.  However, this could be risky since it may
 /*	make the machine vulnerable to running out of resources if messages
 /*	are encountered with an inordinate number of recipients.  Exercise
@@ -245,6 +207,7 @@
 #include <argv.h>
 #include <mymalloc.h>
 #include <name_mask.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -295,23 +258,11 @@ char   *var_error_rcpt;
 int     lmtp_errno;
 static LMTP_STATE *state = 0;
 
-
 /* get_service_attr - get command-line attributes */
 
-static LMTP_ATTR *get_service_attr(char **argv)
+static void get_service_attr(LMTP_STATE *state, char **argv)
 {
     char   *myname = "get_service_attr";
-    LMTP_ATTR *attr = (LMTP_ATTR *) mymalloc(sizeof(*attr));
-    char   *type;
-    char   *dest;
-    char   *name;
-
-    /*
-     * Initialize.
-     */
-    attr->type = 0;
-    attr->class = "";
-    attr->name = "";
 
     /*
      * Iterate over the command-line attribute list.
@@ -322,64 +273,30 @@ static LMTP_ATTR *get_service_attr(char **argv)
     for ( /* void */ ; *argv != 0; argv++) {
 
 	/*
-	 * Are we configured to speak to a particular LMTP server?
+	 * Connect to a fixed LMTP server.
 	 */
-	if (strncasecmp("serv=", *argv, sizeof("serv=") - 1) == 0) {
-	    type = *argv + sizeof("serv=") - 1;
-	    if ((dest = split_at(type, ':')) == 0)	/* XXX clobbers argv */
-		msg_fatal("%s: invalid serv= arguments: %s", myname, *argv);
-
-	    /*
-	     * What kind of socket connection are we to make?
-	     */
-	    if (strcasecmp("unix", type) == 0) {
-		attr->type = LMTP_SERV_TYPE_UNIX;
-		attr->class = dest;
-		if ((name = split_at(dest, '/')) == 0)	/* XXX clobbers argv */
-		    msg_fatal("%s: invalid serv= arguments: %s", myname, *argv);
-		attr->name = name;
-	    } else if (strcasecmp("inet", type) == 0) {
-		attr->type = LMTP_SERV_TYPE_INET;
-		attr->name = dest;
-	    } else
-		msg_fatal("%s: invalid serv= arguments: %s", myname, *argv);
-	    break;
+	if (strncasecmp("server=", *argv, sizeof("server=") - 1) == 0) {
+	    state->fixed_dest = *argv + sizeof("server=") - 1;
+	    if (state->fixed_dest[0] == 0)
+		msg_fatal("invalid destination: %s", *argv);
 	}
 
 	/*
 	 * Bad.
 	 */
 	else
-	    msg_fatal("%s: unknown attribute name: %s", myname, *argv);
+	    msg_fatal("unknown attribute name: %s", *argv);
     }
-
-    /*
-     * Give the poor tester a clue of what is going on.
-     */
-    if (msg_verbose)
-	msg_info("%s: type %d, class \"%s\", name \"%s\".", myname,
-		 attr->type, attr->class, attr->name);
-    return (attr);
 }
 
 /* deliver_message - deliver message with extreme prejudice */
 
-static int deliver_message(DELIVER_REQUEST *request, char **argv)
+static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 {
     char   *myname = "deliver_message";
-    static LMTP_ATTR *attr = 0;
+    char   *destination;
     VSTRING *why;
     int     result;
-
-    /*
-     * Macro for readability.  We're going to the same destination if the
-     * destination was specified on the command line (attr->name is not
-     * null), or if the destination of the current session is the same as
-     * request->nexthop.
-     */
-#define SAME_DESTINATION() \
-    (*(attr)->name \
-     || strcasecmp(state->session->destination, request->nexthop) == 0)
 
     if (msg_verbose)
 	msg_info("%s: from %s", myname, request->sender);
@@ -387,8 +304,6 @@ static int deliver_message(DELIVER_REQUEST *request, char **argv)
     /*
      * Sanity checks.
      */
-    if (attr == 0)
-	attr = get_service_attr(argv);
     if (request->rcpt_list.len <= 0)
 	msg_fatal("%s: recipient count: %d", myname, request->rcpt_list.len);
 
@@ -397,14 +312,16 @@ static int deliver_message(DELIVER_REQUEST *request, char **argv)
      * we can produce understandable diagnostics when something goes wrong
      * many levels below. The alternative would be to make everything global.
      * 
-     * Note: `state' is global (to this file) so that we can close a cached
-     * connection via the MAIL_SERVER_EXIT function (cleanup). The alloc for
-     * `state' is performed in the MAIL_SERVER_PRE_INIT function (pre_init).
+     * Note: `state' was made global (to this file) so that we can cache
+     * connections and so that we can close a cached connection via the
+     * MAIL_SERVER_EXIT function (cleanup). The alloc for `state' is
+     * performed in the MAIL_SERVER_PRE_INIT function (pre_init).
      * 
      */
     why = vstring_alloc(100);
     state->request = request;
     state->src = request->fp;
+    destination = state->fixed_dest ? state->fixed_dest : request->nexthop;
 
     /*
      * See if we can reuse an existing connection.
@@ -412,29 +329,29 @@ static int deliver_message(DELIVER_REQUEST *request, char **argv)
     if (state->session != 0) {
 
 	/*
-	 * Session already exists from a previous delivery. If we're not
-	 * going to the same destination as before, disconnect and establish
-	 * a connection to the specified destination.
+	 * Disconnect if we're going to a different destination. Discard
+	 * transcript and status information from sending QUIT.
 	 */
-	if (!SAME_DESTINATION()) {
+	if (strcasecmp(state->session->dest, destination) != 0) {
 	    lmtp_quit(state);
 	    lmtp_chat_reset(state);
-	    lmtp_session_reset(state);
-	    debug_peer_restore();
+	    state->session = lmtp_session_free(state->session);
 	}
 
 	/*
-	 * Probe the session by sending RSET. If the connection is broken,
-	 * clean up our side of the connection.
+	 * Disconnect if RSET can't be sent over an existing connection.
+	 * Discard transcript and status information from sending RSET.
 	 */
 	else if (lmtp_rset(state) != 0) {
 	    lmtp_chat_reset(state);
-	    lmtp_session_reset(state);
-	    debug_peer_restore();
+	    state->session = lmtp_session_free(state->session);
 	}
 
 	/*
-	 * Ready to go with another load.
+	 * Ready to go with another load. The reuse counter is logged for
+	 * statistical analysis purposes. Given the Postfix architecture,
+	 * connection cacheing makes sense only for dedicated transports.
+	 * Logging the reuse count can help to convince people.
 	 */
 	else {
 	    ++state->reuse;
@@ -445,56 +362,51 @@ static int deliver_message(DELIVER_REQUEST *request, char **argv)
     }
 
     /*
-     * If no LMTP session exists, establish one.
+     * See if we need to establish an LMTP connection.
      */
     if (state->session == 0) {
 
 	/*
 	 * Bounce or defer the recipients if no connection can be made.
 	 */
-	state->session = lmtp_connect(attr, request, why);
-	if (state->session == 0) {
+	if ((state->session = lmtp_connect(destination, why)) == 0) {
 	    lmtp_site_fail(state, lmtp_errno == LMTP_RETRY ? 450 : 550,
 			   "%s", vstring_str(why));
 	}
 
 	/*
-	 * Further check connection by sending the LHLO greeting. If we
-	 * cannot talk LMTP to this destination give up, at least for now.
+	 * Bounce or defer the recipients if the LMTP handshake fails.
 	 */
-	else {
-	    debug_peer_check(state->session->host, state->session->addr);
-	    if (lmtp_lhlo(state) != 0) {
-		lmtp_session_reset(state);
-		debug_peer_restore();
-	    }
+	else if (lmtp_lhlo(state) != 0) {
+	    state->session = lmtp_session_free(state->session);
 	}
 
+	/*
+	 * Congratulations. We just established a new LMTP connection.
+	 */
+	else
+	    state->reuse = 0;
     }
 
     /*
      * If a session exists, deliver this message to all requested recipients.
-     * 
      */
     if (state->session != 0)
 	lmtp_xfer(state);
 
     /*
-     * At the end, notify the postmaster of any protocol errors.
+     * Optionally, notify the postmaster of problems.
      */
     if (state->history != 0
-	&& (state->error_mask
-	    & name_mask(mail_error_masks, var_notify_classes)))
+    && (state->error_mask & name_mask(mail_error_masks, var_notify_classes)))
 	lmtp_chat_notify(state);
 
     /*
-     * Disconnect if we're not cacheing connections.
+     * Disconnect if we're not cacheing connections. The pipelined protocol
+     * state machine knows to send QUIT as appropriate.
      */
-    if (!var_lmtp_cache_conn && state->session != 0) {
-	lmtp_quit(state);
-	lmtp_session_reset(state);
-	debug_peer_restore();
-    }
+    if (!var_lmtp_cache_conn && state->session != 0)
+	state->session = lmtp_session_free(state->session);
 
     /*
      * Clean up.
@@ -527,33 +439,36 @@ static void lmtp_service(VSTREAM *client_stream, char *unused_service, char **ar
     }
 }
 
+/* post_init - post-jail initialization */
+
+static void post_init(char *unused_name, char **argv)
+{
+    state = lmtp_state_alloc();
+    get_service_attr(state, argv);
+}
+
 /* pre_init - pre-jail initialization */
 
 static void pre_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
-    state = lmtp_state_alloc();
 }
 
 /* cleanup - close any open connections, etc. */
 
-static void cleanup()
+static void cleanup(void)
 {
-    if (state == 0)
-	return;
-
     if (state->session != 0) {
 	lmtp_quit(state);
 	lmtp_chat_reset(state);
-	lmtp_session_free(state->session);
-	debug_peer_restore();
+	state->session = lmtp_session_free(state->session);
 	if (msg_verbose)
 	    msg_info("cleanup: just closed down session");
     }
     lmtp_state_free(state);
 }
 
-/* pre_accept - see if tables have changed
+/* pre_accept - see if tables have changed */
 
 static void pre_accept(char *unused_name, char **unused_argv)
 {
@@ -564,10 +479,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-
-/*
-   main - pass control to the single-threaded skeleton
-*/
+/* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
 {
@@ -602,6 +514,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
+		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_EXIT, cleanup,
 		       0);

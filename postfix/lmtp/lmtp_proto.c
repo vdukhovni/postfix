@@ -23,15 +23,16 @@
 /*	lmtp_lhlo() performs the initial handshake with the LMTP server.
 /*
 /*	lmtp_xfer() sends message envelope information followed by the
-/*	message data, but does not finish the conversation. These operations
-/*	are combined in one function, in order to implement LMTP pipelining.
+/*	message data and sends QUIT when connection cacheing is disabled.
+/*	These operations are combined in one function, in order to implement
+/*	LMTP pipelining.
 /*	Recipients are marked as "done" in the mail queue file when
 /*	bounced or delivered. The message delivery status is updated
 /*	accordingly.
 /*
-/*	lmtp_rset() sends an RSET command and waits for the response.
+/*	lmtp_rset() sends a lone RSET command and waits for the response.
 /*
-/*	lmtp_quit() sends a QUIT command and waits for the response.
+/*	lmtp_quit() sends a lone QUIT command and waits for the response.
 /* DIAGNOSTICS
 /*	lmtp_lhlo(), lmtp_xfer(), lmtp_rset() and lmtp_quit() return 0 in
 /*	case of success, -1 in case of failure. For lmtp_xfer(), lmtp_rset()
@@ -122,19 +123,18 @@
  /*
   * Sender and receiver state. A session does not necessarily go through a
   * linear progression, but states are guaranteed to not jump backwards.
-  * Normal sessions go from MAIL->RCPT->DATA->DOT->LAST. The states MAIL,
-  * RCPT, and DATA may also be followed by ABORT->LAST.
+  * Normal sessions go from MAIL->RCPT->DATA->DOT->QUIT->LAST. The states
+  * MAIL, RCPT, and DATA may also be followed by ABORT->QUIT->LAST.
   * 
-  * In order to support connection cacheing, no QUIT is send at the end of mail
-  * delivery. Instead, at the start of the next mail delivery, the client
-  * sends RSET to find out if the server is still there, and sends QUIT only
-  * when closing a connection. The RSET and QUIT commands are sent all by
-  * themselves in non-pipelining mode. The respective state transitions are
-  * RSET->LAST and QUIT->LAST.
+  * When connection cacheing is turned on, the transition diagram changes as
+  * follows. Before sending mail over an existing connection, the client
+  * sends a lone RSET command to find out if the connection still works. The
+  * client sends QUIT only when closing a connection. The respective state
+  * transitions are RSET->LAST and QUIT->LAST.
   * 
-  * For the sake of code reuse, the non-pipelined RSET and QUIT commands are
-  * sent by the same code that implements command pipelining, so that we can
-  * borrow from the existing code for exception handling and error reporting.
+  * For the sake of code reuse, the non-pipelined RSET command is sent by the
+  * same code that implements command pipelining, so that we can borrow from
+  * the existing code for exception handling and error reporting.
   * 
   */
 #define LMTP_STATE_MAIL		0
@@ -172,13 +172,11 @@ int     lmtp_lhlo(LMTP_STATE *state)
 {
     char   *myname = "lmtp_lhlo";
     LMTP_SESSION *session = state->session;
-    DELIVER_REQUEST *request = state->request;
     LMTP_RESP *resp;
     int     except;
     char   *lines;
     char   *words;
     char   *word;
-    int     n;
     SOCKOPT_SIZE optlen = sizeof(state->sndbufsize);
 
     /*
@@ -194,15 +192,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
     if (((resp = lmtp_chat_resp(state))->code / 100) != 2)
 	return (lmtp_site_fail(state, resp->code,
 			       "%s refused to talk to me: %s",
-			    session->host, translit(resp->str, "\n", " ")));
-
-    /*
-     * See if we are talking to ourself. This should not be possible with the
-     * way we implement DNS lookups. However, people are known to sometimes
-     * screw up the naming service. And, mailer loops are still possible when
-     * our own mailer routing tables are mis-configured.
-     */
-    words = resp->str;
+			 session->namaddr, translit(resp->str, "\n", " ")));
 
     /*
      * Return the compliment.
@@ -211,7 +201,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
     if ((resp = lmtp_chat_resp(state))->code / 100 != 2)
 	return (lmtp_site_fail(state, resp->code,
 			       "%s refused to talk to me: %s",
-			       session->host,
+			       session->namaddr,
 			       translit(resp->str, "\n", " ")));
 
     /*
@@ -249,10 +239,11 @@ int     lmtp_lhlo(LMTP_STATE *state)
      * to be aware of application-level buffering by the vstream module,
      * which is limited to a couple kbytes.
      * 
-     * Don't worry about command pipelining for local connections.
+     * XXX Apparently, the getsockopt() call causes trouble with UNIX-domain
+     * sockets. Don't worry about command pipelining for local connections,
+     * because they benefit little from pipelining.
      */
-    if (state->features & LMTP_FEATURE_PIPELINING
-	&& state->session->type != LMTP_SERV_TYPE_UNIX) {
+    if (state->features & LMTP_FEATURE_PIPELINING) {
 	if (getsockopt(vstream_fileno(state->session->stream), SOL_SOCKET,
 		       SO_SNDBUF, (char *) &state->sndbufsize, &optlen) < 0)
 	    msg_fatal("%s: getsockopt: %m", myname);
@@ -261,7 +252,6 @@ int     lmtp_lhlo(LMTP_STATE *state)
 		     state->sndbufsize);
     } else
 	state->sndbufsize = 0;
-    state->sndbuffree = state->sndbufsize;
 
     return (0);
 }
@@ -287,11 +277,12 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
     int     except;
     int     rec_type;
     int     prev_type = 0;
+    int     sndbuffree;
     int     mail_from_rejected;
     int     recv_dot;
 
     /*
-     * Macros for readability. XXX Isn't LMTP supposed to be case
+     * Macros for readability. XXX Aren't LMTP addresses supposed to be case
      * insensitive?
      */
 #define REWRITE_ADDRESS(addr) do { \
@@ -336,6 +327,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
     recv_state = send_state = init_state;
     next_rcpt = send_rcpt = recv_rcpt = recv_dot = 0;
     mail_from_rejected = 0;
+    sndbuffree = state->sndbufsize;
 
     while (recv_state != LMTP_STATE_LAST) {
 
@@ -389,7 +381,8 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 	     */
 	case LMTP_STATE_DOT:
 	    vstring_strcpy(next_command, ".");
-	    next_state = LMTP_STATE_LAST;
+	    next_state = var_lmtp_cache_conn ?
+		LMTP_STATE_LAST : LMTP_STATE_QUIT;
 	    break;
 
 	    /*
@@ -400,9 +393,10 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 	    msg_panic("%s: sender abort state", myname);
 
 	    /*
-	     * Build the RSET command. XXX This command does not belong here
-	     * because it will be sent in non-pipelining mode. But having it
-	     * here means that we can reuse existing code for error handling.
+	     * Build the RSET command.  This command does not really belong
+	     * here because it is always sent without pipelining, but having
+	     * it here means that we can reuse a lot of error handling code
+	     * that already exists.
 	     */
 	case LMTP_STATE_RSET:
 	    vstring_strcpy(next_command, "RSET");
@@ -410,9 +404,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 	    break;
 
 	    /*
-	     * Build the QUIT command. XXX This command does not belong here
-	     * because it will be sent in non-pipelining mode. But having it
-	     * here means that we can reuse existing code for error handling.
+	     * Build the QUIT command.
 	     */
 	case LMTP_STATE_QUIT:
 	    vstring_strcpy(next_command, "QUIT");
@@ -433,8 +425,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 	 * automatically flush buffered output when reading new data.
 	 */
 	if (SENDER_IN_WAIT_STATE
-	    || (SENDER_IS_AHEAD
-		&& VSTRING_LEN(next_command) + 2 > state->sndbuffree)) {
+	|| (SENDER_IS_AHEAD && VSTRING_LEN(next_command) + 2 > sndbuffree)) {
 	    while (SENDER_IS_AHEAD) {
 
 		/*
@@ -469,7 +460,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		case LMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
 			lmtp_mesg_fail(state, resp->code,
-				       "%s said: %s", session->host,
+				       "%s said: %s", session->namaddr,
 				       translit(resp->str, "\n", " "));
 			mail_from_rejected = 1;
 		    }
@@ -493,7 +484,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 			    survivors[nrcpt++] = recv_rcpt;
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-					   "%s said: %s", session->host,
+					   "%s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			    rcpt->offset = 0;	/* in case deferred */
 			}
@@ -511,7 +502,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
 			    lmtp_mesg_fail(state, resp->code,
-					   "%s said: %s", session->host,
+					   "%s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			nrcpt = -1;
 		    }
@@ -533,14 +524,14 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 			if (resp->code / 100 == 2) {
 			    if (rcpt->offset) {
 				sent(request->queue_id, rcpt->address,
-				     session->host, request->arrival_time,
+				     session->namaddr, request->arrival_time,
 				     "%s", resp->str);
 				deliver_completed(state->src, rcpt->offset);
 				rcpt->offset = 0;
 			    }
 			} else {
 			    lmtp_rcpt_fail(state, resp->code, rcpt,
-					   "%s said: %s", session->host,
+					   "%s said: %s", session->namaddr,
 					   translit(resp->str, "\n", " "));
 			    rcpt->offset = 0;	/* in case deferred */
 			}
@@ -554,7 +545,8 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		    if (++recv_dot >= nrcpt) {
 			if (msg_verbose)
 			    msg_info("%s: finished . command", myname);
-			recv_state = LMTP_STATE_LAST;
+			recv_state = var_lmtp_cache_conn ?
+			    LMTP_STATE_LAST : LMTP_STATE_QUIT;
 		    }
 		    break;
 
@@ -562,7 +554,8 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		     * Ignore the RSET response.
 		     */
 		case LMTP_STATE_ABORT:
-		    recv_state = LMTP_STATE_LAST;
+		    recv_state = var_lmtp_cache_conn ?
+			LMTP_STATE_LAST : LMTP_STATE_QUIT;
 		    break;
 
 		    /*
@@ -585,7 +578,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 	     * At this point, the sender and receiver are fully synchronized,
 	     * so that the entire TCP send buffer becomes available again.
 	     */
-	    state->sndbuffree = state->sndbufsize;
+	    sndbuffree = state->sndbufsize;
 
 	    /*
 	     * We know the server response to every command that was sent.
@@ -600,7 +593,8 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		send_state = recv_state = LMTP_STATE_ABORT;
 		send_rcpt = recv_rcpt = 0;
 		vstring_strcpy(next_command, "RSET");
-		next_state = LMTP_STATE_LAST;
+		next_state = var_lmtp_cache_conn ?
+		    LMTP_STATE_LAST : LMTP_STATE_QUIT;
 		next_rcpt = 0;
 	    }
 	}
@@ -671,14 +665,14 @@ int     lmtp_xfer(LMTP_STATE *state)
     return (lmtp_loop(state, LMTP_STATE_MAIL));
 }
 
-/* lmtp_rset - reset dialog with peer */
+/* lmtp_rset - send a lone RSET command */
 
 int     lmtp_rset(LMTP_STATE *state)
 {
     return (lmtp_loop(state, LMTP_STATE_RSET));
 }
 
-/* lmtp_quit - say goodbye to peer */
+/* lmtp_quit - send a lone QUIT command */
 
 int     lmtp_quit(LMTP_STATE *state)
 {

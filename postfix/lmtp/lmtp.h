@@ -38,6 +38,7 @@ typedef struct LMTP_STATE {
     int     sndbufsize;			/* total window size */
     int     sndbuffree;			/* remaining window */
     int     reuse;			/* connection being reused */
+    char   *fixed_dest;			/* fixed remote server */
 } LMTP_STATE;
 
 #define LMTP_FEATURE_ESMTP	(1<<0)
@@ -51,41 +52,23 @@ typedef struct LMTP_STATE {
 extern int lmtp_errno;			/* XXX can we get rid of this? */
 
  /*
-  * Structure for connection to LMTP server.
-  */
-typedef struct LMTP_ATTR {
-    int     type;			/* UNIX-domain, INET, etc. */
-    char   *class;			/* class ("public" or "private") */
-    char   *name;			/* service endpoint name */
-} LMTP_ATTR;
-
- /*
-  * Service types.
-  */
-#define LMTP_SERV_TYPE_UNIX   1		/* AF_UNIX domain socket */
-#define LMTP_SERV_TYPE_INET   2		/* AF_INET domain socket */
-
- /*
   * lmtp_session.c
   */
 typedef struct LMTP_SESSION {
     VSTREAM *stream;			/* network connection */
-    char   *host;			/* mail exchanger */
-    char   *addr;			/* mail exchanger */
-    char   *destination;		/* domain originally sent to */
-    int     type;			/* type of connection */
+    char   *host;			/* mail exchanger, name */
+    char   *addr;			/* mail exchanger, address */
+    char   *namaddr;			/* mail exchanger, for logging */
+    char   *dest;			/* remote endpoint name */
 } LMTP_SESSION;
 
-extern LMTP_SESSION *lmtp_session_alloc(VSTREAM *, char *, char *);
-extern void lmtp_session_free(LMTP_SESSION *);
-extern void lmtp_session_reset(LMTP_STATE *);
+extern LMTP_SESSION *lmtp_session_alloc(VSTREAM *, const char *, const char *, const char *);
+extern LMTP_SESSION *lmtp_session_free(LMTP_SESSION *);
 
  /*
   * lmtp_connect.c
   */
-extern LMTP_SESSION *lmtp_connect(LMTP_ATTR *, DELIVER_REQUEST *request, VSTRING *);
-extern LMTP_SESSION *lmtp_connect_host(char *, unsigned, VSTRING *);
-extern LMTP_SESSION *lmtp_connect_local(const char *, const char *, VSTRING *);
+extern LMTP_SESSION *lmtp_connect(const char *, VSTRING *);
 
  /*
   * lmtp_proto.c

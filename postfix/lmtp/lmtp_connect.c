@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	lmtp_connect 3
+/*	lmtp_connect_inet 3
 /* SUMMARY
 /*	connect to LMTP server
 /* SYNOPSIS
@@ -19,7 +19,6 @@
 /*	separated by a colon (":").
 /*
 /*	Numerical address information should always be quoted with `[]'.
-/*
 /* DIAGNOSTICS
 /*	This routine either returns an LMTP_SESSION pointer, or
 /*	returns a null pointer and set the \fIlmtp_errno\fR
@@ -43,16 +42,16 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*      Alterations for LMTP by:
-/*      Philip A. Prindeville
-/*      Mirapoint, Inc.
-/*      USA.
+/*	Alterations for LMTP by:
+/*	Philip A. Prindeville
+/*	Mirapoint, Inc.
+/*	USA.
 /*
-/*      Additional work on LMTP by:
-/*      Amos Gouaux
-/*      University of Texas at Dallas
-/*      P.O. Box 830688, MC34
-/*      Richardson, TX 75083, USA
+/*	Additional work on LMTP by:
+/*	Amos Gouaux
+/*	University of Texas at Dallas
+/*	P.O. Box 830688, MC34
+/*	Richardson, TX 75083, USA
 /*--*/
 
 /* System library. */
@@ -80,7 +79,6 @@
 #include <vstring.h>
 #include <split_at.h>
 #include <mymalloc.h>
-#include <inet_addr_list.h>
 #include <iostuff.h>
 #include <timed_connect.h>
 #include <stringops.h>
@@ -88,7 +86,7 @@
 /* Global library. */
 
 #include <mail_params.h>
-#include <own_inet_addr.h>
+#include <mail_proto.h>
 
 /* DNS library. */
 
@@ -102,17 +100,15 @@
 /* lmtp_connect_addr - connect to explicit address */
 
 static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
-				               VSTRING *why)
+			              const char *destination, VSTRING *why)
 {
     char   *myname = "lmtp_connect_addr";
     struct sockaddr_in sin;
     int     sock;
-    INET_ADDR_LIST *addr_list;
     int     conn_stat;
     int     saved_errno;
     VSTREAM *stream;
     int     ch;
-    unsigned long inaddr;
 
     /*
      * Sanity checks.
@@ -131,21 +127,6 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
 
     if ((sock = socket(sin.sin_family, SOCK_STREAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
-
-    /* do we still need this if? */
-    addr_list = own_inet_addr_list();
-    if (addr_list->used == 1) {
-	sin.sin_port = 0;
-	memcpy((char *) &sin.sin_addr, addr_list->addrs, sizeof(sin.sin_addr));
-	inaddr = ntohl(sin.sin_addr.s_addr);
-	if (!IN_CLASSA(inaddr)
-	    || !(((inaddr & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)) {
-	    if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
-		msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
-	    if (msg_verbose)
-		msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
-	}
-    }
 
     /*
      * Connect to the LMTP server.
@@ -196,24 +177,26 @@ static LMTP_SESSION *lmtp_connect_addr(DNS_RR *addr, unsigned port,
 	vstream_fclose(stream);
 	return (0);
     }
+    vstream_ungetc(stream, ch);
 
     /*
-     * Skip this host if it sends a 4xx greeting.
+     * Skip this host if it sends a 4xx or 5xx greeting.
      */
-    if (ch == '4') {
+    if (ch == '4' || ch == '5') {
 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
 			addr->name, inet_ntoa(sin.sin_addr));
 	lmtp_errno = LMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
-    vstream_ungetc(stream, ch);
-    return (lmtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr)));
+    return (lmtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr),
+			       destination));
 }
 
 /* lmtp_connect_host - direct connection to host */
 
-LMTP_SESSION *lmtp_connect_host(char *host, unsigned port, VSTRING *why)
+static LMTP_SESSION *lmtp_connect_host(char *host, unsigned port,
+			              const char *destination, VSTRING *why)
 {
     LMTP_SESSION *session = 0;
     DNS_RR *addr_list;
@@ -226,7 +209,7 @@ LMTP_SESSION *lmtp_connect_host(char *host, unsigned port, VSTRING *why)
      */
     addr_list = lmtp_host_addr(host, why);
     for (addr = addr_list; addr; addr = addr->next) {
-	if ((session = lmtp_connect_addr(addr, port, why)) != 0) {
+	if ((session = lmtp_connect_addr(addr, port, destination, why)) != 0) {
 	    break;
 	}
     }
@@ -236,8 +219,8 @@ LMTP_SESSION *lmtp_connect_host(char *host, unsigned port, VSTRING *why)
 
 /* lmtp_parse_destination - parse destination */
 
-static char *lmtp_parse_destination(char *destination, char *def_service,
-				            char **hostp, unsigned *portp)
+static char *lmtp_parse_destination(const char *destination, char *def_service,
+				              char **hostp, unsigned *portp)
 {
     char   *myname = "lmtp_parse_destination";
     char   *buf = mystrdup(destination);
@@ -272,80 +255,24 @@ static char *lmtp_parse_destination(char *destination, char *def_service,
     *hostp = host;
 
     /*
-     * Convert service to port number, network byte order.
+     * Convert service to port number, network byte order. Since most folks
+     * aren't going to have lmtp defined as a service, use a default value
+     * instead of just blowing up.
      */
-    if ((port = atoi(service)) != 0) {
+    if ((port = atoi(service)) != 0)
 	*portp = htons(port);
-    } else {
-        /* 
-         * Since most folks aren't going to have lmtp defined as a service,
-         * use a default value instead of just blowing up.
-         */
-	if ((sp = getservbyname(service, protocol)) == 0)
-            *portp = htons(var_lmtp_tcp_port);
-        else 
-            *portp = sp->s_port;
-    }
+    else if ((sp = getservbyname(service, protocol)) != 0)
+	*portp = sp->s_port;
+    else
+	*portp = htons(var_lmtp_tcp_port);
     return (buf);
-}
-
-/* lmtp_connect_local - local connect to unix domain socket */
-
-LMTP_SESSION *lmtp_connect_local(const char *class, const char *name, VSTRING *why)
-{
-    char   *myname = "lmtp_connect_local";
-    VSTREAM *stream;
-    int     ch;
-
-    /*
-     * Connect to the LMTP server.
-     */
-    if (msg_verbose)
-	msg_info("%s: trying: %s/%s...", myname, class, name);
-    if ((stream = mail_connect_wait(class, name)) == 0) {
-        vstring_sprintf(why, "connect to %s: connection failed.", name);
-        lmtp_errno = LMTP_RETRY;
-        return (0);
-    }
-
-    /*
-     * Skip this process if it takes no action within some time limit.
-     */
-    if (read_wait(vstream_fileno(stream), var_lmtp_lhlo_tmout) < 0) {
-        vstring_sprintf(why, "connect to %s: read timeout", name);
-        lmtp_errno = LMTP_RETRY;
-        vstream_fclose(stream);
-        return (0);
-    }
-
-    /*
-     * Skip this process if it disconnects without talking to us.
-     */
-    if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	vstring_sprintf(why, "connect to %s: server dropped connection", name);
-	lmtp_errno = LMTP_RETRY;
-	vstream_fclose(stream);
-	return (0);
-    }
-
-    /*
-     * Skip this host if it sends a 4xx greeting.
-     */
-    if (ch == '4') {
-	vstring_sprintf(why, "connect to %s: server refused mail service", name);
-	lmtp_errno = LMTP_RETRY;
-	vstream_fclose(stream);
-	return (0);
-    }
-    vstream_ungetc(stream, ch);
-    return (lmtp_session_alloc(stream, name, ""));
 }
 
 /* lmtp_connect - establish LMTP connection */
 
-LMTP_SESSION *lmtp_connect(LMTP_ATTR *attr, DELIVER_REQUEST *request, VSTRING *why)
+LMTP_SESSION *lmtp_connect(const char *destination, VSTRING *why)
 {
-    char   *myname = "lmtp_connect";
+    char   *myname = "lmtp_connect_inet";
     LMTP_SESSION *session;
     char   *dest_buf;
     char   *host;
@@ -353,43 +280,13 @@ LMTP_SESSION *lmtp_connect(LMTP_ATTR *attr, DELIVER_REQUEST *request, VSTRING *w
     char   *def_service = "lmtp";	/* XXX configurable? */
 
     /*
-     * Are we connecting to a local or inet socket?
+     * Connect to the LMTP server.
      */
-    if (attr->type == LMTP_SERV_TYPE_UNIX) {
-        /*
-         * Connect to local LMTP server.
-         */
-        if (msg_verbose)
-            msg_info("%s: connecting to %s", myname, attr->name);
-        session = lmtp_connect_local(attr->class, attr->name, why);
-        if (session != 0) {
-            session->destination = mystrdup(attr->name);
-            session->type = attr->type;
-        }
-    } else {
-        /*
-         * Connect to LMTP server via inet socket, but where?
-         */
-        if (!*(attr)->name) {
-            if (msg_verbose)
-                msg_info("%s: attr->name not set; using request->nexthop", myname);
-            attr->name = request->nexthop;
-        }
-        dest_buf = lmtp_parse_destination(attr->name, def_service, 
-                                          &host, &port);
-        
-        /*
-         * Now that the inet LMTP server has been determined, connect to it.
-         */
-        if (msg_verbose)
-            msg_info("%s: connecting to %s port %d", myname, host, ntohs(port));
-        session = lmtp_connect_host(host, port, why);
-        if (session != 0) {
-            session->destination = mystrdup(attr->name);
-            session->type = attr->type;
-        }
-        myfree(dest_buf);
-    }
+    dest_buf = lmtp_parse_destination(destination, def_service,
+				      &host, &port);
+    if (msg_verbose)
+	msg_info("%s: connecting to %s port %d", myname, host, ntohs(port));
+    session = lmtp_connect_host(host, port, destination, why);
+    myfree(dest_buf);
     return (session);
 }
-

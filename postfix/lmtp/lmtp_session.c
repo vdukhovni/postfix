@@ -6,48 +6,54 @@
 /* SYNOPSIS
 /*	#include "lmtp.h"
 /*
-/*	LMTP_SESSION *lmtp_session_alloc(stream, host, addr)
+/*	LMTP_SESSION *lmtp_session_alloc(stream, host, addr, dest, type)
 /*	VSTREAM *stream;
-/*	char	*host;
-/*	char	*addr;
+/*	const char *host;
+/*	const char *addr;
+/*	const char *dest;
+/*	int	type;
 /*
-/*	void	lmtp_session_free(session)
+/*	LMTP_SESSION *lmtp_session_free(session)
 /*	LMTP_SESSION *session;
-/*
-/*	void	lmtp_session_reset(state)
-/*	LMTP_STATE *state;
 /* DESCRIPTION
+/*	This module maintains information about connections, including
+/*	per-peer debugging.
+/*
 /*	lmtp_session_alloc() allocates memory for an LMTP_SESSION structure
 /*	and initializes it with the given stream and host name and address
-/*	information.  The host name and address strings are copied. The code
-/*	assumes that the stream is connected to the "best" alternative.
+/*	information.  The host name and address strings are copied.
+/*	The type argument specifies the transport type. The dest argument
+/*	specifies a string-valued name for the remote endpoint.
+/*	If the peer name or address matches the debug-peer_list configuration
+/*	parameter, the debugging level is incremented by the amount specified
+/*	in the debug_peer_level parameter.
 /*
 /*	lmtp_session_free() destroys an LMTP_SESSION structure and its
-/*	members, making memory available for reuse.
-/*
-/*      lmtp_session_reset() is just a little helper to make sure everything
-/*      is set to zero after the session has been freed.  This means I don't
-/*      have to keep repeating the same chunks of code for cached connections.
+/*	members, making memory available for reuse. The result value is
+/*	convenient null pointer. The debugging level is restored to the
+/*	value prior to the lmtp_session_alloc() call.
 /* LICENSE
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* SEE ALSO
+/*	debug_peer(3), increase logging for selected peers
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*      Alterations for LMTP by:
-/*      Philip A. Prindeville
-/*      Mirapoint, Inc.
-/*      USA.
+/*	Alterations for LMTP by:
+/*	Philip A. Prindeville
+/*	Mirapoint, Inc.
+/*	USA.
 /*
-/*      Additional work on LMTP by:
-/*      Amos Gouaux
-/*      University of Texas at Dallas
-/*      P.O. Box 830688, MC34
-/*      Richardson, TX 75083, USA
+/*	Additional work on LMTP by:
+/*	Amos Gouaux
+/*	University of Texas at Dallas
+/*	P.O. Box 830688, MC34
+/*	Richardson, TX 75083, USA
 /*--*/
 
 /* System library. */
@@ -58,6 +64,11 @@
 
 #include <mymalloc.h>
 #include <vstream.h>
+#include <stringops.h>
+
+/* Global library. */
+
+#include <debug_peer.h>
 
 /* Application-specific. */
 
@@ -65,7 +76,8 @@
 
 /* lmtp_session_alloc - allocate and initialize LMTP_SESSION structure */
 
-LMTP_SESSION *lmtp_session_alloc(VSTREAM *stream, char *host, char *addr)
+LMTP_SESSION *lmtp_session_alloc(VSTREAM *stream, const char *host,
+		               const char *addr, const char *dest)
 {
     LMTP_SESSION *session;
 
@@ -73,33 +85,22 @@ LMTP_SESSION *lmtp_session_alloc(VSTREAM *stream, char *host, char *addr)
     session->stream = stream;
     session->host = mystrdup(host);
     session->addr = mystrdup(addr);
-    session->destination = 0;
+    session->namaddr = concatenate(host, "[", addr, "]", (char *) 0);
+    session->dest = mystrdup(dest);
+    debug_peer_check(host, addr);
     return (session);
 }
 
 /* lmtp_session_free - destroy LMTP_SESSION structure and contents */
 
-void    lmtp_session_free(LMTP_SESSION *session)
+LMTP_SESSION *lmtp_session_free(LMTP_SESSION *session)
 {
-    if (vstream_ispipe(session->stream))
-	vstream_pclose(session->stream);
-    else
-	vstream_fclose(session->stream);
+    debug_peer_restore();
+    vstream_fclose(session->stream);
     myfree(session->host);
     myfree(session->addr);
-    if (session->destination)
-	myfree(session->destination);
+    myfree(session->namaddr);
+    myfree(session->dest);
     myfree((char *) session);
+    return (0);
 }
-
-/* lmtp_session_reset - clean things up so a new session can be created */
-
-void    lmtp_session_reset(LMTP_STATE *state)
-{
-    if (state->session) {
-        lmtp_session_free(state->session);
-        state->session = 0;
-    }
-    state->reuse = 0;
-}
-
