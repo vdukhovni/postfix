@@ -4,6 +4,12 @@ Purpose of this document
 This document describes the purpose of the Postfix fast ETRN service,
 how the service works, and how it can be tested.
 
+Other documents with information on this subject:
+
+- conf/sample-flush.cf, sample configuration file
+- conf/main.cf, sample configuration file
+- flush(8), flush service implementation
+
 The Postfix fast ETRN service
 =============================
 

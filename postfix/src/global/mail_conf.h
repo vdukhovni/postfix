@@ -46,11 +46,11 @@ extern const char *mail_conf_lookup_eval(const char *);
 extern char *get_mail_conf_str(const char *, const char *, int, int);
 extern int get_mail_conf_int(const char *, int, int, int);
 extern int get_mail_conf_bool(const char *, int);
-extern int get_mail_conf_time(const char *, const char *, int, int);
+extern int get_mail_conf_time(const char *, const char *, int, int, int);
 extern char *get_mail_conf_raw(const char *, const char *, int, int);
 
 extern int get_mail_conf_int2(const char *, const char *, int, int, int);
-extern int get_mail_conf_time2(const char *, const char *, const char *, int, int);
+extern int get_mail_conf_time2(const char *, const char *, const char *, int, int, int);
 
  /*
   * Lookup with function-call defaults.
@@ -58,7 +58,7 @@ extern int get_mail_conf_time2(const char *, const char *, const char *, int, in
 extern char *get_mail_conf_str_fn(const char *, const char *(*) (void), int, int);
 extern int get_mail_conf_int_fn(const char *, int (*) (void), int, int);
 extern int get_mail_conf_bool_fn(const char *, int (*) (void));
-extern int get_mail_conf_time_fn(const char *, const char *(*) (void), int, int);
+extern int get_mail_conf_time_fn(const char *, const char *(*) (void), int, int, int);
 extern char *get_mail_conf_raw_fn(const char *, const char *(*) (void), int, int);
 
  /*
@@ -99,6 +99,7 @@ typedef struct {
     const char *name;			/* config variable name */
     const char *defval;			/* default value */
     int    *target;			/* pointer to global variable */
+    int     def_unit;			/* default unit: s|m|h|d|w */
     int     min;			/* lower bound or zero */
     int     max;			/* upper bound or zero */
 } CONFIG_TIME_TABLE;
@@ -139,6 +140,7 @@ typedef struct {
     const char *name;			/* config variable name */
     const char *(*defval) (void);	/* default value provider */
     int    *target;			/* pointer to global variable */
+    int     def_unit;			/* default unit: s|m|h|d|w */
     int     min;			/* lower bound or zero */
     int     max;			/* upper bound or zero */
 } CONFIG_TIME_FN_TABLE;

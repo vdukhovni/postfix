@@ -235,7 +235,6 @@ qmgr_scan.o: ../../include/msg.h
 qmgr_scan.o: ../../include/mymalloc.h
 qmgr_scan.o: ../../include/scan_dir.h
 qmgr_scan.o: ../../include/mail_scan_dir.h
-qmgr_scan.o: ../../include/flush_clnt.h
 qmgr_scan.o: qmgr.h
 qmgr_scan.o: ../../include/vstream.h
 qmgr_scan.o: ../../include/vbuf.h

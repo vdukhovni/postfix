@@ -23,7 +23,8 @@
 /* .IP format
 /*	Format string understood by mail_print(3).
 /* DIAGNOSTICS
-/*	The result is zero in case of success, non-zero otherwise.
+/*	The result is -1 if the request could not be sent, otherwise
+/*	the result is the status reported by the server.
 /*	Warnings: problems connecting to the requested service.
 /*	Fatal: out of memory.
 /* SEE ALSO
@@ -43,7 +44,7 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <stdlib.h>		/* 44BSD stdarg.h uses abort() */
+#include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
 #include <stdarg.h>
 
 /* Utility library. */
@@ -67,13 +68,14 @@ int     mail_command_write(const char *class, const char *name,
      * Talk a little protocol with the specified service.
      */
     if ((stream = mail_connect(class, name, BLOCKING)) == 0)
-	return (1);
+	return (-1);
     va_start(ap, fmt);
     status = mail_vprint(stream, fmt, ap);
     va_end(ap);
-    status |= mail_print(stream, "%s", MAIL_EOF);
-    status |= vstream_fflush(stream);
-    if (mail_scan(stream, "%d", &status) != 1)
+    if (status != 0
+	|| mail_print(stream, "%s", MAIL_EOF) != 0
+	|| vstream_fflush(stream) != 0
+	|| mail_scan(stream, "%d", &status) != 1)
 	status = -1;
     (void) vstream_fclose(stream);
     return (status);

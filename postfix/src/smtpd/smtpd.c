@@ -1095,7 +1095,10 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (0);
     case FLUSH_STAT_BAD:
 	msg_warn("bad ETRN %.100s... from %s", argv[1].strval, state->namaddr);
+	smtpd_chat_reply(state, "458 Unable to queue messages");
+	return (-1);
     default:
+	msg_warn("unable to talk to fast flush service");
 	smtpd_chat_reply(state, "458 Unable to queue messages");
 	return (-1);
     }

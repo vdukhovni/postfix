@@ -13,6 +13,8 @@
 /*	int	flush_send(site)
 /*	const char *site;
 /*
+/*	int	flush_refresh()
+/*
 /*	int	flush_purge()
 /* DESCRIPTION
 /*	The following routines operate through the "fast flush" service.
@@ -26,13 +28,18 @@
 /*	flush_send() requests delivery of all mail that is queued for
 /*	the specified destination.
 /*
+/*	flush_refresh() requests the "fast flush" cache manager to refresh
+/*	cached information that was not used for some configurable amount
+/*	time.
+/*
 /*	flush_purge() requests the "fast flush" cache manager to refresh
-/*	cached information that was not used or not updated for some
-/*	configurable amount of time.
+/*	all cached information. This is incredibly expensive, and is not
+/*	recommended.
 /* DIAGNOSTICS
 /*	The result codes and their meanings are (see flush_clnt(5h)):
 /* .IP MAIL_FLUSH_OK
-/*	The request completed successfully.
+/*	The request completed successfully (in case of requests that
+/*	complete in the background: the request was accepted by the server).
 /* .IP MAIL_FLUSH_FAIL
 /*	The request failed (the request could not be sent to the server,
 /*	or the server reported failure).
@@ -74,46 +81,6 @@
 
 #define STR(x)	vstring_str(x)
 
-/* flush_clnt - generic fast flush service client */
-
-static int flush_clnt(const char *format,...)
-{
-    VSTREAM *flush;
-    int     status;
-    va_list ap;
-
-    /*
-     * Connect to the fast flush service over local IPC.
-     */
-    if ((flush = mail_connect(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
-			      BLOCKING)) == 0)
-	return (FLUSH_STAT_FAIL);
-
-    /*
-     * Do not get stuck forever.
-     */
-    vstream_control(flush,
-		    VSTREAM_CTL_TIMEOUT, var_ipc_timeout,
-		    VSTREAM_CTL_END);
-
-    /*
-     * Send a request with the site name, and receive the request acceptance
-     * status.
-     */
-    va_start(ap, format);
-    mail_vprint(flush, format, ap);
-    va_end(ap);
-    if (mail_scan(flush, "%d", &status) != 1)
-	status = FLUSH_STAT_FAIL;
-
-    /*
-     * Clean up.
-     */
-    vstream_fclose(flush);
-
-    return (status);
-}
-
 /* flush_purge - house keeping */
 
 int     flush_purge(void)
@@ -130,7 +97,33 @@ int     flush_purge(void)
     if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
 	status = FLUSH_STAT_OK;
     else
-	status = flush_clnt("%s", FLUSH_REQ_PURGE);
+	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
+				    "%s", FLUSH_REQ_PURGE);
+
+    if (msg_verbose)
+	msg_info("%s: status %d", myname, status);
+
+    return (status);
+}
+
+/* flush_refresh - house keeping */
+
+int     flush_refresh(void)
+{
+    char   *myname = "flush_refresh";
+    int     status;
+
+    if (msg_verbose)
+	msg_info("%s", myname);
+
+    /*
+     * Don't bother the server if the service is turned off.
+     */
+    if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
+	status = FLUSH_STAT_OK;
+    else
+	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
+				    "%s", FLUSH_REQ_REFRESH);
 
     if (msg_verbose)
 	msg_info("%s: status %d", myname, status);
@@ -154,7 +147,8 @@ int     flush_send(const char *site)
     if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
 	status = mail_flush_deferred();
     else
-	status = flush_clnt("%s %s", FLUSH_REQ_SEND, site);
+	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
+				    "%s %s", FLUSH_REQ_SEND, site);
 
     if (msg_verbose)
 	msg_info("%s: site %s status %d", myname, site, status);
@@ -178,7 +172,8 @@ int     flush_add(const char *site, const char *queue_id)
     if (strcmp(var_fflush_policy, FFLUSH_POLICY_NONE) == 0)
 	status = FLUSH_STAT_OK;
     else
-	status = flush_clnt("%s %s %s", FLUSH_REQ_ADD, site, queue_id);
+	status = mail_command_write(MAIL_CLASS_PRIVATE, MAIL_SERVICE_FLUSH,
+				 "%s %s %s", FLUSH_REQ_ADD, site, queue_id);
 
     if (msg_verbose)
 	msg_info("%s: site %s id %s status %d", myname, site, queue_id,

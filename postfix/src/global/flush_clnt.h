@@ -16,6 +16,7 @@
   */
 extern int flush_add(const char *, const char *);
 extern int flush_send(const char *);
+extern int flush_refresh(void);
 extern int flush_purge(void);
 
  /*
@@ -23,7 +24,8 @@ extern int flush_purge(void);
   */
 #define FLUSH_REQ_ADD		"add"	/* append queue ID to site log */
 #define FLUSH_REQ_SEND		"send"	/* flush mail queued for site */
-#define FLUSH_REQ_PURGE		"purge"	/* refresh or delete old info */
+#define FLUSH_REQ_REFRESH	"rfrsh"	/* refresh old logfiles */
+#define FLUSH_REQ_PURGE		"purge"	/* refresh all logfiles */
 
  /*
   * Mail flush server status codes.

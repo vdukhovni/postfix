@@ -18,47 +18,47 @@ FLUSH(8)                                                 FLUSH(8)
        equivalent, <b>sendmail</b> <b>-qR</b>.  This program expects to be  run
        from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
-       The record is implemented as per-destination logfiles with
-       as contents the queue IDs of deferred mail. The files  are
-       append-only,  and are truncated when delivery is requested
-       for a specific site.
+       The  record  is  implemented  as a per-destination logfile
+       with as contents the queue IDs of deferred mail. A logfile
+       is   append-only,   and  is  truncated  when  delivery  is
+       requested for the corresponding destination. A destination
+       is  the part on the right-hand side of the right-most <b>@</b> in
+       an email address.
 
-       Deferred mail by destination information is recorded  only
-       for  destinations that are eligible according to a config-
-       urable  policy.   The  policy  is   specified   with   the
-       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>cache</b><i>_</i><b>policy</b> configuration parameter:
+       Per-destination logfiles of deferred mail  are  maintained
+       only  for  eligible  destinations. The policy is specified
+       with the <b>fast</b><i>_</i><b>flush</b><i>_</i><b>cache</b><i>_</i><b>policy</b> configuration parameter:
 
-       <b>all</b>    Maintain per-destination deferred mail logfiles for
-              all destinations.
+       <b>all</b>    Maintain per-destination logfiles for all  destina-
+              tions.
 
-       <b>relay</b>  Maintain  per-destination  deferred  mail  logfiles
-              only  for  destinations that this system is willing
-              to relay mail to ($<b>relay</b><i>_</i><b>domains</b>).
+       <b>relay</b> (default policy)
+              Maintain per-destination logfiles only for destina-
+              tions that this system is willing to relay mail  to
+              (as  controlled  by the <b>relay</b><i>_</i><b>domains</b> configuration
+              parameter).
 
-       <b>none</b>   Do not maintain per-destination deferred mail  log-
-              files.
+       <b>none</b>   Do not maintain per-destination logfiles.
 
        This server implements the following requests:
 
        <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>ADD</b> <i>sitename</i> <i>queue_id</i>
               Inform the cache manager that the specified message
-              is queued for  the  specified  site.  Depending  on
-              caching policy, the cache manager stores or ignores
-              the information.
+              is  queued  for <i>sitename</i>. Depending on caching pol-
+              icy, the cache manager stores or ignores the infor-
+              mation.
 
        <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b> <i>sitename</i>
-              Request delivery of all messages  that  are  queued
-              for  the specified site. Depending on cache policy,
-              this triggers delivery of specific messages  or  of
-              all  queued  mail.  The  per-destination logfile is
-              discarded.
+              Request  delivery  of mail that is queued for <i>site-</i>
+              <i>name</i>.  If the destination is eligible  for  a  fast
+              flush  logfile,  this  request triggers delivery of
+              specific messages;  the per-destination logfile  is
+              truncated to zero length; if mail is undeliverable,
+              it will be logged to the per-destination logfile.
 
-       <b>TRIGGER</b><i>_</i><b>REQ</b><i>_</i><b>WAKEUP</b> (wakeup signal from master)
-
-       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>PURGE</b>
-              Delete empty per-destination logfiles that  haven't
-              been updated in $<b>fast</b><i>_</i><b>flush</b><i>_</i><b>purge</b><i>_</i><b>delay</b> seconds.
-
+              If the destination is not eligible for a fast flush
+              logfile,  this  request  triggers  delivery  of all
+              queued mail.
 
 
 
@@ -71,22 +71,36 @@ FLUSH(8)                                                 FLUSH(8)
 FLUSH(8)                                                 FLUSH(8)
 
 
+       <b>TRIGGER</b><i>_</i><b>REQ</b><i>_</i><b>WAKEUP</b>
+              This wakeup request from the master is an  alterna-
+              tive way to request <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>REFRESH</b>.
+
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>REFRESH</b> (completes in the background)
               Refresh  non-empty  per-destination  logfiles  that
-              were not read in $<b>fast</b><i>_</i><b>flush</b><i>_</i><b>refresh</b><i>_</i><b>delay</b> seconds.
-              This  is done by pretending that send requests were
-              received for the corresponding sites.
+              were not read in  $<b>fast</b><i>_</i><b>flush</b><i>_</i><b>refresh</b><i>_</i><b>delay</b>  hours,
+              by  simulating  send  requests  (see above) for the
+              corresponding destinations.
 
-              Fast flush logfiles  are  truncated  only  after  a
-              <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b>  request,  not when mail is actually
-              delivered, and therefore can accumulate outdated or
-              redundant   data.  In  order  to  maintain  sanity,
-              <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>PURGE</b>  should  be  requested  at  regular
-              imtervals.
+              Delete empty per-destination logfiles that were not
+              updated in <b>fast</b><i>_</i><b>flush</b><i>_</i><b>purge</b><i>_</i><b>delay</b> days.
 
-              After  an  initial  sanity check of request parame-
-              ters, this request proceeds in the background.
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>PURGE</b> (completes in the background)
+              Refresh  all non-empty per-destination logfiles, by
+              simulating send requests (see above) for the corre-
+              sponding  destinations.   This  can  be  incredibly
+              expensive when caching is enabled for all  deferred
+              mail, and is not recommended.
 
-       The response to the client is one of:
+              Delete empty per-destination logfiles that were not
+              updated in <b>fast</b><i>_</i><b>flush</b><i>_</i><b>purge</b><i>_</i><b>delay</b> days.
+
+       Fast  flush  logfiles   are   truncated   only   after   a
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b>  request,  not when mail is actually deliv-
+       ered, and therefore can accumulate outdated  or  redundant
+       data.  In order to maintain sanity, <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>REFRESH</b> must
+       be executed periodically.
+
+       The server response is one of:
 
        <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
               The request completed normally.
@@ -109,8 +123,20 @@ FLUSH(8)                                                 FLUSH(8)
 
 <b>BUGS</b>
        In reality, this server schedules delivery of all  recipi-
-       ents  of deferred messages.  This limitation is due to the
+       ents of a deferred message.  This limitation is due to the
        fact that one queue runner has to handle mail for multiple
+
+
+
+                                                                2
+
+
+
+
+
+FLUSH(8)                                                 FLUSH(8)
+
+
        destinations.
 
 <b>FILES</b>
@@ -125,26 +151,16 @@ FLUSH(8)                                                 FLUSH(8)
               What  destinations can have a "fast flush" logfile:
               <b>all</b>, <b>relay</b> (relay destinations) or <b>none</b>.
 
-
-
-
-                                                                2
-
-
-
-
-
-FLUSH(8)                                                 FLUSH(8)
-
-
        <b>fast</b><i>_</i><b>flush</b><i>_</i><b>refresh</b><i>_</i><b>delay</b>
               Refresh a non-empty "fast flush" logfile  that  was
-              not  read  in  this amount of time, by simulating a
-              send request for the corresponding destination.
+              not read in this amount of time (default time unit:
+              hours), by simulating a send request for the corre-
+              sponding destination.
 
        <b>fast</b><i>_</i><b>flush</b><i>_</i><b>purge</b><i>_</i><b>delay</b>
-              Remove an empty "fast flush" logfile that  was  not
-              updated in this amount of time.
+              Remove  an  empty "fast flush" logfile that was not
+              updated in this amount of time (default time  unit:
+              days).
 
 <b>SEE</b> <b>ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
@@ -160,22 +176,6 @@ FLUSH(8)                                                 FLUSH(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
