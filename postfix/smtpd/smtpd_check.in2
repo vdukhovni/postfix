@@ -94,3 +94,14 @@ rcpt wietse@porcupine.org
 rcpt wietse@no.recipient.domain
 mail wietse@no.sender.domain
 rcpt wietse@porcupine.org
+#
+# {permit_auth,reject_unauth}_destination
+#
+relay_domains foo.com,bar.com
+mail user@some.where
+recipient_restrictions permit_auth_destination,reject
+rcpt user@foo.org
+rcpt user@foo.com
+recipient_restrictions reject_unauth_destination,permit
+rcpt user@foo.org
+rcpt user@foo.com

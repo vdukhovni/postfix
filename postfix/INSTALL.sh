@@ -6,6 +6,9 @@
 PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc
 umask 022
 
+# Workaround, should edit main.cf in place.
+trap 'rm -f ./main.cf; exit' 0 1 2 3 15
+
 cat <<EOF
 
 Warning: this script replaces existing sendmail or Postfix programs.
@@ -138,7 +141,14 @@ do
    esac
 done
 
-bin/postmap -c ./conf -q "$owner" unix:passwd.byname >/dev/null || {
+# Workaround, should edit main.cf in place.
+test -f $config_directory/main.cf || {
+    echo "mail_owner = $owner" >./main.cf
+    echo "myhostname = xx.yy" >>./main.cf
+    alt_main="-c ."
+}
+
+bin/postmap $alt_main -q "$owner" unix:passwd.byname >/dev/null || {
     echo "$owner needs an entry in the passwd file" 1>&2
     echo "Remember, $owner must have a dedicated user id and group id." 1>&2
     exit 1
@@ -146,7 +156,7 @@ bin/postmap -c ./conf -q "$owner" unix:passwd.byname >/dev/null || {
 
 case $setgid in
 no) ;;
- *) bin/postmap -c ./conf -q "$setgid" unix:group.byname >/dev/null || {
+ *) bin/postmap $alt_main -q "$setgid" unix:group.byname >/dev/null || {
 	echo "$setgid needs an entry in the group file" 1>&2
 	echo "Remember, $setgid must have a dedicated group id." 1>&2
 	exit 1
@@ -239,6 +249,16 @@ compare_or_replace a+x,go-w $postfix_script $config_directory/postfix-script ||
 
 case $manpages in
 no) ;;
- *) test -d $manpages || mkdir -p $manpages || exit 1
-    (cd man && tar cf - man?) | (cd $manpages && tar xf -)
+ *) (
+     cd man || exit 1
+     for dir in man?
+	 do mkdir -p $manpages/$dir || exit 1
+     done
+     for file in man?/*
+     do
+	 rm -f $manpages/$file
+	 cp $file $manpages/$file || exit 1
+	 chmod 644 $manpages/$file || exit 1
+     done
+    )
 esac

@@ -52,6 +52,12 @@
 /*	this program. See the Postfix \fBmain.cf\fR file for syntax details
 /*	and for default values. Use the \fBpostfix reload\fR command after
 /*	a configuration change.
+/* .SH "Compatibility controls"
+/* .ad
+/* .fi
+/* .IP \fBstrict_rfc821_envelopes\fR
+/*	Disallow non-RFC 821 style addresses in envelopes. For example,
+/*	allow RFC822-style address forms with comments, like Sendmail does.
 /* .SH Miscellaneous
 /* .ad
 /* .fi
@@ -284,6 +290,7 @@ char   *var_always_bcc;
 char   *var_error_rcpt;
 int     var_smtpd_delay_reject;
 char   *var_rest_classes;
+int     var_strict_rfc821_env;
 
  /*
   * Global state, for stand-alone mode queue file cleanup. When this is
@@ -291,17 +298,23 @@ char   *var_rest_classes;
   */
 char   *smtpd_path;
 
+ /*
+  * Silly little macros.
+  */
+#define STR(x)	vstring_str(x)
+#define LEN(x)	VSTRING_LEN(x)
+
 /* collapse_args - put arguments together again */
 
 static void collapse_args(int argc, SMTPD_TOKEN *argv)
 {
     int     i;
 
-    for (i = 2; i < argc; i++) {
-	vstring_strcat(argv[1].vstrval, " ");
-	vstring_strcat(argv[1].vstrval, argv[i].strval);
+    for (i = 1; i < argc; i++) {
+	vstring_strcat(argv[0].vstrval, " ");
+	vstring_strcat(argv[0].vstrval, argv[i].strval);
     }
-    argv[1].strval = vstring_str(argv[1].vstrval);
+    argv[0].strval = STR(argv[0].vstrval);
 }
 
 /* helo_cmd - process HELO command */
@@ -320,7 +333,8 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Duplicate HELO/EHLO");
 	return (-1);
     }
-    collapse_args(argc, argv);
+    if (argc > 2)
+	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& var_smtpd_delay_reject == 0
 	&& (err = smtpd_check_helo(state, argv[1].strval)) != 0) {
@@ -349,7 +363,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 Error: duplicate HELO/EHLO");
 	return (-1);
     }
-    collapse_args(argc, argv);
+    if (argc > 2)
+	collapse_args(argc - 1, argv + 1);
     if (SMTPD_STAND_ALONE(state) == 0
 	&& var_smtpd_delay_reject == 0
 	&& (err = smtpd_check_helo(state, argv[1].strval)) != 0) {
@@ -427,46 +442,94 @@ static void mail_open_stream(SMTPD_STATE *state)
 
 /* extract_addr - extract address from rubble */
 
-static VSTRING *extract_addr(SMTPD_STATE *state, VSTRING *buf)
+static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
+			          int allow_empty_addr)
 {
     char   *myname = "extract_addr";
     TOK822 *tree;
     TOK822 *tp;
+    TOK822 *addr = 0;
     int     naddr;
     int     non_addr;
+    char   *err = 0;
+
+    /*
+     * Special case.
+     */
+#define PERMIT_EMPTY_ADDR	1
+#define REJECT_EMPTY_ADDR	0
+
+    if (allow_empty_addr && strcmp(STR(arg->vstrval), "<>") == 0) {
+	if (msg_verbose)
+	    msg_info("%s: empty address", myname);
+	VSTRING_RESET(arg->vstrval);
+	VSTRING_TERMINATE(arg->vstrval);
+	arg->strval = STR(arg->vstrval);
+	return (0);
+    }
 
     /*
      * Some mailers send RFC822-style address forms (with comments and such)
      * in SMTP envelopes. We cannot blame users for this: the blame is with
      * programmers violating the RFC, and with sendmail for being permissive.
      * 
-     * Extract the address from any surrounding junk. XXX Because of this, the
-     * SMTP command tokenizer must leave the address in externalized (quoted)
-     * form.
+     * XXX The SMTP command tokenizer must leave the address in externalized
+     * (quoted) form, so that the address parser can correctly extract the
+     * address from surrounding junk.
+     * 
+     * XXX We have only one address parser, written according to the rules of
+     * RFC 822. That standard differs subtly from RFC 821.
      */
-#define STR(x)	vstring_str(x)
-#define LEN(x)	VSTRING_LEN(x)
-
     if (msg_verbose)
-	msg_info("%s: input: %s", myname, STR(buf));
-    tree = tok822_parse(STR(buf));
+	msg_info("%s: input: %s", myname, STR(arg->vstrval));
+    tree = tok822_parse(STR(arg->vstrval));
+
+    /*
+     * Find trouble.
+     */
     for (naddr = non_addr = 0, tp = tree; tp != 0; tp = tp->next) {
 	if (tp->type == TOK822_ADDR) {
-	    if (++naddr == 1)
-		tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
-	    else if (naddr == 2)
-		msg_warn("Multiple addresses from %s in %s command: %s",
-			 state->namaddr, state->where, STR(buf));
-	} else if (tp->type != '<' && tp->type != '>') {
-	    if (++non_addr == 1)
-		msg_warn("Non-RFC 821 syntax from %s in %s command: %s",
-			 state->namaddr, state->where, STR(buf));
+	    addr = tp;
+	    naddr += 1;				/* count address forms */
+	} else if (tp->type == '<' || tp->type == '>') {
+	     /* void */ ;			/* ignore brackets */
+	} else {
+	    non_addr += 1;			/* count non-address forms */
 	}
     }
+
+    /*
+     * Report trouble.
+     */
+    if (naddr != 1) {				/* sorry, no can do */
+	msg_warn("Illegal address syntax from %s in %s command: %s",
+		 state->namaddr, state->where, STR(arg->vstrval));
+	err = "501 Bad address syntax";
+    } else if (non_addr > 0) {			/* it works with Sendmail... */
+	msg_warn("Illegal address syntax from %s in %s command: %s",
+		 state->namaddr, state->where, STR(arg->vstrval));
+	err = (var_strict_rfc821_env ? "501 Bad address syntax" : 0);
+    }
+
+    /*
+     * Overwrite the input with the extracted address. This seems bad design,
+     * but we really are not going to use the original data anymore. What we
+     * start with is quoted (external) form, and what we need is unquoted
+     * (internal form).
+     */
+    if (addr)
+	tok822_internalize(arg->vstrval, addr->head, TOK822_STR_DEFL);
+    else
+	vstring_strcat(arg->vstrval, "");
+    arg->strval = STR(arg->vstrval);
+
+    /*
+     * Cleanup.
+     */
     tok822_free_tree(tree);
     if (msg_verbose)
-	msg_info("%s: result: %s", myname, STR(buf));
-    return (buf);
+	msg_info("%s: result: %s", myname, STR(arg->vstrval));
+    return (err);
 }
 
 /* mail_cmd - process MAIL command */
@@ -498,7 +561,16 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: MAIL FROM: <address>");
 	return (-1);
     }
-    argv[2].strval = STR(extract_addr(state, argv[2].vstrval));
+    if (argv[2].tokval == SMTPD_TOK_ERROR) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "501 Bad address syntax");
+	return (-1);
+    }
+    if ((err = extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR)) != 0) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
     for (narg = 3; narg < argc; narg++) {
 	arg = argv[narg].strval;
 	if (strcasecmp(arg, "BODY=8BITMIME") == 0
@@ -596,7 +668,16 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 Syntax: RCPT TO: <address>");
 	return (-1);
     }
-    argv[2].strval = STR(extract_addr(state, argv[2].vstrval));
+    if (argv[2].tokval == SMTPD_TOK_ERROR) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "501 Bad address syntax");
+	return (-1);
+    }
+    if ((err = extract_addr(state, argv + 2, REJECT_EMPTY_ADDR)) != 0) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
     if (var_smtpd_rcpt_limit && state->rcpt_count >= var_smtpd_rcpt_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "452 Error: too many recipients");
@@ -845,13 +926,25 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * The SMTP standard (RFC 821) disallows unquoted special characters in
      * the VRFY argument. Common practice violates the standard, however.
      * Postfix accomodates common practice where it violates the standard.
+     * 
+     * XXX Impedance mismatch! The SMTP command tokenizer preserves quoting,
+     * whereas the recipient restrictions checks expect unquoted (internal)
+     * address forms. Therefore we must parse out the address, or we must
+     * stop doing recipient restriction checks and lose the opportunity to
+     * say "user unknown" at the SMTP port.
      */
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 Syntax: VRFY address");
 	return (-1);
     }
-    collapse_args(argc, argv);
+    if (argc > 2)
+	collapse_args(argc - 1, argv + 1);
+    if ((err = extract_addr(state, argv + 1, REJECT_EMPTY_ADDR)) != 0) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
+    }
     if (SMTPD_STAND_ALONE(state) == 0)
 	err = smtpd_check_rcpt(state, argv[1].strval);
 
@@ -1216,6 +1309,7 @@ int     main(int argc, char **argv)
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_HELO_REQUIRED, DEF_HELO_REQUIRED, &var_helo_required,
 	VAR_SMTPD_DELAY_REJECT, DEF_SMTPD_DELAY_REJECT, &var_smtpd_delay_reject,
+	VAR_STRICT_RFC821_ENV, DEF_STRICT_RFC821_ENV, &var_strict_rfc821_env,
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {

@@ -124,10 +124,13 @@
 /*	parameter.  Reject the request otherwise.
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
+/* .IP permit_auth_destination
+/*	Permit the request when the resolved recipient domain matches
+/*	the local machine or the \fIrelay_domains\fR configuration parameter.
 /* .IP reject_unauth_destination
 /*	Reject the request when the resolved recipient domain does not match
-/*	the \fIrelay_domains\fR configuration parameter.  Same error code as
-/*	check_relay_domains.
+/*	the local machine or the \fIrelay_domains\fR configuration parameter.
+/*	Same error code as check_relay_domains.
 /* .IP reject_unauth_pipelining
 /*	Reject the request when the client has already sent the next request
 /*	without being told that the server implements SMTP command pipelining.
@@ -709,7 +712,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
      * Permit if destination is local. XXX This must be generalized for
      * per-domain user tables and for non-UNIX local delivery agents.
      */
-    if (STR(reply.nexthop)[0] == 0
+    if (resolve_local(STR(reply.nexthop))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
@@ -726,6 +729,43 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			       "%d <%s>: %s rejected: Relay access denied",
 			       var_relay_code, reply_name, reply_class));
+}
+
+/* permit_auth_destination - OK for message relaying */
+
+static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
+{
+    char   *myname = "permit_auth_destination";
+    char   *domain;
+
+    if (msg_verbose)
+	msg_info("%s: %s", myname, recipient);
+
+    /*
+     * Resolve the address.
+     */
+    canon_addr_internal(query, recipient);
+    resolve_clnt_query(STR(query), &reply);
+
+    /*
+     * Permit if destination is local. XXX This must be generalized for
+     * per-domain user tables and for non-UNIX local delivery agents.
+     */
+    if (resolve_local(STR(reply.nexthop))
+	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
+	return (SMTPD_CHECK_OK);
+    domain += 1;
+
+    /*
+     * Permit if the destination matches the relay_domains list.
+     */
+    if (domain_list_match(relay_domains, domain))
+	return (SMTPD_CHECK_OK);
+
+    /*
+     * Skip when not matched
+     */
+    return (SMTPD_CHECK_DUNNO);
 }
 
 /* reject_unauth_destination - FAIL for message relaying */
@@ -748,7 +788,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
      * Pass if destination is local. XXX This must be generalized for
      * per-domain user tables and for non-UNIX local delivery agents.
      */
-    if (STR(reply.nexthop)[0] == 0
+    if (resolve_local(STR(reply.nexthop))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
@@ -850,7 +890,7 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
      * If the destination is local, it is acceptable, because we are
      * supposedly MX for our own address.
      */
-    if (STR(reply.nexthop)[0] == 0
+    if (resolve_local(STR(reply.nexthop))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
@@ -984,7 +1024,7 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr,
     /*
      * Skip local destinations and non-DNS forms.
      */
-    if (STR(reply.nexthop)[0] == 0
+    if (resolve_local(STR(reply.nexthop))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
@@ -1024,7 +1064,7 @@ static int permit_rcpt_map(char *table, char *reply_name)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
     if (domain[0] == '#' || domain[0] == '[')
-	if (STR(reply.nexthop)[0] != 0)
+	if (!resolve_local(STR(reply.nexthop)))
 	    return (SMTPD_CHECK_DUNNO);
 
     /*
@@ -1338,6 +1378,9 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     char   *saved_domains = mystrdup(var_maps_rbl_domains);
     char   *bp = saved_domains;
     char   *rbl_domain;
+    char   *rbl_reason;
+    char   *rbl_fodder;
+    DNS_RR *txt_list;
     int     reverse_len;
     int     dns_status = DNS_FAIL;
     int     i;
@@ -1371,11 +1414,22 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     /*
      * Report the result.
      */
-    if (dns_status == DNS_OK)
+    if (dns_status == DNS_OK) {
+	if (dns_lookup(STR(query), T_TXT, 0, &txt_list,
+		       (VSTRING *) 0, (VSTRING *) 0) == DNS_OK) {
+	    rbl_fodder = ", reason: ";
+	    rbl_reason = (char *) txt_list->data;
+	} else {
+	    txt_list = 0;
+	    rbl_fodder = rbl_reason = "";
+	}
 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-			    "%d Service unavailable; [%s] blocked using %s",
-				var_maps_rbl_code, state->addr, rbl_domain);
-    else
+			"%d Service unavailable; [%s] blocked using %s%s%s",
+				 var_maps_rbl_code, state->addr, rbl_domain,
+				    rbl_fodder, rbl_reason);
+	if (txt_list)
+	    dns_rr_free(txt_list);
+    } else
 	result = SMTPD_CHECK_DUNNO;
 
     /*
@@ -1549,6 +1603,9 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, PERMIT_MX_BACKUP) == 0) {
 	    if (state->recipient)
 		status = permit_mx_backup(state, state->recipient);
+	} else if (strcasecmp(name, PERMIT_AUTH_DEST) == 0) {
+	    if (state->recipient)
+		status = permit_auth_destination(state, state->recipient);
 	} else if (strcasecmp(name, REJECT_UNAUTH_DEST) == 0) {
 	    if (state->recipient)
 		status = reject_unauth_destination(state, state->recipient);

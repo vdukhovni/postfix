@@ -222,6 +222,13 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     state.msg_attr.unmatched = state.msg_attr.extension;
 
     /*
+     * Do not allow null usernames.
+     */
+    if (state.msg_attr.user[0] == 0)
+	return (bounce_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+			  "null username in %s", state.msg_attr.recipient));
+
+    /*
      * Run the recipient through the delivery switch.
      */
     if (msg_verbose)

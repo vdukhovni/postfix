@@ -110,6 +110,7 @@
 #include <deliver_completed.h>
 #include <mail_addr_find.h>
 #include <opened.h>
+#include <resolve_local.h>
 
 /* Client stubs. */
 
@@ -476,7 +477,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	/*
 	 * Bounce mail to non-existent users in virtual domains.
 	 */
-	if (VSTRING_LEN(reply.nexthop) > 0
+	if (!resolve_local(STR(reply.nexthop))
 	    && qmgr_virtual != 0
 	    && (at = strrchr(recipient->address, '@')) != 0) {
 	    domain = lowercase(mystrdup(at + 1));
@@ -515,7 +516,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
 	 */
-	if (VSTRING_LEN(reply.nexthop) == 0) {
+	if (resolve_local(STR(reply.nexthop))) {
 	    vstring_strcpy(reply.nexthop, STR(reply.recipient));
 	    (void) split_at_right(STR(reply.nexthop), '@');
 #if 0

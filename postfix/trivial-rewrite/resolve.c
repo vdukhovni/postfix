@@ -151,39 +151,43 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     }
 
     /*
-     * Non-local delivery: if no transport is specified, assume the transport
-     * specified in var_def_transport. If no mail relay is specified in
-     * var_relayhost, forward to the domain's mail exchanger.
+     * The transport map, if specified, overrides default routing.
      */
-    if (domain != 0) {
-	if (*var_transport_maps == 0
-	    || (tok822_internalize(addr_buf, domain->next, TOK822_STR_DEFL),
-		transport_lookup(STR(addr_buf), channel, nexthop) == 0)) {
+    if (*var_transport_maps == 0
+	|| (tok822_internalize(addr_buf, domain->next, TOK822_STR_DEFL),
+	    transport_lookup(STR(addr_buf), channel, nexthop)) == 0) {
+
+	/*
+	 * Non-local delivery. Use the default transport specified in
+	 * var_def_transport. If no default mail relay is specified in
+	 * var_relayhost, forward to the domain's mail exchanger.
+	 */
+	if (domain != 0) {
 	    vstring_strcpy(channel, var_def_transport);
 	    if (*var_relayhost)
 		vstring_strcpy(nexthop, var_relayhost);
 	    else
 		tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
 	}
-	tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
-    }
 
-    /*
-     * Local delivery: if no domain was specified, assume the local machine.
-     * See above for what happens with an empty localpart.
-     */
-    else {
-	vstring_strcpy(channel, MAIL_SERVICE_LOCAL);
-	vstring_strcpy(nexthop, "");
-	if (saved_domain) {
-	    tok822_sub_append(tree, saved_domain);
-	    saved_domain = 0;
-	} else {
-	    tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
-	    tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
+	/*
+	 * Local delivery. Use the default transport and next-hop hostname.
+	 * If no domain was specified, assume the local machine. See above
+	 * for what happens with an empty localpart.
+	 */
+	else {
+	    vstring_strcpy(channel, MAIL_SERVICE_LOCAL);
+	    vstring_strcpy(nexthop, var_myhostname);
+	    if (saved_domain) {
+		tok822_sub_append(tree, saved_domain);
+		saved_domain = 0;
+	    } else {
+		tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
+		tok822_sub_append(tree, tok822_scan(var_myhostname, (TOK822 **) 0));
+	    }
 	}
-	tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
     }
+    tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
 
     /*
      * Clean up.

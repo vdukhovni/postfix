@@ -172,8 +172,8 @@ OK
 >>> client spike.porcupine.org 168.100.189.2
 OK
 >>> client foo 127.0.0.2
-./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com; from=<foo@friend.bad.domain>
-554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com
+./smtpd_check: reject: CONNECT from foo[127.0.0.2]: 554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com, reason: EBlackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>; from=<foo@friend.bad.domain>
+554 Service unavailable; [127.0.0.2] blocked using rbl.maps.vix.com, reason: EBlackholed - see <URL:http://mail-abuse.org/cgi-bin/lookup?127.0.0.2>
 >>> #
 >>> # unknown sender/recipient domain
 >>> #
@@ -193,3 +193,24 @@ OK
 >>> rcpt wietse@porcupine.org
 ./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 <wietse@no.sender.domain>: Sender address rejected: Domain not found; from=<wietse@no.sender.domain> to=<wietse@porcupine.org>
 554 <wietse@no.sender.domain>: Sender address rejected: Domain not found
+>>> #
+>>> # {permit_auth,reject_unauth}_destination
+>>> #
+>>> relay_domains foo.com,bar.com
+OK
+>>> mail user@some.where
+OK
+>>> recipient_restrictions permit_auth_destination,reject
+OK
+>>> rcpt user@foo.org
+./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 <user@foo.org>: Recipient address rejected: Access denied; from=<user@some.where> to=<user@foo.org>
+554 <user@foo.org>: Recipient address rejected: Access denied
+>>> rcpt user@foo.com
+OK
+>>> recipient_restrictions reject_unauth_destination,permit
+OK
+>>> rcpt user@foo.org
+./smtpd_check: reject: RCPT from foo[127.0.0.2]: 554 <user@foo.org>: Relay access denied; from=<user@some.where> to=<user@foo.org>
+554 <user@foo.org>: Relay access denied
+>>> rcpt user@foo.com
+OK

@@ -100,6 +100,7 @@
 #include <stdlib.h>			/* BSDI stdarg.h uses abort() */
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 
 /* Utility library. */
 
@@ -107,6 +108,7 @@
 #include <vstring.h>
 #include <msg.h>
 #include <valid_hostname.h>
+#include <stringops.h>
 
 /* DNS library. */
 
@@ -246,8 +248,13 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 			          char *rr_name, DNS_FIXED *fixed)
 {
     char    temp[DNS_NAME_LEN];
-    int     data_len = fixed->length;
+    int     data_len;
     unsigned pref = 0;
+    unsigned char *src;
+    unsigned char *dst;
+    int     ch;
+
+#define MIN2(a, b)	((unsigned)(a) < (unsigned)(b) ? (a) : (b))
 
     if (pos + fixed->length > reply->end)
 	return (0);
@@ -286,6 +293,14 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 		      fixed->length);
 	memcpy(temp, pos, fixed->length);
 	data_len = fixed->length;
+	break;
+    case T_TXT:
+	data_len = MIN2(fixed->length + 1, sizeof(temp));
+	for (src = pos, dst = temp; dst < temp + data_len - 1; /* void */ ) {
+	    ch = *src++;
+	    *dst++ = (ISPRINT(ch) ? ch : ' ');
+	}
+	*dst = 0;
 	break;
     }
     return (dns_rr_create(rr_name, fixed, pref, temp, data_len));

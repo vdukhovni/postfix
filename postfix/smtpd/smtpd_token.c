@@ -31,7 +31,7 @@
 /*	It understands backslash escapes, white space, quoted strings,
 /*	and addresses (including quoted text) enclosed by < and >.
 /*	The input is broken up into tokens by whitespace, except for
-/*	whitespace that is protected by quites etc.
+/*	whitespace that is protected by quotes etc.
 /* LICENSE
 /* .ad
 /* .fi
@@ -64,12 +64,22 @@
 static char *smtp_quoted(char *cp, SMTPD_TOKEN *arg, int start, int last)
 {
     static VSTRING *stack;
+    int     wanted;
     int     c;
+
+    /*
+     * Parser stack. `ch' is always the most-recently entered character.
+     */
+#define ENTER_CHAR(buf, ch) VSTRING_ADDCH(buf, ch);
+#define LEAVE_CHAR(buf, ch) { \
+	vstring_truncate(buf, VSTRING_LEN(buf) - 1); \
+	ch = vstring_end(buf)[-1]; \
+    }
 
     if (stack == 0)
 	stack = vstring_alloc(1);
     VSTRING_RESET(stack);
-    VSTRING_ADDCH(stack, last);
+    ENTER_CHAR(stack, wanted = last);
 
     VSTRING_ADDCH(arg->vstrval, start);
     for (;;) {
@@ -77,25 +87,22 @@ static char *smtp_quoted(char *cp, SMTPD_TOKEN *arg, int start, int last)
 	    break;
 	cp++;
 	VSTRING_ADDCH(arg->vstrval, c);
-	if (c == vstring_end(stack)[-1]) {	/* closing quote etc. */
-	    vstring_truncate(stack, VSTRING_LEN(stack) - 1);
-	    if (VSTRING_LEN(stack) == 0)
+	if (c == '\\') {			/* parse escape sequence */
+	    if ((c = *cp) == 0)
 		break;
-	} else {
-	    if (c == '\\') {			/* parse escape sequence */
-		if ((c = *cp) == 0)
-		    break;
-		cp++;
-		VSTRING_ADDCH(arg->vstrval, c);
-	    } else if (c == '"') {
-		VSTRING_ADDCH(stack, '"');	/* highest precedence */
-	    } else if (c == '(' && vstring_end(stack)[-1] != '"') {
-		VSTRING_ADDCH(stack, ')');	/* medium precedence */
-	    } else if (c == '<' && vstring_end(stack)[-1] == '>') {
-		VSTRING_ADDCH(stack, '>');	/* lowest precedence */
-	    }
+	    cp++;
+	    VSTRING_ADDCH(arg->vstrval, c);
+	} else if (c == wanted) {		/* closing quote etc. */
+	    if (VSTRING_LEN(stack) == 1)
+		return (cp);
+	    LEAVE_CHAR(stack, wanted);
+	} else if (c == '"') {
+	    ENTER_CHAR(stack, wanted = '"');	/* highest precedence */
+	} else if (c == '<' && wanted == '>') {
+	    ENTER_CHAR(stack, wanted = '>');	/* lowest precedence */
 	}
     }
+    arg->tokval = SMTPD_TOK_ERROR;		/* missing end */
     return (cp);
 }
 
@@ -106,12 +113,15 @@ static char *smtp_next_token(char *cp, SMTPD_TOKEN *arg)
     int     c;
 
     VSTRING_RESET(arg->vstrval);
+    arg->tokval = SMTPD_TOK_OTHER;
 
 #define STR(x) vstring_str(x)
 #define LEN(x) VSTRING_LEN(x)
-#define STREQ(x,y,l) ((x)[0] == (x)[0] && strncasecmp((x), (y), (l)) == 0)
+#define STREQ(x,y,l) (strncasecmp((x), (y), (l)) == 0)
 
-    while ((c = *cp) != 0) {
+    for (;;) {
+	if ((c = *cp) == 0)			/* end of input */
+	    break;
 	cp++;
 	if (ISSPACE(c)) {			/* whitespace, skip */
 	    while (*cp && ISSPACE(*cp))
@@ -120,8 +130,6 @@ static char *smtp_next_token(char *cp, SMTPD_TOKEN *arg)
 		break;
 	} else if (c == '<') {			/* <stuff> */
 	    cp = smtp_quoted(cp, arg, c, '>');
-	} else if (c == '[') {			/* [stuff] */
-	    cp = smtp_quoted(cp, arg, c, ']');
 	} else if (c == '"') {			/* "stuff" */
 	    cp = smtp_quoted(cp, arg, c, c);
 	} else if (c == ':') {			/* this is gross, but... */
@@ -138,7 +146,7 @@ static char *smtp_next_token(char *cp, SMTPD_TOKEN *arg)
 	    VSTRING_ADDCH(arg->vstrval, c);
 	}
     }
-    if (LEN(arg->vstrval) == 0)			/* no token found */
+    if (LEN(arg->vstrval) <= 0)			/* no token found */
 	return (0);
     VSTRING_TERMINATE(arg->vstrval);
     arg->strval = vstring_str(arg->vstrval);
@@ -197,15 +205,20 @@ main(int unused_argc, char **unused_argv)
 	if (isatty(STDIN_FILENO))
 	    vstream_printf("enter SMTPD command: ");
 	vstream_fflush(VSTREAM_OUT);
-	if (vstring_fgets(vp, VSTREAM_IN) == 0)
+	if (vstring_get_nonl(vp, VSTREAM_IN) == VSTREAM_EOF)
 	    break;
 	if (*vstring_str(vp) == '#')
 	    continue;
 	if (!isatty(STDIN_FILENO))
-	    vstream_fputs(vstring_str(vp), VSTREAM_OUT);
+	    vstream_printf("%s\n", vstring_str(vp));
 	tok_argc = smtpd_token(vstring_str(vp), &tok_argv);
-	for (i = 0; i < tok_argc; i++)
+	for (i = 0; i < tok_argc; i++) {
+	    vstream_printf("Token type:  %s\n",
+			   tok_argv[i].tokval == SMTPD_TOK_OTHER ? "other" :
+			   tok_argv[i].tokval == SMTPD_TOK_ERROR ? "error" :
+			   "unknown");
 	    vstream_printf("Token value: %s\n", tok_argv[i].strval);
+	}
     }
     exit(0);
 }

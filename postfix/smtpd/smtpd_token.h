@@ -17,6 +17,7 @@
   * External interface.
   */
 typedef struct SMTPD_TOKEN {
+    int     tokval;
     char   *strval;
     VSTRING *vstrval;
 } SMTPD_TOKEN;

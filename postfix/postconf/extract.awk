@@ -18,3 +18,7 @@
 	print | "sort -u >bool_table.h" 
     }
 }
+
+# Workaround for broken gawk versions.
+
+END { exit(0); }

@@ -22,6 +22,9 @@ update printfck:
 
 printfck: update
 
+install: update
+	sh INSTALL.sh
+
 depend clean:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $@) || exit 1; \

@@ -55,6 +55,7 @@ static void print_rr(DNS_RR *rr)
 	case T_MR:
 	case T_NS:
 	case T_PTR:
+	case T_TXT:
 	    printf("%s: %s\n", dns_strtype(rr->type), rr->data);
 	    break;
 	case T_MX:

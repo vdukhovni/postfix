@@ -208,11 +208,11 @@ extern char *var_db_type;
 extern char *var_always_bcc;
 
  /*
-  * Standards violation: permit RFC 822-style addresses in SMTP commands.
+  * Standards violation: allow/permit RFC 822-style addresses in SMTP commands.
   */
-#define VAR_ALLOW_RFC822_ENV	"allow_rfc822_envelopes"
-#define DEF_ALLOW_RFC822_ENV	1
-extern bool var_allow_rfc822_envelopes;
+#define VAR_STRICT_RFC821_ENV	"strict_rfc821_envelopes"
+#define DEF_STRICT_RFC821_ENV	0
+extern bool var_strict_rfc821_env;
 
  /*
   * trivial rewrite/resolve service: mapping tables.
@@ -773,6 +773,7 @@ extern int var_non_fqdn_code;
 #define DEF_UNK_ADDR_CODE	450
 extern int var_unk_addr_code;
 
+#define PERMIT_AUTH_DEST	"permit_auth_destination"
 #define REJECT_UNAUTH_DEST	"reject_unauth_destination"
 #define CHECK_RELAY_DOMAINS	"check_relay_domains"
 #define VAR_RELAY_CODE		"relay_domains_reject_code"

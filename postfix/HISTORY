@@ -3170,8 +3170,56 @@ Apologies for any names omitted.
 	Bugfix: LDAP lookup timeout settings were ignored. Patch
 	by John Hensley. File: util/dict_ldap.c.
 
-19991110
+19991108
+
+	Bugfix: when doing a fresh install, INSTALL.sh didn't set
+	main.cf:mail_owner properly (Simon J. Mudd).
+
+19991109
+
+	Bugfix: when doing a fresh install, INSTALL.sh no longer
+	worked (missing main.cf file).  Fix: add "-c" argument to
+	the postmap commands (Lars Hecking @ nmrc.ucc.ie).
+
+	Documentation: removed spurious "do not edit" comments from
+	the sample pcre and regexp configuration files.
+
+19991110-13
 
 	Code cleanup: greatly simplified the SMTPD command parser
 	and somewhat simplified the code that groks RFC 822-style
 	address syntax in MAIL FROM and RCPT TO commands.
+
+	New parameter: strict_rfc821_envelopes (default: no) to
+	reject RFC 822 address forms (with comments etc.) in SMTP
+	envelopes. By default, the Postfix SMTP server only logs
+	a warning.
+
+19991113
+
+	Oops, also updated the SMTP VRFY code in the light of
+	changes to the SMTPD command parser.
+
+	Cleanup: the local delivery agent now explicitly rejects
+	recipients with an empty username.
+
+19991114
+
+	Workaround: with some gawk versions, postconf/extract.awk
+	reportedly returns a non-zero exit status upon success.
+	Added an explicit exit(0) statement.
+
+19991115
+
+	Feature: DNS TXT record lookup support, based on initial
+	code by Simon J Mudd.  File: dns/dns_lookup.c.
+
+	Feature: RBL TXT record lookups, based on initial code by
+	Simon J Mudd.  File: smtpd/smtpd_check.c.
+
+	Feature: permit_auth_destination restriction based on code
+	by Jesper Skriver @ skriver.dk.
+
+	Code cleanup: the transport table now can override local
+	deliveries. Postfix no longer uses the "empty next-hop
+	hostname hack" to remember that a destination is local.

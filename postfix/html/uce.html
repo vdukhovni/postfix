@@ -537,10 +537,19 @@ reject_unauth_destination</b>
 
 <dt> <b>check_relay_domains</b> <dd> Permit the request when the
 client hostname matches <a href="#relay_domains">$relay_domains</a>,
-or when the resolved destination address matches <a href="#relay_domains">
-$relay_domains</a>, otherwise reject.  The <b>relay_domains_reject_code</b>
-parameter specifies the response code for rejected requests (default:
+or when the resolved destination address matches the the local
+machine or <a href="#relay_domains"> $relay_domains</a>, otherwise
+reject the request.  The <b>relay_domains_reject_code</b> parameter
+specifies the response code for rejected requests (default:
 <b>554</b>).
+
+<p>
+
+<a name="permit_auth_destination">
+
+<dt> <b>permit_auth_destination</b> <dd> Ignore the client hostname.
+Permit the request when the resolved destination address matches
+the local machine or <a href="#relay_domains"> $relay_domains</a>.
 
 <p>
 
@@ -548,9 +557,10 @@ parameter specifies the response code for rejected requests (default:
 
 <dt> <b>reject_unauth_destination</b> <dd> Ignore the client
 hostname.  Reject the request when the resolved destination address
-does not match <a href="#relay_domains"> $relay_domains</a>.  The
-<b>relay_domains_reject_code</b> parameter specifies the response
-code for rejected requests (default:  <b>554</b>).
+does not match the local machine or <a href="#relay_domains">
+$relay_domains</a>.  The <b>relay_domains_reject_code</b> parameter
+specifies the response code for rejected requests (default:
+<b>554</b>).
 
 <p>
 
