@@ -1380,6 +1380,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     char   *myname = "check_table_result";
     int     code;
     ARGV   *restrictions;
+    jmp_buf savebuf;
     int     status;
 
     if (msg_verbose)
@@ -1456,8 +1457,21 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * Recursively evaluate the restrictions given in the right-hand side. In
      * the dark ages, an empty right-hand side meant OK. Make some
      * discouraging comments.
+     * 
+     * XXX Jump some hoops to avoid a minute memory leak in case of a file
+     * configuration error.
      */
+#define ADDROF(x) ((char *) &(x))
+
     restrictions = argv_split(value, " \t\r\n,");
+    memcpy(ADDROF(savebuf), ADDROF(smtpd_check_buf), sizeof(savebuf));
+    status = setjmp(smtpd_check_buf);
+    if (status != 0) {
+	argv_free(restrictions);
+	memcpy(ADDROF(smtpd_check_buf), ADDROF(savebuf),
+	       sizeof(smtpd_check_buf));
+	longjmp(smtpd_check_buf, status);
+    }
     if (restrictions->argc == 0) {
 	msg_warn("SMTPD access map %s entry %s has empty value",
 		 table, value);
@@ -1776,7 +1790,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 /* is_map_command - restriction has form: check_xxx_access type:name */
 
 static int is_map_command(SMTPD_STATE *state, const char *name,
-			  const char *command, char ***argp)
+			          const char *command, char ***argp)
 {
 
     /*
@@ -2324,6 +2338,13 @@ char   *smtpd_check_size(SMTPD_STATE *state, off_t size)
 {
     char   *myname = "smtpd_check_size";
     struct fsspace fsbuf;
+    int     status;
+
+    /*
+     * Return here in case of serious trouble.
+     */
+    if ((status = setjmp(smtpd_check_buf)) != 0)
+	return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 
     /*
      * Avoid overflow/underflow when comparing message size against available
@@ -2399,6 +2420,7 @@ char   *var_virtual_maps;
 char   *var_virt_mailbox_maps;
 char   *var_relocated_maps;
 char   *var_local_rcpt_maps;
+char   *var_perm_mx_networks;
 
 typedef struct {
     char   *name;
@@ -2420,6 +2442,7 @@ static STRING_TABLE string_table[] = {
     VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps,
     VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps,
     VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps,
+    VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
     0,
 };
 

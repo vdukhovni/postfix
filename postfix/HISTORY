@@ -5436,15 +5436,16 @@ Apologies for any names omitted.
 20010907
 
 	Workaround: the Postfix qmqp-source program produced mail
-	not ending in newline that qmail-qmqpd accepts but that
-	qmail-remote was unable to deliver.  Matthias Andree,
+	not ending in newline. qmail-qmqpd accepts such mail, but
+	qmail-remote is unable to deliver it.  Matthias Andree,
 	uni-dortmund.de. File: smtpstone/qmqp-source.c.
 
 20010910
 
-	Bugfix: smtp-sink broke when RCPT TO commands crossed a
-	network packet boundary. Problem reported by Matthias
-	Andree, uni-dortmund.de.  File: smtpstone/smtp-sink.c.
+	Bugfix: the smtp-sink stress test program broke when RCPT
+	TO commands crossed network packet boundaries. Problem
+	reported by Matthias Andree, uni-dortmund.de.  File:
+	smtpstone/smtp-sink.c.
 
 20010917
 
@@ -5453,7 +5454,7 @@ Apologies for any names omitted.
 	additional restriction via the permit_mx_backup_networks
 	parameter (accept mail only if the primary MX hosts match
 	the specified list of network blocks). This second restriction
-	is now entirely optional, for backwards compatiblity.
+	is now entirely optional, for backwards compatibility.
 
 	Bugfix: an address extension could be appended multiple
 	times to the result of a canonical or virtual map lookup.
@@ -5469,21 +5470,27 @@ Apologies for any names omitted.
 20010918
 
 	Bugfix: the mail_addr_map() fix was almost but not quite
-	right. It took two really clever people and several iterations
-	of email to really fix the mail_addr_map() problem.  Thanks
+	right. It took two clever people and several iterations of
+	email to really fix the mail_addr_map() problem.  Thanks
 	to Victor Duchovni and Liviu Daia.
 
 20011006
 
 	Cleanup: Postfix no longer flushes the whole deferred queue
-	after an ETRN request for a random domain name; the SMTP
+	after an ETRN request for a random domain name (i.e. a
+	domain name not matched by $fast_flush_domains); the SMTP
 	server instead replies with "459 service unavailable".
 	Files:  smtpd/smtpd.c, global/flush_clnt.c, flush/flush.c.
+
+20011008
+
+	Bugfix: there was a minute memory leak when an smtpd access
+	restriction is misconfigured. File: smtpd/smtpd_check.c.
 
 Open problems:
 
 	Minor: The $process_id_directory setting is not used anywhere
 	in Postfix. Problem reported by Michael Smith, texas.net.
 
-	Medium: address rewriting should be configurable for envelopes
-	and headers.
+	Medium: address rewriting should be on/off configurable
+	for envelopes and/or headers.

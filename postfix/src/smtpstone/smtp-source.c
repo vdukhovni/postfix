@@ -9,7 +9,8 @@
 /*
 /*	\fBsmtp-source\fR [\fIoptions\fR] \fBunix:\fIpathname\fR
 /* DESCRIPTION
-/*	smtp-source connects to the named host and TCP port (default port 25)
+/*	smtp-source connects to the named \fIhost\fR and TCP \fIport\fR
+/*	(default: port 25)
 /*	and sends one or more messages to it, either sequentially
 /*	or in parallel. The program speaks either SMTP (default) or
 /*	LMTP. Connections can be made to UNIX-domain and IPV4 servers.

@@ -1,16 +1,24 @@
-Incompatible changes with snapshot-20011007
+Incompatible changes with snapshot-20011008
 ===========================================
 
-Postfix no longer flushes the whole queue after an ETRN request
-for a random domain name. Requests for random domain names are now
+The Postfix SMTP server now rejects requests with a generic "try
+again later" status (451 Server configuration error) when it detects
+an error in smtp_{client,helo,sender,recipient,etrn}_restrictions
+settings. More details about the problem are logged to the syslogd;
+sending such information to random clients would be inappropriate.
+
+Postfix no longer flushes the entire mail queue after receiving an
+ETRN request for a random domain name. Requests for random domain
+names (i.e. names that do not match $fast_flush_domains) are now
 rejected instead.
 
-The permit_mx_backup feature has changed. It accepts mail when the
-local machine is listed in the DNS as MX relay host for the given
-destination. The optional permit_mx_backup_networks parameter can
-further require that the primary MX hosts for the given destinations
-match specific network blocks. This optional restriction is off by
-default.
+The permit_mx_backup behavior is back to the behavior before snapshot
+20010808. It accepts mail whenever the local MTA is listed in the
+DNS as an MX relay host for a destination, even when you never gave
+permission to do so.  To restrict use of this feature, specify
+network address blocks via the permit_mx_backup_networks parameter.
+This requires that the primary MX hosts for the given destination
+match the specified network blocks.
 
 Incompatible changes with snapshot-20010808
 ===========================================

@@ -5,11 +5,10 @@
 /*	multi-threaded SMTP/LMTP test server
 /* SYNOPSIS
 /* .fi
-/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-n \fIcount\fR] [\fB-w \fIdelay\fR]
-/*	[\fBinet:\fR][\fIhost\fR]:\fIport\fR \fIbacklog\fR
+/*	\fBsmtp-sink\fR [\fIoptions\fR] [\fBinet:\fR][\fIhost\fR]:\fIport\fR
+/*	\fIbacklog\fR
 /*
-/*	\fBsmtp-sink\fR [\fB-cLpv\fR] [\fB-n \fIcount\fR] [\fB-w \fIdelay\fR]
-/*	\fBunix:\fR\fIpathname\fR \fIbacklog\fR
+/*	\fBsmtp-sink\fR [\fIoptions\fR] \fBunix:\fR\fIpathname\fR \fIbacklog\fR
 /* DESCRIPTION
 /*	\fIsmtp-sink\fR listens on the named host (or address) and port.
 /*	It takes SMTP messages from the network and throws them away.
@@ -26,8 +25,7 @@
 /* .IP \fB-L\fR
 /*	Speak LMTP rather than SMTP.
 /* .IP "\fB-n \fIcount\fR"
-/*	Terminate after \fIcount\fR sessions. This is for memory leak
-/*	testing purposes.
+/*	Terminate after \fIcount\fR sessions. This is for testing purposes.
 /* .IP \fB-p\fR
 /*	Disable ESMTP command pipelining.
 /* .IP \fB-v\fR
@@ -36,11 +34,13 @@
 /*	Wait \fIdelay\fR seconds before responding to a DATA command.
 /* .IP [\fBinet:\fR][\fIhost\fR]:\fIport\fR
 /*	Listen on network interface \fIhost\fR (default: any interface)
-/*	TCP port \fIport\fR.
+/*	TCP port \fIport\fR. Both \fIhost\fR and \fIport\fR may be
+/*	specified in numeric or symbolic form.
 /* .IP \fBunix:\fR\fIpathname\fR
 /*	Listen on the UNIX-domain socket at \fIpathname\fR.
 /* .IP \fIbacklog\fR
-/*	The maximum length the queue of pending connections.
+/*	The maximum length the queue of pending connections,
+/*	as defined by the listen(2) call.
 /* SEE ALSO
 /*	smtp-source, SMTP/LMTP test message generator
 /* LICENSE

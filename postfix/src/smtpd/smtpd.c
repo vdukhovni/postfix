@@ -56,8 +56,8 @@
 /* .ad
 /* .fi
 /* .IP \fBstrict_rfc821_envelopes\fR
-/*	Disallow non-RFC 821 style addresses in envelopes. For example,
-/*	allow RFC822-style address forms with comments, like Sendmail does.
+/*	Disallow non-RFC 821 style addresses in SMTP commands. For example,
+/*	the RFC822-style address forms with comments that Sendmail allows.
 /* .IP \fBbroken_sasl_auth_clients\fR
 /*	Support older Microsoft clients that mis-implement the AUTH
 /*	protocol, and that expect an EHLO response of "250 AUTH=list"
