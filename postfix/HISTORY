@@ -7812,6 +7812,11 @@ Apologies for any names omitted.
 	smtpd/smtpd_check.c, cleanup/cleanup_message.c,
 	*qmgr/qmgr_message.c.
 
+20030126
+
+	Update: maildir filename algorithm updated according to 
+	today's version of http://cr.yp.to/proto/maildir.html.
+
 Open problems:
 
 	Med: make qmgr recipient bounce/defer activity asynchronous

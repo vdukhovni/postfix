@@ -43,6 +43,20 @@ SPAM to the beneficiaries of an advertisement campaign. It would
 have helped when someone began spamming the network with sender
 addresses in one of my domains, and I got all the bounces.
 
+Incompatible changes with Postfix snapshot 2.0.3-20030126
+=========================================================
+
+The maildir file naming algorithm has changed in accordance with
+an updated version of http://cr.yp.to/proto/maildir.html. The name
+is now TIME.VdevIinum.HOST
+
+Incompatible changes with Postfix snapshot 2.0.3-20030124
+=========================================================
+
+The maildir file naming algorithm has changed. Pending a usable
+version of http://cr.yp.to/proto/maildir.html, the name is now
+TIME.DEV_INUM.HOST.
+
 Incompatible changes with Postfix snapshot 2.0.1-20030112
 =========================================================
 
