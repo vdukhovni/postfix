@@ -279,6 +279,7 @@
 #include <split_addr.h>
 #include <off_cvt.h>
 #include <quote_822_local.h>
+#include <flush_clnt.h>
 
 /* Single server skeleton. */
 
@@ -998,6 +999,13 @@ static void drop_privileges(char *unused_name, char **unused_argv)
     set_eugid(var_owner_uid, var_owner_gid);
 }
 
+/* pre_init - initialize */
+
+static void pre_init(char *unused_name, char **unused_argv)
+{
+    flush_init();
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -1009,6 +1017,7 @@ int     main(int argc, char **argv)
 
     single_server_main(argc, argv, pipe_service,
 		       MAIL_SERVER_TIME_TABLE, time_table,
+		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, drop_privileges,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       0);

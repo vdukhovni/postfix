@@ -75,6 +75,7 @@ smtp.o: ../../include/recipient_list.h
 smtp.o: ../../include/mail_params.h
 smtp.o: ../../include/mail_conf.h
 smtp.o: ../../include/debug_peer.h
+smtp.o: ../../include/flush_clnt.h
 smtp.o: ../../include/mail_server.h
 smtp.o: smtp.h
 smtp.o: smtp_sasl.h

@@ -345,6 +345,12 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 		   dict_open3(maps[n], map_name, O_RDONLY, DICT_FLAG_LOCK) :
 		dict_open3(var_db_type, maps[n], O_RDONLY, DICT_FLAG_LOCK));
 	    if ((value = dict_get(dicts[n], STR(keybuf))) != 0) {
+		if (*value == 0) {
+		    msg_warn("table %s:%s: key %s: empty string result is not allowed",
+			     dicts[n]->type, dicts[n]->name, STR(keybuf));
+		    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
+			     dicts[n]->type, dicts[n]->name);
+		}
 		vstream_printf("%s	%s\n", STR(keybuf), value);
 		found = 1;
 		break;
@@ -376,6 +382,12 @@ static int postmap_query(const char *map_type, const char *map_name,
 
     dict = dict_open3(map_type, map_name, O_RDONLY, DICT_FLAG_LOCK);
     if ((value = dict_get(dict, key)) != 0) {
+	if (*value == 0) {
+	    msg_warn("table %s:%s: key %s: empty string result is not allowed",
+		     map_type, map_name, key);
+	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
+		     map_type, map_name);
+	}
 	vstream_printf("%s\n", value);
 	vstream_fflush(VSTREAM_OUT);
     }

@@ -473,6 +473,7 @@
 #include <mail_params.h>
 #include <ext_prop.h>
 #include <maps.h>
+#include <flush_clnt.h>
 
 /* Single server skeleton. */
 
@@ -708,6 +709,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     }
     alias_maps = maps_create("aliases", var_alias_maps,
 			     DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
+
+    flush_init();
 }
 
 /* main - pass control to the single-threaded skeleton */

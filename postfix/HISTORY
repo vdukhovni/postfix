@@ -8978,13 +8978,13 @@ Apologies for any names omitted.
 	used by the Postfix SMTP server. Liviu Daia. Files:
 	mail_params.h, smtpd.c, smtpd_sasl_glue.c.
 
-	Cleanup: shared config file parser for ldap, mysql, pgsql
-	lookup tables. Liviu Daia. Files: global/cfgparser.[hc],
-	global/dict_ldap.c, global/dict_mtsql.c, global/dict_pgsql.c
-	and documentation.
+	Cleanup: the LDAP client configuration parser is now shared
+	between the LDAP, MySQL, and PGSQL clients.  Liviu Daia.
+	Files: global/cfgparser.[hc], global/dict_ldap.c,
+	global/dict_mtsql.c, global/dict_pgsql.c and documentation.
 
-	Cleanup: moved modules with dependencies on higher-level
-	code from the util directory to the global directory:
+	Cleanup: moved "util" modules with dependencies on higher-level
+	"global" code from the util directory to the global directory:
 	util/dict_open.c, global/cfgparser.[hc], global/dict_ldap.c,
 	global/dict_mtsql.c, global/dict_pgsql.c, global/mail_dict.c.
 
@@ -8997,6 +8997,19 @@ Apologies for any names omitted.
 	terminate prematurely, instead of returning the last
 	character stored.  This avoids mis-leading warnings. File:
 	global/vstring_vstream.c.
+
+20040105
+
+	Cleanup: don't bother the flush daemon while deferring mail
+	if the destination is not "fast flush" eligible. File:
+	global/flush_clnt.c.
+
+	Safety: the SMTP server flushes recipients to the cleanup
+	server in order to avoid SMTP timeouts when virtual or
+	canonical expansions take a lot of time. File smtpd/smtpd.c.
+
+	Safety: add warnings to postmap and postalias when table
+	lookup results in an empty string.
 
 Open problems:
 

@@ -81,6 +81,7 @@
 #include <mail_queue.h>
 #include <bounce.h>
 #include <deliver_completed.h>
+#include <flush_clnt.h>
 
 /* Single server skeleton. */
 
@@ -176,9 +177,18 @@ static void error_service(VSTREAM *client_stream, char *unused_service, char **a
     }
 }
 
+/* pre_init - pre-jail initialization */
+
+static void pre_init(char *unused_name, char **unused_argv)
+{
+    flush_init();
+}
+
 /* main - pass control to the single-threaded skeleton */
 
 int     main(int argc, char **argv)
 {
-    single_server_main(argc, argv, error_service, 0);
+    single_server_main(argc, argv, error_service,
+		       MAIL_SERVER_PRE_INIT, pre_init,
+		       0);
 }

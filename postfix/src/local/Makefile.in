@@ -310,6 +310,7 @@ local.o: ../../include/mail_conf.h
 local.o: ../../include/been_here.h
 local.o: ../../include/ext_prop.h
 local.o: ../../include/maps.h
+local.o: ../../include/flush_clnt.h
 local.o: ../../include/mail_server.h
 local.o: local.h
 local.o: ../../include/tok822.h

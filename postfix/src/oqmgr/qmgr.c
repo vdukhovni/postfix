@@ -255,6 +255,7 @@
 #include <mail_params.h>
 #include <mail_proto.h>			/* QMGR_SCAN constants */
 #include <mail_flow.h>
+#include <flush_clnt.h>
 
 /* Master process interface */
 
@@ -437,6 +438,13 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
+/* qmgr_pre_init - pre-jail initialization */
+
+static void qmgr_pre_init(char *unused_name, char **unused_argv)
+{
+    flush_init();
+}
+
 /* qmgr_post_init - post-jail initialization */
 
 static void qmgr_post_init(char *unused_name, char **unused_argv)
@@ -519,6 +527,7 @@ int     main(int argc, char **argv)
 			MAIL_SERVER_STR_TABLE, str_table,
 			MAIL_SERVER_BOOL_TABLE, bool_table,
 			MAIL_SERVER_TIME_TABLE, time_table,
+			MAIL_SERVER_PRE_INIT, qmgr_pre_init,
 			MAIL_SERVER_POST_INIT, qmgr_post_init,
 			MAIL_SERVER_LOOP, qmgr_loop,
 			MAIL_SERVER_PRE_ACCEPT, pre_accept,

@@ -469,6 +469,7 @@
 #include <namadr_list.h>
 #include <input_transp.h>
 #include <anvil_clnt.h>
+#include <flush_clnt.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1266,12 +1267,17 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
     /*
      * Store the recipient. Remember the first one.
+     * 
+     * Flush recipients to maintain a stiffer coupling with the next stage and
+     * to better utilize parallelism.
      */
     state->rcpt_count++;
     if (state->recipient == 0)
 	state->recipient = mystrdup(argv[2].strval);
-    if (state->cleanup)
+    if (state->cleanup) {
 	rec_fputs(state->cleanup, REC_TYPE_RCPT, argv[2].strval);
+	vstream_fflush(state->cleanup);
+    }
     smtpd_chat_reply(state, "250 Ok");
     return (0);
 }
@@ -2396,6 +2402,11 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	msg_warn("%s is true, but SASL support is not compiled in",
 		 VAR_SMTPD_SASL_ENABLE);
 #endif
+
+    /*
+     * flush client.
+     */
+    flush_init();
 }
 
 /* post_jail_init - post-jail initialization */

@@ -282,6 +282,7 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <debug_peer.h>
+#include <flush_clnt.h>
 
 /* Single server skeleton. */
 
@@ -452,6 +453,11 @@ static void pre_init(char *unused_name, char **unused_argv)
 	msg_warn("%s is true, but SASL support is not compiled in",
 		 VAR_SMTP_SASL_ENABLE);
 #endif
+
+    /*
+     * Flush client.
+     */
+    flush_init();
 }
 
 /* pre_accept - see if tables have changed */

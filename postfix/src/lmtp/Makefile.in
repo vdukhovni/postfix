@@ -75,6 +75,7 @@ lmtp.o: ../../include/mail_params.h
 lmtp.o: ../../include/mail_conf.h
 lmtp.o: ../../include/debug_peer.h
 lmtp.o: ../../include/mail_error.h
+lmtp.o: ../../include/flush_clnt.h
 lmtp.o: ../../include/mail_server.h
 lmtp.o: lmtp.h
 lmtp.o: lmtp_sasl.h

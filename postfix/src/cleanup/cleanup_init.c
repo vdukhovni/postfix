@@ -78,6 +78,7 @@
 #include <mail_addr.h>
 #include <mail_params.h>
 #include <ext_prop.h>
+#include <flush_clnt.h>
 
 /* Application-specific. */
 
@@ -244,6 +245,8 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	cleanup_rcpt_bcc_maps =
 	    maps_create(VAR_RCPT_BCC_MAPS, var_rcpt_bcc_maps,
 			DICT_FLAG_LOCK);
+
+    flush_init();
 }
 
 /* cleanup_post_jail - initialize after entering the chroot jail */

@@ -314,7 +314,7 @@ filtering for incoming mail. This is required or else mail will
 stay in the content filtering loop.
 
 The "-o receive_override_options" overrides main.cf. It is
-complementary to the the options that are specified in main.cf:
+complementary to the options that are specified in main.cf:
 
 - Disable attempts to find out if a recipient is unknown, and
   disable header/body checks. This work was already done before

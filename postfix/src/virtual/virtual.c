@@ -312,6 +312,7 @@
 #include <mail_conf.h>
 #include <mail_params.h>
 #include <mail_addr_find.h>
+#include <flush_clnt.h>
 
 /* Single server skeleton. */
 
@@ -476,6 +477,11 @@ static void pre_init(char *unused_name, char **unused_argv)
 		      VAR_VIRT_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
 	set_file_limit(var_virt_mailbox_limit);
     }
+
+    /*
+     * flush client.
+     */
+    flush_init();
 }
 
 /* main - pass control to the single-threaded skeleton */

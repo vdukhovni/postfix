@@ -191,7 +191,9 @@ typedef struct {
 static DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_ENVIRON, dict_env_open,
     DICT_TYPE_UNIX, dict_unix_open,
+#ifdef SNAPSHOT
     DICT_TYPE_TCP, dict_tcp_open,
+#endif
 #ifdef HAS_DBM
     DICT_TYPE_DBM, dict_dbm_open,
 #endif

@@ -162,6 +162,7 @@ virtual.o: ../../include/mail_params.h
 virtual.o: ../../include/mail_conf.h
 virtual.o: ../../include/mail_addr_find.h
 virtual.o: ../../include/maps.h
+virtual.o: ../../include/flush_clnt.h
 virtual.o: ../../include/mail_server.h
 virtual.o: virtual.h
 virtual.o: ../../include/mbox_conf.h

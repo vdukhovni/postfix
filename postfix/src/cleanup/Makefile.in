@@ -245,6 +245,7 @@ cleanup_init.o: ../../include/name_mask.h
 cleanup_init.o: ../../include/mail_addr.h
 cleanup_init.o: ../../include/mail_params.h
 cleanup_init.o: ../../include/ext_prop.h
+cleanup_init.o: ../../include/flush_clnt.h
 cleanup_init.o: cleanup.h
 cleanup_init.o: ../../include/vstring.h
 cleanup_init.o: ../../include/vbuf.h

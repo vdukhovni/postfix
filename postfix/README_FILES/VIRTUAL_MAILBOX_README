@@ -2,6 +2,9 @@ This code was created by Andrew McNamara <andrew@connect.com.au>
 and adapted to snapshot 20001121 by Xavier Beaudouin. It was merged
 with mainstream Postfix for snapshot 20010128 by Wietse.
 
+See the VIRTUAL_README file for an overview of how you can host
+multiple domains with one Postfix system.
+
 Purpose of this software
 ========================
 

@@ -76,6 +76,7 @@ qmgr.o: ../../include/mail_proto.h
 qmgr.o: ../../include/iostuff.h
 qmgr.o: ../../include/attr.h
 qmgr.o: ../../include/mail_flow.h
+qmgr.o: ../../include/flush_clnt.h
 qmgr.o: ../../include/master_proto.h
 qmgr.o: ../../include/mail_server.h
 qmgr.o: qmgr.h

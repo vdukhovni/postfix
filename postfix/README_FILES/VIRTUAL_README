@@ -1,17 +1,258 @@
-Porpose of this document
+Purpose of this document
 ========================
 
-Hosting multiple domains on one server
+This document describes how to configure one Postfix system for
+final mail delivery of multiple Internet domains, using the mailbox
+and maildir delivery mechanisms that are already built into Postfix.
 
+See the LMTP_README file for an example of final delivery with
+third-party mailstores such as Cyrus.
 
-UNIX system accounts, domain shared with all users
-==================================================
+Preliminaries: local files versus databases
+===========================================
 
-UNIX system accounts, domains not shared
-========================================
+The examples in this text use table lookups from local files.
+These are easy to debug with the postmap "-q" command option.
 
-Non-UNIX accounts, domains not shared
-=====================================
+Example: postmap -q info@example.com hash:/etc/postfix/virtual
+
+See LDAP_README, MYSQL_README and PGSQL_README for how to replace
+local files by databases. The reader is strongly advised to make
+the system work with local files before migrating to database files,
+and to use the postmap "-q" command option to verify that database
+lookups produce the exact same results as local file lookup.
+
+Example: postmap -q info@example.com:ldap:/etc/postfix/virtual.cf
+
+Preliminaries: canonical versus virtual domains
+===============================================
+
+Each Postfix system does final delivery for a small number of
+canonical domains; usually these are the names of the machine that
+Postfix runs on. Sometimes the list of canonical domains also
+includes the parent domain of the machine name.
+
+Postfix can be configured to do final delivery for additional
+domains.  The domains are called virtual, because they are not
+associated with the name of the machine itself.
+
+Postfix understands two types of virtual domain:
+
+- The virtual alias domain, where each virtual address is aliased
+  to a different (remote or local) address.
+
+- The virtual mailbox domain, where each virtual address can have
+  its own mailbox.
+
+A third type, the "sendmail style virtual domain" was described
+with older Postfix versions. It will not be discussed here in order
+to avoid a lot of confusion.
+
+Shared domains, UNIX system accounts
+====================================
+
+The simplest method to host an additional domain is to specify the
+user names in the UNIX password file and to specify the domain name
+in the Postfix mydestination configuration parameter.
+
+In the examples we will use "example.com" as the domain that is
+being hosted on the local Postfix machine.
+
+/etc/postfix/main.cf:
+    mydestination = $myhostname localhost.$mydomain ... example.com
+
+The downside of this approach is a total lack of separation: mail
+for info@my.host.name is delivered to the same UNIX system account
+as mail for info@example.com.  If different domains need to have
+different "info" mailboxes, then you can use one of the methods
+described in the remainder of this document.
+
+Another downside of listing all users in the UNIX password file is
+that administration of large numbers of users becomes inconvenient.
+
+Virtual ALIAS domains: separate domains, UNIX system accounts
+=============================================================
+
+The simplest method to host separate domains is to create so-called
+virtual aliases that redirect mail from each virtual address to
+its own UNIX account.
+
+The example below shows how to set up the example.com domain
+as a so-called virtual alias domain:
+
+/etc/postfix/main.cf:
+    virtual_alias_domains = example.com ...other domains...
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/virtual:
+    postmaster@example.com postmaster
+    info@example.com       joe
+    sales@example.com      jane
+    # Uncomment entry below to implement a catch-all address
+    # @example.com         jim
+    ...virtual aliases for other domains...
+
+The virtual_alias_domains setting tells Postfix that example.com
+is a so-called virtual alias domain. If you omit this step then
+Postfix will either reject mail (relay access denied) or will not
+be able to deliver it (mail for example.com loops back to myself).
+
+The /etc/postfix/virtual file contains the virtual aliases. With
+the example above, mail for postmaster@example.com goes to the
+local postmaster, while mail for info@example.com goes to the UNIX
+account joe, and mail for sales@example.com goes to the UNIX account
+jane.  Mail for all other addresses in example.com is rejected with
+the error message "User unknown".
+
+The commented out entry (text after #) shows how one would implement
+a catch-all virtual alias that receives mail for every example.com
+address not listed in the virtual alias file. This is not without
+risk.  Spammers nowadays try to send mail from (or mail to) every
+possible name that they can think of. A catch-all mailbox is likely
+to receive many spam messages, and many bounces for spam messages
+that were sent in the name of anything@example.com.
+
+Execute the command "postmap /etc/postfix/virtual" after changing
+the virtual file, and execute the command "postfix reload" after
+changing the main.cf file.
+
+Note: virtual aliases can resolve to a local address or to a remote
+address, or both.  They don't have to resolve to UNIX system accounts
+on your machine.
+
+More details about the virtual alias file are given in the virtual(5)
+manual page, including multiple addresses on the right-hand side.
+
+Virtual aliasing solves one problem: it allows each domain to have
+its own info mail address.  Virtual aliasing to UNIX system accounts
+still has the drawback that every user has to be listed in the UNIX
+password file.  The next section eliminates this problem.
+
+Virtual MAILBOX domains: separate domains, non-UNIX accounts
+============================================================
+
+As a system hosts more and more domains and users, it becomes
+unpractical to give everyone their own UNIX system account.
+
+With the Postfix virtual delivery agent, every recipient address
+can have its own virtual mailbox. Unlike virtual alias domains,
+there is no translation from recipient addresses into different
+addresses.
+
+The Postfix virtual delivery agent looks up the user mailbox
+pathname, uid and gid via separate tables that are searched with
+the recipient's mail address. Maildir style delivery is turned on
+by terminating the mailbox pathname with "/".
+
+Here is an example of a virtual mailbox domain example.com:
+
+/etc/postfix/main.cf:
+    virtual_mailbox_base = /var/mail/vhosts
+    virtual_mailbox_maps = hash:/etc/postfix/vmailbox
+    virtual_mailbox_domains = example.com ...other domains...
+    virtual_minimum_uid = 100
+    virtual_uid_maps = static:5000
+    virtual_gid_maps = static:5000
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/vmailbox:
+    info@example.com    example.com/info
+    sales@example.com   example.com/sales/
+    # Comment out the entry below to implement a catch-all.
+    # @example.com      example.com/catchall
+    ...virtual mailboxes for other domains...
+
+/etc/postfix/virtual:
+    postmaster@example.com postmaster
+
+The virtual_mailbox_base parameter specifies a prefix for all
+virtual mailbox pathnames. This is a safety mechanism that prevents
+mail from being delivered all over the file system.
+
+The virtual_mailbox_maps parameter specifies the lookup table with
+mailbox (or maildir) pathnames, indexed by the virtual mail address.
+In this example, mail for info@example.com goes to the mailbox at
+/var/mail/vhosts/example.com/info while mail for sales@example.com
+goes to the maildir located at /var/mail/vhosts/example.com/sales/.
+
+The virtual_minimum_uid prevents specifies a lower bound on the
+mailbox or maildir owner's UID.  This is a safety mechanism that
+prevents mail from being written to sensitive files.
+
+In the above example, the virtual_uid_maps and virtual_gid_maps
+parameters specify that all the virtual mailboxes are owned by a
+fixed uid and gid 5000.  If this is not what you want, specify
+lookup tables that are searched by the recipient's mail address.
+
+The commented out entry (text after #) shows how one would implement
+a catch-all virtual mailbox address. Be prepared to receive a lot
+of spam, as well as bounced spam that was sent in the name of
+anything@example.com.
+
+NEVER put a virtual MAILBOX wild-card in the virtual ALIAS file!!
+
+As you see above, it is possible to mix virtual aliases with virtual
+mailboxes. We use this feature to redirect mail for example.com's
+postmaster address to the local postmaster.
+
+Execute the command "postmap /etc/postfix/virtual" after changing
+the virtual file, execute "postmap /etc/postfix/vmailbox" after
+changing the vmailbox file, and execute the command "postfix reload"
+after changing the main.cf file.
+
+Note: mail delivery happens with the UID/GID privileges of the
+recipient. You must create maildirs in advance before you can use
+them. Depending on directory permissions, Postfix may be able to
+create mailbox files  by itself, but it is safer to create them
+ahead of time.
+
+More details about the virtual mailbox delivery agent are given
+in the file VIRTUAL_MAILBOX_README, and in the virtual(8) manual
+page.
 
 Aliases, mailing lists, etc.
 ============================
+
+The examples above already show how to direct mail for virtual
+postmaster addresses to a local postmaster. The same method can be
+used to direct mail for other virtual addresses to a local or remote
+address.
+
+Virtual aliases can't directly deliver to mailing list managers
+such as majordomo. One solution is to set up a transport mapping
+that directs the mail to the Postfix local delivery agent, and to
+use the local alias file for delivery to the mailing list manager:
+
+/etc/postfix/main.cf:
+    transport_maps = hash:/etc/postfix/transport
+
+/etc/postfix/transport:
+    listname-request@example.com local:
+    listname@example.com         local:
+    owner-listname@example.com   local:
+
+/etc/aliases:
+    listname: "|/some/where/majordomo/wrapper ..."
+    owner-listname: ...
+    listname-request: ...
+
+You can achieve the same result with virtual aliases that direct
+virtual addresses to the local delivery agent:
+
+/etc/postfix/main.cf:
+    virtual_alias_maps = hash:/etc/postfix/virtual
+
+/etc/postfix/virtual:
+    listname-request@example.com listname-request
+    listname@example.com         listname
+    owner-listname@example.com   owner-listname
+
+/etc/aliases:
+    listname: "|/some/where/majordomo/wrapper ..."
+    owner-listname: ...
+    listname-request: ...
+
+Either approach will do the job.
+
+More information about the Postfix local delivery agent can be
+found in the local(8) manual page.
