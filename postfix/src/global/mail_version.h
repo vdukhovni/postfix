@@ -23,7 +23,7 @@
 #define MAIL_RELEASE_DATE	"20030115"
 
 #define VAR_MAIL_VERSION	"mail_version"
-#define DEF_MAIL_VERSION	"2.0.1-" MAIL_RELEASE_DATE
+#define DEF_MAIL_VERSION	"2.0.2-" MAIL_RELEASE_DATE
 extern char *var_mail_version;
 
  /*
