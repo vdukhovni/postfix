@@ -34,6 +34,7 @@ typedef struct SMTPD_STATE {
     char   *name;
     char   *addr;
     char   *namaddr;
+    int     peer_code;			/* 2=ok, 4=soft, 5=hard */
     int     error_count;
     int     error_mask;
     int     notify_mask;
@@ -52,8 +53,7 @@ typedef struct SMTPD_STATE {
     char   *where;
 } SMTPD_STATE;
 
-extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *,
-			             const char *, const char *);
+extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);
 extern void smtpd_state_reset(SMTPD_STATE *);
 
  /*
@@ -69,6 +69,12 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   */
 #define SMTPD_STAND_ALONE(state) \
 	(state->client == VSTREAM_IN && getuid() != var_owner_uid)
+
+ /*
+  * SMPTD peer information lookup.
+  */
+void    smtpd_peer_init(SMTPD_STATE *state);
+void    smtpd_peer_reset(SMTPD_STATE *state);
 
 /* LICENSE
 /* .ad

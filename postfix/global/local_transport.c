@@ -12,8 +12,8 @@
 /*	const char *transport;
 /* DESCRIPTION
 /*	This module uses the information kept in the "local_transports"
-/*	configuration parameter, which lists the names of the default
-/*	local transport followed by zero or more other transports that
+/*	configuration parameter, which lists the name of the default
+/*	local transport, followed by zero or more other transports that
 /*	deliver locally.
 /*
 /*	def_local_transport() returns the name of the default local
@@ -90,7 +90,7 @@ const char *def_local_transport(void)
     /*
      * Initialize on the fly.
      */
-    if (local_transport_list == 0)
+    if (local_transport_name == 0)
 	local_transport_init();
 
     /*

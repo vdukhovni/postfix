@@ -155,7 +155,11 @@ WATCHDOG *watchdog_create(unsigned timeout, WATCHDOG_FN action, char *context)
     wp->saved_watchdog = watchdog_curr;
     wp->saved_time = alarm(0);
     sigemptyset(&sig_action.sa_mask);
+#ifdef SA_RESTART
     sig_action.sa_flags = SA_RESTART;
+#else
+    sig_action.sa_flags = 0;
+#endif
     sig_action.sa_handler = watchdog_event;
     if (sigaction(SIGALRM, &sig_action, &wp->saved_action) < 0)
 	msg_fatal("%s: sigaction(SIGALRM): %m", myname);

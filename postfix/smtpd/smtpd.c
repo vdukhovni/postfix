@@ -224,7 +224,6 @@
 
 /* Global library. */
 
-#include <peer_name.h>
 #include <mail_params.h>
 #include <record.h>
 #include <rec_type.h>
@@ -1167,7 +1166,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
 {
     SMTPD_STATE state;
-    PEER_NAME *peer;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -1184,8 +1182,7 @@ static void smtpd_service(VSTREAM *stream, char *unused_service, char **argv)
      * take a while. This is why I always run a local name server on critical
      * machines.
      */
-    peer = peer_name(vstream_fileno(stream));
-    smtpd_state_init(&state, stream, peer->name, peer->addr);
+    smtpd_state_init(&state, stream);
 
     /*
      * See if we need to turn on verbose logging for this client.

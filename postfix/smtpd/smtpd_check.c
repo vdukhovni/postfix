@@ -496,7 +496,9 @@ static int reject_unknown_client(SMTPD_STATE *state)
     if (strcasecmp(state->name, "unknown") == 0)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 		 "%d Client host rejected: cannot find your hostname, [%s]",
-				   var_unk_client_code, state->addr));
+				   state->peer_code == 5 ?
+				   var_unk_client_code : 450,
+				   state->addr));
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -734,7 +736,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 
 /* permit_auth_destination - OK for message relaying */
 
-static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
+static int permit_auth_destination(char *recipient)
 {
     char   *myname = "permit_auth_destination";
     char   *domain;
@@ -1606,7 +1608,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = permit_mx_backup(state, state->recipient);
 	} else if (strcasecmp(name, PERMIT_AUTH_DEST) == 0) {
 	    if (state->recipient)
-		status = permit_auth_destination(state, state->recipient);
+		status = permit_auth_destination(state->recipient);
 	} else if (strcasecmp(name, REJECT_UNAUTH_DEST) == 0) {
 	    if (state->recipient)
 		status = reject_unauth_destination(state, state->recipient);
@@ -1931,6 +1933,7 @@ char   *var_maps_rbl_domains;
 char   *var_mydest;
 char   *var_inet_interfaces;
 char   *var_rest_classes;
+char   *var_local_transports;
 
 typedef struct {
     char   *name;
@@ -1943,6 +1946,7 @@ static STRING_TABLE string_table[] = {
     VAR_MYDEST, DEF_MYDEST, &var_mydest,
     VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces,
     VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes,
+    VAR_LOCAL_TRANSP, DEF_LOCAL_TRANSP, &var_local_transports,
     0,
 };
 
@@ -2131,7 +2135,7 @@ main(int argc, char **argv)
     string_init();
     int_init();
     smtpd_check_init();
-    smtpd_state_init(&state, VSTREAM_IN, "", "");
+    smtpd_state_init(&state, VSTREAM_IN);
     state.queue_id = "<queue id>";
 
     /*
@@ -2166,6 +2170,7 @@ main(int argc, char **argv)
 	    /*
 	     * Special case: client identity.
 	     */
+	case 4:
 	case 3:
 #define UPDATE_STRING(ptr,val) { if (ptr) myfree(ptr); ptr = mystrdup(val); }
 
@@ -2173,6 +2178,10 @@ main(int argc, char **argv)
 		state.where = "CONNECT";
 		UPDATE_STRING(state.name, args->argv[1]);
 		UPDATE_STRING(state.addr, args->argv[2]);
+		if (args->argc == 4)
+		    state.peer_code = atoi(args->argv[3]);
+		else
+		    state.peer_code = 2;
 		if (state.namaddr)
 		    myfree(state.namaddr);
 		state.namaddr = concatenate(state.name, "[", state.addr,
@@ -2226,7 +2235,7 @@ main(int argc, char **argv)
 	     */
 	default:
 	    resp = "Commands...\n\
-		client <name> <address>\n\
+		client <name> <address> [<code>]\n\
 		helo <hostname>\n\
 		sender <address>\n\
 		recipient <address>\n\

@@ -319,6 +319,7 @@ dict.o: vstring.h
 dict.o: readlline.h
 dict.o: mac_parse.h
 dict.o: dict.h
+dict.o: argv.h
 dict.o: dict_ht.h
 dict_db.o: dict_db.c
 dict_db.o: sys_defs.h
@@ -331,6 +332,7 @@ dict_db.o: iostuff.h
 dict_db.o: myflock.h
 dict_db.o: dict.h
 dict_db.o: vstream.h
+dict_db.o: argv.h
 dict_db.o: dict_db.h
 dict_dbm.o: dict_dbm.c
 dict_dbm.o: sys_defs.h
@@ -342,6 +344,7 @@ dict_env.o: safe.h
 dict_env.o: dict.h
 dict_env.o: vstream.h
 dict_env.o: vbuf.h
+dict_env.o: argv.h
 dict_env.o: dict_env.h
 dict_ht.o: dict_ht.c
 dict_ht.o: sys_defs.h
@@ -350,6 +353,7 @@ dict_ht.o: htable.h
 dict_ht.o: dict.h
 dict_ht.o: vstream.h
 dict_ht.o: vbuf.h
+dict_ht.o: argv.h
 dict_ht.o: dict_ht.h
 dict_ldap.o: dict_ldap.c
 dict_ldap.o: sys_defs.h
@@ -365,6 +369,7 @@ dict_nis.o: vstring.h
 dict_nis.o: vbuf.h
 dict_nis.o: dict.h
 dict_nis.o: vstream.h
+dict_nis.o: argv.h
 dict_nis.o: dict_nis.h
 dict_nisplus.o: dict_nisplus.c
 dict_nisplus.o: sys_defs.h
@@ -374,6 +379,7 @@ dict_nisplus.o: htable.h
 dict_nisplus.o: dict.h
 dict_nisplus.o: vstream.h
 dict_nisplus.o: vbuf.h
+dict_nisplus.o: argv.h
 dict_nisplus.o: dict_nisplus.h
 dict_open.o: dict_open.c
 dict_open.o: sys_defs.h
@@ -410,6 +416,7 @@ dict_regexp.o: vstring.h
 dict_regexp.o: stringops.h
 dict_regexp.o: readlline.h
 dict_regexp.o: dict.h
+dict_regexp.o: argv.h
 dict_regexp.o: dict_regexp.h
 dict_regexp.o: mac_parse.h
 dict_unix.o: dict_unix.c
@@ -420,6 +427,7 @@ dict_unix.o: vstring.h
 dict_unix.o: vbuf.h
 dict_unix.o: dict.h
 dict_unix.o: vstream.h
+dict_unix.o: argv.h
 dict_unix.o: dict_unix.h
 dir_forest.o: dir_forest.c
 dir_forest.o: sys_defs.h
@@ -591,6 +599,7 @@ match_ops.o: split_at.h
 match_ops.o: dict.h
 match_ops.o: vstream.h
 match_ops.o: vbuf.h
+match_ops.o: argv.h
 match_ops.o: match_ops.h
 match_ops.o: stringops.h
 msg.o: msg.c

@@ -6,11 +6,9 @@
 /* SYNOPSIS
 /*	#include "smtpd.h"
 /*
-/*	void	smtpd_state_init(state, stream, name, addr)
+/*	void	smtpd_state_init(state, stream)
 /*	SMTPD_STATE *state;
 /*	VSTREAM *stream;
-/*	const char *name;
-/*	const char *addr;
 /*
 /*	void	smtpd_state_reset(state)
 /*	SMTPD_STATE *state;
@@ -24,12 +22,6 @@
 /*	Session context.
 /* .IP stream
 /*	Stream connected to peer. The stream is not copied.
-/* .IP name
-/*	Printable representation of the peer host name. The
-/*	name is copied.
-/* .IP addr
-/*	Printable representation of the peer host address. The
-/*	address is copied.
 /* DIAGNOSTICS
 /*	All errors are fatal.
 /* LICENSE
@@ -53,7 +45,6 @@
 #include <mymalloc.h>
 #include <vstream.h>
 #include <name_mask.h>
-#include <stringops.h>
 
 /* Global library. */
 
@@ -68,8 +59,7 @@
 
 /* smtpd_state_init - initialize after connection establishment */
 
-void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
-			         const char *name, const char *addr)
+void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
 {
 
     /*
@@ -79,9 +69,6 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->err = CLEANUP_STAT_OK;
     state->client = stream;
     state->buffer = vstring_alloc(100);
-    state->name = mystrdup(name);
-    state->addr = mystrdup(addr);
-    state->namaddr = concatenate(name, "[", addr, "]", (char *) 0);
     state->error_count = 0;
     state->error_mask = 0;
     state->notify_mask = name_mask(mail_error_masks, var_notify_classes);
@@ -98,6 +85,11 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->etrn_name = 0;
     state->protocol = "SMTP";
     state->where = SMTPD_AFTER_CONNECT;
+
+    /*
+     * Initialize peer information.
+     */
+    smtpd_peer_init(state);
 
     /*
      * Initialize the conversation history.
@@ -117,10 +109,5 @@ void    smtpd_state_reset(SMTPD_STATE *state)
      */
     if (state->buffer)
 	vstring_free(state->buffer);
-    if (state->name)
-	myfree(state->name);
-    if (state->addr)
-	myfree(state->addr);
-    if (state->namaddr)
-	myfree(state->namaddr);
+    smtpd_peer_reset(state);
 }

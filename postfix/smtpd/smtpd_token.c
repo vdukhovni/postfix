@@ -8,6 +8,7 @@
 /*
 /*	typedef struct {
 /* .in +4
+/*	    int tokval;
 /*	    char *strval;
 /*	    /* other stuff... */
 /* .in -4
@@ -139,6 +140,7 @@ static char *smtp_next_token(char *cp, SMTPD_TOKEN *arg)
 		break;
 	} else {				/* other */
 	    if (c == '\\') {
+		VSTRING_ADDCH(arg->vstrval, c);
 		if ((c = *cp) == 0)
 		    break;
 		cp++;

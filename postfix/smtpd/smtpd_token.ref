@@ -60,7 +60,7 @@ Token value: mail
 Token type:  other
 Token value: from:
 Token type:  other
-Token value: wietse venema@porcupine.org
+Token value: wietse\ venema@porcupine.org
 mail to:<"wietse venema>
 Token type:  other
 Token value: mail

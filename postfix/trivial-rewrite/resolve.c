@@ -154,7 +154,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     /*
      * Make sure the resolved envelope recipient has the user@domain form. If
      * no domain was specified in the address, assume the local machine. See
-     * above for what happens with an empty localpart.
+     * above for what happens with an empty address.
      */
     if (domain == 0) {
 	if (saved_domain) {
@@ -168,11 +168,11 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
 
     /*
-     * The transport map overrides the default transport and next-hop host
-     * info that was set up just moments ago. For a long time, it was not
-     * possible to override routing of mail that resolves locally, because
-     * Postfix used a zero-length next-hop hostname result to indicate local
-     * delivery, and transport maps cannot return zero-length hostnames.
+     * The transport map overrides any transport and next-hop host info that
+     * is set up below. For a long time, it was not possible to override
+     * routing of mail that resolves locally, because Postfix used a
+     * zero-length next-hop hostname result to indicate local delivery, and
+     * transport maps cannot return zero-length hostnames.
      */
     if (*var_transport_maps
     && transport_lookup(strrchr(STR(nextrcpt), '@') + 1, channel, nexthop)) {
@@ -194,7 +194,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 
     /*
      * Local delivery. Set up the default local transport and the default
-     * next-hop hostname.
+     * next-hop hostname (myself).
      */
     else {
 	vstring_strcpy(channel, def_local_transport());

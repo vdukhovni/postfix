@@ -3240,3 +3240,19 @@ Apologies for any names omitted.
 	The edit is done on a copy, and the copy is renamed into
 	the place of the original. File: postconf/postconf.c,
 	util/readlline.[hc].
+
+19991117
+
+	Feature: on systems with h_errno, the "reject_unknown_client"
+	restriction now distinguishes between soft errors (always
+	reply with 450) and hard errors (use the user-specified
+	reply code).  This should lessen the load by broken mailers
+	that re-connect once a minute.
+
+	Feature: forward/reverse name/address check for SMTP client
+	hostnames. This fends off some hypothetical attacks by
+	spammers who are in control of their own reverse mapping.
+
+	Robustness: postconf no longer aborts when it can't figure
+	out the local domain name; it prints a warning instead.
+	This allows you to use "postconf -e" to fix the problem.

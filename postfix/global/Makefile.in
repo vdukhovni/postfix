@@ -396,6 +396,7 @@ mail_addr_find.o: ../include/msg.h
 mail_addr_find.o: ../include/dict.h
 mail_addr_find.o: ../include/vstream.h
 mail_addr_find.o: ../include/vbuf.h
+mail_addr_find.o: ../include/argv.h
 mail_addr_find.o: ../include/stringops.h
 mail_addr_find.o: ../include/mymalloc.h
 mail_addr_find.o: ../include/vstring.h
@@ -438,6 +439,7 @@ mail_conf.o: ../include/vstream.h
 mail_conf.o: ../include/vbuf.h
 mail_conf.o: ../include/vstring.h
 mail_conf.o: ../include/dict.h
+mail_conf.o: ../include/argv.h
 mail_conf.o: ../include/safe.h
 mail_conf.o: ../include/stringops.h
 mail_conf.o: mail_params.h
@@ -448,6 +450,7 @@ mail_conf_bool.o: ../include/msg.h
 mail_conf_bool.o: ../include/dict.h
 mail_conf_bool.o: ../include/vstream.h
 mail_conf_bool.o: ../include/vbuf.h
+mail_conf_bool.o: ../include/argv.h
 mail_conf_bool.o: mail_conf.h
 mail_conf_int.o: mail_conf_int.c
 mail_conf_int.o: ../include/sys_defs.h
@@ -456,6 +459,7 @@ mail_conf_int.o: ../include/mymalloc.h
 mail_conf_int.o: ../include/dict.h
 mail_conf_int.o: ../include/vstream.h
 mail_conf_int.o: ../include/vbuf.h
+mail_conf_int.o: ../include/argv.h
 mail_conf_int.o: ../include/stringops.h
 mail_conf_int.o: mail_conf.h
 mail_conf_raw.o: mail_conf_raw.c
@@ -638,6 +642,7 @@ mkmap_db.o: ../include/stringops.h
 mkmap_db.o: ../include/dict.h
 mkmap_db.o: ../include/vstream.h
 mkmap_db.o: ../include/vbuf.h
+mkmap_db.o: ../include/argv.h
 mkmap_db.o: ../include/dict_db.h
 mkmap_db.o: mkmap.h
 mkmap_dbm.o: mkmap_dbm.c
@@ -648,6 +653,7 @@ mkmap_dbm.o: ../include/stringops.h
 mkmap_dbm.o: ../include/dict.h
 mkmap_dbm.o: ../include/vstream.h
 mkmap_dbm.o: ../include/vbuf.h
+mkmap_dbm.o: ../include/argv.h
 mkmap_dbm.o: ../include/dict_dbm.h
 mkmap_dbm.o: mkmap.h
 mkmap_open.o: mkmap_open.c
@@ -656,6 +662,7 @@ mkmap_open.o: ../include/msg.h
 mkmap_open.o: ../include/dict.h
 mkmap_open.o: ../include/vstream.h
 mkmap_open.o: ../include/vbuf.h
+mkmap_open.o: ../include/argv.h
 mkmap_open.o: ../include/sigdelay.h
 mkmap_open.o: ../include/mymalloc.h
 mkmap_open.o: ../include/myflock.h

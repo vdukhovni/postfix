@@ -71,3 +71,4 @@ postalias.o: ../include/mail_conf.h
 postalias.o: ../include/mail_params.h
 postalias.o: ../include/mkmap.h
 postalias.o: ../include/dict.h
+postalias.o: ../include/argv.h

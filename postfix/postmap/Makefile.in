@@ -68,3 +68,4 @@ postmap.o: ../include/mail_conf.h
 postmap.o: ../include/mail_params.h
 postmap.o: ../include/mkmap.h
 postmap.o: ../include/dict.h
+postmap.o: ../include/argv.h

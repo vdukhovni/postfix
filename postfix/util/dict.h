@@ -102,6 +102,5 @@ extern int dict_changed(void);
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
-/**INDENT** Error@47: Unmatched #endif */
 
 #endif

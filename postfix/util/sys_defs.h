@@ -91,6 +91,7 @@ extern int opterr;
 #define S_ISSOCK(mode)	(((mode) & (S_IFMT)) == (S_IFSOCK))
 #define DUP2_DUPS_CLOSE_ON_EXEC
 #define MISSING_USLEEP
+#define NO_HERRNO
 #endif
 
 #ifdef OSF1
@@ -145,6 +146,7 @@ extern int opterr;
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define memmove(d,s,l)	bcopy(s,d,l)
+#define NO_HERRNO
 #endif
 
 #ifdef SUNOS5

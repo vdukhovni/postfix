@@ -1,6 +1,8 @@
 SHELL	= /bin/sh
-SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c
-OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o
+SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
+	smtpd_peer.c
+OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
+	smtpd_peer.o
 HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h
 TESTSRC	= smtpd_token_test.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -28,7 +30,7 @@ update: ../libexec/$(PROG)
 ../libexec/$(PROG): $(PROG)
 	cp $(PROG) ../libexec
 
-SMTPD_CHECK_OBJ = smtpd_state.o
+SMTPD_CHECK_OBJ = smtpd_state.o smtpd_peer.o
 
 smtpd_token: smtpd_token.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
@@ -97,7 +99,7 @@ smtpd.o: ../include/events.h
 smtpd.o: ../include/smtp_stream.h
 smtpd.o: ../include/valid_hostname.h
 smtpd.o: ../include/dict.h
-smtpd.o: ../include/peer_name.h
+smtpd.o: ../include/argv.h
 smtpd.o: ../include/mail_params.h
 smtpd.o: ../include/record.h
 smtpd.o: ../include/rec_type.h
@@ -118,7 +120,6 @@ smtpd.o: ../include/resolve_clnt.h
 smtpd.o: ../include/mail_server.h
 smtpd.o: smtpd_token.h
 smtpd.o: smtpd.h
-smtpd.o: ../include/argv.h
 smtpd.o: smtpd_check.h
 smtpd.o: smtpd_chat.h
 smtpd_chat.o: smtpd_chat.c
@@ -176,6 +177,18 @@ smtpd_check.o: ../include/local_transport.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: ../include/mail_stream.h
 smtpd_check.o: smtpd_check.h
+smtpd_peer.o: smtpd_peer.c
+smtpd_peer.o: ../include/sys_defs.h
+smtpd_peer.o: ../include/msg.h
+smtpd_peer.o: ../include/mymalloc.h
+smtpd_peer.o: ../include/valid_hostname.h
+smtpd_peer.o: ../include/stringops.h
+smtpd_peer.o: smtpd.h
+smtpd_peer.o: ../include/vstream.h
+smtpd_peer.o: ../include/vbuf.h
+smtpd_peer.o: ../include/vstring.h
+smtpd_peer.o: ../include/argv.h
+smtpd_peer.o: ../include/mail_stream.h
 smtpd_state.o: smtpd_state.c
 smtpd_state.o: ../include/sys_defs.h
 smtpd_state.o: ../include/events.h
@@ -183,7 +196,6 @@ smtpd_state.o: ../include/mymalloc.h
 smtpd_state.o: ../include/vstream.h
 smtpd_state.o: ../include/vbuf.h
 smtpd_state.o: ../include/name_mask.h
-smtpd_state.o: ../include/stringops.h
 smtpd_state.o: ../include/cleanup_user.h
 smtpd_state.o: ../include/mail_params.h
 smtpd_state.o: ../include/mail_error.h

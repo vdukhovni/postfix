@@ -77,6 +77,7 @@ resolve.o: ../include/mail_conf.h
 resolve.o: ../include/quote_822_local.h
 resolve.o: ../include/tok822.h
 resolve.o: ../include/resolve_clnt.h
+resolve.o: ../include/local_transport.h
 resolve.o: trivial-rewrite.h
 resolve.o: transport.h
 rewrite.o: rewrite.c
@@ -105,6 +106,7 @@ transport.o: ../include/vbuf.h
 transport.o: ../include/split_at.h
 transport.o: ../include/dict.h
 transport.o: ../include/vstream.h
+transport.o: ../include/argv.h
 transport.o: ../include/mail_params.h
 transport.o: ../include/maps.h
 transport.o: transport.h
@@ -118,6 +120,7 @@ trivial-rewrite.o: ../include/vstring_vstream.h
 trivial-rewrite.o: ../include/split_at.h
 trivial-rewrite.o: ../include/stringops.h
 trivial-rewrite.o: ../include/dict.h
+trivial-rewrite.o: ../include/argv.h
 trivial-rewrite.o: ../include/mail_params.h
 trivial-rewrite.o: ../include/mail_proto.h
 trivial-rewrite.o: ../include/iostuff.h

@@ -72,6 +72,7 @@ smtp.o: ../include/sys_defs.h
 smtp.o: ../include/dict.h
 smtp.o: ../include/vstream.h
 smtp.o: ../include/vbuf.h
+smtp.o: ../include/argv.h
 smtp.o: ../include/msg.h
 smtp.o: ../include/mymalloc.h
 smtp.o: ../include/name_mask.h
@@ -87,7 +88,6 @@ smtp.o: ../include/mail_proto.h
 smtp.o: ../include/iostuff.h
 smtp.o: ../include/mail_server.h
 smtp.o: smtp.h
-smtp.o: ../include/argv.h
 smtp_addr.o: smtp_addr.c
 smtp_addr.o: ../include/sys_defs.h
 smtp_addr.o: ../include/msg.h

@@ -74,9 +74,13 @@ postconf.o: ../include/get_hostname.h
 postconf.o: ../include/stringops.h
 postconf.o: ../include/htable.h
 postconf.o: ../include/dict.h
+postconf.o: ../include/argv.h
 postconf.o: ../include/safe.h
 postconf.o: ../include/mymalloc.h
-postconf.o: ../include/line_wrap.h
+postconf.o: ../include/split_at.h
+postconf.o: ../include/readlline.h
+postconf.o: ../include/vstring.h
+postconf.o: ../include/myflock.h
 postconf.o: ../include/mynetworks.h
 postconf.o: ../include/mail_conf.h
 postconf.o: ../include/mail_proto.h

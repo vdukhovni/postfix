@@ -264,6 +264,7 @@ local.o: ../include/iostuff.h
 local.o: ../include/name_mask.h
 local.o: ../include/set_eugid.h
 local.o: ../include/dict.h
+local.o: ../include/argv.h
 local.o: ../include/recipient_list.h
 local.o: ../include/deliver_request.h
 local.o: ../include/deliver_completed.h
@@ -351,6 +352,7 @@ recipient.o: ../include/stringops.h
 recipient.o: ../include/dict.h
 recipient.o: ../include/vstream.h
 recipient.o: ../include/vbuf.h
+recipient.o: ../include/argv.h
 recipient.o: ../include/bounce.h
 recipient.o: ../include/mail_params.h
 recipient.o: ../include/split_addr.h

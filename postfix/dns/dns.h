@@ -49,6 +49,13 @@
 #endif
 
  /*
+  * SunOS 4 needs this.
+  */
+#ifndef T_TXT
+#define T_TXT	16
+#endif
+
+ /*
   * Utility library.
   */
 #include <vstring.h>

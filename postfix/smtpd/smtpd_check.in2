@@ -105,3 +105,11 @@ rcpt user@foo.com
 recipient_restrictions reject_unauth_destination,permit
 rcpt user@foo.org
 rcpt user@foo.com
+#
+# unknown client tests
+#
+unknown_client_reject_code 550
+client_restrictions reject_unknown_client
+client spike.porcupine.org 160.100.189.2 2
+client unknown 1.1.1.1 4
+client unknown 1.1.1.1 5

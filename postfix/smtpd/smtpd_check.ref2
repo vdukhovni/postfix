@@ -214,3 +214,18 @@ OK
 554 <user@foo.org>: Relay access denied
 >>> rcpt user@foo.com
 OK
+>>> #
+>>> # unknown client tests
+>>> #
+>>> unknown_client_reject_code 550
+OK
+>>> client_restrictions reject_unknown_client
+OK
+>>> client spike.porcupine.org 160.100.189.2 2
+OK
+>>> client unknown 1.1.1.1 4
+./smtpd_check: reject: CONNECT from unknown[1.1.1.1]: 450 Client host rejected: cannot find your hostname, [1.1.1.1]; from=<user@some.where>
+450 Client host rejected: cannot find your hostname, [1.1.1.1]
+>>> client unknown 1.1.1.1 5
+./smtpd_check: reject: CONNECT from unknown[1.1.1.1]: 550 Client host rejected: cannot find your hostname, [1.1.1.1]; from=<user@some.where>
+550 Client host rejected: cannot find your hostname, [1.1.1.1]
