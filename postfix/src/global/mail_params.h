@@ -75,6 +75,21 @@ extern uid_t var_default_uid;
 extern gid_t var_default_gid;
 
  /*
+  * Access control for local privileged operations:
+  */
+#define VAR_FLUSH_ACL		"authorized_flush_users"
+#define DEF_FLUSH_ACL		"static:anyone"
+extern char *var_flush_acl;
+
+#define VAR_SHOWQ_ACL		"authorized_mailq_users"
+#define DEF_SHOWQ_ACL		"static:anyone"
+extern char *var_showq_acl;
+
+#define VAR_SENDMAIL_ACL	"authorized_sendmail_users"
+#define DEF_SENDMAIL_ACL	"static:anyone"
+extern char *var_sendmail_acl;
+
+ /*
   * What goes on the right-hand side of addresses of mail sent from this
   * machine.
   */

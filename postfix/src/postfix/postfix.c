@@ -181,6 +181,7 @@
 /*	anvil(8), Postfix connection/rate limiting
 /*	bounce(8), defer(8), trace(8), Delivery status reports
 /*	cleanup(8), canonicalize and enqueue message
+/*	discard(8), Postfix discard delivery agent
 /*	error(8), Postfix error delivery agent
 /*	flush(8), Postfix fast ETRN service
 /*	lmtp(8), Postfix LMTP client
@@ -192,6 +193,7 @@
 /*	proxymap(8), Postfix lookup table proxy server
 /*	qmgr(8), Postfix queue manager
 /*	qmqpd(8), Postfix QMQP server
+/*	scache(8), Postfix session cache manager
 /*	showq(8), list Postfix mail queue
 /*	smtp(8), Postfix SMTP client
 /*	smtpd(8), Postfix SMTP server

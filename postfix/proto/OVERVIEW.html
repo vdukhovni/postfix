@@ -321,10 +321,11 @@ href="QSHAPE_README.html#deferred_queue"> deferred </a> </td>
 
 <li> <p> The queue manager (the qmgr(8) server process in the
 figure) is the heart of Postfix mail delivery.  It contacts the
-smtp(8), lmtp(8), local(8), virtual(8), pipe(8), or error(8) delivery
-agents, and sends a delivery request for one or more recipient
-addresses. The error(8) delivery agent is special: it always declares
-mail as undeliverable. It is not shown in the figure above.  </p>
+smtp(8), lmtp(8), local(8), virtual(8), pipe(8), discard(8) or
+error(8) delivery agents, and sends a delivery request for one
+or more recipient addresses. The discard(8) and error(8) delivery
+agents are special: they discard or bounce all mail, they are not
+shown in the figure above.  </p>
 
 <p> The queue manager maintains a small active queue with the
 messages that it has opened for delivery. The active queue acts as

@@ -231,6 +231,17 @@
 /*	Optional list of remote client or server hostname or network
 /*	address patterns that cause the verbose logging level to increase
 /*	by the amount specified in $debug_peer_level.
+/* ACCESS CONTROLS
+/* .ad
+/* .fi
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBauthorized_flush_users (static:anyone)\fR"
+/*	List of users who are authorized to flush the queue.
+/* .IP "\fBauthorized_mailq_users (static:anyone)\fR"
+/*	List of users who are authorized to view the queue.
+/* .IP "\fBauthorized_sendmail_users (static:anyone)\fR"
+/*	List of users who are authorized to use the sendmail(1) command
+/*	(and the privileged postdrop(1) helper command) to submit mail.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -383,6 +394,7 @@
 #include <deliver_request.h>
 #include <mime_state.h>
 #include <header_opts.h>
+#include <user_acl.h>
 
 /* Application-specific. */
 
@@ -408,7 +420,7 @@
  /*
   * VERP support.
   */
-char   *verp_delims;
+static char *verp_delims;
 
  /*
   * Callback context for extracting recipients.
@@ -422,6 +434,16 @@ typedef struct SM_STATE {
     uid_t   uid;			/* for error messages */
     VSTRING *temp;			/* scratch buffer */
 } SM_STATE;
+
+ /*
+  * Mail submission ACL
+  */
+static char *var_sendmail_acl;
+
+static CONFIG_STR_TABLE str_table[] = {
+    VAR_SENDMAIL_ACL, DEF_SENDMAIL_ACL, &var_sendmail_acl, 0, 0,
+    0,
+};
 
  /*
   * Silly little macros (SLMs).
@@ -471,11 +493,11 @@ static void output_header(void *context, int header_class,
 		state->resent = 1;
 	} else
 	    rcpt = state->recipients;
-	tree = tok822_parse(vstring_str(buf) + strlen(header_info->name) + 1);
+	tree = tok822_parse(STR(buf) + strlen(header_info->name) + 1);
 	addr_list = tok822_grep(tree, TOK822_ADDR);
 	for (tpp = addr_list; *tpp; tpp++) {
 	    tok822_internalize(state->temp, tpp[0]->head, TOK822_STR_DEFL);
-	    argv_add(rcpt, vstring_str(state->temp), (char *) 0);
+	    argv_add(rcpt, STR(state->temp), (char *) 0);
 	}
 	myfree((char *) addr_list);
 	tok822_free_tree(tree);
@@ -519,6 +541,14 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     MIME_STATE *mime_state = 0;
     SM_STATE state;
     int     mime_errs;
+    char   *errstr;
+
+    /*
+     * Access control is enforced in the postdrop command. The code here
+     * merely produces a more user-friendly interface.
+     */
+    if ((errstr = check_user_acl_byuid(var_sendmail_acl, uid)) != 0)
+	msg_fatal_status(EX_NOPERM, "%s is not allowed to submit mail", errstr);
 
     /*
      * Initialize.
@@ -670,7 +700,7 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 	    }
 	    if (skip_from_) {
 		if (type == REC_TYPE_NORM) {
-		    start = vstring_str(buf);
+		    start = STR(buf);
 		    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0)
 			continue;
 		}
@@ -731,7 +761,6 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 	argv_free(state.resent_recip);
 	vstring_free(state.temp);
     }
-
     if (rcpt_count == 0)
 	msg_fatal_status(EX_USAGE, (flags & SM_FLAG_XRCPT) ?
 			 "No recipient addresses found in message header" :
@@ -794,6 +823,7 @@ int     main(int argc, char **argv)
     char   *site_to_flush = 0;
     char   *encoding = 0;
     char   *qtime = 0;
+    char   *errstr;
 
     /*
      * Be consistent with file permissions.
@@ -855,6 +885,7 @@ int     main(int argc, char **argv)
      * Further initialization...
      */
     mail_conf_read();
+    get_mail_conf_str_table(str_table);
 
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
@@ -1114,6 +1145,10 @@ int     main(int argc, char **argv)
 	if (argv[OPTIND])
 	    msg_fatal_status(EX_USAGE,
 			     "stand-alone mode requires no recipient");
+	/* The actual enforcement happens in the postdrop command. */
+	if ((errstr = check_user_acl_byuid(var_sendmail_acl, getuid())) != 0)
+	    msg_fatal_status(EX_NOPERM, "%s is not allowed to submit mail",
+			     errstr);
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "smtpd", "-S", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)

@@ -1,28 +1,28 @@
-.TH ERROR 8 
+.TH DISCARD 8 
 .ad
 .fi
 .SH NAME
-error
+discard
 \-
-Postfix error mail delivery agent
+Postfix discard mail delivery agent
 .SH "SYNOPSIS"
 .na
 .nf
-\fBerror\fR [generic Postfix daemon options]
+\fBdiscard\fR [generic Postfix daemon options]
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix error delivery agent processes delivery requests from
+The Postfix discard delivery agent processes delivery requests from
 the queue manager. Each request specifies a queue file, a sender
 address, a domain or host name that is treated as the reason for
-non-delivery, and recipient information.
+discarding the mail, and recipient information.
 This program expects to be run from the \fBmaster\fR(8) process
 manager.
 
-The error delivery agent bounces all recipients in the delivery
-request using the "next-hop"
-domain or host information as the reason for non-delivery, updates
-the queue file and marks recipients as finished or informs the
+The discard delivery agent pretends to deliver all recipients
+in the delivery request, logs the "next-hop" domain or host
+information as the reason for discarding the mail, updates the
+queue file and marks recipients as finished or informs the
 queue manager that delivery should be tried again at a later time.
 
 Delivery status reports are sent to the \fBbounce\fR(8),
@@ -32,7 +32,7 @@ Delivery status reports are sent to the \fBbounce\fR(8),
 .nf
 .ad
 .fi
-The error mailer is not security-sensitive. It does not talk
+The discard mailer is not security-sensitive. It does not talk
 to the network, and can be run chrooted at fixed low privilege.
 .SH "STANDARDS"
 .na
@@ -50,19 +50,12 @@ the postmaster is notified of bounces and of other trouble.
 .nf
 .ad
 .fi
-Changes to \fBmain.cf\fR are picked up automatically as error(8)
+Changes to \fBmain.cf\fR are picked up automatically as discard(8)
 processes run for only a limited amount of time. Use the command
 "\fBpostfix reload\fR" to speed up a change.
 
 The text below provides only a parameter summary. See
 postconf(5) for more details including examples.
-.IP "\fB2bounce_notice_recipient (postmaster)\fR"
-The recipient of undeliverable mail that cannot be returned to
-the sender.
-.IP "\fBbounce_notice_recipient (postmaster)\fR"
-The recipient of postmaster notifications with the message headers
-of mail that Postfix did not deliver and of SMTP conversation
-transcripts of mail that Postfix did not receive.
 .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 The default location of the Postfix main.cf and master.cf
 configuration files.
@@ -81,8 +74,6 @@ waits for the next service request before exiting.
 .IP "\fBmax_use (100)\fR"
 The maximal number of connection requests before a Postfix daemon
 process terminates.
-.IP "\fBnotify_classes (resource, software)\fR"
-The list of error classes that are reported to the postmaster.
 .IP "\fBprocess_id (read-only)\fR"
 The process ID of a Postfix command or daemon process.
 .IP "\fBprocess_name (read-only)\fR"
@@ -99,7 +90,7 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .nf
 qmgr(8), queue manager
 bounce(8), delivery status reports
-discard(8), Postfix discard delivery agent
+error(8), Postfix error delivery agent
 postconf(5), configuration parameters
 master(8), process manager
 syslogd(8), system logging
@@ -109,9 +100,17 @@ syslogd(8), system logging
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+This service was introduced with Postfix version 2.2.
 .SH "AUTHOR(S)"
 .na
 .nf
+Victor Duchovni
+Morgan Stanley
+
+Based on code by:
 Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704

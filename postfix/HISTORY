@@ -9723,6 +9723,17 @@ Apologies for any names omitted.
 	type when a Delivered-To: loop was detected for a mailing
 	list alias.  Nicolas Riendeau. File: bounce_notify_util.c.
 
+20040918
+
+	Feature: authorized_flush_users, authorized_mailq_users,
+	authorized_sendmail_users to restrict what users can flush
+	the queue, list the queue, or submit mail locally.  Victor
+	Duchovni, Morgan Stanley. Files: sendmail/sendmail.c,
+	postdrop/postdrop.c, postqueue/postqueue.c, global/user_acl.[hc].
+
+	Feature: discard(8) mail delivery agent.  Victor Duchovni,
+	Morgan Stanley. File: discard/discard.c.
+
 Open problems:
 
 	Low: should the Delivered-To: test in local(8) be configurable?

@@ -75,3 +75,4 @@ postdrop.o: ../../include/mail_stream.h
 postdrop.o: ../../include/cleanup_user.h
 postdrop.o: ../../include/record.h
 postdrop.o: ../../include/rec_type.h
+postdrop.o: ../../include/user_acl.h

@@ -114,6 +114,12 @@
 /* .IP "\fBtrigger_timeout (10s)\fR"
 /*	The time limit for sending a trigger to a Postfix daemon (for
 /*	example, the pickup(8) or qmgr(8) daemon).
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBauthorized_flush_users (static:anyone)\fR"
+/*	List of users who are authorized to flush the queue.
+/* .IP "\fBauthorized_mailq_users (static:anyone)\fR"
+/*	List of users who are authorized to view the queue.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /* SEE ALSO
@@ -180,6 +186,7 @@
 #include <mail_flush.h>
 #include <flush_clnt.h>
 #include <smtp_stream.h>
+#include <user_acl.h>
 
 /* Application-specific. */
 
@@ -209,13 +216,32 @@
   */
 #define STR	vstring_str
 
+ /*
+  * Queue manipulation access lists.
+  */
+static char *var_flush_acl;
+static char *var_showq_acl;
+
+static CONFIG_STR_TABLE str_table[] = {
+    VAR_FLUSH_ACL, DEF_FLUSH_ACL, &var_flush_acl, 0, 0,
+    VAR_SHOWQ_ACL, DEF_SHOWQ_ACL, &var_showq_acl, 0, 0,
+    0,
+};
+
 /* show_queue - show queue status */
 
 static void show_queue(void)
 {
+    char   *errstr;
     char    buf[VSTREAM_BUFSIZE];
     VSTREAM *showq;
     int     n;
+    uid_t   uid = getuid();
+
+    if (uid != 0 && uid != var_owner_uid
+	&& (errstr = check_user_acl_byuid(var_showq_acl, uid)) != 0)
+	msg_fatal_status(EX_NOPERM,
+			 "%s is not allowed to view the mail queue", errstr);
 
     /*
      * Connect to the show queue service. Terminate silently when piping into
@@ -278,6 +304,13 @@ static void show_queue(void)
 
 static void flush_queue(void)
 {
+    char   *errstr;
+    uid_t   uid = getuid();
+
+    if (uid != 0 && uid != var_owner_uid
+	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
+	msg_fatal_status(EX_NOPERM,
+			 "%s is not allowed to flush the mail queue", errstr);
 
     /*
      * Trigger the flush queue service.
@@ -295,6 +328,13 @@ static void flush_queue(void)
 static void flush_site(const char *site)
 {
     int     status;
+    char   *errstr;
+    uid_t   uid = getuid();
+
+    if (uid != 0 && uid != var_owner_uid
+	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
+	msg_fatal_status(EX_NOPERM,
+			 "%s is not allowed to flush the mail queue", errstr);
 
     flush_init();
 
@@ -405,6 +445,7 @@ int     main(int argc, char **argv)
      * Further initialization...
      */
     mail_conf_read();
+    get_mail_conf_str_table(str_table);
 
     /*
      * This program is designed to be set-gid, which makes it a potential

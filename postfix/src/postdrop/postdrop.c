@@ -73,6 +73,11 @@
 /* .IP "\fBtrigger_timeout (10s)\fR"
 /*	The time limit for sending a trigger to a Postfix daemon (for
 /*	example, the pickup(8) or qmgr(8) daemon).
+/* .PP
+/*	Available in Postfix version 2.2 and later:
+/* .IP "\fBauthorized_sendmail_users (static:anyone)\fR"
+/*	List of users who are authorized to use the sendmail(1) command
+/*	(and the privileged postdrop(1) helper command) to submit mail.
 /* FILES
 /*	/var/spool/postfix/maildrop, maildrop queue
 /* SEE ALSO
@@ -127,6 +132,7 @@
 #include <cleanup_user.h>
 #include <record.h>
 #include <rec_type.h>
+#include <user_acl.h>
 
 /* Application-specific. */
 
@@ -142,6 +148,16 @@
   * directory, open files, timers, signals, environment, command line, umask,
   * and so on.
   */
+
+ /*
+  * Local mail submission access list.
+  */
+static char *var_sendmail_acl;
+
+static CONFIG_STR_TABLE str_table[] = {
+    VAR_SENDMAIL_ACL, DEF_SENDMAIL_ACL, &var_sendmail_acl, 0, 0,
+    0,
+};
 
  /*
   * Queue file name. Global, so that the cleanup routine can find it when
@@ -203,6 +219,7 @@ int     main(int argc, char **argv)
     const char *error_text;
     char   *attr_name;
     char   *attr_value;
+    char   *errstr;
 
     /*
      * Be consistent with file permissions.
@@ -259,6 +276,14 @@ int     main(int argc, char **argv)
      * perform some sanity checks on the input.
      */
     mail_conf_read();
+    get_mail_conf_str_table(str_table);
+
+    /*
+     * Mail submission access control. Should this be in the user-land gate,
+     * or in the daemon process?
+     */
+    if ((errstr = check_user_acl_byuid(var_sendmail_acl, uid)) != 0)
+	msg_fatal("%s is not allowed to submit mail", errstr);
 
     /*
      * Stop run-away process accidents by limiting the queue file size. This
@@ -330,7 +355,7 @@ int     main(int argc, char **argv)
 	if (rec_type == REC_TYPE_EOF) {		/* request cancelled */
 	    mail_stream_cleanup(dst);
 	    if (remove(postdrop_path))
-		msg_warn("uid=%ld: remove %s: %m", (long) getuid(), postdrop_path);
+		msg_warn("uid=%ld: remove %s: %m", (long) uid, postdrop_path);
 	    else if (msg_verbose)
 		msg_info("remove %s", postdrop_path);
 	    myfree(postdrop_path);

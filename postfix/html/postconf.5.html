@@ -719,6 +719,97 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="authorized_flush_users">authorized_flush_users</a>
+(default: static:anyone)</b></DT><DD>
+
+<p>
+List of users who are authorized to flush the queue.
+</p>
+
+<p>
+By default all users are allowed to flush the queue. Otherwise if the
+invoking user is neither the super-user nor the $<a href="postconf.5.html#mail_owner">mail_owner</a> user, access
+is denied unless the real uid of the process trying to flush the queue
+is listed in the system password file and the corresponding login name
+is on the access list.  </p>
+
+<p>
+Specify a list of user names, "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns,
+separated by commas and/or whitespace. The list is matched left to
+right, and the search stops on the first match. Specify "!name" to
+exclude a name from the list. A "/file/name" pattern is replaced
+by its contents; a "<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a name
+matches a lookup key (the lookup result is ignored).  Continue long
+lines by starting the next line with whitespace.  </p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="authorized_mailq_users">authorized_mailq_users</a>
+(default: static:anyone)</b></DT><DD>
+
+<p>
+List of users who are authorized to view the queue.
+</p>
+
+<p>
+By default all users are allowed to view the queue. Otherwise if the
+invoking user is neither the super-user nor the $<a href="postconf.5.html#mail_owner">mail_owner</a> user, access
+is denied unless the real uid of the process trying to view the queue
+is listed in the system password file and the corresponding login name
+is on the access list.  </p>
+
+<p>
+Specify a list of user names, "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns,
+separated by commas and/or whitespace. The list is matched left to
+right, and the search stops on the first match. Specify "!name" to
+exclude a name from the list. A "/file/name" pattern is replaced
+by its contents; a "<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a name
+matches a lookup key (the lookup result is ignored).  Continue long
+lines by starting the next line with whitespace.  </p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="authorized_sendmail_users">authorized_sendmail_users</a>
+(default: static:anyone)</b></DT><DD>
+
+<p>
+List of users who are authorized to use the <a href="sendmail.1.html">sendmail(1)</a> command
+(and the privileged <a href="postdrop.1.html">postdrop(1)</a> helper command) to submit mail.
+</p>
+
+<p>
+By default all users are allowed to submit mail. Otherwise, access is denied
+unless the real uid of the process trying to submit mail is listed in
+the system password file and the corresponding login name is on the
+access list. To deny mail submission access to all users specify an
+empty list. </p>
+
+<p>
+Specify a list of user names, "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns,
+separated by commas and/or whitespace. The list is matched left to right,
+and the search stops on the first match. Specify "!name" to exclude a
+name from the list. A "/file/name" pattern is replaced by its contents;
+a "<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a name matches a lookup key
+(the lookup result is ignored).  Continue long lines by starting the
+next line with whitespace.  </p>
+
+<p>
+This feature is available in Postfix 2.2 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="authorized_verp_clients">authorized_verp_clients</a>
 (default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
 

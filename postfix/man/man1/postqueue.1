@@ -128,6 +128,12 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .IP "\fBtrigger_timeout (10s)\fR"
 The time limit for sending a trigger to a Postfix daemon (for
 example, the pickup(8) or qmgr(8) daemon).
+.PP
+Available in Postfix version 2.2 and later:
+.IP "\fBauthorized_flush_users (static:anyone)\fR"
+List of users who are authorized to flush the queue.
+.IP "\fBauthorized_mailq_users (static:anyone)\fR"
+List of users who are authorized to view the queue.
 .SH "FILES"
 .na
 .nf

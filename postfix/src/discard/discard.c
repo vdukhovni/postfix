@@ -1,22 +1,22 @@
 /*++
 /* NAME
-/*	error 8
+/*	discard 8
 /* SUMMARY
-/*	Postfix error mail delivery agent
+/*	Postfix discard mail delivery agent
 /* SYNOPSIS
-/*	\fBerror\fR [generic Postfix daemon options]
+/*	\fBdiscard\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The Postfix error delivery agent processes delivery requests from
+/*	The Postfix discard delivery agent processes delivery requests from
 /*	the queue manager. Each request specifies a queue file, a sender
 /*	address, a domain or host name that is treated as the reason for
-/*	non-delivery, and recipient information.
+/*	discarding the mail, and recipient information.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
 /*
-/*	The error delivery agent bounces all recipients in the delivery
-/*	request using the "next-hop"
-/*	domain or host information as the reason for non-delivery, updates
-/*	the queue file and marks recipients as finished or informs the
+/*	The discard delivery agent pretends to deliver all recipients
+/*	in the delivery request, logs the "next-hop" domain or host
+/*	information as the reason for discarding the mail, updates the
+/*	queue file and marks recipients as finished or informs the
 /*	queue manager that delivery should be tried again at a later time.
 /*
 /*	Delivery status reports are sent to the \fBbounce\fR(8),
@@ -24,7 +24,7 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	The error mailer is not security-sensitive. It does not talk
+/*	The discard mailer is not security-sensitive. It does not talk
 /*	to the network, and can be run chrooted at fixed low privilege.
 /* STANDARDS
 /*	None.
@@ -36,19 +36,12 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically as error(8)
+/*	Changes to \fBmain.cf\fR are picked up automatically as discard(8)
 /*      processes run for only a limited amount of time. Use the command
 /*      "\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
 /*	postconf(5) for more details including examples.
-/* .IP "\fB2bounce_notice_recipient (postmaster)\fR"
-/*	The recipient of undeliverable mail that cannot be returned to
-/*	the sender.
-/* .IP "\fBbounce_notice_recipient (postmaster)\fR"
-/*	The recipient of postmaster notifications with the message headers
-/*	of mail that Postfix did not deliver and of SMTP conversation
-/*	transcripts of mail that Postfix did not receive.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
@@ -67,8 +60,6 @@
 /* .IP "\fBmax_use (100)\fR"
 /*	The maximal number of connection requests before a Postfix daemon
 /*	process terminates.
-/* .IP "\fBnotify_classes (resource, software)\fR"
-/*	The list of error classes that are reported to the postmaster.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -83,7 +74,7 @@
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
-/*	discard(8), Postfix discard delivery agent
+/*	error(8), Postfix error delivery agent
 /*	postconf(5), configuration parameters
 /*	master(8), process manager
 /*	syslogd(8), system logging
@@ -91,7 +82,13 @@
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/*      This service was introduced with Postfix version 2.2.
 /* AUTHOR(S)
+/*	Victor Duchovni
+/*	Morgan Stanley
+/*
+/*	Based on code by:
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
@@ -158,18 +155,17 @@ static int deliver_message(DELIVER_REQUEST *request)
 	msg_info("%s: file %s", myname, VSTREAM_PATH(src));
 
     /*
-     * Bounce all recipients.
+     * Discard all recipients.
      */
 #define BOUNCE_FLAGS(request) DEL_REQ_TRACE_FLAGS(request->flags)
 
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
 	if (rcpt->offset >= 0) {
-	    status = bounce_append(BOUNCE_FLAGS(request), request->queue_id,
-				   rcpt->orig_addr, rcpt->address,
-				rcpt->offset, "none", request->arrival_time,
-				   "%s", request->nexthop);
-	    if (status == 0)
+	    status = sent(BOUNCE_FLAGS(request), request->queue_id,
+		       rcpt->orig_addr, rcpt->address, rcpt->offset, "none",
+			  request->arrival_time, "%s", request->nexthop);
+	    if (status == 0 && (request->flags & DEL_REQ_FLAG_SUCCESS))
 		deliver_completed(src, rcpt->offset);
 	    result |= status;
 	}
@@ -184,9 +180,9 @@ static int deliver_message(DELIVER_REQUEST *request)
     return (result);
 }
 
-/* error_service - perform service for client */
+/* discard_service - perform service for client */
 
-static void error_service(VSTREAM *client_stream, char *unused_service, char **argv)
+static void discard_service(VSTREAM *client_stream, char *unused_service, char **argv)
 {
     DELIVER_REQUEST *request;
     int     status;
@@ -199,11 +195,11 @@ static void error_service(VSTREAM *client_stream, char *unused_service, char **a
 
     /*
      * This routine runs whenever a client connects to the UNIX-domain socket
-     * dedicated to the error mailer. What we see below is a little protocol
-     * to (1) tell the queue manager that we are ready, (2) read a request
-     * from the queue manager, and (3) report the completion status of that
-     * request. All connection-management stuff is handled by the common code
-     * in single_server.c.
+     * dedicated to the discard mailer. What we see below is a little
+     * protocol to (1) tell the queue manager that we are ready, (2) read a
+     * request from the queue manager, and (3) report the completion status
+     * of that request. All connection-management stuff is handled by the
+     * common code in single_server.c.
      */
     if ((request = deliver_request_read(client_stream)) != 0) {
 	status = deliver_message(request);
@@ -222,7 +218,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 
 int     main(int argc, char **argv)
 {
-    single_server_main(argc, argv, error_service,
+    single_server_main(argc, argv, discard_service,
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       0);
 }

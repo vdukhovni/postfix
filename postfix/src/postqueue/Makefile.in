@@ -77,3 +77,4 @@ postqueue.o: ../../include/mail_flush.h
 postqueue.o: ../../include/flush_clnt.h
 postqueue.o: ../../include/smtp_stream.h
 postqueue.o: ../../include/vstring.h
+postqueue.o: ../../include/user_acl.h

@@ -64,6 +64,7 @@ $queue_directory/trace:d:$mail_owner:-:700:ucr
 $daemon_directory/anvil:f:root:-:755
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
+$daemon_directory/discard:f:root:-:755
 $daemon_directory/error:f:root:-:755
 $daemon_directory/flush:f:root:-:755
 $daemon_directory/lmtp:f:root:-:755
@@ -154,6 +155,7 @@ $manpage_directory/man8/bounce.8:f:root:-:644
 $manpage_directory/man8/cleanup.8:f:root:-:644
 $manpage_directory/man8/anvil.8:f:root:-:644
 $manpage_directory/man8/defer.8:f:root:-:644
+$manpage_directory/man8/discard.8:f:root:-:644
 $manpage_directory/man8/error.8:f:root:-:644
 $manpage_directory/man8/flush.8:f:root:-:644
 $manpage_directory/man8/lmtp.8:f:root:-:644
@@ -298,6 +300,7 @@ $html_directory/canonical.5.html:f:root:-:644
 $html_directory/cidr_table.5.html:f:root:-:644
 $html_directory/cleanup.8.html:f:root:-:644
 $html_directory/defer.8.html:f:root:-:644
+$html_directory/discard.8.html:f:root:-:644
 $html_directory/error.8.html:f:root:-:644
 $html_directory/flush.8.html:f:root:-:644
 $html_directory/header_checks.5.html:f:root:-:644

@@ -321,10 +321,11 @@ href="QSHAPE_README.html#deferred_queue"> deferred </a> </td>
 
 <li> <p> The queue manager (the <a href="qmgr.8.html">qmgr(8)</a> server process in the
 figure) is the heart of Postfix mail delivery.  It contacts the
-<a href="smtp.8.html">smtp(8)</a>, <a href="lmtp.8.html">lmtp(8)</a>, <a href="local.8.html">local(8)</a>, <a href="virtual.8.html">virtual(8)</a>, <a href="pipe.8.html">pipe(8)</a>, or <a href="error.8.html">error(8)</a> delivery
-agents, and sends a delivery request for one or more recipient
-addresses. The <a href="error.8.html">error(8)</a> delivery agent is special: it always declares
-mail as undeliverable. It is not shown in the figure above.  </p>
+<a href="smtp.8.html">smtp(8)</a>, <a href="lmtp.8.html">lmtp(8)</a>, <a href="local.8.html">local(8)</a>, <a href="virtual.8.html">virtual(8)</a>, <a href="pipe.8.html">pipe(8)</a>, <a href="discard.8.html">discard(8)</a> or
+<a href="error.8.html">error(8)</a> delivery agents, and sends a delivery request for one
+or more recipient addresses. The <a href="discard.8.html">discard(8)</a> and <a href="error.8.html">error(8)</a> delivery
+agents are special: they discard or bounce all mail, they are not
+shown in the figure above.  </p>
 
 <p> The queue manager maintains a small <a href="QSHAPE_README.html#active_queue">active queue</a> with the
 messages that it has opened for delivery. The <a href="QSHAPE_README.html#active_queue">active queue</a> acts as

@@ -247,6 +247,19 @@ server matches a pattern in the debug_peer_list parameter.
 Optional list of remote client or server hostname or network
 address patterns that cause the verbose logging level to increase
 by the amount specified in $debug_peer_level.
+.SH "ACCESS CONTROLS"
+.na
+.nf
+.ad
+.fi
+Available in Postfix version 2.2 and later:
+.IP "\fBauthorized_flush_users (static:anyone)\fR"
+List of users who are authorized to flush the queue.
+.IP "\fBauthorized_mailq_users (static:anyone)\fR"
+List of users who are authorized to view the queue.
+.IP "\fBauthorized_sendmail_users (static:anyone)\fR"
+List of users who are authorized to use the sendmail(1) command
+(and the privileged postdrop(1) helper command) to submit mail.
 .SH "RESOURCE AND RATE CONTROLS"
 .na
 .nf

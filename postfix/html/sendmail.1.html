@@ -291,6 +291,21 @@ SENDMAIL(1)                                           SENDMAIL(1)
               logging level to increase by the  amount  specified
               in $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.
 
+<b>ACCESS CONTROLS</b>
+       Available in Postfix version 2.2 and later:
+
+       <b><a href="postconf.5.html#authorized_flush_users">authorized_flush_users</a> (static:anyone)</b>
+              List  of  users  who  are  authorized  to flush the
+              queue.
+
+       <b><a href="postconf.5.html#authorized_mailq_users">authorized_mailq_users</a> (static:anyone)</b>
+              List of users who are authorized to view the queue.
+
+       <b><a href="postconf.5.html#authorized_sendmail_users">authorized_sendmail_users</a> (static:anyone)</b>
+              List  of  users who are authorized to use the <a href="sendmail.1.html">send-</a>
+              <a href="sendmail.1.html">mail(1)</a> command  (and  the  privileged  <a href="postdrop.1.html">postdrop(1)</a>
+              helper command) to submit mail.
+
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#bounce_size_limit">bounce_size_limit</a> (50000)</b>
               The maximal amount of original message text that is

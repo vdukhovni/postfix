@@ -92,3 +92,4 @@ sendmail.o: ../../include/deliver_request.h
 sendmail.o: ../../include/recipient_list.h
 sendmail.o: ../../include/mime_state.h
 sendmail.o: ../../include/header_opts.h
+sendmail.o: ../../include/user_acl.h
