@@ -1337,11 +1337,6 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`\
 abcdefghijklmnopqrstuvwxyz{|}~"
 extern char *var_smtpd_exp_filter;
 
-#define REQUIRE_DATE_HDR	"require_date_header"
-#define REQUIRE_FROM_HDR	"require_from_header"
-#define REQUIRE_MSGID_HDR	"require_message_id_header"
-#define REQUIRE_RCVD_HDR	"require_received_header"
-
  /*
   * Heuristic to reject unknown local recipients at the SMTP port.
   */

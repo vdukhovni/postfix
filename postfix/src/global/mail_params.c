@@ -608,6 +608,17 @@ void    mail_params_init()
 	msg_fatal("myhostname == relayhost");
 
     /*
+     * XXX These should be caught by a proper parameter parsing algorithm.
+     */
+    if (var_myorigin[strcspn(var_myorigin, ", \t\r\n")])
+	msg_fatal("myorigin parameter setting contains multiple values: %s",
+		  var_myorigin);
+
+    if (var_relayhost[strcspn(var_relayhost, ", \t\r\n")])
+	msg_fatal("relayhost parameter setting contains multiple values: %s",
+		  var_relayhost);
+
+    /*
      * One more sanity check.
      */
     if ((cp = verp_delims_verify(var_verp_delims)) != 0)

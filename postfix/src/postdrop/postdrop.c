@@ -315,9 +315,6 @@ int     main(int argc, char **argv)
 	}
 	if (rec_type == REC_TYPE_ERROR)
 	    msg_fatal("uid=%ld: malformed input", (long) uid);
-	if (rec_type == REC_TYPE_TIME)
-	    rec_fprintf(dst->stream, REC_TYPE_TIME, "%ld",
-			(long) time((time_t *) 0));
 	if (strchr(*expected, rec_type) == 0)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)

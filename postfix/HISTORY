@@ -8053,13 +8053,14 @@ Apologies for any names omitted.
 	a forbidden "next" sender state after the last recipient.
 	Fix by Vladimir Davydoff. File: lmtp/lmtp_proto.c.
 
-	Bugfix: proxymap server did not parse "," as space.
-	Leandro Santi. File: proxymap/proxymap.c.
+	Bugfix: "," was not recognized in proxy_read_maps settings.
+	Fix by Leandro Santi. File: proxymap/proxymap.c.
 
 20030502
 
 	Bugfix: defer delivery after .forward etc. file read error.
-	File: local/token.c.
+	File: local/token.c. Problem reported by Ben Rosengart,
+	Panix.
 
 20030503
 
@@ -8073,16 +8074,20 @@ Apologies for any names omitted.
 	descriptor is writable while write() transfers zero bytes.
 	File:  util/vstream.c.
 
-20030519
+20030520
 
-	Feature: new require_{date,from,message_id,received}_header
-	restriction to reject SMTP mail when some message header
-	is missing.  Only the From: and Date: headers are actually
-	required by Internet mail standards; the Received:  and
-	Message-ID: headers are optional, but these are often
-	missing from SPAM email.  Files: global/cleanup_user.h,
-	global/cleanup_strerror.c, smtpd/smtpd_check.c,
-	cleanup/cleanup_message.c.
+	Cleanup: future time stamps in Received: headers and negative
+	delays in delivery agent logging after "postdrop -r",
+	because deferred queue files had future file modification
+	times.  File:  src/postsuper/postsuper.c.
+
+20030521
+
+	Cleanup: nqmgr warnings about "recipient count mismatch"
+	after "postdrop -r", because the cleanup server did not
+	count the "already done" recipients. Problem reported by
+	Richard Stockton, Gramma Software. Files:
+	cleanup/cleanup_envelope.c, cleanup/cleanup_extracted.c.
 
 Open problems:
 

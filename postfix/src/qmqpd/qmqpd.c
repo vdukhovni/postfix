@@ -482,9 +482,6 @@ static void qmqpd_send_status(QMQPD_STATE *state)
     } else if ((state->err & CLEANUP_STAT_RCPT) != 0) {
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_HARD,
 		    "Error: no recipients specified");
-    } else if ((state->err & CLEANUP_STAT_MISS_HDR) != 0) {
-	qmqpd_reply(state, DO_LOG, QMQPD_STAT_HARD,
-		    "Error: missing message header");
     } else {
 	qmqpd_reply(state, DO_LOG, QMQPD_STAT_RETRY,
 		    "Error: internal error %d", state->err);

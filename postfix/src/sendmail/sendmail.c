@@ -523,7 +523,6 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
      * 
      * XXX Should limit the size of envelope records.
      */
-    rec_fprintf(dst, REC_TYPE_TIME, "%ld", (long) time((time_t *) 0));
     if (full_name || (full_name = fullname()) != 0)
 	rec_fputs(dst, REC_TYPE_FULL, full_name);
     rec_fputs(dst, REC_TYPE_FROM, saved_sender);
