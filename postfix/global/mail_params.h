@@ -84,7 +84,7 @@ extern char *var_mydomain;
   * Transports that deliver locally. Order matters.
   */
 #define VAR_LOCAL_TRANSP	"local_transports"
-#define DEF_LOCAL_TRANSP	"local"
+#define DEF_LOCAL_TRANSP	"local,cyrus"
 extern char *var_local_transports;
 
  /*
@@ -717,7 +717,7 @@ extern int var_trigger_timeout;
 extern char *var_mynetworks;
 
 #define VAR_RELAY_DOMAINS	"relay_domains"
-#define DEF_RELAY_DOMAINS	"$mydestination, $virtual_maps"
+#define DEF_RELAY_DOMAINS	"$mydestination"
 extern char *var_relay_domains;
 
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"

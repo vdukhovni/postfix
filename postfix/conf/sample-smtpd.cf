@@ -185,22 +185,30 @@ smtpd_sender_restrictions =
 # The smtpd_recipient_restrictions parameter specifies restrictions on
 # recipient addresses that SMTP clients can send in RCPT TO commands.
 # 
-# The default is to permit any destination from clients that match
-# $mynetworks, and to otherwise permit only mail from clients or to
-# destinations that match $relay_domains or a subdomain thereof.
+# By default, Postfix relays mail from clients whose IP address
+# matches $mynetworks, and from clients or to destination domains
+# matching $relay_domains or subdomains thereof. The default
+# relay_domains value is $mydestination.
 #
-# The following restrictions are available:
+# By default, the Postfix SMTP server accepts mail for domains listed
+# in $mydestination and in $virtual_maps, and for destinations that
+# resolve to a mail delivery transport listed in $local_transports.
+# These destinations do not need to be listed in $relay_domains.
+# 
+# The following restrictions are available (* is part of default setting):
 #
-#   permit_mynetworks: permit if the client address matches $mynetworks.
+#  *permit_mynetworks: permit if the client address matches $mynetworks.
 #   reject_unknown_client: reject the request if the client hostname is unknown.
 #   reject_maps_rbl: reject if the client is listed under $maps_rbl_domains.
 #   reject_invalid_hostname: reject HELO hostname with bad syntax.
 #   reject_unknown_hostname: reject HELO hostname without DNS A or MX record.
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
-#   check_relay_domains: permit only mail from clients/to domains matching 
-#	$relay_domains, or to the local machine.
-#   permit_auth_destination: permit mail to self or to $relay_domains.
-#   reject_unauth_destination: reject mail not to self or to $relay_domains.
+#  *check_relay_domains: permit only mail from clients/to domains matching 
+#	$relay_domains, or to $mydestination, $virtual_maps or $local_transports
+#   permit_auth_destination: permit mail to domains matching $relay_domains,
+#	or to $mydestination, $virtual_maps or $local_transports.
+#   reject_unauth_destination: reject mail not to $relay_domains or to 
+#	$mydestination, $virtual_maps or $local_transports.
 #   reject_unauth_pipelining: reject mail from improperly pipelining spamware
 #   permit_mx_backup: accept mail for sites that list me as MX host.
 #   reject_unknown_recipient_domain: reject domains without A or MX record.
@@ -246,9 +254,16 @@ maps_rbl_domains = rbl.maps.vix.com
 # and restricts what destination domains (and subdomains thereof)
 # this system will relay mail to.
 # 
-# By default, Postfix relays mail only from clients or to destinations
-# in or below $mydestination, or in the optional virtual domain list.
-# 
+# By default, Postfix relays mail from clients whose IP address
+# matches $mynetworks, and from clients or to destination domains
+# matching $relay_domains or subdomains thereof. The default
+# relay_domains value is $mydestination.
+#
+# By default, the Postfix SMTP server accepts mail for domains listed
+# in $mydestination and in $virtual_maps, and for destinations that
+# resolve to a mail delivery transport listed in $local_transports.
+# These destinations do not need to be listed in $relay_domains.
+#
 # Specify a list of hosts or domains, /file/name patterns or type:name
 # lookup tables, separated by commas and/or whitespace.  Continue
 # long lines by starting the next line with whitespace. A file name
@@ -260,7 +275,7 @@ maps_rbl_domains = rbl.maps.vix.com
 # permit_mx_backup restriction, in the description of the
 # smtpd_recipient_restrictions parameter.
 #
-relay_domains = $mydestination, $virtual_maps
+relay_domains = $mydestination
 
 #
 # RESPONSE CODES

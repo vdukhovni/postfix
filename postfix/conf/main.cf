@@ -14,12 +14,6 @@
 #
 queue_directory = /var/spool/postfix
 
-# The program_directory parameter specifies the default location of
-# Postfix support programs and daemons. This setting can be overruled
-# with the command_directory and daemon_directory parameters.
-#
-program_directory = /some/where/postfix/bin
-
 # The command_directory parameter specifies the location of all
 # postXXX commands.  The default value is $program_directory.
 #
@@ -90,7 +84,9 @@ mail_owner = postfix
 #inet_interfaces = $myhostname, localhost
 
 # The mydestination parameter specifies the list of domains that this
-# machine considers itself the final destination for.
+# machine considers itself the final destination for. That does not
+# include domains that are hosted on this machine. Those domains are
+# specified elsewhere (see sample-virtual.cf, and sample-transport.cf).
 #
 # The default is $myhostname + localhost.$mydomain.  On a mail domain
 # gateway, you should also include $mydomain. Do not specify the
@@ -130,34 +126,6 @@ mail_owner = postfix
 # copy the passwd database into the jail. This is system dependent.
 #
 #local_recipient_maps = $alias_maps unix:passwd.byname
-
-# INTERNET VERSUS INTRANET
-#
-# The relayhost parameter specifies the default host to send mail to
-# when no entry is matched in the optional transport(5) table. When
-# no relayhost is given, mail is routed directly to the destination.
-# 
-# On an intranet, specify the organizational domain name. If your
-# internal DNS uses no MX records, specify the name of the intranet
-# gateway host instead.
-#
-# Specify a domain, host, host:port, [address] or [address:port].
-# Use the form [destination] to turn off MX lookups. See also the
-# default_transport parameter if you're connected via UUCP.
-#
-#relayhost = $mydomain
-#relayhost = gateway.my.domain
-#relayhost = uucphost
-#relayhost = [mail.$mydomain:9999]
-
-# DEFAULT TRANSPORT
-#
-# The default_transport parameter specifies the default message
-# delivery transport to use when no transport is explicitly given in
-# the optional transport(5) table.
-#
-#default_transport = smtp
-#default_transport = uucp
 
 # ADDRESS REWRITING
 #
@@ -211,18 +179,6 @@ mail_owner = postfix
 #alias_database = hash:/etc/aliases
 #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
 
-# DELIVERED-TO
-#
-# The prepend_delivered_header controls when Postfix should prepend
-# a Delivered-To: message header.
-#
-# By default, Postfix prepends a Delivered-To: header when forwarding
-# mail and when delivering to file (mailbox) or command.  Turning off
-# the Delivered-To: header when forwarding mail is not recommended.
-#
-# prepend_delivered_header = command, file, forward
-# prepend_delivered_header = forward
-
 # ADDRESS EXTENSIONS (e.g., user+foo)
 #
 # The recipient_delimiter parameter specifies the separator between
@@ -256,10 +212,6 @@ mail_owner = postfix
 # the recipient with proper HOME, SHELL and LOGNAME environment settings.
 # Exception:  delivery for root is done as $default_user.
 #
-# IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE WITH, E.G., PROCMAIL,
-# YOU MUST SET UP AN ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL
-# USER.
-#
 # Other environment variables of interest: USER (recipient username),
 # EXTENSION (address extension), DOMAIN (domain part of address),
 # and LOCAL (the address localpart).
@@ -270,6 +222,9 @@ mail_owner = postfix
 #
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.
+#
+# IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
+# ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
 #
 #mailbox_command = /some/where/procmail
 #mailbox_command = /some/where/procmail -a "$EXTENSION"
@@ -317,14 +272,20 @@ mail_owner = postfix
 #header_checks = regexp:/etc/postfix/filename
 #header_checks = pcre:/etc/postfix/filename
 
-# The relay_domains parameter restricts what client hostname domains
-# (and subdomains thereof) this mail system will relay mail from,
-# and restricts what destination domains (and subdomains thereof)
-# this system will relay mail to.  See the smtpd_recipient_restrictions
-# restriction in the file sample-smtpd.cf.
+# The relay_domains parameter restricts what clients this mail system
+# will relay mail from, or what destinations this system will relay
+# mail to.  See the smtpd_recipient_restrictions restriction in the
+# file sample-smtpd.cf.
 #
-# By default, Postfix relays mail only from clients or to destinations
-# in or below $mydestination, or in the optional virtual domain list.
+# By default, Postfix relays mail from clients whose IP address
+# matches $mynetworks, and from clients or to destination domains
+# matching $relay_domains or subdomains thereof. The default
+# relay_domains value is $mydestination.
+# 
+# By default, the Postfix SMTP server accepts mail for domains listed
+# in $mydestination and in $virtual_maps, and for destinations that
+# resolve to a mail delivery transport listed in $local_transports.
+# These destinations do not need to be listed in $relay_domains.
 # 
 # Specify a list of hosts or domains, /file/name patterns or type:name
 # lookup tables, separated by commas and/or whitespace.  Continue
@@ -336,7 +297,7 @@ mail_owner = postfix
 # list this system as their primary or backup MX host. See the
 # permit_mx_backup restriction in the file sample-smtpd.cf.
 #
-#relay_domains = $mydestination, $virtual_maps
+#relay_domains = $mydestination
 
 # The mynetworks parameter specifies the list of networks that are
 # local to this machine.  The list is used by the anti-UCE software

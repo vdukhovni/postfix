@@ -121,15 +121,21 @@
 /* .IP check_relay_domains
 /*	Allow the request when either the client hostname or the resolved
 /*	recipient domain matches the \fIrelay_domains\fR configuration
-/*	parameter.  Reject the request otherwise.
+/*	parameter or a subdomain therereof, or when the destination somehow
+/*	resolves locally (see $mydestination, $virtual_maps or
+/*	$local_transports).  Reject the request otherwise.
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
 /* .IP permit_auth_destination
-/*	Permit the request when the resolved recipient domain matches
-/*	the local machine or the \fIrelay_domains\fR configuration parameter.
+/*	Permit the request when the resolved recipient domain matches the
+/*	\fIrelay_domains\fR configuration parameter or a subdomain therereof,
+/*	or when the destination somehow resolves locally (see $mydestination,
+/*	$virtual_maps or $local_transports).
 /* .IP reject_unauth_destination
 /*	Reject the request when the resolved recipient domain does not match
-/*	the local machine or the \fIrelay_domains\fR configuration parameter.
+/*	the \fIrelay_domains\fR configuration parameter or a subdomain
+/*	therereof, and when the destination does not somehow resolve locally
+/*	(see $mydestination, $virtual_maps or $local_transports).
 /*	Same error code as check_relay_domains.
 /* .IP reject_unauth_pipelining
 /*	Reject the request when the client has already sent the next request
@@ -721,13 +727,17 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
     resolve_clnt_query(STR(query), &reply);
 
     /*
-     * Permit if destination is local. XXX This must be generalized for
-     * per-domain user tables and for non-UNIX local delivery agents.
+     * Permit if destination is local. That is, the destination matches
+     * mydestination or virtual_maps, or it resolves to any transport that
+     * delivers locally.
      */
     if (match_any_local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
+    if (resolve_local(domain)
+	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
+	return (SMTPD_CHECK_OK);
 
     /*
      * Permit if the destination matches the relay_domains list.
@@ -760,13 +770,17 @@ static int permit_auth_destination(char *recipient)
     resolve_clnt_query(STR(query), &reply);
 
     /*
-     * Permit if destination is local. XXX This must be generalized for
-     * per-domain user tables and for non-UNIX local delivery agents.
+     * Permit if destination is local. That is, the destination matches
+     * mydestination or virtual_maps, or it resolves to any transport that
+     * delivers locally.
      */
     if (match_any_local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
+    if (resolve_local(domain)
+	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
+	return (SMTPD_CHECK_OK);
 
     /*
      * Permit if the destination matches the relay_domains list.
@@ -797,13 +811,17 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
     resolve_clnt_query(STR(query), &reply);
 
     /*
-     * Pass if destination is local. XXX This must be generalized for
-     * per-domain user tables and for non-UNIX local delivery agents.
+     * Permit if destination is local. That is, the destination matches
+     * mydestination or virtual_maps, or it resolves to any transport that
+     * delivers locally.
      */
     if (match_any_local_transport(STR(reply.transport))
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
+    if (resolve_local(domain)
+	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
+	return (SMTPD_CHECK_DUNNO);
 
     /*
      * Pass if the destination matches the relay_domains list.
@@ -907,7 +925,8 @@ static int permit_mx_backup(SMTPD_STATE *unused_state, const char *recipient)
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
-    if (resolve_local(domain))
+    if (resolve_local(domain)
+	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
 	return (SMTPD_CHECK_OK);
 
     if (msg_verbose)
@@ -1041,6 +1060,9 @@ static int reject_unknown_address(SMTPD_STATE *state, char *addr,
 	|| (domain = strrchr(STR(reply.recipient), '@')) == 0)
 	return (SMTPD_CHECK_DUNNO);
     domain += 1;
+    if (resolve_local(domain)
+	|| (*var_virtual_maps && maps_find(virtual_maps, domain, 0)))
+	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '#')
 	return (SMTPD_CHECK_DUNNO);
     if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')

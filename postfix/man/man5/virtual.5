@@ -37,10 +37,8 @@ Typical support for a virtual domain looks like the following:
 .fi
 .in -4
 
-With this, the SMTP server accepts mail for \fIvirtual.domain\fR
-(provided that the \fBrelay_domains\fR parameter includes
-$\fBvirtual_maps\fR), and mail for \fIunknown\fR@\fIvirtual.domain\fR
-is bounced as undeliverable.
+With this, the SMTP server accepts mail for \fIvirtual.domain\fR and
+rejects mail for \fIunknown\fR@\fIvirtual.domain\fR as undeliverable.
 
 The format of the virtual table is as follows, mappings being
 tried in the order as listed in this manual page:

@@ -210,6 +210,10 @@ QMGR(8)                                                   QMGR(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
+       <b>allow</b><i>_</i><b>min</b><i>_</i><b>user</b>
+              Do  not  bounce recipient addresses that begin with
+              '-'.
+
        <b>relocated</b><i>_</i><b>maps</b>
               Tables with contact information for users, hosts or
               domains that no longer exist. See <a href="relocated.5.html"><b>relocated</b>(5)</a>.
@@ -224,24 +228,24 @@ QMGR(8)                                                   QMGR(8)
        <b>qmgr</b><i>_</i><b>message</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
               Limit the number of in-memory recipients.
 
-              This parameter also limits the size of  the  short-
+              This  parameter  also limits the size of the short-
               term, in-memory destination cache.
 
 <b>Timing</b> <b>controls</b>
        <b>min</b><i>_</i><b>backoff</b>
-              Minimal  time  in seconds between delivery attempts
+              Minimal time in seconds between  delivery  attempts
               of a deferred message.
 
-              This parameter also limits the time an  unreachable
-              destination  is  kept  in the short-term, in-memory
+              This  parameter also limits the time an unreachable
+              destination is kept in  the  short-term,  in-memory
               destination status cache.
 
        <b>max</b><i>_</i><b>backoff</b>
-              Maximal time in seconds between  delivery  attempts
+              Maximal  time  in seconds between delivery attempts
               of a deferred message.
 
        <b>maximal</b><i>_</i><b>queue</b><i>_</i><b>lifetime</b>
-              Maximal  time in days a message is queued before it
+              Maximal time in days a message is queued before  it
               is sent back as undeliverable.
 
        <b>queue</b><i>_</i><b>run</b><i>_</i><b>delay</b>
@@ -249,12 +253,8 @@ QMGR(8)                                                   QMGR(8)
               scans do not overlap.
 
        <b>transport</b><i>_</i><b>retry</b><i>_</i><b>time</b>
-              Time  in seconds between attempts to contact a bro-
+              Time in seconds between attempts to contact a  bro-
               ken delivery transport.
-
-<b>Concurrency</b> <b>controls</b>
-       In the text below, <i>transport</i> is the first field in a  <b>mas-</b>
-       <b>ter.cf</b> entry.
 
 
 
@@ -268,6 +268,26 @@ QMGR(8)                                                   QMGR(8)
 
 QMGR(8)                                                   QMGR(8)
 
+
+<b>Concurrency</b> <b>controls</b>
+       In  the text below, <i>transport</i> is the first field in a <b>mas-</b>
+       <b>ter.cf</b> entry.
+
+       <b>qmgr</b><i>_</i><b>fudge</b><i>_</i><b>factor</b> (valid range: 10..100)
+              The percentage of delivery resources  that  a  busy
+              mail  system  will  use  up for delivery of a large
+              mailing list message.  With 100%, delivery  of  one
+              message  does not begin before the previous message
+              has been delivered. This results  in  good  perfor-
+              mance  for large mailing lists, but results in poor
+              response time for one-to-one mail.  With less  than
+              100%,  response  time for one-to-one mail improves,
+              but large mailing list  delivery  performance  suf-
+              fers. In the worst case, recipients near the begin-
+              ning of a large list receive a  burst  of  messages
+              immediately,  while recipients near the end of that
+              list receive that same burst of  messages  a  whole
+              day later.
 
        <b>initial</b><i>_</i><b>destination</b><i>_</i><b>concurrency</b>
               Initial  per-destination concurrency level for par-
@@ -303,6 +323,18 @@ QMGR(8)                                                   QMGR(8)
 
 <b>AUTHOR(S)</b>
        Wietse Venema
+
+
+
+                                                                5
+
+
+
+
+
+QMGR(8)                                                   QMGR(8)
+
+
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
@@ -326,7 +358,41 @@ QMGR(8)                                                   QMGR(8)
 
 
 
-                                                                5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                6
 
 
 </pre> </body> </html>

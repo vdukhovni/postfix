@@ -52,6 +52,8 @@
 
 <ul>
 
+<li><a href="#stand_alone">Stand-alone machine</a>
+
 <li><a href="#workstation_server">Workstations and servers</a>
 
 <li><a href="#null_client">Null clients</a>
@@ -110,7 +112,8 @@ virtual domains</a>
 
 <li><a href="#root">Root's mail is delivered to nobody</a>
 
-<li><a href="#local">Delivering some users locally while sending mail as user@domain</a>
+<li><a href="#some_local">Delivering some users locally while
+sending mail as user@domain</a>
 
 <li><a href="#maildir">Support for maildir-style mailboxes</a>
 
@@ -196,9 +199,19 @@ virtual domains</a>
 
 <hr>
 
+<a name="stand_alone"><h3>Stand-alone machine</h3>
+
+Out of the box, Postfix should work without change on a stand-alone
+machine that is has direct Internet access.  At least, that is how
+Postfix installs when you download the Postfix source code. If you
+are on a firewalled intranet, or if your machine is dial-up connected
+only a small part of the time, see the respective sections.
+
+<hr>
+
 <a name="workstation_server"><h3>Workstations and servers</h3>
 
-This section describes a workstation-sever environment. All systems
+This section describes a workstation-server environment. All systems
 send mail as user@domain. All systems receive mail for user@hostname.
 The server receives mail for user@domain, too.
 
@@ -268,7 +281,6 @@ domain.
 
 <pre>
     <b>/etc/postfix/main.cf</b>:
-	mydestination =
         myorigin = $mydomain
         relayhost = $mydomain
 
@@ -279,21 +291,9 @@ domain.
 
 <p>
 
-The mail server is the primary MX host for null clients (remember,
-null clients do not receive mail, so something needs to be done
-with mail for user@nullclient).
-
-<p>
-
-<pre>
-    <b>/etc/postfix/main.cf</b>:
-	myorigin = $mydomain
-        mydestination = $myhostname localhost.$mydomain $mydomain /etc/postfix/nullclients
-
-    <b>/etc/postfix/nullclients</b>:
-	hosta.my.domain
-	hostb.my.domain
-</pre>
+Since everything sends mail as user@domain, nothing sends mail as
+user@nullclient, and therefore no special configuration needs to
+be done on the mail server for mail addressed to user@nullclient.
 
 <hr>
 
@@ -307,8 +307,18 @@ to let that mail gateway take care of forwarding.
 
 <ul>
 
-<li>Forward <i>all</i> mail to an intranet mail gateway, unless
-the mail is to be delivered on the local machine:
+<li>Send mail as user@domain. This is optional but highly recommended
+because it allows users to change machines without hassle.
+
+<pre>
+    <b>/etc/postfix/main.cf</b>:
+        myorigin = $mydomain
+</pre>
+
+<p>
+
+<li>Forward <i>all</i> mail to an intranet mail gateway, except
+for mail for the local machine:
 
 <p>
 
@@ -364,8 +374,8 @@ href="transport.5.html">transport</a> table lookups.
     <b>/etc/postfix/transport</b>:
         my.domain               smtp:
         .my.domain              smtp:
-        thishost.my.domain      local:        <blink>important!</blink>
-        localhost.my.domain     local:        <blink>important!</blink>
+        thishost.my.domain      local:        <blink>!important!</blink>
+        localhost.my.domain     local:        <blink>!important!</blink>
 
     <b>/etc/postfix/main.cf</b>:
         transport_maps = hash:/etc/postfix/transport
@@ -373,13 +383,18 @@ href="transport.5.html">transport</a> table lookups.
 
 <p>
 
-Important: do not omit the entries that route local mail to the
-local delivery agent, or else mail your mail will go into a loop.
+Important: do not omit the entries that deliver mail locally, or
+else mail will bounce with a "mail loops to myself" condition.
 
 <p>
 
 Specify <b>dbm:/etc/postfix/transport</b> if your system
 uses <b>dbm</b> files instead of <b>db</b>.
+
+<p>
+
+Execute the command <b>postmap /etc/postfix/transport</b> whenever
+you edit the transport table.
 
 <p>
 
@@ -393,7 +408,8 @@ changes effective.
 <a name="firewall"><h3>Running Postfix on a firewall</h3> </a>
 
 Note: this text applies to Postfix versions dated 19991115
-and later only.
+and later only. To find out what Postfix version you have,
+execute the command <b>postconf mail_version</b>.
 
 <p>
 
@@ -421,14 +437,22 @@ route mail for <i>my.domain</i> to the inside machine:
     transport_maps = hash:/etc/postfix/transport
 
 <b>/etc/postfix/transport</b>:
-    my.domain   smtp:inside-gateway.my.domain
-    .my.domain  smtp:inside-gateway.my.domain
+    my.domain   smtp:inside-gateway.my.domain   (forwards user@domain)
+    .my.domain  smtp:inside-gateway.my.domain   (forwards user@firewall)
+
+<b>/etc/postfix/master.cf</b>:
+    Comment out the local delivery agent
 </pre>
 
 <p>
 
 Specify <b>dbm:/etc/postfix/transport</b> if your system uses <b>dbm</b>
 files instead of <b>db</b>.
+
+<p>
+
+<li>Execute the command <b>postmap /etc/postfix/transport</b>
+whenever you change the transport table.
 
 <p>
 
@@ -440,6 +464,18 @@ configuration change.
 <hr>
 
 <a name="dialup"><h3>Running Postfix on a dialup machine</h3></a>
+
+This section applies to dialup connections that are down most of
+the time. For dialup connections that are up 24x7, see the <a
+href="#workstation_server">workstations and servers</a> section
+instead. 
+
+<p>
+
+If you do not have your own hostname (as with dynamic IP addressing)
+and must send mail as user@your-isp.com, you should also study the
+the section on <a href="#some_local">delivering some users locally
+while sending mail as user@domain</a>.
 
 <ul>
 
@@ -588,11 +624,12 @@ is probably more a matter of expectation and of what one is used to.
 
 <p>
 
-This can be "fixed" only by making Postfix slower.  Postfix would
-first have to expand all distribution lists before starting any
-delivery. By design, Postfix delivers mail to different destinations
-in parallel, and local delivery is no exception. This is why Postfix
-can be faster than sendmail.
+This can be "fixed" only by making Postfix slower.  In the above
+examples, Postfix would first have to completely expand all
+distribution lists before starting any delivery. By design, Postfix
+delivers mail to different destinations in parallel, and local
+delivery is no exception. This is why Postfix can be faster than
+sendmail.
 
 <hr>
 
@@ -601,14 +638,14 @@ distribution list</h3> </a>
 
 Some people will complain that Postfix sends mail to every member
 of a distribution list, including the poster.  By default, Sendmail
-deletes the poster from the distribution list. Sendmail sends mail
-to the poster only when the "metoo" flag is explicitly turned on.
+deletes the poster from distribution lists. Sendmail sends mail to
+the poster only when the "metoo" flag is explicitly turned on.
 
 <p>
 
 Wietse believes that Postfix implements the "right" behavior,
 and suspects that Sendmail's default behavior is a remnant from a
-dark past when Sendmail used a really crummy algorithm to avoid
+dark past when Sendmail used a pretty crummy algorithm to avoid
 aliasing loops.
 
 <hr>
@@ -902,7 +939,8 @@ To find out the location for your system, execute the command
 
 <hr>
 
-<a name="local"><h3>Delivering some users locally while sending mail as user@domain</h3></a>
+<a name="some_local"><h3>Delivering some users locally while sending
+mail as user@domain</h3></a>
 
 <ul>
 
@@ -1630,8 +1668,8 @@ changes effective.
 <a name="uucp-only"><h3>Using UUCP as the default transport</h3> </a>
 
 Here is how to relay all your mail over a UUCP link.  See the <a
-href="#uucp">Internet to UUCP</a> FAQ entry for setting up a machine
-that gateways between UUCP and SMTP.
+href="#internet-uucp">Internet to UUCP</a> FAQ entry for setting
+up a machine that gateways between UUCP and SMTP.
 
 <p>
 
@@ -1813,7 +1851,7 @@ One problem: older DB versions install a file
 <b>/usr/local/include/ndbm.h</b> that is incompatible with
 <b>/usr/include/ndbm.h</b>. Be sure to get rid of the bogus file.
 See the FAQ entry titled "<a href="#dbm_dirfno">Undefined symbols:
-dbm_pagfno, dbm_dirfno etc".
+dbm_pagfno, dbm_dirfno etc</a>".
 
 <hr>
 

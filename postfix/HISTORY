@@ -3427,3 +3427,12 @@ Apologies for any names omitted.
 	Cleanup: INSTALL.sh uses a configurable directory for
 	scratch files, so that it can install from a file system
 	that is not writable by the super-user.
+
+19991220
+
+	Cleanup: it is no longer necessary to list $virtual_maps
+	as part of the relay_domains definition. The SMTP server
+	now by default accepts mail for domains that match
+	$mydestination or $virtual_maps, or that resolve to a mail
+	delivery transport that is listed in $local_transport.
+	Files: smtpd/smtpd_check.c and lots of documentation.

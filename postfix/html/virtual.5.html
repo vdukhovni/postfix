@@ -37,28 +37,28 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
 
        With this, the SMTP server accepts mail for <i>virtual.domain</i>
-       (provided that the <b>relay</b><i>_</i><b>domains</b> parameter includes  $<b>vir-</b>
-       <b>tual</b><i>_</i><b>maps</b>), and mail for <i>unknown</i>@<i>virtual.domain</i> is bounced
-       as undeliverable.
+       and rejects mail for <i>unknown</i>@<i>virtual.domain</i> as  undeliver-
+       able.
 
-       The format of the virtual table is  as  follows,  mappings
+       The  format  of  the virtual table is as follows, mappings
        being tried in the order as listed in this manual page:
 
        blanks and comments
-              Blank  lines  are  ignored,  as are lines beginning
+              Blank lines are ignored,  as  are  lines  beginning
               with `#'.
 
        <i>user</i>@<i>domain</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail for  <i>user</i>@<i>domain</i>  is  redirected  to  <i>address</i>.
+              Mail  for  <i>user</i>@<i>domain</i>  is  redirected  to <i>address</i>.
               This form has the highest precedence.
 
        <i>user</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail  for  <i>user</i>@<i>site</i>  is redirected to <i>address</i> when
-              <i>site</i> is equal to $<b>myorigin</b>, when <i>site</i> is listed  in
+              Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
+              <i>site</i>  is equal to $<b>myorigin</b>, when <i>site</i> is listed in
               $mydestination,   or   when   it   is   listed   in
               $<i>inet_interfaces</i>.
 
-              This functionality overlaps with  functionality  of
+              This  functionality  overlaps with functionality of
+              the local <i>alias</i>(5) database. The difference is that
 
 
 
@@ -71,33 +71,32 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
-              the local <i>alias</i>(5) database. The difference is that
-              <b>virtual</b>  mapping  can  be  applied   to   non-local
+              <b>virtual</b>   mapping   can  be  applied  to  non-local
               addresses.
 
        @<i>domain</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail  for  any  user  in  <i>domain</i>  is  redirected to
+              Mail for  any  user  in  <i>domain</i>  is  redirected  to
               <i>address</i>.  This form has the lowest precedence.
 
-       In all the above forms, when <i>address</i> has the form  @<i>other-</i>
-       <i>domain</i>,  the result is the same user in <i>otherdomain</i>.  This
+       In  all the above forms, when <i>address</i> has the form @<i>other-</i>
+       <i>domain</i>, the result is the same user in <i>otherdomain</i>.   This
        works for the first address in the expansion only.
 
 <b>ADDRESS</b> <b>EXTENSION</b>
-       When the search fails, and the address localpart  contains
-       the  optional recipient delimiter (e.g., <i>user+foo</i>@<i>domain</i>),
-       the search is repeated for the  unextended  address  (e.g.
+       When  the search fails, and the address localpart contains
+       the optional recipient delimiter (e.g.,  <i>user+foo</i>@<i>domain</i>),
+       the  search  is  repeated for the unextended address (e.g.
        <i>user</i>@<i>domain</i>), and the unmatched address extension is prop-
-       agated to the result of expansion. The matching order  is:
+       agated  to the result of expansion. The matching order is:
        <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and @<i>domain</i>.
 
 <b>BUGS</b>
-       The table format does not understand quoting  conventions.
+       The  table format does not understand quoting conventions.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
        <b>virtual</b><i>_</i><b>maps</b>
@@ -106,11 +105,11 @@ VIRTUAL(5)                                             VIRTUAL(5)
        Other parameters of interest:
 
        <b>inet</b><i>_</i><b>interfaces</b>
-              The network interface addresses  that  this  system
+              The  network  interface  addresses that this system
               receives mail on.
 
        <b>mydestination</b>
-              List  of  domains  that  this mail system considers
+              List of domains that  this  mail  system  considers
               local.
 
        <b>myorigin</b>
@@ -124,7 +123,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue mail
        <a href="postmap.1.html">postmap(1)</a> create mapping table
 
-
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
 
 
 
@@ -137,8 +137,6 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
-<b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>
@@ -146,6 +144,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+
 
 
 

@@ -95,6 +95,10 @@ Recipient of protocol/policy/resource/software error notices.
 Limit the number of \fBReceived:\fR message headers.
 .IP \fBnotify_classes\fR
 List of error classes. Of special interest are:
+.IP \fBlocal_recipient_maps\fR
+List of maps with user names that are local to \fB$myorigin\fR
+or \fB$inet_interfaces\fR. If this parameter is defined,
+then the SMTP server rejects mail for unknown local users.
 .RS
 .IP \fBpolicy\fR
 When a client violates any policy, mail a transcript of the

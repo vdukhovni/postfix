@@ -26,9 +26,9 @@ unsolicited commercial email (UCE).
 <p>
 
 By default, the Postfix <a href="smtpd.8.html">SMTP server</a> will
-accept mail only from or to the local network or domain, so that
-your system can't be used as a mail relay to forward bulk mail from
-random strangers.
+accept mail only from or to the local network or domain, or to
+domains that are hosted by Postfix, so that your system can't be
+used as a mail relay to forward bulk mail from random strangers.
 
 <p>
 
@@ -48,7 +48,7 @@ command.
 
 <p>
 
-<li> <a href="#smtpd_client_restrictions">Client name/address
+<li> <a href="#smtpd_client_restrictions">Client hostname/address
 restrictions</a>
 
 <p>
@@ -59,6 +59,11 @@ restrictions</a>
 
 <li> <a href="#smtpd_helo_restrictions">HELO (EHLO) hostname
 restrictions</a>
+
+<p>
+
+<li> <a href="#strict_rfc821_envelopes">Require strict RFC 821-style
+envelope addresses </a>
 
 <p>
 
@@ -108,15 +113,16 @@ matches a table, a REJECT result means reject the message.
 
 <p>
 
-<i>A rule ending in OK affects only the header being matched. The
-next header may still result in a REJECT match, causing the mail
-still to be rejected.</i>
+<i>At present, specifying a header pattern with OK serves no useful
+purpose. A rule ending in OK affects only the header being matched.
+The next header may still result in a REJECT match, causing the
+mail still to be rejected.</i>
 
 </dl>
 
 <p>
 
-<dt>Examples:
+<dt>Examples (main.cf):
 
 <dd> <b>header_checks = regexp:/etc/postfix/header_checks</b>
 
@@ -124,9 +130,15 @@ still to be rejected.</i>
 
 <p>
 
+<dt>Example (header_checks):
+
+<dd> /^to: *friend@public\.com$/ REJECT
+
+<p>
+
 <a name="smtpd_client_restrictions">
 
-<h2> Client name/address restrictions</h2>
+<h2> Client hostname/address restrictions</h2>
 
 The <b>smtpd_client_restrictions</b> parameter restricts what
 clients this system accepts SMTP connections from.
@@ -168,7 +180,7 @@ reject_unknown_client</b>
 <a name="reject_unknown_client">
 
 <dt> <b>reject_unknown_client</b> <dd> Reject the request when the
-client address to name lookup failed.  The
+client IP address has no PTR record in the DNS.  The
 <b>unknown_client_reject_code</b> parameter specifies the response
 code to rejected requests (default:  <b>450</b>).
 
@@ -177,7 +189,7 @@ code to rejected requests (default:  <b>450</b>).
 <a name="permit_mynetworks">
 
 <dt> <b>permit_mynetworks</b> <dd> Permit the request when the
-client address matches any network listed in <a
+client IP address matches any network listed in <a
 href="basic.html#mynetworks"> $mynetworks</a>.
 
 <p>
@@ -187,8 +199,8 @@ href="basic.html#mynetworks"> $mynetworks</a>.
 <dt> <b>check_client_access</b> <i>maptype</i>:<i>mapname</i>
 
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
-href="access.5.html">access database</a> for the client name, parent
-domains, client address, or networks obtained by stripping least
+href="access.5.html">access database</a> for the client hostname, parent
+domains, client IP address, or networks obtained by stripping least
 significant octets.  Reject the request if the result is <b>REJECT</b>
 or "[<b>45</b>]<i>XX text</i>". Permit the request if the result
 is <b>OK</b> or <b>RELAY</b> or all-numerical. Otherwise, treat the
@@ -225,7 +237,7 @@ rejected requests (default: <b>554</b>).
 <h2> Require HELO (EHLO) command</h2>
 
 The <b>smtpd_helo_required</b> parameter determines if clients must
-send a <b>HELO</b> (<b>EHLO</b>) command at the beginning of an
+send a <b>HELO</b> (or <b>EHLO</b>) command at the beginning of an
 SMTP session.  Requiring this will stop some UCE software.
 
 <p>
@@ -264,7 +276,7 @@ UCE software can be stopped by being strict here.
 <dt>Default:
 
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
-accepts any hostname.
+accepts any garbage in the <b>HELO</b> (<b>EHLO</b>) command.
 
 <p>
 
@@ -297,7 +309,7 @@ on the client hostname or network address.
 <a name="reject_invalid_hostname">
 
 <dt> <b>reject_invalid_hostname</b> <dd> Reject the request when
-the client HELO and EHLO command has a bad hostname syntax. The
+the client HELO or EHLO parameter has a bad hostname syntax. The
 <b>invalid_hostname_reject_code</b> specifies the response code to
 rejected requests (default:  501).
 
@@ -326,8 +338,9 @@ response code to rejected requests (default:  <b>450</b>).
 
 <dt> <b>reject_non_fqdn_hostname</b> <dd> Reject the request when
 the hostname in the client HELO (EHLO) command is not in fully-qualified
-domain form. The <b>non_fqdn_reject_code</b> specifies the
-response code to rejected requests (default:  <b>504</b>).
+domain form, as required by the RFC. The <b>non_fqdn_reject_code</b>
+specifies the response code to rejected requests (default:
+<b>504</b>).
 
 <p>
 
@@ -354,7 +367,7 @@ the response code for <b>REJECT</b> results (default:  <b>554</b>).
 
 <dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
 
-<dd> See client name/address restrictions.
+<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -367,6 +380,34 @@ the response code for <b>REJECT</b> results (default:  <b>554</b>).
 <dd> See generic restrictions.
 
 </dl>
+
+</dl>
+
+<a name="strict_rfc821_envelopes">
+
+<h2> Require strict RFC 821-style envelope addresses </h2>
+
+The <b>strict_rfc821_envelopes</b> parameter controls how tolerant
+Postfix is with respect to addresses given in MAIL FROM or RCPT TO
+commands. Being strict to the RFC not only stops unwanted mail,
+but also blocks legitimate mail from poorly-written mail applications.
+
+<p>
+
+<dl>
+
+<dt> Default:
+
+<dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
+accepts any address form that it can make sense of, including forms
+that contain RFC 822-style comments, or addresses not enclosed in
+&lt;&gt;.
+
+<p>
+
+<dt> Example:
+
+<dd><b>strict_rfc821_envelopes = yes</b>
 
 </dl>
 
@@ -469,7 +510,7 @@ response code to rejected requests (default:  <b>504</b>).
 
 <dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
 
-<dd> See client name/address restrictions.
+<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -497,10 +538,20 @@ recipient addresses this system accepts in RCPT TO commands.
 <dt>Default:
 
 <dd>By default, the Postfix <a href="smtpd.8.html">SMTP server</a>
-forwards mail from any client that matches <a
-href="basic.html#mynetworks">$mynetworks</a> or <a
-href="#relay_domains">$relay_domains</a>, or to any destination
-that matches <a href="#relay_domains"> $relay_domains</a>.
+relays mail from any client whose IP address matches <a
+href="basic.html#mynetworks">$mynetworks</a> or whose hostname
+matches <a href="#relay_domains">$relay_domains</a> or a subdomain
+thereof, and relays mail to any destination that matches <a
+href="#relay_domains"> $relay_domains</a> or a subdomain thereof.
+
+<p>
+
+In addition, the Postfix <a href="smtpd.8.html">SMTP server</a> by
+default accepts mail for which Postfix is the final destination:
+anything that matches <a href="basic.html#mydomain">$mydomain</a>,
+<a href="basic.html#mynetworks">$mynetworks</a> or <a
+href="virtual.5.html">$virtual_maps</a>, or anything that resolves
+to a mail delivery transport whose name is listed in $local_transports.
 
 <p>
 
@@ -536,12 +587,16 @@ reject_unauth_destination</b>
 <a name="check_relay_domains">
 
 <dt> <b>check_relay_domains</b> <dd> Permit the request when the
-client hostname matches <a href="#relay_domains">$relay_domains</a>,
-or when the resolved destination address matches <a
-href="basic.html#mydestination">$mydestination</a>, the machine IP
-addresses, or <a href="#relay_domains"> $relay_domains</a>, otherwise
-reject the request.  The <b>relay_domains_reject_code</b> parameter
-specifies the response code for rejected requests (default:
+client hostname matches <a href="#relay_domains">$relay_domains</a>
+or a subdomain thereof, or when the resolved destination address
+matches <a href="#relay_domains">$relay_domains</a> or a subdomain
+thereof, or when Postfix is the final destination:  anything that
+matches <a href="basic.html#mydomain">$mydomain</a>, <a
+href="basic.html#mynetworks">$mynetworks</a> or <a
+href="virtual.5.html">$virtual_maps</a>, or anything that resolves
+to a mail delivery transport whose name is listed in $local_transports.
+Otherwise reject the request.  The <b>relay_domains_reject_code</b>
+parameter specifies the response code for rejected requests (default:
 <b>554</b>).
 
 <p>
@@ -550,8 +605,12 @@ specifies the response code for rejected requests (default:
 
 <dt> <b>permit_auth_destination</b> <dd> Ignore the client hostname.
 Permit the request when the resolved destination address matches
-<a href="basic.html#mydestination">$mydestination</a>, the
-machine IP addresses, or <a href="#relay_domains"> $relay_domains</a>.
+<a href="#relay_domains"> $relay_domains</a> or a subdomain thereof,
+or when Postfix is the final destination:  anything that matches
+<a href="basic.html#mydomain">$mydomain</a>, <a
+href="basic.html#mynetworks">$mynetworks</a> or <a
+href="virtual.5.html">$virtual_maps</a>, or anything that resolves
+to a mail delivery transport whose name is listed in $local_transports.
 
 <p>
 
@@ -559,8 +618,13 @@ machine IP addresses, or <a href="#relay_domains"> $relay_domains</a>.
 
 <dt> <b>reject_unauth_destination</b> <dd> Ignore the client
 hostname.  Reject the request when the resolved destination address
-does not match <a href="basic.html#mydestination">$mydestination</a>,
-the machine IP addresses, or <a href="#relay_domains"> $relay_domains</a>.
+does not match <a href="#relay_domains"> $relay_domains</a> or a
+subdomain thereof, and when Postfix is not the final destination.
+Postfix is final destination for anything that matches <a
+href="basic.html#mydomain">$mydomain</a>, <a
+href="basic.html#mynetworks">$mynetworks</a> or <a
+href="virtual.5.html">$virtual_maps</a>, or anything that resolves
+to a mail delivery transport whose name is listed in $local_transports.
 The <b>relay_domains_reject_code</b> parameter specifies the response
 code for rejected requests (default:  <b>554</b>).
 
@@ -651,7 +715,7 @@ useful results with the <a href="aliases.5.html">aliases</a> and
 
 <dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
 
-<dd> See client name/address restrictions.
+<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -744,7 +808,7 @@ the result code for rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#check_client_access">check_client_access</a></b> <i>maptype</i>:<i>mapname</i>
 
-<dd> See client name/address restrictions.
+<dd> See client hostname/address restrictions.
 
 <p>
 
@@ -818,7 +882,7 @@ to speed up deliveries.
 
 <dd>This parameter controls the behavior of the <a
 href="#reject_maps_rbl">reject_maps_rbl</a> restriction that can
-appear as part of a client name/address restriction list.
+appear as part of a client hostname/address restriction list.
 
 <p>
 
@@ -836,7 +900,7 @@ Note: RBL lookups are disabled by default.
 
 <dt>Syntax:
 
-<dd> Zero or more DNS domains that blacklist client addresses.  A
+<dd> Zero or more DNS domains that blacklist client IP addresses.  A
 host is blacklisted when its reversed IP address is listed as a
 subdomain under any of the domains listed in <b>$maps_rbl_domains.</b>
 

@@ -100,10 +100,6 @@ home_mailbox =
 # command to use instead of mailbox delivery. The command is run
 # as the recipient with proper HOME, SHELL and LOGNAME environment settings.
 # Exception: delivery for root is done as $default_user.
-#
-# IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE WITH, E.G., PROCMAIL,
-# YOU MUST SET UP AN ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL
-# USER.
 # 
 # Other environment variables of interest: USER (recipient username),
 # EXTENSION (address extension), DOMAIN (domain part of address),
@@ -115,6 +111,9 @@ home_mailbox =
 #
 # Avoid shell meta characters because they will force Postfix to run
 # an expensive shell process. Procmail alone is expensive enough.
+#
+# IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
+# ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
 #
 # mailbox_command = /some/where/procmail
 # mailbox_command = /some/where/procmail -a "$EXTENSION"
