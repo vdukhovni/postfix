@@ -136,8 +136,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    vstream_printf("*** ENVELOPE RECORDS %s ***\n", VSTREAM_PATH(fp));
 	    first = 0;
 	}
-	if (prev_type == REC_TYPE_CONT && in_message && !msg_verbose
-	    && ((flags & PC_FLAG_OFFSET) != 0 || !TEXT_RECORD(rec_type)))
+	if (prev_type == REC_TYPE_CONT && !TEXT_RECORD(rec_type))
 	    VSTREAM_PUTCHAR('\n');
 	if (flags & PC_FLAG_OFFSET)
 	    vstream_printf("%9lu ", (unsigned long) offset);
@@ -149,11 +148,15 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 			   asctime(localtime(&time)));
 	    break;
 	case REC_TYPE_CONT:			/* REC_TYPE_FILT collision */
-	    if (msg_verbose)
+	    if (!in_message) 
+		vstream_printf("%s: ", rec_type_name(rec_type));
+	    else if (msg_verbose)
 		vstream_printf("unterminated_text: ");
 	    vstream_fwrite(VSTREAM_OUT, STR(buffer), LEN(buffer));
-	    if (msg_verbose)
+	    if (!in_message || msg_verbose || (flags & PC_FLAG_OFFSET) != 0) {
+		rec_type = 0;
 		VSTREAM_PUTCHAR('\n');
+	    }
 	    break;
 	case REC_TYPE_NORM:
 	    if (msg_verbose)

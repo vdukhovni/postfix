@@ -9989,6 +9989,10 @@ Apologies for any names omitted.
 	Dummy VSTREAM read-write routines. Files: util/dummy_read.c,
 	util/dummy_write.c.
 
+20041221
+
+	Bugfix: further postcat corner cases.
+
 Open problems:
 
 	Med: implement ${name[?:]value} in main.cf or update the
