@@ -20,7 +20,7 @@
 /*	value is the hex argument.
 /*
 /*	hex_unquote() performs the opposite transformation. This function
-/*	understands, lowercase, uppercase, and mixed case %XX sequences. The
+/*	understands lowercase, uppercase, and mixed case %XX sequences. The
 /*	result value is the raw argument in case of success, a null pointer
 /*	otherwise.
 /* BUGS

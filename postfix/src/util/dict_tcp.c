@@ -14,43 +14,54 @@
 /*	dict_tcp_open() makes a TCP server accessible via the generic
 /*	dictionary operations described in dict_open(3).
 /*	The \fIdummy\fR argument is not used. The only implemented
-/*	operation is dictionary lookup.
+/*	operation is dictionary lookup. This map type can be useful
+/*	for simulating a dynamic lookup table.
 /*
 /*	Map names have the form host:port.
 /*
 /*	The TCP map class implements a very simple protocol: the client
-/*	sends a query, and the server sends one reply. Queries and
+/*	sends a request, and the server sends one reply. Requests and
 /*	replies are sent as one line of ASCII text, terminated by the
-/*	ASCII newline character. Query and reply parameters (see below)
+/*	ASCII newline character. Request and reply parameters (see below)
 /*	are separated by whitespace.
-/*
-/*	In query and reply parameters, the character % and any non-printable
+/* ENCODING
+/* .ad
+/* .fi
+/*	In request and reply parameters, the character % and any non-printable
 /*	characters (including whitespace) are replaced by %XX, XX being the
 /*	corresponding ASCII hexadecimal character value. The hexadecimal codes
 /*	can be specified in any case (upper, lower, mixed).
-/*
-/*	Queries are strings that serve as lookup key in the simulated
+/* REQUEST FORMAT
+/* .ad
+/* .fi
+/*	Requests are strings that serve as lookup key in the simulated
 /*	table.
 /* .IP "get SPACE key NEWLINE"
 /*	Look up data under the specified key.
 /* .IP "put SPACE key SPACE value NEWLINE"
-/*
-/* .PP
+/*	This request is currently not implemented.
+/* REPLY FORMAT
+/* .ad
+/* .fi
 /*      Replies can have the following form:
-/* .IP "500 SPACE text NEWLINE"
-/*	The requested data does not exist. The text is ignored.
-/* .IP "400 SPACE text NEWLINE"
+/* .IP "500 SPACE optional-text NEWLINE"
+/*	In case of a lookup request, the requested data does not exist.
+/*	In case of an update request, the request was rejected.
+/* .IP "400 SPACE optional-text NEWLINE"
 /*	This indicates an error condition. The text gives the nature of
-/*	the problem.
+/*	the problem. The client should retry the request later.
 /* .IP "200 SPACE text NEWLINE"
-/*	The requested data was found. The text contains an encoded version
-/*	of the requested data.
+/*	The request was successful. In the case of a lookup request,
+/*	the text contains an encoded version of the requested data.
+/*	Otherwise the text is optional.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /*	hex_quote(3) http-style quoting
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory, unknown host or service name,
 /*	attempt to update or iterate over map.
+/* BUGS
+/*	Only the lookup method is currently implemented.
 /* LICENSE
 /* .ad
 /* .fi
@@ -135,69 +146,97 @@ static void dict_tcp_disconnect(DICT_TCP *dict_tcp)
     dict_tcp->fp = 0;
 }
 
-/* dict_tcp_lookup - query TCP server */
+/* dict_tcp_lookup - request TCP server */
 
 static const char *dict_tcp_lookup(DICT *dict, const char *key)
 {
     DICT_TCP *dict_tcp = (DICT_TCP *) dict;
-    int     i;
+    char   *myname = "dict_tcp_lookup";
+    int     tries;
+    char   *start;
 
-    dict_errno = 0;
+#define RETURN(errval, result) { dict_errno = errval; return (result); }
 
-    for (i = 0; /* see below */ ; i++) {
+    if (msg_verbose)
+	msg_info("%s: key %s", myname, key);
+
+    for (tries = 0; /* see below */ ; /* see below */ ) {
+
+	/*
+	 * Connect to the server, or use an existing connection.
+	 */
+	if (dict_tcp->fp != 0 || dict_tcp_connect(dict_tcp) == 0) {
+
+	    /*
+	     * Send request and receive response. Both are %XX quoted and
+	     * both are terminated by newline. This encoding is convenient
+	     * for data that is mostly text.
+	     */
+	    hex_quote(dict_tcp->hex_buf, key);
+	    vstream_fprintf(dict_tcp->fp, "get %s\n", STR(dict_tcp->hex_buf));
+	    if (vstring_get_nonl(dict_tcp->hex_buf, dict_tcp->fp) > 0)
+		break;
+
+	    /*
+	     * Disconnect from the server if it can't talk to us.
+	     */
+	    msg_warn("read TCP map reply from %s: unexpected EOF (%m)",
+		     dict_tcp->map);
+	    dict_tcp_disconnect(dict_tcp);
+	}
 
 	/*
 	 * Try to connect a limited number of times before giving up.
 	 */
-	if (i >= DICT_TCP_MAXTRY) {
-	    dict_errno = DICT_ERR_RETRY;
-	    return (0);
-	}
+	if (++tries >= DICT_TCP_MAXTRY)
+	    RETURN(DICT_ERR_RETRY, 0);
 
 	/*
 	 * Sleep between attempts, instead of hammering the server.
 	 */
-	if (i > 0)
-	    sleep(1);
+	sleep(1);
+    }
 
-	/*
-	 * Connect to the server.
-	 */
-	if (dict_tcp->fp == 0)
-	    if (dict_tcp_connect(dict_tcp) < 0)
-		continue;
-
-	/*
-	 * Send query and receive response. Both are %XX quoted and both are
-	 * terminated by newline. This encoding is convenient for data that
-	 * is mostly text.
-	 */
-	hex_quote(dict_tcp->hex_buf, key);
-	vstream_fprintf(dict_tcp->fp, "get %s\n", STR(dict_tcp->hex_buf));
-	errno = 0;
-	if (vstring_get_nonl(dict_tcp->hex_buf, dict_tcp->fp) == VSTREAM_EOF) {
-	    msg_warn("read TCP map reply from %s: %m", dict_tcp->map);
-	} else if (!hex_unquote(dict_tcp->raw_buf, STR(dict_tcp->hex_buf))) {
-	    msg_warn("read TCP map reply from %s: malformed reply %.100s",
-		     dict_tcp->map, 
-		     printable(STR(dict_tcp->hex_buf), '_'));
-	    dict_errno = DICT_ERR_RETRY;
-	    return (0);
-	} else if (ISSPACE(*STR(dict_tcp->raw_buf))) {
-	    msg_warn("TCP map reply from %s failed%s%s",
-		     dict_tcp->map,
-		     STR(dict_tcp->raw_buf)[1] ? ":" : "",
-		     printable(STR(dict_tcp->raw_buf), '_'));
-	    dict_errno = DICT_ERR_RETRY;
-	    return (0);
-	} else {
-	    return (STR(dict_tcp->raw_buf));
-	}
-
-	/*
-	 * That did not work. Clean up and try again.
-	 */
+    /*
+     * Check the general reply syntax. If the reply is malformed, disconnect
+     * and try again later.
+     */
+    if (start = STR(dict_tcp->hex_buf),
+	!ISDIGIT(start[0]) || !ISDIGIT(start[1])
+	|| !ISDIGIT(start[2]) || !ISSPACE(start[3])
+	|| !hex_unquote(dict_tcp->raw_buf, start + 4)) {
+	msg_warn("read TCP map reply from %s: malformed reply %.100s",
+		 dict_tcp->map, printable(STR(dict_tcp->hex_buf), '_'));
 	dict_tcp_disconnect(dict_tcp);
+	RETURN(DICT_ERR_RETRY, 0);
+    }
+
+    /*
+     * Examine the reply status code. If the reply is malformed, disconnect
+     * and try again later.
+     */
+    switch (start[0]) {
+    default:
+	msg_warn("read TCP map reply from %s: bad status code %.100s",
+		 dict_tcp->map, printable(STR(dict_tcp->hex_buf), '_'));
+	dict_tcp_disconnect(dict_tcp);
+	RETURN(DICT_ERR_RETRY, 0);
+    case '4':
+	if (msg_verbose)
+	    msg_info("%s: soft error: %s",
+		     myname, printable(STR(dict_tcp->raw_buf), '_'));
+	dict_tcp_disconnect(dict_tcp);
+	RETURN(DICT_ERR_RETRY, 0);
+    case '5':
+	if (msg_verbose)
+	    msg_info("%s: not found: %s",
+		     myname, printable(STR(dict_tcp->raw_buf), '_'));
+	RETURN(DICT_ERR_NONE, 0);
+    case '2':
+	if (msg_verbose)
+	    msg_info("%s: found: %s",
+		     myname, printable(STR(dict_tcp->raw_buf), '_'));
+	RETURN(DICT_ERR_NONE, STR(dict_tcp->raw_buf));
     }
 }
 

@@ -4354,13 +4354,14 @@ Apologies for any names omitted.
 	Portability: Redhat 7 library interfaces have changed
 	incompatibly, which breaks existing software. File makedefs.
 
-	Bugfix: the fallback_relay parameter did not work with []
-	or with network ports, and Postfix would always attempt to
-	perform MX record lookups. Files: smtp/smtp_addr.c
+	Consistency: the fallback_relay parameter did not understand
+	the [] or host:port syntax, and there was no way to suppress
+	MX record lookups. Files: smtp/smtp_addr.c, smtp/smtp_connect.c.
 
 	Convenience: you can now specify multiple destinations in
-	the relayhost configuration parameter. They will be tried
-	in the specified order. File:  smtp/smtp_connect.c.
+	the relayhost or fallback_relay configuration parameters.
+	The specified destinations will be tried in the specified
+	order. File:  smtp/smtp_connect.c.
 
 	Typographical corrections by Matthias Andree.
 
@@ -4387,11 +4388,11 @@ Apologies for any names omitted.
 	now supports three Berkeley DB programming interfaces of
 	increasing complexity. File: util/dict_db.c.
 
-	Bugfix: made some character manipulations independent of
+	Bugfix: some character manipulations were not portable for
 	signed/unsigned characters. Files: global/quote_821_local.c,
 	global/quote_822_local.c.
 
-	Workaround: some software sends SMTP mail that begins with
-	"From sender time-stamp". Sendmail accepts such RFC vioating
-	garbage, and therefore Postfix needs to jump another hoop.
-	File: smtpd/smtpd.c.
+	Workaround: apparently, some software sends SMTP mail that
+	begins with "From sender time-stamp". Sendmail silently
+	ignores such RFC violating garbage, and therefore Postfix
+	needs to jump another hoop.  File: smtpd/smtpd.c.

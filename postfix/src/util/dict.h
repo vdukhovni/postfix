@@ -50,6 +50,7 @@ typedef struct DICT {
 extern int dict_unknown_allowed;
 extern int dict_errno;
 
+#define DICT_ERR_NONE	0		/* no error */
 #define DICT_ERR_RETRY	1		/* soft error */
 
  /*

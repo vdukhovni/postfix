@@ -174,7 +174,7 @@ int     main(int argc, char **argv)
      */
     if ((uid = getuid()) != 0) {
 	msg_error("to submit mail, use the Postfix sendmail command");
-	msg_fatal("the postfix command must be run by the superuser");
+	msg_fatal("the postfix command is reserved for the superuser");
     }
 
     /*

@@ -355,8 +355,8 @@ mail_owner = postfix
 # SMTP "ETRN domain.name" command, or after execution of "sendmail
 # -qRdomain.name". This can be slow when a lot of mail is queued.
 # 
-# The fast_flush_domains controls what destinations are eligible for
-# this "fast ETRN/sendmail -qR" service.
+# The fast_flush_domains parameter controls what destinations are
+# eligible for this "fast ETRN/sendmail -qR" service.
 # 
 #fast_flush_domains = $relay_domains
 #fast_flush_policy =
