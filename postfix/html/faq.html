@@ -1977,8 +1977,9 @@ the following command:
 Pay particular attention to messages that are labeled as <b>fatal</b>
 and <b>panic</b>. These describe catastrophic failures that need
 to be addressed before Postfix is happy.  Problems labeled as
-<b>fatal</b> as fixed by adjusting configurations. Problems labeled
-as <b>panic</b> are fixed by changing Postfix source code.
+<b>fatal</b> are fixed by you, by adjusting configuration files,
+file permissions and so on. Problems labeled as <b>panic</b> are
+fixed by the Postfix author, by changing Postfix source code.
 
 <hr>
 
@@ -2581,7 +2582,7 @@ or file delivery.
 For security reasons, Postfix tries to avoid using <b>root</b>
 privileges where possible. In particular, Postfix virtual mapping
 is done by an unprivileged daemon, so there is no secure way to
-execute commands or to deliver to files found in virtual maps.
+execute commands or to deliver to files specified in virtual maps.
 
 <hr>
 
@@ -3044,14 +3045,28 @@ that the file name will collide with another queue file.
 <p>
 
 To avoid queue file name collisions when copying queue files,
-restore queue files in the maildrop directory instead.
+restore the incoming, active and deferred queue files under the
+maildrop directory instead.
+
+<p>
+
+As of late 2000, Postfix queues are all hashed (for example, file
+ABCDEF is stored as A/B/ABCDEF), so you need an additional step to
+move files down from their subdirectories.
 
 <p>
 <pre>
     # postfix stop
-    ... restore queue files under the maildrop directory...
+    # cd /var/spool/postfix/maildrop
+    ... restore incoming/active/deferred queue files under the maildrop directory...
+    # find incoming active deferred -type f -exec mv '{}' . ';'
+    # rm -rf incoming active deferred
     # postfix start
 </pre>
+
+While all this is going on, don't submit new mail locally, because
+that could collide with the files you are restoring under the
+maildrop directory.
 
 <p>
 

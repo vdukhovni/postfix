@@ -5035,13 +5035,13 @@ Apologies for any names omitted.
 20010403
 
 	Workaround: the mysql library can return null pointers
-	rather than zero-length strings.
+	rather than zero-length strings. File: util/dict_mysql.c.
 
 20010404
 
-	Logging: log additional information about why "mail for
-	XXX loops back to myself", when the local machine is the
-	best MX host. File: smtp/smtp_addr.c.
+	Ergonomics: log additional information about the reason
+	why "mail for XXX loops back to myself" when the local
+	machine is the best MX host. File: smtp/smtp_addr.c.
 
 20010406
 
@@ -5063,8 +5063,8 @@ Apologies for any names omitted.
 20010413
 
 	Ergonomics: Postfix applications now warn when a DB or DBM
-	file is out of date, and recommends to re-run postmap or
-	postalias. Files: util/dict_db.c, util/dict_dbm.c.
+	file is out of date, and recommend to rebuild the table.
+	Files: util/dict_db.c, util/dict_dbm.c.
 
 20010414
 
@@ -5083,3 +5083,16 @@ Apologies for any names omitted.
 	Workaround: the SMTP server did not really parse invalid
 	addresses such as <first last <user@domain>> well.  I
 	thought this was taken care of years ago. File:  smtpd/smtpd.c.
+
+20010427
+
+	Bugfix: smtpd would reject mail instead of replying with
+	a 4xx temporary error code when, for example, an LDAP or
+	mysql server was unavailable. Remotely based on a fix by
+	Robert Kiessling @ de.easynet.net. File: smtpd/smtpd_check.c.
+
+20010429
+
+	Feature: the Postfix SMTP client now by default randomly
+	shuffles destination IP addresses of equal preference.
+	File: smtp/smtp_addr.c. Based on an idea by Aleph1.

@@ -91,6 +91,7 @@
 #include <mymalloc.h>
 #include <inet_addr_list.h>
 #include <stringops.h>
+#include <myrand.h>
 
 /* Global library. */
 
@@ -125,6 +126,20 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 	}
     }
     msg_info("end %s address list", what);
+}
+
+/* smtp_rand_addr - randomize equal-preference resource records */
+
+static int smtp_rand_addr(DNS_RR *a, DNS_RR *b)
+{
+    int     diff;
+
+    /*
+     * XXX Equal-preference records are made to appear different. The bogus
+     * difference is not consistent from one call to the next. Code based on
+     * an idea by Aleph1.
+     */
+    return ((diff = a->pref - b->pref != 0) ? diff : (myrand() & 1) ? -1 : 1);
 }
 
 /* smtp_addr_one - address lookup for one host name */
@@ -271,9 +286,9 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref)
     return (addr_list);
 }
 
-/* smtp_compare_mx - compare resource records by preference */
+/* smtp_compare_pref - compare resource records by preference */
 
-static int smtp_compare_mx(DNS_RR *a, DNS_RR *b)
+static int smtp_compare_pref(DNS_RR *a, DNS_RR *b)
 {
     return (a->pref - b->pref);
 }
@@ -332,7 +347,7 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
 	    addr_list = smtp_host_addr(name, why);
 	break;
     case DNS_OK:
-	mx_names = dns_rr_sort(mx_names, smtp_compare_mx);
+	mx_names = dns_rr_sort(mx_names, smtp_compare_pref);
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
@@ -362,6 +377,8 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
 		}
 	    }
 	}
+	if (addr_list && var_smtp_rand_addr)
+	    addr_list = dns_rr_sort(addr_list, smtp_rand_addr);
 	break;
     case DNS_NOTFOUND:
 	addr_list = smtp_host_addr(name, why);
@@ -387,6 +404,8 @@ DNS_RR *smtp_host_addr(char *host, VSTRING *why)
      */
 #define PREF0	0
     addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
+    if (addr_list && var_smtp_rand_addr)
+	addr_list = dns_rr_sort(addr_list, smtp_rand_addr);
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);
     return (addr_list);

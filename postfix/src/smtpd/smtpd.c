@@ -182,7 +182,7 @@
 /*	Allow untrusted clients to specify addresses with sender-specified
 /*	routing.  Enabling this opens up nasty relay loopholes involving
 /*	trusted backup MX hosts.
-/* .IP \fBrestriction_classes\fR
+/* .IP \fBsmtpd_restriction_classes\fR
 /*	Declares the name of zero or more parameters that contain a
 /*	list of UCE restrictions. The names of these parameters can
 /*	then be used instead of the restriction lists that they represent.

@@ -250,6 +250,7 @@ char   *var_smtp_sasl_opts;
 char   *var_smtp_sasl_passwd;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_bind_addr;
+bool    var_smtp_rand_addr;
 
  /*
   * Global variables. smtp_errno is set by the address lookup routines and by
@@ -427,6 +428,7 @@ int     main(int argc, char **argv)
 	VAR_SMTP_ALWAYS_EHLO, DEF_SMTP_ALWAYS_EHLO, &var_smtp_always_ehlo,
 	VAR_SMTP_NEVER_EHLO, DEF_SMTP_NEVER_EHLO, &var_smtp_never_ehlo,
 	VAR_SMTP_SASL_ENABLE, DEF_SMTP_SASL_ENABLE, &var_smtp_sasl_enable,
+	VAR_SMTP_RAND_ADDR, DEF_SMTP_RAND_ADDR, &var_smtp_rand_addr,
 	0,
     };
 

@@ -699,6 +699,10 @@ extern bool var_smtp_never_ehlo;
 #define DEF_SMTP_BIND_ADDR	""
 extern char *var_smtp_bind_addr;
 
+#define VAR_SMTP_RAND_ADDR	"smtp_randomize_address"
+#define DEF_SMTP_RAND_ADDR	1
+extern bool var_smtp_rand_addr;
+
  /*
   * SMTP server. The soft error limit determines how many errors an SMTP
   * client may make before we start to slow down; the hard error limit

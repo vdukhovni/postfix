@@ -23,7 +23,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
 	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c \
-	sane_socketpair.c
+	sane_socketpair.c myrand.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -48,7 +48,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
 	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o \
-	sane_socketpair.o
+	sane_socketpair.o myrand.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -64,7 +64,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
 	watchdog.h spawn_command.h sane_fsops.h dict_tcp.h hex_quote.h \
-	sane_time.h sane_socketpair.h
+	sane_time.h sane_socketpair.h myrand.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -754,6 +754,9 @@ mymalloc.o: mymalloc.c
 mymalloc.o: sys_defs.h
 mymalloc.o: msg.h
 mymalloc.o: mymalloc.h
+myrand.o: myrand.c
+myrand.o: sys_defs.h
+myrand.o: myrand.h
 mystrtok.o: mystrtok.c
 mystrtok.o: sys_defs.h
 mystrtok.o: stringops.h
