@@ -42,18 +42,9 @@ That should stop a lot of the mail to non-existent recipients.  It
 won't stop mail to broken aliases or to users with broken .forward
 files, though.
 
-For a relaying site, the best we can do is something like:
-
-    smtpd_recipient_restrictions =
-	permit_mynetworks
-	reject_unauth_destination
-	reject_unknown_sender_domain
-	...other checks to reject non-FQDN, RBL, access maps...
-	permit_recipient_map unix:passwd.byname
-	permit_recipient_map hash:/etc/canonical
-	permit_recipient_map hash:/etc/postfix/virtual
-	permit_recipient_map hash:/etc/aliases
-	reject
+For a relaying site, a good configuration with permit_recipient_map
+still needs to be found. Something that permits relaying to all
+sites except $mydestination.
 
 Unfortunately, permit_recipient_map does not combine well with
 permit_mynetworks, because permit_mynetworks accepts mail for 
