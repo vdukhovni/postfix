@@ -167,6 +167,7 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
      */
     state->sasl_mechanism_list = 0;
     state->sasl_username = 0;
+    state->sasl_method = 0;
     state->sasl_sender = 0;
     state->sasl_conn = 0;
     state->sasl_decoded = vstring_alloc(10);
@@ -188,12 +189,15 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
      * Security options. XXX What exactly is this supposed to be doing? The
      * cyrus-sasl-1.5.15 source code has no documentation at all about this
      * routine.
+     * 
+     * Disallow anonymous authentication. The permit_sasl_authenticated feature
+     * is restricted to authenticated clients only.
      */
     memset(&sec_props, 0, sizeof(sec_props));
     sec_props.min_ssf = 0;
     sec_props.max_ssf = 1;			/* don't allow real SASL
 						 * security layer */
-    sec_props.security_flags = 0;
+    sec_props.security_flags = SASL_SEC_NOANONYMOUS;
     sec_props.maxbufsize = 0;
     sec_props.property_names = 0;
     sec_props.property_values = 0;
@@ -209,7 +213,7 @@ void    smtpd_sasl_connect(SMTPD_STATE *state)
 #define IGNORE_MECHANISM_LEN	((unsigned *) 0)
 
     if (sasl_listmech(state->sasl_conn, UNSUPPORTED_USER,
-		      "250-AUTH ", " ", "",
+		      "", " ", "",
 		      &state->sasl_mechanism_list,
 		      IGNORE_MECHANISM_LEN,
 		      &sasl_mechanism_count) != SASL_OK
@@ -223,7 +227,7 @@ void    smtpd_sasl_disconnect(SMTPD_STATE *state)
 {
     if (state->sasl_mechanism_list) {
 	free(state->sasl_mechanism_list);
-	state->sasl_mechanism_list = NULL;
+	state->sasl_mechanism_list = 0;
     }
     if (state->sasl_conn) {
 	sasl_dispose(&state->sasl_conn);
@@ -245,7 +249,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
     unsigned enc_length;
     unsigned enc_length_out;
     unsigned reply_len;
-    char   *serverout;
+    char   *serverout = 0;
     unsigned serveroutlen;
     int     result;
     const char *errstr = 0;
@@ -308,12 +312,13 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 			  enc_length, &enc_length_out) != SASL_OK)
 	    msg_panic("%s: sasl_encode64 botch", myname);
 	free(serverout);
+	serverout = 0;
 	smtpd_chat_reply(state, "334 %s", STR(state->sasl_encoded));
 
 	/*
 	 * Receive the client response. "*" means that the client gives up.
-	 * For now we ignore the fact that excessively long responses will be
-	 * truncated. To handle such responses, we need to change
+	 * XXX For now we ignore the fact that excessively long responses
+	 * will be truncated. To handle such responses, we need to change
 	 * smtpd_chat_query() so that it returns an error indication.
 	 */
 	smtpd_chat_query(state);
@@ -332,6 +337,12 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
     }
 
     /*
+     * Cleanup. What a horrible interface.
+     */
+    if (serverout)
+	free(serverout);
+
+    /*
      * The authentication protocol was completed.
      */
     if (result != SASL_OK)
@@ -340,7 +351,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
     /*
      * Authentication succeeded. Find out the login name for logging and for
      * accounting purposes. For the sake of completeness we also record the
-     * authentication method that was used.
+     * authentication method that was used. XXX Do not free(serverout).
      */
     result = sasl_getprop(state->sasl_conn, SASL_USERNAME,
 			  (void **) &serverout);
@@ -348,7 +359,6 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	msg_panic("%s: sasl_getprop SASL_USERNAME botch", myname);
     state->sasl_username = mystrdup(serverout);
     state->sasl_method = mystrdup(sasl_method);
-    free(serverout);
 
     return (0);
 }

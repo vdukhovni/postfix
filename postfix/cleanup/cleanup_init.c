@@ -102,6 +102,7 @@ int     var_delay_warn_time;		/* delay that triggers warning */
 char   *var_prop_extension;		/* propagate unmatched extension */
 char   *var_always_bcc;			/* big brother */
 int     var_extra_rcpt_limit;		/* recipient extract limit */
+char   *var_rcpt_witheld;               /* recipients not disclosed */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -123,6 +124,7 @@ CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_HEADER_CHECKS, DEF_HEADER_CHECKS, &var_header_checks, 0, 0,
     VAR_PROP_EXTENSION, DEF_PROP_EXTENSION, &var_prop_extension, 0, 0,
     VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
+    VAR_RCPT_WITHELD, DEF_RCPT_WITHELD, &var_rcpt_witheld, 1, 0,
     0,
 };
 

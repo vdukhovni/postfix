@@ -216,7 +216,6 @@ int     var_smtp_always_ehlo;
 
 char   *var_smtp_sasl_pwd_maps;
 bool    var_smtp_sasl_enable;
-bool    var_smtp_sasl_anon;
 
 #endif
 

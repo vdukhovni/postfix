@@ -53,7 +53,7 @@
 #define USE_DOT_LOCK
 #endif
 
-#if defined(RHAPSODY5)
+#if defined(RHAPSODY5) || defined(MACOSX)
 #define SUPPORTED
 #include <sys/types.h>
 #define USE_PATHS_H

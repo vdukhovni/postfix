@@ -375,6 +375,14 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 			       state->resent, vstring_str(state->temp1));
 	}
     }
+
+    /*
+     * Add a missing destination header.
+     */
+#define VISIBLE_RCPT	(HDR_TO | HDR_RESENT_TO | HDR_CC | HDR_RESENT_CC)
+
+    if ((state->headers_seen & VISIBLE_RCPT) == 0)
+	cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);
 }
 
 /* cleanup_message - initialize message content segment */

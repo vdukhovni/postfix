@@ -1,37 +1,3 @@
-#
-#	>>>>>>>>>>      The program "newaliases" must be run after
-#	>> NOTE >>      this file is updated for any changes to
-#	>>>>>>>>>>      show through to Postfix.
-#
-
-# Basic system aliases -- these MUST be present
-MAILER-DAEMON:	postmaster
-postmaster:	root
-
-# General redirections for pseudo accounts
-bin:		root
-daemon:		root
-named:		root
-nobody:		root
-uucp:		root
-www:		root
-ftp-bugs:	root
-postfix:	root
-
-# Put your local aliases here.
-
-# Well-known aliases
-manager:	root
-dumper:		root
-operator:	root
-abuse:		postmaster
-
-# trap decode to catch security attacks
-decode:		root
-
-# Person who should get root's mail
-#root:		you
-
 #++
 # NAME
 #	aliases 5
@@ -39,17 +5,16 @@ decode:		root
 #	format of the Postfix alias database
 # SYNOPSIS
 # .fi
-#	\fBpostalias\fR [\fB-c\fR \fIconfig_dir\fR] [\fB-v\fR]
-#		[\fIfile_type\fR:]\fIinput_file\fR
+#	\fBnewaliases\fR
 # DESCRIPTION
 #	The \fBaliases\fR file provides a system-wide mechanism to
 #	redirect mail for local recipients.
 #
 #	The file serves as input to the \fBpostalias\fR(1) command. The
 #	result, an indexed file in \fBdbm\fR or \fBdb\fR format, is
-#	used for fast lookup by the mail system. After an update
-#	it may take a minute or so before the change becomes visible.
-#	Issue a \fBpostfix reload\fR command to eliminate the delay.
+#	used for fast lookup by the mail system. Execute the command
+#	\fBnewaliases\fR in order to rebuild the indexed file after
+#	changing the Postfix alias database.
 #
 #	The input and output file formats are expected to be compatible
 #	with Sendmail version 8, and are expected to be suitable for the

@@ -1,6 +1,11 @@
 Incompatible changes with snapshot-20000309
 ===========================================
 
+As required by RFC 822, Postfix now inserts a generic destination 
+message header when no destination header is present.  The text is  
+specified via the undisclosed_recipients_header configuration 
+parameter (default:  "To: undisclosed-recipients:;").
+
 The Postfix sendmail command now treats a line with only `.' as
 the end of input, for the sake of sendmail compatibility. To disable
 this feature, specify the sendmail-compatible `-i' or `-oi' flags

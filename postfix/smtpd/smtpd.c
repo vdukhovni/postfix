@@ -358,9 +358,8 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (state->helo_name != 0) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Duplicate HELO/EHLO");
-	return (-1);
+	myfree(state->helo_name);
+	state->helo_name = 0;
     }
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
@@ -388,9 +387,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (state->helo_name != 0) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "503 Error: duplicate HELO/EHLO");
-	return (-1);
+	myfree(state->helo_name);
+	state->helo_name = 0;
     }
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
@@ -492,15 +490,6 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 #define PERMIT_EMPTY_ADDR	1
 #define REJECT_EMPTY_ADDR	0
 
-    if (allow_empty_addr && strcmp(STR(arg->vstrval), "<>") == 0) {
-	if (msg_verbose)
-	    msg_info("%s: empty address", myname);
-	VSTRING_RESET(arg->vstrval);
-	VSTRING_TERMINATE(arg->vstrval);
-	arg->strval = STR(arg->vstrval);
-	return (0);
-    }
-
     /*
      * Some mailers send RFC822-style address forms (with comments and such)
      * in SMTP envelopes. We cannot blame users for this: the blame is with
@@ -534,7 +523,8 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     /*
      * Report trouble. Log a warning only if we are going to sleep+reject.
      */
-    if (naddr != 1
+    if ((naddr < 1 && !allow_empty_addr)
+	|| naddr > 1
 	|| (strict_rfc821 && (non_addr || *STR(arg->vstrval) != '<'))) {
 	msg_warn("Illegal address syntax from %s in %s command: %s",
 		 state->namaddr, state->where, STR(arg->vstrval));
@@ -550,7 +540,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     if (addr)
 	tok822_internalize(arg->vstrval, addr->head, TOK822_STR_DEFL);
     else
-	vstring_strcat(arg->vstrval, "");
+	vstring_strcpy(arg->vstrval, "");
     arg->strval = STR(arg->vstrval);
 
     /*
@@ -611,7 +601,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if ((state->msg_size = off_cvt_string(arg + 5)) < 0)
 		state->msg_size = 0;
 #ifdef USE_SASL_AUTH
-	} else if (strncasecmp(arg, "AUTH=", 5) == 0) {
+	} else if (var_smtpd_sasl_enable && strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);
@@ -644,9 +634,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (var_smtpd_sasl_enable)
 	smtpd_sasl_mail_log(state);
     else
-#else
-    msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
 #endif
+	msg_info("%s: client=%s[%s]", state->queue_id, state->name, state->addr);
 
     /*
      * Record the time of arrival and the sender envelope address.
@@ -692,7 +681,8 @@ static void mail_reset(SMTPD_STATE *state)
 	state->sender = 0;
     }
 #ifdef USE_SASL_AUTH
-    smtpd_sasl_mail_reset(state);
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_mail_reset(state);
 #endif
 }
 
@@ -1228,7 +1218,8 @@ static void smtpd_proto(SMTPD_STATE *state)
      */
     helo_reset(state);
 #ifdef USE_SASL_AUTH
-    smtpd_sasl_auth_reset(state);
+    if (var_smtpd_sasl_enable)
+	smtpd_sasl_auth_reset(state);
 #endif
     mail_reset(state);
     rcpt_reset(state);

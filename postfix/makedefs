@@ -211,6 +211,11 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		: ${CC=cc}
 		AWK=gawk
 		;;
+"Mac OS".10*)	SYSTYPE=MACOSX
+		# Use the native compiler by default
+		: ${CC=cc}
+		AWK=gawk
+		;;
     dcosx.1*)	SYSTYPE=DCOSX1
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl -lc -lrpcsvc -L/usr/ucblib -lucb"

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# makelinks - create shadow tree with links to source files
+
+case $# in
+    2) src=`cd $1 || kill $$; pwd`; dst=$2;;
+    *) echo "Usage: $0 source-dir dest-dir" 1>&2; exit 1;;
+esac
+
+test -d $dst && { echo "$0: destination directory $dst exists" 1>&2; exit 1; }
+mkdir -p $dst || exit 1
+cd $dst
+(cd $src; find . -type d -print) | xargs mkdir -p
+(cd $src; find . ! -type d -print) | while read name
+do
+	ln -s $src/$name $name
+done

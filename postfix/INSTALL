@@ -88,8 +88,14 @@ If your system is supported, it is one of
 or something closely resemblant.
 
 On Solaris, the "make" command and other utilities for software
-development are in /usr/ccs/bin, so you MUST have /usr/ccs/bin
-in your command search path.
+development are in /usr/ccs/bin, so you MUST have /usr/ccs/bin in
+your command search path.
+
+If you need to build Postfix for multiple architectures, use the
+makelinks shell script to build a shadow tree with symbolic links
+to the source files.
+
+    % sh makelinks `pwd` /some/where/else
 
 If at any time in the build process you get messages like: "make:
 don't know how to ..." you should be able to recover by running

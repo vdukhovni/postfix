@@ -3794,3 +3794,24 @@ Apologies for any names omitted.
 	be issued in an SMTP session (ex.: NOOP, VRFY, ETRN, RSET).
 	Problem report by Michael Ju. Tokarev @ tls.msk.ru.  Files:
 	global/mail_params.h, smtpd/smtpd.c.
+
+20000407
+
+	Multi-platform build support: use the makelinks shell script
+	to build a shadow tree with symlinks to the source files.
+
+20000413
+
+	Portability: more MacOS X patches by Gerben Wierda.
+
+	Bugfix: RFC 822 requires the presence of at least one
+	destination message header. The cleanup daemon now generates
+	a generic "To: undisclosed-recipients:;" message header
+	when no destination header is present.  The header content
+	is specified with the undisclosed_recipients_header parameter.
+	Problem pointed out by Geoff Gibbs, UK-Human Genome Mapping
+	Project-Resource Centre.
+
+20000416
+
+	Workaround: allow <(comment)> as SMTP MAIL FROM address.

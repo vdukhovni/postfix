@@ -52,6 +52,9 @@
 # SPECIFY ONLY PROGRAMS THAT ARE WRITTEN TO RUN AS POSTFIX DAEMONS.
 # ALL DAEMONS SPECIFIED HERE MUST SPEAK A POSTFIX-INTERNAL PROTOCOL.
 #
+# DO NOT CHANGE THE ZERO PROCESS LIMIT FOR CLEANUP/BOUNCE/DEFER OR
+# POSTFIX WILL BECOME STUCK UP UNDER HEAVY LOAD
+#
 # ==========================================================================
 # service type	private	unpriv	chroot	wakeup	maxproc	command + args
 # 		(yes)	(yes)	(yes)	(never)	(50)

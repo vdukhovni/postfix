@@ -153,6 +153,8 @@ sending mail as user@domain</a>
 <li><a href="#metoo">Postfix sends mail to every member of a
 distribution list</a>
 
+<li><a href="#owner-foo">Postfix ignores the owner-list alias</a>
+
 </ul>
 
 <a name="mailing_lists"><h3>Mailing lists</h3>
@@ -167,6 +169,8 @@ distribution list</a>
 
 <li><a href="#metoo">Postfix sends mail to every member of a
 distribution list</a>
+
+<li><a href="#owner-foo">Postfix ignores the owner-list alias</a>
 
 </ul>
 
@@ -743,6 +747,36 @@ aliasing loops.
 
 <hr>
 
+<a name="owner-foo"><h3>Postfix ignores the owner-list alias</h3></a>
+
+Normally, when a local alias <i>foo</i> has a companion alias
+<i>owner-foo</i>, Postfix reports delivery errors to the owner
+address rather than the message originator.
+
+<p>
+
+However, as a result of a Postfix implementation artefact, the
+owner-foo alias takes effect only after the alias expansion is
+completed.
+
+<p>
+
+Delivery problems that happen while expanding the alias, including
+delivery to commands or files, are reported to the original sender
+envelope address.
+
+<p>
+
+The reason is that bounces are sent by the Postfix queue manager,
+which does not know that the sender address is being replaced.
+
+<p>
+
+This limitation will be fixed by changing how the Postfix local
+delivery agent deals with undeliverable mail.
+
+<hr>
+
 <a name="delay"><h3>Postfix responds slowly to SMTP connections</h3></a>
 
 <dl>
@@ -956,9 +990,10 @@ authenticated protocol instead of plain old SMTP.
 
 The next best way is to use plain old SMTP and to authenticate the
 user first, for example, with a "please login via POP before using
-SMTP" scheme.  In that case, some non-Postfix software such as <a
-href="http://www.mbnet.mb.ca/howto/dynamic.htm">DRAC</a> maintains
-a Postfix-compatible access table with client IP address information:
+SMTP" scheme.  In that case, some software 
+maintains
+a Postfix-compatible access table with client IP address information.
+In order to make this work you need Postfix version 19991231 or later.
 
 <p>
 
@@ -979,6 +1014,14 @@ a Postfix-compatible access table with client IP address information:
 Specify <B>dbm</b> instead of <b>hash</b> if your system uses
 <b>dbm</b> files instead of <b>db</b> files. To find out what map
 types Postfix supports, use the command <b>postconf -m</b>.
+
+<p>
+
+N.B. Some non-Postfix software such as <a
+href="http://www.mbnet.mb.ca/howto/dynamic.htm">DRAC</a> uses
+<b>btree</b> files instead of <b>hash</b> files.  In that case,
+you will have to adjust the above <b>check_client_access</b>
+restriction accordingly.
 
 <p>
 
@@ -2219,8 +2262,8 @@ changes effective.
 The following information is by Joerg Henne:
 
 <p>
-Over here we are using the scheme <fax number>@fax.our.domain with Postfix and
-HylaFax. Here's the setup used:
+Over here we are using the scheme &lt;fax number&gt;@fax.our.domain
+with Postfix and HylaFax. Here's the setup used:
 
 <p>
 
@@ -2234,7 +2277,14 @@ HylaFax. Here's the setup used:
 
     /etc/postfix/main.cf:
         transport_maps = hash:/etc/postfix/transport
+	fax_destination_recipient_limit = 1
 </pre>
+
+<p>
+
+The <b>fax_destination_recipient_limit</b> entry (by Simon, Mr.
+Simix) is necessary with fax software that can't have more than
+one destination on its command line. It won't hurt otherwise.
 
 <p>
 
