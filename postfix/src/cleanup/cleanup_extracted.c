@@ -9,7 +9,7 @@
 /*	void	cleanup_extracted(state, type, buf, len)
 /*	CLEANUP_STATE *state;
 /*	int	type;
-/*	char	*buf;
+/*	const char *buf;
 /*	int	len;
 /* DESCRIPTION
 /*	This module processes message records with information extracted
@@ -68,11 +68,12 @@
 
 #define STR(x)	vstring_str(x)
 
-static void cleanup_extracted_process(CLEANUP_STATE *, int, char *, int);
+static void cleanup_extracted_process(CLEANUP_STATE *, int, const char *, int);
 
 /* cleanup_extracted - initialize extracted segment */
 
-void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
+void    cleanup_extracted(CLEANUP_STATE *state, int type,
+			          const char *buf, int len)
 {
     const char *encoding;
 
@@ -128,12 +129,10 @@ void    cleanup_extracted(CLEANUP_STATE *state, int type, char *buf, int len)
 
 /* cleanup_extracted_process - process extracted segment */
 
-static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf, int len)
+static void cleanup_extracted_process(CLEANUP_STATE *state, int type,
+				              const char *buf, int len)
 {
     char   *myname = "cleanup_extracted_process";
-    VSTRING *clean_addr;
-    ARGV   *rcpt;
-    char  **cpp;
 
     /*
      * Weird condition for consistency with cleanup_envelope.c
@@ -148,23 +147,9 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
 	}
     }
     if (type == REC_TYPE_RCPT) {
-	clean_addr = vstring_alloc(100);
 	if (state->orig_rcpt == 0)
 	    state->orig_rcpt = mystrdup(buf);
-	cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
-	if (cleanup_rcpt_canon_maps)
-	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_comm_canon_maps)
-	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_masq_domains
-	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
-	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-	cleanup_out_recipient(state, state->orig_rcpt, STR(clean_addr));
-	if (state->recip == 0)
-	    state->recip = mystrdup(STR(clean_addr));
-	vstring_free(clean_addr);
+	cleanup_addr_recipient(state, buf);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
 	return;
@@ -177,52 +162,11 @@ static void cleanup_extracted_process(CLEANUP_STATE *state, int type, char *buf,
     }
 
     /*
-     * Optionally account for missing recipient envelope records.
-     * 
-     * Don't extract recipients when some header was too long. We have
-     * incomplete information.
-     * 
-     * XXX Code duplication from cleanup_envelope.c. This should be in one
-     * place.
+     * On the way out, add the optional automatic BCC recipient.
      */
-    if (state->recip == 0 && (state->errs & CLEANUP_STAT_HOVFL) == 0) {
-	rcpt = (state->resent[0] ? state->resent_recip : state->recipients);
-	if (rcpt->argc >= var_extra_rcpt_limit) {
-	    state->errs |= CLEANUP_STAT_ROVFL;
-	} else {
-	    clean_addr = vstring_alloc(100);
-	    if (*var_always_bcc && rcpt->argv[0]) {
-		cleanup_rewrite_internal(clean_addr, var_always_bcc);
-		if (cleanup_rcpt_canon_maps)
-		    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-		if (cleanup_comm_canon_maps)
-		    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-		argv_add(rcpt, STR(clean_addr), (char *) 0);
-	    }
-	    argv_terminate(rcpt);
-
-	    /*
-	     * Recipients extracted from message headers already have
-	     * undergone recipient address rewriting (see cleanup_message.c),
-	     * but still may need address masquerading.
-	     */
-	    for (cpp = rcpt->argv; CLEANUP_OUT_OK(state) && *cpp; cpp++) {
-		if (cleanup_masq_domains
-		    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT)) {
-		    vstring_strcpy(clean_addr, *cpp);
-		    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-		    cleanup_out_recipient(state, STR(clean_addr),
-					  STR(clean_addr));	/* XXX */
-		} else
-		    cleanup_out_recipient(state, *cpp, *cpp);	/* XXX */
-	    }
-	    if (rcpt->argv[0])
-		state->recip = mystrdup(rcpt->argv[0]);
-	    vstring_free(clean_addr);
-	}
-    }
+    if ((state->flags & CLEANUP_FLAG_BCC_OK)
+	&& state->recip != 0 && *var_always_bcc)
+	cleanup_addr_bcc(state, var_always_bcc);
 
     /*
      * Terminate the extracted segment.

@@ -347,6 +347,14 @@ DNS_RR *smtp_domain_addr(char *name, VSTRING *why, int *found_myself)
      * preferred than myself. When no MX resource records exist, look up the
      * addresses listed for this name.
      * 
+     * According to RFC 974: "It is possible that the list of MXs in the
+     * response to the query will be empty.  This is a special case.  If the
+     * list is empty, mailers should treat it as if it contained one RR, an
+     * MX RR with a preference value of 0, and a host name of REMOTE.  (I.e.,
+     * REMOTE is its only MX).  In addition, the mailer should do no further
+     * processing on the list, but should attempt to deliver the message to
+     * REMOTE."
+     * 
      * Normally it is OK if an MX host cannot be found in the DNS; we'll just
      * use a backup one, and silently ignore the better MX host. However, if
      * the best backup that we can find in the DNS is the local machine, then

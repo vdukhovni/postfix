@@ -324,6 +324,14 @@ extern char *var_send_canon_maps;
 #define DEF_RCPT_CANON_MAPS	""
 extern char *var_rcpt_canon_maps;
 
+#define VAR_SEND_BCC_MAPS	"sender_bcc_maps"
+#define DEF_SEND_BCC_MAPS	""
+extern char *var_send_bcc_maps;
+
+#define VAR_RCPT_BCC_MAPS	"recipient_bcc_maps"
+#define DEF_RCPT_BCC_MAPS	""
+extern char *var_rcpt_bcc_maps;
+
 #define VAR_TRANSPORT_MAPS	"transport_maps"
 #define DEF_TRANSPORT_MAPS	""
 extern char *var_transport_maps;
@@ -1014,10 +1022,6 @@ extern int var_header_limit;
 #define VAR_TOKEN_LIMIT		"header_address_token_limit"
 #define DEF_TOKEN_LIMIT		10240
 extern int var_token_limit;
-
-#define VAR_EXTRA_RCPT_LIMIT	"extract_recipient_limit"
-#define DEF_EXTRA_RCPT_LIMIT	10240
-extern int var_extra_rcpt_limit;
 
 #define VAR_VIRT_RECUR_LIMIT	"virtual_alias_recursion_limit"
 #define DEF_VIRT_RECUR_LIMIT	1000

@@ -9,7 +9,7 @@
 /*	void	cleanup_message(state, type, buf, len)
 /*	CLEANUP_STATE *state;
 /*	int	type;
-/*	char	*buf;
+/*	const char *buf;
 /*	int	len;
 /* DESCRIPTION
 /*	This module processes message content records and copies the
@@ -213,7 +213,6 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
     TOK822 *tree;
     TOK822 **addr_list;
     TOK822 **tpp;
-    ARGV   *rcpt;
 
     if (msg_verbose)
 	msg_info("rewrite_recip: %s", hdr_opts->name);
@@ -236,18 +235,6 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	    cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
 
-	/*
-	 * Extract envelope recipients after recipient address rewriting but
-	 * before address masquerading.
-	 */
-	if (state->recip == 0 && (hdr_opts->flags & HDR_OPT_EXTRACT) != 0) {
-	    rcpt = (hdr_opts->flags & HDR_OPT_RR) ?
-		state->resent_recip : state->recipients;
-	    if (rcpt->argc < var_extra_rcpt_limit) {
-		tok822_internalize(state->temp1, tpp[0]->head, TOK822_STR_DEFL);
-		argv_add(rcpt, vstring_str(state->temp1), (char *) 0);
-	    }
-	}
 	if (cleanup_masq_domains
 	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_RCPT))
 	    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
@@ -269,7 +256,7 @@ static void cleanup_act_log(CLEANUP_STATE *state,
     const char *attr;
 
     if ((attr = nvtable_find(state->attr, MAIL_ATTR_ORIGIN)) == 0)
-	attr="unknown";
+	attr = "unknown";
     vstring_sprintf(state->temp1, "%s: %s: %s %.200s from %s;",
 		    state->queue_id, action, class, content, attr);
     if (state->sender)
@@ -595,13 +582,6 @@ static void cleanup_header_done_callback(void *context)
 
     if ((state->headers_seen & VISIBLE_RCPT) == 0)
 	cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);
-
-    /*
-     * Header buffer overflow is an unrecoverable error only if we extract
-     * recipients from the main message headers.
-     */
-    if (state->mime_errs & MIME_ERR_TRUNC_HEADER)
-	state->errs |= CLEANUP_STAT_HOVFL;
 }
 
 /* cleanup_body_callback - output one body record */
@@ -635,7 +615,7 @@ static void cleanup_body_callback(void *context, int type,
 /* cleanup_message_headerbody - process message content, header and body */
 
 static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
-				               char *buf, int len)
+				               const char *buf, int len)
 {
     char   *myname = "cleanup_message_headerbody";
 
@@ -696,7 +676,7 @@ static void cleanup_mime_error_callback(void *context, int err_code,
 
 /* cleanup_message - initialize message content segment */
 
-void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
+void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, int len)
 {
     char   *myname = "cleanup_message";
     int     mime_options;
@@ -717,7 +697,7 @@ void    cleanup_message(CLEANUP_STATE *state, int type, char *buf, int len)
      * special processing of Content-Type: headers, and thus, causes all text
      * after the primary headers to be treated as the message body.
      */
-    mime_options = MIME_OPT_REPORT_TRUNC_HEADER;
+    mime_options = 0;
     if (var_disable_mime_input) {
 	mime_options |= MIME_OPT_DISABLE_MIME;
     } else {

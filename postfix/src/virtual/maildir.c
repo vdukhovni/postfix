@@ -215,7 +215,11 @@ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr)
 			  bounce_append : defer_append)
 	    (BOUNCE_FLAGS(state.request), BOUNCE_ATTR(state.msg_attr),
 	     "maildir delivery failed: %s", vstring_str(why));
-
+	if (errno == EACCES) {
+	    msg_warn("maildir access problem for UID/GID=%lu/%lu: %s",
+		(long) usr_attr.uid, (long) usr_attr.gid, vstring_str(why));
+	    msg_warn("perhaps you need to create the maildirs in advance");
+	}
     } else {
 	deliver_status = sent(BOUNCE_FLAGS(state.request),
 			      SENT_ATTR(state.msg_attr),

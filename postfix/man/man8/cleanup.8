@@ -130,6 +130,12 @@ from poorly written software.
 .fi
 .IP \fBalways_bcc\fR
 Address to send a copy of each message that enters the system.
+.IP \fBsender_bcc_maps\fR
+Automatic BCC recipient lookup table, indexed by sender address.
+The BCC address is added when the message enters the system.
+.IP \fBrecipient_bcc_maps\fR
+Automatic BCC recipient lookup table, indexed by recipient address.
+The BCC address is added when the message enters the system.
 .IP \fBhopcount_limit\fR
 Limit the number of \fBReceived:\fR message headers.
 .IP \fBundisclosed_recipients_header\fR
@@ -172,8 +178,6 @@ Limits the amount of memory in bytes used to process a message header.
 .IP \fBin_flow_delay\fR
 Amount of time to pause before accepting a message, when the
 message arrival rate exceeds the message delivery rate.
-.IP \fBextract_recipient_limit\fR
-Limit the amount of recipients extracted from message headers.
 .IP \fBvirtual_alias_expansion_limit\fR
 Limit the number of actual recipients produced by virtual alias
 expansion from each original recipient.

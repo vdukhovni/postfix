@@ -19,6 +19,7 @@
 #define CLEANUP_FLAG_FILTER	(1<<1)	/* Enable content filter */
 #define CLEANUP_FLAG_HOLD	(1<<2)	/* Place message on hold */
 #define CLEANUP_FLAG_DISCARD	(1<<3)	/* Discard message silently */
+#define CLEANUP_FLAG_BCC_OK	(1<<4)	/* Ok to add auto-BCC addresses */
 
  /*
   * These are set on the fly while processing SMTP envelopes or message
@@ -38,10 +39,7 @@
 #define CLEANUP_STAT_SIZE	(1<<2)	/* Message file too big */
 #define CLEANUP_STAT_CONT	(1<<3)	/* Message content rejected */
 #define CLEANUP_STAT_HOPS	(1<<4)	/* Too many hops */
-#define CLEANUP_STAT_SYN	(1<<5)	/* Bad address syntax */
 #define CLEANUP_STAT_RCPT	(1<<6)	/* No recipients found */
-#define CLEANUP_STAT_HOVFL	(1<<7)	/* Header overflow */
-#define CLEANUP_STAT_ROVFL	(1<<8)	/* Recipient overflow */
 
  /*
   * These are set when we can't bounce even if we were asked to.
@@ -54,12 +52,6 @@
   */
 #define CLEANUP_STAT_MASK_INCOMPLETE \
 	(CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE | CLEANUP_STAT_SIZE)
-
- /*
-  * These are relevant for extracting recipients from headers.
-  */
-#define CLEANUP_STAT_MASK_EXTRACT_RCPT \
-	(CLEANUP_STAT_HOVFL | CLEANUP_STAT_ROVFL | CLEANUP_STAT_RCPT)
 
 extern const char *cleanup_strerror(unsigned);
 

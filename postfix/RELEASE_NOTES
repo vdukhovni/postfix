@@ -22,7 +22,20 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.8-20040414
+Incompatible changes with Postfix snapshot 2.0.8-2004XXXX
+=========================================================
+
+"sendmail -t" no longer complains when recipients are given on the
+command line. Instead, it now adds recipients from headers to the
+command-line recipients.
+
+Major changes with Postfix snapshot 2.0.8-2004XXXX
+==================================================
+
+sender_bcc_maps and recipient_bcc_maps, after a reorganization
+of how auto-bcc recipients are added.
+
+Incompatible changes with Postfix snapshot 2.0.8-20040415
 =========================================================
 
 Too many people mess up their net/mask patterns, causing open
@@ -31,7 +44,7 @@ net/mask pattern with a non-zero host portion (for example,
 168.100.189.2/28), and suggest to specify the proper net/mask
 pattern instead (for example, 168.100.189.0/28).
 
-Major changes with Postfix snapshot 2.0.8-20040414
+Major changes with Postfix snapshot 2.0.8-20040415
 ==================================================
 
 PostgreSQL table lookups. Specify "pgsql:/file/name" where "/file/name"

@@ -44,19 +44,15 @@ QMQPD(8)                                                 QMQPD(8)
        command after a configuration change.
 
 <b>Miscellaneous</b>
-       <b>always</b><i>_</i><b>bcc</b>
-              Address to send a copy of each message that  enters
-              the system.
-
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
-              Increment  in  verbose  logging level when a remote
+              Increment in verbose logging level  when  a  remote
               host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
               parameter.
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
-              List  of  domain or network patterns. When a remote
-              host matches a pattern, increase the  verbose  log-
-              ging   level   by   the  amount  specified  in  the
+              List of domain or network patterns. When  a  remote
+              host  matches  a pattern, increase the verbose log-
+              ging  level  by  the  amount   specified   in   the
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
 
        <b>hopcount</b><i>_</i><b>limit</b>
@@ -67,32 +63,32 @@ QMQPD(8)                                                 QMQPD(8)
               what clients are allowed to use the service.
 
        <b>qmqpd</b><i>_</i><b>timeout</b>
-              Limit  the  time  to  send a server response and to
+              Limit the time to send a  server  response  and  to
               receive a client request.
 
        <b>soft</b><i>_</i><b>bounce</b>
-              Change hard (D)  reject  responses  into  soft  (Z)
-              reject  responses.   This can be useful for testing
+              Change  hard  (D)  reject  responses  into soft (Z)
+              reject responses.  This can be useful  for  testing
               purposes.
 
 <b>Content</b> <b>inspection</b> <b>controls</b>
        <b>content</b><i>_</i><b>filter</b>
-              The name of a mail delivery transport that  filters
+              The  name of a mail delivery transport that filters
               mail and that either bounces mail or re-injects the
-              result back into Postfix.  This parameter uses  the
-              same  syntax  as  the  right-hand side of a Postfix
+              result  back into Postfix.  This parameter uses the
+              same syntax as the right-hand  side  of  a  Postfix
               transport table.
 
 <b>Resource</b> <b>controls</b>
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
-              Limit the amount of memory in bytes  used  for  the
-              handling  of partial input lines, and the length of
-              sender and recipient addresses  that  are  received
+              Limit  the  amount  of memory in bytes used for the
+              handling of partial input lines, and the length  of
+              sender  and  recipient  addresses that are received
               from client.
 
        <b>message</b><i>_</i><b>size</b><i>_</i><b>limit</b>
               Limit the total size in bytes of a message, includ-
-              ing  on-disk  storage  for  sender  and   recipient
+              ing   on-disk  storage  for  sender  and  recipient
               address information.
 
 <b>Tarpitting</b>
@@ -107,7 +103,7 @@ QMQPD(8)                                                 QMQPD(8)
        syslogd(8) system logging
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

@@ -406,6 +406,19 @@ recipient_delimiter =
 #propagate_unmatched_extensions = canonical, virtual, alias, forward, include
 #propagate_unmatched_extensions = canonical, virtual
 
+# The recipient_bcc_maps parameter specifies optional lookup tables
+# with automatic BCC recipients per recipient address.  Each table
+# entry should contain exactly one recipient address. The BCC address
+# is added when mail enters from outside of Postfix.
+# 
+# By default, this feature is disabled. 
+#
+# Specify the types and names of databases to use.  After change,
+# run "postmap /etc/postfix/relocated", then "postfix reload".
+#
+#recipient_bcc_maps = hash:/etc/postfix/recipient_bcc
+recipient_bcc_maps =
+
 # The relayhost parameter specifies the default host to send mail to
 # when no entry is matched in the optional transport(5) table. When
 # no relayhost is given, mail is routed directly to the destination.
@@ -452,6 +465,19 @@ relocated_maps =
 # backup MX service for Sendmail systems.
 #
 resolve_dequoted_address = no
+
+# The sender_bcc_maps parameter specifies optional lookup tables with
+# automatic BCC recipients per sender address.  Each table entry
+# should contain exactly one recipient address. The BCC address is
+# added when mail enters from outside of Postfix.
+# 
+# By default, this feature is disabled. 
+#
+# Specify the types and names of databases to use.  After change,
+# run "postmap /etc/postfix/relocated", then "postfix reload".
+#
+#sender_bcc_maps = hash:/etc/postfix/sender_bcc
+sender_bcc_maps =
 
 # The syslog_facility parameter controls where Postfix logging is
 # sent by the syslog daemon. Specify a logging facility as defined

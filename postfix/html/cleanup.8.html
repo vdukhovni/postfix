@@ -143,6 +143,16 @@ CLEANUP(8)                                             CLEANUP(8)
               Address to send a copy of each message that  enters
               the system.
 
+       <b>sender</b><i>_</i><b>bcc</b><i>_</i><b>maps</b>
+              Automatic  BCC  recipient  lookup table, indexed by
+              sender address.  The BCC address is added when  the
+              message enters the system.
+
+       <b>recipient</b><i>_</i><b>bcc</b><i>_</i><b>maps</b>
+              Automatic  BCC  recipient  lookup table, indexed by
+              recipient address.  The BCC address is  added  when
+              the message enters the system.
+
        <b>hopcount</b><i>_</i><b>limit</b>
               Limit the number of <b>Received:</b> message headers.
 
@@ -204,17 +214,13 @@ CLEANUP(8)                                             CLEANUP(8)
               when  the  message arrival rate exceeds the message
               delivery rate.
 
-       <b>extract</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
-              Limit the amount of recipients extracted from  mes-
-              sage headers.
-
        <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>expansion</b><i>_</i><b>limit</b>
-              Limit  the  number of actual recipients produced by
-              virtual alias expansion from each original  recipi-
+              Limit the number of actual recipients  produced  by
+              virtual  alias expansion from each original recipi-
               ent.
 
        <b>virtual</b><i>_</i><b>alias</b><i>_</i><b>recursion</b><i>_</i><b>limit</b>
-              Limit  the  recursion depth of virtual alias expan-
+              Limit the recursion depth of virtual  alias  expan-
               sion.
 
 <b>SEE</b> <b>ALSO</b>
@@ -229,7 +235,7 @@ CLEANUP(8)                                             CLEANUP(8)
        /etc/postfix/virtual*, virtual mapping table
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

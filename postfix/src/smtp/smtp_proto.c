@@ -648,7 +648,7 @@ int     smtp_xfer(SMTP_STATE *state)
 					request->queue_id, rcpt->orig_addr,
 					rcpt->address, session->namaddr,
 					request->arrival_time, "%s",
-					translit(resp->str, "\n", " ")) == 0) {
+				     translit(resp->str, "\n", " ")) == 0) {
 				if (request->flags & DEL_REQ_FLAG_SUCCESS)
 				    deliver_completed(state->src, rcpt->offset);
 				rcpt->offset = 0;	/* in case deferred */
@@ -820,7 +820,8 @@ int     smtp_xfer(SMTP_STATE *state)
 					  vstring_str(state->scratch),
 					  VSTRING_LEN(state->scratch));
 		    if (mime_errs) {
-			smtp_mesg_fail(state, 554, "MIME 7-bit conversion failed: %s",
+			smtp_mesg_fail(state, 554,
+				       "MIME 7-bit conversion failed: %s",
 				       mime_state_error(mime_errs));
 			RETURN(0);
 		    }
@@ -828,7 +829,16 @@ int     smtp_xfer(SMTP_STATE *state)
 		prev_type = rec_type;
 	    }
 
-	    if (prev_type == REC_TYPE_CONT)	/* missing newline at end */
+	    if (state->mime_state) {
+		mime_errs =
+		    mime_state_update(state->mime_state, rec_type, "", 0);
+		if (mime_errs) {
+		    smtp_mesg_fail(state, 554,
+				   "MIME 7-bit conversion failed: %s",
+				   mime_state_error(mime_errs));
+		    RETURN(0);
+		}
+	    } else if (prev_type == REC_TYPE_CONT)	/* missing newline */
 		smtp_fputs("", 0, session->stream);
 	    if ((state->features & SMTP_FEATURE_MAYBEPIX) != 0
 		&& request->arrival_time < vstream_ftime(session->stream)
@@ -853,6 +863,5 @@ int     smtp_xfer(SMTP_STATE *state)
 	send_state = next_state;
 	send_rcpt = next_rcpt;
     }
-
     RETURN(0);
 }

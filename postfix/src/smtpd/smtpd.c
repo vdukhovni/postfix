@@ -100,8 +100,6 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
-/* .IP \fBalways_bcc\fR
-/*	Address to send a copy of each message that enters the system.
 /* .IP \fBauthorized_verp_clients\fR
 /*	Hostnames, domain names and/or addresses of clients that are
 /*	authorized to use the XVERP extension.
@@ -411,7 +409,6 @@ int     var_reject_code;
 int     var_defer_code;
 int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
-char   *var_always_bcc;
 char   *var_error_rcpt;
 int     var_smtpd_delay_reject;
 char   *var_rest_classes;
@@ -600,12 +597,14 @@ static void mail_open_stream(SMTPD_STATE *state)
      * If running from the master or from inetd, connect to the cleanup
      * service.
      */
+#define SMTPD_CLEANUP_FLAGS (CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK)
+
     if (SMTPD_STAND_ALONE(state) == 0) {
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
-			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
+			ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, SMTPD_CLEANUP_FLAGS,
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PUBLIC, var_cleanup_service);
@@ -1028,8 +1027,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * segment, and prepend our own Received: header. If there is only one
      * recipient, list the recipient address.
      */
-    if (*var_always_bcc)
-	rec_fputs(state->cleanup, REC_TYPE_RCPT, var_always_bcc);
     rec_fputs(state->cleanup, REC_TYPE_MESG, "");
     rec_fprintf(state->cleanup, REC_TYPE_NORM,
 		"Received: from %s (%s [%s])",
@@ -1694,7 +1691,6 @@ int     main(int argc, char **argv)
 	VAR_DATA_CHECKS, DEF_DATA_CHECKS, &var_data_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps, 0, 0,
-	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,

@@ -48,8 +48,6 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
-/* .IP \fBalways_bcc\fR
-/*	Address to send a copy of each message that enters the system.
 /* .IP \fBqueue_directory\fR
 /*	Top-level directory of the Postfix queue.
 /* SEE ALSO
@@ -111,7 +109,6 @@
 
 /* Application-specific. */
 
-char   *var_always_bcc;
 char   *var_filter_xport;
 
  /*
@@ -299,9 +296,6 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * Copy the message envelope segment. Allow only those records that we
      * expect to see in the envelope section. The envelope segment must
      * contain an envelope sender address.
-     * 
-     * If the segment contains a recipient address, include the optional
-     * always_bcc recipient.
      */
     if ((status = copy_segment(qfile, cleanup, info, buf, REC_TYPE_ENVELOPE)) != 0)
 	return (status);
@@ -312,11 +306,6 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     }
     msg_info("%s: uid=%d from=<%s>", info->id,
 	     (int) info->st.st_uid, info->sender);
-
-    if (info->rcpt) {
-	if (*var_always_bcc)
-	    rec_fputs(cleanup, REC_TYPE_RCPT, var_always_bcc);
-    }
 
     /*
      * Message content segment. Send a dummy message length. Prepend a
@@ -408,7 +397,8 @@ static int pickup_file(PICKUP_INFO *info)
      * easier to implement the many possible error exits without forgetting
      * to close files, or to release memory.
      */
-#define PICKUP_CLEANUP_FLAGS	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_FILTER)
+#define PICKUP_CLEANUP_FLAGS \
+	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK)
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,
@@ -512,7 +502,6 @@ static void drop_privileges(char *unused_name, char **unused_argv)
 int     main(int argc, char **argv)
 {
     static CONFIG_STR_TABLE str_table[] = {
-	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	0,
     };

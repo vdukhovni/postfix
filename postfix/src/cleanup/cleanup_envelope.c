@@ -9,8 +9,7 @@
 /*	void	cleanup_envelope(state, type, buf, len)
 /*	CLEANUP_STATE *state;
 /*	int	type;
-/*	char	*buf;
-/*	int	len;
+/*	const char *buf;
 /*	int	len;
 /* DESCRIPTION
 /*	This module processes envelope records and writes the result
@@ -77,11 +76,12 @@
 
 #define STR	vstring_str
 
-static void cleanup_envelope_process(CLEANUP_STATE *, int, char *, int);
+static void cleanup_envelope_process(CLEANUP_STATE *, int, const char *, int);
 
 /* cleanup_envelope - initialize message envelope */
 
-void    cleanup_envelope(CLEANUP_STATE *state, int type, char *str, int len)
+void    cleanup_envelope(CLEANUP_STATE *state, int type,
+			         const char *str, int len)
 {
 
     /*
@@ -104,13 +104,18 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type, char *str, int len)
 
 /* cleanup_envelope_process - process one envelope record */
 
-static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, int len)
+static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
+				             const char *buf, int len)
 {
     char   *attr_name;
     char   *attr_value;
     const char *error_text;
     int     extra_flags;
 
+    /*
+     * On the transition from envelope segment to content segment, do some
+     * sanity checks and add some records.
+     */
     if (type == REC_TYPE_MESG) {
 	if (state->sender == 0 || state->time == 0) {
 	    msg_warn("%s: missing sender or time envelope record",
@@ -158,31 +163,13 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
     } else if (type == REC_TYPE_FULL) {
 	state->fullname = mystrdup(buf);
     } else if (type == REC_TYPE_FROM) {
-	VSTRING *clean_addr = vstring_alloc(100);
-
-	cleanup_rewrite_internal(clean_addr, buf);
-	if (strncasecmp(STR(clean_addr), MAIL_ADDR_MAIL_DAEMON "@",
-			sizeof(MAIL_ADDR_MAIL_DAEMON)) == 0) {
-	    canon_addr_internal(state->temp1, MAIL_ADDR_MAIL_DAEMON);
-	    if (strcasecmp(STR(clean_addr), STR(state->temp1)) == 0)
-		vstring_strcpy(clean_addr, "");
+	if (state->sender != 0) {
+	    msg_warn("%s: too many envelope sender records", state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
 	}
-	if (cleanup_send_canon_maps)
-	    cleanup_map11_internal(state, clean_addr, cleanup_send_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_comm_canon_maps)
-	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_masq_domains
-	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_FROM))
-	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-	CLEANUP_OUT_BUF(state, type, clean_addr);
-	if (state->sender == 0)
-	    state->sender = mystrdup(STR(clean_addr));
-	vstring_free(clean_addr);
+	cleanup_addr_sender(state, buf);
     } else if (type == REC_TYPE_RCPT) {
-	VSTRING *clean_addr = vstring_alloc(100);
-
 	if (state->sender == 0) {		/* protect showq */
 	    msg_warn("%s: envelope recipient precedes sender",
 		     state->queue_id);
@@ -191,20 +178,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	}
 	if (state->orig_rcpt == 0)
 	    state->orig_rcpt = mystrdup(buf);
-	cleanup_rewrite_internal(clean_addr, *buf ? buf : var_empty_addr);
-	if (cleanup_rcpt_canon_maps)
-	    cleanup_map11_internal(state, clean_addr, cleanup_rcpt_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_comm_canon_maps)
-	    cleanup_map11_internal(state, clean_addr, cleanup_comm_canon_maps,
-				cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	if (cleanup_masq_domains
-	    && (cleanup_masq_flags & CLEANUP_MASQ_FLAG_ENV_RCPT))
-	    cleanup_masquerade_internal(clean_addr, cleanup_masq_domains);
-	cleanup_out_recipient(state, state->orig_rcpt, STR(clean_addr));
-	if (state->recip == 0)
-	    state->recip = mystrdup(STR(clean_addr));
-	vstring_free(clean_addr);
+	cleanup_addr_recipient(state, buf);
 	myfree(state->orig_rcpt);
 	state->orig_rcpt = 0;
     } else if (type == REC_TYPE_WARN) {
@@ -225,6 +199,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    return;
 	}
     } else if (type == REC_TYPE_ATTR) {
+	char   *sbuf;
+
 	if (state->attr->used >= var_qattr_count_limit) {
 	    msg_warn("%s: queue file attribute count exceeds safety limit: %d",
 		     state->queue_id, var_qattr_count_limit);
@@ -232,13 +208,16 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type, char *buf, 
 	    return;
 	}
 	cleanup_out(state, type, buf, len);
-	if ((error_text = split_nameval(buf, &attr_name, &attr_value)) != 0) {
+	sbuf = mystrdup(buf);
+	if ((error_text = split_nameval(sbuf, &attr_name, &attr_value)) != 0) {
 	    msg_warn("%s: malformed attribute: %s: %.100s",
 		     state->queue_id, error_text, buf);
 	    state->errs |= CLEANUP_STAT_BAD;
+	    myfree(sbuf);
 	    return;
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
+	myfree(sbuf);
     } else if (type == REC_TYPE_ORCP) {
 	state->orig_rcpt = mystrdup(buf);
     } else {

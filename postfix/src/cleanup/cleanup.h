@@ -52,12 +52,10 @@ typedef struct CLEANUP_STATE {
     int     err_mask;			/* allowed badness */
     int     headers_seen;		/* which headers were seen */
     int     hop_count;			/* count of received: headers */
-    ARGV   *recipients;			/* recipients from regular headers */
-    ARGV   *resent_recip;		/* recipients from resent headers */
     char   *resent;			/* any resent- header seen */
     BH_TABLE *dups;			/* recipient dup filter */
     long    warn_time;			/* cleanup_envelope.c */
-    void    (*action) (struct CLEANUP_STATE *, int, char *, int);
+    void    (*action) (struct CLEANUP_STATE *, int, const char *, int);
     off_t   mesg_offset;		/* start of message segment */
     off_t   data_offset;		/* start of message content */
     off_t   xtra_offset;		/* start of extra segment */
@@ -85,6 +83,8 @@ extern MAPS *cleanup_virt_alias_maps;
 extern ARGV *cleanup_masq_domains;
 extern STRING_LIST *cleanup_masq_exceptions;
 extern int cleanup_masq_flags;
+extern MAPS *cleanup_send_bcc_maps;
+extern MAPS *cleanup_rcpt_bcc_maps;
 
  /*
   * Address masquerading fine control.
@@ -143,17 +143,17 @@ extern void PRINTFLIKE(3, 4) cleanup_out_format(CLEANUP_STATE *, int, const char
  /*
   * cleanup_envelope.c
   */
-extern void cleanup_envelope(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_envelope(CLEANUP_STATE *, int, const char *, int);
 
  /*
   * cleanup_message.c
   */
-extern void cleanup_message(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_message(CLEANUP_STATE *, int, const char *, int);
 
  /*
   * cleanup_extracted.c
   */
-extern void cleanup_extracted(CLEANUP_STATE *, int, char *, int);
+extern void cleanup_extracted(CLEANUP_STATE *, int, const char *, int);
 
  /*
   * cleanup_rewrite.c
@@ -182,9 +182,16 @@ extern void cleanup_masquerade_internal(VSTRING *, ARGV *);
 extern void cleanup_masquerade_tree(TOK822 *, ARGV *);
 
  /*
-  * Cleanup_recipient.c
+  * cleanup_recipient.c
   */
 extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, const char *);
+
+ /*
+  * cleanup_addr.c.
+  */
+extern void cleanup_addr_sender(CLEANUP_STATE *, const char *);
+extern void cleanup_addr_recipient(CLEANUP_STATE *, const char *);
+extern void cleanup_addr_bcc(CLEANUP_STATE *, const char *);
 
 /* LICENSE
 /* .ad

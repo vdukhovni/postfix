@@ -42,8 +42,6 @@
 /* .SH Miscellaneous
 /* .ad
 /* .fi
-/* .IP \fBalways_bcc\fR
-/*	Address to send a copy of each message that enters the system.
 /* .IP \fBdebug_peer_level\fR
 /*	Increment in verbose logging level when a remote host matches a
 /*	pattern in the \fBdebug_peer_list\fR parameter.
@@ -155,7 +153,6 @@
   */
 int     var_qmqpd_timeout;
 int     var_qmqpd_err_sleep;
-char   *var_always_bcc;
 char   *var_filter_xport;
 char   *var_qmqpd_clients;
 
@@ -182,10 +179,12 @@ static void qmqpd_open_file(QMQPD_STATE *state)
     /*
      * Connect to the cleanup server. Log client name/address with queue ID.
      */
+#define QMQPD_CLEANUP_FLAGS (CLEANUP_FLAG_FILTER | CLEANUP_FLAG_BCC_OK)
+
     state->dest = mail_stream_service(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (state->dest == 0
 	|| attr_print(state->dest->stream, ATTR_FLAG_NONE,
-		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, CLEANUP_FLAG_FILTER,
+		      ATTR_TYPE_NUM, MAIL_ATTR_FLAGS, QMQPD_CLEANUP_FLAGS,
 		      ATTR_TYPE_END) != 0)
 	msg_fatal("unable to connect to the %s %s service",
 		  MAIL_CLASS_PUBLIC, var_cleanup_service);
@@ -295,14 +294,6 @@ static void qmqpd_copy_recipients(QMQPD_STATE *state)
 	if (state->recipient == 0)
 	    state->recipient = mystrndup(STR(state->buf), LEN(state->buf));
     }
-
-    /*
-     * Append the optional recipient who is copied on all mail.
-     */
-    if (state->err == CLEANUP_STAT_OK
-	&& *var_always_bcc
-	&& rec_fputs(state->cleanup, REC_TYPE_RCPT, var_always_bcc) < 0)
-	state->err = CLEANUP_STAT_WRITE;
 }
 
 /* qmqpd_next_line - get line from buffer, return last char, newline, or -1 */
@@ -690,7 +681,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static CONFIG_STR_TABLE str_table[] = {
-	VAR_ALWAYS_BCC, DEF_ALWAYS_BCC, &var_always_bcc, 0, 0,
 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
 	VAR_QMQPD_CLIENTS, DEF_QMQPD_CLIENTS, &var_qmqpd_clients, 0, 0,
 	0,

@@ -7967,10 +7967,39 @@ Apologies for any names omitted.
 	client sockets.  This puts less strain on local system
 	resources.
 
-10030415
+20030415
 
 	Cleanup: the file system clock drift detection code now
 	runs only for incoming mail. File: global/mail_stream.c.
+
+20030416
+
+	Bugfix: missing output flush when message content did not
+	end in newline while converting 8-bit to 7-bit mail.  File:
+	smtp/smtp_proto.c.
+
+	Cleanup: auto-bcc recipients are now added in one place
+	(the cleanup server) instead of by individual front-end
+	servers (pickup, smtpd, qmqpd). This makes it easier to
+	add auto-bcc features that trigger on sender or recipient
+	addresses.
+
+	Cleanup: "sendmail -t" (recipients from headers) is now
+	implemented by the sendmail command instead of by the
+	cleanup server. This means that the extract_recipient_limit
+	configuration parameter is no longer needed.  Files:
+	sendmail/sendmail.c, cleanup/cleanup_message.c,
+	cleanup/cleanup_extracted.c.
+
+	Compatibility: "sendmail -t" (recipients from headers) now
+	accepts command-line recipients instead of complaining.
+	The extracted header recipients are added to the command-line
+	recipients.
+
+	Feature: sender/recipient_bcc_maps. These are indexed by
+	sender/recipient address and are examined when mail enters
+	from outside of Postfix. Files: cleanup/cleanup_addr.c.
+	cleanup/cleanup_envelope.c cleanup/cleanup_extracted.c.
 
 Open problems:
 

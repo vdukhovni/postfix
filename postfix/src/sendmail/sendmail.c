@@ -169,8 +169,8 @@
 /*	This command is not implemented. Use the slower \fBsendmail -q\fR
 /*	command instead.
 /* .IP \fB-t\fR
-/*	Extract recipients from message headers. This requires that no
-/*	recipients be specified on the command line.
+/*	Extract recipients from message headers. These are added to any
+/*	recipients specified on the command line.
 /* .IP \fB-v\fR
 /*	Send an email report of all delivery attempts (mail delivery
 /*	always happens in the background). When multiple \fB-v\fR
@@ -304,6 +304,7 @@
 #include <stringops.h>
 #include <set_ugid.h>
 #include <connect.h>
+#include <split_at.h>
 
 /* Global library. */
 
@@ -323,6 +324,8 @@
 #include <mail_stream.h>
 #include <verp_sender.h>
 #include <deliver_request.h>
+#include <mime_state.h>
+#include <header_opts.h>
 
 /* Application-specific. */
 
@@ -340,6 +343,7 @@
   * Flag parade. Flags 8-15 are reserved for delivery request trace flags.
   */
 #define SM_FLAG_AEOF	(1<<0)		/* archaic EOF */
+#define SM_FLAG_XRCPT	(1<<1)		/* extract recipients from headers */
 
 #define SM_FLAG_DEFAULT	(SM_FLAG_AEOF)
 
@@ -349,9 +353,85 @@
 char   *verp_delims;
 
  /*
+  * Context for extracting recipients.
+  */
+typedef struct SM_STATE {
+    VSTREAM *dst;			/* output stream */
+    ARGV   *recipients;			/* recipients from regular headers */
+    ARGV   *resent_recip;		/* recipients from resent headers */
+    int     resent;			/* resent flag */
+    const char *saved_sender;		/* for error messages */
+    uid_t   uid;			/* for error messages */
+    VSTRING *temp;			/* scratch buffer */
+} SM_STATE;
+
+ /*
   * Silly little macros (SLMs).
   */
 #define STR	vstring_str
+
+/* output_text - output partial or complete text line */
+
+static void output_text(void *context, int rec_type, const char *buf, int len,
+			        off_t unused_offset)
+{
+    SM_STATE *state = (SM_STATE *) context;
+
+    if (rec_put(state->dst, rec_type, buf, len) < 0)
+	msg_fatal_status(EX_TEMPFAIL,
+			 "%s(%ld): error writing queue file: %m",
+			 state->saved_sender, (long) state->uid);
+}
+
+/* output_header - output one message header */
+
+static void output_header(void *context, int header_class,
+			          HEADER_OPTS *header_info,
+			          VSTRING *buf, off_t offset)
+{
+    SM_STATE *state = (SM_STATE *) context;
+    TOK822 *tree;
+    TOK822 **addr_list;
+    TOK822 **tpp;
+    ARGV   *rcpt;
+    char   *start;
+    char   *line;
+    char   *next_line;
+
+    /*
+     * Pipe the unmodified message header through the header line folding
+     * routine.
+     */
+    for (line = start = STR(buf); line; line = next_line) {
+	next_line = split_at(line, '\n');
+	output_text(context, REC_TYPE_NORM, line, next_line ?
+		    next_line - line - 1 : strlen(line), offset);
+    }
+
+    /*
+     * Parse the header line, and save copies of recipient addresses in the
+     * appropriate place.
+     */
+    if (header_class == MIME_HDR_PRIMARY
+	&& header_info->flags & HDR_OPT_RECIP
+	&& header_info->flags & HDR_OPT_EXTRACT
+	&& (state->resent == 0 || (header_info->flags & HDR_OPT_RR))) {
+	if (header_info->flags & HDR_OPT_RR) {
+	    rcpt = state->resent_recip;
+	    if (state->resent == 0)
+		state->resent = 1;
+	} else
+	    rcpt = state->recipients;
+	tree = tok822_parse(vstring_str(buf) + strlen(header_info->name) + 1);
+	addr_list = tok822_grep(tree, TOK822_ADDR);
+	for (tpp = addr_list; *tpp; tpp++) {
+	    tok822_internalize(state->temp, tpp[0]->head, TOK822_STR_DEFL);
+	    argv_add(rcpt, vstring_str(state->temp), (char *) 0);
+	}
+	myfree((char *) addr_list);
+	tok822_free_tree(tree);
+    }
+}
 
 /* enqueue - post one message */
 
@@ -376,6 +456,9 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     int     status;
     int     naddr;
     int     prev_type;
+    MIME_STATE *mime_state = 0;
+    SM_STATE state;
+    int     mime_errs;
 
     /*
      * Initialize.
@@ -482,6 +565,31 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 	    }
 	}
     } else {
+
+	/*
+	 * Initialize the MIME processor and set up the callback context.
+	 */
+	if (flags & SM_FLAG_XRCPT) {
+	    state.dst = dst;
+	    state.recipients = argv_alloc(2);
+	    state.resent_recip = argv_alloc(2);
+	    state.resent = 0;
+	    state.saved_sender = saved_sender;
+	    state.uid = uid;
+	    state.temp = vstring_alloc(10);
+	    mime_state = mime_state_alloc(MIME_OPT_DISABLE_MIME
+					  | MIME_OPT_REPORT_TRUNC_HEADER,
+					  output_header,
+					  (MIME_STATE_ANY_END) 0,
+					  output_text,
+					  (MIME_STATE_ANY_END) 0,
+					  (MIME_STATE_ERR_PRINT) 0,
+					  (void *) &state);
+	}
+
+	/*
+	 * Process header/body lines.
+	 */
 	skip_from_ = 1;
 	strip_cr = STRIP_CR_DUNNO;
 	for (prev_type = 0; (type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
@@ -506,18 +614,52 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
 	    if ((flags & SM_FLAG_AEOF) && prev_type != REC_TYPE_CONT
 		&& VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
 		break;
-	    if (REC_PUT_BUF(dst, type, buf) < 0)
-		msg_fatal_status(EX_TEMPFAIL,
-				 "%s(%ld): error writing queue file: %m",
-				 saved_sender, (long) uid);
+	    if (mime_state) {
+		mime_errs = mime_state_update(mime_state, type, STR(buf),
+					      VSTRING_LEN(buf));
+		if (mime_errs)
+		    msg_fatal_status(EX_DATAERR,
+				"%s(%ld): unable to extract recipients: %s",
+				     saved_sender, (long) uid,
+				     mime_state_error(mime_errs));
+	    } else {
+		if (REC_PUT_BUF(dst, type, buf) < 0)
+		    msg_fatal_status(EX_TEMPFAIL,
+				     "%s(%ld): error writing queue file: %m",
+				     saved_sender, (long) uid);
+	    }
 	}
     }
 
     /*
-     * Append an empty section for information extracted from message
-     * headers. Header parsing is done by the cleanup service.
+     * Finish up MIME processing.
+     */
+    if (mime_state) {
+	mime_errs = mime_state_update(mime_state, REC_TYPE_EOF, "", 0);
+	if (mime_errs)
+	    msg_fatal_status(EX_DATAERR,
+			     "%s(%ld): unable to extract recipients: %s",
+			     saved_sender, (long) uid,
+			     mime_state_error(mime_errs));
+	mime_state = mime_state_free(mime_state);
+    }
+
+    /*
+     * Append recipient addresses that were extracted from message headers.
      */
     rec_fputs(dst, REC_TYPE_XTRA, "");
+    if (flags & SM_FLAG_XRCPT) {
+	for (cpp = state.resent ? state.resent_recip->argv :
+	     state.recipients->argv; *cpp; cpp++) {
+	    if (rec_put(dst, REC_TYPE_RCPT, *cpp, strlen(*cpp)) < 0)
+		msg_fatal_status(EX_TEMPFAIL,
+				 "%s(%ld): error writing queue file: %m",
+				 saved_sender, (long) uid);
+	}
+	argv_free(state.recipients);
+	argv_free(state.resent_recip);
+	vstring_free(state.temp);
+    }
 
     /*
      * Identify the end of the queue file.
@@ -563,7 +705,6 @@ int     main(int argc, char **argv)
     static char *full_name = 0;		/* sendmail -F */
     struct stat st;
     char   *slash;
-    int     extract_recipients = 0;	/* sendmail -t, almost */
     char   *sender = 0;			/* sendmail -f */
     int     c;
     int     fd;
@@ -797,7 +938,7 @@ int     main(int argc, char **argv)
 	    }
 	    break;
 	case 't':
-	    extract_recipients = 1;
+	    flags |= SM_FLAG_XRCPT;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -810,15 +951,11 @@ int     main(int argc, char **argv)
     /*
      * Look for conflicting options and arguments.
      */
-    if (extract_recipients && mode != SM_MODE_ENQUEUE)
+    if ((flags & SM_FLAG_XRCPT) && mode != SM_MODE_ENQUEUE)
 	msg_fatal_status(EX_USAGE, "-t can be used only in delivery mode");
 
     if (site_to_flush && mode != SM_MODE_ENQUEUE)
 	msg_fatal_status(EX_USAGE, "-qR can be used only in delivery mode");
-
-    if (extract_recipients && argv[OPTIND])
-	msg_fatal_status(EX_USAGE,
-			 "cannot handle command-line recipients with -t");
 
     /*
      * The -v option plays double duty. One requests verbose delivery, more
