@@ -643,6 +643,7 @@ EOF
 	    ed $config_directory/master.cf <<EOF || exit 1
 /^tlsmgr[ 	]*fifo[ 	]/
 s/fifo/unix/
+s/[0-9][0-9]*/&?/
 p
 w
 q
