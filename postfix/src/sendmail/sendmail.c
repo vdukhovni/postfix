@@ -148,7 +148,7 @@
 /*	configuration parameter instead.
 /* .IP \fB-qR\fIsite\fR
 /*	Schedule immediate delivery of all mail that is queued for the named
-/*	\fIsite\fR. This option accepts only \fIsite\fR names that are 
+/*	\fIsite\fR. This option accepts only \fIsite\fR names that are
 /*	eligible for the "fast flush" service, and is implemented by
 /*	connecting to the local SMTP server at \fB$myhostname\fR.
 /*	See \fBflush\fR(8) for more information about the "fast flush"
@@ -276,6 +276,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <sysexits.h>
 
 /* Utility library. */
 
@@ -331,6 +332,7 @@
   */
 static char *sendmail_path;
 static void sendmail_cleanup(void);
+static NORETURN fatal_error(int, const char *,...);
 
  /*
   * Flag parade.
@@ -492,8 +494,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	if ((flags & SM_FLAG_AEOF) && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
 	    break;
 	if (REC_PUT_BUF(dst, type, buf) < 0)
-	    msg_fatal("%s(%ld): error writing queue file: %m",
-		      saved_sender, (long) uid);
+	    fatal_error(EX_CANTCREAT, "%s(%ld): error writing queue file: %m",
+			saved_sender, (long) uid);
     }
 
     /*
@@ -514,11 +516,11 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
      * handler from removing the file.
      */
     if (vstream_ferror(VSTREAM_IN))
-	msg_fatal("%s(%ld): error reading input: %m",
-		  saved_sender, (long) uid);
+	fatal_error(EX_DATAERR, "%s(%ld): error reading input: %m",
+		    saved_sender, (long) uid);
     if ((status = mail_stream_finish(handle, (VSTRING *) 0)) != 0)
-	msg_fatal("%s(%ld): %s", saved_sender,
-		  (long) uid, cleanup_strerror(status));
+	fatal_error(EX_CANTCREAT, "%s(%ld): %s", saved_sender,
+		    (long) uid, cleanup_strerror(status));
     if (sendmail_path) {
 	myfree(sendmail_path);
 	sendmail_path = 0;
@@ -667,9 +669,11 @@ static void flush_site(const char *site)
     vstring_free(buf);
 }
 
+static int fatal_status;
+
 /* sendmail_cleanup - callback for the runtime error handler */
 
-static void sendmail_cleanup(void)
+static NORETURN sendmail_cleanup(void)
 {
 
     /*
@@ -684,14 +688,29 @@ static void sendmail_cleanup(void)
 	    msg_info("remove %s", sendmail_path);
 	sendmail_path = 0;
     }
+    exit(fatal_status > 0 ? fatal_status : 1);
 }
 
 /* sendmail_sig - catch signal and clean up */
 
 static void sendmail_sig(int sig)
 {
+    fatal_status = sig;
     sendmail_cleanup();
-    exit(sig);
+}
+
+/* fatal_error - give up and notify parent */
+
+static void fatal_error(int status, const char *fmt,...)
+{
+    VSTRING *text = vstring_alloc(10);
+    va_list ap;
+
+    fatal_status = status;
+    va_start(ap, fmt);
+    vstring_vsprintf(text, fmt, ap);
+    va_end(ap);
+    msg_fatal("%s", vstring_str(text));
 }
 
 /* main - the main program */
@@ -726,7 +745,7 @@ int     main(int argc, char **argv)
     for (fd = 0; fd < 3; fd++)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
-	    msg_fatal("open /dev/null: %m");
+	    fatal_error(EX_UNAVAILABLE, "open /dev/null: %m");
 
     /*
      * The CDE desktop calendar manager leaks a parent file descriptor into
@@ -774,9 +793,17 @@ int     main(int argc, char **argv)
      */
     mail_conf_read();
     if (chdir(var_queue_dir))
-	msg_fatal("chdir %s: %m", var_queue_dir);
+	fatal_error(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
+
+    /*
+     * Stop run-away process accidents by limiting the queue file size. This
+     * is not a defense against DOS attack.
+     */
+    if (get_file_limit() > var_message_limit)
+	set_file_limit((off_t) var_message_limit);
 
     signal(SIGPIPE, SIG_IGN);
+    signal(SIGXFSZ, SIG_IGN);
 
     signal(SIGHUP, sendmail_sig);
     signal(SIGINT, sendmail_sig);
@@ -836,7 +863,7 @@ int     main(int argc, char **argv)
 		msg_info("-%c option ignored", c);
 	    break;
 	case 'n':
-	    msg_fatal("-%c option not supported", c);
+	    fatal_error(EX_USAGE, "-%c option not supported", c);
 	case 'B':				/* body type */
 	    break;
 	case 'F':				/* full name */
@@ -853,14 +880,14 @@ int     main(int argc, char **argv)
 	    break;
 	case 'V':				/* VERP */
 	    if (verp_delims_verify(optarg) != 0)
-		msg_fatal("-V option requires two characters from %s",
-			  var_verp_filter);
+		fatal_error(EX_USAGE, "-V requires two characters from %s",
+			    var_verp_filter);
 	    verp_delims = optarg;
 	    break;
 	case 'b':
 	    switch (*optarg) {
 	    default:
-		msg_fatal("unsupported: -%c%c", c, *optarg);
+		fatal_error(EX_USAGE, "unsupported: -%c%c", c, *optarg);
 	    case 'd':				/* daemon mode */
 		if (mode == SM_MODE_FLUSHQ)
 		    msg_warn("ignoring -q option in daemon mode");
@@ -894,7 +921,7 @@ int     main(int argc, char **argv)
 		break;
 	    case 'A':
 		if (optarg[1] == 0)
-		    msg_fatal("-oA requires pathname");
+		    fatal_error(EX_USAGE, "-oA requires pathname");
 		myfree(var_alias_db_map);
 		var_alias_db_map = mystrdup(optarg + 1);
 		set_mail_conf_str(VAR_ALIAS_DB_MAP, var_alias_db_map);
@@ -924,7 +951,7 @@ int     main(int argc, char **argv)
 		if (*site_to_flush == 0)
 		    msg_fatal("specify: -qRsitename");
 	    } else {
-		msg_fatal("-q%c is not implemented", optarg[0]);
+		fatal_error(EX_USAGE, "-q%c is not implemented", optarg[0]);
 	    }
 	    break;
 	case 't':
@@ -934,7 +961,7 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	case '?':
-	    msg_fatal("usage: %s [options]", argv[0]);
+	    fatal_error(EX_USAGE, "usage: %s [options]", argv[0]);
 	}
     }
 

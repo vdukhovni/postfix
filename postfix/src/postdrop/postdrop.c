@@ -75,6 +75,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <syslog.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -85,6 +86,7 @@
 #include <msg_vstream.h>
 #include <msg_syslog.h>
 #include <argv.h>
+#include <iostuff.h>
 
 /* Global library. */
 
@@ -198,6 +200,13 @@ int     main(int argc, char **argv)
     mail_conf_read();
 
     /*
+     * Stop run-away process accidents by limiting the queue file size. This
+     * is not a defense against DOS attack.
+     */
+    if (get_file_limit() > var_message_limit)
+	set_file_limit((off_t) var_message_limit);
+
+    /*
      * Strip the environment so we don't have to trust the C library.
      */
     import_env = argv_split(var_import_environ, ", \t\r\n");
@@ -214,6 +223,7 @@ int     main(int argc, char **argv)
      * clean up incomplete output.
      */
     signal(SIGPIPE, SIG_IGN);
+    signal(SIGXFSZ, SIG_IGN);
 
     signal(SIGHUP, postdrop_sig);
     signal(SIGINT, postdrop_sig);
@@ -254,6 +264,9 @@ int     main(int argc, char **argv)
      * file descriptor to the cleanup daemon. These are by no means all
      * sanity checks - the cleanup service and queue manager services will
      * reject messages that lack required information.
+     * 
+     * If something goes wrong, slurp up the input before responding to the
+     * client, otherwise the client will give up after detecting SIGPIPE.
      */
     vstream_control(VSTREAM_IN, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
     buf = vstring_alloc(100);
@@ -279,8 +292,12 @@ int     main(int argc, char **argv)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)
 	    expected++;
-	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0)
-	    msg_fatal("uid=%ld: queue file write error", (long) uid);
+	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0) {
+	    while ((rec_type = rec_get(VSTREAM_IN, buf, var_line_limit)) > 0
+		   && rec_type != REC_TYPE_END)
+		 /* void */ ;
+	    break;
+	}
 	if (rec_type == REC_TYPE_END)
 	    break;
     }
@@ -289,8 +306,10 @@ int     main(int argc, char **argv)
     /*
      * Finish the file.
      */
-    if ((status = mail_stream_finish(dst, (VSTRING *) 0)) != 0)
-	msg_fatal("uid=%ld: %s", (long) uid, cleanup_strerror(status));
+    if ((status = mail_stream_finish(dst, (VSTRING *) 0)) != 0) {
+	postdrop_cleanup();
+	msg_warn("uid=%ld: %m", (long) uid);
+    }
 
     /*
      * Disable deletion on fatal error before reporting success, so the file

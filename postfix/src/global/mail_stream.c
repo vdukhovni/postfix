@@ -80,6 +80,7 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -141,7 +142,7 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
 	|| fsync(vstream_fileno(info->stream))
 #endif
 	)
-	status = CLEANUP_STAT_WRITE;
+	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
 
     /*
      * Close the queue file and mark it as closed. Be prepared for
@@ -152,7 +153,7 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
      * reasons.
      */
     if (info->close(info->stream))
-	status = CLEANUP_STAT_WRITE;
+	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
     info->stream = 0;
 
     /*

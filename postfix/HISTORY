@@ -5720,6 +5720,20 @@ Apologies for any names omitted.
 	Parameter: fault_injection_code, must be left at zero for
 	production use.
 
+20011128
+
+	Robustness: add a file size limit to the sendmail and
+	postdrop submission programs to stop run-away process
+	accidents. This is not a defense against DOS attack.
+	Files: sendmail/sendmail.c, postdrop/postdrop.c.
+
+	That resulted in a considerable amount of work to properly
+	propagate "file too large" conditions back to the sendmail
+	mail posting user interface. Took the opportunity to express
+	other mail submission fatal exits with the <sysexits.h>
+	exit status codes.  Files: sendmail/sendmail.c,
+	postdrop/postdrop.c.
+
 Open problems:
 
 	Medium: need in-process caching for map lookups. LDAP

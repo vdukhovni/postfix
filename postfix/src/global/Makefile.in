@@ -582,8 +582,9 @@ mail_copy.o: record.h
 mail_copy.o: rec_type.h
 mail_copy.o: mail_queue.h
 mail_copy.o: mail_addr.h
-mail_copy.o: mail_copy.h
 mail_copy.o: mark_corrupt.h
+mail_copy.o: mail_params.h
+mail_copy.o: mail_copy.h
 mail_date.o: mail_date.c
 mail_date.o: ../../include/sys_defs.h
 mail_date.o: ../../include/msg.h
