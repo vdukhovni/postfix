@@ -569,7 +569,7 @@ while (<>) {
     s/[<bB>]*vir[-<\/bB>]*\n*[ <bB>]*tual[<\/bB>]*\(5\)/<a href="virtual.5.html">$&<\/a>/g;
     s/[<bB>]*vir[-<\/bB>]*\n*[ <bB>]*tual[<\/bB>]*\(8\)/<a href="virtual.8.html">$&<\/a>/g;
     s/[<bB>]*cidr_ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="cidr_table.5.html">$&<\/a>/g;
-    s/[<bB>]*tcp_ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="tcp_table.5.html">$&<\/a>/g;
+    #s/[<bB>]*tcp_ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="tcp_table.5.html">$&<\/a>/g;
     s/[<bB>]*body_checks[<\/bB>]*\(5\)/<a href="header_checks.5.html">$&<\/a>/g;
     s/[<bB>]*header_checks[<\/bB>]*\(5\)/<a href="header_checks.5.html">$&<\/a>/g;
 
@@ -700,7 +700,7 @@ while (<>) {
     s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
-    s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
+    #s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
 
     # Do nice links for smtp:host:port etc.
 

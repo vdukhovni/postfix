@@ -27,7 +27,7 @@
 #ifdef SNAPSHOT
 #define DEF_MAIL_VERSION	MAIL_VERSION_NUMBER "-" MAIL_RELEASE_DATE
 #else
-#define DEF_MAIL_VERSION	MAIL_VERSION_NUMBER
+#define DEF_MAIL_VERSION	MAIL_VERSION_NUMBER "-RC1"
 #endif
 extern char *var_mail_version;
 
