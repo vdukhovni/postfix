@@ -239,7 +239,7 @@ int     main(int argc, char **argv)
     while ((ch = GETOPT(argc, argv, "c:Dv")) > 0) {
 	switch (ch) {
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-v] command", argv[0]);
+	    msg_fatal("usage: %s [-c config_dir] [-Dv] command", argv[0]);
 	case 'c':
 	    if (*optarg != '/')
 		msg_fatal("-c requires absolute pathname");

@@ -1,0 +1,129 @@
+.TH ANVIL 8 
+.ad
+.fi
+.SH NAME
+anvil
+\-
+Postfix connection count and rate management
+.SH SYNOPSIS
+.na
+.nf
+\fBanvil\fR [generic Postfix daemon options]
+.SH DESCRIPTION
+.ad
+.fi
+The Postfix \fBanvil\fR server maintains short-term statistics
+to defend against clients that hammer a server with either too
+many parallel connections or with too many successive connection
+attempts within a configurable time interval.
+This server is designed to run under control by the Postfix
+master server.
+.SH PROTOCOL
+.na
+.nf
+.ad
+.fi
+When a remote client connects, a connection count (or rate) limited
+server should send the following request to the \fBanvil\fR server:
+.PP
+.in +4
+\fBrequest=connect\fR
+.br
+\fBident=\fIstring\fR
+.in
+.PP
+This registers a new connection for the (service, client)
+combination specified with \fBident\fR. The \fBanvil\fR server
+answers with the number of simultaneous connections and the
+number of connections per unit time for that (service, client)
+combination:
+.PP
+.in +4
+\fBstatus=0\fR
+.br
+\fBcount=\fInumber\fR
+.br
+\fBrate=\fInumber\fR
+.in
+.PP
+The \fBrate\fR is computed as the number of connections
+that were registered in the current "time unit" interval.
+It is left up to the server to decide if the remote client
+exceeds the connection count (or rate) limit.
+.PP
+When a remote client disconnects, a connection count (or rate) limited
+server should send the following request to the \fBanvil\fR server:
+.PP
+.in +4
+\fBrequest=disconnect\fR
+.br
+\fBident=\fIstring\fR
+.in
+.PP
+This registers a disconnect event for the (service, client)
+combination specified with \fBident\fR. The \fBanvil\fR
+server replies with:
+.PP
+.ti +4
+\fBstatus=0\fR
+.PP
+.SH SECURITY
+.na
+.nf
+.ad
+.fi
+The \fBanvil\fR server does not talk to the network or to local
+users, and can run chrooted at fixed low privilege.
+
+The \fBanvil\fR server maintains an in-memory table with information
+about recent clients of a connection count (or rate) limited service.
+Although state is kept only temporarily, this may require a lot of
+memory on systems that handle connections from many remote clients.
+To reduce memory usage, reduce the time unit over which state
+is kept.
+.SH DIAGNOSTICS
+.ad
+.fi
+Problems and transactions are logged to \fBsyslogd\fR(8).
+
+Upon process exit, the server logs the maximal count and rate
+values measured, together with (service, client) and time
+associated with those events.
+.SH BUGS
+.ad
+.fi
+Systems behind network address translating routers or proxies
+appear to have the same client address and can run into connection
+count and/or rate limits falsely.
+
+In this preliminary implementation, a count (or rate) limited server
+can have only one remote client at a time. If a server reports
+multiple simultaneous clients, all but the last reported client
+are ignored.
+.SH CONFIGURATION PARAMETERS
+.na
+.nf
+.ad
+.fi
+The following \fBmain.cf\fR parameters are especially relevant to
+this program. Use the \fBpostfix reload\fR command after
+a configuration change.
+.IP \fBconnection_rate_time_unit\fR
+The unit of time over which connection rates are calculated.
+.SH SEE ALSO
+.na
+.nf
+smtpd(8) Postfix SMTP server
+.SH LICENSE
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH AUTHOR(S)
+.na
+.nf
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

@@ -70,7 +70,4 @@ postlog.o: ../../include/msg_output.h
 postlog.o: ../../include/msg_vstream.h
 postlog.o: ../../include/msg_syslog.h
 postlog.o: ../../include/mail_params.h
-postlog.o: ../../include/crate_clnt.h
-postlog.o: ../../include/attr_clnt.h
-postlog.o: ../../include/attr.h
 postlog.o: ../../include/mail_conf.h

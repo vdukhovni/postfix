@@ -1,0 +1,106 @@
+<html> <body> <pre>
+ANVIL(8)                                                 ANVIL(8)
+
+<b>NAME</b>
+       anvil - Postfix connection count and rate management
+
+<b>SYNOPSIS</b>
+       <b>anvil</b> [generic Postfix daemon options]
+
+<b>DESCRIPTION</b>
+       The  Postfix  <b>anvil</b> server maintains short-term statistics
+       to defend against clients that hammer a server with either
+       too  many parallel connections or with too many successive
+       connection attempts within a configurable  time  interval.
+       This  server is designed to run under control by the Post-
+       fix master server.
+
+<b>PROTOCOL</b>
+       When a remote client  connects,  a  connection  count  (or
+       rate)  limited server should send the following request to
+       the <b>anvil</b> server:
+
+           <b>request=connect</b>
+           <b>ident=</b><i>string</i>
+
+       This registers a new connection for the (service,  client)
+       combination specified with <b>ident</b>. The <b>anvil</b> server answers
+       with the number of simultaneous connections and the number
+       of  connections  per  unit time for that (service, client)
+       combination:
+
+           <b>status=0</b>
+           <b>count=</b><i>number</i>
+           <b>rate=</b><i>number</i>
+
+       The <b>rate</b> is computed as the  number  of  connections  that
+       were  registered  in the current "time unit" interval.  It
+       is left up to the server to decide if  the  remote  client
+       exceeds the connection count (or rate) limit.
+
+       When  a  remote client disconnects, a connection count (or
+       rate) limited server should send the following request  to
+       the <b>anvil</b> server:
+
+           <b>request=disconnect</b>
+           <b>ident=</b><i>string</i>
+
+       This  registers  a  disconnect  event  for  the  (service,
+       client) combination specified with <b>ident</b>. The <b>anvil</b> server
+       replies with:
+
+           <b>status=0</b>
+
+<b>SECURITY</b>
+       The  <b>anvil</b> server does not talk to the network or to local
+       users, and can run chrooted at fixed low privilege.
+
+       The <b>anvil</b> server maintains an in-memory table with  infor-
+       mation  about  recent  clients  of  a connection count (or
+       rate) limited service.  Although state is kept  only  tem-
+       porarily, this may require a lot of memory on systems that
+       handle connections from many remote  clients.   To  reduce
+       memory  usage,  reduce  the  time unit over which state is
+       kept.
+
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
+       Upon process exit, the server logs the maximal  count  and
+       rate  values measured, together with (service, client) and
+       time associated with those events.
+
+<b>BUGS</b>
+       Systems behind  network  address  translating  routers  or
+       proxies appear to have the same client address and can run
+       into connection count and/or rate limits falsely.
+
+       In this preliminary implementation, a count (or rate) lim-
+       ited  server can have only one remote client at a time. If
+       a server reports multiple simultaneous  clients,  all  but
+       the last reported client are ignored.
+
+<b>CONFIGURATION PARAMETERS</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. Use the <b>postfix reload</b>  command  after  a
+       configuration change.
+
+       <b>connection_rate_time_unit</b>
+              The  unit  of  time over which connection rates are
+              calculated.
+
+<b>SEE ALSO</b>
+       <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
+
+<b>LICENSE</b>
+       The Secure Mailer license must be  distributed  with  this
+       software.
+
+<b>AUTHOR(S)</b>
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
+       Yorktown Heights, NY 10598, USA
+
+                                                         ANVIL(8)
+</pre> </body> </html>

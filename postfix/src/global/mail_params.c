@@ -250,7 +250,6 @@ char   *var_error_service;
 char   *var_flush_service;
 char   *var_verify_service;
 char   *var_trace_service;
-char   *var_crate_service;
 int     var_db_create_buf;
 int     var_db_read_buf;
 int     var_mime_maxdepth;
@@ -482,7 +481,6 @@ void    mail_params_init()
 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
-	VAR_CRATE_SERVICE, DEF_CRATE_SERVICE, &var_crate_service, 1, 0,
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

@@ -264,7 +264,14 @@ int     main(int argc, char **argv)
 	if (open("/dev/null", O_RDWR, 0) != fd)
 	    msg_fatal("open /dev/null: %m");
     }
-    setsid();
+
+    /*
+     * Run in a separate process group, so that "postfix stop" can terminate
+     * all MTA processes cleanly. Give up if we can't separate from our
+     * parent process. We're not supposed to blow away the parent.
+     */
+    if (setsid() == -1)
+	msg_fatal("unable to set session and process group ID: %m");
 
     /*
      * Make some room for plumbing with file descriptors. XXX This breaks

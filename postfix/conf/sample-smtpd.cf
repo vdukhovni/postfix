@@ -111,11 +111,13 @@ unknown_local_recipient_reject_code = 550
 # simultaneous connections any client is allowed to make to this
 # service.
 # 
-# By default, every client can make as many connections as Postfix
-# can accept (defined by the process limit in the master.cf file).
+# By default, the limit is set it to half the default process limit
+# value.
+#
+# To disable this feature, specify a limit of 0.
 # 
-# smtpd_client_connection_count_limit = 10
-smtpd_client_connection_count_limit = 0
+# smtpd_client_connection_count_limit = 0
+smtpd_client_connection_count_limit = 50
 
 # The smtpd_client_connection_rate_limit parameter controls how many
 # connection attempts any client is allowed to make to this service
@@ -126,6 +128,8 @@ smtpd_client_connection_count_limit = 0
 # 
 # By default, every client can make as many connections as Postfix
 # can accept.
+#
+# To disable this feature, specify a limit of 0.
 #
 # smtpd_client_connection_rate_limit = 100
 smtpd_client_connection_rate_limit = 0

@@ -22,25 +22,46 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.16-20031110
+Incompatible changes with Postfix snapshot 2.0.16-20031111
 ==========================================================
 
 The demo greylist policy server is now case insensitive.
 
-Major changes with Postfix snapshot 2.0.16-20031110
+Major changes with Postfix snapshot 2.0.16-20031111
 ===================================================
 
-Preliminary support for limiting the number of connection attempts
-from an SMTP client. The limits are disabled by default. The
-parameter smtpd_client_connection_count_limit restricts the number
-of simultaneous connections by any client, and the parameter
-smtpd_client_connection_rate_limit restricts the number of connection
-attempts per unit time that any client can make. The time unit is
-specified with the connection_rate_time_unit parameter, default
-one minute). When Postfix rejects a client, it sends a 450 status
-code and disconnects. The smtpd_client_connection_limit_exceptions
-parameter takes a list of network blocks or domain names that are
-excluded from these restrictions (by default, clients in $mynetworks).
+Preliminary defense against SMTP clients that hammer an SMTP server
+with too many connections.  By default, the number of simultaneous
+connections per client is limited to half the default process limit,
+and no limit is imposed on the number of successive connections
+per time unit that a client is allowed to make.
+
+The new anvil server maintains the connection statistics, and logs
+the maximum connection count and connection rate per client whenever
+it terminates (when there is no work to be done, or when "postfix
+reload" was issued). Once you have an idea what the numbers look
+like, you can clamp down the limits for your system.
+
+The relevant main.cf configuration parameters are: smtpd_client_-
+connection_count_limit for the number of simultaneous connections
+per client, and smtpd_client_connection_rate_limit for the number
+of successive connections per unit time and client. The time unit
+is specified with the connection_rate_time_unit parameter, and is
+one minute by default.
+
+When Postfix rejects a client, it sends a 450 status code and
+disconnects, and logs a warning with the client name/address and
+the service name from master.cf. You can, for example, capture this
+information with a logfile watching program that updates a firewall
+rule (such a watcher program is not included with Postfix).
+
+To avoid rejecting authorized hosts, the smtpd_client_connection_-
+limit_exceptions parameter takes a list of network/netmask expressions,
+hostnames or .domain names that are excluded from these restrictions.
+By default, all clients in $mynetworks are excluded; you will
+probably want to use a more restrictive setting.
+
+See also:  sample-smtpd.cf, smtpd(8), and anvil(8).  
 
 Incompatible changes with Postfix snapshot 2.0.16-20031022
 ==========================================================

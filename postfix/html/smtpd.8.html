@@ -303,17 +303,23 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd_client_connection_count_limit</b>
               The maximal number of simultaneous connections that
-              any client is allowed to make to this service.
+              any client is allowed  to  make  to  this  service.
+              When  a  client  exceeds the limit, the SMTP server
+              logs a warning with the client name/address and the
+              service name as configured in master.cf.
 
        <b>smtpd_client_connection_rate_limit</b>
-              The maximal number of  connections  per  unit  time
+              The  maximal  number  of  connections per unit time
               (specified with <b>connection_rate_time_unit</b>) that any
-              client is allowed to make to this service.
+              client  is  allowed to make to this service. When a
+              client exceeds the limit, the SMTP  server  logs  a
+              warning  with  the client name/address and the ser-
+              vice name as configured in master.cf.
 
        <b>smtpd_client_connection_limit_exceptions</b>
-              Hostnames, .domain names or network address  blocks
-              of  clients that are excluded from connection count
-              or rate limits.
+              Hostnames, .domain  names  and/or  network  address
+              blocks of clients that are excluded from connection
+              count or rate limits.
 
 <b>Tarpitting</b>
        <b>smtpd_error_sleep_time</b>

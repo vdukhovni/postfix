@@ -98,7 +98,7 @@ error     unix  -       -       n       -       -       error
 local     unix  -       n       n       -       -       local
 virtual   unix  -       n       n       -       -       virtual
 lmtp      unix  -       -       n       -       -       lmtp
-crate     unix  -       -       n       -       1       crate
+anvil     unix  -       -       n       -       1       anvil
 #
 # Interfaces to non-Postfix software. Be sure to examine the manual
 # pages of the non-Postfix software to find out what options it wants.

@@ -73,6 +73,3 @@ postfix.o: ../../include/argv.h
 postfix.o: ../../include/safe.h
 postfix.o: ../../include/mail_conf.h
 postfix.o: ../../include/mail_params.h
-postfix.o: ../../include/crate_clnt.h
-postfix.o: ../../include/attr_clnt.h
-postfix.o: ../../include/attr.h

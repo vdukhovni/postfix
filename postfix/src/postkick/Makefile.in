@@ -68,6 +68,4 @@ postkick.o: ../../include/mail_proto.h
 postkick.o: ../../include/iostuff.h
 postkick.o: ../../include/attr.h
 postkick.o: ../../include/mail_params.h
-postkick.o: ../../include/crate_clnt.h
-postkick.o: ../../include/attr_clnt.h
 postkick.o: ../../include/mail_conf.h

@@ -254,13 +254,17 @@ Flush the command history to postmaster after receipt of RSET etc.
 only if the number of history lines exceeds the given threshold.
 .IP \fBsmtpd_client_connection_count_limit\fR
 The maximal number of simultaneous connections that any
-client is allowed to make to this service.
+client is allowed to make to this service.  When a client exceeds
+the limit, the SMTP server logs a warning with the client
+name/address and the service name as configured in master.cf.
 .IP \fBsmtpd_client_connection_rate_limit\fR
 The maximal number of connections per unit time (specified
 with \fBconnection_rate_time_unit\fR) that any client
-is allowed to make to this service.
+is allowed to make to this service. When a client exceeds
+the limit, the SMTP server logs a warning with the client
+name/address and the service name as configured in master.cf.
 .IP \fBsmtpd_client_connection_limit_exceptions\fR
-Hostnames, .domain names or network address blocks of clients
+Hostnames, .domain names and/or network address blocks of clients
 that are excluded from connection count or rate limits.
 .SH Tarpitting
 .ad

@@ -68,6 +68,3 @@ postcat.o: ../../include/rec_type.h
 postcat.o: ../../include/mail_queue.h
 postcat.o: ../../include/mail_conf.h
 postcat.o: ../../include/mail_params.h
-postcat.o: ../../include/crate_clnt.h
-postcat.o: ../../include/attr_clnt.h
-postcat.o: ../../include/attr.h

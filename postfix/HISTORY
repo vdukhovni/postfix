@@ -8729,18 +8729,19 @@ Apologies for any names omitted.
 
 20031103-20031110
 
-	Feature: preliminary support to restrict the number of
-	simultaneous and successive connections that a client is
-	can make to the Postfix SMTP server, with a whitelist
-	capability to disable the restriction for authorized clients.
-	Most of the work is implemented by a new "crate" server
-	(connection Count and RATE management).  Parameters:
+	Feature: preliminary defense against SMTP clients that
+	hammer the SMTP server with too many simultaneous or
+	successive connection attempts, with a whitelist capability
+	to disable the restriction for authorized clients.  Most
+	work is implemented by a new "anvil" server.  Parameters:
 	smtpd_client_connection_count_limit, smtpd_client_connection-
 	_rate_limit, smtpd_client_connection_limit_exceptions,
 	connection_rate_time_unit, and connection_rate_purge_delay.
-	Documentation:  smtpd(8), crate(8), sample-smtpd.cf. Files:
-	smtpd/smtpd.c, global/crate_clnt.[hc], crate/crate.c.
-	
+	Documentation:  smtpd(8), anvil(8), sample-smtpd.cf. Files:
+	smtpd/smtpd.c, global/anvil_clnt.[hc], anvil/anvil.c.  The
+	anvil server logs peak count and rate information per client
+	when it terminates after running out of work or after
+	"postfix reload".
 
 20031110
 

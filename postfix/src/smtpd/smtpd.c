@@ -240,13 +240,17 @@
 /*	only if the number of history lines exceeds the given threshold.
 /* .IP \fBsmtpd_client_connection_count_limit\fR
 /*	The maximal number of simultaneous connections that any
-/*	client is allowed to make to this service.
+/*	client is allowed to make to this service.  When a client exceeds
+/*	the limit, the SMTP server logs a warning with the client
+/*	name/address and the service name as configured in master.cf.
 /* .IP \fBsmtpd_client_connection_rate_limit\fR
 /*	The maximal number of connections per unit time (specified
 /*	with \fBconnection_rate_time_unit\fR) that any client
-/*	is allowed to make to this service.
+/*	is allowed to make to this service. When a client exceeds
+/*	the limit, the SMTP server logs a warning with the client
+/*	name/address and the service name as configured in master.cf.
 /* .IP \fBsmtpd_client_connection_limit_exceptions\fR
-/*	Hostnames, .domain names or network address blocks of clients
+/*	Hostnames, .domain names and/or network address blocks of clients
 /*	that are excluded from connection count or rate limits.
 /* .SH Tarpitting
 /* .ad
@@ -456,7 +460,7 @@
 #include <lex_822.h>
 #include <namadr_list.h>
 #include <input_transp.h>
-#include <crate_clnt.h>
+#include <anvil_clnt.h>
 
 /* Single-threaded server skeleton. */
 
@@ -588,7 +592,7 @@ static NAMADR_LIST *xloginfo_clients;
  /*
   * Client connection and rate limiting.
   */
-CRATE_CLNT *crate_clnt;
+ANVIL_CLNT *anvil_clnt;
 static NAMADR_LIST *hogger_list;
 
  /*
@@ -1832,22 +1836,22 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 
     case 0:
 	if (SMTPD_STAND_ALONE(state) == 0
-	    && crate_clnt
+	    && anvil_clnt
 	    && !namadr_list_match(hogger_list, state->name, state->addr)
-	    && crate_clnt_connect(crate_clnt, service, state->addr,
-				  &count, &crate) == CRATE_STAT_OK) {
+	    && anvil_clnt_connect(anvil_clnt, service, state->addr,
+				  &count, &crate) == ANVIL_STAT_OK) {
 	    if (var_smtpd_cconn_limit > 0 && count > var_smtpd_cconn_limit) {
 		smtpd_chat_reply(state, "450 Too many connections from %s",
 				 state->addr);
-		msg_warn("Too many connections from %s for service %s",
-			 state->addr, service);
+		msg_warn("Too many connections: %d from %s for service %s",
+			 count, state->addr, service);
 		break;
 	    }
 	    if (var_smtpd_crate_limit > 0 && crate > var_smtpd_crate_limit) {
 		smtpd_chat_reply(state, "450 Too many connections from %s",
 				 state->addr);
-		msg_warn("Too frequent connections from %s for service %s",
-			 state->addr, service);
+		msg_warn("Too frequent connections: %d from %s for service %s",
+			 crate, state->addr, service);
 		break;
 	    }
 	}
@@ -1913,8 +1917,10 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	}
 	break;
     }
-    if (crate_clnt)
-	crate_clnt_disconnect(crate_clnt, service, state->addr);
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& anvil_clnt
+	&& !namadr_list_match(hogger_list, state->name, state->addr))
+	anvil_clnt_disconnect(anvil_clnt, service, state->addr);
 
     /*
      * Log abnormal session termination, in case postmaster notification has
@@ -2057,7 +2063,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Connection rate management.
      */
     if (var_smtpd_crate_limit || var_smtpd_cconn_limit)
-	crate_clnt = crate_clnt_create();
+	anvil_clnt = anvil_clnt_create();
 }
 
 /* main - the main program */

@@ -575,12 +575,12 @@ proxymap  unix	-	-	n	-	-	proxymap
 EOF
     }
 
-    # Add missing crate service to master.cf.
+    # Add missing anvil service to master.cf.
 
-    grep '^crate.*crate' $config_directory/master.cf >/dev/null || {
-	echo Editing $config_directory/master.cf, adding missing entry for crate service
+    grep '^anvil.*anvil' $config_directory/master.cf >/dev/null || {
+	echo Editing $config_directory/master.cf, adding missing entry for anvil service
 	cat >>$config_directory/master.cf <<EOF || exit 1
-crate  unix	-	-	n	-	1	crate
+anvil	  unix	-	-	n	-	1	anvil
 EOF
     }
 

@@ -68,11 +68,9 @@ verify.o: ../../include/argv.h
 verify.o: ../../include/split_at.h
 verify.o: ../../include/mail_conf.h
 verify.o: ../../include/mail_params.h
-verify.o: ../../include/crate_clnt.h
-verify.o: ../../include/attr_clnt.h
-verify.o: ../../include/attr.h
 verify.o: ../../include/mail_proto.h
 verify.o: ../../include/iostuff.h
+verify.o: ../../include/attr.h
 verify.o: ../../include/post_mail.h
 verify.o: ../../include/cleanup_user.h
 verify.o: ../../include/verify_clnt.h

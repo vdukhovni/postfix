@@ -87,9 +87,6 @@ mailbox.o: ../../include/deliver_request.h
 mailbox.o: ../../include/recipient_list.h
 mailbox.o: ../../include/sent.h
 mailbox.o: ../../include/mail_params.h
-mailbox.o: ../../include/crate_clnt.h
-mailbox.o: ../../include/attr_clnt.h
-mailbox.o: ../../include/attr.h
 mailbox.o: ../../include/mail_addr_find.h
 mailbox.o: ../../include/maps.h
 mailbox.o: ../../include/dict.h
@@ -115,9 +112,6 @@ maildir.o: ../../include/recipient_list.h
 maildir.o: ../../include/defer.h
 maildir.o: ../../include/sent.h
 maildir.o: ../../include/mail_params.h
-maildir.o: ../../include/crate_clnt.h
-maildir.o: ../../include/attr_clnt.h
-maildir.o: ../../include/attr.h
 maildir.o: virtual.h
 maildir.o: ../../include/maps.h
 maildir.o: ../../include/dict.h
@@ -168,9 +162,6 @@ virtual.o: ../../include/recipient_list.h
 virtual.o: ../../include/deliver_request.h
 virtual.o: ../../include/deliver_completed.h
 virtual.o: ../../include/mail_params.h
-virtual.o: ../../include/crate_clnt.h
-virtual.o: ../../include/attr_clnt.h
-virtual.o: ../../include/attr.h
 virtual.o: ../../include/mail_conf.h
 virtual.o: ../../include/mail_addr_find.h
 virtual.o: ../../include/maps.h

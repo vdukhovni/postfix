@@ -1,11 +1,11 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 POSTFIX(1)                                             POSTFIX(1)
 
 <b>NAME</b>
        postfix - Postfix control program
 
 <b>SYNOPSIS</b>
-       <b>postfix</b> [<b>-Dv</b>] [<b>-c</b> <i>config_dir</i>] <i>command</i>
+       <b>postfix</b> [<b>-Dv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>command</i>
 
 <b>DESCRIPTION</b>
        This  command  is  reserved  for  the superuser. To submit
@@ -50,16 +50,16 @@ POSTFIX(1)                                             POSTFIX(1)
 
        The following options are implemented:
 
-       <b>-c</b> <i>config_dir</i>
+       <b>-c</b> <i>config</i><b>_</b><i>dir</i>
               Read  the <b>main.cf</b> and <b>master.cf</b> configuration files
               in the named directory instead of the default  con-
               figuration  directory.   Use  this  to  distinguish
               between multiple  Postfix  instances  on  the  same
               host.
 
-       <b>-D</b> (with <b>postfix</b> <b>start</b> only)
+       <b>-D</b> (with <b>postfix start</b> only)
               Run each Postfix daemon under control of a debugger
-              as specified via the <b>debugger</b><i>_</i><b>command</b> configuration
+              as specified via the <b>debugger_command</b> configuration
               parameter.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
@@ -70,76 +70,76 @@ POSTFIX(1)                                             POSTFIX(1)
        The  <b>postfix</b>  command  exports  the  following environment
        variables before executing the <b>postfix-script</b> file:
 
-       <b>MAIL</b><i>_</i><b>CONFIG</b>
+       <b>MAIL_CONFIG</b>
               This is set when the -c command-line option is pre-
               sent.
 
-       <b>MAIL</b><i>_</i><b>VERBOSE</b>
+       <b>MAIL_VERBOSE</b>
               This is set when the -v command-line option is pre-
               sent.
 
-       <b>MAIL</b><i>_</i><b>DEBUG</b>
+       <b>MAIL_DEBUG</b>
               This is set when the -D command-line option is pre-
               sent.
 
        The   following   <b>main.cf</b>   configuration  parameters  are
        exported as environment variables with the same names:
 
-       <b>command</b><i>_</i><b>directory</b>
+       <b>command_directory</b>
               Directory with Postfix administrative commands.
 
-       <b>daemon</b><i>_</i><b>directory</b>
+       <b>daemon_directory</b>
               Directory with Postfix daemon programs.
 
-       <b>config</b><i>_</i><b>directory</b>
+       <b>config_directory</b>
               Directory with Postfix configuration files and with
               administrative shell scripts.
 
-       <b>queue</b><i>_</i><b>directory</b>
+       <b>queue_directory</b>
               The  directory with Postfix queue files, with local
               inter-process  communication  endpoints,  and  with
               files  needed  for  daemon programs that run in the
               optional chrooted environment.
 
-       <b>mail</b><i>_</i><b>owner</b>
+       <b>mail_owner</b>
               The owner of Postfix queue files and of most  Post-
               fix processes.
 
-       <b>setgid</b><i>_</i><b>group</b>
+       <b>setgid_group</b>
               The  group for mail submission and queue management
               commands.
 
-       <b>sendmail</b><i>_</i><b>path</b>
+       <b>sendmail_path</b>
               The full pathname for the Postfix <b>sendmail</b> command.
 
-       <b>newaliases</b><i>_</i><b>path</b>
+       <b>newaliases_path</b>
               The  full  pathname for the Postfix <b>newaliases</b> com-
               mand.
 
-       <b>mailq</b><i>_</i><b>path</b>
+       <b>mailq_path</b>
               The full pathname for the Postfix <b>mailq</b> command.
 
-       <b>manpage</b><i>_</i><b>directory</b>
+       <b>manpage_directory</b>
               The directory for the Postfix on-line manual pages.
 
-       <b>sample</b><i>_</i><b>directory</b>
+       <b>sample_directory</b>
               The  directory for the Postfix sample configuration
               files.
 
-       <b>readme</b><i>_</i><b>directory</b>
+       <b>readme_directory</b>
               The directory for the Postfix README files.
 
-<b>Other</b> <b>configuration</b> <b>parameters</b>
-       <b>import</b><i>_</i><b>environment</b>
+<b>Other configuration parameters</b>
+       <b>import_environment</b>
               List of names of environment parameters that can be
               imported from non-Postfix processes.
 
 <b>FILES</b>
-       $<b>config</b><i>_</i><b>directory/postfix-script</b>, administrative commands
-       $<b>config</b><i>_</i><b>directory/main.cf</b>, configuration parameters
-       $<b>config</b><i>_</i><b>directory/master.cf</b>, Postfix daemon processes
+       $<b>config_directory/postfix-script</b>, administrative commands
+       $<b>config_directory/main.cf</b>, configuration parameters
+       $<b>config_directory/master.cf</b>, Postfix daemon processes
 
-<b>SEE</b> <b>ALSO</b>
+<b>SEE ALSO</b>
        <a href="postconf.1.html">postconf(1)</a> Postfix configuration management
        <a href="postsuper.1.html">postsuper(1)</a> Postfix housekeeping
        <a href="sendmail.1.html">sendmail(1)</a> Sendmail-compatible interface

@@ -75,11 +75,9 @@ qmgr.o: ../../include/vstring.h
 qmgr.o: ../../include/recipient_list.h
 qmgr.o: ../../include/mail_conf.h
 qmgr.o: ../../include/mail_params.h
-qmgr.o: ../../include/crate_clnt.h
-qmgr.o: ../../include/attr_clnt.h
-qmgr.o: ../../include/attr.h
 qmgr.o: ../../include/mail_proto.h
 qmgr.o: ../../include/iostuff.h
+qmgr.o: ../../include/attr.h
 qmgr.o: ../../include/mail_flow.h
 qmgr.o: ../../include/master_proto.h
 qmgr.o: ../../include/mail_server.h
@@ -93,9 +91,6 @@ qmgr_active.o: ../../include/mymalloc.h
 qmgr_active.o: ../../include/vstream.h
 qmgr_active.o: ../../include/vbuf.h
 qmgr_active.o: ../../include/mail_params.h
-qmgr_active.o: ../../include/crate_clnt.h
-qmgr_active.o: ../../include/attr_clnt.h
-qmgr_active.o: ../../include/attr.h
 qmgr_active.o: ../../include/mail_open_ok.h
 qmgr_active.o: ../../include/mail_queue.h
 qmgr_active.o: ../../include/vstring.h
@@ -145,8 +140,6 @@ qmgr_deliver.o: ../../include/mail_proto.h
 qmgr_deliver.o: ../../include/attr.h
 qmgr_deliver.o: ../../include/recipient_list.h
 qmgr_deliver.o: ../../include/mail_params.h
-qmgr_deliver.o: ../../include/crate_clnt.h
-qmgr_deliver.o: ../../include/attr_clnt.h
 qmgr_deliver.o: ../../include/deliver_request.h
 qmgr_deliver.o: ../../include/verp_sender.h
 qmgr_deliver.o: qmgr.h
@@ -166,9 +159,6 @@ qmgr_entry.o: ../../include/events.h
 qmgr_entry.o: ../../include/vstream.h
 qmgr_entry.o: ../../include/vbuf.h
 qmgr_entry.o: ../../include/mail_params.h
-qmgr_entry.o: ../../include/crate_clnt.h
-qmgr_entry.o: ../../include/attr_clnt.h
-qmgr_entry.o: ../../include/attr.h
 qmgr_entry.o: qmgr.h
 qmgr_entry.o: ../../include/scan_dir.h
 qmgr_job.o: qmgr_job.c
@@ -197,9 +187,6 @@ qmgr_message.o: ../../include/sane_time.h
 qmgr_message.o: ../../include/dict.h
 qmgr_message.o: ../../include/mail_queue.h
 qmgr_message.o: ../../include/mail_params.h
-qmgr_message.o: ../../include/crate_clnt.h
-qmgr_message.o: ../../include/attr_clnt.h
-qmgr_message.o: ../../include/attr.h
 qmgr_message.o: ../../include/canon_addr.h
 qmgr_message.o: ../../include/record.h
 qmgr_message.o: ../../include/rec_type.h
@@ -211,6 +198,7 @@ qmgr_message.o: ../../include/opened.h
 qmgr_message.o: ../../include/verp_sender.h
 qmgr_message.o: ../../include/mail_proto.h
 qmgr_message.o: ../../include/iostuff.h
+qmgr_message.o: ../../include/attr.h
 qmgr_message.o: ../../include/qmgr_user.h
 qmgr_message.o: ../../include/rewrite_clnt.h
 qmgr_message.o: ../../include/resolve_clnt.h
@@ -243,13 +231,10 @@ qmgr_queue.o: ../../include/mymalloc.h
 qmgr_queue.o: ../../include/events.h
 qmgr_queue.o: ../../include/htable.h
 qmgr_queue.o: ../../include/mail_params.h
-qmgr_queue.o: ../../include/crate_clnt.h
-qmgr_queue.o: ../../include/attr_clnt.h
-qmgr_queue.o: ../../include/attr.h
-qmgr_queue.o: ../../include/vstream.h
-qmgr_queue.o: ../../include/vbuf.h
 qmgr_queue.o: ../../include/recipient_list.h
 qmgr_queue.o: qmgr.h
+qmgr_queue.o: ../../include/vstream.h
+qmgr_queue.o: ../../include/vbuf.h
 qmgr_queue.o: ../../include/scan_dir.h
 qmgr_rcpt_list.o: qmgr_rcpt_list.c
 qmgr_rcpt_list.o: ../../include/sys_defs.h
@@ -281,7 +266,5 @@ qmgr_transport.o: ../../include/attr.h
 qmgr_transport.o: ../../include/recipient_list.h
 qmgr_transport.o: ../../include/mail_conf.h
 qmgr_transport.o: ../../include/mail_params.h
-qmgr_transport.o: ../../include/crate_clnt.h
-qmgr_transport.o: ../../include/attr_clnt.h
 qmgr_transport.o: qmgr.h
 qmgr_transport.o: ../../include/scan_dir.h

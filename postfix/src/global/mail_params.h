@@ -1910,29 +1910,27 @@ extern int var_smtpd_policy_ttl;
 extern int var_smtpd_crate_limit;
 
 #define VAR_SMTPD_CCONN_LIMIT		"smtpd_client_connection_count_limit"
-#define DEF_SMTPD_CCONN_LIMIT		0
+#define DEF_SMTPD_CCONN_LIMIT		((DEF_PROC_LIMIT + 1) / 2)
 extern int var_smtpd_cconn_limit;
 
 #define VAR_SMTPD_HOGGERS		"smtpd_client_connection_limit_exceptions"
 #define DEF_SMTPD_HOGGERS		"$" VAR_MYNETWORKS
 extern char *var_smtpd_hoggers;
 
-#define VAR_CRATE_SAMPLE		"connection_rate_time_unit"
-#define DEF_CRATE_SAMPLE		"60s"
-extern int var_crate_sample;
-
-#define VAR_CRATE_PURGE			"connection_rate_purge_delay"
-#define DEF_CRATE_PURGE			"$" VAR_CRATE_SAMPLE
-extern int var_crate_purge;
+#define VAR_ANVIL_TIME_UNIT		"connection_rate_time_unit"
+#define DEF_ANVIL_TIME_UNIT		"60s"
+extern int var_anvil_time_unit;
 
  /*
   * Temporary stop gap.
   */
-#include <crate_clnt.h>
+#if 0
+#include <anvil_clnt.h>
 
-#define VAR_CRATE_SERVICE		"connection_rate_service"
-#define DEF_CRATE_SERVICE		"local:" CRATE_CLASS "/" CRATE_SERVICE
-extern char *var_crate_service;
+#define VAR_ANVIL_SERVICE		"connection_rate_service"
+#define DEF_ANVIL_SERVICE		"local:" ANVIL_CLASS "/" ANVIL_SERVICE
+extern char *var_anvil_service;
+#endif
 
 /* LICENSE
 /* .ad

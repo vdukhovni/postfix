@@ -68,8 +68,5 @@ spawn.o: ../../include/split_at.h
 spawn.o: ../../include/timed_wait.h
 spawn.o: ../../include/set_eugid.h
 spawn.o: ../../include/mail_params.h
-spawn.o: ../../include/crate_clnt.h
-spawn.o: ../../include/attr_clnt.h
-spawn.o: ../../include/attr.h
 spawn.o: ../../include/mail_server.h
 spawn.o: ../../include/mail_conf.h
