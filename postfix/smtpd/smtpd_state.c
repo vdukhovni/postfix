@@ -86,6 +86,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->protocol = "SMTP";
     state->where = SMTPD_AFTER_CONNECT;
     state->recursion = 0;
+    state->msg_size = 0;
 
     /*
      * Initialize peer information.

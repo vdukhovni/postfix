@@ -121,20 +121,20 @@
 /* .IP check_relay_domains
 /*	Allow the request when either the client hostname or the resolved
 /*	recipient domain matches the \fIrelay_domains\fR configuration
-/*	parameter or a subdomain therereof, or when the destination somehow
+/*	parameter or a subdomain thereof, or when the destination somehow
 /*	resolves locally ($inet_interfaces, $mydestination or $virtual_maps).
 /*	Reject the request otherwise.
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
 /* .IP permit_auth_destination
 /*	Permit the request when the resolved recipient domain matches the
-/*	\fIrelay_domains\fR configuration parameter or a subdomain therereof,
+/*	\fIrelay_domains\fR configuration parameter or a subdomain thereof,
 /*	or when the destination somehow resolves locally ($inet_interfaces,
 /*	$mydestination or $virtual_maps).
 /* .IP reject_unauth_destination
 /*	Reject the request when the resolved recipient domain does not match
 /*	the \fIrelay_domains\fR configuration parameter or a subdomain
-/*	therereof, and when the destination does not somehow resolve locally
+/*	thereof, and when the destination does not somehow resolve locally
 /*	($inet_interfaces, $mydestination or $virtual_maps).
 /*	Same error code as check_relay_domains.
 /* .IP reject_unauth_pipelining
@@ -1849,7 +1849,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     if (var_smtpd_delay_reject)
 	if ((err = smtpd_check_client(state)) != 0
 	    || (err = smtpd_check_helo(state, state->helo_name)) != 0
-	    || (err = smtpd_check_mail(state, state->sender)) != 0)
+	    || (err = smtpd_check_mail(state, state->sender)) != 0
+	    || (err = smtpd_check_size(state, state->msg_size)) != 0)
 	    SMTPD_CHECK_RCPT_RETURN(err);
 
     /*

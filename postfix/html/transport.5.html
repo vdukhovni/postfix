@@ -17,17 +17,35 @@ TRANSPORT(5)                                         TRANSPORT(5)
        relay hosts. The mapping is used by the <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a>
        daemon.
 
-       The file serves as input to the  <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.  The
-       result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
-       fast searching by the mail  system.  After  updating  this
-       table, issue the <b>postfix</b> <b>reload</b> command to make the change
-       visible.
+       Normally, the file serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a>  com-
+       mand.  The result, an indexed file in <b>dbm</b> or <b>db</b> format, is
+       used for fast searching by the mail system. After updating
+       this  table,  issue the <b>postfix</b> <b>reload</b> command to make the
+       change visible.
 
+       When the table is provided via other means  such  as  NIS,
+       LDAP  or  SQL,  the  same lookups are done as for ordinary
+       indexed files.
+
+       Alternatively, the table can be  provided  as  a  regular-
+       expression map where patterns are given as regular expres-
+       sions. In that case, the lookups are done  in  a  slightly
+       different way as described below.
+
+<b>TABLE</b> <b>FORMAT</b>
        The format of the transport table is as follows:
 
        blanks and comments
-              Blank lines are ignored,  as  are  lines  beginning
+              Blank  lines  are  ignored,  as are lines beginning
               with `#'.
+
+       <i>pattern</i> <i>result</i>
+              When <i>pattern</i> matches the  domain,  use  the  corre-
+              sponding <i>result</i>.
+
+       With lookups from indexed files such as DB or DBM, or from
+       networked tables such as NIS, LDAP or  SQL,  patterns  are
+       tried in the order as listed below:
 
        <i>domain</i> <i>transport</i>:<i>nexthop</i>
               Mail  for  <i>domain</i> is delivered through <i>transport</i> to
@@ -40,10 +58,22 @@ TRANSPORT(5)                                         TRANSPORT(5)
        Note:  transport  map entries take precedence over domains
        specified in the <b>mydestination</b> parameter. If you  use  the
        optional  transport  map,  it  may  be  safer  to  specify
-       explicit entries for all domains specified  in  <b>mydestina-</b>
-       <b>tion</b>, for example:
+       explicit   entries   for   all   domains   specified    in
 
-            <b>hostname.my.domain</b>       <b>local:</b>
+
+
+                                                                1
+
+
+
+
+
+TRANSPORT(5)                                         TRANSPORT(5)
+
+
+       <b>mydestination</b>, for example:
+
+            <b>hostname.my.domain</b>   <b>local:</b>
             <b>localhost.my.domain</b>      <b>local:</b>
 
        The  interpretation  of  the  <i>nexthop</i>  field  is transport
@@ -59,17 +89,6 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
             <b>foo.org</b>      <b>uucp:foo</b>
             <b>.foo.org</b>     <b>uucp:foo</b>
-
-
-
-                                                                1
-
-
-
-
-
-TRANSPORT(5)                                         TRANSPORT(5)
-
 
        When no <i>nexthop</i> host name is specified, the destination domain
        name is used instead. For example, the following directs mail for
@@ -106,6 +125,36 @@ TRANSPORT(5)                                         TRANSPORT(5)
        This causes all mail for <i>user</i>@<i>anything</i><b>foo.org</b>
        to be bounced.
 
+
+
+
+                                                                2
+
+
+
+
+
+TRANSPORT(5)                                         TRANSPORT(5)
+
+
+<b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
+       This section describes how the table lookups  change  when
+       the table is given in the form of regular expressions. For
+       a description of regular expression lookup  table  syntax,
+       see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
+
+       Each  pattern  is  a regular expression that is applied to
+       the entire domain being looked up. Thus, <i>some.domain.hier-</i>
+       <i>archy</i> is not broken up into parent domains.
+
+       Patterns  are  applied  in  the  order as specified in the
+       table, until a pattern is found that  matches  the  search
+       string.
+
+       Results  are the same as with normal indexed file lookups,
+       with the additional feature that parenthesized  substrings
+       from  the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
+
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
        The following <b>main.cf</b> parameters are  especially  relevant
        to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
@@ -125,21 +174,11 @@ TRANSPORT(5)                                         TRANSPORT(5)
               The default host to send to when no transport table
               entry matches.
 
-
-
-
-                                                                2
-
-
-
-
-
-TRANSPORT(5)                                         TRANSPORT(5)
-
-
 <b>SEE</b> <b>ALSO</b>
        <a href="postmap.1.html">postmap(1)</a> create mapping table
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a> rewrite and resolve addresses
+       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
+       <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
@@ -150,45 +189,6 @@ TRANSPORT(5)                                         TRANSPORT(5)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -202,6 +202,7 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
     TOK822 *tree;
     TOK822 **addr_list;
     TOK822 **tpp;
+    ARGV   *rcpt;
 
     if (msg_verbose)
 	msg_info("rewrite_recip: %s", hdr_opts->name);
@@ -222,11 +223,14 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts)
 	if (cleanup_comm_canon_maps)
 	    cleanup_map11_tree(state, *tpp, cleanup_comm_canon_maps,
 			       cleanup_ext_prop_mask & EXT_PROP_CANONICAL);
-	tok822_internalize(state->temp1, tpp[0]->head, TOK822_STR_DEFL);
-	if (state->recip == 0 && (hdr_opts->flags & HDR_OPT_EXTRACT) != 0)
-	    argv_add((hdr_opts->flags & HDR_OPT_RR) ?
-		     state->resent_recip : state->recipients,
-		     vstring_str(state->temp1), (char *) 0);
+	if (state->recip == 0 && (hdr_opts->flags & HDR_OPT_EXTRACT) != 0) {
+	    rcpt = (hdr_opts->flags & HDR_OPT_RR) ?
+		state->resent_recip : state->recipients;
+	    if (rcpt->argc < var_extra_rcpt_limit) {
+		tok822_internalize(state->temp1, tpp[0]->head, TOK822_STR_DEFL);
+		argv_add(rcpt, vstring_str(state->temp1), (char *) 0);
+	    }
+	}
 	if (cleanup_masq_domains)
 	    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
 	if (hdr_opts->type == HDR_RETURN_RECEIPT_TO && !state->return_receipt)
@@ -260,7 +264,9 @@ static void cleanup_header(CLEANUP_STATE *state)
 
 	if ((value = maps_find(cleanup_header_checks, header, 0)) != 0) {
 	    if (strcasecmp(value, "REJECT") == 0) {
-		msg_warn("%s: reject: header %.100s", state->queue_id, header);
+		msg_info("%s: reject: header %.100s; from=<%s> to=<%s>",
+			 state->queue_id, header, state->sender,
+			 state->recip ? state->recip : "unknown");
 		state->errs |= CLEANUP_STAT_CONT;
 	    }
 	}

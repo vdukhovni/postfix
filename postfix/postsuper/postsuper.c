@@ -246,7 +246,7 @@ static void super(char **queues, int action)
 	     * mkdir() operation is the main reason for this command to run
 	     * with postfix privilege. The mail_queue_mkdirs() routine could
 	     * be fixed to use the "right" privilege, but it is a good idea
-	     * to do everying with the postfix owner privileges regardless,
+	     * to do everything with the postfix owner privileges regardless,
 	     * in order to limit the amount of damage that we can do.
 	     */
 	    (void) mail_queue_path(wanted_path, queue_name, path);

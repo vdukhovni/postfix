@@ -3648,3 +3648,24 @@ Apologies for any names omitted.
 	time (see cleanup/cleanup_api.c); also got rid of the global
 	state variables and fixed a couple bugs that were introduced
 	with 20000115-22.
+
+20000204
+
+	Feature: in daemon mode, the MAIL FROM size check can be
+	postponed until RCPT TO so that Postfix can log sender and
+	recipient. Simon J Mudd.  Files: smtpd/smtpd.c
+
+	Robustness: limit the number of recipient addresses that
+	can be extracted from message headers. Parameter:
+	extract_recipient_limit (default:  10240). Files:
+	cleaup/cleanup_message.c, cleanup/cleanup_extracted.c.
+
+	Cleanup: the message header reject logging now includes
+	sender and recipient address (if possible), so that the
+	logging looks more like the other reject logging.  File:
+	cleanup/cleanup_message.c.
+
+	Documentation: added sections on regular expression tables
+	to the access, canonical, virtual, transport and relocated
+	man pages, and write new man pages that are specific to
+	regular expressions: pcre_table.5 and regexp_table.5.

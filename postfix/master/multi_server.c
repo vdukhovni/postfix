@@ -360,6 +360,13 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      */
     signal(SIGPIPE, SIG_IGN);
 
+    /*  
+     * Don't die for frivolous reasons.
+     */
+#ifdef SIGXFSZ
+    signal(SIGXFSZ, SIG_IGN);
+#endif
+
     /*
      * May need this every now and then.
      */

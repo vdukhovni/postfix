@@ -95,6 +95,8 @@
 /*	Limit the number of envelope recipients that are remembered.
 /* .IP \fBheader_size_limit\fR
 /*	Limit the amount of memory in bytes used to process a message header.
+/* .IP \fBextract_recipient_limit\fR
+/*	Limit the amount of recipients extracted from message headers.
 /* SEE ALSO
 /*	canonical(5) canonical address lookup table format
 /*	qmgr(8) queue manager daemon

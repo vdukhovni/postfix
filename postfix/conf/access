@@ -34,7 +34,8 @@
 # PATTERNS
 # .ad
 # .fi
-#	With lookups from indexed files, patterns are tried in the order as
+#	With lookups from indexed files such as DB or DBM, or from networked
+#	tables such as NIS, LDAP or SQL, patterns are tried in the order as
 #	listed below:
 # .IP \fIuser\fR@\fIdomain\fR
 #	Matches the specified mail address.
@@ -73,13 +74,12 @@
 #	Each pattern is a regular expression that is applied to the entire
 #	string being looked up. Depending on the application, that string
 #	is an entire client hostname, an entire client IP address, or an
-#	entire mail address. Patterns are applied in order as specified,
-#	until a pattern is found that matches the search string.
+#	entire mail address. Thus, no parent domain or parent network search
+#	is done, and \fIuser@domain\fR mail addresses are not broken up into
+#	their \fIuser@\fR and \fIdomain\fR constituent parts.
 #
-#	In contrast to lookups from indexed files, no parent domain or
-#	parent network search is done with regular expression tables, 
-#	and \fIuser@domain\fR mail addresses are not broken up into their 
-#	\fIuser@\fR and \fIdomain\fR constituent parts.
+#	Patterns are applied in the order as specified in the table, until a
+#	pattern is found that matches the search string.
 #
 #	Actions are the same as with normal indexed file lookups, with
 #	the additional feature that parenthesized substrings from the
@@ -90,7 +90,7 @@
 #	postmap(1) create mapping table
 #	smtpd(8) smtp server
 #	pcre_table(5) format of PCRE tables
-#	regexp_table(5) format of POSIX regexp tables
+#	regexp_table(5) format of POSIX regular expression tables
 # LICENSE
 # .ad
 # .fi

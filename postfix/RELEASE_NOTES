@@ -1,9 +1,10 @@
-Incompatible changes with snapshot-20000203
+Incompatible changes with snapshot-20000204
 ===========================================
 
-None sofar.
+This release is mainly to have a reference point after reorganizing
+the cleanup daemon.
 
-Major changes with snapshot-20000203
+Major changes with snapshot-20000204
 ====================================
 
 Questionable feature: with "smtp_skip_5xx_greeting = yes", Postfix

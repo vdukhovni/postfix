@@ -16,11 +16,21 @@ CANONICAL(5)                                         CANONICAL(5)
        for local and non-local addresses. The mapping is used  by
        the  <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.  The address mapping is recursive.
 
-       The file serves as input to the  <a href="postmap.1.html"><b>postmap</b>(1)</a>  command.  The
-       result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
-       fast searching by the mail system. After an update it  may
-       take  a  minute  or  so before the change becomes visible.
-       Issue a <b>postfix</b> <b>reload</b> command to eliminate the delay.
+       Normally, the file serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a>  com-
+       mand.  The result, an indexed file in <b>dbm</b> or <b>db</b> format, is
+       used for fast searching  by  the  mail  system.  After  an
+       update  it  may  take  a  minute  or  so before the change
+       becomes visible.  Issue a <b>postfix</b> <b>reload</b> command to elimi-
+       nate the delay.
+
+       When  the  table  is provided via other means such as NIS,
+       LDAP or SQL, the same lookups are  done  as  for  ordinary
+       indexed files.
+
+       Alternatively,  the  table  can  be provided as a regular-
+       expression map where patterns are given as regular expres-
+       sions.  In  that  case, the lookups are done in a slightly
+       different way as described below.
 
        The  <b>canonical</b>  mapping  affects   both   message   header
        addresses (i.e. addresses that appear inside messages) and
@@ -38,12 +48,32 @@ CANONICAL(5)                                         CANONICAL(5)
        The  <b>canonical</b>  mapping  is  not to be confused with local
        aliasing.  Use the <a href="aliases.5.html"><b>aliases</b>(5)</a> map for that purpose.
 
-       The format of the <b>canonical</b> table is as follows,  mappings
-       being tried in the order as listed in this manual page:
+<b>TABLE</b> <b>FORMAT</b>
+       The format of the <b>canonical</b> table is as follows:
 
        blanks and comments
-              Blank  lines  are  ignored,  as are lines beginning
+              Blank lines are ignored,  as  are  lines  beginning
               with `#'.
+
+       <i>pattern</i> <i>result</i>
+              When  <i>pattern</i> matches a mail address, replace it by
+              the corresponding <i>result</i>.
+
+
+
+
+                                                                1
+
+
+
+
+
+CANONICAL(5)                                         CANONICAL(5)
+
+
+       With lookups from indexed files such as DB or DBM, or from
+       networked  tables  such  as NIS, LDAP or SQL, patterns are
+       tried in the order as listed below:
 
        <i>user</i>@<i>domain</i> <i>address</i>
               <i>user</i>@<i>domain</i> is replaced by <i>address</i>. This  form  has
@@ -58,18 +88,6 @@ CANONICAL(5)                                         CANONICAL(5)
               <i>user</i>@<i>site</i> is replaced by <i>address</i> when <i>site</i> is equal
               to  $<b>myorigin</b>,  when  <i>site</i> is listed in $<b>mydestina-</b>
               <b>tion</b>, or when it is listed in $<b>inet</b><i>_</i><b>interfaces</b>.
-
-
-
-
-                                                                1
-
-
-
-
-
-CANONICAL(5)                                         CANONICAL(5)
-
 
               This form is useful for replacing  login  names  by
               <i>Firstname.Lastname</i>.
@@ -89,6 +107,38 @@ CANONICAL(5)                                         CANONICAL(5)
        extension is propagated to the result of table lookup. The
        matching order is: <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>,
        <i>user</i>, and @<i>domain</i>.
+
+<b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
+       This  section  describes how the table lookups change when
+       the table is given in the form of regular expressions. For
+       a  description  of regular expression lookup table syntax,
+       see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
+
+       Each pattern is a regular expression that  is  applied  to
+       the entire address being looked up. Thus, <i>user@domain</i> mail
+       addresses are not broken up into their  <i>user</i>  and  <i>@domain</i>
+       constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
+       <i>foo</i>.
+
+       Patterns are applied in the  order  as  specified  in  the
+       table,  until  a  pattern is found that matches the search
+       string.
+
+       Results are the same as with normal indexed file  lookups,
+
+
+
+                                                                2
+
+
+
+
+
+CANONICAL(5)                                         CANONICAL(5)
+
+
+       with  the additional feature that parenthesized substrings
+       from the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so  on.
 
 <b>BUGS</b>
        The  table format does not understand quoting conventions.
@@ -124,19 +174,6 @@ CANONICAL(5)                                         CANONICAL(5)
               List  of user names that are not subject to address
               masquerading.
 
-
-
-
-
-                                                                2
-
-
-
-
-
-CANONICAL(5)                                         CANONICAL(5)
-
-
        <b>mydestination</b>
               List of domains that  this  mail  system  considers
               local.
@@ -152,6 +189,19 @@ CANONICAL(5)                                         CANONICAL(5)
        <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue mail
        <a href="postmap.1.html">postmap(1)</a> create mapping table
        <a href="virtual.5.html">virtual(5)</a> virtual domain mapping
+       <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
+       <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
+
+
+
+                                                                3
+
+
+
+
+
+CANONICAL(5)                                         CANONICAL(5)
+
 
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
@@ -194,7 +244,23 @@ CANONICAL(5)                                         CANONICAL(5)
 
 
 
-                                                                3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                4
 
 
 </pre> </body> </html>

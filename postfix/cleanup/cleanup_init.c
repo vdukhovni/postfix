@@ -23,7 +23,7 @@
 /*	void	cleanup_all()
 /* DESCRIPTION
 /*	This module implements a callable interface to the cleanup service
-/*	for one-time initializations that must be done before any message 
+/*	for one-time initializations that must be done before any message
 /*	processing can take place.
 /*
 /*	cleanup_int_table[] and cleanup_str_table[] specify configuration
@@ -33,7 +33,7 @@
 /*
 /*	cleanup_pre_jail() and cleanup_post_jail() perform mandatory
 /*	initializations before and after the process enters the optional
-/*	chroot jail. These functions satisfy the interface as specified 
+/*	chroot jail. These functions satisfy the interface as specified
 /*	in single_service(3).
 /*
 /*	cleanup_path is either a null pointer or it is the name of a queue
@@ -42,7 +42,7 @@
 /*
 /*	cleanup_all() must be called in case of fatal error, in order
 /*	to remove an incomplete queue file. Normally, as part of process
-/*	initialization, one registers a msg_cleanup() handler and a signal() 
+/*	initialization, one registers a msg_cleanup() handler and a signal()
 /*	handler that both call cleanup_all() before terminating the process.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -101,14 +101,17 @@ char   *var_empty_addr;			/* destination of bounced bounces */
 int     var_delay_warn_time;		/* delay that triggers warning */
 char   *var_prop_extension;		/* propagate unmatched extension */
 char   *var_always_bcc;			/* big brother */
+int     var_extra_rcpt_limit;		/* recipient extract limit */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
     VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
     VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
     VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
+    VAR_EXTRA_RCPT_LIMIT, DEF_EXTRA_RCPT_LIMIT, &var_extra_rcpt_limit, 0, 0,
     0,
 };
+
 CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
     VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,

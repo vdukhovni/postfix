@@ -144,8 +144,8 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * throw away the input only in case of real show-stopper errors, such as
      * unrecognizable data (which should never happen) or insufficient space
      * for the queue file (which will happen occasionally). Otherwise,
-     * discard input after any lethal error. See the CLEANUP_OUT_OK()
-     * macro definition.
+     * discard input after any lethal error. See the CLEANUP_OUT_OK() macro
+     * definition.
      */
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
 	state->err_mask =
@@ -168,10 +168,12 @@ int     cleanup_close(CLEANUP_STATE *state)
      * the execute bits on a file only when we really want the queue manager
      * to process it.
      */
-    if (state->recip == 0)
-	state->errs |= CLEANUP_STAT_RCPT;
-    if (state->end_seen == 0)
-	state->errs |= CLEANUP_STAT_BAD;
+    if (CLEANUP_OUT_OK(state)) {
+	if (state->recip == 0)
+	    state->errs |= CLEANUP_STAT_RCPT;
+	if (state->end_seen == 0)
+	    state->errs |= CLEANUP_STAT_BAD;
+    }
 
     /*
      * If there are no errors, be very picky about queue file write errors
@@ -204,6 +206,8 @@ int     cleanup_close(CLEANUP_STATE *state)
      * message headers because we could not process all the message headers).
      * However, cleanup_strerror() prioritizes errors so that it can report
      * the cause (e.g., header buffer overflow), which is more useful.
+     * 
+     * XXX When bouncing, should log sender because qmgr won't be able to.
      */
 #define CAN_BOUNCE() \
 	((state->errs & (CLEANUP_STAT_BAD | CLEANUP_STAT_WRITE)) == 0 \
@@ -215,7 +219,7 @@ int     cleanup_close(CLEANUP_STATE *state)
 	    if (bounce_recip(BOUNCE_FLAG_CLEAN,
 			     MAIL_QUEUE_INCOMING, state->queue_id,
 			     state->sender, state->recip ?
-			     state->recip : "", "cleanup", state->time,
+			   state->recip : "unknown", "cleanup", state->time,
 			     "Message processing aborted: %s",
 			     cleanup_strerror(state->errs)) == 0) {
 		state->errs = 0;

@@ -639,6 +639,10 @@ extern int var_hopcount_limit;
 #define DEF_HEADER_LIMIT	102400
 extern int var_header_limit;
 
+#define VAR_EXTRA_RCPT_LIMIT	"extract_recipient_limit"
+#define DEF_EXTRA_RCPT_LIMIT	10240
+extern int var_extra_rcpt_limit;
+
  /*
   * Message/queue size limits.
   */

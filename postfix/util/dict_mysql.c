@@ -224,7 +224,7 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 
 	/* answer already found */
 	if (res != 0 && host->stat == STATACTIVE) {
-	    msg_info("dict_mysql: closing unnessary connection to %s", host->hostname);
+	    msg_info("dict_mysql: closing unnecessary connection to %s", host->hostname);
 	    mysql_close(&(host->db));		/* also frees memory, have to
 						 * reallocate it */
 	    host->db = *((MYSQL *) mymalloc(sizeof(MYSQL)));

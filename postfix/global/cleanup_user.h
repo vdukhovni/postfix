@@ -32,8 +32,9 @@
 #define CLEANUP_STAT_SYN	(1<<5)	/* Bad address syntax */
 #define CLEANUP_STAT_RCPT	(1<<6)	/* No recipients found */
 #define CLEANUP_STAT_HOVFL	(1<<7)	/* Header overflow */
+#define CLEANUP_STAT_ROVFL	(1<<8)	/* Recipient overflow */
 
-#define CLEANUP_STAT_LETHAL	(~CLEANUP_STAT_HOVFL)	/* lethal errors */
+#define CLEANUP_STAT_LETHAL	~(CLEANUP_STAT_HOVFL|CLEANUP_STAT_ROVFL)
 
 extern const char *cleanup_strerror(unsigned);
 
