@@ -1872,9 +1872,9 @@ like:
 
 A little background is in order. With the SMTP protocol, the HELO,
 MAIL FROM and RCPT TO commands and responses are relatively short.
-When you're talking to sendmail, every command and every response
-is sent as a separate packet, because sendmail cannot implement
-ESMTP command pipelining.
+When you're talking to old versions of sendmail, every command and
+every response is sent as a separate packet, because sendmail didn't
+implement ESMTP command pipelining until recently.
 
 <p>
 

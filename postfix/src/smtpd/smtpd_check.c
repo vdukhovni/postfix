@@ -552,8 +552,8 @@ void    smtpd_check_init(void)
      * Sender to login name mapping.
      */
     smtpd_sender_login_maps = maps_create(VAR_SMTPD_SND_AUTH_MAPS,
-					       var_smtpd_snd_auth_maps,
-					       DICT_FLAG_LOCK);
+					  var_smtpd_snd_auth_maps,
+					  DICT_FLAG_LOCK);
 
     /*
      * error_text is used for returning error responses.
@@ -1713,6 +1713,8 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 	msg_warn("%s: no @domain in address: %s", myname, CONST_STR(reply->recipient));
 	return (0);
     }
+    if (var_allow_untrust_route == 0 && (reply->flags & RESOLVE_FLAG_ROUTED))
+	return (SMTPD_CHECK_DUNNO);
 
     /*
      * Look up the full address.

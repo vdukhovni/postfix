@@ -7,8 +7,8 @@
 /*	\fBpickup\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The \fBpickup\fR daemon waits for hints that new mail has been
-/*	dropped into the world-writable \fBmaildrop\fR directory, and
-/*	feeds it into the \fBcleanup\fR(8) daemon.
+/*	dropped into the \fBmaildrop\fR directory, and feeds it into the
+/*	\fBcleanup\fR(8) daemon.
 /*	Ill-formatted files are deleted without notifying the originator.
 /*	This program expects to be run from the \fBmaster\fR(8) process
 /*	manager.
@@ -58,6 +58,7 @@
 /* SEE ALSO
 /*	cleanup(8) message canonicalization
 /*	master(8) process manager
+/*	sendmail(1), postdrop(8) mail posting agent
 /*	syslogd(8) system logging
 /* LICENSE
 /* .ad

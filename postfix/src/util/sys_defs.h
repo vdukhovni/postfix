@@ -905,6 +905,14 @@ typedef int pid_t;
 #endif
 
  /*
+  * Memory alignment of memory allocator results. By default we align for
+  * doubles.
+  */
+#ifndef ALIGN_TYPE
+#define ALIGN_TYPE	double
+#endif
+
+ /*
   * Need to specify what functions never return, so that the compiler can
   * warn for missing initializations and other trouble. However, OPENSTEP4
   * gcc 2.7.x cannot handle this so we define this only if NORETURN isn't

@@ -171,7 +171,7 @@ check)
 		-exec $WARN not owned by root: {} \;
 
 	find $daemon_directory/. $config_directory/. \
-		\( -perm -020 -o -perm -002 \) \
+		\( -perm -020 -o -perm -002 \) -type f \
 		-exec $WARN group or other writable: {} \;
 
 	test -d maildrop || {
@@ -207,9 +207,14 @@ check)
 		chown $mail_owner private
 	}
 	find `ls -d $queue_directory/* | \
-	    egrep '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private)$'` \
+	    egrep '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private|flush)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
+
+	find `ls -d $queue_directory/* | \
+	    egrep -v '/(incoming|active|defer|deferred|bounce|saved|corrupt|public|private|flush|pid|maildrop)$'` \
+	    ! -user root \
+		-exec $WARN not owned by root: {} \;
 
 	for dir in $queue_directory/maildrop
 	do

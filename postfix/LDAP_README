@@ -166,6 +166,9 @@ parameter below, "server_host", would be defined in main.cf as
 	other possible values, please bring it to the attention of the
 	postfix-users@postfix.org mailing list.
 
+    debuglevel (0)
+	What level to set for debugging in the the OpenLDAP libraries.
+
 Don't use quotes in these variables; at least, not until the Postfix
 configuration routines understand how to deal with quoted strings.
 

@@ -332,7 +332,7 @@
   */
 static char *sendmail_path;
 static void sendmail_cleanup(void);
-static NORETURN fatal_error(int, const char *,...);
+static NORETURN PRINTFLIKE(2, 3) fatal_error(int, const char *,...);
 
  /*
   * Flag parade.
@@ -418,7 +418,7 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	postdrop_command = concatenate(var_command_dir, "/postdrop",
 			      msg_verbose ? " -v" : (char *) 0, (char *) 0);
 	if ((handle = mail_stream_command(postdrop_command)) == 0)
-	    msg_fatal("%s(%ld): unable to execute %s",
+	    msg_fatal("%s(%ld): unable to execute %s: %m",
 		      saved_sender, (long) uid, postdrop_command);
 	myfree(postdrop_command);
     }

@@ -14,7 +14,7 @@ I've written [code] to add a regexp map type. It utilises the PCRE
 library (Perl Compatible Regular Expressions), which can be obtained
 from:
 
-   ftp://ftp.cus.cam.ac.uk/pub/software/programs/pcre/
+   ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre
 
 You will need to add -DHAS_PCRE and a -I for the PCRE header to CCARGS,
 and add the path to the PCRE library to AUXLIBS, for example:

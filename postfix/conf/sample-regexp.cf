@@ -1,4 +1,5 @@
-# Sample regexp lookup "table".
+# Sample regexp SMTPD access lookup "table". See regexp_table(5)
+# for a description of the syntax.
 #
 # Format is /regexp/flags or /regexp/flags!/regexp/flags
 # where regexp is a regular expression as found in regexp(5), and flags are

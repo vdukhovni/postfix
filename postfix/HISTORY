@@ -5734,7 +5734,40 @@ Apologies for any names omitted.
 	exit status codes.  Files: sendmail/sendmail.c,
 	postdrop/postdrop.c.
 
+20011129
+
+	Maintenance: dict_ldap.c wasn't updated after the revision
+	of the string matching routines. File: util/dict_ldap.c.
+
+20011208
+
+	Maintenance: LDAP module and documentation from LaMont
+	Jones.  This version adds verbose logging for LDAP library
+	routines. Files: src/util/dict_ldap.[hc], LDAP_README,
+	conf/sample-ldap.cf
+
+	Portability: made memory alignment restrictions configurable.
+	File: util/mymalloc.c.
+
+	Bugfix? Avoid surprises with source routed destinations
+	and OK entries in SMTPD access maps. File: smtpd/smtpd_access.c.
+
+	Security: "postfix check" now looks for common stupidity
+	such as "chown -R postfix /var/spool/postfix" which makes
+	chrooted Postfix less secure than non-chrooted. These extra
+	tests are bound to raise a stink with third-party patches
+	such as TLS that introduce their own files into the jail.
+
 Open problems:
+
+	Low: log queue ID when enabling PIX workaround.
+
+	Low: disable PIX workaround for mail < configurable age.
+
+	Low: replace null sender address internal representation
+	by <> so that it can be looked up reliably in maps.  Must
+	prevent attempts to rewrite this address with canonical
+	maps, or else accidents are bound to happen.
 
 	Medium: need in-process caching for map lookups. LDAP
 	servers seem to need this in particular.
