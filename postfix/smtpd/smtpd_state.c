@@ -85,6 +85,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->etrn_name = 0;
     state->protocol = "SMTP";
     state->where = SMTPD_AFTER_CONNECT;
+    state->recursion = 0;
 
     /*
      * Initialize peer information.

@@ -8,20 +8,26 @@
 /*
 /*	const char *def_local_transport()
 /*
-/*	int	local_transport(transport)
+/*	int	match_def_local_transport(transport)
+/*	const char *transport;
+/*
+/*	int	match_any_local_transport(transport)
 /*	const char *transport;
 /* DESCRIPTION
 /*	This module uses the information kept in the "local_transports"
 /*	configuration parameter, which lists the name of the default
-/*	local transport, followed by zero or more other transports that
-/*	deliver locally.
+/*	local transport, followed by the names of zero or more other
+/*	transports that deliver locally.
 /*
 /*	def_local_transport() returns the name of the default local
-/*	transport, that is, the first transport name specified with 
+/*	transport, that is, the first transport name specified with
 /*	the "local_transports" configuration parameter.
 /*
-/*	local_transport() determines if the named transport is listed
-/*	in the "local_transports" configuration parameter.
+/*	match_def_local_transport() determines if the named transport is
+/*	identical to the default local transport.
+/*
+/*	match_any_local_transport() determines if the named transport is
+/*	listed in the "local_transports" configuration parameter.
 /* SEE ALSO
 /*	resolve_local(3), see if address resolves locally.
 /* LICENSE
@@ -78,7 +84,7 @@ static void local_transport_init(void)
     /*
      * Sanity check.
      */
-    if (!local_transport(local_transport_name))
+    if (!match_any_local_transport(local_transport_name))
 	msg_panic("%s: unable to intialize", myname);
 }
 
@@ -99,9 +105,27 @@ const char *def_local_transport(void)
     return (local_transport_name);
 }
 
-/* local_transport - match address against list of local destinations */
+/* match_def_local_transport - match against default local transport */
 
-int     local_transport(const char *transport)
+int     match_def_local_transport(const char *transport)
+{
+
+    /*
+     * Initialize on the fly.
+     */
+    if (local_transport_list == 0)
+	local_transport_init();
+
+    /*
+     * Compare the transport against the list of transports that are listed
+     * as delivering locally.
+     */
+    return (strcmp(transport, local_transport_name) == 0);
+}
+
+/* match_any_local_transport - match against list of local transports */
+
+int     match_any_local_transport(const char *transport)
 {
 
     /*
@@ -127,7 +151,7 @@ int     main(int argc, char **argv)
     if (argc != 2)
 	msg_fatal("usage: %s transport", argv[0]);
     mail_conf_read();
-    vstream_printf("%s\n", local_transport(argv[1]) ? "yes" : "no");
+    vstream_printf("%s\n", match_any_local_transport(argv[1]) ? "yes" : "no");
     vstream_fflush(VSTREAM_OUT);
 }
 

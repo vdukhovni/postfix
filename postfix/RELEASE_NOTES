@@ -1,62 +1,55 @@
-Incompatible changes with snapshot XXXXXXXX
+Incompatible changes with snapshot 19991120
 ===========================================
+
+- In an SMTPD access map, an all-numeric right-hand side now means
+OK.  This is for better cooperation with out-of-band authentication
+mechanisms such as POP before SMTP etc.
 
 - Recipient addresses may no longer begin with `-'. In order to
 reinstate the old behavior, specify "allow_min_user = yes" in
 main.cf.
 
-- You can not longer use virtual, canonical or aliases tables as
+- You can no longer use virtual, canonical or aliases tables as
 SMTPD access control tables. Use the permit_recipient_map feature
-instead. The loss is compensated for.
+instead. The loss is compensated for (see below).
 
-Major changes with snapshot XXXXXXXX
+Major changes with snapshot 19991120
 ====================================
 
-- Per-client/helo/sender/recipient UCE restrictions: you can now
-specify arbitrary restrictions on the right-hand side of SMTPD
-access tables.  The only anomalies in this scheme are (1) header
-checks are the same for every message, and (2) you must use a
-restriction class (see below) in order to specify a lookup table
-on the right-hand side of an access table.
+- The Postfix SMTP server now understands a wider range of illegal
+address formats in MAIL FROM and RCPT TO commands. In order to
+disable those forms, specify "strict_rfc821_envelopes = yes".
 
-- Restriction classes allow you to conveniently group restrictions
-under one name. This is great for per-client/helo/sender/recipient
-UCE restrictions.  For example in main.cf:
+- Per-client/helo/sender/recipient UCE restrictions (fully-recursive
+UCE restriction parser). See the RESTRICTION_CLASS file for details.
 
-    smtpd_restriction_classes = restrictive, permissive
-    restrictive = reject_unknown_sender reject_unknown_client ...
-    permissive = permit
-
-Then use "restrictive" or "permissive" on the right-hand side of
-your per-client/helo/sender/recipient SMTPD access tables.
-
-- Reject mail for non-existent local accounts. You can now use
-passwd/canonical/virtual/aliases tables for SMTPD access control.
-
-For example, a non-relaying site would specify in main.cf:
+- Block mail for non-existent users at the SMTP port. On a non-relay
+host, use the following to reject mail for non-existent users and
+for non-local destinations.
 
     smtpd_recipient_restrictions =
-	permit_recipient_map unix:passwd.byname
-	permit_recipient_map hash:/etc/canonical
+	permit_recipient_map unix:passwd .byname
+	permit_recipient_map hash:/etc/postfix/canonical
 	permit_recipient_map hash:/etc/postfix/virtual
 	permit_recipient_map hash:/etc/aliases
 	reject
 
-That should stop a lot of the mail to non-existent recipients.  It
-won't stop mail to broken aliases or to users with broken .forward
-files, though.
+- "postconf -e name=value..." edits the main.cf file.  This is
+easier and safer than editing the main.cf file by hand. The edits
+are done on a temporary copy that is renamed into place.
 
-For a relaying site, a good configuration with permit_recipient_map
-still needs to be found. Something that permits relaying to all
-sites except $mydestination.
+- "postconf -m" displays all supported lookup table types (Scott
+Cotton).
 
-Unfortunately, permit_recipient_map does not combine well with
-permit_mynetworks, because permit_mynetworks accepts mail for 
-non-existent local recipients.
+- It is now relatively safe to configure 550 status codes for the
+main.cf unknown_address_reject_code or unknown_client_reject_code
+parameters.  The SMTP server now always sends a 450 (try again)
+reply code when an UCE restriction fails due to a soft DNS error.
 
-Unfortunately, permit_recipient_map does not combine well with
-check_relay_domains, because check_relay_domains either rejects
-mail, or accepts mail regardless of whether a recipient exists.
+- The RBL checks now show the content of TXT records (Simon J Mudd).
+
+- New "permit_auth_destination" UCE restriction for finer-grained
+control (Jesper Skriver).
 
 Incompatible changes with postfix-19990906
 ==========================================

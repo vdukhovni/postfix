@@ -168,9 +168,15 @@ char   *var_local_transports;
 
 static const char *check_myhostname(void)
 {
-    const char *name;
+    static const char *name;
     const char *dot;
     const char *domain;
+
+    /*
+     * Use cached result.
+     */
+    if (name)
+	return (name);
 
     /*
      * If the local machine name is not in FQDN form, try to append the

@@ -5,7 +5,7 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
-/*	\fBpostconf\fR [\fB-dhnv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dhmnv\fR] [\fB-c \fIconfig_dir\fR]
 /*		[\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -175,9 +175,15 @@ static int mode = SHOW_NAME;
 
 static const char *check_myhostname(void)
 {
-    const char *name;
+    static const char *name;
     const char *dot;
     const char *domain;
+
+    /*
+     * Use cached result.
+     */
+    if (name)
+	return (name);
 
     /*
      * If the local machine name is not in FQDN form, try to append the
@@ -697,7 +703,7 @@ int     main(int argc, char **argv)
     /*
      * Edit main.cf.
      */
-    if (mode & EDIT_MAIN) {
+    else if (mode & EDIT_MAIN) {
 	edit_parameters(argc - optind, argv + optind);
     }
 

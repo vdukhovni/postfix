@@ -165,10 +165,7 @@ static int dns_query(const char *name, int type, int flags,
      * only if the name server told us so.
      */
     len = res_search((char *) name, C_IN, type, reply->buf, sizeof(reply->buf));
-    reply_header = (HEADER *) reply->buf;
     if (len < 0) {
-	if (reply_header->rcode == SERVFAIL)
-	    h_errno = NO_RECOVERY;
 	if (why)
 	    vstring_sprintf(why, "Name service error for domain %s: %s",
 			    name, dns_strerror(h_errno));
@@ -194,6 +191,7 @@ static int dns_query(const char *name, int type, int flags,
      */
     if ((reply->end = reply->buf + len) > reply->buf + sizeof(reply->buf))
 	reply->end = reply->buf + sizeof(reply->buf);
+    reply_header = (HEADER *) reply->buf;
     reply->query_start = reply->buf + sizeof(HEADER);
     reply->answer_start = 0;
     reply->query_count = ntohs(reply_header->qdcount);
@@ -247,7 +245,7 @@ static int dns_get_fixed(unsigned char *pos, DNS_FIXED *fixed)
 static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 			          char *rr_name, DNS_FIXED *fixed)
 {
-    unsigned char temp[DNS_NAME_LEN];
+    char    temp[DNS_NAME_LEN];
     int     data_len;
     unsigned pref = 0;
     unsigned char *src;
@@ -255,6 +253,7 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
     int     ch;
 
 #define MIN2(a, b)	((unsigned)(a) < (unsigned)(b) ? (a) : (b))
+#define UC(x)		((unsigned char *) (x))
 
     if (pos + fixed->length > reply->end)
 	return (0);
@@ -296,7 +295,7 @@ static DNS_RR *dns_get_rr(DNS_REPLY *reply, unsigned char *pos,
 	break;
     case T_TXT:
 	data_len = MIN2(fixed->length + 1, sizeof(temp));
-	for (src = pos, dst = temp; dst < temp + data_len - 1; /* void */ ) {
+	for (src = pos, dst = UC(temp); dst < UC(temp) + data_len - 1; /* */ ) {
 	    ch = *src++;
 	    *dst++ = (ISPRINT(ch) ? ch : ' ');
 	}

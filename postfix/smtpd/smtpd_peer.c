@@ -36,7 +36,7 @@
 /*	error (no address->name mapping or no name->address mapping).
 /* .IP 5
 /*	The name lookup or verification failed with an unrecoverable
-/*	error (no address->name mapping, bad hostname syntax, no 
+/*	error (no address->name mapping, bad hostname syntax, no
 /*	name->address mapping, client address not listed for hostname).
 /* .RE
 /* .PP
@@ -58,12 +58,30 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdio.h>			/* strerror() */
+#include <errno.h>
 #include <netdb.h>
 #include <string.h>
 
+ /*
+  * Older systems don't have h_errno. Even modern systems don't have
+  * hstrerror().
+  */
 #ifdef NO_HERRNO
+
 static int h_errno = TRY_AGAIN;
-define  hstrerror(x) "Host not found"
+
+#define  HSTRERROR(err) "Host not found"
+
+#else
+
+#define  HSTRERROR(err) (\
+	err == TRY_AGAIN ? "Host not found, try again" : \
+	err == HOST_NOT_FOUND ? "Host not found" : \
+	err == NO_DATA ? "Host name has no address" : \
+	err == NO_RECOVERY ? "Name server failure" : \
+	strerror(errno) \
+    )
 #endif
 
 /* Utility library. */
@@ -82,7 +100,7 @@ define  hstrerror(x) "Host not found"
 
 /* smtpd_peer_init - initialize peer information */
 
-void    smtpd_peer_init(SMTPD_STATE *state)
+void    smtpd_peer_init(SMTPD_STATE * state)
 {
     struct sockaddr_in sin;
     SOCKADDR_SIZE len = sizeof(sin);
@@ -90,93 +108,97 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     int     i;
 
     /*
-     * If it's not networked assume local.
+     * Look up the peer address information.
      */
     if (getpeername(vstream_fileno(state->client),
-		    (struct sockaddr *) & sin, &len) < 0)
-	sin.sin_family = AF_UNSPEC;
+		    (struct sockaddr *) & sin, &len) >= 0) {
+	errno = 0;
+    }
 
-    switch (sin.sin_family) {
+    /*
+     * If peer went away, give up.
+     */
+    if (errno == ECONNRESET || errno == ECONNABORTED) {
+	msg_info("errno %d %m", errno);
+	state->name = mystrdup("unknown");
+	state->addr = mystrdup("unknown");
+	state->peer_code = 5;
+    }
 
-	/*
-	 * If it's not Internet, assume the client is local, and avoid using
-	 * the naming service because that can hang when the machine is
-	 * disconnected.
-	 */
-    default:
-	state->name = mystrdup("localhost");
-	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
-	state->peer_code = 2;
-	break;
-
-	/*
-	 * Look up and "verify" the client hostname.
-	 */
-    case AF_INET:
+    /*
+     * Look up and "verify" the client hostname.
+     */
+    else if (errno == 0 && sin.sin_family == AF_INET) {
 	state->addr = mystrdup(inet_ntoa(sin.sin_addr));
 	hp = gethostbyaddr((char *) &(sin.sin_addr),
 			   sizeof(sin.sin_addr), AF_INET);
 	if (hp == 0) {
 	    state->name = mystrdup("unknown");
 	    state->peer_code = (h_errno == TRY_AGAIN ? 4 : 5);
-	    break;
-	}
-	if (!valid_hostname(hp->h_name)) {
+	} else if (!valid_hostname(hp->h_name)) {
 	    state->name = mystrdup("unknown");
 	    state->peer_code = 5;
-	    break;
-	}
-	state->name = mystrdup(hp->h_name);	/* hp->name is clobbered!! */
-	state->peer_code = 2;
+	} else {
+	    state->name = mystrdup(hp->h_name);	/* hp->name is clobbered!! */
+	    state->peer_code = 2;
 
-	/*
-	 * Reject the hostname if it does not list the peer address.
-	 */
-	hp = gethostbyname(state->name);	/* clobbers hp->name!! */
-	if (hp == 0) {
-	    msg_warn("hostname %s verification failed: %s",
-		     state->name, hstrerror(h_errno));
-	    myfree(state->name);
-	    state->name = mystrdup("unknown");
-	    state->peer_code = (h_errno == TRY_AGAIN ? 4 : 5);
-	    break;
-	}
-	if (hp->h_length != sizeof(sin.sin_addr)) {
-	    msg_warn("hostname %s verification failed: bad address size %d",
-		     state->name, hp->h_length);
-	    myfree(state->name);
-	    state->name = mystrdup("unknown");
-	    state->peer_code = 5;
-	    break;
-	}
-	for (i = 0; hp->h_addr_list[i]; i++) {
-	    if (memcmp(hp->h_addr_list[i],
-		       (char *) &sin.sin_addr,
-		       sizeof(sin.sin_addr)) == 0)
-		break;
-	}
-	if (hp->h_addr_list[i] == 0) {
-	    msg_warn("address %s not listed for name %s",
-		     state->addr, state->name);
-	    myfree(state->name);
-	    state->name = mystrdup("unknown");
-	    state->peer_code = 5;
-	    break;
-	}
-	break;
+	    /*
+	     * Reject the hostname if it does not list the peer address.
+	     */
+#define REJECT_PEER_NAME(state, code) { \
+	myfree(state->name); \
+	state->name = mystrdup("unknown"); \
+	state->peer_code = 5; \
     }
+
+	    hp = gethostbyname(state->name);	/* clobbers hp->name!! */
+	    if (hp == 0) {
+		msg_warn("%s: hostname %s verification failed: %s",
+			 state->addr, state->name, HSTRERROR(h_errno));
+		REJECT_PEER_NAME(state, (h_errno == TRY_AGAIN ? 4 : 5));
+	    } else if (hp->h_length != sizeof(sin.sin_addr)) {
+		msg_warn("%s: hostname %s verification failed: bad address size %d",
+			 state->addr, state->name, hp->h_length);
+		REJECT_PEER_NAME(state, 5);
+	    } else {
+		for (i = 0; /* void */ ; i++) {
+		    if (hp->h_addr_list[i] == 0) {
+			msg_warn("%s: address not listed for hostname %s",
+				 state->addr, state->name);
+			REJECT_PEER_NAME(state, 5);
+			break;
+		    }
+		    if (memcmp(hp->h_addr_list[i],
+			       (char *) &sin.sin_addr,
+			       sizeof(sin.sin_addr)) == 0)
+			break;			/* keep peer name */
+		}
+	    }
+	}
+    }
+
+    /*
+     * If it's not Internet, assume the client is local, and avoid using the
+     * naming service because that can hang when the machine is disconnected.
+     */
+    else {
+	state->name = mystrdup("localhost");
+	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
+	state->peer_code = 2;
+    }
+
+    /*
+     * Do the name[addr] formatting for pretty reports.
+     */
     state->namaddr =
 	concatenate(state->name, "[", state->addr, "]", (char *) 0);
 }
 
 /* smtpd_peer_reset - destroy peer information */
 
-void    smtpd_peer_reset(SMTPD_STATE *state)
+void    smtpd_peer_reset(SMTPD_STATE * state)
 {
-    if (state->name)
-	myfree(state->name);
-    if (state->addr)
-	myfree(state->addr);
-    if (state->namaddr)
-	myfree(state->namaddr);
+    myfree(state->name);
+    myfree(state->addr);
+    myfree(state->namaddr);
 }

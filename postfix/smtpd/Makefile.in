@@ -66,7 +66,7 @@ depend: $(MAKES)
 	done) | grep -v '[.][o][:][ ][/]' >$$$$ && mv $$$$ Makefile.in
 	@make -f Makefile.in Makefile
 
-tests: smtpd_check_test smtpd_check_test2 smtpd_token_test
+tests: smtpd_check_test smtpd_check_test2 smtpd_check_test3 smtpd_token_test
 
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref
 	../postmap/postmap smtpd_check_access
@@ -78,6 +78,12 @@ smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2
 	../postmap/postmap smtpd_check_access
 	./smtpd_check <smtpd_check.in2 >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref2 smtpd_check.tmp
+	rm -f smtpd_check.tmp smtpd_check_access.*
+
+smtpd_check_test3: smtpd_check smtpd_check.in3 smtpd_check.ref3
+	../postmap/postmap smtpd_check_access
+	./smtpd_check <smtpd_check.in3 >smtpd_check.tmp 2>&1
+	diff smtpd_check.ref3 smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
 smtpd_token_test: smtpd_token smtpd_token.in smtpd_token.ref

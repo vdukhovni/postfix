@@ -73,6 +73,12 @@ SMTPD(8)                                                 SMTPD(8)
 
        command after a configuration change.
 
+<b>Compatibility</b> <b>controls</b>
+       <b>strict</b><i>_</i><b>rfc821</b><i>_</i><b>envelopes</b>
+              Disallow  non-RFC 821 style addresses in envelopes.
+              For example, allow RFC822-style address forms  with
+              comments, like Sendmail does.
+
 <b>Miscellaneous</b>
        <b>always</b><i>_</i><b>bcc</b>
               Address  to send a copy of each message that enters
@@ -119,12 +125,6 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>smtpd</b><i>_</i><b>recipient</b><i>_</i><b>limit</b>
               Restrict  the  number  of  recipients that the SMTP
-              server accepts per message delivery.
-
-       <b>smtpd</b><i>_</i><b>timeout</b>
-              Limit the time to send a  server  response  and  to
-              receive a client request.
-
 
 
 
@@ -136,6 +136,12 @@ SMTPD(8)                                                 SMTPD(8)
 
 SMTPD(8)                                                 SMTPD(8)
 
+
+              server accepts per message delivery.
+
+       <b>smtpd</b><i>_</i><b>timeout</b>
+              Limit the time to send a  server  response  and  to
+              receive a client request.
 
 <b>Resource</b> <b>controls</b>
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
@@ -186,12 +192,6 @@ SMTPD(8)                                                 SMTPD(8)
               Restrict  what  recipient  addresses are allowed in
               <b>RCPT</b> <b>TO</b> commands.
 
-       <b>smtpd</b><i>_</i><b>etrn</b><i>_</i><b>restrictions</b>
-              Restrict what domain names can be used in <b>ETRN</b> com-
-              mands, and what clients may issue <b>ETRN</b> commands.
-
-
-
 
 
                                                                 3
@@ -202,6 +202,10 @@ SMTPD(8)                                                 SMTPD(8)
 
 SMTPD(8)                                                 SMTPD(8)
 
+
+       <b>smtpd</b><i>_</i><b>etrn</b><i>_</i><b>restrictions</b>
+              Restrict what domain names can be used in <b>ETRN</b> com-
+              mands, and what clients may issue <b>ETRN</b> commands.
 
        <b>restriction</b><i>_</i><b>classes</b>
               Declares  the  name of zero or more parameters that
@@ -253,10 +257,6 @@ SMTPD(8)                                                 SMTPD(8)
 
 <b>SEE</b> <b>ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> message canonicalization
-       <a href="master.8.html">master(8)</a> process manager
-       syslogd(8) system logging
-
-
 
 
 
@@ -269,6 +269,9 @@ SMTPD(8)                                                 SMTPD(8)
 SMTPD(8)                                                 SMTPD(8)
 
 
+       <a href="master.8.html">master(8)</a> process manager
+       syslogd(8) system logging
+
 <b>LICENSE</b>
        The  Secure  Mailer  license must be distributed with this
        software.
@@ -278,9 +281,6 @@ SMTPD(8)                                                 SMTPD(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
 
 
 

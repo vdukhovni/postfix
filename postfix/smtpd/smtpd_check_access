@@ -5,3 +5,6 @@ bad-sender@good.domain	OK
 131.155.210		554 match 131.155.210
 131.155.210.17		OK
 reject@this.address	554 match reject@this.address
+open_user@some.site	open
+strict_user@some.site	strict
+auth_client		123456

@@ -51,6 +51,7 @@ typedef struct SMTPD_STATE {
     char   *etrn_name;
     char   *protocol;
     char   *where;
+    int     recursion;
 } SMTPD_STATE;
 
 extern void smtpd_state_init(SMTPD_STATE *, VSTREAM *);

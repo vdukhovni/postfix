@@ -324,11 +324,11 @@ TOK822 *tok822_scan(const char *str, TOK822 **tailp)
 	} else if (ch == '"') {
 	    tp = tok822_alloc(TOK822_QSTRING, (char *) 0);
 	    COLLECT_SKIP_LAST(tp, str, ch, ch != '"');
-	} else if (strchr(tok822_opchar, ch)) {
+	} else if (ch != '\\' && strchr(tok822_opchar, ch)) {
 	    tp = tok822_alloc(ch, (char *) 0);
 	} else {
 	    tp = tok822_alloc(TOK822_ATOM, (char *) 0);
-	    VSTRING_ADDCH(tp->vstr, ch);
+	    str -= 1;				/* \ may be first */
 	    COLLECT(tp, str, ch, !ISSPACE(ch) && !strchr(tok822_opchar, ch));
 	    tok822_quote_atom(tp);
 	}

@@ -277,8 +277,7 @@ SMTP_SESSION *smtp_connect_domain(char *name, unsigned port, VSTRING *why)
 	    session->best = (addr->pref == addr_list->pref);
 	    break;
 	}
-	msg_info("%s; address %s port %d", vstring_str(why),
-		 inet_ntoa(*((struct in_addr *) addr->data)), ntohs(port));
+	msg_info("%s (port %d)", vstring_str(why), ntohs(port));
     }
     dns_rr_free(addr_list);
     return (session);

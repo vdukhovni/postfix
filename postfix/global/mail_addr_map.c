@@ -163,7 +163,7 @@ int     main(int argc, char **argv)
 	msg_fatal("chdir %s: %m", var_queue_dir);
     path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
-	if ((result = mail_addr_map(path, STR(buffer))) != 0)
+	if ((result = mail_addr_map(path, STR(buffer), 1)) != 0)
 	    argv_free(result);
     }
     vstring_free(buffer);

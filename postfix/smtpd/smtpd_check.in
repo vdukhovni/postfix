@@ -9,7 +9,7 @@ relay_domains porcupine.org
 #
 # Test the client restrictions.
 #
-client_restrictions permit_mynetworks,reject_unknown_client,hash:./smtpd_check_access
+client_restrictions permit_mynetworks,reject_unknown_client,dbm:./smtpd_check_access
 client unknown 131.155.210.17
 client unknown 168.100.189.13
 client random.bad.domain 123.123.123.123
@@ -21,14 +21,14 @@ client_restrictions permit_mynetworks
 #
 # Test the helo restrictions
 #
-helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,reject_unknown_hostname,hash:./smtpd_check_access
+helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,reject_unknown_hostname,dbm:./smtpd_check_access
 client unknown 131.155.210.17
 helo foo.
 client foo 123.123.123.123
 helo foo.
 helo foo
 helo spike.porcupine.org
-helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,hash:./smtpd_check_access
+helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,dbm:./smtpd_check_access
 helo random.bad.domain
 helo friend.bad.domain
 helo_restrictions reject_invalid_hostname,reject_unknown_hostname
@@ -48,7 +48,7 @@ mail foo@watson.ibm.com
 sender_restrictions reject_unknown_address
 mail foo@watson.ibm.com
 mail foo@bad.domain
-sender_restrictions hash:./smtpd_check_access
+sender_restrictions dbm:./smtpd_check_access
 mail bad-sender@any.domain
 mail bad-sender@good.domain
 mail reject@this.address
@@ -75,7 +75,7 @@ rcpt foo@porcupine.org
 client foo 123.123.123.123
 rcpt foo@watson.ibm.com
 rcpt foo@porcupine.org
-recipient_restrictions hash:./smtpd_check_access
+recipient_restrictions dbm:./smtpd_check_access
 mail bad-sender@any.domain
 mail bad-sender@good.domain
 mail reject@this.address
@@ -94,16 +94,16 @@ client foo 127.0.0.2
 recipient_restrictions check_relay_domains
 client foo 131.155.210.17
 rcpt foo@watson.ibm.com
-recipient_restrictions check_client_access,hash:./smtpd_check_access,check_relay_domains
+recipient_restrictions check_client_access,dbm:./smtpd_check_access,check_relay_domains
 client foo 131.155.210.17
 rcpt foo@porcupine.org
-helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,hash:./smtpd_check_access
-recipient_restrictions check_helo_access,hash:./smtpd_check_access,check_relay_domains
+helo_restrictions permit_mynetworks,reject_unknown_client,reject_invalid_hostname,dbm:./smtpd_check_access
+recipient_restrictions check_helo_access,dbm:./smtpd_check_access,check_relay_domains
 helo bad.domain
 rcpt foo@porcupine.org
 helo 131.155.210.17
 rcpt foo@porcupine.org
-recipient_restrictions check_sender_access,hash:./smtpd_check_access,check_relay_domains
+recipient_restrictions check_sender_access,dbm:./smtpd_check_access,check_relay_domains
 mail foo@bad.domain
 rcpt foo@porcupine.org
 mail foo@friend.bad.domain
@@ -123,7 +123,7 @@ rcpt wietse@porcupine.org
 client_restrictions permit
 helo_restrictions permit
 sender_restrictions permit
-recipient_restrictions check_helo_access,hash:./smtpd_check_access,check_sender_access,hash:./smtpd_check_access
+recipient_restrictions check_helo_access,dbm:./smtpd_check_access,check_sender_access,dbm:./smtpd_check_access
 helo bad.domain
 mail foo@good.domain
 rcpt foo@porcupine.org

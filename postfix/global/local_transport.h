@@ -15,7 +15,8 @@
   * External interface.
   */
 extern const char *def_local_transport(void);
-extern int local_transport(const char *);
+extern int match_def_local_transport(const char *);
+extern int match_any_local_transport(const char *);
 
 /* LICENSE
 /* .ad

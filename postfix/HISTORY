@@ -3226,11 +3226,11 @@ Apologies for any names omitted.
 19991116
 
 	Code cleanup: a new "local_transports" configuration
-	parameter explicitly lists all transports that deliver
-	mail locally. The first name listed there is the default
-	local transport.  This is the end of the "empty next-hop
-	hostname" hack to indicate that a destination is local.
-	Files:  trivial-rewrite/resolve.c, global/local_transport.[hc]
+	parameter explicitly lists all transports that deliver mail
+	locally. The first name listed there is the default local
+	transport.  This is the end of the "empty next-hop hostname"
+	hack to indicate that a destination is local.  Files:
+	trivial-rewrite/resolve.c, global/local_transport.[hc]
 
 	Feature: "postconf -m" shows what lookup table types are
 	available.  Code by Scott Cotton, Internet Consultants
@@ -3242,6 +3242,8 @@ Apologies for any names omitted.
 	util/readlline.[hc].
 
 19991117
+
+	Portability: SunOS 4 has no SA_RESTART. File: util/watchdog.c.
 
 	Feature: on systems with h_errno, the "reject_unknown_client"
 	restriction now distinguishes between soft errors (always
@@ -3256,3 +3258,25 @@ Apologies for any names omitted.
 	Robustness: postconf no longer aborts when it can't figure
 	out the local domain name; it prints a warning instead.
 	This allows you to use "postconf -e" to fix the problem.
+
+19991118
+
+	Bugfix: the RFC822 address parser would misparse a leading
+	\ as an atom all by itself. Problem reported by Keith
+	Stevenson @ louisville.edu. File: global/tok822_parse.c.
+
+19991119
+
+	Bugfix: tiny memory leak in pipe_command() when fork()
+	fails.  File: global/pipe_command.c.
+
+19991120
+
+	Bugfix: reversed test for all-numerical results in SMTPD
+	access maps. File: smtpd/smtpd_check.c.
+
+19991121
+
+	Robustness: INSTALL.sh no longer uses postmap for sanity checks.
+
+	Feature: INSTALL.sh now has an install_root option.

@@ -477,7 +477,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	/*
 	 * Bounce mail to non-existent users in virtual domains.
 	 */
-	if (!local_transport(STR(reply.transport))
+	if (!match_def_local_transport(STR(reply.transport))
 	    && qmgr_virtual != 0
 	    && (at = strrchr(recipient->address, '@')) != 0) {
 	    domain = lowercase(mystrdup(at + 1));
@@ -516,7 +516,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
 	 */
-	if (local_transport(STR(reply.transport))) {
+	if (match_def_local_transport(STR(reply.transport))) {
 	    vstring_strcpy(reply.nexthop, STR(reply.recipient));
 	    (void) split_at_right(STR(reply.nexthop), '@');
 #if 0

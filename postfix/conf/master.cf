@@ -71,5 +71,5 @@ uucp	  unix	-	n	n	-	-	pipe
 ifmail    unix  -       n       n       -       -       pipe
     flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
 bsmtp     unix  -       n       n       -       -       pipe
-    flags=F user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
+    flags=F. user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
 

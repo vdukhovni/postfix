@@ -191,10 +191,10 @@ href="access.5.html">access database</a> for the client name, parent
 domains, client address, or networks obtained by stripping least
 significant octets.  Reject the request if the result is <b>REJECT</b>
 or "[<b>45</b>]<i>XX text</i>". Permit the request if the result
-is <b>OK</b> or <b>RELAY</b>. Otherwise, treat the result as another
-list of UCE restrictions.  The <b>access_map_reject_code</b>
-parameter specifies the response code for <b>REJECT</b> results
-(default:  <b>554</b>).
+is <b>OK</b> or <b>RELAY</b> or all-numerical. Otherwise, treat the
+result as another list of UCE restrictions.  The
+<b>access_map_reject_code</b> parameter specifies the response code for
+<b>REJECT</b> results (default:  <b>554</b>).
 
 <p>
 
@@ -339,10 +339,10 @@ response code to rejected requests (default:  <b>504</b>).
 href="access.5.html">access database</a> for the <b>HELO</b> hostname
 or parent domains in the specified table.  Reject the request if
 the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>". Permit
-the request when the result is <b>OK</b> or <b>RELAY</b>. Otherwise,
-treat the result as another list of UCE restrictions.  The
-<b>access_map_reject_code </b> parameter specifies the response
-code for <b>REJECT</b> results (default:  <b>554</b>).
+the request when the result is <b>OK</b> or <b>RELAY</b> or
+all-numerical. Otherwise, treat the result as another list of UCE
+restrictions.  The <b>access_map_reject_code </b> parameter specifies
+the response code for <b>REJECT</b> results (default:  <b>554</b>).
 
 <p>
 
@@ -431,10 +431,10 @@ is always <b>450</b> in case of a temporary DNS error.
 href="access.5.html">access database</a> for the sender mail address,
 parent domain, or <i>localpart</i>@. Reject the request if the
 result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>". Permit the
-request if the result is <b>OK</b> or <b>RELAY</b>. Otherwise,
-treat the result as another list of UCE restrictions.  The
-<b>access_map_reject_code </b> parameter specifies the result code
-for rejected requests (default: <b>554</b>).
+request if the result is <b>OK</b> or <b>RELAY</b> or all-numerical.
+Otherwise, treat the result as another list of UCE restrictions.  The
+<b>access_map_reject_code </b> parameter specifies the result code for
+rejected requests (default: <b>554</b>).
 
 <p>
 
@@ -579,12 +579,12 @@ $inet_interfaces</a>.
 
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the resolved destination
-address, parent domain, or <i>localpart</i>@. Reject the request
-if the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".
-Permit the request if the result is <b>OK</b> or <b>RELAY</b>.
-Otherwise, treat the result as another list of UCE restrictions.
-The <b>access_map_reject_code </b> parameter specifies the result
-code for rejected requests (default: <b>554</b>).
+address, parent domain, or <i>localpart</i>@. Reject the request if the
+result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".  Permit the
+request if the result is <b>OK</b> or <b>RELAY</b> or all-numerical.
+Otherwise, treat the result as another list of UCE restrictions.  The
+<b>access_map_reject_code </b> parameter specifies the result code for
+rejected requests (default: <b>554</b>).
 
 <p>
 
@@ -715,10 +715,10 @@ address.
 href="access.5.html">access database</a> for the domain specified
 in the ETRN command, or its parent domains. Reject the request if
 the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".  Permit
-the request if the result is <b>OK</b> or <b>RELAY</b>. Otherwise,
-treat the result as another list of UCE restrictions.  The
-<b>access_map_reject_code </b> parameter specifies the result code
-for rejected requests (default: <b>554</b>).
+the request if the result is <b>OK</b> or <b>RELAY</b> or
+all-numerical. Otherwise, treat the result as another list of UCE
+restrictions.  The <b>access_map_reject_code </b> parameter specifies
+the result code for rejected requests (default: <b>554</b>).
 
 <p>
 

@@ -335,8 +335,6 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
      */
     if (pipe(cmd_in_pipe) < 0 || pipe(cmd_out_pipe) < 0)
 	msg_fatal("%s: pipe: %m", myname);
-    cmd_in_stream = vstream_fdopen(cmd_in_pipe[1], O_WRONLY);
-    cmd_out_stream = vstream_fdopen(cmd_out_pipe[0], O_RDONLY);
     non_blocking(cmd_out_pipe[1], NON_BLOCKING);
 
     /*
@@ -411,6 +409,9 @@ int     pipe_command(VSTREAM *src, VSTRING *why,...)
     default:
 	close(cmd_in_pipe[0]);
 	close(cmd_out_pipe[1]);
+
+	cmd_in_stream = vstream_fdopen(cmd_in_pipe[1], O_WRONLY);
+	cmd_out_stream = vstream_fdopen(cmd_out_pipe[0], O_RDONLY);
 
 	/*
 	 * Give the command a limited amount of time to run, by enforcing
