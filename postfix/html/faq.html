@@ -90,6 +90,10 @@ virtual domains fails with "mail loops back to myself"</a>
 
 <li><a href="#virtual_relay">Postfix refuses mail for virtual
 domains with "relay access denied"</a>
+
+<li><a href="#broken_transport">Mail delivery fails with: "unknown
+mail transport error"</a>
+
 </ul>
 
 <p>
@@ -205,6 +209,9 @@ domains with "relay access denied"</a>
 
 <li><a href="#noservice">What does "fatal: unknown service: smtp/tcp" mean?</a>
 
+<li><a href="#broken_transport">Mail delivery fails with: "unknown
+mail transport error"</a>
+
 </ul>
 
 <a name="local_delivery"><h3>Local (non-virtual) delivery</h3>
@@ -236,6 +243,9 @@ distribution list</a>
 <li><a href="#owner-foo">Postfix ignores the owner-list alias</a>
 
 <li><a href="#noalias">What does "fatal: open database /etc/aliases.db" mean?</a>
+
+<li><a href="#broken_transport">Mail delivery fails with: "unknown
+mail transport error"</a>
 
 </ul>
 
@@ -946,14 +956,74 @@ delivery agent deals with undeliverable mail.
 
 <a name="noalias"><h3>What does "fatal: open database /etc/aliases.db" mean?</h3></a>
 
-Your aliases database is corrupt or it is missing. Execute the 
-following command as root:
+DB files are maintained by the Berkeley DB library. The above
+message means one of the following things:
 
 <p>
 
+<ul>
+
+<li> The existing file does not have the expected file format.
+The cause is one of the following:
+
+<p>
+
+<ul>
+
+<li>The file was created by Berkeley DB version 1 and you are using
+version 2 or 3 (or vice versa).
+
+<p>
+
+<li> The file was written in "btree" format and Postfix expects
+    "hash" format (or vice versa).
+
+</ul>
+
+<p>
+
+To fix the problem for Postfix execute the following command as root:
+
+<blockquote>
 <pre>
-    # newaliases
+    newaliases
 </pre>
+</blockquote>
+
+This creates the aliases.db in the format that Postfix expects.
+
+<p>
+
+<li>Or the problem could be something completely different. If the
+result of running <tt>newaliases</tt> is a zero-length aliases.db
+file, then you probably suffer from the following problem.
+
+<p>
+
+<ul>
+
+<li>Postfix was compiled with #include files for Berkeley DB version
+<i>X</i> and was linked against object library files for Berkeley DB
+version <i>Y</i>, where <i>X</i> and <i>Y</i> are different versions
+of the Berkeley DB library.
+
+</ul>
+
+<p>
+
+The fix for this is to properly install the Berkeley DB library.
+For example, RedHat version 7.0 uses the Berkeley DB version 3
+object library by default, but no /usr/include/db.h file is
+installed by default. In order to correctly build Postfix you
+must install the db3-devel package.
+
+<p>
+
+On a properly installed system, including the file <b>&lt;db.h&gt;</b>
+and linking with <b>-ldb</b> should access files from the same
+Berkeley DB library version.
+
+</ul>
 
 <hr>
 
@@ -1881,6 +1951,35 @@ Instructions are given in the source code distribution, in the
 <b>examples/chroot-setup</b> directory.
 
 </ul>
+
+<hr>
+
+<a name="broken_transport"><h3>Mail delivery fails with: "unknown
+mail transport error"</h3>
+
+This is an opportunity to meet your friends <b>egrep</b> and
+<b>less</b>.  Postfix activity, including progres and failure, is
+logged to a logfile, typically named <b>/var/log/maillog</b>.  To
+find out where Postfix activity is logged on your machine, examine
+the <b>/etc/syslog.conf</b> file.
+
+<p> 
+
+To find out the cause for the "unknown mail transport error", type
+the following command:
+
+<blockquote>
+
+<tt>egrep '(warning|fatal|panic):' /var/log/maillog | less</tt> 
+
+</blockquote>
+
+Pay particular attention to messages that are labeled as <b>fatal</b>
+and <b>panic</b>. These describe catastrophic failures that need
+to be addressed before Postfix is happy.  Problems labeled as
+<b>fatal</b> as fixed by adjusting configurations. Problems labeled
+as <b>panic</b> are fixed by changing Postfix source code.
+
 <hr>
 
 <a name="root"> <h3>Root's mail is delivered to nobody</h3>

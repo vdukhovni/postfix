@@ -277,9 +277,9 @@ MASTER_SERV *get_master_ent()
 	serv->type = MASTER_SERV_TYPE_INET;
 	atmp = inet_parse(name, &host, &port);
 	if (host && *host) {
-	    serv->flags |= MASTER_FLAG_INETHOST;
+	    serv->flags |= MASTER_FLAG_INETHOST;/* host:port */
 	    serv->addr_list.inet =
-		(INET_ADDR_LIST *) mymalloc(sizeof(*serv->addr_list_buf.inet));
+		(INET_ADDR_LIST *) mymalloc(sizeof(*serv->addr_list.inet));
 	    inet_addr_list_init(serv->addr_list.inet);
 	    inet_addr_host(serv->addr_list.inet, host);
 	    serv->listen_fd_count = serv->addr_list.inet->used;

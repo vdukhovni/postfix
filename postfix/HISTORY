@@ -5074,6 +5074,12 @@ Apologies for any names omitted.
 	postalias/postalias.c.
 
 	Bugfix: with a non-default inet_interfaces setting, the
-	master daemon ignored host information in explicit host:port
-	settings in master.cf.  Fix by Jun-ichiro itojun Hagino @
-	iijlab.net.  Files: master/master.h, master/master_ent.c.
+	master ignored host information in master.cf host:port
+	settings.  Fix by Jun-ichiro itojun Hagino @ iijlab.net.
+	Files: master/master.h, master/master_ent.c.
+
+20010426
+
+	Workaround: the SMTP server did not really parse invalid
+	addresses such as <first last <user@domain>> well.  I
+	thought this was taken care of years ago. File:  smtpd/smtpd.c.

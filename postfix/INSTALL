@@ -208,6 +208,10 @@ In order to install or upgrade Postfix:
     # make install              (interactive version, first time install)
     # make install </dev/null   (non-interactive version, for upgrades)
 
+  The non-interactive version needs the /etc/postfix/install.cf
+  file from a previous installation. If the file does not exist,
+  use interactive installation instead.
+
   The INSTALL.sh script offers suggestions for pathnames that you
   can override, either by editing INSTALL.sh or by specifying your
   preferences interactively. INSTALL.sh stores your preferences in

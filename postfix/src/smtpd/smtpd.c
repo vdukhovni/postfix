@@ -523,6 +523,7 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
     int     naddr;
     int     non_addr;
     char   *err = 0;
+    char   *junk;
 
     /*
      * Special case.
@@ -544,7 +545,13 @@ static char *extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
      */
     if (msg_verbose)
 	msg_info("%s: input: %s", myname, STR(arg->vstrval));
-    tree = tok822_parse(STR(arg->vstrval));
+    if (STR(arg->vstrval)[0] == '<'
+	&& STR(arg->vstrval)[LEN(arg->vstrval) - 1] == '>') {
+	junk = mystrndup(STR(arg->vstrval) + 1, LEN(arg->vstrval) - 2);
+	tree = tok822_parse(junk);
+	myfree(junk);
+    } else
+	tree = tok822_parse(STR(arg->vstrval));
 
     /*
      * Find trouble.
