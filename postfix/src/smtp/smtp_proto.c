@@ -500,15 +500,17 @@ int     smtp_xfer(SMTP_STATE *state)
      */
     nrcpt = 0;
     send_name_addr =
-	(var_smtp_send_xforward
-	 && (state->features & SMTP_FEATURE_XFORWARD_NAME_ADDR)
-	 && (DEL_REQ_ATTR_AVAIL(request->client_name)
-	     || DEL_REQ_ATTR_AVAIL(request->client_addr)));
+	var_smtp_send_xforward
+	&& (((state->features & SMTP_FEATURE_XFORWARD_NAME)
+	     && DEL_REQ_ATTR_AVAIL(request->client_name))
+	    || ((state->features & SMTP_FEATURE_XFORWARD_ADDR)
+		&& DEL_REQ_ATTR_AVAIL(request->client_addr)));
     send_proto_helo =
-	(var_smtp_send_xforward
-	 && (state->features & SMTP_FEATURE_XFORWARD_PROTO_HELO)
-	 && (DEL_REQ_ATTR_AVAIL(request->client_proto)
-	     || DEL_REQ_ATTR_AVAIL(request->client_helo)));
+	var_smtp_send_xforward
+	&& (((state->features & SMTP_FEATURE_XFORWARD_PROTO)
+	     && DEL_REQ_ATTR_AVAIL(request->client_proto))
+	    || ((state->features & SMTP_FEATURE_XFORWARD_HELO)
+		&& DEL_REQ_ATTR_AVAIL(request->client_helo)));
     if (send_name_addr)
 	recv_state = send_state = SMTP_STATE_XFORWARD_NAME_ADDR;
     else if (send_proto_helo)
@@ -703,7 +705,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			msg_warn("host %s said: %s (in reply to %s)",
 				 session->namaddr,
 				 translit(resp->str, "\n", " "),
-				 xfer_request[SMTP_STATE_XFORWARD_NAME_ADDR]);
+			       xfer_request[SMTP_STATE_XFORWARD_NAME_ADDR]);
 		    if (send_proto_helo)
 			recv_state = SMTP_STATE_XFORWARD_PROTO_HELO;
 		    else
@@ -715,7 +717,7 @@ int     smtp_xfer(SMTP_STATE *state)
 			msg_warn("host %s said: %s (in reply to %s)",
 				 session->namaddr,
 				 translit(resp->str, "\n", " "),
-				 xfer_request[SMTP_STATE_XFORWARD_PROTO_HELO]);
+			      xfer_request[SMTP_STATE_XFORWARD_PROTO_HELO]);
 		    recv_state = SMTP_STATE_MAIL;
 		    break;
 

@@ -1,9 +1,6 @@
 ===============================================================
 WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 ===============================================================
-The XCLIENT feature for content filter logging is still changing
-and the design details have already changed again.
-
 The sender/recipient address verification code is lightly documented
 and has been tested lightly. The code is proof-of-concept quality
 and must not be used on high-volume sites.  Use at your own risk.
@@ -24,6 +21,34 @@ parameter contains the release date (both for official release and
 snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
+
+Incompatible changes with Postfix snapshot 2.0.16-20031215
+==========================================================
+
+XCLIENT is approaching completion.
+
+Major changes with Postfix snapshot 2.0.16-20031215
+===================================================
+
+The XCLIENT extension to SMTP implements SMTP client impersonation
+for SMTP server access rule testing. Send "xclient name=xxx addr=yyy"
+in SMTP sessions and pretend that you are connecting as the specified
+client. More details are in the XCLIENT_README file.
+
+The XFORWARD extension to SMTP forwards up-stream MTA information
+(and in the future,  message identifying information) to improve
+the logging by down-stream mail software.  Send "xclient name=xxx
+addr=yyy proto=aaa helo=bbb" to specify the original SMTP client
+information that should be recorded with the next MAIL FROM
+transaction. More details are in the XFORWARD_README file.
+
+The reject_sender_login_mismatch feature is now implemented in
+terms of more basic restrictions: reject_unauth_sender_login_mismatch
+(reject mail when $sender_login_maps lists an owner for the sender
+address but the SMTP client is not SASL authenticated) and
+reject_auth_sender_login_mismatch (reject mail when the sender
+address is not owned by the SASL authenticated user). The
+sender_login_maps now support multiple owners per sender address.
 
 Incompatible changes with Postfix snapshot 2.0.16-20031203
 ==========================================================

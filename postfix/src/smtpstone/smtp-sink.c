@@ -25,10 +25,14 @@
 /* .IP \fB-c\fR
 /*	Display a running counter that is updated whenever an SMTP
 /*	QUIT command is executed.
+/* .IP \fB-C\fR
+/*	Disable XCLIENT support.
 /* .IP \fB-e\fR
 /*	Do not announce ESMTP support.
 /* .IP "\fB-f  \fIcommand,command,...\fR"
 /*	Reject the specified commands with a hard (5xx) error code.
+/* .IP \fB-F\fR
+/*	Disable XFORWARD support.
 /* .IP \fB-h\fI hostname\fR
 /*	Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 /*	and in the EHLO response. The default hostname is "smtp-sink".
@@ -144,6 +148,8 @@ static int disable_esmtp;
 static int enable_lmtp;
 static int pretend_pix;
 static int disable_saslauth;
+static int disable_xclient;
+static int disable_xforward;
 
 /* ehlo_response - respond to EHLO command */
 
@@ -156,6 +162,10 @@ static void ehlo_response(SINK_STATE *state)
 	smtp_printf(state->stream, "250-8BITMIME");
     if (!disable_saslauth)
 	smtp_printf(state->stream, "250-AUTH PLAIN LOGIN");
+    if (!disable_xclient)
+	smtp_printf(state->stream, "250-XCLIENT NAME HELO");
+    if (!disable_xforward)
+	smtp_printf(state->stream, "250-XFORWARD NAME ADDR PROTO HELO");
     smtp_printf(state->stream, "250 ");
     smtp_flush(state->stream);
 }
@@ -315,6 +325,8 @@ static SINK_COMMAND command_table[] = {
     "helo", helo_response, 0,
     "ehlo", ehlo_response, 0,
     "lhlo", ehlo_response, 0,
+    "xclient", ok_response, FLAG_ENABLE,
+    "xforward", ok_response, FLAG_ENABLE,
     "auth", ok_response, FLAG_ENABLE,
     "mail", mail_response, FLAG_ENABLE,
     "rcpt", rcpt_response, FLAG_ENABLE,
@@ -325,6 +337,20 @@ static SINK_COMMAND command_table[] = {
     "quit", quit_response, FLAG_ENABLE,
     0,
 };
+
+/* reset_cmd_flags - reset per-command command flags */
+
+static void reset_cmd_flags(const char *cmd, int flags)
+{
+    SINK_COMMAND *cmdp;
+
+    for (cmdp = command_table; cmdp->name != 0; cmdp++)
+	if (strcasecmp(cmd, cmdp->name) == 0)
+	    break;
+    if (cmdp->name == 0)
+	msg_fatal("unknown command: %s", cmd);
+    cmdp->flags &= ~flags;
+}
 
 /* set_cmd_flags - set per-command command flags */
 
@@ -579,7 +605,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "acef:h:Ln:pPr:s:vw:8")) > 0) {
+    while ((ch = GETOPT(argc, argv, "acCef:Fh:Ln:pPr:s:vw:8")) > 0) {
 	switch (ch) {
 	case 'a':
 	    disable_saslauth = 1;
@@ -587,11 +613,19 @@ int     main(int argc, char **argv)
 	case 'c':
 	    count++;
 	    break;
+	case 'C':
+	    disable_xclient = 1;
+	    reset_cmd_flags("xclient", FLAG_ENABLE);
+	    break;
 	case 'e':
 	    disable_esmtp = 1;
 	    break;
 	case 'f':
 	    set_cmds_flags(optarg, FLAG_HARD_ERR);
+	    break;
+	case 'F':
+	    disable_xforward = 1;
+	    reset_cmd_flags("xforward", FLAG_ENABLE);
 	    break;
 	case 'h':
 	    var_myhostname = optarg;
@@ -600,7 +634,8 @@ int     main(int argc, char **argv)
 	    enable_lmtp = 1;
 	    break;
 	case 'n':
-	    max_count = atoi(optarg);
+	    if ((max_count = atoi(optarg)) <= 0)
+		msg_fatal("bad count: %s", optarg);
 	    break;
 	case 'p':
 	    disable_pipelining = 1;

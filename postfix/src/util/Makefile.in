@@ -10,7 +10,7 @@ SRCS	= alldig.c argv.c argv_split.c attr_print0.c attr_print64.c \
 	fifo_trigger.c file_limit.c find_inet.c fsspace.c fullname.c \
 	get_domainname.c get_hostname.c hex_quote.c host_port.c htable.c \
 	inet_addr_host.c inet_addr_list.c inet_addr_local.c inet_connect.c \
-	inet_listen.c inet_trigger.c inet_util.c intv.c line_wrap.c \
+	inet_listen.c inet_trigger.c inet_util.c line_wrap.c \
 	lowercase.c lstat_as.c mac_expand.c mac_parse.c make_dirs.c \
 	match_list.c match_ops.c msg.c msg_output.c msg_syslog.c \
 	msg_vstream.c mvect.c myflock.c mymalloc.c myrand.c mystrtok.c \
@@ -40,7 +40,7 @@ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
 	fifo_trigger.o file_limit.o find_inet.o fsspace.o fullname.o \
 	get_domainname.o get_hostname.o hex_quote.o host_port.o htable.o \
 	inet_addr_host.o inet_addr_list.o inet_addr_local.o inet_connect.o \
-	inet_listen.o inet_trigger.o inet_util.o intv.o line_wrap.o \
+	inet_listen.o inet_trigger.o inet_util.o line_wrap.o \
 	lowercase.o lstat_as.o mac_expand.o mac_parse.o make_dirs.o \
 	match_list.o match_ops.o msg.o msg_output.o msg_syslog.o \
 	msg_vstream.o mvect.o myflock.o mymalloc.o myrand.o mystrtok.o \
@@ -66,7 +66,7 @@ HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
 	dict_static.h dict_tcp.h dict_unix.h dir_forest.h events.h \
 	exec_command.h find_inet.h fsspace.h fullname.h get_domainname.h \
 	get_hostname.h hex_quote.h host_port.h htable.h inet_addr_host.h \
-	inet_addr_list.h inet_addr_local.h inet_util.h intv.h iostuff.h \
+	inet_addr_list.h inet_addr_local.h inet_util.h iostuff.h \
 	line_wrap.h listen.h lstat_as.h mac_expand.h mac_parse.h \
 	make_dirs.h match_list.h match_ops.h msg.h msg_output.h \
 	msg_syslog.h msg_vstream.h mvect.h myflock.h mymalloc.h myrand.h \
@@ -913,11 +913,6 @@ inet_util.o: sys_defs.h
 inet_util.o: mymalloc.h
 inet_util.o: split_at.h
 inet_util.o: inet_util.h
-intv.o: intv.c
-intv.o: sys_defs.h
-intv.o: mymalloc.h
-intv.o: msg.h
-intv.o: intv.h
 line_wrap.o: line_wrap.c
 line_wrap.o: sys_defs.h
 line_wrap.o: line_wrap.h

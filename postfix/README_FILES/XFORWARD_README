@@ -12,6 +12,12 @@ remote client and/or message identifying information through the
 content filter to MTA2, so that the information could be logged as
 part of mail handling transactions.
 
+This extension is implemented as a separate command, so that it
+can be used to transmit client or message attributes incrementally.
+It is not implemented by passing additional parameters via the MAIL
+FROM command, because doing so would require extending the MAIL
+FROM command length limit by another 600 or more characters beyond.
+
 Command syntax
 ==============
 
@@ -24,9 +30,7 @@ quoted strings specify terminals, lowercase strings specify meta
 terminals, and SP is whitespace.  Although command and attribute
 names are shown in upper case, they are in fact case insensitive.
 
-    xclient-command = XFORWARD 1*( SP attribute )
-
-    attribute = name"="value
+    xforward-command = XFORWARD 1*( SP name"="value )
 
     name = ( NAME | ADDR | PROTO | HELO | IDENT )
 
@@ -44,28 +48,29 @@ The XFORWARD reply codes are as follows:
     503 | mail transaction in progress
     421 | unable to proceed
 
-The information specified with XFORWARD attribues is not limited
+The information specified with XFORWARD attributes is not limited
 to DNS hostnames, IP addresses or SMTP protocol names.  Attribute
-values may contain arbitrary text, but must not contain control
-characters, non-ASCII characters, whitespace, or other characters
-that are special in message headers.
+values may contain arbitrary text, must not be longer than 255
+characters (specific attributes may imposer shorter lengths), must
+not contain control characters, non-ASCII characters, whitespace,
+or other characters that are special in message headers.
 
-The NAME attribute specifies an up-stream client hostname, or
-[UNAVAILABLE] when the information is unavailable. The hostname
-may be a non-DNS hostname.
+The NAME attribute specifies the up-stream hostname, or [UNAVAILABLE]
+when the information is unavailable. The hostname may be a non-DNS
+hostname.
 
-The ADDR attribute specifies an up-stream client network address,
-or [UNAVAILABLE] when the information is unavailable.  Address
+The ADDR attribute specifies the up-stream network address, or
+[UNAVAILABLE] when the information is unavailable.  Address
 information is not enclosed with []. The address may be a non-IP
 address.
 
-The PROTO attribute specifies the mail protocol that was used by
-the up-stream client. This may be an SMTP non-SMTP protocol name
+The PROTO attribute specifies the mail protocol for receiving mail
+from the up-stream host. This may be an SMTP non-SMTP protocol name
 of up to 64 characters, or [UNAVAILABLE] when the information is
 unavailable.
 
-The HELO attribute specifies the hostname that the up-stream client
-host introduced itself with (for example, via the SMTP HELO command),
+The HELO attribute specifies the hostname that the up-stream host
+announced itself with (not necessarily via the SMTP HELO command),
 or [UNAVAILABLE] when the information is unavailable. The hostname
 may be a non-DNS hostname.
 

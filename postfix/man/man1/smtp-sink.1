@@ -31,10 +31,14 @@ Do not announce SASL authentication support.
 .IP \fB-c\fR
 Display a running counter that is updated whenever an SMTP
 QUIT command is executed.
+.IP \fB-C\fR
+Disable XCLIENT support.
 .IP \fB-e\fR
 Do not announce ESMTP support.
 .IP "\fB-f  \fIcommand,command,...\fR"
 Reject the specified commands with a hard (5xx) error code.
+.IP \fB-F\fR
+Disable XFORWARD support.
 .IP \fB-h\fI hostname\fR
 Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 and in the EHLO response. The default hostname is "smtp-sink".

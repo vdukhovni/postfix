@@ -8843,17 +8843,26 @@ Apologies for any names omitted.
 20031212
 
 	Cleanup: separate extensions XCLIENT (impersonate SMTP
-	client) and XFORWARD (down-stream logging of up-stream
-	session information, not necessarily SMTP related). The
-	protocol is extensible: the server advertises what attributes
-	XCLIENT or XFORWARD will accept.  The requirement for xtext
-	encoding is dropped as no attribute currently needs it.
-	All errors are reported by the server and are logged by
-	the client.  See also: XCLIENT_README and XFORWARD_README.
+	client) and XFORWARD (down-stream logging of up-stream MTA
+	and/or message information, not necessarily SMTP related).
+	The protocol is extensible: the server advertises what
+	attributes XCLIENT or XFORWARD will accept, and it is an
+	error to send an unsupported attribute.  No xtext encoding
+	is used, since no attribute currently needs it.  See also:
+	XCLIENT_README and XFORWARD_README.
 
 20031214
 
-	Feature: XCLIENT and XFORWARD support in the LMTP client.
+	Feature: XFORWARD support in the LMTP client.
+
+20031215
+
+	Safety: updated mail_queue_id_ok() for long fast flush
+	logfile names. File: global/mail_queue.c.
+
+	Robustness: save and restore the resolver _res.options
+	settings before and after DNS lookup, to avoid surprises
+	in third-party code. File: dns/dns_lookup.c.
 
 Open problems:
 

@@ -835,15 +835,17 @@ int     lmtp_xfer(LMTP_STATE *state)
      * minimal amount of information is available.
      */
     send_name_addr =
-	(var_lmtp_send_xforward
-	 && (state->features & LMTP_FEATURE_XFORWARD_NAME_ADDR)
-	 && (DEL_REQ_ATTR_AVAIL(request->client_name)
-	     || DEL_REQ_ATTR_AVAIL(request->client_addr)));
+	var_lmtp_send_xforward
+	&& (((state->features & LMTP_FEATURE_XFORWARD_NAME)
+	     && DEL_REQ_ATTR_AVAIL(request->client_name))
+	    || ((state->features & LMTP_FEATURE_XFORWARD_ADDR)
+		&& DEL_REQ_ATTR_AVAIL(request->client_addr)));
     lmtp_send_proto_helo =
-	(var_lmtp_send_xforward
-	 && (state->features & LMTP_FEATURE_XFORWARD_PROTO_HELO)
-	 && (DEL_REQ_ATTR_AVAIL(request->client_proto)
-	     || DEL_REQ_ATTR_AVAIL(request->client_helo)));
+	var_lmtp_send_xforward
+	&& (((state->features & LMTP_FEATURE_XFORWARD_PROTO)
+	     && DEL_REQ_ATTR_AVAIL(request->client_proto))
+	    || ((state->features & LMTP_FEATURE_XFORWARD_HELO)
+		&& DEL_REQ_ATTR_AVAIL(request->client_helo)));
     if (send_name_addr)
 	start = LMTP_STATE_XFORWARD_NAME_ADDR;
     else if (lmtp_send_proto_helo)

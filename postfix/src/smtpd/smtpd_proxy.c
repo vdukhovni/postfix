@@ -164,6 +164,15 @@
 #include <smtpd_proxy.h>
 
  /*
+  * XFORWARD server features, recognized by the pass-through proxy client.
+  */
+#define SMTPD_PROXY_XFORWARD_NAME  (1<<0)	/* client name */
+#define SMTPD_PROXY_XFORWARD_ADDR  (1<<1)	/* client address */
+#define SMTPD_PROXY_XFORWARD_PROTO (1<<2)	/* protocol */
+#define SMTPD_PROXY_XFORWARD_HELO  (1<<3)	/* client helo */
+#define SMTPD_PROXY_XFORWARD_IDENT (1<<4)	/* message identifier */
+
+ /*
   * SLMs.
   */
 #define STR(x)	vstring_str(x)

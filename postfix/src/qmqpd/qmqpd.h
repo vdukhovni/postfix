@@ -49,10 +49,10 @@ typedef struct {
 } QMQPD_STATE;
 
  /*
-  * Postfix representation unknown client information within qmqpd processes.
-  * This is not the representation that Postfix uses in queue files, in queue
-  * manager delivery requests, nor is it the representation of information in
-  * XCLIENT/XFORWARD commands!
+  * Representation of unknown upstream client or message information within
+  * qmqpd processes. This is not the representation that Postfix uses in
+  * queue files, in queue manager delivery requests, or in XCLIENT/XFORWARD
+  * commands!
   */
 #define CLIENT_ATTR_UNKNOWN	"unknown"
 

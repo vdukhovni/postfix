@@ -561,6 +561,7 @@ int     main(int argc, char **argv)
 	VAR_LMTP_CACHE_CONN, DEF_LMTP_CACHE_CONN, &var_lmtp_cache_conn,
 	VAR_LMTP_SKIP_QUIT_RESP, DEF_LMTP_SKIP_QUIT_RESP, &var_lmtp_skip_quit_resp,
 	VAR_LMTP_SASL_ENABLE, DEF_LMTP_SASL_ENABLE, &var_lmtp_sasl_enable,
+	VAR_LMTP_SEND_XFORWARD, DEF_LMTP_SEND_XFORWARD, &var_lmtp_send_xforward,
 	0,
     };
 

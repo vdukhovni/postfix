@@ -23,8 +23,8 @@ lmtp_tcp_port = 24
 
 # The lmtp_send_xforward_command parameter controls whether the Postfix
 # LMTP client will send an XFORWARD command to the SMTP server, when
-# the ELMTP HELO response of the remote host indicates XFORWARD support.
-# This allows an "smtp" delivery agent, used for content filter
+# the LMTP LHLO response of the remote host indicates XFORWARD support.
+# This allows an "lmtp" delivery agent, used for content filter
 # message injection, to forward the name, address, protocol and HELO
 # name of the original client to the content filter and downstream
 # queuing LMTP server. Before you change the value to yes, it is best

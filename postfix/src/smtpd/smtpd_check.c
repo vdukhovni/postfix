@@ -2852,7 +2852,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     return (result);
 }
 
-#ifdef USE_SASL
+#ifdef USE_SASL_AUTH
 
 /* reject_auth_sender_login_mismatch - logged in client must own sender address */
 
@@ -3236,7 +3236,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = reject_non_fqdn_address(state, state->sender,
 					  state->sender, SMTPD_NAME_SENDER);
 	} else if (strcasecmp(name, REJECT_AUTH_SENDER_LOGIN_MISMATCH) == 0) {
-#ifdef USE_SASL
+#ifdef USE_SASL_AUTH
 	    if (var_smtpd_sasl_enable) {
 		if (state->sender && *state->sender)
 		    status = reject_auth_sender_login_mismatch(state, state->sender);
@@ -3244,7 +3244,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 #endif
 		msg_warn("restriction `%s' ignored: no SASL support", name);
 	} else if (strcasecmp(name, REJECT_UNAUTH_SENDER_LOGIN_MISMATCH) == 0) {
-#ifdef USE_SASL
+#ifdef USE_SASL_AUTH
 	    if (var_smtpd_sasl_enable) {
 		if (state->sender && *state->sender)
 		    status = reject_unauth_sender_login_mismatch(state, state->sender);

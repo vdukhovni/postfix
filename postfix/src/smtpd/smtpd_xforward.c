@@ -78,7 +78,7 @@ void    smtpd_xforward_preset(SMTPD_STATE *state)
      * same values as unknown normal attributes, so that we don't break
      * assumptions in pre-existing code.
      */
-    state->xforward.flags = SMTPD_XFORWARD_FLAG_INIT;
+    state->xforward.flags = SMTPD_STATE_XFORWARD_INIT;
     state->xforward.name = mystrdup(CLIENT_NAME_UNKNOWN);
     state->xforward.addr = mystrdup(CLIENT_ADDR_UNKNOWN);
     state->xforward.namaddr = mystrdup(CLIENT_NAMADDR_UNKNOWN);

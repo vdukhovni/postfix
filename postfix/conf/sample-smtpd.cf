@@ -85,7 +85,7 @@ unknown_local_recipient_reject_code = 550
 # specified order. Regexp tables are allowed.
 #
 # Each map entry specifies a sender address and a list of login names
-# that owns the address. The search order is:
+# that own the address. The search order is:
 #
 # 1)  user@domain	owner, owner, ...
 #
@@ -158,8 +158,8 @@ smtpd_client_connection_limit_exceptions = $mynetworks
 # are allowed to specify the XCLIENT extension to SMTP.
 #
 # This command overrides SMTP client information that is used for
-# logging and access control. Typical use is for SMTP-based content
-# filters, fetchmail-like programs, or SMTP server access rule testing.
+# access control. Typical use is for SMTP-based content filters,
+# fetchmail-like programs, or SMTP server access rule testing.
 #
 # By default, no clients are allowed to specify XCLIENT.
 #
@@ -507,11 +507,9 @@ smtpd_helo_restrictions =
 #	specified access table to those hosts.
 #	Note: the OK result is not allowed here for security reasons.
 #   reject_sender_login_mismatch: 
-#	reject if $smtpd_sender_login_maps specifies a MAIL FROM
-#	address owner, but the client is not (SASL) logged in as
-#	that MAIL FROM address owner; or if the client is (SASL)
-#	logged in, but the client login name doesn't own the MAIL
-#	FROM address.
+#	reject if $smtpd_sender_login_maps specifies one or more
+#	owners for the MAIL FROM address, but the client is not
+#	(SASL) logged in as one of the owners.
 #   reject_authenticated_sender_login_mismatch:
 #	reject if the client is (SASL) logged in, but the client
 #	login name doesn't own the MAIL FROM address according to

@@ -1295,7 +1295,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     }
 
     server_host = parser.get_str(ldapsource, "server_host",
-				 "localhost", 0, 0);
+				 "localhost", 1, 0);
     if (msg_verbose)
 	msg_info("%s: %s server_host is %s", myname, ldapsource,
 		 server_host);
@@ -1368,7 +1368,8 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
 	vstring_sprintf_append(url_list, " %s", h);
 #endif
     }
-    dict_ldap->server_host = mystrdup(vstring_str(url_list) + 1);
+    dict_ldap->server_host =
+	mystrdup(VSTRING_LEN(url_list) > 0 ? vstring_str(url_list) + 1 : "");
 
 #if defined(LDAP_API_FEATURE_X_OPENLDAP)
 

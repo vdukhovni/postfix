@@ -134,7 +134,7 @@
 /*	Disallow anonymous logins.
 /* .RE
 /* .IP \fBsmtpd_sender_login_maps\fR
-/*	Maps that specify the SASL login name that owns a MAIL FROM sender
+/*	Maps that specify the SASL login names that own a MAIL FROM sender
 /*	address. Used by the \fBreject_sender_login_mismatch\fR sender
 /*	anti-spoofing restriction, as well as by its component restrictions
 /*	\fBreject_authenticated_sender_login_mismatch\fR (an authenticated
@@ -1890,10 +1890,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *attr_name;
     int     updated = 0;
     static NAME_CODE xforward_flags[] = {
-	XFORWARD_NAME, SMTPD_XFORWARD_FLAG_NAME,
-	XFORWARD_ADDR, SMTPD_XFORWARD_FLAG_ADDR,
-	XFORWARD_PROTO, SMTPD_XFORWARD_FLAG_PROTO,
-	XFORWARD_HELO, SMTPD_XFORWARD_FLAG_HELO,
+	XFORWARD_NAME, SMTPD_STATE_XFORWARD_NAME,
+	XFORWARD_ADDR, SMTPD_STATE_XFORWARD_ADDR,
+	XFORWARD_PROTO, SMTPD_STATE_XFORWARD_PROTO,
+	XFORWARD_HELO, SMTPD_STATE_XFORWARD_HELO,
 	0, 0,
     };
     int     flag;
@@ -1939,16 +1939,21 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "501 Error: attribute=value expected");
 	    return (-1);
 	}
+	if (strlen(attr_value) > 255) {
+	    state->error_mask |= MAIL_ERROR_PROTOCOL;
+	    smtpd_chat_reply(state, "501 Error: attribute value too long");
+	    return (-1);
+	}
 	printable(attr_value, '?');
 
 	flag = name_code(xforward_flags, NAME_CODE_FLAG_NONE, attr_name);
 	switch (flag) {
 
 	    /*
-	     * NAME=host name, not necessarily in the DNS. Censor special
-	     * characters that could mess up message headers.
+	     * NAME=up-stream host name, not necessarily in the DNS. Censor
+	     * special characters that could mess up message headers.
 	     */
-	case SMTPD_XFORWARD_FLAG_NAME:
+	case SMTPD_STATE_XFORWARD_NAME:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
@@ -1958,10 +1963,11 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    break;
 
 	    /*
-	     * ADDR=host network address, not necessarily on the Internet.
-	     * Censor special characters that could mess up message headers.
+	     * ADDR=up-stream host network address, not necessarily on the
+	     * Internet. Censor special characters that could mess up message
+	     * headers.
 	     */
-	case SMTPD_XFORWARD_FLAG_ADDR:
+	case SMTPD_STATE_XFORWARD_ADDR:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_ADDR_UNKNOWN;
 	    } else {
@@ -1971,11 +1977,11 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    break;
 
 	    /*
-	     * HELO=hostname that the host introduced itself with (not
-	     * necessarily SMTP HELO). Censor special characters that could
-	     * mess up message headers.
+	     * HELO=hostname that the up-stream MTA introduced itself with
+	     * (not necessarily SMTP HELO). Censor special characters that
+	     * could mess up message headers.
 	     */
-	case SMTPD_XFORWARD_FLAG_HELO:
+	case SMTPD_STATE_XFORWARD_HELO:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_HELO_UNKNOWN;
 	    } else {
@@ -1985,10 +1991,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    break;
 
 	    /*
-	     * PROTO=protocol name, not necessarily SMTP or ESMTP. Censor
-	     * special characters that could mess up message headers.
+	     * PROTO=up-stream protocol, not necessarily SMTP or ESMTP.
+	     * Censor special characters that could mess up message headers.
 	     */
-	case SMTPD_XFORWARD_FLAG_PROTO:
+	case SMTPD_STATE_XFORWARD_PROTO:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_PROTO_UNKNOWN;
 	    } else {
@@ -2017,9 +2023,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     state->xforward.flags |= updated;
 
     /*
-     * Update the combined name and address when either has changed.
+     * Update the combined name and address when either has changed. Use only
+     * the name when no address is available.
      */
-    if (updated & (SMTPD_XFORWARD_FLAG_NAME | SMTPD_XFORWARD_FLAG_ADDR)) {
+    if (updated & (SMTPD_STATE_XFORWARD_NAME | SMTPD_STATE_XFORWARD_ADDR)) {
 	if (state->xforward.namaddr)
 	    myfree(state->xforward.namaddr);
 	state->xforward.namaddr =

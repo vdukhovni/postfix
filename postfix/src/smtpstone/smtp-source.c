@@ -414,8 +414,8 @@ static void start_connect(SESSION *session)
     linger.l_onoff = 1;
     linger.l_linger = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &linger,
-                   sizeof(linger)) < 0)
-        msg_warn("setsockopt SO_LINGER %d: %m", linger.l_linger);
+		   sizeof(linger)) < 0)
+	msg_warn("setsockopt SO_LINGER %d: %m", linger.l_linger);
     session->stream = vstream_fdopen(fd, O_RDWR);
     event_enable_write(fd, connect_done, (char *) session);
     smtp_timeout_setup(session->stream, var_timeout);
@@ -793,10 +793,8 @@ int     main(int argc, char **argv)
 	    count++;
 	    break;
 	case 'C':
-	    if ((connect_count = atoi(optarg)) <= 0) {
-		msg_error("bad connection count: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if ((connect_count = atoi(optarg)) <= 0)
+		msg_fatal("bad connection count: %s", optarg);
 	    break;
 	case 'd':
 	    disconnect = 0;
@@ -805,10 +803,8 @@ int     main(int argc, char **argv)
 	    sender = optarg;
 	    break;
 	case 'l':
-	    if ((message_length = atoi(optarg)) <= 0) {
-		msg_error("bad message length: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if ((message_length = atoi(optarg)) <= 0)
+		msg_fatal("bad message length: %s", optarg);
 	    message_data = mymalloc(message_length);
 	    memset(message_data, 'X', message_length);
 	    for (i = 80; i < message_length; i += 80) {
@@ -821,36 +817,26 @@ int     main(int argc, char **argv)
 	    talk_lmtp = 1;
 	    break;
 	case 'm':
-	    if ((message_count = atoi(optarg)) <= 0) {
-		msg_error("bad message count: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if ((message_count = atoi(optarg)) <= 0)
+		msg_fatal("bad message count: %s", optarg);
 	    break;
 	case 'o':
 	    send_helo_first = 0;
 	    send_headers = 0;
 	    break;
 	case 'r':
-	    if ((recipients = atoi(optarg)) <= 0) {
-		msg_error("bad recipient count: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if ((recipients = atoi(optarg)) <= 0)
+		msg_fatal("bad recipient count: %s", optarg);
 	    break;
 	case 'R':
-	    if (fixed_delay > 0) {
-		msg_error("do not use -w and -R options at the same time");
-		usage(argv[0]);
-	    }
-	    if ((random_delay = atoi(optarg)) <= 0) {
-		msg_error("bad random delay: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if (fixed_delay > 0)
+		msg_fatal("do not use -w and -R options at the same time");
+	    if ((random_delay = atoi(optarg)) <= 0)
+		msg_fatal("bad random delay: %s", optarg);
 	    break;
 	case 's':
-	    if ((sessions = atoi(optarg)) <= 0) {
-		msg_error("bad session count: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if ((sessions = atoi(optarg)) <= 0)
+		msg_fatal("bad session count: %s", optarg);
 	    break;
 	case 'S':
 	    subject = optarg;
@@ -862,14 +848,10 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	case 'w':
-	    if (random_delay > 0) {
-		msg_error("do not use -w and -R options at the same time");
-		usage(argv[0]);
-	    }
-	    if ((fixed_delay = atoi(optarg)) <= 0) {
-		msg_error("bad fixed delay: %s", optarg);
-		usage(argv[0]);
-	    }
+	    if (random_delay > 0)
+		msg_fatal("do not use -w and -R options at the same time");
+	    if ((fixed_delay = atoi(optarg)) <= 0)
+		msg_fatal("bad fixed delay: %s", optarg);
 	    break;
 	default:
 	    usage(argv[0]);
