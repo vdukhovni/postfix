@@ -180,7 +180,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		info->rcpt = mystrdup(vstring_str(buf));
 	if (type == REC_TYPE_TIME)
 	    continue;
-	if (type == REC_TYPE_FILT)
+	if (type == REC_TYPE_FILT && *expected == REC_TYPE_ENVELOPE[0])
 	    continue;
 	else {
 

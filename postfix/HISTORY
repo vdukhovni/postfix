@@ -4614,3 +4614,14 @@ Apologies for any names omitted.
 	Small dirt: postconf -m produced too much output due to a
 	missing "else", and the optional SASL code needed a fix
 	for the changed name_mask API.
+
+20001212
+
+	Workaround: due to an error, record type L for "filter
+	transport name" was the same as that for the already existing
+	record type L for "record not ending in newline", causing
+	the pickup daemon to discard all records not ending in
+	newline. The code cannot be changed without breaking
+	compatibility with queued mail, so the pickup server is
+	changed to discard type L records only from the message
+	envelope, not from the content. File: pickup/pickup.c.
