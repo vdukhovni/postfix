@@ -196,6 +196,10 @@ Mail that is placed on hold can be examined with the
 \fBpostcat\fR(1) command, and can be destroyed or released with
 the \fBpostsuper\fR(1) command.
 .sp
+Note: use "\fBpostsuper -r\fR" to release mail that was kept on
+hold for a significant fraction of \fB$maximal_queue_lifetime\fR
+or \fB$bounce_queue_lifetime\fR or longer.
+.sp
 Note: this action currently affects all recipients of the message.
 .sp
 This feature is available in Postfix 2.0 and later.

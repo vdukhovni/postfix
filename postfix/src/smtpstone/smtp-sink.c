@@ -33,7 +33,7 @@
 /*	Reject the specified commands with a hard (5xx) error code.
 /* .IP \fB-F\fR
 /*	Disable XFORWARD support.
-/* .IP \fB-h\fI hostname\fR
+/* .IP "\fB-h\fI hostname\fR"
 /*	Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 /*	and in the EHLO response. The default hostname is "smtp-sink".
 /* .IP \fB-L\fR

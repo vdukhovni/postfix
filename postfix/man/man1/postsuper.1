@@ -96,6 +96,10 @@ mail queue(s) (default: \fBhold\fR) to the \fBdeferred\fR queue.
 If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
 queue IDs from standard input.
 .sp
+Note: use "\fBpostsuper -r\fR" to release mail that was kept on
+hold for a significant fraction of \fB$maximal_queue_lifetime\fR
+or \fB$bounce_queue_lifetime\fR or longer.
+.sp
 Specify \fB-H ALL\fR to release all mail that is "on hold".
 As a safety measure, the word \fBALL\fR must be specified in upper
 case.

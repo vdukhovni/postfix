@@ -239,9 +239,10 @@
 /*	List of users who are authorized to flush the queue.
 /* .IP "\fBauthorized_mailq_users (static:anyone)\fR"
 /*	List of users who are authorized to view the queue.
-/* .IP "\fBauthorized_sendmail_users (static:anyone)\fR"
-/*	List of users who are authorized to use the sendmail(1) command
-/*	(and the privileged postdrop(1) helper command) to submit mail.
+/* .IP "\fBauthorized_submit_users (static:anyone)\fR"
+/*	List of users who are authorized to submit mail with the
+/*	sendmail(1) command (and with the privileged postdrop(1)
+/*	helper command).
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -438,10 +439,10 @@ typedef struct SM_STATE {
  /*
   * Mail submission ACL
   */
-static char *var_sendmail_acl;
+static char *var_submit_acl;
 
 static CONFIG_STR_TABLE str_table[] = {
-    VAR_SENDMAIL_ACL, DEF_SENDMAIL_ACL, &var_sendmail_acl, 0, 0,
+    VAR_SUBMIT_ACL, DEF_SUBMIT_ACL, &var_submit_acl, 0, 0,
     0,
 };
 
@@ -541,14 +542,15 @@ static void enqueue(const int flags, const char *encoding, const char *sender,
     MIME_STATE *mime_state = 0;
     SM_STATE state;
     int     mime_errs;
-    char   *errstr;
+    const char *errstr;
 
     /*
      * Access control is enforced in the postdrop command. The code here
      * merely produces a more user-friendly interface.
      */
-    if ((errstr = check_user_acl_byuid(var_sendmail_acl, uid)) != 0)
-	msg_fatal_status(EX_NOPERM, "%s is not allowed to submit mail", errstr);
+    if ((errstr = check_user_acl_byuid(var_submit_acl, uid)) != 0)
+	msg_fatal_status(EX_NOPERM,
+	  "User %s(%ld) is not allowed to submit mail", errstr, (long) uid);
 
     /*
      * Initialize.
@@ -823,7 +825,8 @@ int     main(int argc, char **argv)
     char   *site_to_flush = 0;
     char   *encoding = 0;
     char   *qtime = 0;
-    char   *errstr;
+    const char *errstr;
+    uid_t   uid;
 
     /*
      * Be consistent with file permissions.
@@ -1146,9 +1149,10 @@ int     main(int argc, char **argv)
 	    msg_fatal_status(EX_USAGE,
 			     "stand-alone mode requires no recipient");
 	/* The actual enforcement happens in the postdrop command. */
-	if ((errstr = check_user_acl_byuid(var_sendmail_acl, getuid())) != 0)
-	    msg_fatal_status(EX_NOPERM, "%s is not allowed to submit mail",
-			     errstr);
+	if ((errstr = check_user_acl_byuid(var_submit_acl, uid = getuid())) != 0)
+	    msg_fatal_status(EX_NOPERM,
+			     "User %s(%ld) is not allowed to submit mail",
+			     errstr, (long) uid);
 	ext_argv = argv_alloc(2);
 	argv_add(ext_argv, "smtpd", "-S", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)

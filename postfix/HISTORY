@@ -9726,15 +9726,18 @@ Apologies for any names omitted.
 20040918
 
 	Feature: authorized_flush_users, authorized_mailq_users,
-	authorized_sendmail_users to restrict what users can flush
-	the queue, list the queue, or submit mail locally.  Victor
-	Duchovni, Morgan Stanley. Files: sendmail/sendmail.c,
-	postdrop/postdrop.c, postqueue/postqueue.c, global/user_acl.[hc].
+	authorized_submit_users to restrict what users can flush
+	the queue, list the queue, or submit mail locally.  Based
+	on code by Victor Duchovni, Morgan Stanley. Files:
+	sendmail/sendmail.c, postdrop/postdrop.c, postqueue/postqueue.c,
+	global/user_acl.[hc].
 
 	Feature: discard(8) mail delivery agent.  Victor Duchovni,
 	Morgan Stanley. File: discard/discard.c.
 
 Open problems:
+
+	Low: master(5) manual page.
 
 	Low: should the Delivered-To: test in local(8) be configurable?
 

@@ -232,7 +232,7 @@ static CONFIG_STR_TABLE str_table[] = {
 
 static void show_queue(void)
 {
-    char   *errstr;
+    const char *errstr;
     char    buf[VSTREAM_BUFSIZE];
     VSTREAM *showq;
     int     n;
@@ -241,7 +241,8 @@ static void show_queue(void)
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(var_showq_acl, uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
-			 "%s is not allowed to view the mail queue", errstr);
+		       "User %s(%ld) is not allowed to view the mail queue",
+			 errstr, (long) uid);
 
     /*
      * Connect to the show queue service. Terminate silently when piping into
@@ -304,13 +305,14 @@ static void show_queue(void)
 
 static void flush_queue(void)
 {
-    char   *errstr;
+    const char *errstr;
     uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
-			 "%s is not allowed to flush the mail queue", errstr);
+		      "User %s(%ld) is not allowed to flush the mail queue",
+			 errstr, (long) uid);
 
     /*
      * Trigger the flush queue service.
@@ -328,13 +330,14 @@ static void flush_queue(void)
 static void flush_site(const char *site)
 {
     int     status;
-    char   *errstr;
+    const char *errstr;
     uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
-			 "%s is not allowed to flush the mail queue", errstr);
+		      "User %s(%ld) is not allowed to flush the mail queue",
+			 errstr, (long) uid);
 
     flush_init();
 

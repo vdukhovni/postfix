@@ -61,7 +61,7 @@ while (<>) {
     }
     s;\bautho[-</bB>]*\n*[ <bB>]*rized_flush_users\b;<a href="postconf.5.html#authorized_flush_users">$&</a>;g;
     s;\bautho[-</bB>]*\n*[ <bB>]*rized_mailq_users\b;<a href="postconf.5.html#authorized_mailq_users">$&</a>;g;
-    s;\bautho[-</bB>]*\n*[ <bB>]*rized_sendmail_users\b;<a href="postconf.5.html#authorized_sendmail_users">$&</a>;g;
+    s;\bautho[-</bB>]*\n*[ <bB>]*rized_submit_users\b;<a href="postconf.5.html#authorized_submit_users">$&</a>;g;
     s;\bautho[-</bB>]*\n*[ <bB>]*rized_verp_clients\b;<a href="postconf.5.html#authorized_verp_clients">$&</a>;g;
     s;\bdebugger_command\b;<a href="postconf.5.html#debugger_command">$&</a>;g;
     s;\b2bounce_notice_recipi[-</bB>]*\n*[ <bB>]*ent\b;<a href="postconf.5.html#2bounce_notice_recipient">$&</a>;g;

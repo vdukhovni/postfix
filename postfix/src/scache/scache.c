@@ -332,7 +332,6 @@ static void scache_save_dest_service(VSTREAM *client_stream)
 	if (size.endp_count > scache_endp_count)
 	    scache_endp_count = size.endp_count;
 	return;
-	return;
     }
 }
 

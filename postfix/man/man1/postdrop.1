@@ -89,9 +89,9 @@ The time limit for sending a trigger to a Postfix daemon (for
 example, the pickup(8) or qmgr(8) daemon).
 .PP
 Available in Postfix version 2.2 and later:
-.IP "\fBauthorized_sendmail_users (static:anyone)\fR"
-List of users who are authorized to use the sendmail(1) command
-(and the privileged postdrop(1) helper command) to submit mail.
+.IP "\fBauthorized_submit_users (static:anyone)\fR"
+List of users who are authorized to submit mail with the sendmail(1)
+command (and with the privileged postdrop(1) helper command).
 .SH "FILES"
 .na
 .nf

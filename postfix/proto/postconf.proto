@@ -5517,11 +5517,13 @@ List of users who are authorized to flush the queue.
 </p>
 
 <p> 
-By default all users are allowed to flush the queue. Otherwise if the
-invoking user is neither the super-user nor the $mail_owner user, access
-is denied unless the real uid of the process trying to flush the queue
-is listed in the system password file and the corresponding login name
-is on the access list.  </p>
+By default, all users are allowed to flush the queue.  Access is
+always granted if the invoking user is the super-user or the
+$mail_owner user.  Otherwise, the real UID of the process is looked
+up in the system password file, and access is granted only if the
+corresponding login name is on the access list.  The username
+"unknown" is used for processes whose real UID is not found in the
+password file.  </p>
 
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,
@@ -5543,11 +5545,13 @@ List of users who are authorized to view the queue.
 </p>
 
 <p>
-By default all users are allowed to view the queue. Otherwise if the
-invoking user is neither the super-user nor the $mail_owner user, access
-is denied unless the real uid of the process trying to view the queue
-is listed in the system password file and the corresponding login name
-is on the access list.  </p>
+By default, all users are allowed to view the queue.  Access is
+always granted if the invoking user is the super-user or the
+$mail_owner user.  Otherwise, the real UID of the process is looked
+up in the system password file, and access is granted only if the
+corresponding login name is on the access list.  The username
+"unknown" is used for processes whose real UID is not found in the
+password file.  </p>
 
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,
@@ -5562,19 +5566,20 @@ lines by starting the next line with whitespace.  </p>
 This feature is available in Postfix 2.2 and later.
 </p>
 
-%PARAM authorized_sendmail_users static:anyone
+%PARAM authorized_submit_users static:anyone
 
 <p>
-List of users who are authorized to use the sendmail(1) command
-(and the privileged postdrop(1) helper command) to submit mail.
+List of users who are authorized to submit mail with the sendmail(1)
+command (and with the privileged postdrop(1) helper command).
 </p>
 
 <p> 
-By default all users are allowed to submit mail. Otherwise, access is denied
-unless the real uid of the process trying to submit mail is listed in
-the system password file and the corresponding login name is on the
-access list. To deny mail submission access to all users specify an
-empty list. </p>
+By default, all users are allowed to submit mail.  Otherwise, the
+real UID of the process is looked up in the system password file,
+and access is granted only if the corresponding login name is on
+the access list.  The username "unknown" is used for processes
+whose real UID is not found in the password file. To deny mail
+submission access to all users specify an empty list.  </p>
 
 <p>
 Specify a list of user names, "/file/name" or "type:table" patterns,

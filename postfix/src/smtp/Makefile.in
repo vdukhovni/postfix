@@ -266,11 +266,12 @@ smtp_sasl_proto.o: smtp_sasl_proto.c
 smtp_sasl_proto.o: ../../include/sys_defs.h
 smtp_sasl_proto.o: ../../include/msg.h
 smtp_sasl_proto.o: ../../include/mymalloc.h
+smtp_sasl_proto.o: ../../include/stringops.h
+smtp_sasl_proto.o: ../../include/vstring.h
+smtp_sasl_proto.o: ../../include/vbuf.h
 smtp_sasl_proto.o: ../../include/mail_params.h
 smtp_sasl_proto.o: smtp.h
 smtp_sasl_proto.o: ../../include/vstream.h
-smtp_sasl_proto.o: ../../include/vbuf.h
-smtp_sasl_proto.o: ../../include/vstring.h
 smtp_sasl_proto.o: ../../include/argv.h
 smtp_sasl_proto.o: ../../include/htable.h
 smtp_sasl_proto.o: ../../include/deliver_request.h

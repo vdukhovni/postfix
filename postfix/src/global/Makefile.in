@@ -1414,6 +1414,7 @@ user_acl.o: string_list.h
 user_acl.o: ../../include/match_list.h
 user_acl.o: ../../include/match_ops.h
 user_acl.o: mypwd.h
+user_acl.o: mail_params.h
 user_acl.o: user_acl.h
 verify.o: verify.c
 verify.o: ../../include/sys_defs.h

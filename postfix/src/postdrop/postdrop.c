@@ -75,9 +75,9 @@
 /*	example, the pickup(8) or qmgr(8) daemon).
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBauthorized_sendmail_users (static:anyone)\fR"
-/*	List of users who are authorized to use the sendmail(1) command
-/*	(and the privileged postdrop(1) helper command) to submit mail.
+/* .IP "\fBauthorized_submit_users (static:anyone)\fR"
+/*	List of users who are authorized to submit mail with the sendmail(1)
+/*	command (and with the privileged postdrop(1) helper command).
 /* FILES
 /*	/var/spool/postfix/maildrop, maildrop queue
 /* SEE ALSO
@@ -152,10 +152,10 @@
  /*
   * Local mail submission access list.
   */
-static char *var_sendmail_acl;
+static char *var_submit_acl;
 
 static CONFIG_STR_TABLE str_table[] = {
-    VAR_SENDMAIL_ACL, DEF_SENDMAIL_ACL, &var_sendmail_acl, 0, 0,
+    VAR_SUBMIT_ACL, DEF_SUBMIT_ACL, &var_submit_acl, 0, 0,
     0,
 };
 
@@ -219,7 +219,7 @@ int     main(int argc, char **argv)
     const char *error_text;
     char   *attr_name;
     char   *attr_value;
-    char   *errstr;
+    const char *errstr;
 
     /*
      * Be consistent with file permissions.
@@ -282,8 +282,9 @@ int     main(int argc, char **argv)
      * Mail submission access control. Should this be in the user-land gate,
      * or in the daemon process?
      */
-    if ((errstr = check_user_acl_byuid(var_sendmail_acl, uid)) != 0)
-	msg_fatal("%s is not allowed to submit mail", errstr);
+    if ((errstr = check_user_acl_byuid(var_submit_acl, uid)) != 0)
+	msg_fatal("User %s(%ld) is not allowed to submit mail",
+		  errstr, (long) uid);
 
     /*
      * Stop run-away process accidents by limiting the queue file size. This

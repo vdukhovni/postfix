@@ -7,6 +7,27 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Incompatible changes with snapshot Postfix-2.2-20040919
+=======================================================
+
+This snapshot adds a discard service to the master.cf file.
+
+Major changes with snapshot Postfix-2.2-20040919
+================================================
+
+A new discard(8) mail delivery agent that makes throwing away mail
+easier and more efficient. It's the Postfix equivalent of /dev/null
+for deliveries. On the input side, Postfix already has a /dev/null
+equivalent in the form of the DISCARD action in access maps and
+header_body_checks.
+
+Access control for local mail submission, for listing the queue
+and for flushing the queue. These features are controlled with
+authorized_submit_users, authorized_mailq_users, and with
+authorized_flush_users, respectively. The last two controls are
+always permitted for the super-user and for the mail system owner.
+More information is in the postconf(5) manual.
+
 Incompatible changes with snapshot Postfix-2.2-20040829
 =======================================================
 

@@ -98,10 +98,10 @@ POSTDROP(1)                                           POSTDROP(1)
 
        Available in Postfix version 2.2 and later:
 
-       <b><a href="postconf.5.html#authorized_sendmail_users">authorized_sendmail_users</a> (static:anyone)</b>
-              List  of  users who are authorized to use the <a href="sendmail.1.html">send-</a>
-              <a href="sendmail.1.html">mail(1)</a> command  (and  the  privileged  <a href="postdrop.1.html">postdrop(1)</a>
-              helper command) to submit mail.
+       <b><a href="postconf.5.html#authorized_submit_users">authorized_submit_users</a> (static:anyone)</b>
+              List  of  users  who  are authorized to submit mail
+              with the <a href="sendmail.1.html">sendmail(1)</a> command (and with  the  privi-
+              leged <a href="postdrop.1.html">postdrop(1)</a> helper command).
 
 <b>FILES</b>
        /var/spool/postfix/<a href="QSHAPE_README.html#maildrop_queue">maildrop</a>, <a href="QSHAPE_README.html#maildrop_queue">maildrop queue</a>

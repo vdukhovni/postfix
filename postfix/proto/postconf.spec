@@ -37,7 +37,7 @@
 %PARAM alternate_config_directories
 %PARAM authorized_flush_users
 %PARAM authorized_mailq_users
-%PARAM authorized_sendmail_users
+%PARAM authorized_submit_users
 %PARAM default_privs
 %PARAM import_environment
 %PARAM proxy_read_maps
