@@ -393,17 +393,19 @@ static int dict_db_sequence(DICT *dict, int function,
     dict_errno = 0;
     memset(&db_key, 0, sizeof(db_key));
     memset(&db_value, 0, sizeof(db_value));
-    if (dict_db->cursor == 0)
-	db->cursor(db, NULL, &(dict_db->cursor), 0);
 
     /*
      * Determine the function.
      */
     switch (function) {
     case DICT_SEQ_FUN_FIRST:
+	if (dict_db->cursor == 0)
+	    db->cursor(db, NULL, &(dict_db->cursor), 0);
 	db_function = DB_FIRST;
 	break;
     case DICT_SEQ_FUN_NEXT:
+	if (dict_db->cursor == 0)
+	    msg_panic("%s: no cursor", myname);
 	db_function = DB_NEXT;
 	break;
     default:
@@ -421,7 +423,7 @@ static int dict_db_sequence(DICT *dict, int function,
      * Database lookup.
      */
     status =
-	dict_db->cursor->c_get(dict_db->cursor, &db_key, &db_value, DB_NEXT);
+	dict_db->cursor->c_get(dict_db->cursor, &db_key, &db_value, db_function);
     if (status != 0 && status != DB_NOTFOUND)
 	msg_fatal("error [%d] seeking %s: %m", status, dict_db->dict.name);
 

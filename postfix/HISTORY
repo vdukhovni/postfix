@@ -10336,10 +10336,30 @@ Apologies for any names omitted.
 	Cleanup: documented the myorigin/mydomain address rewriting
 	in canonical, generics and virtual alias maps.
 
+20050210
+
+	Bugfix: spurious fallback_relay warnings after 20050202.
+	Victor Duchovni.  File: smtp/smtp_connect.c.
+
+	Bugfix: (introduced while adopting Postfix/TLS patch) the
+	TLS cache scan stopped after expiring one entry.  Victor
+	Duchovni.  File: tls/tls_scache.c.
+
+	Safety: delete-behind when removing expired entries from
+	TLS session caches. Some maps mis-behave when the current
+	entry is deleted. File: tls/tls_scache.c.
+
 Open problems:
 
 	Med: local and remote source port and IP address for smtpd
 	policy hook.
+
+	Med: should "generics" be "generic", for consistency with
+	"canonical" and "virtual".
+
+	Med: canonical/generic/virtual mapping always append
+	myorigin/mydomain and never remote_header_rewrite_domain;
+	this needs to be clear from documentation.
 
 	Med: disable address rewriting after XCLIENT? Introduce a
 	better concept of original submission?

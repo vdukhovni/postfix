@@ -21,11 +21,15 @@
   * External interface.
   */
 typedef struct {
+    int     flags;			/* see below */
     DICT   *db;				/* database handle */
     char   *cache_label;		/* "client" or "server" */
     int     log_level;			/* smtp(d)_tls_log_level */
     int     timeout;			/* smtp(d)_tls_session_cache_timeout */
+    char   *saved_cursor;		/* cursor cache ID */
 } TLS_SCACHE;
+
+#define TLS_SCACHE_FLAG_DEL_CURSOR	(1<<0)
 
 extern TLS_SCACHE *tls_scache_open(const char *, const char *, int, int);
 extern void tls_scache_close(TLS_SCACHE *);

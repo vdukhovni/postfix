@@ -558,7 +558,7 @@ int     smtp_connect(SMTP_STATE *state)
      * getting lost in the complexity.
      */
 #define IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites) \
-	    ((cpp) >= (sites)->argv + (non_fallback_sites))
+	    (*(cpp) && (cpp) >= (sites)->argv + (non_fallback_sites))
 
     for (cpp = sites->argv; SMTP_RCPT_LEFT(state) > 0 && (dest = *cpp) != 0; cpp++) {
 	if (i_am_mx && IS_FALLBACK_RELAY(cpp, sites, non_fallback_sites))

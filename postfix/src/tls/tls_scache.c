@@ -372,7 +372,8 @@ int     tls_scache_lookup(TLS_SCACHE *cp, const char *cache_id,
     /*
      * Initialize. Don't leak data.
      */
-    VSTRING_RESET(session);
+    if (session)
+	VSTRING_RESET(session);
 
     /*
      * Search the cache database.
@@ -446,30 +447,66 @@ int     tls_scache_sequence(TLS_SCACHE *cp, int first_next,
 {
     const char *member;
     const char *value;
-    char   *saved_member;
+    char   *saved_cursor;
+    int     seq_status;
+
+    /*
+     * XXX Deleting entries while enumerating a map can he tricky. Some map
+     * types have a concept of cursor and support a "delete the current
+     * element" operation. Some map types without cursors don't behave well
+     * when the current first/next entry is deleted (example: Berkeley DB <
+     * 2). To avoid trouble, we delete an expired entry after advancing the
+     * current first/next position beyond it, and ignore client requests to
+     * delete the current entry.
+     */
 
     /*
      * Find the first or next database entry.
      */
-    if (dict_seq(cp->db, first_next, &member, &value) != 0)
+    seq_status = dict_seq(cp->db, first_next, &member, &value);
+
+    /*
+     * Delete behind. This is a no-op if an expired cache entry was updated
+     * in the mean time.
+     */
+    if (cp->flags & TLS_SCACHE_FLAG_DEL_CURSOR) {
+	cp->flags &= ~TLS_SCACHE_FLAG_DEL_CURSOR;
+	saved_cursor = cp->saved_cursor;
+	cp->saved_cursor = 0;
+	tls_scache_lookup(cp, saved_cursor, TLS_SCACHE_ANY_OPENSSL_VSN,
+			  TLS_SCACHE_ANY_FLAGS, (long *) 0, (int *) 0,
+			  (VSTRING *) 0);
+	myfree(saved_cursor);
+    } else {
+	if (cp->saved_cursor)
+	    myfree(cp->saved_cursor);
+	cp->saved_cursor = 0;
+    }
+
+    /*
+     * Did we find a first or next database entry?
+     */
+    if (seq_status != 0)
 	return (0);				/* End of list reached */
 
     /*
+     * Safety against client requests to delete the current first/next entry.
+     */
+    cp->saved_cursor = mystrdup(member);
+
+    /*
      * Activate the passivated cache entry and check the version and time
-     * stamp information.
+     * stamp information. Schedule it for deletion if it is bad or too old.
      */
     if (tls_scache_decode(cp, member, value, strlen(value), openssl_version,
 			  flags, out_openssl_version, out_flags,
 			  out_session) == 0) {
-	saved_member = mystrdup(member);
-	tls_scache_delete(cp, saved_member);
-	myfree(saved_member);
-	return (0);
+	cp->flags |= TLS_SCACHE_FLAG_DEL_CURSOR;
     } else {
 	if (out_cache_id)
 	    *out_cache_id = mystrdup(member);
-	return (1);
     }
+    return (1);
 }
 
 /* tls_scache_delete - delete session from cache */
@@ -484,9 +521,12 @@ int     tls_scache_delete(TLS_SCACHE *cp, const char *cache_id)
 	msg_info("delete %s session id=%s", cp->cache_label, cache_id);
 
     /*
-     * Do it.
+     * Do it, unless we would delete the current first/next entry. Some map
+     * types don't have cursors, and some of those don't behave when the
+     * "current" entry is deleted.
      */
-    return (dict_del(cp->db, cache_id) == 0);
+    return ((cp->saved_cursor != 0 && strcmp(cp->saved_cursor, cache_id) == 0)
+	    || dict_del(cp->db, cache_id) == 0);
 }
 
 /* tls_scache_open - open TLS session cache file */
@@ -537,10 +577,12 @@ TLS_SCACHE *tls_scache_open(const char *dbname, const char *cache_label,
      * Create the TLS_SCACHE object.
      */
     cp = (TLS_SCACHE *) mymalloc(sizeof(*cp));
+    cp->flags = 0;
     cp->db = dict;
     cp->cache_label = mystrdup(cache_label);
     cp->log_level = log_level;
     cp->timeout = timeout;
+    cp->saved_cursor = 0;
 
     return (cp);
 }
@@ -561,6 +603,8 @@ void    tls_scache_close(TLS_SCACHE *cp)
      */
     dict_close(cp->db);
     myfree(cp->cache_label);
+    if (cp->saved_cursor)
+	myfree(cp->saved_cursor);
     myfree((char *) cp);
 }
 

@@ -162,6 +162,7 @@ int     main(int argc, char **argv)
 	msg_info("-- end %s --", *argv);
     }
     vstring_free(buf);
+    maps_free(maps);
     return (0);
 }
 

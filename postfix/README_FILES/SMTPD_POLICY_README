@@ -273,7 +273,7 @@ found at http://www.monkeys.com/anti-spam/filtering/sender-domain-validate.in.
      5         reject_unauth_destination
      6         check_sender_access hash:/etc/postfix/sender_access
      7         ...
-     8     restriction_classes = greylist
+     8     smtpd_restriction_classes = greylist
      9     greylist = check_policy_service unix:private/policy
     10
     11 /etc/postfix/sender_access:
