@@ -7418,6 +7418,17 @@ Apologies for any names omitted.
 	explicit process count limit. If an incorrect process limit
 	is specified in master.cf the service aborts.
 
+20021214
+
+	Cleanup: it looks like we finally get it right with transport
+	lookup table entries that either override or specify an
+	error transport without updating the nexthop information.
+	File:  trivial-rewrite/resolve.c.
+
+	Performance: don't do UCE checks (which may result in 4xx
+	SMTP reply codes) when we already know that the recipient
+	is undeliverable. Files:  smtpd/smtpd.c, smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: after successful delivery, per-queue window += 1/window,

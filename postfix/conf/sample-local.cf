@@ -135,6 +135,11 @@ home_mailbox =
 #
 # luser_relay works only for the default Postfix local delivery agent.
 #
+# NOTE: if you use this feature for accounts not in the UNIX password
+# file, then you must specify "local_recipient_maps =" (i.e. empty) in
+# the main.cf file, otherwise the SMTP server will reject mail for    
+# non-UNIX accounts with "User unknown in local recipient table".
+#
 #luser_relay = $user@other.host
 #luser_relay = $local@other.host
 #luser_relay = admin+$local
@@ -188,10 +193,10 @@ mailbox_command =
 # :nexthop part is optional. For more details see the sample transport
 # configuration file.
 #
-# Beware: if you use the mailbox_transport feature for users not in
-# /etc/passwd and /etc/aliases then you also need to review the
-# section "REJECTING UNKNOWN LOCAL USERS" in the main.cf file,
-# otherwise the SMTP server may reject mail incorrectly.
+# NOTE: if you use this feature for accounts not in the UNIX password
+# file, then you must update the "local_recipient_maps" setting in
+# the main.cf file, otherwise the SMTP server will reject mail for    
+# non-UNIX accounts with "User unknown in local recipient table".
 #
 #mailbox_transport = lmtp:unix:/file/name
 #mailbox_transport = cyrus
@@ -206,10 +211,10 @@ mailbox_transport =
 # :nexthop part is optional. For more details see the sample transport
 # configuration file.
 #
-# Beware: if you use the fallback_transport feature for users not in
-# /etc/passwd and /etc/aliases then you also need to review the
-# section "REJECTING UNKNOWN LOCAL USERS" in the main.cf file,
-# otherwise the SMTP server may reject mail incorrectly.
+# NOTE: if you use this feature for accounts not in the UNIX password
+# file, then you must update the "local_recipient_maps" setting in
+# the main.cf file, otherwise the SMTP server will reject mail for    
+# non-UNIX accounts with "User unknown in local recipient table".
 #
 #fallback_transport = lmtp:unix:/file/name
 #fallback_transport = cyrus

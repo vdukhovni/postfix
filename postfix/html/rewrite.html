@@ -489,6 +489,21 @@ see the <a href="local.8.html"> local</a> delivery agent.
 
 <p>
 
+Note: if you use the <b>luser_relay</b> feature in order to receive
+mail for non-UNIX accounts, then you must specify:
+
+<blockquote>
+<pre>
+<b>local_recipient_maps =</b>
+</pre>
+</blockquote>
+
+(i.e. empty) in the <b>main.cf</b> file, otherwise the Postfix SMTP
+server will reject mail for non-UNIX accounts with "User unknown
+in local recipient table".
+
+<p>
+
 <b>luser_relay</b> can specify one address. It is subjected to
 <i>$name</i> expansions. The most useful examples are:
 

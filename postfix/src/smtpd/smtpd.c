@@ -923,11 +923,11 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
-	if ((err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
+	if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
-	if ((err = smtpd_check_rcptmap(state, argv[2].strval)) != 0) {
+	if ((err = smtpd_check_rcpt(state, argv[2].strval)) != 0) {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}

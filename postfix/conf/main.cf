@@ -172,8 +172,8 @@ mail_owner = postfix
 #
 # - You redefined the "local_transport" setting in main.cf.
 #
-# - You use the mailbox_transport or fallback_transport feature
-#   of the Postfix local delivery agent (see sample-local.cf).
+# - You use the "luser_relay", "mailbox_transport", or "fallback_transport"
+#   feature of the Postfix local delivery agent (see sample-local.cf).
 #
 # Beware: if the Postfix SMTP server runs chrooted, you may have to
 # copy the passwd (not shadow) database into the jail. This is
@@ -416,6 +416,11 @@ local_recipient_maps = unix:passwd.byname $alias_maps
 # :nexthop part is optional. For more details see the sample transport
 # configuration file.
 #
+# NOTE: if you use this feature for accounts not in the UNIX password
+# file, then you must update the "local_recipient_maps" setting in
+# the main.cf file, otherwise the SMTP server will reject mail for    
+# non-UNIX accounts with "User unknown in local recipient table".
+#
 #mailbox_transport = lmtp:unix:/file/name
 #mailbox_transport = cyrus
 
@@ -427,6 +432,11 @@ local_recipient_maps = unix:passwd.byname $alias_maps
 # the name of a mail delivery transport defined in master.cf.  The
 # :nexthop part is optional. For more details see the sample transport
 # configuration file.
+#
+# NOTE: if you use this feature for accounts not in the UNIX password
+# file, then you must update the "local_recipient_maps" setting in
+# the main.cf file, otherwise the SMTP server will reject mail for    
+# non-UNIX accounts with "User unknown in local recipient table".
 #
 #fallback_transport = lmtp:unix:/file/name
 #fallback_transport = cyrus
@@ -444,6 +454,11 @@ local_recipient_maps = unix:passwd.byname $alias_maps
 # ${name:value} to expand value only when $name does (does not) exist.
 #
 # luser_relay works only for the default Postfix local delivery agent.
+#
+# NOTE: if you use this feature for accounts not in the UNIX password
+# file, then you must specify "local_recipient_maps =" (i.e. empty) in
+# the main.cf file, otherwise the SMTP server will reject mail for    
+# non-UNIX accounts with "User unknown in local recipient table".
 #
 #luser_relay = $user@other.host
 #luser_relay = $local@other.host

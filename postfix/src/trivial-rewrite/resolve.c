@@ -85,11 +85,69 @@
 #include "trivial-rewrite.h"
 #include "transport.h"
 
+ /*
+  * The job of the address resolver is to map one recipient address to a
+  * triple of (channel, nexthop, recipient). The channel is the name of the
+  * delivery service specified in master.cf, the nexthop is (usually) a
+  * description of the next host to deliver to, and recipient is the final
+  * recipient address. The latter may differ from the input address as the
+  * result of stripping multiple layers of sender-specified routing.
+  * 
+  * Addresses are resolved by their domain name. Known domain names are
+  * categorized into classes: local, virtual alias, virtual mailbox, relay,
+  * and everything else. Finding the address domain class is a matter of
+  * table lookups.
+  * 
+  * Different address domain classes generally use different delivery channels,
+  * and may use class dependent ways to arrive at the corresponding nexthop
+  * information. With classes that do final delivery, the nexthop is
+  * typically the local machine hostname.
+  * 
+  * The transport lookup table provides a means to override the domain class
+  * channel and/or nexhop information for specific recipients or for entire
+  * domain hierarchies.
+  * 
+  * This works well in the general case. The only bug in this approach is that
+  * the structure of the nexthop information is transport dependent.
+  * Typically, the nexthop specifies a hostname, hostname + TCP Port, or the
+  * pathname of a UNIX-domain socket. However, with the error transport the
+  * nexthop field contains free text with the reason for non-delivery.
+  * 
+  * Therefore, a transport map entry that overrides the channel but not the
+  * nexthop information (or vice versa) may produce surprising results. In
+  * particular, the free text nexthop information for the error transport is
+  * likely to confuse regular delivery agents; and conversely, a hostname or
+  * socket pathname is not a useful reason for non-delivery.
+  * 
+  * In the code below, the class_domain variable specifies the domain name that
+  * we will use when (the class transport is the error transport and the
+  * class transport is replaced by a transport map lookup result) but the
+  * nexthop information is not updated.
+  * 
+  * For the sake of completeness, we also take action when the reverse happens:
+  * replacing the class transport by the error transport without updating the
+  * nexthop information.
+  * 
+  * The ability to specify "error:reason for non-delivery" in main.cf and in
+  * transport maps is just too convenient to take it away.
+  */
+
 #define STR	vstring_str
 
+ /*
+  * Some of the lists that define the address domain classes.
+  */
 static DOMAIN_LIST *relay_domains;
 static STRING_LIST *virt_alias_doms;
 static STRING_LIST *virt_mailbox_doms;
+
+ /*
+  * Saved address domain class information.
+  */
+static VSTRING *saved_class_channel;
+static VSTRING *saved_class_nexthop;
+static VSTRING *saved_class_domain;
+
 static MAPS *relocated_maps;
 
 /* resolve_addr - resolve address according to rule set */
@@ -106,6 +164,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     const char *blame = 0;
     const char *rcpt_domain;
 
+    vstring_strcpy(saved_class_domain, "UNINITIALIZED SAVED_CLASS_DOMAIN");
     *flags = 0;
 
     /*
@@ -239,13 +298,12 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * XXX Nag if the domain is listed in multiple domain lists. The effect is
      * implementation defined, and may break when internals change.
      */
-#define VIRT_ALIAS_TRANSPORT	var_error_transport
-#define VIRT_ALIAS_NEXTHOP	"User unknown in virtual alias table"
+#define STREQ(x,y) (strcmp((x), (y)) == 0)
 
     dict_errno = 0;
     if (domain != 0) {
 	tok822_internalize(nexthop, domain->next, TOK822_STR_DEFL);
-	lowercase(STR(nexthop));
+	vstring_strcpy(saved_class_domain, STR(nexthop));
 	if (STR(nexthop)[strspn(STR(nexthop), "[]0123456789.")] != 0
 	    && valid_hostname(STR(nexthop), DONT_GRIPE) == 0)
 	    *flags |= RESOLVE_FLAG_ERROR;
@@ -256,8 +314,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 		&& string_list_match(virt_mailbox_doms, STR(nexthop)))
 		msg_warn("do not list domain %s in BOTH %s and %s",
 		  STR(nexthop), VAR_VIRT_ALIAS_DOMS, VAR_VIRT_MAILBOX_DOMS);
-	    vstring_strcpy(channel, VIRT_ALIAS_TRANSPORT);
-	    vstring_strcpy(nexthop, VIRT_ALIAS_NEXTHOP);
+	    vstring_strcpy(channel, var_error_transport);
+	    vstring_strcpy(nexthop, "User unknown in virtual alias table");
+	    vstring_strcpy(saved_class_domain, var_myhostname);
 	    blame = VAR_ERROR_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_ALIAS;
 	} else if (dict_errno != 0) {
@@ -267,6 +326,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 		   && string_list_match(virt_mailbox_doms, STR(nexthop))) {
 	    vstring_strcpy(channel, var_virt_transport);
 	    vstring_strcpy(nexthop, var_myhostname);
+	    vstring_strcpy(saved_class_domain, var_myhostname);
 	    blame = VAR_VIRT_TRANSPORT;
 	    *flags |= RESOLVE_CLASS_VIRTUAL;
 	} else if (dict_errno != 0) {
@@ -288,12 +348,14 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    }
 	    if (*var_relayhost) {
 		vstring_strcpy(nexthop, var_relayhost);
-		lowercase(STR(nexthop));
+		if (!STREQ(STR(channel), var_error_transport))
+		    vstring_strcpy(saved_class_domain, STR(nexthop));
 	    }
 	}
 	if ((destination = split_at(STR(channel), ':')) != 0 && *destination) {
 	    vstring_strcpy(nexthop, destination);
-	    lowercase(STR(nexthop));
+	    if (!STREQ(STR(channel), var_error_transport))
+		vstring_strcpy(saved_class_domain, STR(nexthop));
 	}
     }
 
@@ -309,15 +371,14 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * implementation defined, and may break when internals change.
      */
     else {
-	if ((rcpt_domain = strrchr(STR(nextrcpt), '@')) != 0) {
+	if (var_helpful_warnings
+	    && (rcpt_domain = strrchr(STR(nextrcpt), '@')) != 0) {
 	    rcpt_domain++;
-	    if (var_helpful_warnings
-		&& virt_alias_doms
+	    if (virt_alias_doms
 		&& string_list_match(virt_alias_doms, rcpt_domain))
 		msg_warn("do not list domain %s in BOTH %s and %s",
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_ALIAS_DOMS);
-	    if (var_helpful_warnings
-		&& virt_mailbox_doms
+	    if (virt_mailbox_doms
 		&& string_list_match(virt_mailbox_doms, rcpt_domain))
 		msg_warn("do not list domain %s in BOTH %s and %s",
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
@@ -328,6 +389,10 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    || *destination == 0)
 	    destination = var_myhostname;
 	vstring_strcpy(nexthop, destination);
+	if (!STREQ(STR(channel), var_error_transport))
+	    vstring_strcpy(saved_class_domain, STR(nexthop));
+	else
+	    vstring_strcpy(saved_class_domain, var_myhostname);
 	*flags |= RESOLVE_CLASS_LOCAL;
     }
 
@@ -349,34 +414,37 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     /*
      * The transport map overrides any transport and next-hop host info that
      * is set up above.
+     * 
+     * With error transports, the nexthop info is arbitrary text that must not
+     * be passed on to regular delivery agents. When the transport map
+     * overrides an error transport without overriding the nexthop
+     * information, or vice versa, update the nexthop information
+     * appropriately.
      */
     if ((*flags & RESOLVE_FLAG_FAIL) == 0 && *var_transport_maps) {
-	if (transport_lookup(STR(nextrcpt), channel, nexthop) == 0
-	    && dict_errno != 0) {
+	vstring_strcpy(saved_class_channel, STR(channel));
+	vstring_strcpy(saved_class_nexthop, STR(nexthop));
+
+	if (transport_lookup(STR(nextrcpt), channel, nexthop) != 0) {
+	    if (!STREQ(STR(saved_class_channel), STR(channel))
+		&& STREQ(STR(saved_class_nexthop), STR(nexthop))) {
+		vstring_strcpy(nexthop, STREQ(STR(channel), var_error_transport) ?
+		    "Address is not deliverable" : STR(saved_class_domain));
+	    }
+	} else if (dict_errno != 0) {
 	    msg_warn("%s lookup failure", VAR_TRANSPORT_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	}
     }
 
     /*
-     * Kludge for virtual alias domains. Their next-hop info is arbitrary
-     * text that must not be passed on to regular delivery agents. So, if the
-     * transport was changed, but the nexthop was not, copy over the local
-     * hostname instead.
-     */
-#define STREQ(x, y) (strcmp((x), (y)) == 0)
-
-    if ((*flags & RESOLVE_FLAG_FAIL) == 0
-	&& (*flags & RESOLVE_CLASS_ALIAS) != 0
-	&& !STREQ(STR(channel), VIRT_ALIAS_TRANSPORT)
-	&& STREQ(STR(nexthop), VIRT_ALIAS_NEXTHOP))
-	vstring_strcpy(nexthop, var_myhostname);
-
-    /*
      * Bounce recipients that have moved, regardless of domain address class.
-     * The downside of doing this here is that this table has no effect on
-     * local alias expansion results. Such mail will have to make almost an
-     * entire iteration through the mail system.
+     * We do this last, in anticipation of transport maps that can override
+     * the recipient address.
+     * 
+     * The downside of not doing this in delivery agents is that this table has
+     * no effect on local alias expansion results. Such mail will have to
+     * make almost an entire iteration through the mail system.
      */
 #define IGNORE_ADDR_EXTENSION   ((char **) 0)
 
@@ -448,6 +516,9 @@ void    resolve_init(void)
     channel = vstring_alloc(100);
     nexthop = vstring_alloc(100);
     nextrcpt = vstring_alloc(100);
+    saved_class_channel = vstring_alloc(100);
+    saved_class_nexthop = vstring_alloc(100);
+    saved_class_domain = vstring_alloc(100);
 
     if (*var_virt_alias_doms)
 	virt_alias_doms =

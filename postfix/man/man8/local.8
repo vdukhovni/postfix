@@ -337,12 +337,22 @@ recipient before attempting delivery. Defer delivery otherwise.
 Message transport for recipients that are not found in the UNIX
 passwd database.
 This parameter overrides \fBluser_relay\fR.
+.sp
+Note: you must update the \fBlocal_recipient_maps\fR
+setting in the \fBmain.cf\fR file, otherwise the Postfix SMTP
+server will reject mail for non-UNIX accounts with "\fBUser
+unknown in local recipient table\fR".
 .IP \fBhome_mailbox\fR
 Pathname of a mailbox relative to a user's home directory.
 Specify a path ending in \fB/\fR for maildir-style delivery.
 .IP \fBluser_relay\fR
 Destination (\fI@domain\fR or \fIaddress\fR) for non-existent users.
 The \fIaddress\fR is subjected to \fI$name\fR expansion.
+.sp
+Note: you must specify "\fBlocal_recipient_maps =\fR"
+(i.e. empty) in the \fBmain.cf\fR file, otherwise the Postfix SMTP
+server will reject mail for non-UNIX accounts with "\fBUser
+unknown in local recipient table\fR".
 .IP \fBmail_spool_directory\fR
 Directory with UNIX-style mailboxes. The default pathname is system
 dependent.
@@ -359,6 +369,12 @@ Message transport to use for mailbox delivery to all local
 recipients, whether or not they are found in the UNIX passwd database.
 This parameter overrides all other configuration parameters that
 control mailbox delivery, including \fBluser_relay\fR.
+.sp
+Note: if you use this feature to receive mail for non-UNIX
+accounts then you must update the \fBlocal_recipient_maps\fR
+setting in the \fBmain.cf\fR file, otherwise the Postfix SMTP
+server will reject mail for non-UNIX accounts with "\fBUser
+unknown in local recipient table\fR".
 .SH "Locking controls"
 .ad
 .fi

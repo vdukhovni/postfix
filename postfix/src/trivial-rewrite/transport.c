@@ -111,7 +111,7 @@ static int find_transport_entry(const char *key, int flags,
 	msg_panic("find_transport_entry: missing initialization");
 
     /*
-     * Look up an entry with extreme prejedice.
+     * Look up an entry with extreme prejudice.
      * 
      * XXX Should report lookup failure status to caller instead of aborting.
      */
@@ -122,8 +122,11 @@ static int find_transport_entry(const char *key, int flags,
     }
 
     /*
-     * Can't do transport:user@domain because the right-hand side can have
-     * arbitrary content (especially in the case of the error mailer).
+     * It would be great if we could specify a recipient address in the
+     * lookup result. Unfortunately, we cannot simply run the result through
+     * a parser that recognizes "transport:user@domain" because the lookup
+     * result can have arbitrary content (especially in the case of the error
+     * mailer).
      */
     else {
 	saved_value = mystrdup(value);

@@ -31,12 +31,13 @@ USERS" in conf/main.cf if one of the following is true:
 - You run the Postfix SMTP server chrooted (see master.cf).
 - You redefined the local delivery agent in master.cf.
 - You redefined the "local_transport" setting in main.cf.
-- You use the mailbox_transport or fallback_transport feature
-  of the Postfix local delivery agent. 
+- You use the mailbox_transport feature of the Postfix local delivery agent.
+- You use the fallback_transport feature of the Postfix local delivery agent.
+- You use the luser_relay feature of the Postfix local delivery agent.
 
 Specify "local_recipient_maps =" (i.e. empty) to make the SMTP
-server accept mail for all known and unknown local recipients. You
-will be considered a bad network citizen, though.
+server accept mail for all known and unknown local recipients.
+That was the default setting prior to Postfix version 1.2.
 
 Postfix no longer defaults to the "smtp" transport for all non-local
 destinations. This may affect your defer_transports settings. In
