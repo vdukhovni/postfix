@@ -459,6 +459,7 @@ attr_clnt.o: vstream.h
 attr_clnt.o: vbuf.h
 attr_clnt.o: connect.h
 attr_clnt.o: iostuff.h
+attr_clnt.o: htable.h
 attr_clnt.o: attr.h
 attr_clnt.o: auto_clnt.h
 attr_clnt.o: attr_clnt.h

@@ -441,6 +441,8 @@ significant octets.
 
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
+<dt> <b><a href="#check_policy_service">check_policy_service</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -592,6 +594,8 @@ or parent domains.
 <dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
 
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
+
+<dt> <b><a href="#check_policy_service">check_policy_service</a></b>
 
 <dd> See generic restrictions.
 
@@ -775,6 +779,8 @@ client login name doesn't own the MAIL FROM address according to
 <dt> <b><a href="#warn_if_reject">warn_if_reject</a></b>
 
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
+
+<dt> <b><a href="#check_policy_service">check_policy_service</a></b>
 
 <dd> See generic restrictions.
 
@@ -1058,6 +1064,8 @@ response code to rejected requests (default:  <b>504</b>).
 
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
+<dt> <b><a href="#check_policy_service">check_policy_service</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -1139,6 +1147,8 @@ the result code for rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
+<dt> <b><a href="#check_policy_service">check_policy_service</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -1205,6 +1215,33 @@ the client sends SMTP commands ahead of time without knowing that
 Postfix actually supports SMTP command pipelining.  This stops mail
 from bulk mail software that improperly uses SMTP command pipelining
 to speed up deliveries.
+
+<p>
+
+<a name="check_policy_service">
+
+<dt> <b>check_policy_service inet</b>:<i>host</i>:<i>port</i>
+
+<dt> <b>check_policy_service unix</b>:<i>pathname</i>
+
+<dd> Query the specified server with a list of attributes that
+specify (where available) the mail protocol (SMTP or ESMTP), the
+queue file name, the protocol state (CONNECT, HELO, EHLO, MAIL,
+RCPT, ETRN), the client network address, the hostname given in the
+HELO or EHLO command, the sender email address, the recipient email
+address. The server is expected to reply with an action just like
+the actions found in a Postfix <a href="access.5.html"> access</a>
+table.
+
+<p>
+
+Example:
+
+<dd><b>check_policy_service inet:localhost:9998</b>
+
+<dd><b>check_policy_service unix:private/policy</b>
+
+<dd><b>check_policy_service unix:/some/where</b>
 
 </dl>
 

@@ -47,8 +47,8 @@ server sends in a delegated SMTPD access policy request:
 The following is specific to SMTPD delegated policy requests:
 
 - Protocol names are ESMTP or SMTP.
-- Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, or DATA;
-  these are all the SMTP protocol states where the Postfix SMTP
+- Protocol states are CONNECT, EHLO, HELO, MAIL, RCPT, DATA or
+  ETRN; these are the SMTP protocol states where the Postfix SMTP
   server makes an OK/REJECT/HOLD/etc. decision.
 
 The policy server replies with any action that is allowed in a
@@ -259,9 +259,11 @@ sub smtpd_access_policy {
         update_database($key, $time_stamp);
     }
 
+    # Specify DUNNO instead of OK so that the check_policy_service restriction
+    # can be used in the middle of a restriction list.
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
     if ($now - $time_stamp > $greylist_delay) {
-        return "ok";
+        return "dunno";
     } else {
         return "450 Service is unavailable";
     }

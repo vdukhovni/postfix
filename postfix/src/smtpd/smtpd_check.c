@@ -297,7 +297,6 @@
 #include <htable.h>
 #include <ctable.h>
 #include <mac_expand.h>
-#include <myrand.h>
 #include <attr_clnt.h>
 
 /* DNS library. */
@@ -487,7 +486,7 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
   * Cached RBL lookup state.
   */
 typedef struct {
-    ARGV   *txt;			/* TXT records or NULL */
+    char   *txt;			/* TXT content or NULL */
     ARGV   *a;				/* A records */
 } SMTPD_RBL_STATE;
 
@@ -833,6 +832,13 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     va_start(ap, format);
     vstring_vsprintf(error_text, format, ap);
     va_end(ap);
+
+    /*
+     * Ensure RFC compliance. We could do this inside smtpd_chat_reply() and
+     * switch to multi-line for long replies.
+     */
+    vstring_truncate(error_text, 510);
+    VSTRING_TERMINATE(error_text);
 
     /*
      * Validate the response, that is, the response must begin with a
@@ -2390,6 +2396,9 @@ static void *rbl_pagein(const char *query, void *unused_context)
     DNS_RR *addr_list;
     struct in_addr addr;
     DNS_RR *rr;
+    DNS_RR *next;
+    VSTRING *buf;
+    int     space_left;
 
     /*
      * Do the query. If the DNS lookup produces no definitive reply, give the
@@ -2406,17 +2415,26 @@ static void *rbl_pagein(const char *query, void *unused_context)
 
     /*
      * Save the result. Yes, we cache negative results as well as positive
-     * results.
+     * results. Concatenate multiple TXT records, up to some limit.
      */
-#define RBL_TXT_LIMIT	256
+#define RBL_TXT_LIMIT	500
 
     rbl = (SMTPD_RBL_STATE *) mymalloc(sizeof(*rbl));
     if (dns_lookup(query, T_TXT, 0, &txt_list,
 		   (VSTRING *) 0, (VSTRING *) 0) == DNS_OK) {
-	rbl->txt = argv_alloc(1);
-	for (rr = txt_list; rr != 0; rr = rr->next)
-	    argv_addn(rbl->txt, rr->data, rr->data_len > RBL_TXT_LIMIT ?
-		      RBL_TXT_LIMIT : rr->data_len, ARGV_END);
+	buf = vstring_alloc(1);
+	space_left = RBL_TXT_LIMIT;
+	for (rr = txt_list; rr != 0 && space_left > 0; rr = next) {
+	    vstring_strncat(buf, rr->data, (int) rr->data_len > space_left ?
+			    space_left : rr->data_len);
+	    space_left = RBL_TXT_LIMIT - VSTRING_LEN(buf);
+	    next = rr->next;
+	    if (next && space_left > 3) {
+		vstring_strcat(buf, " / ");
+		space_left -= 3;
+	    }
+	}
+	rbl->txt = vstring_export(buf);
 	dns_rr_free(txt_list);
     } else
 	rbl->txt = 0;
@@ -2437,7 +2455,7 @@ static void rbl_pageout(void *data, void *unused_context)
 
     if (rbl != 0) {
 	if (rbl->txt)
-	    argv_free(rbl->txt);
+	    myfree(rbl->txt);
 	if (rbl->a)
 	    argv_free(rbl->a);
 	myfree((char *) rbl);
@@ -2506,16 +2524,7 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
     rbl_exp.domain = rbl_domain;
     rbl_exp.what = what;
     rbl_exp.class = reply_class;
-
-    /*
-     * XXX When presented with multiple txt records pick a random one! There
-     * is no way to pair up the A records with associated TXT records. If a
-     * client connects multiple times, it will learn the right reject reason
-     * at least some of the time.
-     */
-    rbl_exp.txt = mystrdup(rbl->txt == 0 ? "" :
-			   rbl->txt->argc == 1 ? rbl->txt->argv[0] :
-			   rbl->txt->argv[myrand() % rbl->txt->argc]);
+    rbl_exp.txt = (rbl->txt == 0 ? "" : rbl->txt);
 
     for (;;) {
 	if (template == 0)
@@ -2537,7 +2546,6 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
      * Clean up.
      */
     vstring_free(why);
-    myfree((char *) rbl_exp.txt);
 
     return (result);
 }

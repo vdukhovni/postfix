@@ -8384,6 +8384,19 @@ Apologies for any names omitted.
 	"check_smtpd_policy_service" in smtpd_mumble_restrictions.
 	See SMTPD_POLICY_SERVICE_README for details.
 
+20030716
+
+	Bugfix: in the sample policy server, changed "ok" into
+	"dunno" so the server can be used in the middle of a
+	restriction list.
+
+	Cleanup: when an RBL reply has multiple TXT records,
+	concatenate them up to some reasonable limit, instead of
+	selecting one randomly.  File:  smtpd/smtpd_check.c.
+
+	Safety: always truncate SMTP server error replies to 512
+	bytes.  File: smtpd/smtpd_check.c.
+
 Open problems:
 
 	Low: smtp-source may block when sending large test messages.

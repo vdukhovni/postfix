@@ -26,7 +26,7 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # To use this from Postfix SMTPD, use in /etc/postfix/main.cf:
 #
 #    smtpd_recipient_restrictions =
-#	... reject_unauth_destination 
+#	... reject_unauth_destination
 #	check_policy_service unix:private/policy ...
 #
 # NOTE: specify check_policy_service AFTER reject_unauth_destination
@@ -53,7 +53,7 @@ use Sys::Syslog qw(:DEFAULT setlogsock);
 # The policy server script will answer in the same style, with an
 # attribute list followed by a empty line:
 #
-#    action=ok
+#    action=dunno
 #    [empty line]
 #
 
@@ -67,7 +67,7 @@ $database_name="/var/mta/smtpd-policy.db";
 $greylist_delay=3600;
 
 #
-# Syslogging options for verbose mode and for fatal errors. 
+# Syslogging options for verbose mode and for fatal errors.
 # NOTE: comment out the $syslog_socktype line if syslogging does not
 # work on your system.
 #
@@ -92,15 +92,17 @@ sub smtpd_access_policy {
     $time_stamp = read_database($key);
     $now = time();
 
-    # If new request, add this client/sender/recipient to the database.
+    # If this is a new request add this client/sender/recipient to the database.
     if ($time_stamp == 0) {
 	$time_stamp = $now;
 	update_database($key, $time_stamp);
     }
 
+    # Specify DUNNO instead of OK so that the check_policy_service restriction
+    # can be followed by other restrictions.
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
     if ($now - $time_stamp > $greylist_delay) {
-	return "ok";
+	return "dunno";
     } else {
 	return "450 Service is unavailable";
     }
@@ -130,7 +132,7 @@ sub open_database {
     my($database_fd);
 
     # Use tied database to make complex manipulations easier to express.
-    $database_obj = tie(%db_hash, 'DB_File', $database_name, 
+    $database_obj = tie(%db_hash, 'DB_File', $database_name,
 			    O_CREAT|O_RDWR, 0644) ||
 	fatal_exit "Cannot open database %s: $!", $database_name;
     $database_fd = $database_obj->fd;
@@ -187,7 +189,7 @@ while ($option = shift(@ARGV)) {
     if ($option eq "-v") {
 	$verbose = 1;
     } else {
-	syslog $syslog_priority, "Invalid option: %s. Usage: %s [-v]", 
+	syslog $syslog_priority, "Invalid option: %s. Usage: %s [-v]",
 		$option, $0;
 	exit 1;
     }
