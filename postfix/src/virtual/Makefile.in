@@ -85,7 +85,7 @@ mailbox.o: ../../include/defer.h
 mailbox.o: ../../include/bounce.h
 mailbox.o: ../../include/sent.h
 mailbox.o: ../../include/mail_params.h
-mailbox.o: ../../include/virtual8.h
+mailbox.o: ../../include/virtual8_maps.h
 mailbox.o: ../../include/maps.h
 mailbox.o: ../../include/dict.h
 mailbox.o: ../../include/argv.h
@@ -163,7 +163,7 @@ virtual.o: ../../include/deliver_request.h
 virtual.o: ../../include/deliver_completed.h
 virtual.o: ../../include/mail_params.h
 virtual.o: ../../include/mail_conf.h
-virtual.o: ../../include/virtual8.h
+virtual.o: ../../include/virtual8_maps.h
 virtual.o: ../../include/maps.h
 virtual.o: ../../include/mail_server.h
 virtual.o: virtual.h

@@ -196,9 +196,10 @@ smtpd_check.o: ../../include/ctable.h
 smtpd_check.o: ../../include/mac_expand.h
 smtpd_check.o: ../../include/mac_parse.h
 smtpd_check.o: ../../include/dns.h
-smtpd_check.o: ../../include/namadr_list.h
+smtpd_check.o: ../../include/string_list.h
 smtpd_check.o: ../../include/match_list.h
 smtpd_check.o: ../../include/match_ops.h
+smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/domain_list.h
 smtpd_check.o: ../../include/mail_params.h
 smtpd_check.o: ../../include/canon_addr.h
@@ -212,7 +213,7 @@ smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/mail_addr_find.h
 smtpd_check.o: ../../include/match_parent_style.h
 smtpd_check.o: ../../include/strip_addr.h
-smtpd_check.o: ../../include/virtual8.h
+smtpd_check.o: ../../include/virtual8_maps.h
 smtpd_check.o: ../../include/cleanup_user.h
 smtpd_check.o: ../../include/record.h
 smtpd_check.o: ../../include/rec_type.h

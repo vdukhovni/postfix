@@ -12,14 +12,34 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.12-200212XX
+Incompatible changes with Postfix snapshot 1.1.12-20021209
 ==========================================================
 
-Postfix now uses the "relay" mail delivery transport for relayed
-mail (domains matching relay_domains). This may affect your
-defer_transports settings.  The old "smtp" transport is now the
-default mail delivery transport for domains that do not match
-relay_domains or any local or virtual domain name.
+This release adds a new "relay" service to the Postfix master.cf
+file.  If your Postfix is unable to connect to the "relay" service
+then you have not properly followed the installation procedure.
+
+The Postfix SMTP server now rejects mail for local recipients that
+it does not know about.  For this to work correctly, you need to
+review the section titled "REJECTING UNKNOWN LOCAL USERS" in
+conf/main.cf if one of the following is true:
+
+- You run the Postfix SMTP server chrooted (see master.cf).
+- You redefined the local delivery agent in master.cf.
+- You redefined the "local_transport" setting in main.cf.
+- You use the mailbox_transport or fallback_transport feature
+  of the Postfix local delivery agent. 
+
+Specify "local_recipient_maps =" (i.e. empty) to make the SMTP
+server accept mail for all known and unknown local recipients. You
+will be considered a bad network citizen, though.
+
+Postfix no longer defaults to the "smtp" transport for all non-local
+destinations. This may affect your defer_transports settings. In
+particular, Postfix now uses the "relay" mail delivery transport
+for domains matching $relay_domains.  The old "smtp" transport is
+now the default mail delivery transport for non-local domains that
+do not match relay_domains.
 
 The "virtual_maps" configuration parameter is now called
 "virtual_alias_maps", for consistency with "virtual_mailbox_maps".
@@ -42,7 +62,12 @@ The "check_relay_domains" restriction is going away. The SMTP server
 logs a warning and suggests using "reject_unauth_destination"
 instead.
 
-Major changes with Postfix snapshot 1.1.11-200212XX
+The Postfix installation procedure no longer sets the "chattr +S"
+bit on Linux queue directories. Wietse has gotten too annoyed with
+naive reviewers who complain about performance without having a
+clue of what they are comparing.
+
+Major changes with Postfix snapshot 1.1.11-20021209
 ===================================================
 
 This release introduces separation of lookup tables for addresses
@@ -84,9 +109,9 @@ The benefits of these changes are that:
 - A lot of table lookups could be eliminated from the SMTP server's
   mail relay control and unknown user blocking code.
 
-Better handling of unknown recipients. Each address domain class
-now has its own table with known recipients, so that you can reject
-mail for unknown addresses consistently.
+This release introduces better handling of unknown recipients. Each
+address domain class now has its own table with known recipients,
+so that you can reject mail for unknown addresses consistently.
 
   Destination matches      Recipients defined by   Remarks
   --------------------------------------------------------------

@@ -150,6 +150,32 @@ mail_owner = postfix
 #mydestination = $myhostname, localhost.$mydomain, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
 
+# REJECTING UNKNOWN LOCAL USERS
+#
+# The local_recipient_maps parameter specifies optional lookup tables
+# with all names (not addresses) of users that are local with respect
+# to $mydestination and $inet_interfaces.  
+#
+# If this parameter is defined, then the SMTP server will reject
+# mail for unknown local users. This parameter is defined by default.
+#
+# The default setting assumes that you use the default Postfix local
+# delivery agent for local delivery. You need to update the
+# local_recipient_maps setting if:
+#
+# - You redefined the local delivery agent in master.cf.
+#
+# - You redefined the "local_transport" setting in main.cf.
+#
+# - You use the mailbox_transport or fallback_transport feature
+#   of the Postfix local delivery agent (see sample-local.cf).
+#
+# Beware: if the Postfix SMTP server runs chrooted, you may have to
+# copy the passwd (not shadow) database into the jail. This is
+# system dependent.
+# 
+local_recipient_maps = unix:passwd.byname $alias_maps
+
 # TRUST AND RELAY CONTROL
 
 # The mynetworks parameter specifies the list of "trusted" SMTP
@@ -255,23 +281,6 @@ mail_owner = postfix
 # mail for unknown relay users.
 # 
 #relay_recipient_maps = hash:/etc/postfix/relay_recipients
-
-# REJECTING UNKNOWN LOCAL USERS
-#
-# The local_recipient_maps parameter specifies optional lookup tables
-# with all names (not addresses) of users that are local with respect
-# to $mydestination and $inet_interfaces.  If this parameter is
-# defined, then the SMTP server will reject mail for unknown local
-# users.
-#
-# If you use the default Postfix local delivery agent for local
-# delivery, uncomment the definition below.
-#
-# Beware: if the Postfix SMTP server runs chrooted, you may have to
-# copy the passwd (not shadow) database into the jail. This is
-# system dependent.
-# 
-#local_recipient_maps = $alias_maps unix:passwd.byname
 
 # INPUT RATE CONTROL
 #

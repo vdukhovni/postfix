@@ -7362,7 +7362,27 @@ Apologies for any names omitted.
 	and virtual_xx_domains, and with local_recipient_maps and
 	the local delivery agent.  File:  smtpd/smtpd_check.c.
 
+20021209
+
+	The Postfix installation procedure no longer sets the
+	"chattr +S" bit on Linux queue directories. Wietse has
+	gotten too annoyed with naive reviewers who complain about
+	performance without having a clue of what they are comparing.
+
+	"Security": local_recipient_maps is now turned on by default,
+	to reject mail for non-existent users at the SMTP port.
+	See conf/main.cf for instructions, section REJECTING UNKNOWN
+	LOCAL USERS.
+
+	Safety: detection of missing or inaccessible passwd file
+	database, to prevent massive complaints from people who
+	suddenly lose all their mail because local_recipient_maps
+	is now turned on by default.
+
 Open problems:
+
+	Low: after successful delivery, per-queue window += 1/window,
+	after failure, queue window -= 1 (Victor).
 
 	Low: revise other local delivery agent duplicate filters.
 

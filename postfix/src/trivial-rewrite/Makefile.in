@@ -70,6 +70,7 @@ resolve.o: ../../include/vstream.h
 resolve.o: ../../include/vstring_vstream.h
 resolve.o: ../../include/split_at.h
 resolve.o: ../../include/valid_hostname.h
+resolve.o: ../../include/stringops.h
 resolve.o: ../../include/mail_params.h
 resolve.o: ../../include/mail_proto.h
 resolve.o: ../../include/iostuff.h
@@ -82,6 +83,15 @@ resolve.o: ../../include/quote_822_local.h
 resolve.o: ../../include/quote_flags.h
 resolve.o: ../../include/tok822.h
 resolve.o: ../../include/resolve_clnt.h
+resolve.o: ../../include/domain_list.h
+resolve.o: ../../include/match_list.h
+resolve.o: ../../include/match_ops.h
+resolve.o: ../../include/string_list.h
+resolve.o: ../../include/match_parent_style.h
+resolve.o: ../../include/maps.h
+resolve.o: ../../include/dict.h
+resolve.o: ../../include/argv.h
+resolve.o: ../../include/mail_addr_find.h
 resolve.o: trivial-rewrite.h
 resolve.o: transport.h
 rewrite.o: rewrite.c

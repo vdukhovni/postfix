@@ -46,6 +46,10 @@ require_home_directory = no
 # :nexthop part is optional. For more details see the sample transports
 # file.
 #
+# Beware: if you override the default local delivery agent then you
+# also need to review the section "REJECTING UNKNOWN LOCAL USERS"
+# in the main.cf file, otherwise the SMTP server will reject mail.
+#
 local_transport = lmtp:unix:/file/name
 local_transport = local
 
@@ -184,6 +188,11 @@ mailbox_command =
 # :nexthop part is optional. For more details see the sample transport
 # configuration file.
 #
+# Beware: if you use the mailbox_transport feature for users not in
+# /etc/passwd and /etc/aliases then you also need to review the
+# section "REJECTING UNKNOWN LOCAL USERS" in the main.cf file,
+# otherwise the SMTP server may reject mail incorrectly.
+#
 #mailbox_transport = lmtp:unix:/file/name
 #mailbox_transport = cyrus
 mailbox_transport =
@@ -196,6 +205,11 @@ mailbox_transport =
 # the name of a mail delivery transport defined in master.cf.  The
 # :nexthop part is optional. For more details see the sample transport
 # configuration file.
+#
+# Beware: if you use the fallback_transport feature for users not in
+# /etc/passwd and /etc/aliases then you also need to review the
+# section "REJECTING UNKNOWN LOCAL USERS" in the main.cf file,
+# otherwise the SMTP server may reject mail incorrectly.
 #
 #fallback_transport = lmtp:unix:/file/name
 #fallback_transport = cyrus

@@ -306,7 +306,7 @@
 #include <mail_addr_find.h>
 #include <match_parent_style.h>
 #include <strip_addr.h>
-#include <virtual8.h>
+#include <virtual8_maps.h>
 #include <cleanup_user.h>
 #include <record.h>
 #include <rec_type.h>
@@ -1462,6 +1462,8 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
     domain += 1;
+    if (reply->flags & RESOLVE_CLASS_LOCAL)
+	return (SMTPD_CHECK_OK);
 
     /*
      * Skip source-routed non-local or virtual mail (uncertain destination).
@@ -3158,16 +3160,19 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
      * Reject mail to unknown addresses in local domains (domains that match
      * $mydestination or $inet_interfaces).
      * 
-     * XXX For now, we throw up our hands when a transport mapping overrides the
-     * default local delivery transport.
-     * 
      * XXX Use the less expensive maps_find() (case is already folded) instead
      * of the baroque mail_addr_find(). But then we have to strip the domain
      * and deal with address extensions ourselves.
+     * 
+     * XXX But that would break sites that use the virtual delivery agent for
+     * local delivery, because the virtual delivery agent requires
+     * user@domain style addresses in its user database.
      */
     if ((reply->flags & RESOLVE_CLASS_LOCAL)
 	&& *var_local_rcpt_maps
+#if 0
 	&& strcmp(STR(reply->transport), var_local_transport) == 0
+#endif
 	&& NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				  "%d <%s>: User unknown", 550, recipient);
@@ -3176,12 +3181,11 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 
     /*
      * Reject mail to unknown addresses in virtual mailbox domains.
-     * 
-     * XXX For now, we throw up our hands when a transport mapping overrides the
-     * default virtual delivery transport.
      */
     if ((reply->flags & RESOLVE_CLASS_VIRTUAL)
+#if 0
 	&& strcmp(STR(reply->transport), var_virt_transport) == 0
+#endif
 	&& NOMATCHV8(virt_mailbox_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				  "%d <%s>: User unknown", 550, recipient);
@@ -3190,13 +3194,12 @@ char   *smtpd_check_rcptmap(SMTPD_STATE *state, char *recipient)
 
     /*
      * Reject mail to unknown addresses in relay domains.
-     * 
-     * XXX For now, we throw up our hands when a transport mapping overrides the
-     * default relay transport.
      */
     if ((reply->flags & RESOLVE_CLASS_RELAY)
 	&& *var_relay_rcpt_maps
+#if 0
 	&& strcmp(STR(reply->transport), var_relay_transport) == 0
+#endif
 	&& NOMATCH(relay_rcpt_maps, CONST_STR(reply->recipient))) {
 	(void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 				  "%d <%s>: User unknown", 550, recipient);

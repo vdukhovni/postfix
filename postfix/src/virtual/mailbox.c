@@ -60,7 +60,7 @@
 #include <defer.h>
 #include <sent.h>
 #include <mail_params.h>
-#include <virtual8.h>
+#include <virtual8_maps.h>
 
 #ifndef EDQUOT
 #define EDQUOT EFBIG

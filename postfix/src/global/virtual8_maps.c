@@ -1,10 +1,10 @@
 /*++
 /* NAME
-/*	virtual8_maps_find 3
+/*	virtual8_maps 3
 /* SUMMARY
 /*	virtual delivery agent map lookups
 /* SYNOPSIS
-/*	#include <virtual8.h>
+/*	#include <virtual8_maps.h>
 /*
 /*	MAPS	*virtual8_maps_create(title, map_names, flags)
 /*	const char *title;
@@ -87,7 +87,7 @@
 #include <maps.h>
 #include <mail_params.h>
 #include <strip_addr.h>
-#include <virtual8.h>
+#include <virtual8_maps.h>
 
 /* Application-specific. */
 

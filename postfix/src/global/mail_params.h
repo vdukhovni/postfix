@@ -1275,7 +1275,7 @@ extern char *var_smtpd_exp_filter;
   * Heuristic to reject most unknown recipients at the SMTP port.
   */
 #define VAR_LOCAL_RCPT_MAPS	"local_recipient_maps"
-#define DEF_LOCAL_RCPT_MAPS	""
+#define DEF_LOCAL_RCPT_MAPS	"unix:passwd.byname $alias_maps"
 extern char *var_local_rcpt_maps;
 
  /*

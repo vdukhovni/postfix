@@ -311,10 +311,6 @@ address with the wrong name</a>
 
 <a name="content_filtering"><h3>Content filtering</h3>
 
-<ul>
-
-<li><a href="#scanning">Support for virus scanning</a>
-
 </ul>
 
 <a name="other_transports"><h3>Other transports: UUCP, FAX, etc.</h3>
@@ -2832,53 +2828,6 @@ As usual, execute the command <b>postfix reload</b> to make the changes
 effective.
 
 <p>
-
-<hr>
-
-<a name="scanning"><h3>Support for virus scanning</h3> </a>
-
-Would not it be great if operating systems and applications actually
-worked the way they are supposed to, instead of being as fragile
-as today's products? Well, we can solve only one problem at a time.
-
-<p>
-
-Currently, Postfix has no hooks to let other programs inspect every
-message, so the scanning has to be done before mail enters Postfix
-or while mail leaves Postfix, for example at mailbox delivery time.
-
-<p>
-
-Examples:
-
-<p>
-
-<pre>
-    /etc/postfix/main.cf:
-        mailbox_command = /some/program ...
-</pre>
-
-<p>
-
-This example specifies a command that delivers all local mail to
-mailbox.  See the sample <b>main.cf</b> file for examples. In
-<b>/etc/aliases</b>, you must specify an alias for <b>root</b> that
-directs mail to a real person, otherwise mail sent to <b>root</b>
-will not work as expected.
-
-<p>
-
-<pre>
-    /etc/postfix/main.cf:
-        mailbox_transport = foo
-</pre>
-
-<p>
-
-This example delegates local mailbox delivery to the transport
-<i>foo</i> as configured in <b>/etc/postfix/master.cf</b>. If you
-follow this route you will build something around the pipe mailer.
-See examples in <b>master.cf</b>.
 
 <hr>
 

@@ -1,13 +1,13 @@
-#ifndef _VIRTUAL8_H_INCLUDED_
-#define _VIRTUAL8_H_INCLUDED_
+#ifndef _VIRTUAL8_MAPS_H_INCLUDED_
+#define _VIRTUAL8_MAPS_H_INCLUDED_
 
 /*++
 /* NAME
-/*	virtual8 3h
+/*	virtual8_maps 3h
 /* SUMMARY
 /*	virtual delivery agent compatibility
 /* SYNOPSIS
-/*	#include <virtual8.h>
+/*	#include <virtual8_maps.h>
 /* DESCRIPTION
 /* .nf
 

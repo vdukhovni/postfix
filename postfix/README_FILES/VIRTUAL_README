@@ -62,7 +62,9 @@ virtual_mailbox_base
 virtual_mailbox_domains
 
     Specifies the list of domains that should be delivered to the
-    $virtual_transport delivery agent (default: virtual).
+    $virtual_transport delivery agent (default: virtual). As of
+    version 1.2, Postfix is smart enough that you don't have to
+    list every virtual domain in a Postfix transport map.
 
 virtual_mailbox_maps
 
@@ -74,13 +76,13 @@ virtual_mailbox_maps
     recipient is not found the mail is bounced.
 
     In a lookup table, specify a left-hand side of @domain.tld to
-    match any user in the specified domain that does not have a
-    specific user@domain.tld entry. While searching a lookup table,
-    an address extension (user+foo@domain.tld) is ignored.
+    match any user in the specified domain that does not have her
+    own user@domain.tld entry. While searching a lookup table, an
+    address extension (user+foo@domain.tld) is ignored.
 
     If a recipient is not found the mail is returned to the sender.
 
-    For security reasons, regular expression maps are allowed but
+    Regular expression maps are allowed. For security reasons,
     regular expression substitution of $1 etc. is disallowed,
     because that would open a security hole.
 
@@ -103,7 +105,7 @@ virtual_uid_maps
     specific user@domain.tld entry. While searching a lookup table,
     an address extension (user+foo@domain.tld) is ignored.
 
-    For security reasons, regular expression maps are allowed but
+    Regular expression maps are allowed. For security reasons,
     regular expression substitution of $1 etc. is disallowed,
     because that would open a security hole.
 
@@ -123,7 +125,7 @@ virtual_gid_maps
     specific user@domain.tld entry. While searching a lookup table,
     an address extension (user+foo@domain.tld) is ignored.
 
-    For security reasons, regular expression maps are allowed but
+    Regular expression maps are allowed. For security reasons,
     regular expression substitution of $1 etc. is disallowed,
     because that would open a security hole.
 
@@ -163,13 +165,6 @@ type.  The command "postconf -m" displays possible lookup table
 types.
 
     /etc/postfix/main.cf:
-	virtual_transport = virtual
-	virtual_mailbox_base = /var/mail/vhosts
-	virtual_mailbox_maps = hash:/etc/postfix/vmailbox
-	virtual_minimum_uid = 100
-	virtual_uid_maps = hash:/etc/postfix/vuid
-	virtual_gid_maps = hash:/etc/postfix/vgid
-
 	# Don't send mail to the local delivery agent.
 	mydestination =
 
@@ -178,6 +173,13 @@ types.
 	# delivery agent by default.
 	virtual_mailbox_domains = 
 	    $myhostname localhost.$mydomain virtual1.domain virtual2.domain
+
+	virtual_transport = virtual
+	virtual_mailbox_base = /var/mail/vhosts
+	virtual_mailbox_maps = hash:/etc/postfix/vmailbox
+	virtual_minimum_uid = 100
+	virtual_uid_maps = hash:/etc/postfix/vuid
+	virtual_gid_maps = hash:/etc/postfix/vgid
 
 Define a virtual delivery agent if the entry doesn't already exist:
 
@@ -224,6 +226,8 @@ type.  The command "postconf -m" displays possible lookup table
 types.
 
     /etc/postfix/main.cf:
+	# All domains and users delivered by the virtual local delivery agent.
+
 	virtual_transport = virtual
 	virtual_mailbox_base = /var/mail/vhosts
 	virtual_mailbox_maps = hash:/etc/postfix/vmailbox
@@ -232,12 +236,12 @@ types.
 	virtual_uid_maps = static:5000
 	virtual_gid_maps = static:5000
 
-	# All domains that are delivered by the local delivery agent.
+	# All domains and users delivered by the local delivery agent.
+	# local_recipient_maps is used by the SMTP server to reject mail
+	# for unknown users.
 
+	local_transport = local
 	mydestination = $myhostname $localhost.$mydomain
-
-	# Reject unknown local recipients at the SMTP port.
-
 	local_recipient_maps = unix:passwd.byname $alias_maps
 
 Define a virtual delivery agent if the entry doesn't already exist:
@@ -276,10 +280,13 @@ users you will want to separate the information that changes often
 (the user addresses) from the information that changes rarely (the
 names of hosted domains).
 
-This example is the same as above, but it uses a separate table for
-specifying the virtual domain names.
+This example is the same as above, with co-existing local and
+virtual domains, but it uses a separate table for specifying the
+virtual domain names.
 
     /etc/postfix/main.cf:
+	# All domains and users delivered by the virtual local delivery agent.
+
 	virtual_transport = virtual
 	virtual_mailbox_base = /var/mail/vhosts
 	virtual_mailbox_maps = hash:/etc/postfix/vmailbox
@@ -288,12 +295,12 @@ specifying the virtual domain names.
 	virtual_uid_maps = static:5000
 	virtual_gid_maps = static:5000
 
-	# All domains that are delivered by the local delivery agent.
+	# All domains and users delivered by the local delivery agent.
+	# local_recipient_maps is used by the SMTP server to reject mail
+	# for unknown users.
 
+	local_transport = local
 	mydestination = $myhostname $localhost.$mydomain
-
-	# Reject unknown local recipients at the SMTP port.
-
 	local_recipient_maps = unix:passwd.byname $alias_maps
 
 Define a virtual delivery agent if the entry doesn't already exist:

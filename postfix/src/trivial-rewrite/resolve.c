@@ -104,6 +104,7 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     TOK822 *domain = 0;
     char   *destination;
     const char *blame = 0;
+    const char *rcpt_domain;
 
     *flags = 0;
 
@@ -228,6 +229,9 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
      * 
      * With virtual, relay, or other non-local destinations, give the highest
      * precedence to delivery transport associated next-hop information.
+     * 
+     * XXX Nag if the domain is listed in multiple domain lists. The effect is
+     * implementation defined, and may break when internals change.
      */
     dict_errno = 0;
     if (domain != 0) {
@@ -238,6 +242,10 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
 	    *flags |= RESOLVE_FLAG_ERROR;
 	if (virt_alias_doms
 	    && string_list_match(virt_alias_doms, STR(nexthop))) {
+	    if (virt_mailbox_doms
+		&& string_list_match(virt_mailbox_doms, STR(nexthop)))
+		msg_warn("do not list domain %s in BOTH %s and %s",
+		  STR(nexthop), VAR_VIRT_ALIAS_DOMS, VAR_VIRT_MAILBOX_DOMS);
 	    vstring_strcpy(channel, var_error_transport);
 	    vstring_strcpy(nexthop, "User unknown");
 	    blame = VAR_ERROR_TRANSPORT;
@@ -277,8 +285,22 @@ void    resolve_addr(char *addr, VSTRING *channel, VSTRING *nexthop,
     /*
      * Local delivery. Set up the default local transport and the default
      * next-hop hostname (myself).
+     * 
+     * XXX Nag if the domain is listed in multiple domain lists. The effect is
+     * implementation defined, and may break when internals change.
      */
     else {
+	if ((rcpt_domain = strrchr(STR(nextrcpt), '@')) != 0) {
+	    rcpt_domain++;
+	    if (virt_alias_doms
+		&& string_list_match(virt_alias_doms, rcpt_domain))
+		msg_warn("do not list domain %s in BOTH %s and %s",
+			 rcpt_domain, VAR_MYDEST, VAR_VIRT_ALIAS_DOMS);
+	    if (virt_mailbox_doms
+		&& string_list_match(virt_mailbox_doms, rcpt_domain))
+		msg_warn("do not list domain %s in BOTH %s and %s",
+			 rcpt_domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
+	}
 	vstring_strcpy(channel, var_local_transport);
 	blame = VAR_LOCAL_TRANSPORT;
 	if ((destination = split_at(STR(channel), ':')) == 0

@@ -253,17 +253,6 @@ test -f $config_directory/postfix-files || {
     exit 1
 }
 
-#
-# LINUX by default does not synchronously update directories -
-# that's dangerous for mail.
-#
-if [ -f /usr/bin/chattr ]
-then
-    CHATTR="/usr/bin/chattr +S"
-else
-    CHATTR=echo
-fi
-
 case `uname -s` in
 HP-UX*) FMT=cat;;
      *) FMT=fmt;;

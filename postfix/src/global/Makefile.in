@@ -20,7 +20,7 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
 	verp_sender.c match_parent_style.c mime_state.c header_token.c \
-	strip_addr.c virtual8_maps_find.c hold_message.c
+	strip_addr.c virtual8_maps.c hold_message.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -42,7 +42,7 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
 	verp_sender.o match_parent_style.o mime_state.o header_token.o \
-	strip_addr.o virtual8_maps_find.o hold_message.o
+	strip_addr.o virtual8_maps.o hold_message.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -60,7 +60,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
 	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
 	match_parent_style.h quote_flags.h mime_state.h header_token.h \
-	lex_822.h strip_addr.h virtual8.h hold_message.h
+	lex_822.h strip_addr.h virtual8_maps.h hold_message.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -74,7 +74,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time mime_state strip_addr \
-	virtual8_maps_find
+	virtual8_maps
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -227,7 +227,7 @@ strip_addr: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-virtual8_maps_find: $(LIB) $(LIBS)
+virtual8_maps: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
@@ -291,10 +291,10 @@ strip_addr_test: strip_addr strip_addr.ref
 	diff strip_addr.ref strip_addr.tmp
 	rm -f strip_addr.tmp
 
-virtual8_test: virtual8_maps_find virtual8_map virtual8.in virtual8.ref \
+virtual8_test: virtual8_maps virtual8_map virtual8.in virtual8.ref \
 	../postmap/postmap
 	../postmap/postmap hash:virtual8_map
-	./virtual8_maps_find <virtual8.in hash:virtual8_map >virtual8.tmp
+	./virtual8_maps <virtual8.in hash:virtual8_map >virtual8.tmp
 	diff virtual8.ref virtual8.tmp
 	rm -f virtual8.tmp virtual8_map.db
 
@@ -1196,18 +1196,18 @@ verp_sender.o: ../../include/vstring.h
 verp_sender.o: ../../include/vbuf.h
 verp_sender.o: mail_params.h
 verp_sender.o: verp_sender.h
-virtual8_maps_find.o: virtual8_maps_find.c
-virtual8_maps_find.o: ../../include/sys_defs.h
-virtual8_maps_find.o: ../../include/msg.h
-virtual8_maps_find.o: ../../include/mymalloc.h
-virtual8_maps_find.o: maps.h
-virtual8_maps_find.o: ../../include/dict.h
-virtual8_maps_find.o: ../../include/vstream.h
-virtual8_maps_find.o: ../../include/vbuf.h
-virtual8_maps_find.o: ../../include/argv.h
-virtual8_maps_find.o: mail_params.h
-virtual8_maps_find.o: strip_addr.h
-virtual8_maps_find.o: virtual8.h
+virtual8_maps.o: virtual8_maps.c
+virtual8_maps.o: ../../include/sys_defs.h
+virtual8_maps.o: ../../include/msg.h
+virtual8_maps.o: ../../include/mymalloc.h
+virtual8_maps.o: maps.h
+virtual8_maps.o: ../../include/dict.h
+virtual8_maps.o: ../../include/vstream.h
+virtual8_maps.o: ../../include/vbuf.h
+virtual8_maps.o: ../../include/argv.h
+virtual8_maps.o: mail_params.h
+virtual8_maps.o: strip_addr.h
+virtual8_maps.o: virtual8_maps.h
 xtext.o: xtext.c
 xtext.o: ../../include/sys_defs.h
 xtext.o: ../../include/vstream.h
