@@ -8,7 +8,7 @@
 # SYNOPSIS
 #	\fBmake makefiles \fIname=value...\fR
 # DESCRIPTION
-#	The \fBmakedefs\fR command identifies the program compilation
+#	The \fBmakedefs\fR command identifies the compilation
 #	environment, and emits macro definitions on the standard output
 #	stream that can be prepended to template Makefiles.
 #

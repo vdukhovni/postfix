@@ -20,7 +20,8 @@
   * External interface.
   */
 #define MAC_PARSE_LITERAL	1
-#define MAC_PARSE_VARNAME	2
+#define MAC_PARSE_EXPR		2
+#define MAC_PARSE_VARNAME	MAC_PARSE_EXPR	/* 2.1 compatibility */
 
 #define MAC_PARSE_OK		0
 #define MAC_PARSE_ERROR		(1<<0)

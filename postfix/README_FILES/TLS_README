@@ -382,8 +382,8 @@ Example:
 
 SSeerrvveerr aacccceessss ccoonnttrrooll
 
-Postfix TLS support introduces two additional features for Postfix SMTP server
-access control:
+Postfix TLS support introduces three additional features for Postfix SMTP
+server access control:
 
     permit_tls_clientcerts
         Allow the remote SMTP client SMTP request if the client certificate
@@ -393,6 +393,10 @@ access control:
     permit_tls_all_clientcerts
         Allow the remote client SMTP request if the client certificate passes
         verification.
+
+    check_ccert_access type:table
+        If the client certificate passes verification, use its fingerprint as a
+        key for the specified access(5) table.
 
 The permit_tls_all_clientcerts feature must be used with caution, because it
 can result in too many access permissions. Use this feature only if a special

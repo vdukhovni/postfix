@@ -7,17 +7,25 @@ snapshot release).  Patches are issued for the official release
 and change the patchlevel and the release date. Patches are never
 issued for snapshot releases.
 
+Major changes with snapshot Postfix-2.2-20050208
+================================================
+
+New "check_ccert_maps maptype:mapname" feature to enforce access
+control based on (hexadecimal) client certificate fingerprints.
+
 Major changes with snapshot Postfix-2.2-20050206
 ================================================
 
 Support for address rewriting in outgoing SMTP mail. This is useful
 for sites that have no valid Internet domain name, and that use a
 domain name such as localdomain.local instead. Mail addresses that
-use such domain names are often rejected by mail servers.  The new
-smtp_generics_maps feature allows you to replace local mail addresses
-by valid Internet addresses when mail needs to be sent across the
+use such domain names are often rejected by mail servers.  
+
+The new smtp_generics_maps feature allows you to replace local mail
+addresses by valid Internet addresses when mail is sent across the
 Internet.  It has no effect on mail that is sent between accounts
-on the local machine.
+on the local machine. The syntax is described in generics(5) and
+a detailed example is in the STANDARD_CONFIGURATION_README file.
 
 Example:
 

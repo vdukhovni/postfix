@@ -25,15 +25,15 @@ runs the \fBpostfix-script\fR shell script to do the actual work.
 
 The following commands are implemented:
 .IP \fBcheck\fR
-Validate the Postfix mail system configuration. Warn about bad
-directory/file ownership or permissions, and create missing
-directories.
+Warn about bad directory/file ownership or permissions,
+and create missing directories.
 .IP \fBstart\fR
 Start the Postfix mail system. This also runs the configuration
 check described above.
 .IP \fBstop\fR
-Stop the Postfix mail system in an orderly fashion. Running processes
-are allowed to terminate at their earliest convenience.
+Stop the Postfix mail system in an orderly fashion. If
+possible, running processes are allowed to terminate at
+their earliest convenience.
 .sp
 Note: in order to refresh the Postfix mail system after a
 configuration change, do not use the \fBstart\fR and \fBstop\fR

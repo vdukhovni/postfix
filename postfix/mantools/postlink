@@ -578,7 +578,7 @@ while (<>) {
     s/\b[A-Z0-9_]*_README\b/<a href="$&.html">$&<\/a>/g;
     s/\bINSTALL\b/<a href="$&.html">$&<\/a>/g;
     s/\bOVERVIEW\b/<a href="$&.html">$&<\/a>/g;
-    s/"type:table"/"<a href="DATABASE_README.html">type:table<\/a>"/g;
+    s/\btype:table\b/<a href="DATABASE_README.html">type:table<\/a>/g;
 
     # Split manual page hyperlinks across newlines
 
@@ -597,6 +597,7 @@ while (<>) {
     # Access restrictions - client
 
     s;\bcheck_client_access\b;<a href="postconf.5.html#check_client_access">$&</a>;g;
+    s;\bcheck_ccert_access\b;<a href="postconf.5.html#check_ccert_access">$&</a>;g;
     s;\bpermit_inet_interfaces\b;<a href="postconf.5.html#permit_inet_interfaces">$&</a>;g;
     s;\bpermit_mynetworks\b;<a href="postconf.5.html#permit_mynetworks">$&</a>;g;
     s;\bpermit_sasl_authenticated\b;<a href="postconf.5.html#permit_sasl_authenticated">$&</a>;g;

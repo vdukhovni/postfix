@@ -36,10 +36,12 @@ The expressions "$name", "${name}" or "$(name)" are
 recursively replaced by the value of the named parameter.
 .IP \(bu
 The expression "${name?value}" expands to "value" when
-"$name" is non-empty.
+"$name" is non-empty. This form is supported with Postfix
+version 2.2 and later.
 .IP \(bu
 The expression "${name:value}" expands to "value" when
-"$name" is empty.
+"$name" is empty. This form is supported with Postfix
+version 2.2 and later.
 .RE
 .IP \(bu
 When the same parameter is defined multiple times, only the last
@@ -2743,6 +2745,12 @@ relay_clientcerts = hash:/etc/postfix/relay_clientcerts
 .fi
 .ad
 .ft R
+.PP
+For more fine-grained control, use check_ccert_access to select
+an appropriate \fBaccess\fR(5) policy for each client.
+See RESTRICTION_CLASS_README.
+.PP
+This feature is available with Postfix 2.2.
 .SH relay_destination_concurrency_limit (default: $default_destination_concurrency_limit)
 The maximal number of parallel deliveries to the same destination
 via the relay message delivery transport. This limit is enforced
@@ -3925,6 +3933,10 @@ restriction that matches wins.
 .PP
 The following restrictions are specific to client hostname or
 client network address information.
+.IP "\fBcheck_ccert_access \fItype:table\fR\fR"
+When the remote SMTP client certificate is verified successfully,
+use the client certificate fingerprint as lookup key for the specified
+\fBaccess\fR(5) database. This feature is available with Postfix 2.2.
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
 Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
@@ -3943,11 +3955,11 @@ Permit the request when the remote SMTP client certificate is
 verified successfully.  This option must be used only if a special
 CA issues the certificates and only this CA is listed as trusted
 CA, otherwise all clients with a recognized certificate would be
-allowed to relay.
+allowed to relay. This feature is available with Postfix 2.2.
 .IP "\fBpermit_tls_clientcerts\fR"
 Permit the request when the remote SMTP client certificate is
 verified successfully, and the certificate fingerprint is listed
-in $relay_clientcerts.
+in $relay_clientcerts. This feature is available with Postfix 2.2.
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR

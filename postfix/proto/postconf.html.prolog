@@ -46,10 +46,12 @@ that starts with whitespace continues a logical line. </p>
 recursively replaced by the value of the named parameter. </p>
 
 <li> <p> The expression "${name?value}" expands to "value" when
-"$name" is non-empty. </p>
+"$name" is non-empty. This form is supported with Postfix version
+2.2 and later. </p>
 
 <li> <p> The expression "${name:value}" expands to "value" when
-"$name" is empty. </p>
+"$name" is empty. This form is supported with Postfix version 2.2
+and later.  </p>
 
 </ul>
 

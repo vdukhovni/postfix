@@ -46,10 +46,12 @@ that starts with whitespace continues a logical line. </p>
 recursively replaced by the value of the named parameter. </p>
 
 <li> <p> The expression "${name?value}" expands to "value" when
-"$name" is non-empty. </p>
+"$name" is non-empty. This form is supported with Postfix version
+2.2 and later. </p>
 
 <li> <p> The expression "${name:value}" expands to "value" when
-"$name" is empty. </p>
+"$name" is empty. This form is supported with Postfix version 2.2
+and later.  </p>
 
 </ul>
 
@@ -5073,6 +5075,12 @@ D7:04:2F:A7:0B:8C:A5:21:FA:31:77:E1:41:8A:EE:80 lutzpc.at.home </p>
 relay_clientcerts = hash:/etc/postfix/relay_clientcerts
 </pre>
 
+<p>For more fine-grained control, use <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> to select
+an appropriate <a href="access.5.html">access(5)</a> policy for each client.
+See <a href="RESTRICTION_CLASS_README.html">RESTRICTION_CLASS_README</a>.</p>
+
+<p>This feature is available with Postfix 2.2.</p>
+
 
 </DD>
 
@@ -7050,6 +7058,12 @@ client network address information.
 
 <dl>
 
+<dt><b><a name="check_ccert_access">check_ccert_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>When the remote SMTP client certificate is verified successfully,
+use the client certificate fingerprint as lookup key for the specified
+<a href="access.5.html">access(5)</a> database. This feature is available with Postfix 2.2.</dd>
+
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the client hostname,
@@ -7077,13 +7091,13 @@ authenticated via the <a href="http://www.faqs.org/rfcs/rfc2554.html">RFC 2554</
 verified successfully.  This option must be used only if a special
 CA issues the certificates and only this CA is listed as trusted
 CA, otherwise all clients with a recognized certificate would be
-allowed to relay.  </dd>
+allowed to relay. This feature is available with Postfix 2.2.</dd>
 
 <dt><b><a name="permit_tls_clientcerts">permit_tls_clientcerts</a></b></dt>
 
 <dd>Permit the request when the remote SMTP client certificate is
 verified successfully, and the certificate fingerprint is listed
-in $relay_clientcerts. </dd>
+in $relay_clientcerts. This feature is available with Postfix 2.2.</dd>
 <dt><b><a name="reject_rbl_client">reject_rbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Reject the request when the reversed client network address is

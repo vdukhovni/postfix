@@ -88,9 +88,14 @@
 /*	into the right-hand side.
 /* .IP DICT_FLAG_NO_PROXY
 /*	Disallow access through the \fBproxymap\fR service.
+/* .IP DICT_FLAG_NO_UNAUTH
+/*	Disallow network lookup mechanisms that lack any form of
+/*	authentication (example: tcp_table; even NIS can be secured
+/*	to some extent by requiring that the server binds to a
+/*	privileged port).
 /* .IP DICT_FLAG_PARANOID
-/*	A combination of all the paranoia flags: DICT_FLAG_NO_REGSUB
-/*	and DICT_FLAG_NO_PROXY.
+/*	A combination of all the paranoia flags: DICT_FLAG_NO_REGSUB,
+/*	DICT_FLAG_NO_PROXY and DICT_FLAG_NO_UNAUTH.
 /* .PP
 /*	Specify DICT_FLAG_NONE for no special processing.
 /*

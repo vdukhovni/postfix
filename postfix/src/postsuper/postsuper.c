@@ -31,6 +31,7 @@
 /*	Delete one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
 /*	\fBdeferred\fR).
+/*
 /*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
 /*	queue IDs from standard input. For example, to delete all mail
 /*	with exactly one recipient \fBuser@example.com\fR:
@@ -76,6 +77,7 @@
 /*	Move one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
 /*	\fBdeferred\fR) to the \fBhold\fR queue.
+/*
 /*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
 /*	queue IDs from standard input.
 /* .sp
@@ -92,6 +94,7 @@
 /*	Release mail that was put "on hold".
 /*	Move one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBhold\fR) to the \fBdeferred\fR queue.
+/*
 /*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
 /*	queue IDs from standard input.
 /* .sp
@@ -111,6 +114,7 @@
 /*	\fBdeferred\fR).
 /*	To requeue multiple messages, specify multiple \fB-r\fR
 /*	command-line options.
+/*
 /*	Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified,
 /*	the program reads queue IDs from standard input.
 /* .sp

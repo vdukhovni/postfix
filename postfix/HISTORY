@@ -10300,12 +10300,33 @@ Apologies for any names omitted.
 	the input when the action is NOT executed. File:
 	cleanup/cleanup_message.c.
 
+	Bugfix? Cleanup? Documentation? main.cf now implements
+	${name[?:]value} as promised in the postconf(5) manual.
+	Implemented by deleting the macro processor in dict_eval(),
+	and using the one in mac_expand() instead.  File: util/dict.c.
+
+20050208
+
+	Feature: check_ccert_access maptype:mapname for access(5)
+	control, based on code by Victor Duchovni. File:
+	smtpd/smtpd_check.c and documentation.
+
+	Sanity check: don't allow unlimited message size with
+	limited mailbox size. File: local/local.c, virtual/virtual.c.
+
 Open problems:
 
 	Med: local and remote source port and IP address for smtpd
 	policy hook.
 
-	Med: smtp_connect_timeout_budget (default: 2x smtp_connect_timeout)
+	Med: disable address rewriting after XCLIENT? Introduce a
+	better concept of original submission?
+
+	Med: find out what TLS attributes to export via the policy
+	servicer hooks: peer CN, issuer CN, peer fingerprint,
+	verification status.
+
+	Med: smtp_connect_timeout_budget (default: 3x smtp_connect_timeout)
 	to limit the total time spent trying to connect.
 
 	Med: transform IPv4-in-IPv6 address literals to IPv4 form
@@ -10335,9 +10356,6 @@ Open problems:
 	never worked.
 
 	Med: eliminate the tls_info data structure.
-
-	Med: implement ${name[?:]value} in main.cf or update the
-	postconf(5) manual.
 
 	Low: reject HELO with any domain name or IP address that
 	this MTA is the final destination for.
@@ -10384,7 +10402,9 @@ Open problems:
 
 	Med: silly queue file bit so that the queue manager doesn't
 	skip files when fast flush is requested while a queue scan
-	is in progress.
+	is in progress. The bit is set by the flush server and is
+	reset when the mail is deferred, so that it survives queue
+	manager restart.
 
 	Med: postsuper -r should do something with recipients in
 	bounce logfiles.

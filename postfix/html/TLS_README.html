@@ -580,7 +580,7 @@ recommends a maximum of 24 hours.  </p>
 
 <h3><a name="server_access">Server access control</a> </h3>
 
-<p> Postfix TLS support introduces two additional features for
+<p> Postfix TLS support introduces three additional features for
 Postfix SMTP server access control:  </p>
 
 <blockquote>
@@ -595,6 +595,10 @@ and if its fingerprint is listed in the list of client certificates
 <dt> <a href="postconf.5.html#permit_tls_all_clientcerts">permit_tls_all_clientcerts</a> </dt> <dd> <p> Allow the remote
 client SMTP request if the client certificate passes verification.
 </p> </dd>
+
+<dt> <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> <a href="DATABASE_README.html">type:table</a></dt> <dd>
+<p> If the client certificate passes verification, use its fingerprint
+as a key for the specified <a href="access.5.html">access(5)</a> table. </p> </dd>
 
 </dl>
 

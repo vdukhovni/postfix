@@ -336,6 +336,7 @@ static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
   * Reject context.
   */
 #define SMTPD_NAME_CLIENT	"Client host"
+#define SMTPD_NAME_CCERT	"Client certificate"
 #define SMTPD_NAME_HELO		"Helo command"
 #define SMTPD_NAME_SENDER	"Sender address"
 #define SMTPD_NAME_RECIPIENT	"Recipient address"
@@ -2341,6 +2342,39 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
 }
 
+/* check_ccert_access - access for TLS clients by certificate fingerprint */
+
+#ifdef USE_TLS
+
+static int check_ccert_access(SMTPD_STATE *state, const char *table,
+			              const char *def_acl)
+{
+    char   *myname = "check_ccert_access";
+    int     found;
+
+    if (state->tls_info.peer_verified && state->tls_info.peer_fingerprint) {
+	if (msg_verbose)
+	    msg_info("%s: %s", myname, state->tls_info.peer_fingerprint);
+
+	/*
+	 * Regexp tables don't make sense for certificate fingerprints. That
+	 * may be so, but we can't ignore the entire check_ccert_access
+	 * request without logging a warning.
+	 * 
+	 * Log the peer CommonName when access is denied. Non-printable
+	 * characters will be neutered by smtpd_check_reject(). The SMTP
+	 * client name and address are always syslogged as part of a "reject"
+	 * event.
+	 */
+	return (check_access(state, table, state->tls_info.peer_fingerprint,
+			     DICT_FLAG_NONE, &found, state->tls_info.peer_CN,
+			     SMTPD_NAME_CCERT, def_acl));
+    }
+    return (SMTPD_CHECK_DUNNO);
+}
+
+#endif
+
 /* check_mail_access - OK/FAIL based on mail address lookup */
 
 static int check_mail_access(SMTPD_STATE *state, const char *table,
@@ -3204,6 +3238,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		    status = reject_rbl_domain(state, *cpp, state->name,
 					       SMTPD_NAME_CLIENT);
 	    }
+#ifdef USE_TLS
+	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
+	    status = check_ccert_access(state, *cpp, def_acl);
+#endif
 	}
 
 	/*

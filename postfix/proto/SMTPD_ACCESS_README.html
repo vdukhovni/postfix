@@ -179,6 +179,12 @@ described in the postconf(5) manual page. </p>
 
     # Whitelisting: local clients may specify any destination. Others may not.
     smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
+
+    # Block clients that speak too early.
+    smtpd_data_restrictions = reject_unauth_pipelining
+
+    # Enforce mail volume quota via policy service callouts.
+    smtpd_end_of_data_restrictions = check_policy_service unix:private/policy
 </pre>
 
 <p> Each restriction list is evaluated from left to right until

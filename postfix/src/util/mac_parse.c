@@ -23,9 +23,11 @@
 /*	found, and \fIcontext\fR is passed on unmodified from the caller.
 /*	The application is at liberty to clobber \fIbuf\fR.
 /* .IP MAC_PARSE_LITERAL
-/*	The text in \fIbuf\fR is literal text.
-/* .IP MAC_PARSE_VARNAME
-/*	The text in \fIbuf\fR is a macro expression.
+/*	The content of \fIbuf\fR is literal text.
+/* .IP MAC_PARSE_EXPR
+/*	The content of \fIbuf\fR is a macro expression: either a
+/*	bare macro name without the preceding "$", or all the text
+/*	inside $() or ${}.
 /* .PP
 /*	The action routine result value is the bit-wise OR of zero or more
 /*	of the following:
@@ -72,11 +74,11 @@
   * execute the action, and reset the temporary buffer for re-use.
   */
 #define MAC_PARSE_ACTION(status, type, buf, context) \
-	{ \
+	do { \
 	    VSTRING_TERMINATE(buf); \
-	    status |= action(type, buf, context); \
+	    status |= action((type), (buf), (context)); \
 	    VSTRING_RESET(buf); \
-	}
+	} while(0)
 
 /* mac_parse - split string into literal text and macro references */
 
@@ -138,7 +140,7 @@ int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 		msg_warn("empty macro name: \"%s\"", value);
 		break;
 	    }
-	    MAC_PARSE_ACTION(status, MAC_PARSE_VARNAME, buf, context);
+	    MAC_PARSE_ACTION(status, MAC_PARSE_EXPR, buf, context);
 	}
     }
     if (VSTRING_LEN(buf) > 0 && (status & MAC_PARSE_ERROR) == 0)
@@ -167,8 +169,8 @@ static int mac_parse_print(int type, VSTRING *buf, char *unused_context)
     char   *type_name;
 
     switch (type) {
-    case MAC_PARSE_VARNAME:
-	type_name = "MAC_PARSE_VARNAME";
+    case MAC_PARSE_EXPR:
+	type_name = "MAC_PARSE_EXPR";
 	break;
     case MAC_PARSE_LITERAL:
 	type_name = "MAC_PARSE_LITERAL";

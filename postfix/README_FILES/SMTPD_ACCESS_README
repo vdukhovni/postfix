@@ -125,6 +125,12 @@ Examples of simple restriction lists are:
     # Whitelisting: local clients may specify any destination. Others may not.
     smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 
+    # Block clients that speak too early.
+    smtpd_data_restrictions = reject_unauth_pipelining
+
+    # Enforce mail volume quota via policy service callouts.
+    smtpd_end_of_data_restrictions = check_policy_service unix:private/policy
+
 Each restriction list is evaluated from left to right until some restriction
 produces a result of PERMIT, REJECT or DEFER (try again later). The end of the
 list is equivalent to a PERMIT result. By placing a PERMIT restriction before a
