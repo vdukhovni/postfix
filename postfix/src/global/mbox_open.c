@@ -102,7 +102,7 @@ MBOX   *mbox_open(const char *path, int flags, int mode, struct stat * st,
      */
     if (st == 0)
 	st = &local_statbuf;
-    if ((fp = safe_open(path, flags, mode | O_NONBLOCK, st,
+    if ((fp = safe_open(path, flags | O_NONBLOCK, mode, st,
 			chown_uid, chown_gid, why)) == 0) {
 	return (0);
     }

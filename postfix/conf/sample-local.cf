@@ -18,6 +18,14 @@
 # biff = no
 biff = yes
 
+# The require_home_directory parameter controls whether a local
+# recipient's home directory must exist before mail delivery is
+# attempted. By default this test is disabled. It can be useful for
+# environments that import home directories to the file server (NOT
+# RECOMMENDED).
+# 
+require_home_directory = no
+
 #
 # OVERRIDE LOCAL TRANSPORT
 #
@@ -177,15 +185,14 @@ fallback_transport =
 #
 
 # The local_destination_concurrency_limit parameter limits the number
-# of parallel deliveries to the local domain. It should therefore be
-# set to zero, in order to prevent poor local delivery performance.
-# In old Postfix versions this parameter implemented a per-user
-# limit. That is no longer the case.
+# of parallel deliveries to the same local recipient.
 #
 # The default limit is taken from the default_destination_concurrency_limit
-# parameter. 
+# parameter. I recommend a low limit of 2, just in case someone has
+# an expensive shell command in a .forward file or in an alias (e.g.,
+# a mailing list manager). You don't want to run lots of those.
 #
-local_destination_concurrency_limit = 0
+local_destination_concurrency_limit = 2
 
 # The local_destination_recipient_limit parameter limits the number
 # of recipients per local message delivery.  The default limit is

@@ -64,6 +64,10 @@
 #include "sys_defs.h"
 
 #ifdef HAS_MYSQL
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -77,6 +81,8 @@
 #include "dict_mysql.h"
 #include "argv.h"
 #include "vstring.h"
+#include "split_at.h"
+#include "find_inet.h"
 
 /* external declarations */
 extern int dict_errno;
@@ -230,9 +236,7 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 	/* answer already found */
 	if (res != 0 && host->stat == STATACTIVE) {
 	    msg_info("dict_mysql: closing unnessary connection to %s", host->hostname);
-	    mysql_close(&(host->db));		/* also frees memory, have to
-						 * reallocate it */
-	    host->db = *((MYSQL *) mymalloc(sizeof(MYSQL)));
+	    mysql_close(&(host->db));
 	    plmysql_down_host(host);
 	}
 	/* try to connect for the first time if we don't have a result yet */
@@ -279,18 +283,36 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
  */
 static void plmysql_connect_single(HOST *host, char *dbname, char *username, char *password)
 {
-    if (mysql_connect(&(host->db), host->hostname, username, password)) {
-	if (mysql_select_db(&(host->db), dbname) == 0) {
-	    msg_info("dict_mysql: successful connection to host %s", host->hostname);
-	    host->stat = STATACTIVE;
-	} else {
-	    plmysql_down_host(host);
-	    msg_warn("%s", mysql_error(&(host->db)));
-	}
+    char   *destination = host->hostname;
+    char   *unix_socket = 0;
+    char   *hostname = 0;
+    char   *service;
+    unsigned port = 0;
+
+    /*
+     * Ad-hoc parsing code. Expect "unix:pathname" or "inet:host:port", where
+     * both "inet:" and ":port" are optional.
+     */
+    if (strncmp(destination, "unix:", 5) == 0) {
+	unix_socket = destination + 5;
+    } else {
+	if (strncmp(destination, "inet:", 5) == 0)
+	    destination += 5;
+	hostname = mystrdup(destination);
+	if ((service = split_at(hostname, ':')) != 0)
+	    port = ntohs(find_inet_port(service, "tcp"));
+    }
+
+    host->db = *((MYSQL *) mysql_init(NULL));
+    if (mysql_real_connect(&(host->db), hostname, username, password, dbname, port, unix_socket, 0)) {
+	msg_info("dict_mysql: successful connection to host %s", host->hostname);
+	host->stat = STATACTIVE;
     } else {
 	plmysql_down_host(host);
 	msg_warn("%s", mysql_error(&(host->db)));
     }
+    if (hostname)
+	myfree(hostname);
 }
 
 /*

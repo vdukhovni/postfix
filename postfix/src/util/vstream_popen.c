@@ -319,13 +319,15 @@ int     main(int argc, char **argv)
     /*
      * Sanity check.
      */
-    if (argc != 2)
+    if (argc < 2)
 	msg_fatal("usage: %s 'command'", argv[0]);
 
     /*
      * Open stream to child process.
      */
-    if ((stream = vstream_popen(argv[1], O_RDWR)) == 0)
+    if ((stream = vstream_popen(O_RDWR,
+				VSTREAM_POPEN_ARGV, argv + 1,
+				VSTREAM_POPEN_END)) == 0)
 	msg_fatal("vstream_popen: %m");
 
     /*

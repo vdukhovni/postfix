@@ -38,6 +38,24 @@ fallback_relay =
 #
 ignore_mx_lookup_error = no
 
+# The smtp_always_send_ehlo parameter specifies that the SMTP client
+# should always send EHLO at the start of an SMTP session.
+# 
+# By default, Postfix sends EHLO only when the word "ESMTP" appears
+# in the server greeting banner (example: 220 spike.porcupine.org
+# ESMTP Postfix).
+#
+smtp_always_send_ehlo = no
+
+# The smtp_never_send_ehlo parameter specifies that the SMTP client 
+# should never send EHLO at the start of an SMTP session.
+#
+# By default, Postfix sends EHLO whenever the word "ESMTP" appears
+# in the server greeting banner (example: 220 spike.porcupine.org
+# ESMTP Postfix).
+#
+smtp_never_send_ehlo = no
+
 # The smtp_bind_address parameter specifies a numerical network
 # address that the client should bind to when making a connection.
 # This can be used in the main.cf file, or in the master.cf file,

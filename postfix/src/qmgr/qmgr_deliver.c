@@ -45,6 +45,7 @@
 
 #include <sys_defs.h>
 #include <time.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -117,11 +118,18 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     QMGR_RCPT_LIST list = entry->rcpt_list;
     QMGR_RCPT *recipient;
     QMGR_MESSAGE *message = entry->message;
+    char   *cp;
 
+    /*
+     * With local delivery, the queue name is user@nexthop, so that we can
+     * implement per-recipient concurrency limits. The delivery agent
+     * protocol expects nexthop only.
+     */
     mail_print(stream, "%d %s %s %ld %ld %s %s %s %s %ld",
 	  message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT,
 	       message->queue_name, message->queue_id,
 	       message->data_offset, message->data_size,
+	    (cp = strrchr(entry->queue->name, '@')) != 0 && cp[1] ? cp + 1 :
 	       entry->queue->name, message->sender,
 	       message->errors_to, message->return_receipt,
 	       message->arrival_time);

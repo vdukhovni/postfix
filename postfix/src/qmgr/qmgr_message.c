@@ -556,8 +556,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if ((at = strrchr(STR(reply.recipient), '@')) == 0
 	    || resolve_local(at + 1)) {
-#if 0
 	    vstring_strcpy(reply.nexthop, STR(reply.recipient));
+	    lowercase(STR(reply.nexthop));
+#if 0
 	    (void) split_at_right(STR(reply.nexthop), '@');
 #endif
 #if 0

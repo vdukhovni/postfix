@@ -260,6 +260,25 @@ queue_directory = /var/spool/postfix
 # recipient_delimiter = +
 recipient_delimiter =
 
+# The propagate_unmatched_extensions parameter specifies what lookup
+# tables should copy the address extension from the lookup key to
+# the lookup result. 
+# 
+# For example, with a virtual table entry "joe@domain joe.user",
+# the address joe+foo@domain would be rewritten to joe.user+foo.
+# Address extensions can be propagated with canonical, virtual,
+# and alias maps, as well as with .forward and :include: files,
+# including mailing lists!!
+#
+# By default, only canonical and virtual maps propagate address
+# extensions to lookup results. Enabling this feature for other
+# types of lookups usually causes problems when mail is forwarded
+# to other sites, especially with mail that is sent to a mailing
+# list exploder address.
+#
+#propagate_unmatched_extensions = canonical, virtual, alias, forward, include
+#propagate_unmatched_extensions = canonical, virtual
+
 # The relayhost parameter specifies the default host to send mail to
 # when no entry is matched in the optional transport(5) table. When
 # no relayhost is given, mail is routed directly to the destination.
@@ -292,15 +311,6 @@ relayhost =
 #
 # relocated_maps = hash:/etc/postfix/relocated
 relocated_maps =
-
-# The sun_mailtool_compatibility parameter disables kernel file locks
-# on mailboxes. This is needed on SUN workstations because the mailtool
-# program keeps an exclusive kernel lock while its window is open.
-# SUN software uses user.lock files only. Unless you remove all SUN
-# mail software, kernel locks just give a false sense of security.
-#
-#sun_mailtool_compatibility = yes
-sun_mailtool_compatibility = no
 
 # The syslog_facility parameter controls where Postfix logging is
 # sent by the syslog daemon. Specify a logging facility as defined

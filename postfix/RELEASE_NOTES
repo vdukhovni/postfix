@@ -1,27 +1,76 @@
-Incompatible changes with snapshot-2000XXXX
+Incompatible changes with snapshot-20001210
 ===========================================
 
-The "sun_mailtool_compatibility" is going away (a compatibility mode
-that turns off kernel locks on mailbox files). It still works, but
-a warning is logged. Instead, specify the mailbox locking strategy
-via the new "mailbox_delivery_lock" parameter.
+If this release does not work for you, you can go back to a previous
+Postfix version without losing your mail, subject to the "incompatible
+changes" listed for previous Postfix releases below.
 
-Major changes with snapshot-2000XXXX
+When delivering to /file/name (as directed in an alias or .forward
+file), the local delivery agent now logs a warning when it is unable
+to create a /file/name.lock file. Mail is still delivered as before.
+
+The "sun_mailtool_compatibility" feature is going away (a compatibility
+mode that turns off kernel locks on mailbox files). It still works,
+but a warning is logged. Instead of using "sun_mailtool_compatibility",
+specify the mailbox locking strategy as "mailbox_delivery_lock =
+dotlock".
+
+The Postfix SMTP client now skips SMTP server replies that do not
+start with "CODE SPACE" or with "CODE HYPHEN" and flags them as
+protocol errors. Older Postfix SMTP clients silently treated "CODE
+TEXT" as "CODE SPACE TEXT", i.e. as a valid SMTP reply.
+
+This snapshot does not yet change default relay settings. That
+change alone affects a dozen files, most of which documentation.
+This may be an incompatibility with some people's expectations,
+but such are my rules - between code freeze and release no major
+functionality changes are allowed.
+
+Several interfaces of libutil and libglobal routines have changed.
+This may break third-party code written for Postfix. In particular,
+the safe_open() routine has changed, the way the preferred locking
+method is specified in the sys_defs.h file, as well as all routines
+that perform file locking. When compiling third-party code written
+for Postfix, the incompatibilities will be detected by the compiler
+provided that #include file dependencies are properly maintained.
+
+Major changes with snapshot-20001210
 ====================================
 
-The mailbox locking style is now fully configurable at runtime.
-The new configuration parameter is "mailbox_delivery_lock".
-Depending on the operating system type, mailboxes can be locked
-with one or more of "flock", "fcntl" or "dotlock". This also applies
-to "/file/name" deliveries by the Postfix local delivery agent.
-The default setting of "mailbox_delivery_lock" is system dependent.
-The command "postconf -l" shows the available locking styles.
+This snapshot includes bugfixes that were already released as
+patches 12 and 13 for the 19991231 "stable" release:
 
-The "import_environment" and "export_environment" configuration
-parameters now control what environment variables Postfix will
-import from its parent and what it variables Postfix will pass on
-to a non-Postfix process. It is not safe to import or export
-everything, and different sites may have different needs.
+  - The queue manager could deadlock for 10 seconds when bouncing
+    mail under extreme load from one-to-one mass mailings.
+
+  - Local delivery performance was substandard, because the per-user
+    concurrency limit accidentally applied to the entire local
+    domain.
+
+The mailbox locking style is now fully configurable at runtime.
+The new configuration parameter is called "mailbox_delivery_lock".
+Depending on the operating system type, mailboxes can be locked
+with one or more of "flock", "fcntl" or "dotlock".  The command
+"postconf -l" shows the available locking styles.  The default
+mailbox locking style is system dependent.  This change affects
+all mailbox and all "/file/name" deliveries by the Postfix local
+delivery agent.
+
+The new "import_environment" and "export_environment" configuration
+parameters now provide explicit control over what environment
+variables Postfix will import, and what environment variables
+Postfix will pass on to a non-Postfix process. This is better than
+hard-coding my debugging environment into public releases.
+
+The "mailbox_transport" and "fallback_transport" parameters now
+understand the form "transport:nexthop", with suitable defaults
+when either transport or nexthop are omitted, just like in the
+Postfix transport map. This allows you to specify for example,
+"mailbox_transport = lmtp:unix:/file/name".
+
+The MYSQL client now supports server connections over UNIX-domain
+sockets.  Code provided by Piotr Klaban. See the file MYSQL_README
+for examples of "host" syntax.
 
 Incompatible changes with snapshot-20001121
 ===========================================

@@ -4528,16 +4528,24 @@ Apologies for any names omitted.
 	Feature: mailbox locking is now configurable. The configuration
 	parameter name is "mailbox_delivery_lock". Depending on
 	the operating system one can specify one or more of "flock",
-	"fcntl" and "dotlock". The default setting is system
-	dependent.  All mailbox file opens are now done by the
-	mbox_open() routine. This affects the operation of the
-	postlock command, and of local delivery to mailbox or
-	/file/name.  Files: util/safe_open.c, util/myflock.c,
+	"fcntl" and "dotlock". Use "postconf -l" to find out what
+	locking methods Postfix supports. The default setting is
+	system dependent.  All mailbox file opens are now done by
+	one central mbox_open() routine. This affects the operation
+	of the postlock command, and of local delivery to mailbox
+	or /file/name.  Files: util/safe_open.c, util/myflock.c,
 	global/deliver_flock.c, global/mbox_conf.c, global/mbox_open.c.
-	local/mailbox.c, local/file.c, postlock/postlock.c.  The
-	old sun_mailtool_compatibility parameter is being phased
-	out (it just turns off flock/fcntl locks). It still works,
-	but a warning is logged as a reminder that it goes away.
+	local/mailbox.c, local/file.c, postlock/postlock.c.  
+
+	Compatibility: the old sun_mailtool_compatibility parameter
+	is being phased out. It still works (by turning off
+	flock/fcntl locks), but logs a warning as a reminder that
+	it will go away.
+
+	Compatibility: when delivering to /file/name, the local
+	delivery agent now logs a warning when it is unable to
+	create a /file/name.lock file, and then delivers the mail
+	(older Postfix versions would silently deliver).
 
 20001202
 
@@ -4545,11 +4553,10 @@ Apologies for any names omitted.
 	ESMTP.  Someone asked for this long ago. Files:  smtp/smtp.c,
 	smtp/smtp_proto.c.
 
-	Feature? Bugfix? The smtp client will now ignore server
-	replies that do not start with "CODE SPACE" or with "CODE
-	HYPHEN". Which means that "CODE TEXT" is now treated as
-	"CODE HYPHEN TEXT", instead of being treated as "CODE SPACE
-	TEXT", the way it was before. File:  smtp/smtp_chat.c.
+	Feature? Bugfix? The smtp client now skips server replies
+	that do not start with "CODE SPACE" or with "CODE HYPHEN",
+	and flags them as protocol errors. Older versions silently
+	treat "CODE TEXT" as "CODE SPACE TEXT".  File:  smtp/smtp_chat.c.
 
 20001203
 
@@ -4558,14 +4565,14 @@ Apologies for any names omitted.
 
 20001204
 
-	Bugfix: master no longer imported MAIL_CONF and other
-	necessary environmental parameters. Postfix now has
-	explicit "import_environment" and "export_environment"
-	configuration parameters that control what environment
-	parameters are imported from or exported to the external
-	environment. Files: util/clean_env.c, util/spawn_command.c,
+	Bugfix: the Postfix master daemon no longer imported
+	MAIL_CONF and some other necessary environment parameters.
+	Postfix now has explicit "import_environment" and
+	"export_environment" configuration parameters that control
+	what environment parameters are shared with non-Postfix
+	processes. Files: util/clean_env.c, util/spawn_command.c,
 	util/vstream_popen.c, global/pipe_command.c, and everything
-	that uses this code.
+	that invokes this code.
 
 20001208
 
@@ -4586,9 +4593,18 @@ Apologies for any names omitted.
 	example, "mailbox_transport = lmtp:unix:/file/name". File:
 	global/deliver_pass.c.
 
-	Bugfix: local_destination_concurrency_limit no longer works
-	as per-user concurrency limit but as per-domain limit, so
-	the limit of "2" in the sample main.cf files would result
-	in poor local delivery performance. The Postfix install
-	procedure repairs this.  Problem reported by David Schweikert
-	(ee.ethz.ch) and Dallas Wisehaupt (cynicism.com).
+20001210
+
+	Bugfix: the local_destination_concurrency_limit paramater
+	no longer worked as per-user concurrency limit but instead
+	worked as per-domain limit, so that the limit of "2" in
+	the default main.cf files resulted in poor local delivery
+	performance.  Files:  qmgr/qmgr_message.c, qmgr/qmgr_deliver.c.
+	Problem reported by David Schweikert (ee.ethz.ch) and Dallas
+	Wisehaupt (cynicism.com).
+
+20001210
+
+	Feature: support for MYSQL connections over UNIX-domain
+	sockets by Piotr Klaban.  Files: util/dict_mysql.c,
+	MYSQL_README.

@@ -87,7 +87,7 @@
 /* safe_open_exist - open existing file */
 
 static VSTREAM *safe_open_exist(const char *path, int flags,
-				        struct stat * fstat_st, VSTRING *why)
+			              struct stat * fstat_st, VSTRING * why)
 {
     struct stat local_statbuf;
     struct stat lstat_st;
@@ -97,7 +97,7 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
      * Open an existing file.
      */
     if ((fp = vstream_fopen(path, flags & ~(O_CREAT | O_EXCL), 0)) == 0) {
-	vstring_sprintf(why, "cannot open existing file: %m");
+	vstring_sprintf(why, "cannot open file: %m");
 	return (0);
     }
 
@@ -110,8 +110,9 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
 	fstat_st = &local_statbuf;
     if (fstat(vstream_fileno(fp), fstat_st) < 0) {
 	msg_fatal("%s: bad open file status: %m", path);
-    } else if (fstat_st->st_nlink > 1) {
-	vstring_sprintf(why, "file has multiple hard links");
+    } else if (fstat_st->st_nlink != 1) {
+	vstring_sprintf(why, "file has %d hard links",
+			(int) fstat_st->st_nlink);
     } else if (S_ISDIR(fstat_st->st_mode)) {
 	vstring_sprintf(why, "file is a directory");
     }
@@ -158,7 +159,7 @@ static VSTREAM *safe_open_exist(const char *path, int flags,
 /* safe_open_create - create new file */
 
 static VSTREAM *safe_open_create(const char *path, int flags, int mode,
-	            struct stat * st, uid_t user, uid_t group, VSTRING *why)
+	           struct stat * st, uid_t user, uid_t group, VSTRING * why)
 {
     VSTREAM *fp;
 
@@ -206,7 +207,7 @@ static VSTREAM *safe_open_create(const char *path, int flags, int mode,
 /* safe_open - safely open or create file */
 
 VSTREAM *safe_open(const char *path, int flags, int mode,
-	            struct stat * st, uid_t user, gid_t group, VSTRING *why)
+	           struct stat * st, uid_t user, gid_t group, VSTRING * why)
 {
     VSTREAM *fp;
 

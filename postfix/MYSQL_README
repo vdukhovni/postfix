@@ -60,7 +60,8 @@ additional_conditions = and status = 'paid'
 #
 # the hosts that postfix will try to connect to
 # and query from (in the order listed)
-hosts = host1.some.domain host2.some.domain
+# specify unix: for unix-domain sockets, inet: for TCP connections (default)
+hosts = host1.some.domain host2.some.domain unix:/file/name
 
 # end mysql config file
 

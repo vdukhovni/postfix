@@ -5,6 +5,17 @@
 # that begin with whitespace continue the previous line. A value can
 # contain references to other $names or ${name}s.
 
+# SOFT BOUNCE
+#
+# The soft_bounce parameter provides a limited safety net for
+# testing.  When soft_bounce is enabled, mail will remain queued that
+# would otherwise bounce. This parameter disables locally-generated
+# bounces, and prevents the SMTP server from rejecting mail permanently
+# (by changing 5xx replies into 4xx replies). However, soft_bounce
+# is no cure for address rewriting mistakes or mail routing mistakes.
+#
+#soft_bounce = no
+
 # LOCAL PATHNAME INFORMATION
 #
 # The queue_directory specifies the location of the Postfix queue.
@@ -388,11 +399,8 @@ mail_owner = postfix
 # 
 # Each message delivery transport has its XXX_destination_concurrency_limit
 # parameter.  The default is $default_destination_concurrency_limit.
-# The limit is per destination domain, so the destination concurrency
-# limit for local delivery must be set to zero otherwise performance
-# will suffer.
 
-local_destination_concurrency_limit = 0
+local_destination_concurrency_limit = 2
 default_destination_concurrency_limit = 10
 
 # DEBUGGING CONTROL
