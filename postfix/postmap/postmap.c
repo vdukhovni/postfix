@@ -281,7 +281,7 @@ static int postmap_delete(const char *map_type, const char *map_name,
     dict = dict_open3(map_type, map_name, O_RDWR, DICT_FLAG_LOCK);
     status = dict_del(dict, key);
     dict_close(dict);
-    return (status);
+    return (status == 0);
 }
 
 /* usage - explain */

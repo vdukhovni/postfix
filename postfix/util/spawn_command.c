@@ -286,8 +286,8 @@ WAIT_STATUS_T spawn_command(int key,...)
 	 */
 	if ((err = timed_waitpid(pid, &wait_status, 0, args.time_limit)) < 0
 	    && errno == ETIMEDOUT) {
-	    msg_warn("%s: process id %d: command time limit exceeded",
-		     args.command, pid);
+	    msg_warn("%s: process id %lu: command time limit exceeded",
+		     args.command, (unsigned long) pid);
 	    kill(-pid, SIGKILL);
 	    err = waitpid(pid, &wait_status, 0);
 	}

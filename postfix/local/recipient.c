@@ -60,6 +60,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -75,13 +76,16 @@
 #include <split_at.h>
 #include <stringops.h>
 #include <dict.h>
+#include <stat_as.h>
 
 /* Global library. */
 
 #include <bounce.h>
+#include <defer.h>
 #include <mail_params.h>
 #include <split_addr.h>
 #include <ext_prop.h>
+#include <mypwd.h>
 
 /* Application-specific. */
 
@@ -93,6 +97,8 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 {
     char   *myname = "deliver_switch";
     int     status = 0;
+    struct stat st;
+    struct mypasswd *mypwd;
 
     /*
      * Make verbose logging easier to understand.
@@ -108,6 +114,8 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * XXX This code currently does not work due to revision of the RFC822
      * address parser. \user should be permitted only in locally specified
      * aliases, includes or forward files.
+     * 
+     * XXX Should test for presence of user home directory.
      */
     if (state.msg_attr.recipient[0] == '\\') {
 	state.msg_attr.recipient++, state.msg_attr.local++, state.msg_attr.user++;
@@ -161,13 +169,22 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
     /*
      * Always forward recipients in :include: files.
      */
-    if (state.msg_attr.exp_type = EXPAND_TYPE_INCL)
+    if (state.msg_attr.exp_type == EXPAND_TYPE_INCL)
 	return (deliver_indirect(state));
 
     /*
      * Delivery to local user. First try expansion of the recipient's
-     * $HOME/.forward file, then mailbox delivery.
+     * $HOME/.forward file, then mailbox delivery. Back off when the user's
+     * home directory does not exist.
      */
+    if ((mypwd = mypwnam(state.msg_attr.user)) == 0)
+	return (deliver_unknown(state, usr_attr));
+    if (var_stat_home_dir
+	&& stat_as(mypwd->pw_dir, &st, mypwd->pw_uid, mypwd->pw_gid) < 0)
+	return (defer_append(BOUNCE_FLAG_KEEP,
+			     BOUNCE_ATTR(state.msg_attr),
+			     "cannot access home directory %s: %m",
+			     mypwd->pw_dir));
     if (deliver_dotforward(state, usr_attr, &status) == 0
 	&& deliver_mailbox(state, usr_attr, &status) == 0)
 	status = deliver_unknown(state, usr_attr);

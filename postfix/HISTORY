@@ -4206,3 +4206,11 @@ Apologies for any names omitted.
 	Gross hack: prevent looping a bad recipient by always
 	forwarding recipients in :include: files, even when
 	owner-listname is not set. File: local/recipient.c.
+
+20000919
+
+	Convenience: INSTALL.sh now imports default settings from
+	the process environment, in order to make scripting easier.
+
+	Portability: another fix for NEXTSTEP (Masaki MURASE).
+	File: util/spawn_command.h.

@@ -626,9 +626,14 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     RECIPIENT_LIST *rcpt_list = &request->rcpt_list;
     VSTRING *why = vstring_alloc(100);
     VSTRING *buf;
-    ARGV   *expanded_argv;
+    ARGV   *expanded_argv = 0;
     int     deliver_status;
     int     command_status;
+
+#define DELIVER_MSG_CLEANUP() { \
+	vstring_free(why); \
+	if (expanded_argv) argv_free(expanded_argv); \
+    }
 
     if (msg_verbose)
 	msg_info("%s: from <%s>", myname, request->sender);
@@ -674,6 +679,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 
 	deliver_status = eval_command_status(PIPE_STAT_BOUNCE, service,
 				 request, request->fp, "message too large");
+	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
     }
 
@@ -706,8 +712,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     /*
      * Clean up.
      */
-    vstring_free(why);
-    argv_free(expanded_argv);
+    DELIVER_MSG_CLEANUP();
 
     return (deliver_status);
 }

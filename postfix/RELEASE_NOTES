@@ -1,4 +1,27 @@
-Incompatible changes with snapshot-20000625
+Incompatible changes with snapshot-20000919
+===========================================
+
+The queue manager to delivery agent protocol has changed. This does
+not affect the format of queue files, but means that you cannot
+use this software with queue managers or delivery agents of prior
+Postfix versions.
+
+Change in address rewriting: Errors-To:, Reply-To: and Return-Receipt:
+are now rewritten as a sender address (was: recipient).
+
+Major changes with snapshot-20000919
+====================================
+
+Postfix now strips out the Content-Length: header to avoid confusion
+with mail user agents.
+
+The header_checks and body_checks features can now be used to strip
+out unwanted data. Specify IGNORE and the data will go disappear.
+
+Postfix no longer inserts a Sender: message header when the 
+From: address differs from the envelope sender address.
+
+Incompatible changes with snapshot-20000625 (never released)
 ===========================================
 
 The local delivery agent no longer appends a blank line to mail

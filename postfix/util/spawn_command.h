@@ -26,7 +26,7 @@
 #define SPAWN_CMD_ENV		9	/* extra environment */
 #define SPAWN_CMD_SHELL		10	/* alternative shell */
 
-extern int spawn_command(int,...);
+extern WAIT_STATUS_T spawn_command(int,...);
 
 /* LICENSE
 /* .ad

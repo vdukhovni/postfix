@@ -45,6 +45,10 @@ EOF
 # the time that a file does not exist, and avoid copying over programs
 # in order to not disturb running programs.
 
+censored_ls() {
+    ls "$@" | egrep -v '^\.|/\.|CVS|RCS|SCCS'
+}
+
 compare_or_replace() {
     (cmp $2 $3 >/dev/null 2>&1 && echo Skipping $3...) || {
 	echo Updating $3...
@@ -102,21 +106,21 @@ esac
 
 # Default settings. Most are clobbered by remembered settings.
 
-install_root=/
-tempdir=`pwd`
-config_directory=/etc/postfix
-daemon_directory=/usr/libexec/postfix
-command_directory=/usr/sbin
-queue_directory=/var/spool/postfix
+: ${install_root=/}
+: ${tempdir=`pwd`}
+: ${config_directory=/etc/postfix}
+: ${daemon_directory=/usr/libexec/postfix}
+: ${command_directory=/usr/sbin}
+: ${queue_directory=/var/spool/postfix}
 if [ -f /usr/lib/sendmail ]
-    then sendmail_path=/usr/lib/sendmail 
-    else sendmail_path=/usr/sbin/sendmail
+    then : ${sendmail_path=/usr/lib/sendmail}
+    else : ${sendmail_path=/usr/sbin/sendmail}
 fi
-newaliases_path=/usr/bin/newaliases
-mailq_path=/usr/bin/mailq
-mail_owner=postfix
-setgid=no
-manpages=/usr/local/man
+: ${newaliases_path=/usr/bin/newaliases}
+: ${mailq_path=/usr/bin/mailq}
+: ${mail_owner=postfix}
+: ${setgid=no}
+: ${manpages=/usr/local/man}
 
 # Find out the location of configuration files.
 
@@ -245,12 +249,12 @@ done
 
 # Install files. Be careful to not copy over running programs.
 
-for file in `ls libexec | grep -v '^\.'`
+for file in `censored_ls libexec`
 do
     compare_or_replace a+x,go-w libexec/$file $DAEMON_DIRECTORY/$file || exit 1
 done
 
-for file in `ls bin | grep '^post'`
+for file in `censored_ls bin | grep '^post'`
 do
     compare_or_replace a+x,go-w bin/$file $COMMAND_DIRECTORY/$file || exit 1
 done
@@ -263,12 +267,12 @@ test -f bin/sendmail && {
 
 if [ -f $CONFIG_DIRECTORY/main.cf ]
 then
-    for file in LICENSE `cd conf; echo sample*` main.cf.default
+    for file in LICENSE `cd conf; censored_ls sample*` main.cf.default
     do
 	compare_or_replace a+r,go-w conf/$file $CONFIG_DIRECTORY/$file || exit 1
     done
 else
-    cp conf/* $CONFIG_DIRECTORY || exit 1
+    cp `censored_ls conf/*` $CONFIG_DIRECTORY || exit 1
     chmod a+r,go-w $CONFIG_DIRECTORY/* || exit 1
 
     test -z "$install_root" && {
@@ -332,7 +336,7 @@ no) ;;
      for dir in man?
 	 do test -d $MANPAGES/$dir || mkdir -p $MANPAGES/$dir || exit 1
      done
-     for file in man?/*
+     for file in `censored_ls man?/*`
      do
 	 (test -f $MANPAGES/$file && cmp -s $file $MANPAGES/$file &&
 	  echo Skipping $MANPAGES/$file...) || {
