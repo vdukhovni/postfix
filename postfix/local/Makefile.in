@@ -67,7 +67,6 @@ alias.o: ../include/htable.h
 alias.o: ../include/dict.h
 alias.o: ../include/vstream.h
 alias.o: ../include/vbuf.h
-alias.o: ../include/binattr.h
 alias.o: ../include/argv.h
 alias.o: ../include/stringops.h
 alias.o: ../include/vstring.h
@@ -97,7 +96,6 @@ command.o: ../include/htable.h
 command.o: ../include/vstring.h
 command.o: ../include/vbuf.h
 command.o: ../include/vstream.h
-command.o: ../include/binattr.h
 command.o: ../include/argv.h
 command.o: ../include/defer.h
 command.o: ../include/bounce.h
@@ -116,7 +114,6 @@ deliver_attr.o: ../include/sys_defs.h
 deliver_attr.o: ../include/msg.h
 deliver_attr.o: ../include/vstream.h
 deliver_attr.o: ../include/vbuf.h
-deliver_attr.o: ../include/binattr.h
 deliver_attr.o: local.h
 deliver_attr.o: ../include/htable.h
 deliver_attr.o: ../include/vstring.h
@@ -132,7 +129,6 @@ delivered.o: ../include/htable.h
 delivered.o: ../include/vstring.h
 delivered.o: ../include/vbuf.h
 delivered.o: ../include/vstream.h
-delivered.o: ../include/binattr.h
 delivered.o: ../include/vstring_vstream.h
 delivered.o: ../include/stringops.h
 delivered.o: ../include/record.h
@@ -152,7 +148,6 @@ dotforward.o: ../include/msg.h
 dotforward.o: ../include/vstring.h
 dotforward.o: ../include/vbuf.h
 dotforward.o: ../include/vstream.h
-dotforward.o: ../include/binattr.h
 dotforward.o: ../include/htable.h
 dotforward.o: ../include/open_as.h
 dotforward.o: ../include/lstat_as.h
@@ -179,7 +174,6 @@ file.o: ../include/htable.h
 file.o: ../include/vstring.h
 file.o: ../include/vbuf.h
 file.o: ../include/vstream.h
-file.o: ../include/binattr.h
 file.o: ../include/deliver_flock.h
 file.o: ../include/open_as.h
 file.o: ../include/mail_copy.h
@@ -203,7 +197,6 @@ forward.o: ../include/argv.h
 forward.o: ../include/vstring.h
 forward.o: ../include/vbuf.h
 forward.o: ../include/vstream.h
-forward.o: ../include/binattr.h
 forward.o: ../include/vstring_vstream.h
 forward.o: ../include/iostuff.h
 forward.o: ../include/stringops.h
@@ -228,7 +221,6 @@ include.o: ../include/htable.h
 include.o: ../include/mymalloc.h
 include.o: ../include/vstream.h
 include.o: ../include/vbuf.h
-include.o: ../include/binattr.h
 include.o: ../include/open_as.h
 include.o: ../include/stat_as.h
 include.o: ../include/iostuff.h
@@ -255,7 +247,6 @@ indirect.o: ../include/been_here.h
 indirect.o: local.h
 indirect.o: ../include/vstream.h
 indirect.o: ../include/vbuf.h
-indirect.o: ../include/binattr.h
 indirect.o: ../include/vstring.h
 indirect.o: ../include/tok822.h
 indirect.o: ../include/resolve_clnt.h
@@ -269,7 +260,6 @@ local.o: ../include/htable.h
 local.o: ../include/vstring.h
 local.o: ../include/vbuf.h
 local.o: ../include/vstream.h
-local.o: ../include/binattr.h
 local.o: ../include/iostuff.h
 local.o: ../include/name_mask.h
 local.o: ../include/set_eugid.h
@@ -297,7 +287,6 @@ local_expand.o: ../include/mail_params.h
 local_expand.o: local.h
 local_expand.o: ../include/htable.h
 local_expand.o: ../include/vstream.h
-local_expand.o: ../include/binattr.h
 local_expand.o: ../include/been_here.h
 local_expand.o: ../include/tok822.h
 local_expand.o: ../include/resolve_clnt.h
@@ -310,7 +299,6 @@ mailbox.o: ../include/htable.h
 mailbox.o: ../include/vstring.h
 mailbox.o: ../include/vbuf.h
 mailbox.o: ../include/vstream.h
-mailbox.o: ../include/binattr.h
 mailbox.o: ../include/mymalloc.h
 mailbox.o: ../include/stringops.h
 mailbox.o: ../include/set_eugid.h
@@ -340,7 +328,6 @@ maildir.o: ../include/stringops.h
 maildir.o: ../include/vstring.h
 maildir.o: ../include/vbuf.h
 maildir.o: ../include/vstream.h
-maildir.o: ../include/binattr.h
 maildir.o: ../include/make_dirs.h
 maildir.o: ../include/set_eugid.h
 maildir.o: ../include/get_hostname.h
@@ -367,7 +354,6 @@ recipient.o: ../include/vstring.h
 recipient.o: ../include/vbuf.h
 recipient.o: ../include/dict.h
 recipient.o: ../include/vstream.h
-recipient.o: ../include/binattr.h
 recipient.o: ../include/argv.h
 recipient.o: ../include/bounce.h
 recipient.o: ../include/mail_params.h
@@ -387,7 +373,6 @@ resolve.o: ../include/vbuf.h
 resolve.o: ../include/htable.h
 resolve.o: ../include/mail_proto.h
 resolve.o: ../include/vstream.h
-resolve.o: ../include/binattr.h
 resolve.o: ../include/iostuff.h
 resolve.o: ../include/resolve_clnt.h
 resolve.o: ../include/rewrite_clnt.h
@@ -403,7 +388,6 @@ token.o: ../include/msg.h
 token.o: ../include/vstring.h
 token.o: ../include/vbuf.h
 token.o: ../include/vstream.h
-token.o: ../include/binattr.h
 token.o: ../include/htable.h
 token.o: ../include/readlline.h
 token.o: ../include/mymalloc.h
@@ -428,7 +412,6 @@ unknown.o: ../include/been_here.h
 unknown.o: ../include/mail_params.h
 unknown.o: ../include/mail_proto.h
 unknown.o: ../include/vstream.h
-unknown.o: ../include/binattr.h
 unknown.o: ../include/iostuff.h
 unknown.o: ../include/bounce.h
 unknown.o: local.h

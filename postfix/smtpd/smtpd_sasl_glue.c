@@ -270,11 +270,11 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
     const char *errstr = 0;
 
 #define IFELSE(e1,e2,e3) ((e1) ? (e2) : (e3))
-#define LOG_IFSET(text,var) IFELSE((var),(text),""), IFELSE((var),(var),"")
 
     if (msg_verbose)
 	msg_info("%s: sasl_method %s%s%s", myname, sasl_method,
-		 LOG_IFSET(", init_response ", init_response));
+		 IFELSE(init_response, ", init_response ", ""),
+		 IFELSE(init_response, init_response, ""));
 
     /*
      * Sanity check.

@@ -166,7 +166,7 @@ static DNS_RR *lmtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     /*
      * Append the addresses for this host to the address list.
      */
-    switch (dns_lookup(host, T_A, 0, &addr, (VSTRING *) 0, why)) {
+    switch (dns_lookup(host, T_A, RES_DEFNAMES, &addr, (VSTRING *) 0, why)) {
     case DNS_OK:
 	for (rr = addr; rr; rr = rr->next)
 	    rr->pref = pref;

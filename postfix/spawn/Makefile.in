@@ -60,7 +60,6 @@ spawn.o: ../include/argv.h
 spawn.o: ../include/dict.h
 spawn.o: ../include/vstream.h
 spawn.o: ../include/vbuf.h
-spawn.o: ../include/binattr.h
 spawn.o: ../include/mymalloc.h
 spawn.o: ../include/spawn_command.h
 spawn.o: ../include/split_at.h

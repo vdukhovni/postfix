@@ -60,7 +60,6 @@ postalias.o: ../include/mymalloc.h
 postalias.o: ../include/vstring.h
 postalias.o: ../include/vbuf.h
 postalias.o: ../include/vstream.h
-postalias.o: ../include/binattr.h
 postalias.o: ../include/msg_vstream.h
 postalias.o: ../include/readlline.h
 postalias.o: ../include/stringops.h

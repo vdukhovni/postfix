@@ -145,13 +145,6 @@ static void smtp_timeout_detect(VSTREAM *stream)
 
 void    smtp_timeout_setup(VSTREAM *stream, int maxtime)
 {
-
-    /*
-     * Stick your TLS/whatever read-write routines here. Notice that the
-     * read/write interface now includes a timeout parameter and application
-     * context, and that a read/write routine is supposed to set errno to
-     * ETIMEDOUT when the alarm clock goes off.
-     */
     vstream_control(stream,
 		    VSTREAM_CTL_DOUBLE,
 		    VSTREAM_CTL_TIMEOUT, maxtime,

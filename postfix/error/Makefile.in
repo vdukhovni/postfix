@@ -58,7 +58,6 @@ error.o: ../include/sys_defs.h
 error.o: ../include/msg.h
 error.o: ../include/vstream.h
 error.o: ../include/vbuf.h
-error.o: ../include/binattr.h
 error.o: ../include/deliver_request.h
 error.o: ../include/vstring.h
 error.o: ../include/recipient_list.h

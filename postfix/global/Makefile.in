@@ -3,55 +3,55 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	debug_peer.c debug_process.c defer.c deliver_completed.c \
 	deliver_flock.c deliver_pass.c deliver_request.c domain_list.c \
 	dot_lockfile.c dot_lockfile_as.c ext_prop.c file_id.c \
-	header_opts.c is_header.c mail_addr.c \
-	mail_addr_crunch.c mail_addr_find.c mail_addr_map.c \
-	mail_command_read.c mail_command_write.c mail_conf.c \
-	mail_conf_bool.c mail_conf_int.c mail_conf_raw.c mail_conf_str.c \
-	mail_connect.c mail_copy.c mail_date.c mail_error.c mail_flush.c \
-	mail_open_ok.c mail_params.c mail_pathname.c mail_print.c \
-	mail_queue.c mail_run.c mail_scan.c mail_scan_dir.c mail_stream.c \
-	mail_task.c mail_trigger.c maps.c mark_corrupt.c mkmap_db.c \
-	mkmap_dbm.c mkmap_open.c mynetworks.c mypwd.c namadr_list.c \
-	off_cvt.c opened.c own_inet_addr.c peer_name.c pipe_command.c \
-	post_mail.c quote_822_local.c rec_streamlf.c rec_type.c \
-	recipient_list.c record.c remove.c resolve_clnt.c resolve_local.c \
-	rewrite_clnt.c sent.c smtp_stream.c split_addr.c string_list.c \
-	sys_exits.c timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
+	header_opts.c is_header.c mail_addr.c mail_addr_crunch.c \
+	mail_addr_find.c mail_addr_map.c mail_command_read.c \
+	mail_command_write.c mail_conf.c mail_conf_bool.c mail_conf_int.c \
+	mail_conf_raw.c mail_conf_str.c mail_connect.c mail_copy.c \
+	mail_date.c mail_error.c mail_flush.c mail_open_ok.c mail_params.c \
+	mail_pathname.c mail_print.c mail_queue.c mail_run.c mail_scan.c \
+	mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c maps.c \
+	mark_corrupt.c mkmap_db.c mkmap_dbm.c mkmap_open.c mynetworks.c \
+	mypwd.c namadr_list.c off_cvt.c opened.c own_inet_addr.c \
+	peer_name.c pipe_command.c post_mail.c quote_821_local.c \
+	quote_822_local.c rec_streamlf.c rec_type.c recipient_list.c \
+	record.c remove.c resolve_clnt.c resolve_local.c rewrite_clnt.c \
+	sent.c smtp_stream.c split_addr.c string_list.c sys_exits.c \
+	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
 	dot_lockfile.o dot_lockfile_as.o ext_prop.o file_id.o \
-	header_opts.o is_header.o mail_addr.o \
-	mail_addr_crunch.o mail_addr_find.o mail_addr_map.o \
-	mail_command_read.o mail_command_write.o mail_conf.o \
-	mail_conf_bool.o mail_conf_int.o mail_conf_raw.o mail_conf_str.o \
-	mail_connect.o mail_copy.o mail_date.o mail_error.o mail_flush.o \
-	mail_open_ok.o mail_params.o mail_pathname.o mail_print.o \
-	mail_queue.o mail_run.o mail_scan.o mail_scan_dir.o mail_stream.o \
-	mail_task.o mail_trigger.o maps.o mark_corrupt.o mkmap_db.o \
-	mkmap_dbm.o mkmap_open.o mynetworks.o mypwd.o namadr_list.o \
-	off_cvt.o opened.o own_inet_addr.o peer_name.o pipe_command.o \
-	post_mail.o quote_822_local.o rec_streamlf.o rec_type.o \
-	recipient_list.o record.o remove.o resolve_clnt.o resolve_local.o \
-	rewrite_clnt.o sent.o smtp_stream.o split_addr.o string_list.o \
-	sys_exits.o timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
+	header_opts.o is_header.o mail_addr.o mail_addr_crunch.o \
+	mail_addr_find.o mail_addr_map.o mail_command_read.o \
+	mail_command_write.o mail_conf.o mail_conf_bool.o mail_conf_int.o \
+	mail_conf_raw.o mail_conf_str.o mail_connect.o mail_copy.o \
+	mail_date.o mail_error.o mail_flush.o mail_open_ok.o mail_params.o \
+	mail_pathname.o mail_print.o mail_queue.o mail_run.o mail_scan.o \
+	mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o maps.o \
+	mark_corrupt.o mkmap_db.o mkmap_dbm.o mkmap_open.o mynetworks.o \
+	mypwd.o namadr_list.o off_cvt.o opened.o own_inet_addr.o \
+	peer_name.o pipe_command.o post_mail.o quote_821_local.o \
+	quote_822_local.o rec_streamlf.o rec_type.o recipient_list.o \
+	record.o remove.o resolve_clnt.o resolve_local.o rewrite_clnt.o \
+	sent.o smtp_stream.o split_addr.o string_list.o sys_exits.o \
+	timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
 	dot_lockfile.h dot_lockfile_as.h ext_prop.h file_id.h \
-	header_opts.h is_header.h mail_addr.h \
-	mail_addr_crunch.h mail_addr_find.h mail_addr_map.h mail_conf.h \
-	mail_copy.h mail_date.h mail_error.h mail_flush.h mail_open_ok.h \
-	mail_params.h mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h \
-	mail_stream.h mail_task.h mail_version.h maps.h mark_corrupt.h \
-	mkmap.h mynetworks.h mypwd.h namadr_list.h off_cvt.h opened.h \
+	header_opts.h is_header.h mail_addr.h mail_addr_crunch.h \
+	mail_addr_find.h mail_addr_map.h mail_conf.h mail_copy.h \
+	mail_date.h mail_error.h mail_flush.h mail_open_ok.h mail_params.h \
+	mail_proto.h mail_queue.h mail_run.h mail_scan_dir.h mail_stream.h \
+	mail_task.h mail_version.h maps.h mark_corrupt.h mkmap.h \
+	mynetworks.h mypwd.h namadr_list.h off_cvt.h opened.h \
 	own_inet_addr.h peer_name.h pipe_command.h post_mail.h \
-	quote_822_local.h rec_streamlf.h rec_type.h recipient_list.h \
-	record.h resolve_clnt.h resolve_local.h rewrite_clnt.h sent.h \
-	smtp_stream.h split_addr.h string_list.h sys_exits.h timed_ipc.h \
-	tok822.h
+	quote_821_local.h quote_822_local.h rec_streamlf.h rec_type.h \
+	recipient_list.h record.h resolve_clnt.h resolve_local.h \
+	rewrite_clnt.h sent.h smtp_stream.h split_addr.h string_list.h \
+	sys_exits.h timed_ipc.h tok822.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -63,7 +63,8 @@ LIB	= libglobal.a
 TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_addr_map mail_date maps mynetworks mypwd namadr_list \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
-	resolve_local rewrite_clnt stream2rec string_list tok822_parse
+	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
+	quote_821_local
 
 LIBS	= ../lib/libutil.a
 LIB_DIR	= ../lib
@@ -193,6 +194,9 @@ local_transport: $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
+quote_821_local: quote_821_local.c $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
+
 tests: tok822_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
@@ -243,7 +247,6 @@ bounce.o: ../include/vbuf.h
 bounce.o: mail_params.h
 bounce.o: mail_proto.h
 bounce.o: ../include/vstream.h
-bounce.o: ../include/binattr.h
 bounce.o: ../include/iostuff.h
 bounce.o: defer.h
 bounce.o: bounce.h
@@ -265,7 +268,6 @@ clnt_stream.o: ../include/msg.h
 clnt_stream.o: ../include/mymalloc.h
 clnt_stream.o: ../include/vstream.h
 clnt_stream.o: ../include/vbuf.h
-clnt_stream.o: ../include/binattr.h
 clnt_stream.o: ../include/events.h
 clnt_stream.o: ../include/iostuff.h
 clnt_stream.o: mail_proto.h
@@ -290,7 +292,6 @@ defer.o: ../include/vstring.h
 defer.o: ../include/vbuf.h
 defer.o: mail_queue.h
 defer.o: ../include/vstream.h
-defer.o: ../include/binattr.h
 defer.o: mail_proto.h
 defer.o: ../include/iostuff.h
 defer.o: bounce.h
@@ -300,7 +301,6 @@ deliver_completed.o: ../include/sys_defs.h
 deliver_completed.o: ../include/msg.h
 deliver_completed.o: ../include/vstream.h
 deliver_completed.o: ../include/vbuf.h
-deliver_completed.o: ../include/binattr.h
 deliver_completed.o: record.h
 deliver_completed.o: ../include/vstring.h
 deliver_completed.o: rec_type.h
@@ -318,7 +318,6 @@ deliver_pass.o: ../include/msg.h
 deliver_pass.o: ../include/vstring.h
 deliver_pass.o: ../include/vbuf.h
 deliver_pass.o: ../include/vstream.h
-deliver_pass.o: ../include/binattr.h
 deliver_pass.o: deliver_pass.h
 deliver_pass.o: deliver_request.h
 deliver_pass.o: recipient_list.h
@@ -329,7 +328,6 @@ deliver_request.o: ../include/sys_defs.h
 deliver_request.o: ../include/msg.h
 deliver_request.o: ../include/vstream.h
 deliver_request.o: ../include/vbuf.h
-deliver_request.o: ../include/binattr.h
 deliver_request.o: ../include/vstring.h
 deliver_request.o: ../include/mymalloc.h
 deliver_request.o: ../include/iostuff.h
@@ -410,7 +408,6 @@ mail_addr_find.o: ../include/msg.h
 mail_addr_find.o: ../include/dict.h
 mail_addr_find.o: ../include/vstream.h
 mail_addr_find.o: ../include/vbuf.h
-mail_addr_find.o: ../include/binattr.h
 mail_addr_find.o: ../include/argv.h
 mail_addr_find.o: ../include/stringops.h
 mail_addr_find.o: ../include/vstring.h
@@ -427,7 +424,6 @@ mail_addr_map.o: ../include/vstring.h
 mail_addr_map.o: ../include/vbuf.h
 mail_addr_map.o: ../include/dict.h
 mail_addr_map.o: ../include/vstream.h
-mail_addr_map.o: ../include/binattr.h
 mail_addr_map.o: ../include/argv.h
 mail_addr_map.o: ../include/mymalloc.h
 mail_addr_map.o: mail_addr_find.h
@@ -439,14 +435,12 @@ mail_command_read.o: ../include/sys_defs.h
 mail_command_read.o: ../include/vstring.h
 mail_command_read.o: ../include/vbuf.h
 mail_command_read.o: ../include/vstream.h
-mail_command_read.o: ../include/binattr.h
 mail_command_read.o: mail_proto.h
 mail_command_read.o: ../include/iostuff.h
 mail_command_write.o: mail_command_write.c
 mail_command_write.o: ../include/sys_defs.h
 mail_command_write.o: ../include/vstream.h
 mail_command_write.o: ../include/vbuf.h
-mail_command_write.o: ../include/binattr.h
 mail_command_write.o: mail_proto.h
 mail_command_write.o: ../include/iostuff.h
 mail_conf.o: mail_conf.c
@@ -455,7 +449,6 @@ mail_conf.o: ../include/msg.h
 mail_conf.o: ../include/mymalloc.h
 mail_conf.o: ../include/vstream.h
 mail_conf.o: ../include/vbuf.h
-mail_conf.o: ../include/binattr.h
 mail_conf.o: ../include/vstring.h
 mail_conf.o: ../include/dict.h
 mail_conf.o: ../include/argv.h
@@ -469,7 +462,6 @@ mail_conf_bool.o: ../include/msg.h
 mail_conf_bool.o: ../include/dict.h
 mail_conf_bool.o: ../include/vstream.h
 mail_conf_bool.o: ../include/vbuf.h
-mail_conf_bool.o: ../include/binattr.h
 mail_conf_bool.o: ../include/argv.h
 mail_conf_bool.o: mail_conf.h
 mail_conf_int.o: mail_conf_int.c
@@ -479,7 +471,6 @@ mail_conf_int.o: ../include/mymalloc.h
 mail_conf_int.o: ../include/dict.h
 mail_conf_int.o: ../include/vstream.h
 mail_conf_int.o: ../include/vbuf.h
-mail_conf_int.o: ../include/binattr.h
 mail_conf_int.o: ../include/argv.h
 mail_conf_int.o: ../include/stringops.h
 mail_conf_int.o: ../include/vstring.h
@@ -499,7 +490,6 @@ mail_connect.o: ../include/sys_defs.h
 mail_connect.o: ../include/msg.h
 mail_connect.o: ../include/vstream.h
 mail_connect.o: ../include/vbuf.h
-mail_connect.o: ../include/binattr.h
 mail_connect.o: ../include/connect.h
 mail_connect.o: ../include/iostuff.h
 mail_connect.o: ../include/mymalloc.h
@@ -511,7 +501,6 @@ mail_copy.o: ../include/msg.h
 mail_copy.o: ../include/htable.h
 mail_copy.o: ../include/vstream.h
 mail_copy.o: ../include/vbuf.h
-mail_copy.o: ../include/binattr.h
 mail_copy.o: ../include/vstring.h
 mail_copy.o: ../include/vstring_vstream.h
 mail_copy.o: ../include/stringops.h
@@ -537,7 +526,6 @@ mail_flush.o: ../include/sys_defs.h
 mail_flush.o: mail_proto.h
 mail_flush.o: ../include/vstream.h
 mail_flush.o: ../include/vbuf.h
-mail_flush.o: ../include/binattr.h
 mail_flush.o: ../include/iostuff.h
 mail_flush.o: mail_flush.h
 mail_open_ok.o: mail_open_ok.c
@@ -547,7 +535,6 @@ mail_open_ok.o: mail_queue.h
 mail_open_ok.o: ../include/vstring.h
 mail_open_ok.o: ../include/vbuf.h
 mail_open_ok.o: ../include/vstream.h
-mail_open_ok.o: ../include/binattr.h
 mail_open_ok.o: mail_open_ok.h
 mail_params.o: mail_params.c
 mail_params.o: ../include/sys_defs.h
@@ -568,7 +555,6 @@ mail_pathname.o: ../include/vstring.h
 mail_pathname.o: ../include/vbuf.h
 mail_pathname.o: mail_proto.h
 mail_pathname.o: ../include/vstream.h
-mail_pathname.o: ../include/binattr.h
 mail_pathname.o: ../include/iostuff.h
 mail_print.o: mail_print.c
 mail_print.o: ../include/sys_defs.h
@@ -576,7 +562,6 @@ mail_print.o: ../include/msg.h
 mail_print.o: ../include/mymalloc.h
 mail_print.o: ../include/vstream.h
 mail_print.o: ../include/vbuf.h
-mail_print.o: ../include/binattr.h
 mail_print.o: mail_proto.h
 mail_print.o: ../include/iostuff.h
 mail_queue.o: mail_queue.c
@@ -585,7 +570,6 @@ mail_queue.o: ../include/msg.h
 mail_queue.o: ../include/vstring.h
 mail_queue.o: ../include/vbuf.h
 mail_queue.o: ../include/vstream.h
-mail_queue.o: ../include/binattr.h
 mail_queue.o: ../include/mymalloc.h
 mail_queue.o: ../include/argv.h
 mail_queue.o: ../include/dir_forest.h
@@ -610,7 +594,6 @@ mail_scan.o: ../include/msg.h
 mail_scan.o: ../include/vstring.h
 mail_scan.o: ../include/vbuf.h
 mail_scan.o: ../include/vstream.h
-mail_scan.o: ../include/binattr.h
 mail_scan.o: ../include/vstring_vstream.h
 mail_scan.o: ../include/mymalloc.h
 mail_scan.o: mail_proto.h
@@ -626,7 +609,6 @@ mail_stream.o: ../include/mymalloc.h
 mail_stream.o: ../include/vstring.h
 mail_stream.o: ../include/vbuf.h
 mail_stream.o: ../include/vstream.h
-mail_stream.o: ../include/binattr.h
 mail_stream.o: ../include/stringops.h
 mail_stream.o: cleanup_user.h
 mail_stream.o: mail_proto.h
@@ -650,7 +632,6 @@ mail_trigger.o: mail_params.h
 mail_trigger.o: mail_proto.h
 mail_trigger.o: ../include/vstream.h
 mail_trigger.o: ../include/vbuf.h
-mail_trigger.o: ../include/binattr.h
 mail_version.o: mail_version.c
 maps.o: maps.c
 maps.o: ../include/sys_defs.h
@@ -660,7 +641,6 @@ maps.o: ../include/msg.h
 maps.o: ../include/dict.h
 maps.o: ../include/vstream.h
 maps.o: ../include/vbuf.h
-maps.o: ../include/binattr.h
 maps.o: ../include/stringops.h
 maps.o: ../include/vstring.h
 maps.o: ../include/split_at.h
@@ -671,7 +651,6 @@ mark_corrupt.o: ../include/sys_defs.h
 mark_corrupt.o: ../include/msg.h
 mark_corrupt.o: ../include/vstream.h
 mark_corrupt.o: ../include/vbuf.h
-mark_corrupt.o: ../include/binattr.h
 mark_corrupt.o: mail_queue.h
 mark_corrupt.o: ../include/vstring.h
 mark_corrupt.o: mark_corrupt.h
@@ -684,7 +663,6 @@ mkmap_db.o: ../include/vstring.h
 mkmap_db.o: ../include/vbuf.h
 mkmap_db.o: ../include/dict.h
 mkmap_db.o: ../include/vstream.h
-mkmap_db.o: ../include/binattr.h
 mkmap_db.o: ../include/argv.h
 mkmap_db.o: ../include/dict_db.h
 mkmap_db.o: mkmap.h
@@ -697,7 +675,6 @@ mkmap_dbm.o: ../include/vstring.h
 mkmap_dbm.o: ../include/vbuf.h
 mkmap_dbm.o: ../include/dict.h
 mkmap_dbm.o: ../include/vstream.h
-mkmap_dbm.o: ../include/binattr.h
 mkmap_dbm.o: ../include/argv.h
 mkmap_dbm.o: ../include/dict_dbm.h
 mkmap_dbm.o: mkmap.h
@@ -707,7 +684,6 @@ mkmap_open.o: ../include/msg.h
 mkmap_open.o: ../include/dict.h
 mkmap_open.o: ../include/vstream.h
 mkmap_open.o: ../include/vbuf.h
-mkmap_open.o: ../include/binattr.h
 mkmap_open.o: ../include/argv.h
 mkmap_open.o: ../include/sigdelay.h
 mkmap_open.o: ../include/mymalloc.h
@@ -767,7 +743,6 @@ pipe_command.o: ../include/sys_defs.h
 pipe_command.o: ../include/msg.h
 pipe_command.o: ../include/vstream.h
 pipe_command.o: ../include/vbuf.h
-pipe_command.o: ../include/binattr.h
 pipe_command.o: ../include/vstring.h
 pipe_command.o: ../include/stringops.h
 pipe_command.o: ../include/iostuff.h
@@ -785,7 +760,6 @@ post_mail.o: ../include/sys_defs.h
 post_mail.o: ../include/msg.h
 post_mail.o: ../include/vstream.h
 post_mail.o: ../include/vbuf.h
-post_mail.o: ../include/binattr.h
 post_mail.o: ../include/vstring.h
 post_mail.o: mail_params.h
 post_mail.o: record.h
@@ -795,6 +769,11 @@ post_mail.o: ../include/iostuff.h
 post_mail.o: cleanup_user.h
 post_mail.o: post_mail.h
 post_mail.o: mail_date.h
+quote_821_local.o: quote_821_local.c
+quote_821_local.o: ../include/sys_defs.h
+quote_821_local.o: ../include/vstring.h
+quote_821_local.o: ../include/vbuf.h
+quote_821_local.o: quote_821_local.h
 quote_822_local.o: quote_822_local.c
 quote_822_local.o: ../include/sys_defs.h
 quote_822_local.o: ../include/vstring.h
@@ -805,7 +784,6 @@ rec2stream.o: ../include/sys_defs.h
 rec2stream.o: ../include/vstring.h
 rec2stream.o: ../include/vbuf.h
 rec2stream.o: ../include/vstream.h
-rec2stream.o: ../include/binattr.h
 rec2stream.o: record.h
 rec2stream.o: rec_streamlf.h
 rec2stream.o: rec_type.h
@@ -814,7 +792,6 @@ rec_streamlf.o: ../include/sys_defs.h
 rec_streamlf.o: ../include/vstring.h
 rec_streamlf.o: ../include/vbuf.h
 rec_streamlf.o: ../include/vstream.h
-rec_streamlf.o: ../include/binattr.h
 rec_streamlf.o: record.h
 rec_streamlf.o: rec_type.h
 rec_streamlf.o: rec_streamlf.h
@@ -825,7 +802,6 @@ recdump.o: ../include/sys_defs.h
 recdump.o: ../include/msg_vstream.h
 recdump.o: ../include/vstream.h
 recdump.o: ../include/vbuf.h
-recdump.o: ../include/binattr.h
 recdump.o: record.h
 recdump.o: ../include/vstring.h
 recdump.o: rec_streamlf.h
@@ -839,7 +815,6 @@ record.o: ../include/msg.h
 record.o: ../include/mymalloc.h
 record.o: ../include/vstream.h
 record.o: ../include/vbuf.h
-record.o: ../include/binattr.h
 record.o: ../include/vstring.h
 record.o: record.h
 remove.o: remove.c
@@ -852,7 +827,6 @@ resolve_clnt.o: ../include/sys_defs.h
 resolve_clnt.o: ../include/msg.h
 resolve_clnt.o: ../include/vstream.h
 resolve_clnt.o: ../include/vbuf.h
-resolve_clnt.o: ../include/binattr.h
 resolve_clnt.o: ../include/vstring.h
 resolve_clnt.o: ../include/vstring_vstream.h
 resolve_clnt.o: ../include/events.h
@@ -875,7 +849,6 @@ rewrite_clnt.o: ../include/msg.h
 rewrite_clnt.o: ../include/vstring.h
 rewrite_clnt.o: ../include/vbuf.h
 rewrite_clnt.o: ../include/vstream.h
-rewrite_clnt.o: ../include/binattr.h
 rewrite_clnt.o: ../include/vstring_vstream.h
 rewrite_clnt.o: ../include/events.h
 rewrite_clnt.o: ../include/iostuff.h
@@ -895,7 +868,6 @@ smtp_stream.o: ../include/sys_defs.h
 smtp_stream.o: ../include/vstring.h
 smtp_stream.o: ../include/vbuf.h
 smtp_stream.o: ../include/vstream.h
-smtp_stream.o: ../include/binattr.h
 smtp_stream.o: ../include/vstring_vstream.h
 smtp_stream.o: ../include/msg.h
 smtp_stream.o: ../include/iostuff.h
@@ -910,7 +882,6 @@ stream2rec.o: stream2rec.c
 stream2rec.o: ../include/sys_defs.h
 stream2rec.o: ../include/vstream.h
 stream2rec.o: ../include/vbuf.h
-stream2rec.o: ../include/binattr.h
 stream2rec.o: ../include/vstring.h
 stream2rec.o: record.h
 stream2rec.o: rec_streamlf.h
@@ -929,7 +900,6 @@ timed_ipc.o: ../include/sys_defs.h
 timed_ipc.o: ../include/msg.h
 timed_ipc.o: ../include/vstream.h
 timed_ipc.o: ../include/vbuf.h
-timed_ipc.o: ../include/binattr.h
 timed_ipc.o: mail_params.h
 timed_ipc.o: timed_ipc.h
 tok822_find.o: tok822_find.c

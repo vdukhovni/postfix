@@ -22,7 +22,6 @@
   * Utility library.
   */
 #include <vbuf.h>
-#include <binattr.h>
 
  /*
   * Simple buffered stream. The members of this structure are not part of the

@@ -59,7 +59,6 @@ postkick.o: ../include/msg.h
 postkick.o: ../include/mymalloc.h
 postkick.o: ../include/vstream.h
 postkick.o: ../include/vbuf.h
-postkick.o: ../include/binattr.h
 postkick.o: ../include/msg_vstream.h
 postkick.o: ../include/safe.h
 postkick.o: ../include/mail_proto.h

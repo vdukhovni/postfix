@@ -590,11 +590,11 @@ extern int var_smtp_data2_tmout;
 extern int var_smtp_quit_tmout;
 
 #define VAR_SMTP_SKIP_4XX	"smtp_skip_4xx_greeting"
-#define DEF_SMTP_SKIP_4XX	0
+#define DEF_SMTP_SKIP_4XX	1
 extern bool var_smtp_skip_4xx_greeting;
 
 #define VAR_SMTP_SKIP_5XX	"smtp_skip_5xx_greeting"
-#define DEF_SMTP_SKIP_5XX	0
+#define DEF_SMTP_SKIP_5XX	1
 extern bool var_smtp_skip_5xx_greeting;
 
 #define VAR_IGN_MX_LOOKUP_ERR	"ignore_mx_lookup_error"

@@ -3,12 +3,13 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 
 Do not use this code.  The Postfix SASL support is based on the
 Cyrus SASL library, which has not enough documentation about how
-the software is supposed to work.
+the software is supposed to work, and it is not clear if the code
+is safe enough for security-critical applications.
 
 Postfix+SASL 1.5.5 appears to work on RedHat 6.1 (pwcheck_method
-of shadow or sasldb), Solaris 2.7 (pwcheck_method of shadow or
-sasldb), and FreeBSD 3.4 (pwcheck_method of sasldb).  On RedHat
-6.1, SASL 1.5.5 needed write access to the sasldb file.
+set to shadow or sasldb), Solaris 2.7 (pwcheck_method set to shadow
+or sasldb), and FreeBSD 3.4 (pwcheck_method set to sasldb).  On
+RedHat 6.1, SASL 1.5.5 insisted on write access to /etc/sasldb.
 
 SASL is a lot of complex code. In a future version the Postfix SASL
 code is likely to be put outside the SMTP server.
@@ -52,12 +53,14 @@ and that the Cyrus SASL libraries are in /usr/local/lib.
 
 On some systems this generates the necessary Makefile definitions:
 
+    % make tidy # if you have left-over files from a previus build
     % make makefiles CCARGS=-DUSE_SASL_AUTH" -I/usr/local/include" \
 	AUXLIBS="-L/usr/local/lib -lsasl"
 
 On Solaris 2.x you need to specify run-time link information,
 otherwise ld.so will not find the SASL shared library:
 
+    % make tidy # if you have left-over files from a previus build
     % make makefiles CCARGS=-DUSE_SASL_AUTH" -I/usr/local/include" \
 	AUXLIBS="-L/usr/local/lib -R/usr/local/lib -lsasl"
 

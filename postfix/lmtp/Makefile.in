@@ -1,8 +1,8 @@
 SHELL	= /bin/sh
-SRCS	= lmtp.c quote_821_local.c lmtp_connect.c lmtp_proto.c lmtp_chat.c \
-	lmtp_session.c lmtp_addr.c lmtp_trouble.c lmtp_state.c
-OBJS	= lmtp.o quote_821_local.o lmtp_connect.o lmtp_proto.o lmtp_chat.o \
-	lmtp_session.o lmtp_addr.o lmtp_trouble.o lmtp_state.o
+SRCS	= lmtp.c lmtp_connect.c lmtp_proto.c lmtp_chat.c lmtp_session.c \
+	lmtp_addr.c lmtp_trouble.c lmtp_state.c
+OBJS	= lmtp.o lmtp_connect.o lmtp_proto.o lmtp_chat.o lmtp_session.o \
+	lmtp_addr.o lmtp_trouble.o lmtp_state.o
 HDRS	= lmtp.h
 TESTSRC	= 
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -21,7 +21,7 @@ $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 Makefile: Makefile.in
-	(set -e; echo "# DO NOT EDIT"; $(OPTS) sh ../makedefs; cat $?) >$@
+	(set -e; echo "# DO NOT EDIT"; $(OPTS) $(SHELL) ../makedefs; cat $?) >$@
 
 test:	$(TESTPROG)
 
@@ -64,7 +64,6 @@ lmtp.o: ../include/sys_defs.h
 lmtp.o: ../include/dict.h
 lmtp.o: ../include/vstream.h
 lmtp.o: ../include/vbuf.h
-lmtp.o: ../include/binattr.h
 lmtp.o: ../include/argv.h
 lmtp.o: ../include/msg.h
 lmtp.o: ../include/mymalloc.h
@@ -93,7 +92,6 @@ lmtp_addr.o: ../include/own_inet_addr.h
 lmtp_addr.o: ../include/dns.h
 lmtp_addr.o: lmtp.h
 lmtp_addr.o: ../include/vstream.h
-lmtp_addr.o: ../include/binattr.h
 lmtp_addr.o: ../include/argv.h
 lmtp_addr.o: ../include/deliver_request.h
 lmtp_addr.o: ../include/recipient_list.h
@@ -104,7 +102,6 @@ lmtp_chat.o: ../include/msg.h
 lmtp_chat.o: ../include/vstring.h
 lmtp_chat.o: ../include/vbuf.h
 lmtp_chat.o: ../include/vstream.h
-lmtp_chat.o: ../include/binattr.h
 lmtp_chat.o: ../include/argv.h
 lmtp_chat.o: ../include/stringops.h
 lmtp_chat.o: ../include/line_wrap.h
@@ -122,7 +119,6 @@ lmtp_connect.o: ../include/sys_defs.h
 lmtp_connect.o: ../include/msg.h
 lmtp_connect.o: ../include/vstream.h
 lmtp_connect.o: ../include/vbuf.h
-lmtp_connect.o: ../include/binattr.h
 lmtp_connect.o: ../include/vstring.h
 lmtp_connect.o: ../include/split_at.h
 lmtp_connect.o: ../include/mymalloc.h
@@ -143,7 +139,6 @@ lmtp_proto.o: ../include/msg.h
 lmtp_proto.o: ../include/vstring.h
 lmtp_proto.o: ../include/vbuf.h
 lmtp_proto.o: ../include/vstream.h
-lmtp_proto.o: ../include/binattr.h
 lmtp_proto.o: ../include/vstring_vstream.h
 lmtp_proto.o: ../include/stringops.h
 lmtp_proto.o: ../include/mymalloc.h
@@ -162,16 +157,16 @@ lmtp_proto.o: ../include/off_cvt.h
 lmtp_proto.o: ../include/mark_corrupt.h
 lmtp_proto.o: lmtp.h
 lmtp_proto.o: ../include/argv.h
-lmtp_proto.o: quote_821_local.h
+lmtp_proto.o: ../include/quote_821_local.h
 lmtp_session.o: lmtp_session.c
 lmtp_session.o: ../include/sys_defs.h
 lmtp_session.o: ../include/mymalloc.h
 lmtp_session.o: ../include/vstream.h
 lmtp_session.o: ../include/vbuf.h
-lmtp_session.o: ../include/binattr.h
+lmtp_session.o: ../include/stringops.h
+lmtp_session.o: ../include/vstring.h
 lmtp_session.o: ../include/debug_peer.h
 lmtp_session.o: lmtp.h
-lmtp_session.o: ../include/vstring.h
 lmtp_session.o: ../include/argv.h
 lmtp_session.o: ../include/deliver_request.h
 lmtp_session.o: ../include/recipient_list.h
@@ -181,7 +176,6 @@ lmtp_state.o: ../include/mymalloc.h
 lmtp_state.o: ../include/vstring.h
 lmtp_state.o: ../include/vbuf.h
 lmtp_state.o: ../include/vstream.h
-lmtp_state.o: ../include/binattr.h
 lmtp_state.o: ../include/config.h
 lmtp_state.o: ../include/mail_conf.h
 lmtp_state.o: lmtp.h
@@ -197,7 +191,6 @@ lmtp_trouble.o: ../include/stringops.h
 lmtp_trouble.o: ../include/mymalloc.h
 lmtp_trouble.o: ../include/smtp_stream.h
 lmtp_trouble.o: ../include/vstream.h
-lmtp_trouble.o: ../include/binattr.h
 lmtp_trouble.o: ../include/deliver_request.h
 lmtp_trouble.o: ../include/recipient_list.h
 lmtp_trouble.o: ../include/deliver_completed.h
@@ -207,8 +200,3 @@ lmtp_trouble.o: ../include/mail_error.h
 lmtp_trouble.o: ../include/name_mask.h
 lmtp_trouble.o: lmtp.h
 lmtp_trouble.o: ../include/argv.h
-quote_821_local.o: quote_821_local.c
-quote_821_local.o: ../include/sys_defs.h
-quote_821_local.o: ../include/vstring.h
-quote_821_local.o: ../include/vbuf.h
-quote_821_local.o: quote_821_local.h

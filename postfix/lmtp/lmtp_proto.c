@@ -32,7 +32,8 @@
 /*
 /*	lmtp_rset() sends a lone RSET command and waits for the response.
 /*
-/*	lmtp_quit() sends a lone QUIT command and waits for the response.
+/*	lmtp_quit() sends a lone QUIT command and waits for the response
+/*	only if waiting for QUIT replies is enabled.
 /* DIAGNOSTICS
 /*	lmtp_lhlo(), lmtp_xfer(), lmtp_rset() and lmtp_quit() return 0 in
 /*	case of success, -1 in case of failure. For lmtp_xfer(), lmtp_rset()
@@ -258,7 +259,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
 
 /* lmtp_loop - the LMTP state machine */
 
-static int lmtp_loop(LMTP_STATE *state, int init_state)
+static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 {
     char   *myname = "lmtp_loop";
     DELIVER_REQUEST *request = state->request;
@@ -269,8 +270,6 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
     int    *survivors = 0;
     int     next_state;
     int     next_rcpt;
-    int     send_state;
-    int     recv_state;
     int     send_rcpt;
     int     recv_rcpt;
     int     nrcpt;
@@ -324,7 +323,6 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
      * LMTP dialog with RSET.
      */
     nrcpt = 0;
-    recv_state = send_state = init_state;
     next_rcpt = send_rcpt = recv_rcpt = recv_dot = 0;
     mail_from_rejected = 0;
     sndbuffree = state->sndbufsize;
@@ -545,7 +543,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		    if (++recv_dot >= nrcpt) {
 			if (msg_verbose)
 			    msg_info("%s: finished . command", myname);
-			recv_state = var_lmtp_cache_conn ?
+			recv_state = var_lmtp_skip_quit_resp || var_lmtp_cache_conn ?
 			    LMTP_STATE_LAST : LMTP_STATE_QUIT;
 		    }
 		    break;
@@ -554,7 +552,7 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 		     * Ignore the RSET response.
 		     */
 		case LMTP_STATE_ABORT:
-		    recv_state = var_lmtp_cache_conn ?
+		    recv_state = var_lmtp_skip_quit_resp || var_lmtp_cache_conn ?
 			LMTP_STATE_LAST : LMTP_STATE_QUIT;
 		    break;
 
@@ -662,19 +660,20 @@ static int lmtp_loop(LMTP_STATE *state, int init_state)
 
 int     lmtp_xfer(LMTP_STATE *state)
 {
-    return (lmtp_loop(state, LMTP_STATE_MAIL));
+    return (lmtp_loop(state, LMTP_STATE_MAIL, LMTP_STATE_MAIL));
 }
 
-/* lmtp_rset - send a lone RSET command */
+/* lmtp_rset - send a lone RSET command and wait for response */
 
 int     lmtp_rset(LMTP_STATE *state)
 {
-    return (lmtp_loop(state, LMTP_STATE_RSET));
+    return (lmtp_loop(state, LMTP_STATE_RSET, LMTP_STATE_RSET));
 }
 
 /* lmtp_quit - send a lone QUIT command */
 
 int     lmtp_quit(LMTP_STATE *state)
 {
-    return (lmtp_loop(state, LMTP_STATE_QUIT));
+    return (lmtp_loop(state, LMTP_STATE_QUIT, var_lmtp_skip_quit_resp ?
+		      LMTP_STATE_LAST : LMTP_STATE_QUIT));
 }

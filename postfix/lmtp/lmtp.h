@@ -38,7 +38,6 @@ typedef struct LMTP_STATE {
     int     sndbufsize;			/* total window size */
     int     sndbuffree;			/* remaining window */
     int     reuse;			/* connection being reused */
-    char   *fixed_dest;			/* fixed remote server */
 } LMTP_STATE;
 
 #define LMTP_FEATURE_ESMTP	(1<<0)

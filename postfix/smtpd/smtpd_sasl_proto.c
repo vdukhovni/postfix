@@ -194,13 +194,15 @@ char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
 void    smtpd_sasl_mail_log(SMTPD_STATE *state)
 {
 #define IFELSE(e1,e2,e3) ((e1) ? (e2) : (e3))
-#define LOG_IFSET(text,var) IFELSE((var),(text),""), IFELSE((var),(var),"")
 
-    msg_info("%s: client=%s[%s]%s%s%s%s",
+    msg_info("%s: client=%s[%s]%s%s%s%s%s%s",
 	     state->queue_id, state->name, state->addr,
-	     LOG_IFSET(", sasl_method=", state->sasl_method),
-	     LOG_IFSET(", sasl_username=", state->sasl_username),
-	     LOG_IFSET(", sasl_sender=", state->sasl_sender));
+	     IFELSE(state->sasl_method, ", sasl_method=", ""),
+	     IFELSE(state->sasl_method, state->sasl_method, ""),
+	     IFELSE(state->sasl_username, ", sasl_username=", ""),
+	     IFELSE(state->sasl_username, state->sasl_username, ""),
+	     IFELSE(state->sasl_sender, ", sasl_sender=", ""),
+	     IFELSE(state->sasl_sender, state->sasl_sender, ""));
 }
 
 /* smtpd_sasl_mail_reset - SASL-specific MAIL FROM cleanup */

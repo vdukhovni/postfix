@@ -21,7 +21,7 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	write_buf.c write_wait.c dict_unix.c dict_pcre.c stream_listen.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
-	sane_link.c unescape.c timed_read.c timed_write.c binattr.c 
+	sane_link.c unescape.c timed_read.c timed_write.c 
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -44,7 +44,7 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	write_buf.o write_wait.o dict_unix.o dict_pcre.o stream_listen.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
-	sane_link.o unescape.o timed_read.o timed_write.o binattr.o 
+	sane_link.o unescape.o timed_read.o timed_write.o 
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -59,7 +59,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	timed_connect.h timed_wait.h trigger.h username.h valid_hostname.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
-	watchdog.h spawn_command.h sane_fsops.h binattr.h
+	watchdog.h spawn_command.h sane_fsops.h 
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -315,11 +315,6 @@ basename.o: sys_defs.h
 basename.o: stringops.h
 basename.o: vstring.h
 basename.o: vbuf.h
-binattr.o: binattr.c
-binattr.o: sys_defs.h
-binattr.o: mymalloc.h
-binattr.o: htable.h
-binattr.o: binattr.h
 binhash.o: binhash.c
 binhash.o: sys_defs.h
 binhash.o: mymalloc.h
@@ -350,7 +345,6 @@ dict.o: htable.h
 dict.o: mymalloc.h
 dict.o: vstream.h
 dict.o: vbuf.h
-dict.o: binattr.h
 dict.o: vstring.h
 dict.o: readlline.h
 dict.o: mac_parse.h
@@ -368,7 +362,6 @@ dict_db.o: iostuff.h
 dict_db.o: myflock.h
 dict_db.o: dict.h
 dict_db.o: vstream.h
-dict_db.o: binattr.h
 dict_db.o: argv.h
 dict_db.o: dict_db.h
 dict_dbm.o: dict_dbm.c
@@ -381,7 +374,6 @@ dict_env.o: safe.h
 dict_env.o: dict.h
 dict_env.o: vstream.h
 dict_env.o: vbuf.h
-dict_env.o: binattr.h
 dict_env.o: argv.h
 dict_env.o: dict_env.h
 dict_ht.o: dict_ht.c
@@ -391,7 +383,6 @@ dict_ht.o: htable.h
 dict_ht.o: dict.h
 dict_ht.o: vstream.h
 dict_ht.o: vbuf.h
-dict_ht.o: binattr.h
 dict_ht.o: argv.h
 dict_ht.o: dict_ht.h
 dict_ldap.o: dict_ldap.c
@@ -408,7 +399,6 @@ dict_nis.o: vstring.h
 dict_nis.o: vbuf.h
 dict_nis.o: dict.h
 dict_nis.o: vstream.h
-dict_nis.o: binattr.h
 dict_nis.o: argv.h
 dict_nis.o: dict_nis.h
 dict_nisplus.o: dict_nisplus.c
@@ -419,7 +409,6 @@ dict_nisplus.o: htable.h
 dict_nisplus.o: dict.h
 dict_nisplus.o: vstream.h
 dict_nisplus.o: vbuf.h
-dict_nisplus.o: binattr.h
 dict_nisplus.o: argv.h
 dict_nisplus.o: dict_nisplus.h
 dict_open.o: dict_open.c
@@ -430,7 +419,6 @@ dict_open.o: msg.h
 dict_open.o: dict.h
 dict_open.o: vstream.h
 dict_open.o: vbuf.h
-dict_open.o: binattr.h
 dict_open.o: dict_env.h
 dict_open.o: dict_unix.h
 dict_open.o: dict_dbm.h
@@ -455,7 +443,6 @@ dict_regexp.o: msg.h
 dict_regexp.o: safe.h
 dict_regexp.o: vstream.h
 dict_regexp.o: vbuf.h
-dict_regexp.o: binattr.h
 dict_regexp.o: vstring.h
 dict_regexp.o: stringops.h
 dict_regexp.o: readlline.h
@@ -471,7 +458,6 @@ dict_unix.o: vstring.h
 dict_unix.o: vbuf.h
 dict_unix.o: dict.h
 dict_unix.o: vstream.h
-dict_unix.o: binattr.h
 dict_unix.o: argv.h
 dict_unix.o: dict_unix.h
 dir_forest.o: dir_forest.c
@@ -638,7 +624,6 @@ match_list.o: mymalloc.h
 match_list.o: vstring.h
 match_list.o: vbuf.h
 match_list.o: vstream.h
-match_list.o: binattr.h
 match_list.o: vstring_vstream.h
 match_list.o: stringops.h
 match_list.o: argv.h
@@ -652,7 +637,6 @@ match_ops.o: split_at.h
 match_ops.o: dict.h
 match_ops.o: vstream.h
 match_ops.o: vbuf.h
-match_ops.o: binattr.h
 match_ops.o: argv.h
 match_ops.o: match_ops.h
 match_ops.o: stringops.h
@@ -667,7 +651,6 @@ msg_output.o: mymalloc.h
 msg_output.o: vstring.h
 msg_output.o: vbuf.h
 msg_output.o: vstream.h
-msg_output.o: binattr.h
 msg_output.o: msg_vstream.h
 msg_output.o: stringops.h
 msg_output.o: percentm.h
@@ -684,7 +667,6 @@ msg_vstream.o: msg_vstream.c
 msg_vstream.o: sys_defs.h
 msg_vstream.o: vstream.h
 msg_vstream.o: vbuf.h
-msg_vstream.o: binattr.h
 msg_vstream.o: msg.h
 msg_vstream.o: msg_output.h
 msg_vstream.o: msg_vstream.h
@@ -730,7 +712,6 @@ open_lock.o: sys_defs.h
 open_lock.o: msg.h
 open_lock.o: vstream.h
 open_lock.o: vbuf.h
-open_lock.o: binattr.h
 open_lock.o: vstring.h
 open_lock.o: safe_open.h
 open_lock.o: myflock.h
@@ -763,7 +744,6 @@ readlline.o: readlline.c
 readlline.o: sys_defs.h
 readlline.o: vstream.h
 readlline.o: vbuf.h
-readlline.o: binattr.h
 readlline.o: vstring.h
 readlline.o: readlline.h
 ring.o: ring.c
@@ -776,7 +756,6 @@ safe_open.o: sys_defs.h
 safe_open.o: msg.h
 safe_open.o: vstream.h
 safe_open.o: vbuf.h
-safe_open.o: binattr.h
 safe_open.o: vstring.h
 safe_open.o: safe_open.h
 sane_accept.o: sane_accept.c
@@ -803,7 +782,6 @@ select_bug.o: sys_defs.h
 select_bug.o: msg.h
 select_bug.o: vstream.h
 select_bug.o: vbuf.h
-select_bug.o: binattr.h
 select_bug.o: msg_vstream.h
 set_eugid.o: set_eugid.c
 set_eugid.o: sys_defs.h
@@ -858,7 +836,6 @@ stream_test.o: msg.h
 stream_test.o: msg_vstream.h
 stream_test.o: vstream.h
 stream_test.o: vbuf.h
-stream_test.o: binattr.h
 stream_test.o: listen.h
 stream_test.o: connect.h
 stream_trigger.o: stream_trigger.c
@@ -950,14 +927,12 @@ vstream.o: vbuf.h
 vstream.o: iostuff.h
 vstream.o: vstring.h
 vstream.o: vstream.h
-vstream.o: binattr.h
 vstream_popen.o: vstream_popen.c
 vstream_popen.o: sys_defs.h
 vstream_popen.o: msg.h
 vstream_popen.o: exec_command.h
 vstream_popen.o: vstream.h
 vstream_popen.o: vbuf.h
-vstream_popen.o: binattr.h
 vstream_popen.o: argv.h
 vstream_popen.o: set_ugid.h
 vstream_popen.o: clean_env.h
@@ -975,7 +950,6 @@ vstring_vstream.o: msg.h
 vstring_vstream.o: vstring.h
 vstring_vstream.o: vbuf.h
 vstring_vstream.o: vstream.h
-vstring_vstream.o: binattr.h
 vstring_vstream.o: vstring_vstream.h
 watchdog.o: watchdog.c
 watchdog.o: sys_defs.h

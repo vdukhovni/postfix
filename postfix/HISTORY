@@ -3795,11 +3795,6 @@ Apologies for any names omitted.
 	Problem report by Michael Ju. Tokarev @ tls.msk.ru.  Files:
 	global/mail_params.h, smtpd/smtpd.c.
 
-20000407
-
-	Multi-platform build support: use the makelinks shell script
-	to build a shadow tree with symlinks to the source files.
-
 20000413
 
 	Portability: more MacOS X patches by Gerben Wierda.
@@ -3857,24 +3852,28 @@ Apologies for any names omitted.
 
 20000502
 
-	In order to support timeouts with SSL more conveniently,
-	VSTREAMs now have built into them the concept of timeout.
-	Instead of calling read() and write(), the low-level VSTREAM
-	interface now uses timed_read() and timed_write() which
-	have an additional timeout parameter; vstream_ctl(stream,
-	VSTREAM_CTL_TIMEOUT) sets the timeout deadline on a stream,
-	and vstream_ftimeout(stream) queries a stream for timeout
-	errors.  This change simplified timeout handling considerably.
-	Files: util/vbuf.h, util/vstrean.[hc], global/smtp_stream.c,
-	global/timed_ipc.c.
+	In order to support timeouts more conveniently, VSTREAMs
+	now have built into them the concept of timeout.  Instead
+	of calling read() and write(), the low-level VSTREAM
+	interface now by default uses timed_read() and timed_write()
+	which receive a timeout parameter; vstream_ctl(stream,
+	VSTREAM_CTL_TIMEOUT...) sets the timeout deadline on a
+	stream, and vstream_ftimeout(stream) queries a stream for
+	timeout errors.  This change simplified timeout handling
+	considerably.  Files: util/vbuf.h, util/vstrean.[hc],
+	global/smtp_stream.c, global/timed_ipc.c.
 
 20000504
 
-	In order to support application-specific state, VSTREAMs
-	now provide an optional open attribute list. An example is
-	the per-stream jump buffer that was needed in order to
-	clean up the smtp_stream module. Files:  util/vstream.[hc],
-	util/binattr.[hc].
+	Added application context to VSTREAMs, which is passed on
+	transparently to application-provided read/write routines.
+	vstream_ctl(stream, VSTREAM_CTL_CONTEXT...) sets the context.
+	Files:  util/vstream.[hc].
+
+	Added vstream_setjmp() and vstream_longjmp() support to
+	make exception handling more convenient. Turn on exception
+	handling with vstream_ctl(stream, VSTREAM_CTL_EXCEPT...).
+	Files:  util/vstream.[hc].
 
 	Cleaned up the smtp_stream module further and got rid of
 	the global state that limited the use of this module to
@@ -3882,6 +3881,13 @@ Apologies for any names omitted.
 
 20000505
 
-	Bugfix: flush output in-between tarpit delays, in case the
-	client causes many, many, errors. Found by Lamont Jones,
-	HP. File: smtpd/smtpd_chat.c.
+	Bugfix: the SMTP server now flushes output in-between tarpit
+	delays, to avoid protocol timeouts when a client causes lots
+	of errors. Found by Lamont Jones, HP. File:  smtpd/smtpd_chat.c.
+
+20000506
+
+	Convenience: the LMTP and SMTP clients now append the local
+	domain to unqualified nexthop destinations. This makes it
+	more convenient to set up transport maps. Files: 
+	lmtp/lmtp_addr.c, smtp/smtp_addr.c.

@@ -1,3 +1,5 @@
+# script to compare common code between smtp and lmtp
+
 sed '
 	s/SMTP/LMTP/g
 	s/smtp/lmtp/g

@@ -8,7 +8,7 @@ Postfix local delivery via LMTP
 .SH SYNOPSIS
 .na
 .nf
-\fBlmtp\fR [generic Postfix daemon options] [server attributes...]
+\fBlmtp\fR [generic Postfix daemon options]
 .SH DESCRIPTION
 .ad
 .fi
@@ -29,20 +29,6 @@ the TCP port defined as \fBlmtp\fR in \fBservices\fR(4).  If no such
 service is found, the \fBlmtp_tcp_port\fR configuration parameter
 (default value of 24) will be used. The LMTP client does not perform
 MX (mail exchanger) lookups since those are defined only for SMTP.
-.SH SERVER ATTRIBUTE SYNTAX
-.na
-.nf
-.ad
-.fi
-The server attributes are given in the \fBmaster.cf\fR file at
-the end of a service definition.  The syntax is as follows:
-.IP "\fBserver=\fR\fIhost\fR"
-.IP "\fBserver=\fR\fIhost\fR\fB:\fR\fIport\fR"
-.IP "\fBserver=[\fR\fIipaddr\fR\fB]\fR"
-.IP "\fBserver=[\fR\fIipaddr\fR\fB]:\fR\fIport\fR"
-Connect to the specified host or IP address and TCP port (default: the
-\fBlmtp\fR port as specified in the \fBservices\fR database).
-.PP
 .SH SECURITY
 .na
 .nf

@@ -60,7 +60,6 @@ pickup.o: ../include/scan_dir.h
 pickup.o: ../include/vstring.h
 pickup.o: ../include/vbuf.h
 pickup.o: ../include/vstream.h
-pickup.o: ../include/binattr.h
 pickup.o: ../include/open_as.h
 pickup.o: ../include/set_eugid.h
 pickup.o: ../include/mail_queue.h

@@ -100,7 +100,6 @@ smtpd.o: ../include/mymalloc.h
 smtpd.o: ../include/vstring.h
 smtpd.o: ../include/vbuf.h
 smtpd.o: ../include/vstream.h
-smtpd.o: ../include/binattr.h
 smtpd.o: ../include/vstring_vstream.h
 smtpd.o: ../include/stringops.h
 smtpd.o: ../include/events.h
@@ -139,7 +138,6 @@ smtpd_chat.o: ../include/argv.h
 smtpd_chat.o: ../include/vstring.h
 smtpd_chat.o: ../include/vbuf.h
 smtpd_chat.o: ../include/vstream.h
-smtpd_chat.o: ../include/binattr.h
 smtpd_chat.o: ../include/stringops.h
 smtpd_chat.o: ../include/line_wrap.h
 smtpd_chat.o: ../include/mymalloc.h
@@ -170,7 +168,6 @@ smtpd_check.o: ../include/argv.h
 smtpd_check.o: ../include/mymalloc.h
 smtpd_check.o: ../include/dict.h
 smtpd_check.o: ../include/vstream.h
-smtpd_check.o: ../include/binattr.h
 smtpd_check.o: ../include/htable.h
 smtpd_check.o: ../include/dns.h
 smtpd_check.o: ../include/namadr_list.h
@@ -198,7 +195,6 @@ smtpd_peer.o: ../include/vstring.h
 smtpd_peer.o: ../include/vbuf.h
 smtpd_peer.o: smtpd.h
 smtpd_peer.o: ../include/vstream.h
-smtpd_peer.o: ../include/binattr.h
 smtpd_peer.o: ../include/argv.h
 smtpd_peer.o: ../include/mail_stream.h
 smtpd_sasl_glue.o: smtpd_sasl_glue.c
@@ -212,7 +208,6 @@ smtpd_sasl_glue.o: ../include/smtp_stream.h
 smtpd_sasl_glue.o: ../include/vstring.h
 smtpd_sasl_glue.o: ../include/vbuf.h
 smtpd_sasl_glue.o: ../include/vstream.h
-smtpd_sasl_glue.o: ../include/binattr.h
 smtpd_sasl_glue.o: smtpd.h
 smtpd_sasl_glue.o: ../include/argv.h
 smtpd_sasl_glue.o: ../include/mail_stream.h
@@ -226,7 +221,6 @@ smtpd_sasl_proto.o: ../include/mail_params.h
 smtpd_sasl_proto.o: ../include/mail_proto.h
 smtpd_sasl_proto.o: ../include/vstream.h
 smtpd_sasl_proto.o: ../include/vbuf.h
-smtpd_sasl_proto.o: ../include/binattr.h
 smtpd_sasl_proto.o: ../include/iostuff.h
 smtpd_sasl_proto.o: ../include/mail_error.h
 smtpd_sasl_proto.o: ../include/name_mask.h
@@ -244,7 +238,6 @@ smtpd_state.o: ../include/events.h
 smtpd_state.o: ../include/mymalloc.h
 smtpd_state.o: ../include/vstream.h
 smtpd_state.o: ../include/vbuf.h
-smtpd_state.o: ../include/binattr.h
 smtpd_state.o: ../include/name_mask.h
 smtpd_state.o: ../include/msg.h
 smtpd_state.o: ../include/cleanup_user.h

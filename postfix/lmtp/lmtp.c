@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	Postfix local delivery via LMTP
 /* SYNOPSIS
-/*	\fBlmtp\fR [generic Postfix daemon options] [server attributes...]
+/*	\fBlmtp\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The LMTP client processes message delivery requests from
 /*	the queue manager. Each request specifies a queue file, a sender
@@ -23,18 +23,6 @@
 /*	service is found, the \fBlmtp_tcp_port\fR configuration parameter
 /*	(default value of 24) will be used. The LMTP client does not perform
 /* 	MX (mail exchanger) lookups since those are defined only for SMTP.
-/* SERVER ATTRIBUTE SYNTAX
-/* .ad
-/* .fi
-/*	The server attributes are given in the \fBmaster.cf\fR file at
-/*	the end of a service definition.  The syntax is as follows:
-/* .IP "\fBserver=\fR\fIhost\fR"
-/* .IP "\fBserver=\fR\fIhost\fR\fB:\fR\fIport\fR"
-/* .IP "\fBserver=[\fR\fIipaddr\fR\fB]\fR"
-/* .IP "\fBserver=[\fR\fIipaddr\fR\fB]:\fR\fIport\fR"
-/*	Connect to the specified host or IP address and TCP port (default: the
-/*	\fBlmtp\fR port as specified in the \fBservices\fR database).
-/* .PP
 /* SECURITY
 /* .ad
 /* .fi
@@ -258,43 +246,11 @@ char   *var_error_rcpt;
 int     lmtp_errno;
 static LMTP_STATE *state = 0;
 
-/* get_service_attr - get command-line attributes */
-
-static void get_service_attr(LMTP_STATE *state, char **argv)
-{
-    char   *myname = "get_service_attr";
-
-    /*
-     * Iterate over the command-line attribute list.
-     */
-    if (msg_verbose)
-	msg_info("%s: checking argv for lmtp server", myname);
-
-    for ( /* void */ ; *argv != 0; argv++) {
-
-	/*
-	 * Connect to a fixed LMTP server.
-	 */
-	if (strncasecmp("server=", *argv, sizeof("server=") - 1) == 0) {
-	    state->fixed_dest = *argv + sizeof("server=") - 1;
-	    if (state->fixed_dest[0] == 0)
-		msg_fatal("invalid destination: %s", *argv);
-	}
-
-	/*
-	 * Bad.
-	 */
-	else
-	    msg_fatal("unknown attribute name: %s", *argv);
-    }
-}
-
 /* deliver_message - deliver message with extreme prejudice */
 
 static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 {
     char   *myname = "deliver_message";
-    char   *destination;
     VSTRING *why;
     int     result;
 
@@ -321,7 +277,6 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
     why = vstring_alloc(100);
     state->request = request;
     state->src = request->fp;
-    destination = state->fixed_dest ? state->fixed_dest : request->nexthop;
 
     /*
      * See if we can reuse an existing connection.
@@ -330,9 +285,9 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 
 	/*
 	 * Disconnect if we're going to a different destination. Discard
-	 * transcript and status information from sending QUIT.
+	 * transcript and status information for sending QUIT.
 	 */
-	if (strcasecmp(state->session->dest, destination) != 0) {
+	if (strcasecmp(state->session->dest, request->nexthop) != 0) {
 	    lmtp_quit(state);
 	    lmtp_chat_reset(state);
 	    state->session = lmtp_session_free(state->session);
@@ -340,7 +295,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 
 	/*
 	 * Disconnect if RSET can't be sent over an existing connection.
-	 * Discard transcript and status information from sending RSET.
+	 * Discard transcript and status information for sending RSET.
 	 */
 	else if (lmtp_rset(state) != 0) {
 	    lmtp_chat_reset(state);
@@ -369,7 +324,7 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 	/*
 	 * Bounce or defer the recipients if no connection can be made.
 	 */
-	if ((state->session = lmtp_connect(destination, why)) == 0) {
+	if ((state->session = lmtp_connect(request->nexthop, why)) == 0) {
 	    lmtp_site_fail(state, lmtp_errno == LMTP_RETRY ? 450 : 550,
 			   "%s", vstring_str(why));
 	}
@@ -395,7 +350,8 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 	lmtp_xfer(state);
 
     /*
-     * Optionally, notify the postmaster of problems.
+     * Optionally, notify the postmaster of problems with establishing a
+     * session or with delivering mail.
      */
     if (state->history != 0
     && (state->error_mask & name_mask(mail_error_masks, var_notify_classes)))
@@ -403,9 +359,9 @@ static int deliver_message(DELIVER_REQUEST *request, char **unused_argv)
 
     /*
      * Disconnect if we're not cacheing connections. The pipelined protocol
-     * state machine knows to send QUIT as appropriate.
+     * state machine knows if it should have sent a QUIT command.
      */
-    if (!var_lmtp_cache_conn && state->session != 0)
+    if (state->session != 0 && !var_lmtp_cache_conn)
 	state->session = lmtp_session_free(state->session);
 
     /*
@@ -441,10 +397,9 @@ static void lmtp_service(VSTREAM *client_stream, char *unused_service, char **ar
 
 /* post_init - post-jail initialization */
 
-static void post_init(char *unused_name, char **argv)
+static void post_init(char *unused_name, char **unused_argv)
 {
     state = lmtp_state_alloc();
-    get_service_attr(state, argv);
 }
 
 /* pre_init - pre-jail initialization */

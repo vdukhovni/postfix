@@ -59,7 +59,6 @@ sendmail.o: ../include/msg.h
 sendmail.o: ../include/mymalloc.h
 sendmail.o: ../include/vstream.h
 sendmail.o: ../include/vbuf.h
-sendmail.o: ../include/binattr.h
 sendmail.o: ../include/vstring.h
 sendmail.o: ../include/msg_vstream.h
 sendmail.o: ../include/msg_syslog.h

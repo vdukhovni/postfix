@@ -69,7 +69,6 @@ postconf.o: ../include/sys_defs.h
 postconf.o: ../include/msg.h
 postconf.o: ../include/vstream.h
 postconf.o: ../include/vbuf.h
-postconf.o: ../include/binattr.h
 postconf.o: ../include/msg_vstream.h
 postconf.o: ../include/get_hostname.h
 postconf.o: ../include/stringops.h

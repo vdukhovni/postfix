@@ -1,3 +1,25 @@
+Incompatible changes with snapshot-20000506
+===========================================
+
+None.
+
+Major changes with snapshot-20000506
+====================================
+
+Preliminary LMTP client support with connection cacheing, currently
+only over TCP sockets.  Support for LMTP over UNIX-domain support
+will be added later. See the LMTP_README file for more details.
+
+Preliminary support for SASL authentication, both in the SMTP server
+and in the SMTP client. See the SASL_README file for more details.
+
+The pipe mailer now has a configurable end-of-line attribute.
+Specify, for example, "pipe ... eol=\r\n" for delivery mechanisms
+that require CRLF record delimiters.
+
+The manual pages in sample configuration files now show plain text
+without TROFF escape sequences.
+
 Incompatible changes with snapshot-20000309
 ===========================================
 

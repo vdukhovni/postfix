@@ -61,7 +61,6 @@ postfix.o: postfix.c
 postfix.o: ../include/sys_defs.h
 postfix.o: ../include/vstream.h
 postfix.o: ../include/vbuf.h
-postfix.o: ../include/binattr.h
 postfix.o: ../include/msg.h
 postfix.o: ../include/msg_vstream.h
 postfix.o: ../include/msg_syslog.h

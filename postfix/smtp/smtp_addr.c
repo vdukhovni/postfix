@@ -176,7 +176,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRI
     /*
      * Append the addresses for this host to the address list.
      */
-    switch (dns_lookup(host, T_A, 0, &addr, (VSTRING *) 0, why)) {
+    switch (dns_lookup(host, T_A, RES_DEFNAMES, &addr, (VSTRING *) 0, why)) {
     case DNS_OK:
 	for (rr = addr; rr; rr = rr->next)
 	    rr->pref = pref;
@@ -247,7 +247,7 @@ static DNS_RR *smtp_addr_fallback(DNS_RR *addr_list)
 	cp = saved_fallback_relay = mystrdup(var_fallback_relay);
 	for (pref = FB_PREF; (relay = mystrtok(&cp, " \t\r\n,")) != 0; pref++) {
 	    smtp_errno = 0;
-	    switch (dns_lookup(relay, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
+	    switch (dns_lookup(relay, T_MX, RES_DEFNAMES, &mx_names, (VSTRING *) 0, why)) {
 	    default:
 		smtp_errno = SMTP_RETRY;
 		break;

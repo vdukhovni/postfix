@@ -9,7 +9,7 @@ LMTP(8)                                                   LMTP(8)
        lmtp - Postfix local delivery via LMTP
 
 <b>SYNOPSIS</b>
-       <b>lmtp</b> [generic Postfix daemon options] [server attributes...]
+       <b>lmtp</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
        The  LMTP  client processes message delivery requests from
@@ -33,23 +33,6 @@ LMTP(8)                                                   LMTP(8)
        (mail  exchanger) lookups since those are defined only for
        SMTP.
 
-<b>SERVER</b> <b>ATTRIBUTE</b> <b>SYNTAX</b>
-       The server attributes are given in the <b>master.cf</b>  file  at
-       the  end  of  a service definition.  The syntax is as fol-
-       lows:
-
-       <b>server=</b><i>host</i>
-
-       <b>server=</b><i>host</i><b>:</b><i>port</i>
-
-       <b>server=[</b><i>ipaddr</i><b>]</b>
-
-       <b>server=[</b><i>ipaddr</i><b>]:</b><i>port</i>
-              Connect to the specified host or IP address and TCP
-              port  (default:  the  <b>lmtp</b> port as specified in the
-              <b>services</b> database).
-
-
 <b>SECURITY</b>
        The LMTP client is moderately security-sensitive. It talks
        to  LMTP  servers  and  to DNS servers on the network. The
@@ -59,18 +42,6 @@ LMTP(8)                                                   LMTP(8)
        <a href="http://www.faqs.org/rfcs/rfc821.html">RFC 821</a> (SMTP protocol)
        <a href="http://www.faqs.org/rfcs/rfc1651.html">RFC 1651</a> (SMTP service extensions)
        <a href="http://www.faqs.org/rfcs/rfc1870.html">RFC 1870</a> (Message Size Declaration)
-
-
-
-                                                                1
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
-
        <a href="http://www.faqs.org/rfcs/rfc2033.html">RFC 2033</a> (LMTP protocol)
        <a href="http://www.faqs.org/rfcs/rfc2197.html">RFC 2197</a> (Pipelining)
 
@@ -88,6 +59,18 @@ LMTP(8)                                                   LMTP(8)
        The  following  <b>main.cf</b> parameters are especially relevant
        to this program. See the Postfix <b>main.cf</b> file  for  syntax
        details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+
+
+
+                                                                1
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
+
        command after a configuration change.
 
 <b>Miscellaneous</b>
@@ -125,18 +108,6 @@ LMTP(8)                                                   LMTP(8)
               The  effectiveness  of  cached  connections will be
               determined by the number of LMTP  servers  in  use,
               and  the  concurrency  limit specified for the LMTP
-
-
-
-                                                                2
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
-
               client.  Cached connections are closed under any of
               the following conditions:
 
@@ -154,6 +125,18 @@ LMTP(8)                                                   LMTP(8)
 
               <b>o</b>      Upon  the onset of another delivery request,
                      the LMTP server associated with the  current
+
+
+
+                                                                2
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
+
                      session  does  not  respond to the <b>RSET</b> com-
                      mand.
 
@@ -192,17 +175,6 @@ LMTP(8)                                                   LMTP(8)
               LMTP server.  If no connection can be  made  within
               the deadline, the message is deferred.
 
-
-
-                                                                3
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
-
        <b>lmtp</b><i>_</i><b>lhlo</b><i>_</i><b>timeout</b>
               Timeout  in  seconds  for sending the <b>LHLO</b> command,
               and for receiving the server response.
@@ -218,6 +190,18 @@ LMTP(8)                                                   LMTP(8)
        <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>init</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending  the  <b>DATA</b>  command,
               and for receiving the server response.
+
+
+
+
+                                                                3
+
+
+
+
+
+LMTP(8)                                                   LMTP(8)
+
 
        <b>lmtp</b><i>_</i><b>data</b><i>_</i><b>xfer</b><i>_</i><b>timeout</b>
               Timeout in seconds for sending the message content.
@@ -257,18 +241,6 @@ LMTP(8)                                                   LMTP(8)
 
        Alterations for LMTP by:
        Philip A. Prindeville
-
-
-
-                                                                4
-
-
-
-
-
-LMTP(8)                                                   LMTP(8)
-
-
        Mirapoint, Inc.
        USA.
 
@@ -288,45 +260,7 @@ LMTP(8)                                                   LMTP(8)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                5
+                                                                4
 
 
 </pre> </body> </html>

@@ -561,7 +561,7 @@ static void tok822_print(TOK822 *list, int indent)
 	    vstream_printf("%*s %s\n", indent, "", "group \":\"");
 	} else {
 	    vstream_printf("%*s %s \"%s\"\n", indent, "",
-			   tp->type == TOK822_COMMENT_TEXT ? "comment text" :
+			   tp->type == TOK822_COMMENT_TEXT ? "text" :
 			   tp->type == TOK822_ATOM ? "atom" :
 			   tp->type == TOK822_QSTRING ? "quoted string" :
 			   tp->type == TOK822_DOMLIT ? "domain literal" :
@@ -597,6 +597,7 @@ int     main(int unused_argc, char **unused_argv)
     }
     vstring_free(vp);
     vstring_free(buf);
+    return (0);
 }
 
 #endif

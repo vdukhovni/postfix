@@ -78,7 +78,6 @@ LMTP_STATE *lmtp_state_alloc(void)
     state->sndbufsize = 0;
     state->sndbuffree = 0;
     state->reuse = 0;
-    state->fixed_dest = 0;
     return (state);
 }
 

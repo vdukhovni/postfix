@@ -62,7 +62,6 @@ bounce.o: ../include/msg.h
 bounce.o: ../include/vstring.h
 bounce.o: ../include/vbuf.h
 bounce.o: ../include/vstream.h
-bounce.o: ../include/binattr.h
 bounce.o: ../include/stringops.h
 bounce.o: ../include/mail_proto.h
 bounce.o: ../include/iostuff.h
@@ -78,7 +77,6 @@ bounce_append_service.o: ../include/msg.h
 bounce_append_service.o: ../include/vstring.h
 bounce_append_service.o: ../include/vbuf.h
 bounce_append_service.o: ../include/vstream.h
-bounce_append_service.o: ../include/binattr.h
 bounce_append_service.o: ../include/stringops.h
 bounce_append_service.o: ../include/mail_queue.h
 bounce_append_service.o: ../include/quote_822_local.h
@@ -92,7 +90,6 @@ bounce_cleanup.o: ../include/vstring.h
 bounce_cleanup.o: ../include/vbuf.h
 bounce_cleanup.o: ../include/mail_queue.h
 bounce_cleanup.o: ../include/vstream.h
-bounce_cleanup.o: ../include/binattr.h
 bounce_cleanup.o: bounce_service.h
 bounce_notify_service.o: bounce_notify_service.c
 bounce_notify_service.o: ../include/sys_defs.h
@@ -100,7 +97,6 @@ bounce_notify_service.o: ../include/msg.h
 bounce_notify_service.o: ../include/vstring.h
 bounce_notify_service.o: ../include/vbuf.h
 bounce_notify_service.o: ../include/vstream.h
-bounce_notify_service.o: ../include/binattr.h
 bounce_notify_service.o: ../include/vstring_vstream.h
 bounce_notify_service.o: ../include/mymalloc.h
 bounce_notify_service.o: ../include/stringops.h
@@ -129,7 +125,6 @@ bounce_recip_service.o: ../include/msg.h
 bounce_recip_service.o: ../include/vstring.h
 bounce_recip_service.o: ../include/vbuf.h
 bounce_recip_service.o: ../include/vstream.h
-bounce_recip_service.o: ../include/binattr.h
 bounce_recip_service.o: ../include/vstring_vstream.h
 bounce_recip_service.o: ../include/mymalloc.h
 bounce_recip_service.o: ../include/stringops.h

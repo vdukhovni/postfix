@@ -58,7 +58,6 @@ pipe.o: ../include/sys_defs.h
 pipe.o: ../include/msg.h
 pipe.o: ../include/vstream.h
 pipe.o: ../include/vbuf.h
-pipe.o: ../include/binattr.h
 pipe.o: ../include/vstring.h
 pipe.o: ../include/argv.h
 pipe.o: ../include/htable.h
