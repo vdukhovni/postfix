@@ -91,6 +91,7 @@ smtp_addr.o: ../../include/vbuf.h
 smtp_addr.o: ../../include/mymalloc.h
 smtp_addr.o: ../../include/inet_addr_list.h
 smtp_addr.o: ../../include/stringops.h
+smtp_addr.o: ../../include/myrand.h
 smtp_addr.o: ../../include/mail_params.h
 smtp_addr.o: ../../include/own_inet_addr.h
 smtp_addr.o: ../../include/dns.h

@@ -85,6 +85,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -230,8 +231,12 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 
     request->fp =
 	mail_queue_open(request->queue_name, request->queue_id, O_RDWR, 0);
-    if (request->fp == 0)
-	msg_fatal("open %s %s: %m", request->queue_name, request->queue_id);
+    if (request->fp == 0) {
+	if (errno != ENOENT)
+	    msg_fatal("open %s %s: %m", request->queue_name, request->queue_id);
+	msg_warn("open %s %s: %m", request->queue_name, request->queue_id);
+	return (-1);
+    }
     if (msg_verbose)
 	msg_info("%s: file %s", myname, VSTREAM_PATH(request->fp));
     if (myflock(vstream_fileno(request->fp), INTERNAL_LOCK, DELIVER_LOCK_MODE) < 0)

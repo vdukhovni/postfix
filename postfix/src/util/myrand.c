@@ -17,11 +17,14 @@
 /*	mysrand() performs initialization. This call may be skipped.
 /*
 /*	myrand() returns a pseudo-random number in the range [0, RAND_MAX].
-/*	If mysrand() was not called, it is invoked with the process ID.
+/*	If mysrand() was not called, it is invoked with the process ID
+/*	ex-or-ed with the time of day in seconds.
 /* LICENSE
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* WARNING
+/*	Do not use this code for generating unpredictable numbers.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
@@ -34,6 +37,7 @@
 #include <sys_defs.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 /* Utility library. */
 
@@ -54,6 +58,6 @@ void    mysrand(int seed)
 int     myrand(void)
 {
     if (myrand_initdone == 0)
-	mysrand(getpid());
+	mysrand(getpid() ^ time((time_t *) 0));
     return (rand());
 }

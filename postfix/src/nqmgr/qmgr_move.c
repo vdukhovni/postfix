@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <utime.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -73,12 +74,21 @@ void    qmgr_move(const char *src_queue, const char *dst_queue,
 	    if (time_stamp > 0) {
 		tbuf.actime = tbuf.modtime = time_stamp;
 		path = mail_queue_path((VSTRING *) 0, src_queue, queue_id);
-		if (utime(path, &tbuf) < 0)
-		    msg_fatal("%s: update %s time stamps: %m", myname, path);
+		if (utime(path, &tbuf) < 0) {
+		    if (errno != ENOENT)
+			msg_fatal("%s: update %s time stamps: %m", myname, path);
+		    msg_warn("%s: update %s time stamps: %m", myname, path);
+		    continue;
+		}
 	    }
-	    if (mail_queue_rename(queue_id, src_queue, dst_queue))
-		msg_fatal("%s: rename %s from %s to %s: %m",
-			  myname, queue_id, src_queue, dst_queue);
+	    if (mail_queue_rename(queue_id, src_queue, dst_queue)) {
+		if (errno != ENOENT)
+		    msg_fatal("%s: rename %s from %s to %s: %m",
+			      myname, queue_id, src_queue, dst_queue);
+		msg_warn("%s: rename %s from %s to %s: %m",
+			 myname, queue_id, src_queue, dst_queue);
+		continue;
+	    }
 	    if (msg_verbose)
 		msg_info("%s: moved %s from %s to %s",
 			 myname, queue_id, src_queue, dst_queue);

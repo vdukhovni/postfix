@@ -279,7 +279,9 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 			      "alias database unavailable") :
 	    deliver_token_string(state, usr_attr, expansion, &alias_count));
 #if 0
-	    if (state.msg_attr.owner == 0 && alias_count > 10)
+	    if (var_ownreq_special
+		&& strncmp("owner-", state.msg_attr.sender, 6) != 0 
+		&& alias_count > 10)
 		msg_warn("mailing list \"%s\" needs an \"owner-%s\" alias",
 			 name, name);
 #endif

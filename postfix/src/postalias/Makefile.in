@@ -65,6 +65,7 @@ postalias.o: ../../include/readlline.h
 postalias.o: ../../include/stringops.h
 postalias.o: ../../include/split_at.h
 postalias.o: ../../include/get_hostname.h
+postalias.o: ../../include/vstring_vstream.h
 postalias.o: ../../include/tok822.h
 postalias.o: ../../include/resolve_clnt.h
 postalias.o: ../../include/mail_conf.h

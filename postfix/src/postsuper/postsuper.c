@@ -5,7 +5,8 @@
 /*	Postfix super intendent
 /* SYNOPSIS
 /* .fi
-/*	\fBpostsuper\fR [\fB-p\fR] [\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
+/*	\fBpostsuper\fR [\fB-d \fIqueue_id\fR] [\fB-p\fR]
+/*		[\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
 /* DESCRIPTION
 /*	The \fBpostsuper\fR command does small maintenance jobs on the named
 /*	Postfix queue directories (default: all).
@@ -17,6 +18,17 @@
 /*	nor directories.  Use of this command is restricted to the super-user.
 /*
 /*	Options:
+/* .IP \fB-d \fIqueue_id\fR
+/*	Delete one message queue file with the named queue ID.  Specify
+/*	multiple \fB-d\fR options to delete multiple queue files by name.
+/* .sp
+/*	Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified, the
+/*	program reads queue IDs from standard input.
+/* .sp
+/*	This operation can be performed safely while the mail system is
+/*	running, although the queue manager may issue warnings when a
+/*	file suddenly disappears. The exit status is zero if at least one
+/*	of the named message queue files was found.
 /* .IP \fB-s\fR
 /*	Structure check.  Move queue files that are in the wrong place
 /*	in the file system hierarchy and remove subdirectories that are
@@ -76,6 +88,7 @@
 #include <safe.h>
 #include <set_ugid.h>
 #include <argv.h>
+#include <vstring_vstream.h>
 
 /* Global library. */
 
@@ -91,6 +104,7 @@
 
 #define ACTION_STRUCT	(1<<0)		/* fix file organization */
 #define ACTION_PURGE	(1<<1)		/* purge old temp files */
+#define ACTION_DELETE	(1<<2)		/* delete named queue file(s) */
 
 #define ACTION_DEFAULT	(ACTION_STRUCT | ACTION_PURGE)
 
@@ -120,6 +134,57 @@ static struct queue_info queue_info[] = {
     MAIL_QUEUE_FLUSH, 0600, RECURSE,
     0,
 };
+
+/* delete_one - delete one message instance and all its associated files */
+
+static int delete_one(const char *queue_id)
+{
+    const char *msg_queue_names[] = {
+	MAIL_QUEUE_INCOMING,		/* twice, to avoid */
+	MAIL_QUEUE_ACTIVE,		/* missing a file while */
+	MAIL_QUEUE_DEFERRED,		/* it is being renamed */
+	MAIL_QUEUE_INCOMING,		/* this is not 100% */
+	MAIL_QUEUE_ACTIVE,		/* foolproof but adequate */
+	MAIL_QUEUE_DEFERRED,
+	0,
+    };
+    const char **cpp;
+    VSTRING *msg_path = vstring_alloc(100);
+    int     found = 0;
+
+    /*
+     * Do not delete defer or bounce logfiles, because we could lose a race
+     * and delete a defer/bounce logfile from a message that reuses the queue
+     * ID.
+     */
+    for (cpp = msg_queue_names; *cpp != 0; cpp++) {
+	(void) mail_queue_path(msg_path, *cpp, queue_id);
+	if (unlink(STR(msg_path)) == 0) {
+	    found = 1;
+	    if (msg_verbose)
+		msg_info("removed file %s", STR(msg_path));
+	    break;
+	} else if (errno != ENOENT) {
+	    msg_warn("remove file %s: %m", STR(msg_path));
+	}
+    }
+    vstring_free(msg_path);
+    return (found);
+}
+
+/* delete_stream - delete queue IDs given on stream */
+
+static int delete_stream(VSTREAM *fp)
+{
+    VSTRING *buf = vstring_alloc(20);
+    int     found = 0;
+
+    while (vstring_get_nonl(buf, fp) != VSTREAM_EOF)
+	found |= delete_one(STR(buf));
+
+    vstring_free(buf);
+    return (found);
+}
 
 /* super - check queue file location and clean up */
 
@@ -286,6 +351,7 @@ int     main(int argc, char **argv)
     int     action = 0;
     char  **queues;
     int     c;
+    int     found = 0;
 
     /*
      * Defaults.
@@ -356,11 +422,18 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((c = GETOPT(argc, argv, "spv")) > 0) {
+    while ((c = GETOPT(argc, argv, "d:spv")) > 0) {
 	switch (c) {
 	default:
-	    msg_fatal("usage: %s [-s (fix structure)] [-p (purge stale files)]",
+	    msg_fatal("usage: %s [-d queue_id] [-p (purge stale files)] [-s (fix structure)]",
 		      argv[0]);
+	case 'd':
+	    if (strcmp(optarg, "-") == 0)
+		found |= delete_stream(VSTREAM_IN);
+	    else
+		found |= delete_one(optarg);
+	    action |= ACTION_DELETE;
+	    break;
 	case 's':
 	    action |= ACTION_STRUCT;
 	    break;
@@ -384,7 +457,8 @@ int     main(int argc, char **argv)
     else
 	queues = argv + optind;
 
-    super(queues, action);
+    if (action & ~ACTION_DELETE)
+	super(queues, action & ~ACTION_DELETE);
 
-    exit(0);
+    exit((action & ACTION_DELETE) ? !found : 0);
 }

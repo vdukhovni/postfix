@@ -24,8 +24,13 @@ typedef struct MASTER_SERV {
     int    *listen_fd;			/* incoming requests */
     int     listen_fd_count;		/* nr of descriptors */
     union {
-	struct INET_ADDR_LIST *inet;
-    } addr_list;
+	struct {
+	    char   *port;		/* inet listen port */
+	    struct INET_ADDR_LIST *addr;/* inet listen address */
+	} inet_ep;
+#define MASTER_INET_ADDRLIST(s)	((s)->endpoint.inet_ep.addr)
+#define MASTER_INET_PORT(s)	((s)->endpoint.inet_ep.port)
+    } endpoint;
     int     max_proc;			/* upper bound on # processes */
     char   *path;			/* command pathname */
     struct ARGV *args;			/* argument vector */

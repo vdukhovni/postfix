@@ -5050,11 +5050,11 @@ Apologies for any names omitted.
 
 20010411
 
-	Compatibility: the SMTP server now replies with 550 instead
-	of 503 when it receives the DATA command without having
-	received a valid recipient address. This is needed for the
-	Sendmail client-side pipelining implementation. Problem
-	reported by Lutz Jaenicke. File: smtpd/smtpd.c.
+	Bugfix: the SMTP server now replies with 550 instead of
+	503 when it receives the DATA command without having received
+	a valid recipient address. This is needed for the Sendmail
+	client-side pipelining implementation. Problem reported by
+	Lutz Jaenicke. File: smtpd/smtpd.c.
 
 	Cleanup: shut up if chattr fails on Reiserfs and other file
 	systems that do not support the respective attributes.
@@ -5080,9 +5080,10 @@ Apologies for any names omitted.
 
 20010426
 
-	Workaround: the SMTP server did not really parse invalid
-	addresses such as <first last <user@domain>> well.  I
-	thought this was taken care of years ago. File:  smtpd/smtpd.c.
+	Bugfix: the SMTP server did not parse invalid MAIL FROM or
+	RCPT TO addresses such as <first last <user@domain>> the
+	way it was supposed to do.  I thought this was taken care
+	of years ago. File:  smtpd/smtpd.c.
 
 20010427
 
@@ -5095,4 +5096,26 @@ Apologies for any names omitted.
 
 	Feature: the Postfix SMTP client now by default randomly
 	shuffles destination IP addresses of equal preference.
-	File: smtp/smtp_addr.c. Based on an idea by Aleph1.
+	Specify "smtp_randomize_addresses = no" to disable.
+	Shuffling code by Elias Levy @ SecurityFocus.com Files:
+	dns/dns_rr.c, smtp/smtp_addr.c.
+
+20010501
+
+	Bugfix: The SMTP server's 550 in reply to DATA should be
+	a 554 response.  And it wasn't Sendmail. Claus Assman.
+
+	Bugfix: the INSTALL.sh test for non-interactive upgrade
+	broke rooted installations that specify settings via the
+	environment.  Simon Mudd.
+
+	Bugfix: mailq output is now really flushed one message at
+	a time. File: sendmail/sendmail.c.
+
+	Feature: "postsuper -d queueID" deletes one message queue
+	file; "postsuper -d -" reads zero or more queue IDs from
+	standard input.  In order to make this operation usable
+	with a running Postfix mail system, some routines were made
+	more tolerant for sudden queue file disappearances.  Files:
+	postsuper/postsuper.c, global/deliver_request.c,
+	*qmgr/qmgr_move.c.

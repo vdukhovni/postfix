@@ -24,6 +24,10 @@
 /*	SMTPD_STATE *state;
 /*	char	*recipient;
 /*
+/*	char	*smtpd_check_rcptmap(state, recipient)
+/*	SMTPD_STATE *state;
+/*	char	*recipient;
+/*
 /*	char	*smtpd_check_etrn(state, destination)
 /*	SMTPD_STATE *state;
 /*	char	*destination;
@@ -171,6 +175,12 @@
 /* .IP smtpd_recipient_restrictions
 /*	Restrictions on the recipient address that is sent with the RCPT
 /*	TO command.
+/* .PP
+/*	smtpd_check_rcptmap() validates the recipient address provided
+/*	with an RCPT TO request. Relevant configuration parameters:
+/* .IP local_recipients_map
+/*	Tables of user names (not addresses) that exist in $mydestination.
+/*	Mail for local users not in these tables is rejected.
 /* .PP
 /*	smtpd_check_etrn() validates the domain name provided with the
 /*	ETRN command, and other client-provided information. Relevant

@@ -810,6 +810,7 @@ printable.o: vbuf.h
 rand_sleep.o: rand_sleep.c
 rand_sleep.o: sys_defs.h
 rand_sleep.o: msg.h
+rand_sleep.o: myrand.h
 rand_sleep.o: iostuff.h
 read_wait.o: read_wait.c
 read_wait.o: sys_defs.h

@@ -517,11 +517,9 @@ static void show_queue(void)
     signal(SIGPIPE, SIG_DFL);
     if ((showq = mail_connect(MAIL_CLASS_PUBLIC, MAIL_SERVICE_SHOWQ, BLOCKING)) != 0) {
 	while ((n = vstream_fread(showq, buf, sizeof(buf))) > 0)
-	    if (vstream_fwrite(VSTREAM_OUT, buf, n) != n)
+	    if (vstream_fwrite(VSTREAM_OUT, buf, n) != n
+		|| vstream_fflush(VSTREAM_OUT) != 0)
 		msg_fatal("write error: %m");
-
-	if (vstream_fflush(VSTREAM_OUT))
-	    msg_fatal("write error: %m");
 
 	if (vstream_fclose(showq))
 	    msg_warn("close: %m");

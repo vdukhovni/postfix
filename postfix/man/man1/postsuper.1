@@ -9,7 +9,8 @@ Postfix super intendent
 .na
 .nf
 .fi
-\fBpostsuper\fR [\fB-p\fR] [\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
+\fBpostsuper\fR [\fB-d \fIqueue_id\fR] [\fB-p\fR]
+[\fB-s\fR] [\fB-v\fR] [\fIdirectory ...\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -23,6 +24,17 @@ By default, \fBpostsuper\fR performs the operations requested with the
 nor directories.  Use of this command is restricted to the super-user.
 
 Options:
+.IP \fB-d \fIqueue_id\fR
+Delete one message queue file with the named queue ID.  Specify
+multiple \fB-d\fR options to delete multiple queue files by name.
+.sp
+Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified, the
+program reads queue IDs from standard input.
+.sp
+This operation can be performed safely while the mail system is
+running, although the queue manager may issue warnings when a
+file suddenly disappears. The exit status is zero if at least one
+of the named message queue files was found.
 .IP \fB-s\fR
 Structure check.  Move queue files that are in the wrong place
 in the file system hierarchy and remove subdirectories that are

@@ -175,17 +175,18 @@ case "$SYSTEM.$RELEASE" in
 		    echo "See the RELEASE_NOTES file for more information." 1>&2
 		    exit 1
 		fi
-		# See where GDBM's ndbm.h include file sits. XXX verify that
-		# gdbm links in by default (i.e. NO -lgdbm is needed).
+		# See where GDBM's ndbm.h include file sits.
 		if [ -f /usr/include/gdbm-ndbm.h ]
 		then
 		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H=\\\"<gdbm-ndbm.h>\\\""
+		    GDBM_LIBS=gdbm
 		elif [ -f /usr/include/gdbm/ndbm.h ]
 		then
 		    CCARGS="$CCARGS -DHAS_DBM -DPATH_NDBM_H=\\\"<gdbm/ndbm.h>\\\""
+		    GDBM_LIBS=gdbm
 		fi
 		SYSLIBS="-ldb"
-		for name in nsl resolv
+		for name in nsl resolv $GDBM_LIBS
 		do
 		    test -f /usr/lib/lib$name.a && SYSLIBS="$SYSLIBS -l$name"
 		done
