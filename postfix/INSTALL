@@ -62,10 +62,12 @@ If your system is supported, it is one of
     IRIX 6.x
     Linux Debian 1.3.1
     Linux Debian 2.x
-    Linux RedHat 4.2
+    Linux RedHat 4.x
     Linux RedHat 5.x
+    Linux RedHat 6.x
     Linux Slackware 3.5
     Linux SuSE 5.x
+    Linux SuSE 6.x
     Mac OS X server
     NEXTSTEP 3.x
     NetBSD 1.x
@@ -155,75 +157,42 @@ again.
 6 - Installing the software after successful compilation
 ========================================================
 
-There is no automated installation procedure. The Postfix system
-is sufficiently complex, and UNIX systems are sufficiently different,
-that I feel uncomfortable providing an out-of-the-box procedure.
-
-Installing Postfix by hand takes only a few steps.
-
-- Configuration directory. This name is wired into the programs,
-  but it can be overruled by setting the MAIL_CONFIG environment
-  variable.  This text assumes that you have chosen the default
-  location.
-
-  As superuser, execute the commands from the Postfix source directory:
-
-    # mkdir /etc/postfix
-    # chmod 755 /etc/postfix
-    # cp conf/* /etc/postfix
-    # chmod 644 /etc/postfix/*
-    # chmod 755 /etc/postfix/postfix-script*
-
-  This also installs the LICENSE file, as required.
-
-- Spool directory. The pathname is configurable in /etc/postfix/main.cf.
-  This text assumes that you have chosen the default location.
-
-  As superuser, execute the commands:
-
-    # mkdir /var/spool/postfix
-    # chmod 755 /var/spool/postfix
-
-- Command directory. The pathname is configurable in /etc/postfix/main.cf.
-  Usually I install in /usr/sbin or in /usr/etc, depending on the system.
-
-  If you are replacing an existing sendmail installation with
-  Postfix, you need to keep the old sendmail program running for
-  some time in order to flush the mail queue.  As superuser, execute
-  the following commands (your sendmail may be in a different place):
+IMPORTANT: if you are REPLACING an existing sendmail installation
+with Postfix, you may need to keep the old sendmail program running
+for some time in order to flush the mail queue.  As superuser,
+execute the following commands (your sendmail, newaliases and mailq
+programs may be in a different place):
 
     # mv /usr/sbin/sendmail /usr/sbin/sendmail.OFF
-    # chmod 755 /usr/sbin/sendmail.OFF
+    # mv /usr/bin/newaliases /usr/bin/newaliases.OFF
+    # mv /usr/bin/mailq /usr/bin/mailq.OFF
+    # chmod 755 /usr/sbin/sendmail.OFF /usr/bin/newaliases.OFF \
+	/usr/bin/mailq.OFF
 
-  As superuser, execute the commands from the Postfix source directory:
+In order to install or upgrade Postfix:
 
-    # mkdir $command_directory
-    # cp bin/* $command_directory
+- Create a user "postfix" with a unique user id and group id.
+  Preferably, this is an account that no-one can log into.  The
+  account does not need an executable login shell, and needs no
+  existing home directory.  My password file entry looks like this:
 
-  Alternative: leave the command executables in the Postfix source tree.
+    postfix:*:12345:12345:postfix:/no/where:/no/shell
 
-- Daemon directory. The pathname is configurable in /etc/postfix/main.cf.
-  Usually I install in /usr/libexec/postfix or in /usr/lib/postfix.
+- Make sure there is a corresponding alias in /etc/aliases:
 
-  As superuser, execute the commands from the Postfix source directory:
+    postfix: root
 
-    # mkdir $daemon_directory
-    # cp libexec/* $daemon_directory
+- Review section 12 of this file, and decide if a world-writable
+  maildrop is OK, or if Postfix needs a set-gid posting agent.
 
-  Alternative: leave the daemon executables in the Postfix source tree.
+- Run the INSTALL.sh script as the super-user:
 
-- On-line manual pages:
+    # sh INSTALL.sh
 
-    # mkdir /some/where/man
-    # (cd man && tar cf - .) | (cd /some/where/man && tar xvf -)
-
-  Alternative: leave the manpages in the Postfix source tree.
-
-  You may wish to update your MANPATH so you can view the Postfix
-  manual pages.  For example:
-
-    # export MANPATH
-    # MANPATH=/some/where/man:/usr/share/man:/usr/local/man
+  The INSTALL.sh script offers suggestions for pathnames that you
+  can override, either by editing INSTALL.sh or by specifying your
+  preferences interactively. INSTALL.sh stores your preferences in
+  the Postfix configuration directory in order to ease future installs.
 
 - Proceed to the section on how you wish to run Postfix on your
   particular machine:
@@ -315,16 +284,8 @@ See also the "Care and feeding" section 13 below.
 9 - Turning off sendmail forever
 ================================
 
-If you are going to REPLACE sendmail by Postfix, execute the
-following commands.  The text assumes that on your system, sendmail
-is in /usr/sbin, and that mailq and newaliases are in /usr/bin.
-
-    # mv /usr/bin/mailq /usr/bin/mailq.OFF
-    # mv /usr/bin/newaliases /usr/bin/newaliases.OFF
-    # chmod 755 /usr/bin/newaliases.OFF /usr/bin/mailq.OFF
-
-    # ln -s /usr/sbin/sendmail /usr/bin/mailq
-    # ln -s /usr/sbin/sendmail /usr/bin/newaliases
+Prior to installing Postfix you should save the existing sendmail
+program files as described in section 6.
 
 Be sure to keep the old sendmail running for at least a couple
 days to flush any unsent mail. To do so, stop the sendmail daemon
@@ -375,25 +336,7 @@ You can use $parameter before it is given a value. The Postfix
 configuration language uses lazy evaluation, and does not look at
 a parameter value until it is needed at runtime.
 
-First of all you have to specify the userid that owns the Postfix
-queue and most Postfix processes. The default setting,
-
-    mail_owner = postfix
-
-should be appropriate for your system. I would recommend that you
-create a dedicated user account "postfix", that is not in the same
-group as other accounts.  Preferably, this is an account that no-one
-can log into.  The account does not need an executable login shell,
-and needs no existing home directory. My password file entry looks
-like this:
-
-    postfix:*:12345:12345:postfix:/no/where:/no/shell
-
-And there is a corresponding alias in /etc/aliases:
-
-    postfix: root
-
-Secondly, you must specify what domain will be appended to a
+First of all, you must specify what domain will be appended to a
 local address. The "myorigin" parameter defaults to the local
 hostname, but that is probably OK only for very small sites.
 
@@ -439,18 +382,13 @@ lookups like this:
 
     disable_dns_lookups = yes
 
-If you haven't used sendmail prior to using Postfix, you will have
-to build the alias database (with: sendmail -bi, or: newaliases).
+The FAQ (html/faq.html) has more hints and tips for firewalled
+and/or dial-up networks.
 
-Finally, specify the program, daemon and queue directories. For
-example,
-
-    command_directory = /usr/sbin
-    daemon_directory = /usr/libexec/postfix
-    queue_directory = /var/spool/postfix
-
-For further configuration information I suggest that you browse
-the configuration documentation in the html subdirectory.
+Finally, if you haven't used Sendmail prior to using Postfix, you
+will have to build the alias database (with: sendmail -bi, or:
+newaliases). Be sure to set up aliases for root and postmaster that
+forward mail to a real person.
 
 11 - To chroot or not to chroot
 ==============================
@@ -490,31 +428,27 @@ Postfix offers a choice of submission mechanims.
     files have a specific format; less than one in 10^12 non-Postfix
     files would be recognized as a valid Postfix queue file.
 
-    In order to enable this mode, step into /etc/postfix and:
+    In order to enable maildrop world-write permission: 
 
-	# cp postfix-script-nosgid postfix-script
+    - Specify "no" when asked by the INSTALL.sh script whether
+      Postfix needs set-gid privileges.
 
 2 - On systems with many users it may be desirable to revoke maildrop
     directory world write permission, and to enable set-gid privileges
-    on a small "postdrop" command that is provided for this purpose.
+    on a small "maildrop" command that is provided for this purpose.
 
-    In order to revoke world-write permission, create a group
-    "maildrop" that is unique and that does not share its group ID
-    with any other user, certainly not with the postfix account,
-    then execute the following commands to make "postdrop" set-gid,
-    and to make maildrop non-writable for unprivileged users:
+    In order to revoke maildrop world-write permission:
 
-    # chgrp maildrop /var/spool/postfix/maildrop /some/where/postdrop
-    # chmod 1730 /var/spool/postfix/maildrop
-    # chmod 2755 /some/where/postdrop
+    - Create a group "maildrop" that is unique and that does not
+      share its group ID with any other user, certainly not with
+      the postfix account,
+
+    - Specify "maildrop" when asked by the INSTALL.sh script whether
+      Postfix needs set-gid privileges.
 
     The sendmail posting program will automatically invoke the
     postdrop command when maildrop directory write permission is
     restricted.
-
-    In order to enable this mode, step into /etc/postfix and:
-
-	# cp postfix-script-sgid postfix-script
 
 13 - Care and feeding of the Postfix system
 ===========================================

@@ -211,6 +211,8 @@ rejected requests (default: <b>554</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -358,6 +360,8 @@ code for <b>REJECT</b> results (default:  <b>554</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -470,6 +474,8 @@ response code to rejected requests (default:  <b>504</b>).
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -538,10 +544,10 @@ parameter specifies the response code for rejected requests (default:
 <a name="reject_unauth_destination">
 
 <dt> <b>reject_unauth_destination</b> <dd> Ignore the client
-hostname.  Permit the request when the resolved destination address
-matches <a href="#relay_domains"> $relay_domains</a>, otherwise
-reject.  The <b>relay_domains_reject_code</b> parameter specifies
-the response code for rejected requests (default:  <b>554</b>).
+hostname.  Reject the request when the resolved destination address
+does not match <a href="#relay_domains"> $relay_domains</a>.  The
+<b>relay_domains_reject_code</b> parameter specifies the response
+code for rejected requests (default:  <b>554</b>).
 
 <p>
 
@@ -626,6 +632,8 @@ response code to rejected requests (default:  <b>504</b>).
 <dt> <b><a href="#permit">permit</a></b>
 
 <dt> <b><a href="#reject">reject</a></b>
+
+<dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
 
 <dd> See generic restrictions.
 
@@ -717,6 +725,8 @@ the request if the result is anything else.  The <b>access_map_reject_code
 
 <dt> <b><a href="#reject">reject</a></b>
 
+<dt> <b><a href="#reject_unauth_pipelining">reject_unauth_pipelining</a></b>
+
 <dd> See generic restrictions.
 
 </dl>
@@ -754,6 +764,16 @@ is useful at the end of a restriction list, to make the default
 policy explicit. The <b>reject_code</b> configuration parameter
 specifies the response code to rejected requests (default:
 <b>554</b>).
+
+<p>
+
+<a name="reject_unauth_pipelining">
+
+<dt> <b>reject_unauth_pipelining</b> <dd> Reject the request when
+the client sends SMTP commands ahead of time without knowing that
+Postfix actually supports SMTP command pipelining.  This stops mail
+from bulk mail software that improperly uses SMTP command pipelining
+to speed up deliveries.
 
 </dl>
 

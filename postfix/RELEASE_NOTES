@@ -1,4 +1,4 @@
-Incompatible changes with postfix-19990904
+Incompatible changes with postfix-19990906
 ==========================================
 
 - On systems that use user.lock files to protect system mailboxes
@@ -14,7 +14,7 @@ restore previous behavior.
 - The Postfix to PCRE interface now expects PCRE version 2.08.
 Postfix is no longer compatible with PCRE versions prior to 2.06.
 
-Major changes with postfix-19990904
+Major changes with postfix-19990906
 ===================================
 
 Several bugfixes, none related to security.  See the HISTORY file
@@ -24,6 +24,10 @@ for a complete list of changes.
 which does not carry the controversial termination clause. The new
 license does have a requirement that contributors make source code
 available.
+
+- INSTALL.sh install/upgrade procedure that replaces existing
+programs and shell scripts instead of overwriting them, and that
+leaves existing queue files and configuration files alone.
 
 - The ugly Delivered-To: header can now be turned off selectively.
 The default setting is:  "prepend_delivered_header = command, file,

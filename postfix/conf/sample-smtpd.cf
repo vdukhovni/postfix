@@ -190,6 +190,7 @@ smtpd_sender_restrictions =
 #   reject_unknown_sender_domain: reject sender domain without A or MX record.
 #   check_relay_domains: permit only mail from/to domains in $relay_domains.
 #   reject_unauth_destination: reject mail not to domains in $relay_domains.
+#   reject_unauth_pipelining: reject mail from improperly pipelining spamware
 #   permit_mx_backup: accept mail for sites that list me as MX host.
 #   reject_unknown_recipient_domain: reject domains without A or MX record.
 #   check_recipient_access maptype:mapname

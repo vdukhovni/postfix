@@ -23,14 +23,14 @@ program_directory = /some/where/postfix/bin
 # The command_directory parameter specifies the location of all
 # postXXX commands.  The default value is $program_directory.
 #
-#command_directory = /usr/sbin
+command_directory = /usr/sbin
 
 # The daemon_directory parameter specifies the location of all Postfix
 # daemon programs (i.e. programs listed in the master.cf file). The
 # default value is $program_directory. This directory must be owned
 # by root.
 #
-#daemon_directory = /usr/libexec/postfix
+daemon_directory = /usr/libexec/postfix
 
 # QUEUE AND PROCESS OWNERSHIP
 #
@@ -40,7 +40,7 @@ program_directory = /some/where/postfix/bin
 # OWNS NO OTHER FILES OR PROCESSES ON THE SYSTEM.  In particular,
 # don't specify nobody or daemon. PLEASE USE A DEDICATED USER.
 #
-#mail_owner = postfix
+mail_owner = postfix
 
 # The default_privs parameter specifies the default rights used by
 # the local delivery agent for delivery to external file or command.

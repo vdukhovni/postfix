@@ -3031,3 +3031,11 @@ Apologies for any names omitted.
 	Portability: the Postfix to PCRE interface now expects
 	version 2.08.  Postfix is no longer compatible with PCRE
 	versions before 2.6.
+
+19990906
+
+	Feature: INSTALL.sh script that makes Postfix installation
+	a bit less painful. This script can be used for installing
+	and for upgrading Postfix. It replaces files instead of
+	overwriting them, and leaves existing configuration and
+	queue files intact.
