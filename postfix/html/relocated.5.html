@@ -18,9 +18,9 @@ RELOCATED(5)                                         RELOCATED(5)
 
        Normally,  the file serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> com-
        mand.  The result, an indexed file in <b>dbm</b> or <b>db</b> format, is
-       used  for  fast  searching  by  the  mail system. After an
-       update issue a <b>postfix</b> <b>reload</b> command to make  the  change
-       visible.
+       used  for  fast  searching by the mail system. Execute the
+       command <b>postmap</b> <b>/etc/postfix/relocated</b> in order to rebuild
+       the indexed file after changing the relocated table.
 
        When  the  table  is provided via other means such as NIS,
        LDAP or SQL, the same lookups are  done  as  for  ordinary

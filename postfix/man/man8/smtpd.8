@@ -80,6 +80,20 @@ allow RFC822-style address forms with comments, like Sendmail does.
 Enable per-session authentication as per RFC 2554 (SASL).
 This functionality is available only when explicitly selected
 at program build time and explicitly enabled at runtime.
+.IP \fBsmtpd_sasl_security_options\fR
+Zero or more of the following.
+.RS
+.IP \fBnoplaintext\fR
+Disallow authentication methods that use plaintext passwords.
+.IP \fBnoactive\fR
+Disallow authentication methods that are vulnerable to non-dictionary
+active attacks.
+.IP \fBnodictionary\fR
+Disallow authentication methods that are vulnerable to passive
+dictionary attack.
+.IP \fBnoanonymous\fR
+Disallow anonymous logins.
+.RE
 .SH Miscellaneous
 .ad
 .fi

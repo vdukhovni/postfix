@@ -25,22 +25,21 @@ VIRTUAL(5)                                             VIRTUAL(5)
 
        Normally, the file serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a>  com-
        mand.  The result, an indexed file in <b>dbm</b> or <b>db</b> format, is
-       used for fast searching  by  the  mail  system.  After  an
-       update  it  may  take  a  minute  or  so before the change
-       becomes visible.  Issue a <b>postfix</b> <b>reload</b> command to elimi-
-       nate the delay.
+       used for fast searching by the mail  system.  Execute  the
+       command  <b>postmap</b>  <b>/etc/postfix/virtual</b> in order to rebuild
+       the indexed file after changing the virtual table.
 
-       When  the  table  is provided via other means such as NIS,
-       LDAP or SQL, the same lookups are  done  as  for  ordinary
+       When the table is provided via other means  such  as  NIS,
+       LDAP  or  SQL,  the  same lookups are done as for ordinary
        indexed files.
 
-       Alternatively,  the  table  can  be provided as a regular-
+       Alternatively, the table can be  provided  as  a  regular-
        expression map where patterns are given as regular expres-
-       sions.  In  that  case, the lookups are done in a slightly
+       sions. In that case, the lookups are done  in  a  slightly
        different way as described below.
 
 <b>TABLE</b> <b>FORMAT</b>
-       Typical support for a virtual domain looks like  the  fol-
+       Typical  support  for a virtual domain looks like the fol-
        lowing:
 
            <i>virtual.domain</i>       <i>anything</i> (right-hand content does not matter)
@@ -48,17 +47,18 @@ VIRTUAL(5)                                             VIRTUAL(5)
            <i>user2@virtual.domain</i> <i>address2,</i> <i>address3</i>
 
        With this, the SMTP server accepts mail for <i>virtual.domain</i>
-       and rejects mail for <i>unknown</i>@<i>virtual.domain</i> as  undeliver-
+       and  rejects mail for <i>unknown</i>@<i>virtual.domain</i> as undeliver-
        able.
 
-       The  format  of  the virtual table is as follows, mappings
+       The format of the virtual table is  as  follows,  mappings
        being tried in the order as listed in this manual page:
 
        blanks and comments
-              Blank lines are ignored,  as  are  lines  beginning
+              Blank  lines  are  ignored,  as are lines beginning
               with `#'.
 
-
+       <i>pattern</i> <i>result</i>
+              When <i>pattern</i> matches a mail address, replace it  by
 
 
 
@@ -71,60 +71,60 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
-       <i>pattern</i> <i>result</i>
-              When  <i>pattern</i> matches a mail address, replace it by
               the corresponding <i>result</i>.
 
        With lookups from indexed files such as DB or DBM, or from
-       networked  tables  such  as NIS, LDAP or SQL, patterns are
+       networked tables such as NIS, LDAP or  SQL,  patterns  are
        tried in the order as listed below:
 
        <i>user</i>@<i>domain</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail for  <i>user</i>@<i>domain</i>  is  redirected  to  <i>address</i>.
+              Mail  for  <i>user</i>@<i>domain</i>  is  redirected  to <i>address</i>.
               This form has the highest precedence.
 
        <i>user</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail  for  <i>user</i>@<i>site</i>  is redirected to <i>address</i> when
-              <i>site</i> is equal to $<b>myorigin</b>, when <i>site</i> is listed  in
+              Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
+              <i>site</i>  is equal to $<b>myorigin</b>, when <i>site</i> is listed in
               $mydestination,   or   when   it   is   listed   in
               $<i>inet_interfaces</i>.
 
-              This functionality overlaps with  functionality  of
+              This  functionality  overlaps with functionality of
               the local <i>alias</i>(5) database. The difference is that
-              <b>virtual</b>  mapping  can  be  applied   to   non-local
+              <b>virtual</b>   mapping   can  be  applied  to  non-local
               addresses.
 
        @<i>domain</i> <i>address,</i> <i>address,</i> <i>...</i>
-              Mail  for  any  user  in  <i>domain</i>  is  redirected to
+              Mail for  any  user  in  <i>domain</i>  is  redirected  to
               <i>address</i>.  This form has the lowest precedence.
 
-       In all the above forms, when <i>address</i> has the form  @<i>other-</i>
-       <i>domain</i>,  the result is the same user in <i>otherdomain</i>.  This
+       In  all the above forms, when <i>address</i> has the form @<i>other-</i>
+       <i>domain</i>, the result is the same user in <i>otherdomain</i>.   This
        works for the first address in the expansion only.
 
 <b>ADDRESS</b> <b>EXTENSION</b>
-       When the search fails, and the address localpart  contains
-       the  optional recipient delimiter (e.g., <i>user+foo</i>@<i>domain</i>),
-       the search is repeated for the  unextended  address  (e.g.
+       When  the search fails, and the address localpart contains
+       the optional recipient delimiter (e.g.,  <i>user+foo</i>@<i>domain</i>),
+       the  search  is  repeated for the unextended address (e.g.
        <i>user</i>@<i>domain</i>), and the unmatched address extension is prop-
-       agated to the result of expansion. The matching order  is:
+       agated  to the result of expansion. The matching order is:
        <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and @<i>domain</i>.
 
 <b>REGULAR</b> <b>EXPRESSION</b> <b>TABLES</b>
-       This section describes how the table lookups  change  when
+       This  section  describes how the table lookups change when
        the table is given in the form of regular expressions. For
-       a description of regular expression lookup  table  syntax,
+       a  description  of regular expression lookup table syntax,
        see <a href="regexp_table.5.html"><b>regexp</b><i>_</i><b>table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre</b><i>_</i><b>table</b>(5)</a>.
 
-       Each  pattern  is  a regular expression that is applied to
+       Each pattern is a regular expression that  is  applied  to
        the entire address being looked up. Thus, <i>user@domain</i> mail
-       addresses  are  not  broken up into their <i>user</i> and <i>@domain</i>
+       addresses are not broken up into their  <i>user</i>  and  <i>@domain</i>
        constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
        <i>foo</i>.
 
-       Patterns  are  applied  in  the  order as specified in the
-       table, until a pattern is found that  matches  the  search
+       Patterns are applied in the  order  as  specified  in  the
+       table,  until  a  pattern is found that matches the search
        string.
+
+       Results are the same as with normal indexed file  lookups,
 
 
 
@@ -137,17 +137,16 @@ VIRTUAL(5)                                             VIRTUAL(5)
 VIRTUAL(5)                                             VIRTUAL(5)
 
 
-       Results  are the same as with normal indexed file lookups,
-       with the additional feature that parenthesized  substrings
-       from  the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
+       with  the additional feature that parenthesized substrings
+       from the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so  on.
 
 <b>BUGS</b>
-       The table format does not understand quoting  conventions.
+       The  table format does not understand quoting conventions.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The  following  <b>main.cf</b> parameters are especially relevant
-       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
-       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
+       The following <b>main.cf</b> parameters are  especially  relevant
+       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
+       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
        command after a configuration change.
 
        <b>virtual</b><i>_</i><b>maps</b>
@@ -156,11 +155,11 @@ VIRTUAL(5)                                             VIRTUAL(5)
        Other parameters of interest:
 
        <b>inet</b><i>_</i><b>interfaces</b>
-              The network interface addresses  that  this  system
+              The  network  interface  addresses that this system
               receives mail on.
 
        <b>mydestination</b>
-              List  of  domains  that  this mail system considers
+              List of domains that  this  mail  system  considers
               local.
 
        <b>myorigin</b>
@@ -177,7 +176,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <a href="regexp_table.5.html">regexp_table(5)</a> format of POSIX regular expression tables
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>
@@ -185,6 +184,7 @@ VIRTUAL(5)                                             VIRTUAL(5)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
 
 
 

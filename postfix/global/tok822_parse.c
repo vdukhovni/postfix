@@ -197,7 +197,7 @@ VSTRING *tok822_internalize(VSTRING *vp, TOK822 *tree, int flags)
 	    VSTRING_ADDCH(vp, ')');
 	    break;
 	case TOK822_ATOM:
-	case TOK822_COMMTEXT:
+	case TOK822_COMMENT_TEXT:
 	case TOK822_QSTRING:
 	    vstring_strcat(vp, vstring_str(tp->vstr));
 	    break;
@@ -251,7 +251,7 @@ VSTRING *tok822_externalize(VSTRING *vp, TOK822 *tree, int flags)
 	    tok822_externalize(vp, tp->head, TOK822_STR_NONE);
 	    VSTRING_ADDCH(vp, ')');
 	    break;
-	case TOK822_COMMTEXT:
+	case TOK822_COMMENT_TEXT:
 	    tok822_copy_quoted(vp, vstring_str(tp->vstr), "()\\\r\n");
 	    break;
 	case TOK822_QSTRING:
@@ -469,7 +469,7 @@ const char *tok822_comment(TOK822 *tp, const char *str)
     TOK822 *tc = 0;
     int     ch;
 
-#define COMMENT_TEXT_TOKEN(t) ((t) && (t)->type == TOK822_COMMTEXT)
+#define COMMENT_TEXT_TOKEN(t) ((t) && (t)->type == TOK822_COMMENT_TEXT)
 
 #define APPEND_NEW_TOKEN(tp, type, strval) \
 	tok822_sub_append(tp, tok822_alloc(type, strval))
@@ -490,7 +490,7 @@ const char *tok822_comment(TOK822 *tp, const char *str)
 		str++;
 	    }
 	    if (!COMMENT_TEXT_TOKEN(tc))
-		tc = APPEND_NEW_TOKEN(tp, TOK822_COMMTEXT, (char *) 0);
+		tc = APPEND_NEW_TOKEN(tp, TOK822_COMMENT_TEXT, (char *) 0);
 	    VSTRING_ADDCH(tc->vstr, ch);
 	}
     }
@@ -561,7 +561,7 @@ static void tok822_print(TOK822 *list, int indent)
 	    vstream_printf("%*s %s\n", indent, "", "group \":\"");
 	} else {
 	    vstream_printf("%*s %s \"%s\"\n", indent, "",
-			   tp->type == TOK822_COMMTEXT ? "text" :
+			   tp->type == TOK822_COMMENT_TEXT ? "comment text" :
 			   tp->type == TOK822_ATOM ? "atom" :
 			   tp->type == TOK822_QSTRING ? "quoted string" :
 			   tp->type == TOK822_DOMLIT ? "domain literal" :

@@ -359,7 +359,7 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
 			state->resent, vstring_str(state->temp1));
 	if (state->fullname && *state->fullname) {
 	    vstring_strcat(state->temp2, " (");
-	    token = tok822_alloc(TOK822_COMMENT, state->fullname);
+	    token = tok822_alloc(TOK822_COMMENT_TEXT, state->fullname);
 	    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
 	    tok822_free(token);
 	    vstring_strcat(state->temp2, ")");

@@ -9,7 +9,7 @@ ALIASES(5)                                             ALIASES(5)
        aliases - format of the Postfix alias database
 
 <b>SYNOPSIS</b>
-       <b>postalias</b> [<b>-c</b> <i>config_dir</i>] [<b>-v</b>] [<i>file_type</i>:]<i>input_file</i>
+       <b>newaliases</b>
 
 <b>DESCRIPTION</b>
        The <b>aliases</b> file provides a system-wide mechanism to redi-
@@ -17,9 +17,9 @@ ALIASES(5)                                             ALIASES(5)
 
        The file serves as input to the <a href="postalias.1.html"><b>postalias</b>(1)</a> command.  The
        result,  an  indexed file in <b>dbm</b> or <b>db</b> format, is used for
-       fast lookup by the mail system. After  an  update  it  may
-       take  a  minute  or  so before the change becomes visible.
-       Issue a <b>postfix</b> <b>reload</b> command to eliminate the delay.
+       fast lookup  by  the  mail  system.  Execute  the  command
+       <b>newaliases</b>  in  order  to  rebuild  the indexed file after
+       changing the Postfix alias database.
 
        The input and output file formats are expected to be  com-
        patible  with  Sendmail  version 8, and are expected to be
@@ -71,7 +71,7 @@ ALIASES(5)                                             ALIASES(5)
 ALIASES(5)                                             ALIASES(5)
 
 
-              with the RFC 822 standard.
+              with the <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> standard.
 
        <i>/file/name</i>
               Mail is appended to <i>/file/name</i>.  See  <a href="local.8.html"><b>local</b>(8)</a>  for
@@ -146,7 +146,7 @@ ALIASES(5)                                             ALIASES(5)
               extensions.
 
 <b>STANDARDS</b>
-       RFC 822 (ARPA Internet Text Messages)
+       <a href="http://www.faqs.org/rfcs/rfc822.html">RFC 822</a> (ARPA Internet Text Messages)
 
 <b>SEE</b> <b>ALSO</b>
        <a href="local.8.html">local(8)</a> local delivery agent

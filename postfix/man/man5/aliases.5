@@ -9,8 +9,7 @@ format of the Postfix alias database
 .na
 .nf
 .fi
-\fBpostalias\fR [\fB-c\fR \fIconfig_dir\fR] [\fB-v\fR]
-[\fIfile_type\fR:]\fIinput_file\fR
+\fBnewaliases\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -19,9 +18,9 @@ redirect mail for local recipients.
 
 The file serves as input to the \fBpostalias\fR(1) command. The
 result, an indexed file in \fBdbm\fR or \fBdb\fR format, is
-used for fast lookup by the mail system. After an update
-it may take a minute or so before the change becomes visible.
-Issue a \fBpostfix reload\fR command to eliminate the delay.
+used for fast lookup by the mail system. Execute the command
+\fBnewaliases\fR in order to rebuild the indexed file after
+changing the Postfix alias database.
 
 The input and output file formats are expected to be compatible
 with Sendmail version 8, and are expected to be suitable for the
