@@ -582,7 +582,7 @@ int     pipe_command(VSTREAM *src, DSN_VSTRING *why,...)
 	    /* Use <sysexits.h> compatible exit status. */
 	    else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
 		sp = sys_exits_detail(WEXITSTATUS(wait_status));
-		dsn_vstring_update(why, sp->dsn, "%s%s", sp->text,
+		dsn_vstring_update(why, sp->dsn, "%s%s%s", sp->text,
 			      log_len ? ". Command output: " : "", log_buf);
 		return (sp->dsn[0] == '4' ?
 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);

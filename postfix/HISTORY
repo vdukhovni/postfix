@@ -10583,6 +10583,11 @@ Apologies for any names omitted.
 	valid C. Bugs reported by Victor Duchovni. Files:
 	util/sys_defs.h, global/dsn_util.h, tls/tls_client.c.
 
+	Bugfix: when delivery to command failed, command output was
+	not reported. Fix was to enable format checks for the new
+	dsn_vstring_update() module. File: global/dsn_util.h,
+	global/pipe_command.c.
+
 Open problems:
 
 	Med: disable header address rewriting after XCLIENT?
