@@ -42,6 +42,7 @@
 #include <stringops.h>
 #include <dict.h>
 #include <dict_dbm.h>
+#include <myflock.h>
 
 /* Application-specific. */
 
@@ -67,6 +68,7 @@ MKMAP  *mkmap_dbm_open(const char *path)
      */
     mkmap->lock_file = concatenate(path, ".dir", (char *) 0);
     mkmap->open = dict_dbm_open;
+    mkmap->after_open = 0;
 
     /*
      * Unfortunately, not all systems support locking on open(), so we open
@@ -82,6 +84,13 @@ MKMAP  *mkmap_dbm_open(const char *path)
     if (close(pag_fd))
 	msg_warn("close %s: %m", pag_file);
     myfree(pag_file);
+
+    /*
+     * Get an exclusive lock - we're going to change the database so we can't
+     * have any spectators.
+     */
+    if (myflock(mkmap->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_EXCLUSIVE) < 0)
+        msg_fatal("lock %s: %m", mkmap->lock_file);
 
     return (mkmap);
 }

@@ -74,9 +74,10 @@
 /*	Perform a lookup in the specified access table. Reject the request
 /*	when the lookup result is REJECT or when the result begins with a
 /*	4xx or 5xx status code. Other numerical status codes are not
-/*	permitted. Allow the request otherwise. The
-/*	\fIaccess_map_reject_code\fR configuration parameter specifies the
-/*	reject status code (default: 554).
+/*	permitted. DUNNO suppresses less precise searches in the same map, but
+/*	neither allows nor denies the request. Allow the request otherwise.
+/*	The \fIaccess_map_reject_code\fR configuration parameter specifies
+/*	the reject status code (default: 554).
 /* .IP "check_client_access maptype:mapname"
 /*	Look up the client host name or any of its parent domains, or
 /*	the client address or any network obtained by stripping octets
@@ -723,8 +724,8 @@ static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
     VSTRING *buf = vstring_alloc(100);
 
     vstring_sprintf(buf, "%s: %s: %s from %s: %s;",
-		    state->queue_id, whatsup, state->where,
-		    state->namaddr, text);
+		    state->queue_id ? state->queue_id : "NOQUEUE",
+		    whatsup, state->where, state->namaddr, text);
     if (state->sender)
 	vstring_sprintf_append(buf, " from=<%s>", state->sender);
     if (state->recipient)
@@ -1657,42 +1658,51 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     ARGV   *restrictions;
     jmp_buf savebuf;
     int     status;
+    const char *cmd_text;
+    int     cmd_len;
+
+    /*
+     * Parse into command and text. Do not change the input.
+     */
+    cmd_text = value + strcspn(value, " \t");
+    cmd_len = cmd_text - value;
+    while (*cmd_text && ISSPACE(*cmd_text))
+	cmd_text++;
 
     if (msg_verbose)
 	msg_info("%s: %s %s %s", myname, table, value, datum);
 
+#define STREQUAL(x,y,l) (strncasecmp((x), (y), (l)) == 0 && (y)[l] == 0)
+
     /*
-     * DUNNO means skip this table.
+     * DUNNO means skip this table. Silently ignore optional text.
      */
-    if (strcasecmp(value, "DUNNO") == 0)
+    if (STREQUAL(value, "DUNNO", cmd_len))
 	return (SMTPD_CHECK_DUNNO);
 
     /*
-     * REJECT means NO. Generate a generic error response.
+     * REJECT means NO. Use optional text or generate a generic error
+     * response.
      */
-    if (strcasecmp(value, "REJECT") == 0)
+    if (STREQUAL(value, "REJECT", cmd_len)) {
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				   "%d <%s>: %s rejected: Access denied",
-			     var_access_map_code, reply_name, reply_class));
+				   "%d <%s>: %s rejected: %s",
+				   var_access_map_code, reply_name, reply_class,
+				   *cmd_text ? cmd_text : "Access denied"));
+    }
 
     /*
      * FILTER means deliver to content filter. But we may still change our
      * mind, and reject/discard the message for other reasons.
      */
-#define FILTER_LEN	(sizeof("FILTER") - 1)
-
-    if (strncasecmp(value, "FILTER", FILTER_LEN) == 0) {
-	if (value[FILTER_LEN] == 0) {
+    if (STREQUAL(value, "FILTER", cmd_len)) {
+	if (*cmd_text == 0) {
 	    msg_warn("access map %s entry %s has FILTER entry without value",
 		     table, datum);
 	    return (SMTPD_CHECK_DUNNO);
-	}
-	if (ISSPACE(value[FILTER_LEN])) {
-	    value += FILTER_LEN;
-	    while (ISSPACE(*value))
-		value++;
+	} else {
 	    vstring_sprintf(error_text, "<%s>: %s triggers FILTER %s",
-			    reply_name, reply_class, value);
+			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "filter", STR(error_text));
 #ifndef TEST
 	    rec_fprintf(state->dest->stream, REC_TYPE_FILT, "%s", value);
@@ -1705,9 +1715,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * HOLD means deliver later. But we may still change our mind, and
      * reject/discard the message for other reasons.
      */
-    if (strcasecmp(value, "HOLD") == 0) {
-	vstring_sprintf(error_text, "<%s>: %s triggers HOLD action",
-			reply_name, reply_class);
+    if (STREQUAL(value, "HOLD", cmd_len)) {
+	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
+			*cmd_text ? cmd_text : "triggers HOLD action");
 	log_whatsup(state, "hold", STR(error_text));
 #ifndef TEST
 	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
@@ -1722,9 +1732,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * XXX Set some global flag that disables all further restrictions.
      * Triggering a "reject" or "hold" action after "discard" is silly.
      */
-    if (strcasecmp(value, "DISCARD") == 0) {
-	vstring_sprintf(error_text, "<%s>: %s triggers DISCARD action",
-			reply_name, reply_class);
+    if (STREQUAL(value, "DISCARD", cmd_len)) {
+	vstring_sprintf(error_text, "<%s>: %s %s", reply_name, reply_class,
+			*cmd_text ? cmd_text : "triggers DISCARD action");
 	log_whatsup(state, "discard", STR(error_text));
 #ifndef TEST
 	rec_fprintf(state->dest->stream, REC_TYPE_FLGS, "%d",
@@ -1744,19 +1754,18 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * 4xx or 5xx means NO as well. smtpd_check_reject() will validate the
      * response status code.
      */
-    if (ISDIGIT(value[0]) && ISDIGIT(value[1]) && ISDIGIT(value[2])) {
+    if (cmd_len == 3 && *cmd_text
+	&& ISDIGIT(value[0]) && ISDIGIT(value[1]) && ISDIGIT(value[2])) {
 	code = atoi(value);
-	while (ISDIGIT(*value) || ISSPACE(*value))
-	    value++;
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				   "%d <%s>: %s rejected: %s",
-				   code, reply_name, reply_class, value));
+				   code, reply_name, reply_class, cmd_text));
     }
 
     /*
-     * OK or RELAY means YES.
+     * OK or RELAY means YES. Ignore trailing text.
      */
-    if (strcasecmp(value, "OK") == 0 || strcasecmp(value, "RELAY") == 0)
+    if (STREQUAL(value, "OK", cmd_len) || STREQUAL(value, "RELAY", cmd_len))
 	return (SMTPD_CHECK_OK);
 
     /*

@@ -886,6 +886,7 @@ mkmap_db.o: ../../include/dict.h
 mkmap_db.o: ../../include/vstream.h
 mkmap_db.o: ../../include/argv.h
 mkmap_db.o: ../../include/dict_db.h
+mkmap_db.o: ../../include/myflock.h
 mkmap_db.o: mail_params.h
 mkmap_db.o: mkmap.h
 mkmap_dbm.o: mkmap_dbm.c
@@ -899,6 +900,7 @@ mkmap_dbm.o: ../../include/dict.h
 mkmap_dbm.o: ../../include/vstream.h
 mkmap_dbm.o: ../../include/argv.h
 mkmap_dbm.o: ../../include/dict_dbm.h
+mkmap_dbm.o: ../../include/myflock.h
 mkmap_dbm.o: mkmap.h
 mkmap_open.o: mkmap_open.c
 mkmap_open.o: ../../include/sys_defs.h
@@ -911,7 +913,6 @@ mkmap_open.o: ../../include/dict_db.h
 mkmap_open.o: ../../include/dict_dbm.h
 mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/mymalloc.h
-mkmap_open.o: ../../include/myflock.h
 mkmap_open.o: mkmap.h
 mynetworks.o: mynetworks.c
 mynetworks.o: ../../include/sys_defs.h

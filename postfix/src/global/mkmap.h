@@ -18,13 +18,16 @@
 
  /*
   * A database handle is an opaque structure. The user is not supposed to
-  * know its implementation.
+  * know its implementation. We try to open and lock a file before DB/DBM
+  * initialization. However, if the file does not exist then we may have to
+  * acquire the lock after the DB/DBM initialization.
   */
 typedef struct MKMAP {
-    struct DICT *(*open) (const char *, int, int);
-    struct DICT *dict;
-    char   *lock_file;
-    int     lock_fd;
+    struct DICT *(*open) (const char *, int, int);	/* dict_xx_open() */
+    struct DICT *dict;			/* dict_xx_open() result */
+    char   *lock_file;			/* lock file name */
+    int     lock_fd;			/* locked open file, or -1 */
+    void    (*after_open) (struct MKMAP *);	/* may be null */
 } MKMAP;
 
 extern MKMAP *mkmap_open(const char *, const char *, int, int);

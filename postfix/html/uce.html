@@ -1060,7 +1060,8 @@ hash:/etc/postfix/etrn_access, reject</b>
 <dt> <i>maptype</i>:<i>mapname</i> <dd> Search the named <a
 href="access.5.html">access database</a> for the domain specified
 in the ETRN command, or its parent domains. Reject the request if
-the result is <b>REJECT</b> or "[<b>45</b>]<i>XX text</i>".  Permit
+the result is <b>REJECT</b> <i>text...</i> or "[<b>45</b>]<i>XX
+text</i>".  Permit
 the request if the result is <b>OK</b> or <b>RELAY</b> or
 all-numerical. Otherwise, treat the result as another list of UCE
 restrictions.  The <b>access_map_reject_code </b> parameter specifies

@@ -7078,7 +7078,7 @@ Apologies for any names omitted.
 	Paranoia: defend against a very unlikely false alarm in
 	safe_open().
 
-20020125
+20021025
 
 	Feature: X-Original-To: message headers with the raw original
 	envelope recipient.
@@ -7087,7 +7087,7 @@ Apologies for any names omitted.
 	the original recipient address if it differs from the final
 	address.
 
-20020126
+20021026
 
 	Logging: SMTP UCE reject/warn/hold/discard logging now
 	includes queue ID. This will break some logfile analyzers.
@@ -7114,6 +7114,30 @@ Apologies for any names omitted.
 
 	Workaround: DJBDNS produces a bogus A record when given a
 	numerical hostname. File: dns/dns_lookup.c.
+
+20021030
+
+	Portability: support for Berkeley DB version 4.0 but not
+	for Berkeley DB version 4.1 (yes, the API is different).
+	Postfix is now going to be paranoid about the minor version
+	number, too. File:  util/dict_db.c.
+
+	Documentation: updated LMTP_README file by Amos Gouaux.
+
+20021031
+
+	Bugfix: (bug introduced 20021026) log NOQUEUE when rejecting
+	ETRN, instead of trying to log a non-existent queue ID.
+	Victor Duchovni, Morgan Stanley. File: smtpd/smtpd_check.c.
+
+	Cleanup: allow optional text after commands in SMTPD access
+	maps. Based on initial effort by Victor Duchovni, Morgan
+	Stanley. File: smtpd/smtpd_check.c.
+
+	Portability: support for Berkeley DB version 4.1.  This
+	version refuses to open zero-length files. This complicates
+	lock management and requires extra code to remove broken
+	files. Files:  util/dict_db.c, global/mkmap*.[hc].
 
 Open problems:
 
