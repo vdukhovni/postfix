@@ -164,6 +164,8 @@
 /*	rightmost @ character).
 /* .IP \fBRECIPIENT\fR
 /*	The entire recipient address.
+/* .IP \fBSENDER\fR
+/*	The entire sender address.
 /* .PP
 /*	The \fBPATH\fR environment variable is always reset to a
 /*	system-dependent default path, and the \fBTZ\fR (time zone)

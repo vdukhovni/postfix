@@ -149,7 +149,7 @@ home_mailbox =
 # 
 # Other environment variables of interest: USER (recipient username),
 # EXTENSION (address extension), DOMAIN (domain part of address),
-# and LOCAL (the address localpart).
+# LOCAL (the address localpart), RECIPIENT and SENDER.
 #
 # Unlike other Postfix configuration parameters, the mailbox_command
 # parameter is not subjected to $parameter substitutions. This is to

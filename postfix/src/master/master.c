@@ -96,6 +96,9 @@
 /* .IP \fBqueue_directory\fR
 /*	Top-level directory of the Postfix queue. This is also the root
 /*	directory of Postfix daemons that run chrooted.
+/* .IP \fBinet_interfaces\fR
+/*	The network interface addresses that this system receives mail on.
+/*	You need to stop and start Postfix when this parameter changes.
 /* .SH "Resource controls"
 /* .ad
 /* .fi

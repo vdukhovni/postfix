@@ -437,7 +437,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_cmd_exp_filter;
 
 #define VAR_FWD_EXP_FILTER	"forward_expansion_filter"
-#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,./\
+#define DEF_FWD_EXP_FILTER	"1234567890!@%-_=+:,.\
 abcdefghijklmnopqrstuvwxyz\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 extern char *var_fwd_exp_filter;
@@ -1151,6 +1151,9 @@ extern int var_reject_code;
 #define VAR_DEFER_CODE		"defer_code"
 #define DEF_DEFER_CODE		450
 extern int var_defer_code;
+
+#define DEFER_IF_PERMIT		"defer_if_permit"
+#define DEFER_IF_REJECT		"defer_if_reject"
 
 #define REJECT_UNKNOWN_CLIENT	"reject_unknown_client"
 #define VAR_UNK_CLIENT_CODE	"unknown_client_reject_code"

@@ -12,10 +12,13 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-20021107
+Incompatible changes with Postfix snapshot 1.1.11-20021108
 ==========================================================
 
-The behavior of the SMTP server's defer_if_permit flag has changed.
+The behavior of the SMTP server's defer_if_permit flag has changed,
+in order to maximize the opportunity to permanently reject mail
+without opening opportunities for losing legitimate mail.
+
 The flag is still set when an UCE reject restriction fails due to
 a temporary (DNS) problem, to prevent unwanted mail from slipping
 through. However, the flag is no longer tested at the end of client,

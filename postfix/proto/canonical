@@ -127,6 +127,7 @@
 #	Other parameters of interest:
 # .IP \fBinet_interfaces\fR
 #	The network interface addresses that this system receives mail on.
+#	You need to stop and start Postfix when this parameter changes.
 # .IP \fBmasquerade_classes\fR
 #	List of address classes subject to masquerading: zero or more of
 #	\fBenvelope_sender\fR, \fBenvelope_recipient\fR, \fBheader_sender\fR, 

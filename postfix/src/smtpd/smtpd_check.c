@@ -436,13 +436,13 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
   * 
   * reject_unknown_client, hostname-based white-list, reject
   * 
-  * XXX Don't raise the defer_if_permit flag with a failing reject-style
-  * restriction that follows warn_if_reject. Instead, log the warning for the
+  * XXX With warn_if_reject, don't raise the defer_if_permit flag when a
+  * reject-style restriction fails. Instead, log the warning for the
   * resulting defer message.
   * 
-  * XXX Do raise the defer_if_reject flag with a failing permit-style
-  * restriction that follows warn_if_reject. Otherwise, we could reject
-  * legitimate mail.
+  * XXX With warn_if_reject, do raise the defer_if_reject flag when a
+  * permit-style restriction fails. Otherwise, we could reject legitimate
+  * mail.
   */
 static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
 
@@ -2608,6 +2608,14 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 cpp[1], REJECT_ALL);
 	} else if (strcasecmp(name, REJECT_UNAUTH_PIPE) == 0) {
 	    status = reject_unauth_pipelining(state, reply_name, reply_class);
+	} else if (strcasecmp(name, DEFER_IF_PERMIT) == 0) {
+	    DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: defer_if_permit requested",
+			     reply_name, reply_class);
+	} else if (strcasecmp(name, DEFER_IF_REJECT) == 0) {
+	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
+			 "450 <%s>: %s rejected: defer_if_reject requested",
+			     reply_name, reply_class);
 	}
 
 	/*
@@ -2843,8 +2851,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     }
 
     /*
-     * This is cleared before client restrictions, and is tested after
-     * recipient and etrn restrictions.
+     * Reset the defer_if_permit flag.
      */
     state->defer_if_permit.active = 0;
 
@@ -2856,6 +2863,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
     if (status == 0 && client_restrctions->argc)
 	status = generic_checks(state, client_restrctions, state->namaddr,
 				SMTPD_NAME_CLIENT, CHECK_CLIENT_ACL);
+    state->defer_if_permit_client = state->defer_if_permit.active;
 
     return (status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
@@ -2895,6 +2903,13 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     }
 
     /*
+     * Restore the defer_if_permit flag to its value before HELO/EHLO, and do
+     * not set the flag when it was already raised by a previous protocol
+     * stage.
+     */
+    state->defer_if_permit.active = state->defer_if_permit_client;
+
+    /*
      * Apply restrictions in the order as specified.
      */
     SMTPD_CHECK_RESET();
@@ -2902,6 +2917,7 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
     if (status == 0 && helo_restrctions->argc)
 	status = generic_checks(state, helo_restrctions, state->helo_name,
 				SMTPD_NAME_HELO, CHECK_HELO_ACL);
+    state->defer_if_permit_helo = state->defer_if_permit.active;
 
     SMTPD_CHECK_HELO_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
@@ -2931,6 +2947,14 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     }
 
     /*
+     * Restore the defer_if_permit flag to its value before MAIL FROM, and do
+     * not set the flag when it was already raised by a previous protocol
+     * stage. The client may skip the helo/ehlo.
+     */
+    state->defer_if_permit.active = state->defer_if_permit_client
+	| state->defer_if_permit_helo;
+
+    /*
      * Apply restrictions in the order as specified.
      */
     SMTPD_CHECK_RESET();
@@ -2938,6 +2962,7 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
     if (status == 0 && mail_restrctions->argc)
 	status = generic_checks(state, mail_restrctions, sender,
 				SMTPD_NAME_SENDER, CHECK_SENDER_ACL);
+    state->defer_if_permit_sender = state->defer_if_permit.active;
 
     SMTPD_CHECK_MAIL_RETURN(status == SMTPD_CHECK_REJECT ? STR(error_text) : 0);
 }
@@ -2982,6 +3007,13 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	    || (err = smtpd_check_helo(state, state->helo_name)) != 0
 	    || (err = smtpd_check_mail(state, state->sender)) != 0)
 	    SMTPD_CHECK_RCPT_RETURN(err);
+
+    /*
+     * Restore the defer_if_permit flag to its value before RCPT TO, and do
+     * not set the flag when it was already raised by a previous protocol
+     * stage.
+     */
+    state->defer_if_permit.active = state->defer_if_permit_sender;
 
     /*
      * Apply restrictions in the order as specified.
@@ -3035,6 +3067,14 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 	if ((err = smtpd_check_client(state)) != 0
 	    || (err = smtpd_check_helo(state, state->helo_name)) != 0)
 	    SMTPD_CHECK_ETRN_RETURN(err);
+
+    /*
+     * Restore the defer_if_permit flag to its value before ETRN, and do not
+     * set the flag when it was already raised by a previous protocol stage.
+     * The client may skip the helo/ehlo.
+     */
+    state->defer_if_permit.active = state->defer_if_permit_client
+	| state->defer_if_permit_helo;
 
     /*
      * Apply restrictions in the order as specified.
@@ -3227,6 +3267,12 @@ char   *smtpd_check_data(SMTPD_STATE *state)
 	saved_recipient = state->recipient;
 	state->recipient = 0;
     }
+
+    /*
+     * Reset the defer_if_permit flag. This should not be necessary but we do
+     * it just in case.
+     */
+    state->defer_if_permit.active = 0;
 
     /*
      * Apply restrictions in the order as specified.

@@ -122,6 +122,8 @@ import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY
 # See also the proxy_interfaces parameter, for network addresses that
 # are forwarded to us by way of a proxy or address translator.
 #
+# Note: you need to stop and start Postfix when this parameter changes.
+#
 inet_interfaces = all
 
 # The proxy_interfaces parameter specifies the network interface
