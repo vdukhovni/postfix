@@ -88,8 +88,8 @@ extern int bounce_header_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_recipient_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_diagnostic_dsn(VSTREAM *, BOUNCE_INFO *);
 extern int bounce_original(VSTREAM *, BOUNCE_INFO *, int);
-extern int bounce_delrcpt(BOUNCE_INFO *);
-extern int bounce_delrcpt_one(BOUNCE_INFO *);
+extern void bounce_delrcpt(BOUNCE_INFO *);
+extern void bounce_delrcpt_one(BOUNCE_INFO *);
 
 #define BOUNCE_MSG_FAIL		0
 #define BOUNCE_MSG_WARN		1

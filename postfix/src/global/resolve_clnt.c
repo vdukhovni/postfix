@@ -312,7 +312,7 @@ static void resolve(char *addr, RESOLVE_REPLY *reply)
 	}
 	if (reply->flags != 0)
 	    vstream_printf("Unknown flag 0x%x", reply->flags);
-	vstream_printf("\n");
+	vstream_printf("\n\n");
 	vstream_fflush(VSTREAM_OUT);
     }
 }

@@ -10,7 +10,8 @@
 # DESCRIPTION
 #	The Postfix mail system uses optional access control tables.
 #	These tables are usually in \fBdbm\fR or \fBdb\fR format. 
-#	Alternatively, access control tables can be specified in CIDR form.
+#	Alternatively, access control tables can be specified in CIDR 
+#	(Classless Inter-Domain Routing) form.
 #
 #	To find out what types of lookup tables your Postfix system
 #	supports use the \fBpostconf -m\fR command.
@@ -52,9 +53,17 @@
 #       192.168.0.0/16          REJECT
 # .in -4
 # SEE ALSO
+#	postmap(1), Postfix lookup table manager
 #	regexp_table(5) format of regular expression tables
 #	pcre_table(5) format of PCRE tables
-#	tcp_table(5) TCP client/server table lookup protocol
+# README FILES
+# .ad
+# .fi
+#	Use "\fBpostconf readme_directory\fR" or
+#	"\fBpostconf html_directory\fR" to locate this information.
+# .na
+# .nf
+#	DATABASE_README, Postfix lookup table overview
 # AUTHOR(S)
 #	The CIDR table lookup code was originally written by:
 #	Jozsef Kadlecsik

@@ -48,10 +48,14 @@
 /* .IP \fBdefer\fR
 /*	Per-recipient status information about why mail is delayed.
 /*	These files are maintained by the \fBdefer\fR(8) daemon.
+/* .IP \fBtrace\fR
+/*	Per-recipient status information as requested with the
+/*	Postfix "\fBsendmail -v\fR" or "\fBsendmail -bv\fR" command.
+/*	These files are maintained by the \fBtrace\fR(8) daemon.
 /* .PP
 /*	The \fBqmgr\fR daemon is responsible for asking the
-/*	\fBbounce\fR(8) or \fBdefer\fR(8) daemons to send non-delivery
-/*	reports.
+/*	\fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemons to
+/*	send delivery reports.
 /* STRATEGIES
 /* .ad
 /* .fi
@@ -137,91 +141,124 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values. Use the \fBpostfix reload\fR command after
+/*	Changes to \fBmain.cf\fR are not picked up automatically, as qmgr(8)
+/*	processes are persistent. Use the command "\fBpostfix reload\fR" after
 /*	a configuration change.
-/* .SH Miscellaneous
-/* .ad
-/* .fi
-/* .IP \fBallow_min_user\fR
-/*	Do not bounce recipient addresses that begin with '-'.
-/* .IP \fBqueue_directory\fR
-/*	Top-level directory of the Postfix queue.
-/* .SH "Active queue controls"
-/* .ad
-/* .fi
-/* .IP \fBqmgr_clog_warn_time\fR
-/*	Minimal delay between warnings that a specific destination
-/*	is clogging up the active queue. Specify 0 to disable.
-/* .IP \fBqmgr_message_active_limit\fR
-/*	Limit the number of messages in the active queue.
-/* .IP \fBqmgr_message_recipient_limit\fR
-/*	Limit the number of in-memory recipients.
-/* .sp
-/*	This parameter also limits the size of the short-term, in-memory
-/*	destination cache.
-/* .SH "Timing controls"
-/* .ad
-/* .fi
-/* .IP \fBminimal_backoff_time\fR
-/*	Minimal time in seconds between delivery attempts
-/*	of a deferred message.
-/* .sp
-/*	This parameter also limits the time an unreachable destination
-/*	is kept in the short-term, in-memory destination status cache.
-/* .IP \fBmaximal_backoff_time\fR
-/*	Maximal time in seconds between delivery attempts
-/*	of a deferred message.
-/* .IP \fBmaximal_queue_lifetime\fR
-/*	Maximal time (default: in days) a regular message is queued
-/*	before it is considered undeliverable.
-/* .IP \fBbounce_queue_lifetime\fR
-/*	Maximal time (default: in days) a bounce message is queued
-/*	before it is considered undeliverable.
-/* .IP \fBqueue_run_delay\fR
-/*	Time in seconds between deferred queue scans. Queue scans do
-/*	not overlap.
-/* .IP \fBtransport_retry_time\fR
-/*	Time in seconds between attempts to contact a broken
-/*	delivery transport.
-/* .SH "Concurrency controls"
-/* .ad
-/* .fi
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/*
 /*	In the text below, \fItransport\fR is the first field in a
 /*	\fBmaster.cf\fR entry.
-/* .IP "\fBqmgr_fudge_factor\fR (valid range: 10..100)"
-/*	The percentage of delivery resources that a busy mail system will
-/*	use up for delivery of a large mailing list message.
-/*	With 100%, delivery of one message does not begin before the previous
-/*	message has been delivered. This results in good performance for large
-/*	mailing lists, but results in poor response time for one-to-one mail.
-/*	With less than 100%, response time for one-to-one mail improves,
-/*	but large mailing list delivery performance suffers. In the worst
-/*	case, recipients near the beginning of a large list receive a burst
-/*	of messages immediately, while recipients near the end of that list
-/*	receive that same burst of messages a whole day later.
-/* .IP \fBinitial_destination_concurrency\fR
-/*	Initial per-destination concurrency level for parallel delivery
-/*	to the same destination.
-/* .IP \fBdefault_destination_concurrency_limit\fR
-/*	Default limit on the number of parallel deliveries to the same
-/*	destination.
-/* .IP \fItransport\fB_destination_concurrency_limit\fR
-/*	Limit on the number of parallel deliveries to the same destination,
-/*	for delivery via the named message \fItransport\fR.
-/* .SH "Recipient controls"
+/* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
-/* .IP \fBdefault_destination_recipient_limit\fR
-/*	Default limit on the number of recipients per message transfer.
+/* .IP "\fBallow_min_user (no)\fR"
+/*	Allow a recipient address to have `-' as the first character.
+/* ACTIVE QUEUE CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBqmgr_clog_warn_time (300s)\fR"
+/*	The minimal delay between warnings that a specific destination is
+/*	clogging up the Postfix active queue.
+/* .IP "\fBqmgr_message_active_limit (20000)\fR"
+/*	The maximal number of messages in the active queue.
+/* .IP "\fBqmgr_message_recipient_limit (20000)\fR"
+/*	The maximal number of recipients held in memory by the Postfix
+/*	queue manager, and the maximal size of the size of the short-term,
+/*	in-memory "dead" destination status cache.
+/* DELIVERY CONCURRENCY CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBqmgr_fudge_factor (100)\fR"
+/*	Obsolete feature: the percentage of delivery resources that a busy
+/*	mail system will use up for delivery of a large mailing  list
+/*	message.
+/* .IP "\fBinitial_destination_concurrency (5)\fR"
+/*	The initial per-destination concurrency level for parallel delivery
+/*	to the same destination.
+/* .IP "\fBdefault_destination_concurrency_limit (20)\fR"
+/*	The default maximal number of parallel deliveries to the same
+/*	destination.
+/* .IP \fItransport\fB_destination_concurrency_limit\fR
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* RECIPIENT SCHEDULING CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBdefault_destination_recipient_limit (50)\fR"
+/*	The default maximal number of recipients per message delivery.
 /* .IP \fItransport\fB_destination_recipient_limit\fR
-/*	Limit on the number of recipients per message transfer, for the
-/*	named message \fItransport\fR.
+/*	Idem, for delivery via the named message \fItransport\fR.
+/* OTHER RESOURCE AND RATE CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBminimal_backoff_time (1000s)\fR"
+/*	The minimal time between attempts to deliver a deferred message.
+/* .IP "\fBmaximal_backoff_time (4000s)\fR"
+/*	The maximal time between attempts to deliver a deferred message.
+/* .IP "\fBmaximal_queue_lifetime (5d)\fR"
+/*	The maximal time a message is queued before it is sent back as
+/*	undeliverable.
+/* .IP "\fBqueue_run_delay (1000s)\fR"
+/*	The time between deferred queue scans by the queue manager.
+/* .IP "\fBtransport_retry_time (60s)\fR"
+/*	The time between attempts by the Postfix queue manager to contact
+/*	a malfunctioning message delivery transport.
+/* .PP
+/*	Available in Postfix version 2.1 and later:
+/* .IP "\fBbounce_queue_lifetime (5d)\fR"
+/*	The maximal time a bounce message is queued before it is considered
+/*	undeliverable.
+/* .SH MISCELLANEOUS CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBdefer_transports (empty)\fR"
+/*	The names of message delivery transports that should not be delivered
+/*	to unless someone issues "\fBsendmail -q\fR" or equivalent.
+/* .IP "\fBhelpful_warnings (yes)\fR"
+/*	Log warnings about problematic configuration settings, and provide
+/*	helpful suggestions.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* FILES
+/*	/var/spool/postfix/incoming, incoming queue
+/*	/var/spool/postfix/active, active queue
+/*	/var/spool/postfix/deferred, deferred queue
+/*	/var/spool/postfix/bounce, non-delivery status
+/*	/var/spool/postfix/defer, non-delivery status
+/*	/var/spool/postfix/trace, delivery status
 /* SEE ALSO
+/*	trivial-rewrite(8), address routing
+/*	bounce(8), delivery status reports
+/*	postconf(5), configuration parameters
 /*	master(8), process manager
 /*	syslogd(8) system logging
-/*	trivial-rewrite(8), address routing
+/* README FILES
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
+/*	QSHAPE_README, Postfix queue analysis
 /* LICENSE
 /* .ad
 /* .fi

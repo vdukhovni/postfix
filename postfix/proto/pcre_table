@@ -4,19 +4,23 @@
 # SUMMARY
 #	format of Postfix PCRE tables
 # SYNOPSIS
-#	\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+#	\fBpostmap -fq "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 #
-#	\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+#	\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 # DESCRIPTION
 #	The Postfix mail system uses optional tables for address
 #	rewriting or mail routing. These tables are usually in
-#	\fBdbm\fR or \fBdb\fR format. Alternatively, lookup tables
-#	can be specified in Perl Compatible Regular Expression form.
+#	\fBdbm\fR or \fBdb\fR format.
+#
+#	Alternatively, lookup tables can be specified in Perl Compatible
+#	Regular Expression form. In this case, each input is compared
+#	against a list of patterns, and when a match is found the
+#	corresponding result is returned.
 #
 #	To find out what types of lookup tables your Postfix system
 #	supports use the \fBpostconf -m\fR command.
 #
-#	To test lookup tables, use the \fBpostmap\fR command as
+#	To test lookup tables, use the \fBpostmap -fq\fR command as
 #	described in the SYNOPSIS above.
 # TABLE FORMAT
 # .ad
@@ -79,7 +83,7 @@
 #	can be used to include a whitespace or \fB#\fR character
 #	as part of the pattern.
 # .IP "\fBA\fR (default: off)"
-#       Toggles the PCRE_ANCHORED flag.  When this flag is on,
+#	Toggles the PCRE_ANCHORED flag.  When this flag is on,
 #	the pattern is forced to be "anchored", that is, it is
 #	constrained to match only at the start of the string which
 #	is being searched (the "subject string"). This effect can
@@ -100,7 +104,7 @@
 #	but become greedy if followed by "?".  This flag can also
 #	set by a (?U) modifier within the pattern.
 # .IP "\fBX\fR (default: off)"
-#       Toggles the PCRE_EXTRA flag.
+#	Toggles the PCRE_EXTRA flag.
 #	When this flag is on, any backslash in a pattern that is
 #	followed by a letter that has no special meaning causes an
 #	error, thus reserving these combinations for future expansion.
@@ -151,9 +155,17 @@
 #
 #	# Put your own body patterns here.
 # SEE ALSO
-#	regexp_table(5) format of POSIX regular expression tables
-#	cidr_table(5) format of CIDR tables
-#	tcp_table(5) TCP client/server table lookup protocol
+#	postmap(1), Postfix lookup table manager
+#	postconf(5), configuration parameters
+#	regexp_table(5), format of POSIX regular expression tables
+# README FILES
+# .ad
+# .fi
+#	Use "\fBpostconf readme_directory\fR" or
+#	"\fBpostconf html_directory\fR" to locate this information.
+# .na
+# .nf
+#	DATABASE_README, Postfix lookup table overview
 # AUTHOR(S)
 #	The PCRE table lookup code was originally written by:
 #	Andrew McNamara

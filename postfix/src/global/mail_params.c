@@ -25,7 +25,6 @@
 /*	uid_t	var_default_uid;
 /*	gid_t	var_default_gid;
 /*	char	*var_config_dir;
-/*	char	*var_program_dir;
 /*	char	*var_daemon_dir;
 /*	char	*var_command_dir;
 /*	char	*var_queue_dir;
@@ -185,7 +184,6 @@ char   *var_default_privs;
 uid_t   var_default_uid;
 gid_t   var_default_gid;
 char   *var_config_dir;
-char   *var_program_dir;
 char   *var_daemon_dir;
 char   *var_command_dir;
 char   *var_queue_dir;
@@ -483,7 +481,7 @@ void    mail_params_init()
 	0,
     };
     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
-	VAR_MYNETWORKS, mynetworks, &var_mynetworks, 1, 0,
+	VAR_MYNETWORKS, mynetworks, &var_mynetworks, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE other_int_defaults[] = {

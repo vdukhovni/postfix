@@ -481,7 +481,9 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
     if (result != SASL_OK || serverout == 0)
 	msg_panic("%s: sasl_getprop SASL_USERNAME botch", myname);
     state->sasl_username = mystrdup(serverout);
+    printable(state->sasl_username, '?');
     state->sasl_method = mystrdup(sasl_method);
+    printable(state->sasl_method, '?');
 
     return (0);
 }

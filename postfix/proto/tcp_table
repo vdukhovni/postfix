@@ -69,15 +69,24 @@
 #	Do not use TCP lookup tables for security critical purposes.
 #	The client-server connection is not protected and the server
 #	is not authenticated.
-# SEE ALSO
-#	regexp_table(5) format of regular expression tables
-#	pcre_table(5) format of PCRE tables
-#	cidr_table(5) format of CIDR tables
 # BUGS
 #	Only the lookup method is currently implemented.
 #
 #	The client does not hang up when the connection is idle for
 #	a long time.
+# SEE ALSO
+#	postmap(1), Postfix lookup table manager
+#	regexp_table(5) format of regular expression tables
+#	pcre_table(5) format of PCRE tables
+#	cidr_table(5) format of CIDR tables
+# README FILES
+# .ad
+# .fi
+#	Use "\fBpostconf readme_directory\fR" or
+#	"\fBpostconf html_directory\fR" to locate this information.
+# .na
+# .nf
+#	DATABASE_README, Postfix lookup table overview
 # LICENSE
 # .ad
 # .fi

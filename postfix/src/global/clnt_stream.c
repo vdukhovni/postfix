@@ -213,6 +213,9 @@ VSTREAM *clnt_stream_access(CLNT_STREAM *clnt_stream)
      */
     if (clnt_stream->vstream == 0) {
 	clnt_stream_open(clnt_stream);
+    } else if (readable(vstream_fileno(clnt_stream->vstream))) {
+	clnt_stream_close(clnt_stream);
+	clnt_stream_open(clnt_stream);
     } else {
 	event_request_timer(clnt_stream_event, (char *) clnt_stream,
 			    clnt_stream->timeout);

@@ -126,6 +126,8 @@
 #include "vstring.h"
 #include "split_at.h"
 #include "find_inet.h"
+#include "myrand.h"
+#include "events.h"
 
 /* Global library. */
 
@@ -139,14 +141,17 @@
 typedef struct {
     MYSQL  *db;
     char   *hostname;
-    int     stat;			/* STATUNTRIED | STATFAIL | STATCUR */
+    char   *name;
+    unsigned port;
+    unsigned type;			/* TYPEUNIX | TYPEINET */
+    unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection
 					 * every so often if a host is down */
 } HOST;
 
 typedef struct {
     int     len_hosts;			/* number of hosts */
-    HOST   *db_hosts;			/* the hosts on which the databases
+    HOST  **db_hosts;			/* the hosts on which the databases
 					 * reside */
 } PLMYSQL;
 
@@ -169,10 +174,16 @@ typedef struct {
     MYSQL_NAME *name;
 } DICT_MYSQL;
 
-#define STATACTIVE 0
-#define STATFAIL 1
-#define STATUNTRIED 2
-#define RETRY_CONN_INTV 60		/* 1 minute */
+#define STATACTIVE			(1<<0)
+#define STATFAIL			(1<<1)
+#define STATUNTRIED			(1<<2)
+
+#define TYPEUNIX			(1<<0)
+#define TYPEINET			(1<<1)
+
+#define RETRY_CONN_MAX			100
+#define RETRY_CONN_INTV			60		/* 1 minute */
+#define IDLE_CONN_INTV			60		/* 1 minute */
 
 /* internal function declarations */
 static PLMYSQL *plmysql_init(char *hostnames[], int);
@@ -185,7 +196,7 @@ static const char *dict_mysql_lookup(DICT *, const char *);
 DICT   *dict_mysql_open(const char *, int, int);
 static void dict_mysql_close(DICT *);
 static MYSQL_NAME *mysqlname_parse(const char *);
-static HOST host_init(char *);
+static HOST *host_init(const char *);
 
 
 
@@ -269,6 +280,102 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     return vstring_str(result);
 }
 
+/* dict_mysql_check_stat - check the status of a host */
+
+static int dict_mysql_check_stat(HOST *host, unsigned stat, unsigned type,
+				 time_t t)
+{
+    if ((host->stat & stat) && (!type || host->type & type)) {
+	/* try not to hammer the dead hosts too often */
+	if (host->stat == STATFAIL && host->ts > 0 && host->ts >= t)
+	    return 0;
+	return 1;
+    }
+    return 0;
+}
+
+/* dict_mysql_find_host - find a host with the given status */
+
+static HOST *dict_mysql_find_host(PLMYSQL *PLDB, unsigned stat, unsigned type)
+{
+    time_t  t;
+    int     count = 0;
+    int     idx;
+    int     i;
+
+    t = time((time_t *) 0);
+    for (i = 0; i < PLDB->len_hosts; i++) {
+	if (dict_mysql_check_stat(PLDB->db_hosts[i], stat, type, t))
+	    count++;
+    }
+
+    if (count) {
+	/*
+	 * Calling myrand() can deplete the random pool.
+	 * Don't rely on the optimizer to weed out the call
+	 * when count == 1.
+	 */
+	idx = (count > 1) ? 1 + (count - 1) * (double) myrand() / RAND_MAX : 1;
+
+	for (i = 0; i < PLDB->len_hosts; i++) {
+	    if (dict_mysql_check_stat(PLDB->db_hosts[i], stat, type, t) &&
+				      --idx == 0)
+		return PLDB->db_hosts[i];
+	}
+    }
+    return 0;
+}
+
+/* dict_mysql_get_active - get an active connection */
+
+static HOST *dict_mysql_get_active(PLMYSQL *PLDB, char *dbname,
+				   char *username, char *password)
+{
+    const char *myname = "dict_mysql_get_active";
+    HOST   *host;
+    int     count = RETRY_CONN_MAX;
+
+    /* Try the active connections first; prefer the ones to UNIX sockets. */
+    if ((host = dict_mysql_find_host(PLDB, STATACTIVE, TYPEUNIX)) != NULL ||
+	(host = dict_mysql_find_host(PLDB, STATACTIVE, TYPEINET)) != NULL) {
+	if (msg_verbose)
+	    msg_info("%s: found active connection to host %s", myname,
+		     host->hostname);
+	return host;
+    }
+
+    /*
+     * Try the remaining hosts.
+     * "count" is a safety net, in case the loop takes more than
+     * RETRY_CONN_INTV and the dead hosts are no longer skipped.
+     */
+    while (--count > 0 &&
+	   ((host = dict_mysql_find_host(PLDB, STATUNTRIED | STATFAIL,
+					 TYPEUNIX)) != NULL ||
+	   (host = dict_mysql_find_host(PLDB, STATUNTRIED | STATFAIL,
+					TYPEINET)) != NULL)) {
+	if (msg_verbose)
+	    msg_info("%s: attempting to connect to host %s", myname,
+		     host->hostname);
+	plmysql_connect_single(host, dbname, username, password);
+	if (host->stat == STATACTIVE)
+	    return host;
+    }
+
+    /* bad news... */
+    return 0;
+}
+
+/* dict_mysql_event - callback: close idle connections */
+
+static void dict_mysql_event(int unused_event, char *context)
+{
+    HOST   *host = (HOST *) context;
+
+    if (host->db)
+	plmysql_close_host(host);
+}
+
 /*
  * plmysql_query - process a MySQL query.  Return MYSQL_RES* on success.
  *			On failure, log failure and try other db instances.
@@ -282,61 +389,26 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
 				        char *username,
 				        char *password)
 {
-    int     i;
     HOST   *host;
     MYSQL_RES *res = 0;
 
-    for (i = 0; i < PLDB->len_hosts; i++) {
-	/* can't deal with typing or reading PLDB->db_hosts[i] over & over */
-	host = &(PLDB->db_hosts[i]);
-	if (msg_verbose > 1)
-	    msg_info("dict_mysql: trying host %s stat %d, last res %p", host->hostname, host->stat, res);
-
-	/* answer already found */
-	if (res != 0 && host->stat == STATACTIVE) {
-	    if (msg_verbose)
-		msg_info("dict_mysql: closing unnessary connection to %s",
-			 host->hostname);
-	    plmysql_close_host(host);
-	}
-	/* try to connect for the first time if we don't have a result yet */
-	if (res == 0 && host->stat == STATUNTRIED) {
-	    if (msg_verbose)
-		msg_info("dict_mysql: attempting to connect to host %s",
-			 host->hostname);
-	    plmysql_connect_single(host, dbname, username, password);
-	}
-
-	/*
-	 * try to reconnect if we don't have an answer and the host had a
-	 * prob in the past and it's time for it to reconnect
-	 */
-	if (res == 0 && host->stat == STATFAIL && host->ts < time((time_t *) 0)) {
-	    if (msg_verbose)
-		msg_info("dict_mysql: attempting to reconnect to host %s",
-			 host->hostname);
-	    plmysql_connect_single(host, dbname, username, password);
-	}
-
-	/*
-	 * if we don't have a result and the current host is marked active,
-	 * try the query.  If the query fails, mark the host STATFAIL
-	 */
-	if (res == 0 && host->stat == STATACTIVE) {
-	    if (!(mysql_query(host->db, query))) {
-		if ((res = mysql_store_result(host->db)) == 0) {
-		    msg_warn("mysql query failed: %s", mysql_error(host->db));
-		    plmysql_down_host(host);
-		} else {
-		    if (msg_verbose)
-			msg_info("dict_mysql: successful query from host %s", host->hostname);
-		}
-	    } else {
+    while ((host = dict_mysql_get_active(PLDB, dbname, username, password)) != NULL) {
+	if (!(mysql_query(host->db, query))) {
+	    if ((res = mysql_store_result(host->db)) == 0) {
 		msg_warn("mysql query failed: %s", mysql_error(host->db));
 		plmysql_down_host(host);
+	    } else {
+		if (msg_verbose)
+		    msg_info("dict_mysql: successful query from host %s", host->hostname);
+		event_request_timer(dict_mysql_event, (char *) host, IDLE_CONN_INTV);
+		break;
 	    }
+	} else {
+	    msg_warn("mysql query failed: %s", mysql_error(host->db));
+	    plmysql_down_host(host);
 	}
     }
+
     return res;
 }
 
@@ -347,28 +419,16 @@ static MYSQL_RES *plmysql_query(PLMYSQL *PLDB,
  */
 static void plmysql_connect_single(HOST *host, char *dbname, char *username, char *password)
 {
-    char   *destination = host->hostname;
-    char   *unix_socket = 0;
-    char   *hostname = 0;
-    char   *service;
-    unsigned port = 0;
-
-    /*
-     * Ad-hoc parsing code. Expect "unix:pathname" or "inet:host:port", where
-     * both "inet:" and ":port" are optional.
-     */
-    if (strncmp(destination, "unix:", 5) == 0) {
-	unix_socket = destination + 5;
-    } else {
-	if (strncmp(destination, "inet:", 5) == 0)
-	    destination += 5;
-	hostname = mystrdup(destination);
-	if ((service = split_at(hostname, ':')) != 0)
-	    port = ntohs(find_inet_port(service, "tcp"));
-    }
-
-    host->db = mysql_init(NULL);
-    if (mysql_real_connect(host->db, hostname, username, password, dbname, port, unix_socket, 0)) {
+    if ((host->db = mysql_init(NULL)) == NULL)
+	msg_fatal("dict_mysql: insufficient memory");
+    if (mysql_real_connect(host->db,
+			   (host->type == TYPEINET ? host->name : 0),
+			   username,
+			   password,
+			   dbname,
+			   host->port,
+			   (host->type == TYPEUNIX ? host->name : 0),
+			   0)) {
 	if (msg_verbose)
 	    msg_info("dict_mysql: successful connection to host %s",
 		     host->hostname);
@@ -378,8 +438,6 @@ static void plmysql_connect_single(HOST *host, char *dbname, char *username, cha
 		 host->hostname, mysql_error(host->db));
 	plmysql_down_host(host);
     }
-    if (hostname)
-	myfree(hostname);
 }
 
 /* plmysql_close_host - close an established MySQL connection */
@@ -400,6 +458,7 @@ static void plmysql_down_host(HOST *host)
     host->db = 0;
     host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
     host->stat = STATFAIL;
+    event_cancel_timer(dict_mysql_event, (char *) host);
 }
 
 /**********************************************************************
@@ -508,7 +567,7 @@ static PLMYSQL *plmysql_init(char *hostnames[], int len_hosts)
 	msg_fatal("mymalloc of pldb failed");
     }
     PLDB->len_hosts = len_hosts;
-    if ((PLDB->db_hosts = (HOST *) mymalloc(sizeof(HOST) * len_hosts)) == NULL)
+    if ((PLDB->db_hosts = (HOST **) mymalloc(sizeof(HOST *) * len_hosts)) == NULL)
 	return NULL;
     for (i = 0; i < len_hosts; i++) {
 	PLDB->db_hosts[i] = host_init(hostnames[i]);
@@ -518,14 +577,45 @@ static PLMYSQL *plmysql_init(char *hostnames[], int len_hosts)
 
 
 /* host_init - initialize HOST structure */
-static HOST host_init(char *hostname)
+static HOST *host_init(const char *hostname)
 {
-    HOST    host;
+    const char *myname = "mysql host_init";
+    HOST   *host = (HOST *) mymalloc(sizeof(HOST));
+    const char *d = hostname;
+    char   *s;
 
-    host.stat = STATUNTRIED;
-    host.hostname = mystrdup(hostname);
-    host.db = 0;
-    host.ts = 0;
+    host->db = 0;
+    host->hostname = mystrdup(hostname);
+    host->port = 0;
+    host->stat = STATUNTRIED;
+    host->ts = 0;
+
+    /*
+     * Ad-hoc parsing code. Expect "unix:pathname" or "inet:host:port", where
+     * both "inet:" and ":port" are optional.
+     */
+    if (strncmp(d, "unix:", 5) == 0) {
+	d += 5;
+	host->type = TYPEUNIX;
+    } else {
+	if (strncmp(d, "inet:", 5) == 0)
+	    d += 5;
+	host->type = TYPEINET;
+    }
+    host->name = mystrdup(d);
+    if ((s = split_at_right(host->name, ':')) != 0)
+	host->port = ntohs(find_inet_port(s, "tcp"));
+    if (strcasecmp(host->name, "localhost") == 0) {
+	/* The MySQL way: this will actually connect over the UNIX socket */
+	myfree(host->name);
+	host->name = 0;
+	host->type = TYPEUNIX;
+    }
+
+    if (msg_verbose > 1)
+	msg_info("%s: host=%s, port=%d, type=%s", myname,
+		 host->name ? host->name : "localhost",
+		 host->port, host->type == TYPEUNIX ? "unix" : "inet");
     return host;
 }
 
@@ -561,9 +651,13 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
     int     i;
 
     for (i = 0; i < PLDB->len_hosts; i++) {
-	if (PLDB->db_hosts[i].db)
-	    mysql_close(PLDB->db_hosts[i].db);
-	myfree(PLDB->db_hosts[i].hostname);
+	event_cancel_timer(dict_mysql_event, (char *) (PLDB->db_hosts[i]));
+	if (PLDB->db_hosts[i]->db)
+	    mysql_close(PLDB->db_hosts[i]->db);
+	myfree(PLDB->db_hosts[i]->hostname);
+	if (PLDB->db_hosts[i]->name)
+	    myfree(PLDB->db_hosts[i]->name);
+	myfree((char *) PLDB->db_hosts[i]);
     }
     myfree((char *) PLDB->db_hosts);
     myfree((char *) (PLDB));

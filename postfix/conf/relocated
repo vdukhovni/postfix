@@ -96,23 +96,23 @@
 #        This  section  describes how the table lookups change when
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion   of  the  TCP  client/server  lookup  protocol,  see
-#        tcp_table(5).
+#        tcp_table(5).  This feature is not  available  in  Postfix
+#        version 2.1.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
-#        user@domain  mail  addresses  are not broken up into their
+#        user@domain mail addresses are not broken  up  into  their
 #        user and @domain constituent parts, nor is user+foo broken
 #        up into user and foo.
 # 
 #        Results are the same as with indexed file lookups.
 # 
 # BUGS
-#        The  table format does not understand quoting conventions.
+#        The table format does not understand quoting  conventions.
 # 
 # CONFIGURATION PARAMETERS
-#        The following main.cf parameters are  especially  relevant
-#        to  this  topic.  See  the Postfix main.cf file for syntax
-#        details and for default values.  Use  the  postfix  reload
-#        command after a configuration change.
+#        The  following main.cf parameters are especially relevant.
+#        The text below provides  only  a  parameter  summary.  See
+#        postconf(5) for more details including examples.
 # 
 #        relocated_maps
 #               List of lookup tables for relocated users or sites.
@@ -137,13 +137,18 @@
 #               tor.
 # 
 # SEE ALSO
-#        postmap(1) create lookup table
-#        pcre_table(5) format of PCRE tables
-#        regexp_table(5) format of POSIX regular expression tables
-#        tcp_table(5) TCP client/server table lookup protocol
+#        trivial-rewrite(8), address resolver
+#        postmap(1), Postfix lookup table manager
+#        postconf(5), configuration parameters
+# 
+# README FILES
+#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        tory" to locate this information.
+#        DATABASE_README, Postfix lookup table overview
+#        ADDRESS_REWRITING_README, address rewriting guide
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

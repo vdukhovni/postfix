@@ -68,3 +68,4 @@ postlog.o: ../../include/msg_vstream.h
 postlog.o: ../../include/msg_syslog.h
 postlog.o: ../../include/mail_params.h
 postlog.o: ../../include/mail_conf.h
+postlog.o: ../../include/mail_task.h

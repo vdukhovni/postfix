@@ -18,7 +18,8 @@
 #	Postfix:
 # .IP \fBmydestination\fR
 #	A list of domains that is by default delivered via
-#	\fB$local_transport\fR.
+#	\fB$local_transport\fR. This also includes domains
+#	that match \fB$inet_interfaces\fR or \fB$proxy_interfaces\fR.
 # .IP \fBvirtual_mailbox_domains\fR
 #	A list of domains that is by default delivered via
 #	\fB$virtual_transport\fR.
@@ -190,7 +191,7 @@
 #
 #	Each pattern is a regular expression that is applied to the entire
 #	address being looked up. Thus, \fIsome.domain.hierarchy\fR is not
-#	looked up up via its parent domains,
+#	looked up via its parent domains,
 #	nor is \fIuser+foo@domain\fR looked up as \fIuser@domain\fR.
 #
 #	Patterns are applied in the order as specified in the table, until a
@@ -205,6 +206,7 @@
 #	This section describes how the table lookups change when lookups
 #	are directed to a TCP-based server. For a description of the TCP
 #	client/server lookup protocol, see \fBtcp_table\fR(5).
+#	This feature is not available in Postfix version 2.1.
 #
 #	Each lookup operation uses the entire recipient address once.  Thus,
 #	\fIsome.domain.hierarchy\fR is not looked up via its parent domains,
@@ -214,10 +216,9 @@
 # CONFIGURATION PARAMETERS
 # .ad
 # .fi
-#	The following \fBmain.cf\fR parameters are especially relevant to
-#	this topic. See the Postfix \fBmain.cf\fR file for syntax details
-#	and for default values. Use the \fBpostfix reload\fR command after
-#	a configuration change.
+#       The following \fBmain.cf\fR parameters are especially relevant.  
+#       The text below provides only a parameter summary. See
+#       postconf(5) for more details including examples.
 # .IP \fBempty_address_recipient\fR
 #	The address that is looked up instead of the null sender address.
 # .IP \fBparent_domain_matches_subdomains\fR
@@ -227,11 +228,18 @@
 # .IP \fBtransport_maps\fR
 #	List of transport lookup tables.
 # SEE ALSO
-#	postmap(1) create mapping table
-#	trivial-rewrite(8) rewrite and resolve addresses
-#	pcre_table(5) format of PCRE tables
-#	regexp_table(5) format of POSIX regular expression tables
-#	tcp_table(5) TCP client/server table lookup protocol
+#	trivial-rewrite(8), rewrite and resolve addresses
+#	postconf(5), configuration parameters
+#	postmap(1), Postfix lookup table manager
+# README FILES
+# .ad
+# .fi
+#	Use "\fBpostconf readme_directory\fR" or
+#	"\fBpostconf html_directory\fR" to locate this information.
+# .na
+# .nf
+#	DATABASE_README, Postfix lookup table overview
+#	FILTER_README, external content filter
 # LICENSE
 # .ad
 # .fi
@@ -242,5 +250,3 @@
 #	P.O. Box 704
 #	Yorktown Heights, NY 10598, USA
 #--
-
-# By default, this file is not used.  See sample-transport.cf

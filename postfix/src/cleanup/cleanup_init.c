@@ -118,6 +118,7 @@ int     var_virt_expan_limit;		/* maximum virtual alias expansion */
 int     var_body_check_len;		/* when to stop body scan */
 char   *var_send_bcc_maps;		/* sender auto-bcc maps */
 char   *var_rcpt_bcc_maps;		/* recipient auto-bcc maps */
+bool    var_enable_errors_to;		/* extract Errors-To: address. */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -131,6 +132,7 @@ CONFIG_INT_TABLE cleanup_int_table[] = {
 
 CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
+    VAR_ENABLE_ERRORS_TO, DEF_ENABLE_ERRORS_TO, &var_enable_errors_to,
     0,
 };
 

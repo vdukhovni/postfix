@@ -160,8 +160,10 @@
 static int attr_scan_plain_string(VSTREAM *fp, VSTRING *plain_buf,
 				        int terminator, const char *context)
 {
+#if 0
     extern int var_line_limit;		/* XXX */
     int     limit = var_line_limit * 4;
+#endif
     int     ch;
 
     VSTRING_RESET(plain_buf);

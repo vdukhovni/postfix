@@ -84,6 +84,7 @@ postalias.o: ../../include/vstring.h
 postalias.o: ../../include/vbuf.h
 postalias.o: ../../include/vstream.h
 postalias.o: ../../include/msg_vstream.h
+postalias.o: ../../include/msg_syslog.h
 postalias.o: ../../include/readlline.h
 postalias.o: ../../include/stringops.h
 postalias.o: ../../include/split_at.h
@@ -97,3 +98,4 @@ postalias.o: ../../include/mail_params.h
 postalias.o: ../../include/mkmap.h
 postalias.o: ../../include/dict.h
 postalias.o: ../../include/argv.h
+postalias.o: ../../include/mail_task.h

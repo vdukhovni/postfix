@@ -190,15 +190,24 @@ int     smtp_helo(SMTP_STATE *state, int misc_flags)
      */
     smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
     if ((except = vstream_setjmp(state->session->stream)) != 0)
-	return (smtp_stream_except(state, except, "sending HELO"));
+	return (smtp_stream_except(state, except,
+				   "receiving the initial SMTP greeting"));
 
     /*
      * Read and parse the server's SMTP greeting banner.
      */
-    if ((resp = smtp_chat_resp(state))->code / 100 != 2)
+    switch ((resp = smtp_chat_resp(state))->code / 100) {
+    case 2:
+	break;
+    case 5:
+	if (var_smtp_skip_5xx_greeting)
+	    resp->code = 400;
+    default:
 	return (smtp_site_fail(state, resp->code,
 			       "host %s refused to talk to me: %s",
-			 session->namaddr, translit(resp->str, "\n", " ")));
+			       session->namaddr,
+			       translit(resp->str, "\n", " ")));
+    }
 
     /*
      * XXX Some PIX firewall versions require flush before ".<CR><LF>" so it
@@ -379,24 +388,24 @@ int     smtp_xfer(SMTP_STATE *state)
     SMTP_RESP *resp;
     RECIPIENT *rcpt;
     VSTRING *next_command = vstring_alloc(100);
-    int     next_state;
-    int     next_rcpt;
-    int     send_state;
-    int     recv_state;
-    int     send_rcpt;
-    int     recv_rcpt;
-    int     nrcpt;
+    NOCLOBBER int next_state;
+    NOCLOBBER int next_rcpt;
+    NOCLOBBER int send_state;
+    NOCLOBBER int recv_state;
+    NOCLOBBER int send_rcpt;
+    NOCLOBBER int recv_rcpt;
+    NOCLOBBER int nrcpt;
     int     except;
     int     rec_type;
-    int     prev_type = 0;
+    NOCLOBBER int prev_type = 0;
     int     sndbufsize = 0;
-    int     sndbuffree;
+    NOCLOBBER int sndbuffree;
     SOCKOPT_SIZE optlen = sizeof(sndbufsize);
-    int     mail_from_rejected;
-    int     downgrading;
+    NOCLOBBER int mail_from_rejected;
+    NOCLOBBER int downgrading;
     int     mime_errs;
     int     send_name_addr;
-    int     send_proto_helo;
+    NOCLOBBER int send_proto_helo;
 
     /*
      * Macros for readability.

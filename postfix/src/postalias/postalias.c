@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /* .fi
 /*	\fBpostalias\fR [\fB-Nfinoprvw\fR] [\fB-c \fIconfig_dir\fR]
-/*		[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
+/*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
 /*	The \fBpostalias\fR command creates or queries one or more Postfix
@@ -80,7 +80,11 @@
 /* .PP
 /*	Arguments:
 /* .IP \fIfile_type\fR
-/*	The type of database to be produced.
+/*	The database type. To find out what types are supported, use
+/*	the "\fBpostconf -m" command.
+/*
+/*	The \fBpostalias\fR command can query any supported file type,
+/*	but it can create only the following file types:
 /* .RS
 /* .IP \fBbtree\fR
 /*	The output is a btree file, named \fIfile_name\fB.db\fR.
@@ -104,7 +108,8 @@
 /* .IP \fIfile_name\fR
 /*	The name of the alias database source file when creating a database.
 /* DIAGNOSTICS
-/*	Problems are logged to the standard error stream. No output means
+/*	Problems are logged to the standard error stream and to
+/*	\fBsyslogd\fR(8).  No output means that
 /*	no problems were detected. Duplicate entries are skipped and are
 /*	flagged with a warning.
 /*
@@ -122,23 +127,48 @@
 /* .ad
 /* .fi
 /*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values.
-/* .IP \fBdefault_database_type\fR
-/*	Default database type. On many UNIX systems, the default type
-/*	is either \fBdbm\fR or \fBhash\fR.
-/* .IP \fBberkeley_db_create_buffer_size\fR
-/*	Amount of buffer memory to be used when creating a Berkeley DB
-/*	\fBhash\fR or \fBbtree\fR lookup table.
-/* .IP \fBberkeley_db_read_buffer_size\fR
-/*	Amount of buffer memory to be used when reading a Berkeley DB
-/*	\fBhash\fR or \fBbtree\fR lookup table.
+/*	this program.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* .IP "\fBalias_database (see 'postconf -d' output)\fR"
+/*	The alias databases for local(8) delivery that are updated with
+/*	"\fBnewaliases\fR" or with "\fBsendmail -bi\fR".
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBberkeley_db_create_buffer_size (16777216)\fR"
+/*	The per-table I/O buffer size for programs that create Berkeley DB
+/*	hash or btree tables.
+/* .IP "\fBberkeley_db_read_buffer_size (131072)\fR"
+/*	The per-table I/O buffer size for programs that read Berkeley DB
+/*	hash or btree tables.
+/* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
+/*	The default database type for use in newaliases(1), postalias(1)
+/*	and postmap(1) commands.
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* SEE ALSO
-/*	aliases(5) format of alias database input file.
-/*	local(5) Postfix local delivery agent.
-/*	sendmail(1) mail posting and compatibility interface.
+/*	aliases(5), format of alias database input file.
+/*	local(8), Postfix local delivery agent.
+/*	postconf(1), supported database types
+/*	postconf(5), configuration parameters
+/*	postmap(1), create/update/query lookup tables
+/*	newaliases(1), Sendmail compatibility interface.
+/*	syslogd(8), system logging
+/* README FILES
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
+/*	DATABASE_README, Postfix lookup table overview
 /* LICENSE
 /* .ad
 /* .fi
@@ -167,6 +197,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <msg_vstream.h>
+#include <msg_syslog.h>
 #include <readlline.h>
 #include <stringops.h>
 #include <split_at.h>
@@ -180,6 +211,7 @@
 #include <mail_dict.h>
 #include <mail_params.h>
 #include <mkmap.h>
+#include <mail_task.h>
 
 /* Application-specific. */
 
@@ -553,9 +585,10 @@ int     main(int argc, char **argv)
      * Initialize. Set up logging, read the global configuration file and
      * extract configuration information.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0)
+    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
 
     /*
      * Parse JCL.

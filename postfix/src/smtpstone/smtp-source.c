@@ -1,15 +1,15 @@
 /*++
 /* NAME
-/*	smtp-source 8
+/*	smtp-source 1
 /* SUMMARY
-/*	multi-threaded SMTP test generator
+/*	multi-threaded SMTP/LMTP test generator
 /* SYNOPSIS
 /* .fi
 /*	\fBsmtp-source\fR [\fIoptions\fR] [\fBinet:\fR]\fIhost\fR[:\fIport\fR]
 /*
 /*	\fBsmtp-source\fR [\fIoptions\fR] \fBunix:\fIpathname\fR
 /* DESCRIPTION
-/*	smtp-source connects to the named \fIhost\fR and TCP \fIport\fR
+/*	\fBsmtp-source\fR connects to the named \fIhost\fR and TCP \fIport\fR
 /*	(default: port 25)
 /*	and sends one or more messages to it, either sequentially
 /*	or in parallel. The program speaks either SMTP (default) or
@@ -62,6 +62,8 @@
 /*	Connect to the UNIX-domain socket at \fIpathname\fR.
 /* BUGS
 /*	No SMTP command pipelining support.
+/* SEE ALSO
+/*	smtp-sink(1), SMTP/LMTP message dump
 /* LICENSE
 /* .ad
 /* .fi
@@ -478,7 +480,7 @@ static void read_banner(int unused_event, char *context)
 static void send_helo(SESSION *session)
 {
     int     except;
-    char   *protocol = (talk_lmtp ? "LHLO" : "HELO");
+    char   *NOCLOBBER protocol = (talk_lmtp ? "LHLO" : "HELO");
 
     /*
      * Send the standard greeting with our hostname

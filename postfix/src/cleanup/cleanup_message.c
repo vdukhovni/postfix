@@ -196,10 +196,11 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	if (hdr_opts->type == HDR_RETURN_RECEIPT_TO && !state->return_receipt)
 	    state->return_receipt =
 		cleanup_extract_internal(header_buf, *tpp);
-	if (hdr_opts->type == HDR_ERRORS_TO && !state->errors_to)
-	    state->errors_to =
-		cleanup_extract_internal(header_buf, *tpp);
 #endif
+	if (var_enable_errors_to)
+	    if (hdr_opts->type == HDR_ERRORS_TO && !state->errors_to)
+		state->errors_to =
+		    cleanup_extract_internal(header_buf, *tpp);
     }
     vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
     tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
@@ -278,6 +279,9 @@ static void cleanup_act_log(CLEANUP_STATE *state,
     msg_info("%s", vstring_str(state->temp1));
 }
 
+#define CLEANUP_ACT_CTXT_HEADER	"header"
+#define CLEANUP_ACT_CTXT_BODY	"body"
+
 /* cleanup_act - act upon a header/body match */
 
 static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
@@ -329,6 +333,20 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
     if (STREQUAL(value, "HOLD", command_len)) {
 	cleanup_act_log(state, "hold", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_HOLD;
+	return (CLEANUP_ACT_KEEP);
+    }
+    if (STREQUAL(value, "PREPEND", command_len)) {
+	if (*optional_text == 0) {
+	    msg_warn("PREPEND action without text in %s map", map_class);
+	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0
+		   && !is_header(optional_text)) {
+	    msg_warn("bad PREPEND header text \"%s\" in %s map, "
+		     "need \"headername: headervalue\"",
+		     optional_text, map_class);
+	} else {
+	    cleanup_act_log(state, "prepend", context, buf, optional_text);
+	    cleanup_out_string(state, REC_TYPE_NORM, optional_text);
+	}
 	return (CLEANUP_ACT_KEEP);
     }
     if (STREQUAL(value, "REDIRECT", command_len)) {
@@ -405,7 +423,8 @@ static void cleanup_header_callback(void *context, int header_class,
 	const char *value;
 
 	if ((value = maps_find(checks, header, 0)) != 0) {
-	    if (cleanup_act(state, "header", header, value, map_class)
+	    if (cleanup_act(state, CLEANUP_ACT_CTXT_HEADER,
+			    header, value, map_class)
 		== CLEANUP_ACT_DROP)
 		return;
 	}
@@ -611,7 +630,8 @@ static void cleanup_body_callback(void *context, int type,
 	const char *value;
 
 	if ((value = maps_find(cleanup_body_checks, buf, 0)) != 0) {
-	    if (cleanup_act(state, "body", buf, value, VAR_BODY_CHECKS)
+	    if (cleanup_act(state, CLEANUP_ACT_CTXT_BODY,
+			    buf, value, VAR_BODY_CHECKS)
 		== CLEANUP_ACT_DROP)
 		return;
 	}

@@ -197,6 +197,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	    tok822_free_tree(tree); \
 	if (addr_buf) \
 	    vstring_free(addr_buf); \
+	return; \
     }
 
     /*
@@ -238,19 +239,22 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	}
 
 	/*
-	 * Strip trailing dot at end of domain, but not dot-dot. This merely
-	 * makes diagnostics more accurate by leaving bogus addresses alone.
+	 * Strip trailing dot at end of domain, but not dot-dot or at-dot.
+	 * This merely makes diagnostics more accurate by leaving bogus
+	 * addresses alone.
 	 */
 	if (tree->tail
 	    && tree->tail->type == '.'
 	    && tok822_rfind_type(tree->tail, '@') != 0
-	    && tree->tail->prev->type != '.')
+	    && tree->tail->prev->type != '.'
+	    && tree->tail->prev->type != '@')
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
 
 	/*
 	 * Strip trailing @.
 	 */
-	if (tree->tail
+	if (var_resolve_nulldom
+	    && tree->tail
 	    && tree->tail->type == '@')
 	    tok822_free_tree(tok822_sub_keep_before(tree, tree->tail));
 
@@ -362,6 +366,14 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
 	*flags |= RESOLVE_FLAG_ERROR;
     tok822_free_tree(tree);
     tree = 0;
+
+    /*
+     * XXX Short-cut invalid address forms.
+     */
+    if (*flags & RESOLVE_FLAG_ERROR) {
+	*flags |= RESOLVE_CLASS_DEFAULT;
+	FREE_MEMORY_AND_RETURN;
+    }
 
     /*
      * Recognize routing operators in the local-part, even when we do not

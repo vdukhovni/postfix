@@ -116,6 +116,10 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_TABLE		"table"
 #define MAIL_ATTR_KEY		"key"
 #define MAIL_ATTR_VALUE		"value"
+#define MAIL_ATTR_INSTANCE	"instance"
+#define MAIL_ATTR_SASL_METHOD	"sasl_method"
+#define MAIL_ATTR_SASL_USERNAME	"sasl_username"
+#define MAIL_ATTR_SASL_SENDER	"sasl_sender"
 
  /*
   * Suffixes for sender_name, sender_domain etc.

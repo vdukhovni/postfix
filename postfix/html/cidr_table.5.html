@@ -1,19 +1,24 @@
-<html> <body> <pre>
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> Postfix manual - cidr_table(5) </title>
+</head> <body> <pre>
 CIDR_TABLE(5)                                       CIDR_TABLE(5)
 
 <b>NAME</b>
        cidr_table - format of Postfix CIDR tables
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" cidr:/etc/postfix/</b><i>filename</i>
+       <b>postmap -q "</b><i>string</i><b>" <a href="cidr_table.5.html">cidr</a>:/etc/postfix/</b><i>filename</i>
 
-       <b>postmap -q - cidr:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -q - <a href="cidr_table.5.html">cidr</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  Postfix  mail  system  uses  optional  access control
        tables.  These tables are usually in  <b>dbm</b>  or  <b>db</b>  format.
        Alternatively,  access  control tables can be specified in
-       CIDR form.
+       CIDR (Classless Inter-Domain Routing) form.
 
        To find out what types of lookup tables your Postfix  sys-
        tem supports use the <b>postconf -m</b> command.
@@ -50,18 +55,21 @@ CIDR_TABLE(5)                                       CIDR_TABLE(5)
 
 <b>EXAMPLE SMTPD ACCESS MAP</b>
        /etc/postfix/main.cf:
-           smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
+           <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> = ... <a href="cidr_table.5.html">cidr</a>:/etc/postfix/client.cidr ...
 
-       /etc/postfix/client.cidr:
+       /etc/postfix/client.<a href="cidr_table.5.html">cidr</a>:
            # Rule order matters. Put more specific whitelist entries
            # before more general blacklist entries.
            192.168.1.1             OK
            192.168.0.0/16          REJECT
 
 <b>SEE ALSO</b>
+       <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
        <a href="regexp_table.5.html">regexp_table(5)</a> format of regular expression tables
        <a href="pcre_table.5.html">pcre_table(5)</a> format of PCRE tables
-       <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
+
+<b>README FILES</b>
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>AUTHOR(S)</b>
        The CIDR table lookup code was originally written by:

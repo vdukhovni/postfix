@@ -17,8 +17,9 @@
 /*
 /*	The \fBpipe\fR daemon updates queue files and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
-/*	be tried again at a later time. Delivery problem reports are sent
-/*	to the \fBbounce\fR(8) or \fBdefer\fR(8) daemon as appropriate.
+/*	be tried again at a later time. Delivery status reports are sent
+/*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
+/*	appropriate.
 /* SINGLE-RECIPIENT DELIVERY
 /* .ad
 /* .fi
@@ -184,43 +185,72 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	The following \fBmain.cf\fR parameters are especially relevant to
-/*	this program. See the Postfix \fBmain.cf\fR file for syntax details
-/*	and for default values. Use the \fBpostfix reload\fR command after
-/*	a configuration change.
-/* .SH Miscellaneous
-/* .ad
-/* .fi
-/* .IP \fBexport_environment\fR
-/*	List of names of environment parameters that can be exported
-/*	to non-Postfix processes.
-/* .IP \fBmail_owner\fR
-/*	The process privileges used while not running an external command.
-/* .SH "Resource controls"
+/*	Changes to \fBmain.cf\fR are picked up automatically as pipe(8)
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
+/*
+/*	The text below provides only a parameter summary. See
+/*	postconf(5) for more details including examples.
+/* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
 /*	In the text below, \fItransport\fR is the first field in a
 /*	\fBmaster.cf\fR entry.
-/* .IP \fItransport\fB_destination_concurrency_limit\fR
+/* .IP "\fItransport\fB_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
 /*	Limit the number of parallel deliveries to the same destination,
-/*	for delivery via the named \fItransport\fR. The default limit is
-/*	taken from the \fBdefault_destination_concurrency_limit\fR parameter.
+/*	for delivery via the named \fItransport\fR.
 /*	The limit is enforced by the Postfix queue manager.
-/* .IP \fItransport\fB_destination_recipient_limit\fR
+/* .IP "\fItransport\fB_destination_recipient_limit ($default_destination_recipient_limit)\fR"
 /*	Limit the number of recipients per message delivery, for delivery
-/*	via the named \fItransport\fR. The default limit is taken from
-/*	the \fBdefault_destination_recipient_limit\fR parameter.
+/*	via the named \fItransport\fR.
 /*	The limit is enforced by the Postfix queue manager.
-/* .IP \fItransport\fB_time_limit\fR
+/* .IP "\fItransport\fB_time_limit ($command_time_limit)\fR"
 /*	Limit the time for delivery to external command, for delivery via
-/*	the named \fBtransport\fR. The default limit is taken from the
-/*	\fBcommand_time_limit\fR parameter.
+/*	the named \fItransport\fR.
 /*	The limit is enforced by the pipe delivery agent.
+/* MISCELLANEOUS CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
+/* .IP "\fBdaemon_timeout (18000s)\fR"
+/*	How much time a Postfix daemon process may take to handle a
+/*	request before it is terminated by a built-in watchdog timer.
+/* .IP "\fBexport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment variables that a Postfix process will export
+/*	to non-Postfix processes.
+/* .IP "\fBipc_timeout (3600s)\fR"
+/*	The time limit for sending or receiving information over an internal
+/*	communication channel.
+/* .IP "\fBmail_owner (postfix)\fR"
+/*	The UNIX system account that owns the Postfix queue and most Postfix
+/*	daemon processes.
+/* .IP "\fBmax_idle (100s)\fR"
+/*	The maximum amount of time that an idle Postfix daemon process
+/*	waits for the next service request before exiting.
+/* .IP "\fBmax_use (100)\fR"
+/*	The maximal number of connection requests before a Postfix daemon
+/*	process terminates.
+/* .IP "\fBprocess_id (read-only)\fR"
+/*	The process ID of a Postfix command or daemon process.
+/* .IP "\fBprocess_name (read-only)\fR"
+/*	The process name of a Postfix command or daemon process.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
+/* .IP "\fBrecipient_delimiter (empty)\fR"
+/*	The separator between user names and address extensions (user+foo).
+/* .IP "\fBsyslog_facility (mail)\fR"
+/*	The syslog facility of Postfix logging.
+/* .IP "\fBsyslog_name (postfix)\fR"
+/*	The mail system name that is prepended to the process name in syslog
+/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* SEE ALSO
-/*	bounce(8) non-delivery status reports
-/*	master(8) process manager
-/*	qmgr(8) queue manager
-/*	syslogd(8) system logging
+/*	qmgr(8), queue manager
+/*	bounce(8), delivery status reports
+/*	postconf(5), configuration parameters
+/*	master(8), process manager
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

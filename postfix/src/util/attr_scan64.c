@@ -164,7 +164,9 @@ static int attr_scan64_string(VSTREAM *fp, VSTRING *plain_buf, const char *conte
 {
     static VSTRING *base64_buf = 0;
     extern int var_line_limit;		/* XXX */
+#if 0
     int     limit = var_line_limit * 4;
+#endif
     int     ch;
 
     if (base64_buf == 0)

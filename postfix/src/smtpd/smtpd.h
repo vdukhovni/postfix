@@ -85,6 +85,7 @@ typedef struct SMTPD_STATE {
     int     recursion;			/* Kellerspeicherpegelanzeiger */
     off_t   msg_size;			/* MAIL FROM message size */
     int     junk_cmds;			/* counter */
+    int     rcpt_overshoot;		/* counter */
 
     /*
      * SASL specific.
@@ -120,6 +121,8 @@ typedef struct SMTPD_STATE {
     int     saved_flags;		/* postponed hold/discard */
     VSTRING *expand_buf;		/* scratch space for $name expansion */
     ARGV   *prepend;			/* prepended headers */
+    VSTRING *instance;			/* policy query correlation */
+    int     seqno;			/* policy query correlation */
 
     /*
      * Pass-through proxy client.
