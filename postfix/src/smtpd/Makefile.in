@@ -171,6 +171,7 @@ smtpd_check.o: ../../include/mymalloc.h
 smtpd_check.o: ../../include/dict.h
 smtpd_check.o: ../../include/vstream.h
 smtpd_check.o: ../../include/htable.h
+smtpd_check.o: ../../include/ctable.h
 smtpd_check.o: ../../include/dns.h
 smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/domain_list.h

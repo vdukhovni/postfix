@@ -1,3 +1,36 @@
+Incompatible changes with snapshot-20010731
+===========================================
+
+The protocol between Postfix master and child processes has changed.
+You must stop and start Postfix in order to switch between Snapshot
+20010731 and releases that implement the older protocol.
+
+Major changes with snapshot-20010731
+====================================
+
+Specify "disable_verp_bounces = yes" to have Postfix send one
+RFC-standard, non-VERP, bounce report for multi-recipient mail,
+even when VERP style delivery is requested.
+
+Variable coupling between message receiving rates and message
+delivery rates. When the message receiving rate exceeds the message
+delivery rate, an SMTP server will pause for $in_flow_delay seconds
+(default: 1) before accepting a message. This delay gives Postfix
+a chance catch up and access the disk, while still allowing new
+mail to arrive.
+
+The in_flow_delay feature has effect mainly when your system is
+being flooded port through a limited number of SMTP connections.
+This is also useful for mass-mailing applications, because it avoids
+the need to hand-tune the rate at which mail is sent into Postfix.
+
+The in_flow_delay feature has negligible effect when mail arrives
+via many different SMTP connections. With the default limit of 50
+SMTP server processes and with the default $in_flow_delay of 1
+second, total mail inflow is limited to 50 messages per second more
+than the number of messages that are delivered per second. Many
+systems saturate at values much smaller than 50 messages per second.
+
 Incompatible changes with snapshot-20010714
 ===========================================
 

@@ -80,7 +80,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
 	mystrtok sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
-	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable
+	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable \
+	inet_addr_list
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -279,6 +280,11 @@ ctable: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+inet_addr_list: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
 	set -e; for i in [a-z][a-z0-9]*.c; do \
@@ -291,7 +297,7 @@ stream_test: stream_test.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
-	hex_quote_test cache_test
+	hex_quote_test ctable_test inet_addr_list_test
 
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
 	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
@@ -318,6 +324,11 @@ ctable_test: ctable
 	./ctable <ctable.in >ctable.tmp 2>&1
 	diff ctable.ref ctable.tmp
 	rm -f ctable.tmp
+
+inet_addr_list_test: inet_addr_list
+	./inet_addr_list `cat inet_addr_list.in` >inet_addr_list.tmp 2>&1
+	diff inet_addr_list.ref inet_addr_list.tmp
+	rm -f inet_addr_list.tmp
 
 DB_TYPE	= `../postconf/postconf -h default_database_type`
 

@@ -1283,6 +1283,10 @@ extern char *var_verp_delims;
 #define DEF_VERP_FILTER			"-=+"
 extern char *var_verp_filter;
 
+#define VAR_VERP_BOUNCE_OFF		"disable_verp_bounces"
+#define DEF_VERP_BOUNCE_OFF		0
+extern bool var_verp_bounce_off;
+
  /*
   * Inbound mail flow control. This allows for a stiffer coupling between
   * receiving mail and sending mail. A sending process produces one token for

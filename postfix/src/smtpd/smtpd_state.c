@@ -91,7 +91,6 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream)
     state->recursion = 0;
     state->msg_size = 0;
     state->junk_cmds = 0;
-    state->error_text = vstring_alloc(100);
 
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))
@@ -124,7 +123,6 @@ void    smtpd_state_reset(SMTPD_STATE *state)
     if (state->buffer)
 	vstring_free(state->buffer);
     smtpd_peer_reset(state);
-    vstring_free(state->error_text);
 
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable)

@@ -106,9 +106,11 @@ int     mail_flow_put(int len)
     /*
      * Write or discard N bytes.
      */
+    memset(buf, 0, len > BUFFER_SIZE ? BUFFER_SIZE : len);
+
     for (count = len; count > 0; count -= n)
 	if ((n = write(MASTER_FLOW_WRITE, buf, count > BUFFER_SIZE ?
-		      BUFFER_SIZE : count)) < 0)
+		       BUFFER_SIZE : count)) < 0)
 	    return (-1);
     if (msg_verbose)
 	msg_info("%s: %d %d", myname, len, len - count);

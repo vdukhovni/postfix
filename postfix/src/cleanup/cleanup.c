@@ -107,6 +107,9 @@
 /*	Limit the number of envelope recipients that are remembered.
 /* .IP \fBheader_size_limit\fR
 /*	Limit the amount of memory in bytes used to process a message header.
+/* .IP \fBin_flow_delay\fR
+/*	Amount of time to pause before accepting a message, when the
+/*	message arrival rate exceeds the message delivery rate.
 /* .IP \fBextract_recipient_limit\fR
 /*	Limit the amount of recipients extracted from message headers.
 /* SEE ALSO

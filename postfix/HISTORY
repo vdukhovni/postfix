@@ -5358,26 +5358,43 @@ Apologies for any names omitted.
 	token when it adds mail to the incoming queue. If no token
 	is available the cleanup server pauses for $in_flow_delay
 	seconds and proceeds anyway. The delay allows mail sending
-	process to catch up and access the disk. Valid delays are
-	0..10 seconds.
+	process to catch up and access the disk while not blocking
+	inbound mail. Valid delays are 0..10 seconds.
 
 20010727
 
 	Bugfix: updated LDAP client module from LaMont Jones, HP.
+	This also introduces new LDAP query filter patterns: %u
+	(address localpart) and %d (domain part). Files:
+	conf/sample-ldap.cf, util/dict_ldap.c.
 
 20010729
 
-	Bugfix: recursive restrictions could clobber non-reentrant
-	address resolving results. Problem found by Victor Duchovni,
-	morganstanley.com. In order to fix, introduced address
-	resolving caching, which shouls speed up UCE processing.
+	Bugfix: recursive smtpd_whatever_restrictions clobbered
+	intermediate results when switching between sender and
+	recipient address restrictions. Problem found by Victor
+	Duchovni, morganstanley.com. In order to fix, introduced
+	address resolver result caching, which should also help to
+	speed up sender/recipient address restriction processing.
 
-	Bugfix: the not yet published DUNNO table lookup result
-	did not prevent further partial key lookups in the same
-	table. Problem found by Victor Duchovni, morganstanley.com.
+	Bugfix: the not yet announced DUNNO access table lookup
+	result did not prevent lookups with substrings of the same
+	lookup key. Found by Victor Duchovni, morganstanley.com.
 
-20010729
+20010730
 
 	Robustness: trim trailing whitespace from regexp and pcre
 	right-hand sides, for consistency with DB/DBM tables.
 	Files: util/dict_pcre.c, util/dict_regexp.c.
+
+20010731
+
+	Robustness: eliminate duplicate IP addresses after expansion
+	of hostnames in $inet_interfaces, so that Postfix does not
+	suddenly refuse to start up after someone changes the DNS.
+	Files:  util/inet_addr_list.c global/own_inet_addr.c.
+
+	Feature: specify "disable_verp_bounces = yes" to have
+	Postfix send one RFC-standard, non-VERP, bounce report for
+	multi-recipient mail, even when VERP style delivery is
+	requested.

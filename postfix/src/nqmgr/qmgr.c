@@ -336,6 +336,7 @@ bool    var_allow_min_user;
 int     var_local_con_lim;
 int     var_local_rcpt_lim;
 int     var_proc_limit;
+bool    var_verp_bounce_off;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -514,7 +515,7 @@ static void qmgr_post_init(char *unused_name, char **unused_argv)
     qmgr_incoming = qmgr_scan_create(MAIL_QUEUE_INCOMING);
     qmgr_deferred = qmgr_scan_create(MAIL_QUEUE_DEFERRED);
     qmgr_scan_request(qmgr_incoming, QMGR_SCAN_START);
-    qmgr_deferred_run_event(0, (char *)0);
+    qmgr_deferred_run_event(0, (char *) 0);
 }
 
 /* main - the main program */
@@ -555,6 +556,7 @@ int     main(int argc, char **argv)
     };
     static CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
+	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
 	0,
     };
 
