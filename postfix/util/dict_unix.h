@@ -1,5 +1,5 @@
-#ifndef _DIST_UNIX_H_INCLUDED_
-#define _DIST_UNIX_H_INCLUDED_
+#ifndef _DICT_UNIX_H_INCLUDED_
+#define _DICT_UNIX_H_INCLUDED_
 
 /*++
 /* NAME

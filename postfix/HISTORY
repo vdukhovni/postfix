@@ -2388,8 +2388,8 @@ Apologies for any names omitted.
 	recipient addresses. For the sake of symmetry, we now also
 	have reject_unknown_sender_domain. This means the old
 	reject_unknown_address restriction is being phased out.
-	Suggested by Rask Ingemann Lambertsen [XXX affiliation to
-	be determined].
+	Suggested by Rask Ingemann Lambertsen, Denmark Technical
+	University.
 
 	Feature: unknown sender/recipient domain restrictions now
 	distinguish between soft errors (always: 450) and hard
@@ -2404,6 +2404,14 @@ Apologies for any names omitted.
 	ran into a delivery agent process limit. After another code
 	rewrite that problem is eliminated.  Thanks to Chris
 	Cappuccio, Empire Net, for assistance with testing.
+
+19990323
+
+	Bugfix: too much forwarding when users list their own name
+	in their .forward file (e.g. mail to user@localhost would
+	go through .forward, would be forwarded to user@$myorigin,
+	and would go through .forward again). Problem reported by
+	Roman Dolejsi, Prague University of Economics.
 
 Future:
 

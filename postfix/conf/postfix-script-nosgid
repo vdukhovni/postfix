@@ -164,6 +164,10 @@ check)
 	find $daemon_directory/* $config_directory/* ! -user root \
 		-exec $WARN not owned by root: {} \;
 
+	find $daemon_directory/. $config_directory/. \
+		\( -perm -020 -or -perm -002 \) \
+		-exec $WARN group or other writable: {} \;
+
 	find $queue_directory/* $config_directory/* -name '*core' \
 		-exec $WARN core file: {} \; 2>/dev/null
 

@@ -76,7 +76,7 @@ int     stream_listen(const char *path, int unused_backlog, int block_mode)
      * We can't specify a listen backlog, however, sending file descriptors
      * across a FIFO gives us a backlog buffer of 460 on Solaris 2.4/SPARC.
      */
-    return (fifo_listen(path, 0666, block_mode));
+    return (fifo_listen(path, 0622, block_mode));
 #else
     msg_fatal("stream connections are not implemented");
 #endif

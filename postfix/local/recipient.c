@@ -145,9 +145,16 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * approach is that recipients in the expansion of an alias without
      * owner- won't have separate delivery queue file status records, because
      * for them, the message won't be resubmitted as a new queue file.
+     * 
+     * Do something sensible on systems that receive mail for multiple domains,
+     * such as primary.name and secondary.name. Don't resubmit the message
+     * when mail for `user@secondary.name' is delivered to a .forward file
+     * that lists `user' or `user@primary.name'. We already know that the
+     * recipient domain is local, so we only have to compare local parts.
      */
     if (state.msg_attr.owner != 0
-	&& strcasecmp(state.msg_attr.owner, state.msg_attr.recipient) != 0)
+	&& strncasecmp(state.msg_attr.owner, state.msg_attr.recipient,
+		       strlen(state.msg_attr.local) + 1) != 0)
 	return (deliver_indirect(state));
 
     /*
