@@ -471,6 +471,7 @@ extern int initgroups(const char *, int);
 
 #if defined(IRIX6)
 #define HAS_POSIX_REGEXP
+#define PIPES_CANT_FIONREAD
 #endif
 
  /*

@@ -45,7 +45,8 @@
 /*	Bit-wise OR of zero or more of the following:
 /* .RS
 /* .IP MAC_EXP_FLAG_RECURSE
-/*	Expand $name recursively.
+/*	Expand $name recursively. This should never be done with
+/*	data whose origin is untrusted.
 /* .PP
 /*	The constant MAC_EXP_FLAG_NONE specifies a manifest null value.
 /* .RE

@@ -78,6 +78,8 @@ ARGV   *mail_addr_crunch(const char *string, const char *extension)
      * the result to external (quoted) form. Optionally apply the extension
      * to each address found.
      */
+    if (*string == 0 || strcmp(string, "<>") == 0)
+	string = "\"\"";
     tree = tok822_parse(string);
     addr_list = tok822_grep(tree, TOK822_ADDR);
     for (tpp = addr_list; *tpp; tpp++) {

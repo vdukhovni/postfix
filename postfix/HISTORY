@@ -6929,11 +6929,13 @@ Apologies for any names omitted.
 20020906
 
 	Cleanup: dict_regexp module speedups by avoiding unnecessary
-	work while matching strings. File: util/dict_regexp.c.
+	work while matching strings. This involved major rewriting
+	of the regexp map code.  File: util/dict_regexp.c.
 
 20020907
 
 	Feature: IF..ENDIF support based on code by Bert Driehuis.
+	This involved a further rewrite of the regexp map code.
 	File: util/dict_regexp.c.
 
  
@@ -6944,6 +6946,17 @@ Apologies for any names omitted.
 
 	Robustness: don't wait with detecting broken SMTP connections
 	until reading input. Leandro Santi. File: smtpd/smtpd_chat.c.
+
+200209011
+
+	Workaround: IRIX 6 can't do ioctl FIONREAD on pipes. This
+	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
+
+20020912
+
+	Feature: IF..ENDIF support based on code by Bert Driehuis.
+	This involved a rewrite of the pcre map code similar to
+	the regexp map code.  File:  util/dict_pcre.c.
 
 Open problems:
 
