@@ -188,7 +188,7 @@ mail_owner = postfix
 # the system passwd file in the chroot jail is just not practical.
 # 
 #local_recipient_maps = unix:passwd.byname $alias_maps
-#local_recipient_maps = proxy:passwd.byname $alias_maps
+#local_recipient_maps = proxy:unix:passwd.byname $alias_maps
 #local_recipient_maps =
 
 # The unknown_local_recipient_reject_code specifies the SMTP server

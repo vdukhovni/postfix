@@ -51,8 +51,9 @@ the lookup result value.
 The \fImaptype:mapname\fR and \fIflags\fR are the same
 as with the \fBPROXY_REQ_OPEN\fR request.
 .PP
-There is no close command. This does not seem to be useful
-because tables are meant to be shared among client processes.
+There is no close command, nor are tables implicitly closed
+when a client disconnects. One of the purposes of the proxymap
+server is to share tables among multiple client processes.
 
 The request completion status code is one of:
 .IP \fBPROXY_STAT_OK\fR

@@ -115,7 +115,7 @@ static void clnt_stream_event(int unused_event, char *context)
     clnt_stream_close(clnt_stream);
 }
 
-/* clnt_stream_ttl_event - server-initiated disconnect or client-side timeout */
+/* clnt_stream_ttl_event - client-side expiration */
 
 static void clnt_stream_ttl_event(int event, char *context)
 {

@@ -39,7 +39,7 @@
 # 
 #local_recipient_maps =
 #local_recipient_maps = unix:passwd.byname $alias_maps
-local_recipient_maps = proxy:passwd.byname $alias_maps
+local_recipient_maps = proxy:unix:passwd.byname $alias_maps
 
 # The unknown_local_recipient_reject_code specifies the SMTP server
 # response code when a recipient domain matches $mydestination or

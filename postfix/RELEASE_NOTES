@@ -26,7 +26,7 @@ Incompatible changes with Postfix snapshot 2.0.0-20030104
 =========================================================
 
 This release adds the new proxymap service (table lookup via a
-proxy process) to the the master.cf file. If you get warnings about
+proxy process) to the master.cf file. If you get warnings about
 problems connecting to the proxymap service, then you did not
 properly upgrade Postfix.
 
@@ -51,7 +51,7 @@ to automatically restart even on busy mail systems.
 Clients of multi-server daemons such as trivial-rewrite and the
 new proxymap service now automatically disconnect after $ipc_ttl
 seconds of activity (default: 1000s). This allows multi-server
-daemons to automatically restart even on busy mail mail systems.
+daemons to automatically restart even on busy mail systems.
 
 Incompatible changes with Postfix snapshot 1.1.11-trace-20021119
 ================================================================

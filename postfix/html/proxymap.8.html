@@ -49,21 +49,22 @@ PROXYMAP(8)                                           PROXYMAP(8)
               <i>type:mapname</i>  and  <i>flags</i>  are  the same as with the
               <b>PROXY</b><i>_</i><b>REQ</b><i>_</i><b>OPEN</b> request.
 
-       There is no close command. This does not seem to be useful
-       because  tables  are  meant to be shared among client pro-
-       cesses.
+       There is no  close  command,  nor  are  tables  implicitly
+       closed  when  a client disconnects. One of the purposes of
+       the proxymap server is  to  share  tables  among  multiple
+       client processes.
 
        The request completion status code is one of:
 
        <b>PROXY</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
-              The specified table was opened,  or  the  requested
+              The  specified  table  was opened, or the requested
               entry was found.
 
        <b>PROXY</b><i>_</i><b>STAT</b><i>_</i><b>NOKEY</b>
               The requested table entry was not found.
 
        <b>PROXY</b><i>_</i><b>STAT</b><i>_</i><b>BAD</b>
-              The  request  was  rejected  (bad request parameter
+              The request was  rejected  (bad  request  parameter
               value).
 
        <b>PROXY</b><i>_</i><b>STAT</b><i>_</i><b>RETRY</b>
@@ -75,50 +76,50 @@ PROXYMAP(8)                                           PROXYMAP(8)
 
 <b>SERVER</b> <b>PROCESS</b> <b>MANAGEMENT</b>
        The proxymap servers run under control by the Postfix mas-
-       ter server.  Each server can handle multiple  simultaneous
-       connections.   When  all  servers  are busy while a client
-       connects, the master creates a new  proxymap  server  pro-
-       cess,  provided  that the proxymap server process limit is
-       not exceeded.  Each proxymap server  stops  accepting  new
-       connections  after  serving <b>$max</b><i>_</i><b>use</b> clients or terminates
+       ter  server.  Each server can handle multiple simultaneous
+       connections.  When all servers are  busy  while  a  client
+       connects,  the  master  creates a new proxymap server pro-
+       cess, provided that the proxymap server process  limit  is
+       not  exceeded.   Each  proxymap server stops accepting new
+       connections after serving <b>$max</b><i>_</i><b>use</b> clients  or  terminates
        after <b>$max</b><i>_</i><b>idle</b> seconds of idle time.
 
 <b>SECURITY</b>
-       The proxymap server opens only tables  that  are  approved
-       via  the <b>proxy</b><i>_</i><b>read</b><i>_</i><b>maps</b> configuration parameter, does not
-       talk to  users,  and  can  run  at  fixed  low  privilege,
+       The  proxymap  server  opens only tables that are approved
+       via the <b>proxy</b><i>_</i><b>read</b><i>_</i><b>maps</b> configuration parameter, does  not
+       talk  to  users,  and  can  run  at  fixed  low privilege,
        chrooted or not.
 
-       The  proxymap  server is not a trusted daemon process, and
-       must not be used to look up sensitive information such  as
-       user  or group IDs, mailbox file/directory names or exter-
+       The proxymap server is not a trusted daemon  process,  and
+       must  not be used to look up sensitive information such as
+       user or group IDs, mailbox file/directory names or  exter-
        nal commands.
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
 
 <b>BUGS</b>
-       The proxymap server provides service to multiple  clients,
-       and  must therefore not be used for tables that have high-
+       The  proxymap server provides service to multiple clients,
+       and must therefore not be used for tables that have  high-
        latency lookups.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The following main.cf parameters are  especially  relevant
-       to  this  program.  Use the <b>postfix</b> <b>reload</b> command after a
+       The  following  main.cf parameters are especially relevant
+       to this program. Use the <b>postfix</b> <b>reload</b>  command  after  a
        configuration change.
 
        <b>proxy</b><i>_</i><b>read</b><i>_</i><b>maps</b>
-              A list of zero or more parameter  values  that  may
-              contain  references  to Postfix lookup tables. Only
-              table  references  that  begin  with   <b>proxy:</b>   are
-              approved  for  read-only  access  via  the proxymap
+              A  list  of  zero or more parameter values that may
+              contain references to Postfix lookup  tables.  Only
+              table   references   that  begin  with  <b>proxy:</b>  are
+              approved for  read-only  access  via  the  proxymap
               server.
 
 <b>SEE</b> <b>ALSO</b>
        dict_proxy(3) proxy map client
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

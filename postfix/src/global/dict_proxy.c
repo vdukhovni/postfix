@@ -132,6 +132,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 	    case PROXY_STAT_OK:
 		return (STR(dict_proxy->result));
 	    case PROXY_STAT_NOKEY:
+		dict_errno = 0;
 		return (0);
 	    case PROXY_STAT_RETRY:
 		dict_errno = DICT_ERR_RETRY;
