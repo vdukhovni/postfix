@@ -14,7 +14,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	mail_open_ok.c mail_params.c mail_pathname.c mail_queue.c \
 	mail_run.c mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c \
 	maps.c mark_corrupt.c match_parent_style.c mbox_conf.c \
-	mbox_open.c mime_state.c mkmap_db.c mkmap_cdb.c mkmap_dbm.c mkmap_open.c \
+	mbox_open.c mime_state.c mkmap_db.c mkmap_dbm.c mkmap_open.c \
 	mynetworks.c mypwd.c namadr_list.c off_cvt.c opened.c \
 	own_inet_addr.c pipe_command.c post_mail.c quote_821_local.c \
 	quote_822_local.c rec_streamlf.c rec_type.c recipient_list.c \
@@ -23,7 +23,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	sys_exits.c timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c trace.c verify.c \
 	verify_clnt.c verp_sender.c virtual8_maps.c xtext.c scache_single.c \
-	scache_clnt.c scache_multi.c user_acl.c
+	scache_clnt.c scache_multi.c user_acl.c mkmap_cdb.c mkmap_sdbm.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o debug_peer.o debug_process.o defer.o \
@@ -39,7 +39,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	mail_open_ok.o mail_params.o mail_pathname.o mail_queue.o \
 	mail_run.o mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o \
 	maps.o mark_corrupt.o match_parent_style.o mbox_conf.o \
-	mbox_open.o mime_state.o mkmap_db.o mkmap_cdb.o mkmap_dbm.o mkmap_open.o \
+	mbox_open.o mime_state.o mkmap_db.o mkmap_dbm.o mkmap_open.o \
 	mynetworks.o mypwd.o namadr_list.o off_cvt.o opened.o \
 	own_inet_addr.o pipe_command.o post_mail.o quote_821_local.o \
 	quote_822_local.o rec_streamlf.o rec_type.o recipient_list.o \
@@ -48,7 +48,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	sys_exits.o timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o trace.o verify.o \
 	verify_clnt.o verp_sender.o virtual8_maps.o xtext.o scache_single.o \
-	scache_clnt.o scache_multi.o user_acl.o
+	scache_clnt.o scache_multi.o user_acl.o mkmap_cdb.o mkmap_sdbm.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	debug_peer.h debug_process.h defer.h deliver_completed.h \
@@ -1073,6 +1073,19 @@ mkmap_open.o: ../../include/dict_dbm.h
 mkmap_open.o: ../../include/sigdelay.h
 mkmap_open.o: ../../include/mymalloc.h
 mkmap_open.o: mkmap.h
+mkmap_sdbm.o: mkmap_sdbm.c
+mkmap_sdbm.o: ../../include/sys_defs.h
+mkmap_sdbm.o: ../../include/msg.h
+mkmap_sdbm.o: ../../include/mymalloc.h
+mkmap_sdbm.o: ../../include/stringops.h
+mkmap_sdbm.o: ../../include/vstring.h
+mkmap_sdbm.o: ../../include/vbuf.h
+mkmap_sdbm.o: ../../include/dict.h
+mkmap_sdbm.o: ../../include/vstream.h
+mkmap_sdbm.o: ../../include/argv.h
+mkmap_sdbm.o: ../../include/dict_sdbm.h
+mkmap_sdbm.o: ../../include/myflock.h
+mkmap_sdbm.o: mkmap.h
 mynetworks.o: mynetworks.c
 mynetworks.o: ../../include/sys_defs.h
 mynetworks.o: ../../include/msg.h
