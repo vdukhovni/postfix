@@ -13,6 +13,8 @@ having to copy it to each.
 BUILDING WITH LDAP SUPPORT
 ==========================
 
+Note: Postfix no longer supports the LDAP version 1 interface.
+
 You need to have LDAP libraries and include files installed somewhere on
 your system, and you need to configure the Postfix Makefiles
 accordingly.

@@ -727,7 +727,7 @@ static const char *check_maps_find(SMTPD_STATE *state, const char *reply_name,
 /* checkv8_maps_find - reject with temporary failure if dict lookup fails */
 
 static const char *checkv8_maps_find(SMTPD_STATE *state, const char *reply_name,
-			             MAPS *maps, const char *key)
+				             MAPS *maps, const char *key)
 {
     const char *result;
 
@@ -767,12 +767,11 @@ static int resolve_final(SMTPD_STATE *state, const char *reply_name,
 	    msg_warn("list domain %s in only one of $%s and $%s",
 		     domain, VAR_MYDEST, VAR_VIRTUAL_MAPS);
 	if (*var_virt_mailbox_maps
-	&& checkv8_maps_find(state, reply_name, virt_mailbox_maps, domain))
+	 && checkv8_maps_find(state, reply_name, virt_mailbox_maps, domain))
 	    msg_warn("list domain %s in only one of $%s and $%s",
 		     domain, VAR_MYDEST, VAR_VIRT_MAILBOX_MAPS);
 	return (1);
     }
-
     /* If Postfix-style virtual domain. */
     if (*var_virtual_maps
 	&& check_maps_find(state, reply_name, virtual_maps, domain, 0))
@@ -1966,8 +1965,8 @@ static int reject_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
      * the sender address.
      */
     reply = (const RESOLVE_REPLY *) ctable_locate(smtpd_resolve_cache, sender);
-    owner = check_maps_find(state, sender, smtpd_sender_login_maps,
-			    STR(reply->recipient), 0);
+    owner = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
+				 STR(reply->recipient), (char **) 0);
 #ifdef USE_SASL_AUTH
     if (var_smtpd_sasl_enable && state->sasl_username != 0)
 	login = state->sasl_username;
@@ -2061,8 +2060,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 cpp[1], PERMIT_ALL);
 	} else if (strcasecmp(name, DEFER_ALL) == 0) {
 	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				      "%d <%s>: %s rejected: Try again later",
-				  var_defer_code, reply_name, reply_class);
+				    "%d <%s>: %s rejected: Try again later",
+				   var_defer_code, reply_name, reply_class);
 	    if (cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], DEFER_ALL);
@@ -2120,7 +2119,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
 	    msg_warn("restriction %s is deprecated. Use %s instead",
-			PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS);
+		     PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS);
 	    if (state->helo_name) {
 		if (state->helo_name[strspn(state->helo_name, "0123456789.")] == 0
 		&& (status = reject_invalid_hostaddr(state, state->helo_name,

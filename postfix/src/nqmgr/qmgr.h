@@ -190,6 +190,7 @@ struct QMGR_QUEUE {
     QMGR_ENTRY_LIST busy;		/* messages on the wire */
     QMGR_QUEUE_LIST peers;		/* neighbor queues */
     char   *reason;			/* why unavailable */
+    time_t  clog_time_to_warn;		/* time of last warning */
     int     blocker_tag;		/* tagged if blocks job list */
 };
 

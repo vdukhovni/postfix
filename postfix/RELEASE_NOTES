@@ -12,40 +12,57 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 1.1.11-20020804
-==========================================================
+Incompatible changes with Postfix snapshot 1.1.11-2002018
+=========================================================
+
+The qmgr_site_hog_factor feature is gone (this would defer mail
+delivery for sites that occupy too much space in the active queue,
+and be a real performance drain due to excessive disk I/O).  The
+new qmgr_clog_warn_time feature (see below) provides more useful
+suggestions for dealing with Postfix congestion.
 
 LDAP API version 1 is no longer supported. The memory allocation
 and deallocation strategy has changed too much to maintain both
 version 1 and 2 at the same time.
 
 In mailq output, the queue ID is followed by the ! character when
-the message is in the "hold" queue. This may break programs that
-process mailq output.
+the message is in the "hold" queue (see below). This may break
+programs that process mailq output.
 
 The "permit_naked_ip_address" restriction on HELO command syntax
-is unsafe when used with smtpd_recipient_restrictions, and will go
-away. The user is requested to use "permit_mynetworks" instead.
+is unsafe when used with most smtpd_XXX_restrictions, and will go
+away. The user is now requested to use "permit_mynetworks" instead.
 
 The smtpd_sasl_local_domain setting now defaults to the null string,
 rather than $myhostname. This seems to work better with Cyrus SASL
 version 2. This change may cause incompatibility with the saslpasswd2
 command.
 
-Major changes with Postfix snapshot 1.1.11-20020804
+Major changes with Postfix snapshot 1.1.11-20020818
 ===================================================
 
-New "hold" queue for mail that should not be delivered.  "postqueue
--h" puts mail on hold, and "postqueue -H" releases mail, moving
+When the Postfix local delivery agent detects a mail delivery loop
+(usually the result of mis-configured mail pickup software), the
+undeliverable mail is now sent to the mailing list owner instead
+of the envelope sender address (usually the original poster who
+has no guilt, and who cannot fix the problem).
+
+New "hold" queue for mail that should not be delivered.  "postsuper
+-h" puts mail on hold, and "postsuper -H" releases mail, moving
 mail that was "on hold" to the deferred queue.
 
-Mail is now sent to the mailing list owner when Postfix detects a
-Delivered-To: mail delivery loop. Delivery loops happen when idiots
-forward mail that was already stored in a mailbox, setting the
-envelope recipient address to the To: address (so that mail would
-loop back to the mailing list), and setting the envelope sender
-address to the From:  address (so that the error report would be
-sent to the poster).
+New header/body HOLD action that causes mail to be placed on the
+"hold" queue. Presently, all you can do with mail "on hold" is to
+examine it with postcat, to take it "off hold" with "postsuper -H",
+or to destroy it with "postsuper -d". See conf/sample-filter.cf.
+
+The Postfix queue manager now warns when mail for some destination
+is piling up in the active queue, and suggests a variety of remedies
+to speed up delivery (increase per-destination concurrency limit,
+increase active queue size, use a separate delivery transport,
+increase per-transport process limit).  The qmgr_clog_warn_time
+parameter controls the time between warnings.  To disable these
+warnings, specify "qmgr_clog_warn_time = 0".
 
 Incompatible changes with Postfix snapshot 1.1.11-20020717
 ==========================================================

@@ -60,6 +60,7 @@ CLEANUP_STATE *cleanup_state_alloc(void)
     state->temp2 = vstring_alloc(10);
     state->dst = 0;
     state->handle = 0;
+    state->queue_name = 0;
     state->queue_id = 0;
     state->time = 0;
     state->fullname = 0;
@@ -115,6 +116,8 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->errors_to);
     argv_free(state->recipients);
     argv_free(state->resent_recip);
+    if (state->queue_name)
+	myfree(state->queue_name);
     if (state->queue_id)
 	myfree(state->queue_id);
     been_here_free(state->dups);

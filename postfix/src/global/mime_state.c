@@ -618,12 +618,12 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 {
     static char hexchars[] = "0123456789ABCDEF";
     const unsigned char *cp;
-    int     ch = 0;
+    int     ch;
 
-#define QP_ENCODE(state, ch) { \
-	VSTRING_ADDCH(state->output_buffer, '='); \
-	VSTRING_ADDCH(state->output_buffer, hexchars[(ch >> 4) & 0xff]); \
-	VSTRING_ADDCH(state->output_buffer, hexchars[ch & 0xf]); \
+#define QP_ENCODE(buffer, ch) { \
+	VSTRING_ADDCH(buffer, '='); \
+	VSTRING_ADDCH(buffer, hexchars[(ch >> 4) & 0xff]); \
+	VSTRING_ADDCH(buffer, hexchars[ch & 0xf]); \
     }
 
     /*
@@ -634,6 +634,7 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 	/* Critical length before hard line break. */
 	if (LEN(state->output_buffer) > 72) {
 	    VSTRING_ADDCH(state->output_buffer, '=');
+	    VSTRING_TERMINATE(state->output_buffer);
 	    state->body_out(state->app_context, REC_TYPE_NORM,
 			    STR(state->output_buffer),
 			    LEN(state->output_buffer));
@@ -642,7 +643,7 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 	/* Append the next character. */
 	ch = *cp;
 	if ((ch < 32 && ch != '\t') || ch == '=' || ch > 126) {
-	    QP_ENCODE(state, ch);
+	    QP_ENCODE(state->output_buffer, ch);
 	} else {
 	    VSTRING_ADDCH(state->output_buffer, ch);
 	}
@@ -654,13 +655,13 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
      * the output length will grow from 73 characters to 75 characters.
      */
     if (rec_type == REC_TYPE_NORM) {
-	if (ch == 0 && LEN(state->output_buffer) > 0)
-	    ch = END(state->output_buffer)[-1];
-	if (ch == ' ' || ch == '\t') {
+	if (LEN(state->output_buffer) > 0
+	    && ((ch = END(state->output_buffer)[-1]) == ' ' || ch == '\t')) {
 	    vstring_truncate(state->output_buffer,
 			     LEN(state->output_buffer) - 1);
-	    QP_ENCODE(state, ch);
+	    QP_ENCODE(state->output_buffer, ch);
 	}
+	VSTRING_TERMINATE(state->output_buffer);
 	state->body_out(state->app_context, REC_TYPE_NORM,
 			STR(state->output_buffer),
 			LEN(state->output_buffer));
@@ -1034,7 +1035,7 @@ static void body_out(void *context, int rec_type, const char *buf, int len)
 {
     VSTREAM *stream = (VSTREAM *) context;
 
-    vstream_fprintf(stream, "BODY\t");
+    vstream_fprintf(stream, "BODY %c\t", rec_type);
     vstream_fwrite(stream, buf, len);
     if (rec_type == REC_TYPE_NORM)
 	VSTREAM_PUTC('\n', stream);

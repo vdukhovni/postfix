@@ -249,6 +249,9 @@ static void flush_queue(void)
     if (mail_flush_deferred() < 0)
 	msg_fatal_status(EX_UNAVAILABLE,
 			 "Cannot flush mail queue - mail system is down");
+    if (mail_flush_maildrop() < 0)
+	msg_fatal_status(EX_UNAVAILABLE,
+			 "Cannot flush mail queue - mail system is down");
 }
 
 /* flush_site - flush mail for site */

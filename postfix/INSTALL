@@ -49,6 +49,7 @@ If your system is supported, it is one of
     AIX 3.2.5
     AIX 4.1.x
     AIX 4.2.0
+    AIX 4.3.x
     BSD/OS 2.x
     BSD/OS 3.x
     BSD/OS 4.x
@@ -64,27 +65,29 @@ If your system is supported, it is one of
     IRIX 6.x
     Linux Debian 1.3.1
     Linux Debian 2.x
+    Linux RedHat 3.x (August 2002)
     Linux RedHat 4.x
     Linux RedHat 5.x
     Linux RedHat 6.x
     Linux RedHat 7.x
-    Linux Slackware 3.x
+    Linux Slackware 3.x (long ago)
     Linux Slackware 4.x
     Linux Slackware 7.x
     Linux SuSE 5.x
     Linux SuSE 6.x
     Linux SuSE 7.x
     Mac OS X
-    NEXTSTEP 3.x
+    NEXTSTEP 3.x (long ago)
     NetBSD 1.x
     OPENSTEP 4.x
     OSF1.V3 (Digital UNIX)
     OSF1.V4 aka Digital UNIX V4
     OSF1.V5 aka Digital UNIX V5
     OpenBSD 2.x
+    OpenBSD 3.x
     Reliant UNIX 5.x
     Rhapsody 5.x
-    SunOS 4.1.x (with Postfix 1.1.0)
+    SunOS 4.1.x (July 2002)
     SunOS 5.4..5.8 (Solaris 2.4..8)
     Ultrix 4.x (well, that was long ago)
 

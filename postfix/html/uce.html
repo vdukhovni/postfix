@@ -134,6 +134,11 @@ the originator.
 
 <dt>IGNORE <dd> Delete the header from the message.
 
+<dt>HOLD <dd> Place the message on the <b>hold</b> queue. Mail on
+hold can be inspected with the <a href="postcat.1.html">postcat</a>
+command, and can be destroyed or taken off hold with the <a
+href="postsuper.1.html">postsuper</a> command.
+
 <dt>WARN <dd> Log (but do not reject) the header with a warning.
 
 <dt>WARN text... <dd> As above, and also log the text.
@@ -210,6 +215,11 @@ line matches a table, the action depends on the lookup result:
 the originator.
 
 <dt>IGNORE <dd> Delete the matched line from the message.
+
+<dt>HOLD <dd> Place the message on the <b>hold</b> queue. Mail on
+hold can be inspected with the <a href="postcat.1.html">postcat</a>
+command, and can be destroyed or taken off hold with the <a
+href="postsuper.1.html">postsuper</a> command.
 
 <dt>WARN <dd> Log (but do not reject) the matched line with a warning.
 
@@ -1219,7 +1229,7 @@ appear as part of a client hostname/address restriction list.
 
 <dt>Default:
 
-<dd><b>maps_rbl_domains = blackholes.mail-abuse.org</b>
+<dd><b>maps_rbl_domains = </b>
 
 <p>
 

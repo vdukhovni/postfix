@@ -37,6 +37,9 @@
 /*	delivery attempts.
 /* .IP \fBcorrupt\fR
 /*	Unreadable or damaged queue files are moved here for inspection.
+/* .IP \fBhold\fR
+/*	Messages that are kept "on hold" are kept here until someone
+/*	sets them free.
 /* DELIVERY STATUS REPORTS
 /* .ad
 /* .fi
@@ -155,6 +158,9 @@
 /* .SH "Active queue controls"
 /* .ad
 /* .fi
+/* .IP \fBqmgr_clog_warn_time\fR
+/*	Minimal delay between warnings that a specific destination
+/*	is clogging up the active queue. Specify 0 to disable.
 /* .IP \fBqmgr_message_active_limit\fR
 /*	Limit the number of messages in the active queue.
 /* .IP \fBqmgr_message_recipient_limit\fR
@@ -199,15 +205,6 @@
 /*	case, recipients near the beginning of a large list receive a burst
 /*	of messages immediately, while recipients near the end of that list
 /*	receive that same burst of messages a whole day later.
-/* .IP "\fBqmgr_site_hog_factor\fR (valid range: 10..100)"
-/*	The percentage of delivery resources that a busy mail system will
-/*	use up for delivery to a single site.
-/*	With 100%, mail is delivered in first-in, first-out order, so that
-/*	a burst of mail for one site can block mail for other destinations.
-/*	With less than 100%, the excess mail is deferred. The deferred mail
-/*	is delivered in little bursts, the remainder of the backlog being
-/*	deferred again, with a lot of I/O activity happening as Postfix
-/*	searches the deferred queue for deliverable mail.
 /* .IP \fBinitial_destination_concurrency\fR
 /*	Initial per-destination concurrency level for parallel delivery
 /*	to the same destination.
@@ -291,12 +288,12 @@ char   *var_virtual_maps;
 char   *var_defer_xports;
 bool    var_allow_min_user;
 int     var_qmgr_fudge;
-int     var_qmgr_hog;
 int     var_local_rcpt_lim;		/* XXX */
 int     var_local_con_lim;		/* XXX */
 int     var_proc_limit;
 bool    var_verp_bounce_off;
 bool    var_sender_routing;
+int     var_qmgr_clog_warn_time;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -465,6 +462,15 @@ static void qmgr_post_init(char *unused_name, char **unused_argv)
 {
 
     /*
+     * Sanity check.
+     */
+    if (var_qmgr_rcpt_limit < var_qmgr_active_limit) {
+	msg_warn("%s is smaller than %s",
+		 VAR_QMGR_RCPT_LIMIT, VAR_QMGR_ACT_LIMIT);
+	var_qmgr_rcpt_limit = var_qmgr_active_limit;
+    }
+
+    /*
      * This routine runs after the skeleton code has entered the chroot jail.
      * Prevent automatic process suicide after a limited number of client
      * requests or after a limited amount of idle time. Move any left-over
@@ -501,6 +507,7 @@ int     main(int argc, char **argv)
 	VAR_MAX_BACKOFF_TIME, DEF_MAX_BACKOFF_TIME, &var_max_backoff_time, 1, 0,
 	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 1, 8640000,
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
+	VAR_QMGR_CLOG_WARN_TIME, DEF_QMGR_CLOG_WARN_TIME, &var_qmgr_clog_warn_time, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {
@@ -510,7 +517,6 @@ int     main(int argc, char **argv)
 	VAR_DEST_CON_LIMIT, DEF_DEST_CON_LIMIT, &var_dest_con_limit, 0, 0,
 	VAR_DEST_RCPT_LIMIT, DEF_DEST_RCPT_LIMIT, &var_dest_rcpt_limit, 0, 0,
 	VAR_QMGR_FUDGE, DEF_QMGR_FUDGE, &var_qmgr_fudge, 10, 100,
-	VAR_QMGR_HOG, DEF_QMGR_HOG, &var_qmgr_hog, 10, 100,
 	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,

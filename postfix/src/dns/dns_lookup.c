@@ -188,6 +188,15 @@ static int dns_query(const char *name, int type, int flags,
 	msg_info("dns_query: %s (%s): OK", name, dns_strtype(type));
 
     /*
+     * Paranoia.
+     */
+    if (len > sizeof(reply->buf)) {
+	msg_warn("reply length %d > buffer length %d for name=%s type=%s",
+		 len, sizeof(reply->buf), name, dns_strtype(type));
+	len = sizeof(reply->buf);
+    }
+
+    /*
      * Initialize the reply structure. Some structure members are filled on
      * the fly while the reply is being parsed.
      */

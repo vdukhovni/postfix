@@ -37,6 +37,9 @@
 /*	delivery attempts.
 /* .IP \fBcorrupt\fR
 /*	Unreadable or damaged queue files are moved here for inspection.
+/* .IP \fBhold\fR
+/*	Messages that are kept "on hold" are kept here until someone
+/*	sets them free.
 /* DELIVERY STATUS REPORTS
 /* .ad
 /* .fi
@@ -161,6 +164,9 @@
 /* .fi
 /*	In the text below, \fItransport\fR is the first field in a
 /*	\fBmaster.cf\fR entry.
+/* .IP \fBqmgr_clog_warn_time\fR
+/*	Minimal delay between warnings that a specific destination
+/*	is clogging up the active queue. Specify 0 to disable.
 /* .IP \fBqmgr_message_active_limit\fR
 /*	Limit the number of messages in the active queue.
 /* .IP \fBqmgr_message_recipient_limit\fR
@@ -338,6 +344,7 @@ int     var_local_rcpt_lim;
 int     var_proc_limit;
 bool    var_verp_bounce_off;
 bool    var_sender_routing;
+int     var_qmgr_clog_warn_time;
 
 static QMGR_SCAN *qmgr_incoming;
 static QMGR_SCAN *qmgr_deferred;
@@ -503,6 +510,15 @@ static void qmgr_post_init(char *unused_name, char **unused_argv)
 {
 
     /*
+     * Sanity check.
+     */
+    if (var_qmgr_rcpt_limit < var_qmgr_active_limit) {
+	msg_warn("%s is smaller than %s",
+		 VAR_QMGR_RCPT_LIMIT, VAR_QMGR_ACT_LIMIT);
+	var_qmgr_rcpt_limit = var_qmgr_active_limit;
+    }
+
+    /*
      * This routine runs after the skeleton code has entered the chroot jail.
      * Prevent automatic process suicide after a limited number of client
      * requests or after a limited amount of idle time. Move any left-over
@@ -539,6 +555,7 @@ int     main(int argc, char **argv)
 	VAR_MAX_BACKOFF_TIME, DEF_MAX_BACKOFF_TIME, &var_max_backoff_time, 1, 0,
 	VAR_MAX_QUEUE_TIME, DEF_MAX_QUEUE_TIME, &var_max_queue_time, 1, 8640000,
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
+	VAR_QMGR_CLOG_WARN_TIME, DEF_QMGR_CLOG_WARN_TIME, &var_qmgr_clog_warn_time, 0, 0,
 	0,
     };
     static CONFIG_INT_TABLE int_table[] = {

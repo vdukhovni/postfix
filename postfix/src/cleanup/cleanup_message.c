@@ -80,6 +80,7 @@
 #include <mail_proto.h>
 #include <mime_state.h>
 #include <lex_822.h>
+#include <hold_message.h>
 
 /* Application-specific. */
 
@@ -313,6 +314,10 @@ static int cleanup_act(CLEANUP_STATE *state, char *context, const char *buf,
     if (STREQUAL(value, "IGNORE", command_len))
 	return (CLEANUP_ACT_DROP);
 
+    if (STREQUAL(value, "HOLD", command_len)) {
+	hold_message(state->queue_name, state->queue_id);
+	return (CLEANUP_ACT_KEEP);
+    }
     if (STREQUAL(value, "OK", command_len))
 	return (CLEANUP_ACT_KEEP);
 

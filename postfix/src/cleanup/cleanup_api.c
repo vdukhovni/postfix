@@ -123,8 +123,12 @@ CLEANUP_STATE *cleanup_open(void)
     /*
      * Open the queue file. Save the queue file name in a global variable, so
      * that the runtime error handler can clean up in case of problems.
+     * 
+     * XXX For now, a lot of detail is frozen that could be more useful if it
+     * were made configurable.
      */
-    state->handle = mail_stream_file(MAIL_QUEUE_INCOMING,
+    state->queue_name = mystrdup(MAIL_QUEUE_INCOMING);
+    state->handle = mail_stream_file(state->queue_name,
 				   MAIL_CLASS_PUBLIC, var_queue_service, 0);
     state->dst = state->handle->stream;
     cleanup_path = mystrdup(VSTREAM_PATH(state->dst));
@@ -235,7 +239,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
 			      "cleanup", state->time,
 			      "%s", state->reason ? state->reason :
 			      cleanup_strerror(state->errs)) == 0
-		&& bounce_flush(BOUNCE_FLAG_CLEAN, MAIL_QUEUE_INCOMING,
+		&& bounce_flush(BOUNCE_FLAG_CLEAN, state->queue_name,
 				state->queue_id,
 		(encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) ?
 				encoding : MAIL_ATTR_ENC_NONE,

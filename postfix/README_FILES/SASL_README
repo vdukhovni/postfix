@@ -140,7 +140,7 @@ IMPORTANT: postfix processes need to have group read+execute
 permission for the /var/pwcheck directory, otherwise authentication
 attempts will fail.
 
-Alternately, in SASL 1.5.27 and later (including 2.1.1), try:
+Alternately, in SASL 1.5.5 and later (including 2.1.1), try:
 
 (SASL version 1.5.5)
    /usr/local/lib/sasl/smtpd.conf:

@@ -723,23 +723,6 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
-	 * This queue is a hog. Defer this recipient until the queue drains.
-	 * When a site accumulates a large backlog, Postfix will deliver a
-	 * little chunk and hammer the disk as it defers the remainder of the
-	 * backlog and searches the deferred queue for deliverable mail.
-	 */
-	if (var_qmgr_hog < 100) {
-	    if (queue->todo_refcount + queue->busy_refcount
-		> (var_qmgr_hog / 100.0)
-		* (qmgr_recipient_count > 0.8 * var_qmgr_rcpt_limit ?
-		   qmgr_message_count : var_qmgr_active_limit)) {
-		qmgr_defer_recipient(message, recipient->address,
-				     "site destination queue overflow");
-		continue;
-	    }
-	}
-
-	/*
 	 * This queue is alive. Bind this recipient to this queue instance.
 	 */
 	recipient->queue = queue;

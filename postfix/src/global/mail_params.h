@@ -542,10 +542,6 @@ extern int var_min_delivery_slots;
 #define DEF_QMGR_FUDGE		100
 extern int var_qmgr_fudge;
 
-#define VAR_QMGR_HOG		"qmgr_site_hog_factor"
-#define DEF_QMGR_HOG		100
-extern int var_qmgr_hog;
-
  /*
   * Queue manager: default destination concurrency levels.
   */
@@ -587,6 +583,14 @@ extern int var_transport_retry_time;
 #define VAR_DEFER_XPORTS	"defer_transports"
 #define DEF_DEFER_XPORTS	""
 extern char *var_defer_xports;
+
+ /*
+  * Queue manager: how often to warn that a destination is clogging the
+  * active queue.
+  */
+#define VAR_QMGR_CLOG_WARN_TIME	"qmgr_clog_warn_time"
+#define DEF_QMGR_CLOG_WARN_TIME	"300s"
+extern int var_qmgr_clog_warn_time;
 
  /*
   * Master: default process count limit per mail subsystem.

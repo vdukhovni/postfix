@@ -305,7 +305,8 @@ static void smtp_text_out(void *context, int rec_type,
     data_left = len;
     data_start = text;
     do {
-	if (state->space_left == var_smtp_line_limit && *data_start == '.')
+	if (state->space_left == var_smtp_line_limit
+	    && data_left > 0 && *data_start == '.')
 	    smtp_fputc('.', session->stream);
 	if (var_smtp_line_limit > 0 && data_left >= state->space_left) {
 	    smtp_fputs(data_start, state->space_left, session->stream);

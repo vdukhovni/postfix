@@ -7,11 +7,17 @@
 /*	#include <mail_flush.h>
 /*
 /*	int	mail_flush_deferred()
+/*
+/*	int	mail_flush_maildrop()
 /* DESCRIPTION
 /*	This module triggers delivery of backed up mail.
 /*
 /*	mail_flush_deferred() triggers delivery of all deferred
-/*	or incoming mail.
+/*	or incoming mail. This function tickles the queue manager.
+/*
+/*	mail_flush_maildrop() triggers delivery of all mail in
+/*	the maildrop directory. This function tickles the pickup
+/*	service.
 /* DIAGNOSTICS
 /*	The result is 0 in case of success, -1 in case of failure.
 /* LICENSE
@@ -37,7 +43,7 @@
 #include <mail_proto.h>
 #include <mail_flush.h>
 
-/* mail_flush_deferred - flush deferred queue */
+/* mail_flush_deferred - flush deferred/incoming queue */
 
 int     mail_flush_deferred(void)
 {
@@ -53,4 +59,17 @@ int     mail_flush_deferred(void)
      */
     return (mail_trigger(MAIL_CLASS_PUBLIC, var_queue_service,
 			 qmgr_trigger, sizeof(qmgr_trigger)));
+}
+
+/* mail_flush_maildrop - flush maildrop queue */
+
+int     mail_flush_maildrop(void)
+{
+    static char wakeup[] = {TRIGGER_REQ_WAKEUP};
+
+    /*
+     * Trigger the pickup service.
+     */
+    return (mail_trigger(MAIL_CLASS_PUBLIC, var_pickup_service,
+			 wakeup, sizeof(wakeup)));
 }

@@ -35,6 +35,7 @@ typedef struct CLEANUP_STATE {
     VSTRING *temp2;			/* scratch buffer, local use only */
     VSTREAM *dst;			/* current output stream */
     MAIL_STREAM *handle;		/* mail stream handle */
+    char   *queue_name;			/* queue name */
     char   *queue_id;			/* queue file basename */
     time_t  time;			/* posting time */
     char   *fullname;			/* envelope sender full name */

@@ -20,7 +20,7 @@ SRCS	= been_here.c bounce.c canon_addr.c cleanup_strerror.c clnt_stream.c \
 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
 	verp_sender.c match_parent_style.c mime_state.c header_token.c \
-	strip_addr.c virtual8_maps_find.c
+	strip_addr.c virtual8_maps_find.c hold_message.c
 OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	debug_peer.o debug_process.o defer.o deliver_completed.o \
 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
@@ -42,7 +42,7 @@ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
 	verp_sender.o match_parent_style.o mime_state.o header_token.o \
-	strip_addr.o virtual8_maps_find.o
+	strip_addr.o virtual8_maps_find.o hold_message.o
 HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
@@ -60,7 +60,7 @@ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
 	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
 	match_parent_style.h quote_flags.h mime_state.h header_token.h \
-	lex_822.h strip_addr.h virtual8.h
+	lex_822.h strip_addr.h virtual8.h hold_message.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
@@ -233,7 +233,8 @@ virtual8_maps_find: $(LIB) $(LIBS)
 	mv junk $@.o
 
 tests: tok822_test mime_test mime_nest mime_8bit mime_dom mime_trunc \
-	strip_addr_test tok822_limit_test virtual8_test
+	mime_cvt mime_cvt2 mime_cvt3 strip_addr_test tok822_limit_test \
+	virtual8_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp
@@ -264,6 +265,21 @@ mime_trunc: mime_state mime_trunc.in mime_trunc.ref
 	./mime_state <mime_trunc.in >mime_trunc.tmp
 	diff  mime_trunc.ref mime_trunc.tmp
 	rm -f mime_trunc.tmp
+
+mime_cvt: mime_state mime_cvt.in mime_cvt.ref
+	./mime_state <mime_cvt.in >mime_cvt.tmp
+	diff  mime_cvt.ref mime_cvt.tmp
+	rm -f mime_cvt.tmp
+
+mime_cvt2: mime_state mime_cvt.in2 mime_cvt.ref2
+	./mime_state <mime_cvt.in2 >mime_cvt.tmp
+	diff  mime_cvt.ref2 mime_cvt.tmp
+	rm -f mime_cvt.tmp
+
+mime_cvt3: mime_state mime_cvt.in3 mime_cvt.ref3
+	./mime_state <mime_cvt.in3 >mime_cvt.tmp
+	diff  mime_cvt.ref3 mime_cvt.tmp
+	rm -f mime_cvt.tmp
 
 tok822_limit_test: tok822_parse tok822_limit.in tok822_limit.ref
 	./tok822_parse <tok822_limit.in >tok822_limit.tmp
@@ -512,6 +528,16 @@ header_token.o: ../../include/vstring.h
 header_token.o: ../../include/vbuf.h
 header_token.o: lex_822.h
 header_token.o: header_token.h
+hold_message.o: hold_message.c
+hold_message.o: ../../include/sys_defs.h
+hold_message.o: ../../include/msg.h
+hold_message.o: ../../include/set_eugid.h
+hold_message.o: mail_queue.h
+hold_message.o: ../../include/vstring.h
+hold_message.o: ../../include/vbuf.h
+hold_message.o: ../../include/vstream.h
+hold_message.o: mail_params.h
+hold_message.o: hold_message.h
 is_header.o: is_header.c
 is_header.o: ../../include/sys_defs.h
 is_header.o: is_header.h

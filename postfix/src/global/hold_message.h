@@ -1,20 +1,20 @@
-#ifndef _MAIL_FLUSH_H_INCLUDED_
-#define _MAIL_FLUSH_H_INCLUDED_
+#ifndef _HOLD_MESSAGE_H_INCLUDED_
+#define _HOLD_MESSAGE_H_INCLUDED_
 
 /*++
 /* NAME
-/*	mail_flush 3h
+/*	hold_message 3h
 /* SUMMARY
-/*	flush backed up mail
+/*	mark queue file as corrupt
 /* SYNOPSIS
-/*	#include <mail_flush.h>
+/*	#include <hold_message.h>
 /* DESCRIPTION
 /* .nf
 
- /* External interface. */
-
-extern int mail_flush_deferred(void);
-extern int mail_flush_maildrop(void);
+ /*
+  * External interface.
+  */
+extern void hold_message(const char *, const char *);
 
 /* LICENSE
 /* .ad

@@ -83,7 +83,7 @@ Edit the debugger_command definition in /etc/postfix/main.cf so
 that it invokes the call tracer of your choice, for example:
 
     debugger_command =
-         PATH=/bin:/usr/bin:/usr/local/bin
+         PATH=/bin:/usr/bin:/usr/local/bin;
          (truss -p $process_id 2>&1 | logger -p mail.info) & sleep 5
 
 Type "postfix reload" and watch the logfile.

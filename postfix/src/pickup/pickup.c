@@ -381,6 +381,9 @@ static int pickup_file(PICKUP_INFO *info)
 	if (errno != ENOENT)
 	    msg_warn("open input file %s: %s", info->path, vstring_str(buf));
 	vstring_free(buf);
+	if (errno == EACCES)
+	    msg_warn("if this file was created by Postfix < 1.1, then you may have to chmod a+r %s/%s",
+		     var_queue_dir, info->path);
 	return (errno == EACCES ? KEEP_MESSAGE_FILE : REMOVE_MESSAGE_FILE);
     }
 

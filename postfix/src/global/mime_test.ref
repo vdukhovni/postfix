@@ -5,13 +5,13 @@ mime_state: PUSH boundary abcd ef
 MAIN	content-type: multipart/(co\m\)ment)mumble mumble; boundary = "ab\cd 
  ef" mumble
 HEADER END
-BODY	
-BODY	abcdef prolog
-BODY	
-BODY	--abcd ef
+BODY N	
+BODY N	abcdef prolog
+BODY N	
+BODY N	--abcd ef
 mime_state: header_token: message / rfc822
 MULT	content-type: message/rfc822; mumble
-BODY	
+BODY N	
 NEST	subject: nested subject
 mime_state: header_token: multipart / mumble
 mime_state: header_token: boundary = pqrs
@@ -20,33 +20,33 @@ NEST	content-type: multipart/mumble; boundary(comment)="pqrs"
 mime_state: header_token: base64  
 NEST	content-transfer-encoding: base64
 mime_state: warning: invalid message/* or multipart/* encoding domain: base64
-BODY	
-BODY	pqrs prolog
-BODY	
-BODY	--pqrs
+BODY N	
+BODY N	pqrs prolog
+BODY N	
+BODY N	--pqrs
 MULT	header: pqrs part 01
-BODY	
-BODY	body pqrs part 01
-BODY	
-BODY	--pqrs
+BODY N	
+BODY N	body pqrs part 01
+BODY N	
+BODY N	--pqrs
 MULT	header: pqrs part 02
-BODY	
-BODY	body pqrs part 02
-BODY	
-BODY	--bogus-boundary
-BODY	header: wietse
-BODY	
-BODY	body asdasads
-BODY	
+BODY N	
+BODY N	body pqrs part 02
+BODY N	
+BODY N	--bogus-boundary
+BODY N	header: wietse
+BODY N	
+BODY N	body asdasads
+BODY N	
 mime_state: POP boundary pqrs
-BODY	--abcd ef
+BODY N	--abcd ef
 MULT	header: abcdef part 02
-BODY	
-BODY	body abcdef part 02
-BODY	
+BODY N	
+BODY N	body abcdef part 02
+BODY N	
 mime_state: POP boundary abcd ef
-BODY	--abcd ef--
-BODY	
-BODY	epilog
+BODY N	--abcd ef--
+BODY N	
+BODY N	epilog
 BODY END
 mime_state: warning: improper message/* or multipart/* encoding domain

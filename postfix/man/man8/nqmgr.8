@@ -45,6 +45,9 @@ manager implements exponential backoff by doubling the time between
 delivery attempts.
 .IP \fBcorrupt\fR
 Unreadable or damaged queue files are moved here for inspection.
+.IP \fBhold\fR
+Messages that are kept "on hold" are kept here until someone
+sets them free.
 .SH DELIVERY STATUS REPORTS
 .na
 .nf
@@ -185,6 +188,9 @@ Top-level directory of the Postfix queue.
 .fi
 In the text below, \fItransport\fR is the first field in a
 \fBmaster.cf\fR entry.
+.IP \fBqmgr_clog_warn_time\fR
+Minimal delay between warnings that a specific destination
+is clogging up the active queue. Specify 0 to disable.
 .IP \fBqmgr_message_active_limit\fR
 Limit the number of messages in the active queue.
 .IP \fBqmgr_message_recipient_limit\fR

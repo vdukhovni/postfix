@@ -6776,13 +6776,63 @@ Apologies for any names omitted.
 	global/bounce_log.c, global/bounce.c, bounce/bounce.c,
 	bounce/bounce_notify_util.c, bounce/bounce_one_service.c.
 
+20020809
+
+	Bugfix: the 20020531 bugfix could prepend '.' to lines when
+	it shouldn't (but only when converting 8-bit mail to 7-bit).
+	Problem experienced by Ralf Hildebrandt.  File:
+	smtp/smtp_proto.c.
+
+	Bugfix: smtpd_sender_login_maps did not do the @domain etc.
+	wild-card lookups that were promised. Problem experienced
+	by Sven Michels. File: smtpd/smtpd_check.c.
+
+20020810
+
+	Feature: new smtp-sink command-line options to specify the
+	SMTP hostname, to disable ESMTP protocol support, to
+	disable 8BITMIME support, and to syslog selected commands.
+	File: smtpstone/smtp-sink.c.
+
+20020814
+
+	Feature: the queue manager now warns when mail for some
+	destination is piling up in the active queue, and suggests
+	a variety of remedies.  The qmgr_clog_warn_time parameter
+	controls the time between warnings, mainly so that I could
+	test the code. To disable these warnings, specify
+	"qmgr_clog_warn_time = 0". Files:  *qmgr/qmgr_entry.c.
+
+20020815
+
+	Paranoia: truncate the DNS response length result value in
+	case it is larger than the result buffer length (the resolver
+	documentation is vague about this). File:  dns/dns_lookup.c.
+
+20020816
+
+	Cleanup: "postqueue -f" now also trigger delivery of mail
+	in the maildrop directory. This is needed when the master
+	does not frequently wake up the pickup service.  Files:
+	global/mail_flush.c, postqueue/postqueue.c.
+
+20020818
+
+	Cleanup: the qmgr_site_hog_factor feature is gone (defer
+	mail if a site uses up too much space in the active queue).
+	Instead, the qmgr_clog_warn_time feature provides better
+	solutions. File: qmgr/qmgr_message.c.
+
+20020819
+
+	Feature: new header/body_checks HOLD pattern that causes
+	mail to be placed on the "hold" queue for manual inspection.
+	Files: global/hold_message.[hc], cleanup/cleanup_message.c.
+
 Open problems:
 
 	Medium: should permit_mx_backup defer delivery if DNS
 	has some error of some kind?
-
-	Medium: old maildrop files are no longer readable by the
-	pickup service. Log a message that suggests a fix.
 
 	Low: all table lookups should consistently use internalized
 	(unquoted) or externalized (quoted) forms as lookup keys.
