@@ -73,7 +73,6 @@ SMTP_STATE *smtp_state_alloc(void)
     state->space_left = 0;
     state->mime_state = 0;
     state->final_server = 0;
-    state->backup_server = 0;
     return (state);
 }
 

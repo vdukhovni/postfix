@@ -875,6 +875,7 @@ extern int h_errno;
 #define STATVFS_IN_SYS_STATVFS_H
 #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
 #define MISSING_SETENV
+#define STRCASECMP_IN_STRINGS_H
 /* SCO5 misses just S_ISSOCK, the others are there
  * Use C_ISSOCK definition from cpio.h.
  */

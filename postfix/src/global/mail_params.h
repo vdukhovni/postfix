@@ -180,6 +180,15 @@ extern bool var_disable_dns;
 #define DEF_SMTP_HOST_LOOKUP	SMTP_HOST_LOOKUP_DNS
 extern int var_smtp_dns_lookup;
 
+#define SMTP_BACKUP_SESSION	"session"
+#define SMTP_BACKUP_MESSAGE	"message"
+#define SMTP_BACKUP_RECIPIENT	"recipient"
+
+#define VAR_SMTP_BACKUP_MASK	"smtp_backup_on_soft_error"
+#define DEF_SMTP_BACKUP_MASK	SMTP_BACKUP_SESSION \
+				" " SMTP_BACKUP_MESSAGE \
+				" " SMTP_BACKUP_RECIPIENT
+
  /*
   * Location of the mail queue directory tree.
   */

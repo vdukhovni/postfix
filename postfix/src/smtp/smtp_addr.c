@@ -6,13 +6,13 @@
 /* SYNOPSIS
 /*	#include "smtp_addr.h"
 /*
-/*	DNS_RR *smtp_domain_addr(state, name)
-/*	SMTP_STATE *state;
+/*	DNS_RR *smtp_domain_addr(name, why)
 /*	char	*name;
+/*	VSTRING	*why;
 /*
-/*	DNS_RR *smtp_host_addr(state, name)
-/*	SMTP_STATE *state;
+/*	DNS_RR *smtp_host_addr(name, why)
 /*	char	*name;
+/*	VSTRING	*why;
 /* DESCRIPTION
 /*	This module implements Internet address lookups. By default,
 /*	lookups are done via the Internet domain name service (DNS).
@@ -24,10 +24,7 @@
 /*	exchanger hosts listed for the named domain. Addresses are
 /*	returned in most-preferred first order. The result is truncated
 /*	so that it contains only hosts that are more preferred than the
-/*	local mail server itself. When the "best MX is local" feature
-/*	is enabled, the local system is allowed to be the best mail
-/*	exchanger, and mail is delivered accordingly. Otherwise,
-/*	mailer loops are treated as an error.
+/*	local mail server itself.
 /*
 /*	When no mail exchanger is listed in the DNS for \fIname\fR, the
 /*	request is passed to smtp_host_addr().
@@ -46,7 +43,16 @@
 /*	when DNS lookups are explicitly disabled.
 /*
 /*	All routines either return a DNS_RR pointer, or return a null
-/*	pointer and report any problems via the smtp_trouble(3) module.
+/*	pointer and set the \fIsmtp_errno\fR global variable accordingly:
+/* .IP SMTP_RETRY
+/*	The request failed due to a soft error, and should be retried later.
+/* .IP SMTP_FAIL
+/*	The request attempt failed due to a hard error.
+/* .IP SMTP_LOOP
+/*	The local machine is the best mail exchanger.
+/* .PP
+/*	In addition, a textual description of the problem is made available
+/*	via the \fIwhy\fR argument.
 /* LICENSE
 /* .ad
 /* .fi
@@ -109,7 +115,6 @@ static int h_errno = TRY_AGAIN;
 
 #include <mail_params.h>
 #include <own_inet_addr.h>
-#include <deliver_pass.h>
 
 /* DNS library. */
 
@@ -119,9 +124,6 @@ static int h_errno = TRY_AGAIN;
 
 #include "smtp.h"
 #include "smtp_addr.h"
-
-#define ERROR_CLASS_RETRY	450
-#define ERROR_CLASS_FAIL	550
 
 /* smtp_print_addr - print address list */
 
@@ -146,8 +148,7 @@ static void smtp_print_addr(char *what, DNS_RR *addr_list)
 
 /* smtp_addr_one - address lookup for one host name */
 
-static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
-			             VSTRING *why, int *error_class)
+static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRING *why)
 {
     char   *myname = "smtp_addr_one";
     struct in_addr inaddr;
@@ -180,13 +181,13 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	    addr_list = dns_rr_append(addr_list, addr);
 	    return (addr_list);
 	default:
-	    *error_class = ERROR_CLASS_RETRY;
+	    smtp_errno = SMTP_RETRY;
 	    return (addr_list);
 	case DNS_FAIL:
-	    *error_class = ERROR_CLASS_FAIL;
+	    smtp_errno = SMTP_FAIL;
 	    return (addr_list);
 	case DNS_NOTFOUND:
-	    *error_class = ERROR_CLASS_FAIL;
+	    smtp_errno = SMTP_FAIL;
 	    /* maybe gethostbyname() will succeed */
 	    break;
 	}
@@ -199,13 +200,12 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 	memset((char *) &fixed, 0, sizeof(fixed));
 	if ((hp = gethostbyname(host)) == 0) {
 	    vstring_sprintf(why, "%s: %s", host, HSTRERROR(h_errno));
-	    *error_class = (h_errno == TRY_AGAIN ?
-			    ERROR_CLASS_RETRY : ERROR_CLASS_FAIL);
+	    smtp_errno = (h_errno == TRY_AGAIN ? SMTP_RETRY : SMTP_FAIL);
 	} else if (hp->h_addrtype != AF_INET) {
 	    vstring_sprintf(why, "%s: host not found", host);
 	    msg_warn("%s: unknown address family %d for %s",
 		     myname, hp->h_addrtype, host);
-	    *error_class = ERROR_CLASS_FAIL;
+	    smtp_errno = SMTP_FAIL;
 	} else {
 	    while (hp->h_addr_list[0]) {
 		addr_list = dns_rr_append(addr_list,
@@ -226,7 +226,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref,
 
 /* smtp_addr_list - address lookup for a list of mail exchangers */
 
-static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why, int *error_class)
+static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why)
 {
     DNS_RR *addr_list = 0;
     DNS_RR *rr;
@@ -236,7 +236,7 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why, int *error_class)
      * with DNS lookups (except if we're backup MX, and all the better MX
      * hosts can't be found).
      * 
-     * XXX 2821: update error_class (0->FAIL upon unrecoverable lookup error,
+     * XXX 2821: update smtp_errno (0->FAIL upon unrecoverable lookup error,
      * any->RETRY upon temporary lookup error) so that we can correctly
      * handle the case of no resolvable MX host. Currently this is always
      * treated as a soft error. RFC 2821 wants a more precise response.
@@ -244,8 +244,7 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, VSTRING *why, int *error_class)
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX)
 	    msg_panic("smtp_addr_list: bad resource type: %d", rr->type);
-	addr_list = smtp_addr_one(addr_list, (char *) rr->data, rr->pref,
-				  why, error_class);
+	addr_list = smtp_addr_one(addr_list, (char *) rr->data, rr->pref, why);
     }
     return (addr_list);
 }
@@ -328,16 +327,13 @@ static int smtp_compare_pref(DNS_RR *a, DNS_RR *b)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(SMTP_STATE *state, char *name)
+DNS_RR *smtp_domain_addr(char *name, VSTRING *why)
 {
-    DELIVER_REQUEST *request = state->request;
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
     DNS_RR *self = 0;
     unsigned best_pref;
     unsigned best_found;
-    int     error_class;
-    VSTRING *why = vstring_alloc(1);
 
     /*
      * Preferences from DNS use 0..32767, fall-backs use 32768+.
@@ -391,40 +387,26 @@ DNS_RR *smtp_domain_addr(SMTP_STATE *state, char *name)
      * that an IP address is listed only under one hostname. However, looking
      * at hostnames provides a partial solution for MX hosts behind a NAT
      * gateway.
-     * 
-     * Defer host lookup errors if a) there are more mail servers or b) we are
-     * looking up a relayhost or fallback relay.
      */
-#define DEFER_HOST_LOOKUP_ERROR(s) \
-	((s)->final_server == 0 || (s)->backup_server)
-
     switch (dns_lookup(name, T_MX, 0, &mx_names, (VSTRING *) 0, why)) {
     default:
+	smtp_errno = SMTP_RETRY;
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(state, name);
-	else
-	    smtp_site_fail(state, ERROR_CLASS_RETRY,
-			   "%s: %s", request->queue_id, vstring_str(why));
+	    addr_list = smtp_host_addr(name, why);
 	break;
     case DNS_FAIL:
+	smtp_errno = SMTP_FAIL;
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(state, name);
-	else {
-	    smtp_site_fail(state, DEFER_HOST_LOOKUP_ERROR(state) ?
-			   ERROR_CLASS_RETRY : ERROR_CLASS_FAIL,
-			   "%s: %s", request->queue_id, vstring_str(why));
-	}
+	    addr_list = smtp_host_addr(name, why);
 	break;
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, smtp_compare_pref);
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
-	addr_list = smtp_addr_list(mx_names, why, &error_class);
+	addr_list = smtp_addr_list(mx_names, why);
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
-	    if (var_smtp_defer_mxaddr || DEFER_HOST_LOOKUP_ERROR(state))
-		error_class = ERROR_CLASS_RETRY;
-	    smtp_site_fail(state, error_class,
-			   "%s: %s", request->queue_id, vstring_str(why));
+	    if (var_smtp_defer_mxaddr)
+		smtp_errno = SMTP_RETRY;
 	    msg_warn("no MX host for %s has a valid A record", name);
 	    break;
 	}
@@ -435,23 +417,14 @@ DNS_RR *smtp_domain_addr(SMTP_STATE *state, char *name)
 	    addr_list = smtp_truncate_self(addr_list, self->pref);
 	    if (addr_list == 0) {
 		if (best_pref != best_found) {
-		    smtp_site_fail(state, ERROR_CLASS_RETRY,
-				   "%s: unable to find primary relay for %s",
-				   request->queue_id, name);
-		} else if (*var_bestmx_transp != 0) {	/* we're best MX */
-		    state->status =
-			deliver_pass_all(MAIL_CLASS_PRIVATE, var_bestmx_transp,
-					 request);
-		    state->final_server = 1;
+		    vstring_sprintf(why, "unable to find primary relay for %s",
+				    name);
+		    smtp_errno = SMTP_RETRY;
 		} else {
-		    msg_warn("%s is best MX host for %s but no local, virtual "
-			 "or remote delivery is configured for that domain",
-			     var_myhostname, request->nexthop);
-		    smtp_site_fail(state, ERROR_CLASS_FAIL,
-				   "%s: mail for %s loops back to myself",
-				   request->queue_id, name);
+		    vstring_sprintf(why, "mail for %s loops back to myself",
+				    name);
+		    smtp_errno = SMTP_LOOP;
 		}
-		break;
 	    }
 	}
 	if (addr_list && addr_list->next && var_smtp_rand_addr) {
@@ -460,43 +433,31 @@ DNS_RR *smtp_domain_addr(SMTP_STATE *state, char *name)
 	}
 	break;
     case DNS_NOTFOUND:
-	addr_list = smtp_host_addr(state, name);
+	addr_list = smtp_host_addr(name, why);
 	break;
     }
 
     /*
      * Clean up.
      */
-    vstring_free(why);
     return (addr_list);
 }
 
 /* smtp_host_addr - direct host lookup */
 
-DNS_RR *smtp_host_addr(SMTP_STATE *state, char *host)
+DNS_RR *smtp_host_addr(char *host, VSTRING *why)
 {
-    DELIVER_REQUEST *request = state->request;
     DNS_RR *addr_list;
-    int     error_class;
-    VSTRING *why = vstring_alloc(1);
 
     /*
      * If the host is specified by numerical address, just convert the
      * address to internal form. Otherwise, the host is specified by name.
      */
 #define PREF0	0
-    addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why, &error_class);
-    if (addr_list == 0) {
-	if (DEFER_HOST_LOOKUP_ERROR(state))
-	    error_class = ERROR_CLASS_RETRY;
-	smtp_site_fail(state, error_class,
-		       "%s: %s", request->queue_id, vstring_str(why));
-    } else {
-	if (addr_list->next && var_smtp_rand_addr)
-	    addr_list = dns_rr_shuffle(addr_list);
-	if (msg_verbose)
-	    smtp_print_addr(host, addr_list);
-    }
-    vstring_free(why);
+    addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
+    if (addr_list && addr_list->next && var_smtp_rand_addr)
+	addr_list = dns_rr_shuffle(addr_list);
+    if (msg_verbose)
+	smtp_print_addr(host, addr_list);
     return (addr_list);
 }

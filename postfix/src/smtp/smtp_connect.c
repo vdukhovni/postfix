@@ -82,6 +82,7 @@
 #include <mail_params.h>
 #include <own_inet_addr.h>
 #include <debug_peer.h>
+#include <deliver_pass.h>
 #include <mail_error.h>
 
 /* DNS library. */
@@ -95,8 +96,8 @@
 
 /* smtp_connect_addr - connect to explicit address */
 
-static SMTP_SESSION *smtp_connect_addr(SMTP_STATE *state, DNS_RR *addr,
-				               unsigned port)
+static SMTP_SESSION *smtp_connect_addr(DNS_RR *addr, unsigned port,
+				               VSTRING *why)
 {
     char   *myname = "smtp_connect_addr";
     struct sockaddr_in sin;
@@ -111,8 +112,11 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_STATE *state, DNS_RR *addr,
     /*
      * Sanity checks.
      */
-    if (addr->data_len > sizeof(sin.sin_addr))
-	msg_panic("%s: unexpected address length %d", myname, addr->data_len);
+    if (addr->data_len > sizeof(sin.sin_addr)) {
+	msg_warn("%s: skip address with length %d", myname, addr->data_len);
+	smtp_errno = SMTP_RETRY;
+	return (0);
+    }
 
     /*
      * Initialize.
@@ -174,8 +178,9 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_STATE *state, DNS_RR *addr,
 	conn_stat = sane_connect(sock, (struct sockaddr *) & sin, sizeof(sin));
     }
     if (conn_stat < 0) {
-	smtp_site_fail(state, 450, "connect to %s[%s] port %u: %m",
-		       addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
+	vstring_sprintf(why, "connect to %s[%s]: %m",
+			addr->name, inet_ntoa(sin.sin_addr));
+	smtp_errno = SMTP_RETRY;
 	close(sock);
 	return (0);
     }
@@ -184,8 +189,9 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_STATE *state, DNS_RR *addr,
      * Skip this host if it takes no action within some time limit.
      */
     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
-	smtp_site_fail(state, 450, "connect to %s[%s] port %u: read timeout",
-		       addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
+	vstring_sprintf(why, "connect to %s[%s]: read timeout",
+			addr->name, inet_ntoa(sin.sin_addr));
+	smtp_errno = SMTP_RETRY;
 	close(sock);
 	return (0);
     }
@@ -195,14 +201,35 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_STATE *state, DNS_RR *addr,
      */
     stream = vstream_fdopen(sock, O_RDWR);
     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
-	smtp_site_fail(state, 450, "connect to %s[%s] port %u: "
-		       "server dropped connection without sending the initial SMTP greeting",
-		       addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
+	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial SMTP greeting",
+			addr->name, inet_ntoa(sin.sin_addr));
+	smtp_errno = SMTP_RETRY;
 	vstream_fclose(stream);
 	return (0);
     }
     vstream_ungetc(stream, ch);
 
+    /*
+     * Skip this host if it sends a 4xx greeting.
+     */
+    if (ch == '4' && var_smtp_skip_4xx_greeting) {
+	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+			addr->name, inet_ntoa(sin.sin_addr));
+	smtp_errno = SMTP_RETRY;
+	vstream_fclose(stream);
+	return (0);
+    }
+
+    /*
+     * Skip this host if it sends a 5xx greeting.
+     */
+    if (ch == '5' && var_smtp_skip_5xx_greeting) {
+	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+			addr->name, inet_ntoa(sin.sin_addr));
+	smtp_errno = SMTP_RETRY;
+	vstream_fclose(stream);
+	return (0);
+    }
     return (smtp_session_alloc(stream, addr->name, inet_ntoa(sin.sin_addr)));
 }
 
@@ -246,6 +273,7 @@ static char *smtp_parse_destination(char *destination, char *def_service,
 int     smtp_connect(SMTP_STATE *state)
 {
     DELIVER_REQUEST *request = state->request;
+    VSTRING *why = vstring_alloc(10);
     char   *dest_buf;
     char   *host;
     unsigned port;
@@ -272,22 +300,21 @@ int     smtp_connect(SMTP_STATE *state)
 	argv_split_append(sites, var_fallback_relay, ", \t\r\n");
 
     /*
-     * Don't give up after any soft error until we have tried all servers.
+     * Don't give up after a qualifying soft error until we have tried all
+     * qualifying mail servers.
      * 
      * Don't give up after a hard host lookup error until we have tried the
      * fallback relay servers.
      * 
-     * Don't bounce mail after host lookup problems with a relayhost or with
-     * fallback relays.
+     * Don't bounce mail after a host lookup problem with a relayhost or with a
+     * fallback relay.
      * 
      * All this means that error handling and error reporting depends on whether
-     * there are more mail servers (state->final_server), or whether we're
-     * looking up a relayhost or fallback relay (state->backup_server).
+     * the error qualifies for trying more mail servers, or whether we're
+     * looking up a relayhost or fallback relay.
      */
     for (cpp = sites->argv; (dest = *cpp) != 0; cpp++) {
 	state->final_server = (cpp[1] == 0);
-	state->backup_server =
-	    (cpp > sites->argv || strcmp(request->nexthop, var_relayhost) == 0);
 
 	/*
 	 * Parse the destination. Default is to use the SMTP port. Look up
@@ -295,37 +322,36 @@ int     smtp_connect(SMTP_STATE *state)
 	 * specified, or when DNS lookups are disabled.
 	 */
 	dest_buf = smtp_parse_destination(dest, def_service, &host, &port);
+
+	/*
+	 * Resolve an SMTP server. Skip mail exchanger lookups when a quoted
+	 * host is specified, or when DNS lookups are disabled.
+	 */
 	if (msg_verbose)
-	    msg_info("connecting to \"%s\" port \"%d\"", host, ntohs(port));
+	    msg_info("connecting to %s port %d", host, ntohs(port));
 	if (var_disable_dns || *dest == '[') {
-	    addr_list = smtp_host_addr(state, host);
+	    addr_list = smtp_host_addr(host, why);
 	} else {
-	    addr_list = smtp_domain_addr(state, host);
+	    addr_list = smtp_domain_addr(host, why);
 	}
 	myfree(dest_buf);
 
 	/*
-	 * No address list. The mail has / has not been delivered. What to do
-	 * next (skip remaining hosts / try to deliver) is recorded in the
-	 * state->final_server attribute.
+	 * Don't try the fall-back relay if mail loops to myself.
 	 */
-	if (addr_list == 0) {
-	    if (state->backup_server)
-		msg_warn("%s or %s configuration problem",
-			 VAR_RELAYHOST, VAR_FALLBACK_RELAY);
-	}
+	if (addr_list == 0 && smtp_errno == SMTP_LOOP)
+	    break;
 
 	/*
 	 * Connect to an SMTP server. XXX Limit the number of addresses that
 	 * we're willing to try for a non-fallback destination.
 	 * 
-	 * After a soft error, log deferrals and update delivery status values
-	 * only when there are no further attempts.
+	 * After a soft error, weed out the recipient list and if there are any
+	 * left, try again.
 	 */
 	for (addr = addr_list; addr; addr = addr->next) {
-	    if ((state->session = smtp_connect_addr(state, addr, port)) != 0) {
+	    if ((state->session = smtp_connect_addr(addr, port, why)) != 0) {
 		state->final_server = (cpp[1] == 0 && addr->next == 0);
-		state->status = 0;
 		state->session->best = (addr->pref == addr_list->pref);
 		debug_peer_check(state->session->host, state->session->addr);
 		if (smtp_helo(state) == 0)
@@ -337,23 +363,71 @@ int     smtp_connect(SMTP_STATE *state)
 		/* XXX smtp_xfer() may abort in the middle of DATA. */
 		smtp_session_free(state->session);
 		debug_peer_restore();
-		if (state->status == 0 || state->final_server)
+		if (smtp_weed_request(&request->rcpt_list) == 0)
 		    break;
+	    } else {
+		msg_info("%s (port %d)", vstring_str(why), ntohs(port));
 	    }
 	}
 	dns_rr_free(addr_list);
+    }
+
+    /*
+     * We still need to deliver, bounce or defer some recipients.
+     * 
+     * Pay attention to what could be configuration problems, and pretend that
+     * these are recoverable rather than bouncing the mail.
+     */
+    if (request->rcpt_list.len > 0) {
+	if (smtp_errno != SMTP_RETRY) {
+
+	    /*
+	     * The fall-back destination did not resolve as expected, or it
+	     * is refusing to talk to us.
+	     */
+	    if (sites->argc > 1 && cpp > sites->argv) {
+		msg_warn("%s configuration problem", VAR_FALLBACK_RELAY);
+		smtp_errno = SMTP_RETRY;
+	    }
+
+	    /*
+	     * The next-hop relayhost did not resolve as expected, or it is
+	     * refusing to talk to us.
+	     */
+	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
+		msg_warn("%s configuration problem", VAR_RELAYHOST);
+		smtp_errno = SMTP_RETRY;
+	    }
+
+	    /*
+	     * Mail for the next-hop destination loops back to myself.
+	     */
+	    else if (smtp_errno == SMTP_LOOP && *var_bestmx_transp) {
+		state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
+						 var_bestmx_transp,
+						 request);
+		smtp_errno = SMTP_NONE;
+	    }
+	}
 
 	/*
-	 * In case someone has raised the "final server" flag before we have
-	 * tried all fallback servers.
+	 * We still need to bounce or defer some recipients. Do it now or
+	 * else they would silently disappear due to lack of error
+	 * indication.
 	 */
-	if (state->final_server)
-	    break;
+	if (smtp_errno != SMTP_NONE) {
+	    if (!state->final_server)
+		msg_panic("smtp_connect: we have left-over recipients but "
+			  "we did not try to connect to the final server");
+	    smtp_site_fail(state, smtp_errno == SMTP_RETRY ? 450 : 550,
+			   "%s", vstring_str(why));
+	}
     }
 
     /*
      * Cleanup.
      */
     argv_free(sites);
+    vstring_free(why);
     return (state->status);
 }

@@ -72,11 +72,11 @@ smtpd_sasl_security_options = noanonymous
 # The smtpd_sasl_local_domain parameter specifies the name of the
 # local authentication realm.
 # 
-# By default, the local authentication realm name is the name of the
-# machine.
+# By default, the local authentication realm name is the null string.
 # 
 #smtpd_sasl_local_domain = $mydomain
-smtpd_sasl_local_domain = $myhostname
+#smtpd_sasl_local_domain = $myhostname
+smtpd_sasl_local_domain =
 
 # The smtpd_sasl_exceptions_networks parameter controls what SMTP
 # clients Postfix will not offer AUTH support.

@@ -56,28 +56,52 @@ typedef struct SMTP_STATE {
     int     space_left;			/* output length control */
     struct MIME_STATE *mime_state;	/* mime state machine */
     int     final_server;		/* final mail server */
-    int     backup_server;		/* relayhost or fallback relay */
 } SMTP_STATE;
 
-#define SMTP_FEATURE_ESMTP	(1<<0)
-#define SMTP_FEATURE_8BITMIME	(1<<1)
-#define SMTP_FEATURE_PIPELINING	(1<<2)
-#define SMTP_FEATURE_SIZE	(1<<3)
-#define SMTP_FEATURE_STARTTLS	(1<<4)
-#define SMTP_FEATURE_AUTH	(1<<5)
-#define SMTP_FEATURE_MAYBEPIX	(1<<6)	/* PIX smtp fixup mode */
-#define SMTP_FEATURE_XFORWARD_NAME (1<<7)
-#define SMTP_FEATURE_XFORWARD_ADDR (1<<8)
-#define SMTP_FEATURE_XFORWARD_PROTO (1<<9)
-#define SMTP_FEATURE_XFORWARD_HELO (1<<10)
+ /*
+  * Server features.
+  */
+#define SMTP_FEATURE_ESMTP		(1<<0)
+#define SMTP_FEATURE_8BITMIME		(1<<1)
+#define SMTP_FEATURE_PIPELINING		(1<<2)
+#define SMTP_FEATURE_SIZE		(1<<3)
+#define SMTP_FEATURE_STARTTLS		(1<<4)
+#define SMTP_FEATURE_AUTH		(1<<5)
+#define SMTP_FEATURE_MAYBEPIX		(1<<6)	/* PIX smtp fixup mode */
+#define SMTP_FEATURE_XFORWARD_NAME	(1<<7)
+#define SMTP_FEATURE_XFORWARD_ADDR	(1<<8)
+#define SMTP_FEATURE_XFORWARD_PROTO	(1<<9)
+#define SMTP_FEATURE_XFORWARD_HELO	(1<<10)
+
+ /*
+  * Application-specific per-recipient status.
+  */
+#define SMTP_RCPT_KEEP	1		/* send to backup host */
+#define SMTP_RCPT_DROP	2		/* remove from list */
 
  /*
   * smtp.c
   */
+extern int smtp_errno;			/* XXX can we get rid of this? */
+ 
+#define SMTP_NONE	0		/* no error */
+#define SMTP_FAIL	1		/* permanent error */
+#define SMTP_RETRY	2		/* temporary error */
+#define SMTP_LOOP	3		/* MX loop */
+
 extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 
 #define SMTP_MASK_DNS		(1<<0)
 #define SMTP_MASK_NATIVE	(1<<1)
+
+ /*
+  * What soft errors qualify for going to a backup host.
+  */
+extern int smtp_backup_mask;		/* when to try backup host */
+
+#define SMTP_BACKUP_SESSION_FAILURE	(1<<0)
+#define SMTP_BACKUP_MESSAGE_FAILURE	(1<<1)
+#define SMTP_BACKUP_RECIPIENT_FAILURE	(1<<2)
 
  /*
   * smtp_session.c
@@ -120,6 +144,12 @@ extern void smtp_chat_reset(SMTP_STATE *);
 extern void smtp_chat_notify(SMTP_STATE *);
 
  /*
+  * smtp_misc.c.
+  */
+extern void smtp_rcpt_done(SMTP_STATE *, const char *, RECIPIENT *);
+extern int smtp_weed_request(RECIPIENT_LIST *);
+
+ /*
   * smtp_trouble.c
   */
 extern int PRINTFLIKE(3, 4) smtp_conn_fail(SMTP_STATE *, int, char *,...);
@@ -139,14 +169,6 @@ extern VSTRING *smtp_unalias_addr(VSTRING *, const char *);
   */
 extern SMTP_STATE *smtp_state_alloc(void);
 extern void smtp_state_free(SMTP_STATE *);
-
- /*
-  * Status codes. Errors must have negative codes so that they do not
-  * interfere with useful counts of work done.
-  */
-#define SMTP_OK			0	/* so far, so good */
-#define SMTP_RETRY		(-1)	/* transient error */
-#define SMTP_FAIL		(-2)	/* hard error */
 
 /* LICENSE
 /* .ad

@@ -93,10 +93,8 @@
 #include <mail_queue.h>
 #include <recipient_list.h>
 #include <deliver_request.h>
-#include <deliver_completed.h>
 #include <defer.h>
 #include <bounce.h>
-#include <sent.h>
 #include <record.h>
 #include <rec_type.h>
 #include <off_cvt.h>
@@ -197,13 +195,10 @@ int     smtp_helo(SMTP_STATE *state)
     /*
      * Read and parse the server's SMTP greeting banner.
      */
-    if ((resp = smtp_chat_resp(state))->code / 100 != 2) {
-	if (var_smtp_skip_5xx_greeting && resp->code / 100 == '5')
-	    resp->code -= 100;
+    if ((resp = smtp_chat_resp(state))->code / 100 != 2)
 	return (smtp_site_fail(state, resp->code,
 			       "host %s refused to talk to me: %s",
 			 session->namaddr, translit(resp->str, "\n", " ")));
-    }
 
     /*
      * XXX Some PIX firewall versions require flush before ".<CR><LF>" so it
@@ -435,6 +430,16 @@ int     smtp_xfer(SMTP_STATE *state)
 
 #define SENDING_MAIL \
 	(recv_state <= SMTP_STATE_DOT)
+
+    /*
+     * Sanity check. Recipients should be unmarked at this point.
+     */
+    if (request->rcpt_list.len <= 0)
+	msg_panic("smtp_xfer: bad recipient count: %d",
+		  request->rcpt_list.len);
+    if (request->rcpt_list.info->status != 0)
+	msg_panic("smtp_xfer: bad recipient status: %d",
+		  request->rcpt_list.info->status);
 
     /*
      * See if we should even try to send this message at all. This code sits
@@ -763,24 +768,14 @@ int     smtp_xfer(SMTP_STATE *state)
 			if (resp->code / 100 == 2) {
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
-			    if (DEL_REQ_TRACE_ONLY(request->flags)
-				&& sent(DEL_REQ_TRACE_FLAGS(request->flags),
-					request->queue_id, rcpt->orig_addr,
-					rcpt->address, rcpt->offset,
-				    session->namaddr, request->arrival_time,
-					"%s",
-				     translit(resp->str, "\n", " ")) == 0) {
-				if (request->flags & DEL_REQ_FLAG_SUCCESS)
-				    deliver_completed(state->src, rcpt->offset);
-				rcpt->offset = 0;	/* in case deferred */
-			    }
+			    if (DEL_REQ_TRACE_ONLY(request->flags))
+				smtp_rcpt_done(state, resp->str, rcpt);
 			} else {
 			    smtp_rcpt_fail(state, resp->code, rcpt,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
 					   xfer_request[SMTP_STATE_RCPT]);
-			    rcpt->offset = 0;	/* in case deferred */
 			}
 		    }
 		    /* If trace-only, send RSET instead of DATA. */
@@ -827,18 +822,8 @@ int     smtp_xfer(SMTP_STATE *state)
 			} else {
 			    for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
 				rcpt = request->rcpt_list.info + nrcpt;
-				if (rcpt->offset) {
-				    if (sent(DEL_REQ_TRACE_FLAGS(request->flags),
-					 request->queue_id, rcpt->orig_addr,
-					     rcpt->address, rcpt->offset,
-					     session->namaddr,
-					     request->arrival_time,
-					     "%s", resp->str) == 0) {
-					if (request->flags & DEL_REQ_FLAG_SUCCESS)
-					    deliver_completed(state->src, rcpt->offset);
-					rcpt->offset = 0;
-				    }
-				}
+				if (rcpt->status == 0)
+				    smtp_rcpt_done(state, resp->str, rcpt);
 			    }
 			}
 		    }
