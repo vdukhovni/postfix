@@ -448,7 +448,7 @@ static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
   * Cached RBL lookup state.
   */
 typedef struct {
-    char   *txt;			/* TXT record or null */
+    char   *txt;			/* TXT record or "" */
 } SMTPD_RBL_STATE;
 
 static void *rbl_pagein(const char *, void *);
@@ -2348,7 +2348,7 @@ static int rbl_reject_reply(SMTPD_STATE *state, SMTPD_RBL_STATE *rbl,
 		 myname, rbl_domain, template);
 	template = 0;				/* pretend not found */
     }
-    result = smtpd_check_reject(state, MAIL_ERROR_POLICY, STR(why));
+    result = smtpd_check_reject(state, MAIL_ERROR_POLICY, "%s", STR(why));
 
     /*
      * Clean up.
