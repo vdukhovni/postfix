@@ -11,7 +11,8 @@ COMMANDS= man1/postalias.1 man1/postcat.1 man1/postconf.1 man1/postfix.1 \
 	man1/postmap.1 man1/sendmail.1 man1/mailq.1 man1/newaliases.1 \
 	man1/postsuper.1
 CONFIG	= man5/access.5 man5/aliases.5 man5/canonical.5 man5/relocated.5 \
-	man5/transport.5 man5/virtual.5 man5/pcre_table.5 man5/regexp_table.5
+	man5/transport.5 man5/virtual.5 man5/pcre_table.5 man5/regexp_table.5 \
+	man5/etrn.5
 
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG)
 
@@ -126,6 +127,9 @@ man5/aliases.5: ../proto/aliases
 	../mantools/srctoman - $? >$@
 
 man5/canonical.5: ../proto/canonical
+	../mantools/srctoman - $? >$@
+
+man5/etrn.5: ../proto/etrn
 	../mantools/srctoman - $? >$@
 
 man5/pcre_table.5: ../proto/pcre_table

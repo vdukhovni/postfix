@@ -1,6 +1,20 @@
 Incompatible changes with snapshot-20000924
 ===========================================
 
+After building and installing, you need to "postfix check"
+and "postfix reload".
+
+The ETRN service is no longer enabled by default. You need to
+configure what domains and what clients can use ETRN.  See the
+ETRN_README file for more information.
+
+The smtpd_etrn_restrictions are gone.
+
+The "flush" queue should be listed in "hash_queue_names".
+
+Incompatible changes with snapshot-20000924
+===========================================
+
 The postmaster address in the "sorry" text at the top of bounced
 mail is now just postmaster, not postmaster@sending.machine.  The
 idea is to refer users to their own postmaster.

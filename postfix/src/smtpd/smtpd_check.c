@@ -81,6 +81,9 @@
 /* .IP "check_recipient_access maptype:mapname"
 /*	Look up the resolved recipient address in the named access table,
 /*	any parent domains of the recipient domain, and the localpart@.
+/* .IP "check_etrn_access maptype:mapname"
+/*	Look up the client hostname or IP address in the named access table.
+/*	This table is used for ETRN command access control only.
 /* .IP reject_maps_rbl
 /*	Look up the reversed client network address in the real-time blackhole
 /*	DNS zones below the domains listed in the "maps_rbl_domains"
@@ -1919,7 +1922,7 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
 		 pattern);
 	msg_warn("do not specify lookup tables inside fast flush maps");
 	msg_warn("define a restriction class and specify its name instead");
-	status = SMTPD_CHECK_OK;
+	status = SMTPD_CHECK_DUNNO;
     } else {
 	restrictions = argv_split(pattern, " \t\r\n");
 	state->recursion = 0;

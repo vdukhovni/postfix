@@ -20,7 +20,7 @@
 /*	system is not running.
 /*
 /*	The SMTP server implements a variety of policies for connection
-/*	requests, and for parameters given to \fBHELO, MAIL FROM, VRFY\fR
+/*	requests, and for parameters given to \fBHELO, ETRN, MAIL FROM, VRFY\fR,
 /*	and \fBRCPT TO\fR commands. They are detailed below and in the
 /*	\fBmain.cf\fR configuration file.
 /* SECURITY
@@ -36,7 +36,7 @@
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1854 (SMTP Pipelining)
 /*	RFC 1870 (Message Size Declaration)
-/*	RFC 1985 (ETRN command) (partial)
+/*	RFC 1985 (ETRN command)
 /*	RFC 2554 (AUTH command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -44,8 +44,6 @@
 /*	Depending on the setting of the \fBnotify_classes\fR parameter,
 /*	the postmaster is notified of bounces, protocol problems,
 /*	policy violations, and of other trouble.
-/* BUGS
-/*	RFC 1985 is implemented by forcing delivery of all deferred mail.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -101,6 +99,12 @@
 /*	specified in the \fBdebug_peer_level\fR parameter.
 /* .IP \fBerror_notice_recipient\fR
 /*	Recipient of protocol/policy/resource/software error notices.
+/* .IP \fBetrn_maps\fR
+/*	Tables that specify what domains have \fBETRN\fR service. For
+/*	each table entry, the left-hand side specifies a destination
+/*	domain name that can be specified in an \fBETRN\fR request, and
+/*	the right-hand side specifies a list of access restrictions for
+/*	clients that issue \fBETRN\fR for the domain.
 /* .IP \fBhopcount_limit\fR
 /*	Limit the number of \fBReceived:\fR message headers.
 /* .IP \fBlocal_recipient_maps\fR
@@ -168,9 +172,6 @@
 /*	Restrict what sender addresses are allowed in \fBMAIL FROM\fR commands.
 /* .IP \fBsmtpd_recipient_restrictions\fR
 /*	Restrict what recipient addresses are allowed in \fBRCPT TO\fR commands.
-/* .IP \fBsmtpd_etrn_restrictions\fR
-/*	Restrict what domain names can be used in \fBETRN\fR commands,
-/*	and what clients may issue \fBETRN\fR commands.
 /* .IP \fBallow_untrusted_routing\fR
 /*	Allow untrusted clients to specify addresses with sender-specified
 /*	routing.  Enabling this opens up nasty relay loopholes involving

@@ -4,7 +4,7 @@ SHELL	= /bin/sh
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
 	../conf/transport ../conf/virtual ../conf/pcre_table \
-	../conf/regexp_table
+	../conf/regexp_table ../conf/etrn
 
 update:	$(CONFIG)
 
@@ -26,6 +26,9 @@ clobber:
 	(cat aliases0; srctoman - aliases | nroff -man | col -bx | uniq | sed 's/^/# /') >$@
 
 ../conf/canonical: canonical
+	srctoman - $? | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/etrn: etrn
 	srctoman - $? | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/pcre_table: pcre_table

@@ -1,0 +1,33 @@
+Enabling the Postfix fast ETRN service
+======================================
+
+Add an entry to the master.cf file for the new flush daemon:
+
+    /etc/postfix/master.cf:
+	flush	  unix	n	-	n	-	0	flushd
+
+Configure a list of domains that have fast ETRN service and
+what clients can use the service:
+
+    /etc/postfix/etrn:
+	domain.name	permit_mynetworks
+
+Run the postmap command:
+
+    # postmap /etc/postfix/etrn
+
+Create any missing directories that are needed for fast ETRN service:
+
+    # postfix check
+
+Configure Postfix to use the fast ETRN service:
+
+    /etc/postfix/main.cf:
+	etrn_maps = hash:/etc/postfix/etrn
+
+(specify dbm instead of hash if your machine uses DBM databases
+rather than DB).
+
+Refresh Postfix:
+
+    # postfix reload

@@ -19,11 +19,11 @@ FLUSHD(8)                                               FLUSHD(8)
 
        This server implements the following requests:
 
-       FLUSH_REQ_ADD sitename queue_id
-              Append a record to the per-site fast flush  logfile
-              for the specified queue ID.
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>ADD</b> <i>sitename</i> <i>queue_id</i>
+              Append <i>queue_id</i> to the fast flush logfile  for  the
+              specified site.
 
-       FLUSH_REQ_SEND sitename
+       <b>FLUSH</b><i>_</i><b>REQ</b><i>_</i><b>SEND</b> <i>sitename</i>
               Arrange  for  the delivery of all messages that are
               listed in the fast flush logfile for the  specified
               site.   After the logfile is processed, the file is
@@ -31,34 +31,34 @@ FLUSHD(8)                                               FLUSHD(8)
 
        The response to the client is one of:
 
-       FLUSH_STAT_OK
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>OK</b>
               The request completed normally.
 
-       FLUSH_STAT_BAD
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>BAD</b>
               The flush server rejected the request (bad  request
               name, bad request parameter value).
 
-       FLUSH_STAT_UNKNOWN
+       <b>FLUSH</b><i>_</i><b>STAT</b><i>_</i><b>UNKNOWN</b>
               The specified site has no fast flush logfile and is
               not configured to have one.
 
+       Fast flush logfiles  are  truncated  only  after  a  flush
+       request.  In  order  to  prevent  fast flush logfiles from
+       growing without bounds, and to prevent them  from  accumu-
+       lating  too  much  outdated information, the flush service
+       generates a pro-active flush request once every every 1000
+       append requests. This should not impact operation.
+
 <b>SECURITY</b>
        The fast flush server is moderately security-sensitive. It
-       does  not  talk  to the network, but it does talk to local
+       does not talk to the network, but it does  talk  to  local
        unprivileged users, in order to emulate "sendmail -qRsite"
-       behavior.   For  this  reason all strings in a request are
-       truncated at ine_length_limit.
+       behavior.  For this reason all strings in  a  request  are
+       truncated at <i>line_length_limit</i>.
 
        The fast flush server can run chrooted at fixed low privi-
        lege.
 
-<b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).
-
-<b>BUGS</b>
-       In  reality,  this  server schedules delivery of messages,
-       regardless of their destination. This limitation is due to
-       the  fact  that  one  queue  runner has to handle mail for
 
 
 
@@ -71,28 +71,40 @@ FLUSHD(8)                                               FLUSHD(8)
 FLUSHD(8)                                               FLUSHD(8)
 
 
-       multiple destinations.
+<b>DIAGNOSTICS</b>
+       Problems and transactions are logged to <b>syslogd</b>(8).
+
+<b>BUGS</b>
+       In reality, this server schedules  delivery  of  messages,
+       regardless of their destination. This limitation is due to
+       the fact that one queue runner has to handle mail for mul-
+       tiple destinations.
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  program. See the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix</b>  <b>reload</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this program. See the Postfix <b>main.cf</b> file  for  syntax
+       details  and  for  default  values. Use the <b>postfix</b> <b>reload</b>
        command after a configuration change.
+
+       <b>etrn</b><i>_</i><b>maps</b>
+              Tables that specify what domains have <b>ETRN</b> service.
+              For  each table entry, the left-hand side specifies
+              a destination domain name that can be specified  in
+              an  <b>ETRN</b> request, and the right-hand side specifies
+              a list of access restrictions for SMTP clients that
+              issue <b>ETRN</b> for the domain.
 
        <b>fast</b><i>_</i><b>flush</b><i>_</i><b>maps</b>
               The  table with names of destinations that this MTA
-              provides the  fast  flush  service  for,  and  with
-              clients  that  may issue the ETRN command for those
-              destinations. Postfix maintains fast flush logfiles
-              only for destinations listed in this table.
+              provides the fast flush service  for.  By  default,
+              this is set to $<b>etrn</b><i>_</i><b>maps</b>.
 
        <b>line</b><i>_</i><b>length</b><i>_</i><b>limit</b>
               Maximal  length  of  strings in a fast flush client
               request.
 
 <b>SEE</b> <b>ALSO</b>
-       <a href="smtp.8.html">smtp(8)</a> Postfix SMTP client
-       smtpd) Postfix SMTP server
+       <a href="smtpd.8.html">smtpd(8)</a> Postfix SMTP server
        <a href="qmgr.8.html">qmgr(8)</a> Postfix queue manager
        syslogd(8) system logging
 
@@ -105,18 +117,6 @@ FLUSHD(8)                                               FLUSHD(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

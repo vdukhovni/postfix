@@ -116,9 +116,7 @@ static int smtpd_sasl_log(void *unused_context, int priority,
 			          const char *message)
 {
     switch (priority) {
-	case SASL_LOG_ERR:
-	msg_fatal("%s", message);
-	break;
+    case SASL_LOG_ERR:
     case SASL_LOG_WARNING:
 	msg_warn("%s", message);
 	break;

@@ -190,7 +190,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
               queued  for  the named <i>site</i>.  This functionality is
               available only for sites that  are  configured  for
               the  <b>fast</b>  <b>flush</b>  service  support  as described in
-              <b>flushd</b>(8).   For  other  sites,  this  command   is
+              <b>flushd</b>(8).   For  other  sites,  use   the   slower
 
 
 
@@ -203,28 +203,28 @@ SENDMAIL(1)                                           SENDMAIL(1)
 SENDMAIL(1)                                           SENDMAIL(1)
 
 
-              equivalent to using the slower <b>sendmail</b> <b>-q</b> instead.
+              <b>sendmail</b> <b>-q</b> command instead.
 
        <b>-qS</b><i>site</i>
-              The site name is ignored. This command  is  equiva-
-              lent to using the slower <b>sendmail</b> <b>-q</b> instead.
+              This  command  is  not  implemented. Use the slower
+              <b>sendmail</b> <b>-q</b> command instead.
 
-       <b>-t</b>     Extract   recipients  from  message  headers.  This
-              requires that no recipients  be  specified  on  the
+       <b>-t</b>     Extract  recipients  from  message  headers.   This
+              requires  that  no  recipients  be specified on the
               command line.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
-              tiple <b>-v</b> options  make  the  software  increasingly
+              tiple  <b>-v</b>  options  make  the software increasingly
               verbose.
 
 <b>SECURITY</b>
-       By  design,  this  program  is not set-user (or group) id.
-       However, it must  handle  data  from  untrusted  users  or
-       untrusted  machines.   Thus, the usual precautions need to
+       By design, this program is not  set-user  (or  group)  id.
+       However,  it  must  handle  data  from  untrusted users or
+       untrusted machines.  Thus, the usual precautions  need  to
        be taken against malicious inputs.
 
 <b>DIAGNOSTICS</b>
-       Problems are logged to  <b>syslogd</b>(8)  and  to  the  standard
+       Problems  are  logged  to  <b>syslogd</b>(8)  and to the standard
        error stream.
 
 <b>ENVIRONMENT</b>
@@ -236,7 +236,7 @@ SENDMAIL(1)                                           SENDMAIL(1)
 
        <b>MAIL</b><i>_</i><b>DEBUG</b>
               Enable debugging with an external command, as spec-
-              ified  with  the   <b>debugger</b><i>_</i><b>command</b>   configuration
+              ified   with   the  <b>debugger</b><i>_</i><b>command</b>  configuration
               parameter.
 
 <b>FILES</b>
@@ -244,13 +244,13 @@ SENDMAIL(1)                                           SENDMAIL(1)
        /etc/postfix, configuration files
 
 <b>CONFIGURATION</b> <b>PARAMETERS</b>
-       See  the  Postfix  <b>main.cf</b> file for syntax details and for
-       default values. Use the <b>postfix</b>  <b>reload</b>  command  after  a
+       See the Postfix <b>main.cf</b> file for syntax  details  and  for
+       default  values.  Use  the  <b>postfix</b> <b>reload</b> command after a
        configuration change.
 
        <b>alias</b><i>_</i><b>database</b>
-              Default   alias  database(s)  for  <b>newaliases</b>.  The
-              default value for  this  parameter  is  system-spe-
+              Default  alias  database(s)  for  <b>newaliases</b>.   The
+              default  value  for  this  parameter is system-spe-
               cific.
 
        <b>bounce</b><i>_</i><b>size</b><i>_</i><b>limit</b>
@@ -278,15 +278,28 @@ SENDMAIL(1)                                           SENDMAIL(1)
               initialized.
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b>
-              Increment in verbose logging level  when  a  remote
+              Increment  in  verbose  logging level when a remote
               host  matches  a  pattern  in  the  <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
               parameter.
 
        <b>debug</b><i>_</i><b>peer</b><i>_</i><b>list</b>
-              List of domain or network patterns. When  a  remote
-              host  matches  a pattern, increase the verbose log-
-              ging  level  by  the  amount   specified   in   the
+              List  of  domain or network patterns. When a remote
+              host matches a pattern, increase the  verbose  log-
+              ging   level   by   the  amount  specified  in  the
               <b>debug</b><i>_</i><b>peer</b><i>_</i><b>level</b> parameter.
+
+       <b>etrn</b><i>_</i><b>maps</b>
+              Tables that specify what domains have <b>ETRN</b> service.
+              For  each table entry, the left-hand side specifies
+              a destination domain name that can be specified  in
+              an  <b>ETRN</b> request, and the right-hand side specifies
+              a list of access restrictions for SMTP clients that
+              issue <b>ETRN</b> for the domain.
+
+       <b>fast</b><i>_</i><b>flush</b><i>_</i><b>maps</b>
+              The  table with names of destinations that this MTA
+              provides the fast flush service  for.  By  default,
+              this is set to $<b>etrn</b><i>_</i><b>maps</b>.
 
        <b>fork</b><i>_</i><b>attempts</b>
               Number  of attempts to <b>fork</b>() a process before giv-
@@ -311,6 +324,17 @@ SENDMAIL(1)                                           SENDMAIL(1)
               Directory  with  Postfix  daemon programs (default:
               <b>$program</b><i>_</i><b>directory</b>).
 
+
+
+                                                                5
+
+
+
+
+
+SENDMAIL(1)                                           SENDMAIL(1)
+
+
        <b>queue</b><i>_</i><b>directory</b>
               Top-level directory of the Postfix queue.  This  is
               also the root directory of Postfix daemons that run
@@ -323,18 +347,6 @@ SENDMAIL(1)                                           SENDMAIL(1)
 <b>SEE</b> <b>ALSO</b>
        <a href="pickup.8.html">pickup(8)</a> mail pickup daemon
        <a href="postalias.1.html">postalias(1)</a> maintain alias database
-
-
-
-                                                                5
-
-
-
-
-
-SENDMAIL(1)                                           SENDMAIL(1)
-
-
        <a href="postdrop.1.html">postdrop(1)</a> privileged posting agent
        <a href="postfix.1.html">postfix(1)</a> mail system control
        <a href="postkick.1.html">postkick(1)</a> kick a Postfix daemon
@@ -353,18 +365,6 @@ SENDMAIL(1)                                           SENDMAIL(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

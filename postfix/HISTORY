@@ -4304,3 +4304,18 @@ Apologies for any names omitted.
 
 	First implementation of a logfile-based fast flush server,
 	which is the basis for ETRN and "sendmail -qRsite".
+
+20000928
+
+	Bugfix: the stricter dns_lookup() argument checks revealed
+	that Postfix was doing DNS lookups for domain literals
+	([ip.address]) when expanding aliases in MAIL FROM and RCPT
+	TO address parameters.  Reported by Jim Littlefield. File:
+	smtp/smtp_unalias.c.
+
+	Documentation: added text on the biff=yes/no parameter to
+	conf/sample-local.cf (text provided by Paul Wagland,
+	relational-consultancy.com.
+
+	Robustness? Log errors from SASL library code as warnings
+	not as fatal errors. Files: smtp*/*glue.c.

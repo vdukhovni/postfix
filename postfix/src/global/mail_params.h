@@ -592,7 +592,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"defer"
+#define DEF_HASH_QUEUE_NAMES	"defer,flush"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
@@ -896,7 +896,7 @@ extern int var_trigger_timeout;
 extern char *var_mynetworks;
 
 #define VAR_RELAY_DOMAINS	"relay_domains"
-#define DEF_RELAY_DOMAINS	"$mydestination"
+#define DEF_RELAY_DOMAINS	"$mydestination $fast_flush_maps"
 extern char *var_relay_domains;
 
 #define VAR_CLIENT_CHECKS	"smtpd_client_restrictions"
@@ -1065,10 +1065,14 @@ extern void mail_params_init(void);
 extern char *var_filter_xport;
 
  /*
-  * Fast flush support.
+  * ETRN and fast flush support.
   */
+#define VAR_ETRN_MAPS			"etrn_maps"
+#define DEF_ETRN_MAPS			""
+extern char *var_etrn_maps;
+
 #define VAR_FFLUSH_MAPS			"fast_flush_maps"
-#define DEF_FFLUSH_MAPS			""
+#define DEF_FFLUSH_MAPS			"$etrn_maps"
 extern char *var_fflush_maps;
 
 /* LICENSE

@@ -68,6 +68,9 @@ const char *smtp_unalias_name(const char *name)
     VSTRING *fqdn;
     char   *result;
 
+    if (*name == '[')
+	return (name);
+
     /*
      * Initialize the cache on the fly. The smtp client is designed to exit
      * after servicing a limited number of requests, so there is no need to

@@ -285,7 +285,8 @@ int     mail_queue_id_ok(const char *queue_id)
     /*
      * Must be in valid hostname form.
      */
-    if (valid_hostname(queue_id))
+    if ((strchr(queue_id, '.') || strchr(queue_id, '-'))
+	&& valid_hostname(queue_id))
 	return (1);
 
     /*
