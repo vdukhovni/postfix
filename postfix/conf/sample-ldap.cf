@@ -27,18 +27,62 @@
 #version = 2
 
 # The query_filter parameter specifies the filter used for queries.
-# The replacement for "%s" is the address input into the map; e.g.
-# for alias maps, the "user" part (the RFC 2822 local-part) of
-# "user@domain.com" for To: addresses destined for local delivery 
-# (those matching $mydestination or a virtual domain), and all of
-# "user@domain.com" (the RFC 2822 addr-spec) for other addresses.
-# "%u" provides just the user portion of the input, and "%d" provides
-# just the hostname.
+#
+# This parameter supports the following '%' expansions:
+#
+# %s - This is replaced by the input key. RFC 2254 quoting is
+#      used to make sure that the input key does not add
+#      unexpected metacharacters.
+#
+# %u - When the input key is an address of the form user@domain,
+#      %u is replaced by the (2254) quoted local part of the address.
+#      if no domain is specified, %u is replaced by the entire search
+#      string.
+#
+# %d - When the input key is an address of the form user@domain,
+#      %d is replaced by the (2254) quoted domain part of the address.
+#      When the input key has no domain qualifier, %d is replaced by the 
+#      entire search string.
+#
+# The "domain" parameter described below limits the input keys to
+# addresses in matching domains. When the "domain parameter is non-empty,
+# LDAP queries for unqualified addresses or addresses in non-matching
+# domains are suppressed and return no results.
+#
+# A non-empty value must be specified explicitly for this parameter. The empty
+# default will not work.
+#
+# NOTE: DO NOT put double-quotes around the query filter!
 #
 #query_filter = (mailacceptinggeneralid=%s)
 
-# The result_filter parameter specifies the filter to be applied
-# to the result attribute(s).  See query_filter for valid expansions.
+# The result_filter parameter is printf-like format template that
+# is applied separately to each result attribute of matching entries.
+#
+# This parameter supports the following '%' expansions:
+#
+# %s - This is replaced by the value of the result attribute.
+#
+# %u - When the result attribute is an address of the form user@domain,
+#      %u is replaced local part of the address, if the result attribute
+#      is unqualified, %u is replaced by the entire attribute value.
+#
+# %d - When a result attribute is an address of the form user@domain,
+#      %d is replaced by the domain part of the attribute value.
+#      If an attribute value is unqualified %d is replaced by the entire
+#      attribute value.
+#
+# For example, using "result_filter = smtp:[%s]" allows one to use a
+# mailHost attribute as the basis of a transport(5) table. After applying
+# the result filter, multiple values are concatenated as comma separated
+# strings. The expansion_limit and size_limit parameters explained below 
+# allow one to restrict the number of values in the result, which is 
+# especially useful for maps that should return a single value.
+#
+# The default value %s (no quotes!) specifies that each attribute value 
+# should be used as is.
+#
+# NOTE: DO NOT put double-quotes around the result filter!
 #
 #result_filter = %s
 
@@ -49,10 +93,23 @@
 
 # The special_result_attribute lists the attribute(s) of an
 # entry which contain links, either ldap url's or distinguished names.
-# The entries referenced by these links are (recursively) treated as if
-# they were contained in the referencing entity.
 #
-#special_result_attribute =
+# The entries referenced by these links are (recursively) treated as if
+# they were contained in the referencing entity. The result_attributes
+# of the referenced entries are retrieved and added to the query result.  
+# The special result attributes of the referenced entries are evaluated
+# recursively.
+#
+# Note that for URI references, only the search base, scope, query filter
+# and attributes are taken from the URI, the scheme, host and port are
+# taken from the map definition. Extensions (even critical) are ignored.
+# Of the attributes listed in the URI, only those listed in result_attribute
+# are used in the search results, and only those listed in
+# special_result_attribute are used for further recursion.
+#
+# The default value of this parameter is empty.
+#
+#special_result_attribute = uniquemember
 
 # The scope parameter specifies the LDAP search scope: sub, base, or one.
 #
@@ -113,7 +170,11 @@
 #dereference = 0
 
 # The domain parameter limits the LDAP searches to just things in
-# (exactly) the specified list of domains.
+# (exactly) the specified list of domains. When the "domain" parameter
+# is non-empty, LDAP queries for unqualified addresses or addresses in
+# non-matching domains are suppressed and return no results. This includes
+# queries for catchall addresses with no local part (i.e. @domain.tld),
+# which are also skipped.
 #
 #domain =
 

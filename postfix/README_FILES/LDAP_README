@@ -93,7 +93,7 @@ parameters. Defaults are given in parentheses:
 		server_port = 778
 
     search_base (No default; you must configure this.)
-    	The base at which to conduct the search, e.g. 
+    	The RFC2253 base DN at which to conduct the search, e.g. 
 		search_base = dc=your, dc=com
 
     timeout (10 seconds)
@@ -104,19 +104,23 @@ parameters. Defaults are given in parentheses:
     	The RFC2254 filter used to search the directory, where %s is a 
 	substitute for the address Postfix is trying to resolve, e.g.
 		query_filter = (&(mail=%s)(paid_up=true))
+	See sample-ldap.cf for more details.
 
     result_filter (%s)
-	Filter applied to result attributes.  Supports the same expansions
-	as the query_filter, and can be easily used to append (or prepend)
-	text.
+	Format template applied to result attributes.  Supports the same
+	expansions as the query_filter, and can be easily used to append
+	(or prepend) text. See sample-ldap.cf for more details.
 
-    domain (Default is to ignore this.)
+    domain (Default is no domain list.)
     	This is a list of domain names, paths to files, or dictionaries.
-	If specified, only lookups for the domains on this list will be
-	performed.  This means that the LDAP map won't get searched for
-	'user', nor will it get searched for any domain not listed.  This
-	can significantly reduce the query load on the LDAP server.
+	When specified, only fully qualified search keys with a
+	*non-empty* localpart and a matching domain are eligible for
+	lookup: 'user' lookups, bare domain lookups and "@domain" lookups
+	are not performed. This can significantly reduce the query load
+	on the LDAP server.
 		domain = postfix.org, hash:/etc/postfix/searchdomains
+	It is best not to use LDAP to store the domains eligible for LDAP
+	lookups.
 
     result_attribute (maildrop)
 	The attribute(s) Postfix will read from any directory entries
@@ -127,6 +131,12 @@ parameters. Defaults are given in parentheses:
     	The attribute(s) of directory entries that can contain DNs or URLs.
 	If found, a recursive subsequent search is done using their values.
 		special_result_attribute = member
+	DN recursion retrieves the same result_attributes as the main
+	query, including the special attributes for further recursion.
+	URI processing retrieves only those attributes that are included
+	in the URI definition and are *also* listed in "result_attribute".
+	If the URI lists any of the map's special result attributes, these
+	are also retrieved and used recursively.
 
     scope (sub)
         The LDAP search scope: sub, base, or one. These translate into

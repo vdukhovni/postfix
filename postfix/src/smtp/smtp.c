@@ -315,10 +315,8 @@ bool    var_smtp_defer_mxaddr;
 bool    var_smtp_send_xforward;
 
  /*
-  * Global variables. smtp_errno is set by the address lookup routines and by
-  * the connection management routines.
+  * Global variables.
   */
-int     smtp_errno;
 int     smtp_host_lookup_mask;
 
 /* deliver_message - deliver message with extreme prejudice */

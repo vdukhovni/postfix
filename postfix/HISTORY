@@ -8871,9 +8871,19 @@ Apologies for any names omitted.
 	between short queue ID and message status).  File:
 	showq/showq.c.
 
+20031216-7
+
 	Cleanup: the SMTP client now moves on to the next MX host
-	when delivery fails in the middle of an SMTP session.
-	Files:  smtp/smtp.c, smtp/smtp_connect.c.
+	or fallback relay when delivery fails in the middle of an
+	SMTP session. This includes not only broken connections
+	(easy) but also includes 4xx SMTP server replies (not easy).
+	Files:  smtp/smtp.c, smtp/smtp_connect.c, smtp_trouble.c.
+
+20031217
+
+	Update: LDAP client logging (Liviu Daia) and LDAP client
+	documentation (Victor Duchovni). Files: util/dict_ldap.c,
+	conf/sample-ldap.cf, README_FILES/LDAP_README.
 
 Open problems:
 

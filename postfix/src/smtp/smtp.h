@@ -55,7 +55,8 @@ typedef struct SMTP_STATE {
     off_t   size_limit;			/* server limit or unknown */
     int     space_left;			/* output length control */
     struct MIME_STATE *mime_state;	/* mime state machine */
-    int     final;			/* last possibility to deliver */
+    int     final_server;		/* final mail server */
+    int     backup_server;		/* relayhost or fallback relay */
 } SMTP_STATE;
 
 #define SMTP_FEATURE_ESMTP	(1<<0)
@@ -73,7 +74,6 @@ typedef struct SMTP_STATE {
  /*
   * smtp.c
   */
-extern int smtp_errno;			/* XXX can we get rid of this? */
 extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 
 #define SMTP_MASK_DNS		(1<<0)

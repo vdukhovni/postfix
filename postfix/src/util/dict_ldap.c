@@ -154,6 +154,7 @@
 #include <lber.h>
 #include <ldap.h>
 #include <string.h>
+#include <ctype.h>
 
  /*
   * Older APIs have weird memory freeing behavior.
@@ -259,8 +260,17 @@ static void dict_ldap_timeout(int unused_sig)
 static void dict_ldap_logprint(LDAP_CONST char *data)
 {
     char   *myname = "dict_ldap_debug";
+    char   *buf,
+           *p;
 
-    msg_info("%s: %s", myname, data);
+    buf = mystrdup(data);
+    if (*buf) {
+	p = buf + strlen(buf) - 1;
+	while (p - buf >= 0 && ISSPACE(*p))
+	    *p-- = 0;
+    }
+    msg_info("%s: %s", myname, buf);
+    myfree(buf);
 }
 
 
@@ -481,6 +491,21 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
 
 #endif
 
+#if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
+    if (dict_ldap->debuglevel > 0 &&
+	ber_set_option(NULL, LBER_OPT_LOG_PRINT_FN,
+		     (LDAP_CONST *) dict_ldap_logprint) != LBER_OPT_SUCCESS)
+	msg_warn("%s: Unable to set ber logprint function.", myname);
+#if defined(LBER_OPT_DEBUG_LEVEL)
+    if (ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL,
+		       &(dict_ldap->debuglevel)) != LBER_OPT_SUCCESS)
+	msg_warn("%s: Unable to set BER debug level.", myname);
+#endif
+    if (ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL,
+			&(dict_ldap->debuglevel)) != LDAP_OPT_SUCCESS)
+	msg_warn("%s: Unable to set LDAP debug level.", myname);
+#endif
+
     dict_errno = 0;
 
     if (msg_verbose)
@@ -572,16 +597,6 @@ static int dict_ldap_connect(DICT_LDAP *dict_ldap)
     if (ldap_set_option(dict_ldap->ld, LDAP_OPT_DEREF,
 			&(dict_ldap->dereference)) != LDAP_OPT_SUCCESS)
 	msg_warn("%s: Unable to set dereference option.", myname);
-
-#if defined(LDAP_OPT_DEBUG_LEVEL) && defined(LBER_OPT_LOG_PRINT_FN)
-    if (dict_ldap->debuglevel > 0 &&
-	ber_set_option(NULL, LBER_OPT_LOG_PRINT_FN,
-		     (LDAP_CONST *) dict_ldap_logprint) != LBER_OPT_SUCCESS)
-	msg_warn("%s: Unable to set ber logprint function.", myname);
-    if (ldap_set_option(dict_ldap->ld, LDAP_OPT_DEBUG_LEVEL,
-			&(dict_ldap->debuglevel)) != LDAP_OPT_SUCCESS)
-	msg_warn("%s: Unable to set LDAP debug level.", myname);
-#endif
 
     /* Chase referrals. */
 

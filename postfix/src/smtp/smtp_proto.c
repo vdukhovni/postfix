@@ -197,10 +197,13 @@ int     smtp_helo(SMTP_STATE *state)
     /*
      * Read and parse the server's SMTP greeting banner.
      */
-    if (((resp = smtp_chat_resp(state))->code / 100) != 2)
+    if ((resp = smtp_chat_resp(state))->code / 100 != 2) {
+	if (var_smtp_skip_5xx_greeting && resp->code / 100 == '5')
+	    resp->code -= 100;
 	return (smtp_site_fail(state, resp->code,
 			       "host %s refused to talk to me: %s",
 			 session->namaddr, translit(resp->str, "\n", " ")));
+    }
 
     /*
      * XXX Some PIX firewall versions require flush before ".<CR><LF>" so it
