@@ -297,8 +297,10 @@ static void qmqpd_copy_recipients(QMQPD_STATE *state)
     /*
      * Append the optional recipient who is copied on all mail.
      */
-    if (*var_always_bcc)
-	rec_fputs(state->cleanup, REC_TYPE_RCPT, var_always_bcc);
+    if (state->err == CLEANUP_STAT_OK
+	&& *var_always_bcc
+	&& rec_fputs(state->cleanup, REC_TYPE_RCPT, var_always_bcc) < 0)
+	state->err = CLEANUP_STAT_WRITE;
 }
 
 /* qmqpd_next_line - get line from buffer, return last char, newline, or -1 */
