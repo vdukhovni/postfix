@@ -22,7 +22,7 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.16-20031222
+Incompatible changes with Postfix snapshot 2.0.16-20031223
 ==========================================================
 
 In mailq (queue listing) output, there no longer is space between
@@ -37,7 +37,7 @@ get the old behavior, specify "smtp_mx_session_limit = 1" in main.cf.
 After delivery failure due to a temporary error condition, the SMTP
 client now always connects to the fall-back relay if specified.
 
-Major changes with Postfix snapshot 2.0.16-20031222
+Major changes with Postfix snapshot 2.0.16-20031223
 ===================================================
 
 The SMTP client now tries to connect to an alternate MX address

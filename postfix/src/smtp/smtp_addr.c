@@ -463,12 +463,14 @@ DNS_RR *smtp_host_addr(char *host, VSTRING *why)
      */
 #define PREF0	0
     addr_list = smtp_addr_one((DNS_RR *) 0, host, PREF0, why);
+#if 0
     if (addr_list && smtp_find_self(addr_list) != 0) {
 	dns_rr_free(addr_list);
 	vstring_sprintf(why, "mail for %s loops back to myself", host);
 	smtp_errno = SMTP_LOOP;
 	return (0);
     }
+#endif
     if (addr_list && addr_list->next && var_smtp_rand_addr)
 	addr_list = dns_rr_shuffle(addr_list);
     if (msg_verbose)

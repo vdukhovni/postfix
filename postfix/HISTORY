@@ -8901,10 +8901,23 @@ Apologies for any names omitted.
 	duplicate address filter footprint. After discussion with
 	Victor Duchovni. File: cleanup/cleanup_out_recipient.c.
 
+	Safety: added "mail loops to myself" logic for destinations
+	that don't have an MX host.  File: smtp/smtp_addr.c.
+
+20031223
+
+	Workaround: turn off "mail loops to myself" for non-MX
+	destinations because it breaks SMTP-based content filters.
+	Fix is to turn off loop detection when a non-default TCP
+	port is specified.  File: smtp/smtp_addr.c.
+
 Open problems:
 
 	Low: in the SMTP client, pass the session, request and
 	state structures as separate arguments.
+
+	Low: in the SMTP client, turn off "mail loops back to
+	myself" detection if a non-default TCP port is specified.
 
 	High: when virtual aliasing is turned off after content
 	filtering, local submissions may escape virtual aliasing.
