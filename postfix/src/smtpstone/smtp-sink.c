@@ -205,8 +205,8 @@ static void data_event(int unused_event, char *context)
 static void dot_response(SINK_STATE *state)
 {
     if (enable_lmtp) {
-	while (state->rcpts-- > 0)	/* XXX this could block */
-	    ok_response(state);
+	while (state->rcpts-- > 0)		/* XXX this could block */
+	    ok_response(state);			/* XXX this flushes too often */
     } else {
 	ok_response(state);
     }

@@ -7959,13 +7959,18 @@ Apologies for any names omitted.
 	now has an explicit flush operation, and the smtp-source/sink
 	programs are updated to take advantage of this.
 
-	Cleanup: the file system clock drift detection code now runs
-	only once per process instance, to minimize the performance
-	impact. File: global/mail_stream.c.
+	Cleanup: the file system clock drift detection code now
+	runs only once per process instance, to minimize the
+	performance impact. File: global/mail_stream.c.
 
 	Robustness: avoid TIME_WAIT state with smtp/qmqp-source
 	client sockets.  This puts less strain on local system
 	resources.
+
+10030415
+
+	Cleanup: the file system clock drift detection code now
+	runs only for incoming mail. File: global/mail_stream.c.
 
 Open problems:
 

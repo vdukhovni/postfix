@@ -227,6 +227,19 @@ can use one of the following commands:
 mmencode is part of the metamail software.
 MIME::Base64 is available from www.cpan.org.
 
+Trouble shooting the SASL internals
+===================================
+
+[based on text by Liviu Daia]
+
+In the Cyrus SASL sources you'll find a subdirectory named "sample".
+Run make there, then run the resulting sample server and client in
+separate terminals.  Strace / ktrace / truss the server to see what
+makes it unhappy, fix the problem, then write the authors thanking
+them for providing such useful logging.  Repeat the previous step
+until you can successfully authenticate with the sample client.
+Only then get back to Postfix.
+
 Enabling SASL authentication in the Postfix SMTP client
 =======================================================
 

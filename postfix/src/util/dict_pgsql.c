@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <dict_pgsql.h>
 /*
-/*	DICT	*dict_pgsql_open(name, dummy, unused_dict_flags)
+/*	DICT	*dict_pgsql_open(name, unused_open_flags, unused_dict_flags)
 /*	const char *name;
-/*	int     dummy;
+/*	int     unused_open_flags;
 /*	int     unused_dict_flags;
 /* DESCRIPTION
 /*	dict_pgsql_open() creates a dictionary of type 'pgsql'.  This
@@ -17,8 +17,8 @@
 /*	or a null pointer in case of problems.
 /*
 /*	The pgsql dictionary can manage multiple connections to
-/*	different sql servers on different hosts.  It assumes that
-/*	the underlying data on each host is identical (mirrored) and
+/*	different sql servers for the same database.  It assumes that
+/*	the underlying data on each server is identical (mirrored) and
 /*	maintains one connection at any given time.  If any connection
 /*	fails,  any other available ones will be opened and used.
 /*	The intent of this feature is to eliminate a single point of

@@ -26,9 +26,11 @@ Building Postfix with PostgreSQL support
 To use pgsql with Postfix on Debian GNU/Linux, you must install
 the postfix-pgsql package.
 
-In order to build Postfix with pgsql map support, you will need to
-add -DHAS_PGSQL and -I for the directory containing the PostgreSQL
-header files and the libpq library to AUXLIBS, for example:
+In order to build Postfix with pgsql map support, you specify
+-DHAS_PGSQL, the directory with the PostgreSQL header files, and
+the location of the libpq library file.
+
+For example:
 
     make tidy
     make -f Makefile.init makefiles \
@@ -103,17 +105,19 @@ hosts = host1.some.domain host2.some.domain unix:/file/name
 
 # end pgsql config file
 
-Eliminating single points of failure
-====================================
+Using mirrored databases
+========================
 
-Since sites that have a need for multiple mail exchangers may enjoy
-the convenience of using a networked mailer database, but do not
-want to introduce a single point of failure to their system, we've
-included the ability to have postfix reference multiple hosts for
-access to a single pgsql map.  This will work if sites set up
-mirrored pgsql databases on two or more hosts.  Whenever queries
-fail with an error at one host, the rest of the hosts will be tried
-in order.  Each host that is in an error state will undergo a
-reconnection attempt every so often, and if no pgsql server hosts
-are reachable, then mail will be deferred until at least one of
-those hosts is reachable.
+Sites that have a need for multiple mail exchangers may enjoy the
+convenience of using a networked mailer database, but do not want
+to introduce a single point of failure to their system.  
+
+For this reason we've included the ability to have Postfix reference
+multiple hosts for access to a single pgsql map.  This will work
+if sites set up mirrored pgsql databases on two or more hosts.
+
+Whenever queries fail with an error at one host, the rest of the
+hosts will be tried in order.  Each host that is in an error state
+will undergo a reconnection attempt every so often, and if no pgsql
+server hosts are reachable, then mail will be deferred until at
+least one of those hosts is reachable.

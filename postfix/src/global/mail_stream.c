@@ -111,9 +111,10 @@ static VSTRING *id_buf;
 
 /* mail_stream_cleanup - clean up after success or failure */
 
-void    mail_stream_cleanup(MAIL_STREAM * info)
+void    mail_stream_cleanup(MAIL_STREAM *info)
 {
     FREE_AND_WIPE(info->close, info->stream);
+    FREE_AND_WIPE(myfree, info->queue);
     FREE_AND_WIPE(myfree, info->id);
     FREE_AND_WIPE(myfree, info->class);
     FREE_AND_WIPE(myfree, info->service);
@@ -122,16 +123,17 @@ void    mail_stream_cleanup(MAIL_STREAM * info)
 
 /* mail_stream_finish_file - finish file mail stream */
 
-static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
+static int mail_stream_finish_file(MAIL_STREAM *info, VSTRING *unused_why)
 {
     int     status = 0;
     static char wakeup[] = {TRIGGER_REQ_WAKEUP};
     struct stat st;
     time_t  now;
     struct utimbuf tbuf;
-    char   *queue_file_path = 0;
-    static int fs_clock_ok = 0;
-    static int fs_clock_warned = 0;
+    char   *path_to_reset = 0;
+    static int incoming_fs_clock_ok = 0;
+    static int incoming_clock_warned = 0;
+    int     check_incoming_fs_clock;
 
     /*
      * Make sure the message makes it to file. Set the execute bit when no
@@ -145,18 +147,25 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
      * must end with an explicit END record. Postfix queue files without END
      * record are discarded.
      * 
-     * Attempt to detect file system clocks that are ahead of local time. the
-     * effect can be difficult to understand (mail is enqueued but Postfix
-     * ignores it). This clock drift detection may not work with file systems
-     * that work on a local copy of the file and that update the server only
-     * after the file is closed.
+     * Attempt to detect file system clocks that are ahead of local time, but
+     * don't check the file system clock all the time. The effect of file
+     * system clock drift can be difficult to understand (Postfix ignores new
+     * mail until the next queue run).
+     * 
+     * This clock drift detection code may not work with file systems that work
+     * on a local copy of the file and that update the server only after the
+     * file is closed.
      */
+    check_incoming_fs_clock =
+	(!incoming_fs_clock_ok && !strcmp(info->queue, MAIL_QUEUE_INCOMING));
+
     if (vstream_fflush(info->stream)
 	|| fchmod(vstream_fileno(info->stream), 0700 | info->mode)
 #ifdef HAS_FSYNC
 	|| fsync(vstream_fileno(info->stream))
 #endif
-	|| (fs_clock_ok == 0 && fstat(vstream_fileno(info->stream), &st) < 0)
+	|| (check_incoming_fs_clock
+	    && fstat(vstream_fileno(info->stream), &st) < 0)
 	)
 	status = (errno == EFBIG ? CLEANUP_STAT_SIZE : CLEANUP_STAT_WRITE);
 
@@ -165,23 +174,20 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
 #endif
 
     /*
-     * Don't check the file system clock all the time.
-     */
-    if (fs_clock_ok == 0 && st.st_mtime <= time(&now))
-	fs_clock_ok = 1;
-
-    /*
      * Work around file system clocks that are ahead of local time.
      */
-    if (status == CLEANUP_STAT_OK && fs_clock_ok == 0) {
-	if (fs_clock_warned == 0) {
-	    msg_warn("%s: file system clock is %d seconds ahead of local clock",
-		     info->id, (int) (st.st_mtime - now));
-	    msg_warn("%s: resetting file time stamps - this hurts performance",
-		     info->id);
-	    fs_clock_warned = 1;
+    if (status == CLEANUP_STAT_OK && check_incoming_fs_clock) {
+	if (st.st_mtime <= time(&now)) {
+	    incoming_fs_clock_ok = 1;
+	} else {
+	    path_to_reset = mystrdup(VSTREAM_PATH(info->stream));
+	    if (incoming_clock_warned == 0) {
+		msg_warn("file system clock is %d seconds ahead of local clock",
+			 (int) (st.st_mtime - now));
+		msg_warn("resetting file time stamps - this hurts performance");
+		incoming_clock_warned = 1;
+	    }
 	}
-	queue_file_path = mystrdup(VSTREAM_PATH(info->stream));
     }
 
     /*
@@ -199,11 +205,11 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
     /*
      * Work around file system clocks that are ahead of local time.
      */
-    if (queue_file_path != 0) {
+    if (path_to_reset != 0) {
 	tbuf.actime = tbuf.modtime = now;
-	if (utime(queue_file_path, &tbuf) < 0 && errno != ENOENT)
+	if (utime(path_to_reset, &tbuf) < 0 && errno != ENOENT)
 	    msg_fatal("%s: update file time stamps: %m", info->id);
-	myfree(queue_file_path);
+	myfree(path_to_reset);
     }
 
     /*
@@ -222,7 +228,7 @@ static int mail_stream_finish_file(MAIL_STREAM * info, VSTRING *unused_why)
 
 /* mail_stream_finish_ipc - finish IPC mail stream */
 
-static int mail_stream_finish_ipc(MAIL_STREAM * info, VSTRING *why)
+static int mail_stream_finish_ipc(MAIL_STREAM *info, VSTRING *why)
 {
     int     status = CLEANUP_STAT_WRITE;
 
@@ -247,7 +253,7 @@ static int mail_stream_finish_ipc(MAIL_STREAM * info, VSTRING *why)
 
 /* mail_stream_finish - finish action */
 
-int     mail_stream_finish(MAIL_STREAM * info, VSTRING *why)
+int     mail_stream_finish(MAIL_STREAM *info, VSTRING *why)
 {
     return (info->finish(info, why));
 }
@@ -268,6 +274,7 @@ MAIL_STREAM *mail_stream_file(const char *queue, const char *class,
     info->stream = stream;
     info->finish = mail_stream_finish_file;
     info->close = vstream_fclose;
+    info->queue = mystrdup(queue);
     info->id = mystrdup(basename(VSTREAM_PATH(stream)));
     info->class = mystrdup(class);
     info->service = mystrdup(service);
@@ -295,6 +302,7 @@ MAIL_STREAM *mail_stream_service(const char *class, const char *name)
 	info->stream = stream;
 	info->finish = mail_stream_finish_ipc;
 	info->close = vstream_fclose;
+	info->queue = 0;
 	info->id = mystrdup(vstring_str(id_buf));
 	info->class = 0;
 	info->service = 0;
@@ -345,6 +353,7 @@ MAIL_STREAM *mail_stream_command(const char *command)
 	info->stream = stream;
 	info->finish = mail_stream_finish_ipc;
 	info->close = vstream_pclose;
+	info->queue = 0;
 	info->id = mystrdup(vstring_str(id_buf));
 	info->class = 0;
 	info->service = 0;
