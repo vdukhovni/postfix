@@ -369,8 +369,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	postdrop_command = concatenate(var_command_dir, "/postdrop",
 			      msg_verbose ? " -v" : (char *) 0, (char *) 0);
 	if ((handle = mail_stream_command(postdrop_command)) == 0)
-	    msg_fatal("%s(%d): unable to execute %s",
-		      saved_sender, uid, postdrop_command);
+	    msg_fatal("%s(%ld): unable to execute %s",
+		      saved_sender, (long) uid, postdrop_command);
 	myfree(postdrop_command);
     }
     dst = handle->stream;
@@ -399,8 +399,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 		if (tp->type == TOK822_ADDR) {
 		    tok822_internalize(buf, tp->head, TOK822_STR_DEFL);
 		    if (REC_PUT_BUF(dst, REC_TYPE_RCPT, buf) < 0)
-			msg_fatal("%s(%d): error writing queue file: %m",
-				  saved_sender, uid);
+			msg_fatal("%s(%ld): error writing queue file: %m",
+				  saved_sender, (long) uid);
 		}
 	    }
 	    tok822_free_tree(tree);
@@ -441,7 +441,8 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
 	if ((flags & SM_FLAG_AEOF) && VSTRING_LEN(buf) == 1 && *STR(buf) == '.')
 	    break;
 	if (REC_PUT_BUF(dst, type, buf) < 0)
-	    msg_fatal("%s(%d): error writing queue file: %m", saved_sender, uid);
+	    msg_fatal("%s(%ld): error writing queue file: %m",
+		      saved_sender, (long) uid);
     }
 
     /*
@@ -462,9 +463,11 @@ static void enqueue(const int flags, const char *sender, const char *full_name,
      * handler from removing the file.
      */
     if (vstream_ferror(VSTREAM_IN))
-	msg_fatal("%s(%d): error reading input: %m", saved_sender, uid);
+	msg_fatal("%s(%ld): error reading input: %m",
+		  saved_sender, (long) uid);
     if ((status = mail_stream_finish(handle)) != 0)
-	msg_fatal("%s(%d): %s", saved_sender, uid, cleanup_strerror(status));
+	msg_fatal("%s(%ld): %s", saved_sender,
+		  (long) uid, cleanup_strerror(status));
     if (sendmail_path) {
 	myfree(sendmail_path);
 	sendmail_path = 0;

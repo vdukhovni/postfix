@@ -47,11 +47,11 @@ void    set_eugid(uid_t euid, gid_t egid)
 	if (seteuid(0))
 	    msg_fatal("set_eugid: seteuid(0): %m");
     if (setegid(egid) < 0)
-	msg_fatal("set_eugid: setegid(%d): %m", egid);
+	msg_fatal("set_eugid: setegid(%ld): %m", (long) egid);
     if (setgroups(1, &egid) < 0)
-	msg_fatal("set_eugid: setgroups(%d): %m", egid);
+	msg_fatal("set_eugid: setgroups(%ld): %m", (long) egid);
     if (euid != 0 && seteuid(euid) < 0)
-	msg_fatal("set_eugid: seteuid(%d): %m", euid);
+	msg_fatal("set_eugid: seteuid(%ld): %m", (long) euid);
     if (msg_verbose)
-	msg_info("set_eugid: euid %d egid %d", euid, egid);
+	msg_info("set_eugid: euid %ld egid %ld", (long) euid, (long) egid);
 }

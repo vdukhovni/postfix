@@ -21,37 +21,37 @@
 # 
 #        Normally, the file serves as input to the postmap(1)  com-
 #        mand.  The result, an indexed file in dbm or db format, is
-#        used for fast searching  by  the  mail  system.  After  an
-#        update  it  may  take  a  minute  or  so before the change
-#        becomes visible.  Issue a postfix reload command to elimi-
-#        nate the delay.
+#        used for fast searching by the mail  system.  Execute  the
+#        command  postmap  /etc/postfix/virtual in order to rebuild
+#        the indexed file after changing the virtual table.
 # 
-#        When  the  table  is provided via other means such as NIS,
-#        LDAP or SQL, the same lookups are  done  as  for  ordinary
+#        When the table is provided via other means  such  as  NIS,
+#        LDAP  or  SQL,  the  same lookups are done as for ordinary
 #        indexed files.
 # 
-#        Alternatively,  the  table  can  be provided as a regular-
+#        Alternatively, the table can be  provided  as  a  regular-
 #        expression map where patterns are given as regular expres-
-#        sions.  In  that  case, the lookups are done in a slightly
+#        sions. In that case, the lookups are done  in  a  slightly
 #        different way as described below.
 # 
 # TABLE FORMAT
-#        Typical support for a virtual domain looks like  the  fol-
+#        Typical  support  for a virtual domain looks like the fol-
 #        lowing:
 # 
 #            virtual.domain       anything (right-hand content does not matter)
+#            postmaster@virtual.domain    postmaster
 #            user1@virtual.domain address1
 #            user2@virtual.domain address2, address3
 # 
 #        With this, the SMTP server accepts mail for virtual.domain
-#        and rejects mail for unknown@virtual.domain as  undeliver-
+#        and  rejects mail for unknown@virtual.domain as undeliver-
 #        able.
 # 
-#        The  format  of  the virtual table is as follows, mappings
+#        The format of the virtual table is  as  follows,  mappings
 #        being tried in the order as listed in this manual page:
 # 
 #        blanks and comments
-#               Blank lines are ignored,  as  are  lines  beginning
+#               Blank  lines  are  ignored,  as are lines beginning
 #               with `#'.
 # 
 #                                                                 1
@@ -59,75 +59,75 @@
 # VIRTUAL(5)                                             VIRTUAL(5)
 # 
 #        pattern result
-#               When  pattern matches a mail address, replace it by
+#               When pattern matches a mail address, replace it  by
 #               the corresponding result.
 # 
 #        With lookups from indexed files such as DB or DBM, or from
-#        networked  tables  such  as NIS, LDAP or SQL, patterns are
+#        networked tables such as NIS, LDAP or  SQL,  patterns  are
 #        tried in the order as listed below:
 # 
 #        user@domain address, address, ...
-#               Mail for  user@domain  is  redirected  to  address.
+#               Mail  for  user@domain  is  redirected  to address.
 #               This form has the highest precedence.
 # 
 #        user address, address, ...
-#               Mail  for  user@site  is redirected to address when
-#               site is equal to $myorigin, when site is listed  in
+#               Mail for user@site is redirected  to  address  when
+#               site  is equal to $myorigin, when site is listed in
 #               $mydestination,   or   when   it   is   listed   in
 #               $inet_interfaces.
 # 
-#               This functionality overlaps with  functionality  of
+#               This  functionality  overlaps with functionality of
 #               the local alias(5) database. The difference is that
-#               virtual  mapping  can  be  applied   to   non-local
+#               virtual   mapping   can  be  applied  to  non-local
 #               addresses.
 # 
 #        @domain address, address, ...
-#               Mail  for  any  user  in  domain  is  redirected to
+#               Mail for  any  user  in  domain  is  redirected  to
 #               address.  This form has the lowest precedence.
 # 
-#        In all the above forms, when address has the form  @other-
-#        domain,  the result is the same user in otherdomain.  This
+#        In  all the above forms, when address has the form @other-
+#        domain, the result is the same user in otherdomain.   This
 #        works for the first address in the expansion only.
 # 
 # ADDRESS EXTENSION
-#        When the search fails, and the address localpart  contains
-#        the  optional recipient delimiter (e.g., user+foo@domain),
-#        the search is repeated for the  unextended  address  (e.g.
+#        When  the search fails, and the address localpart contains
+#        the optional recipient delimiter (e.g.,  user+foo@domain),
+#        the  search  is  repeated for the unextended address (e.g.
 #        user@domain), and the unmatched address extension is prop-
-#        agated to the result of expansion. The matching order  is:
+#        agated  to the result of expansion. The matching order is:
 #        user+foo@domain, user@domain, user+foo, user, and @domain.
 # 
 # REGULAR EXPRESSION TABLES
-#        This section describes how the table lookups  change  when
+#        This  section  describes how the table lookups change when
 #        the table is given in the form of regular expressions. For
-#        a description of regular expression lookup  table  syntax,
+#        a  description  of regular expression lookup table syntax,
 #        see regexp_table(5) or pcre_table(5).
 # 
-#        Each  pattern  is  a regular expression that is applied to
+#        Each pattern is a regular expression that  is  applied  to
 #        the entire address being looked up. Thus, user@domain mail
-#        addresses  are  not  broken up into their user and @domain
+#        addresses are not broken up into their  user  and  @domain
 #        constituent parts, nor is user+foo broken up into user and
 #        foo.
 # 
-#        Patterns  are  applied  in  the  order as specified in the
-#        table, until a pattern is found that  matches  the  search
+#        Patterns are applied in the  order  as  specified  in  the
+#        table,  until  a  pattern is found that matches the search
 #        string.
 # 
 #                                                                 2
 # 
 # VIRTUAL(5)                                             VIRTUAL(5)
 # 
-#        Results  are the same as with normal indexed file lookups,
-#        with the additional feature that parenthesized  substrings
-#        from  the pattern can be interpolated as $1, $2 and so on.
+#        Results are the same as with normal indexed file  lookups,
+#        with  the additional feature that parenthesized substrings
+#        from the pattern can be interpolated as $1, $2 and so  on.
 # 
 # BUGS
-#        The table format does not understand quoting  conventions.
+#        The  table format does not understand quoting conventions.
 # 
 # CONFIGURATION PARAMETERS
-#        The  following  main.cf parameters are especially relevant
-#        to this topic. See the Postfix  main.cf  file  for  syntax
-#        details  and  for  default  values. Use the postfix reload
+#        The following main.cf parameters are  especially  relevant
+#        to  this  topic.  See  the Postfix main.cf file for syntax
+#        details and for default values.  Use  the  postfix  reload
 #        command after a configuration change.
 # 
 #        virtual_maps
@@ -136,11 +136,11 @@
 #        Other parameters of interest:
 # 
 #        inet_interfaces
-#               The network interface addresses  that  this  system
+#               The  network  interface  addresses that this system
 #               receives mail on.
 # 
 #        mydestination
-#               List  of  domains  that  this mail system considers
+#               List of domains that  this  mail  system  considers
 #               local.
 # 
 #        myorigin
@@ -157,7 +157,7 @@
 #        regexp_table(5) format of POSIX regular expression tables
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

@@ -46,6 +46,8 @@
 
 <li><a href="#other_transports">Other transports: UUCP, FAX, etc.</a>
 
+<li><a href="#queue_maint">Postfix queue maintenance</a>
+
 <li><a href="#compiling_installing">Compiling and installing Postfix</a>
 
 </ul>
@@ -102,6 +104,8 @@ distribution list</a>
 <ul>
 
 <li><a href="#incoming">Too much mail in the incoming queue</a>
+
+<li><a href="#delay">Postfix responds slowly to incoming SMTP connections</a>
 
 </ul>
 
@@ -238,6 +242,16 @@ mailbox</a>
 <li><a href="#uucp-only">Using UUCP as the default transport</a>
 
 <li><a href="#fax">Sending mail to a FAX machine</a>
+
+</ul>
+
+<a name="queue_maint"><h3>Postfix queue maintenance</h3></a>
+
+<ul>
+
+<li><a href="#deleting">Deleting a message from the Postfix queue</a>
+
+<li><a href="#copying">Moving or restoring the Postfix queue</a>
 
 </ul>
 
@@ -805,10 +819,10 @@ clients?
 
 <p>
 
-Your problem is that the disk is saturated with I/O from receiving
-mail, so that the Postfix queue manager gets insufficient chance
-to process the requests (many SMTP server processes against one
-poor queue manager).
+Your problem could be that the disk is saturated with I/O from
+receiving mail, so that the Postfix queue manager gets insufficient
+chance to process the requests (many SMTP server processes are
+competing for disk access against one poor queue manager).
 
 <p>
 
@@ -844,6 +858,7 @@ depending on the interface that it is supposed to handle.
 <p>
 
 <pre>
+    queue_directory = /my/own/queue/directory
     myhostname = foo1.my.domain
     inet_interfaces = $myhostname
 </pre>
@@ -2430,6 +2445,82 @@ types Postfix supports, use the command <b>postconf -m</b>.
 <p>
 
 Note: be sure to not advertise <b>fax.your.domain</b> in the DNS...
+
+<hr>
+
+<a name="deleting"><h3>Deleting a message from the Postfix queue</h3></a>
+
+To delete ONE message with queue id ABCDEF from the Postfix queue,
+it is not necessary to stop Postfix.
+
+<p>
+
+<pre>
+    # cd /var/spool/postfix
+    # find incoming active deferred -name ABCDEF -print | sed 1q | xargs rm
+</pre>
+
+<p>
+
+The above command is safe because it deletes at most one file.
+There is no risk of deleting newly arrived mail that happens to get
+the same queue file name.
+
+<p>
+
+If you have to delete a large amount of mail, it is safer to stop
+Postfix first.
+
+<p>
+<pre>
+    # postfix stop
+    # cd /var/spool/postfix
+    # find incoming active deferred defer -type f -print |
+	fgrep -xf /file/with/queue-ids | xargs rm
+    # postfix start
+</pre>
+
+<p>
+
+Do not use the above command on a running Postfix system, because
+it can delete files that belong to new mail that arrives while you
+are deleting queue files.
+
+<hr>
+
+<a name="copying"><h3>Moving or restoring the Postfix queue</h3></a>
+
+It is not safe to simply copy Postfix queue files from one file
+system (or backup) to another file system. The reason for this is
+that queue file names must be unique across the Postfix <b>incoming</b>,
+<b>active</b> and <b>deferred</b> queue directories.  If two queue
+files have the same file (base) name, then one of the queue files
+may be lost as files are moved from queue directory to queue
+directory.
+
+<p>
+
+Postfix names a queue file after its inode number and after the
+microsecond part of the time of day.  Thus, if a queue file has a
+name based on someone elses inode number there is a small chance
+that the file name will collide with another queue file.
+
+<p>
+
+To avoid queue file name collisions when copying queue files,
+restore queue files in the maildrop directory instead.
+
+<p>
+<pre>
+    # postfix stop
+    ... restore queue files under the maildrop directory...
+    # postfix start
+</pre>
+
+<p>
+
+When Postfix is started, it will pick up queue files from the
+maildrop directory and will give them proper queue file names.
 
 <hr>
 

@@ -30,7 +30,7 @@
 /*	appended, separated by a colon (":").
 /*
 /*	By default, the Internet domain name service is queried for mail
-/*	exchanger hosts. Quote the destination with `[' and `]' to
+/*	exchanger hosts. Quote the domain name with `[' and `]' to
 /*	suppress mail exchanger lookups.
 /*
 /*	Numerical address information should always be quoted with `[]'.
@@ -323,6 +323,7 @@ static char *smtp_parse_destination(char *destination, char *def_service,
     struct servent *sp;
     char   *protocol = "tcp";		/* XXX configurable? */
     unsigned port;
+    char   *cruft;
 
     if (msg_verbose)
 	msg_info("smtp_parse_destination: %s %s", destination, def_service);
@@ -333,17 +334,30 @@ static char *smtp_parse_destination(char *destination, char *def_service,
      */
     if (*host == '[') {
 	host++;
-	host[strcspn(host, "]")] = 0;
-    }
+	cruft = split_at(host, ']');
+    } else
+	cruft = 0;
 
     /*
      * Separate host and service information, or use the default service
      * specified by the caller. XXX the ":" character is used in the IPV6
-     * address notation, so using split_at_right() is not sufficient. We'd
-     * have to count the number of ":" instances.
+     * address notation, so we will have to deprecate the use of [host:port]
+     * in favor of [host]:port.
      */
-    if ((service = split_at_right(host, ':')) == 0)
-	service = def_service;
+    if (cruft && *cruft) {
+	if ((service = split_at_right(cruft, ':')) == 0)
+	    service = def_service;
+    } else {
+	if ((service = split_at_right(host, ':')) == 0)
+	    service = def_service;
+#if 0
+	else if (cruft) {
+	    msg_warn("old-style address form: %s", destination);
+	    msg_warn("support for [host:port] forms will go away");
+	    msg_warn("specify [host]:port instead");
+	}
+#endif
+    }
     if (*service == 0)
 	msg_fatal("empty service name: %s", destination);
     *hostp = host;

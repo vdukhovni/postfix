@@ -320,7 +320,6 @@ static void cleanup_missing_headers(CLEANUP_STATE *state)
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
     TOK822 *token;
-    char   *from;
 
     /*
      * Add a missing (Resent-)Message-Id: header. The message ID gives the

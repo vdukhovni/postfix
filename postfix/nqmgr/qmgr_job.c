@@ -114,7 +114,7 @@ static QMGR_JOB *qmgr_job_create(QMGR_MESSAGE *message, QMGR_TRANSPORT *transpor
 
 /* qmgr_job_link - append the job to the job list, according to the time it was queued */
 
-static void qmgr_job_link(QMGR_JOB * job)
+static void qmgr_job_link(QMGR_JOB *job)
 {
     QMGR_TRANSPORT *transport = job->transport;
     QMGR_MESSAGE *message = job->message;
@@ -244,7 +244,7 @@ QMGR_JOB *qmgr_job_obtain(QMGR_MESSAGE *message, QMGR_TRANSPORT *transport)
 
 /* qmgr_job_move_limits - move unused recipient slots to the next job */
 
-void    qmgr_job_move_limits(QMGR_JOB * job)
+void    qmgr_job_move_limits(QMGR_JOB *job)
 {
     QMGR_TRANSPORT *transport = job->transport;
     QMGR_MESSAGE *message = job->message;
@@ -290,7 +290,7 @@ void    qmgr_job_move_limits(QMGR_JOB * job)
 
 /* qmgr_job_retire - remove the job from the job list while waiting for recipients to deliver */
 
-static void qmgr_job_retire(QMGR_JOB * job)
+static void qmgr_job_retire(QMGR_JOB *job)
 {
     char   *myname = "qmgr_job_retire";
     QMGR_TRANSPORT *transport = job->transport;
@@ -327,7 +327,7 @@ static void qmgr_job_retire(QMGR_JOB * job)
 
 /* qmgr_job_free - release the job structure */
 
-void    qmgr_job_free(QMGR_JOB * job)
+void    qmgr_job_free(QMGR_JOB *job)
 {
     char   *myname = "qmgr_job_free";
     QMGR_MESSAGE *message = job->message;
@@ -376,7 +376,7 @@ void    qmgr_job_free(QMGR_JOB * job)
 
 /* qmgr_job_count_slots - maintain the delivery slot counters */
 
-static void qmgr_job_count_slots(QMGR_JOB * current, QMGR_JOB * job)
+static void qmgr_job_count_slots(QMGR_JOB *current, QMGR_JOB *job)
 {
 
     /*
@@ -412,7 +412,7 @@ static void qmgr_job_count_slots(QMGR_JOB * current, QMGR_JOB * job)
 
 /* qmgr_job_candidate - find best job candidate for preempting given job */
 
-static QMGR_JOB *qmgr_job_candidate(QMGR_JOB * current)
+static QMGR_JOB *qmgr_job_candidate(QMGR_JOB *current)
 {
     QMGR_TRANSPORT *transport = current->transport;
     QMGR_JOB *job,
@@ -487,7 +487,7 @@ static QMGR_JOB *qmgr_job_candidate(QMGR_JOB * current)
 
 /* qmgr_job_preempt - preempt large message with smaller one */
 
-static QMGR_JOB *qmgr_job_preempt(QMGR_JOB * current)
+static QMGR_JOB *qmgr_job_preempt(QMGR_JOB *current)
 {
     char   *myname = "qmgr_job_preempt";
     QMGR_TRANSPORT *transport = current->transport;
@@ -574,7 +574,7 @@ static QMGR_JOB *qmgr_job_preempt(QMGR_JOB * current)
 
 /* qmgr_job_pop - remove the job from the job preemption stack */
 
-static void qmgr_job_pop(QMGR_JOB * job)
+static void qmgr_job_pop(QMGR_JOB *job)
 {
     QMGR_TRANSPORT *transport = job->transport;
     QMGR_JOB *parent;
@@ -620,7 +620,7 @@ static void qmgr_job_pop(QMGR_JOB * job)
 
 /* qmgr_job_peer_select - select next peer suitable for delivery */
 
-static QMGR_PEER *qmgr_job_peer_select(QMGR_JOB * job)
+static QMGR_PEER *qmgr_job_peer_select(QMGR_JOB *job)
 {
     QMGR_PEER *peer;
     QMGR_MESSAGE *message = job->message;

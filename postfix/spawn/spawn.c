@@ -210,16 +210,16 @@ static void get_service_attr(SPAWN_ATTR *attr, char *service, char **argv)
     if (attr->uid == var_owner_uid)
 	msg_fatal("request to deliver as mail system owner");
     if (attr->gid == 0)
-	msg_fatal("request to use privileged group id %d", attr->gid);
+	msg_fatal("request to use privileged group id %ld", (long) attr->gid);
     if (attr->gid == var_owner_gid)
-	msg_fatal("request to use mail system owner group id %d", attr->gid);
+	msg_fatal("request to use mail system owner group id %ld", (long) attr->gid);
 
     /*
      * Give the poor tester a clue of what is going on.
      */
     if (msg_verbose)
-	msg_info("%s: uid %d, gid %d; time %d",
-		 myname, attr->uid, attr->gid, attr->time_limit);
+	msg_info("%s: uid %ld, gid %ld; time %d",
+	      myname, (long) attr->uid, (long) attr->gid, attr->time_limit);
 }
 
 /* spawn_service - perform service for client */

@@ -39,7 +39,7 @@ decode:		root
 #        aliases - format of the Postfix alias database
 # 
 # SYNOPSIS
-#        postalias [-c config_dir] [-v] [file_type:]input_file
+#        newaliases
 # 
 # DESCRIPTION
 #        The aliases file provides a system-wide mechanism to redi-
@@ -47,9 +47,9 @@ decode:		root
 # 
 #        The file serves as input to the postalias(1) command.  The
 #        result,  an  indexed file in dbm or db format, is used for
-#        fast lookup by the mail system. After  an  update  it  may
-#        take  a  minute  or  so before the change becomes visible.
-#        Issue a postfix reload command to eliminate the delay.
+#        fast lookup  by  the  mail  system.  Execute  the  command
+#        newaliases  in  order  to  rebuild  the indexed file after
+#        changing the Postfix alias database.
 # 
 #        The input and output file formats are expected to be  com-
 #        patible  with  Sendmail  version 8, and are expected to be

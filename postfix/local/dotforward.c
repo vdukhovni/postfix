@@ -219,7 +219,8 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 	    if (S_ISREG(st.st_mode) == 0) {
 		msg_warn("file %s is not a regular file", STR(path));
 	    } else if (st.st_uid != 0 && st.st_uid != usr_attr.uid) {
-		msg_warn("file %s has bad owner uid %d", STR(path), st.st_uid);
+		msg_warn("file %s has bad owner uid %ld",
+			 STR(path), (long) st.st_uid);
 	    } else if (st.st_mode & 002) {
 		msg_warn("file %s is world writable", STR(path));
 	    } else if ((fd = open_as(STR(path), O_RDONLY, 0, usr_attr.uid, usr_attr.gid)) < 0) {

@@ -68,7 +68,7 @@
 
 /* qmgr_peer_create - create and initialize message peer structure */
 
-QMGR_PEER *qmgr_peer_create(QMGR_JOB * job, QMGR_QUEUE *queue)
+QMGR_PEER *qmgr_peer_create(QMGR_JOB *job, QMGR_QUEUE *queue)
 {
     QMGR_PEER *peer;
 
@@ -84,7 +84,7 @@ QMGR_PEER *qmgr_peer_create(QMGR_JOB * job, QMGR_QUEUE *queue)
 
 /* qmgr_peer_free - release peer structure */
 
-void    qmgr_peer_free(QMGR_PEER * peer)
+void    qmgr_peer_free(QMGR_PEER *peer)
 {
     QMGR_JOB *job = peer->job;
 
@@ -95,14 +95,14 @@ void    qmgr_peer_free(QMGR_PEER * peer)
 
 /* qmgr_peer_find - lookup peer associated with given job and queue */
 
-QMGR_PEER *qmgr_peer_find(QMGR_JOB * job, QMGR_QUEUE *queue)
+QMGR_PEER *qmgr_peer_find(QMGR_JOB *job, QMGR_QUEUE *queue)
 {
     return ((QMGR_PEER *) htable_find(job->peer_byname, queue->name));
 }
 
 /* qmgr_peer_select - select next peer suitable for delivery within given job */
 
-QMGR_PEER *qmgr_peer_select(QMGR_JOB * job)
+QMGR_PEER *qmgr_peer_select(QMGR_JOB *job)
 {
     QMGR_PEER *peer;
     QMGR_QUEUE *queue;

@@ -137,8 +137,8 @@ typedef struct {
 
 static int file_read_error(PICKUP_INFO *info, int type)
 {
-    msg_warn("uid=%d: unexpected or malformed record type %d",
-	     info->st.st_uid, type);
+    msg_warn("uid=%ld: unexpected or malformed record type %d",
+	     (long) info->st.st_uid, type);
     return (REMOVE_MESSAGE_FILE);
 }
 
@@ -249,7 +249,8 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
     if ((status = copy_segment(qfile, cleanup, info, buf, REC_TYPE_ENVELOPE)) != 0)
 	return (status);
     if (info->sender == 0) {
-	msg_warn("%s: uid=%d: no envelope sender", info->id, info->st.st_uid);
+	msg_warn("%s: uid=%ld: no envelope sender",
+		 info->id, (long) info->st.st_uid);
 	return (REMOVE_MESSAGE_FILE);
     }
     msg_info("%s: uid=%d from=<%s>", info->id,
@@ -266,8 +267,8 @@ static int pickup_copy(VSTREAM *qfile, VSTREAM *cleanup,
      * include the message file ownership, without revealing the login name.
      */
     rec_fputs(cleanup, REC_TYPE_MESG, "");
-    rec_fprintf(cleanup, REC_TYPE_NORM, "Received: by %s (%s, from userid %d)",
-		var_myhostname, var_mail_name, info->st.st_uid);
+    rec_fprintf(cleanup, REC_TYPE_NORM, "Received: by %s (%s, from userid %ld)",
+		var_myhostname, var_mail_name, (long) info->st.st_uid);
     rec_fprintf(cleanup, REC_TYPE_NORM, "\tid %s; %s", info->id,
 		mail_date(info->st.st_mtime));
 
@@ -345,7 +346,7 @@ static int pickup_file(PICKUP_INFO *info)
     if (st.st_dev != info->st.st_dev
 	|| st.st_ino != info->st.st_ino
 	|| st.st_mode != info->st.st_mode) {
-	msg_warn("%s: uid %d: file has changed", info->path, st.st_uid);
+	msg_warn("%s: uid %ld: file has changed", info->path, (long) st.st_uid);
 	return (REMOVE_MESSAGE_FILE);
     }
     qfile = vstream_fdopen(fd, O_RDONLY);

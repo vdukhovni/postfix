@@ -94,7 +94,7 @@
 
 /* qmgr_entry_select - select queue entry for delivery */
 
-QMGR_ENTRY *qmgr_entry_select(QMGR_PEER * peer)
+QMGR_ENTRY *qmgr_entry_select(QMGR_PEER *peer)
 {
     QMGR_ENTRY *entry;
     QMGR_QUEUE *queue;
@@ -211,7 +211,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
 
 /* qmgr_entry_create - create queue todo entry */
 
-QMGR_ENTRY *qmgr_entry_create(QMGR_PEER * peer, QMGR_MESSAGE *message)
+QMGR_ENTRY *qmgr_entry_create(QMGR_PEER *peer, QMGR_MESSAGE *message)
 {
     QMGR_ENTRY *entry;
     QMGR_QUEUE *queue = peer->queue;

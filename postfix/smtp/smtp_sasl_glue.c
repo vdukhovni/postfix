@@ -397,7 +397,8 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
     if (clientoutlen > 0) {
 	if (msg_verbose)
 	    msg_info("%s: %s: uncoded initial reply: %.*s",
-		  myname, state->session->namaddr, clientoutlen, clientout);
+		     myname, state->session->namaddr,
+		     (int) clientoutlen, clientout);
 	enc_length = ENCODE64_LENGTH(clientoutlen) + 1;
 	VSTRING_SPACE(state->sasl_encoded, enc_length);
 	if (sasl_encode64(clientout, clientoutlen,
@@ -432,15 +433,15 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
 	if (msg_verbose)
 	    msg_info("%s: %s: decoded challenge: %.*s",
 		     myname, state->session->namaddr,
-		     enc_length, STR(state->sasl_decoded));
+		     (int) enc_length, STR(state->sasl_decoded));
 	result = sasl_client_step((sasl_conn_t *) state->sasl_conn,
 				  STR(state->sasl_decoded), enc_length,
 			    NO_SASL_INTERACTION, &clientout, &clientoutlen);
 	if (result != SASL_OK && result != SASL_CONTINUE)
 	    msg_warn("SASL authentication failed to server %s: %s",
 		     state->session->namaddr,
-			sasl_errstring(result, NO_SASL_LANGLIST,
-				       NO_SASL_OUTLANG));
+		     sasl_errstring(result, NO_SASL_LANGLIST,
+				    NO_SASL_OUTLANG));
 
 	/*
 	 * Send a client response.
@@ -448,7 +449,8 @@ int     smtp_sasl_authenticate(SMTP_STATE *state, VSTRING *why)
 	if (clientoutlen > 0) {
 	    if (msg_verbose)
 		msg_info("%s: %s: uncoded client response %.*s",
-		  myname, state->session->namaddr, clientoutlen, clientout);
+			 myname, state->session->namaddr,
+			 (int) clientoutlen, clientout);
 	    enc_length = ENCODE64_LENGTH(clientoutlen) + 1;
 	    VSTRING_SPACE(state->sasl_encoded, enc_length);
 	    if (sasl_encode64(clientout, clientoutlen,

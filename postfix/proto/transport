@@ -55,7 +55,7 @@
 #
 #	The interpretation of the \fInexthop\fR field is transport
 #	dependent. In the case of SMTP, specify \fIhost\fR:\fIservice\fR for a
-#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR:\fIport\fR]
+#	non-default server port, and use [\fIhost\fR] or [\fIhost\fR]:\fIport\fR
 #	in order to disable MX (mail exchanger) DNS lookups. The [] form
 #	can also be used with IP addresses instead of hostnames.
 # EXAMPLES
@@ -99,7 +99,7 @@
 #
 #	This directs mail for \fIuser\fR@\fBfoo.org\fR to host \fBbar.org\fR
 #	port \fB2025\fR. Instead of a numerical port a symbolic name may be
-#	used. Specify [] around the destination in order to disable MX lookups.
+#	used. Specify [] around the hostname in order to disable MX lookups.
 #
 #	The error mailer can be used to bounce mail:
 #

@@ -106,7 +106,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * 
      * Skip this file if it was already delivered to as this user.
      */
-    if (been_here(state.dup_filter, "file %d %s", usr_attr.uid, path))
+    if (been_here(state.dup_filter, "file %ld %s", (long) usr_attr.uid, path))
 	return (0);
 
     /*
@@ -138,7 +138,8 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * Deliver. From here on, no early returns or we have a memory leak.
      */
     if (msg_verbose)
-	msg_info("deliver_file (%d,%d): %s", usr_attr.uid, usr_attr.gid, path);
+	msg_info("deliver_file (%ld,%ld): %s",
+		 (long) usr_attr.uid, (long) usr_attr.gid, path);
     if (vstream_fseek(state.msg_attr.fp, state.msg_attr.offset, SEEK_SET) < 0)
 	msg_fatal("seek queue file %s: %m", state.msg_attr.queue_id);
     why = vstring_alloc(100);
@@ -182,7 +183,7 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 			      path, STR(why));
 #endif
     } else if (mail_copy(COPY_ATTR(state.msg_attr), dst, S_ISREG(st.st_mode) ?
-		      copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), "\n", why)) {
+		copy_flags : (copy_flags & ~MAIL_COPY_TOFILE), "\n", why)) {
 	status = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			      "cannot append destination file %s: %s",
 			      path, STR(why));

@@ -322,7 +322,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	 */
 	if (msg_verbose)
 	    msg_info("%s: uncoded challenge: %.*s",
-		     myname, serveroutlen, serverout);
+		     myname, (int) serveroutlen, serverout);
 	enc_length = ((serveroutlen + 2) / 3) * 4 + 1;
 	VSTRING_SPACE(state->sasl_encoded, enc_length);
 	if (sasl_encode64(serverout, serveroutlen, STR(state->sasl_encoded),
@@ -348,7 +348,7 @@ char   *smtpd_sasl_authenticate(SMTPD_STATE *state,
 	    return ("501 Error: malformed authentication response");
 	if (msg_verbose)
 	    msg_info("%s: decoded response: %.*s",
-		     myname, dec_length, STR(state->sasl_decoded));
+		     myname, (int) dec_length, STR(state->sasl_decoded));
 	result = sasl_server_step(state->sasl_conn, STR(state->sasl_decoded),
 			    dec_length, &serverout, &serveroutlen, &errstr);
     }

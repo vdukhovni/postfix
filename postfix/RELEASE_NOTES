@@ -1,13 +1,28 @@
 Incompatible changes with snapshot-20000919
 ===========================================
 
-The queue manager to delivery agent protocol has changed. This does
-not affect the format of queue files, but means that you cannot
-use this software with queue managers or delivery agents of prior
-Postfix versions.
+The notation of [host:port] in transport tables etc. is going away
+but it is still supported. The preferred form is now [host]:port.
+This change is necessary to support IPV6 address forms which use
+":" as part of the numeric IP address. In a future release, Postfix
+will log a warning message when it encounters the [host:port] form.
 
-Change in address rewriting: Errors-To:, Reply-To: and Return-Receipt:
+After "make install" you need to "postfix reload".  The protocol
+between queue manager and delivery agent protocol has changed. This
+does not affect the format of existing queue files, you just cannot
+mix this Postfix version with queue managers or delivery agents
+from prior Postfix versions.
+
+In mail headers, Errors-To:, Reply-To: and Return-Receipt:  addresses
 are now rewritten as a sender address (was: recipient).
+
+Postfix no longer inserts Sender: message headers.
+
+The queue manager now logs the original number of recipients when
+opening queue file.
+
+The local delivery agent no longer appends a blank line when
+delivering to command.
 
 Major changes with snapshot-20000919
 ====================================
@@ -16,10 +31,12 @@ Postfix now strips out the Content-Length: header to avoid confusion
 with mail user agents.
 
 The header_checks and body_checks features can now be used to strip
-out unwanted data. Specify IGNORE and the data will go disappear.
+out unwanted data. Specify IGNORE and the data will disappear.
 
-Postfix no longer inserts a Sender: message header when the 
-From: address differs from the envelope sender address.
+Specify "test_home_directory = yes" to prevent mail from being
+delivered to a user whose home directory is not mounted.
+
+The pipe mailer has a size limit (size=nnn) command-line argument.
 
 Incompatible changes with snapshot-20000625 (never released)
 ===========================================

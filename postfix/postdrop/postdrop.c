@@ -122,7 +122,7 @@ static void postdrop_cleanup(void)
      */
     if (postdrop_path) {
 	if (remove(postdrop_path))
-	    msg_warn("uid=%d: remove %s: %m", getuid(), postdrop_path);
+	    msg_warn("uid=%ld: remove %s: %m", (long) getuid(), postdrop_path);
 	else if (msg_verbose)
 	    msg_info("remove %s", postdrop_path);
 	postdrop_path = 0;
@@ -249,7 +249,7 @@ int     main(int argc, char **argv)
 	if (rec_type == REC_TYPE_EOF) {		/* request cancelled */
 	    mail_stream_cleanup(dst);
 	    if (remove(postdrop_path))
-		msg_warn("uid=%d: remove %s: %m", getuid(), postdrop_path);
+		msg_warn("uid=%ld: remove %s: %m", (long) getuid(), postdrop_path);
 	    else if (msg_verbose)
 		msg_info("remove %s", postdrop_path);
 	    myfree(postdrop_path);
@@ -257,16 +257,16 @@ int     main(int argc, char **argv)
 	    exit(0);
 	}
 	if (rec_type == REC_TYPE_ERROR)
-	    msg_fatal("uid=%d: malformed input", uid);
+	    msg_fatal("uid=%ld: malformed input", (long) uid);
 	if (rec_type == REC_TYPE_TIME)
 	    rec_fprintf(dst->stream, REC_TYPE_TIME, "%ld",
 			(long) time((time_t *) 0));
 	if (strchr(*expected, rec_type) == 0)
-	    msg_fatal("uid=%d: unexpected record type: %d", uid, rec_type);
+	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)
 	    expected++;
 	if (REC_PUT_BUF(dst->stream, rec_type, buf) < 0)
-	    msg_fatal("uid=%d: queue file write error", uid);
+	    msg_fatal("uid=%ld: queue file write error", (long) uid);
 	if (rec_type == REC_TYPE_END)
 	    break;
     }
@@ -276,7 +276,7 @@ int     main(int argc, char **argv)
      * Finish the file.
      */
     if ((status = mail_stream_finish(dst)) != 0)
-	msg_fatal("uid=%d: %s", uid, cleanup_strerror(status));
+	msg_fatal("uid=%ld: %s", (long) uid, cleanup_strerror(status));
 
     /*
      * Disable deletion on fatal error before reporting success, so the file

@@ -74,9 +74,10 @@ static const char *dict_unix_getpwnam(DICT *unused_dict, const char *key)
     } else {
 	if (buf == 0)
 	    buf = vstring_alloc(10);
-	vstring_sprintf(buf, "%s:%s:%d:%d:%s:%s:%s",
-		     pwd->pw_name, pwd->pw_passwd, pwd->pw_uid, pwd->pw_gid,
-			pwd->pw_gecos, pwd->pw_dir, pwd->pw_shell);
+	vstring_sprintf(buf, "%s:%s:%ld:%ld:%s:%s:%s",
+			pwd->pw_name, pwd->pw_passwd, (long) pwd->pw_uid,
+			(long) pwd->pw_gid, pwd->pw_gecos, pwd->pw_dir,
+			pwd->pw_shell);
 	return (vstring_str(buf));
     }
 }
@@ -96,8 +97,8 @@ static const char *dict_unix_getgrnam(DICT *unused_dict, const char *key)
     } else {
 	if (buf == 0)
 	    buf = vstring_alloc(10);
-	vstring_sprintf(buf, "%s:%s:%d:",
-			grp->gr_name, grp->gr_passwd, grp->gr_gid);
+	vstring_sprintf(buf, "%s:%s:%ld:",
+			grp->gr_name, grp->gr_passwd, (long) grp->gr_gid);
 	for (cpp = grp->gr_mem; *cpp; cpp++) {
 	    vstring_strcat(buf, *cpp);
 	    if (cpp[1])

@@ -77,6 +77,7 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <stdio.h>			/* sscanf() */
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
@@ -199,7 +200,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     long    save_offset = message->rcpt_offset;	/* save a flag */
     char   *start;
     struct stat st;
-    int     nrcpt;
+    int     nrcpt = 0;
 
     /*
      * Initialize. No early returns or we have a memory leak.

@@ -4109,6 +4109,12 @@ Apologies for any names omitted.
 	Robustness: make_dirs() now continues when a missing
 	directory is created by another process.
 
+20000720
+
+	Feature: the queue manager now logs the number of recipients
+	when opening a queue file (a zero recipient count is logged
+	with older queue files). File: global/opened.c.
+
 20000726
 
 	Robustness: added watchdog_pat() routine to keep the watchdog
@@ -4125,7 +4131,8 @@ Apologies for any names omitted.
 
 20000821
 
-	Feature: added -r (replace) option to postalias and postmap.
+	Feature: added -r (replace key+value) option to postalias
+	and postmap.
 
 	Cleanup: smtpd now replies with 555 when the client sends
 	unrecognized RCPT TO parameters, as required by RFC 1869
@@ -4151,6 +4158,8 @@ Apologies for any names omitted.
 	access controls, for example, hold off mail from an unknown
 	client or sender until we have completed some investigation,
 	after which we will either reject or accept.
+
+	However, the code is turned off because it is not finished.
 
 20000905
 
@@ -4212,5 +4221,24 @@ Apologies for any names omitted.
 	Convenience: INSTALL.sh now imports default settings from
 	the process environment, in order to make scripting easier.
 
+	Portability: INSTALL.sh now systematically skips over CVS,
+	RCS and SCCS cruft.
+
 	Portability: another fix for NEXTSTEP (Masaki MURASE).
 	File: util/spawn_command.h.
+
+20000920
+
+	Cleanup: in a transport table entry, do not ignore port
+	numbers specified as [host]:port. In fact, this is now
+	becoming the preferred form, in order to avoid parsing
+	problems with IPV6 addresses. Postfix supports both forms
+	for a while but prints a warning for the old form. Problem
+	reported by Claus Fischer @ werhats.at
+
+	Bugfix: missing initialization for state->sasl_method can
+	cause permit_sasl_authenticated to always succeed.  Report
+	and fix by Lutz Jaenicke @ aet.TU-Cottbus.DE.
+
+	FAQ: added notes about how to delete, copy or restore queue
+	files in a safe manner.

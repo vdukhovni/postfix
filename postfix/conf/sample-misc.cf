@@ -245,9 +245,9 @@ recipient_delimiter =
 # internal DNS uses no MX records, specify the name of the intranet
 # gateway host instead.
 #
-# Specify a domain, host, host:port, [address] or [address:port].
-# Use the form [destination] to turn off MX lookups. See also the
-# default_transport parameter if you're connected via UUCP.
+# Specify a domain, host, host:port, [host]:port, [address] or
+# [address]:port.  Use the form [name] to turn off MX lookups. See
+# also the default_transport parameter if you're connected via UUCP.
 #
 # relayhost = $mydomain
 # relayhost = gateway.my.domain

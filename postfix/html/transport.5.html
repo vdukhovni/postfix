@@ -78,7 +78,7 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        The  interpretation  of  the  <i>nexthop</i>  field  is transport
        dependent. In the case of SMTP, specify <i>host</i>:<i>service</i> for a
-       non-default  server port, and use [<i>host</i>] or [<i>host</i>:<i>port</i>] in
+       non-default  server port, and use [<i>host</i>] or [<i>host</i>]:<i>port</i> in
        order to disable MX (mail exchanger) DNS lookups.  The  []
        form  can  also be used with IP addresses instead of host-
        names.
@@ -118,8 +118,8 @@ TRANSPORT(5)                                         TRANSPORT(5)
 
        This directs mail for <i>user</i>@<b>foo.org</b> to  host  <b>bar.org</b>  port
        <b>2025</b>.  Instead  of a numerical port a symbolic name may be
-       used. Specify [] around the destination in order  to  dis-
-       able MX lookups.
+       used. Specify [] around the hostname in order  to  disable
+       MX lookups.
 
        The error mailer can be used to bounce mail:
 

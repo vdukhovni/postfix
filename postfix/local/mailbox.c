@@ -166,8 +166,9 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	chown_gid = usr_attr.gid;
     }
     if (msg_verbose)
-	msg_info("spool_uid/gid %d/%d chown_uid/gid %d/%d",
-		 spool_uid, spool_gid, chown_uid, chown_gid);
+	msg_info("spool_uid/gid %ld/%ld chown_uid/gid %ld/%ld",
+		 (long) spool_uid, (long) spool_gid,
+		 (long) chown_uid, (long) chown_gid);
 
     /*
      * Lock the mailbox and open/create the mailbox file. Depending on the

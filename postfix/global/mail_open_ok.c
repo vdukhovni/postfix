@@ -97,14 +97,14 @@ int     mail_open_ok(const char *queue_name, const char *queue_id,
 	return (MAIL_OPEN_NO);
     }
     if (!S_ISREG(statp->st_mode)) {
-	msg_warn("%s: uid %d: not a regular file", *path, statp->st_uid);
+	msg_warn("%s: uid %ld: not a regular file", *path, (long) statp->st_uid);
 	return (MAIL_OPEN_NO);
     }
     if ((statp->st_mode & S_IRWXU) != MAIL_QUEUE_STAT_READY)
 	return (MAIL_OPEN_NO);
     if (statp->st_nlink > 1) {
-	msg_warn("%s: uid %d: file has %d links", *path,
-		 statp->st_uid, (int) statp->st_nlink);
+	msg_warn("%s: uid %ld: file has %d links", *path,
+		 (long) statp->st_uid, (int) statp->st_nlink);
     }
     return (MAIL_OPEN_YES);
 }

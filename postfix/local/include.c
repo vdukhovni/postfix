@@ -96,7 +96,7 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      * 
      * Don't process this include file more than once as this particular user.
      */
-    if (been_here(state.dup_filter, "include %d %s", usr_attr.uid, path))
+    if (been_here(state.dup_filter, "include %ld %s", (long) usr_attr.uid, path))
 	return (0);
     state.msg_attr.exp_from = state.msg_attr.local;
 
@@ -140,7 +140,7 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
      */
     if (usr_attr.uid == 0) {
 	if ((file_pwd = mypwuid(st.st_uid)) == 0) {
-	    msg_warn("cannot find username for uid %d", st.st_uid);
+	    msg_warn("cannot find username for uid %ld", (long) st.st_uid);
 	    return (defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
 			     "%s: cannot find :include: file owner", path));
 	}

@@ -56,7 +56,7 @@ void    chroot_uid(const char *root_dir, const char *user_name)
 	uid = pwd->pw_uid;
 	gid = pwd->pw_gid;
 	if (setgid(gid) < 0)
-	    msg_fatal("setgid(%d): %m", gid);
+	    msg_fatal("setgid(%ld): %m", (long) gid);
 	if (initgroups(user_name, gid) < 0)
 	    msg_fatal("initgroups: %m");
     }
@@ -76,7 +76,7 @@ void    chroot_uid(const char *root_dir, const char *user_name)
      */
     if (user_name != 0)
 	if (setuid(uid) < 0)
-	    msg_fatal("setuid(%d): %m", uid);
+	    msg_fatal("setuid(%ld): %m", (long) uid);
 
     /*
      * Give the desperate developer a clue of what is happening.

@@ -353,7 +353,7 @@ int     bounce_notify_service(char *service, char *queue_name,
      * Unique string for multi-part message boundaries.
      */
     vstring_sprintf(boundary, "%s.%ld/%s",
-		    queue_id, event_time(), var_myhostname);
+		    queue_id, (long) event_time(), var_myhostname);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_CLEANUP_FLAGS	0
