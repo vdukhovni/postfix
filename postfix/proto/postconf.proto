@@ -2064,7 +2064,7 @@ What addresses are subject to address masquerading.
 </p>
 
 <p>
-By default, address masquerading is limited to envelope recipient
+By default, address masquerading is limited to envelope sender
 addresses, and to header sender and header recipient addresses.
 This allows you to use address masquerading on a mail gateway while
 still being able to forward mail to users on individual machines.
@@ -2370,7 +2370,7 @@ mynetworks = hash:/etc/postfix/network_table
 %PARAM myorigin $myhostname
 
 <p>
-The default domain name that locally-posted mail appears to come
+The domain name that locally-posted mail appears to come
 from, and that locally posted mail is delivered to. The default,
 $myhostname, is adequate for small sites.  If you run a domain with
 multiple machines, you should (1) change this to $mydomain and (2)

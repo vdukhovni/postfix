@@ -3335,7 +3335,7 @@ What addresses are subject to address masquerading.
 </p>
 
 <p>
-By default, address masquerading is limited to envelope recipient
+By default, address masquerading is limited to envelope sender
 addresses, and to header sender and header recipient addresses.
 This allows you to use address masquerading on a mail gateway while
 still being able to forward mail to users on individual machines.
@@ -3773,7 +3773,7 @@ configuration parameter. </p>
 (default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
 
 <p>
-The <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a> name that locally-posted mail appears to come
+The domain name that locally-posted mail appears to come
 from, and that locally posted mail is delivered to. The default,
 $<a href="postconf.5.html#myhostname">myhostname</a>, is adequate for small sites.  If you run a domain with
 multiple machines, you should (1) change this to $<a href="postconf.5.html#mydomain">mydomain</a> and (2)

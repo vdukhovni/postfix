@@ -1670,7 +1670,7 @@ Do not change this unless you have a complete understanding of RFC 821.
 .SH masquerade_classes (default: envelope_sender, header_sender, header_recipient)
 What addresses are subject to address masquerading.
 .PP
-By default, address masquerading is limited to envelope recipient
+By default, address masquerading is limited to envelope sender
 addresses, and to header sender and header recipient addresses.
 This allows you to use address masquerading on a mail gateway while
 still being able to forward mail to users on individual machines.
@@ -1929,7 +1929,7 @@ Postfix to "trust" your entire provider's network.  Instead, specify
 an explicit mynetworks list by hand, as described with the mynetworks
 configuration parameter.
 .SH myorigin (default: $myhostname)
-The default domain name that locally-posted mail appears to come
+The domain name that locally-posted mail appears to come
 from, and that locally posted mail is delivered to. The default,
 $myhostname, is adequate for small sites.  If you run a domain with
 multiple machines, you should (1) change this to $mydomain and (2)

@@ -534,7 +534,7 @@
 /*	The list of "trusted" SMTP clients that have more privileges than
 /*	"strangers".
 /* .IP "\fBmyorigin ($myhostname)\fR"
-/*	The default domain name that locally-posted mail appears to come
+/*	The domain name that locally-posted mail appears to come
 /*	from, and that locally posted mail is delivered to.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
@@ -811,6 +811,11 @@ static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
 static void chat_reset(SMTPD_STATE *, int);
 
+ /*
+  * This filter is applied after printable().
+  */
+#define NEUTER_CHARACTERS " <>()\\\";:@"
+
 #ifdef USE_SASL_AUTH
 
  /*
@@ -882,7 +887,7 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     mail_reset(state);
     rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
-    neuter(state->helo_name, "<>()\\\";:@", '?');
+    neuter(state->helo_name, NEUTER_CHARACTERS, '?');
     /* Downgrading the protocol name breaks the unauthorized pipelining test. */
     if (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
 	&& strcasecmp(state->protocol, MAIL_PROTO_SMTP) != 0) {
@@ -923,7 +928,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     mail_reset(state);
     rcpt_reset(state);
     state->helo_name = mystrdup(printable(argv[1].strval, '?'));
-    neuter(state->helo_name, "<>()\\\";:@", '?');
+    neuter(state->helo_name, NEUTER_CHARACTERS, '?');
     if (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0) {
 	myfree(state->protocol);
 	state->protocol = mystrdup(MAIL_PROTO_ESMTP);
@@ -2012,7 +2017,6 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (s) myfree(s); \
 	    s = (v) ? mystrdup(v) : 0; \
 	} while(0)
-#define NEUTER_CHARACTERS "<>()\\\";:@"
 
     /*
      * Iterate over all attribute=value elements.

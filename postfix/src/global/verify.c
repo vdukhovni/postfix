@@ -142,7 +142,8 @@ int     vverify_append(const char *queue_id, const char *orig_rcpt,
      */
     vstring_vsprintf(text, fmt, ap);
     if (var_verify_neg_cache || rcpt_stat == DEL_RCPT_STAT_OK) {
-	req_stat = verify_clnt_vupdate(orig_rcpt, rcpt_stat, fmt, ap);
+	req_stat = verify_clnt_update(orig_rcpt, rcpt_stat,
+				      "%s", vstring_str(text));
 	if (req_stat == VRFY_STAT_OK && strcasecmp(recipient, orig_rcpt) != 0)
 	    req_stat = verify_clnt_update(recipient, rcpt_stat,
 					  "%s", vstring_str(text));
