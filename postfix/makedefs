@@ -230,11 +230,17 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		;;
-Rhapsody.5*|Darwin.1.*)
+Rhapsody.5*|Darwin.*)
 		SYSTYPE=RHAPSODY5
 		# Use the native compiler by default
 		: ${CC=cc}
 		AWK=gawk
+		case $RELEASE in
+		 1.[0-3]) ;;
+		       *) AWK=awk
+			  SYSLIBS=-flat_namespace
+			  ;;
+		esac
 		;;
 "Mac OS".10*)	SYSTYPE=MACOSX
 		# Use the native compiler by default

@@ -238,9 +238,10 @@ int     cleanup_flush(CLEANUP_STATE *state)
 				state->queue_id, state->sender) == 0) {
 		state->errs = 0;
 	    } else {
-		if (var_soft_bounce == 0)
+		if (var_soft_bounce == 0) {
 		    msg_warn("%s: bounce message failure", state->queue_id);
-		state->errs = CLEANUP_STAT_WRITE;
+		    state->errs = CLEANUP_STAT_WRITE;
+		}
 	    }
 	}
 	if (REMOVE(cleanup_path))

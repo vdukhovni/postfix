@@ -93,7 +93,7 @@ VSTRING *base64_encode(VSTRING *result, const char *in, int len)
 
 VSTRING *base64_decode(VSTRING *result, const char *in, int len)
 {
-    static char *un_b64 = 0;
+    static unsigned char *un_b64 = 0;
     const unsigned char *cp;
     int     count;
     int     ch0;
@@ -114,7 +114,7 @@ VSTRING *base64_decode(VSTRING *result, const char *in, int len)
      * Once: initialize the decoding lookup table on the fly.
      */
     if (un_b64 == 0) {
-	un_b64 = mymalloc(CHARS_PER_BYTE);
+	un_b64 = (unsigned char *) mymalloc(CHARS_PER_BYTE);
 	memset(un_b64, INVALID, CHARS_PER_BYTE);
 	for (cp = to_b64; cp < to_b64 + sizeof(to_b64); cp++)
 	    un_b64[*cp] = cp - to_b64;

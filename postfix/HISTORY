@@ -5485,28 +5485,30 @@ Apologies for any names omitted.
 20011008
 
 	Bugfix: there was a minute memory leak when an smtpd access
-	restriction is misconfigured. File: smtpd/smtpd_check.c.
+	restriction was misconfigured. File: smtpd/smtpd_check.c.
 
 20011010
 
-	Postfix daemons now print the name of the UNIX-domain socket
-	(instead of "unknown stream") complaining about a malformed
-	client request. Files:  master/*server.c.
+	Code cleanup: Postfix daemons now print the name of the
+	UNIX-domain socket (instead of "unknown stream") in case
+	of a malformed client request. Files:  master/*server.c.
 
 20011010-14
 
-	Replaced the ugly mail_print() and mail-scan() protocols
-	by (name,value) attribute lists. This gives better error
-	detection when we start making changes to internal protocols,
+	Code cleanup: replaced the ugly mail_print() and mail-scan()
+	protocols by (name,value) attribute lists. This gives better
+	error detection when we make changes to internal protocols,
 	and allows new attributes to be introduced without breaking
-	everything immediately.
+	everything immediately. Files: util/attr_print.c util/attr_scan.c
+	global/mail_command_server.c global/mail_command_client.c
+	as wel as most Postfix applications and daemons.
 
 20011015
 
 	Put base 64 encoding into place on the replaced internal
 	protocols.  Files: util/base64_code.[hc].
 
-	Feature: header/body REJECT rules can now end in text that
+	Feature: header/body REJECT rules can now provide text that
 	is sent to the originator. Files: cleanup/cleanup.c,
 	cleanup/cleanup_message.c, conf/sample-filter.cf.
 
@@ -5542,17 +5544,29 @@ Apologies for any names omitted.
 	util/attr_scan.c.
 
 	Bugfix: qmqpd could read past the end of a string while
-	looking for the VERP magic token in the envelope sender
+	looking for qmail's VERP magic token in the envelope sender
 	address.  File: qmqpd/qmqpd.c.
+
+	Code cleanup: finished testing the new internal protocols.
+	The only bug was with the flush server, which still needs
+	to support the old (string + null byte) protocol for triggers
+	from the Postfix master daemon.
+
+20011103
+
+	Bugfix: Postfix would log the wrong error text when locally
+	submitted mail was deferred due to "soft_bounce = yes".
+
+	Bugfix: The LDAP client dropped any entries that don't have
+	the result_attribute, but errored out when a DN didn't
+	exist.  The behavior is now consistent: treat non-existant
+	DN's in a special result attribute expansion the same as
+	DN's with no attribtue.  LaMont Jones, HP.
 
 Open problems:
 
-	Medium: need in-process caching for map lookups.
-
-	Low: The $process_id_directory setting is not used anywhere
-	in Postfix. Problem reported by Michael Smith, texas.net.
-	This should either be documented, or better, the code should
-	warn about attempts to set a read-only parameter.
+	Medium: need in-process caching for map lookups. LDAP
+	servers seem to need this in particular.
 
 	Medium: make address rewriting on/off configurable for
 	envelopes and/or headers.
@@ -5560,5 +5574,12 @@ Open problems:
 	Medium: smtpd access maps don't understand the recipient
 	delimiter setting.
 
+	Low: The $process_id_directory setting is not used anywhere
+	in Postfix. Problem reported by Michael Smith, texas.net.
+	This should be documented, or better, the code should warn
+	about attempts to set read-only parameters.
+
 	Low: the virtual delivery agent needs a way to specify
 	fixed uid/gid for all deliveries.
+
+	Low: postconf -e edits parameters that postconf won't list.

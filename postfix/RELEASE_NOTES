@@ -1,9 +1,9 @@
-This release introduces a negligible amount of features and is all
-about revision of Postfix internals. With more than 70 pages of
-context diffs compared to the previous snapshot, this release is
-a baseline for upcoming feature changes.
+Snapshot 20011103 introduces a negligible amount of features and
+is all about revision of Postfix internals. With more than 70 pages
+of context diffs compared to the previous snapshot, this release
+is a baseline for upcoming feature changes.
 
-Major changes with snapshot-20011102
+Major changes with snapshot-20011103
 ====================================
 
 The protocol between Postfix daemons was replaced by something that
@@ -12,8 +12,8 @@ that can also be used to talk to non-Postfix programs. The format
 of the protocols is described in src/util/attr_scan.c.
 
 In header/body_check files, REJECT can now be followed by text that
-is sent to the originator. That feature was stuck waiting for the
-internal protocol revision.
+is sent to the originator. That feature was stuck waiting for years,
+pending the internal protocol revision.
 
 Incompatible changes with snapshot-20011008
 ===========================================
@@ -82,8 +82,10 @@ before accepting a message.  This delay gives Postfix a chance
 catch up and access the disk, while still allowing new mail to
 arrive.
 
-This feature is disabled by default, because it needs further
-development. It will change but I have not enough time now.
+This feature is on by default, but currently it has effect only
+when mail arrives via a relatively small number of SMTP clients.
+The code needs further development.  It will change but I have not
+enough time now.
 
 The in_flow_delay feature has effect mainly when your system is
 being flooded through a limited number of SMTP connections.  This

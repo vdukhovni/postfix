@@ -511,6 +511,51 @@ static int flush_refresh_service(int max_age)
     return (FLUSH_STAT_OK);
 }
 
+/* flush_request_receive - receive request */
+
+static int flush_request_receive(VSTREAM *client_stream, VSTRING *request)
+{
+    int     count;
+
+    /*
+     * Kluge: choose the protocol depending on the request size.
+     */
+    if (read_wait(vstream_fileno(client_stream), var_ipc_timeout) < 0) {
+	msg_warn("timeout while waiting for data from %s",
+		 VSTREAM_PATH(client_stream));
+	return (-1);
+    }
+    if ((count = peekfd(vstream_fileno(client_stream))) < 0) {
+	msg_warn("cannot examine read buffer of %s: %m",
+		 VSTREAM_PATH(client_stream));
+	return (-1);
+    }
+
+    /*
+     * Short request: master trigger. Use the string+null protocol.
+     */
+    if (count <= 2) {
+	if (vstring_get_null(request, client_stream) == VSTREAM_EOF) {
+	    msg_warn("end-of-input while reading request from %s: %m",
+		     VSTREAM_PATH(client_stream));
+	    return (-1);
+	}
+    }
+
+    /*
+     * Long request: real flush client. Use the attribute list protocol.
+     */
+    else {
+	if (attr_scan(client_stream,
+		      ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+		      ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
+		      ATTR_TYPE_END) != 1) {
+	    return (-1);
+	}
+    }
+    return (0);
+}
+
 /* flush_service - perform service for client */
 
 static void flush_service(VSTREAM *client_stream, char *unused_service,
@@ -540,12 +585,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
      * All connection-management stuff is handled by the common code in
      * single_server.c.
      */
-    if (peekfd(vstream_fileno(client_stream)) <= 2 ?
-	(vstring_get_null(request, client_stream) != VSTREAM_EOF) :
-	(attr_scan(client_stream,
-		   ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		   ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
-		   ATTR_TYPE_END) == 1)) {
+    if (flush_request_receive(client_stream, request) == 0) {
 	if (STREQ(STR(request), FLUSH_REQ_ADD)) {
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);

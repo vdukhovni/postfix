@@ -43,7 +43,7 @@
 /* .in
 /*
 /*	All attribute names and attribute values are sent as base64-encoded
-/*	strings. Each base64-encoded must be no longer than 2*var_line_limit
+/*	strings. Each base64 encoding must be no longer than 2*var_line_limit
 /*	characters. The formatting rules aim to make implementations in PERL
 /*	and other languages easy.
 /*
@@ -93,7 +93,9 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "ATTR_TYPE_HASH (HTABLE *)"
 /*	All further input attributes are processed as string attributes.
-/*	In this case, no specific attribute sequence is enforced.
+/*	No specific attribute sequence is enforced.
+/*	All attributes up to the attribute list terminator are read,
+/*	but only the first instance of each attribute is stored.
 /* .sp
 /*	The attribute string values are stored in the hash table under
 /*	keys equal to the attribute name (obtained from the input stream).
@@ -105,14 +107,14 @@
 /*	This argument terminates the requested attribute list.
 /* .RE
 /* BUGS
-/*	ATTR_TYPE_HASH accepts attributes with arbitrary names from an
-/*	untrusted source. This is safe only if the resulting table is
+/*	ATTR_TYPE_HASH accepts attributes with arbitrary names from possibly
+/*	untrusted sources. This is unsafe, unless the resulting table is
 /*	queried only with known to be good attribute names.
 /* DIAGNOSTICS
 /*	attr_scan() and attr_vscan() return -1 when malformed input is
 /*	detected (string too long, incomplete line, missing end marker).
-/*	Otherwise, the result value is the number of attributes that were 
-/*	successfully recovered from the input stream (a hash table counts 
+/*	Otherwise, the result value is the number of attributes that were
+/*	successfully recovered from the input stream (a hash table counts
 /*	as the number of entries stored into the table).
 /*
 /*	Panic: interface violation. All system call errors are fatal.
@@ -198,7 +200,7 @@ static int attr_scan_number(VSTREAM *fp, unsigned *ptr, VSTRING *str_buf,
     if ((ch = attr_scan_string(fp, str_buf, context)) < 0)
 	return (-1);
     if (sscanf(STR(str_buf), "%u%c", ptr, &junk) != 1 || junk != 0) {
-	msg_warn("malformed numerical data from %s while %s: %.100s",
+	msg_warn("malformed numerical data from %s while reading %s: %.100s",
 		 VSTREAM_PATH(fp), context, STR(str_buf));
 	return (-1);
     }
@@ -253,7 +255,7 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 	    if (wanted_type == ATTR_TYPE_END) {
 		if ((flags & ATTR_FLAG_MORE) != 0)
 		    return (conversions);
-		wanted_name = "list terminator";
+		wanted_name = "(list terminator)";
 	    } else if (wanted_type == ATTR_TYPE_HASH) {
 		wanted_name = "(any attribute name or list terminator)";
 		hash_table = va_arg(ap, HTABLE *);
@@ -343,8 +345,8 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 		return (-1);
 	    }
 	    string = va_arg(ap, VSTRING *);
-	    if ((ch = attr_scan_string(fp, string, 
-					"input attribute value")) < 0)
+	    if ((ch = attr_scan_string(fp, string,
+				       "input attribute value")) < 0)
 		return (-1);
 	    if (ch != '\n') {
 		msg_warn("multiple values for attribute %s from %s",
@@ -358,8 +360,8 @@ int     attr_vscan(VSTREAM *fp, int flags, va_list ap)
 			 STR(name_buf), VSTREAM_PATH(fp));
 		return (-1);
 	    }
-	    if ((ch = attr_scan_string(fp, str_buf, 
-"input attribute value")) < 0)
+	    if ((ch = attr_scan_string(fp, str_buf,
+				       "input attribute value")) < 0)
 		return (-1);
 	    if (ch != '\n') {
 		msg_warn("multiple values for attribute %s from %s",
