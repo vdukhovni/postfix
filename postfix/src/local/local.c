@@ -177,13 +177,16 @@
 /* EXTERNAL FILE DELIVERY
 /* .ad
 /* .fi
+/*	The delivery format depends on the destination filename syntax.
+/*	The default is to use UNIX-style mailbox format.  Specify a name
+/*	ending in \fB/\fR for \fBqmail\fR-compatible \fBmaildir\fR delivery.
+/*
 /*	The \fBallow_mail_to_files\fR configuration parameter restricts
 /*	delivery to external files. The default setting (\fBalias,
 /*	forward\fR) forbids file destinations in \fB:include:\fR files.
-/*	Specify a pathname ending in \fB/\fR for \fBqmail\fR-compatible
-/*	\fBmaildir\fR delivery.
 /*
-/*	The \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
+/*	In the case of UNIX-style mailbox delivery,
+/*	the \fBlocal\fR daemon prepends a "\fBFrom \fIsender time_stamp\fR"
 /*	envelope header to each message, prepends an
 /*	optional \fBDelivered-To:\fR
 /*	header with the recipient envelope address, prepends a \fB>\fR
@@ -308,7 +311,7 @@
 /*	with the recipient privileges (exception: root). The string is subject
 /*	to $name expansions.
 /* .IP \fBmailbox_command_maps\fR
-/*	Lookup tables with per-recipient external commands to use for mailbox 
+/*	Lookup tables with per-recipient external commands to use for mailbox
 /*	delivery. Behavior is as with \fBmailbox_command\fR.
 /* .IP \fBmailbox_transport\fR
 /*	Message transport to use for mailbox delivery to all local

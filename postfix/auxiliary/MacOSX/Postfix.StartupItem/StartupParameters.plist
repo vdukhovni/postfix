@@ -8,5 +8,6 @@
   {
     start = "Starting Postfix";
     stop  = "Stopping Postfix";
+    restart  = "Reloading Postfix Configuration";
   };
 }

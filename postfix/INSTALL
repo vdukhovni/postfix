@@ -52,6 +52,7 @@ If your system is supported, it is one of
     BSD/OS 2.x
     BSD/OS 3.x
     BSD/OS 4.x
+    Darwin 1.x
     FreeBSD 2.x
     FreeBSD 3.x
     FreeBSD 4.x
@@ -73,8 +74,7 @@ If your system is supported, it is one of
     Linux SuSE 5.x
     Linux SuSE 6.x
     Linux SuSE 7.x
-    Mac OS X server
-    Mac OS X Public Beta
+    Mac OS X
     NEXTSTEP 3.x
     NetBSD 1.x
     OPENSTEP 4.x

@@ -5530,7 +5530,7 @@ Apologies for any names omitted.
 
 	Bugfix: mail_date() mis-formatted negative time zone offsets
 	with fractional hours (-03-30 instead of -0330). Fix by
-	Chad House, greyfirst.ca.
+	Chad House, greyfirst.ca. File: global/mail_date.c.
 
 20011102
 
@@ -5561,7 +5561,15 @@ Apologies for any names omitted.
 	the result_attribute, but errored out when a DN didn't
 	exist.  The behavior is now consistent: treat non-existant
 	DN's in a special result attribute expansion the same as
-	DN's with no attribtue.  LaMont Jones, HP.
+	DN's with no attribute.  LaMont Jones, HP.
+
+20011104
+
+	Bugfix: the new smtp-sink -n option (terminate after the
+	specified number of deliveries) wasn't optional.
+
+	Portability: updated Mac OS X documentation and install
+	scripts by Gerben Wierda.
 
 Open problems:
 
