@@ -47,7 +47,7 @@
 /*	the queue file to the deferred queue; send bounce reports to the
 /*	message originator (see qmgr_active_done()).
 /*
-/*	qmgr_entry_select() randomly selects one entry from the named
+/*	qmgr_entry_select() selects the next entry from the named
 /*	per-site queue's `todo' list for actual delivery. The entry is
 /*	moved to the queue's `busy' list: the list of messages being
 /*	delivered.

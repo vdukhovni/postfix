@@ -126,9 +126,10 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     char   *cp;
 
     /*
-     * With local delivery, the queue name is user@nexthop, so that we can
-     * implement per-recipient concurrency limits. The delivery agent
-     * protocol expects nexthop only.
+     * With mail transports that accept only one recipient per delivery, the
+     * queue name is user@nexthop, so that we can implement per-recipient
+     * concurrency limits. However, the delivery agent protocol expects
+     * nexthop only, so we must strip off the recipient local part.
      */
     mail_print(stream, "%d %s %s %ld %ld %s %s %s %s %ld",
 	  message->inspect_xport ? DEL_REQ_FLAG_BOUNCE : DEL_REQ_FLAG_DEFLT,

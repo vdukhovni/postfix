@@ -34,6 +34,7 @@
 /* Utility library. */
 
 #include "iostuff.h"
+#include "sane_socketpair.h"
 
 /* duplex_pipe - give me a duplex pipe or bust */
 
@@ -42,7 +43,7 @@ int     duplex_pipe(int *fds)
 #ifdef HAS_DUPLEX_PIPE
     return (pipe(fds));
 #else
-    return (socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
+    return (sane_socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
 #endif
 }
 

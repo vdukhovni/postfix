@@ -22,7 +22,8 @@ SRCS	= argv.c argv_split.c attr.c basename.c binhash.c chroot_uid.c \
 	stream_connect.c stream_trigger.c dict_regexp.c mac_expand.c \
 	clean_env.c watchdog.c spawn_command.c duplex_pipe.c sane_rename.c \
 	sane_link.c unescape.c timed_read.c timed_write.c dict_tcp.c \
-	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c
+	hex_quote.c dict_alloc.c rand_sleep.c sane_time.c dict_debug.c \
+	sane_socketpair.c
 OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	close_on_exec.o concatenate.o dict.o dict_db.o dict_dbm.o \
 	dict_env.o dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
@@ -46,7 +47,8 @@ OBJS	= argv.o argv_split.o attr.o basename.o binhash.o chroot_uid.o \
 	stream_connect.o stream_trigger.o dict_regexp.o mac_expand.o \
 	clean_env.o watchdog.o spawn_command.o duplex_pipe.o sane_rename.o \
 	sane_link.o unescape.o timed_read.o timed_write.o dict_tcp.o \
-	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o
+	hex_quote.o dict_alloc.o rand_sleep.o sane_time.o dict_debug.o \
+	sane_socketpair.o
 HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
@@ -62,7 +64,7 @@ HDRS	= argv.h attr.h binhash.h chroot_uid.h connect.h dict.h dict_db.h \
 	vbuf.h vbuf_print.h vstream.h vstring.h vstring_vstream.h \
 	dict_unix.h dict_pcre.h dict_regexp.h mac_expand.h clean_env.h \
 	watchdog.h spawn_command.h sane_fsops.h dict_tcp.h hex_quote.h \
-	sane_time.h
+	sane_time.h sane_socketpair.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
@@ -534,6 +536,7 @@ dup2_pass_on_exec.o: dup2_pass_on_exec.c
 duplex_pipe.o: duplex_pipe.c
 duplex_pipe.o: sys_defs.h
 duplex_pipe.o: iostuff.h
+duplex_pipe.o: sane_socketpair.h
 environ.o: environ.c
 environ.o: sys_defs.h
 events.o: events.c
@@ -840,6 +843,10 @@ sane_rename.o: sane_rename.c
 sane_rename.o: sys_defs.h
 sane_rename.o: msg.h
 sane_rename.o: sane_fsops.h
+sane_socketpair.o: sane_socketpair.c
+sane_socketpair.o: sys_defs.h
+sane_socketpair.o: msg.h
+sane_socketpair.o: sane_socketpair.h
 sane_time.o: sane_time.c
 sane_time.o: sys_defs.h
 sane_time.o: msg.h

@@ -617,7 +617,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"active,bounce,defer,flush"
+#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"
@@ -1048,7 +1048,7 @@ extern int var_unk_client_code;
 
 #define REJECT_INVALID_HOSTNAME	"reject_invalid_hostname"
 #define VAR_BAD_NAME_CODE	"invalid_hostname_reject_code"
-#define DEF_BAD_NAME_CODE	501
+#define DEF_BAD_NAME_CODE	501	/* SYNTAX */
 extern int var_bad_name_code;
 
 #define REJECT_UNKNOWN_HOSTNAME	"reject_unknown_hostname"
@@ -1060,7 +1060,7 @@ extern int var_unk_name_code;
 #define REJECT_NON_FQDN_SENDER	"reject_non_fqdn_sender"
 #define REJECT_NON_FQDN_RCPT	"reject_non_fqdn_recipient"
 #define VAR_NON_FQDN_CODE	"non_fqdn_reject_code"
-#define DEF_NON_FQDN_CODE	504
+#define DEF_NON_FQDN_CODE	504	/* POLICY */
 extern int var_non_fqdn_code;
 
 #define REJECT_UNKNOWN_SENDDOM	"reject_unknown_sender_domain"
@@ -1200,10 +1200,6 @@ extern char *var_virt_uid_maps;
 #define VAR_VIRT_GID_MAPS		"virtual_gid_maps"
 #define DEF_VIRT_GID_MAPS		""
 extern char *var_virt_gid_maps;
-
-#define VAR_VIRT_USEDOTLOCK		"virtual_usedotlock"
-#define DEF_VIRT_USEDOTLOCK		0
-extern bool var_virt_usedotlock;
 
 #define VAR_VIRT_MINUID			"virtual_minimum_uid"
 #define DEF_VIRT_MINUID			100

@@ -8,6 +8,10 @@ Purpose of this software
 You can use the virtual delivery agent for mailbox delivery of some
 or all domains that are handled by a machine.
 
+This mechanism is different from virtual domains that are implemented
+by translating each virtual address into a real local user. For
+that, see the virtual(5) manual page.
+
 This is what Andrew McNamara wrote when he made the virtual delivery
 agent available.
 
@@ -16,12 +20,12 @@ It looks up the location, uid and gid of user mailboxes via separate
 maps, and the mailbox location map can specify either mailbox or
 maildir delivery (controlled by trailing slash on mailbox name).
 
-The agent does not support aliases or .forwards (use the virtual
-table instead), and therefore doesn't support file or program
-aliases. This choice was made to simplify and streamline the code
-(it allowed me to dispense with 70% of local's code - mostly the
-bits that are a security headache) - if you need this functionality,
-this agent isn't for you.
+The agent does not support user+foo address extensions, aliases or
+.forward files (use the virtual table instead), and therefore
+doesn't support file or program aliases. This choice was made to
+simplify and streamline the code (it allowed me to dispense with
+70% of local's code - mostly the bits that are a security headache)
+- if you need this functionality, this agent isn't for you.
 
 It also doesn't support writing to a common spool as root and then
 chowning the mailbox to the user - I felt this functionality didn't
@@ -30,8 +34,7 @@ fit with my overall aims."
 [End of Andrew McNamara's words]
 
 The result is the most secure local delivery agent that you will
-find with Postfix. All deliveries are done with the privileges of
-the recipient.
+find with Postfix.
 
 This delivery agent requires three different lookup tables in order
 to define its recipients. This is because Postfix table lookups
@@ -61,7 +64,8 @@ virtual_mailbox_maps
 
     If a recipient is not found the mail is returned to the sender.
 
-    For security reasons, regexp maps are not allowed here.
+    For security reasons, regexp maps are not allowed here, because
+    their $1 etc. substitutions would open a security hole.
 
     The mail administrator is expected to create and chown recipient
     mailbox files or maildir directories ahead of time.
@@ -77,14 +81,16 @@ virtual_uid_maps
     Recipients are looked up in this map to determine the UID (owner
     privileges) to be used when writing to the target mailbox.
 
-    For security reasons, regexp maps are not allowed here.
+    For security reasons, regexp maps are not allowed here, because
+    their $1 etc. substitutions would open a security hole.
 
 virtual_gid_maps
 
     Recipients are looked up in this map to determine the GID (group
     privileges) to be used when writing to the target mailbox.
 
-    For security reasons, regexp maps are not allowed here.
+    For security reasons, regexp maps are not allowed here, because
+    their $1 etc. substitutions would open a security hole.
 
 virtual_mailbox_lock
 
@@ -107,8 +113,9 @@ Example 1: using the virtual delivery agent for all local mail
 ==============================================================
 
 This example does not use the Postfix local delivery agent at all.
-With this configuration Postfix does no alias expansion, no .forward
-file expansion, and no lookups of recipients in /etc/passwd.
+With this configuration Postfix does no user+foo address extension,
+no alias expansion, no .forward file expansion, and no lookups of
+recipients in /etc/passwd.
 
 Instead of "hash" specify "dbm" or "btree", depending on your system
 type.  The command "postconf -m" displays possible lookup table

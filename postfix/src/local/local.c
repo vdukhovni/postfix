@@ -356,8 +356,10 @@
 /* .fi
 /* .IP \fBallow_mail_to_commands\fR
 /*	Restrict the usage of mail delivery to external command.
+/*	Specify zero or more of: \fBalias\fR, \fBforward\fR, \fBinclude\fR.
 /* .IP \fBallow_mail_to_files\fR
 /*	Restrict the usage of mail delivery to external file.
+/*	Specify zero or more of: \fBalias\fR, \fBforward\fR, \fBinclude\fR.
 /* .IP \fBcommand_expansion_filter\fR
 /*	What characters are allowed to appear in $name expansions of
 /*	mailbox_command. Illegal characters are replaced by underscores.
@@ -637,7 +639,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * also affects delivery to command.
      * 
      * A file size limit protects the machine against runaway software errors.
-     * It is not suitable to enfoce mail quota, because users can get around
+     * It is not suitable to enforce mail quota, because users can get around
      * mail quota by delivering to /file/name or to |command.
      * 
      * We can't have mailbox size limit smaller than the message size limit,

@@ -1,5 +1,44 @@
-Apart from bugfixes this is expected to become the first non-beta
-Postfix release.
+Incompatible changes with snapshot-20010222
+===========================================
+
+The incoming and deferred queue directories are now hashed by
+default.  This improves the performance considerably under heavy
+load, at the cost of a small but noticeable slowdown when one runs
+"mailq" on an unloaded system.
+
+Postfix no longer automatically delivers recipients one at a time
+when their domain is listed in $mydestination.  This change solves
+delivery performance problems with delivery via LMTP, and with
+firewall relays that forward all mail for $mydestination to an
+inside host.
+
+The "one recipient at a time" delivery behavior is now controlled
+by the per-transport recipient limit (xxx_destination_recipient_limit,
+where xxx is the name of the delivery mechanism).  This parameter
+controls the number of recipients that can be sent in one delivery
+(surprise).
+
+The setting of the per-transport recipient limit also controls the
+meaning of the per-transport destination concurrency limit (named
+xxx_destination_concurrency_limit, where xxx is again the name of
+the delivery mechanism):
+
+ 1) When the per-transport recipient limit is 1 (i.e., send one
+    recipient per delivery), the per-transport destination concurrency
+    limit controls the number of simultaneous deliveries to the
+    same recipient.  This is the default behavior for delivery via
+    the Postfix local delivery agent.
+
+ 2) When the per-transport recipient limit is > 1 (i.e., send
+    multiple recipients per delivery), the per-transport destination
+    concurrency limit controls the number of simultaneous deliveries
+    to the same domain.  This is the default behavior for all other
+    Postfix delivery agents.
+
+The default settings are:  local_destination_recipient_limit = 1,
+local_destination_concurrency_limit = 2. Other delivery transports
+have default recipient limits (50) and have default per-destination
+concurrency limits (10).
 
 Major changes with snapshot-20010202
 ====================================

@@ -291,8 +291,6 @@ static int parse_callback(int type, VSTRING *buf, char *context)
 	    *expand_flag |= PIPE_FLAG_EXTENSION;
 	else if (strcmp(vstring_str(buf), PIPE_DICT_MAILBOX) == 0)
 	    *expand_flag |= PIPE_FLAG_MAILBOX;
-	else if (strcmp(vstring_str(buf), PIPE_DICT_SIZE) == 0)
-	    *expand_flag |= PIPE_FLAG_SIZE;
     }
     return (0);
 }
@@ -395,14 +393,6 @@ static ARGV *expand_argv(char **argv, RECIPIENT_LIST *rcpt_list, long data_size)
 				 rcpt_list->info[i].address);
 		    lowercase(STR(buf));
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_MAILBOX, STR(buf));
-		}
-
-		/*
-		 * This argument contains $size.
-		 */
-		if (expand_flag & PIPE_FLAG_SIZE) {
-		    vstring_sprintf(buf, "%ld", data_size);
-		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SIZE, STR(buf));
 		}
 
 		/*
@@ -698,6 +688,10 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, request->sender);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);
+    buf = vstring_alloc(10);
+    vstring_sprintf(buf, "%ld", (long) request->data_size);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_SIZE, STR(buf));
+    vstring_free(buf);
     expanded_argv = expand_argv(attr.command, rcpt_list, request->data_size);
     export_env = argv_split(var_export_environ, ", \t\r\n");
 

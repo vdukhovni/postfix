@@ -4856,7 +4856,7 @@ Apologies for any names omitted.
 
 20010203
 
-	Update: null candidate patch from Patrick Rak. Files:
+	Update: null candidate patch from Patrik Rak. Files:
 	nqmgr/qmgr_entry.c nqmgr/qmgr_job.c nqmgr/qmgr_message.c.
 
 	Cleanup: added one gruesome command to the postlink script
@@ -4869,3 +4869,46 @@ Apologies for any names omitted.
 	Laid the ground work for logging of table accesses. This
 	will give more insight into how Postfix uses its lookup
 	tables. User interface comes later.  File:  util/dict_debug.c.
+
+20010215
+
+	The showq output format assumes queue IDs of up to 10
+	characters.  It can be more with large  file systems.
+	Workaround for 11 character queue IDs by Lamont Jones.
+	File: showq/showq.c.
+
+20010216
+
+	Bugfix: the pipe delivery agent expanded $size as if it
+	were a recipient, instead of expanding it as $nexthop or
+	as $sender. Reported by Michael Tokarev. File: pipe/pipe.c.
+
+20010221
+
+	Bugfix: poor LMTP performance for domains that are listed
+	in $mydestination, because Postfix would send one recipient
+	at a time, with multiple deliveries of recipients of the
+	same message in parallel; a similar problem could exist
+	with firewall relay hosts that forward mail for $mydestination
+	to an inside machine. This behavior is now changed to depend
+	on the transport-specific xxx_destination_recipient_limit
+	parameter.  This also means that you can now get qmail behavior
+	for SMTP deliveries by setting smtp_destination_recipient_limit=1.
+	File:  {qmgr,nqmgr}/qmgr_message.c.
+
+	Workaround: Solaris socketpair() can fail with EINTR. Added
+	a sane_socketpair.c module that joins the ranks of the other
+	sane_whatever workarounds. Reported by Andrew McNamara.
+	File: util/sane_socketpair.[hc]
+
+20010222
+
+	Documentation: the default main.cf file has a prominent
+	warning that mynetworks should be properly configured in
+	order to reject unauthorized mail relay requests from
+	strangers.
+
+	Documentation: the INSTALL document, section "mandatory
+	configuration file edits" has a section that explains that
+	mynetworks should be properly configured in order to reject
+	unauthorized mail relay requests from strangers.

@@ -470,11 +470,13 @@ LOCAL(8)                                                 LOCAL(8)
 <b>Security</b> <b>controls</b>
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>commands</b>
               Restrict the usage of  mail  delivery  to  external
-              command.
+              command.   Specify zero or more of: <b>alias</b>, <b>forward</b>,
+              <b>include</b>.
 
        <b>allow</b><i>_</i><b>mail</b><i>_</i><b>to</b><i>_</i><b>files</b>
-              Restrict  the  usage  of  mail delivery to external
-              file.
+              Restrict the usage of  mail  delivery  to  external
+              file.   Specify  zero  or  more of: <b>alias</b>, <b>forward</b>,
+              <b>include</b>.
 
        <b>command</b><i>_</i><b>expansion</b><i>_</i><b>filter</b>
               What characters are  allowed  to  appear  in  $name
@@ -513,8 +515,6 @@ LOCAL(8)                                                 LOCAL(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
-
-
 
 
 

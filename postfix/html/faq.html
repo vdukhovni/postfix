@@ -26,6 +26,8 @@
 
 <li><a href="#sendmail_incompatibility">Sendmail incompatibility</a>
 
+<li><a href="#moby">Running hundreds of Postfix processes</a>
+
 <li><a href="#performance">Postfix performance</a>
 
 <li><a href="#receiving">Receiving mail via the network</a>
@@ -99,7 +101,27 @@ distribution list</a>
 
 </ul>
 
+<a name="moby"><h3>Running hundreds of Postfix processes</h3>
+
+<ul>
+
+<li><a href="#moby-freebsd">Running hundreds of Postfix processes on FreeBSD</a>
+
+<li><a href="#moby-linux">Running hundreds of Postfix processes on Linux</a>
+
+</ul>
+
+
 <a name="performance"><h3>Postfix performance</h3>
+
+<ul>
+
+<li><a href="#incoming">Too much mail in the incoming queue</a>
+
+<li><a href="#delay">Postfix responds slowly to incoming SMTP connections</a>
+
+</ul>
+
 
 <ul>
 
@@ -486,31 +508,39 @@ execute the command <b>postconf mail_version</b>.
 <p>
 
 How to set up Postfix on the firewall machine so that it relays
-mail for <i>my.domain</i> to a gateway machine on the inside, and
-so that it refuses mail for <i>*.my.domain</i>? The problem is that
-the standard <a href="uce.html#relay_domains">relay_domains</a>
-mail relaying restriction allows mail to <i>*.my.domain</i> when
-you specify <i>my.domain</i>.
+mail for <i>domain.com</i> to a gateway machine on the inside, and
+so that it refuses mail for <i>*.domain.com</i>? The problem is that
+the default <a href="uce.html#relay_domains">relay_domains</a>
+mail relaying restriction allows mail to <i>*.domain.com</i> when
+you specify <i>domain.com</i>.
 
 <p>
 
 <ul>
 
-<li>Specify a null <a href="uce.html#relay_domains">relay_domains</a>
-parameter plus a <a href="transport.5.html">transport</a> table to
-route mail for <i>my.domain</i> to the inside machine:
+<li>Specify a <a href="transport.5.html">transport</a> table to
+route mail for <i>domain.com</i> to the inside machine.
+
+<p>
+
+Specify explicit settings for <a
+href="uce.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
+and for <a href="basic.html#mynetworks">mynetworks</a> that allow
+local systems to send mail anywhere, and that allow remote systems
+to send mail only to <i>user@domain.com</i>.
 
 <p>
 
 <pre>
 /etc/postfix/main.cf:
-    mydestination = $myhostname, my.domain, localhost.my.domain
-    relay_domains =
+    myorigin = domain.com
+    mydestination = domain.com
     transport_maps = hash:/etc/postfix/transport
+    mynetworks = 12.34.56.0/24
+    smtpd_recipient_restrictions = permit_mynetworks reject_unauth_destination
 
 /etc/postfix/transport:
-    my.domain   smtp:inside-gateway.my.domain   (forwards user@domain)
-    .my.domain  smtp:inside-gateway.my.domain   (forwards user@firewall)
+    domain.com   smtp:inside-gateway.domain.com   (forwards user@domain)
 
 /etc/postfix/master.cf:
     Comment out the local delivery agent
@@ -803,6 +833,81 @@ which does not know that the sender address is being replaced.
 
 This limitation will be fixed by changing how the Postfix local
 delivery agent deals with undeliverable mail.
+
+<hr>
+
+<a name="moby-freebsd"><h3>Running hundreds of Postfix processes on FreeBSD</h3></a>
+
+With hundreds of Postfix processes, the kernel will eventually
+run out of file handles; after that, it will run out of sockets.
+
+<p>
+
+To set kernel parameters at boot time, add the following lines to
+the <b>/boot/loader.conf</b> file (this is specific to FreeBSD 4.x):
+
+<p>
+
+<blockquote>
+<pre>
+kern.ipc.maxsockets="5000"
+kern.maxfiles="16384"
+kern.maxfilesperproc="16384"
+kern.ipc.nmbclusters="65536"
+</pre>
+</blockquote>
+
+<p>
+
+To set kernel parameters at run time execute the following commands
+as root (this is specific to FreeBSD 4.x):
+
+<p>
+
+<blockquote>
+<pre>
+# sysctl -w kern.ipc.maxsockets=5000
+# sysctl -w kern.maxfiles=16384
+# sysctl -w kern.maxfilesperproc=16384
+# sysctl -w kern.ipc.nmbclusters=65536
+</pre>
+</blockquote>
+
+<hr>
+
+<a name="moby-linux"><h3>Running hundreds of Postfix processes on Linux</h3></a>
+
+When you increase the number of Postfix processes into the hundreds,
+the kernel will eventually run out of file handles; after that it
+is likely to run out of process slots.
+
+<p>
+
+To set parameters at boot time on Linux systems that have
+<b>/etc/sysctl.conf</b>, add the following lines:
+
+<p>
+
+<blockquote>
+<pre>
+fs.file-max = 16384
+kernel.threads-max = 2048
+</pre>
+</blockquote>
+
+<p>
+
+To set kernel parameters at run time, execute the following
+commands as <b>root</b>:
+
+<p>
+
+<blockquote>
+<pre>
+# echo 16384 > /proc/sys/fs/file-max
+# echo 2048 > /proc/sys/kernel/threads-max
+</pre>
+</blockquote>
 
 <hr>
 
@@ -2398,7 +2503,7 @@ with Postfix and HylaFax. Here's the setup used:
 
 <pre>
     /etc/postfix/master.cf:
-        fax       unix  -       n       n       -       -       pipe
+        fax       unix  -       n       n       -       1       pipe
             flags= user=fax argv=/usr/bin/faxmail -d -n ${user}
 
     /etc/postfix/transport:
@@ -2408,6 +2513,12 @@ with Postfix and HylaFax. Here's the setup used:
         transport_maps = hash:/etc/postfix/transport
 	fax_destination_recipient_limit = 1
 </pre>
+
+<p>
+
+The process limit of 1 in the <b>master.cf</b> file is necessary
+with fax software that cannot handle multiple requests at the same
+time. It won't hurt otherwise.
 
 <p>
 
@@ -2423,7 +2534,7 @@ types Postfix supports, use the command <b>postconf -m</b>.
 
 <p>
 
-Note: be sure to not advertise <b>fax.your.domain</b> in the DNS...
+Note: be sure to not advertise <b>fax.your.domain</b> in the DNS :-)
 
 <hr>
 
@@ -2461,9 +2572,9 @@ Postfix first.
 
 <p>
 
-Do not use the above command on a running Postfix system, because
-it can delete files that belong to new mail that arrives while you
-are deleting queue files.
+Do not use the above <b>find</b> command on a running Postfix
+system, because it can delete files that belong to new mail that
+arrives while you are deleting queue files.
 
 <hr>
 

@@ -115,13 +115,66 @@ mail_owner = postfix
 # a name matches a lookup key.  Continue long lines by starting the
 # next line with whitespace.
 #
-# DO NOT LIST VIRTUAL DOMAINS HERE. LIST THEM IN THE VIRTUAL FILE
-# INSTEAD. BE SURE TO READ THE ENTIRE VIRTUAL MANUAL PAGE.
-#
 #mydestination = $myhostname, localhost.$mydomain
 #mydestination = $myhostname, localhost.$mydomain $mydomain
 #mydestination = $myhostname, localhost.$mydomain, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
+
+# RELAY CONTROL
+
+# The mynetworks parameter specifies the list of networks that make
+# up the local neighborhood. The list is used by the anti-UCE software
+# to distinguish local clients from strangers. See permit_mynetworks
+# and smtpd_recipient_restrictions in the file sample-smtpd.cf file.
+#
+# The default is a list of all networks attached to the machine:  a
+# complete class A network (X.0.0.0/8), a complete class B network
+# (X.X.0.0/16), and so on.
+# 
+# YOU MUST CHANGE THIS DEFAULT SETTING IF YOUR ADDRESS BLOCK IS PART
+# OF A LARGER ADDRESS RANGE THAT IS OWNED BY YOUR PROVIDER - IT WOULD
+# CAUSE POSTFIX TO RELAY MAIL FROM ALL THEIR CUSTOMERS.
+# 
+# If you need stricter control than the default, specify a list of
+# network/mask patterns, where the mask specifies the number of bits
+# in the network part of a host address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here.
+#
+#mynetworks = 168.100.189.0/28, 127.0.0.0/8
+#mynetworks = $config_directory/mynetworks
+
+# The relay_domains parameter restricts what clients this mail system
+# will relay mail from, or what destinations this system will relay
+# mail to.  See the smtpd_recipient_restrictions restriction in the
+# file sample-smtpd.cf for detailed information.
+#
+# By default, Postfix relays mail
+# - from "trusted" clients whose IP address matches $mynetworks, 
+# - from "trusted" clients matching $relay_domains or subdomains thereof,
+# - from untrusted clients to destinations that match $relay_domains
+#   or subdomains thereof, except addresses with sender-specified routing.
+# The default relay_domains value is $mydestination.
+# 
+# In addition to the above, the Postfix SMTP server by default accepts mail
+# that Postfix is final destination for:
+# - destinations that match $inet_interfaces,
+# - destinations that match $mydestination
+# - destinations that match $virtual_maps.
+# These destinations do not need to be listed in $relay_domains.
+# 
+# Specify a list of hosts or domains, /file/name patterns or type:name
+# lookup tables, separated by commas and/or whitespace.  Continue
+# long lines by starting the next line with whitespace. A file name
+# is replaced by its contents; a type:name table is matched when a
+# (parent) domain appears as lookup key.
+#
+# NOTE: Postfix will not automatically forward mail for domains that
+# list this system as their primary or backup MX host. See the
+# permit_mx_backup restriction in the file sample-smtpd.cf.
+#
+#relay_domains = $mydestination
 
 # INTERNET OR INTRANET
 
@@ -321,53 +374,6 @@ mail_owner = postfix
 #
 #header_checks = regexp:/etc/postfix/filename
 #header_checks = pcre:/etc/postfix/filename
-
-# The relay_domains parameter restricts what clients this mail system
-# will relay mail from, or what destinations this system will relay
-# mail to.  See the smtpd_recipient_restrictions restriction in the
-# file sample-smtpd.cf.
-#
-# By default, Postfix relays mail
-# - from trusted clients whose IP address matches $mynetworks, 
-# - from trusted clients matching $relay_domains or subdomains thereof,
-# - from untrusted clients to destinations that match $relay_domains
-#   or subdomains thereof, except addresses with sender-specified routing.
-# The default relay_domains value is $mydestination.
-# 
-# In addition to the above, the Postfix SMTP server by default accepts mail
-# that Postfix is final destination for:
-# - destinations that match $inet_interfaces,
-# - destinations that match $mydestination
-# - destinations that match $virtual_maps.
-# These destinations do not need to be listed in $relay_domains.
-# 
-# Specify a list of hosts or domains, /file/name patterns or type:name
-# lookup tables, separated by commas and/or whitespace.  Continue
-# long lines by starting the next line with whitespace. A file name
-# is replaced by its contents; a type:name table is matched when a
-# (parent) domain appears as lookup key.
-#
-# NOTE: Postfix will not automatically forward mail for domains that
-# list this system as their primary or backup MX host. See the
-# permit_mx_backup restriction in the file sample-smtpd.cf.
-#
-#relay_domains = $mydestination
-
-# The mynetworks parameter specifies the list of networks that are
-# local to this machine.  The list is used by the anti-UCE software
-# to distinguish local clients from strangers. See permit_mynetworks
-# and smtpd_recipient_restrictions in the file sample-smtpd.cf file.
-#
-# The default is a list of all networks attached to the machine:  a
-# complete class A network (X.0.0.0/8), a complete class B network
-# (X.X.0.0/16), and so on. If you want stricter control, specify a
-# list of network/mask patterns, where the mask specifies the number
-# of bits in the network part of a host address. You can also specify
-# the absolute pathname of a pattern file instead of listing the
-# patterns here.
-#
-#mynetworks = 168.100.189.0/28, 127.0.0.0/8
-#mynetworks = $config_directory/mynetworks
 
 # FAST ETRN SERVICE
 #

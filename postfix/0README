@@ -21,9 +21,7 @@ Purpose of the Postfix mail system
 ==================================
 
 Postfix aims to be an alternative to the widely-used sendmail
-program.  Sendmail is responsible for 70% of all e-mail delivered
-on the Internet.  With an estimated 100 million users, that's an
-estimated 10 billion (10^10) messages daily. A stunning number.
+program.
 
 Although IBM supported the Postfix development, it abstains from
 control over its evolution. The goal is to have Postfix installed
@@ -71,15 +69,6 @@ you are welcome to send a postcard to:
 Roadmap of the Postfix source distribution
 ==========================================
 
-Point your browser at html/index.html for Postfix documentation,
-for manual pages, and for the unavoidable Postfix FAQ. Expect to
-see updated versions on-line at http://www.postfix.org/
-
-Point your MANPATH environment variable at the `man' directory (use
-an absolute path) for UNIX-style on-line manual pages.  These pages
-are also available through the HTML interface, which allows you to
-navigate faster.
-
 The RELEASE_NOTES file describes new features, and lists incompatible
 changes with respect to previous Postfix versions.
 
@@ -91,10 +80,17 @@ not yet implement, and how well it works with other software.
 
 The HISTORY file gives a detailed log of changes to the software.
 
+Point your browser at html/index.html for Postfix documentation,
+for manual pages, and for the unavoidable Postfix FAQ. Expect to
+see updated versions on-line at http://www.postfix.org/
+
+Point your MANPATH environment variable at the `man' directory (use
+an absolute path) for UNIX-style on-line manual pages.  These pages
+are also available through the HTML interface, which allows you to
+navigate faster.
+
 The PORTING file discusses how to go about porting Postfix to other
-UNIX platforms. Some people are looking into a port to Windows NT.
-We'll see. This software uses every trick in the book that I learned
-about UNIX.
+UNIX platforms.
 
 The TODO file lists things that still need to be done. If you want
 to set your teeth into one of those problems, drop me a note at

@@ -218,7 +218,7 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl"
 		;;
-Rhapsody.5*|Darwin.1.2*)
+Rhapsody.5*|Darwin.1.*)
 		SYSTYPE=RHAPSODY5
 		# Use the native compiler by default
 		: ${CC=cc}

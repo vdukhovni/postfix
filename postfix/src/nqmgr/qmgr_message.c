@@ -670,8 +670,11 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 
 	/*
 	 * Queues are identified by the transport name and by the next-hop
-	 * hostname. When the destination is local (no next hop), derive the
-	 * queue name from the recipient name. XXX Should split the address
+	 * hostname. When the delivery agent accepts only one recipient per
+	 * delivery, give each recipient its own queue, so that deliveries to
+	 * different recipients of the same message can happen in parallel.
+	 * This also has the benefit that one bad recipient cannot interfere
+	 * with deliveries to other recipients. XXX Should split the address
 	 * on the recipient delimiter if one is defined, but doing a proper
 	 * job requires knowledge of local aliases. Yuck! I don't want to
 	 * duplicate delivery-agent specific knowledge in the queue manager.
@@ -679,23 +682,27 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * queue name. Should have separate fields for queue name and for
 	 * destination.
 	 */
-	if ((at = strrchr(STR(reply.recipient), '@')) == 0
-	    || resolve_local(at + 1)) {
-	    len = (at != 0 ? (at - STR(reply.recipient))
-		   : strlen(STR(reply.recipient)));
+	at = strrchr(STR(reply.recipient), '@');
+	len = (at ? (at - STR(reply.recipient)) : strlen(STR(reply.recipient)));
+
+	if ((transport = qmgr_transport_find(STR(reply.transport))) == 0)
+	    transport = qmgr_transport_create(STR(reply.transport));
+	if (transport->recipient_limit == 1) {
 	    VSTRING_SPACE(reply.nexthop, len + 1);
 	    memmove(STR(reply.nexthop) + len + 1, STR(reply.nexthop),
 		    LEN(reply.nexthop) + 1);
 	    memcpy(STR(reply.nexthop), STR(reply.recipient), len);
 	    STR(reply.nexthop)[len] = '@';
 	    lowercase(STR(reply.nexthop));
+	}
 
-	    /*
-	     * Discard mail to the local double bounce address here, so this
-	     * system can run without a local delivery agent. They'd still
-	     * have to configure something for mail directed to the local
-	     * postmaster, though, but that is an RFC requirement anyway.
-	     */
+	/*
+	 * Discard mail to the local double bounce address here, so this
+	 * system can run without a local delivery agent. They'd still have
+	 * to configure something for mail directed to the local postmaster,
+	 * though, but that is an RFC requirement anyway.
+	 */
+	if (at == 0 || resolve_local(at + 1)) {
 	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
 			    len) == 0
 		&& !var_double_bounce_sender[len]) {
