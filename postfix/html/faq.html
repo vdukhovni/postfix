@@ -22,9 +22,11 @@
 
 <ul>
 
-<li><a href="#example_config">Example configurations</a>
+<li><a href="#poppers">POP or IMAP problems</a>
 
 <li><a href="#warnings">Postfix warnings and error messages</a>
+
+<li><a href="#example_config">Example configurations</a>
 
 <li><a href="#sendmail_incompatibility">Sendmail incompatibility</a>
 
@@ -58,6 +60,26 @@
 
 <p>
 
+<a name="warnings"><h3>Postfix warnings and error messages</h3>
+
+<ul>
+
+<li><a href="#biff">What does "biff_notify: Connection refused" mean?</a>
+
+<li><a href="#nisdom">What does "NIS domain name not set - NIS lookups disabled" mean?</a>
+
+<li><a href="#dns-again">Mail stays queued with: Host not found, try again</a>
+
+<li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
+
+<li><a href="#noalias">What does "fatal: open database /etc/aliases.db" mean?</a>
+
+<li><a href="#nosuid">sendmail has set-uid root file permissions, or is run from a set-uid root process</a>
+
+</ul>
+
+<p>
+
 <a name="example_config"><h3>Example configurations</h3>
 
 <ul>
@@ -73,24 +95,6 @@
 <li><a href="#firewall">Running Postfix on a firewall</a>
 
 <li><a href="#dialup">Running Postfix on a dialup machine</a>
-
-</ul>
-
-<p>
-
-<a name="warnings"><h3>Postfix warnings and error messages</h3>
-
-<ul>
-
-<li><a href="#biff">What does "biff_notify: Connection refused" mean?</a>
-
-<li><a href="#nisdom">What does "NIS domain name not set - NIS lookups disabled" mean?</a>
-
-<li><a href="#dns-again">Mail stays queued with: Host not found, try again</a>
-
-<li><a href="#timeouts">Mail fails consistently with timeout or lost connection</a>
-
-<li><a href="#noalias">What does "fatal: open database /etc/aliases.db" mean?</a>
 
 </ul>
 
@@ -306,6 +310,44 @@ mailbox</a>
 <li><a href="#sgistruct">IRIX problems translating IP address to string</a>
 
 </ul>
+
+<hr>
+
+<a name="poppers"><h3>POP or IMAP problems</h3>
+
+Postfix is a mail delivery system. Postfix does not implement
+services such as POP or IMAP to read mail. Several POP/IMAP
+implementations exist that can cooperate with software such as
+Postfix.
+
+<p>
+
+Examples of software that is used successfully with Postfix:
+
+<p>
+
+<ul>
+
+<li><a href="http://asg.web.cmu.edu/cyrus/">Cyrus IMAP</a> implements
+IMAP, POP3, and KPOP, later versions also support TLS. This software
+implements its own private mail database system. Not for beginners.
+
+<p>
+
+<li><a href="http://www.inter7.com/courierimap/">Courier-Imap</a>
+provides POP3, IMAP, POP3 and IMAP, and supports access over SSL.
+This software supports the maildir-style mailbox format only
+(one message per file, same format as qmail).
+
+<p>
+
+<li><a href="http://www.eudora.com/qpopper/">Qpopper</a> supports 
+POP3, TLS (SSL), and uses the traditional UNIX-style mailbox format
+(multiple messages per file, each message starts with "From sender date...").
+
+</ul>
+
+<p>
 
 <hr>
 
@@ -863,6 +905,68 @@ following command as root:
 <pre>
     # newaliases
 </pre>
+
+<hr>
+
+<a name="nosuid"><h1>sendmail has set-uid root file permissions, or is run from a
+set-uid root process</h3></a>
+
+Traditionally, the UNIX <b>sendmail</b> command is installed with
+set-uid root permissions. Even many MTAs other than Sendmail ship
+with a set-uid root <b>sendmail</b> command. This is not the case
+with Postfix.  The Postfix <b>sendmail</b> command is designed not
+to be set-uid.
+
+<p>
+
+Unfortunately, some Linux systems have a helpful utility called
+<b>linuxconf</b> that automatically "fixes" file permissions to
+what they are supposed to be for Sendmail's <b>sendmail</b> command.
+Even when you reset the set-uid bit on the Postfix <b>sendmail</b>
+executable file, <b>linuxconf</b> will happily turn it on again
+for you.
+
+<p>
+
+On SuSE systems the file permission fixing utulity is called
+<b>SuSEconfig</b>.  Other Linux systems may use different names.
+The usual disclaimers about mileages etc. apply.
+
+<p>
+
+<h4>Solutions</h4>
+
+<ul>
+
+<li>Rask Ingemann Lambertsen has a particularly effective
+solution :-)
+
+<blockquote>
+<pre>
+# /etc/rc.d/init.d/linuxconf stop && rpm --erase linuxconf 
+</pre>
+</blockquote>
+
+<li>According to Matthias Andree, the band-aid fix for SuSE is to
+add to /etc/permissions.local the following line:
+
+<blockquote>
+<pre>
+/usr/sbin/sendmail root.root 755
+</pre>
+</blockquote>
+
+and to make sure that in /etc/rc.config,
+PERMISSIONS_SECURITY mentions local last, EXAMPLE:
+
+<blockquote>
+<pre>
+CHECK_PERMISSIONS=set
+PERMISSION_SECURITY="secure local"
+</pre>
+</blockquote>
+
+</ul>
 
 <hr>
 
@@ -2629,8 +2733,8 @@ Note: be sure to not advertise <b>fax.your.domain</b> in the DNS :-)
 
 <a name="deleting"><h3>Deleting a message from the Postfix queue</h3></a>
 
-To delete ONE message with queue id ABCDEF from the Postfix queue,
-it is not necessary to stop Postfix.
+To delete ONE message with queue id ABCDEF (e.g., from <b>mailq</b>
+output) from the Postfix queue, it is not necessary to stop Postfix.
 
 <p>
 
@@ -2647,8 +2751,8 @@ the same queue file name.
 
 <p>
 
-If you have to delete a large amount of mail, it is safer to stop
-Postfix first.
+If you have to delete a large amount of mail, you must stop Postfix
+first.
 
 <p>
 <pre>

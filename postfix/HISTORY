@@ -4948,6 +4948,15 @@ Apologies for any names omitted.
 	Code cleanup: Postfix should now run with no alias database.
 
 	Code cleanup: local_destination_recipient_limit and
-	local_destination_concurrency_limit are not first-class
+	local_destination_concurrency_limit have become first-class
 	configuration parameters. Files: global/mail_params.h,
 	*qmgr/qmgr.c, postconf/postconf.c.
+
+20010226
+
+	Documentation suggestions by Lars Hecking and Richard
+	Huxton, Matthias Andree and many others.
+
+	Code cleanup: some queue/transport operations need to be
+	moved, after the code cleanup of the recipient/concurrency
+	limit handling. Patrik Rak.  Files: *qmgr/qmgr_message.c.

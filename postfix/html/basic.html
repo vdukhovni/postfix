@@ -335,7 +335,10 @@ is to let Postfix do the work for you.
 <dl>
 
 <dt> <b>class</b> <dd> Trust SMTP clients in the class A/B/C networks
-that Postfix is connected to.
+that Postfix is connected to. <b>Don't do this with a dialup site
+- it would cause Postfix to "trust" your entire provider's network.
+Instead, specify an explicit mynetworks list by hand, as described
+below</b>.
 
 <p>
 
@@ -352,8 +355,10 @@ subnetworks that Postfix is connected to.
 
 <p>
 
-To specify the list of trusted networks by hand, specify 
-network blocks in CIDR (network/mask) notation, for example:
+Alternatively, you can specify the <b>mynetworks</b> list by hand,
+in which case Postfix ignores the <b>mynetworks_style</b> setting.
+To specify the list of trusted networks by hand, specify network
+blocks in CIDR (network/mask) notation, for example:
 
 <p>
 
@@ -362,6 +367,11 @@ network blocks in CIDR (network/mask) notation, for example:
 <dd> <b>mynetworks = 168.100.189.0/28, 127.0.0.0/8</b>
 
 </dl>
+
+<p>
+
+You can also specify the absolute pathname of a pattern file instead
+of listing the patterns in the <b>main.cf</b> file.
 
 <a name="inet_interfaces"> <h2> My own network addresses </h2> </a>
 

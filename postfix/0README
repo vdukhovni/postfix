@@ -2,8 +2,13 @@ Purpose of this document
 ========================
 
 This document provides a road map of the Postfix mail system source
-code distribution.  I suggest that you take a few minutes to read
-this file, and then proceed with the INSTALL instructions.
+code distribution.  I suggest that you
+
+- take a few minutes to read this file,
+
+- review the RELEASE_NOTES file for incompatible changes,
+
+- and then proceed with the INSTALL instructions.
 
 Introduction
 ============

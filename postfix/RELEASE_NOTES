@@ -1,3 +1,8 @@
+Release 20010228 differs from snapshot 20010228 in that the virtual
+delivery agent and nqmgr queue manager are left out. That software
+will become part of the official release when it has not changed
+in a while.
+
 Incompatible changes with snapshot-20010225
 ===========================================
 

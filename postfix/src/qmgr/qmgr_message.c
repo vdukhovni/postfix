@@ -565,8 +565,16 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	at = strrchr(STR(reply.recipient), '@');
 	len = (at ? (at - STR(reply.recipient)) : strlen(STR(reply.recipient)));
 
-	if ((transport = qmgr_transport_find(STR(reply.transport))) == 0)
-	    transport = qmgr_transport_create(STR(reply.transport));
+	/*
+	 * Look up or instantiate the proper transport. We're working a
+	 * little ahead, doing queue management stuff that used to be done
+	 * way down.
+	 */
+	if (transport == 0 || !STREQ(transport->name, STR(reply.transport))) {
+	    if ((transport = qmgr_transport_find(STR(reply.transport))) == 0)
+		transport = qmgr_transport_create(STR(reply.transport));
+	    queue = 0;
+	}
 	if (transport->recipient_limit == 1) {
 	    VSTRING_SPACE(reply.nexthop, len + 1);
 	    memmove(STR(reply.nexthop) + len + 1, STR(reply.nexthop),
@@ -620,6 +628,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * bind each recipient to an in-core queue instance which is needed
 	 * anyway. That gives all information needed for recipient grouping.
 	 */
+#if 0
 
 	/*
 	 * Look up or instantiate the proper transport.
@@ -629,6 +638,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		transport = qmgr_transport_create(STR(reply.transport));
 	    queue = 0;
 	}
+#endif
 
 	/*
 	 * This transport is dead. Defer delivery to this recipient.

@@ -178,6 +178,11 @@ log in, and can be given a "*" password and non-existent shell and
 home directory.  This user handles all potentially dangerous mail
 content - that is why it should be a separate account.
 
+In the above example, Postfix listens on port localhost:10025.  If
+you want to have your filter listening on port localhost:10025
+instead of Postfix, then you must run your filter as a stand-alone
+program.
+
 The /some/where/filter command is most likely a PERL script. PERL
 has modules that make talking SMTP easy. The command-line specifies
 that mail should be sent back into Postfix via localhost port 10026.

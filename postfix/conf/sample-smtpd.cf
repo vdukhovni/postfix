@@ -108,12 +108,17 @@ smtpd_hard_error_limit = 100
 # through Postfix.  See the smtpd_recipient_restrictions parameter
 # in file sample-smtpd.cf.
 #
+# You can specify the list of "trusted" network addresses by hand
+# or you can let Postfix do it for you (which is the default).
+#
 # By default (mynetworks_style = subnet), Postfix "trusts" SMTP
 # clients in the same IP subnetworks as the local machine.
 # 
 # Specify "mynetworks_style = class" when Postfix should "trust" SMTP
 # clients in the same IP class A/B/C networks as the local machine.
-# This used to be the default. It is appropriate for service providers.
+# Don't do this with a dialup site - it would cause Postfix to "trust"
+# your entire provider's network.  Instead, specify an explicit
+# mynetworks list by hand, as described below.
 #  
 # Specify "mynetworks_style = host" when Postfix should "trust"
 # only the local machine.
@@ -122,10 +127,12 @@ smtpd_hard_error_limit = 100
 mynetworks_style = subnet
 # mynetworks_style = host
 
-# Instead of using mynetworks_style to implicitly derive the mynetworks
-# list from local machine addresses, you can specify an explicit list
-# of network/netmask patterns, where the mask specifies the number of
-# bits in the network part of a host address.
+# Alternatively, you can specify the mynetworks list by hand, in
+# which case Postfix ignores the mynetworks_style setting.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
 #
 # You can also specify the absolute pathname of a pattern file instead
 # of listing the patterns here.

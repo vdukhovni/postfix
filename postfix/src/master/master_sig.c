@@ -214,6 +214,8 @@ void    master_sigsetup(void)
 	msg_fatal("pipe: %m");
     non_blocking(SIG_PIPE_WRITE_FD, NON_BLOCKING);
     non_blocking(SIG_PIPE_READ_FD, NON_BLOCKING);
+    close_on_exec(SIG_PIPE_WRITE_FD, CLOSE_ON_EXEC);
+    close_on_exec(SIG_PIPE_READ_FD, CLOSE_ON_EXEC);
     event_enable_read(SIG_PIPE_READ_FD, master_sig_event, (char *) 0);
 #endif
 

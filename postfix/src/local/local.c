@@ -284,9 +284,9 @@
 /*	forwarding mail is not recommended.
 /* .IP \fBrecipient_delimiter\fR
 /*	Separator between username and address extension.
-/* .IP \fBtest_home_directory\fR
+/* .IP \fBrequire_home_directory\fR
 /*	Require that a recipient's home directory is accessible by the
-/*	recipient before attempting delivery.
+/*	recipient before attempting delivery. Defer delivery otherwise.
 /* .SH Mailbox delivery
 /* .ad
 /* .fi
@@ -323,7 +323,7 @@
 /*	an exclusive lock.
 /* .IP \fBstale_lock_time\fR
 /*	Limit the time after which a stale lock is removed.
-/* .IP \fBmailbox__delivery_lock\fR
+/* .IP \fBmailbox_delivery_lock\fR
 /*	What file locking method(s) to use when delivering to a UNIX-style
 /*	mailbox.
 /*	The default setting is system dependent.  For a list of available
