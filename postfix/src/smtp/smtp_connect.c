@@ -111,6 +111,7 @@
 #include <iostuff.h>
 #include <timed_connect.h>
 #include <stringops.h>
+#include <host_port.h>
 
 /* Global library. */
 
@@ -325,49 +326,21 @@ static char *smtp_parse_destination(char *destination, char *def_service,
 				            char **hostp, unsigned *portp)
 {
     char   *buf = mystrdup(destination);
-    char   *host = buf;
     char   *service;
     struct servent *sp;
     char   *protocol = "tcp";		/* XXX configurable? */
     unsigned port;
-    char   *cruft;
+    const char *err;
 
     if (msg_verbose)
 	msg_info("smtp_parse_destination: %s %s", destination, def_service);
 
     /*
-     * Strip quoting. We're working with a copy of the destination argument
-     * so the stripping can be destructive.
+     * Parse the host/port information. We're working with a copy of the
+     * destination argument so the parsing can be destructive.
      */
-    if (*host == '[') {
-	host++;
-	cruft = split_at(host, ']');
-    } else
-	cruft = 0;
-
-    /*
-     * Separate host and service information, or use the default service
-     * specified by the caller. XXX the ":" character is used in the IPV6
-     * address notation, so we will have to deprecate the use of [host:port]
-     * in favor of [host]:port.
-     */
-    if (cruft && *cruft) {
-	if ((service = split_at_right(cruft, ':')) == 0)
-	    service = def_service;
-    } else {
-	if ((service = split_at_right(host, ':')) == 0)
-	    service = def_service;
-#if 0
-	else if (cruft) {
-	    msg_warn("old-style address form: %s", destination);
-	    msg_warn("support for [host:port] forms will go away");
-	    msg_warn("specify [host]:port instead");
-	}
-#endif
-    }
-    if (*service == 0)
-	msg_fatal("empty service name: %s", destination);
-    *hostp = host;
+    if ((err = host_port(buf, hostp, &service, def_service)) != 0)
+	msg_fatal("%s in SMTP server description: %s", err, destination);
 
     /*
      * Convert service to port number, network byte order.

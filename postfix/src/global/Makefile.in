@@ -532,6 +532,7 @@ hold_message.o: hold_message.c
 hold_message.o: ../../include/sys_defs.h
 hold_message.o: ../../include/msg.h
 hold_message.o: ../../include/set_eugid.h
+hold_message.o: ../../include/sane_fsops.h
 hold_message.o: mail_queue.h
 hold_message.o: ../../include/vstring.h
 hold_message.o: ../../include/vbuf.h

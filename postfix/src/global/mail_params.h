@@ -658,7 +658,7 @@ extern int var_debug_peer_level;
   * subdirectories, and how deep the forest is.
   */
 #define VAR_HASH_QUEUE_NAMES	"hash_queue_names"
-#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush"
+#define DEF_HASH_QUEUE_NAMES	"incoming,active,deferred,bounce,defer,flush,hold"
 extern char *var_hash_queue_names;
 
 #define VAR_HASH_QUEUE_DEPTH	"hash_queue_depth"

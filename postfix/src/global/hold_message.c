@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <hold_message.h>
 /*
-/*	void	hold_message(path_buf, queue_name, queue_id)
+/*	int	hold_message(path_buf, queue_name, queue_id)
 /*	VSTRING *path_buf;
 /*	const char *queue_name;
 /*	const char *queue_id;
@@ -22,6 +22,8 @@
 /*	Queue name with the message that needs to be placed on hold.
 /* .IP queue_id
 /*	Queue file name with the message that needs to be placed on hold.
+/* DIAGNOSTICS
+/*	The result is -1 in case of failure, 0 in case of success.
 /* LICENSE
 /* .ad
 /* .fi
@@ -45,6 +47,7 @@
 
 #include <msg.h>
 #include <set_eugid.h>
+#include <sane_fsops.h>
 
 /* Global library. */
 
@@ -56,13 +59,14 @@
 
 /* hold_message - move message to hold queue */
 
-void    hold_message(VSTRING *path_buf, const char *queue_name,
+int     hold_message(VSTRING *path_buf, const char *queue_name,
 		             const char *queue_id)
 {
     VSTRING *old_path = vstring_alloc(100);
     VSTRING *new_path = 0;
     uid_t   saved_uid;
     gid_t   saved_gid;
+    int     err;
 
     /*
      * If not running as the mail system, change privileges first.
@@ -79,20 +83,16 @@ void    hold_message(VSTRING *path_buf, const char *queue_name,
 	new_path = path_buf = vstring_alloc(100);
 
     /*
-     * Grr. Don't do stupid things when this function is called multiple
-     * times. sane_rename() would emit a bogus warning about spurious NFS
-     * problems.
+     * This code duplicates mail_queue_rename(), except that it also returns
+     * the result pathname to the caller.
      */
     (void) mail_queue_path(old_path, queue_name, queue_id);
     (void) mail_queue_path(path_buf, MAIL_QUEUE_HOLD, queue_id);
-    if (access(STR(old_path), F_OK) == 0) {
-	if (rename(STR(old_path), STR(path_buf)) == 0
-	    || (access(STR(old_path), F_OK) < 0
-		&& access(STR(path_buf), F_OK) == 0)) {
-	    if (msg_verbose)
-		msg_info("%s: placed on hold", queue_id);
-	} else
-	    msg_warn("%s: could not place message on hold: %m", queue_id);
+    if ((err = sane_rename(STR(old_path), STR(path_buf))) == 0
+	|| ((err = mail_queue_mkdirs(STR(path_buf)) == 0)
+	    && (err = sane_rename(STR(old_path), STR(path_buf))) == 0)) {
+	if (msg_verbose)
+	    msg_info("%s: placed on hold", queue_id);
     }
 
     /*
@@ -107,4 +107,6 @@ void    hold_message(VSTRING *path_buf, const char *queue_name,
     vstring_free(old_path);
     if (new_path)
 	vstring_free(new_path);
+
+    return (err);
 }

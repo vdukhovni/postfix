@@ -1,20 +1,19 @@
-#ifndef _HOLD_MESSAGE_H_INCLUDED_
-#define _HOLD_MESSAGE_H_INCLUDED_
+#ifndef _HOST_PORT_H_INCLUDED_
+#define _HOST_PORT_H_INCLUDED_
 
 /*++
 /* NAME
-/*	hold_message 3h
+/*	host_port 3h
 /* SUMMARY
-/*	mark queue file as corrupt
+/*	split string into host and port, destroy string
 /* SYNOPSIS
-/*	#include <hold_message.h>
+/*	#include <host_port.h>
 /* DESCRIPTION
 /* .nf
 
- /*
-  * External interface.
-  */
-extern int hold_message(VSTRING *, const char *, const char *);
+ /* External interface. */
+
+extern const char *host_port(char *, char **, char **, char *);
 
 /* LICENSE
 /* .ad

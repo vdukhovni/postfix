@@ -213,7 +213,9 @@ int     cleanup_flush(CLEANUP_STATE *state)
      */
     if (state->errs == 0 && (state->flags & CLEANUP_FLAG_DISCARD) == 0) {
 	if ((state->flags & CLEANUP_FLAG_HOLD) != 0) {
-	    hold_message(state->temp1, state->queue_name, state->queue_id);
+	    if (hold_message(state->temp1, state->queue_name, state->queue_id) < 0)
+		msg_fatal("%s: problem putting message on hold: %m",
+			  state->queue_id);
 	    junk = cleanup_path;
 	    cleanup_path = mystrdup(vstring_str(state->temp1));
 	    myfree(junk);

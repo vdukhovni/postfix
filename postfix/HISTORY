@@ -7235,6 +7235,22 @@ Apologies for any names omitted.
 	send data into unauthorized ports.  Files:  *qmgr/qmgr_message.c,
 	trivial-rewrite/resolve.c.
 
+20021128
+
+	Feature: hashed hold queue support, with hashing turned on
+	by default. Omission spotted by Victor Duchovni, Morgan
+	Stanley. Files: global/hold_message.c, global/mail_params.h.
+
+	Bugfix: the LMTP client lost the port(service) information
+	when parsing host:port information. Victor Duchovni, Morgan
+	Stanley. Fix is to have a new host_port(3) module that does
+	the parsing for the SMTP and LMTP clients.
+
+	Cleanup: host_port() routine that parses host/port information
+	more consistently than the existing code in the LMTP and
+	SMTP clients. Files: smtp/smtp_connect.c, lmtp/lmtp_connect.c,
+	util/host_port.[hc].
+
 Open problems:
 
 	Low: revise other local delivery agent duplicate filters.
