@@ -22,7 +22,8 @@ Configuring the local_recipient_maps parameter
 
 The local_recipient_maps parameter specifies lookup tables with
 all names or addresses of local recipients. A recipient address is
-local when the address domain matches $mydestination or $inet_interfaces.
+local when the address domain matches $mydestination, $inet_interfaces
+or $proxy_interfaces.
 
 The right-hand side of the lookup tables is conveniently ignored.
 In the left-hand side, specify a bare username, an @domain.tld

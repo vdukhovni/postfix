@@ -226,7 +226,8 @@ responses. The extra detail makes trouble shooting easier
 but also reveals information that is nobody elses business.
 .IP \fBunknown_local_recipient_reject_code\fR
 The response code when a client specifies a recipient whose domain
-matches \fB$mydestination\fR or \fB$inet_interfaces\fR, while
+matches \fB$mydestination\fR, \fB$inet_interfaces\fR or
+\fB$proxy_interfaces\fR, while
 \fB$local_recipient_maps\fR is non-empty and does not list
 the recipient address or address local-part.
 .IP \fBunknown_relay_recipient_reject_code\fR

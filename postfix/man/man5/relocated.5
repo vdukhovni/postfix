@@ -61,7 +61,7 @@ other forms.
 .IP \fIuser\fR
 Matches \fIuser\fR@\fIsite\fR when \fIsite\fR is $\fBmyorigin\fR,
 when \fIsite\fR is listed in $\fBmydestination\fR, or when \fIsite\fR
-is listed in $\fBinet_interfaces\fR.
+is listed in $\fBinet_interfaces\fR or $\fBproxy_interfaces\fR.
 .IP @\fIdomain\fR
 Matches every address in \fIdomain\fR. This form has the lowest
 precedence.
@@ -136,6 +136,9 @@ You need to stop and start Postfix when this parameter changes.
 List of domains that this mail system considers local.
 .IP \fBmyorigin\fR
 The domain that is appended to locally-posted mail.
+.IP \fBproxy_interfaces\fR
+Other interfaces that this machine receives mail on by way of a
+proxy agent or network address translator.
 .SH SEE ALSO
 .na
 .nf

@@ -43,8 +43,7 @@ By default, Postfix uses one of the following delivery methods.
 This may be overruled with the optional transport(5) table.
 The default delivery method is selected by matching the
 recipient address domain against one of the following:
-.IP \fB$mydestination\fR
-.IP \fB$inet_interfaces\fR
+.IP "\fB$mydestination\fR, \fB$inet_interfaces\fR, \fB$proxy_interfaces\fR"
 The transport and optional nexthop
 are specified with \fB$local_transport\fR.
 The default nexthop is the recipient domain.
@@ -116,6 +115,7 @@ a configuration change.
 .IP \fBempty_address_recipient\fR
 The recipient that is substituted for the null address.
 .IP \fBinet_interfaces\fR
+.IP \fBproxy_interfaces\fR
 The network interfaces that this mail system receives mail on.
 This information is used to determine if
 \fIuser\fR@[\fInet.work.addr.ess\fR] is local or remote.
@@ -155,8 +155,8 @@ Rewrite \fIsite\fR!\fIuser\fR to \fIuser\fR@\fIsite\fR.
 .ad
 .fi
 .IP \fBlocal_transport\fR
-Where to deliver mail for destinations that match \fB$mydestination\fR
-or \fB$inet_interfaces\fR.
+Where to deliver mail for destinations that match \fB$mydestination\fR,
+\fB$inet_interfaces\fR or \fB$proxy_interfaces\fR.
 The default transport is \fBlocal:$myhostname\fR.
 .sp
 Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)

@@ -12,24 +12,55 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
-Incompatible changes with Postfix snapshot 2.0.16-2004XXXX
+Incompatible changes with Postfix snapshot 2.0.17-2004120
 ==========================================================
+
+The new queue manager nqmgr has become the default qmgr queue
+manager. For a limited time the old queue manager remains available
+under the name oqmgr. The name nqmgr still works but will cause a
+warning to be logged.
 
 Queue files creates with "sendmail -v" are no longer compatible
 with earlier Postfix 2.x versions. A new record type, "killed",
-was introduced in order to avoid repeated mail delivery notification
-reports with mail that could not be delivered due to a temproary
-error condition.
+was introduced in order to avoid repeated mail delivery reports
+from mail that could not be delivered due to a temporary error
+condition.
 
 The format of the postfix-files file has changed. There is a new
 type for hard links. With hard or symbolic link entries, the first
 field is now the destination pathname and the "owner" field is now
 the origin pathname, while "group" and "permissions" are ignored.
 
-The SMTP server no longer accepts sender addresses that match a
-local, virtual or relay domain while the address is not listed as
-valid in the corresponding local, virtual or relay recipient table.
-This is not configurable.
+The SMTP server now rejects non-existent sender addresses in a
+local, virtual or relay domain; that is, a sender address must
+pass the same "user unknown" test as a recipient would have to
+pass.  This is not configurable.
+
+Support for the non-standard Errors-To: message header is removed.
+This also helps to stop potential attacks that rely on bouncing
+mail to a destination that is not directly reachable by the attacker.
+
+The sample-regexp/pcre-* files are replaced by header_checks(5)
+and body_checks(5) manual pages that give more complete information.
+
+The LDAP and SQL clients have been moved to the global directory
+in order to eliminate reversed dependencies.
+
+Major changes with Postfix snapshot 2.0.17-20040120
+===================================================
+
+The new queue manager nqmgr has become the default qmgr queue
+manager. For a limited time the old queue manager remains available
+under the name oqmgr. The name nqmgr still works but will cause a
+warning to be logged.
+
+The HOSTING_README file now documents most of the methods that can
+be used to host domains with a Postfix MTA.
+
+New header_checks(5) and body_checks(5) manual pages that give a
+more complete description than the old sample configuration files.
+
+Slightly more agressive delivery to sites that defer a lot of mail.
 
 Incompatible changes with Postfix snapshot 2.0.16-20031226
 ==========================================================
@@ -39,8 +70,7 @@ addresses (user@1.2.3.4).  This is not configurable. The form
 user@[ipaddress] is still allowed.
 
 Bounce messages now have a separate queue life time.  This is
-controlled by the bounce_queue_lifetime parameter. The default is
-$maximal_queue_life_time.
+controlled by the bounce_queue_lifetime parameter.
 
 Incompatible changes with Postfix snapshot 2.0.16-20031223
 ==========================================================

@@ -1,0 +1,259 @@
+# HEADER_CHECKS(5)                                 HEADER_CHECKS(5)
+# 
+# NAME
+#        header_checks - Postfix built-in header/body inspection
+# 
+# SYNOPSIS
+#        header_checks = pcre:/etc/postfix/header_checks
+#        mime_header_checks = pcre:/etc/postfix/mime_header_checks
+#        nested_header_checks = pcre:/etc/postfix/nested_header_checks
+# 
+#        body_checks = pcre:/etc/postfix/body_checks
+# 
+#        postmap -q "string" pcre:/etc/postfix/filename
+#        postmap -q - pcre:/etc/postfix/filename <inputfile
+# 
+# DESCRIPTION
+#        Postfix  provides  a  simple  built-in  content inspection
+#        mechanism that examines incoming mail one  message  header
+#        or  one  message  body  line  at  a time.  This feature is
+#        implemented by the Postfix cleanup(8) server.
+# 
+#        Postfix header or body_checks are designed to stop a flood
+#        of mail from worms and viruses. They are not meant to be a
+#        substitute for content filters that decode attachments and
+#        that do other sophisticated content analyses.
+# 
+#        Postfix supports four built-in content inspection classes:
+# 
+#        header_checks
+#               These are applied to each  primary  message  header
+#               (except for the MIME related headers).
+# 
+#        mime_header_checks (default: $header_checks)
+#               These  are applied each MIME related message header
+#               only.
+# 
+#        nested_header_checks (default: $header_checks)
+#               These  are  applied  to  each  message  header   of
+#               attached email messages.
+# 
+#        body_checks
+#               These  are  applied to every other line of content,
+#               including multi-part message boundaries.
+# 
+#        Note: message headers are examined one logical header at a
+#        time,  even  when  a  message header spans multiple lines.
+#        Body lines are always examined one line at a time.
+# 
+# REGEXP AND PCRE TABLE FORMAT
+#        Header and body_checks rules are normally specified in the
+#        form of regular expression lookup tables. The best perfor-
+#        mance is  obtained  with  pcre  (Perl  Compatible  Regular
+#        Expression)  tables,  but the slower regexp (POSIX regular
+#        expressions) support is more  widely  available.  Use  the
+#        command postconf -m to find out what types of lookup table
+#        your Postfix system supports.
+# 
+#        The general format of a header or body_checks table is:
+# 
+#        /pattern/flags action
+#               When pattern matches the input string, execute  the
+#               corresponding  action. See below for a list of pos-
+#               sible actions.
+# 
+#        !/pattern/flags action
+#               When pattern does not match the input string,  exe-
+#               cute the corresponding action.
+# 
+#        if /pattern/flags
+# 
+#        endif  Match the input string against the patterns between
+#               if and endif, if and only if the input string  also
+#               matches pattern. The if..endif can nest.
+# 
+#               Note:  do not prepend whitespace to patterns inside
+#               if..endif.
+# 
+#        if !/pattern/flags
+# 
+#        endif  Match the input string against the patterns between
+#               if  and endif, if and only if the input string does
+#               not match pattern. The if..endif can nest.
+# 
+#        blank lines and comments
+#               Empty lines and whitespace-only lines are  ignored,
+#               as  are  lines whose first non-whitespace character
+#               is a `#'.
+# 
+#        multi-line text
+#               A pattern/action line  starts  with  non-whitespace
+#               text.  A line that starts with whitespace continues
+#               a logical line.
+# 
+#        For a discussion of pattern syntax and flags details,  see
+#        regexp_table(5) or pcre_table(5), respectively.
+# 
+# TABLE SEARCH ORDER
+#        For  each  line of message input, the patterns are applied
+#        in the order as specified in the table. When a pattern  is
+#        found  that  matches  the  input  line,  the corresponding
+#        action is  executed  and  then  the  next  input  line  is
+#        inspected.
+# 
+# TEXT SUBSTITUTION
+#        Substitution  of  substrings  from  the matched expression
+#        into the action string is possible using the  conventional
+#        Perl  syntax  ($1,  $2,  etc.).   The macros in the result
+#        string may need to be written as  ${n}  or  $(n)  if  they
+#        aren't followed by whitespace.
+# 
+#        Note:  since negated patterns (those preceded by !) return
+#        a result when the expression does not match, substitutions
+#        are not available for negated patterns.
+# 
+# ACTIONS
+#        Action names are case insensitive. They are shown in upper
+#        case for consistency with other Postfix documentation.
+# 
+#        DISCARD optional text...
+#               Claim successful delivery and silently discard  the
+#               message.   Log the optional text if specified, oth-
+#               erwise log a generic message.
+# 
+#               Note:  this  action  disables  further  header   or
+#               body_checks  inspection  of the current message and
+#               affects all recipients.
+# 
+#        DUNNO  Pretend that the search string was not  found,  and
+#               inspect  the  next  input  line. This action can be
+#               used to shorten the table search.
+# 
+#               For backwards compatibility reasons,  Postfix  also
+#               accepts  OK but it is (and always has been) treated
+#               as DUNNO.
+# 
+#        FILTER transport:destination
+#               Write a content filter request record to the  queue
+#               file  and  inspect  the next input line.  After the
+#               message is queued, it  will  be  sent  through  the
+#               specified  external  content filter.  More informa-
+#               tion about external content filters is in the Post-
+#               fix FILTER_README file.
+# 
+#               Note:   this  action  overrides  the  main.cf  con-
+#               tent_filter setting, and affects all recipients  of
+#               the  message.  In  the  case  that  multiple FILTER
+#               actions fire, the only last one is executed.
+# 
+#        HOLD optional text...
+#               Arrange for the message to be placed  on  the  hold
+#               queue,  and  inspect the next input line.  The mes-
+#               sage remains on hold until someone  either  deletes
+#               it  or  releases it for delivery.  Log the optional
+#               text if specified, otherwise log a generic message.
+# 
+#               Mail  that  is  placed on hold can be examined with
+#               the postcat(1) command, and  can  be  destroyed  or
+#               released with the postsuper(1) command.
+# 
+#               Note:  this  action  affects  all recipients of the
+#               message.
+# 
+#        IGNORE Delete the current line from the input and  inspect
+#               the next input line.
+# 
+#        REDIRECT user@domain
+#               Write  a  message  redirection request to the queue
+#               file and inspect the next  input  line.  After  the
+#               message is queued, it will be sent to the specified
+#               address instead of the intended recipient(s).
+# 
+#               Note: this action overrides the FILTER action,  and
+#               affects  all recipients of the message. If multiple
+#               REDIRECT actions fire only the  last  one  is  exe-
+#               cuted.
+# 
+#        REJECT optional text...
+#               Reject  the  entire  message.  Reply  with optional
+#               text... when the optional text is specified, other-
+#               wise reply with a generic error message.
+# 
+#               Note:   this  action  disables  further  header  or
+#               body_checks inspection of the current  message  and
+#               affects all recipients.
+# 
+#        WARN optional text...
+#               Log  a  warning with the optional text... (or log a
+#               generic message) and inspect the next  input  line.
+#               This action is useful for debugging and for testing
+#               a pattern before taking more drastic actions.
+# 
+# BUGS
+#        Many people overlook the main limitations  of  header  and
+#        body_checks  rules.   These  rules  operate on one logical
+#        message header or body line at a time, and a decision made
+#        for one line is not carried over to the next line.
+# 
+# CONFIGURATION PARAMETERS
+#        body_checks
+#               Lookup tables with content filter rules for message
+#               body lines.  These filters see one physical line at
+#               a  time,  in  chunks  of at most $line_length_limit
+#               bytes.
+# 
+#        body_checks_size_limit
+#               The amount of  content  per  message  body  segment
+#               (attachment) that is subjected to $body_checks fil-
+#               tering.
+# 
+#        header_checks
+# 
+#        mime_header_checks (default: $header_checks)
+# 
+#        nested_header_checks (default: $header_checks)
+#               Lookup tables with content filter rules for message
+#               header  lines:  respectively,  these are applied to
+#               the primary message  headers  (not  including  MIME
+#               headers),  to the MIME headers anywhere in the mes-
+#               sage, and to the initial headers of  attached  mes-
+#               sages.
+# 
+#               Note:  these filters see one logical message header
+#               at a time, even when a message header spans  multi-
+#               ple  lines.  Message  headers  that are longer than
+#               $header_size_limit characters are truncated.
+# 
+#        disable_mime_input_processing
+#               While receiving mail, give no special treatment  to
+#               MIME  related  message  headers; all text after the
+#               initial message headers is considered to be part of
+#               the  message body. This means that header_checks is
+#               applied to all the  primary  message  headers,  and
+#               that body_checks is applied to the remainder of the
+#               message.
+# 
+#               Note: when used in this  manner,  body_checks  will
+#               process  a  multi-line message header one line at a
+#               time.
+# 
+# SEE ALSO
+#        cleanup(8) canonicalize and enqueue Postfix message
+#        pcre_table(5) format of PCRE tables
+#        regexp_table(5) format of POSIX regular expression tables
+#        postconf(1) Postfix configuration utility
+#        postmap(1) Postfix lookup table management
+#        postsuper(1) Postfix janitor
+#        postcat(1) show Postfix queue file contents
+# 
+# LICENSE
+#        The Secure Mailer license must be  distributed  with  this
+#        software.
+# 
+# AUTHOR(S)
+#        Wietse Venema
+#        IBM T.J. Watson Research
+#        P.O. Box 704
+#        Yorktown Heights, NY 10598, USA
+# 
+#                                                  HEADER_CHECKS(5)

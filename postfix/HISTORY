@@ -8749,6 +8749,10 @@ Apologies for any names omitted.
 	address).  This is useful as a catch-all pattern at the
 	end of a table.  Files:  util/dict_cidr.c, util/match_ops.c.
 
+	Cleanup: don't report that $queue_directory/etc/filename
+	differs from /etc/filename when /etc/filename does not
+	exist.  File: conf/postfix-script.
+
 20031112
 
 	Feature: client_connection_status_update_time parameter
@@ -9026,13 +9030,13 @@ Apologies for any names omitted.
 
 20040115
 
-	Bugfix: allow delivery concurrency to increase even while
-	mail is deferred, as long as the delivery agent does not
-	report really serious trouble with the destination.  Files:
-	*qmgr/qmgr_deliver.c.
+	Performance: allow delivery concurrency to increase even
+	while mail is deferred, as long as the delivery agent does
+	not report really serious trouble with the destination.
+	Files:  *qmgr/qmgr_deliver.c.
 
 	Cleanup: in postfix-files, symbolic links and hard links
-	are now first-class entries with explicit mention of
+	are now first-class citizens with explicit mention of
 	source and destination pathnames. Files: postfix-install,
 	conf/postfix-files, conf/post-install.
 
@@ -9051,19 +9055,38 @@ Apologies for any names omitted.
 	Documentation: finished the HOSTING_README file with an
 	overview of methods to host domains with Postfix.
 
+20040119
+
+	Bugfix: anvil (count and rate limiting) server race condition
+	could result in dangling pointer.  Postfix erases memory
+	after allocating and before freeing, so it is extremely
+	unlikely that this could be used to bring harmful data into
+	the anvil server. File anvil/anvil.c.
+
+20040120
+
+	Cleanup: new header_checks(5) and body_checks(5) manual
+	pages.  The sample-regexp* and sample-pcre* files are no
+	longer needed and have been removed, as are the default
+	*_table configuration files.
+
+	Cleanup: support for the non-standard Errors-To: header
+	is removed. File: cleanup/cleanup_message.c.
+
 Open problems:
 
-	High: when virtual aliasing is turned off after content
-	filtering, local submissions may escape virtual aliasing.
+	Med: silly queue file bit so that the queue manager doesn't
+	skip files when fast flush is requested while a queue scan
+	is in progress.
+
+	Med: postsuper -r should do something with recipients in
+	bounce logfiles.
 
 	Low: qmgr_move should not reset time stamps on queue files
 	without shared lock (i.e. not open by a delivery agent).
 
 	Low: postsuper re-run after renaming files, but only a
 	limited number of times.
-
-	Doc: mention the proxy_interfaces parameter everywhere the
-	inet_interfaces and mydestination parameters are mentioned.
 
 	Low: smtp-source may block when sending large test messages.
 
@@ -9075,9 +9098,6 @@ Open problems:
 
 	Med: find a way to log the sender address when MAIL FROM
 	is rejected due to lack of disk space.
-
-	Low: after successful delivery, per-queue window += 1/window,
-	after failure, queue window -= 1 (Victor).
 
 	Low: revise other local delivery agent duplicate filters.
 
@@ -9116,7 +9136,8 @@ Open problems:
 	Low: postconf -e edits parameters that postconf won't list.
 
 	Low: while converting 8bit text to quoted-printable, perhaps
-	use =46rom instead of >From.
+	use =46rom to avoid having to produce >From when delivering
+	to mailbox.
 
 	virtual_mailbox_path expression like forward_path, so that
 	people can specify prefix and suffix.

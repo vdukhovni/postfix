@@ -32,7 +32,7 @@ Class   Description
 -------------------------------------------------------------------
 local   For UNIX accounts and for traditional /etc/aliases
         Domain names are listed in $mydestination (or match the IP
-            address listed with $inet_interfaces)
+            address listed with $inet_interfaces or $proxy_interfaces)
         Known recipients are listed in $local_recipient_maps (this
             information is currently used by the Postfix SMTP server
             only; if $local_recipient_maps is empty, the Postfix

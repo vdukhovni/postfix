@@ -39,8 +39,8 @@ require_home_directory = no
 #
 
 # The local_transport parameter specifies the name of the transport
-# for delivery to destinations that match $mydestination or
-# $inet_interfaces.
+# for delivery to destinations that match $mydestination,
+# $inet_interfaces or $proxy_interfaces.
 #
 # By default, local mail is delivered to the transport called "local",
 # which is just the name of a service that is defined the master.cf file.
@@ -127,8 +127,9 @@ default_privs = nobody
 home_mailbox = 
 
 # The luser_relay parameter specifies an optional destination address
-# for unknown recipients.  By default, mail for unknown@$mydestination
-# and unknown@[$inet_interfaces] is returned as undeliverable.
+# for unknown recipients.  By default, mail for unknown@$mydestination,
+# unknown@[$inet_interfaces] or unknown@[$proxy_interfaces] is returned
+# as undeliverable.
 #
 # The following expansions are done on luser_relay: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),

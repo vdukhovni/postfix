@@ -79,7 +79,8 @@ addresses, but see below for a simpler solution.
 .IP "\fIuser address\fR"
 \fIuser\fR@\fIsite\fR is replaced by \fIaddress\fR when \fIsite\fR is
 equal to $\fBmyorigin\fR, when \fIsite\fR is listed in
-$\fBmydestination\fR, or when it is listed in $\fBinet_interfaces\fR.
+$\fBmydestination\fR, or when it is listed in $\fBinet_interfaces\fR
+or $\fBproxy_interfaces\fR.
 .sp
 This form is useful for replacing login names by
 \fIFirstname.Lastname\fR.
@@ -169,6 +170,9 @@ Other parameters of interest:
 .IP \fBinet_interfaces\fR
 The network interface addresses that this system receives mail on.
 You need to stop and start Postfix when this parameter changes.
+.IP \fBproxy_interfaces\fR
+Other interfaces that this machine receives mail on by way of a
+proxy agent or network address translator.
 .IP \fBmasquerade_classes\fR
 List of address classes subject to masquerading: zero or more of
 \fBenvelope_sender\fR, \fBenvelope_recipient\fR, \fBheader_sender\fR,

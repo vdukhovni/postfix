@@ -180,7 +180,9 @@
 /* .IP \fBvirtual_alias_recursion_limit\fR
 /*	Limit the recursion depth of virtual alias expansion.
 /* SEE ALSO
+/*	body_checks(5) body parts content inspection
 /*	canonical(5) canonical address lookup table format
+/*	header_checks(5) message header content inspection
 /*	qmgr(8) queue manager daemon
 /*	syslogd(8) system logging
 /*	trivial-rewrite(8) address rewriting

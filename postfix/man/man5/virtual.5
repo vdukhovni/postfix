@@ -77,7 +77,8 @@ This form has the highest precedence.
 .IP "\fIuser address, address, ...\fR"
 Mail for \fIuser\fR@\fIsite\fR is redirected to \fIaddress\fR when
 \fIsite\fR is equal to $\fBmyorigin\fR, when \fIsite\fR is listed in
-$\fRmydestination\fR, or when it is listed in $\fIinet_interfaces\fR.
+$\fBmydestination\fR, or when it is listed in $\fBinet_interfaces\fR
+or $\fBproxy_interfaces\fR.
 .sp
 This functionality overlaps with functionality of the local
 \fIaliases\fR(5) database. The difference is that \fBvirtual\fR
@@ -232,6 +233,9 @@ The domain that is appended to any address that does not have a domain.
 .IP \fBowner_request_special\fR
 Give special treatment to \fBowner-\fIxxx\fR and \fIxxx\fB-request\fR
 addresses.
+.IP \fBproxy_interfaces\fR
+Other interfaces that this machine receives mail on by way of a
+proxy agent or network address translator.
 .SH SEE ALSO
 .na
 .nf

@@ -212,7 +212,8 @@
 /*	but also reveals information that is nobody elses business.
 /* .IP \fBunknown_local_recipient_reject_code\fR
 /*	The response code when a client specifies a recipient whose domain
-/*	matches \fB$mydestination\fR or \fB$inet_interfaces\fR, while
+/*	matches \fB$mydestination\fR, \fB$inet_interfaces\fR or
+/*	\fB$proxy_interfaces\fR, while
 /*	\fB$local_recipient_maps\fR is non-empty and does not list
 /*	the recipient address or address local-part.
 /* .IP \fBunknown_relay_recipient_reject_code\fR
@@ -468,7 +469,9 @@
 #include <lex_822.h>
 #include <namadr_list.h>
 #include <input_transp.h>
+#ifdef SNAPSHOT
 #include <anvil_clnt.h>
+#endif
 #include <flush_clnt.h>
 
 /* Single-threaded server skeleton. */
@@ -569,9 +572,13 @@ int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
 char   *var_xclient_hosts;
 char   *var_xforward_hosts;
+
+#ifdef SNAPSHOT
 int     var_smtpd_crate_limit;
 int     var_smtpd_cconn_limit;
 char   *var_smtpd_hoggers;
+
+#endif
 
  /*
   * Silly little macros.
@@ -603,8 +610,11 @@ static int xforward_allowed;
  /*
   * Client connection and rate limiting.
   */
+#ifdef SNAPSHOT
 ANVIL_CLNT *anvil_clnt;
 static NAMADR_LIST *hogger_list;
+
+#endif
 
  /*
   * Other application-specific globals.
@@ -2181,6 +2191,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 	 * events. For now we exclude xclient authorized hosts from
 	 * connection count/rate control.
 	 */
+#ifdef SNAPSHOT
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && !xclient_allowed
 	    && anvil_clnt
@@ -2202,6 +2213,7 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
 		break;
 	    }
 	}
+#endif
 	/* XXX We use the real client for connect access control. */
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && var_smtpd_delay_reject == 0
@@ -2273,11 +2285,13 @@ static void smtpd_proto(SMTPD_STATE *state, const char *service)
      * For now we exclude xclient authorized hosts from connection count/rate
      * control.
      */
+#ifdef SNAPSHOT
     if (SMTPD_STAND_ALONE(state) == 0
 	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
 	anvil_clnt_disconnect(anvil_clnt, service, state->addr);
+#endif
 
     /*
      * Log abnormal session termination, in case postmaster notification has
@@ -2385,7 +2399,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
+#ifdef SNAPSHOT
     hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
+#endif
     if (getuid() == 0 || getuid() == var_owner_uid)
 	smtpd_check_init();
     debug_peer_init();
@@ -2436,8 +2452,10 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     /*
      * Connection rate management.
      */
+#ifdef SNAPSHOT
     if (var_smtpd_crate_limit || var_smtpd_cconn_limit)
 	anvil_clnt = anvil_clnt_create();
+#endif
 }
 
 /* main - the main program */
@@ -2469,8 +2487,10 @@ int     main(int argc, char **argv)
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
 	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
+#ifdef SNAPSHOT
 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
+#endif
 	0,
     };
     static CONFIG_TIME_TABLE time_table[] = {
@@ -2530,7 +2550,9 @@ int     main(int argc, char **argv)
 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
 	VAR_XCLIENT_HOSTS, DEF_XCLIENT_HOSTS, &var_xclient_hosts, 0, 0,
 	VAR_XFORWARD_HOSTS, DEF_XFORWARD_HOSTS, &var_xforward_hosts, 0, 0,
+#ifdef SNAPSHOT
 	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
+#endif
 	0,
     };
     static CONFIG_RAW_TABLE raw_table[] = {

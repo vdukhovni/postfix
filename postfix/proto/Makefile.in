@@ -3,8 +3,7 @@ SHELL	= /bin/sh
 # For now, just hard-coded rules.
 
 CONFIG	= ../conf/access ../conf/aliases ../conf/canonical ../conf/relocated \
-	../conf/transport ../conf/virtual ../conf/pcre_table \
-	../conf/regexp_table ../conf/cidr_table ../conf/tcp_table
+	../conf/transport ../conf/virtual ../conf/header_checks
 
 AWK	= awk '{ print; if (NR == 1) print ".pl 9999" }'
 
@@ -31,6 +30,9 @@ clobber:
 	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/cidr_table: cidr_table
+	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+
+../conf/header_checks: header_checks
 	srctoman - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/pcre_table: pcre_table

@@ -64,7 +64,8 @@
 /*	one of the following flags (this is preliminary code awaiting
 /*	more permanent implementation of address domain class handling):
 /* .IP RESOLVE_CLASS_LOCAL
-/*	The address domain matches $mydestination or $inet_interfaces.
+/*	The address domain matches $mydestination, $inet_interfaces
+/*	or $proxy_interfaces.
 /* .IP RESOLVE_CLASS_ALIAS
 /*	The address domain matches $virtual_alias_domains (virtual
 /*	alias domains, where each address is redirected to a real

@@ -13,7 +13,7 @@ COMMANDS= mailq.1.html newaliases.1.html postalias.1.html postcat.1.html \
 	postqueue.1.html postsuper.1.html
 CONFIG	= access.5.html aliases.5.html canonical.5.html relocated.5.html \
 	transport.5.html virtual.5.html pcre_table.5.html regexp_table.5.html \
-	cidr_table.5.html tcp_table.5.html
+	cidr_table.5.html tcp_table.5.html header_checks.5.html
 
 AWK	= awk '{ print; if (NR == 1) print ".pl 9999" }'
 
@@ -191,11 +191,15 @@ aliases.5.html: ../proto/aliases
 	PATH=../mantools:$$PATH; \
 	srctoman - $? | $(AWK) | nroff -man | uniq | man2html | postlink >$@
 
+canonical.5.html: ../proto/canonical
+	PATH=../mantools:$$PATH; \
+	srctoman - $? | $(AWK) | nroff -man | uniq | man2html | postlink >$@
+
 cidr_table.5.html: ../proto/cidr_table
 	PATH=../mantools:$$PATH; \
 	srctoman - $? | $(AWK) | nroff -man | uniq | man2html | postlink >$@
 
-canonical.5.html: ../proto/canonical
+header_checks.5.html: ../proto/header_checks
 	PATH=../mantools:$$PATH; \
 	srctoman - $? | $(AWK) | nroff -man | uniq | man2html | postlink >$@
 

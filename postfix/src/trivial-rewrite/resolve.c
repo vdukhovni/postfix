@@ -510,8 +510,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *addr,
      * 
      * XXX We depend on this mechanism to enforce per-recipient concurrencies
      * for local recipients. With "local_transport = local:$myhostname" we
-     * force mail for any domain in $mydestination/$inet_interfaces to share
-     * the same queue.
+     * force mail for any domain in $mydestination/${proxy,inet}_interfaces
+     * to share the same queue.
      */
     if ((destination = split_at(STR(channel), ':')) != 0 && *destination)
 	vstring_strcpy(nexthop, destination);

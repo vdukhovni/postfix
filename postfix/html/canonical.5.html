@@ -83,68 +83,69 @@ CANONICAL(5)                                         CANONICAL(5)
        <i>user address</i>
               <i>user</i>@<i>site</i> is replaced by <i>address</i> when <i>site</i> is equal
               to  $<b>myorigin</b>,  when  <i>site</i> is listed in $<b>mydestina-</b>
-              <b>tion</b>, or when it is listed in $<b>inet_interfaces</b>.
+              <b>tion</b>, or when it is listed in  $<b>inet_interfaces</b>  or
+              $<b>proxy_interfaces</b>.
 
-              This form is useful for replacing  login  names  by
+              This  form  is  useful for replacing login names by
               <i>Firstname.Lastname</i>.
 
        @<i>domain address</i>
-              Every  address  in  <i>domain</i>  is replaced by <i>address</i>.
+              Every address in <i>domain</i>  is  replaced  by  <i>address</i>.
               This form has the lowest precedence.
 
-       In all the above forms, when <i>address</i> has the form  @<i>other-</i>
+       In  all the above forms, when <i>address</i> has the form @<i>other-</i>
        <i>domain</i>, the result is the same user in <i>otherdomain</i>.
 
 <b>ADDRESS EXTENSION</b>
        When a mail address localpart contains the optional recip-
-       ient delimiter (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order
+       ient  delimiter  (e.g., <i>user+foo</i>@<i>domain</i>), the lookup order
        becomes: <i>user+foo</i>@<i>domain</i>, <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and
        @<i>domain</i>.
 
-       The  <b>propagate_unmatched_extensions</b>   parameter   controls
-       whether  an  unmatched  address extension (<i>+foo</i>) is propa-
+       The   <b>propagate_unmatched_extensions</b>   parameter  controls
+       whether an unmatched address extension  (<i>+foo</i>)  is  propa-
        gated to the result of table lookup.
 
 <b>REGULAR EXPRESSION TABLES</b>
-       This section describes how the table lookups  change  when
+       This  section  describes how the table lookups change when
        the table is given in the form of regular expressions. For
-       a description of regular expression lookup  table  syntax,
+       a  description  of regular expression lookup table syntax,
        see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
 
-       Each  pattern  is  a regular expression that is applied to
+       Each pattern is a regular expression that  is  applied  to
        the entire address being looked up. Thus, <i>user@domain</i> mail
-       addresses  are  not  broken up into their <i>user</i> and <i>@domain</i>
+       addresses are not broken up into their  <i>user</i>  and  <i>@domain</i>
        constituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and
        <i>foo</i>.
 
-       Patterns  are  applied  in  the  order as specified in the
-       table, until a pattern is found that  matches  the  search
+       Patterns are applied in the  order  as  specified  in  the
+       table,  until  a  pattern is found that matches the search
        string.
 
-       Results  are  the  same as with indexed file lookups, with
-       the additional feature that parenthesized substrings  from
+       Results are the same as with indexed  file  lookups,  with
+       the  additional feature that parenthesized substrings from
        the pattern can be interpolated as <b>$1</b>, <b>$2</b> and so on.
 
 <b>TCP-BASED TABLES</b>
-       This  section  describes how the table lookups change when
+       This section describes how the table lookups  change  when
        lookups are directed to a TCP-based server. For a descrip-
-       tion   of  the  TCP  client/server  lookup  protocol,  see
+       tion  of  the  TCP  client/server  lookup  protocol,   see
        <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
 
        Each lookup operation uses the entire address once.  Thus,
-       <i>user@domain</i>  mail  addresses  are not broken up into their
+       <i>user@domain</i> mail addresses are not broken  up  into  their
        <i>user</i> and <i>@domain</i> constituent parts, nor is <i>user+foo</i> broken
        up into <i>user</i> and <i>foo</i>.
 
        Results are the same as with indexed file lookups.
 
 <b>BUGS</b>
-       The  table format does not understand quoting conventions.
+       The table format does not understand quoting  conventions.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <b>main.cf</b> parameters are  especially  relevant
-       to  this  topic.  See  the Postfix <b>main.cf</b> file for syntax
-       details and for default values.  Use  the  <b>postfix  reload</b>
+       The  following  <b>main.cf</b> parameters are especially relevant
+       to this topic. See the Postfix  <b>main.cf</b>  file  for  syntax
+       details  and  for  default  values. Use the <b>postfix reload</b>
        command after a configuration change.
 
        <b>canonical_maps</b>
@@ -159,34 +160,39 @@ CANONICAL(5)                                         CANONICAL(5)
               header sender addresses.
 
        <b>propagate_unmatched_extensions</b>
-              A  list  of  address rewriting or forwarding mecha-
-              nisms that propagate an address extension from  the
-              original  address  to  the result.  Specify zero or
-              more of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>,  or
+              A list of address rewriting  or  forwarding  mecha-
+              nisms  that propagate an address extension from the
+              original address to the result.   Specify  zero  or
+              more  of  <b>canonical</b>,  <b>virtual</b>,  <b>alias</b>,  <b>forward</b>, or
               <b>include</b>.
 
        Other parameters of interest:
 
        <b>inet_interfaces</b>
-              The  network  interface  addresses that this system
+              The network interface addresses  that  this  system
               receives mail on.  You need to stop and start Post-
               fix when this parameter changes.
 
+       <b>proxy_interfaces</b>
+              Other interfaces that this machine receives mail on
+              by way of a proxy agent or network address transla-
+              tor.
+
        <b>masquerade_classes</b>
-              List  of  address  classes subject to masquerading:
-              zero or more of  <b>envelope_sender</b>,  <b>envelope_recipi-</b>
+              List of address classes  subject  to  masquerading:
+              zero  or  more of <b>envelope_sender</b>, <b>envelope_recipi-</b>
               <b>ent</b>, <b>header_sender</b>, <b>header_recipient</b>.
 
        <b>masquerade_domains</b>
-              List  of  domains  that hide their subdomain struc-
+              List of domains that hide  their  subdomain  struc-
               ture.
 
        <b>masquerade_exceptions</b>
-              List of user names that are not subject to  address
+              List  of user names that are not subject to address
               masquerading.
 
        <b>mydestination</b>
-              List  of  domains  that  this mail system considers
+              List of domains that  this  mail  system  considers
               local.
 
        <b>myorigin</b>
@@ -205,7 +211,7 @@ CANONICAL(5)                                         CANONICAL(5)
        <a href="tcp_table.5.html">tcp_table(5)</a> TCP client/server table lookup protocol
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

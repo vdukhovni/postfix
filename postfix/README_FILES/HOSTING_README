@@ -1,13 +1,14 @@
 Purpose of this document
 ========================
 
-This document gives an overview of how to use Postfix for hosting
-multiple Internet domains, both for final delivery on the machine
-itself and for the purpose of forwarding to destinations elsewhere.
+This document gives an overview of how Postfix can be used for
+hosting multiple Internet domains, both for final delivery on the
+machine itself and for the purpose of forwarding to destinations
+elsewhere.
 
-It not only describes delivery mechanisms that are already built
-into Postfix, but also gives pointers for using non-Postfix mail
-delivery software.
+The text not only describes delivery mechanisms that are built into
+Postfix, but also gives pointers for using non-Postfix mail delivery
+software.
 
 The following topics are covered:
 

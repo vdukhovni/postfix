@@ -164,7 +164,7 @@ mail_owner = postfix
 #
 # The local_recipient_maps parameter specifies optional lookup tables
 # with all names or addresses of users that are local with respect
-# to $mydestination and $inet_interfaces.
+# to $mydestination, $inet_interfaces or $proxy_interfaces.
 #
 # If this parameter is defined, then the SMTP server will reject
 # mail for unknown local users. This parameter is defined by default.
@@ -205,8 +205,8 @@ mail_owner = postfix
 
 # The unknown_local_recipient_reject_code specifies the SMTP server
 # response code when a recipient domain matches $mydestination or
-# $inet_interfaces, while $local_recipient_maps is non-empty and the
-# recipient address or address local-part is not found.
+# ${proxy,inet}_interfaces, while $local_recipient_maps is non-empty
+# and the recipient address or address local-part is not found.
 #
 # The default setting is 550 (reject mail) but it is safer to start
 # with 450 (try again later) until you are certain that your
@@ -272,7 +272,7 @@ unknown_local_recipient_reject_code = 450
 # 
 # In addition to the above, the Postfix SMTP server by default accepts mail
 # that Postfix is final destination for:
-# - destinations that match $inet_interfaces,
+# - destinations that match $inet_interfaces or $proxy_interfaces,
 # - destinations that match $mydestination
 # - destinations that match $virtual_alias_domains,
 # - destinations that match $virtual_mailbox_domains.
@@ -481,8 +481,9 @@ unknown_local_recipient_reject_code = 450
 #fallback_transport =
 
 # The luser_relay parameter specifies an optional destination address
-# for unknown recipients.  By default, mail for unknown@$mydestination
-# and unknown@[$inet_interfaces] is returned as undeliverable.
+# for unknown recipients.  By default, mail for unknown@$mydestination,
+# unknown@[$inet_interfaces] or unknown@[$proxy_interfaces] is returned
+# as undeliverable.
 #
 # The following expansions are done on luser_relay: $user (recipient
 # username), $shell (recipient shell), $home (recipient home directory),

@@ -83,7 +83,7 @@
 #               Mail for user@site is redirected  to  address  when
 #               site  is equal to $myorigin, when site is listed in
 #               $mydestination,   or   when   it   is   listed   in
-#               $inet_interfaces.
+#               $inet_interfaces or $proxy_interfaces.
 # 
 #               This  functionality  overlaps with functionality of
 #               the local aliases(5) database.  The  difference  is
@@ -233,6 +233,11 @@
 #        owner_request_special
 #               Give special treatment to owner-xxx and xxx-request
 #               addresses.
+# 
+#        proxy_interfaces
+#               Other interfaces that this machine receives mail on
+#               by way of a proxy agent or network address transla-
+#               tor.
 # 
 # SEE ALSO
 #        cleanup(8) canonicalize and enqueue mail

@@ -1,4 +1,4 @@
-<html> <head> </head> <body> <pre>
+<html> <body> <pre>
 RELOCATED(5)                                         RELOCATED(5)
 
 <b>NAME</b>
@@ -59,7 +59,7 @@ RELOCATED(5)                                         RELOCATED(5)
 
        <i>user</i>   Matches <i>user</i>@<i>site</i> when <i>site</i> is $<b>myorigin</b>, when <i>site</i>
               is listed in $<b>mydestination</b>, or when <i>site</i> is listed
-              in $<b>inet_interfaces</b>.
+              in $<b>inet_interfaces</b> or $<b>proxy_interfaces</b>.
 
        @<i>domain</i>
               Matches  every address in <i>domain</i>. This form has the
@@ -131,6 +131,11 @@ RELOCATED(5)                                         RELOCATED(5)
 
        <b>myorigin</b>
               The domain that is appended to locally-posted mail.
+
+       <b>proxy_interfaces</b>
+              Other interfaces that this machine receives mail on
+              by way of a proxy agent or network address transla-
+              tor.
 
 <b>SEE ALSO</b>
        <a href="postmap.1.html">postmap(1)</a> create lookup table

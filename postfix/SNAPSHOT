@@ -1,0 +1,6 @@
+Features to be disabled for the stable 2.1 release:
+
+name		#ifdef	module	man html config sample
+======================================================
+tcp_table
+anvil

@@ -52,9 +52,9 @@ berkeley_db_read_buffer_size = 131072
 
 # The default_transport parameter specifies the default message
 # delivery transport for domains that do not match mydestination,
-# inet_interfaces, virtual_alias_domains, virtual_mailbox_domains,
-# relay_domains, and for which no transport is explicitly given in
-# the optional transport(5) table.
+# inet_interfaces, proxy_interfaces, virtual_alias_domains,
+# virtual_mailbox_domains, relay_domains, and for which no transport
+# is explicitly given in the optional transport(5) table.
 #
 # Specify a string of the form transport:nexthop, where transport is
 # the name of a mail delivery transport defined in master.cf.  Either
@@ -253,7 +253,7 @@ max_use = 100
 #
 # The local machine is always the final destination for mail addressed
 # to user@[the.net.work.address] of an interface that the mail system
-# receives mail on (see the inet_interfaces parameter).
+# receives mail on (parameters: inet_interfaces and proxy_interfaces).
 #
 # Specify a list of host or domain names, /file/name or type:table
 # patterns, separated by commas and/or whitespace. A /file/name

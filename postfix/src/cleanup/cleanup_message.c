@@ -192,12 +192,14 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state, HEADER_OPTS *hdr_opts,
 	if (hdr_opts->type == HDR_RESENT_FROM && state->resent_from == 0)
 	    state->resent_from =
 		cleanup_extract_internal(header_buf, *tpp);
+#if 0
 	if (hdr_opts->type == HDR_RETURN_RECEIPT_TO && !state->return_receipt)
 	    state->return_receipt =
 		cleanup_extract_internal(header_buf, *tpp);
 	if (hdr_opts->type == HDR_ERRORS_TO && !state->errors_to)
 	    state->errors_to =
 		cleanup_extract_internal(header_buf, *tpp);
+#endif
     }
     vstring_sprintf(header_buf, "%s: ", hdr_opts->name);
     tok822_externalize(header_buf, tree, TOK822_STR_HEAD);

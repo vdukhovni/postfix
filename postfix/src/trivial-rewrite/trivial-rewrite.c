@@ -35,8 +35,7 @@
 /*	This may be overruled with the optional transport(5) table.
 /*	The default delivery method is selected by matching the
 /*	recipient address domain against one of the following:
-/* .IP \fB$mydestination\fR
-/* .IP \fB$inet_interfaces\fR
+/* .IP "\fB$mydestination\fR, \fB$inet_interfaces\fR, \fB$proxy_interfaces\fR"
 /*	The transport and optional nexthop
 /*	are specified with \fB$local_transport\fR.
 /*	The default nexthop is the recipient domain.
@@ -96,6 +95,7 @@
 /* .IP \fBempty_address_recipient\fR
 /*	The recipient that is substituted for the null address.
 /* .IP \fBinet_interfaces\fR
+/* .IP \fBproxy_interfaces\fR
 /*	The network interfaces that this mail system receives mail on.
 /*	This information is used to determine if
 /*	\fIuser\fR@[\fInet.work.addr.ess\fR] is local or remote.
@@ -135,8 +135,8 @@
 /* .ad
 /* .fi
 /* .IP \fBlocal_transport\fR
-/*	Where to deliver mail for destinations that match \fB$mydestination\fR
-/*	or \fB$inet_interfaces\fR.
+/*	Where to deliver mail for destinations that match \fB$mydestination\fR,
+/*	\fB$inet_interfaces\fR or \fB$proxy_interfaces\fR.
 /*	The default transport is \fBlocal:$myhostname\fR.
 /* .sp
 /*	Syntax is \fItransport\fR:\fInexthop\fR; see \fBtransport\fR(5)
@@ -177,9 +177,9 @@
 /* .SH Address verification
 /* .ad
 /* .fi
-/*	By default, address verification probes use the same route 
+/*	By default, address verification probes use the same route
 /*	as regular mail. To override specific aspects of message
-/*	routing for address verification probes, specify one or more 
+/*	routing for address verification probes, specify one or more
 /*	of the following:
 /*	\fBaddress_verify_local_transport\fR,
 /*	\fBaddress_verify_virtual_transport\fR,
@@ -350,11 +350,11 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (*RES_PARAM_VALUE(resolve_regular.transport_maps))
 	resolve_regular.transport_info =
 	    transport_pre_init(resolve_regular.transport_maps_name,
-			       RES_PARAM_VALUE(resolve_regular.transport_maps));
+			   RES_PARAM_VALUE(resolve_regular.transport_maps));
     if (*RES_PARAM_VALUE(resolve_verify.transport_maps))
 	resolve_verify.transport_info =
 	    transport_pre_init(resolve_verify.transport_maps_name,
-			       RES_PARAM_VALUE(resolve_verify.transport_maps));
+			    RES_PARAM_VALUE(resolve_verify.transport_maps));
 }
 
 /* post_jail_init - initialize after entering chroot jail */

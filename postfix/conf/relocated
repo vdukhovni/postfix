@@ -58,7 +58,7 @@
 # 
 #        user   Matches user@site when site is $myorigin, when site
 #               is listed in $mydestination, or when site is listed
-#               in $inet_interfaces.
+#               in $inet_interfaces or $proxy_interfaces.
 # 
 #        @domain
 #               Matches  every address in domain. This form has the
@@ -130,6 +130,11 @@
 # 
 #        myorigin
 #               The domain that is appended to locally-posted mail.
+# 
+#        proxy_interfaces
+#               Other interfaces that this machine receives mail on
+#               by way of a proxy agent or network address transla-
+#               tor.
 # 
 # SEE ALSO
 #        postmap(1) create lookup table

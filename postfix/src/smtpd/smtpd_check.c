@@ -177,12 +177,14 @@
 /*	Permit the request when the resolved recipient domain matches the
 /*	\fIrelay_domains\fR configuration parameter or a subdomain thereof,
 /*	or when the destination somehow resolves locally ($inet_interfaces,
+/*	$proxy_interfaces,
 /*	$mydestination, $virtual_alias_domains, or $virtual_mailbox_domains).
 /* .IP reject_unauth_destination
 /*	Reject the request when the resolved recipient domain does not match
 /*	the \fIrelay_domains\fR configuration parameter or a subdomain
 /*	thereof, and when the destination does not somehow resolve locally
-/*	($inet_interfaces, $mydestination, $virtual_alias_domains, or
+/*	($inet_interfaces, $proxy_interfaces,
+/*	$mydestination, $virtual_alias_domains, or
 /*	$virtual_mailbox_domains).
 /*	The \fIrelay_domains_reject_code\fR configuration parameter specifies
 /*	the reject status code (default: 554).
@@ -3853,7 +3855,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 
 	/*
 	 * Reject mail to unknown addresses in local domains (domains that
-	 * match $mydestination or $inet_interfaces).
+	 * match $mydestination or ${proxy,inet}_interfaces).
 	 */
     case RESOLVE_CLASS_LOCAL:
 	if (*var_local_rcpt_maps

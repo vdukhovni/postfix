@@ -267,10 +267,10 @@ SMTPD(8)                                                 SMTPD(8)
 
        <b>unknown_local_recipient_reject_code</b>
               The response code when a client specifies a recipi-
-              ent   whose   domain   matches   <b>$mydestination</b>  or
-              <b>$inet_interfaces</b>,  while  <b>$local_recipient_maps</b>  is
-              non-empty  and  does not list the recipient address
-              or address local-part.
+              ent    whose    domain    matches   <b>$mydestination</b>,
+              <b>$inet_interfaces</b>   or   <b>$proxy_interfaces</b>,    while
+              <b>$local_recipient_maps</b>  is  non-empty  and  does not
+              list the recipient address or address local-part.
 
        <b>unknown_relay_recipient_reject_code</b>
               The response code when a client specifies a recipi-

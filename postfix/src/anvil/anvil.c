@@ -2,7 +2,7 @@
 /* NAME
 /*	anvil 8
 /* SUMMARY
-/*	Postfix connection count and rate management
+/*	Postfix client count and rate management
 /* SYNOPSIS
 /*	\fBanvil\fR [generic Postfix daemon options]
 /* DESCRIPTION

@@ -83,8 +83,8 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <i>user address, address, ...</i>
               Mail for <i>user</i>@<i>site</i> is redirected  to  <i>address</i>  when
               <i>site</i>  is equal to $<b>myorigin</b>, when <i>site</i> is listed in
-              $mydestination,   or   when   it   is   listed   in
-              $<i>inet</i><b>_</b><i>interfaces</i>.
+              $<b>mydestination</b>,   or   when   it   is   listed   in
+              $<b>inet_interfaces</b> or $<b>proxy_interfaces</b>.
 
               This  functionality  overlaps with functionality of
               the local <i>aliases</i>(5) database.  The  difference  is
@@ -234,6 +234,11 @@ VIRTUAL(5)                                             VIRTUAL(5)
        <b>owner_request_special</b>
               Give special treatment to <b>owner-</b><i>xxx</i> and <i>xxx</i><b>-request</b>
               addresses.
+
+       <b>proxy_interfaces</b>
+              Other interfaces that this machine receives mail on
+              by way of a proxy agent or network address transla-
+              tor.
 
 <b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a> canonicalize and enqueue mail
