@@ -142,13 +142,17 @@
 umask 022
 PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc:/usr/contrib/bin:/usr/gnu/bin:/usr/ucb:/usr/bsd
 SHELL=/bin/sh
+IFS=" 	
+"
 
-# Process command-line options and parameter settings.
+# Process command-line options and parameter settings. Work around
+# brain damaged shells. "name=value command" should not make the
+# name=value setting permanent.
 
 for arg
 do
     case $arg in
-             *=*) IFS= eval $arg;;
+             *=*) SAVED_IFS="$IFS"; IFS= eval $arg; IFS="$SAVED_IFS";;
 -non-interactive) non_interactive=1;;
                *) echo Error: usage: $0 [-non-interactive] name=value ... 1>&2
 		  exit 1;;
@@ -509,26 +513,26 @@ cat <<EOF >$CONFIG_DIRECTORY/postfix-files || exit 1
 #	update=update owner/group/mode (upgrade mode).
 #	create=create missing directory.
 #
-$config_directory:d:root::755:u
-$daemon_directory:d:root::755:u
-$queue_directory:d:root::755:u
+\$config_directory:d:root::755:u
+\$daemon_directory:d:root::755:u
+\$queue_directory:d:root::755:u:c
 EOF
 
 # Generate instructions only for queue subdirectories.
 
 for dir in active bounce corrupt defer deferred flush incoming private saved
 do
-    echo $queue_directory/$dir:d:$mail_owner::700:u:c \
+    echo \$queue_directory/$dir:d:\$mail_owner::700:u:c \
 	>>$CONFIG_DIRECTORY/postfix-files || exit 1
 done
 
-echo $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:u:c \
+echo \$queue_directory/maildrop:d:\$mail_owner:\$setgid_group:730:u:c \
     >>$CONFIG_DIRECTORY/postfix-files || exit 1
 
-echo $queue_directory/public:d:$mail_owner:$setgid_group:710:u:c \
+echo \$queue_directory/public:d:\$mail_owner:\$setgid_group:710:u:c \
     >>$CONFIG_DIRECTORY/postfix-files || exit 1
 
-echo $queue_directory/pid:d:root::755:u:c \
+echo \$queue_directory/pid:d:root::755:u:c \
     >>$CONFIG_DIRECTORY/postfix-files || exit 1
 
 # Install daemon programs.
@@ -536,7 +540,7 @@ echo $queue_directory/pid:d:root::755:u:c \
 for file in `censored_ls libexec`
 do
     compare_or_replace $EXE libexec/$file $DAEMON_DIRECTORY/$file || exit 1
-    echo $daemon_directory/$file:f:root::755 \
+    echo \$daemon_directory/$file:f:root::755 \
 	>>$CONFIG_DIRECTORY/postfix-files || exit 1
 done
 
@@ -545,7 +549,7 @@ done
 for file in `censored_ls bin | grep '^post' | egrep -v '^post(drop|queue)$'`
 do
     compare_or_replace $EXE bin/$file $COMMAND_DIRECTORY/$file || exit 1
-    echo $command_directory/$file:f:root::755 \
+    echo \$command_directory/$file:f:root::755 \
 	>>$CONFIG_DIRECTORY/postfix-files || exit 1
 done
 
@@ -557,7 +561,7 @@ then
     for file in postdrop postqueue
     do
 	compare_or_replace $EXE bin/$file $COMMAND_DIRECTORY/$file || exit 1
-	echo $command_directory/$file:f:root:postdrop:1755 \
+	echo \$command_directory/$file:f:root:\$setgid_group:1755 \
 	    >>$CONFIG_DIRECTORY/postfix-files || exit 1
     done
 else
@@ -565,7 +569,7 @@ else
     do
 	compare_or_replace 2$EXE bin/$file $COMMAND_DIRECTORY/$file postdrop \
 	    || exit 1
-	echo $command_directory/$file:f:root:postdrop:1755 \
+	echo \$command_directory/$file:f:root:\$setgid_group:1755 \
 	    >>$CONFIG_DIRECTORY/postfix-files || exit 1
     done
 fi
@@ -577,9 +581,9 @@ test -f bin/sendmail && {
     compare_or_symlink $SENDMAIL_PATH $NEWALIASES_PATH
     compare_or_symlink $SENDMAIL_PATH $MAILQ_PATH
 cat <<EOF >>$CONFIG_DIRECTORY/postfix-files || exit 1
-$sendmail_path:f:root::755
-$newaliases_path:f:root::755
-$mailq_path:f:root::755
+\$sendmail_path:f:root::755
+\$newaliases_path:f:root::755
+\$mailq_path:f:root::755
 EOF
 }
 
@@ -596,19 +600,19 @@ else
     do
 	compare_or_replace 644 conf/$file $CONFIG_DIRECTORY/$file || exit 1
     done
-    test -z "$install_root" && need_config="-create -first-install"
+    test -z "$install_root" && need_config="create-missing first-install"
 fi
 
 for file in `censored_ls conf | egrep -v 'postfix-script|post-install'`
 do
-    echo $config_directory/$file:f:root::644 \
+    echo \$config_directory/$file:f:root::644 \
 	>>$CONFIG_DIRECTORY/postfix-files || exit 1
 done
 
 for file in postfix-script post-install
 do
     compare_or_replace $EXE conf/$file $CONFIG_DIRECTORY/$file || exit 1
-    echo $config_directory/$file:f:root::755 \
+    echo \$config_directory/$file:f:root::755 \
 	>>$CONFIG_DIRECTORY/postfix-files || exit 1
 done
 
@@ -635,7 +639,7 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
  for file in `censored_ls man?/*`
  do
      compare_or_replace 644 $file $MANPAGE_PATH/$file || exit 1
-     echo "$manpage_path/$file:f:root::644" \
+     echo \$manpage_path/$file:f:root::644 \
 	>>$CONFIG_DIRECTORY/postfix-files || exit 1
  done)
 
@@ -645,4 +649,6 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
 
 test -n "$install_root" && exit 0
 
-${SHELL} conf/post-install ${need_config-"-upgrade-source"} $config_directory
+export command_directory config_directory
+
+${SHELL} conf/post-install ${need_config-"upgrade-source"}

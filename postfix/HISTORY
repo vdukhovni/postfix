@@ -5944,6 +5944,11 @@ Apologies for any names omitted.
 	non-blocking pipe. File:  master/master_flow.c.  Report:
 	Hamish Marson.
 
+20020111
+
+	Feedback: feedback, bugfixes, and brain-dead shell workarounds
+	for the install scripts by Victor Duchovny and Simon Mudd.
+
 Open problems:
 
 	Low: don't do user@domain and @domain lookups in

@@ -1,3 +1,17 @@
+Incompatible changes with snapshot-20020111
+===========================================
+
+Another revision of installation procedures. The command line
+interface of the post-install script has changed; see embedded
+documentation.  The postfix-files file with information about
+Postfix files and directories now contains $name variables rather
+than directory names, user names and group names. You can now change
+parameters such as mail_owner and setgid_group after installing
+Postfix, and apply the correct file/directory ownerships and
+permissions by executing the post-install script as:
+
+    post-install set-permissions config_directory=/etc/postfix
+
 Incompatible changes with snapshot-20020110
 ===========================================
 
@@ -5,10 +19,10 @@ The INSTALL.sh installation procedure is replaced by a postfix-install
 script that either installs Postfix on the local system (as root)
 or that builds a package (as non-root) for distribution to other
 systems. This script creates a file $config_directory/postfix-files
-with ownership and permissions of Postfix files/directories.  The
-$config_directory/post-install script applies the finishing touch:
-it sets file/directory ownership and permissions, edits existing
-configuration files, and creates missing queue directories.
+with ownership and permissions of Postfix files/directories.  A
+new $config_directory/post-install script applies the finishing
+touch:  it sets file/directory ownership and permissions, edits
+existing configuration files, and creates missing queue directories.
 
 Incompatible changes with snapshot-20020106
 ===========================================

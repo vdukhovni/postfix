@@ -164,7 +164,7 @@ check)
 		\( -perm -020 -o -perm -002 \) -type f \
 		-exec $WARN group or other writable: {} \;
 
-	$SHELL $config_directory/post-install -create $config_directory || {
+	$SHELL $config_directory/post-install create-missing || {
 		$WARN unable to create missing queue directories
 		exit 1
 	}

@@ -44,6 +44,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -68,6 +69,7 @@ int     mail_flow_get(int len)
 {
     char   *myname = "mail_flow_get";
     char    buf[BUFFER_SIZE];
+    struct stat st;
     int     count;
     int     n = 0;
 
@@ -78,8 +80,14 @@ int     mail_flow_get(int len)
 	msg_panic("%s: bad length %d", myname, len);
 
     /*
-     * Read and discard N bytes. XXX AIX read() returns 0 when the pipe is
-     * empty.
+     * Silence some wild claims.
+     */
+    if (fstat(MASTER_FLOW_WRITE, &st) < 0)
+	msg_fatal("fstat flow pipe write descriptor: %m");
+
+    /*
+     * Read and discard N bytes. XXX AIX read() can return 0 when an open
+     * pipe is empty.
      */
     for (count = len; count > 0; count -= n)
 	if ((n = read(MASTER_FLOW_READ, buf, count > BUFFER_SIZE ?
