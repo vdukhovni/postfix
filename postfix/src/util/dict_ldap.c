@@ -589,7 +589,7 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage * res,
 	    }
 	    ldap_value_free(vals);
 	}
-	if (ber != NULL)
+	if (ber)
 	    ber_free(ber, 0);
     }
     if (msg_verbose)

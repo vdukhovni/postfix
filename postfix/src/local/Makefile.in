@@ -74,8 +74,6 @@ alias.o: ../../include/stringops.h
 alias.o: ../../include/vstring.h
 alias.o: ../../include/mymalloc.h
 alias.o: ../../include/mail_params.h
-alias.o: ../../include/mail_addr.h
-alias.o: ../../include/sent.h
 alias.o: ../../include/defer.h
 alias.o: ../../include/bounce.h
 alias.o: ../../include/maps.h
@@ -484,6 +482,8 @@ unknown.o: ../../include/vstream.h
 unknown.o: ../../include/iostuff.h
 unknown.o: ../../include/attr.h
 unknown.o: ../../include/bounce.h
+unknown.o: ../../include/mail_addr.h
+unknown.o: ../../include/sent.h
 unknown.o: local.h
 unknown.o: ../../include/htable.h
 unknown.o: ../../include/tok822.h

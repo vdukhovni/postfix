@@ -307,7 +307,6 @@ static int lmtp_loop(LMTP_STATE *state, int send_state, int recv_state)
 #define REWRITE_ADDRESS(dst, src) do { \
 	  if (*(src)) { \
 	      quote_821_local(dst, src); \
-	      lowercase(vstring_str(dst)); \
 	  } else { \
 	      vstring_strcpy(dst, src); \
 	  } \

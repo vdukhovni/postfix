@@ -12,6 +12,12 @@ snapshot release).  Patches change the patchlevel and the release
 date. Snapshots change only the release date, unless they include
 the same bugfixes as a patch release.
 
+Incompatible changes with Postfix snapshot 1.1.11-20021015
+==========================================================
+
+The Postfix LMTP client no longer lowercases email addresses in
+MAIL FROM and RCPT TO commands.
+
 Incompatible changes with Postfix snapshot 1.1.11-20021013
 ==========================================================
 

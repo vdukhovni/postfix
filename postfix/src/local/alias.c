@@ -82,8 +82,6 @@
 /* Global library. */
 
 #include <mail_params.h>
-#include <mail_addr.h>
-#include <sent.h>
 #include <defer.h>
 #include <maps.h>
 #include <bounce.h>
@@ -301,19 +299,6 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	    if (msg_verbose)
 		msg_info("%s: %s: %s not found", myname, *cpp, name);
 	}
-    }
-
-    /*
-     * If no alias was found for a required reserved name, toss the message
-     * into the bit bucket, and issue a warning instead.
-     */
-#define STREQ(x,y) (strcasecmp(x,y) == 0)
-
-    if (STREQ(name, MAIL_ADDR_MAIL_DAEMON)
-	|| STREQ(name, MAIL_ADDR_POSTMASTER)) {
-	msg_warn("required alias not found: %s", name);
-	*statusp = sent(SENT_ATTR(state.msg_attr), "discarded");
-	return (YES);
     }
 
     /*
