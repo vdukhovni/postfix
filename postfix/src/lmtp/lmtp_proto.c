@@ -225,6 +225,7 @@ int     lmtp_lhlo(LMTP_STATE *state)
      * LMTP server. Otherwise, we might do the wrong thing when the server
      * advertises a really huge message size limit.
      */
+    state->features = 0;
     lines = resp->str;
     (void) mystrtok(&lines, "\n");
     while ((words = mystrtok(&lines, "\n")) != 0) {

@@ -41,9 +41,15 @@ PCRE_TABLE(5)                                       PCRE_TABLE(5)
 
        <b>if</b> <b>/</b><i>pattern</i><b>/</b><i>flags</i>
 
-       <b>endif</b>  Examine the lines between <b>if</b>..<b>endif</b> only if <i>pattern</i>
-              matches. The <b>if</b>..<b>endif</b> can nest.   Do  not  prepend
-              whitespace to patterns inside <b>if</b>..<b>endif</b>.
+       <b>if</b> <b>!/</b><i>pattern</i><b>/</b><i>flags</i>
+
+       <b>endif</b>  Match   the  search  string  against  the  patterns
+              between <b>if</b> and <b>endif</b>, if and  only  if  the  search
+              string   matches  (does  not  match)  <i>pattern</i>.  The
+              <b>if</b>..<b>endif</b> can nest.
+
+              Note: do not prepend whitespace to patterns  inside
+              <b>if</b>..<b>endif</b>.
 
        Each  pattern  is  a  perl-like  regular  expression.  The
        expression delimiter can be any character, except  whites-

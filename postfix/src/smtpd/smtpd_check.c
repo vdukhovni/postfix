@@ -787,6 +787,13 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
     va_end(ap);
 
     /*
+     * Ensure RFC compliance. We could do this inside smtpd_chat_reply() and
+     * switch to multi-line for long replies.
+     */
+    vstring_truncate(error_text, 510);
+    VSTRING_TERMINATE(error_text);
+
+    /*
      * Validate the response, that is, the response must begin with a
      * three-digit status code, and the first digit must be 4 or 5. If the
      * response is bad, log a warning and send a generic response instead.

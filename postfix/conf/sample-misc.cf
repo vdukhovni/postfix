@@ -15,6 +15,9 @@ allow_min_user = no
 # receives a copy of each message that enters the Postfix system,
 # not including bounces that are generated locally.
 #
+# NOTE: if mail to the BCC address bounces it will be returned to
+# the sender.
+#
 always_bcc =
 
 # The daemon_timeout parameter specifies how much time a daemon may

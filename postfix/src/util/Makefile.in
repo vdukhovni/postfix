@@ -739,6 +739,9 @@ file_limit.o: iostuff.h
 find_inet.o: find_inet.c
 find_inet.o: sys_defs.h
 find_inet.o: msg.h
+find_inet.o: stringops.h
+find_inet.o: vstring.h
+find_inet.o: vbuf.h
 find_inet.o: find_inet.h
 fsspace.o: fsspace.c
 fsspace.o: sys_defs.h

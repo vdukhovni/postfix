@@ -40,9 +40,15 @@
 # 
 #        if /pattern/flags
 # 
-#        endif  Examine the lines between if..endif only if pattern
-#               matches. The if..endif can nest.   Do  not  prepend
-#               whitespace to patterns inside if..endif.
+#        if !/pattern/flags
+# 
+#        endif  Match   the  search  string  against  the  patterns
+#               between if and endif, if and  only  if  the  search
+#               string   matches  (does  not  match)  pattern.  The
+#               if..endif can nest.
+# 
+#               Note: do not prepend whitespace to patterns  inside
+#               if..endif.
 # 
 #        Each  pattern  is  a  perl-like  regular  expression.  The
 #        expression delimiter can be any character, except  whites-

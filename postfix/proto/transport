@@ -46,7 +46,7 @@
 # TABLE FORMAT
 # .ad
 # .fi
-#	The format of the transport table is as follows:
+#	The input format for the \fBpostmap\fR(1) command is as follows:
 # .IP "\fIpattern result\fR"
 #	When \fIpattern\fR matches the recipient address or domain, use the
 #	corresponding \fIresult\fR.

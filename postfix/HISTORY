@@ -6928,7 +6928,7 @@ Apologies for any names omitted.
 	File: util/dict_regexp.c.
 
  
-200209010
+20020910
 
 	Bugfix: the SMTP client produced suprious warnings about
 	trouble with fallback_relay hosts. File:  smtp/smtp_connect.c.
@@ -6936,7 +6936,7 @@ Apologies for any names omitted.
 	Robustness: don't wait with detecting broken SMTP connections
 	until reading input. Leandro Santi. File: smtpd/smtpd_chat.c.
 
-200209011
+20020911
 
 	Workaround: IRIX 6 can't do ioctl FIONREAD on pipes. This
 	breaks the in_flow_delay feature.  File:  util/sys_defs.h.
@@ -7848,7 +7848,27 @@ Apologies for any names omitted.
 	Cleanup: replaced references to "simulated virtual domains"
 	by "virtual alias domains". Victor Duchovni, Morgan Stanley.
 
+20030711
+
+	Bugfix: the LMTP session caching code did not reset the
+	EHLO server feature list when it needed to reconnect.
+	Problem found by Tobias Erbsland.
+
+20030717
+
+	Documentation: corrected the command time limit parameter
+	syntax in the spawn(8) manual page.
+
+20030811
+
+	Cleanup: produce a warning when host:port specifies a badly
+	formatted numerical port.  Files:  util/find_inet.c,
+	smtp/smtp_connect.c, lmtp/lmtp_connect.c.
+
 Open problems:
+
+	Doc: mention the proxy_interfaces parameter everywhere the
+	inet_interfaces and mydestination parameters are mentioned.
 
 	Low: smtp-source may block when sending large test messages.
 
